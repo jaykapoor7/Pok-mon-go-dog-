@@ -142,9 +142,3 @@
   .sp-acct.is-out { padding: 0 10px; font-size: 13px; }
 }
 
-/* The shell's bar on the Map is part of the sheet: paper, ink rule. */
-.sp.is-map .sp-bar { background: #fbf3e2; color: #2a1d17; box-shadow: 0 2px 0 #2a1d17; }
-.sp.is-map .sp-mark, .sp.is-map .sp-ws-btn, .sp.is-map .sp-dests a, .sp.is-map .sp-index-btn, .sp.is-map .sp-acct.is-out { color: #2a1d17; }
-.sp.is-map .sp-dests a[aria-current="page"] { box-shadow: inset 0 -3px 0 #d9452b; }
-.sp.is-map .sp-find { background: #fffaf0; color: #6b5546; border: 1.5px solid #2a1d17; }
-.sp.is-map .sp-acct.is-out { box-shadow: inset 0 0 0 1.5px #2a1d17; }

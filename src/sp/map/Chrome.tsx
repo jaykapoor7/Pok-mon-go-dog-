@@ -24,7 +24,8 @@ import type { Bucket } from "../atlas/recency";
 import { KINDS, kindOf, type EvidenceKind } from "../atlas/evidence";
 import { LENSES } from "../atlas/lenses";
 import { MARK } from "./marks";
-import { LENS_LABEL, MAP_LENSES, type MapLens } from "./lens";
+import { lensLabel, type MapScope, type MapVariant } from "./lens";
+import type { LensId } from "../atlas/lenses";
 
 export type Level = "india" | "city" | "area" | "animal";
 export type Face = { id: string; title: string; describe: string | null; photo: string; city: string; zone: string | null; h3: string; c: [number, number]; last_seen: string | null };
@@ -39,9 +40,10 @@ const ago = (iso: string | null | undefined) => {
 
 type Props = {
   level: Level; city: string | null; cityRow: NationalCity | null; cities: NationalCity[]; unplaced: Unplaced[];
-  citiesState: "ready" | "loading" | "error"; cityState: "idle" | "loading" | "error" | "missing"; clinical: boolean;
+  citiesState: "ready" | "loading" | "error" | "auth"; cityState: "idle" | "loading" | "error" | "missing"; clinical: boolean;
   ev: { kind: EvidenceKind; precision: string; note: string } | null;
-  lens: MapLens; setLens: (l: MapLens) => void; fig: { big: string; small: string }; reading: { lead: string; qualify: string } | null;
+  variant: MapVariant; scope: MapScope; lenses: LensId[];
+  lens: LensId; setLens: (l: LensId) => void; fig: { big: string; small: string }; reading: { lead: string; qualify: string } | null;
   places: Locality[]; cells: MapCell[]; centers: [number, number][]; months: { m: number; opened: number; care: number }[];
   area: MapArea | null | "loading" | "error"; areaIndex: number; animalId: string | null; faces: Face[]; zoom: number;
   quiet: boolean; setQuiet: (v: boolean) => void; mapError: string | null; picking: boolean; setPicking: (v: boolean) => void; center: [number, number] | null;
@@ -59,7 +61,8 @@ export function Chrome(P: Props) {
   /* Choosing something opens the sheet to read it; climbing back keeps it where it was. */
   useEffect(() => { if (level === "area" || level === "animal") setSheet((s) => (s === "peek" ? "half" : s)); }, [level, P.animalId, P.areaIndex]);
 
-  const title = level === "india" ? "India" : level === "city" ? city : cell ? placeName(cell.zone) : city;
+  const org = P.scope === "org";
+  const title = level === "india" ? (org ? "Your organisation" : "India") : level === "city" ? city : cell ? placeName(cell.zone) : city;
   const street = P.cities.filter((c) => kindOf(c.city, c.cells) !== "clinical");
 
   return (
@@ -71,11 +74,14 @@ export function Chrome(P: Props) {
           {city && <><span aria-hidden>›</span><button type="button" onClick={() => P.onCity(city)} aria-current={level === "city" ? "page" : undefined}>{city}</button></>}
           {cell && <><span aria-hidden>›</span><button type="button" onClick={() => P.onArea(cell.h3)} aria-current={level === "area" ? "page" : undefined}>{placeName(cell.zone)}</button></>}
         </nav>
-        <h1 className="fm-title">{level === "animal" && animal ? animal.title : title}{level === "india" && <span className="fm-hi" lang="hi"> भारत</span>}</h1>
+        <h1 className="fm-title">{level === "animal" && animal ? animal.title : title}{level === "india" && !org && <span className="fm-hi" lang="hi"> भारत</span>}</h1>
         {level === "india" && (
           <p className="fm-sub">
-            {P.citiesState === "error" ? "The national index could not be read. That is not the same as no records." :
+            {P.citiesState === "auth" ? "Sign in with your organisation to see its map." :
+              P.citiesState === "error" ? (org ? "Your organisation's map could not be read. That is not the same as no records." : "The national index could not be read. That is not the same as no records.") :
+              org && P.citiesState === "ready" && !P.cities.length ? "Your organisation has no mapped records yet. Records with a place appear here as they are added." :
               P.citiesState === "loading" ? "Reading the national record…" :
+              org ? <><b>{P.fig.big}</b> {P.fig.small}. Your organisation&rsquo;s own records, by city.</> :
               <><b>{P.fig.big}</b> {P.fig.small}. A record kept since 2015, not a live feed and not a census.</>}
           </p>
         )}
@@ -85,11 +91,11 @@ export function Chrome(P: Props) {
       </header>
 
       <div className="fm-tools">
-        <MapSearch cities={P.cities} onCity={P.onCity} onPlace={P.onPlace} />
+        <MapSearch cities={P.cities} onCity={P.onCity} onPlace={P.onPlace} remote={!org} />
         <div className="fm-lenses" role="group" aria-label="What the map shows">
-          {MAP_LENSES.map((id) => (
+          {P.lenses.map((id) => (
             <button key={id} type="button" aria-pressed={P.lens === id} onClick={() => P.setLens(id)} style={{ ["--lk" as string]: id === "animals" ? MARK.ster.yes : LENSES[id].ink }}>
-              <i aria-hidden />{LENS_LABEL[id]}
+              <i aria-hidden />{lensLabel(id)}
             </button>
           ))}
         </div>
@@ -106,16 +112,16 @@ export function Chrome(P: Props) {
         <button type="button" onClick={P.onLocate} aria-label="Go to where I am"><LocateFixed size={18} aria-hidden /></button>
         <button type="button" onClick={() => P.setQuiet(!P.quiet)} aria-pressed={P.quiet} aria-label={P.quiet ? "Show the painted map" : "Quiet map: evidence on plain paper"}>{P.quiet ? <Eye size={18} aria-hidden /> : <EyeOff size={18} aria-hidden />}</button>
       </div>
-      <button type="button" className="fm-report" onClick={() => P.setPicking(true)} hidden={P.picking}><Radio size={18} aria-hidden /><span>Report here</span></button>
-      {P.picking && <PickBar zoom={P.zoom} center={P.center} onCancel={() => P.setPicking(false)} />}
+      {P.variant !== "city" && <button type="button" className="fm-report" onClick={() => P.setPicking(true)} hidden={P.picking}><Radio size={18} aria-hidden /><span>{P.variant === "ngo" ? "Open a case here" : "Report here"}</span></button>}
+      {P.picking && <PickBar variant={P.variant} zoom={P.zoom} center={P.center} onCancel={() => P.setPicking(false)} />}
 
       {P.mapError && <p className="fm-err" role="status">{P.mapError}</p>}
 
-      <Sheet level={level} state={sheet} setState={setSheet} onClose={level === "india" ? null : P.onUp} label={level === "animal" ? "Animal" : level === "area" ? "Neighbourhood" : level === "city" ? "City" : "India"}>
+      <Sheet level={level} state={sheet} setState={setSheet} onClose={level === "india" ? null : P.onUp} label={level === "animal" ? "Animal" : level === "area" ? "Neighbourhood" : level === "city" ? "City" : org ? "Your organisation" : "India"}>
         {level === "india" && <IndiaCard cities={P.cities} street={street} unplaced={P.unplaced} faces={P.faces} fig={P.fig} onCity={P.onCity} />}
         {level === "city" && city && <CityCard {...P} city={city} />}
-        {level === "area" && cell && <AreaCard cell={cell} city={city!} area={area} onAnimal={P.onAnimal} />}
-        {level === "animal" && (animal ? <AnimalCard a={animal} city={city!} cell={cell} /> : area === "loading" || !area ? <p className="fm-wait" role="status">Reading this animal&rsquo;s record…</p> : <p className="fm-wait">This animal is not among the records read for this area. <button type="button" className="fm-link" onClick={P.onUp}>Back to the area</button></p>)}
+        {level === "area" && cell && <AreaCard cell={cell} city={city!} area={area} onAnimal={P.onAnimal} variant={P.variant} />}
+        {level === "animal" && (animal ? <AnimalCard a={animal} city={city!} cell={cell} variant={P.variant} /> : area === "loading" || !area ? <p className="fm-wait" role="status">Reading this animal&rsquo;s record…</p> : <p className="fm-wait">This animal is not among the records read for this area. <button type="button" className="fm-link" onClick={P.onUp}>Back to the area</button></p>)}
       </Sheet>
     </>
   );
@@ -241,7 +247,7 @@ function Ribbon({ months }: { months: { m: number; opened: number; care: number 
 }
 
 /* ── Neighbourhood: the animals recorded here, as a contact sheet ── */
-function AreaCard({ cell, city, area, onAnimal }: { cell: MapCell; city: string; area: MapArea | null | "loading" | "error"; onAnimal: (id: string) => void }) {
+function AreaCard({ cell, city, area, onAnimal, variant }: { cell: MapCell; city: string; area: MapArea | null | "loading" | "error"; onAnimal: (id: string) => void; variant: MapVariant }) {
   const [all, setAll] = useState(false);
   const a = area && area !== "loading" && area !== "error" ? area : null;
   const shown = a ? (all ? a.animals : a.animals.slice(0, 12)) : [];
@@ -279,14 +285,15 @@ function AreaCard({ cell, city, area, onAnimal }: { cell: MapCell; city: string;
         </>
       )}
       <p className="fm-note">On the map, each dot is one recorded animal, arranged inside this area. A dot is not where the animal was seen.</p>
-      <Link className="fm-btn is-flame" href={`/community/report?lat=${cell.c[1]}&lng=${cell.c[0]}`}><Radio size={16} aria-hidden /> Report an animal here</Link>
+      {variant === "community" && <Link className="fm-btn is-flame" href={`/community/report?lat=${cell.c[1]}&lng=${cell.c[0]}`}><Radio size={16} aria-hidden /> Report an animal here</Link>}
+      {variant === "ngo" && <Link className="fm-btn is-flame" href={`/ngo/cases/new?lat=${cell.c[1].toFixed(5)}&lng=${cell.c[0].toFixed(5)}&zone=${encodeURIComponent(placeName(cell.zone))}`}><Radio size={16} aria-hidden /> Open a case in this area</Link>}
     </div>
   );
 }
 const statusWord = (s: string | null) => (s === "open" ? "Open" : s === "in_progress" ? "In progress" : s === "closed" ? "Closed" : s === "handed_on" ? "Handed on" : s === "no_action" ? "Closed, no action recorded" : "Status not recorded");
 
 /* ── Animal: a field-guide entry ── */
-function AnimalCard({ a, city, cell }: { a: AreaAnimal; city: string; cell: MapCell | null }) {
+function AnimalCard({ a, city, cell, variant }: { a: AreaAnimal; city: string; cell: MapCell | null; variant: MapVariant }) {
   const [copied, setCopied] = useState(false);
   const ster = a.ster === "sterilised" ? "Recorded sterilised" : a.ster === "not_sterilised" ? "Recorded not sterilised" : "Sterilisation not recorded";
   const vacc = a.vacc === "vaccinated" ? "Recorded vaccinated" : a.vacc === "not_vaccinated" ? "Recorded not vaccinated" : "Vaccination not recorded";
@@ -316,8 +323,9 @@ function AnimalCard({ a, city, cell }: { a: AreaAnimal; city: string; cell: MapC
       </ol>
       <p className="fm-note">{a.org ? `Kept by ${a.org}. ` : ""}Placed by area, not by street. A status is as recorded, never assumed.</p>
       <div className="fm-acts">
-        <Link className="fm-btn is-ink" href={`/animal/${a.id}`}>The full record <ArrowUpRight size={16} aria-hidden /></Link>
-        <Link className="fm-btn is-flame" href={`/community/report?animal=${a.id}`}><Radio size={16} aria-hidden /> I saw this animal</Link>
+        <Link className="fm-btn is-ink" href={variant === "ngo" ? `/ngo/animals/${a.id}` : `/animal/${a.id}`}>{variant === "ngo" ? "Casefile" : "The full record"} <ArrowUpRight size={16} aria-hidden /></Link>
+        {variant === "community" && <Link className="fm-btn is-flame" href={`/community/report?animal=${a.id}`}><Radio size={16} aria-hidden /> I saw this animal</Link>}
+        {variant === "ngo" && <Link className="fm-btn is-flame" href={`/ngo/cases/new?dog=${a.id}`}><Radio size={16} aria-hidden /> Open a case</Link>}
         <button type="button" className="fm-btn" onClick={share}><Share2 size={16} aria-hidden /> {copied ? "Link copied" : "Share"}</button>
       </div>
     </article>
@@ -342,11 +350,11 @@ function Plate({ tag, puppy }: { tag: string; puppy: boolean }) {
 const sourceWord = (s: string) => (/import|register|xlsx|sheet/i.test(s) ? "an imported register" : /inat/i.test(s) ? "an iNaturalist observation" : /campaign|survey/i.test(s) ? "a field campaign" : /field/i.test(s) ? "a field record" : /report|community|web/i.test(s) ? "a community report" : s.replace(/_/g, " "));
 
 /* ── Key: what the marks mean at this scale ── */
-function Key({ level, lens, recency, zoom }: { level: Level; lens: MapLens; recency: Bucket[]; zoom: number }) {
+function Key({ level, lens, recency, zoom }: { level: Level; lens: LensId; recency: Bucket[]; zoom: number }) {
   const L = LENSES[lens];
   return (
     <>
-      <p className="fm-k">{LENS_LABEL[lens]}</p>
+      <p className="fm-k">{lensLabel(lens)}</p>
       {level === "india" ? (
         <ul className="fm-keyl">
           <li><span className="fm-sw is-rosette" aria-hidden />A city, sized by {lens === "animals" ? "animals on the record" : L.unit}</li>
@@ -368,16 +376,18 @@ function Key({ level, lens, recency, zoom }: { level: Level; lens: MapLens; rece
 }
 
 /* ── Report here: move the map to the place, then confirm ── */
-function PickBar({ zoom, center, onCancel }: { zoom: number; center: [number, number] | null; onCancel: () => void }) {
+function PickBar({ variant, zoom, center, onCancel }: { variant: MapVariant; zoom: number; center: [number, number] | null; onCancel: () => void }) {
   const router = useRouter();
   const close = zoom >= 11 && center;
+  const ngo = variant === "ngo";
+  const base = ngo ? "/ngo/cases/new" : "/community/report";
   return (
     <>
       <div className="fm-cross" aria-hidden><Crosshair size={36} /></div>
-      <div className="fm-pick" role="dialog" aria-label="Report an animal here">
-        <p>{close ? "Report an animal at the centre of the map. Move the map to the place, then confirm." : "Zoom in to the street where you saw the animal, or continue and choose the place in the report."}</p>
+      <div className="fm-pick" role="dialog" aria-label={ngo ? "Open a case here" : "Report an animal here"}>
+        <p>{close ? (ngo ? "Open a case at the centre of the map. Move the map to the place, then confirm." : "Report an animal at the centre of the map. Move the map to the place, then confirm.") : (ngo ? "Zoom in to the street, or continue and choose the place in the case." : "Zoom in to the street where you saw the animal, or continue and choose the place in the report.")}</p>
         <div className="fm-acts">
-          <button type="button" className="fm-btn is-flame" onClick={() => router.push(close ? `/community/report?lat=${center![1].toFixed(5)}&lng=${center![0].toFixed(5)}` : "/community/report")}><Radio size={16} aria-hidden /> {close ? "Report here" : "Continue to the report"}</button>
+          <button type="button" className="fm-btn is-flame" onClick={() => router.push(close ? `${base}?lat=${center![1].toFixed(5)}&lng=${center![0].toFixed(5)}` : base)}><Radio size={16} aria-hidden /> {close ? (ngo ? "Open a case here" : "Report here") : (ngo ? "Continue to the case" : "Continue to the report")}</button>
           <button type="button" className="fm-btn" onClick={onCancel}>Cancel</button>
         </div>
       </div>
@@ -387,7 +397,7 @@ function PickBar({ zoom, center, onCancel }: { zoom: number; center: [number, nu
 
 /* ── Search: cities on the record, localities, animals by name or tag ── */
 type Found = { animals: { id: string; title: string; city: string | null; zone: string | null; h3: string | null }[]; places: { city: string; name: string; animals: number }[] };
-function MapSearch({ cities, onCity, onPlace }: { cities: NationalCity[]; onCity: Props["onCity"]; onPlace: Props["onPlace"] }) {
+function MapSearch({ cities, onCity, onPlace, remote }: { cities: NationalCity[]; onCity: Props["onCity"]; onPlace: Props["onPlace"]; remote: boolean }) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [found, setFound] = useState<Found | null>(null);
@@ -395,13 +405,14 @@ function MapSearch({ cities, onCity, onPlace }: { cities: NationalCity[]; onCity
   const [hi, setHi] = useState(0);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const t = q.trim(); if (t.length < 3) { setFound(null); setState("idle"); return; }
+    /* The public record is searched only on public maps; an organisation's map finds its own cities. */
+    const t = q.trim(); if (!remote || t.length < 3) { setFound(null); setState("idle"); return; }
     let live = true; setState("reading");
     const id = window.setTimeout(() => {
       fetch(`/api/livingmap?kind=find&q=${encodeURIComponent(t)}`).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).then((j: Found) => { if (live) { setFound(j); setState("idle"); } }).catch(() => { if (live) setState("error"); });
     }, 220);
     return () => { live = false; window.clearTimeout(id); };
-  }, [q]);
+  }, [q, remote]);
   useEffect(() => { const out = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); }; document.addEventListener("pointerdown", out); return () => document.removeEventListener("pointerdown", out); }, []);
   const t = q.trim().toLowerCase();
   const cityHits = t ? cities.filter((c) => c.city.toLowerCase().includes(t)).slice(0, 4) : [];

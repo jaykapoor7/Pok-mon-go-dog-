@@ -35,7 +35,8 @@ import { LENSES, lensFigure, nationalMeasure, type LensId } from "../atlas/lense
 import { GLYPHS, ORNAMENT, collapseAttribution, drawGround, groundStyle, regionLabels } from "./ground";
 import { BLOOM_PX, MARK, PAW_PX, ROSETTE_PX, bloom, edgeRing, paw, rosette, sterPetals } from "./marks";
 import { Chrome, type Face, type Level } from "./Chrome";
-import { MAP_LENSES, type MapLens } from "./lens";
+import { MAP_LENSES, unitFor, type MapScope, type MapVariant } from "./lens";
+import { getSupabase } from "@/lib/supabase";
 import "./field-map.css";
 
 
@@ -50,28 +51,40 @@ const BLOOM_STOPS: [number, number][] = [[8, 10], [10, 17], [11, 24], [12, 36], 
 /** A city rosette's diameter in px: by the lens's count, never smaller than a legible flower. */
 export const rosetteD = (v: number, max: number, hollow: boolean) => (hollow ? 48 : 22 + (Math.sqrt(v) / Math.max(1, max)) * 64);
 
+/** A read in the Map's scope: public, or an organisation's own records with its member's session. */
+async function api(path: string, scope: MapScope): Promise<Response> {
+  if (scope === "public") return fetch(path);
+  const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
+  const token = data.session?.access_token;
+  if (!token) return new Response(JSON.stringify({ error: "Sign in with your organisation to see its map." }), { status: 401 });
+  return fetch(`${path}${path.includes("?") ? "&" : "?"}scope=org`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+}
 const cityCache = new Map<string, Promise<MapCity | null>>();
-function readCity(city: string) {
-  const hit = cityCache.get(city); if (hit) return hit;
-  const p = fetch(`/api/livingmap?city=${encodeURIComponent(city)}`).then(async (r) => { if (r.status === 404) return null; if (!r.ok) throw new Error(String(r.status)); return (await r.json()) as MapCity; });
-  cityCache.set(city, p); p.catch(() => cityCache.delete(city));
+const cacheKey = (scope: MapScope, city: string) => `${scope}:${city}`;
+function readCity(city: string, scope: MapScope) {
+  const key = cacheKey(scope, city);
+  const hit = cityCache.get(key); if (hit) return hit;
+  const p = api(`/api/livingmap?city=${encodeURIComponent(city)}`, scope).then(async (r) => { if (r.status === 404) return null; if (!r.ok) throw new Error(String(r.status)); return (await r.json()) as MapCity; });
+  cityCache.set(key, p); p.catch(() => cityCache.delete(key));
   return p;
 }
 
-export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: NationalCity[]; initialUnplaced?: Unplaced[] }) {
+export function FieldMap({ variant = "community", scope = "public", lenses = MAP_LENSES, defaultLens = "animals", initialCities, initialUnplaced }: {
+  variant?: MapVariant; scope?: MapScope; lenses?: LensId[]; defaultLens?: LensId; initialCities?: NationalCity[]; initialUnplaced?: Unplaced[];
+}) {
   const params = useSearchParams();
   const I = useRef({ city: params.get("city"), lens: params.get("lens"), area: params.get("area"), animal: params.get("animal"), place: params.get("place"), view: params.get("view") }).current;
 
   /* ── state ── */
   const [cities, setCities] = useState<NationalCity[]>(initialCities ?? []);
   const [unplaced, setUnplaced] = useState<Unplaced[]>(initialUnplaced ?? []);
-  const [citiesState, setCitiesState] = useState<"ready" | "loading" | "error">(initialCities?.length ? "ready" : "loading");
+  const [citiesState, setCitiesState] = useState<"ready" | "loading" | "error" | "auth">(initialCities?.length ? "ready" : "loading");
   const [national, setNational] = useState<NationalCell[]>([]);
   const [faces, setFaces] = useState<Face[]>([]);
   const [city, setCity] = useState<string | null>(I.city);
   const [data, setData] = useState<MapCity | null>(null);
   const [cityState, setCityState] = useState<"idle" | "loading" | "error" | "missing">("idle");
-  const [lens, setLens] = useState<MapLens>(MAP_LENSES.includes(I.lens as MapLens) ? (I.lens as MapLens) : "animals");
+  const [lens, setLens] = useState<LensId>(lenses.includes(I.lens as LensId) ? (I.lens as LensId) : defaultLens);
   const [areaH3, setAreaH3] = useState<string | null>(I.area);
   const [area, setArea] = useState<MapArea | null | "loading" | "error">(null);
   const [animalId, setAnimalId] = useState<string | null>(I.animal);
@@ -87,7 +100,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
   const pendingPaw = useRef<number | null>(null);
   const pendingPlace = useRef<string | null>(I.place);
 
-  const L = LENSES[lens as LensId];
+  const L = LENSES[lens];
   const q = question(L.q);
   const facet = L.facet ?? (q.facets?.[0]?.id ?? "all");
   const level: Level = !city ? "india" : animalId ? "animal" : areaH3 ? "area" : "city";
@@ -105,31 +118,33 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
     if (initialCities?.length) return;
     let live = true;
     const read = (left: number): void => {
-      fetch("/api/livingmap?kind=cities").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-        .then((j) => { if (live) { setCities(j.cities ?? []); setUnplaced(j.unplaced ?? []); setCitiesState("ready"); } })
+      api("/api/livingmap?kind=cities", scope).then((r) => (r.status === 401 ? "auth" : r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((j) => { if (!live) return; if (j === "auth") { setCitiesState("auth"); return; } setCities(j.cities ?? []); setUnplaced(j.unplaced ?? []); setCitiesState("ready"); })
         .catch(() => { if (!live) return; if (left > 0) window.setTimeout(() => read(left - 1), 1200); else setCitiesState("error"); });
     };
     read(2);
     return () => { live = false; };
-  }, [initialCities]);
+  }, [initialCities, scope]);
+  /* India's recorded areas and its faces are public; an organisation's map stays its own. */
   useEffect(() => {
+    if (scope !== "public") return;
     let live = true;
     fetch("/api/livingmap?kind=national").then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.cells) setNational(j.cells); }).catch(() => {});
     fetch("/api/livingmap?kind=faces").then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.faces) setFaces(j.faces); }).catch(() => {});
     return () => { live = false; };
-  }, []);
+  }, [scope]);
   useEffect(() => {
     if (!city || clinical) { setData(null); setCityState("idle"); return; }
     let live = true;
     setCityState("loading");
-    readCity(city).then((d) => { if (live) { setData(d); setCityState(d ? "idle" : "missing"); } }).catch(() => { if (live) { setData(null); setCityState("error"); } });
+    readCity(city, scope).then((d) => { if (live) { setData(d); setCityState(d ? "idle" : "missing"); } }).catch(() => { if (live) { setData(null); setCityState("error"); } });
     return () => { live = false; };
-  }, [city, clinical]);
+  }, [city, clinical, scope]);
   useEffect(() => {
     if (!city || !areaH3) { setArea(null); return; }
     let live = true;
     setArea("loading");
-    fetch(`/api/livingmap?kind=area&city=${encodeURIComponent(city)}&h3=${areaH3}`)
+    api(`/api/livingmap?kind=area&city=${encodeURIComponent(city)}&h3=${areaH3}`, scope)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).then((a: MapArea) => {
         if (!live) return;
         setArea(a);
@@ -138,7 +153,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
       })
       .catch(() => { if (live) setArea("error"); });
     return () => { live = false; };
-  }, [city, areaH3]);
+  }, [city, areaH3, scope]);
 
   /* ── the reading ── */
   const cells = useMemo(() => data?.cells ?? [], [data]);
@@ -301,7 +316,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
   const cityFeatures = useCallback(() => {
     const m = mapRef.current; if (!m) return;
     const show = level === "india";
-    const vals = cities.map((c) => nationalMeasure(lens as LensId, c));
+    const vals = cities.map((c) => nationalMeasure(lens, c));
     const max = Math.sqrt(Math.max(1, ...cities.map((c, i) => (kindOf(c.city, c.cells) === "clinical" ? 0 : vals[i]))));
     const order = cities.map((c, i) => ({ c, v: vals[i] })).sort((a, b) => b.v - a.v).map((x) => x.c.city);
     const g = growRef.current.cities;
@@ -316,7 +331,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
       const fig = v.toLocaleString("en-IN");
       return [{ type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [c.lng, c.lat] }, properties: {
         name: c.city, img, s: d / (ROSETTE_PX / 2), g: Math.max(0, Math.min(1, g * 1.5 - rank * 0.5)), sort: -v,
-        title: c.city, line: hollow ? `${fig} animals in a city-level clinical register · not mapped by street` : `${fig} ${LENSES[lens as LensId].unit} · ${KINDS[k].label.toLowerCase()}`,
+        title: c.city, line: hollow ? `${fig} animals in a city-level clinical register · not mapped by street` : `${fig} ${unitFor(lens, v)} · ${KINDS[k].label.toLowerCase()}`,
       } }];
     }) : [] });
   }, [cities, level, lens, L.ink]);
@@ -410,7 +425,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
     const E = htmlEls.current;
     unmark(E.cities.values()); E.cities.clear();
     if (level !== "india") return;
-    const vals = cities.map((c) => (kindOf(c.city, c.cells) === "clinical" ? c.animals : nationalMeasure(lens as LensId, c)));
+    const vals = cities.map((c) => (kindOf(c.city, c.cells) === "clinical" ? c.animals : nationalMeasure(lens, c)));
     const max = Math.sqrt(Math.max(1, ...cities.map((c, i) => (kindOf(c.city, c.cells) === "clinical" ? 0 : vals[i]))));
     /* A city-level register is lettered after the street cities it would otherwise crowd out. */
     const weight = (c: NationalCity, v: number) => (kindOf(c.city, c.cells) === "clinical" ? v / 8 : v);
@@ -425,7 +440,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
       e.style.setProperty("--i", String(r));
       e.innerHTML = `<b></b><small></small>`;
       e.querySelector("b")!.textContent = c.city;
-      e.querySelector("small")!.textContent = hollow ? `${v.toLocaleString("en-IN")} · city-level register` : `${v.toLocaleString("en-IN")} ${lens === "animals" ? (v === 1 ? "animal" : "animals") : LENSES[lens as LensId].unit}`;
+      e.querySelector("small")!.textContent = hollow ? `${v.toLocaleString("en-IN")} · city-level register` : `${v.toLocaleString("en-IN")} ${unitFor(lens, v)}`;
       e.setAttribute("aria-label", `${c.city}: ${e.querySelector("small")!.textContent}. Open the city.`);
       e.addEventListener("click", (ev) => { ev.stopPropagation(); openCity(c.city); });
       E.cities.set(c.city, mark(e, [c.lng!, c.lat!], "top"));
@@ -532,13 +547,13 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
   useEffect(() => {
     const p = new URLSearchParams();
     if (city) p.set("city", city);
-    if (lens !== "animals") p.set("lens", lens);
+    if (lens !== defaultLens) p.set("lens", lens);
     if (areaH3) p.set("area", areaH3);
     if (animalId) p.set("animal", animalId);
     if (quiet) p.set("view", "quiet");
     const s = p.toString();
     window.history.replaceState(window.history.state, "", s ? `${window.location.pathname}?${s}` : window.location.pathname);
-  }, [city, lens, areaH3, animalId, quiet]);
+  }, [city, lens, areaH3, animalId, quiet, defaultLens]);
 
   /* Escape climbs one scale. */
   useEffect(() => {
@@ -562,10 +577,10 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
 
   const cityRow = city ? cities.find((c) => c.city === city) ?? null : null;
   const ev = city ? cityEvidence(city, cityRow?.cells ?? 2) : null;
-  const fig = lensFigure(lens as LensId, level === "india" ? null : cells, level === "india" ? cities : null);
+  const fig = lensFigure(lens, level === "india" ? null : cells, level === "india" ? cities : null);
 
   return (
-    <div className={`fm is-${level}${quiet ? " is-quiet" : ""}${picking ? " is-picking" : ""}`}>
+    <div className={`fm is-${variant} is-${level}${quiet ? " is-quiet" : ""}${picking ? " is-picking" : ""}`}>
       <div className="fm-map" ref={el} role="application" aria-label={`Map of ${city ?? "India"}. ${L.define} The card lists the same places and figures.`} />
       {stamps.length > 0 && (
         <div className={`fm-stamps${moving ? " is-moving" : ""}`}>
@@ -587,12 +602,13 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
       {hover && <div className="fm-tip" style={{ left: hover.x + 14, top: hover.y + 14 }} aria-hidden><b>{hover.title}</b><span>{hover.line}</span></div>}
       <Chrome
         level={level} city={city} cityRow={cityRow} cities={cities} unplaced={unplaced} citiesState={citiesState} cityState={cityState} clinical={clinical} ev={ev}
+        variant={variant} scope={scope} lenses={lenses}
         lens={lens} setLens={setLens} fig={fig} reading={reading} places={places} cells={cells} centers={centers} months={months}
         area={area} areaIndex={areaIndex} animalId={animalId} faces={faces} zoom={zoom} quiet={quiet} setQuiet={setQuiet} mapError={mapError}
         picking={picking} setPicking={setPicking} center={center} recency={RECENCY}
         onPlace={(c, name) => { if (data?.city === c) { const hit = data.cells.filter((x) => placeName(x.zone).toLowerCase() === name.toLowerCase()).sort((a, b) => b.animals - a.animals)[0]; if (hit) { setAreaH3(hit.h3); setAnimalId(null); } } else { pendingPlace.current = name; openCity(c); } }}
         onIndia={goIndia} onCity={openCity} onArea={(h3) => { setAreaH3(h3); setAnimalId(null); }} onAnimal={(id) => setAnimalId(id)} onUp={up}
-        onFly={flyTo} onZoom={zoomBy} onLocate={locate} onRetry={() => { const c = city; if (c) { cityCache.delete(c); setCity(null); window.setTimeout(() => setCity(c), 0); } }}
+        onFly={flyTo} onZoom={zoomBy} onLocate={locate} onRetry={() => { const c = city; if (c) { cityCache.delete(cacheKey(scope, c)); setCity(null); window.setTimeout(() => setCity(c), 0); } }}
       />
     </div>
   );

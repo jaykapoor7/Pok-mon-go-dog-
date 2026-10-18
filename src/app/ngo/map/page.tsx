@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Atlas } from "@/sp/atlas/Atlas";
+import { FieldMap } from "@/sp/map/FieldMap";
 import { NGO_LENSES } from "@/sp/atlas/lenses";
 import { NgoGate } from "@/sp/ngo/Gate";
 
@@ -11,7 +11,7 @@ export const metadata = { title: "Map, StrayPaw NGO", robots: { index: false, fo
 export default function NgoMapPage() {
   return (
     <NgoGate title="Map" lede="Your organisation's open work, needs and care, by area.">
-      <Suspense fallback={null}><Atlas variant="ngo" scope="org" lenses={NGO_LENSES} more={[]} defaultLens="help" /></Suspense>
+      <Suspense fallback={null}><FieldMap variant="ngo" scope="org" lenses={NGO_LENSES} defaultLens="help" /></Suspense>
     </NgoGate>
   );
 }
