@@ -7,21 +7,18 @@ import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { ROLE_META, readStoredRole } from "@/lib/roles";
-import { ArrowUpRight, Menu, X } from "lucide-react";
-import { AuthEntryMenu } from "@/components/auth/AuthEntryMenu";
+import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
 import "./header.css";
 
 /* ════════════════════════════════════════════════════════════════════
    The site header.
 
-   Five places, no menus: what the record holds and where (Explore), who
-   keeps it (About), what it teaches (Education), and the two teams that
-   work from it (NGOs, Municipalities). Report and the map are not here; both are
-   the first two things on the landing. Beside them, quietly, the language,
-   the way in for someone holding an invitation, and the one strong action:
-   into the app. The bar is glass over whatever it sits on — night over the
-   landing plate, paper over a page. On a phone it is one row: the
-   wordmark, the code, the app and the menu.
+   StrayPaw · Explore · For organisations · Open app. Explore is the live
+   Map; For organisations opens a short panel (NGOs first, municipalities,
+   applying, signing in with an invitation). Beside them, quietly, the
+   language and the one strong action: into the app. Everything else lives
+   in the footer index. The bar is glass over whatever it sits on — night
+   over the landing, paper over a page.
 
    tKey names an entry in the nav dictionary. An item without one keeps its
    English label while translation is partial.
@@ -30,13 +27,12 @@ import "./header.css";
 type NavKey = keyof Dictionary["nav"];
 type NavItem = { label: string; href: string; tKey?: NavKey };
 
-const LINKS: NavItem[] = [
-  { label: "Explore", href: "/explore" },
-  { label: "About", href: "/about", tKey: "about" },
-  { label: "Education", href: "/education" },
-  { label: "Funders", href: "/for-funders" },
-  { label: "For NGOs", href: "/for-ngos" },
-  { label: "Municipalities", href: "/for-governments" },
+const LINKS: NavItem[] = [{ label: "Explore", href: "/explore" }];
+const ORGS = [
+  { label: "For NGOs", sub: "Cases, care, follow-ups and animal histories in one workspace", href: "/for-ngos" },
+  { label: "For municipalities", sub: "Recorded coverage, programmes and gaps, by area", href: "/for-governments" },
+  { label: "Get StrayPaw for your NGO", sub: "Apply for access", href: "/partner-apply" },
+  { label: "Sign in with your code", sub: "For members of an organisation", href: "/join" },
 ];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
@@ -44,6 +40,7 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
   const pathname = usePathname() ?? "";
   const label = (item: { label: string; tKey?: NavKey }) => (item.tKey ? t.nav[item.tKey] : item.label);
   const [open, setOpen] = useState(false);
+  const [orgs, setOrgs] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   /* Someone who has picked a space before goes straight back to it; the
      picker is for the first visit, and is one "Switch space" away after. */
@@ -63,13 +60,13 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
 
   /* The phone menu closes on Escape. */
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    if (!open && !orgs) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); setOrgs(false); } };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [open, orgs]);
 
-  const closeAll = () => setOpen(false);
+  const closeAll = () => { setOpen(false); setOrgs(false); };
   const here = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
@@ -86,11 +83,18 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
               {label(l)}
             </Link>
           ))}
+          <div className={`sp-orgs${orgs ? " is-open" : ""}`} onMouseLeave={() => setOrgs(false)}>
+            <button type="button" className={here("/for-ngos") || here("/for-governments") ? "is-here" : ""} aria-expanded={orgs} aria-controls="sp-orgs-panel" onClick={() => setOrgs((v) => !v)}>
+              For organisations <ChevronDown size={14} aria-hidden />
+            </button>
+            <div id="sp-orgs-panel" className="sp-orgs-panel" hidden={!orgs}>
+              {ORGS.map((o) => <Link key={o.href} href={o.href} onClick={closeAll}><b>{o.label}</b><small>{o.sub}</small></Link>)}
+            </div>
+          </div>
         </nav>
 
         <div className="sp-header-actions">
           <LanguageSwitcher />
-          <AuthEntryMenu className="sp-header-entry" />
           <Link href={appHref} prefetch className="sp-header-cta">
             Open app <ArrowUpRight size={15} />
           </Link>
