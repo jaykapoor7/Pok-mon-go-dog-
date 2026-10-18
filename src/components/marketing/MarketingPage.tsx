@@ -14,6 +14,7 @@ import { Reveal } from "@/components/site/Reveal";
 import "@/components/site/site.css";
 import "./marketing.css";
 import { BackLink } from "@/components/app/BackLink";
+import "@/components/site/nav-pages.css";
 
 /* ════════════════════════════════════════════════════════════════════
    Shared scaffold for the explainer pages behind the header nav.
@@ -85,7 +86,7 @@ export function MarketingPage({
     </AppShell>
   );
   return (
-    <div className="sp mk">
+    <div className="sp mk navlight">
       <SiteHeader />
       {/* Six explainer pages sit behind this. The header has the site
           nav, but nobody arriving from a product link knows that is
@@ -132,7 +133,7 @@ export function MarketingPage({
         </section>
 
       </main>
-      <SiteFooter />
+      <SiteFooter className="is-light" />
     </div>
   );
 }

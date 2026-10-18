@@ -9,6 +9,8 @@ import { getWardCities } from "@/lib/wards";
 import { getSupabase } from "@/lib/supabase";
 import "@/components/site/site.css";
 import "@/components/company/company.css";
+import "@/components/site/nav-pages.css";
+import { FolkHero } from "@/components/company/FolkHero";
 import "./cities.css";
 import { PlaceGround } from "@/components/system/PlaceGround";
 import { HairlineFigure } from "@/components/hairline/HairlineFigure";
@@ -79,8 +81,8 @@ export default async function ForGovernmentsPage() {
   const animalsInCity = city?.animals ?? 0;
 
   return (
-    <div className="co gv">
-      <SiteHeader tone="night" />
+    <div className="co gv navlight">
+      <SiteHeader tone="paper" />
       <main>
         <section className="gv-hero" aria-labelledby="gv-title">
           <div className="gv-hero-in">
@@ -191,7 +193,7 @@ export default async function ForGovernmentsPage() {
         </section>
 
         <section className="co-close has-ground">
-          <PlaceGround className="co-hero-ground" caption={null} city={city?.city} />
+          <FolkHero art="elephant" className="is-close" />
           <div className="co-close-in">
             <div>
               <h2>Start with one ward, <em>one quarter.</em></h2>
@@ -204,7 +206,7 @@ export default async function ForGovernmentsPage() {
           </div>
         </section>
       </main>
-      <SiteFooter />
+      <SiteFooter className="is-light" />
     </div>
   );
 }

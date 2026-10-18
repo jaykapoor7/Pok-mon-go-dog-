@@ -9,6 +9,8 @@ import { ChatVsRecord, CoveredAndNot, ThreeSheetsOneId } from "@/components/comp
 import "@/components/site/site.css";
 import "@/components/orgs/partners.css";
 import "@/components/company/company.css";
+import "@/components/site/nav-pages.css";
+import { FolkHero } from "@/components/company/FolkHero";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -58,11 +60,11 @@ export default async function AboutPage() {
   const imported = sources.reduce((n, g) => n + g.records, 0);
 
   return (
-    <div className="co ab">
-      <SiteHeader tone="night" />
+    <div className="co ab navlight">
+      <SiteHeader tone="paper" />
       <main>
         <section className="co-hero is-solo has-ground">
-          <PlaceGround className="co-hero-ground" />
+          <FolkHero art="elephantTree" />
           <div className="co-hero-in">
             <div className="co-hero-copy">
               <p className="co-kicker">About StrayPaw</p>
@@ -138,7 +140,7 @@ export default async function AboutPage() {
         </section>
 
         <section className="co-close has-ground">
-          <PlaceGround className="co-hero-ground" caption={null} />
+          <FolkHero art="peacocks" className="is-close" />
           <div className="co-close-in">
             <div>
               <h2>Questions about StrayPaw?</h2>
@@ -151,7 +153,7 @@ export default async function AboutPage() {
           </div>
         </section>
       </main>
-      <SiteFooter />
+      <SiteFooter className="is-light" />
     </div>
   );
 }

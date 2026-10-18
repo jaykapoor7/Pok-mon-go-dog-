@@ -12,6 +12,8 @@ import "@/components/site/site.css";
 import "@/components/landing/landing.css";
 import "@/components/orgs/partners.css";
 import "@/components/company/company.css";
+import "@/components/site/nav-pages.css";
+import { FolkHero } from "@/components/company/FolkHero";
 import "@/components/company/careos.css";
 import { PlaceGround } from "@/components/system/PlaceGround";
 
@@ -127,8 +129,8 @@ export default async function ForNgosPage() {
   const ngos = dir.filter((o) => o.kind === "Field partner" || o.kind === "Listed NGO");
 
   return (
-    <div className="co ngo careos">
-      <SiteHeader tone="night" />
+    <div className="co ngo careos navlight">
+      <SiteHeader tone="paper" />
       <main>
         <section className="co-hero has-ground ngo-hero">
           <PlaceGround className="co-hero-ground" caption={null} city={story?.hero.city} />
@@ -316,7 +318,7 @@ export default async function ForNgosPage() {
         )}
 
         <section className="co-close has-ground">
-          <PlaceGround className="co-hero-ground" caption={null} city={story?.hero.city} />
+          <FolkHero art="bird" className="is-close" />
           <div className="co-close-in">
             <div>
               <h2>Run your care work on CareOS. <em>Keep it yours.</em></h2>
@@ -329,7 +331,7 @@ export default async function ForNgosPage() {
           </div>
         </section>
       </main>
-      <SiteFooter />
+      <SiteFooter className="is-light" />
     </div>
   );
 }

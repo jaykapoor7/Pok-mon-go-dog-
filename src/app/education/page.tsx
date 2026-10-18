@@ -6,6 +6,8 @@ import { KIND_HOUR_MATERIALS } from "@/lib/platform/education";
 import { PlaceGround } from "@/components/system/PlaceGround";
 import "@/components/site/site.css";
 import "@/components/company/company.css";
+import "@/components/site/nav-pages.css";
+import { FolkHero } from "@/components/company/FolkHero";
 import "./education.css";
 
 export const dynamic = "force-static";
@@ -16,8 +18,8 @@ export const metadata = {
 
 export default function EducationPage() {
   return (
-    <div className="co edu">
-      <SiteHeader tone="night" />
+    <div className="co edu navlight">
+      <SiteHeader tone="paper" />
       <main>
         <section className="co-hero has-ground edu-hero2" aria-labelledby="edu-title">
           <PlaceGround className="co-hero-ground" />
@@ -61,7 +63,7 @@ export default function EducationPage() {
         </section>
 
         <section className="co-close has-ground">
-          <PlaceGround className="co-hero-ground" caption={null} />
+          <FolkHero art="cowCalf" className="is-close" />
           <div className="co-close-in">
             <div>
               <h2>Start with a source. <em>End with something local.</em></h2>
@@ -74,7 +76,7 @@ export default function EducationPage() {
           </div>
         </section>
       </main>
-      <SiteFooter />
+      <SiteFooter className="is-light" />
     </div>
   );
 }
