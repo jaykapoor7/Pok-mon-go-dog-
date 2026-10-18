@@ -144,12 +144,11 @@ export function Report() {
 
   if (state === "sent" && receipt) return <Receipt receipt={receipt} help={help} restart={restart} />;
 
-  const motionProps = { initial: { opacity: 0, x: reduce ? 0 : 24 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: reduce ? 0 : -24 }, transition: { duration: reduce ? 0 : 0.22, ease: [0.23, 1, 0.32, 1] as const } };
+  const motionProps = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: reduce ? 0 : 0.15 } };
 
   return (
-    <div className="rp2">
-      <ReportStage ref={stage} coords={d.coords} picking={step === "where"} onPick={(p) => { set({ coords: { lat: p.lat, lng: p.lng }, zone: p.zone }); setPickLabel(p.zone); }} onLabel={setPickLabel} />
-      <div className={`rp2-card${step === "where" ? " is-where" : ""}`}>
+    <div className={`rp3${step === "where" ? " is-where" : ""}`}>
+      <div className="rp3-form">
         <header className="rp-top">
           {step !== "door" ? <button type="button" className="icon-btn" onClick={back} aria-label="Back"><ArrowLeft size={18} /></button> : <span />}
           {d.door && <ol className="rp-steps" aria-label={`Step ${idx + 1} of ${flow.length}`}>{flow.map((s, i) => <li key={s} className={i < idx ? "is-done" : i === idx ? "is-now" : ""} aria-current={i === idx ? "step" : undefined}><span className="mono">{String(i + 1).padStart(2, "0")}</span>{STEP_LABEL[s]}</li>)}</ol>}
@@ -191,9 +190,9 @@ export function Report() {
             {step === "where" && (
               <>
                 <h1 id="rp-h" className="rp2-h">Where is the animal?</h1>
-                <p className="body">Drag the map until the pin is where the animal is. Your exact point is seen only by reviewers and organisations; the public record shows the area, never the spot.</p>
+                <p className="body">Move the map until the pin is where the animal is. Your exact point is seen only by reviewers and organisations; the public record shows the area, never the spot.</p>
                 <WhereTools onFly={(lat, lng) => stage.current?.fly(lat, lng)} />
-                <p className="rp2-where" role="status">{pickLabel ? <><b>{pickLabel}</b> · drag the map to move the pin</> : "Zoom in to the street, then drag the map under the pin."}</p>
+                <p className="rp2-where" role="status">{pickLabel ? <>Pinned: <b>{pickLabel}</b></> : "Not pinned yet."}</p>
                 <div className="field"><label htmlFor="lm">A landmark people would know <span className="small">optional</span></label><input id="lm" className="input" value={d.landmark} onChange={(e) => set({ landmark: e.target.value })} placeholder="Behind the tea stall, opposite the temple" /></div>
                 <div className="row rp-go"><button type="button" className="btn is-ink" onClick={next} disabled={!d.coords}>This is the place <ArrowRight size={16} aria-hidden /></button></div>
               </>
@@ -264,18 +263,21 @@ export function Report() {
         </AnimatePresence>
       </div>
 
-      <aside className="rp2-ticket" aria-label="Your report so far" hidden={step === "where"}>
-        <p className="rp2-k">Your report · {state === "pending" ? "sending" : "draft, not sent"}</p>
-        <div className="rp-card">
+      <aside className="rp3-side" aria-label="Your report so far">
+        <div className="rp3-map">
+          <ReportStage ref={stage} coords={d.coords} picking={step === "where"} onPick={(p) => { set({ coords: { lat: p.lat, lng: p.lng }, zone: p.zone }); setPickLabel(p.zone); }} onLabel={setPickLabel} />
+          {step === "where" && <p className="rp3-maphint">{pickLabel ? <><b>{pickLabel}</b> · drag the map to move the pin</> : "Zoom in to the street, then drag the map under the pin."}</p>}
+        </div>
+        <div className="rp3-draft">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {preview ? <img src={preview} alt="" /> : <div className="rp-card-ph"><Camera size={22} aria-hidden /><span>No photo yet</span></div>}
+          {preview ? <img src={preview} alt="" /> : <span className="rp3-ph"><Camera size={18} aria-hidden /></span>}
           <dl>
-            <div><dt>Kind</dt><dd>{d.door === "help" ? "Needs help" : d.door === "spotted" ? "Sighting" : "Not chosen"}</dd></div>
+            <div><dt>Report</dt><dd>{d.door === "help" ? "Needs help" : d.door === "spotted" ? "Sighting" : "Not chosen"}</dd></div>
             <div><dt>Where</dt><dd>{d.zone ?? "Not set"}</dd></div>
             <div><dt>{help ? "Problem" : "Ears"}</dt><dd>{help ? PROBLEMS.find((p) => p.v === d.problem)?.label ?? "Not given" : EARS.find((e) => e.v === d.ear)?.label ?? "Not given"}</dd></div>
           </dl>
+          <p>{state === "pending" ? "Sending…" : "Draft, kept on this device until you send. The photo is not kept in the draft."}</p>
         </div>
-        <p className="small">Kept on this device until you send. The photo is not kept in the draft.</p>
       </aside>
     </div>
   );
@@ -285,8 +287,8 @@ function Receipt({ receipt, help, restart }: { receipt: { ref: string | null; at
   const ref = receipt.ref ? receipt.ref.slice(0, 8).toUpperCase() : null;
   const steps = help ? ["Received", "Under review", "Offered to an organisation", "Accepted by an organisation", "In progress", "Closed with an outcome"] : ["Received", "Reviewed", "On the animal's record"];
   return (
-    <div className="rp2 is-done">
-      <div className="rp2-card">
+    <div className="rp3 is-done">
+      <div className="rp3-form">
         <p className="rp2-k">Receipt</p>
         <h1 className="rp2-h">Received.</h1>
         <p className="lede">{help ? "Your report reached StrayPaw. It now waits for review. No organisation has accepted it yet, and nobody has been sent." : "Your sighting reached StrayPaw and waits for a quick review before it joins the record."}</p>

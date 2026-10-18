@@ -43,7 +43,7 @@ const INDIA_BOX: [[number, number], [number, number]] = [[68.2, 6.4], [97.4, 35.
 const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, PAW_ZOOM = 13.2, MAX_PAWS = 140;
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const travel = (t: number) => 1 - Math.pow(1 - t, 3);
-const dur = (from: number, to: number) => (reduced() ? 0 : Math.min(2400, 700 + Math.abs(from - to) * 190));
+const dur = (from: number, to: number) => (reduced() ? 0 : Math.min(1800, 600 + Math.abs(from - to) * 150));
 /** Bloom size by zoom, × each area's own k (sized by its animals). */
 const BLOOM_STOPS: [number, number][] = [[8, 10], [10, 17], [11, 24], [12, 36], [13, 54], [14, 96], [16, 300]];
 
@@ -171,7 +171,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
       ml.current = lib;
       lib.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       map = new lib.Map({ container: el.current, style: { ...groundStyle(), glyphs: GLYPHS }, bounds: INDIA_BOX, fitBoundsOptions: { padding: 24 },
-        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3 · lettering in Kalam" }, dragRotate: false, pitchWithRotate: false, maxZoom: 17, minZoom: 3 });
+        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3" }, dragRotate: false, pitchWithRotate: false, maxZoom: 17, minZoom: 3 });
       mapRef.current = map;
       if (process.env.NODE_ENV !== "production") (window as unknown as { __map?: MLMap }).__map = map;
       map.touchZoomRotate.disableRotation();
@@ -195,10 +195,10 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
           "icon-image": ["get", "img"], "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "sort"],
           "icon-size": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], px / (BLOOM_PX / 2)]])] as never,
         }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, ["case", ["==", ["get", "dim"], 1], 0.25, 1], PAW_ZOOM + 0.6, ["case", ["==", ["get", "dim"], 1], 0.08, 0.22]] } });
-        m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#d9452b", "circle-stroke-width": 3, "circle-stroke-opacity": 0.95 } });
+        m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95 } });
         m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.4, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.4, 10, 13, 13], "text-allow-overlap": false, "text-padding": 1 }, paint: { "text-color": MARK.ink, "text-halo-color": "#fff8e8", "text-halo-width": 2, "text-opacity": ["interpolate", ["linear"], ["zoom"], 11.4, 0, 11.8, 1, PAW_ZOOM - 0.3, 1, PAW_ZOOM + 0.2, 0] } });
         m.addLayer({ id: "paws", type: "symbol", source: "paws", minzoom: PAW_ZOOM - 0.6, layout: { "icon-image": ["get", "img"], "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "sort"],
-          "icon-size": ["interpolate", ["exponential", 1.6], ["zoom"], 13, ["*", ["get", "s"], 0.34], 15, ["*", ["get", "s"], 0.66], 17, ["*", ["get", "s"], 1.05]] as never },
+          "icon-size": ["interpolate", ["exponential", 1.6], ["zoom"], 13, ["*", ["get", "s"], 0.55], 15, ["*", ["get", "s"], 1], 17, ["*", ["get", "s"], 1.5]] as never },
           paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 1] } });
         m.addLayer({ id: "cities", type: "symbol", source: "cities", layout: { "icon-image": ["get", "img"], "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "sort"],
           "icon-size": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "s"], ["get", "g"], 0.85], 6, ["*", ["get", "s"], ["get", "g"], 1.1], 8, ["*", ["get", "s"], ["get", "g"], 1.3]] as never } });
@@ -294,14 +294,8 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
 
   /* ── growth: marks bloom outward when a scale opens (a cut under reduced motion) ── */
   const growRef = useRef<{ cities: number; areas: number }>({ cities: 1, areas: 1 });
-  const grow = useCallback((key: "cities" | "areas", repaint: () => void) => {
-    if (reduced()) { growRef.current[key] = 1; repaint(); return; }
-    const t0 = performance.now(); let done = false;
-    const tick = () => { if (done) return; const k = Math.min(1, (performance.now() - t0) / 1100); growRef.current[key] = k; repaint(); if (k < 1) requestAnimationFrame(tick); else done = true; };
-    growRef.current[key] = 0; requestAnimationFrame(tick);
-    /* Whatever the frame rate, the marks finish whole. */
-    window.setTimeout(() => { if (!done) { done = true; growRef.current[key] = 1; repaint(); } }, 1400);
-  }, []);
+  /* Marks appear in place: the camera's travel is the only motion. */
+  const grow = useCallback((key: "cities" | "areas", repaint: () => void) => { growRef.current[key] = 1; repaint(); }, []);
 
   /* ── paint: India ── */
   const cityFeatures = useCallback(() => {
@@ -379,7 +373,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
       const real = sel && sel.h3 === c.h3 ? sel.animals : null;
       seedHead(centers[i], n).forEach((p, j) => {
         const a = real?.[j];
-        const col = a ? (a.ster === "sterilised" ? MARK.ster.yes : a.ster === "not_sterilised" ? MARK.ster.no : "#c9b79a") : j < yes ? MARK.ster.yes : j < yes + no ? MARK.ster.no : "#c9b79a";
+        const col = a ? (a.ster === "sterilised" ? MARK.ster.yes : a.ster === "not_sterilised" ? MARK.ster.no : "#c9bba5") : j < yes ? MARK.ster.yes : j < yes + no ? MARK.ster.no : "#c9bba5";
         const chosen = !!a && a.id === animalId;
         paws.push(pt(p, { i, j, id: a?.id ?? null, img: `pw|${col}|${a?.photo ? 1 : 0}|${chosen ? 1 : 0}`, s: (chosen ? 1.6 : a?.photo ? 1.25 : 1) * (PAW_PX / 64), sort: chosen ? 2 : a?.photo ? 1 : 0,
           title: a ? a.title : placeName(c.zone), line: a ? [a.describe, a.ster === "sterilised" ? "recorded sterilised" : a.ster === "not_sterilised" ? "recorded not sterilised" : "sterilisation not recorded"].filter(Boolean).join(" · ") : "Tap to read this area's animals" }));
@@ -398,10 +392,7 @@ export function FieldMap({ initialCities, initialUnplaced }: { initialCities?: N
     if (areaIndex < 0) { src.setData({ type: "FeatureCollection", features: [] }); return; }
     const c = cells[areaIndex], k = 0.55 + (Math.sqrt(c.animals) / Math.sqrt(Math.max(1, ...cells.map((x) => x.animals)))) * 0.75;
     const paint = (g: number) => src.setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: { type: "Point", coordinates: centers[areaIndex] }, properties: { g: k * g } }] });
-    if (reduced()) { paint(1); return; }
-    const t0 = performance.now();
-    const tick = (t: number) => { const x = Math.min(1, (t - t0) / 420); paint(1.35 - 0.35 * travel(x)); if (x < 1) requestAnimationFrame(tick); };
-    requestAnimationFrame(tick);
+    paint(1);
   }, [ready, areaIndex, cells, centers]);
 
   /* ── HTML lettering: city names at national scale, localities at city scale ──

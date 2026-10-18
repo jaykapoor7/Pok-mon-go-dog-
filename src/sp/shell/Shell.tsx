@@ -28,6 +28,7 @@ import { Finder } from "./Finder";
 import { spFonts } from "../fonts";
 import "../sp.css";
 import "./shell.css";
+import "../folk.css";
 
 type Org = { id: string; name: string } | null;
 const Membership = createContext<{ member: boolean; ready: boolean; org: Org }>({ member: false, ready: false, org: null });
@@ -77,7 +78,7 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
   const visible = ORDER.filter((id) => !WORKSPACES[id].members || mem.member || ws === id);
   const reporting = path.startsWith("/community/report");
   /* Map destinations own the whole screen beneath the bar. */
-  const isFlush = flush || path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city";
+  const isFlush = flush || path === "/community" || path === "/community/report" || path === "/ngo" || path === "/ngo/map" || path === "/city";
 
   return (
     <Membership.Provider value={mem}>

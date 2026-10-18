@@ -31,13 +31,13 @@ export const GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.p
 
 /** The ground's inks. Data inks live in marks.ts and never repeat these meanings. */
 export const INK = {
-  paper: "#f7edd8", paperDeep: "#efdfc0", sea: "#1f8a8c", seaDeep: "#17706f", seaLine: "#9fe0d6",
-  ink: "#2a1d17", vermilion: "#d9452b", stitch: "#c2412d",
-  water: "#58b4c2", waterLine: "#1e6f86", river: "#2f8fb0",
-  leaf: "#b8d98b", leafDot: "#5d9a3c", wood: "#9cc77a",
-  residential: "#f3dcc0", building: "#e7b48f", buildingEdge: "#9a5536",
-  turmeric: "#f4c542", highway: "#e9603f", lane: "#fffaf0", laneEdge: "#c7a57a",
-  label: "#3a2a22", halo: "#f7edd8",
+  paper: "#f3ede4", paperDeep: "#ece4d7", sea: "#d6e2f5", seaDeep: "#c9d7f0", seaLine: "#9db6e6",
+  ink: "#0b1e3d", vermilion: "#f05b40", stitch: "#d4897a",
+  water: "#bcd0ef", waterLine: "#7c9bd8", river: "#86a6e0",
+  leaf: "#dde7cc", leafDot: "#8fb07a", wood: "#d3e1c3",
+  residential: "#efe6d8", building: "#e4d9c7", buildingEdge: "#cbbba3",
+  turmeric: "#fffdf9", highway: "#f7c3b6", lane: "#fffdf9", laneEdge: "#dccfba",
+  label: "#33415c", halo: "#f3ede4",
 };
 
 export function groundStyle(): StyleSpecification {
@@ -56,26 +56,26 @@ const jit = (i: number, k = 1) => { const x = Math.sin(i * 12.9898 + k * 78.233)
 /* Gond-style line infill for the sea: staggered rows of short dashes. */
 const seaFill = () => tile(48, 24, (g) => {
   g.fillStyle = INK.sea; g.fillRect(0, 0, 48, 24);
-  g.strokeStyle = INK.seaLine; g.lineWidth = 1.1; g.globalAlpha = 0.42;
+  g.strokeStyle = INK.seaLine; g.lineWidth = 0.9; g.globalAlpha = 0.5;
   for (const [y, off] of [[6, 0], [18, 12]] as const) for (let x = off; x < 48 + 12; x += 24) { g.beginPath(); g.moveTo(x - 6, y); g.quadraticCurveTo(x, y - 2.2, x + 6, y); g.stroke(); }
 });
 /* Dotted infill for parks and woods. */
 const dotFill = (bg: string, dot: string) => tile(14, 14, (g) => {
   g.fillStyle = bg; g.fillRect(0, 0, 14, 14);
-  g.fillStyle = dot; g.globalAlpha = 0.55;
+  g.fillStyle = dot; g.globalAlpha = 0.45;
   for (const [x, y] of [[3.5, 3.5], [10.5, 10.5]] as const) { g.beginPath(); g.arc(x, y, 1.15, 0, Math.PI * 2); g.fill(); }
 });
 /* Ripples for lakes and tanks at street scale. */
 const ripple = () => tile(40, 18, (g) => {
   g.fillStyle = INK.water; g.fillRect(0, 0, 40, 18);
-  g.strokeStyle = "#e9fbff"; g.globalAlpha = 0.5; g.lineWidth = 1;
+  g.strokeStyle = "#f4f8ff"; g.globalAlpha = 0.6; g.lineWidth = 0.9;
   for (const [y, x0] of [[5, 2], [13, 20]] as const) { g.beginPath(); for (let x = x0; x <= x0 + 16; x++) { const yy = y + Math.sin((x - x0) / 2.4) * 1.3; if (x === x0) g.moveTo(x, yy); else g.lineTo(x, yy); } g.stroke(); }
 });
 /* Handmade-paper grain: barely-there fibres so land is never a flat fill. */
 const grain = () => tile(64, 64, (g) => {
   g.fillStyle = INK.paper; g.fillRect(0, 0, 64, 64);
   for (let i = 0; i < 26; i++) {
-    g.strokeStyle = i % 3 ? "#e6d3ae" : "#fffaf0"; g.globalAlpha = 0.55; g.lineWidth = 0.7;
+    g.strokeStyle = i % 3 ? "#e3d8c6" : "#fbf7f0"; g.globalAlpha = 0.45; g.lineWidth = 0.6;
     const x = jit(i, 1) * 64, y = jit(i, 2) * 64, a = jit(i, 3) * Math.PI, l = 3 + jit(i, 4) * 6;
     g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
   }
@@ -84,13 +84,13 @@ const grain = () => tile(64, 64, (g) => {
 /* ── Physical regions: a painted relief key (Natural Earth, public domain). ── */
 type RegionKind = "range" | "plain" | "plateau" | "desert" | "delta" | "coast" | "peninsula";
 export const RELIEF: Record<RegionKind, { wash: string; ink: string; label: string }> = {
-  range: { wash: "#f1c3a6", ink: "#a2342a", label: "Hills and ranges" },
-  plateau: { wash: "#f6dc9c", ink: "#b57d10", label: "Plateau" },
-  plain: { wash: "#dcebbf", ink: "#4b8a45", label: "Plains" },
-  desert: { wash: "#f5d79a", ink: "#b27318", label: "Desert" },
-  delta: { wash: "#cfe8e6", ink: "#1f7d8a", label: "Delta" },
-  coast: { wash: "#d8ece3", ink: "#1f7d8a", label: "Coast" },
-  peninsula: { wash: "#f0dfbd", ink: "#a8741f", label: "Peninsula" },
+  range: { wash: "#eed7cb", ink: "#b0705f", label: "Hills and ranges" },
+  plateau: { wash: "#efe2c2", ink: "#b8923e", label: "Plateau" },
+  plain: { wash: "#e2ead2", ink: "#7c9a6c", label: "Plains" },
+  desert: { wash: "#f0e1c0", ink: "#b8914a", label: "Desert" },
+  delta: { wash: "#dbe6f1", ink: "#6f8fb8", label: "Delta" },
+  coast: { wash: "#dee9ec", ink: "#6f98a2", label: "Coast" },
+  peninsula: { wash: "#eee3cd", ink: "#b39a63", label: "Peninsula" },
 };
 function reliefMark(kind: RegionKind): Img {
   const ink = RELIEF[kind].ink;
@@ -98,7 +98,7 @@ function reliefMark(kind: RegionKind): Img {
     case "range": return tile(38, 30, (g) => {
       g.strokeStyle = ink; g.fillStyle = ink;
       for (const [x, y, s] of [[10, 13, 1], [28, 27, 0.85]] as const) {
-        g.globalAlpha = 0.85; g.lineWidth = 1.35;
+        g.globalAlpha = 0.6; g.lineWidth = 1.05;
         g.beginPath(); g.moveTo(x - 7 * s, y); g.lineTo(x, y - 8 * s); g.lineTo(x + 7 * s, y); g.stroke();
         g.globalAlpha = 0.45; g.lineWidth = 0.9;
         for (let k = 1; k <= 3; k++) { g.beginPath(); g.moveTo(x + k * 1.7 * s, y - 8 * s + k * 2.4 * s); g.lineTo(x + k * 1.7 * s - 1.5, y); g.stroke(); }
@@ -162,18 +162,17 @@ export async function drawGround(map: MLMap, beforeId?: string): Promise<boolean
   add({ id: "g-residential", type: "fill", ...S, "source-layer": "landuse", minzoom: 9, filter: ["in", ["get", "class"], ["literal", ["residential", "suburb", "neighbourhood"]]], paint: { "fill-color": INK.residential, "fill-opacity": z(9, 0, 11.5, 0.7) as number } });
   add({ id: "g-wood", type: "fill", ...S, "source-layer": "landcover", minzoom: 7, filter: ["in", ["get", "class"], ["literal", ["wood", "forest", "grass", "scrub"]]], paint: { "fill-pattern": "g-wood", "fill-opacity": z(7, 0, 9, 0.7) as number } });
   add({ id: "g-park", type: "fill", ...S, "source-layer": "park", minzoom: 8, paint: { "fill-pattern": "g-park", "fill-opacity": z(8, 0, 10, 0.95) as number } });
-  add({ id: "g-park-edge", type: "line", ...S, "source-layer": "park", minzoom: 11, paint: { "line-color": "#4f8a36", "line-width": 0.9, "line-opacity": 0.6, "line-dasharray": [2, 1.5] } });
+  add({ id: "g-park-edge", type: "line", ...S, "source-layer": "park", minzoom: 11, paint: { "line-color": "#9db48a", "line-width": 0.8, "line-opacity": 0.7 } });
   /* Water: rippled fill at street scale, inked twice at every scale. */
   add({ id: "g-water", type: "fill", ...S, "source-layer": "water", paint: { "fill-color": INK.water } });
   add({ id: "g-water-ripple", type: "fill", ...S, "source-layer": "water", minzoom: 12, paint: { "fill-pattern": "g-ripple", "fill-opacity": z(12, 0, 13.5, 0.8) as number } });
-  add({ id: "g-water-echo", type: "line", ...S, "source-layer": "water", minzoom: 8, paint: { "line-color": "#9ad7df", "line-width": zx(8, 0.6, 15, 2) as number, "line-translate": [1.6, 1.4], "line-opacity": 0.9 } });
+  add({ id: "g-water-echo", type: "line", ...S, "source-layer": "water", minzoom: 8, paint: { "line-color": "#dbe6f7", "line-width": zx(8, 0.6, 15, 2) as number, "line-translate": [1.4, 1.2], "line-opacity": 0.9 } });
   add({ id: "g-water-ink", type: "line", ...S, "source-layer": "water", minzoom: 8, paint: { "line-color": INK.waterLine, "line-width": zx(8, 0.5, 15, 1.4) as number, "line-opacity": 0.85 } });
-  add({ id: "g-river-echo", type: "line", ...S, "source-layer": "waterway", minzoom: 5, filter: ["in", ["get", "class"], ["literal", ["river", "canal"]]], layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#9ad7df", "line-width": zx(5, 1.2, 10, 2.6, 15, 7) as number, "line-opacity": z(5, 0.4, 9, 0.9) as number } });
+  add({ id: "g-river-echo", type: "line", ...S, "source-layer": "waterway", minzoom: 5, filter: ["in", ["get", "class"], ["literal", ["river", "canal"]]], layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#dbe6f7", "line-width": zx(5, 1.2, 10, 2.6, 15, 7) as number, "line-opacity": z(5, 0.4, 9, 0.9) as number } });
   add({ id: "g-river", type: "line", ...S, "source-layer": "waterway", minzoom: 5, filter: ["in", ["get", "class"], ["literal", ["river", "canal"]]], layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": INK.river, "line-width": zx(5, 0.5, 10, 1.3, 15, 3.4) as number, "line-opacity": z(5, 0.55, 9, 1) as number } });
   add({ id: "g-stream", type: "line", ...S, "source-layer": "waterway", minzoom: 12, filter: ["in", ["get", "class"], ["literal", ["stream", "drain", "ditch"]]], paint: { "line-color": INK.river, "line-width": 0.8, "line-opacity": 0.6, "line-dasharray": [3, 1.6] } });
   /* Buildings: terracotta blocks, an ink edge and a printed shadow. */
-  add({ id: "g-building-shadow", type: "fill", ...S, "source-layer": "building", minzoom: 14.5, paint: { "fill-color": "#b27b5a", "fill-translate": [1.5, 1.5], "fill-opacity": z(14.5, 0, 15.5, 0.35) as number } });
-  add({ id: "g-building", type: "fill", ...S, "source-layer": "building", minzoom: 14.5, paint: { "fill-color": INK.building, "fill-outline-color": INK.buildingEdge, "fill-opacity": z(14.5, 0, 15.5, 0.9) as number } });
+    add({ id: "g-building", type: "fill", ...S, "source-layer": "building", minzoom: 14.5, paint: { "fill-color": INK.building, "fill-outline-color": INK.buildingEdge, "fill-opacity": z(14.5, 0, 15.5, 0.8) as number } });
   /* Roads, engraved. Lanes are paper lines edged in sepia; arterials turmeric cased in ink; highways vermilion. */
   const T = { ...S, "source-layer": "transportation" } as const;
   const isLine: Expr = ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false];
@@ -181,32 +180,32 @@ export async function drawGround(map: MLMap, beforeId?: string): Promise<boolean
   const round = { "line-cap": "round", "line-join": "round" } as const;
   add({ id: "g-lane-case", type: "line", ...T, minzoom: 12.5, filter: cls("minor", "service") as never, layout: round, paint: { "line-color": INK.laneEdge, "line-width": zx(12.5, 1.6, 16, 7, 18, 16) as number, "line-opacity": z(12.5, 0, 13.4, 0.8) as number } });
   add({ id: "g-lane", type: "line", ...T, minzoom: 12.5, filter: cls("minor", "service") as never, layout: round, paint: { "line-color": INK.lane, "line-width": zx(12.5, 0.8, 16, 5, 18, 13) as number, "line-opacity": z(12.5, 0, 13.4, 1) as number } });
-  add({ id: "g-path", type: "line", ...T, minzoom: 14, filter: cls("path", "track") as never, paint: { "line-color": "#a07c55", "line-width": 1, "line-dasharray": [1.5, 1.5], "line-opacity": 0.7 } });
-  add({ id: "g-rail", type: "line", ...T, minzoom: 9, filter: cls("rail", "transit") as never, paint: { "line-color": INK.ink, "line-width": 1, "line-opacity": z(9, 0.3, 13, 0.7) as number } });
-  add({ id: "g-rail-tie", type: "line", ...T, minzoom: 12, filter: cls("rail", "transit") as never, paint: { "line-color": INK.ink, "line-width": 4, "line-dasharray": [0.18, 2.4], "line-opacity": 0.6 } });
-  add({ id: "g-major-case", type: "line", ...T, minzoom: 7, filter: cls("primary", "secondary", "tertiary", "trunk") as never, layout: round, paint: { "line-color": INK.ink, "line-width": zx(7, 0.5, 10, 1.1, 12, 2.6, 14, 6, 18, 26) as number, "line-opacity": z(7, 0.2, 10, 0.35, 12, 0.75) as number } });
+  add({ id: "g-path", type: "line", ...T, minzoom: 14, filter: cls("path", "track") as never, paint: { "line-color": "#b9a98f", "line-width": 1, "line-dasharray": [1.5, 1.5], "line-opacity": 0.7 } });
+  add({ id: "g-rail", type: "line", ...T, minzoom: 9, filter: cls("rail", "transit") as never, paint: { "line-color": "#9aa3b2", "line-width": 1, "line-opacity": z(9, 0.4, 13, 0.8) as number } });
+  add({ id: "g-rail-tie", type: "line", ...T, minzoom: 12, filter: cls("rail", "transit") as never, paint: { "line-color": "#9aa3b2", "line-width": 3.5, "line-dasharray": [0.15, 2.6], "line-opacity": 0.6 } });
+  add({ id: "g-major-case", type: "line", ...T, minzoom: 7, filter: cls("primary", "secondary", "tertiary", "trunk") as never, layout: round, paint: { "line-color": "#d3c4ab", "line-width": zx(7, 0.5, 10, 1.4, 12, 3, 14, 6.5, 18, 26) as number, "line-opacity": z(7, 0.4, 10, 0.8) as number } });
   add({ id: "g-major", type: "line", ...T, minzoom: 9.5, filter: cls("primary", "secondary", "tertiary", "trunk") as never, layout: round, paint: { "line-color": INK.turmeric, "line-width": zx(9.5, 0.3, 12, 1.6, 14, 4, 18, 22) as number, "line-opacity": z(9.5, 0.5, 11.5, 1) as number } });
-  add({ id: "g-motor-case", type: "line", ...T, minzoom: 5, filter: cls("motorway") as never, layout: round, paint: { "line-color": "#5b1f14", "line-width": zx(5, 0.6, 10, 2.6, 14, 8, 18, 30) as number, "line-opacity": z(5, 0.35, 9, 0.9) as number } });
+  add({ id: "g-motor-case", type: "line", ...T, minzoom: 5, filter: cls("motorway") as never, layout: round, paint: { "line-color": "#e39a85", "line-width": zx(5, 0.6, 10, 2.6, 14, 8, 18, 30) as number, "line-opacity": z(5, 0.35, 9, 0.8) as number } });
   add({ id: "g-motor", type: "line", ...T, minzoom: 7.5, filter: cls("motorway") as never, layout: round, paint: { "line-color": INK.highway, "line-width": zx(7.5, 0.5, 14, 5.5, 18, 24) as number } });
 
   /* Physical relief, then the sea mask over the rest of the world, at national scale only. */
   const order: RegionKind[] = ["plain", "peninsula", "coast", "delta", "desert", "plateau", "range"];
-  const fade = (peak: number) => z(3, peak, 6, peak * 0.8, 7.8, 0) as number;
+  const fade = (peak: number) => z(3, peak * 0.85, 6, peak * 0.65, 7.8, 0) as number;
   for (const k of order) {
     add({ id: `g-r-${k}-wash`, type: "fill", source: "g-regions", maxzoom: 8, filter: ["==", ["get", "kind"], k], paint: { "fill-color": RELIEF[k].wash, "fill-opacity": fade(0.75) } });
     add({ id: `g-r-${k}`, type: "fill", source: "g-regions", maxzoom: 8, filter: ["==", ["get", "kind"], k], paint: { "fill-pattern": `g-r-${k}`, "fill-opacity": fade(0.95) } });
   }
   /* States: a running stitch. */
-  add({ id: "g-states", type: "line", ...S, "source-layer": "boundary", minzoom: 3, filter: ["all", ["==", ["get", "admin_level"], 4], ["!=", ["get", "maritime"], 1]], layout: round, paint: { "line-color": INK.stitch, "line-opacity": z(3, 0.55, 9, 0.35) as number, "line-width": z(3, 1.1, 9, 1.8) as number, "line-dasharray": [2, 2.2] } });
+  add({ id: "g-states", type: "line", ...S, "source-layer": "boundary", minzoom: 3, filter: ["all", ["==", ["get", "admin_level"], 4], ["!=", ["get", "maritime"], 1]], layout: round, paint: { "line-color": INK.stitch, "line-opacity": z(3, 0.7, 9, 0.4) as number, "line-width": z(3, 0.9, 9, 1.4) as number, "line-dasharray": [2, 2.4] } });
   add({ id: "g-mask", type: "fill", source: "india", paint: { "fill-pattern": "g-sea", "fill-opacity": z(6.5, 1, 8.6, 0) as number } });
   /* Coast ripples: the shore echoed outward, an engraver's sea. */
-  [[3, 0.6], [8, 0.38], [14, 0.22]].forEach(([off, op], i) => add({ id: `g-coast-${i}`, type: "line", source: "india", maxzoom: 7.6, paint: { "line-color": "#d8f4ee", "line-opacity": z(3, op, 7.6, 0) as number, "line-width": 1, "line-offset": -off } }));
-  add({ id: "g-border-echo", type: "line", source: "india", maxzoom: 10, paint: { "line-color": INK.vermilion, "line-opacity": z(3, 0.85, 9, 0.4, 10, 0) as number, "line-width": z(3, 1.4, 8, 2.4) as number, "line-translate": [2.2, 1.8] } });
-  add({ id: "g-border", type: "line", source: "india", paint: { "line-color": INK.ink, "line-opacity": z(3, 0.95, 10, 0.5) as number, "line-width": z(3, 1.3, 8, 2) as number } });
+  [[4, 0.55], [9, 0.32], [15, 0.18]].forEach(([off, op], i) => add({ id: `g-coast-${i}`, type: "line", source: "india", maxzoom: 7.6, paint: { "line-color": "#8fa9de", "line-opacity": z(3, op, 7.6, 0) as number, "line-width": 1, "line-offset": -off } }));
+  add({ id: "g-border-echo", type: "line", source: "india", maxzoom: 10, paint: { "line-color": INK.vermilion, "line-opacity": z(3, 0.55, 9, 0.25, 10, 0) as number, "line-width": z(3, 0.9, 8, 1.4) as number, "line-offset": 3 } });
+  add({ id: "g-border", type: "line", source: "india", paint: { "line-color": INK.ink, "line-opacity": z(3, 0.7, 10, 0.4) as number, "line-width": z(3, 0.9, 8, 1.4) as number } });
 
   /* Lettering from the tiles, quiet: towns and villages as you near them, street names close in. */
   add({ id: "g-town", type: "symbol", ...S, "source-layer": "place", minzoom: 9, filter: ["in", ["get", "class"], ["literal", ["town", "village", "suburb"]]], layout: { "text-field": ["coalesce", ["get", "name:en"], ["get", "name_en"], ["get", "name"]], "text-font": ["Noto Sans Regular"], "text-size": z(9, 10.5, 13, 12.5) as number, "text-letter-spacing": 0.04, "text-max-width": 8 }, paint: { "text-color": INK.label, "text-halo-color": INK.halo, "text-halo-width": 1.6, "text-opacity": z(9, 0, 10, 0.7, 13.2, 0.35) as number } });
-  add({ id: "g-street-name", type: "symbol", ...S, "source-layer": "transportation_name", minzoom: 14.2, filter: ["in", ["get", "class"], ["literal", ["primary", "secondary", "tertiary", "trunk", "minor"]]], layout: { "symbol-placement": "line", "text-field": ["coalesce", ["get", "name:en"], ["get", "name_en"], ["get", "name"]], "text-font": ["Noto Sans Italic"], "text-size": 11, "text-letter-spacing": 0.05 }, paint: { "text-color": "#6b4a33", "text-halo-color": INK.lane, "text-halo-width": 1.4 } });
+  add({ id: "g-street-name", type: "symbol", ...S, "source-layer": "transportation_name", minzoom: 14.2, filter: ["in", ["get", "class"], ["literal", ["primary", "secondary", "tertiary", "trunk", "minor"]]], layout: { "symbol-placement": "line", "text-field": ["coalesce", ["get", "name:en"], ["get", "name_en"], ["get", "name"]], "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-letter-spacing": 0.03 }, paint: { "text-color": "#5d6b7c", "text-halo-color": INK.lane, "text-halo-width": 1.4 } });
   return ok;
 }
 

@@ -278,7 +278,7 @@ function AreaCard({ cell, city, area, onAnimal }: { cell: MapCell; city: string;
           )}
         </>
       )}
-      <p className="fm-note">On the map, each paw is one recorded animal, arranged inside this area. A paw is not where the animal was seen.</p>
+      <p className="fm-note">On the map, each dot is one recorded animal, arranged inside this area. A dot is not where the animal was seen.</p>
       <Link className="fm-btn is-flame" href={`/community/report?lat=${cell.c[1]}&lng=${cell.c[0]}`}><Radio size={16} aria-hidden /> Report an animal here</Link>
     </div>
   );
@@ -323,13 +323,9 @@ function AnimalCard({ a, city, cell }: { a: AreaAnimal; city: string; cell: MapC
     </article>
   );
 }
-const sterInk = (s: string | null) => (s === "sterilised" ? MARK.ster.yes : s === "not_sterilised" ? MARK.ster.no : "#c9b79a");
+const sterInk = (s: string | null) => (s === "sterilised" ? MARK.ster.yes : s === "not_sterilised" ? MARK.ster.no : "#c9bba5");
 function Paw({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 40 40" width="40" height="40">
-      {[[20, 25, 8.5, 7], [9.5, 15.5, 3.6, 4.6], [15.8, 10.5, 3.6, 4.8], [24.2, 10.5, 3.6, 4.8], [30.5, 15.5, 3.6, 4.6]].map(([x, y, rx, ry], i) => <ellipse key={i} cx={x} cy={y} rx={rx} ry={ry} fill={color} stroke={MARK.ink} strokeWidth={1.8} />)}
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden><circle cx="12" cy="12" r="7" fill={color} stroke="#fffdf9" strokeWidth="2" /><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(11,30,61,0.18)" strokeWidth="1" /></svg>;
 }
 /* No photograph: said first, in type, beside a crop of a real, openly licensed Indian dog painting captioned as not this animal. */
 function Plate({ tag, puppy }: { tag: string; puppy: boolean }) {
@@ -364,7 +360,7 @@ function Key({ level, lens, recency, zoom }: { level: Level; lens: MapLens; rece
             : <li><span className="fm-sw" style={{ background: L.ink }} aria-hidden />{L.define.split(".")[0]}.</li>}
           <li><span className="fm-sw is-hatch" aria-hidden />No date or status recorded</li>
           <li><span className="fm-sw is-edge" aria-hidden />Edge of the record: nothing reported yet</li>
-          {zoom > 12.6 && <li><span className="fm-sw" style={{ background: MARK.ster.yes, borderRadius: 3 }} aria-hidden />Paws: one per animal, arranged in its area, not located</li>}
+          {zoom > 12.6 && <li><span className="fm-sw" style={{ background: MARK.ster.yes }} aria-hidden />Dots: one per animal, arranged in its area, not located</li>}
         </ul>
       )}
     </>
