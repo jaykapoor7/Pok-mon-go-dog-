@@ -173,6 +173,35 @@ export async function findAnimals(query: string): Promise<FoundAnimal[]> {
     .map((a) => ({ id: a.id, title: animalTitle(a), city: a.city ? canonicalCity(a.city) : null, zone: a.zone, h3: a.h3_r8 }));
 }
 
+export type Face = { id: string; title: string; describe: string | null; photo: string; city: string; zone: string | null; h3: string; c: [number, number]; last_seen: string | null };
+
+/** A few photographed animals across India for the national map: real
+ *  photographs only, never one that may show an injury, placed at the centre
+ *  of their public area (never finer), at most two per city. */
+async function readFaces(): Promise<Face[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.from("public_spatial_animals")
+    .select("id,name,straypaw_id,city,zone,h3_r8,cover_photo,photo_sensitive,status,needs_help,last_seen,sex,size")
+    .not("cover_photo", "is", null).not("h3_r8", "is", null)
+    .order("last_seen", { ascending: false, nullsFirst: false }).limit(400);
+  if (error) throw error;
+  type Row = { id: string; name: string | null; straypaw_id: string | null; city: string | null; zone: string | null; h3_r8: string; cover_photo: string; photo_sensitive: boolean | null; status: string | null; needs_help: boolean | null; last_seen: string | null; sex: string | null; size: string | null };
+  const per = new Map<string, number>(), out: Face[] = [];
+  for (const a of (data ?? []) as Row[]) {
+    if (isSensitivePhoto(a) || a.status === "injured" || a.needs_help || !a.city || !/^https:\/\//.test(a.cover_photo)) continue;
+    const city = canonicalCity(a.city); if (!city) continue;
+    const n = per.get(city) ?? 0; if (n >= 2) continue;
+    per.set(city, n + 1);
+    const [lat, lng] = cellToLatLng(a.h3_r8);
+    out.push({ id: a.id, title: animalTitle(a), describe: describeAnimal(a), photo: a.cover_photo, city, zone: placeName(a.zone) || null, h3: a.h3_r8, c: [Math.round(lng * 1e4) / 1e4, Math.round(lat * 1e4) / 1e4], last_seen: a.last_seen });
+    if (out.length >= 10) break;
+  }
+  return out;
+}
+const cachedFaces = unstable_cache(readFaces, ["livingmap-faces-v1"], { revalidate: 900 });
+export const getFaces = () => cachedFaces();
+
 export type FoundPlace = { city: string; name: string; animals: number };
 /** Localities anywhere on the public record whose name matches: a resident can
  *  search their neighbourhood without knowing which city register holds it. */

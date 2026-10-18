@@ -81,7 +81,7 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
 
   return (
     <Membership.Provider value={mem}>
-      <div className={`sp ${spFonts}${isFlush ? " is-flush" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
+      <div className={`sp ${spFonts}${isFlush ? " is-flush" : ""}${path === "/community" ? " is-map" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
         <a href="#sp-main" className="sp-skip">Skip to content</a>
         <header className="sp-bar">
           <Link href={def.home} className="sp-mark" aria-label={`StrayPaw, ${def.label} home`}>
