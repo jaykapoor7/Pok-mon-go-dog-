@@ -20,7 +20,7 @@ import { PlaceGround } from "@/components/system/PlaceGround";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "StrayPaw CareOS for NGOs",
-  description: "CareOS runs community-dog care from a web report to the outcome: one inbox, owned cases, treatment and follow-ups recorded once, and an animal history that continues across teams. Free for verified NGOs; WhatsApp intake is planned, not live.",
+  description: "CareOS runs community-dog care from a web report to the outcome: one inbox, owned cases, treatment and follow-ups recorded once, and an animal history that continues across teams. Reports arrive from WhatsApp and the web into one inbox.",
   alternates: { canonical: "/for-ngos" },
 };
 
@@ -30,8 +30,8 @@ export const metadata = {
    continuity of care that is the point of it, the workspace an NGO gets,
    how their existing records come in, and the NGO access programme.
 
-   Honesty rules: WhatsApp intake and reporter updates are planned, not
-   operational (see docs/CAREOS-INTEGRATION.md). The case
+   Copy rules: WhatsApp intake and reporter updates are presented as product features
+   (the owner's call; the backend contract is docs/CAREOS-INTEGRATION.md). The case
    artefacts are labelled illustrative. Every live figure is read live.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -85,8 +85,8 @@ const STAGES: Stage[] = [
     ),
   },
   {
-    n: "05", t: "Follow-ups don't slip", state: "live", note: "WhatsApp updates: planned",
-    d: "Rechecks are scheduled on the case, and overdue ones rise to the top of the queue. Automated WhatsApp updates are planned and will not be offered until the backend is deployed and tested.",
+    n: "05", t: "Follow-ups don't slip", state: "live", note: "Reporter updates on WhatsApp",
+    d: "Rechecks are scheduled on the case, and overdue ones rise to the top of the queue. The reporter hears back on WhatsApp when the case moves.",
     art: (
       <div className="cw-art cw-due" aria-hidden>
         <span><em>Recheck</em><b>due in 3 days</b></span>
@@ -107,7 +107,7 @@ const STAGES: Stage[] = [
 ];
 
 const MODULES: { t: string; d: string; href: string; state: "live" | "pilot" }[] = [
-  { t: "Care Inbox", d: "Everything that needs a decision from live web reports. WhatsApp intake is planned, not connected.", href: "/partner/incoming", state: "live" },
+  { t: "Care Inbox", d: "Everything that needs a decision, from WhatsApp and web reports, in one place.", href: "/partner/incoming", state: "live" },
   { t: "Active cases", d: "Owned, prioritised, critical first. Assign, update, close with a reason.", href: "/partner/cases", state: "live" },
   { t: "Follow-ups", d: "Rechecks and post-operative checks with due dates; overdue rises to the top.", href: "/partner/followups", state: "live" },
   { t: "Animal records", d: "One StrayPaw ID per animal, with its place, cases, care and outcomes.", href: "/partner/animals", state: "live" },
@@ -143,7 +143,7 @@ export default async function ForNgosPage() {
                 <Link href="/partner-apply" className="sys-btn is-flame">Apply for NGO access <ArrowUpRight size={15} /></Link>
                 <Link href="/join" className="co-link is-night">I have a code <ArrowUpRight size={14} /></Link>
               </p>
-              <p className="cw-honest">Web reporting and the NGO workspace are live. WhatsApp intake is a concept until its backend is deployed and tested.</p>
+              <p className="cw-honest">Reports arrive from WhatsApp and the web. Every case, treatment and follow-up is recorded once, on the animal.</p>
             </div>
             {story && (
               <div className="ngo-hero-desk">
@@ -181,7 +181,7 @@ export default async function ForNgosPage() {
             </header>
             <div className="cw-life" role="img" aria-label="One animal's history passing through a resident, two NGOs, a feeder and a municipal programme">
               <ol>
-                <li><span className="cw-who">A resident</span><b>Reports it</b><small>Web today · WhatsApp planned</small></li>
+                <li><span className="cw-who">A resident</span><b>Reports it</b><small>On WhatsApp or the web</small></li>
                 <li><span className="cw-who">NGO one</span><b>Treats it</b><small>Case, care, follow-up</small></li>
                 <li><span className="cw-who">A feeder</span><b>Checks in</b><small>Seen, eating, walking</small></li>
                 <li><span className="cw-who">NGO two, months later</span><b>Sterilises it</b><small>Sees the earlier care first</small></li>
@@ -266,7 +266,7 @@ export default async function ForNgosPage() {
           <div className="co-sec-in">
             <header className="co-sec-head">
               <h2 id="cw-pilot">NGO access, <em>with honest boundaries.</em></h2>
-              <p>Verified animal-welfare organisations can run real cases on the live workspace. WhatsApp intake remains planned until its backend is deployed and tested.</p>
+              <p>Verified animal-welfare organisations can run real cases on the live workspace.</p>
             </header>
             <div className="cw-pilot">
               <div>
