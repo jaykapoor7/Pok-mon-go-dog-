@@ -21,7 +21,7 @@
   --flame: #f05b40; --flame-ink: #c1391c; --flame-soft: #fde6df;
   --blue: #2457ce; --blue-ink: #1b46b0; --blue-soft: #e4ebfa;
   --teal: #1f6f80; --teal-soft: #dcefef; --amber: #9a6a0c; --amber-soft: #f6e9cb;
-  --turmeric: #d99b1c; --leaf: #4b7f4f; --lac: #9b3149; --sky: #5e93c9; --indigo: #2f3d8f;
+  --turmeric: #d99b1c; --leaf: #4b7f4f; --lac: #9b3149; --sky: #5e93c9; --indigo: #2457ce;
   --line: rgba(11, 30, 61, 0.09); --line-2: rgba(11, 30, 61, 0.15); --line-3: rgba(11, 30, 61, 0.28);
   --hatch: repeating-linear-gradient(-45deg, rgba(11, 30, 61, 0.18) 0 1.2px, transparent 1.2px 6px);
   --sheet: var(--paper); --sheet-2: var(--shell-2); --sheet-ink: var(--ink); --sheet-mute: var(--mute); --marigold: #b06f12;
@@ -152,3 +152,6 @@
 .sp .portrait.is-art .portrait-none .mono, .sp .portrait.is-art.is-dark .portrait-none .mono { font-size: 11.5px; letter-spacing: 0.02em; color: #5d6b7c; opacity: 1; }
 .sp .portrait.is-art figcaption.portrait-credit { padding: 18px 12px 8px; background: linear-gradient(0deg, rgba(11, 30, 61, 0.6), rgba(11, 30, 61, 0)); color: #fff; font-family: var(--sp-sans-f), system-ui, sans-serif; font-size: 11px; }
 .sp .portrait.is-art figcaption.portrait-credit i { font-style: normal; }
+
+/* v3: no dark-blue surfaces. The old navy sheet token points at StrayPaw blue. */
+.sp { --sheet: #2457ce; --sheet-2: #1b46b0; --sheet-ink: #fffdf9; --sheet-mute: #e4ebfa; }
