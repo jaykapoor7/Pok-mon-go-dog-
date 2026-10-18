@@ -1,0 +1,281 @@
+/* ════════════════════════════════════════════════════════════════════
+   The landing as a kantha. One flame running stitch through six acts,
+   on cloth grounds: cream cotton, deep teal, night. Every scene reads
+   its scroll progress (--p, 0 → 1) from Scene; --sew (0 → 1) sews a
+   thread in. Under reduced motion scenes unpin and everything is shown.
+   ════════════════════════════════════════════════════════════════════ */
+
+@property --sew { syntax: "<number>"; inherits: true; initial-value: 1; }
+
+.kantha {
+  --cloth: #f3ede4; --cloth-2: #ece3d5; --madder: #c1391c; --teal-cloth: #123c43; --night: #0f141b;
+  --serif: var(--sx-serif), "Instrument Serif", Georgia, serif;
+  /* Cotton: a fine warp and weft, never a grid you notice. */
+  --weave: repeating-linear-gradient(0deg, rgba(11, 30, 61, 0.022) 0 1px, transparent 1px 4px), repeating-linear-gradient(90deg, rgba(11, 30, 61, 0.018) 0 1px, transparent 1px 5px);
+  background: var(--cloth);
+}
+.kantha h1 em, .kantha h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -0.02em; }
+.kantha .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.kantha .h-k { font-size: 13px; font-weight: 600; color: var(--madder); }
+
+/* ── the thread ── */
+.kantha .kt-thread { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.kantha .kt-thread-mask { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1 2; stroke-dashoffset: calc(1 - var(--sew)); }
+.kantha .kt-thread-stitch { fill: none; stroke: var(--flame); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 10 7; }
+/* The needle holes between stitches, where the thread runs under the cloth. */
+.kantha .kt-thread-shadow { fill: none; stroke: rgba(11, 30, 61, 0.32); stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 0.1 16.9; stroke-dashoffset: -13.5; }
+
+/* ════════ I · the scraps ════════ */
+.kantha .k-open .sc-stage { background: var(--weave), var(--cloth); }
+.kantha .k-open { --a: clamp(0, calc(var(--p) * 3.4), 1); --k: clamp(0, calc((var(--p) - 0.14) * 2), 1); }
+.kantha .ko-copy { position: absolute; z-index: 4; left: clamp(20px, 6vw, 96px); top: clamp(92px, 15svh, 150px); max-width: min(760px, 52vw);
+  transform: translateY(calc(var(--a) * -70px)); opacity: calc(1 - var(--a) * 1.3); }
+.kantha .ko-k { margin: 0 0 16px; font-family: var(--sp-mono-f, ui-monospace, monospace); font-size: 12.5px; color: var(--mute); }
+.kantha .ko-copy h1 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: clamp(46px, 6.6vw, 112px); line-height: 0.93; letter-spacing: -0.03em; color: var(--ink); text-wrap: balance; }
+.kantha .ko-copy h1 em { color: var(--madder); }
+.kantha .ko-copy h1 .w { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: 0.08em; margin-right: 0.2em; }
+.kantha .ko-copy h1 .w > span { display: inline-block; }
+.kantha .ko-lede { margin: 22px 0 26px; max-width: 46ch; font-size: 17.5px; line-height: 1.55; color: var(--ink-2); }
+.kantha .ko-copy .h-btn:not(.is-flame) { background: rgba(255, 253, 249, 0.8); }
+
+.kantha .ks { position: absolute; inset: 0; z-index: 2; }
+.kantha .ks-field { position: absolute; inset: 0; container-type: size; perspective: 1200px; }
+.kantha .ks-thread { --sew: clamp(0, calc(0.16 + var(--p) * 2.1), 1); opacity: calc(1 - clamp(0, calc((var(--p) - 0.56) * 5), 1)); }
+.kantha .ks-scrap { --yy: var(--y); --t: clamp(0, calc((var(--p) - 0.12 - var(--i) * 0.03) * 3.3), 1);
+  position: absolute; left: calc(var(--x) * 1%); top: calc(var(--yy) * 1%); display: flex; align-items: center; gap: 8px; max-width: 240px; padding: 10px 13px;
+  border-radius: 14px; background: #fffdf9; color: var(--ink); font-size: 14px; line-height: 1.35; box-shadow: 0 1px 2px rgba(11, 30, 61, 0.08), 0 18px 34px -18px rgba(11, 30, 61, 0.45);
+  transform: translate(-50%, -50%)
+    translate(calc((50 - var(--x)) * var(--t) * 1cqw + var(--px, 0) * var(--z) * 56px * (1 - var(--t))), calc((var(--ty, 54) - var(--yy)) * var(--t) * 1cqh + var(--py, 0) * var(--z) * 40px * (1 - var(--t))))
+    translateZ(calc(var(--z) * 140px * (1 - var(--t)))) rotate(calc(var(--r) * (1 - var(--t)))) scale(calc(1 - var(--t) * 0.82));
+  opacity: calc((0.6 + var(--z) * 0.4) * (1 - var(--t) * var(--t))); transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+.kantha .ks-scrap svg { flex: none; color: var(--mute); }
+.kantha .ks-scrap.is-msg { border-bottom-left-radius: 4px; }
+.kantha .ks-scrap.is-msg svg { color: #1f8a5b; }
+.kantha .ks-scrap.is-photo { display: grid; gap: 6px; padding: 6px 6px 8px; border-radius: 6px; }
+.kantha .ks-scrap.is-photo img { width: 132px; height: 104px; object-fit: cover; border-radius: 3px; display: block; }
+.kantha .ks-scrap.is-photo small { display: flex; align-items: center; gap: 5px; font-family: var(--sp-mono-f, ui-monospace, monospace); font-size: 11px; color: var(--mute); }
+.kantha .ks-scrap.is-pin { border-radius: 999px; font-weight: 600; }
+.kantha .ks-scrap.is-pin svg, .kantha .ks-scrap.is-call svg { color: var(--flame-ink); }
+.kantha .ks-scrap.is-call { color: var(--flame-ink); font-weight: 600; }
+.kantha .ks-scrap.is-voice { background: #e3f2ec; border-radius: 999px; }
+.kantha .ks-scrap.is-voice svg { color: var(--teal); }
+.kantha .ks-wave { width: 54px; height: 16px; background: repeating-linear-gradient(90deg, var(--teal) 0 2px, transparent 2px 5px); border-radius: 2px; }
+.kantha .ks-scrap.is-sheet { background: #e7f1e4; font-family: var(--sp-mono-f, ui-monospace, monospace); font-size: 12.5px; border-radius: 6px; }
+.kantha .ks-scrap.is-sheet svg { color: #2f7d32; }
+@media (prefers-reduced-motion: no-preference) {
+  .kantha .ko-copy h1 .w > span { animation: ko-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--w) * 70ms + 80ms); }
+  .kantha .ks-scrap { animation: ks-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--i) * 60ms + 300ms); }
+}
+@keyframes ko-rise { from { transform: translateY(105%); } }
+@keyframes ks-in { from { opacity: 0; scale: 0.6; } }
+
+/* The workspace rises from the table, flattens and comes forward as the scraps arrive. */
+.kantha .ks-core { position: absolute; z-index: 3; left: 50%; top: calc(56% + (1 - var(--k)) * 40%); width: min(900px, 92vw);
+  transform: translate(-50%, -50%) perspective(1400px) rotateX(calc((1 - var(--k)) * 42deg)) scale(calc(0.7 + var(--k) * 0.3)); transform-origin: 50% 100%; }
+.kantha .ko-app { margin: 0; max-width: none; transform: none; opacity: 1; box-shadow: 0 2px 6px rgba(11, 30, 61, 0.05), 0 50px 90px -40px rgba(11, 30, 61, 0.5); }
+.kantha .ko-gather { position: absolute; z-index: 3; left: 0; right: 0; top: clamp(76px, 10svh, 112px); margin: 0; text-align: center; font-family: var(--serif); font-size: clamp(30px, 3.6vw, 52px); letter-spacing: -0.02em; color: var(--ink);
+  opacity: clamp(0, calc((var(--p) - 0.6) * 5), 1); transform: translateY(calc((1 - clamp(0, calc((var(--p) - 0.6) * 5), 1)) * 24px)); }
+.kantha .ko-fine { position: absolute; z-index: 4; left: clamp(20px, 6vw, 96px); bottom: 14px; margin: 0; font-size: 12px; color: var(--mute); opacity: calc(1 - var(--k) * 4); }
+
+/* ════════ II · the stitch ════════ */
+.kantha.home3 .s-wa .sc-stage { background: var(--weave), var(--paper); color: var(--ink); clip-path: none; }
+.kantha .s-wa .h-k { color: var(--madder); }
+.kantha .k-stitch-cf { position: relative; }
+.kantha .k-stitch-cf .cf { margin-top: 26px; }
+.kantha.home3 .s-wa .cf-phone, .kantha.home3 .s-wa .cf-work { transform: translateX(calc((1 - clamp(0, calc(var(--p) * 9), 1)) * var(--from))); transition: none; box-shadow: 0 2px 6px rgba(11, 30, 61, 0.05), 0 36px 70px -36px rgba(11, 30, 61, 0.45); }
+.kantha .s-wa .cf-phone { --from: -26vw; }
+.kantha .s-wa .cf-work { --from: 26vw; }
+.kantha.home3 .s-wa .cf-dots li { background: rgba(11, 30, 61, 0.06); color: var(--ink-2); }
+.kantha.home3 .s-wa .cf-dots li.is-done { background: rgba(240, 91, 64, 0.12); color: var(--flame-ink); }
+.kantha.home3 .s-wa .cf-dots li[aria-current] { background: var(--flame); color: #fff; }
+.kantha.home3 .s-wa .cf-note { color: var(--ink-2); }
+.kantha .kt-sew { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 6; }
+.kantha .kt-sew-mask { fill: none; stroke: #fff; stroke-width: 12; stroke-linecap: round; stroke-dasharray: 1 2; stroke-dashoffset: 0; }
+.kantha .kt-sew-stitch { fill: none; stroke: var(--flame); stroke-width: 2.8; stroke-linecap: round; stroke-dasharray: 10 7; }
+.kantha .kt-sew-shadow { fill: none; stroke: rgba(11, 30, 61, 0.35); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 0.1 16.9; stroke-dashoffset: -13.5; }
+.kantha .kt-sew-knot { fill: var(--flame); stroke: #fffdf9; stroke-width: 2; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .kantha .kt-sew-mask { stroke-dashoffset: 1; animation: kt-draw 0.9s cubic-bezier(0.6, 0, 0.2, 1) 0.05s forwards; }
+  .kantha .kt-sew-knot { animation: kt-knot 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) 0.9s backwards; }
+}
+@keyframes kt-draw { to { stroke-dashoffset: 0; } }
+@keyframes kt-knot { from { opacity: 0; transform: scale(0); } }
+
+/* ════════ III · the quilt ════════ */
+.kantha .k-quilt .sc-stage { background: repeating-linear-gradient(0deg, rgba(255, 253, 249, 0.03) 0 1px, transparent 1px 6px), radial-gradient(90% 80% at 50% 60%, #18505a 0%, var(--teal-cloth) 70%); color: var(--cloth); }
+.kantha .k-quilt { --z: clamp(0, calc((var(--p) - 0.18) * 2.3), 1); --o: clamp(0, calc((var(--p) - 0.58) * 5), 1); --sew: clamp(0, calc((var(--p) - 0.64) * 3.2), 1); }
+.kantha .kq-head { position: absolute; z-index: 3; top: clamp(80px, 11svh, 120px); left: 6vw; max-width: 520px; opacity: calc(1 - var(--z) * 2.2); transform: translateY(calc(var(--z) * -50px)); }
+.kantha .kq-head .h-k { color: #ffb4a3; }
+.kantha .kq-head h2 { margin: 0; font-size: clamp(34px, 4.2vw, 60px); line-height: 1; font-weight: 600; letter-spacing: -0.04em; }
+.kantha .kq { position: absolute; inset: 0; display: grid; place-items: center; }
+.kantha .kq-quilt { display: grid; grid-template-columns: repeat(3, 1fr); width: min(66svh, 88vw); aspect-ratio: 1; margin-top: 10svh; padding: 10px; border-radius: 10px; background: #f1e4cf; box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.7);
+  transform: scale(calc(1 + var(--z) * var(--z) * 2.4)) rotate(calc((1 - var(--z)) * -3deg)); opacity: calc(1 - var(--o) * 0.8); }
+.kantha .kq-patch { --f: #e0603f; position: relative; display: block; overflow: hidden; padding: 11%; background-color: var(--f); background-image: repeating-linear-gradient(0deg, transparent 0 9px, rgba(255, 253, 249, 0.2) 9px 10px); color: #fffdf9; text-decoration: none; transition: transform 0.25s, box-shadow 0.25s; }
+.kantha .kq-patch::after { content: ""; position: absolute; inset: 6px; border: 2px dashed rgba(255, 253, 249, 0.7); border-radius: 3px; pointer-events: none; }
+.kantha .kq-patch:nth-child(9n + 1) { --f: #d99b1c; } .kantha .kq-patch:nth-child(9n + 2) { --f: #2f5fc9; } .kantha .kq-patch:nth-child(9n + 3) { --f: #1f7a7a; }
+.kantha .kq-patch:nth-child(9n + 4) { --f: #c84b6b; } .kantha .kq-patch:nth-child(9n + 5) { --f: #f05b40; } .kantha .kq-patch:nth-child(9n + 6) { --f: #5c8a3a; }
+.kantha .kq-patch:nth-child(9n + 7) { --f: #b4532a; } .kantha .kq-patch:nth-child(9n + 8) { --f: #3f7fb0; } .kantha .kq-patch:nth-child(9n) { --f: #d17f1a; }
+.kantha .kq-patch img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; display: block; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+.kantha .kq-patch img.is-art { object-fit: contain; }
+.kantha .kq-patch span { position: absolute; left: 11%; right: 11%; bottom: 11%; padding: 18px 8px 6px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.6)); border-radius: 0 0 3px 3px; display: grid; opacity: 0; transition: opacity 0.2s; }
+.kantha .kq-patch span b { font-size: 13px; } .kantha .kq-patch span small { font-size: 11.5px; opacity: 0.85; }
+.kantha a.kq-patch:hover, .kantha a.kq-patch:focus-visible { z-index: 2; transform: translateY(-4px) rotate(-1.2deg); box-shadow: 0 16px 30px -12px rgba(0, 0, 0, 0.6); outline: none; }
+.kantha a.kq-patch:hover span, .kantha a.kq-patch:focus-visible span { opacity: 1; }
+.kantha .kq-life { position: absolute; z-index: 4; left: 50%; top: 54%; width: min(700px, 92vw); max-height: 82svh; overflow: auto; padding: 24px 26px; border-radius: 22px; background: var(--weave), var(--paper); color: var(--ink);
+  box-shadow: 0 50px 100px -40px rgba(0, 0, 0, 0.7); opacity: var(--o); transform: translate(-50%, -50%) scale(calc(0.86 + var(--o) * 0.14)); pointer-events: none; }
+.kantha .kq.is-open .kq-life { pointer-events: auto; }
+.kantha .kq-life header { display: grid; grid-template-columns: 92px 1fr; gap: 16px; align-items: center; }
+.kantha .kq-life header img { width: 92px; height: 92px; border-radius: 16px; object-fit: cover; }
+.kantha .kq-life header img.is-art { object-fit: contain; }
+.kantha .kq-k { margin: 0 0 4px; font-size: 12.5px; font-weight: 600; color: var(--madder); }
+.kantha .kq-life h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 36px; line-height: 1; letter-spacing: -0.02em; }
+.kantha .kq-life header small { display: block; margin-top: 4px; font-size: 13px; color: var(--mute); }
+.kantha .kq-life .kq-art { font-size: 12px; }
+.kantha .kq-line { position: relative; list-style: none; margin: 20px 0 18px; padding: 0 0 0 30px; }
+.kantha .kq-line::before { content: ""; position: absolute; left: 9px; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; background: repeating-linear-gradient(180deg, var(--flame) 0 10px, transparent 10px 17px); clip-path: inset(0 0 calc((1 - var(--sew)) * 100%) 0); }
+.kantha .kq-line li { --on: clamp(0, calc((var(--sew) * var(--n) - var(--i)) * 1.4), 1); position: relative; display: grid; grid-template-columns: 112px 1fr; gap: 12px; padding: 8px 0; font-size: 15px; border-bottom: 1px solid var(--line); opacity: var(--on); transform: translateX(calc((1 - var(--on)) * 12px)); }
+.kantha .kq-line li:last-child { border-bottom: 0; }
+.kantha .kq-line li::before { content: ""; position: absolute; left: -26px; top: 13px; width: 11px; height: 11px; border-radius: 50%; background: var(--paper); border: 3px solid var(--blue); transform: scale(var(--on)); }
+.kantha .kq-line li.is-case::before { background: var(--flame); border-color: var(--flame); }
+.kantha .kq-line li.is-care::before { border-color: var(--teal); background: var(--teal); }
+.kantha .kq-line time { font-size: 13px; color: var(--mute); font-variant-numeric: tabular-nums; }
+
+/* ════════ IV · one cloth, four ways in ════════ */
+.kantha .k-ways { padding: clamp(84px, 12svh, 130px) clamp(16px, 5vw, 72px); background: var(--weave), var(--cloth); }
+.kantha .kw-head { max-width: 760px; margin: 0 auto 38px; text-align: center; }
+.kantha .kw-head h2 { margin: 0; font-size: clamp(34px, 4.4vw, 64px); line-height: 1; font-weight: 600; letter-spacing: -0.045em; }
+.kantha .kp { display: flex; gap: 10px; height: min(560px, 72svh); max-width: 1240px; margin: 0 auto; }
+.kantha .kp-strip { --f: var(--teal); position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; padding: 26px 24px; border-radius: 22px; overflow: hidden; background-color: var(--f);
+  background-image: repeating-linear-gradient(0deg, transparent 0 13px, rgba(255, 253, 249, 0.09) 13px 14px); color: #fffdf9; transition: flex-grow 0.65s cubic-bezier(0.22, 1, 0.36, 1); }
+.kantha .kp-strip::after { content: ""; position: absolute; inset: 9px; border: 2px dashed rgba(255, 253, 249, 0.45); border-radius: 15px; pointer-events: none; }
+.kantha .kp-strip.is-open { flex-grow: 3.3; }
+.kantha .kp-strip.is-ngo { --f: var(--madder); }
+.kantha .kp-strip.is-city { --f: var(--blue); }
+.kantha .kp-strip.is-fund { --f: #e3a72f; color: var(--ink); }
+.kantha .kp-strip.is-fund::after { border-color: rgba(11, 30, 61, 0.3); }
+.kantha .kp-strip h3 { position: relative; z-index: 1; margin: 0; }
+.kantha .kp-strip h3 button { display: grid; gap: 6px; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.kantha .kp-strip h3 button:focus-visible { outline: 3px solid currentColor; outline-offset: 6px; border-radius: 6px; }
+.kantha .kp-who { font-size: 13.5px; font-weight: 600; opacity: 0.85; }
+.kantha .kp-title { font-family: var(--serif); font-weight: 400; font-size: clamp(26px, 2.4vw, 34px); line-height: 1.02; letter-spacing: -0.02em; }
+.kantha .kp-strip.is-open .kp-title { font-size: clamp(32px, 3.4vw, 48px); }
+.kantha .kp-art { position: absolute; right: 14px; bottom: 14px; width: 42%; max-width: 150px; opacity: 0.35; transition: opacity 0.4s, width 0.6s; pointer-events: none; }
+.kantha .kp-strip.is-open .kp-art { opacity: 0.9; max-width: 190px; width: 30%; }
+.kantha .kp-body { position: relative; z-index: 1; margin-top: auto; max-width: 560px; padding-right: 20%; }
+.kantha .kp-body[hidden] { display: none; }
+.kantha .kp-body > p { margin: 0 0 16px; font-size: 17px; line-height: 1.5; }
+@media (prefers-reduced-motion: no-preference) { .kantha .kp-body { animation: kp-in 0.5s 0.15s cubic-bezier(0.22, 1, 0.36, 1) backwards; } }
+@keyframes kp-in { from { opacity: 0; transform: translateY(14px); } }
+.kantha .kp-show { margin-bottom: 18px; }
+.kantha .kp-fig { display: grid; gap: 2px; margin: 0; }
+.kantha .kp-fig b { font-family: var(--serif); font-weight: 400; font-size: 64px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kantha .kp-fig span { font-size: 14px; opacity: 0.85; }
+.kantha .kp-queue { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.kantha .kp-queue li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: #fffdf9; color: var(--ink); box-shadow: inset 3px 0 0 #d6dbe4; }
+.kantha .kp-queue li.is-crit { box-shadow: inset 3px 0 0 var(--flame); }
+.kantha .kp-queue b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kantha .kp-queue span, .kantha .kp-queue em { font-size: 12.5px; font-style: normal; color: var(--mute); }
+.kantha .kp-figs { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 6px 26px; margin: 0; }
+.kantha .kp-figs dt { font-size: 12.5px; opacity: 0.85; }
+.kantha .kp-figs dd { margin: 0; font-family: var(--serif); font-size: 40px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.kantha .kp-figs small { grid-column: 1 / -1; font-size: 12.5px; opacity: 0.8; }
+.kantha .kp-strip .h-btn { background: #fffdf9; color: var(--ink); border-color: transparent; }
+
+/* ════════ V · the atlas, pulled back ════════ */
+.kantha .k-atlas .sc-stage { background: radial-gradient(80% 70% at 50% 50%, #18202b 0%, var(--night) 70%); color: var(--cloth); }
+.kantha .k-atlas { --a: clamp(0, calc((var(--p) - 0.04) / 0.64), 1); --b: calc(1 - var(--a)); }
+.kantha .ka-world { position: absolute; inset: 9svh 3vw 5svh 30vw; transform-origin: var(--ox, 50%) var(--oy, 50%); transform: scale(calc(1 + var(--b) * var(--b) * 9)); }
+.kantha .ka-map .ix-city, .kantha .ka-map .ix-card, .kantha .ka-map .ix-string, .kantha .ka-map .ix-pulse { opacity: clamp(0, calc(var(--a) * 2.4 - 1.2), 1); }
+.kantha .ka-map .ix-card { pointer-events: auto; }
+.kantha .ka-map .ix-land { stroke: rgba(243, 237, 228, calc(0.18 + var(--a) * 0.3)); stroke-width: calc(1.1px / (1 + var(--b) * var(--b) * 9)); }
+.kantha .ka-map .ix-weave { opacity: calc(var(--a) * var(--a)); }
+.kantha .ka-caps { position: absolute; z-index: 3; left: clamp(20px, 6vw, 96px); bottom: 24svh; width: min(340px, 22vw); height: 150px; pointer-events: none; }
+.kantha .ka-cap { position: absolute; left: 0; bottom: 0; margin: 0; display: grid; gap: 8px; }
+.kantha .ka-cap b { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 4.6vw, 72px); line-height: 0.95; letter-spacing: -0.02em; }
+.kantha .ka-cap span { font-size: 17px; line-height: 1.45; color: rgba(243, 237, 228, 0.78); }
+.kantha .ka-cap.is-1 { opacity: clamp(0, calc(1 - var(--a) * 4.5), 1); }
+.kantha .ka-cap.is-2 { opacity: clamp(0, min(calc((var(--a) - 0.26) * 6), calc((0.7 - var(--a)) * 6)), 1); }
+.kantha .ka-cap.is-3 { opacity: clamp(0, calc((var(--a) - 0.74) * 5), 1); }
+.kantha .ka-act { position: absolute; z-index: 3; left: clamp(20px, 6vw, 96px); bottom: 12svh; opacity: clamp(0, calc((var(--a) - 0.74) * 5), 1); }
+
+/* ════════ VI · the vision, tied off ════════ */
+.kantha .k-end { position: relative; overflow: hidden; padding: clamp(96px, 14svh, 150px) clamp(16px, 5vw, 72px) 96px; text-align: center; background: var(--weave), var(--cloth); }
+.kantha .ke-pf { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); max-width: 1040px; margin: 0 auto 64px; text-align: left; }
+.kantha .ke-pf div { display: grid; gap: 4px; padding: 6px 22px; border-left: 2px dashed rgba(240, 91, 64, 0.55); }
+.kantha .ke-pf dt { order: 2; font-size: 14px; font-weight: 600; }
+.kantha .ke-pf dd { order: 1; margin: 0; font-family: var(--serif); font-size: clamp(44px, 4.6vw, 68px); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kantha .ke-pf small { order: 3; font-size: 13px; color: var(--mute); }
+.kantha .k-end h2 { max-width: 920px; margin: 0 auto; font-size: clamp(34px, 4.4vw, 62px); line-height: 1.04; font-weight: 600; letter-spacing: -0.04em; text-wrap: balance; }
+.kantha .k-end h2 em { color: var(--madder); }
+.kantha .ke-acts { position: relative; }
+.kantha .k-end .h-close-alt { text-align: center; }
+/* The thread comes in from the left edge and ties off in a knot at the invitation. */
+.kantha .ke-knot { position: relative; width: 16px; height: 16px; margin-right: 6px; border-radius: 50%; background: var(--flame); box-shadow: 0 0 0 3px var(--paper), 0 0 0 4px rgba(240, 91, 64, 0.4); }
+.kantha .ke-knot::before { content: ""; position: absolute; right: calc(100% + 4px); top: 6.5px; width: 50vw; height: 3px; border-radius: 2px; background: repeating-linear-gradient(90deg, transparent 0 7px, var(--flame) 7px 17px); transform-origin: 100% 50%; }
+@media (prefers-reduced-motion: no-preference) {
+  .rv-on .kantha .ke-knot::before { transform: scaleX(0); transition: transform 1.3s cubic-bezier(0.6, 0, 0.2, 1) 0.2s; }
+  .rv-on .kantha .ke-acts.is-in .ke-knot::before { transform: none; }
+  .rv-on .kantha .ke-knot { scale: 0; transition: scale 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) 1.45s; }
+  .rv-on .kantha .ke-acts.is-in .ke-knot { scale: 1; }
+}
+
+@media (max-width: 1100px) and (min-width: 761px) {
+  .kantha .ka-world { inset: 9svh 2vw 5svh 22vw; }
+  .kantha .ka-caps { width: 30vw; }
+}
+
+/* ════════ phones ════════ */
+@media (max-width: 760px) {
+  .kantha .ko-copy { left: 16px; right: 16px; top: 84px; max-width: none; }
+  .kantha .ko-copy h1 { font-size: clamp(40px, 12vw, 56px); }
+  .kantha .ko-lede { font-size: 16px; margin: 16px 0 20px; }
+  /* On a phone the scraps gather in a band below the words, never over them. */
+  .kantha .ks-scrap { --yy: calc(70 + var(--y) * 0.26); --ty: 56; max-width: 150px; padding: 8px 10px; font-size: 12px; }
+  .kantha .ks-thread { top: 70%; height: 26%; }
+  .kantha .ks-scrap.is-photo img { width: 84px; height: 66px; }
+  .kantha .ks-scrap:nth-child(n + 10) { display: none; }
+  .kantha .ks-field { opacity: 0.85; }
+  .kantha .ks-core { width: 94vw; }
+  .kantha .ko-app .h-app-bar nav, .kantha .ko-app .h-app-live, .kantha .ko-app li span { display: none; }
+  .kantha .ko-fine { right: 16px; left: 16px; }
+  .kantha .s-wa .cf-phone { --from: -60vw; }
+  .kantha .s-wa .cf-work { --from: 60vw; }
+  .kantha .kq-head { left: 16px; right: 16px; top: 76px; }
+  .kantha .kq-quilt { width: 92vw; margin-top: 12svh; }
+  .kantha .kq-patch span { display: none; }
+  .kantha .kq-life { padding: 18px; }
+  .kantha .kq-life header { grid-template-columns: 64px 1fr; gap: 12px; }
+  .kantha .kq-life header img { width: 64px; height: 64px; }
+  .kantha .kq-life h3 { font-size: 28px; }
+  .kantha .kq-line li { grid-template-columns: 1fr; gap: 0; font-size: 14px; }
+  .kantha .kp { flex-direction: column; height: auto; }
+  .kantha .kp-strip { flex: none; padding: 20px 18px; }
+  .kantha .kp-strip.is-open { flex-grow: 0; }
+  .kantha .kp-body { padding-right: 0; margin-top: 18px; }
+  .kantha .kp-art { width: 72px; top: 14px; bottom: auto; }
+  .kantha .kp-strip.is-open .kp-art { width: 90px; }
+  .kantha .kp-fig b { font-size: 48px; }
+  .kantha .kp-figs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 12px; }
+  .kantha .kp-figs dd { font-size: 28px; }
+  .kantha .ka-world { inset: 26svh 0 14svh; }
+  .kantha .ka-caps { left: 16px; right: 16px; width: auto; top: 76px; bottom: auto; height: 120px; }
+  .kantha .ka-cap { top: 0; bottom: auto; }
+  .kantha .ka-cap span { font-size: 15px; }
+  .kantha .ka-act { left: 16px; bottom: 3svh; }
+  .kantha .ke-pf { grid-template-columns: 1fr 1fr; gap: 22px 0; margin-bottom: 44px; }
+  .kantha .ke-pf div { padding: 4px 14px; }
+  .kantha .ke-knot { display: none; }
+}
+
+/* ════════ still: reduced motion reads top to bottom ════════ */
+.kantha .k-open.is-still .ko-copy { position: relative; left: auto; top: auto; max-width: 760px; padding: 110px clamp(16px, 6vw, 96px) 0; opacity: 1; transform: none; }
+.kantha .k-open.is-still .ks { position: relative; inset: auto; padding: 32px 16px 0; }
+.kantha .k-open.is-still .ks-field, .kantha .k-open.is-still .ko-gather { display: none; }
+.kantha .k-open.is-still .ks-core { position: relative; left: auto; top: auto; margin: 0 auto; transform: none; }
+.kantha .k-open.is-still .ko-fine { position: static; margin: 16px auto 0; text-align: center; opacity: 1; }
+.kantha.home3 .s-wa.is-still .cf-phone, .kantha.home3 .s-wa.is-still .cf-work { transform: none; }
+.kantha .k-quilt.is-still .kq-head { position: relative; top: auto; left: auto; padding: 96px 6vw 0; opacity: 1; transform: none; }
+.kantha .k-quilt.is-still .kq { position: relative; display: grid; gap: 32px; justify-items: center; padding: 32px 16px 0; }
+.kantha .k-quilt.is-still .kq-quilt { margin: 0; transform: none; opacity: 1; }
+.kantha .k-quilt.is-still .kq-life { position: relative; left: auto; top: auto; transform: none; opacity: 1; max-height: none; }
+.kantha .k-atlas.is-still .sc-stage { min-height: 100svh; }
