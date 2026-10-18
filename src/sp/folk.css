@@ -142,3 +142,13 @@
 .sp .folk-band { position: relative; overflow: hidden; border-radius: 16px; background: var(--shell-2); }
 .sp .folk-band img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .sp .folk-band figcaption { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px; background: rgba(255, 253, 249, 0.92); font-size: 11px; color: var(--mute); }
+
+/* No-photograph plate, v3: the painting on its own ground, the record's words on a paper label, a quiet credit. */
+.sp .portrait.is-art .portrait-art-bg { display: none; }
+.sp .portrait.is-art .portrait-art-fg { object-fit: cover; object-position: 60% 55%; padding: 0; mix-blend-mode: multiply; opacity: 0.94; filter: none; }
+.sp .portrait.is-art .portrait-art::after { display: none; }
+.sp .portrait.is-art .portrait-none { left: 12px; top: 12px; max-width: calc(100% - 24px); gap: 1px; padding: 8px 11px; border-radius: 10px; background: rgba(255, 253, 249, 0.95); box-shadow: 0 1px 2px rgba(11, 30, 61, 0.08); }
+.sp .portrait.is-art .portrait-none b, .sp .portrait.is-m .portrait-none b { font-family: var(--sp-sans-f), system-ui, sans-serif; font-weight: 650; font-size: 13.5px; line-height: 1.3; color: var(--ink); text-shadow: none; }
+.sp .portrait.is-art .portrait-none .mono, .sp .portrait.is-art.is-dark .portrait-none .mono { font-size: 11.5px; letter-spacing: 0.02em; color: #5d6b7c; opacity: 1; }
+.sp .portrait.is-art figcaption.portrait-credit { padding: 18px 12px 8px; background: linear-gradient(0deg, rgba(11, 30, 61, 0.6), rgba(11, 30, 61, 0)); color: #fff; font-family: var(--sp-sans-f), system-ui, sans-serif; font-size: 11px; }
+.sp .portrait.is-art figcaption.portrait-credit i { font-style: normal; }
