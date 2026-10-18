@@ -20,11 +20,14 @@ export type HomeFace = { id: string; title: string; describe: string | null; pho
 
 type Placed = { f: HomeFace; x: number; y: number; cx: number; cy: number };
 
-export function IndiaStrings({ cities, faces, tone, max = 6, onCity, selected, className = "" }: {
+export function IndiaStrings({ cities, faces, tone, max = 6, onCity, selected, className = "", sky }: {
   cities: HomeCity[]; faces: HomeFace[]; tone: "night" | "paper"; max?: number;
   onCity?: (c: string) => void; selected?: string | null; className?: string;
+  /** Every recorded area in India as [lng, lat, animals]: drawn as a sky of points, one per area, never finer. */
+  sky?: [number, number, number][];
 }) {
   const box = useRef<HTMLDivElement>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [hot, setHot] = useState<string | null>(null);
   useEffect(() => {
@@ -33,6 +36,35 @@ export function IndiaStrings({ cities, faces, tone, max = 6, onCity, selected, c
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  /* The sky: one glowing point per recorded area, sized by its animals, breathing slowly.
+     It sleeps off screen and holds still under reduced motion. */
+  useEffect(() => {
+    const cv = canvas.current; if (!cv || !size || !sky?.length) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1), { w, h } = size;
+    cv.width = w * dpr; cv.height = h * dpr; cv.style.width = `${w}px`; cv.style.height = `${h}px`;
+    const g = cv.getContext("2d"); if (!g) return;
+    const mh = h * 0.92, mw = mh * (INDIA_VIEW.w / INDIA_VIEW.h), ox = (w - mw) / 2, oy = (h - mh) / 2;
+    const top = Math.sqrt(Math.max(1, ...sky.map((d) => d[2])));
+    const pts = sky.map(([lng, lat, n], i) => { const [x, y] = indiaXY(lng, lat); return { x: ox + (x / INDIA_VIEW.w) * mw, y: oy + (y / INDIA_VIEW.h) * mh, r: 1.4 + (Math.sqrt(n) / top) * 5, ph: (i * 2.399) % (Math.PI * 2) }; });
+    const night = tone === "night";
+    const draw = (t: number) => {
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+      for (const p of pts) {
+        const a = 0.55 + 0.45 * Math.sin(t / 1400 + p.ph);
+        const glow = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+        glow.addColorStop(0, night ? `rgba(255,170,130,${0.75 * a})` : `rgba(36,87,206,${0.35 * a})`); glow.addColorStop(1, "rgba(0,0,0,0)");
+        g.fillStyle = glow; g.beginPath(); g.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2); g.fill();
+        g.fillStyle = night ? `rgba(255,236,220,${0.6 + 0.4 * a})` : `rgba(27,70,176,${0.6 + 0.4 * a})`; g.beginPath(); g.arc(p.x, p.y, p.r * 0.7, 0, Math.PI * 2); g.fill();
+      }
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { draw(0); return; }
+    let raf = 0, on = true, last = 0;
+    const loop = (t: number) => { if (on && t - last > 40) { last = t; draw(t); } raf = requestAnimationFrame(loop); };
+    const io = new IntersectionObserver(([e]) => { on = e.isIntersecting; }); io.observe(cv);
+    raf = requestAnimationFrame(loop);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); };
+  }, [size, sky, tone]);
 
   const maxA = Math.sqrt(Math.max(1, ...cities.map((c) => c.animals)));
   /* Only the largest registers are lettered; the rest name themselves on hover, so the south stays legible. */
@@ -61,15 +93,29 @@ export function IndiaStrings({ cities, faces, tone, max = 6, onCity, selected, c
     <div ref={box} className={`ix is-${tone} ${className}`}>
       {geo && (
         <svg className="ix-map" width={size!.w} height={size!.h} aria-hidden>
+          <defs>
+            {/* A Gond-style weave of dots and dashes inside the land: texture, never data. */}
+            <pattern id={`ix-weave-${tone}`} width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+              <circle cx="2" cy="2" r="0.9" className="ix-weave-dot" /><path d="M5 6.5h3" className="ix-weave-dash" />
+            </pattern>
+          </defs>
           <g transform={`translate(${geo.ox} ${geo.oy}) scale(${geo.mw / INDIA_VIEW.w} ${geo.mh / INDIA_VIEW.h})`}>
             <path d={INDIA_PATH} className="ix-land" vectorEffect="non-scaling-stroke" />
           </g>
-          {placed.map((p, i) => (
-            <path key={p.f.id} className={`ix-string${hot === p.f.id ? " is-hot" : ""}`} style={{ ["--i" as string]: i }} pathLength={1}
-              d={`M${p.cx},${p.cy} C${(p.cx + p.x) / 2},${p.cy} ${(p.cx + p.x) / 2},${p.y} ${p.x},${p.y}`} />
-          ))}
+          <path d={INDIA_PATH} transform={`translate(${geo.ox} ${geo.oy}) scale(${geo.mw / INDIA_VIEW.w} ${geo.mh / INDIA_VIEW.h})`} fill={`url(#ix-weave-${tone})`} className="ix-weave" />
+          {placed.map((p, i) => {
+            const d = `M${p.cx},${p.cy} C${(p.cx + p.x) / 2},${p.cy} ${(p.cx + p.x) / 2},${p.y} ${p.x},${p.y}`;
+            return (
+              <g key={p.f.id}>
+                <path className={`ix-string${hot === p.f.id ? " is-hot" : ""}`} style={{ ["--i" as string]: i }} pathLength={1} d={d} />
+                {/* A record travelling home: a point of light runs from the animal to its city. */}
+                <circle r="2.6" className="ix-pulse"><animateMotion dur={`${2.8 + (i % 3) * 0.7}s`} begin={`${1.4 + i * 0.35}s`} repeatCount="indefinite" path={d} keyPoints="1;0" keyTimes="0;1" calcMode="linear" /></circle>
+              </g>
+            );
+          })}
         </svg>
       )}
+      {sky && <canvas ref={canvas} className="ix-sky" aria-hidden />}
       {geo && cities.map((c) => {
         const [x, y] = indiaXY(c.lng, c.lat);
         const px = geo.ox + (x / INDIA_VIEW.w) * geo.mw, py = geo.oy + (y / INDIA_VIEW.h) * geo.mh;

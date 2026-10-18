@@ -20,7 +20,7 @@ import { IndiaStrings, type HomeCity, type HomeFace } from "./IndiaStrings";
 export type CityFacts = { city: string; state: string | null; animals: number; cells: number; sterilised: number; ster_unknown: number; cases: number; care: number; hollow: boolean };
 const f = (n: number) => n.toLocaleString("en-IN");
 
-export function LivingMap({ cities, faces, facts, sample, plate }: { cities: HomeCity[]; faces: HomeFace[]; facts: CityFacts[]; sample: string | null; plate: ReactNode }) {
+export function LivingMap({ cities, faces, facts, sample, plate, sky }: { cities: HomeCity[]; faces: HomeFace[]; facts: CityFacts[]; sample: string | null; plate: ReactNode; sky?: [number, number, number][] }) {
   const [sel, setSel] = useState<string>(sample ?? facts[0]?.city ?? "");
   const c = facts.find((x) => x.city === sel) ?? null;
   const theirs = faces.filter((x) => x.city === sel).slice(0, 3);
@@ -43,8 +43,8 @@ export function LivingMap({ cities, faces, facts, sample, plate }: { cities: Hom
   return (
     <div className="lm">
       <div className="lm-map">
-        <IndiaStrings cities={cities} faces={faces} tone="paper" max={6} onCity={setSel} selected={sel} />
-        <p className="lm-hint">Choose a city. Marks are sized by animals on the record; a hollow mark is a city-level register, never a street.</p>
+        <IndiaStrings cities={cities} faces={faces} tone="paper" max={6} onCity={setSel} selected={sel} sky={sky} />
+        <p className="lm-hint">Choose a city. Each point of light is a recorded area, sized by its animals; a hollow mark is a city-level register, never a street.</p>
       </div>
       <aside className="lm-panel" aria-live="polite">
         {c ? (

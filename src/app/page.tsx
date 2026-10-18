@@ -5,7 +5,7 @@ import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { FooterIndex } from "@/components/site/FooterIndex";
 import { getAnimalRegister, getLandingStory, type RegisterFocus } from "@/lib/landing/story";
-import { getFaces, getMapCities } from "@/lib/livingmap/server";
+import { getFaces, getMapCities, getNationalCells } from "@/lib/livingmap/server";
 import { kindOf } from "@/sp/atlas/evidence";
 import { getDogProfile } from "@/lib/data";
 import { getProfileOperationalRecord } from "@/lib/animal-profile-record";
@@ -75,12 +75,15 @@ const pickLife = unstable_cache(async (ids: string[]): Promise<Living | null> =>
 }, ["landing-life-v5"], { revalidate: 3600 });
 
 export default async function HomePage() {
-  const [story, register, rawCities, rawFaces] = await Promise.all([
+  const [story, register, rawCities, rawFaces, national] = await Promise.all([
     getLandingStory().catch(() => null),
     getAnimalRegister().catch(() => ({ total: 0, cards: [] as RegisterFocus[] })),
     getMapCities().catch(() => []),
     getFaces().catch(() => []),
+    getNationalCells().catch(() => null),
   ]);
+  /* Every recorded area in India, slimmed to [lng, lat, animals]: the hero's sky of real records. */
+  const sky = (national?.cells ?? []).map(([lng, lat, n]) => [lng, lat, n] as [number, number, number]);
   const cities: HomeCity[] = rawCities.filter((c) => c.lng != null && c.lat != null && c.animals > 0)
     .map((c) => ({ city: c.city, lng: c.lng!, lat: c.lat!, animals: c.animals, hollow: kindOf(c.city, c.cells) === "clinical" }));
   const faces: HomeFace[] = rawFaces.map((f) => ({ id: f.id, title: f.title, describe: f.describe, photo: f.photo, city: f.city, lng: f.c[0], lat: f.c[1] }));
@@ -114,7 +117,7 @@ export default async function HomePage() {
               <Link href="/explore" className="h-btn is-ghost is-lg" data-mag>Explore the live map</Link>
             </div>
           </div>
-          <div className="hx-world" data-tilt="8"><IndiaStrings cities={cities} faces={faces} tone="night" max={6} className="hx-map" /></div>
+          <div className="hx-world" data-tilt="8"><IndiaStrings cities={cities} faces={faces} tone="night" max={6} className="hx-map" sky={sky} /></div>
           <div className="hx-app">
             <p className="hx-app-k">Every report becomes work someone owns.</p>
             {story && (
@@ -174,7 +177,7 @@ export default async function HomePage() {
         <Scene className="s-map" screens={1.7} label="The living atlas">
           <Folk k="peacocks" className="h-folk-map" w={170} par={0.05} />
           <header className="sx-head"><h2>India, city by city, <em>animal by animal.</em></h2></header>
-          <div className="sx-map"><LivingMap cities={cities} faces={faces} facts={facts} sample={sample} plate={null} /></div>
+          <div className="sx-map"><LivingMap cities={cities} faces={faces} facts={facts} sample={sample} plate={null} sky={sky} /></div>
         </Scene>
 
         {/* 5 · What is real today, and the invitation. */}

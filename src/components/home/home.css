@@ -669,3 +669,16 @@
 .home4 .s-wa .sc-stage { clip-path: circle(calc(32% + var(--io) * 95%) at 50% 50%); }
 .home4 .hx-map .ix-card { scale: calc(1 / (1 + var(--a) * var(--a) * 6)); }
 @media (max-width: 760px) { .home4 .reel-card:not(.is-life) { width: 58vw; } .home4 .reel-card img { aspect-ratio: 1; } .home4 .sx-head h2 { font-size: clamp(30px, 8vw, 40px); } }
+
+/* the record sky, the folk weave, records travelling home */
+.home3 .ix-sky { position: absolute; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: screen; }
+.home3 .ix.is-paper .ix-sky { mix-blend-mode: multiply; }
+.home3 .ix-weave { opacity: 0.55; }
+.home3 .ix-weave-dot { fill: rgba(255, 196, 160, 0.22); }
+.home3 .ix-weave-dash { stroke: rgba(243, 237, 228, 0.12); stroke-width: 0.8; stroke-linecap: round; }
+.home3 .ix.is-paper .ix-weave-dot { fill: rgba(217, 155, 28, 0.35); }
+.home3 .ix.is-paper .ix-weave-dash { stroke: rgba(31, 111, 128, 0.22); }
+.home3 .ix-pulse { fill: #ffb08f; filter: drop-shadow(0 0 4px rgba(255, 140, 100, 0.9)); }
+.home3 .ix.is-paper .ix-pulse { fill: var(--flame); filter: none; }
+@media (prefers-reduced-motion: reduce) { .home3 .ix-pulse { display: none; } }
+.home4 .hx-map .ix-pulse { opacity: calc(1 - var(--a) * 2.2); }
