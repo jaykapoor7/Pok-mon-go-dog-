@@ -88,6 +88,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   const [areaH3, setAreaH3] = useState<string | null>(I.area);
   const [area, setArea] = useState<MapArea | null | "loading" | "error">(null);
   const [animalId, setAnimalId] = useState<string | null>(I.animal);
+  const [spot, setSpot] = useState<{ id: string; cells: Set<string> } | null>(null);
   const [quiet, setQuiet] = useState(I.view === "quiet");
   const [zoom, setZoom] = useState(4);
   const [ready, setReady] = useState(false);
@@ -134,6 +135,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     return () => { live = false; };
   }, [scope]);
   useEffect(() => {
+    setSpot(null);
     if (!city || clinical) { setData(null); setCityState("idle"); return; }
     let live = true;
     setCityState("loading");
@@ -203,13 +205,15 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         });
         m.addImage("edge", edgeRing(), { pixelRatio: 2 });
         const empty = { type: "FeatureCollection" as const, features: [] };
-        for (const s of ["nat", "cities", "edge", "areas", "paws", "sel", "nums"]) m.addSource(s, { type: "geojson", data: empty });
+        for (const s of ["nat", "cities", "edge", "areas", "paws", "sel", "spot", "nums"]) m.addSource(s, { type: "geojson", data: empty });
         m.addLayer({ id: "nat", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], 0.75], 7, ["*", ["get", "r"], 1.5]], "circle-color": ["get", "color"], "circle-stroke-color": MARK.ink, "circle-stroke-width": 0.9, "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.35, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.7, 8, 0.4] } });
         m.addLayer({ id: "edge", type: "symbol", source: "edge", minzoom: 10.5, layout: { "icon-image": "edge", "icon-size": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, (px * 0.9) / 32])] as never, "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 10.5, 0, 11.5, 0.9, 14, 0.3] } });
         m.addLayer({ id: "areas", type: "symbol", source: "areas", layout: {
           "icon-image": ["get", "img"], "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "sort"],
           "icon-size": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], px / (BLOOM_PX / 2)]])] as never,
         }, paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, ["case", ["==", ["get", "dim"], 1], 0.25, 1], PAW_ZOOM + 0.6, ["case", ["==", ["get", "dim"], 1], 0.08, 0.22]] } });
+        /* A lit finding rings the areas it rests on, in turmeric; nothing else changes meaning. */
+        m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#d99b1c", "circle-stroke-width": 2.2 } });
         m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95 } });
         m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.4, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.4, 10, 13, 13], "text-allow-overlap": false, "text-padding": 1 }, paint: { "text-color": MARK.ink, "text-halo-color": "#fff8e8", "text-halo-width": 2, "text-opacity": ["interpolate", ["linear"], ["zoom"], 11.4, 0, 11.8, 1, PAW_ZOOM - 0.3, 1, PAW_ZOOM + 0.2, 0] } });
         m.addLayer({ id: "paws", type: "symbol", source: "paws", minzoom: PAW_ZOOM - 0.6, layout: { "icon-image": ["get", "img"], "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "sort"],
@@ -365,12 +369,12 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       const k = 0.55 + (Math.sqrt(c.animals) / maxA) * 0.75;
       if (animalsRecency) {
         const rb = bucketOf(lastRecorded(c), now);
-        return pt(centers[i], { i, k, g, img: `bl|${rb ? rb.color : "hatch"}`, sort: -c.animals, dim: areaH3 && areaH3 !== c.h3 && level !== "city" ? 1 : 0,
+        return pt(centers[i], { i, k, g, img: `bl|${rb ? rb.color : "hatch"}`, sort: -c.animals, dim: (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0,
           title: placeName(c.zone), line: `${c.animals.toLocaleString("en-IN")} animals · last recorded ${rb ? rb.label.toLowerCase() : "on no recorded date"}` });
       }
       const kl = byId.get(classOf[i]); const v = q.measure(c, facet, ctx, i);
       const fill = kl?.kind === "unknown" ? "hatch" : kl?.kind === "zero" ? "#efe3cb" : kl?.color ?? "#efe3cb";
-      return pt(centers[i], { i, k: kl?.kind === "value" ? k : k * 0.7, g, img: `bl|${fill}`, sort: -(v || 0), dim: areaH3 && areaH3 !== c.h3 && level !== "city" ? 1 : 0,
+      return pt(centers[i], { i, k: kl?.kind === "value" ? k : k * 0.7, g, img: `bl|${fill}`, sort: -(v || 0), dim: (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0,
         title: placeName(c.zone), line: `${kl?.label ?? ""}${v ? ` · ${v.toLocaleString("en-IN")} ${q.unit(facet)}` : ""}` });
     }));
     set("nums", cells.flatMap((c, i) => {
@@ -395,7 +399,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       });
     });
     set("paws", paws);
-  }, [city, cells, centers, classes, classOf, q, facet, ctx, data, animalsRecency, area, animalId, areaH3, level]);
+  }, [city, cells, centers, classes, classOf, q, facet, ctx, data, animalsRecency, area, animalId, areaH3, level, spot]);
   useEffect(() => { if (ready) areaFeatures(); }, [ready, areaFeatures]);
   const grewFor = useRef<string | null>(null);
   useEffect(() => { if (ready && data && grewFor.current !== data.city) { grewFor.current = data.city; grow("areas", areaFeatures); } }, [ready, data, grow, areaFeatures]);
@@ -409,6 +413,21 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     const paint = (g: number) => src.setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: { type: "Point", coordinates: centers[areaIndex] }, properties: { g: k * g } }] });
     paint(1);
   }, [ready, areaIndex, cells, centers]);
+
+  /* A lit finding: ring its areas and bring them into view; the rest of the city stays, dimmed. */
+  useEffect(() => {
+    const m = mapRef.current; if (!m || !ready) return;
+    const src = m.getSource("spot") as GeoJSONSource | undefined; if (!src) return;
+    const on = spot && level === "city" ? cells.flatMap((c, i) => (spot.cells.has(c.h3) ? [i] : [])) : [];
+    const maxA = Math.sqrt(Math.max(1, ...cells.map((x) => x.animals)));
+    src.setData({ type: "FeatureCollection", features: on.map((i) => ({ type: "Feature", geometry: { type: "Point", coordinates: centers[i] }, properties: { k: 0.55 + (Math.sqrt(cells[i].animals) / maxA) * 0.75 } })) });
+    if (!on.length) return;
+    const pts = on.map((i) => centers[i]);
+    const lng = pts.map((p) => p[0]), lat = pts.map((p) => p[1]), d = 0.01;
+    userMove.current = false;
+    m.fitBounds([[Math.min(...lng) - d, Math.min(...lat) - d], [Math.max(...lng) + d, Math.max(...lat) + d]], { padding: pad(), maxZoom: 12.8, duration: dur(m.getZoom(), 12.8), easing: travel });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, spot, level, cells, centers]);
 
   /* ── HTML lettering: city names at national scale, localities at city scale ──
      Each marker's root is a bare wrapper (MapLibre writes inline opacity on it);
@@ -602,7 +621,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       {hover && <div className="fm-tip" style={{ left: hover.x + 14, top: hover.y + 14 }} aria-hidden><b>{hover.title}</b><span>{hover.line}</span></div>}
       <Chrome
         level={level} city={city} cityRow={cityRow} cities={cities} unplaced={unplaced} citiesState={citiesState} cityState={cityState} clinical={clinical} ev={ev}
-        variant={variant} scope={scope} lenses={lenses}
+        variant={variant} scope={scope} lenses={lenses} spot={spot?.id ?? null} onSpot={(id, list) => setSpot(id ? { id, cells: new Set(list) } : null)}
         lens={lens} setLens={setLens} fig={fig} reading={reading} places={places} cells={cells} centers={centers} months={months}
         area={area} areaIndex={areaIndex} animalId={animalId} faces={faces} zoom={zoom} quiet={quiet} setQuiet={setQuiet} mapError={mapError}
         picking={picking} setPicking={setPicking} center={center} recency={RECENCY}

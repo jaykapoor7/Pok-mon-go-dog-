@@ -160,6 +160,27 @@
 .fm-btn.is-ink { background: var(--blue); border-color: var(--blue); color: #fff; }
 .fm-btn.is-ink:hover { background: #1b46b0; }
 .fm-btn.is-flame { background: var(--vermilion); border-color: var(--vermilion); color: #fff; }
+.fm-btn.is-s { min-height: 36px; padding: 0 13px; font-size: 13px; }
+.fm-btn[aria-pressed="true"] { background: var(--blue-soft); border-color: rgba(36, 87, 206, 0.45); color: #1b46b0; }
+
+/* Findings: numbered sentences with their method; a lit one is ringed in turmeric on the map. */
+.fm-finds { margin: 4px 0 18px; padding-top: 14px; border-top: 1px solid var(--rule); }
+.fm-finds .fm-k span { font-weight: 500; }
+.fm-finds > ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.fm-finds > ol > li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.fm-finds > ol > li > div { display: grid; gap: 6px; justify-items: start; }
+.fm-find-n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 650; background: var(--shell); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.fm-finds li.is-act .fm-find-n { background: #fde3dc; color: var(--flame-ink); }
+.fm-finds li.is-gap .fm-find-n { background: #f6ead0; color: #8a5d08; }
+.fm-finds li.is-care .fm-find-n { background: #dcecee; color: var(--teal); }
+.fm-finds li.is-on .fm-find-n { box-shadow: 0 0 0 2px var(--turmeric); }
+.fm-find-lead { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.45; color: var(--ink); }
+.fm-find-m { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--muted); }
+.fm-find-areas { list-style: none; margin: 2px 0; padding: 0; width: 100%; display: grid; }
+.fm-find-areas button { width: 100%; display: grid; gap: 1px; padding: 8px 0; border: 0; border-top: 1px solid var(--rule); background: none; text-align: left; }
+.fm-find-areas button:hover b { color: var(--blue); }
+.fm-find-areas b { font-size: 13.5px; font-weight: 600; }
+.fm-find-areas span { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .fm-plate { position: relative; margin: 0; border-radius: 14px; overflow: hidden; background: var(--pg, #e9dcc6); aspect-ratio: 4 / 3; }
 .fm-plate img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; mix-blend-mode: multiply; opacity: 0.94; }
 .fm-plate img.is-flip { transform: scaleX(-1); }

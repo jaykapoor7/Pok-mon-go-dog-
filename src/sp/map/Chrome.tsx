@@ -26,6 +26,7 @@ import { LENSES } from "../atlas/lenses";
 import { MARK } from "./marks";
 import { lensLabel, type MapScope, type MapVariant } from "./lens";
 import type { LensId } from "../atlas/lenses";
+import { cityFindings } from "../atlas/cityFindings";
 
 export type Level = "india" | "city" | "area" | "animal";
 export type Face = { id: string; title: string; describe: string | null; photo: string; city: string; zone: string | null; h3: string; c: [number, number]; last_seen: string | null };
@@ -42,7 +43,7 @@ type Props = {
   level: Level; city: string | null; cityRow: NationalCity | null; cities: NationalCity[]; unplaced: Unplaced[];
   citiesState: "ready" | "loading" | "error" | "auth"; cityState: "idle" | "loading" | "error" | "missing"; clinical: boolean;
   ev: { kind: EvidenceKind; precision: string; note: string } | null;
-  variant: MapVariant; scope: MapScope; lenses: LensId[];
+  variant: MapVariant; scope: MapScope; lenses: LensId[]; spot: string | null; onSpot: (id: string | null, cells: string[]) => void;
   lens: LensId; setLens: (l: LensId) => void; fig: { big: string; small: string }; reading: { lead: string; qualify: string } | null;
   places: Locality[]; cells: MapCell[]; centers: [number, number][]; months: { m: number; opened: number; care: number }[];
   area: MapArea | null | "loading" | "error"; areaIndex: number; animalId: string | null; faces: Face[]; zoom: number;
@@ -206,6 +207,7 @@ function CityCard(P: Props & { city: string }) {
       {reading && <p className="fm-lead">{reading.lead}</p>}
       {reading && <p className="fm-note">{reading.qualify}</p>}
       {months.length > 2 && <Ribbon months={months} />}
+      {P.variant !== "community" && <Findings cells={cells} spot={P.spot} onSpot={P.onSpot} onArea={P.onArea} />}
       <p className="fm-k">Localities</p>
       <ol className="fm-locs">{top.map((p) => {
         const best = p.cells.reduce((a, b) => (cells[b].animals > cells[a].animals ? b : a), p.cells[0]);
@@ -219,6 +221,44 @@ function CityCard(P: Props & { city: string }) {
       })}</ol>
       {ev && <p className="fm-note">{ev.note}</p>}
     </div>
+  );
+}
+
+/* Findings in place (decision 034): each a sentence about the city's complete area record,
+   with its method; lighting one rings the areas it rests on and nothing else. */
+function Findings({ cells, spot, onSpot, onArea }: { cells: MapCell[]; spot: string | null; onSpot: Props["onSpot"]; onArea: Props["onArea"] }) {
+  const list = useMemo(() => cityFindings(cells), [cells]);
+  if (!list.length) return null;
+  return (
+    <section className="fm-finds" aria-label="Findings in this city">
+      <p className="fm-k">Findings <span>from the complete area record</span></p>
+      <ol>
+        {list.map((x, i) => {
+          const on = spot === x.id;
+          const rows = on ? cells.filter((c) => x.cells.includes(c.h3)).sort((a, b) => b.animals - a.animals) : [];
+          return (
+            <li key={x.id} className={`is-${x.tone}${on ? " is-on" : ""}`}>
+              <span className="fm-find-n" aria-hidden>{i + 1}</span>
+              <div>
+                <p className="fm-find-lead">{x.lead}</p>
+                <p className="fm-note">{x.detail}</p>
+                <p className="fm-find-m">{x.method}</p>
+                {on && (
+                  <ol className="fm-find-areas">{rows.slice(0, 6).map((c) => (
+                    <li key={c.h3}><button type="button" onClick={() => onArea(c.h3)}><b>{placeName(c.zone)}</b><span>{f(c.animals)} animals · {f(c.open_cases - (c.open_unconfirmed ?? 0))} open · care {f(c.care_12m)}</span></button></li>
+                  ))}{rows.length > 6 && <li className="fm-note">And {f(rows.length - 6)} more, ringed on the map.</li>}</ol>
+                )}
+                {x.cells.length > 0 && (
+                  <button type="button" className="fm-btn is-s" aria-pressed={on} onClick={() => onSpot(on ? null : x.id, x.cells)}>
+                    {on ? "Show every area" : x.cells.length === 1 ? "Show this area on the map" : `Show these ${f(x.cells.length)} areas`}
+                  </button>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 
