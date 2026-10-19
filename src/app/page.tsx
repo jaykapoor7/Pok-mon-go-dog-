@@ -82,11 +82,11 @@ export default async function HomePage() {
     <div className={`sp h3 ${sxSerif.variable}`}>
       <PageView name="landing_view" />
       <ToneWatch root=".h3" />
-      <SiteHeader tone="night" />
+      <SiteHeader tone="paper" />
       <main>
         {/* 1 · What StrayPaw is. */}
-        <Stage id="what" className="h3-hero" screens={1.5} still={0} tone="night" label="StrayPaw">
-          <HeroMap cells={cells} pins={pins} focus={home} />
+        <Stage id="what" className="h3-hero" screens={1.5} still={0} tone="day" label="StrayPaw">
+          <HeroMap cells={cells} pins={pins} focus={focusAt} />
           <div className="h3-shade" aria-hidden />
           <div className="h3-copy">
             <p className="h3-k">StrayPaw · India</p>

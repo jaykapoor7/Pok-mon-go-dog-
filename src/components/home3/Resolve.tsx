@@ -1,8 +1,8 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   The resolve. The page ends where it began: India, every recorded area
-   a point. The one message from the chain comes home as a flame path
+   The resolve. The page ends where it began: painted India, every
+   recorded area a point. The one message from the chain comes home as a flame path
    that lands on the sample city; it rings, and the ring travels out
    until every point on the record is lit. Plays once, when it is
    reached; under reduced motion it is simply drawn lit.
@@ -26,6 +26,7 @@ export function Resolve({ cells, home }: { cells: Cell[]; home: [number, number]
   const [hx, hy] = home ? indiaXY(home[0], home[1]) : [40, 95];
   return (
     <svg ref={el} className={`rs${lit ? " is-lit" : ""}`} viewBox={`-30 -6 ${INDIA_VIEW.w + 36} ${INDIA_VIEW.h + 12}`} role="img" aria-label="India: every recorded area on StrayPaw, with the reported animal's city lit">
+      <path d={INDIA_PATH} className="rs-echo" transform="translate(0.9 0.7)" />
       <path d={INDIA_PATH} className="rs-land" />
       {cells.map(([lng, lat, v], i) => {
         const [x, y] = indiaXY(lng, lat), d = Math.hypot(x - hx, y - hy);

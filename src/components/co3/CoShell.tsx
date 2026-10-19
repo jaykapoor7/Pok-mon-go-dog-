@@ -12,7 +12,7 @@ import "./co3.css";
 
 /* ════════════════════════════════════════════════════════════════════
    The company pages' shell: Product, For Organisations, Our Story and
-   Contact. The homepage's language at reading pace: a night band with
+   Contact. The homepage's language at reading pace: a painted band with
    India's recorded areas as its ground, then cream editorial sections,
    one closing invitation, and the shared footer.
    ════════════════════════════════════════════════════════════════════ */
@@ -24,7 +24,7 @@ export async function CoShell({ kicker, title, lede, actions, children, close = 
   const cells: Cell[] = (national?.cells ?? []).map(([lng, lat, n]) => [lng, lat, n]);
   return (
     <div className={`sp co3 ${sxSerif.variable}`}>
-      <SiteHeader tone="night" />
+      <SiteHeader tone="paper" />
       <main>
         <section className="co3-hero">
           <VectorIndia cells={cells} className="co3-hero-vi" />
