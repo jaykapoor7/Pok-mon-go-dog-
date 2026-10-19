@@ -2,8 +2,8 @@
 
 /* ════════════════════════════════════════════════════════════════════
    Continuity, shown: a painted dog becomes a real animal becomes a
-   record. For each animal on the public register, the painter's dog
-   (not a likeness, and labelled so) is wiped away by a brushstroke to
+   record. For each animal on the public register, a dog from a real
+   historical painting (open-licensed, credited, never a likeness) is wiped away by a brushstroke to
    reveal the real photograph, and the photograph hands over to the
    animal's StrayPaw identity with the history the record holds. One
    animal at a time, on its own clock while in view; the dots choose.
@@ -12,7 +12,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
-import * as Art from "@/components/world/art";
+import { dogArtFor, creditLine } from "@/lib/art/sources";
 
 export type Life = { id: string; tag: string; city: string | null; zone: string | null; photo: string; first: string | null; last: string | null; sightings: number; events: { at: string; what: string }[] };
 
@@ -23,21 +23,7 @@ export function Lifeline({ lives }: { lives: Life[] }) {
   const [k, setK] = useState(0);
   const [still, setStill] = useState(false);
   const len = Math.max(1, lives.length), n = Math.floor(k / 3) % len, stage = still ? 2 : k % 3;
-  const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null);
-
-  /* the painting for this animal: a dog in the Gond hand, its coat chosen by the animal's id */
-  useEffect(() => {
-    const c = cv.current; if (!c) return;
-    const w = c.clientWidth, h = c.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
-    c.width = w * dpr; c.height = h * dpr; const x = c.getContext("2d")!; x.scale(dpr, dpr);
-    const seed = lives[n] ? [...lives[n].id].reduce((a, ch) => a + ch.charCodeAt(0), 0) : 1;
-    Art.paper(x, w, h, seed); Art.wash(x, w / 2, h / 2, w * 0.55, Art.C.marigoldPale, 0.9);
-    x.save(); x.translate(w / 2, h * 0.32); Art.sun(x, w * 0.06, seed); x.restore();
-    Art.ground(x, 0, w, h * 0.78, h * 0.22);
-    const s = Math.min(w / 70, h / 60);
-    x.save(); x.translate(w / 2 - 31 * s, h * 0.78 - 38 * s); x.scale(s, s); Art.dogTail(x, "sit", 0.4); Art.dogBody(x, "sit", Art.COATS[seed % Art.COATS.length], seed); x.restore();
-    Art.border(x, 3, 3, w - 6, h - 6, 12);
-  }, [n, lives]);
+  const root = useRef<HTMLDivElement>(null);
 
   /* the clock: painting, photograph, record; then the next animal */
   useEffect(() => {
@@ -56,10 +42,15 @@ export function Lifeline({ lives }: { lives: Life[] }) {
   }, []);
 
   const a = lives[n]; if (!a) return null;
+  const art = dogArtFor(a.id);
   return (
     <div className={`ll is-s${stage}`} ref={root}>
       <div className="ll-art">
-        <figure className="ll-paint"><canvas ref={cv} aria-hidden /><figcaption>A painting, not a likeness</figcaption></figure>
+        <figure className="ll-paint" style={{ background: art.ground }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={art.src} alt="" style={art.flip ? { transform: "scaleX(-1)" } : undefined} />
+          <figcaption>A painting, not a likeness · {creditLine(art.work)}</figcaption>
+        </figure>
         <figure className="ll-photo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img key={a.id} src={a.photo} alt={`${a.tag}, as photographed`} loading="lazy" referrerPolicy="no-referrer" />

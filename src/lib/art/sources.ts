@@ -30,6 +30,7 @@ export type ArtWork = {
 };
 
 const CLEVELAND = "Cleveland Museum of Art, Open Access";
+const MET = "The Metropolitan Museum of Art, Open Access";
 const COMMONS = "Wikimedia Commons";
 const CC0 = { licence: "CC0" as const, licenceUrl: "https://creativecommons.org/publicdomain/zero/1.0/" };
 const BYSA = { licence: "CC BY-SA 4.0" as const, licenceUrl: "https://creativecommons.org/licenses/by-sa/4.0/" };
@@ -51,6 +52,14 @@ export const WORKS: Record<string, ArtWork> = {
   gondElephantTree: { key: "gondElephantTree", title: "Gond art of an elephant with tree", maker: "Bhaiyaji Smile 123", date: "", source: COMMONS, sourceUrl: "https://commons.wikimedia.org/w/index.php?curid=162978177", ...BYSA, adapted: true },
   gondElephant: { key: "gondElephant", title: "Gond art of an elephant", maker: "Bhaiyaji Smile 123", date: "", source: COMMONS, sourceUrl: "https://commons.wikimedia.org/w/index.php?curid=162978178", ...BYSA, adapted: true },
   gondPeacocks: { key: "gondPeacocks", title: "Gond art of a peacock family", maker: "Bhaiyaji Smile 123", date: "", source: COMMONS, sourceUrl: "https://commons.wikimedia.org/w/index.php?curid=162978179", ...BYSA, adapted: true },
+  palamporeTree: { key: "palamporeTree", title: "Palampore (tree of life)", maker: "India (Coromandel Coast), for the Sri Lankan market", date: "first quarter of the 18th century", source: MET, sourceUrl: "https://www.metmuseum.org/art/collection/search/75909", ...CC0, adapted: true },
+  kalamkariPalace: { key: "kalamkariPalace", title: "Kalamkari Hanging with Figures in an Architectural Setting", maker: "India", date: "ca. 1640–50", source: MET, sourceUrl: "https://www.metmuseum.org/art/collection/search/447118", ...CC0, adapted: true },
+  palamporeHanging: { key: "palamporeHanging", title: "Hanging (Palampore)", maker: "India", date: "late 17th century", source: MET, sourceUrl: "https://www.metmuseum.org/art/collection/search/448494", ...CC0, adapted: false },
+  palamporeQuilt: { key: "palamporeQuilt", title: "Quilted palampore for the Dutch market", maker: "India, Coromandel Coast", date: "ca. 1720", source: MET, sourceUrl: "https://www.metmuseum.org/art/collection/search/930371", ...CC0, adapted: true },
+  palamporeBlossom: { key: "palamporeBlossom", title: "Hanging or Bed Cover", maker: "India", date: "late 18th century", source: MET, sourceUrl: "https://www.metmuseum.org/art/collection/search/447821", ...CC0, adapted: false },
+  coromandelQuilt: { key: "coromandelQuilt", title: "Quilt or Carpet", maker: "India (Coromandel Coast), for the European market", date: "first quarter of the 18th century", source: MET, sourceUrl: "https://www.metmuseum.org/art/collection/search/77657", ...CC0, adapted: false },
+  mithilaChildren: { key: "mithilaChildren", title: "Three Figures: woman with two children playing ball", maker: "Mithila (Madhubani) school, Bihar", date: "1900s", source: CLEVELAND, sourceUrl: "https://clevelandart.org/art/2005.77", ...CC0, adapted: false },
+  mithilaTwoWomen: { key: "mithilaTwoWomen", title: "Two Women facing each other", maker: "Mithila (Madhubani) school, Bihar", date: "1900s", source: CLEVELAND, sourceUrl: "https://clevelandart.org/art/2005.80", ...CC0, adapted: false },
   durgaBai: { key: "durgaBai", title: "Durga Bai Gond (painting)", maker: "Durga Bai Vyam", date: "", source: COMMONS, sourceUrl: "https://commons.wikimedia.org/w/index.php?curid=77352076", ...BY, adapted: false },
 };
 
@@ -112,3 +121,18 @@ export function creditLine(key: keyof typeof WORKS): string {
   const w = WORKS[key];
   return `${w.title}${w.date ? `, ${w.date}` : ""} · ${w.source.replace(", Open Access", "")} (${w.licence})`;
 }
+
+/* ── The company pages and the homepage: whole works, shown as works ── */
+export const WORK_IMAGES = {
+  palamporeTree: { src: "/art/works/palampore-tree.webp", w: 1300, h: 2104 },
+  palamporeBorder: { src: "/art/works/palampore-border.webp", w: 900, h: 109, work: "palamporeTree" },
+  kalamkariPalace: { src: "/art/works/kalamkari-palace.webp", w: 1000, h: 1287 },
+  palamporeHanging: { src: "/art/works/palampore-hanging.webp", w: 1100, h: 1526 },
+  palamporeQuilt: { src: "/art/works/palampore-quilt.webp", w: 1200, h: 1247 },
+  palamporeBlossom: { src: "/art/works/palampore-blossom.webp", w: 1100, h: 1477 },
+  coromandelQuilt: { src: "/art/works/coromandel-quilt.webp", w: 1000, h: 1471 },
+  mithilaChildren: { src: "/art/works/mithila-children.webp", w: 1000, h: 1139 },
+  mithilaTwoWomen: { src: "/art/works/mithila-two-women.webp", w: 1000, h: 1137 },
+  dogWithPups: { src: "/art/works/rajasthan-dog-with-pups.webp", w: 1400, h: 997 },
+} as const;
+export type WorkImageKey = keyof typeof WORK_IMAGES;

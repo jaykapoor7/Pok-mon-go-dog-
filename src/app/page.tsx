@@ -18,14 +18,12 @@ import { World, type WorldArea } from "@/components/world/World";
 import { Chain, type Area } from "@/components/request/Chain";
 import { Commons, type Loc } from "@/components/ecosystem/Commons";
 import { Lifeline, type Life } from "@/components/company/Lifeline";
-import { Origin, type City } from "@/components/company/Origin";
 import "@/components/site/site.css";
 import "@/components/world/home.css";
 import "@/components/world/world.css";
 import "@/components/request/chain.css";
 import "@/components/ecosystem/commons.css";
 import "@/components/company/company4.css";
-import "@/components/company/origin.css";
 
 export const revalidate = 300;
 export const metadata = {
@@ -51,8 +49,9 @@ export const metadata = {
    ════════════════════════════════════════════════════════════════════ */
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
-/* the neighbourhood the opening painting is made from (public/mural, baked by scripts/bake-mural.mjs) */
+/* the neighbourhood the opening reveals beneath the painting: a locality with requests on the public record */
 const PAINTED = "Ganapathy";
+const PAINTED_AT: [number, number] = [76.9746, 11.0389];
 
 /* Community reports sent through StrayPaw in the last 90 days: one server-side count, never a row. */
 const recentReports = unstable_cache(async (): Promise<number | null> => {
@@ -101,7 +100,6 @@ export default async function HomePage() {
     events: [...c.care.map((k) => ({ at: k.at, what: CARE[k.kind] ?? k.kind })), ...c.requests.map((r) => ({ at: r.at, what: r.condition ? `Request: ${r.condition}` : "Request for help" }))].filter((e) => e.at).sort((a, b) => b.at.localeCompare(a.at)),
   }));
   const partner = partners[0] ?? null;
-  const originCities: City[] = rawCities.filter((c) => c.lng != null && c.lat != null && c.animals > 0).map((c) => ({ city: c.city, c: [c.lng!, c.lat!], animals: c.animals }));
   const brief = sampleCity ? { city: sampleCity.city, animals: sampleCity.animals, cells: sampleCity.cells, sterilised: sampleCity.sterilised, ster_unknown: sampleCity.ster_unknown, cases: sampleCity.cases } : null;
 
   return (
@@ -112,7 +110,8 @@ export default async function HomePage() {
       <main>
         {/* 01 · The living world */}
         <Stage id="world" className="w1" screens={3} still={0} tone="day" label="StrayPaw">
-          <World areas={worldAreas} cells={cells} city={`${PAINTED}, Coimbatore`} sampleAt={home} />
+          <World areas={worldAreas} cells={cells} centre={PAINTED_AT} sampleAt={home} />
+          <a className="w1-credit" href="/art-credits">Palampore, Coromandel Coast, early 1700s · The Met (CC0)</a>
           <div className="w1-frame" aria-hidden />
           <div className="w1-card">
             <p className="w1-k">StrayPaw · India</p>
@@ -141,8 +140,8 @@ export default async function HomePage() {
             </aside>
           )}
           <div className="w1-caps" aria-hidden>
-            <p>Painted on the real streets of <b>{PAINTED}, Coimbatore</b>.</p>
-            <p>Each animal stands where an area is <b>on the record</b>.</p>
+            <p>Beneath the cloth: the real streets of <b>{PAINTED}, Coimbatore</b>.</p>
+            <p>Each dog stands where an area is <b>on the record</b>. Paintings, not likenesses.</p>
             {sampleCity && <p>{sampleCity.city}: <b>{fmt(sampleCity.animals)} animal records</b> in {fmt(sampleCity.cells)} mapped areas.</p>}
             {totals && <p>India: <b>{fmt(totals.animals)} records</b> across {fmt(totals.cities)} cities.</p>}
           </div>
@@ -164,22 +163,6 @@ export default async function HomePage() {
             <p className="sw-k">Why StrayPaw exists</p>
             <h2 id="w4-why">India&rsquo;s street animals are cared for by thousands of people. <em>Almost none of it is written down in one place.</em></h2>
             <p className="w4-intro">A resident sees an injured dog and posts in a group. A rescuer picks it up. A vet treats it. A feeder sees it again a month later. Each of them keeps a piece of the story, in a chat, a sheet or a notebook, and the next person starts from nothing.</p>
-          </div>
-
-          <div className="w4-founder" id="origin">
-            <div className="fd">
-              <div className="fd-art">
-                <Origin cells={cells} cities={originCities} records={totals?.animals ?? 0} cityCount={totals?.cities ?? 0} />
-              </div>
-              <div className="fd-text">
-                <p className="sw-k">How StrayPaw began</p>
-                <h3>The problem was never a lack of people who cared. <em>It was a lack of connected infrastructure.</em></h3>
-                <p className="fd-first">StrayPaw started with a simple observation by Jay Kapoor, its founder: India has people doing extraordinary work for street animals, but the information they depend on is scattered. A dog might be reported in one WhatsApp group, treated by a volunteer and recorded in a spreadsheet somewhere else, and its story disappears between them.</p>
-                <p>What began as a small community reporting tool, with roughly 50 dogs reported, now connects {totals ? `${fmt(totals.animals)} animal records across ${fmt(totals.cities)} cities` : "animal records across India"} with rescue workflows, care histories and geographic intelligence.</p>
-                <div className="fd-by"><span className="fd-mono" aria-hidden>JK</span><div><b>Jay Kapoor</b><span>Founder, StrayPaw · Student, University of Pittsburgh</span></div></div>
-                <Link href="/our-story#origin" className="fd-more">Read the full story <ArrowUpRight size={15} aria-hidden /></Link>
-              </div>
-            </div>
           </div>
 
           {lives.length > 0 && (

@@ -12,7 +12,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Camera, Check, MapPin } from "lucide-react";
-import { PlaceCanvas, type Queue, type CityBrief, type Loc } from "@/components/ecosystem/Commons";
+import { PlaceArt, type Queue, type CityBrief, type Loc } from "@/components/ecosystem/Commons";
 
 const f = (n: number) => n.toLocaleString("en-IN");
 
@@ -79,7 +79,7 @@ export function Audiences({ queue, brief, locs }: { queue: Queue; brief: CityBri
       </div>
 
       <div className="au-panel" id="au-panel" role="tabpanel" aria-labelledby={`tab-${v.id}`} key={v.id}>
-        <div className="au-art"><PlaceCanvas k={v.scene} className="au-place" /></div>
+        <div className="au-art"><PlaceArt k={v.scene} className="au-place" /></div>
         <div className="au-main">
           <h2>{v.title}</h2>
           <p className="au-problem"><b>The problem</b>{v.problem}</p>
