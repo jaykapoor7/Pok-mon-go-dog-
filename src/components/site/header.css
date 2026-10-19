@@ -96,3 +96,14 @@ html .sp-header .sp-sheet { display: none; }
 @media (prefers-reduced-motion: reduce) {
   html .sp-header *, html .sp-header .sp-header-bar, html .sp-header .sp-nav::after { transition: none !important; }
 }
+
+/* A stable reading frame; opening navigation never delays its links. */
+html .sp-header-bar, html .sp-header.is-scrolled .sp-header-bar { max-width: 100%; margin-top: 0; height: 64px; border: 0; border-bottom: 1px solid var(--hd-rule); border-radius: 0; box-shadow: none; background: #f3ede4; transition: none; }
+html .sp-header .sp-header-cta, html .sp-header .sp-sheet-cta { color: #0b1e3d; min-height: 44px; }
+html .sp-header .sp-menu-btn, html .sp-header.is-open .sp-menu-btn { transform: none; transition: none; }
+@media(max-width:900px) {
+  html .sp-header-bar, html .sp-header.is-scrolled .sp-header-bar { height: 58px; padding: 0 12px; }
+  html .sp-header .sp-sheet, html .sp-header .sp-sheet[data-open="1"] { clip-path: none; transition: none; }
+  html .sp-header .sp-sheet ol li, html .sp-header .sp-sheet[data-open="1"] ol li { opacity: 1; transform: none; transition: none; }
+}
+html .sp-header .sp-header-cta, html .sp-header .sp-header-cta:hover, html .sp-header .sp-header-cta:active, html .sp-header .sp-menu-btn { box-shadow: none; transform: none; }

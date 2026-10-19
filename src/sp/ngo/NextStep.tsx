@@ -204,12 +204,17 @@ function NoteForm({ busy, onCancel, onSave }: { busy: boolean; onCancel: () => v
 function FollowupForm({ busy, onCancel, onSave }: { busy: boolean; onCancel: () => void; onSave: (due: string, note: string) => void }) {
   const [d, setD] = useState(() => new Date(Date.now() + 7 * DAY).toISOString().slice(0, 10));
   const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
   return (
-    <form className="next-form" onSubmit={(e) => { e.preventDefault(); onSave(new Date(`${d}T10:00:00+05:30`).toISOString(), note); }}>
+    <form className="next-form" onSubmit={(e) => { e.preventDefault();
+      const due = new Date(`${d}T10:00:00+05:30`);
+      if (!Number.isFinite(due.getTime())) { setError("Choose a valid due date."); return; }
+      setError(null); onSave(due.toISOString(), note); }}>
       <div className="row" style={{ alignItems: "end" }}>
-        <div className="field"><label htmlFor="fd">Due</label><input id="fd" type="date" className="input" value={d} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setD(e.target.value)} /></div>
+        <div className="field"><label htmlFor="fd">Due</label><input id="fd" type="date" required aria-invalid={!!error} aria-describedby={error ? "fd-error" : undefined} className="input" value={d} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setD(e.target.value)} /></div>
         <div className="field" style={{ flex: 1 }}><label htmlFor="fn">What to check</label><input id="fn" className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Wound recheck, second dose…" /></div>
       </div>
+      {error && <p id="fd-error" role="alert">{error}</p>}
       <p className="small">A follow-up is its own task with its own date. It survives the case closing.</p>
       <div className="row"><button type="submit" className="btn is-ink is-s" disabled={busy}>Schedule</button><button type="button" className="btn is-ghost is-s" onClick={onCancel}>Cancel</button></div>
     </form>

@@ -59,13 +59,25 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
     return () => window.removeEventListener("scroll", on);
   }, []);
 
+  const header = useRef<HTMLElement>(null);
+
   /* The sheet closes on Escape, holds the page still behind it, and closes when the page changes. */
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.preventDefault(); setOpen(false); return; }
+      if (e.key !== "Tab") return;
+      const items = Array.from(header.current?.querySelectorAll<HTMLElement>(".sp-menu-btn, #sp-sheet a") ?? []).filter(el => el.getClientRects().length);
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    };
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+    const frame = requestAnimationFrame(() => header.current?.querySelector<HTMLElement>("#sp-sheet a")?.focus());
+    return () => { cancelAnimationFrame(frame); document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; if (previous?.isConnected) previous.focus(); };
+
   }, [open]);
   useEffect(() => { setOpen(false); }, [pathname]);
 
@@ -82,7 +94,7 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
   useLayoutEffect(rest, [pathname]);
 
   return (
-    <header className={`sp-header is-${tone} ${scrolled ? "is-scrolled" : ""} ${open ? "is-open" : ""}`}>
+    <header ref={header} className={`sp-header is-${tone} ${scrolled ? "is-scrolled" : ""} ${open ? "is-open" : ""}`}>
       <div className="sp-header-bar">
         <Link href="/" className="sp-wordmark" aria-label="StrayPaw home">
           <StrayPawMark />
@@ -100,9 +112,9 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
         <div className="sp-header-actions">
           <LanguageSwitcher />
           <Link href={appHref} prefetch className="sp-header-cta">
-            Open App <ArrowUpRight size={15} />
+            Open App <ArrowUpRight size={15} aria-hidden />
           </Link>
-          <button className="sp-menu-btn" onClick={() => setOpen(!open)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="sp-sheet">
+          <button type="button" className="sp-menu-btn" onClick={() => setOpen(!open)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="sp-sheet">
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>

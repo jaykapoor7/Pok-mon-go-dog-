@@ -10,6 +10,7 @@ export function ContactForm() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fields, setFields] = useState<Partial<Record<"name" | "email" | "message", string>>>({});
   const [done, setDone] = useState(false);
 
   /* CTAs across the site deep-link here with the enquiry already named
@@ -25,10 +26,13 @@ export function ContactForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!name.trim() || !message.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
-      setError("Please add your name, a valid email, and a message.");
-      return;
-    }
+    const invalid: typeof fields = {};
+    if (!name.trim()) invalid.name = "Enter your name.";
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) invalid.email = "Enter a valid email address.";
+    if (!message.trim()) invalid.message = "Enter a message.";
+    setFields(invalid);
+    const first = (["name", "email", "message"] as const).find(key => invalid[key]);
+    if (first) { document.getElementById(`contact-${first}`)?.focus(); return; }
     setBusy(true);
     try {
       const res = await fetch("/api/contact", {
@@ -41,7 +45,7 @@ export function ContactForm() {
       if (!j.delivered) throw new Error("Message delivery is temporarily unavailable. Your message is still here; please try again shortly.");
       setDone(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send. Try again.");
+      setError(err instanceof TypeError ? "Could not connect. Your message is still here; check your connection and try again." : err instanceof Error ? err.message : "Could not send. Try again.");
     } finally {
       setBusy(false);
     }
@@ -53,7 +57,7 @@ export function ContactForm() {
         <CheckCircle2 aria-hidden />
         <h3>Message sent</h3>
         <p>
-          Thanks for reaching out. We read every message and will get back to you at{" "}
+          Your message was sent. Your contact email is{" "}
           <span>{email}</span>.
         </p>
       </div>
@@ -69,11 +73,13 @@ export function ContactForm() {
       <div className="ct-pair">
         <div className="ct-field">
           <label htmlFor="contact-name">Your name</label>
-          <input id="contact-name" name="name" autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Priya Sharma" />
+          <input id="contact-name" aria-invalid={!!fields.name} aria-describedby={fields.name ? "contact-name-error" : undefined} name="name" autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name…" />
+          {fields.name && <p className="ct-field-error" id="contact-name-error">{fields.name}</p>}
         </div>
         <div className="ct-field">
           <label htmlFor="contact-email">Email</label>
-          <input id="contact-email" name="email" type="email" inputMode="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" />
+          <input id="contact-email" aria-invalid={!!fields.email} aria-describedby={fields.email ? "contact-email-error" : undefined} spellCheck={false} name="email" type="email" inputMode="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          {fields.email && <p className="ct-field-error" id="contact-email-error">{fields.email}</p>}
         </div>
       </div>
       <div className="ct-field">
@@ -82,14 +88,15 @@ export function ContactForm() {
       </div>
       <div className="ct-field">
         <label htmlFor="contact-message">Message</label>
-        <textarea id="contact-message" name="message" required value={message} onChange={(e) => setMessage(e.target.value)} rows={6} placeholder="Give us the useful context: organisation, city, page or record ID, and what you need." />
+        <textarea id="contact-message" aria-invalid={!!fields.message} aria-describedby={fields.message ? "contact-message-error" : undefined} name="message" required value={message} onChange={(e) => setMessage(e.target.value)} rows={6} placeholder="Give us the useful context: organisation, city, page or record ID, and what you need." />
+        {fields.message && <p className="ct-field-error" id="contact-message-error">{fields.message}</p>}
       </div>
 
       {error && <p className="ct-error" role="alert">{error}</p>}
 
       <div className="ct-actions">
         <button type="submit" disabled={busy}>
-          {busy ? <Loader2 className="animate-spin" /> : <Send />} Send message
+          {busy ? <Loader2 className="animate-spin" aria-hidden /> : <Send aria-hidden />}{busy ? " Sending…" : " Send message"}
         </button>
       </div>
     </form>

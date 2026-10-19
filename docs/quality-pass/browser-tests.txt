@@ -1,0 +1,124 @@
+> straypaw-delhi@1.0.0 test:e2e
+> playwright test --workers=2
+
+
+Running 102 tests using 2 workers
+
+(node:12850) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:12851) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -    1 [mobile] › e2e/launch.spec.ts:7:38 › public launch review at 1280px
+  -    3 [mobile] › e2e/launch.spec.ts:7:38 › public launch review at 390px
+  ✓    4 [mobile] › e2e/quality-pass.spec.ts:23:5 › ecosystem tabs switch immediately by keyboard without navigating the page (3.0s)
+  ✓    2 [mobile] › e2e/quality-pass.spec.ts:9:5 › the homepage stays readable while scrolling both ways, including reduced motion (3.8s)
+  ✓    5 [mobile] › e2e/quality-pass.spec.ts:38:5 › mobile navigation contains focus and restores the menu button (2.8s)
+  ✓    6 [mobile] › e2e/quality-pass.spec.ts:54:5 › contact validation focuses each invalid field; transport failure keeps the message (4.1s)
+  ✓    7 [mobile] › e2e/quality-pass.spec.ts:71:5 › a report can select a location when WebGL is unavailable (2.9s)
+  ✓    9 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /app (108ms)
+  ✓   10 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /map?city=Coimbatore (66ms)
+  ✓   11 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /report (21ms)
+  ✓   12 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /following (11ms)
+  ✓   13 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /dog/00000000-0000-4000-8000-000000000000 (14ms)
+  ✓   14 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /insights?city=Coimbatore (55ms)
+  ✓   15 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /municipality (31ms)
+  ✓   16 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /programmes (14ms)
+  ✓   17 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner (10ms)
+  ✓   18 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/cases/new?dogId=abc (13ms)
+  ✓   19 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/review (15ms)
+  ✓   20 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /resources (16ms)
+  ✓   21 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /moderate (12ms)
+  ✓   22 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /orgs (7ms)
+  ✓   23 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/medical (9ms)
+  ✓   24 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/quality (7ms)
+  ✓   25 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/volunteers (53ms)
+  ✓   26 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/stories (23ms)
+  ✓   27 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/resources (9ms)
+  ✓   28 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/fundraising (13ms)
+  ✓   29 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/fundraisers/new (11ms)
+  ✓   30 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/surveys (10ms)
+  ✓   31 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/projects (61ms)
+  ✓   32 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/feeding (24ms)
+  ✓   33 [mobile] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /admin (22ms)
+  ✓   34 [mobile] › e2e/straypaw2.spec.ts:49:5 › the landing page still renders its hero (2.5s)
+  ✓    8 [mobile] › e2e/quality-pass.spec.ts:88:5 › choosing a replacement photo requires fresh consent (5.5s)
+  ✓   36 [mobile] › e2e/straypaw2.spec.ts:69:5 › solutions: the URL chooses the audience (2.7s)
+  ✓   35 [mobile] › e2e/straypaw2.spec.ts:56:5 › one request: an example receipt explains the three acts and can be replayed (3.2s)
+  ✓   38 [mobile] › e2e/straypaw2.spec.ts:89:5 › the Municipality map opens on its evidence layers (8.3s)
+  ✓   37 [mobile] › e2e/straypaw2.spec.ts:77:5 › the Map opens on India with its lenses and search (10.1s)
+  ✓   39 [mobile] › e2e/straypaw2.spec.ts:99:5 › the NGO map explains itself when signed out (1.8s)
+  -   40 [mobile] › e2e/straypaw2.spec.ts:109:7 › reporting › a sighting is sent and the receipt says received, not accepted
+  -   41 [mobile] › e2e/straypaw2.spec.ts:124:7 › reporting › a failed send keeps the answers and says not sent
+  ✓   42 [mobile] › e2e/straypaw2.spec.ts:137:7 › reporting › ?help=1 opens the needs-help questions (3.2s)
+  ✓   43 [mobile] › e2e/straypaw2.spec.ts:143:5 › the NGO workspace explains itself when signed out (2.4s)
+  ✓   45 [mobile] › e2e/straypaw2.spec.ts:160:7 › /city/insights?city=Coimbatore renders without errors or overflow (2.1s)
+  ✓   46 [mobile] › e2e/straypaw2.spec.ts:160:7 › /city/programmes renders without errors or overflow (1.7s)
+  ✓   47 [mobile] › e2e/straypaw2.spec.ts:160:7 › /community/stories renders without errors or overflow (1.8s)
+  ✓   44 [mobile] › e2e/straypaw2.spec.ts:149:5 › an Academy lesson is completed on the device (6.5s)
+  ✓   48 [mobile] › e2e/straypaw2.spec.ts:160:7 › /community/organisations renders without errors or overflow (1.9s)
+  ✓   49 [mobile] › e2e/straypaw2.spec.ts:160:7 › /community/help renders without errors or overflow (2.2s)
+  ✓   50 [mobile] › e2e/straypaw2.spec.ts:160:7 › /learn/workshops renders without errors or overflow (2.2s)
+  ✓   51 [mobile] › e2e/straypaw2.spec.ts:160:7 › /search?q=coim renders without errors or overflow (1.8s)
+(node:14131) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   52 [desktop] › e2e/launch.spec.ts:7:38 › public launch review at 1280px
+(node:14140) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   54 [desktop] › e2e/launch.spec.ts:7:38 › public launch review at 390px
+  ✓   53 [desktop] › e2e/quality-pass.spec.ts:9:5 › the homepage stays readable while scrolling both ways, including reduced motion (4.4s)
+  ✓   55 [desktop] › e2e/quality-pass.spec.ts:23:5 › ecosystem tabs switch immediately by keyboard without navigating the page (3.9s)
+  ✓   56 [desktop] › e2e/quality-pass.spec.ts:38:5 › mobile navigation contains focus and restores the menu button (2.9s)
+  ✓   57 [desktop] › e2e/quality-pass.spec.ts:54:5 › contact validation focuses each invalid field; transport failure keeps the message (4.1s)
+  ✓   58 [desktop] › e2e/quality-pass.spec.ts:71:5 › a report can select a location when WebGL is unavailable (3.4s)
+  ✓   60 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /app (82ms)
+  ✓   61 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /map?city=Coimbatore (62ms)
+  ✓   62 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /report (152ms)
+  ✓   63 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /following (26ms)
+  ✓   64 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /dog/00000000-0000-4000-8000-000000000000 (79ms)
+  ✓   65 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /insights?city=Coimbatore (32ms)
+  ✓   66 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /municipality (83ms)
+  ✓   67 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /programmes (42ms)
+  ✓   68 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner (16ms)
+  ✓   69 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/cases/new?dogId=abc (98ms)
+  ✓   70 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/review (25ms)
+  ✓   71 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /resources (61ms)
+  ✓   72 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /moderate (54ms)
+  ✓   73 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /orgs (18ms)
+  ✓   74 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/medical (52ms)
+  ✓   75 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/quality (48ms)
+  ✓   76 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/volunteers (14ms)
+  ✓   77 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/stories (48ms)
+  ✓   78 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/resources (23ms)
+  ✓   79 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/fundraising (60ms)
+  ✓   80 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/fundraisers/new (10ms)
+  ✓   81 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/surveys (46ms)
+  ✓   82 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/projects (30ms)
+  ✓   83 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /partner/feeding (49ms)
+  ✓   84 [desktop] › e2e/straypaw2.spec.ts:42:39 › old addresses land on their 2.0 homes › /admin (46ms)
+  ✓   85 [desktop] › e2e/straypaw2.spec.ts:49:5 › the landing page still renders its hero (2.1s)
+  ✓   59 [desktop] › e2e/quality-pass.spec.ts:88:5 › choosing a replacement photo requires fresh consent (6.6s)
+  ✓   87 [desktop] › e2e/straypaw2.spec.ts:69:5 › solutions: the URL chooses the audience (3.2s)
+  ✓   86 [desktop] › e2e/straypaw2.spec.ts:56:5 › one request: an example receipt explains the three acts and can be replayed (3.4s)
+  ✓   89 [desktop] › e2e/straypaw2.spec.ts:89:5 › the Municipality map opens on its evidence layers (10.2s)
+  ✓   88 [desktop] › e2e/straypaw2.spec.ts:77:5 › the Map opens on India with its lenses and search (11.3s)
+  ✓   90 [desktop] › e2e/straypaw2.spec.ts:99:5 › the NGO map explains itself when signed out (2.0s)
+  -   91 [desktop] › e2e/straypaw2.spec.ts:109:7 › reporting › a sighting is sent and the receipt says received, not accepted
+  -   92 [desktop] › e2e/straypaw2.spec.ts:124:7 › reporting › a failed send keeps the answers and says not sent
+  ✓   94 [desktop] › e2e/straypaw2.spec.ts:143:5 › the NGO workspace explains itself when signed out (1.8s)
+  ✓   93 [desktop] › e2e/straypaw2.spec.ts:137:7 › reporting › ?help=1 opens the needs-help questions (3.9s)
+  ✓   96 [desktop] › e2e/straypaw2.spec.ts:160:7 › /city/insights?city=Coimbatore renders without errors or overflow (2.9s)
+  ✓   97 [desktop] › e2e/straypaw2.spec.ts:160:7 › /city/programmes renders without errors or overflow (2.2s)
+  ✓   95 [desktop] › e2e/straypaw2.spec.ts:149:5 › an Academy lesson is completed on the device (6.6s)
+  ✓   98 [desktop] › e2e/straypaw2.spec.ts:160:7 › /community/stories renders without errors or overflow (2.7s)
+  ✓   99 [desktop] › e2e/straypaw2.spec.ts:160:7 › /community/organisations renders without errors or overflow (3.6s)
+  ✓  100 [desktop] › e2e/straypaw2.spec.ts:160:7 › /community/help renders without errors or overflow (3.0s)
+  ✓  101 [desktop] › e2e/straypaw2.spec.ts:160:7 › /learn/workshops renders without errors or overflow (2.3s)
+  ✓  102 [desktop] › e2e/straypaw2.spec.ts:160:7 › /search?q=coim renders without errors or overflow (2.0s)
+
+  8 skipped
+  94 passed (1.7m)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

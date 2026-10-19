@@ -68,3 +68,9 @@
   .ct-form-head { align-items: flex-start; flex-direction: column; gap: 5px; }
   .ct-actions button { flex: 1; justify-content: center; }
 }
+
+.ct-field-error { color: #a8300f; margin: 0; font-size: 14px; }
+.ct-field [aria-invalid=true] { border-color: #a8300f; }
+.co3.precision .ct-field input, .co3.precision .ct-field textarea { font-size: 16px; }
+.co3.precision .ct-field label { font-size: 14px; }
+.co3.precision .ct-form { box-shadow: none; border-color: #c4ccd6; }

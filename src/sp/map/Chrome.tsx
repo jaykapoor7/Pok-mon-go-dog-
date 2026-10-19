@@ -11,7 +11,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowUpRight, ChevronLeft, Crosshair, Eye, EyeOff, LocateFixed, Minus, Plus, Radio, Search, Share2, X } from "lucide-react";
 import type { AreaAnimal, MapArea, MapCell, NationalCity, Unplaced } from "@/lib/livingmap/types";
@@ -199,7 +199,7 @@ function CityCard(P: Props & { city: string }) {
   }
   if (!cells.length) return <p className="fm-wait" role="status">{P.cityState === "loading" ? `Reading ${P.city}…` : P.cityState === "missing" ? `${P.city} has no mapped areas yet.` : ""}</p>;
   const top = places.slice(0, 8);
-  const maxV = Math.max(1, ...top.map((p) => p.v || p.animals));
+  const maxV = Math.max(1, ...top.map((p) => p.v));
   return (
     <div className="fm-card">
       <p className="fm-big"><b>{fig.big}</b> <span>{fig.small}</span></p>
@@ -210,7 +210,7 @@ function CityCard(P: Props & { city: string }) {
       <p className="fm-k">Localities</p>
       <ol className="fm-locs">{top.map((p) => {
         const best = p.cells.reduce((a, b) => (cells[b].animals > cells[a].animals ? b : a), p.cells[0]);
-        const v = p.v || p.animals;
+        const v = p.v;
         return (
           <li key={p.name}><button type="button" onClick={() => P.onArea(cells[best].h3)}>
             <b>{p.name}</b><span className="fm-num">{f(v)}</span>
@@ -334,6 +334,9 @@ const statusWord = (s: string | null) => (s === "open" ? "Open" : s === "in_prog
 /* ── Animal: a field-guide entry ── */
 function AnimalCard({ a, city, cell, variant }: { a: AreaAnimal; city: string; cell: MapCell | null; variant: MapVariant }) {
   const [copied, setCopied] = useState(false);
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const from = `${pathname ?? "/community"}${params.size ? `?${params.toString()}` : ""}`;
   const ster = a.ster === "sterilised" ? "Recorded sterilised" : a.ster === "not_sterilised" ? "Recorded not sterilised" : "Sterilisation not recorded";
   const vacc = a.vacc === "vaccinated" ? "Recorded vaccinated" : a.vacc === "not_vaccinated" ? "Recorded not vaccinated" : "Vaccination not recorded";
   const thread = useMemo(() => {
@@ -362,7 +365,7 @@ function AnimalCard({ a, city, cell, variant }: { a: AreaAnimal; city: string; c
       </ol>
       <p className="fm-note">{a.org ? `Kept by ${a.org}. ` : ""}Placed by area, not by street. A status is as recorded, never assumed.</p>
       <div className="fm-acts">
-        <Link className="fm-btn is-ink" href={variant === "ngo" ? `/ngo/animals/${a.id}` : `/animal/${a.id}`}>{variant === "ngo" ? "Casefile" : "The full record"} <ArrowUpRight size={16} aria-hidden /></Link>
+        <Link className="fm-btn is-ink" href={variant === "ngo" ? `/ngo/animals/${a.id}` : `/animal/${a.id}${from ? `?from=${encodeURIComponent(from)}` : ""}`}>{variant === "ngo" ? "Casefile" : "The full record"} <ArrowUpRight size={16} aria-hidden /></Link>
         {variant === "community" && <Link className="fm-btn is-flame" href={`/community/report?animal=${a.id}`}><Radio size={16} aria-hidden /> I saw this animal</Link>}
         {variant === "ngo" && <Link className="fm-btn is-flame" href={`/ngo/cases/new?dog=${a.id}`}><Radio size={16} aria-hidden /> Open a case</Link>}
         <button type="button" className="fm-btn" onClick={share}><Share2 size={16} aria-hidden /> {copied ? "Link copied" : "Share"}</button>

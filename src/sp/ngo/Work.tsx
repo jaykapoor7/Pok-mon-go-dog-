@@ -228,7 +228,7 @@ export function Work() {
           {selRow ? (
             <aside className="wk2-insp" aria-label="Case inspector">
               <button type="button" className="wk2-close" onClick={() => { setSheet(false); setSel(null); }} aria-label="Close the case"><X size={17} /></button>
-              <Inspector row={selRow} cohort={cohort} onChanged={load} />
+              <Inspector key={selRow.key} row={selRow} cohort={cohort} onChanged={load} />
             </aside>
           ) : (
             <div className="wk2-hint">
@@ -286,8 +286,18 @@ function QueueRow({ r, on, me, onPick }: { r: Row; on: boolean; me: string; onPi
 function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onChanged: () => Promise<void> }) {
   const id = row.c?.id ?? row.f?.case_id ?? null;
   const [file, setFile] = useState<CaseFile | null | "loading" | "error">("loading");
-  const read = useCallback(async () => { if (!id) { setFile(null); return; } try { setFile(await loadCaseFile(id)); } catch { setFile("error"); } }, [id]);
-  useEffect(() => { setFile("loading"); void read(); }, [read]);
+  const generation = useRef(0);
+  const read = useCallback(async () => {
+    const version = ++generation.current;
+    if (!id) { setFile(null); return; }
+    try { const next = await loadCaseFile(id); if (version === generation.current) setFile(next); }
+    catch { if (version === generation.current) setFile("error"); }
+  }, [id]);
+  useEffect(() => {
+    const requests = generation;
+    setFile("loading"); void read();
+    return () => { requests.current++; };
+  }, [read]);
 
   if (!id) {
     const f = row.f!;

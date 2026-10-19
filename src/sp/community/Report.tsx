@@ -77,6 +77,7 @@ export function Report() {
   const [error, setError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<{ ref: string | null; at: string; dog: string | null } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoRead = useRef(0);
   const stage = useRef<StageHandle>(null);
   const [pickLabel, setPickLabel] = useState<string | null>(null);
   const sending = useRef(false);
@@ -89,7 +90,7 @@ export function Report() {
     const a = q.get("animal");
     if (a && /^[0-9a-f-]{36}$/i.test(a)) setClaimed(a);
     const lat = Number(q.get("lat")), lng = Number(q.get("lng"));
-    if (looksIndian(lat, lng)) { set({ coords: { lat, lng }, zone: nearestCity(lat, lng) }); reverseGeocode(lat, lng).then((z) => set({ zone: z })).catch(() => {}); }
+    if (looksIndian(lat, lng)) { set({ coords: { lat, lng }, zone: nearestCity(lat, lng) }); reverseGeocode(lat, lng).then((z) => setD(x => x.coords?.lat === lat && x.coords?.lng === lng ? { ...x, zone: z } : x)).catch(() => {}); }
     /* ?help=1 (from "If an animal needs help") opens the help door, unless a draft was restored. */
     let drafted = false; try { drafted = !!localStorage.getItem(DRAFT); } catch { /* storage blocked */ }
     if (q.get("help") === "1" && !drafted) { set({ door: "help" }); setStep(FLOW.help[0]); }
@@ -97,6 +98,8 @@ export function Report() {
   }, [set]);
   useEffect(() => { if (state === "sent") return; try { if (d.door) localStorage.setItem(DRAFT, JSON.stringify(d)); } catch { /* storage blocked */ } }, [d, state]);
   useEffect(() => { if (user?.email) set({ email: d.email || user.email }); }, [user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
   const flow = d.door ? FLOW[d.door] : [];
   const idx = step === "door" ? -1 : flow.indexOf(step);
@@ -107,8 +110,17 @@ export function Report() {
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; e.target.value = "";
     if (!f) return;
-    setFile(f); setPreview(URL.createObjectURL(f));
-    try { const m = await readPhotoMeta(f); if (m.lat != null && m.lng != null && looksIndian(m.lat, m.lng) && !d.coords) { set({ coords: { lat: m.lat, lng: m.lng }, zone: nearestCity(m.lat, m.lng) }); reverseGeocode(m.lat, m.lng).then((z) => set({ zone: z })).catch(() => {}); } } catch { /* no metadata */ }
+    const version = ++photoRead.current;
+    setConsent(false); setFile(f); setPreview(URL.createObjectURL(f));
+    try {
+      const m = await readPhotoMeta(f);
+      if (version !== photoRead.current || m.lat == null || m.lng == null || !looksIndian(m.lat, m.lng)) return;
+      const coords = { lat: m.lat, lng: m.lng };
+      setD(x => x.coords ? x : { ...x, coords, zone: nearestCity(coords.lat, coords.lng) });
+      reverseGeocode(coords.lat, coords.lng).then(zone => setD(x =>
+        version === photoRead.current && x.coords?.lat === coords.lat && x.coords?.lng === coords.lng ? { ...x, zone } : x
+      )).catch(() => {});
+    } catch { /* no metadata */ }
   }
 
   const help = d.door === "help";
@@ -182,7 +194,7 @@ export function Report() {
                 {preview && <label className="rp-consent"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} /><span>I took this photo and it shows no person&rsquo;s face, number plate or house number. It may be shown on the animal&rsquo;s public record; photos that may show an injury start blurred.</span></label>}
                 <div className="row rp-go">
                   <button type="button" className="btn is-ink" onClick={next} disabled={!!preview && !consent}>{preview ? "Use this photo" : "Continue without a photo"} <ArrowRight size={16} aria-hidden /></button>
-                  {preview && <button type="button" className="btn is-ghost" onClick={() => { setFile(null); setPreview(null); setConsent(false); }}><X size={15} aria-hidden /> Remove</button>}
+                  {preview && <button type="button" className="btn is-ghost" onClick={() => { photoRead.current++; setFile(null); setPreview(null); setConsent(false); }}><X size={15} aria-hidden /> Remove</button>}
                 </div>
               </>
             )}
