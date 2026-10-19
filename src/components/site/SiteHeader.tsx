@@ -7,32 +7,34 @@ import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { ROLE_META, readStoredRole } from "@/lib/roles";
-import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import "./header.css";
 
 /* ════════════════════════════════════════════════════════════════════
-   The site header.
+   The site header, one bar on every company page.
 
-   StrayPaw · Explore · For organisations · Open app. Explore is the live
-   Map; For organisations opens a short panel (NGOs first, municipalities,
-   applying, signing in with an invitation). Beside them, quietly, the
-   language and the one strong action: into the app. Everything else lives
-   in the footer index. The bar is glass over whatever it sits on — night
-   over the landing, paper over a page.
-
-   tKey names an entry in the nav dictionary. An item without one keeps its
-   English label while translation is partial.
+   StrayPaw · Product · Explore Map · For Organisations · Our Story ·
+   Contact, and the one strong action, Open App. Glass over its ground:
+   night over a dark page, paper over a light one. On a phone the links
+   open as a full-screen sheet: the five places large, the shortcuts
+   residents and teams need most beneath them, and Open App at the thumb.
    ════════════════════════════════════════════════════════════════════ */
 
 type NavKey = keyof Dictionary["nav"];
-type NavItem = { label: string; href: string; tKey?: NavKey };
+type NavItem = { label: string; href: string; tKey?: NavKey; also?: string[] };
 
-const LINKS: NavItem[] = [{ label: "Explore", href: "/explore" }];
-const ORGS = [
-  { label: "For NGOs", sub: "Cases, care, follow-ups and animal histories in one workspace", href: "/for-ngos" },
-  { label: "For municipalities", sub: "Recorded coverage, programmes and gaps, by area", href: "/for-governments" },
-  { label: "Get StrayPaw for your NGO", sub: "Apply for access", href: "/partner-apply" },
-  { label: "Sign in with your code", sub: "For members of an organisation", href: "/join" },
+const LINKS: NavItem[] = [
+  { label: "Product", href: "/product" },
+  { label: "Explore Map", href: "/explore", also: ["/community", "/map"] },
+  { label: "For Organisations", href: "/organisations", also: ["/for-ngos", "/for-governments", "/for-funders"] },
+  { label: "Our Story", href: "/our-story", also: ["/about"] },
+  { label: "Contact", href: "/contact" },
+];
+const SHORTCUTS = [
+  { label: "Report an animal", href: "/community/report" },
+  { label: "For NGOs", href: "/for-ngos" },
+  { label: "For municipalities", href: "/for-governments" },
+  { label: "Sign in with your code", href: "/join" },
 ];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
@@ -40,7 +42,6 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
   const pathname = usePathname() ?? "";
   const label = (item: { label: string; tKey?: NavKey }) => (item.tKey ? t.nav[item.tKey] : item.label);
   const [open, setOpen] = useState(false);
-  const [orgs, setOrgs] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   /* Someone who has picked a space before goes straight back to it; the
      picker is for the first visit, and is one "Switch space" away after. */
@@ -58,16 +59,17 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
     return () => window.removeEventListener("scroll", on);
   }, []);
 
-  /* The phone menu closes on Escape. */
+  /* The sheet closes on Escape, holds the page still behind it, and closes when the page changes. */
   useEffect(() => {
-    if (!open && !orgs) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); setOrgs(false); } };
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, orgs]);
+    const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [open]);
+  useEffect(() => { setOpen(false); }, [pathname]);
 
-  const closeAll = () => { setOpen(false); setOrgs(false); };
-  const here = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const here = (l: NavItem) => [l.href, ...(l.also ?? [])].some((h) => pathname === h || pathname.startsWith(h + "/"));
 
   return (
     <header className={`sp-header is-${tone} ${scrolled ? "is-scrolled" : ""} ${open ? "is-open" : ""}`}>
@@ -77,31 +79,41 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
           <span>StrayPaw</span>
         </Link>
 
-        <nav className={`sp-nav ${open ? "open" : ""}`} aria-label="Site">
+        <nav className="sp-nav" aria-label="Site">
           {LINKS.map((l) => (
-            <Link key={l.href} href={l.href} onClick={closeAll} aria-current={here(l.href) ? "page" : undefined} className={here(l.href) ? "is-here" : ""}>
+            <Link key={l.href} href={l.href} aria-current={here(l) ? "page" : undefined} className={here(l) ? "is-here" : ""}>
               {label(l)}
             </Link>
           ))}
-          <div className={`sp-orgs${orgs ? " is-open" : ""}`} onMouseLeave={() => setOrgs(false)}>
-            <button type="button" className={here("/for-ngos") || here("/for-governments") ? "is-here" : ""} aria-expanded={orgs} aria-controls="sp-orgs-panel" onClick={() => setOrgs((v) => !v)}>
-              For organisations <ChevronDown size={14} aria-hidden />
-            </button>
-            <div id="sp-orgs-panel" className="sp-orgs-panel" hidden={!orgs}>
-              {ORGS.map((o) => <Link key={o.href} href={o.href} onClick={closeAll}><b>{o.label}</b><small>{o.sub}</small></Link>)}
-            </div>
-          </div>
         </nav>
 
         <div className="sp-header-actions">
           <LanguageSwitcher />
           <Link href={appHref} prefetch className="sp-header-cta">
-            Open app <ArrowUpRight size={15} />
+            Open App <ArrowUpRight size={15} />
           </Link>
-          <button className="sp-menu-btn" onClick={() => setOpen(!open)} aria-label="Toggle navigation" aria-expanded={open}>
+          <button className="sp-menu-btn" onClick={() => setOpen(!open)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="sp-sheet">
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
+      </div>
+
+      <div id="sp-sheet" className="sp-sheet" hidden={!open}>
+        <nav aria-label="Site, menu">
+          <ol>
+            {LINKS.map((l, i) => (
+              <li key={l.href} style={{ ["--i" as string]: i }}>
+                <Link href={l.href} onClick={() => setOpen(false)} aria-current={here(l) ? "page" : undefined}>
+                  <span>{label(l)}</span><ArrowUpRight size={20} aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ol>
+          <ul className="sp-sheet-short">
+            {SHORTCUTS.map((l) => <li key={l.href}><Link href={l.href} onClick={() => setOpen(false)}>{l.label}</Link></li>)}
+          </ul>
+        </nav>
+        <Link href={appHref} className="sp-sheet-cta" onClick={() => setOpen(false)}>Open App <ArrowUpRight size={18} aria-hidden /></Link>
       </div>
     </header>
   );

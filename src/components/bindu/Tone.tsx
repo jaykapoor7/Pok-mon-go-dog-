@@ -5,9 +5,9 @@
 
 import { useEffect } from "react";
 
-export function ToneWatch() {
+export function ToneWatch({ root: sel = ".bindu" }: { root?: string }) {
   useEffect(() => {
-    const root = document.querySelector<HTMLElement>(".bindu"); if (!root) return;
+    const root = document.querySelector<HTMLElement>(sel); if (!root) return;
     let raf = 0;
     const tick = () => {
       raf = 0;
@@ -21,7 +21,7 @@ export function ToneWatch() {
     window.addEventListener("scroll", on, { passive: true });
     window.addEventListener("resize", on);
     return () => { window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); };
-  }, []);
+  }, [sel]);
   return null;
 }
 

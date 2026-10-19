@@ -77,11 +77,11 @@ const nextConfig = {
         ["/partner/fundraisers/new", "/ngo/fundraising/new"], ["/partner/surveys", "/ngo/surveys"], ["/partner/projects", "/ngo/projects"],
         ["/partner/feeding", "/ngo/feeding"],
         /* Site pages that predate 2.0 */
-        ["/research", "/evidence"], ["/changelog", "/about"],
+        ["/research", "/evidence"], ["/changelog", "/our-story"], ["/about", "/our-story"], ["/company", "/our-story"],
       ]),
       ...["/why-straypaw", "/the-data", "/gaps", "/needs", "/wards", "/data", "/sources", "/take-action", "/what-would-it-take", "/news"]
         .map((source) => ({ source, destination: "/evidence", permanent: false })),
-      ...["/mission", "/what-we-do"].map((source) => ({ source, destination: "/about", permanent: true })),
+      ...["/mission", "/what-we-do"].map((source) => ({ source, destination: "/our-story", permanent: true })),
       /* A case opened from an animal: the old ?dog / ?dogId become ?dog. */
       { source: "/partner/cases/new", has: [{ type: "query", key: "dogId", value: "(?<dog>.+)" }], destination: "/ngo/cases/new?dog=:dog", permanent: false },
       { source: "/cases/new", has: [{ type: "query", key: "dog", value: "(?<dog>.+)" }], destination: "/ngo/cases/new?dog=:dog", permanent: false },

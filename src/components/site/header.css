@@ -143,3 +143,28 @@ html .sp-header .sp-orgs-panel a:nth-child(3) b { color: #c1391c; }
   html .sp-header .sp-orgs > button { width: 100%; height: 48px; justify-content: space-between; padding: 0 12px; border-radius: 12px; color: var(--sp-ink); font-size: 15px; }
   html .sp-header .sp-orgs-panel { position: static; width: auto; box-shadow: none; border: 0; padding: 0 0 6px 8px; background: transparent; }
 }
+
+/* ════════ The phone sheet: the five places large, shortcuts beneath, Open App at the thumb ════════ */
+html .sp-header .sp-sheet { display: none; }
+@media (max-width: 900px) {
+  html .sp-header .sp-nav { display: none !important; }
+  html .sp-header .sp-sheet:not([hidden]) {
+    position: fixed; inset: 58px 0 0; z-index: 59; display: flex; flex-direction: column; justify-content: space-between; gap: 24px;
+    padding: 18px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain;
+    background: #07142b; color: #eef3ff; animation: sp-sheet-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html .sp-header .sp-sheet ol { list-style: none; margin: 0; padding: 0; display: grid; }
+  html .sp-header .sp-sheet ol a { display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid rgba(219, 230, 255, 0.12);
+    color: #eef3ff; text-decoration: none; font-size: 30px; font-weight: 650; letter-spacing: -0.04em; }
+  html .sp-header .sp-sheet ol a svg { color: rgba(219, 230, 255, 0.4); transition: transform 0.2s, color 0.2s; }
+  html .sp-header .sp-sheet ol a:active svg, html .sp-header .sp-sheet ol a[aria-current] svg { color: #f05b40; transform: translate(2px, -2px); }
+  html .sp-header .sp-sheet ol a[aria-current] span { color: #a9c4ff; }
+  html .sp-header .sp-sheet ol li { animation: sp-sheet-li 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; animation-delay: calc(60ms + var(--i) * 40ms); }
+  html .sp-header .sp-sheet-short { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  html .sp-header .sp-sheet-short a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(219, 230, 255, 0.2); color: rgba(219, 230, 255, 0.85); text-decoration: none; font-size: 14px; font-weight: 600; }
+  html .sp-header .sp-sheet-cta { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; border-radius: 999px; background: #f05b40; color: #fff; text-decoration: none; font-size: 17px; font-weight: 700; }
+  html .sp-header.is-open { background: #07142b; --hd-ink: #eef3ff; --hd-rule: rgba(219, 230, 255, 0.16); }
+}
+@keyframes sp-sheet-in { from { opacity: 0; clip-path: inset(0 0 100% 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+@keyframes sp-sheet-li { from { opacity: 0; transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) { html .sp-header .sp-sheet, html .sp-header .sp-sheet li { animation: none !important; } }

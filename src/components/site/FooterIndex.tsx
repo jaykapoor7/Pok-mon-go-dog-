@@ -25,7 +25,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     { label: "Researchers", href: "/research-standards" },
   ] },
   { title: "StrayPaw", links: [
-    { label: "About", href: "/about" },
+    { label: "Product", href: "/product" },
+    { label: "For Organisations", href: "/organisations" },
+    { label: "Our Story", href: "/our-story" },
     { label: "Partner NGOs", href: "/orgs" },
     { label: "Evidence", href: "/evidence" },
     { label: "Contact", href: "/contact" },

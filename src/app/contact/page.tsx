@@ -1,35 +1,35 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { MarketingShell } from "@/components/marketing/MarketingShell";
+import { CoShell } from "@/components/co3/CoShell";
 import { ContactForm } from "@/components/contact/ContactForm";
 import "./contact.css";
 
 export const metadata = {
   title: "Contact, StrayPaw",
-  description: "Get in touch with StrayPaw, questions, partnership ideas, feedback, or content requests.",
+  description: "Get in touch with StrayPaw: partnerships, organisation access, product questions, corrections and removal requests.",
 };
+
+const ROUTES = [
+  { t: "An animal needs help now", d: "Report it. Organisations near the place see it in their queue.", href: "/community/report", cta: "Report an animal" },
+  { t: "Organisation access", d: "Apply for a free workspace, or sign in with the code you were given.", href: "/partner-apply", cta: "Apply to join" },
+  { t: "Data or privacy", d: "Ask for a correction, export or removal. Include the page or StrayPaw ID if you have it.", href: "/data-governance", cta: "Data policy" },
+  { t: "Report content", d: "A photo or record that should not be public.", href: "/report-content", cta: "Report content" },
+];
 
 export default function ContactPage() {
   return (
-    <MarketingShell inApp
-      eyebrow="Contact"
-      title="Get in touch."
-      intro="Partnerships, product questions, corrections and removal requests all reach the person building StrayPaw."
-      wide
-    >
-      <div className="ct-layout">
-        <ContactForm />
-        <aside className="ct-aside" aria-label="Other ways to continue">
-          <p className="ct-label">Before you write</p>
+    <CoShell kicker="Contact" title={<>Talk to <em>us.</em></>} close={false}
+      lede="Partnerships, organisation access, product questions, corrections and removal requests. Every message is read.">
+      <div className="co3-contact">
+        <div className="co3-form"><ContactForm /></div>
+        <aside className="co3-aside" aria-label="Other ways to continue">
           <h2>Send it to the right place.</h2>
-          <ul>
-            <li><b>NGO access</b><span>See the Field Workspace and application terms first.</span><Link href="/for-ngos">For NGOs <ArrowUpRight size={13} /></Link></li>
-            <li><b>Data or privacy</b><span>Ask for a correction, export or removal. Include the page or StrayPaw ID if you have it.</span><Link href="/data-governance">Data policy <ArrowUpRight size={13} /></Link></li>
-            <li><b>Education</b><span>Plan a classroom or community session using the original partner materials.</span><Link href="/education">Education <ArrowUpRight size={13} /></Link></li>
-          </ul>
-          <p className="ct-place"><span>Built in India</span>Working across the country with residents, field teams and public institutions.</p>
+          {ROUTES.map((r) => (
+            <p key={r.t} className="co3-route"><b>{r.t}</b><span>{r.d}</span><Link href={r.href}>{r.cta} <ArrowUpRight size={14} aria-hidden /></Link></p>
+          ))}
+          <p className="co3-route"><b>Built in India</b><span>Working across the country with residents, field teams and public institutions.</span></p>
         </aside>
       </div>
-    </MarketingShell>
+    </CoShell>
   );
 }
