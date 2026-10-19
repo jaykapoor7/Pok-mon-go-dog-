@@ -3,14 +3,17 @@ import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { getLandingStory } from "@/lib/landing/story";
+import { getLandingStory, getLandingPortraits } from "@/lib/landing/story";
 import { getMapCities } from "@/lib/livingmap/server";
+import { getOperationalPartners } from "@/lib/partners";
 import { sxSerif } from "@/components/shell/fonts";
 import { DemoProvider } from "@/components/request/DemoProvider";
 import { ExampleProfile } from "@/components/marketing/ExampleProfile";
 import { HeroRecord } from "@/components/marketing/HeroRecord";
 import { WORK_IMAGES, creditLine } from "@/lib/art/sources";
 import { RecordMap } from "@/components/marketing/RecordMap";
+import { ProfileGallery } from "@/components/marketing/ProfileGallery";
+import { MapShowcase } from "@/components/marketing/MapShowcase";
 import { Chain } from "@/components/request/Chain";
 import { Commons, type Loc } from "@/components/ecosystem/Commons";
 import "@/components/site/site.css";
@@ -18,6 +21,7 @@ import "@/components/world/home.css";
 import "@/components/ecosystem/commons.css";
 import "@/components/marketing/precision.css";
 import "@/components/marketing/folio.css";
+import "@/components/marketing/depth.css";
 
 export const revalidate = 300;
 export const metadata = {
@@ -27,7 +31,10 @@ export const metadata = {
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
 export default async function HomePage() {
-  const [story, cities] = await Promise.all([getLandingStory().catch(() => null), getMapCities().catch(() => [])]);
+  const [story, cities, portraits, partners] = await Promise.all([
+    getLandingStory().catch(() => null), getMapCities().catch(() => []),
+    getLandingPortraits().catch(() => []), getOperationalPartners().catch(() => []),
+  ]);
   const animal = story?.relay ? { id: story.relay.animalId, straypaw_id: story.relay.straypawId } : null;
   const totals = story?.totals;
   const city = cities.find((c) => c.city === story?.hero.city);
@@ -66,10 +73,12 @@ export default async function HomePage() {
               <p className="pr-note">From the public record. <Link href="/evidence">Sources and definitions</Link></p>
             </> : <p className="pr-note">Public figures are unavailable right now. <Link href="/explore">Explore the record</Link>.</p>}
           </div>
+          <ProfileGallery portraits={portraits} />
         </section>
         <section id="why" className="pr-section pr-request" aria-labelledby="request-title"><Chain map={<RecordMap story={story} />} /></section>
         <section id="how" className="pr-section pr-ecosystem" aria-labelledby="ecosystem-title">
           <Commons map={<RecordMap story={story} />} queue={story?.desk.queue ?? []} locs={locs} brief={brief} place={story?.hero.city ?? "Your area"} />
+          <MapShowcase map={<RecordMap story={story} />} places={cities.filter(c => c.animals > 0).sort((a, b) => (b.cells > 1 ? 1 : 0) - (a.cells > 1 ? 1 : 0)).slice(0, 4).map(c => ({ city: c.city, animals: c.animals, cells: c.cells }))} />
         </section>
         <section id="company" className="pr-section pr-company lp-company-close" aria-labelledby="company-title">
           <div className="pr-company-editorial">
@@ -79,6 +88,7 @@ export default async function HomePage() {
               <div><dt>Built</dt><dd>Reporting, cases, animal histories and the Living Map.</dd></div>
               <div><dt>Next</dt><dd>More field partners. Better local coverage.</dd></div>
             </dl>
+            {partners.length > 0 && <div className="depth-field-proof"><p>Building with field partners</p><ul>{partners.slice(0, 3).map(p => <li key={p.id}><b>{p.name}</b><span>{[p.city, p.state].filter(Boolean).join(", ")} · {p.partnerStatus === "pilot_partner" ? "Pilot partner" : "Field partner"}</span></li>)}</ul><p><Link href="/community/organisations">Partner directory</Link> · <Link href="/evidence">Data sources</Link></p><small>Imported history and directory listings are separate from partnerships.</small></div>}
             <Link href="/partner-apply" className="sw-btn is-flame">Work with us <ArrowUpRight size={17} aria-hidden /></Link>
           </div>
           <figure className="pr-company-art">

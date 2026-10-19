@@ -8,9 +8,9 @@ import { EXAMPLE_OBSERVATION, useDemo, type DemoView } from "./DemoProvider";
 import { DEMO_VIEWS, WorkflowPreview } from "./WorkflowPreview";
 
 const ACTS = [
-  { title: "Report", text: "A photo, a place and what you saw. The report can be reviewed by organisations working nearby." },
-  { title: "Coordinate", text: "If an organisation accepts, its team can assign the case, record care and plan follow-ups." },
-  { title: "Understand", text: "Recorded updates stay with the animal and contribute to the map. Missing information remains unknown." },
+  { title: "Report", text: "A photo, a place and what you saw." },
+  { title: "Coordinate", text: "Review first. Ownership only after acceptance." },
+  { title: "Understand", text: "A traceable history. Gaps stay visible." },
 ];
 
 export function Chain({ map }: { map?: ReactNode }) {

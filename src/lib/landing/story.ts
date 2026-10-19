@@ -311,6 +311,26 @@ export type RegisterFocus = {
 };
 export type AnimalRegister = { total: number; cards: RegisterFocus[] };
 
+export type LandingPortrait = {
+  id: string; name: string | null; straypaw_id: string | null; cover_photo: string;
+  zone: string | null; city: string | null; source: string | null;
+};
+
+/** Only previously reviewed photographs. No broader-photo fallback, clinical
+ * history, exact location, private contacts or unbounded register read. */
+export const getLandingPortraits = unstable_cache(async (): Promise<LandingPortrait[]> => {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const ids = Object.keys(REGISTER_FRAMES);
+  const { data, error } = await supa.from("public_spatial_animals")
+    .select("id,name,straypaw_id,cover_photo,zone,city,source")
+    .in("straypaw_id", ids).eq("photo_sensitive", false).eq("needs_help", false)
+    .neq("status", "injured").not("cover_photo", "is", null).neq("cover_photo", "")
+    .order("straypaw_id", { ascending: true }).limit(ids.length);
+  if (error) throw error;
+  return ((data ?? []) as LandingPortrait[]).filter(a => a.cover_photo?.trim());
+}, ["landing-reviewed-portraits-v1"], { revalidate: 300 });
+
 /* Landing cards are a fixed, curated sample. The total comes from the same
  * authoritative city rollups as the hero, so this path never runs an exact
  * count across the public animal view. Related history stays bounded to the
