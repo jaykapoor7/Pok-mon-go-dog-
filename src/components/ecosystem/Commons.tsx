@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ArrowUpRight, Camera, Check, MapPin } from "lucide-react";
 import { WORK_IMAGES, creditLine, type WorkImageKey } from "@/lib/art/sources";
 
@@ -23,7 +23,7 @@ export const PLACES: Record<string, { work: WorkImageKey; hot: Box; pos: string 
   fund: { work: "mithilaTwoWomen", hot: [0.42, 0.4, 0.16, 0.2], pos: "50% 45%" },
 };
 
-export function Commons({ queue, brief, locs, place }: { queue: Queue; brief: CityBrief; locs: Loc[]; place: string }) {
+export function Commons({ queue, brief, locs, place, map }: { map?: ReactNode; queue: Queue; brief: CityBrief; locs: Loc[]; place: string }) {
   const [i, setI] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const chooseKey = (e: KeyboardEvent, j: number) => {
@@ -37,12 +37,12 @@ export function Commons({ queue, brief, locs, place }: { queue: Queue; brief: Ci
   };
   const w = WAYS[i];
   return <div className="pr-commons">
-    <header><p className="pr-place">One Ecosystem</p><h2 id="ecosystem-title">One ecosystem. Four ways in.</h2></header>
+    <header><h2 id="ecosystem-title">One ecosystem. Four ways in.</h2></header>
     <div className="pr-tabs" role="tablist" aria-label="Who StrayPaw serves">
-      {WAYS.map((way, j) => <button key={way.k} ref={el => { tabs.current[j] = el; }} id={`ecosystem-tab-${way.k}`} type="button" role="tab" aria-controls="ecosystem-panel" aria-selected={i === j} tabIndex={i === j ? 0 : -1} onClick={() => setI(j)} onKeyDown={e => chooseKey(e, j)}>{way.who}</button>)}
+      {WAYS.map((way, j) => <button key={way.k} ref={el => { tabs.current[j] = el; }} id={`ecosystem-tab-${way.k}`} type="button" role="tab" aria-controls="ecosystem-panel" aria-selected={i === j} tabIndex={i === j ? 0 : -1} onClick={() => setI(j)} onKeyDown={e => chooseKey(e, j)}>{way.who}<ArrowUpRight size={20} aria-hidden /></button>)}
     </div>
     <div id="ecosystem-panel" className="pr-audience" role="tabpanel" tabIndex={0} aria-labelledby={`ecosystem-tab-${w.k}`}>
-      <div className="pr-audience-copy"><h3>{w.verb}</h3><p>{w.say}</p><Link href={w.href}>{w.cta} <ArrowUpRight size={15} aria-hidden /></Link><PlaceArt k={w.k} className="pr-audience-art" /></div>
+      <div className="pr-audience-copy"><h3>{w.verb}</h3><p>{w.say}</p><Link href={w.href}>{w.cta} <ArrowUpRight size={15} aria-hidden /></Link><div className="pr-geographic">{map}</div></div>
       <SoftwarePreview kind={w.k} queue={queue} brief={brief} locs={locs} place={place} />
     </div>
   </div>;

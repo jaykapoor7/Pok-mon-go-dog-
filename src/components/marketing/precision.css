@@ -129,3 +129,8 @@
 @media(max-width:760px) { .sp.co3.precision .co3-hero-in { width: 100%; padding: 24px; } }
 .sp.co3.precision .co3-cap { border: 0; border-bottom: 1px solid #c4ccd6; border-radius: 0; padding: 20px 0; box-shadow: none; }
 .sp.co3.precision .co3-form { border: 0; border-radius: 0; box-shadow: none; }
+
+/* The shared marketing buttons keep StrayPaw's rounded, tactile character. */
+.sp.co3.precision .co3-btn, .sp.co3.precision .ct-actions button { border-radius: 999px; border: 1.5px solid #0b1e3d; min-height: 48px; box-shadow: 3px 3px 0 #0b1e3d; transition: transform 140ms ease-out, box-shadow 140ms ease-out; }
+.sp.co3.precision .co3-btn:active, .sp.co3.precision .ct-actions button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #0b1e3d; }
+@media(prefers-reduced-motion:reduce) { .sp.co3.precision .co3-btn, .sp.co3.precision .ct-actions button { transition: none; transform: none; } }
