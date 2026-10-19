@@ -49,8 +49,9 @@ export const metadata = {
    ════════════════════════════════════════════════════════════════════ */
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
-/* the neighbourhood the opening painting is made from (public/mural, baked by scripts/bake-mural.mjs) */
+/* the neighbourhood the opening reveals beneath the painting: a locality with requests on the public record */
 const PAINTED = "Ganapathy";
+const PAINTED_AT: [number, number] = [76.9746, 11.0389];
 
 /* Community reports sent through StrayPaw in the last 90 days: one server-side count, never a row. */
 const recentReports = unstable_cache(async (): Promise<number | null> => {
@@ -109,7 +110,8 @@ export default async function HomePage() {
       <main>
         {/* 01 · The living world */}
         <Stage id="world" className="w1" screens={3} still={0} tone="day" label="StrayPaw">
-          <World areas={worldAreas} cells={cells} city={`${PAINTED}, Coimbatore`} sampleAt={home} />
+          <World areas={worldAreas} cells={cells} centre={PAINTED_AT} sampleAt={home} />
+          <a className="w1-credit" href="/art-credits">Palampore, Coromandel Coast, early 1700s · The Met (CC0)</a>
           <div className="w1-frame" aria-hidden />
           <div className="w1-card">
             <p className="w1-k">StrayPaw · India</p>
@@ -138,8 +140,8 @@ export default async function HomePage() {
             </aside>
           )}
           <div className="w1-caps" aria-hidden>
-            <p>Painted on the real streets of <b>{PAINTED}, Coimbatore</b>.</p>
-            <p>Each animal stands where an area is <b>on the record</b>.</p>
+            <p>Beneath the cloth: the real streets of <b>{PAINTED}, Coimbatore</b>.</p>
+            <p>Each dog stands where an area is <b>on the record</b>. Paintings, not likenesses.</p>
             {sampleCity && <p>{sampleCity.city}: <b>{fmt(sampleCity.animals)} animal records</b> in {fmt(sampleCity.cells)} mapped areas.</p>}
             {totals && <p>India: <b>{fmt(totals.animals)} records</b> across {fmt(totals.cities)} cities.</p>}
           </div>
@@ -160,10 +162,7 @@ export default async function HomePage() {
           <div className="w4-why">
             <p className="sw-k">Why StrayPaw exists</p>
             <h2 id="w4-why">India&rsquo;s street animals are cared for by thousands of people. <em>Almost none of it is written down in one place.</em></h2>
-            <div className="w4-cols">
-              <p>A resident sees an injured dog and posts in a group. A rescuer picks it up. A vet treats it. A feeder sees it again a month later. Each of them keeps a piece of the story, in a chat, a sheet or a notebook, and the next person starts from nothing.</p>
-              <p className="w4-origin"><b>Where it started.</b> The insight came from the records themselves. One rescue register brought into StrayPaw held 169 open requests, and no column for who was responsible for them. Every request had been seen; none had an owner. StrayPaw is built so that every report gets an owner, every animal a history and every city a map of where help is needed.</p>
-            </div>
+            <p className="w4-intro">A resident sees an injured dog and posts in a group. A rescuer picks it up. A vet treats it. A feeder sees it again a month later. Each of them keeps a piece of the story, in a chat, a sheet or a notebook, and the next person starts from nothing.</p>
           </div>
 
           {lives.length > 0 && (

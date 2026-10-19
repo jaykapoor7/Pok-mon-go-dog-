@@ -7,7 +7,7 @@
   --flame: #f05b40; --flame-ink: #c1391c; --blue: #2457ce; --sky: #8fb0ff; --teal: #1f6f80;
   --line: rgba(11, 30, 61, 0.1); --line-2: rgba(11, 30, 61, 0.16);
   --serif: var(--sx-serif), "Instrument Serif", Georgia, serif; --mono: var(--sp-mono-f, "DM Mono"), ui-monospace, monospace;
-  --sea: #d6e2f5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24'%3E%3Cg fill='none' stroke='%239db6e6' stroke-width='.9' stroke-linecap='round' opacity='.6'%3E%3Cpath d='M-6 6q6-2.2 12 0M18 6q6-2.2 12 0M42 6q6-2.2 12 0M6 18q6-2.2 12 0M30 18q6-2.2 12 0'/%3E%3C/g%3E%3C/svg%3E");
+  --sea: #dfe7f3;
   --out: cubic-bezier(0.16, 1, 0.3, 1); --spring: cubic-bezier(0.3, 1.5, 0.5, 1);
   background: var(--shell); color: var(--ink); font-family: var(--sp-sans-f, "DM Sans"), system-ui, sans-serif;
 }
@@ -152,18 +152,23 @@
 
 .co3 .co3-hero { position: relative; overflow: visible; padding: 0; background: var(--shell); min-height: clamp(520px, 74svh, 760px); display: flex; align-items: center; }
 .co3 .co3-hero::before { display: none; }
-.co3-band { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.co3-band { position: absolute; inset: 0; margin: 0; overflow: hidden; background: #8c1c1c; }
+.co3-band img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+@media (prefers-reduced-motion: no-preference) { .co3-band img { animation: co3-drift 40s ease-in-out infinite alternate; } }
+@keyframes co3-drift { from { transform: scale(1.04) translateY(0); } to { transform: scale(1.1) translateY(-2%); } }
+.co3-band figcaption { position: absolute; right: 12px; bottom: 12px; z-index: 1; padding: 4px 10px; border-radius: 999px; background: rgba(255, 253, 249, 0.92); border: 1px solid rgba(11, 30, 61, 0.2); font-family: var(--mono); font-size: 11px; }
+.co3-band figcaption a { color: var(--ink); text-decoration: none; }
 .co3 .co3-hero-in { position: relative; z-index: 2; margin: 0 0 0 clamp(16px, 4.4vw, 76px); width: min(620px, 52vw); padding: clamp(24px, 2.6vw, 38px); border-radius: 6px; background: rgba(255, 253, 249, 0.96);
   border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 6.4px var(--ink), 8px 8px 0 rgba(11, 30, 61, 0.85); }
-.co3 .co3-hero-in::before { content: ""; display: block; height: 10px; margin: -8px 0 16px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10'%3E%3Cellipse cx='5' cy='5' rx='4' ry='2' fill='%23f05b40' stroke='%230b1e3d' stroke-width='.7' transform='rotate(-25 5 5)'/%3E%3Cellipse cx='15' cy='5' rx='4' ry='2' fill='%23f2b632' stroke='%230b1e3d' stroke-width='.7' transform='rotate(25 15 5)'/%3E%3C/svg%3E") repeat-x; }
+.co3 .co3-hero-in::before { content: ""; display: block; height: 18px; margin: -10px -10px 16px; background: url("/art/works/palampore-border.webp") repeat-x 0 50% / auto 100%; }
 .co3 .co3-hero h1 { font-size: clamp(36px, 4.4vw, 72px); }
 .co3 .co3-lede { margin-top: 16px; }
 .co3 .co3-hero .co3-acts { margin-top: 24px; }
 
 /* sections: leaf rules between movements, painted frames on cards */
 .co3 .co3-sec { border-top: 0; position: relative; }
-.co3 .co3-sec + .co3-sec::before, .co3 .co3-hero + .co3-sec::before, .co3 .co3-sec + .co3-contact::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 12px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 1h24M0 11h24' stroke='%230b1e3d' stroke-width='1'/%3E%3Cellipse cx='6' cy='6' rx='4.4' ry='2' fill='%23f05b40' stroke='%230b1e3d' stroke-width='.7' transform='rotate(-28 6 6)'/%3E%3Cellipse cx='18' cy='6' rx='4.4' ry='2' fill='%23f2b632' stroke='%230b1e3d' stroke-width='.7' transform='rotate(28 18 6)'/%3E%3C/svg%3E") repeat-x 0 0 / auto 12px; }
+.co3 .co3-sec + .co3-sec::before, .co3 .co3-hero + .co3-sec::before, .co3 .co3-sec + .co3-contact::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 16px;
+  background: url("/art/works/palampore-border.webp") repeat-x 0 0 / auto 16px; }
 .co3 .co3-hero + .co3-sec::before { display: none; }
 .co3 .co3-cap, .co3 .co3-form { border-radius: 10px; border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5.2px rgba(11, 30, 61, 0.45), 5px 5px 0 rgba(11, 30, 61, 0.85); }
 .co3 .co3-cap:hover { transform: translate(-2px, -2px); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5.2px rgba(11, 30, 61, 0.45), 7px 7px 0 var(--flame); }
@@ -183,7 +188,16 @@
 @media (max-width: 760px) {
   .co3 .co3-hero { display: block; min-height: 0; padding: 0 0 8px; }
   .co3-band { position: relative; height: 260px; }
+  .co3-band figcaption { bottom: 64px; }
   .co3 .co3-hero-in { width: auto; margin: -56px 10px 0; padding: 20px 18px; }
   .co3 .co3-hero h1 { font-size: clamp(30px, 8.6vw, 40px); }
   .co3-close-vi { right: -40vw; opacity: 0.45; }
 }
+
+/* the origin on Our Story */
+.co3-origin { max-width: 1280px; margin: 0 auto; padding: clamp(70px, 11svh, 120px) clamp(20px, 5vw, 72px); scroll-margin-top: 80px; }
+.co3 .fd-h { font-size: clamp(30px, 3.2vw, 52px); line-height: 1.03; font-weight: 700; letter-spacing: -0.05em; margin: 0 0 24px; }
+.co3 .fd-h em { color: var(--flame-ink); }
+.co3 .fd-last { color: var(--ink) !important; font-weight: 600; }
+.co3 .co3-origin + .co3-sec::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 16px;
+  background: url("/art/works/palampore-border.webp") repeat-x 0 0 / auto 16px; }

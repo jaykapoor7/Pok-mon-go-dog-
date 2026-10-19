@@ -67,7 +67,7 @@ html .sp-header .sp-sheet { display: none; }
     position: fixed; inset: 0; z-index: -1; display: flex; flex-direction: column; justify-content: space-between; gap: 22px;
     padding: 92px 22px calc(22px + env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain;
     color: var(--hd-ink); visibility: hidden; pointer-events: none;
-    background: #f3ede4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='24'%3E%3Cpath d='M6 14q3-4 6 0M24 6q3-4 6 0' fill='none' stroke='%23e2cfa9' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+    background: #f3ede4;
     clip-path: circle(0 at calc(100% - 34px) 30px); transition: clip-path 0.55s cubic-bezier(0.7, 0, 0.2, 1), visibility 0s 0.55s;
   }
   html .sp-header .sp-sheet::before { content: ""; position: absolute; inset: 70px 10px 10px; pointer-events: none; border: 1.5px solid var(--hd-ink); box-shadow: inset 0 0 0 5px #f3ede4, inset 0 0 0 6.4px var(--hd-ink); border-radius: 12px; }

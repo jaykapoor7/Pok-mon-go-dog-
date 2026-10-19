@@ -6,12 +6,12 @@
    It opens on how a rescue lives today: a dozen scraps of one animal's
    story in chats, sheets and calls, which spiral into one phone. There a
    resident's report is typed and waiting. Press Send (or simply keep
-   scrolling) and one message sets off a chain reaction along a painted
-   vine: it unfolds into a case; the case drops into a team's queue; a
+   scrolling) and one message sets off a chain reaction along a stitched
+   line: it unfolds into a case; the case drops into a team's queue; a
    reply flies back to the resident; care is written into the animal's
    history; the history drops a mark on the map; the mark lights its
    locality in the city's live figures; the record becomes evidence.
-   Each card blooms as the message reaches it, and a pulse runs through
+   Each card lights as the message reaches it, and a pulse runs through
    the whole system at the end.
 
    One object travels the whole way and changes shape at every stop.
@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Camera, CheckCheck, MapPin, RotateCcw, SendHorizontal } from "lucide-react";
 import { useStage, span, ease } from "@/components/bindu/stage";
-import * as Art from "@/components/world/art";
+import { DOG_ART } from "@/lib/art/sources";
 
 export type Area = { ring: number[]; open: number; crit: number; name: string };
 type R = [number, number, number, number];
@@ -52,12 +52,11 @@ const fmt = (n: number) => n.toLocaleString("en-IN");
 
 export function Chain({ areas, city }: { areas: Area[]; city: string }) {
   const { p, listen, still } = useStage();
-  const stage = useRef<HTMLDivElement>(null), tok = useRef<HTMLDivElement>(null), linksRef = useRef<SVGGElement>(null), fragRef = useRef<HTMLDivElement>(null), dogRef = useRef<HTMLCanvasElement>(null);
+  const stage = useRef<HTMLDivElement>(null), tok = useRef<HTMLDivElement>(null), linksRef = useRef<SVGGElement>(null), fragRef = useRef<HTMLDivElement>(null);
   const [tall, setTall] = useState(false);
   const [k, setK] = useState(1);
   const [qq, setQq] = useState(still ? 1 : 0);
   const [mode, setMode] = useState<"scroll" | "auto">("scroll");
-  const [leaves, setLeaves] = useState<{ x: number; y: number; a: number; u: number; i: number }[]>([]);
   const auto = useRef<{ t0: number; from: number } | null>(null);
   const kick = useRef<() => void>(() => {});
   const written = useRef<Record<string, string>>({});
@@ -96,15 +95,6 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
     return () => ro.disconnect();
   }, []);
 
-  /* the example animal's portrait: painted, because it is not a real animal */
-  useEffect(() => {
-    const c = dogRef.current; if (!c) return;
-    const dpr = Math.min(2, window.devicePixelRatio || 1), w = c.clientWidth || 54, h = c.clientHeight || 54;
-    c.width = w * dpr; c.height = h * dpr; const x = c.getContext("2d")!; x.scale(dpr, dpr);
-    x.fillStyle = Art.C.marigoldPale; x.fillRect(0, 0, w, h);
-    x.save(); x.translate(w / 2 - 28, h / 2 - 20); x.scale(0.92, 0.92); Art.dogTail(x, "sit", 0.6); Art.dogBody(x, "sit", Art.COATS[0], 3); x.restore();
-  }, [tall]);
-
   /* anchors, in canvas units */
   const c = (r: R): [number, number] => [r[0] + r[2] / 2, r[1] + r[3] / 2];
   const geo = useMemo(() => {
@@ -124,20 +114,6 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
     const links = flights.map((f) => { const a = ctr(f.from), b = ctr(f.to), mx = (a[0] + b[0]) / 2 - (b[1] - a[1]) * f.bend, my = (a[1] + b[1]) / 2 + (b[0] - a[0]) * f.bend; return { d: `M${a[0]},${a[1]} Q${mx},${my} ${b[0]},${b[1]}`, a, b, m: [mx, my] as [number, number] }; });
     return { flights, links };
   }, [L, tall, fdot, plate, place]);
-
-  /* leaves along each vine, placed on the real path once it is laid out */
-  useEffect(() => {
-    const g = linksRef.current; if (!g) return;
-    const out: { x: number; y: number; a: number; u: number; i: number }[] = [];
-    g.querySelectorAll<SVGPathElement>(".cv-vine").forEach((path, i) => {
-      const len = path.getTotalLength(), n = Math.max(3, Math.round(len / 46));
-      for (let j = 1; j < n; j++) {
-        const u = j / n, q = path.getPointAtLength(len * u), q2 = path.getPointAtLength(Math.min(len, len * u + 1));
-        out.push({ x: q.x, y: q.y, a: (Math.atan2(q2.y - q.y, q2.x - q.x) * 180) / Math.PI + (j % 2 ? 50 : -50), u, i });
-      }
-    });
-    setLeaves(out);
-  }, [geo]);
 
   /* the frame: continuous motion straight to the DOM; discrete state through React, only on change */
   const draw = useCallback((P: number) => {
@@ -164,7 +140,6 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
     /* vines grow as the message travels along them; leaves open behind it */
     const segs = geo.flights.map((f) => span(P, f.seg[0], f.seg[1]));
     linksRef.current?.querySelectorAll<SVGPathElement>(".cv-vine, .cv-vine-gap").forEach((n) => { const i = Number(n.dataset.i); n.style.strokeDashoffset = String(1 - segs[i]); });
-    linksRef.current?.querySelectorAll<SVGElement>(".cv-leaf").forEach((n) => { const on = segs[Number(n.dataset.i)] >= Number(n.dataset.u); if ((n.dataset.on === "1") !== on) { n.dataset.on = on ? "1" : "0"; } });
     /* the one object, wherever it is */
     const t = tok.current; if (!t) return;
     const i = segs.findIndex((s) => s > 0 && s < 1);
@@ -248,13 +223,7 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
             <g ref={linksRef}>
               {geo.links.map((l, i) => <path key={`v${i}`} d={l.d} pathLength={1} data-i={i} className="cv-vine" />)}
               {geo.links.map((l, i) => <path key={`g${i}`} d={l.d} pathLength={1} data-i={i} className="cv-vine-gap" />)}
-              {leaves.map((f, j) => <ellipse key={j} cx={0} cy={0} rx={7} ry={3} data-i={f.i} data-u={f.u} className="cv-leaf" style={{ transform: `translate(${f.x}px, ${f.y}px) rotate(${f.a}deg) translateX(6px)` }} />)}
-              {geo.links.map((l, i) => (
-                <g key={`f${i}`} className={`cv-bloom${on(i + 1) ? " is-on" : ""}`} style={{ transform: `translate(${l.b[0]}px, ${l.b[1]}px)` }}>
-                  {Array.from({ length: 8 }, (_, j) => <ellipse key={j} cx={0} cy={-9} rx={3.4} ry={7} transform={`rotate(${j * 45})`} className={j % 2 ? "is-a" : "is-b"} />)}
-                  <circle r={4} />
-                </g>
-              ))}
+              {geo.links.map((l, i) => <circle key={`n${i}`} cx={l.b[0]} cy={l.b[1]} r={7} className={`cv-node-dot${on(i + 1) ? " is-on" : ""}`} />)}
             </g>
             {geo.links.map((l, i) => <circle key={`p${i}`} r="5" className="cv-spark" style={{ offsetPath: `path("${l.d}")` } as CSSProperties} />)}
           </svg>
@@ -304,7 +273,7 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
           </section>
 
           <section className={`${nodeCls(3)} cv-profile is-from-tr`} style={box(L.profile)} aria-label="The animal's history, an example">
-            <p className="cv-who"><canvas ref={dogRef} aria-hidden /><span><b>SP-D-7KQ2</b><small>Male · adult · example</small></span></p>
+            <p className="cv-who">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={DOG_ART[3].src} alt="" style={{ background: DOG_ART[3].ground }} /><span><b>SP-D-7KQ2</b><small>Male · adult · example</small></span></p>
             <ol>
               <li><time>Mar 2025</time>First seen</li>
               <li><time>Aug 2025</time>Sterilised</li>

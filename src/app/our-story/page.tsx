@@ -4,11 +4,13 @@ import { CoShell, CoSec } from "@/components/co3/CoShell";
 import { getSupabase } from "@/lib/supabase";
 import { getRegisterTotals } from "@/lib/register/totals";
 import { getOperationalPartners } from "@/lib/partners";
+import { getMapCities, getNationalCells } from "@/lib/livingmap/server";
+import type { Cell } from "@/components/bindu/mapkit";
 
 export const revalidate = 300;
 export const metadata = {
   title: "Our Story, StrayPaw",
-  description: "Why StrayPaw exists, its mission and vision, the rules it keeps, where its records come from and what is live today.",
+  description: "How StrayPaw began, from a community reporting tool with about 50 dogs reported to a shared record for street-animal care in India: its mission, vision and progress.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -61,11 +63,15 @@ const LIVE = [
 ];
 
 export default async function OurStoryPage() {
-  const [sources, totals, partners] = await Promise.all([
+  const [sources, totals, partners, national, cities] = await Promise.all([
     getSources().catch(() => []),
     getRegisterTotals().catch(() => null),
     getOperationalPartners().catch(() => []),
+    getNationalCells().catch(() => null),
+    getMapCities().catch(() => []),
   ]);
+  const cells: Cell[] = (national?.cells ?? []).map(([lng, lat, n]) => [lng, lat, n]);
+  const records = totals ? `${fmt(totals.animals)} animal records across ${fmt(totals.cities)} cities` : "tens of thousands of animal records across India";
   const partner = partners[0] ?? null;
 
   return (
@@ -78,29 +84,23 @@ export default async function OurStoryPage() {
         <Link href="/contact?subject=Our%20story" className="co3-btn is-line">Contact us</Link>
       </>}
     >
-      <CoSec n="01" title={<>Where it <em>started.</em></>}>
-        <p className="is-lead">The insight came from the records themselves.</p>
-        <p>One rescue register brought into StrayPaw held 169 open requests, and no column for who was responsible for them. Every request had been seen by someone. None of them had an owner.</p>
-        <p>That is how most street-animal care in India works today: generous, constant and almost entirely unrecorded. StrayPaw began as an attempt to give that work a memory.</p>
+      <CoSec n="01" title={<>The problem, <em>in one number.</em></>}>
+        <p className="is-lead">One rescue register brought into StrayPaw held 169 open requests, and no column for who was responsible for them.</p>
+        <p>Every request had been seen by someone; none had an owner. Care is repeated or missed. Funders cannot see what worked. Cities plan sterilisation and response without knowing where help is needed.</p>
       </CoSec>
 
-      <CoSec n="02" title={<>The <em>problem.</em></>}>
-        <p className="is-lead">A resident sees an injured dog and posts in a group. A rescuer picks it up. A vet treats it. A feeder sees it again a month later.</p>
-        <p>Each of them keeps a piece of the story, in a chat, a sheet or a notebook, and the next person starts from nothing. Care is repeated or missed. Funders cannot see what worked. Cities plan sterilisation and response without knowing where help is needed.</p>
-      </CoSec>
-
-      <CoSec n="03" title={<>Mission and <em>vision.</em></>}>
+      <CoSec n="02" title={<>Mission and <em>vision.</em></>}>
         <dl className="co3-figs is-words">
           <div><dt>Mission</dt><dd>Make street-animal care more coordinated, accountable and informed, through technology anyone can use.</dd></div>
           <div><dt>Vision</dt><dd>The shared information and coordination infrastructure connecting animals, communities, care organisations and cities.</dd></div>
         </dl>
       </CoSec>
 
-      <CoSec n="04" title={<>Six rules <em>the software keeps.</em></>}>
+      <CoSec n="03" title={<>Six rules <em>the software keeps.</em></>}>
         <ol className="co3-list">{RULES.map((r) => <li key={r.t}><b>{r.t}</b><span>{r.d}</span></li>)}</ol>
       </CoSec>
 
-      <CoSec n="05" title={<>Progress, <em>so far.</em></>}>
+      <CoSec n="04" title={<>Progress, <em>so far.</em></>}>
         {totals && (
           <dl className="co3-figs">
             <div><dt>Animal records</dt><dd>{fmt(totals.animals)}</dd><small>Mostly historical registers organisations brought with them. Not a census.</small></div>
@@ -120,7 +120,7 @@ export default async function OurStoryPage() {
       </CoSec>
 
       {sources.length > 0 && (
-        <CoSec n="06" title={<>Where the records <em>come from.</em></>}>
+        <CoSec n="05" title={<>Where the records <em>come from.</em></>}>
           <p>Live reports and imported history are labelled apart on every profile. Each organisation owns its records; imported sources keep their licence and credit.</p>
           <ul className="co3-names">
             <li><b>Residents&rsquo; reports</b><small>Live, on WhatsApp and the web</small></li>
@@ -131,7 +131,7 @@ export default async function OurStoryPage() {
         </CoSec>
       )}
 
-      <CoSec n="07" title={<>The company, <em>and how to reach us.</em></>}>
+      <CoSec n="06" title={<>The company, <em>and how to reach us.</em></>}>
         <p className="is-lead">StrayPaw is built in India, independent of the organisations it serves.</p>
         <p>It runs no programmes and competes for no grants. It is free for verified organisations. Reporters are never named, places are shown to about 0.7 km², and nothing tracks you across sites.</p>
         <ul className="co3-names">

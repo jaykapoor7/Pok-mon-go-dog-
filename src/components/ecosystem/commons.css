@@ -4,7 +4,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 .w3 .bs-frame { background: #efe4d1; }
-.ec { position: absolute; inset: 0; --pw: min(54vw, 860px); --gap: 56px; }
+.ec { position: absolute; inset: 0; --pw: min(44vw, 74svh * 1.25, 760px); --gap: 56px; }
 .ec-copy { position: absolute; z-index: 3; left: clamp(20px, 4vw, 64px); top: 50%; translate: 0 -50%; width: min(400px, 30vw); padding: 26px; border-radius: 10px; background: rgba(255, 253, 249, 0.97);
   border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5.2px rgba(11, 30, 61, 0.55), 6px 6px 0 rgba(11, 30, 61, 0.85); }
 .ec-copy h2 { font-size: clamp(28px, 2.6vw, 42px); line-height: 1.02; font-weight: 700; letter-spacing: -0.05em; margin-bottom: 18px; }
@@ -31,12 +31,12 @@
 .ec-world { position: absolute; inset: 0 0 0 calc(min(400px, 30vw) + clamp(20px, 4vw, 64px)); overflow: hidden; }
 .ec-track { position: absolute; left: 46%; top: 44%; display: flex; gap: var(--gap); translate: calc(var(--pw) / -2) -50%;
   transform: translateX(calc(var(--i) * -1 * (var(--pw) + var(--gap)))); transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1); }
-/* the street runs on between the places */
-.ec-track::before { content: ""; position: absolute; z-index: -1; left: -100vw; right: -100vw; top: calc(var(--pw) * 252 / 600); height: calc(var(--pw) * 30 / 600);
-  background: linear-gradient(var(--ink), var(--ink)) 0 0 / 100% 1.5px no-repeat, linear-gradient(var(--ink), var(--ink)) 0 100% / 100% 1.5px no-repeat, repeating-linear-gradient(90deg, transparent 0 14px, rgba(240, 91, 64, 0.8) 14px 24px) 0 50% / 100% 2px no-repeat, #f2b632; }
-.ec-place { flex: none; width: var(--pw); aspect-ratio: 600 / 320; border-radius: 10px; border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 4px var(--paper), 6px 6px 0 rgba(11, 30, 61, 0.85);
+.ec-place { position: relative; margin: 0; overflow: hidden; flex: none; width: var(--pw); aspect-ratio: 5 / 4; background: #e9dcc4; border-radius: 10px; border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 4px var(--paper), 6px 6px 0 rgba(11, 30, 61, 0.85);
   opacity: 0.45; transform: scale(0.88) rotate(-1.2deg); transition: opacity 0.5s, transform 0.6s cubic-bezier(0.65, 0, 0.35, 1); }
 .ec-place.is-on { opacity: 1; transform: none; }
+.ec-place img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); transition: transform 1.2s var(--out); }
+.ec-place.is-on img { transform: scale(1); }
+.ec-place figcaption, .au-place figcaption { position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 20px); padding: 4px 10px; border-radius: 999px; background: rgba(255, 253, 249, 0.92); border: 1px solid rgba(11, 30, 61, 0.2); font-family: var(--mono); font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* the software, grown from the object */
 .ec-panel { position: absolute; z-index: 4; right: clamp(18px, 3vw, 48px); bottom: clamp(18px, 6svh, 56px); width: min(380px, 30vw); will-change: transform; }
@@ -69,14 +69,14 @@
 
 @media (max-width: 1100px) and (min-width: 761px) { .ec-copy { width: 34vw; } .ec-world { left: calc(34vw + 30px); } .ec-panel { width: 36vw; } }
 @media (max-width: 760px) {
-  .ec { --pw: calc(100vw - 32px); --gap: 24px; }
+  .ec { --pw: min(calc(100vw - 32px), 36svh * 1.25); --gap: 24px; }
   .ec-copy { left: 10px; right: 10px; top: 64px; translate: none; width: auto; padding: 12px 14px; }
   .ec-copy h2 { font-size: 22px; margin-bottom: 8px; } .ec-copy h2 em { display: inline; }
   .ec-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 0 -4px; padding: 0 4px; }
   .ec-tabs button { flex: none; min-height: 36px; padding: 0 10px; } .ec-tabs button b { font-size: 12.5px; white-space: nowrap; } .ec-tabs button i { display: none; }
   .ec-say { margin-top: 8px; padding-top: 8px; } .ec-verb { font-size: 18px; margin: 0; } .ec-say > p { font-size: 13px; margin-bottom: 6px; } .ec-say ul { display: none; }
   .ec-links a { font-size: 13px; }
-  .ec-world { inset: calc(64px + 222px) 0 auto 0; height: calc(var(--pw) * 320 / 600 + 20px); }
+  .ec-world { inset: calc(64px + 222px) 0 auto 0; height: calc(var(--pw) * 0.8 + 20px); }
   .ec-track { left: 50%; top: 50%; }
   .ec-place { box-shadow: inset 0 0 0 3px var(--paper), 3px 3px 0 rgba(11, 30, 61, 0.85); }
   .ec-panel { left: 12px; right: 12px; width: auto; bottom: 12px; }
