@@ -71,9 +71,10 @@ const cityCache = new Map<string, Promise<MapCity | null>>();
 const cacheKey = (scope: MapScope, city: string) => `${scope}:${city}`;
 function readCity(city: string, scope: MapScope) {
   const key = cacheKey(scope, city);
-  const hit = cityCache.get(key); if (hit) return hit;
+  const hit = scope === "public" ? cityCache.get(key) : null; if (hit) return hit;
   const p = api(`/api/livingmap?city=${encodeURIComponent(city)}`, scope).then(async (r) => { if (r.status === 404) return null; if (!r.ok) throw new Error(String(r.status)); return (await r.json()) as MapCity; });
-  cityCache.set(key, p); p.catch(() => cityCache.delete(key));
+  // Private reads must never survive a change of authenticated organisation.
+  if (scope === "public") { cityCache.set(key, p); p.catch(() => cityCache.delete(key)); }
   return p;
 }
 

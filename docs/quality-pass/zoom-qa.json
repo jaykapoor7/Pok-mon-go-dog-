@@ -1,0 +1,30 @@
+{
+  "method": "200% desktop zoom equivalent: 720 CSS pixels at 2× scale in a 1440px surface",
+  "results": [
+    {
+      "route": "/",
+      "overflow": false,
+      "visibleH1": true
+    },
+    {
+      "route": "/product",
+      "overflow": false,
+      "visibleH1": true
+    },
+    {
+      "route": "/solutions",
+      "overflow": false,
+      "visibleH1": true
+    },
+    {
+      "route": "/our-story",
+      "overflow": false,
+      "visibleH1": true
+    },
+    {
+      "route": "/contact",
+      "overflow": false,
+      "visibleH1": true
+    }
+  ]
+}

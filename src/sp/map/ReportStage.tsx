@@ -29,14 +29,27 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
     const pin = useRef<Marker | null>(null);
     const cb = useRef({ onPick, onLabel, picking }); cb.current = { onPick, onLabel, picking };
     const start = useRef(coords);
+    const lookup = useRef(0);
     const [failed, setFailed] = useState(false);
     const [ready, setReady] = useState(false);
 
-    useImperativeHandle(ref, () => ({ fly: (lat, lng, z = 17) => mapRef.current?.flyTo({ center: [lng, lat], zoom: z, duration: reduced() ? 0 : 1100 }) }), []);
+    useImperativeHandle(ref, () => ({ fly: (lat, lng, z = 17) => {
+      lookup.current++;
+      if (!looksIndian(lat, lng)) { cb.current.onLabel?.("Choose a place in India."); return; }
+      const zone = nearestCity(lat, lng);
+      // Selection must work even when WebGL or the map is unavailable.
+      cb.current.onPick({ lat, lng, zone }); cb.current.onLabel?.(zone);
+      const version = lookup.current;
+      reverseGeocode(lat, lng).then(zone => {
+        if (version === lookup.current && cb.current.picking) cb.current.onPick({ lat, lng, zone });
+      }).catch(() => {});
+      mapRef.current?.flyTo({ center: [lng, lat], zoom: z, duration: reduced() ? 0 : 1100 });
+    } }), []);
 
     useEffect(() => {
       if (!el.current) return;
       if (!supportsWebGL2()) { setFailed(true); return; }
+      const lookups = lookup;
       let dead = false, map: MLMap | null = null, t: number | undefined;
       import("maplibre-gl").then((ml) => {
         if (dead || !el.current) return;
@@ -50,20 +63,25 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
         const e = document.createElement("div"); e.className = "rs-pin"; e.innerHTML = "<i></i>";
         pin.current = new ml.Marker({ element: e, anchor: "bottom" }).setLngLat(s ? [s.lng, s.lat] : [80.2, 22.4]);
         if (s) pin.current.addTo(map);
+        map.on("movestart", () => { lookup.current++; window.clearTimeout(t); });
         map.on("moveend", () => {
           if (!cb.current.picking) return;
           const c = map!.getCenter();
+          const version = ++lookup.current;
           if (map!.getZoom() < 12) { cb.current.onLabel?.(null); return; }
           window.clearTimeout(t);
           t = window.setTimeout(() => {
+            if (dead || version !== lookup.current || !cb.current.picking) return;
             if (!looksIndian(c.lat, c.lng)) { cb.current.onLabel?.("Outside India"); return; }
             const near = nearestCity(c.lat, c.lng);
             cb.current.onPick({ lat: c.lat, lng: c.lng, zone: near });
-            reverseGeocode(c.lat, c.lng).then((z) => cb.current.onPick({ lat: c.lat, lng: c.lng, zone: z })).catch(() => {});
+            reverseGeocode(c.lat, c.lng).then((z) => {
+              if (!dead && cb.current.picking && version === lookup.current) cb.current.onPick({ lat: c.lat, lng: c.lng, zone: z });
+            }).catch(() => {});
           }, 250);
         });
       }).catch(() => setFailed(true));
-      return () => { dead = true; window.clearTimeout(t); map?.remove(); mapRef.current = null; };
+      return () => { dead = true; lookups.current++; window.clearTimeout(t); map?.remove(); mapRef.current = null; };
     }, []);
 
     /* Outside the picker the map follows the report's place; inside it, the place follows the map. */

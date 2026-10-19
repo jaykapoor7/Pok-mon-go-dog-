@@ -20,3 +20,15 @@ html footer .fx .fx-col a:hover { color: var(--sp-sky); }
 /* On the site pages the index sits above the legal strip, with room around it. */
 html footer.sp-footer.mk-foot { padding-top: var(--sp-8); }
 html footer .fx + .sp-footer-bottom { margin-top: var(--sp-7); padding-top: var(--sp-4); border-top: 1px solid var(--sp-night-line); }
+
+html footer .fx-compact { display: grid; gap: 12px; }
+html footer .fx-compact nav { display: flex; flex-wrap: wrap; gap: 4px 24px; }
+html footer .fx-compact a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 500; text-transform: none; letter-spacing: 0; color: #ecf1ff; text-decoration: none; }
+html footer .fx-compact a:hover { text-decoration: underline; text-underline-offset: 4px; }
+html footer .fx-compact summary { cursor: pointer; min-height: 44px; padding: 12px 0; font-size: 14px; color: #ecf1ff; }
+html footer .fx-compact details[open] nav { padding-top: 8px; }
+html footer .fx-compact :is(a,summary):focus-visible { outline: 3px solid #8fb7ff; outline-offset: 3px; }
+html footer.sp-footer.mk-foot { background: #0b1e3d; color: #ecf1ff; padding-top: 28px; padding-bottom: 20px; }
+
+html footer .fb-open { min-height: 44px; padding: 10px; }
+html footer .sp-footer-bottom { font-family: var(--font-sans), system-ui, sans-serif; font-size: 13px; letter-spacing: 0; text-transform: none; }

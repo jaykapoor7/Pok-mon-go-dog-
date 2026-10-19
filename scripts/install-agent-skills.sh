@@ -12,13 +12,15 @@ install() {
   npx --yes skills add "$1" --skill "$2" -a claude-code -a codex --copy -y
 }
 install anthropics/skills frontend-design
-install vercel-labs/agent-skills react-best-practices
+install vercel-labs/agent-skills vercel-react-best-practices
 install vercel-labs/agent-skills web-design-guidelines
 install nextlevelbuilder/ui-ux-pro-max-skill ui-ux-pro-max
 install Leonxlnx/taste-skill design-taste-frontend
 install vercel-labs/agent-browser agent-browser
 install wshobson/agents wcag-audit-patterns
-install remotion-dev/skills remotion-best-practices
+if [[ "${1:-}" == "--video" ]]; then
+  install remotion-dev/skills remotion-best-practices
+fi
 echo "Installation finished. Check results: npx --yes skills list"
 echo "Browser QA requires installing the agent-browser CLI separately."
 echo "Review changes and commit updated skill packages when satisfied."

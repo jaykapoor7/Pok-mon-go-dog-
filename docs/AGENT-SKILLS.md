@@ -17,9 +17,10 @@ From a checkout of this repository with Node.js and npm:
 ```bash
 bash scripts/install-agent-skills.sh
 npx --yes skills list
+# Video projects only: bash scripts/install-agent-skills.sh --video
 ```
 
-The script uses the official `skills` installer and the curated upstream repositories to copy the full skill packages, including supporting files, into both agents' project-level directories. Review upstream content and the resulting git diff before trusting executable scripts. Third-party skills can change when run against upstream default branches.
+The script uses the official `skills` installer and the curated upstream repositories to copy the full skill packages, including supporting files, into both agents' project-level directories. React’s upstream install name is `vercel-react-best-practices`; the older checked-in entrypoint remains `react-best-practices`. Remotion is installed only with `--video`. Review upstream content and the resulting git diff before trusting executable scripts. Third-party skills can change when run against upstream default branches.
 
 The `agent-browser` skill requires a separate browser runtime / CLI installation before live navigation and testing. `remotion-best-practices` is design/developer guidance, not a video rendering engine, and no Remotion dependency is added to the production app.
 

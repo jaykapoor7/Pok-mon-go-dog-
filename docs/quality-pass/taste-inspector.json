@@ -1,0 +1,2025 @@
+{
+ "url": "http://localhost:3100",
+ "at": "2026-10-19T07:23:07.289Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 4,
+   "filled": [
+    0.99,
+    0.91,
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 2739,
+     "screens": 3,
+     "words": 412,
+     "img": 3,
+     "video": 0,
+     "canvas": 0,
+     "svg": 20,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 1,
+     "uiAbuse": false,
+     "realPictures": 1,
+     "videoCount": 0,
+     "uiPictures": 1,
+     "pictureSamples": [
+      "palampore-tree.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "The care infrastructure for India’s street animals.",
+     "words": 7,
+     "chars": 51,
+     "lines": 2,
+     "size": 61.9,
+     "vw": 4.3,
+     "font": "DM Sans",
+     "weight": 650,
+     "tracking": -0.04,
+     "leading": 1.07,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.45,
+     "top": 204,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "The care infrastructure for India’s street animals.",
+     "words": 7,
+     "lines": 2,
+     "size": 61.9,
+     "font": "DM Sans"
+    },
+    "headings": [
+     {
+      "text": "The care infrastructure for India’s street animals.",
+      "words": 7,
+      "chars": 51,
+      "lines": 2,
+      "size": 61.9,
+      "vw": 4.3,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.07,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.45,
+      "top": 204,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Today, one rescue lives in twelve places.",
+      "words": 7,
+      "chars": 41,
+      "lines": 1,
+      "size": 46,
+      "vw": 3.2,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.53,
+      "top": 725,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "One ecosystem. Four ways in.",
+      "words": 5,
+      "chars": 28,
+      "lines": 1,
+      "size": 46,
+      "vw": 3.2,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.53,
+      "top": 1414,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "A shared record for better care.",
+      "words": 6,
+      "chars": 32,
+      "lines": 1,
+      "size": 46,
+      "vw": 3.2,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.53,
+      "top": 2096,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Better care starts with better information.",
+      "words": 6,
+      "chars": 43,
+      "lines": 2,
+      "size": 46,
+      "vw": 3.2,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.53,
+      "top": 2379,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 5,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 6,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "DM Sans",
+       "share": 0.89,
+       "mono": false
+      },
+      {
+       "family": "ui-sans-serif",
+       "share": 0.1,
+       "mono": false
+      },
+      {
+       "family": "ui-monospace",
+       "share": 0.01,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      19,
+      20,
+      21,
+      22,
+      26,
+      46,
+      62
+     ],
+     "sizeCount": 13,
+     "notLoaded": [],
+     "body": {
+      "font": "DM Sans",
+      "size": 16,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 14.2
+     },
+     "measureChars": 64,
+     "max": {
+      "size": 61.9,
+      "vw": 4.3,
+      "font": "DM Sans",
+      "text": "The care infrastructure for India’s stre"
+     },
+     "monoShare": 0.01,
+     "monoProseShare": 0.01,
+     "monoFamilies": [
+      "ui-monospace"
+     ],
+     "monoSamples": [
+      "© 2026 StrayPaw",
+      "Feedback"
+     ],
+     "microLabels": 1,
+     "microLabelShare": 0.006,
+     "microSamples": [
+      "© 2026 StrayPaw"
+     ],
+     "upperShare": 0.01,
+     "centerShare": 0.05,
+     "smallText": 3
+    },
+    "eyebrows": [
+     {
+      "text": "StrayPaw · India",
+      "above": "The care infrastructure for India’s stre",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 167
+     },
+     {
+      "text": "One Request",
+      "above": "Today, one rescue lives in twelve places",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 688
+     },
+     {
+      "text": "One Ecosystem",
+      "above": "One ecosystem. Four ways in.",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 1377
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fbfdff",
+     "bodyBgHsl": {
+      "h": 210,
+      "s": 1,
+      "l": 0.99
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f3ede4",
+       "top": 0,
+       "hsl": {
+        "h": 36,
+        "s": 0.38,
+        "l": 0.92
+       }
+      },
+      {
+       "color": "#ebe5da",
+       "top": 1313,
+       "hsl": {
+        "h": 39,
+        "s": 0.3,
+        "l": 0.89
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#0b1e3d",
+       "share": 0.55
+      },
+      {
+       "color": "#5d6b7c",
+       "share": 0.13
+      },
+      {
+       "color": "#ecf1ff",
+       "share": 0.08
+      },
+      {
+       "color": "#42526b",
+       "share": 0.07
+      },
+      {
+       "color": "#33415c",
+       "share": 0.05
+      }
+     ],
+     "button": {
+      "bg": "#0b1e3d",
+      "hsl": {
+       "h": 217,
+       "s": 0.69,
+       "l": 0.14
+      },
+      "fg": "#0b1e3d"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 10,
+     "inHero": 4,
+     "radius": "pill",
+     "height": 45,
+     "withShadow": 1,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Open App",
+      "Open App",
+      "Explore the map",
+      "Got it"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 2,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 2,
+     "hairlineSamples": [
+      "div.sp-header-bar 1440px",
+      "div.pr-closing 1136px"
+     ],
+     "outlinedBoxes": 2,
+     "dashed": 0,
+     "blurred": 1,
+     "roundedBoxes": 4,
+     "boxRadius": 12,
+     "squareMedia": 1,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.28
+     }
+    ],
+    "nav": {
+     "links": 5,
+     "fixed": true,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "dm sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 2739,
+    "margins": {
+     "left": 72,
+     "right": 86
+    },
+    "sections": [
+     {
+      "sel": "section#world.pr-hero",
+      "tag": "section",
+      "top": 64,
+      "height": 560,
+      "words": 55,
+      "media": 1,
+      "middle": 108,
+      "heading": {
+       "text": "The care infrastructure for India’s street animals",
+       "size": 62,
+       "tag": "h1"
+      },
+      "left": 72,
+      "right": 0,
+      "textLeft": 72,
+      "textRight": 86,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#why.pr-section.pr-request",
+      "tag": "section",
+      "top": 624,
+      "height": 689,
+      "words": 131,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Today, one rescue lives in twelve places.",
+       "size": 46,
+       "tag": "h2"
+      },
+      "left": 152,
+      "right": 194,
+      "textLeft": 152,
+      "textRight": 194,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#how.pr-section.pr-ecosystem",
+      "tag": "section",
+      "top": 1313,
+      "height": 719,
+      "words": 94,
+      "media": 0,
+      "middle": 30,
+      "heading": {
+       "text": "One ecosystem. Four ways in.",
+       "size": 46,
+       "tag": "h2"
+      },
+      "left": 152,
+      "right": 306,
+      "textLeft": 152,
+      "textRight": 306,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#company.pr-section.pr-company",
+      "tag": "section",
+      "top": 2032,
+      "height": 514,
+      "words": 72,
+      "media": 0,
+      "middle": 50,
+      "heading": {
+       "text": "A shared record for better care.",
+       "size": 46,
+       "tag": "h2"
+      },
+      "left": 152,
+      "right": 172,
+      "textLeft": 152,
+      "textRight": 172,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.sp-footer.mk-foot",
+      "tag": "footer",
+      "top": 2546,
+      "height": 193,
+      "words": 32,
+      "media": 0,
+      "middle": 24,
+      "heading": null,
+      "left": 115,
+      "right": 115,
+      "textLeft": 115,
+      "textRight": 125,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "The care infrastructure for India’s street animals.",
+      "size": 62,
+      "top": 204,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 152,
+      "n": 8
+     },
+     {
+      "x": 72,
+      "n": 2
+     },
+     {
+      "x": 541,
+      "n": 2
+     },
+     {
+      "x": 931,
+      "n": 2
+     },
+     {
+      "x": 193,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 15,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.08,
+    "voidBox": {
+     "x": 240,
+     "y": 540,
+     "w": 540,
+     "h": 180
+    }
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.97,
+    0.97,
+    1
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 2883,
+     "screens": 2.8,
+     "words": 407,
+     "img": 3,
+     "video": 0,
+     "canvas": 0,
+     "svg": 20,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 1,
+     "uiAbuse": false,
+     "realPictures": 1,
+     "videoCount": 0,
+     "uiPictures": 1,
+     "pictureSamples": [
+      "palampore-tree.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "The care infrastructure for India’s street animals.",
+     "words": 7,
+     "chars": 51,
+     "lines": 3,
+     "size": 36,
+     "vw": 4.7,
+     "font": "DM Sans",
+     "weight": 650,
+     "tracking": -0.04,
+     "leading": 1.07,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.45,
+     "top": 202,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "The care infrastructure for India’s street animals.",
+     "words": 7,
+     "lines": 3,
+     "size": 36,
+     "font": "DM Sans"
+    },
+    "headings": [
+     {
+      "text": "The care infrastructure for India’s street animals.",
+      "words": 7,
+      "chars": 51,
+      "lines": 3,
+      "size": 36,
+      "vw": 4.7,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.07,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.45,
+      "top": 202,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Today, one rescue lives in twelve places.",
+      "words": 7,
+      "chars": 41,
+      "lines": 2,
+      "size": 30,
+      "vw": 3.9,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.66,
+      "top": 719,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "One ecosystem. Four ways in.",
+      "words": 5,
+      "chars": 28,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.66,
+      "top": 1489,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Report animals. Follow updates.",
+      "words": 4,
+      "chars": 31,
+      "lines": 2,
+      "size": 26,
+      "vw": 3.4,
+      "font": "DM Sans",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.42,
+      "top": 1619,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "A shared record for better care.",
+      "words": 6,
+      "chars": 32,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.66,
+      "top": 2211,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Better care starts with better information.",
+      "words": 6,
+      "chars": 43,
+      "lines": 2,
+      "size": 30,
+      "vw": 3.9,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.65,
+      "top": 2526,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 6,
+     "maxLines": 3,
+     "over2Lines": 1,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 6,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "DM Sans",
+       "share": 0.89,
+       "mono": false
+      },
+      {
+       "family": "ui-sans-serif",
+       "share": 0.1,
+       "mono": false
+      },
+      {
+       "family": "ui-monospace",
+       "share": 0.01,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      19,
+      20,
+      22,
+      26,
+      30,
+      36
+     ],
+     "sizeCount": 12,
+     "notLoaded": [],
+     "body": {
+      "font": "DM Sans",
+      "size": 16,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 14.2
+     },
+     "measureChars": 109,
+     "max": {
+      "size": 36,
+      "vw": 4.7,
+      "font": "DM Sans",
+      "text": "The care infrastructure for India’s stre"
+     },
+     "monoShare": 0.01,
+     "monoProseShare": 0.01,
+     "monoFamilies": [
+      "ui-monospace"
+     ],
+     "monoSamples": [
+      "© 2026 StrayPaw",
+      "Feedback"
+     ],
+     "microLabels": 1,
+     "microLabelShare": 0.006,
+     "microSamples": [
+      "© 2026 StrayPaw"
+     ],
+     "upperShare": 0.01,
+     "centerShare": 0.04,
+     "smallText": 3
+    },
+    "eyebrows": [
+     {
+      "text": "StrayPaw · India",
+      "above": "The care infrastructure for India’s stre",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 165
+     },
+     {
+      "text": "One Request",
+      "above": "Today, one rescue lives in twelve places",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 682
+     },
+     {
+      "text": "One Ecosystem",
+      "above": "One ecosystem. Four ways in.",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 1452
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fbfdff",
+     "bodyBgHsl": {
+      "h": 210,
+      "s": 1,
+      "l": 0.99
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f3ede4",
+       "top": 0,
+       "hsl": {
+        "h": 36,
+        "s": 0.38,
+        "l": 0.92
+       }
+      },
+      {
+       "color": "#ebe5da",
+       "top": 1388,
+       "hsl": {
+        "h": 39,
+        "s": 0.3,
+        "l": 0.89
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#0b1e3d",
+       "share": 0.56
+      },
+      {
+       "color": "#5d6b7c",
+       "share": 0.13
+      },
+      {
+       "color": "#ecf1ff",
+       "share": 0.08
+      },
+      {
+       "color": "#42526b",
+       "share": 0.08
+      },
+      {
+       "color": "#33415c",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#fffdf9",
+      "hsl": {
+       "h": 40,
+       "s": 1,
+       "l": 0.99
+      },
+      "fg": "#0b1e3d"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 15,
+     "inHero": 9,
+     "radius": "pill",
+     "height": 44,
+     "withShadow": 6,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Open App",
+      "Open App",
+      "Explore the map",
+      "Got it"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 3,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 2,
+     "hairlineSamples": [
+      "div.sp-header-bar 768px",
+      "div.pr-closing 691px"
+     ],
+     "outlinedBoxes": 2,
+     "dashed": 0,
+     "blurred": 1,
+     "roundedBoxes": 7,
+     "boxRadius": 10,
+     "squareMedia": 1,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.25
+     }
+    ],
+    "nav": {
+     "links": 3,
+     "fixed": true,
+     "height": 58,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "dm sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 2883,
+    "margins": {
+     "left": 38,
+     "right": 41
+    },
+    "sections": [
+     {
+      "sel": "section#world.pr-hero",
+      "tag": "section",
+      "top": 58,
+      "height": 560,
+      "words": 55,
+      "media": 1,
+      "middle": 47,
+      "heading": {
+       "text": "The care infrastructure for India’s street animals",
+       "size": 36,
+       "tag": "h1"
+      },
+      "left": 38,
+      "right": 0,
+      "textLeft": 38,
+      "textRight": 49,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#why.pr-section.pr-request",
+      "tag": "section",
+      "top": 618,
+      "height": 770,
+      "words": 131,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Today, one rescue lives in twelve places.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 38,
+      "right": 46,
+      "textLeft": 38,
+      "textRight": 46,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#how.pr-section.pr-ecosystem",
+      "tag": "section",
+      "top": 1388,
+      "height": 759,
+      "words": 94,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "One ecosystem. Four ways in.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 38,
+      "right": 80,
+      "textLeft": 38,
+      "textRight": 80,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#company.pr-section.pr-company",
+      "tag": "section",
+      "top": 2147,
+      "height": 510,
+      "words": 72,
+      "media": 0,
+      "middle": 32,
+      "heading": {
+       "text": "A shared record for better care.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 38,
+      "right": 41,
+      "textLeft": 38,
+      "textRight": 41,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.sp-footer.mk-foot",
+      "tag": "footer",
+      "top": 2657,
+      "height": 226,
+      "words": 34,
+      "media": 0,
+      "middle": 24,
+      "heading": null,
+      "left": 46,
+      "right": 56,
+      "textLeft": 46,
+      "textRight": 56,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "The care infrastructure for India’s street animals.",
+      "size": 36,
+      "top": 202,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 38,
+      "n": 10
+     },
+     {
+      "x": 279,
+      "n": 2
+     },
+     {
+      "x": 521,
+      "n": 2
+     },
+     {
+      "x": 79,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 15,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 5,
+   "filled": [
+    1,
+    0.91,
+    1,
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 3891,
+     "screens": 4.6,
+     "words": 407,
+     "img": 3,
+     "video": 0,
+     "canvas": 0,
+     "svg": 20,
+     "sections": 5,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 1,
+     "uiAbuse": false,
+     "realPictures": 1,
+     "videoCount": 0,
+     "uiPictures": 1,
+     "pictureSamples": [
+      "palampore-tree.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "The care infrastructure for India’s street animals.",
+     "words": 7,
+     "chars": 51,
+     "lines": 3,
+     "size": 34.3,
+     "vw": 8.8,
+     "font": "DM Sans",
+     "weight": 650,
+     "tracking": -0.04,
+     "leading": 1.07,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.9,
+     "top": 127,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "The care infrastructure for India’s street animals.",
+     "words": 7,
+     "lines": 3,
+     "size": 34.3,
+     "font": "DM Sans"
+    },
+    "headings": [
+     {
+      "text": "The care infrastructure for India’s street animals.",
+      "words": 7,
+      "chars": 51,
+      "lines": 3,
+      "size": 34.3,
+      "vw": 8.8,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.07,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 127,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Today, one rescue lives in twelve places.",
+      "words": 7,
+      "chars": 41,
+      "lines": 2,
+      "size": 30,
+      "vw": 7.7,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 767,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Report",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "DM Sans",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.84,
+      "top": 1295,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Coordinate",
+      "words": 1,
+      "chars": 10,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "DM Sans",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.84,
+      "top": 1431,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Understand",
+      "words": 1,
+      "chars": 10,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "DM Sans",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.5,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.84,
+      "top": 1568,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "One ecosystem. Four ways in.",
+      "words": 5,
+      "chars": 28,
+      "lines": 2,
+      "size": 30,
+      "vw": 7.7,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 1886,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Report animals. Follow updates.",
+      "words": 4,
+      "chars": 31,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "DM Sans",
+      "weight": 400,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 2101,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "A shared record for better care.",
+      "words": 6,
+      "chars": 32,
+      "lines": 2,
+      "size": 30,
+      "vw": 7.7,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 2854,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Better care starts with better information.",
+      "words": 6,
+      "chars": 43,
+      "lines": 2,
+      "size": 30,
+      "vw": 7.7,
+      "font": "DM Sans",
+      "weight": 650,
+      "tracking": -0.04,
+      "leading": 1.12,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 3435,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 9,
+     "maxLines": 3,
+     "over2Lines": 1,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 5,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "DM Sans",
+       "share": 0.89,
+       "mono": false
+      },
+      {
+       "family": "ui-sans-serif",
+       "share": 0.1,
+       "mono": false
+      },
+      {
+       "family": "ui-monospace",
+       "share": 0.01,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      20,
+      22,
+      26,
+      30,
+      34
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "DM Sans",
+      "size": 16,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 14.2
+     },
+     "measureChars": 50,
+     "max": {
+      "size": 34.3,
+      "vw": 8.8,
+      "font": "DM Sans",
+      "text": "The care infrastructure for India’s stre"
+     },
+     "monoShare": 0.01,
+     "monoProseShare": 0.01,
+     "monoFamilies": [
+      "ui-monospace"
+     ],
+     "monoSamples": [
+      "© 2026 StrayPaw",
+      "Feedback"
+     ],
+     "microLabels": 1,
+     "microLabelShare": 0.006,
+     "microSamples": [
+      "© 2026 StrayPaw"
+     ],
+     "upperShare": 0.01,
+     "centerShare": 0.04,
+     "smallText": 3
+    },
+    "eyebrows": [
+     {
+      "text": "StrayPaw · India",
+      "above": "The care infrastructure for India’s stre",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 90
+     },
+     {
+      "text": "One Request",
+      "above": "Today, one rescue lives in twelve places",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 730
+     },
+     {
+      "text": "One Ecosystem",
+      "above": "One ecosystem. Four ways in.",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 1849
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#fbfdff",
+     "bodyBgHsl": {
+      "h": 210,
+      "s": 1,
+      "l": 0.99
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f3ede4",
+       "top": 0,
+       "hsl": {
+        "h": 36,
+        "s": 0.38,
+        "l": 0.92
+       }
+      },
+      {
+       "color": "#fffdf9",
+       "top": 941,
+       "hsl": {
+        "h": 40,
+        "s": 1,
+        "l": 0.99
+       }
+      },
+      {
+       "color": "#ebe5da",
+       "top": 1809,
+       "hsl": {
+        "h": 39,
+        "s": 0.3,
+        "l": 0.89
+       }
+      },
+      {
+       "color": "#0b1e3d",
+       "top": 3617,
+       "hsl": {
+        "h": 217,
+        "s": 0.69,
+        "l": 0.14
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#0b1e3d",
+       "share": 0.56
+      },
+      {
+       "color": "#5d6b7c",
+       "share": 0.13
+      },
+      {
+       "color": "#ecf1ff",
+       "share": 0.08
+      },
+      {
+       "color": "#42526b",
+       "share": 0.08
+      },
+      {
+       "color": "#33415c",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#fffdf9",
+      "hsl": {
+       "h": 40,
+       "s": 1,
+       "l": 0.99
+      },
+      "fg": "#0b1e3d"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 15,
+     "inHero": 9,
+     "radius": "pill",
+     "height": 44,
+     "withShadow": 6,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Open App",
+      "Open App",
+      "Explore the map",
+      "Got it"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 3,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 2,
+     "hairlineSamples": [
+      "div.sp-header-bar 390px",
+      "div.pr-closing 350px"
+     ],
+     "outlinedBoxes": 2,
+     "dashed": 0,
+     "blurred": 1,
+     "roundedBoxes": 4,
+     "boxRadius": 12,
+     "squareMedia": 1,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.28
+     }
+    ],
+    "nav": {
+     "links": 3,
+     "fixed": true,
+     "height": 58,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "dm sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 3891,
+    "margins": {
+     "left": 20,
+     "right": 20
+    },
+    "sections": [
+     {
+      "sel": "section#world.pr-hero",
+      "tag": "section",
+      "top": 58,
+      "height": 632,
+      "words": 55,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "The care infrastructure for India’s street animals",
+       "size": 34,
+       "tag": "h1"
+      },
+      "left": 20,
+      "right": 33,
+      "textLeft": 20,
+      "textRight": 33,
+      "fullBleed": true,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#why.pr-section.pr-request",
+      "tag": "section",
+      "top": 690,
+      "height": 1119,
+      "words": 131,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Today, one rescue lives in twelve places.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 26,
+      "textLeft": 20,
+      "textRight": 26,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#how.pr-section.pr-ecosystem",
+      "tag": "section",
+      "top": 1809,
+      "height": 1005,
+      "words": 94,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "One ecosystem. Four ways in.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 20,
+      "textLeft": 20,
+      "textRight": 28,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#company.pr-section.pr-company",
+      "tag": "section",
+      "top": 2814,
+      "height": 803,
+      "words": 72,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "A shared record for better care.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 31,
+      "textLeft": 20,
+      "textRight": 31,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.sp-footer.mk-foot",
+      "tag": "footer",
+      "top": 3617,
+      "height": 274,
+      "words": 26,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 23,
+      "right": 42,
+      "textLeft": 23,
+      "textRight": 42,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "The care infrastructure for India’s street animals.",
+      "size": 34,
+      "top": 127,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 20,
+      "n": 14
+     },
+     {
+      "x": 57,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 15,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "eyebrow",
+   "width": 1440,
+   "message": "3 eyebrow/kicker label(s) above headings: \"StrayPaw · India\" above \"The care infrastructure for India’s stre\"; \"One Request\" above \"Today, one rescue lives in twelve places\"; \"One Ecosystem\" above \"One ecosystem. Four ways in.\"",
+   "fix": "Delete them. If the label carried real information, fold it into the headline or the supporting sentence.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "mono",
+   "width": 1440,
+   "message": "Monospace type outside code: ui-monospace — e.g. \"© 2026 StrayPaw\", \"Feedback\"",
+   "fix": "Set it in the text face. Monospace is for literal code inside <pre>/<code> only.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "1 tiny uppercase letter-spaced label(s): \"© 2026 StrayPaw\"",
+   "fix": "Prefer sentence case at body size.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "button-fx",
+   "width": 1440,
+   "message": "Buttons with shadow/glow.",
+   "fix": "Flat fill, one colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "hairline",
+   "width": 1440,
+   "message": "2 thin rule(s)/divider line(s): div.sp-header-bar 1440px | div.pr-closing 1136px",
+   "fix": "Delete. Separate with space, a tone change, or scale. Lines are only for real tables and form fields.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "outlined-box",
+   "width": 1440,
+   "message": "2 box(es) drawn with a 1px outline.",
+   "fix": "Prefer a filled surface or no box.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (section #f3ede4, section #ebe5da).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "size-count",
+   "width": 1440,
+   "message": "13 different font sizes (12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 26, 46, 62).",
+   "fix": "A page needs about five: display, heading, lead, body, small.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "few-pictures",
+   "width": 1440,
+   "message": "Only 2 picture(s) on the page (1 photographs, footage or raster images, 1 interface fragments). Drawings in SVG do not count.",
+   "fix": "Find real pictures of the subject's world with scripts/assets.mjs (photographs, archival images, maps, engravings, footage), download them to assets/ and give them room: a hero picture, one per section that has a subject, a full-width band. At least four, usually six to twelve."
+  },
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "WARN",
+   "id": "small-text",
+   "width": 1440,
+   "message": "3 text block(s) under 13px.",
+   "fix": "Nothing meant to be read goes below 13px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "still-page",
+   "width": 1440,
+   "message": "Only 0 element(s) moved while the page loaded and scrolled.",
+   "fix": "Build the motion layer (SKILL.md step 9, references/motion.md): the signature move, an entrance for the parts of every section, feedback on every control, and one moving picture. Transform and opacity only, with a reduced-motion fallback."
+  },
+  {
+   "level": "FAIL",
+   "id": "headline-lines",
+   "width": 768,
+   "message": "1 headline(s) wrap past two lines at 768px: \"The care infrastructure for India’s street anima\" → 3 lines (7 words, 36px)",
+   "fix": "Cut words first (a headline is a title, not a sentence). Then give it a wider measure. Lower the size only as a last resort and never below the scale you chose. A real statement paragraph belongs in a <p> or <blockquote> at 32px or less."
+  },
+  {
+   "level": "WARN",
+   "id": "measure",
+   "width": 768,
+   "message": "Longest paragraph runs about 109 characters per line.",
+   "fix": "Cap paragraphs at 45–75 characters (max-width: 60ch)."
+  },
+  {
+   "level": "FAIL",
+   "id": "headline-lines",
+   "width": 390,
+   "message": "1 headline(s) wrap past two lines at 390px: \"The care infrastructure for India’s street anima\" → 3 lines (7 words, 34.3px)",
+   "fix": "Cut words first (a headline is a title, not a sentence). Then give it a wider measure. Lower the size only as a last resort and never below the scale you chose. A real statement paragraph belongs in a <p> or <blockquote> at 24px or less."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/tmp/straypaw-taste-inspect/desktop-fold.jpg",
+   "pages": [
+    "/tmp/straypaw-taste-inspect/desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/tmp/straypaw-taste-inspect/tablet-fold.jpg",
+   "pages": [
+    "/tmp/straypaw-taste-inspect/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/tmp/straypaw-taste-inspect/mobile-fold.jpg",
+   "pages": [
+    "/tmp/straypaw-taste-inspect/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

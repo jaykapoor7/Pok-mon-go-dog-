@@ -53,16 +53,16 @@ test("the landing page still renders its hero", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test("one request: Send sets off the chain, and it can be replayed", async ({ page }) => {
+test("one request: an example receipt explains the three acts and can be replayed", async ({ page }) => {
   const errors = errorsOf(page);
   await page.goto("/");
-  await page.evaluate(() => { const s = document.querySelector<HTMLElement>("#why")!; scrollTo(0, s.offsetTop + (s.offsetHeight - innerHeight) * 0.27); });
-  const send = page.getByRole("button", { name: /Send the example report/ });
-  await expect(send).toBeEnabled();
-  await send.click();
-  await expect(page.locator(".cv-phone li.is-us.is-in")).toBeVisible({ timeout: 8000 });
-  await expect(page.locator(".cv-stamp.is-on")).toBeVisible({ timeout: 8000 });
-  await expect(page.getByRole("button", { name: /Replay the chain/ })).toBeEnabled();
+  const request = page.locator("#why");
+  await request.scrollIntoViewIfNeeded();
+  for (const name of ["Report", "Coordinate", "Understand"]) await expect(request.getByRole("heading", { name, exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Send the example report" }).click();
+  await expect(request.getByRole("status")).toContainText("no organisation has accepted");
+  await page.getByRole("button", { name: "Replay the example" }).click();
+  await expect(page.getByRole("button", { name: "Send the example report" })).toBeEnabled();
   expect(errors).toEqual([]);
 });
 

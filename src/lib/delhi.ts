@@ -92,6 +92,7 @@ export const CITIES: City[] = [
   { name: "Mumbai", lat: 19.076, lng: 72.8777 },
   { name: "Bengaluru", lat: 12.9716, lng: 77.5946 },
   { name: "Hyderabad", lat: 17.385, lng: 78.4867 },
+  { name: "Coimbatore", lat: 11.0168, lng: 76.9558 },
   { name: "Chennai", lat: 13.0827, lng: 80.2707 },
   { name: "Kolkata", lat: 22.5726, lng: 88.3639 },
   { name: "Pune", lat: 18.5204, lng: 73.8567 },
@@ -110,18 +111,19 @@ export const CITIES: City[] = [
   { name: "Guwahati", lat: 26.1445, lng: 91.7362 },
 ];
 
-/** Nearest known metro to a coordinate, a synchronous fallback label. */
+/** A nearby known city for a temporary label, never a distant metro.
+ *  This is not a municipal-boundary lookup. Uncovered places stay unnamed. */
 export function nearestCity(lat: number, lng: number): string {
   let best = CITIES[0];
   let bestD = Infinity;
   for (const c of CITIES) {
-    const d = (c.lat - lat) ** 2 + (c.lng - lng) ** 2;
+    const d = ((c.lat - lat) * 111.2) ** 2 + ((c.lng - lng) * 111.2 * Math.cos(lat * Math.PI / 180)) ** 2;
     if (d < bestD) {
       bestD = d;
       best = c;
     }
   }
-  return best.name;
+  return Number.isFinite(bestD) && bestD <= 50 ** 2 ? best.name : "Location name unavailable";
 }
 
 /**
@@ -148,8 +150,7 @@ export function formatPlace(
 /**
  * Resolve a coordinate to a human-readable place ("Locality, City") anywhere in
  * India. Uses BigDataCloud's keyless, CORS-friendly reverse-geocode endpoint;
- * on any failure falls back to the nearest known metro so a report always gets
- * a sensible label.
+ * on failure uses a nearby known city or explicitly leaves the location unnamed.
  */
 export async function reverseGeocode(lat: number, lng: number): Promise<string> {
   try {

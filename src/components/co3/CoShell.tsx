@@ -10,6 +10,7 @@ import { Band } from "@/components/world/Band";
 import type { Cell } from "@/components/bindu/mapkit";
 import "@/components/site/site.css";
 import "./co3.css";
+import "@/components/marketing/precision.css";
 
 /* ════════════════════════════════════════════════════════════════════
    The company pages' shell: Product, Solutions, Our Story and Contact.
@@ -19,13 +20,13 @@ import "./co3.css";
    rules, one closing invitation over painted India, and the footer.
    ════════════════════════════════════════════════════════════════════ */
 
-export async function CoShell({ kicker, title, lede, actions, children, close = true, seed = 1 }: {
-  kicker: string; title: ReactNode; lede?: ReactNode; actions?: ReactNode; children: ReactNode; close?: boolean; seed?: number;
+export async function CoShell({ kicker, title, lede, actions, children, close = true, seed = 1, closing = "Better care starts with better information." }: {
+  kicker: string; title: ReactNode; lede?: ReactNode; actions?: ReactNode; children: ReactNode; close?: boolean; seed?: number; closing?: string;
 }) {
-  const national = await getNationalCells().catch(() => null);
+  const national = close ? await getNationalCells().catch(() => null) : null;
   const cells: Cell[] = (national?.cells ?? []).map(([lng, lat, n]) => [lng, lat, n]);
   return (
-    <div className={`sp co3 ${sxSerif.variable}`}>
+    <div className={`sp co3 precision ${sxSerif.variable}`}>
       <SiteHeader tone="paper" />
       <main>
         <section className="co3-hero">
@@ -41,11 +42,10 @@ export async function CoShell({ kicker, title, lede, actions, children, close = 
         {close && (
           <section className="co3-close">
             <VectorIndia cells={cells} className="co3-close-vi" />
-            <h2>Better care starts with <em>better information.</em></h2>
+            <h2>{closing}</h2>
             <div className="co3-acts">
               <Link href="/app?choose=1" className="co3-btn is-flame">Open App <ArrowUpRight size={17} aria-hidden /></Link>
               <Link href="/partner-apply" className="co3-btn is-line">Work with us</Link>
-              <Link href="/contact" className="co3-btn is-line">Contact Us</Link>
             </div>
           </section>
         )}
