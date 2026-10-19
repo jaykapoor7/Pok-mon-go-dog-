@@ -3,9 +3,11 @@ import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { getLandingStory } from "@/lib/landing/story";
+import { getLandingStory, getAnimalRegister } from "@/lib/landing/story";
 import { getMapCities } from "@/lib/livingmap/server";
 import { sxSerif } from "@/components/shell/fonts";
+import { DemoProvider } from "@/components/request/DemoProvider";
+import { PublicAnimal } from "@/components/marketing/PublicAnimal";
 import { HeroRecord } from "@/components/marketing/HeroRecord";
 import { WORK_IMAGES, creditLine } from "@/lib/art/sources";
 import { RecordMap } from "@/components/marketing/RecordMap";
@@ -25,7 +27,8 @@ export const metadata = {
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
 export default async function HomePage() {
-  const [story, cities] = await Promise.all([getLandingStory().catch(() => null), getMapCities().catch(() => [])]);
+  const [story, cities, register] = await Promise.all([getLandingStory().catch(() => null), getMapCities().catch(() => []), getAnimalRegister().catch(() => ({ total: 0, cards: [] }))]);
+  const animal = register.cards.find(a => a.care.length > 0) ?? register.cards[0] ?? null;
   const totals = story?.totals;
   const city = cities.find((c) => c.city === story?.hero.city);
   const brief = city ? { city: city.city, animals: city.animals, cells: city.cells, sterilised: city.sterilised, ster_unknown: city.ster_unknown, cases: city.cases } : null;
@@ -38,7 +41,7 @@ export default async function HomePage() {
     <div className={`sp sw precision folio ${sxSerif.variable}`}>
       <PageView name="landing_view" />
       <SiteHeader tone="paper" />
-      <main>
+      <DemoProvider><main>
         <section id="world" className="pr-hero" aria-labelledby="home-title">
           <div className="pr-hero-copy">
             <p className="pr-place">StrayPaw · India</p>
@@ -50,8 +53,8 @@ export default async function HomePage() {
             </div>
           </div>
           <figure className="pr-hero-art">
-            <HeroRecord cities={cities} />
-            <figcaption><Link href="/art-credits">Folk-art detail · The Met · CC0</Link></figcaption>
+            <HeroRecord record={<PublicAnimal animal={animal} />} map={<RecordMap story={story} />} place={story?.hero.city ?? null} places={cities.filter(c => c.animals > 0).slice(0, 4).map(c => ({ name: c.city, href: `/explore?city=${encodeURIComponent(c.city)}` }))} />
+            <figcaption><Link href="/art-credits">Palampore, Coromandel Coast · The Met · CC0</Link></figcaption>
           </figure>
           <div className="pr-hero-record">
             {totals && totals.cities > 0 ? <>
@@ -73,6 +76,7 @@ export default async function HomePage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={WORK_IMAGES.dogWithPups.src} width={1400} height={997} alt="Dog with pups, a hand-painted Rajasthani work from about 1780, showing a mother dog with five puppies." loading="lazy" />
             <figcaption><Link href="/art-credits">{creditLine("dogWithPups")}</Link></figcaption>
+            {animal && <p className="lp-company-record">One animal, on the record: <Link href={`/animal/${animal.id}`}>{animal.straypaw_id ?? "Public history"}</Link>. Recorded history may be imported; it is not proof of a rescue by StrayPaw.</p>}
           </figure>
           <div className="pr-company-editorial">
             <h2 id="company-title">A shared record for better care.</h2>
@@ -84,7 +88,7 @@ export default async function HomePage() {
           </div>
           <div className="pr-closing"><h2>Better care starts with better information.</h2><Link href="/partner-apply" className="sw-btn is-paper">Work with us <ArrowUpRight size={17} aria-hidden /></Link></div>
         </section>
-      </main>
+      </main></DemoProvider>
       <SiteFooter />
     </div>
   );

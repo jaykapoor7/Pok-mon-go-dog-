@@ -1,0 +1,26 @@
+"use client";
+
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
+import { ArrowRight, ClipboardList, History, MapPin, UserRound } from "lucide-react";
+import { DEFAULT_TRIAGE, STATUS_META } from "@/lib/register/taxonomy";
+import { PageBrief } from "@/sp/ui";
+import { useDemo, type DemoView } from "./DemoProvider";
+
+export const DEMO_VIEWS: { key: DemoView; title: string }[] = [{ key: "queue", title: "Review queue" }, { key: "case", title: "Case details" }, { key: "history", title: "Animal history" }, { key: "area", title: "Geographic area" }];
+
+/** Reuses the operational record ledger and vocabulary; never imports a write action. */
+export function WorkflowPreview({ view, setView, map, prefix = "example" }: { view: DemoView; setView: (view: DemoView) => void; map?: ReactNode; prefix?: string }) {
+  const { demo, change } = useDemo();
+  const [careInfo, setCareInfo] = useState(false);
+  return <div className="lp-workspace" data-ui>
+    <header className="lp-workspace-head"><span><ClipboardList size={18} aria-hidden /><b>Example workspace</b></span><span>Demo only</span></header>
+    <div className="lp-view-nav" role="group" aria-label="Example record views">{DEMO_VIEWS.map(v => <button type="button" key={v.key} aria-pressed={view === v.key} aria-controls={`${prefix}-panel`} onClick={() => setView(v.key)}>{v.title}</button>)}</div>
+    <div className="lp-panel" id={`${prefix}-panel`}>
+      {view === "queue" && <><div className="lp-panel-title"><h3>Review queue</h3><span>{demo.sent ? "1 example" : "No example sent"}</span></div>{demo.sent ? <button className="lp-queue-row" type="button" onClick={() => setView("case")}><span className="lp-queue-dot" aria-hidden /><span><b>Report near the bus stand</b><small>EXAMPLE · {demo.condition} · {DEFAULT_TRIAGE[demo.condition]}</small></span><span>{demo.accepted ? "Accepted in demo" : "Awaiting review"}<ArrowRight size={18} aria-hidden /></span></button> : <div className="lp-empty"><ClipboardList size={34} aria-hidden /><b>The next report starts here.</b><p>Send the example to see a review item. No live queue is changed.</p></div>}<p className="lp-footnote">Receiving a report does not mean an organisation has accepted it.</p></>}
+      {view === "case" && <><div className="lp-panel-title"><h3>Report near the bus stand</h3><span>EXAMPLE</span></div>{demo.sent ? <><p className="lp-observation">{demo.observation}</p><PageBrief items={[["Review", demo.accepted ? "Accepted in demo" : "Received · needs review"], ["Ownership", demo.accepted ? "Example organisation" : "Pending acceptance"], ["Assignment", demo.assigned ? "Example team member" : "Unassigned"], ["Case status", demo.accepted ? STATUS_META.open.label : "Not opened"], ["Care events", "None recorded"], ["Follow-up", "Not scheduled"]]} /><div className="lp-next-actions">{!demo.accepted ? <button type="button" className="lp-primary" onClick={() => change({ accepted: true })}>Try acceptance</button> : !demo.assigned ? <button type="button" className="lp-primary" onClick={() => change({ assigned: true })}><UserRound size={16} aria-hidden />Try assignment</button> : <button type="button" onClick={() => change({ assigned: false })}>Undo example assignment</button>}<button type="button" onClick={() => setCareInfo(s => !s)} aria-expanded={careInfo}>How care is recorded</button></div>{careInfo && <p className="lp-action-note">An authorised team can record actual care and plan follow-ups. This demo creates neither treatment nor an outcome.</p>}<p className="lp-footnote">{demo.assigned ? "Assigned to an example team member in this demo only. No real case changed." : demo.accepted ? "Accepted by an example organisation in this demo only. No real organisation is involved." : "Example received. Awaiting review; no organisation has accepted it."}</p></> : <p>Send the example first, or go back to the review queue.</p>}</>}
+      {view === "history" && <><div className="lp-panel-title"><h3>Animal history</h3><History size={22} aria-hidden /></div><ol className="lp-chronology"><li><span aria-hidden /><div><b>Observation</b><p>{demo.sent ? "Example report received" : "Waiting for Send"}</p></div></li><li><span aria-hidden /><div><b>Animal record</b><p>Not linked</p></div></li><li><span aria-hidden /><div><b>Care and follow-up</b><p>None recorded</p></div></li></ol><p className="lp-footnote">Teams identify the animal before linking a report to its history. This example is never attached to a public animal.</p></>}
+      {view === "area" && <><div className="lp-panel-title"><h3>Real places. Separate records.</h3><MapPin size={22} aria-hidden /></div><div className="lp-area-map">{map}</div><p className="lp-footnote">This example is not on the map. These are real coarse public areas; coverage is incomplete.</p><Link className="lp-live-link" href="/explore">Explore actual public records <ArrowRight size={16} aria-hidden /></Link></>}
+    </div>
+  </div>;
+}
