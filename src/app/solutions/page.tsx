@@ -12,7 +12,7 @@ import "@/components/solutions/solutions.css";
 export const revalidate = 300;
 export const metadata = {
   title: "Solutions, StrayPaw",
-  description: "StrayPaw for residents and volunteers, animal welfare organisations, municipal teams, and partners and funders: one shared record, four ways to use it.",
+  description: "Tools for communities, animal welfare organisations, cities and partners.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -50,8 +50,8 @@ export default async function SolutionsPage() {
 
       <CoSec n="02" title="Apply → Set up your workspace.">
         <ol className="co3-list">
-          <li><b>Apply</b><span>Tell us who you are and where you work. It takes a few minutes.</span></li>
-          <li><b>Set up your workspace</b><span>After verification, join with your invite code, set team roles and bring your existing records.</span></li>
+          <li><b>Apply</b><span>Tell us about your organisation and where it works.</span></li>
+          <li><b>Set up your workspace</b><span>Once verified, invite your team and add existing records.</span></li>
         </ol>
         <div className="co3-acts">
           <Link href="/partner-apply" className="co3-btn is-flame">Apply to join</Link>
@@ -59,12 +59,12 @@ export default async function SolutionsPage() {
         </div>
       </CoSec>
 
-      <CoSec n="03" title="Working in the field.">
+      <CoSec n="03" title="Field partners.">
         {partners.length > 0 && <>
           <p className="is-lead">Field partner</p>
           <ul className="co3-names">{partners.map((p) => <li key={p.id}><b>{p.name}</b><small>{[p.city, p.state].filter(Boolean).join(", ")}</small></li>)}</ul>
         </>}
-        <p>Listed organisations and imported data sources are not field partners. <Link href="/evidence">Credited data sources</Link>.</p>
+        <p>Organisation listings and data sources are separate. <Link href="/evidence">Credited data sources</Link>.</p>
         <p><Link href="/community/organisations">The full directory</Link> · <Link href="/contact?subject=Partnership">Talk to us about a partnership</Link></p>
       </CoSec>
     </CoShell>
