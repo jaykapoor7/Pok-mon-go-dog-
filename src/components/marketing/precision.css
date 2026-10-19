@@ -134,3 +134,5 @@
 .sp.co3.precision .co3-btn, .sp.co3.precision .ct-actions button { border-radius: 999px; border: 1.5px solid #0b1e3d; min-height: 48px; box-shadow: 3px 3px 0 #0b1e3d; transition: transform 140ms ease-out, box-shadow 140ms ease-out; }
 .sp.co3.precision .co3-btn:active, .sp.co3.precision .ct-actions button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #0b1e3d; }
 @media(prefers-reduced-motion:reduce) { .sp.co3.precision .co3-btn, .sp.co3.precision .ct-actions button { transition: none; transform: none; } }
+/* Artwork credits are discreet metadata; full provenance stays on Art credits. */
+.sp.precision a[href="/art-credits"], .sp.precision .pr-audience-art figcaption { font-size: 10px; line-height: 1.4; font-weight: 400; }

@@ -797,3 +797,10 @@ body:has([role="dialog"]) :is(.sp-install-prompt, .snotice) { display: none; }
 .wc-panel .wc-role { border: 0 !important; border-radius: 0 !important; border-bottom: 1px solid rgba(11, 30, 61, 0.09) !important; background: transparent !important; box-shadow: none !important; padding-inline: 4px !important; }
 .wc-panel .wc-role:hover { background: rgba(36, 87, 206, 0.04) !important; }
 .wc-panel .wc-role svg { color: #c4432a; }
+
+/* Provider attribution stays visible and linked without inheriting large app type. */
+.maplibregl-ctrl-attrib-inner, .maplibregl-ctrl-attrib-inner a {
+  font-size: 10px !important;
+  line-height: 14px !important;
+  font-weight: 400;
+}

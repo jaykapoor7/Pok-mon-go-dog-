@@ -40,6 +40,7 @@ test("core marketing information and actions survive without JavaScript", async 
   await expect(page.getByRole("heading", { name: "The care infrastructure for India’s street animals." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Report an animal", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Better care starts with better information." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Send the example report" })).toBeDisabled();
   await context.close();
 });
 
@@ -48,11 +49,14 @@ test("mobile Send creates a visible review item and preserves pending states", a
   await page.goto("/");
   await page.getByRole("button", { name: "Send the example report" }).click();
   const record = page.locator("#request-record");
+  await record.getByRole("button", { name: "Case details", exact: true }).click();
   await expect(record).toContainText("Received · needs review");
   await expect(record).toContainText("Unassigned");
   await expect(record).toContainText("None recorded");
   await record.getByRole("button", { name: "Animal history", exact: true }).click();
-  await expect(record.getByText("This example is not on the map.")).toBeVisible();
+  await record.getByRole("button", { name: "Geographic area", exact: true }).click();
+  await expect(record.getByText(/This example is not on the map/)).toBeVisible();
+  await record.getByRole("button", { name: "Animal history", exact: true }).click();
   await expect(record.getByText("Not linked", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Replay the example" }).click();
   await expect(page.locator(".rq-chat")).toBeVisible();

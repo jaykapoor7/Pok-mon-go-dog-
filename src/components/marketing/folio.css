@@ -267,3 +267,353 @@ html .folio .sp-header .sp-sheet { background: var(--shell); }
  .folio .pr-geographic { margin-top: 16px; }
  .folio .pr-company-art { max-width: 230px; }
 }
+/* The living product: one illustrated world, one working example. */
+.folio .lw-world { position: relative; background: var(--blue); padding: 0 20px 20px; box-shadow: 7px 7px 0 var(--ink); animation: none; }
+.folio .pr-hero-art::before { display: none; }
+.folio .lw-canopy { height: 108px; overflow: hidden; margin: 0 -20px; background: var(--shell); }
+.folio .lw-canopy img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 51%; display: block; }
+.folio .lw-desk { position: relative; background: #fffdf9; border: 1.5px solid var(--ink); border-radius: 18px; margin-top: -14px; overflow: hidden; }
+.folio .lw-desk > header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.folio .lw-desk > header b { font-size: 18px; }
+.folio .lw-desk > header span { font-size: 12px; color: var(--ink-2); }
+.folio .lw-switch { display: flex; gap: 6px; padding: 0 12px 12px; }
+.folio :is(.lw-switch,.lp-layer-switch) button { display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; min-height: 44px; border: 1.5px solid var(--ink); border-radius: 99px; color: var(--ink); background: var(--shell); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.folio :is(.lw-switch,.lp-layer-switch) button[aria-pressed=true] { background: var(--ink); color: var(--shell); }
+.folio .lw-animal { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.15fr); }
+.folio .lw-photo { position: relative; min-height: 268px; overflow: hidden; background: var(--shell); }
+.folio .lw-photo img { display: block; width: 100%; height: 100%; position: absolute; object-fit: cover; }
+.folio .lw-file { padding: 12px 16px 16px; }
+.folio .lw-source { color: var(--blue); font-size: 12px; font-weight: 650; }
+.sp.sw.folio .lw-file h3 { font-size: 30px; font-family: inherit; letter-spacing: -.03em; margin: 8px 0 4px; }
+.folio .lw-file > p { font-size: 13px; margin: 0 0 16px; }
+.folio :is(.lw-file,.lp-panel,.lp-resident-receipt) .brief { display: grid; gap: 0; margin: 0; }
+.folio :is(.lw-file,.lp-panel,.lp-resident-receipt) .brief > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #d5d9df; font-size: 13px; }
+.folio :is(.lw-file,.lp-panel,.lp-resident-receipt) .brief dt { color: var(--ink-2); }
+.folio :is(.lw-file,.lp-panel,.lp-resident-receipt) .brief dd { text-align: right; margin: 0; font-weight: 600; }
+.folio .lw-file .brief > div { display: block; font-size: 12px; padding: 6px 0; border: 0; }
+.folio .lw-file .brief dd { text-align: left; margin-top: 2px; }
+.folio .lw-trail { display: flex; gap: 8px; padding: 12px 0; }
+.folio .lw-trail > span { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); margin-top: 4px; flex: none; }
+.folio .lw-trail b { font-size: 12px; text-transform: capitalize; display: block; }
+.folio .lw-trail small { font-size: 11px; display: block; margin-top: 2px; }
+.folio :is(.lw-record-link,.lw-desk > footer a,.lw-unavailable a) { display: inline-flex; align-items: center; gap: 5px; color: var(--blue); font-size: 12px; font-weight: 600; min-height: 44px; text-decoration: underline; }
+.folio .lw-animal-note { grid-column: 1 / -1; margin: 0; padding: 12px 16px; background: #e7edf8; font-size: 11px; line-height: 1.5; }
+.folio .lw-desk > footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 0 16px; border-top: 1px solid #d5d9df; }
+.folio .lw-unavailable { min-height: 300px; padding: 40px 22px; background: #e7edf8; display: flex; flex-direction: column; justify-content: center; }
+.folio .lw-unavailable b { font-size: 30px; max-width: 15ch; letter-spacing: -.04em; }
+.folio .lw-unavailable p { font-size: 14px; line-height: 1.5; }
+.folio .lw-geography { min-height: 330px; padding: 18px; background: #e7edf8; }
+.folio .lw-geography[hidden] { display: none; }
+.folio .lw-map-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.sp.sw.folio .lw-map-title h3 { font-family: inherit; font-size: 25px; font-weight: 600; line-height: 1.1; margin: 0; }
+.folio .lw-map-title span, .folio .lw-geography > p { font-size: 12px; }
+.folio .lw-geography .rq-real-map svg { width: 100%; height: 155px; fill: var(--blue); }
+.folio .lw-geography .rq-real-map { margin: 10px 0; }
+.folio .lw-geography .rq-real-map figcaption { font-size: 11px; text-align: left; }
+.folio .lw-places { display: flex; gap: 6px; flex-wrap: wrap; }
+.folio .lw-places a { display: inline-flex; align-items: center; gap: 4px; padding: 8px 10px; border: 1px solid var(--blue); border-radius: 8px; font-size: 12px; color: var(--blue); min-height: 44px; background: #fffdf9; }
+.folio .lw-map-note { margin: 12px 0 0; }
+/* The composer and the queue use one stable stage, never a scroll sequence. */
+.folio .lp-demo-toolbar { margin: 28px 0 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; }
+.folio .lp-demo-toolbar :is(button,a) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--shell); border-radius: 99px; color: var(--shell); background: transparent; font: inherit; cursor: pointer; }
+.folio .lp-demo-stage { display: grid; grid-template-columns: minmax(0,.65fr) 36px minmax(0,1.35fr); gap: 20px; align-items: center; }
+.folio .lp-composer { padding: 20px; }
+.folio .lp-composer .rq-chat { display: grid; gap: 8px; }
+.folio .lp-composer label { font-size: 12px; font-weight: 600; }
+.folio .lp-composer :is(textarea,select) { width: 100%; min-width: 0; border: 1.5px solid #95a39d; border-radius: 10px; background: #fffdf9; color: var(--ink); font: inherit; font-size: 14px; line-height: 1.5; padding: 10px; }
+.folio .lp-composer textarea { height: 112px; resize: vertical; background: #e2e8e4; }
+.folio .lp-composer select { min-height: 44px; margin-bottom: 4px; }
+.folio .lp-composer :is(textarea,select):focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.folio .lp-composer .pr-send { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; margin-top: 12px; }
+.folio .lp-attachment { display: flex; align-items: center; gap: 6px; font-size: 12px; margin: 4px 0; }
+.folio .lp-transfer { display: grid; justify-items: center; gap: 12px; color: var(--flame); }
+.folio .lp-demo.is-sent .lp-transfer > svg:first-child { animation: lp-deliver 260ms cubic-bezier(.23,1,.32,1) both; }
+@keyframes lp-deliver { from { opacity: .3; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+.folio .lp-demo-record { min-width: 0; border-radius: 18px; }
+.folio .lp-workspace { background: #fffdf9; color: var(--ink); border: 2px solid var(--ink); border-radius: 18px; overflow: hidden; }
+.folio .lp-workspace-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 15px 18px; background: var(--shell); border-bottom: 1px solid #c5cbd3; font-size: 12px; }
+.folio .lp-workspace-head > span:first-child { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.folio .lp-view-nav { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); padding: 8px; gap: 4px; border-bottom: 1px solid #d5d9df; }
+.folio .lp-view-nav button { min-height: 44px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 12px; font-weight: 550; border-radius: 8px; padding: 8px 4px; cursor: pointer; }
+.folio .lp-view-nav button[aria-pressed=true] { background: var(--blue); color: white; }
+.folio .lp-panel { padding: 22px; min-height: 352px; }
+.folio .lp-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.sp.sw.folio .lp-panel-title h3 { margin: 0; font-family: inherit; font-weight: 650; font-size: 21px; letter-spacing: -.025em; }
+.folio .lp-panel-title > span { flex: none; font-size: 11px; }
+.folio .lp-queue-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; min-height: 94px; padding: 18px 10px; background: #e7edf8; color: var(--ink); border: 0; border-left: 4px solid var(--blue); border-radius: 0 8px 8px 0; font: inherit; cursor: pointer; }
+.folio .lp-queue-row b { font-size: 15px; }
+.folio .lp-queue-row small { display: block; font-size: 12px; margin-top: 8px; }
+.folio .lp-queue-row > span:last-child { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.folio .lp-queue-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--flame); flex: none; }
+.folio .lp-empty { display: flex; min-height: 220px; flex-direction: column; justify-content: center; align-items: flex-start; padding: 20px; background: #e7edf8; border-radius: 10px; }
+.folio .lp-empty b { margin-top: 14px; font-size: 22px; letter-spacing: -.025em; }
+.folio .lp-empty p { font-size: 14px; max-width: 30ch; line-height: 1.5; }
+.folio .lp-footnote { color: var(--ink-2); font-size: 12px; line-height: 1.6; margin: 16px 0 0; }
+.folio .lp-composer .lp-footnote { margin: 0; }
+.folio .lp-observation { margin: 0 0 14px; font-size: 14px; line-height: 1.5; }
+.folio :is(.lp-next-actions,.lp-demo-navigation) { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.folio :is(.lp-next-actions,.lp-demo-navigation) :is(button,a), .folio :is(.lp-primary,.lp-source-control) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1.5px solid var(--ink); border-radius: 99px; background: var(--shell); color: var(--ink); font: inherit; font-weight: 550; font-size: 13px; padding: 10px 16px; cursor: pointer; }
+.folio .lp-next-actions .lp-primary, .folio .lp-primary { background: var(--blue); color: white; }
+.folio .lp-demo-navigation { justify-content: space-between; }
+.folio .lp-demo-navigation :is(button,a) { color: var(--shell); border-color: var(--shell); background: transparent; }
+.folio .lp-action-note { padding: 12px; background: #e7edf8; font-size: 13px; line-height: 1.5; }
+.folio .lp-chronology { list-style: none; margin: 0; padding: 0; }
+.folio .lp-chronology li { display: flex; gap: 14px; position: relative; padding: 0 0 28px; }
+.folio .lp-chronology li:not(:last-child)::after { content: ""; position: absolute; top: 12px; left: 4px; bottom: 0; width: 2px; background: #c0cbe1; }
+.folio .lp-chronology li > span { height: 10px; width: 10px; border: 2px solid var(--blue); border-radius: 50%; flex: none; margin-top: 4px; }
+.folio .lp-chronology li:first-child > span { background: var(--blue); }
+.folio .lp-chronology b { font-size: 14px; }
+.folio .lp-chronology p { margin: 6px 0 0; font-size: 13px; }
+.folio .lp-area-map { padding: 18px; background: #e7edf8; border-radius: 10px; }
+.folio :is(.lp-area-map,.lp-city-map) .rq-real-map { margin: 0; }
+.folio :is(.lp-area-map,.lp-city-map) .rq-real-map svg { width: 100%; height: 150px; fill: var(--blue); }
+.folio :is(.lp-area-map,.lp-city-map) figcaption { font-size: 11px; }
+.folio .lp-live-link { display: flex; align-items: center; gap: 6px; color: var(--blue); min-height: 44px; font-size: 13px; font-weight: 600; text-decoration: underline; margin-top: 12px; }
+.folio .lp-demo > .pr-receipt { color: var(--shell); min-height: 24px; margin: 18px 0 24px; }
+/* Audience tasks are a shared work surface, with public evidence clearly apart. */
+.folio .pr-ecosystem { background: #e2e9e5; }
+.folio .pr-audience { align-items: start; min-height: 460px; }
+.folio .lp-audience-task { min-width: 0; color: var(--ink); }
+.folio .lp-audience-task > article { padding: 28px; background: #fffdf9; border: 1.5px solid var(--ink); border-radius: 18px; box-shadow: 5px 5px 0 var(--blue); }
+.folio .lp-audience-task > article > header { margin-bottom: 24px; }
+.folio .lp-audience-task > article > header > span { font-size: 12px; color: var(--ink-2); }
+.sp.sw.folio .lp-audience-task > article > header h3 { font: inherit; font-size: 27px; font-weight: 650; letter-spacing: -.035em; margin: 12px 0 0; }
+.folio .lp-resident-receipt { position: relative; background: #e7edf8; padding: 20px; border-radius: 8px; }
+.folio .lp-receipt-stamp { display: block; margin-bottom: 18px; color: var(--blue); font-size: 12px; font-weight: 650; }
+.folio .lp-resident-receipt > b { font-size: 19px; }
+.folio .lp-resident-receipt > p { font-size: 14px; line-height: 1.6; }
+.folio .lp-resident-receipt .lp-primary { margin-top: 18px; }
+.folio .lp-layer-switch { display: flex; gap: 8px; margin-bottom: 20px; }
+.folio .lp-city-map { padding: 14px; background: #e7edf8; border-radius: 10px; }
+.folio .lp-area-list { list-style: none; padding: 0; margin: 12px 0; }
+.folio .lp-area-list li { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; gap: 12px; border-bottom: 1px solid #c5cbd3; font-size: 13px; }
+.folio .lp-public-figures { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 0 0 24px; }
+.folio .lp-public-figures dt { font-size: 13px; }
+.folio .lp-public-figures dd { margin: 12px 0; font-size: 36px; letter-spacing: -.04em; font-weight: 600; }
+.folio .lp-public-figures small { font-size: 12px; line-height: 1.5; display: block; }
+.folio .lp-source-notes { background: #e7edf8; padding: 14px; margin-top: 16px; font-size: 13px; line-height: 1.6; }
+.folio .lp-source-notes p { margin: 0 0 10px; }
+.folio .lp-source-notes a { color: var(--blue); text-decoration: underline; }
+.folio .lp-load { margin-top: 14px; }
+.folio .lp-company-record { font-size: 12px; line-height: 1.6; }
+.folio .lp-public-note { padding: 0 4px; }
+.folio .lp-panel :is(button,a):focus-visible, .folio .lp-composer :is(button,a):focus-visible, .folio .lp-workspace :is(button,a):focus-visible { outline-color: var(--blue); }
+@media(hover:hover) and (pointer:fine) {
+ .folio :is(.lp-queue-row,.lp-view-nav button,.lw-places a):hover { background: #d4e0f8; color: var(--ink); }
+ .folio :is(.lp-primary,.lp-source-control,.lp-demo-navigation button):hover { transform: translateY(-1px); }
+}
+@media(max-width:1100px) {
+ .folio .lp-demo-stage { grid-template-columns: minmax(0,.75fr) 20px minmax(0,1.25fr); gap: 12px; }
+ .folio .lp-transfer { width: 20px; }
+ .folio .lp-queue-row { flex-wrap: wrap; }
+ .folio .lp-queue-row > span:last-child { margin-left: 21px; }
+ .folio .lw-animal { grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); }
+ .folio .lw-file { padding: 12px; }
+}
+@media(max-width:760px) {
+ .folio .lw-world { padding: 0 10px 10px; box-shadow: 4px 4px 0 var(--ink); }
+ .folio .lw-canopy { height: 96px; margin: 0 -10px; }
+ .folio .lw-desk > header { padding: 12px; }
+ .folio .lw-desk > header span { font-size: 11px; }
+ .folio .lw-switch { padding: 0 10px 10px; }
+ .folio .lw-animal { grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); }
+ .folio .lw-photo { min-height: 290px; }
+ .folio .lw-file { padding: 10px; }
+ .sp.sw.folio .lw-file h3 { font-size: 25px; }
+ .folio .lw-file > p { font-size: 12px; line-height: 1.4; margin-bottom: 8px; }
+ .folio .lw-file .brief > div { font-size: 11px; }
+ .folio .lw-record-link { font-size: 12px; line-height: 1.4; }
+ .folio .lw-unavailable { min-height: 290px; padding: 30px 18px; }
+ .folio .lw-animal-note { padding: 10px; font-size: 11px; }
+ .folio .lw-desk > footer { padding: 0 10px; gap: 0; }
+ .folio .lw-desk > footer a { font-size: 11px; }
+ .folio .lw-geography { padding: 14px; min-height: 340px; }
+ .folio .lw-geography .rq-real-map svg { height: 140px; }
+ .folio .lp-demo-toolbar { align-items: center; gap: 12px; font-size: 12px; }
+ .folio .lp-demo-toolbar > span { max-width: 22ch; line-height: 1.5; }
+ .folio .lp-demo-toolbar :is(button,a) { padding: 8px 12px; font-size: 12px; flex: none; }
+ .folio .lp-demo-stage { grid-template-columns: minmax(0,1fr); gap: 0; }
+ .folio .lp-demo-record, .folio .lp-transfer { display: none; }
+ .folio .lp-demo.is-sent .lp-demo-record { display: block; }
+ .folio .lp-demo.is-sent .lp-composer { display: none; }
+ .folio .lp-demo.is-editing .lp-composer { display: block; background: var(--shell); color: var(--ink); border: 2px solid var(--ink); border-radius: 24px; padding: 18px; margin-top: 0; }
+ .folio .lp-demo.is-editing .lp-composer > header { display: flex; }
+ .folio .lp-demo.is-editing .lp-composer .rq-chat { display: grid; }
+ .folio .lp-demo.is-editing .pr-send { color: var(--shell); background: var(--blue); }
+ .folio .lp-demo.is-editing .lp-demo-record { display: none; }
+ .folio .lp-composer { max-width: none; }
+ .folio .lp-panel { padding: 18px; min-height: 355px; }
+ .folio .lp-workspace-head { padding: 14px; }
+ .folio .lp-workspace-head > span:first-child { font-size: 14px; }
+ .folio .lp-view-nav { grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; }
+ .folio .lp-view-nav button { font-size: 12px; }
+ .sp.sw.folio .lp-panel-title h3 { font-size: 20px; }
+ .folio .lp-queue-row { gap: 10px; padding: 14px 10px; }
+ .folio .lp-queue-row b { font-size: 14px; }
+ .folio .lp-queue-row small { line-height: 1.5; }
+ .folio .lp-queue-row > span:last-child { margin-left: 19px; }
+ .folio .lp-panel .brief > div { font-size: 12px; }
+ .folio .lp-demo-navigation { gap: 8px; }
+ .folio .lp-demo-navigation :is(button,a) { font-size: 12px; padding: 10px 12px; }
+ .folio .lp-next-actions { align-items: stretch; }
+ .folio .lp-next-actions button { flex: 1; font-size: 12px; padding: 10px; }
+ .folio .pr-audience { min-height: 0; }
+ .folio .lp-audience-task > article { padding: 20px; }
+ .sp.sw.folio .lp-audience-task > article > header h3 { font-size: 26px; }
+ .folio .lp-resident-receipt { padding: 16px; }
+ .folio .lp-public-figures { gap: 14px; }
+ .folio .lp-public-figures dd { font-size: 28px; }
+ .folio .lp-layer-switch button { padding: 8px; font-size: 12px; }
+}
+.folio .lp-example-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.folio .lp-example-fields > header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.folio .lp-example-fields > header > div { display: grid; gap: 2px; }
+.folio .lp-example-fields > header span:not(.rq-avatar) { font-size: 12px; color: var(--ink-2); }
+.folio .lp-example-fields:disabled { opacity: .65; }
+.folio .lp-next-actions .lp-primary { color: var(--ink); background: var(--flame); box-shadow: 2px 2px 0 var(--ink); }
+.folio .pr-ecosystem { background: #cce1d8; }
+/* The textile owns the frame; the readable software remains the foreground. */
+.folio .lw-world { padding: 68px 18px 18px 30px; }
+.folio .lw-canopy { position: absolute; inset: 0; height: auto; margin: 0; }
+.folio .lw-canopy img { object-position: 50% 42%; }
+.folio .lw-desk { margin: 0; box-shadow: 3px 3px 0 var(--ink); }
+@media(max-width:760px) {
+ .folio .lw-world { padding: 52px 10px 12px 16px; }
+ .folio .lw-canopy { height: auto; margin: 0; }
+ .folio .lp-demo.is-editing .lp-example-fields > header { display: flex; }
+}
+
+.folio .lp-toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media(max-width:760px) { .folio .lp-demo-toolbar { flex-wrap: wrap; } .folio .lp-demo-toolbar > span { max-width: none; flex-basis: 100%; } }
+.folio .lp-panel .brief > div { font-size: 14px; }
+.folio .lp-view-nav button { font-size: 13px; }
+.folio .lw-file .brief > div { font-size: 13px; }
+@media(max-width:760px) { .folio .lp-panel .brief > div { font-size: 14px; } .folio .lw-file .brief > div { font-size: 13px; } }
+
+/* Keep the first-visit privacy choice readable without covering the hero. */
+body:has(.folio) .snotice { padding: 14px 16px; }
+body:has(.folio) .snotice p { font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+@media(max-width:760px) { body:has(.folio) .snotice { bottom: calc(10px + env(safe-area-inset-bottom)); } }
+.folio .lp-public-figures dl { margin: 0; }
+/* Final chapters: one task per audience, one concise company close. */
+.folio .pr-hero { position: relative; background: var(--blue); color: var(--shell); isolation: isolate; }
+.folio .pr-hero::before { content: ""; position: absolute; z-index: -1; inset: 0 0 0 46%; background: url('/art/works/palampore-tree.webp') 50% 44% / cover no-repeat; }
+.folio .pr-hero-copy { padding: 30px 0; background: var(--blue); }
+.sp.sw.folio .pr-hero h1 { color: var(--shell); }
+.folio .pr-hero .pr-lede, .folio .pr-hero-record, .folio .pr-hero .pr-place { color: var(--shell); }
+.folio .pr-hero-record { position: relative; background: var(--blue); padding: 24px 0 0; margin-top: 0; }
+.folio .pr-hero-record :is(dt,dd,.pr-note), .sp.sw.folio .pr-metrics dd small { color: var(--shell); }
+.folio .pr-hero-record a { color: var(--shell); text-decoration: underline; }
+.folio .lw-world { padding: 16px 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; color: var(--ink); }
+.folio .lw-canopy { display: none; }
+.folio .lw-desk { box-shadow: 5px 5px 0 var(--ink); }
+.folio .pr-hero-art > figcaption { padding: 6px 8px; background: var(--blue); width: fit-content; margin: 0 0 0 auto; border-radius: 4px; }
+.folio .pr-hero-art > figcaption a { color: var(--shell); }
+.folio .lw-animal-note { max-width: none; }
+.folio .pr-request { background-image: url('/art/works/palampore-border.webp'); background-position: left top; background-size: auto 24px; background-repeat: repeat-x; padding-top: 64px; }
+.folio .pr-ecosystem { background: var(--flame); }
+.folio .pr-ecosystem::before { width: 150px; opacity: .18; background-size: auto 150px; }
+.folio .pr-commons > header { max-width: 900px; }
+.folio .pr-audience { display: block; min-height: 0; }
+.folio .lp-audience-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 20px; }
+.sp.sw.folio .lp-audience-bar h3 { font: inherit; font-size: 23px; font-weight: 600; letter-spacing: -.025em; margin: 0; }
+.folio .lp-audience-bar a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ink); font-size: 14px; text-decoration: underline; }
+.folio .lp-audience-task { max-width: 100%; }
+.folio .lp-audience-task > article { padding: 24px; border-radius: 18px; box-shadow: 4px 4px 0 var(--ink); }
+.folio .lp-audience-task > article > header { margin: 0 0 18px; }
+.folio .lp-audience-task > article > header > span { font-size: 13px; }
+.folio .lp-resident-receipt { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); column-gap: 40px; padding: 0; background: none; border-radius: 0; }
+.folio .lp-resident-receipt > :is(span,b,p) { grid-column: 1; }
+.folio .lp-resident-receipt > .brief { grid-column: 2; grid-row: 1 / 5; align-self: center; padding: 16px 24px; background: #e7edf8; border-radius: 12px; }
+.folio .lp-resident-receipt > :is(button,a) { grid-column: 1; justify-self: start; margin-top: 8px; }
+.folio .lp-receipt-stamp { display: none; }
+.folio .lp-resident-receipt > b { font-size: 24px; }
+.folio .lp-resident-receipt > p { font-size: 16px; line-height: 1.6; max-width: 40ch; }
+.folio .lp-audience-task .lp-workspace { box-shadow: 4px 4px 0 var(--ink); }
+.folio .lp-audience-task .lp-panel { min-height: 270px; }
+.folio .lp-audience-task .lp-public-figures { max-width: 800px; gap: 60px; }
+.folio .lp-audience-task .lp-public-figures dd { font-size: 54px; }
+.folio .lp-audience-task .lp-city-map { float: left; width: 54%; margin: 0 28px 12px 0; }
+.folio .lp-audience-task .lp-live-link { clear: both; }
+.folio .lp-company-close { background: var(--shell); color: var(--ink); grid-template-columns: minmax(0,1fr) minmax(0,.8fr); gap: 48px; align-items: center; }
+.sp.sw.folio .lp-company-close h2 { color: var(--ink); font-size: clamp(46px,4.8vw,68px); line-height: 1.03; max-width: 17ch; }
+.folio .lp-company-ledger { margin: 28px 0; display: grid; gap: 16px; }
+.folio .lp-company-ledger > div { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 16px; font-size: 16px; line-height: 1.5; }
+.folio .lp-company-ledger dt { font-weight: 650; }
+.folio .lp-company-ledger dd { margin: 0; max-width: 40ch; }
+.folio .lp-company-close .pr-company-art { max-width: none; width: 100%; padding: 16px 16px 0; background: #344744; border-radius: 60% 60% 12px 12px / 30% 30% 12px 12px; overflow: hidden; }
+.folio .lp-company-close .pr-company-art img { border-radius: 50% 50% 0 0 / 25% 25% 0 0; }
+.folio .lp-company-close .pr-company-art figcaption { margin: 0; padding: 12px 0; }
+.folio .lp-company-close .pr-company-art figcaption a { color: var(--shell); font-size: 11px; }
+.folio .lp-company-close .lp-company-record { background: var(--shell); padding: 16px; margin: 0 -16px; border: 1.5px solid var(--ink); border-radius: 0 0 12px 12px; }
+.folio .lp-company-record > span { display: block; font-size: 12px; margin-bottom: 10px; }
+.folio .lp-company-close .lp-company-record > a { display: inline-flex; align-items: center; gap: 6px; color: var(--blue); font-size: 19px; font-weight: 600; min-height: 44px; }
+.folio .lp-company-record p { font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+@media(max-width:760px) {
+ .folio .pr-hero { gap: 16px; padding-top: 22px; }
+ .folio .pr-hero::before { inset: 0; }
+ .folio .pr-hero-copy { margin: -22px -20px 0; padding: 28px 20px 24px; }
+ .folio .pr-hero-art { padding: 8px; }
+ .folio .lw-world { padding: 0 0 8px; }
+ .folio .lw-desk { box-shadow: 3px 3px 0 var(--ink); }
+ .folio .pr-hero-record { padding: 20px; margin: 0 -20px -24px; }
+ .folio .pr-request { padding-top: 52px; background-size: auto 20px; }
+ .folio .lp-audience-bar { display: block; margin-bottom: 14px; }
+ .sp.sw.folio .lp-audience-bar h3 { font-size: 22px; }
+ .folio .lp-audience-bar a { font-size: 13px; margin-top: 4px; }
+ .folio .lp-audience-task > article { padding: 18px; }
+ .folio .lp-resident-receipt { display: block; }
+ .folio .lp-resident-receipt > b { font-size: 20px; }
+ .folio .lp-resident-receipt > p { font-size: 15px; }
+ .folio .lp-resident-receipt > .brief { padding: 12px 14px; margin: 16px 0; }
+ .folio .lp-audience-task .lp-public-figures { gap: 18px; }
+ .folio .lp-audience-task .lp-public-figures dd { font-size: 32px; }
+ .folio .lp-audience-task .lp-city-map { float: none; width: 100%; margin: 0 0 16px; }
+ .folio .lp-company-close { gap: 28px; }
+ .sp.sw.folio .lp-company-close h2 { font-size: 46px; max-width: 18ch; }
+ .folio .lp-company-ledger { gap: 12px; margin: 24px 0; }
+ .folio .lp-company-ledger > div { font-size: 15px; gap: 10px; grid-template-columns: 42px 1fr; }
+ .folio .lp-company-close .pr-company-art { max-width: 330px; }
+}
+.folio .lp-example-profile .lw-photo img { object-position: 70% 50%; }
+.folio .lp-example-profile .lw-file > p { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+.folio .lp-example-status { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; color: #154f45; background: #d8ebe1; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+.folio .lp-example-status > span { font-size: 11px; flex-basis: 100%; padding-left: 19px; }
+.folio .lp-example-timeline-title { font-size: 12px; font-weight: 650; margin: 16px 0 12px; }
+.folio .lp-example-timeline { list-style: none; margin: 0; padding: 0; }
+.folio .lp-example-timeline li { position: relative; display: flex; gap: 8px; padding: 0 0 14px; }
+.folio .lp-example-timeline li:not(:last-child)::after { content: ""; position: absolute; top: 8px; left: 3px; bottom: 0; width: 1px; background: #a9b9d8; }
+.folio .lp-example-timeline li > span { width: 7px; height: 7px; border: 1.5px solid var(--blue); border-radius: 50%; background: #fffdf9; flex: none; margin-top: 3px; z-index: 1; }
+.folio .lp-example-timeline b { font-size: 12px; display: block; }
+.folio .lp-example-timeline small { display: block; font-size: 11px; margin-top: 3px; color: var(--ink-2); }
+.sp.sw.folio .pr-hero-art > figcaption, .sp.sw.folio .pr-hero-art > figcaption a, .folio .lp-company-close .pr-company-art figcaption a { font-size: 10px; line-height: 1.4; font-weight: 400; }
+.folio .pr-hero-art > figcaption { max-width: 42ch; }
+.folio .pr-company-art figcaption { padding-block: 8px; }
+.folio .lw-world noscript p { background: var(--shell); color: var(--ink); font-size: 13px; padding: 10px; border-radius: 8px; }
+@media(max-width:760px) {
+ .folio .lp-example-profile .lw-photo { min-height: 365px; }
+ .folio .lp-example-profile .lw-file { padding: 12px 10px; }
+ .folio .lp-example-status { padding: 8px; }
+ .folio .lp-example-timeline-title { margin-top: 14px; }
+ .folio .lp-example-timeline b { font-size: 12px; }
+}
+.folio .pr-hero :is(a,button):focus-visible { outline-color: var(--shell); }
+.folio .lw-desk :is(a,button):focus-visible, .folio .lp-company-close :is(a,button):focus-visible { outline-color: var(--blue); }
+.folio .pr-ecosystem :is(.pr-tabs button,.lp-audience-bar a):focus-visible { outline-color: var(--ink); }
+.folio .pr-hero { max-width: none; }
+@media(min-width:761px) {
+ .folio .pr-hero-record { margin-inline: calc(-1 * max(24px,calc((100vw - 1280px)/2))); padding: 24px max(24px,calc((100vw - 1280px)/2)) 0; }
+}
+.sp.sw.folio .lp-example-profile .lp-profile-name { font-family: inherit; font-size: 30px; font-weight: 500; line-height: 1.15; letter-spacing: -.03em; margin: 8px 0 4px; }
+.sp.sw.folio .lp-example-profile .lp-example-timeline-title { font-family: inherit; font-size: 12px; font-weight: 650; line-height: 1.3; margin: 16px 0 12px; letter-spacing: 0; }
+@media(max-width:760px) { .sp.sw.folio .lp-example-profile .lp-profile-name { font-size: 25px; } }
+.folio .lp-example-identity > p { display: flex; align-items: center; gap: 4px; margin: 6px 0 12px; font-size: 13px; }
+@media(max-width:760px) {
+ .folio .lp-company-close { grid-template-columns: minmax(0,1fr); }
+ .folio .lp-company-close .pr-company-art { max-width: 280px; }
+ .folio .lp-example-profile { grid-template-columns: minmax(0,1fr); }
+ .folio .lp-example-profile .lw-photo { min-height: 0; height: 190px; }
+ .folio .lp-example-profile .lw-file { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; padding: 16px; }
+ .sp.sw.folio .lp-example-history .lp-example-timeline-title { margin-top: 0; }
+ .folio .lp-example-profile .lw-photo img { object-position: 70% 48%; }
+}
