@@ -18,14 +18,14 @@ export default async function ProductPage() {
     lede="Report animals, manage cases, track care, and see what’s happening across your city."
     actions={<><Link href="/app?choose=1" className="co3-btn is-flame">Open App <ArrowUpRight size={17} aria-hidden /></Link><Link href="/community/report" className="co3-btn is-line">Report an animal</Link></>}>
     <CoSec title="Report · Coordinate · Understand">
-      <p>Start with an observation. Coordinate work when an organisation accepts a request. Understand what is recorded and what is still unknown.</p>
+      <p>Report what you see. Coordinate care when an organisation accepts a request. See what’s recorded and what’s still unknown.</p>
       <p>StrayPaw provides coordination and recordkeeping tools. It does not guarantee rescue, organisational acceptance or veterinary services.</p>
     </CoSec>
-    <CoSec title="Four capabilities. One record.">
+    <CoSec title="What you can do.">
       <div className="co3-caps">{CAPS.map(c => <article className="co3-cap" key={c.title}><h3>{c.title}</h3><p>{c.description}</p><Link href={c.href}>{c.cta} <ArrowUpRight size={14} aria-hidden /></Link></article>)}</div>
       <nav className="pr-secondary" aria-label="More product tools"><Link href="/for-ngos">NGO workspaces</Link><Link href="/for-governments">Municipal intelligence</Link><Link href="/for-funders">Evidence reporting</Link><Link href="/learn">Education</Link></nav>
     </CoSec>
-    <CoSec title="On the record today.">
+    <CoSec title="What’s on the record.">
       {totals && totals.cities > 0 ? <dl className="co3-figs">
         <div><dt>Animal records</dt><dd>{fmt(totals.animals)}<small>Recorded animals, including imported history. Not a census.</small></dd></div>
         <div><dt>Requests for help</dt><dd>{fmt(totals.cases)}<small>Recorded requests, open and closed. Not rescue outcomes.</small></dd></div>
