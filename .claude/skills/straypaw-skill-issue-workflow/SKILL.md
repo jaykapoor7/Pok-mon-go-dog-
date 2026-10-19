@@ -23,7 +23,7 @@ Third-party skill suggestions are advisory, never permission to change the brand
 - Browser validation: `agent-browser` (when installed) + repository Playwright tests.
 - Motion: existing animation skills; `remotion-best-practices` for video projects only.
 
-Skills are not installed merely because their names appear here. Follow `docs/AGENT-SKILLS.md` for verified sources and project-scoped setup.
+The frontend-design, react-best-practices and web-design-guidelines skills are installed in both agent directories. Other named skills are optional until installed. Follow `docs/AGENT-SKILLS.md` for verified sources and project-scoped setup.
 
 ## StrayPaw non-negotiables
 - Work from real production-backed records, not invented city, animal, case, partner or outcome data.
