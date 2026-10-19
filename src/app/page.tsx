@@ -18,12 +18,14 @@ import { World, type WorldArea } from "@/components/world/World";
 import { Chain, type Area } from "@/components/request/Chain";
 import { Commons, type Loc } from "@/components/ecosystem/Commons";
 import { Lifeline, type Life } from "@/components/company/Lifeline";
+import { Origin, type City } from "@/components/company/Origin";
 import "@/components/site/site.css";
 import "@/components/world/home.css";
 import "@/components/world/world.css";
 import "@/components/request/chain.css";
 import "@/components/ecosystem/commons.css";
 import "@/components/company/company4.css";
+import "@/components/company/origin.css";
 
 export const revalidate = 300;
 export const metadata = {
@@ -99,6 +101,7 @@ export default async function HomePage() {
     events: [...c.care.map((k) => ({ at: k.at, what: CARE[k.kind] ?? k.kind })), ...c.requests.map((r) => ({ at: r.at, what: r.condition ? `Request: ${r.condition}` : "Request for help" }))].filter((e) => e.at).sort((a, b) => b.at.localeCompare(a.at)),
   }));
   const partner = partners[0] ?? null;
+  const originCities: City[] = rawCities.filter((c) => c.lng != null && c.lat != null && c.animals > 0).map((c) => ({ city: c.city, c: [c.lng!, c.lat!], animals: c.animals }));
   const brief = sampleCity ? { city: sampleCity.city, animals: sampleCity.animals, cells: sampleCity.cells, sterilised: sampleCity.sterilised, ster_unknown: sampleCity.ster_unknown, cases: sampleCity.cases } : null;
 
   return (
@@ -160,9 +163,22 @@ export default async function HomePage() {
           <div className="w4-why">
             <p className="sw-k">Why StrayPaw exists</p>
             <h2 id="w4-why">India&rsquo;s street animals are cared for by thousands of people. <em>Almost none of it is written down in one place.</em></h2>
-            <div className="w4-cols">
-              <p>A resident sees an injured dog and posts in a group. A rescuer picks it up. A vet treats it. A feeder sees it again a month later. Each of them keeps a piece of the story, in a chat, a sheet or a notebook, and the next person starts from nothing.</p>
-              <p className="w4-origin"><b>Where it started.</b> The insight came from the records themselves. One rescue register brought into StrayPaw held 169 open requests, and no column for who was responsible for them. Every request had been seen; none had an owner. StrayPaw is built so that every report gets an owner, every animal a history and every city a map of where help is needed.</p>
+            <p className="w4-intro">A resident sees an injured dog and posts in a group. A rescuer picks it up. A vet treats it. A feeder sees it again a month later. Each of them keeps a piece of the story, in a chat, a sheet or a notebook, and the next person starts from nothing.</p>
+          </div>
+
+          <div className="w4-founder" id="origin">
+            <div className="fd">
+              <div className="fd-art">
+                <Origin cells={cells} cities={originCities} records={totals?.animals ?? 0} cityCount={totals?.cities ?? 0} />
+              </div>
+              <div className="fd-text">
+                <p className="sw-k">How StrayPaw began</p>
+                <h3>The problem was never a lack of people who cared. <em>It was a lack of connected infrastructure.</em></h3>
+                <p className="fd-first">StrayPaw started with a simple observation by Jay Kapoor, its founder: India has people doing extraordinary work for street animals, but the information they depend on is scattered. A dog might be reported in one WhatsApp group, treated by a volunteer and recorded in a spreadsheet somewhere else, and its story disappears between them.</p>
+                <p>What began as a small community reporting tool, with roughly 50 dogs reported, now connects {totals ? `${fmt(totals.animals)} animal records across ${fmt(totals.cities)} cities` : "animal records across India"} with rescue workflows, care histories and geographic intelligence.</p>
+                <div className="fd-by"><span className="fd-mono" aria-hidden>JK</span><div><b>Jay Kapoor</b><span>Founder, StrayPaw · Student, University of Pittsburgh</span></div></div>
+                <Link href="/our-story#origin" className="fd-more">Read the full story <ArrowUpRight size={15} aria-hidden /></Link>
+              </div>
             </div>
           </div>
 

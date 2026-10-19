@@ -4,11 +4,15 @@ import { CoShell, CoSec } from "@/components/co3/CoShell";
 import { getSupabase } from "@/lib/supabase";
 import { getRegisterTotals } from "@/lib/register/totals";
 import { getOperationalPartners } from "@/lib/partners";
+import { getMapCities, getNationalCells } from "@/lib/livingmap/server";
+import { Origin, type City } from "@/components/company/Origin";
+import type { Cell } from "@/components/bindu/mapkit";
+import "@/components/company/origin.css";
 
 export const revalidate = 300;
 export const metadata = {
   title: "Our Story, StrayPaw",
-  description: "Why StrayPaw exists, its mission and vision, the rules it keeps, where its records come from and what is live today.",
+  description: "How StrayPaw began, from a community reporting tool with about 50 dogs reported to a shared record for street-animal care in India: the founder's story, mission, vision and progress.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -61,11 +65,16 @@ const LIVE = [
 ];
 
 export default async function OurStoryPage() {
-  const [sources, totals, partners] = await Promise.all([
+  const [sources, totals, partners, national, cities] = await Promise.all([
     getSources().catch(() => []),
     getRegisterTotals().catch(() => null),
     getOperationalPartners().catch(() => []),
+    getNationalCells().catch(() => null),
+    getMapCities().catch(() => []),
   ]);
+  const cells: Cell[] = (national?.cells ?? []).map(([lng, lat, n]) => [lng, lat, n]);
+  const originCities: City[] = cities.filter((c) => c.lng != null && c.lat != null && c.animals > 0).map((c) => ({ city: c.city, c: [c.lng!, c.lat!], animals: c.animals }));
+  const records = totals ? `${fmt(totals.animals)} animal records across ${fmt(totals.cities)} cities` : "tens of thousands of animal records across India";
   const partner = partners[0] ?? null;
 
   return (
@@ -78,15 +87,27 @@ export default async function OurStoryPage() {
         <Link href="/contact?subject=Our%20story" className="co3-btn is-line">Contact us</Link>
       </>}
     >
-      <CoSec n="01" title={<>Where it <em>started.</em></>}>
-        <p className="is-lead">The insight came from the records themselves.</p>
-        <p>One rescue register brought into StrayPaw held 169 open requests, and no column for who was responsible for them. Every request had been seen by someone. None of them had an owner.</p>
-        <p>That is how most street-animal care in India works today: generous, constant and almost entirely unrecorded. StrayPaw began as an attempt to give that work a memory.</p>
-      </CoSec>
+      <section className="co3-origin" id="origin" aria-labelledby="origin-h">
+        <div className="fd">
+          <div className="fd-art"><Origin cells={cells} cities={originCities} records={totals?.animals ?? 0} cityCount={totals?.cities ?? 0} /></div>
+          <div className="fd-text">
+            <p className="co3-k">01 · How StrayPaw began</p>
+            <h2 id="origin-h" className="fd-h">The problem was never a lack of people who cared. <em>It was a lack of connected infrastructure.</em></h2>
+            <p className="fd-first">StrayPaw started with a simple observation: India has people doing extraordinary work for street animals, but much of the information they depend on is scattered.</p>
+            <p>A dog might be reported in one WhatsApp group, discussed in another, treated by a volunteer, and recorded in a spreadsheet somewhere else. Each person may be doing their part, but the animal&rsquo;s story can disappear between those interactions.</p>
+            <p>Jay Kapoor, StrayPaw&rsquo;s founder and a student at the University of Pittsburgh, started building StrayPaw to change that. What began as a small community reporting tool, with roughly 50 dogs reported, has grown into a platform connecting animal records, rescue workflows, care histories, organisations and geographic intelligence.</p>
+            <p>Today StrayPaw holds {records}: mostly historical registers that organisations brought with them, so they are records rather than a count of unique animals. It works alongside a field partner in Coimbatore, and is building toward coordination at the scale of a city.</p>
+            <blockquote className="fd-quote">&ldquo;Street animal care deserves the same quality of technology, data infrastructure and operational tools that other essential systems depend on.&rdquo;</blockquote>
+            <p>The goal has never been to build the biggest map of street animals. It is to make the information behind animal care useful, continuous and accessible to everyone responsible for it. We are still early, and there is a great deal to build, improve and prove.</p>
+            <p className="fd-last">What StrayPaw is building is bigger than any one person: infrastructure that helps communities report, organisations coordinate, and cities understand what is happening on the ground.</p>
+            <div className="fd-by"><span className="fd-mono" aria-hidden>JK</span><div><b>Jay Kapoor</b><span>Founder, StrayPaw</span></div></div>
+          </div>
+        </div>
+      </section>
 
-      <CoSec n="02" title={<>The <em>problem.</em></>}>
-        <p className="is-lead">A resident sees an injured dog and posts in a group. A rescuer picks it up. A vet treats it. A feeder sees it again a month later.</p>
-        <p>Each of them keeps a piece of the story, in a chat, a sheet or a notebook, and the next person starts from nothing. Care is repeated or missed. Funders cannot see what worked. Cities plan sterilisation and response without knowing where help is needed.</p>
+      <CoSec n="02" title={<>The problem, <em>in one number.</em></>}>
+        <p className="is-lead">One rescue register brought into StrayPaw held 169 open requests, and no column for who was responsible for them.</p>
+        <p>Every request had been seen by someone; none had an owner. Care is repeated or missed. Funders cannot see what worked. Cities plan sterilisation and response without knowing where help is needed.</p>
       </CoSec>
 
       <CoSec n="03" title={<>Mission and <em>vision.</em></>}>

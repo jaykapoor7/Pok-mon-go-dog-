@@ -11,6 +11,8 @@
 .w4-why { padding-top: clamp(100px, 16svh, 170px); padding-bottom: clamp(60px, 10svh, 110px); }
 .w4-why h2 { max-width: 1100px; font-size: clamp(34px, 4.6vw, 76px); line-height: 1.02; font-weight: 700; letter-spacing: -0.055em; }
 .w4-why h2 em { color: var(--flame-ink); }
+.w4-intro { margin: clamp(26px, 4svh, 44px) 0 0; max-width: 62ch; font-size: clamp(17px, 1.35vw, 21px); line-height: 1.6; color: var(--ink-2); }
+.w4-founder { padding-bottom: clamp(60px, 10svh, 110px); scroll-margin-top: 80px; }
 .w4-cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 64px); margin-top: clamp(32px, 5svh, 56px); max-width: 1100px; }
 .w4-cols p { margin: 0; font-size: clamp(16px, 1.25vw, 19px); line-height: 1.6; color: var(--ink-2); }
 .w4-origin { padding: 20px 22px; border-radius: 10px; background: var(--paper); border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5.2px rgba(11, 30, 61, 0.5), 5px 5px 0 var(--flame); color: var(--ink) !important; }
