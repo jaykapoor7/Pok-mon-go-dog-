@@ -1,8 +1,18 @@
 # Skill Issue integration for StrayPaw
 
+## Installed in this repository
+
+The following upstream skill packages are committed under **both** `.claude/skills/` and `.agents/skills/`, so a normal checkout of this branch includes them without a separate install command:
+
+- `frontend-design`: upstream `SKILL.md` and Apache-2.0 license.
+- `react-best-practices`: upstream `SKILL.md` and compiled `AGENTS.md` (complete rules reference).
+- `web-design-guidelines`: upstream `SKILL.md`. This skill fetches fresh review guidelines at execution time, so a network-capable agent is needed to perform its audits.
+
+Pinned source copies were retrieved from the upstream default branches when this integration was made; updates require explicit review. They are **not** npm runtime dependencies. Other suggested skills remain optional and are not installed.
+
 Skill Issue (https://skill-issue.in/) is a *directory*, not a dependency. Install selected open-source skills from their upstream maintainers into this project's Claude/Codex workspace. We do not install everything in the directory.
 
-## Selected upstream skills (project scope)
+## Re-install or update upstream skills (optional)
 
 From the repository root, inspect upstream skill contents and provenance *before* running the following commands. GitHub CLI 2.90+ supports `gh skill preview` and `gh skill install`.
 
@@ -36,7 +46,7 @@ Use the source links and install commands presented for each skill on Skill Issu
 
 Both `.claude/skills/straypaw-skill-issue-workflow/SKILL.md` and `.agents/skills/straypaw-skill-issue-workflow/SKILL.md` route eligible tasks, preserve project rules, and explain which third-party skills to load. The existing `straypaw-design` and animation skills are retained unchanged.
 
-The upstream third-party skill packages are **not vendored or installed by this documentation change**. Running the commands above on a checkout is required to make those external skills available, followed by explicit review and commit if they should be shared through GitHub. This separation avoids importing unreviewed executable content into a production repository.
+Three reviewed upstream skills are vendored in both agent directories. Other skill candidates have not been installed. Future updates require source review. No production runtime dependency was added.
 
 ## Quality gate
 
