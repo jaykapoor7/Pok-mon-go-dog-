@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 // Real public routes: no API fixtures. These checks supplement the workflow
 // suite with launch-width layout, metadata and current-city verification.
 test.beforeEach(() => test.skip(!process.env.E2E_BASE_URL?.startsWith('https:'), 'requires the real deployed site'));
-const routes = ['/', '/for-ngos', '/for-governments', '/education', '/our-story', '/product', '/organisations', '/evidence', '/community', '/community/stories', '/city/insights', '/community/organisations', '/community/organisations/the-pawsome-people-project', '/community/report', '/learn', '/join', '/contact'];
+const routes = ['/', '/for-ngos', '/for-governments', '/education', '/our-story', '/product', '/solutions', '/evidence', '/community', '/community/stories', '/city/insights', '/community/organisations', '/community/organisations/the-pawsome-people-project', '/community/report', '/learn', '/join', '/contact'];
 for (const width of [1280, 390]) test(`public launch review at ${width}px`, async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'explicit launch widths');
   test.setTimeout(300_000);

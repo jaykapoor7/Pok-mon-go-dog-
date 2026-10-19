@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
@@ -11,30 +11,30 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 import "./header.css";
 
 /* ════════════════════════════════════════════════════════════════════
-   The site header, one bar on every company page.
+   The site header, one bar on every public page.
 
-   StrayPaw · Product · Explore Map · For Organisations · Our Story ·
-   Contact, and the one strong action, Open App. Glass over its ground:
-   night over a dark page, paper over a light one. On a phone the links
-   open as a full-screen sheet: the five places large, the shortcuts
-   residents and teams need most beneath them, and Open App at the thumb.
+   StrayPaw · Product · Solutions · Our Story, and the one strong action,
+   Open App. At the top of a page it lies flat across the paper; once
+   the page moves it lifts into a floating, ink-framed pill. A coral
+   brushstroke marks where you are and slides to whatever you point at.
+   On a phone the menu opens as a painted sheet that blooms out of the
+   button: the three places large, the shortcuts residents and teams need
+   most beneath them, Open App at the thumb.
    ════════════════════════════════════════════════════════════════════ */
 
 type NavKey = keyof Dictionary["nav"];
-type NavItem = { label: string; href: string; tKey?: NavKey; also?: string[] };
+type NavItem = { label: string; href: string; tKey?: NavKey; also?: string[]; hint?: string };
 
 const LINKS: NavItem[] = [
-  { label: "Product", href: "/product" },
-  { label: "Explore Map", href: "/explore", also: ["/community", "/map"] },
-  { label: "For Organisations", href: "/organisations", also: ["/for-ngos", "/for-governments", "/for-funders"] },
-  { label: "Our Story", href: "/our-story", also: ["/about"] },
-  { label: "Contact", href: "/contact" },
+  { label: "Product", href: "/product", hint: "What StrayPaw does" },
+  { label: "Solutions", href: "/solutions", also: ["/organisations", "/for-ngos", "/for-governments", "/for-funders"], hint: "For residents, NGOs, cities, partners" },
+  { label: "Our Story", href: "/our-story", also: ["/about"], hint: "Why we exist" },
 ];
 const SHORTCUTS = [
   { label: "Report an animal", href: "/community/report" },
-  { label: "For NGOs", href: "/for-ngos" },
-  { label: "For municipalities", href: "/for-governments" },
+  { label: "Explore the map", href: "/explore" },
   { label: "Sign in with your code", href: "/join" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
@@ -71,6 +71,16 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
 
   const here = (l: NavItem) => [l.href, ...(l.also ?? [])].some((h) => pathname === h || pathname.startsWith(h + "/"));
 
+  /* the brushstroke: under the current page, sliding to whatever is pointed at */
+  const nav = useRef<HTMLElement>(null);
+  const place = (el: HTMLElement | null) => {
+    const n = nav.current; if (!n) return;
+    if (!el) { n.style.setProperty("--iw", "0px"); return; }
+    n.style.setProperty("--ix", `${el.offsetLeft + 10}px`); n.style.setProperty("--iw", `${el.offsetWidth - 20}px`);
+  };
+  const rest = () => place(nav.current?.querySelector<HTMLElement>("a.is-here") ?? null);
+  useLayoutEffect(rest, [pathname]);
+
   return (
     <header className={`sp-header is-${tone} ${scrolled ? "is-scrolled" : ""} ${open ? "is-open" : ""}`}>
       <div className="sp-header-bar">
@@ -79,9 +89,9 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
           <span>StrayPaw</span>
         </Link>
 
-        <nav className="sp-nav" aria-label="Site">
+        <nav className="sp-nav" aria-label="Site" ref={nav} onMouseLeave={rest}>
           {LINKS.map((l) => (
-            <Link key={l.href} href={l.href} aria-current={here(l) ? "page" : undefined} className={here(l) ? "is-here" : ""}>
+            <Link key={l.href} href={l.href} aria-current={here(l) ? "page" : undefined} className={here(l) ? "is-here" : ""} onMouseEnter={(e) => place(e.currentTarget)} onFocus={(e) => place(e.currentTarget)} onBlur={rest}>
               {label(l)}
             </Link>
           ))}
@@ -98,13 +108,13 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
         </div>
       </div>
 
-      <div id="sp-sheet" className="sp-sheet" hidden={!open}>
+      <div id="sp-sheet" className="sp-sheet" data-open={open ? "1" : "0"} aria-hidden={!open} inert={!open ? true : undefined}>
         <nav aria-label="Site, menu">
           <ol>
             {LINKS.map((l, i) => (
               <li key={l.href} style={{ ["--i" as string]: i }}>
                 <Link href={l.href} onClick={() => setOpen(false)} aria-current={here(l) ? "page" : undefined}>
-                  <span>{label(l)}</span><ArrowUpRight size={20} aria-hidden />
+                  <i aria-hidden>{String(i + 1).padStart(2, "0")}</i><span>{label(l)}<small>{l.hint}</small></span><ArrowUpRight size={22} aria-hidden />
                 </Link>
               </li>
             ))}
