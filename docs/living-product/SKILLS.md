@@ -5,7 +5,7 @@ Project instructions and architecture read before implementation. Latest main fe
 | Skill | Successfully loaded resources | Application |
 | --- | --- | --- |
 | frontend-design | `.agents/skills/frontend-design/SKILL.md` | Preserve the current frame, write a subject-specific composition direction, build one useful live interaction, inspect screenshots and refine. |
-| React performance | `.agents/skills/vercel-react-best-practices/SKILL.md`, `rules/server-serialization.md` | Parallel cached/bounded server reads, a server-rendered animal record slot, minimal client props, no map engine or animation library in the new interaction. |
+| React performance | `.agents/skills/vercel-react-best-practices/SKILL.md`, `rules/server-serialization.md` | Parallel cached/bounded server reads, a server-rendered, explicitly illustrative Pinky profile slot, minimal client props, no map engine or animation library in the new interaction. |
 | web-design-guidelines | Local SKILL.md and fresh upstream command.md | Native controls, labelled fields, visible focus, touch sizes, meaningful button names, no-JS protection, reduced motion. |
 | ui-ux-pro-max | Local full skill, Python search and UX dataset | Ran the targeted interactive feedback query. Applied input affordances, visible selected states and explicit local feedback, retaining StrayPaw tokens. |
 | taste-skill | `.agents/skills/design-taste-frontend/SKILL.md`, critique reference, existing direction draw | Retained Loud and flat, seed 1007166845, because this evolves an approved design. Used the shared record as the live thing and human art as material; browser inspector and written critique. |

@@ -85,7 +85,19 @@ test("hero switches without movement and retains real destinations", async ({ pa
   await hero.getByRole("button", { name: "Living Map", exact: true }).click();
   await expect(hero.locator("#living-geography")).toBeVisible();
   await expect(hero.locator("#living-record")).toBeHidden();
-  await hero.getByRole("button", { name: "Animal record", exact: true }).click();
+  await hero.getByRole("button", { name: "Example profile", exact: true }).click();
   await expect(hero.locator("#living-record")).toBeVisible();
   expect(await hero.evaluate(el => el.getAnimations({ subtree: true }).length)).toBe(0);
+});
+
+
+test("Pinky preview keeps sample care separate from real public data", async ({ page }) => {
+  await page.goto("/");
+  const profile = page.getByRole("article", { name: "Pinky example profile, not her medical history" });
+  await expect(profile.getByRole("img")).toHaveAttribute("src", /pinky-bengaluru/);
+  await expect(profile).toContainText("Sterilised");
+  await expect(profile).toContainText("Example status");
+  await expect(profile).toContainText("not her medical history");
+  await expect(profile.getByRole("listitem")).toHaveCount(3);
+  await expect(profile.locator('a[href^="/animal/"]')).toHaveCount(0);
 });

@@ -3,11 +3,11 @@ import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { getLandingStory, getAnimalRegister } from "@/lib/landing/story";
+import { getLandingStory } from "@/lib/landing/story";
 import { getMapCities } from "@/lib/livingmap/server";
 import { sxSerif } from "@/components/shell/fonts";
 import { DemoProvider } from "@/components/request/DemoProvider";
-import { PublicAnimal } from "@/components/marketing/PublicAnimal";
+import { ExampleProfile } from "@/components/marketing/ExampleProfile";
 import { HeroRecord } from "@/components/marketing/HeroRecord";
 import { WORK_IMAGES, creditLine } from "@/lib/art/sources";
 import { RecordMap } from "@/components/marketing/RecordMap";
@@ -27,8 +27,8 @@ export const metadata = {
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
 export default async function HomePage() {
-  const [story, cities, register] = await Promise.all([getLandingStory().catch(() => null), getMapCities().catch(() => []), getAnimalRegister().catch(() => ({ total: 0, cards: [] }))]);
-  const animal = register.cards.find(a => a.care.length > 0) ?? register.cards[0] ?? null;
+  const [story, cities] = await Promise.all([getLandingStory().catch(() => null), getMapCities().catch(() => [])]);
+  const animal = story?.relay ? { id: story.relay.animalId, straypaw_id: story.relay.straypawId } : null;
   const totals = story?.totals;
   const city = cities.find((c) => c.city === story?.hero.city);
   const brief = city ? { city: city.city, animals: city.animals, cells: city.cells, sterilised: city.sterilised, ster_unknown: city.ster_unknown, cases: city.cases } : null;
@@ -53,7 +53,7 @@ export default async function HomePage() {
             </div>
           </div>
           <figure className="pr-hero-art">
-            <HeroRecord record={<PublicAnimal animal={animal} />} map={<RecordMap story={story} />} place={story?.hero.city ?? null} places={cities.filter(c => c.animals > 0).slice(0, 4).map(c => ({ name: c.city, href: `/explore?city=${encodeURIComponent(c.city)}` }))} />
+            <HeroRecord record={<ExampleProfile />} map={<RecordMap story={story} />} place={story?.hero.city ?? null} places={cities.filter(c => c.animals > 0).slice(0, 4).map(c => ({ name: c.city, href: `/explore?city=${encodeURIComponent(c.city)}` }))} />
             <figcaption><Link href="/art-credits">Palampore, Coromandel Coast · The Met · CC0</Link></figcaption>
           </figure>
           <div className="pr-hero-record">
@@ -71,22 +71,22 @@ export default async function HomePage() {
         <section id="how" className="pr-section pr-ecosystem" aria-labelledby="ecosystem-title">
           <Commons map={<RecordMap story={story} />} queue={story?.desk.queue ?? []} locs={locs} brief={brief} place={story?.hero.city ?? "Your area"} />
         </section>
-        <section id="company" className="pr-section pr-company" aria-labelledby="company-title">
+        <section id="company" className="pr-section pr-company lp-company-close" aria-labelledby="company-title">
+          <div className="pr-company-editorial">
+            <h2 id="company-title">Better care starts with better information.</h2>
+            <dl className="lp-company-ledger">
+              <div><dt>Why</dt><dd>Care needs a record beyond chats and spreadsheets.</dd></div>
+              <div><dt>Built</dt><dd>Reporting, cases, animal histories and the Living Map.</dd></div>
+              <div><dt>Next</dt><dd>More field partners. Better local coverage.</dd></div>
+            </dl>
+            <Link href="/partner-apply" className="sw-btn is-flame">Work with us <ArrowUpRight size={17} aria-hidden /></Link>
+          </div>
           <figure className="pr-company-art">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={WORK_IMAGES.dogWithPups.src} width={1400} height={997} alt="Dog with pups, a hand-painted Rajasthani work from about 1780, showing a mother dog with five puppies." loading="lazy" />
+            <img src={WORK_IMAGES.dogWithPups.src} width={1400} height={997} alt="Dog with pups, a hand-painted Rajasthani work from about 1780. An artwork, not a photograph of a StrayPaw animal." loading="lazy" />
             <figcaption><Link href="/art-credits">{creditLine("dogWithPups")}</Link></figcaption>
-            {animal && <p className="lp-company-record">One animal, on the record: <Link href={`/animal/${animal.id}`}>{animal.straypaw_id ?? "Public history"}</Link>. Recorded history may be imported; it is not proof of a rescue by StrayPaw.</p>}
+            {animal && <div className="lp-company-record"><span>Actual public record</span><Link href={`/animal/${animal.id}`}>{animal.straypaw_id ?? "Open animal history"} <ArrowUpRight size={16} aria-hidden /></Link><p>History may be imported. A record is not a rescue outcome.</p></div>}
           </figure>
-          <div className="pr-company-editorial">
-            <h2 id="company-title">A shared record for better care.</h2>
-            <div className="pr-company-topics">
-              <div><h3>Why StrayPaw exists.</h3><p>Care is spread across chats, sheets and notebooks. The next person needs a record they can build on.</p></div>
-              <div><h3>What we’ve built.</h3><p>Reporting, case management, animal histories and a Living Map in one platform.</p><Link href="/product">Explore the product</Link></div>
-              <div><h3>What’s next.</h3><p>More field partners and better local coverage, with the limits of the record kept visible.</p><Link href="/our-story">Read our story</Link></div>
-            </div>
-          </div>
-          <div className="pr-closing"><h2>Better care starts with better information.</h2><Link href="/partner-apply" className="sw-btn is-paper">Work with us <ArrowUpRight size={17} aria-hidden /></Link></div>
         </section>
       </main></DemoProvider>
       <SiteFooter />

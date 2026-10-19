@@ -495,3 +495,112 @@ body:has(.folio) .snotice { padding: 14px 16px; }
 body:has(.folio) .snotice p { font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
 @media(max-width:760px) { body:has(.folio) .snotice { bottom: calc(10px + env(safe-area-inset-bottom)); } }
 .folio .lp-public-figures dl { margin: 0; }
+/* Final chapters: one task per audience, one concise company close. */
+.folio .pr-hero { position: relative; background: var(--blue); color: var(--shell); isolation: isolate; }
+.folio .pr-hero::before { content: ""; position: absolute; z-index: -1; inset: 0 0 0 46%; background: url('/art/works/palampore-tree.webp') 50% 44% / cover no-repeat; }
+.folio .pr-hero-copy { padding: 30px 0; background: var(--blue); }
+.sp.sw.folio .pr-hero h1 { color: var(--shell); }
+.folio .pr-hero .pr-lede, .folio .pr-hero-record, .folio .pr-hero .pr-place { color: var(--shell); }
+.folio .pr-hero-record { position: relative; background: var(--blue); padding: 24px 0 0; margin-top: 0; }
+.folio .pr-hero-record :is(dt,dd,.pr-note), .sp.sw.folio .pr-metrics dd small { color: var(--shell); }
+.folio .pr-hero-record a { color: var(--shell); text-decoration: underline; }
+.folio .lw-world { padding: 16px 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; color: var(--ink); }
+.folio .lw-canopy { display: none; }
+.folio .lw-desk { box-shadow: 5px 5px 0 var(--ink); }
+.folio .pr-hero-art > figcaption { padding: 6px 8px; background: var(--blue); width: fit-content; margin: 0 0 0 auto; border-radius: 4px; }
+.folio .pr-hero-art > figcaption a { color: var(--shell); }
+.folio .lw-animal-note { max-width: none; }
+.folio .pr-request { background-image: url('/art/works/palampore-border.webp'); background-position: left top; background-size: auto 24px; background-repeat: repeat-x; padding-top: 64px; }
+.folio .pr-ecosystem { background: var(--flame); }
+.folio .pr-ecosystem::before { width: 150px; opacity: .18; background-size: auto 150px; }
+.folio .pr-commons > header { max-width: 900px; }
+.folio .pr-audience { display: block; min-height: 0; }
+.folio .lp-audience-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 20px; }
+.sp.sw.folio .lp-audience-bar h3 { font: inherit; font-size: 23px; font-weight: 600; letter-spacing: -.025em; margin: 0; }
+.folio .lp-audience-bar a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ink); font-size: 14px; text-decoration: underline; }
+.folio .lp-audience-task { max-width: 100%; }
+.folio .lp-audience-task > article { padding: 24px; border-radius: 18px; box-shadow: 4px 4px 0 var(--ink); }
+.folio .lp-audience-task > article > header { margin: 0 0 18px; }
+.folio .lp-audience-task > article > header > span { font-size: 13px; }
+.folio .lp-resident-receipt { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); column-gap: 40px; padding: 0; background: none; border-radius: 0; }
+.folio .lp-resident-receipt > :is(span,b,p) { grid-column: 1; }
+.folio .lp-resident-receipt > .brief { grid-column: 2; grid-row: 1 / 5; align-self: center; padding: 16px 24px; background: #e7edf8; border-radius: 12px; }
+.folio .lp-resident-receipt > :is(button,a) { grid-column: 1; justify-self: start; margin-top: 8px; }
+.folio .lp-receipt-stamp { display: none; }
+.folio .lp-resident-receipt > b { font-size: 24px; }
+.folio .lp-resident-receipt > p { font-size: 16px; line-height: 1.6; max-width: 40ch; }
+.folio .lp-audience-task .lp-workspace { box-shadow: 4px 4px 0 var(--ink); }
+.folio .lp-audience-task .lp-panel { min-height: 270px; }
+.folio .lp-audience-task .lp-public-figures { max-width: 800px; gap: 60px; }
+.folio .lp-audience-task .lp-public-figures dd { font-size: 54px; }
+.folio .lp-audience-task .lp-city-map { float: left; width: 54%; margin: 0 28px 12px 0; }
+.folio .lp-audience-task .lp-live-link { clear: both; }
+.folio .lp-company-close { background: var(--shell); color: var(--ink); grid-template-columns: minmax(0,1fr) minmax(0,.8fr); gap: 48px; align-items: center; }
+.sp.sw.folio .lp-company-close h2 { color: var(--ink); font-size: clamp(46px,4.8vw,68px); line-height: 1.03; max-width: 17ch; }
+.folio .lp-company-ledger { margin: 28px 0; display: grid; gap: 16px; }
+.folio .lp-company-ledger > div { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 16px; font-size: 16px; line-height: 1.5; }
+.folio .lp-company-ledger dt { font-weight: 650; }
+.folio .lp-company-ledger dd { margin: 0; max-width: 40ch; }
+.folio .lp-company-close .pr-company-art { max-width: none; width: 100%; padding: 16px 16px 0; background: #344744; border-radius: 60% 60% 12px 12px / 30% 30% 12px 12px; overflow: hidden; }
+.folio .lp-company-close .pr-company-art img { border-radius: 50% 50% 0 0 / 25% 25% 0 0; }
+.folio .lp-company-close .pr-company-art figcaption { margin: 0; padding: 12px 0; }
+.folio .lp-company-close .pr-company-art figcaption a { color: var(--shell); font-size: 11px; }
+.folio .lp-company-close .lp-company-record { background: var(--shell); padding: 16px; margin: 0 -16px; border: 1.5px solid var(--ink); border-radius: 0 0 12px 12px; }
+.folio .lp-company-record > span { display: block; font-size: 12px; margin-bottom: 10px; }
+.folio .lp-company-close .lp-company-record > a { display: inline-flex; align-items: center; gap: 6px; color: var(--blue); font-size: 19px; font-weight: 600; min-height: 44px; }
+.folio .lp-company-record p { font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+@media(max-width:760px) {
+ .folio .pr-hero { gap: 16px; padding-top: 22px; }
+ .folio .pr-hero::before { inset: 0; }
+ .folio .pr-hero-copy { margin: -22px -20px 0; padding: 28px 20px 24px; }
+ .folio .pr-hero-art { padding: 8px; }
+ .folio .lw-world { padding: 0 0 8px; }
+ .folio .lw-desk { box-shadow: 3px 3px 0 var(--ink); }
+ .folio .pr-hero-record { padding: 20px; margin: 0 -20px -24px; }
+ .folio .pr-request { padding-top: 52px; background-size: auto 20px; }
+ .folio .lp-audience-bar { display: block; margin-bottom: 14px; }
+ .sp.sw.folio .lp-audience-bar h3 { font-size: 22px; }
+ .folio .lp-audience-bar a { font-size: 13px; margin-top: 4px; }
+ .folio .lp-audience-task > article { padding: 18px; }
+ .folio .lp-resident-receipt { display: block; }
+ .folio .lp-resident-receipt > b { font-size: 20px; }
+ .folio .lp-resident-receipt > p { font-size: 15px; }
+ .folio .lp-resident-receipt > .brief { padding: 12px 14px; margin: 16px 0; }
+ .folio .lp-audience-task .lp-public-figures { gap: 18px; }
+ .folio .lp-audience-task .lp-public-figures dd { font-size: 32px; }
+ .folio .lp-audience-task .lp-city-map { float: none; width: 100%; margin: 0 0 16px; }
+ .folio .lp-company-close { gap: 28px; }
+ .sp.sw.folio .lp-company-close h2 { font-size: 46px; max-width: 18ch; }
+ .folio .lp-company-ledger { gap: 12px; margin: 24px 0; }
+ .folio .lp-company-ledger > div { font-size: 15px; gap: 10px; grid-template-columns: 42px 1fr; }
+ .folio .lp-company-close .pr-company-art { max-width: 330px; }
+}
+.folio .lp-example-profile .lw-photo img { object-position: 70% 50%; }
+.folio .lp-example-profile .lw-file > p { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+.folio .lp-example-status { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; color: #154f45; background: #d8ebe1; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+.folio .lp-example-status > span { font-size: 11px; flex-basis: 100%; padding-left: 19px; }
+.folio .lp-example-timeline-title { font-size: 12px; font-weight: 650; margin: 16px 0 12px; }
+.folio .lp-example-timeline { list-style: none; margin: 0; padding: 0; }
+.folio .lp-example-timeline li { position: relative; display: flex; gap: 8px; padding: 0 0 14px; }
+.folio .lp-example-timeline li:not(:last-child)::after { content: ""; position: absolute; top: 8px; left: 3px; bottom: 0; width: 1px; background: #a9b9d8; }
+.folio .lp-example-timeline li > span { width: 7px; height: 7px; border: 1.5px solid var(--blue); border-radius: 50%; background: #fffdf9; flex: none; margin-top: 3px; z-index: 1; }
+.folio .lp-example-timeline b { font-size: 12px; display: block; }
+.folio .lp-example-timeline small { display: block; font-size: 11px; margin-top: 3px; color: var(--ink-2); }
+.sp.sw.folio .pr-hero-art > figcaption, .sp.sw.folio .pr-hero-art > figcaption a, .folio .lp-company-close .pr-company-art figcaption a { font-size: 10px; line-height: 1.4; font-weight: 400; }
+.folio .pr-hero-art > figcaption { max-width: 42ch; }
+.folio .pr-company-art figcaption { padding-block: 8px; }
+.folio .lw-world noscript p { background: var(--shell); color: var(--ink); font-size: 13px; padding: 10px; border-radius: 8px; }
+@media(max-width:760px) {
+ .folio .lp-example-profile .lw-photo { min-height: 365px; }
+ .folio .lp-example-profile .lw-file { padding: 12px 10px; }
+ .folio .lp-example-status { padding: 8px; }
+ .folio .lp-example-timeline-title { margin-top: 14px; }
+ .folio .lp-example-timeline b { font-size: 12px; }
+}
+.folio .pr-hero :is(a,button):focus-visible { outline-color: var(--shell); }
+.folio .lw-desk :is(a,button):focus-visible, .folio .lp-company-close :is(a,button):focus-visible { outline-color: var(--blue); }
+.folio .pr-ecosystem :is(.pr-tabs button,.lp-audience-bar a):focus-visible { outline-color: var(--ink); }
+.folio .pr-hero { max-width: none; }
+@media(min-width:761px) {
+ .folio .pr-hero-record { margin-inline: calc(-1 * max(24px,calc((100vw - 1280px)/2))); padding: 24px max(24px,calc((100vw - 1280px)/2)) 0; }
+}
