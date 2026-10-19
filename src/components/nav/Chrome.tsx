@@ -11,6 +11,7 @@ const OWN_CHROME = new Set<string>([
   "/about",
   "/our-story",
   "/product",
+  "/municipalities",
   "/solutions",
   // This is a server redirect to the organisation directory. Rendering the
   // client console around an empty redirect boundary caused a hydration

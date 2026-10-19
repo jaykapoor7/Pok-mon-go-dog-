@@ -136,3 +136,10 @@
 @media(prefers-reduced-motion:reduce) { .sp.co3.precision .co3-btn, .sp.co3.precision .ct-actions button { transition: none; transform: none; } }
 /* Artwork credits are discreet metadata; full provenance stays on Art credits. */
 .sp.precision a[href="/art-credits"], .sp.precision .pr-audience-art figcaption { font-size: 10px; line-height: 1.4; font-weight: 400; }
+/* The advertised WhatsApp fee is supplied by StrayPaw, not estimated usage. */
+.precision .pr-whatsapp-price { padding: 26px; border-radius: 22px; background: #2457ce; color: #f3ede4; border: 1.5px solid #0b1e3d; }
+.precision .pr-whatsapp-price > b { font-size: 18px; }
+.precision .pr-whatsapp-price .pr-price-amount { font-size: 48px; font-weight: 600; letter-spacing: -.04em; margin: 20px 0; line-height: 1.1; }
+.precision .pr-price-amount span { display: block; font-size: 16px; letter-spacing: 0; margin-top: 8px; }
+.precision .pr-whatsapp-price .co3-btn { background: #f05b40; color: #0b1e3d; border-color: #0b1e3d; white-space: normal; text-align: center; }
+.precision .pr-whatsapp-price p { color: #f3ede4; }

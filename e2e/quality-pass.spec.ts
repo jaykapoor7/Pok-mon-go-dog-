@@ -10,7 +10,7 @@ test("the homepage stays readable while scrolling both ways, including reduced m
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await expect(page.locator("main > section")).toHaveCount(4);
-  await expect(page.locator("h1")).toHaveText("The care infrastructure for India’s street animals.");
+  await expect(page.locator("h1")).toHaveText("The digital infrastructure for India’s street animals.");
   for (const id of ["world", "why", "how", "company", "how", "why", "world"]) {
     const section = page.locator(`#${id}`);
     await section.scrollIntoViewIfNeeded();

@@ -58,9 +58,9 @@ test("one request: an example receipt explains the three acts and can be replaye
   await page.goto("/");
   const request = page.locator("#why");
   await request.scrollIntoViewIfNeeded();
-  for (const name of ["Report", "Coordinate", "Understand"]) await expect(request.getByRole("heading", { name, exact: true })).toBeVisible();
+  await expect(request.getByText("Report → Coordinate → Understand", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Send the example report" }).click();
-  await expect(request.getByRole("status")).toContainText("no organisation has accepted");
+  await expect(request.getByRole("status")).toContainText("pending acceptance");
   await page.getByRole("button", { name: "Replay the example" }).click();
   await expect(page.getByRole("button", { name: "Send the example report" })).toBeEnabled();
   expect(errors).toEqual([]);

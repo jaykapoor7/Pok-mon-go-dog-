@@ -27,6 +27,7 @@ type NavItem = { label: string; href: string; tKey?: NavKey; also?: string[]; hi
 
 const LINKS: NavItem[] = [
   { label: "Product", href: "/product", hint: "What StrayPaw does" },
+  { label: "Municipalities", href: "/municipalities", hint: "Paid pilots and the field network" },
   { label: "Solutions", href: "/solutions", also: ["/organisations", "/for-ngos", "/for-governments", "/for-funders"], hint: "For residents, NGOs, cities, partners" },
   { label: "Our Story", href: "/our-story", also: ["/about"], hint: "Why we exist" },
 ];
@@ -43,6 +44,7 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
   const label = (item: { label: string; tKey?: NavKey }) => (item.tKey ? t.nav[item.tKey] : item.label);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const previousPath = useRef(pathname);
   /* Someone who has picked a space before goes straight back to it; the
      picker is for the first visit, and is one "Switch space" away after. */
   const [appHref, setAppHref] = useState("/app?choose=1");
@@ -79,7 +81,10 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
     return () => { cancelAnimationFrame(frame); document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; if (previous?.isConnected) previous.focus(); };
 
   }, [open]);
-  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (previousPath.current !== pathname) setOpen(false);
+    previousPath.current = pathname;
+  }, [pathname]);
 
   const here = (l: NavItem) => [l.href, ...(l.also ?? [])].some((h) => pathname === h || pathname.startsWith(h + "/"));
 

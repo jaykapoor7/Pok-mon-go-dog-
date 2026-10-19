@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ArrowUpRight, Camera, Check, MapPin } from "lucide-react";
 import { AudienceTask } from "./AudienceTask";
+import { useDemo } from "@/components/request/DemoProvider";
 import { WORK_IMAGES, creditLine, type WorkImageKey } from "@/lib/art/sources";
 
 export type Queue = { condition: string; locality: string; days: number; critical: boolean }[];
@@ -26,6 +27,7 @@ export const PLACES: Record<string, { work: WorkImageKey; hot: Box; pos: string 
 
 export function Commons({ brief, locs, map }: { map?: ReactNode; queue: Queue; brief: CityBrief; locs: Loc[]; place: string }) {
   const [i, setI] = useState(0);
+  const { demo } = useDemo();
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const chooseKey = (e: KeyboardEvent, j: number) => {
     let next: number;
@@ -42,9 +44,12 @@ export function Commons({ brief, locs, map }: { map?: ReactNode; queue: Queue; b
     <div className="pr-tabs" role="tablist" aria-label="Who StrayPaw serves">
       {WAYS.map((way, j) => <button key={way.k} ref={el => { tabs.current[j] = el; }} id={`ecosystem-tab-${way.k}`} type="button" role="tab" aria-controls="ecosystem-panel" aria-selected={i === j} tabIndex={i === j ? 0 : -1} onClick={() => setI(j)} onKeyDown={e => chooseKey(e, j)}>{way.who}<ArrowUpRight size={20} aria-hidden /></button>)}
     </div>
-    <div id="ecosystem-panel" className="pr-audience" role="tabpanel" tabIndex={0} aria-labelledby={`ecosystem-tab-${w.k}`}>
+    <div id="ecosystem-panel" className="pr-audience depth-role-stage" role="tabpanel" tabIndex={0} aria-labelledby={`ecosystem-tab-${w.k}`}>
+      <aside className="depth-role-context" aria-label="Context for this view"><PlaceArt k={w.k} className="depth-role-art" compactCredits /><div>{w.k === "res" || w.k === "ngo" ? <><span>The shared example</span><b>Report near the bus stand</b><p>{demo.sent ? demo.accepted ? "Example accepted · care pending." : "Received. Pending acceptance." : "Try Send in One Request, or load the example here."}</p></> : <><span>Actual public record</span><b>{brief?.city ?? "Public coverage"}</b><p>Public geographic records and their sources.</p></>}</div></aside>
+      <div className="depth-role-work">
       <div className="lp-audience-bar"><h3>{w.verb}</h3><Link href={w.href}>{w.cta} <ArrowUpRight size={15} aria-hidden /></Link></div>
       <AudienceTask kind={w.k} brief={brief} locs={locs} map={map} />
+      </div>
     </div>
   </div>;
 }
@@ -92,14 +97,14 @@ export function SoftwarePreview({ kind, queue, brief, locs, place = "Your area" 
 }
 
 /** One of the four works on its own (the Solutions page uses them), credited. */
-export function PlaceArt({ k, className }: { k: string; className?: string }) {
+export function PlaceArt({ k, className, compactCredits = false }: { k: string; className?: string; compactCredits?: boolean }) {
   const pl = PLACES[k]; if (!pl) return null;
   const im = WORK_IMAGES[pl.work];
   return (
     <figure className={className}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={im.src} width={im.w} height={im.h} alt="" loading="lazy" decoding="async" style={{ objectPosition: pl.pos }} />
-      <figcaption>{creditLine(pl.work)}</figcaption>
+      <figcaption><Link href="/art-credits" aria-label={compactCredits ? `Art credits: ${creditLine(pl.work)}` : undefined}>{compactCredits ? "Art credits" : creditLine(pl.work)}</Link></figcaption>
     </figure>
   );
 }
