@@ -1,0 +1,42 @@
+/* ════════════════════════════════════════════════════════════════════
+   Solutions: tabs like painted labels; each view wipes in from the tab
+   that was chosen, its painted place beside the problem, the workflow
+   and a live glimpse of the software.
+   ════════════════════════════════════════════════════════════════════ */
+
+.co3-sol { max-width: 1320px; margin: 0 auto; padding: clamp(60px, 9svh, 100px) clamp(16px, 4vw, 56px); scroll-margin-top: 80px; }
+.au { --ox: 50%; --oy: 0px; }
+.au-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+.au-tabs button { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); font: inherit; font-size: 15px; font-weight: 650; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); transition: transform 0.2s var(--spring), box-shadow 0.2s, background 0.25s; }
+.au-tabs button i { font-family: var(--mono); font-style: normal; font-size: 12px; color: var(--flame-ink); }
+.au-tabs button:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+.au-tabs button.is-on { background: var(--marigold, #f2b632); box-shadow: 3px 3px 0 var(--flame); }
+.au-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(280px, 0.8fr); gap: 28px; align-items: start; padding: 26px; border-radius: 12px; background: var(--paper);
+  border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 6.4px rgba(11, 30, 61, 0.5), 8px 8px 0 rgba(11, 30, 61, 0.85); }
+@media (prefers-reduced-motion: no-preference) {
+  .au-panel { animation: au-wipe 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) backwards; }
+}
+@keyframes au-wipe { from { clip-path: circle(0 at var(--ox) var(--oy)); } to { clip-path: circle(150% at var(--ox) var(--oy)); } }
+.au-art { position: sticky; top: 96px; }
+.au-place { display: block; width: 100%; aspect-ratio: 600 / 320; border-radius: 8px; border: 1.5px solid var(--ink); }
+.au-main h2 { font-size: clamp(28px, 2.8vw, 44px); line-height: 1.02; font-weight: 700; letter-spacing: -0.05em; }
+.au-main h2 em { color: var(--flame-ink); }
+.au-problem { margin: 16px 0 18px; padding: 14px 16px; border-radius: 8px; background: #fbeee0; font-size: 15.5px; line-height: 1.55; color: var(--ink-2); }
+.au-problem b { display: block; margin-bottom: 2px; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 20px; color: var(--flame-ink); }
+.au-flow { list-style: none; margin: 0 0 18px; padding: 0 0 0 18px; display: grid; gap: 12px; border-left: 2px solid var(--marigold, #f2b632); counter-reset: s; }
+.au-flow li { position: relative; display: grid; gap: 2px; counter-increment: s; }
+.au-flow li::before { content: counter(s); position: absolute; left: -31px; top: 0; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--flame); color: #fff; font-size: 12px; font-weight: 700; border: 1.5px solid var(--ink); }
+.au-flow b { font-size: 16px; } .au-flow span { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+.au-get { list-style: none; margin: 0 0 20px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+.au-get li { display: flex; gap: 6px; font-size: 13.5px; font-weight: 600; line-height: 1.4; } .au-get svg { flex: none; margin-top: 2px; color: var(--teal); }
+.au-acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.au-live { position: sticky; top: 96px; }
+.au-live .ec-scr { box-shadow: 5px 5px 0 var(--flame); }
+
+@media (max-width: 1100px) { .au-panel { grid-template-columns: 1fr 1fr; } .au-live { grid-column: 1 / -1; position: static; } .au-art { position: static; } }
+@media (max-width: 760px) {
+  .au-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 16px; padding: 0 16px 6px; }
+  .au-tabs button { flex: none; min-height: 44px; font-size: 14px; }
+  .au-panel { grid-template-columns: 1fr; padding: 16px; gap: 18px; }
+  .au-get { grid-template-columns: 1fr; }
+}

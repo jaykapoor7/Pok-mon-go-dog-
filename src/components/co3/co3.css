@@ -141,3 +141,49 @@
 .co3 .vi-land { fill: #f3ede4; stroke: var(--ink); stroke-width: 0.3; stroke-linejoin: round; }
 .co3 .vi-echo { fill: none; stroke: var(--flame); stroke-width: 0.3; opacity: 0.6; }
 .co3 .vi-pt { fill: var(--flame); stroke: #f2b632; stroke-width: 0.25; }
+
+/* ════════ StrayPaw 3.0: the painted identity on every company page ════════ */
+.co3 .co3-btn { border: 1.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); transition: transform 0.2s var(--spring), box-shadow 0.2s; }
+.co3 .co3-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.co3 .co3-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.co3 .co3-btn.is-flame { box-shadow: 3px 3px 0 var(--ink); }
+.co3 .co3-btn.is-line, .co3 .co3-btn.is-out { background: var(--paper); border-color: var(--ink); }
+.co3 .co3-btn.is-ink { background: var(--ink); }
+
+.co3 .co3-hero { position: relative; overflow: visible; padding: 0; background: var(--shell); min-height: clamp(520px, 74svh, 760px); display: flex; align-items: center; }
+.co3 .co3-hero::before { display: none; }
+.co3-band { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.co3 .co3-hero-in { position: relative; z-index: 2; margin: 0 0 0 clamp(16px, 4.4vw, 76px); width: min(620px, 52vw); padding: clamp(24px, 2.6vw, 38px); border-radius: 6px; background: rgba(255, 253, 249, 0.96);
+  border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 6.4px var(--ink), 8px 8px 0 rgba(11, 30, 61, 0.85); }
+.co3 .co3-hero-in::before { content: ""; display: block; height: 10px; margin: -8px 0 16px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10'%3E%3Cellipse cx='5' cy='5' rx='4' ry='2' fill='%23f05b40' stroke='%230b1e3d' stroke-width='.7' transform='rotate(-25 5 5)'/%3E%3Cellipse cx='15' cy='5' rx='4' ry='2' fill='%23f2b632' stroke='%230b1e3d' stroke-width='.7' transform='rotate(25 15 5)'/%3E%3C/svg%3E") repeat-x; }
+.co3 .co3-hero h1 { font-size: clamp(36px, 4.4vw, 72px); }
+.co3 .co3-lede { margin-top: 16px; }
+.co3 .co3-hero .co3-acts { margin-top: 24px; }
+
+/* sections: leaf rules between movements, painted frames on cards */
+.co3 .co3-sec { border-top: 0; position: relative; }
+.co3 .co3-sec + .co3-sec::before, .co3 .co3-hero + .co3-sec::before, .co3 .co3-sec + .co3-contact::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 12px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 1h24M0 11h24' stroke='%230b1e3d' stroke-width='1'/%3E%3Cellipse cx='6' cy='6' rx='4.4' ry='2' fill='%23f05b40' stroke='%230b1e3d' stroke-width='.7' transform='rotate(-28 6 6)'/%3E%3Cellipse cx='18' cy='6' rx='4.4' ry='2' fill='%23f2b632' stroke='%230b1e3d' stroke-width='.7' transform='rotate(28 18 6)'/%3E%3C/svg%3E") repeat-x 0 0 / auto 12px; }
+.co3 .co3-hero + .co3-sec::before { display: none; }
+.co3 .co3-cap, .co3 .co3-form { border-radius: 10px; border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5.2px rgba(11, 30, 61, 0.45), 5px 5px 0 rgba(11, 30, 61, 0.85); }
+.co3 .co3-cap:hover { transform: translate(-2px, -2px); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5.2px rgba(11, 30, 61, 0.45), 7px 7px 0 var(--flame); }
+.co3 .co3-cap li::before { background: var(--flame); box-shadow: 0 0 0 2px #f2b632; }
+.co3 .co3-figs div { border-top: 2px solid var(--ink); }
+.co3 .co3-list li { border-top: 1px dashed rgba(11, 30, 61, 0.3); }
+.co3 .co3-names li { border-bottom: 1px dashed rgba(11, 30, 61, 0.25); }
+
+/* the close: painted India over the Gond-lined sea */
+.co3 .co3-close { position: relative; overflow: hidden; background: var(--sea); color: var(--ink); }
+.co3 .co3-close h2 { position: relative; z-index: 1; }
+.co3 .co3-close h2 em { color: var(--flame-ink); }
+.co3 .co3-close .co3-acts { position: relative; z-index: 1; }
+.co3-close-vi { position: absolute; right: 4vw; top: 50%; height: 120%; width: auto; transform: translateY(-50%); opacity: 0.9; pointer-events: none; }
+.co3 .co3-foot { background: var(--ink); }
+
+@media (max-width: 760px) {
+  .co3 .co3-hero { display: block; min-height: 0; padding: 0 0 8px; }
+  .co3-band { position: relative; height: 260px; }
+  .co3 .co3-hero-in { width: auto; margin: -56px 10px 0; padding: 20px 18px; }
+  .co3 .co3-hero h1 { font-size: clamp(30px, 8.6vw, 40px); }
+  .co3-close-vi { right: -40vw; opacity: 0.45; }
+}

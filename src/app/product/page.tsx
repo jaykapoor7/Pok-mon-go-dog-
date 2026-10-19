@@ -52,13 +52,13 @@ export default async function ProductPage() {
   const areas = cities.reduce((n, c) => n + (c.cells ?? 0), 0);
 
   return (
-    <CoShell
+    <CoShell seed={2}
       kicker="Product"
       title={<>One platform. <em>From a report to the record.</em></>}
       lede="StrayPaw connects animal reports, WhatsApp rescue workflows and care records, so residents, NGOs and cities work from the same information."
       actions={<>
         <Link href="/app?choose=1" className="co3-btn is-flame">Open App <ArrowUpRight size={17} aria-hidden /></Link>
-        <Link href="/explore" className="co3-btn is-line">Explore the map</Link>
+        <Link href="/solutions" className="co3-btn is-line">Find your solution</Link>
       </>}
     >
       <CoSec n="01" title={<>How one request <em>moves.</em></>}>

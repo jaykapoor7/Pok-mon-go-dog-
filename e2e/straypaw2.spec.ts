@@ -53,6 +53,27 @@ test("the landing page still renders its hero", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("one request: Send sets off the chain, and it can be replayed", async ({ page }) => {
+  const errors = errorsOf(page);
+  await page.goto("/");
+  await page.evaluate(() => { const s = document.querySelector<HTMLElement>("#why")!; scrollTo(0, s.offsetTop + (s.offsetHeight - innerHeight) * 0.27); });
+  const send = page.getByRole("button", { name: /Send the example report/ });
+  await expect(send).toBeEnabled();
+  await send.click();
+  await expect(page.locator(".cv-phone li.is-us.is-in")).toBeVisible({ timeout: 8000 });
+  await expect(page.locator(".cv-stamp.is-on")).toBeVisible({ timeout: 8000 });
+  await expect(page.getByRole("button", { name: /Replay the chain/ })).toBeEnabled();
+  expect(errors).toEqual([]);
+});
+
+test("solutions: the URL chooses the audience", async ({ page }) => {
+  await page.goto("/solutions#ngos");
+  await expect(page.getByRole("tab", { name: /Animal welfare organisations/ })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: /Municipal teams/ }).click();
+  await expect(page).toHaveURL(/#municipal$/);
+  await expect(page.getByRole("tabpanel")).toContainText("area by area");
+});
+
 test("the Map opens on India with its lenses and search", async ({ page }) => {
   const errors = errorsOf(page);
   await page.goto("/community");

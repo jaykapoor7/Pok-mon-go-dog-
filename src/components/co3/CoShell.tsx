@@ -5,20 +5,22 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { sxSerif } from "@/components/shell/fonts";
 import { getNationalCells } from "@/lib/livingmap/server";
-import { VectorIndia } from "@/components/home3/Hero";
+import { VectorIndia } from "@/components/world/VectorIndia";
+import { Band } from "@/components/world/Band";
 import type { Cell } from "@/components/bindu/mapkit";
 import "@/components/site/site.css";
 import "./co3.css";
 
 /* ════════════════════════════════════════════════════════════════════
-   The company pages' shell: Product, For Organisations, Our Story and
-   Contact. The homepage's language at reading pace: a painted band with
-   India's recorded areas as its ground, then cream editorial sections,
-   one closing invitation, and the shared footer.
+   The company pages' shell: Product, Solutions, Our Story and Contact.
+   The homepage's language at reading pace: each page opens on its own
+   painted street (a seed per page, so it keeps it), a title panel framed
+   like the homepage's, then cream editorial movements divided by leaf
+   rules, one closing invitation over painted India, and the footer.
    ════════════════════════════════════════════════════════════════════ */
 
-export async function CoShell({ kicker, title, lede, actions, children, close = true }: {
-  kicker: string; title: ReactNode; lede?: ReactNode; actions?: ReactNode; children: ReactNode; close?: boolean;
+export async function CoShell({ kicker, title, lede, actions, children, close = true, seed = 1 }: {
+  kicker: string; title: ReactNode; lede?: ReactNode; actions?: ReactNode; children: ReactNode; close?: boolean; seed?: number;
 }) {
   const national = await getNationalCells().catch(() => null);
   const cells: Cell[] = (national?.cells ?? []).map(([lng, lat, n]) => [lng, lat, n]);
@@ -27,7 +29,7 @@ export async function CoShell({ kicker, title, lede, actions, children, close = 
       <SiteHeader tone="paper" />
       <main>
         <section className="co3-hero">
-          <VectorIndia cells={cells} className="co3-hero-vi" />
+          <Band seed={seed} className="co3-band" />
           <div className="co3-hero-in">
             <p className="co3-k">{kicker}</p>
             <h1>{title}</h1>
@@ -38,10 +40,11 @@ export async function CoShell({ kicker, title, lede, actions, children, close = 
         {children}
         {close && (
           <section className="co3-close">
+            <VectorIndia cells={cells} className="co3-close-vi" />
             <h2>Better care starts with <em>better information.</em></h2>
             <div className="co3-acts">
               <Link href="/app?choose=1" className="co3-btn is-flame">Open App <ArrowUpRight size={17} aria-hidden /></Link>
-              <Link href="/partner-apply" className="co3-btn is-line">Partner With Us</Link>
+              <Link href="/partner-apply" className="co3-btn is-line">Work with us</Link>
               <Link href="/contact" className="co3-btn is-line">Contact Us</Link>
             </div>
           </section>

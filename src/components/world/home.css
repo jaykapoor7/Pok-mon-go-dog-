@@ -1,0 +1,51 @@
+/* ════════════════════════════════════════════════════════════════════
+   StrayPaw 3.0, the homepage's system. Navy ink, cream paper, coral for
+   the one thing happening, blue for links; saffron, marigold, clay,
+   botanical green, dusty rose and ivory for the painting. DM Sans for
+   reading, Instrument Serif for the voice, DM Mono for the record.
+   Panels are drawn like painted frames: an ink line, a paper gap, a
+   second line, and a printed shadow.
+   ════════════════════════════════════════════════════════════════════ */
+
+.sw {
+  --ink: #0b1e3d; --ink-2: #33415c; --mute: #5d6b7c; --shell: #f3ede4; --paper: #fffdf9; --ivory: #fff8ec;
+  --flame: #f05b40; --flame-ink: #c1391c; --blue: #2457ce; --teal: #1f6f80;
+  --marigold: #f2b632; --saffron: #f28c38; --clay: #a9512d; --leaf: #3f8f6a; --rose: #d9738f;
+  --serif: var(--sx-serif), "Instrument Serif", Georgia, serif; --mono: var(--sp-mono-f, "DM Mono"), ui-monospace, monospace;
+  --io: cubic-bezier(0.65, 0, 0.35, 1); --out: cubic-bezier(0.16, 1, 0.3, 1); --spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+  background: var(--shell); color: var(--ink); font-family: var(--sp-sans-f, "DM Sans"), system-ui, sans-serif;
+}
+.sp.sw { background: var(--shell); }
+.sw main { display: block; }
+.sw h1, .sw h2, .sw h3 { font-family: inherit; color: inherit; letter-spacing: -0.04em; margin: 0; }
+.sw em { font-style: italic; font-family: var(--serif); font-weight: 400; letter-spacing: -0.015em; }
+.sw a:focus-visible, .sw button:focus-visible { outline: 3px solid rgba(36, 87, 206, 0.55); outline-offset: 3px; }
+.sw .sw-k { margin: 0 0 14px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; color: var(--flame-ink); }
+
+/* actions: printed buttons, pressed like a stamp */
+.sw .sw-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.sw .sw-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 22px; border-radius: 999px; border: 1.5px solid var(--ink); font-size: 15.5px; font-weight: 650; text-decoration: none; letter-spacing: -0.01em; transition: transform 0.2s var(--spring), box-shadow 0.2s, background 0.2s; }
+.sw .sw-btn.is-flame { background: var(--flame); color: #fff; box-shadow: 3px 3px 0 var(--ink); }
+.sw .sw-btn.is-paper { background: var(--paper); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.sw .sw-btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.sw .sw-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+
+/* stages (bindu/stage.tsx) */
+.sw .bs { position: relative; height: calc(var(--screens, 2) * 100svh); --p: 0; }
+.sw .bs-frame { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.sw .bs.is-still { height: auto; }
+.sw .bs.is-still .bs-frame { position: relative; height: auto; min-height: 100svh; }
+
+/* painted India (VectorIndia): handmade paper, inked twice, the record in vermilion */
+.vi-land { fill: #f3ede4; stroke: var(--ink, #0b1e3d); stroke-width: 0.3; stroke-linejoin: round; }
+.vi-echo { fill: none; stroke: #f05b40; stroke-width: 0.3; opacity: 0.6; }
+.vi-pt { fill: #f05b40; stroke: #f2b632; stroke-width: 0.25; }
+
+/* the footer, in ink */
+.sw .sw-foot { background: var(--ink); color: rgba(219, 230, 255, 0.75); border-top: 0; }
+.sw .sw-foot a { color: rgba(236, 241, 255, 0.9); }
+.sw .sw-foot .fx-h { color: rgba(219, 230, 255, 0.5); }
+
+@media (max-width: 760px) {
+  .sw .sw-btn { min-height: 46px; padding: 0 18px; font-size: 15px; }
+}

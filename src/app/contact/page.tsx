@@ -12,13 +12,14 @@ export const metadata = {
 const ROUTES = [
   { t: "An animal needs help now", d: "Report it. Organisations near the place see it in their queue.", href: "/community/report", cta: "Report an animal" },
   { t: "Organisation access", d: "Apply for a free workspace, or sign in with the code you were given.", href: "/partner-apply", cta: "Apply to join" },
+  { t: "Which solution fits", d: "Residents, NGOs, municipal teams and partners each use StrayPaw differently.", href: "/solutions", cta: "See solutions" },
   { t: "Data or privacy", d: "Ask for a correction, export or removal. Include the page or StrayPaw ID if you have it.", href: "/data-governance", cta: "Data policy" },
   { t: "Report content", d: "A photo or record that should not be public.", href: "/report-content", cta: "Report content" },
 ];
 
 export default function ContactPage() {
   return (
-    <CoShell kicker="Contact" title={<>Talk to <em>us.</em></>} close={false}
+    <CoShell seed={5} kicker="Contact" title={<>Talk to <em>us.</em></>} close={false}
       lede="Partnerships, organisation access, product questions, corrections and removal requests. Every message is read.">
       <div className="co3-contact">
         <div className="co3-form"><ContactForm /></div>

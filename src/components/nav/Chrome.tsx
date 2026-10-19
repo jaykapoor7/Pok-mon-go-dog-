@@ -11,7 +11,7 @@ const OWN_CHROME = new Set<string>([
   "/about",
   "/our-story",
   "/product",
-  "/organisations",
+  "/solutions",
   // This is a server redirect to the organisation directory. Rendering the
   // client console around an empty redirect boundary caused a hydration
   // warning on phones before the redirect completed.
@@ -43,7 +43,7 @@ const OWN_CHROME = new Set<string>([
   "/about",
   "/our-story",
   "/product",
-  "/organisations",
+  "/solutions",
   "/data-governance",
   "/how-to-help",
   "/research-standards",

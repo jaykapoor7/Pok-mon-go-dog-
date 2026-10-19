@@ -1,170 +1,98 @@
 /* ════════════════════════════════════════════════════════════════════
-   The site header. Glass over its ground: night over the landing plate,
-   paper over a page. One bar everywhere; on a phone the links fold into
-   the menu.
+   The site header. Flat across the paper at the top of a page; lifted
+   into a floating, ink-framed pill once the page moves. A coral
+   brushstroke marks the page you are on. On a phone, the menu blooms
+   out of its button as a painted sheet.
    ════════════════════════════════════════════════════════════════════ */
 
 html .sp-header {
-  --hd-bg: rgba(255, 253, 249, 0.8);
-  --hd-bg-scrolled: rgba(255, 253, 249, 0.92);
-  --hd-ink: var(--sp-ink);
-  --hd-dim: var(--sp-body);
-  --hd-rule: rgba(11, 30, 61, 0.1);
-  --hd-hover: rgba(11, 30, 61, 0.06);
-  --hd-accent: var(--sp-blue);
-  position: sticky; top: 0; z-index: 60; display: block; height: auto; padding: 0;
-  background: var(--hd-bg); color: var(--hd-ink);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4);
-  border-bottom: 1px solid var(--hd-rule);
-  transition: background var(--sp-base) var(--sp-ease-io), box-shadow var(--sp-base) var(--sp-ease-io);
+  --hd-ink: #0b1e3d; --hd-dim: #33415c; --hd-rule: rgba(11, 30, 61, 0.14); --hd-hover: rgba(11, 30, 61, 0.06);
+  --hd-paper: rgba(250, 246, 239, 0.86);
+  position: sticky; top: 0; z-index: 60; display: block; height: auto; padding: 0; background: none; color: var(--hd-ink); border: 0;
 }
-html .sp-header.is-scrolled { background: var(--hd-bg-scrolled); box-shadow: 0 8px 24px rgba(11, 30, 61, 0.06); }
-html .sp-header.is-night {
-  --hd-bg: rgba(7, 20, 43, 0.97);
-  --hd-bg-scrolled: rgba(7, 20, 43, 0.86);
-  --hd-ink: #efe7da;
-  --hd-dim: rgba(239, 231, 218, 0.74);
-  --hd-rule: rgba(239, 231, 218, 0.12);
-  --hd-hover: rgba(239, 231, 218, 0.08);
-  --hd-accent: var(--sp-sky);
+html .sp-header.is-night { --hd-paper: rgba(250, 246, 239, 0.9); }
+html .sp-header-bar {
+  position: relative; display: flex; align-items: center; gap: 22px; height: 64px; padding: 0 clamp(16px, 3vw, 32px); margin: 0 auto; max-width: 100%;
+  background: var(--hd-paper); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--hd-rule); border-radius: 0;
+  transition: max-width 0.5s cubic-bezier(0.2, 0.9, 0.2, 1), margin 0.5s cubic-bezier(0.2, 0.9, 0.2, 1), border-radius 0.5s, height 0.4s, box-shadow 0.4s, border-color 0.4s;
 }
-html .sp-header.is-night.is-scrolled { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28); }
-
-html .sp-header-bar { display: flex; align-items: center; gap: 22px; height: 68px; padding: 0 var(--sp-gutter); max-width: 1440px; margin: 0 auto; }
+/* lifted: a printed pill floating over whatever ground the page has */
+html .sp-header.is-scrolled .sp-header-bar {
+  max-width: min(1120px, calc(100% - 20px)); margin-top: 10px; height: 56px; border-radius: 999px;
+  border: 1.5px solid var(--hd-ink); box-shadow: 3px 3px 0 var(--hd-ink); background: rgba(255, 253, 249, 0.94);
+}
 html .sp-header .sp-wordmark { display: inline-flex; align-items: center; gap: 10px; color: var(--hd-ink); text-decoration: none; font-weight: 700; font-size: 19px; letter-spacing: -0.03em; flex: none; }
 
-html .sp-header .sp-nav { display: flex; align-items: center; gap: 2px; margin: 0 auto 0 12px; position: static; background: none; padding: 0; border: 0; flex-direction: row; }
+/* the places, and the brushstroke beneath the one you are on */
+html .sp-header .sp-nav { position: relative; display: flex; align-items: center; gap: 4px; margin: 0 auto 0 14px; --ix: 0px; --iw: 0px; }
+html .sp-header .sp-nav::after {
+  content: ""; position: absolute; left: 0; bottom: 3px; height: 7px; width: var(--iw); transform: translateX(var(--ix)); pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'%3E%3Cpath d='M2 5.2C20 2.6 38 6.4 56 3.6S88 4.6 98 3' fill='none' stroke='%23f05b40' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 0 0 / 100% 100%;
+  transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1), width 0.45s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
 html .sp-header .sp-nav > a {
-  position: relative; display: inline-flex; align-items: center; gap: 5px; height: 38px; padding: 0 12px; border: 0; border-radius: 999px; background: none;
-  font: inherit; font-size: 14px; font-weight: 600; color: var(--hd-dim); text-decoration: none; cursor: pointer; white-space: nowrap;
-  transition: color var(--sp-fast) var(--sp-ease-io), background var(--sp-fast) var(--sp-ease-io);
+  position: relative; display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 999px;
+  font-size: 14.5px; font-weight: 600; color: var(--hd-dim); text-decoration: none; white-space: nowrap; transition: color 0.2s;
 }
-html .sp-header .sp-nav > a:hover { color: var(--hd-ink); background: var(--hd-hover); }
-html .sp-header .sp-nav > a.is-here { color: var(--hd-ink); }
-html .sp-header .sp-nav > a.is-here::after {
-  content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; border-radius: 2px; background: var(--sp-flame);
-}
+html .sp-header .sp-nav > a:hover, html .sp-header .sp-nav > a.is-here { color: var(--hd-ink); }
 
-html .sp-header .sp-header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: none; }
-/* A plain action: no fill, no border, dim until pointed at. */
-html .sp-header .sp-header-entry { position: relative; }
-html .sp-header .sp-header-entry .auth-entry-trigger {
-  display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 999px;
-  border: 0; background: none; color: var(--hd-dim); font: 600 13.5px var(--font-sans), system-ui, sans-serif; white-space: nowrap; cursor: pointer;
-  transition: color var(--sp-fast) var(--sp-ease-io), background var(--sp-fast) var(--sp-ease-io);
-}
-html .sp-header .sp-header-entry .auth-entry-trigger:hover { color: var(--hd-ink); background: var(--hd-hover); }
-html .sp-header .sp-header-entry .auth-entry-trigger:active { transform: var(--ctl-press); }
-html .sp-header .sp-header-entry .auth-entry-options {
-  position: absolute; z-index: 80; top: calc(100% + 8px); right: 0; width: 228px; padding: 6px;
-  border: 1px solid var(--sp-line); border-radius: var(--sp-radius); background: var(--sp-paper); box-shadow: 0 16px 36px rgba(7, 20, 43, 0.22);
-}
-html .sp-header .sp-header-entry .auth-entry-options a { display: grid; gap: 2px; min-height: 44px; padding: 8px 10px; border-radius: var(--ctl-r-row); color: var(--sp-ink); text-decoration: none; }
-html .sp-header .sp-header-entry .auth-entry-options a:hover { background: var(--ctl-tint); }
-html .sp-header .sp-header-entry .auth-entry-options b { font-size: 13px; font-weight: 650; }
-html .sp-header .sp-header-entry .auth-entry-options small { font-size: 11px; color: var(--sp-muted); }
+html .sp-header .sp-header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none; }
 html .sp-header .sp-header-cta {
-  display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border-radius: 999px; border: 0;
-  background: var(--sp-flame); color: #1a0d08; font-size: 13.5px; font-weight: 700; text-decoration: none;
-  transition: transform var(--sp-fast) var(--sp-ease-io), background var(--sp-fast) var(--sp-ease-io);
+  display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--hd-ink);
+  background: #f05b40; color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; box-shadow: 2px 2px 0 var(--hd-ink);
+  transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1), box-shadow 0.2s;
 }
-html .sp-header .sp-header-cta:hover { background: #f36d53; }
-html .sp-header .sp-header-cta:active { transform: scale(0.97); }
+html .sp-header .sp-header-cta:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--hd-ink); }
+html .sp-header .sp-header-cta:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--hd-ink); }
 html .sp-header .lang-trigger { color: var(--hd-dim); border-color: var(--hd-rule); background: none; }
 html .sp-header .lang-trigger:hover { color: var(--hd-ink); background: var(--hd-hover); }
 html .sp-header .sp-menu-btn {
-  display: none; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid var(--hd-rule);
-  background: none; color: var(--hd-ink); cursor: pointer;
+  position: relative; z-index: 2; display: none; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: 999px; border: 1.5px solid var(--hd-ink);
+  background: #fffdf9; color: var(--hd-ink); cursor: pointer; box-shadow: 2px 2px 0 var(--hd-ink); transition: transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1), background 0.3s;
 }
+html .sp-header.is-open .sp-menu-btn { transform: rotate(90deg); background: #f2b632; }
+html .sp-header a:focus-visible, html .sp-header button:focus-visible { outline: 3px solid rgba(36, 87, 206, 0.55); outline-offset: 2px; }
 
-@media (max-width: 1080px) {
-  html .sp-header .sp-nav > a { padding: 0 9px; font-size: 13.5px; }
-  html .sp-header-bar { gap: 12px; }
-}
-
+/* ════════ the phone sheet: it blooms out of the menu button ════════ */
+html .sp-header .sp-sheet { display: none; }
 @media (max-width: 900px) {
-  html .sp-header-bar { height: 58px; padding: 0 14px; }
+  html .sp-header-bar { height: 58px; gap: 10px; padding: 0 12px; }
+  html .sp-header.is-scrolled .sp-header-bar { height: 54px; margin-top: 8px; max-width: calc(100% - 16px); padding: 0 6px 0 12px; }
+  html .sp-header .sp-nav { display: none; }
   html .sp-header .sp-menu-btn { display: inline-flex; }
-  html .sp-header .sp-nav {
-    display: none; position: absolute; left: 10px; right: 10px; top: calc(100% + 6px); margin: 0; flex-direction: column; align-items: stretch; gap: 2px;
-    padding: 10px; border-radius: 18px; background: var(--sp-paper); border: 1px solid var(--sp-line); box-shadow: 0 24px 48px rgba(11, 30, 61, 0.22);
-    max-height: calc(100vh - 140px); overflow-y: auto;
-  }
-  html .sp-header .sp-nav.open { display: flex; }
-  html .sp-header .sp-nav > a { height: 48px; justify-content: space-between; padding: 0 12px; border-radius: 12px; color: var(--sp-ink); font-size: 15px; }
-  html .sp-header .sp-nav > a:hover { background: rgba(11, 30, 61, 0.05); color: var(--sp-ink); }
-  /* The menu is paper whatever the bar's tone: the current page reads in ink. */
-  html .sp-header .sp-nav > a.is-here { color: var(--sp-ink); background: rgba(11, 30, 61, 0.05); }
-  html .sp-header .sp-nav > a.is-here::after { left: 12px; right: auto; width: 18px; bottom: 6px; }
-  html .sp-header .sp-header-cta { height: 40px; padding: 0 14px; font-size: 13.5px; }
   html .sp-header .lang { display: none; }
-  /* On a phone the account entry keeps its key and drops its words, drawn like the menu button beside it. */
-  html .sp-header .sp-header-entry .auth-entry-trigger { width: 40px; padding: 0; justify-content: center; border: 1px solid var(--hd-rule); color: var(--hd-ink); }
-  html .sp-header .sp-header-entry .auth-entry-trigger span,
-  html .sp-header .sp-header-entry .auth-entry-trigger svg:last-child { display: none; }
+  html .sp-header .sp-header-cta { height: 40px; padding: 0 14px; font-size: 13.5px; }
+  html .sp-header .sp-sheet {
+    position: fixed; inset: 0; z-index: -1; display: flex; flex-direction: column; justify-content: space-between; gap: 22px;
+    padding: 92px 22px calc(22px + env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain;
+    color: var(--hd-ink); visibility: hidden; pointer-events: none;
+    background: #f3ede4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='24'%3E%3Cpath d='M6 14q3-4 6 0M24 6q3-4 6 0' fill='none' stroke='%23e2cfa9' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+    clip-path: circle(0 at calc(100% - 34px) 30px); transition: clip-path 0.55s cubic-bezier(0.7, 0, 0.2, 1), visibility 0s 0.55s;
+  }
+  html .sp-header .sp-sheet::before { content: ""; position: absolute; inset: 70px 10px 10px; pointer-events: none; border: 1.5px solid var(--hd-ink); box-shadow: inset 0 0 0 5px #f3ede4, inset 0 0 0 6.4px var(--hd-ink); border-radius: 12px; }
+  html .sp-header .sp-sheet[data-open="1"] { visibility: visible; pointer-events: auto; clip-path: circle(150% at calc(100% - 34px) 30px); transition: clip-path 0.6s cubic-bezier(0.2, 0.9, 0.2, 1), visibility 0s; }
+  html .sp-header .sp-sheet nav { position: relative; }
+  html .sp-header .sp-sheet ol { list-style: none; margin: 0; padding: 0; display: grid; }
+  html .sp-header .sp-sheet ol a { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 6px; min-height: 76px; border-bottom: 1px dashed rgba(11, 30, 61, 0.25); color: var(--hd-ink); text-decoration: none; }
+  html .sp-header .sp-sheet ol a i { font-family: var(--sp-mono-f, ui-monospace), monospace; font-style: normal; font-size: 12px; color: #c1391c; }
+  html .sp-header .sp-sheet ol a span { display: grid; font-size: 32px; font-weight: 700; letter-spacing: -0.045em; line-height: 1.05; }
+  html .sp-header .sp-sheet ol a small { font-size: 13px; font-weight: 500; letter-spacing: 0; color: #5d6b7c; }
+  html .sp-header .sp-sheet ol a svg { color: #c1391c; }
+  html .sp-header .sp-sheet ol a[aria-current] span { color: #c1391c; }
+  html .sp-header .sp-sheet ol li { opacity: 0; transform: translateY(18px) rotate(-1deg); transition: opacity 0.3s, transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1); }
+  html .sp-header .sp-sheet[data-open="1"] ol li { opacity: 1; transform: none; transition-delay: calc(140ms + var(--i) * 60ms); }
+  html .sp-header .sp-sheet-short { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  html .sp-header .sp-sheet-short a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--hd-ink); background: #fffdf9; color: var(--hd-ink); text-decoration: none; font-size: 14px; font-weight: 650; box-shadow: 2px 2px 0 var(--hd-ink); }
+  html .sp-header .sp-sheet-cta { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 58px; border-radius: 999px; border: 1.5px solid var(--hd-ink); background: #f05b40; color: #fff; text-decoration: none; font-size: 17px; font-weight: 700; box-shadow: 3px 3px 0 var(--hd-ink); }
+  html .sp-header.is-open .sp-header-bar { background: transparent; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
-/* The way into the app sits beside the menu button, which a coarse pointer
-   lifts to the touch floor; the link has to be lifted with it. */
-@media (max-width: 900px) and (pointer: coarse) {
-  html .sp-header .sp-header-cta { height: var(--ctl-h); }
-  html .sp-header .sp-header-entry .auth-entry-trigger { width: var(--ctl-h); height: var(--ctl-h); }
-  html .sp-header .sp-menu-btn { width: var(--ctl-h); height: var(--ctl-h); }
-}
-@media (max-width: 349px) {
-  html .sp-header .sp-wordmark span { display: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  html .sp-header, html .sp-header * { transition: none !important; }
-}
-/* The narrowest phones: the bar has to hold the mark, the code key, the
-   way into the app and the menu in 360px with the touch floor on each. */
 @media (max-width: 400px) {
-  html .sp-header-bar { gap: 8px; padding: 0 12px; }
   html .sp-header .sp-wordmark { gap: 7px; font-size: 17px; }
   html .sp-header .sp-header-actions { gap: 6px; }
   html .sp-header .sp-header-cta { padding: 0 12px; font-size: 13px; }
 }
-
-/* For organisations: one short panel, NGOs first. */
-html .sp-header .sp-orgs { position: relative; }
-html .sp-header .sp-orgs > button { display: inline-flex; align-items: center; gap: 5px; height: 38px; padding: 0 12px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--hd-dim); cursor: pointer; white-space: nowrap; }
-html .sp-header .sp-orgs > button:hover, html .sp-header .sp-orgs.is-open > button, html .sp-header .sp-orgs > button.is-here { color: var(--hd-ink); background: var(--hd-hover); }
-html .sp-header .sp-orgs > button svg { transition: transform 0.15s; }
-html .sp-header .sp-orgs.is-open > button svg { transform: rotate(180deg); }
-html .sp-header .sp-orgs-panel { position: absolute; top: calc(100% + 8px); left: 0; z-index: 70; width: 320px; display: grid; gap: 2px; padding: 8px; border-radius: 16px; background: #fffdf9; border: 1px solid rgba(11, 30, 61, 0.12); box-shadow: 0 2px 6px rgba(11, 30, 61, 0.06), 0 24px 48px -24px rgba(11, 30, 61, 0.35); }
-html .sp-header .sp-orgs-panel[hidden] { display: none; }
-html .sp-header .sp-orgs-panel a { display: grid; gap: 2px; padding: 10px 12px; border-radius: 10px; color: #0b1e3d; text-decoration: none; }
-html .sp-header .sp-orgs-panel a:hover, html .sp-header .sp-orgs-panel a:focus-visible { background: #f3ede4; }
-html .sp-header .sp-orgs-panel b { font-size: 14px; font-weight: 600; }
-html .sp-header .sp-orgs-panel small { font-size: 12.5px; color: #5d6b7c; }
-html .sp-header .sp-orgs-panel a:nth-child(3) { margin-top: 4px; border-top: 1px solid rgba(11, 30, 61, 0.08); border-radius: 0 0 10px 10px; padding-top: 12px; }
-html .sp-header .sp-orgs-panel a:nth-child(3) b { color: #c1391c; }
-@media (max-width: 900px) {
-  html .sp-header .sp-orgs > button { width: 100%; height: 48px; justify-content: space-between; padding: 0 12px; border-radius: 12px; color: var(--sp-ink); font-size: 15px; }
-  html .sp-header .sp-orgs-panel { position: static; width: auto; box-shadow: none; border: 0; padding: 0 0 6px 8px; background: transparent; }
+@media (max-width: 349px) { html .sp-header .sp-wordmark span { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  html .sp-header *, html .sp-header .sp-header-bar, html .sp-header .sp-nav::after { transition: none !important; }
 }
-
-/* ════════ The phone sheet: the five places large, shortcuts beneath, Open App at the thumb ════════ */
-html .sp-header .sp-sheet { display: none; }
-@media (max-width: 900px) {
-  html .sp-header .sp-nav { display: none !important; }
-  html .sp-header .sp-sheet:not([hidden]) {
-    position: fixed; inset: 58px 0 0; z-index: 59; display: flex; flex-direction: column; justify-content: space-between; gap: 24px;
-    padding: 18px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain;
-    background: #07142b; color: #eef3ff; animation: sp-sheet-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  html .sp-header .sp-sheet ol { list-style: none; margin: 0; padding: 0; display: grid; }
-  html .sp-header .sp-sheet ol a { display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid rgba(219, 230, 255, 0.12);
-    color: #eef3ff; text-decoration: none; font-size: 30px; font-weight: 650; letter-spacing: -0.04em; }
-  html .sp-header .sp-sheet ol a svg { color: rgba(219, 230, 255, 0.4); transition: transform 0.2s, color 0.2s; }
-  html .sp-header .sp-sheet ol a:active svg, html .sp-header .sp-sheet ol a[aria-current] svg { color: #f05b40; transform: translate(2px, -2px); }
-  html .sp-header .sp-sheet ol a[aria-current] span { color: #a9c4ff; }
-  html .sp-header .sp-sheet ol li { animation: sp-sheet-li 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; animation-delay: calc(60ms + var(--i) * 40ms); }
-  html .sp-header .sp-sheet-short { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-  html .sp-header .sp-sheet-short a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(219, 230, 255, 0.2); color: rgba(219, 230, 255, 0.85); text-decoration: none; font-size: 14px; font-weight: 600; }
-  html .sp-header .sp-sheet-cta { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; border-radius: 999px; background: #f05b40; color: #fff; text-decoration: none; font-size: 17px; font-weight: 700; }
-  html .sp-header.is-open { background: #07142b; --hd-ink: #eef3ff; --hd-rule: rgba(219, 230, 255, 0.16); }
-}
-@keyframes sp-sheet-in { from { opacity: 0; clip-path: inset(0 0 100% 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
-@keyframes sp-sheet-li { from { opacity: 0; transform: translateY(-10px); } }
-@media (prefers-reduced-motion: reduce) { html .sp-header .sp-sheet, html .sp-header .sp-sheet li { animation: none !important; } }

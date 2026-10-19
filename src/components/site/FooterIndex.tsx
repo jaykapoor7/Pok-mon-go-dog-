@@ -2,7 +2,7 @@ import Link from "next/link";
 import "./footer-index.css";
 
 /* ════════════════════════════════════════════════════════════════════
-   The index at the foot of every public page. The header carries five
+   The index at the foot of every public page. The header carries three
    places; everything else StrayPaw publishes is listed here once, in four
    columns, so a page dropped from the header is never dropped from the
    site. Both footers render this one list.
@@ -10,11 +10,10 @@ import "./footer-index.css";
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   { title: "The record", links: [
-    { label: "Explore", href: "/explore" },
-    { label: "Map", href: "/map" },
+    { label: "Explore Map", href: "/explore" },
+    { label: "Report an animal", href: "/community/report" },
     { label: "Insights", href: "/insights" },
     { label: "Stories", href: "/stories" },
-    { label: "Report a dog", href: "/report" },
   ] },
   { title: "Who it's for", links: [
     { label: "For NGOs", href: "/for-ngos" },
@@ -26,7 +25,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   ] },
   { title: "StrayPaw", links: [
     { label: "Product", href: "/product" },
-    { label: "For Organisations", href: "/organisations" },
+    { label: "Solutions", href: "/solutions" },
     { label: "Our Story", href: "/our-story" },
     { label: "Partner NGOs", href: "/orgs" },
     { label: "Evidence", href: "/evidence" },
