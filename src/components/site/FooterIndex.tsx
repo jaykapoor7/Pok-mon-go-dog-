@@ -2,7 +2,7 @@ import Link from "next/link";
 import "./footer-index.css";
 
 const LINKS = [
-  ["Product", "/product"], ["Solutions", "/solutions"], ["Our Story", "/our-story"],
+  ["Product", "/product"], ["Municipalities", "/municipalities"], ["Solutions", "/solutions"], ["Our Story", "/our-story"],
   ["Explore", "/explore"], ["Contact", "/contact"], ["Privacy", "/privacy"], ["Terms", "/terms"],
 ];
 export function FooterIndex() {

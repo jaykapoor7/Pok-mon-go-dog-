@@ -6,7 +6,7 @@ test("public gallery uses native profiles or an honest unavailable state", async
   await page.goto("/");
   const gallery = page.locator(".depth-gallery");
   await gallery.scrollIntoViewIfNeeded();
-  const profiles = gallery.locator(".depth-gallery-set:not(.is-copy) .depth-portrait");
+  const profiles = gallery.locator(".depth-gallery-set:not(.is-copy) .depth-portrait:not(.is-repeat)");
   if (await profiles.count()) {
     expect(await profiles.count()).toBeLessThanOrEqual(Object.keys(REGISTER_FRAMES).length);
     for (const profile of await profiles.all()) {
@@ -41,6 +41,7 @@ test("real map is opt-in, read-only and leaves landing navigation state intact",
   await expect(frame.locator(".fm")).toBeVisible();
   await expect(frame.getByRole("button", { name: "Report here", exact: true })).toHaveCount(0);
   await expect(frame.getByRole("button", { name: "Open a case here", exact: true })).toHaveCount(0);
+  await expect(frame.getByRole("button", { name: "Go to where I am", exact: true })).toHaveCount(0);
   await expect(frame.getByRole("button", { name: "Open requests", exact: true })).toBeVisible();
   await frame.getByRole("button", { name: "Open requests", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);

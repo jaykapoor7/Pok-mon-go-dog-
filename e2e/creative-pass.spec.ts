@@ -25,9 +25,9 @@ test("Send is optional and reduced motion preserves the readable record", async 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const section = page.locator("#why");
-  await expect(section.getByRole("heading", { name: "Understand", exact: true })).toBeVisible();
+  await expect(section.getByText("Report → Coordinate → Understand", { exact: true })).toBeVisible();
   await section.getByRole("button", { name: "Send the example report" }).click();
-  await expect(section.getByRole("status")).toContainText("no organisation has accepted");
+  await expect(section.getByRole("status")).toContainText("pending acceptance");
   expect(await section.evaluate(el => el.getAnimations({ subtree: true }).length)).toBe(0);
   await section.getByRole("button", { name: "Replay the example" }).click();
   await expect(section.getByRole("status")).toContainText("Try Send");
@@ -37,7 +37,7 @@ test("core marketing information and actions survive without JavaScript", async 
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "The care infrastructure for India’s street animals." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The digital infrastructure for India’s street animals." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Report an animal", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Better care starts with better information." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Send the example report" })).toBeDisabled();
@@ -55,9 +55,9 @@ test("mobile Send creates a visible review item and preserves pending states", a
   await expect(record).toContainText("None recorded");
   await record.getByRole("button", { name: "Animal history", exact: true }).click();
   await record.getByRole("button", { name: "Geographic area", exact: true }).click();
-  await expect(record.getByText(/This example is not on the map/)).toBeVisible();
+  await expect(record.getByText(/Actual public areas · separate from the example/)).toBeVisible();
   await record.getByRole("button", { name: "Animal history", exact: true }).click();
-  await expect(record.getByText("Not linked", { exact: true })).toBeVisible();
+  await expect(record.locator(".lp-panel").getByText("Not linked", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Replay the example" }).click();
   await expect(page.locator(".rq-chat")).toBeVisible();
   await expect(record).toBeHidden();

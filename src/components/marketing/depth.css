@@ -18,9 +18,10 @@
 .folio .depth-portrait b { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
 .folio .depth-portrait small { font-size: 11px; line-height: 1.3; color: var(--ink-2); grid-column: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .folio .depth-portrait svg { grid-column: 2; grid-row: 1 / 3; align-self: center; }
-.folio .depth-gallery:is(.is-static,:focus-within) .depth-gallery-track { animation: none; transform: none; }
-.folio .depth-gallery:is(.is-static,:focus-within) .is-copy { display: none; }
-.folio .depth-gallery:focus-within .depth-gallery-row { overflow-x: auto; }
+.folio .depth-gallery:is(.is-static,:has(.depth-gallery-row:focus-within)) .depth-gallery-track { animation: none; transform: none; }
+.folio .depth-gallery:is(.is-static,:has(.depth-gallery-row:focus-within)) .is-copy { display: none; }
+.folio .depth-gallery:is(.is-static,:has(.depth-gallery-row:focus-within)) .is-repeat { display: none; }
+.folio .depth-gallery:has(.depth-gallery-row:focus-within) .depth-gallery-row { overflow-x: auto; }
 .folio .depth-gallery .depth-portrait:focus-visible { outline: 3px solid var(--shell); outline-offset: -4px; }
 .folio .depth-gallery-empty { margin: 0 max(24px,calc((100vw - 1280px)/2)); font-size: 14px; }
 .folio .depth-gallery-empty a { color: inherit; text-decoration: underline; }
@@ -31,10 +32,12 @@
 }
 /* A navigation trail describes views, never invented progress or treatment. */
 .folio .depth-trail { padding: 10px; gap: 6px; background: #e7edf8; }
-.folio .depth-trail button { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 9px; text-align: left; border-radius: 10px; padding: 12px; min-width: 0; }
-.folio .depth-trail button > span { display: grid; gap: 5px; }
+.folio .depth-trail-stop { position: relative; min-width: 0; }
+.folio .depth-trail button { display: flex; width: 100%; min-height: 112px; height: 100%; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 9px; text-align: left; border-radius: 10px; padding: 12px 12px 38px; min-width: 0; }
 .folio .depth-trail b { font-size: 12px; font-weight: 650; line-height: 1.35; }
-.folio .depth-trail small { font-size: 11px; font-weight: 400; line-height: 1.3; }
+.folio .depth-trail small { position: absolute; pointer-events: none; bottom: 10px; left: 12px; right: 8px; color: var(--ink-2); font-size: 11px; font-weight: 400; line-height: 1.3; }
+.folio .depth-trail-stop:has(button[aria-pressed=true]) small { color: white; }
+.folio .depth-trail-stop:has(button[aria-pressed=true]) { background: var(--blue); border-radius: 10px; }
 .folio .depth-example-identity { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding: 12px 22px; border-bottom: 1px solid #bbc8e0; background: var(--shell); font-size: 12px; }
 .folio .depth-example-identity > span { color: #9e321d; border: 1px solid currentColor; border-radius: 3px; padding: 3px 5px; font-size: 10px; font-weight: 650; }
 .folio .depth-example-identity > small { color: var(--ink-2); margin-left: auto; font-size: 12px; }
@@ -110,6 +113,26 @@
 .folio .depth-field-proof > small { display: block; font-size: 11px; line-height: 1.5; max-width: 54ch; }
 .folio .lp-company-close .depth-field-proof a { color: var(--blue); font-size: 13px; display: inline-flex; align-items: center; min-height: 44px; }
 .folio .depth-field-proof > p:last-of-type { margin-bottom: 0; }
+/* Compact Send interaction. The report becomes a receipt, not a second form. */
+.folio .lp-composer[hidden] { display: none !important; }
+.folio .depth-sent-receipt { align-self: center; padding: 22px; background: var(--shell); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 22px; }
+.folio .depth-sent-receipt > span { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 650; color: var(--blue); }
+.folio .depth-sent-receipt blockquote { font-size: 21px; line-height: 1.45; letter-spacing: -.025em; margin: 22px 0 16px; overflow-wrap: anywhere; }
+.folio .depth-sent-receipt p { font-size: 13px; line-height: 1.5; }
+.folio .depth-sent-receipt button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--ink); border-radius: 99px; color: var(--ink); background: transparent; font: inherit; font-size: 13px; cursor: pointer; }
+.folio .depth-sent-receipt button:focus-visible { outline-color: var(--blue); }
+.folio .lp-demo-stage { align-items: center; }
+.folio .lp-panel { min-height: 300px; }
+.folio .lp-queue-row { animation: depth-intake-arrive 220ms cubic-bezier(.23,1,.32,1); }
+.folio .lp-demo > .pr-receipt { margin: 16px 0 0; min-height: 24px; font-size: 13px; }
+.folio .lp-demo .rq-disclosure { margin-top: 10px; font-size: 12px; }
+.folio .lp-toolbar-actions { min-width: 0; }
+.folio :is(.lp-view-nav button,.lp-next-actions button,.lp-layer-switch button,.lp-source-control) { color: var(--ink); background: var(--shell); }
+.folio .lp-view-nav button[aria-pressed=true], .folio .lp-layer-switch button[aria-pressed=true], .folio .lp-next-actions .lp-primary { color: white; background: var(--blue); }
+.folio :is(.lp-observation,.lp-intake-note,.lp-resident-receipt,.lp-panel,.depth-role-context) { overflow-wrap: anywhere; }
+.folio .lp-panel .brief > div { flex-wrap: wrap; }
+.folio .lp-panel .brief dd { max-width: 100%; overflow-wrap: anywhere; }
+@keyframes depth-intake-arrive { from { transform: translateX(-8px); opacity: .4; } to { transform: none; opacity: 1; } }
 @media(max-width:1100px) {
  .folio .pr-audience.depth-role-stage { grid-template-columns: 180px minmax(0,1fr); gap: 22px; }
  .folio .depth-role-art img { height: 160px; }
@@ -131,10 +154,10 @@
  .folio .depth-portrait small { font-size: 10px; }
  .folio .depth-gallery-track { animation-duration: 100s; }
  .folio .depth-gallery-rows { gap: 10px; }
- .folio .depth-trail { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; padding: 8px; }
- .folio .depth-trail button { padding: 8px 5px; gap: 7px; }
- .folio .depth-trail b { font-size: 10px; }
- .folio .depth-trail small { font-size: 10px; }
+ .folio .depth-trail { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; padding: 8px; }
+ .folio .depth-trail button { min-height: 74px; flex-direction: row; align-items: start; padding: 10px 8px 34px; gap: 8px; }
+ .folio .depth-trail b { font-size: 12px; }
+ .folio .depth-trail small { left: 8px; bottom: 8px; font-size: 11px; }
  .folio .depth-trail button > svg { width: 18px; height: 18px; }
  .folio .depth-example-identity { padding: 10px 16px; font-size: 11px; }
  .folio .depth-example-identity > small { font-size: 11px; }
@@ -170,8 +193,26 @@
  .folio .depth-map-live-bar button { max-width: 19ch; text-align: left; }
  .folio .depth-map-frame iframe { height: 560px; }
  .folio .depth-field-proof li b { font-size: 18px; }
+ .folio .depth-sent-receipt { display: none; }
+ .folio .lp-demo-toolbar { flex-wrap: wrap; gap: 8px; margin: 20px 0 16px; }
+ .folio .lp-demo-toolbar > span { max-width: none; width: 100%; font-size: 13px; }
+ .folio .lp-demo-toolbar .lp-toolbar-actions { width: 100%; justify-content: space-between; }
+ .folio .lp-panel { min-height: 270px; padding: 16px; }
+ .folio .lp-panel-title { flex-wrap: wrap; gap: 8px; }
+ .sp.sw.folio .lp-panel-title h3 { font-size: 21px; overflow-wrap: anywhere; }
+ .folio .lp-panel .brief > div { font-size: 14px; line-height: 1.5; gap: 6px; }
+ .folio .lp-view-nav button { min-height: 76px; }
+ .folio :is(.lp-next-actions,.lp-demo-navigation) :is(button,a) { min-height: 44px; font-size: 13px; white-space: normal; text-align: center; }
+ .folio .lp-composer :is(textarea,select) { font-size: 16px; }
+ .folio .lp-demo .lp-composer { padding: 18px; border-radius: 22px; }
+ .folio .lp-layer-switch { flex-wrap: wrap; }
+ .folio .lp-layer-switch button { min-width: 0; flex: 1 1 120px; font-size: 13px; }
+ .folio .lp-resident-receipt .brief > div { flex-wrap: wrap; gap: 6px; font-size: 13px; }
+ .folio .lp-resident-receipt .brief dd { text-align: left; overflow-wrap: anywhere; }
 }
 @media(prefers-reduced-motion:reduce) {
  .folio .depth-gallery-track { animation: none; transform: none; }
  .folio .depth-gallery .is-copy { display: none; }
+ .folio .depth-gallery .is-repeat { display: none; }
+ .folio .lp-queue-row { animation: none; }
 }

@@ -21,3 +21,19 @@ The gallery is the one explicitly requested ambient movement: slow linear transf
 The repository's REGISTER_FRAMES list documents prior manual photo review. The new gallery must not use the old register's broad fallback (which can admit photos outside that list). Public availability and that existing review are the available evidence; this task does not manufacture an additional legal permission certificate. Original profile/source/removal links remain available through each record. If none of the reviewed records is public, the gallery explains unavailability and links the actual map. No substitutes or new names.
 
 No database, RLS, auth, case mutations, care outcomes or operational workflow changes. Demo data stays in React memory, never enters the public map. The map preview reuses the public operational component in its own document, not a fictional geographic interface. Existing partner source includes a documented founding-partner fallback; that supports a relationship label, not a claim of measured deployment or rescue impact.
+
+## Final commercial scope
+
+The user subsequently supplied the buyer and commercial terms: municipal paid pilots; NGOs as the field network; StrayPaw review and disbursement under pilot terms; WhatsApp at ₹999/month per NGO. The hero now says **digital infrastructure** and leads to a municipal pilot. The site navigation and compact footer include Municipalities. `/municipalities` presents the paid service, scope, review and disbursement model with instant step controls. `/product#whatsapp-pricing` shows the user-supplied fee and a working contact/setup action. No invented municipal customer, signed pilot, payment transaction or deployment count is shown.
+
+This change implements the commercial pages and local demonstration. It adds no payment processor, financial ledger, WhatsApp transport or automated verification engine. Review/disbursement describe the agreed pilot service; the interactive model itself changes only its selected explanatory view. The existing operational software and access controls remain unchanged.
+
+Repeated caution paragraphs were removed from the landing at the user's request. Compact Example/Public labels, accurate pending states and links to actual source/methodology pages remain. Pinky's status/timeline still say illustrative; the example is still never linked to a public animal or map.
+
+## Observed regressions fixed during QA
+
+- The new municipal page initially inherited the application sidebar: add its route to `Chrome`'s existing marketing allowlist and verify one main landmark.
+- A first-load pathname effect could close the mobile menu immediately after the opening click. Close only on an actual pathname change; retain the existing focus trap and Escape restoration.
+- Four demo steps were too narrow on a phone. Use two columns with 12px control names, 11px state metadata, 16px form inputs, wrapping content and explicit selected blue/white contrast.
+- Duplicate carousel copies must still open profiles for pointer users while remaining outside the tab order. Only one copy of each actual record is keyboard/assistive-technology reachable. Repeat short rows only for the seamless visual loop.
+- Voice control/accessible-name audit flagged state text inside navigation buttons with shortened aria labels. State metadata now sits alongside each natively named button and is referenced as its accessible description.

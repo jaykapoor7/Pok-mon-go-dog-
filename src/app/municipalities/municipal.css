@@ -1,0 +1,52 @@
+.municipal .mp-hero { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,.8fr); gap: 56px; align-items: center; padding: 52px max(24px,calc((100vw - 1280px)/2)); background: var(--blue); color: var(--shell); }
+.sp.sw.municipal .mp-hero h1 { font-family: inherit; font-size: clamp(44px,5.4vw,76px); font-weight: 600; letter-spacing: -.055em; line-height: 1.03; max-width: 15ch; }
+.municipal .mp-lede { font-size: 20px; line-height: 1.55; max-width: 42ch; margin: 24px 0; }
+.municipal .mp-hero figure { margin: 0; }
+.municipal .mp-hero img { width: 100%; height: 430px; object-fit: cover; border: 2px solid var(--ink); border-radius: 46% 46% 12px 12px / 28% 28% 12px 12px; }
+.municipal .mp-hero figcaption { margin-top: 8px; font-size: 10px; line-height: 1.5; }
+.municipal .mp-hero figcaption a { color: var(--shell); text-decoration: underline; }
+.municipal :is(.mp-model,.mp-buy) { padding: 48px max(24px,calc((100vw - 1280px)/2)); }
+.municipal .mp-model { background: var(--flame); }
+.sp.sw.municipal :is(.mp-model,.mp-buy) h2 { font-size: clamp(38px,4.2vw,58px); font-weight: 400; line-height: 1.06; }
+.municipal .mp-model header > p { font-size: 17px; line-height: 1.6; max-width: 60ch; margin: 18px 0 26px; }
+.municipal .mp-pilot { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr); gap: 28px; align-items: start; }
+.municipal .mp-pilot-nav { display: grid; gap: 10px; }
+.municipal .mp-pilot-nav button { display: flex; align-items: center; gap: 14px; text-align: left; min-height: 64px; padding: 14px 18px; background: var(--shell); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 18px; box-shadow: 3px 3px 0 var(--ink); font: inherit; font-size: 16px; font-weight: 550; cursor: pointer; }
+.municipal .mp-pilot-nav button > svg { flex: none; }
+.municipal .mp-pilot-nav button > svg:last-child { margin-left: auto; }
+.municipal .mp-pilot-nav button[aria-pressed=true] { color: white; background: var(--blue); }
+.municipal .mp-pilot-detail { background: var(--shell); padding: 32px; border: 1.5px solid var(--ink); border-radius: 20px; box-shadow: 5px 5px 0 var(--ink); min-height: 348px; }
+.municipal .mp-pilot-detail > p:first-child { font-size: 12px; margin-top: 0; }
+.sp.sw.municipal .mp-pilot-detail h3 { font-size: 31px; line-height: 1.1; font-weight: 550; letter-spacing: -.035em; max-width: 24ch; }
+.municipal .mp-pilot-detail p { font-size: 16px; line-height: 1.6; }
+.municipal .mp-pilot-detail ul { margin: 24px 0 0; padding: 0; list-style: none; }
+.municipal .mp-pilot-detail li { padding: 10px 0; border-top: 1px solid #bcc4cf; font-size: 14px; line-height: 1.5; }
+.municipal .mp-buy { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.8fr); gap: 64px; background: var(--shell); }
+.municipal .mp-buy dl { display: grid; gap: 20px; margin: 26px 0; }
+.municipal .mp-buy dl > div { display: grid; gap: 6px; }
+.municipal .mp-buy dt { font-size: 17px; font-weight: 650; }
+.municipal .mp-buy dd { margin: 0; font-size: 16px; line-height: 1.5; }
+.municipal .mp-quote { align-self: start; background: var(--blue); color: var(--shell); padding: 32px; border: 1.5px solid var(--ink); border-radius: 24px; box-shadow: 5px 5px 0 var(--ink); }
+.sp.sw.municipal .mp-quote h3 { font-size: 36px; font-weight: 500; line-height: 1.05; letter-spacing: -.035em; }
+.municipal .mp-quote p { font-size: 16px; line-height: 1.6; }
+.municipal .mp-quote > p:first-child { font-size: 13px; margin-top: 0; }
+.municipal .mp-quote > a:last-child { display: inline-flex; color: var(--shell); text-decoration: underline; font-size: 14px; min-height: 44px; align-items: center; margin-top: 16px; }
+.municipal .mp-hero :is(a,button):focus-visible, .municipal .mp-quote :is(a,button):focus-visible { outline-color: var(--shell); }
+.municipal .mp-model :is(a,button):focus-visible { outline-color: var(--ink); }
+@media(max-width:760px) {
+ .municipal .mp-hero { grid-template-columns: minmax(0,1fr); padding: 30px 20px; gap: 24px; }
+ .sp.sw.municipal .mp-hero h1 { font-size: 43px; max-width: 16ch; }
+ .municipal .mp-lede { font-size: 17px; }
+ .municipal .mp-hero img { height: 220px; object-position: 50% 40%; }
+ .municipal :is(.mp-model,.mp-buy) { padding: 32px 20px; }
+ .municipal .mp-pilot { grid-template-columns: minmax(0,1fr); gap: 20px; }
+ .municipal .mp-pilot-nav { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .municipal .mp-pilot-nav button { display: flex; align-items: start; flex-direction: column; gap: 10px; padding: 12px; min-height: 108px; font-size: 14px; line-height: 1.4; border-radius: 16px; }
+ .municipal .mp-pilot-nav button > svg:last-child { display: none; }
+ .municipal .mp-pilot-detail { padding: 22px; min-height: 388px; }
+ .sp.sw.municipal .mp-pilot-detail h3 { font-size: 27px; }
+ .municipal .mp-pilot-detail p { font-size: 15px; }
+ .municipal .mp-buy { grid-template-columns: minmax(0,1fr); gap: 28px; }
+ .municipal .mp-quote { padding: 24px; }
+ .sp.sw.municipal .mp-quote h3 { font-size: 32px; }
+}

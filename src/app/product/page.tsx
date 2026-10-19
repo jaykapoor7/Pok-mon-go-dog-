@@ -19,7 +19,12 @@ export default async function ProductPage() {
     actions={<><Link href="/app?choose=1" className="co3-btn is-flame">Open App <ArrowUpRight size={17} aria-hidden /></Link><Link href="/community/report" className="co3-btn is-line">Report an animal</Link></>}>
     <CoSec title="Report · Coordinate · Understand">
       <p>Report what you see. Coordinate care when an organisation accepts a request. See what’s recorded and what’s still unknown.</p>
-      <p>StrayPaw provides coordination and recordkeeping tools. It does not guarantee rescue, organisational acceptance or veterinary services.</p>
+      <p><Link href="/municipalities">Municipalities fund the pilot.</Link> Field teams use the shared workspace.</p>
+    </CoSec>
+    <CoSec id="whatsapp-pricing" title="WhatsApp intake. Pilot pricing.">
+      <p>WhatsApp intake for NGO teams, with setup scoped during onboarding.</p>
+      <div className="pr-whatsapp-price"><b>WhatsApp for NGOs</b><p className="pr-price-amount">₹999 <span>/ month per NGO</span></p><p>Discuss intake and setup with the StrayPaw team.</p><Link href="/contact?subject=WhatsApp%20pilot%20%E2%82%B9999%20per%20month" className="co3-btn is-flame">Ask about the WhatsApp pilot <ArrowUpRight size={16} aria-hidden /></Link></div>
+      <p><Link href="/municipalities">Explore paid municipal pilots</Link></p>
     </CoSec>
     <CoSec title="What you can do.">
       <div className="co3-caps">{CAPS.map(c => <article className="co3-cap" key={c.title}><h3>{c.title}</h3><p>{c.description}</p><Link href={c.href}>{c.cta} <ArrowUpRight size={14} aria-hidden /></Link></article>)}</div>
@@ -27,8 +32,8 @@ export default async function ProductPage() {
     </CoSec>
     <CoSec title="What’s on the record.">
       {totals && totals.cities > 0 ? <dl className="co3-figs">
-        <div><dt>Animal records</dt><dd>{fmt(totals.animals)}<small>Recorded animals, including imported history. Not a census.</small></dd></div>
-        <div><dt>Requests for help</dt><dd>{fmt(totals.cases)}<small>Recorded requests, open and closed. Not rescue outcomes.</small></dd></div>
+        <div><dt>Animal records</dt><dd>{fmt(totals.animals)}<small>Public animal records</small></dd></div>
+        <div><dt>Requests for help</dt><dd>{fmt(totals.cases)}<small>Open and closed requests</small></dd></div>
         <div><dt>Cities</dt><dd>{fmt(totals.cities)}<small>Cities with animal records.</small></dd></div>
       </dl> : <p>Public figures are unavailable right now. <Link href="/explore">Explore the record</Link>.</p>}
       <p>Figures describe the record, not the population. Public locations use approximate areas; reporter details stay private. <Link href="/evidence">Sources and methodology</Link> · <Link href="/data-governance">Data policy</Link> · <Link href="/privacy">Privacy</Link></p>

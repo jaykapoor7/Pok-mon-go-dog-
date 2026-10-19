@@ -14,22 +14,22 @@ test("playable report keeps ownership explicit and never sends writes", async ({
   await demo.getByLabel("What you saw", { exact: true }).fill("Example observation for a limping dog.");
   await demo.getByLabel("Reported condition").selectOption("Road accident");
   await demo.getByRole("button", { name: "Send the example report" }).click();
-  await expect(demo.getByRole("status")).toContainText("no organisation has accepted");
+  await expect(demo.getByRole("status")).toContainText("pending acceptance");
   await expect(demo.locator(".lp-queue-row")).toContainText("Critical");
   await demo.locator(".lp-queue-row").click();
   await expect(demo.locator(".brief")).toContainText("Pending acceptance");
   await expect(demo.locator(".brief")).toContainText("Unassigned");
   await expect(demo.locator(".brief")).toContainText("None recorded");
   await demo.getByRole("button", { name: "Try acceptance" }).click();
-  await expect(demo.getByRole("status")).toContainText("demo only");
+  await expect(demo.getByRole("status")).toContainText("Example:");
   await demo.getByRole("button", { name: "Try assignment" }).click();
   await expect(demo.locator(".brief")).toContainText("Example team member");
   await demo.getByRole("button", { name: "How care is recorded" }).click();
-  await expect(demo.locator(".lp-action-note")).toContainText("neither treatment nor an outcome");
+  await expect(demo.locator(".lp-action-note")).toContainText("This example has none");
   await demo.getByRole("button", { name: "Animal history", exact: true }).click();
   await expect(demo.locator(".lp-panel")).toContainText("Not linked");
   await demo.getByRole("button", { name: "Geographic area", exact: true }).click();
-  await expect(demo.locator(".lp-panel")).toContainText("This example is not on the map");
+  await expect(demo.locator(".lp-panel")).toContainText("Actual public areas · separate from the example");
   await demo.getByRole("button", { name: "Back", exact: true }).click();
   await expect(demo.locator(".lp-panel h3")).toHaveText("Animal history");
   await demo.getByRole("button", { name: "Replay the example" }).click();
@@ -54,10 +54,10 @@ test("example identity follows audience tasks and clears on reload", async ({ pa
   await expect(ecosystem.locator(".lp-resident-receipt")).toContainText("Example organisation · demo only");
   await ecosystem.getByRole("tab", { name: "Municipal teams", exact: true }).click();
   await ecosystem.getByRole("button", { name: "Unknown sterilisation", exact: true }).click();
-  await expect(ecosystem.locator(".lp-public-figures")).toContainText("Unknown is not counted as unsterilised");
+  await expect(ecosystem.locator(".lp-public-figures")).toContainText("Unknown sterilisation status");
   await ecosystem.getByRole("tab", { name: "Partners and funders", exact: true }).click();
   await ecosystem.getByRole("button", { name: "Inspect sources and limits" }).click();
-  await expect(ecosystem.locator("#audience-sources")).toContainText("contributes to none");
+  await expect(ecosystem.locator("#audience-sources")).toContainText("Example reports are excluded");
   await page.reload();
   await expect(demo.getByRole("button", { name: "Send the example report" })).toBeVisible();
   await expect(page.locator(".lp-resident-receipt")).toContainText("Not sent");
@@ -93,11 +93,11 @@ test("hero switches without movement and retains real destinations", async ({ pa
 
 test("Pinky preview keeps sample care separate from real public data", async ({ page }) => {
   await page.goto("/");
-  const profile = page.getByRole("article", { name: "Pinky example profile, not her medical history" });
+  const profile = page.getByRole("article", { name: "Pinky example profile" });
   await expect(profile.getByRole("img")).toHaveAttribute("src", /pinky-bengaluru/);
   await expect(profile).toContainText("Sterilised");
   await expect(profile).toContainText("Example status");
-  await expect(profile).toContainText("not her medical history");
+  await expect(profile).toContainText("illustrative status and timeline");
   await expect(profile.getByRole("listitem")).toHaveCount(3);
   await expect(profile.locator('a[href^="/animal/"]')).toHaveCount(0);
 });

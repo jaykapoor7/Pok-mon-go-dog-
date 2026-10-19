@@ -2,3 +2,16 @@ html:has(.public-map-document), body:has(.public-map-document) { height: 100%; m
 .public-map-document, .public-map-preview { position: relative; width: 100%; height: 100dvh; min-height: 0; display: flex; }
 .public-map-preview .fm { height: 100%; }
 .public-map-document > noscript { position: absolute; inset: 0; padding: 24px; background: #f3ede4; color: #0b1e3d; }
+/* Geolocation is deliberately unavailable in this read-only iframe. */
+.public-map-preview button[aria-label="Go to where I am"] { display: none; }
+@media(min-width:900px) {
+ .public-map-preview .fm:not(.is-india) .fm-tools { top: 140px; left: 24px; right: auto; width: calc(100% - 508px); align-items: flex-start; }
+ .public-map-preview .fm:not(.is-india) .fm-lenses { justify-content: flex-start; }
+}
+@media(max-width:899px) {
+ .public-map-preview .fm-lenses { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); left: 12px; right: 64px; gap: 6px; padding: 0; overflow: visible; mask: none; -webkit-mask: none; }
+ .public-map-preview .fm-lenses button { min-width: 0; min-height: 44px; padding: 8px 10px; font-size: 12px; line-height: 1.3; text-align: left; white-space: normal; }
+ .public-map-preview .fm-head { top: 132px; }
+ .public-map-preview .fm-search { transition: none; }
+ .public-map-preview .fm-map .maplibregl-ctrl-bottom-right { bottom: calc(var(--sheet-peek) + 8px); right: 8px; }
+}
