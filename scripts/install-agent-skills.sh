@@ -17,7 +17,7 @@ install vercel-labs/agent-skills web-design-guidelines
 install nextlevelbuilder/ui-ux-pro-max-skill ui-ux-pro-max
 install Leonxlnx/taste-skill design-taste-frontend
 install vercel-labs/agent-browser agent-browser
-install wshobson/agents accessibility-compliance
+install wshobson/agents wcag-audit-patterns
 install remotion-dev/skills remotion-best-practices
 echo "Installation finished. Check results: npx --yes skills list"
 echo "Browser QA requires installing the agent-browser CLI separately."
