@@ -43,7 +43,7 @@ export function Ecosystem({ cells, focus, place, queue, brief, locs }: { cells: 
   useEffect(() => {
     const a = folkEl.current, b = nightEl.current, w = wrap.current; if (!a || !b || !w) return;
     if (!supportsWebGL2()) { setFlat(true); return; }
-    let folk: MLMap | null = null, night: MLMap | null = null, raf = 0, alive = true, on = false;
+    let folk: MLMap | null = null, night: MLMap | null = null, raf = 0, alive = true, on = false, lastView = "", lastClip = "";
     const t0 = performance.now();
     const K: [number, Cam][] = [
       [0, { c: focus, z: 15.4, pitch: 0, bearing: 0 }],
@@ -61,23 +61,30 @@ export function Ecosystem({ cells, focus, place, queue, brief, locs }: { cells: 
       /* the place sits between the words (left) and the software (right); on a phone, above the sheet */
       const padding = phone ? { top: H * 0.16, bottom: H * 0.46, left: 0, right: 0 } : { left: W * 0.3, right: W * 0.37, top: 0, bottom: 0 };
       const view = { center: cam.c, zoom: cam.z, pitch: cam.pitch, bearing: cam.bearing, padding };
-      folk?.jumpTo(view); night?.jumpTo(view);
+      const key = `${cam.c[0].toFixed(5)},${cam.c[1].toFixed(5)},${cam.z.toFixed(3)},${cam.pitch.toFixed(2)},${cam.bearing.toFixed(2)},${W},${H}`;
+      if (key !== lastView && folk && night) { lastView = key; folk.jumpTo(view); night.jumpTo(view); }
       /* the organic edge: a breathing blob that opens from the reported place until it fills the frame */
+      /* on a phone the edge is a plain circle, drawn only when the scroll moves it */
       const r = ease.inOut(span(P, 0.14, 0.56)), R = r * Math.hypot(W, H) * 0.75, t = (now - t0) / 1000;
-      const cx = phone ? W * 0.5 : W * 0.465, cy = phone ? H * 0.35 : H * 0.5, pts: string[] = [];
-      for (let k = 0; k < 56; k++) {
-        const th = (k / 56) * Math.PI * 2, rr = R * (1 + 0.09 * Math.sin(3 * th + t * 0.9) + 0.05 * Math.sin(5 * th - t * 1.3) + 0.03 * Math.sin(8 * th + t * 2));
-        pts.push(`${(cx + Math.cos(th) * rr).toFixed(1)}px ${(cy + Math.sin(th) * rr).toFixed(1)}px`);
+      const cx = phone ? W * 0.5 : W * 0.465, cy = phone ? H * 0.35 : H * 0.5, open = r > 0.001 && r < 0.999;
+      let clip = r >= 0.999 ? "none" : r <= 0.001 ? "circle(0px at 50% 50%)" : `circle(${R.toFixed(0)}px at ${cx.toFixed(0)}px ${cy.toFixed(0)}px)`;
+      if (open && !phone) {
+        const pts: string[] = [];
+        for (let k = 0; k < 56; k++) {
+          const th = (k / 56) * Math.PI * 2, rr = R * (1 + 0.09 * Math.sin(3 * th + t * 0.9) + 0.05 * Math.sin(5 * th - t * 1.3) + 0.03 * Math.sin(8 * th + t * 2));
+          pts.push(`${(cx + Math.cos(th) * rr).toFixed(1)}px ${(cy + Math.sin(th) * rr).toFixed(1)}px`);
+        }
+        clip = `polygon(${pts.join(",")})`;
       }
-      b.style.clipPath = r >= 0.999 ? "none" : r <= 0.001 ? "circle(0px at 50% 50%)" : `polygon(${pts.join(",")})`;
-      w.style.setProperty("--edge", r.toFixed(3));
-      if (on && !still) raf = requestAnimationFrame(frame);
+      if (clip !== lastClip) { lastClip = clip; b.style.clipPath = clip; w.style.setProperty("--edge", r.toFixed(3)); }
+      /* only the desktop edge breathes, and only while it is open */
+      if (on && !still && open && !phone) raf = requestAnimationFrame(frame);
     };
     const start = async () => {
       const ml = await import("maplibre-gl");
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       if (!alive) return;
-      const pr = Math.min(w.clientWidth < 900 ? 1.25 : 1.75, window.devicePixelRatio || 1);
+      const pr = Math.min(w.clientWidth < 900 ? 1 : 1.75, window.devicePixelRatio || 1);
       const opts = { interactive: false, attributionControl: false as const, fadeDuration: 0, maxPitch: 75, pixelRatio: pr, center: focus, zoom: 15.4 };
       folk = new ml.Map({ ...opts, container: a, style: { ...folkStyle(), glyphs: GLYPHS } });
       night = new ml.Map({ ...opts, container: b, style: { ...nightStyle(NIGHT), glyphs: GLYPHS }, attributionControl: { compact: true } });
@@ -96,7 +103,7 @@ export function Ecosystem({ cells, focus, place, queue, brief, locs }: { cells: 
       on = e.isIntersecting;
       if (on && !started) { started = true; start(); }
       if (on && !raf) raf = requestAnimationFrame(frame);
-    }, { rootMargin: "300px 0px" });
+    }, { rootMargin: "150% 0px" });
     io.observe(w);
     const off = listen(() => { if (on && !raf) raf = requestAnimationFrame(frame); });
     return () => { alive = false; cancelAnimationFrame(raf); io.disconnect(); off(); folk?.remove(); night?.remove(); };

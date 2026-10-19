@@ -61,6 +61,7 @@ export function Request({ areas, city }: { areas: Area[]; city: string }) {
   const [playing, setPlaying] = useState(false);
   const playRef = useRef<() => void>(() => {});
   const auto = useRef<{ t0: number; from: number } | null>(null);
+  const written = useRef<Record<string, string>>({});
   const L = tall ? TALL : WIDE;
 
   /* The focus area: the locality with the most open requests on the live record. */
@@ -121,13 +122,13 @@ export function Request({ areas, city }: { areas: Area[]; city: string }) {
     const r = Math.round(P * 100) / 100;
     setQq((v) => (v === r ? v : r));
     const root = stage.current; if (!root) return;
-    root.style.setProperty("--q", P.toFixed(4));
-    root.style.setProperty("--gather", ease.inOut(span(P, T.gather[0], T.gather[1])).toFixed(3));
-    root.style.setProperty("--arrive", ease.out(span(P, T.arrive[0], T.arrive[1])).toFixed(3));
-    root.style.setProperty("--pulse", span(P, T.pulse[0], T.pulse[1]).toFixed(3));
+    /* custom properties restyle the whole subtree: write them only when they change */
+    const vars: [string, number][] = [["--q", P], ["--gather", ease.inOut(span(P, T.gather[0], T.gather[1]))], ["--arrive", ease.out(span(P, T.arrive[0], T.arrive[1]))], ["--pulse", span(P, T.pulse[0], T.pulse[1])]];
+    for (const [k, v] of vars) { const s = v.toFixed(3); if (written.current[k] !== s) { written.current[k] = s; root.style.setProperty(k, s); } }
     /* fragments spiral into the phone */
     const g = ease.inOut(span(P, T.gather[0], T.gather[1]));
     const ph = c(L.phone);
+    if (!(g === 1 && written.current.frags === "1")) {
     fragRef.current?.querySelectorAll<HTMLElement>(".rq-frag").forEach((n, i) => {
       const [sx, sy] = SPOT[i]; const x0 = (sx / 100) * L.W, y0 = (sy / 100) * L.H;
       const gi = Math.max(0, Math.min(1, g * 1.4 - i * 0.03));
@@ -136,6 +137,7 @@ export function Request({ areas, city }: { areas: Area[]; city: string }) {
       n.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%) rotate(${((1 - gi) * ((i % 5) - 2) * 4).toFixed(1)}deg) scale(${(1 - gi * 0.75).toFixed(3)})`;
       n.style.opacity = String(gi > 0.96 ? 0 : 1);
     });
+    written.current.frags = g === 1 ? "1" : "0"; }
     /* links draw as the thing travels along them */
     const segs = geo.flights.map((f) => span(P, f.seg[0], f.seg[1]));
     linksRef.current?.querySelectorAll<SVGPathElement>(".rq-link").forEach((n, i) => { n.style.strokeDashoffset = String(1 - segs[i]); });
@@ -149,8 +151,8 @@ export function Request({ areas, city }: { areas: Area[]; city: string }) {
     t.style.opacity = "1";
     t.style.width = `${w}px`; t.style.height = `${h}px`;
     t.style.transform = `translate(${(x - w / 2).toFixed(1)}px, ${(y - h / 2).toFixed(1)}px) rotate(${(Math.sin(s * Math.PI) * (f.bend > 0 ? 4 : -4)).toFixed(2)}deg) scale(${(1 + Math.sin(s * Math.PI) * 0.08).toFixed(3)})`;
-    t.dataset.kind = f.kind;
-    t.textContent = f.label;
+    if (t.dataset.kind !== f.kind) t.dataset.kind = f.kind;
+    if (t.textContent !== f.label) t.textContent = f.label;
   }, [L, geo]);
 
   useEffect(() => {
@@ -159,7 +161,7 @@ export function Request({ areas, city }: { areas: Area[]; city: string }) {
     const frame = () => {
       raf = 0;
       if (auto.current) {
-        const P = Math.min(1, auto.current.from + (performance.now() - auto.current.t0) / 11000);
+        const P = Math.min(1, auto.current.from + (performance.now() - auto.current.t0) / 7000);
         draw(P);
         if (P >= 1) { auto.current = null; setPlaying(false); } else raf = requestAnimationFrame(frame);
         return;
@@ -175,8 +177,8 @@ export function Request({ areas, city }: { areas: Area[]; city: string }) {
   useEffect(() => {
     if (!playing) return;
     const stop = () => { auto.current = null; setPlaying(false); };
-    const t = window.setTimeout(() => window.addEventListener("wheel", stop, { once: true, passive: true }), 300);
-    return () => { window.clearTimeout(t); window.removeEventListener("wheel", stop); };
+    const t = window.setTimeout(() => { window.addEventListener("wheel", stop, { once: true, passive: true }); window.addEventListener("touchstart", stop, { once: true, passive: true }); }, 300);
+    return () => { window.clearTimeout(t); window.removeEventListener("wheel", stop); window.removeEventListener("touchstart", stop); };
   }, [playing]);
 
   /* node n is lit once its flight has landed; node 0, the phone, once the message is sent */

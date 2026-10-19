@@ -85,7 +85,7 @@ export default async function HomePage() {
       <SiteHeader tone="night" />
       <main>
         {/* 1 · What StrayPaw is. */}
-        <Stage id="what" className="h3-hero" screens={2.1} still={0} tone="night" label="StrayPaw">
+        <Stage id="what" className="h3-hero" screens={1.5} still={0} tone="night" label="StrayPaw">
           <HeroMap cells={cells} pins={pins} focus={home} />
           <div className="h3-shade" aria-hidden />
           <div className="h3-copy">
@@ -118,12 +118,12 @@ export default async function HomePage() {
         </Stage>
 
         {/* 2 · Why we exist: one request, and the whole system responding. */}
-        <Stage id="why" className="h3-req" screens={5.4} still={1} tone="day" label="One request, the whole system">
+        <Stage id="why" className="h3-req" screens={3.6} still={1} tone="day" label="One request, the whole system">
           <Request areas={areas} city={sample ?? "The city"} />
         </Stage>
 
         {/* 3 · How it works and who it serves. */}
-        <Stage id="how" className="h3-eco" screens={4.4} steps={4} still={0.62} tone="day" label="One ecosystem, four ways in">
+        <Stage id="how" className="h3-eco" screens={3} steps={4} still={0.62} tone="day" label="One ecosystem, four ways in">
           <Ecosystem cells={cells} focus={focusAt} place={place} queue={story?.desk.queue ?? []} locs={locs}
             brief={sampleCity ? { city: sampleCity.city, animals: sampleCity.animals, cells: sampleCity.cells, sterilised: sampleCity.sterilised, ster_unknown: sampleCity.ster_unknown, cases: sampleCity.cases } : null} />
           <div className="eco-more"><Link href="/product" className="h3-btn is-ink">See the product <ArrowUpRight size={16} aria-hidden /></Link><Link href="/organisations" className="h3-link">For organisations</Link></div>

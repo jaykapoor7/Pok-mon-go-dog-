@@ -55,13 +55,14 @@
 /* ════════ 1 · the hero ════════ */
 .h3-hero .bs-frame { background: radial-gradient(70% 70% at 70% 50%, #0e2350 0%, var(--night) 70%); color: #eef3ff; --e: clamp(0, calc(var(--p) * 2.4), 1); }
 .h3-map { position: absolute; inset: 0; }
-.h3-gl { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s var(--out); }
+.h3-gl { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s var(--out); }
 .h3-map.is-ready .h3-gl { opacity: 1; }
 .h3-gl .maplibregl-ctrl-attrib { background: transparent !important; font-size: 10px; }
 .h3-gl .maplibregl-ctrl-attrib a { color: rgba(219, 230, 255, 0.4) !important; }
 /* the vector first frame: India and every recorded area, handing over to the 3D map */
-.h3-vec { position: absolute; right: 6vw; top: 12svh; height: 76svh; width: auto; overflow: visible; transition: opacity 1.2s var(--out), transform 1.6s var(--out); }
+.h3-vec { position: absolute; right: 6vw; top: 12svh; height: 76svh; width: auto; overflow: visible; transition: opacity 0.6s var(--out), transform 0.8s var(--out); }
 .h3-map.is-ready .h3-vec { opacity: 0; transform: scale(1.06); }
+.h3-map.is-ready .h3-vec .vi-pt { animation: none; }
 .vi-land { fill: rgba(36, 87, 206, 0.08); stroke: #5b8cf0; stroke-width: 0.25; stroke-linejoin: round; }
 .vi-pt { fill: #a9c4ff; }
 .h3-vec .vi-pt { animation: vi-tw 3s ease-in-out infinite; animation-delay: calc(var(--i) * -0.13s); }
@@ -72,11 +73,11 @@
 .h3-copy .h3-l2 { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -0.02em; color: #ff9277; font-size: 1.04em; }
 .h3-lede { margin: 26px 0 32px; max-width: 46ch; font-size: clamp(16px, 1.25vw, 19px); line-height: 1.55; color: rgba(219, 230, 255, 0.8); }
 @media (prefers-reduced-motion: no-preference) {
-  .h3-copy h1 .sp-c { animation: h3-in 1.2s var(--out) backwards; animation-delay: calc(var(--i) * 16ms + 200ms); }
-  .h3-copy .h3-l2 .sp-c { animation-delay: calc(var(--i) * 16ms + 700ms); }
-  .h3-lede, .h3-copy .h3-acts, .h3-proof, .h3-glimpse { animation: h3-fade 1.1s var(--out) 1.2s backwards; }
+  .h3-copy h1 .sp-c { animation: h3-in 0.6s var(--out) backwards; animation-delay: calc(var(--i) * 9ms + 80ms); }
+  .h3-copy .h3-l2 .sp-c { animation-delay: calc(var(--i) * 9ms + 360ms); }
+  .h3-lede, .h3-copy .h3-acts, .h3-proof, .h3-glimpse { animation: h3-fade 0.6s var(--out) 0.5s backwards; }
 }
-@keyframes h3-in { from { opacity: 0; translate: 0 0.5em; filter: blur(8px); } }
+@keyframes h3-in { from { opacity: 0; translate: 0 0.4em; } }
 @keyframes h3-fade { from { opacity: 0; translate: 0 16px; } }
 .h3-proof { position: absolute; z-index: 3; left: clamp(20px, 6vw, 104px); bottom: clamp(26px, 6svh, 60px); display: flex; gap: clamp(22px, 3.4vw, 56px); margin: 0; transform: translateY(calc(var(--e) * 60px)); opacity: calc(1 - var(--e) * 1.6); }
 .h3-proof div { display: grid; gap: 2px; }
@@ -106,7 +107,7 @@
 .rq-say { position: relative; flex: 1; height: 1.1em; font-size: clamp(26px, 3vw, 46px); line-height: 1.05; font-weight: 700; letter-spacing: -0.045em; color: var(--ink); }
 .rq-say > span { position: absolute; inset: 0; white-space: nowrap; transition: opacity 0.5s var(--out), transform 0.6s var(--out), filter 0.5s; }
 .rq-say em { color: var(--flame-ink); }
-.rq-head:not([data-phase="a"]) .rq-say .is-a, .rq-head:not([data-phase="b"]) .rq-say .is-b, .rq-head:not([data-phase="c"]) .rq-say .is-c { opacity: 0; transform: translateY(-0.4em); filter: blur(6px); pointer-events: none; }
+.rq-head:not([data-phase="a"]) .rq-say .is-a, .rq-head:not([data-phase="b"]) .rq-say .is-b, .rq-head:not([data-phase="c"]) .rq-say .is-c { opacity: 0; transform: translateY(-0.4em); pointer-events: none; }
 .rq-play { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--paper); color: var(--ink); font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; box-shadow: 0 1px 2px rgba(11, 30, 61, 0.06); }
 .rq-play:hover { border-color: var(--ink); }
 .rq.is-playing .rq-play { background: var(--ink); color: #fff; }
@@ -247,7 +248,7 @@
 .eco-say > div { min-height: 0; }
 .eco-screens { position: absolute; z-index: 3; right: clamp(20px, 4vw, 64px); top: 50%; width: min(420px, 31vw); height: min(500px, 64svh); transform: translateY(-50%); perspective: 1400px; }
 .eco-scr { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: 26px; background: var(--paper); color: var(--ink); box-shadow: 0 2px 6px rgba(11, 30, 61, 0.06), 0 40px 90px -40px rgba(0, 0, 0, 0.6);
-  opacity: 0; pointer-events: none; transition: transform 0.85s var(--out), opacity 0.5s; }
+  opacity: 0; pointer-events: none; transition: transform 0.5s var(--out), opacity 0.35s; }
 .eco-scr.is-res { transform: translateY(70px) rotateX(-12deg); }
 .eco-scr.is-ngo { transform: translateX(90px) rotateY(-16deg); }
 .eco-scr.is-city { transform: scale(0.82) translateZ(-100px); }
@@ -329,13 +330,13 @@
 .rs { width: 100%; height: auto; max-height: 76svh; overflow: visible; }
 .rs-land { fill: rgba(36, 87, 206, 0.08); stroke: #5b8cf0; stroke-width: 0.3; }
 .rs-pt { fill: #2a4a9e; transition: fill 0.6s var(--out); }
-.rs.is-lit .rs-pt { fill: #a9c4ff; transition-delay: calc(var(--d) * 1s); }
-.rs-path { fill: none; stroke: var(--flame); stroke-width: 0.7; stroke-linecap: round; stroke-dasharray: 1 2; stroke-dashoffset: 1; transition: stroke-dashoffset 1.3s var(--io); }
+.rs.is-lit .rs-pt { fill: #a9c4ff; transition-delay: calc(var(--d) * 0.6s); }
+.rs-path { fill: none; stroke: var(--flame); stroke-width: 0.7; stroke-linecap: round; stroke-dasharray: 1 2; stroke-dashoffset: 1; transition: stroke-dashoffset 0.9s var(--io); }
 .rs.is-lit .rs-path { stroke-dashoffset: 0; }
-.rs-home { fill: var(--flame); opacity: 0; transition: opacity 0.3s 1.25s; }
+.rs-home { fill: var(--flame); opacity: 0; transition: opacity 0.25s 0.85s; }
 .rs.is-lit .rs-home { opacity: 1; }
 .rs-ring { fill: none; stroke: var(--flame); stroke-width: 0.5; transform-box: fill-box; transform-origin: center; opacity: 0; }
-@media (prefers-reduced-motion: no-preference) { .rs.is-lit .rs-ring { animation: rs-ring 2.4s var(--out) 1.3s infinite; } }
+@media (prefers-reduced-motion: no-preference) { .rs.is-lit .rs-ring { animation: rs-ring 2.4s var(--out) 0.9s 3; } }
 @keyframes rs-ring { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(9); } }
 
 /* footer on night */
@@ -404,4 +405,24 @@
   .co3-nums { grid-template-columns: 1fr 1fr; gap: 22px 18px; }
   .co3-part p { grid-template-columns: 1fr; gap: 2px; }
   .co3-end { padding-top: 70px; }
+}
+
+/* ════════ phones: smooth first ════════
+   Nothing filtered or blurred over a moving map, no 3D card flips, and
+   every change rides opacity and transform, which the compositor does alone. */
+@media (max-width: 760px) {
+  .h3 .bs-frame { contain: layout paint; }
+  .h3 .h3-btn.is-ghost, .h3-dive span, .eco-copy, .eco-more { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .eco-copy { background: rgba(255, 253, 249, 0.97); }
+  .h3-copy { clip-path: none; }
+  .h3-vec .vi-pt { animation: none; }
+  .rq-node { filter: none; transition: opacity 0.3s, box-shadow 0.3s; }
+  .rq-spark { filter: none; }
+  .rq-node, .rq-tok, .eco-scr { will-change: transform, opacity; }
+  .eco-screens { perspective: none; }
+  .eco-scr.is-res, .eco-scr.is-ngo, .eco-scr.is-city, .eco-scr.is-fund { transform: translateY(24px); }
+  .eco-scr.is-past { transform: translateY(-24px); }
+  .eco-scr.is-on { transform: none; }
+  .eco-scr { transition: transform 0.35s var(--out), opacity 0.25s; box-shadow: 0 2px 6px rgba(11, 30, 61, 0.06), 0 24px 50px -30px rgba(0, 0, 0, 0.5); }
+  .eco-say { transition-duration: 0.3s; }
 }

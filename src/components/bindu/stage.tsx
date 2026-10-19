@@ -41,8 +41,8 @@ export function Stage({ screens = 2, steps = 0, still: stillAt = 1, className = 
     const tick = () => {
       raf = 0;
       const r = node.getBoundingClientRect(), span = Math.max(1, r.height - window.innerHeight);
-      const v = Math.max(0, Math.min(1, -r.top / span));
-      if (v !== p.current) { p.current = v; node.style.setProperty("--p", v.toFixed(4)); subs.current.forEach((f) => f()); }
+      const v = Math.round(Math.max(0, Math.min(1, -r.top / span)) * 1000) / 1000;
+      if (v !== p.current) { p.current = v; node.style.setProperty("--p", v.toFixed(3)); subs.current.forEach((f) => f()); }
       if (steps) { const s = Math.min(steps - 1, Math.floor(v * steps * 0.9999)); if (s !== last) { last = s; setStep(s); } }
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(tick); };

@@ -136,3 +136,4 @@
 .co3-form .ct-success { border: 0; background: transparent; }
 .co3-form .ct-actions button { background: var(--flame); color: #fff; min-height: 50px; padding: 0 24px; font-size: 15px; }
 .co3-form .ct-field input, .co3-form .ct-field textarea { border-radius: 14px; padding: 13px 14px; font-size: 15px; }
+@media (max-width: 760px) { .co3-hero-vi .vi-pt { animation: none; } }

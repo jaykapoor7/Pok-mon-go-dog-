@@ -35,7 +35,7 @@ export function HeroMap({ cells, pins, focus }: { cells: Cell[]; pins: Pin[]; fo
 
   useEffect(() => {
     const box = el.current; if (!box || !supportsWebGL2()) return;
-    let map: MLMap | null = null, raf = 0, alive = true, on = true, grown = -1, dash = 0, lastDash = 0;
+    let map: MLMap | null = null, raf = 0, alive = true, on = true, grown = -1, dash = 0, lastDash = 0, lastView = "", fade = -1;
     const lean = { x: 0, y: 0, tx: 0, ty: 0 };
     const t0 = performance.now();
     const phone = () => box.clientWidth < 760;
@@ -45,25 +45,32 @@ export function HeroMap({ cells, pins, focus }: { cells: Cell[]; pins: Pin[]; fo
     };
     const frame = (now: number) => {
       raf = 0; if (!map || !alive) return;
+      const has = !!map.getLayer("arcs-flow");
       const P = still ? 0 : p.current, [a, b] = keys();
       const cam = camBetween(a, b, ease.inOut(span(P, 0.05, 0.92)));
       lean.x += (lean.tx - lean.x) * 0.05; lean.y += (lean.ty - lean.y) * 0.05;
-      const sway = still ? 0 : Math.sin((now - t0) / 9000) * 4 * (1 - span(P, 0, 0.2));
+      /* phones get the dive and nothing ambient: no sway, no flowing paths, no frame unless something moved */
+      const calm = still || phone();
+      const sway = calm ? 0 : Math.sin((now - t0) / 9000) * 4 * (1 - span(P, 0, 0.2));
       const W = box.clientWidth, H = box.clientHeight, off = 1 - ease.inOut(span(P, 0, 0.5));
       const padding = phone() ? { top: H * 0.38 * off, bottom: 0, left: 0, right: 0 } : { left: W * 0.42 * off, top: 0, bottom: 0, right: 0 };
-      map.jumpTo({ center: cam.c, zoom: cam.z, padding, pitch: Math.max(0, Math.min(72, cam.pitch + lean.y * 5)), bearing: cam.bearing + sway + lean.x * 8 });
+      const view = { center: cam.c, zoom: cam.z, padding, pitch: Math.max(0, Math.min(72, cam.pitch + lean.y * 5)), bearing: cam.bearing + sway + lean.x * 8 };
+      const key = `${cam.c[0].toFixed(5)},${cam.c[1].toFixed(5)},${view.zoom.toFixed(3)},${view.pitch.toFixed(2)},${view.bearing.toFixed(2)},${(padding.left + padding.top).toFixed(0)}`;
+      if (key !== lastView) { lastView = key; map.jumpTo(view); }
       const g = still ? 1 : ease.out(Math.min(1, (now - t0) / 2600));
-      if (Math.abs(g - grown) > 0.004) { grown = g; try { map.setPaintProperty("rec-3d", "fill-extrusion-height", heightExpr(g)); } catch { /* not ready */ } }
+      if (has && Math.abs(g - grown) > 0.004) { grown = g; try { map.setPaintProperty("rec-3d", "fill-extrusion-height", heightExpr(g)); } catch { /* not ready */ } }
       /* paths of light flow along the arcs */
-      if (!still && now - lastDash > 70) { lastDash = now; dash = (dash + 1) % 14; try { map.setPaintProperty("arcs-flow", "line-dasharray", [dash * 0.25, 1.2, 3.5 - dash * 0.25 + 0.01, 0]); } catch { /* not ready */ } }
-      try { map.setPaintProperty("arcs-flow", "line-opacity", 0.85 * (1 - span(P, 0.35, 0.6))); map.setPaintProperty("arcs", "line-opacity", 0.35 * (1 - span(P, 0.35, 0.6))); } catch { /* not ready */ }
-      if (on && (!still || g < 1)) raf = requestAnimationFrame(frame);
+      if (has && !calm && now - lastDash > 70) { lastDash = now; dash = (dash + 1) % 14; try { map.setPaintProperty("arcs-flow", "line-dasharray", [dash * 0.25, 1.2, 3.5 - dash * 0.25 + 0.01, 0]); } catch { /* not ready */ } }
+      const fa = Math.round((1 - span(P, 0.35, 0.6)) * 100) / 100;
+      if (has && fa !== fade) { fade = fa; try { map.setPaintProperty("arcs-flow", "line-opacity", 0.85 * fa); map.setPaintProperty("arcs", "line-opacity", 0.35 * fa); } catch { /* not ready */ } }
+      const settling = Math.abs(lean.tx - lean.x) + Math.abs(lean.ty - lean.y) > 0.002;
+      if (on && (g < 1 || (!calm && (fa > 0 || settling)))) raf = requestAnimationFrame(frame);
     };
     (async () => {
       const ml = await import("maplibre-gl");
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       if (!alive) return;
-      const m = new ml.Map({ container: box, style: { ...groundStyle(PLATE), glyphs: GLYPHS }, center: [80.5, 21.8], zoom: 4, pitch: 38, interactive: false, attributionControl: { compact: true }, fadeDuration: 0, maxPitch: 78, pixelRatio: Math.min(phone() ? 1.5 : 2, window.devicePixelRatio || 1) });
+      const m = new ml.Map({ container: box, style: { ...groundStyle(PLATE), glyphs: GLYPHS }, center: [80.5, 21.8], zoom: 4, pitch: 38, interactive: false, attributionControl: { compact: true }, fadeDuration: 0, maxPitch: 78, pixelRatio: Math.min(phone() ? 1.25 : 2, window.devicePixelRatio || 1) });
       map = m;
       m.on("load", () => {
         setNight(m);
