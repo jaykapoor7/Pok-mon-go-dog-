@@ -1,59 +1,32 @@
-# Skill Issue integration for StrayPaw
+# StrayPaw agent skills
 
-## Installed in this repository
+Skill Issue (https://skill-issue.in/) is a discovery directory. Upstream skills are installed for both Claude Code and Codex, under `.claude/skills/` and `.agents/skills/`.
 
-The following upstream skill packages are committed under **both** `.claude/skills/` and `.agents/skills/`, so a normal checkout of this branch includes them without a separate install command:
+## Included in GitHub
 
-- `frontend-design`: upstream `SKILL.md` and Apache-2.0 license.
-- `react-best-practices`: upstream `SKILL.md` and compiled `AGENTS.md` (complete rules reference).
-- `web-design-guidelines`: upstream `SKILL.md`. This skill fetches fresh review guidelines at execution time, so a network-capable agent is needed to perform its audits.
+**Self-contained project copies:** `frontend-design`, `react-best-practices` (including compiled rules), and `web-design-guidelines`.
 
-Pinned source copies were retrieved from the upstream default branches when this integration was made; updates require explicit review. They are **not** npm runtime dependencies. Other suggested skills remain optional and are not installed.
+**Skill entrypoints:** `ui-ux-pro-max`, `taste-skill`, `agent-browser`, `wcag-audit-patterns`, and `remotion-best-practices`. Their upstream tools, datasets, reference files, and/or browser runtime are **not** all included in the checked-in copies, so those advanced workflows need full local installation.
 
-Skill Issue (https://skill-issue.in/) is a *directory*, not a dependency. Install selected open-source skills from their upstream maintainers into this project's Claude/Codex workspace. We do not install everything in the directory.
+Existing animation and StrayPaw-specific skills are preserved.
 
-## Re-install or update upstream skills (optional)
+## Complete local installation
 
-From the repository root, inspect upstream skill contents and provenance *before* running the following commands. GitHub CLI 2.90+ supports `gh skill preview` and `gh skill install`.
+From a checkout of this repository with Node.js and npm:
 
-```sh
-# Distinctive frontend art direction
-gh skill install anthropics/skills frontend-design --agent claude-code --scope project
-gh skill install anthropics/skills frontend-design --agent codex --scope project
-
-# React and Next.js performance
-gh skill install vercel-labs/agent-skills react-best-practices --agent claude-code --scope project
-gh skill install vercel-labs/agent-skills react-best-practices --agent codex --scope project
-
-# Interface quality checks
-gh skill install vercel-labs/agent-skills web-design-guidelines --agent claude-code --scope project
-gh skill install vercel-labs/agent-skills web-design-guidelines --agent codex --scope project
+```bash
+bash scripts/install-agent-skills.sh
+npx --yes skills list
 ```
 
-Source paths and skill names must be reconfirmed using `gh skill install OWNER/REPO` (discovery mode) before execution, since repository layouts and skill manifests can change. Do not use `--all`, `--force` or `--global`. If an upstream skill is absent, skip it rather than substituting unverified code.
+The script uses the official `skills` installer and the curated upstream repositories to copy the full skill packages, including supporting files, into both agents' project-level directories. Review upstream content and the resulting git diff before trusting executable scripts. Third-party skills can change when run against upstream default branches.
 
-## Optional after review
+The `agent-browser` skill requires a separate browser runtime / CLI installation before live navigation and testing. `remotion-best-practices` is design/developer guidance, not a video rendering engine, and no Remotion dependency is added to the production app.
 
-- `ui-ux-pro-max-skill`: design critique and patterns
-- `agent-browser`: browser automation (may require additional local runtime)
-- `accessibility-compliance`: accessibility audit
-- `remotion-best-practices`: video projects, not the production web runtime
-- `taste-skill`: consider only if it does not conflict with StrayPaw's established design system
+## Task selection and guardrails
 
-Use the source links and install commands presented for each skill on Skill Issue, and verify that they point to the intended repositories before installing.
+The root `AGENTS.md` and `CLAUDE.md` link to the local StrayPaw skill router. Use only the relevant skill(s) for each task. The user's current instructions and locked decisions, `DESIGN.md`, architecture, access control, RLS, verified data, photo sensitivity, art licensing, and mobile map functionality outrank external design recommendations.
 
-## Project-specific integration already committed
+No new runtime features, app routes, migrations, or production changes are authorized by installing skills.
 
-Both `.claude/skills/straypaw-skill-issue-workflow/SKILL.md` and `.agents/skills/straypaw-skill-issue-workflow/SKILL.md` route eligible tasks, preserve project rules, and explain which third-party skills to load. The existing `straypaw-design` and animation skills are retained unchanged.
-
-Three reviewed upstream skills are vendored in both agent directories. Other skill candidates have not been installed. Future updates require source review. No production runtime dependency was added.
-
-## Quality gate
-
-```sh
-npm run typecheck
-npm run build
-npm run test:e2e
-```
-
-These commands require a working checkout and environment. No production deploy or database migration is part of this integration.
+For production feature changes, run `npm run typecheck`, `npm run build`, and relevant tests, including `npm run test:e2e` where available.
