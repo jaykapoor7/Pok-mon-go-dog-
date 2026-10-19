@@ -489,3 +489,9 @@ html .folio .sp-header .sp-sheet { background: var(--shell); }
 .folio .lp-view-nav button { font-size: 13px; }
 .folio .lw-file .brief > div { font-size: 13px; }
 @media(max-width:760px) { .folio .lp-panel .brief > div { font-size: 14px; } .folio .lw-file .brief > div { font-size: 13px; } }
+
+/* Keep the first-visit privacy choice readable without covering the hero. */
+body:has(.folio) .snotice { padding: 14px 16px; }
+body:has(.folio) .snotice p { font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+@media(max-width:760px) { body:has(.folio) .snotice { bottom: calc(10px + env(safe-area-inset-bottom)); } }
+.folio .lp-public-figures dl { margin: 0; }

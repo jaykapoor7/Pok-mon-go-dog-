@@ -14,7 +14,7 @@ export function PublicAnimal({ animal }: { animal: RegisterFocus | null }) {
   if (!animal) return <div className="lw-unavailable"><b>A history belongs to an animal.</b><p>Public animal records are unavailable right now.</p><Link href="/explore">Browse the public register <ArrowUpRight size={16} aria-hidden /></Link></div>;
   return <article className="lw-animal">
     <div className="lw-photo"><FramedPhoto src={sized(animal.cover_photo, 340)} sid={animal.straypaw_id} alt={`Public record photograph of ${animalTitle(animal)}`} priority /></div>
-    <div className="lw-file"><span className="lw-source">Actual public record</span><h3>{animalTitle(animal)}</h3><p>{[shortPlace(animal.zone), animal.city].filter(Boolean).join(", ") || "Place not recorded"}</p>
+    <div className="lw-file"><span className="lw-source">Actual public record</span><h3>{animalTitle(animal)}</h3><p>{[...new Set([shortPlace(animal.zone), animal.city].filter(Boolean))].join(", ") || "Place not recorded"}</p>
       <PageBrief items={[["Sterilisation", animal.sterilisation === "sterilised" ? "Recorded sterilised" : animal.sterilisation === "not_sterilised" ? "Recorded not sterilised" : "Not recorded"], ["Vaccination", animal.vaccination === "vaccinated" ? "Recorded vaccinated" : animal.vaccination === "not_vaccinated" ? "Recorded not vaccinated" : "Not recorded"]]} />
       <div className="lw-trail"><span aria-hidden /><div><b>{animal.care[0] ? animal.care[0].kind.replace(/_/g, " ") : "Last recorded observation"}</b><small>{date(animal.care[0]?.at ?? animal.last_seen)}</small></div></div>
       <Link className="lw-record-link" href={`/animal/${animal.id}`}>Open this animal’s history <ArrowUpRight size={16} aria-hidden /></Link>
