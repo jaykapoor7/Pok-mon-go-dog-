@@ -13,7 +13,7 @@ import "./header.css";
 /* ════════════════════════════════════════════════════════════════════
    The site header, one bar on every public page.
 
-   StrayPaw · Product · Solutions · Our Story, and the one strong action,
+   StrayPaw · Explore · Who It’s For · Our Story, and the one strong action,
    Open App. At the top of a page it lies flat across the paper; once
    the page moves it lifts into a floating, ink-framed pill. A coral
    brushstroke marks where you are and slides to whatever you point at.
@@ -106,7 +106,8 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
   const place = (el: HTMLElement | null) => {
     const n = nav.current; if (!n) return;
     if (!el) { n.style.setProperty("--iw", "0px"); return; }
-    n.style.setProperty("--ix", `${el.offsetLeft + 10}px`); n.style.setProperty("--iw", `${el.offsetWidth - 20}px`);
+    const item = el.getBoundingClientRect(), frame = n.getBoundingClientRect();
+    n.style.setProperty("--ix", `${item.left - frame.left + 10}px`); n.style.setProperty("--iw", `${item.width - 20}px`);
   };
   const rest = () => place(nav.current?.querySelector<HTMLElement>("a.is-here") ?? null);
   useLayoutEffect(rest, [pathname]);
@@ -126,12 +127,12 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
             </Link>
           ))}
           <div className="sp-audiences" ref={audienceMenu} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAudiencesOpen(false); }}>
-            <button type="button" aria-expanded={audiencesOpen} aria-controls="sp-audiences" onClick={() => setAudiencesOpen(v => !v)} onKeyDown={e => { if (e.key === "ArrowDown") { e.preventDefault(); setAudiencesOpen(true); requestAnimationFrame(() => audienceMenu.current?.querySelector("a")?.focus()); } }}>Who It’s For <ChevronDown size={14} aria-hidden /></button>
+            <button type="button" aria-expanded={audiencesOpen} aria-controls="sp-audiences" onMouseEnter={e=>place(e.currentTarget)} onFocus={e=>place(e.currentTarget)} onClick={() => setAudiencesOpen(v => !v)} onKeyDown={e => { if (e.key === "ArrowDown") { e.preventDefault(); setAudiencesOpen(true); requestAnimationFrame(() => audienceMenu.current?.querySelector("a")?.focus()); } }}>Who It’s For <ChevronDown size={14} aria-hidden /></button>
             <div id="sp-audiences" className="sp-audience-menu" hidden={!audiencesOpen}>
-              {AUDIENCES.map(l => <Link key={l.href} href={l.href} onClick={() => setAudiencesOpen(false)} aria-current={pathname === l.href ? "page" : undefined}><span>{l.label}</span><small>{l.hint}</small></Link>)}
+              {AUDIENCES.map((l,i) => <Link key={l.href} href={l.href} onClick={() => setAudiencesOpen(false)} aria-current={pathname === l.href ? "page" : undefined}><i className="sp-audience-num" aria-hidden>0{i+1}</i><span>{l.label}</span><small>{l.hint}</small><ArrowUpRight size={18} aria-hidden/></Link>)}
             </div>
           </div>
-          <Link href="/our-story" aria-current={pathname === "/our-story" ? "page" : undefined} onMouseEnter={e => place(e.currentTarget)} onFocus={e => place(e.currentTarget)}>Our Story</Link>
+          <Link href="/our-story" className={pathname==="/our-story"?"is-here":undefined} aria-current={pathname === "/our-story" ? "page" : undefined} onMouseEnter={e => place(e.currentTarget)} onFocus={e => place(e.currentTarget)}>Our Story</Link>
         </nav>
 
         <div className="sp-header-actions">

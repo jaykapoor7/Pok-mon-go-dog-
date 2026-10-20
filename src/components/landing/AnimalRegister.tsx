@@ -23,7 +23,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { sized } from "@/lib/photo/src";
 import { FramedPhoto } from "./FramedPhoto";
@@ -132,11 +132,28 @@ function Tile({ c, feat, dup }: { c: RegisterFocus; feat: boolean; dup: boolean 
 }
 
 function Band({ cards, depth, dir, featId }: { cards: RegisterFocus[]; depth: "front" | "mid" | "back"; dir: "l" | "r"; featId: string }) {
+  const band = useRef<HTMLDivElement>(null);
+  const [copies, setCopies] = useState(3);
+  useEffect(() => {
+    const el = band.current;
+    if (!el || !cards.length) return;
+    const fit = () => {
+      const tile = el.querySelector<HTMLElement>(".rx-tile");
+      const track = el.querySelector<HTMLElement>(".rx-track");
+      if (!tile || !track) return;
+      const period = (tile.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap)) * cards.length;
+      if (period > 0) setCopies(Math.max(2, Math.ceil(el.clientWidth / period) + 1));
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [cards.length]);
   if (!cards.length) return null;
   return (
-    <div className={`rx-band d-${depth} is-${dir}`}>
-      <div className="rx-track" style={{ ["--n" as string]: cards.length }}>
-        {[...cards, ...cards].map((c, i) => (
+    <div ref={band} className={`rx-band d-${depth} is-${dir}`}>
+      <div className="rx-track" style={{ ["--n" as string]: cards.length, ["--copies" as string]: copies }}>
+        {Array.from({ length: copies }, () => cards).flat().map((c, i) => (
           <Tile key={`${c.id}-${i}`} c={c} feat={c.id === featId} dup={i >= cards.length} />
         ))}
       </div>
@@ -144,7 +161,7 @@ function Band({ cards, depth, dir, featId }: { cards: RegisterFocus[]; depth: "f
   );
 }
 
-export function AnimalRegister({ data, total, plate }: { data: Data; total: number; plate?: RegisterPlateData | null }) {
+export function AnimalRegister({ data, total, plate, archived = false }: { data: Data; total: number; plate?: RegisterPlateData | null; archived?: boolean }) {
   const cards = data.cards;
   const n = cards.length;
   /* A callback ref lets the observer attach whenever the section mounts. */
@@ -200,7 +217,7 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
       {plate && <RegisterPlate plate={plate} running={seen} calm={calm} />}
       <div className="rx-rail" data-ld-reveal="rail">
         <h2 id="rx-title">Every animal has a story.</h2>
-        <p className="rx-caption">Real photographs. Shared histories. Including imported records.</p>
+        <p className="rx-caption">{archived ? <>Archived public profiles · 20 October 2026. <Link href="/art-credits#register-photos">Photo credits</Link></> : "Real photographs. Shared histories. Including imported records."}</p>
       </div>
 
       <div className="rx-stage" data-ld-reveal="stage">

@@ -1,4 +1,5 @@
 import { getSupabase, getSupabaseAdmin } from "@/lib/supabase";
+import fieldPartners from "@/data/field-partners.json";
 
 export type Partner = {
   id: string;
@@ -50,13 +51,32 @@ export async function getOperationalPartners(): Promise<Partner[]> {
 /* ── Everyone else on the record ───────────────────────────────────────
    Organisations listed on StrayPaw (the ones moderation gave an invite code
    or an email invite), and the organisations whose published data StrayPaw
-   has imported. Neither is a partnership: only `ngos.partner_status` of
-   operational_partner or pilot_partner is. Names, places and their own
-   one-line descriptions only. */
+   has imported. Operational status remains separate from public field-partner
+   attribution, which the product owner expanded to all listed NGOs. Data
+   platforms and public institutions remain separately credited sources. */
 export type OrgListing = {
   id: string; name: string; slug: string; city: string | null; state: string | null;
   mission: string | null; website: string | null; logoUrl: string | null;
 };
+
+/** Public NGO attribution approved by the product owner, including directory NGOs.
+ * This public snapshot keeps the full list readable during a service outage.
+ * It does not grant workspace access or change operational partner permissions. */
+export async function getFieldPartners(): Promise<OrgListing[]> {
+  const published = new Map<string, OrgListing>(fieldPartners.organisations.map(o => [o.id, o]));
+  const supa = getSupabaseAdmin() ?? getSupabase();
+  if (!supa) return [...published.values()];
+  const { data, error } = await supa.from("ngos")
+    .select("id,name,slug,city,state,mission,website,logo_url,partner_status")
+    .eq("demo_mode", false)
+    .in("partner_status", ["directory", "operational_partner", "pilot_partner"])
+    .order("name", { ascending: true }).limit(200);
+  if (!error) for (const row of data ?? []) {
+    if (/HSI|Humane Society International|Humane World for Animals/i.test(row.name)) continue;
+    published.set(row.id, {id:row.id,name:row.name,slug:row.slug,city:row.city,state:row.state,mission:row.mission,website:row.website,logoUrl:row.logo_url});
+  }
+  return [...published.values()].sort((a,b) => a.name.localeCompare(b.name));
+}
 
 export async function getListedOrganisations(): Promise<{ members: OrgListing[]; sources: OrgListing[] }> {
   const supa = getSupabaseAdmin() ?? getSupabase();
@@ -96,33 +116,32 @@ export async function getListedOrganisations(): Promise<{ members: OrgListing[];
    The kind says what StrayPaw's relationship to each one actually is, so a
    municipal corporation or an open data platform whose published records
    StrayPaw draws on never reads as a partner:
-     Field partner      a verified working relationship (partner_status
-                        operational_partner or pilot_partner)
-     Listed NGO         an organisation listed in the directory or invited
-                        to use StrayPaw; listing is not a partnership
+     Field partner      an NGO approved for public attribution by the owner;
+                        operational permissions retain their existing status
+     Listed NGO         other directory entries without field-partner attribution
      Data source        an organisation or platform whose published data was
                         imported under its licence; no relationship implied */
 export type OrgKind = "Field partner" | "Listed NGO" | "Data source";
 
 export function orgKind(_name: string, status: string | null | undefined): OrgKind {
-  if (status === "operational_partner" || status === "pilot_partner") return "Field partner";
+  if (!/HSI|Humane Society International|Humane World for Animals/i.test(_name) && (status === "directory" || status === "operational_partner" || status === "pilot_partner" || fieldPartners.organisations.some(o => o.name === _name))) return "Field partner";
   return status === "data_source" || status === "record_contributor" ? "Data source" : "Listed NGO";
 }
 
 export type DirectoryOrg = OrgListing & { kind: OrgKind };
 
 export async function getPartnerDirectory(): Promise<DirectoryOrg[]> {
-  const [partners, listed] = await Promise.all([getOperationalPartners(), getListedOrganisations()]);
+  const [partners, listed] = await Promise.all([getFieldPartners(), getListedOrganisations()]);
   const seen = new Set<string>();
   const out: DirectoryOrg[] = [];
   for (const p of partners) {
     if (seen.has(p.id)) continue; seen.add(p.id);
-    out.push({ id: p.id, name: p.name, slug: p.slug, city: p.city, state: p.state, mission: p.mission, website: null, logoUrl: p.logoUrl, kind: "Field partner" });
+    out.push({ ...p, kind: "Field partner" });
   }
-  // Organisations given dashboard access (an invite code or email invite) are listed, not partners.
+  // Public attribution does not change workspace membership or access controls.
   for (const o of listed.members) {
     if (seen.has(o.id)) continue; seen.add(o.id);
-    out.push({ ...o, kind: "Listed NGO" });
+    out.push({ ...o, kind: orgKind(o.name, "directory") });
   }
   for (const o of listed.sources) {
     if (seen.has(o.id)) continue; seen.add(o.id);

@@ -12,7 +12,7 @@ import { State } from "../../ui";
 import "./more.css";
 
 const f = (n: number) => n.toLocaleString("en-IN");
-const KIND_NOTE: Record<DirectoryOrg["kind"], string> = { "Field partner": "Works its cases in StrayPaw", "Listed NGO": "Has a StrayPaw workspace", "Data source": "Shared a historical register" };
+const KIND_NOTE: Record<DirectoryOrg["kind"], string> = { "Field partner": "Animal-welfare organisations on StrayPaw", "Listed NGO": "Has a StrayPaw workspace", "Data source": "Shared a historical register" };
 
 export function Organisations({ orgs, impacts }: { orgs: DirectoryOrg[]; impacts: Map<string, OrgImpact> | null }) {
   const kinds = (["Field partner", "Listed NGO", "Data source"] as const).map((k) => ({ k, list: orgs.filter((o) => o.kind === k) })).filter((g) => g.list.length);

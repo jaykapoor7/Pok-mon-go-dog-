@@ -15,6 +15,7 @@ export async function sendEmail(opts: {
   subject: string;
   html: string;
   text?: string;
+  replyTo?: string;
 }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY?.trim();
   const from = process.env.EMAIL_FROM?.trim() || "StrayPaw <hello@straypaw.org>";
@@ -23,7 +24,7 @@ export async function sendEmail(opts: {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: opts.to, subject: opts.subject, html: opts.html, text: opts.text }),
+      body: JSON.stringify({ from, to: opts.to, subject: opts.subject, html: opts.html, text: opts.text, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}) }),
     });
     return res.ok;
   } catch {

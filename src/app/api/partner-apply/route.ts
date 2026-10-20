@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { sendEmail } from "@/lib/email";
+import { CONTACT_INBOX } from "@/lib/contact-inbox";
+import { allowRequest, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const INBOX = "jaykapoor7@outlook.com";
 
 function esc(s: string) {
   return String(s).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] as string));
 }
 
 export async function POST(req: Request) {
+  if (!(await allowRequest(clientIp(req), "partner-apply", 5, 600))) return NextResponse.json({ error: "Please wait a few minutes before sending another application." }, { status: 429 });
   let body: {
     org_name?: string; contact_name?: string; email?: string; phone?: string;
     city?: string; website?: string; about?: string; documents?: { name: string; url: string }[];
@@ -40,15 +41,11 @@ export async function POST(req: Request) {
     documents: Array.isArray(body.documents) ? body.documents.slice(0, 12) : [],
   };
 
-  const supa = getSupabaseAdmin();
-  if (supa) {
-    const { error } = await supa.from("partner_applications").insert(row);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
   const docs = (row.documents as { name: string; url: string }[]).map((d) => `<li><a href="${esc(d.url)}">${esc(d.name)}</a></li>`).join("");
-  await sendEmail({
-    to: INBOX,
+  const supa = getSupabaseAdmin();
+  const [delivery] = await Promise.allSettled([sendEmail({
+    to: CONTACT_INBOX,
+    replyTo: email,
     subject: `[StrayPaw] Partnership application - ${org_name}`,
     html: `<p><strong>${esc(org_name)}</strong> applied to partner.</p>
       <p>Contact: ${esc(row.contact_name ?? "")} · ${esc(email)} · ${esc(row.phone ?? "")}</p>
@@ -56,7 +53,9 @@ export async function POST(req: Request) {
       <hr/><p>${esc(about).replace(/\n/g, "<br/>")}</p>
       ${docs ? `<p><strong>Documents:</strong></p><ul>${docs}</ul>` : ""}`,
     text: `${org_name} applied to partner.\nContact: ${row.contact_name} <${email}> ${row.phone}\nCity: ${row.city}\nWebsite: ${row.website}\n\n${about}`,
-  }).catch(() => {});
+  }), supa ? supa.from("partner_applications").insert(row) : Promise.resolve()]);
+  const delivered = delivery.status === "fulfilled" && delivery.value;
+  if (!delivered) return NextResponse.json({ error: "Application email delivery is temporarily unavailable. Please try again shortly.", delivered: false }, { status: 503 });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, delivered: true });
 }

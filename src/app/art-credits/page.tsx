@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/app/AppShell";
 import { DeskHeader } from "@/components/app/DeskHeader";
 import { WORKS, DOG_ART, FOLK_CUTOUTS, FOLK_PANELS } from "@/lib/art/sources";
+import registerPhotos from "@/data/register-photo-credits.json";
 
 export const metadata = {
   title: "Art on StrayPaw",
@@ -43,6 +44,18 @@ export default function ArtCreditsPage() {
               </article>
             );
           })}
+        </section>
+        <section id="register-photos" aria-labelledby="register-photos-title">
+          <h2 id="register-photos-title">Register photographs</h2>
+          <p>The homepage uses locally hosted copies of these photographs from its archived public profiles. Each photograph stays with its original animal record. Images are resized and converted to WebP, with a responsive crop.</p>
+          <ul>
+            {registerPhotos.map((photo) => (
+              <li key={photo.animal_id}>
+                <a href={photo.source_url} target="_blank" rel="noreferrer">{photo.straypaw_id} · {photo.photographer}</a>
+                {" · "}<a href={photo.licence_url} target="_blank" rel="noreferrer">{photo.licence_url.includes("/by-sa/") ? "CC BY-SA" : photo.licence_url.includes("/by/") ? "CC BY" : "Public domain"}</a>
+              </li>
+            ))}
+          </ul>
         </section>
       </div>
     </AppShell>

@@ -1,11 +1,9 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { getAnimalRegister, getLandingStory } from "@/lib/landing/story";
-import { getMapCities } from "@/lib/livingmap/server";
+import { getLandingStory } from "@/lib/landing/story";
 import { getRegisterTotals } from "@/lib/register/totals";
 import { sxSerif } from "@/components/shell/fonts";
 import { Stage } from "@/components/bindu/stage";
@@ -13,6 +11,8 @@ import { WORK_IMAGES } from "@/lib/art/sources";
 import { Chain } from "@/components/request/OriginalRequest";
 import { CaseDive } from "@/components/landing/CaseDive";
 import caseArchive from "@/data/landing-case-archive.json";
+import registerArchive from "@/data/landing-register-archive.json";
+import fieldPartners from "@/data/field-partners.json";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import { Ecosystem } from "@/components/production/Ecosystem";
 import "@/components/site/site.css";
@@ -31,30 +31,34 @@ const FAQ=[
  ["Can I report through WhatsApp? What does it cost?","WhatsApp reporting is available through CareOS. Contact StrayPaw for the reporting channel or to connect your team. Setup and costs are confirmed for your organisation; web reporting is also available."],
  ["How does an institution request a pilot?","Send your city, programme, available records and goals through Request a Pilot. We agree scope, responsibilities, deliverables, duration and fees before work begins."],
 ];
-async function Stories(){const data=await getAnimalRegister().catch(()=>({total:0,cards:[]}));return <AnimalRegister data={data} total={data.total} />;}
 export default async function HomePage(){
- const [story,cities,totals]=await Promise.all([getLandingStory().catch(()=>null),getMapCities().catch(()=>[]),getRegisterTotals().catch(()=>null)]);
+ const [story,totals]=await Promise.all([getLandingStory().catch(()=>null),getRegisterTotals().catch(()=>null)]);
  const areas=(story?.desk.cells??[]).map(c=>({ring:c.ring,open:c.open,crit:c.crit,name:c.name}));
  // Retain the previously published case history when the live service cannot be read.
  const caseHero=story?.journey?story.hero:caseArchive.hero;
  const caseBox:[number,number,number,number]=[caseHero.box[0],caseHero.box[1],caseHero.box[2],caseHero.box[3]];
- const city=cities.find(c=>c.city===story?.hero.city);
- const brief=city?{city:city.city,animals:city.animals,cells:city.cells,sterilised:city.sterilised,ster_unknown:city.ster_unknown,cases:city.cases}:null;
- const locs=Array.from(areas.reduce((m,a)=>{if(a.name)m.set(a.name,(m.get(a.name)??0)+a.open);return m;},new Map<string,number>()),([name,open])=>({name,open})).sort((a,b)=>b.open-a.open);
+ const animal=registerArchive.data.cards[0];
  return <div className={`sp sw production ${sxSerif.variable}`}><PageView name="landing_view"/><SiteHeader/><main>
   <section id="world" className="w1 production-hero production-hero-static" aria-label="Street-animal care, connected"><div className="bs-frame">
    <div className="production-hero-art"><div className="wd" aria-hidden="true"><div className="wd-art">
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={WORK_IMAGES.palamporeTree.src} width={WORK_IMAGES.palamporeTree.w} height={WORK_IMAGES.palamporeTree.h} alt="" fetchPriority="high" decoding="async"/></div></div><Link className="hero-art-credit" href="/art-credits">Coromandel palampore · The Met · CC0</Link></div>
-   <div className="production-hero-copy"><h1>Street-animal care, connected.</h1><p>StrayPaw connects community reports, animal histories, and care teams through one shared map and workspace.</p><div className="sw-acts"><Link href="/explore" className="sw-btn is-paper">Explore the Map <ArrowUpRight size={18} aria-hidden/></Link><Link href="/contact?subject=Request%20a%20Pilot" className="sw-btn hero-pilot">Request a Pilot</Link></div>
-    {totals&&totals.animals>0?<p className="hero-proof"><b>{f(totals.animals)}</b> animal records · <b>{f(totals.cases)}</b> requests for help · <b>{f(totals.cities)}</b> cities<small>Including historical imports. Records are not a census; requests are not rescue outcomes. <Link href="/evidence">Sources & definitions</Link></small></p>:<p className="hero-proof">Explore the public animal record. <Link href="/evidence">Sources & definitions</Link></p>}
+    <img src={WORK_IMAGES.palamporeTree.src} width={WORK_IMAGES.palamporeTree.w} height={WORK_IMAGES.palamporeTree.h} alt="" fetchPriority="high" decoding="async"/></div></div><Link className="hero-art-credit" href="/art-credits">Coromandel palampore · The Met · CC0</Link>
+    <Link className="hero-record" href={`/animal/${animal.id}`}>
+     <span className="hero-record-top"><span>StrayPaw · animal record</span><ArrowUpRight size={18} aria-hidden/></span>
+     {/* eslint-disable-next-line @next/next/no-img-element */}
+     <img src={animal.cover_photo} width={460} height={360} alt={`Street dog in ${animal.city}, from the public record`} fetchPriority="high"/>
+     <span className="hero-record-bottom"><b>{animal.straypaw_id}</b><span>{animal.city}</span></span>
+    </Link><span className="hero-record-stamp" aria-hidden>Seen.<br/>Recorded.<br/>Connected.</span>
+   </div>
+   <div className="production-hero-copy"><span className="hero-eyebrow">Reports → records → coordinated care</span><h1>Street-animal care, connected.</h1><p>StrayPaw connects community reports, animal histories, and care teams through one shared map and workspace.</p><div className="sw-acts"><Link href="/explore" className="sw-btn is-paper">Explore the Map <ArrowUpRight size={18} aria-hidden/></Link><Link href="/contact?subject=Request%20a%20Pilot" className="sw-btn is-flame hero-pilot">Request a Pilot</Link></div>
+    {totals&&totals.animals>0&&<p className="hero-proof"><b>{f(totals.animals)}</b> animal records · <b>{f(totals.cases)}</b> requests for help · <b>{f(totals.cities)}</b> cities<small>Including historical imports. Records are not a census; requests are not rescue outcomes.</small></p>}
    </div>
   </div></section>
-  <Suspense fallback={<section className="animal-stories-loading"><h2>Every animal has a story.</h2><p role="status">Reading photographed records…</p></section>}><Stories/></Suspense>
+  <AnimalRegister data={registerArchive.data} total={registerArchive.data.total} archived/>
   <Stage id="one-request" className="w2 production-request" screens={2.8} label="One report. A connected record."><Chain areas={areas} city={story?.hero.city??"Public record"}/></Stage>
-  <CaseDive j={story?.journey??caseArchive.journey} city={caseHero.city} box={caseBox} rings={caseHero.rings} events={caseHero.events} archived={!story?.journey} note={!story?.journey?"Archived public record, captured 20 October 2026. The dates and care are recorded; routes are illustrative.":undefined}/>
-  <section className="production-section ecosystem-section" id="ecosystem" aria-labelledby="ecosystem-title"><header className="section-intro"><div><h2 id="ecosystem-title">Better together.</h2><p>Different roles. One continuing record.</p></div></header><Ecosystem queue={story?.desk.queue??[]} brief={brief} locs={locs} story={story}/></section>
-  <div className="production-faq" aria-labelledby="faq-title"><h2 id="faq-title">A few things to know.</h2><div>{FAQ.map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></div>
-  <div className="production-close"><h2>Make care easier to coordinate.</h2><div className="sw-acts"><Link href="/app?choose=1" className="sw-btn is-flame">Open App <ArrowUpRight size={18} aria-hidden/></Link><Link href="/contact?subject=Work%20With%20Us" className="sw-btn is-paper">Work With Us</Link></div></div>
+  <CaseDive j={story?.journey??caseArchive.journey} city={caseHero.city} box={caseBox} rings={caseHero.rings} events={caseHero.events}/>
+  <section className="production-section ecosystem-section" id="ecosystem" aria-labelledby="ecosystem-title"><header className="section-intro"><div><h2 id="ecosystem-title">Better together.</h2><p>Different roles. One continuing record.</p></div></header><Ecosystem animal={animal} partners={fieldPartners.organisations}/></section>
+  <div className="production-faq" aria-labelledby="faq-title"><div className="faq-intro"><span className="faq-kicker">Before you begin</span><h2 id="faq-title">A few things<br/><em>to know.</em></h2><p>Clear answers. A useful next step.</p><Link href="/contact">Ask us something else <ArrowUpRight size={17} aria-hidden/></Link><svg className="faq-asterisk" viewBox="0 0 100 100" aria-hidden><path d="M50 8V92M8 50H92M20 20L80 80M20 80L80 20" fill="none" stroke="currentColor" strokeWidth="11" strokeLinecap="round"/></svg></div><div className="faq-ledger">{FAQ.map(([q,a],i)=><details key={q}><summary><span className="faq-number">0{i+1}</span><span>{q}</span><i aria-hidden/></summary><p>{a}</p></details>)}</div></div>
+  <div className="production-close"><span className="closing-index" aria-hidden>↗</span><h2>Make care easier<br/><em>to coordinate.</em></h2><Link href="/contact?subject=Work%20With%20Us" className="closing-action">Work With Us <ArrowUpRight size={24} aria-hidden/></Link></div>
  </main><SiteFooter/></div>;
 }

@@ -6,13 +6,13 @@
    It opens on how a rescue lives today: a dozen scraps of one animal's
    story in chats, sheets and calls, which spiral into one phone. There a
    resident's report is typed and waiting. Press Send (or simply keep
-   scrolling) and one message sets off a chain reaction along a painted
-   vine: it unfolds into a case; the case drops into a team's queue; a
+   scrolling) and one message sets off a chain reaction along a drawn
+   ink trail: it unfolds into a case; the case drops into a team's queue; a
    reply flies back to the resident; care is written into the animal's
    history; the history drops a mark on the map; the mark lights its
    locality in the city's live figures; the record becomes evidence.
-   Each card blooms as the message reaches it, and a pulse runs through
-   the whole system at the end.
+   Each card receives the same travelling report; the drawn line stays
+   behind as a record of its journey.
 
    One object travels the whole way and changes shape at every stop.
    Two drivers share one timeline: the scroll (it plays backwards too)
@@ -21,7 +21,7 @@
    areas and the city's figures are live.
    ════════════════════════════════════════════════════════════════════ */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Camera, CheckCheck, MapPin, RotateCcw, SendHorizontal } from "lucide-react";
 import { useStage, span, ease } from "@/components/bindu/stage";
 import { FOLK_CUTOUTS } from "@/lib/art/sources";
@@ -58,7 +58,6 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
   const [frameH, setFrameH] = useState(480);
   const [qq, setQq] = useState(still ? 1 : 0);
   const [mode, setMode] = useState<"scroll" | "auto">("scroll");
-  const [leaves, setLeaves] = useState<{ x: number; y: number; a: number; u: number; i: number }[]>([]);
   const auto = useRef<{ t0: number; from: number } | null>(null);
   const kick = useRef<() => void>(() => {});
   const written = useRef<Record<string, string>>({});
@@ -118,20 +117,6 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
     return { flights, links };
   }, [L, tall, fdot, plate, place]);
 
-  /* leaves along each vine, placed on the real path once it is laid out */
-  useEffect(() => {
-    const g = linksRef.current; if (!g) return;
-    const out: { x: number; y: number; a: number; u: number; i: number }[] = [];
-    g.querySelectorAll<SVGPathElement>(".cv-vine").forEach((path, i) => {
-      const len = path.getTotalLength(), n = Math.max(3, Math.round(len / 46));
-      for (let j = 1; j < n; j++) {
-        const u = j / n, q = path.getPointAtLength(len * u), q2 = path.getPointAtLength(Math.min(len, len * u + 1));
-        out.push({ x: q.x, y: q.y, a: (Math.atan2(q2.y - q.y, q2.x - q.x) * 180) / Math.PI + (j % 2 ? 50 : -50), u, i });
-      }
-    });
-    setLeaves(out);
-  }, [geo]);
-
   /* the frame: continuous motion straight to the DOM; discrete state through React, only on change */
   const draw = useCallback((P: number) => {
     const r = Math.round(P * 100) / 100;
@@ -162,10 +147,9 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
     const typed = Math.round(MSG.length * span(P, T.type[0], T.type[1]));
     const tk = P >= T.send[0] ? "sent" : String(typed), tx = root.querySelector<HTMLElement>(".cv-typed");
     if (tx && written.current.typed !== tk) { written.current.typed = tk; tx.textContent = tk === "sent" ? "" : MSG.slice(0, typed); }
-    /* vines grow as the message travels along them; leaves open behind it */
+    /* The ink trail is written by the same travelling report, forwards or backwards. */
     const segs = geo.flights.map((f) => span(P, f.seg[0], f.seg[1]));
-    linksRef.current?.querySelectorAll<SVGPathElement>(".cv-vine, .cv-vine-gap").forEach((n) => { const i = Number(n.dataset.i); n.style.strokeDashoffset = String(1 - segs[i]); });
-    linksRef.current?.querySelectorAll<SVGElement>(".cv-leaf").forEach((n) => { const on = segs[Number(n.dataset.i)] >= Number(n.dataset.u); if ((n.dataset.on === "1") !== on) { n.dataset.on = on ? "1" : "0"; } });
+    linksRef.current?.querySelectorAll<SVGPathElement>(".cv-thread-ink").forEach((n) => { const i = Number(n.dataset.i); n.style.strokeDashoffset = String(1 - segs[i]); });
     /* the one object, wherever it is */
     const t = tok.current; if (!t) return;
     const i = segs.findIndex((s) => s > 0 && s < 1);
@@ -243,18 +227,10 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
       <div className="cv-fit" style={{ width: L.W * k, height: tall && !still ? frameH : L.H * k }}>
         <div className="cv-canvas" ref={stage} style={{ width: L.W, height: L.H, transform: `scale(${k})` }}>
           <svg className="cv-links" viewBox={`0 0 ${L.W} ${L.H}`} aria-hidden>
+            {geo.links.map((l, i) => <path key={`guide${i}`} d={l.d} className="cv-thread-guide" />)}
             <g ref={linksRef}>
-              {geo.links.map((l, i) => <path key={`v${i}`} d={l.d} pathLength={1} data-i={i} className="cv-vine" />)}
-              {geo.links.map((l, i) => <path key={`g${i}`} d={l.d} pathLength={1} data-i={i} className="cv-vine-gap" />)}
-              {leaves.map((f, j) => <ellipse key={j} cx={0} cy={0} rx={7} ry={3} data-i={f.i} data-u={f.u} className="cv-leaf" style={{ transform: `translate(${f.x}px, ${f.y}px) rotate(${f.a}deg) translateX(6px)` }} />)}
-              {geo.links.map((l, i) => (
-                <g key={`f${i}`} className={`cv-bloom${on(i + 1) ? " is-on" : ""}`} style={{ transform: `translate(${l.b[0]}px, ${l.b[1]}px)` }}>
-                  {Array.from({ length: 8 }, (_, j) => <ellipse key={j} cx={0} cy={-9} rx={3.4} ry={7} transform={`rotate(${j * 45})`} className={j % 2 ? "is-a" : "is-b"} />)}
-                  <circle r={4} />
-                </g>
-              ))}
+              {geo.links.map((l, i) => <path key={`ink${i}`} d={l.d} pathLength={1} data-i={i} className="cv-thread-ink" />)}
             </g>
-            {geo.links.map((l, i) => <circle key={`p${i}`} r="5" className="cv-spark" style={{ offsetPath: `path("${l.d}")` } as CSSProperties} />)}
           </svg>
 
           <div className="cv-frags" ref={fragRef} aria-hidden>

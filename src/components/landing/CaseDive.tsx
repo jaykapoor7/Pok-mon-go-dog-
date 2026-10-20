@@ -18,8 +18,7 @@
    as it is given, a ring filling over the days in care), and it comes
    back to its street on the day the case closed. The days and the care
    are the record's; the roads taken and the place of care are not on the
-   public record, so the map says the routes are drawn for illustration
-   and the place of care is named as unrecorded.
+   public record; the choreography illustrates the recorded sequence.
    ════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -53,10 +52,10 @@ const road = (a: Pt, b: Pt, bend: number) => {
 };
 const CARE_WORD: Record<string, string> = { vaccination: "Vaccination", treatment: "Treatment", sterilisation: "Sterilisation", deworming: "Deworming", surgery: "Surgery", checkup: "Check-up", medication: "Medication" };
 
-export function CaseDive({ j, city, box, rings, events, note, archived = false }: {
+export function CaseDive({ j, city, box, rings, events }: {
   j: Journey; city: string; box: [number, number, number, number]; rings: number[][];
   /** Flat [cellIndex, day, kind], as the hero plate takes them. */
-  events: number[]; note?: string; archived?: boolean;
+  events: number[];
 }) {
   const steps = useMemo(() => {
     const start = Date.parse(j.reported);
@@ -260,17 +259,15 @@ export function CaseDive({ j, city, box, rings, events, note, archived = false }
               <span className="ld-dive-care-tag">
                 <strong>Care</strong>
                 {careWords.map((w, i) => <em key={w} style={{ transitionDelay: `${0.25 + i * 0.35}s` }}>{w}</em>)}
-                <small className="sys-mono">Place of care not on the public record</small>
               </span>
             </div>
           )}
           <div ref={teamEl} className="ld-dive-team"><span><Truck size={13} aria-hidden /> Field team</span></div>
           <div ref={markEl} className={`ld-dive-mark is-${state} ${t.arrived ? "is-here" : ""}`}><i /><i /><b /></div>
-          <p className="ld-dive-illus sys-mono">Illustrative routes · recorded dates and care</p>
         </div>
 
         <div className="ld-dive-panel">
-          <p className="ld-dive-kicker sys-mono">{archived ? "Archived public case" : "Real case"} · {j.locality}, {city}</p>
+          <p className="ld-dive-kicker sys-mono">{j.locality}, {city}</p>
           <h2 id="ld-dive-title">One request, <em>followed to the&nbsp;end.</em></h2>
           <p className="ld-dive-day" aria-hidden="true"><span>Day</span> <b>{t.day}</b></p>
           <ol className="ld-dive-steps" aria-label={`The request, from report to close, over ${plural(j.days, "day")}`}>
@@ -282,7 +279,6 @@ export function CaseDive({ j, city, box, rings, events, note, archived = false }
               </li>
             ))}
           </ol>
-          {note && <p className="ld-dive-note">{note}</p>}
         </div>
       </div>
     </section>

@@ -1,0 +1,106 @@
+{
+  "verified_at": "2026-10-20",
+  "publication_authority": "Product owner explicitly confirmed all listed NGOs as field partners in this implementation session.",
+  "organisations": [
+    {
+      "id": "86530379-792b-43ae-8e40-920a85c48268",
+      "name": "Humane Animal Society",
+      "slug": "humane-animal-society",
+      "city": "Coimbatore",
+      "state": null,
+      "mission": null,
+      "website": null,
+      "logoUrl": null
+    },
+    {
+      "id": "57d7e234-d0d1-413e-912a-95d8f9ce8aad",
+      "name": "Janice Smith Animal Welfare Trust",
+      "slug": "janice-smith-animal-welfare-trust",
+      "city": "Panchgani",
+      "state": null,
+      "mission": null,
+      "website": null,
+      "logoUrl": null
+    },
+    {
+      "id": "561f00a3-bebc-4400-b0fd-8b8ced535a10",
+      "name": "JH CreIndia Foundation",
+      "slug": "jh-creindia-foundation",
+      "city": "Guwahati",
+      "state": "Assam",
+      "mission": "One Health research and rabies-elimination programmes.",
+      "website": "https://www.creindia.org/",
+      "logoUrl": null
+    },
+    {
+      "id": "6bdb78ef-c0e7-4a4e-9b5e-c91a498ae935",
+      "name": "Just Be Friendly",
+      "slug": "just-be-friendly",
+      "city": "Gauhati",
+      "state": null,
+      "mission": null,
+      "website": null,
+      "logoUrl": null
+    },
+    {
+      "id": "a77d2cf8-f422-4a9d-95c7-df47aa75b435",
+      "name": "Mission Rabies",
+      "slug": "mission-rabies",
+      "city": "Ranchi",
+      "state": "Jharkhand",
+      "mission": "Eliminating dog-mediated rabies through evidence-led vaccination.",
+      "website": "https://missionrabies.com",
+      "logoUrl": null
+    },
+    {
+      "id": "01356602-a0c6-461a-ae5d-cbd51a88401a",
+      "name": "PAWS Chennai",
+      "slug": "paws-chennai",
+      "city": "Chennai",
+      "state": null,
+      "mission": null,
+      "website": null,
+      "logoUrl": null
+    },
+    {
+      "id": "eab433ec-06f4-4f5a-85ee-3fb10df0ea31",
+      "name": "Peedu's People",
+      "slug": "peedu-s-people",
+      "city": "Mohali",
+      "state": null,
+      "mission": null,
+      "website": null,
+      "logoUrl": null
+    },
+    {
+      "id": "08bc60e8-a1dd-4f6e-96f1-1c1128697586",
+      "name": "SAVE OUR STRAYS",
+      "slug": "save-our-strays",
+      "city": "Mumbai",
+      "state": null,
+      "mission": null,
+      "website": null,
+      "logoUrl": null
+    },
+    {
+      "id": "4439043c-bba8-476e-9277-6af639eea4dd",
+      "name": "The Kind Hour Foundation",
+      "slug": "the-kind-hour-foundation",
+      "city": "Lucknow",
+      "state": "Uttar Pradesh",
+      "mission": "Our aim, long term, is to replace rescue and shelter organisations with local communities that respect and care for the animals in their vicinity.",
+      "website": "https://www.thekindhour.org",
+      "logoUrl": null
+    },
+    {
+      "id": "857b629a-6f17-4a42-b419-8ef804527443",
+      "name": "The Pawsome People Project",
+      "slug": "the-pawsome-people-project",
+      "city": "Coimbatore",
+      "state": "Tamil Nadu",
+      "mission": "Community animal rescue, treatment follow-up, sterilisation and vaccination work in Coimbatore.",
+      "website": null,
+      "logoUrl": "https://www.straypaw.org/partners/pawsome-people-project-logo.svg"
+    }
+  ]
+}
