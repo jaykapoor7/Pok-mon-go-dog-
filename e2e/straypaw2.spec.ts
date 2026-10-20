@@ -55,8 +55,8 @@ test("the landing page still renders its hero", async ({ page }) => {
 
 test("the original request has readable disclosure and a web reporting destination", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/");
-  await expect(page.locator("#one-request")).toContainText("Reports are reviewed");
-  await expect(page.locator("#one-request a").filter({hasText:"Report on the web"})).toHaveAttribute("href","/report");
+  await expect(page.locator("#one-request")).toContainText("No guaranteed acceptance");
+  await expect(page.locator(".cv-disclosure a")).toHaveAttribute("href","/community/report");
 });
 
 test("solutions: the URL chooses the audience", async ({ page }) => {

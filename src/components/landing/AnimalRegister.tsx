@@ -196,9 +196,7 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
   const running = !calm && seen && !hold;
 
   return (
-    <section ref={setEl} className={`rx${calm ? " is-calm" : ""}${hold || !seen ? " is-paused" : ""}`} aria-labelledby="rx-title"
-      onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)}
-      onFocus={() => setHold(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHold(false); }}>
+    <section ref={setEl} className={`rx${calm ? " is-calm" : ""}${hold || !seen ? " is-paused" : ""}`} aria-labelledby="rx-title">
       {plate && <RegisterPlate plate={plate} running={seen} calm={calm} />}
       <div className="rx-rail" data-ld-reveal="rail">
         <h2 id="rx-title">Every animal has a story.</h2>
@@ -212,7 +210,13 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
           <Band cards={bands[2]} depth="back" dir="r" featId={cur.id} />
         </div>
 
-        <div className="rx-deck">
+        <div
+          className="rx-deck"
+          onMouseEnter={() => setHold(true)}
+          onMouseLeave={() => setHold(false)}
+          onFocus={() => setHold(true)}
+          onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHold(false); }}
+        >
           <div className="rx-stack">
             <span className="rx-sheet is-b" aria-hidden />
             <span className="rx-sheet is-a" aria-hidden />

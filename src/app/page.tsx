@@ -10,13 +10,14 @@ import { getRegisterTotals } from "@/lib/register/totals";
 import { sxSerif } from "@/components/shell/fonts";
 import { Stage } from "@/components/bindu/stage";
 import { World, type WorldArea } from "@/components/world/World";
-import { CareStory } from "@/components/landing/CareStory";
+import { Chain } from "@/components/request/OriginalRequest";
 import { CaseDive } from "@/components/landing/CaseDive";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import { Ecosystem } from "@/components/production/Ecosystem";
 import "@/components/site/site.css";
 import "@/components/world/home.css";
 import "@/components/world/world.css";
+import "@/components/request/chain.css";
 import "@/components/landing/landing.css";
 import "@/components/production/production.css";
 export const revalidate = 300;
@@ -50,8 +51,8 @@ export default async function HomePage(){
    {brief&&<Link className="hero-geography" href={`/explore?city=${encodeURIComponent(brief.city)}`}><b>{brief.city}</b><span>{f(brief.animals)} animal records · {f(brief.cells)} recorded areas</span><small>Real public geography. Scroll to see the record beneath the painting.</small></Link>}
   </Stage>
   <Suspense fallback={<section className="animal-stories-loading"><h2>Every animal has a story.</h2><p role="status">Reading photographed records…</p></section>}><Stories/></Suspense>
-  <CareStory/>
-  <CaseDive geography={story?{city:story.hero.city,box:story.hero.box}:undefined}/>
+  <Stage id="one-request" className="w2 production-request" screens={2.8} label="One report. A connected record."><Chain areas={areas} city={story?.hero.city??"Public record"}/></Stage>
+  {story?.journey?<CaseDive j={story.journey} city={story.hero.city} box={story.hero.box} rings={story.hero.rings} events={story.hero.events}/>:<section id="request-journey" className="production-section" aria-labelledby="ld-dive-title"><h2 id="ld-dive-title">One request, followed to the end.</h2><p>The case history is temporarily unavailable. <Link href="/explore">Explore the public record</Link>.</p></section>}
   <section className="production-section ecosystem-section" id="ecosystem" aria-labelledby="ecosystem-title"><header className="section-intro"><div><h2 id="ecosystem-title">Better together.</h2><p>Different roles. One continuing record.</p></div></header><Ecosystem queue={story?.desk.queue??[]} brief={brief} locs={locs} story={story}/></section>
   <div className="production-faq" aria-labelledby="faq-title"><h2 id="faq-title">A few things to know.</h2><div>{FAQ.map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></div>
   <div className="production-close"><h2>Make care easier to coordinate.</h2><div className="sw-acts"><Link href="/app?choose=1" className="sw-btn is-flame">Open App <ArrowUpRight size={18} aria-hidden/></Link><Link href="/contact?subject=Work%20With%20Us" className="sw-btn is-paper">Work With Us</Link></div></div>
