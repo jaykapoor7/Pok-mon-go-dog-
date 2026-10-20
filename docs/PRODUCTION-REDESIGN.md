@@ -28,3 +28,10 @@
 ## Verification scope
 
 Production build, lint, TypeScript, the repository's spatial/privacy/bounded-read/date/input regressions, public desktop/mobile browser journeys and automated accessibility scans are run for this change. Form tests intercept writes; no real contact messages or animal reports are created by QA. Existing authentication and organisation permissions are retained. Signed-in operational writes require an authorised test account and are not claimed as exercised by the public-route tests.
+
+### Local release validation
+
+- Production build, TypeScript and lint passed.
+- Full Playwright suite: 114 passed; 8 skipped (deployment-only reviews and reporting sends that correctly require a configured store/human check). An additional 20 focused desktop/mobile tests passed after the final interaction and contrast adjustments.
+- Spatial engine, public organisation-map footprint, bounded reads, calendar dates, location cells, case input validation, no-full-register guard, all five master-import regressions, SQL/RPC mapping and place fallback passed.
+- Dependency gate (`npm audit --omit=dev --audit-level=critical`) passed with zero critical findings. The unchanged dependency tree still reports four high and one moderate advisory; the dependency upgrade is separate from this visual/product change.

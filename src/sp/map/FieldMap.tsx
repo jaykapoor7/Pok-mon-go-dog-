@@ -178,7 +178,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       ml.current = lib;
       lib.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       map = new lib.Map({ container: el.current, style: { ...groundStyle(), glyphs: GLYPHS }, bounds: INDIA_BOX, fitBoundsOptions: { padding: 24 },
-        attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3" }, maxPitch: 0, pitch: 0, bearing: 0, maxZoom: 18, minZoom: 2 });
+        attributionControl: { compact: node.clientWidth < 900, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth · H3" }, maxPitch: 0, pitch: 0, bearing: 0, maxZoom: 18, minZoom: 2 });
       mapRef.current = map;
       if (process.env.NODE_ENV !== "production") (window as unknown as { __map?: MLMap }).__map = map;
       map.touchZoomRotate.disableRotation();

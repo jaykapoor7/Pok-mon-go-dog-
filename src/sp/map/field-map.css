@@ -303,3 +303,6 @@
 .fm .fm-report {color:#0b1e3d !important;}
 .fm-map .maplibregl-ctrl-attrib-button {min-width:32px;min-height:32px;}
 .fm-map .maplibregl-ctrl-attrib {min-height:32px;}
+@media(max-width:900px) {
+ .fm .fm-ctl,.fm:not(.is-india) .fm-ctl {top:250px;grid-template-columns:repeat(2,44px);gap:6px;}
+}

@@ -37,12 +37,14 @@ export default async function HomePage(){
  const areas=(story?.desk.cells??[]).map(c=>({ring:c.ring,open:c.open,crit:c.crit,name:c.name}));
  const maxN=Math.sqrt(Math.max(1,...cells.map(c=>c[2])));
  const worldAreas:WorldArea[]=areas.map(a=>{const n=a.ring.length/2;let x=0,y=0;for(let i=0;i<a.ring.length;i+=2){x+=a.ring[i];y+=a.ring[i+1];}const c:[number,number]=[x/n,y/n];const match=cells.find(p=>Math.abs(p[0]-c[0])+Math.abs(p[1]-c[1])<.004);return {name:a.name,c,open:a.open,crit:a.crit,n:match?Math.sqrt(match[2])/maxN:0};});
- const city=cities.find(c=>c.city===story?.hero.city);const centre:[number,number]=city?.lng!=null&&city.lat!=null?[city.lng,city.lat]:[80.6,22.2];
+ const city=cities.find(c=>c.city===story?.hero.city);
+ const focus=[...worldAreas].sort((a,b)=>b.open-a.open||b.crit-a.crit)[0];
+ const centre:[number,number]=focus?.c??(city?.lng!=null&&city.lat!=null?[city.lng,city.lat]:[80.6,22.2]);
  const brief=city?{city:city.city,animals:city.animals,cells:city.cells,sterilised:city.sterilised,ster_unknown:city.ster_unknown,cases:city.cases}:null;
  const locs=Array.from(areas.reduce((m,a)=>{if(a.name)m.set(a.name,(m.get(a.name)??0)+a.open);return m;},new Map<string,number>()),([name,open])=>({name,open})).sort((a,b)=>b.open-a.open);
  return <div className={`sp sw production ${sxSerif.variable}`}><PageView name="landing_view"/><SiteHeader/><main>
   <Stage id="world" className="w1 production-hero" screens={1.8} still={0} label="Street-animal care, connected">
-   <div className="production-hero-art"><World startAt={.18} areas={worldAreas} cells={cells} centre={centre} sampleAt={centre}/><Link className="hero-art-credit" href="/art-credits">Coromandel palampore · The Met · CC0</Link></div>
+   <div className="production-hero-art"><World startAt={story ? .18 : 0} areas={worldAreas} cells={cells} centre={centre} sampleAt={centre}/><Link className="hero-art-credit" href="/art-credits">Coromandel palampore · The Met · CC0</Link></div>
    <div className="production-hero-copy"><h1>Street-animal care, connected.</h1><p>StrayPaw connects community reports, animal histories, and care teams through one shared map and workspace.</p><div className="sw-acts"><Link href="/explore" className="sw-btn is-paper">Explore the Map <ArrowUpRight size={18} aria-hidden/></Link><Link href="/contact?subject=Request%20a%20Pilot" className="sw-btn hero-pilot">Request a Pilot</Link></div>
     {totals&&totals.animals>0?<p className="hero-proof"><b>{f(totals.animals)}</b> animal records · <b>{f(totals.cases)}</b> requests for help · <b>{f(totals.cities)}</b> cities<small>Including historical imports. Records are not a census; requests are not rescue outcomes. <Link href="/evidence">Sources & definitions</Link></small></p>:<p className="hero-proof">Explore the public animal record. <Link href="/evidence">Sources & definitions</Link></p>}
    </div>

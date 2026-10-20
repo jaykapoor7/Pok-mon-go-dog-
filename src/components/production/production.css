@@ -243,3 +243,4 @@
 .production .sw-btn.is-flame,.production .cv-steps li.is-now {color:#0b1e3d;}
 .production .cv-phone .is-us > small {color:#465d51;}
 .production :is(p,figcaption) a,.production .audience-workflow span a {text-decoration:underline;}
+.production.production .sw-btn.is-flame {color:#0b1e3d !important;}
