@@ -135,7 +135,7 @@ export function CaseDive({ geography }: { geography?: Geography }) {
   return <section ref={section} id="request-journey" className={`ld-dive restored-request${calm ? " is-calm" : ""}`} aria-labelledby="ld-dive-title">
     <div className="ld-dive-stage">
       <svg className={`request-street${mapReady ? " has-map" : ""}`} viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g className="request-blocks"><path d="M580 50h170v150H580zM820 50h220v150H820zM540 270h210v180H540zM820 270h230v180H820zM580 520h170v200H580zM820 520h240v200H820z"/></g><g className="request-streets"><path d="M780 0v800M450 235h750M450 485h750M1100 0v800"/><path d="M500 100Q640 390 530 800"/></g></svg>
-      <div ref={mapEl} className="ld-dive-map" aria-hidden="true" />
+      <div ref={mapEl} className="ld-dive-map" role="img" aria-label={geography ? `${geography.city} basemap behind an illustrative field-care journey` : "Schematic street behind an illustrative field-care journey"} />
       <div ref={actors} className="ld-dive-act is-acting" aria-hidden="true">
         <svg className="ld-dive-roads">{["team", "carry", "back"].map((name, i) => <path key={name} ref={el => { paths.current[i] = el; }} className={`is-${name}`} pathLength={1}/>)}</svg>
         <div ref={homeEl} className="ld-dive-home"><span>Back on the same street</span></div>
