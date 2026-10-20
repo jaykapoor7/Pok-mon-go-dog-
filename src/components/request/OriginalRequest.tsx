@@ -50,7 +50,7 @@ const SAY = ["A report enters review.", "A team can accept and assign.", "Update
 const DUR = 6400;
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
-export function Chain({ areas, city }: { areas: Area[]; city: string }) {
+export function Chain({ areas, city, recordedAt }: { areas: Area[]; city: string; recordedAt?: string }) {
   const { p, listen, still } = useStage();
   const stage = useRef<HTMLDivElement>(null), tok = useRef<HTMLDivElement>(null), linksRef = useRef<SVGGElement>(null), fragRef = useRef<HTMLDivElement>(null), dogRef = useRef<HTMLImageElement>(null);
   const [tall, setTall] = useState(false);
@@ -288,7 +288,7 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
           </section>
 
           <section className={`${nodeCls(4)} cv-map is-from-z`} style={box(L.map)} aria-label={`Recorded areas in ${city}`}>
-            <p className="cv-h"><b>{city}</b><small>{areas.length ? `${fmt(areas.length)} areas · public record` : "No area sample available"}</small></p>
+            <p className="cv-h"><b>{city}</b><small>{fmt(areas.length)} recorded areas{recordedAt&&<> · {recordedAt}</>}</small></p>
             {plate && (
               <svg viewBox={plate.vb} preserveAspectRatio="xMidYMin meet" aria-hidden>
                 {plate.dots.map((d, i) => <circle key={i} cx={d.x} cy={d.y} r={d.r} className={d.a.crit ? "is-crit" : d.a.open ? "is-open" : ""} />)}
@@ -297,8 +297,8 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
             )}
           </section>
 
-          <section className={`${nodeCls(5)} cv-city is-from-r`} style={box(L.city)} aria-label={`Open requests by locality in ${city}, live`}>
-            <p className="cv-h"><b>Open requests</b><small>by locality · public record</small></p>
+          <section className={`${nodeCls(5)} cv-city is-from-r`} style={box(L.city)} aria-label={`Open requests by locality in ${city}${recordedAt?`, recorded ${recordedAt}`:""}`}>
+            <p className="cv-h"><b>Open requests</b><small>{recordedAt?`Recorded ${recordedAt}`:"by locality · public record"}</small></p>
             <ol>
               {top.map(([name, n]) => (
                 <li key={name} className={on(5) && name === place ? "is-hit" : ""}><span>{name}</span><b>{fmt(n)}</b><i style={{ width: `${(n / maxTop) * 100}%` }} /></li>
@@ -331,8 +331,8 @@ export function Chain({ areas, city }: { areas: Area[]; city: string }) {
         <li>If accepted, a team can assign the case in its workspace.</li>
         <li>The resident can follow recorded updates.</li>
         <li>Care is written into the history only when a team records it.</li>
-        <li>The record adds a mark to the map of {city}, whose areas are live.</li>
-        <li>The locality&rsquo;s open requests update in the city&rsquo;s live figures.</li>
+        <li>The record adds a mark to the map of {city}. {recordedAt?`This public snapshot was captured on ${recordedAt}.`:"The areas use the public record."}</li>
+        <li>The locality&rsquo;s open requests are visible in the city&rsquo;s recorded figures.</li>
         <li>Each step is kept as evidence of work.</li>
       </ol>
     </div>

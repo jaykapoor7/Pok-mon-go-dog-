@@ -1,0 +1,51 @@
+{
+  "city": "Coimbatore",
+  "brief": {
+    "city": "Coimbatore",
+    "animals": 2242,
+    "cells": 254,
+    "sterilised": 101,
+    "ster_unknown": 2141,
+    "cases": 2156
+  },
+  "queue": [
+    {
+      "condition": "Maggot wound",
+      "locality": "Narasimhanaicken palayam",
+      "days": 87,
+      "critical": true,
+      "overdue": false
+    },
+    {
+      "condition": "Road accident",
+      "locality": "Podanur",
+      "days": 85,
+      "critical": true,
+      "overdue": false
+    },
+    {
+      "condition": "Road accident",
+      "locality": "Jeeva st. BR puram, Peelamedu",
+      "days": 85,
+      "critical": true,
+      "overdue": false
+    },
+    {
+      "condition": "Dog bite",
+      "locality": "Vasanthanagar, Seernaickenpalayam",
+      "days": 85,
+      "critical": true,
+      "overdue": false
+    },
+    {
+      "condition": "Skin & mange",
+      "locality": "Singanallur",
+      "days": 83,
+      "critical": true,
+      "overdue": false
+    }
+  ],
+  "captured_at": "2026-10-20T06:35:45.398026+00:00",
+  "source_commit": "e951ee08b7eaee9bfc04ef80102cfcf0a8e7b67f",
+  "source_html_sha256": "e5d02ba7ae3878728eb94e5033634f9cfc2b9a1a26d6df70e65b50f1adf09ed8"
+}

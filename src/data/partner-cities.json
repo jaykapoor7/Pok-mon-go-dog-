@@ -1,0 +1,46 @@
+{
+  "verified_at": "2026-10-20",
+  "precision": "City centre; organisation directory geography, not programme coverage or animal locations.",
+  "cities": {
+    "Mumbai": {
+      "lat": 19.076,
+      "lng": 72.8777,
+      "source": "src/lib/geo/cities.ts"
+    },
+    "Chennai": {
+      "lat": 13.0827,
+      "lng": 80.2707,
+      "source": "src/lib/geo/cities.ts"
+    },
+    "Coimbatore": {
+      "lat": 11.0168,
+      "lng": 76.9558,
+      "source": "src/lib/geo/cities.ts"
+    },
+    "Lucknow": {
+      "lat": 26.8467,
+      "lng": 80.9462,
+      "source": "src/lib/geo/cities.ts"
+    },
+    "Ranchi": {
+      "lat": 23.3441,
+      "lng": 85.3096,
+      "source": "src/lib/geo/cities.ts"
+    },
+    "Guwahati": {
+      "lat": 26.1445,
+      "lng": 91.7362,
+      "source": "src/lib/geo/cities.ts"
+    },
+    "Panchgani": {
+      "lat": 17.9239543,
+      "lng": 73.7992681,
+      "source": "https://nominatim.openstreetmap.org/search?q=Panchgani%2C+Maharashtra%2C+India&format=jsonv2&limit=1&countrycodes=in"
+    },
+    "Mohali": {
+      "lat": 30.6908804,
+      "lng": 76.7114879,
+      "source": "https://nominatim.openstreetmap.org/search?q=Mohali%2C+Punjab%2C+India&format=jsonv2&limit=1&countrycodes=in"
+    }
+  }
+}

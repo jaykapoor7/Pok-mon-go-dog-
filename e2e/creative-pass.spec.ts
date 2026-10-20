@@ -1,4 +1,5 @@
 import {test,expect} from "@playwright/test";
+import fieldPartners from "../src/data/field-partners.json";
 for(const width of [320,390,768,1440])test(`hero and section order remain usable at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText("Street-animal care, connected.");
  for(const a of await page.locator(".production-hero-copy .sw-acts a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.width).toBeGreaterThanOrEqual(44);expect(b!.height).toBeGreaterThanOrEqual(44);}
@@ -53,12 +54,54 @@ test("the original rounded navigation returns on scroll and the dropdown stays a
 });
 test("each shared-record role opens a concrete app action",async({page})=>{
  await page.goto("/");const roles=[["Community","/community/report"],["NGOs & Rescues","/ngo"],["Municipalities","/contact?subject=Request%20a%20Pilot"],["Feeders","/explore"],["Education","/learn/resources"]];
- for(const [name,href] of roles){await page.getByRole("tab",{name,exact:true}).click();await expect(page.locator("#people-panel .care-primary")).toHaveAttribute("href",href);await expect(page.locator("#people-panel .care-actions a")).toHaveCount(3);}
- await expect(page.locator(".care-partners a")).toHaveCount(10);
+ for(const [name,href] of roles){await page.getByRole("tab",{name,exact:true}).click();await expect(page.locator("#people-panel .care-primary")).toHaveAttribute("href",href);await expect(page.locator("#people-panel .role-links a")).toHaveCount(3);}
+ await expect(page.locator(".partner-organisations a")).toHaveCount(10);
 });
 test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
- await page.goto("/");const question=page.locator(".production-faq summary").first();await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".production-faq details").first()).toHaveAttribute("open","");
+ await page.goto("/");const question=page.locator(".production-faq summary").first();await expect(question).toHaveCSS("color","rgb(255, 253, 249)");expect(await question.evaluate(el=>getComputedStyle(el,"::after").content)).toBe("none");await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".production-faq details").first()).toHaveAttribute("open","");
  await expect(page.locator(".production-close a")).toHaveCount(1);await expect(page.locator(".production-close a")).toHaveText("Work With Us");
+});
+test("role previews work with real records, geography and lesson destinations",async({page})=>{
+ await page.goto("/");const panel=page.locator("#people-panel");
+ await panel.getByRole("button",{name:"Animals",exact:true}).click();
+ const records=panel.getByRole("group",{name:"Photographed animal records"});const second=records.getByRole("button").nth(1);
+ const tag=await second.locator("b").innerText();await second.click();await expect(panel.locator(".role-identity b")).toHaveText(tag);
+ await panel.getByRole("searchbox").fill("no-matching-animal");await expect(panel.locator(".role-empty")).toBeVisible();
+ await panel.getByRole("button",{name:"Map",exact:true}).click();await expect(panel.locator(".role-area-map circle")).toHaveCount(254);
+ const requests=panel.getByRole("button",{name:"Show requests",exact:true});await requests.click();await expect(panel.getByRole("button",{name:"Showing requests"})).toHaveAttribute("aria-pressed","true");
+ expect(await panel.locator("circle.has-requests").count()).toBeGreaterThan(0);
+ await page.getByRole("tab",{name:"Education",exact:true}).click();await panel.getByRole("button",{name:/Areas, not spots/}).click();
+ await expect(panel.getByRole("link",{name:"Open the lesson"})).toHaveAttribute("href","/learn/courses/reading-the-record/areas-not-spots");
+});
+test("the field-partner directory filters all published NGOs by their actual city",async({page})=>{
+ await page.goto("/");const partners=page.locator(".partner-network");
+ await expect(partners.locator(".partner-organisations a")).toHaveCount(10);
+ await partners.getByLabel("Find a field partner").selectOption("Coimbatore");
+ await expect(partners.locator(".partner-organisations a")).toHaveCount(2);
+ await expect(partners.locator(".partner-organisations")).toContainText("Humane Animal Society");
+ await expect(partners.locator(".partner-organisations")).toContainText("The Pawsome People Project");
+ await expect(partners.locator(".partner-map .is-active text")).toHaveText("Coimbatore");
+ await expect(partners.getByRole("status")).toHaveText("2 organisations · Coimbatore");
+ await partners.getByLabel("Find a field partner").selectOption("");await expect(partners.locator(".partner-organisations a")).toHaveCount(10);
+ await expect(partners).not.toContainText(/HSI|Humane Society International|Humane World for Animals/);
+});
+test("every published field partner has an accessible organisation profile",async({request})=>{
+ for(const partner of fieldPartners.organisations){
+  const response=await request.get(`/community/organisations/${partner.slug}`);expect(response.status()).toBe(200);
+  expect(await response.text()).toContain(`<h1 class="display">${partner.name.replaceAll("&","&amp;").replaceAll("'","&#x27;")}</h1>`);
+ }
+ expect((await request.get("/community/organisations/not-a-published-straypaw-organisation")).status()).toBe(404);
+});
+test("the refined landing keeps Pinky, distinct role photography and a populated geographic record",async({page})=>{
+ await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
+ const hero=page.locator(".hero-record img");await expect(hero).toHaveAttribute("src","/pinky-bengaluru.jpg");await expect(hero).toHaveAttribute("alt",/Pinky/);
+ await page.getByRole("tab",{name:"Community",exact:true}).click();
+ expect(await page.locator(".care-photo img").getAttribute("src")).not.toBe(await hero.getAttribute("src"));
+ await expect(page.locator(".sp-header-bar")).toHaveCSS("background-color","rgb(255, 253, 249)");
+ await expect(page.locator(".faq-asterisk,.faq-ledger")).toHaveCount(0);
+ const map=page.locator(".cv-map");await expect(map.locator("svg")).toBeAttached();
+ expect(await map.locator("circle").count()).toBeGreaterThan(0);await expect(map).not.toContainText(/No area sample available|Public record/);
+ await expect(page.locator(".cv-city ol li").first()).toBeAttached();
 });
 test("reduced motion shows the complete original request and removes ambient movement",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");const section=page.locator("#one-request");await section.scrollIntoViewIfNeeded();
