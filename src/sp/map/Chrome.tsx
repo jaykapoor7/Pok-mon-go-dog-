@@ -39,6 +39,7 @@ const ago = (iso: string | null | undefined) => {
 };
 
 type Props = {
+  embedded?: boolean;
   level: Level; city: string | null; cityRow: NationalCity | null; cities: NationalCity[]; unplaced: Unplaced[];
   citiesState: "ready" | "loading" | "error" | "auth"; cityState: "idle" | "loading" | "error" | "missing"; clinical: boolean;
   ev: { kind: EvidenceKind; precision: string; note: string } | null;
@@ -54,6 +55,7 @@ type Props = {
 
 export function Chrome(P: Props) {
   const { level, city, cells, areaIndex, area } = P;
+  const Title = P.embedded ? "h3" : "h1";
   const cell = areaIndex >= 0 ? cells[areaIndex] : null;
   const animal = P.animalId && area && area !== "loading" && area !== "error" ? area.animals.find((a) => a.id === P.animalId) ?? null : null;
   const [sheet, setSheet] = useState<"peek" | "half" | "full">("peek");
@@ -74,7 +76,7 @@ export function Chrome(P: Props) {
           {city && <><span aria-hidden>›</span><button type="button" onClick={() => P.onCity(city)} aria-current={level === "city" ? "page" : undefined}>{city}</button></>}
           {cell && <><span aria-hidden>›</span><button type="button" onClick={() => P.onArea(cell.h3)} aria-current={level === "area" ? "page" : undefined}>{placeName(cell.zone)}</button></>}
         </nav>
-        <h1 className="fm-title">{level === "animal" && animal ? animal.title : title}{level === "india" && !org && <span className="fm-hi" lang="hi"> भारत</span>}</h1>
+        <Title className="fm-title">{level === "animal" && animal ? animal.title : title}{level === "india" && !org && <span className="fm-hi" lang="hi"> भारत</span>}</Title>
         {level === "india" && (
           <p className="fm-sub">
             {P.citiesState === "auth" ? "Sign in with your organisation to see its map." :
@@ -121,7 +123,7 @@ export function Chrome(P: Props) {
         {level === "india" && <IndiaCard cities={P.cities} street={street} unplaced={P.unplaced} faces={P.faces} fig={P.fig} onCity={P.onCity} />}
         {level === "city" && city && <CityCard {...P} city={city} />}
         {level === "area" && cell && <AreaCard cell={cell} city={city!} area={area} onAnimal={P.onAnimal} variant={P.variant} />}
-        {level === "animal" && (animal ? <AnimalCard a={animal} city={city!} cell={cell} variant={P.variant} /> : area === "loading" || !area ? <p className="fm-wait" role="status">Reading this animal&rsquo;s record…</p> : <p className="fm-wait">This animal is not among the records read for this area. <button type="button" className="fm-link" onClick={P.onUp}>Back to the area</button></p>)}
+        {level === "animal" && (animal ? <AnimalCard a={animal} city={city!} cell={cell} variant={P.variant} embedded={P.embedded} /> : area === "loading" || !area ? <p className="fm-wait" role="status">Reading this animal&rsquo;s record…</p> : <p className="fm-wait">This animal is not among the records read for this area. <button type="button" className="fm-link" onClick={P.onUp}>Back to the area</button></p>)}
       </Sheet>
     </>
   );
@@ -332,11 +334,11 @@ function AreaCard({ cell, city, area, onAnimal, variant }: { cell: MapCell; city
 const statusWord = (s: string | null) => (s === "open" ? "Open" : s === "in_progress" ? "In progress" : s === "closed" ? "Closed" : s === "handed_on" ? "Handed on" : s === "no_action" ? "Closed, no action recorded" : "Status not recorded");
 
 /* ── Animal: a field-guide entry ── */
-function AnimalCard({ a, city, cell, variant }: { a: AreaAnimal; city: string; cell: MapCell | null; variant: MapVariant }) {
+function AnimalCard({ a, city, cell, variant, embedded }: { a: AreaAnimal; city: string; cell: MapCell | null; variant: MapVariant; embedded?: boolean }) {
   const [copied, setCopied] = useState(false);
   const pathname = usePathname();
   const params = useSearchParams();
-  const from = `${pathname ?? "/community"}${params.size ? `?${params.toString()}` : ""}`;
+  const from = embedded ? `/explore?${new URLSearchParams({ city, ...(cell ? { area: cell.h3 } : {}), animal: a.id })}` : `${pathname ?? "/community"}${params.size ? `?${params.toString()}` : ""}`;
   const ster = a.ster === "sterilised" ? "Recorded sterilised" : a.ster === "not_sterilised" ? "Recorded not sterilised" : "Sterilisation not recorded";
   const vacc = a.vacc === "vaccinated" ? "Recorded vaccinated" : a.vacc === "not_vaccinated" ? "Recorded not vaccinated" : "Vaccination not recorded";
   const thread = useMemo(() => {
@@ -397,15 +399,15 @@ function Key({ level, lens, recency, zoom }: { level: Level; lens: LensId; recen
         <ul className="fm-keyl">
           <li><span className="fm-sw is-city" aria-hidden />A city, sized by {lens === "animals" ? "animals on the record" : L.unit}</li>
           <li><span className="fm-sw is-hollow" aria-hidden />City-level register: no streets</li>
-          {lens === "animals" && <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Glows: recorded areas, by when last recorded</small></li>}
+          {lens === "animals" && <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Recorded areas, coloured by when last recorded</small></li>}
         </ul>
       ) : (
         <ul className="fm-keyl">
-          {lens === "animals" ? <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Each column an area, as tall as its animals, coloured by when last recorded</small></li>
+          {lens === "animals" ? <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Each circle a recorded area, sized by its animal records and coloured by date</small></li>
             : <li><span className="fm-sw" style={{ background: L.ink }} aria-hidden />{L.define.split(".")[0]}.</li>}
           <li><span className="fm-sw is-hatch" aria-hidden />No date or status recorded</li>
           <li><span className="fm-sw is-edge" aria-hidden />Edge of the record: nothing reported yet</li>
-          {zoom > 12.6 && <li><span className="fm-sw" style={{ background: "#4fc3d4" }} aria-hidden /><span className="fm-sw" style={{ background: "#f05b40" }} aria-hidden />Dots: one per animal, sterilised or not, arranged in its area, not located</li>}
+          {zoom > 12.6 && <li><span className="fm-sw" style={{ background: "#1f6f80" }} aria-hidden /><span className="fm-sw" style={{ background: "#f05b40" }} aria-hidden />Dots: loaded animal records, arranged within their recorded area. Approximate positions.</li>}
         </ul>
       )}
     </>
@@ -463,16 +465,16 @@ function MapSearch({ cities, onCity, onPlace, remote }: { cities: NationalCity[]
     <div className="fm-search" ref={box}>
       <label className="fm-search-in">
         <Search size={17} aria-hidden />
-        <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); setHi(0); }} onFocus={() => setOpen(true)} placeholder="A city, locality or animal" aria-label="Search the map: a city, locality, animal name or StrayPaw tag" role="combobox" aria-expanded={open && rows.length > 0} aria-controls="fm-found" aria-autocomplete="list"
+        <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); setHi(0); }} onFocus={() => setOpen(true)} placeholder="A city, locality or animal" aria-label="Search the map: a city, locality, animal name or StrayPaw tag" role="combobox" aria-expanded={open && rows.length > 0} aria-controls={open && t.length > 0 ? "fm-found" : undefined} aria-activedescendant={open && rows.length ? `fm-result-${hi}` : undefined} aria-autocomplete="list"
           onKeyDown={(e) => { if (e.key === "ArrowDown") { e.preventDefault(); setHi((h) => Math.min(rows.length - 1, h + 1)); } else if (e.key === "ArrowUp") { e.preventDefault(); setHi((h) => Math.max(0, h - 1)); } else if (e.key === "Enter") { e.preventDefault(); pick(hi); } else if (e.key === "Escape") setOpen(false); }} />
       </label>
       {open && t.length > 0 && (
         <ul id="fm-found" className="fm-found" role="listbox">
-          {rows.map((r, i) => <li key={r.key} role="option" aria-selected={i === hi}><button type="button" onMouseEnter={() => setHi(i)} onClick={() => pick(i)}><b>{r.label}</b><small>{r.sub}</small></button></li>)}
-          {state === "reading" && <li className="fm-found-note" role="status">Searching the record…</li>}
-          {state === "error" && <li className="fm-found-note">Search could not reach the record. Cities above still work.</li>}
-          {state === "idle" && t.length >= 3 && !rows.length && <li className="fm-found-note">Nothing on the record matches. No result is not the same as no animals there.</li>}
-          {t.length < 3 && !rows.length && <li className="fm-found-note">Type at least three letters.</li>}
+          {rows.map((r, i) => <li id={`fm-result-${i}`} key={r.key} role="option" aria-selected={i === hi}><button type="button" onMouseEnter={() => setHi(i)} onClick={() => pick(i)}><b>{r.label}</b><small>{r.sub}</small></button></li>)}
+          {state === "reading" && <li className="fm-found-note" role="option" aria-selected="false" aria-disabled="true">Searching the record…</li>}
+          {state === "error" && <li className="fm-found-note" role="option" aria-selected="false" aria-disabled="true">Search could not reach the record. Cities above still work.</li>}
+          {state === "idle" && t.length >= 3 && !rows.length && <li className="fm-found-note" role="option" aria-selected="false" aria-disabled="true">Nothing on the record matches. No result is not the same as no animals there.</li>}
+          {t.length < 3 && !rows.length && <li className="fm-found-note" role="option" aria-selected="false" aria-disabled="true">Type at least three letters.</li>}
         </ul>
       )}
     </div>

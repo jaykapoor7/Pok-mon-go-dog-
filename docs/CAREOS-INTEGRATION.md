@@ -1,7 +1,7 @@
 # StrayPaw CareOS — WhatsApp backend ↔ NGO workspace contract
 
-Status: **proposed by the workspace side, awaiting confirmation from the WhatsApp backend (Codex).**
-Nothing in the product presents WhatsApp case management as live until `careos_health()` returns `connected: true` in production.
+Status: **WhatsApp / CareOS launch confirmed by the product owner on 20 October 2026.** Public copy presents the channel as launched.
+The per-organisation workspace still uses `careos_health()` to report its actual connection; launch status must never override an unavailable RPC, bypass authentication or fabricate inbox messages. Reporting-channel access and organisation setup/costs are handled through Contact until a public channel URL is supplied.
 
 Types live in `src/lib/careos/contract.ts`; the only workspace code that calls the backend is `src/lib/careos/inbox.ts`.
 

@@ -6,33 +6,19 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/contact", route => route.abort("failed"));
 });
 
-test("the homepage stays readable while scrolling both ways, including reduced motion", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  await expect(page.locator("main > section")).toHaveCount(4);
-  await expect(page.locator("h1")).toHaveText("The care infrastructure for India’s street animals.");
-  for (const id of ["world", "why", "how", "company", "how", "why", "world"]) {
-    const section = page.locator(`#${id}`);
-    await section.scrollIntoViewIfNeeded();
-    await expect(section.locator("h1,h2").first()).toBeVisible();
-    expect(await section.evaluate(el => getComputedStyle(el).position)).not.toBe("sticky");
+test("the homepage remains readable in both scroll directions", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto("/");
+  for (const id of ["world", "one-request", "living-atlas", "ecosystem", "living-atlas", "one-request", "world"]) {
+    const section=page.locator(`#${id}`);await section.scrollIntoViewIfNeeded();await expect(section.locator("h1,h2").first()).toBeVisible();
   }
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
 });
-
-test("ecosystem tabs switch immediately by keyboard without navigating the page", async ({ page }) => {
-  await page.goto("/");
-  const tabs = page.getByRole("tablist", { name: "Who StrayPaw serves" });
-  await tabs.scrollIntoViewIfNeeded();
-  await tabs.getByRole("tab", { name: "Residents", exact: true }).focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(tabs.getByRole("tab", { name: "Organisations", exact: true })).toBeFocused();
-  await expect(page.getByRole("tabpanel")).toContainText("Keep the next step clear.");
-  await page.keyboard.press("End");
-  await expect(tabs.getByRole("tab", { name: "Partners and funders" })).toHaveAttribute("aria-selected", "true");
-  await page.keyboard.press("Home");
-  await expect(tabs.getByRole("tab", { name: "Residents", exact: true })).toHaveAttribute("aria-selected", "true");
-  expect(await page.evaluate(() => document.querySelector("#ecosystem-panel")?.getAnimations({ subtree: true }).length)).toBe(0);
+test("all five ecosystem roles work by keyboard without navigation", async ({ page }) => {
+ await page.goto("/");const tabs=page.getByRole("tablist",{name:"One connected ecosystem"});await tabs.scrollIntoViewIfNeeded();
+ await tabs.getByRole("tab",{name:"Community",exact:true}).focus();await page.keyboard.press("ArrowRight");
+ await expect(tabs.getByRole("tab",{name:"NGOs & Rescues"})).toBeFocused();await expect(page.locator("#people-panel")).toContainText("Keep the next step clear.");
+ await page.keyboard.press("End");await expect(tabs.getByRole("tab",{name:"Education",exact:true})).toHaveAttribute("aria-selected","true");
+ await expect(page.locator("#people-panel")).toContainText("Credited teaching materials");await page.keyboard.press("Home");await expect(tabs.getByRole("tab",{name:"Community",exact:true})).toHaveAttribute("aria-selected","true");
 });
 
 test("mobile navigation contains focus and restores the menu button", async ({ page }) => {

@@ -34,7 +34,7 @@ export type WorldArea = { name: string; c: Pt; open: number; crit: number; n: nu
 const DOGS = [FOLK_CUTOUTS.dogStanding, FOLK_CUTOUTS.dogSitting];
 const hash = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 
-export function World({ areas, cells, centre, sampleAt }: { areas: WorldArea[]; cells: Cell[]; centre: Pt; sampleAt: Pt | null }) {
+export function World({ areas, cells, centre, sampleAt, startAt = 0 }: { startAt?: number; areas: WorldArea[]; cells: Cell[]; centre: Pt; sampleAt: Pt | null }) {
   const { p, listen, still } = useStage();
   const wrap = useRef<HTMLDivElement>(null), mapEl = useRef<HTMLDivElement>(null), art = useRef<HTMLDivElement>(null), dogsEl = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -67,7 +67,7 @@ export function World({ areas, cells, centre, sampleAt }: { areas: WorldArea[]; 
 
     const frame = (now: number) => {
       raf = 0; if (!alive) return;
-      const P = still ? 0 : p.current, W = w.clientWidth, H = w.clientHeight;
+      const P = still ? startAt : startAt + p.current * (1 - startAt), W = w.clientWidth, H = w.clientHeight;
       /* the camera pushes into the cloth; the opening spreads from its centre */
       const push = ease.inOut(span(P, 0.02, 0.36)), open = ease.inOut(span(P, 0.06, 0.34));
       ptr.x += (ptr.tx - ptr.x) * 0.08; ptr.y += (ptr.ty - ptr.y) * 0.08;
@@ -128,7 +128,7 @@ export function World({ areas, cells, centre, sampleAt }: { areas: WorldArea[]; 
     if (!still && window.matchMedia("(pointer: fine)").matches) window.addEventListener("pointermove", move, { passive: true });
     return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); off(); window.removeEventListener("pointermove", move); map?.remove(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [areas, cells, p, listen, still, sampleAt, centre[0], centre[1]]);
+  }, [areas, cells, p, listen, still, sampleAt, centre[0], centre[1], startAt]);
 
   const tree = WORK_IMAGES.palamporeTree;
   return (

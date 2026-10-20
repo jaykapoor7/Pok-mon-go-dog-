@@ -65,7 +65,7 @@ export function SoftwarePreview({ kind, queue, brief, locs, place = "Your area" 
         )}
         {w.k === "ngo" && (
           <article className="ec-scr">
-            <header><b>Today&rsquo;s work</b><small>NGO workspace · live record</small></header>
+            <header><b>Today&rsquo;s work</b><small>NGO workspace · public sample</small></header>
             {queue.length === 0 && <p className="ec-note">No public queue is available right now.</p>}
             <ol className="ec-q">{queue.slice(0, 5).map((q, j) => <li key={j} className={q.critical ? "is-crit" : ""}><b>{q.condition}</b><span>{q.locality}</span><em>{q.days === 0 ? "today" : `${q.days}d`}</em></li>)}</ol>
             <p className="ec-note">Real open requests on the public record. No organisation is named.</p>
@@ -73,7 +73,7 @@ export function SoftwarePreview({ kind, queue, brief, locs, place = "Your area" 
         )}
         {w.k === "city" && (
           <article className="ec-scr">
-            <header><b>{brief?.city ?? "City"} brief</b><small>Municipal view · live record</small></header>
+            <header><b>{brief?.city ?? "City"} brief</b><small>Municipal view · public record</small></header>
             {!brief && <p className="ec-note">Public figures are unavailable right now.</p>}
             {brief && <dl className="ec-figs"><div><dt>Animals on the record</dt><dd>{f(brief.animals)}</dd></div><div><dt>Mapped areas</dt><dd>{f(brief.cells)}</dd></div><div><dt>Recorded sterilised</dt><dd>{f(brief.sterilised)}</dd></div><div><dt>Not recorded</dt><dd>{f(brief.ster_unknown)}</dd></div></dl>}
             <ol className="ec-bars">{locs.slice(0, 4).map((l) => <li key={l.name}><span>{l.name}</span><b>{f(l.open)}</b><i style={{ width: `${(l.open / Math.max(1, locs[0]?.open ?? 1)) * 100}%` }} /></li>)}</ol>

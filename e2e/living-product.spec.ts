@@ -1,103 +1,31 @@
 import { test, expect } from "@playwright/test";
-
-// All example paths remain local, even when live public data is configured.
-test("playable report keeps ownership explicit and never sends writes", async ({ page }) => {
-  const writes: string[] = [];
-  await page.route("**/*", async route => {
-    if (!["GET", "HEAD", "OPTIONS"].includes(route.request().method())) {
-      writes.push(`${route.request().method()} ${new URL(route.request().url()).pathname}`);
-      await route.abort();
-    } else await route.continue();
-  });
-  await page.goto("/");
-  const demo = page.locator("#why");
-  await demo.getByLabel("What you saw", { exact: true }).fill("Example observation for a limping dog.");
-  await demo.getByLabel("Reported condition").selectOption("Road accident");
-  await demo.getByRole("button", { name: "Send the example report" }).click();
-  await expect(demo.getByRole("status")).toContainText("no organisation has accepted");
-  await expect(demo.locator(".lp-queue-row")).toContainText("Critical");
-  await demo.locator(".lp-queue-row").click();
-  await expect(demo.locator(".brief")).toContainText("Pending acceptance");
-  await expect(demo.locator(".brief")).toContainText("Unassigned");
-  await expect(demo.locator(".brief")).toContainText("None recorded");
-  await demo.getByRole("button", { name: "Try acceptance" }).click();
-  await expect(demo.getByRole("status")).toContainText("demo only");
-  await demo.getByRole("button", { name: "Try assignment" }).click();
-  await expect(demo.locator(".brief")).toContainText("Example team member");
-  await demo.getByRole("button", { name: "How care is recorded" }).click();
-  await expect(demo.locator(".lp-action-note")).toContainText("neither treatment nor an outcome");
-  await demo.getByRole("button", { name: "Animal history", exact: true }).click();
-  await expect(demo.locator(".lp-panel")).toContainText("Not linked");
-  await demo.getByRole("button", { name: "Geographic area", exact: true }).click();
-  await expect(demo.locator(".lp-panel")).toContainText("This example is not on the map");
-  await demo.getByRole("button", { name: "Back", exact: true }).click();
-  await expect(demo.locator(".lp-panel h3")).toHaveText("Animal history");
-  await demo.getByRole("button", { name: "Replay the example" }).click();
-  await expect(demo.getByLabel("What you saw", { exact: true })).toBeFocused();
-  await demo.getByRole("button", { name: "Send the example report" }).click();
-  await demo.getByRole("button", { name: "Inspect the case" }).click();
-  await expect(demo.locator(".brief")).toContainText("Pending acceptance");
-  expect(writes).toEqual([]);
+const audiences=["Community","NGOs & Rescues","Municipalities","Feeders","Education"];
+test("the audience navigation has exactly five ordered, distinct destinations",async({page})=>{
+ await page.setViewportSize({width:1440,height:900});await page.goto("/");
+ const disclosure=page.getByRole("button",{name:"Who It’s For"});await disclosure.click();
+ const links=page.locator("#sp-audiences a");await expect(links.locator("span")).toHaveText(audiences);
+ expect(new Set(await links.evaluateAll(els=>els.map(el=>el.getAttribute("href")))).size).toBe(5);
+ await page.keyboard.press("Escape");await expect(disclosure).toBeFocused();await expect(disclosure).toHaveAttribute("aria-expanded","false");
+ await disclosure.focus();await page.keyboard.press("ArrowDown");await expect(links.first()).toBeFocused();
+ await links.getByText("Feeders",{exact:true}).click();await expect(page).toHaveURL(/\/for-feeders$/);await expect(page.getByRole("heading",{level:1})).toContainText("Know the animals");
 });
-
-test("example identity follows audience tasks and clears on reload", async ({ page }) => {
-  await page.goto("/");
-  const demo = page.locator("#why");
-  await demo.getByLabel("What you saw", { exact: true }).fill("Shared example, never a public record.");
-  await demo.getByRole("button", { name: "Send the example report" }).click();
-  const ecosystem = page.locator("#how");
-  await expect(ecosystem.locator(".lp-resident-receipt")).toContainText("Shared example, never a public record.");
-  await ecosystem.getByRole("tab", { name: "Organisations", exact: true }).click();
-  await expect(ecosystem.locator(".lp-panel")).toContainText("Shared example, never a public record.");
-  await ecosystem.getByRole("button", { name: "Try acceptance" }).click();
-  await ecosystem.getByRole("tab", { name: "Residents", exact: true }).click();
-  await expect(ecosystem.locator(".lp-resident-receipt")).toContainText("Example organisation · demo only");
-  await ecosystem.getByRole("tab", { name: "Municipal teams", exact: true }).click();
-  await ecosystem.getByRole("button", { name: "Unknown sterilisation", exact: true }).click();
-  await expect(ecosystem.locator(".lp-public-figures")).toContainText("Unknown is not counted as unsterilised");
-  await ecosystem.getByRole("tab", { name: "Partners and funders", exact: true }).click();
-  await ecosystem.getByRole("button", { name: "Inspect sources and limits" }).click();
-  await expect(ecosystem.locator("#audience-sources")).toContainText("contributes to none");
-  await page.reload();
-  await expect(demo.getByRole("button", { name: "Send the example report" })).toBeVisible();
-  await expect(page.locator(".lp-resident-receipt")).toContainText("Not sent");
+test("the restored example stays separate from real reports and names its limits",async({page})=>{
+ const writes:string[]=[];await page.route("**/api/**",async route=>{if(route.request().method()!=="GET"){writes.push(route.request().url());await route.abort();}else await route.continue();});
+ await page.goto("/");await page.evaluate(()=>{const el=document.querySelector("#one-request")!;window.scrollTo(0,el.getBoundingClientRect().top+scrollY+(el.clientHeight-innerHeight)*.265);});
+ const send=page.getByRole("button",{name:"Send the example report and watch StrayPaw respond"});await expect(send).toBeEnabled();await send.click();
+ await expect(page.locator(".cv")).toHaveAttribute("data-phase","d",{timeout:12000});
+ await expect(page.locator(".cv-disclosure")).toContainText("No guaranteed acceptance");await expect(page.locator(".cv-ev")).toContainText("Day 7");
+ await page.getByRole("button",{name:"Replay the chain from the message"}).click();await expect(page.locator(".cv")).toHaveAttribute("data-phase","c");expect(writes).toEqual([]);
 });
-
-test("mobile can return to the report, edit and resubmit without losing the example", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  const demo = page.locator("#why");
-  await demo.getByRole("button", { name: "Send the example report" }).click();
-  await expect(demo.locator(".lp-demo-record")).toBeFocused();
-  await demo.getByRole("button", { name: "Edit report" }).click();
-  const observation = demo.getByLabel("What you saw", { exact: true });
-  await expect(observation).toBeFocused();
-  await observation.fill("An updated example observation.");
-  await demo.getByRole("button", { name: "Update the example report" }).click();
-  await demo.getByRole("button", { name: "Inspect the case" }).click();
-  await expect(demo.locator(".lp-panel")).toContainText("An updated example observation.");
+test("WhatsApp is presented as launched without invented prices",async({page})=>{
+ await page.goto("/for-ngos");await expect(page.getByRole("heading",{name:"WhatsApp, connected through CareOS."})).toBeVisible();
+ await expect(page.getByRole("link",{name:"Get WhatsApp access"})).toHaveAttribute("href",/WhatsApp%20CareOS%20access/);
+ await expect(page.locator("main")).not.toContainText(/backend is not deployed|Concept only|waitlist/);
+ await page.goto("/for-governments#pilot");await expect(page.locator("#pilot")).toContainText("four-to-six-week");await expect(page.locator("#pilot")).toContainText("fees and deliverables are agreed");
 });
-
-test("hero switches without movement and retains real destinations", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  const hero = page.locator("#world");
-  await hero.getByRole("button", { name: "Living Map", exact: true }).click();
-  await expect(hero.locator("#living-geography")).toBeVisible();
-  await expect(hero.locator("#living-record")).toBeHidden();
-  await hero.getByRole("button", { name: "Example profile", exact: true }).click();
-  await expect(hero.locator("#living-record")).toBeVisible();
-  expect(await hero.evaluate(el => el.getAnimations({ subtree: true }).length)).toBe(0);
-});
-
-
-test("Pinky preview keeps sample care separate from real public data", async ({ page }) => {
-  await page.goto("/");
-  const profile = page.getByRole("article", { name: "Pinky example profile, not her medical history" });
-  await expect(profile.getByRole("img")).toHaveAttribute("src", /pinky-bengaluru/);
-  await expect(profile).toContainText("Sterilised");
-  await expect(profile).toContainText("Example status");
-  await expect(profile).toContainText("not her medical history");
-  await expect(profile.getByRole("listitem")).toHaveCount(3);
-  await expect(profile.locator('a[href^="/animal/"]')).toHaveCount(0);
+test("Explore remains the public map and does not open an app chooser",async({page})=>{
+ await page.goto("/explore");await expect(page.getByRole("combobox",{name:/Search the map/})).toBeVisible();await expect(page).toHaveURL(/\/explore/);
+ await expect(page.locator(".sp-header-cta")).toBeVisible();await expect(page.getByRole("heading",{level:1})).toContainText("India");
+ await page.getByRole("button",{name:"Needs help",exact:true}).click();await expect(page).toHaveURL(/lens=help/);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
 });

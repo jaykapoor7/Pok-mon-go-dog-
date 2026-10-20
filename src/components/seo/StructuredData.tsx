@@ -25,14 +25,13 @@ export function StructuredData({ siteUrl }: { siteUrl: string }) {
       logo: `${base}/icon.png`,
       contactPoint: { "@type": "ContactPoint", contactType: "partnerships", url: `${base}/contact` },
       description:
-        "StrayPaw is one shared record connecting sightings, field work and outcomes for India's street animals. Residents, field teams and municipalities write to the same record, so coverage can be counted instead of estimated.",
+        "StrayPaw is one shared record connecting sightings, field work and outcomes for India's street animals. Residents, field teams and municipalities write to the same record, so recorded care can be traced and gaps in information remain visible.",
       areaServed: { "@type": "Country", name: "India" },
       sameAs: ["https://x.com/jaybuildsvx"],
       knowsAbout: [
         "Free-roaming dog population management",
         "Animal Birth Control programmes",
         "Rabies prevention",
-        "ISO 11784/11785 animal identification",
       ],
     },
     {

@@ -41,7 +41,7 @@ const nextConfig = {
     return [
       ...to([
         /* Community */
-        ["/app", "/community"], ["/map", "/community"], ["/explore", "/community"], ["/atlas", "/community"], ["/feed", "/community"],
+        ["/app", "/community"], ["/map", "/community"], ["/atlas", "/community"], ["/feed", "/community"],
         ["/report", "/community/report"], ["/following", "/community/activity"], ["/account", "/community/activity"],
         ["/dog/:id", "/animal/:id"],
         ["/stories", "/community/stories"], ["/journey", "/community/stories"], ["/timeline", "/community/stories"], ["/outcomes", "/community/stories"], ["/rescues", "/community/stories"], ["/care", "/community/stories"],

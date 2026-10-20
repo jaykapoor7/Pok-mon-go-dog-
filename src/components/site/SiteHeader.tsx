@@ -7,7 +7,7 @@ import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { ROLE_META, readStoredRole } from "@/lib/roles";
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
 import "./header.css";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -25,9 +25,15 @@ import "./header.css";
 type NavKey = keyof Dictionary["nav"];
 type NavItem = { label: string; href: string; tKey?: NavKey; also?: string[]; hint?: string };
 
+export const AUDIENCES = [
+  { label: "Community", href: "/for-community", hint: "Report animals. Follow updates." },
+  { label: "NGOs & Rescues", href: "/for-ngos", hint: "Manage cases. Coordinate care." },
+  { label: "Municipalities", href: "/for-governments", hint: "Plan programmes. Track coverage." },
+  { label: "Feeders", href: "/for-feeders", hint: "Know your animals. Record care." },
+  { label: "Education", href: "/education", hint: "Learn, teach and share." },
+];
 const LINKS: NavItem[] = [
-  { label: "Product", href: "/product", hint: "What StrayPaw does" },
-  { label: "Solutions", href: "/solutions", also: ["/organisations", "/for-ngos", "/for-governments", "/for-funders"], hint: "For residents, NGOs, cities, partners" },
+  { label: "Explore", href: "/explore", hint: "The Living Atlas" },
   { label: "Our Story", href: "/our-story", also: ["/about"], hint: "Why we exist" },
 ];
 const SHORTCUTS = [
@@ -35,6 +41,9 @@ const SHORTCUTS = [
   { label: "Explore the map", href: "/explore" },
   { label: "Sign in with your code", href: "/join" },
   { label: "Contact", href: "/contact" },
+  { label: "Learning resources", href: "/learn/resources" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
 ];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
@@ -42,6 +51,15 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
   const pathname = usePathname() ?? "";
   const label = (item: { label: string; tKey?: NavKey }) => (item.tKey ? t.nav[item.tKey] : item.label);
   const [open, setOpen] = useState(false);
+  const [audiencesOpen, setAudiencesOpen] = useState(false);
+  const audienceMenu = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!audiencesOpen) return;
+    const close = (e: PointerEvent) => { if (!audienceMenu.current?.contains(e.target as Node)) setAudiencesOpen(false); };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { setAudiencesOpen(false); audienceMenu.current?.querySelector("button")?.focus(); } };
+    document.addEventListener("pointerdown", close); document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", key); };
+  }, [audiencesOpen]);
   const [scrolled, setScrolled] = useState(false);
   /* Someone who has picked a space before goes straight back to it; the
      picker is for the first visit, and is one "Switch space" away after. */
@@ -79,7 +97,7 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
     return () => { cancelAnimationFrame(frame); document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; if (previous?.isConnected) previous.focus(); };
 
   }, [open]);
-  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => { setOpen(false); setAudiencesOpen(false); }, [pathname]);
 
   const here = (l: NavItem) => [l.href, ...(l.also ?? [])].some((h) => pathname === h || pathname.startsWith(h + "/"));
 
@@ -102,11 +120,18 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
         </Link>
 
         <nav className="sp-nav" aria-label="Site" ref={nav} onMouseLeave={rest}>
-          {LINKS.map((l) => (
+          {LINKS.slice(0, 1).map((l) => (
             <Link key={l.href} href={l.href} aria-current={here(l) ? "page" : undefined} className={here(l) ? "is-here" : ""} onMouseEnter={(e) => place(e.currentTarget)} onFocus={(e) => place(e.currentTarget)} onBlur={rest}>
               {label(l)}
             </Link>
           ))}
+          <div className="sp-audiences" ref={audienceMenu} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAudiencesOpen(false); }}>
+            <button type="button" aria-expanded={audiencesOpen} aria-controls="sp-audiences" onClick={() => setAudiencesOpen(v => !v)} onKeyDown={e => { if (e.key === "ArrowDown") { e.preventDefault(); setAudiencesOpen(true); requestAnimationFrame(() => audienceMenu.current?.querySelector("a")?.focus()); } }}>Who It’s For <ChevronDown size={14} aria-hidden /></button>
+            <div id="sp-audiences" className="sp-audience-menu" hidden={!audiencesOpen}>
+              {AUDIENCES.map(l => <Link key={l.href} href={l.href} onClick={() => setAudiencesOpen(false)} aria-current={pathname === l.href ? "page" : undefined}><span>{l.label}</span><small>{l.hint}</small></Link>)}
+            </div>
+          </div>
+          <Link href="/our-story" aria-current={pathname === "/our-story" ? "page" : undefined} onMouseEnter={e => place(e.currentTarget)} onFocus={e => place(e.currentTarget)}>Our Story</Link>
         </nav>
 
         <div className="sp-header-actions">
@@ -123,7 +148,7 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
       <div id="sp-sheet" className="sp-sheet" data-open={open ? "1" : "0"} aria-hidden={!open} inert={!open ? true : undefined}>
         <nav aria-label="Site, menu">
           <ol>
-            {LINKS.map((l, i) => (
+            {[LINKS[0], ...AUDIENCES, LINKS[1]].map((l, i) => (
               <li key={l.href} style={{ ["--i" as string]: i }}>
                 <Link href={l.href} onClick={() => setOpen(false)} aria-current={here(l) ? "page" : undefined}>
                   <i aria-hidden>{String(i + 1).padStart(2, "0")}</i><span>{label(l)}<small>{l.hint}</small></span><ArrowUpRight size={22} aria-hidden />

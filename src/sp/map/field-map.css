@@ -275,26 +275,31 @@
 .fm.is-india .fm-sub { display: block; }
 .fm.is-india .fm-sub b { margin-right: 4px; }
 
-/* ════════════════════════════════════════════════════════════════════
-   Night. The ground is India at night in StrayPaw's blues; what floats
-   over it is lettered light, and the cards stay paper for reading.
-   ════════════════════════════════════════════════════════════════════ */
-.fm { background: #07142b; }
-.fm-map .maplibregl-ctrl-attrib { background: rgba(7, 20, 43, 0.6) !important; color: rgba(219, 230, 255, 0.55); }
-.fm-map .maplibregl-ctrl-attrib a { color: rgba(219, 230, 255, 0.6) !important; }
-.fm-title { color: #eef3ff; text-shadow: 0 2px 24px rgba(7, 20, 43, 0.9); }
-.fm-hi { color: #ff9f86; }
-.fm-ladder, .fm-ladder button { color: rgba(219, 230, 255, 0.7); text-shadow: none; }
-.fm-ladder button:hover, .fm-ladder button[aria-current="page"] { color: #eef3ff; }
-.fm-city b { color: #eef3ff; text-shadow: 0 0 6px #07142b, 0 0 12px #07142b; }
-.fm-city:hover b { color: #a9c4ff; }
-.fm-city small { background: rgba(7, 20, 43, 0.72); color: rgba(219, 230, 255, 0.85); box-shadow: inset 0 0 0 1px rgba(219, 230, 255, 0.16); backdrop-filter: blur(6px); }
-.fm-place { color: #eef3ff; text-shadow: 0 0 4px #07142b, 0 0 10px #07142b; }
-.fm-region { display: none; }
-.fm-stamp { transform: none !important; }
-.fm-threads path { stroke: rgba(143, 176, 255, 0.45) !important; }
-.fm-threads circle { fill: #a9c4ff !important; }
-.fm-sw.is-city { width: 12px; height: 12px; background: #5b8cf0; box-shadow: 0 0 0 2px rgba(91, 140, 240, 0.3), inset 0 0 0 1px #eef3ff; }
-.fm-plate { background: radial-gradient(120% 100% at 20% 0%, #1b3f80 0%, #0b1e3d 70%); }
-.fm-plate p { left: 16px; top: auto; bottom: 16px; background: none; box-shadow: none; padding: 0; color: #eef3ff; }
-.fm-plate p span { color: rgba(219, 230, 255, 0.7); }
+
+/* Daylight cartography, shared by the public and operational map. */
+.fm { background:#f3ede4; }
+.fm-ctl button { width:44px; height:44px; }
+.fm-lenses button { min-height:44px; }
+.fm-sw.is-city { width:12px; height:12px; background:#2457ce; border:1px solid #fffdf9; }
+.fm-plate { background:#e4ebfa; }
+.fm-plate p { color:#0b1e3d; }
+.fm-plate p span { color:#46546b; }
+.fm-map .maplibregl-canvas:focus-visible { outline:3px solid #2457ce; outline-offset:-3px; }
+@media(max-width:900px) { .fm-ctl button:nth-child(1), .fm-ctl button:nth-child(2) { display:grid; } .fm-ctl { gap:4px; } .fm-ctl button { width:44px; height:44px; } }
+.fm-close {width:44px;height:44px;}
+@media(max-width:900px) { .fm-grip,.fm-grip-btn {height:44px;}.fm-title {font-size:30px;} }
+/* Keep search visible and reachable on touch devices. No hidden zero-width input. */
+@media(max-width:900px) {
+ .fm .fm-tools,.fm:not(.is-india) .fm-tools {top:12px;left:12px;right:12px;width:auto;display:flex;flex-direction:column;align-items:stretch;gap:8px;}
+ .fm .fm-search,.fm .fm-search:focus-within {position:relative;top:0;right:0;width:100%;}
+ .fm .fm-search-in,.fm .fm-search:not(:focus-within) .fm-search-in {height:44px;padding:0 14px;gap:9px;justify-content:flex-start;}
+ .fm .fm-search input,.fm .fm-search:not(:focus-within) input {flex:1;width:auto;min-width:0;opacity:1;padding:0;font-size:16px;}
+ .fm .fm-lenses {position:relative;width:100%;display:flex;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;mask:none;-webkit-mask:none;padding:0;gap:6px;}
+ .fm .fm-lenses button {min-height:44px;}
+ .fm .fm-head {top:124px;}
+ .fm .fm-ctl,.fm:not(.is-india) .fm-ctl {top:230px;}
+ .fm .fm-key-btn {min-height:44px;}
+}
+.fm .fm-report {color:#0b1e3d !important;}
+.fm-map .maplibregl-ctrl-attrib-button {min-width:32px;min-height:32px;}
+.fm-map .maplibregl-ctrl-attrib {min-height:32px;}

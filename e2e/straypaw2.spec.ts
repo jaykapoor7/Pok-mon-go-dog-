@@ -53,17 +53,10 @@ test("the landing page still renders its hero", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test("one request: an example receipt explains the three acts and can be replayed", async ({ page }) => {
-  const errors = errorsOf(page);
-  await page.goto("/");
-  const request = page.locator("#why");
-  await request.scrollIntoViewIfNeeded();
-  for (const name of ["Report", "Coordinate", "Understand"]) await expect(request.getByRole("heading", { name, exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Send the example report" }).click();
-  await expect(request.getByRole("status")).toContainText("no organisation has accepted");
-  await page.getByRole("button", { name: "Replay the example" }).click();
-  await expect(page.getByRole("button", { name: "Send the example report" })).toBeEnabled();
-  expect(errors).toEqual([]);
+test("the original request has readable disclosure and a web reporting destination", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/");
+  await expect(page.locator("#one-request")).toContainText("No guaranteed acceptance");
+  await expect(page.locator(".cv-disclosure a")).toHaveAttribute("href","/community/report");
 });
 
 test("solutions: the URL chooses the audience", async ({ page }) => {
