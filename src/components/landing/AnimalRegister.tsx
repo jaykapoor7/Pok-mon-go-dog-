@@ -152,7 +152,6 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
   const [calm, setCalm] = useState(false);
   const [seen, setSeen] = useState(false);
   const [hold, setHold] = useState(false);
-  const [paused, setPaused] = useState(false);
   const [idx, setIdx] = useState(0);
   const [tick, setTick] = useState(0);
   const [prev, setPrev] = useState<RegisterFocus | null>(null);
@@ -194,15 +193,16 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
     setIdx((i) => (i + d + n) % n);
     setTick((t) => t + 1);
   };
-  const running = !calm && seen && !hold && !paused;
+  const running = !calm && seen && !hold;
 
   return (
-    <section ref={setEl} className={`rx${calm ? " is-calm" : ""}${paused || hold || !seen ? " is-paused" : ""}`} aria-labelledby="rx-title">
+    <section ref={setEl} className={`rx${calm ? " is-calm" : ""}${hold || !seen ? " is-paused" : ""}`} aria-labelledby="rx-title"
+      onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)}
+      onFocus={() => setHold(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHold(false); }}>
       {plate && <RegisterPlate plate={plate} running={seen} calm={calm} />}
       <div className="rx-rail" data-ld-reveal="rail">
         <h2 id="rx-title">Every animal has a story.</h2>
         <p className="rx-caption">Real photographs. Shared histories. Including imported records.</p>
-        <button type="button" className="rx-pause" aria-pressed={paused} onClick={() => setPaused(v => !v)}>{paused ? "Play motion" : "Pause motion"}</button>
       </div>
 
       <div className="rx-stage" data-ld-reveal="stage">
@@ -212,13 +212,7 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
           <Band cards={bands[2]} depth="back" dir="r" featId={cur.id} />
         </div>
 
-        <div
-          className="rx-deck"
-          onMouseEnter={() => setHold(true)}
-          onMouseLeave={() => setHold(false)}
-          onFocus={() => setHold(true)}
-          onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHold(false); }}
-        >
+        <div className="rx-deck">
           <div className="rx-stack">
             <span className="rx-sheet is-b" aria-hidden />
             <span className="rx-sheet is-a" aria-hidden />

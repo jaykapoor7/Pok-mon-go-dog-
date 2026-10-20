@@ -9,15 +9,23 @@ test("the audience navigation has exactly five ordered, distinct destinations",a
  await disclosure.focus();await page.keyboard.press("ArrowDown");await expect(links.first()).toBeFocused();
  await links.getByText("Feeders",{exact:true}).click();await expect(page).toHaveURL(/\/for-feeders$/);await expect(page.getByRole("heading",{level:1})).toContainText("Know the animals");
 });
-test("the restored example stays separate from real reports and names its limits",async({page})=>{
+test("the restored field journey carries the animal out and back without changing a record",async({page})=>{
  const writes:string[]=[];await page.route("**/api/**",async route=>{if(route.request().method()!=="GET"){writes.push(route.request().url());await route.abort();}else await route.continue();});
- await page.goto("/");await page.evaluate(()=>{const el=document.querySelector("#one-request")!;window.scrollTo(0,el.getBoundingClientRect().top+scrollY+(el.clientHeight-innerHeight)*.265);});
- const send=page.getByRole("button",{name:"Send the example report and watch StrayPaw respond"});await expect(send).toBeEnabled();await send.click();
- await expect(page.locator(".cv")).toHaveAttribute("data-phase","d",{timeout:12000});
- await expect(page.locator(".cv-disclosure")).toContainText("No guaranteed acceptance");await expect(page.locator(".cv-ev")).toContainText("Day 7");
- await page.getByRole("button",{name:"Replay the chain from the message"}).click();await expect(page.locator(".cv")).toHaveAttribute("data-phase","c");expect(writes).toEqual([]);
+ await page.goto("/");
+ const journey=page.locator("#request-journey");
+ const scroll=async(f:number)=>{await journey.evaluate((el,f)=>window.scrollTo(0,el.getBoundingClientRect().top+scrollY+(el.clientHeight-innerHeight)*f),f);await page.waitForTimeout(100);};
+ const position=async(selector:string)=>journey.locator(selector).evaluate(el=>{const m=new DOMMatrix(getComputedStyle(el).transform);return {x:m.m41,y:m.m42};});
+ await scroll(.38);const home=await position(".ld-dive-animal");
+ await scroll(.66);await expect(journey.locator(".ld-dive-act")).toHaveClass(/is-care/);const care=await position(".ld-dive-animal");expect(Math.hypot(care.x-home.x,care.y-home.y)).toBeGreaterThan(50);
+ await scroll(.87);const returning=await position(".ld-dive-animal");const team=await position(".ld-dive-team");expect(Math.hypot(returning.x-team.x,returning.y-team.y)).toBeLessThan(2);
+ await scroll(.94);await expect(journey.locator(".ld-dive-day b")).toHaveText("7");await expect(journey.locator(".ld-dive-act")).toHaveClass(/is-home/);const returned=await position(".ld-dive-animal");expect(Math.hypot(returned.x-home.x,returned.y-home.y)).toBeLessThan(2);
+ await scroll(.38);await expect(journey.locator(".ld-dive-day b")).toHaveText("0");
+ await expect(journey).toContainText("No seven-day response or resolution is promised");expect(writes).toEqual([]);
 });
 test("WhatsApp is presented as launched without invented prices",async({page})=>{
+ await page.goto("/");await page.locator(".wa-phone").scrollIntoViewIfNeeded();
+ await expect(page.locator(".wa-msg.is-in")).toHaveCount(4);await expect(page.locator("#one-request")).toContainText("Live on WhatsApp");
+ await expect(page.locator("#one-request").getByRole("link",{name:"Get WhatsApp access"})).toHaveAttribute("href",/WhatsApp%20CareOS%20access/);
  await page.goto("/for-ngos");await expect(page.getByRole("heading",{name:"WhatsApp, connected through CareOS."})).toBeVisible();
  await expect(page.getByRole("link",{name:"Get WhatsApp access"})).toHaveAttribute("href",/WhatsApp%20CareOS%20access/);
  await expect(page.locator("main")).not.toContainText(/backend is not deployed|Concept only|waitlist/);

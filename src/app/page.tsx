@@ -10,14 +10,13 @@ import { getRegisterTotals } from "@/lib/register/totals";
 import { sxSerif } from "@/components/shell/fonts";
 import { Stage } from "@/components/bindu/stage";
 import { World, type WorldArea } from "@/components/world/World";
-import { Chain } from "@/components/request/OriginalRequest";
+import { CareStory } from "@/components/landing/CareStory";
+import { CaseDive } from "@/components/landing/CaseDive";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
-import { LandingAtlas } from "@/components/production/LandingAtlas";
 import { Ecosystem } from "@/components/production/Ecosystem";
 import "@/components/site/site.css";
 import "@/components/world/home.css";
 import "@/components/world/world.css";
-import "@/components/request/chain.css";
 import "@/components/landing/landing.css";
 import "@/components/production/production.css";
 export const revalidate = 300;
@@ -50,9 +49,9 @@ export default async function HomePage(){
    </div>
    {brief&&<Link className="hero-geography" href={`/explore?city=${encodeURIComponent(brief.city)}`}><b>{brief.city}</b><span>{f(brief.animals)} animal records · {f(brief.cells)} recorded areas</span><small>Real public geography. Scroll to see the record beneath the painting.</small></Link>}
   </Stage>
-  <Stage id="one-request" className="w2 production-request" screens={2.8} label="One report. A connected record."><Chain areas={areas} city={story?.hero.city??"Public record"}/></Stage>
   <Suspense fallback={<section className="animal-stories-loading"><h2>Every animal has a story.</h2><p role="status">Reading photographed records…</p></section>}><Stories/></Suspense>
-  <section className="production-section atlas-section" id="living-atlas" aria-labelledby="atlas-title"><header className="section-intro"><div><h2 id="atlas-title">Care, mapped.</h2><p>Explore India’s animal records, one place at a time.</p></div><Link href="/explore" className="sw-btn is-paper">Explore Full Map <ArrowUpRight size={17} aria-hidden/></Link></header><LandingAtlas cities={cities}/><p className="atlas-caption">City and area records are shown at their recorded precision. Individual markers are approximate within a recorded area. <Link href="/data-governance">How locations are protected</Link></p></section>
+  <CareStory/>
+  <CaseDive geography={story?{city:story.hero.city,box:story.hero.box}:undefined}/>
   <section className="production-section ecosystem-section" id="ecosystem" aria-labelledby="ecosystem-title"><header className="section-intro"><div><h2 id="ecosystem-title">Better together.</h2><p>Different roles. One continuing record.</p></div></header><Ecosystem queue={story?.desk.queue??[]} brief={brief} locs={locs} story={story}/></section>
   <div className="production-faq" aria-labelledby="faq-title"><h2 id="faq-title">A few things to know.</h2><div>{FAQ.map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></div>
   <div className="production-close"><h2>Make care easier to coordinate.</h2><div className="sw-acts"><Link href="/app?choose=1" className="sw-btn is-flame">Open App <ArrowUpRight size={18} aria-hidden/></Link><Link href="/contact?subject=Work%20With%20Us" className="sw-btn is-paper">Work With Us</Link></div></div>

@@ -23,7 +23,7 @@ import {
 import { StrayPawMark } from "@/components/site/SiteHeader";
 
 const MESSAGE_STEPS = 4;
-const FLOW = ["Sent", "Filed", "Assigned", "Treated"];
+const FLOW = ["Report", "Review", "Coordinate", "Record"];
 
 export function CareStory() {
   const phone = useRef<HTMLDivElement>(null);
@@ -56,14 +56,14 @@ export function CareStory() {
   const message = (step: number, classes: string) => `wa-msg ${classes}${shown >= step ? " is-in" : ""}`;
 
   return (
-    <section className="ld-sec ld-sec-bone ld-wa ld-wa-v2" aria-labelledby="ld-wa-title">
+    <section id="one-request" className="ld-sec ld-sec-bone ld-wa ld-wa-v2" aria-labelledby="ld-wa-title">
       <header className="ld-wa-copy" data-ld-reveal="head">
         <p className="ld-wa-state"><i aria-hidden />Live on WhatsApp</p>
-        <h2 id="ld-wa-title">Photo in.<span>Care in motion.</span></h2>
-        <p className="ld-wa-lede">Share a photo and location. StrayPaw creates the case, finds a team and keeps you updated.</p>
+        <h2 id="ld-wa-title">One report. A connected record.</h2>
+        <p className="ld-wa-lede">Send a photo and location through WhatsApp. CareOS connects the report, team review and recorded updates.</p>
         <p className="ld-wa-acts">
-          <Link href="/report" className="sys-btn is-flame">Start a report <ArrowUpRight size={15} /></Link>
-          <Link href="/for-ngos" className="ld-wa-link">For NGOs <ArrowUpRight size={14} /></Link>
+          <Link href="/contact?subject=WhatsApp%20CareOS%20access" className="sys-btn is-flame">Get WhatsApp access <ArrowUpRight size={15} aria-hidden /></Link>
+          <Link href="/report" className="ld-wa-link">Report on the web <ArrowUpRight size={14} aria-hidden /></Link>
         </p>
       </header>
 
@@ -100,7 +100,7 @@ export function CareStory() {
               </div>
 
               <div className="wa-thread">
-                <p className="wa-day is-first">Today</p>
+                <p className="wa-day is-first">Example conversation</p>
                 <div className={message(1, "is-out is-photo")}>
                   <span className="wa-photo">
                     {/* This image belongs only to the WhatsApp reporting story. */}
@@ -108,24 +108,24 @@ export function CareStory() {
                     <img src="/seed-dogs/dog6.jpg" alt="" loading="lazy" />
                     <span className="wa-photo-scan" />
                   </span>
-                  <span className="wa-report-line"><b>Street dog outside the café</b><small><MapPin size={11} /> Rajouri Garden</small></span>
+                  <span className="wa-report-line"><b>Photo and observation</b><small><MapPin size={11} /> Shared location</small></span>
                   <span className="wa-meta">09:12 <CheckCheck size={13} /></span>
                 </div>
 
                 <div className={message(2, "is-in-msg is-received")}>
-                  <span className="wa-kicker"><Check size={11} /> REPORT OPENED</span>
-                  <span className="wa-record">SP–0428</span>
+                  <span className="wa-kicker"><Check size={11} /> REPORT RECEIVED</span>
+                  <span className="wa-record">Awaiting review</span>
                   <span className="wa-meta">09:13</span>
                 </div>
 
                 <div className={message(3, "is-in-msg is-assigned")}>
-                  <span className="wa-assignee"><i>RK</i><span><b>Rhea is on it</b><small>Team assigned</small></span></span>
+                  <span className="wa-assignee"><i><Check size={15} /></i><span><b>Team review</b><small>Assignment after acceptance</small></span></span>
                   <span className="wa-meta">10:40</span>
                 </div>
 
                 <div className={message(4, "is-in-msg is-good")}>
                   <span className="wa-good-icon"><Check size={15} /></span>
-                  <span className="wa-text"><b>Treated</b><small>Recheck in 3 days</small></span>
+                  <span className="wa-text"><b>Care history</b><small>Updates when recorded</small></span>
                   <span className="wa-meta">16:05</span>
                 </div>
               </div>
@@ -138,7 +138,8 @@ export function CareStory() {
             </div>
           </div>
         </div>
-        <figcaption><LockKeyhole size={12} aria-hidden /> Your details stay private. The record stays with the animal.</figcaption>
+        <figcaption><LockKeyhole size={12} aria-hidden /> Example conversation. Reports are reviewed; acceptance and care depend on participating teams.</figcaption>
+        <p className="ld-wa-access">WhatsApp is available. Contact us for the channel, organisation setup and costs.</p>
       </figure>
     </section>
   );

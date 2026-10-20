@@ -11,13 +11,15 @@
 
 ## Original interactions
 
-- `OriginalRequest.tsx` recovers `Chain.tsx` from `cc58083a`: gathering fragments, typed report, Send/replay, seven travelling-object/vine stages, painted panels, reverse scroll and reduced-motion finale. Conditional care/review wording and explicit seven-day example labels replace automatic-rescue claims. The day labels describe an illustrative sequence, not a real animal's medical history or response-time promise.
+- Homepage order follows the owner’s final correction: hero → photographed animal carousel → WhatsApp (“One report. A connected record.”) → restored street journey → ecosystem roles → FAQ and closing actions. The travelling-card chain and standalone Atlas section are removed from this page; Explore remains the full shared map.
+- `CaseDive.tsx` restores the street-scene choreography from `9ca5b49f`: incoming field team, pickup, travel to care, a filling care ring and return to the same street. The team accompanies the animal on the return leg. The existing licensed standing-dog artwork replaces the tiny point so the animal remains identifiable. The seven-day example carries no invented animal identity, calendar dates or clinical claims; its routes and optional real-city basemap are explicitly distinguished. The scene remains functional without database data, tiles or WebGL, reverses with scroll and becomes a static complete chronology under reduced motion.
+- `CareStory.tsx` retains the existing animated phone conversation and presents WhatsApp as launched. Example messages describe review and conditional assignment, without invented case IDs, staff identities or treatment outcomes. The access CTA requests the actual channel/setup through contact; web reporting remains available.
 - `World.tsx` retains its organic palampore opening, camera choreography and painted-record transition. The homepage begins with an opening into real geography so the product appears sooner. Licensed art stays credited.
-- `AnimalRegister.tsx` restores the existing three-depth-band infinite photographic register and dealt profile. It adds a persistent pause action, pauses on focus/hover and offscreen, and retains manual browsing and static strips under reduced motion.
+- `AnimalRegister.tsx` restores the existing three-depth-band infinite photographic register and dealt profile. The visible pause button is removed at the owner’s request. It pauses on focus/hover and offscreen, and retains manual browsing and static strips under reduced motion.
 
 ## One map foundation
 
-`FieldMap` is used by the landing embed, `/explore`, `/community`, `/ngo/map` and municipal maps. `ground.ts` supplies the illustrated OpenStreetMap/OpenFreeMap 2D geography. The globe, night ground, extrusions and tilted cameras are removed from the shared renderer. Native pan/zoom easing, map search, lenses, area inspectors, animal profiles, mobile sheets and role-scoped reads remain.
+`FieldMap` remains the shared foundation available for embeds, `/explore`, `/community`, `/ngo/map` and municipal maps. `ground.ts` supplies the illustrated OpenStreetMap/OpenFreeMap 2D geography. The globe, night ground, extrusions and tilted cameras are removed from the shared renderer. Native pan/zoom easing, map search, lenses, area inspectors, animal profiles, mobile sheets and role-scoped reads remain.
 
 - National city clusters and area aggregates retain their source precision.
 - Individual markers are created only for loaded real animal records. The public contract supplies area-level coordinates, so markers are labelled approximate/schematic within that area. No GPS precision is manufactured.
