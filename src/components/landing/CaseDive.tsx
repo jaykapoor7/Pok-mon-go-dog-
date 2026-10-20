@@ -53,10 +53,10 @@ const road = (a: Pt, b: Pt, bend: number) => {
 };
 const CARE_WORD: Record<string, string> = { vaccination: "Vaccination", treatment: "Treatment", sterilisation: "Sterilisation", deworming: "Deworming", surgery: "Surgery", checkup: "Check-up", medication: "Medication" };
 
-export function CaseDive({ j, city, box, rings, events, note }: {
+export function CaseDive({ j, city, box, rings, events, note, archived = false }: {
   j: Journey; city: string; box: [number, number, number, number]; rings: number[][];
   /** Flat [cellIndex, day, kind], as the hero plate takes them. */
-  events: number[]; note?: string;
+  events: number[]; note?: string; archived?: boolean;
 }) {
   const steps = useMemo(() => {
     const start = Date.parse(j.reported);
@@ -270,7 +270,7 @@ export function CaseDive({ j, city, box, rings, events, note }: {
         </div>
 
         <div className="ld-dive-panel">
-          <p className="ld-dive-kicker sys-mono">Real case · {j.locality}, {city}</p>
+          <p className="ld-dive-kicker sys-mono">{archived ? "Archived public case" : "Real case"} · {j.locality}, {city}</p>
           <h2 id="ld-dive-title">One request, <em>followed to the&nbsp;end.</em></h2>
           <p className="ld-dive-day" aria-hidden="true"><span>Day</span> <b>{t.day}</b></p>
           <ol className="ld-dive-steps" aria-label={`The request, from report to close, over ${plural(j.days, "day")}`}>

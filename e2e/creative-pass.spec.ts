@@ -6,10 +6,13 @@ for(const width of [320,390,768,1440])test(`hero and section order remain usable
  expect(headings.slice(0,5)).toEqual(["Street-animal care, connected.","Every animal has a story.","One report. A connected record.","One request, followed to the end.","Better together."]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.getByRole("button",{name:/Pause motion|Play motion/})).toHaveCount(0);
+ await expect(page.locator("#world .wd-map,#world canvas")).toHaveCount(0);
+ await expect(page.locator(".cv")).toHaveCount(1);await expect(page.locator(".wa-phone")).toHaveCount(0);
 });
 test("reduced motion shows the complete original request and removes ambient movement",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");const section=page.locator("#one-request");await section.scrollIntoViewIfNeeded();
  await expect(section.locator(".cv-ev")).toBeVisible();await expect(section).toContainText("Day 7");
+ await expect(page.locator("#request-journey .ld-dive-day b")).toBeVisible();
  expect(await section.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==="running").length)).toBe(0);
 });
 test("essential public information and actions survive without JavaScript",async({browser})=>{
