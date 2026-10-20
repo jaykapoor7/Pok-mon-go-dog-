@@ -2,32 +2,40 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { SiteFooter } from "@/components/site/SiteFooter";
+import { FooterIndex } from "@/components/site/FooterIndex";
+import { ScaleGlyph } from "@/components/landing/ScaleGlyph";
+import { HeroPlate } from "@/components/landing/HeroPlate";
+import { CaseDive } from "@/components/landing/CaseDive";
+import { HeroTally } from "@/components/landing/HeroTally";
+import { AnimalRegister } from "@/components/landing/AnimalRegister";
+import { LandingMotion } from "@/components/landing/LandingMotion";
 import { getLandingStory } from "@/lib/landing/story";
 import { getRegisterTotals } from "@/lib/register/totals";
-import { sxSerif } from "@/components/shell/fonts";
 import { Stage } from "@/components/bindu/stage";
-import { WORK_IMAGES } from "@/lib/art/sources";
 import { Chain } from "@/components/request/OriginalRequest";
-import { CaseDive } from "@/components/landing/CaseDive";
+import { sxSerif } from "@/components/shell/fonts";
 import caseArchive from "@/data/landing-case-archive.json";
+import areaArchive from "@/data/landing-area-archive.json";
 import registerArchive from "@/data/landing-register-archive.json";
 import fieldPartners from "@/data/field-partners.json";
-import areaArchive from "@/data/landing-area-archive.json";
-import workspaceArchive from "@/data/landing-workspace-archive.json";
-import { COURSES } from "@/sp/learn/content";
-import { AnimalRegister } from "@/components/landing/AnimalRegister";
-import { Ecosystem } from "@/components/production/Ecosystem";
 import "@/components/site/site.css";
+import "@/components/site/field-site.css";
 import "@/components/world/home.css";
-import "@/components/world/world.css";
 import "@/components/request/chain.css";
 import "@/components/landing/landing.css";
 import "@/components/production/production.css";
+import "@/components/landing/restored-landing.css";
+
 export const revalidate = 300;
-export const metadata = { title:"StrayPaw | Street-animal care, connected.", description:"StrayPaw connects community reports, animal histories, and care teams through one shared map and workspace." };
-const f=(n:number)=>n.toLocaleString("en-IN");
-const lessonPreviews=COURSES.flatMap(course=>course.lessons.filter(lesson=>["unknown-is-not-zero","areas-not-spots","a-calm-encounter"].includes(lesson.id)).map(lesson=>({title:lesson.title,minutes:lesson.minutes,takeaway:lesson.takeaway,href:`/learn/courses/${course.id}/${lesson.id}`})));
+export const metadata = {title:"StrayPaw. Every street animal on the record.",description:"One shared record connecting sightings, field work and outcomes for India’s street animals."};
+const LEVELS = [
+ {level:"street",scale:"Community",who:"Residents",does:"Report what you see. Follow recorded updates.",action:"Report an animal",href:"/community/report"},
+ {level:"field",scale:"NGO",who:"NGOs & Rescues",does:"Run cases, field work and care in one place.",action:"Open NGO workspace",href:"/ngo"},
+ {level:"city",scale:"Municipality",who:"Municipalities",does:"Read programme geography, records and the gaps.",action:"Request a Pilot",href:"/contact?subject=Request%20a%20Pilot"},
+ {level:"street",scale:"Daily care",who:"Feeders",does:"Find familiar animals. Add sightings to their history.",action:"Find your animals",href:"/explore"},
+ {level:"field",scale:"Contribute",who:"Freelancers & volunteers",does:"Contribute observations and join a verified organisation’s fieldwork.",action:"Get involved",href:"/for-community"},
+ {level:"city",scale:"Education",who:"Educators & students",does:"Learn, teach and share credited materials.",action:"Open learning materials",href:"/learn/resources"},
+] as const;
 const FAQ=[
  ["Is StrayPaw free to use?","Public animal discovery and community reporting are available without a subscription. Institutional programmes are scoped and priced separately; contact us for organisation access."],
  ["What happens after a report?","A report is checked before publication. Organisations can review and choose whether to accept it. Reporting does not guarantee rescue, treatment or a response time."],
@@ -37,33 +45,32 @@ const FAQ=[
 ];
 export default async function HomePage(){
  const [story,totals]=await Promise.all([getLandingStory().catch(()=>null),getRegisterTotals().catch(()=>null)]);
- const liveAreas=(story?.desk.cells??[]).map(c=>({ring:c.ring,open:c.open,crit:c.crit,name:c.name}));
- const areas=liveAreas.length?liveAreas:areaArchive.areas;
- const areaCity=liveAreas.length?story!.hero.city:areaArchive.city;
- // Retain the previously published case history when the live service cannot be read.
- const caseHero=story?.journey?story.hero:caseArchive.hero;
- const caseBox:[number,number,number,number]=[caseHero.box[0],caseHero.box[1],caseHero.box[2],caseHero.box[3]];
- return <div className={`sp sw production ${sxSerif.variable}`}><PageView name="landing_view"/><SiteHeader/><main>
-  <section id="world" className="w1 production-hero production-hero-static" aria-label="Street-animal care, connected"><div className="bs-frame">
-   <div className="production-hero-art"><div className="wd" aria-hidden="true"><div className="wd-art">
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={WORK_IMAGES.palamporeTree.src} width={WORK_IMAGES.palamporeTree.w} height={WORK_IMAGES.palamporeTree.h} alt="" fetchPriority="high" decoding="async"/></div></div><Link className="hero-art-credit" href="/art-credits">Coromandel palampore · The Met · CC0</Link>
-    <figure className="hero-record">
-     <span className="hero-record-top"><span>StrayPaw · community photograph</span></span>
-     {/* eslint-disable-next-line @next/next/no-img-element */}
-     <img src="/pinky-bengaluru.jpg" width={1090} height={1040} alt="Pinky, a white dog with a pink collar, resting in Bengaluru." fetchPriority="high"/>
-     <figcaption className="hero-record-bottom"><b>Pinky</b><span>Bengaluru</span></figcaption>
-    </figure><span className="hero-record-stamp" aria-hidden>Seen.<br/>Recorded.<br/>Connected.</span>
-   </div>
-   <div className="production-hero-copy"><span className="hero-eyebrow">Reports → records → coordinated care</span><h1>Street-animal care, connected.</h1><p>StrayPaw connects community reports, animal histories, and care teams through one shared map and workspace.</p><div className="sw-acts"><Link href="/explore" className="sw-btn is-paper">Explore the Map <ArrowUpRight size={18} aria-hidden/></Link><Link href="/contact?subject=Request%20a%20Pilot" className="sw-btn is-flame hero-pilot">Request a Pilot</Link></div>
-    {totals&&totals.animals>0&&<p className="hero-proof"><b>{f(totals.animals)}</b> animal records · <b>{f(totals.cases)}</b> requests for help · <b>{f(totals.cities)}</b> cities<small>Including historical imports. Records are not a census; requests are not rescue outcomes.</small></p>}
-   </div>
-  </div></section>
-  <AnimalRegister data={registerArchive.data} total={registerArchive.data.total} archived/>
-  <Stage id="one-request" className="w2 production-request" screens={2.8} label="One report. A connected record."><Chain areas={areas} city={areaCity} recordedAt={liveAreas.length?undefined:"20 Oct 2026"}/></Stage>
-  <CaseDive j={story?.journey??caseArchive.journey} city={caseHero.city} box={caseBox} rings={caseHero.rings} events={caseHero.events}/>
-  <section className="production-section ecosystem-section" id="ecosystem" aria-labelledby="ecosystem-title"><header className="section-intro"><div><h2 id="ecosystem-title">Better together.</h2><p>Different roles. One continuing record.</p></div></header><Ecosystem records={registerArchive.data.cards} partners={fieldPartners.organisations} areas={areaArchive.areas} workspace={workspaceArchive} lessons={lessonPreviews}/></section>
-  <div className="production-faq" aria-labelledby="faq-title"><div className="faq-intro"><span className="faq-kicker">Before you begin</span><h2 id="faq-title">A few things<br/><em>to know.</em></h2><p>Clear answers. A useful next step.</p><Link href="/contact">Ask us something else <ArrowUpRight size={17} aria-hidden/></Link></div><div className="production-faq-list">{FAQ.map(([q,a],i)=><details key={q}><summary><span className="faq-number">0{i+1}</span><span>{q}</span><i aria-hidden/></summary><p>{a}</p></details>)}</div></div>
-  <div className="production-close"><span className="closing-index" aria-hidden>↗</span><h2>Make care easier<br/><em>to coordinate.</em></h2><Link href="/contact?subject=Work%20With%20Us" className="closing-action">Work With Us <ArrowUpRight size={24} aria-hidden/></Link></div>
- </main><SiteFooter/></div>;
+ const hero=story?.hero??caseArchive.hero;
+ const box:[number,number,number,number]=[hero.box[0],hero.box[1],hero.box[2],hero.box[3]];
+ const liveAreas=story?.desk.cells??[];
+ const areas=liveAreas.length?liveAreas.map(c=>({ring:c.ring,open:c.open,crit:c.crit,name:c.name})):areaArchive.areas;
+ return <div className={`sp field-site product-site ld sw restored-landing ${sxSerif.variable}`}>
+  <PageView name="landing_view"/><LandingMotion/><SiteHeader/>
+  <main>
+   <section id="world" className="ld-hero" aria-labelledby="hero-title"><div className="ld-stage">
+    <HeroPlate city={hero.city} box={box} rings={hero.rings} events={hero.events}/>
+    <div className="ld-hero-copy"><h1 id="hero-title">Every stray animal in India.<em>Seen. Tracked. Cared&nbsp;for.</em></h1>
+     <p className="ld-hero-sub">One shared record for every sighting, case and outcome.</p>
+     {totals&&totals.animals>0&&<HeroTally animals={totals.animals} cases={totals.cases} cities={totals.cities}/>}
+     <div className="ld-hero-actions"><Link href="/community/report" className="sw-btn is-flame">Report a sighting<ArrowUpRight size={18} aria-hidden/></Link><Link href="/explore" className="sw-btn is-paper">Explore the Map<ArrowUpRight size={15} aria-hidden/></Link></div>
+     {!story&&<p className="ld-hero-source">Coimbatore public record · captured 20 October 2026</p>}
+    </div></div></section>
+   <AnimalRegister data={registerArchive.data} total={registerArchive.data.total} archived/>
+   <section className="production restored-whatsapp" aria-label="One report. A connected record."><Stage id="one-request" className="w2 production-request" screens={2.8} label="One report. A connected record."><Chain areas={areas} city={liveAreas.length?hero.city:areaArchive.city} recordedAt={liveAreas.length?undefined:"20 Oct 2026"}/></Stage></section>
+   <CaseDive j={story?.journey??caseArchive.journey} city={story?.journey?hero.city:caseArchive.hero.city} box={story?.journey?box:[caseArchive.hero.box[0],caseArchive.hero.box[1],caseArchive.hero.box[2],caseArchive.hero.box[3]]} rings={story?.journey?hero.rings:caseArchive.hero.rings} events={story?.journey?hero.events:caseArchive.hero.events}/>
+   <section id="ecosystem" className="ld-sec ld-sec-shell ld-audience" aria-labelledby="ld-audience-title"><div className="ld-scale">
+    <header className="sys-head" data-ld-reveal="head"><p className="ld-section-kicker sys-mono">One record</p><h2 id="ld-audience-title">Every street. <em>Every scale.</em></h2></header>
+    <ol className="ld-levels">{LEVELS.map((l,i)=><li key={l.who} data-ld-reveal="item" style={{["--i" as string]:i}}><Link href={l.href}><ScaleGlyph level={l.level}/><span className="ld-lv-text"><small>{l.scale}</small><b>{l.who}</b><span>{l.does}</span></span><span className="ld-lv-go">{l.action}<ArrowUpRight size={15} aria-hidden/></span></Link></li>)}</ol>
+    <nav className="restored-partners" aria-label="NGO field partners"><h3>NGO field partners</h3>{fieldPartners.organisations.map(p=><Link key={p.id} href={`/community/organisations/${p.slug}`}>{p.name}</Link>)}</nav>
+   </div></section>
+   <section className="production restored-faq" aria-labelledby="faq-title"><div className="production-faq"><div className="faq-intro"><h2 id="faq-title">A few things to know.</h2><Link href="/contact">Ask us something else<ArrowUpRight size={17} aria-hidden/></Link></div><div className="production-faq-list">{FAQ.map(([q,a],i)=><details key={q}><summary><span className="faq-number">0{i+1}</span><span>{q}</span><i aria-hidden/></summary><p>{a}</p></details>)}</div></div></section>
+   <section className="ld-close"><div className="ld-close-copy"><p className="sys-mono">Start with what you see</p><h2>See a dog? <em>Report it.</em></h2></div><div className="ld-close-action"><p><b>A photo. A place. What you see.</b><span>Keep the observation on the record.</span></p><Link href="/community/report" className="sw-btn is-flame">Report a sighting<ArrowUpRight size={18} aria-hidden/></Link></div></section>
+  </main>
+  <footer className="ld-foot"><div className="ld-foot-top"><Link href="/" className="ld-foot-brand">StrayPaw<span>From sighting to outcome. One shared record.</span></Link><FooterIndex/></div><p className="ld-foot-base"><span>© {new Date().getFullYear()} StrayPaw</span><span>Built with care, in India. <Link href="/art-credits">Art credits</Link></span></p></footer>
+ </div>;
 }

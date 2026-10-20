@@ -1,15 +1,15 @@
 import {test,expect} from "@playwright/test";
 import fieldPartners from "../src/data/field-partners.json";
 for(const width of [320,390,768,1440])test(`hero and section order remain usable at ${width}px`,async({page})=>{
- await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText("Street-animal care, connected.");
- for(const a of await page.locator(".production-hero-copy .sw-acts a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.width).toBeGreaterThanOrEqual(44);expect(b!.height).toBeGreaterThanOrEqual(44);}
+ await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(/Every stray animal in India\.\s*Seen\. Tracked\. Cared\s+for\./);
+ for(const a of await page.locator(".ld-hero-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.width).toBeGreaterThanOrEqual(44);expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main > section h1, main > section h2").allTextContents()).map(s=>s.replace(/\s+/g," "));
- expect(headings.slice(0,5)).toEqual(["Street-animal care, connected.","Every animal has a story.","One report. A connected record.","One request, followed to the end.","Better together."]);
+ expect(headings[0]).toMatch(/Every stray animal in India/);expect(headings.slice(1,5)).toEqual(["Every animal has a story.","One report. A connected record.","One request, followed to the end.","Every street. Every scale."]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.getByRole("button",{name:/Pause motion|Play motion/})).toHaveCount(0);
- await expect(page.locator("#world .wd-map,#world canvas")).toHaveCount(0);
+ await expect(page.locator("#world .ld-plate canvas,#world .ld-plate-fallback svg").first()).toBeVisible();
  await expect(page.locator(".cv")).toHaveCount(1);await expect(page.locator(".wa-phone")).toHaveCount(0);
- await expect(page.locator(".hero-pilot")).toHaveCSS("background-color","rgb(255, 138, 61)");
+ await expect(page.locator(".ld-hero-actions .is-flame")).toHaveCSS("background-color","rgb(255, 138, 61)");
  await expect(page.locator("#world")).not.toContainText("Explore the public animal record.");
  await expect(page.locator("#world")).not.toContainText("Sources & definitions");
  await expect(page.locator("#request-journey")).not.toContainText(/Archived public case|Illustrative routes|routes are illustrative|Place of care not on the public record/i);
@@ -52,38 +52,20 @@ test("the original rounded navigation returns on scroll and the dropdown stays a
  const toggle=page.getByRole("button",{name:"Who It’s For",exact:true});await toggle.click();await expect(toggle).toHaveAttribute("aria-expanded","true");await expect(page.locator("#sp-audiences")).toBeVisible();await expect(page.locator("#sp-audiences a")).toHaveCount(5);
  await page.keyboard.press("Escape");await expect(toggle).toBeFocused();await expect(toggle).toHaveAttribute("aria-expanded","false");
 });
-test("each shared-record role opens a concrete app action",async({page})=>{
- await page.goto("/");const roles=[["Community","/community/report"],["NGOs & Rescues","/ngo"],["Municipalities","/contact?subject=Request%20a%20Pilot"],["Feeders","/explore"],["Education","/learn/resources"]];
- for(const [name,href] of roles){await page.getByRole("tab",{name,exact:true}).click();await expect(page.locator("#people-panel .care-primary")).toHaveAttribute("href",href);await expect(page.locator("#people-panel .role-links a")).toHaveCount(3);}
- await expect(page.locator(".partner-organisations a")).toHaveCount(10);
+test("the restored roles link each audience to its real workflow",async({page})=>{
+ await page.goto("/");const rows=page.locator(".ld-levels > li");await expect(rows).toHaveCount(6);
+ const hrefs=["/community/report","/ngo","/contact?subject=Request%20a%20Pilot","/explore","/for-community","/learn/resources"];
+ for(let i=0;i<hrefs.length;i++)await expect(rows.nth(i).locator("a")).toHaveAttribute("href",hrefs[i]);
+ await expect(page.locator(".restored-partners a")).toHaveCount(10);
 });
 test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
  await page.goto("/");const question=page.locator(".production-faq summary").first();await expect(question).toHaveCSS("color","rgb(255, 253, 249)");expect(await question.evaluate(el=>getComputedStyle(el,"::after").content)).toBe("none");await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".production-faq details").first()).toHaveAttribute("open","");
- await expect(page.locator(".production-close a")).toHaveCount(1);await expect(page.locator(".production-close a")).toHaveText("Work With Us");
+ await expect(page.locator(".ld-close a")).toHaveCount(1);await expect(page.locator(".ld-close a")).toHaveText("Report a sighting");
 });
-test("role previews work with real records, geography and lesson destinations",async({page})=>{
- await page.goto("/");const panel=page.locator("#people-panel");
- await panel.getByRole("button",{name:"Animals",exact:true}).click();
- const records=panel.getByRole("group",{name:"Photographed animal records"});const second=records.getByRole("button").nth(1);
- const tag=await second.locator("b").innerText();await second.click();await expect(panel.locator(".role-identity b")).toHaveText(tag);
- await panel.getByRole("searchbox").fill("no-matching-animal");await expect(panel.locator(".role-empty")).toBeVisible();
- await panel.getByRole("button",{name:"Map",exact:true}).click();await expect(panel.locator(".role-area-map circle")).toHaveCount(254);
- const requests=panel.getByRole("button",{name:"Show requests",exact:true});await requests.click();await expect(panel.getByRole("button",{name:"Showing requests"})).toHaveAttribute("aria-pressed","true");
- expect(await panel.locator("circle.has-requests").count()).toBeGreaterThan(0);
- await page.getByRole("tab",{name:"Education",exact:true}).click();await panel.getByRole("button",{name:/Areas, not spots/}).click();
- await expect(panel.getByRole("link",{name:"Open the lesson"})).toHaveAttribute("href","/learn/courses/reading-the-record/areas-not-spots");
-});
-test("the field-partner directory filters all published NGOs by their actual city",async({page})=>{
- await page.goto("/");const partners=page.locator(".partner-network");
- await expect(partners.locator(".partner-organisations a")).toHaveCount(10);
- await partners.getByLabel("Find a field partner").selectOption("Coimbatore");
- await expect(partners.locator(".partner-organisations a")).toHaveCount(2);
- await expect(partners.locator(".partner-organisations")).toContainText("Humane Animal Society");
- await expect(partners.locator(".partner-organisations")).toContainText("The Pawsome People Project");
- await expect(partners.locator(".partner-map .is-active text")).toHaveText("Coimbatore");
- await expect(partners.getByRole("status")).toHaveText("2 organisations · Coimbatore");
- await partners.getByLabel("Find a field partner").selectOption("");await expect(partners.locator(".partner-organisations a")).toHaveCount(10);
- await expect(partners).not.toContainText(/HSI|Humane Society International|Humane World for Animals/);
+test("the original Coimbatore hero retains its recorded geography and replay",async({page})=>{
+ await page.goto("/");await expect(page.locator(".ld-meter")).toContainText("Coimbatore");
+ await expect(page.locator(".ld-meter-count")).toContainText("cases");await expect(page.locator(".ld-meter-count")).toContainText("care");
+ await expect(page.locator(".ld-replay")).toBeAttached();await expect(page.locator(".hero-record,.production-hero-art")).toHaveCount(0);
 });
 test("every published field partner has an accessible organisation profile",async({request})=>{
  for(const partner of fieldPartners.organisations){
@@ -92,11 +74,8 @@ test("every published field partner has an accessible organisation profile",asyn
  }
  expect((await request.get("/community/organisations/not-a-published-straypaw-organisation")).status()).toBe(404);
 });
-test("the refined landing keeps Pinky, distinct role photography and a populated geographic record",async({page})=>{
+test("the restored landing keeps the white cartoonish nav and current WhatsApp geography",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
- const hero=page.locator(".hero-record img");await expect(hero).toHaveAttribute("src","/pinky-bengaluru.jpg");await expect(hero).toHaveAttribute("alt",/Pinky/);
- await page.getByRole("tab",{name:"Community",exact:true}).click();
- expect(await page.locator(".care-photo img").getAttribute("src")).not.toBe(await hero.getAttribute("src"));
  await expect(page.locator(".sp-header-bar")).toHaveCSS("background-color","rgb(255, 253, 249)");
  await expect(page.locator(".faq-asterisk,.faq-ledger")).toHaveCount(0);
  const map=page.locator(".cv-map");await expect(map.locator("svg")).toBeAttached();
@@ -111,7 +90,7 @@ test("reduced motion shows the complete original request and removes ambient mov
 });
 test("essential public information and actions survive without JavaScript",async({browser})=>{
  const context=await browser.newContext({javaScriptEnabled:false});const page=await context.newPage();await page.goto("/");
- await expect(page.getByRole("heading",{level:1})).toHaveText("Street-animal care, connected.");
- await expect(page.locator(".production-hero-copy a").filter({hasText:"Explore the Map"})).toHaveAttribute("href","/explore");
+ await expect(page.getByRole("heading",{level:1})).toHaveText(/Every stray animal in India\.\s*Seen\. Tracked\. Cared\s+for\./);
+ await expect(page.locator(".ld-hero-actions a").filter({hasText:"Explore the Map"})).toHaveAttribute("href","/explore");
  await page.getByText("Is StrayPaw free to use?",{exact:true}).click();await expect(page.locator("details").filter({hasText:"Is StrayPaw free to use?"})).toContainText("Institutional programmes");await context.close();
 });

@@ -13,12 +13,10 @@ test("the homepage remains readable in both scroll directions", async ({ page })
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
 });
-test("all five ecosystem roles work by keyboard without navigation", async ({ page }) => {
- await page.goto("/");const tabs=page.getByRole("tablist",{name:"One connected ecosystem"});await tabs.scrollIntoViewIfNeeded();
- await tabs.getByRole("tab",{name:"Community",exact:true}).focus();await page.keyboard.press("ArrowRight");
- await expect(tabs.getByRole("tab",{name:"NGOs & Rescues"})).toBeFocused();await expect(page.locator("#people-panel")).toContainText("Keep the next step clear.");
- await page.keyboard.press("End");await expect(tabs.getByRole("tab",{name:"Education",exact:true})).toHaveAttribute("aria-selected","true");
- await expect(page.locator("#people-panel")).toContainText("Credited teaching materials");await page.keyboard.press("Home");await expect(tabs.getByRole("tab",{name:"Community",exact:true})).toHaveAttribute("aria-selected","true");
+test("all restored audience actions are reachable by keyboard",async({page})=>{
+ await page.goto("/");const links=page.locator(".ld-levels > li > a");await expect(links).toHaveCount(6);
+ await links.first().focus();for(let i=0;i<6;i++){await expect(links.nth(i)).toBeFocused();if(i<5)await page.keyboard.press("Tab");}
+ await expect(links.last()).toContainText("Educators");
 });
 
 test("mobile navigation contains focus and restores the menu button", async ({ page }) => {
