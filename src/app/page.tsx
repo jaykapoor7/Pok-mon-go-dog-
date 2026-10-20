@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { FooterIndex } from "@/components/site/FooterIndex";
+import { OrgMark } from "@/components/orgs/OrgMark";
 import { ScaleGlyph } from "@/components/landing/ScaleGlyph";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
@@ -30,10 +31,8 @@ export const revalidate = 300;
 export const metadata = {title:"StrayPaw. Every street animal on the record.",description:"One shared record connecting sightings, field work and outcomes for India’s street animals."};
 const LEVELS = [
  {level:"street",scale:"Community",who:"Residents",does:"Report what you see. Follow recorded updates.",action:"Report an animal",href:"/community/report"},
- {level:"field",scale:"NGO",who:"NGOs & Rescues",does:"Run cases, field work and care in one place.",action:"Open NGO workspace",href:"/ngo"},
+ {level:"field",scale:"NGO",who:"NGOs",does:"Run cases, field work and care in one place.",action:"Open NGO workspace",href:"/ngo"},
  {level:"city",scale:"Municipality",who:"Municipalities",does:"Read programme geography, records and the gaps.",action:"Request a Pilot",href:"/contact?subject=Request%20a%20Pilot"},
- {level:"street",scale:"Daily care",who:"Feeders",does:"Find familiar animals. Add sightings to their history.",action:"Find your animals",href:"/explore"},
- {level:"field",scale:"Contribute",who:"Freelancers & volunteers",does:"Contribute observations and join a verified organisation’s fieldwork.",action:"Get involved",href:"/for-community"},
  {level:"city",scale:"Education",who:"Educators & students",does:"Learn, teach and share credited materials.",action:"Open learning materials",href:"/learn/resources"},
 ] as const;
 const FAQ=[
@@ -66,7 +65,7 @@ export default async function HomePage(){
    <section id="ecosystem" className="ld-sec ld-sec-shell ld-audience" aria-labelledby="ld-audience-title"><div className="ld-scale">
     <header className="sys-head" data-ld-reveal="head"><p className="ld-section-kicker sys-mono">One record</p><h2 id="ld-audience-title">Every street. <em>Every scale.</em></h2></header>
     <ol className="ld-levels">{LEVELS.map((l,i)=><li key={l.who} data-ld-reveal="item" style={{["--i" as string]:i}}><Link href={l.href}><ScaleGlyph level={l.level}/><span className="ld-lv-text"><small>{l.scale}</small><b>{l.who}</b><span>{l.does}</span></span><span className="ld-lv-go">{l.action}<ArrowUpRight size={15} aria-hidden/></span></Link></li>)}</ol>
-    <nav className="restored-partners" aria-label="NGO field partners"><h3>NGO field partners</h3>{fieldPartners.organisations.map(p=><Link key={p.id} href={`/community/organisations/${p.slug}`}>{p.name}</Link>)}</nav>
+    <nav className="restored-partners" aria-label="NGO field partners"><div className="restored-partners-head"><h3>NGO field partners</h3><Link href="/community/organisations">View directory<ArrowUpRight size={15} aria-hidden/></Link></div><div className="restored-partner-grid">{fieldPartners.organisations.map(p=><Link key={p.id} href={`/community/organisations/${p.slug}`}><OrgMark name={p.name} logoUrl={p.logoUrl} size={34}/><span><b>{p.name}</b><small>{p.city}{p.state?`, ${p.state}`:""}</small></span><ArrowUpRight size={14} aria-hidden/></Link>)}</div></nav>
    </div></section>
    <section className="production restored-faq" aria-labelledby="faq-title"><div className="production-faq"><div className="faq-intro"><h2 id="faq-title">A few things to know.</h2><Link href="/contact">Ask us something else<ArrowUpRight size={17} aria-hidden/></Link></div><div className="production-faq-list">{FAQ.map(([q,a],i)=><details key={q}><summary><span className="faq-number">0{i+1}</span><span>{q}</span><i aria-hidden/></summary><p>{a}</p></details>)}</div></div></section>
    <section className="ld-close"><div className="ld-close-copy"><p className="sys-mono">Start with what you see</p><h2>See a dog? <em>Report it.</em></h2></div><div className="ld-close-action"><p><b>A photo. A place. What you see.</b><span>Keep the observation on the record.</span></p><Link href="/community/report" className="sw-btn is-flame">Report a sighting<ArrowUpRight size={18} aria-hidden/></Link></div></section>
