@@ -186,7 +186,7 @@ export function Report() {
                 <h1 id="rp-h" className="rp2-h">{help ? "A photo, if it is safe to take one" : "A photo helps the right animal be recognised"}</h1>
                 <p className="body">Optional. {help ? "Never approach a hurt or frightened animal to take it." : "A report without one still counts."}</p>
                 <input ref={fileRef} type="file" accept="image/*" capture="environment" className="sr" onChange={pickPhoto} aria-label="Choose a photo" />
-                <button type="button" className="btn is-s" onClick={()=>{setPreview("/dogs/delhi/brown-on-ledge.jpg");setConsent(true);}}>Attach sample photograph</button><button type="button" className="rp-camera" onClick={() => fileRef.current?.click()}>
+                <button type="button" className="btn is-s" onClick={async()=>{const blob=await fetch("/dogs/delhi/brown-on-ledge.jpg").then(r=>r.blob());setFile(new File([blob],"sample-dog.jpg",{type:"image/jpeg"}));setPreview("/dogs/delhi/brown-on-ledge.jpg");setConsent(true);}}>Attach sample photograph</button><button type="button" className="rp-camera" onClick={() => fileRef.current?.click()}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {preview ? <img src={preview} alt="Your photo" /> : <Camera size={32} aria-hidden />}
                   <b>{preview ? "Retake" : "Take or choose a photo"}</b>

@@ -152,7 +152,7 @@ export function formatPlace(
  * India. Uses BigDataCloud's keyless, CORS-friendly reverse-geocode endpoint;
  * on failure uses a nearby known city or explicitly leaves the location unnamed.
  */
-export async function reverseGeocode(lat: number, lng: number): Promise<string> { return "Coimbatore";
+export async function reverseGeocode(lat: number, lng: number): Promise<string> { return "RS Puram, Coimbatore";
 
   try {
     const res = await fetch(
