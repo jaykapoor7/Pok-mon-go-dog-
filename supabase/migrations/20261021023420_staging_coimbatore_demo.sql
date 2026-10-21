@@ -48,17 +48,10 @@ on conflict (id) do update set status = excluded.status, needs_help = excluded.n
 
 insert into public.cases (id, dog_id, ngo_id, programme_id, title, description, zone, city, state, district, lat, lng, h3_r8, severity, category, status, condition_text, status_class, intake_channel, assignee_id, assignee_name, created_by_id, created_by_name, provenance, verification_state, source_metadata, is_demo, created_at, updated_at, last_activity_at, first_action_at)
 values
-  ('60000000-0000-4000-8000-000000000001', '50000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', null, 'DEMO · community intake awaiting field assessment', 'Fictional staging intake used to demonstrate acceptance, assignment, treatment and follow-up. No real rescue or care outcome is claimed.', 'Ganapathy', 'Coimbatore', 'Tamil Nadu', 'Coimbatore', 11.0168, 76.9558, '8860338687fffff', 'high', 'injury', 'open', 'Fictional demo: limping observed', 'open', 'resident_report', '10000000-0000-4000-8000-000000000002', 'Asha · NGO demo', '10000000-0000-4000-8000-000000000002', 'Asha · NGO demo', 'staging_demo', 'demo_unverified', '{"demo":true,"disclaimer":"Fictional staging case; no veterinary or municipal verification."}', false, now() - interval '2 days', now(), now() - interval '1 day', now() - interval '1 day'),
+  ('60000000-0000-4000-8000-000000000001', '50000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', null, 'DEMO · community intake awaiting field assessment', 'Fictional staging intake used to demonstrate acceptance, assignment, treatment and follow-up. No real rescue or care outcome is claimed.', 'Ganapathy', 'Coimbatore', 'Tamil Nadu', 'Coimbatore', 11.0168, 76.9558, '8860338687fffff', 'high', 'injury', 'in_progress', 'Fictional demo: limping observed', 'in_progress', 'resident_report', '10000000-0000-4000-8000-000000000002', 'Asha · NGO demo', '10000000-0000-4000-8000-000000000002', 'Asha · NGO demo', 'staging_demo', 'demo_unverified', '{"demo":true,"disclaimer":"Fictional staging case; no veterinary or municipal verification."}', false, now() - interval '2 days', now(), now() - interval '1 day', now() - interval '1 day'),
   ('60000000-0000-4000-8000-000000000002', '50000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', 'DEMO · programme follow-up record', 'Fictional staging record for map and history demonstration only.', 'Ganapathy', 'Coimbatore', 'Tamil Nadu', 'Coimbatore', 11.0250, 76.9680, '88603386a9fffff', 'normal', 'sterilisation', 'closed', 'Fictional demo: routine follow-up', 'closed', 'team_found', '10000000-0000-4000-8000-000000000002', 'Asha · NGO demo', '10000000-0000-4000-8000-000000000002', 'Asha · NGO demo', 'staging_demo', 'demo_unverified', '{"demo":true,"disclaimer":"Fictional staging case; no municipal verification evidence."}', false, now() - interval '20 days', now(), now() - interval '5 days', now() - interval '19 days')
 on conflict (id) do update set status = excluded.status, status_class = excluded.status_class, verification_state = excluded.verification_state, source_metadata = excluded.source_metadata, is_demo = false;
 
--- The case normalisation trigger can leave a newly inserted `open` row with
--- a null derived class. Keep this demo's map aggregate semantically aligned
--- with its visible workflow state.
-update public.cases
-set status_class = 'open'
-where id = '60000000-0000-4000-8000-000000000001'
-  and status::text = 'open';
 
 insert into public.medical_events (id, dog_id, case_id, kind, event_date, notes, performed_by, created_by_id, source_metadata, is_demo, created_at)
 values
