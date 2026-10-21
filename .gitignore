@@ -52,3 +52,5 @@ next-env.d.ts
 # .claude/skills/founder/ and the sample output inside its examples, which
 # are committed and must stay that way.
 /founder/
+
+dist-demo/

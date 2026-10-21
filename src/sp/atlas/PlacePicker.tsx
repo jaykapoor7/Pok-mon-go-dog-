@@ -11,10 +11,10 @@ import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
 import "./picker.css";
 import { Crosshair, MapPin, Search } from "lucide-react";
-import { groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
+import { supportsWebGL2 } from "@/components/map/basemap";
+import { GLYPHS, collapseAttribution, drawGround, groundStyle } from "../map/ground";
 import { reverseGeocode, nearestCity } from "@/lib/delhi";
 import { looksIndian } from "@/lib/exif";
-import { FIELD, fieldInks } from "./cartography";
 
 export type Picked = { lat: number; lng: number; zone: string };
 type Hit = { lat: number; lng: number; label: string };
@@ -38,10 +38,10 @@ export function PlacePicker({ value, onChange }: { value: { lat: number; lng: nu
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
       const s = start.current;
-      map = new ml.Map({ container: el.current, style: groundStyle({ ...FIELD, labelOpacity: 0.8, showRoadNames: true }), center: s ? [s.lng, s.lat] : [78.9, 22.6], zoom: s ? 16 : 4.2, attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false });
+      map = new ml.Map({ container: el.current, style: { ...groundStyle(), glyphs: GLYPHS }, center: s ? [s.lng, s.lat] : [78.9, 22.6], zoom: s ? 16 : 4.2, attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false });
       mapRef.current = map;
       map.touchZoomRotate.disableRotation();
-      map.on("load", () => { underlay(map!, { ...FIELD, labelOpacity: 0.8, showRoadNames: true }).then((ok) => { if (ok) fieldInks(map!); }).catch(() => {}); });
+      map.on("load", () => { drawGround(map!).catch(() => {}); collapseAttribution(map!); });
       map.on("moveend", () => {
         const c = map!.getCenter();
         if (map!.getZoom() < 12) { setLabel(null); return; }

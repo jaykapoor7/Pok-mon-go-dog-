@@ -1,0 +1,2 @@
+import React,{forwardRef}from'react';import{go}from'./navigation';
+export default forwardRef<HTMLAnchorElement,any>(function Link({href,children,onClick,prefetch,replace,scroll,...props},ref){const url=typeof href==='string'?href:href?.pathname||'/';return <a ref={ref} href={url} {...props} onClick={e=>{onClick?.(e);if(!e.defaultPrevented&&url.startsWith('/')&&!props.download&&!props.target&&!e.metaKey&&!e.ctrlKey){e.preventDefault();go(url,replace);}}}>{children}</a>;});

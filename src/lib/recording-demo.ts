@@ -4,7 +4,7 @@ import type { Breakdown, CampaignStats } from "./campaigns";
 import type { ProgrammeStats } from "./programme";
 import type { Case, NGO } from "./types";
 
-export const isRecordingDemo = process.env.NEXT_PUBLIC_DEMO_RECORDING === "true";
+export const isRecordingDemo = false;
 const hoursAgo = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString();
 const daysFromNow = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
 

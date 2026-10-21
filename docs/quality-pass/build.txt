@@ -1,0 +1,188 @@
+> straypaw-delhi@1.0.0 prebuild
+> node scripts/build-info.mjs && node scripts/no-fixtures.mjs && node scripts/copy-maplibre-worker.mjs
+
+no-fixtures: clean
+
+> straypaw-delhi@1.0.0 build
+> next build
+
+   ▲ Next.js 15.5.25
+   - Experiments (use with caution):
+     · staleTimes
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 11.7s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/83) ...
+   Generating static pages (20/83)
+   Generating static pages (41/83)
+   Generating static pages (62/83)
+ ✓ Generating static pages (83/83)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                       Size  First Load JS  Revalidate  Expire
+┌ ○ /                                                          2.79 kB         188 kB          5m      1y
+├ ○ /_not-found                                                  269 B         103 kB
+├ ƒ /access                                                    4.32 kB         273 kB
+├ ƒ /animal/[id]                                               2.78 kB         221 kB
+├ ƒ /api/access/request                                          269 B         103 kB
+├ ƒ /api/admin/cases                                             269 B         103 kB
+├ ƒ /api/admin/dogs                                              269 B         103 kB
+├ ƒ /api/admin/emails                                            269 B         103 kB
+├ ƒ /api/admin/feedback                                          269 B         103 kB
+├ ƒ /api/admin/feeding-zones                                     269 B         103 kB
+├ ƒ /api/admin/fundraisers                                       269 B         103 kB
+├ ƒ /api/admin/helpers                                           269 B         103 kB
+├ ƒ /api/admin/imports                                           269 B         103 kB
+├ ƒ /api/admin/imports/cleanup                                   269 B         103 kB
+├ ƒ /api/admin/imports/enrich                                    269 B         103 kB
+├ ƒ /api/admin/imports/reconcile                                 269 B         103 kB
+├ ƒ /api/admin/imports/review                                    269 B         103 kB
+├ ƒ /api/admin/orgs                                              269 B         103 kB
+├ ƒ /api/admin/partners                                          269 B         103 kB
+├ ƒ /api/admin/reports                                           269 B         103 kB
+├ ƒ /api/admin/sightings                                         269 B         103 kB
+├ ƒ /api/admin/spatial/refresh                                   269 B         103 kB
+├ ƒ /api/contact                                                 269 B         103 kB
+├ ƒ /api/feedback                                                269 B         103 kB
+├ ƒ /api/fundraisers/discover                                    269 B         103 kB
+├ ƒ /api/ground                                                  269 B         103 kB
+├ ƒ /api/health                                                  269 B         103 kB
+├ ƒ /api/helper                                                  269 B         103 kB
+├ ƒ /api/join                                                    269 B         103 kB
+├ ƒ /api/livingmap                                               269 B         103 kB
+├ ƒ /api/partner-apply                                           269 B         103 kB
+├ ƒ /api/partner/evidence-workbook                               269 B         103 kB
+├ ƒ /api/partner/export                                          269 B         103 kB
+├ ƒ /api/partner/government-report                               269 B         103 kB
+├ ƒ /api/partner/import                                          269 B         103 kB
+├ ƒ /api/partner/stories                                         269 B         103 kB
+├ ƒ /api/partner/story-pack                                      269 B         103 kB
+├ ƒ /api/public/orgs/[slug]/stats                                269 B         103 kB
+├ ƒ /api/report                                                  269 B         103 kB
+├ ƒ /api/report-content                                          269 B         103 kB
+├ ƒ /api/sighting/delete                                         269 B         103 kB
+├ ƒ /api/sighting/status                                         269 B         103 kB
+├ ƒ /api/spatial                                                 269 B         103 kB
+├ ƒ /api/spatial/animal                                          269 B         103 kB
+├ ƒ /api/spatial/cell                                            269 B         103 kB
+├ ƒ /api/spatial/patch                                           269 B         103 kB
+├ ƒ /api/spatial/refresh                                         269 B         103 kB
+├ ƒ /api/stats                                                   269 B         103 kB
+├ ƒ /api/stats/animals                                           269 B         103 kB
+├ ƒ /api/team/invite                                             269 B         103 kB
+├ ƒ /api/volunteer/verify                                        269 B         103 kB
+├ ○ /art-credits                                                 231 B         275 kB
+├ ○ /city                                                       2.5 kB         275 kB          5m      1y
+├ ○ /city/insights                                             1.71 kB         192 kB
+├ ƒ /city/programmes                                              3 kB         179 kB
+├ ƒ /city/programmes/[id]                                        186 B         106 kB
+├ ○ /city/report                                               2.14 kB         192 kB
+├ ○ /community                                                  2.5 kB         275 kB          5m      1y
+├ ○ /community-guidelines                                        572 B         276 kB
+├ ○ /community/activity                                        4.67 kB         228 kB
+├ ○ /community/feeding                                         2.22 kB         310 kB          2m      1y
+├ ƒ /community/feeding/[id]                                    2.78 kB         307 kB
+├ ○ /community/help                                            1.58 kB         108 kB          5m      1y
+├ ○ /community/organisations                                     189 B         106 kB          5m      1y
+├ ƒ /community/organisations/[slug]                            1.74 kB         183 kB
+├ ○ /community/report                                          10.6 kB         245 kB
+├ ƒ /community/stories                                         1.56 kB         108 kB
+├ ○ /contact                                                   1.98 kB         119 kB
+├ ○ /cookies                                                     572 B         276 kB
+├ ○ /data-governance                                           1.19 kB         276 kB
+├ ○ /donate                                                      561 B         276 kB
+├ ○ /education                                                 2.96 kB         182 kB
+├ ƒ /embed/[slug]                                                692 B         104 kB
+├ ○ /evidence                                                  2.44 kB         119 kB
+├ ○ /faq                                                       1.05 kB         107 kB
+├ ○ /for-funders                                               1.19 kB         276 kB
+├ ○ /for-governments                                           37.6 kB         154 kB          2m      1y
+├ ƒ /for-ngos                                                  5.04 kB         184 kB
+├ ƒ /fundraisers                                                2.1 kB         277 kB
+├ ƒ /fundraisers/[id]                                           7.5 kB         232 kB
+├ ○ /fundraisers/new                                            7.2 kB         236 kB
+├ ƒ /get-involved                                              1.62 kB         119 kB
+├ ○ /how-to-help                                               1.19 kB         276 kB
+├ ○ /icon.png                                                      0 B            0 B
+├ ƒ /join                                                      4.62 kB         273 kB
+├ ○ /learn                                                     5.34 kB         117 kB
+├ ○ /learn/courses                                               269 B         103 kB
+├ ● /learn/courses/[course]                                      269 B         103 kB
+├   ├ /learn/courses/reading-the-record
+├   ├ /learn/courses/on-the-street
+├   ├ /learn/courses/how-populations-change
+├   └ /learn/courses/reporting-well
+├ ● /learn/courses/[course]/[lesson]                           1.53 kB         117 kB
+├   ├ /learn/courses/reading-the-record/unknown-is-not-zero
+├   ├ /learn/courses/reading-the-record/areas-not-spots
+├   ├ /learn/courses/reading-the-record/count-the-right-thing
+├   └ [+6 more paths]
+├ ○ /learn/playground                                            578 B         113 kB
+├ ○ /learn/resources                                           1.73 kB         113 kB
+├ ○ /learn/workshops                                             957 B         107 kB
+├ ○ /manifest.webmanifest                                        269 B         103 kB
+├ ƒ /ngo                                                       7.58 kB         328 kB
+├ ƒ /ngo/animals                                               6.53 kB         237 kB
+├ ƒ /ngo/animals/[id]                                          8.16 kB         243 kB
+├ ƒ /ngo/care                                                   5.3 kB         247 kB
+├ ƒ /ngo/cases/[id]                                            4.07 kB         250 kB
+├ ƒ /ngo/cases/new                                             5.06 kB         254 kB
+├ ƒ /ngo/evidence                                              6.62 kB         254 kB
+├ ƒ /ngo/feeding                                               3.23 kB         319 kB
+├ ƒ /ngo/field                                                 3.53 kB         242 kB
+├ ƒ /ngo/fundraising                                            3.9 kB         251 kB
+├ ƒ /ngo/fundraising/new                                       4.38 kB         252 kB
+├ ƒ /ngo/import                                                6.07 kB         236 kB
+├ ƒ /ngo/inbox                                                 6.33 kB         242 kB
+├ ƒ /ngo/map                                                   3.43 kB         335 kB
+├ ƒ /ngo/programmes                                            2.44 kB         241 kB
+├ ƒ /ngo/programmes/[id]                                       3.46 kB         242 kB
+├ ƒ /ngo/projects                                              5.12 kB         246 kB
+├ ƒ /ngo/proof                                                 6.62 kB         237 kB
+├ ƒ /ngo/quality                                               3.79 kB         239 kB
+├ ƒ /ngo/review                                                5.14 kB         240 kB
+├ ƒ /ngo/settings                                              4.41 kB         240 kB
+├ ƒ /ngo/stories                                               4.26 kB         244 kB
+├ ƒ /ngo/surveys                                               2.23 kB         243 kB
+├ ƒ /ngo/team                                                  4.73 kB         240 kB
+├ ƒ /ngo/volunteers                                            3.03 kB         238 kB
+├ ○ /offline                                                     169 B         106 kB
+├ ○ /our-story                                                   245 B         117 kB          5m      1y
+├ ƒ /partner-apply                                             3.22 kB         278 kB
+├ ƒ /partners                                                  1.77 kB         115 kB
+├ ○ /partnerships                                                269 B         103 kB
+├ ○ /privacy                                                     572 B         276 kB
+├ ○ /product                                                     245 B         117 kB          2m      1y
+├ ○ /report-content                                            4.46 kB         188 kB
+├ ○ /research-standards                                        1.19 kB         276 kB
+├ ○ /reset-password                                            2.84 kB         173 kB
+├ ○ /robots.txt                                                  269 B         103 kB
+├ ○ /safety                                                      572 B         276 kB
+├ ƒ /search                                                      189 B         106 kB
+├ ○ /sitemap.xml                                                 269 B         103 kB          1h      1y
+├ ○ /solutions                                                 1.71 kB         123 kB          5m      1y
+├ ƒ /surveys                                                     152 B         239 kB
+├ ƒ /surveys/[id]                                                152 B         239 kB
+├ ƒ /surveys/[id]/collect                                        152 B         239 kB
+├ ○ /terms                                                       572 B         276 kB
+├ ○ /the-network                                               1.19 kB         276 kB
+├ ƒ /trust                                                     5.19 kB         117 kB
+└ ƒ /trust/console                                             22.5 kB         141 kB
++ First Load JS shared by all                                   103 kB
+  ├ chunks/1255-1210e18e587e6b19.js                            46.1 kB
+  ├ chunks/4bd1b696-100b9d70ed4e49c1.js                        54.2 kB
+  └ other shared chunks (total)                                2.56 kB
+
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

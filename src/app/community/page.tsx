@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { Atlas } from "@/sp/atlas/Atlas";
+import { FieldMap } from "@/sp/map/FieldMap";
 import { getMapCities, getUnplaced } from "@/lib/livingmap/server";
 
 export const metadata = {
   title: "Map, StrayPaw",
-  description: "The Living Field Atlas of India's street animals: where animals are recorded, where they need help, open requests and recorded care, at the precision each record supports.",
+  description: "The Map of India's street animals: where animals are recorded, where they need help, open requests and recorded sterilisation, at the precision each record supports.",
 };
 export const revalidate = 300;
 
@@ -12,5 +12,5 @@ export const revalidate = 300;
    database's snapshot, so India draws without waiting on a request. */
 export default async function CommunityMapPage() {
   const [cities, unplaced] = await Promise.all([getMapCities().catch(() => []), getUnplaced().catch(() => [])]);
-  return <Suspense fallback={null}><Atlas variant="community" initialCities={cities} initialUnplaced={unplaced} /></Suspense>;
+  return <Suspense fallback={null}><FieldMap initialCities={cities} initialUnplaced={unplaced} /></Suspense>;
 }

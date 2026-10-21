@@ -1,0 +1,1 @@
+import React from 'react';export default function Image({src,fill,priority,quality,unoptimized,loader,blurDataURL,placeholder,...props}:any){return <img src={typeof src==='string'?src:src.src} {...props}/>;}

@@ -114,7 +114,7 @@ export function Inbox() {
             <p className="k">Decide</p>
             <h2 className="h3">{picked.size ? `${picked.size} report${picked.size === 1 ? "" : "s"} chosen` : "Choose reports"}</h2>
             {one ? (
-              <Link className="btn is-flame" href={`/ngo/cases/new?${new URLSearchParams({ ...(one.lat && one.lng ? { lat: String(one.lat), lng: String(one.lng) } : {}), ...(one.zone ? { zone: one.zone } : {}), title: (one.mood_tags ?? []).includes("injured") ? "Injured animal reported" : "Reported animal", note: one.notes ?? "" }).toString()}`}>Open a case from it</Link>
+              <Link className="btn is-flame" href={`/ngo/cases/${one.id}?${new URLSearchParams({ ...(one.lat && one.lng ? { lat: String(one.lat), lng: String(one.lng) } : {}), ...(one.zone ? { zone: one.zone } : {}), title: (one.mood_tags ?? []).includes("injured") ? "Injured animal reported" : "Reported animal", note: one.notes ?? "" }).toString()}`}>Open a case from it</Link>
             ) : <p className="small">Choose one report to open a case from it. Its place and words carry over; you confirm them.</p>}
             <div className="ib-file">
               <label className="field"><span className="label">Or file into a drive</span>

@@ -2,7 +2,7 @@
   "name": "straypaw-delhi",
   "version": "1.0.0",
   "private": true,
-  "description": "StrayPaw Delhi — a community-powered map for discovering and caring for Delhi's street dogs.",
+  "description": "StrayPaw Delhi \u2014 a community-powered map for discovering and caring for Delhi's street dogs.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -25,11 +25,13 @@
     "test:master-import:staging": "node --import tsx scripts/test-master-import-staging-retry.ts",
     "test:master-import:resume": "node --import tsx scripts/test-master-import-resume.ts",
     "test:case-input-validation": "node --import tsx scripts/test-case-input-validation.ts",
+    "test:contact-delivery": "node --import tsx scripts/test-contact-delivery.ts",
     "test:bounded-supabase-fetch": "node --import tsx scripts/test-bounded-supabase-fetch.ts",
     "test:public-map-footprint": "node --import tsx scripts/test-public-map-footprint.ts",
     "test:spatial": "node --import tsx scripts/test-spatial.ts",
     "test:record-dates": "node --import tsx scripts/test-record-dates.ts",
     "test:operational-cohorts": "node --import tsx scripts/test-operational-cohorts.ts",
+    "test:place-fallback": "node --import tsx scripts/test-place-fallback.ts",
     "test:location-cell": "node --import tsx scripts/test-location-cell.ts",
     "test:auto-approve": "node --import tsx scripts/test-auto-approve.ts",
     "test:no-full-register": "node --import tsx scripts/test-no-full-register-reads.ts",
@@ -41,10 +43,13 @@
     "shoot": "node scripts/shoot.mjs",
     "import:kind-hour": "node scripts/import-kind-hour.mjs",
     "reel:snapshot": "node scripts/reels/snapshot.mjs",
-    "reel": "node scripts/reels/render.mjs"
+    "reel": "node scripts/reels/render.mjs",
+    "demo:build": "node scripts/copy-maplibre-worker.mjs && vite build --config recording/vite.config.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
+    "@fontsource/dm-mono": "^5.2.7",
+    "@fontsource/instrument-serif": "^5.2.6",
     "@lucasmarkes/hairline": "0.3.0",
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-dialog": "^1.1.23",
@@ -89,7 +94,8 @@
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.19",
     "tsx": "^4.19.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "6.4.1"
   },
   "browserslist": [
     "chrome >= 111",

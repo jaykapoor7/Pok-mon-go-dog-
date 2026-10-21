@@ -41,7 +41,7 @@ const nextConfig = {
     return [
       ...to([
         /* Community */
-        ["/app", "/community"], ["/map", "/community"], ["/explore", "/community"], ["/atlas", "/community"], ["/feed", "/community"],
+        ["/app", "/community"], ["/map", "/community"], ["/atlas", "/community"], ["/feed", "/community"],
         ["/report", "/community/report"], ["/following", "/community/activity"], ["/account", "/community/activity"],
         ["/dog/:id", "/animal/:id"],
         ["/stories", "/community/stories"], ["/journey", "/community/stories"], ["/timeline", "/community/stories"], ["/outcomes", "/community/stories"], ["/rescues", "/community/stories"], ["/care", "/community/stories"],
@@ -77,11 +77,12 @@ const nextConfig = {
         ["/partner/fundraisers/new", "/ngo/fundraising/new"], ["/partner/surveys", "/ngo/surveys"], ["/partner/projects", "/ngo/projects"],
         ["/partner/feeding", "/ngo/feeding"],
         /* Site pages that predate 2.0 */
-        ["/research", "/evidence"], ["/changelog", "/about"],
+        ["/research", "/evidence"], ["/changelog", "/our-story"], ["/about", "/our-story"], ["/company", "/our-story"],
       ]),
       ...["/why-straypaw", "/the-data", "/gaps", "/needs", "/wards", "/data", "/sources", "/take-action", "/what-would-it-take", "/news"]
         .map((source) => ({ source, destination: "/evidence", permanent: false })),
-      ...["/mission", "/what-we-do"].map((source) => ({ source, destination: "/about", permanent: true })),
+      ...["/mission", "/what-we-do"].map((source) => ({ source, destination: "/our-story", permanent: true })),
+      { source: "/organisations", destination: "/solutions", permanent: true },
       /* A case opened from an animal: the old ?dog / ?dogId become ?dog. */
       { source: "/partner/cases/new", has: [{ type: "query", key: "dogId", value: "(?<dog>.+)" }], destination: "/ngo/cases/new?dog=:dog", permanent: false },
       { source: "/cases/new", has: [{ type: "query", key: "dog", value: "(?<dog>.+)" }], destination: "/ngo/cases/new?dog=:dog", permanent: false },

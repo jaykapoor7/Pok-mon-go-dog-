@@ -43,7 +43,7 @@ export function LanguageSwitcher() {
         className="lang-trigger"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={t.language.choose}
+        aria-label={`${LOCALES[locale].short}: ${t.language.choose}`}
         onClick={() => setOpen((v) => !v)}
       >
         <Globe size={14} aria-hidden />

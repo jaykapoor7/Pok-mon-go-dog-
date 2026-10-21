@@ -1,53 +1,16 @@
 import Link from "next/link";
 import "./footer-index.css";
 
-/* ════════════════════════════════════════════════════════════════════
-   The index at the foot of every public page. The header carries five
-   places; everything else StrayPaw publishes is listed here once, in four
-   columns, so a page dropped from the header is never dropped from the
-   site. Both footers render this one list.
-   ════════════════════════════════════════════════════════════════════ */
-
-const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
-  { title: "The record", links: [
-    { label: "Explore", href: "/explore" },
-    { label: "Map", href: "/map" },
-    { label: "Insights", href: "/insights" },
-    { label: "Stories", href: "/stories" },
-    { label: "Report a dog", href: "/report" },
-  ] },
-  { title: "Who it's for", links: [
-    { label: "For NGOs", href: "/for-ngos" },
-    { label: "Municipalities", href: "/for-governments" },
-    { label: "Funders", href: "/for-funders" },
-    { label: "Volunteers", href: "/get-involved" },
-    { label: "Schools and educators", href: "/education" },
-    { label: "Researchers", href: "/research-standards" },
-  ] },
-  { title: "StrayPaw", links: [
-    { label: "About", href: "/about" },
-    { label: "Partner NGOs", href: "/orgs" },
-    { label: "Evidence", href: "/evidence" },
-    { label: "Contact", href: "/contact" },
-  ] },
-  { title: "Policies", links: [
-    { label: "Data policy", href: "/data-governance" },
-    { label: "Privacy", href: "/privacy" },
-    { label: "Terms", href: "/terms" },
-  ] },
+const LINKS = [
+  ["Product", "/product"], ["Solutions", "/solutions"], ["Our Story", "/our-story"],
+  ["Explore", "/explore"], ["Contact", "/contact"], ["Privacy", "/privacy"], ["Terms", "/terms"],
 ];
-
 export function FooterIndex() {
-  return (
-    <nav className="fx" aria-label="Site index">
-      {COLUMNS.map((c) => (
-        <div key={c.title} className="fx-col">
-          <h2 className="fx-h">{c.title}</h2>
-          <ul>
-            {c.links.map((l) => <li key={l.href}><Link href={l.href}>{l.label}</Link></li>)}
-          </ul>
-        </div>
-      ))}
-    </nav>
-  );
+  return <div className="fx-compact">
+    <nav aria-label="Site index">{LINKS.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}</nav>
+    <details><summary>Who it’s for</summary><nav aria-label="Audiences"><Link href="/for-community">Community</Link><Link href="/for-ngos">NGOs & Rescues</Link><Link href="/for-governments">Municipalities</Link><Link href="/for-feeders">Feeders</Link><Link href="/education">Education</Link></nav></details>
+    <details><summary>Data and resources</summary><nav aria-label="Data and resources">
+      <Link href="/community/organisations">Organisation directory</Link><Link href="/evidence">Evidence and sources</Link><Link href="/data-governance">Data policy</Link><Link href="/research-standards">Research standards</Link><Link href="/art-credits">Art credits</Link><Link href="/community-guidelines">Community guidelines</Link><Link href="/cookies">Storage and analytics</Link><Link href="/learn">Education</Link><Link href="/report-content">Report content</Link>
+    </nav></details>
+  </div>;
 }

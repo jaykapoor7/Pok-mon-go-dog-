@@ -1,0 +1,22 @@
+[
+  {
+    "width": 1440,
+    "height": 13592,
+    "jsBytes": 706534,
+    "mapRequests": [
+      "https://tiles.openfreemap.org/planet",
+      "https://www.straypaw.org/maplibre/maplibre-gl-worker.mjs",
+      "https://www.straypaw.org/maplibre/maplibre-gl-shared.mjs"
+    ]
+  },
+  {
+    "width": 390,
+    "height": 15123,
+    "jsBytes": 697637,
+    "mapRequests": [
+      "https://tiles.openfreemap.org/planet",
+      "https://www.straypaw.org/maplibre/maplibre-gl-worker.mjs",
+      "https://www.straypaw.org/maplibre/maplibre-gl-shared.mjs"
+    ]
+  }
+]

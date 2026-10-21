@@ -689,7 +689,7 @@
 .rx-band { overflow: hidden; }
 .rx-track { --gap: clamp(8px, 0.9vw, 12px); display: flex; align-items: center; gap: var(--gap); padding-right: var(--gap); width: max-content; animation: rx-drift linear infinite; animation-duration: calc(var(--n, 10) * var(--pace, 4.6s)); will-change: transform; }
 .rx-band.is-r .rx-track { animation-direction: reverse; }
-@keyframes rx-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes rx-drift { from { transform: translateX(0); } to { transform: translateX(calc(-100% / var(--copies, 2))); } }
 /* Depth: nearer is larger, brighter and slower. */
 .rx-band.d-front { --tw: clamp(132px, 12.5vw, 172px); --pace: 5.4s; }
 .rx-band.d-mid { --tw: clamp(100px, 9.4vw, 130px); --pace: 4.2s; opacity: 0.74; }

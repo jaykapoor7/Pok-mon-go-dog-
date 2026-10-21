@@ -41,7 +41,7 @@ export function sized(src: string | null | undefined, width: number, quality = 7
   /* Already small, already local, or not something the optimizer takes. */
   if (url.startsWith("data:") || url.startsWith("blob:")) return url;
   if (!/^https?:\/\//i.test(url)) return url;
-  return `/_next/image?url=${encodeURIComponent(inatAt(url, width * 2))}&w=${snap(width * 2)}&q=${quality}`;
+  return url;
 }
 
 /* iNaturalist serves each photo at fixed sizes named in the path: square

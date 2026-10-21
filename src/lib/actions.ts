@@ -1,3 +1,4 @@
+import {report as localReport,PHOTO} from "../../recording/store";
 "use client";
 
 // ─────────────────────────────────────────────────────────────
@@ -66,7 +67,8 @@ export interface DeviceSighting {
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8 MB
 const ALLOWED_IMAGE = /^image\/(jpe?g|png|webp|heic|heif|gif)$/i;
 
-export async function uploadPhoto(file: File): Promise<string> {
+export async function uploadPhoto(file: File): Promise<string> { return PHOTO;
+
   const supa = getSupabase();
   if (!supa) throw new Error("not configured");
   // Constrain anonymous uploads (type + size) to curb spam/cost. A matching
@@ -99,7 +101,8 @@ export async function uploadPhoto(file: File): Promise<string> {
   return supa.storage.from("sightings").getPublicUrl(path).data.publicUrl;
 }
 
-export async function reportSighting(input: ReportInput): Promise<ReportResult> {
+export async function reportSighting(input: ReportInput): Promise<ReportResult> { return localReport(input) as any;
+
   const supa = getSupabase();
 
   /* Without a backend there is nowhere to put this. Returning a trust score
@@ -168,7 +171,8 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
 }
 
 /** Read reports this browser owns, even when the reporter chose not to sign in. */
-export async function getDeviceSightings(): Promise<DeviceSighting[]> {
+export async function getDeviceSightings(): Promise<DeviceSighting[]> { return (await import("../../recording/store")).read().sightings.map(r=>({...r,status:"received"})) as any;
+
   const sightings = ownedSightings().slice(0, 20);
   if (!sightings.length) return [];
   const res = await fetch("/api/sighting/status", {

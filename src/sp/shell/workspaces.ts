@@ -91,7 +91,7 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     ],
   },
   city: {
-    id: "city", label: "Municipality", purpose: "Evidence layers, programmes and publishable findings for a city", ink: "#2f3d8f",
+    id: "city", label: "Municipality", purpose: "Evidence layers, programmes and publishable findings for a city", ink: "#2457ce",
     home: "/city",
     dests: [
       { href: "/city", label: "Map" },

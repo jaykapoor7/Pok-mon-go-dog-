@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import { allowRequest, clientIp } from "@/lib/rate-limit";
+import { CONTACT_INBOX } from "@/lib/contact-inbox";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-// Where contact messages are delivered.
-const INBOX = "jaykapoor7@outlook.com";
 
 function esc(s: string) {
   return s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] as string));
@@ -35,7 +33,8 @@ export async function POST(req: Request) {
 
   // sendEmail no-ops (returns false) when RESEND_API_KEY isn't configured.
   const delivered = await sendEmail({
-    to: INBOX,
+    to: CONTACT_INBOX,
+    replyTo: email,
     subject: `[StrayPaw contact] ${subject}`,
     html,
     text,

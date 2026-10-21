@@ -1,0 +1,2 @@
+> straypaw-delhi@1.0.0 lint
+> eslint . --ext .js,.mjs,.ts,.tsx --ignore-pattern node_modules --ignore-pattern .next

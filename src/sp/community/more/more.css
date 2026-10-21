@@ -55,8 +55,8 @@
 /* ── Help ─────────────────────────────────────────────────────────── */
 .sp .hp-head { background: linear-gradient(180deg, rgba(240, 91, 64, 0.08), transparent 70%), var(--shell); }
 .sp .hp-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 6px 0; }
-.sp .hp-steps li { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: start; padding: 16px; border-radius: 16px; background: #fffdf8; box-shadow: inset 0 0 0 1.5px var(--ink); }
-.sp .hp-n { font-size: 48px; line-height: 0.85; color: var(--flame); }
+.sp .hp-steps li { display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: start; padding: 16px 0 0; border-top: 2px solid var(--ink); }
+.sp .hp-n { font-family: var(--sans); font-size: 24px; font-weight: 650; line-height: 1; color: var(--flame); font-variant-numeric: tabular-nums; }
 .sp .hp-steps b { font-size: 16px; }
 .sp .hp-steps p { font-size: 14px; color: var(--ink-2); margin-top: 4px; }
 

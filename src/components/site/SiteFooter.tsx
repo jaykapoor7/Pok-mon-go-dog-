@@ -11,7 +11,6 @@ export function SiteFooter({ className = "" }: { className?: string }) {
       <div className="sp-footer-bottom sp-mono">
         <span>© 2026 StrayPaw</span>
         <span className="sp-footer-links"><FeedbackButton label="Feedback" /></span>
-        <span>Built in India, for street animals everywhere.</span>
       </div>
     </footer>
   );

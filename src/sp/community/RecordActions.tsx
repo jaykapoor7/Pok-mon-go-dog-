@@ -32,7 +32,7 @@ export function RecordActions({ id, label }: { id: string; label: string }) {
 /** Back to the exact map view this record was opened from. */
 export function BackToMap() {
   const [from, setFrom] = useState<string | null>(null);
-  useEffect(() => { const f = new URLSearchParams(window.location.search).get("from"); if (f && f.startsWith("/")) setFrom(f); }, []);
+  useEffect(() => { const f = new URLSearchParams(window.location.search).get("from"); if (f && /^\/(community|city|explore)(\?|$)/.test(f)) setFrom(f); }, []);
   return <Link className="btn is-ghost is-s" href={from ?? "/community"}><ArrowLeft size={15} aria-hidden /> {from ? "Back to the map, as you left it" : "The map"}</Link>;
 }
 

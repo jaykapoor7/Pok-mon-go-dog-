@@ -21,7 +21,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Camera, Eye, LifeBuoy, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Crosshair, Eye, LifeBuoy, Search, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Turnstile, HAS_TURNSTILE } from "@/components/ui/Turnstile";
 import { reportSighting } from "@/lib/actions";
@@ -29,9 +29,10 @@ import { readPhotoMeta, looksIndian } from "@/lib/exif";
 import { nearestCity, reverseGeocode } from "@/lib/delhi";
 import { readVolunteer, type VolunteerSession } from "@/lib/volunteer";
 import type { MoodTag } from "@/lib/types";
-import { PlacePicker } from "../atlas/PlacePicker";
-import { Ack, ArtSlot } from "../ui";
+import { ReportStage, type StageHandle } from "../map/ReportStage";
+import { Ack } from "../ui";
 import "./community.css";
+import "../map/report.css";
 
 type Door = "spotted" | "help";
 type Problem = "injured" | "vehicle" | "trapped" | "weak" | "puppies" | "other";
@@ -58,7 +59,7 @@ const EARS: { v: Ear; label: string; note: string }[] = [
 
 const DRAFT = "sp2.report.draft";
 type Draft = { door: Door | null; coords: { lat: number; lng: number } | null; zone: string | null; landmark: string; problem: Problem | null; walk: "yes" | "no" | "unsure" | null; seen: Seen[]; ear: Ear | null; notes: string; email: string; contactOk: boolean };
-const blank: Draft = { door: null, coords: null, zone: null, landmark: "", problem: null, walk: null, seen: [], ear: null, notes: "", email: "", contactOk: false };
+const blank: Draft = { door: null, coords: {lat:11.0102,lng:76.9504}, zone: "RS Puram, Coimbatore", landmark: "", problem: null, walk: null, seen: [], ear: null, notes: "", email: "", contactOk: false };
 
 export function Report() {
   const { user } = useAuth();
@@ -76,6 +77,9 @@ export function Report() {
   const [error, setError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<{ ref: string | null; at: string; dog: string | null } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoRead = useRef(0);
+  const stage = useRef<StageHandle>(null);
+  const [pickLabel, setPickLabel] = useState<string | null>(null);
   const sending = useRef(false);
   const set = useCallback((p: Partial<Draft>) => setD((x) => ({ ...x, ...p })), []);
 
@@ -86,7 +90,7 @@ export function Report() {
     const a = q.get("animal");
     if (a && /^[0-9a-f-]{36}$/i.test(a)) setClaimed(a);
     const lat = Number(q.get("lat")), lng = Number(q.get("lng"));
-    if (looksIndian(lat, lng)) { set({ coords: { lat, lng }, zone: nearestCity(lat, lng) }); reverseGeocode(lat, lng).then((z) => set({ zone: z })).catch(() => {}); }
+    if (looksIndian(lat, lng)) { set({ coords: { lat, lng }, zone: nearestCity(lat, lng) }); reverseGeocode(lat, lng).then((z) => setD(x => x.coords?.lat === lat && x.coords?.lng === lng ? { ...x, zone: z } : x)).catch(() => {}); }
     /* ?help=1 (from "If an animal needs help") opens the help door, unless a draft was restored. */
     let drafted = false; try { drafted = !!localStorage.getItem(DRAFT); } catch { /* storage blocked */ }
     if (q.get("help") === "1" && !drafted) { set({ door: "help" }); setStep(FLOW.help[0]); }
@@ -94,6 +98,8 @@ export function Report() {
   }, [set]);
   useEffect(() => { if (state === "sent") return; try { if (d.door) localStorage.setItem(DRAFT, JSON.stringify(d)); } catch { /* storage blocked */ } }, [d, state]);
   useEffect(() => { if (user?.email) set({ email: d.email || user.email }); }, [user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
   const flow = d.door ? FLOW[d.door] : [];
   const idx = step === "door" ? -1 : flow.indexOf(step);
@@ -104,8 +110,17 @@ export function Report() {
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; e.target.value = "";
     if (!f) return;
-    setFile(f); setPreview(URL.createObjectURL(f));
-    try { const m = await readPhotoMeta(f); if (m.lat != null && m.lng != null && looksIndian(m.lat, m.lng) && !d.coords) { set({ coords: { lat: m.lat, lng: m.lng }, zone: nearestCity(m.lat, m.lng) }); reverseGeocode(m.lat, m.lng).then((z) => set({ zone: z })).catch(() => {}); } } catch { /* no metadata */ }
+    const version = ++photoRead.current;
+    setConsent(false); setFile(f); setPreview(URL.createObjectURL(f));
+    try {
+      const m = await readPhotoMeta(f);
+      if (version !== photoRead.current || m.lat == null || m.lng == null || !looksIndian(m.lat, m.lng)) return;
+      const coords = { lat: m.lat, lng: m.lng };
+      setD(x => x.coords ? x : { ...x, coords, zone: nearestCity(coords.lat, coords.lng) });
+      reverseGeocode(coords.lat, coords.lng).then(zone => setD(x =>
+        version === photoRead.current && x.coords?.lat === coords.lat && x.coords?.lng === coords.lng ? { ...x, zone } : x
+      )).catch(() => {});
+    } catch { /* no metadata */ }
   }
 
   const help = d.door === "help";
@@ -129,7 +144,7 @@ export function Report() {
         claimedDogId: claimed, sterilisationStatus: help ? "unknown" : d.ear ?? "unknown", vaccinationStatus: "unknown",
         inviteCode: volunteer?.code ?? null, volunteerName: volunteer?.name ?? null,
       });
-      setReceipt({ ref: r.sightingId, at: new Date().toISOString(), dog: r.dogId });
+      setReceipt({ ref: (r as any).reference ?? r.sightingId, at: new Date().toISOString(), dog: r.dogId });
       setState("sent");
       try { localStorage.removeItem(DRAFT); } catch { /* storage blocked */ }
     } catch (e) {
@@ -141,11 +156,11 @@ export function Report() {
 
   if (state === "sent" && receipt) return <Receipt receipt={receipt} help={help} restart={restart} />;
 
-  const motionProps = { initial: { opacity: 0, x: reduce ? 0 : 24 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: reduce ? 0 : -24 }, transition: { duration: reduce ? 0 : 0.22, ease: [0.23, 1, 0.32, 1] as const } };
+  const motionProps = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: reduce ? 0 : 0.15 } };
 
   return (
-    <div className="rp">
-      <div className="rp-main">
+    <div className={`rp3${step === "where" ? " is-where" : ""}`}>
+      <div className="rp3-form">
         <header className="rp-top">
           {step !== "door" ? <button type="button" className="icon-btn" onClick={back} aria-label="Back"><ArrowLeft size={18} /></button> : <span />}
           {d.door && <ol className="rp-steps" aria-label={`Step ${idx + 1} of ${flow.length}`}>{flow.map((s, i) => <li key={s} className={i < idx ? "is-done" : i === idx ? "is-now" : ""} aria-current={i === idx ? "step" : undefined}><span className="mono">{String(i + 1).padStart(2, "0")}</span>{STEP_LABEL[s]}</li>)}</ol>}
@@ -155,12 +170,12 @@ export function Report() {
           <motion.section key={step} className="rp-screen" {...motionProps} aria-labelledby="rp-h">
             {step === "door" && (
               <>
-                <p className="k is-flame">Community · Report</p>
-                <h1 id="rp-h" className="h1">What did you see?</h1>
+                <p className="rp2-k">Report{d.zone ? ` · ${d.zone}` : ""}</p>
+                <h1 id="rp-h" className="rp2-h">What did you see?</h1>
                 {restored && <p className="rp-restored"><Ack state="draft">A draft from earlier is kept on this device.</Ack> <button type="button" className="btn is-ghost is-s" onClick={() => setStep(FLOW[d.door!][0])}>Continue it</button><button type="button" className="btn is-ghost is-s" onClick={restart}>Start fresh</button></p>}
-                <div className="rp-doors">
-                  <button type="button" className="rp-door" onClick={() => choose("spotted")}><Eye size={22} aria-hidden /><b className="serif">I spotted an animal</b><span>Add an observation to the record. About a minute.</span></button>
-                  <button type="button" className="rp-door is-help" onClick={() => choose("help")}><LifeBuoy size={22} aria-hidden /><b className="serif">An animal needs help</b><span>Hurt, trapped, very weak, or puppies in danger.</span></button>
+                <div className="rp2-doors">
+                  <button type="button" className="rp2-door" onClick={() => choose("spotted")}><Eye size={22} aria-hidden /><b>I spotted an animal</b><span>Add an observation to the record. About a minute.</span></button>
+                  <button type="button" className="rp2-door is-help" onClick={() => choose("help")}><LifeBuoy size={22} aria-hidden /><b>An animal needs help</b><span>Hurt, trapped, very weak, or puppies in danger.</span></button>
                 </div>
                 <p className="rp-truth">StrayPaw keeps the record and passes needs-help reports to organisations for review. It is not an emergency service and cannot promise anyone will come. If an animal is in immediate danger, <Link className="link" href="/community/help">call a local animal ambulance or vet</Link>.</p>
               </>
@@ -168,27 +183,28 @@ export function Report() {
 
             {step === "photo" && (
               <>
-                <h1 id="rp-h" className="h2">{help ? "A photo, if it is safe to take one" : "A photo helps the right animal be recognised"}</h1>
+                <h1 id="rp-h" className="rp2-h">{help ? "A photo, if it is safe to take one" : "A photo helps the right animal be recognised"}</h1>
                 <p className="body">Optional. {help ? "Never approach a hurt or frightened animal to take it." : "A report without one still counts."}</p>
                 <input ref={fileRef} type="file" accept="image/*" capture="environment" className="sr" onChange={pickPhoto} aria-label="Choose a photo" />
-                <button type="button" className="rp-camera" onClick={() => fileRef.current?.click()}>
+                <button type="button" className="btn is-s" onClick={()=>{setPreview("/dogs/delhi/brown-on-ledge.jpg");setConsent(true);}}>Attach sample photograph</button><button type="button" className="rp-camera" onClick={() => fileRef.current?.click()}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {preview ? <img src={preview} alt="Your photo" /> : <Camera size={32} aria-hidden />}
                   <b>{preview ? "Retake" : "Take or choose a photo"}</b>
                 </button>
-                {preview && <label className="rp-consent"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} /><span>I took this photo and it shows no person&rsquo;s face, number plate or house number. It may be shown on the animal&rsquo;s public record; photos that may show an injury start blurred.</span></label>}
+                {preview && <label className="rp-consent"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} /><span>This sample photo shows no person&rsquo;s face, number plate or house number. It may be shown on the animal&rsquo;s public record; photos that may show an injury start blurred.</span></label>}
                 <div className="row rp-go">
                   <button type="button" className="btn is-ink" onClick={next} disabled={!!preview && !consent}>{preview ? "Use this photo" : "Continue without a photo"} <ArrowRight size={16} aria-hidden /></button>
-                  {preview && <button type="button" className="btn is-ghost" onClick={() => { setFile(null); setPreview(null); setConsent(false); }}><X size={15} aria-hidden /> Remove</button>}
+                  {preview && <button type="button" className="btn is-ghost" onClick={() => { photoRead.current++; setFile(null); setPreview(null); setConsent(false); }}><X size={15} aria-hidden /> Remove</button>}
                 </div>
               </>
             )}
 
             {step === "where" && (
               <>
-                <h1 id="rp-h" className="h2">Where is the animal?</h1>
-                <p className="body">Your exact point is seen only by reviewers and organisations. The public record shows the area, never the spot.</p>
-                <PlacePicker value={d.coords} onChange={(p) => set({ coords: { lat: p.lat, lng: p.lng }, zone: p.zone })} />
+                <h1 id="rp-h" className="rp2-h">Where is the animal?</h1>
+                <p className="body">Move the map until the pin is where the animal is. Your exact point is seen only by reviewers and organisations; the public record shows the area, never the spot.</p>
+                <div className="row"><button type="button" className="btn is-s" onClick={()=>{set({coords:{lat:11.0102,lng:76.9504},zone:"RS Puram, Coimbatore"});setPickLabel("RS Puram, Coimbatore");stage.current?.fly(11.0102,76.9504);}}>RS Puram sample location</button></div><WhereTools onFly={(lat, lng) => stage.current?.fly(lat, lng)} />
+                <p className="rp2-where" role="status">{pickLabel ? <>Pinned: <b>{pickLabel}</b></> : "Not pinned yet."}</p>
                 <div className="field"><label htmlFor="lm">A landmark people would know <span className="small">optional</span></label><input id="lm" className="input" value={d.landmark} onChange={(e) => set({ landmark: e.target.value })} placeholder="Behind the tea stall, opposite the temple" /></div>
                 <div className="row rp-go"><button type="button" className="btn is-ink" onClick={next} disabled={!d.coords}>This is the place <ArrowRight size={16} aria-hidden /></button></div>
               </>
@@ -196,7 +212,7 @@ export function Report() {
 
             {step === "seen" && (
               <>
-                <h1 id="rp-h" className="h2">What did you see?</h1>
+                <h1 id="rp-h" className="rp2-h">What did you see?</h1>
                 <fieldset className="rp-fs"><legend className="label">How it seemed <span className="small">choose any</span></legend>
                   <div className="row">{SEEN.map((s) => <button key={s.v} type="button" className="chip" aria-pressed={d.seen.includes(s.v)} onClick={() => set({ seen: d.seen.includes(s.v) ? d.seen.filter((x) => x !== s.v) : [...d.seen, s.v] })}>{s.label}</button>)}</div>
                 </fieldset>
@@ -210,7 +226,7 @@ export function Report() {
 
             {step === "problem" && (
               <>
-                <h1 id="rp-h" className="h2">What is wrong?</h1>
+                <h1 id="rp-h" className="rp2-h">What is wrong?</h1>
                 <fieldset className="choice rp-problems"><legend className="sr">The problem</legend>
                   {PROBLEMS.map((p) => <label key={p.v}><input type="radio" name="pb" checked={d.problem === p.v} onChange={() => set({ problem: p.v })} /><span><b>{p.label}</b><small>{p.note}</small></span></label>)}
                 </fieldset>
@@ -224,7 +240,7 @@ export function Report() {
 
             {step === "contact" && (
               <>
-                <h1 id="rp-h" className="h2">Can an organisation reach you?</h1>
+                <h1 id="rp-h" className="rp2-h">Can an organisation reach you?</h1>
                 <p className="body">Optional. Your contact is never public. It is used only to ask about this animal and to tell you how the report moves.</p>
                 <label className="rp-consent"><input type="checkbox" checked={d.contactOk} onChange={(e) => set({ contactOk: e.target.checked })} /><span>Yes, they may email me about this report.</span></label>
                 {d.contactOk && <div className="field"><label htmlFor="em">Email</label><input id="em" type="email" className="input" value={d.email} onChange={(e) => set({ email: e.target.value })} autoComplete="email" /></div>}
@@ -234,7 +250,7 @@ export function Report() {
 
             {step === "review" && (
               <>
-                <h1 id="rp-h" className="h2">Ready to send</h1>
+                <h1 id="rp-h" className="rp2-h">Ready to send</h1>
                 <dl className="ledger rp-review">
                   <div><dt>Report</dt><dd>{help ? "Needs help" : "Sighting"} <button type="button" className="link" onClick={() => setStep("door")}>Change</button></dd></div>
                   {help && <div><dt>Problem</dt><dd>{PROBLEMS.find((p) => p.v === d.problem)?.label ?? "Not given"}{d.walk ? ` · can walk: ${d.walk === "unsure" ? "not sure" : d.walk}` : ""} <button type="button" className="link" onClick={() => setStep("problem")}>Change</button></dd></div>}
@@ -259,18 +275,21 @@ export function Report() {
         </AnimatePresence>
       </div>
 
-      <aside className="rp-draft" aria-label="Your report so far">
-        <p className="k">Your report · {state === "pending" ? "sending" : "draft, not sent"}</p>
-        <div className="rp-card">
+      <aside className="rp3-side" aria-label="Your report so far">
+        <div className="rp3-map">
+          <ReportStage ref={stage} coords={d.coords} picking={step === "where"} onPick={(p) => { set({ coords: { lat: p.lat, lng: p.lng }, zone: p.zone }); setPickLabel(p.zone); }} onLabel={setPickLabel} />
+          {step === "where" && <p className="rp3-maphint">{pickLabel ? <><b>{pickLabel}</b> · drag the map to move the pin</> : "Zoom in to the street, then drag the map under the pin."}</p>}
+        </div>
+        <div className="rp3-draft">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {preview ? <img src={preview} alt="" /> : <div className="rp-card-ph"><Camera size={22} aria-hidden /><span>No photo yet</span></div>}
+          {preview ? <img src={preview} alt="" /> : <span className="rp3-ph"><Camera size={18} aria-hidden /></span>}
           <dl>
-            <div><dt>Kind</dt><dd>{d.door === "help" ? "Needs help" : d.door === "spotted" ? "Sighting" : "Not chosen"}</dd></div>
+            <div><dt>Report</dt><dd>{d.door === "help" ? "Needs help" : d.door === "spotted" ? "Sighting" : "Not chosen"}</dd></div>
             <div><dt>Where</dt><dd>{d.zone ?? "Not set"}</dd></div>
             <div><dt>{help ? "Problem" : "Ears"}</dt><dd>{help ? PROBLEMS.find((p) => p.v === d.problem)?.label ?? "Not given" : EARS.find((e) => e.v === d.ear)?.label ?? "Not given"}</dd></div>
           </dl>
+          <p>{state === "pending" ? "Sending…" : "Draft, kept on this device until you send. The photo is not kept in the draft."}</p>
         </div>
-        <p className="small">Kept on this device until you send. The photo is not kept in the draft.</p>
       </aside>
     </div>
   );
@@ -280,10 +299,10 @@ function Receipt({ receipt, help, restart }: { receipt: { ref: string | null; at
   const ref = receipt.ref ? receipt.ref.slice(0, 8).toUpperCase() : null;
   const steps = help ? ["Received", "Under review", "Offered to an organisation", "Accepted by an organisation", "In progress", "Closed with an outcome"] : ["Received", "Reviewed", "On the animal's record"];
   return (
-    <div className="rp rp-done">
-      <div className="rp-main">
-        <p className="k is-flame">Receipt</p>
-        <h1 className="h1">Received.</h1>
+    <div className="rp3 is-done">
+      <div className="rp3-form">
+        <p className="rp2-k">Receipt</p>
+        <h1 className="rp2-h">Received.</h1>
         <p className="lede">{help ? "Your report reached StrayPaw. It now waits for review. No organisation has accepted it yet, and nobody has been sent." : "Your sighting reached StrayPaw and waits for a quick review before it joins the record."}</p>
         <dl className="ledger rp-receipt">
           <div><dt>Reference</dt><dd className="mono">{ref ?? "Recorded, reference pending"}</dd></div>
@@ -295,7 +314,33 @@ function Receipt({ receipt, help, restart }: { receipt: { ref: string | null; at
         <div className="row"><Link className="btn is-ink" href="/community/activity">Track it in My Activity</Link>{receipt.dog && <Link className="btn" href={`/animal/${receipt.dog}`}>The animal&rsquo;s record</Link>}<button type="button" className="btn is-ghost" onClick={restart}>Report another</button></div>
         {help && <p className="rp-truth">If the animal is in immediate danger, do not wait for this report. <Link className="link" href="/community/help">Who to call now</Link>.</p>}
       </div>
-      <aside className="rp-draft"><ArtSlot id="report-receipt" /></aside>
+    </div>
+  );
+}
+
+/* Search a street or landmark in India (OpenStreetMap Nominatim), or use where you are. */
+function WhereTools({ onFly }: { onFly: (lat: number, lng: number) => void }) {
+  const [q, setQ] = useState("");
+  const [hits, setHits] = useState<{ lat: number; lng: number; label: string }[]>([]);
+  const [locating, setLocating] = useState(false);
+  useEffect(() => {
+    const t = q.trim(); if (t.length < 3) { setHits([]); return; }
+    const id = window.setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=in&limit=5&q=${encodeURIComponent(t)}`, { headers: { Accept: "application/json" } })
+        .then((r) => r.json()).then((d: { lat: string; lon: string; display_name: string }[]) => setHits(d.map((x) => ({ lat: +x.lat, lng: +x.lon, label: x.display_name })))).catch(() => setHits([]));
+    }, 350);
+    return () => window.clearTimeout(id);
+  }, [q]);
+  const here = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(({ coords }) => { setLocating(false); onFly(coords.latitude, coords.longitude); }, () => setLocating(false), { enableHighAccuracy: true, timeout: 10000 });
+  };
+  return (
+    <div className="rp2-tools">
+      <label className="rp2-search"><Search size={16} aria-hidden /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a street, landmark or area" aria-label="Search a place" /></label>
+      <button type="button" className="rp2-btn" onClick={here} disabled={locating}><Crosshair size={16} aria-hidden /> {locating ? "Finding you…" : "Where I am"}</button>
+      {hits.length > 0 && <ul className="rp2-hits">{hits.map((h) => <li key={`${h.lat},${h.lng}`}><button type="button" onClick={() => { setQ(h.label.split(",").slice(0, 2).join(",")); setHits([]); onFly(h.lat, h.lng); }}>{h.label}</button></li>)}</ul>}
     </div>
   );
 }

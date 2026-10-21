@@ -1,3 +1,4 @@
+import {mapResponse} from "../../../recording/store";
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -68,6 +69,7 @@ const travel = (t: number) => 1 - Math.pow(1 - t, 3);
 const dur = (from: number, to: number) => (reduced() ? 0 : Math.min(2200, 650 + Math.abs(from - to) * 180));
 
 async function api(path: string, scope: Scope): Promise<Response> {
+  return mapResponse(path);
   if (scope === "public") return fetch(path);
   const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
   const token = data.session?.access_token;
@@ -77,7 +79,7 @@ async function api(path: string, scope: Scope): Promise<Response> {
 const cityCache = new Map<string, Promise<MapCity | null>>();
 function readCity(city: string, scope: Scope) {
   const key = `${scope}:${city}`;
-  const hit = cityCache.get(key); if (hit) return hit;
+  
   const p = api(`/api/livingmap?city=${encodeURIComponent(city)}`, scope).then(async (r) => { if (r.status === 404) return null; if (!r.ok) throw new Error(String(r.status)); return (await r.json()) as MapCity; });
   cityCache.set(key, p); p.catch(() => cityCache.delete(key));
   return p;
@@ -89,7 +91,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   const router = useRouter();
   const params = useSearchParams();
   const init = useRef({
-    city: params.get("city"), lens: (params.get("lens") as LensId | null), area: params.get("area"), animal: params.get("animal"),
+    city: params.get("city") ?? "Coimbatore", lens: (params.get("lens") as LensId | null), area: params.get("area"), animal: params.get("animal"),
     t: params.get("t"), cmp: params.get("cmp"), place: params.get("place"), by: params.get("by"), view: params.get("view"),
   }).current;
 
@@ -155,7 +157,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
   useEffect(() => {
     if (scope !== "public") return;
     let live = true;
-    fetch("/api/livingmap?kind=national").then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.cells) setNational(j.cells); }).catch(() => {});
+    mapResponse("/api/livingmap?kind=national").then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.cells) setNational(j.cells); }).catch(() => {});
     return () => { live = false; };
   }, [scope]);
 

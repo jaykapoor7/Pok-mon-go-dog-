@@ -23,7 +23,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { sized } from "@/lib/photo/src";
 import { FramedPhoto } from "./FramedPhoto";
@@ -64,7 +64,7 @@ function headline(c: RegisterFocus): string {
   const name = c.name?.trim();
   if (name && !PLACEHOLDER_NAME.test(name) && name !== c.straypaw_id) return name;
   const place = cleanPlace(c.zone);
-  return place ? `Dog near ${place}` : "Resident report";
+  return c.straypaw_id ?? (place ? `Animal in ${place}` : "Animal record");
 }
 
 function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
@@ -80,7 +80,7 @@ function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
         <b>{c.straypaw_id ?? "On file"}</b>
       </header>
       <div className="rx-card-photo">
-        <FramedPhoto src={sized(c.cover_photo, 720)} alt={`${headline(c)}, photographed by a resident`} sid={c.straypaw_id} priority />
+        <FramedPhoto src={sized(c.cover_photo, 720)} alt={`${headline(c)}, photograph from this animal’s record`} sid={c.straypaw_id} priority />
       </div>
       <div className="rx-card-body">
         <span className="rx-stamp" aria-hidden><small>On file</small><b>{c.city ?? "India"}</b></span>
@@ -119,7 +119,7 @@ function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
 function Tile({ c, feat, dup }: { c: RegisterFocus; feat: boolean; dup: boolean }) {
   return (
     <Link
-      href={`/dog/${c.id}`}
+      href={`/animal/${c.id}`}
       className={`rx-tile${feat ? " is-feat" : ""}`}
       aria-label={dup ? undefined : `${headline(c)}, ${c.straypaw_id ?? "on the register"}`}
       aria-hidden={dup || undefined}
@@ -132,11 +132,28 @@ function Tile({ c, feat, dup }: { c: RegisterFocus; feat: boolean; dup: boolean 
 }
 
 function Band({ cards, depth, dir, featId }: { cards: RegisterFocus[]; depth: "front" | "mid" | "back"; dir: "l" | "r"; featId: string }) {
+  const band = useRef<HTMLDivElement>(null);
+  const [copies, setCopies] = useState(3);
+  useEffect(() => {
+    const el = band.current;
+    if (!el || !cards.length) return;
+    const fit = () => {
+      const tile = el.querySelector<HTMLElement>(".rx-tile");
+      const track = el.querySelector<HTMLElement>(".rx-track");
+      if (!tile || !track) return;
+      const period = (tile.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap)) * cards.length;
+      if (period > 0) setCopies(Math.max(2, Math.ceil(el.clientWidth / period) + 1));
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [cards.length]);
   if (!cards.length) return null;
   return (
-    <div className={`rx-band d-${depth} is-${dir}`}>
-      <div className="rx-track" style={{ ["--n" as string]: cards.length }}>
-        {[...cards, ...cards].map((c, i) => (
+    <div ref={band} className={`rx-band d-${depth} is-${dir}`}>
+      <div className="rx-track" style={{ ["--n" as string]: cards.length, ["--copies" as string]: copies }}>
+        {Array.from({ length: copies }, () => cards).flat().map((c, i) => (
           <Tile key={`${c.id}-${i}`} c={c} feat={c.id === featId} dup={i >= cards.length} />
         ))}
       </div>
@@ -144,7 +161,7 @@ function Band({ cards, depth, dir, featId }: { cards: RegisterFocus[]; depth: "f
   );
 }
 
-export function AnimalRegister({ data, total, plate }: { data: Data; total: number; plate?: RegisterPlateData | null }) {
+export function AnimalRegister({ data, total, plate, archived = false }: { data: Data; total: number; plate?: RegisterPlateData | null; archived?: boolean }) {
   const cards = data.cards;
   const n = cards.length;
   /* A callback ref lets the observer attach whenever the section mounts. */
@@ -186,7 +203,7 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
   }, [cards, n]);
   const deck = useMemo(() => [...cards].sort((a, b) => richness(b) - richness(a)), [cards]);
 
-  if (!n || total <= 0) return null;
+  if (!n || total <= 0) return <section className="rx rx-empty" aria-labelledby="rx-title"><h2 id="rx-title">Every animal has a story.</h2><p>Photographed records could not be loaded right now.</p><Link href="/explore">Find an animal on the map</Link></section>;
   const cur = deck[idx % n];
   const go = (d: number) => {
     setPrev(cur);
@@ -196,16 +213,15 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
   const running = !calm && seen && !hold;
 
   return (
-    <section ref={setEl} className={`rx${calm ? " is-calm" : ""}`} aria-labelledby="rx-title">
+    <section ref={setEl} className={`rx${calm ? " is-calm" : ""}${hold || !seen ? " is-paused" : ""}`} aria-labelledby="rx-title">
       {plate && <RegisterPlate plate={plate} running={seen} calm={calm} />}
       <div className="rx-rail" data-ld-reveal="rail">
-        <p className="rx-kicker sys-mono">Live register<span className="rx-live" aria-hidden /></p>
-        <h2 id="rx-title"><span className="rx-n">{fmt(total)}</span> dogs. <span className="rx-lbl">One profile each.</span></h2>
-        <Link href="/map" className="rx-cta">Live map <ArrowUpRight size={14} aria-hidden /></Link>
+        <h2 id="rx-title">Every animal has a story.</h2>
+        <p className="rx-caption">{archived ? <>Archived public profiles · 20 October 2026. <Link href="/art-credits#register-photos">Photo credits</Link></> : "Real photographs. Shared histories. Including imported records."}</p>
       </div>
 
       <div className="rx-stage" data-ld-reveal="stage">
-        <div className="rx-crowd" role="group" aria-label={`More of the ${fmt(total)} dogs on the register`}>
+        <div className="rx-crowd" role="group" aria-label={"Photographed animal records"}>
           <Band cards={bands[0]} depth="mid" dir="r" featId={cur.id} />
           <Band cards={bands[1]} depth="front" dir="l" featId={cur.id} />
           <Band cards={bands[2]} depth="back" dir="r" featId={cur.id} />
@@ -240,7 +256,7 @@ export function AnimalRegister({ data, total, plate }: { data: Data; total: numb
               <button type="button" className="rx-nav" aria-label="Previous dog" onClick={() => go(-1)}><ChevronLeft size={16} aria-hidden /></button>
               <button type="button" className="rx-nav" aria-label="Next dog" onClick={() => go(1)}><ChevronRight size={16} aria-hidden /></button>
               <span className="rx-count sys-mono">{String((idx % n) + 1).padStart(2, "0")} / {n}</span>
-              <Link href={`/dog/${cur.id}`} className="rx-open">Open profile <ArrowUpRight size={14} aria-hidden /></Link>
+              <Link href={`/animal/${cur.id}`} className="rx-open">Open profile <ArrowUpRight size={14} aria-hidden /></Link>
             </div>
           </div>
         </div>

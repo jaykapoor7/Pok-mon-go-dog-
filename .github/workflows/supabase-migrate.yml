@@ -15,7 +15,6 @@ on:
           - personal
           - wards
           - security-audit
-          - release-2-0
 
 permissions:
   contents: read

@@ -29,10 +29,11 @@ export function FramedPhoto({ src, alt, sid, lazy = false, priority = false }: {
     const box = img?.parentElement;
     if (!img || !box) return;
     img.removeAttribute("style");
+    delete img.dataset.loaded;
     const frame = sid ? REGISTER_FRAMES[sid] : undefined;
-    if (!frame) return;
-    const [l, t, r, b] = frame.map((v) => v / 100);
     const place = () => {
+      if (!frame) return;
+      const [l, t, r, b] = frame.map((v) => v / 100);
       const w = img.naturalWidth, h = img.naturalHeight;
       const W = box.clientWidth, H = box.clientHeight;
       if (!w || !h || !W || !H) return;
@@ -51,7 +52,7 @@ export function FramedPhoto({ src, alt, sid, lazy = false, priority = false }: {
     };
     /* Fade the photo in over its placeholder once it has decoded, so the card
        never flashes a bare beige rectangle on the way in. */
-    const reveal = () => { img.dataset.loaded = ""; };
+    const reveal = () => { if (img.naturalWidth > 0) img.dataset.loaded = ""; };
     if (img.complete) { place(); reveal(); }
     const onLoad = () => { place(); reveal(); };
     img.addEventListener("load", onLoad);

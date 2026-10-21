@@ -1,0 +1,31 @@
+name: Refresh Ganapathy mural once
+on:
+  push:
+    paths:
+      - .github/workflows/refresh-ganapathy-mural.yml
+permissions:
+  contents: write
+jobs:
+  bake:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/bake-mural.mjs
+      - name: Commit updated geographic mural data
+        run: |
+          if ! git diff --quiet -- public/mural/ganapathy.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/mural/ganapathy.json
+            git commit -m "Refresh Ganapathy mural from OpenStreetMap"
+            git push
+          else
+            echo "Mural geographic data unchanged."
+          fi

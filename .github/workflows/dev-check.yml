@@ -53,8 +53,10 @@ jobs:
           npm run test:master-import:staging
           npm run test:master-import:resume
           npm run test:case-input-validation
+          npm run test:contact-delivery
           npm run test:sql-rpc-mapping
           npm run test:spatial
+          npm run test:place-fallback
           npm run test:no-full-register
       - name: Install browser
         run: npx playwright install --with-deps chromium

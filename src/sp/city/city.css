@@ -3,7 +3,7 @@
    ledger rules, numbered findings) and its printed edition.
    ════════════════════════════════════════════════════════════════════ */
 
-.sp .ci, .sp .cr, .sp .cp { --civ: #2f3d8f; background: var(--paper); min-height: calc(100dvh - var(--bar)); }
+.sp .ci, .sp .cr, .sp .cp { --civ: #2457ce; background: var(--paper); min-height: calc(100dvh - var(--bar)); }
 
 /* ── Insights ─────────────────────────────────────────────────────── */
 .sp .ci-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 32px; align-items: end; padding: 22px 28px 20px; border-bottom: 2px solid var(--ink); background: var(--shell); }

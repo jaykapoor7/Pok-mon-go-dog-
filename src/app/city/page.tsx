@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Atlas } from "@/sp/atlas/Atlas";
+import { FieldMap } from "@/sp/map/FieldMap";
 import { CITY_LAYERS } from "@/sp/atlas/lenses";
 import { getMapCities, getUnplaced } from "@/lib/livingmap/server";
 
@@ -12,5 +12,5 @@ export const revalidate = 300;
 /* Municipality · Map: the geographic command view (decisions 023, 034). */
 export default async function CityMapPage() {
   const [cities, unplaced] = await Promise.all([getMapCities().catch(() => []), getUnplaced().catch(() => [])]);
-  return <Suspense fallback={null}><Atlas variant="city" lenses={CITY_LAYERS} more={["care", "help", "orgs", "treat"]} defaultLens="abc" initialCities={cities} initialUnplaced={unplaced} /></Suspense>;
+  return <Suspense fallback={null}><FieldMap variant="city" lenses={CITY_LAYERS} defaultLens="abc" initialCities={cities} initialUnplaced={unplaced} /></Suspense>;
 }
