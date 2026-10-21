@@ -1,3 +1,4 @@
+import {read as readDemo} from "../../../recording/store";
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -33,6 +34,7 @@ type Item = { at: string; kind: "report"; r: Rep } | { at: string; kind: "follow
 const LADDER = ["Received", "Reviewed", "On the record"];
 function stage(status: string): { i: number; label: string; tone: "info" | "care" | "caution" } {
   const s = status.toLowerCase();
+  if (["assigned","in_progress","resolved"].includes(s)) return {i:2,label:s==="resolved"?"Closed":s==="in_progress"?"In progress":"Accepted by organisation",tone:"care"};
   if (["approved", "live", "published", "verified"].includes(s)) return { i: 2, label: "On the record", tone: "care" };
   if (["rejected", "removed", "hidden"].includes(s)) return { i: -1, label: "Not published", tone: "caution" };
   return { i: 0, label: "Received, waiting for review", tone: "info" };
@@ -77,7 +79,7 @@ export function Activity() {
       <header className="act-head">
         <p className="k is-flame">Community · My Activity</p>
         <h1 className="h1">Your reports and the animals you follow</h1>
-        <p className="lede">{user ? <>Signed in as <b>{user.name}</b>. Reports you send while signed in are on your account, on any device. Animals you follow are kept on this device.</> : <>Kept on this device, no account needed. Reports you sent from here are matched by a private key this device holds; <Link className="link" href="/join">sign in</Link> to keep new reports on an account.</>}</p>
+        <p className="lede">Demo reports and care updates are kept in this browser. This sample workspace does not sync across devices.</p>
       </header>
 
       <div className="tabs" role="tablist" aria-label="Show">
@@ -106,7 +108,8 @@ export function Activity() {
 }
 
 function ReportItem({ r }: { r: Rep }) {
-  const st = stage(r.status);
+  const c=readDemo().cases.find(c=>c.id===r.id);
+  const st = stage(c?.status || r.status);
   const help = r.moods.includes("injured");
   return (
     <li className="act-item is-report">
@@ -114,12 +117,13 @@ function ReportItem({ r }: { r: Rep }) {
       <div className="act-body">
         <p className="k">{day(r.created_at)} · {r.where === "account" ? "on your account" : "sent from this device"}</p>
         <h3>{help ? "You reported an animal needing help" : "You reported a sighting"}{publicLocality(r.zone) ? <> in <span className="serif act-place">{publicLocality(r.zone)}</span></> : null}</h3>
+        {c && <p className="small"><b>{c.case_code}</b> · {st.label}{c.assignee_name ? ` · ${c.assignee_name}` : ""}</p>}
         <ol className="act-ladder" aria-label="Where this report is">
           {LADDER.map((s, i) => <li key={s} className={st.i >= i ? "is-on" : ""}>{s}</li>)}
           {st.i < 0 && <li className="is-off">Not published</li>}
         </ol>
         <p className="small">{st.i === 0 ? (help ? "Waiting for review. No organisation has accepted it from here; if one does, its record shows it." : "Waiting for a quick review before it joins the record.") : st.i < 0 ? "A reviewer did not publish it. Reasons are not shown publicly." : "It is part of the animal's public record."}</p>
-        {r.dog_id && st.i > 0 && <Link className="btn is-s" href={`/animal/${r.dog_id}`}>The animal&rsquo;s record <ArrowUpRight size={14} aria-hidden /></Link>}
+        {r.dog_id && <Link className="btn is-s" href={`/animal/${r.dog_id}`}>The animal&rsquo;s record <ArrowUpRight size={14} aria-hidden /></Link>}
       </div>
     </li>
   );

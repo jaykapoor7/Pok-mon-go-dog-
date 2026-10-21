@@ -171,7 +171,7 @@ export async function reportSighting(input: ReportInput): Promise<ReportResult> 
 }
 
 /** Read reports this browser owns, even when the reporter chose not to sign in. */
-export async function getDeviceSightings(): Promise<DeviceSighting[]> { return (await import("../../recording/store")).read().sightings.map(r=>({...r,status:"received"})) as any;
+export async function getDeviceSightings(): Promise<DeviceSighting[]> { return (await import("../../recording/store")).read().sightings.map(r=>({...r,mood_tags:r.moods||["injured"],status:r.report_status||"received"})) as any;
 
   const sightings = ownedSightings().slice(0, 20);
   if (!sightings.length) return [];
