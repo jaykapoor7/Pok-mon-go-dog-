@@ -29,7 +29,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { GeoJSONSource, Map as MLMap, MapGeoJSONFeature } from "maplibre-gl";
 import { Pause, Play, Plus, Minus, Locate, X, GitCompare, SlidersHorizontal, ChevronRight, Layers } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { NIGHT, groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
+import { groundStyle, supportsWebGL2, underlay } from "@/components/map/basemap";
 import { C, QUESTIONS, foldMonths, orgPalette, question, type Ctx, type Range } from "@/lib/livingmap/questions";
 import { headline, localities, placeName, tally } from "@/lib/livingmap/reading";
 import type { MapArea, MapCell, MapCity, NationalCity, Unplaced } from "@/lib/livingmap/types";
@@ -48,7 +48,7 @@ export type Level = "india" | "city" | "area" | "animal";
 export type Scope = "public" | "org";
 export type Variant = "community" | "ngo" | "city";
 
-const PAL = { ...NIGHT, labelOpacity: 0.72 };
+const PAL = { ...FIELD, labelOpacity: 0.48 };
 const INDIA_BOX: [[number, number], [number, number]] = [[67.5, 6.2], [97.8, 35.8]];
 const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, AREA_ZOOM = 13.2, MAX_DOTS = 140;
 const R_STOPS: [number, number][] = [[6, 2.6], [8, 3.4], [10, 5], [12, 11.5], [13, 23], [16, 184]];
@@ -307,7 +307,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         m.on("click", (e) => onMapClick(m, e.point, (e.originalEvent as MouseEvent)?.shiftKey));
         m.on("movestart", (e) => { userMove.current = !!(e as { originalEvent?: unknown }).originalEvent; });
         m.on("moveend", () => setZoom(m.getZoom()));
-        underlay(m, PAL, "graticule").then((ok) => { if (!ok) return;  setInked((n) => n + 1); }).catch(() => {});
+        underlay(m, PAL, "graticule").then((ok) => { if (!ok) return; fieldInks(m, "graticule"); regionInks(m); setRegionsVisible(m, !plainRef.current); setInked((n) => n + 1); }).catch(() => {});
         /* Region names are lettered in HTML: the map's own text engine cannot shape Devanagari. */
         labelEls.current = regionLabels().map((r) => {
           const e = document.createElement("div");

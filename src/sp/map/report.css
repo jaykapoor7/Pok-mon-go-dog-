@@ -83,3 +83,7 @@
   .rp2-door { min-height: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .rp3 * { transition: none !important; } }
+
+/* Keep the whole sample animal visible rather than cropping its body. */
+.rp3 .rp-camera img,.rp3-draft img{object-fit:contain;background:var(--paper);object-position:center}
+.rs-location{position:absolute;z-index:4;top:12px;left:12px;right:12px;margin:0;padding:10px 14px;border-radius:12px;background:rgba(255,253,249,.96);box-shadow:var(--sh-s);color:var(--ink);font-size:13px;pointer-events:none}.rs-location span{display:block;font-size:11px;margin-top:3px}

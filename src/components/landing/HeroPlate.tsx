@@ -95,11 +95,11 @@ export function HeroPlate({ city, box, rings, events }: Props) {
         m.addSource("new", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
         const shown = (cursor: number) => ["<=", ["get", "d"], cursor] as ExpressionSpecification;
         m.addLayer({ id: "glow", type: "heatmap", source: "lights", filter: shown(-1), paint: {
-          "heatmap-weight": 0.35, "heatmap-intensity": 0.16, "heatmap-radius": 16, "heatmap-opacity": 0.12,
-          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(99,197,180,0)", 0.15, "rgba(99,197,180,0.12)", 0.35, "rgba(99,197,180,0.2)", 0.6, "rgba(99,197,180,0.3)", 0.85, "rgba(159,206,131,0.35)", 1, "rgba(239,198,108,0.4)"] as ExpressionSpecification,
+          "heatmap-weight": 0.35, "heatmap-intensity": 0.16, "heatmap-radius": 16, "heatmap-opacity": 0.65,
+          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(19,43,85,0)", 0.15, "rgba(27,63,128,0.35)", 0.35, "rgba(42,91,184,0.55)", 0.6, "rgba(79,127,224,0.65)", 0.85, "rgba(147,177,240,0.7)", 1, "rgba(219,231,255,0.8)"] as ExpressionSpecification,
         } });
-        m.addLayer({ id: "halo", type: "circle", source: "lights", filter: shown(-1), paint: { "circle-radius": 4.5, "circle-blur": 1, "circle-color": "#63c5b4", "circle-opacity": 0.22 } });
-        m.addLayer({ id: "lights", type: "circle", source: "lights", filter: shown(-1), paint: { "circle-radius": 1.3, "circle-color": ["case", ["==", ["get", "k"], 0], "#efc66c", "#63c5b4"] as ExpressionSpecification, "circle-opacity": 0.85 } });
+        m.addLayer({ id: "halo", type: "circle", source: "lights", filter: shown(-1), paint: { "circle-radius": 4.5, "circle-blur": 1, "circle-color": "#4f7fe0", "circle-opacity": 0.22 } });
+        m.addLayer({ id: "lights", type: "circle", source: "lights", filter: shown(-1), paint: { "circle-radius": 1.3, "circle-color": ["case", ["==", ["get", "k"], 0], "#c9d8ff", "#eef3ff"] as ExpressionSpecification, "circle-opacity": 0.85 } });
         m.addLayer({
           id: "new", type: "circle", source: "new", paint: {
             "circle-radius": ["interpolate", ["linear"], ["get", "a"], 0, 9, 1, 2] as ExpressionSpecification,
@@ -196,7 +196,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           {rings.map((ring, i) => {
             const p = projector(box, 1000, 700, 50).p;
             const d = ring.reduce((s, v, k) => k % 2 ? s : `${s}${k ? "L" : "M"}${p(v, ring[k + 1]).join(" ")}`, "") + "Z";
-            const pts=ring.reduce<number[][]>((out,v,k)=>k%2?out:[...out,p(v,ring[k+1])],[]); const cx=pts.reduce((n,p)=>n+p[0],0)/pts.length,cy=pts.reduce((n,p)=>n+p[1],0)/pts.length; const r=Math.max(2,Math.min(...pts.map(p=>Math.hypot(p[0]-cx,p[1]-cy)))*.8); return <circle key={i} cx={cx} cy={cy} r={r} fill="rgba(99,197,180,.035)" stroke="rgba(239,231,218,.1)" strokeWidth=".6" />;
+            return <path key={i} d={d} fill="rgba(79,127,224,.13)" stroke="rgba(143,183,255,.25)" strokeWidth=".7" />;
           })}
           {Array.from({ length: n }, (_, i) => {
             const ring = rings[events[i * 3]];
@@ -204,7 +204,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
             const polygon: [number, number][] = []; for (let k = 0; k < ring.length; k += 2) polygon.push([ring[k], ring[k + 1]]);
             const [lng, lat] = pointInCell(polygon, i + 7);
             const [x, y] = projector(box, 1000, 700, 50).p(lng, lat);
-            return <circle key={i} cx={x} cy={y} r={events[i * 3 + 2] === 1 ? 2 : 1.5} fill={events[i * 3 + 2] === 1 ? "#63c5b4" : "#efc66c"} />;
+            return <circle key={i} cx={x} cy={y} r={events[i * 3 + 2] === 1 ? 2 : 1.5} fill={events[i * 3 + 2] === 1 ? "#7fc9d6" : "#c9d8ff"} />;
           })}
         </svg>
       </div>}

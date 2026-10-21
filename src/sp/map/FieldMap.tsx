@@ -1,3 +1,4 @@
+import {mapResponse} from "../../../recording/store";
 "use client";
 
 /** Shared 2D Living Atlas: national city clusters, recorded areas and real
@@ -40,6 +41,7 @@ export const rosetteD = (v: number, max: number, hollow: boolean) => (hollow ? 4
 
 /** A read in the Map's scope: public, or an organisation's own records with its member's session. */
 async function api(path: string, scope: MapScope): Promise<Response> {
+  return mapResponse(path);
   if (scope === "public") return fetch(path);
   const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
   const token = data.session?.access_token;
@@ -50,7 +52,7 @@ const cityCache = new Map<string, Promise<MapCity | null>>();
 const cacheKey = (scope: MapScope, city: string) => `${scope}:${city}`;
 function readCity(city: string, scope: MapScope) {
   const key = cacheKey(scope, city);
-  const hit = scope === "public" ? cityCache.get(key) : null; if (hit) return hit;
+  const hit = null; if (hit) return hit;
   const p = api(`/api/livingmap?city=${encodeURIComponent(city)}`, scope).then(async (r) => { if (r.status === 404) return null; if (!r.ok) throw new Error(String(r.status)); return (await r.json()) as MapCity; });
   // Private reads must never survive a change of authenticated organisation.
   if (scope === "public") { cityCache.set(key, p); p.catch(() => cityCache.delete(key)); }
@@ -62,7 +64,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
 }) {
   const params = useSearchParams();
   const cameraRestored = useRef(false);
-  const I = useRef({ city: embedded ? null : params.get("city"), lens: embedded ? null : params.get("lens"), area: embedded ? null : params.get("area"), animal: embedded ? null : params.get("animal"), place: embedded ? null : params.get("place"), view: embedded ? null : params.get("view"), lng: embedded ? null : params.get("lng"), lat: embedded ? null : params.get("lat"), z: embedded ? null : params.get("z") }).current;
+  const I = useRef({ city: embedded ? null : (params.get("city") || "Coimbatore"), lens: embedded ? null : params.get("lens"), area: embedded ? null : params.get("area"), animal: embedded ? null : params.get("animal"), place: embedded ? null : params.get("place"), view: embedded ? null : params.get("view"), lng: embedded ? null : params.get("lng"), lat: embedded ? null : params.get("lat"), z: embedded ? null : params.get("z") }).current;
 
   /* ── state ── */
   const [cities, setCities] = useState<NationalCity[]>(initialCities ?? []);
@@ -120,8 +122,8 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   useEffect(() => {
     if (scope !== "public") return;
     let live = true;
-    fetch("/api/livingmap?kind=national").then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.cells) setNational(j.cells); }).catch(() => {});
-    fetch("/api/livingmap?kind=faces").then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.faces) setFaces(j.faces); }).catch(() => {});
+    mapResponse("/api/livingmap?kind=national").then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.cells) setNational(j.cells); }).catch(() => {});
+    Promise.resolve(new Response(JSON.stringify({faces:[]}))).then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j?.faces) setFaces(j.faces); }).catch(() => {});
     return () => { live = false; };
   }, [scope]);
   useEffect(() => {

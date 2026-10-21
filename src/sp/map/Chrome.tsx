@@ -1,3 +1,4 @@
+import {mapResponse} from "../../../recording/store";
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -448,7 +449,7 @@ function MapSearch({ cities, onCity, onPlace, remote }: { cities: NationalCity[]
     const t = q.trim(); if (!remote || t.length < 3) { setFound(null); setState("idle"); return; }
     let live = true; setState("reading");
     const id = window.setTimeout(() => {
-      fetch(`/api/livingmap?kind=find&q=${encodeURIComponent(t)}`).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).then((j: Found) => { if (live) { setFound(j); setState("idle"); } }).catch(() => { if (live) setState("error"); });
+      mapResponse(`/api/livingmap?kind=find&q=${encodeURIComponent(t)}`).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).then((j: Found) => { if (live) { setFound(j); setState("idle"); } }).catch(() => { if (live) setState("error"); });
     }, 220);
     return () => { live = false; window.clearTimeout(id); };
   }, [q, remote]);

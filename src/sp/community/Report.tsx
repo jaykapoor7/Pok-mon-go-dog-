@@ -277,7 +277,7 @@ export function Report() {
 
       <aside className="rp3-side" aria-label="Your report so far">
         <div className="rp3-map">
-          <ReportStage ref={stage} coords={d.coords} picking={step === "where"} onPick={(p) => { set({ coords: { lat: p.lat, lng: p.lng }, zone: p.zone }); setPickLabel(p.zone); }} onLabel={setPickLabel} />
+          <ReportStage ref={stage} coords={d.coords} zone={d.zone} picking={step === "where"} onPick={(p) => { set({ coords: { lat: p.lat, lng: p.lng }, zone: p.zone }); setPickLabel(p.zone); }} onLabel={setPickLabel} />
           {step === "where" && <p className="rp3-maphint">{pickLabel ? <><b>{pickLabel}</b> · drag the map to move the pin</> : "Zoom in to the street, then drag the map under the pin."}</p>}
         </div>
         <div className="rp3-draft">

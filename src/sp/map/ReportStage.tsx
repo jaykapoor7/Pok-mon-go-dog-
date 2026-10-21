@@ -1,4 +1,3 @@
-import {NIGHT,groundStyle as nightStyle,underlay} from "@/components/map/basemap";
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -23,14 +22,15 @@ export type StageHandle = { fly: (lat: number, lng: number, z?: number) => void 
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng: number } | null; picking: boolean; onPick: (p: Picked) => void; onLabel?: (s: string | null) => void }>(
-  function ReportStage({ coords, picking, onPick, onLabel }, ref) {
+export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng: number } | null; zone?: string | null; picking: boolean; onPick: (p: Picked) => void; onLabel?: (s: string | null) => void }>(
+  function ReportStage({ coords, zone, picking, onPick, onLabel }, ref) {
     const el = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MLMap | null>(null);
     const pin = useRef<Marker | null>(null);
     const cb = useRef({ onPick, onLabel, picking }); cb.current = { onPick, onLabel, picking };
     const start = useRef(coords);
     const lookup = useRef(0);
+    const latestCoords = useRef(coords); latestCoords.current = coords;
     const [failed, setFailed] = useState(false);
     const [ready, setReady] = useState(false);
 
@@ -56,11 +56,11 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
         if (dead || !el.current) return;
         ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const s = start.current;
-        map = new ml.Map({ container: el.current, style: { ...nightStyle(NIGHT), glyphs: GLYPHS }, center: s ? [s.lng, s.lat] : [80.2, 22.4], zoom: s ? 15.5 : 4,
+        map = new ml.Map({ container: el.current, style: { ...groundStyle(), glyphs: GLYPHS }, center: s ? [s.lng, s.lat] : [80.2, 22.4], zoom: s ? 15.5 : 4,
           attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth" }, dragRotate: false, pitchWithRotate: false, maxZoom: 18 });
         mapRef.current = map;
         map.touchZoomRotate.disableRotation();
-        map.on("load", () => { underlay(map!,NIGHT).catch(() => {}); collapseAttribution(map!); setReady(true); });
+        map.on("load", () => { drawGround(map!).catch(() => {}); collapseAttribution(map!); map!.resize(); const c = latestCoords.current; if(c) { pin.current?.setLngLat([c.lng,c.lat]).addTo(map!); map!.jumpTo({center:[c.lng,c.lat],zoom:15.5}); } setReady(true); });
         const e = document.createElement("div"); e.className = "rs-pin"; e.innerHTML = "<i></i>";
         pin.current = new ml.Marker({ element: e, anchor: "bottom" }).setLngLat(s ? [s.lng, s.lat] : [80.2, 22.4]);
         if (s) pin.current.addTo(map);
@@ -96,7 +96,8 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
       <div className={`rs${picking ? " is-picking" : ""}`}>
         <div ref={el} className="rs-map" aria-hidden={!picking} />
         {picking && <span className="rs-fixed" aria-hidden><i /></span>}
-        {failed && <p className="rs-err">This browser cannot draw the map. Search for the place instead.</p>}
+        {coords && <p className="rs-location" role="status"><b>{zone || "Selected location, Coimbatore"}</b><span>{coords.lat.toFixed(4)}° N · {coords.lng.toFixed(4)}° E · Selected report location</span></p>}
+        {failed && <p className="rs-err">Interactive map unavailable in this browser. The selected location is saved above.</p>}
       </div>
     );
   });

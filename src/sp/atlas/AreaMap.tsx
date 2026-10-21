@@ -1,4 +1,3 @@
-import {NIGHT,groundStyle as nightStyle,underlay} from "@/components/map/basemap";
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -43,7 +42,7 @@ export function AreaMap({ cells, selected, focus, onPick, label, ink = "#1f6f80"
     import("maplibre-gl").then((ml) => {
       if (dead || !el.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
-      map = new ml.Map({ container: el.current, style: { ...nightStyle(NIGHT), glyphs: GLYPHS }, center: [78.9, 22.5], zoom: 4, attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, maxZoom: 17 });
+      map = new ml.Map({ container: el.current, style: { ...groundStyle(), glyphs: GLYPHS }, center: [78.9, 22.5], zoom: 4, attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, maxZoom: 17 });
       mapRef.current = map;
       map.touchZoomRotate.disableRotation();
       map.on("load", () => {
@@ -60,7 +59,7 @@ export function AreaMap({ cells, selected, focus, onPick, label, ink = "#1f6f80"
         m.on("click", (e) => { if (!m.queryRenderedFeatures(e.point, { layers: ["a"] }).length) pick.current(null); });
         m.on("mouseenter", "a", () => { m.getCanvas().style.cursor = "pointer"; });
         m.on("mouseleave", "a", () => { m.getCanvas().style.cursor = ""; });
-        underlay(m,NIGHT,"a").catch(() => {});
+        drawGround(m, "a").catch(() => {});
         collapseAttribution(m);
         setReady(true);
       });
