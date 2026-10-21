@@ -42,7 +42,7 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
   ].filter(Boolean) as { t: string; a: string }[];
   const describe = [r.species === "dog" ? "Street dog" : r.species, r.sex, r.size, r.colour].filter(Boolean).join(" · ");
 
-  const sightings = r.events.filter((e) => e.lane === "sight").length, careN = r.events.filter((e) => e.lane === "care").length, casesN = r.events.filter((e) => e.lane === "case").length;
+  const sightings = r.events.filter((e) => e.lane === "sight").length, careN = r.events.filter((e) => e.lane === "care").length, casesN = r.cases.length;
   const place = publicLocality(r.locality);
   const latest = r.events[r.events.length - 1] ?? null;
   const care = r.events.filter((e) => e.lane === "care").slice(-4).reverse();
