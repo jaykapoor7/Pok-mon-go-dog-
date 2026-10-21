@@ -14,6 +14,7 @@ import { Relay } from "@/components/landing/Relay";
 import { getAnimalRegister, getLandingStory } from "@/lib/landing/story";
 import { CareStory } from "@/components/landing/CareStory";
 import { LandingMotion } from "@/components/landing/LandingMotion";
+import { redirect } from "next/navigation";
 import "@/components/site/site.css";
 import "@/components/site/field-site.css";
 import "@/components/landing/landing.css";
@@ -61,6 +62,10 @@ async function LandingAnimalRegister({ plate }: { plate: RegisterPlateData | nul
 }
 
 export default async function HomePage() {
+  /* The isolated YC staging deployment can run as an offline walkthrough
+     when its database is deliberately unavailable. This flag exists only in
+     the staging Vercel project; production retains the complete live site. */
+  if (process.env.NEXT_PUBLIC_OFFLINE_DEMO === "1") redirect("/demo");
   /* The landing's narrative, hero plate, three-screen relay and one-request
      walkthrough, is computed from one sample city and cached (lib/landing/
      story.ts). It is bounded by design and never reads the register; if it
