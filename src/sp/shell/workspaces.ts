@@ -131,6 +131,7 @@ export const ORDER: WorkspaceId[] = ["community", "ngo", "city", "learn"];
 
 /** Which workspace a path belongs to; shared routes keep the last one. */
 export function workspaceFor(path: string, last: WorkspaceId | null): WorkspaceId {
+  if (["/app","/explore","/map"].includes(path)) return "community";
   if (path.startsWith("/ngo")) return "ngo";
   if (path.startsWith("/city")) return "city";
   if (path.startsWith("/learn")) return "learn";
