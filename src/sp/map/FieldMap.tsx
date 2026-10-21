@@ -1,3 +1,4 @@
+import {CanvasMap,type CanvasHandle} from "../../../recording/CanvasMap";
 import {mapResponse} from "../../../recording/store";
 "use client";
 
@@ -84,6 +85,8 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   const [zoom, setZoom] = useState(4);
   const [ready, setReady] = useState(false);
   const [inked, setInked] = useState(0);
+  const [software,setSoftware]=useState(false);
+  const softwareMap=useRef<CanvasHandle>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number; title: string; line: string } | null>(null);
   const [picking, setPicking] = useState(false);
@@ -173,7 +176,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   useEffect(() => {
     const node = el.current;
     if (!node) return;
-    if (!supportsWebGL2()) { setMapError("This browser cannot draw the interactive map. Search and the city list still work."); return; }
+    if (!supportsWebGL2()) { setSoftware(true); return; }
     let dead = false, map: MLMap | null = null;
     import("maplibre-gl").then((lib) => {
       if (dead || !el.current) return;
@@ -190,7 +193,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       if (embedded) { map.scrollZoom.disable(); map.dragPan.disable(); map.on("click", () => { map?.dragPan.enable(); }); }
       const resize = new ResizeObserver(() => map?.resize()); resize.observe(node);
       map.on("remove", () => resize.disconnect());
-      map.on("error", (e) => { if (/webgl|context/i.test(e.error?.message ?? "")) setMapError("This browser cannot draw the interactive map. Search and the city list still work."); });
+      map.on("error", (e) => { if (/webgl|context/i.test(e.error?.message ?? "")) setSoftware(true); });
       map.on("load", () => {
         const m = map!;
         const empty = { type: "FeatureCollection" as const, features: [] };
@@ -234,7 +237,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         setZoom(m.getZoom());
         setReady(true);
       });
-    }).catch(() => setMapError("The map could not start. Search and the city list still work."));
+    }).catch(() => setSoftware(true));
     return () => { dead = true; map?.remove(); mapRef.current = null; setReady(false); };
     // Built once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -552,8 +555,8 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     m.flyTo({ ...cam, zoom: zz, pitch: 0, bearing: 0, duration: dur(m.getZoom(), zz), easing: travel });
   }, [ready, level, city, areaH3, areaIndex, cells.length, centers, pad, cities, clinical, I.lng, I.lat, I.z, embedded]);
 
-  const flyTo = useCallback((c: [number, number], zz = 14.6) => { const m = mapRef.current; if (!m) return; userMove.current = false; m.flyTo({ center: c, zoom: zz, padding: pad(), duration: dur(m.getZoom(), zz), easing: travel }); }, [pad]);
-  const zoomBy = (d: number) => { const m = mapRef.current; if (m) { userMove.current = true; m.easeTo({ zoom: m.getZoom() + d, duration: reduced() ? 0 : 320 }); } };
+  const flyTo = useCallback((c: [number, number], zz = 14.6) => { const m = mapRef.current; if (!m) {softwareMap.current?.fly(c,zz);return;} userMove.current = false; m.flyTo({ center: c, zoom: zz, padding: pad(), duration: dur(m.getZoom(), zz), easing: travel }); }, [pad]);
+  const zoomBy = (d: number) => { if(software){softwareMap.current?.zoom(d);return;} const m = mapRef.current; if (m) { userMove.current = true; m.easeTo({ zoom: m.getZoom() + d, duration: reduced() ? 0 : 320 }); } };
 
   /* ── URL: shareable, restorable state ── */
   useEffect(() => {
@@ -597,7 +600,8 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
 
   return (
     <div className={`fm ${embedded ? "is-embedded" : ""} is-${variant} is-${level}${quiet ? " is-quiet" : ""}${picking ? " is-picking" : ""}`}>
-      <div className="fm-map" ref={el} role="application" aria-label={`Map of ${city ?? "India"}. ${L.define} The card lists the same places and figures.`} />
+      <div className="fm-map" style={software?{visibility:"hidden"}:undefined} ref={el} role="application" aria-label={`Map of ${city ?? "India"}. ${L.define} The card lists the same places and figures.`} />
+      {software && <CanvasMap ref={softwareMap} national={!city} cells={city?cells:cities.map(c=>({h3:"city",c:[c.lng,c.lat],zone:c.city,animals:c.animals,open_cases:c.open_cases,last_seen:new Date().toISOString()}))} lens={lens} selected={areaH3} quiet={quiet} picking={picking} onCenter={setCenter} onArea={h=>{if(h==="city"){openCity("Coimbatore");return;}setAreaH3(h);setAnimalId(null);}} onPick={p=>setCenter([p.lng,p.lat])}/>}
       {stamps.length > 0 && (
         <div className={`fm-stamps${moving ? " is-moving" : ""}`}>
           <svg className="fm-threads" aria-hidden>{stamps.map((s2) => {

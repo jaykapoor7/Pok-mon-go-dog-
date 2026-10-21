@@ -55,6 +55,7 @@ type Props = {
 };
 
 export function Chrome(P: Props) {
+  const mapPath=usePathname();
   const { level, city, cells, areaIndex, area } = P;
   const Title = P.embedded ? "h3" : "h1";
   const cell = areaIndex >= 0 ? cells[areaIndex] : null;
@@ -115,7 +116,7 @@ export function Chrome(P: Props) {
         <button type="button" onClick={P.onLocate} aria-label="Go to where I am"><LocateFixed size={18} aria-hidden /></button>
         <button type="button" onClick={() => P.setQuiet(!P.quiet)} aria-pressed={P.quiet} aria-label={P.quiet ? "Show the painted map" : "Quiet map: evidence on plain paper"}>{P.quiet ? <Eye size={18} aria-hidden /> : <EyeOff size={18} aria-hidden />}</button>
       </div>
-      {P.variant !== "city" && <button type="button" className="fm-report" onClick={() => P.setPicking(true)} hidden={P.picking}><Radio size={18} aria-hidden /><span>{P.variant === "ngo" ? "Open a case here" : "Report here"}</span></button>}
+      {P.variant !== "city" && (P.variant !== "community" || mapPath === "/explore") && <button type="button" className="fm-report" onClick={() => P.setPicking(true)} hidden={P.picking}><Radio size={18} aria-hidden /><span>{P.variant === "ngo" ? "Open a case here" : "Report here"}</span></button>}
       {P.picking && <PickBar variant={P.variant} zoom={P.zoom} center={P.center} onCancel={() => P.setPicking(false)} />}
 
       {P.mapError && <p className="fm-err" role="status">{P.mapError}</p>}

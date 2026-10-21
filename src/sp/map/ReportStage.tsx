@@ -1,3 +1,4 @@
+import {CanvasMap,type CanvasHandle} from "../../../recording/CanvasMap";
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -27,6 +28,7 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
     const el = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MLMap | null>(null);
     const pin = useRef<Marker | null>(null);
+    const softwareMap=useRef<CanvasHandle>(null);
     const cb = useRef({ onPick, onLabel, picking }); cb.current = { onPick, onLabel, picking };
     const start = useRef(coords);
     const lookup = useRef(0);
@@ -44,6 +46,7 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
       reverseGeocode(lat, lng).then(zone => {
         if (version === lookup.current && cb.current.picking) cb.current.onPick({ lat, lng, zone });
       }).catch(() => {});
+      softwareMap.current?.fly([lng,lat],z);
       mapRef.current?.flyTo({ center: [lng, lat], zoom: z, duration: reduced() ? 0 : 1100 });
     } }), []);
 
@@ -97,7 +100,7 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
         <div ref={el} className="rs-map" aria-hidden={!picking} />
         {picking && <span className="rs-fixed" aria-hidden><i /></span>}
         {coords && <p className="rs-location" role="status"><b>{zone || "Selected location, Coimbatore"}</b><span>{coords.lat.toFixed(4)}° N · {coords.lng.toFixed(4)}° E · Selected report location</span></p>}
-        {failed && <p className="rs-err">Interactive map unavailable in this browser. The selected location is saved above.</p>}
+        {failed && <CanvasMap ref={softwareMap} point={coords} panel={false} picking={picking} onPick={p=>onPick({...p,zone:"RS Puram, Coimbatore"})}/>}
       </div>
     );
   });
