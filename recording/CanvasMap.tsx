@@ -1,10 +1,9 @@
 import indiaMask from "../public/geo/india-mask.json";
 import {forwardRef,useEffect,useImperativeHandle,useRef,useState} from 'react';
 import {INK} from '@/sp/map/ground';
-import {compressedGround} from './coimbatore-ground';
+import groundData from './coimbatore-ground.json';
 import {bucketOf,RECENCY} from '@/sp/atlas/recency';
-let groundPromise:Promise<any[]>|null=null;
-function ground(){return groundPromise??=new Response(new Blob([Uint8Array.from(atob(compressedGround),c=>c.charCodeAt(0))]).stream().pipeThrough(new DecompressionStream('gzip'))).json().then(d=>d.features);}
+function ground(){return Promise.resolve(groundData.features);}
 const project=([lng,lat]:number[])=>[(lng+180)/360,(1-Math.asinh(Math.tan(lat*Math.PI/180))/Math.PI)/2];
 const unproject=([x,y]:number[])=>[x*360-180,Math.atan(Math.sinh(Math.PI*(1-2*y)))*180/Math.PI];
 export type CanvasHandle={fly:(c:number[],z?:number)=>void;zoom:(d:number)=>void};

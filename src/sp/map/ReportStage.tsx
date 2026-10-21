@@ -33,7 +33,7 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
     const start = useRef(coords);
     const lookup = useRef(0);
     const latestCoords = useRef(coords); latestCoords.current = coords;
-    const [failed, setFailed] = useState(false);
+    const [failed, setFailed] = useState(true);
     const [ready, setReady] = useState(false);
 
     useImperativeHandle(ref, () => ({ fly: (lat, lng, z = 17) => {
@@ -51,7 +51,7 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
     } }), []);
 
     useEffect(() => {
-      if (!el.current) return;
+      if (failed || !el.current) return;
       if (!supportsWebGL2()) { setFailed(true); return; }
       const lookups = lookup;
       let dead = false, map: MLMap | null = null, t: number | undefined;
@@ -98,7 +98,7 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
     return (
       <div className={`rs${picking ? " is-picking" : ""}`}>
         <div ref={el} className="rs-map" aria-hidden={!picking} />
-        {picking && <span className="rs-fixed" aria-hidden><i /></span>}
+        {picking && !failed && <span className="rs-fixed" aria-hidden><i /></span>}
         {coords && <p className="rs-location" role="status"><b>{zone || "Selected location, Coimbatore"}</b><span>{coords.lat.toFixed(4)}° N · {coords.lng.toFixed(4)}° E · Selected report location</span></p>}
         {failed && <CanvasMap ref={softwareMap} point={coords} panel={false} picking={picking} onPick={p=>onPick({...p,zone:"RS Puram, Coimbatore"})}/>}
       </div>

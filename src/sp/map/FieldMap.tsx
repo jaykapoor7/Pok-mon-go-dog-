@@ -85,7 +85,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   const [zoom, setZoom] = useState(4);
   const [ready, setReady] = useState(false);
   const [inked, setInked] = useState(0);
-  const [software,setSoftware]=useState(false);
+  const [software,setSoftware]=useState(true);
   const softwareMap=useRef<CanvasHandle>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number; title: string; line: string } | null>(null);
@@ -175,7 +175,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   /* ── the map ── */
   useEffect(() => {
     const node = el.current;
-    if (!node) return;
+    if (software || !node) return;
     if (!supportsWebGL2()) { setSoftware(true); return; }
     let dead = false, map: MLMap | null = null;
     import("maplibre-gl").then((lib) => {
