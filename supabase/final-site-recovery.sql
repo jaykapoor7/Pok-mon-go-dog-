@@ -46,7 +46,7 @@ security definer
 set search_path = public
 set max_parallel_workers_per_gather = 0
 stable
-as $
+as $$
   with animal_counts as (
     select d.ngo_id,
            count(*) as animals_recorded,
@@ -75,7 +75,7 @@ as $
          coalesce(x.resolved_cases, 0)
     from animal_counts a
     full join case_counts x using (ngo_id)
-$;
+$$;
 
 revoke all on function public.list_public_org_impacts() from public, anon, authenticated;
 grant execute on function public.list_public_org_impacts() to service_role;

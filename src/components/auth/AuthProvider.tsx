@@ -231,7 +231,24 @@ function SignInSheet({ onClose }: { onClose: () => void }) {
         role?: string;
         error?: string;
       };
-      if (!res.ok) return setError(data.error ?? "That email and code did not match.");
+      /* Staging has real Supabase password accounts for the supplied demo
+         identities, but deliberately no service-role key. Keep the ordinary
+         code exchange as the production path; this narrow fallback makes
+         the same email-and-code interface work against those isolated
+         accounts without ever weakening the live deployment. */
+      if (!res.ok) {
+        if (process.env.NEXT_PUBLIC_STAGING_PASSWORD_AUTH === "1") {
+          const { error: passwordError } = await supa.auth.signInWithPassword({
+            email: email.trim().toLowerCase(),
+            password: entered,
+          });
+          if (!passwordError) {
+            track("login");
+            return;
+          }
+        }
+        return setError(data.error ?? "That email and code did not match.");
+      }
 
       /* A volunteer code grants reporting for a named team and deliberately
          mints no account, so there is no session to wait for. Sending them

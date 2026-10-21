@@ -134,6 +134,18 @@ export async function POST(req: Request) {
     }
   }
 
+  /* The public staging environment is intentionally isolated from
+     production. Its Coimbatore demonstration organisation owns reports in
+     that city so the complete resident → intake workflow can be exercised
+     without a real partner invite code. This is opt-in at deployment time
+     and has no effect in production. */
+  const isCoimbatoreDemoReport =
+    /coimbatore/i.test(String(body.zone ?? "")) ||
+    (lat >= 10.7 && lat <= 11.3 && lng >= 76.7 && lng <= 77.2);
+  if (!orgCtx && process.env.STAGING_DEMO_NGO_ID && isCoimbatoreDemoReport) {
+    orgCtx = { ngo_id: process.env.STAGING_DEMO_NGO_ID, code_id: null };
+  }
+
   const sterilisation = body.sterilisationStatus ? String(body.sterilisationStatus) : null;
   const vaccination = body.vaccinationStatus ? String(body.vaccinationStatus) : null;
 
