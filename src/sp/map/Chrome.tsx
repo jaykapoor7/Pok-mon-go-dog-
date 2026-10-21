@@ -446,7 +446,7 @@ function MapSearch({ cities, onCity, onPlace, remote }: { cities: NationalCity[]
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     /* The public record is searched only on public maps; an organisation's map finds its own cities. */
-    const t = q.trim(); if (!remote || t.length < 3) { setFound(null); setState("idle"); return; }
+    const t = q.trim(); if (t.length < 3) { setFound(null); setState("idle"); return; }
     let live = true; setState("reading");
     const id = window.setTimeout(() => {
       mapResponse(`/api/livingmap?kind=find&q=${encodeURIComponent(t)}`).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).then((j: Found) => { if (live) { setFound(j); setState("idle"); } }).catch(() => { if (live) setState("error"); });
