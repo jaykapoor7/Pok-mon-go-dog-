@@ -1,3 +1,4 @@
+import {NIGHT,groundStyle as nightStyle,underlay} from "@/components/map/basemap";
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -55,11 +56,11 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
         if (dead || !el.current) return;
         ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const s = start.current;
-        map = new ml.Map({ container: el.current, style: { ...groundStyle(), glyphs: GLYPHS }, center: s ? [s.lng, s.lat] : [80.2, 22.4], zoom: s ? 15.5 : 4,
+        map = new ml.Map({ container: el.current, style: { ...nightStyle(NIGHT), glyphs: GLYPHS }, center: s ? [s.lng, s.lat] : [80.2, 22.4], zoom: s ? 15.5 : 4,
           attributionControl: { compact: true, customAttribution: "© OpenStreetMap contributors · OpenFreeMap · Natural Earth" }, dragRotate: false, pitchWithRotate: false, maxZoom: 18 });
         mapRef.current = map;
         map.touchZoomRotate.disableRotation();
-        map.on("load", () => { drawGround(map!).catch(() => {}); collapseAttribution(map!); setReady(true); });
+        map.on("load", () => { underlay(map!,NIGHT).catch(() => {}); collapseAttribution(map!); setReady(true); });
         const e = document.createElement("div"); e.className = "rs-pin"; e.innerHTML = "<i></i>";
         pin.current = new ml.Marker({ element: e, anchor: "bottom" }).setLngLat(s ? [s.lng, s.lat] : [80.2, 22.4]);
         if (s) pin.current.addTo(map);
