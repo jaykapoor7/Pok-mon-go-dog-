@@ -83,12 +83,12 @@
 
 /* Signed out. */
 .sp .wk-out { background: var(--shell); }
-.sp .wk-explain { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; padding: 30px 28px 48px; }
-.sp .wk-explain ol { display: grid; border-top: 2px solid var(--ink); }
-.sp .wk-explain li { display: grid; grid-template-columns: 44px 220px minmax(0, 1fr); gap: 14px; padding: 20px 0; border-bottom: 1px solid var(--line); }
-.sp .wk-explain .mono { font-size: 12px; color: var(--flame-ink); padding-top: 6px; }
-.sp .wk-explain b { font-size: 30px; line-height: 1.02; }
-.sp .wk-explain p { color: var(--ink-2); }
+.sp.sp-app .wk-out {display:block;min-width:0;}
+.sp.sp-app .wk-explain {display:block;max-width:900px;padding:24px 28px 40px;box-sizing:border-box;}
+.sp.sp-app .wk-explain ol {display:grid;list-style:none;margin:0;padding:0;}
+.sp.sp-app .wk-explain li {display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:20px 0;border-bottom:1px solid var(--line);min-width:0;}
+.sp.sp-app .wk-explain b {display:block;grid-column:1;min-width:0;margin:0;font:650 20px/1.3 var(--sans);color:var(--ink);overflow-wrap:anywhere;}
+.sp.sp-app .wk-explain p {display:block;grid-column:1;min-width:0;margin:0;max-width:65ch;font-size:15px;line-height:1.6;color:var(--ink-2);overflow-wrap:anywhere;}
 
 /* Area map (shared with the municipality and NGO map). */
 

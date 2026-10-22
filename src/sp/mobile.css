@@ -172,12 +172,13 @@
  .sp.sp-app .wk-out .wk-sum {font-size:15px;line-height:1.6;}
  .sp.sp-app .wk-out .wk-head-act {display:grid;gap:10px;}
  .sp.sp-app .wk-explain-fold {padding-inline:16px;}
- .sp.sp-app .wk-explain {padding:12px 0 28px;}
+ .sp.sp-app .wk-explain {padding:0 0 20px;}
  .sp.sp-app .wk-explain>.art {display:none;}
- .sp.sp-app .wk-explain li {display:block;padding-block:18px;}
+ .sp.sp-app .wk-explain li {display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding-block:18px;}
  .sp.sp-app .wk-explain li>.mono {display:none;}
- .sp.sp-app .wk-explain b {font-size:22px;}
- .sp.sp-app .wk-explain p {font-size:14px;line-height:1.6;margin-top:10px;}
+ .sp.sp-app .wk-explain b {font-size:20px;line-height:1.3;}
+ .sp.sp-app .wk-explain p {font-size:15px;line-height:1.6;margin:0;grid-column:auto;}
+ .sp.sp-app .wk-explain-fold .mobile-details-label {white-space:normal;overflow:visible;text-overflow:clip;}
 }
 @media(max-width:760px){
  .sp.sp-app .mobile-details-label {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}

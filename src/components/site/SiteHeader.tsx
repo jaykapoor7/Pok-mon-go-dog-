@@ -36,15 +36,6 @@ const LINKS: NavItem[] = [
   { label: "Explore", href: "/explore", hint: "The Living Atlas" },
   { label: "Our Story", href: "/our-story", also: ["/about"], hint: "Why we exist" },
 ];
-const SHORTCUTS = [
-  { label: "Report an animal", href: "/community/report" },
-  { label: "Explore the map", href: "/explore" },
-  { label: "Sign in with your code", href: "/join" },
-  { label: "Contact", href: "/contact" },
-  { label: "Learning resources", href: "/learn/resources" },
-  { label: "Privacy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
-];
 
 export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
   const { t } = useLocale();
@@ -86,7 +77,7 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { e.preventDefault(); setOpen(false); return; }
       if (e.key !== "Tab") return;
-      const items = Array.from(header.current?.querySelectorAll<HTMLElement>(".sp-menu-btn, #sp-sheet a") ?? []).filter(el => el.getClientRects().length);
+      const items = Array.from(header.current?.querySelectorAll<HTMLElement>(".sp-menu-btn, .sp-header-cta, #sp-sheet a, #sp-sheet summary") ?? []).filter(el => el.getClientRects().length);
       const first = items[0], last = items[items.length - 1];
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
@@ -148,20 +139,12 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
 
       <div id="sp-sheet" className="sp-sheet" data-open={open ? "1" : "0"} aria-hidden={!open} inert={!open ? true : undefined}>
         <nav aria-label="Site, menu">
-          <ol>
-            {[LINKS[0], ...AUDIENCES, LINKS[1]].map((l, i) => (
-              <li key={l.href} style={{ ["--i" as string]: i }}>
-                <Link href={l.href} onClick={() => setOpen(false)} aria-current={here(l) ? "page" : undefined}>
-                  <i aria-hidden>{String(i + 1).padStart(2, "0")}</i><span>{label(l)}<small>{l.hint}</small></span><ArrowUpRight size={22} aria-hidden />
-                </Link>
-              </li>
-            ))}
-          </ol>
-          <ul className="sp-sheet-short">
-            {SHORTCUTS.map((l) => <li key={l.href}><Link href={l.href} onClick={() => setOpen(false)}>{l.label}</Link></li>)}
+          <ul className="sp-sheet-main">
+            <li><Link href="/explore" onClick={() => setOpen(false)}>Explore<ArrowUpRight size={20} aria-hidden /></Link></li>
+            <li><details className="sp-sheet-who"><summary>Who It’s For<ChevronDown size={20} aria-hidden /></summary><div>{AUDIENCES.map(l => <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}<ArrowUpRight size={16} aria-hidden /></Link>)}</div></details></li>
+            <li><Link href="/our-story" onClick={() => setOpen(false)}>Our Story<ArrowUpRight size={20} aria-hidden /></Link></li>
           </ul>
         </nav>
-        <Link href={appHref} className="sp-sheet-cta" onClick={() => setOpen(false)}>Open App <ArrowUpRight size={18} aria-hidden /></Link>
       </div>
     </header>
   );

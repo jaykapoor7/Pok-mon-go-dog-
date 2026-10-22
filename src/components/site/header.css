@@ -99,6 +99,15 @@ html .sp-header .sp-sheet { display: none; }
 
 /* Keep the original lifted pill and the mobile circular reveal. */
 html .sp-header .sp-header-cta, html .sp-header .sp-sheet-cta { min-height:44px; }
+@media(max-width:900px){
+ html .sp-header .sp-sheet-main {list-style:none;margin:0;padding:0;display:grid;gap:0;}
+ html .sp-header .sp-sheet-main>li>a,html .sp-header .sp-sheet-who>summary {display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:68px;padding:12px 0;color:var(--hd-ink);font-size:26px;font-weight:650;line-height:1.2;letter-spacing:-.035em;text-decoration:none;cursor:pointer;list-style:none;}
+ html .sp-header .sp-sheet-who>summary::-webkit-details-marker {display:none;}
+ html .sp-header .sp-sheet-who[open]>summary>svg {transform:rotate(180deg);}
+ html .sp-header .sp-sheet-who>div {display:grid;padding:0 0 16px 16px;}
+ html .sp-header .sp-sheet-who>div>a {display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;font-size:17px;line-height:1.4;color:var(--hd-ink);text-decoration:none;}
+ html .sp-header .sp-sheet-main :is(a,summary):focus-visible {outline:3px solid #2457ce;outline-offset:3px;}
+}
 
 /* Audience disclosure keeps the original printed navigation and brushstroke. */
 html .sp-header .sp-audiences { position: relative; }

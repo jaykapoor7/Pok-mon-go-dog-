@@ -36,7 +36,7 @@ import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@
 import type { NGO } from "@/lib/types";
 import { useMembership } from "../shell/Shell";
 import { AreaMap } from "../atlas/AreaMap";
-import { ArtSlot, State, day, n } from "../ui";
+import { State, day, n } from "../ui";
 import { MobileDetails } from "../ui/MobileDetails";
 import { FollowupList, NextStep } from "./NextStep";
 import "./ngo.css";
@@ -377,11 +377,10 @@ function SignedOut({ signedIn }: { signedIn: boolean }) {
       </header>
       <MobileDetails label="What your workspace includes" className="wk-explain-fold"><div className="wk-explain">
         <ol>
-          <li><span className="mono">01</span><b className="serif">One queue</b><p>Critical cases, follow-ups that slipped and live cases, oldest first. Imported histories and quiet cases wait in their own cohorts and never inflate today.</p></li>
-          <li><span className="mono">02</span><b className="serif">An inspector beside it</b><p>The animal, the place at the precision recorded, who holds the case, what has happened, and the next step your role allows.</p></li>
-          <li><span className="mono">03</span><b className="serif">Saved means saved</b><p>Taking, assigning, starting and closing a case are confirmed by the database before StrayPaw says they are done. Delivered is never accepted.</p></li>
+          <li><b>One work queue</b><p>Review incoming requests, open cases and due follow-ups. Historical records stay separate from today&rsquo;s work.</p></li>
+          <li><b>Each animal&rsquo;s history</b><p>Read sightings, cases and recorded care together, with the available location and source.</p></li>
+          <li><b>Your team&rsquo;s next step</b><p>Accept and assign cases, record treatment, schedule follow-ups and close cases with an outcome.</p></li>
         </ol>
-        <ArtSlot id="ngo-empty" />
       </div></MobileDetails>
     </div>
   );

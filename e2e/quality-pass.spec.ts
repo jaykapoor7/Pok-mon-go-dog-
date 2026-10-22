@@ -8,15 +8,17 @@ test.beforeEach(async ({ page }) => {
 
 test("the homepage remains readable in both scroll directions", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto("/");
-  for (const id of ["world", "one-request", "request-journey", "ecosystem", "request-journey", "one-request", "world"]) {
+  for (const id of ["world", "one-request", "request-journey", "request-journey", "one-request", "world"]) {
     const section=page.locator(`#${id}`);await section.scrollIntoViewIfNeeded();await expect(section.locator("h1,h2").first()).toBeVisible();
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
 });
-test("all restored audience actions are reachable by keyboard",async({page})=>{
- await page.goto("/");const links=page.locator(".ld-levels > li > a");await expect(links).toHaveCount(6);
- await links.first().focus();for(let i=0;i<6;i++){await expect(links.nth(i)).toBeFocused();if(i<5)await page.keyboard.press("Tab");}
- await expect(links.last()).toContainText("Educators");
+test("audience destinations remain reachable by keyboard in the header",async({page})=>{
+ await page.setViewportSize({width:1440,height:900});await page.goto("/");
+ await page.getByRole("button",{name:"Who It’s For",exact:true}).focus();await page.keyboard.press("ArrowDown");
+ const links=page.locator("#sp-audiences > a");await expect(links).toHaveCount(5);
+ for(let i=0;i<5;i++){await expect(links.nth(i)).toBeFocused();if(i<4)await page.keyboard.press("Tab");}
+ await expect(links.last()).toContainText("Education");
 });
 
 test("mobile navigation contains focus and restores the menu button", async ({ page }) => {
@@ -27,7 +29,7 @@ test("mobile navigation contains focus and restores the menu button", async ({ p
   await expect(page.locator("#sp-sheet a").first()).toBeFocused();
   await page.locator("#sp-sheet a").last().focus();
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Close menu", exact: true })).toBeFocused();
+  await expect(page.locator(".sp-header-cta")).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(page.locator("#sp-sheet a").last()).toBeFocused();
   await page.keyboard.press("Escape");

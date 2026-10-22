@@ -52,11 +52,13 @@ test("the original rounded navigation returns on scroll and the dropdown stays a
  const toggle=page.getByRole("button",{name:"Who It’s For",exact:true});await toggle.click();await expect(toggle).toHaveAttribute("aria-expanded","true");await expect(page.locator("#sp-audiences")).toBeVisible();await expect(page.locator("#sp-audiences a")).toHaveCount(5);
  await page.keyboard.press("Escape");await expect(toggle).toBeFocused();await expect(toggle).toHaveAttribute("aria-expanded","false");
 });
-test("the restored roles link each audience to its real workflow",async({page})=>{
- await page.goto("/");const rows=page.locator(".ld-levels > li");await expect(rows).toHaveCount(6);
- const hrefs=["/community/report","/ngo","/contact?subject=Request%20a%20Pilot","/explore","/for-community","/learn/resources"];
- for(let i=0;i<hrefs.length;i++)await expect(rows.nth(i).locator("a")).toHaveAttribute("href",hrefs[i]);
- await expect(page.locator(".restored-partners a")).toHaveCount(10);
+test("audiences stay in the header without repeated landing sections",async({page})=>{
+ await page.setViewportSize({width:1440,height:900});await page.goto("/");
+ await page.getByRole("button",{name:"Who It’s For",exact:true}).click();
+ const links=page.locator("#sp-audiences > a");const hrefs=["/for-community","/for-ngos","/for-governments","/for-feeders","/education"];
+ await expect(links).toHaveCount(hrefs.length);
+ for(let i=0;i<hrefs.length;i++)await expect(links.nth(i)).toHaveAttribute("href",hrefs[i]);
+ await expect(page.locator(".ld-audience,.restored-partners")).toHaveCount(0);
 });
 test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
  await page.goto("/");const question=page.locator(".production-faq summary").first();await expect(question).toHaveCSS("color","rgb(255, 253, 249)");expect(await question.evaluate(el=>getComputedStyle(el,"::after").content)).toBe("none");await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".production-faq details").first()).toHaveAttribute("open","");
@@ -74,9 +76,10 @@ test("every published field partner has an accessible organisation profile",asyn
  }
  expect((await request.get("/community/organisations/not-a-published-straypaw-organisation")).status()).toBe(404);
 });
-test("the restored landing keeps the white cartoonish nav and current WhatsApp geography",async({page})=>{
+test("the landing navigation blends into the hero and keeps current WhatsApp geography",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
- await expect(page.locator(".sp-header-bar")).toHaveCSS("background-color","rgb(255, 253, 249)");
+ await expect(page.locator(".sp-header-bar")).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
+ expect(await page.locator(".sp-header").evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(await page.locator(".ld-hero").evaluate(el=>getComputedStyle(el).backgroundColor));
  await expect(page.locator(".faq-asterisk,.faq-ledger")).toHaveCount(0);
  await page.locator(".request-story-steps button").nth(3).click();
  const map=page.locator(".rs-city");await expect(map.locator("svg")).toBeAttached();
