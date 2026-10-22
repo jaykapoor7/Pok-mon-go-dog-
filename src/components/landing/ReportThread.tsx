@@ -3,7 +3,7 @@
 /* ════════════════════════════════════════════════════════════════════
    One report, as a conversation.
 
-   The WhatsApp pilot, told as a single thread that grows from the first
+   Reporting on WhatsApp, told as a single thread that grows from the first
    message to the city's record: what a resident sends, what StrayPaw
    says back, what a team records, and where the report ends up. Four
    chapters, one continuous chat, one message at a time.
@@ -15,9 +15,9 @@
    messages back. There is nothing to press. Under reduced motion the
    messages still follow the scroll but arrive without animation.
 
-   Honesty. WhatsApp intake is a pilot: the frame says so, the photo is
-   withheld, no reference numbers, names or outcomes are invented, and the
-   city card uses the real recorded areas with their date.
+   Restraint. No captions or disclaimers around the phone: the injured
+   animal's photo is withheld, no reference numbers, names or outcomes
+   are invented, and the city card uses the real recorded areas.
    ════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -55,7 +55,7 @@ export function ReportThread({ areas, city, recordedAt }: { areas: Area[]; city:
     {
       label: "Send", title: "You send what you see.", text: "A photo, the place and a line about the animal. Nothing else is asked of you.",
       msgs: [
-        { id: "photo", from: "you", time: "8:41", body: <span className="rt-photo"><span className="rt-photo-art" aria-hidden><Camera size={22} /></span><span><b>Photo</b><small>Not shown in this preview</small></span></span> },
+        { id: "photo", from: "you", time: "8:41", body: <span className="rt-photo"><span className="rt-photo-art" aria-hidden><Camera size={22} /></span><span><b>Photo</b><small>1 photo</small></span></span> },
         { id: "text", from: "you", time: "8:41", body: <>Brown dog near the bus stand. Limping on a back leg, still walking.</> },
         { id: "pin", from: "you", time: "8:42", body: <span className="rt-pin"><svg viewBox="0 0 240 120" aria-hidden><rect width="240" height="120" fill="#dfe7dc" /><path d="M0 78 C60 70 110 92 240 64" stroke="#fff" strokeWidth="7" fill="none" /><path d="M96 0 C102 40 90 80 104 120" stroke="#fff" strokeWidth="5" fill="none" /><circle cx="120" cy="60" r="30" fill="#2457ce" fillOpacity=".14" stroke="#2457ce" strokeWidth="1.5" /><circle cx="120" cy="60" r="5" fill="#2457ce" /></svg><span><MapPin size={14} aria-hidden /> {place} · approximate area</span></span> },
       ],
@@ -143,9 +143,9 @@ export function ReportThread({ areas, city, recordedAt }: { areas: Area[]; city:
   return (
     <section ref={root} id="one-request" className="rt" aria-labelledby="rt-title">
       <header className="rt-head">
-        <p className="rt-kicker"><span className="rt-pilot">Pilot</span> Reporting on WhatsApp</p>
+        <p className="rt-kicker">Reporting on WhatsApp</p>
         <h2 id="rt-title">One message.{" "}<br />A record that keeps going.</h2>
-        <p className="rt-lede">How a report sent on WhatsApp travels from a street in {city} to the shared record. Scroll to follow it.</p>
+        <p className="rt-lede">Send a photo and a place. Scroll to see where it goes.</p>
       </header>
 
       <div ref={track} className="rt-track" style={{ height: `calc(100svh + ${Math.round(script.units * 34)}svh)` }}>
@@ -176,17 +176,17 @@ export function ReportThread({ areas, city, recordedAt }: { areas: Area[]; city:
                   <ChevronLeft size={20} aria-hidden />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/straypaw-mark.png" alt="" width={34} height={34} />
-                  <span><b>StrayPaw</b><small>{typing ? "typing…" : "Pilot preview"}</small></span>
+                  <span><b>StrayPaw</b><small>{typing ? "typing…" : "online"}</small></span>
                 </div>
                 <div ref={thread} className="rt-thread" role="log" aria-label="Example WhatsApp conversation">
-                  <p className="rt-day">Example conversation · illustrative</p>
+                  <p className="rt-day">Today</p>
                   {all.slice(0, shown).map((m) => (
                     <div key={m.id} className={`rt-msg is-${m.from}`}>
                       {m.from === "note" ? <span>{m.body}</span> : <div className="rt-bubble">{m.body}{m.time && <span className="rt-time">{m.time}{m.from === "you" && <CheckCheck size={14} aria-hidden />}</span>}</div>}
                     </div>
                   ))}
                   {typing && <div className="rt-msg is-sp" aria-hidden><div className="rt-bubble rt-typing"><i /><i /><i /></div></div>}
-                  {shown === 0 && <p className="rt-hint" aria-hidden>Scroll to send the report</p>}
+                  {shown === 0 && <p className="rt-hint" aria-hidden>Scroll to send</p>}
                 </div>
                 <div className="rt-compose" aria-hidden><span>Message</span><i><Camera size={18} /></i></div>
               </div>
@@ -195,7 +195,6 @@ export function ReportThread({ areas, city, recordedAt }: { areas: Area[]; city:
         </div>
       </div>
 
-      <p className="rt-note">WhatsApp intake is a pilot and is not open to the public yet. This conversation is an example, not a real report. Acceptance and care depend on participating teams. <a href="/community/report">Report on the web today</a>.</p>
     </section>
   );
 }

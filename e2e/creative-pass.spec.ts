@@ -18,12 +18,12 @@ test("photographic carousel loads directly from the site without a record servic
  const requests:string[]=[];page.on("request",r=>{if(r.resourceType()==="image")requests.push(r.url());});
  await page.goto("/");const register=page.locator(".rx");await register.scrollIntoViewIfNeeded();
  await expect(register.locator(".rx-band")).toHaveCount(3);
- await expect(register.locator(".rx-card.is-in img")).toHaveAttribute("src",/^\/photos\/register\/.+\.webp$/);
- await expect.poll(()=>register.locator(".rx-card.is-in img").evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0)).toBe(true);
+ await expect(register.locator(".rx-card.is-in img").first()).toHaveAttribute("src",/^\/photos\/register\/.+\.webp$/);
+ await expect.poll(()=>register.locator(".rx-card.is-in img").first().evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0)).toBe(true);
  const hrefs=await register.locator(".rx-tile").evaluateAll(els=>els.map(el=>el.getAttribute("href")));
  expect(hrefs.length).toBeGreaterThan(20);expect(hrefs.every(h=>/^\/animal\/[0-9a-f-]{36}$/.test(h??""))).toBe(true);
  expect(requests.filter(u=>/supabase\.co/.test(u))).toEqual([]);
- await expect(register.locator(".rx-deck a")).toHaveAttribute("href",/^\/animal\/[0-9a-f-]{36}$/);
+ await expect(register.locator(".rx-open")).toHaveAttribute("href",/^\/animal\/[0-9a-f-]{36}$/);
  for(const band of await register.locator(".rx-band").all()){
   const covered=await band.evaluate(el=>el.lastElementChild!.lastElementChild!.getBoundingClientRect().right>=el.getBoundingClientRect().right);
   expect(covered).toBe(true);
@@ -35,14 +35,15 @@ test("Our Story describes the company without founder or staff identities",async
  await expect(page.locator("main")).toContainText("The Kind Hour Foundation");await expect(page.locator("main")).toContainText("Humane Animal Society");
  await expect(page.locator("main")).not.toContainText(/Humane Society International|Humane World for Animals/);
 });
-test("every flipping card displays its own locally hosted photograph",async({page})=>{
+test("every card in the swipe deck displays its own locally hosted photograph",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");const register=page.locator(".rx");await register.scrollIntoViewIfNeeded();
+ await expect(register.getByRole("button")).toHaveCount(0);
+ const cards=register.locator(".rx-swipe-card");await expect(cards).toHaveCount(16);
  const records=new Set<string>();
  for(let i=0;i<16;i++){
-  const photo=register.locator(".rx-card.is-in img");await expect(photo).toBeVisible();
+  const card=cards.nth(i);await card.scrollIntoViewIfNeeded();const photo=card.locator("img");
   await expect.poll(()=>photo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0&&img.hasAttribute("data-loaded"))).toBe(true);
-  await expect(photo).toHaveCSS("opacity","1");records.add((await photo.getAttribute("src"))!);
-  await register.getByRole("button",{name:"Next dog",exact:true}).click();
+  records.add((await photo.getAttribute("src"))!);
  }
  expect(records.size).toBe(16);
 });
@@ -67,7 +68,7 @@ test("FAQ opens by keyboard and the ending has one purposeful action",async({pag
 test("the original Coimbatore hero retains its recorded geography and replay",async({page})=>{
  await page.goto("/");await expect(page.locator(".ld-meter")).toContainText("Coimbatore");
  await expect(page.locator(".ld-meter-count")).toContainText("cases");await expect(page.locator(".ld-meter-count")).toContainText("care");
- await expect(page.locator(".ld-replay")).toBeAttached();await expect(page.locator(".hero-record,.production-hero-art")).toHaveCount(0);
+ await expect(page.locator(".ld-replay")).toHaveCount(0);await expect(page.locator(".hero-record,.production-hero-art")).toHaveCount(0);
 });
 test("every published field partner has an accessible organisation profile",async({request})=>{
  for(const partner of fieldPartners.organisations){

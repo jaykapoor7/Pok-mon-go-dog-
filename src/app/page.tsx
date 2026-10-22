@@ -29,8 +29,8 @@ const FAQ=[
  ["Is StrayPaw free to use?","Public animal discovery and community reporting are available without a subscription. Institutional programmes are scoped and priced separately; contact us for organisation access."],
  ["What happens after a report?","A report is checked before publication. Organisations can review and choose whether to accept it. Reporting does not guarantee rescue, treatment or a response time."],
  ["How can an NGO participate?","Apply for an organisation workspace. After verification, your team can review requests, assign cases, import records and record care and follow-ups."],
- ["Can I report through WhatsApp? What does it cost?","WhatsApp intake is in pilot. Contact StrayPaw to discuss a pilot for your organisation. Setup and costs are agreed before it begins; web reporting is available now."],
- ["How does an institution request a pilot?","Send your city, programme, available records and goals through Request a Pilot. We agree scope, responsibilities, deliverables, duration and fees before work begins."],
+ ["Can I report through WhatsApp? What does it cost?","WhatsApp reporting is available through CareOS. Contact StrayPaw for the reporting channel or to connect your team. Setup and costs are confirmed for your organisation; web reporting is also available."],
+ ["How does a municipality or institution start?","Send your city, programme, available records and goals. We agree scope, responsibilities, deliverables, duration and fees before work begins."],
 ];
 export default async function HomePage(){
  const [story,totals]=await Promise.all([getLandingStory().catch(()=>null),getRegisterTotals().catch(()=>null)]);

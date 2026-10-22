@@ -49,7 +49,7 @@ export function HeroPlate({ city, box, rings, events }: Props) {
     for (let i = 0; i < n; i++) { cells.add(events[i * 3]); if (events[i * 3 + 2] === 0) cases++; else care++; }
     return { day: lastDay, records: n, cases, care, cells: cells.size };
   })();
-  const [playing, setPlaying] = useState(false);
+  const [, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -215,9 +215,6 @@ export function HeroPlate({ city, box, rings, events }: Props) {
           <b className="sys-mono">{monthOf(final.day)}</b>
         </p>
         <p className="ld-meter-count sys-mono"><b>{final.cases.toLocaleString("en-IN")}</b> cases · <b>{final.care.toLocaleString("en-IN")}</b> care</p>
-        <button type="button" className="ld-replay" onClick={() => run.current()} disabled={!ready || playing}>
-          {playing ? "Replaying…" : "Replay"}
-        </button>
       </div>
     </>
   );

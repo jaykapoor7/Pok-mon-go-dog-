@@ -55,8 +55,9 @@ test("the landing page still renders its hero", async ({ page }) => {
 
 test("the guided request has readable disclosure and a web reporting destination", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/");
-  await expect(page.locator("#one-request")).toContainText("Acceptance and care depend on participating teams");
-  await expect(page.locator(".rt-note a")).toHaveAttribute("href","/community/report");
+  await expect(page.locator("#one-request")).toContainText("Reporting on WhatsApp");
+  await expect(page.locator("#one-request")).not.toContainText(/pilot/i);
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Report a sighting" })).toHaveAttribute("href","/community/report");
 });
 
 test("solutions: the URL chooses the audience", async ({ page }) => {

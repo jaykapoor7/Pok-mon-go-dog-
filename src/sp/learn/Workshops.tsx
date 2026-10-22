@@ -1,19 +1,19 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   Workshops: choose a session, then run it one activity at a time.
+   Workshops: choose a session, then scroll through it.
 
-   The facilitator sees where the group is (a numbered track), the one
-   thing to do now (a prompt and, for a lesson, its exercise on screen),
-   and Back / Next. Background for the facilitator, the full plan and the
-   safeguarding rules are one tap away, never in the way. Each session
-   ends with a closing question and suggests The Kind Hour Foundation's
-   documents to teach alongside it.
+   Every activity of the session is on the page in order, each with its
+   prompt and, for a lesson, its exercise. A track stays at the top and
+   follows the scroll, so the facilitator always sees where the group is;
+   nothing has to be pressed to move on. Background, the full plan and
+   the safeguarding rules sit one tap away. The session ends with a
+   closing question and The Kind Hour Foundation's documents to pair.
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Clock, RotateCcw, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, Clock, Users } from "lucide-react";
 import { PLANS } from "./workshop-plans";
 import { Exercise } from "./Interactives";
 import { KindHourLibrary } from "./KindHourLibrary";
@@ -23,26 +23,37 @@ import "./academy.css";
 
 export function Workshops() {
   const [plan, setPlan] = useState(0);
-  const [step, setStep] = useState(0);
-  const [complete, setComplete] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const p = PLANS[plan], activity = p.steps[step];
-  const exercise = "l" in activity ? activity.l.blocks.find((b) => b.kind === "do") : null;
-  const move = (n: number) => { setStep(n); setComplete(false); setFinished(false); };
-  const title = "l" in activity ? activity.l.title : step === 0 ? "Start the conversation" : "Bring it together";
+  const [now, setNow] = useState(0);
+  const [done, setDone] = useState<Set<number>>(new Set());
+  const p = PLANS[plan];
+  const run = useRef<HTMLDivElement>(null);
+  const titleOf = (i: number) => { const a = p.steps[i]; return "l" in a ? a.l.title : i === 0 ? "Start the conversation" : "Bring it together"; };
+
+  /* The activity nearest the upper part of the screen is the current one. */
+  useEffect(() => {
+    const root = run.current; if (!root) return;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) setNow(Number((e.target as HTMLElement).dataset.i));
+    }, { rootMargin: "-35% 0px -60% 0px" });
+    root.querySelectorAll<HTMLElement>("[data-i]").forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [plan]);
+
+  const choose = (i: number) => { setPlan(i); setNow(0); setDone(new Set()); };
+  const last = p.steps.length;
   return (
     <div className="acx">
       <header className="acx-cover is-slim">
         <p className="acx-k">StrayPaw Academy · workshops</p>
         <h1>Run a session.</h1>
-        <p className="acx-lede">Pick a session for your group, then lead it one activity at a time. Every exercise works on a projector or a single phone.</p>
+        <p className="acx-lede">Pick a session, then scroll through it with your group. Every exercise works on a projector or a single phone.</p>
       </header>
 
       <section className="wsx" aria-labelledby="wsx-pick">
         <h2 id="wsx-pick" className="sr-only">Choose a session</h2>
         <div className="wsx-pick" role="radiogroup" aria-label="Sessions">
           {PLANS.map((x, i) => (
-            <button key={x.id} type="button" role="radio" aria-checked={plan === i} onClick={() => { setPlan(i); move(0); }}>
+            <button key={x.id} type="button" role="radio" aria-checked={plan === i} onClick={() => choose(i)}>
               <b>{x.title}</b>
               <span><Users size={14} aria-hidden />{x.who}</span>
               <span><Clock size={14} aria-hidden />{x.minutes} minutes · {x.steps.length} activities</span>
@@ -50,46 +61,42 @@ export function Workshops() {
           ))}
         </div>
 
-        <div className="wsx-run">
-          <ol className="wsx-track" aria-label={`${p.title}: activity ${step + 1} of ${p.steps.length}`}>
-            {p.steps.map((x, i) => (
-              <li key={i} className={finished || i < step ? "is-past" : i === step ? "is-now" : ""}>
-                <button type="button" onClick={() => move(i)} aria-current={!finished && step === i ? "step" : undefined} aria-label={`Activity ${i + 1}: ${"l" in x ? x.l.title : i === 0 ? "Start the conversation" : "Bring it together"}, ${x.m} minutes`}>
-                  <span>{finished || i < step ? <Check size={14} aria-hidden /> : i + 1}</span>
-                </button>
+        <div className="wsx-run" ref={run} key={p.id}>
+          <ol className="wsx-track" aria-label={`${p.title}: where the group is`}>
+            {[...p.steps.map((_, i) => i), last].map((i) => (
+              <li key={i} className={i < now ? "is-past" : i === now ? "is-now" : ""}>
+                <a href={`#act-${p.id}-${i}`} aria-current={i === now ? "step" : undefined} aria-label={i === last ? "Close the session" : `Activity ${i + 1}: ${titleOf(i)}`}>
+                  <span>{i === last ? <Check size={14} aria-hidden /> : done.has(i) || i < now ? <Check size={14} aria-hidden /> : i + 1}</span>
+                </a>
               </li>
             ))}
           </ol>
 
-          {finished ? (
-            <div className="wsx-card is-finish" role="status">
-              <p className="wsx-time">Session complete</p>
-              <h3>Take it beyond the room.</h3>
-              <p className="wsx-prompt">Ask each person to name one observation they can support and one thing they will do differently.</p>
-              <div className="wsx-row"><Link className="btn is-ink" href="/learn/resources">Practise a report</Link><button type="button" className="btn" onClick={() => move(0)}><RotateCcw size={16} aria-hidden /> Run it again</button></div>
-            </div>
-          ) : (
-            <div className="wsx-card" key={`${p.id}-${step}`}>
-              <p className="wsx-time">Activity {step + 1} of {p.steps.length} · {activity.m} minutes{complete && <span className="pill is-care"><Check size={12} aria-hidden /> Exercise done</span>}</p>
-              <h3>{title}</h3>
-              {"l" in activity ? (
-                <>
-                  <p className="wsx-prompt">{exercise?.kind === "do" ? exercise.prompt : activity.l.takeaway}</p>
-                  {exercise?.kind === "do" && <div className="wsx-ex"><Exercise id={exercise.id} onDone={() => setComplete(true)} /></div>}
-                  <MobileDetails label="Background for the facilitator" className="wsx-fold">
-                    <div className="wsx-bg">{activity.l.blocks.filter((b) => b.kind !== "do").map((b, i) => <p key={i}>{"body" in b ? b.body : null}</p>)}<p className="wsx-take"><b>What to remember</b>{activity.l.takeaway}</p><Link className="link" href={`/learn/courses/${activity.c.id}/${activity.l.id}`}>Open the full lesson</Link></div>
-                  </MobileDetails>
-                </>
-              ) : <p className="wsx-prompt">{activity.t}</p>}
-            </div>
-          )}
+          {p.steps.map((activity, i) => {
+            const exercise = "l" in activity ? activity.l.blocks.find((b) => b.kind === "do") : null;
+            return (
+              <section key={i} id={`act-${p.id}-${i}`} data-i={i} className={`wsx-card${i === now ? " is-now" : ""}`} aria-labelledby={`act-${p.id}-${i}-t`}>
+                <p className="wsx-time">Activity {i + 1} of {p.steps.length} · {activity.m} minutes{done.has(i) && <span className="pill is-care"><Check size={12} aria-hidden /> Exercise done</span>}</p>
+                <h3 id={`act-${p.id}-${i}-t`}>{titleOf(i)}</h3>
+                {"l" in activity ? (
+                  <>
+                    <p className="wsx-prompt">{exercise?.kind === "do" ? exercise.prompt : activity.l.takeaway}</p>
+                    {exercise?.kind === "do" && <div className="wsx-ex"><Exercise id={exercise.id} onDone={() => setDone((d) => new Set(d).add(i))} /></div>}
+                    <MobileDetails label="Background for the facilitator" className="wsx-fold">
+                      <div className="wsx-bg">{activity.l.blocks.filter((b) => b.kind !== "do").map((b, k) => <p key={k}>{"body" in b ? b.body : null}</p>)}<p className="wsx-take"><b>What to remember</b>{activity.l.takeaway}</p><Link className="link" href={`/learn/courses/${activity.c.id}/${activity.l.id}`}>Open the full lesson</Link></div>
+                    </MobileDetails>
+                  </>
+                ) : <p className="wsx-prompt">{activity.t}</p>}
+              </section>
+            );
+          })}
 
-          {!finished && (
-            <nav className="wsx-nav" aria-label="Workshop activities">
-              <button type="button" className="btn" disabled={step === 0} onClick={() => move(step - 1)}><ArrowLeft size={16} aria-hidden />Back</button>
-              <button type="button" className="btn is-ink" onClick={() => (step === p.steps.length - 1 ? setFinished(true) : move(step + 1))}>{step === p.steps.length - 1 ? "Finish the session" : "Next activity"}<ArrowRight size={16} aria-hidden /></button>
-            </nav>
-          )}
+          <section id={`act-${p.id}-${last}`} data-i={last} className={`wsx-card is-finish${now === last ? " is-now" : ""}`} aria-labelledby="wsx-close">
+            <p className="wsx-time">To close</p>
+            <h3 id="wsx-close">Take it beyond the room.</h3>
+            <p className="wsx-prompt">Ask each person to name one observation they can support and one thing they will do differently.</p>
+            <div className="wsx-row"><Link className="btn is-ink" href="/learn/resources">Practise a report</Link></div>
+          </section>
 
           <MobileDetails label="Full plan and safeguarding" className="wsx-fold wsx-plan">
             <ol>{p.steps.map((s, i) => <li key={i}><b>{s.m} min</b><span>{"l" in s ? s.l.title : s.t}</span></li>)}</ol>

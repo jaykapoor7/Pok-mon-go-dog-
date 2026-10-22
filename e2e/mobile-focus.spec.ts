@@ -27,10 +27,10 @@ test("landing closes in one night section that carries the footer", async ({ pag
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
-test("the WhatsApp thread is driven by scrolling, forwards and back, and stays a labelled pilot", async ({ page }) => {
+test("the WhatsApp thread is driven by scrolling, forwards and back, with no labels", async ({ page }) => {
   await page.goto("/");
   const thread = page.locator("#one-request");
-  await expect(thread).toContainText("WhatsApp intake is a pilot and is not open to the public yet");
+  await expect(thread).not.toContainText(/pilot|illustrative|preview/i);
   await expect(thread.getByRole("button")).toHaveCount(0);
   await scrollThrough(page, ".rt-track", 0);
   await expect(thread.locator(".rt-msg")).toHaveCount(0);
@@ -114,14 +114,18 @@ test("More is grouped and closes without losing the workspace", async ({ page })
   await expect(page).toHaveURL(/\/ngo$/);
 });
 
-test("workshops run one activity at a time and pair attributed originals", async ({ page }) => {
+test("workshops scroll through every activity and pair attributed originals", async ({ page }) => {
   await page.goto("/learn/workshops");
-  await expect(page.locator(".wsx-card")).toHaveCount(1);
-  await page.getByRole("button", { name: "Next activity", exact: true }).click();
-  await expect(page.locator(".wsx-card .ex")).toBeVisible();
-  await expect(page.locator(".wsx-card")).toContainText("A calm encounter");
+  await expect(page.getByRole("button", { name: /^(Next activity|Back|Finish the session)$/ })).toHaveCount(0);
+  await expect(page.locator(".wsx-card")).toHaveCount(6);
+  const second = page.locator(".wsx-card").nth(1);
+  await expect(second).toContainText("A calm encounter");
+  await second.scrollIntoViewIfNeeded();
+  await expect(second.locator(".ex")).toBeVisible();
+  await expect(page.locator(".wsx-track li.is-now")).toHaveCount(1);
   await page.getByRole("radio", { name: /Reading a map/ }).click();
-  await expect(page.locator(".wsx-card")).toContainText("Activity 1 of 6");
+  await expect(page.locator(".wsx-card")).toHaveCount(7);
+  await expect(page.locator(".wsx-card").first()).toContainText("Activity 1 of 6");
   await expect(page.locator(".kh.is-pair .kh-doc")).toHaveCount(1);
   await expect(page.locator(".kh.is-pair a.btn")).toHaveAttribute("href", /drive.google.com\/file\/d\//);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

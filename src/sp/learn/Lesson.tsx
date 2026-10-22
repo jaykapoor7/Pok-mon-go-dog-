@@ -13,6 +13,7 @@ import { useProgress } from "./progress";
 import { MobileDetails } from "../ui/MobileDetails";
 import "./learn.css";
 import "./academy-focus.css";
+import "./academy.css";
 
 export function Lesson({ course, lesson }: { course: string; lesson: string }) {
   const f = findLesson(course, lesson)!;

@@ -47,6 +47,20 @@ html body .restored-landing .ld-close::before { display: none; }
   .restored-landing .rx-caption { font-size: 11px; line-height: 1.5; }
 }
 
+/* The phone deck: a strip of real profiles under the thumb. */
+.rx-swipe { display: grid; grid-auto-flow: column; grid-auto-columns: min(340px, 84%); column-gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 4px 2px 12px; }
+.rx-swipe::-webkit-scrollbar { display: none; }
+.rx-swipe-card { display: block; scroll-snap-align: start; color: inherit; text-decoration: none; }
+.rx-swipe-card .rx-card { height: 100%; box-sizing: border-box; animation: none; }
+.rx-swipe-card .rx-card .rx-stamp { animation: none; }
+.rx-swipe-card:focus-visible { outline: 3px solid #8fb7ff; outline-offset: 3px; border-radius: 12px; }
+.rx.is-calm .rx-deck { max-width: none; }
+@media (max-width: 760px) {
+  .restored-landing .rx.is-calm .rx-deck { max-width: none; margin: 0 -20px; width: auto; }
+  .restored-landing .rx.is-calm .rx-swipe { padding-inline: 20px; scroll-padding-inline: 20px; }
+  .restored-landing .rx.is-calm .rx-deck-foot { padding: 0 20px; }
+}
+
 /* ── A few things to know: a light pause before the close ────────── */
 .lx-faq { background: #f3ede4; color: #0b1e3d; padding: clamp(64px, 9vw, 112px) var(--sp-gutter, 5vw); }
 .lx-faq-in { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.3fr); gap: clamp(32px, 6vw, 96px); align-items: start; }

@@ -9,17 +9,16 @@ test("the audience navigation has exactly five ordered, distinct destinations",a
  await disclosure.focus();await page.keyboard.press("ArrowDown");await expect(links.first()).toBeFocused();
  await links.getByText("Feeders",{exact:true}).click();await expect(page).toHaveURL(/\/for-feeders$/);await expect(page.getByRole("heading",{level:1})).toContainText("Know the animals");
 });
-test("the WhatsApp example stays separate from real reports and names its limits",async({page})=>{
+test("the WhatsApp story never writes to the record",async({page})=>{
  const writes:string[]=[];await page.route("**/api/**",async route=>{if(route.request().method()!=="GET"){writes.push(route.request().url());await route.abort();}else await route.continue();});
  await page.goto("/");
- await expect(page.locator(".rt-note")).toContainText("Acceptance and care depend on participating teams");
- await expect(page.locator(".rt-pilot")).toHaveText("Pilot");
+ await expect(page.locator("#one-request")).not.toContainText(/pilot/i);
  await page.evaluate(()=>{const el=document.querySelector(".rt-track")!;const r=el.getBoundingClientRect();window.scrollTo({top:r.bottom+scrollY-innerHeight,behavior:"instant"});});
  await expect(page.locator(".rt-city")).toBeVisible();expect(writes).toEqual([]);
 });
-test("WhatsApp is presented as a pilot without invented prices",async({page})=>{
- await page.goto("/for-ngos");await expect(page.getByRole("heading",{name:"WhatsApp reporting, in pilot."})).toBeVisible();
- await expect(page.getByRole("link",{name:"Ask about the WhatsApp pilot"})).toHaveAttribute("href",/WhatsApp%20CareOS%20pilot/);
+test("WhatsApp is presented as launched without invented prices",async({page})=>{
+ await page.goto("/for-ngos");await expect(page.getByRole("heading",{name:"WhatsApp, connected through CareOS."})).toBeVisible();
+ await expect(page.getByRole("link",{name:"Get WhatsApp access"})).toHaveAttribute("href",/WhatsApp%20CareOS%20access/);
  await expect(page.locator("main")).not.toContainText(/backend is not deployed|Concept only|waitlist/);
  await page.goto("/for-governments#pilot");await expect(page.locator("#pilot")).toContainText("four-to-six-week");await expect(page.locator("#pilot")).toContainText("fees and deliverables are agreed");
 });

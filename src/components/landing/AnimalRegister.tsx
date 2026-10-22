@@ -17,14 +17,14 @@
    card is ringed where it sits in the crowd: one profile, out of many.
 
    Holding the pointer or focus on the card holds the deal (only the card;
-   the crowd keeps moving). Off screen, nothing deals. Under reduced
-   motion nothing moves on its own: the card changes with the arrows and
-   the crowd becomes scrollable strips.
+   the crowd keeps moving). Off screen, nothing deals. On a phone, and
+   under reduced motion, nothing deals on its own: the deck becomes a
+   strip of cards the reader swipes, each opening its profile.
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { sized } from "@/lib/photo/src";
 import { FramedPhoto } from "./FramedPhoto";
 import { cleanPlace } from "@/lib/utils";
@@ -67,7 +67,7 @@ function headline(c: RegisterFocus): string {
   return c.straypaw_id ?? (place ? `Animal in ${place}` : "Animal record");
 }
 
-function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
+function Card({ c, out, lazy }: { c: RegisterFocus; out?: boolean; lazy?: boolean }) {
   const ster = sterMark(c.sterilisation);
   const vac = vacMark(c.vaccination);
   const since = monthYear(c.first_seen);
@@ -80,7 +80,7 @@ function Card({ c, out }: { c: RegisterFocus; out?: boolean }) {
         <b>{c.straypaw_id ?? "On file"}</b>
       </header>
       <div className="rx-card-photo">
-        <FramedPhoto src={sized(c.cover_photo, 720)} alt={`${headline(c)}, photograph from this animal’s record`} sid={c.straypaw_id} priority />
+        <FramedPhoto src={sized(c.cover_photo, 720)} alt={`${headline(c)}, photograph from this animal’s record`} sid={c.straypaw_id} priority={!lazy} lazy={lazy} />
       </div>
       <div className="rx-card-body">
         <span className="rx-stamp" aria-hidden><small>On file</small><b>{c.city ?? "India"}</b></span>
@@ -172,6 +172,7 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
   const [idx, setIdx] = useState(0);
   const [tick, setTick] = useState(0);
   const [prev, setPrev] = useState<RegisterFocus | null>(null);
+  const swipe = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const m = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 760px)");
@@ -211,6 +212,14 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
     setTick((t) => t + 1);
   };
   const running = !calm && seen && !hold;
+  /* On a phone the deck is a strip the reader swipes; the count follows it. */
+  const onSwipe = () => {
+    const el = swipe.current; if (!el) return;
+    const card = el.firstElementChild as HTMLElement | null;
+    const w = card ? card.getBoundingClientRect().width + parseFloat(getComputedStyle(el).columnGap || "0") : el.clientWidth;
+    const i = Math.max(0, Math.min(n - 1, Math.round(el.scrollLeft / Math.max(1, w))));
+    if (i !== idx % n) setIdx(i);
+  };
 
   return (
     <section ref={setEl} className={`rx${calm ? " is-calm" : ""}${hold || !seen ? " is-paused" : ""}`} aria-labelledby="rx-title">
@@ -234,12 +243,18 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
           onFocus={() => setHold(true)}
           onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHold(false); }}
         >
-          <div className="rx-stack">
-            <span className="rx-sheet is-b" aria-hidden />
-            <span className="rx-sheet is-a" aria-hidden />
-            <Card key={`in-${cur.id}-${tick}`} c={cur} />
-            {prev && <Card key={`out-${prev.id}-${tick}`} c={prev} out />}
-          </div>
+          {calm ? (
+            <div ref={swipe} className="rx-swipe" onScroll={onSwipe} role="group" aria-label="Animal profiles, swipe to browse">
+              {deck.map((c, i) => <Link key={c.id} href={`/animal/${c.id}`} className="rx-swipe-card" aria-label={`${headline(c)}, open profile`}><Card c={c} lazy={i > 1} /></Link>)}
+            </div>
+          ) : (
+            <div className="rx-stack">
+              <span className="rx-sheet is-b" aria-hidden />
+              <span className="rx-sheet is-a" aria-hidden />
+              <Card key={`in-${cur.id}-${tick}`} c={cur} />
+              {prev && <Card key={`out-${prev.id}-${tick}`} c={prev} out />}
+            </div>
+          )}
 
           <div className="rx-deck-foot">
             <span className="rx-prog-track" aria-hidden>
@@ -253,8 +268,6 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
               )}
             </span>
             <div className="rx-deck-row">
-              <button type="button" className="rx-nav" aria-label="Previous dog" onClick={() => go(-1)}><ChevronLeft size={16} aria-hidden /></button>
-              <button type="button" className="rx-nav" aria-label="Next dog" onClick={() => go(1)}><ChevronRight size={16} aria-hidden /></button>
               <span className="rx-count sys-mono">{String((idx % n) + 1).padStart(2, "0")} / {n}</span>
               <Link href={`/animal/${cur.id}`} className="rx-open">Open profile <ArrowUpRight size={14} aria-hidden /></Link>
             </div>

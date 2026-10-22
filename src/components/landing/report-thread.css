@@ -6,7 +6,6 @@
   background: #f3ede4; color: var(--rt-ink); padding: clamp(72px, 9vw, 120px) var(--sp-gutter, 5vw) clamp(56px, 7vw, 96px); }
 .rt-head { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); grid-template-areas: "kicker kicker" "title lede"; gap: 0 clamp(32px, 6vw, 96px); align-items: end; }
 .rt-kicker { grid-area: kicker; display: flex; align-items: center; gap: 10px; margin: 0 0 20px; font-size: 14px; font-weight: 600; color: var(--rt-dim); }
-.rt-pilot { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #0b1e3d; color: #fffdf9; font-size: 12px; font-weight: 700; letter-spacing: .02em; }
 .rt-head h2 { grid-area: title; margin: 0; font: 600 clamp(40px, 4.8vw, 68px)/1.02 var(--font-sans), sans-serif; letter-spacing: -.045em; }
 .rt-lede { grid-area: lede; margin: 0; max-width: 36ch; font-size: 18px; line-height: 1.55; color: var(--rt-dim); }
 

@@ -117,23 +117,22 @@
 .sp .wsx-pick button[aria-checked="true"] { border-color: var(--ink); background: var(--shell); box-shadow: inset 4px 0 0 #b65a3a; }
 .sp .wsx-pick b { font-size: 17px; font-weight: 650; }
 .sp .wsx-pick span { display: flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--mute); }
-.sp .wsx-run { display: grid; gap: 18px; min-width: 0; }
-.sp .wsx-track { display: flex; list-style: none; margin: 0; padding: 0; }
+.sp .wsx-run { display: grid; gap: 20px; min-width: 0; }
+.sp .wsx-track { position: sticky; top: 56px; z-index: 3; display: flex; list-style: none; margin: 0; padding: 8px 0; background: var(--paper); }
 .sp .wsx-track li { flex: 1; display: flex; align-items: center; }
 .sp .wsx-track li:not(:last-child)::after { content: ""; flex: 1; height: 2px; margin: 0 6px; background: var(--line); }
 .sp .wsx-track li.is-past::after { background: var(--ink); }
-.sp .wsx-track button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; }
-.sp .wsx-track button span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #9aa5b5; font-size: 13px; font-weight: 700; color: var(--mute); transition: background-color .2s, border-color .2s, color .2s; }
-.sp .wsx-track li.is-past button span { border-color: var(--ink); background: var(--ink); color: #fffdf9; }
-.sp .wsx-track li.is-now button span { border-color: #b65a3a; background: #b65a3a; color: #fffdf9; }
-.sp .wsx-card { display: grid; gap: 16px; align-content: start; min-height: 280px; padding: clamp(20px, 3vw, 32px); border-radius: 20px; background: var(--shell); animation: wsx-in .3s cubic-bezier(.23, 1, .32, 1) both; }
+.sp .wsx-track a { display: grid; place-items: center; width: 44px; height: 44px; text-decoration: none; }
+.sp .wsx-track a span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #9aa5b5; font-size: 13px; font-weight: 700; color: var(--mute); transition: background-color .2s, border-color .2s, color .2s; }
+.sp .wsx-track li.is-past a span { border-color: var(--ink); background: var(--ink); color: #fffdf9; }
+.sp .wsx-track li.is-now a span { border-color: #b65a3a; background: #b65a3a; color: #fffdf9; }
+.sp .wsx-card { display: grid; gap: 16px; align-content: start; padding: clamp(20px, 3vw, 32px); border-radius: 20px; background: var(--shell); scroll-margin-top: 136px; opacity: .62; transition: opacity .35s cubic-bezier(.23, 1, .32, 1); }
+.sp .wsx-card.is-now { opacity: 1; }
 .sp .wsx-time { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0; font-size: 14px; font-weight: 600; color: var(--mute); }
 .sp .wsx-card h3 { margin: 0; font: 650 clamp(24px, 2.8vw, 32px)/1.15 var(--sans); letter-spacing: -.035em; }
 .sp .wsx-prompt { margin: 0; max-width: 60ch; font-size: 18px; line-height: 1.6; }
 .sp .wsx-ex { padding: 16px; border-radius: 14px; background: var(--paper); }
 .sp .wsx-row { display: flex; flex-wrap: wrap; gap: 10px; }
-.sp .wsx-nav { display: flex; justify-content: space-between; gap: 10px; }
-.sp .wsx-nav .btn { min-height: 50px; padding: 0 22px; }
 .sp .wsx-fold { border-top: 1px solid var(--line); }
 .sp .wsx-bg { display: grid; gap: 10px; padding-bottom: 12px; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
 .sp .wsx-bg p { margin: 0; }
@@ -199,10 +198,14 @@
   .sp .wsx-card { min-height: 0; padding: 20px 16px; border-radius: 16px; }
   .sp .wsx-prompt { font-size: 16.5px; }
   .sp .wsx-ex { padding: 12px; margin: 0 -4px; }
-  .sp .wsx-nav .btn { flex: 1; }
   .sp .rs-kh { margin: 0 16px 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .sp .wsx-card { animation: none; }
-  .sp .acx-bar i, .sp .acx-lessons a > svg, .sp .acx-doors svg, .sp .wsx-track button span { transition: none; }
+  .sp .wsx-card { transition: none; }
+  .sp .acx-bar i, .sp .acx-lessons a > svg, .sp .acx-doors svg, .sp .wsx-track a span { transition: none; }
 }
+
+/* Quizzes: every question on the page, answered in any order. */
+.sp .ex-quiz > li + li { margin-top: 18px; }
+.sp .ex-quiz .ex-q { display: flex; gap: 10px; align-items: baseline; }
+.sp .ex-qn { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: #fffdf9; font-size: 12px; font-weight: 700; transform: translateY(-1px); }

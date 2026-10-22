@@ -128,7 +128,6 @@ const DENOM: Q[] = [
 ];
 function Quiz({ onDone, items, multi }: P & { items: Q[]; multi?: boolean }) {
   const [ans, setAns] = useState<Record<number, Set<number>>>({});
-  const [current, setCurrent] = useState(0);
   const pick = (qi: number, oi: number) => {
     const cur = new Set(multi ? ans[qi] ?? [] : []); if (cur.has(oi) && multi) cur.delete(oi); else cur.add(oi);
     const next = { ...ans, [qi]: cur };
@@ -137,10 +136,10 @@ function Quiz({ onDone, items, multi }: P & { items: Q[]; multi?: boolean }) {
   };
   return (
     <ol className="ex ex-quiz">
-      <li className="ex-question-progress">Question {current + 1} of {items.length}{multi ? " · Choose every claim that holds" : ""}</li>
-      {items.map((q, qi) => qi === current && (
+      <li className="ex-question-progress">{Object.keys(ans).length} of {items.length} answered{multi ? " · Choose every claim that holds" : ""}</li>
+      {items.map((q, qi) => (
         <li key={qi}>
-          <p className="ex-q">{q.q}</p>
+          <p className="ex-q"><span className="ex-qn">{qi + 1}</span>{q.q}</p>
           <div className="ex-opts" role="group" aria-label={`Question ${qi + 1}`}>
             {q.opts.map((o, oi) => { const on = ans[qi]?.has(oi); return (
               <button key={oi} type="button" aria-pressed={!!on} className={`ex-opt${on ? (o.ok ? " is-ok" : " is-no") : ""}`} onClick={() => pick(qi, oi)}>
@@ -150,7 +149,6 @@ function Quiz({ onDone, items, multi }: P & { items: Q[]; multi?: boolean }) {
           </div>
         </li>
       ))}
-      {items.length > 1 && <li className="ex-question-nav"><button type="button" className="btn" disabled={current === 0} onClick={() => setCurrent(i => i - 1)}>Previous question</button><button type="button" className="btn" disabled={current === items.length - 1} onClick={() => setCurrent(i => i + 1)}>Next question</button></li>}
     </ol>
   );
 }
