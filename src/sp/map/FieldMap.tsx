@@ -109,9 +109,9 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     if (initialCities?.length) return;
     let live = true;
     const read = (left: number): void => {
-      api("/api/livingmap?kind=cities", scope).then((r) => (r.status === 401 ? "auth" : r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      api("/api/livingmap?kind=cities", scope).then((r) => (r.status === 401 ? "auth" : r.status === 402 ? Promise.reject(new Error("quota-exceeded")) : r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
         .then((j) => { if (!live) return; if (j === "auth") { setCitiesState("auth"); return; } setCities(j.cities ?? []); setUnplaced(j.unplaced ?? []); setCitiesState("ready"); })
-        .catch(() => { if (!live) return; if (left > 0) window.setTimeout(() => read(left - 1), 1200); else setCitiesState("error"); });
+        .catch((error) => { if (!live) return; if (String(error).includes("quota-exceeded")) { setCitiesState("error"); return; } if (left > 0) window.setTimeout(() => read(left - 1), 1200); else setCitiesState("error"); });
     };
     read(2);
     return () => { live = false; };
