@@ -69,6 +69,7 @@ export function Inbox() {
         </header>
         <PageBrief items={[["For", "Reports waiting for a person: sent to you, and community reports near you."], ["Watch", "Injured or unwell first."], ["Next", "File into a drive, or open a case."], ["After", "It leaves the inbox; the reporter’s receipt still says received, not accepted."]]} />
         <div className="ib-grid">
+          <label className="ib-mobile-source"><span className="label">Reports</span><select className="select" value={src} onChange={e => { setSrc(e.target.value as Source); setReceipt(null); }}><option value="ours">Sent to you ({counts.ours ?? "…"})</option><option value="community">Community in your areas ({counts.community ?? "…"})</option></select><small>WhatsApp intake is not connected for this organisation.</small></label>
           <nav className="ib-channels" aria-label="Channels">
             <p className="k">Channels</p>
             {(["ours", "community"] as Source[]).map((s) => (
@@ -77,7 +78,7 @@ export function Inbox() {
               </button>
             ))}
             <div className="ib-ch is-off" aria-disabled="true">
-              <span className="ib-dot" aria-hidden /><span><b><MessageCircle size={13} aria-hidden /> WhatsApp</b><small>Not connected. WhatsApp intake (CareOS) needs a backend that does not exist yet. Messages sent there do not reach StrayPaw.</small></span>
+              <span className="ib-dot" aria-hidden /><span><b><MessageCircle size={13} aria-hidden /> WhatsApp</b><small>WhatsApp intake is not connected for this organisation.</small></span>
             </div>
           </nav>
 

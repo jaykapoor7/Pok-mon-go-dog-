@@ -1,49 +1,43 @@
 "use client";
 
-/* ════════════════════════════════════════════════════════════════════
-   Education · Learn: the Academy home (decision 032).
-
-   A syllabus spread, not a course-card grid: four courses side by side,
-   each a numbered column of lessons in its own ink, with what this device
-   has completed ticked and one "continue" action. Progress is kept on the
-   device only. Partner material is credited where it is used (Workshops,
-   Resources), never folded into StrayPaw's own lessons.
-   ════════════════════════════════════════════════════════════════════ */
+/* Academy: one learning path at a time, with device-local progress, guided
+   workshops and the Foundation’s original, credited classroom documents. */
 
 import Link from "next/link";
+import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
-import { ArtSlot } from "../ui";
+import { KindHourLibrary } from "./KindHourLibrary";
 import { COURSES, lessonCount } from "./content";
 import { useProgress } from "./progress";
 import "./learn.css";
+import "./academy-focus.css";
 
 export function Academy() {
+  const [selected, setSelected] = useState(0);
   const { has, done, reset } = useProgress();
   const next = COURSES.flatMap((c) => c.lessons.map((l) => ({ c, l }))).find(({ c, l }) => !has(`${c.id}/${l.id}`));
   const n = COURSES.reduce((a, c) => a + c.lessons.filter((l) => has(`${c.id}/${l.id}`)).length, 0);
   return (
-    <div className="ac">
+    <div className="ac academy-focus">
       <header className="ac-cover">
         <div className="ac-title">
-          <p className="k">Education · StrayPaw Learning Academy</p>
-          <h1 className="display">Learn to read the street, and the record</h1>
-          <p className="lede">Short lessons with something to do in each: what a map of animals can honestly say, how to stay safe, how populations change, and how to report well. Free, no account, nothing you do here is sent anywhere.</p>
+          <p className="k">StrayPaw Academy</p>
+          <h1 className="display">Understand the street.<br />Make a useful record.</h1>
+          <p className="lede">Learn through short exercises, or lead a group through a guided workshop. No account needed.</p>
           <div className="row">
             {next ? <Link className="btn is-ink" href={`/learn/courses/${next.c.id}/${next.l.id}`}>{n ? "Continue" : "Start"}: {next.l.title} <ArrowRight size={15} aria-hidden /></Link> : <span className="pill is-care">Every lesson done on this device</span>}
-            <Link className="btn" href="/learn/workshops">Plan a workshop</Link>
+            <Link className="btn" href="/learn/workshops">Run a workshop</Link>
           </div>
           <p className="small ac-progress"><b>{n}</b> of {lessonCount} lessons done on this device.{done.length > 0 && <> <button type="button" className="link" onClick={reset}>Clear</button></>}</p>
         </div>
-        <ArtSlot id="academy-cover" />
       </header>
 
-      <section className="ac-spread" aria-label="Courses">
-        {COURSES.map((c, ci) => {
+      <section className="academy-courses" aria-labelledby="academy-courses-title"><h2 id="academy-courses-title">Choose what to explore.</h2>
+        <label className="field"><span className="label">Learning path</span><select className="select" value={selected} onChange={e => setSelected(Number(e.target.value))}>{COURSES.map((c, i) => <option key={c.id} value={i}>{c.title}</option>)}</select></label>
+        {COURSES.filter((_, i) => i === selected).map((c) => {
           const d = c.lessons.filter((l) => has(`${c.id}/${l.id}`)).length;
           return (
             <article key={c.id} className="ac-course" style={{ ["--ink" as string]: c.ink }}>
-              <ArtSlot id="academy-cover" variant={ci + 1} className="ac-art" />
-              <p className="ac-num serif" aria-hidden>{ci + 1}</p>
               <h2 className="serif">{c.title}</h2>
               <p className="ac-dek">{c.dek}</p>
               <p className="small">{c.audience} · {c.lessons.reduce((a, l) => a + l.minutes, 0)} min · {d}/{c.lessons.length} done</p>
@@ -58,9 +52,11 @@ export function Academy() {
         })}
       </section>
 
+      <KindHourLibrary />
+
       <section className="ac-more">
         <Link href="/learn/workshops" className="ac-door"><p className="k">Workshops</p><h2 className="serif">Run a session</h2><p>Ready session plans built from these lessons, and classroom material from The Kind Hour Foundation, credited and linked.</p></Link>
-        <Link href="/learn/resources" className="ac-door"><p className="k">Resources</p><h2 className="serif">Know where to turn</h2><p>Rescue helplines, what to do after a bite, education partners and printable cards.</p></Link>
+        <Link href="/learn/resources" className="ac-door"><p className="k">Practice &amp; resources</p><h2 className="serif">Make a useful report</h2><p>Practise describing an animal clearly, get feedback, and find local rescue contacts.</p></Link>
         <Link href="/learn/playground" className="ac-door"><p className="k">Playground</p><h2 className="serif">Try the models</h2><p>The model street and the precision lens, on their own. Illustrative, never a forecast.</p></Link>
       </section>
     </div>

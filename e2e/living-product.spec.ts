@@ -11,11 +11,12 @@ test("the audience navigation has exactly five ordered, distinct destinations",a
 });
 test("the restored example stays separate from real reports and names its limits",async({page})=>{
  const writes:string[]=[];await page.route("**/api/**",async route=>{if(route.request().method()!=="GET"){writes.push(route.request().url());await route.abort();}else await route.continue();});
- await page.goto("/");await page.evaluate(()=>{const el=document.querySelector("#one-request")!;window.scrollTo(0,el.getBoundingClientRect().top+scrollY+(el.clientHeight-innerHeight)*.265);});
- const send=page.getByRole("button",{name:"Send the example report and watch StrayPaw respond"});await expect(send).toBeEnabled();await send.click();
- await expect(page.locator(".cv")).toHaveAttribute("data-phase","d",{timeout:12000});
- await expect(page.locator(".cv-disclosure")).toContainText("No guaranteed acceptance");await expect(page.locator(".cv-ev")).toContainText("Day 7");
- await page.getByRole("button",{name:"Replay the chain from the message"}).click();await expect(page.locator(".cv")).toHaveAttribute("data-phase","c");expect(writes).toEqual([]);
+ await page.goto("/");
+ await page.getByRole("button",{name:"Send example report",exact:true}).click();
+ await expect(page.locator(".rs-record")).toContainText("Review required");
+ await expect(page.locator(".request-story-note")).toContainText("Acceptance and care depend on participating teams");
+ await page.locator(".request-story-steps button").nth(3).click();await expect(page.locator(".rs-city")).toBeVisible();
+ await page.locator(".request-story-controls").getByRole("button",{name:"Replay",exact:true}).click();await expect(page.locator(".rs-chat")).toBeVisible();expect(writes).toEqual([]);
 });
 test("WhatsApp is presented as launched without invented prices",async({page})=>{
  await page.goto("/for-ngos");await expect(page.getByRole("heading",{name:"WhatsApp, connected through CareOS."})).toBeVisible();

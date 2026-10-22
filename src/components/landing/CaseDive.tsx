@@ -97,7 +97,7 @@ export function CaseDive({ j, city, box, rings, events }: {
   useEffect(() => {
     /* The map dive and case timeline follow the reader's scroll. People who
        request reduced motion get the complete final record in one frame. */
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 760px)").matches;
     if (reduce) {
       setCalm(true);
       setT({ step: steps.length - 1, day: j.days, arrived: true });

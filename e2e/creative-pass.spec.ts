@@ -78,13 +78,14 @@ test("the restored landing keeps the white cartoonish nav and current WhatsApp g
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
  await expect(page.locator(".sp-header-bar")).toHaveCSS("background-color","rgb(255, 253, 249)");
  await expect(page.locator(".faq-asterisk,.faq-ledger")).toHaveCount(0);
- const map=page.locator(".cv-map");await expect(map.locator("svg")).toBeAttached();
- expect(await map.locator("circle").count()).toBeGreaterThan(0);await expect(map).not.toContainText(/No area sample available|Public record/);
- await expect(page.locator(".cv-city ol li").first()).toBeAttached();
+ await page.locator(".request-story-steps button").nth(3).click();
+ const map=page.locator(".rs-city");await expect(map.locator("svg")).toBeAttached();
+ expect(await map.locator("circle").count()).toBeGreaterThan(0);await expect(map).not.toContainText(/No area sample available/);
+ await expect(map.locator(".rs-city-caption")).toContainText("recorded areas");
 });
-test("reduced motion shows the complete original request and removes ambient movement",async({page})=>{
+test("reduced motion keeps the guided story manual and removes ambient movement",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");const section=page.locator("#one-request");await section.scrollIntoViewIfNeeded();
- await expect(section.locator(".cv-ev")).toBeVisible();await expect(section).toContainText("Day 7");
+ await section.locator(".request-story-steps button").nth(2).click();await expect(section.locator(".rs-record")).toContainText("Follow-up, if recorded");
  await expect(page.locator("#request-journey .ld-dive-day b")).toBeVisible();
  expect(await section.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==="running").length)).toBe(0);
 });

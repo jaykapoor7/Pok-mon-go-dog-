@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { COURSES, findLesson } from "./content";
 import { Exercise } from "./Interactives";
 import { useProgress } from "./progress";
+import { MobileDetails } from "../ui/MobileDetails";
 import "./learn.css";
 
 export function Lesson({ course, lesson }: { course: string; lesson: string }) {
@@ -21,11 +22,11 @@ export function Lesson({ course, lesson }: { course: string; lesson: string }) {
   const nextCourse = !f.next ? COURSES[COURSES.findIndex((c) => c.id === f.c.id) + 1] ?? null : null;
   return (
     <div className="ls" style={{ ["--ink" as string]: f.c.ink }}>
-      <aside className="ls-rail" aria-label={f.c.title}>
+      <MobileDetails label="Other lessons in this path" className="lesson-nav-fold"><aside className="ls-rail" aria-label={f.c.title}>
         <Link className="link small" href="/learn"><ArrowLeft size={13} aria-hidden /> Academy</Link>
         <p className="k">{f.c.title}</p>
         <ol>{f.c.lessons.map((l, i) => <li key={l.id}><Link href={`/learn/courses/${f.c.id}/${l.id}`} aria-current={l.id === f.l.id ? "page" : undefined} className={has(`${f.c.id}/${l.id}`) ? "is-done" : ""}><span className="ac-tick" aria-hidden>{has(`${f.c.id}/${l.id}`) ? <Check size={12} /> : i + 1}</span>{l.title}</Link></li>)}</ol>
-      </aside>
+      </aside></MobileDetails>
       <article className="ls-main">
         <p className="k">Lesson {f.i + 1} of {f.c.lessons.length} · {f.l.minutes} min</p>
         <h1 className="display">{f.l.title}</h1>

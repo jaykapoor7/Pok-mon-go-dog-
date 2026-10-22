@@ -5,6 +5,7 @@
 import type { ReactNode } from "react";
 import { ART_SLOTS, INTERIM } from "./slots";
 import { FOLK_CUTOUTS, FOLK_PANELS, WORKS, type CutoutKey } from "@/lib/art/sources";
+import { MobileDetails } from "./MobileDetails";
 
 /* ── art slots ───────────────────────────────────────────────────────
    A commissioned artwork belongs here. Until a named artist's licensed
@@ -71,7 +72,7 @@ export function State({ kind = "empty", title, children, action, art }: { kind?:
 
 /* ── page brief: what a working page is for, what to watch, what to do, what happens after ── */
 export function PageBrief({ items }: { items: [string, ReactNode][] }) {
-  return <dl className="brief">{items.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>;
+  return <MobileDetails label="About this page" className="brief-fold"><dl className="brief">{items.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl></MobileDetails>;
 }
 
 /* ── write acknowledgement (decision 043): draft, pending, saved, failed, offline ── */

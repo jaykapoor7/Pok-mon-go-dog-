@@ -174,7 +174,7 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
   const [prev, setPrev] = useState<RegisterFocus | null>(null);
 
   useEffect(() => {
-    const m = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const m = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 760px)");
     const sync = () => setCalm(m.matches);
     sync(); m.addEventListener("change", sync);
     return () => m.removeEventListener("change", sync);
