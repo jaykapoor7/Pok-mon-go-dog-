@@ -61,13 +61,16 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     ],
     action: { href: "/ngo/cases/new", label: "New case", short: "New" },
     index: [
+      { label: "Your register", links: [
+        { href: "/ngo/import", label: "Import your register", note: "Excel or CSV, as your team keeps it" },
+        { href: "/ngo/animals", label: "Animals", note: "Every animal on your register" },
+      ] },
       { label: "Work", links: [
         { href: "/ngo/inbox", label: "Inbox & triage", note: "New reports and offers" },
         { href: "/ngo/review", label: "Historical review", note: "Imported statuses, never today's work" },
         { href: "/ngo/field", label: "Field mode", note: "Phone, one hand" },
       ] },
       { label: "Registers & reporting", links: [
-        { href: "/ngo/import", label: "Import a workbook", note: "Map, review, release" },
         { href: "/ngo/programmes", label: "Programmes", note: "ABC / ARV drives, surveys" },
         { href: "/ngo/proof", label: "Reports & proof", note: "Evidence on demand" },
       ] },

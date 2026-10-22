@@ -1,0 +1,82 @@
+/* NGO · Import your register. One column, one decision, one button. */
+.sp .imx { max-width: 900px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) clamp(16px, 4vw, 32px) 64px; box-sizing: border-box; color: var(--ink); }
+.sp .imx-head { display: grid; gap: 12px; margin-bottom: 28px; }
+.sp .imx-head .k { margin: 0; }
+.sp .imx-head h1 { margin: 0; font: 650 clamp(32px, 4.4vw, 48px)/1.05 var(--sans); letter-spacing: -.035em; }
+.sp .imx-head > p:last-child { margin: 0; max-width: 62ch; font-size: 16.5px; line-height: 1.6; color: var(--ink-2); }
+.sp .imx-err { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 20px; padding: 12px 14px; border-radius: 12px; background: #fff1ec; color: #8a2d16; font-size: 15px; line-height: 1.5; }
+.sp .imx-err svg { flex: none; margin-top: 3px; }
+
+.sp .imx-drop { position: relative; display: grid; justify-items: center; gap: 10px; padding: clamp(36px, 7vw, 64px) 20px; border: 1.5px dashed rgba(11, 30, 61, .3); border-radius: 22px; background: var(--paper); text-align: center; cursor: pointer; transition: border-color .15s, background-color .15s; }
+.sp .imx-drop:hover, .sp .imx-drop:focus-within, .sp .imx-drop.is-over { border-color: var(--blue); background: var(--blue-soft); }
+.sp .imx-drop svg { color: var(--blue); }
+.sp .imx-drop b { font-size: 18px; font-weight: 650; }
+.sp .imx-drop small { max-width: 44ch; font-size: 14px; line-height: 1.5; color: var(--mute); }
+.sp .imx-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.sp .imx-drop:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: 3px; }
+.sp .imx-spin { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--blue-soft); border-top-color: var(--blue); animation: imx-spin .8s linear infinite; }
+@keyframes imx-spin { to { transform: rotate(360deg); } }
+
+.sp .imx-past { margin-top: 32px; }
+.sp .imx-past h2 { margin: 0 0 8px; font: 650 14px var(--sans); color: var(--mute); }
+.sp .imx-past ul { list-style: none; margin: 0; padding: 0; }
+.sp .imx-past li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.sp .imx-past li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp .imx-past small { font-size: 13px; color: var(--mute); }
+
+.sp .imx-found { padding: 24px 0; border-top: 1.5px solid var(--ink); }
+.sp .imx-file { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 14px; color: var(--mute); }
+.sp .imx-found h2 { margin: 0; font: 650 clamp(24px, 3vw, 30px)/1.2 var(--sans); letter-spacing: -.03em; }
+.sp .imx-what { margin: 8px 0 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.sp .imx-note { margin: 8px 0 0; font-size: 14px; color: var(--mute); }
+
+.sp .imx-sheets { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.sp .imx-sheet { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.sp .imx-sheet.is-skip { opacity: .6; }
+.sp .imx-sheet-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.sp .imx-sheet-name { display: grid; gap: 3px; min-width: 0; }
+.sp .imx-sheet-name b { font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+.sp .imx-sheet-name small { font-size: 13.5px; color: var(--mute); }
+.sp .imx-kind .select { min-height: 42px; min-width: 190px; font-size: 14px; }
+.sp .imx-sheet-facts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.sp .imx-year { min-height: 32px; padding: 0 6px; border: 1px solid var(--line-2, rgba(11, 30, 61, .2)); border-radius: 8px; background: var(--paper); color: var(--ink); font: 600 13.5px var(--sans); }
+.sp .imx-cols { margin-top: 8px; }
+.sp .imx-cols > summary { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--blue); }
+.sp .imx-cols > summary::-webkit-details-marker { display: none; }
+.sp .imx-cols[open] > summary svg { transform: rotate(180deg); }
+.sp .imx-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 16px; padding: 8px 0 4px; }
+.sp .imx-fields label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.sp .imx-fields .select { min-height: 40px; font-size: 14px; }
+
+.sp .imx-go { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 24px; }
+.sp .imx-btn { min-height: 54px; padding: 0 24px; font-size: 16px; gap: 10px; }
+.sp .imx-progress { display: grid; gap: 10px; margin-top: 24px; }
+.sp .imx-bar { height: 8px; border-radius: 4px; background: var(--shell); overflow: hidden; }
+.sp .imx-bar i { display: block; height: 100%; border-radius: 4px; background: var(--blue); transition: width .4s cubic-bezier(.23, 1, .32, 1); }
+.sp .imx-progress p { margin: 0; font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.sp .imx-progress .btn { justify-self: start; }
+
+.sp .imx-done { padding-top: 24px; border-top: 1.5px solid var(--ink); }
+.sp .imx-ok { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 15px; font-weight: 650; color: #1f6f80; }
+.sp .imx-done h2 { margin: 0 0 20px; font: 650 clamp(24px, 3vw, 32px)/1.2 var(--sans); letter-spacing: -.03em; }
+.sp .imx-figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; margin: 0 0 20px; border-top: 1px solid var(--line); }
+.sp .imx-figs div { padding: 14px 16px 14px 0; border-bottom: 1px solid var(--line); }
+.sp .imx-figs dt { font-size: 13px; color: var(--mute); }
+.sp .imx-figs dd { margin: 4px 0 0; font: 650 28px/1 var(--sans); font-variant-numeric: tabular-nums; }
+.sp .imx-held { margin-bottom: 16px; }
+.sp .imx-held > summary { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; list-style: none; cursor: pointer; font-weight: 600; color: var(--blue); }
+.sp .imx-held > summary::-webkit-details-marker { display: none; }
+.sp .imx-held ul { list-style: none; margin: 0; padding: 0; max-height: 280px; overflow: auto; }
+.sp .imx-held li { display: grid; gap: 2px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.sp .imx-held .mono { font-size: 12px; color: var(--mute); }
+.sp .imx :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 8px; }
+
+@media (max-width: 640px) {
+  .sp .imx-sheet-top { flex-direction: column; align-items: stretch; gap: 10px; }
+  .sp .imx-kind .select { width: 100%; }
+  .sp .imx-go { display: grid; }
+  .sp .imx-go .btn { width: 100%; justify-content: center; }
+  .sp .imx-past li { grid-template-columns: 18px minmax(0, 1fr); }
+  .sp .imx-past small { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .sp .imx-spin { animation-duration: 2.4s; } .sp .imx-bar i { transition: none; } }

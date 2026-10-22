@@ -1,5 +1,42 @@
 # Imports & spatial refresh
 
+## Workspace import (NGOs, self-serve)
+
+An organisation imports its own register from **NGO → Import your register**
+(`/ngo/import`, also on the Work dashboard, the Animals page and the top of
+the NGO "More" menu). No operator step is needed.
+
+- **Read in the browser** (`src/lib/ngo-import/read.ts`): every sheet; the
+  header row is found under title rows; sheets are recognised by name and
+  columns (rescue, treatment, vaccination, sterilisation, follow-up,
+  adoption, animal list; finance/staff/summary sheets are left out);
+  columns are matched by meaning; contact columns (informer, caller, phone,
+  owner…) are dropped before anything is sent. Dates are read day-first,
+  from date cells, Excel serials and text; "26-Oct" takes its sheet's year,
+  advancing when months wrap and never landing in the future, and the
+  person can set that year per sheet. CSV cells stay text so SheetJS never
+  reads them the American way.
+- **Written in chunks of 50** (`src/lib/ngo-import/write.ts`, route
+  `src/app/api/partner/import`): `start` opens or resumes the batch for the
+  same workbook, `rows` writes a chunk, `finish` closes it. The browser
+  retries a failed chunk and can continue from where it stopped.
+- **Idempotent across imports**: records carry
+  `import_source_key = ngo:<org>:rec:<content hash>` and animals
+  `ngo:<org>:animal:<animal ID | name@locality | rec:<hash>>`. Existing
+  keys are skipped, so re-importing the register, or a longer copy, adds
+  only new rows. An animal ID the team already uses links to that animal.
+- **Places**: register GPS; else the locality, geocoded once with Mapbox,
+  cached in `import_location_cache` and accepted only within ~45 km of the
+  city; else the city centre (`geographic_precision` says which).
+- Rows about other species or owned pets are held, with a reason; open
+  historical cases arrive as `needs_review` for Historical review.
+
+Tests: `npm run test:ngo-import` (reader on Pawsome-, Mission Rabies- and
+generic-shaped workbooks; writer against an in-memory database, including
+retries, re-imports and ID linking).
+
+## Operator master import
+
 Large third-party registers (e.g. the Kind Hour historical rescue ledger) are
 brought in through a staged import pipeline that is **chunked, resumable,
 idempotent and scoped to a city/source** — never a single giant transaction and

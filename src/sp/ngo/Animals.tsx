@@ -13,7 +13,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Download, Search } from "lucide-react";
+import { Download, Search, Upload } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { orgAnimals, orgZones, type OrgAnimal } from "@/lib/programme";
 import { downloadCsv } from "@/lib/csv";
@@ -59,7 +59,7 @@ export function Animals() {
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · register</p><h1 className="serif">Animals</h1></div>
           <p className="ngo-sum">{rows === null ? "Reading the register…" : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> animal{total === 1 ? "" : "s"} match. Unknown is kept apart from no in every filter.</>}</p>
-          <MobileDetails label="Import and export"><div className="row"><Link className="btn is-s" href="/ngo/import">Import a workbook</Link><button type="button" className="btn is-s" disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}><Download size={14} aria-hidden /> This page as CSV</button></div></MobileDetails>
+          <div className="row ngo-head-act"><Link className="btn is-ink is-s" href="/ngo/import"><Upload size={14} aria-hidden /> Import your register</Link><button type="button" className="btn is-s" disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}><Download size={14} aria-hidden /> This page as CSV</button></div>
         </header>
         <PageBrief items={[["For", "Every animal your organisation keeps, as a register."], ["Watch", "Needs help, and status not recorded (hatched), which is not no."], ["Next", "Open an animal to record care or open a case; export as CSV."], ["After", "Changes show on its public record without private details."]]} />
         <div className="wk-tools">
@@ -74,7 +74,7 @@ export function Animals() {
         <div className="reg" role="table" aria-label="Animal register">
           <div className="reg-row is-head" role="row"><span role="columnheader">Animal</span><span role="columnheader">Locality</span><span role="columnheader">Sterilisation</span><span role="columnheader">Vaccination</span><span role="columnheader">Last seen</span><span role="columnheader">Recorded by</span></div>
           {rows === null && Array.from({ length: 8 }, (_, i) => <div key={i} className="reg-row" aria-hidden><span className="skel" style={{ height: 40 }} /></div>)}
-          {rows !== null && !rows.length && <State art="ngo-empty" title={failed ? "Not read" : q || fl.ster || fl.vacc || fl.help || fl.zone ? "No animal matches" : "No animals in the register yet"} action={!failed && !q ? <Link className="btn is-ink" href="/ngo/import">Import your workbook</Link> : undefined}>{failed ? "Reload to try again." : "Change the search or filters. Animals your team records, and rows released from imports, appear here."}</State>}
+          {rows !== null && !rows.length && <State art="ngo-empty" title={failed ? "Not read" : q || fl.ster || fl.vacc || fl.help || fl.zone ? "No animal matches" : "No animals in the register yet"} action={!failed && !q ? <Link className="btn is-ink" href="/ngo/import">Import your register</Link> : undefined}>{failed ? "Reload to try again." : "Change the search or filters. Animals your team records, and rows released from imports, appear here."}</State>}
           {rows?.map((a) => {
             const t = animalTitle({ name: a.name, straypaw_id: a.straypaw_id, id: a.id });
             return (

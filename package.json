@@ -2,7 +2,7 @@
   "name": "straypaw-delhi",
   "version": "1.0.0",
   "private": true,
-  "description": "StrayPaw Delhi — a community-powered map for discovering and caring for Delhi's street dogs.",
+  "description": "StrayPaw Delhi \u2014 a community-powered map for discovering and caring for Delhi's street dogs.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -43,7 +43,8 @@
     "shoot": "node scripts/shoot.mjs",
     "import:kind-hour": "node scripts/import-kind-hour.mjs",
     "reel:snapshot": "node scripts/reels/snapshot.mjs",
-    "reel": "node scripts/reels/render.mjs"
+    "reel": "node scripts/reels/render.mjs",
+    "test:ngo-import": "node --import tsx scripts/test-ngo-import-read.ts && node --import tsx scripts/test-ngo-import-write.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

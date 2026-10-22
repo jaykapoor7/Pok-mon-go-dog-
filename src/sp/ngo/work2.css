@@ -124,3 +124,12 @@
   .sp .wk2:not(.show-map):not(.is-sheet) .wk2-stage > :not(.wk2-tomap) { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .sp .wk2 *, .sp .wk2 *::before { animation: none !important; transition: none !important; } }
+
+/* An organisation with nothing on the record yet starts from its register. */
+.sp .wk2-start { display: grid; grid-template-columns: 24px minmax(0, 1fr) 20px; gap: 16px; align-items: center; margin: 0 24px 16px; padding: 18px 20px; border-radius: 18px; background: var(--blue-soft); color: var(--ink); text-decoration: none; }
+.sp .wk2-start > svg { color: var(--blue); }
+.sp .wk2-start span { display: grid; gap: 4px; }
+.sp .wk2-start b { font-size: 17px; font-weight: 650; }
+.sp .wk2-start small { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+.sp .wk2-start:hover b { color: var(--blue); }
+@media (max-width: 760px) { .sp .wk2-start { margin: 0 16px 12px; grid-template-columns: 22px minmax(0, 1fr); } .sp .wk2-start > svg:last-child { display: none; } }

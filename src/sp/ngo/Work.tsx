@@ -27,7 +27,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, Search, X } from "lucide-react";
+import { ArrowUpRight, Search, Upload, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrg } from "@/lib/actions";
 import { loadCaseFile, type CaseFile } from "@/lib/case-file";
@@ -182,9 +182,18 @@ export function Work() {
         <nav className="wk2-go" aria-label="Work tools">
           <Link href="/ngo/inbox" className="wk2-btn">Inbox &amp; triage</Link>
           <Link href="/ngo/field" className="wk2-btn">Field mode</Link>
+          <Link href="/ngo/import" className="wk2-btn"><Upload size={15} aria-hidden />Import register</Link>
           <Link href="/ngo/cases/new" className="wk2-btn is-ink">New case</Link>
         </nav>
       </header>
+
+      {!loading && !failed && co.live.length + co.decide.length + co.history.length === 0 && (
+        <Link href="/ngo/import" className="wk2-start">
+          <Upload size={22} aria-hidden />
+          <span><b>Start with the register you already keep.</b><small>Drop in your rescue, treatment or ABC spreadsheet. Every animal and case lands here in one step, and importing it again later adds only new rows.</small></span>
+          <ArrowUpRight size={20} aria-hidden />
+        </Link>
+      )}
 
       <div className="wk2-body">
         <section className="wk2-stream" aria-label="Work queue">
