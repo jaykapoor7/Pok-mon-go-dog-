@@ -20,8 +20,8 @@ export function NgoGate({ title, lede, children }: { title: string; lede: string
       <header className="ngo-head"><div><p className="k">NGO workspace</p><h1 className="serif">{title}</h1></div><p className="ngo-sum">{lede} It loads only for members of an organisation, and the database checks every read.</p></header>
       <div className="ngo-out">
         <div className="stack">
-          <p className="body">{user ? "Your account is not a member of an organisation yet. Ask your organisation's admin for an invitation code, or apply to partner." : "Sign in with the code your organisation gave you."}</p>
-          <div className="row">{!user && <Link className="btn is-flame" href="/join">Sign in with your code</Link>}<Link className="btn" href="/partner-apply">Apply to partner</Link></div>
+          <p className="body">{user ? "Your account is not part of an organisation yet. Join with the invitation code your organisation's admin gave you, or apply to partner." : "Sign in with the code your organisation gave you."}</p>
+          <div className="row"><Link className="btn is-flame" href="/join">{user ? "Join with a code" : "Sign in with your code"}</Link><Link className="btn" href="/partner-apply">Apply to partner</Link></div>
         </div>
         <ArtSlot id="ngo-empty" />
       </div>

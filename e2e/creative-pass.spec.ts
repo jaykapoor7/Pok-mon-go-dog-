@@ -4,11 +4,11 @@ for(const width of [320,390,768,1440])test(`hero and section order remain usable
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(/Every stray animal in India\.\s*Seen\. Tracked\. Cared\s+for\./);
  for(const a of await page.locator(".ld-hero-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.width).toBeGreaterThanOrEqual(44);expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main > section h1, main > section h2").allTextContents()).map(s=>s.replace(/\s+/g," "));
- expect(headings[0]).toMatch(/Every stray animal in India/);expect(headings.slice(1,5)).toEqual(["Every animal has a story.","One report. A connected record.","One request, followed to the end.","Every street. Every scale."]);
+ expect(headings[0]).toMatch(/Every stray animal in India/);expect(headings.slice(1,5)).toEqual(["Every animal has a story.","One message. A record that keeps going.","One request, followed to the end.","A few things to know."]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.getByRole("button",{name:/Pause motion|Play motion/})).toHaveCount(0);
  await expect(page.locator("#world .ld-plate canvas,#world .ld-plate-fallback svg").first()).toBeVisible();
- await expect(page.locator(".cv")).toHaveCount(1);await expect(page.locator(".wa-phone")).toHaveCount(0);
+ await expect(page.locator(".rt")).toHaveCount(1);await expect(page.locator(".wa-phone")).toHaveCount(0);
  await expect(page.locator(".ld-hero-actions .is-flame")).toHaveCSS("background-color","rgb(255, 138, 61)");
  await expect(page.locator("#world")).not.toContainText("Explore the public animal record.");
  await expect(page.locator("#world")).not.toContainText("Sources & definitions");
@@ -61,8 +61,8 @@ test("audiences stay in the header without repeated landing sections",async({pag
  await expect(page.locator(".ld-audience,.restored-partners")).toHaveCount(0);
 });
 test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
- await page.goto("/");const question=page.locator(".production-faq summary").first();await expect(question).toHaveCSS("color","rgb(255, 253, 249)");expect(await question.evaluate(el=>getComputedStyle(el,"::after").content)).toBe("none");await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".production-faq details").first()).toHaveAttribute("open","");
- await expect(page.locator(".ld-close a")).toHaveCount(1);await expect(page.locator(".ld-close a")).toHaveText("Report a sighting");
+ await page.goto("/");const question=page.locator(".lx-faq summary").first();await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".lx-faq details").first()).toHaveAttribute("open","");
+ await expect(page.locator(".lx-end-actions a").first()).toHaveText("Report a sighting");await expect(page.locator(".lx-end-actions .is-flame")).toHaveCount(1);
 });
 test("the original Coimbatore hero retains its recorded geography and replay",async({page})=>{
  await page.goto("/");await expect(page.locator(".ld-meter")).toContainText("Coimbatore");
@@ -78,18 +78,19 @@ test("every published field partner has an accessible organisation profile",asyn
 });
 test("the landing navigation blends into the hero and keeps current WhatsApp geography",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
+ await expect(page.locator(".sp-header")).toHaveClass(/is-overlay/);
  await expect(page.locator(".sp-header-bar")).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
- expect(await page.locator(".sp-header").evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(await page.locator(".ld-hero").evaluate(el=>getComputedStyle(el).backgroundColor));
+ expect(await page.locator(".ld-hero").evaluate(el=>el.getBoundingClientRect().top)).toBeLessThanOrEqual(1);
  await expect(page.locator(".faq-asterisk,.faq-ledger")).toHaveCount(0);
- await page.locator(".request-story-steps button").nth(3).click();
- const map=page.locator(".rs-city");await expect(map.locator("svg")).toBeAttached();
- expect(await map.locator("circle").count()).toBeGreaterThan(0);await expect(map).not.toContainText(/No area sample available/);
- await expect(map.locator(".rs-city-caption")).toContainText("recorded areas");
+ await page.evaluate(()=>{const el=document.querySelector(".rt-track")!;const r=el.getBoundingClientRect();window.scrollTo({top:r.bottom+scrollY-innerHeight,behavior:"instant"});});
+ const map=page.locator(".rt-city");await expect(map.locator("svg")).toBeAttached();
+ expect(await map.locator("circle").count()).toBeGreaterThan(0);
+ await expect(map.locator(".rt-city-cap")).toContainText("recorded areas");
 });
-test("reduced motion keeps the guided story manual and removes ambient movement",async({page})=>{
+test("reduced motion shows the whole request and removes ambient movement",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");const section=page.locator("#one-request");await section.scrollIntoViewIfNeeded();
- await section.locator(".request-story-steps button").nth(2).click();await expect(section.locator(".rs-record")).toContainText("Follow-up, if recorded");
  await expect(page.locator("#request-journey .ld-dive-day b")).toBeVisible();
+ await expect(page.locator("#request-journey .is-now .ld-dive-what b")).toHaveText(/Case closed|Recovered/);
  expect(await section.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==="running").length)).toBe(0);
 });
 test("essential public information and actions survive without JavaScript",async({browser})=>{

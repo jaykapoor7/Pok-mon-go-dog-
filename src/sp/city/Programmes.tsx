@@ -34,7 +34,7 @@ export function Programmes({ all, initialCity, now }: { all: PublicProgramme[]; 
   return (
     <div className="cp">
       <header className="ci-head">
-        <div className="ci-title"><p className="k">Municipality · programmes</p><h1 className="display">Programmes<span className="ci-sub serif">, on one time axis</span></h1></div>
+        <div className="ci-title"><p className="k">Municipality · programmes</p><h1 className="display">Programmes</h1><p className="ci-sub">Published work, on one time axis</p></div>
         <div className="ci-controls">
           <label className="field"><span className="label">City</span><select className="select" value={city} onChange={(e) => setCity(e.target.value)}><option value="">Every city</option>{cities.map((c) => <option key={c} value={c}>{c}</option>)}</select></label>
         </div>

@@ -3,9 +3,10 @@
 /* ════════════════════════════════════════════════════════════════════
    One request, followed to the end: a dive from the city into one street.
 
-   A complete case, shown at street scale without taking over several
-   screens of the landing page. The compact composition keeps the useful
-   map and chronology visible at once.
+   A complete case, shown at street scale. The section holds while the
+   reader scrolls through it, on a phone as on a desktop: the camera dives
+   into the street, then each scroll moves the case on a day at a time.
+   There is nothing to press; scrolling back runs it backwards.
 
    The condition, the locality, the days are the record's own, and the
    light sits in the request's cell, the finest place the public record
@@ -89,12 +90,10 @@ export function CaseDive({ j, city, box, rings, events }: {
   const pathEls = useRef<(SVGPathElement | null)[]>([]);
   const ringEl = useRef<SVGCircleElement>(null);
   const actEl = useRef<HTMLDivElement>(null);
+  const trackEl = useRef<HTMLSpanElement>(null);
   const [calm, setCalm] = useState(false);
   const [compact, setCompact] = useState(false);
-  const [playing, setPlaying] = useState(false);
   const [mapUnavailable, setMapUnavailable] = useState(false);
-  const progress = useRef(0);
-  const redraw = useRef<() => void>(() => {});
   const [t, setT] = useState({ step: 0, day: 0, arrived: false });
   const hasCare = steps.some((x) => x.key === "c");
   const careWords = j.care.kinds.map((k) => CARE_WORD[k] ?? k.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()));
@@ -105,15 +104,15 @@ export function CaseDive({ j, city, box, rings, events }: {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const phone = window.matchMedia("(max-width: 760px)").matches;
     setCompact(phone);
-    if (reduce || phone) {
+    if (reduce) {
       setCalm(true);
-      setT(phone ? { step: 0, day: 0, arrived: true } : { step: steps.length - 1, day: j.days, arrived: true });
+      setT({ step: steps.length - 1, day: j.days, arrived: true });
     }
     let map: MLMap | null = null, dead = false, raf = 0;
     let from: { center: [number, number]; zoom: number } | null = null;
     const padOf = () => {
       const w = mapEl.current?.clientWidth ?? 1000, h = mapEl.current?.clientHeight ?? 800;
-      return w < 760 ? { top: 20, bottom: Math.round(h * 0.46), left: 12, right: 12 } : { top: 40, bottom: 40, left: Math.min(560, w * 0.42), right: 40 };
+      return w < 760 ? { top: Math.min(84, Math.round(h * 0.3)), bottom: 24, left: 12, right: 12 } : { top: 40, bottom: 40, left: Math.min(560, w * 0.42), right: 40 };
     };
 
     /* The case, played out on the street. Everything is placed in screen
@@ -123,9 +122,9 @@ export function CaseDive({ j, city, box, rings, events }: {
       const W = mapEl.current?.clientWidth ?? 1000, H = mapEl.current?.clientHeight ?? 800, phone = W < 760;
       const p = m.project(target), home: Pt = [p.x, p.y];
       const clampX = (x: number) => Math.max(W * (phone ? 0.12 : 0.5), Math.min(W * 0.9, x));
-      const clampY = (y: number) => Math.max(H * 0.1, Math.min(H * (phone ? 0.5 : 0.88), y));
-      const start: Pt = [home[0] + W * (phone ? 0.5 : 0.34), home[1] - H * (phone ? 0.3 : 0.5)];
-      const care: Pt = [clampX(home[0] + W * (phone ? -0.3 : 0.1)), clampY(home[1] + H * (phone ? 0.16 : 0.28))];
+      const clampY = (y: number) => phone ? Math.max(Math.min(96, H * 0.4), Math.min(H - 28, y)) : Math.max(H * 0.1, Math.min(H * 0.88, y));
+      const start: Pt = [home[0] + W * (phone ? 0.5 : 0.34), home[1] - H * (phone ? 0.15 : 0.5)];
+      const care: Pt = [clampX(home[0] + W * (phone ? -0.3 : 0.1)), clampY(home[1] + H * (phone ? 0.08 : 0.28))];
       const routes = [road(start, home, 0.18), road(home, care, 0.22), road(care, home, 0.26)];
       const E = spans.edge, seg = (k: number) => clamp((pos - E[k]) / Math.max(1e-6, E[k + 1] - E[k]));
       const pA = seg(0), pB = hasCare ? seg(1) : 0, pC = hasCare ? seg(2) : seg(1);
@@ -193,14 +192,16 @@ export function CaseDive({ j, city, box, rings, events }: {
       raf = 0;
       const s = sec.current; if (!s) return;
       const r = s.getBoundingClientRect(), vh = window.innerHeight;
-      const prog = reduce || phone ? 1 : clamp(-r.top / Math.max(1, r.height - vh));
-      const z = reduce || phone ? 1 : ease(clamp(prog / 0.34));
+      const prog = reduce ? 1 : clamp(-r.top / Math.max(1, r.height - vh));
+      /* On a phone the camera arrives sooner, so most of the scroll is the case. */
+      const z = reduce ? 1 : ease(clamp(prog / (phone ? 0.2 : 0.34)));
       if (map && from) {
         const zoom = from.zoom + (Z_STREET - from.zoom) * z;
         const center: [number, number] = [from.center[0] + (target[0] - from.center[0]) * z, from.center[1] + (target[1] - from.center[1]) * z];
         map.jumpTo({ center, zoom, padding: padOf() });
       }
-      const tl = phone ? progress.current : reduce ? 1 : clamp((prog - 0.38) / 0.54);
+      const tl = reduce ? 1 : phone ? clamp((prog - 0.22) / 0.68) : clamp((prog - 0.38) / 0.54);
+      trackEl.current?.style.setProperty("transform", `scaleX(${tl})`);
       const pos = tl * spans.total;
       let i = 0;
       while (i < steps.length - 2 && pos > spans.edge[i + 1]) i++;
@@ -212,9 +213,12 @@ export function CaseDive({ j, city, box, rings, events }: {
       if (map) act(map, pos, arrived);
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(frame); };
-    redraw.current = on;
 
-    if (!supportsWebGL2()) { setMapUnavailable(true); setCalm(true); frame(); return () => { redraw.current = () => {}; cancelAnimationFrame(raf); }; }
+    window.addEventListener("scroll", on, { passive: true });
+    window.addEventListener("resize", on);
+    const stop = () => { window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); };
+    /* Without WebGL the timeline still follows the scroll; only the map is missing. */
+    if (!supportsWebGL2()) { setMapUnavailable(true); on(); return stop; }
     import("maplibre-gl").then((ml) => {
       if (dead || !mapEl.current) return;
       ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
@@ -242,35 +246,13 @@ export function CaseDive({ j, city, box, rings, events }: {
       });
     }).catch(() => { setMapUnavailable(true); frame(); });
     on();
-    window.addEventListener("scroll", on, { passive: true });
-    window.addEventListener("resize", on);
-    return () => { dead = true; redraw.current = () => {}; window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); map?.remove(); };
+    return () => { dead = true; stop(); map?.remove(); };
   }, [box, rings, events, target, steps, spans, j.days, hasCare]);
-
-  useEffect(() => {
-    if (!playing) return;
-    let raf = 0, last = performance.now();
-    const tick = (now: number) => {
-      progress.current = Math.min(1, progress.current + (document.hidden ? 0 : now - last) / 24000);
-      last = now;
-      redraw.current();
-      if (progress.current < 1) raf = requestAnimationFrame(tick);
-      else setPlaying(false);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [playing]);
-
-  const selectStep = (step: number) => {
-    setPlaying(false);
-    progress.current = spans.edge[step] / spans.total;
-    redraw.current();
-  };
 
   const state = steps[t.step]?.key ?? "r";
 
   return (
-    <section id="request-journey" ref={sec} className={`ld-dive ${calm ? "is-calm" : ""} ${compact ? "is-compact" : ""}`} aria-labelledby="ld-dive-title">
+    <section id="request-journey" ref={sec} className={`ld-dive ${calm ? "is-calm" : ""} ${compact ? "is-compact" : ""} ${mapUnavailable ? "is-nomap" : ""}`} aria-labelledby="ld-dive-title">
       <div className="ld-dive-stage">
         <div ref={mapEl} className="ld-dive-map" role="region" aria-label={`${city} at night, closing in on ${j.locality}, where the request came from`} />
         {mapUnavailable && <p className="ld-dive-map-fallback">{j.locality}, {city}<span>The map is unavailable here. Follow the recorded timeline below.</span></p>}
@@ -308,11 +290,12 @@ export function CaseDive({ j, city, box, rings, events }: {
               </li>
             ))}
           </ol>
-          {compact && <nav className="ld-dive-controls" aria-label="Request timeline">
-            <button type="button" onClick={() => selectStep(Math.max(0, t.step - 1))} disabled={t.step === 0}>Back</button>
-            <button type="button" onClick={() => { if (progress.current >= 1) progress.current = 0; setPlaying(v => !v); redraw.current(); }} aria-pressed={playing}>{playing ? "Pause" : progress.current >= 1 ? "Replay" : `Play ${plural(j.days, "day")}`}</button>
-            <button type="button" onClick={() => selectStep(Math.min(steps.length - 1, t.step + 1))} disabled={t.step === steps.length - 1}>Next</button>
-          </nav>}
+          {compact && <div className="ld-dive-play">
+            <div className="ld-dive-track" aria-hidden="true">
+              <span ref={trackEl} />
+              {steps.map((s, i) => <i key={s.key} className={i <= t.step ? "is-on" : undefined} style={{ left: `${(spans.edge[i] / spans.total) * 100}%` }} />)}
+            </div>
+          </div>}
         </div>
       </div>
     </section>

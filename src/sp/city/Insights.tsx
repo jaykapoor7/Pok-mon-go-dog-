@@ -36,18 +36,18 @@ export function Insights() {
       <header className="ci-head">
         <div className="ci-title">
           <p className="k">Municipality · insights</p>
-          <h1 className="display">{city ?? "A city"}<span className="ci-sub serif">, what the record supports</span></h1>
+          <h1 className="display">{city ?? "Insights"}</h1><p className="ci-sub">What the record supports</p>
         </div>
-        <div className="ci-controls">
+        {cities.length > 0 && <div className="ci-controls">
           <label className="field"><span className="label">City</span><select className="select" value={city ?? ""} onChange={(e) => pick(e.target.value)} disabled={!cities.length}>{cities.filter((c) => c.cases > 0 || c.animals > 0).map((c) => <option key={c.city} value={c.city}>{c.city}</option>)}</select></label>
           <div className="seg" role="group" aria-label="Period"><button type="button" aria-pressed={period === "all"} onClick={() => setPeriod("all")}>{ld?.capped ? "Loaded record" : "Whole record"}</button><button type="button" aria-pressed={period === "12m"} onClick={() => setPeriod("12m")}>Last 12 months</button></div>
           {city && <Link className="btn is-s" href={`/city/report?city=${encodeURIComponent(city)}`}><Printer size={14} aria-hidden /> City report</Link>}
-        </div>
+        </div>}
         {ld?.capped && <p className="ci-loaded" role="note"><b>Partial record.</b> Showing {ld.animals.toLocaleString("en-IN")} of {ld.totals.animals.toLocaleString("en-IN")} animal profiles{ld.totals.cases ? <> and {ld.cases.toLocaleString("en-IN")} of {ld.totals.cases.toLocaleString("en-IN")} requests</> : null}. Older records are outside these findings.</p>}
         {ev && <p className="ci-ev"><span className="ci-kind" style={{ ["--ink" as string]: KINDS[ev.kind].ink }}>{KINDS[ev.kind].label}</span> {ev.precision}. {ev.note}</p>}
       </header>
       {loading && <div className="ci-wrap"><div className="skel" style={{ height: 260 }} /><div className="skel" style={{ height: 260, marginTop: 20 }} /></div>}
-      {error && <State kind="error" title="Not read">{error} Nothing is shown as zero.</State>}
+      {error && <State kind="error" title="Not read" action={<button type="button" className="btn" onClick={() => window.location.reload()}>Try again</button>}>{error} Nothing is shown as zero.</State>}
       {!loading && !error && city && !list.length && <State title="Too little to say">The record for {city} in this period is too thin to support a finding. That is a statement about the record, not about the animals.</State>}
       {list.length > 0 && (
         <div className="ci-wrap">

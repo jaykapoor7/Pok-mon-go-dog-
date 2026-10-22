@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
-import { SiteHeader } from "@/components/site/SiteHeader";
+import { SiteHeader, StrayPawMark } from "@/components/site/SiteHeader";
 import { FooterIndex } from "@/components/site/FooterIndex";
 import { HeroPlate } from "@/components/landing/HeroPlate";
 import { CaseDive } from "@/components/landing/CaseDive";
@@ -10,7 +10,7 @@ import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import { LandingMotion } from "@/components/landing/LandingMotion";
 import { getLandingStory } from "@/lib/landing/story";
 import { getRegisterTotals } from "@/lib/register/totals";
-import { RequestStory } from "@/components/landing/RequestStory";
+import { ReportThread } from "@/components/landing/ReportThread";
 import { sxSerif } from "@/components/shell/fonts";
 import caseArchive from "@/data/landing-case-archive.json";
 import areaArchive from "@/data/landing-area-archive.json";
@@ -39,7 +39,7 @@ export default async function HomePage(){
  const liveAreas=story?.desk.cells??[];
  const areas=liveAreas.length?liveAreas.map(c=>({ring:c.ring,open:c.open,crit:c.crit,name:c.name})):areaArchive.areas;
  return <div className={`sp field-site product-site ld sw restored-landing ${sxSerif.variable}`}>
-  <PageView name="landing_view"/><LandingMotion/><SiteHeader/>
+  <PageView name="landing_view"/><LandingMotion/><SiteHeader overlay/>
   <main>
    <section id="world" className="ld-hero" aria-labelledby="hero-title"><div className="ld-stage">
     <HeroPlate city={hero.city} box={box} rings={hero.rings} events={hero.events}/>
@@ -50,13 +50,26 @@ export default async function HomePage(){
      {!story&&<p className="ld-hero-source">Coimbatore public record · captured 20 October 2026</p>}
     </div></div></section>
    <AnimalRegister data={registerArchive.data} total={registerArchive.data.total} archived/>
-   <RequestStory areas={areas} city={liveAreas.length?hero.city:areaArchive.city} recordedAt={liveAreas.length?undefined:"20 Oct 2026"}/>
+   <ReportThread areas={areas} city={liveAreas.length?hero.city:areaArchive.city} recordedAt={liveAreas.length?undefined:"20 Oct 2026"}/>
    <CaseDive j={story?.journey??caseArchive.journey} city={story?.journey?hero.city:caseArchive.hero.city} box={story?.journey?box:[caseArchive.hero.box[0],caseArchive.hero.box[1],caseArchive.hero.box[2],caseArchive.hero.box[3]]} rings={story?.journey?hero.rings:caseArchive.hero.rings} events={story?.journey?hero.events:caseArchive.hero.events}/>
-   <section className="production restored-faq" aria-labelledby="faq-title"><div className="production-faq"><div className="faq-intro"><h2 id="faq-title">A few things to know.</h2><Link href="/contact">Ask us something else<ArrowUpRight size={17} aria-hidden/></Link></div><div className="production-faq-list">{FAQ.map(([q,a],i)=><details key={q}><summary><span className="faq-number">0{i+1}</span><span>{q}</span><i aria-hidden/></summary><p>{a}</p></details>)}</div></div></section>
+   <section className="lx-faq" aria-labelledby="faq-title"><div className="lx-faq-in">
+    <div className="lx-faq-intro"><h2 id="faq-title">A few things to know.</h2><Link href="/contact">Ask us something else<ArrowUpRight size={16} aria-hidden/></Link></div>
+    <div className="lx-faq-list">{FAQ.map(([q,a])=><details key={q}><summary><span>{q}</span><i aria-hidden/></summary><p>{a}</p></details>)}</div>
+   </div></section>
   </main>
-  <footer className="ld-ending">
-   <section className="ld-close" aria-labelledby="ld-close-title"><div className="ld-close-copy"><p className="sys-mono">Start with what you see</p><h2 id="ld-close-title">See a dog? <em>Report it.</em></h2></div><div className="ld-close-action"><p><b>A photo. A place. What you see.</b><span>Keep the observation on the record.</span></p><Link href="/community/report" className="sw-btn is-flame">Report a sighting<ArrowUpRight size={18} aria-hidden/></Link></div></section>
-   <div className="ld-foot"><div className="ld-foot-top"><Link href="/" className="ld-foot-brand">StrayPaw<span>From sighting to outcome. One shared record.</span></Link><FooterIndex simple/></div><p className="ld-foot-base"><span>© {new Date().getFullYear()} StrayPaw</span><span>Built with care, in India.</span></p></div>
+  <footer className="lx-end" aria-labelledby="lx-end-title">
+   <div className="lx-end-in">
+    <div className="lx-end-cta">
+     <h2 id="lx-end-title">See a dog? <em>Report it.</em></h2>
+     <p>A photo, a place and what you saw. It stays on the record for the next person who looks.</p>
+     <div className="lx-end-actions"><Link href="/community/report" className="lx-btn is-flame">Report a sighting<ArrowUpRight size={18} aria-hidden/></Link><Link href="/explore" className="lx-btn is-line">Explore the map<ArrowUpRight size={16} aria-hidden/></Link></div>
+    </div>
+    <div className="lx-end-foot">
+     <Link href="/" className="lx-end-brand"><StrayPawMark size={30}/><span>StrayPaw<small>From sighting to outcome. One shared record.</small></span></Link>
+     <FooterIndex simple/>
+    </div>
+    <p className="lx-end-base"><span>© {new Date().getFullYear()} StrayPaw</span><span>Built with care, in India.</span></p>
+   </div>
   </footer>
  </div>;
 }

@@ -124,7 +124,7 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
           </button>
 
           <div className="sp-bar-end">
-            {def.index.length > 0 && <button type="button" className="sp-index-btn" aria-haspopup="dialog" aria-expanded={sheet} onClick={() => setSheet(true)}><Menu size={16} aria-hidden /><span>Tools</span></button>}
+            {def.index.length > 0 && <button type="button" className="sp-index-btn" aria-haspopup="dialog" aria-expanded={sheet} onClick={() => setSheet(true)}><Menu size={16} aria-hidden /><span>More</span></button>}
             {def.action && !reporting && <Link href={def.action.href} className="sp-action">{def.action.href.includes("report") ? <Radio size={16} aria-hidden /> : <Plus size={16} aria-hidden />}<span>{def.action.label}</span></Link>}
             <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} />
           </div>
@@ -184,24 +184,25 @@ function Account({ user, org, onSignIn, onSignOut }: { user: { name: string; ema
   );
 }
 
+/** "More": every page of the workspace that is not on the bar, in named
+    groups. Each group says what it holds before it is opened; the group
+    holding the current page (else the first) starts open. */
 function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); else if (!open && d.open) d.close(); }, [open]);
   const def = WORKSPACES[ws];
+  const here = def.index.findIndex((g) => g.links.some((l) => path === l.href));
   return (
-    <dialog ref={ref} className="sp-index" aria-label={`${def.label} tools`} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
-      <div className="sp-index-in">
-        <header><span className="sp-grip" aria-hidden /><div><p className="k">{def.label}</p><h2>Tools &amp; resources</h2></div><button type="button" className="icon-btn" onClick={onClose} aria-label="Close tools"><X size={18} /></button></header>
-        <nav className="sp-index-dests" aria-label="Destinations">
-          {def.dests.map((d) => { const Icon = DEST_ICON[d.href] ?? MapIcon; return <Link key={d.href} href={d.href} onClick={onClose} aria-current={currentDest(def, path) === d.href ? "page" : undefined}><Icon size={20} aria-hidden /><b>{d.short ?? d.label}</b></Link>; })}
-        </nav>
-        {def.index.map((g) => (
-          <details key={`${ws}-${g.label}`} name="workspace-tools" className="sp-tool-group" open={g.links.some(l => path === l.href)}>
-            <summary>{g.label}<span>{g.links.length}</span><ChevronDown size={17} aria-hidden /></summary>
+    <dialog ref={ref} className="sp-index" aria-label={`More in ${def.label}`} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
+      <div className="sp-more">
+        <header className="sp-more-head"><span className="sp-grip" aria-hidden /><h2><i aria-hidden style={{ background: def.ink }} />More in {def.label}</h2><button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><X size={18} /></button></header>
+        {def.index.map((g, i) => (
+          <details key={`${ws}-${g.label}`} className="sp-more-group" open={i === (here >= 0 ? here : 0)}>
+            <summary><span><b>{g.label}</b><small>{g.links.map((l) => l.label).join(" · ")}</small></span><ChevronDown size={18} aria-hidden /></summary>
             <ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} onClick={onClose} aria-current={path === l.href ? "page" : undefined}><b>{l.label}</b>{l.note && <small>{l.note}</small>}</Link></li>)}</ul>
           </details>
         ))}
-        <footer className="sp-index-foot"><Link href="/" onClick={onClose}>Main site</Link><Link href="/contact" onClick={onClose}>Contact</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
+        <footer className="sp-more-foot"><Link href="/" onClick={onClose}>Main site</Link><Link href="/contact" onClick={onClose}>Contact</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
       </div>
     </dialog>
   );

@@ -2,14 +2,14 @@
    and education organisations. Practice never submits a real report. */
 
 import Link from "next/link";
-import { ExternalLink, Phone } from "lucide-react";
+import { ArrowUpRight, ExternalLink, Phone } from "lucide-react";
 import { EDUCATION_PARTNERS } from "@/lib/platform/education";
 import { HELPLINES, POST_BITE_STEPS } from "./content";
 import { ReportPractice } from "./ReportPractice";
-import { KindHourLibrary } from "./KindHourLibrary";
 import { MobileDetails } from "../ui/MobileDetails";
 import { Directory } from "./Directory";
 import "./learn.css";
+import "./academy.css";
 
 export function Resources() {
   return (
@@ -22,7 +22,10 @@ export function Resources() {
         </div>
       </header>
       <ReportPractice />
-      <KindHourLibrary />
+      <Link href="/learn#kind-hour" className="rs-kh">
+        <span><b>Classroom documents</b><small>Five teaching decks by The Kind Hour Foundation, in the Academy</small></span>
+        <ArrowUpRight size={18} aria-hidden />
+      </Link>
       <div className="rs-grid">
         <section className="rs-sec" id="helplines" aria-labelledby="rs-h">
           <h2 id="rs-h" className="h2">Rescue helplines</h2>

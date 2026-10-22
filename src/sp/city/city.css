@@ -8,7 +8,7 @@
 /* ── Insights ─────────────────────────────────────────────────────── */
 .sp .ci-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 32px; align-items: end; padding: 22px 28px 20px; border-bottom: 2px solid var(--ink); background: var(--shell); }
 .sp .ci-title .display { font-size: clamp(44px, 5.6vw, 84px); line-height: 0.92; }
-.sp .ci-sub { font-size: 0.42em; color: var(--civ); white-space: nowrap; }
+.sp .ci-sub { margin: 6px 0 0; font-size: 18px; font-weight: 600; line-height: 1.35; color: var(--civ); }
 .sp .ci-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; justify-content: flex-end; }
 .sp .ci-controls .field { min-width: 180px; }
 .sp .ci-loaded { grid-column: 1 / -1; max-width: 100ch; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: repeating-linear-gradient(135deg, rgba(169, 181, 214, 0.25) 0 3px, transparent 3px 7px); box-shadow: inset 0 0 0 1.5px var(--civ); }
@@ -98,7 +98,6 @@
   .sp .fi-n { font-size: 40px; }
   .sp .fi-bins li, .sp .fi-complete li { grid-template-columns: 1fr 56px; }
   .sp .fi-bins .fi-bar, .sp .fi-complete .fi-bar { grid-column: 1 / -1; grid-row: 2; }
-  .sp .ci-sub { white-space: normal; display: block; }
   .sp .cr-doc { padding: 20px 16px 48px; }
   .sp .cr-contents ol { columns: 1; }
   .sp .cr-bar { padding: 10px 16px; }

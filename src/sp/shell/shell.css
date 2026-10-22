@@ -167,3 +167,38 @@
 .sp-app .sp-index-foot {padding-top:24px;gap:20px;}
 .sp-app .sp-index-foot a {min-height:44px;display:flex;align-items:center;}
 @media(max-width:760px){.sp.sp-app .sp-index-in {padding:0 20px calc(20px + env(safe-area-inset-bottom));}.sp.sp-app .sp-index-in>header {padding-top:28px;}.sp.sp-app .sp-index-dests b {font-size:13px;}.sp.sp-app .sp-index-in .sp-tool-group li a {padding:12px;}.sp.sp-app .sp-index-in>header h2 {font-size:24px;}}
+
+/* ── More: the workspace's other pages, grouped ──────────────────────
+   No repeated destinations (they are on the bar). Every group names
+   what it holds before it opens. */
+.sp-app .sp-more { padding: 0 24px 28px; font-family: var(--sans); }
+.sp-app .sp-more-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 24px 0 16px; background: var(--paper); border-bottom: 1.5px solid var(--ink); }
+.sp-app .sp-more-head h2 { display: flex; align-items: center; gap: 10px; margin: 0; flex: 1; font: 650 22px/1.2 var(--sans); letter-spacing: -.03em; color: var(--ink); }
+.sp-app .sp-more-head h2 i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.sp-app .sp-more-head .icon-btn { width: 44px; height: 44px; flex: none; }
+.sp-app .sp-more-head .sp-grip { display: none; }
+.sp-app .sp-more-group { border-bottom: 1px solid var(--line); }
+.sp-app .sp-more-group > summary { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 12px 0; list-style: none; cursor: pointer; }
+.sp-app .sp-more-group > summary::-webkit-details-marker { display: none; }
+.sp-app .sp-more-group > summary > span { display: grid; gap: 3px; flex: 1; min-width: 0; }
+.sp-app .sp-more-group > summary b { font-size: 16px; font-weight: 650; color: var(--ink); }
+.sp-app .sp-more-group > summary small { font-size: 13px; line-height: 1.4; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-app .sp-more-group[open] > summary small { visibility: hidden; height: 0; }
+.sp-app .sp-more-group > summary svg { flex: none; color: var(--mute); transition: transform .2s cubic-bezier(.23, 1, .32, 1); }
+.sp-app .sp-more-group[open] > summary svg { transform: rotate(180deg); }
+.sp-app .sp-more-group ul { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 2px; }
+.sp-app .sp-more-group li a { display: grid; gap: 2px; min-height: 52px; padding: 9px 12px; margin: 0 -12px; border-radius: 10px; color: var(--ink); text-decoration: none; align-content: center; }
+.sp-app .sp-more-group li a:hover { background: var(--shell); }
+.sp-app .sp-more-group li a b { font-size: 15px; font-weight: 600; }
+.sp-app .sp-more-group li a small { font-size: 13px; line-height: 1.4; color: var(--mute); }
+.sp-app .sp-more-group li a[aria-current="page"] { background: var(--blue-soft); }
+.sp-app .sp-more-group li a[aria-current="page"] b { color: var(--blue); }
+.sp-app .sp-more-foot { display: flex; flex-wrap: wrap; gap: 4px 20px; padding-top: 16px; font-size: 13px; }
+.sp-app .sp-more-foot a { display: flex; align-items: center; min-height: 44px; color: var(--mute); }
+.sp-app .sp-more :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 8px; }
+@media (max-width: 760px) {
+  .sp.sp-app .sp-more { padding: 0 20px calc(16px + env(safe-area-inset-bottom)); max-height: 86dvh; overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; }
+  .sp.sp-app .sp-more-head { padding: 22px 0 14px; }
+  .sp.sp-app .sp-more-head .sp-grip { display: block; }
+}
+@media (prefers-reduced-motion: reduce) { .sp-app .sp-more-group > summary svg { transition: none; } }

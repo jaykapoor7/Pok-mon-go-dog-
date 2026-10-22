@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
@@ -14,12 +14,11 @@ import "./header.css";
    The site header, one bar on every public page.
 
    StrayPaw · Explore · Who It’s For · Our Story, and the one strong action,
-   Open App. At the top of a page it lies flat across the paper; once
-   the page moves it lifts into a floating, ink-framed pill. A coral
-   brushstroke marks where you are and slides to whatever you point at.
-   On a phone the menu opens as a painted sheet that blooms out of the
-   button: the three places large, the shortcuts residents and teams need
-   most beneath them, Open App at the thumb.
+   Open App. A white, ink-framed pill floating over the page; on the
+   landing (`overlay`) it starts as part of the night hero and lifts into
+   the pill once the page moves. On a phone the places drop from the pill
+   in a small sheet: Explore and Our Story, then Who It’s For with its
+   five audiences. Open App stays in the bar, never repeated in the sheet.
    ════════════════════════════════════════════════════════════════════ */
 
 type NavKey = keyof Dictionary["nav"];
@@ -33,11 +32,11 @@ export const AUDIENCES = [
   { label: "Education", href: "/education", hint: "Learn, teach and share." },
 ];
 const LINKS: NavItem[] = [
-  { label: "Explore", href: "/explore", hint: "The Living Atlas" },
+  { label: "Explore", href: "/explore", hint: "The map" },
   { label: "Our Story", href: "/our-story", also: ["/about"], hint: "Why we exist" },
 ];
 
-export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
+export function SiteHeader({ tone = "paper", overlay = false }: { tone?: "paper" | "night"; overlay?: boolean }) {
   const { t } = useLocale();
   const pathname = usePathname() ?? "";
   const label = (item: { label: string; tKey?: NavKey }) => (item.tKey ? t.nav[item.tKey] : item.label);
@@ -77,7 +76,7 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { e.preventDefault(); setOpen(false); return; }
       if (e.key !== "Tab") return;
-      const items = Array.from(header.current?.querySelectorAll<HTMLElement>(".sp-menu-btn, .sp-header-cta, #sp-sheet a, #sp-sheet summary") ?? []).filter(el => el.getClientRects().length);
+      const items = Array.from(header.current?.querySelectorAll<HTMLElement>(".sp-header-cta, .sp-menu-btn, #sp-sheet a") ?? []).filter(el => el.getClientRects().length);
       const first = items[0], last = items[items.length - 1];
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
@@ -92,38 +91,27 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
 
   const here = (l: NavItem) => [l.href, ...(l.also ?? [])].some((h) => pathname === h || pathname.startsWith(h + "/"));
 
-  /* the brushstroke: under the current page, sliding to whatever is pointed at */
-  const nav = useRef<HTMLElement>(null);
-  const place = (el: HTMLElement | null) => {
-    const n = nav.current; if (!n) return;
-    if (!el) { n.style.setProperty("--iw", "0px"); return; }
-    const item = el.getBoundingClientRect(), frame = n.getBoundingClientRect();
-    n.style.setProperty("--ix", `${item.left - frame.left + 10}px`); n.style.setProperty("--iw", `${item.width - 20}px`);
-  };
-  const rest = () => place(nav.current?.querySelector<HTMLElement>("a.is-here") ?? null);
-  useLayoutEffect(rest, [pathname]);
-
   return (
-    <header ref={header} className={`sp-header is-${tone} ${scrolled ? "is-scrolled" : ""} ${open ? "is-open" : ""}`}>
+    <header ref={header} className={`sp-header is-${tone}${overlay ? " is-overlay" : ""}${scrolled ? " is-scrolled" : ""}${open ? " is-open" : ""}`}>
       <div className="sp-header-bar">
         <Link href="/" className="sp-wordmark" aria-label="StrayPaw home">
           <StrayPawMark />
           <span>StrayPaw</span>
         </Link>
 
-        <nav className="sp-nav" aria-label="Site" ref={nav} onMouseLeave={rest}>
+        <nav className="sp-nav" aria-label="Site">
           {LINKS.slice(0, 1).map((l) => (
-            <Link key={l.href} href={l.href} aria-current={here(l) ? "page" : undefined} className={here(l) ? "is-here" : ""} onMouseEnter={(e) => place(e.currentTarget)} onFocus={(e) => place(e.currentTarget)} onBlur={rest}>
+            <Link key={l.href} href={l.href} aria-current={here(l) ? "page" : undefined} className={here(l) ? "is-here" : ""}>
               {label(l)}
             </Link>
           ))}
           <div className="sp-audiences" ref={audienceMenu} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAudiencesOpen(false); }}>
-            <button type="button" aria-expanded={audiencesOpen} aria-controls="sp-audiences" onMouseEnter={e=>place(e.currentTarget)} onFocus={e=>place(e.currentTarget)} onClick={() => setAudiencesOpen(v => !v)} onKeyDown={e => { if (e.key === "ArrowDown") { e.preventDefault(); setAudiencesOpen(true); requestAnimationFrame(() => audienceMenu.current?.querySelector("a")?.focus()); } }}>Who It’s For <ChevronDown size={14} aria-hidden /></button>
+            <button type="button" aria-expanded={audiencesOpen} aria-controls="sp-audiences" onClick={() => setAudiencesOpen(v => !v)} onKeyDown={e => { if (e.key === "ArrowDown") { e.preventDefault(); setAudiencesOpen(true); requestAnimationFrame(() => audienceMenu.current?.querySelector("a")?.focus()); } }}>Who It’s For <ChevronDown size={14} aria-hidden /></button>
             <div id="sp-audiences" className="sp-audience-menu" hidden={!audiencesOpen}>
-              {AUDIENCES.map((l,i) => <Link key={l.href} href={l.href} onClick={() => setAudiencesOpen(false)} aria-current={pathname === l.href ? "page" : undefined}><i className="sp-audience-num" aria-hidden>0{i+1}</i><span>{l.label}</span><small>{l.hint}</small><ArrowUpRight size={18} aria-hidden/></Link>)}
+              {AUDIENCES.map((l) => <Link key={l.href} href={l.href} onClick={() => setAudiencesOpen(false)} aria-current={pathname === l.href ? "page" : undefined}><span>{l.label}</span><small>{l.hint}</small><ArrowUpRight size={16} aria-hidden/></Link>)}
             </div>
           </div>
-          <Link href="/our-story" className={pathname==="/our-story"?"is-here":undefined} aria-current={pathname === "/our-story" ? "page" : undefined} onMouseEnter={e => place(e.currentTarget)} onFocus={e => place(e.currentTarget)}>Our Story</Link>
+          <Link href="/our-story" className={pathname==="/our-story"?"is-here":undefined} aria-current={pathname === "/our-story" ? "page" : undefined}>Our Story</Link>
         </nav>
 
         <div className="sp-header-actions">
@@ -137,13 +125,16 @@ export function SiteHeader({ tone = "paper" }: { tone?: "paper" | "night" }) {
         </div>
       </div>
 
+      <div className="sp-scrim" aria-hidden="true" onClick={() => setOpen(false)} />
       <div id="sp-sheet" className="sp-sheet" data-open={open ? "1" : "0"} aria-hidden={!open} inert={!open ? true : undefined}>
         <nav aria-label="Site, menu">
           <ul className="sp-sheet-main">
-            <li><Link href="/explore" onClick={() => setOpen(false)}>Explore<ArrowUpRight size={20} aria-hidden /></Link></li>
-            <li><details className="sp-sheet-who"><summary>Who It’s For<ChevronDown size={20} aria-hidden /></summary><div>{AUDIENCES.map(l => <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}<ArrowUpRight size={16} aria-hidden /></Link>)}</div></details></li>
-            <li><Link href="/our-story" onClick={() => setOpen(false)}>Our Story<ArrowUpRight size={20} aria-hidden /></Link></li>
+            {LINKS.map((l) => <li key={l.href}><Link href={l.href} aria-current={here(l) ? "page" : undefined} onClick={() => setOpen(false)}>{label(l)}<ArrowUpRight size={20} aria-hidden /></Link></li>)}
           </ul>
+          <div className="sp-sheet-group" role="group" aria-labelledby="sp-sheet-who">
+            <p id="sp-sheet-who" className="sp-sheet-label">Who it’s for</p>
+            {AUDIENCES.map((l) => <Link key={l.href} href={l.href} aria-current={pathname === l.href ? "page" : undefined} onClick={() => setOpen(false)}><span>{l.label}</span><small>{l.hint}</small><ArrowUpRight size={16} aria-hidden /></Link>)}
+          </div>
         </nav>
       </div>
     </header>

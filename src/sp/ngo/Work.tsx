@@ -369,19 +369,26 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
 
 function SignedOut({ signedIn }: { signedIn: boolean }) {
   return (
-    <div className="wk wk-out">
-      <header className="wk-head">
-        <div className="wk-title"><p className="k">NGO workspace</p><h1 className="serif">Work</h1></div>
-        <p className="wk-sum">Manage your organisation&rsquo;s cases, animals and field work. Sign in with your team to open its private workspace.</p>
-        <div className="wk-head-act">{!signedIn && <Link href="/join" className="btn is-flame">Sign in with your code</Link>}<Link href="/partner-apply" className="btn">Apply to partner</Link></div>
+    <div className="ngo-door">
+      <header className="ngo-door-head">
+        <p className="k">NGO workspace</p>
+        <h1>Your organisation&rsquo;s work, in one place.</h1>
+        <p className="ngo-door-sum">{signedIn
+          ? "Your account is not part of an organisation yet. Join with the invitation code your organisation's admin gave you, or apply to partner."
+          : "Cases, animals and field work for your team. Sign in with the code your organisation gave you to open its private workspace."}</p>
+        <div className="ngo-door-act">
+          <Link href="/join" className="btn is-flame">{signedIn ? "Join with a code" : "Sign in with your code"}</Link>
+          <Link href="/partner-apply" className="btn">Apply to partner</Link>
+        </div>
       </header>
-      <MobileDetails label="What your workspace includes" className="wk-explain-fold"><div className="wk-explain">
+      <section className="ngo-door-inc" aria-labelledby="ngo-door-inc">
+        <h2 id="ngo-door-inc">What your workspace includes</h2>
         <ol>
-          <li><b>One work queue</b><p>Review incoming requests, open cases and due follow-ups. Historical records stay separate from today&rsquo;s work.</p></li>
-          <li><b>Each animal&rsquo;s history</b><p>Read sightings, cases and recorded care together, with the available location and source.</p></li>
-          <li><b>Your team&rsquo;s next step</b><p>Accept and assign cases, record treatment, schedule follow-ups and close cases with an outcome.</p></li>
+          <li><span aria-hidden>1</span><div><h3>One work queue</h3><p>Review incoming requests, open cases and due follow-ups. Historical records stay separate from today&rsquo;s work.</p></div></li>
+          <li><span aria-hidden>2</span><div><h3>Each animal&rsquo;s history</h3><p>Read sightings, cases and recorded care together, with the available location and source.</p></div></li>
+          <li><span aria-hidden>3</span><div><h3>Your team&rsquo;s next step</h3><p>Accept and assign cases, record treatment, schedule follow-ups and close cases with an outcome.</p></div></li>
         </ol>
-      </div></MobileDetails>
+      </section>
     </div>
   );
 }

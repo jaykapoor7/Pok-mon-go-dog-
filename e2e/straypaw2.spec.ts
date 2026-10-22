@@ -56,7 +56,7 @@ test("the landing page still renders its hero", async ({ page }) => {
 test("the guided request has readable disclosure and a web reporting destination", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/");
   await expect(page.locator("#one-request")).toContainText("Acceptance and care depend on participating teams");
-  await expect(page.locator(".request-story-note a")).toHaveAttribute("href","/community/report");
+  await expect(page.locator(".rt-note a")).toHaveAttribute("href","/community/report");
 });
 
 test("solutions: the URL chooses the audience", async ({ page }) => {
@@ -67,11 +67,18 @@ test("solutions: the URL chooses the audience", async ({ page }) => {
   await expect(page.getByRole("tabpanel")).toContainText("area by area");
 });
 
+/* On a phone the layers sit behind one "Map layer" button. */
+async function openLayers(page: Page) {
+  const fold = page.locator(".fm-layer-fold > .mobile-details-toggle");
+  if (await fold.isVisible()) await fold.click();
+}
+
 test("the Map opens on India with its lenses and search", async ({ page }) => {
   const errors = errorsOf(page);
   await page.goto("/community");
   await expect(page.locator(".fm-map canvas").first()).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("heading", { level: 1 })).toContainText("India");
+  await openLayers(page);
   for (const name of ["Animals", "Needs help", "Open requests", "Sterilisation records"]) await expect(page.getByRole("button", { name, exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Needs help", exact: true }).click();
   await expect(page).toHaveURL(/lens=help/);
@@ -83,7 +90,8 @@ test("the Municipality map opens on its evidence layers", async ({ page }) => {
   const errors = errorsOf(page);
   await page.goto("/city");
   await expect(page.locator(".fm-map canvas").first()).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByRole("button", { name: "ABC · sterilisation" })).toHaveAttribute("aria-pressed", "true");
+  await openLayers(page);
+  await expect(page.getByRole("button", { name: "ABC · sterilisation", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: /Report here|Open a case here/ })).toHaveCount(0);
   await noOverflow(page);
   expect(errors).toEqual([]);
