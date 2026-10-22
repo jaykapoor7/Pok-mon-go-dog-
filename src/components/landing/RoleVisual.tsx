@@ -1,0 +1,10 @@
+/** Five jobs, five subject-specific drawings. Illustrations carry no data. */
+export function RoleVisual({ role }: { role: number }) {
+  return <svg className={`role-visual is-role-${role}`} viewBox="0 0 180 100" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {role === 0 && <><rect x="55" y="6" width="52" height="86" rx="9" fill="#e4ebfa" /><path d="M73 15h16M76 83h10" /><path d="M81 27c-13 0-20 16 0 35 20-19 13-35 0-35Z" fill="#2457ce" stroke="none" /><circle cx="81" cy="40" r="4" fill="#fffdf9" stroke="none" /><path d="m27 72 17-8m72-31 22-6m-19 43 17 10" stroke="#f05b40" /></>}
+    {role === 1 && <><path d="M24 26h69v61H24Z" fill="#e4ebfa" /><path d="M38 39h38M38 51h25m-25 12h31" /><path d="m84 59 17-17 30 30-17 17Z" fill="#fffdf9" /><path d="m107 31 12-12 32 32-12 12M95 68l8 8" stroke="#2457ce" /><path d="M137 70v24m-12-12h24" stroke="#f05b40" strokeWidth="4" /></>}
+    {role === 2 && <><path d="m22 24 41-9 48 16 43-11v64l-43 10-48-16-41 9Z" fill="#e4ebfa" /><path d="M63 15v63m48-47v63M24 58l130-9" /><circle cx="48" cy="39" r="5" fill="#2457ce" stroke="none" /><circle cx="84" cy="65" r="7" fill="#f05b40" stroke="none" /><circle cx="133" cy="70" r="4" fill="#2457ce" stroke="none" /><path d="m48 39 36 26 49 5" strokeDasharray="3 5" /></>}
+    {role === 3 && <><path d="M28 63h106l-10 24H38Z" fill="#e4ebfa" /><path d="M22 63h118" strokeWidth="4" /><path d="M64 51c-10-15-3-27 5-27s14 12 11 19c10-9 24-6 24 3s-15 18-29 12" fill="#2457ce" stroke="none" /><path d="M33 34c-9-12-1-20 5-12s5 16-5 12m93-3c9-13 19-7 13 2s-14 10-13-2" stroke="#f05b40" /><path d="M55 94h54" /></>}
+    {role === 4 && <><path d="M27 19c25-5 43 1 61 12 19-11 38-17 63-12v66c-24-5-43-1-63 9-18-10-38-14-61-9Z" fill="#e4ebfa" /><path d="M88 31v63M40 36c13 0 24 4 34 10m-34 6c13 0 24 4 34 10m-34 6c13 0 24 4 34 10" /><circle cx="119" cy="44" r="13" stroke="#2457ce" /><path d="m129 54 12 14" stroke="#f05b40" strokeWidth="4" /></>}
+  </svg>;
+}

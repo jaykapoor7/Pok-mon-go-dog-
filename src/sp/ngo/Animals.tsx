@@ -22,6 +22,7 @@ import { useMembership } from "../shell/Shell";
 import { Portrait } from "../ui/Portrait";
 import { State, day, n, PageBrief } from "../ui";
 import { NgoGate } from "./Gate";
+import { MobileDetails } from "../ui/MobileDetails";
 import "./ngo.css";
 
 const PAGE = 100;
@@ -58,15 +59,17 @@ export function Animals() {
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · register</p><h1 className="serif">Animals</h1></div>
           <p className="ngo-sum">{rows === null ? "Reading the register…" : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> animal{total === 1 ? "" : "s"} match. Unknown is kept apart from no in every filter.</>}</p>
-          <div className="row"><Link className="btn is-s" href="/ngo/import">Import a workbook</Link><button type="button" className="btn is-s" disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}><Download size={14} aria-hidden /> This page as CSV</button></div>
+          <MobileDetails label="Import and export"><div className="row"><Link className="btn is-s" href="/ngo/import">Import a workbook</Link><button type="button" className="btn is-s" disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}><Download size={14} aria-hidden /> This page as CSV</button></div></MobileDetails>
         </header>
         <PageBrief items={[["For", "Every animal your organisation keeps, as a register."], ["Watch", "Needs help, and status not recorded (hatched), which is not no."], ["Next", "Open an animal to record care or open a case; export as CSV."], ["After", "Changes show on its public record without private details."]]} />
         <div className="wk-tools">
           <label className="search wk-search"><Search size={15} aria-hidden /><input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="StrayPaw ID, source code, name or place" aria-label="Search the register" /></label>
+          <MobileDetails label="Filter animals" className="animal-filter-fold" active={!!(fl.ster || fl.vacc || fl.zone || fl.help)}>
           <select className="select ngo-sel" value={fl.ster ?? ""} onChange={(e) => { setFl({ ...fl, ster: (e.target.value || null) as Filter["ster"] }); setPage(0); }} aria-label="Sterilisation"><option value="">Sterilisation: any</option><option value="sterilised">Sterilised</option><option value="not_sterilised">Recorded not</option><option value="unknown">Not recorded</option></select>
           <select className="select ngo-sel" value={fl.vacc ?? ""} onChange={(e) => { setFl({ ...fl, vacc: (e.target.value || null) as Filter["vacc"] }); setPage(0); }} aria-label="Vaccination"><option value="">Vaccination: any</option><option value="vaccinated">Vaccinated</option><option value="not_vaccinated">Recorded not</option><option value="unknown">Not recorded</option></select>
           <select className="select ngo-sel" value={fl.zone} onChange={(e) => { setFl({ ...fl, zone: e.target.value }); setPage(0); }} aria-label="Locality"><option value="">Every locality</option>{zones.slice(0, 200).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({z.n})</option>)}</select>
           <button type="button" className="chip" aria-pressed={fl.help === true} onClick={() => { setFl({ ...fl, help: fl.help ? null : true }); setPage(0); }}>Needs help</button>
+          </MobileDetails>
         </div>
         <div className="reg" role="table" aria-label="Animal register">
           <div className="reg-row is-head" role="row"><span role="columnheader">Animal</span><span role="columnheader">Locality</span><span role="columnheader">Sterilisation</span><span role="columnheader">Vaccination</span><span role="columnheader">Last seen</span><span role="columnheader">Recorded by</span></div>

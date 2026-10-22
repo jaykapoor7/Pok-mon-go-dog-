@@ -19,6 +19,7 @@ import { monthName } from "@/lib/livingmap/types";
 import type { Locality } from "@/lib/livingmap/reading";
 import { placeName } from "@/lib/livingmap/reading";
 import { Portrait } from "../ui/Portrait";
+import { MobileDetails } from "../ui/MobileDetails";
 import type { Bucket } from "../atlas/recency";
 import { KINDS, kindOf, type EvidenceKind } from "../atlas/evidence";
 import { LENSES } from "../atlas/lenses";
@@ -94,13 +95,13 @@ export function Chrome(P: Props) {
 
       <div className="fm-tools">
         <MapSearch cities={P.cities} onCity={P.onCity} onPlace={P.onPlace} remote={!org} />
-        <div className="fm-lenses" role="group" aria-label="What the map shows">
+        <MobileDetails label={`Map layer: ${lensLabel(P.lens)}`} className="fm-layer-fold"><div className="fm-lenses" role="group" aria-label="What the map shows">
           {P.lenses.map((id) => (
             <button key={id} type="button" aria-pressed={P.lens === id} onClick={() => P.setLens(id)} style={{ ["--lk" as string]: id === "animals" ? MARK.ster.yes : LENSES[id].ink }}>
               <i aria-hidden />{lensLabel(id)}
             </button>
           ))}
-        </div>
+        </div></MobileDetails>
       </div>
 
       <aside className={`fm-key${keyOpen ? " is-open" : ""}`} aria-label="Key">
@@ -108,13 +109,14 @@ export function Chrome(P: Props) {
         <div className="fm-key-in"><Key level={level} lens={P.lens} recency={P.recency} zoom={P.zoom} /></div>
       </aside>
 
-      <div className="fm-ctl" role="group" aria-label="Map controls">
+      <MobileDetails label="Map tools" className="fm-controls-fold"><div className="fm-ctl" role="group" aria-label="Map controls">
         <button type="button" onClick={() => P.onZoom(1)} aria-label="Zoom in"><Plus size={18} aria-hidden /></button>
         <button type="button" onClick={() => P.onZoom(-1)} aria-label="Zoom out"><Minus size={18} aria-hidden /></button>
         <button type="button" onClick={P.onLocate} aria-label="Go to where I am"><LocateFixed size={18} aria-hidden /></button>
         <button type="button" onClick={() => P.setQuiet(!P.quiet)} aria-pressed={P.quiet} aria-label={P.quiet ? "Show the painted map" : "Quiet map: evidence on plain paper"}>{P.quiet ? <Eye size={18} aria-hidden /> : <EyeOff size={18} aria-hidden />}</button>
       </div>
       {P.variant !== "city" && <button type="button" className="fm-report" onClick={() => P.setPicking(true)} hidden={P.picking}><Radio size={18} aria-hidden /><span>{P.variant === "ngo" ? "Open a case here" : "Report here"}</span></button>}
+      </MobileDetails>
       {P.picking && <PickBar variant={P.variant} zoom={P.zoom} center={P.center} onCancel={() => P.setPicking(false)} />}
 
       {P.mapError && <p className="fm-err" role="status">{P.mapError}</p>}

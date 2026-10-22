@@ -128,6 +128,7 @@ const DENOM: Q[] = [
 ];
 function Quiz({ onDone, items, multi }: P & { items: Q[]; multi?: boolean }) {
   const [ans, setAns] = useState<Record<number, Set<number>>>({});
+  const [current, setCurrent] = useState(0);
   const pick = (qi: number, oi: number) => {
     const cur = new Set(multi ? ans[qi] ?? [] : []); if (cur.has(oi) && multi) cur.delete(oi); else cur.add(oi);
     const next = { ...ans, [qi]: cur };
@@ -136,7 +137,8 @@ function Quiz({ onDone, items, multi }: P & { items: Q[]; multi?: boolean }) {
   };
   return (
     <ol className="ex ex-quiz">
-      {items.map((q, qi) => (
+      <li className="ex-question-progress">Question {current + 1} of {items.length}{multi ? " · Choose every claim that holds" : ""}</li>
+      {items.map((q, qi) => qi === current && (
         <li key={qi}>
           <p className="ex-q">{q.q}</p>
           <div className="ex-opts" role="group" aria-label={`Question ${qi + 1}`}>
@@ -148,7 +150,7 @@ function Quiz({ onDone, items, multi }: P & { items: Q[]; multi?: boolean }) {
           </div>
         </li>
       ))}
-      {multi && <p className="ex-hint">Choose every claim that holds.</p>}
+      {items.length > 1 && <li className="ex-question-nav"><button type="button" className="btn" disabled={current === 0} onClick={() => setCurrent(i => i - 1)}>Previous question</button><button type="button" className="btn" disabled={current === items.length - 1} onClick={() => setCurrent(i => i + 1)}>Next question</button></li>}
     </ol>
   );
 }
@@ -188,16 +190,19 @@ const OBS = [
 ];
 function Sort({ onDone }: P) {
   const [a, setA] = useState<Record<number, boolean>>({});
+  const [current, setCurrent] = useState(0);
   const put = (i: number, see: boolean) => { const n = { ...a, [i]: see }; setA(n); if (OBS.every((o, k) => n[k] === o.see)) onDone(); };
   return (
     <ul className="ex ex-sort">
-      {OBS.map((o, i) => (
+      <li className="ex-question-progress">Observation {current + 1} of {OBS.length}</li>
+      {OBS.map((o, i) => i === current && (
         <li key={i} className={i in a ? (a[i] === o.see ? "is-ok" : "is-no") : ""}>
           <span>{o.t}</span>
           <span className="seg" role="group" aria-label={o.t}><button type="button" aria-pressed={a[i] === true} onClick={() => put(i, true)}>I can see it</button><button type="button" aria-pressed={a[i] === false} onClick={() => put(i, false)}>An assumption</button></span>
           {i in a && <small>{a[i] === o.see ? (o.see ? "Yes: anyone standing there could check it." : "Yes: nobody saw it happen. Leave it out or say it is unknown.") : o.see ? "You can see this, so it belongs in the report." : o.t.includes("notch") ? "" : "Nobody watched this happen; it is a guess."}{!o.see && o.t.includes("sterilised") ? " An ear notch is a sign, not proof." : ""}</small>}
         </li>
       ))}
+      <li className="ex-question-nav"><button type="button" className="btn" disabled={current === 0} onClick={() => setCurrent(i => i - 1)}>Previous</button><button type="button" className="btn" disabled={current === OBS.length - 1} onClick={() => setCurrent(i => i + 1)}>Next observation</button></li>
     </ul>
   );
 }

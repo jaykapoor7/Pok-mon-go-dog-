@@ -17,6 +17,7 @@ import { cityEvidence, KINDS } from "../atlas/evidence";
 import { State } from "../ui";
 import { findings, loadedScope, type Period } from "./findings";
 import { FindingView, Hatch } from "./Findings";
+import { MobileDetails } from "../ui/MobileDetails";
 import "./city.css";
 
 export function Insights() {
@@ -42,7 +43,7 @@ export function Insights() {
           <div className="seg" role="group" aria-label="Period"><button type="button" aria-pressed={period === "all"} onClick={() => setPeriod("all")}>{ld?.capped ? "Loaded record" : "Whole record"}</button><button type="button" aria-pressed={period === "12m"} onClick={() => setPeriod("12m")}>Last 12 months</button></div>
           {city && <Link className="btn is-s" href={`/city/report?city=${encodeURIComponent(city)}`}><Printer size={14} aria-hidden /> City report</Link>}
         </div>
-        {ld?.capped && <p className="ci-loaded" role="note"><b>Loaded scope.</b> These findings read the most recent {ld.totals.cases ? <>{ld.cases.toLocaleString("en-IN")} of {ld.totals.cases.toLocaleString("en-IN")} requests and </> : null}{ld.animals.toLocaleString("en-IN")} of {ld.totals.animals.toLocaleString("en-IN")} animal profiles in {city}, the bounded set the public service returns. Older records are not in these figures; each finding says so in its method.</p>}
+        {ld?.capped && <p className="ci-loaded" role="note"><b>Partial record.</b> Showing {ld.animals.toLocaleString("en-IN")} of {ld.totals.animals.toLocaleString("en-IN")} animal profiles{ld.totals.cases ? <> and {ld.cases.toLocaleString("en-IN")} of {ld.totals.cases.toLocaleString("en-IN")} requests</> : null}. Older records are outside these findings.</p>}
         {ev && <p className="ci-ev"><span className="ci-kind" style={{ ["--ink" as string]: KINDS[ev.kind].ink }}>{KINDS[ev.kind].label}</span> {ev.precision}. {ev.note}</p>}
       </header>
       {loading && <div className="ci-wrap"><div className="skel" style={{ height: 260 }} /><div className="skel" style={{ height: 260, marginTop: 20 }} /></div>}
@@ -50,11 +51,11 @@ export function Insights() {
       {!loading && !error && city && !list.length && <State title="Too little to say">The record for {city} in this period is too thin to support a finding. That is a statement about the record, not about the animals.</State>}
       {list.length > 0 && (
         <div className="ci-wrap">
-          <nav className="ci-index" aria-label="Findings">
+          <MobileDetails label="Jump to a finding" className="ci-index-fold"><nav className="ci-index" aria-label="Findings">
             <p className="k">{list.length} findings</p>
             <ol>{list.map((x, i) => <li key={x.id}><a href={`#${x.id}`}><span className="mono">{String(i + 1).padStart(2, "0")}</span>{x.kicker}</a></li>)}</ol>
             <p className="small">Each finding says what it counts and what it cannot say. Figures come from the live record when this page was opened.</p>
-          </nav>
+          </nav></MobileDetails>
           <div className="ci-list">{list.map((x, i) => <FindingView key={x.id} x={x} i={i} city={city!} />)}</div>
         </div>
       )}

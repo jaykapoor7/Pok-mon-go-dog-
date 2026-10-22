@@ -37,6 +37,7 @@ import type { NGO } from "@/lib/types";
 import { useMembership } from "../shell/Shell";
 import { AreaMap } from "../atlas/AreaMap";
 import { ArtSlot, State, day, n } from "../ui";
+import { MobileDetails } from "../ui/MobileDetails";
 import { FollowupList, NextStep } from "./NextStep";
 import "./ngo.css";
 import "./work2.css";
@@ -171,12 +172,13 @@ export function Work() {
           <p className="wk2-k">{org?.name ?? "Your organisation"} · {today}</p>
           <h1 className="wk2-h">Today&rsquo;s work</h1>
         </div>
-        <p className="wk2-sum" aria-live="polite">
+        <MobileDetails label="Today at a glance" className="wk2-summary-fold"><p className="wk2-sum" aria-live="polite">
           {loading ? "Reading your organisation's open work…" : failed ? <span className="is-err">The organisation&rsquo;s work could not be read. Nothing is shown as zero. <button type="button" className="link" onClick={() => void load()}>Retry</button></span> : (
             <><b>{n(live.filter((r) => r.crit).length)}</b> critical · <b>{n(co.overdue.length)}</b> follow-ups overdue · <b>{n(live.filter((r) => !r.c?.assignee_name).length)}</b> nobody holds · <b>{n(live.length)}</b> live</>
           )}
         </p>
         {!loading && !failed && cohort === "live" && <Ribbon rows={co.live} focus={focus} onFocus={(f) => { setFocus(f); setSel(null); }} />}
+        </MobileDetails>
         <nav className="wk2-go" aria-label="Work tools">
           <Link href="/ngo/inbox" className="wk2-btn">Inbox &amp; triage</Link>
           <Link href="/ngo/field" className="wk2-btn">Field mode</Link>
@@ -195,11 +197,11 @@ export function Work() {
           </div>
           <div className="wk2-tools">
             <label className="wk2-search"><Search size={15} aria-hidden /><input ref={searchRef} value={text} onChange={(e) => setText(e.target.value)} placeholder="Code, animal, place, person" aria-label="Filter the queue" /></label>
-            <div className="wk2-chips" role="group" aria-label="Show">
+            <MobileDetails label="Filters and grouping" active={focus !== "all" || !!cell} className="wk2-filter-fold"><div className="wk2-chips" role="group" aria-label="Show">
               {(["all", "mine", "unowned", "critical", "followup"] as Focus[]).map((k) => <button key={k} type="button" aria-pressed={focus === k} onClick={() => setFocus(k)}>{k === "all" ? "All" : k === "mine" ? "Mine" : k === "unowned" ? "Unowned" : k === "critical" ? "Critical" : "Follow-ups"}</button>)}
               {cohort === "live" && <button type="button" className="wk2-group" onClick={() => setGroup(group === "priority" ? "owner" : "priority")} aria-label={`Group by ${group === "priority" ? "person" : "priority"}`}>By {group === "priority" ? "priority" : "person"}</button>}
               {cell && <button type="button" aria-pressed onClick={() => setCell(null)}>One area <X size={13} aria-hidden /></button>}
-            </div>
+            </div></MobileDetails>
           </div>
 
           <div className="wk2-list" ref={listRef} role="listbox" aria-label={`${rows.length} items in the queue`} aria-activedescendant={sel ? `wk-${sel}` : undefined} tabIndex={0}>
@@ -369,17 +371,17 @@ function SignedOut({ signedIn }: { signedIn: boolean }) {
     <div className="wk wk-out">
       <header className="wk-head">
         <div className="wk-title"><p className="k">NGO workspace</p><h1 className="serif">Work</h1></div>
-        <p className="wk-sum">An organisation&rsquo;s cases, animals and places load only for its members. Nothing private reaches this page until you sign in with your organisation; the database checks every read and every action.</p>
+        <p className="wk-sum">Manage your organisation&rsquo;s cases, animals and field work. Sign in with your team to open its private workspace.</p>
         <div className="wk-head-act">{!signedIn && <Link href="/join" className="btn is-flame">Sign in with your code</Link>}<Link href="/partner-apply" className="btn">Apply to partner</Link></div>
       </header>
-      <div className="wk-explain">
+      <MobileDetails label="What your workspace includes" className="wk-explain-fold"><div className="wk-explain">
         <ol>
           <li><span className="mono">01</span><b className="serif">One queue</b><p>Critical cases, follow-ups that slipped and live cases, oldest first. Imported histories and quiet cases wait in their own cohorts and never inflate today.</p></li>
           <li><span className="mono">02</span><b className="serif">An inspector beside it</b><p>The animal, the place at the precision recorded, who holds the case, what has happened, and the next step your role allows.</p></li>
           <li><span className="mono">03</span><b className="serif">Saved means saved</b><p>Taking, assigning, starting and closing a case are confirmed by the database before StrayPaw says they are done. Delivered is never accepted.</p></li>
         </ol>
         <ArtSlot id="ngo-empty" />
-      </div>
+      </div></MobileDetails>
     </div>
   );
 }

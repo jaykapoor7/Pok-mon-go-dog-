@@ -14,6 +14,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
+import { MobileDetails } from "../ui/MobileDetails";
 import type { Living, LivingEvent } from "@/lib/animal/living";
 import { Portrait } from "../ui/Portrait";
 import { publicLocality } from "../ui/place";
@@ -68,11 +69,11 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
             <p className="ar-strip mono"><span>StrayPaw ID</span>{r.straypawId ?? "pending"}{r.sourceCode ? <><span>Source</span>{r.sourceCode}</> : null}</p>
             <h1 className="ar-name">{r.label}</h1>
             <p className="ar-desc">{describe || "Description not recorded"}{place ? <> · recorded in <b>{place}</b>{r.city ? `, ${r.city}` : ""}</> : r.city ? <> · {r.city}</> : null}</p>
-            <dl className="ar-span">
+            <MobileDetails label="Record dates and entries"><dl className="ar-span">
               <div><dt>On the record since</dt><dd>{day(r.firstSeen)}</dd></div>
               <div><dt>Last recorded</dt><dd>{day(r.lastSeen)}</dd></div>
               <div><dt>Entries</dt><dd className="tnum">{r.events.length}</dd><small>{sightings} sighting{sightings === 1 ? "" : "s"} · {careN} care · {casesN} request{casesN === 1 ? "" : "s"}</small></div>
-            </dl>
+            </dl></MobileDetails>
             <div className={`ar-next${next.urgent ? " is-urgent" : ""}`}>
               <p className="k">Next on this record</p>
               <b>{next.t}</b>
@@ -93,7 +94,7 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
       </header>
 
       {/* What the record says, and what it does not: four facts, each with its own state. */}
-      <section className="ar-ledger page" aria-labelledby="ar-ledger-h">
+      <MobileDetails label="Health and care on record" className="ar-ledger-fold"><section className="ar-ledger page" aria-labelledby="ar-ledger-h">
         <h2 id="ar-ledger-h" className="k">What the record says</h2>
         <dl className="ar-facts">
           {facts.map((f, i) => <div key={f.label} className={`is-${f.tone}`} style={{ ["--i" as string]: i }}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}
@@ -104,7 +105,7 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
             : <p className="ar-care-none">No dated care event is recorded. That is unknown, not proof that no care was given.</p>}
         </div>
         <p className="small">Hatched means the record does not say. Not recorded is never counted as no. Identity: one StrayPaw ID across every organisation that records it; matches are made by people, reviewable and reversible, and a likeness alone never merges two animals.</p>
-      </section>
+      </section></MobileDetails>
 
       <div className="ar-body page">
         <section className="ar-life" aria-labelledby="ar-life-h">
@@ -128,7 +129,7 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
           ))}
         </section>
 
-        <aside className="ar-side">
+        <MobileDetails label="Places, sources and notes" className="ar-side-fold"><aside className="ar-side">
           {gaps.length > 0 && (
             <section className="ar-card">
               <h2 className="h3">Not yet on the record</h2>
@@ -148,7 +149,7 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
               <ul className="ar-notes">{r.comments.slice(0, 5).map((c) => <li key={c.id}><p>{c.body}</p><small>{c.author} · {day(c.date)}</small></li>)}</ul>
             </section>
           )}
-        </aside>
+        </aside></MobileDetails>
       </div>
     </article>
   );

@@ -8,12 +8,12 @@
 import Link from "next/link";
 import { ExternalLink, Phone } from "lucide-react";
 import { EDUCATION_PARTNERS } from "@/lib/platform/education";
-import { COURSES, HELPLINES, POST_BITE_STEPS } from "./content";
-import { PrintButton } from "./PrintButton";
+import { HELPLINES, POST_BITE_STEPS } from "./content";
+import { ReportPractice } from "./ReportPractice";
+import { KindHourLibrary } from "./KindHourLibrary";
+import { MobileDetails } from "../ui/MobileDetails";
 import { Directory } from "./Directory";
 import "./learn.css";
-
-const CARDS = [["on-the-street", "a-calm-encounter"], ["on-the-street", "after-a-bite"], ["on-the-street", "observe-dont-assume"]].map(([c, l]) => COURSES.find((x) => x.id === c)!.lessons.find((x) => x.id === l)!);
 
 export function Resources() {
   return (
@@ -25,6 +25,8 @@ export function Resources() {
           <p className="lede">Who to call, what to do after a bite, and who teaches this well.</p>
         </div>
       </header>
+      <ReportPractice />
+      <KindHourLibrary />
       <div className="rs-grid">
         <section className="rs-sec" id="helplines" aria-labelledby="rs-h">
           <h2 id="rs-h" className="h2">Rescue helplines</h2>
@@ -38,19 +40,15 @@ export function Resources() {
           <p className="small">Not medical advice: a doctor decides the schedule. <Link className="link" href="/learn/courses/on-the-street/after-a-bite">The lesson</Link></p>
         </section>
       </div>
-      <section className="ws-sec" id="directory">
+      <MobileDetails label="Find an animal-welfare organisation" className="resources-fold"><section className="ws-sec" id="directory">
         <h2 className="h2">Animal-welfare organisations across India <small className="small">a directory, not an endorsement; StrayPaw partners are under <Link className="link" href="/community/organisations">Organisations</Link></small></h2>
         <Directory />
-      </section>
-      <section className="ws-sec">
+      </section></MobileDetails>
+      <MobileDetails label="Education organisations" className="resources-fold"><section className="ws-sec">
         <h2 className="h2">Education partners</h2>
         <ul className="rs-partners">{EDUCATION_PARTNERS.map((p) => <li key={p.id}><p className="k">{p.city}</p><h3 className="serif">{p.fullName}</h3><p>{p.summary}</p><ul>{p.programmes.map((x) => <li key={x}>{x}</li>)}</ul><a className="link" href={p.url} target="_blank" rel="noreferrer">{p.source} <ExternalLink size={12} aria-hidden /></a></li>)}</ul>
         <p className="small">Descriptions are each organisation&rsquo;s own account of its work. Naming them here is not a claim of partnership beyond the material they shared.</p>
-      </section>
-      <section className="ws-sec">
-        <div className="rs-cards-head"><h2 className="h2">Cards to print</h2><div className="no-print"><PrintButton label="Print the cards" /></div></div>
-        <div className="rs-cards">{CARDS.map((l) => <article key={l.id} className="rs-card"><p className="k">StrayPaw Academy</p><h3 className="serif">{l.title}</h3><p>{l.takeaway}</p></article>)}</div>
-      </section>
+      </section></MobileDetails>
     </div>
   );
 }

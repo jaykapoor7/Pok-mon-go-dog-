@@ -20,7 +20,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { Activity, BookOpen, Building2, ChevronDown, Compass, FileText, GraduationCap, Landmark, Layers, Map as MapIcon, Menu, PawPrint, Plus, Radio, Search, Users, X } from "lucide-react";
+import { Activity, BookOpen, ChevronDown, Compass, FileText, GraduationCap, Landmark, Layers, Map as MapIcon, Menu, PawPrint, Plus, Radio, Search, Users, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, isNgoMember } from "@/lib/actions";
 import { ORDER, WORKSPACES, currentDest, lastWorkspace, rememberWorkspace, workspaceFor, type WorkspaceId } from "./workspaces";
@@ -29,6 +29,7 @@ import { spFonts } from "../fonts";
 import "../sp.css";
 import "./shell.css";
 import "../folk.css";
+import "../mobile.css";
 
 type Org = { id: string; name: string } | null;
 const Membership = createContext<{ member: boolean; ready: boolean; org: Org }>({ member: false, ready: false, org: null });
@@ -75,14 +76,16 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
   }, []);
   const closeFind = useCallback(() => setFind(false), []);
 
-  const visible = ORDER.filter((id) => !WORKSPACES[id].members || mem.member || ws === id);
+  // Workspace choice is stable. Membership controls access inside the NGO gate,
+  // never whether NGO appears as a workspace in the navigation.
+  const visible = ORDER;
   const reporting = path.startsWith("/community/report");
   /* Map destinations own the whole screen beneath the bar. */
   const isFlush = flush || path === "/community" || path === "/community/report" || path === "/ngo" || path === "/ngo/map" || path === "/city";
 
   return (
     <Membership.Provider value={mem}>
-      <div className={`sp ${spFonts}${isFlush ? " is-flush" : ""}${path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city" ? " is-map" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
+      <div className={`sp sp-app ${spFonts}${isFlush ? " is-flush" : ""}${path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city" ? " is-map" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
         <a href="#sp-main" className="sp-skip">Skip to content</a>
         <header className="sp-bar">
           <Link href={def.home} className="sp-mark" aria-label={`StrayPaw, ${def.label} home`}>
@@ -106,12 +109,6 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
                     </Link>
                   );
                 })}
-                {!mem.member && (
-                  <div className="sp-ws-foot">
-                    <Building2 size={16} aria-hidden />
-                    <span>Work at an organisation? <Link href="/ngo" onClick={() => setSwitcher(false)}>Open the NGO workspace</Link> and sign in with your organisation.</span>
-                  </div>
-                )}
               </Popover>
             )}
           </div>
@@ -127,7 +124,7 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
           </button>
 
           <div className="sp-bar-end">
-            {def.index.length > 0 && <button type="button" className="sp-index-btn" aria-haspopup="dialog" aria-expanded={sheet} onClick={() => setSheet(true)}><Menu size={16} aria-hidden /><span>Index</span></button>}
+            {def.index.length > 0 && <button type="button" className="sp-index-btn" aria-haspopup="dialog" aria-expanded={sheet} onClick={() => setSheet(true)}><Menu size={16} aria-hidden /><span>Tools</span></button>}
             {def.action && !reporting && <Link href={def.action.href} className="sp-action">{def.action.href.includes("report") ? <Radio size={16} aria-hidden /> : <Plus size={16} aria-hidden />}<span>{def.action.label}</span></Link>}
             <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} />
           </div>
@@ -147,7 +144,7 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
           <button type="button" onClick={() => setSheet(true)} aria-haspopup="dialog" aria-expanded={sheet}><Menu size={21} strokeWidth={1.8} aria-hidden /><span>More</span></button>
         </nav>
 
-        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} visible={visible} path={path} />
+        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} />
         <Finder open={find} onClose={closeFind} ws={ws} member={mem.member} />
       </div>
     </Membership.Provider>
@@ -187,28 +184,24 @@ function Account({ user, org, onSignIn, onSignOut }: { user: { name: string; ema
   );
 }
 
-function IndexSheet({ open, onClose, ws, visible, path }: { open: boolean; onClose: () => void; ws: WorkspaceId; visible: WorkspaceId[]; path: string }) {
+function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); else if (!open && d.open) d.close(); }, [open]);
   const def = WORKSPACES[ws];
   return (
-    <dialog ref={ref} className="sp-index" aria-label={`${def.label} index`} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
+    <dialog ref={ref} className="sp-index" aria-label={`${def.label} tools`} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
       <div className="sp-index-in">
-        <header><span className="sp-grip" aria-hidden /><p className="k">{def.label} · index</p><button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><X size={18} /></button></header>
+        <header><span className="sp-grip" aria-hidden /><div><p className="k">{def.label}</p><h2>Tools &amp; resources</h2></div><button type="button" className="icon-btn" onClick={onClose} aria-label="Close tools"><X size={18} /></button></header>
         <nav className="sp-index-dests" aria-label="Destinations">
-          {def.dests.map((d, i) => <Link key={d.href} href={d.href} onClick={onClose} aria-current={currentDest(def, path) === d.href ? "page" : undefined}><span className="mono">0{i + 1}</span><b className="serif">{d.label}</b></Link>)}
+          {def.dests.map((d) => { const Icon = DEST_ICON[d.href] ?? MapIcon; return <Link key={d.href} href={d.href} onClick={onClose} aria-current={currentDest(def, path) === d.href ? "page" : undefined}><Icon size={20} aria-hidden /><b>{d.short ?? d.label}</b></Link>; })}
         </nav>
         {def.index.map((g) => (
-          <section key={g.label}>
-            <h2 className="k">{g.label}</h2>
+          <details key={`${ws}-${g.label}`} name="workspace-tools" className="sp-tool-group" open={g.links.some(l => path === l.href)}>
+            <summary>{g.label}<span>{g.links.length}</span><ChevronDown size={17} aria-hidden /></summary>
             <ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} onClick={onClose} aria-current={path === l.href ? "page" : undefined}><b>{l.label}</b>{l.note && <small>{l.note}</small>}</Link></li>)}</ul>
-          </section>
+          </details>
         ))}
-        <section>
-          <h2 className="k">Workspaces</h2>
-          <ul className="sp-index-ws">{visible.map((id) => <li key={id}><Link href={WORKSPACES[id].home} onClick={onClose} aria-current={id === ws ? "true" : undefined}><i style={{ background: WORKSPACES[id].ink }} aria-hidden /><b>{WORKSPACES[id].label}</b></Link></li>)}</ul>
-        </section>
-        <footer className="sp-index-foot"><Link href="/" onClick={onClose}>StrayPaw.org</Link><Link href="/art-credits" onClick={onClose}>Art &amp; credits</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
+        <footer className="sp-index-foot"><Link href="/" onClick={onClose}>Main site</Link><Link href="/contact" onClick={onClose}>Contact</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
       </div>
     </dialog>
   );
