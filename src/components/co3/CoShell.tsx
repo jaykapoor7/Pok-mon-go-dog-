@@ -6,31 +6,31 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { sxSerif } from "@/components/shell/fonts";
 import { getNationalCells } from "@/lib/livingmap/server";
 import { VectorIndia } from "@/components/world/VectorIndia";
-import { Band } from "@/components/world/Band";
 import type { Cell } from "@/components/bindu/mapkit";
 import "@/components/site/site.css";
 import "./co3.css";
 import "@/components/marketing/precision.css";
 
 /* ════════════════════════════════════════════════════════════════════
-   The company pages' shell: Product, Solutions, Our Story and Contact.
-   The homepage's language at reading pace: each page opens on its own
-   painted street (a seed per page, so it keeps it), a title panel framed
-   like the homepage's, then cream editorial movements divided by leaf
-   rules, one closing invitation over painted India, and the footer.
+   The one template for every page in the site nav and footer: Who It's
+   For, Programmes, Our Story, Product, Solutions, Contact and the rest.
+   It opens like the landing: the night ground, the header floating over
+   it, one headline, and India drawn from StrayPaw's own recorded areas.
+   Then cream sections, heading left and body right, one closing
+   invitation, and the footer. Every page reads as the same company.
    ════════════════════════════════════════════════════════════════════ */
 
-export async function CoShell({ kicker, title, lede, actions, children, close = true, seed = 1, closing = "Better care starts with better information." }: {
-  kicker: string; title: ReactNode; lede?: ReactNode; actions?: ReactNode; children: ReactNode; close?: boolean; seed?: number; closing?: string;
+export async function CoShell({ kicker, title, lede, actions, children, close = true, closing = "Better care starts with better information.", className = "" }: {
+  kicker: string; title: ReactNode; lede?: ReactNode; actions?: ReactNode; children: ReactNode; close?: boolean; seed?: number; closing?: string; className?: string;
 }) {
-  const national = close ? await getNationalCells().catch(() => null) : null;
+  const national = await getNationalCells().catch(() => null);
   const cells: Cell[] = (national?.cells ?? []).map(([lng, lat, n]) => [lng, lat, n]);
   return (
-    <div className={`sp co3 precision ${sxSerif.variable}`}>
-      <SiteHeader tone="paper" />
+    <div className={`sp co3 precision ${sxSerif.variable} ${className}`}>
+      <SiteHeader overlay />
       <main>
         <section className="co3-hero">
-          <Band seed={seed} className="co3-band" />
+          <VectorIndia cells={cells} className="co3-hero-vi" />
           <div className="co3-hero-in">
             <p className="co3-k">{kicker}</p>
             <h1>{title}</h1>

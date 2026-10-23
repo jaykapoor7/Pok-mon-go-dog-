@@ -87,9 +87,6 @@
   .pr-closing .sw-btn { justify-self: start; }
 }
 /* Shared company pages: compact editorial layouts with no reading-time reveals. */
-.co3.precision .co3-hero { padding: 64px clamp(20px,6vw,80px); }
-.co3.precision .co3-hero-in { max-width: 900px; }
-.co3.precision .co3-hero h1 { font-size: clamp(36px,4.6vw,64px); line-height: 1.08; }
 .co3.precision .co3-hero-in > *, .co3.precision :is(.co3-cap,.co3-list li,.co3-figs > div,.au-panel) { animation: none; translate: none; opacity: 1; filter: none; }
 .co3.precision .co3-sec { padding: 48px clamp(20px,5vw,72px); }
 .co3.precision .co3-sec > header { position: static; }
@@ -107,9 +104,9 @@
 .co3.precision .co3-aside a { color: var(--blue); }
 .co3.precision .au-panel { clip-path: none; }
 @media(max-width:760px) {
-  .co3.precision .co3-hero { padding: 40px 20px; }
+  .co3.precision .co3-hero { padding: 116px 20px 48px; }
   .co3.precision .co3-sec { padding: 32px 20px; }
-  .co3.precision .co3-hero h1 { font-size: 38px; }
+  .co3.precision .co3-hero h1 { font-size: clamp(36px, 10vw, 46px); }
 }
 .co3.precision .co3-sol { padding: 32px clamp(20px,5vw,72px) 48px; max-width: 1280px; margin: auto; }
 .co3.precision .pr-solutions h2 { font-size: clamp(28px,3vw,40px); line-height: 1.15; }
@@ -122,11 +119,7 @@
 .sp.precision .pr-metrics dd small { display: block; margin-top: 6px; color: #505d70; font-size: 12px; font-weight: 400; letter-spacing: 0; line-height: 1.5; }
 .sp.precision .pr-audience-art figcaption { color: #505d70; }
 .sp.co3.precision .co3-figs dd small { display: block; margin-top: 12px; font-size: 13px; font-weight: 400; letter-spacing: 0; line-height: 1.5; }
-.sp.co3.precision .co3-band img { animation: none; transform: none; }
-.sp.co3.precision .co3-hero { min-height: 0; }
-.sp.co3.precision .co3-hero-in { width: min(760px, 70vw); margin: 0; background: #fffdf9; box-shadow: none; border: 0; border-radius: 0; }
-.sp.co3.precision .co3-hero-in::before, .sp.co3.precision .co3-sec::before { display: none; }
-@media(max-width:760px) { .sp.co3.precision .co3-hero-in { width: 100%; padding: 24px; } }
+.sp.co3.precision .co3-hero-in::before { display: none; }
 .sp.co3.precision .co3-cap { border: 0; border-bottom: 1px solid #c4ccd6; border-radius: 0; padding: 20px 0; box-shadow: none; }
 .sp.co3.precision .co3-form { border: 0; border-radius: 0; box-shadow: none; }
 

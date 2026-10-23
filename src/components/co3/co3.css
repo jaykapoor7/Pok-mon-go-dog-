@@ -29,16 +29,27 @@
 .co3-btn.is-out:hover { border-color: var(--ink); }
 .co3-k { margin: 0 0 18px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; color: var(--flame-ink); }
 
-/* the painted band: the Gond-lined sea and India on handmade paper */
-.co3-hero { position: relative; overflow: hidden; padding: clamp(110px, 18svh, 180px) clamp(20px, 6vw, 104px) clamp(80px, 12svh, 130px); background: var(--sea); color: var(--ink); }
-.co3-hero-vi { position: absolute; right: 4vw; top: 50%; height: 120%; width: auto; transform: translateY(-50%); pointer-events: none; }
-.co3-hero::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(243, 237, 228, 0.95) 0%, rgba(243, 237, 228, 0.75) 45%, rgba(243, 237, 228, 0) 70%); }
-.co3-hero-in { z-index: 2; }
-.co3-hero-in { position: relative; max-width: 860px; }
-.co3-hero h1 { font-size: clamp(42px, 5.6vw, 92px); line-height: 0.98; font-weight: 700; letter-spacing: -0.055em; }
-.co3-hero h1 em { color: var(--flame-ink); }
-.co3-lede { margin: 24px 0 0; max-width: 54ch; font-size: clamp(16px, 1.3vw, 20px); line-height: 1.55; color: var(--ink-2); }
-.co3-hero .co3-acts { margin-top: 32px; }
+/* the hero: the landing's night, one headline, India from the record */
+.co3-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); align-items: center; gap: clamp(24px, 4vw, 64px);
+  min-height: min(760px, 86svh); padding: clamp(128px, 18svh, 170px) max(clamp(20px, 5vw, 72px), calc((100vw - 1280px) / 2)) clamp(64px, 10svh, 110px);
+  background: radial-gradient(120% 90% at 82% 40%, #16336a 0%, #0b1e3d 52%, #071429 100%); color: #f4efe6; }
+.co3-hero::after { content: ""; position: absolute; inset: auto 0 0 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(143, 176, 255, .35), transparent); }
+.co3-hero-in { position: relative; z-index: 2; max-width: 820px; }
+.co3-hero .co3-k { color: #ff8a3d; }
+.co3-hero h1 { font-size: clamp(44px, 5.8vw, 92px); line-height: .98; font-weight: 700; letter-spacing: -.055em; color: #fffdf9; text-wrap: balance; }
+.co3-hero h1 em { color: #ff8a3d; }
+.co3-lede { margin: 24px 0 0; max-width: 54ch; font-size: clamp(16.5px, 1.35vw, 20px); line-height: 1.55; color: rgba(244, 239, 230, .76); }
+.co3-hero .co3-acts { margin-top: 34px; }
+.co3-hero .co3-btn.is-line, .co3-hero .co3-btn.is-out { background: transparent; color: #fffdf9; border-color: rgba(255, 253, 249, .35); }
+.co3-hero .co3-btn.is-line:hover, .co3-hero .co3-btn.is-out:hover { border-color: #fffdf9; }
+.co3-hero-vi { order: 2; position: relative; z-index: 1; justify-self: center; width: 100%; max-width: 520px; height: auto; max-height: 62svh; pointer-events: none; }
+.co3 .co3-hero-vi .vi-land { fill: rgba(143, 176, 255, .06); stroke: rgba(143, 176, 255, .55); stroke-width: .35; }
+.co3 .co3-hero-vi .vi-echo { stroke: #ff8a3d; opacity: .45; }
+.co3 .co3-hero-vi .vi-pt { fill: #ff8a3d; stroke: #ffd08a; stroke-width: .2; filter: drop-shadow(0 0 1.2px rgba(255, 138, 61, .9)); }
+@media (max-width: 860px) {
+  .co3-hero { grid-template-columns: 1fr; min-height: 0; padding-top: 120px; }
+  .co3-hero-vi { position: absolute; right: -18vw; top: 90px; width: 78vw; max-width: none; opacity: .38; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .co3-hero-in > * { animation: co3-in 1s var(--out) backwards; }
   .co3-hero-in > :nth-child(2) { animation-delay: 0.08s; } .co3-hero-in > :nth-child(3) { animation-delay: 0.18s; } .co3-hero-in > :nth-child(4) { animation-delay: 0.28s; }
@@ -63,6 +74,7 @@
 .co3-body > p { margin: 0; font-size: clamp(16px, 1.2vw, 18.5px); line-height: 1.6; color: var(--ink-2); max-width: 62ch; }
 .co3-body > p.is-lead { font-size: clamp(20px, 1.6vw, 26px); line-height: 1.4; color: var(--ink); font-weight: 550; letter-spacing: -0.02em; }
 .co3-body a:not(.co3-btn) { color: var(--blue); font-weight: 650; text-underline-offset: 3px; }
+.co3-body .audience-note { font-size: 13px; color: var(--mute); }
 
 /* a capability: name, what it does, a glimpse of the real interface, a way in */
 .co3-caps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -117,10 +129,8 @@
   .co3-sec, .co3-contact { grid-template-columns: 1fr; }
   .co3-sec > header { position: static; }
   .co3-caps { grid-template-columns: 1fr; }
-  .co3-hero-vi { right: -30vw; opacity: 0.5; }
 }
 @media (max-width: 760px) {
-  .co3-hero { padding-top: 96px; }
   .co3-btn { min-height: 46px; padding: 0 18px; font-size: 15px; }
   .co3-list li { grid-template-columns: 38px minmax(0, 1fr); }
 }
@@ -150,25 +160,9 @@
 .co3 .co3-btn.is-line, .co3 .co3-btn.is-out { background: var(--paper); border-color: var(--ink); }
 .co3 .co3-btn.is-ink { background: var(--ink); }
 
-.co3 .co3-hero { position: relative; overflow: visible; padding: 0; background: var(--shell); min-height: clamp(520px, 74svh, 760px); display: flex; align-items: center; }
-.co3 .co3-hero::before { display: none; }
-.co3-band { position: absolute; inset: 0; margin: 0; overflow: hidden; background: #8c1c1c; }
-.co3-band img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
-@media (prefers-reduced-motion: no-preference) { .co3-band img { animation: co3-drift 40s ease-in-out infinite alternate; } }
-@keyframes co3-drift { from { transform: scale(1.04) translateY(0); } to { transform: scale(1.1) translateY(-2%); } }
-.co3-band figcaption { position: absolute; right: 12px; bottom: 12px; z-index: 1; padding: 4px 10px; border-radius: 999px; background: rgba(255, 253, 249, 0.92); border: 1px solid rgba(11, 30, 61, 0.2); font-family: var(--mono); font-size: 11px; }
-.co3-band figcaption a { color: var(--ink); text-decoration: none; }
-.co3 .co3-hero-in { position: relative; z-index: 2; margin: 0 0 0 clamp(16px, 4.4vw, 76px); width: min(620px, 52vw); padding: clamp(24px, 2.6vw, 38px); border-radius: 6px; background: rgba(255, 253, 249, 0.96);
-  border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 6.4px var(--ink), 8px 8px 0 rgba(11, 30, 61, 0.85); }
-.co3 .co3-hero-in::before { content: ""; display: block; height: 18px; margin: -10px -10px 16px; background: url("/art/works/palampore-border.webp") repeat-x 0 50% / auto 100%; }
-.co3 .co3-hero h1 { font-size: clamp(36px, 4.4vw, 72px); }
-.co3 .co3-lede { margin-top: 16px; }
-.co3 .co3-hero .co3-acts { margin-top: 24px; }
-
 /* sections: leaf rules between movements, painted frames on cards */
 .co3 .co3-sec { border-top: 0; position: relative; }
-.co3 .co3-sec + .co3-sec::before, .co3 .co3-hero + .co3-sec::before, .co3 .co3-sec + .co3-contact::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 16px;
-  background: url("/art/works/palampore-border.webp") repeat-x 0 0 / auto 16px; }
+.co3 .co3-sec + .co3-sec::before, .co3 .co3-sec + .co3-contact::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 1px; background: rgba(11, 30, 61, .14); }
 .co3 .co3-hero + .co3-sec::before { display: none; }
 .co3 .co3-cap, .co3 .co3-form { border-radius: 10px; border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5.2px rgba(11, 30, 61, 0.45), 5px 5px 0 rgba(11, 30, 61, 0.85); }
 .co3 .co3-cap:hover { transform: translate(-2px, -2px); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5.2px rgba(11, 30, 61, 0.45), 7px 7px 0 var(--flame); }
@@ -186,11 +180,7 @@
 .co3 .co3-foot { background: var(--ink); }
 
 @media (max-width: 760px) {
-  .co3 .co3-hero { display: block; min-height: 0; padding: 0 0 8px; }
-  .co3-band { position: relative; height: 260px; }
-  .co3-band figcaption { bottom: 64px; }
-  .co3 .co3-hero-in { width: auto; margin: -56px 10px 0; padding: 20px 18px; }
-  .co3 .co3-hero h1 { font-size: clamp(30px, 8.6vw, 40px); }
+  .co3-hero h1 { font-size: clamp(36px, 10vw, 48px); }
   .co3-close-vi { right: -40vw; opacity: 0.45; }
 }
 
@@ -199,8 +189,7 @@
 .co3 .fd-h { font-size: clamp(30px, 3.2vw, 52px); line-height: 1.03; font-weight: 700; letter-spacing: -0.05em; margin: 0 0 24px; }
 .co3 .fd-h em { color: var(--flame-ink); }
 .co3 .fd-last { color: var(--ink) !important; font-weight: 600; }
-.co3 .co3-origin + .co3-sec::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 16px;
-  background: url("/art/works/palampore-border.webp") repeat-x 0 0 / auto 16px; }
+.co3 .co3-origin + .co3-sec::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 1px; background: rgba(11, 30, 61, .14); }
 
 /* Programmes: one row per partner programme, figure first. */
 .pg-city { display: block; margin-top: 6px; font-size: 15px; font-weight: 500; letter-spacing: 0; color: var(--ink-2, #46546b); }
