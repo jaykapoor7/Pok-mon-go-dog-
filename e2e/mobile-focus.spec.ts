@@ -95,7 +95,7 @@ test("phone menu: four places, five audiences, one Open App", async ({ page }) =
   await page.getByRole("button", { name: "Open menu", exact: true }).click();
   await expect(page.getByRole("link", { name: /Open App/ })).toHaveCount(1);
   await expect(page.locator(".sp-sheet-main > li")).toHaveCount(4);
-  await expect(page.locator(".sp-sheet-main")).toContainText("Programmes");
+  await expect(page.locator(".sp-sheet-main")).toContainText("Impact");
   await expect(page.locator(".sp-sheet-group a")).toHaveCount(5);
   await expect(page.locator("#sp-sheet")).not.toContainText("Report an animal");
   await page.keyboard.press("Escape");

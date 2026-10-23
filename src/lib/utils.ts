@@ -76,9 +76,16 @@ export function pluralize(n: number, singular: string, plural?: string) {
  * Display label for a (stray) dog. Most street dogs have no name, so we identify
  * them by area. A genuinely user-given nickname is still honoured when present.
  */
-export function dogLabel(dog: { name?: string | null; zone?: string | null; straypaw_id?: string | null; id?: string | null }): string {
-  /* A given name, else the animal's StrayPaw tag. See lib/animal-name. */
-  return givenName(dog.name) ?? (dog.straypaw_id || dog.id ? animalTag(dog) : "Unnamed");
+export function dogLabel(dog: { name?: string | null; zone?: string | null; city?: string | null; straypaw_id?: string | null; id?: string | null }): string {
+  /* A given name, else a short city-based label ("Hyderabad dog"), else a
+     cleaned place, else the StrayPaw tag. See lib/animal-name. */
+  const given = givenName(dog.name);
+  if (given) return given;
+  const city = dog.city?.trim();
+  if (city) return `${city} dog`;
+  const place = dog.zone?.split(",")[0]?.trim();
+  if (place && place.toLowerCase() !== "india") return `${place} dog`;
+  return dog.straypaw_id || dog.id ? animalTag(dog) : "Unnamed";
 }
 
 /** Upper-cases the first letter of each word, leaving the rest alone. */

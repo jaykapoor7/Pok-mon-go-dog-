@@ -9,7 +9,7 @@
    a name.
    ════════════════════════════════════════════════════════════════════ */
 
-type Named = { name?: string | null; straypaw_id?: string | null; id?: string | null; zone?: string | null; sex?: string | null; size?: string | null };
+type Named = { name?: string | null; straypaw_id?: string | null; id?: string | null; zone?: string | null; sex?: string | null; size?: string | null; city?: string | null };
 
 const FILING = [
   /·/,
@@ -40,9 +40,18 @@ export function shortPlace(zone: string | null | undefined): string | null {
   return z && z.toLowerCase() !== "india" ? z : null;
 }
 
-/** Title: the given name, else the tag. */
+/** Title: a given name if there is one, otherwise a short city-based
+ *  label ("Hyderabad dog") so animals are called by their place, not by
+ *  a filing id, consistently across the site. The StrayPaw tag stays
+ *  available for identifiers via animalTag(). */
 export function animalTitle(a: Named): string {
-  return givenName(a.name) ?? animalTag(a);
+  const given = givenName(a.name);
+  if (given) return given;
+  const city = a.city?.trim();
+  if (city) return `${city} dog`;
+  const place = shortPlace(a.zone);
+  if (place) return `${place} dog`;
+  return animalTag(a);
 }
 
 /** What the record says the animal is, from its recorded sex and size:

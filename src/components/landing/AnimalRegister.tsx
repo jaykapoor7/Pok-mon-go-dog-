@@ -28,6 +28,7 @@ import { ArrowUpRight } from "lucide-react";
 import { sized } from "@/lib/photo/src";
 import { FramedPhoto } from "./FramedPhoto";
 import { cleanPlace } from "@/lib/utils";
+import { givenName } from "@/lib/animal-name";
 import type { AnimalRegister as Data, RegisterFocus } from "@/lib/landing/story";
 import { RegisterPlate, type RegisterPlateData } from "./RegisterPlate";
 
@@ -52,19 +53,17 @@ const careClass = (k: string) => (k === "sterilisation" ? "abc" : k === "vaccina
 /* How much of a profile is filled in. The deck deals the fullest records
    first, so the card opens on what a profile can hold; every value shown
    is still the dog's own. */
-function richness(c: RegisterFocus): number {
-  const known = (m: Mark) => (m === "yes" ? 2 : m === "no" ? 1 : 0);
-  return known(sterMark(c.sterilisation)) + known(vacMark(c.vaccination))
-    + Math.min(c.care.length, 4) + (c.sightings > 1 ? 1 : 0) + (c.sightings > 5 ? 1 : 0)
-    + (c.first_seen ? 1 : 0) + (c.name?.trim() ? 1 : 0);
-}
-
-const PLACEHOLDER_NAME = /^(unknown|unnamed|none|na|n\/a|-+|dog)$/i;
 function headline(c: RegisterFocus): string {
-  const name = c.name?.trim();
-  if (name && !PLACEHOLDER_NAME.test(name) && name !== c.straypaw_id) return name;
+  /* A real given name (filtered via givenName so filing labels like
+     "Hyderabad dog 378736079" never slip through). Otherwise a short
+     consistent city-based label: "Hyderabad dog", "Delhi dog". No long
+     record ids in the primary name — the id lives in the card header. */
+  const given = givenName(c.name);
+  if (given) return given;
+  const city = c.city?.trim();
+  if (city) return `${city} dog`;
   const place = cleanPlace(c.zone);
-  return c.straypaw_id ?? (place ? `Animal in ${place}` : "Animal record");
+  return place ? `${place} dog` : "Animal record";
 }
 
 function Card({ c, out, lazy }: { c: RegisterFocus; out?: boolean; lazy?: boolean }) {
@@ -163,7 +162,6 @@ function Band({ cards, depth, dir, featId }: { cards: RegisterFocus[]; depth: "f
 
 export function AnimalRegister({ data, total, plate, archived = false }: { data: Data; total: number; plate?: RegisterPlateData | null; archived?: boolean }) {
   const cards = data.cards;
-  const n = cards.length;
   /* A callback ref lets the observer attach whenever the section mounts. */
   const [el, setEl] = useState<HTMLElement | null>(null);
   const [calm, setCalm] = useState(false);
@@ -197,18 +195,40 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
     return () => clearTimeout(t);
   }, [prev, tick]);
 
-  /* Three depth bands; adjacent bands begin on different dogs. */
+  /* Interleave by city before dealing: without this, the band slices show
+     the same city for pages at a time because the DB tends to be heavy on
+     one place. Dedupe by id first so a card never appears twice. */
+  const n = cards.length;
+  const mixed = useMemo(() => {
+    const seen = new Set<string>();
+    const unique = cards.filter((c) => c.id && !seen.has(c.id) && (seen.add(c.id), true));
+    const byCity = new Map<string, RegisterFocus[]>();
+    for (const c of unique) {
+      const k = (c.city ?? "—").trim().toLowerCase() || "—";
+      (byCity.get(k) ?? byCity.set(k, []).get(k)!).push(c);
+    }
+    const keys = [...byCity.keys()];
+    const out: RegisterFocus[] = [];
+    while (keys.some((k) => byCity.get(k)!.length)) {
+      for (const k of keys) { const r = byCity.get(k)!.shift(); if (r) out.push(r); }
+    }
+    return out;
+  }, [cards]);
+  const nn = mixed.length || n;
   const bands = useMemo(() => {
-    const per = Math.ceil(n / 3);
-    return [cards.slice(0, per), cards.slice(per, per * 2), cards.slice(per * 2)];
-  }, [cards, n]);
-  const deck = useMemo(() => [...cards].sort((a, b) => richness(b) - richness(a)), [cards]);
+    const per = Math.ceil(nn / 3);
+    return [mixed.slice(0, per), mixed.slice(per, per * 2), mixed.slice(per * 2)];
+  }, [mixed, nn]);
+  /* The deck follows the city-interleave order (which already lifts the
+     richest profile per city to the front) so the first cards a reader
+     sees are a mix of places, not fifteen of the biggest city in a row. */
+  const deck = useMemo(() => mixed, [mixed]);
 
   if (!n || total <= 0) return <section className="rx rx-empty" aria-labelledby="rx-title"><h2 id="rx-title">Every animal has a story.</h2><p>Photographed records could not be loaded right now.</p><Link href="/explore">Find an animal on the map</Link></section>;
-  const cur = deck[idx % n];
+  const cur = deck[idx % nn] ?? deck[0];
   const go = (d: number) => {
     setPrev(cur);
-    setIdx((i) => (i + d + n) % n);
+    setIdx((i) => (i + d + nn) % nn);
     setTick((t) => t + 1);
   };
   const running = !calm && seen && !hold;
@@ -217,8 +237,8 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
     const el = swipe.current; if (!el) return;
     const card = el.firstElementChild as HTMLElement | null;
     const w = card ? card.getBoundingClientRect().width + parseFloat(getComputedStyle(el).columnGap || "0") : el.clientWidth;
-    const i = Math.max(0, Math.min(n - 1, Math.round(el.scrollLeft / Math.max(1, w))));
-    if (i !== idx % n) setIdx(i);
+    const i = Math.max(0, Math.min(nn - 1, Math.round(el.scrollLeft / Math.max(1, w))));
+    if (i !== idx % nn) setIdx(i);
   };
 
   return (
@@ -268,7 +288,7 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
               )}
             </span>
             <div className="rx-deck-row">
-              <span className="rx-count sys-mono">{String((idx % n) + 1).padStart(2, "0")} / {n}</span>
+              <span className="rx-count sys-mono">{String((idx % nn) + 1).padStart(2, "0")} / {nn}</span>
               <Link href={`/animal/${cur.id}`} className="rx-open">Open profile <ArrowUpRight size={14} aria-hidden /></Link>
             </div>
           </div>

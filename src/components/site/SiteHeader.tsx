@@ -13,11 +13,11 @@ import "./header.css";
 /* ════════════════════════════════════════════════════════════════════
    The site header, one bar on every public page.
 
-   StrayPaw · Explore · Who It’s For · Programmes · Mission · Our Story, and the one strong action,
+   StrayPaw · Explore · Who It’s For · Impact · Mission · Our Story, and the one strong action,
    Open App. A white, ink-framed pill floating over the page; on the
    landing (`overlay`) it starts as part of the night hero and lifts into
    the pill once the page moves. On a phone the places drop from the pill
-   in a small sheet: Explore, Programmes, Mission and Our Story, then Who It’s For with its
+   in a small sheet: Explore, Impact, Mission and Our Story, then Who It’s For with its
    five audiences. Open App stays in the bar, never repeated in the sheet.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -33,7 +33,7 @@ export const AUDIENCES = [
 ];
 const LINKS: NavItem[] = [
   { label: "Explore", href: "/explore", hint: "The map" },
-  { label: "Programmes", href: "/partner-programmes", hint: "Work with our partner NGOs" },
+  { label: "Impact", href: "/partner-programmes", hint: "Programmes and outcomes with our partner NGOs" },
   { label: "Mission", href: "/mission", hint: "Every stray animal on record" },
   { label: "Our Story", href: "/our-story", also: ["/about"], hint: "Why we exist" },
 ];

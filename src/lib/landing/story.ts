@@ -340,10 +340,30 @@ export const getAnimalRegister = unstable_cache(async (): Promise<AnimalRegister
   /* The fullest records first (most sightings), recency breaking ties: the
      landing deals a profile card from these, so it should show what a
      profile holds. Still a bounded sample of real dogs. */
-  const picks = rows
-    .filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured")
-    .sort((a, b) => (b.sightings_count ?? 0) - (a.sightings_count ?? 0))
-    .slice(0, Math.max(LANDING_LIMITS.registerCards, Object.keys(REGISTER_FRAMES).length));
+  /* Round-robin by city so one city never dominates the register (the raw
+     sort by sightings_count would otherwise fill the deck with whichever
+     city has the biggest import, usually Hyderabad). Dedupe by id first in
+     case the two queries overlapped. */
+  const seen = new Set<string>();
+  const sorted = rows
+    .filter((row) => row.cover_photo?.trim() && !row.needs_help && row.status !== "injured" && row.id && !seen.has(row.id) && (seen.add(row.id), true))
+    .sort((a, b) => (b.sightings_count ?? 0) - (a.sightings_count ?? 0));
+  const byCity = new Map<string, Array<typeof sorted[number]>>();
+  for (const r of sorted) {
+    const k = (r.city ?? "—").toString().trim().toLowerCase() || "—";
+    const list = byCity.get(k) ?? byCity.set(k, []).get(k)!;
+    list.push(r);
+  }
+  const keys = [...byCity.keys()];
+  const want = Math.max(LANDING_LIMITS.registerCards, Object.keys(REGISTER_FRAMES).length);
+  const picks: typeof sorted = [];
+  while (picks.length < want && keys.some((k) => byCity.get(k)!.length)) {
+    for (const k of keys) {
+      const r = byCity.get(k)!.shift();
+      if (r) picks.push(r);
+      if (picks.length >= want) break;
+    }
+  }
   const ids = picks.map((row) => row.id);
   const [{ data: cases }, { data: care }] = ids.length ? await Promise.all([
     supa.from("public_case_facts").select("dog_id,condition_class,status_class,occurred_at").in("dog_id", ids).order("occurred_at", { ascending: false }).limit(LANDING_LIMITS.registerCases),

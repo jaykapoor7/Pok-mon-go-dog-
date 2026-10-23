@@ -52,8 +52,8 @@ export function BotGroups() {
   const closed = at(0.79);
 
   const lines: Line[] = [
-    { at: 0.03, who: "sys", body: <>Priya added StrayPaw</> },
-    { at: 0.07, who: "bot", time: "10:02", body: <>Hi team. Post an animal here, a photo and the place, and I’ll file it in your records. Send me a StrayPaw ID to look one up, or say <b>start drive</b>.</> },
+    { at: 0, who: "sys", body: <>Priya added StrayPaw</> },
+    { at: 0.015, who: "bot", time: "10:02", body: <>Hi team. Post an animal here, a photo and the place, and I’ll file it in your records. Send me a StrayPaw ID to look one up, or say <b>start drive</b>.</> },
     { at: 0.14, who: "Arun", time: "10:14", body: <><span className="bg-media"><span className="bg-photo"><Camera aria-hidden /></span><span className="bg-loc"><MapPin aria-hidden />Location</span></span>Pup with ticks behind the temple, very weak</> },
     { at: 0.23, who: "bot", time: "10:14", body: <>Filed: <b>new request, Ganapathy</b>. Unassigned. Reply <b>mine</b> to take it.</> },
     { at: 0.27, who: "Kavya", time: "10:16", body: <>mine</> },
