@@ -203,6 +203,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: Boolean(data) });
   }
 
+  if (body.action === "city") {
+    /* An organisation's home city places its imported animals and its map.
+       Set by an operator when the partner request left it out. */
+    const city = String(body.city ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
+    if (!city) return NextResponse.json({ error: "Give the city's name." }, { status: 400 });
+    const { data, error } = await supa.from("ngos").update({ city }).eq("id", String(body.ngoId ?? "")).select("id").maybeSingle();
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!data) return NextResponse.json({ error: "That organisation was not found." }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  }
+
   if (body.action === "remove") {
     const { error } = await supa.rpc("admin_remove_from_org", {
       p_ngo_id: String(body.ngoId ?? ""),

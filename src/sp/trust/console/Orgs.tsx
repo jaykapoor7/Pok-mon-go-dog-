@@ -74,6 +74,13 @@ export function Orgs({ secret, read, reload, empty }: P<Org[]>) {
         <Line k="Holds">{n(cur.members)} with access · {n(cur.animals)} animals · {n(cur.active_codes)} volunteer code{cur.active_codes === 1 ? "" : "s"} on</Line>
       </dl>
 
+      {!cur.city && (
+        <form className="cn-edit" onSubmit={(e) => { e.preventDefault(); const v = city.trim(); if (v) void post(`org:city:${cur.id}`, { action: "city", ngoId: cur.id, city: v }, `${cur.name} is now in ${v}`).then((a) => { if (a.ok) setCity(""); }); }}>
+          <label className="field"><span className="label">Home city <span className="small">(places their imported animals and their map)</span></span><input className="input" value={city} onChange={(e) => setCity(e.target.value)} autoComplete="off" placeholder="e.g. Coimbatore" /></label>
+          <button type="submit" className="btn is-s is-ink" disabled={busy || !city.trim()}>Set city</button>
+        </form>
+      )}
+
       {minted && minted.org === cur.id && (
         <div className="cn-code" role="status">
           <p className="k">Code for {minted.email}</p>

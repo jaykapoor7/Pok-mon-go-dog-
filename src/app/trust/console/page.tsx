@@ -1,7 +1,7 @@
 import { Console } from "@/sp/trust/console/Console";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Trust console, StrayPaw", robots: { index: false, follow: false } };
+export const metadata = { title: "Moderation, StrayPaw", robots: { index: false, follow: false } };
 
-/* The operator console, rebuilt in 2.0 on the same /api/admin routes and password. */
+/* The same moderation console as /trust; kept so /admin and old links still open it. */
 export default function TrustConsolePage() { return <Console />; }

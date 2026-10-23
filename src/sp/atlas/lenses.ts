@@ -69,16 +69,23 @@ export function nationalMeasure(id: LensId, c: NationalCity): number {
 /** The lens's figure for the national index or a city's complete aggregates. */
 export function lensFigure(id: LensId, cells: MapCell[] | null, cities: NationalCity[] | null): { big: string; small: string } {
   if (cities) {
-    const street = cities.filter((c) => kindOf(c.city, c.cells) !== "clinical");
-    let animals = 0, help = 0, open = 0, unconf = 0, ster = 0, vacc = 0, treat = 0;
-    for (const c of street) { animals += c.animals; ster += c.sterilised; vacc += c.vaccinated; }
-    for (const c of cities) { const u = c.open_unconfirmed ?? 0; open += c.open_cases - u; unconf += u; help += c.needs_help + (c.fu_missed_live ?? 0); treat += c.treatments; }
-    if (id === "animals") return { big: f(animals), small: `street-animal profiles in ${street.length} cities` };
+    /* The same count the landing and product pages print: every animal record
+       in every city. A clinical register is drawn hollow and kept out of the
+       map's sizing, but it is still on the record, so it is counted and named. */
+    let animals = 0, clinical = 0, help = 0, open = 0, unconf = 0, ster = 0, vacc = 0, cster = 0, treat = 0;
+    for (const c of cities) {
+      const u = c.open_unconfirmed ?? 0, isClinical = kindOf(c.city, c.cells) === "clinical";
+      animals += c.animals; ster += c.sterilised; vacc += c.vaccinated;
+      if (isClinical) { clinical += c.animals; cster += c.sterilised; }
+      open += c.open_cases - u; unconf += u; help += c.needs_help + (c.fu_missed_live ?? 0); treat += c.treatments;
+    }
+    const held = cities.filter((c) => c.animals > 0).length;
+    if (id === "animals") return { big: f(animals), small: `animal records in ${held} cities${clinical ? ` · ${f(clinical)} in a clinical register` : ""}` };
     if (id === "help") return { big: f(open + help), small: "open, flagged or missed" };
     if (id === "requests" || id === "followups") return { big: f(open), small: unconf ? `confirmed open · ${f(unconf)} unconfirmed` : "confirmed open" };
     if (id === "arv") return { big: f(vacc), small: "recorded vaccinated" };
     if (id === "treat") return { big: f(treat), small: "treatment records" };
-    return { big: f(ster), small: `recorded sterilised · ${f(vacc)} vaccinated` };
+    return { big: f(ster), small: `recorded sterilised · ${f(vacc)} vaccinated${cster ? ` · ${f(cster)} in a clinical register` : ""}` };
   }
   let animals = 0, open = 0, unconf = 0, flagged = 0, missed = 0, ster = 0, vacc = 0, care12 = 0, exact = 0, due = 0, treat = 0;
   const orgs = new Set<string>();

@@ -244,7 +244,7 @@ export async function writeChunk(supa: Supa, org: Org, actor: Actor, batchId: st
         closure_reason: caseStatus(r) === "resolved" ? (r.closed === "died" ? "died" : r.closed === "recovered" ? "recovered" : "unspecified") : null,
         resolved_at_source: caseStatus(r) === "resolved" ? "import_derived" : null,
         condition_text: r.condition, follow_up_at: r.followUp, provenance: "imported_historical_record",
-        verification_state: caseStatus(r) === "resolved" ? "verified" : "needs_review", source_event_at: r.date, imported_at: today.toISOString(),
+        verification_state: "source_record", source_event_at: r.date, imported_at: today.toISOString(),
         import_batch_id: batchId, source_metadata: meta(r),
       });
     } else if (r.kind === "treatment" || r.kind === "vaccination" || r.kind === "sterilisation") {

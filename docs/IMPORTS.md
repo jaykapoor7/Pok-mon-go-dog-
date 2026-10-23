@@ -29,7 +29,9 @@ the NGO "More" menu). No operator step is needed.
   cached in `import_location_cache` and accepted only within ~45 km of the
   city; else the city centre (`geographic_precision` says which).
 - Rows about other species or owned pets are held, with a reason; open
-  historical cases arrive as `needs_review` for Historical review.
+  historical cases arrive as imported, unreviewed history (`provenance`
+  `imported_historical_record`, `verification_state` `source_record`) and
+  wait in the team's Historical review.
 
 Tests: `npm run test:ngo-import` (reader on Pawsome-, Mission Rabies- and
 generic-shaped workbooks; writer against an in-memory database, including

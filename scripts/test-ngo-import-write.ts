@@ -79,7 +79,7 @@ assert.equal(count("import_rows"), 4);
 const died = db.cases.find((c) => c.title.startsWith("RTA"))!;
 assert.equal(died.status, "resolved"); assert.equal(died.closure_reason, "died");
 const open = db.cases.find((c) => c.title.startsWith("Minor injury"))!;
-assert.equal(open.status, "in_progress"); assert.equal(open.verification_state, "needs_review", "open historical cases wait for a person");
+assert.equal(open.status, "in_progress"); assert.equal(open.provenance, "imported_historical_record", "open imported cases wait in the team's review queue"); assert.equal(open.verification_state, "source_record");
 assert.ok(db.dogs.every((d) => d.city === "Coimbatore" && d.lat && d.h3_r8), "every animal is placed, at least at the city centre");
 assert.ok(db.dogs.every((d) => d.name === null), "no invented names");
 assert.ok(db.import_rows.every((r) => !("Call via" in r.raw_row)), "contacts never stored");

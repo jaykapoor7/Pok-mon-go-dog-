@@ -1,11 +1,14 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   Trust · the operator console (1.0 /admin, AdminClient).
+   Moderation · StrayPaw's operator console (/trust; /admin redirects).
 
-   One password, checked by the server on every request (the same
-   moderation password as /trust). A section index on the left, one
-   dense table per section, a record inspector beside it. Every section
+   One password, checked by the server on every request. It opens on
+   Today: what is waiting on a person, oldest first, what every public
+   page prints, and whether the data under it is healthy. A section
+   index on the left (a row of tabs on phones), new reports reviewed one
+   at a time by default, and one dense table per other section with a
+   record inspector beside it. Every section
    reads its own existing /api/admin route; a failed read says "Not
    read" with the server's words, never an empty table. Writes return
    the server's answer as a receipt.
@@ -14,25 +17,28 @@
    here unchanged until they are redesigned; they use the same routes.
    ════════════════════════════════════════════════════════════════════ */
 
-import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Download, LogOut } from "lucide-react";
+import { Download, LogOut, RefreshCw } from "lucide-react";
 import { MasterImport } from "@/components/admin/MasterImport";
 import { WorkbookEnrichment } from "@/components/admin/WorkbookEnrichment";
 import { Ack, State } from "../../ui";
 import { forgetKey, get, parse, rememberKey, savedKey, type Read } from "./api";
 import { FeedbackQueue, Partners, Reports, Sightings, Verify } from "./Queues";
+import { Today, type Need } from "./Today";
 import { Dogs, Feeding, Fundraisers } from "./Records";
 import { Helpers } from "./People";
 import { Orgs } from "./Orgs";
-import type { HelpersRead, PartnersRead, SectionId } from "./types";
+import type { ContentReport, Feedback, Helper, HelpersRead, Overview, PartnerRequest, PartnersRead, PendingCase, SectionId, Sighting } from "./types";
 import "../trust.css";
 import "./console.css";
 
 type Def = { id: SectionId; label: string; note: string; path?: string; pick?: (b: Record<string, unknown>) => unknown };
 const GROUPS: { label: string; items: Def[] }[] = [
+  { label: "Moderation", items: [
+    { id: "today", label: "Today", note: "What needs you, what the public sees, and whether the data is healthy", path: "/api/admin/overview", pick: (b) => b },
+  ] },
   { label: "Queues", items: [
-    { id: "sightings", label: "New sightings", note: "Approve, merge into an animal, or reject", path: "/api/admin/sightings", pick: (b) => b.pending ?? [] },
+    { id: "sightings", label: "New reports", note: "Approve, link to an animal, or reject", path: "/api/admin/sightings", pick: (b) => b.pending ?? [] },
     { id: "partners", label: "Partner requests", note: "Organisations asking for a workspace", path: "/api/admin/partners", pick: (b) => ({ requests: b.requests ?? [], grants: b.grants ?? [] }) },
     { id: "reports", label: "Content reports", note: "Something reported as wrong or unsafe", path: "/api/admin/reports", pick: (b) => b.reports ?? [] },
     { id: "feedback", label: "Feedback", note: "Notes from people using StrayPaw", path: "/api/admin/feedback", pick: (b) => b.feedback ?? [] },
@@ -58,6 +64,9 @@ const count = (r: Read<unknown> | undefined, id: SectionId): number | null => {
   if (!r || r.state !== "read") return null;
   const d = r.data as unknown;
   if (Array.isArray(d)) return d.length;
+  if (id === "today") return null;
+  if (id === "reports") return (d as ContentReport[]).filter((x) => x.status === "open").length;
+  if (id === "feedback") return (d as Feedback[]).filter((x) => x.status === "open").length;
   if (id === "partners") return (d as PartnersRead).requests.length;
   if (id === "volunteers") return (d as HelpersRead).volunteers.filter((h) => !h.acknowledged).length;
   if (id === "ngos") return (d as HelpersRead).ngos.filter((h) => !h.acknowledged).length;
@@ -69,7 +78,7 @@ export function Console() {
   const [typed, setTyped] = useState("");
   const [gateErr, setGateErr] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
-  const [sec, setSec] = useState<SectionId>("sightings");
+  const [sec, setSec] = useState<SectionId>("today");
   const [reads, setReads] = useState<Partial<Record<SectionId, Read<unknown>>>>({});
   const [exporting, setExporting] = useState<string | null>(null);
 
@@ -80,16 +89,17 @@ export function Console() {
     setReads((r) => ({ ...r, [d.id]: res }));
   }, []);
 
-  /* The password is checked by asking the server for the first queue. */
+  /* The password is checked by asking the server for the overview. */
   const open = useCallback(async (s: string) => {
     setOpening(true); setGateErr(null);
-    const first = await get(s, "/api/admin/sightings", (b) => b.pending ?? []);
+    const first = await get(s, "/api/admin/overview", (b) => b);
     setOpening(false);
-    if (first.state === "failed") { setGateErr(first.status === 401 ? "The server refused that password. Nothing was opened." : first.error); if (first.status === 401) forgetKey(); return; }
+    if (first.state === "failed" && (first.status === 401 || first.status === 503 || first.status === 0)) { setGateErr(first.status === 401 ? "The server refused that password. Nothing was opened." : first.error); if (first.status === 401) forgetKey(); return; }
     rememberKey(s); setSecret(s);
-    setReads({ sightings: first });
-    for (const d of ALL) if (d.id !== "sightings") void readOne(s, d);
+    setReads({ today: first });
+    for (const d of ALL) if (d.id !== "today") void readOne(s, d);
   }, [readOne]);
+  const readAll = useCallback(async () => { if (secret) await Promise.all(ALL.map((d) => readOne(secret, d))); }, [secret, readOne]);
 
   useEffect(() => { const k = savedKey(); if (k) void open(k); }, [open]);
 
@@ -108,13 +118,12 @@ export function Console() {
   if (!secret) return (
     <div className="tr">
       <form className="tr-gate" onSubmit={(e) => { e.preventDefault(); if (typed.trim()) void open(typed.trim()); }}>
-        <p className="k">Trust · operator console</p>
-        <h1 className="display">The console</h1>
-        <p className="body">Queues, records, people and organisation setup, for StrayPaw operators. The password is the moderation password; the server checks it on every read and every action.</p>
+        <p className="k">StrayPaw · moderation</p>
+        <h1 className="display">Moderation</h1>
+        <p className="body">Reports, requests, records, organisations and the health of the data, in one place. The server checks the password on every read and every action.</p>
         <input className="input" type="password" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Moderation password" aria-label="Moderation password" autoComplete="current-password" />
-        <button type="submit" className="btn is-ink" disabled={opening}>{opening ? "Checking…" : "Open the console"}</button>
+        <button type="submit" className="btn is-ink" disabled={opening}>{opening ? "Checking…" : "Open"}</button>
         {gateErr && <Ack state="failed">{gateErr}</Ack>}
-        <Link className="link" href="/trust">Only the review queue</Link>
       </form>
     </div>
   );
@@ -124,13 +133,15 @@ export function Console() {
   const reload = async () => { if (secret) await readOne(secret, def); };
   const empty = (t: string): ReactNode => <State title={t}>Nothing is waiting in this section. When something arrives it appears here for a person to decide.</State>;
   const P = { secret, read: read as never, reload };
+  const ov = reads.today?.state === "read" ? (reads.today.data as Overview) : null;
+  const settings = ov ? ov.settings : null;
 
   return (
     <div className="tr cn">
       <header className="tr-head cn-head">
-        <div><p className="k">Trust · operator console</p><h1 className="serif">{def.label}</h1><p className="small">{def.note}</p></div>
+        <div><p className="k">Moderation{sec === "today" ? ` · ${new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Kolkata" })}` : ""}</p><h1 className="serif">{def.label}</h1><p className="small">{def.note}</p></div>
         <div className="row" style={{ ["--g" as string]: "8px" }}>
-          <Link className="btn is-s" href="/trust">Review queue</Link>
+          <button type="button" className="btn is-s" onClick={() => void readAll()}><RefreshCw size={14} aria-hidden /> Read again</button>
           <button type="button" className="btn is-s" onClick={() => void exportEmails()}><Download size={14} aria-hidden /> Reporter emails (CSV)</button>
           <button type="button" className="btn is-s" onClick={() => { forgetKey(); setSecret(null); setReads({}); }}><LogOut size={14} aria-hidden /> Lock</button>
         </div>
@@ -154,7 +165,8 @@ export function Console() {
           ))}
         </nav>
         <main className="cn-main">
-          {sec === "sightings" && <Sightings {...P} empty={empty("No new sightings")} />}
+          {sec === "today" && <Today secret={secret} read={reads.today as Read<Overview> | undefined} needs={needs(reads)} onGo={setSec} reload={reload} />}
+          {sec === "sightings" && <Sightings {...P} empty={empty("No new sightings")} settings={settings} />}
           {sec === "partners" && <Partners {...P} empty={empty("No partner requests")} onOrgs={() => setSec("orgs")} />}
           {sec === "reports" && <Reports {...P} empty={empty("No content reports")} />}
           {sec === "feedback" && <FeedbackQueue {...P} empty={empty("No feedback")} />}
@@ -171,6 +183,30 @@ export function Console() {
       </div>
     </div>
   );
+}
+
+/* What is waiting on a person, from the queues already read. Oldest first on Today. */
+function needs(reads: Partial<Record<SectionId, Read<unknown>>>): Need[] {
+  const data = <T,>(id: SectionId) => { const r = reads[id]; return r && "data" in r ? (r.data as T | undefined) : undefined; };
+  const oldest = (xs: (string | null | undefined)[]) => xs.filter((x): x is string => !!x).sort()[0] ?? null;
+  const out: Need[] = [];
+  const s = data<Sighting[]>("sightings");
+  if (s) out.push({ id: "sightings", label: "New reports", n: s.length, oldest: oldest(s.map((x) => x.created_at)), what: "Approve, link to an animal, or reject" });
+  const p = data<PartnersRead>("partners");
+  if (p) out.push({ id: "partners", label: "Partner requests", n: p.requests.length, oldest: oldest(p.requests.map((x: PartnerRequest) => x.created_at)), what: "An organisation asking for a workspace" });
+  const c = data<ContentReport[]>("reports")?.filter((x) => x.status === "open");
+  if (c) out.push({ id: "reports", label: "Content reports", n: c.length, oldest: oldest(c.map((x) => x.created_at)), what: "Something reported as wrong or unsafe" });
+  const f = data<Feedback[]>("feedback")?.filter((x) => x.status === "open");
+  if (f) out.push({ id: "feedback", label: "Feedback", n: f.length, oldest: oldest(f.map((x) => x.created_at)), what: "Notes from people using StrayPaw" });
+  const v = data<PendingCase[]>("verify");
+  if (v) out.push({ id: "verify", label: "Outcomes to verify", n: v.length, oldest: oldest(v.map((x) => x.resolved_at)), what: "Before and after photos to compare" });
+  const h = data<HelpersRead>("volunteers");
+  if (h) {
+    const vol = h.volunteers.filter((x: Helper) => !x.acknowledged), ngo = h.ngos.filter((x: Helper) => !x.acknowledged);
+    out.push({ id: "volunteers", label: "Volunteer offers", n: vol.length, oldest: oldest(vol.map((x) => x.created_at)), what: "People offering to help an animal" });
+    out.push({ id: "ngos", label: "NGO offers", n: ngo.length, oldest: oldest(ngo.map((x) => x.created_at)), what: "Organisations offering to help" });
+  }
+  return out;
 }
 
 function mapHelpers(r: Read<HelpersRead>, k: "volunteers" | "ngos"): Read<HelpersRead["volunteers"]> {

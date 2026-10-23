@@ -73,7 +73,7 @@ export function Inspector(p: Props) {
 /* The sheet's peek, on phones: one line that says where you are and what a tap does next. */
 function Peek(p: Props & { onOpen: () => void }) {
   let head = "", line = "";
-  if (p.level === "india") { const n = p.cities.filter((c) => kindOf(c.city, c.cells) !== "clinical").reduce((s, c) => s + c.animals, 0); head = `${f(n)} animals on the record`; line = `${f(p.cities.length)} city registers · tap a city on the map`; }
+  if (p.level === "india") { const n = p.cities.reduce((s, c) => s + c.animals, 0); head = `${f(n)} animal records`; line = `${f(p.cities.filter((c) => c.animals > 0).length)} cities · tap a city on the map`; }
   else if (p.level === "city") { const n = p.cells.reduce((s, c) => s + c.animals, 0); head = `${p.city}: ${f(n)} animals`; line = `${f(p.cells.length)} areas · tap one to see its animals`; }
   else if (p.level === "area") { const c = p.cells[p.areaIndex]; head = c ? placeName(c.zone) : "Area"; line = c ? `${f(c.animals)} animals recorded · the list is below` : ""; }
   else { const a = p.area && typeof p.area === "object" ? p.area.animals.find((x) => x.id === p.animalId) : null; head = a?.title ?? "Animal"; line = "Preview · open the full record below"; }
@@ -137,7 +137,7 @@ function CityView(p: Props) {
         <p className="k">{KINDS.clinical.label} · {p.evidence.precision}</p>
         <p className="insp-lead">{p.evidence.note}</p>
         {c && <dl className="insp-figs"><div><dt>Records in the register</dt><dd className="serif">{f(c.animals)}</dd></div><div><dt>Care records</dt><dd className="serif">{f(c.care)}</dd></div></dl>}
-        <p className="small">Counted as one city-level register, never as street-animal profiles and never placed on streets.</p>
+        <p className="small">Counted in StrayPaw&rsquo;s animal records as one city-level register. Never split into areas or placed on streets.</p>
       </section>
     );
   }

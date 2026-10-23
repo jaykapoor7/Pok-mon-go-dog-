@@ -45,8 +45,23 @@ export type Org = {
   invites?: Invite[]; volunteer_codes?: VolunteerCode[];
 };
 
+export type Overview = {
+  record: { animals: number; requests: number; cities: number; sterilised: number; vaccinated: number; clinical: { city: string; animals: number }[]; topCities: { city: string; animals: number; requests: number; clinical: boolean }[] };
+  source: { animals: number | null; requests: number | null; liveSightings: number | null };
+  pipeline: {
+    queue: { city: string; requested_at: string; reason: string | null }[];
+    mapBuiltAt: string | null;
+    imports: { id: string; org: string; file: string | null; status: string; total: number | null; imported: number | null; held: number | null; created_at: string; completed_at: string | null }[];
+  };
+  orgs: { id: string; name: string; city: string | null; verified: boolean }[];
+  week: { animals: number; requests: number; sightings: number };
+  last: { sighting: string | null; request: string | null };
+  settings: { autoApproval: boolean; photoCheck: boolean };
+  at: string;
+};
+
 export type SectionId =
-  | "sightings" | "partners" | "reports" | "feedback" | "verify"
+  | "today" | "sightings" | "partners" | "reports" | "feedback" | "verify"
   | "orgs" | "imports" | "enrich"
   | "dogs" | "feeding" | "fundraisers"
   | "volunteers" | "ngos";
