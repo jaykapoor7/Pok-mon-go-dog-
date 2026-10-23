@@ -1,6 +1,6 @@
 /* The sounds of the wall, synthesised: no audio files. A can's rattle (the
    mixing ball), the hiss of spray, the lamp's click and hum, and a low swell
-   when the map lights. Starts only after the visitor's click. */
+   as the piece is finished. Sound waits for the visitor's first touch. */
 
 export class Sfx {
   private ctx: AudioContext | null = null;
@@ -27,6 +27,8 @@ export class Sfx {
     src.connect(hp).connect(bp).connect(this.hissGain).connect(this.master);
     src.start();
   }
+
+  resume() { if (this.ctx?.state === "suspended") this.ctx.resume().catch(() => undefined); }
 
   setMuted(m: boolean) {
     this.muted = m;

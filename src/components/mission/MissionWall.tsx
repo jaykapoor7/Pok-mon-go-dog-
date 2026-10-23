@@ -3,8 +3,8 @@
 /* ════════════════════════════════════════════════════════════════════
    Mission. A blue limewashed wall in an Indian street, at dusk, in StrayPaw colours.
 
-   One button: CLICK TO SPRAY. The street lamp flickers on, a hand rattles
-   a can, and a graffiti piece goes up the way a writer paints one: the
+   It starts as the page opens: the street lamp flickers on, a can is
+   rattled, and a graffiti piece goes up the way a writer paints one: the
    fill first (light flame to flame), a can swap, the ink
    outline and 3D, then the white shine and sparkles. The camera leans
    in and follows the can, with real spray sounds, a jet of paint, mist
@@ -47,7 +47,12 @@ export function MissionWall({ family }: { family: string }) {
   const sfx = useRef<Sfx | null>(null);
 
   useEffect(() => {
-    const on = () => setSize({ w: window.innerWidth, h: window.innerHeight });
+    /* A phone's address bar showing or hiding is not a new wall: only a
+       change of width, or a large change of height, redraws it. */
+    const on = () => setSize((o) => {
+      const w = window.innerWidth, h = window.innerHeight;
+      return o && o.w === w && Math.abs(o.h - h) < o.h * 0.2 ? o : { w, h };
+    });
     on();
     let t = 0;
     const later = () => { window.clearTimeout(t); t = window.setTimeout(on, 250); };
@@ -343,16 +348,19 @@ export function MissionWall({ family }: { family: string }) {
       play: () => { reset(); if (!sfx.current) sfx.current = new Sfx(); sfx.current.start(); void run(false); },
       stop: reset,
     };
-    /* Pressed before the wall was ready: start as soon as it is. */
-    if (pending.current && !reduced) { pending.current = false; engine.current.play(); }
+    /* No button: the wall is painted as soon as it is ready. */
+    if (!reduced) { setPhase("play"); engine.current.play(); }
     return () => { alive = false; reset(); engine.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size, family]);
 
-  const pending = useRef(false);
-  const start = useCallback(() => {
-    setPhase("play");
-    if (engine.current) engine.current.play(); else pending.current = true;
+  const start = useCallback(() => { setPhase("play"); engine.current?.play(); }, []);
+  /* Browsers hold sound until the visitor first touches the page. */
+  useEffect(() => {
+    const wake = () => sfx.current?.resume();
+    const kinds = ["pointerdown", "keydown", "touchstart"] as const;
+    kinds.forEach((k) => window.addEventListener(k, wake, { passive: true }));
+    return () => kinds.forEach((k) => window.removeEventListener(k, wake));
   }, []);
   const toggleSound = () => { setMuted((m) => { const n = !m; if (!sfx.current) sfx.current = new Sfx(); sfx.current.setMuted(n); return n; }); };
 
@@ -402,16 +410,6 @@ export function MissionWall({ family }: { family: string }) {
         </div>
       </div>
 
-      {phase === "idle" && (
-        <button type="button" className="mw-go" onClick={start} aria-label="Click to spray">
-          <span className="mw-go-mist" aria-hidden />
-          <svg className="mw-go-ring" viewBox="0 0 200 200" aria-hidden>
-            <defs><path id="mw-ring" d="M100 100 m-80 0 a80 80 0 1 1 160 0 a80 80 0 1 1 -160 0" /></defs>
-            <text><textPath href="#mw-ring" textLength="500" lengthAdjust="spacing">CLICK TO SPRAY ✶ CLICK TO SPRAY ✶</textPath></text>
-          </svg>
-          <span className="mw-go-cap" aria-hidden><span className="mw-go-nozzle" /></span>
-        </button>
-      )}
       {phase === "done" && !still && <button type="button" className="mw-again" onClick={start}>Spray again</button>}
       {phase !== "idle" && !still && (
         <button type="button" className="mw-sound" onClick={toggleSound} aria-label={muted ? "Sound on" : "Mute"} aria-pressed={muted}>
