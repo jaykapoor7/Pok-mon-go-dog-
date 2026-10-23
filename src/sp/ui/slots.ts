@@ -4,7 +4,7 @@
    Indian folk art is StrayPaw's dominant identity, and it must come from
    named, paid, credited artists. Each slot is designed into the layout
    now and shows an honest placeholder until a commission is signed. Then
-   fill `commission` and point `src` at the delivered files; /art-credits
+   fill `commission` and point `src` at the delivered files;
    and docs/straypaw-2/ART_SLOTS.md list every slot.
 
    Never generated, traced or imitated. Never inside a chart, queue row,
@@ -21,7 +21,7 @@ export type ArtSlotDef = {
 
 /* Until a commission exists, a slot may show an existing, openly licensed
    artwork from lib/art/sources (CC0 museum paintings, CC-licensed Gond
-   works), credited in place and on /art-credits. It is labelled as an
+   works), shown without a caption (all CC0). It is labelled as an
    interim licensed work, never as a commission, and the slot stays open. */
 export type Interim = { kind: "cutout" | "panel"; keys: string[]; grounds: string[] };
 export const INTERIM: Record<string, Interim> = {

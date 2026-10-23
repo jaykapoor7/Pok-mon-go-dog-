@@ -58,6 +58,9 @@ const OWN_CHROME = new Set<string>([
   "/explore",
   "/education",
   "/get-involved",
+  "/partner-programmes",
+  "/mission",
+  "/licences",
 ]);
 
 /**

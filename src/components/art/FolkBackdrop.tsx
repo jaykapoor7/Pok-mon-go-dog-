@@ -8,7 +8,7 @@
    each space, swaying a little and drifting with the scroll; a Company-
    school hoopoe perched by the sun; and a black dog from an 1890s study
    walking the hill like a paper puppet (both Cleveland Museum of Art,
-   CC0). See lib/art/sources and /art-credits. All of it is decoration,
+   CC0). See lib/art/sources. All of it is decoration,
    aria-hidden, and it stands still for anyone who prefers reduced motion.
    ════════════════════════════════════════════════════════════════════ */
 

@@ -37,7 +37,18 @@ html .sp-header .sp-nav > a, html .sp-header .sp-audiences > button {
   color: var(--hd-blue); font: inherit; font-size: 14.5px; font-weight: 600; white-space: nowrap; text-decoration: none; cursor: pointer;
   transition: background-color .2s, color .2s, box-shadow .2s;
 }
-html .sp-header .sp-nav > a:hover, html .sp-header .sp-nav > a.is-here { color: var(--hd-paper); background: var(--hd-blue); box-shadow: 2px 2px 0 var(--hd-ink); }
+html .sp-header .sp-nav > a, html .sp-header .sp-audiences > button { position: relative; }
+html .sp-header .sp-nav > a:hover { color: var(--hd-ink); background: rgba(36, 87, 206, .08); }
+/* The page you are on: the hand-drawn orange squiggle under its name. */
+html .sp-header .sp-nav > a.is-here, html .sp-header .sp-audiences > button.is-here { color: var(--hd-ink); }
+html .sp-header .sp-nav > a.is-here::after, html .sp-header .sp-audiences > button.is-here::after {
+  content: ""; position: absolute; left: 12px; right: 12px; bottom: 3px; height: 8px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'%3E%3Cpath d='M2 5.2C20 2.6 38 6.4 56 3.6S88 4.6 98 3' fill='none' stroke='%23f05b40' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 0 0 / 100% 100%;
+  animation: sp-squiggle .5s cubic-bezier(.23, 1, .32, 1) both;
+}
+html .sp-header .sp-audiences > button.is-here::after { right: 30px; }
+@keyframes sp-squiggle { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { html .sp-header .sp-nav > a.is-here::after, html .sp-header .sp-audiences > button.is-here::after { animation: none; } }
 html .sp-header .sp-audiences { position: relative; }
 html .sp-header .sp-audiences > button:hover, html .sp-header .sp-audiences > button[aria-expanded="true"] { color: var(--hd-ink); background: var(--hd-ground); box-shadow: 2px 2px 0 var(--hd-ink); }
 html .sp-header .sp-audiences > button svg { transition: transform .25s var(--hd-ease); }
@@ -80,10 +91,13 @@ html .sp-header .sp-menu-btn {
 html .sp-header.is-open .sp-menu-btn { background: var(--hd-paper); transform: rotate(90deg); }
 html .sp-header a:focus-visible, html .sp-header button:focus-visible { outline: 3px solid var(--hd-blue); outline-offset: 3px; }
 
+/* ── Floating over a full-page scene (Mission): the pill, no ground band ── */
+html .sp-header.is-float { position: fixed; left: 0; right: 0; background: transparent; }
+
 /* ── Over the landing's night hero ─────────────────────────────────── */
 html .sp-header.is-overlay { position: fixed; left: 0; right: 0; background: transparent; }
 html .sp-header.is-overlay:not(.is-scrolled):not(.is-open) .sp-header-bar { background: transparent; border-color: transparent; box-shadow: none; }
-html .sp-header.is-overlay:not(.is-scrolled):not(.is-open) :is(.sp-wordmark, .sp-nav > a, .sp-audiences > button) { color: #f2ead8; }
+html .sp-header.is-overlay:not(.is-scrolled):not(.is-open) :is(.sp-wordmark, .sp-nav > a, .sp-audiences > button, .sp-nav > a.is-here) { color: #f2ead8; }
 html .sp-header.is-overlay:not(.is-scrolled):not(.is-open) :is(.sp-nav > a:hover, .sp-audiences > button:hover, .sp-audiences > button[aria-expanded="true"]) { color: #f2ead8; background: rgba(242, 234, 216, .1); box-shadow: none; }
 html .sp-header.is-overlay:not(.is-scrolled):not(.is-open) .lang-trigger { color: #c8d3e6; border-color: rgba(242, 234, 216, .28); }
 html .sp-header.is-overlay:not(.is-scrolled):not(.is-open) .lang-trigger:hover { color: #f2ead8; background: rgba(242, 234, 216, .1); }

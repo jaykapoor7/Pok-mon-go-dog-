@@ -36,7 +36,6 @@ import type { NationalCell } from "@/lib/livingmap/types";
 import { MR, MON } from "@/lib/livingmap/types";
 import { FIELD, fieldInks, regionInks, regionLabels, setRegionsVisible } from "./cartography";
 import { RECENCY, bucketOf, lastRecorded } from "./recency";
-import { WORKS } from "@/lib/art/sources";
 import { DISC_PX, PIE_INK, coreBounds, glyphImage, hatchDisc, haversineKm, pieImage, seedHead } from "./geo";
 import { KINDS, cityEvidence, kindOf } from "./evidence";
 import { LENSES, MORE_LENSES, PUBLIC_LENSES, lensFigure, nationalMeasure, type LensId } from "./lenses";
@@ -573,15 +572,10 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         {cityState === "error" && <p className="atlas-ev is-err" role="alert">{city} could not be read. That is not the same as no records. <button type="button" className="link" onClick={() => { const c = city; setCity(null); window.setTimeout(() => setCity(c), 0); }}>Retry</button></p>}
       </header>
 
-      {/* The cartouche: the atlas's title piece, as old atlases set one in open sea. It frames an
-          openly licensed painting (credited, never a recorded animal) around the map's own key. */}
+      {/* The cartouche: the atlas's title piece, as old atlases set one in open sea. It holds
+          the map's own key. */}
       {level === "india" && !plain && variant === "community" && (
         <aside className="atlas-cartouche" aria-label="Map key">
-          <figure>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/art/folk/gond-elephant-tree.webp" alt="" />
-            <figcaption>{WORKS.gondElephantTree.title} · {WORKS.gondElephantTree.maker} · {WORKS.gondElephantTree.licence}, adapted · <a href="/art-credits">credits</a></figcaption>
-          </figure>
           <p className="atlas-cart-h serif">Street animals on the record</p>
           <p className="atlas-cart-s">Each mark is one recorded area (≈0.74 km²), coloured by when anything was last recorded there.</p>
           <ul>{RECENCY.map((b) => <li key={b.id}><i style={{ background: b.color }} aria-hidden />{b.short}</li>)}<li><i className="is-unknown" aria-hidden />undated</li></ul>

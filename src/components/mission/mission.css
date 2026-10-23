@@ -1,0 +1,18 @@
+/* Mission: one wall, the whole screen. */
+.mw { position: relative; width: 100%; height: 100svh; overflow: hidden; background: #dfb766; isolation: isolate; }
+.mw-wall { position: absolute; inset: 0; display: block; }
+.mw-stencil text { font-family: "Arial Black", Impact, var(--font-sans), sans-serif; font-weight: 900; }
+.mw-poster-t { font-family: "Arial Black", Impact, var(--font-sans), sans-serif; letter-spacing: .02em; }
+.mw-paint { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; }
+.mw-shadow { position: absolute; left: 0; top: 0; width: 46vmin; height: 70vmin; margin: -12vmin 0 0 -10vmin; pointer-events: none; border-radius: 50% 50% 30% 30%;
+  background: radial-gradient(closest-side at 50% 18%, rgba(30, 16, 4, .55), rgba(30, 16, 4, .55) 55%, transparent 100%) top / 46% 30% no-repeat,
+              radial-gradient(closest-side at 50% 70%, rgba(30, 16, 4, .5), transparent 100%) bottom / 100% 70% no-repeat;
+  filter: blur(18px); opacity: .32; transition: transform .45s cubic-bezier(.2, .8, .2, 1); will-change: transform; }
+.mw-mist { position: absolute; left: 0; top: 0; width: var(--mist, 40px); height: var(--mist, 40px); margin: calc(var(--mist, 40px) / -2) 0 0 calc(var(--mist, 40px) / -2); border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(16, 27, 51, .35), rgba(16, 27, 51, .12) 45%, transparent 70%); opacity: 0; will-change: transform, opacity; }
+.mw-hand { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; will-change: transform; transition: opacity .6s; }
+.mw-arm { position: absolute; left: 0; top: 0; width: var(--arm, 0); height: calc(var(--can, 90px) * .42); transform-origin: 0 50%; transform: rotate(var(--ang, 0)) translate(calc(var(--can, 90px) * .12), -50%);
+  clip-path: polygon(0 22%, 100% 0, 100% 100%, 0 78%); background: linear-gradient(180deg, #4b6584, #2f4561 55%, #22344b); }
+.mw-arm::before { content: ""; position: absolute; left: 0; top: 8%; width: calc(var(--can, 90px) * .55); height: 84%; border-radius: 50%; background: linear-gradient(180deg, #a06a43, #b97b4f 50%, #7a4b2d); }
+.mw-can { position: absolute; left: 0; top: 0; width: var(--can, 90px); height: calc(var(--can, 90px) * 1.25); transform: translate(-42%, -38%); filter: drop-shadow(0 10px 14px rgba(20, 10, 0, .35)); }
+@media (prefers-reduced-motion: reduce) { .mw-hand, .mw-shadow, .mw-mist { display: none; } }

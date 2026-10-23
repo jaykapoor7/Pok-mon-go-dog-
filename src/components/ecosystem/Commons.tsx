@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ArrowUpRight, Camera, Check, MapPin } from "lucide-react";
 import { AudienceTask } from "./AudienceTask";
-import { WORK_IMAGES, creditLine, type WorkImageKey } from "@/lib/art/sources";
+import { WORK_IMAGES, type WorkImageKey } from "@/lib/art/sources";
 
 export type Queue = { condition: string; locality: string; days: number; critical: boolean }[];
 export type CityBrief = { city: string; animals: number; cells: number; sterilised: number; ster_unknown: number; cases: number } | null;
@@ -99,7 +99,6 @@ export function PlaceArt({ k, className }: { k: string; className?: string }) {
     <figure className={className}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={im.src} width={im.w} height={im.h} alt="" loading="lazy" decoding="async" style={{ objectPosition: pl.pos }} />
-      <figcaption>{creditLine(pl.work)}</figcaption>
     </figure>
   );
 }

@@ -9,8 +9,8 @@ import { MobileDetails } from "./MobileDetails";
 
 /* ── art slots ───────────────────────────────────────────────────────
    A commissioned artwork belongs here. Until a named artist's licensed
-   commission exists, the slot shows an openly licensed existing artwork,
-   credited (see INTERIM), or else an honest two-ink geometric plate that
+   commission exists, the slot shows a public-domain (CC0) museum painting
+   (see INTERIM), or else an honest two-ink geometric plate that
    says it awaits a commission. Never carries data. */
 const PLATES: Record<string, (k: number) => ReactNode> = {
   sun: () => (<><circle cx="78" cy="38" r="22" fill="var(--flame)" opacity=".86" /><path d="M0 70 Q30 52 60 66 T120 62 V90 H0Z" fill="var(--indigo)" opacity=".78" /><path d="M0 78 Q34 64 68 76 T120 74" stroke="var(--ink)" strokeWidth=".7" fill="none" opacity=".5" /></>),
@@ -41,7 +41,7 @@ export function ArtSlot({ id, caption = true, plate, className = "", variant = 0
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={art.src} alt="" loading="lazy" decoding="async" draggable={false} />
         </div>
-        <figcaption>{caption ? <>{w.title}{w.maker ? ` · ${w.maker}` : ""} · {w.licence}{w.adapted ? ", adapted" : ""} · <a className="link" href="/art-credits">credits</a></> : <span className="sr-only">Artwork: {w.title}, {w.maker}, {w.licence}</span>}</figcaption>
+        <figcaption className="sr-only">Artwork: {w.title}{w.maker ? `, ${w.maker}` : ""}</figcaption>
       </figure>
     );
   }

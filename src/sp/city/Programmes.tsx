@@ -5,11 +5,13 @@
    World in Data). Every public programme organisations have shared, on
    one time axis: what kind of work, where, when, and the one figure it is
    about, in its honest unit ("vaccinated" only when vaccinations were
-   recorded; otherwise "animals on record"). Filtered by city and kind.
+   recorded; otherwise "animals on record"). Filtered by city and kind,
+   and exported as shown: CSV, Excel, or a printed report.
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Download, FileSpreadsheet, Printer } from "lucide-react";
 import { programmeCategory, programmePrimaryTotal, programmePrimaryUnit, type PublicProgramme, type PublicProgrammeCategory } from "@/lib/public-programmes";
 import { State } from "../ui";
 import { CAT } from "./kinds";
@@ -37,6 +39,11 @@ export function Programmes({ all, initialCity, now }: { all: PublicProgramme[]; 
         <div className="ci-title"><p className="k">Municipality · programmes</p><h1 className="display">Programmes</h1><p className="ci-sub">Published work, on one time axis</p></div>
         <div className="ci-controls">
           <label className="field"><span className="label">City</span><select className="select" value={city} onChange={(e) => setCity(e.target.value)}><option value="">Every city</option>{cities.map((c) => <option key={c} value={c}>{c}</option>)}</select></label>
+          <div className="cp-export" role="group" aria-label="Export the programmes shown">
+            <button type="button" className="btn is-s" disabled={!rows.length} onClick={() => exportRows(rows, "csv", city, cat)}><Download size={15} aria-hidden /> CSV</button>
+            <button type="button" className="btn is-s" disabled={!rows.length} onClick={() => exportRows(rows, "xlsx", city, cat)}><FileSpreadsheet size={15} aria-hidden /> Excel</button>
+            <button type="button" className="btn is-s" disabled={!rows.length} onClick={() => window.print()}><Printer size={15} aria-hidden /> Print</button>
+          </div>
         </div>
         <p className="ci-ev">Programmes organisations have chosen to publish, with the figure each is about in its honest unit. A programme&rsquo;s figure is what its organisation recorded, not coverage of a city&rsquo;s animals.</p>
         <div className="row cp-cats" role="group" aria-label="Kind of work">
@@ -72,4 +79,35 @@ export function Programmes({ all, initialCity, now }: { all: PublicProgramme[]; 
       )}
     </div>
   );
+}
+
+/* ── export: exactly the programmes shown, one row each ── */
+function table(rows: PublicProgramme[]) {
+  return rows.map((p) => ({
+    Programme: p.name, Organisation: p.ngo_name, Kind: CAT[programmeCategory(p)]?.label ?? p.kind,
+    City: p.city ?? "", State: p.state ?? "", Area: p.zone ?? "",
+    Starts: p.starts_on ?? "", Ends: p.ends_on ?? "",
+    Figure: programmePrimaryTotal(p), Unit: programmePrimaryUnit(p),
+    "Animals recorded": p.animals_recorded, "Sterilised recorded": p.sterilised_recorded, "Vaccinated recorded": p.vaccinated_recorded,
+    Summary: p.public_summary ?? "", Link: `https://www.straypaw.org/city/programmes/${p.id}`,
+  }));
+}
+
+async function exportRows(rows: PublicProgramme[], kind: "csv" | "xlsx", city: string, cat: string) {
+  const name = `straypaw-programmes${city ? `-${city.toLowerCase().replace(/\s+/g, "-")}` : ""}${cat ? `-${cat}` : ""}-${new Date().toISOString().slice(0, 10)}`;
+  const data = table(rows);
+  let blob: Blob;
+  if (kind === "csv") {
+    const cols = Object.keys(data[0] ?? {});
+    const cell = (v: unknown) => { const t = String(v ?? ""); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+    blob = new Blob(["\ufeff" + [cols.join(","), ...data.map((r) => cols.map((c) => cell((r as Record<string, unknown>)[c])).join(","))].join("\n")], { type: "text/csv;charset=utf-8" });
+  } else {
+    const XLSX = await import("xlsx");
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(data), "Programmes");
+    blob = new Blob([XLSX.write(book, { type: "array", bookType: "xlsx" })], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = `${name}.${kind}`; a.click();
+  URL.revokeObjectURL(url);
 }

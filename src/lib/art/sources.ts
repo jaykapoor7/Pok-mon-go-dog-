@@ -7,7 +7,7 @@
    shared on Wikimedia Commons under Creative Commons licences. Nothing is
    generated. Dog portraits are crops of the dog paintings; the folk
    animals are cut out of their paper ground, which is an adaptation, so a
-   CC BY-SA original stays CC BY-SA here. /art-credits lists them all.
+   CC BY-SA original stays CC BY-SA here. No BY or BY-SA painting is shown.
 
    A portrait shown on a record is an illustration from a historical
    painting, never a likeness of that animal; surfaces say so.
@@ -81,13 +81,15 @@ export const DOG_ART: DogArt[] = [
 
 /** Folk animals cut out of their ground, for the living backdrop. */
 export const FOLK_CUTOUTS = {
-  cowCalf: { src: "/art/folk/gond-cow-calf.webp", work: "gondCowCalf", ratio: 422 / 560 },
-  bird: { src: "/art/folk/gond-bird.webp", work: "gondBird", ratio: 364 / 560 },
-  hen: { src: "/art/folk/gond-hen.webp", work: "gondHen", ratio: 457 / 560 },
-  tiger: { src: "/art/folk/gond-tiger.webp", work: "gondTiger", ratio: 420 / 560 },
-  elephantTree: { src: "/art/folk/gond-elephant-tree.webp", work: "gondElephantTree", ratio: 381 / 560 },
-  elephant: { src: "/art/folk/gond-elephant.webp", work: "gondElephant", ratio: 386 / 560 },
-  peacocks: { src: "/art/folk/gond-peacocks.webp", work: "gondPeacocks", ratio: 415 / 560 },
+  /* Every cutout is a CC0 museum painting, so none needs a credit beside it.
+     The older keys are kept so existing slots keep working. */
+  cowCalf: { src: "/art/folk/dog-rajasthan-sitting.webp", work: "dogWithPups", ratio: 357 / 420 },
+  bird: { src: "/art/folk/company-hoopoe.webp", work: "hoopoe", ratio: 362 / 560 },
+  hen: { src: "/art/folk/company-hoopoe.webp", work: "hoopoe", ratio: 362 / 560 },
+  tiger: { src: "/art/folk/dog-sikari.webp", work: "sikari", ratio: 420 / 351 },
+  elephantTree: { src: "/art/folk/dog-sikari.webp", work: "sikari", ratio: 420 / 351 },
+  elephant: { src: "/art/folk/dog-rajasthan-sitting.webp", work: "dogWithPups", ratio: 357 / 420 },
+  peacocks: { src: "/art/folk/company-hoopoe.webp", work: "hoopoe", ratio: 362 / 560 },
   hoopoe: { src: "/art/folk/company-hoopoe.webp", work: "hoopoe", ratio: 362 / 560 },
   dogStanding: { src: "/art/folk/dog-sikari.webp", work: "sikari", ratio: 420 / 351 },
   dogSitting: { src: "/art/folk/dog-rajasthan-sitting.webp", work: "dogWithPups", ratio: 357 / 420 },
@@ -100,7 +102,6 @@ export const FOLK_PANELS = [
   { src: "/art/folk/mithila-164461.webp", work: "mithila81" },
   { src: "/art/folk/mithila-164462.webp", work: "mithila82" },
   { src: "/art/folk/mithila-164463.webp", work: "mithila83" },
-  { src: "/art/folk/durga-bai-tree.webp", work: "durgaBai" },
 ] as const;
 
 function hash(seed: string) {

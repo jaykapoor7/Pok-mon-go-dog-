@@ -76,12 +76,12 @@ test("NGO remains a workspace on both Community and NGO pages", async ({ page })
   }
 });
 
-test("phone menu: three places, five audiences, one Open App", async ({ page }) => {
+test("phone menu: four places, five audiences, one Open App", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu", exact: true }).click();
   await expect(page.getByRole("link", { name: /Open App/ })).toHaveCount(1);
-  await expect(page.locator(".sp-sheet-main > li")).toHaveCount(3);
+  await expect(page.locator(".sp-sheet-main > li")).toHaveCount(4);
   await expect(page.locator(".sp-sheet-main")).toContainText("Programmes");
   await expect(page.locator(".sp-sheet-group a")).toHaveCount(5);
   await expect(page.locator("#sp-sheet")).not.toContainText("Report an animal");

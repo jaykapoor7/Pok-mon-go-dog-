@@ -166,3 +166,10 @@
   .sp .pd-body { grid-template-columns: 1fr; }
   .sp .pd-figs .is-main b { font-size: 64px; }
 }
+
+/* Programmes: export what is shown. */
+.sp .cp-export { display: flex; flex-wrap: wrap; gap: 6px; align-self: end; }
+@media print {
+  .sp-header, .sp .ci-controls, .sp .cp-cats, .sp-bar, .sp-tabbar, .sp-dock { display: none !important; }
+  .sp .cp a { color: inherit; text-decoration: none; }
+}

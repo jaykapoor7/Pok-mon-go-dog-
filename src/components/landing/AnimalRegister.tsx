@@ -226,7 +226,7 @@ export function AnimalRegister({ data, total, plate, archived = false }: { data:
       {plate && <RegisterPlate plate={plate} running={seen} calm={calm} />}
       <div className="rx-rail" data-ld-reveal="rail">
         <h2 id="rx-title">Every animal has a story.</h2>
-        <p className="rx-caption">{archived ? <>Archived public profiles · 20 October 2026. <Link href="/art-credits#register-photos">Photo credits</Link></> : "Real photographs. Shared histories. Including imported records."}</p>
+        <p className="rx-caption">{archived ? "Archived public profiles · 20 October 2026." : "Real photographs. Shared histories. Including imported records."}</p>
       </div>
 
       <div className="rx-stage" data-ld-reveal="stage">

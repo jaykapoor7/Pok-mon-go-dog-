@@ -13,11 +13,11 @@ import "./header.css";
 /* ════════════════════════════════════════════════════════════════════
    The site header, one bar on every public page.
 
-   StrayPaw · Explore · Who It’s For · Our Story, and the one strong action,
+   StrayPaw · Explore · Who It’s For · Programmes · Mission · Our Story, and the one strong action,
    Open App. A white, ink-framed pill floating over the page; on the
    landing (`overlay`) it starts as part of the night hero and lifts into
    the pill once the page moves. On a phone the places drop from the pill
-   in a small sheet: Explore and Our Story, then Who It’s For with its
+   in a small sheet: Explore, Programmes, Mission and Our Story, then Who It’s For with its
    five audiences. Open App stays in the bar, never repeated in the sheet.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -34,10 +34,11 @@ export const AUDIENCES = [
 const LINKS: NavItem[] = [
   { label: "Explore", href: "/explore", hint: "The map" },
   { label: "Programmes", href: "/partner-programmes", hint: "Work with our partner NGOs" },
+  { label: "Mission", href: "/mission", hint: "Every stray animal on record" },
   { label: "Our Story", href: "/our-story", also: ["/about"], hint: "Why we exist" },
 ];
 
-export function SiteHeader({ tone = "paper", overlay = false }: { tone?: "paper" | "night"; overlay?: boolean }) {
+export function SiteHeader({ tone = "paper", overlay = false, float = false }: { tone?: "paper" | "night"; overlay?: boolean; float?: boolean }) {
   const { t } = useLocale();
   const pathname = usePathname() ?? "";
   const label = (item: { label: string; tKey?: NavKey }) => (item.tKey ? t.nav[item.tKey] : item.label);
@@ -93,7 +94,7 @@ export function SiteHeader({ tone = "paper", overlay = false }: { tone?: "paper"
   const here = (l: NavItem) => [l.href, ...(l.also ?? [])].some((h) => pathname === h || pathname.startsWith(h + "/"));
 
   return (
-    <header ref={header} className={`sp-header is-${tone}${overlay ? " is-overlay" : ""}${scrolled ? " is-scrolled" : ""}${open ? " is-open" : ""}`}>
+    <header ref={header} className={`sp-header is-${tone}${overlay ? " is-overlay" : ""}${float ? " is-float" : ""}${scrolled ? " is-scrolled" : ""}${open ? " is-open" : ""}`}>
       <div className="sp-header-bar">
         <Link href="/" className="sp-wordmark" aria-label="StrayPaw home">
           <StrayPawMark />
@@ -107,13 +108,14 @@ export function SiteHeader({ tone = "paper", overlay = false }: { tone?: "paper"
             </Link>
           ))}
           <div className="sp-audiences" ref={audienceMenu} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAudiencesOpen(false); }}>
-            <button type="button" aria-expanded={audiencesOpen} aria-controls="sp-audiences" onClick={() => setAudiencesOpen(v => !v)} onKeyDown={e => { if (e.key === "ArrowDown") { e.preventDefault(); setAudiencesOpen(true); requestAnimationFrame(() => audienceMenu.current?.querySelector("a")?.focus()); } }}>Who It’s For <ChevronDown size={14} aria-hidden /></button>
+            <button type="button" className={AUDIENCES.some((a) => pathname === a.href) ? "is-here" : undefined} aria-expanded={audiencesOpen} aria-controls="sp-audiences" onClick={() => setAudiencesOpen(v => !v)} onKeyDown={e => { if (e.key === "ArrowDown") { e.preventDefault(); setAudiencesOpen(true); requestAnimationFrame(() => audienceMenu.current?.querySelector("a")?.focus()); } }}>Who It’s For <ChevronDown size={14} aria-hidden /></button>
             <div id="sp-audiences" className="sp-audience-menu" hidden={!audiencesOpen}>
               {AUDIENCES.map((l) => <Link key={l.href} href={l.href} onClick={() => setAudiencesOpen(false)} aria-current={pathname === l.href ? "page" : undefined}><span>{l.label}</span><small>{l.hint}</small><ArrowUpRight size={16} aria-hidden/></Link>)}
             </div>
           </div>
-          <Link href="/partner-programmes" className={pathname==="/partner-programmes"?"is-here":undefined} aria-current={pathname === "/partner-programmes" ? "page" : undefined}>Programmes</Link>
-          <Link href="/our-story" className={pathname==="/our-story"?"is-here":undefined} aria-current={pathname === "/our-story" ? "page" : undefined}>Our Story</Link>
+          {LINKS.slice(1).map((l) => (
+            <Link key={l.href} href={l.href} aria-current={here(l) ? "page" : undefined} className={here(l) ? "is-here" : ""}>{label(l)}</Link>
+          ))}
         </nav>
 
         <div className="sp-header-actions">

@@ -12,7 +12,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
-import { dogArtFor, creditLine } from "@/lib/art/sources";
+import { dogArtFor } from "@/lib/art/sources";
 
 export type Life = { id: string; tag: string; city: string | null; zone: string | null; photo: string; first: string | null; last: string | null; sightings: number; events: { at: string; what: string }[] };
 
@@ -49,7 +49,7 @@ export function Lifeline({ lives }: { lives: Life[] }) {
         <figure className="ll-paint" style={{ background: art.ground }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={art.src} alt="" style={art.flip ? { transform: "scaleX(-1)" } : undefined} />
-          <figcaption>A painting, not a likeness · {creditLine(art.work)}</figcaption>
+          <figcaption>A painting, not a likeness</figcaption>
         </figure>
         <figure className="ll-photo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
