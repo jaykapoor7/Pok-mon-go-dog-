@@ -8,9 +8,8 @@
    fill first (marigold to orange to pink), a can swap, the indigo
    outline and 3D, white shine and sparkles, and a flame paw for a tag.
    The camera leans in and follows the nozzle, with real spray sounds,
-   mist and drips. Then it pulls back, the lamp cuts out, the plaster
-   gives way to the bricks beneath, and the bricks inside India light up
-   and pulse, the recorded areas brightest: the mission over the map.
+   mist and drips. Then the hand leaves and the camera pulls back to the
+   finished wall.
 
    Everything is drawn in code and sounds are synthesised; nothing on the
    wall is a real person, number or business. Under reduced motion the
@@ -21,8 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { Wall, type Size } from "./wall";
 import { Sfx } from "./sound";
-import { brickPainter, type Area, type Cell } from "./bricks";
-import { INK, alphaMap, layoutPiece, onWall, renderLayers, sweeps, type Layout, type Pt } from "./piece";
+import { INK, alphaMap, layoutPiece, renderLayers, sweeps, type Pt } from "./piece";
 import "./mission.css";
 
 type Phase = "idle" | "play" | "done";
@@ -36,29 +34,7 @@ const CANS: Record<"fill" | "line" | "shine" | "tag", Can> = {
 
 type PassK = keyof typeof CANS;
 
-/* Where the piece and the map sit once the plaster is gone: side by side
-   on a wide screen, the piece above the map on a phone. */
-function finaleLayout(L: Layout, w: number, h: number) {
-  const pts = L.lines.flatMap((l, i) => [onWall(L, i, l.x, l.base - L.fs * 0.8), onWall(L, i, l.x + l.lw, l.base - L.fs * 0.8), onWall(L, i, l.x, l.base + L.fs * 0.12), onWall(L, i, l.x + l.lw, l.base + L.fs * 0.12)]);
-  pts.push({ x: L.tag.x + L.fs * 0.3, y: L.tag.y }, { x: L.tag.x, y: L.tag.y - L.fs * 0.35 });
-  const x0 = Math.min(...pts.map((p) => p.x)), x1 = Math.max(...pts.map((p) => p.x)), y0 = Math.min(...pts.map((p) => p.y)), y1 = Math.max(...pts.map((p) => p.y));
-  const bw = x1 - x0, bh = y1 - y0, bx = (x0 + x1) / 2, by = (y0 + y1) / 2;
-  let k: number, cx: number, cy: number, area: Area;
-  if (h > w * 1.1) {
-    k = Math.min(0.75, (w * 0.88) / bw, (h * 0.34) / bh);
-    cx = w / 2; cy = 84 + (bh * k) / 2;
-    const top = 84 + bh * k + 20;
-    area = { x: w * 0.03, y: top, w: w * 0.94, h: Math.max(120, h - top - 86) };
-  } else {
-    k = Math.min(0.62, (w * 0.42) / bw, (h * 0.62) / bh);
-    cx = w * 0.26; cy = h * 0.54;
-    area = { x: w * 0.48, y: h * 0.11, w: w * 0.48, h: h * 0.84 };
-  }
-  const move = (p: Pt) => ({ x: cx + (p.x - bx) * k, y: cy + (p.y - by) * k });
-  return { k, tx: cx - bx * k, ty: cy - by * k, area, tag: move(L.tag) };
-}
-
-export function MissionWall({ family, cells }: { family: string; cells: Cell[] }) {
+export function MissionWall({ family }: { family: string }) {
   const [size, setSize] = useState<Size | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [muted, setMuted] = useState(false);
@@ -67,7 +43,7 @@ export function MissionWall({ family, cells }: { family: string; cells: Cell[] }
   const wallWrap = useRef<HTMLDivElement>(null);
   const night = useRef<HTMLDivElement>(null);
   const hand = useRef<HTMLDivElement>(null);
-  const cv = { paint: useRef<HTMLCanvasElement>(null), fx: useRef<HTMLCanvasElement>(null), bricks: useRef<HTMLCanvasElement>(null) };
+  const cv = { paint: useRef<HTMLCanvasElement>(null), fx: useRef<HTMLCanvasElement>(null) };
   const engine = useRef<{ play: () => void; stop: () => void } | null>(null);
   const sfx = useRef<Sfx | null>(null);
 
@@ -108,8 +84,7 @@ export function MissionWall({ family, cells }: { family: string; cells: Cell[] }
     if (Object.values(els).some((e) => !e)) return;
     const ctx: Record<string, CanvasRenderingContext2D> = {};
     for (const [k, el] of Object.entries(els)) { const q = k === "fx" ? fxs : dpr; el!.width = Math.round(w * q); el!.height = Math.round(h * q); ctx[k] = el!.getContext("2d")!; }
-    ctx.bricks.setTransform(dpr, 0, 0, dpr, 0, 0);
-    let alive = true, raf = 0, brickRaf = 0;
+    let alive = true, raf = 0;
     const timers: number[] = [];
     const later = (ms: number, fn: () => void) => { timers.push(window.setTimeout(() => alive && fn(), ms)); };
 
@@ -153,26 +128,9 @@ export function MissionWall({ family, cells }: { family: string; cells: Cell[] }
       const B = await build();
       if (!B) return;
       const { L, layers, aFill, aLine, aShadow, aShine } = B;
-      const F = finaleLayout(L, w, h);
-      const paintBricks = brickPainter(ctx.bricks, w, h, cells, F.tag, F.area);
-      /* The piece steps aside for the map. */
-      const settle = (animate: boolean) => {
-        const el = cv.paint.current; if (!el) return;
-        el.style.transformOrigin = "0 0";
-        el.style.transition = animate ? "transform 1.7s cubic-bezier(.65,0,.3,1)" : "none";
-        el.style.transform = `translate3d(${F.tx}px, ${F.ty}px, 0) scale(${F.k})`;
-      };
-      const startBricks = () => {
-        const t0 = performance.now();
-        const loop = (now: number) => { if (!alive) return; paintBricks((now - t0) / 1000); brickRaf = requestAnimationFrame(loop); };
-        brickRaf = requestAnimationFrame(loop);
-      };
       if (still) {
         for (const l of [layers.shadow, layers.fill, layers.outline, layers.shine]) ctx.paint.drawImage(l.c, 0, 0);
-        paintBricks(0, true);
-        settle(false);
-        if (wallWrap.current) wallWrap.current.style.opacity = "0";
-        if (cv.bricks.current) cv.bricks.current.style.opacity = "1";
+        night.current?.classList.add("is-lit");
         setPhase("done");
         return;
       }
@@ -365,17 +323,9 @@ export function MissionWall({ family, cells }: { family: string; cells: Cell[] }
 
       const finale = () => {
         stageEl.style.transform = "none";
-        S.lamp(false);
-        night.current?.classList.add("is-out");
-        later(500, () => {
-          S.swell();
-          if (wallWrap.current) wallWrap.current.style.opacity = "0";
-          if (cv.bricks.current) cv.bricks.current.style.opacity = "1";
-          ctx.fx.clearRect(0, 0, w * fxs, h * fxs);
-          settle(true);
-          startBricks();
-        });
-        later(3200, () => setPhase("done"));
+        ctx.fx.clearRect(0, 0, w * fxs, h * fxs);
+        S.swell();
+        later(600, () => setPhase("done"));
       };
 
       S.lamp(true);
@@ -384,15 +334,12 @@ export function MissionWall({ family, cells }: { family: string; cells: Cell[] }
     };
 
     const reset = () => {
-      cancelAnimationFrame(raf); cancelAnimationFrame(brickRaf);
+      cancelAnimationFrame(raf);
       for (const t of timers.splice(0)) window.clearTimeout(t);
       for (const k of Object.keys(ctx)) { const c = ctx[k]; c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, c.canvas.width, c.canvas.height); c.restore(); }
-      if (wallWrap.current) wallWrap.current.style.opacity = "1";
-      if (cv.bricks.current) cv.bricks.current.style.opacity = "0";
-      night.current?.classList.remove("is-on", "is-out");
+      night.current?.classList.remove("is-on", "is-lit");
       if (hand.current) { hand.current.style.opacity = "0"; hand.current.classList.remove("is-spraying", "is-swap"); }
       if (stage.current) stage.current.style.transform = "none";
-      if (cv.paint.current) { cv.paint.current.style.transition = "none"; cv.paint.current.style.transform = ""; }
     };
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -403,17 +350,16 @@ export function MissionWall({ family, cells }: { family: string; cells: Cell[] }
     };
     return () => { alive = false; reset(); engine.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size, family, cells]);
+  }, [size, family]);
 
   const start = useCallback(() => { setPhase("play"); engine.current?.play(); }, []);
   const toggleSound = () => { setMuted((m) => { const n = !m; if (!sfx.current) sfx.current = new Sfx(); sfx.current.setMuted(n); return n; }); };
 
   return (
-    <section className={`mw is-${phase}`} aria-label="Every stray animal on record: sprayed on a wall in an Indian street, which becomes a map of India.">
+    <section className={`mw is-${phase}`} aria-label="Every stray animal on record: sprayed on a wall in an Indian street.">
       <div ref={stage} className="mw-stage">
         <div ref={wallWrap} className="mw-wallwrap">{wall}</div>
         <div ref={night} className="mw-night" aria-hidden />
-        <canvas ref={cv.bricks} className="mw-layer mw-bricks" aria-hidden />
         <canvas ref={cv.paint} className="mw-layer" aria-hidden />
         <canvas ref={cv.fx} className="mw-layer" aria-hidden />
         <div ref={hand} className="mw-hand" aria-hidden>

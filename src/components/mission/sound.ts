@@ -65,7 +65,7 @@ export class Sfx {
     o.connect(lp).connect(hg).connect(this.master); o.start(t); o.stop(t + 2.5);
   }
 
-  /* The map lighting up: a slow, low swell with a soft shimmer on top. */
+  /* The piece finished: a slow, low swell with a soft shimmer on top. */
   swell() {
     const ctx = this.ctx; if (!ctx || !this.master) return;
     const t = ctx.currentTime;

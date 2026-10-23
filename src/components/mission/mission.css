@@ -6,13 +6,12 @@
 .mw-stencil text { font-family: "Arial Black", Impact, var(--font-sans), sans-serif; font-weight: 900; }
 .mw-poster-t { font-family: "Arial Black", Impact, var(--font-sans), sans-serif; letter-spacing: .02em; }
 .mw-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; will-change: transform; transform: translateZ(0); }
-.mw-bricks { opacity: 0; transition: opacity 1.4s ease; }
 
 /* Dusk, and the street lamp that comes on. */
 .mw-night { position: absolute; inset: 0; pointer-events: none; will-change: opacity; opacity: .86; transition: opacity 1.2s ease;
   background: radial-gradient(70% 55% at 50% -6%, rgba(255, 196, 120, .0) 0%, rgba(10, 14, 34, .55) 55%, rgba(5, 8, 22, .92) 100%); }
 .mw-night.is-on { animation: mw-flicker 1s steps(1) forwards; }
-.mw-night.is-out { opacity: .9 !important; animation: none; }
+.mw-night.is-lit { opacity: .22; animation: none; }
 @keyframes mw-flicker { 0% { opacity: .86; } 12% { opacity: .35; } 20% { opacity: .8; } 32% { opacity: .3; } 40% { opacity: .62; } 55%, 100% { opacity: .22; } }
 
 /* The hand, the can, the arm. */
@@ -51,6 +50,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mw-go, .mw-go-can, .mw-again { animation: none; }
-  .mw-night { opacity: .9; }
   .mw-hand { display: none; }
 }

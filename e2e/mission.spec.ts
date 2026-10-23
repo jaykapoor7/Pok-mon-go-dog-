@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => { await page.addInitScript(() => localStorage.setItem("straypaw.notice.storage.v1", "1")); });
 
-test("the mission wall is one button that paints the piece and turns into the map", async ({ page }) => {
+test("the mission wall is one button that paints the piece and can play again", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/mission");
   await expect(page.getByRole("region", { name: /every stray animal on record/i })).toBeVisible();
