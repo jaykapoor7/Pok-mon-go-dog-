@@ -54,7 +54,7 @@ test("the WhatsApp message types, becomes a record and lands on the map as the r
 test("the group bot files, looks up, runs a drive and says what is due, as the reader scrolls", async ({ page }) => {
   await page.goto("/");
   const g = page.locator("#whatsapp-groups");
-  await expect(g.getByRole("heading", { level: 2 })).toHaveText("StrayPaw in your team’s WhatsApp group");
+  await expect(g.getByRole("heading", { level: 2 })).toHaveText("StrayPaw in your NGO’s WhatsApp group");
   await scrollThrough(page, ".bg-track", 0.25);
   await expect(g.locator(".bg-skills li.is-now")).toContainText("Files what the group posts");
   await scrollThrough(page, ".bg-track", 0.45);
@@ -63,7 +63,7 @@ test("the group bot files, looks up, runs a drive and says what is due, as the r
   await expect(g.locator(".bg-msg").last()).toContainText("18 sterilised, 22 vaccinated");
   await scrollThrough(page, ".bg-track", 1);
   await expect(g.locator(".bg-skills li.is-now")).toContainText("Says what is due");
-  await expect(g.getByRole("link", { name: /Add StrayPaw to your group/ })).toHaveAttribute("href", /contact/);
+  await expect(g.getByRole("link", { name: /Add StrayPaw to your NGO’s group/ })).toHaveAttribute("href", /contact/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   The StrayPaw bot in a team's WhatsApp group.
+   The StrayPaw bot in an NGO team's WhatsApp group.
 
    The scroll plays one group conversation: the bot is added, then does
    the four things a team uses it for. Beside the chat (above it, on
@@ -89,10 +89,10 @@ export function BotGroups() {
 
   return (
     <section id="whatsapp-groups" className="bg" aria-labelledby="bg-title">
-      <p className="bg-sr">In a WhatsApp group, the StrayPaw bot files reports the group posts, looks up any animal by its StrayPaw ID, runs sterilisation and vaccination drives and keeps count, and each morning tells the team what is due. Everything lands in the organisation’s StrayPaw records.</p>
+      <p className="bg-sr">In an NGO team’s WhatsApp group, the StrayPaw bot files reports the group posts, looks up any animal by its StrayPaw ID, runs sterilisation and vaccination drives and keeps count, and each morning tells the team what is due. Everything lands in the organisation’s StrayPaw records.</p>
       <div ref={track} className="bg-track">
         <div className="bg-stage">
-          <h2 id="bg-title" className="bg-label"><Users aria-hidden />StrayPaw in your team’s WhatsApp group</h2>
+          <h2 id="bg-title" className="bg-label"><Users aria-hidden />StrayPaw in your NGO’s WhatsApp group</h2>
 
           <div className="bg-chat" aria-hidden>
             <div className="bg-head">
@@ -171,7 +171,7 @@ export function BotGroups() {
             </div>
           </div>
 
-          <Link href="/contact?subject=WhatsApp%20CareOS%20access" className={`bg-cta${at(0.9) ? " is-on" : ""}`}>Add StrayPaw to your group<ArrowUpRight aria-hidden /></Link>
+          <Link href="/contact?subject=WhatsApp%20CareOS%20access" className={`bg-cta${at(0.9) ? " is-on" : ""}`}>Add StrayPaw to your NGO’s group<ArrowUpRight aria-hidden /></Link>
         </div>
       </div>
     </section>

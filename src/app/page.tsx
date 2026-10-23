@@ -30,7 +30,7 @@ const FAQ=[
  ["Is StrayPaw free to use?","Public animal discovery and community reporting are available without a subscription. Institutional programmes are scoped and priced separately; contact us for organisation access."],
  ["What happens after a report?","A report is checked before publication. Organisations can review and choose whether to accept it. Reporting does not guarantee rescue, treatment or a response time."],
  ["How can an NGO participate?","Apply for an organisation workspace. After verification, your team can review requests, assign cases, import records and record care and follow-ups."],
- ["Can I report through WhatsApp? What does it cost?","Yes. Message the StrayPaw bot on WhatsApp with a photo and your location. Teams and communities can add it to their WhatsApp group, where it files reports, looks up animals, runs drives and posts what is due each morning. Contact StrayPaw to connect your team; setup and costs are confirmed for your organisation. Web reporting is also available."],
+ ["Can I report through WhatsApp? What does it cost?","Yes. Message the StrayPaw bot on WhatsApp with a photo and your location. NGOs can add it to their team’s WhatsApp group, where it files reports, looks up animals, runs drives and posts what is due each morning. Contact StrayPaw to connect your NGO; setup and costs are confirmed for your organisation. Web reporting is also available."],
  ["How does a municipality or institution start?","Send your city, programme, available records and goals. We agree scope, responsibilities, deliverables, duration and fees before work begins."],
 ];
 export default async function HomePage(){
