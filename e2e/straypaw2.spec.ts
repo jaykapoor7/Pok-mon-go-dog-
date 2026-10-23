@@ -55,7 +55,8 @@ test("the landing page still renders its hero", async ({ page }) => {
 
 test("the guided request has readable disclosure and a web reporting destination", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/");
-  await expect(page.locator("#one-request")).toContainText("Reporting on WhatsApp");
+  await expect(page.locator("#one-request")).toContainText("StrayPaw is on WhatsApp");
+  await expect(page.locator("#whatsapp-groups")).toContainText("looks up any animal by its StrayPaw ID");
   await expect(page.locator("#one-request")).not.toContainText(/pilot/i);
   await expect(page.getByRole("contentinfo").getByRole("link", { name: "Report a sighting" })).toHaveAttribute("href","/community/report");
 });

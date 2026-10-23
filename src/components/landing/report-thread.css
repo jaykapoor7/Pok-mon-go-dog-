@@ -13,8 +13,12 @@
 .rt-label { position: absolute; left: var(--gut); top: 92px; display: flex; align-items: center; gap: 9px; margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -.01em; color: rgba(255, 253, 249, .82); opacity: max(0, 1 - var(--fold) * 2); }
 .rt-label svg { width: 22px; height: 22px; }
 
+.rt-intro { position: absolute; left: var(--gut); right: var(--gut); top: 50%; transform: translateY(calc(-50% - (1 - var(--intro)) * 40px)); opacity: var(--intro); pointer-events: none; }
+.rt-intro-h { margin: 0; font: 600 clamp(48px, 7.4vw, 120px)/.98 var(--font-sans), sans-serif; letter-spacing: -.055em; }
+.rt-intro-s { margin: 22px 0 0; max-width: 34ch; font-size: clamp(18px, 1.6vw, 22px); line-height: 1.5; color: rgba(255, 253, 249, .74); }
+
 /* ── the message ──────────────────────────────────────────────────── */
-.rt-say { min-width: 0; opacity: max(0, 1 - var(--fold) * 1.6); }
+.rt-say { min-width: 0; opacity: min(calc(1 - var(--intro)), max(0, 1 - var(--fold) * 1.6)); }
 .rt-bubble-big { position: relative; max-width: 13.6em; font-size: var(--say); padding: .42em .55em .5em; border-radius: .5em; box-shadow: inset 0 0 0 2px rgba(255, 253, 249, .22); transition: background-color .45s var(--ease), box-shadow .45s var(--ease), border-radius .45s var(--ease); }
 .rt-stage.is-sent .rt-bubble-big { background: var(--wa-out); box-shadow: 0 30px 80px -40px rgba(0, 0, 0, .8); border-bottom-right-radius: .1em; color: var(--ink); }
 .rt-stage.is-sent .rt-bubble-big::after { content: ""; position: absolute; right: -.28em; bottom: 0; border: .16em solid transparent; border-left: .28em solid var(--wa-out); border-bottom-color: var(--wa-out); }

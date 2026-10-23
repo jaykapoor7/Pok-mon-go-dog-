@@ -96,7 +96,11 @@ export function ReportThread({ areas, city, recordedAt }: { areas: Area[]; city:
   const place = useMemo(() => [...areas].sort((a, b) => b.open - a.open)[0]?.name || city, [areas, city]);
   const { pts, here } = useCityPoints(areas, place);
 
-  const [p, setP] = useState(0);
+  const [raw, setP] = useState(0);
+  /* The first stretch of the scroll is the opening frame; the message's own script runs on the rest. */
+  const INTRO = 0.08;
+  const p = clamp((raw - INTRO) / (1 - INTRO));
+  const intro = 1 - clamp((raw - INTRO * 0.55) / (INTRO * 0.45));
   const [geo, setGeo] = useState<Geo | null>(null);
   const track = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -180,16 +184,20 @@ export function ReportThread({ areas, city, recordedAt }: { areas: Area[]; city:
     "--hx": here.x / 1000, "--hy": here.y / 1000,
     "--dx": `${geo ? lerp(geo.dot.x, geo.end.x, pan) : 0}px`, "--dy": `${geo ? lerp(geo.dot.y, geo.end.y, pan) : 0}px`,
     "--zoom": lerp(3.2, 1, mapIn), "--mapo": mapIn, "--fold": fold,
-    "--note": clamp((p - note.at) / 0.02),
+    "--note": clamp((p - note.at) / 0.02), "--intro": intro,
   } as CSSProperties;
 
   return (
     <section id="one-request" className="rt" aria-labelledby="rt-title">
-      <p className="rt-sr">A resident types what they see into WhatsApp, with a photo and their live location, and sends it to StrayPaw. StrayPaw reads the message into a record: the animal, the place and the condition. A person checks it before anyone else sees it. The report is then placed on {city}&rsquo;s map among {areas.length.toLocaleString("en-IN")} recorded areas, and StrayPaw&rsquo;s reply comes back into the same chat.</p>
+      <p className="rt-sr">StrayPaw is on WhatsApp. Anyone can message the StrayPaw bot to report an animal, and teams add it to their group chats. In a direct chat, a resident types what they see, with a photo and their live location, and sends it to StrayPaw. StrayPaw reads the message into a record: the animal, the place and the condition. A person checks it before anyone else sees it. The report is then placed on {city}&rsquo;s map among {areas.length.toLocaleString("en-IN")} recorded areas, and StrayPaw&rsquo;s reply comes back into the same chat.</p>
       <div ref={track} className="rt-track">
         <div ref={stage} className={`rt-stage${sent ? " is-sent" : ""}${reading ? " is-read" : ""}${p >= T.fold0 ? " is-fold" : ""}`} style={style}>
 
-          <h2 id="rt-title" className="rt-label"><svg viewBox="0 0 24 24" aria-hidden><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z" fill="#25d366" /><path d="M8.6 7.4c.2-.4.4-.4.7-.4h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.4 0 .6l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.8.9c.3.1.4.2.5.3 0 .2 0 .9-.3 1.6-.3.7-1.6 1.4-2.2 1.4-.6.1-1.2.3-4-.8-3.4-1.4-5.5-4.9-5.7-5.1-.2-.2-1.3-1.8-1.3-3.4 0-1.6.8-2.4 1.2-2.7Z" fill="#fff" /></svg>Reporting on WhatsApp</h2>
+          <h2 id="rt-title" className="rt-label"><svg viewBox="0 0 24 24" aria-hidden><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z" fill="#25d366" /><path d="M8.6 7.4c.2-.4.4-.4.7-.4h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.4 0 .6l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.8.9c.3.1.4.2.5.3 0 .2 0 .9-.3 1.6-.3.7-1.6 1.4-2.2 1.4-.6.1-1.2.3-4-.8-3.4-1.4-5.5-4.9-5.7-5.1-.2-.2-1.3-1.8-1.3-3.4 0-1.6.8-2.4 1.2-2.7Z" fill="#fff" /></svg>Direct chat with the StrayPaw bot</h2>
+          <div className="rt-intro">
+            <p className="rt-intro-h">StrayPaw is on WhatsApp.</p>
+            <p className="rt-intro-s">Message the StrayPaw bot to report an animal. Add it to your team’s group to run your records.</p>
+          </div>
 
           {/* The city, from the street the report came from out to every recorded area. */}
           <div className="rt-map" aria-hidden>
@@ -248,8 +256,8 @@ export function ReportThread({ areas, city, recordedAt }: { areas: Area[]; city:
             {p >= T.reply2 && <div className="rt-msg"><b>StrayPaw</b>Update: a team has recorded care for the dog you reported. When they record a follow-up, it will come here too.<small>16:05</small></div>}
           </div>
 
-          <p className="rt-note" key={note.t} aria-hidden>{note.t}</p>
-          <span className="rt-progress" aria-hidden><i style={{ transform: `scaleX(${p})` }} /></span>
+          {intro < 0.5 && <p className="rt-note" key={note.t} aria-hidden>{note.t}</p>}
+          <span className="rt-progress" aria-hidden><i style={{ transform: `scaleX(${raw})` }} /></span>
         </div>
       </div>
     </section>

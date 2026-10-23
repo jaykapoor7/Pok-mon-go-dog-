@@ -34,9 +34,9 @@ test("the WhatsApp message types, becomes a record and lands on the map as the r
   await expect(s.getByRole("button")).toHaveCount(0);
   await scrollThrough(page, ".rt-track", 0);
   await expect(s.locator(".rt-stage")).not.toHaveClass(/is-sent/);
-  await scrollThrough(page, ".rt-track", 0.3);
+  await scrollThrough(page, ".rt-track", 0.35);
   await expect(s.locator(".rt-stage")).toHaveClass(/is-sent/);
-  await scrollThrough(page, ".rt-track", 0.56);
+  await scrollThrough(page, ".rt-track", 0.62);
   await expect(s.locator(".rt-rec-status")).toHaveText("Checked by a person");
   /* The words that left the bubble sit where the record keeps them. */
   for (const k of ["animal", "place", "cond"]) {
@@ -49,6 +49,22 @@ test("the WhatsApp message types, becomes a record and lands on the map as the r
   await expect(s.locator(".rt-msg")).toHaveCount(2);
   await scrollThrough(page, ".rt-track", 0.1);
   await expect(s.locator(".rt-msg")).toHaveCount(0);
+});
+
+test("the group bot files, looks up, runs a drive and says what is due, as the reader scrolls", async ({ page }) => {
+  await page.goto("/");
+  const g = page.locator("#whatsapp-groups");
+  await expect(g.getByRole("heading", { level: 2 })).toHaveText("StrayPaw in your team’s WhatsApp group");
+  await scrollThrough(page, ".bg-track", 0.25);
+  await expect(g.locator(".bg-skills li.is-now")).toContainText("Files what the group posts");
+  await scrollThrough(page, ".bg-track", 0.45);
+  await expect(g.locator(".bg-skills li.is-now")).toContainText("Looks up any animal");
+  await scrollThrough(page, ".bg-track", 0.8);
+  await expect(g.locator(".bg-msg").last()).toContainText("18 sterilised, 22 vaccinated");
+  await scrollThrough(page, ".bg-track", 1);
+  await expect(g.locator(".bg-skills li.is-now")).toContainText("Says what is due");
+  await expect(g.getByRole("link", { name: /Add StrayPaw to your group/ })).toHaveAttribute("href", /contact/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
 test("NGO remains a workspace on both Community and NGO pages", async ({ page }) => {

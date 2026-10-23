@@ -11,6 +11,7 @@ import { LandingMotion } from "@/components/landing/LandingMotion";
 import { getLandingStory } from "@/lib/landing/story";
 import { getDogsTreated, getRegisterTotals } from "@/lib/register/totals";
 import { ReportThread } from "@/components/landing/ReportThread";
+import { BotGroups } from "@/components/landing/BotGroups";
 import { sxSerif } from "@/components/shell/fonts";
 import caseArchive from "@/data/landing-case-archive.json";
 import areaArchive from "@/data/landing-area-archive.json";
@@ -29,7 +30,7 @@ const FAQ=[
  ["Is StrayPaw free to use?","Public animal discovery and community reporting are available without a subscription. Institutional programmes are scoped and priced separately; contact us for organisation access."],
  ["What happens after a report?","A report is checked before publication. Organisations can review and choose whether to accept it. Reporting does not guarantee rescue, treatment or a response time."],
  ["How can an NGO participate?","Apply for an organisation workspace. After verification, your team can review requests, assign cases, import records and record care and follow-ups."],
- ["Can I report through WhatsApp? What does it cost?","WhatsApp reporting is available through CareOS. Contact StrayPaw for the reporting channel or to connect your team. Setup and costs are confirmed for your organisation; web reporting is also available."],
+ ["Can I report through WhatsApp? What does it cost?","Yes. Message the StrayPaw bot on WhatsApp with a photo and your location. Teams and communities can add it to their WhatsApp group, where it files reports, looks up animals, runs drives and posts what is due each morning. Contact StrayPaw to connect your team; setup and costs are confirmed for your organisation. Web reporting is also available."],
  ["How does a municipality or institution start?","Send your city, programme, available records and goals. We agree scope, responsibilities, deliverables, duration and fees before work begins."],
 ];
 export default async function HomePage(){
@@ -51,6 +52,7 @@ export default async function HomePage(){
     </div></div></section>
    <AnimalRegister data={registerArchive.data} total={registerArchive.data.total} archived/>
    <ReportThread areas={areas} city={liveAreas.length?hero.city:areaArchive.city} recordedAt={liveAreas.length?undefined:"20 Oct 2026"}/>
+   <BotGroups/>
    <CaseDive j={story?.journey??caseArchive.journey} city={story?.journey?hero.city:caseArchive.hero.city} box={story?.journey?box:[caseArchive.hero.box[0],caseArchive.hero.box[1],caseArchive.hero.box[2],caseArchive.hero.box[3]]} rings={story?.journey?hero.rings:caseArchive.hero.rings} events={story?.journey?hero.events:caseArchive.hero.events}/>
    <section className="lx-faq" aria-labelledby="faq-title"><div className="lx-faq-in">
     <div className="lx-faq-intro"><h2 id="faq-title">A few things to know.</h2><Link href="/contact">Ask us something else<ArrowUpRight size={16} aria-hidden/></Link></div>
