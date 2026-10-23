@@ -36,6 +36,7 @@ const ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[numb
   { path: "/data-governance", priority: 0.4, freq: "monthly" },
   { path: "/get-involved", priority: 0.6, freq: "monthly" },
   { path: "/our-story", priority: 0.7, freq: "monthly" },
+  { path: "/partner-programmes", priority: 0.7, freq: "monthly" },
   { path: "/product", priority: 0.8, freq: "monthly" },
   { path: "/solutions", priority: 0.8, freq: "monthly" },
   { path: "/for-governments", priority: 0.7, freq: "monthly" },

@@ -201,3 +201,16 @@
 .co3 .fd-last { color: var(--ink) !important; font-weight: 600; }
 .co3 .co3-origin + .co3-sec::before { content: ""; position: absolute; top: 0; left: clamp(20px, 5vw, 72px); right: clamp(20px, 5vw, 72px); height: 16px;
   background: url("/art/works/palampore-border.webp") repeat-x 0 0 / auto 16px; }
+
+/* Programmes: one row per partner programme, figure first. */
+.pg-city { display: block; margin-top: 6px; font-size: 15px; font-weight: 500; letter-spacing: 0; color: var(--ink-2, #46546b); }
+.pg-list { list-style: none; margin: 0 0 12px; padding: 0; border-top: 2px solid var(--ink); }
+.pg-list a { display: grid; grid-template-columns: minmax(96px, 150px) minmax(0, 1fr) 20px; gap: 20px; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(11, 30, 61, .14); color: inherit; text-decoration: none; }
+.pg-list a:hover .pg-what strong { text-decoration: underline; text-underline-offset: 4px; }
+.pg-list a:focus-visible { outline: 3px solid #2457ce; outline-offset: 2px; border-radius: 6px; }
+.pg-n { font-size: clamp(32px, 3.4vw, 48px); font-weight: 700; line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+.pg-what { display: grid; gap: 3px; min-width: 0; }
+.pg-what strong { font-size: 18px; font-weight: 650; }
+.pg-what span { font-size: 15px; color: var(--ink-2, #46546b); }
+.pg-what small { font-size: 13.5px; color: var(--mute, #6a7587); }
+@media (max-width: 640px) { .pg-list a { grid-template-columns: minmax(0, 1fr) 18px; gap: 6px 12px; } .pg-n { grid-column: 1; } .pg-what { grid-column: 1; } .pg-list a > svg { grid-column: 2; grid-row: 1 / 3; } }

@@ -33,6 +33,7 @@ export const AUDIENCES = [
 ];
 const LINKS: NavItem[] = [
   { label: "Explore", href: "/explore", hint: "The map" },
+  { label: "Programmes", href: "/partner-programmes", hint: "Work with our partner NGOs" },
   { label: "Our Story", href: "/our-story", also: ["/about"], hint: "Why we exist" },
 ];
 
@@ -111,6 +112,7 @@ export function SiteHeader({ tone = "paper", overlay = false }: { tone?: "paper"
               {AUDIENCES.map((l) => <Link key={l.href} href={l.href} onClick={() => setAudiencesOpen(false)} aria-current={pathname === l.href ? "page" : undefined}><span>{l.label}</span><small>{l.hint}</small><ArrowUpRight size={16} aria-hidden/></Link>)}
             </div>
           </div>
+          <Link href="/partner-programmes" className={pathname==="/partner-programmes"?"is-here":undefined} aria-current={pathname === "/partner-programmes" ? "page" : undefined}>Programmes</Link>
           <Link href="/our-story" className={pathname==="/our-story"?"is-here":undefined} aria-current={pathname === "/our-story" ? "page" : undefined}>Our Story</Link>
         </nav>
 
