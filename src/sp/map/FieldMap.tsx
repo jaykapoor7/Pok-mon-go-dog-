@@ -624,7 +624,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
             <button key={s2.f.id} type="button" className="fm-stamp" style={{ left: s2.x, top: s2.y, ["--rot" as string]: `${(s2.i % 2 ? 1 : -1) * (2 + (s2.i % 3) * 1.5)}deg`, ["--i" as string]: s2.i }}
               aria-label={`${s2.f.title}, ${s2.f.describe ?? "an animal"} recorded in ${s2.f.city}. Open this animal.`} onClick={() => openCity(s2.f.city, { area: s2.f.h3, animal: s2.f.id })}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s2.f.photo} alt="" loading="lazy" referrerPolicy="no-referrer" />
+              <img src={s2.f.photo} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e => (e.currentTarget.style.display = "none")} />
               <span>{s2.f.title}</span><small>{s2.f.city}</small>
             </button>
           ))}

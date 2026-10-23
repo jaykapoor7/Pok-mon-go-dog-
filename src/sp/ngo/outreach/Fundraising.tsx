@@ -71,7 +71,7 @@ export function Fundraising() {
                     <tr key={c.id}>
                       <td>
                         <div style={{ display: "grid", gridTemplateColumns: "56px minmax(0,1fr)", gap: 12, alignItems: "center" }}>
-                          {c.cover_photo ? <span className="or-thumb is-s"><SensitiveVeil sensitive id={c.cover_photo} compact>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={c.cover_photo} alt="" loading="lazy" /></SensitiveVeil></span> : <span className="or-thumb is-s" aria-hidden />}
+                          {c.cover_photo ? <span className="or-thumb is-s"><SensitiveVeil sensitive id={c.cover_photo} compact>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={c.cover_photo} alt="" loading="lazy" onError={e => (e.currentTarget.style.display = "none")} /></SensitiveVeil></span> : <span className="or-thumb is-s" aria-hidden />}
                           <span><b>{c.title}</b><small>{fundraiserCategory(c.category).label}{c.case_id ? " · linked to a case" : ""}</small></span>
                         </div>
                       </td>

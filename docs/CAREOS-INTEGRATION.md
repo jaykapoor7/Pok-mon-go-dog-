@@ -1,7 +1,14 @@
 # StrayPaw CareOS — WhatsApp backend ↔ NGO workspace contract
 
-Status: **WhatsApp / CareOS launch confirmed by the product owner on 20 October 2026.** Public copy presents the channel as launched.
-The per-organisation workspace still uses `careos_health()` to report its actual connection; launch status must never override an unavailable RPC, bypass authentication or fabricate inbox messages. Reporting-channel access and organisation setup/costs are handled through Contact until a public channel URL is supplied.
+Status: **not connected in production** (verified 2026-10-23). The four
+`careos_*` RPCs listed below are absent from the live database
+(`SELECT proname FROM pg_proc … WHERE proname LIKE 'careos%'` returns 0 rows),
+so every workspace call resolves `connected: false, reason: "not_deployed"`
+via `src/lib/careos/inbox.ts`. Public copy must therefore not say the channel
+is launched. See `docs/straypaw-2-careos.md` for the canonical capability
+gate; this file is the backend contract the workspace is wired to call once
+the RPCs exist. `care_inbox` is not expected in the public schema until
+launch.
 
 Types live in `src/lib/careos/contract.ts`; the only workspace code that calls the backend is `src/lib/careos/inbox.ts`.
 

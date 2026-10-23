@@ -3,7 +3,7 @@
 /* Trust console · the shared pieces: the record table, the inspector,
    honest read states, the receipt line, veiled photographs. */
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Mail, Phone, X } from "lucide-react";
 import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
 import { Ack, State } from "../../ui";
@@ -112,11 +112,13 @@ export function Contact({ value }: { value: string }) {
 
 /** A photograph that may show injury stays behind the shared SensitiveVeil. */
 export function Photo({ src, sensitive, alt, size = "m" }: { src: string | null; sensitive: boolean; alt: string; size?: "s" | "m" }) {
-  if (!src) return <div className={`cn-photo is-${size} is-none`} role="img" aria-label="No photograph recorded"><span>No photograph</span></div>;
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [src]);
+  if (!src || failed) return <div className={`cn-photo is-${size} is-none`} role="img" aria-label="No photograph recorded"><span>No photograph</span></div>;
   return (
     <div className={`cn-photo is-${size}`}>
       <SensitiveVeil sensitive={sensitive} id={src} compact={size === "s"}>
-        <img src={src} alt={alt} loading="lazy" decoding="async" />
+        <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />
       </SensitiveVeil>
     </div>
   );

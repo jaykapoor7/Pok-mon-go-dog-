@@ -171,7 +171,7 @@ function IndiaCard({ cities, street, unplaced, faces, fig, onCity }: { cities: N
           <ul className="fm-faces">{faces.slice(0, 6).map((a) => (
             <li key={a.id}><button type="button" onClick={() => onCity(a.city, { area: a.h3, animal: a.id })}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={a.photo} alt="" loading="lazy" referrerPolicy="no-referrer" /><b>{a.title}</b><small>{a.city}</small>
+              <img src={a.photo} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e => (e.currentTarget.style.display = "none")} /><b>{a.title}</b><small>{a.city}</small>
             </button></li>
           ))}</ul>
         </>
