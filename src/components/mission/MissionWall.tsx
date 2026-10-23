@@ -1,11 +1,11 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   Mission. A teal limewashed wall in an Indian street, at dusk.
+   Mission. A blue limewashed wall in an Indian street, at dusk, in StrayPaw colours.
 
    One button: CLICK TO SPRAY. The street lamp flickers on, a hand rattles
    a can, and a graffiti piece goes up the way a writer paints one: the
-   fill first (marigold to orange to pink), a can swap, the indigo
+   fill first (light flame to flame), a can swap, the ink
    outline and 3D, then the white shine and sparkles. The camera leans
    in and follows the can, with real spray sounds, a jet of paint, mist
    and drips. Then the can leaves and the camera pulls back to the
@@ -26,9 +26,9 @@ import "./mission.css";
 type Phase = "idle" | "play" | "done";
 type Can = { color: string; label: string };
 const CANS: Record<"fill" | "line" | "shine", Can> = {
-  fill: { color: "#ff8a1f", label: "#ffd84a" },
-  line: { color: "#2a1a6a", label: "#7c6cff" },
-  shine: { color: "#f4f1ea", label: "#c9c2b6" },
+  fill: { color: "#f05b40", label: "#fffdf9" },
+  line: { color: "#0b1e3d", label: "#2457ce" },
+  shine: { color: "#fffdf9", label: "#8fb7ff" },
 };
 
 type PassK = keyof typeof CANS;
@@ -191,7 +191,7 @@ export function MissionWall({ family }: { family: string }) {
         const map = pass === "fill" ? aFill : aLine;
         for (let y = g.y1 + fs * 0.06; y > g.y0; y -= 2) {
           const x = l.cx + (gx - l.cx) * c - (y - l.cy) * s, yy = l.cy + (gx - l.cx) * s + (y - l.cy) * c;
-          if (map(x, yy) > 120) { drips.push({ x, y: yy - 1, len: fs * (0.08 + Math.random() * 0.3), w: fs * (0.018 + Math.random() * 0.016), t0: now, dur: 1500 + Math.random() * 2000, at: 0, color: pass === "fill" ? "#ef3f7a" : INK, dst: ctx.paint }); break; }
+          if (map(x, yy) > 120) { drips.push({ x, y: yy - 1, len: fs * (0.08 + Math.random() * 0.3), w: fs * (0.018 + Math.random() * 0.016), t0: now, dur: 1500 + Math.random() * 2000, at: 0, color: pass === "fill" ? "#d63f2a" : INK, dst: ctx.paint }); break; }
         }
       };
       const growDrips = (now: number) => {
@@ -378,7 +378,7 @@ export function MissionWall({ family }: { family: string }) {
               <path d="M18 80 Q18 48 60 44 Q102 48 102 80 Z" className="mw-can-body" />
               <rect x="18" y="108" width="84" height="92" className="mw-can-label" />
               <path d="M18 108 H102 V122 q-6 0 -7 10 q-1 14 -5 14 q-4 0 -5 -14 q-1 -9 -8 -9 q-6 0 -7 18 q-1 9 -5 9 q-4 0 -5 -9 q0 -14 -8 -14 q-7 0 -8 7 q-1 6 -5 6 q-4 0 -5 -6 q0 -8 -6 -9 Z" className="mw-can-body" />
-              <g fill="#1d1250" opacity=".88">
+              <g fill="#0b1e3d" opacity=".88">
                 <ellipse cx="60" cy="178" rx="15" ry="12" />
                 <ellipse cx="41" cy="161" rx="5.5" ry="7" transform="rotate(-24 41 161)" /><ellipse cx="53" cy="152" rx="5.5" ry="7.5" />
                 <ellipse cx="67" cy="152" rx="5.5" ry="7.5" /><ellipse cx="79" cy="161" rx="5.5" ry="7" transform="rotate(24 79 161)" />

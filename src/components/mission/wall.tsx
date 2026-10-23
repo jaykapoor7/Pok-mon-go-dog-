@@ -1,4 +1,4 @@
-/* The wall: a limewashed teal plaster in an Indian street, drawn rather
+/* The wall: a limewashed blue plaster (StrayPaw blue, as on a Jodhpur lane) in an Indian street, drawn rather
    than photographed so it fits any screen. Nothing on it is a real
    person, number or business. */
 export type Size = { w: number; h: number };
@@ -38,20 +38,20 @@ export function Wall({ w, h }: Size) {
         <filter id="mw-blotch" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".004 .009" numOctaves="4" seed="5" /><feColorMatrix values="0 0 0 0 .12  0 0 0 0 .24  0 0 0 0 .22  0 0 0 2.4 -1.25" /></filter>
         <filter id="mw-torn" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" seed="9" result="t" /><feDisplacementMap in="SourceGraphic" in2="t" scale={7 * k} xChannelSelector="R" yChannelSelector="G" /></filter>
         <filter id="mw-soft"><feGaussianBlur stdDeviation={6 * k} /></filter>
-        <linearGradient id="mw-light" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff2cf" stopOpacity=".3" /><stop offset=".55" stopColor="#fff2cf" stopOpacity="0" /><stop offset="1" stopColor="#06201f" stopOpacity=".35" /></linearGradient>
-        <linearGradient id="mw-damp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#12302f" stopOpacity="0" /><stop offset="1" stopColor="#12302f" stopOpacity=".42" /></linearGradient>
-        <linearGradient id="mw-streak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#173a39" stopOpacity="1" /><stop offset="1" stopColor="#173a39" stopOpacity="0" /></linearGradient>
+        <linearGradient id="mw-light" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff2cf" stopOpacity=".3" /><stop offset=".55" stopColor="#fff2cf" stopOpacity="0" /><stop offset="1" stopColor="#071733" stopOpacity=".35" /></linearGradient>
+        <linearGradient id="mw-damp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0e2149" stopOpacity="0" /><stop offset="1" stopColor="#0e2149" stopOpacity=".42" /></linearGradient>
+        <linearGradient id="mw-streak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#12285a" stopOpacity="1" /><stop offset="1" stopColor="#12285a" stopOpacity="0" /></linearGradient>
         <pattern id="mw-bricks" width={44 * k} height={22 * k} patternUnits="userSpaceOnUse">
           <rect width={44 * k} height={22 * k} fill="#cfae8b" />
           <rect x={1.5 * k} y={1.5 * k} width={40 * k} height={8.5 * k} rx={1.5} fill="#a5543a" />
           <rect x={-20 * k} y={12 * k} width={40 * k} height={8.5 * k} rx={1.5} fill="#9a4b33" />
           <rect x={23.5 * k} y={12 * k} width={40 * k} height={8.5 * k} rx={1.5} fill="#ad5d40" />
         </pattern>
-        <radialGradient id="mw-vig" cx=".5" cy=".45" r=".75"><stop offset=".6" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#03100f" stopOpacity=".55" /></radialGradient>
+        <radialGradient id="mw-vig" cx=".5" cy=".45" r=".75"><stop offset=".6" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#030b1a" stopOpacity=".55" /></radialGradient>
       </defs>
 
       {/* plaster, its relief, its stains */}
-      <rect width={w} height={h} fill="#3f8d8a" />
+      <rect width={w} height={h} fill="#3a6cc9" />
       <rect width={w} height={h} filter="url(#mw-relief)" style={{ mixBlendMode: "multiply" }} opacity=".55" />
       <rect width={w} height={h} filter="url(#mw-blotch)" opacity=".55" />
       {streaks.map((s, i) => <rect key={i} x={s.x} y={0} width={s.wd * k} height={s.len} fill="url(#mw-streak)" opacity={s.o} filter="url(#mw-soft)" />)}
@@ -62,15 +62,15 @@ export function Wall({ w, h }: Size) {
         <path d={`M0 ${20 * k} C${30 * k} ${-6 * k} ${90 * k} ${4 * k} ${120 * k} ${-8 * k} C${150 * k} ${10 * k} ${160 * k} ${60 * k} ${140 * k} ${90 * k} C${100 * k} ${110 * k} ${50 * k} ${96 * k} ${20 * k} ${104 * k} C${-10 * k} ${80 * k} ${-12 * k} ${50 * k} 0 ${20 * k}Z`} fill="url(#mw-bricks)" stroke="#8a6a44" strokeWidth={2.5 * k} />
         <path d={`M0 ${20 * k} C${30 * k} ${-6 * k} ${90 * k} ${4 * k} ${120 * k} ${-8 * k}`} fill="none" stroke="#fff3d6" strokeOpacity=".5" strokeWidth={2 * k} />
       </g>
-      {cracks.map((d, i) => <path key={i} d={d} fill="none" stroke="#173433" strokeOpacity=".6" strokeWidth={1.4 * k} strokeLinejoin="round" />)}
+      {cracks.map((d, i) => <path key={i} d={d} fill="none" stroke="#10244c" strokeOpacity=".6" strokeWidth={1.4 * k} strokeLinejoin="round" />)}
 
       {/* the painted band at the foot of the wall */}
-      <path d={`M0 ${dado} Q${w * 0.25} ${dado - 3 * k} ${w * 0.5} ${dado + 2 * k} T${w} ${dado - 2 * k} V${h} H0Z`} fill="#6b2238" />
+      <path d={`M0 ${dado} Q${w * 0.25} ${dado - 3 * k} ${w * 0.5} ${dado + 2 * k} T${w} ${dado - 2 * k} V${h} H0Z`} fill="#0b1e3d" />
       <rect y={dado} width={w} height={h - dado} filter="url(#mw-relief)" style={{ mixBlendMode: "multiply" }} opacity=".45" />
-      <path d={`M0 ${dado - 1} Q${w * 0.25} ${dado - 4 * k} ${w * 0.5} ${dado + 1 * k} T${w} ${dado - 3 * k}`} fill="none" stroke="#3f1222" strokeWidth={2.5 * k} />
+      <path d={`M0 ${dado - 1} Q${w * 0.25} ${dado - 4 * k} ${w * 0.5} ${dado + 1 * k} T${w} ${dado - 3 * k}`} fill="none" stroke="#050f22" strokeWidth={2.5 * k} />
       {/* paan stains */}
-      <g transform={`translate(${w * (portrait ? 0.82 : 0.38)} ${dado + (h - dado) * 0.35})`} fill="#2a0710" opacity=".55">
-        <ellipse rx={22 * k} ry={9 * k} /><ellipse cx={26 * k} cy={6 * k} rx={7 * k} ry={4 * k} /><circle cx={-24 * k} cy={-6 * k} r={4 * k} /><circle cx={34 * k} cy={-10 * k} r={2.5 * k} /><path d={`M${4 * k} ${6 * k} q${2 * k} ${14 * k} ${-1 * k} ${26 * k}`} stroke="#2a0710" strokeWidth={3 * k} fill="none" />
+      <g transform={`translate(${w * (portrait ? 0.82 : 0.38)} ${dado + (h - dado) * 0.35})`} fill="#050f22" opacity=".55">
+        <ellipse rx={22 * k} ry={9 * k} /><ellipse cx={26 * k} cy={6 * k} rx={7 * k} ry={4 * k} /><circle cx={-24 * k} cy={-6 * k} r={4 * k} /><circle cx={34 * k} cy={-10 * k} r={2.5 * k} /><path d={`M${4 * k} ${6 * k} q${2 * k} ${14 * k} ${-1 * k} ${26 * k}`} stroke="#050f22" strokeWidth={3 * k} fill="none" />
       </g>
 
       {/* the meter box and its wires */}
@@ -110,7 +110,7 @@ export function Wall({ w, h }: Size) {
         <rect width={tuition.pw} height={tuition.ph} fill="url(#mw-light)" />
       </g>
       <g transform={`translate(${admit.x} ${admit.y}) rotate(${admit.rot})`} filter="url(#mw-torn)">
-        <rect width={admit.pw} height={admit.ph} fill="#1f3f8f" />
+        <rect width={admit.pw} height={admit.ph} fill="#13254a" />
         <rect y={admit.ph * 0.62} width={admit.pw} height={admit.ph * 0.38} fill="#ffcc2e" />
         <text x={admit.pw / 2} y={admit.ph * 0.22} textAnchor="middle" fill="#ffcc2e" fontSize={22 * k} fontWeight="800" className="mw-poster-t">ADMISSION</text>
         <text x={admit.pw / 2} y={admit.ph * 0.38} textAnchor="middle" fill="#fff" fontSize={22 * k} fontWeight="800" className="mw-poster-t">OPEN</text>
@@ -118,7 +118,7 @@ export function Wall({ w, h }: Size) {
         <text x={admit.pw / 2} y={admit.ph * 0.8} textAnchor="middle" fill="#a2140a" fontSize={20 * k} fontWeight="800">प्रवेश प्रारंभ</text>
         <rect width={admit.pw} height={admit.ph} fill="url(#mw-light)" />
         {/* a corner torn away */}
-        <path d={`M${admit.pw} ${admit.ph * 0.7} L${admit.pw} ${admit.ph} L${admit.pw * 0.62} ${admit.ph} Z`} fill="#3f8d8a" />
+        <path d={`M${admit.pw} ${admit.ph * 0.7} L${admit.pw} ${admit.ph} L${admit.pw * 0.62} ${admit.ph} Z`} fill="#3a6cc9" />
       </g>
       <g transform={`translate(${film.x} ${film.y}) rotate(${film.rot})`} filter="url(#mw-torn)" opacity=".92">
         <rect width={film.pw} height={film.ph} fill="#5d1747" />
@@ -128,7 +128,7 @@ export function Wall({ w, h }: Size) {
         <text x={film.pw / 2} y={film.ph * 0.9} textAnchor="middle" fill="#ffe9a8" fontSize={12 * k} letterSpacing="2">NOW SHOWING</text>
         <rect width={film.pw} height={film.ph} fill="url(#mw-light)" />
         {/* the lower part peeled off */}
-        <path d={`M0 ${film.ph * 0.86} L${film.pw * 0.2} ${film.ph * 0.93} L${film.pw * 0.34} ${film.ph * 0.88} L${film.pw * 0.5} ${film.ph * 0.97} L0 ${film.ph}Z`} fill="#3f8d8a" />
+        <path d={`M0 ${film.ph * 0.86} L${film.pw * 0.2} ${film.ph * 0.93} L${film.pw * 0.34} ${film.ph * 0.88} L${film.pw * 0.5} ${film.ph * 0.97} L0 ${film.ph}Z`} fill="#3a6cc9" />
       </g>
 
       {/* grain, light and vignette over everything */}

@@ -16,8 +16,9 @@ export type Layout = {
   tag: Pt;
 };
 
-export const INK = "#1d1250";
-const FILL = ["#ffd84a", "#ff9a1f", "#ff5a3c", "#ef3f7a"];
+export const INK = "#0b1e3d";
+/* StrayPaw: flame fill, ink outline, cyan 3D, paper shine, electric sparkle. */
+const FILL = ["#ffb29e", "#ff7a5c", "#f05b40", "#d63f2a"];
 
 export function layoutPiece(w: number, h: number, family: string, ctx: CanvasRenderingContext2D): Layout {
   const wide = h < w * 0.9;
@@ -73,7 +74,7 @@ export function renderLayers(L: Layout, w: number, h: number, dpr: number, famil
 
   /* 3D: the letters pushed back down-right, outlined, in indigo. */
   eachLine(L, shadow.x, family, (l) => {
-    shadow.x.fillStyle = "#2a1a6a"; shadow.x.lineJoin = "round";
+    shadow.x.fillStyle = "#66c5d5"; shadow.x.lineJoin = "round";
     for (let d = depth; d > 0; d -= 1) { shadow.x.fillText(l.text, l.x + d, l.base + d); }
     shadow.x.strokeStyle = INK; shadow.x.lineWidth = line; shadow.x.strokeText(l.text, l.x + depth, l.base + depth);
       });
@@ -85,7 +86,7 @@ export function renderLayers(L: Layout, w: number, h: number, dpr: number, famil
     fill.x.fillStyle = g; fill.x.fillText(l.text, l.x, l.base);
     fill.x.globalCompositeOperation = "source-atop";
     const width = fill.x.measureText(l.text).width;
-    fill.x.fillStyle = "rgba(255,246,200,.38)";
+    fill.x.fillStyle = "rgba(255,253,249,.36)";
     fill.x.beginPath();
     for (let x = l.x - fs; x <= l.x + width + fs; x += fs * 0.05) { const y = l.base - fs * 0.52 + Math.sin((x - l.x) / (fs * 0.55)) * fs * 0.06; if (x === l.x - fs) fill.x.moveTo(x, y); else fill.x.lineTo(x, y); }
     for (let x = l.x + width + fs; x >= l.x - fs; x -= fs * 0.05) { const y = l.base - fs * 0.41 + Math.sin((x - l.x) / (fs * 0.55) + 0.8) * fs * 0.05; fill.x.lineTo(x, y); }
@@ -129,7 +130,7 @@ export function renderLayers(L: Layout, w: number, h: number, dpr: number, famil
 }
 
 export function star(x: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
-  x.save(); x.fillStyle = "#fff"; x.shadowColor = "rgba(255,255,255,.9)"; x.shadowBlur = r * 0.6;
+  x.save(); x.fillStyle = "#fffdf9"; x.shadowColor = "rgba(143,183,255,.95)"; x.shadowBlur = r * 0.6;
   x.beginPath();
   for (let i = 0; i < 8; i++) { const a = (i * Math.PI) / 4, rr = i % 2 ? r * 0.16 : r; x.lineTo(cx + Math.cos(a - Math.PI / 2) * rr, cy + Math.sin(a - Math.PI / 2) * rr); }
   x.closePath(); x.fill(); x.restore();
