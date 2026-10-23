@@ -15,13 +15,15 @@
                 bot keeps count and closes it into the records and the map
      due        each morning, what is due today and who has it
 
-   Nothing to press. The people, the drive and its numbers are an example
+   Nothing to press: it plays by itself once it is on screen, and
+   scrolling moves it ahead. The people, the drive and its numbers are an example
    conversation; the ID follows StrayPaw's real format.
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { ArrowUpRight, Camera, CheckCheck, MapPin, Users } from "lucide-react";
+import { useStory } from "./useStory";
 import "./bot-groups.css";
 
 const ID = "SP-D-K7Q2PA";
@@ -39,23 +41,8 @@ const INK: Record<string, string> = { Priya: "#c2410c", Arun: "#1d4ed8", Kavya: 
 const clamp = (v: number) => Math.max(0, Math.min(1, v));
 
 export function BotGroups() {
-  const [q, setQ] = useState(0);
   const track = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    let raf = 0;
-    const read = () => {
-      raf = 0;
-      const el = track.current; if (!el) return;
-      const r = el.getBoundingClientRect();
-      const v = clamp(-r.top / Math.max(1, r.height - window.innerHeight));
-      setQ((o) => (Math.abs(o - v) < 0.001 ? o : v));
-    };
-    const on = () => { if (!raf) raf = requestAnimationFrame(read); };
-    read();
-    window.addEventListener("scroll", on, { passive: true });
-    window.addEventListener("resize", on);
-    return () => { window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); };
-  }, []);
+  const q = useStory(track, 18);
 
   const at = (t: number) => q >= t;
   const skill = SKILLS.reduce((a, s, i) => (q >= s.at ? i : a), -1);

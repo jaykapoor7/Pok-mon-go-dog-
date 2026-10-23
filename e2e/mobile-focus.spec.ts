@@ -28,6 +28,8 @@ test("landing closes in one night section that carries the footer", async ({ pag
 });
 
 test("the WhatsApp message types, becomes a record and lands on the map as the reader scrolls", async ({ page }) => {
+  /* Under reduced motion the story follows the scroll exactly. */
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const s = page.locator("#one-request");
   await expect(s).not.toContainText(/pilot|illustrative|preview/i);
@@ -51,7 +53,21 @@ test("the WhatsApp message types, becomes a record and lands on the map as the r
   await expect(s.locator(".rt-msg")).toHaveCount(0);
 });
 
+test("both WhatsApp stories play by themselves once on screen", async ({ page }) => {
+  await page.goto("/");
+  /* Held still on each story, it moves on without any scrolling. */
+  const progress = () => page.evaluate(() => Number(/scaleX\(([\d.]+)\)/.exec((document.querySelector(".rt-progress i") as HTMLElement).style.transform)?.[1] ?? 0));
+  await scrollThrough(page, ".rt-track", 0);
+  const a = await progress();
+  await expect.poll(progress, { timeout: 15_000 }).toBeGreaterThan(a + 0.05);
+  await scrollThrough(page, ".bg-track", 0);
+  const msgs = () => page.locator("#whatsapp-groups .bg-msg, #whatsapp-groups .bg-sys").count();
+  const m = await msgs();
+  await expect.poll(msgs, { timeout: 15_000 }).toBeGreaterThan(m + 1);
+});
+
 test("the group bot files, looks up, runs a drive and says what is due, as the reader scrolls", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const g = page.locator("#whatsapp-groups");
   await expect(g.getByRole("heading", { level: 2 })).toHaveText("StrayPaw in your NGO’s WhatsApp group");

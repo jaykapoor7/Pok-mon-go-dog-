@@ -17,7 +17,8 @@
    in the sentence to where it sits in the record, scaled by the ratio of
    the two type sizes. Both layouts are measured, so it holds at any width.
 
-   Nothing to press; scrolling back takes it back. Nothing invented: no
+   Nothing to press: it plays by itself once it is on screen, and
+   scrolling moves it ahead. Nothing invented: no
    names, phone numbers, reference numbers or outcomes; the map is the
    city's recorded areas; the photograph is a placeholder, never an animal.
    ════════════════════════════════════════════════════════════════════ */
@@ -25,6 +26,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Camera, CheckCheck, MapPin } from "lucide-react";
 import type { Area } from "@/components/request/OriginalRequest";
+import { useStory } from "./useStory";
 import "./report-thread.css";
 
 type Tok = "animal" | "place" | "cond" | "photo" | "pin";
@@ -96,33 +98,17 @@ export function ReportThread({ areas, city, recordedAt }: { areas: Area[]; city:
   const place = useMemo(() => [...areas].sort((a, b) => b.open - a.open)[0]?.name || city, [areas, city]);
   const { pts, here } = useCityPoints(areas, place);
 
-  const [raw, setP] = useState(0);
+  const track = useRef<HTMLDivElement>(null);
+  const raw = useStory(track, 16);
   /* The first stretch of the scroll is the opening frame; the message's own script runs on the rest. */
   const INTRO = 0.08;
   const p = clamp((raw - INTRO) / (1 - INTRO));
   const intro = 1 - clamp((raw - INTRO * 0.55) / (INTRO * 0.45));
   const [geo, setGeo] = useState<Geo | null>(null);
-  const track = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const ga = useRef<Partial<Record<Tok, HTMLElement | null>>>({});
   const gb = useRef<Partial<Record<Tok, HTMLElement | null>>>({});
-
-  useEffect(() => {
-    let raf = 0;
-    const read = () => {
-      raf = 0;
-      const el = track.current; if (!el) return;
-      const r = el.getBoundingClientRect();
-      const v = clamp(-r.top / Math.max(1, r.height - window.innerHeight));
-      setP((o) => (Math.abs(o - v) < 0.001 ? o : v));
-    };
-    const on = () => { if (!raf) raf = requestAnimationFrame(read); };
-    read();
-    window.addEventListener("scroll", on, { passive: true });
-    window.addEventListener("resize", on);
-    return () => { window.removeEventListener("scroll", on); window.removeEventListener("resize", on); cancelAnimationFrame(raf); };
-  }, []);
 
   /* Measure both layouts relative to the stage. */
   const measure = useCallback(() => {

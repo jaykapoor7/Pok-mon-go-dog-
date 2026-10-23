@@ -5,7 +5,7 @@
 .bg { --ink: #0b1e3d; --paper: #fffdf9; --wa-bg: #efeae2; --wa-out: #d9fdd3; --wa-green: #00a884; --tick: #53bdeb; --ease: cubic-bezier(.23, 1, .32, 1);
   position: relative; background: var(--ink); color: var(--paper); }
 .bg-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.bg-track { position: relative; height: 640svh; }
+.bg-track { position: relative; height: 240svh; }
 .bg-stage { --gut: max(var(--sp-gutter, 5vw), calc((100vw - 1280px) / 2)); position: sticky; top: 0; height: 100svh; overflow: hidden; box-sizing: border-box;
   display: grid; grid-template-columns: 420px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: clamp(40px, 6vw, 96px); row-gap: 20px; padding: 88px var(--gut) 36px; }
 .bg-label { grid-column: 1 / -1; display: flex; align-items: center; gap: 9px; margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -.01em; color: rgba(255, 253, 249, .82); }
@@ -110,7 +110,7 @@
 
 /* ── phones: what the bot is doing now, over the chat ─────────────── */
 @media (max-width: 860px) {
-  .bg-track { height: 700svh; }
+  .bg-track { height: 260svh; }
   .bg-stage { --gut: 16px; display: flex; flex-direction: column; gap: 12px; padding: 76px 16px 16px; }
   .bg-label { font-size: 14px; }
   .bg-desk { display: block; order: -1; }
