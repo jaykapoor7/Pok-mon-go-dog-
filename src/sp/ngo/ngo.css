@@ -447,7 +447,7 @@
 /* ── Signed out, or signed in without an organisation ──────────────
    One page, no disclosure: what the workspace is, how to get in, and
    the three things it holds, laid out for every width. */
-.sp.sp-app .ngo-door { max-width: 1120px; margin: 0 auto; padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 40px) 64px; box-sizing: border-box; }
+.sp.sp-app .ngo-door { max-width: 1120px; margin: 0 auto; padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 40px) calc(64px + var(--tabs, 0px)); box-sizing: border-box; min-height: calc(100dvh - var(--bar)); background: var(--paper); }
 .sp.sp-app .ngo-door-head { max-width: 720px; display: grid; gap: 16px; }
 .sp.sp-app .ngo-door-head .k { margin: 0; }
 .sp.sp-app .ngo-door-head h1 { margin: 0; font: 650 clamp(32px, 4.6vw, 52px)/1.06 var(--sans); letter-spacing: -.035em; color: var(--ink); text-wrap: balance; }
@@ -467,9 +467,9 @@
   .sp.sp-app .ngo-door-inc li + li { border-top: 1px solid var(--line); }
 }
 @media (max-width: 560px) {
-  .sp.sp-app .ngo-door { padding: 28px 16px 40px; }
-  .sp.sp-app .ngo-door-head h1 { font-size: 32px; }
-  .sp.sp-app .ngo-door-sum { font-size: 16px; }
+  .sp.sp-app .ngo-door { padding: 28px 16px calc(40px + var(--tabs, 0px)); }
+  .sp.sp-app .ngo-door-head h1 { font-size: 28px; line-height: 1.1; }
+  .sp.sp-app .ngo-door-sum { font-size: 15.5px; }
   .sp.sp-app .ngo-door-act { display: grid; }
   .sp.sp-app .ngo-door-act .btn { width: 100%; justify-content: center; }
 }

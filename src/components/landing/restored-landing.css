@@ -67,9 +67,21 @@ html body .restored-landing .ld-close::before { display: none; }
   .restored-landing .rx.is-calm .rx-deck-foot { padding: 0 20px; }
 }
 
-/* ── A few things to know: a light pause before the close ────────── */
-.lx-faq { background: #f3ede4; color: #0b1e3d; padding: clamp(64px, 9vw, 112px) var(--sp-gutter, 5vw); }
-.lx-faq-in { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.3fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
+/* ── A few things to know: a warm paper pause before the close ───────
+   Not flat white. A soft shell gradient with a flame-tinted glow in the
+   upper right, a hairline band of blue dots at the foot, and a narrow
+   ink rule at the top that answers the night section above. */
+.lx-faq { position: relative; background:
+  radial-gradient(60% 70% at 100% -10%, rgba(240, 91, 64, .14), transparent 65%),
+  radial-gradient(45% 60% at -10% 10%, rgba(36, 87, 206, .08), transparent 65%),
+  linear-gradient(180deg, #f8f2e8 0%, #ede4d4 100%);
+  color: #0b1e3d; padding: clamp(64px, 9vw, 112px) var(--sp-gutter, 5vw); overflow: hidden; }
+.lx-faq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #0b1e3d 20%, #0b1e3d 80%, transparent); opacity: .18; }
+.lx-faq::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(36, 87, 206, .22) 1.1px, transparent 1.6px);
+  background-size: 14px 14px; mask-image: linear-gradient(180deg, transparent, #000 70%, transparent); }
+.lx-faq-in { position: relative; max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.3fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
 .lx-faq-intro h2 { margin: 0 0 20px; font: 600 clamp(32px, 4vw, 52px)/1.04 var(--font-sans), sans-serif; letter-spacing: -.04em; }
 .lx-faq-intro a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: #2457ce; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
 .lx-faq-list { border-top: 1.5px solid #0b1e3d; }
