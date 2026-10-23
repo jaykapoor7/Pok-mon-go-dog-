@@ -23,13 +23,19 @@ html body .restored-landing .ld-close::before { display: none; }
 
 @media (max-width: 760px) {
   /* A phone hero in two parts: the words, then the city in a band of its
-     own beneath them, so the lights never run under the text. */
-  .restored-landing .ld-hero { --band: clamp(250px, 38svh, 330px); height: auto; min-height: 0; }
+     own beneath them. The map bleeds up into the night behind the copy on a
+     long, soft radial fade, so the two never meet on a hard line. */
+  .restored-landing .ld-hero { --band: clamp(260px, 42svh, 360px); --bleed: clamp(140px, 22svh, 200px); height: auto; min-height: 0; }
   .restored-landing .ld-stage { height: auto; padding-bottom: var(--band); }
   .restored-landing .ld-hero-copy { padding: 100px 20px 4px; }
-  .restored-landing .ld-plate, .restored-landing .ld-plate-fallback { inset: auto 0 0 0; top: auto; height: var(--band); opacity: 1;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 26%); mask-image: linear-gradient(180deg, transparent 0, #000 26%); }
-  .restored-landing .ld-stage::after { background: linear-gradient(180deg, transparent calc(100% - 70px), rgba(7, 20, 43, .78) 100%); }
+  .restored-landing .ld-plate, .restored-landing .ld-plate-fallback {
+    inset: auto 0 0 0; top: auto; height: calc(var(--band) + var(--bleed)); opacity: 1;
+    -webkit-mask-image: radial-gradient(150% 110% at 50% 100%, #000 42%, rgba(0,0,0,.55) 66%, transparent 96%);
+    mask-image: radial-gradient(150% 110% at 50% 100%, #000 42%, rgba(0,0,0,.55) 66%, transparent 96%);
+  }
+  /* The ink haze above the band stays, now matched to the extended bleed so the fade zone sits in night, not in daylight. */
+  .restored-landing .ld-stage::after { background:
+    linear-gradient(180deg, transparent 0%, transparent calc(100% - var(--band) - var(--bleed) * 0.6), rgba(7, 20, 43, .3) calc(100% - var(--band) * 0.9), transparent calc(100% - var(--band) * 0.55), transparent calc(100% - 90px), rgba(7, 20, 43, .78) 100%); }
   .restored-landing .ld-hero h1 { font-size: clamp(37px, 10vw, 48px); line-height: 1.03; max-width: 92%; }
   .restored-landing .ld-hero h1 em { margin-top: 12px; }
   .restored-landing .ld-hero-sub { font-size: 15px; line-height: 1.5; max-width: 30ch; }

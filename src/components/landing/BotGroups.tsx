@@ -28,10 +28,10 @@ import "./bot-groups.css";
 
 const ID = "SP-D-K7Q2PA";
 const SKILLS = [
-  { at: 0.1, k: "files", t: "Files what the group posts", c: "Photo + place → a request" },
-  { at: 0.34, k: "lookup", t: "Looks up any animal", c: `@StrayPaw ${ID}` },
-  { at: 0.54, k: "drive", t: "Runs drives and keeps count", c: "@StrayPaw start drive" },
-  { at: 0.82, k: "due", t: "Says what is due, every morning", c: "8:00 every day" },
+  { at: 0.08, k: "files", t: "Files what the group posts", c: "Photo + place → a request" },
+  { at: 0.3, k: "lookup", t: "Looks up any animal", c: `@StrayPaw ${ID}` },
+  { at: 0.48, k: "drive", t: "Runs drives and keeps count", c: "@StrayPaw start drive" },
+  { at: 0.75, k: "due", t: "Says what is due, every morning", c: "8:00 every day" },
 ] as const;
 
 type Who = "bot" | "Priya" | "Arun" | "Kavya" | "sys" | "day";
@@ -42,33 +42,33 @@ const clamp = (v: number) => Math.max(0, Math.min(1, v));
 
 export function BotGroups() {
   const track = useRef<HTMLDivElement>(null);
-  const q = useStory(track, 13, "request-journey");
+  const q = useStory(track, 11, "request-journey");
 
   const at = (t: number) => q >= t;
   const skill = SKILLS.reduce((a, s, i) => (q >= s.at ? i : a), -1);
   /* The drive's count runs while the team posts. */
-  const run = clamp((q - 0.62) / 0.13);
-  const ster = Math.round(18 * run), vacc = Math.round(22 * run), recheck = Math.round(3 * clamp((q - 0.7) / 0.05));
-  const closed = at(0.79);
+  const run = clamp((q - 0.55) / 0.12);
+  const ster = Math.round(18 * run), vacc = Math.round(22 * run), recheck = Math.round(3 * clamp((q - 0.63) / 0.05));
+  const closed = at(0.72);
 
   const lines: Line[] = [
     { at: 0, who: "sys", body: <>Priya added StrayPaw</> },
     { at: 0.015, who: "bot", time: "10:02", body: <>Hi team. Post an animal here, a photo and the place, and I’ll file it in your records. Send me a StrayPaw ID to look one up, or say <b>start drive</b>.</> },
-    { at: 0.14, who: "Arun", time: "10:14", body: <><span className="bg-media"><span className="bg-photo"><Camera aria-hidden /></span><span className="bg-loc"><MapPin aria-hidden />Location</span></span>Pup with ticks behind the temple, very weak</> },
-    { at: 0.23, who: "bot", time: "10:14", body: <>Filed: <b>new request, Ganapathy</b>. Unassigned. Reply <b>mine</b> to take it.</> },
-    { at: 0.27, who: "Kavya", time: "10:16", body: <>mine</> },
-    { at: 0.3, who: "bot", time: "10:16", body: <><b>Kavya</b> has it. I’ll check in tomorrow morning.</> },
-    { at: 0.37, who: "Priya", time: "12:40", body: <><span className="bg-at">@StrayPaw</span> {ID}</> },
-    { at: 0.42, who: "bot", time: "12:40", body: <span className="bg-card"><b>{ID}</b><span>Brown female · Ganapathy</span><span><i className="is-ok" />Sterilised, ear notched · Mar 2025</span><span><i className="is-ok" />Vaccinated · Aug 2026</span><span><i />Last seen 3 days ago · no open request</span></span> },
-    { at: 0.56, who: "Priya", time: "7:05", body: <><span className="bg-at">@StrayPaw</span> start drive, ABC, Ganapathy</> },
-    { at: 0.6, who: "bot", time: "7:05", body: <>Drive started. Post a photo of each animal as you finish it with <b>done</b>, and I’ll keep count.</> },
-    { at: 0.64, who: "Arun", time: "9:31", body: <><span className="bg-album"><i /><i /><i /><i data-more={`+${Math.max(0, ster - 3)}`} /></span>done ✓</> },
-    { at: 0.7, who: "Kavya", time: "11:48", body: <>done, 3 of them need a recheck</> },
-    { at: 0.76, who: "Priya", time: "14:20", body: <><span className="bg-at">@StrayPaw</span> close drive</> },
-    { at: 0.79, who: "bot", time: "14:20", body: <>Drive closed: <b>18 sterilised, 22 vaccinated</b>, 3 to recheck on Friday. Added to your records and the city map.</> },
-    { at: 0.84, who: "day", body: <>Friday</> },
-    { at: 0.86, who: "bot", time: "8:00", body: <>Good morning. Due today: <b>3 rechecks</b> from Tuesday’s drive (Arun), and <b>the pup behind the temple</b> (Kavya).</> },
-    { at: 0.92, who: "Arun", time: "8:04", body: <>On it</> },
+    { at: 0.12, who: "Arun", time: "10:14", body: <><span className="bg-media"><span className="bg-photo"><Camera aria-hidden /></span><span className="bg-loc"><MapPin aria-hidden />Location</span></span>Pup with ticks behind the temple, very weak</> },
+    { at: 0.2, who: "bot", time: "10:14", body: <>Filed: <b>new request, Ganapathy</b>. Unassigned. Reply <b>mine</b> to take it.</> },
+    { at: 0.24, who: "Kavya", time: "10:16", body: <>mine</> },
+    { at: 0.27, who: "bot", time: "10:16", body: <><b>Kavya</b> has it. I’ll check in tomorrow morning.</> },
+    { at: 0.33, who: "Priya", time: "12:40", body: <><span className="bg-at">@StrayPaw</span> {ID}</> },
+    { at: 0.38, who: "bot", time: "12:40", body: <span className="bg-card"><b>{ID}</b><span>Brown female · Ganapathy</span><span><i className="is-ok" />Sterilised, ear notched · Mar 2025</span><span><i className="is-ok" />Vaccinated · Aug 2026</span><span><i />Last seen 3 days ago · no open request</span></span> },
+    { at: 0.5, who: "Priya", time: "7:05", body: <><span className="bg-at">@StrayPaw</span> start drive, ABC, Ganapathy</> },
+    { at: 0.54, who: "bot", time: "7:05", body: <>Drive started. Post a photo of each animal as you finish it with <b>done</b>, and I’ll keep count.</> },
+    { at: 0.58, who: "Arun", time: "9:31", body: <><span className="bg-album"><i /><i /><i /><i data-more={`+${Math.max(0, ster - 3)}`} /></span>done ✓</> },
+    { at: 0.63, who: "Kavya", time: "11:48", body: <>done, 3 of them need a recheck</> },
+    { at: 0.69, who: "Priya", time: "14:20", body: <><span className="bg-at">@StrayPaw</span> close drive</> },
+    { at: 0.72, who: "bot", time: "14:20", body: <>Drive closed: <b>18 sterilised, 22 vaccinated</b>, 3 to recheck on Friday. Added to your records and the city map.</> },
+    { at: 0.78, who: "day", body: <>Friday</> },
+    { at: 0.81, who: "bot", time: "8:00", body: <>Good morning. Due today: <b>3 rechecks</b> from Tuesday’s drive (Arun), and <b>the pup behind the temple</b> (Kavya).</> },
+    { at: 0.88, who: "Arun", time: "8:04", body: <>On it</> },
   ];
   const shown = lines.filter((l) => at(l.at));
   const next = lines.find((l) => !at(l.at));
@@ -158,8 +158,8 @@ export function BotGroups() {
             </div>
           </div>
 
-          <div className="bg-cta-band" aria-hidden={!at(0.9)}>
-            <Link href="/contact?subject=WhatsApp%20CareOS%20access" className={`bg-cta${at(0.9) ? " is-on" : ""}`} tabIndex={at(0.9) ? 0 : -1}>Add StrayPaw to your NGO’s group<ArrowUpRight aria-hidden /></Link>
+          <div className="bg-cta-band" aria-hidden={!at(0.86)}>
+            <Link href="/contact?subject=WhatsApp%20CareOS%20access" className={`bg-cta${at(0.86) ? " is-on" : ""}`} tabIndex={at(0.86) ? 0 : -1}>Add StrayPaw to your NGO’s group<ArrowUpRight aria-hidden /></Link>
           </div>
         </div>
       </div>

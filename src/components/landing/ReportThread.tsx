@@ -41,9 +41,9 @@ const CHARS = SAY.reduce((n, s) => n + s.t.length, 0);
    so this one ends when the record is ready. */
 const T = {
   type0: 0.04, type1: 0.3, photo: 0.32, pin: 0.36, send: 0.44,
-  read: 0.5, review: 0.86,
+  read: 0.5, review: 0.9,
 };
-const FLY: Record<Tok, [number, number]> = { animal: [0.56, 0.68], place: [0.6, 0.72], pin: [0.63, 0.75], cond: [0.66, 0.78], photo: [0.7, 0.81] };
+const FLY: Record<Tok, [number, number]> = { animal: [0.56, 0.66], place: [0.59, 0.7], pin: [0.62, 0.73], cond: [0.65, 0.76], photo: [0.68, 0.79] };
 const NOTE = [
   { at: 0, t: "Typed into WhatsApp" },
   { at: T.send, t: "Sent to StrayPaw" },
@@ -75,7 +75,7 @@ export function ReportThread({ areas, city, recordedAt: _recordedAt }: { areas: 
   const place = useMemo(() => [...areas].sort((a, b) => b.open - a.open)[0]?.name || city, [areas, city]);
 
   const track = useRef<HTMLDivElement>(null);
-  const raw = useStory(track, 11, "whatsapp-groups");
+  const raw = useStory(track, 9, "whatsapp-groups");
   /* The first stretch of the scroll is the opening frame; the message's own script runs on the rest. */
   const INTRO = 0.08;
   const p = clamp((raw - INTRO) / (1 - INTRO));
