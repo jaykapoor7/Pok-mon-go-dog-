@@ -1,18 +1,56 @@
-/* Mission: one wall, the whole screen. */
-.mw { position: relative; width: 100%; height: 100svh; overflow: hidden; background: #dfb766; isolation: isolate; }
+/* Mission: one wall, the whole screen, at dusk. */
+.mw { position: relative; width: 100%; height: 100svh; overflow: hidden; overflow: clip; background: #0c0a10; isolation: isolate; }
+.mw-stage { position: absolute; inset: 0; transform-origin: 0 0; will-change: transform; }
+.mw-wallwrap { position: absolute; inset: 0; transition: opacity 1.8s cubic-bezier(.4, 0, .2, 1); will-change: transform, opacity; transform: translateZ(0); }
 .mw-wall { position: absolute; inset: 0; display: block; }
 .mw-stencil text { font-family: "Arial Black", Impact, var(--font-sans), sans-serif; font-weight: 900; }
 .mw-poster-t { font-family: "Arial Black", Impact, var(--font-sans), sans-serif; letter-spacing: .02em; }
-.mw-paint { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; }
-.mw-shadow { position: absolute; left: 0; top: 0; width: 46vmin; height: 70vmin; margin: -12vmin 0 0 -10vmin; pointer-events: none; border-radius: 50% 50% 30% 30%;
-  background: radial-gradient(closest-side at 50% 18%, rgba(30, 16, 4, .55), rgba(30, 16, 4, .55) 55%, transparent 100%) top / 46% 30% no-repeat,
-              radial-gradient(closest-side at 50% 70%, rgba(30, 16, 4, .5), transparent 100%) bottom / 100% 70% no-repeat;
-  filter: blur(18px); opacity: .32; transition: transform .45s cubic-bezier(.2, .8, .2, 1); will-change: transform; }
-.mw-mist { position: absolute; left: 0; top: 0; width: var(--mist, 40px); height: var(--mist, 40px); margin: calc(var(--mist, 40px) / -2) 0 0 calc(var(--mist, 40px) / -2); border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, rgba(16, 27, 51, .35), rgba(16, 27, 51, .12) 45%, transparent 70%); opacity: 0; will-change: transform, opacity; }
-.mw-hand { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; will-change: transform; transition: opacity .6s; }
-.mw-arm { position: absolute; left: 0; top: 0; width: var(--arm, 0); height: calc(var(--can, 90px) * .42); transform-origin: 0 50%; transform: rotate(var(--ang, 0)) translate(calc(var(--can, 90px) * .12), -50%);
-  clip-path: polygon(0 22%, 100% 0, 100% 100%, 0 78%); background: linear-gradient(180deg, #4b6584, #2f4561 55%, #22344b); }
-.mw-arm::before { content: ""; position: absolute; left: 0; top: 8%; width: calc(var(--can, 90px) * .55); height: 84%; border-radius: 50%; background: linear-gradient(180deg, #a06a43, #b97b4f 50%, #7a4b2d); }
-.mw-can { position: absolute; left: 0; top: 0; width: var(--can, 90px); height: calc(var(--can, 90px) * 1.25); transform: translate(-42%, -38%); filter: drop-shadow(0 10px 14px rgba(20, 10, 0, .35)); }
-@media (prefers-reduced-motion: reduce) { .mw-hand, .mw-shadow, .mw-mist { display: none; } }
+.mw-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; will-change: transform; transform: translateZ(0); }
+.mw-bricks { opacity: 0; transition: opacity 1.4s ease; }
+
+/* Dusk, and the street lamp that comes on. */
+.mw-night { position: absolute; inset: 0; pointer-events: none; will-change: opacity; opacity: .86; transition: opacity 1.2s ease;
+  background: radial-gradient(70% 55% at 50% -6%, rgba(255, 196, 120, .0) 0%, rgba(10, 14, 34, .55) 55%, rgba(5, 8, 22, .92) 100%); }
+.mw-night.is-on { animation: mw-flicker 1s steps(1) forwards; }
+.mw-night.is-out { opacity: .9 !important; animation: none; }
+@keyframes mw-flicker { 0% { opacity: .86; } 12% { opacity: .35; } 20% { opacity: .8; } 32% { opacity: .3; } 40% { opacity: .62; } 55%, 100% { opacity: .22; } }
+
+/* The hand, the can, the arm. */
+.mw-hand { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; pointer-events: none; will-change: transform; transition: opacity .5s; --can: #ff8a1f; --can-label: #ffd84a; }
+.mw-arm { position: absolute; left: 0; top: 0; width: var(--arm, 0); height: calc(var(--size, 90px) * .44); transform-origin: 0 50%; transform: rotate(var(--ang, 0)) translate(calc(var(--size, 90px) * .1), -50%);
+  clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%); background: linear-gradient(180deg, #2d3f5c, #1c2a40 55%, #121c2c); }
+.mw-arm::before { content: ""; position: absolute; left: 0; top: 8%; width: calc(var(--size, 90px) * .5); height: 84%; border-radius: 50%; background: linear-gradient(180deg, #a06a43, #b97b4f 50%, #7a4b2d); }
+.mw-can { position: absolute; left: 0; top: 0; width: var(--size, 90px); height: calc(var(--size, 90px) * 1.25); transform: translate(-42%, -38%); filter: drop-shadow(0 12px 16px rgba(0, 0, 0, .45)); transform-origin: 50% 70%; }
+.mw-can-body { fill: var(--can); transition: fill .2s; }
+.mw-can-label { fill: var(--can-label); transition: fill .2s; }
+.mw-hand.is-spraying .mw-can { animation: mw-jitter .09s linear infinite; }
+.mw-hand.is-swap .mw-can { animation: mw-swap .9s cubic-bezier(.3, .8, .3, 1); }
+@keyframes mw-jitter { 50% { transform: translate(-41.4%, -38.6%); } }
+@keyframes mw-swap { 0% { transform: translate(-42%, -38%); } 25% { transform: translate(-30%, 40%) rotate(14deg); opacity: .2; } 45% { transform: translate(-42%, -30%) rotate(-12deg); opacity: 1; } 55%, 75% { transform: translate(-42%, -42%) rotate(10deg); } 65%, 85% { transform: translate(-42%, -34%) rotate(-10deg); } 100% { transform: translate(-42%, -38%); } }
+
+/* One button. */
+.mw-go { position: absolute; left: 50%; top: 54%; z-index: 5; display: inline-flex; align-items: center; gap: 14px; padding: 18px 30px 18px 22px; border: 3px solid #1d1250; border-radius: 999px;
+  background: linear-gradient(180deg, #ffd84a, #ff8a1f 60%, #ef3f7a); color: #1d1250; font: 900 clamp(18px, 2vw, 24px) / 1 var(--mw-font, sans-serif); letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
+  box-shadow: 6px 6px 0 #1d1250, 0 0 80px rgba(255, 150, 60, .45); transform: translate(-50%, -50%) rotate(-3deg); animation: mw-breathe 2.4s ease-in-out infinite; }
+.mw-go:hover { animation-play-state: paused; transform: translate(-50%, -50%) rotate(-3deg) scale(1.05); }
+.mw-go:active { transform: translate(calc(-50% + 4px), calc(-50% + 4px)) rotate(-3deg); box-shadow: 2px 2px 0 #1d1250; }
+.mw-go:focus-visible { outline: 4px solid #fff; outline-offset: 6px; }
+.mw-go-can { width: 22px; height: 34px; border-radius: 6px 6px 5px 5px; background: #1d1250; position: relative; animation: mw-shake .9s ease-in-out infinite; }
+.mw-go-can::before { content: ""; position: absolute; left: 6px; top: -7px; width: 10px; height: 7px; border-radius: 3px 3px 0 0; background: #1d1250; }
+.mw-go-can::after { content: ""; position: absolute; left: 0; right: 0; top: 11px; height: 9px; background: #fff; opacity: .85; }
+@keyframes mw-breathe { 50% { box-shadow: 6px 6px 0 #1d1250, 0 0 120px rgba(255, 150, 60, .75); } }
+@keyframes mw-shake { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-16deg) translateY(-2px); } 80% { transform: rotate(14deg) translateY(1px); } 90% { transform: rotate(-10deg); } }
+
+.mw-again, .mw-sound { position: absolute; z-index: 5; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid rgba(255, 253, 249, .35); border-radius: 999px; background: rgba(12, 10, 16, .55); color: #fffdf9; cursor: pointer; backdrop-filter: blur(6px); }
+.mw-again { left: 0; right: 0; bottom: 28px; width: max-content; margin: 0 auto; min-height: 46px; padding: 0 22px; font: 700 15px var(--font-sans, sans-serif); animation: mw-rise .6s ease both; }
+.mw-sound { left: 20px; bottom: 28px; width: 44px; height: 44px; }
+.mw-again:hover, .mw-sound:hover { border-color: #fffdf9; }
+.mw-again:focus-visible, .mw-sound:focus-visible { outline: 3px solid #ff8a3d; outline-offset: 3px; }
+.mw-again:active { transform: scale(.97); }
+@keyframes mw-rise { from { opacity: 0; transform: translateY(10px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-go, .mw-go-can, .mw-again { animation: none; }
+  .mw-night { opacity: .9; }
+  .mw-hand { display: none; }
+}

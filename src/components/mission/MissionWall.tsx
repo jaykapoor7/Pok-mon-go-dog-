@@ -1,418 +1,453 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   Mission. One wall in an Indian street, and someone spray-painting the
-   whole of StrayPaw's mission across it: EVERY STRAY ANIMAL ON RECORD.
+   Mission. A teal limewashed wall in an Indian street, at dusk.
 
-   The wall is drawn, not photographed, so it fits any screen: limewashed
-   plaster with grain and rising damp, a hand-painted rust band at the
-   foot, a patch fallen away to brick, a meter box and its sagging wires,
-   paan stains, torn layered posters and the stencilled "STICK NO BILLS"
-   under them. Nothing on it is a real person, number or business.
+   One button: CLICK TO SPRAY. The street lamp flickers on, a hand rattles
+   a can, and a graffiti piece goes up the way a writer paints one: the
+   fill first (marigold to orange to pink), a can swap, the indigo
+   outline and 3D, white shine and sparkles, and a flame paw for a tag.
+   The camera leans in and follows the nozzle, with real spray sounds,
+   mist and drips. Then it pulls back, the lamp cuts out, the plaster
+   gives way to the bricks beneath, and the bricks inside India light up
+   and pulse, the recorded areas brightest: the mission over the map.
 
-   The paint behaves like spray: a nozzle fills each letter in passes,
-   leaving a soft edge, a haze of overspray and speckle, and drips that
-   run after the letter is done. An arm in a shirt sleeve holds the can
-   and follows the nozzle; the painter's shadow falls on the wall. It
-   plays once, on its own. Under reduced motion the finished wall shows.
+   Everything is drawn in code and sounds are synthesised; nothing on the
+   wall is a real person, number or business. Under reduced motion the
+   finished wall is shown, still.
    ════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
+import { Wall, type Size } from "./wall";
+import { Sfx } from "./sound";
+import { brickPainter, type Area, type Cell } from "./bricks";
+import { INK, alphaMap, layoutPiece, onWall, renderLayers, sweeps, type Layout, type Pt } from "./piece";
 import "./mission.css";
 
-const PAINT = "#101b33";
-const TAG = "#f05b40";
+type Phase = "idle" | "play" | "done";
+type Can = { color: string; label: string };
+const CANS: Record<"fill" | "line" | "shine" | "tag", Can> = {
+  fill: { color: "#ff8a1f", label: "#ffd84a" },
+  line: { color: "#2a1a6a", label: "#7c6cff" },
+  shine: { color: "#f4f1ea", label: "#c9c2b6" },
+  tag: { color: "#f05b40", label: "#ffd0c4" },
+};
 
-type Size = { w: number; h: number };
+type PassK = keyof typeof CANS;
 
-/* A small seeded random, so the wall is the same wall every visit. */
-function rng(seed: number) {
-  let s = seed >>> 0;
-  return () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+/* Where the piece and the map sit once the plaster is gone: side by side
+   on a wide screen, the piece above the map on a phone. */
+function finaleLayout(L: Layout, w: number, h: number) {
+  const pts = L.lines.flatMap((l, i) => [onWall(L, i, l.x, l.base - L.fs * 0.8), onWall(L, i, l.x + l.lw, l.base - L.fs * 0.8), onWall(L, i, l.x, l.base + L.fs * 0.12), onWall(L, i, l.x + l.lw, l.base + L.fs * 0.12)]);
+  pts.push({ x: L.tag.x + L.fs * 0.3, y: L.tag.y }, { x: L.tag.x, y: L.tag.y - L.fs * 0.35 });
+  const x0 = Math.min(...pts.map((p) => p.x)), x1 = Math.max(...pts.map((p) => p.x)), y0 = Math.min(...pts.map((p) => p.y)), y1 = Math.max(...pts.map((p) => p.y));
+  const bw = x1 - x0, bh = y1 - y0, bx = (x0 + x1) / 2, by = (y0 + y1) / 2;
+  let k: number, cx: number, cy: number, area: Area;
+  if (h > w * 1.1) {
+    k = Math.min(0.75, (w * 0.88) / bw, (h * 0.34) / bh);
+    cx = w / 2; cy = 84 + (bh * k) / 2;
+    const top = 84 + bh * k + 20;
+    area = { x: w * 0.03, y: top, w: w * 0.94, h: Math.max(120, h - top - 86) };
+  } else {
+    k = Math.min(0.62, (w * 0.42) / bw, (h * 0.62) / bh);
+    cx = w * 0.26; cy = h * 0.54;
+    area = { x: w * 0.48, y: h * 0.11, w: w * 0.48, h: h * 0.84 };
+  }
+  const move = (p: Pt) => ({ x: cx + (p.x - bx) * k, y: cy + (p.y - by) * k });
+  return { k, tx: cx - bx * k, ty: cy - by * k, area, tag: move(L.tag) };
 }
 
-/* ── the wall ─────────────────────────────────────────────────────── */
-function Wall({ w, h }: Size) {
-  const k = Math.max(0.55, Math.min(1.25, Math.min(w, h) / 820));
-  const portrait = h > w * 1.1;
-  const dado = h * (portrait ? 0.86 : 0.83);
-  const r = rng(7);
-  const streaks = Array.from({ length: 9 }, (_, i) => ({ x: (i + 0.3 + r() * 0.5) * (w / 9), wd: 10 + r() * 40, len: h * (0.12 + r() * 0.35), o: 0.05 + r() * 0.08 }));
-  const cracks = [
-    `M${w * 0.62} ${h * 0.08} l${8 * k} ${22 * k} l${-6 * k} ${18 * k} l${12 * k} ${26 * k} l${-4 * k} ${20 * k}`,
-    `M${w * 0.33} ${dado} l${6 * k} ${-24 * k} l${-9 * k} ${-16 * k} l${5 * k} ${-28 * k}`,
-    `M${w * 0.9} ${h * 0.42} l${-14 * k} ${10 * k} l${-6 * k} ${22 * k} l${-16 * k} ${8 * k}`,
-  ];
-  /* Posters: anchored to edges so they frame the words on any screen. */
-  const P = (x: number, y: number, pw: number, ph: number, rot: number) => ({ x, y, pw: pw * k, ph: ph * k, rot });
-  const tuition = portrait ? P(w * 0.04, h * 0.6, 170, 230, -3) : P(w * 0.035, h * 0.5, 200, 270, -3);
-  const admit = portrait ? P(w * 0.42, h * 0.63, 160, 200, 2.5) : P(w * 0.15, h * 0.58, 190, 240, 3);
-  const film = portrait ? P(w * 0.6, h * 0.1, 150, 200, 2) : P(w * 0.76, h * 0.08, 210, 290, 2);
-  const meter = { x: portrait ? w * 0.06 : w * 0.05, y: h * 0.11, s: k };
-  const brick = { x: portrait ? w * 0.7 : w * 0.82, y: portrait ? h * 0.66 : h * 0.6 };
-  const stencil = { x: portrait ? w * 0.06 : w * 0.66, y: portrait ? h * 0.27 : h * 0.68 };
-
-  return (
-    <svg className="mw-wall" viewBox={`0 0 ${w} ${h}`} width={w} height={h} aria-hidden>
-      <defs>
-        <filter id="mw-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" seed="3" /><feColorMatrix values="0 0 0 0 .3  0 0 0 0 .2  0 0 0 0 .1  0 0 0 -1.6 1.05" /></filter>
-        <filter id="mw-relief" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="5" seed="11" result="n" /><feDiffuseLighting in="n" lightingColor="#fff6e3" surfaceScale="2.2" diffuseConstant="1.05"><feDistantLight azimuth="235" elevation="58" /></feDiffuseLighting></filter>
-        <filter id="mw-blotch" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".004 .009" numOctaves="4" seed="5" /><feColorMatrix values="0 0 0 0 .42  0 0 0 0 .3  0 0 0 0 .14  0 0 0 2.4 -1.25" /></filter>
-        <filter id="mw-torn" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" seed="9" result="t" /><feDisplacementMap in="SourceGraphic" in2="t" scale={7 * k} xChannelSelector="R" yChannelSelector="G" /></filter>
-        <filter id="mw-soft"><feGaussianBlur stdDeviation={6 * k} /></filter>
-        <linearGradient id="mw-light" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff2cf" stopOpacity=".38" /><stop offset=".55" stopColor="#fff2cf" stopOpacity="0" /><stop offset="1" stopColor="#3b2410" stopOpacity=".28" /></linearGradient>
-        <linearGradient id="mw-damp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5a3d18" stopOpacity="0" /><stop offset="1" stopColor="#5a3d18" stopOpacity=".32" /></linearGradient>
-        <linearGradient id="mw-streak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#4b3214" stopOpacity="1" /><stop offset="1" stopColor="#4b3214" stopOpacity="0" /></linearGradient>
-        <pattern id="mw-bricks" width={44 * k} height={22 * k} patternUnits="userSpaceOnUse">
-          <rect width={44 * k} height={22 * k} fill="#cfae8b" />
-          <rect x={1.5 * k} y={1.5 * k} width={40 * k} height={8.5 * k} rx={1.5} fill="#a5543a" />
-          <rect x={-20 * k} y={12 * k} width={40 * k} height={8.5 * k} rx={1.5} fill="#9a4b33" />
-          <rect x={23.5 * k} y={12 * k} width={40 * k} height={8.5 * k} rx={1.5} fill="#ad5d40" />
-        </pattern>
-        <radialGradient id="mw-vig" cx=".5" cy=".45" r=".75"><stop offset=".6" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#1b0f05" stopOpacity=".45" /></radialGradient>
-      </defs>
-
-      {/* plaster, its relief, its stains */}
-      <rect width={w} height={h} fill="#dfb766" />
-      <rect width={w} height={h} filter="url(#mw-relief)" style={{ mixBlendMode: "multiply" }} opacity=".55" />
-      <rect width={w} height={h} filter="url(#mw-blotch)" opacity=".55" />
-      {streaks.map((s, i) => <rect key={i} x={s.x} y={0} width={s.wd * k} height={s.len} fill="url(#mw-streak)" opacity={s.o} filter="url(#mw-soft)" />)}
-      <rect y={dado - h * 0.2} width={w} height={h * 0.2} fill="url(#mw-damp)" />
-
-      {/* fallen plaster, showing brick */}
-      <g transform={`translate(${brick.x} ${brick.y})`}>
-        <path d={`M0 ${20 * k} C${30 * k} ${-6 * k} ${90 * k} ${4 * k} ${120 * k} ${-8 * k} C${150 * k} ${10 * k} ${160 * k} ${60 * k} ${140 * k} ${90 * k} C${100 * k} ${110 * k} ${50 * k} ${96 * k} ${20 * k} ${104 * k} C${-10 * k} ${80 * k} ${-12 * k} ${50 * k} 0 ${20 * k}Z`} fill="url(#mw-bricks)" stroke="#8a6a44" strokeWidth={2.5 * k} />
-        <path d={`M0 ${20 * k} C${30 * k} ${-6 * k} ${90 * k} ${4 * k} ${120 * k} ${-8 * k}`} fill="none" stroke="#fff3d6" strokeOpacity=".5" strokeWidth={2 * k} />
-      </g>
-      {cracks.map((d, i) => <path key={i} d={d} fill="none" stroke="#5b3b17" strokeOpacity=".5" strokeWidth={1.4 * k} strokeLinejoin="round" />)}
-
-      {/* the painted band at the foot of the wall */}
-      <path d={`M0 ${dado} Q${w * 0.25} ${dado - 3 * k} ${w * 0.5} ${dado + 2 * k} T${w} ${dado - 2 * k} V${h} H0Z`} fill="#93382a" />
-      <rect y={dado} width={w} height={h - dado} filter="url(#mw-relief)" style={{ mixBlendMode: "multiply" }} opacity=".45" />
-      <path d={`M0 ${dado - 1} Q${w * 0.25} ${dado - 4 * k} ${w * 0.5} ${dado + 1 * k} T${w} ${dado - 3 * k}`} fill="none" stroke="#6e241a" strokeWidth={2.5 * k} />
-      {/* paan stains */}
-      <g transform={`translate(${w * (portrait ? 0.82 : 0.38)} ${dado + (h - dado) * 0.35})`} fill="#5e1610" opacity=".6">
-        <ellipse rx={22 * k} ry={9 * k} /><ellipse cx={26 * k} cy={6 * k} rx={7 * k} ry={4 * k} /><circle cx={-24 * k} cy={-6 * k} r={4 * k} /><circle cx={34 * k} cy={-10 * k} r={2.5 * k} /><path d={`M${4 * k} ${6 * k} q${2 * k} ${14 * k} ${-1 * k} ${26 * k}`} stroke="#5e1610" strokeWidth={3 * k} fill="none" />
-      </g>
-
-      {/* the meter box and its wires */}
-      <g transform={`translate(${meter.x} ${meter.y}) scale(${meter.s})`}>
-        <path d={`M38 0 C ${w * 0.18 / meter.s} -30 ${w * 0.32 / meter.s} 40 ${w * 0.55 / meter.s} -10 S ${w * 0.9 / meter.s} -30 ${w * 1.1 / meter.s} -20`} fill="none" stroke="#161616" strokeWidth="3.2" />
-        <path d={`M48 0 C ${w * 0.2 / meter.s} 24 ${w * 0.4 / meter.s} 70 ${w * 0.62 / meter.s} 20 S ${w * 0.95 / meter.s} 10 ${w * 1.1 / meter.s} 30`} fill="none" stroke="#222" strokeWidth="2.4" />
-        <path d="M44 96 C 40 150 52 200 46 260" fill="none" stroke="#1b1b1b" strokeWidth="3" />
-        <rect x="6" y="4" width="76" height="96" rx="4" fill="#8e938f" stroke="#4b4f4c" strokeWidth="2" />
-        <rect x="16" y="16" width="56" height="34" rx="2" fill="#2c3533" /><rect x="22" y="24" width="30" height="10" fill="#9fb7a4" opacity=".6" />
-        <circle cx="16" cy="88" r="2.4" fill="#4b4f4c" /><circle cx="72" cy="88" r="2.4" fill="#4b4f4c" />
-        <rect x="6" y="4" width="76" height="96" rx="4" fill="url(#mw-light)" />
-      </g>
-
-      {/* stencilled on the wall long ago, under the posters */}
-      <g transform={`translate(${stencil.x} ${stencil.y}) rotate(-1.5) scale(${k})`} className="mw-stencil">
-        <text y="0" fill="#1a1712" opacity=".72" fontSize="34" letterSpacing="3">STICK NO BILLS</text>
-        <text y="40" fill="#8a2318" opacity=".7" fontSize="25">यहाँ पोस्टर लगाना मना है</text>
-      </g>
-
-      {/* torn remnants of older posters */}
-      <g filter="url(#mw-torn)" opacity=".85">
-        <rect x={tuition.x + 150 * k} y={tuition.y - 40 * k} width={70 * k} height={50 * k} fill="#e9e2cf" transform={`rotate(4 ${tuition.x} ${tuition.y})`} />
-        <rect x={film.x - 50 * k} y={film.y + 210 * k} width={60 * k} height={70 * k} fill="#d7c48d" />
-        <rect x={w * 0.5} y={h * 0.86} width={90 * k} height={30 * k} fill="#e4dccb" opacity=".7" />
-      </g>
-
-      {/* posters */}
-      <g transform={`translate(${tuition.x} ${tuition.y}) rotate(${tuition.rot})`} filter="url(#mw-torn)">
-        <rect width={tuition.pw} height={tuition.ph} fill="#f3ecd8" />
-        <rect width={tuition.pw} height={tuition.ph * 0.24} fill="#c8321f" />
-        <text x={tuition.pw / 2} y={tuition.ph * 0.16} textAnchor="middle" fill="#fff8e7" fontSize={24 * k} fontWeight="800" className="mw-poster-t">TUITION</text>
-        <text x={tuition.pw / 2} y={tuition.ph * 0.36} textAnchor="middle" fill="#1d2b5c" fontSize={15 * k} fontWeight="800">CLASS 6 TO 12</text>
-        <text x={tuition.pw / 2} y={tuition.ph * 0.47} textAnchor="middle" fill="#1d2b5c" fontSize={12 * k}>Maths · Science · English</text>
-        <text x={tuition.pw / 2} y={tuition.ph * 0.6} textAnchor="middle" fill="#c8321f" fontSize={17 * k} fontWeight="700">हर विषय की कोचिंग</text>
-        <rect x={tuition.pw * 0.12} y={tuition.ph * 0.72} width={tuition.pw * 0.76} height={tuition.ph * 0.13} fill="#1d2b5c" />
-        <text x={tuition.pw / 2} y={tuition.ph * 0.81} textAnchor="middle" fill="#ffd34d" fontSize={13 * k} fontWeight="700">ADMISSIONS NOW</text>
-        <rect width={tuition.pw} height={tuition.ph} fill="url(#mw-light)" />
-      </g>
-      <g transform={`translate(${admit.x} ${admit.y}) rotate(${admit.rot})`} filter="url(#mw-torn)">
-        <rect width={admit.pw} height={admit.ph} fill="#1f3f8f" />
-        <rect y={admit.ph * 0.62} width={admit.pw} height={admit.ph * 0.38} fill="#ffcc2e" />
-        <text x={admit.pw / 2} y={admit.ph * 0.22} textAnchor="middle" fill="#ffcc2e" fontSize={22 * k} fontWeight="800" className="mw-poster-t">ADMISSION</text>
-        <text x={admit.pw / 2} y={admit.ph * 0.38} textAnchor="middle" fill="#fff" fontSize={22 * k} fontWeight="800" className="mw-poster-t">OPEN</text>
-        <text x={admit.pw / 2} y={admit.ph * 0.52} textAnchor="middle" fill="#fff" fontSize={14 * k}>2026–27</text>
-        <text x={admit.pw / 2} y={admit.ph * 0.8} textAnchor="middle" fill="#a2140a" fontSize={20 * k} fontWeight="800">प्रवेश प्रारंभ</text>
-        <rect width={admit.pw} height={admit.ph} fill="url(#mw-light)" />
-        {/* a corner torn away */}
-        <path d={`M${admit.pw} ${admit.ph * 0.7} L${admit.pw} ${admit.ph} L${admit.pw * 0.62} ${admit.ph} Z`} fill="#dfb766" />
-      </g>
-      <g transform={`translate(${film.x} ${film.y}) rotate(${film.rot})`} filter="url(#mw-torn)" opacity=".92">
-        <rect width={film.pw} height={film.ph} fill="#5d1747" />
-        <circle cx={film.pw * 0.5} cy={film.ph * 0.36} r={film.pw * 0.3} fill="#f08a24" opacity=".9" />
-        <path d={`M0 ${film.ph * 0.56} L${film.pw * 0.25} ${film.ph * 0.4} L${film.pw * 0.45} ${film.ph * 0.52} L${film.pw * 0.7} ${film.ph * 0.34} L${film.pw} ${film.ph * 0.5} V${film.ph * 0.66} H0Z`} fill="#2a0b22" />
-        <text x={film.pw / 2} y={film.ph * 0.8} textAnchor="middle" fill="#ffe9a8" fontSize={26 * k} fontWeight="800" className="mw-poster-t">MERA SHEHAR</text>
-        <text x={film.pw / 2} y={film.ph * 0.9} textAnchor="middle" fill="#ffe9a8" fontSize={12 * k} letterSpacing="2">NOW SHOWING</text>
-        <rect width={film.pw} height={film.ph} fill="url(#mw-light)" />
-        {/* the lower part peeled off */}
-        <path d={`M0 ${film.ph * 0.86} L${film.pw * 0.2} ${film.ph * 0.93} L${film.pw * 0.34} ${film.ph * 0.88} L${film.pw * 0.5} ${film.ph * 0.97} L0 ${film.ph}Z`} fill="#dfb766" />
-      </g>
-
-      {/* grain, light and vignette over everything */}
-      <rect width={w} height={h} filter="url(#mw-grain)" opacity=".5" />
-      <rect width={w} height={h} fill="url(#mw-light)" />
-      <rect width={w} height={h} fill="url(#mw-vig)" />
-    </svg>
-  );
-}
-
-/* ── the spray ────────────────────────────────────────────────────── */
-type Glyph = { x0: number; x1: number; y0: number; y1: number };
-type Drip = { x: number; y: number; len: number; w: number; start: number; dur: number; drawn: number };
-
-function layout(w: number, h: number, family: string, ctx: CanvasRenderingContext2D) {
-  const lines = w / h > 1.25 ? ["EVERY STRAY ANIMAL", "ON RECORD"] : ["EVERY STRAY", "ANIMAL", "ON RECORD"];
-  const boxW = w * 0.86, boxH = h * (w / h > 1.25 ? 0.5 : 0.46);
-  let fs = 200;
-  ctx.font = `${fs}px ${family}`;
-  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width));
-  fs = Math.min(fs * (boxW / widest), boxH / (lines.length * 1.02));
-  ctx.font = `${fs}px ${family}`;
-  const lh = fs * 1.02, total = lh * lines.length;
-  const cy = h * 0.47, top = cy - total / 2;
-  const glyphs: Glyph[] = [];
-  const placed = lines.map((l, i) => {
-    const lw = ctx.measureText(l).width, x = w / 2 - lw / 2, base = top + lh * (i + 0.86);
-    let cx = x;
-    for (const ch of l) {
-      const cw = ctx.measureText(ch).width;
-      if (ch !== " ") glyphs.push({ x0: cx - fs * 0.02, x1: cx + cw + fs * 0.02, y0: base - fs * 0.78, y1: base + fs * 0.04 });
-      cx += cw;
-    }
-    return { text: l, x, base };
-  });
-  return { fs, placed, glyphs, center: { x: w / 2, y: cy } };
-}
-
-export function MissionWall({ family }: { family: string }) {
+export function MissionWall({ family, cells }: { family: string; cells: Cell[] }) {
   const [size, setSize] = useState<Size | null>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [muted, setMuted] = useState(false);
+  const [still, setStill] = useState(false);
+  const stage = useRef<HTMLDivElement>(null);
+  const wallWrap = useRef<HTMLDivElement>(null);
+  const night = useRef<HTMLDivElement>(null);
   const hand = useRef<HTMLDivElement>(null);
-  const shadow = useRef<HTMLDivElement>(null);
-  const mist = useRef<HTMLDivElement>(null);
+  const cv = { paint: useRef<HTMLCanvasElement>(null), fx: useRef<HTMLCanvasElement>(null), bricks: useRef<HTMLCanvasElement>(null) };
+  const engine = useRef<{ play: () => void; stop: () => void } | null>(null);
+  const sfx = useRef<Sfx | null>(null);
 
   useEffect(() => {
     const on = () => setSize({ w: window.innerWidth, h: window.innerHeight });
     on();
     let t = 0;
-    const later = () => { window.clearTimeout(t); t = window.setTimeout(on, 200); };
+    const later = () => { window.clearTimeout(t); t = window.setTimeout(on, 250); };
     window.addEventListener("resize", later);
-    return () => { window.removeEventListener("resize", later); window.clearTimeout(t); };
+    return () => { window.removeEventListener("resize", later); window.clearTimeout(t); sfx.current?.stop(); };
   }, []);
 
   const wall = useMemo(() => (size ? <Wall w={size.w} h={size.h} /> : null), [size]);
 
+  /* Bake the wall into one image once it has rendered: its filters are
+     costly, and as a flat picture the camera can move it freely. */
   useEffect(() => {
-    if (!size || !canvas.current) return;
+    const host = wallWrap.current, svg = host?.querySelector("svg.mw-wall");
+    if (!host || !svg || !size) return;
+    host.querySelectorAll("img.mw-wall").forEach((n) => n.remove());
+    (svg as SVGElement).style.display = "";
+    const copy = svg.cloneNode(true) as SVGElement;
+    copy.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    copy.querySelectorAll(".mw-stencil text, .mw-poster-t").forEach((t) => { t.setAttribute("font-family", "Arial Black, Impact, sans-serif"); t.setAttribute("font-weight", "900"); });
+    const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)], { type: "image/svg+xml" }));
+    const img = new Image(); img.className = "mw-wall"; img.alt = ""; img.decoding = "async"; img.width = size.w; img.height = size.h;
+    let live = true;
+    img.onload = () => { if (!live) return; host.appendChild(img); (svg as SVGElement).style.display = "none"; };
+    img.src = url;
+    return () => { live = false; URL.revokeObjectURL(url); };
+  }, [wall, size]);
+
+  useEffect(() => {
+    if (!size) return;
     const { w, h } = size;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const cv = canvas.current;
-    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-    const out = cv.getContext("2d")!;
-    const mk = () => { const c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height; const x = c.getContext("2d")!; x.scale(dpr, dpr); return { c, x }; };
-    const mask = mk(), paint = mk(), speck = mk(), drips = mk(), comp = mk();
-    let raf = 0, alive = true;
+    const dpr = Math.min(1.25, window.devicePixelRatio || 1), fxs = 0.5;
+    const els = Object.fromEntries(Object.entries(cv).map(([k, r]) => [k, r.current])) as Record<keyof typeof cv, HTMLCanvasElement | null>;
+    if (Object.values(els).some((e) => !e)) return;
+    const ctx: Record<string, CanvasRenderingContext2D> = {};
+    for (const [k, el] of Object.entries(els)) { const q = k === "fx" ? fxs : dpr; el!.width = Math.round(w * q); el!.height = Math.round(h * q); ctx[k] = el!.getContext("2d")!; }
+    ctx.bricks.setTransform(dpr, 0, 0, dpr, 0, 0);
+    let alive = true, raf = 0, brickRaf = 0;
+    const timers: number[] = [];
+    const later = (ms: number, fn: () => void) => { timers.push(window.setTimeout(() => alive && fn(), ms)); };
 
-    const go = async () => {
+    const build = async () => {
       await document.fonts?.load(`200px ${family}`).catch(() => undefined);
-      if (!alive) return;
-      const L = layout(w, h, family, mask.x);
-      const tilt = -0.045;
-      const rot = (x: number, y: number) => { const dx = x - L.center.x, dy = y - L.center.y; return { x: L.center.x + dx * Math.cos(tilt) - dy * Math.sin(tilt), y: L.center.y + dx * Math.sin(tilt) + dy * Math.cos(tilt) }; };
-
-      /* The letters, softened a touch: spray never has a hard edge. */
-      mask.x.save();
-      mask.x.translate(L.center.x, L.center.y); mask.x.rotate(tilt); mask.x.translate(-L.center.x, -L.center.y);
-      mask.x.filter = `blur(${Math.max(0.8, L.fs * 0.008)}px)`;
-      mask.x.fillStyle = "#000"; mask.x.font = `${L.fs}px ${family}`;
-      for (const p of L.placed) mask.x.fillText(p.text, p.x, p.base);
-      mask.x.restore();
-      const maskData = mask.x.getImageData(0, 0, mask.c.width, mask.c.height).data;
-      const inside = (x: number, y: number) => { const i = (Math.round(y * dpr) * mask.c.width + Math.round(x * dpr)) * 4 + 3; return i >= 0 && i < maskData.length && maskData[i] > 60; };
-
-      /* The nozzle's route: each letter filled in up-and-down passes. */
-      const r = L.fs * 0.075, step = r * 0.95;
-      type Seg = { pts: { x: number; y: number }[]; letter: number };
-      const route: Seg[] = L.glyphs.map((g, letter) => {
-        const pts: { x: number; y: number }[] = [];
-        let down = true;
-        for (let x = g.x0 + step * 0.5; x <= g.x1; x += step) {
-          pts.push(rot(x, down ? g.y0 : g.y1), rot(x, down ? g.y1 : g.y0));
-          down = !down;
-        }
-        return { pts, letter };
-      });
-
-      /* The soft stamp the nozzle leaves. */
-      const stamp = document.createElement("canvas"), S = Math.ceil(r * 3.2 * dpr);
-      stamp.width = stamp.height = S;
-      const sx = stamp.getContext("2d")!, gr = sx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
-      gr.addColorStop(0, "rgba(16,27,51,.9)"); gr.addColorStop(0.5, "rgba(16,27,51,.6)"); gr.addColorStop(1, "rgba(16,27,51,0)");
-      sx.fillStyle = gr; sx.fillRect(0, 0, S, S);
-      const R = rng(42);
-      const gauss = () => (R() + R() + R() - 1.5) / 1.5;
-      const dripList: Drip[] = [];
-
-      /* Paint only lands near the letters; a real painter does not fill the box. */
-      const near = (x: number, y: number) => inside(x, y) || inside(x + r, y) || inside(x - r, y) || inside(x, y + r) || inside(x, y - r);
-      const dab = (x: number, y: number) => {
-        if (!near(x, y)) return;
-        paint.x.drawImage(stamp, x - S / dpr / 2 + gauss() * r * 0.12, y - S / dpr / 2 + gauss() * r * 0.12, S / dpr, S / dpr);
-        if (R() < 0.35) {
-          speck.x.fillStyle = PAINT;
-          for (let i = 0; i < 3; i++) {
-            const px = x + gauss() * r * 2.4, py = y + gauss() * r * 2.4;
-            if (inside(px, py)) continue;
-            speck.x.globalAlpha = 0.15 + R() * 0.35;
-            speck.x.beginPath(); speck.x.arc(px, py, 0.4 + R() * 1, 0, Math.PI * 2); speck.x.fill();
-          }
-          speck.x.globalAlpha = 1;
-        }
+      if (!alive) return null;
+      const probe = document.createElement("canvas").getContext("2d")!;
+      const L = layoutPiece(w, h, family, probe);
+      const layers = renderLayers(L, w, h, dpr, family);
+      /* The tag: a flame paw with a white rim, into the shine layer. */
+      const s = L.fs * 0.17, T = L.tag;
+      const pawShape = (x: CanvasRenderingContext2D, fill: string, grow: number) => {
+        x.fillStyle = fill; x.beginPath(); x.ellipse(T.x, T.y + s * 0.5, s * 0.92 + grow, s * 0.74 + grow, 0, 0, Math.PI * 2); x.fill();
+        for (const [dx, dy] of [[-1.15, -0.62], [-0.4, -1.3], [0.4, -1.3], [1.15, -0.62]]) { x.beginPath(); x.ellipse(T.x + dx * s, T.y + dy * s, s * 0.33 + grow, s * 0.42 + grow, 0, 0, Math.PI * 2); x.fill(); }
       };
-      /* Stamp along the whole stretch the nozzle moved, so a fast frame leaves no gaps. */
-      const spray = (x0: number, y0: number, x1: number, y1: number) => {
-        const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / (r * 0.22)));
-        for (let i = 1; i <= n; i++) dab(x0 + ((x1 - x0) * i) / n, y0 + ((y1 - y0) * i) / n);
-      };
-      const addDrips = (g: Glyph, now: number) => {
-        const count = R() < 0.55 ? 1 + (R() < 0.3 ? 1 : 0) : 0;
-        for (let i = 0; i < count; i++) {
-          const gx = g.x0 + (g.x1 - g.x0) * (0.2 + R() * 0.6);
-          for (let y = g.y1 + L.fs * 0.06; y > g.y0; y -= 2) {
-            const p = rot(gx, y);
-            if (inside(p.x, p.y)) { dripList.push({ x: p.x, y: p.y - 2, len: L.fs * (0.12 + R() * 0.45), w: r * (0.18 + R() * 0.16), start: now, dur: 1400 + R() * 1800, drawn: 0 }); break; }
-          }
-        }
-      };
-      const growDrips = (now: number) => {
-        drips.x.strokeStyle = PAINT; drips.x.fillStyle = PAINT; drips.x.lineCap = "round";
-        for (const d of dripList) {
-          const t = Math.min(1, (now - d.start) / d.dur), e = 1 - Math.pow(1 - t, 3), to = d.len * e;
-          if (to <= d.drawn + 0.3) continue;
-          drips.x.lineWidth = d.w * (1 - 0.35 * e);
-          drips.x.beginPath(); drips.x.moveTo(d.x, d.y + d.drawn); drips.x.lineTo(d.x, d.y + to); drips.x.stroke();
-          d.drawn = to;
-          if (t >= 1) { drips.x.beginPath(); drips.x.arc(d.x, d.y + to, d.w * 0.75, 0, Math.PI * 2); drips.x.fill(); }
-        }
-      };
-      const compose = () => {
-        out.setTransform(1, 0, 0, 1, 0, 0);
-        out.clearRect(0, 0, cv.width, cv.height);
-        out.globalAlpha = 0.07; out.drawImage(paint.c, 0, 0); out.globalAlpha = 1;
-        comp.x.setTransform(1, 0, 0, 1, 0, 0); comp.x.clearRect(0, 0, cv.width, cv.height);
-        comp.x.globalCompositeOperation = "source-over"; comp.x.drawImage(paint.c, 0, 0);
-        comp.x.globalCompositeOperation = "destination-in"; comp.x.drawImage(mask.c, 0, 0);
-        comp.x.globalCompositeOperation = "source-over";
-        out.drawImage(comp.c, 0, 0);
-        out.drawImage(speck.c, 0, 0);
-        out.drawImage(drips.c, 0, 0);
-      };
+      pawShape(layers.shine.x, "#fff", s * 0.12); pawShape(layers.shine.x, CANS.tag.color, 0);
+      const aFill = alphaMap(layers.fill.c, w, h), aLine = alphaMap(layers.outline.c, w, h), aShadow = alphaMap(layers.shadow.c, w, h), aShine = alphaMap(layers.shine.c, w, h);
+      return { L, layers, aFill, aLine, aShadow, aShine };
+    };
 
-      /* The tag at the end: a small paw, sprayed in flame. */
-      const last = L.glyphs[L.glyphs.length - 1];
-      const tagAt = rot(last.x1 + L.fs * 0.32, last.y1 - L.fs * 0.12);
-      const paw = (alpha: number) => {
-        const c = speck.x; const s = L.fs * 0.11;
-        c.save(); c.globalAlpha = alpha; c.fillStyle = TAG; c.filter = "blur(1px)";
-        c.beginPath(); c.ellipse(tagAt.x, tagAt.y + s * 0.5, s * 0.9, s * 0.72, 0, 0, Math.PI * 2); c.fill();
-        for (const [dx, dy] of [[-1.1, -0.6], [-0.38, -1.25], [0.38, -1.25], [1.1, -0.6]]) { c.beginPath(); c.ellipse(tagAt.x + dx * s, tagAt.y + dy * s, s * 0.32, s * 0.4, 0, 0, Math.PI * 2); c.fill(); }
-        c.restore();
+    /* A soft disc of a finished layer, copied onto the wall. */
+    const dabber = (R: number) => {
+      const D = Math.max(4, Math.ceil(R * 2 * dpr));
+      const tile = document.createElement("canvas"); tile.width = tile.height = D;
+      const t = tile.getContext("2d")!;
+      const stamp = document.createElement("canvas"); stamp.width = stamp.height = D;
+      const sx = stamp.getContext("2d")!, g = sx.createRadialGradient(D / 2, D / 2, 0, D / 2, D / 2, D / 2);
+      g.addColorStop(0, "rgba(0,0,0,.9)"); g.addColorStop(0.6, "rgba(0,0,0,.7)"); g.addColorStop(1, "rgba(0,0,0,0)");
+      sx.fillStyle = g; sx.fillRect(0, 0, D, D);
+      return (src: HTMLCanvasElement, dst: CanvasRenderingContext2D, x: number, y: number, under = false) => {
+        const px = Math.round(x * dpr - D / 2), py = Math.round(y * dpr - D / 2);
+        t.globalCompositeOperation = "source-over"; t.clearRect(0, 0, D, D);
+        t.drawImage(src, px, py, D, D, 0, 0, D, D);
+        t.globalCompositeOperation = "destination-in"; t.drawImage(stamp, 0, 0);
+        if (under) { dst.globalCompositeOperation = "destination-over"; dst.drawImage(tile, px, py); dst.globalCompositeOperation = "source-over"; }
+        else dst.drawImage(tile, px, py);
       };
+    };
 
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduced) {
-        for (const seg of route) { let prev = seg.pts[0]; for (const pt of seg.pts.slice(1)) { spray(prev.x, prev.y, pt.x, pt.y); prev = pt; } addDrips(L.glyphs[seg.letter], -1e9); }
-        growDrips(0); paw(0.95); compose();
+    const run = async (still: boolean) => {
+      const B = await build();
+      if (!B) return;
+      const { L, layers, aFill, aLine, aShadow, aShine } = B;
+      const F = finaleLayout(L, w, h);
+      const paintBricks = brickPainter(ctx.bricks, w, h, cells, F.tag, F.area);
+      /* The piece steps aside for the map. */
+      const settle = (animate: boolean) => {
+        const el = cv.paint.current; if (!el) return;
+        el.style.transformOrigin = "0 0";
+        el.style.transition = animate ? "transform 1.7s cubic-bezier(.65,0,.3,1)" : "none";
+        el.style.transform = `translate3d(${F.tx}px, ${F.ty}px, 0) scale(${F.k})`;
+      };
+      const startBricks = () => {
+        const t0 = performance.now();
+        const loop = (now: number) => { if (!alive) return; paintBricks((now - t0) / 1000); brickRaf = requestAnimationFrame(loop); };
+        brickRaf = requestAnimationFrame(loop);
+      };
+      if (still) {
+        for (const l of [layers.shadow, layers.fill, layers.outline, layers.shine]) ctx.paint.drawImage(l.c, 0, 0);
+        paintBricks(0, true);
+        settle(false);
+        if (wallWrap.current) wallWrap.current.style.opacity = "0";
+        if (cv.bricks.current) cv.bricks.current.style.opacity = "1";
+        setPhase("done");
         return;
       }
 
-      /* Play: the hand comes in, sprays letter by letter, tags, leaves. */
-      const speed = L.fs * 30, travel = L.fs * 18;
-      type Move = { from: { x: number; y: number }; to: { x: number; y: number }; on: boolean; letterEnd?: number };
-      const moves: Move[] = [];
-      const offstage = { x: w * 1.05, y: h * 1.1 };
-      let at = offstage;
-      for (const seg of route) {
-        moves.push({ from: at, to: seg.pts[0], on: false });
-        for (let i = 1; i < seg.pts.length; i++) moves.push({ from: seg.pts[i - 1], to: seg.pts[i], on: true, letterEnd: i === seg.pts.length - 1 ? seg.letter : undefined });
-        at = seg.pts[seg.pts.length - 1];
-      }
-      moves.push({ from: at, to: tagAt, on: false });
-      moves.push({ from: tagAt, to: tagAt, on: false, letterEnd: -1 });
-      moves.push({ from: tagAt, to: offstage, on: false });
-      const dur = (m: Move) => (m.letterEnd === -1 ? 700 : Math.max(12, (Math.hypot(m.to.x - m.from.x, m.to.y - m.from.y) / (m.on ? speed : travel)) * 1000));
-
-      const tip = { dx: L.fs * 0.16, dy: L.fs * 0.2 };
-      hand.current?.style.setProperty("--can", `${Math.max(70, L.fs * 0.62)}px`);
-      mist.current?.style.setProperty("--mist", `${r * 3}px`);
-      const shoulder = { x: w * 1.08, y: h * 1.25 };
-      const place = (x: number, y: number, spraying: boolean) => {
-        const hx = x + tip.dx, hy = y + tip.dy;
-        const ang = Math.atan2(shoulder.y - hy, shoulder.x - hx);
-        const len = Math.hypot(shoulder.x - hx, shoulder.y - hy);
-        if (hand.current) { hand.current.style.transform = `translate(${hx}px, ${hy}px)`; hand.current.style.setProperty("--arm", `${len}px`); hand.current.style.setProperty("--ang", `${ang}rad`); }
-        if (shadow.current) shadow.current.style.transform = `translate(${hx + w * 0.12}px, ${hy + h * 0.12}px)`;
-        if (mist.current) { mist.current.style.transform = `translate(${x}px, ${y}px)`; mist.current.style.opacity = spraying ? String(0.55 + Math.random() * 0.25) : "0"; }
-      };
-
-      let mi = 0, t0 = performance.now() + 500, lastMove = -1;
-      let last2 = { ...offstage };
-      place(offstage.x, offstage.y, false);
-      const tick = (now: number) => {
-        if (!alive) return;
-        growDrips(now);
-        while (mi < moves.length) {
-          const m = moves[mi], d = dur(m), t = (now - t0) / d;
-          if (t < 0) break;
-          const e = m.on ? Math.min(1, t) : (t >= 1 ? 1 : t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-          const x = m.from.x + (m.to.x - m.from.x) * e, y = m.from.y + (m.to.y - m.from.y) * e;
-          if (m.on) spray(mi === lastMove ? last2.x : m.from.x, mi === lastMove ? last2.y : m.from.y, x, y);
-          lastMove = mi;
-          if (m.letterEnd === -1) paw(Math.min(1, t) * 0.95);
-          last2 = { x, y };
-          place(x, y, m.on || (m.letterEnd === -1 && t < 1));
-          if (t < 1) break;
-          if (m.letterEnd !== undefined && m.letterEnd >= 0) addDrips(L.glyphs[m.letterEnd], now);
-          t0 += d; mi++;
+      /* ── the script ── */
+      type Step = { kind: "move"; to: Pt; spray: boolean; pass?: PassK; drips?: number[] } | { kind: "swap"; can: PassK } | { kind: "wait"; ms: number };
+      const steps: Step[] = [];
+      const off = { x: w * 1.08, y: h * 1.15 };
+      const add = (pass: PassK, routes: { pts: Pt[]; glyphs?: number[] }[]) => {
+        for (const r of routes) {
+          steps.push({ kind: "move", to: r.pts[0], spray: false });
+          r.pts.slice(1).forEach((p, i) => steps.push({ kind: "move", to: p, spray: true, pass, drips: i === r.pts.length - 2 ? r.glyphs : undefined }));
         }
-        compose();
-        if (mi < moves.length || dripList.some((dd) => now - dd.start < dd.dur)) raf = requestAnimationFrame(tick);
-        else if (hand.current) hand.current.style.opacity = "0";
       };
-      raf = requestAnimationFrame(tick);
+      const fs = L.fs;
+      /* Big soft dabs: each one only uncovers the finished layer, so a wide
+         nozzle paints clean letters in a few broad sweeps. */
+      const R = { fill: fs * 0.24, line: fs * 0.22, shine: fs * 0.07, tag: fs * 0.08 };
+      steps.push({ kind: "swap", can: "fill" });
+      add("fill", sweeps(L, R.fill, fs * 0.01));
+      steps.push({ kind: "swap", can: "line" });
+      add("line", sweeps(L, R.line, fs * 0.05, fs * 0.05));
+      steps.push({ kind: "swap", can: "shine" });
+      add("shine", L.glyphs.map((g, gi) => {
+        const pts: Pt[] = [];
+        const top = g.y0 + fs * 0.05, mid = g.y0 + fs * 0.3;
+        pts.push({ x: g.x0 + fs * 0.05, y: top }, { x: g.x0 + fs * 0.2, y: mid }, { x: g.x0 + fs * 0.32, y: top });
+        const l = L.lines[g.line], c = Math.cos(l.rot), s = Math.sin(l.rot);
+        void gi;
+        return { pts: pts.map((p) => ({ x: l.cx + (p.x - l.cx) * c - (p.y - l.cy) * s, y: l.cy + (p.x - l.cx) * s + (p.y - l.cy) * c })) };
+      }));
+      add("shine", layers.sparkles.map((p) => ({ pts: [{ x: p.x - fs * 0.12, y: p.y }, { x: p.x + fs * 0.12, y: p.y }, { x: p.x, y: p.y - fs * 0.12 }, { x: p.x, y: p.y + fs * 0.12 }] })));
+      steps.push({ kind: "swap", can: "tag" });
+      const T = L.tag, ts = fs * 0.2;
+      add("tag", [{ pts: [{ x: T.x - ts, y: T.y + ts * 0.6 }, { x: T.x + ts, y: T.y + ts * 0.6 }, { x: T.x + ts, y: T.y }, { x: T.x - ts, y: T.y }, { x: T.x - ts, y: T.y - ts * 0.8 }, { x: T.x + ts, y: T.y - ts * 0.8 }, { x: T.x, y: T.y - ts * 1.6 }] }]);
+      steps.push({ kind: "wait", ms: 350 });
+      steps.push({ kind: "move", to: off, spray: false });
+
+      const dab = { fill: dabber(R.fill), line: dabber(R.line), shine: dabber(R.shine), tag: dabber(R.tag) };
+      const near = {
+        fill: (x: number, y: number) => aFill(x, y) > 10 || aFill(x + R.fill, y) > 10 || aFill(x - R.fill, y) > 10 || aFill(x, y + R.fill) > 10 || aFill(x, y - R.fill) > 10,
+        line: (x: number, y: number) => [[0, 0], [R.line, 0], [-R.line, 0], [0, R.line], [0, -R.line]].some(([dx, dy]) => aLine(x + dx, y + dy) > 10 || aShadow(x + dx, y + dy) > 10),
+        shine: (x: number, y: number) => [[0, 0], [R.shine, 0], [-R.shine, 0], [0, R.shine], [0, -R.shine]].some(([dx, dy]) => aShine(x + dx, y + dy) > 10),
+      };
+      const overspray = (color: string, x: number, y: number, r: number) => {
+        const o = ctx.paint; o.fillStyle = color; o.globalCompositeOperation = "destination-over";
+        o.globalAlpha = 0.012; o.beginPath(); o.arc(x * dpr, y * dpr, r * 1.35 * dpr, 0, Math.PI * 2); o.fill();
+        if (Math.random() < 0.18) for (let i = 0; i < 2; i++) {
+          const a = Math.random() * Math.PI * 2, d = r * (1.4 + Math.random() * 1.8);
+          o.globalAlpha = 0.25 + Math.random() * 0.4; o.beginPath(); o.arc((x + Math.cos(a) * d) * dpr, (y + Math.sin(a) * d) * dpr, (0.4 + Math.random()) * dpr, 0, Math.PI * 2); o.fill();
+        }
+        o.globalAlpha = 1; o.globalCompositeOperation = "source-over";
+      };
+      let canNow: PassK = "fill";
+      const sprayAt = (pass: PassK, x: number, y: number) => {
+        if (pass === "fill") { if (!near.fill(x, y)) return false; dab.fill(layers.fill.c, ctx.paint, x, y); overspray(CANS.fill.color, x, y, R.fill * 0.6); }
+        else if (pass === "line") { if (!near.line(x, y)) return false; dab.line(layers.shadow.c, ctx.paint, x, y, true); dab.line(layers.outline.c, ctx.paint, x, y); overspray(INK, x, y, R.line * 0.45); }
+        else { if (!near.shine(x, y)) return false; dab[pass](layers.shine.c, ctx.paint, x, y); if (pass === "tag") overspray(CANS.tag.color, x, y, R.tag); }
+        return true;
+      };
+
+      /* Drips: paint that ran after a letter. */
+      type Drip = { x: number; y: number; len: number; w: number; t0: number; dur: number; at: number; color: string; dst: CanvasRenderingContext2D };
+      const drips: Drip[] = [];
+      const addDrips = (gi: number, pass: "fill" | "line", now: number) => {
+        const g = L.glyphs[gi]; if (!g || Math.random() > (pass === "fill" ? 0.4 : 0.2)) return;
+        const l = L.lines[g.line], c = Math.cos(l.rot), s = Math.sin(l.rot);
+        const gx = g.x0 + (g.x1 - g.x0) * (0.2 + Math.random() * 0.6);
+        const map = pass === "fill" ? aFill : aLine;
+        for (let y = g.y1 + fs * 0.06; y > g.y0; y -= 2) {
+          const x = l.cx + (gx - l.cx) * c - (y - l.cy) * s, yy = l.cy + (gx - l.cx) * s + (y - l.cy) * c;
+          if (map(x, yy) > 120) { drips.push({ x, y: yy - 1, len: fs * (0.08 + Math.random() * 0.3), w: fs * (0.018 + Math.random() * 0.016), t0: now, dur: 1500 + Math.random() * 2000, at: 0, color: pass === "fill" ? "#ef3f7a" : INK, dst: ctx.paint }); break; }
+        }
+      };
+      const growDrips = (now: number) => {
+        for (const d of drips) {
+          const k = Math.min(1, (now - d.t0) / d.dur), e = 1 - Math.pow(1 - k, 3), to = d.len * e;
+          if (to <= d.at + 0.2) continue;
+          const c = d.dst; c.strokeStyle = d.color; c.fillStyle = d.color; c.lineCap = "round"; c.lineWidth = d.w * (1 - 0.3 * e) * dpr;
+          c.beginPath(); c.moveTo(d.x * dpr, (d.y + d.at) * dpr); c.lineTo(d.x * dpr, (d.y + to) * dpr); c.stroke();
+          d.at = to;
+          if (k >= 1) { c.beginPath(); c.arc(d.x * dpr, (d.y + to) * dpr, d.w * 0.8 * dpr, 0, Math.PI * 2); c.fill(); }
+        }
+      };
+
+      /* Mist: a puff at the nozzle while spraying, drawn fresh each frame. */
+      type Puff = { x: number; y: number; vx: number; vy: number; life: number; r: number; color: string };
+      const puffs: Puff[] = [];
+      const drawFx = (dt: number) => {
+        const f = ctx.fx; f.clearRect(0, 0, w * fxs, h * fxs);
+        for (let i = puffs.length - 1; i >= 0; i--) {
+          const p = puffs[i]; p.life -= dt; if (p.life <= 0) { puffs.splice(i, 1); continue; }
+          p.x += p.vx * dt; p.y += p.vy * dt; p.r += 40 * dt;
+          f.globalAlpha = Math.max(0, p.life) * 0.22; f.fillStyle = p.color;
+          f.beginPath(); f.arc(p.x * fxs, p.y * fxs, p.r * fxs, 0, Math.PI * 2); f.fill();
+        }
+        f.globalAlpha = 1;
+      };
+
+      /* ── the run ── */
+      const S = sfx.current!;
+      const handEl = hand.current!, stageEl = stage.current!;
+      const shoulder = { x: w * 1.06, y: h * 1.28 };
+      const placeHand = (x: number, y: number) => {
+        const hx = x + fs * 0.15, hy = y + fs * 0.2;
+        handEl.style.transform = `translate3d(${hx}px, ${hy}px, 0)`;
+        handEl.style.setProperty("--arm", `${Math.hypot(shoulder.x - hx, shoulder.y - hy)}px`);
+        handEl.style.setProperty("--ang", `${Math.atan2(shoulder.y - hy, shoulder.x - hx)}rad`);
+      };
+      handEl.style.setProperty("--size", `${Math.max(70, fs * 0.62)}px`);
+      const setCan = (k: keyof typeof CANS) => { canNow = k; handEl.style.setProperty("--can", CANS[k].color); handEl.style.setProperty("--can-label", CANS[k].label); };
+      setCan("fill");
+
+      let nozzle = { ...off }, vel = { x: 0, y: 0 }, target = { ...off };
+      let cam = { x: w / 2, y: h / 2, s: 1 }, camGoal = 1.14;
+      let si = 0, segFrom = { ...off }, segT = 0, pauseUntil = 0, last = performance.now();
+      const speed: Record<PassK | "travel", number> = { fill: fs * 28, line: fs * 40, shine: fs * 22, tag: fs * 20, travel: fs * 30 };
+      let spraying = false, done = false;
+      placeHand(nozzle.x, nozzle.y);
+
+      const frame = (now: number) => {
+        if (!alive) return;
+        const dt = Math.min(0.1, (now - last) / 1000); last = now;
+        /* Advance the script. */
+        let budget = dt;
+        const segs: { a: Pt; b: Pt; pass: PassK }[] = [];
+        while (si < steps.length && budget > 0 && now >= pauseUntil) {
+          const st = steps[si];
+          if (st.kind === "swap") {
+            S.hiss(false); spraying = false;
+            handEl.classList.remove("is-swap"); void handEl.offsetWidth; handEl.classList.add("is-swap");
+            later(260, () => setCan(st.can));
+            S.rattle(6, 0.1);
+            pauseUntil = now + 760; si++; segFrom = { ...target }; segT = 0;
+            break;
+          }
+          if (st.kind === "wait") { pauseUntil = now + st.ms; si++; segFrom = { ...target }; segT = 0; break; }
+          const len = Math.hypot(st.to.x - segFrom.x, st.to.y - segFrom.y);
+          const v = st.spray && st.pass ? speed[st.pass] : speed.travel;
+          const need = len > 0 ? (len - segT) / v : 0;
+          const from = { ...target };
+          if (budget >= need) {
+            budget -= need; target = { ...st.to };
+            if (st.drips && (st.pass === "fill" || st.pass === "line")) for (const gi of st.drips) addDrips(gi, st.pass, now);
+            segFrom = { ...st.to }; segT = 0; si++;
+          } else {
+            segT += budget * v; const k = segT / len;
+            target = { x: segFrom.x + (st.to.x - segFrom.x) * k, y: segFrom.y + (st.to.y - segFrom.y) * k };
+            budget = 0;
+          }
+          if (st.spray && st.pass) segs.push({ a: from, b: { ...target }, pass: st.pass });
+        }
+        /* Paint lands along the exact route; the arm only follows it. */
+        let dabs = 0;
+        for (const sg of segs) {
+          const n = Math.max(1, Math.ceil(Math.hypot(sg.b.x - sg.a.x, sg.b.y - sg.a.y) / (R[sg.pass] * 0.32)));
+          for (let i = 1; i <= n && dabs < 240; i++, dabs++) sprayAt(sg.pass, sg.a.x + ((sg.b.x - sg.a.x) * i) / n, sg.a.y + ((sg.b.y - sg.a.y) * i) / n);
+        }
+        const cur = steps[si];
+        const wantSpray = !!cur && cur.kind === "move" && cur.spray && now >= pauseUntil;
+        /* The arm follows on a spring: curves at every turn. */
+        for (let i = 0; i < 4; i++) {
+          const h4 = dt / 4, k = 2600, c = 2 * Math.sqrt(k) * 0.92;
+          vel.x += (k * (target.x - nozzle.x) - c * vel.x) * h4; vel.y += (k * (target.y - nozzle.y) - c * vel.y) * h4;
+          nozzle.x += vel.x * h4; nozzle.y += vel.y * h4;
+        }
+        if (wantSpray && cur.kind === "move" && cur.pass && Math.random() < 0.9) {
+          puffs.push({ x: nozzle.x, y: nozzle.y, vx: (Math.random() - 0.5) * 60, vy: (Math.random() - 0.7) * 50, life: 0.5 + Math.random() * 0.4, r: R[cur.pass] * 0.4, color: CANS[canNow].color });
+        }
+        if (wantSpray !== spraying) { spraying = wantSpray; S.hiss(spraying, canNow === "fill" ? 0.22 : 0.17); handEl.classList.toggle("is-spraying", spraying); }
+        placeHand(nozzle.x, nozzle.y);
+        growDrips(now);
+        drawFx(dt);
+        /* The camera leans in and follows; it lets go at the end. */
+        const finished = si >= steps.length;
+        camGoal = finished ? 1 : 1.14;
+        cam.s += (camGoal - cam.s) * Math.min(1, dt * (finished ? 1.6 : 1.2));
+        const fx = finished ? w / 2 : nozzle.x, fy = finished ? h / 2 : nozzle.y;
+        cam.x += (fx - cam.x) * Math.min(1, dt * 2.2); cam.y += (fy - cam.y) * Math.min(1, dt * 2.2);
+        const hx = w / (2 * cam.s), hy = h / (2 * cam.s);
+        const cx = Math.min(w - hx, Math.max(hx, cam.x)), cy = Math.min(h - hy, Math.max(hy, cam.y));
+        stageEl.style.transform = `translate3d(${w / 2 - cx * cam.s}px, ${h / 2 - cy * cam.s}px, 0) scale(${cam.s})`;
+        if (finished && !done && Math.abs(cam.s - 1) < 0.01 && drips.every((d) => now - d.t0 > d.dur)) {
+          done = true; S.hiss(false); handEl.classList.remove("is-spraying");
+          finale();
+          return;
+        }
+        raf = requestAnimationFrame(frame);
+      };
+
+      const finale = () => {
+        stageEl.style.transform = "none";
+        S.lamp(false);
+        night.current?.classList.add("is-out");
+        later(500, () => {
+          S.swell();
+          if (wallWrap.current) wallWrap.current.style.opacity = "0";
+          if (cv.bricks.current) cv.bricks.current.style.opacity = "1";
+          ctx.fx.clearRect(0, 0, w * fxs, h * fxs);
+          settle(true);
+          startBricks();
+        });
+        later(3200, () => setPhase("done"));
+      };
+
+      S.lamp(true);
+      night.current?.classList.add("is-on");
+      later(700, () => { handEl.style.opacity = "1"; S.rattle(8, 0.1); raf = requestAnimationFrame((t) => { last = t; frame(t); }); });
     };
-    void go();
-    return () => { alive = false; cancelAnimationFrame(raf); };
-  }, [size, family]);
+
+    const reset = () => {
+      cancelAnimationFrame(raf); cancelAnimationFrame(brickRaf);
+      for (const t of timers.splice(0)) window.clearTimeout(t);
+      for (const k of Object.keys(ctx)) { const c = ctx[k]; c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, c.canvas.width, c.canvas.height); c.restore(); }
+      if (wallWrap.current) wallWrap.current.style.opacity = "1";
+      if (cv.bricks.current) cv.bricks.current.style.opacity = "0";
+      night.current?.classList.remove("is-on", "is-out");
+      if (hand.current) { hand.current.style.opacity = "0"; hand.current.classList.remove("is-spraying", "is-swap"); }
+      if (stage.current) stage.current.style.transform = "none";
+      if (cv.paint.current) { cv.paint.current.style.transition = "none"; cv.paint.current.style.transform = ""; }
+    };
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) { setStill(true); void run(true); }
+    engine.current = {
+      play: () => { reset(); if (!sfx.current) sfx.current = new Sfx(); sfx.current.start(); void run(false); },
+      stop: reset,
+    };
+    return () => { alive = false; reset(); engine.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [size, family, cells]);
+
+  const start = useCallback(() => { setPhase("play"); engine.current?.play(); }, []);
+  const toggleSound = () => { setMuted((m) => { const n = !m; if (!sfx.current) sfx.current = new Sfx(); sfx.current.setMuted(n); return n; }); };
 
   return (
-    <section className="mw" role="img" aria-label="Every stray animal on record. Spray-painted on a wall in an Indian street.">
-      {wall}
-      <div ref={shadow} className="mw-shadow" aria-hidden />
-      <canvas ref={canvas} className="mw-paint" aria-hidden />
-      <div ref={mist} className="mw-mist" aria-hidden />
-      <div ref={hand} className="mw-hand" aria-hidden>
-        <span className="mw-arm" />
-        <svg className="mw-can" viewBox="0 0 120 150">
-          <defs>
-            <linearGradient id="mw-metal" x1="0" x2="1"><stop offset="0" stopColor="#5d6670" /><stop offset=".35" stopColor="#d9dee3" /><stop offset=".6" stopColor="#9aa3ac" /><stop offset="1" stopColor="#3d444b" /></linearGradient>
-            <linearGradient id="mw-skin" x1="0" x2="1"><stop offset="0" stopColor="#8c5a38" /><stop offset=".5" stopColor="#b97b4f" /><stop offset="1" stopColor="#7a4b2d" /></linearGradient>
-          </defs>
-          <g transform="rotate(-32 60 75)">
-            <rect x="40" y="10" width="40" height="112" rx="9" fill="url(#mw-metal)" />
-            <rect x="40" y="48" width="40" height="40" fill="#f05b40" /><rect x="40" y="48" width="40" height="40" fill="url(#mw-metal)" opacity=".25" />
-            <rect x="46" y="0" width="28" height="14" rx="5" fill="#2a2f35" /><rect x="56" y="-6" width="8" height="8" rx="2" fill="#111" />
-            <path d="M40 60 q-14 4 -12 22 q2 18 14 22 z" fill="url(#mw-skin)" />
-            {[0, 1, 2, 3].map((i) => <rect key={i} x="36" y={62 + i * 13} width="50" height="12" rx="6" fill="url(#mw-skin)" stroke="#6b3f24" strokeWidth=".8" />)}
-            <path d="M58 -4 q10 -2 14 8 l-4 6 q-6 -6 -12 -4z" fill="url(#mw-skin)" />
-          </g>
-        </svg>
+    <section className={`mw is-${phase}`} aria-label="Every stray animal on record: sprayed on a wall in an Indian street, which becomes a map of India.">
+      <div ref={stage} className="mw-stage">
+        <div ref={wallWrap} className="mw-wallwrap">{wall}</div>
+        <div ref={night} className="mw-night" aria-hidden />
+        <canvas ref={cv.bricks} className="mw-layer mw-bricks" aria-hidden />
+        <canvas ref={cv.paint} className="mw-layer" aria-hidden />
+        <canvas ref={cv.fx} className="mw-layer" aria-hidden />
+        <div ref={hand} className="mw-hand" aria-hidden>
+          <span className="mw-arm" />
+          <svg className="mw-can" viewBox="0 0 120 150">
+            <defs>
+              <linearGradient id="mw-sheen" x1="0" x2="1"><stop offset="0" stopColor="#000" stopOpacity=".45" /><stop offset=".32" stopColor="#fff" stopOpacity=".55" /><stop offset=".55" stopColor="#fff" stopOpacity=".05" /><stop offset="1" stopColor="#000" stopOpacity=".55" /></linearGradient>
+              <linearGradient id="mw-skin" x1="0" x2="1"><stop offset="0" stopColor="#8c5a38" /><stop offset=".5" stopColor="#b97b4f" /><stop offset="1" stopColor="#7a4b2d" /></linearGradient>
+            </defs>
+            <g transform="rotate(-32 60 75)">
+              <rect x="40" y="10" width="40" height="112" rx="9" className="mw-can-body" />
+              <rect x="40" y="46" width="40" height="34" className="mw-can-label" />
+              <rect x="40" y="10" width="40" height="112" rx="9" fill="url(#mw-sheen)" />
+              <rect x="46" y="0" width="28" height="14" rx="5" fill="#d8dde2" /><rect x="56" y="-6" width="8" height="8" rx="2" fill="#111" />
+              <path d="M40 60 q-14 4 -12 22 q2 18 14 22 z" fill="url(#mw-skin)" />
+              {[0, 1, 2, 3].map((i) => <rect key={i} x="36" y={62 + i * 13} width="50" height="12" rx="6" fill="url(#mw-skin)" stroke="#6b3f24" strokeWidth=".8" />)}
+              <path d="M58 -4 q10 -2 14 8 l-4 6 q-6 -6 -12 -4z" fill="url(#mw-skin)" />
+            </g>
+          </svg>
+        </div>
       </div>
+
+      {phase === "idle" && (
+        <button type="button" className="mw-go" onClick={start} autoFocus>
+          <span className="mw-go-can" aria-hidden />
+          Click to spray
+        </button>
+      )}
+      {phase === "done" && !still && <button type="button" className="mw-again" onClick={start}>Spray again</button>}
+      {phase !== "idle" && !still && (
+        <button type="button" className="mw-sound" onClick={toggleSound} aria-label={muted ? "Sound on" : "Mute"} aria-pressed={muted}>
+          {muted ? <VolumeX size={18} aria-hidden /> : <Volume2 size={18} aria-hidden />}
+        </button>
+      )}
     </section>
   );
 }
