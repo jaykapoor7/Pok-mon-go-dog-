@@ -6,9 +6,9 @@
    One button: CLICK TO SPRAY. The street lamp flickers on, a hand rattles
    a can, and a graffiti piece goes up the way a writer paints one: the
    fill first (marigold to orange to pink), a can swap, the indigo
-   outline and 3D, white shine and sparkles, and a flame paw for a tag.
-   The camera leans in and follows the nozzle, with real spray sounds,
-   mist and drips. Then the hand leaves and the camera pulls back to the
+   outline and 3D, then the white shine and sparkles. The camera leans
+   in and follows the can, with real spray sounds, a jet of paint, mist
+   and drips. Then the can leaves and the camera pulls back to the
    finished wall.
 
    Everything is drawn in code and sounds are synthesised; nothing on the
@@ -25,11 +25,10 @@ import "./mission.css";
 
 type Phase = "idle" | "play" | "done";
 type Can = { color: string; label: string };
-const CANS: Record<"fill" | "line" | "shine" | "tag", Can> = {
+const CANS: Record<"fill" | "line" | "shine", Can> = {
   fill: { color: "#ff8a1f", label: "#ffd84a" },
   line: { color: "#2a1a6a", label: "#7c6cff" },
   shine: { color: "#f4f1ea", label: "#c9c2b6" },
-  tag: { color: "#f05b40", label: "#ffd0c4" },
 };
 
 type PassK = keyof typeof CANS;
@@ -94,13 +93,6 @@ export function MissionWall({ family }: { family: string }) {
       const probe = document.createElement("canvas").getContext("2d")!;
       const L = layoutPiece(w, h, family, probe);
       const layers = renderLayers(L, w, h, dpr, family);
-      /* The tag: a flame paw with a white rim, into the shine layer. */
-      const s = L.fs * 0.17, T = L.tag;
-      const pawShape = (x: CanvasRenderingContext2D, fill: string, grow: number) => {
-        x.fillStyle = fill; x.beginPath(); x.ellipse(T.x, T.y + s * 0.5, s * 0.92 + grow, s * 0.74 + grow, 0, 0, Math.PI * 2); x.fill();
-        for (const [dx, dy] of [[-1.15, -0.62], [-0.4, -1.3], [0.4, -1.3], [1.15, -0.62]]) { x.beginPath(); x.ellipse(T.x + dx * s, T.y + dy * s, s * 0.33 + grow, s * 0.42 + grow, 0, 0, Math.PI * 2); x.fill(); }
-      };
-      pawShape(layers.shine.x, "#fff", s * 0.12); pawShape(layers.shine.x, CANS.tag.color, 0);
       const aFill = alphaMap(layers.fill.c, w, h), aLine = alphaMap(layers.outline.c, w, h), aShadow = alphaMap(layers.shadow.c, w, h), aShine = alphaMap(layers.shine.c, w, h);
       return { L, layers, aFill, aLine, aShadow, aShine };
     };
@@ -148,7 +140,7 @@ export function MissionWall({ family }: { family: string }) {
       const fs = L.fs;
       /* Big soft dabs: each one only uncovers the finished layer, so a wide
          nozzle paints clean letters in a few broad sweeps. */
-      const R = { fill: fs * 0.24, line: fs * 0.22, shine: fs * 0.07, tag: fs * 0.08 };
+      const R = { fill: fs * 0.24, line: fs * 0.22, shine: fs * 0.07 };
       steps.push({ kind: "swap", can: "fill" });
       add("fill", sweeps(L, R.fill, fs * 0.01));
       steps.push({ kind: "swap", can: "line" });
@@ -163,13 +155,10 @@ export function MissionWall({ family }: { family: string }) {
         return { pts: pts.map((p) => ({ x: l.cx + (p.x - l.cx) * c - (p.y - l.cy) * s, y: l.cy + (p.x - l.cx) * s + (p.y - l.cy) * c })) };
       }));
       add("shine", layers.sparkles.map((p) => ({ pts: [{ x: p.x - fs * 0.12, y: p.y }, { x: p.x + fs * 0.12, y: p.y }, { x: p.x, y: p.y - fs * 0.12 }, { x: p.x, y: p.y + fs * 0.12 }] })));
-      steps.push({ kind: "swap", can: "tag" });
-      const T = L.tag, ts = fs * 0.2;
-      add("tag", [{ pts: [{ x: T.x - ts, y: T.y + ts * 0.6 }, { x: T.x + ts, y: T.y + ts * 0.6 }, { x: T.x + ts, y: T.y }, { x: T.x - ts, y: T.y }, { x: T.x - ts, y: T.y - ts * 0.8 }, { x: T.x + ts, y: T.y - ts * 0.8 }, { x: T.x, y: T.y - ts * 1.6 }] }]);
       steps.push({ kind: "wait", ms: 350 });
       steps.push({ kind: "move", to: off, spray: false });
 
-      const dab = { fill: dabber(R.fill), line: dabber(R.line), shine: dabber(R.shine), tag: dabber(R.tag) };
+      const dab = { fill: dabber(R.fill), line: dabber(R.line), shine: dabber(R.shine) };
       const near = {
         fill: (x: number, y: number) => aFill(x, y) > 10 || aFill(x + R.fill, y) > 10 || aFill(x - R.fill, y) > 10 || aFill(x, y + R.fill) > 10 || aFill(x, y - R.fill) > 10,
         line: (x: number, y: number) => [[0, 0], [R.line, 0], [-R.line, 0], [0, R.line], [0, -R.line]].some(([dx, dy]) => aLine(x + dx, y + dy) > 10 || aShadow(x + dx, y + dy) > 10),
@@ -188,7 +177,7 @@ export function MissionWall({ family }: { family: string }) {
       const sprayAt = (pass: PassK, x: number, y: number) => {
         if (pass === "fill") { if (!near.fill(x, y)) return false; dab.fill(layers.fill.c, ctx.paint, x, y); overspray(CANS.fill.color, x, y, R.fill * 0.6); }
         else if (pass === "line") { if (!near.line(x, y)) return false; dab.line(layers.shadow.c, ctx.paint, x, y, true); dab.line(layers.outline.c, ctx.paint, x, y); overspray(INK, x, y, R.line * 0.45); }
-        else { if (!near.shine(x, y)) return false; dab[pass](layers.shine.c, ctx.paint, x, y); if (pass === "tag") overspray(CANS.tag.color, x, y, R.tag); }
+        else { if (!near.shine(x, y)) return false; dab.shine(layers.shine.c, ctx.paint, x, y); }
         return true;
       };
 
@@ -233,21 +222,27 @@ export function MissionWall({ family }: { family: string }) {
       /* ── the run ── */
       const S = sfx.current!;
       const handEl = hand.current!, stageEl = stage.current!;
-      const shoulder = { x: w * 1.06, y: h * 1.28 };
+      /* The can hangs below and right of where its paint lands, leaning
+         into the wall, and swings a little with its own speed. */
+      const ox = fs * 0.42, oy = fs * 0.56;
+      handEl.style.setProperty("--ox", `${ox}px`); handEl.style.setProperty("--oy", `${oy}px`);
+      handEl.style.setProperty("--jet-len", `${Math.hypot(ox, oy)}px`); handEl.style.setProperty("--jet-ang", `${Math.atan2(oy, ox)}rad`);
+      handEl.style.setProperty("--size", `${Math.max(84, fs * 0.78)}px`);
       const placeHand = (x: number, y: number) => {
-        const hx = x + fs * 0.15, hy = y + fs * 0.2;
-        handEl.style.transform = `translate3d(${hx}px, ${hy}px, 0)`;
-        handEl.style.setProperty("--arm", `${Math.hypot(shoulder.x - hx, shoulder.y - hy)}px`);
-        handEl.style.setProperty("--ang", `${Math.atan2(shoulder.y - hy, shoulder.x - hx)}rad`);
+        handEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        const lean = Math.max(-14, Math.min(14, (vel.x / (fs * 30)) * 12));
+        handEl.style.setProperty("--tilt", `${-34 + lean}deg`);
       };
-      handEl.style.setProperty("--size", `${Math.max(70, fs * 0.62)}px`);
-      const setCan = (k: keyof typeof CANS) => { canNow = k; handEl.style.setProperty("--can", CANS[k].color); handEl.style.setProperty("--can-label", CANS[k].label); };
+      const setCan = (k: keyof typeof CANS) => {
+        canNow = k; handEl.style.setProperty("--can", CANS[k].color); handEl.style.setProperty("--can-label", CANS[k].label);
+        handEl.style.setProperty("--jet", `${R[k] * 1.5}px`);
+      };
       setCan("fill");
 
       let nozzle = { ...off }, vel = { x: 0, y: 0 }, target = { ...off };
       let cam = { x: w / 2, y: h / 2, s: 1 }, camGoal = 1.14;
       let si = 0, segFrom = { ...off }, segT = 0, pauseUntil = 0, last = performance.now();
-      const speed: Record<PassK | "travel", number> = { fill: fs * 28, line: fs * 40, shine: fs * 22, tag: fs * 20, travel: fs * 30 };
+      const speed: Record<PassK | "travel", number> = { fill: fs * 28, line: fs * 40, shine: fs * 22, travel: fs * 30 };
       let spraying = false, done = false;
       placeHand(nozzle.x, nozzle.y);
 
@@ -363,22 +358,41 @@ export function MissionWall({ family }: { family: string }) {
         <canvas ref={cv.paint} className="mw-layer" aria-hidden />
         <canvas ref={cv.fx} className="mw-layer" aria-hidden />
         <div ref={hand} className="mw-hand" aria-hidden>
-          <span className="mw-arm" />
-          <svg className="mw-can" viewBox="0 0 120 150">
-            <defs>
-              <linearGradient id="mw-sheen" x1="0" x2="1"><stop offset="0" stopColor="#000" stopOpacity=".45" /><stop offset=".32" stopColor="#fff" stopOpacity=".55" /><stop offset=".55" stopColor="#fff" stopOpacity=".05" /><stop offset="1" stopColor="#000" stopOpacity=".55" /></linearGradient>
-              <linearGradient id="mw-skin" x1="0" x2="1"><stop offset="0" stopColor="#8c5a38" /><stop offset=".5" stopColor="#b97b4f" /><stop offset="1" stopColor="#7a4b2d" /></linearGradient>
-            </defs>
-            <g transform="rotate(-32 60 75)">
-              <rect x="40" y="10" width="40" height="112" rx="9" className="mw-can-body" />
-              <rect x="40" y="46" width="40" height="34" className="mw-can-label" />
-              <rect x="40" y="10" width="40" height="112" rx="9" fill="url(#mw-sheen)" />
-              <rect x="46" y="0" width="28" height="14" rx="5" fill="#d8dde2" /><rect x="56" y="-6" width="8" height="8" rx="2" fill="#111" />
-              <path d="M40 60 q-14 4 -12 22 q2 18 14 22 z" fill="url(#mw-skin)" />
-              {[0, 1, 2, 3].map((i) => <rect key={i} x="36" y={62 + i * 13} width="50" height="12" rx="6" fill="url(#mw-skin)" stroke="#6b3f24" strokeWidth=".8" />)}
-              <path d="M58 -4 q10 -2 14 8 l-4 6 q-6 -6 -12 -4z" fill="url(#mw-skin)" />
-            </g>
-          </svg>
+          <span className="mw-spot" />
+          <span className="mw-jet" />
+          <span className="mw-canwrap">
+            <svg className="mw-can" viewBox="0 0 120 260">
+              <defs>
+                <linearGradient id="mw-metal" x1="0" x2="1">
+                  <stop offset="0" stopColor="#000" stopOpacity=".55" /><stop offset=".22" stopColor="#fff" stopOpacity=".5" /><stop offset=".34" stopColor="#fff" stopOpacity=".08" />
+                  <stop offset=".72" stopColor="#000" stopOpacity=".12" /><stop offset="1" stopColor="#000" stopOpacity=".62" />
+                </linearGradient>
+                <linearGradient id="mw-chrome" x1="0" x2="1">
+                  <stop offset="0" stopColor="#4a5057" /><stop offset=".25" stopColor="#f3f5f7" /><stop offset=".5" stopColor="#a3aab1" /><stop offset=".8" stopColor="#6b7178" /><stop offset="1" stopColor="#3a3f45" />
+                </linearGradient>
+                <linearGradient id="mw-cap" x1="0" x2="1">
+                  <stop offset="0" stopColor="#15151c" /><stop offset=".3" stopColor="#5a5a70" /><stop offset=".55" stopColor="#2a2a36" /><stop offset="1" stopColor="#0e0e14" />
+                </linearGradient>
+              </defs>
+              <rect x="18" y="62" width="84" height="178" rx="10" className="mw-can-body" />
+              <path d="M18 80 Q18 48 60 44 Q102 48 102 80 Z" className="mw-can-body" />
+              <rect x="18" y="108" width="84" height="92" className="mw-can-label" />
+              <path d="M18 108 H102 V122 q-6 0 -7 10 q-1 14 -5 14 q-4 0 -5 -14 q-1 -9 -8 -9 q-6 0 -7 18 q-1 9 -5 9 q-4 0 -5 -9 q0 -14 -8 -14 q-7 0 -8 7 q-1 6 -5 6 q-4 0 -5 -6 q0 -8 -6 -9 Z" className="mw-can-body" />
+              <g fill="#1d1250" opacity=".88">
+                <ellipse cx="60" cy="178" rx="15" ry="12" />
+                <ellipse cx="41" cy="161" rx="5.5" ry="7" transform="rotate(-24 41 161)" /><ellipse cx="53" cy="152" rx="5.5" ry="7.5" />
+                <ellipse cx="67" cy="152" rx="5.5" ry="7.5" /><ellipse cx="79" cy="161" rx="5.5" ry="7" transform="rotate(24 79 161)" />
+              </g>
+              <rect x="18" y="62" width="84" height="178" rx="10" fill="url(#mw-metal)" />
+              <path d="M18 80 Q18 48 60 44 Q102 48 102 80 Z" fill="url(#mw-metal)" />
+              <rect x="30" y="58" width="7" height="170" rx="3.5" fill="#fff" opacity=".42" />
+              <rect x="15" y="232" width="90" height="14" rx="6" fill="url(#mw-chrome)" />
+              <rect x="34" y="34" width="52" height="14" rx="5" fill="url(#mw-chrome)" />
+              <rect x="43" y="4" width="34" height="34" rx="9" fill="url(#mw-cap)" />
+              <rect x="47" y="8" width="5" height="24" rx="2.5" fill="#fff" opacity=".22" />
+              <circle cx="60" cy="14" r="5" fill="#0a0a0f" stroke="#7a7a90" strokeWidth="1.5" />
+            </svg>
+          </span>
         </div>
       </div>
 

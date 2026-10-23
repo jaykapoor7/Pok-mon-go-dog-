@@ -14,18 +14,28 @@
 .mw-night.is-lit { opacity: .22; animation: none; }
 @keyframes mw-flicker { 0% { opacity: .86; } 12% { opacity: .35; } 20% { opacity: .8; } 32% { opacity: .3; } 40% { opacity: .62; } 55%, 100% { opacity: .22; } }
 
-/* The hand, the can, the arm. */
-.mw-hand { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; pointer-events: none; will-change: transform; transition: opacity .5s; --can: #ff8a1f; --can-label: #ffd84a; }
-.mw-arm { position: absolute; left: 0; top: 0; width: var(--arm, 0); height: calc(var(--size, 90px) * .44); transform-origin: 0 50%; transform: rotate(var(--ang, 0)) translate(calc(var(--size, 90px) * .1), -50%);
-  clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%); background: linear-gradient(180deg, #2d3f5c, #1c2a40 55%, #121c2c); }
-.mw-arm::before { content: ""; position: absolute; left: 0; top: 8%; width: calc(var(--size, 90px) * .5); height: 84%; border-radius: 50%; background: linear-gradient(180deg, #a06a43, #b97b4f 50%, #7a4b2d); }
-.mw-can { position: absolute; left: 0; top: 0; width: var(--size, 90px); height: calc(var(--size, 90px) * 1.25); transform: translate(-42%, -38%); filter: drop-shadow(0 12px 16px rgba(0, 0, 0, .45)); transform-origin: 50% 70%; }
-.mw-can-body { fill: var(--can); transition: fill .2s; }
-.mw-can-label { fill: var(--can-label); transition: fill .2s; }
+/* The can: it hangs off the point where its paint lands (the element's
+   origin), leans into the wall, and throws a jet of paint at it. */
+.mw-hand { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; pointer-events: none; will-change: transform; transition: opacity .5s;
+  --can: #ff8a1f; --can-label: #ffd84a; --size: 80px; --tilt: -34deg; --jet: 40px; }
+.mw-canwrap { position: absolute; left: var(--ox, 30px); top: var(--oy, 40px); width: var(--size); height: calc(var(--size) * 260 / 120);
+  transform: translate(-50%, -5.4%) rotate(var(--tilt)); transform-origin: 50% 5.4%; }
+.mw-can { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(10px 18px 14px rgba(0, 0, 0, .45)); transform-origin: 50% 5.4%; }
+.mw-can-body { fill: var(--can); transition: fill .25s; }
+.mw-can-label { fill: var(--can-label); transition: fill .25s; }
+.mw-jet { position: absolute; left: 0; top: 0; width: var(--jet-len, 60px); height: var(--jet); transform-origin: 0 50%; transform: rotate(var(--jet-ang, 0)) translateY(-50%);
+  clip-path: polygon(0 0, 100% 46%, 100% 54%, 0 100%); opacity: 0; transition: opacity .12s; filter: blur(3px);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--can) 18%, transparent), color-mix(in srgb, var(--can) 70%, transparent) 80%, color-mix(in srgb, #fff 60%, var(--can)) 100%); }
+.mw-spot { position: absolute; left: 0; top: 0; width: calc(var(--jet) * 1.8); height: calc(var(--jet) * 1.8); border-radius: 50%; transform: translate(-50%, -50%); opacity: 0; transition: opacity .12s;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--can) 55%, transparent), transparent); }
+.mw-hand.is-spraying .mw-jet { opacity: 1; animation: mw-jet .07s steps(2) infinite; }
+.mw-hand.is-spraying .mw-spot { opacity: .8; }
 .mw-hand.is-spraying .mw-can { animation: mw-jitter .09s linear infinite; }
 .mw-hand.is-swap .mw-can { animation: mw-swap .9s cubic-bezier(.3, .8, .3, 1); }
-@keyframes mw-jitter { 50% { transform: translate(-41.4%, -38.6%); } }
-@keyframes mw-swap { 0% { transform: translate(-42%, -38%); } 25% { transform: translate(-30%, 40%) rotate(14deg); opacity: .2; } 45% { transform: translate(-42%, -30%) rotate(-12deg); opacity: 1; } 55%, 75% { transform: translate(-42%, -42%) rotate(10deg); } 65%, 85% { transform: translate(-42%, -34%) rotate(-10deg); } 100% { transform: translate(-42%, -38%); } }
+@keyframes mw-jet { 50% { opacity: .78; } }
+@keyframes mw-jitter { 50% { transform: translate(.6px, -.8px); } }
+@keyframes mw-swap { 0% { transform: none; } 25% { transform: translate(30%, 60%) rotate(30deg); opacity: .15; } 45% { transform: translateY(6%) rotate(-14deg); opacity: 1; }
+  55%, 75% { transform: translateY(-4%) rotate(12deg); } 65%, 85% { transform: translateY(4%) rotate(-12deg); } 100% { transform: none; } }
 
 /* One button. */
 .mw-go { position: absolute; left: 50%; top: 54%; z-index: 5; display: inline-flex; align-items: center; gap: 14px; padding: 18px 30px 18px 22px; border: 3px solid #1d1250; border-radius: 999px;
