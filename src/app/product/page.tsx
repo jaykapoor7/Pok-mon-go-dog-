@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { CoShell, CoSec } from "@/components/co3/CoShell";
-import { getRegisterTotals } from "@/lib/register/totals";
+import { getDogsTreated, getRegisterTotals } from "@/lib/register/totals";
 
 export const revalidate = 300;
 export const metadata = { title: "Product, StrayPaw", description: "Report animals, manage cases, track care, and see what’s happening across your city." };
@@ -13,7 +13,7 @@ const CAPS = [
   { title: "Living Map.", description: "Explore recorded animals, care and requests across cities. Missing records remain unknown.", href: "/explore", cta: "Explore the map" },
 ];
 export default async function ProductPage() {
-  const totals = await getRegisterTotals().catch(() => null);
+  const [totals, treated] = await Promise.all([getRegisterTotals().catch(() => null), getDogsTreated().catch(() => null)]);
   return <CoShell seed={2} kicker="Product" title="One place for every step of care."
     lede="Report animals, manage cases, track care, and see what’s happening across your city."
     actions={<><Link href="/app?choose=1" className="co3-btn is-flame">Open App <ArrowUpRight size={17} aria-hidden /></Link><Link href="/community/report" className="co3-btn is-line">Report an animal</Link></>}>
@@ -28,7 +28,7 @@ export default async function ProductPage() {
     <CoSec title="What’s on the record.">
       {totals && totals.cities > 0 ? <dl className="co3-figs">
         <div><dt>Animal records</dt><dd>{fmt(totals.animals)}<small>Recorded animals, including imported history. Not a census.</small></dd></div>
-        <div><dt>Requests for help</dt><dd>{fmt(totals.cases)}<small>Recorded requests, open and closed. Not rescue outcomes.</small></dd></div>
+        {treated !== null && <div><dt>Dogs treated</dt><dd>{fmt(treated)}<small>Animals with recorded care: sterilised, vaccinated or treated. Each animal counted once.</small></dd></div>}
         <div><dt>Cities</dt><dd>{fmt(totals.cities)}<small>Cities with animal records.</small></dd></div>
       </dl> : <p>Public figures are unavailable right now. <Link href="/explore">Explore the record</Link>.</p>}
       <p>Figures describe the record, not the population. Public locations use approximate areas; reporter details stay private. <Link href="/evidence">Sources and methodology</Link> · <Link href="/data-governance">Data policy</Link> · <Link href="/privacy">Privacy</Link></p>

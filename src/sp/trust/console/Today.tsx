@@ -72,6 +72,7 @@ function Record({ o }: { o: Overview }) {
       <p className="op-sub">Exactly what the landing page, product page and map print. They all read this one rollup.</p>
       <dl className="op-figs">
         <div><dt>Animal records</dt><dd>{f(r.animals)}</dd></div>
+        <div><dt>Dogs treated</dt><dd>{r.treated === null ? "—" : f(r.treated)}</dd></div>
         <div><dt>Requests for help</dt><dd>{f(r.requests)}</dd></div>
         <div><dt>Cities</dt><dd>{f(r.cities)}</dd></div>
         <div><dt>Recorded sterilised</dt><dd>{f(r.sterilised)}</dd></div>

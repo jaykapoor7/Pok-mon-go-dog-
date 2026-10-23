@@ -46,7 +46,7 @@ export type Org = {
 };
 
 export type Overview = {
-  record: { animals: number; requests: number; cities: number; sterilised: number; vaccinated: number; clinical: { city: string; animals: number }[]; topCities: { city: string; animals: number; requests: number; clinical: boolean }[] };
+  record: { animals: number; treated: number | null; requests: number; cities: number; sterilised: number; vaccinated: number; clinical: { city: string; animals: number }[]; topCities: { city: string; animals: number; requests: number; clinical: boolean }[] };
   source: { animals: number | null; requests: number | null; liveSightings: number | null };
   pipeline: {
     queue: { city: string; requested_at: string; reason: string | null }[];

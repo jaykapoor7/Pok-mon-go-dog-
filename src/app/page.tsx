@@ -9,7 +9,7 @@ import { HeroTally } from "@/components/landing/HeroTally";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import { LandingMotion } from "@/components/landing/LandingMotion";
 import { getLandingStory } from "@/lib/landing/story";
-import { getRegisterTotals } from "@/lib/register/totals";
+import { getDogsTreated, getRegisterTotals } from "@/lib/register/totals";
 import { ReportThread } from "@/components/landing/ReportThread";
 import { sxSerif } from "@/components/shell/fonts";
 import caseArchive from "@/data/landing-case-archive.json";
@@ -33,7 +33,7 @@ const FAQ=[
  ["How does a municipality or institution start?","Send your city, programme, available records and goals. We agree scope, responsibilities, deliverables, duration and fees before work begins."],
 ];
 export default async function HomePage(){
- const [story,totals]=await Promise.all([getLandingStory().catch(()=>null),getRegisterTotals().catch(()=>null)]);
+ const [story,totals,treated]=await Promise.all([getLandingStory().catch(()=>null),getRegisterTotals().catch(()=>null),getDogsTreated().catch(()=>null)]);
  const hero=story?.hero??caseArchive.hero;
  const box:[number,number,number,number]=[hero.box[0],hero.box[1],hero.box[2],hero.box[3]];
  const liveAreas=story?.desk.cells??[];
@@ -45,7 +45,7 @@ export default async function HomePage(){
     <HeroPlate city={hero.city} box={box} rings={hero.rings} events={hero.events}/>
     <div className="ld-hero-copy"><h1 id="hero-title">Every stray animal in India.<em>Seen. Tracked. Cared&nbsp;for.</em></h1>
      <p className="ld-hero-sub">One shared record for every sighting, case and outcome.</p>
-     {totals&&totals.animals>0&&<HeroTally animals={totals.animals} cases={totals.cases} cities={totals.cities}/>}
+     {totals&&totals.animals>0&&<HeroTally animals={totals.animals} treated={treated} cities={totals.cities}/>}
      <div className="ld-hero-actions"><Link href="/community/report" className="sw-btn is-flame">Report a sighting<ArrowUpRight size={18} aria-hidden/></Link><Link href="/explore" className="sw-btn is-paper">Explore the Map<ArrowUpRight size={15} aria-hidden/></Link></div>
      {!story&&<p className="ld-hero-source">Coimbatore public record · captured 20 October 2026</p>}
     </div></div></section>

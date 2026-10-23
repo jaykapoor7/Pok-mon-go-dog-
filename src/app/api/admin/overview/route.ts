@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { autoApprovalOn } from "@/lib/auto-approve";
 import { photoCheckAvailable } from "@/lib/photo-check";
-import { registerTotalsFromCities } from "@/lib/register/totals";
+import { countDogsTreated, registerTotalsFromCities } from "@/lib/register/totals";
 import { canonicalCity, type SpatialCity } from "@/lib/spatial/server";
 import { kindOf } from "@/sp/atlas/evidence";
 
@@ -53,6 +53,7 @@ export async function GET(req: Request) {
     supa.from("sightings").select("created_at").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supa.from("cases").select("created_at").order("created_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
+  const treated = await countDogsTreated().catch(() => null);
   if (cityRes.error) return NextResponse.json({ error: cityRes.error.message }, { status: 500 });
 
   /* The same merge the public pages make: aliases folded into one city. */
@@ -75,7 +76,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     record: {
-      animals: totals.animals, requests: totals.cases, cities: totals.cities,
+      animals: totals.animals, treated, requests: totals.cases, cities: totals.cities,
       sterilised: sum("sterilised"), vaccinated: sum("vaccinated"), clinical,
       topCities: [...cities].sort((a, b) => b.animals - a.animals).slice(0, 6).map((c) => ({ city: c.city, animals: c.animals, requests: c.cases, clinical: kindOf(c.city, c.cells) === "clinical" })),
     },
