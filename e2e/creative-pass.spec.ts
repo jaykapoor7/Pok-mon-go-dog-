@@ -4,7 +4,7 @@ for(const width of [320,390,768,1440])test(`hero and section order remain usable
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(/Every stray animal in India\.\s*Seen\. Tracked\. Cared\s+for\./);
  for(const a of await page.locator(".ld-hero-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.width).toBeGreaterThanOrEqual(44);expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main > section h1, main > section h2").allTextContents()).map(s=>s.replace(/\s+/g," "));
- expect(headings[0]).toMatch(/Every stray animal in India/);expect(headings.slice(1,5)).toEqual(["Every animal has a story.","One message. A record that keeps going.","One request, followed to the end.","A few things to know."]);
+ expect(headings[0]).toMatch(/Every stray animal in India/);expect(headings.slice(1,5)).toEqual(["Every animal has a story.","Reporting on WhatsApp","One request, followed to the end.","A few things to know."]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.getByRole("button",{name:/Pause motion|Play motion/})).toHaveCount(0);
  await expect(page.locator("#world .ld-plate canvas,#world .ld-plate-fallback svg").first()).toBeVisible();
@@ -84,9 +84,9 @@ test("the landing navigation blends into the hero and keeps current WhatsApp geo
  expect(await page.locator(".ld-hero").evaluate(el=>el.getBoundingClientRect().top)).toBeLessThanOrEqual(1);
  await expect(page.locator(".faq-asterisk,.faq-ledger")).toHaveCount(0);
  await page.evaluate(()=>{const el=document.querySelector(".rt-track")!;const r=el.getBoundingClientRect();window.scrollTo({top:r.bottom+scrollY-innerHeight,behavior:"instant"});});
- const map=page.locator(".rt-city");await expect(map.locator("svg")).toBeAttached();
- expect(await map.locator("circle").count()).toBeGreaterThan(0);
- await expect(map.locator(".rt-city-cap")).toContainText("recorded areas");
+ expect(await page.locator(".rt-map circle").count()).toBeGreaterThan(20);
+ await expect(page.locator(".rt-city")).toHaveClass(/is-on/);
+ await expect(page.locator(".rt-city-cap")).toContainText("recorded areas");
 });
 test("reduced motion shows the whole request and removes ambient movement",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");const section=page.locator("#one-request");await section.scrollIntoViewIfNeeded();

@@ -27,20 +27,28 @@ test("landing closes in one night section that carries the footer", async ({ pag
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
-test("the WhatsApp thread is driven by scrolling, forwards and back, with no labels", async ({ page }) => {
+test("the WhatsApp message types, becomes a record and lands on the map as the reader scrolls", async ({ page }) => {
   await page.goto("/");
-  const thread = page.locator("#one-request");
-  await expect(thread).not.toContainText(/pilot|illustrative|preview/i);
-  await expect(thread.getByRole("button")).toHaveCount(0);
+  const s = page.locator("#one-request");
+  await expect(s).not.toContainText(/pilot|illustrative|preview/i);
+  await expect(s.getByRole("button")).toHaveCount(0);
   await scrollThrough(page, ".rt-track", 0);
-  await expect(thread.locator(".rt-msg")).toHaveCount(0);
-  await scrollThrough(page, ".rt-track", 0.35);
-  expect(await thread.locator(".rt-msg").count()).toBeGreaterThan(2);
+  await expect(s.locator(".rt-stage")).not.toHaveClass(/is-sent/);
+  await scrollThrough(page, ".rt-track", 0.3);
+  await expect(s.locator(".rt-stage")).toHaveClass(/is-sent/);
+  await scrollThrough(page, ".rt-track", 0.56);
+  await expect(s.locator(".rt-rec-status")).toHaveText("Checked by a person");
+  /* The words that left the bubble sit where the record keeps them. */
+  for (const k of ["animal", "place", "cond"]) {
+    const [f, g] = await Promise.all([s.locator(`.rt-fly .is-${k}`).boundingBox(), s.locator(".rt-rec-v").nth(["animal", "place", "cond"].indexOf(k)).boundingBox()]);
+    expect(Math.abs(f!.x - g!.x)).toBeLessThan(3); expect(Math.abs(f!.y - g!.y)).toBeLessThan(3);
+  }
   await scrollThrough(page, ".rt-track", 1);
-  await expect(thread.locator(".rt-city")).toBeVisible();
-  await expect(thread.locator(".rt-city-cap")).toContainText("recorded areas");
+  await expect(s.locator(".rt-city")).toHaveClass(/is-on/);
+  await expect(s.locator(".rt-city-cap")).toContainText("recorded areas");
+  await expect(s.locator(".rt-msg")).toHaveCount(2);
   await scrollThrough(page, ".rt-track", 0.1);
-  expect(await thread.locator(".rt-msg").count()).toBeLessThan(3);
+  await expect(s.locator(".rt-msg")).toHaveCount(0);
 });
 
 test("NGO remains a workspace on both Community and NGO pages", async ({ page }) => {

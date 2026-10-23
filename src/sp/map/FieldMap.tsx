@@ -16,6 +16,7 @@ import { RECENCY, bucketOf, lastRecorded } from "../atlas/recency";
 import { coreBounds, haversineKm, seedHead } from "../atlas/geo";
 import { KINDS, cityEvidence, kindOf } from "../atlas/evidence";
 import { LENSES, lensFigure, nationalMeasure, type LensId } from "../atlas/lenses";
+import { rememberHome, resolveHome } from "@/lib/home-city";
 import { GLYPHS, ORNAMENT, collapseAttribution, groundStyle, drawGround } from "./ground";
 import { MARK } from "./marks";
 import { Chrome, type Face, type Level } from "./Chrome";
@@ -268,8 +269,24 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   const openCity = useCallback((name: string, opts?: { area?: string; animal?: string }) => {
     setCity(name); setAreaH3(opts?.area ?? null); setAnimalId(opts?.animal ?? null); setPicking(false);
   }, []);
-  const goIndia = useCallback(() => { setCity(null); setAreaH3(null); setAnimalId(null); }, []);
+  const goIndia = useCallback(() => { setCity(null); setAreaH3(null); setAnimalId(null); if (!embedded && scope === "public") rememberHome(null); }, [embedded, scope]);
   const up = useCallback(() => { if (animalId) setAnimalId(null); else if (areaH3) setAreaH3(null); else if (city) goIndia(); }, [animalId, areaH3, city, goIndia]);
+
+  /* Where the map opens: a link that names a place wins; otherwise the
+     person's own city (an organisation: its largest), and India only when
+     they chose India or the record has not reached them (lib/home-city). */
+  const homed = useRef(embedded || !!(I.city || I.area || I.animal || I.place || I.lng));
+  const cityNow = useRef(city);
+  cityNow.current = city;
+  useEffect(() => {
+    if (homed.current || citiesState !== "ready" || !cities.length) return;
+    let live = true;
+    const pick = scope === "org" ? Promise.resolve(cities[0]?.city ?? null) : resolveHome(cities);
+    pick.then((home) => { if (!live) return; homed.current = true; if (home && !cityNow.current) openCity(home); });
+    return () => { live = false; };
+  }, [cities, citiesState, scope, openCity]);
+  /* A city opened is remembered; India only when the person goes there. */
+  useEffect(() => { if (city && homed.current && !embedded && scope === "public") rememberHome(city); }, [city, embedded, scope]);
 
   /* ?place=: once the city is read, open that locality's busiest area. */
   useEffect(() => {

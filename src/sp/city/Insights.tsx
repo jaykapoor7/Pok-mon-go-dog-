@@ -9,8 +9,9 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { rememberHome, resolveHome } from "@/lib/home-city";
 import { Printer } from "lucide-react";
 import { useSpatialDataset } from "../data/spatial";
 import { cityEvidence, KINDS } from "../atlas/evidence";
@@ -28,7 +29,15 @@ export function Insights() {
   const ld = useMemo(() => (ds && ix && city && row ? loadedScope(ds, ix, city, { cases: row.cases, animals: row.animals, open: row.open_cases ?? null }) : null), [ds, ix, city, row]);
   const list = useMemo(() => (ds && ix && city && ld ? findings(ds, ix, city, period, ld) : []), [ds, ix, city, period, ld]);
   const ev = city ? cityEvidence(city, cities.find((c) => c.city === city)?.cells ?? 0) : null;
-  const pick = (c: string) => router.replace(`/city/insights?city=${encodeURIComponent(c)}`, { scroll: false });
+  const pick = (c: string) => { rememberHome(c); router.replace(`/city/insights?city=${encodeURIComponent(c)}`, { scroll: false }); };
+  /* With no city in the link, open the person's own city, not simply the largest. */
+  const asked = useSearchParams().get("city");
+  const homed = useRef(!!asked);
+  useEffect(() => {
+    if (homed.current || !cities.length) return;
+    homed.current = true;
+    resolveHome(cities).then((home) => { if (home && home !== city && cities.some((c) => c.city === home)) router.replace(`/city/insights?city=${encodeURIComponent(home)}`, { scroll: false }); });
+  }, [cities, city, router]);
 
   return (
     <div className="ci">
