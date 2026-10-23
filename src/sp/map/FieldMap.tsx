@@ -198,22 +198,35 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         /* India: every recorded area a glow, every city a point of light. */
         m.addLayer({ id: "nat-glow", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, ["*", ["get", "r"], 2.2], 7, ["*", ["get", "r"], 4]], "circle-color": ["get", "color"], "circle-blur": 0.4, "circle-opacity": 0.12, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "nat", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], 0.6], 7, ["*", ["get", "r"], 1.2]], "circle-color": ["get", "color"], "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.35, 1], "circle-pitch-alignment": "map" } });
-        m.addLayer({ id: "edge", type: "circle", source: "edge", minzoom: 10.5, paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, px * 0.42])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "rgba(11,30,61,0.2)", "circle-stroke-width": 1, "circle-pitch-alignment": "map" } });
-        /* The areas themselves, for touch and hover: a faint disc on the ground under each column. */
+        /* A soft heat halo under each area, bigger than the disc, so the city
+           reads as a living temperature map from zoom 9 onwards. */
+        m.addLayer({ id: "areas-heat", type: "circle", source: "areas", minzoom: 8.6, paint: {
+          "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], px]])] as never,
+          "circle-color": ["get", "color"], "circle-blur": 1.1, "circle-pitch-alignment": "map",
+          "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.18, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.14, 11, 0.28, PAW_ZOOM, 0.18]] } });
+        /* The areas themselves, for touch and hover: a disc on the ground under each column. */
         m.addLayer({ id: "areas", type: "circle", source: "areas", paint: { "circle-radius": zr(1), "circle-color": ["get", "color"], "circle-blur": 0.08, "circle-pitch-alignment": "map",
           "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.3, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.52, PAW_ZOOM, 0.28]] } });
         /* A lit finding rings the areas it rests on, in turmeric; nothing else changes meaning. */
         m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f2b632", "circle-stroke-width": 2.2, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(143,176,255,0.12)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.4, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.4, 10, 13, 13], "text-allow-overlap": false, "text-padding": 1 }, paint: { "text-color": "#0b1e3d", "text-halo-color": "#fffdf9", "text-halo-width": 1.6, "text-opacity": ["interpolate", ["linear"], ["zoom"], 11.4, 0, 11.8, 1] } });
-        /* Neighbourhood: one dot per recorded animal, arranged in its area. A photographed animal is ringed in white. */
+        /* Neighbourhood: one dot per recorded animal. The pulse layer under
+           the dot is a slow heart-beat halo (paint driven by a RAF loop so
+           it works in a WebGL vector style). A photographed animal is ringed
+           in white; a chosen one in flame. */
+        m.addLayer({ id: "paws-pulse", type: "circle", source: "paws", minzoom: PAW_ZOOM - 0.6, paint: {
+          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 13, ["*", ["get", "s"], 7], 15, ["*", ["get", "s"], 13], 17, ["*", ["get", "s"], 20]],
+          "circle-color": ["get", "col"], "circle-blur": 0.9, "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 0.22], "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "paws", type: "circle", source: "paws", minzoom: PAW_ZOOM - 0.6, paint: {
           "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 13, ["*", ["get", "s"], 3.4], 15, ["*", ["get", "s"], 6.5], 17, ["*", ["get", "s"], 10]],
-          "circle-color": ["get", "col"], "circle-stroke-color": ["case", ["==", ["get", "ph"], 1], "#ffffff", "rgba(7,20,43,0.9)"], "circle-stroke-width": ["case", ["==", ["get", "ch"], 1], 3, ["==", ["get", "ph"], 1], 1.8, 1],
+          "circle-color": ["get", "col"], "circle-stroke-color": ["case", ["==", ["get", "ch"], 1], "#f05b40", ["==", ["get", "ph"], 1], "#ffffff", "rgba(7,20,43,0.9)"], "circle-stroke-width": ["case", ["==", ["get", "ch"], 1], 3, ["==", ["get", "ph"], 1], 1.8, 1],
           "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 1] } });
-        m.addLayer({ id: "cities-glow", type: "circle", source: "cities", paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], ["get", "g"], 1.5], 8, ["*", ["get", "r"], ["get", "g"], 2.2]], "circle-color": ["get", "col"], "circle-blur": 0.4, "circle-opacity": 0.12 } });
-        m.addLayer({ id: "cities", type: "circle", source: "cities", paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], ["get", "g"], 0.42], 8, ["*", ["get", "r"], ["get", "g"], 0.62]],
-          "circle-color": ["case", ["==", ["get", "hol"], 1], "rgba(0,0,0,0)", ["get", "col"]], "circle-stroke-color": "#fffdf9", "circle-stroke-width": ["case", ["==", ["get", "hol"], 1], 1.5, 1.2], "circle-stroke-opacity": 0.85 } });
+        /* City rosettes fade out as the city opens so they never ring the
+           ground once you are reading its areas. */
+        m.addLayer({ id: "cities-glow", type: "circle", source: "cities", maxzoom: 11, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], ["get", "g"], 1.5], 8, ["*", ["get", "r"], ["get", "g"], 2.2]], "circle-color": ["get", "col"], "circle-blur": 0.4, "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3.5, 0.12, 9, 0.12, 11, 0] } });
+        m.addLayer({ id: "cities", type: "circle", source: "cities", maxzoom: 11, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], ["get", "g"], 0.42], 8, ["*", ["get", "r"], ["get", "g"], 0.62]],
+          "circle-color": ["case", ["==", ["get", "hol"], 1], "rgba(0,0,0,0)", ["get", "col"]], "circle-stroke-color": "#fffdf9", "circle-stroke-width": ["case", ["==", ["get", "hol"], 1], 1.5, 1.2], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 3.5, 0.85, 9, 0.85, 11, 0], "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3.5, 1, 9, 1, 11, 0] } });
 
         const tip = (e: { features?: MapGeoJSONFeature[]; point: { x: number; y: number } }) => {
           if (window.matchMedia("(hover: none)").matches) return;
@@ -297,17 +310,48 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     if (hit) setAreaH3(hit.h3);
   }, [data]);
 
-  /* Zoom is navigation: out past a city returns to India; in near a city opens it. */
+  /* The living map pulses: the paw halo breathes with a 2.6s cycle, and the
+     city heat glow drifts just a little so the field never looks frozen.
+     Opacity-only updates on existing paint properties — no new data upload,
+     no layout work. Pauses when the tab is hidden or reduced motion is on. */
+  useEffect(() => {
+    const m = mapRef.current; if (!m || !ready) return;
+    if (reduced()) return;
+    let raf = 0, start = performance.now();
+    const tick = (now: number) => {
+      const t = (now - start) / 1000;
+      const pulse = 0.5 + 0.5 * Math.sin(t * (Math.PI * 2 / 2.6));
+      const heat = 0.5 + 0.5 * Math.sin(t * (Math.PI * 2 / 7) + 0.9);
+      try {
+        if (m.getLayer("paws-pulse")) m.setPaintProperty("paws-pulse", "circle-opacity", 0.08 + 0.22 * pulse);
+        if (m.getLayer("areas-heat")) m.setPaintProperty("areas-heat", "circle-blur", 0.9 + 0.35 * heat);
+      } catch { /* layer removed */ }
+      if (!document.hidden) raf = requestAnimationFrame(tick);
+    };
+    const vis = () => { if (!document.hidden && !raf) { start = performance.now(); raf = requestAnimationFrame(tick); } };
+    raf = requestAnimationFrame(tick);
+    document.addEventListener("visibilitychange", vis);
+    return () => { cancelAnimationFrame(raf); raf = 0; document.removeEventListener("visibilitychange", vis); };
+  }, [ready]);
+
+  /* Zoom is navigation: out past a city returns to India; in near a city opens it.
+     Zooming past PAW_ZOOM without a chosen area opens the nearest area to the
+     viewport centre, so individual dots appear without a second tap. */
   useEffect(() => {
     if (!ready || !userMove.current) return;
     const m = mapRef.current; if (!m) return;
     if (city && zoom < CITY_ZOOM - 1) { goIndia(); return; }
+    if (city && cells.length && zoom >= PAW_ZOOM - 0.3 && !areaH3) {
+      const c = m.getCenter();
+      const near = cells.map((cell, i) => ({ cell, d: Math.hypot(centers[i][0] - c.lng, centers[i][1] - c.lat) })).sort((a, b) => a.d - b.d)[0];
+      if (near) { setAreaH3(near.cell.h3); return; }
+    }
     if (zoom >= ENTER_ZOOM && cities.length) {
       const c = m.getCenter();
       const near = cities.filter((x) => typeof x.lng === "number").map((x) => ({ x, d: haversineKm([c.lng, c.lat], [x.lng!, x.lat!]) })).sort((a, b) => a.d - b.d)[0];
       if (near && near.d < 45 && near.x.city !== city) { preserveCameraFor.current = near.x.city; userMove.current = false; openCity(near.x.city); }
     }
-  }, [zoom, ready, city, cities, goIndia, openCity]);
+  }, [zoom, ready, city, cities, cells, centers, areaH3, goIndia, openCity]);
 
   /* ── growth: marks bloom outward when a scale opens (a cut under reduced motion) ── */
   const growRef = useRef<{ cities: number; areas: number }>({ cities: 1, areas: 1 });
