@@ -27,10 +27,10 @@ import "@/components/landing/restored-landing.css";
 export const revalidate = 300;
 export const metadata = {title:"StrayPaw. Every street animal on the record.",description:"One shared record connecting sightings, field work and outcomes for India’s street animals."};
 const FAQ=[
- ["Is StrayPaw free to use?","Public animal discovery and community reporting are available without a subscription. Institutional programmes are scoped and priced separately; contact us for organisation access."],
+ ["Is StrayPaw free to use?","Yes for residents, community reporters and animal lookups: no account, no fee. Institutional programmes for NGOs and municipalities are scoped and priced separately; contact us for organisation access."],
  ["What happens after a report?","A report is checked before publication. Organisations can review and choose whether to accept it. Reporting does not guarantee rescue, treatment or a response time."],
  ["How can an NGO participate?","Apply for an organisation workspace. After verification, your team can review requests, assign cases, import records and record care and follow-ups."],
- ["Can I report through WhatsApp? What does it cost?","Yes. Message the StrayPaw bot on WhatsApp with a photo and your location. NGOs can add it to their team’s WhatsApp group, where it files reports, looks up animals, runs drives and posts what is due each morning. Contact StrayPaw to connect your NGO; setup and costs are confirmed for your organisation. Web reporting is also available."],
+ ["Can I report through WhatsApp? What does it cost?","Reporting on WhatsApp is free for residents and community reporters: message the StrayPaw bot with a photo and your location, no fee. The NGO group bot (filing reports a team posts, animal lookup, drive counts and the morning due list in your team's WhatsApp group) is a paid subscription for organisations, billed monthly by usage. Contact StrayPaw to connect your NGO."],
  ["How does a municipality or institution start?","Send your city, programme, available records and goals. We agree scope, responsibilities, deliverables, duration and fees before work begins."],
 ];
 export default async function HomePage(){

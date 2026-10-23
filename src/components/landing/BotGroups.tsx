@@ -42,7 +42,7 @@ const clamp = (v: number) => Math.max(0, Math.min(1, v));
 
 export function BotGroups() {
   const track = useRef<HTMLDivElement>(null);
-  const q = useStory(track, 18);
+  const q = useStory(track, 13, "request-journey");
 
   const at = (t: number) => q >= t;
   const skill = SKILLS.reduce((a, s, i) => (q >= s.at ? i : a), -1);
@@ -158,7 +158,9 @@ export function BotGroups() {
             </div>
           </div>
 
-          <Link href="/contact?subject=WhatsApp%20CareOS%20access" className={`bg-cta${at(0.9) ? " is-on" : ""}`}>Add StrayPaw to your NGO’s group<ArrowUpRight aria-hidden /></Link>
+          <div className="bg-cta-band" aria-hidden={!at(0.9)}>
+            <Link href="/contact?subject=WhatsApp%20CareOS%20access" className={`bg-cta${at(0.9) ? " is-on" : ""}`} tabIndex={at(0.9) ? 0 : -1}>Add StrayPaw to your NGO’s group<ArrowUpRight aria-hidden /></Link>
+          </div>
         </div>
       </div>
     </section>

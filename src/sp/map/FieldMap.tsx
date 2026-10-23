@@ -204,9 +204,12 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
           "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], px]])] as never,
           "circle-color": ["get", "color"], "circle-blur": 1.1, "circle-pitch-alignment": "map",
           "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.18, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.14, 11, 0.28, PAW_ZOOM, 0.18]] } });
-        /* The areas themselves, for touch and hover: a disc on the ground under each column. */
+        /* The areas themselves, for touch and hover: a disc on the ground
+           under each column. The feature's own `o` drives opacity so the
+           disc only brightens for a selected area; the broad reading lives
+           in the heat halo above. */
         m.addLayer({ id: "areas", type: "circle", source: "areas", paint: { "circle-radius": zr(1), "circle-color": ["get", "color"], "circle-blur": 0.08, "circle-pitch-alignment": "map",
-          "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.3, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.52, PAW_ZOOM, 0.28]] } });
+          "circle-opacity": ["*", ["get", "o"], ["interpolate", ["linear"], ["zoom"], 8, 0.9, PAW_ZOOM, 0.6]] } });
         /* A lit finding rings the areas it rests on, in turmeric; nothing else changes meaning. */
         m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f2b632", "circle-stroke-width": 2.2, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(143,176,255,0.12)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95, "circle-pitch-alignment": "map" } });
@@ -404,18 +407,25 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     const far = Math.max(0.01, ...centers.map((c) => Math.hypot(c[0] - mid[0], c[1] - mid[1])));
     const g0 = growRef.current.areas;
     const pt = (c: [number, number], p: Record<string, unknown>): GeoJSON.Feature => ({ type: "Feature", geometry: { type: "Point", coordinates: c }, properties: p });
+    /* Per-feature `o` lets the areas disc dim across the board when no area
+       is selected, so the city reads as its heat halo first. Picking an area
+       (click, URL, or auto-selected on deep zoom) lights that one disc, the
+       others stay quiet. The heat halo keeps the broad reading alive. */
     set("areas", cells.map((c, i) => {
       const dist = Math.hypot(centers[i][0] - mid[0], centers[i][1] - mid[1]) / far;
       const g = Math.max(0, Math.min(1, g0 * 1.6 - dist * 0.6));
       const k = 0.55 + (Math.sqrt(c.animals) / maxA) * 0.75;
+      const isSel = !!areaH3 && areaH3 === c.h3;
+      const dim = (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0;
+      const o = isSel ? 1 : (areaH3 ? 0.22 : (spot ? (spot.cells.has(c.h3) ? 0.95 : 0.18) : 0.3));
       if (animalsRecency) {
         const rb = bucketOf(lastRecorded(c), now);
-        return pt(centers[i], { i, k, g, color: rb ? rb.color : UNDATED_INK, n: Math.sqrt(c.animals) / maxA, sort: -c.animals, dim: (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0,
+        return pt(centers[i], { i, k, g, o, color: rb ? rb.color : UNDATED_INK, n: Math.sqrt(c.animals) / maxA, sort: -c.animals, dim,
           title: placeName(c.zone), line: `${c.animals.toLocaleString("en-IN")} animals · last recorded ${rb ? rb.label.toLowerCase() : "on no recorded date"}` });
       }
       const kl = byId.get(classOf[i]); const v = q.measure(c, facet, ctx, i);
       const fill = kl?.kind === "unknown" ? UNDATED_INK : kl?.kind === "zero" ? "#2a3b5c" : kl?.color ?? "#2a3b5c";
-      return pt(centers[i], { i, k: kl?.kind === "value" ? k : k * 0.7, g, color: fill, n: Math.sqrt(c.animals) / maxA, sort: -(v || 0), dim: (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0,
+      return pt(centers[i], { i, k: kl?.kind === "value" ? k : k * 0.7, g, o, color: fill, n: Math.sqrt(c.animals) / maxA, sort: -(v || 0), dim,
         title: placeName(c.zone), line: `${kl?.label ?? ""}${v ? ` · ${v.toLocaleString("en-IN")} ${q.unit(facet)}` : ""}` });
     }));
     set("nums", cells.flatMap((c, i) => {

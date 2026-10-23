@@ -27,7 +27,7 @@ test("landing closes in one night section that carries the footer", async ({ pag
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
-test("the WhatsApp message types, becomes a record and lands on the map as the reader scrolls", async ({ page }) => {
+test("the WhatsApp message types, becomes a record, and the section ends at the checked record", async ({ page }) => {
   /* Under reduced motion the story follows the scroll exactly. */
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
@@ -36,21 +36,18 @@ test("the WhatsApp message types, becomes a record and lands on the map as the r
   await expect(s.getByRole("button")).toHaveCount(0);
   await scrollThrough(page, ".rt-track", 0);
   await expect(s.locator(".rt-stage")).not.toHaveClass(/is-sent/);
-  await scrollThrough(page, ".rt-track", 0.35);
+  await scrollThrough(page, ".rt-track", 0.5);
   await expect(s.locator(".rt-stage")).toHaveClass(/is-sent/);
-  await scrollThrough(page, ".rt-track", 0.62);
+  await scrollThrough(page, ".rt-track", 1);
   await expect(s.locator(".rt-rec-status")).toHaveText("Checked by a person");
   /* The words that left the bubble sit where the record keeps them. */
   for (const k of ["animal", "place", "cond"]) {
     const [f, g] = await Promise.all([s.locator(`.rt-fly .is-${k}`).boundingBox(), s.locator(".rt-rec-v").nth(["animal", "place", "cond"].indexOf(k)).boundingBox()]);
     expect(Math.abs(f!.x - g!.x)).toBeLessThan(3); expect(Math.abs(f!.y - g!.y)).toBeLessThan(3);
   }
-  await scrollThrough(page, ".rt-track", 1);
-  await expect(s.locator(".rt-city")).toHaveClass(/is-on/);
-  await expect(s.locator(".rt-city-cap")).toContainText("recorded areas");
-  await expect(s.locator(".rt-msg")).toHaveCount(2);
-  await scrollThrough(page, ".rt-track", 0.1);
-  await expect(s.locator(".rt-msg")).toHaveCount(0);
+  /* The map, city label and reply bubbles were removed from this section;
+     the group chat and the city map live in the sections that follow. */
+  await expect(page.locator(".rt-map, .rt-city, .rt-reply, .rt-msg")).toHaveCount(0);
 });
 
 test("both WhatsApp stories play by themselves once on screen", async ({ page }) => {

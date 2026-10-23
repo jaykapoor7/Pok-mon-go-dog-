@@ -14,7 +14,7 @@ test("the WhatsApp story never writes to the record",async({page})=>{
  await page.goto("/");
  await expect(page.locator("#one-request")).not.toContainText(/pilot/i);
  await page.evaluate(()=>{const el=document.querySelector(".rt-track")!;const r=el.getBoundingClientRect();window.scrollTo({top:r.bottom+scrollY-innerHeight,behavior:"instant"});});
- await expect(page.locator(".rt-city")).toBeVisible();expect(writes).toEqual([]);
+ await expect(page.locator("#one-request .rt-rec-status")).toBeVisible();expect(writes).toEqual([]);
 });
 test("WhatsApp is presented as launched without invented prices",async({page})=>{
  await page.goto("/for-ngos");await expect(page.getByRole("heading",{name:"WhatsApp, connected through CareOS."})).toBeVisible();

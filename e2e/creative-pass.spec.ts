@@ -9,7 +9,7 @@ for(const width of [320,390,768,1440])test(`hero and section order remain usable
  await expect(page.getByRole("button",{name:/Pause motion|Play motion/})).toHaveCount(0);
  await expect(page.locator("#world .ld-plate canvas,#world .ld-plate-fallback svg").first()).toBeVisible();
  await expect(page.locator(".rt")).toHaveCount(1);await expect(page.locator(".wa-phone")).toHaveCount(0);
- await expect(page.locator(".ld-hero-actions .is-flame")).toHaveCSS("background-color","rgb(255, 138, 61)");
+ await expect(page.locator(".ld-hero-actions .is-flame")).toHaveCSS("background-color","rgb(240, 91, 64)");
  await expect(page.locator("#world")).not.toContainText("Explore the public animal record.");
  await expect(page.locator("#world")).not.toContainText("Sources & definitions");
  await expect(page.locator("#request-journey")).not.toContainText(/Archived public case|Illustrative routes|routes are illustrative|Place of care not on the public record/i);
@@ -77,16 +77,16 @@ test("every published field partner has an accessible organisation profile",asyn
  }
  expect((await request.get("/community/organisations/not-a-published-straypaw-organisation")).status()).toBe(404);
 });
-test("the landing navigation blends into the hero and keeps current WhatsApp geography",async({page})=>{
+test("the landing navigation blends into the hero and the WhatsApp section finishes at the checked record",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
  await expect(page.locator(".sp-header")).toHaveClass(/is-overlay/);
  await expect(page.locator(".sp-header-bar")).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
  expect(await page.locator(".ld-hero").evaluate(el=>el.getBoundingClientRect().top)).toBeLessThanOrEqual(1);
  await expect(page.locator(".faq-asterisk,.faq-ledger")).toHaveCount(0);
  await page.evaluate(()=>{const el=document.querySelector(".rt-track")!;const r=el.getBoundingClientRect();window.scrollTo({top:r.bottom+scrollY-innerHeight,behavior:"instant"});});
- expect(await page.locator(".rt-map circle").count()).toBeGreaterThan(20);
- await expect(page.locator(".rt-city")).toHaveClass(/is-on/);
- await expect(page.locator(".rt-city-cap")).toContainText("recorded areas");
+ /* Section 1 now ends at the checked record; the city map and replies live in later sections. */
+ await expect(page.locator("#one-request .rt-rec-status")).toHaveText("Checked by a person");
+ await expect(page.locator(".rt-map, .rt-city, .rt-reply")).toHaveCount(0);
 });
 test("reduced motion shows the whole request and removes ambient movement",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");const section=page.locator("#one-request");await section.scrollIntoViewIfNeeded();

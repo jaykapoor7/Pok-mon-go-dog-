@@ -44,7 +44,6 @@ export default async function ProgrammesPage() {
           <div><dt>Dogs sterilised</dt><dd>{fmt(sum("sterilisation"))}</dd></div>
           <div><dt>Dogs vaccinated</dt><dd>{fmt(sum("vaccination"))}</dd></div>
           <div><dt>Rescue requests</dt><dd>{fmt(sum("rescue"))}</dd></div>
-          <div><dt>Partner NGOs</dt><dd>{ngos.length}</dd></div>
         </dl>
       </CoSec>
       {ngos.map((n) => (
