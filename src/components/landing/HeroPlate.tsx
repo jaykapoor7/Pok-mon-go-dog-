@@ -73,11 +73,11 @@ export function HeroPlate({ city, box, rings, events }: Props) {
       const fit = () => {
         if (!map) return;
         const w = map.getContainer().clientWidth, h = map.getContainer().clientHeight;
-        /* On a phone the headline fills the upper ~two thirds, so the city is
-           dropped into the lower band where the scrim opens up and it reads. */
+        /* On a phone the plate is its own band under the copy (see
+           restored-landing.css), so the city fills it, clear of the meter. */
         const pad = w > 1100
           ? { top: 70, bottom: 150, left: Math.min(620, w * 0.44), right: 40 }
-          : w > 760 ? { top: 60, bottom: 150, left: w * 0.4, right: 24 } : { top: Math.round(h * 0.58), bottom: Math.max(56, Math.round(h * 0.08)), left: 18, right: 18 };
+          : w > 760 ? { top: 60, bottom: 150, left: w * 0.4, right: 24 } : { top: 28, bottom: 58, left: 20, right: 20 };
         if (pad.left + pad.right > w - 80 || pad.top + pad.bottom > h - 80) { pad.top = pad.bottom = 20; }
         map.fitBounds(box, { padding: pad, animate: false });
       };

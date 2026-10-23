@@ -25,7 +25,12 @@ export function Wall({ w, h }: Size) {
   const P = (x: number, y: number, pw: number, ph: number, rot: number) => ({ x, y, pw: pw * k, ph: ph * k, rot });
   const tuition = portrait ? P(w * 0.04, h * 0.6, 170, 230, -3) : P(w * 0.035, h * 0.5, 200, 270, -3);
   const admit = portrait ? P(w * 0.42, h * 0.63, 160, 200, 2.5) : P(w * 0.15, h * 0.58, 190, 240, 3);
-  const film = portrait ? P(w * 0.6, h * 0.1, 150, 200, 2) : P(w * 0.76, h * 0.08, 210, 290, 2);
+  /* The same cricket poster pasted in a row, as they are. */
+  const cric = portrait
+    ? [P(w * 0.5, h * 0.09, 120, 168, -2), P(w * 0.5 + 118 * k, h * 0.095, 120, 168, 1.5)]
+    : [P(w * 0.6, h * 0.115, 140, 196, -2), P(w * 0.6 + 138 * k, h * 0.12, 140, 196, 1.2), P(w * 0.6 + 276 * k, h * 0.112, 140, 196, -1)];
+  /* A shop's advert, painted straight onto the plaster years ago. */
+  const ad = { x: w * 0.17, y: h * 0.13, aw: Math.min(w * 0.36, 460 * k), ah: 112 * k };
   const meter = { x: portrait ? w * 0.06 : w * 0.05, y: h * 0.11, s: k };
   const brick = { x: portrait ? w * 0.7 : w * 0.82, y: portrait ? h * 0.66 : h * 0.6 };
   const stencil = { x: portrait ? w * 0.06 : w * 0.66, y: portrait ? h * 0.27 : h * 0.68 };
@@ -73,6 +78,20 @@ export function Wall({ w, h }: Size) {
         <ellipse rx={22 * k} ry={9 * k} /><ellipse cx={26 * k} cy={6 * k} rx={7 * k} ry={4 * k} /><circle cx={-24 * k} cy={-6 * k} r={4 * k} /><circle cx={34 * k} cy={-10 * k} r={2.5 * k} /><path d={`M${4 * k} ${6 * k} q${2 * k} ${14 * k} ${-1 * k} ${26 * k}`} stroke="#050f22" strokeWidth={3 * k} fill="none" />
       </g>
 
+      {/* the painted advert, faded and flaking (wide screens only) */}
+      {!portrait && (
+        <g transform={`translate(${ad.x} ${ad.y}) rotate(-0.6)`} opacity=".8">
+          <rect width={ad.aw} height={ad.ah} fill="#fffdf9" opacity=".82" />
+          <rect x={6 * k} y={6 * k} width={ad.aw - 12 * k} height={ad.ah - 12 * k} fill="none" stroke="#f05b40" strokeWidth={3 * k} />
+          <text x={ad.aw / 2} y={ad.ah * 0.42} textAnchor="middle" fill="#2457ce" fontSize={ad.ah * 0.3} className="mw-poster-t" textLength={ad.aw * 0.84} lengthAdjust="spacingAndGlyphs">SHARMA TENT HOUSE</text>
+          <text x={ad.aw / 2} y={ad.ah * 0.66} textAnchor="middle" fill="#f05b40" fontSize={ad.ah * 0.17} fontWeight="700">शादी · पार्टी · कैटरिंग · लाइट</text>
+          <text x={ad.aw / 2} y={ad.ah * 0.86} textAnchor="middle" fill="#0b1e3d" fontSize={ad.ah * 0.12} fontWeight="700" letterSpacing="1">☎ 98 ••••• •••••</text>
+          {/* where the paint has flaked away */}
+          <rect width={ad.aw} height={ad.ah} filter="url(#mw-blotch)" opacity=".9" />
+          <path d={`M${ad.aw * 0.62} 0 q${10 * k} ${30 * k} ${-6 * k} ${50 * k} q${-14 * k} ${20 * k} ${8 * k} ${ad.ah - 50 * k} L${ad.aw * 0.74} ${ad.ah} L${ad.aw * 0.7} 0Z`} fill="#3a6cc9" opacity=".75" />
+        </g>
+      )}
+
       {/* the meter box and its wires */}
       <g transform={`translate(${meter.x} ${meter.y}) scale(${meter.s})`}>
         <path d={`M38 0 C ${w * 0.18 / meter.s} -30 ${w * 0.32 / meter.s} 40 ${w * 0.55 / meter.s} -10 S ${w * 0.9 / meter.s} -30 ${w * 1.1 / meter.s} -20`} fill="none" stroke="#161616" strokeWidth="3.2" />
@@ -87,49 +106,56 @@ export function Wall({ w, h }: Size) {
       {/* stencilled on the wall long ago, under the posters */}
       <g transform={`translate(${stencil.x} ${stencil.y}) rotate(-1.5) scale(${k})`} className="mw-stencil">
         <text y="0" fill="#f3ead6" opacity=".7" fontSize="34" letterSpacing="3">STICK NO BILLS</text>
-        <text y="40" fill="#ffd9a0" opacity=".66" fontSize="25">यहाँ पोस्टर लगाना मना है</text>
+        <text y="40" fill="#ffb29e" opacity=".7" fontSize="25">यहाँ पोस्टर लगाना मना है</text>
       </g>
 
       {/* torn remnants of older posters */}
       <g filter="url(#mw-torn)" opacity=".85">
         <rect x={tuition.x + 150 * k} y={tuition.y - 40 * k} width={70 * k} height={50 * k} fill="#e9e2cf" transform={`rotate(4 ${tuition.x} ${tuition.y})`} />
-        <rect x={film.x - 50 * k} y={film.y + 210 * k} width={60 * k} height={70 * k} fill="#d7c48d" />
+        <rect x={cric[0].x - 46 * k} y={cric[0].y + 150 * k} width={56 * k} height={66 * k} fill="#e9e2cf" />
         <rect x={w * 0.5} y={h * 0.86} width={90 * k} height={30 * k} fill="#e4dccb" opacity=".7" />
       </g>
 
       {/* posters */}
       <g transform={`translate(${tuition.x} ${tuition.y}) rotate(${tuition.rot})`} filter="url(#mw-torn)">
-        <rect width={tuition.pw} height={tuition.ph} fill="#f3ecd8" />
-        <rect width={tuition.pw} height={tuition.ph * 0.24} fill="#c8321f" />
+        <rect width={tuition.pw} height={tuition.ph} fill="#fffdf9" />
+        <rect width={tuition.pw} height={tuition.ph * 0.24} fill="#f05b40" />
         <text x={tuition.pw / 2} y={tuition.ph * 0.16} textAnchor="middle" fill="#fff8e7" fontSize={24 * k} fontWeight="800" className="mw-poster-t">TUITION</text>
-        <text x={tuition.pw / 2} y={tuition.ph * 0.36} textAnchor="middle" fill="#1d2b5c" fontSize={15 * k} fontWeight="800">CLASS 6 TO 12</text>
-        <text x={tuition.pw / 2} y={tuition.ph * 0.47} textAnchor="middle" fill="#1d2b5c" fontSize={12 * k}>Maths · Science · English</text>
-        <text x={tuition.pw / 2} y={tuition.ph * 0.6} textAnchor="middle" fill="#c8321f" fontSize={17 * k} fontWeight="700">हर विषय की कोचिंग</text>
-        <rect x={tuition.pw * 0.12} y={tuition.ph * 0.72} width={tuition.pw * 0.76} height={tuition.ph * 0.13} fill="#1d2b5c" />
-        <text x={tuition.pw / 2} y={tuition.ph * 0.81} textAnchor="middle" fill="#ffd34d" fontSize={13 * k} fontWeight="700">ADMISSIONS NOW</text>
+        <text x={tuition.pw / 2} y={tuition.ph * 0.36} textAnchor="middle" fill="#0b1e3d" fontSize={15 * k} fontWeight="800">CLASS 6 TO 12</text>
+        <text x={tuition.pw / 2} y={tuition.ph * 0.47} textAnchor="middle" fill="#0b1e3d" fontSize={12 * k}>Maths · Science · English</text>
+        <text x={tuition.pw / 2} y={tuition.ph * 0.6} textAnchor="middle" fill="#2457ce" fontSize={17 * k} fontWeight="700">हर विषय की कोचिंग</text>
+        <rect x={tuition.pw * 0.12} y={tuition.ph * 0.72} width={tuition.pw * 0.76} height={tuition.ph * 0.13} fill="#2457ce" />
+        <text x={tuition.pw / 2} y={tuition.ph * 0.81} textAnchor="middle" fill="#fffdf9" fontSize={13 * k} fontWeight="700">ADMISSIONS NOW</text>
         <rect width={tuition.pw} height={tuition.ph} fill="url(#mw-light)" />
       </g>
       <g transform={`translate(${admit.x} ${admit.y}) rotate(${admit.rot})`} filter="url(#mw-torn)">
         <rect width={admit.pw} height={admit.ph} fill="#13254a" />
-        <rect y={admit.ph * 0.62} width={admit.pw} height={admit.ph * 0.38} fill="#ffcc2e" />
-        <text x={admit.pw / 2} y={admit.ph * 0.22} textAnchor="middle" fill="#ffcc2e" fontSize={22 * k} fontWeight="800" className="mw-poster-t">ADMISSION</text>
+        <rect y={admit.ph * 0.62} width={admit.pw} height={admit.ph * 0.38} fill="#f05b40" />
+        <text x={admit.pw / 2} y={admit.ph * 0.22} textAnchor="middle" fill="#ff9a7e" fontSize={22 * k} fontWeight="800" className="mw-poster-t">ADMISSION</text>
         <text x={admit.pw / 2} y={admit.ph * 0.38} textAnchor="middle" fill="#fff" fontSize={22 * k} fontWeight="800" className="mw-poster-t">OPEN</text>
         <text x={admit.pw / 2} y={admit.ph * 0.52} textAnchor="middle" fill="#fff" fontSize={14 * k}>2026–27</text>
-        <text x={admit.pw / 2} y={admit.ph * 0.8} textAnchor="middle" fill="#a2140a" fontSize={20 * k} fontWeight="800">प्रवेश प्रारंभ</text>
+        <text x={admit.pw / 2} y={admit.ph * 0.8} textAnchor="middle" fill="#fffdf9" fontSize={20 * k} fontWeight="800">प्रवेश प्रारंभ</text>
         <rect width={admit.pw} height={admit.ph} fill="url(#mw-light)" />
         {/* a corner torn away */}
         <path d={`M${admit.pw} ${admit.ph * 0.7} L${admit.pw} ${admit.ph} L${admit.pw * 0.62} ${admit.ph} Z`} fill="#3a6cc9" />
       </g>
-      <g transform={`translate(${film.x} ${film.y}) rotate(${film.rot})`} filter="url(#mw-torn)" opacity=".92">
-        <rect width={film.pw} height={film.ph} fill="#5d1747" />
-        <circle cx={film.pw * 0.5} cy={film.ph * 0.36} r={film.pw * 0.3} fill="#f08a24" opacity=".9" />
-        <path d={`M0 ${film.ph * 0.56} L${film.pw * 0.25} ${film.ph * 0.4} L${film.pw * 0.45} ${film.ph * 0.52} L${film.pw * 0.7} ${film.ph * 0.34} L${film.pw} ${film.ph * 0.5} V${film.ph * 0.66} H0Z`} fill="#2a0b22" />
-        <text x={film.pw / 2} y={film.ph * 0.8} textAnchor="middle" fill="#ffe9a8" fontSize={26 * k} fontWeight="800" className="mw-poster-t">MERA SHEHAR</text>
-        <text x={film.pw / 2} y={film.ph * 0.9} textAnchor="middle" fill="#ffe9a8" fontSize={12 * k} letterSpacing="2">NOW SHOWING</text>
-        <rect width={film.pw} height={film.ph} fill="url(#mw-light)" />
-        {/* the lower part peeled off */}
-        <path d={`M0 ${film.ph * 0.86} L${film.pw * 0.2} ${film.ph * 0.93} L${film.pw * 0.34} ${film.ph * 0.88} L${film.pw * 0.5} ${film.ph * 0.97} L0 ${film.ph}Z`} fill="#3a6cc9" />
-      </g>
+      {cric.map((c, i) => (
+        <g key={i} transform={`translate(${c.x} ${c.y}) rotate(${c.rot})`} filter="url(#mw-torn)">
+          <rect width={c.pw} height={c.ph} fill="#fffdf9" />
+          <rect width={c.pw} height={c.ph * 0.17} fill="#f05b40" />
+          <text x={c.pw / 2} y={c.ph * 0.12} textAnchor="middle" fill="#fffdf9" fontSize={c.ph * 0.085} className="mw-poster-t" letterSpacing="2">NIGHT</text>
+          <text x={c.pw / 2} y={c.ph * 0.3} textAnchor="middle" fill="#0b1e3d" fontSize={c.ph * 0.11} className="mw-poster-t">CRICKET</text>
+          <text x={c.pw / 2} y={c.ph * 0.39} textAnchor="middle" fill="#0b1e3d" fontSize={c.ph * 0.062} className="mw-poster-t" letterSpacing="1">TOURNAMENT</text>
+          <text x={c.pw / 2} y={c.ph * 0.49} textAnchor="middle" fill="#2457ce" fontSize={c.ph * 0.06} fontWeight="700">रात्रि क्रिकेट प्रतियोगिता</text>
+          <circle cx={c.pw / 2} cy={c.ph * 0.62} r={c.ph * 0.07} fill="#f05b40" />
+          <path d={`M${c.pw / 2 - c.ph * 0.03} ${c.ph * 0.555} q${c.ph * 0.03} ${c.ph * 0.065} 0 ${c.ph * 0.13}`} fill="none" stroke="#fffdf9" strokeWidth={1.4 * k} strokeDasharray={`${2 * k} ${2 * k}`} />
+          <rect y={c.ph * 0.76} width={c.pw} height={c.ph * 0.24} fill="#2457ce" />
+          <text x={c.pw / 2} y={c.ph * 0.86} textAnchor="middle" fill="#fffdf9" fontSize={c.ph * 0.062} className="mw-poster-t">1ST PRIZE ₹21,000</text>
+          <text x={c.pw / 2} y={c.ph * 0.94} textAnchor="middle" fill="#fffdf9" fontSize={c.ph * 0.045} letterSpacing="1">ENTRY ₹1,100 · 8 OVERS</text>
+          <rect width={c.pw} height={c.ph} fill="url(#mw-light)" />
+          {i === cric.length - 1 && <path d={`M${c.pw * 0.55} ${c.ph} L${c.pw} ${c.ph * 0.52} L${c.pw} ${c.ph}Z`} fill="#3a6cc9" />}
+        </g>
+      ))}
 
       {/* grain, light and vignette over everything */}
       <rect width={w} height={h} filter="url(#mw-grain)" opacity=".5" />

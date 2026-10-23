@@ -343,11 +343,17 @@ export function MissionWall({ family }: { family: string }) {
       play: () => { reset(); if (!sfx.current) sfx.current = new Sfx(); sfx.current.start(); void run(false); },
       stop: reset,
     };
+    /* Pressed before the wall was ready: start as soon as it is. */
+    if (pending.current && !reduced) { pending.current = false; engine.current.play(); }
     return () => { alive = false; reset(); engine.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size, family]);
 
-  const start = useCallback(() => { setPhase("play"); engine.current?.play(); }, []);
+  const pending = useRef(false);
+  const start = useCallback(() => {
+    setPhase("play");
+    if (engine.current) engine.current.play(); else pending.current = true;
+  }, []);
   const toggleSound = () => { setMuted((m) => { const n = !m; if (!sfx.current) sfx.current = new Sfx(); sfx.current.setMuted(n); return n; }); };
 
   return (
@@ -397,9 +403,13 @@ export function MissionWall({ family }: { family: string }) {
       </div>
 
       {phase === "idle" && (
-        <button type="button" className="mw-go" onClick={start} autoFocus>
-          <span className="mw-go-can" aria-hidden />
-          Click to spray
+        <button type="button" className="mw-go" onClick={start} aria-label="Click to spray">
+          <span className="mw-go-mist" aria-hidden />
+          <svg className="mw-go-ring" viewBox="0 0 200 200" aria-hidden>
+            <defs><path id="mw-ring" d="M100 100 m-80 0 a80 80 0 1 1 160 0 a80 80 0 1 1 -160 0" /></defs>
+            <text><textPath href="#mw-ring" textLength="500" lengthAdjust="spacing">CLICK TO SPRAY ✶ CLICK TO SPRAY ✶</textPath></text>
+          </svg>
+          <span className="mw-go-cap" aria-hidden><span className="mw-go-nozzle" /></span>
         </button>
       )}
       {phase === "done" && !still && <button type="button" className="mw-again" onClick={start}>Spray again</button>}

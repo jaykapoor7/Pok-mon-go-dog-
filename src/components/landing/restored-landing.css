@@ -21,8 +21,14 @@ html body .restored-landing .ld-close::before { display: none; }
 .restored-landing .ld-hero :focus-visible { outline: 3px solid #8fb7ff; outline-offset: 4px; }
 
 @media (max-width: 760px) {
-  .restored-landing .ld-hero { height: auto; min-height: 640px; }
-  .restored-landing .ld-hero-copy { padding: 104px 20px 120px; }
+  /* A phone hero in two parts: the words, then the city in a band of its
+     own beneath them, so the lights never run under the text. */
+  .restored-landing .ld-hero { --band: clamp(250px, 38svh, 330px); height: auto; min-height: 0; }
+  .restored-landing .ld-stage { height: auto; padding-bottom: var(--band); }
+  .restored-landing .ld-hero-copy { padding: 100px 20px 4px; }
+  .restored-landing .ld-plate, .restored-landing .ld-plate-fallback { inset: auto 0 0 0; top: auto; height: var(--band); opacity: 1;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 26%); mask-image: linear-gradient(180deg, transparent 0, #000 26%); }
+  .restored-landing .ld-stage::after { background: linear-gradient(180deg, transparent calc(100% - 70px), rgba(7, 20, 43, .78) 100%); }
   .restored-landing .ld-hero h1 { font-size: clamp(37px, 10vw, 48px); line-height: 1.03; max-width: 92%; }
   .restored-landing .ld-hero h1 em { margin-top: 12px; }
   .restored-landing .ld-hero-sub { font-size: 15px; line-height: 1.5; max-width: 30ch; }

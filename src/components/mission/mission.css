@@ -37,18 +37,27 @@
 @keyframes mw-swap { 0% { transform: none; } 25% { transform: translate(30%, 60%) rotate(30deg); opacity: .15; } 45% { transform: translateY(6%) rotate(-14deg); opacity: 1; }
   55%, 75% { transform: translateY(-4%) rotate(12deg); } 65%, 85% { transform: translateY(4%) rotate(-12deg); } 100% { transform: none; } }
 
-/* One button. */
-.mw-go { position: absolute; left: 50%; top: 54%; z-index: 5; display: inline-flex; align-items: center; gap: 14px; padding: 18px 30px 18px 22px; border: 3px solid #0b1e3d; border-radius: 999px;
-  background: linear-gradient(180deg, #ff7a5c, #f05b40 55%, #d63f2a); color: #fffdf9; font: 900 clamp(18px, 2vw, 24px) / 1 var(--mw-font, sans-serif); letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
-  box-shadow: 6px 6px 0 #0b1e3d, 0 0 80px rgba(240, 91, 64, .45); transform: translate(-50%, -50%) rotate(-3deg); animation: mw-breathe 2.4s ease-in-out infinite; }
-.mw-go:hover { animation-play-state: paused; transform: translate(-50%, -50%) rotate(-3deg) scale(1.05); }
-.mw-go:active { transform: translate(calc(-50% + 4px), calc(-50% + 4px)) rotate(-3deg); box-shadow: 2px 2px 0 #0b1e3d; }
-.mw-go:focus-visible { outline: 4px solid #8fb7ff; outline-offset: 6px; }
-.mw-go-can { width: 22px; height: 34px; border-radius: 6px 6px 5px 5px; background: #fffdf9; position: relative; animation: mw-shake .9s ease-in-out infinite; }
-.mw-go-can::before { content: ""; position: absolute; left: 6px; top: -7px; width: 10px; height: 7px; border-radius: 3px 3px 0 0; background: #fffdf9; }
-.mw-go-can::after { content: ""; position: absolute; left: 0; right: 0; top: 11px; height: 9px; background: #0b1e3d; opacity: .9; }
-@keyframes mw-breathe { 50% { box-shadow: 6px 6px 0 #0b1e3d, 0 0 120px rgba(240, 91, 64, .75); } }
-@keyframes mw-shake { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-16deg) translateY(-2px); } 80% { transform: rotate(14deg) translateY(1px); } 90% { transform: rotate(-10deg); } }
+/* One button: the cap of a can, seen from above, ringed by its own
+   instruction. It is centred without transforms and never moves; only
+   what is inside it turns, glows and presses. */
+.mw-go { position: absolute; inset: 0; z-index: 5; width: 210px; height: 210px; margin: auto; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; display: grid; place-items: center; -webkit-tap-highlight-color: transparent; }
+.mw-go > * { grid-area: 1 / 1; pointer-events: none; }
+.mw-go-mist { width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(closest-side, rgba(240, 91, 64, .5), rgba(240, 91, 64, .16) 55%, transparent 72%); filter: blur(6px); opacity: .7; transition: opacity .3s; animation: mw-mist 2.8s ease-in-out infinite; }
+.mw-go-ring { width: 100%; height: 100%; overflow: visible; animation: mw-turn 16s linear infinite; }
+.mw-go-ring text { font: 400 15px var(--mw-font, sans-serif); letter-spacing: .14em; fill: #fffdf9; transition: fill .25s; }
+.mw-go-cap { width: 112px; height: 112px; border-radius: 50%; position: relative; transition: transform .12s cubic-bezier(.3, .7, .4, 1);
+  background: radial-gradient(circle at 36% 30%, #2a3d63 0, #0b1e3d 46%, #050f22 100%);
+  box-shadow: 0 0 0 5px #c9d0d8, 0 0 0 7px #6b7178, inset 0 -10px 18px rgba(0, 0, 0, .55), inset 0 6px 10px rgba(143, 183, 255, .18), 0 18px 34px rgba(3, 11, 26, .6); }
+.mw-go-cap::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; border: 1.5px solid rgba(143, 183, 255, .18); }
+.mw-go-nozzle { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ff9a7e, #f05b40 55%, #b8341f); box-shadow: 0 0 0 4px #050f22, 0 0 22px 6px rgba(240, 91, 64, .55); transition: box-shadow .25s; }
+.mw-go:hover .mw-go-ring text, .mw-go:focus-visible .mw-go-ring text { fill: #ff9a7e; }
+.mw-go:hover .mw-go-mist { opacity: 1; }
+.mw-go:hover .mw-go-nozzle { box-shadow: 0 0 0 4px #050f22, 0 0 34px 12px rgba(240, 91, 64, .75); }
+.mw-go:active .mw-go-cap { transform: scale(.94); }
+.mw-go:focus-visible { outline: none; }
+.mw-go:focus-visible .mw-go-cap { box-shadow: 0 0 0 5px #c9d0d8, 0 0 0 7px #6b7178, 0 0 0 11px #8fb7ff, inset 0 -10px 18px rgba(0, 0, 0, .55); }
+@keyframes mw-turn { to { transform: rotate(360deg); } }
+@keyframes mw-mist { 50% { opacity: .95; } }
 
 .mw-again, .mw-sound { position: absolute; z-index: 5; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid rgba(255, 253, 249, .35); border-radius: 999px; background: rgba(12, 10, 16, .55); color: #fffdf9; cursor: pointer; backdrop-filter: blur(6px); }
 .mw-again { left: 0; right: 0; bottom: 28px; width: max-content; margin: 0 auto; min-height: 46px; padding: 0 22px; font: 700 15px var(--font-sans, sans-serif); animation: mw-rise .6s ease both; }
@@ -59,6 +68,6 @@
 @keyframes mw-rise { from { opacity: 0; transform: translateY(10px); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .mw-go, .mw-go-can, .mw-again { animation: none; }
+  .mw-go-ring, .mw-go-mist, .mw-again { animation: none; }
   .mw-hand { display: none; }
 }
