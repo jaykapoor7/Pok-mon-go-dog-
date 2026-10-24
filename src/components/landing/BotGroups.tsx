@@ -66,9 +66,9 @@ export function BotGroups() {
     { at: 0.63, who: "Kavya", time: "11:48", body: <>done, 3 of them need a recheck</> },
     { at: 0.69, who: "Priya", time: "14:20", body: <><span className="bg-at">@StrayPaw</span> close drive</> },
     { at: 0.72, who: "bot", time: "14:20", body: <>Drive closed: <b>18 sterilised, 22 vaccinated</b>, 3 to recheck on Friday. Added to your records and the city map.</> },
-    { at: 0.78, who: "day", body: <>Friday</> },
-    { at: 0.81, who: "bot", time: "8:00", body: <>Good morning. Due today: <b>3 rechecks</b> from Tuesday’s drive (Arun), and <b>the pup behind the temple</b> (Kavya).</> },
-    { at: 0.88, who: "Arun", time: "8:04", body: <>On it</> },
+    { at: 0.82, who: "day", body: <>Friday</> },
+    { at: 0.85, who: "bot", time: "8:00", body: <>Good morning. Due today: <b>3 rechecks</b> from Tuesday’s drive (Arun), and <b>the pup behind the temple</b> (Kavya).</> },
+    { at: 0.9, who: "Arun", time: "8:04", body: <>On it</> },
   ];
   const shown = lines.filter((l) => at(l.at));
   const next = lines.find((l) => !at(l.at));

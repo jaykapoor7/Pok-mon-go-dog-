@@ -1,0 +1,29 @@
+/* Paper-ground placeholder for FieldMap. Lives on the same CSS variables as
+   the real map so the swap is a cross-fade. */
+
+.fm-skeleton { position: relative; width: 100%; height: 100%; min-height: 60svh; background: var(--shell); overflow: hidden; }
+.fm-skeleton-ground { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0.9;
+  background:
+    radial-gradient(60% 70% at 50% 55%, rgba(255, 253, 249, 0.6), transparent 72%),
+    linear-gradient(180deg, var(--shell) 0%, #ece4d4 100%); }
+.fm-skeleton-ground svg { width: min(72%, 520px); height: auto; filter: drop-shadow(0 20px 44px rgba(11, 30, 61, 0.1)); animation: fm-sk-breathe 3.2s ease-in-out infinite; }
+.fm-skeleton-head { position: absolute; z-index: 2; top: 20px; left: 24px; display: grid; gap: 10px; }
+.fm-skeleton-tools { position: absolute; z-index: 2; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; }
+.fm-skeleton-pill { display: block; height: 36px; border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 253, 249, 0.6), rgba(255, 253, 249, 0.95), rgba(255, 253, 249, 0.6));
+  background-size: 200% 100%; animation: fm-sk-shim 1.6s linear infinite;
+  box-shadow: 0 1px 2px rgba(11, 30, 61, 0.06); }
+.fm-skeleton-say { position: absolute; z-index: 2; left: 0; right: 0; bottom: 40px; margin: 0; text-align: center; font-size: 13.5px; color: var(--muted); letter-spacing: 0.02em; }
+
+@keyframes fm-sk-shim { from { background-position: 200% 0; } to { background-position: -100% 0; } }
+@keyframes fm-sk-breathe { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.015); opacity: 1; } }
+
+@media (max-width: 899px) {
+  .fm-skeleton-head { top: 14px; left: 16px; right: 16px; }
+  .fm-skeleton-tools { top: 14px; right: 16px; }
+  .fm-skeleton-say { bottom: 160px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fm-skeleton-pill, .fm-skeleton-ground svg { animation: none; }
+}

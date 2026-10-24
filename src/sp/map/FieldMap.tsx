@@ -58,8 +58,8 @@ function readCity(city: string, scope: MapScope) {
   return p;
 }
 
-export function FieldMap({ variant = "community", scope = "public", lenses = MAP_LENSES, defaultLens = "animals", initialCities, initialUnplaced, embedded = false }: {
-  embedded?: boolean; variant?: MapVariant; scope?: MapScope; lenses?: LensId[]; defaultLens?: LensId; initialCities?: NationalCity[]; initialUnplaced?: Unplaced[];
+export function FieldMap({ variant = "community", scope = "public", lenses = MAP_LENSES, defaultLens = "animals", initialCities, initialUnplaced, initialServerFailed = false, embedded = false }: {
+  embedded?: boolean; variant?: MapVariant; scope?: MapScope; lenses?: LensId[]; defaultLens?: LensId; initialCities?: NationalCity[]; initialUnplaced?: Unplaced[]; initialServerFailed?: boolean;
 }) {
   const params = useSearchParams();
   const cameraRestored = useRef(false);
@@ -68,7 +68,11 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   /* ── state ── */
   const [cities, setCities] = useState<NationalCity[]>(initialCities ?? []);
   const [unplaced, setUnplaced] = useState<Unplaced[]>(initialUnplaced ?? []);
-  const [citiesState, setCitiesState] = useState<"ready" | "loading" | "error" | "auth">(initialCities?.length ? "ready" : "loading");
+  /* The server's own snapshot read either returned rows ("ready"), returned
+     nothing ("loading", because the client is about to retry live), or threw
+     ("error", shown immediately so a reader never sees "no records" when the
+     backend is down). */
+  const [citiesState, setCitiesState] = useState<"ready" | "loading" | "error" | "auth">(initialCities?.length ? "ready" : initialServerFailed ? "error" : "loading");
   const [national, setNational] = useState<NationalCell[]>([]);
   const [faces, setFaces] = useState<Face[]>([]);
   const [city, setCity] = useState<string | null>(I.city);
@@ -109,6 +113,9 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   useEffect(() => {
     if (initialCities?.length) return;
     let live = true;
+    /* When the server read also fails and set initialServerFailed, the UI is
+       already in "error" state so the reader sees the true cause while we
+       retry quietly in the background; a success flips it back to "ready". */
     const read = (left: number): void => {
       api("/api/livingmap?kind=cities", scope).then((r) => (r.status === 401 ? "auth" : r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
         .then((j) => { if (!live) return; if (j === "auth") { setCitiesState("auth"); return; } setCities(j.cities ?? []); setUnplaced(j.unplaced ?? []); setCitiesState("ready"); })
