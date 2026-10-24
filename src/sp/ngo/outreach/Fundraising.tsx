@@ -18,6 +18,7 @@ import { formatINR } from "@/lib/fundraisers";
 import { fundraiserCategory, type Fundraiser } from "@/lib/types";
 import { useMembership } from "../../shell/Shell";
 import { Method, State, day, n } from "../../ui";
+import { Reading } from "../../ui/Reading";
 import { readOrgFundraisers } from "../../data/work-outreach";
 import { NgoGate } from "../Gate";
 import "../ngo.css";
@@ -42,7 +43,7 @@ export function Fundraising() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · fundraising</p><h1 className="serif">Fundraising</h1></div>
-          <p className="ngo-sum">{rows ? <><b>{n(rows.length)}</b> campaign{rows.length === 1 ? "" : "s"}, <b>{n(active)}</b> active. </> : failed ? "Your campaigns could not be read. Nothing is shown as none. " : "Reading your campaigns… "}Donors pay you directly through your own link; StrayPaw never holds the money.</p>
+          <p className="ngo-sum">{rows ? <><b>{n(rows.length)}</b> campaign{rows.length === 1 ? "" : "s"}, <b>{n(active)}</b> active. </> : failed ? "Your campaigns could not be read. Nothing is shown as none. " : <><Reading>Reading your campaigns</Reading>{" "}</>}Donors pay you directly through your own link; StrayPaw never holds the money.</p>
           <div className="row"><Link className="btn is-flame" href="/ngo/fundraising/new"><Plus size={15} aria-hidden /> New campaign</Link></div>
         </header>
 

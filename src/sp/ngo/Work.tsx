@@ -37,6 +37,7 @@ import type { NGO } from "@/lib/types";
 import { useMembership } from "../shell/Shell";
 import { AreaMap } from "../atlas/AreaMap";
 import { State, day, n } from "../ui";
+import { Reading } from "../ui/Reading";
 import { MobileDetails } from "../ui/MobileDetails";
 import { FollowupList, NextStep } from "./NextStep";
 import "./ngo.css";
@@ -173,7 +174,7 @@ export function Work() {
           <h1 className="wk2-h">Today&rsquo;s work</h1>
         </div>
         <MobileDetails label="Today at a glance" className="wk2-summary-fold"><p className="wk2-sum" aria-live="polite">
-          {loading ? "Reading your organisation's open work…" : failed ? <span className="is-err">The organisation&rsquo;s work could not be read. Nothing is shown as zero. <button type="button" className="link" onClick={() => void load()}>Retry</button></span> : (
+          {loading ? <Reading>Reading your organisation&rsquo;s open work</Reading> : failed ? <span className="is-err">The organisation&rsquo;s work could not be read. Nothing is shown as zero. <button type="button" className="link" onClick={() => void load()}>Retry</button></span> : (
             <><b>{n(live.filter((r) => r.crit).length)}</b> critical · <b>{n(co.overdue.length)}</b> follow-ups overdue · <b>{n(live.filter((r) => !r.c?.assignee_name).length)}</b> nobody holds · <b>{n(live.length)}</b> live</>
           )}
         </p>

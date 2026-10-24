@@ -17,6 +17,7 @@ import { getSurveyResponses, getSurveys, getSurveyTotals, PROJECT_MARKER } from 
 import type { Survey } from "@/lib/types";
 import { useMembership } from "../../shell/Shell";
 import { Ack, Method, State, day, n } from "../../ui";
+import { Reading } from "../../ui/Reading";
 import { addProjectEntry, startProject, type Receipt } from "../../data/work-outreach";
 import { NgoGate } from "../Gate";
 import { RegisterTabs } from "./Surveys";
@@ -53,7 +54,7 @@ export function Projects() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · field registers</p><h1 className="serif">Projects</h1></div>
-          <p className="ngo-sum">{projects ? <><b>{n(projects.length)}</b> project{projects.length === 1 ? "" : "s"}. </> : failed ? "Your projects could not be read. Nothing is shown as none. " : "Reading your projects… "}A rabies drive, an ABC drive, a school round: name the fields once and every entry fills them in.</p>
+          <p className="ngo-sum">{projects ? <><b>{n(projects.length)}</b> project{projects.length === 1 ? "" : "s"}. </> : failed ? "Your projects could not be read. Nothing is shown as none. " : <><Reading>Reading your projects</Reading>{" "}</>}A rabies drive, an ABC drive, a school round: name the fields once and every entry fills them in.</p>
           <div className="row"><button type="button" className="btn is-flame" aria-expanded={making} onClick={() => setMaking((v) => !v)}><Plus size={15} aria-hidden /> New project</button></div>
         </header>
         <RegisterTabs on="projects" />

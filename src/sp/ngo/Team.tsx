@@ -16,6 +16,7 @@ import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
 import { orgTeamCodes, type TeamCode } from "@/lib/programme";
 import { useMembership } from "../shell/Shell";
 import { Ack, day, n } from "../ui";
+import { Reading } from "../ui/Reading";
 import { changeRole, inviteTeam, removeMember, revokeCode, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
@@ -44,7 +45,7 @@ export function Team() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · access</p><h1 className="serif">Team</h1></div>
-          <p className="ngo-sum">{people ? <><b>{n(people.length)}</b> member{people.length === 1 ? "" : "s"}, <b>{n(codes.filter((c) => c.active && !c.accepted).length)}</b> code{codes.filter((c) => c.active && !c.accepted).length === 1 ? "" : "s"} not yet used. </> : "Reading your team… "}{lead ? "You are a lead." : "Only leads can change who has access."}</p>
+          <p className="ngo-sum">{people ? <><b>{n(people.length)}</b> member{people.length === 1 ? "" : "s"}, <b>{n(codes.filter((c) => c.active && !c.accepted).length)}</b> code{codes.filter((c) => c.active && !c.accepted).length === 1 ? "" : "s"} not yet used. </> : <><Reading>Reading your team</Reading>{" "}</>}{lead ? "You are a lead." : "Only leads can change who has access."}</p>
         </header>
         <div aria-live="polite" className="tm-receipt">{r && (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not changed: {r.error}</Ack>)}</div>
         <div className="tm-grid">

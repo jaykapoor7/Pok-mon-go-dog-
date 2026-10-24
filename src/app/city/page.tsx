@@ -17,7 +17,7 @@ export default async function CityMapPage() {
     getUnplaced().then((data) => ({ ok: true as const, data })).catch(() => ({ ok: false as const, data: [] })),
   ]);
   const serverFailed = !cities.ok || !unplaced.ok;
-  return <Suspense fallback={<MapSkeleton label="Reading city evidence…" />}>
+  return <Suspense fallback={<MapSkeleton label="Reading city evidence" />}>
     <FieldMap variant="city" lenses={CITY_LAYERS} defaultLens="abc" initialCities={cities.data} initialUnplaced={unplaced.data} initialServerFailed={serverFailed} />
   </Suspense>;
 }

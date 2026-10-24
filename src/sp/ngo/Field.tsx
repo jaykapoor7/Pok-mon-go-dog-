@@ -16,6 +16,7 @@ import { WifiOff } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, openCases, type DueFollowup, type OpenCase } from "@/lib/ops";
 import { Ack, State, day, since, PageBrief } from "../ui";
+import { Reading } from "../ui/Reading";
 import { addNote, setFollowup, startWork, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
@@ -70,7 +71,7 @@ export function Field() {
       <div className="fd">
         <header className="fd-head">
           <p className="k">Field · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" })}</p>
-          <h1 className="serif">{cases === null ? "Reading your day…" : `${mine.length} case${mine.length === 1 ? "" : "s"}, ${myFus.length} follow-up${myFus.length === 1 ? "" : "s"}`}</h1>
+          <h1 className="serif">{cases === null ? <Reading>Reading your day</Reading> : `${mine.length} case${mine.length === 1 ? "" : "s"}, ${myFus.length} follow-up${myFus.length === 1 ? "" : "s"}`}</h1>
           {!online && <p className="fd-off" role="status"><WifiOff size={15} aria-hidden /> No connection. Notes stay on this phone as drafts until you send them.</p>}
           {drafts.length > 0 && (
             <div className="fd-drafts">

@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PartnerRecordRow } from "@/lib/partner-record-explorer";
 import { useMembership } from "../../shell/Shell";
 import { Method, State, day, n } from "../../ui";
+import { Reading } from "../../ui/Reading";
 import { NgoGate } from "../Gate";
 import { ANIMAL_LIMIT, readQuality, type QualityInput } from "./read";
 import "../ngo.css";
@@ -73,7 +74,7 @@ export function Quality() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">What needs cleaning</h1></div>
-          <p className="ngo-sum">{d.state === "loading" ? "Reading your records…" : d.state === "failed" ? "Not read. No queue is shown as zero." : total === 0 ? "Nothing to review in the records read." : <><b>{n(total)}</b> record{total === 1 ? "" : "s"} to review. Queues, not scores: the original source stays intact.</>}</p>
+          <p className="ngo-sum">{d.state === "loading" ? <Reading>Reading your records</Reading> : d.state === "failed" ? "Not read. No queue is shown as zero." : total === 0 ? "Nothing to review in the records read." : <><b>{n(total)}</b> record{total === 1 ? "" : "s"} to review. Queues, not scores: the original source stays intact.</>}</p>
         </header>
         <div className="rc-body">
           {d.state === "loading" && <div className="rc-skel" aria-label="Reading records"><span className="skel" /><span className="skel" /><span className="skel" /></div>}

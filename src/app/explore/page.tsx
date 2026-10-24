@@ -13,7 +13,7 @@ export default async function ExplorePage() {
    getUnplaced().then((data) => ({ ok: true as const, data })).catch(() => ({ ok: false as const, data: [] })),
  ]);
  const serverFailed = !cities.ok || !unplaced.ok;
- return <div className="atlas-page"><SiteHeader /><main aria-label="Living Atlas"><Suspense fallback={<MapSkeleton label="Opening the Living Atlas…" />}>
+ return <div className="atlas-page"><SiteHeader /><main aria-label="Living Atlas"><Suspense fallback={<MapSkeleton label="Opening the Living Atlas" />}>
    <FieldMap initialCities={cities.data} initialUnplaced={unplaced.data} initialServerFailed={serverFailed} />
  </Suspense></main></div>;
 }

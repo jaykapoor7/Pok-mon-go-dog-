@@ -40,6 +40,7 @@ import { DISC_PX, PIE_INK, coreBounds, glyphImage, hatchDisc, haversineKm, pieIm
 import { KINDS, cityEvidence, kindOf } from "./evidence";
 import { LENSES, MORE_LENSES, PUBLIC_LENSES, lensFigure, nationalMeasure, type LensId } from "./lenses";
 import { Inspector } from "./Inspector";
+import { Reading } from "../ui/Reading";
 import "./atlas.css";
 
 export type Level = "india" | "city" | "area" | "animal";
@@ -568,7 +569,7 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
         {level === "india" && variant === "community" && <p className="atlas-kicker k">The Living Field Atlas · street animals on the record</p>}
         <h1 className="serif">{place}{level === "india" && scope === "public" && <span className="atlas-hiname hi" lang="hi"> भारत</span>}</h1>
         {ev && <p className="atlas-ev"><i style={{ background: KINDS[ev.kind].ink }} aria-hidden />{KINDS[ev.kind].label} · {ev.precision}</p>}
-        {cityState === "loading" && <p className="atlas-ev" role="status">Reading {city}&rsquo;s areas…</p>}
+        {cityState === "loading" && <p className="atlas-ev" role="status"><Reading>Reading {city}&rsquo;s areas</Reading></p>}
         {cityState === "error" && <p className="atlas-ev is-err" role="alert">{city} could not be read. That is not the same as no records. <button type="button" className="link" onClick={() => { const c = city; setCity(null); window.setTimeout(() => setCity(c), 0); }}>Retry</button></p>}
       </header>
 

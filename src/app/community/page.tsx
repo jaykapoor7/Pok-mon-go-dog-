@@ -19,7 +19,7 @@ export default async function CommunityMapPage() {
     getUnplaced().then((data) => ({ ok: true as const, data })).catch(() => ({ ok: false as const, data: [] })),
   ]);
   const serverFailed = !cities.ok || !unplaced.ok;
-  return <Suspense fallback={<MapSkeleton label="Reading the national record…" />}>
+  return <Suspense fallback={<MapSkeleton label="Reading the national record" />}>
     <FieldMap initialCities={cities.data} initialUnplaced={unplaced.data} initialServerFailed={serverFailed} />
   </Suspense>;
 }

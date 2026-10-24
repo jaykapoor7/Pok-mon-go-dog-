@@ -21,6 +21,7 @@ import { animalTitle } from "@/lib/animal-name";
 import { useMembership } from "../shell/Shell";
 import { Portrait } from "../ui/Portrait";
 import { State, day, n, PageBrief } from "../ui";
+import { Reading } from "../ui/Reading";
 import { NgoGate } from "./Gate";
 import { MobileDetails } from "../ui/MobileDetails";
 import "./ngo.css";
@@ -58,7 +59,7 @@ export function Animals() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · register</p><h1 className="serif">Animals</h1></div>
-          <p className="ngo-sum">{rows === null ? "Reading the register…" : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> animal{total === 1 ? "" : "s"} match. Unknown is kept apart from no in every filter.</>}</p>
+          <p className="ngo-sum">{rows === null ? <Reading>Reading the register</Reading> : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> animal{total === 1 ? "" : "s"} match. Unknown is kept apart from no in every filter.</>}</p>
           <div className="row ngo-head-act"><Link className="btn is-ink is-s" href="/ngo/import"><Upload size={14} aria-hidden /> Import your register</Link><button type="button" className="btn is-s" disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}><Download size={14} aria-hidden /> This page as CSV</button></div>
         </header>
         <PageBrief items={[["For", "Every animal your organisation keeps, as a register."], ["Watch", "Needs help, and status not recorded (hatched), which is not no."], ["Next", "Open an animal to record care or open a case; export as CSV."], ["After", "Changes show on its public record without private details."]]} />

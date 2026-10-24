@@ -20,6 +20,7 @@ import type { Locality } from "@/lib/livingmap/reading";
 import { placeName } from "@/lib/livingmap/reading";
 import { Portrait } from "../ui/Portrait";
 import { MobileDetails } from "../ui/MobileDetails";
+import { Reading } from "../ui/Reading";
 import type { Bucket } from "../atlas/recency";
 import { KINDS, kindOf, type EvidenceKind } from "../atlas/evidence";
 import { LENSES } from "../atlas/lenses";
@@ -83,13 +84,13 @@ export function Chrome(P: Props) {
             {P.citiesState === "auth" ? "Sign in with your organisation to see its map." :
               P.citiesState === "error" ? (org ? "Your organisation's map could not be read. That is not the same as no records." : "The national index could not be read. That is not the same as no records.") :
               org && P.citiesState === "ready" && !P.cities.length ? "Your organisation has no mapped records yet. Records with a place appear here as they are added." :
-              P.citiesState === "loading" ? "Reading the national record…" :
+              P.citiesState === "loading" ? <Reading>Reading the national record</Reading> :
               org ? <><b>{P.fig.big}</b> {P.fig.small}. Your organisation&rsquo;s own records, by city.</> :
               <><b>{P.fig.big}</b> {P.fig.small}. A record kept since 2015, not a live feed and not a census.</>}
           </p>
         )}
         {level !== "india" && P.ev && <p className="fm-sub"><i className="fm-kind" style={{ background: KINDS[P.ev.kind].ink }} aria-hidden />{KINDS[P.ev.kind].label} · {P.ev.precision}</p>}
-        {P.cityState === "loading" && <p className="fm-sub" role="status">Reading {city}&rsquo;s areas…</p>}
+        {P.cityState === "loading" && <p className="fm-sub" role="status"><Reading>Reading {city}&rsquo;s areas</Reading></p>}
         {P.cityState === "error" && <p className="fm-sub is-err" role="alert">{city} could not be read. That is not the same as no records. <button type="button" className="fm-link" onClick={P.onRetry}>Retry</button></p>}
       </header>
 
@@ -125,7 +126,7 @@ export function Chrome(P: Props) {
         {level === "india" && <IndiaCard cities={P.cities} street={street} unplaced={P.unplaced} faces={P.faces} fig={P.fig} onCity={P.onCity} />}
         {level === "city" && city && <CityCard {...P} city={city} />}
         {level === "area" && cell && <AreaCard cell={cell} city={city!} area={area} onAnimal={P.onAnimal} variant={P.variant} />}
-        {level === "animal" && (animal ? <AnimalCard a={animal} city={city!} cell={cell} variant={P.variant} embedded={P.embedded} /> : area === "loading" || !area ? <p className="fm-wait" role="status">Reading this animal&rsquo;s record…</p> : <p className="fm-wait">This animal is not among the records read for this area. <button type="button" className="fm-link" onClick={P.onUp}>Back to the area</button></p>)}
+        {level === "animal" && (animal ? <AnimalCard a={animal} city={city!} cell={cell} variant={P.variant} embedded={P.embedded} /> : area === "loading" || !area ? <p className="fm-wait" role="status"><Reading>Reading this animal&rsquo;s record</Reading></p> : <p className="fm-wait">This animal is not among the records read for this area. <button type="button" className="fm-link" onClick={P.onUp}>Back to the area</button></p>)}
       </Sheet>
     </>
   );
@@ -201,7 +202,7 @@ function CityCard(P: Props & { city: string }) {
       </div>
     );
   }
-  if (!cells.length) return <p className="fm-wait" role="status">{P.cityState === "loading" ? `Reading ${P.city}…` : P.cityState === "missing" ? `${P.city} has no mapped areas yet.` : ""}</p>;
+  if (!cells.length) return <p className="fm-wait" role="status">{P.cityState === "loading" ? <Reading>Reading {P.city}</Reading> : P.cityState === "missing" ? `${P.city} has no mapped areas yet.` : ""}</p>;
   const top = places.slice(0, 8);
   const maxV = Math.max(1, ...top.map((p) => p.v));
   return (

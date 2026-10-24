@@ -6,8 +6,9 @@
 
 import "./field-map.css";
 import "./map-skeleton.css";
+import { Reading } from "../ui/Reading";
 
-export function MapSkeleton({ label = "Opening the map…" }: { label?: string }) {
+export function MapSkeleton({ label = "Opening the map" }: { label?: string }) {
   return (
     <div className="fm fm-skeleton" role="status" aria-live="polite">
       <div className="fm-skeleton-ground" aria-hidden>
@@ -27,7 +28,7 @@ export function MapSkeleton({ label = "Opening the map…" }: { label?: string }
         <span className="fm-skeleton-pill" style={{ width: 160 }} />
         <span className="fm-skeleton-pill" style={{ width: 44, height: 44, borderRadius: 999 }} />
       </div>
-      <p className="fm-skeleton-say">{label}</p>
+      <p className="fm-skeleton-say"><Reading>{label}</Reading></p>
     </div>
   );
 }

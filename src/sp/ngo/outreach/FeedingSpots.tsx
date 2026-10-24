@@ -19,6 +19,7 @@ import type { OrgFeedingZone } from "@/lib/feeding-zones";
 import { useMembership } from "../../shell/Shell";
 import { AreaMap } from "../../atlas/AreaMap";
 import { Ack, Method, State, day, n, since, PageBrief } from "../../ui";
+import { Reading } from "../../ui/Reading";
 import { readOrgFeedingSpots, startOrgFeedingSpot } from "../../data/work-outreach";
 import type { Receipt } from "../../data/work";
 import { NgoGate } from "../Gate";
@@ -54,7 +55,7 @@ export function FeedingSpots() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">Field work · feeding</p><h1 className="serif">Feeding spots</h1></div>
-          <p className="ngo-sum">{load.state === "read" ? <><b>{n(rows.length)}</b> spot{rows.length === 1 ? "" : "s"} · <b>{n(stale)}</b> not fed in the last 7 days, or never recorded as fed. They appear on the public map, where volunteers can sign up to help.</> : load.state === "failed" ? "Not read." : "Reading your organisation's feeding spots…"}</p>
+          <p className="ngo-sum">{load.state === "read" ? <><b>{n(rows.length)}</b> spot{rows.length === 1 ? "" : "s"} · <b>{n(stale)}</b> not fed in the last 7 days, or never recorded as fed. They appear on the public map, where volunteers can sign up to help.</> : load.state === "failed" ? "Not read." : <Reading>Reading your organisation&rsquo;s feeding spots</Reading>}</p>
           <div className="row" style={{ ["--g" as string]: "8px" }}>
             <button type="button" className="btn is-ink" aria-expanded={adding} onClick={() => setAdding((v) => !v)}><Plus size={15} aria-hidden /> Add a feeding spot</button>
             <Link className="btn" href="/community/feeding">The public map</Link>

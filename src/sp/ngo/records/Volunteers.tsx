@@ -15,6 +15,7 @@ import { Phone, Mail } from "lucide-react";
 import type { Volunteer } from "@/lib/team-actions";
 import { useMembership } from "../../shell/Shell";
 import { Method, State, day, n, since, PageBrief } from "../../ui";
+import { Reading } from "../../ui/Reading";
 import { NgoGate } from "../Gate";
 import { readVolunteers } from "./read";
 import "../ngo.css";
@@ -37,7 +38,7 @@ export function Volunteers() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · volunteers</p><h1 className="serif">Volunteer sign-ups</h1></div>
-          <p className="ngo-sum">{d.state === "read" ? <><b>{n(d.rows.length)}</b> sign-up{d.rows.length === 1 ? "" : "s"}. </> : d.state === "failed" ? "Not read. " : "Reading sign-ups… "}They are not on your team and see nothing. To have someone report for you, add them on <Link className="link" href="/ngo/team">Team</Link>.</p>
+          <p className="ngo-sum">{d.state === "read" ? <><b>{n(d.rows.length)}</b> sign-up{d.rows.length === 1 ? "" : "s"}. </> : d.state === "failed" ? "Not read. " : <><Reading>Reading sign-ups</Reading>{" "}</>}They are not on your team and see nothing. To have someone report for you, add them on <Link className="link" href="/ngo/team">Team</Link>.</p>
         </header>
         <PageBrief items={[["For", "People who offered to help an animal your organisation keeps, and sign-ups StrayPaw shared with you. No other organisation sees them."], ["Watch", "The newest offers; they are not yet on your team."], ["Next", "Contact them, then add them on Team with a personal code."], ["After", "They can report for your organisation, and see nothing private."]]} />
         <div className="rc-body">
