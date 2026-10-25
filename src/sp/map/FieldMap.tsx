@@ -27,11 +27,19 @@ import "./field-map.css";
 
 const INDIA_BOX: [[number, number], [number, number]] = [[68.2, 6.4], [97.4, 35.6]];
 const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, PAW_ZOOM = 13.2, MAX_PAWS = 140;
+/* The paw dots start showing at city overview (~10.4) so when a cluster is
+   tapped they ARE already visible as they bloom; by city-close (~12) they
+   are full strength. The old threshold of PAW_ZOOM-0.6 meant a reader had
+   to wait for the camera to arrive at ~12.6 before any dot drew — the
+   cluster felt empty for the first half of the fly. */
+const PAW_SHOW_LO = 10.4, PAW_SHOW_HI = 12.0;
 /* Night inks: an undated area, and the dots of sterilisation as the record has them. */
 const UNDATED_INK = "#53627f";
 const DOT = { yes: "#1f6f80", no: "#f05b40", unknown: "#697b8d" };
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const travel = (t: number) => 1 - Math.pow(1 - t, 3);
+/* ease-in-out cubic: a soft take-off and a soft landing, so the India →
+   city swoop never feels yanked. */
+const travel = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const dur = (from: number, to: number) => (reduced() ? 0 : Math.min(1800, 600 + Math.abs(from - to) * 150));
 /** Bloom size by zoom, × each area's own k (sized by its animals). */
 const BLOOM_STOPS: [number, number][] = [[8, 10], [10, 17], [11, 24], [12, 36], [13, 54], [14, 96], [16, 300]];
@@ -225,13 +233,13 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
            the dot is a slow heart-beat halo (paint driven by a RAF loop so
            it works in a WebGL vector style). A photographed animal is ringed
            in white; a chosen one in flame. */
-        m.addLayer({ id: "paws-pulse", type: "circle", source: "paws", minzoom: PAW_ZOOM - 0.6, paint: {
-          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 13, ["*", ["get", "s"], 7], 15, ["*", ["get", "s"], 13], 17, ["*", ["get", "s"], 20]],
-          "circle-color": ["get", "col"], "circle-blur": 0.9, "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 0.22], "circle-pitch-alignment": "map" } });
-        m.addLayer({ id: "paws", type: "circle", source: "paws", minzoom: PAW_ZOOM - 0.6, paint: {
-          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 13, ["*", ["get", "s"], 3.4], 15, ["*", ["get", "s"], 6.5], 17, ["*", ["get", "s"], 10]],
+        m.addLayer({ id: "paws-pulse", type: "circle", source: "paws", minzoom: PAW_SHOW_LO, paint: {
+          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 10.4, ["*", ["get", "s"], 3], 13, ["*", ["get", "s"], 7], 15, ["*", ["get", "s"], 13], 17, ["*", ["get", "s"], 20]],
+          "circle-color": ["get", "col"], "circle-blur": 0.9, "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 0.22], "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "paws", type: "circle", source: "paws", minzoom: PAW_SHOW_LO, paint: {
+          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 10.4, ["*", ["get", "s"], 1.8], 13, ["*", ["get", "s"], 3.4], 15, ["*", ["get", "s"], 6.5], 17, ["*", ["get", "s"], 10]],
           "circle-color": ["get", "col"], "circle-stroke-color": ["case", ["==", ["get", "ch"], 1], "#f05b40", ["==", ["get", "ph"], 1], "#ffffff", "rgba(7,20,43,0.9)"], "circle-stroke-width": ["case", ["==", ["get", "ch"], 1], 3, ["==", ["get", "ph"], 1], 1.8, 1],
-          "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], PAW_ZOOM - 0.6, 0, PAW_ZOOM + 0.1, 1] } });
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 1] } });
         /* City rosettes fade out as the city opens so they never ring the
            ground once you are reading its areas. */
         m.addLayer({ id: "cities-glow", type: "circle", source: "cities", maxzoom: 11, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], ["get", "g"], 1.5], 8, ["*", ["get", "r"], ["get", "g"], 2.2]], "circle-color": ["get", "col"], "circle-blur": 0.4, "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3.5, 0.12, 9, 0.12, 11, 0] } });
@@ -241,7 +249,11 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         const tip = (e: { features?: MapGeoJSONFeature[]; point: { x: number; y: number } }) => {
           if (window.matchMedia("(hover: none)").matches) return;
           const f = e.features?.[0]; if (!f) return;
-          setHover({ x: e.point.x, y: e.point.y, title: String(f.properties?.title ?? ""), line: String(f.properties?.line ?? "") });
+          const title = String(f.properties?.title ?? ""), line = String(f.properties?.line ?? "");
+          /* Placeholder paws (shown while an area's records are still being
+             read) carry no title; don't hover-tip them. */
+          if (!title && !line) { setHover(null); return; }
+          setHover({ x: e.point.x, y: e.point.y, title, line });
         };
         for (const id of ["areas", "cities", "paws"]) {
           m.on("mousemove", id, tip);
@@ -440,19 +452,33 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       return [pt(centers[i], { t: v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v) })];
     }));
     set("edge", (data?.edge ?? []).map((e) => pt(e, {})));
-    /* Only loaded individual records receive markers. Their public positions
-       are schematic within the disclosed area, never invented GPS fixes. */
+    /* Only loaded individual records receive identities. Their public
+       positions are schematic within the disclosed area, never invented GPS
+       fixes. While the area endpoint is still fetching, we draw anonymous
+       placeholder dots seeded from the cell's own animal count, so the
+       cluster "opens" instantly on tap and the real identities fill in. */
     const sel = area && area !== "loading" && area !== "error" ? area : null;
     const paws: GeoJSON.Feature[] = [];
-    const i = sel ? cells.findIndex(c => c.h3 === sel.h3) : -1;
-    if (sel && i >= 0) {
-      const records = sel.animals.slice(0, MAX_PAWS);
-      seedHead(centers[i], records.length).forEach((p, j) => {
-        const a = records[j], chosen = a.id === animalId;
-        paws.push(pt(p, { i, j, id: a.id, col: a.ster === "sterilised" ? DOT.yes : a.ster === "not_sterilised" ? DOT.no : DOT.unknown,
-          ph: a.photo ? 1 : 0, ch: chosen ? 1 : 0, s: chosen ? 1.6 : a.photo ? 1.25 : 1,
-          title: a.title, line: "Recorded in this area. Marker position is approximate." }));
-      });
+    if (sel) {
+      const i = cells.findIndex(c => c.h3 === sel.h3);
+      if (i >= 0) {
+        const records = sel.animals.slice(0, MAX_PAWS);
+        seedHead(centers[i], records.length).forEach((p, j) => {
+          const a = records[j], chosen = a.id === animalId;
+          paws.push(pt(p, { i, j, id: a.id, col: a.ster === "sterilised" ? DOT.yes : a.ster === "not_sterilised" ? DOT.no : DOT.unknown,
+            ph: a.photo ? 1 : 0, ch: chosen ? 1 : 0, s: chosen ? 1.6 : a.photo ? 1.25 : 1,
+            title: a.title, line: "Recorded in this area. Marker position is approximate." }));
+        });
+      }
+    } else if (areaH3 && (area === "loading" || area === null)) {
+      const i = cells.findIndex(c => c.h3 === areaH3);
+      if (i >= 0) {
+        const n = Math.min(MAX_PAWS, Math.max(1, cells[i].animals));
+        seedHead(centers[i], n).forEach((p, j) => {
+          paws.push(pt(p, { i, j, col: DOT.unknown, ph: 0, ch: 0, s: 1,
+            title: "", line: "" }));
+        });
+      }
     }
     set("paws", paws);
   }, [city, cells, centers, classes, classOf, q, facet, ctx, data, animalsRecency, area, animalId, areaH3, level, spot]);
@@ -617,15 +643,30 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     if (clinical) { const c = cities.find((x) => x.city === city); if (c?.lng) m.flyTo({ center: [c.lng, c.lat!], zoom: 10, duration: dur(m.getZoom(), 10), easing: travel, padding: pad() }); return; }
     if (!cells.length) return;
     if ((level === "area" || level === "animal") && areaIndex >= 0) {
+      /* A cluster "opens": lands at a zoom where paws are already drawn and
+         the dot grid is readable. Shorter duration than the India→city hop
+         so the tap feels like a direct response, not a flight. */
       const zz = Math.max(14.6, Math.min(m.getZoom(), 15.6));
-      m.flyTo({ center: centers[areaIndex], zoom: zz, pitch: 0, bearing: 0, padding: pad(), duration: dur(m.getZoom(), zz), easing: travel });
+      const from = m.getZoom();
+      const d = reduced() ? 0 : Math.min(900, 420 + Math.abs(from - zz) * 90);
+      m.flyTo({ center: centers[areaIndex], zoom: zz, pitch: 0, bearing: 0, padding: pad(), duration: d, easing: travel });
       return;
     }
     const b = coreBounds(centers);
-    /* Fit the real geographic extent without tilting or rotating the street map. */
+    /* Fit the real geographic extent without tilting or rotating the street
+       map. On the India → city leap use flyTo's native parabolic path (curve
+       1.4, speed 1.1), which first zooms out a little then swoops in — the
+       density fog becomes visible as the camera descends, so the city reads
+       as a landscape of clusters, not a cut. */
     const cam = m.cameraForBounds(b, { padding: pad(), maxZoom: 12.4 });
     const zz = cam?.zoom ?? 11;
-    m.flyTo({ ...cam, zoom: zz, pitch: 0, bearing: 0, duration: dur(m.getZoom(), zz), easing: travel });
+    const from = m.getZoom();
+    const bigHop = Math.abs(from - zz) > 3;
+    if (bigHop && !reduced()) {
+      m.flyTo({ ...cam, zoom: zz, pitch: 0, bearing: 0, padding: pad(), curve: 1.4, speed: 1.1, essential: true });
+    } else {
+      m.flyTo({ ...cam, zoom: zz, pitch: 0, bearing: 0, padding: pad(), duration: dur(from, zz), easing: travel });
+    }
   }, [ready, level, city, areaH3, areaIndex, cells.length, centers, pad, cities, clinical, I.lng, I.lat, I.z, embedded]);
 
   const flyTo = useCallback((c: [number, number], zz = 14.6) => { const m = mapRef.current; if (!m) return; userMove.current = false; m.flyTo({ center: c, zoom: zz, padding: pad(), duration: dur(m.getZoom(), zz), easing: travel }); }, [pad]);
