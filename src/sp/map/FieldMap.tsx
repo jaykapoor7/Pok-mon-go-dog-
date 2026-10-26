@@ -218,13 +218,18 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         m.addLayer({ id: "areas-heat", type: "circle", source: "areas", minzoom: 8.6, paint: {
           "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], px]])] as never,
           "circle-color": ["get", "color"], "circle-blur": 1.1, "circle-pitch-alignment": "map",
-          "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.18, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.14, 11, 0.28, PAW_ZOOM, 0.18]] } });
+          "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.22, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.22, 10, 0.42, 11, 0.5, PAW_ZOOM, 0.22]] } });
         /* The areas themselves, for touch and hover: a disc on the ground
            under each column. The feature's own `o` drives opacity so the
            disc only brightens for a selected area; the broad reading lives
-           in the heat halo above. */
-        m.addLayer({ id: "areas", type: "circle", source: "areas", paint: { "circle-radius": zr(1), "circle-color": ["get", "color"], "circle-blur": 0.08, "circle-pitch-alignment": "map",
-          "circle-opacity": ["*", ["get", "o"], ["interpolate", ["linear"], ["zoom"], 8, 0.9, PAW_ZOOM, 0.6]] } });
+           in the heat halo above. At city overview zoom (9–12) the discs
+           read as the dots a visitor is looking for, so they are rendered
+           bright with a thin stroke; past deep-area zoom (13+) they fade
+           and the individual paws take over. */
+        m.addLayer({ id: "areas", type: "circle", source: "areas", paint: { "circle-radius": zr(1), "circle-color": ["get", "color"],
+          "circle-stroke-color": "#fffdf9", "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 9, 0.6, 11, 1.4, PAW_ZOOM, 0],
+          "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.5, 11, 0.85, PAW_ZOOM, 0], "circle-blur": 0.05, "circle-pitch-alignment": "map",
+          "circle-opacity": ["*", ["get", "o"], ["interpolate", ["linear"], ["zoom"], 8, 0.95, 10.4, 0.95, 12, 0.75, PAW_ZOOM, 0.4]] } });
         /* A lit finding rings the areas it rests on, in turmeric; nothing else changes meaning. */
         m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f2b632", "circle-stroke-width": 2.2, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(143,176,255,0.12)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95, "circle-pitch-alignment": "map" } });
@@ -436,7 +441,10 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       const k = 0.55 + (Math.sqrt(c.animals) / maxA) * 0.75;
       const isSel = !!areaH3 && areaH3 === c.h3;
       const dim = (areaH3 && areaH3 !== c.h3 && level !== "city") || (spot && level === "city" && !spot.cells.has(c.h3)) ? 1 : 0;
-      const o = isSel ? 1 : (areaH3 ? 0.22 : (spot ? (spot.cells.has(c.h3) ? 0.95 : 0.18) : 0.3));
+      /* Default (no selection): bright, so each area reads as a visible
+         cluster marker on the city view. Dimmed only when something else is
+         picked (another area, a spotlit finding), so the chosen one wins. */
+      const o = isSel ? 1 : (areaH3 ? 0.22 : (spot ? (spot.cells.has(c.h3) ? 1 : 0.18) : 0.85));
       if (animalsRecency) {
         const rb = bucketOf(lastRecorded(c), now);
         return pt(centers[i], { i, k, g, o, color: rb ? rb.color : UNDATED_INK, n: Math.sqrt(c.animals) / maxA, sort: -c.animals, dim,
