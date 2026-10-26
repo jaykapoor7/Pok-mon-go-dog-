@@ -204,20 +204,34 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       if (embedded) { map.scrollZoom.disable(); map.dragPan.disable(); map.on("click", () => { map?.dragPan.enable(); }); }
       const resize = new ResizeObserver(() => map?.resize()); resize.observe(node);
       map.on("remove", () => resize.disconnect());
-      map.on("error", (e) => { if (/webgl|context/i.test(e.error?.message ?? "")) setMapError("This browser cannot draw the interactive map. Search and the city list still work."); });
+      map.on("error", (e) => {
+        const msg = e.error?.message ?? "";
+        /* Surface any MapLibre runtime error to the console (expression type
+           failures, style validation, source parse errors). The previous
+           handler only acted on WebGL errors, which meant a malformed paint
+           expression could silently drop a whole layer — fog + clusters
+           disappearing at city zoom with no sign of why. */
+        console.warn("[map]", msg, e.error ?? "");
+        if (/webgl|context/i.test(msg)) setMapError("This browser cannot draw the interactive map. Search and the city list still work.");
+      });
       map.on("load", () => {
         const m = map!;
         const empty = { type: "FeatureCollection" as const, features: [] };
         for (const s of ["nat", "cities", "edge", "areas", "paws", "sel", "spot", "nums"]) m.addSource(s, { type: "geojson", data: empty });
-        const zr = (k: number) => ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], (px / 2) * k]])] as never;
+        /* All math on per-feature numbers is wrapped in a defaulted `number`
+           coercion. If a feature's property is ever missing or wrong-typed,
+           MapLibre silently drops the paint of the layer — which is exactly
+           what was swallowing the fog + clusters at city zoom. */
+        const num = (key: string, fallback = 1) => ["number", ["coalesce", ["get", key], fallback]] as never;
+        const zr = (k: number) => ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", num("k"), num("g"), (px / 2) * k]])] as never;
         /* India: every recorded area a glow, every city a point of light. */
         m.addLayer({ id: "nat-glow", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, ["*", ["get", "r"], 2.2], 7, ["*", ["get", "r"], 4]], "circle-color": ["get", "color"], "circle-blur": 0.4, "circle-opacity": 0.12, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "nat", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], 0.6], 7, ["*", ["get", "r"], 1.2]], "circle-color": ["get", "color"], "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.35, 1], "circle-pitch-alignment": "map" } });
         /* A soft heat halo under each area, bigger than the disc, so the city
            reads as a living temperature map from zoom 9 onwards. */
         m.addLayer({ id: "areas-heat", type: "circle", source: "areas", minzoom: 8.6, paint: {
-          "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], ["get", "g"], px]])] as never,
-          "circle-color": ["get", "color"], "circle-blur": 1.1, "circle-pitch-alignment": "map",
+          "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", num("k"), num("g"), px]])] as never,
+          "circle-color": ["coalesce", ["get", "color"], "#2a3b5c"], "circle-blur": 1.1, "circle-pitch-alignment": "map",
           "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.22, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.22, 10, 0.42, 11, 0.5, PAW_ZOOM, 0.22]] } });
         /* The areas themselves, for touch and hover: a disc on the ground
            under each column. The feature's own `o` drives opacity so the
@@ -226,24 +240,24 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
            read as the dots a visitor is looking for, so they are rendered
            bright with a thin stroke; past deep-area zoom (13+) they fade
            and the individual paws take over. */
-        m.addLayer({ id: "areas", type: "circle", source: "areas", paint: { "circle-radius": zr(1), "circle-color": ["get", "color"],
+        m.addLayer({ id: "areas", type: "circle", source: "areas", paint: { "circle-radius": zr(1), "circle-color": ["coalesce", ["get", "color"], "#2a3b5c"],
           "circle-stroke-color": "#fffdf9", "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 9, 0.6, 11, 1.4, PAW_ZOOM, 0],
           "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.5, 11, 0.85, PAW_ZOOM, 0], "circle-blur": 0.05, "circle-pitch-alignment": "map",
-          "circle-opacity": ["*", ["get", "o"], ["interpolate", ["linear"], ["zoom"], 8, 0.95, 10.4, 0.95, 12, 0.75, PAW_ZOOM, 0.4]] } });
+          "circle-opacity": ["*", num("o", 0.85), ["interpolate", ["linear"], ["zoom"], 8, 0.95, 10.4, 0.95, 12, 0.75, PAW_ZOOM, 0.4]] } });
         /* A lit finding rings the areas it rests on, in turmeric; nothing else changes meaning. */
-        m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "k"], px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f2b632", "circle-stroke-width": 2.2, "circle-pitch-alignment": "map" } });
-        m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", ["get", "g"], px * 0.62 + 6]])] as never, "circle-color": "rgba(143,176,255,0.12)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95, "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", num("k"), px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f2b632", "circle-stroke-width": 2.2, "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", num("g"), px * 0.62 + 6]])] as never, "circle-color": "rgba(143,176,255,0.12)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.4, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.4, 10, 13, 13], "text-allow-overlap": false, "text-padding": 1 }, paint: { "text-color": "#0b1e3d", "text-halo-color": "#fffdf9", "text-halo-width": 1.6, "text-opacity": ["interpolate", ["linear"], ["zoom"], 11.4, 0, 11.8, 1] } });
         /* Neighbourhood: one dot per recorded animal. The pulse layer under
            the dot is a slow heart-beat halo (paint driven by a RAF loop so
            it works in a WebGL vector style). A photographed animal is ringed
            in white; a chosen one in flame. */
         m.addLayer({ id: "paws-pulse", type: "circle", source: "paws", minzoom: PAW_SHOW_LO, paint: {
-          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 10.4, ["*", ["get", "s"], 3], 13, ["*", ["get", "s"], 7], 15, ["*", ["get", "s"], 13], 17, ["*", ["get", "s"], 20]],
-          "circle-color": ["get", "col"], "circle-blur": 0.9, "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 0.22], "circle-pitch-alignment": "map" } });
+          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 10.4, ["*", num("s"), 3], 13, ["*", num("s"), 7], 15, ["*", num("s"), 13], 17, ["*", num("s"), 20]],
+          "circle-color": ["coalesce", ["get", "col"], "#697b8d"], "circle-blur": 0.9, "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 0.22], "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "paws", type: "circle", source: "paws", minzoom: PAW_SHOW_LO, paint: {
-          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 10.4, ["*", ["get", "s"], 1.8], 13, ["*", ["get", "s"], 3.4], 15, ["*", ["get", "s"], 6.5], 17, ["*", ["get", "s"], 10]],
-          "circle-color": ["get", "col"], "circle-stroke-color": ["case", ["==", ["get", "ch"], 1], "#f05b40", ["==", ["get", "ph"], 1], "#ffffff", "rgba(7,20,43,0.9)"], "circle-stroke-width": ["case", ["==", ["get", "ch"], 1], 3, ["==", ["get", "ph"], 1], 1.8, 1],
+          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 10.4, ["*", num("s"), 1.8], 13, ["*", num("s"), 3.4], 15, ["*", num("s"), 6.5], 17, ["*", num("s"), 10]],
+          "circle-color": ["coalesce", ["get", "col"], "#697b8d"], "circle-stroke-color": ["case", ["==", ["get", "ch"], 1], "#f05b40", ["==", ["get", "ph"], 1], "#ffffff", "rgba(7,20,43,0.9)"], "circle-stroke-width": ["case", ["==", ["get", "ch"], 1], 3, ["==", ["get", "ph"], 1], 1.8, 1],
           "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 1] } });
         /* City rosettes fade out as the city opens so they never ring the
            ground once you are reading its areas. */
