@@ -474,16 +474,20 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       return [pt(centers[i], { t: v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v) })];
     }));
     set("edge", (data?.edge ?? []).map((e) => pt(e, {})));
-    /* Only loaded individual records receive identities. Their public
-       positions are schematic within the disclosed area, never invented GPS
-       fixes. While the area endpoint is still fetching, we draw anonymous
-       placeholder dots seeded from the cell's own animal count, so the
-       cluster "opens" instantly on tap and the real identities fill in. */
+    /* Dots everywhere, as soon as the city opens: for every cell we emit a
+       capped set of anonymous placeholder dots (seeded from the cell's own
+       animal count), so when a reader zooms past the clusters the view does
+       not go blank between clusters and the deep-area paws — each cluster
+       breaks apart into dots that keep its colour. Real identities (name,
+       sterilisation colour, photo ring) only land for the selected area
+       once its endpoint returns, overwriting that cell's placeholders.
+       Positions are the same schematic seed used elsewhere; never GPS fixes. */
     const sel = area && area !== "loading" && area !== "error" ? area : null;
+    const selIndex = sel ? cells.findIndex(c => c.h3 === sel.h3) : -1;
+    const PER_CELL_CAP = 24;
     const paws: GeoJSON.Feature[] = [];
-    if (sel) {
-      const i = cells.findIndex(c => c.h3 === sel.h3);
-      if (i >= 0) {
+    cells.forEach((c, i) => {
+      if (i === selIndex && sel) {
         const records = sel.animals.slice(0, MAX_PAWS);
         seedHead(centers[i], records.length).forEach((p, j) => {
           const a = records[j], chosen = a.id === animalId;
@@ -491,17 +495,20 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
             ph: a.photo ? 1 : 0, ch: chosen ? 1 : 0, s: chosen ? 1.6 : a.photo ? 1.25 : 1,
             title: a.title, line: "Recorded in this area. Marker position is approximate." }));
         });
+        return;
       }
-    } else if (areaH3 && (area === "loading" || area === null)) {
-      const i = cells.findIndex(c => c.h3 === areaH3);
-      if (i >= 0) {
-        const n = Math.min(MAX_PAWS, Math.max(1, cells[i].animals));
-        seedHead(centers[i], n).forEach((p, j) => {
-          paws.push(pt(p, { i, j, col: DOT.unknown, ph: 0, ch: 0, s: 1,
-            title: "", line: "" }));
-        });
-      }
-    }
+      const n = Math.min(PER_CELL_CAP, Math.max(1, c.animals));
+      /* Placeholder dots inherit their cell's lens colour so each cluster
+         still reads as its own tile when it breaks apart. */
+      const col = ((): string => {
+        if (animalsRecency) { const rb = bucketOf(lastRecorded(c), Date.now()); return rb ? rb.color : UNDATED_INK; }
+        const kl = byId.get(classOf[i]);
+        return kl?.kind === "unknown" ? UNDATED_INK : kl?.kind === "zero" ? "#2a3b5c" : kl?.color ?? "#2a3b5c";
+      })();
+      seedHead(centers[i], n).forEach((p, j) => {
+        paws.push(pt(p, { i, j, col, ph: 0, ch: 0, s: 0.9, title: "", line: "" }));
+      });
+    });
     set("paws", paws);
   }, [city, cells, centers, classes, classOf, q, facet, ctx, data, animalsRecency, area, animalId, areaH3, level, spot]);
   useEffect(() => { if (ready) areaFeatures(); }, [ready, areaFeatures]);
