@@ -5,7 +5,9 @@ This branch implements the backend in `src/lib/whatsapp` and the additive
 `careos.inbox`; the workspace continues to read only the scoped RPC contract.
 See [WHATSAPP.md](WHATSAPP.md) for setup, command syntax, permissions and the
 distinction between local verification and a real Meta staging conversation.
-No production rollout is implied by this implementation.
+No production rollout is implied by this implementation. Isolated staging database
+checks and the full required-feature release matrix are recorded in
+[CAREOS-FEATURE-CHECKLIST.md](CAREOS-FEATURE-CHECKLIST.md).
 
 Status: **not connected in production** (verified 2026-10-23). The four
 `careos_*` RPCs listed below are absent from the live database
@@ -28,7 +30,7 @@ Types live in `src/lib/careos/contract.ts`; the only workspace code that calls t
 | Media download, storage, signed URLs, sensitivity flag | Follow-ups (`animal_followups`) |
 | Language detection, optional translation | Animal record and history (`animal_timeline_events`, `medical_events`) |
 | Approved message templates, 24-hour window rules | Outcomes, reports, exports |
-| The `care_inbox` table and its migration | Reading the inbox only through the RPCs below |
+| The private `careos.inbox` table and its migrations | Reading the inbox only through the RPCs below |
 
 The workspace never stores or displays a reporter's phone number and never sends free text to a reporter.
 

@@ -8,7 +8,9 @@ export class MetaError extends Error {
 export function messagePayload(row: Outbound, now = Date.now(), templates = process.env.CAREOS_TEMPLATES_JSON): Record<string, unknown> | null {
   const base = { messaging_product: "whatsapp", recipient_type: "individual", to: row.phone };
   if (now - Date.parse(row.last_inbound) < 24 * 60 * 60 * 1000 && Date.parse(row.last_inbound) <= now + 60000) {
-    if (row.buttons.length) return { ...base, type: "interactive", interactive: { type: "button", body: { text: row.body }, action: { buttons: row.buttons.slice(0, 3).map(b => ({ type: "reply", reply: { id: b.id, title: b.title.slice(0, 20) } })) } } };
+    // Meta limits interactive bodies to 1024 characters. Keep a long report's
+    // complete confirmation text and let the user type CONFIRM instead.
+    if (row.buttons.length && Array.from(row.body).length <= 1024) return { ...base, type: "interactive", interactive: { type: "button", body: { text: row.body }, action: { buttons: row.buttons.slice(0, 3).map(b => ({ type: "reply", reply: { id: b.id, title: Array.from(b.title).slice(0, 20).join("") } })) } } };
     return { ...base, type: "text", text: { preview_url: false, body: row.body } };
   }
   let mapping: Record<string, { name: string; language: string }> = {};
@@ -16,7 +18,7 @@ export function messagePayload(row: Outbound, now = Date.now(), templates = proc
   const template = mapping[`${row.notice}:${row.language}`];
   if (!template || !/^[a-z0-9_]+$/.test(template.name) || !/^[a-z]{2}(_[A-Z]{2})?$/.test(template.language)) return null;
   // Approved utility templates must contain exactly one body text parameter.
-  return { ...base, type: "template", template: { name: template.name, language: { code: template.language }, components: [{ type: "body", parameters: [{ type: "text", text: row.body.slice(0, 1024) }] }] } };
+  return { ...base, type: "template", template: { name: template.name, language: { code: template.language }, components: [{ type: "body", parameters: [{ type: "text", text: row.body.replace(/\s+/g, " ").trim().slice(0, 1024) }] }] } };
 }
 
 export async function sendMeta(row: Outbound, fetcher = fetch): Promise<{ state: string; metaId?: string; error?: string }> {

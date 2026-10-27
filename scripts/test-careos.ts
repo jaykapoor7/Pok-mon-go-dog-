@@ -16,7 +16,10 @@ async function main() {
 const db = new PGlite();
 await db.exec(readFileSync('scripts/fixtures/careos-schema.sql','utf8'));
 await db.exec(readFileSync('scripts/fixtures/careos-case-facts.sql','utf8'));
-try { await db.exec(readFileSync('supabase/migrations/20261027080753_whatsapp_careos_v1.sql','utf8')); }
+try { await db.exec(readFileSync('supabase/migrations/20261027080753_whatsapp_careos_v1.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261027085732_careos_record_isolation.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261027092130_careos_audit_fixes.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261027092646_careos_dashboard_sync.sql','utf8')); }
 catch(e) { console.error((e as Error).message); process.exit(1); }
 let passed=0;
 function check(name:string,fn:()=>unknown){fn();console.log('PASS',name);passed++;}
@@ -61,6 +64,8 @@ async function say(phone:string,text:string,extra:Record<string,unknown>={}){
  assert.equal((await receiveWebhook(request(body),enqueue,config)).status,200);
  const summary=await drain();assert.equal(summary.failed,0,'worker must not fail');
 }
+await db.exec(`create function public.synthetic_legacy_cost(p_case uuid) returns void language sql security definer as $$ update public.cases set cost_spent=999999 where id=p_case $$; grant execute on function public.synthetic_legacy_cost(uuid) to anon,authenticated;`);
+await db.exec(`create function public.synthetic_legacy_note(p_case uuid) returns void language sql security definer as $$ update public.cases set outcome_note='Private dashboard note' where id=p_case $$; grant execute on function public.synthetic_legacy_note(uuid) to authenticated;`);
 const citizen='919000000001',staffA='919000000002',staffB='919000000003',volPhone='919000000004';
 
 check('GET returns exact plain-text challenge and 200',()=>{
@@ -199,6 +204,13 @@ check('24-hour compliance requires approved template; never falls back to free t
  assert.equal(messagePayload(old,Date.now(),''),null);
  const t=messagePayload(old,Date.now(),JSON.stringify({'closed:en':{name:'synthetic_approved_template',language:'en'}}));assert.equal(t?.type,'template');
 });
+check('long confirmation falls back to full text and template parameters normalize whitespace',()=>{
+ const row={phone:citizen,body:'अ'.repeat(1025),notice:'reply',buttons:[{id:'confirm_report',title:'Confirm'}],language:'hi',last_inbound:new Date().toISOString()} as Outbound;
+ const payload=messagePayload(row);assert.equal(payload?.type,'text');assert.equal((payload?.text as {body:string}).body,row.body);
+ const old={...row,body:'SP-123456789ABC\n  Case update',notice:'closed',last_inbound:new Date(Date.now()-25*3600000).toISOString()};
+ const p=messagePayload(old,Date.now(),JSON.stringify({'closed:hi':{name:'synthetic_approved_template',language:'hi'}}));
+ const t=p?.template as {components:{parameters:{text:string}[]}[]};assert.equal(t.components[0].parameters[0].text,'SP-123456789ABC Case update');
+});
 await test('failed sends distinguish explicit rejection, permanent failure, and ambiguous acceptance',async()=>{
  const row={phone:citizen,body:'hello',notice:'reply',buttons:[],language:'en',last_inbound:new Date().toISOString()} as unknown as Outbound;
  await assert.rejects(()=>sendMeta(row,async()=>Response.json({error:{code:130429}},{status:429})),e=>Boolean((e as {retryable?:boolean}).retryable));
@@ -219,6 +231,46 @@ await test('anonymous cannot read private storage metadata or transport tables',
  assert.equal(await scalar("select public from storage.buckets where id='careos-private'"),false);
 });
 
+await test('legacy definer APIs cannot bypass CareOS tenant checks',async()=>{
+ await assert.rejects(()=>as(null,()=>db.query('select synthetic_legacy_cost($1)',[caseId])),/Not authorized/);
+ await assert.rejects(()=>as(leadB,()=>db.query('select synthetic_legacy_cost($1)',[caseId])),/Not authorized/);
+ assert.notEqual(Number(await scalar('select cost_spent from cases where id=$1',[caseId])),999999);
+});
+
+await test('captionless photo stays private in the draft until text and confirmation',async()=>{
+ const phone='919000000081';await say(phone,'REPORT');await say(phone,'YES');
+ // Exercise the real processor with worker-enriched media, without a network double for storage.
+ const body=JSON.stringify(payload(phone,''));await receiveWebhook(request(body),enqueue,config);
+ const jobs=await rows('select * from careos_claim_jobs(20)');const job=jobs.find(x=>(x.payload as {from:string}).from===phone)!;
+ await db.query('select careos_process_job($1,$2,$3)',[job.id,job.lease,JSON.stringify({media:{id:'123456',path:'synthetic/123456',kind:'image',mime:'image/jpeg'}})]);
+ assert.equal(await scalar("select jsonb_array_length(state->'media') from careos.contacts where phone=$1",[phone]),1);
+ await say(phone,'Dog is limping');
+ assert.equal(await scalar("select jsonb_array_length(state->'media') from careos.contacts where phone=$1",[phone]),1);
+ assert.equal(await scalar("select state->>'step' from careos.contacts where phone=$1",[phone]),'location');
+ await say(phone,'CANCEL');
+});
+await test('queued private staff reply is blocked after role revocation',async()=>{
+ await db.query("select careos.say($1,$2,$3)",[staffA,tracking+' private report and GPS','synthetic:revoked-send']);
+ await db.query('delete from ngo_members where user_id=$1',[leadA]);
+ await rows('select * from careos_claim_outbox(20)');
+ assert.equal(await scalar("select state from careos.outbox where key='synthetic:revoked-send'"),'blocked');
+ await db.query("insert into ngo_members(user_id,ngo_id,role) values($1,$2,'lead')",[leadA,ngoA]);
+});
+
+
+await test('existing authenticated dashboard writes queue a private reporter status update',async()=>{
+ await say(citizen,'START'); await say(citizen,'YES');
+ const before=Number(await scalar("select count(*) from careos.outbox where key like 'dashboard:%'"));
+ await as(leadA,()=>db.query("select synthetic_legacy_note($1)",[caseId]));
+ assert(Number(await scalar("select count(*) from careos.outbox where key like 'dashboard:%'"))>before);
+ assert.equal(Number(await scalar("select count(*) from careos.outbox where body like '%Private dashboard note%'")),0);
+ assert(Number(await scalar("select count(*) from careos.audit where action='dashboard_cases'"))>0);
+});
+
+await test('every transport RPC remains inaccessible to anonymous clients',async()=>{
+ const rowsAllowed=await rows("select proname from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'careos_%' and p.proname<>'careos_record_access' and has_function_privilege('anon',p.oid,'execute')");
+ assert.equal(rowsAllowed.length,0);
+});
 await test('same-contact batches preserve enqueue order and concurrent claims do not overlap',async()=>{
  const phone='919000000020';
  const p=payload(phone,'REPORT');const second=payload(phone,'YES').entry[0].changes[0].value.messages[0];
