@@ -44,6 +44,8 @@ jobs:
             next-${{ hashFiles('package-lock.json') }}-
             next-
       - run: npm run typecheck
+      - name: CareOS isolated PostgreSQL workflow and security checks
+        run: npm run test:careos
       - run: npm run build
       - name: Import and case regression tests
         run: |

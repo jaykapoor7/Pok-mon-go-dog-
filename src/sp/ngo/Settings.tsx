@@ -12,6 +12,7 @@ import { Ack } from "../ui";
 import { Reading } from "../ui/Reading";
 import { saveOrgProfile, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
+import { CareosSettings } from "./CareosSettings";
 import "./ngo.css";
 
 type F = { mission: string; about: string; website: string; contact_email: string; contact_phone: string; city: string; state: string; registration_no: string; founded_year: string; areas: string };
@@ -67,11 +68,11 @@ export function Settings() {
                 <li><Link className="link" href="/ngo/team">Team &amp; access</Link><small>Members, roles, codes</small></li>
                 <li><Link className="link" href="/ngo/import">Import a workbook</Link><small>Bring your existing register</small></li>
                 <li><Link className="link" href="/ngo/proof">Reports &amp; proof</Link><small>Documents from your records</small></li>
-                <li><span>WhatsApp intake</span><small>Not connected. CareOS needs backend support that does not exist yet.</small></li>
               </ul>
             </section>
           </form>
         )}
+        <CareosSettings />
       </div>
     </NgoGate>
   );
