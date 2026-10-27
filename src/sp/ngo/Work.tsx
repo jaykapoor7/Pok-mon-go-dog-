@@ -125,13 +125,13 @@ export function Work() {
   const rows = useMemo(() => all.filter((r) => {
     const owner = r.c?.assignee_name ?? r.f?.assignee_name ?? null;
     if (cell && r.cell !== cell) return false;
-    if (focus === "mine" && owner !== me) return false;
+    if (focus === "mine" && (r.c?.assignee_id ? r.c.assignee_id !== user?.id : owner !== me)) return false;
     if (focus === "unowned" && owner) return false;
     if (focus === "critical" && !r.crit) return false;
     if (focus === "followup" && r.kind !== "followup") return false;
     if (!q) return true;
     return [r.c?.case_code, r.c?.title, r.c?.condition_class, r.c?.animal_name, r.c?.zone, owner, r.f?.straypaw_id, r.f?.animal_name, r.f?.zone].filter(Boolean).join(" ").toLowerCase().includes(q);
-  }), [all, cell, focus, q, me]);
+  }), [all, cell, focus, q, me, user?.id]);
   const shown = rows.slice(0, limit);
   const selRow = all.find((r) => r.key === sel) ?? null;
 

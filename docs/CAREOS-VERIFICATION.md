@@ -90,6 +90,9 @@ gates in [CAREOS-FEATURE-CHECKLIST.md](CAREOS-FEATURE-CHECKLIST.md).
   are retained.
 - Long report confirmation uses complete text rather than an invalid oversized
   interactive body. Template parameters normalize whitespace.
+- NGO Work uses assignee user IDs for Mine, with a legacy-name fallback. The
+  selected WhatsApp report and its notes refresh without clearing a typed decline
+  reason on every poll. Authenticated hosted rendering remains unverified.
 - Health requires own-NGO delivered/read evidence; a successful send API response
   or enabled routing area alone cannot claim connection.
 

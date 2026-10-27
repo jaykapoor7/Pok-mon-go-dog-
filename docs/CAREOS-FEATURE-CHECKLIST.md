@@ -103,7 +103,7 @@ Evidence levels:
 | Required capability | Evidence | Remaining gate |
 | --- | --- | --- |
 | NGO Inbox → WhatsApp | L + D: scoped list/decision RPC and private evidence UI | Actual authenticated browser showing the live Meta report |
-| Existing NGO Work / case view | D: existing `org_case_facts` reflects the same case | Authenticated hosted browser update after each actual staff action |
+| Existing NGO Work / case view | D: existing `org_case_facts` reflects the same case; C: Mine filters by user ID, selected report/notes refresh | Authenticated hosted browser update after each actual staff action |
 | Existing animal / medical / history / follow-up data | L + D: canonical tables updated; explicit animal link | Authenticated hosted animal/history/task screens |
 | Website actions synchronize back to WhatsApp | L + D: existing `add_case_note` API produces private audit and neutral status queue; no duplicate bot notifications | Actual UI assignment/care/closure + citizen delivery |
 | No production records overwritten | Hosted baseline counts preserved after migrations and rollback-only tests | Snapshot/catalog comparison at eventual production cutover |

@@ -15,7 +15,7 @@ export function CareosInbox() {
   const [notes, setNotes] = useState<{ action: string; note: string; created_at: string }[]>([]);
   const load = useCallback(async () => {
     const r = await careInbox();
-    if (r.connected) { setItems(r.data); setError(""); }
+    if (r.connected) { setItems(r.data); setSelected(current => current ? r.data.find(item => item.id === current.id) || null : null); setError(""); }
     else { setItems([]); setError(r.reason === "not_deployed" ? "WhatsApp intake is not deployed in this environment." : "Your WhatsApp inbox could not be read. Check your NGO access."); }
   }, []);
   useEffect(() => {
@@ -24,12 +24,13 @@ export function CareosInbox() {
     void load(); const timer = setInterval(refresh, 30000); window.addEventListener("focus", refresh);
     return () => { disposed = true; clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [load]);
+  useEffect(() => { setReason(""); }, [selected?.id]);
   useEffect(() => {
-    let current = true; setNotes([]); setReason("");
+    let current = true; setNotes([]);
     const db = getSupabase();
     if (selected?.linked_case_id && db) void db.rpc("careos_case_notes", { p_case_id: selected.linked_case_id }).then(({ data }) => { if (current) setNotes(data || []); });
     return () => { current = false; };
-  }, [selected?.linked_case_id]);
+  }, [selected]);
   async function decide(type: "claim" | "dismiss") {
     if (!selected) return; setBusy(true);
     try {
