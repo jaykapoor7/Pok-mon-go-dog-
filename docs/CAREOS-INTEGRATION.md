@@ -1,5 +1,12 @@
 # StrayPaw CareOS — WhatsApp backend ↔ NGO workspace contract
 
+This branch implements the backend in `src/lib/whatsapp` and the additive
+`supabase/migrations/20261027080753_whatsapp_careos_v1.sql`. Its private inbox is
+`careos.inbox`; the workspace continues to read only the scoped RPC contract.
+See [WHATSAPP.md](WHATSAPP.md) for setup, command syntax, permissions and the
+distinction between local verification and a real Meta staging conversation.
+No production rollout is implied by this implementation.
+
 Status: **not connected in production** (verified 2026-10-23). The four
 `careos_*` RPCs listed below are absent from the live database
 (`SELECT proname FROM pg_proc … WHERE proname LIKE 'careos%'` returns 0 rows),

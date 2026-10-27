@@ -34,6 +34,7 @@ export default defineConfig({
     ? undefined
     : {
         command: "npm run build && npm run start -- -p 3100",
+        env: { WHATSAPP_VERIFY_TOKEN: "careos-e2e-verification-only", WHATSAPP_APP_SECRET: "careos-e2e-app-secret-only", CAREOS_ENABLED: "false" },
         url: "http://localhost:3100",
         reuseExistingServer: !process.env.CI,
         timeout: 300_000,

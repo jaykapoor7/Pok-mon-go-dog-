@@ -96,6 +96,13 @@ export function Work() {
     } catch { setFailed(true); setOpen([]); }
   }, []);
   useEffect(() => { if (ready && mem.ready && member) void load(); }, [ready, mem.ready, member, load]);
+  useEffect(() => {
+    if (!ready || !mem.ready || !member) return;
+    const refresh = () => { if (document.visibilityState === "visible") void load(); };
+    window.addEventListener("focus", refresh);
+    const timer = window.setInterval(refresh, 30000);
+    return () => { window.removeEventListener("focus", refresh); window.clearInterval(timer); };
+  }, [ready, mem.ready, member, load]);
 
   const co = useMemo(() => {
     const now = Date.now(), loaded = open ?? [];
