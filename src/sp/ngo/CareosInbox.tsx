@@ -16,7 +16,7 @@ export function CareosInbox() {
   const load = useCallback(async () => {
     const r = await careInbox();
     if (r.connected) { setItems(r.data); setSelected(current => current ? r.data.find(item => item.id === current.id) || null : null); setError(""); }
-    else { setItems([]); setError(r.reason === "not_deployed" ? "WhatsApp intake is not deployed in this environment." : "Your WhatsApp inbox could not be read. Check your NGO access."); }
+    else { setItems([]); setSelected(null); setError(r.reason === "not_deployed" ? "WhatsApp intake is not deployed in this environment." : "Your WhatsApp inbox could not be read. Check your NGO access."); }
   }, []);
   useEffect(() => {
     let disposed = false;
