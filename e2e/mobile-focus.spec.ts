@@ -102,27 +102,6 @@ test("phone menu: four places, five audiences, one Open App", async ({ page }) =
   await expect(page.getByRole("button", { name: "Open menu", exact: true })).toBeFocused();
 });
 
-test("the seven-day request follows the scroll on a phone, without WebGL", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.addInitScript(() => {
-    const original = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function(this: HTMLCanvasElement, type: string, ...args: unknown[]) {
-      if (type.includes("webgl")) return null;
-      return original.apply(this, [type, ...args] as Parameters<typeof original>);
-    } as typeof original;
-  });
-  await page.goto("/");
-  const dive = page.locator("#request-journey");
-  await expect(dive.getByRole("button")).toHaveCount(0);
-  await scrollThrough(page, "#request-journey", 0);
-  await expect(dive.locator(".ld-dive-day b")).toHaveText("0");
-  await scrollThrough(page, "#request-journey", 1);
-  await expect(dive.locator(".is-now .ld-dive-what b")).toHaveText(/Case closed|Recovered/);
-  await expect(dive.locator(".ld-dive-day b")).not.toHaveText("0");
-  await scrollThrough(page, "#request-journey", 0);
-  await expect(dive.locator(".ld-dive-day b")).toHaveText("0");
-});
-
 test("signed-out NGO page shows what the workspace includes at every width", async ({ page }) => {
   for (const width of [320, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });

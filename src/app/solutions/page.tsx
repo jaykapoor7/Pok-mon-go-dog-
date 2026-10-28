@@ -48,7 +48,7 @@ export default async function SolutionsPage() {
         <Audiences queue={story?.desk.queue ?? []} brief={brief} locs={locs} />
       </section>
 
-      <CoSec n="02" title="Apply → Set up your workspace.">
+      <CoSec title="Join as an organisation.">
         <ol className="co3-list">
           <li><b>Apply</b><span>Tell us about your organisation and where it works.</span></li>
           <li><b>Set up your workspace</b><span>Once verified, invite your team and add existing records.</span></li>
@@ -59,7 +59,7 @@ export default async function SolutionsPage() {
         </div>
       </CoSec>
 
-      <CoSec n="03" title="Field partners.">
+      <CoSec title="Field partners.">
         {partners.length > 0 && <>
           <p className="is-lead">Field partner</p>
           <ul className="co3-names">{partners.map((p) => <li key={p.id}><b>{p.name}</b><small>{[p.city, p.state].filter(Boolean).join(", ")}</small></li>)}</ul>

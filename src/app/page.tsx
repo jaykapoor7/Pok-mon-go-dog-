@@ -4,7 +4,6 @@ import { PageView } from "@/components/analytics/PageView";
 import { SiteHeader, StrayPawMark } from "@/components/site/SiteHeader";
 import { FooterIndex } from "@/components/site/FooterIndex";
 import { HeroPlate } from "@/components/landing/HeroPlate";
-import { CaseDive } from "@/components/landing/CaseDive";
 import { HeroTally } from "@/components/landing/HeroTally";
 import { AnimalRegister } from "@/components/landing/AnimalRegister";
 import { LandingMotion } from "@/components/landing/LandingMotion";
@@ -12,7 +11,6 @@ import { getLandingStory } from "@/lib/landing/story";
 import { getDogsTreated, getRegisterTotals } from "@/lib/register/totals";
 import { ReportThread } from "@/components/landing/ReportThread";
 import { BotGroups } from "@/components/landing/BotGroups";
-import { sxSerif } from "@/components/shell/fonts";
 import caseArchive from "@/data/landing-case-archive.json";
 import areaArchive from "@/data/landing-area-archive.json";
 import registerArchive from "@/data/landing-register-archive.json";
@@ -23,6 +21,7 @@ import "@/components/request/chain.css";
 import "@/components/landing/landing.css";
 import "@/components/production/production.css";
 import "@/components/landing/restored-landing.css";
+import "@/components/site/plain.css";
 
 export const revalidate = 300;
 export const metadata = {title:"StrayPaw. Every street animal on the record.",description:"One shared record connecting sightings, field work and outcomes for India’s street animals."};
@@ -39,7 +38,7 @@ export default async function HomePage(){
  const box:[number,number,number,number]=[hero.box[0],hero.box[1],hero.box[2],hero.box[3]];
  const liveAreas=story?.desk.cells??[];
  const areas=liveAreas.length?liveAreas.map(c=>({ring:c.ring,open:c.open,crit:c.crit,name:c.name})):areaArchive.areas;
- return <div className={`sp field-site product-site ld sw restored-landing ${sxSerif.variable}`}>
+ return <div className={`sp field-site product-site ld sw restored-landing`}>
   <PageView name="landing_view"/><LandingMotion/><SiteHeader overlay/>
   <main>
    <section id="world" className="ld-hero" aria-labelledby="hero-title"><div className="ld-stage">
@@ -53,7 +52,6 @@ export default async function HomePage(){
    <AnimalRegister data={registerArchive.data} total={registerArchive.data.total} archived/>
    <ReportThread areas={areas} city={liveAreas.length?hero.city:areaArchive.city} recordedAt={liveAreas.length?undefined:"20 Oct 2026"}/>
    <BotGroups/>
-   <CaseDive j={story?.journey??caseArchive.journey} city={story?.journey?hero.city:caseArchive.hero.city} box={story?.journey?box:[caseArchive.hero.box[0],caseArchive.hero.box[1],caseArchive.hero.box[2],caseArchive.hero.box[3]]} rings={story?.journey?hero.rings:caseArchive.hero.rings} events={story?.journey?hero.events:caseArchive.hero.events}/>
    <section className="lx-faq" aria-labelledby="faq-title"><div className="lx-faq-in">
     <div className="lx-faq-intro"><h2 id="faq-title">A few things to know.</h2><Link href="/contact">Ask us something else<ArrowUpRight size={16} aria-hidden/></Link></div>
     <div className="lx-faq-list">{FAQ.map(([q,a])=><details key={q}><summary><span>{q}</span><i aria-hidden/></summary><p>{a}</p></details>)}</div>

@@ -4,7 +4,7 @@ for(const width of [320,390,768,1440])test(`hero and section order remain usable
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(/Every stray animal in India\.\s*Seen\. Tracked\. Cared\s+for\./);
  for(const a of await page.locator(".ld-hero-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.width).toBeGreaterThanOrEqual(44);expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main > section h1, main > section h2").allTextContents()).map(s=>s.replace(/\s+/g," "));
- expect(headings[0]).toMatch(/Every stray animal in India/);expect(headings.slice(1,6)).toEqual(["Every animal has a story.","Direct chat with the StrayPaw bot","StrayPaw in your NGO’s WhatsApp group","One request, followed to the end.","A few things to know."]);
+ expect(headings[0]).toMatch(/Every stray animal in India/);expect(headings.slice(1,5)).toEqual(["Every animal has a story.","Direct chat with the StrayPaw bot","StrayPaw in your NGO’s WhatsApp group","A few things to know."]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.getByRole("button",{name:/Pause motion|Play motion/})).toHaveCount(0);
  await expect(page.locator("#world .ld-plate canvas,#world .ld-plate-fallback svg").first()).toBeVisible();
@@ -12,7 +12,7 @@ for(const width of [320,390,768,1440])test(`hero and section order remain usable
  await expect(page.locator(".ld-hero-actions .is-flame")).toHaveCSS("background-color","rgb(240, 91, 64)");
  await expect(page.locator("#world")).not.toContainText("Explore the public animal record.");
  await expect(page.locator("#world")).not.toContainText("Sources & definitions");
- await expect(page.locator("#request-journey")).not.toContainText(/Archived public case|Illustrative routes|routes are illustrative|Place of care not on the public record/i);
+ await expect(page.locator("#request-journey")).toHaveCount(0);
 });
 test("photographic carousel loads directly from the site without a record service",async({page})=>{
  const requests:string[]=[];page.on("request",r=>{if(r.resourceType()==="image")requests.push(r.url());});
@@ -87,12 +87,6 @@ test("the landing navigation blends into the hero and the WhatsApp section finis
  /* Section 1 now ends at the checked record; the city map and replies live in later sections. */
  await expect(page.locator("#one-request .rt-rec-status")).toHaveText("Checked by a person");
  await expect(page.locator(".rt-map, .rt-city, .rt-reply")).toHaveCount(0);
-});
-test("reduced motion shows the whole request and removes ambient movement",async({page})=>{
- await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");const section=page.locator("#one-request");await section.scrollIntoViewIfNeeded();
- await expect(page.locator("#request-journey .ld-dive-day b")).toBeVisible();
- await expect(page.locator("#request-journey .is-now .ld-dive-what b")).toHaveText(/Case closed|Recovered/);
- expect(await section.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==="running").length)).toBe(0);
 });
 test("essential public information and actions survive without JavaScript",async({browser})=>{
  const context=await browser.newContext({javaScriptEnabled:false});const page=await context.newPage();await page.goto("/");

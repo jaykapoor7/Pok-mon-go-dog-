@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 
 test("the homepage remains readable in both scroll directions", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto("/");
-  for (const id of ["world", "one-request", "request-journey", "request-journey", "one-request", "world"]) {
+  for (const id of ["world", "one-request", "whatsapp-groups", "one-request", "world"]) {
     const section=page.locator(`#${id}`);await section.scrollIntoViewIfNeeded();await expect(section.locator("h1,h2").first()).toBeVisible();
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
