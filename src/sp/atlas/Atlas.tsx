@@ -77,9 +77,10 @@ async function api(path: string, scope: Scope): Promise<Response> {
 const cityCache = new Map<string, Promise<MapCity | null>>();
 function readCity(city: string, scope: Scope) {
   const key = `${scope}:${city}`;
-  const hit = cityCache.get(key); if (hit) return hit;
+  const hit = scope === "public" ? cityCache.get(key) : null; if (hit) return hit;
   const p = api(`/api/livingmap?city=${encodeURIComponent(city)}`, scope).then(async (r) => { if (r.status === 404) return null; if (!r.ok) throw new Error(String(r.status)); return (await r.json()) as MapCity; });
-  cityCache.set(key, p); p.catch(() => cityCache.delete(key));
+  // Never retain private organisation responses across account changes.
+  if (scope === "public") { cityCache.set(key, p); p.catch(() => cityCache.delete(key)); }
   return p;
 }
 
@@ -143,9 +144,10 @@ export function Atlas({ variant = "community", scope = "public", lenses = PUBLIC
     const read = (left: number): void => {
       api("/api/livingmap?kind=cities", scope).then((r) => {
         if (r.status === 401) { if (live) setCitiesState("auth"); return null; }
+        if (r.status === 402) throw new Error("quota-exceeded");
         return r.ok ? r.json() : Promise.reject(new Error(String(r.status)));
       }).then((j) => { if (live && j) { setCities(j.cities ?? []); setUnplaced(j.unplaced ?? []); setCitiesState("ready"); } })
-        .catch(() => { if (!live) return; if (left > 0) window.setTimeout(() => read(left - 1), 1200); else setCitiesState("error"); });
+        .catch((error) => { if (!live) return; if (String(error).includes("quota-exceeded")) { setCitiesState("error"); return; } if (left > 0) window.setTimeout(() => read(left - 1), 1200); else setCitiesState("error"); });
     };
     read(2);
     return () => { live = false; };
