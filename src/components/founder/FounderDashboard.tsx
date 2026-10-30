@@ -197,6 +197,8 @@ export function FounderDashboard() {
   const web = data?.web;
   const activity = data?.activity;
   const complete7 = activity?.available && activity.window_complete_7d === true;
+  const completePeriod = activity?.available && !!activity.tracking_started_at && !!data &&
+    Date.parse(activity.tracking_started_at) <= Date.parse(data.period.from);
   const orgs = s?.organization_rows ?? [];
 
   if (!data && !loading && !password.current) return <div className="fi-root">
@@ -341,7 +343,7 @@ export function FounderDashboard() {
               <Metric title="Registered pilots" value={s.pilots.length} detail="Explicit pilot records"/>
               <Metric title="Active pilots" value={s.pilots.filter(x=>x.stage==="active").length} detail="Founder-maintained pilot stages"/>
               <Metric title="Sustained use" value={s.pilots.filter(x=>x.stage==="sustained").length} detail="Manually verified stage"/>
-              <Metric title="Weekly active NGO pilots" value={complete7 ? s.pilots.filter(x => ["active","sustained"].includes(x.stage) && (activity?.by_org ?? []).some(a => a.ngo_id === x.ngo_id && a.events > 0)).length : null} detail={complete7 ? "Qualified operational events" : "Tracking window not complete"} unavailable={!complete7} />
+              <Metric title="Pilots with period usage" value={completePeriod ? s.pilots.filter(x => ["active","sustained"].includes(x.stage) && (activity?.by_org ?? []).some(a => a.ngo_id === x.ngo_id && a.events > 0)).length : null} detail={completePeriod ? "Member-verified native actions" : "Full selected period not tracked"} unavailable={!completePeriod} />
             </div>
             <div className="fi-two">
               <Panel title="Pilot pipeline" caption="Only real manually registered pilots appear here">
