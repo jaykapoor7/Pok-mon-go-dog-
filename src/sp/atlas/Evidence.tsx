@@ -31,7 +31,7 @@ export function EvidenceDrawer({ lens, city, data, cells, evidence, ranged }: { 
   let exact = 0, animals = 0, unconf = 0, unk = 0;
   for (const c of cells) { exact += c.exact_loc; animals += c.animals; unconf += c.open_unconfirmed ?? 0; unk += c.ster_unknown; }
   const rows: [string, string][] = [
-    ["What is counted", L.unit === "places to look" ? "Areas where the record shows open, flagged or missed work" : `${L.unit[0].toUpperCase()}${L.unit.slice(1)} on the public record`],
+    ["What is counted", L.unit === "needing help" ? "Animals flagged as needing help or with a confirmed open request (whichever is larger in each area), plus missed rechecks" : `${L.unit[0].toUpperCase()}${L.unit.slice(1)} on the public record`],
     ["Unit of area", "H3 area, ≈0.74 km². Not a ward: ward views need ward boundaries StrayPaw does not hold"],
     ["Source", evidence ? `${KINDS[evidence.kind].label}: ${KINDS[evidence.kind].reads.toLowerCase()}` : "Public animal and request records"],
     ["Placement", `${evidence?.precision ?? "Area level"}. ${animals ? Math.round((exact / animals) * 100) : 0}% of animals placed from a map point; the rest by locality name`],

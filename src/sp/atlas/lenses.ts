@@ -26,7 +26,7 @@ export type Lens = { id: LensId; label: string; q: QuestionId; facet?: string; i
 export const LENSES: Record<LensId, Lens> = {
   animals: { id: "animals", label: "Animals", q: "animals", facet: "all", ink: "#2457ce", unit: "animal profiles",
     define: "Animal profiles on the record. A profile is a record, not a census: one animal can have several, and most animals are never recorded." },
-  help: { id: "help", label: "Needs help", q: "act", ink: "#c8371d", unit: "places to look",
+  help: { id: "help", label: "Needs help", q: "act", ink: "#c8371d", unit: "needing help",
     define: "Where the record says someone should look: an animal flagged as needing help, a request confirmed open, a missed recheck. Nothing reported is not the same as fine." },
   requests: { id: "requests", label: "Open requests", q: "needs", facet: "open", ink: "#b0702a", unit: "open requests", timed: true,
     define: "Requests for help that are open by StrayPaw's own record. Open only in an imported register, never confirmed since, is shown apart as unconfirmed." },
@@ -53,11 +53,16 @@ export const NGO_LENSES: LensId[] = ["help", "requests", "followups", "animals",
 
 const f = (n: number) => n.toLocaleString("en-IN");
 
+/** Needing help, the same at every scale: flagged animals or confirmed open
+    requests, whichever is larger (one animal is often both), plus missed
+    rechecks. Never drops a flagged animal for sharing an area with a request. */
+export const needingHelp = (flagged: number, openConfirmed: number, missed: number) => Math.max(flagged, Math.max(0, openConfirmed)) + missed;
+
 /** The lens's own measure for a city at national scale. */
 export function nationalMeasure(id: LensId, c: NationalCity): number {
   const street = kindOf(c.city, c.cells) !== "clinical";
   switch (id) {
-    case "help": return c.open_cases - (c.open_unconfirmed ?? 0) + c.needs_help + (c.fu_missed_live ?? 0);
+    case "help": return needingHelp(c.needs_help, c.open_cases - (c.open_unconfirmed ?? 0), c.fu_missed_live ?? 0);
     case "requests": case "followups": return c.open_cases - (c.open_unconfirmed ?? 0);
     case "care": case "abc": return street ? c.sterilised : 0;
     case "arv": return street ? c.vaccinated : 0;
@@ -77,11 +82,11 @@ export function lensFigure(id: LensId, cells: MapCell[] | null, cities: National
       const u = c.open_unconfirmed ?? 0, isClinical = kindOf(c.city, c.cells) === "clinical";
       animals += c.animals; ster += c.sterilised; vacc += c.vaccinated;
       if (isClinical) { clinical += c.animals; cster += c.sterilised; }
-      open += c.open_cases - u; unconf += u; help += c.needs_help + (c.fu_missed_live ?? 0); treat += c.treatments;
+      open += c.open_cases - u; unconf += u; help += needingHelp(c.needs_help, c.open_cases - u, c.fu_missed_live ?? 0); treat += c.treatments;
     }
     const held = cities.filter((c) => c.animals > 0).length;
     if (id === "animals") return { big: f(animals), small: `animal records in ${held} cities${clinical ? ` · ${f(clinical)} in a clinical register` : ""}` };
-    if (id === "help") return { big: f(open + help), small: "open, flagged or missed" };
+    if (id === "help") return { big: f(help), small: "needing help: flagged, open or missed" };
     if (id === "requests" || id === "followups") return { big: f(open), small: unconf ? `confirmed open · ${f(unconf)} unconfirmed` : "confirmed open" };
     if (id === "arv") return { big: f(vacc), small: "recorded vaccinated" };
     if (id === "treat") return { big: f(treat), small: "treatment records" };
@@ -91,7 +96,7 @@ export function lensFigure(id: LensId, cells: MapCell[] | null, cities: National
   const orgs = new Set<string>();
   for (const c of cells ?? []) {
     animals += c.animals; const u = c.open_unconfirmed ?? 0; open += c.open_cases - u; unconf += u;
-    missed += c.fu_missed_live ?? 0; if (!c.open_cases) flagged += c.needs_help; ster += c.ster_yes; vacc += c.vacc_yes; care12 += c.care_12m;
+    missed += c.fu_missed_live ?? 0; flagged += needingHelp(c.needs_help, c.open_cases - u, 0); ster += c.ster_yes; vacc += c.vacc_yes; care12 += c.care_12m;
     exact += c.exact_loc; due += c.fu_upcoming;
     treat += Object.entries(c.care_kinds).reduce((s2, [k, v]) => (k === "sterilisation" || k === "vaccination" ? s2 : s2 + v), 0);
     for (const o of c.orgs) if (o.name) orgs.add(o.name);
@@ -101,7 +106,7 @@ export function lensFigure(id: LensId, cells: MapCell[] | null, cities: National
   if (id === "treat") return { big: f(treat), small: "treatment records" };
   if (id === "orgs") return { big: f(orgs.size), small: "organisations keep records" };
   if (id === "animals") return { big: f(animals), small: `profiles in ${f(cells?.length ?? 0)} areas` };
-  if (id === "help") return { big: f(open + flagged + missed), small: "open, flagged or missed" };
+  if (id === "help") return { big: f(flagged + missed), small: "needing help: flagged, open or missed" };
   if (id === "requests") return { big: f(open), small: unconf ? `confirmed · ${f(unconf)} unconfirmed` : "confirmed open" };
   if (id === "arv") return { big: f(vacc), small: "recorded vaccinated" };
   return { big: f(ster), small: care12 ? `sterilised · ${f(care12)} care records in 12 months` : "recorded sterilised" };

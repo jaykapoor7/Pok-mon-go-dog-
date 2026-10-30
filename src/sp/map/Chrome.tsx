@@ -23,11 +23,12 @@ import { MobileDetails } from "../ui/MobileDetails";
 import { Reading } from "../ui/Reading";
 import type { Bucket } from "../atlas/recency";
 import { KINDS, kindOf, type EvidenceKind } from "../atlas/evidence";
-import { LENSES } from "../atlas/lenses";
+import { LENSES, nationalMeasure } from "../atlas/lenses";
 import { MARK } from "./marks";
 import { lensLabel, type MapScope, type MapVariant } from "./lens";
 import type { LensId } from "../atlas/lenses";
 import { cityFindings } from "../atlas/cityFindings";
+import { LOAD_ZOOM, NEED_INK, NEED_LABEL, NEED_RANK, needOf } from "./need";
 
 export type Level = "india" | "city" | "area" | "animal";
 export type Face = { id: string; title: string; describe: string | null; photo: string; city: string; zone: string | null; h3: string; c: [number, number]; last_seen: string | null };
@@ -98,7 +99,7 @@ export function Chrome(P: Props) {
         <MapSearch cities={P.cities} onCity={P.onCity} onPlace={P.onPlace} remote={!org} />
         <MobileDetails label={`Map layer: ${lensLabel(P.lens)}`} className="fm-layer-fold"><div className="fm-lenses" role="group" aria-label="What the map shows">
           {P.lenses.map((id) => (
-            <button key={id} type="button" aria-pressed={P.lens === id} onClick={() => P.setLens(id)} style={{ ["--lk" as string]: id === "animals" ? MARK.ster.yes : LENSES[id].ink }}>
+            <button key={id} type="button" aria-pressed={P.lens === id} onClick={() => P.setLens(id)} style={{ ["--lk" as string]: id === "animals" ? "#2457ce" : LENSES[id].ink }}>
               <i aria-hidden />{lensLabel(id)}
             </button>
           ))}
@@ -107,7 +108,7 @@ export function Chrome(P: Props) {
 
       <aside className={`fm-key${keyOpen ? " is-open" : ""}`} aria-label="Key">
         <button type="button" className="fm-key-btn" aria-expanded={keyOpen} onClick={() => setKeyOpen((v) => !v)}>Key</button>
-        <div className="fm-key-in"><Key level={level} lens={P.lens} recency={P.recency} zoom={P.zoom} /></div>
+        <div className="fm-key-in"><Key level={level} lens={P.lens} zoom={P.zoom} /></div>
       </aside>
 
       <MobileDetails label="Map tools" className="fm-controls-fold"><div className="fm-ctl" role="group" aria-label="Map controls">
@@ -162,8 +163,20 @@ function Sheet({ level, state, setState, onClose, label, children }: { level: Le
 function IndiaCard({ cities, street, unplaced, faces, fig, onCity }: { cities: NationalCity[]; street: NationalCity[]; unplaced: Unplaced[]; faces: Face[]; fig: { big: string; small: string }; onCity: Props["onCity"] }) {
   const ranked = [...cities].filter((c) => c.animals > 0).sort((a, b) => b.animals - a.animals);
   const clinical = cities.filter((c) => kindOf(c.city, c.cells) === "clinical");
+  /* Where to go first: the cities where the record says someone should look. */
+  const needing = street.map((c) => ({ c, n: nationalMeasure("help", c) })).filter((x) => x.n > 0).sort((a, b) => b.n - a.n);
   return (
     <div className="fm-card fm-india">
+      {needing.length > 0 && (
+        <>
+          <p className="fm-k">Where help is needed</p>
+          <ol className="fm-need">{needing.slice(0, 6).map(({ c, n }) => (
+            <li key={c.city}><button type="button" onClick={() => onCity(c.city)}>
+              <i aria-hidden style={{ background: NEED_INK.help }} /><b>{c.city}</b><span className="fm-num">{f(n)}</span><small>needing help</small>
+            </button></li>
+          ))}</ol>
+        </>
+      )}
       <p className="fm-k">The record</p>
       <p className="fm-big"><b>{fig.big}</b> <span>{fig.small}</span></p>
       {faces.length > 0 && (
@@ -177,7 +190,7 @@ function IndiaCard({ cities, street, unplaced, faces, fig, onCity }: { cities: N
           ))}</ul>
         </>
       )}
-      <p className="fm-note">Each light is a city, sized by what it holds. {clinical.length ? `${clinical.map((c) => c.city).join(", ")} keeps a clinical register at city level only, so it is drawn hollow and never opens into streets. ` : ""}Empty land means nothing was reported there, not that there are no animals.</p>
+      <p className="fm-note">A red city has animals the record says need help. {clinical.length ? `${clinical.map((c) => c.city).join(", ")} keeps a clinical register at city level only, so it is drawn hollow. ` : ""}Empty land means nothing was reported there, not that there are no animals.</p>
       <p className="fm-k">Cities on the record · {street.length + cities.length - street.length}</p>
       <ol className="fm-cities">{ranked.map((c) => {
         const k = kindOf(c.city, c.cells);
@@ -205,12 +218,38 @@ function CityCard(P: Props & { city: string }) {
   if (!cells.length) return <p className="fm-wait" role="status">{P.cityState === "loading" ? <Reading>Reading {P.city}</Reading> : P.cityState === "missing" ? `${P.city} has no mapped areas yet.` : ""}</p>;
   const top = places.slice(0, 8);
   const maxV = Math.max(1, ...top.map((p) => p.v));
+  /* Where to go in this city: localities with animals needing help or an
+     open request, each opening its busiest area with those animals first. */
+  const needing = (() => {
+    const by = new Map<string, { name: string; help: number; open: number; h3: string; best: number }>();
+    for (const c of cells) {
+      const open = Math.max(0, c.open_cases - (c.open_unconfirmed ?? 0));
+      if (!c.needs_help && !open) continue;
+      const name = placeName(c.zone), x = by.get(name) ?? { name, help: 0, open: 0, h3: c.h3, best: -1 };
+      x.help += c.needs_help; x.open += open;
+      if (c.needs_help * 100 + open > x.best) { x.best = c.needs_help * 100 + open; x.h3 = c.h3; }
+      by.set(name, x);
+    }
+    return [...by.values()].sort((a, b) => b.help - a.help || b.open - a.open);
+  })();
   return (
     <div className="fm-card">
+      {needing.length > 0 && (
+        <>
+          <p className="fm-k">Where help is needed</p>
+          <ol className="fm-need">{needing.slice(0, 6).map((x) => (
+            <li key={x.name}><button type="button" onClick={() => P.onArea(x.h3)}>
+              <i aria-hidden style={{ background: x.help ? NEED_INK.help : NEED_INK.open }} /><b>{x.name}</b>
+              <span className="fm-num">{f(x.help || x.open)}</span>
+              <small>{x.help ? `needing help${x.open ? ` · ${f(x.open)} open` : ""}` : `open request${x.open === 1 ? "" : "s"}`}</small>
+            </button></li>
+          ))}</ol>
+        </>
+      )}
       <p className="fm-big"><b>{fig.big}</b> <span>{fig.small}</span></p>
-      {reading && <p className="fm-lead">{reading.lead}</p>}
-      {reading && <p className="fm-note">{reading.qualify}</p>}
-      {months.length > 2 && <Ribbon months={months} />}
+      {/* The need filters are read by the list above; their older narrower sentence would contradict it. */}
+      {reading && P.lens !== "help" && P.lens !== "requests" && <><p className="fm-lead">{reading.lead}</p><p className="fm-note">{reading.qualify}</p></>}
+      {P.variant === "city" && months.length > 2 && <Ribbon months={months} />}
       {P.variant !== "community" && <Findings cells={cells} spot={P.spot} onSpot={P.onSpot} onArea={P.onArea} />}
       <p className="fm-k">Localities</p>
       <ol className="fm-locs">{top.map((p) => {
@@ -294,15 +333,16 @@ function Ribbon({ months }: { months: { m: number; opened: number; care: number 
 function AreaCard({ cell, city, area, onAnimal, variant }: { cell: MapCell; city: string; area: MapArea | null | "loading" | "error"; onAnimal: (id: string) => void; variant: MapVariant }) {
   const [all, setAll] = useState(false);
   const a = area && area !== "loading" && area !== "error" ? area : null;
-  const shown = a ? (all ? a.animals : a.animals.slice(0, 12)) : [];
+  const sorted = a ? [...a.animals].sort((x, y) => NEED_RANK[needOf(x)] - NEED_RANK[needOf(y)]) : [];
+  const shown = all ? sorted : sorted.slice(0, 12);
   const open = cell.open_cases - (cell.open_unconfirmed ?? 0);
   return (
     <div className="fm-card">
       <p className="fm-k">{city} · an area of about 0.74 km²</p>
       <dl className="fm-facts">
+        <div className={cell.needs_help ? "is-help" : undefined}><dt>Needing help</dt><dd>{f(cell.needs_help)}</dd></div>
+        <div className={open ? "is-open" : undefined}><dt>Open requests</dt><dd>{f(open)}{cell.open_unconfirmed ? <small> +{cell.open_unconfirmed} unconfirmed</small> : null}</dd></div>
         <div><dt>Animals</dt><dd>{f(cell.animals)}</dd></div>
-        <div><dt>Open requests</dt><dd>{f(open)}{cell.open_unconfirmed ? <small> +{cell.open_unconfirmed} unconfirmed</small> : null}</dd></div>
-        <div><dt>Care records</dt><dd>{f(cell.care)}</dd></div>
         <div><dt>Last recorded</dt><dd className="is-text">{ago([cell.last_seen, cell.last_case, cell.care_last].filter(Boolean).sort().pop() ?? null) ?? "not recorded"}</dd></div>
       </dl>
       {area === "loading" && <div className="fm-sheetgrid" aria-busy="true">{Array.from({ length: 6 }, (_, i) => <span key={i} className="fm-skel" />)}</div>}
@@ -310,14 +350,17 @@ function AreaCard({ cell, city, area, onAnimal, variant }: { cell: MapCell; city
       {a && (
         <>
           <p className="fm-k">Recorded here · {f(a.animalTotal)}</p>
-          <ul className="fm-sheetgrid">{shown.map((x) => (
-            <li key={x.id}><button type="button" onClick={() => onAnimal(x.id)}>
-              {x.photo ? <Portrait src={x.photo} tag={x.title} sensitive={x.sensitive} size="s" alt="" /> : <span className="fm-thumb" aria-hidden><Paw color={sterInk(x.ster)} /><i>{x.title}</i></span>}
-              <b>{x.title}</b><small>{x.needs_help ? "Needs help" : x.ster === "sterilised" ? "Sterilised" : x.describe ?? ""}</small>
-            </button></li>
-          ))}</ul>
+          <ul className="fm-sheetgrid">{shown.map((x) => {
+            const n = needOf(x);
+            return (
+              <li key={x.id} className={`is-${n}`}><button type="button" onClick={() => onAnimal(x.id)}>
+                {x.photo ? <Portrait src={x.photo} tag={x.title} sensitive={x.sensitive} size="s" alt="" /> : <span className="fm-thumb" aria-hidden><Paw color={NEED_INK[n]} /><i>{x.title}</i></span>}
+                <b>{x.title}</b><small><i aria-hidden style={{ background: NEED_INK[n] }} />{n === "rec" ? x.describe ?? NEED_LABEL.rec : NEED_LABEL[n]}</small>
+              </button></li>
+            );
+          })}</ul>
           {a.animals.length > 12 && !all && <button type="button" className="fm-link" onClick={() => setAll(true)}>Show all {a.animals.length} read here</button>}
-          {a.animalTotal > a.animals.length && <p className="fm-note">{f(a.animals.length)} of {f(a.animalTotal)} shown, those needing help and photographed first.</p>}
+          {a.animalTotal > a.animals.length && <p className="fm-note">{f(a.animals.length)} of {f(a.animalTotal)} shown, those needing help first.</p>}
           {a.cases.length > 0 && (
             <>
               <p className="fm-k">Requests for help · {f(a.caseTotal)}</p>
@@ -344,6 +387,9 @@ function AnimalCard({ a, city, cell, variant, embedded }: { a: AreaAnimal; city:
   const from = embedded ? `/explore?${new URLSearchParams({ city, ...(cell ? { area: cell.h3 } : {}), animal: a.id })}` : `${pathname ?? "/community"}${params.size ? `?${params.toString()}` : ""}`;
   const ster = a.ster === "sterilised" ? "Recorded sterilised" : a.ster === "not_sterilised" ? "Recorded not sterilised" : "Sterilisation not recorded";
   const vacc = a.vacc === "vaccinated" ? "Recorded vaccinated" : a.vacc === "not_vaccinated" ? "Recorded not vaccinated" : "Vaccination not recorded";
+  const need = needOf(a), open = a.facts?.open ?? 0;
+  const reqs = `${f(open)} open request${open === 1 ? "" : "s"} for help`;
+  const why = need === "help" ? `Flagged as needing help${open ? ` · ${reqs}` : ""}` : need === "open" ? reqs : "No open request on the record. Not the same as fine.";
   const thread = useMemo(() => {
     const t: { when: string | null; what: string; tone?: string }[] = [];
     t.push({ when: a.first_seen, what: `First on the record${a.source ? `, from ${sourceWord(a.source)}` : ""}` });
@@ -358,10 +404,10 @@ function AnimalCard({ a, city, cell, variant, embedded }: { a: AreaAnimal; city:
   };
   return (
     <article className="fm-card fm-animal">
+      <p className={`fm-status is-${need}`} role="status"><i aria-hidden style={{ background: NEED_INK[need] }} /><b>{NEED_LABEL[need]}</b><span>{why}</span></p>
       <div className="fm-photo">{a.photo ? <Portrait src={a.photo} tag={a.title} sensitive={a.sensitive} size="l" alt={`${a.title}, as photographed`} /> : <Plate tag={a.title} puppy={a.size === "puppy"} />}</div>
       <p className="fm-k">{[a.describe, placeName(a.zone ?? cell?.zone), city].filter(Boolean).join(" · ")}</p>
       <ul className="fm-chips">
-        {a.needs_help && <li className="is-flame">Flagged as needing help</li>}
         <li className={a.ster === "sterilised" ? "is-care" : a.ster ? "" : "is-unknown"}>{ster}</li>
         <li className={a.vacc === "vaccinated" ? "is-care" : a.vacc && a.vacc !== "unknown" ? "" : "is-unknown"}>{vacc}</li>
       </ul>
@@ -378,7 +424,6 @@ function AnimalCard({ a, city, cell, variant, embedded }: { a: AreaAnimal; city:
     </article>
   );
 }
-const sterInk = (s: string | null) => (s === "sterilised" ? MARK.ster.yes : s === "not_sterilised" ? MARK.ster.no : "#c9bba5");
 function Paw({ color }: { color: string }) {
   return <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden><circle cx="12" cy="12" r="7" fill={color} stroke="#fffdf9" strokeWidth="2" /><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(11,30,61,0.18)" strokeWidth="1" /></svg>;
 }
@@ -393,24 +438,36 @@ function Plate({ tag }: { tag: string; puppy: boolean }) {
 const sourceWord = (s: string) => (/import|register|xlsx|sheet/i.test(s) ? "an imported register" : /inat/i.test(s) ? "an iNaturalist observation" : /campaign|survey/i.test(s) ? "a field campaign" : /field/i.test(s) ? "a field record" : /report|community|web/i.test(s) ? "a community report" : s.replace(/_/g, " "));
 
 /* ── Key: what the marks mean at this scale ── */
-function Key({ level, lens, recency, zoom }: { level: Level; lens: LensId; recency: Bucket[]; zoom: number }) {
+function Key({ level, lens, zoom }: { level: Level; lens: LensId; zoom: number }) {
   const L = LENSES[lens];
+  const care = lens === "care" || lens === "abc" || lens === "arv";
+  const filter = lens === "help" || lens === "requests" || lens === "followups";
+  const sw = (c: string) => <span className="fm-sw" style={{ background: c }} aria-hidden />;
   return (
     <>
       <p className="fm-k">{lensLabel(lens)}</p>
       {level === "india" ? (
         <ul className="fm-keyl">
-          <li><span className="fm-sw is-city" aria-hidden />A city, sized by {lens === "animals" ? "animals on the record" : L.unit}</li>
+          {lens === "animals" ? <>
+            <li>{sw(NEED_INK.help)}A city with animals needing help</li>
+            <li><span className="fm-sw is-city" aria-hidden />A city on the record, sized by its animals</li>
+          </> : <li><span className="fm-sw is-city" aria-hidden />A city, sized by {L.unit}</li>}
           <li><span className="fm-sw is-hollow" aria-hidden />City-level register: no streets</li>
-          {lens === "animals" && <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Recorded areas, coloured by when last recorded</small></li>}
         </ul>
       ) : (
         <ul className="fm-keyl">
-          {lens === "animals" ? <li className="fm-keyr">{recency.map((b) => <span key={b.id} title={b.label}><i style={{ background: b.color }} />{b.short}</span>)}<small>Each circle a recorded area, sized by its animal records and coloured by date</small></li>
-            : <li><span className="fm-sw" style={{ background: L.ink }} aria-hidden />{L.define.split(".")[0]}.</li>}
-          <li><span className="fm-sw is-hatch" aria-hidden />No date or status recorded</li>
-          <li><span className="fm-sw is-edge" aria-hidden />Edge of the record: nothing reported yet</li>
-          {zoom > 12.6 && <li><span className="fm-sw" style={{ background: "#1f6f80" }} aria-hidden /><span className="fm-sw" style={{ background: "#f05b40" }} aria-hidden />Dots: loaded animal records, arranged within their recorded area. Approximate positions.</li>}
+          {care ? <>
+            <li>{sw("#1f6f80")}{lens === "arv" ? "Recorded vaccinated" : "Recorded sterilised"}</li>
+            {lens !== "arv" && <li>{sw("#d0782a")}Recorded not sterilised</li>}
+            <li>{sw("#9aa6b6")}Not recorded, never counted as no</li>
+          </> : <>
+            <li>{sw(NEED_INK.help)}{NEED_LABEL.help}</li>
+            <li>{sw(NEED_INK.open)}{NEED_LABEL.open}</li>
+            <li>{sw(NEED_INK.rec)}{NEED_LABEL.rec}</li>
+          </>}
+          {filter && <li className="fm-keyn">Faded dots are outside this filter.</li>}
+          {lens !== "animals" && <li>{sw(L.ink)}Circles: {L.define.split(".")[0].toLowerCase()}, by area.</li>}
+          <li className="fm-keyn">One dot per animal, placed inside its area, not where it was seen.{zoom < LOAD_ZOOM ? " Zoom in to open each one." : ""}</li>
         </ul>
       )}
     </>

@@ -15,27 +15,33 @@ import { MR } from "@/lib/livingmap/types";
 import { RECENCY, bucketOf, lastRecorded } from "../atlas/recency";
 import { coreBounds, haversineKm, seedHead } from "../atlas/geo";
 import { KINDS, cityEvidence, kindOf } from "../atlas/evidence";
-import { LENSES, lensFigure, nationalMeasure, type LensId } from "../atlas/lenses";
+import { LENSES, lensFigure, nationalMeasure, needingHelp, type LensId } from "../atlas/lenses";
 import { rememberHome, resolveHome } from "@/lib/home-city";
 import { GLYPHS, ORNAMENT, collapseAttribution, groundStyle, drawGround } from "./ground";
 import { MARK } from "./marks";
 import { Chrome, type Face, type Level } from "./Chrome";
 import { MAP_LENSES, unitFor, type MapScope, type MapVariant } from "./lens";
+import { LOAD_ZOOM, NEED_INK, NEED_LABEL, needOf, type Need } from "./need";
 import { getSupabase } from "@/lib/supabase";
 import "./field-map.css";
 
 
 const INDIA_BOX: [[number, number], [number, number]] = [[68.2, 6.4], [97.4, 35.6]];
-const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, PAW_ZOOM = 13.2, MAX_PAWS = 140;
-/* The paw dots start showing at city overview (~10.4) so when a cluster is
-   tapped they ARE already visible as they bloom; by city-close (~12) they
-   are full strength. The old threshold of PAW_ZOOM-0.6 meant a reader had
-   to wait for the camera to arrive at ~12.6 before any dot drew — the
-   cluster felt empty for the first half of the fly. */
-const PAW_SHOW_LO = 10.4, PAW_SHOW_HI = 12.0;
-/* Night inks: an undated area, and the dots of sterilisation as the record has them. */
+const CITY_ZOOM = 7.6, ENTER_ZOOM = 8.6, PAW_ZOOM = 13.2;
+/* Dots are the city view: they are drawn from the moment the city fits the
+   screen (~10.4), so the reader sees animals, not circles, as the camera lands. */
+const PAW_SHOW_LO = 9.4, PAW_SHOW_HI = 10.2;
+/* One dot per animal the area read returns (it returns at most 60, most
+   urgent first), and the same count before and after it is read, so a dot
+   keeps its place when its record arrives. */
+const PER_AREA = 60;
+/* Night inks: an undated area, and care as the record has it. */
 const UNDATED_INK = "#53627f";
-const DOT = { yes: "#1f6f80", no: "#f05b40", unknown: "#697b8d" };
+const CARE = { yes: "#1f6f80", no: "#d0782a", unknown: "#9aa6b6" };
+type DotMode = "need" | "help" | "open" | "ster" | "vacc";
+/** How each lens paints the dots: by need, a need filter, or care. */
+const dotMode = (l: LensId): DotMode => (l === "help" ? "help" : l === "requests" || l === "followups" ? "open" : l === "care" || l === "abc" ? "ster" : l === "arv" ? "vacc" : "need");
+const careKey = (v: string | null, yes: string, no: string): keyof typeof CARE => (v === yes ? "yes" : v === no ? "no" : "unknown");
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* ease-in-out cubic: a soft take-off and a soft landing, so the India →
    city swoop never feels yanked. */
@@ -88,8 +94,12 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   const [cityState, setCityState] = useState<"idle" | "loading" | "error" | "missing">("idle");
   const [lens, setLens] = useState<LensId>(lenses.includes(I.lens as LensId) ? (I.lens as LensId) : defaultLens);
   const [areaH3, setAreaH3] = useState<string | null>(I.area);
-  const [area, setArea] = useState<MapArea | null | "loading" | "error">(null);
+  /* Every area read in this city, so dots across the neighbourhood are real
+     animals; kept per map (never shared), so a private read stays private. */
+  const [areas, setAreas] = useState<Map<string, MapArea | "loading" | "error">>(() => new Map());
   const [animalId, setAnimalId] = useState<string | null>(I.animal);
+  /* A dot was tapped before its area was read: show the animal as reading. */
+  const [pendingDog, setPendingDog] = useState(false);
   const [spot, setSpot] = useState<{ id: string; cells: Set<string> } | null>(null);
   const [quiet, setQuiet] = useState(I.view === "quiet");
   const [zoom, setZoom] = useState(4);
@@ -102,11 +112,17 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   const [center, setCenter] = useState<[number, number] | null>(null);
   const pendingPaw = useRef<number | null>(null);
   const pendingPlace = useRef<string | null>(I.place);
+  /* Where a tapped dot sits, so the camera brings that animal into view. */
+  const pickAt = useRef<[number, number] | null>(null);
+  const dogFromDot = useRef(false);
+  /* Closing an animal tapped on the map leaves the reader where they were. */
+  const holdCamera = useRef(false);
 
   const L = LENSES[lens];
   const q = question(L.q);
   const facet = L.facet ?? (q.facets?.[0]?.id ?? "all");
-  const level: Level = !city ? "india" : animalId ? "animal" : areaH3 ? "area" : "city";
+  const level: Level = !city ? "india" : animalId || pendingDog ? "animal" : areaH3 ? "area" : "city";
+  const area: MapArea | null | "loading" | "error" = areaH3 ? areas.get(areaH3) ?? "loading" : null;
   const clinical = !!city && kindOf(city, cities.find((c) => c.city === city)?.cells ?? 2) === "clinical";
 
   const el = useRef<HTMLDivElement>(null);
@@ -148,20 +164,43 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     readCity(city, scope).then((d) => { if (live) { setData(d); setCityState(d ? "idle" : "missing"); } }).catch(() => { if (live) { setData(null); setCityState("error"); } });
     return () => { live = false; };
   }, [city, clinical, scope]);
+  /* ── areas: read on demand, six at a time, never twice ── */
+  const gen = useRef(0);
+  const asked = useRef(new Set<string>());
+  const queue = useRef<string[]>([]);
+  const active = useRef(0);
+  const readFor = useRef({ city, scope });
+  readFor.current = { city, scope };
+  useEffect(() => { gen.current++; asked.current.clear(); queue.current = []; setAreas(new Map()); }, [city, scope]);
+  const pump = useCallback(() => {
+    while (active.current < 6 && queue.current.length) {
+      const h3 = queue.current.shift()!;
+      const { city: c, scope: s } = readFor.current; const g = gen.current;
+      if (!c) continue;
+      active.current++;
+      api(`/api/livingmap?kind=area&city=${encodeURIComponent(c)}&h3=${h3}`, s)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((a: MapArea) => { if (g === gen.current) setAreas((m) => new Map(m).set(h3, a)); })
+        .catch(() => { if (g === gen.current) { asked.current.delete(h3); setAreas((m) => new Map(m).set(h3, "error")); } })
+        .finally(() => { active.current--; pump(); });
+    }
+  }, []);
+  /** Read an area; the chosen one jumps the queue. */
+  const loadArea = useCallback((h3: string, first = false) => {
+    if (asked.current.has(h3)) return;
+    asked.current.add(h3);
+    setAreas((m) => (m.has(h3) ? m : new Map(m).set(h3, "loading")));
+    if (first) queue.current.unshift(h3); else queue.current.push(h3);
+    pump();
+  }, [pump]);
+  useEffect(() => { if (city && areaH3) loadArea(areaH3, true); }, [city, areaH3, loadArea]);
+  /* A dot tapped before its area was read resolves to the same animal: the
+     read returns those needing help first, the order the dots were drawn in. */
   useEffect(() => {
-    if (!city || !areaH3) { setArea(null); return; }
-    let live = true;
-    setArea("loading");
-    api(`/api/livingmap?kind=area&city=${encodeURIComponent(city)}&h3=${areaH3}`, scope)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).then((a: MapArea) => {
-        if (!live) return;
-        setArea(a);
-        const j = pendingPaw.current; pendingPaw.current = null;
-        if (j !== null && a.animals[j]) setAnimalId(a.animals[j].id);
-      })
-      .catch(() => { if (live) setArea("error"); });
-    return () => { live = false; };
-  }, [city, areaH3, scope]);
+    if (!pendingDog || !area || area === "loading") return;
+    const j = pendingPaw.current; pendingPaw.current = null; setPendingDog(false);
+    if (area !== "error" && j !== null && area.animals[j]) setAnimalId(area.animals[j].id);
+  }, [pendingDog, area]);
 
   /* ── the reading ── */
   const cells = useMemo(() => data?.cells ?? [], [data]);
@@ -224,15 +263,19 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
            what was swallowing the fog + clusters at city zoom. */
         const num = (key: string, fallback = 1) => ["number", ["coalesce", ["get", key], fallback]] as never;
         const zr = (k: number) => ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", num("k"), num("g"), (px / 2) * k]])] as never;
-        /* India: every recorded area a glow, every city a point of light. */
-        m.addLayer({ id: "nat-glow", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, ["*", ["get", "r"], 2.2], 7, ["*", ["get", "r"], 4]], "circle-color": ["get", "color"], "circle-blur": 0.4, "circle-opacity": 0.12, "circle-pitch-alignment": "map" } });
-        m.addLayer({ id: "nat", type: "circle", source: "nat", maxzoom: 8.4, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], 0.6], 7, ["*", ["get", "r"], 1.2]], "circle-color": ["get", "color"], "circle-opacity": ["case", ["==", ["get", "u"], 1], 0.35, 1], "circle-pitch-alignment": "map" } });
+        /* India: every recorded area a glow, every city a point of light. The
+           glows stay on while a city is being read, so the flight lands on
+           the city's real areas instead of empty ground. */
+        m.addLayer({ id: "nat-glow", type: "circle", source: "nat", maxzoom: 9.6, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, ["*", ["get", "r"], 2.2], 7, ["*", ["get", "r"], 4], 10.6, ["*", ["get", "r"], 7]], "circle-color": ["get", "color"], "circle-blur": 0.4, "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.12, 8.4, 0.12, 9.4, 0], "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "nat", type: "circle", source: "nat", maxzoom: 9.6, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], 0.6], 7, ["*", ["get", "r"], 1.2], 10.6, ["*", ["get", "r"], 2.4]], "circle-color": ["get", "color"], "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3.5, 0.75, 8.4, 0.75, 9.4, 0], "circle-pitch-alignment": "map" } });
         /* A soft heat halo under each area, bigger than the disc, so the city
            reads as a living temperature map from zoom 9 onwards. */
         m.addLayer({ id: "areas-heat", type: "circle", source: "areas", minzoom: 8.6, paint: {
           "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", num("k"), num("g"), px]])] as never,
           "circle-color": ["coalesce", ["get", "color"], "#2a3b5c"], "circle-blur": 1.1, "circle-pitch-alignment": "map",
-          "circle-opacity": ["*", ["case", ["==", ["get", "dim"], 1], 0.22, 1], ["interpolate", ["linear"], ["zoom"], 8, 0.22, 10, 0.42, 11, 0.5, PAW_ZOOM, 0.22]] } });
+          /* Zoom must be the input of the top-level interpolate (MapLibre
+             rejects the whole layer otherwise); per-area dimming rides in each stop. */
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], ...([[8, 0.22], [10, 0.42], [11, 0.5], [PAW_ZOOM, 0.22]] as [number, number][]).flatMap(([z, v]) => [z, ["*", ["case", ["==", ["get", "dim"], 1], 0.22, 1], v]])] as never } });
         /* The areas themselves, for touch and hover: a disc on the ground
            under each column. The feature's own `o` drives opacity so the
            disc only brightens for a selected area; the broad reading lives
@@ -243,22 +286,24 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         m.addLayer({ id: "areas", type: "circle", source: "areas", paint: { "circle-radius": zr(1), "circle-color": ["coalesce", ["get", "color"], "#2a3b5c"],
           "circle-stroke-color": "#fffdf9", "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 9, 0.6, 11, 1.4, PAW_ZOOM, 0],
           "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.5, 11, 0.85, PAW_ZOOM, 0], "circle-blur": 0.05, "circle-pitch-alignment": "map",
-          "circle-opacity": ["*", num("o", 0.85), ["interpolate", ["linear"], ["zoom"], 8, 0.95, 10.4, 0.95, 12, 0.75, PAW_ZOOM, 0.4]] } });
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], ...([[8, 0.95], [10.4, 0.95], [12, 0.75], [PAW_ZOOM, 0.4]] as [number, number][]).flatMap(([z, v]) => [z, ["*", num("o", 0.85), v]])] as never } });
         /* A lit finding rings the areas it rests on, in turmeric; nothing else changes meaning. */
         m.addLayer({ id: "spot", type: "circle", source: "spot", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", num("k"), px * 0.55 + 3]])] as never, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#f2b632", "circle-stroke-width": 2.2, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "sel", type: "circle", source: "sel", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], ...BLOOM_STOPS.flatMap(([z, px]) => [z, ["*", num("g"), px * 0.62 + 6]])] as never, "circle-color": "rgba(143,176,255,0.12)", "circle-stroke-color": "#2457ce", "circle-stroke-width": 2.5, "circle-stroke-opacity": 0.95, "circle-pitch-alignment": "map" } });
         m.addLayer({ id: "nums", type: "symbol", source: "nums", minzoom: 11.4, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold"], "text-size": ["interpolate", ["linear"], ["zoom"], 11.4, 10, 13, 13], "text-allow-overlap": false, "text-padding": 1 }, paint: { "text-color": "#0b1e3d", "text-halo-color": "#fffdf9", "text-halo-width": 1.6, "text-opacity": ["interpolate", ["linear"], ["zoom"], 11.4, 0, 11.8, 1] } });
-        /* Neighbourhood: one dot per recorded animal. The pulse layer under
-           the dot is a slow heart-beat halo (paint driven by a RAF loop so
-           it works in a WebGL vector style). A photographed animal is ringed
-           in white; a chosen one in flame. */
-        m.addLayer({ id: "paws-pulse", type: "circle", source: "paws", minzoom: PAW_SHOW_LO, paint: {
-          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 10.4, ["*", num("s"), 3], 13, ["*", num("s"), 7], 15, ["*", num("s"), 13], 17, ["*", num("s"), 20]],
-          "circle-color": ["coalesce", ["get", "col"], "#697b8d"], "circle-blur": 0.9, "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 0.22], "circle-pitch-alignment": "map" } });
-        m.addLayer({ id: "paws", type: "circle", source: "paws", minzoom: PAW_SHOW_LO, paint: {
-          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 10.4, ["*", num("s"), 1.8], 13, ["*", num("s"), 3.4], 15, ["*", num("s"), 6.5], 17, ["*", num("s"), 10]],
-          "circle-color": ["coalesce", ["get", "col"], "#697b8d"], "circle-stroke-color": ["case", ["==", ["get", "ch"], 1], "#f05b40", ["==", ["get", "ph"], 1], "#ffffff", "rgba(7,20,43,0.9)"], "circle-stroke-width": ["case", ["==", ["get", "ch"], 1], 3, ["==", ["get", "ph"], 1], 1.8, 1],
-          "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 1], "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, 1] } });
+        /* One dot per recorded animal, coloured by need: needing help on top
+           and breathing, an open request next, the rest quiet. A filter fades
+           what it leaves out (`f`); the chosen animal is ringed in ink. */
+        m.addLayer({ id: "paws-pulse", type: "circle", source: "paws", minzoom: PAW_SHOW_LO, filter: ["==", ["get", "pu"], 1], paint: {
+          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 9.4, ["*", num("s"), 5], 13, ["*", num("s"), 10], 15, ["*", num("s"), 16], 17, ["*", num("s"), 24]],
+          "circle-color": NEED_INK.help, "circle-blur": 0.8, "circle-opacity": 0.24, "circle-pitch-alignment": "map" } });
+        m.addLayer({ id: "paws", type: "circle", source: "paws", minzoom: PAW_SHOW_LO, layout: { "circle-sort-key": num("z", 0) }, paint: {
+          "circle-radius": ["interpolate", ["exponential", 1.6], ["zoom"], 9.4, ["*", num("s"), 2.2], 11, ["*", num("s"), 3], 13, ["*", num("s"), 4.2], 15, ["*", num("s"), 7.5], 17, ["*", num("s"), 11]],
+          "circle-color": ["coalesce", ["get", "col"], NEED_INK.rec],
+          "circle-stroke-color": ["case", ["==", ["get", "ch"], 1], "#0b1e3d", "#ffffff"],
+          "circle-stroke-width": ["case", ["==", ["get", "ch"], 1], 3.5, ["==", ["get", "ph"], 1], 2, 1.1],
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, num("f", 1)],
+          "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], PAW_SHOW_LO, 0, PAW_SHOW_HI, num("f", 1)] } });
         /* City rosettes fade out as the city opens so they never ring the
            ground once you are reading its areas. */
         m.addLayer({ id: "cities-glow", type: "circle", source: "cities", maxzoom: 11, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 3.5, ["*", ["get", "r"], ["get", "g"], 1.5], 8, ["*", ["get", "r"], ["get", "g"], 2.2]], "circle-color": ["get", "col"], "circle-blur": 0.4, "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3.5, 0.12, 9, 0.12, 11, 0] } });
@@ -299,32 +344,49 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     for (const id of ORNAMENT) if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", quiet ? "none" : "visible");
   }, [quiet, ready, inked]);
 
-  const live = useRef({ cells, city, area, level });
-  live.current = { cells, city, area, level };
+  const live = useRef({ cells, city, area, level, areaH3 });
+  live.current = { cells, city, area, level, areaH3 };
+  /* The click handler is bound once, when the map loads; it climbs through the current `up`. */
+  const upRef = useRef<() => void>(() => {});
   const onMapClick = (m: MLMap, p: { x: number; y: number }) => {
-    const hit = m.queryRenderedFeatures([[p.x - 6, p.y - 6], [p.x + 6, p.y + 6]], { layers: ["paws", "cities", "areas"].filter((l) => m.getLayer(l)) });
+    const layers = (ids: string[]) => ({ layers: ids.filter((l) => m.getLayer(l)) });
     const dist = (h: MapGeoJSONFeature) => { const q2 = m.project((h.geometry as GeoJSON.Point).coordinates as [number, number]); return (q2.x - p.x) ** 2 + (q2.y - p.y) ** 2; };
     const Lc = live.current;
-    const pawHit = hit.filter((h) => h.layer.id === "paws").sort((a, b) => dist(a) - dist(b))[0];
+    /* A dot is a small target on a phone: forgive a near miss, and prefer
+       the one in the filter (faded dots are not what the reader is after). */
+    const paws = m.queryRenderedFeatures([[p.x - 11, p.y - 11], [p.x + 11, p.y + 11]], layers(["paws"]));
+    const pawHit = paws.sort((a, b) => (Number(b.properties?.f ?? 1) >= 0.5 ? 1 : 0) - (Number(a.properties?.f ?? 1) >= 0.5 ? 1 : 0) || dist(a) - dist(b))[0];
     if (pawHit && Lc.city) {
       const id = pawHit.properties?.id as string | undefined, i = pawHit.properties?.i as number, j = pawHit.properties?.j as number;
       const c = Lc.cells[i]; if (!c) return;
-      if (id) { setAreaH3(c.h3); setAnimalId(id); return; }
-      pendingPaw.current = j; setAnimalId(null); setAreaH3(c.h3); return;
+      /* The camera moves only when the tap changes area; a neighbour in the same area just opens. */
+      pickAt.current = c.h3 === Lc.areaH3 ? null : (pawHit.geometry as GeoJSON.Point).coordinates as [number, number];
+      dogFromDot.current = true;
+      if (id) { pendingPaw.current = null; setPendingDog(false); setAreaH3(c.h3); setAnimalId(id); return; }
+      pendingPaw.current = j; setAnimalId(null); setPendingDog(true); setAreaH3(c.h3); return;
     }
+    const hit = m.queryRenderedFeatures([[p.x - 6, p.y - 6], [p.x + 6, p.y + 6]], layers(["cities", "areas"]));
     const cityHit = hit.filter((h) => h.layer.id === "cities").sort((a, b) => dist(a) - dist(b))[0];
     if (cityHit) { openCity(String(cityHit.properties?.name)); return; }
     const areaHit = hit.filter((h) => h.layer.id === "areas").sort((a, b) => dist(a) - dist(b))[0];
-    if (areaHit && Lc.city) { const c = Lc.cells[areaHit.properties?.i as number]; if (c) { setAreaH3(c.h3); setAnimalId(null); } return; }
-    if (Lc.level === "animal") setAnimalId(null);
-    else if (Lc.level === "area") setAreaH3(null);
+    if (areaHit && Lc.city) { const c = Lc.cells[areaHit.properties?.i as number]; if (c) { pickAt.current = null; dogFromDot.current = false; clearPending(); setAreaH3(c.h3); setAnimalId(null); } return; }
+    /* Empty ground climbs one scale, the same way the close button does. */
+    if (Lc.level === "animal" || Lc.level === "area") upRef.current();
   };
 
+  const clearPending = useCallback(() => { pendingPaw.current = null; setPendingDog(false); }, []);
   const openCity = useCallback((name: string, opts?: { area?: string; animal?: string }) => {
+    clearPending(); pickAt.current = null; dogFromDot.current = false;
     setCity(name); setAreaH3(opts?.area ?? null); setAnimalId(opts?.animal ?? null); setPicking(false);
-  }, []);
-  const goIndia = useCallback(() => { setCity(null); setAreaH3(null); setAnimalId(null); if (!embedded && scope === "public") rememberHome(null); }, [embedded, scope]);
-  const up = useCallback(() => { if (animalId) setAnimalId(null); else if (areaH3) setAreaH3(null); else if (city) goIndia(); }, [animalId, areaH3, city, goIndia]);
+  }, [clearPending]);
+  const goIndia = useCallback(() => { clearPending(); setCity(null); setAreaH3(null); setAnimalId(null); if (!embedded && scope === "public") rememberHome(null); }, [embedded, scope, clearPending]);
+  /* Closing an animal goes back the way it came: a dot tapped on the map
+     returns to the city, an animal chosen from an area's list to that list. */
+  const up = useCallback(() => {
+    if (animalId || pendingDog) { clearPending(); setAnimalId(null); if (dogFromDot.current) { dogFromDot.current = false; holdCamera.current = true; setAreaH3(null); } }
+    else if (areaH3) setAreaH3(null); else if (city) goIndia();
+  }, [animalId, pendingDog, areaH3, city, goIndia, clearPending]);
+  upRef.current = up;
 
   /* Where the map opens: a link that names a place wins; otherwise the
      person's own city (an organisation: its largest), and India only when
@@ -376,23 +438,26 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   }, [ready]);
 
   /* Zoom is navigation: out past a city returns to India; in near a city opens it.
-     Zooming past PAW_ZOOM without a chosen area opens the nearest area to the
-     viewport centre, so individual dots appear without a second tap. */
+     Zooming in never picks anything for the reader: it only reads the areas
+     in view, so every dot there becomes a real animal that opens on a tap. */
   useEffect(() => {
     if (!ready || !userMove.current) return;
     const m = mapRef.current; if (!m) return;
     if (city && zoom < CITY_ZOOM - 1) { goIndia(); return; }
-    if (city && cells.length && zoom >= PAW_ZOOM - 0.3 && !areaH3) {
-      const c = m.getCenter();
-      const near = cells.map((cell, i) => ({ cell, d: Math.hypot(centers[i][0] - c.lng, centers[i][1] - c.lat) })).sort((a, b) => a.d - b.d)[0];
-      if (near) { setAreaH3(near.cell.h3); return; }
-    }
     if (zoom >= ENTER_ZOOM && cities.length) {
       const c = m.getCenter();
       const near = cities.filter((x) => typeof x.lng === "number").map((x) => ({ x, d: haversineKm([c.lng, c.lat], [x.lng!, x.lat!]) })).sort((a, b) => a.d - b.d)[0];
       if (near && near.d < 45 && near.x.city !== city) { preserveCameraFor.current = near.x.city; userMove.current = false; openCity(near.x.city); }
     }
-  }, [zoom, ready, city, cities, cells, centers, areaH3, goIndia, openCity]);
+  }, [zoom, ready, city, cities, goIndia, openCity]);
+  useEffect(() => {
+    const m = mapRef.current; if (!m || !ready || !city || !cells.length || zoom < LOAD_ZOOM) return;
+    const b = m.getBounds(), c = m.getCenter();
+    const seen = cells.map((cell, i) => ({ cell, p: centers[i] }))
+      .filter(({ p }) => p[0] > b.getWest() - 0.01 && p[0] < b.getEast() + 0.01 && p[1] > b.getSouth() - 0.01 && p[1] < b.getNorth() + 0.01)
+      .sort((x, y) => Math.hypot(x.p[0] - c.lng, x.p[1] - c.lat) - Math.hypot(y.p[0] - c.lng, y.p[1] - c.lat));
+    for (const { cell } of seen.slice(0, 30)) loadArea(cell.h3);
+  }, [ready, city, cells, centers, zoom, moved, loadArea]);
 
   /* ── growth: marks bloom outward when a scale opens (a cut under reduced motion) ── */
   const growRef = useRef<{ cities: number; areas: number }>({ cities: 1, areas: 1 });
@@ -413,11 +478,14 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       if (!v && !hollow) return [];
       const rank = order.indexOf(c.city) / Math.max(1, cities.length);
       const d = rosetteD(hollow ? 0 : v, max, hollow);
-      const col = lens === "animals" ? "#2457ce" : L.ink;
+      /* On the default map a city where the record says someone should look
+         is painted in flame, so India shows where to go before any filter. */
+      const need = hollow ? 0 : nationalMeasure("help", c);
+      const col = lens === "animals" ? (need > 0 ? NEED_INK.help : "#2457ce") : L.ink;
       const fig = v.toLocaleString("en-IN");
       return [{ type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [c.lng, c.lat] }, properties: {
         name: c.city, col, hol: hollow ? 1 : 0, r: d / 2, g: Math.max(0, Math.min(1, g * 1.5 - rank * 0.5)), sort: -v,
-        title: c.city, line: hollow ? `${fig} animals in a city-level clinical register · not mapped by street` : `${fig} ${unitFor(lens, v)} · ${KINDS[k].label.toLowerCase()}`,
+        title: c.city, line: hollow ? `${fig} animals in a city-level clinical register · not mapped by street` : `${fig} ${unitFor(lens, v)}${lens === "animals" && need ? ` · ${need.toLocaleString("en-IN")} needing help` : ""}`,
       } }];
     }) : [] });
   }, [cities, level, lens, L.ink]);
@@ -425,14 +493,16 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   const grewCities = useRef(false);
   useEffect(() => { if (ready && cities.length && level === "india" && !grewCities.current) { grewCities.current = true; grow("cities", cityFeatures); } }, [ready, cities.length, level, grow, cityFeatures]);
 
+  /* Every recorded area as a quiet blue light: where the record reaches, so
+     the flame cities read as where to go. They stay drawn at every scale and
+     hand over to a city's own dots as they appear (9.4), so the flight
+     never crosses empty ground. */
   useEffect(() => {
     const m = mapRef.current; if (!m || !ready) return;
-    const now = Date.now();
-    (m.getSource("nat") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: level === "india" && lens === "animals" ? national.map(([lng, lat, a, last]) => {
-      const b = bucketOf(last, now);
-      return { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [lng, lat] }, properties: { r: 1.8 + Math.min(4.2, Math.sqrt(a) * 0.45), color: b?.color ?? "#697b8d", u: b ? 0 : 1 } };
-    }) : [] });
-  }, [ready, national, level, lens]);
+    (m.getSource("nat") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: national.map(([lng, lat, a]) => (
+      { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [lng, lat] }, properties: { r: 1.8 + Math.min(4.2, Math.sqrt(a) * 0.45), color: "#2457ce" } }
+    )) });
+  }, [ready, national]);
 
   /* ── paint: city ── */
   const areaFeatures = useCallback(() => {
@@ -449,7 +519,17 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
        is selected, so the city reads as its heat halo first. Picking an area
        (click, URL, or auto-selected on deep zoom) lights that one disc, the
        others stay quiet. The heat halo keeps the broad reading alive. */
-    set("areas", cells.map((c, i) => {
+    /* Under a filter, an area with nothing in it draws no circle: the
+       circles mark where the filter finds something, and nothing else. For
+       the need filters an unknown (an imported request never confirmed, a
+       request with no status) is not a finding either: the panel names it,
+       the map does not ring it. */
+    const needFilter = lens === "help" || lens === "requests" || lens === "followups";
+    /* Needs help and Open requests ring exactly the areas whose dots they light. */
+    const openOf = (c: (typeof cells)[number]) => Math.max(0, c.open_cases - (c.open_unconfirmed ?? 0));
+    const own = (c: (typeof cells)[number]) => (lens === "help" ? needingHelp(c.needs_help, openOf(c), c.fu_missed_live ?? 0) : lens === "requests" ? openOf(c) : null);
+    const shown = (i: number) => { const n = own(cells[i]); if (n !== null) return n > 0; const k = byId.get(classOf[i])?.kind; return animalsRecency || (needFilter ? k === "value" : k !== "zero"); };
+    set("areas", cells.flatMap((c, i) => (shown(i) ? [{ c, i }] : [])).map(({ c, i }) => {
       const dist = Math.hypot(centers[i][0] - mid[0], centers[i][1] - mid[1]) / far;
       const g = Math.max(0, Math.min(1, g0 * 1.6 - dist * 0.6));
       const k = 0.55 + (Math.sqrt(c.animals) / maxA) * 0.75;
@@ -464,53 +544,81 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         return pt(centers[i], { i, k, g, o, color: rb ? rb.color : UNDATED_INK, n: Math.sqrt(c.animals) / maxA, sort: -c.animals, dim,
           title: placeName(c.zone), line: `${c.animals.toLocaleString("en-IN")} animals · last recorded ${rb ? rb.label.toLowerCase() : "on no recorded date"}` });
       }
+      const n = own(c);
+      if (n !== null) {
+        const ink = lens === "help" ? NEED_INK.help : NEED_INK.open;
+        return pt(centers[i], { i, k, g, o, color: ink, n: Math.sqrt(c.animals) / maxA, sort: -n, dim,
+          title: placeName(c.zone), line: `${n.toLocaleString("en-IN")} ${lens === "help" ? "needing help" : `open request${n === 1 ? "" : "s"}`}` });
+      }
       const kl = byId.get(classOf[i]); const v = q.measure(c, facet, ctx, i);
       const fill = kl?.kind === "unknown" ? UNDATED_INK : kl?.kind === "zero" ? "#2a3b5c" : kl?.color ?? "#2a3b5c";
       return pt(centers[i], { i, k: kl?.kind === "value" ? k : k * 0.7, g, o, color: fill, n: Math.sqrt(c.animals) / maxA, sort: -(v || 0), dim,
         title: placeName(c.zone), line: `${kl?.label ?? ""}${v ? ` · ${v.toLocaleString("en-IN")} ${q.unit(facet)}` : ""}` });
     }));
     set("nums", cells.flatMap((c, i) => {
-      const v = animalsRecency ? c.animals : q.measure(c, facet, ctx, i); if (!v) return [];
+      const v = animalsRecency ? c.animals : own(c) ?? q.measure(c, facet, ctx, i); if (!v || !shown(i)) return [];
       return [pt(centers[i], { t: v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v) })];
     }));
     set("edge", (data?.edge ?? []).map((e) => pt(e, {})));
-    /* Dots everywhere, as soon as the city opens: for every cell we emit a
-       capped set of anonymous placeholder dots (seeded from the cell's own
-       animal count), so when a reader zooms past the clusters the view does
-       not go blank between clusters and the deep-area paws — each cluster
-       breaks apart into dots that keep its colour. Real identities (name,
-       sterilisation colour, photo ring) only land for the selected area
-       once its endpoint returns, overwriting that cell's placeholders.
-       Positions are the same schematic seed used elsewhere; never GPS fixes. */
-    const sel = area && area !== "loading" && area !== "error" ? area : null;
-    const selIndex = sel ? cells.findIndex(c => c.h3 === sel.h3) : -1;
-    const PER_CELL_CAP = 24;
+    /* One dot per animal, as soon as the city opens. An area already read
+       gives each dot its own animal; one not yet read draws the same number
+       of dots from its totals: those needing help first, the order the read
+       returns them in, so a dot keeps its colour and its place when its
+       record arrives. Positions are a schematic seed inside the area, never
+       where the animal was seen. */
+    const mode = dotMode(lens);
     const paws: GeoJSON.Feature[] = [];
+    const style = (need: Need, care: keyof typeof CARE, inFilter: boolean, chosen: boolean, photo: boolean) => {
+      const careMode = mode === "ster" || mode === "vacc";
+      const f = careMode || mode === "need" ? 1 : inFilter ? 1 : 0.14;
+      const urgent = !careMode && f === 1;
+      return {
+        col: careMode ? CARE[care] : NEED_INK[need], f,
+        s: chosen ? 1.9 : f < 1 ? 0.8 : !urgent ? 1 : need === "help" ? 1.35 : need === "open" ? 1.12 : photo ? 1.05 : 0.92,
+        pu: urgent && need === "help" && !chosen ? 1 : 0,
+        z: chosen ? 9 : f < 1 ? 0 : urgent ? (need === "help" ? 3 : need === "open" ? 2 : 1) : 1,
+        ch: chosen ? 1 : 0, ph: photo ? 1 : 0,
+      };
+    };
     cells.forEach((c, i) => {
-      if (i === selIndex && sel) {
-        const records = sel.animals.slice(0, MAX_PAWS);
-        seedHead(centers[i], records.length).forEach((p, j) => {
-          const a = records[j], chosen = a.id === animalId;
-          paws.push(pt(p, { i, j, id: a.id, col: a.ster === "sterilised" ? DOT.yes : a.ster === "not_sterilised" ? DOT.no : DOT.unknown,
-            ph: a.photo ? 1 : 0, ch: chosen ? 1 : 0, s: chosen ? 1.6 : a.photo ? 1.25 : 1,
-            title: a.title, line: "Recorded in this area. Marker position is approximate." }));
+      const n = Math.min(PER_AREA, Math.max(1, c.animals));
+      const seats = seedHead(centers[i], n);
+      const got = areas.get(c.h3);
+      if (got && got !== "loading" && got !== "error") {
+        got.animals.slice(0, n).forEach((a, j) => {
+          const need = needOf(a), chosen = a.id === animalId;
+          const care = mode === "vacc" ? careKey(a.vacc, "vaccinated", "not_vaccinated") : careKey(a.ster, "sterilised", "not_sterilised");
+          const inFilter = mode === "help" ? need === "help" : mode === "open" ? (a.facts?.open ?? 0) > 0 : true;
+          paws.push(pt(seats[j], { i, j, id: a.id, need, ...style(need, care, inFilter, chosen, !!a.photo),
+            title: a.title, line: `${NEED_LABEL[need]} · tap to open` }));
         });
         return;
       }
-      const n = Math.min(PER_CELL_CAP, Math.max(1, c.animals));
-      /* Placeholder dots inherit their cell's lens colour so each cluster
-         still reads as its own tile when it breaks apart. */
-      const col = ((): string => {
-        if (animalsRecency) { const rb = bucketOf(lastRecorded(c), Date.now()); return rb ? rb.color : UNDATED_INK; }
-        const kl = byId.get(classOf[i]);
-        return kl?.kind === "unknown" ? UNDATED_INK : kl?.kind === "zero" ? "#2a3b5c" : kl?.color ?? "#2a3b5c";
-      })();
-      seedHead(centers[i], n).forEach((p, j) => {
-        paws.push(pt(p, { i, j, col, ph: 0, ch: 0, s: 0.9, title: "", line: "" }));
+      /* Not read yet: the area's own totals, spread over its dots. */
+      const help = Math.min(n, c.needs_help);
+      const openConfirmed = Math.max(0, c.open_cases - (c.open_unconfirmed ?? 0));
+      const open = Math.min(n - help, Math.max(0, openConfirmed - c.needs_help));
+      const total = Math.max(1, c.animals);
+      const yes = Math.round(n * ((mode === "vacc" ? c.vacc_yes : c.ster_yes) / total));
+      const no = mode === "vacc" ? 0 : Math.round(n * (c.ster_no / total));
+      const place = placeName(c.zone);
+      const hint = c.needs_help ? `${c.needs_help.toLocaleString("en-IN")} needing help here` : `${c.animals.toLocaleString("en-IN")} ${c.animals === 1 ? "animal" : "animals"} here`;
+      seats.forEach((p, j) => {
+        const need: Need = j < help ? "help" : j < help + open ? "open" : "rec";
+        const care: keyof typeof CARE = j < yes ? "yes" : j < yes + no ? "no" : "unknown";
+        const inFilter = mode === "help" ? need === "help" : mode === "open" ? j < Math.min(n, openConfirmed) : true;
+        paws.push(pt(p, { i, j, need, ...style(need, care, inFilter, false, false), title: place, line: `${hint} · tap to open` }));
       });
     });
     set("paws", paws);
-  }, [city, cells, centers, classes, classOf, q, facet, ctx, data, animalsRecency, area, animalId, areaH3, level, spot]);
+  }, [city, cells, centers, classes, classOf, q, facet, ctx, data, animalsRecency, areas, animalId, areaH3, level, spot, lens]);
+  /* Circles for areas are a filter's reading, not the default view: with
+     Animals chosen the city is its dots alone. */
+  useEffect(() => {
+    const m = mapRef.current; if (!m || !ready) return;
+    const vis = lens === "animals" ? "none" : "visible";
+    for (const id of ["areas", "areas-heat", "nums"]) if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", vis);
+  }, [ready, lens]);
   useEffect(() => { if (ready) areaFeatures(); }, [ready, areaFeatures]);
   const grewFor = useRef<string | null>(null);
   useEffect(() => { if (ready && data && grewFor.current !== data.city) { grewFor.current = data.city; grow("areas", areaFeatures); } }, [ready, data, grow, areaFeatures]);
@@ -519,11 +627,12 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   useEffect(() => {
     const m = mapRef.current; if (!m || !ready) return;
     const src = m.getSource("sel") as GeoJSONSource | undefined; if (!src) return;
-    if (areaIndex < 0) { src.setData({ type: "FeatureCollection", features: [] }); return; }
+    /* An area chosen as an area is ringed; a chosen animal is marked by its own dot. */
+    if (areaIndex < 0 || level === "animal") { src.setData({ type: "FeatureCollection", features: [] }); return; }
     const c = cells[areaIndex], k = 0.55 + (Math.sqrt(c.animals) / Math.sqrt(Math.max(1, ...cells.map((x) => x.animals)))) * 0.75;
     const paint = (g: number) => src.setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: { type: "Point", coordinates: centers[areaIndex] }, properties: { g: k * g } }] });
     paint(1);
-  }, [ready, areaIndex, cells, centers]);
+  }, [ready, areaIndex, cells, centers, level]);
 
   /* A lit finding: ring its areas and bring them into view; the rest of the city stays, dimmed. */
   useEffect(() => {
@@ -568,15 +677,21 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       e.className = `fm-city${r < 6 ? " is-major" : ""}${hollow ? " is-hollow" : ""}`;
       e.style.setProperty("--off", `${Math.round(d * 0.5 + 4)}px`);
       e.style.setProperty("--i", String(r));
+      const need = !hollow && lens === "animals" ? nationalMeasure("help", c) : 0;
+      if (need) e.classList.add("is-need");
       e.innerHTML = `<b></b><small></small>`;
       e.querySelector("b")!.textContent = c.city;
-      e.querySelector("small")!.textContent = hollow ? `${v.toLocaleString("en-IN")} · city-level register` : `${v.toLocaleString("en-IN")} ${unitFor(lens, v)}`;
-      e.setAttribute("aria-label", `${c.city}: ${e.querySelector("small")!.textContent}. Open the city.`);
+      e.querySelector("small")!.textContent = hollow ? `${v.toLocaleString("en-IN")} · city-level register` : need ? `${need.toLocaleString("en-IN")} needing help` : `${v.toLocaleString("en-IN")} ${unitFor(lens, v)}`;
+      e.setAttribute("aria-label", `${c.city}: ${hollow ? "" : `${v.toLocaleString("en-IN")} ${unitFor(lens, v)}${need ? `, ${need.toLocaleString("en-IN")} needing help` : ""}. `}Open the city.`);
+      /* Start reading the city as the reader reaches for it, so it is ready when the camera lands. */
+      const warm = () => { if (!hollow) readCity(c.city, scope).catch(() => {}); };
+      e.addEventListener("pointerenter", warm, { once: true });
+      e.addEventListener("focus", warm, { once: true });
       e.addEventListener("click", (ev) => { ev.stopPropagation(); openCity(c.city); });
       E.cities.set(c.city, mark(e, [c.lng!, c.lat!], "top"));
     });
     return () => { unmark(E.cities.values()); E.cities.clear(); };
-  }, [ready, cities, level, lens, openCity, mark]);
+  }, [ready, cities, level, lens, openCity, mark, scope]);
 
   useEffect(() => {
     if (!ready) return;
@@ -619,43 +734,28 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     return () => cancelAnimationFrame(id);
   }, [zoom, moved, level, quiet, ready, cities, places]);
 
-  /* Stamps: a few photographed animals set in the sea margins, each threaded to its city. */
-  const [moving, setMoving] = useState(false);
-  const stamps = useMemo(() => {
-    const m = mapRef.current;
-    if (!m || !ready || level !== "india" || zoom > 6.2 || !faces.length) return [];
-    const w = el.current?.clientWidth ?? 1200, h = el.current?.clientHeight ?? 800, phone = w < 900;
-    /* On a phone the sea margin is too narrow to hold stamps without covering the coast; the sheet carries them. */
-    if (phone) return [];
-    const size = 76, gap = 16;
-    const pick = faces.slice(0, 8);
-    const cols = { w: pick.filter((f) => f.c[0] < 80.5).sort((a, b) => b.c[1] - a.c[1]), e: pick.filter((f) => f.c[0] >= 80.5).sort((a, b) => b.c[1] - a.c[1]) };
-    const out: { f: Face; x: number; y: number; to: [number, number]; side: "w" | "e"; i: number }[] = [];
-    (["w", "e"] as const).forEach((side) => {
-      const list = cols[side]; if (!list.length) return;
-      const xRef = m.project(side === "w" ? [65.6, 15] : [91.6, 14]);
-      const yTop = m.project([0, side === "w" ? 21.5 : 19.5]).y;
-      const x = Math.max(12, Math.min(w - size - 12, side === "w" ? xRef.x - size : xRef.x));
-      list.forEach((f, k) => {
-        const y = Math.min(h - size - 90, yTop + k * (size + 26 + gap));
-        const p = m.project(f.c);
-        out.push({ f, x, y, to: [p.x, p.y], side, i: out.length });
-      });
-    });
-    return out;
-    // `moved` repositions after every camera stop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, level, zoom, moved, faces]);
+  /* The camera's travel, for marks that should hold still while it moves. */
+  const [, setMoving] = useState(false);
   /* ── camera ── */
   const pad = useCallback(() => {
     const w = el.current?.clientWidth ?? 1200, h = el.current?.clientHeight ?? 800;
     const card = level !== "india";
-    return w > 900 ? { top: 120, bottom: 110, left: 40, right: card ? 480 : 40 } : { top: 140, bottom: Math.round(h * (card ? 0.46 : 0.2)), left: 16, right: 16 };
+    if (w > 900) return { top: 120, bottom: 110, left: 40, right: card ? 480 : 40 };
+    /* A phone frames the place in the gap the reader can actually see and
+       tap: below the search, filters and title, above the sheet (peeking for
+       a city, half open for an area or an animal). */
+    const box = el.current?.getBoundingClientRect();
+    const head = el.current?.parentElement?.querySelector(".fm-head")?.getBoundingClientRect();
+    const bottom = Math.round(h * (level === "area" || level === "animal" ? 0.46 : 0.2));
+    const top = box && head?.height ? Math.round(head.bottom - box.top + 12) : 140;
+    return { top: Math.max(96, Math.min(top, h - bottom - 160)), bottom, left: 16, right: 16 };
   }, [level]);
   useEffect(() => {
     const m = mapRef.current; if (!m || !ready) return;
     const key = `${level === "animal" ? "area" : level}:${city}:${areaH3}:${cells.length}:${clinical}`;
     if (key === lastCam.current) return;
+    if (holdCamera.current && level === "city") { holdCamera.current = false; lastCam.current = key; return; }
+    holdCamera.current = false;
     if (city && preserveCameraFor.current === city) {
       if (!cells.length && !clinical) return;
       lastCam.current = key; preserveCameraFor.current = null; return;
@@ -672,13 +772,13 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
     if (clinical) { const c = cities.find((x) => x.city === city); if (c?.lng) m.flyTo({ center: [c.lng, c.lat!], zoom: 10, duration: dur(m.getZoom(), 10), easing: travel, padding: pad() }); return; }
     if (!cells.length) return;
     if ((level === "area" || level === "animal") && areaIndex >= 0) {
-      /* A cluster "opens": lands at a zoom where paws are already drawn and
-         the dot grid is readable. Shorter duration than the India→city hop
-         so the tap feels like a direct response, not a flight. */
-      const zz = Math.max(14.6, Math.min(m.getZoom(), 15.6));
+      /* A tapped dot comes to the middle of the open map, close enough to
+         read its neighbours; an area chosen from a list opens on its centre. */
+      const at = pickAt.current ?? centers[areaIndex]; pickAt.current = null;
+      const zz = Math.max(14.6, Math.min(m.getZoom(), 16));
       const from = m.getZoom();
       const d = reduced() ? 0 : Math.min(900, 420 + Math.abs(from - zz) * 90);
-      m.flyTo({ center: centers[areaIndex], zoom: zz, pitch: 0, bearing: 0, padding: pad(), duration: d, easing: travel });
+      m.flyTo({ center: at, zoom: zz, pitch: 0, bearing: 0, padding: pad(), duration: d, easing: travel });
       return;
     }
     const b = coreBounds(centers);
@@ -744,23 +844,6 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   return (
     <div className={`fm ${embedded ? "is-embedded" : ""} is-${variant} is-${level}${quiet ? " is-quiet" : ""}${picking ? " is-picking" : ""}`}>
       <div className="fm-map" ref={el} role="application" aria-label={`Map of ${city ?? "India"}. ${L.define} The card lists the same places and figures.`} />
-      {stamps.length > 0 && (
-        <div className={`fm-stamps${moving ? " is-moving" : ""}`}>
-          <svg className="fm-threads" aria-hidden>{stamps.map((s2) => {
-            const sx = s2.side === "w" ? s2.x + (el.current && el.current.clientWidth < 900 ? 58 : 76) : s2.x, sy = s2.y + 34;
-            const mx = (sx + s2.to[0]) / 2;
-            return <g key={s2.f.id}><path d={`M${sx},${sy} C${mx},${sy} ${mx},${s2.to[1]} ${s2.to[0]},${s2.to[1]}`} /><circle cx={s2.to[0]} cy={s2.to[1]} r={3.2} /></g>;
-          })}</svg>
-          {stamps.map((s2) => (
-            <button key={s2.f.id} type="button" className="fm-stamp" style={{ left: s2.x, top: s2.y, ["--rot" as string]: `${(s2.i % 2 ? 1 : -1) * (2 + (s2.i % 3) * 1.5)}deg`, ["--i" as string]: s2.i }}
-              aria-label={`${s2.f.title}, ${s2.f.describe ?? "an animal"} recorded in ${s2.f.city}. Open this animal.`} onClick={() => openCity(s2.f.city, { area: s2.f.h3, animal: s2.f.id })}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s2.f.photo} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e => (e.currentTarget.style.display = "none")} />
-              <span>{s2.f.title}</span><small>{s2.f.city}</small>
-            </button>
-          ))}
-        </div>
-      )}
       {hover && <div className="fm-tip" style={{ left: hover.x + 14, top: hover.y + 14 }} aria-hidden><b>{hover.title}</b><span>{hover.line}</span></div>}
       <Chrome embedded={embedded}
         level={level} city={city} cityRow={cityRow} cities={cities} unplaced={unplaced} citiesState={citiesState} cityState={cityState} clinical={clinical} ev={ev}
@@ -769,7 +852,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
         area={area} areaIndex={areaIndex} animalId={animalId} faces={faces} zoom={zoom} quiet={quiet} setQuiet={setQuiet} mapError={mapError}
         picking={picking} setPicking={setPicking} center={center} recency={RECENCY}
         onPlace={(c, name) => { if (data?.city === c) { const hit = data.cells.filter((x) => placeName(x.zone).toLowerCase() === name.toLowerCase()).sort((a, b) => b.animals - a.animals)[0]; if (hit) { setAreaH3(hit.h3); setAnimalId(null); } } else { pendingPlace.current = name; openCity(c); } }}
-        onIndia={goIndia} onCity={openCity} onArea={(h3) => { setAreaH3(h3); setAnimalId(null); }} onAnimal={(id) => setAnimalId(id)} onUp={up}
+        onIndia={goIndia} onCity={openCity} onArea={(h3) => { pickAt.current = null; dogFromDot.current = false; clearPending(); setAreaH3(h3); setAnimalId(null); }} onAnimal={(id) => { dogFromDot.current = false; clearPending(); setAnimalId(id); }} onUp={up}
         onFly={flyTo} onZoom={zoomBy} onLocate={locate} onRetry={() => { const c = city; if (c) { cityCache.delete(cacheKey(scope, c)); setCity(null); window.setTimeout(() => setCity(c), 0); } }}
       />
     </div>
