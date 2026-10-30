@@ -118,10 +118,11 @@ export async function GET(req: Request) {
   const supa = getSupabaseAdmin();
   if (!supa) return response({ error: "Server database access is not configured." }, 503);
   const { from, to, days } = windowParams(req);
-  const [rollup, auth, web] = await Promise.all([
+  const [rollup, auth, web, activity] = await Promise.all([
     supa.rpc("founder_analytics_rollup", { p_from: from, p_to: to }),
     authSummary(supa, from, to),
     webSummary(supa, from, to),
+    supa.rpc("founder_activity_rollup", { p_from: from, p_to: to }),
   ]);
   if (rollup.error || !rollup.data) return response({
     error: "Founder reporting function is unavailable. Apply the founder-intelligence migration to this environment.",
@@ -133,8 +134,11 @@ export async function GET(req: Request) {
     analytics: rollup.data,
     authentication: auth,
     web,
+    activity: activity.error || !activity.data
+      ? { available: false, reason: "Workflow instrumentation reporting unavailable." }
+      : { available: true, ...activity.data },
     definitions: {
-      active_orgs: "Unavailable until verified actor-attributed native workflow events are instrumented.",
+      active_orgs: "Count verified member-attributed native workflow actions once a complete 7-day tracking window exists.",
       impact: "Historical imports are reported as data coverage, not platform-assisted outcomes.",
       visitor: "Vercel's privacy-preserving unique visitor estimate, not registered users.",
       source: "Counts and dates are drawn from production records only after explicit production migration and release.",
