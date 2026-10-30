@@ -19,8 +19,8 @@ const nextConfig = {
     // Keep stable animal photos cached for a day to avoid repeated Vercel
     // transformations. Shorter than a month because evidence may be corrected.
     minimumCacheTTL: 60 * 60 * 24,
-    // The shared photo URL helper requests q=70; retain that and Next's 75.
-    qualities: [70, 75],
+    // DogPhoto's blurred backdrop uses q=55; photo helper uses q=70; retain Next's 75.
+    qualities: [55, 70, 75],
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "plus.unsplash.com" },
