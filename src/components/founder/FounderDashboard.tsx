@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import {
   Activity, ArrowUpRight, BarChart3, Building2, CheckCircle2,
   Database, Download, ExternalLink, Globe2, HeartPulse, LockKeyhole,
@@ -217,14 +218,14 @@ export function FounderDashboard() {
   return <div className="fi-root">
     <div className="fi-app">
       <aside className="fi-sidebar">
-        <a className="fi-brand" href="/" aria-label="StrayPaw homepage"><span className="fi-brand-mark">S</span><span>StrayPaw<small>Founder Office</small></span></a>
+        <Link className="fi-brand" href="/" aria-label="StrayPaw homepage"><span className="fi-brand-mark">S</span><span>StrayPaw<small>Founder Office</small></span></Link>
         <p className="fi-sidebar-label">INTELLIGENCE</p>
         <nav aria-label="Founder analytics sections">{SECTIONS.map((x) => {
           const Icon = x.icon;
           return <button key={x.id} type="button" aria-current={view === x.id ? "page" : undefined}
             onClick={() => setView(x.id)}><Icon size={17} />{x.title}</button>;
         })}</nav>
-        <div className="fi-sidebar-foot"><LockKeyhole size={14} /> Private, administrator-only <a href="/">Return to StrayPaw</a></div>
+        <div className="fi-sidebar-foot"><LockKeyhole size={14} /> Private, administrator-only <Link href="/">Return to StrayPaw</Link></div>
       </aside>
       <main className="fi-content">
         <header className="fi-header">
@@ -330,7 +331,7 @@ export function FounderDashboard() {
               {!orgs.length && <div className="fi-empty">No organizations in this environment.</div>}
             </Panel>
             {selectedOrg && orgs.some(o => o.id === selectedOrg) && <Panel title={orgs.find(o=>o.id===selectedOrg)?.name ?? "Organization"}>
-              <p className="fi-small">This organization's case counts are restricted to the selected period. Membership and historical case inventory are all-time counts. Audited actors are not necessarily active users.</p>
+              <p className="fi-small">This organization&apos;s case counts are restricted to the selected period. Membership and historical case inventory are all-time counts. Audited actors are not necessarily active users.</p>
               <button className="fi-secondary" type="button" onClick={()=>setSelectedOrg("")}>Close detail</button>
             </Panel>}
             <Note>Organizations in the directory or source registry are not automatically active. Qualified NGO activity requires verified membership at the moment of a real native workflow event, with a complete tracking window.</Note>
