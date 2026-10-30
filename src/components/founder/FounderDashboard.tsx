@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState, type FormEvent } from "react";
 import {
-  Activity, ArrowDownRight, ArrowUpRight, BarChart3, Building2, CheckCircle2,
+  Activity, ArrowUpRight, BarChart3, Building2, CheckCircle2,
   Database, Download, ExternalLink, Globe2, HeartPulse, LockKeyhole,
   RefreshCw, ShieldCheck, Users, AlertTriangle
 } from "lucide-react";
@@ -53,7 +53,6 @@ const SECTIONS: { id: Section; title: string; icon: typeof BarChart3 }[] = [
   { id: "coverage", title: "Data quality", icon: Database },
 ];
 const STAGES = ["planned", "onboarding", "active", "paused", "completed", "sustained", "cancelled"];
-const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
 const full = new Intl.NumberFormat("en-US");
 const number = (n: Count) => typeof n === "number" && Number.isFinite(n) ? full.format(n) : "—";
 const time = (s: string | null | undefined) => s
@@ -190,7 +189,6 @@ export function FounderDashboard() {
   const au = data?.authentication;
   const web = data?.web;
   const orgs = s?.organization_rows ?? [];
-  const active = orgs.filter((o) => o.audited_actors > 0).length;
 
   if (!data && !loading && !password.current) return <div className="fi-root">
     <div className="fi-lock">
