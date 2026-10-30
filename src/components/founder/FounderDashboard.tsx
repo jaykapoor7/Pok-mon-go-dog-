@@ -40,6 +40,12 @@ type Result = {
   analytics: Stats;
   authentication: { available: boolean; reason?: string; registered?: number; new_accounts?: number; last_signed_in_period?: number; last_signed_in_7d?: number; note?: string };
   web: { available: boolean; reason?: string; visitors?: number; pageviews?: number; source?: string };
+  activity: { available: boolean; reason?: string; tracking_started_at?: string;
+    window_complete_7d?: boolean; window_complete_30d?: boolean;
+    verified_actors_7d?: number; verified_orgs_7d?: number;
+    verified_actors_30d?: number; verified_orgs_30d?: number;
+    event_count?: number; qualifying_event_count?: number;
+    by_org?: { ngo_id: string; events: number; actors: number }[] };
   definitions: Record<string, string>;
 };
 type Section = "overview" | "traffic" | "users" | "orgs" | "pilots" | "care" | "coverage";
@@ -188,6 +194,8 @@ export function FounderDashboard() {
   const s = data?.analytics;
   const au = data?.authentication;
   const web = data?.web;
+  const activity = data?.activity;
+  const complete7 = activity?.available && activity.window_complete_7d === true;
   const orgs = s?.organization_rows ?? [];
 
   if (!data && !loading && !password.current) return <div className="fi-root">
@@ -246,6 +254,8 @@ export function FounderDashboard() {
               <Metric title="Pageviews" value={web?.available ? web.pageviews : null} detail="Not distinct visitors" unavailable={!web?.available} />
               <Metric title="Registered accounts" value={au?.available ? au.registered : null} detail="Supabase Auth, all time" unavailable={!au?.available} />
               <Metric title="New signups" value={au?.available ? au.new_accounts : null} detail="Selected period" unavailable={!au?.available} />
+              <Metric title="Weekly active users" value={complete7 ? activity?.verified_actors_7d : null} detail={complete7 ? "Verified native actions · 7 days" : "Tracking window not complete"} unavailable={!complete7} />
+              <Metric title="Weekly active NGOs" value={complete7 ? activity?.verified_orgs_7d : null} detail={complete7 ? "Verified member actions · 7 days" : "Tracking window not complete"} unavailable={!complete7} />
               <Metric title="Native cases created" value={s.cases.native_created} detail="Excludes historical imports" />
               <Metric title="Verified native resolutions" value={s.cases.native_verified} detail="Cases with evidence verified" />
             </div>
@@ -256,7 +266,7 @@ export function FounderDashboard() {
                 <div className="fi-signal"><span>Org members</span><b>{number(s.organizations.memberships)}</b></div>
                 <div className="fi-signal"><span>Imported historical cases</span><b>{number(s.cases.imported)}</b></div>
                 <div className="fi-signal"><span>Actor-attributed audit orgs</span><b>{number(s.operational_audit.organizations_with_identified_actions)}</b></div>
-                <Note>Actor-attributed audit activity is diagnostic. It does not establish weekly active organizations until event coverage and qualifying action types are verified.</Note>
+                <Note>Operational-event capture started {time(activity?.tracking_started_at)}. A genuine 7-day activity figure appears only after seven full days of captured native workflow events. Legacy audit counts remain diagnostic.</Note>
               </Panel>
             </div>
             <div className="fi-two">
@@ -295,7 +305,7 @@ export function FounderDashboard() {
               <Metric title="Registered accounts" value={au?.available ? au.registered : null} detail="All time" unavailable={!au?.available}/>
               <Metric title="New accounts" value={au?.available ? au.new_accounts : null} detail="Selected period" unavailable={!au?.available}/>
               <Metric title="Last sign-in in period" value={au?.available ? au.last_signed_in_period : null} detail="Not operationally active users" unavailable={!au?.available}/>
-              <Metric title="Qualified WAU" value={null} detail="Awaiting complete actor-attributed workflow instrumentation" unavailable />
+              <Metric title="Qualified WAU" value={complete7 ? activity?.verified_actors_7d : null} detail={complete7 ? "Real authenticated native actions · 7d" : "Tracking window not complete"} unavailable={!complete7} />
             </div>
             <div className="fi-two">
               <Panel title="Recorded product events"><Bars rows={s.product.by_name.map(x=>({label:x.name,value:x.count}))} max={14}/></Panel>
@@ -304,14 +314,14 @@ export function FounderDashboard() {
                 <Note>Reporting-stage counts are observed stages within sessions that started. They are not guaranteed to be ordered or represent successful case creation.</Note>
               </Panel>
             </div>
-            <Note warning>Sign-in and event counts cannot alone establish meaningful weekly active users. This metric stays unavailable until the platform records qualified actions with verified actor identity.</Note>
+            <Note warning>Operational activity is captured only from the tracking start date ({time(activity?.tracking_started_at)}). Past weeks are not reconstructed. User actions must have a valid Supabase Auth identity to qualify.</Note>
           </>}
           {view === "orgs" && <>
             <div className="fi-metrics fi-metrics-short">
               <Metric title="Organization records" value={s.organizations.registered} detail="Demo-mode records excluded" />
               <Metric title="Verified records" value={s.organizations.verified} detail="Verification flag" />
               <Metric title="Organizations with members" value={s.organizations.with_members} detail="Linked memberships, all time" />
-              <Metric title="Weekly active orgs" value={null} detail="Incomplete qualifying-action coverage" unavailable />
+              <Metric title="Weekly active orgs" value={complete7 ? activity?.verified_orgs_7d : null} detail={complete7 ? "Verified members, real native actions" : "Tracking window not complete"} unavailable={!complete7} />
             </div>
             <Panel title="Organization adoption" caption="Select an organization for activity detail. Historical records and verified membership are separate.">
               <div className="fi-table-wrap"><table className="fi-table"><thead><tr><th>Organization</th><th>Status</th><th>Members</th><th>Native cases</th><th>Imported cases</th><th>Audited actors</th></tr></thead>
@@ -323,13 +333,14 @@ export function FounderDashboard() {
               <p className="fi-small">This organization's case counts are restricted to the selected period. Membership and historical case inventory are all-time counts. Audited actors are not necessarily active users.</p>
               <button className="fi-secondary" type="button" onClick={()=>setSelectedOrg("")}>Close detail</button>
             </Panel>}
-            <Note>Organizations in the directory or source registry must not be automatically categorized as active pilots or active users.</Note>
+            <Note>Organizations in the directory or source registry are not automatically active. Qualified NGO activity requires verified membership at the moment of a real native workflow event, with a complete tracking window.</Note>
           </>}
           {view === "pilots" && <>
             <div className="fi-metrics fi-metrics-short">
               <Metric title="Registered pilots" value={s.pilots.length} detail="Explicit pilot records"/>
               <Metric title="Active pilots" value={s.pilots.filter(x=>x.stage==="active").length} detail="Founder-maintained pilot stages"/>
               <Metric title="Sustained use" value={s.pilots.filter(x=>x.stage==="sustained").length} detail="Manually verified stage"/>
+              <Metric title="Weekly active NGO pilots" value={complete7 ? s.pilots.filter(x => ["active","sustained"].includes(x.stage) && (activity?.by_org ?? []).some(a => a.ngo_id === x.ngo_id && a.events > 0)).length : null} detail={complete7 ? "Qualified operational events" : "Tracking window not complete"} unavailable={!complete7} />
             </div>
             <div className="fi-two">
               <Panel title="Pilot pipeline" caption="Only real manually registered pilots appear here">
@@ -350,7 +361,7 @@ export function FounderDashboard() {
                 </form>
               </Panel>
             </div>
-            <Note>Stages are staff-maintained and do not by themselves prove operational usage. Activity and clinical outcomes must come from underlying source records.</Note>
+            <Note>Stages are staff-maintained, not inferred. Qualifying usage comes from the verified-event ledger, excluding imports and demo records. Retention becomes reliable only after complete observation windows.</Note>
           </>}
           {view === "care" && <>
             <div className="fi-metrics">
