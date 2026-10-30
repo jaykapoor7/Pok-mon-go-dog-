@@ -145,3 +145,6 @@
   .sp .op-figs { grid-template-columns: 1fr 1fr; }
   .sp .op-figs dd { font-size: 24px; }
 }
+
+/* Recent arrivals: a second line under a cell (kind, who sent it). */
+.sp .cn-sub { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--ink-3); }

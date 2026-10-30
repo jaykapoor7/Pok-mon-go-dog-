@@ -55,7 +55,7 @@ export function Today({ secret, read, needs, onGo, reload }: { secret: string; r
         <>
           <Record o={o} />
           <Health o={o} secret={secret} reload={reload} onGo={onGo} />
-          <Week o={o} />
+          <Week o={o} onGo={onGo} />
         </>
       )}
     </div>
@@ -140,7 +140,7 @@ function Health({ o, secret, reload, onGo }: { o: Overview; secret: string; relo
 }
 
 /* ── the last seven days ──────────────────────────────────────────── */
-function Week({ o }: { o: Overview }) {
+function Week({ o, onGo }: { o: Overview; onGo: (id: SectionId) => void }) {
   return (
     <section className="op-sec" aria-labelledby="op-week-h">
       <h2 id="op-week-h" className="op-h2">Last seven days</h2>
@@ -151,6 +151,7 @@ function Week({ o }: { o: Overview }) {
         <div><dt>Live sightings</dt><dd>{f(o.source.liveSightings)}</dd></div>
       </dl>
       <p className="op-note">Last community sighting {o.last.sighting ? age(o.last.sighting) : "never"} · last request {o.last.request ? age(o.last.request) : "never"}.</p>
+      <button type="button" className="btn is-s" onClick={() => onGo("arrivals")}>See everything that came in <ArrowRight size={14} aria-hidden /></button>
     </section>
   );
 }

@@ -24,11 +24,12 @@ import { WorkbookEnrichment } from "@/components/admin/WorkbookEnrichment";
 import { Ack, State } from "../../ui";
 import { forgetKey, get, parse, rememberKey, savedKey, type Read } from "./api";
 import { FeedbackQueue, Partners, Reports, Sightings, Verify } from "./Queues";
+import { Arrivals } from "./Arrivals";
 import { Today, type Need } from "./Today";
 import { Dogs, Feeding, Fundraisers } from "./Records";
 import { Helpers } from "./People";
 import { Orgs } from "./Orgs";
-import type { ContentReport, Feedback, Helper, HelpersRead, Overview, PartnerRequest, PartnersRead, PendingCase, SectionId, Sighting } from "./types";
+import type { ArrivalsRead, ContentReport, Feedback, Helper, HelpersRead, Overview, PartnerRequest, PartnersRead, PendingCase, SectionId, Sighting } from "./types";
 import "../trust.css";
 import "./console.css";
 
@@ -36,6 +37,7 @@ type Def = { id: SectionId; label: string; note: string; path?: string; pick?: (
 const GROUPS: { label: string; items: Def[] }[] = [
   { label: "Moderation", items: [
     { id: "today", label: "Today", note: "What needs you, what the public sees, and whether the data is healthy", path: "/api/admin/overview", pick: (b) => b },
+    { id: "arrivals", label: "Recent arrivals", note: "Every sighting and request that came in, from the community or an organisation, newest first", path: "/api/admin/arrivals", pick: (b) => ({ arrivals: b.arrivals ?? [], week: b.week ?? 0 }) },
   ] },
   { label: "Queues", items: [
     { id: "sightings", label: "New reports", note: "Approve, link to an animal, or reject", path: "/api/admin/sightings", pick: (b) => b.pending ?? [] },
@@ -65,6 +67,7 @@ const count = (r: Read<unknown> | undefined, id: SectionId): number | null => {
   const d = r.data as unknown;
   if (Array.isArray(d)) return d.length;
   if (id === "today") return null;
+  if (id === "arrivals") return (d as ArrivalsRead).week;
   if (id === "reports") return (d as ContentReport[]).filter((x) => x.status === "open").length;
   if (id === "feedback") return (d as Feedback[]).filter((x) => x.status === "open").length;
   if (id === "partners") return (d as PartnersRead).requests.length;
@@ -166,6 +169,7 @@ export function Console() {
         </nav>
         <main className="cn-main">
           {sec === "today" && <Today secret={secret} read={reads.today as Read<Overview> | undefined} needs={needs(reads)} onGo={setSec} reload={reload} />}
+          {sec === "arrivals" && <Arrivals {...P} onGo={setSec} empty={<State title="Nothing has come in yet">When a sighting or a request for help arrives, from the community or an organisation, it is listed here whatever its status.</State>} />}
           {sec === "sightings" && <Sightings {...P} empty={empty("No new sightings")} settings={settings} />}
           {sec === "partners" && <Partners {...P} empty={empty("No partner requests")} onOrgs={() => setSec("orgs")} />}
           {sec === "reports" && <Reports {...P} empty={empty("No content reports")} />}

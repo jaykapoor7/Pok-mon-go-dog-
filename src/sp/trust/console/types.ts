@@ -61,7 +61,16 @@ export type Overview = {
 };
 
 export type SectionId =
-  | "today" | "sightings" | "partners" | "reports" | "feedback" | "verify"
+  | "today" | "arrivals" | "sightings" | "partners" | "reports" | "feedback" | "verify"
   | "orgs" | "imports" | "enrich"
   | "dogs" | "feeding" | "fundraisers"
   | "volunteers" | "ngos";
+
+/** One thing that came in: a sighting in any status, or a request opened in StrayPaw (/api/admin/arrivals). */
+export type Arrival = {
+  id: string; kind: "sighting" | "request"; at: string; status: string;
+  source: "community" | "organisation"; by: string; org: string | null;
+  title: string; place: string | null; photo: string | null; notes: string | null;
+  animal: string | null; code: string | null; channel: string | null; demo: boolean;
+};
+export type ArrivalsRead = { arrivals: Arrival[]; week: number };
