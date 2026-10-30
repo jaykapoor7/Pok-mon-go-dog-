@@ -56,8 +56,12 @@ begin
         'registered',count(*),
         'verified',count(*) filter(where coalesce(verified,false)),
         'operational_partners',count(*) filter(where partner_status='operational_partner'),
-        'with_members',(select count(distinct ngo_id) from public.ngo_members),
-        'memberships',(select count(*) from public.ngo_members)
+        'with_members',(select count(distinct m.ngo_id) from public.ngo_members m
+          join public.ngos linked_org on linked_org.id=m.ngo_id
+          where coalesce(linked_org.demo_mode,false)=false),
+        'memberships',(select count(*) from public.ngo_members m
+          join public.ngos linked_org on linked_org.id=m.ngo_id
+          where coalesce(linked_org.demo_mode,false)=false)
       ) from public.ngos where coalesce(demo_mode,false)=false
     ),
     'organization_rows',coalesce((
