@@ -6,7 +6,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type AdminError = { error: string };
 const PRIVATE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
   "Vary": "Authorization",
@@ -26,7 +25,7 @@ function authorized(req: Request): "ok" | "unset" | "denied" {
   const b = createHash("sha256").update(supplied).digest();
   return timingSafeEqual(a, b) ? "ok" : "denied";
 }
-function guard(req: Request): NextResponse<AdminError> | null {
+function guard(req: Request): NextResponse | null {
   const state = authorized(req);
   if (state === "ok") return null;
   return response({ error: state === "unset" ? "Founder access is not configured." : "Invalid founder access credential." }, state === "unset" ? 503 : 401);
