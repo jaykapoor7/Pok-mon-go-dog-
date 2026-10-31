@@ -112,6 +112,11 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
 
 function Dropdown({ id, label, open, onToggle, items, side, foot, wide }: { id: MenuId; label: string; open: boolean; onToggle: (id: MenuId) => void; items: Item[]; side?: ReactNode; foot?: ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
+  /* Opened from the keyboard: focus the first item once the menu is rendered. */
+  const focusFirst = useRef(false);
+  useEffect(() => {
+    if (open && focusFirst.current) { focusFirst.current = false; ref.current?.querySelector<HTMLElement>(".s3-dd-menu a")?.focus(); }
+  }, [open]);
   return (
     <div className="s3-dd" ref={ref}
       onKeyDown={(e) => {
@@ -122,7 +127,7 @@ function Dropdown({ id, label, open, onToggle, items, side, foot, wide }: { id: 
         if (e.key === "ArrowUp") { e.preventDefault(); links[(i - 1 + links.length) % links.length]?.focus(); }
       }}>
       <button type="button" aria-expanded={open} aria-controls={`s3-dd-${id}`} onClick={() => onToggle(id)}
-        onKeyDown={(e) => { if (e.key === "ArrowDown" && !open) { e.preventDefault(); onToggle(id); requestAnimationFrame(() => ref.current?.querySelector<HTMLElement>(".s3-dd-menu a")?.focus()); } }}>
+        onKeyDown={(e) => { if (e.key === "ArrowDown" && !open) { e.preventDefault(); e.stopPropagation(); focusFirst.current = true; onToggle(id); } }}>
         {label}<ChevronDown size={14} aria-hidden />
       </button>
       <div id={`s3-dd-${id}`} className={`s3-dd-menu${wide ? " is-wide" : ""}`} hidden={!open}>

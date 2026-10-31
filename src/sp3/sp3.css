@@ -114,7 +114,7 @@
 .s3-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .s3-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
 @media (max-width: 980px) { .s3-grid-3, .s3-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .s3-grid-2, .s3-grid-3, .s3-grid-4 { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .s3-grid-2, .s3-grid-3, .s3-grid-4 { grid-template-columns: minmax(0, 1fr); } }
 .s3-feature { padding: 26px; display: grid; gap: 10px; align-content: start; }
 .s3-feature h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 .s3-feature p { color: var(--s3-mute); font-size: 15px; }

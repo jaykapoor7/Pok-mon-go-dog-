@@ -60,7 +60,7 @@ test("sign in shows the authorised-users notice, then the email and code form", 
   await page.getByLabel("Work email").fill("not-an-email");
   await page.getByLabel("Access code").fill("ABC123");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert")).toContainText("email");
+  await expect(page.locator(".s3-err")).toContainText("email");
 });
 
 test("Open App offers ways in to a signed-out visitor", async ({ page }) => {

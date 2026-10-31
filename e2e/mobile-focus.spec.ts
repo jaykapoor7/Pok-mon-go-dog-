@@ -77,7 +77,19 @@ test("signed-out NGO page shows what the workspace includes at every width", asy
   }
 });
 
-test("More is grouped and closes without losing the workspace", async ({ page }) => {
+test("desktop sidebar groups the workspace's other pages", async ({ page, isMobile }) => {
+  test.skip(!!isMobile, "phones use the More sheet");
+  await page.goto("/ngo");
+  const side = page.getByRole("complementary", { name: "Workspace" });
+  const groups = side.locator(".sx3-group");
+  expect(await groups.count()).toBeGreaterThan(1);
+  await groups.first().locator("summary").click();
+  await expect(groups.first().locator("ul")).toBeVisible();
+  await expect(page).toHaveURL(/\/ngo$/);
+});
+
+test("More is grouped and closes without losing the workspace", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "desktop uses the sidebar groups");
   await page.goto("/ngo");
   await page.getByRole("button", { name: "More", exact: true }).first().click();
   const more = page.getByRole("dialog", { name: "More in NGO" });
