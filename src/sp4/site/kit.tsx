@@ -97,7 +97,7 @@ export function Faq({ items, title = "Frequently asked questions" }: { items: [s
   );
 }
 
-export function Close({ a = "Record every procedure.", b = "Prove it to the office that funds you.", sub = "See how ABC operators use StrayPaw to keep their evidence ready for the office that funds them.", primary = { href: "/demo", label: "Book a demo" }, secondary = { href: "/platform", label: "Explore the platform" } }: { a?: ReactNode; b?: ReactNode; sub?: ReactNode; primary?: { href: string; label: string }; secondary?: { href: string; label: string } | null }) {
+export function Close({ a = "One record for every animal.", b = "Proof for everyone who funds the work.", sub = "See how StrayPaw runs animal welfare programmes, starting with ABC and anti-rabies drives.", primary = { href: "/demo", label: "Book a demo" }, secondary = { href: "/platform", label: "Explore the platform" } }: { a?: ReactNode; b?: ReactNode; sub?: ReactNode; primary?: { href: string; label: string }; secondary?: { href: string; label: string } | null }) {
   return (
     <section className="s4-wrap s4-close" aria-labelledby="close-title">
       <Rise style={{ display: "grid", gap: 20, justifyItems: "center" }}>

@@ -3,8 +3,11 @@
 /* Saving a confirmed StrayPaw AI proposal. Each kind runs the SAME
    server-authorised action the manual screens use (sp/data/work), under the
    person's own session, so permissions, validation and history are
-   identical. The history entry says the change was prepared with StrayPaw
-   AI and confirmed by the person, which is the audit trail. */
+   identical. The saved text carries "Prepared with StrayPaw AI, confirmed
+   by <name>", and a database trigger writes an operational_audit_log row
+   (ai_assisted_insert, naming the person) in the same transaction as the
+   change, so the audit cannot be skipped by the browser
+   (supabase/staging-sync/2026-10-31-write-audit.sql). */
 
 import { addNote, openCase, recordCare, scheduleFollowup, type Receipt } from "@/sp/data/work";
 import { getSupabase } from "@/lib/supabase";
@@ -36,8 +39,9 @@ export async function executeProposal(p: Proposal, actor: { id: string; name: st
   return r;
 }
 
-/** Best-effort structured log. Returns quietly if the optional ai_action_log
-    table has not been applied (supabase/proposed/ai_action_log.sql). */
+/** Optional extra log of the proposal's reason ("why"). Best-effort and not
+    the audit record: the database trigger above is. Returns quietly if the
+    optional ai_action_log table has not been applied. */
 async function logAction(p: Proposal, r: Saved) {
   try {
     const supa = getSupabase();

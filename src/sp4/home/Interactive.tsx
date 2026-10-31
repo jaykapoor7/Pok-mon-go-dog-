@@ -21,7 +21,7 @@ export type Step = { tab: string; title: ReactNode; body: string; tag?: ReactNod
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function UseCases({ steps, title }: { steps: Step[]; title: ReactNode }) {
+export function UseCases({ steps, title, kicker }: { steps: Step[]; title: ReactNode; kicker?: ReactNode }) {
   const sec = useRef<HTMLElement>(null);
   const [i, setI] = useState(0);
   const per = 620;
@@ -52,6 +52,7 @@ export function UseCases({ steps, title }: { steps: Step[]; title: ReactNode }) 
       <div className="s4-uc-desk" style={{ height: `calc(${steps.length * per}px + 100vh - 160px)` }}>
         <div className="s4-uc-pin">
           <div className="s4-wrap" style={{ paddingTop: 24 }}>
+            {kicker && <p className="s4-uc-kicker">{kicker}</p>}
             <h2 id="uc-title" className="s4-h2">{title}</h2>
             <div className="s4-uc-tabs" role="tablist" aria-label="Workflow steps">
               {steps.map((t, n) => (
@@ -79,6 +80,7 @@ export function UseCases({ steps, title }: { steps: Step[]; title: ReactNode }) 
         </div>
       </div>
       <div className="s4-wrap s4-uc-list">
+        {kicker && <p className="s4-uc-kicker">{kicker}</p>}
         <h2 className="s4-h2">{title}</h2>
         {steps.map((t, n) => (
           <article key={t.tab}>

@@ -23,7 +23,7 @@ import { createContext, Fragment, useCallback, useContext, useEffect, useRef, us
 import {
   Activity, BookOpen, Building2, ChevronDown, ChevronsUpDown, Compass, FileText, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers,
   LifeBuoy, LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
-  ListChecks, MoreHorizontal, Settings,
+  ListChecks, MoreHorizontal, Settings, ClipboardCheck,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, isNgoMember } from "@/lib/actions";
@@ -48,12 +48,12 @@ export const useMembership = () => useContext(Membership);
 const ICON: Record<string, typeof MapIcon> = {
   map: MapIcon, radio: Radio, activity: Activity, book: BookOpen, building: Building2, heart: HeartHandshake, sparkles: Sparkles,
   home: Home, inbox: Inbox, paw: PawPrint, layers: Layers, phone: Smartphone, shield: ShieldCheck, file: FileText, grad: GraduationCap,
-  users: Users, compass: Compass, landmark: Landmark, list: ListChecks,
+  users: Users, compass: Compass, landmark: Landmark, list: ListChecks, check: ClipboardCheck,
 };
 const DEST_ICON: Record<string, typeof MapIcon> = {
   "/community": MapIcon, "/community/report": Radio, "/community/activity": Activity,
   "/ngo": Compass, "/ngo/animals": PawPrint, "/ngo/map": MapIcon,
-  "/city": Landmark, "/city/programmes": Layers, "/city/insights": FileText,
+  "/city": Landmark, "/city/programmes": Layers, "/city/review": ClipboardCheck, "/city/insights": FileText,
   "/learn": GraduationCap, "/learn/workshops": Users, "/learn/resources": BookOpen,
 };
 

@@ -569,3 +569,4 @@
 .s4-story-mono { width: 44px; height: 44px; border-radius: 10px; background: #fff; color: var(--s4-ink); display: grid; place-items: center; font-weight: 600; font-size: 15px; }
 @media (max-width: 1000px) { .s4-story-pick { min-height: 220px; } .s4-story .s4-story-pick:last-child { display: grid; } }
 @media (max-width: 640px) { .s4-story { grid-template-columns: minmax(0, 1fr); } .s4-story-pick { min-height: 0; } }
+.s4 .s4-uc-kicker { margin: 0 0 10px; font-size: 14px; font-weight: 500; color: var(--s4-blue, #2457ce); letter-spacing: -0.01em; }

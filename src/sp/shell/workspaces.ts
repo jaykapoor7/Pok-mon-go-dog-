@@ -70,7 +70,7 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     id: "ngo", label: "NGO", purpose: "Implementing agencies: work queue, animal register and fieldwork", ink: "#1f6f80",
     home: "/ngo", members: true, settings: "/ngo/settings",
     dests: [
-      { href: "/ngo", label: "Home", match: ["/ngo/work", "/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field"] },
+      { href: "/ngo", label: "Home", match: ["/ngo/work", "/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field", "/ngo/verification", "/ngo/packages"] },
       { href: "/ngo/animals", label: "Animals", match: ["/ngo/import"] },
       { href: "/ngo/map", label: "Map", match: ["/ngo/programmes"] },
     ],
@@ -82,11 +82,12 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { href: "/ngo/animals", label: "Animals", icon: "paw", match: ["/ngo/import"], tone: "blue", section: "Modules" },
       { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal" },
       { href: "/ngo/field", label: "Field operations", icon: "phone", tone: "green" },
-      { href: "/ngo/review", label: "Evidence review", icon: "shield", match: ["/ngo/quality"], tone: "violet" },
-      { href: "/ngo/proof", label: "Reports", icon: "file", tone: "amber" },
+      { href: "/ngo/verification", label: "Verification", icon: "shield", tone: "violet" },
+      { href: "/ngo/packages", label: "Report packages", icon: "check", tone: "amber" },
+      { href: "/ngo/proof", label: "Reports", icon: "file", tone: "slate" },
       { href: "/ngo/map", label: "Map", icon: "map", tone: "flame" },
       { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
-      { href: "/ngo/team", label: "Team & access", icon: "users", tone: "slate" },
+      { href: "/ngo/team", label: "Team & access", icon: "users", tone: "ink" },
     ],
     index: [
       { label: "Your register", links: [
@@ -96,6 +97,7 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { label: "Work", links: [
         { href: "/ngo/inbox", label: "Inbox & triage", note: "New reports and offers" },
         { href: "/ngo/review", label: "Historical review", note: "Imported statuses, never today's work" },
+        { href: "/ngo/quality", label: "Data quality", note: "Gaps and checks in the register" },
         { href: "/ngo/field", label: "Field mode", note: "Phone, one hand" },
       ] },
       { label: "Registers & reporting", links: [
@@ -104,7 +106,6 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       ] },
       { label: "Records", links: [
         { href: "/ngo/care", label: "Care ledger", note: "Every care record, across animals" },
-        { href: "/ngo/quality", label: "Data quality", note: "Gaps and checks in the register" },
         { href: "/ngo/evidence", label: "Evidence files", note: "Register pages, ledgers, threads" },
       ] },
       { label: "Outreach", links: [
@@ -126,13 +127,14 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     home: "/city",
     dests: [
       { href: "/city", label: "Map" },
-      { href: "/city/programmes", label: "Programmes" },
+      { href: "/city/review", label: "Review", match: ["/city/programmes"] },
       { href: "/city/insights", label: "Insights", match: ["/city/report"] },
     ],
     action: null,
     nav: [
       { href: "/city/insights", label: "Overview", icon: "home" },
-      { href: "/city/programmes", label: "Programmes", icon: "layers", tone: "teal", section: "Modules" },
+      { href: "/city/review", label: "Package review", icon: "check", tone: "violet", section: "Modules" },
+      { href: "/city/programmes", label: "Programmes", icon: "layers", tone: "teal" },
       { href: "/city/report", label: "Reports", icon: "file", tone: "amber" },
       { href: "/city", label: "Map", icon: "map", exact: true, tone: "flame" },
       { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },

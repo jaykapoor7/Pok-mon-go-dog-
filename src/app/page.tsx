@@ -25,8 +25,8 @@ function Words({ lines }: { lines: string[] }) {
 }
 
 export const metadata = {
-  title: "StrayPaw · ABC Operations & Verification",
-  description: "Software for animal birth control operators: record every animal from capture to release, check the evidence, and hand the reviewing office a report package it can accept. StrayPaw AI built in.",
+  title: "StrayPaw · The platform for animal welfare programmes",
+  description: "One platform for the organisations and public bodies that care for street animals: field work, veterinary care, evidence and reporting, with StrayPaw AI built in. First product: ABC and anti-rabies Operations & Verification.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -50,7 +50,8 @@ const STEPS: Step[] = [
 ];
 
 const FAQ: [string, string][] = [
-  ["Who is StrayPaw for?", "Organisations that run funded animal birth control (ABC) and anti-rabies vaccination programmes: NGOs, veterinary teams and contractors. The record they keep is built to be reviewed by the municipal office that funds the work. Rescue, care and community reporting run on the same record."],
+  ["Who is StrayPaw for?", "Organisations and public bodies that run animal welfare programmes: NGOs, veterinary teams, contractors and the municipal offices that fund them. Our first product is for funded animal birth control (ABC) and anti-rabies vaccination programmes, where the record has to stand up to review. Rescue, care, community reporting and education already run on the same record."],
+  ["Is StrayPaw only for ABC?", "No. ABC and anti-rabies drives are where we start because the need for verified records is sharpest there. The same platform holds rescue and treatment cases, feeding and community reports, research archives kept apart from operations, and education, and more programme types follow."],
   ["How do we start?", "With a scoped pilot on one programme. You tell us your wards, team and current registers; we set up the workspace, import what you have and train the team. Nothing is promised that we have not agreed in writing."],
   ["What does it cost?", "Pricing is agreed per programme before any work begins, and we do not publish a price list yet. Small community and welfare groups can ask about an accessible plan."],
   ["Is WhatsApp intake live?", "Not yet. Field intake is built against the Meta WhatsApp Cloud API, but the number is not verified and Meta approval is pending, so nothing is sent or received over WhatsApp today. Teams use the web and phone field mode meanwhile."],
@@ -69,8 +70,8 @@ export default function HomePage() {
       {/* 1 · hero */}
       <section className="s4-hero" aria-labelledby="hero-title">
         <div className="s4-wrap">
-          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet StrayPaw, the platform that", "proves every ABC procedure"]} /></h1>
-          <p className="s4-lede">Capture animals, record treatment, check evidence, prepare reports, and more. One platform for your field team, your vets and StrayPaw AI to prove the work.</p>
+          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet StrayPaw, the platform for", "animal welfare programmes"]} /></h1>
+          <p className="s4-lede">Capture animals, record care, check evidence, prepare reports, and more. We start with ABC and anti-rabies programmes, where every procedure is recorded, signed off and ready for the office that funds it.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
           <div className="s4-hero-stage"><HeroDemo /></div>
         </div>
@@ -93,7 +94,7 @@ export default function HomePage() {
 
       {/* 3 · the workflow */}
       <div id="workflow" className="s4-sec">
-        <UseCases title="Use cases" steps={STEPS} />
+        <UseCases title="Use cases" kicker="First product · ABC and anti-rabies Operations & Verification" steps={STEPS} />
       </div>
 
       {/* 4 · StrayPaw AI as a teammate */}
