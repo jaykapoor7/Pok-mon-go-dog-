@@ -9,20 +9,30 @@ Screenshots: [`docs/sp4/qa/`](qa/).
 
 | # | Screen | Who | Files |
 |---|---|---|---|
-| 01 | Homepage hero: StrayPaw as the platform for animal welfare programmes; ABC/ARV named as the first product | public | `01-homepage-hero-{desktop,mobile}.png` |
+| 01 | Homepage hero: StrayPaw as the platform for animal welfare programmes; ABC/ARV named as the first product | public | `01-homepage-hero-*` |
 | 02 | Homepage product demo (scripted, labelled "Product demo · illustrative records") | public | `02-homepage-product-demo-*` |
 | 03 | Sign-in (after the authorised-use notice), "What's new" panel | public | `03-sign-in-*` |
 | 04 | Pricing (no invented prices) | public | `04-pricing-*` |
-| 05 | NGO home: daily brief from real counts | coordinator | `05-ngo-home-daily-brief-*` |
-| 06 | Verification queue by stage, evidence progress | coordinator | `06-ngo-verification-queue-*` |
-| 07 | ABC case: complete evidence, vet authorised, approve or return | coordinator | `07-ngo-case-coordinator-review-*` |
-| 08 | ABC case: veterinarian authorises (only action shown to a vet) | veterinarian | `08-ngo-case-vet-authorise-*` |
-| 09 | Report packages: prepare, list, status | coordinator | `09-ngo-report-packages-*` |
-| 10 | Animals register in the shared page system | coordinator | `10-ngo-animals-*` |
-| 11 | StrayPaw AI (record tools; no model configured on staging) | coordinator | `11-straypaw-ai-*` |
-| 12 | Municipal package inbox: waiting for review | municipal reviewer | `12-municipal-package-inbox-*` |
-| 13 | Municipal package review: records, evidence, signers, query/accept/return | municipal reviewer | `13-municipal-package-review-*` |
-| 14 | Municipal overview (findings) | municipal reviewer | `14-municipal-overview-*` |
+| 05 | NGO home, coordinator: records ready for review first | coordinator | `05-ngo-home-coordinator-*` |
+| 06 | NGO home, veterinarian: procedures to authorise first; short sidebar | veterinarian | `06-ngo-home-veterinarian-*` |
+| 07 | Verification queue by stage, evidence progress | coordinator | `07-ngo-verification-queue-*` |
+| 08 | ABC case: complete evidence, vet authorised, approve or return | coordinator | `08-ngo-case-coordinator-review-*` |
+| 09 | ABC case: veterinarian authorises (only action shown to a vet) | veterinarian | `09-ngo-case-vet-authorise-*` |
+| 10 | Report packages: prepare, list, status | coordinator | `10-ngo-report-packages-*` |
+| 11 | Animals register in the shared page system | coordinator | `11-ngo-animals-*` |
+| 12 | StrayPaw AI (record tools; no model configured on staging) | coordinator | `12-straypaw-ai-*` |
+| 13 | Municipal package inbox: Package review first in the sidebar | municipal reviewer | `13-municipal-package-inbox-*` |
+| 14 | Municipal package review: records, evidence, signers, query/accept/return | municipal reviewer | `14-municipal-package-review-*` |
+| 15 | Municipal overview (findings) | municipal reviewer | `15-municipal-overview-*` |
+
+## Sidebar by role
+
+| Role | Sidebar (More holds the rest) |
+|---|---|
+| Coordinator / admin | Home, Inbox, Work queue · Verification, Animals, Programmes, Report packages, Map · StrayPaw AI (+ Team for admins) |
+| Veterinarian | Home · Verification, Animals, Map · StrayPaw AI |
+| Field staff | Home, Inbox, Work queue · Field operations, Verification, Animals, Map · StrayPaw AI |
+| Municipal reviewer | Package review, Overview · Programmes, Reports, Map · StrayPaw AI |
 
 ## Checked on every screen
 
