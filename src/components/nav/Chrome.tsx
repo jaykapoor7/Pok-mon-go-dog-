@@ -83,7 +83,7 @@ const SELF_SHELLED = new Set<string>([
 ]);
 
 /** StrayPaw 3.0 public and entry pages render their own nav and footer. */
-const S3_PUBLIC = /^\/(abc-operations|security|research|for-governments|for-ngos|for-funders|platform|ai|whatsapp|customers|demo|docs|solutions|sign-in|app|partners|faq|donate|safety|privacy|terms|cookies)(\/|$)/;
+const S3_PUBLIC = /^\/(pricing|abc-operations|security|research|for-governments|for-ngos|for-funders|platform|ai|whatsapp|customers|demo|docs|solutions|sign-in|app|partners|faq|donate|safety|privacy|terms|cookies)(\/|$)/;
 
 /** StrayPaw 2.0 routes mount their own shell (src/sp/shell/Shell). */
 const SP2 = /^\/(community|ngo|city|learn|animal|search|trust|assistant)(\/|$)/;

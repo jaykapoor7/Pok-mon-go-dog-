@@ -4,12 +4,12 @@ import fieldPartners from "../src/data/field-partners.json";
 /* StrayPaw 4 landing (operator-first, 31 Oct 2026). These tests hold the
    page to the same standards as before: usable at every width, real tap
    targets, keyboard access, no-JS essentials. */
-const H1=/Run ABC programmes your\s*municipality can verify/;
+const H1=/Meet StrayPaw, the platform that\s*proves every ABC procedure/;
 for(const width of [320,390,768,1440])test(`hero and section order remain usable at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(H1);
  for(const a of await page.locator(".s4-hero .s4-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main h2:visible").allInnerTexts()).map(s=>s.replace(/\s+/g," ").trim());
- expect(headings.slice(0,4)).toEqual(["From capture to accepted report","StrayPaw AI works alongside your team","Give the routine checks to StrayPaw AI","Field teams report from the phone they have"]);
+ expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Your team's most reliable teammate","Give the routine checks to StrayPaw AI"]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.locator(".s4-hero .s4-actions [class*=flame]")).toHaveCount(0);
 });
@@ -30,7 +30,7 @@ test("audiences remain one click away in the Solutions menu",async({page})=>{
  await page.setViewportSize({width:1440,height:900});await page.goto("/");
  await page.getByRole("button",{name:"Solutions",exact:true}).click();
  const menu=page.locator("#s4-dd-solutions");
- for(const href of ["/for-ngos","/solutions/abc-arv","/solutions/rescue-care","/for-governments","/for-community"])await expect(menu.locator(`a[href="${href}"]`)).toHaveCount(1);
+ for(const href of ["/for-ngos","/for-governments","/solutions/rescue-care","/for-community","/abc-operations","/solutions/abc-arv"])await expect(menu.locator(`a[href="${href}"]`).first()).toBeVisible();
 });
 test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
  await page.goto("/");const question=page.locator(".s4-faq summary").first();await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".s4-faq details").first()).toHaveAttribute("open","");

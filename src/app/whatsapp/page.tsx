@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CheckCircle2, CircleDashed, Clock3 } from "lucide-react";
 import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { ExtractUi, HeroPhone, MiniWindow, QueueUi } from "@/sp4/home/ui";
@@ -51,6 +52,7 @@ export default function WhatsAppPage() {
               </div>
             ))}</div>
           </div>
+          <p className="s4-body" style={{ marginTop: 28, fontSize: 17 }}>Until then, field teams use phone field mode, and residents use the <Link href="/community/report" className="s4-blue">web report form</Link>, which works today.</p>
         </div>
       </section>
     ),

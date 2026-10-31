@@ -95,7 +95,7 @@ const nextConfig = {
       ...to([
         ["/product", "/platform"], ["/partners", "/customers"], ["/case-studies", "/customers"], ["/customer-stories", "/customers"],
         ["/login", "/sign-in"], ["/signin", "/sign-in"], ["/log-in", "/sign-in"], ["/signup", "/access"], ["/sign-up", "/access"],
-        ["/book-a-demo", "/demo"], ["/request-demo", "/demo"], ["/pricing", "/demo"],
+        ["/book-a-demo", "/demo"], ["/request-demo", "/demo"],
         ["/integrations", "/platform#integrations"], ["/abc", "/abc-operations"], ["/verification", "/abc-operations"],
         ["/straypaw-ai", "/ai"], ["/careos", "/whatsapp"], ["/documentation", "/docs"],
         ["/solutions/municipalities", "/for-governments"], ["/solutions/ngos", "/for-ngos"], ["/solutions/funders", "/for-funders"],

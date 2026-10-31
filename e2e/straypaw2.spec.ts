@@ -60,12 +60,12 @@ test("Open App is a gateway, not a redirect, and reporting stays one tap away", 
 });
 
 test("the field-intake story is labelled and points to working web reporting", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/");
-  const panel = page.locator("section").filter({ has: page.locator("#wa-title") });
-  await panel.scrollIntoViewIfNeeded();
-  await expect(panel).toContainText("In development · not connected");
-  await expect(panel.getByRole("link", { name: "web report form" })).toHaveAttribute("href", "/community/report");
-  await expect(panel.getByRole("link", { name: /How field intake works/ })).toHaveAttribute("href", "/whatsapp");
+  await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/whatsapp");
+  const main = page.locator("main");
+  await expect(main.getByText("Not connected", { exact: true }).first()).toBeVisible();
+  await expect(main.getByRole("link", { name: "web report form" })).toHaveAttribute("href", "/community/report");
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: /See how it works/ }).first()).toHaveAttribute("href", "/ai");
 });
 
 test("solutions: every solution has its own page", async ({ page }) => {

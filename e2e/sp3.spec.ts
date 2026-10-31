@@ -25,11 +25,10 @@ test("consolidated URLs redirect to their 3.0 homes", async ({ request }) => {
 
 test("homepage leads with the operator product and a labelled demo", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Run ABC programmes your\s*municipality can verify/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet StrayPaw, the platform that\s*proves every ABC procedure/);
   await expect(page.locator(".s4-hero").getByRole("link", { name: "Book a demo" })).toHaveAttribute("href", "/demo");
   await expect(page.getByRole("group", { name: /Product demo: an ABC operator's workspace/ })).toBeVisible();
   await expect(page.getByText("Product demo · illustrative records, not live programme data")).toBeAttached();
-  await expect(page.getByText("In development · not connected").first()).toBeAttached();
 });
 
 test("navigation dropdowns open, list solutions and close on Escape", async ({ page, isMobile }) => {
@@ -38,7 +37,7 @@ test("navigation dropdowns open, list solutions and close on Escape", async ({ p
   const solutions = page.getByRole("button", { name: "Solutions" });
   await solutions.click();
   await expect(solutions).toHaveAttribute("aria-expanded", "true");
-  for (const name of ["ABC operators & NGOs", "ABC / ARV programmes", "Rescue & care", "Government oversight", "Community & welfare groups"]) await expect(page.locator("#s4-dd-solutions").getByRole("link", { name: new RegExp(name) })).toBeVisible();
+  for (const name of ["ABC operators & NGOs", "Government oversight", "Rescue groups", "Anti-rabies vaccination", "Government reviewers"]) await expect(page.locator("#s4-dd-solutions").getByRole("link", { name: new RegExp(name) })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(solutions).toHaveAttribute("aria-expanded", "false");
 });
@@ -49,13 +48,14 @@ test("phone menu opens and reaches sign in and demo", async ({ page, isMobile })
   await page.getByRole("button", { name: "Open menu" }).click();
   const sheet = page.locator("#s4-sheet");
   await expect(sheet.getByRole("link", { name: "Book a demo" })).toBeVisible();
-  await expect(sheet.getByRole("link", { name: "Sign in" })).toBeVisible();
+  await expect(sheet.getByRole("link", { name: "Login" })).toBeVisible();
 });
 
 test("sign in shows the authorised-users notice, then the email and code form", async ({ page }) => {
   await page.goto("/sign-in");
-  await expect(page.getByRole("heading", { name: "Authorised users only" })).toBeVisible();
-  await page.getByRole("button", { name: "I understand" }).click();
+  await expect(page.getByRole("heading", { name: /Authorised users only/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "I do not accept" })).toHaveAttribute("href", "/");
+  await page.getByRole("button", { name: "I accept" }).click();
   await expect(page.getByLabel("Work email")).toBeVisible();
   await expect(page.getByLabel("Access code")).toBeVisible();
   await page.getByLabel("Work email").fill("not-an-email");

@@ -96,10 +96,13 @@ export function Faq({ items, title = "Frequently asked questions" }: { items: [s
   );
 }
 
-export function Close({ a = "Run your ABC programme", b = "on a record you can verify.", primary = { href: "/demo", label: "Book a demo" }, secondary = { href: "/abc-operations", label: "See the workflow" } }: { a?: ReactNode; b?: ReactNode; primary?: { href: string; label: string }; secondary?: { href: string; label: string } | null }) {
+export function Close({ a = "Record every procedure.", b = "Prove it to the office that funds you.", sub = "See how ABC operators use StrayPaw to keep their evidence ready for the office that funds them.", primary = { href: "/demo", label: "Book a demo" }, secondary = { href: "/platform", label: "Explore the platform" } }: { a?: ReactNode; b?: ReactNode; sub?: ReactNode; primary?: { href: string; label: string }; secondary?: { href: string; label: string } | null }) {
   return (
     <section className="s4-wrap s4-close" aria-labelledby="close-title">
-      <Rise><h2 id="close-title" className="s4-h2"><span className="s4-tt"><span className="s4-grey">{a}</span>{" "}<span style={{ color: "var(--s4-ink)" }}>{b}</span></span></h2></Rise>
+      <Rise style={{ display: "grid", gap: 20, justifyItems: "center" }}>
+        <h2 id="close-title" className="s4-h2">{a}{b && <>{" "}{b}</>}</h2>
+        {sub && <p className="s4-lede" style={{ textAlign: "center" }}>{sub}</p>}
+      </Rise>
       <div className="s4-actions" style={{ justifyContent: "center" }}>
         <Link href={primary.href} className="s4-btn is-primary">{primary.label}</Link>
         {secondary && <Link href={secondary.href} className="s4-btn is-line">{secondary.label}</Link>}

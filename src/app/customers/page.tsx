@@ -24,7 +24,7 @@ export default function CustomersPage() {
 
       <section className="s4-sec" aria-labelledby="cs-stories">
         <div className="s4-wrap">
-          <h2 id="cs-stories" className="s4-h2" style={{ marginBottom: 48 }}><TwoTone a="Customer" b="stories" /></h2>
+          <h2 id="cs-stories" className="s4-h2" style={{ marginBottom: 48 }}>Customer stories</h2>
           <div style={{ display: "grid", gap: 12 }}>
             {STORIES.map((s, n) => (
               <Rise key={s.slug} className="s4-story" style={{ gridTemplateColumns: "minmax(0,1.05fr) minmax(0,1.26fr)" }}>

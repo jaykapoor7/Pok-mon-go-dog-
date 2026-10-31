@@ -18,9 +18,9 @@ test("audience destinations remain reachable by keyboard in the header",async({p
  const toggle=page.getByRole("button",{name:"Solutions",exact:true});
  /* Keyboard handlers attach on hydration; retry the keypress until they have. */
  await expect(async()=>{await toggle.focus();await page.keyboard.press("ArrowDown");await expect(toggle).toHaveAttribute("aria-expanded","true",{timeout:1000});}).toPass({timeout:15_000});
- const links=page.locator("#s4-dd-solutions .s4-dd-item");await expect(links).toHaveCount(5);
- for(let i=0;i<5;i++){await expect(links.nth(i)).toBeFocused();if(i<4)await page.keyboard.press("ArrowDown");}
- await expect(links.last()).toContainText("Community");
+ const links=page.locator("#s4-dd-solutions .s4-dd-item");const n=await links.count();expect(n).toBe(11);
+ for(let i=0;i<n;i++){await expect(links.nth(i)).toBeFocused();if(i<n-1)await page.keyboard.press("ArrowDown");}
+ await expect(links.last()).toContainText("Government reviewers");
 });
 
 test("mobile navigation contains focus and restores the menu button", async ({ page }) => {

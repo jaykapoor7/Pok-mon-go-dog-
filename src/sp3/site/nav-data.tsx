@@ -40,3 +40,63 @@ export const AUDIENCES = [
   { label: "Feeders", href: "/for-feeders", hint: "Know your animals. Record care." },
   { label: "Education", href: "/education", hint: "Learn, teach and share." },
 ];
+
+/* ── StrayPaw 4 mega menus: three columns, title + one line, no icons ── */
+export type MegaLink = { href: string; label: string; hint?: string };
+export type MegaCol = { title: string; links: MegaLink[] };
+export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
+  platform: [
+    { title: "Products", links: [
+      { href: "/abc-operations", label: "ABC Operations & Verification", hint: "From capture to an accepted report" },
+      { href: "/ai", label: "StrayPaw AI", hint: "Finds gaps and prepares records" },
+      { href: "/whatsapp", label: "WhatsApp field intake", hint: "Field messages become drafts" },
+      { href: "/solutions/rescue-care", label: "Rescue & care", hint: "Requests, treatment and follow-ups" },
+      { href: "/abc-operations#report", label: "Report packages", hint: "Evidence the office can check" },
+    ] },
+    { title: "Platform", links: [
+      { href: "/platform", label: "Platform overview" },
+      { href: "/platform#integrations", label: "Integrations" },
+      { href: "/security", label: "Security" },
+      { href: "/data-governance", label: "Data governance" },
+      { href: "/docs", label: "Documentation" },
+      { href: "/explore", label: "Public map" },
+    ] },
+  ],
+  solutions: [
+    { title: "By organisation", links: [
+      { href: "/for-ngos", label: "ABC operators & NGOs", hint: "Run funded programmes and prove the work" },
+      { href: "/for-governments", label: "Government oversight", hint: "Review operator evidence and reports" },
+      { href: "/solutions/rescue-care", label: "Rescue groups", hint: "Requests, treatment and outcomes" },
+      { href: "/for-community", label: "Community & welfare groups", hint: "Report animals and follow outcomes" },
+    ] },
+    { title: "By programme", links: [
+      { href: "/abc-operations", label: "Animal birth control", hint: "Capture, surgery and release" },
+      { href: "/solutions/abc-arv", label: "Anti-rabies vaccination", hint: "Doses recorded animal by animal" },
+      { href: "/solutions/rescue-care", label: "Rescue & treatment", hint: "Every case closed with an outcome" },
+    ] },
+    { title: "By team", links: [
+      { href: "/abc-operations#capture", label: "Field teams" },
+      { href: "/abc-operations#treatment", label: "Veterinarians" },
+      { href: "/abc-operations#review", label: "Coordinators" },
+      { href: "/for-governments", label: "Government reviewers" },
+    ] },
+  ],
+  resources: [
+    { title: "Learn", links: [
+      { href: "/docs", label: "Documentation", hint: "How the product works" },
+      { href: "/learn", label: "Academy", hint: "Courses and teaching materials" },
+      { href: "/faq", label: "FAQ", hint: "Common questions, plainly answered" },
+    ] },
+    { title: "Evidence", links: [
+      { href: "/customers", label: "Customer stories", hint: "What partners record, and what we have not measured" },
+      { href: "/research", label: "Research", hint: "Methods and the research archive" },
+      { href: "/explore", label: "Public map", hint: "Recorded animals and care by place" },
+    ] },
+    { title: "Company", links: [
+      { href: "/our-story", label: "Our story" },
+      { href: "/contact", label: "Contact" },
+      { href: "/partner-apply", label: "Partner with us" },
+      { href: "/for-community", label: "Report an animal" },
+    ] },
+  ],
+};

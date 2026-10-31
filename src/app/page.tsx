@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  ArrowRight, ArrowUpRight, Camera, Check, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
-  KeyRound, Landmark, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, Upload, UserCheck,
+  ArrowRight, ArrowUpRight, Camera, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
+  KeyRound, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, Upload, UserCheck,
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
@@ -60,16 +60,19 @@ export default function HomePage() {
       {/* 1 · hero */}
       <section className="s4-hero" aria-labelledby="hero-title">
         <div className="s4-wrap">
-          <h1 id="hero-title" className="s4-h1">Run ABC programmes your<br /> municipality can verify</h1>
-          <p className="s4-lede">Record every animal from capture to release, check the evidence, and send a report package the reviewing office can accept. One platform for your field team, your vets and StrayPaw AI.</p>
+          <h1 id="hero-title" className="s4-h1">Meet StrayPaw, the platform that<br /> proves every ABC procedure</h1>
+          <p className="s4-lede">Capture animals, record treatment, check evidence, prepare reports, and more. One platform for your field team, your vets and StrayPaw AI to prove the work.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
           <div className="s4-hero-stage"><HeroWindow /><HeroPhone /></div>
         </div>
       </section>
 
       {/* 2 · field partners */}
-      <section className="s4-wrap s4-proof" aria-label="Field partners">
-        <p>Field partners whose work is on StrayPaw. Case studies say exactly what each relationship is.</p>
+      <section className="s4-wrap s4-proof" aria-labelledby="proof-title">
+        <div className="s4-sechead" style={{ marginBottom: 40 }}>
+          <h2 id="proof-title" className="s4-h2">Animal-welfare teams working with StrayPaw</h2>
+          <Link href="/customers" className="s4-link is-ink">Hear from our partners <ArrowRight size={18} aria-hidden /></Link>
+        </div>
         <div className="s4-wall">
           {partners.map((p) => {
             const s = STORIES.find((x) => x.name === p.name);
@@ -81,13 +84,13 @@ export default function HomePage() {
 
       {/* 3 · the workflow */}
       <div id="workflow" className="s4-sec">
-        <UseCases title="From capture to accepted report" steps={STEPS} />
+        <UseCases title="Use cases" steps={STEPS} />
       </div>
 
       {/* 4 · StrayPaw AI as a teammate */}
       <section className="s4-sec" aria-labelledby="mate-title">
         <div className="s4-wrap">
-          <SecHead id="mate-title" title={<TwoTone a="StrayPaw AI works" b="alongside your team" />} lede="It reads the programme record you are allowed to read, finds what needs attention and prepares the paperwork. People make the decisions." link={{ href: "/ai", label: "Meet StrayPaw AI" }} />
+          <SecHead id="mate-title" title="Your team's most reliable teammate" lede="It reads the programme record you are allowed to read, finds what needs attention and prepares the paperwork. People make the decisions." link={{ href: "/ai", label: "Meet StrayPaw AI" }} />
           <Cards idp="mate2" cols={2} items={[
             { title: "Knows your programme", body: "Ask in plain words. Every answer names the records it read, so anyone can check it.", ui: <AskUi />, v: 2 },
             { title: "Prepares, never approves", body: "New cases, notes and follow-ups are drafted for you and saved only when a person confirms, with their name on the record.", ui: <ProposeUi />, v: 4 },
@@ -104,48 +107,6 @@ export default function HomePage() {
       {/* 5 · dark band */}
       <section className="s4-dark" aria-labelledby="ai-title">
         <div className="s4-wrap"><AiBand /></div>
-      </section>
-
-      {/* 6 · WhatsApp field intake */}
-      <section className="s4-sec" aria-labelledby="wa-title">
-        <div className="s4-wrap s4-split">
-          <Rise className="s4-split-copy">
-            <span className="s4-tag is-amber" style={{ justifySelf: "start" }}>In development · not connected</span>
-            <h2 id="wa-title" className="s4-h2"><TwoTone a="Field teams report" b="from the phone they have" /></h2>
-            <p className="s4-lede">A catcher sends a photo and a line of text. StrayPaw turns it into a draft record and places it in the operator&apos;s intake queue for review. Nobody re-types a register at night.</p>
-            <ul>
-              <li><Check size={18} aria-hidden />Messages become drafts, never final records</li>
-              <li><Check size={18} aria-hidden />Every draft is reviewed by a person on the team</li>
-              <li><Check size={18} aria-hidden />Built on the official WhatsApp Cloud API; awaiting Meta approval</li>
-              <li><Check size={18} aria-hidden />Until then, teams use phone field mode and the <Link href="/community/report" className="s4-blue">web report form</Link></li>
-            </ul>
-            <Link href="/whatsapp" className="s4-link">How field intake works <ArrowRight size={18} aria-hidden /></Link>
-          </Rise>
-          <Grain v={3} id="wa-art" className="s4-split-art"><div style={{ position: "relative" }}><HeroPhone /></div></Grain>
-        </div>
-      </section>
-
-      {/* 7 · operator now, government next */}
-      <section className="s4-sec" aria-labelledby="stage-title">
-        <div className="s4-wrap">
-          <SecHead id="stage-title" title={<TwoTone a="Built for the operator." b="Ready for the reviewer." />} lede="StrayPaw starts with the organisation doing the work. The same record is what a municipal office reviews when it is ready to." />
-          <div className="s4-stages">
-            <Rise className="s4-stage is-now">
-              <span className="s4-tag is-blue">Available for pilots</span>
-              <h3>ABC Operations & Verification</h3>
-              <p>For funded ABC operators and NGOs running sterilisation and vaccination programmes.</p>
-              <ul>{["Capture, treatment and release on one record", "Vet authorisation and evidence checklists", "Operator review queue and exceptions", "Report packages generated from records"].map((x) => <li key={x}><Check size={16} aria-hidden />{x}</li>)}</ul>
-              <Link href="/abc-operations" className="s4-link" style={{ color: "#8fb0ff", fontSize: 17 }}>Explore the product <ArrowRight size={16} aria-hidden /></Link>
-            </Rise>
-            <Rise className="s4-stage" delay={80}>
-              <span className="s4-tag">Next stage</span>
-              <h3>Government oversight</h3>
-              <p>For the municipal office that funds the programme and must stand behind its numbers.</p>
-              <ul>{["Read-only access to submitted packages", "Query an exception on the record itself", "Record acceptance with name and date", "Compare operators and wards over time"].map((x) => <li key={x}><Landmark size={16} aria-hidden />{x}</li>)}</ul>
-              <Link href="/for-governments" className="s4-link is-ink">For government <ArrowRight size={16} aria-hidden /></Link>
-            </Rise>
-          </div>
-        </div>
       </section>
 
       {/* 8 · integrations */}
@@ -168,7 +129,7 @@ export default function HomePage() {
       {/* 9 · results */}
       <section className="s4-sec" aria-labelledby="res-title">
         <div className="s4-wrap">
-          <h2 id="res-title" className="s4-h2" style={{ marginBottom: 48 }}><TwoTone a="Real registers," b="honestly labelled" /></h2>
+          <h2 id="res-title" className="s4-h2" style={{ marginBottom: 48 }}>Customer results</h2>
           <div className="s4-nums">
             <Rise><b>{(story.results[0]?.n ?? 0).toLocaleString("en-IN")}</b><small>rescue requests documented by<br />The Pawsome People Project</small></Rise>
             <Rise delay={60}><b>{(kh.results[0]?.n ?? 0).toLocaleString("en-IN")}</b><small>rescue and treatment requests<br />by The Kind Hour Foundation</small></Rise>
@@ -183,7 +144,7 @@ export default function HomePage() {
                 <Link href={`/customers/${story.slug}`} className="s4-link" style={{ marginTop: 18 }}>Read case study <ArrowRight size={16} aria-hidden /></Link></div>
             </Rise>
             {[["Rescue register", "2024–2026, imported"], ["ABC drive register", "Jan–Aug 2026, imported"], ["Vaccination records", "2024–2026, imported"]].map(([a, b], n) => (
-              <Grain key={a} v={n + 1} id={`res-${n}`} dark><b>{a}</b><small>{b}</small></Grain>
+              <Grain key={a} v={n} id={`res-${n}`} className="s4-story-tile"><div className="s4-ui s4-ui-pad s4-reg"><span className="s4u-sq c-blue" aria-hidden><FileSpreadsheet size={11} /></span><b>{a}</b><small>{b}</small><span className="s4-tag">Historical imported record</span></div></Grain>
             ))}
           </div>
         </div>
@@ -205,7 +166,7 @@ export default function HomePage() {
       </section>
 
       {/* 11 · FAQ */}
-      <Faq items={FAQ} />
+      <Faq items={FAQ} title="FAQs" />
       {/* 12 · closing CTA is rendered by S4Page */}
     </S4Page>
   );
