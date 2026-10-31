@@ -79,6 +79,7 @@ export function UseCases({ steps, title }: { steps: Step[]; title: ReactNode }) 
         </div>
       </div>
       <div className="s4-wrap s4-uc-list">
+        <h2 className="s4-h2">{title}</h2>
         {steps.map((t, n) => (
           <article key={t.tab}>
             <span className="s4-eyebrow" style={{ marginBottom: 0 }}>{n + 1} · {t.tab}</span>
@@ -120,7 +121,7 @@ export function AiBand() {
   return (
     <div ref={box} className="s4-band">
       <div>
-        <h2 className="s4-h2" id="ai-title">Give the routine checks<br />to StrayPaw AI</h2>
+        <h2 className="s4-h2" id="ai-title">Give the routine checks{" "}<br />to StrayPaw AI</h2>
         <div className={`s4-jobs${still || held ? " is-still" : ""}`}>
           {JOBS.map((j, n) => (
             <button key={j} type="button" aria-pressed={n === i} onClick={() => { setI(n); setHeld(true); }}>

@@ -120,6 +120,7 @@
   .s4-uc-pin { position: static; }
   .s4-uc-desk { display: none; }
   .s4-uc-list { display: grid; gap: 64px; margin-top: 40px; }
+  .s4-uc-list > h2 { margin-bottom: -28px; }
   .s4-uc-list article { display: grid; gap: 18px; }
   .s4-uc-list .s4-grain { aspect-ratio: 4 / 3.4; display: grid; place-items: center; padding: 16px; }
   .s4-uc-list .s4u-frag { transform: scale(0.82); transform-origin: center; }

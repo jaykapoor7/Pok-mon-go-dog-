@@ -62,7 +62,7 @@ export function HeroWindow() {
 
 export function HeroPhone() {
   return (
-    <div className="s4u-phone" role="group" aria-label="Product demo: a field message becoming a draft record">
+    <div className="s4u-phone" role="group" aria-label="Product demo: a field message becoming a draft record (WhatsApp not connected in production)">
       <div className="s4u-phone-top"><ChevronLeft size={14} /><span className="s4u-av">W</span><span><b>Ward 14 field line</b><small>WhatsApp · demo</small></span></div>
       <div className="s4u-thread">
         <p className="s4u-msg is-in">Brown female near the market gate, limping on the back left leg. Not ear-notched.<span className="s4u-time">07:41</span></p>

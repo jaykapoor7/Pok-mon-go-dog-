@@ -8,29 +8,31 @@ test.beforeEach(async ({ page }) => {
 
 test("the homepage remains readable in both scroll directions", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto("/");
-  for (const id of ["tour", "integrations", "security", "integrations", "tour"]) {
-    const section=page.locator(`#${id}`);await section.scrollIntoViewIfNeeded();await expect(section.locator("h1,h2").first()).toBeVisible();
+  for (const id of ["workflow", "integrations", "security", "integrations", "workflow"]) {
+    const section=page.locator(`#${id}`);await section.scrollIntoViewIfNeeded();await expect(section.locator("h2:visible,h3:visible").first()).toBeVisible();
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
 });
 test("audience destinations remain reachable by keyboard in the header",async({page})=>{
  await page.setViewportSize({width:1440,height:900});await page.goto("/");
- await page.getByRole("button",{name:"Solutions",exact:true}).focus();await page.keyboard.press("ArrowDown");
- const links=page.locator("#s3-dd-solutions .s3-dd-item");await expect(links).toHaveCount(5);
+ const toggle=page.getByRole("button",{name:"Solutions",exact:true});
+ /* Keyboard handlers attach on hydration; retry the keypress until they have. */
+ await expect(async()=>{await toggle.focus();await page.keyboard.press("ArrowDown");await expect(toggle).toHaveAttribute("aria-expanded","true",{timeout:1000});}).toPass({timeout:15_000});
+ const links=page.locator("#s4-dd-solutions .s4-dd-item");await expect(links).toHaveCount(5);
  for(let i=0;i<5;i++){await expect(links.nth(i)).toBeFocused();if(i<4)await page.keyboard.press("ArrowDown");}
- await expect(links.last()).toContainText("Funders");
+ await expect(links.last()).toContainText("Community");
 });
 
 test("mobile navigation contains focus and restores the menu button", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu", exact: true }).click();
-  await expect(page.locator("#s3-sheet summary").first()).toBeFocused();
-  await page.locator("#s3-sheet a").last().focus();
+  await expect(page.locator("#s4-sheet summary").first()).toBeFocused();
+  await page.locator("#s4-sheet a").last().focus();
   await page.keyboard.press("Tab");
-  await expect(page.locator(".s3-burger")).toBeFocused();
+  await expect(page.locator(".s4-burger")).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(page.locator("#s3-sheet a").last()).toBeFocused();
+  await expect(page.locator("#s4-sheet a").last()).toBeFocused();
   await page.keyboard.press("Escape");
   const menu = page.getByRole("button", { name: "Open menu", exact: true });
   await expect(menu).toBeFocused();

@@ -61,16 +61,16 @@ test("Open App is a gateway, not a redirect, and reporting stays one tap away", 
 
 test("the field-intake story is labelled and points to working web reporting", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/");
-  const panel = page.locator("#s3-tour-panel");
+  const panel = page.locator("section").filter({ has: page.locator("#wa-title") });
   await panel.scrollIntoViewIfNeeded();
-  await expect(panel).toContainText("WhatsApp: not connected in production");
-  await expect(panel).toContainText("web report form");
-  await expect(panel.getByRole("link", { name: /How CareOS works/ })).toHaveAttribute("href", "/whatsapp");
+  await expect(panel).toContainText("In development · not connected");
+  await expect(panel.getByRole("link", { name: "web report form" })).toHaveAttribute("href", "/community/report");
+  await expect(panel.getByRole("link", { name: /How field intake works/ })).toHaveAttribute("href", "/whatsapp");
 });
 
 test("solutions: every solution has its own page", async ({ page }) => {
   await page.goto("/solutions");
-  for (const href of ["/for-governments", "/for-ngos", "/solutions/abc-arv", "/solutions/rescue-care", "/for-funders"]) {
+  for (const href of ["/for-ngos", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-community"]) {
     await expect(page.locator(`main a[href="${href}"]`).first()).toBeVisible();
   }
 });

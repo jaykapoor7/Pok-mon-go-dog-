@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /* StrayPaw 3.0: the site, the entry flow, the app shell, StrayPaw AI and
    CareOS, as a visitor and an unauthenticated user can exercise them. */
 
-const PUBLIC = ["/", "/platform", "/ai", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
+const PUBLIC = ["/", "/abc-operations", "/security", "/research", "/platform", "/ai", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
   "/customers", "/customers/the-pawsome-people-project", "/customers/the-kind-hour-foundation", "/demo", "/docs", "/faq", "/sign-in", "/app", "/join", "/access",
   "/our-story", "/mission", "/contact", "/privacy", "/explore", "/evidence", "/for-community", "/education", "/partner-apply", "/partner-programmes"];
 const APP = ["/ngo", "/ngo/animals", "/ngo/inbox", "/ngo/programmes", "/ngo/field", "/ngo/review", "/ngo/proof", "/ngo/team", "/city", "/city/programmes", "/city/insights", "/city/report", "/community", "/community/report", "/learn", "/assistant", "/fundraisers", "/surveys"];
@@ -23,12 +23,13 @@ test("consolidated URLs redirect to their 3.0 homes", async ({ request }) => {
   }
 });
 
-test("homepage leads with the product and the government demo", async ({ page }) => {
+test("homepage leads with the operator product and a labelled demo", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Every intervention\.\s*Accounted for\./);
-  await expect(page.getByRole("link", { name: /Request a government demo/ }).first()).toHaveAttribute("href", "/demo?type=pilot");
-  await expect(page.getByRole("group", { name: /Product demo: municipal programme dashboard/ })).toBeVisible();
-  await expect(page.getByText("WhatsApp: not connected in production").first()).toBeAttached();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Run ABC programmes your\s*municipality can verify/);
+  await expect(page.locator(".s4-hero").getByRole("link", { name: "Book a demo" })).toHaveAttribute("href", "/demo");
+  await expect(page.getByRole("group", { name: /Product demo: an ABC operator's workspace/ })).toBeVisible();
+  await expect(page.getByText("Product demo · illustrative records, not live programme data")).toBeAttached();
+  await expect(page.getByText("In development · not connected").first()).toBeAttached();
 });
 
 test("navigation dropdowns open, list solutions and close on Escape", async ({ page, isMobile }) => {
@@ -37,7 +38,7 @@ test("navigation dropdowns open, list solutions and close on Escape", async ({ p
   const solutions = page.getByRole("button", { name: "Solutions" });
   await solutions.click();
   await expect(solutions).toHaveAttribute("aria-expanded", "true");
-  for (const name of ["Municipalities", "NGOs", "ABC / ARV programmes", "Rescue & care", "Funders"]) await expect(page.locator("#s3-dd-solutions").getByRole("link", { name: new RegExp(name) })).toBeVisible();
+  for (const name of ["ABC operators & NGOs", "ABC / ARV programmes", "Rescue & care", "Government oversight", "Community & welfare groups"]) await expect(page.locator("#s4-dd-solutions").getByRole("link", { name: new RegExp(name) })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(solutions).toHaveAttribute("aria-expanded", "false");
 });
@@ -46,7 +47,7 @@ test("phone menu opens and reaches sign in and demo", async ({ page, isMobile })
   test.skip(!isMobile, "phone navigation");
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu" }).click();
-  const sheet = page.locator("#s3-sheet");
+  const sheet = page.locator("#s4-sheet");
   await expect(sheet.getByRole("link", { name: "Book a demo" })).toBeVisible();
   await expect(sheet.getByRole("link", { name: "Sign in" })).toBeVisible();
 });

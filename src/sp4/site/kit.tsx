@@ -24,7 +24,7 @@ export function S4Page({ children, close }: { children: ReactNode; close?: React
 
 /** Two-tone heading: the first line in ink, the second in grey (or blue). */
 export function TwoTone({ a, b, blue = false }: { a: ReactNode; b?: ReactNode; blue?: boolean }) {
-  return <span className={`s4-tt${blue ? " is-blue" : ""}`}><span>{a}</span>{b && <span>{b}</span>}</span>;
+  return <span className={`s4-tt${blue ? " is-blue" : ""}`}><span>{a}</span>{b && <>{" "}<span>{b}</span></>}</span>;
 }
 
 export function PageHead({ eyebrow, title, lede, actions, children }: { eyebrow?: ReactNode; title: ReactNode; lede?: ReactNode; actions?: ReactNode; children?: ReactNode }) {
@@ -99,7 +99,7 @@ export function Faq({ items, title = "Frequently asked questions" }: { items: [s
 export function Close({ a = "Run your ABC programme", b = "on a record you can verify.", primary = { href: "/demo", label: "Book a demo" }, secondary = { href: "/abc-operations", label: "See the workflow" } }: { a?: ReactNode; b?: ReactNode; primary?: { href: string; label: string }; secondary?: { href: string; label: string } | null }) {
   return (
     <section className="s4-wrap s4-close" aria-labelledby="close-title">
-      <Rise><h2 id="close-title" className="s4-h2"><span className="s4-tt"><span className="s4-grey">{a}</span><span style={{ color: "var(--s4-ink)" }}>{b}</span></span></h2></Rise>
+      <Rise><h2 id="close-title" className="s4-h2"><span className="s4-tt"><span className="s4-grey">{a}</span>{" "}<span style={{ color: "var(--s4-ink)" }}>{b}</span></span></h2></Rise>
       <div className="s4-actions" style={{ justifyContent: "center" }}>
         <Link href={primary.href} className="s4-btn is-primary">{primary.label}</Link>
         {secondary && <Link href={secondary.href} className="s4-btn is-line">{secondary.label}</Link>}

@@ -16,30 +16,33 @@ async function scrollThrough(page: Page, selector: string, f: number) {
 
 test("landing closes with one demo call to action and the site index", async ({ page }) => {
   await page.goto("/");
+  await expect(page.locator("main .s4-close")).toHaveCount(1);
+  await expect(page.locator("main .s4-close .is-primary")).toHaveCount(1);
+  await expect(page.locator("main .s4-close .is-primary")).toHaveText("Book a demo");
   const end = page.getByRole("contentinfo");
-  await expect(end.locator(".s3-foot-cta")).toHaveCount(1);
-  await expect(end.locator(".s3-foot-cta .is-primary")).toHaveCount(1);
-  for (const col of ["Platform", "Solutions", "Customers", "Resources", "Company"]) await expect(end.getByRole("heading", { name: col, exact: true })).toHaveCount(1);
+  for (const col of ["Product", "Solutions", "Resources", "Company"]) await expect(end.getByRole("heading", { name: col, exact: true })).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
 test("the hero demo shows the phone as a labelled, unconnected preview", async ({ page }) => {
   await page.goto("/");
-  const phone = page.getByRole("group", { name: /field update over WhatsApp \(not connected in production\)/ }).first();
+  const phone = page.getByRole("group", { name: /field message becoming a draft record \(WhatsApp not connected in production\)/ }).first();
   await expect(phone).toBeVisible();
-  await expect(phone).toContainText("WhatsApp not yet connected");
+  await expect(phone).toContainText("WhatsApp · demo");
+  await expect(phone).toContainText("Waiting for operator review");
 });
 
-test("the product tour advances by itself and stops when a step is chosen", async ({ page }) => {
+test("the AI jobs advance by themselves and stop when one is chosen", async ({ page }) => {
   await page.goto("/");
-  const steps = page.getByRole("tablist", { name: "Product tour" }).getByRole("tab");
-  await steps.first().scrollIntoViewIfNeeded();
-  await expect(steps.first()).toHaveAttribute("aria-selected", "true");
-  await expect(steps.nth(1)).toHaveAttribute("aria-selected", "true", { timeout: 12_000 });
-  await steps.nth(3).click();
-  await expect(steps.nth(3)).toHaveAttribute("aria-selected", "true");
-  await page.waitForTimeout(8000);
-  await expect(steps.nth(3)).toHaveAttribute("aria-selected", "true");
+  const band = page.locator(".s4-band");
+  await band.scrollIntoViewIfNeeded();
+  const jobs = band.locator(".s4-jobs button");
+  await expect(jobs.first()).toHaveAttribute("aria-pressed", "true");
+  await expect(jobs.nth(1)).toHaveAttribute("aria-pressed", "true", { timeout: 12_000 });
+  await jobs.nth(3).click();
+  await expect(jobs.nth(3)).toHaveAttribute("aria-pressed", "true");
+  await page.waitForTimeout(7000);
+  await expect(jobs.nth(3)).toHaveAttribute("aria-pressed", "true");
 });
 
 test("NGO remains a workspace on both Community and NGO pages", async ({ page }) => {
@@ -55,7 +58,7 @@ test("phone menu: grouped places, one demo action, one sign in", async ({ page }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu", exact: true }).click();
-  const sheet = page.locator("#s3-sheet");
+  const sheet = page.locator("#s4-sheet");
   await expect(sheet.getByRole("link", { name: "Book a demo" })).toHaveCount(1);
   await expect(sheet.getByRole("link", { name: "Sign in" })).toHaveCount(1);
   await expect(sheet.locator("details > summary")).toHaveCount(3);

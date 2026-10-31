@@ -117,6 +117,7 @@ export default function HomePage() {
               <li><Check size={18} aria-hidden />Messages become drafts, never final records</li>
               <li><Check size={18} aria-hidden />Every draft is reviewed by a person on the team</li>
               <li><Check size={18} aria-hidden />Built on the official WhatsApp Cloud API; awaiting Meta approval</li>
+              <li><Check size={18} aria-hidden />Until then, teams use phone field mode and the <Link href="/community/report" className="s4-blue">web report form</Link></li>
             </ul>
             <Link href="/whatsapp" className="s4-link">How field intake works <ArrowRight size={18} aria-hidden /></Link>
           </Rise>
@@ -189,7 +190,7 @@ export default function HomePage() {
       </section>
 
       {/* 10 · security */}
-      <section className="s4-sec" aria-labelledby="sec-title">
+      <section className="s4-sec" id="security" aria-labelledby="sec-title">
         <div className="s4-wrap">
           <SecHead id="sec-title" title={<TwoTone a="Built for records" b="someone has to defend" />} link={{ href: "/security", label: "Explore security" }} />
           <Tiles items={[
