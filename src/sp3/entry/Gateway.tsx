@@ -9,6 +9,8 @@ import { StrayPawMark } from "@/components/site/SiteHeader";
 import { getMyNgo, isNgoMember } from "@/lib/actions";
 import "@/sp3/sp3.css";
 import "./entry.css";
+import "@/sp4/sp4.css";
+import "@/sp4/entry4.css";
 
 /* ════════════════════════════════════════════════════════════════════
    Open App. The product gateway.
@@ -47,7 +49,7 @@ export function Gateway() {
   }, [ready, user, choose, next, router]);
 
   return (
-    <div className="s3 s3g">
+    <div className="s3 s3g s4 s4e">
       <header className="s3g-top"><Link href="/" className="s3-brand"><StrayPawMark size={28} /><span>StrayPaw</span></Link>{user ? <span className="s3g-who">Signed in as <b>{user.name}</b></span> : <Link href="/sign-in?next=/app" className="s3-btn is-sm is-line">Sign in</Link>}</header>
       <main className="s3g-main">
         {s.phase !== "choose" ? (
@@ -59,7 +61,7 @@ export function Gateway() {
             <div className="s3g-grid">
               {!s.signedIn && <Choice href="/sign-in?next=/app" icon={<LogIn size={18} />} t="Sign in to your workspace" d="NGO and municipal teams, with your email and access code." primary />}
               <Choice href="/join" icon={<KeyRound size={18} />} t="Join with an invitation code" d="First time? Your organisation's admin sent you a code." primary={s.signedIn} />
-              <Choice href="/partner-apply" icon={<Building2 size={18} />} t="Request organisation access" d="Verified NGOs get the operational workspace free. Municipal teams start with a pilot." />
+              <Choice href="/partner-apply" icon={<Building2 size={18} />} t="Request organisation access" d="For ABC operators, NGOs and reviewing offices, after verification." />
             </div>
             <h2 className="s3g-h">Public tools</h2>
             <div className="s3g-grid is-3">

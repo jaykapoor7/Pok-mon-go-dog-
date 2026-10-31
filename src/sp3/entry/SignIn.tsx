@@ -8,6 +8,11 @@ import { cleanCode, signInWithCode, useAuth } from "@/components/auth/AuthProvid
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import "@/sp3/sp3.css";
 import "./entry.css";
+import "@/sp4/sp4.css";
+import "@/sp4/home/home4.css";
+import "@/sp4/entry4.css";
+import { Grain } from "@/sp4/site/Grain";
+import { AskUi } from "@/sp4/home/ui";
 
 /* Real, shipped product updates only. Each line is in the repository history. */
 const WHATS_NEW: [string, string, string][] = [
@@ -46,7 +51,7 @@ export function SignIn() {
   const accept = () => { setAck(true); try { sessionStorage.setItem("sp3.ack", "1"); } catch { /* fine */ } };
 
   return (
-    <div className="s3 s3e">
+    <div className="s3 s3e s4 s4e">
       <section className="s3e-left">
         <header className="s3e-brand"><Link href="/" className="s3-brand"><StrayPawMark size={30} /><span>StrayPaw</span></Link><Link href="/" className="s3e-back">Back to site</Link></header>
         <div className="s3e-form">
@@ -85,24 +90,15 @@ export function SignIn() {
         <footer className="s3e-foot">© {new Date().getFullYear()} StrayPaw · <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link></footer>
       </section>
 
-      <aside className="s3e-right" aria-label="What's new at StrayPaw">
-        <div className="s3e-right-in">
-          <span className="s3e-tag"><Sparkles size={13} />What&apos;s new</span>
-          <ol className="s3e-news">{WHATS_NEW.map(([d, t, s]) => <li key={t}><small>{d}</small><b>{t}</b><span>{s}</span></li>)}</ol>
-          <div className="s3e-preview" aria-hidden>
-            <div className="s3e-pv-side"><i /><i className="on" /><i /><i /><i /></div>
-            <div className="s3e-pv-main">
-              <div className="s3e-pv-h" />
-              <div className="s3e-pv-kpis"><span /><span /><span /><span /></div>
-              <div className="s3e-pv-rows"><span /><span /><span /><span /></div>
-            </div>
-            <div className="s3e-pv-ai"><b><Sparkles size={10} /> StrayPaw AI</b><span /><span /><span className="short" /></div>
+      <aside aria-label="What's new at StrayPaw" style={{ display: "flex" }}>
+        <Grain v={2} id="si-art" className="s4e-art" style={{ flex: 1 }}>
+          <div className="s4-ui s4-ui-pad s4e-news">
+            <span className="s4-tag is-blue"><Sparkles size={11} />What&apos;s new</span>
+            <ol>{WHATS_NEW.map(([d, t, x]) => <li key={t}><small>{d}</small><b>{t}</b><span>{x}</span></li>)}</ol>
           </div>
-          <figure className="s3e-story">
-            <blockquote>The Pawsome People Project brought its Coimbatore rescue, ABC and vaccination registers onto one record, one history per animal.</blockquote>
-            <figcaption><b>Partner story</b> · Coimbatore · <Link href="/customers/the-pawsome-people-project">Read the case study</Link></figcaption>
-          </figure>
-        </div>
+          <AskUi />
+          <p className="s4e-cap">The Pawsome People Project keeps its Coimbatore rescue, ABC and vaccination registers on one record. <Link href="/customers/the-pawsome-people-project">Read the case study</Link></p>
+        </Grain>
       </aside>
     </div>
   );

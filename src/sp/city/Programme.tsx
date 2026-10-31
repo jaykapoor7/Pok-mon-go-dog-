@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { programmeCategory, programmePrimaryTotal, programmePrimaryUnit, type PublicProgramme } from "@/lib/public-programmes";
+import { isResearchArchiveProgramme, programmeCategory, programmePrimaryTotal, programmePrimaryUnit, type PublicProgramme } from "@/lib/public-programmes";
 import { CAT } from "./kinds";
 import "./city.css";
 
@@ -26,6 +26,7 @@ export function Programme({ p, siblings }: { p: PublicProgramme; siblings: Publi
         <Link className="link small" href={`/city/programmes${p.city ? `?city=${encodeURIComponent(p.city)}` : ""}`}><ArrowLeft size={13} aria-hidden /> Programmes</Link>
         <p className="pd-kind"><i aria-hidden />{CAT[k].label}</p>
         <h1 className="display">{p.name}</h1>
+        {isResearchArchiveProgramme(p.id) && <p className="pd-by" role="note" style={{ padding: "10px 14px", borderRadius: 10, background: "#fbf1df", color: "#7a4e0c", maxWidth: 720 }}><b>Research archive.</b> This summarises a published research or public dataset. It is kept for reference with its source and is not counted as operational programme work on StrayPaw. <Link className="link" href="/research">About the research archive</Link></p>}
         <p className="pd-by">Run by {p.ngo_slug ? <Link className="link" href={`/community/organisations/${p.ngo_slug}`}>{p.ngo_name}</Link> : p.ngo_name}</p>
         <dl className="ledger pd-facts">
           <div><dt>Where</dt><dd>{[...new Set([p.zone, p.city, p.state].filter(Boolean))].join(", ") || "not published"}</dd></div>

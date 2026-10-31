@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { extractFieldMessage } from "./extract";
 import { CARE_KINDS, type Citation, type Proposal, type ToolRun } from "./types";
+import { isResearchArchiveProgramme } from "@/lib/public-programmes";
 
 /* ════════════════════════════════════════════════════════════════════
    StrayPaw AI tools. Every read runs on `db`, a Supabase client carrying
@@ -92,9 +93,9 @@ async function searchRecords(q: string, { db, orgId }: ToolCtx): Promise<ToolOut
     db.from("public_programme_cards").select("id,name,city,ngo_name,animals_recorded,sterilised_recorded,vaccinated_recorded,starts_on,ends_on").or(`name.ilike.%${q}%,city.ilike.%${q}%,ngo_name.ilike.%${q}%`).limit(5),
   ]);
   out.public_animals = pub.data ?? [];
-  out.programmes = progs.data ?? [];
+  out.programmes = (progs.data ?? []).filter((p) => !isResearchArchiveProgramme(p.id));
   for (const a of pub.data ?? []) if (!citations.some((c) => c.id === a.id)) citations.push({ id: a.id, label: animalLabel(a), href: `/animal/${a.id}`, kind: "animal" });
-  for (const p of progs.data ?? []) citations.push({ id: p.id, label: p.name, href: `/city/programmes/${p.id}`, kind: "programme" });
+  for (const p of out.programmes as { id: string; name: string }[]) citations.push({ id: p.id, label: p.name, href: `/city/programmes/${p.id}`, kind: "programme" });
   const n = Object.values(out).reduce((s, v) => s + v.length, 0);
   return { data: out, summary: `${n} result${n === 1 ? "" : "s"} for “${q}”`, citations };
 }
@@ -158,12 +159,13 @@ async function programmeReport(q: string, { db, orgId }: ToolCtx): Promise<ToolO
     data.your_programmes = list.filter((p: { name?: string }) => !q || String(p.name ?? "").toLowerCase().includes(q.toLowerCase())).slice(0, 10);
     for (const p of data.your_programmes as { id: string; name: string }[]) citations.push({ id: p.id, label: p.name, href: `/ngo/programmes/${p.id}`, kind: "programme" });
   }
-  let pub = db.from("public_programme_cards").select("id,name,city,ngo_name,kind,animals_recorded,sterilised_recorded,vaccinated_recorded,starts_on,ends_on,public_summary").order("ends_on", { ascending: false, nullsFirst: false }).limit(8);
+  let pub = db.from("public_programme_cards").select("id,name,city,ngo_name,kind,animals_recorded,sterilised_recorded,vaccinated_recorded,starts_on,ends_on,public_summary").order("ends_on", { ascending: false, nullsFirst: false }).limit(11);
   if (q) pub = pub.or(`name.ilike.%${q}%,city.ilike.%${q}%,ngo_name.ilike.%${q}%`);
-  const { data: rows } = await pub;
-  data.published_programmes = rows ?? [];
+  const { data: all } = await pub;
+  const rows = (all ?? []).filter((p) => !isResearchArchiveProgramme(p.id));
+  data.published_programmes = rows;
   data.note = "Figures are recorded counts from each programme's register, including imported history; they are not population estimates.";
-  for (const p of rows ?? []) citations.push({ id: p.id, label: p.name, href: `/city/programmes/${p.id}`, kind: "programme" });
+  for (const p of rows) citations.push({ id: p.id, label: p.name, href: `/city/programmes/${p.id}`, kind: "programme" });
   return { data, summary: `${citations.length} programme${citations.length === 1 ? "" : "s"}`, citations };
 }
 

@@ -1,0 +1,16 @@
+/* StrayPaw 4 alignment for the application: the same face and ground as
+   the website, a white sidebar with coloured module squares, and denser
+   working type. Token re-points only; layouts are unchanged. */
+.sp.sx3 {
+  --s3-sans: var(--s4-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --s3-ground: #fbfbf9;
+  --s3-mute: #6f7380;
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.01em;
+}
+.sp.sx3 .sx3-side { background: #fff; }
+.sp.sx3 .sx3-nav a { height: 32px; font-size: 13.5px; }
+.sp.sx3 .sx3-nav a[aria-current="page"] { background: #f1f2f4; box-shadow: none; color: var(--s3-ink); }
+.sp.sx3 .sx3-quick, .sp.sx3 .sx3-askai { height: 34px; font-weight: 500; font-size: 13px; border-radius: 8px; }
+.sp.sx3 .sx3-ws-btn b { font-weight: 500; }
+.sp.sx3 :is(h1, h2, h3) { font-weight: 500; letter-spacing: -0.03em; }
