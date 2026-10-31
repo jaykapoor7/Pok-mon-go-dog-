@@ -84,10 +84,13 @@ test("the app shell carries workspace navigation, search and StrayPaw AI", async
   await expect(panel.getByRole("textbox", { name: "Message StrayPaw AI" })).toBeVisible();
 });
 
+/* CI builds without Supabase keys: the AI must then say so (503), never
+   answer from nothing. With a record store it must answer from real tools. */
 test("StrayPaw AI answers public questions with sources and refuses a forged session", async ({ request }) => {
   const res = await request.post("/api/ai", { data: { messages: [{ role: "user", text: "What programmes are published?" }] } });
-  expect(res.status()).toBe(200);
   const body = await res.json();
+  if (res.status() === 503) { expect(body.error).toMatch(/not configured/); return; }
+  expect(res.status()).toBe(200);
   expect(body.tools.length).toBeGreaterThan(0);
   expect(body.proposals).toEqual([]);
   const forged = await request.post("/api/ai", { headers: { Authorization: "Bearer forged" }, data: { messages: [{ role: "user", text: "summarise my work" }] } });
@@ -97,6 +100,7 @@ test("StrayPaw AI answers public questions with sources and refuses a forged ses
 test("organisation-only AI tools refuse without an organisation", async ({ request }) => {
   const res = await request.post("/api/ai", { data: { messages: [{ role: "user", text: "Which records are missing evidence?" }] } });
   const body = await res.json();
+  if (res.status() === 503) { expect(body.error).toMatch(/not configured/); return; }
   expect(body.text).toMatch(/organisation workspace/);
   expect(body.proposals).toEqual([]);
 });
