@@ -26,8 +26,8 @@ import {
   ListChecks, MoreHorizontal, Settings, ClipboardCheck,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { getMyNgo, isNgoMember } from "@/lib/actions";
-import { ORDER, WORKSPACES, currentDest, lastWorkspace, navOn, rememberWorkspace, workspaceFor, type WorkspaceId } from "./workspaces";
+import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
+import { ORDER, WORKSPACES, currentDest, lastWorkspace, navOn, rememberWorkspace, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
 import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
 import { spFonts } from "../fonts";
@@ -41,7 +41,8 @@ import "./app3.css";
 import "./app4.css";
 
 type Org = { id: string; name: string } | null;
-const Membership = createContext<{ member: boolean; ready: boolean; org: Org }>({ member: false, ready: false, org: null });
+type Mem = { member: boolean; ready: boolean; org: Org; role: Role | null; reviewer: boolean };
+const Membership = createContext<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
 /** Whether the signed-in person belongs to an organisation (display only: the server decides access). */
 export const useMembership = () => useContext(Membership);
 
@@ -74,14 +75,20 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const ai = useAi();
 
   const { user, ready, signOut, openSignIn } = useAuth();
-  const [mem, setMem] = useState<{ member: boolean; ready: boolean; org: Org }>({ member: false, ready: false, org: null });
+  const [mem, setMem] = useState<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
   useEffect(() => {
     if (!ready) return;
-    if (!user) { setMem({ member: false, ready: true, org: null }); return; }
+    if (!user) { setMem({ member: false, ready: true, org: null, role: null, reviewer: false }); return; }
     let live = true;
-    Promise.all([isNgoMember().catch(() => false), getMyNgo().catch(() => null)]).then(([m, o]) => { if (live) setMem({ member: m, ready: true, org: o ? { id: o.id, name: o.name } : null }); });
+    Promise.all([isNgoMember().catch(() => false), getMyNgo().catch(() => null), getMyRole().catch(() => ({ role: null, reviewer: false }))]).then(([m, o, r]) => {
+      const role = (["admin", "coordinator", "veterinarian", "member"] as const).find((x) => x === r.role) ?? null;
+      if (live) setMem({ member: m, ready: true, org: o ? { id: o.id, name: o.name } : null, role, reviewer: r.reviewer });
+    });
     return () => { live = false; };
   }, [user, ready]);
+  /* The sidebar for this person: their role's tools only, each group
+     labelled once. Unknown role (signed out, or before it loads): all. */
+  const nav = visibleNav(def.nav, mem.role, mem.reviewer);
 
   const [find, setFind] = useState(false);
   const [sheet, setSheet] = useState(false);
@@ -146,17 +153,17 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           <button type="button" className="sx3-quick" onClick={() => setFind(true)} aria-keyshortcuts="Control+K Meta+K"><span>Quick actions</span><kbd>⌘K</kbd></button>
 
           <nav className="sx3-nav" aria-label={`${def.label} navigation`}>
-            {def.nav.map((n) => {
+            {nav.map(({ item: n, label }) => {
               const Icon = ICON[n.icon] ?? Home;
               const on = n.href === "/assistant" ? onAssistant : navOn(n, path);
               const link = <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} title={collapsed ? n.label : undefined}>{n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />}<span>{n.label}</span></Link>;
-              return n.section ? <Fragment key={n.href}><p className="sx4-sec">{n.section}</p>{link}</Fragment> : link;
+              return label ? <Fragment key={n.href}><p className="sx4-sec">{label}</p>{link}</Fragment> : link;
             })}
           </nav>
 
           {(() => {
             /* The workspace's other pages, folded under "More" (open while one of them is the current page). */
-            const groups = def.index.map((g) => ({ ...g, links: g.links.filter((l) => !def.nav.some((n) => n.href === l.href) && l.href !== def.settings) })).filter((g) => g.links.length);
+            const groups = def.index.map((g) => ({ ...g, links: g.links.filter((l) => !nav.some((n) => n.item.href === l.href) && l.href !== def.settings) })).filter((g) => g.links.length);
             if (!groups.length) return null;
             const inside = groups.some((g) => g.links.some((l) => path === l.href || path.startsWith(l.href + "/")));
             return (
@@ -239,6 +246,15 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
       </div>
     </Membership.Provider>
   );
+}
+
+/** Items this person sees, in order, with a group label where a group starts. */
+function visibleNav(items: NavItem[], role: Role | null, reviewer: boolean) {
+  let group: string | undefined;
+  const tagged = items.map((n) => { if (n.section) group = n.section; return { item: n, group }; })
+    .filter(({ item }) => (!item.roles || !role || item.roles.includes(role)) && (!item.reviewer || reviewer));
+  let last: string | undefined;
+  return tagged.map(({ item, group: g }) => { const label = g && g !== last ? g : undefined; last = g; return { item, label }; });
 }
 
 function Popover({ children, onClose, className, label }: { children: ReactNode; onClose: () => void; className: string; label: string }) {

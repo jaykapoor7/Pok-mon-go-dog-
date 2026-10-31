@@ -42,19 +42,18 @@ export function Verification() {
     return m;
   }, [rows]);
   const shown = (rows ?? []).filter((r) => stage === "all" || stageOf(r) === stage);
-  const roleLine = ctx?.role === "veterinarian" ? "You sign off procedures." : ctx?.role === "coordinator" || ctx?.role === "admin" ? "You review evidence and prepare report packages." : "You can add evidence; a veterinarian and a coordinator sign off.";
 
   return (
     <NgoGate title="Verification" lede="Every ABC procedure with its evidence, veterinary sign-off and review.">
       <div className="ngo-page abc">
         <header className="ngo-head">
           <div><h1>Verification</h1></div>
-          <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : rows === null && !err ? <Reading>Reading your ABC records</Reading> : err ? "The verification queue could not be read. Nothing is shown as zero." : <><b>{counts.review}</b> ready for review · <b>{counts.vet}</b> waiting for a vet · <b>{counts.evidence + counts.returned}</b> need evidence. {roleLine}</>}</p>
-          <div className="row ngo-head-act"><Link className="btn is-ink is-s" href="/ngo/packages">Report packages</Link></div>
+          <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : rows === null && !err ? <Reading>Reading your ABC records</Reading> : err ? "The verification queue could not be read. Nothing is shown as zero." : <><b>{counts.review}</b> to review · <b>{counts.vet}</b> with the vet · <b>{counts.evidence + counts.returned}</b> need evidence</>}</p>
+          {(ctx?.role === "admin" || ctx?.role === "coordinator") && <div className="row ngo-head-act"><Link className="btn is-s" href="/ngo/packages">Report packages</Link></div>}
         </header>
 
         {off ? (
-          <div className="abc-empty"><b>Verification is not switched on here yet.</b>Your organisation&apos;s records are unchanged. Once StrayPaw enables the ABC workflow for this workspace, each procedure will list its evidence, its veterinary sign-off and its review here.</div>
+          <div className="abc-empty"><b>Verification is not switched on here yet.</b>Your records are unchanged.</div>
         ) : err ? <p className="abc-err" role="alert">{err}</p> : rows && (
           <>
             <div className="abc-stages" role="group" aria-label="Filter by stage">
@@ -66,16 +65,16 @@ export function Verification() {
             {shown.length ? (
               <ul className="abc-list">{shown.map((r) => { const s = stageOf(r); return (
                 <li key={r.case_id}><Link href={`/ngo/verification/${r.case_id}`}>
-                  <span className="abc-t"><b>{r.title || r.case_code || "ABC case"}</b><small>{[r.city, day(r.created_at), r.returned_note ? `Returned: ${r.returned_note}` : r.vet_name ? `Vet: ${r.vet_name}` : null].filter(Boolean).join(" · ")}</small></span>
+                  <span className="abc-t"><b>{r.title || r.case_code || "ABC case"}</b><small>{[r.city, day(r.created_at), r.returned_note ? `Returned: ${r.returned_note}` : null].filter(Boolean).join(" · ")}</small></span>
                   <Dots n={r.evidence_count} />
                   <span className={`abc-tag t-${s}`}>{STAGE_LABEL[s]}</span>
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>
               ); })}</ul>
             ) : (
-              <div className="abc-empty"><b>{stage === "all" ? "No ABC procedures yet." : `Nothing is ${STAGE_LABEL[stage as Stage].toLowerCase()}.`}</b>{stage === "all" ? "Open a sterilisation case and its verification starts here." : "Choose another stage to see the rest."}</div>
+              <div className="abc-empty"><b>{stage === "all" ? "No ABC procedures yet." : `Nothing is ${STAGE_LABEL[stage as Stage].toLowerCase()}.`}</b>{stage === "all" ? "Sterilisation cases appear here." : ""}</div>
             )}
-            <p className="abc-note">Imported historical records and research datasets are not listed. They keep their historical label until someone validates them through this workflow.</p>
+            <p className="abc-foot">Historical imports and research datasets are not listed.</p>
           </>
         )}
       </div>

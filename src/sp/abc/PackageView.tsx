@@ -69,7 +69,6 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
                   <div><b>{p.summary.vet_authorised ?? "—"}</b><small>Vet-authorised</small></div>
                   <div><b>{p.summary.evidence_items ?? "—"}</b><small>Evidence items</small></div>
                 </div>
-                <p className="abc-note">Computed from the records below when the package was prepared. Each record was authorised by a veterinarian and approved by a different person.</p>
               </section>
               <section className="abc-sec" aria-labelledby="rec-h">
                 <h2 id="rec-h">Records</h2>
@@ -109,8 +108,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
 function Actions({ side, status, body, setBody, busy, act }: { side: "operator" | "reviewer"; status: Package["status"]; body: string; setBody: (v: string) => void; busy: boolean; act: (k: "submitted" | "answer" | "query" | "accepted" | "returned", done: string) => Promise<void> }) {
   if (side === "operator") {
     if (status === "draft" || status === "returned") return (
-      <section className="abc-sec"><h2>{status === "returned" ? "Returned by the office" : "Ready to send"}</h2>
-        <p className="abc-note">Submitting sends these records and figures to the reviewing office. Records in it are locked while it is under review.</p>
+      <section className="abc-sec"><h2>{status === "returned" ? "Returned" : "Ready to send"}</h2>
         <div className="abc-sign"><div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => act("submitted", "Submitted to the reviewing office.")}>Submit package</button></div></div>
       </section>
     );
@@ -125,13 +123,13 @@ function Actions({ side, status, body, setBody, busy, act }: { side: "operator" 
   if (status !== "submitted") return <section className="abc-sec"><p className="abc-note">{status === "queried" ? "Waiting for the operator's answer." : status === "accepted" ? "You accepted this package." : "Returned to the operator."}</p></section>;
   return (
     <section className="abc-sec"><h2>Your review</h2>
-      <textarea className="textarea" value={body} onChange={(e) => setBody(e.target.value)} placeholder="A question, or what needs attention when returning" aria-label="Review comment" />
+      <textarea className="textarea" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Comment (required to ask or return)" aria-label="Review comment" />
       <div className="abc-sign"><div className="acts">
         <button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => act("accepted", "Package accepted.")}>Accept</button>
         <button type="button" className="btn is-s" disabled={busy || !body.trim()} onClick={() => act("query", "Query sent to the operator.")}>Ask a question</button>
         <button type="button" className="btn is-s" disabled={busy || !body.trim()} onClick={() => act("returned", "Returned to the operator.")}>Return</button>
       </div></div>
-      <p className="abc-note">Acceptance is recorded in your name. Nothing is accepted automatically.</p>
+      <p className="abc-hint">Recorded in your name</p>
     </section>
   );
 }

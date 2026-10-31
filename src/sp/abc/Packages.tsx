@@ -48,8 +48,7 @@ export function Packages() {
       <div className="ngo-page abc">
         <header className="ngo-head">
           <div><h1>Report packages</h1></div>
-          <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : list === null && !err ? <Reading>Reading your packages</Reading> : <>Only records a veterinarian authorised and a coordinator approved go into a package. The office reviews it and can query, accept or return it.</>}</p>
-          <div className="row ngo-head-act"><Link className="btn is-s" href="/ngo/verification">Verification</Link></div>
+          <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : list === null && !err ? <Reading>Reading your packages</Reading> : <>Approved records, sent to the office that funds the work</>}</p>
         </header>
         {off ? <div className="abc-empty"><b>Report packages are not switched on here yet.</b></div> : (
           <>
@@ -62,8 +61,8 @@ export function Packages() {
                 <button type="submit" className="btn is-ink is-s" disabled={busy || !f.office}>Prepare package</button>
               </form>
             )}
-            {canPrepare && offs.length === 0 && list && <p className="abc-note">No reviewing office is set up yet. StrayPaw adds the office that funds your programme when the pilot starts.</p>}
-            {!canPrepare && ctx && <p className="abc-note">A coordinator or admin prepares and submits packages.</p>}
+            {canPrepare && offs.length === 0 && list && <p className="abc-hint">No reviewing office yet. StrayPaw adds it when your pilot starts.</p>}
+            {!canPrepare && ctx && <p className="abc-hint">Coordinators and admins prepare packages.</p>}
             {err && <p className="abc-err" role="alert">{err}</p>}
             {list && (list.length ? (
               <ul className="abc-list">{list.map((p) => (
@@ -74,7 +73,7 @@ export function Packages() {
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>
               ))}</ul>
-            ) : <div className="abc-empty"><b>No packages yet.</b>Approve records in Verification, then prepare a package for the period.</div>)}
+            ) : <div className="abc-empty"><b>No packages yet.</b>Approve records in Verification first.</div>)}
           </>
         )}
       </div>

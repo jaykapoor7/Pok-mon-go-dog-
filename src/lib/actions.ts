@@ -351,6 +351,20 @@ export async function getMyPartnerRequestStatus(): Promise<string | null> {
 }
 
 /** The signed-in member's org (ngos) row, for funder-report auto-fill + badge. */
+/** The signed-in person's role in their organisation, for showing the
+    right tools only (the database still checks every action). */
+export async function getMyRole(): Promise<{ role: string | null; reviewer: boolean }> {
+  const supa = getSupabase();
+  if (!supa) return { role: null, reviewer: false };
+  const uid = (await supa.auth.getSession()).data.session?.user.id;
+  if (!uid) return { role: null, reviewer: false };
+  const [m, r] = await Promise.all([
+    supa.from("ngo_members").select("role").eq("user_id", uid).limit(1).maybeSingle(),
+    supa.from("review_office_members").select("office_id").eq("user_id", uid).limit(1),
+  ]);
+  return { role: (m.data as { role?: string } | null)?.role ?? null, reviewer: !r.error && (r.data ?? []).length > 0 };
+}
+
 export async function getMyNgo(): Promise<{ id: string; name: string; logo_url: string | null } | null> {
   const supa = getSupabase();
   if (!supa) return null;

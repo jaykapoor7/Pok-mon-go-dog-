@@ -14,7 +14,12 @@ export type WorkspaceId = "community" | "ngo" | "city" | "learn";
 
 export type Dest = { href: string; label: string; short?: string; match?: string[] };
 /** A sidebar entry (3.0). `icon` names a lucide icon mapped in Shell. */
-export type NavItem = { href: string; label: string; icon: string; match?: string[]; exact?: boolean; tone?: string; section?: string };
+export type Role = "admin" | "coordinator" | "veterinarian" | "member";
+/** A sidebar entry. `section` starts a labelled group that carries on to the
+    following items; `roles` limits the item to those organisation roles
+    (no role known: every item shows); `reviewer` shows it only to people in
+    a reviewing office. Display only: the database checks every action. */
+export type NavItem = { href: string; label: string; icon: string; match?: string[]; exact?: boolean; tone?: string; section?: string; roles?: Role[]; reviewer?: boolean };
 export type IndexGroup = { label: string; links: { href: string; label: string; note?: string }[] };
 
 export type Workspace = {
@@ -77,17 +82,16 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     action: { href: "/ngo/cases/new", label: "New case", short: "New" },
     nav: [
       { href: "/ngo", label: "Home", icon: "home", exact: true },
-      { href: "/ngo/inbox", label: "Inbox", icon: "inbox" },
-      { href: "/ngo/work", label: "Work queue", icon: "list", match: ["/ngo/cases"] },
-      { href: "/ngo/animals", label: "Animals", icon: "paw", match: ["/ngo/import"], tone: "blue", section: "Modules" },
-      { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal" },
-      { href: "/ngo/field", label: "Field operations", icon: "phone", tone: "green" },
-      { href: "/ngo/verification", label: "Verification", icon: "shield", tone: "violet" },
-      { href: "/ngo/packages", label: "Report packages", icon: "check", tone: "amber" },
-      { href: "/ngo/proof", label: "Reports", icon: "file", tone: "slate" },
+      { href: "/ngo/inbox", label: "Inbox", icon: "inbox", roles: ["admin", "coordinator", "member"] },
+      { href: "/ngo/work", label: "Work queue", icon: "list", match: ["/ngo/cases"], roles: ["admin", "coordinator", "member"] },
+      { href: "/ngo/field", label: "Field operations", icon: "phone", tone: "green", section: "Modules", roles: ["member"] },
+      { href: "/ngo/verification", label: "Verification", icon: "shield", tone: "violet", section: "Modules" },
+      { href: "/ngo/animals", label: "Animals", icon: "paw", match: ["/ngo/import"], tone: "blue" },
+      { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal", roles: ["admin", "coordinator"] },
+      { href: "/ngo/packages", label: "Report packages", icon: "check", tone: "amber", roles: ["admin", "coordinator"] },
       { href: "/ngo/map", label: "Map", icon: "map", tone: "flame" },
       { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
-      { href: "/ngo/team", label: "Team & access", icon: "users", tone: "ink" },
+      { href: "/ngo/team", label: "Team & access", icon: "users", tone: "slate", roles: ["admin"] },
     ],
     index: [
       { label: "Your register", links: [
@@ -96,9 +100,9 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       ] },
       { label: "Work", links: [
         { href: "/ngo/inbox", label: "Inbox & triage", note: "New reports and offers" },
+        { href: "/ngo/field", label: "Field mode", note: "Phone, one hand" },
         { href: "/ngo/review", label: "Historical review", note: "Imported statuses, never today's work" },
         { href: "/ngo/quality", label: "Data quality", note: "Gaps and checks in the register" },
-        { href: "/ngo/field", label: "Field mode", note: "Phone, one hand" },
       ] },
       { label: "Registers & reporting", links: [
         { href: "/ngo/programmes", label: "Programmes", note: "ABC / ARV drives, surveys" },
@@ -132,9 +136,9 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     ],
     action: null,
     nav: [
+      { href: "/city/review", label: "Package review", icon: "check", reviewer: true },
       { href: "/city/insights", label: "Overview", icon: "home" },
-      { href: "/city/review", label: "Package review", icon: "check", tone: "violet", section: "Modules" },
-      { href: "/city/programmes", label: "Programmes", icon: "layers", tone: "teal" },
+      { href: "/city/programmes", label: "Programmes", icon: "layers", tone: "teal", section: "Modules" },
       { href: "/city/report", label: "Reports", icon: "file", tone: "amber" },
       { href: "/city", label: "Map", icon: "map", exact: true, tone: "flame" },
       { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },

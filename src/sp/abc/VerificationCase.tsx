@@ -71,6 +71,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
   const [note, setNote] = useState("");
   const [reason, setReason] = useState("");
   const [why, setWhy] = useState("");
+  const [allHist, setAllHist] = useState(false);
 
   return (
     <>
@@ -86,7 +87,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
             <ul className="abc-check">{EVIDENCE_KINDS.map((k) => { const e = [...d.ev].reverse().find((x) => x.kind === k); return (
               <li key={k}>
                 <span className={`ck${e ? " is-on" : ""}`} aria-hidden>{e && <Check size={11} strokeWidth={3} />}</span>
-                <span>{EVIDENCE_LABEL[k]}<small>{e ? (e.location_text || e.title || "Recorded") + ` · ${when(e.created_at)}` : "Missing"}</small></span>
+                <span>{EVIDENCE_LABEL[k]}<small>{e ? [e.location_text, when(e.created_at)].filter(Boolean).join(" · ") : "Missing"}</small></span>
                 {e?.url ? <a href={e.url} target="_blank" rel="noreferrer">Open</a> : <span />}
               </li>
             ); })}</ul>
@@ -95,16 +96,17 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
 
           <section className="abc-sec" aria-labelledby="hist-h">
             <h2 id="hist-h">History</h2>
-            {d.hist.length ? <ol className="abc-hist">{d.hist.map((h, i) => (
+            {d.hist.length ? <ol className="abc-hist">{(allHist ? d.hist : d.hist.slice(-5)).map((h, i) => (
               <li key={i}><time dateTime={h.at}>{when(h.at)}</time><span><b>{HISTORY_LABEL(h.kind)}</b>{h.actor ? ` · ${h.actor}` : ""}{h.detail && <small>{h.detail}</small>}</span></li>
-            ))}</ol> : <p className="abc-note">Nothing recorded yet.</p>}
+            ))}</ol> : <p className="abc-hint">Nothing recorded yet</p>}
+            {d.hist.length > 5 && <button type="button" className="abc-more" onClick={() => setAllHist((v) => !v)}>{allHist ? "Show latest" : `Show all ${d.hist.length}`}</button>}
           </section>
         </div>
 
         <aside className="abc-side" aria-label="Sign-offs">
           <div className="abc-sign">
             <b>Veterinary authorisation</b>
-            <p>{vet ? `Authorised by ${vet.actor_name} · ${when(vet.created_at)}${vet.note ? ` · “${vet.note}”` : ""}` : d.chk.items.surgery_record ? "Waiting for a veterinarian." : "Needs the surgery record first."}</p>
+            <p>{vet ? `${vet.actor_name} · ${when(vet.created_at)}` : d.chk.items.surgery_record ? "Waiting for a veterinarian" : "Needs the surgery record"}</p>
             {!locked && !vet && canSign && d.chk.items.surgery_record && (
               <>
                 <textarea className="textarea" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} aria-label="Authorisation note" />
@@ -121,16 +123,16 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
 
           <div className="abc-sign">
             <b>Evidence review</b>
-            <p>{rev ? `Approved by ${rev.actor_name} · ${when(rev.created_at)}` : ret ? `Returned by ${ret.actor_name}: ${ret.note}` : "A coordinator or admin approves complete, authorised evidence, or returns it with a reason."}</p>
+            <p>{rev ? `Approved · ${rev.actor_name} · ${when(rev.created_at)}` : ret ? `Returned · ${ret.actor_name}: ${ret.note}` : "Not reviewed yet"}</p>
             {!locked && canReview && !rev && (
-              selfSigned ? <p className="abc-note">You authorised this procedure, so another person must review it.</p> : (
+              selfSigned ? <p className="abc-note">You signed this procedure. Someone else reviews it.</p> : (
                 <>
-                  <textarea className="textarea" placeholder="Note, or the reason when returning" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Review note or return reason" />
+                  <textarea className="textarea" placeholder="Note (required to return)" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Review note or return reason" />
                   <div className="acts">
                     <button type="button" className="btn is-ink is-s" disabled={busy || d.chk.missing.length > 0 || !vet} onClick={() => act(() => reviewEvidence(id, reason), "Evidence approved for reporting.").then(() => setReason(""))}>Approve for reporting</button>
                     <button type="button" className="btn is-s" disabled={busy || !reason.trim()} onClick={() => act(() => returnEvidence(id, reason), "Returned with your reason.").then(() => setReason(""))}>Return</button>
                   </div>
-                  {(d.chk.missing.length > 0 || !vet) && <p className="abc-note">{d.chk.missing.length > 0 ? "Approval opens when all five items are present" : "Approval opens after veterinary authorisation"}. You can still return it with a reason.</p>}
+                  {(d.chk.missing.length > 0 || !vet) && <p className="abc-hint">{d.chk.missing.length > 0 ? "Approve after all five items" : "Approve after the vet signs"}</p>}
                 </>
               )
             )}
@@ -144,7 +146,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
 
           <div className="abc-sign">
             <b>Reviewing office</b>
-            <p>{d.chk.government_accepted ? "Accepted by the reviewing office." : locked ? "In a submitted package. Changes go through the package." : rev ? <>Ready for a <Link href="/ngo/packages">report package</Link>.</> : "Goes into a report package after approval."}</p>
+            <p>{d.chk.government_accepted ? "Accepted" : locked ? "Submitted · locked" : rev ? <>Ready for a <Link href="/ngo/packages">package</Link></> : "After approval"}</p>
           </div>
         </aside>
       </div>

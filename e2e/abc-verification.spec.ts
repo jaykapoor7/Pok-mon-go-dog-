@@ -26,8 +26,10 @@ test("municipal package review asks a visitor to sign in", async ({ page, isMobi
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Package review");
   await expect(page.getByRole("link", { name: "Sign in" }).first()).toBeVisible();
   if (!isMobile) {
+    /* Only people in a reviewing office see it in the sidebar; everyone else keeps a short one. */
     const side = page.getByRole("complementary", { name: "Workspace" });
-    await expect(side.getByRole("link", { name: "Package review" })).toHaveAttribute("aria-current", "page");
+    await expect(side.getByRole("link", { name: "Package review" })).toHaveCount(0);
+    await expect(side.getByRole("link", { name: "Overview" })).toBeVisible();
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

@@ -109,3 +109,13 @@
 .sp.sx3 .abc .ngo-head.abc-head > .ngo-sum { grid-column: 1; grid-row: 2; max-width: 80ch; }
 .sp.sx3 .abc .ngo-head.abc-head > .ngo-head-act { grid-column: 2; grid-row: 1; align-self: center; }
 .abc-code { display: inline-block; margin-left: 10px; padding: 1px 7px; border-radius: 5px; background: #f1f2f4; font-size: 12px; color: var(--mute, #6f7380); vertical-align: 1px; }
+.abc-hint { margin: 8px 0 0; font-size: 12.5px; color: var(--mute, #6f7380); }
+.abc-foot { margin: 16px 0 0; font-size: 12.5px; color: var(--faint, #8a8f9a); }
+.abc-more { margin-top: 6px; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; color: var(--s3-blue, #2457ce); cursor: pointer; }
+/* denser rows: less scrolling */
+.abc-list > li > a, .abc-list > li > .abc-row { padding: 11px 4px; }
+.abc-check li { padding: 8px 0; }
+.abc-sec { padding: 16px 0; }
+.abc-sign { padding: 14px 0; }
+.abc-hist li { padding: 6px 0; }
+.abc-sign textarea { min-height: 64px; }

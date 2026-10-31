@@ -52,11 +52,11 @@ export function ReviewInbox() {
     <div className="ngo-page abc">
       <header className="ngo-head">
         <div><h1>Package review</h1></div>
-        <p className="ngo-sum">{off ? "Not switched on yet." : !ctx && !err ? <Reading>Reading your office&apos;s packages</Reading> : ctx && ctx.offices.length === 0 ? "Your account is not part of a reviewing office." : <><b>{waiting.length}</b> waiting for your review{ctx ? ` · ${ctx.offices.map((o) => o.name).join(", ")}` : ""}</>}</p>
+        <p className="ngo-sum">{off ? "Not switched on yet." : !ctx && !err ? <Reading>Reading your office&apos;s packages</Reading> : ctx && ctx.offices.length === 0 ? "Your account is not part of a reviewing office." : <><b>{waiting.length}</b> waiting for you</>}</p>
       </header>
       {off ? <div className="abc-empty"><b>Package review is not switched on here yet.</b></div>
         : err ? <p className="abc-err" role="alert">{err}</p>
-        : ctx && ctx.offices.length === 0 ? <div className="abc-empty"><b>No reviewing office.</b>Reviewers are added by StrayPaw for the office that funds a programme. Ask your programme lead, or <Link href="/contact">contact us</Link>.</div>
+        : ctx && ctx.offices.length === 0 ? <div className="abc-empty"><b>No reviewing office.</b>Ask your programme lead, or <Link href="/contact">contact us</Link>.</div>
         : list && (
           <>
             <div className="abc-stages" role="group" aria-label="Show">
@@ -72,7 +72,7 @@ export function ReviewInbox() {
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>
               ))}</ul>
-            ) : <div className="abc-empty"><b>{tab === "waiting" ? "Nothing is waiting for your review." : "No packages yet."}</b>Operators submit packages when their records are authorised and approved.</div>}
+            ) : <div className="abc-empty"><b>{tab === "waiting" ? "Nothing is waiting for you." : "No packages yet."}</b></div>}
           </>
         )}
     </div>
