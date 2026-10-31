@@ -103,20 +103,15 @@ alter table public.abc_attestations enable row level security;
 alter table public.report_packages enable row level security;
 alter table public.package_events enable row level security;
 
-drop policy if exists ro_read on public.review_offices;
 create policy ro_read on public.review_offices for select to authenticated using (true);
-drop policy if exists rom_read on public.review_office_members;
 create policy rom_read on public.review_office_members for select to authenticated using (user_id = auth.uid());
-drop policy if exists att_read on public.abc_attestations;
 create policy att_read on public.abc_attestations for select to authenticated
   using (ngo_id = public.my_ngo()
     or exists (select 1 from public.report_packages p join public.review_office_members m on m.office_id = p.office_id
                where m.user_id = auth.uid() and p.status <> 'draft' and abc_attestations.case_id = any (p.case_ids)));
-drop policy if exists pkg_read on public.report_packages;
 create policy pkg_read on public.report_packages for select to authenticated
   using (ngo_id = public.my_ngo()
     or (status <> 'draft' and exists (select 1 from public.review_office_members m where m.office_id = report_packages.office_id and m.user_id = auth.uid())));
-drop policy if exists pev_read on public.package_events;
 create policy pev_read on public.package_events for select to authenticated
   using (exists (select 1 from public.report_packages p where p.id = package_events.package_id));
 revoke insert, update, delete on public.review_offices, public.review_office_members, public.abc_attestations, public.report_packages, public.package_events from anon, authenticated;
@@ -160,7 +155,6 @@ grant execute on function public.abc_case_checklist(uuid) to authenticated;
 
 /* One row per case in the caller's organisation, with its verification
    state: what the operator workspace's Verification screen lists. */
-drop function if exists public.abc_verification_queue(int);
 create or replace function public.abc_verification_queue(p_limit int default 200)
 returns table (case_id uuid, case_code text, title text, city text, created_at timestamptz, provenance text,
                evidence_count int, missing text[], vet_authorised boolean, evidence_reviewed boolean, government_accepted boolean,
@@ -348,16 +342,12 @@ grant execute on function public.abc_package_cases(uuid) to authenticated;
 create or replace function public.sp_case_operator_provenance()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  /* A case created by a signed-in member of the owning organisation, not by
-     an import, is an operator-created record. Imports set their provenance
-     explicitly and are left alone; so are community reports (no member). */
   if new.provenance = 'community_report' and new.import_batch_id is null and new.ngo_id is not null and auth.uid() is not null
      and exists (select 1 from ngo_members m where m.user_id = auth.uid() and m.ngo_id = new.ngo_id) then
     new.provenance := 'operator_created';
   end if;
   return new;
 end $$;
-drop trigger if exists cases_operator_provenance on public.cases;
 create trigger cases_operator_provenance before insert on public.cases for each row execute function public.sp_case_operator_provenance();
 
 
