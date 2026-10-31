@@ -76,7 +76,8 @@ test("the app shell carries workspace navigation, search and StrayPaw AI", async
   if (!isMobile) {
     const side = page.getByRole("complementary", { name: "Workspace" });
     await expect(side.getByRole("link", { name: "Programmes" })).toHaveAttribute("aria-current", "page");
-    await side.getByRole("button", { name: /Ask StrayPaw AI/ }).click();
+    await expect(side.getByRole("link", { name: "StrayPaw AI" })).toBeVisible();
+    await page.getByRole("banner").getByRole("button", { name: "StrayPaw AI" }).click();
   } else {
     await page.getByRole("navigation", { name: /navigation/ }).getByRole("button", { name: "AI" }).click();
   }

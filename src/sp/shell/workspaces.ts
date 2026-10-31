@@ -32,6 +32,8 @@ export type Workspace = {
   members?: boolean;
   /** The 3.0 sidebar: the workspace's primary navigation, in order. */
   nav: NavItem[];
+  /** The workspace's settings page, shown at the foot of the sidebar. */
+  settings?: string;
 };
 
 export const WORKSPACES: Record<WorkspaceId, Workspace> = {
@@ -48,10 +50,10 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { href: "/community", label: "Map", icon: "map", match: ["/animal"], exact: true },
       { href: "/community/report", label: "Report an animal", icon: "radio" },
       { href: "/community/activity", label: "My activity", icon: "activity" },
-      { href: "/community/stories", label: "Stories", icon: "book" },
-      { href: "/community/organisations", label: "Organisations", icon: "building" },
-      { href: "/fundraisers", label: "Fundraisers", icon: "heart" },
-      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles" },
+      { href: "/community/stories", label: "Stories", icon: "book", tone: "blue", section: "Explore" },
+      { href: "/community/organisations", label: "Organisations", icon: "building", tone: "teal" },
+      { href: "/fundraisers", label: "Fundraisers", icon: "heart", tone: "flame" },
+      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
     ],
     index: [
       { label: "Read", links: [
@@ -66,7 +68,7 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
   },
   ngo: {
     id: "ngo", label: "NGO", purpose: "Implementing agencies: work queue, animal register and fieldwork", ink: "#1f6f80",
-    home: "/ngo", members: true,
+    home: "/ngo", members: true, settings: "/ngo/settings",
     dests: [
       { href: "/ngo", label: "Home", match: ["/ngo/work", "/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field"] },
       { href: "/ngo/animals", label: "Animals", match: ["/ngo/import"] },
@@ -75,15 +77,16 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     action: { href: "/ngo/cases/new", label: "New case", short: "New" },
     nav: [
       { href: "/ngo", label: "Home", icon: "home", exact: true },
+      { href: "/ngo/inbox", label: "Inbox", icon: "inbox" },
       { href: "/ngo/work", label: "Work queue", icon: "list", match: ["/ngo/cases"] },
-      { href: "/ngo/inbox", label: "Inbox", icon: "inbox", tone: "flame", section: "Modules" },
-      { href: "/ngo/animals", label: "Animals", icon: "paw", tone: "blue" },
+      { href: "/ngo/animals", label: "Animals", icon: "paw", match: ["/ngo/import"], tone: "blue", section: "Modules" },
       { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal" },
       { href: "/ngo/field", label: "Field operations", icon: "phone", tone: "green" },
       { href: "/ngo/review", label: "Evidence review", icon: "shield", match: ["/ngo/quality"], tone: "violet" },
       { href: "/ngo/proof", label: "Reports", icon: "file", tone: "amber" },
-      { href: "/ngo/map", label: "Map", icon: "map", tone: "slate" },
-      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles" },
+      { href: "/ngo/map", label: "Map", icon: "map", tone: "flame" },
+      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+      { href: "/ngo/team", label: "Team & access", icon: "users", tone: "slate" },
     ],
     index: [
       { label: "Your register", links: [
@@ -129,10 +132,10 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     action: null,
     nav: [
       { href: "/city/insights", label: "Overview", icon: "home" },
-      { href: "/city/programmes", label: "Programmes", icon: "layers" },
-      { href: "/city/report", label: "Reports", icon: "file" },
-      { href: "/city", label: "Map", icon: "map", exact: true },
-      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles" },
+      { href: "/city/programmes", label: "Programmes", icon: "layers", tone: "teal", section: "Modules" },
+      { href: "/city/report", label: "Reports", icon: "file", tone: "amber" },
+      { href: "/city", label: "Map", icon: "map", exact: true, tone: "flame" },
+      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
     ],
     index: [
       { label: "Publish", links: [
@@ -155,10 +158,10 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     action: null,
     nav: [
       { href: "/learn", label: "Learn", icon: "grad", match: ["/learn/courses"], exact: true },
-      { href: "/learn/workshops", label: "Workshops", icon: "users" },
-      { href: "/learn/resources", label: "Resources", icon: "book" },
-      { href: "/learn/playground", label: "Playground", icon: "compass" },
-      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles" },
+      { href: "/learn/workshops", label: "Workshops", icon: "users", tone: "blue", section: "Modules" },
+      { href: "/learn/resources", label: "Resources", icon: "book", tone: "teal" },
+      { href: "/learn/playground", label: "Playground", icon: "compass", tone: "amber" },
+      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
     ],
     index: [
       { label: "Explore", links: [

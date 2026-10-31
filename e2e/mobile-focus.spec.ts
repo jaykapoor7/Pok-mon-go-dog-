@@ -90,13 +90,16 @@ test("signed-out NGO page shows what the workspace includes at every width", asy
   }
 });
 
-test("desktop sidebar groups the workspace's other pages", async ({ page, isMobile }) => {
+test("desktop sidebar groups the workspace's other pages under More", async ({ page, isMobile }) => {
   test.skip(!!isMobile, "phones use the More sheet");
   await page.goto("/ngo");
   const side = page.getByRole("complementary", { name: "Workspace" });
-  const groups = side.locator(".sx3-group");
+  await expect(side.locator(".sx4-sec")).toHaveText(["Modules", "Platform"]);
+  const more = side.locator(".sx3-more");
+  const groups = more.locator(".sx3-group");
   expect(await groups.count()).toBeGreaterThan(1);
-  await groups.first().locator("summary").click();
+  await expect(groups.first().locator("ul")).toBeHidden();
+  await more.locator("summary").click();
   await expect(groups.first().locator("ul")).toBeVisible();
   await expect(page).toHaveURL(/\/ngo$/);
 });

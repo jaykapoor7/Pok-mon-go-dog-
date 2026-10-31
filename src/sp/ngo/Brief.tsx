@@ -12,7 +12,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, ArrowUp, CalendarClock, CircleAlert, ClipboardList, History, Inbox, Sparkles, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrg } from "@/lib/actions";
@@ -78,18 +78,30 @@ export function Brief() {
   const nWeek = d?.counts?.dueWeekScheduled ?? (d ? d.due.filter((f) => f.due_at && Date.parse(f.due_at) >= Date.now()).length : 0);
   const nLive = d?.counts?.liveWork ?? (d ? d.open.filter((c) => !isHistoricalCase(c)).length - stale : 0);
 
-  const out = d ? [
-    ...fresh.slice(0, 4).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: critical(c) ? "flame" : "blue", icon: <Inbox size={11} />, title: label(c), meta: [c.zone || c.city, c.assignee_name ? `with ${c.assignee_name}` : "not yet assigned", ago(c.last_activity_at ?? c.occurred_at)].filter(Boolean).join(" · "), tag: critical(c) ? "Critical" : "Updated" })),
-    ...closedNew.slice(0, 3).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: "green", icon: <ClipboardList size={11} />, title: c.title || c.animal_name || "Case", meta: [c.zone, c.closure_reason || "closed", ago(c.last_activity_at)].filter(Boolean).join(" · "), tag: "Closed" })),
+  type Row = { key: string; href: string; tone: string; icon: ReactNode; title: ReactNode; meta: string; tag?: string };
+  const out: Row[] = d ? [
+    ...fresh.slice(0, 4).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: critical(c) ? "flame" : "blue", icon: <Inbox size={10} strokeWidth={2.4} />, title: label(c), meta: [c.zone || c.city, c.assignee_name ? `with ${c.assignee_name}` : "not yet assigned", ago(c.last_activity_at ?? c.occurred_at)].filter(Boolean).join(" · "), tag: critical(c) ? "Critical" : "Updated" })),
+    ...closedNew.slice(0, 3).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: "green", icon: <ClipboardList size={10} strokeWidth={2.4} />, title: c.title || c.animal_name || "Case", meta: [c.zone, c.closure_reason || "closed", ago(c.last_activity_at)].filter(Boolean).join(" · "), tag: "Closed" })),
   ] : [];
-  const todo = d ? [
-    ...crit.slice(0, 2).map((c) => ({ key: `c${c.id}`, href: `/ngo/cases/${c.id}`, tone: "flame", icon: <CircleAlert size={11} />, title: <><b>{label(c)}</b> is critical and nobody holds it</>, meta: [c.zone || c.city, ago(c.occurred_at)].filter(Boolean).join(" · ") })),
-    ...overdue.slice(0, 3).map((f) => ({ key: `f${f.id}`, href: f.case_id ? `/ngo/cases/${f.case_id}` : "/ngo/work?focus=followup", tone: "amber", icon: <CalendarClock size={11} />, title: <>Follow-up for <b>{f.case_title || f.animal_name || "a case"}</b> was due {ago(f.due_at)}</>, meta: f.kind || "Follow-up" })),
-    ...(stale ? [{ key: "stale", href: "/ngo/work?cohort=decide", tone: "violet", icon: <TriangleAlert size={11} />, title: <><b>{plural(stale, "case")}</b> {stale === 1 ? "is" : "are"} waiting on a decision</>, meta: "Open more than 90 days, nothing recorded for 30" }] : []),
-    ...(history ? [{ key: "hist", href: "/ngo/review", tone: "slate", icon: <History size={11} />, title: <><b>{plural(history, "imported status", "imported statuses")}</b> {history === 1 ? "has" : "have"} never been confirmed</>, meta: "From registers you imported; not today's work" }] : []),
+  const todo: Row[] = d ? [
+    ...crit.slice(0, 2).map((c) => ({ key: `c${c.id}`, href: `/ngo/cases/${c.id}`, tone: "flame", icon: <CircleAlert size={10} strokeWidth={2.4} />, title: <><b>{label(c)}</b> is critical and nobody holds it</>, meta: [c.zone || c.city, ago(c.occurred_at)].filter(Boolean).join(" · ") })),
+    ...overdue.slice(0, 3).map((f) => ({ key: `f${f.id}`, href: f.case_id ? `/ngo/cases/${f.case_id}` : "/ngo/work?focus=followup", tone: "amber", icon: <CalendarClock size={10} strokeWidth={2.4} />, title: <>Follow-up for <b>{f.case_title || f.animal_name || "a case"}</b> was due {ago(f.due_at)}</>, meta: f.kind || "Follow-up" })),
+    ...(stale ? [{ key: "stale", href: "/ngo/work?cohort=decide", tone: "violet", icon: <TriangleAlert size={10} strokeWidth={2.4} />, title: <><b>{plural(stale, "case")}</b> {stale === 1 ? "is" : "are"} waiting on a decision</>, meta: "Open more than 90 days, nothing recorded for 30" }] : []),
+    ...(history ? [{ key: "hist", href: "/ngo/review", tone: "slate", icon: <History size={10} strokeWidth={2.4} />, title: <><b>{plural(history, "imported status", "imported statuses")}</b> {history === 1 ? "has" : "have"} never been confirmed</>, meta: "From registers you imported; not today's work" }] : []),
   ] : [];
 
-  const ask = (e: FormEvent) => { e.preventDefault(); const t = q.trim(); if (!t) return; ai.setOpen(true); ai.ask(t); setQ(""); };
+  const send = (t: string) => { ai.setOpen(true); ai.ask(t); };
+  const ask = (e: FormEvent) => { e.preventDefault(); const t = q.trim(); if (!t) return; send(t); setQ(""); };
+  const rows = (list: Row[], go: boolean) => (
+    <ul className="br-list">{list.map((r) => (
+      <li key={r.key}><Link href={r.href}>
+        <span className={`br-sq t-${r.tone}`} aria-hidden>{r.icon}</span>
+        <span className="br-t"><span>{typeof r.title === "string" ? <b>{r.title}</b> : r.title}</span><small>{r.meta}</small></span>
+        {r.tag && <em className={`br-tag t-${r.tone}`}>{r.tag}</em>}
+        {go && <ArrowRight size={14} aria-hidden className="br-go" />}
+      </Link></li>
+    ))}</ul>
+  );
 
   return (
     <div className="br">
@@ -98,35 +110,32 @@ export function Brief() {
         <h1 className="br-hello">{greeting()}, {first}.<span>Here is your daily brief.</span></h1>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
-          : <p className="br-since">Since yesterday: <b>{plural(fresh.length, "case")}</b> came in or moved and <b>{closedNew.length}</b> closed. <b>{plural(nOverdue, "follow-up")}</b> {nOverdue === 1 ? "is" : "are"} overdue and <b>{nWeek}</b> more {nWeek === 1 ? "is" : "are"} due this week. You have <b>{plural(nLive, "live case")}</b> in the queue.</p>}
+          : <p className="br-since">Since yesterday, <b>{plural(fresh.length, "case")}</b> came in or moved and <b>{closedNew.length}</b> closed. <b>{plural(nOverdue, "follow-up")}</b> {nOverdue === 1 ? "is" : "are"} overdue, <b>{nWeek}</b> more {nWeek === 1 ? "is" : "are"} due this week, and <b>{plural(nLive, "live case")}</b> {nLive === 1 ? "is" : "are"} in the queue.</p>}
 
         {d && (
           <>
-            <section aria-labelledby="br-out">
+            <section aria-labelledby="br-out" className="br-sec">
               <h2 id="br-out" className="br-h">While you were out</h2>
-              {out.length ? <ul className="br-list">{out.map((r) => (
-                <li key={r.key}><Link href={r.href}><span className={`br-sq t-${r.tone}`}>{r.icon}</span><span className="br-t"><b>{r.title}</b><small>{r.meta}</small></span><em className={`br-tag t-${r.tone}`}>{r.tag}</em></Link></li>
-              ))}</ul> : <p className="br-empty">Nothing new in the last day.</p>}
+              {out.length ? rows(out, false) : <p className="br-empty">Nothing new in the last day.</p>}
+              {out.length > 1 && <div className="br-chips"><button type="button" onClick={() => send("Summarise the cases that came in, moved or closed since yesterday.")}><Sparkles size={12} aria-hidden />Summarise these {out.length} for me</button></div>}
             </section>
-            <section aria-labelledby="br-todo">
+            <section aria-labelledby="br-todo" className="br-sec">
               <h2 id="br-todo" className="br-h">What needs to be done</h2>
-              {todo.length ? <ul className="br-list">{todo.map((r) => (
-                <li key={r.key}><Link href={r.href}><span className={`br-sq t-${r.tone}`}>{r.icon}</span><span className="br-t"><span className="br-tt">{r.title}</span><small>{r.meta}</small></span><ArrowRight size={14} aria-hidden className="br-go" /></Link></li>
-              ))}</ul> : <p className="br-empty">Nothing is overdue or unassigned. The <Link href="/ngo/work">work queue</Link> has the rest.</p>}
+              {todo.length ? rows(todo, true) : <p className="br-empty">Nothing is overdue or unassigned.</p>}
+              <div className="br-chips"><Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link>{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
             </section>
           </>
         )}
+      </div>
 
+      <div className="br-dock">
         <form className="br-ask" onSubmit={ask}>
           <Sparkles size={15} aria-hidden />
           <label htmlFor="br-q" className="br-sr">Ask StrayPaw AI</label>
           <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask StrayPaw AI about your programme…" autoComplete="off" />
           <button type="submit" aria-label="Ask" disabled={!q.trim()}><ArrowUp size={14} /></button>
         </form>
-        <div className="br-chips">{["Which records are missing evidence?", "Summarise today's work", "Find possible duplicate animals"].map((s) => (
-          <button key={s} type="button" onClick={() => { ai.setOpen(true); ai.ask(s); }}>{s}</button>
-        ))}</div>
-        <p className="br-foot"><Link href="/ngo/work">Open the work queue <ArrowRight size={13} aria-hidden /></Link></p>
+        <p className="br-note">StrayPaw AI reads your records and prepares changes. A person confirms every change.</p>
       </div>
     </div>
   );

@@ -23,7 +23,7 @@ import { createContext, Fragment, useCallback, useContext, useEffect, useRef, us
 import {
   Activity, BookOpen, Building2, ChevronDown, ChevronsUpDown, Compass, FileText, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers,
   LifeBuoy, LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
-  ListChecks,
+  ListChecks, MoreHorizontal, Settings,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, isNgoMember } from "@/lib/actions";
@@ -106,7 +106,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
   const reporting = path.startsWith("/community/report");
   const isMap = path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city";
-  const isFlush = flush || isMap || path === "/ngo" || path === "/assistant";
+  const isFlush = flush || isMap || path === "/ngo/work" || path === "/assistant";
   const here = def.nav.find((n) => navOn(n, path)) ?? def.index.flatMap((g) => g.links).find((l) => path === l.href || path.startsWith(l.href + "/"));
   const onAssistant = path === "/assistant";
 
@@ -143,36 +143,40 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button>
           </div>
 
-          <button type="button" className="sx3-quick" onClick={() => setFind(true)} aria-keyshortcuts="Control+K Meta+K"><Search size={15} aria-hidden /><span>Quick actions</span><kbd>⌘K</kbd></button>
-          <button type="button" className={`sx3-askai${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-keyshortcuts="Control+J Meta+J"><Sparkles size={15} aria-hidden /><span>Ask StrayPaw AI</span><kbd>⌘J</kbd></button>
+          <button type="button" className="sx3-quick" onClick={() => setFind(true)} aria-keyshortcuts="Control+K Meta+K"><span>Quick actions</span><kbd>⌘K</kbd></button>
 
           <nav className="sx3-nav" aria-label={`${def.label} navigation`}>
-            {def.nav.filter((n) => n.href !== "/assistant").map((n) => {
+            {def.nav.map((n) => {
               const Icon = ICON[n.icon] ?? Home;
-              const link = <Link key={n.href} href={n.href} aria-current={navOn(n, path) ? "page" : undefined} title={collapsed ? n.label : undefined}>{n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={12} /></span> : <Icon size={16} aria-hidden />}<span>{n.label}</span></Link>;
+              const on = n.href === "/assistant" ? onAssistant : navOn(n, path);
+              const link = <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} title={collapsed ? n.label : undefined}>{n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />}<span>{n.label}</span></Link>;
               return n.section ? <Fragment key={n.href}><p className="sx4-sec">{n.section}</p>{link}</Fragment> : link;
             })}
-            <Link href="/assistant" aria-current={onAssistant ? "page" : undefined} title={collapsed ? "StrayPaw AI" : undefined}><Sparkles size={16} aria-hidden /><span>StrayPaw AI</span></Link>
           </nav>
 
-          {def.index.length > 0 && (
-            <div className="sx3-groups">
-              {def.index.map((g) => {
-                const links = g.links.filter((l) => !def.nav.some((n) => n.href === l.href));
-                if (!links.length) return null;
-                const open = links.some((l) => path === l.href || path.startsWith(l.href + "/"));
-                return (
-                  <details key={`${ws}-${g.label}`} className="sx3-group" open={open || undefined}>
-                    <summary><span>{g.label}</span><ChevronDown size={13} aria-hidden /></summary>
-                    <ul>{links.map((l) => <li key={l.href}><Link href={l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul>
-                  </details>
-                );
-              })}
-            </div>
-          )}
+          {(() => {
+            /* The workspace's other pages, folded under "More" (open while one of them is the current page). */
+            const groups = def.index.map((g) => ({ ...g, links: g.links.filter((l) => !def.nav.some((n) => n.href === l.href) && l.href !== def.settings) })).filter((g) => g.links.length);
+            if (!groups.length) return null;
+            const inside = groups.some((g) => g.links.some((l) => path === l.href || path.startsWith(l.href + "/")));
+            return (
+              <details key={`${ws}-more`} className="sx3-more" open={inside || undefined}>
+                <summary><MoreHorizontal size={16} aria-hidden /><span>More</span><ChevronDown size={13} aria-hidden /></summary>
+                <div>{groups.map((g) => (
+                  <div key={g.label} className="sx3-group">
+                    <p>{g.label}</p>
+                    <ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul>
+                  </div>
+                ))}</div>
+              </details>
+            );
+          })()}
+
+          <p className="sx4-hint">Press <kbd>/</kbd> for quick navigation</p>
 
           <div className="sx3-side-foot">
-            <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help & docs</span></Link>
+            {def.settings && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}
+            <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help &amp; docs</span></Link>
             <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
           </div>
         </aside>
