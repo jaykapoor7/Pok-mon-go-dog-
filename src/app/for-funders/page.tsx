@@ -1,91 +1,41 @@
-import { MarketingPage, Band, Steps } from "@/components/marketing/MarketingPage";
-import { FundingFigure } from "@/components/marketing/figures";
+import { BarChart3, Eye, FileSpreadsheet, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import { DemoWindow } from "@/sp3/home/Demos";
+import { SolutionPage } from "@/sp3/site/Solution";
 
 export const metadata = {
-  title: "For funders, fund an outcome, not a hope",
-  description:
-    "Turn a CSR or grant budget into a scoped study, a named executing partner, a real unit cost and a measurable finish line.",
+  title: "For funders · StrayPaw",
+  description: "Scoped monitoring of the animal-welfare programmes you fund: recorded interventions, evidence and reports from the operating record.",
 };
 
-export default function ForFundersPage() {
-
-  return (
-    <MarketingPage
-      title="Fund an outcome,"
-      accent="not a hope."
-      lede="Most animal-welfare giving buys activity: a number of surgeries, a number of camps. What it rarely buys is the ability to say afterwards whether the population actually changed. That is a measurement problem, and it is fixable."
-      figure={<FundingFigure />}
-      next={[
-        { label: "Why this exists", href: "/evidence", note: "What is published, and what is missing." },
-        { label: "How we run a study", href: "/research-standards", note: "Protocol, methods, indicators and what we publish." },
-        { label: "Start a conversation", href: "/contact?subject=Fund%20a%20programme", note: "Tell us the geography and the objective." },
-      ]}
-    >
-      <Band
-        tone="paper"
-        title="Activity is easy to buy."
-        accent="Change is not."
-      >
-        <p className="mk-body">
-          Sterilisation only reduces a population if it clears a coverage
-          threshold in a defined area. Below it, animals are replaced faster
-          than they are treated: real welfare benefit for individual dogs, no
-          population effect. Both outcomes are reported the same way, as a
-          count of surgeries.
-        </p>
-
-      </Band>
-
-      <Band
-        tone="ink"
-        title="A question, a partner,"
-        accent="and a finish line."
-      >
-        <Steps
-          items={[
-            {
-              n: "01",
-              title: "Define",
-              body: "You bring an objective and a geography. We turn it into a scoped question with a real denominator, or, where none exists, a baseline study to establish one first.",
-            },
-            {
-              n: "02",
-              title: "Cost",
-              body: "Unit costs are published and sourced, not quoted. You see the arithmetic: animals, rate, duration, field teams, before anything is committed.",
-            },
-            {
-              n: "03",
-              title: "Execute",
-              body: "A named local organisation does the fieldwork. The study design, the data tooling and the record layer come from StrayPaw.",
-            },
-            {
-              n: "04",
-              title: "Verify",
-              body: "Outcomes post to the animal records as they happen. At the end you get coverage measured against the baseline, not a count of activity.",
-            },
-          ]}
-        />
-      </Band>
-
-      <Band
-        tone="bone"
-        title="A number you could defend"
-        accent="to an auditor."
-      >
-        <p className="mk-body">
-          Every figure in a StrayPaw programme carries its source, its year
-          and its confidence, so an auditor can trace any of them back. Where a
-          number does not exist, the register names who would hold it, and the
-          proposal costs the study that would produce it.
-        </p>
-        <Steps
-          items={[
-            { n: "◦", title: "Sourced", body: "Population, coverage and unit cost each cite a published origin and year." },
-            { n: "◦", title: "Scoped", body: "Ward-level geography where it exists; an explicit share of a state where it does not." },
-            { n: "◦", title: "Attributable", body: "Outcomes tie to the animals your funding actually reached." },
-          ]}
-        />
-      </Band>
-    </MarketingPage>
-  );
+export default function FundersPage() {
+  return <SolutionPage s={{
+    eyebrow: "For funders",
+    title: "See what your grant actually did, record by record.",
+    lede: "When a programme you fund runs on StrayPaw, you can follow its recorded interventions, evidence and reports directly, scoped to that programme and nothing else.",
+    primary: { href: "/demo?type=funder", label: "Talk to us" },
+    secondary: { href: "/partner-programmes", label: "See published programmes" },
+    visual: <DemoWindow view="reports" title="Programme report · scoped view" />,
+    problem: {
+      title: "Grant reports are written after the fact.",
+      body: "Funders receive a narrative and a number at the end of a grant, with little way to see how it was counted or what is still incomplete.",
+      points: ["Totals without underlying records", "No view of what is missing or still in review", "Different formats from every grantee"],
+    },
+    steps: [
+      { t: "Scope", d: "Agree the programme, areas and period the funding covers." },
+      { t: "Operate", d: "The NGO records the work in its own workspace." },
+      { t: "Review", d: "Incomplete records are visible as incomplete." },
+      { t: "Report", d: "A programme report with sources at any point in the grant." },
+    ],
+    features: [
+      { icon: <Eye size={18} />, t: "Scoped visibility", d: "Read access limited to the programme you fund, agreed with the grantee." },
+      { icon: <BarChart3 size={18} />, t: "Programme reports", d: "Recorded interventions over time, with method and sources.", href: "/partner-programmes" },
+      { icon: <FileSpreadsheet size={18} />, t: "Evidence workbook", d: "The records behind a figure, exportable for your own review." },
+      { icon: <ShieldCheck size={18} />, t: "Honest status", d: "Imported history, records in review and accepted records are always distinguished." },
+      { icon: <Sparkles size={18} />, t: "AI summaries", d: "A plain-language summary of progress and gaps, citing the records it used.", href: "/ai" },
+      { icon: <Lock size={18} />, t: "Grantee control", d: "The NGO owns its records. Funder access is granted, never assumed." },
+    ],
+    pricing: <>Funder monitoring is a scoped service agreed per programme. We do not publish prices.</>,
+    notes: ["Scoped funder accounts are configured per engagement; there is no self-serve funder sign-up today. Published programme pages are public."],
+    cta: { title: "Fund a programme you can follow.", primary: { href: "/demo?type=funder", label: "Talk to us" }, secondary: { href: "/customers", label: "Read customer stories" } },
+  }} />;
 }

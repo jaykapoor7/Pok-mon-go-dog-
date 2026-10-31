@@ -1,12 +1,56 @@
-import Link from "next/link";
-import { AudiencePage, AudienceSection } from "@/components/production/AudiencePage";
-import { getLandingStory } from "@/lib/landing/story";
-export const revalidate=300;
-export const metadata={title:"NGOs & Rescues, StrayPaw",description:"Review requests, assign cases, record care and follow-ups, and keep animal histories together. WhatsApp and web reporting through CareOS."};
-export default async function NGOsPage(){const story=await getLandingStory().catch(()=>null);return <AudiencePage audience="NGOs & Rescues" title="One place for the next step of care." intro="Bring intake, assigned cases and animal histories into the same workspace, with a record of what happens next." cta="Apply for a workspace" href="/partner-apply" seed={2}>
- <AudienceSection title="Work. Animals. Map."><nav className="audience-work-links" aria-label="NGO workspace"><Link href="/ngo"><b>Work</b><span>Review requests, assign cases and plan follow-ups.</span></Link><Link href="/ngo/animals"><b>Animals</b><span>Search histories, review records and track care.</span></Link><Link href="/ngo/map"><b>Map</b><span>See your organisation’s own work in its recorded areas.</span></Link></nav><p>Workspace access follows organisation verification and sign-in. Your private cases stay within your organisation.</p>
- {story&&<div className="audience-queue"><header><b>Requests on the public record</b><span>{story.hero.city} · a public sample, not your private queue</span></header><table><thead><tr><th scope="col">Reported concern</th><th scope="col">Locality</th><th scope="col">Age of record</th></tr></thead><tbody>{story.desk.queue.map((q,i)=><tr key={i}><td>{q.condition}</td><td>{q.locality||"Not recorded"}</td><td>{q.days} days</td></tr>)}</tbody></table><p>Open status may come from historical imports. These are not promises of available rescue capacity.</p></div>}
- </AudienceSection>
- <AudienceSection title="Bring your records with you."><p>Import existing animal and case registers, review uncertain matches and keep source attribution. Record sterilisation, vaccination, treatment and follow-ups on the animal’s history.</p><div className="audience-inline-links"><Link href="/ngo/import">Record imports</Link><Link href="/ngo/review">Review queue</Link><Link href="/ngo/programmes">Programmes</Link></div></AudienceSection>
- <AudienceSection title="WhatsApp, connected through CareOS."><p>Receive reports through WhatsApp and coordinate cases and follow-ups in CareOS. Contact us to connect your team, confirm routing and understand setup and ongoing costs.</p><Link href="/contact?subject=WhatsApp%20CareOS%20access">Get WhatsApp access</Link><p className="audience-note">Messaging depends on the organisation’s configured channel, consent and delivery rules. The workspace shows its actual connection status.</p></AudienceSection>
- </AudiencePage>;}
+import { ClipboardList, FileSpreadsheet, FileText, Inbox, PawPrint, Smartphone, Sparkles, Users } from "lucide-react";
+import { ProductPage, Status } from "@/sp4/site/ProductPage";
+import { CaptureUi, EvidenceUi, MiniWindow, QueueUi, ReportUi } from "@/sp4/home/ui";
+
+export const metadata = {
+  title: "ABC operators & NGOs · StrayPaw",
+  description: "For NGOs and contractors running funded ABC and vaccination programmes: record the work once, check the evidence, and report it to the office that funds you.",
+};
+
+export default function OperatorsPage() {
+  return <ProductPage s={{
+    id: "ngo",
+    eyebrow: "ABC operators & NGOs",
+    title: ["Record the work once.", "Get paid for all of it."],
+    lede: "Field capture, treatment, evidence and follow-ups on one record, on a laptop or a phone. Report packages for the office that funds you come out of the same record.",
+    primary: { href: "/demo", label: "Book a demo" },
+    secondary: { href: "/sign-in?next=/ngo", label: "Sign in to your workspace" },
+    hero: <MiniWindow title="Home · Today" label="the operator's daily queue"><QueueUi /></MiniWindow>,
+    heroV: 1,
+    steps: {
+      title: ["How a programme", "runs on StrayPaw"],
+      items: [
+        { t: "Capture", d: "Field staff record each animal with photos and place." },
+        { t: "Treat", d: "Procedures recorded and authorised by the vet who did them." },
+        { t: "Check", d: "Evidence gaps and duplicates fixed the same week." },
+        { t: "Report", d: "A package for the funding office, from the records." },
+      ],
+    },
+    splits: [
+      { tag: <Status s="live" />, title: ["Built for the", "field team's phone"], body: "A one-hand field mode that works on low-end Android phones and slow networks.", ui: <CaptureUi />, v: 0 },
+      { tag: <Status s="staging" />, title: ["Know what is missing", "before month end"], body: "Each animal shows the evidence your contract asks for, so gaps are fixed while the team can still fix them.", ui: <EvidenceUi />, v: 2 },
+      { tag: <Status s="live" />, title: ["Reports without", "the late nights"], body: "Programme reports, evidence workbooks and municipal reports straight from the record, in PDF and XLSX.", ui: <ReportUi />, v: 5 },
+    ],
+    tiles: {
+      title: ["Everything in", "the operator workspace"],
+      items: [
+        { icon: <Inbox size={20} />, title: "Inbox & triage", body: "Requests, community reports and field drafts with a clear next step.", tag: <Status s="live" /> },
+        { icon: <ClipboardList size={20} />, title: "Cases & follow-ups", body: "Assign, treat, follow up and close with an outcome.", tag: <Status s="live" /> },
+        { icon: <PawPrint size={20} />, title: "Animal register", body: "One history per animal, from capture to release.", tag: <Status s="live" /> },
+        { icon: <Smartphone size={20} />, title: "Field mode", body: "A one-hand phone view for teams on the street.", tag: <Status s="live" /> },
+        { icon: <FileSpreadsheet size={20} />, title: "Register import", body: "Bring your Excel or CSV. Rows stay labelled as historical.", tag: <Status s="live" /> },
+        { icon: <FileText size={20} />, title: "Reports & proof", body: "Programme reports and evidence on demand.", tag: <Status s="live" /> },
+        { icon: <Sparkles size={20} />, title: "StrayPaw AI", body: "Find gaps, read field messages, prepare records for confirmation.", tag: <Status s="live" /> },
+        { icon: <Users size={20} />, title: "Team & roles", body: "Invite members with codes, set roles, remove access.", tag: <Status s="live" /> },
+        { icon: <Smartphone size={20} />, title: "WhatsApp intake", body: "Built, awaiting Meta approval. Field mode works meanwhile.", tag: <Status s="off" /> },
+      ],
+    },
+    note: <><b>Pricing.</b> StrayPaw is scoped and priced per programme before any work begins; we do not publish a price list yet. Small community and welfare groups can ask us about an accessible plan.</>,
+    faq: [
+      ["How long does setup take?", "It depends on your registers and team. We agree a plan with you before starting; most of the time goes into importing past registers and training field staff."],
+      ["Who owns our records?", "You do. Export everything to XLSX, CSV and PDF at any time."],
+      ["We are a small rescue, not an ABC contractor.", "Rescue and care run on the same record. Ask us about an accessible plan for small welfare groups."],
+    ],
+    close: { a: "Bring your registers.", b: "Leave with a record you can prove.", primary: { href: "/demo", label: "Book a demo" }, secondary: { href: "/abc-operations", label: "See the workflow" } },
+  }} />;
+}

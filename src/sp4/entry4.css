@@ -1,0 +1,60 @@
+/* StrayPaw 4 skin for the entry screens: sign in, join, access, Open App.
+   The 3.0 entry markup stays (its behaviour is tested); the tokens it reads
+   are re-pointed to the StrayPaw 4 system and the art panel is rebuilt. */
+.s4e {
+  --s3-sans: var(--s4-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --s3-ink: #0b1e3d; --s3-ink-2: #23304a; --s3-mute: #6f7380; --s3-faint: #9a9ea8;
+  --s3-ground: #fffefa; --s3-sunk: #f4f3ef; --s3-line: rgba(11, 30, 61, 0.1); --s3-line-2: rgba(11, 30, 61, 0.16);
+  --s3-blue: #2457ce; --s3-blue-soft: #e8eefb;
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.01em;
+}
+.s4e.s3e { background: #fffefa; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); }
+.s4e .s3-brand span { font-size: 21px; font-weight: 600; letter-spacing: -0.035em; }
+.s4e .s3e-form { max-width: 400px; }
+.s4e .s3e-form h1, .s4e .s3e-notice h1, .s4e.s3e .s3e-legacy h1, .s4e.s3e .s3e-legacy h2 { font-size: 40px !important; line-height: 1.08; font-weight: 500 !important; letter-spacing: -0.04em !important; }
+.s4e .s3e-sub, .s4e .s3e-notice p { font-size: 16px; color: var(--s3-mute); }
+.s4e .s3-field label { font-size: 14px; font-weight: 500; }
+.s4e .s3-input { min-height: 48px; border-radius: 10px; border: 0; box-shadow: inset 0 0 0 1px var(--s3-line-2); background: #fff; font-size: 16px; }
+.s4e .s3-input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--s3-blue); }
+.s4e .s3-btn { height: 48px; border-radius: 99px; font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
+.s4e .s3-btn.is-line { box-shadow: inset 0 0 0 1px rgba(11, 30, 61, 0.55); }
+.s4e .s3e-notice li { background: #f4f3ef; border-radius: 12px; }
+.s4e .s3e-notice-ico { background: #e8eefb; }
+.s4e .s3e-altrow b { font-weight: 500; }
+
+/* the art panel: a grain tile with real-looking product pieces */
+.s4e .s4e-art { margin: 16px; border-radius: 20px; display: grid; align-content: center; justify-items: center; gap: 16px; padding: clamp(24px, 4vw, 56px); grid-template-columns: minmax(0, 1fr); }
+.s4e .s4e-news { width: min(440px, 100%); }
+.s4e .s4e-news ol { display: grid; gap: 0; margin-top: 10px; }
+.s4e .s4e-news li { display: grid; gap: 2px; padding: 12px 0; border-top: 1px solid #f0f1f4; }
+.s4e .s4e-news li small { font-size: 11.5px; color: var(--s3-mute); }
+.s4e .s4e-news li b { font-size: 14px; font-weight: 500; }
+.s4e .s4e-news li span { font-size: 12.5px; color: var(--s3-mute); line-height: 1.45; }
+.s4e .s4e-cap { width: min(440px, 100%); font-size: 13px; color: #2b2f36; background: rgba(255, 255, 255, 0.86); border-radius: 10px; padding: 10px 14px; line-height: 1.45; }
+.s4e .s4e-cap a { color: var(--s3-blue); font-weight: 500; }
+@media (max-width: 960px) { .s4e.s3e { grid-template-columns: minmax(0, 1fr); } .s4e .s4e-art { margin: 0 16px 16px; } }
+
+/* Open App */
+.s4e.s3g { background: #fffefa; }
+.s4e.s3g .s3-h2 { font-size: 48px; font-weight: 500; letter-spacing: -0.04em; line-height: 1.06; }
+.s4e.s3g .s3-lede { font-size: 20px; color: var(--s3-mute); letter-spacing: -0.02em; max-width: 620px; }
+.s4e .s3g-main { width: min(1100px, 100% - 40px); margin-top: 72px; gap: 20px; }
+.s4e .s3g-choice { background: #f4f3ef; box-shadow: none; border-radius: 16px; padding: 22px; }
+.s4e .s3g-choice:hover { background: #ecebe6; box-shadow: none; transform: none; }
+.s4e .s3g-choice b { font-weight: 500; font-size: 16.5px; letter-spacing: -0.02em; }
+.s4e .s3g-ico { background: #fff; }
+.s4e .s3g-h { font-size: 14px !important; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em !important; margin-top: 40px !important; }
+@media (max-width: 640px) { .s4e.s3g .s3-h2 { font-size: 34px; } .s4e .s3g-main { margin-top: 40px; } }
+
+/* legacy join/access forms inside the frame: no panels of their own */
+.s4e .s3e-legacy :is(.join-shell, .join-page, .join-wrap, .join-card) { min-height: 0 !important; background: none !important; padding: 0 !important; box-shadow: none !important; border: 0 !important; display: block !important; }
+.s4e .s3e-legacy :is(.join-label, label) { font-size: 14px !important; font-weight: 500 !important; letter-spacing: -0.01em !important; text-transform: none !important; color: var(--s3-ink) !important; }
+.s4e .s3e-legacy :is(.join-lede, p) { font-size: 15.5px; color: var(--s3-mute); }
+.s4e .s3e-legacy :is(.join-input, .join-code, input) { min-height: 48px !important; border-radius: 10px !important; border: 0 !important; box-shadow: inset 0 0 0 1px var(--s3-line-2) !important; background: #fff !important; font-family: var(--s3-sans) !important; }
+.s4e .s3e-legacy :is(.join-input, .join-code, input):focus { box-shadow: inset 0 0 0 2px var(--s3-blue) !important; }
+.s4e .s3e-legacy :is(.join-go, button[type="submit"]) { min-height: 48px !important; border-radius: 99px !important; background: var(--s3-blue) !important; font: 500 16px var(--s3-sans) !important; letter-spacing: -0.02em; }
+.s4e .s3e-legacy .join-brand { display: none; }
+.s4e .s4e-cap svg { display: inline; }
+.s4e .s3e-legacy h1 { margin-bottom: 14px !important; }
+.s4e .s3e-legacy :is(.join-label, label) { display: block; margin: 14px 0 7px !important; }

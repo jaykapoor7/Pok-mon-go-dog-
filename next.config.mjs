@@ -41,7 +41,7 @@ const nextConfig = {
     return [
       ...to([
         /* Community */
-        ["/app", "/community"], ["/map", "/community"], ["/atlas", "/community"], ["/feed", "/community"],
+        ["/map", "/community"], ["/atlas", "/community"], ["/feed", "/community"],
         ["/report", "/community/report"], ["/following", "/community/activity"], ["/account", "/community/activity"],
         ["/dog/:id", "/animal/:id"],
         ["/stories", "/community/stories"], ["/journey", "/community/stories"], ["/timeline", "/community/stories"], ["/outcomes", "/community/stories"], ["/rescues", "/community/stories"], ["/care", "/community/stories"],
@@ -77,7 +77,7 @@ const nextConfig = {
         ["/partner/fundraisers/new", "/ngo/fundraising/new"], ["/partner/surveys", "/ngo/surveys"], ["/partner/projects", "/ngo/projects"],
         ["/partner/feeding", "/ngo/feeding"],
         /* Site pages that predate 2.0 */
-        ["/research", "/evidence"], ["/changelog", "/our-story"], ["/about", "/our-story"], ["/company", "/our-story"],
+        ["/changelog", "/our-story"], ["/about", "/our-story"], ["/company", "/our-story"],
       ]),
       ...["/why-straypaw", "/the-data", "/gaps", "/needs", "/wards", "/data", "/sources", "/take-action", "/what-would-it-take", "/news"]
         .map((source) => ({ source, destination: "/evidence", permanent: false })),
@@ -91,6 +91,15 @@ const nextConfig = {
       { source: "/partner/cases/:id", destination: "/ngo/cases/:id", permanent: false },
       { source: "/cases/:id", destination: "/ngo/cases/:id", permanent: false },
       { source: "/index", destination: "/", permanent: true },
+      /* StrayPaw 3.0 consolidations: old URLs land on their new homes. */
+      ...to([
+        ["/product", "/platform"], ["/partners", "/customers"], ["/case-studies", "/customers"], ["/customer-stories", "/customers"],
+        ["/login", "/sign-in"], ["/signin", "/sign-in"], ["/log-in", "/sign-in"], ["/signup", "/access"], ["/sign-up", "/access"],
+        ["/book-a-demo", "/demo"], ["/request-demo", "/demo"], ["/pricing", "/demo"],
+        ["/integrations", "/platform#integrations"], ["/abc", "/abc-operations"], ["/verification", "/abc-operations"],
+        ["/straypaw-ai", "/ai"], ["/careos", "/whatsapp"], ["/documentation", "/docs"],
+        ["/solutions/municipalities", "/for-governments"], ["/solutions/ngos", "/for-ngos"], ["/solutions/funders", "/for-funders"],
+      ]),
     ];
   },
 

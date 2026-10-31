@@ -1,0 +1,348 @@
+-- STAGING ONLY (project straypaw-staging, ucxfxiddufwqithtdtix).
+-- Reviewed copy for production: supabase/proposed/2026-10-31-abc-verification.sql
+-- (identical body; NOT applied to production; needs separate approval).
+--
+-- StrayPaw ABC Operations & Verification: the core workflow, end to end.
+--   capture (cases, existing) → evidence items per case → vet authorisation
+--   → coordinator evidence review → report package → submission to a
+--   reviewing office → query / answer → acceptance or return.
+-- Every step is a SECURITY DEFINER function that checks the caller's
+-- organisation and role; tables are read-only to clients (RLS) and written
+-- only through these functions. Every step writes a case_updates line or a
+-- package event and an operational_audit_log row. Nothing is approved
+-- automatically, and no role can approve its own kind of work twice.
+--
+-- Also fixes the provenance fault found in production: cases opened by an
+-- organisation member were left with the column default 'community_report'.
+
+begin;
+
+-- ── roles ──────────────────────────────────────────────────────────────
+-- ngo_members.role is free text today ('admin', 'member'). Two more values
+-- are recognised by the functions below: 'veterinarian' and 'coordinator'.
+comment on column public.ngo_members.role is
+  'admin | coordinator | veterinarian | member. Checked by SECURITY DEFINER functions; never chosen by the member.';
+
+create or replace function public.sp_member_role(p_ngo uuid)
+returns text language sql stable security definer set search_path = public as $$
+  select role from public.ngo_members where user_id = auth.uid() and ngo_id = p_ngo
+$$;
+revoke all on function public.sp_member_role(uuid) from public, anon;
+grant execute on function public.sp_member_role(uuid) to authenticated;
+
+-- ── reviewing offices (government side) ───────────────────────────────
+create table if not exists public.review_offices (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  city text,
+  created_at timestamptz not null default now()
+);
+create table if not exists public.review_office_members (
+  office_id uuid not null references public.review_offices(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  role text not null default 'reviewer' check (role in ('reviewer')),
+  created_at timestamptz not null default now(),
+  primary key (office_id, user_id)
+);
+
+-- ── attestations: vet authorisation and evidence review, per case ─────
+create table if not exists public.abc_attestations (
+  id uuid primary key default gen_random_uuid(),
+  ngo_id uuid not null references public.ngos(id),
+  case_id uuid not null references public.cases(id) on delete restrict,
+  kind text not null check (kind in ('vet_authorised', 'evidence_reviewed')),
+  actor_id uuid not null,
+  actor_name text not null,
+  actor_role text not null,
+  note text,
+  snapshot jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  revoked_at timestamptz,
+  revoked_by uuid
+);
+create unique index if not exists abc_attestations_one_live on public.abc_attestations (case_id, kind) where revoked_at is null;
+
+-- ── report packages and their events ──────────────────────────────────
+create table if not exists public.report_packages (
+  id uuid primary key default gen_random_uuid(),
+  ngo_id uuid not null references public.ngos(id),
+  office_id uuid not null references public.review_offices(id),
+  title text not null,
+  period_start date not null,
+  period_end date not null,
+  case_ids uuid[] not null default '{}',
+  summary jsonb not null default '{}'::jsonb,
+  status text not null default 'draft' check (status in ('draft', 'submitted', 'queried', 'accepted', 'returned')),
+  created_by uuid not null,
+  created_at timestamptz not null default now(),
+  submitted_at timestamptz,
+  decided_by uuid,
+  decided_by_name text,
+  decided_at timestamptz,
+  check (period_end >= period_start)
+);
+create table if not exists public.package_events (
+  id uuid primary key default gen_random_uuid(),
+  package_id uuid not null references public.report_packages(id) on delete cascade,
+  actor_id uuid not null,
+  actor_name text not null,
+  side text not null check (side in ('operator', 'reviewer')),
+  kind text not null check (kind in ('created', 'submitted', 'query', 'answer', 'accepted', 'returned')),
+  body text,
+  created_at timestamptz not null default now()
+);
+
+-- ── RLS: read your own; write only through functions ──────────────────
+alter table public.review_offices enable row level security;
+alter table public.review_office_members enable row level security;
+alter table public.abc_attestations enable row level security;
+alter table public.report_packages enable row level security;
+alter table public.package_events enable row level security;
+
+drop policy if exists ro_read on public.review_offices;
+create policy ro_read on public.review_offices for select to authenticated using (true);
+drop policy if exists rom_read on public.review_office_members;
+create policy rom_read on public.review_office_members for select to authenticated using (user_id = auth.uid());
+drop policy if exists att_read on public.abc_attestations;
+create policy att_read on public.abc_attestations for select to authenticated
+  using (ngo_id = public.my_ngo()
+    or exists (select 1 from public.report_packages p join public.review_office_members m on m.office_id = p.office_id
+               where m.user_id = auth.uid() and p.status <> 'draft' and abc_attestations.case_id = any (p.case_ids)));
+drop policy if exists pkg_read on public.report_packages;
+create policy pkg_read on public.report_packages for select to authenticated
+  using (ngo_id = public.my_ngo()
+    or (status <> 'draft' and exists (select 1 from public.review_office_members m where m.office_id = report_packages.office_id and m.user_id = auth.uid())));
+drop policy if exists pev_read on public.package_events;
+create policy pev_read on public.package_events for select to authenticated
+  using (exists (select 1 from public.report_packages p where p.id = package_events.package_id));
+revoke insert, update, delete on public.review_offices, public.review_office_members, public.abc_attestations, public.report_packages, public.package_events from anon, authenticated;
+grant select on public.review_offices, public.review_office_members, public.abc_attestations, public.report_packages, public.package_events to authenticated;
+
+-- ── helpers ───────────────────────────────────────────────────────────
+create or replace function public.sp_actor_name()
+returns text language sql stable security definer set search_path = public as $$
+  select coalesce(nullif(u.raw_user_meta_data->>'name', ''), split_part(u.email, '@', 1), 'StrayPaw user') from auth.users u where u.id = auth.uid()
+$$;
+revoke all on function public.sp_actor_name() from public, anon;
+
+/* The evidence an ABC procedure needs, per case. Evidence items are the
+   existing evidence_items rows (kind), so imports and uploads count too. */
+create or replace function public.abc_case_checklist(p_case_id uuid)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare v_ngo uuid; v jsonb; v_missing text[] := '{}'; k text;
+begin
+  select ngo_id into v_ngo from cases where id = p_case_id;
+  if v_ngo is null then raise exception 'Case not found'; end if;
+  if v_ngo is distinct from public.my_ngo()
+     and not exists (select 1 from report_packages p join review_office_members m on m.office_id = p.office_id
+                     where m.user_id = auth.uid() and p.status <> 'draft' and p_case_id = any (p.case_ids)) then
+    raise exception 'You cannot read this case';
+  end if;
+  v := jsonb_build_object();
+  foreach k in array array['capture_photo', 'surgery_record', 'ear_notch_photo', 'release_photo', 'release_location'] loop
+    v := v || jsonb_build_object(k, exists (select 1 from evidence_items e where e.case_id = p_case_id and e.kind = k));
+    if not exists (select 1 from evidence_items e where e.case_id = p_case_id and e.kind = k) then v_missing := v_missing || k; end if;
+  end loop;
+  return jsonb_build_object(
+    'items', v,
+    'missing', to_jsonb(v_missing),
+    'vet_authorised', exists (select 1 from abc_attestations a where a.case_id = p_case_id and a.kind = 'vet_authorised' and a.revoked_at is null),
+    'evidence_reviewed', exists (select 1 from abc_attestations a where a.case_id = p_case_id and a.kind = 'evidence_reviewed' and a.revoked_at is null),
+    'government_accepted', exists (select 1 from report_packages p where p.status = 'accepted' and p_case_id = any (p.case_ids))
+  );
+end $$;
+revoke all on function public.abc_case_checklist(uuid) from public, anon;
+grant execute on function public.abc_case_checklist(uuid) to authenticated;
+
+/* One row per case in the caller's organisation, with its verification
+   state: what the operator workspace's Verification screen lists. */
+create or replace function public.abc_verification_queue(p_limit int default 200)
+returns table (case_id uuid, case_code text, title text, city text, created_at timestamptz, provenance text,
+               evidence_count int, missing text[], vet_authorised boolean, evidence_reviewed boolean, government_accepted boolean)
+language plpgsql stable security definer set search_path = public as $$
+declare v_ngo uuid := public.my_ngo();
+begin
+  if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
+  return query
+  select c.id, c.case_code, c.title, c.city, c.created_at, c.provenance,
+    (select count(distinct e.kind)::int from evidence_items e where e.case_id = c.id and e.kind in ('capture_photo','surgery_record','ear_notch_photo','release_photo','release_location')),
+    array(select k from unnest(array['capture_photo','surgery_record','ear_notch_photo','release_photo','release_location']) k
+          where not exists (select 1 from evidence_items e where e.case_id = c.id and e.kind = k)),
+    exists (select 1 from abc_attestations a where a.case_id = c.id and a.kind = 'vet_authorised' and a.revoked_at is null),
+    exists (select 1 from abc_attestations a where a.case_id = c.id and a.kind = 'evidence_reviewed' and a.revoked_at is null),
+    exists (select 1 from report_packages p where p.status = 'accepted' and c.id = any (p.case_ids))
+  from cases c
+  where c.ngo_id = v_ngo and coalesce(c.provenance, '') <> 'imported_historical_record'
+  order by c.created_at desc
+  limit greatest(1, least(p_limit, 500));
+end $$;
+revoke all on function public.abc_verification_queue(int) from public, anon;
+grant execute on function public.abc_verification_queue(int) to authenticated;
+
+create or replace function public.abc_add_evidence(p_case_id uuid, p_kind text, p_url text default null, p_location text default null, p_title text default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_ngo uuid := public.my_ngo(); v_id uuid; v_dog uuid;
+begin
+  if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
+  if p_kind not in ('capture_photo','surgery_record','ear_notch_photo','release_photo','release_location') then raise exception 'Unknown evidence kind'; end if;
+  select dog_id into v_dog from cases where id = p_case_id and ngo_id = v_ngo;
+  if not found then raise exception 'That case is not in your organisation'; end if;
+  if p_kind like '%photo' and coalesce(btrim(p_url), '') = '' then raise exception 'A photo needs its file link'; end if;
+  if p_kind = 'release_location' and coalesce(btrim(p_location), '') = '' then raise exception 'Say where the animal was released'; end if;
+  insert into evidence_items (ngo_id, dog_id, case_id, kind, url, title, captured_at, location_text, provenance, verification_state, created_by)
+  values (v_ngo, v_dog, p_case_id, p_kind, nullif(btrim(p_url), ''), coalesce(nullif(btrim(p_title), ''), replace(p_kind, '_', ' ')), now(), nullif(btrim(p_location), ''), 'operator_created', 'submitted', auth.uid())
+  returning id into v_id;
+  insert into case_updates (case_id, actor_id, actor_name, type, note) values (p_case_id, auth.uid(), public.sp_actor_name(), 'note', 'Evidence added: ' || replace(p_kind, '_', ' '));
+  insert into operational_audit_log (ngo_id, actor_id, entity_type, entity_id, action, after_data) values (v_ngo, auth.uid(), 'evidence_item', v_id, 'abc_add_evidence', jsonb_build_object('case_id', p_case_id, 'kind', p_kind));
+  return v_id;
+end $$;
+revoke all on function public.abc_add_evidence(uuid, text, text, text, text) from public, anon;
+grant execute on function public.abc_add_evidence(uuid, text, text, text, text) to authenticated;
+
+/* Only a member with the veterinarian role authorises, in their own name. */
+create or replace function public.abc_vet_authorise(p_case_id uuid, p_note text default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_ngo uuid := public.my_ngo(); v_id uuid; v_name text := public.sp_actor_name();
+begin
+  if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
+  if public.sp_member_role(v_ngo) is distinct from 'veterinarian' then raise exception 'Only a veterinarian in this organisation can authorise a procedure'; end if;
+  if not exists (select 1 from cases where id = p_case_id and ngo_id = v_ngo) then raise exception 'That case is not in your organisation'; end if;
+  if not exists (select 1 from evidence_items where case_id = p_case_id and kind = 'surgery_record') then raise exception 'Add the surgery record before authorising'; end if;
+  insert into abc_attestations (ngo_id, case_id, kind, actor_id, actor_name, actor_role, note, snapshot)
+  values (v_ngo, p_case_id, 'vet_authorised', auth.uid(), v_name, 'veterinarian', nullif(btrim(p_note), ''), public.abc_case_checklist(p_case_id))
+  returning id into v_id;
+  insert into case_updates (case_id, actor_id, actor_name, type, note) values (p_case_id, auth.uid(), v_name, 'note', 'Procedure authorised by veterinarian ' || v_name);
+  insert into operational_audit_log (ngo_id, actor_id, entity_type, entity_id, action, after_data) values (v_ngo, auth.uid(), 'case', p_case_id, 'abc_vet_authorise', jsonb_build_object('attestation', v_id));
+  return v_id;
+end $$;
+revoke all on function public.abc_vet_authorise(uuid, text) from public, anon;
+grant execute on function public.abc_vet_authorise(uuid, text) to authenticated;
+
+/* A coordinator (or admin) reviews evidence, only when it is complete and a
+   vet has authorised the procedure; and never their own vet sign-off. */
+create or replace function public.abc_review_evidence(p_case_id uuid, p_note text default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_ngo uuid := public.my_ngo(); v_id uuid; v_chk jsonb; v_name text := public.sp_actor_name();
+begin
+  if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
+  if coalesce(public.sp_member_role(v_ngo), '') not in ('admin', 'coordinator') then raise exception 'Only a coordinator or admin can review evidence'; end if;
+  if not exists (select 1 from cases where id = p_case_id and ngo_id = v_ngo) then raise exception 'That case is not in your organisation'; end if;
+  v_chk := public.abc_case_checklist(p_case_id);
+  if jsonb_array_length(v_chk->'missing') > 0 then raise exception 'Evidence incomplete: %', (select string_agg(replace(x, '_', ' '), ', ') from jsonb_array_elements_text(v_chk->'missing') x); end if;
+  if not (v_chk->>'vet_authorised')::boolean then raise exception 'A veterinarian has not authorised this procedure yet'; end if;
+  if exists (select 1 from abc_attestations where case_id = p_case_id and kind = 'vet_authorised' and revoked_at is null and actor_id = auth.uid()) then raise exception 'You authorised this procedure; another person must review its evidence'; end if;
+  insert into abc_attestations (ngo_id, case_id, kind, actor_id, actor_name, actor_role, note, snapshot)
+  values (v_ngo, p_case_id, 'evidence_reviewed', auth.uid(), v_name, public.sp_member_role(v_ngo), nullif(btrim(p_note), ''), v_chk)
+  returning id into v_id;
+  insert into case_updates (case_id, actor_id, actor_name, type, note) values (p_case_id, auth.uid(), v_name, 'note', 'Evidence reviewed and approved for reporting by ' || v_name);
+  insert into operational_audit_log (ngo_id, actor_id, entity_type, entity_id, action, after_data) values (v_ngo, auth.uid(), 'case', p_case_id, 'abc_review_evidence', jsonb_build_object('attestation', v_id));
+  return v_id;
+end $$;
+revoke all on function public.abc_review_evidence(uuid, text) from public, anon;
+grant execute on function public.abc_review_evidence(uuid, text) to authenticated;
+
+/* A package holds only reviewed cases from the period; its figures are
+   computed here from those records and frozen with the package. */
+create or replace function public.abc_create_package(p_title text, p_start date, p_end date, p_office uuid)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_ngo uuid := public.my_ngo(); v_ids uuid[]; v_id uuid; v_name text := public.sp_actor_name();
+begin
+  if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
+  if coalesce(public.sp_member_role(v_ngo), '') not in ('admin', 'coordinator') then raise exception 'Only a coordinator or admin can prepare a report package'; end if;
+  if not exists (select 1 from review_offices where id = p_office) then raise exception 'Choose a reviewing office'; end if;
+  if p_end < p_start then raise exception 'The period ends before it starts'; end if;
+  select array_agg(c.id order by c.created_at) into v_ids from cases c
+  where c.ngo_id = v_ngo and c.created_at::date between p_start and p_end
+    and exists (select 1 from abc_attestations a where a.case_id = c.id and a.kind = 'evidence_reviewed' and a.revoked_at is null);
+  if coalesce(array_length(v_ids, 1), 0) = 0 then raise exception 'No reviewed records in that period'; end if;
+  insert into report_packages (ngo_id, office_id, title, period_start, period_end, case_ids, summary, created_by)
+  values (v_ngo, p_office, coalesce(nullif(btrim(p_title), ''), 'Report package'), p_start, p_end, v_ids,
+          jsonb_build_object('records', array_length(v_ids, 1), 'vet_authorised', (select count(*) from abc_attestations a where a.case_id = any (v_ids) and a.kind = 'vet_authorised' and a.revoked_at is null),
+                             'evidence_items', (select count(*) from evidence_items e where e.case_id = any (v_ids)), 'generated_at', now()),
+          auth.uid())
+  returning id into v_id;
+  insert into package_events (package_id, actor_id, actor_name, side, kind, body) values (v_id, auth.uid(), v_name, 'operator', 'created', null);
+  insert into operational_audit_log (ngo_id, actor_id, entity_type, entity_id, action, after_data) values (v_ngo, auth.uid(), 'report_package', v_id, 'abc_create_package', jsonb_build_object('records', array_length(v_ids, 1)));
+  return v_id;
+end $$;
+revoke all on function public.abc_create_package(text, date, date, uuid) from public, anon;
+grant execute on function public.abc_create_package(text, date, date, uuid) to authenticated;
+
+/* Operator: submit a draft, or answer a query. Reviewer: query, accept or
+   return. Each is a recorded event; acceptance is only ever a person's act. */
+create or replace function public.abc_package_act(p_package uuid, p_kind text, p_body text default null)
+returns text language plpgsql security definer set search_path = public as $$
+declare p report_packages%rowtype; v_name text := public.sp_actor_name(); v_reviewer boolean; v_operator boolean; v_next text;
+begin
+  if auth.uid() is null then raise exception 'Sign in first'; end if;
+  select * into p from report_packages where id = p_package for update;
+  if not found then raise exception 'Package not found'; end if;
+  v_operator := p.ngo_id = public.my_ngo() and coalesce(public.sp_member_role(p.ngo_id), '') in ('admin', 'coordinator');
+  v_reviewer := exists (select 1 from review_office_members m where m.office_id = p.office_id and m.user_id = auth.uid());
+  if p_kind = 'submitted' then
+    if not v_operator then raise exception 'Only the operator''s coordinator can submit'; end if;
+    if p.status not in ('draft', 'returned') then raise exception 'This package has already been submitted'; end if;
+    v_next := 'submitted';
+  elsif p_kind = 'answer' then
+    if not v_operator then raise exception 'Only the operator can answer a query'; end if;
+    if p.status <> 'queried' then raise exception 'There is no open query'; end if;
+    if coalesce(btrim(p_body), '') = '' then raise exception 'Write the answer'; end if;
+    v_next := 'submitted';
+  elsif p_kind in ('query', 'accepted', 'returned') then
+    if not v_reviewer then raise exception 'Only a reviewer at the receiving office can do that'; end if;
+    if p.status not in ('submitted') then raise exception 'The package is not waiting for review'; end if;
+    if p_kind in ('query', 'returned') and coalesce(btrim(p_body), '') = '' then raise exception 'Say what needs attention'; end if;
+    v_next := case p_kind when 'query' then 'queried' when 'accepted' then 'accepted' else 'returned' end;
+  else raise exception 'Unknown action';
+  end if;
+  update report_packages set status = v_next,
+    submitted_at = case when p_kind = 'submitted' then now() else submitted_at end,
+    decided_by = case when p_kind in ('accepted', 'returned') then auth.uid() else decided_by end,
+    decided_by_name = case when p_kind in ('accepted', 'returned') then v_name else decided_by_name end,
+    decided_at = case when p_kind in ('accepted', 'returned') then now() else decided_at end
+  where id = p.id;
+  insert into package_events (package_id, actor_id, actor_name, side, kind, body) values (p.id, auth.uid(), v_name, case when v_reviewer and p_kind in ('query', 'accepted', 'returned') then 'reviewer' else 'operator' end, p_kind, nullif(btrim(p_body), ''));
+  insert into operational_audit_log (ngo_id, actor_id, entity_type, entity_id, action, before_data, after_data) values (p.ngo_id, auth.uid(), 'report_package', p.id, 'abc_package_' || p_kind, jsonb_build_object('status', p.status), jsonb_build_object('status', v_next));
+  return v_next;
+end $$;
+revoke all on function public.abc_package_act(uuid, text, text) from public, anon;
+grant execute on function public.abc_package_act(uuid, text, text) to authenticated;
+
+/* The cases inside a package, for the operator and for its reviewer. */
+create or replace function public.abc_package_cases(p_package uuid)
+returns table (case_id uuid, case_code text, title text, city text, created_at timestamptz, evidence jsonb, vet_name text, reviewer_name text)
+language plpgsql stable security definer set search_path = public as $$
+declare p report_packages%rowtype;
+begin
+  select * into p from report_packages where id = p_package;
+  if not found then raise exception 'Package not found'; end if;
+  if not (p.ngo_id = public.my_ngo() or (p.status <> 'draft' and exists (select 1 from review_office_members m where m.office_id = p.office_id and m.user_id = auth.uid()))) then
+    raise exception 'You cannot read this package';
+  end if;
+  return query
+  select c.id, c.case_code, c.title, c.city, c.created_at,
+    coalesce((select jsonb_agg(jsonb_build_object('kind', e.kind, 'url', e.url, 'location', e.location_text, 'at', e.captured_at) order by e.kind) from evidence_items e where e.case_id = c.id), '[]'::jsonb),
+    (select a.actor_name from abc_attestations a where a.case_id = c.id and a.kind = 'vet_authorised' and a.revoked_at is null),
+    (select a.actor_name from abc_attestations a where a.case_id = c.id and a.kind = 'evidence_reviewed' and a.revoked_at is null)
+  from cases c where c.id = any (p.case_ids) order by c.created_at;
+end $$;
+revoke all on function public.abc_package_cases(uuid) from public, anon;
+grant execute on function public.abc_package_cases(uuid) to authenticated;
+
+-- ── provenance: organisation-created cases are operator-created ───────
+create or replace function public.sp_case_operator_provenance()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  /* A case created by a signed-in member of the owning organisation, not by
+     an import, is an operator-created record. Imports set their provenance
+     explicitly and are left alone; so are community reports (no member). */
+  if new.provenance = 'community_report' and new.import_batch_id is null and new.ngo_id is not null and auth.uid() is not null
+     and exists (select 1 from ngo_members m where m.user_id = auth.uid() and m.ngo_id = new.ngo_id) then
+    new.provenance := 'operator_created';
+  end if;
+  return new;
+end $$;
+drop trigger if exists cases_operator_provenance on public.cases;
+create trigger cases_operator_provenance before insert on public.cases for each row execute function public.sp_case_operator_provenance();
+
+commit;

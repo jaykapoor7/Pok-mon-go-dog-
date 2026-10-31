@@ -1,5 +1,30 @@
 # StrayPaw product design system
 
+> **StrayPaw 3.0 (31 October 2026) supersedes the notes below where they
+> conflict.** One system across the site, sign-in and app
+> (`src/sp3/sp3.css`; app tokens re-pointed in `src/sp/shell/app3.css`).
+>
+> * **Ground** warm off-white `#fbf9f4`, white surfaces, hairline rules
+>   `rgba(11,30,61,.09)`. No folk backdrop, paper fibre or night posters in
+>   working screens; museum art stays for empty states and portraits.
+> * **Colour** ink `#0b1e3d` text; blue `#2457ce` is the primary action and
+>   selection; flame `#f05b40` only for urgency and Report; teal for care.
+> * **Type** DM Sans only. Page titles are product-sized (26–34px in the app,
+>   up to 76px on the marketing hero). No serif, no italics.
+> * **App shell** (`src/sp/shell/Shell.tsx`): sidebar with workspace
+>   switcher, Quick actions (⌘K), Ask StrayPaw AI (⌘J), workspace nav, other
+>   pages in collapsible groups, account at the foot; thin top bar with
+>   breadcrumb, search, AI and the one primary action. Phones keep the thumb
+>   bar plus an AI tab. Workspace order: Municipality, NGO, Community,
+>   Education.
+> * **StrayPaw AI** docks on the right or runs full screen at `/assistant`;
+>   answers carry tool runs and source links; changes are cards with
+>   Confirm, saved through the normal RPCs.
+> * **Honesty labels**: demos say "Product demo", integrations show live
+>   status, imported data is labelled as imported.
+>
+> Route-by-route status: `docs/sp3/ROUTE-MATRIX.md`.
+
 > **Current system (October 2026).** Everything after "Open App" runs in one
 > shell (`AppShell`, `.sx.sd` root) with its styles layered
 > `shell.css` → `dark.css` → `paper.css` → `record.css`. `paper.css` is the
