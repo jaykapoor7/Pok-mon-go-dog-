@@ -55,7 +55,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
       {state === "error" && <p className="abc-err" role="alert">{err}</p>}
       {state === "ok" && p && (
         <>
-          <header className="ngo-head">
+          <header className="ngo-head abc-head">
             <div><h1>{p.title}</h1></div>
             <p className="ngo-sum">{org} · {period(p)}{p.submitted_at ? ` · submitted ${when(p.submitted_at)}` : ""}{p.decided_by_name ? ` · ${PACKAGE_LABEL[p.status].toLowerCase()} by ${p.decided_by_name}` : ""}</p>
             <div className="row ngo-head-act"><span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span></div>

@@ -158,7 +158,35 @@ through a recorded review (who, when, what evidence). The label never changes on
    previous view definitions (kept in the change file), refresh the cache, and
    restore provenance values from `provenance_corrections`.
 
-## 8. Why the cleanup was not run in staging
+## 8. Staging test of the reversible cleanup (2026-10-31)
+
+Staging (`ucxfxiddufwqithtdtix`, a separate Supabase project) did not have the
+record-origin schema. It was added there with the same columns as production
+(`data_sources`, plus `record_scope` and `provenance_corrections`, and the
+`operational_animals` view), after a private `sp_backup` copy of every affected
+table. Labelled fixtures stood in for production's two cases: a research
+dataset with 3 animals, and an organisation register with 2 animals whose
+2 imported ABC cases were marked `verified` (the production fault).
+
+| Step | Operational animals | All animals | Imported `verified` | Imported `source_record` | Research-archive sources | Correction rows |
+|---|---:|---:|---:|---:|---:|---:|
+| A. Before | 8 | 8 | 2 | 0 | 0 | 0 |
+| B. Cleanup applied | 5 | 8 | 0 | 2 | 1 | 3 |
+| C. Reversed from `provenance_corrections` | 8 | 8 | 2 | 0 | 0 | 3 (marked reverted) |
+| D. Re-applied (staging left cleaned) | 5 | 8 | 0 | 2 | 1 | 6 |
+
+* No animal, case or history row was deleted at any step (all animals: 8 throughout).
+* Research animals leave operational figures by scope, not by deletion.
+* Every changed value was saved before the change and restored exactly.
+* The ABC verification queue never lists imported historical records or research
+  datasets; an imported record can rise only through that workflow.
+
+**Production:** not applied. The production plan in section 7 is unchanged and
+still needs separate approval; the application already keeps research programmes
+out of programme work and public programme figures in code.
+
+## 9. Why the cleanup was not run in staging before 2026-10-31
+
 
 Staging (`ucxfxiddufwqithtdtix`) has none of the provenance schema: no
 `data_sources` or `import_batches` table, and almost no data (2 cases, 0 animals). There is nothing

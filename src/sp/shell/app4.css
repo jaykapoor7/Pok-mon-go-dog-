@@ -276,3 +276,10 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 /* the organisation and section are already in the sidebar and top bar */
 .sp.sx3 :is(.ngo-head, .ci-head) > div > .k:first-child { display: none; }
 .sp.sx3 .ci-title > .k:first-child { display: none; }
+
+/* neutral "sunk" surface everywhere (was cream); AI page in the same system */
+.sp.sx3 { --s3-sunk: #f3f4f6; }
+.sp.sx3 .ai3-sugg button { background: #fff; box-shadow: inset 0 0 0 1px var(--line-2, #e1e3e8); font-weight: 400; }
+.sp.sx3 .ai3-sugg button:hover { box-shadow: inset 0 0 0 1px #b9cbf3; color: var(--s3-blue); }
+.sp.sx3 .ai3-prop { background: #fff; }
+.sp.sx3 .ai3-full-head h1 { font-weight: 500; }

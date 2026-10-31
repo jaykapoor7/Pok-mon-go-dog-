@@ -74,9 +74,9 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
 
   return (
     <>
-      <header className="ngo-head">
+      <header className="ngo-head abc-head">
         <div><h1>{d.head?.title || d.head?.case_code || "ABC procedure"}</h1></div>
-        <p className="ngo-sum">{[d.head?.case_code, d.head?.zone || d.head?.city, d.head ? `opened ${when(d.head.created_at)}` : null].filter(Boolean).join(" · ")}</p>
+        <p className="ngo-sum">{[d.head?.zone || d.head?.city, d.head ? `opened ${when(d.head.created_at)}` : null].filter(Boolean).join(" · ")}{d.head?.case_code && <span className="abc-code" title={d.head.case_code}>{d.head.case_code.length > 16 ? `${d.head.case_code.slice(0, 13)}…` : d.head.case_code}</span>}</p>
       </header>
       {msg && <p className={msg.ok ? "abc-ok" : "abc-err"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
       <div className="abc-grid">

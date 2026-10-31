@@ -67,7 +67,7 @@ export function ReviewInbox() {
               <ul className="abc-list">{shown.map((p) => (
                 <li key={p.id}><Link href={`/city/review/${p.id}`}>
                   <span className="abc-t"><b>{p.title}</b><small>{names[p.ngo_id] ?? "Operator"} · {period(p)}</small></span>
-                  <span className="abc-dots"><span>{p.summary.records ?? p.case_ids.length} records</span></span>
+                  <span className="abc-dots"><span>{(() => { const n = p.summary.records ?? p.case_ids.length; return `${n} ${n === 1 ? "record" : "records"}`; })()}</span></span>
                   <span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span>
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>
