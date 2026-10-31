@@ -13,6 +13,13 @@
 export type WorkspaceId = "community" | "ngo" | "city" | "learn";
 
 export type Dest = { href: string; label: string; short?: string; match?: string[] };
+/** A sidebar entry (3.0). `icon` names a lucide icon mapped in Shell. */
+export type Role = "admin" | "coordinator" | "veterinarian" | "member";
+/** A sidebar entry. `section` starts a labelled group that carries on to the
+    following items; `roles` limits the item to those organisation roles
+    (no role known: every item shows); `reviewer` shows it only to people in
+    a reviewing office. Display only: the database checks every action. */
+export type NavItem = { href: string; label: string; icon: string; match?: string[]; exact?: boolean; tone?: string; section?: string; roles?: Role[]; reviewer?: boolean };
 export type IndexGroup = { label: string; links: { href: string; label: string; note?: string }[] };
 
 export type Workspace = {
@@ -28,6 +35,10 @@ export type Workspace = {
   index: IndexGroup[];
   /** Needs an organisation membership to show its records (still visitable). */
   members?: boolean;
+  /** The 3.0 sidebar: the workspace's primary navigation, in order. */
+  nav: NavItem[];
+  /** The workspace's settings page, shown at the foot of the sidebar. */
+  settings?: string;
 };
 
 export const WORKSPACES: Record<WorkspaceId, Workspace> = {
@@ -40,6 +51,15 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { href: "/community/activity", label: "My Activity", short: "Activity" },
     ],
     action: { href: "/community/report", label: "Report an animal", short: "Report" },
+    nav: [
+      { href: "/community", label: "Map", icon: "map", match: ["/animal"], exact: true },
+      { href: "/community/report", label: "Report an animal", icon: "radio" },
+      { href: "/community/activity", label: "My activity", icon: "activity" },
+      { href: "/community/stories", label: "Stories", icon: "book", tone: "blue", section: "Explore" },
+      { href: "/community/organisations", label: "Organisations", icon: "building", tone: "teal" },
+      { href: "/fundraisers", label: "Fundraisers", icon: "heart", tone: "flame" },
+      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+    ],
     index: [
       { label: "Read", links: [
         { href: "/community/stories", label: "Stories", note: "Documented animals, start to finish" },
@@ -52,14 +72,27 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     ],
   },
   ngo: {
-    id: "ngo", label: "NGO", purpose: "Your organisation's work queue, animal register and map", ink: "#1f6f80",
-    home: "/ngo", members: true,
+    id: "ngo", label: "NGO", purpose: "Implementing agencies: work queue, animal register and fieldwork", ink: "#1f6f80",
+    home: "/ngo", members: true, settings: "/ngo/settings",
     dests: [
-      { href: "/ngo", label: "Work", match: ["/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field"] },
+      { href: "/ngo", label: "Home", match: ["/ngo/work", "/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field", "/ngo/verification", "/ngo/packages"] },
       { href: "/ngo/animals", label: "Animals", match: ["/ngo/import"] },
       { href: "/ngo/map", label: "Map", match: ["/ngo/programmes"] },
     ],
     action: { href: "/ngo/cases/new", label: "New case", short: "New" },
+    nav: [
+      { href: "/ngo", label: "Home", icon: "home", exact: true },
+      { href: "/ngo/inbox", label: "Inbox", icon: "inbox", roles: ["admin", "coordinator", "member"] },
+      { href: "/ngo/work", label: "Work queue", icon: "list", match: ["/ngo/cases"], roles: ["admin", "coordinator", "member"] },
+      { href: "/ngo/field", label: "Field operations", icon: "phone", tone: "green", section: "Modules", roles: ["member"] },
+      { href: "/ngo/verification", label: "Verification", icon: "shield", tone: "violet", section: "Modules" },
+      { href: "/ngo/animals", label: "Animals", icon: "paw", match: ["/ngo/import"], tone: "blue" },
+      { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal", roles: ["admin", "coordinator"] },
+      { href: "/ngo/packages", label: "Report packages", icon: "check", tone: "amber", roles: ["admin", "coordinator"] },
+      { href: "/ngo/map", label: "Map", icon: "map", tone: "flame" },
+      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+      { href: "/ngo/team", label: "Team & access", icon: "users", tone: "slate", roles: ["admin"] },
+    ],
     index: [
       { label: "Your register", links: [
         { href: "/ngo/import", label: "Import your register", note: "Excel or CSV, as your team keeps it" },
@@ -67,8 +100,9 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       ] },
       { label: "Work", links: [
         { href: "/ngo/inbox", label: "Inbox & triage", note: "New reports and offers" },
-        { href: "/ngo/review", label: "Historical review", note: "Imported statuses, never today's work" },
         { href: "/ngo/field", label: "Field mode", note: "Phone, one hand" },
+        { href: "/ngo/review", label: "Historical review", note: "Imported statuses, never today's work" },
+        { href: "/ngo/quality", label: "Data quality", note: "Gaps and checks in the register" },
       ] },
       { label: "Registers & reporting", links: [
         { href: "/ngo/programmes", label: "Programmes", note: "ABC / ARV drives, surveys" },
@@ -76,7 +110,6 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       ] },
       { label: "Records", links: [
         { href: "/ngo/care", label: "Care ledger", note: "Every care record, across animals" },
-        { href: "/ngo/quality", label: "Data quality", note: "Gaps and checks in the register" },
         { href: "/ngo/evidence", label: "Evidence files", note: "Register pages, ledgers, threads" },
       ] },
       { label: "Outreach", links: [
@@ -94,14 +127,22 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     ],
   },
   city: {
-    id: "city", label: "Municipality", purpose: "Evidence layers, programmes and publishable findings for a city", ink: "#2457ce",
+    id: "city", label: "Municipality", purpose: "Programme oversight: delivery, evidence and reports for a city", ink: "#2457ce",
     home: "/city",
     dests: [
       { href: "/city", label: "Map" },
-      { href: "/city/programmes", label: "Programmes" },
+      { href: "/city/review", label: "Review", match: ["/city/programmes"] },
       { href: "/city/insights", label: "Insights", match: ["/city/report"] },
     ],
     action: null,
+    nav: [
+      { href: "/city/review", label: "Package review", icon: "check", reviewer: true },
+      { href: "/city/insights", label: "Overview", icon: "home" },
+      { href: "/city/programmes", label: "Programmes", icon: "layers", tone: "teal", section: "Modules" },
+      { href: "/city/report", label: "Reports", icon: "file", tone: "amber" },
+      { href: "/city", label: "Map", icon: "map", exact: true, tone: "flame" },
+      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+    ],
     index: [
       { label: "Publish", links: [
         { href: "/city/report", label: "City report", note: "Print-ready, with sources" },
@@ -121,6 +162,13 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { href: "/learn/resources", label: "Resources" },
     ],
     action: null,
+    nav: [
+      { href: "/learn", label: "Learn", icon: "grad", match: ["/learn/courses"], exact: true },
+      { href: "/learn/workshops", label: "Workshops", icon: "users", tone: "blue", section: "Modules" },
+      { href: "/learn/resources", label: "Resources", icon: "book", tone: "teal" },
+      { href: "/learn/playground", label: "Playground", icon: "compass", tone: "amber" },
+      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+    ],
     index: [
       { label: "Explore", links: [
         { href: "/learn/playground", label: "Neighbourhood playground", note: "Illustrative, never a forecast" },
@@ -130,7 +178,15 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
   },
 };
 
-export const ORDER: WorkspaceId[] = ["community", "ngo", "city", "learn"];
+/** Switcher order: operational workspaces first (3.0). */
+export const ORDER: WorkspaceId[] = ["city", "ngo", "community", "learn"];
+
+/** Whether a sidebar item is the current page. */
+export function navOn(item: NavItem, path: string): boolean {
+  if (path === item.href) return true;
+  if (!item.exact && path.startsWith(item.href + "/")) return true;
+  return (item.match ?? []).some((m) => path === m || path.startsWith(m + "/"));
+}
 
 /** Which workspace a path belongs to; shared routes keep the last one. */
 export function workspaceFor(path: string, last: WorkspaceId | null): WorkspaceId {

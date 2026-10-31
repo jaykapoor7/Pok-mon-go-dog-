@@ -1,6 +1,6 @@
 import { AccessCodeRequest } from "@/components/join/AccessCodeRequest";
 import "../join/join.css";
-import { AppShell } from "@/components/app/AppShell";
+import { EntryFrame } from "@/sp3/entry/EntryFrame";
 
 export const metadata = {
   title: "Sign up for StrayPaw",
@@ -15,10 +15,10 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
      button. It had no way back at all — and a person who opened it
      by mistake, or who does not have a code yet, was stuck. */
   return (
-    <AppShell>
-      <main className="sp join-page join-inapp">
+    <EntryFrame>
+      <main className="sp join-page">
         <AccessCodeRequest role={role === "feeder" ? "feeder" : "individual"} />
       </main>
-    </AppShell>
+    </EntryFrame>
   );
 }

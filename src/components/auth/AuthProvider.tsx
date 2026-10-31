@@ -12,6 +12,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { KeyRound, X, Loader2, LogIn } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
+import "@/sp3/sp3.css";
 import { exchangeToken } from "@/lib/auth-exchange";
 import { track } from "@/lib/analytics";
 import { claimOrgMembership } from "@/lib/programme";
@@ -198,163 +199,101 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 // the session, so Supabase issues it and owns the security of it. Identical
 // to how an organisation's staff code signs somebody in — one path, not two.
 function SignInSheet({ onClose }: { onClose: () => void }) {
-  const supa = getSupabase();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const cleanCode = (v: string) =>
-    v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
-  const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const entered = cleanCode(code);
-    if (!emailOk) return setError("Enter the email address that received your code.");
-    if (entered.length < 4) return setError("A StrayPaw code is six characters.");
-    if (!supa) return setError("StrayPaw could not reach its account service. Try again shortly.");
-
     setBusy(true);
-    setStep("Checking your code");
-    try {
-      const res = await fetch("/api/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: entered, email: email.trim().toLowerCase() }),
-      });
-      const data = (await res.json()) as {
-        kind?: "staff" | "volunteer" | "personal";
-        tokenHash?: string;
-        role?: string;
-        error?: string;
-      };
-      if (!res.ok) return setError(data.error ?? "That email and code did not match.");
-
-      /* A volunteer code grants reporting for a named team and deliberately
-         mints no account, so there is no session to wait for. Sending them
-         to /join is right here: it stores the team and opens reporting. */
-      if (data.kind === "volunteer" || !data.tokenHash) {
-        window.location.href = `/join?code=${encodeURIComponent(entered)}`;
-        return;
-      }
-
-      setStep("Signing you in");
-      const exchange = await exchangeToken(supa, data.tokenHash);
-      if (exchange.error || !exchange.session) {
-        /* Carry the real reason rather than "try once more", which sent
-           people round the same loop with nothing to report. */
-        return setError(`Your code is right, but the sign-in did not complete: ${exchange.error}`);
-      }
-
-      /* Record the use against a session the server can verify for itself,
-         and join them to their organisation if the code carried one. */
-      await fetch("/api/join", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${exchange.session.access_token}`,
-        },
-        body: JSON.stringify({ code: entered, action: "claim" }),
-      }).catch(() => {
-        /* The session exists either way; a failed claim is not a failed
-           sign-in, and onAuthStateChange has already run the pending action. */
-      });
-      if (data.kind === "personal" && (data.role === "feeder" || data.role === "individual")) {
-        storeRole(data.role as Role);
-      }
-      track("login");
-      /* onAuthStateChange closes the sheet and runs whatever was waiting. */
-    } catch {
-      setError("Could not reach StrayPaw. Check your connection and try again.");
-    } finally {
-      setBusy(false);
-      setStep(null);
-    }
+    const r = await signInWithCode(email, code, setStep);
+    setBusy(false);
+    setStep(null);
+    if (!r.ok) setError(r.error);
+    /* onAuthStateChange closes the sheet and runs whatever was waiting. */
   }
-
-  const field =
-    "w-full rounded border border-bark-200 bg-white px-4 py-3 text-sm outline-none focus:border-paw-400 focus:ring-2 focus:ring-paw-100 dark:border-white/10";
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+      className="s3-root s3-signin-scrim"
       onClick={onClose}
     >
       <motion.div
-        initial={{ y: 60, opacity: 0 }}
+        initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 60, opacity: 0 }}
+        exit={{ y: 40, opacity: 0 }}
+        transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
         onClick={(e) => e.stopPropagation()}
-        className="card w-full max-w-sm rounded-b-none rounded-t-3xl p-6 sm:rounded"
+        className="s3-signin-sheet"
         role="dialog"
         aria-modal="true"
         aria-labelledby="signin-title"
       >
-        <div className="mb-4 flex items-center justify-between">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-paw-100 text-paw-600">
-            <KeyRound className="h-5 w-5" />
-          </span>
-          <button onClick={onClose} className="rounded-full p-1 text-bark-400 hover:bg-bark-100" aria-label="Close">
-            <X className="h-5 w-5" />
-          </button>
+        <div className="s3-signin-top">
+          <span className="s3-signin-key"><KeyRound size={18} /></span>
+          <button type="button" onClick={onClose} className="s3-signin-x" aria-label="Close"><X size={18} /></button>
         </div>
-
-        <h2 id="signin-title" className="font-display text-xl">Sign in with your code</h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-bark-500">
-          The email address that received your StrayPaw code, and the six
-          characters. No password. The same pair works every time, on any
-          device.
-        </p>
-
-        <form onSubmit={submit} className="mt-4 space-y-3">
-          <input
-            autoFocus
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@email.com"
-            className={field}
-            disabled={busy}
-            aria-label="Email address"
-          />
-          <input
-            value={code}
-            onChange={(e) => setCode(cleanCode(e.target.value))}
-            placeholder="XXXXXX"
-            inputMode="text"
-            autoCapitalize="characters"
-            autoComplete="one-time-code"
-            spellCheck={false}
-            maxLength={8}
-            className={`${field} font-mono tracking-[0.3em]`}
-            disabled={busy}
-            aria-label="Your six-character code"
-          />
-          <button type="submit" disabled={busy} className="btn-primary w-full py-3">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+        <h2 id="signin-title">Sign in to StrayPaw</h2>
+        <p className="s3-signin-sub">The email that received your StrayPaw code, and the six characters. No password; the same pair works on any device.</p>
+        <form onSubmit={submit} className="s3-signin-form">
+          <div className="s3-field"><label htmlFor="sheet-email">Work email</label>
+            <input id="sheet-email" autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@organisation.org" className="s3-input" disabled={busy} /></div>
+          <div className="s3-field"><label htmlFor="sheet-code">Access code</label>
+            <input id="sheet-code" value={code} onChange={(e) => setCode(cleanCode(e.target.value))} placeholder="XXXXXX" inputMode="text" autoCapitalize="characters" autoComplete="one-time-code" spellCheck={false} maxLength={8} className="s3-input is-code" disabled={busy} /></div>
+          <button type="submit" disabled={busy} className="s3-btn is-primary" style={{ width: "100%" }}>
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <LogIn size={16} />}
             {busy ? (step ?? "Working") : "Sign in"}
           </button>
         </form>
-
-        {error && <p role="alert" className="mt-3 text-sm font-medium text-status-injured">{error}</p>}
-
-        <p className="mt-4 text-center text-[12.5px] leading-relaxed text-bark-500">
-          No code? <a href="/access" className="font-semibold text-paw-600 hover:underline" onClick={onClose}>Have one emailed to you</a>.
-        </p>
-        <p className="mt-2 text-center text-[11.5px] leading-relaxed text-bark-400">
-          Reporting a street animal never needs a sign-in.
-        </p>
+        {error && <p role="alert" className="s3-err" style={{ marginTop: 12 }}>{error}</p>}
+        <p className="s3-signin-foot">No code? <a href="/access" onClick={onClose}>Have one emailed to you</a> · <a href="/partner-apply" onClick={onClose}>Apply for a workspace</a></p>
+        <p className="s3-signin-foot is-quiet">Reporting a street animal never needs a sign-in.</p>
       </motion.div>
     </motion.div>
   );
 }
 
 export const useAuth = () => useContext(Ctx);
+
+export const cleanCode = (v: string) => v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+
+/**
+ * The one sign-in path: email + standing code, verified by /api/join, which
+ * returns a one-time token that Supabase exchanges for the session. Used by
+ * the sign-in sheet and the /sign-in page alike, so there is no second login
+ * system. Nothing is checked in the browser.
+ */
+export async function signInWithCode(emailIn: string, codeIn: string, onStep?: (s: string) => void): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supa = getSupabase();
+  const email = emailIn.trim().toLowerCase();
+  const entered = cleanCode(codeIn);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, error: "Enter the email address that received your code." };
+  if (entered.length < 4) return { ok: false, error: "A StrayPaw code is six characters." };
+  if (!supa) return { ok: false, error: "StrayPaw could not reach its account service. Try again shortly." };
+  onStep?.("Checking your code");
+  try {
+    const res = await fetch("/api/join", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: entered, email }) });
+    const data = (await res.json()) as { kind?: "staff" | "volunteer" | "personal"; tokenHash?: string; role?: string; error?: string };
+    if (!res.ok) return { ok: false, error: data.error ?? "That email and code did not match." };
+    /* A volunteer code grants reporting for a named team and deliberately
+       mints no account; /join stores the team and opens reporting. */
+    if (data.kind === "volunteer" || !data.tokenHash) { window.location.href = `/join?code=${encodeURIComponent(entered)}`; return { ok: true }; }
+    onStep?.("Signing you in");
+    const exchange = await exchangeToken(supa, data.tokenHash);
+    if (exchange.error || !exchange.session) return { ok: false, error: `Your code is right, but the sign-in did not complete: ${exchange.error}` };
+    /* Record the use against a verified session, and join the organisation the code carried. */
+    await fetch("/api/join", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${exchange.session.access_token}` }, body: JSON.stringify({ code: entered, action: "claim" }) }).catch(() => { /* a failed claim is not a failed sign-in */ });
+    if (data.kind === "personal" && (data.role === "feeder" || data.role === "individual")) storeRole(data.role as Role);
+    track("login");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Could not reach StrayPaw. Check your connection and try again." };
+  }
+}

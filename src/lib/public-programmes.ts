@@ -69,11 +69,22 @@ function normalise(row:any):PublicProgramme {
   };
 }
 
+/** Programme cards that summarise published research and public datasets,
+ * not operational programme work on StrayPaw (record-level manifest:
+ * docs/sp4/DATA-PROVENANCE.md). They stay readable by id, for citation, but
+ * are not listed or counted as programmes. Reversible: remove an id here. */
+export const RESEARCH_ARCHIVE_PROGRAMME_IDS = new Set([
+  "abbd502c-ef23-4248-8e90-2b0cb8927b52", // HSI Jamshedpur CNVR clinical records, 2013–2016
+  "4fdb16ca-de99-473c-a480-6f300f0e687a", // Mission Rabies Ranchi public dataset, 2014–2015
+  "f2a9fb35-01f9-4ab9-8a40-149747afbd48", // IISER Kolkata free-ranging dog studies
+]);
+export const isResearchArchiveProgramme = (id: string | null | undefined) => !!id && RESEARCH_ARCHIVE_PROGRAMME_IDS.has(id);
+
 export async function getPublicProgrammes(limit = 100): Promise<PublicProgramme[]> {
   const supa = getSupabase();
   if (!supa) return [];
-  const { data } = await supa.from("public_programme_cards").select("*").order("ends_on", { ascending: false, nullsFirst: false }).limit(limit);
-  return (data ?? []).map(normalise);
+  const { data } = await supa.from("public_programme_cards").select("*").order("ends_on", { ascending: false, nullsFirst: false }).limit(limit + RESEARCH_ARCHIVE_PROGRAMME_IDS.size);
+  return (data ?? []).filter((r: { id: string }) => !isResearchArchiveProgramme(r.id)).slice(0, limit).map(normalise);
 }
 
 export async function getPublicProgramme(id: string): Promise<PublicProgramme | null> {

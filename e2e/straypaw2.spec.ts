@@ -29,7 +29,7 @@ async function sendOrSkip(page: Page) {
 
 test.describe("old addresses land on their 2.0 homes", () => {
   const cases: [string, RegExp][] = [
-    ["/app", /\/community$/], ["/map?city=Coimbatore", /\/community\?city=Coimbatore$/], ["/report", /\/community\/report$/],
+    ["/map?city=Coimbatore", /\/community\?city=Coimbatore$/], ["/report", /\/community\/report$/],
     ["/following", /\/community\/activity$/], ["/dog/00000000-0000-4000-8000-000000000000", /\/animal\/00000000-0000-4000-8000-000000000000$/],
     ["/insights?city=Coimbatore", /\/city\/insights\?city=Coimbatore$/], ["/municipality", /\/city$/], ["/programmes", /\/city\/programmes$/],
     ["/partner", /\/ngo$/], ["/partner/cases/new?dogId=abc", /\/ngo\/cases\/new\?(.*&)?dog=abc(&|$)/], ["/partner/review", /\/ngo\/review$/],
@@ -53,20 +53,26 @@ test("the landing page still renders its hero", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test("the guided request has readable disclosure and a web reporting destination", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/");
-  await expect(page.locator("#one-request")).toContainText("StrayPaw is on WhatsApp");
-  await expect(page.locator("#whatsapp-groups")).toContainText("looks up any animal by its StrayPaw ID");
-  await expect(page.locator("#one-request")).not.toContainText(/pilot/i);
-  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Report a sighting" })).toHaveAttribute("href","/community/report");
+test("Open App is a gateway, not a redirect, and reporting stays one tap away", async ({ page, request }) => {
+  expect((await request.get("/app", { maxRedirects: 0 })).status()).toBe(200);
+  await page.goto("/app");
+  await expect(page.getByRole("link", { name: /Report an animal/ })).toHaveAttribute("href", "/community/report");
 });
 
-test("solutions: the URL chooses the audience", async ({ page }) => {
-  await page.goto("/solutions#ngos");
-  await expect(page.getByRole("tab", { name: /Animal welfare organisations/ })).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("tab", { name: /Municipal teams/ }).click();
-  await expect(page).toHaveURL(/#municipal$/);
-  await expect(page.getByRole("tabpanel")).toContainText("area by area");
+test("the field-intake story is labelled and points to working web reporting", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });await page.goto("/whatsapp");
+  const main = page.locator("main");
+  await expect(main.getByText("Not connected", { exact: true }).first()).toBeVisible();
+  await expect(main.getByRole("link", { name: "web report form" })).toHaveAttribute("href", "/community/report");
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: /See how it works/ }).first()).toHaveAttribute("href", "/ai");
+});
+
+test("solutions: every solution has its own page", async ({ page }) => {
+  await page.goto("/solutions");
+  for (const href of ["/for-ngos", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-community"]) {
+    await expect(page.locator(`main a[href="${href}"]`).first()).toBeVisible();
+  }
 });
 
 /* On a phone the layers sit behind one "Map layer" button. */

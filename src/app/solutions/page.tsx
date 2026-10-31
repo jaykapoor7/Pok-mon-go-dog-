@@ -1,72 +1,44 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { CoShell, CoSec } from "@/components/co3/CoShell";
-import { Audiences } from "@/components/solutions/Audiences";
-import type { Loc } from "@/components/ecosystem/Commons";
-import { getLandingStory } from "@/lib/landing/story";
-import { getMapCities } from "@/lib/livingmap/server";
-import { getOperationalPartners } from "@/lib/partners";
-import "@/components/ecosystem/commons.css";
-import "@/components/solutions/solutions.css";
+import { ArrowRight } from "lucide-react";
+import { PLATFORM, SOLUTIONS } from "@/sp3/site/nav-data";
+import { PageHead, S4Page, SecHead, TwoTone } from "@/sp4/site/kit";
+import { Rise } from "@/sp4/site/Rise";
+import "@/sp4/home/home4.css";
 
-export const revalidate = 300;
-export const metadata = {
-  title: "Solutions, StrayPaw",
-  description: "Tools for communities, animal welfare organisations, cities and partners.",
-};
+export const metadata = { title: "Solutions · StrayPaw", description: "StrayPaw for ABC operators and NGOs, ABC/ARV programmes, rescue and care, government oversight and community groups." };
 
-/* ════════════════════════════════════════════════════════════════════
-   Solutions: who StrayPaw is for and what each of them does with it.
-   One interactive view per audience (problem, workflow, live glimpse,
-   way in), then who is on it today and how an organisation starts.
-   Listing is never described as a partnership.
-   ════════════════════════════════════════════════════════════════════ */
-
-
-export default async function SolutionsPage() {
-  const [story, cities, partners] = await Promise.all([
-    getLandingStory().catch(() => null),
-    getMapCities().catch(() => []),
-    getOperationalPartners().catch(() => []),
-  ]);
-  const sample = story?.hero.city ?? null, c = cities.find((x) => x.city === sample) ?? null;
-  const brief = c ? { city: c.city, animals: c.animals, cells: c.cells, sterilised: c.sterilised, ster_unknown: c.ster_unknown, cases: c.cases } : null;
-  const locs: Loc[] = (() => { const by = new Map<string, number>(); for (const a of story?.desk.cells ?? []) if (a.name) by.set(a.name, (by.get(a.name) ?? 0) + a.open); return [...by.entries()].map(([name, open]) => ({ name, open })).sort((a, b) => b.open - a.open); })();
-
+export default function SolutionsPage() {
   return (
-    <CoShell seed={3}
-      kicker="Solutions"
-      title="One shared record. Four ways to use it."
-      closing="Find the right tools for your work."
-      lede="Tools for communities, animal welfare organisations, cities and partners."
-      actions={<>
-        <Link href="#residents" className="co3-btn is-flame">Find your way in <ArrowUpRight size={17} aria-hidden /></Link>
-        <Link href="/product" className="co3-btn is-line">See the product</Link>
-      </>}
-    >
-      <section className="co3-sol" aria-label="Solutions by audience">
-        <Audiences queue={story?.desk.queue ?? []} brief={brief} locs={locs} />
-      </section>
-
-      <CoSec title="Join as an organisation.">
-        <ol className="co3-list">
-          <li><b>Apply</b><span>Tell us about your organisation and where it works.</span></li>
-          <li><b>Set up your workspace</b><span>Once verified, invite your team and add existing records.</span></li>
-        </ol>
-        <div className="co3-acts">
-          <Link href="/partner-apply" className="co3-btn is-flame">Apply to join</Link>
-          <Link href="/join" className="co3-btn is-line">Sign in with your code</Link>
+    <S4Page close={undefined}>
+      <PageHead title={<TwoTone a="One operating record," b="for everyone in the programme" />} lede="StrayPaw starts with the funded ABC operator. Rescue, care, community reports and government review run on the same records." />
+      <section className="s4-sec" aria-labelledby="sol-list">
+        <div className="s4-wrap">
+          <h2 id="sol-list" className="s4-h2" style={{ marginBottom: 40 }}>Solutions</h2>
+          <div className="s4-tiles">
+            {SOLUTIONS.map((s, i) => (
+              <Rise key={s.href} delay={(i % 3) * 60}>
+                <Link href={s.href} className="s4-tile" style={{ height: "100%" }}>
+                  <span className={`s4-ico c-${s.tone ?? "blue"}`} style={{ width: 44, height: 44, borderRadius: 10, marginBottom: 18 }} aria-hidden>{s.icon}</span>
+                  <h3>{s.label}</h3><p>{s.hint}</p><span className="s4-link is-sm">Explore <ArrowRight size={14} aria-hidden /></span>
+                </Link>
+              </Rise>
+            ))}
+          </div>
         </div>
-      </CoSec>
-
-      <CoSec title="Field partners.">
-        {partners.length > 0 && <>
-          <p className="is-lead">Field partner</p>
-          <ul className="co3-names">{partners.map((p) => <li key={p.id}><b>{p.name}</b><small>{[p.city, p.state].filter(Boolean).join(", ")}</small></li>)}</ul>
-        </>}
-        <p>Organisation listings and data sources are separate. <Link href="/evidence">Credited data sources</Link>.</p>
-        <p><Link href="/community/organisations">The full directory</Link> · <Link href="/contact?subject=Partnership">Talk to us about a partnership</Link></p>
-      </CoSec>
-    </CoShell>
+      </section>
+      <section className="s4-sec" aria-labelledby="sol-pf">
+        <div className="s4-wrap">
+          <SecHead id="sol-pf" title={<TwoTone a="What every solution" b="is built on" />} />
+          <div style={{ borderTop: "1px solid var(--s4-line)" }}>
+            {PLATFORM.map((m) => (
+              <Link key={m.href} href={m.href} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 24, alignItems: "center", padding: "22px 0", borderBottom: "1px solid var(--s4-line)" }}>
+                <div><b style={{ fontSize: 19, fontWeight: 500, letterSpacing: "-0.02em" }}>{m.label}</b><p className="s4-body" style={{ marginTop: 4 }}>{m.hint}</p></div>
+                <ArrowRight size={20} aria-hidden />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+    </S4Page>
   );
 }

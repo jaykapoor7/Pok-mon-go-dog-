@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useSelectedLayoutSegments } from "next/navigation";
-import { AppShell } from "@/components/app/AppShell";
+import { Shell } from "@/sp/shell/Shell";
 
 /**
  * Marketing and auth pages render their own full-bleed chrome.
@@ -82,8 +82,11 @@ const SELF_SHELLED = new Set<string>([
   "/orgs",
 ]);
 
+/** StrayPaw 3.0 public and entry pages render their own nav and footer. */
+const S3_PUBLIC = /^\/(pricing|abc-operations|security|research|for-governments|for-ngos|for-funders|platform|ai|whatsapp|customers|demo|docs|solutions|sign-in|app|partners|faq|donate|safety|privacy|terms|cookies)(\/|$)/;
+
 /** StrayPaw 2.0 routes mount their own shell (src/sp/shell/Shell). */
-const SP2 = /^\/(community|ngo|city|learn|animal|search|trust)(\/|$)/;
+const SP2 = /^\/(community|ngo|city|learn|animal|search|trust|assistant)(\/|$)/;
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -93,7 +96,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
   // ISR can render the root through an internal pathname. The route tree
   // identifies the landing page consistently during regeneration and in the
   // browser, so its server HTML never acquires the application console.
-  const own = segments.length === 0 || OWN_CHROME.has(pathname) || pathname.startsWith("/org/") || pathname.startsWith("/dog/");
+  const own = segments.length === 0 || OWN_CHROME.has(pathname) || S3_PUBLIC.test(pathname) || pathname.startsWith("/org/") || pathname.startsWith("/dog/");
   if (own) return <><a href="#main-content" className="skip-link">Skip to content</a><div id="main-content" tabIndex={-1}>{children}</div></>;
 
   if (pathname.startsWith("/embed/") || pathname.startsWith("/org/")) return <>{children}</>;
@@ -102,6 +105,6 @@ export function Chrome({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Everything else is an app surface: one console, one shell.
-  return <AppShell>{children}</AppShell>;
+  // Everything else is an app surface: the one 3.0 application shell.
+  return <Shell>{children}</Shell>;
 }

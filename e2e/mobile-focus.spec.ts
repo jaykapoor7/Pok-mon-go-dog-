@@ -14,92 +14,66 @@ async function scrollThrough(page: Page, selector: string, f: number) {
   await page.waitForTimeout(250);
 }
 
-test("landing closes in one night section that carries the footer", async ({ page }) => {
+test("landing closes with one demo call to action and the site index", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".ld-levels,.restored-partners,.ld-audience")).toHaveCount(0);
+  await expect(page.locator("main .s4-close")).toHaveCount(1);
+  await expect(page.locator("main .s4-close .is-primary")).toHaveCount(1);
+  await expect(page.locator("main .s4-close .is-primary")).toHaveText("Book a demo");
   const end = page.getByRole("contentinfo");
-  await expect(end.locator(".lx-end-cta")).toHaveCount(1);
-  await expect(end.locator(".lx-end-foot")).toHaveCount(1);
-  await expect(end.locator("details")).toHaveCount(0);
-  for (const gone of ["Art credits", "Data and resources", "Who it’s for"]) await expect(end).not.toContainText(gone);
-  await expect(end.getByRole("link", { name: "Report a sighting" })).toHaveCount(1);
-  expect(await page.locator(".sp-header").evaluate(el => getComputedStyle(el, "::before").backgroundImage)).toBe("none");
+  for (const col of ["Product", "Solutions", "Resources", "Company"]) await expect(end.getByRole("heading", { name: col, exact: true })).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
-test("the WhatsApp message types, becomes a record, and the section ends at the checked record", async ({ page }) => {
-  /* Under reduced motion the story follows the scroll exactly. */
-  await page.emulateMedia({ reducedMotion: "reduce" });
+test("the hero demo is labelled, plays its story with the phone, and can be paused", async ({ page }) => {
   await page.goto("/");
-  const s = page.locator("#one-request");
-  await expect(s).not.toContainText(/pilot|illustrative|preview/i);
-  await expect(s.getByRole("button")).toHaveCount(0);
-  await scrollThrough(page, ".rt-track", 0);
-  await expect(s.locator(".rt-stage")).not.toHaveClass(/is-sent/);
-  await scrollThrough(page, ".rt-track", 0.5);
-  await expect(s.locator(".rt-stage")).toHaveClass(/is-sent/);
-  await scrollThrough(page, ".rt-track", 1);
-  await expect(s.locator(".rt-rec-status")).toHaveText("Checked by a person");
-  /* The words that left the bubble sit where the record keeps them. */
-  for (const k of ["animal", "place", "cond"]) {
-    const [f, g] = await Promise.all([s.locator(`.rt-fly .is-${k}`).boundingBox(), s.locator(".rt-rec-v").nth(["animal", "place", "cond"].indexOf(k)).boundingBox()]);
-    expect(Math.abs(f!.x - g!.x)).toBeLessThan(3); expect(Math.abs(f!.y - g!.y)).toBeLessThan(3);
-  }
-  /* The map, city label and reply bubbles were removed from this section;
-     the group chat and the city map live in the sections that follow. */
-  await expect(page.locator(".rt-map, .rt-city, .rt-reply, .rt-msg")).toHaveCount(0);
+  const demo = page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ });
+  await expect(demo).toBeVisible();
+  await expect(demo).toContainText("Product demo · illustrative records");
+  await expect(demo).toContainText("WhatsApp not connected");
+  await expect(demo).toContainText("Here is your daily brief.");
+  /* the story moves on by itself, and the phone thread grows with it */
+  await expect(demo).toContainText("Weekly evidence check", { timeout: 15_000 });
+  await expect(demo).toContainText("Three of eighteen");
+  /* Pause holds the scene; a step can be chosen directly */
+  await demo.getByRole("button", { name: "Pause the demo" }).click();
+  await demo.getByRole("button", { name: "Show: Report package" }).click();
+  await expect(demo).toContainText("Ward 14 ABC drive · October 2026");
+  await page.waitForTimeout(6000);
+  await expect(demo).toContainText("Ward 14 ABC drive · October 2026");
 });
 
-test("both WhatsApp stories play by themselves once on screen", async ({ page }) => {
+test("the AI jobs advance by themselves and stop when one is chosen", async ({ page }) => {
   await page.goto("/");
-  /* Held still on each story, it moves on without any scrolling. */
-  const progress = () => page.evaluate(() => Number(/scaleX\(([\d.]+)\)/.exec((document.querySelector(".rt-progress i") as HTMLElement).style.transform)?.[1] ?? 0));
-  await scrollThrough(page, ".rt-track", 0);
-  const a = await progress();
-  await expect.poll(progress, { timeout: 15_000 }).toBeGreaterThan(a + 0.05);
-  await scrollThrough(page, ".bg-track", 0);
-  const msgs = () => page.locator("#whatsapp-groups .bg-msg, #whatsapp-groups .bg-sys").count();
-  const m = await msgs();
-  await expect.poll(msgs, { timeout: 15_000 }).toBeGreaterThan(m + 1);
-});
-
-test("the group bot files, looks up, runs a drive and says what is due, as the reader scrolls", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  const g = page.locator("#whatsapp-groups");
-  await expect(g.getByRole("heading", { level: 2 })).toHaveText("StrayPaw in your NGO’s WhatsApp group");
-  await scrollThrough(page, ".bg-track", 0.25);
-  await expect(g.locator(".bg-skills li.is-now")).toContainText("Files what the group posts");
-  await scrollThrough(page, ".bg-track", 0.45);
-  await expect(g.locator(".bg-skills li.is-now")).toContainText("Looks up any animal");
-  await scrollThrough(page, ".bg-track", 0.8);
-  await expect(g.locator(".bg-msg").last()).toContainText("18 sterilised, 22 vaccinated");
-  await scrollThrough(page, ".bg-track", 1);
-  await expect(g.locator(".bg-skills li.is-now")).toContainText("Says what is due");
-  await expect(g.getByRole("link", { name: /Add StrayPaw to your NGO’s group/ })).toHaveAttribute("href", /contact/);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  const band = page.locator(".s4-band");
+  await band.scrollIntoViewIfNeeded();
+  const jobs = band.locator(".s4-jobs button");
+  await expect(jobs.first()).toHaveAttribute("aria-pressed", "true");
+  await expect(jobs.nth(1)).toHaveAttribute("aria-pressed", "true", { timeout: 12_000 });
+  await jobs.nth(3).click();
+  await expect(jobs.nth(3)).toHaveAttribute("aria-pressed", "true");
+  await page.waitForTimeout(7000);
+  await expect(jobs.nth(3)).toHaveAttribute("aria-pressed", "true");
 });
 
 test("NGO remains a workspace on both Community and NGO pages", async ({ page }) => {
   for (const path of ["/community", "/ngo"]) {
     await page.goto(path);
-    await page.locator(".sp-ws-btn").click();
+    await page.locator(".sx3-ws-btn:visible, .sp-ws-btn:visible").first().click();
     await expect(page.getByRole("menuitemradio", { name: /NGO/ })).toHaveCount(1);
     await page.keyboard.press("Escape");
   }
 });
 
-test("phone menu: four places, five audiences, one Open App", async ({ page }) => {
+test("phone menu: grouped places, one demo action, one sign in", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu", exact: true }).click();
-  await expect(page.getByRole("link", { name: /Open App/ })).toHaveCount(1);
-  await expect(page.locator(".sp-sheet-main > li")).toHaveCount(4);
-  await expect(page.locator(".sp-sheet-main")).toContainText("Impact");
-  await expect(page.locator(".sp-sheet-group a")).toHaveCount(5);
-  await expect(page.locator("#sp-sheet")).not.toContainText("Report an animal");
+  const sheet = page.locator("#s4-sheet");
+  await expect(sheet.getByRole("link", { name: "Book a demo" })).toHaveCount(1);
+  await expect(sheet.getByRole("link", { name: "Login" })).toHaveCount(1);
+  await expect(sheet.locator("details > summary")).toHaveCount(3);
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("button", { name: "Open menu", exact: true })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Open menu", exact: true })).toHaveAttribute("aria-expanded", "false");
 });
 
 test("signed-out NGO page shows what the workspace includes at every width", async ({ page }) => {
@@ -116,7 +90,22 @@ test("signed-out NGO page shows what the workspace includes at every width", asy
   }
 });
 
-test("More is grouped and closes without losing the workspace", async ({ page }) => {
+test("desktop sidebar groups the workspace's other pages under More", async ({ page, isMobile }) => {
+  test.skip(!!isMobile, "phones use the More sheet");
+  await page.goto("/ngo");
+  const side = page.getByRole("complementary", { name: "Workspace" });
+  await expect(side.locator(".sx4-sec")).toHaveText(["Modules", "Platform"]);
+  const more = side.locator(".sx3-more");
+  const groups = more.locator(".sx3-group");
+  expect(await groups.count()).toBeGreaterThan(1);
+  await expect(groups.first().locator("ul")).toBeHidden();
+  await more.locator("summary").click();
+  await expect(groups.first().locator("ul")).toBeVisible();
+  await expect(page).toHaveURL(/\/ngo$/);
+});
+
+test("More is grouped and closes without losing the workspace", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "desktop uses the sidebar groups");
   await page.goto("/ngo");
   await page.getByRole("button", { name: "More", exact: true }).first().click();
   const more = page.getByRole("dialog", { name: "More in NGO" });

@@ -13,17 +13,17 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ClipboardList, MapPin, PawPrint, Search, X } from "lucide-react";
+import { ArrowRight, ClipboardList, MapPin, PawPrint, Search, Sparkles, X } from "lucide-react";
 import { searchRegister, type RegisterRow } from "@/lib/case-register";
 import type { FoundAnimal, FoundPlace } from "@/lib/livingmap/server";
 import { WORKSPACES, type WorkspaceId } from "./workspaces";
 
-type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to"; title: string; detail: string; href: string };
+type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to" | "Ask AI"; title: string; detail: string; href: string };
 
 let cityList: Promise<string[]> | null = null;
 const cities = () => (cityList ??= fetch("/api/livingmap?kind=cities").then((r) => (r.ok ? r.json() : { cities: [] })).then((j) => ((j.cities ?? []) as { city: string }[]).map((c) => c.city)).catch(() => { cityList = null; return []; }));
 
-export function Finder({ open, onClose, ws, member }: { open: boolean; onClose: () => void; ws: WorkspaceId; member: boolean }) {
+export function Finder({ open, onClose, ws, member, onAsk }: { open: boolean; onClose: () => void; ws: WorkspaceId; member: boolean; onAsk?: (q: string) => void }) {
   const router = useRouter();
   const ref = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -60,7 +60,9 @@ export function Finder({ open, onClose, ws, member }: { open: boolean; onClose: 
     const t = q.trim().toLowerCase();
     const out: Hit[] = [];
     const def = WORKSPACES[ws];
-    for (const d of def.dests) if (!t || d.label.toLowerCase().includes(t)) out.push({ key: `go:${d.href}`, kind: "Go to", title: d.label, detail: def.label, href: d.href });
+    if (t && onAsk) out.push({ key: "ask", kind: "Ask AI", title: `Ask StrayPaw AI: “${q.trim()}”`, detail: "Searches your authorised records and answers with citations", href: "#ask" });
+    for (const d of def.nav) if (!t || d.label.toLowerCase().includes(t)) out.push({ key: `go:${d.href}`, kind: "Go to", title: d.label, detail: def.label, href: d.href });
+    for (const g of def.index) for (const l of g.links) if (t && l.label.toLowerCase().includes(t) && !def.nav.some((n) => n.href === l.href)) out.push({ key: `go:${l.href}`, kind: "Go to", title: l.label, detail: `${def.label} · ${g.label}`, href: l.href });
     if (t) {
       for (const c of allCities.filter((c) => c.toLowerCase().includes(t)).slice(0, 4)) out.push({ key: `c:${c}`, kind: "City", title: c, detail: "City register on the map", href: `/community?city=${encodeURIComponent(c)}` });
       for (const p of places) out.push({ key: `p:${p.city}:${p.name}`, kind: "Place", title: p.name, detail: `${p.city} · ${p.animals.toLocaleString("en-IN")} animal record${p.animals === 1 ? "" : "s"} placed in this locality`, href: `/community?city=${encodeURIComponent(p.city)}&place=${encodeURIComponent(p.name)}` });
@@ -68,10 +70,10 @@ export function Finder({ open, onClose, ws, member }: { open: boolean; onClose: 
       for (const c of cases) out.push({ key: `k:${c.id}`, kind: "Case", title: `${c.case_code ?? "Case"} · ${c.condition_class ?? c.title ?? "Open case"}`, detail: [c.animal_name && !/·/.test(c.animal_name) ? c.animal_name : c.straypaw_id, c.zone, c.status_class?.replace(/_/g, " ")].filter(Boolean).join(" · "), href: `/ngo/cases/${c.id}` });
     }
     return out;
-  }, [q, ws, allCities, places, animals, cases]);
+  }, [q, ws, allCities, places, animals, cases, onAsk]);
 
   useEffect(() => { setAt(0); }, [hits.length]);
-  const go = (h: Hit | undefined) => { if (!h) return; onClose(); router.push(h.href); };
+  const go = (h: Hit | undefined) => { if (!h) return; if (h.kind === "Ask AI") { onAsk?.(q.trim()); return; } onClose(); router.push(h.href); };
 
   return (
     <dialog ref={ref} className="sp-finder" aria-label="Search" onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
@@ -89,7 +91,7 @@ export function Finder({ open, onClose, ws, member }: { open: boolean; onClose: 
         </label>
         <ul id="sp-finder-list" role="listbox" aria-label="Results" className="sp-finder-list">
           {hits.map((h, i) => {
-            const Icon = h.kind === "Animal" ? PawPrint : h.kind === "Case" ? ClipboardList : h.kind === "Go to" ? ArrowRight : MapPin;
+            const Icon = h.kind === "Ask AI" ? Sparkles : h.kind === "Animal" ? PawPrint : h.kind === "Case" ? ClipboardList : h.kind === "Go to" ? ArrowRight : MapPin;
             return (
               <li key={h.key} id={`sp-hit-${i}`} role="option" aria-selected={i === at} onMouseEnter={() => setAt(i)} onClick={() => go(h)}>
                 <Icon size={17} aria-hidden /><span><b>{h.title}</b><small>{h.detail}</small></span><em className="k">{h.kind}</em>
@@ -98,7 +100,7 @@ export function Finder({ open, onClose, ws, member }: { open: boolean; onClose: 
           })}
         </ul>
         <p className="sp-finder-foot k" role="status">
-          {state === "loading" ? "Searching the public record…" : state === "error" ? "Search is unavailable right now. That is not the same as no results; try again." : q.trim().length > 0 && q.trim().length < 3 ? "Type three letters or more." : q.trim() && hits.length <= WORKSPACES[ws].dests.length ? "Nothing on the public record matches. A place may be on the record under another spelling." : member ? "Your organisation's cases are searched with your access, never shown to anyone else." : "Searches the public record only. Exact locations and private notes are never searchable."}
+          {state === "loading" ? "Searching the public record…" : state === "error" ? "Search is unavailable right now. That is not the same as no results; try again." : q.trim().length > 0 && q.trim().length < 3 ? "Type three letters or more." : q.trim() && !places.length && !animals.length && !cases.length ? "Nothing on the public record matches. A place may be on the record under another spelling." : member ? "Your organisation's cases are searched with your access, never shown to anyone else." : "Searches the public record only. Exact locations and private notes are never searchable."}
         </p>
       </div>
     </dialog>

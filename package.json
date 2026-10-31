@@ -44,7 +44,9 @@
     "import:kind-hour": "node scripts/import-kind-hour.mjs",
     "reel:snapshot": "node scripts/reels/snapshot.mjs",
     "reel": "node scripts/reels/render.mjs",
-    "test:ngo-import": "node --import tsx scripts/test-ngo-import-read.ts && node --import tsx scripts/test-ngo-import-write.ts"
+    "test:ngo-import": "node --import tsx scripts/test-ngo-import-read.ts && node --import tsx scripts/test-ngo-import-write.ts",
+    "test:ai-extract": "node --import tsx scripts/test-ai-extract.ts",
+    "test:careos-webhook": "node --import tsx scripts/test-careos-webhook.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
