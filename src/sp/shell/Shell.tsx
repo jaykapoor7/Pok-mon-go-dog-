@@ -19,10 +19,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, Fragment, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity, BookOpen, Building2, ChevronDown, ChevronsUpDown, Compass, FileText, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers,
   LifeBuoy, LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
+  ListChecks,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, isNgoMember } from "@/lib/actions";
@@ -47,7 +48,7 @@ export const useMembership = () => useContext(Membership);
 const ICON: Record<string, typeof MapIcon> = {
   map: MapIcon, radio: Radio, activity: Activity, book: BookOpen, building: Building2, heart: HeartHandshake, sparkles: Sparkles,
   home: Home, inbox: Inbox, paw: PawPrint, layers: Layers, phone: Smartphone, shield: ShieldCheck, file: FileText, grad: GraduationCap,
-  users: Users, compass: Compass, landmark: Landmark,
+  users: Users, compass: Compass, landmark: Landmark, list: ListChecks,
 };
 const DEST_ICON: Record<string, typeof MapIcon> = {
   "/community": MapIcon, "/community/report": Radio, "/community/activity": Activity,
@@ -148,7 +149,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           <nav className="sx3-nav" aria-label={`${def.label} navigation`}>
             {def.nav.filter((n) => n.href !== "/assistant").map((n) => {
               const Icon = ICON[n.icon] ?? Home;
-              return <Link key={n.href} href={n.href} aria-current={navOn(n, path) ? "page" : undefined} title={collapsed ? n.label : undefined}><Icon size={16} aria-hidden /><span>{n.label}</span></Link>;
+              const link = <Link key={n.href} href={n.href} aria-current={navOn(n, path) ? "page" : undefined} title={collapsed ? n.label : undefined}>{n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={12} /></span> : <Icon size={16} aria-hidden />}<span>{n.label}</span></Link>;
+              return n.section ? <Fragment key={n.href}><p className="sx4-sec">{n.section}</p>{link}</Fragment> : link;
             })}
             <Link href="/assistant" aria-current={onAssistant ? "page" : undefined} title={collapsed ? "StrayPaw AI" : undefined}><Sparkles size={16} aria-hidden /><span>StrayPaw AI</span></Link>
           </nav>

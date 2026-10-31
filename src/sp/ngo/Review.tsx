@@ -62,7 +62,7 @@ export function Review({ initial }: { initial: Cohort }) {
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · review</p><h1 className="serif">Review</h1></div>
           <p className="ngo-sum">Decisions about the record itself. Each is written to the case&rsquo;s history with your name; none of them closes anything on a timer.{decided ? <> <b>{decided}</b> decided this session.</> : null}</p>
-          <div className="row"><Link className="btn is-s" href="/ngo">Back to Work</Link></div>
+          <div className="row"><Link className="btn is-s" href="/ngo/work">Back to the work queue</Link></div>
         </header>
         <div className="tabs rv-tabs" role="tablist" aria-label="Cohort">
           {COHORTS.map((c) => <button key={c.id} type="button" role="tab" aria-selected={cohort === c.id} onClick={() => setCohort(c.id)}>{c.label}<span className="n">{counts[c.id] === undefined ? "…" : n(counts[c.id]!)}</span></button>)}

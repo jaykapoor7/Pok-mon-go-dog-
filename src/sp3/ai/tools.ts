@@ -26,7 +26,7 @@ const animalLabel = (a: { name?: string | null; straypaw_id?: string | null; cod
 const NEEDS_ORG = { data: { error: "Organisation access required" }, summary: "Needs an organisation workspace", citations: [], ok: false } satisfies ToolOut;
 
 export const NAV: Record<string, { href: string; label: string }> = {
-  work: { href: "/ngo", label: "Work queue" }, inbox: { href: "/ngo/inbox", label: "Inbox" }, animals: { href: "/ngo/animals", label: "Animals" },
+  work: { href: "/ngo/work", label: "Work queue" }, inbox: { href: "/ngo/inbox", label: "Inbox" }, animals: { href: "/ngo/animals", label: "Animals" },
   programmes: { href: "/ngo/programmes", label: "Programmes" }, field: { href: "/ngo/field", label: "Field mode" }, review: { href: "/ngo/review", label: "Evidence review" },
   quality: { href: "/ngo/quality", label: "Data quality" }, reports: { href: "/ngo/proof", label: "Reports & proof" }, import: { href: "/ngo/import", label: "Import a register" },
   team: { href: "/ngo/team", label: "Team & access" }, settings: { href: "/ngo/settings", label: "Settings" }, new_case: { href: "/ngo/cases/new", label: "New case" },

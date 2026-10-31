@@ -107,7 +107,7 @@ export function Field() {
           {mine.map((c) => <CaseCard key={c.id} c={c} online={online} receipt={r[`n${c.id}`]} startR={r[`s${c.id}`]} drafted={drafts.filter((d) => d.caseId === c.id).length} onStart={async () => actor && done(`s${c.id}`, await startWork(c.id, actor))} onNote={(t) => note(c, t)} />)}
         </ul>
         {cases !== null && !failed && !mine.length && !myFus.length && (
-          <State art="ngo-empty" title="Nothing held by you" action={<Link className="btn is-ink" href="/ngo?focus=unowned">See {unowned} unowned case{unowned === 1 ? "" : "s"}</Link>}>Take a case from Work and it appears here for the field.</State>
+          <State art="ngo-empty" title="Nothing held by you" action={<Link className="btn is-ink" href="/ngo/work?focus=unowned">See {unowned} unowned case{unowned === 1 ? "" : "s"}</Link>}>Take a case from Work and it appears here for the field.</State>
         )}
         <p className="small fd-foot">Field mode shows only cases you hold. <Link className="link" href="/ngo">Open the full queue</Link>.</p>
       </div>

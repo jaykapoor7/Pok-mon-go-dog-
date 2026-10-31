@@ -14,7 +14,7 @@ export type WorkspaceId = "community" | "ngo" | "city" | "learn";
 
 export type Dest = { href: string; label: string; short?: string; match?: string[] };
 /** A sidebar entry (3.0). `icon` names a lucide icon mapped in Shell. */
-export type NavItem = { href: string; label: string; icon: string; match?: string[]; exact?: boolean };
+export type NavItem = { href: string; label: string; icon: string; match?: string[]; exact?: boolean; tone?: string; section?: string };
 export type IndexGroup = { label: string; links: { href: string; label: string; note?: string }[] };
 
 export type Workspace = {
@@ -68,20 +68,21 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     id: "ngo", label: "NGO", purpose: "Implementing agencies: work queue, animal register and fieldwork", ink: "#1f6f80",
     home: "/ngo", members: true,
     dests: [
-      { href: "/ngo", label: "Work", match: ["/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field"] },
+      { href: "/ngo", label: "Home", match: ["/ngo/work", "/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field"] },
       { href: "/ngo/animals", label: "Animals", match: ["/ngo/import"] },
       { href: "/ngo/map", label: "Map", match: ["/ngo/programmes"] },
     ],
     action: { href: "/ngo/cases/new", label: "New case", short: "New" },
     nav: [
-      { href: "/ngo", label: "Work", icon: "home", match: ["/ngo/cases"], exact: true },
-      { href: "/ngo/inbox", label: "Inbox", icon: "inbox" },
-      { href: "/ngo/animals", label: "Animals", icon: "paw" },
-      { href: "/ngo/programmes", label: "Programmes", icon: "layers" },
-      { href: "/ngo/field", label: "Field operations", icon: "phone" },
-      { href: "/ngo/review", label: "Evidence review", icon: "shield", match: ["/ngo/quality"] },
-      { href: "/ngo/proof", label: "Reports", icon: "file" },
-      { href: "/ngo/map", label: "Map", icon: "map" },
+      { href: "/ngo", label: "Home", icon: "home", exact: true },
+      { href: "/ngo/work", label: "Work queue", icon: "list", match: ["/ngo/cases"] },
+      { href: "/ngo/inbox", label: "Inbox", icon: "inbox", tone: "flame", section: "Modules" },
+      { href: "/ngo/animals", label: "Animals", icon: "paw", tone: "blue" },
+      { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal" },
+      { href: "/ngo/field", label: "Field operations", icon: "phone", tone: "green" },
+      { href: "/ngo/review", label: "Evidence review", icon: "shield", match: ["/ngo/quality"], tone: "violet" },
+      { href: "/ngo/proof", label: "Reports", icon: "file", tone: "amber" },
+      { href: "/ngo/map", label: "Map", icon: "map", tone: "slate" },
       { href: "/assistant", label: "StrayPaw AI", icon: "sparkles" },
     ],
     index: [
