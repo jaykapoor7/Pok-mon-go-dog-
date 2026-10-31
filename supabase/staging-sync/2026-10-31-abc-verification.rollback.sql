@@ -28,6 +28,11 @@ drop table if exists public.review_offices;
 -- org_followup_scope_counts: staging did not have it before; drop to return
 -- to the exact earlier state (production keeps its own copy).
 drop function if exists public.org_followup_scope_counts();
+-- record-origin schema (staging only; production already has data_sources)
+drop view if exists public.operational_animals;
+alter table public.dogs drop constraint if exists dogs_data_source_id_fkey;
+drop table if exists public.provenance_corrections;
+drop table if exists public.data_sources;
 commit;
 
 -- Optional, staging only: restore rows exactly as they were (evidence and

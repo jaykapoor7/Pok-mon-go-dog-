@@ -482,4 +482,62 @@ $function$;
 revoke all on function public.org_followup_scope_counts() from public, anon;
 grant execute on function public.org_followup_scope_counts() to authenticated;
 
+-- ── record-origin schema (staging lacked it; same columns as production) ──
+-- data_sources mirrors production, plus record_scope, which marks research
+-- archives so they never count in operations or verified programme figures.
+-- provenance_corrections keeps the prior value of every relabelled field, so
+-- a provenance cleanup can be reversed exactly. Nothing is deleted.
+create table if not exists public.data_sources (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  source_type text not null check (source_type in ('research_dataset','municipal_dataset','public_api','media_repository','government_dataset','organisation_register')),
+  source_name text not null,
+  source_dataset text not null,
+  organization_name text not null,
+  reporting_org_id uuid references public.ngos(id) on delete set null,
+  source_url text not null,
+  source_license text,
+  source_license_url text,
+  license_status text not null default 'pending' check (license_status in ('verified','pending','restricted','rejected')),
+  publication_status text not null default 'staged' check (publication_status in ('discovered','staged','validated','published','blocked')),
+  attribution_requirements text,
+  restrictions text,
+  importer_version text not null,
+  geographic_precision text,
+  record_count integer not null default 0 check (record_count >= 0),
+  published_record_count integer not null default 0 check (published_record_count >= 0),
+  metadata jsonb not null default '{}'::jsonb,
+  discovered_at timestamptz not null default now(),
+  validated_at timestamptz,
+  published_at timestamptz,
+  updated_at timestamptz not null default now(),
+  record_scope text not null default 'operational' check (record_scope in ('operational','research_archive'))
+);
+alter table public.data_sources enable row level security;
+create policy ds_read on public.data_sources for select to authenticated using (true);
+revoke insert, update, delete on public.data_sources from anon, authenticated;
+grant select on public.data_sources to authenticated;
+alter table public.dogs add constraint dogs_data_source_id_fkey foreign key (data_source_id) references public.data_sources(id);
+
+create table if not exists public.provenance_corrections (
+  id bigserial primary key,
+  batch text not null,
+  table_name text not null,
+  row_id uuid not null,
+  column_name text not null,
+  old_value text,
+  new_value text,
+  reason text not null,
+  corrected_at timestamptz not null default now(),
+  reverted_at timestamptz
+);
+alter table public.provenance_corrections enable row level security;
+revoke all on public.provenance_corrections from anon, authenticated;
+
+create or replace view public.operational_animals with (security_invoker = true) as
+  select d.* from public.dogs d
+  where not exists (select 1 from public.data_sources s where s.id = d.data_source_id and s.record_scope = 'research_archive');
+grant select on public.operational_animals to authenticated;
+
 commit;
+
