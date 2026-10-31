@@ -1,0 +1,72 @@
+"use client";
+
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+
+const TYPES: Record<string, string> = {
+  demo: "Product demo",
+  pilot: "Government demo / municipal pilot",
+  ngo: "NGO workspace",
+  funder: "Funder monitoring",
+  careos: "CareOS / WhatsApp pilot list",
+};
+
+/** Sends through the existing /api/contact route (rate-limited, emailed to the StrayPaw inbox). */
+export function DemoForm() {
+  const q = useSearchParams();
+  const initial = q?.get("type") && TYPES[q.get("type")!] ? q.get("type")! : "demo";
+  const [type, setType] = useState(initial);
+  const [state, setState] = useState<"idle" | "busy" | "sent">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const f = new FormData(e.currentTarget);
+    const get = (k: string) => String(f.get(k) ?? "").trim();
+    const message = [
+      `Request: ${TYPES[type]}`,
+      `Organisation: ${get("org")}`,
+      `Role: ${get("role")}`,
+      `City / state: ${get("city")}`,
+      `Phone: ${get("phone") || "not given"}`,
+      "",
+      get("notes") || "(no notes)",
+    ].join("\n");
+    setState("busy");
+    try {
+      const res = await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: get("name"), email: get("email"), subject: `${TYPES[type]}: ${get("org") || get("name")}`, message }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setState("idle"); setError(data.error ?? "That did not send. Nothing was submitted."); return; }
+      setState("sent");
+    } catch { setState("idle"); setError("Could not reach StrayPaw. Check your connection; nothing was submitted."); }
+  }
+
+  if (state === "sent") return (
+    <div className="s3-panel" style={{ padding: 32, display: "grid", gap: 12 }} role="status">
+      <CheckCircle2 size={28} style={{ color: "var(--s3-green)" }} />
+      <h2 className="s3-h3">Request received.</h2>
+      <p className="s3-body">It reached the StrayPaw team by email. We reply within two working days with times for a call. Nothing else happens until you agree to it.</p>
+    </div>
+  );
+
+  return (
+    <form onSubmit={submit} className="s3-panel" style={{ padding: 28, display: "grid", gap: 16 }} noValidate={false}>
+      <div className="s3-field"><label htmlFor="d-type">What would you like?</label>
+        <select id="d-type" className="s3-input" value={type} onChange={(e) => setType(e.target.value)}>{Object.entries(TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
+      <div className="s3-grid-2" style={{ gap: 14 }}>
+        <div className="s3-field"><label htmlFor="d-name">Your name</label><input id="d-name" name="name" className="s3-input" required autoComplete="name" /></div>
+        <div className="s3-field"><label htmlFor="d-email">Work email</label><input id="d-email" name="email" type="email" className="s3-input" required autoComplete="email" /></div>
+        <div className="s3-field"><label htmlFor="d-org">Organisation</label><input id="d-org" name="org" className="s3-input" required autoComplete="organization" /></div>
+        <div className="s3-field"><label htmlFor="d-role">Your role</label><input id="d-role" name="role" className="s3-input" placeholder="e.g. Veterinary officer, programme lead" /></div>
+        <div className="s3-field"><label htmlFor="d-city">City / state</label><input id="d-city" name="city" className="s3-input" /></div>
+        <div className="s3-field"><label htmlFor="d-phone">Phone (optional)</label><input id="d-phone" name="phone" type="tel" className="s3-input" autoComplete="tel" /></div>
+      </div>
+      <div className="s3-field"><label htmlFor="d-notes">Your programme</label><textarea id="d-notes" name="notes" className="s3-input" placeholder="Programme type, partners, how records are kept today, what you need to report." /></div>
+      {error && <p className="s3-err" role="alert">{error}</p>}
+      <button type="submit" className="s3-btn is-primary" disabled={state === "busy"} style={{ justifySelf: "start" }}>{state === "busy" ? <><Loader2 size={16} className="animate-spin" />Sending</> : <>Send request <ArrowRight size={16} /></>}</button>
+      <p className="s3-small">We use these details only to reply to you. See <a className="s3-link" style={{ fontSize: 13 }} href="/privacy">privacy</a>.</p>
+    </form>
+  );
+}

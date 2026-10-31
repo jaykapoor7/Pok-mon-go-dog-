@@ -1,72 +1,36 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { CoShell, CoSec } from "@/components/co3/CoShell";
-import { Audiences } from "@/components/solutions/Audiences";
-import type { Loc } from "@/components/ecosystem/Commons";
-import { getLandingStory } from "@/lib/landing/story";
-import { getMapCities } from "@/lib/livingmap/server";
-import { getOperationalPartners } from "@/lib/partners";
-import "@/components/ecosystem/commons.css";
-import "@/components/solutions/solutions.css";
+import { ArrowRight } from "lucide-react";
+import { PLATFORM, SOLUTIONS } from "@/sp3/site/nav-data";
+import { CtaBand, PageHead, S3Page, SecHead } from "@/sp3/site/Sections";
 
-export const revalidate = 300;
-export const metadata = {
-  title: "Solutions, StrayPaw",
-  description: "Tools for communities, animal welfare organisations, cities and partners.",
-};
+export const metadata = { title: "Solutions · StrayPaw", description: "StrayPaw for municipalities, NGOs, ABC/ARV programmes, rescue and care, and funders." };
 
-/* ════════════════════════════════════════════════════════════════════
-   Solutions: who StrayPaw is for and what each of them does with it.
-   One interactive view per audience (problem, workflow, live glimpse,
-   way in), then who is on it today and how an organisation starts.
-   Listing is never described as a partnership.
-   ════════════════════════════════════════════════════════════════════ */
+const MORE = [
+  { href: "/for-community", label: "Community", hint: "Report an animal and follow what is recorded next. Free, no account." },
+  { href: "/for-feeders", label: "Feeders", hint: "Know the animals on your route and keep their sightings together." },
+  { href: "/education", label: "Education", hint: "Courses, workshops and credited teaching materials." },
+];
 
-
-export default async function SolutionsPage() {
-  const [story, cities, partners] = await Promise.all([
-    getLandingStory().catch(() => null),
-    getMapCities().catch(() => []),
-    getOperationalPartners().catch(() => []),
-  ]);
-  const sample = story?.hero.city ?? null, c = cities.find((x) => x.city === sample) ?? null;
-  const brief = c ? { city: c.city, animals: c.animals, cells: c.cells, sterilised: c.sterilised, ster_unknown: c.ster_unknown, cases: c.cases } : null;
-  const locs: Loc[] = (() => { const by = new Map<string, number>(); for (const a of story?.desk.cells ?? []) if (a.name) by.set(a.name, (by.get(a.name) ?? 0) + a.open); return [...by.entries()].map(([name, open]) => ({ name, open })).sort((a, b) => b.open - a.open); })();
-
+export default function SolutionsPage() {
   return (
-    <CoShell seed={3}
-      kicker="Solutions"
-      title="One shared record. Four ways to use it."
-      closing="Find the right tools for your work."
-      lede="Tools for communities, animal welfare organisations, cities and partners."
-      actions={<>
-        <Link href="#residents" className="co3-btn is-flame">Find your way in <ArrowUpRight size={17} aria-hidden /></Link>
-        <Link href="/product" className="co3-btn is-line">See the product</Link>
-      </>}
-    >
-      <section className="co3-sol" aria-label="Solutions by audience">
-        <Audiences queue={story?.desk.queue ?? []} brief={brief} locs={locs} />
-      </section>
-
-      <CoSec title="Join as an organisation.">
-        <ol className="co3-list">
-          <li><b>Apply</b><span>Tell us about your organisation and where it works.</span></li>
-          <li><b>Set up your workspace</b><span>Once verified, invite your team and add existing records.</span></li>
-        </ol>
-        <div className="co3-acts">
-          <Link href="/partner-apply" className="co3-btn is-flame">Apply to join</Link>
-          <Link href="/join" className="co3-btn is-line">Sign in with your code</Link>
+    <S3Page>
+      <PageHead eyebrow="Solutions" title="One operating record, for everyone who runs a programme." lede="Municipal ABC/ARV programmes are where StrayPaw starts. Rescue, care and funder reporting run on the same records." />
+      <section className="s3-wrap" style={{ paddingBottom: 72 }}>
+        <div className="s3-grid-3">
+          {SOLUTIONS.map((s) => (
+            <Link key={s.href} href={s.href} className="s3-card s3-feature"><span className="s3-ico" aria-hidden>{s.icon}</span><h3>{s.label}</h3><p>{s.hint}</p><span className="s3-link" style={{ fontSize: 14 }}>Explore <ArrowRight size={13} /></span></Link>
+          ))}
         </div>
-      </CoSec>
-
-      <CoSec title="Field partners.">
-        {partners.length > 0 && <>
-          <p className="is-lead">Field partner</p>
-          <ul className="co3-names">{partners.map((p) => <li key={p.id}><b>{p.name}</b><small>{[p.city, p.state].filter(Boolean).join(", ")}</small></li>)}</ul>
-        </>}
-        <p>Organisation listings and data sources are separate. <Link href="/evidence">Credited data sources</Link>.</p>
-        <p><Link href="/community/organisations">The full directory</Link> · <Link href="/contact?subject=Partnership">Talk to us about a partnership</Link></p>
-      </CoSec>
-    </CoShell>
+      </section>
+      <section className="s3-sec is-line"><div className="s3-wrap">
+        <SecHead eyebrow="Also on StrayPaw" title="Public tools, free for everyone." />
+        <div className="s3-rows">{MORE.map((m) => <Link key={m.href} href={m.href}><div><b>{m.label}</b><p>{m.hint}</p></div><ArrowRight size={18} /></Link>)}</div>
+      </div></section>
+      <section className="s3-sec is-line"><div className="s3-wrap">
+        <SecHead eyebrow="Platform" title="What every solution is built on." />
+        <div className="s3-rows">{PLATFORM.map((m) => <Link key={m.href} href={m.href}><div><b>{m.label}</b><p>{m.hint}</p></div><ArrowRight size={18} /></Link>)}</div>
+      </div></section>
+      <CtaBand title="Not sure where to start?" lede="Tell us about your programme and we will show you the relevant workflow." />
+    </S3Page>
   );
 }

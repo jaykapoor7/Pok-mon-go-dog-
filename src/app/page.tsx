@@ -1,75 +1,112 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
-import { SiteHeader, StrayPawMark } from "@/components/site/SiteHeader";
-import { FooterIndex } from "@/components/site/FooterIndex";
-import { HeroPlate } from "@/components/landing/HeroPlate";
-import { HeroTally } from "@/components/landing/HeroTally";
-import { AnimalRegister } from "@/components/landing/AnimalRegister";
-import { LandingMotion } from "@/components/landing/LandingMotion";
-import { getLandingStory } from "@/lib/landing/story";
-import { getDogsTreated, getRegisterTotals } from "@/lib/register/totals";
-import { ReportThread } from "@/components/landing/ReportThread";
-import { BotGroups } from "@/components/landing/BotGroups";
-import caseArchive from "@/data/landing-case-archive.json";
-import areaArchive from "@/data/landing-area-archive.json";
-import registerArchive from "@/data/landing-register-archive.json";
-import "@/components/site/site.css";
-import "@/components/site/field-site.css";
-import "@/components/world/home.css";
-import "@/components/request/chain.css";
-import "@/components/landing/landing.css";
-import "@/components/production/production.css";
-import "@/components/landing/restored-landing.css";
-import "@/components/site/plain.css";
+import { AiShowcase, HeroDemo, PlatformScreens, ProductTour, UseCases } from "@/sp3/home/Demos";
+import { Integrations, S3Page, SecHead, Security, StoryCard, TrustStrip } from "@/sp3/site/Sections";
 
-export const revalidate = 300;
-export const metadata = {title:"StrayPaw. Every street animal on the record.",description:"One shared record connecting sightings, field work and outcomes for India’s street animals."};
-const FAQ=[
- ["Is StrayPaw free to use?","Yes for residents, community reporters and animal lookups: no account, no fee. Institutional programmes for NGOs and municipalities are scoped and priced separately; contact us for organisation access."],
- ["What happens after a report?","A report is checked before publication. Organisations can review and choose whether to accept it. Reporting does not guarantee rescue, treatment or a response time."],
- ["How can an NGO participate?","Apply for an organisation workspace. After verification, your team can review requests, assign cases, import records and record care and follow-ups."],
- ["Can I report through WhatsApp? What does it cost?","Reporting on WhatsApp is free for residents and community reporters: message the StrayPaw bot with a photo and your location, no fee. The NGO group bot (filing reports a team posts, animal lookup, drive counts and the morning due list in your team's WhatsApp group) is a paid subscription for organisations, billed monthly by usage. Contact StrayPaw to connect your NGO."],
- ["How does a municipality or institution start?","Send your city, programme, available records and goals. We agree scope, responsibilities, deliverables, duration and fees before work begins."],
+export const metadata = {
+  title: "StrayPaw · Every intervention. Accounted for.",
+  description: "Operations software for municipal ABC/ARV programmes and the NGOs that deliver them: one record for every animal, intervention, evidence review and report, with StrayPaw AI built in.",
+};
+
+const FAQ: [string, string][] = [
+  ["Who is StrayPaw for?", "Municipal corporations, urban local bodies and other public authorities that run or fund animal birth control (ABC) and anti-rabies vaccination (ARV) programmes, and the NGOs, veterinary teams and contractors that deliver them. Rescue, care centres, research and community reporting run on the same record."],
+  ["How does a department buy it?", "As a scoped deployment: a paid pilot or a licence with implementation, training and support, agreed in writing before work begins. Tell us how your department procures and we will work within it. We do not claim compliance with any tender until we have its specification."],
+  ["What does it cost?", "Verified NGOs get the core operational workspace free. Municipal and institutional deployments are scoped and priced per programme before any work begins. We do not publish a price list yet."],
+  ["Is WhatsApp intake live?", "Not yet. CareOS is built against the Meta WhatsApp Cloud API, but the number is not verified and Meta approval is pending, so nothing is sent or received over WhatsApp today. Field teams record work on the web and phone field mode in the meantime."],
+  ["Does the AI make decisions?", "No. StrayPaw AI searches, summarises and prepares records with citations. Anything that changes a record is shown to you first and saved only when you confirm. It cannot approve medical procedures, certify fieldwork or authorise payments."],
+  ["Can we bring our existing registers?", "Yes. Excel and CSV registers import as they are. Uncertain matches go to review, and imported rows stay labelled as imported."],
+  ["Is it free for residents?", "Yes. Reporting an animal and using the public map need no account and no fee."],
 ];
-export default async function HomePage(){
- const [story,totals,treated]=await Promise.all([getLandingStory().catch(()=>null),getRegisterTotals().catch(()=>null),getDogsTreated().catch(()=>null)]);
- const hero=story?.hero??caseArchive.hero;
- const box:[number,number,number,number]=[hero.box[0],hero.box[1],hero.box[2],hero.box[3]];
- const liveAreas=story?.desk.cells??[];
- const areas=liveAreas.length?liveAreas.map(c=>({ring:c.ring,open:c.open,crit:c.crit,name:c.name})):areaArchive.areas;
- return <div className={`sp field-site product-site ld sw restored-landing`}>
-  <PageView name="landing_view"/><LandingMotion/><SiteHeader overlay/>
-  <main>
-   <section id="world" className="ld-hero" aria-labelledby="hero-title"><div className="ld-stage">
-    <HeroPlate city={hero.city} box={box} rings={hero.rings} events={hero.events}/>
-    <div className="ld-hero-copy"><h1 id="hero-title">Every stray animal in India.<em>Seen. Tracked. Cared&nbsp;for.</em></h1>
-     <p className="ld-hero-sub">One shared record for every sighting, case and outcome.</p>
-     {totals&&totals.animals>0&&<HeroTally animals={totals.animals} treated={treated} cities={totals.cities}/>}
-     <div className="ld-hero-actions"><Link href="/community/report" className="sw-btn is-flame">Report a sighting<ArrowUpRight size={18} aria-hidden/></Link><Link href="/explore" className="sw-btn is-paper">Explore the Map<ArrowUpRight size={15} aria-hidden/></Link></div>
-     {!story&&<p className="ld-hero-source">Coimbatore public record · captured 20 October 2026</p>}
-    </div></div></section>
-   <AnimalRegister data={registerArchive.data} total={registerArchive.data.total} archived/>
-   <ReportThread areas={areas} city={liveAreas.length?hero.city:areaArchive.city} recordedAt={liveAreas.length?undefined:"20 Oct 2026"}/>
-   <BotGroups/>
-   <section className="lx-faq" aria-labelledby="faq-title"><div className="lx-faq-in">
-    <div className="lx-faq-intro"><h2 id="faq-title">A few things to know.</h2><Link href="/contact">Ask us something else<ArrowUpRight size={16} aria-hidden/></Link></div>
-    <div className="lx-faq-list">{FAQ.map(([q,a])=><details key={q}><summary><span>{q}</span><i aria-hidden/></summary><p>{a}</p></details>)}</div>
-   </div></section>
-  </main>
-  <footer className="lx-end" aria-labelledby="lx-end-title">
-   <div className="lx-end-in">
-    <div className="lx-end-cta">
-     <h2 id="lx-end-title">See a dog? <em>Report it.</em></h2>
-     <p>A photo, a place and what you saw. It stays on the record for the next person who looks.</p>
-     <div className="lx-end-actions"><Link href="/community/report" className="lx-btn is-flame">Report a sighting<ArrowUpRight size={18} aria-hidden/></Link><Link href="/explore" className="lx-btn is-line">Explore the map<ArrowUpRight size={16} aria-hidden/></Link></div>
-    </div>
-    <div className="lx-end-foot">
-     <Link href="/" className="lx-end-brand"><StrayPawMark size={30}/><span>StrayPaw<small>From sighting to outcome. One shared record.</small></span></Link>
-     <FooterIndex simple/>
-    </div>
-    <p className="lx-end-base"><span>© {new Date().getFullYear()} StrayPaw</span><span>Built with care, in India.</span></p>
-   </div>
-  </footer>
- </div>;
+
+export default function HomePage() {
+  return (
+    <S3Page>
+      <PageView name="landing_view" />
+      {/* 1 + 2 · Hero and product demo */}
+      <section className="s3-hero" aria-labelledby="hero-title">
+        <div className="s3-wrap">
+          <div className="s3-hero-copy">
+            <Link href="/ai" className="s3-hero-pill"><b>New</b>StrayPaw AI, built into every workspace <ArrowRight size={13} /></Link>
+            <h1 id="hero-title" className="s3-h1">Every intervention.<br />Accounted for.</h1>
+            <p className="s3-lede">StrayPaw is the software municipalities use to run and verify animal birth control, anti-rabies vaccination and animal-welfare programmes. Implementing NGOs record each intervention once; the authority reviews the evidence and gets reports it can stand behind. StrayPaw AI does the paperwork in between.</p>
+            <div className="s3-actions"><Link href="/demo?type=pilot" className="s3-btn is-primary">Request a government demo <ArrowRight size={16} /></Link><Link href="#tour" className="s3-btn is-line">Take a tour</Link></div>
+          </div>
+          <div className="s3-hero-stage"><HeroDemo /></div>
+        </div>
+      </section>
+
+      {/* 3 · Trusted by */}
+      <TrustStrip />
+
+      {/* 4 · Product tour */}
+      <section className="s3-sec" id="tour" aria-labelledby="tour-title">
+        <div className="s3-wrap">
+          <SecHead eyebrow="How it works" title={<span id="tour-title">From a field message to a report a municipality can sign.</span>} lede="The four steps every ABC/ARV programme repeats, every day. StrayPaw keeps them on one record so nobody re-types a register at the end of the month." />
+          <ProductTour />
+        </div>
+      </section>
+
+      {/* 5 · Use cases */}
+      <section className="s3-sec is-line" aria-labelledby="uc-title">
+        <div className="s3-wrap">
+          <SecHead eyebrow="Use cases" title={<span id="uc-title">One record for the work programmes actually do.</span>} />
+          <UseCases />
+        </div>
+      </section>
+
+      {/* 6 · StrayPaw AI */}
+      <section className="s3-sec is-line" aria-labelledby="ai-title">
+        <div className="s3-wrap">
+          <SecHead eyebrow="StrayPaw AI" title={<span id="ai-title">An assistant that reads the record and does the admin.</span>} lede="Ask a question, find what is missing, or have a follow-up prepared. Every answer cites the records it used, and every change waits for your confirmation." />
+          <AiShowcase />
+          <p className="s3-small" style={{ marginTop: 18 }}>In the app, StrayPaw AI reads only what your account is allowed to read. <Link className="s3-link" href="/ai" style={{ fontSize: 13 }}>How it works <ArrowRight size={12} /></Link></p>
+        </div>
+      </section>
+
+      {/* 7 · Integrations */}
+      <section className="s3-sec is-line" id="integrations" aria-labelledby="int-title">
+        <div className="s3-wrap">
+          <SecHead eyebrow="Integrations" title={<span id="int-title">Works with how field teams already work.</span>} lede="Status labels are current. If a channel is not connected, it says so." />
+          <Integrations />
+        </div>
+      </section>
+
+      {/* 8 · Platform */}
+      <section className="s3-sec is-line" aria-labelledby="pf-title">
+        <div className="s3-wrap">
+          <SecHead eyebrow="Platform" title={<span id="pf-title">Programmes, records, fieldwork and reports. Maps when they help.</span>} />
+          <PlatformScreens />
+        </div>
+      </section>
+
+      {/* 9 · Customers */}
+      <section className="s3-sec is-line" aria-labelledby="cs-title">
+        <div className="s3-wrap">
+          <SecHead eyebrow="Customers" title={<span id="cs-title">Real registers, honestly labelled.</span>} lede="Our first partners brought years of rescue, sterilisation and vaccination records onto StrayPaw. We show what was imported, what is used live, and what we have not measured yet." />
+          <div style={{ display: "grid", gap: 20 }}>
+            <StoryCard slug="the-pawsome-people-project" />
+            <StoryCard slug="the-kind-hour-foundation" />
+          </div>
+          <p style={{ marginTop: 22 }}><Link className="s3-link" href="/customers">All customer stories <ArrowRight size={14} /></Link></p>
+        </div>
+      </section>
+
+      {/* 10 · Security / trust */}
+      <section className="s3-sec is-line" id="security" aria-labelledby="sec-title">
+        <div className="s3-wrap">
+          <SecHead eyebrow="Trust" title={<span id="sec-title">Built for records someone has to defend.</span>} lede="Municipal programmes are audited. StrayPaw is designed so every figure can be traced, every decision has an owner, and every limitation is visible." />
+          <Security />
+        </div>
+      </section>
+
+      <section className="s3-sec is-line" aria-labelledby="faq-title">
+        <div className="s3-wrap s3h-faq">
+          <div><h2 id="faq-title" className="s3-h2">Questions</h2><p className="s3-body" style={{ marginTop: 12 }}>Something else? <Link className="s3-link" href="/contact">Ask us</Link></p></div>
+          <div>{FAQ.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div>
+        </div>
+      </section>
+      {/* 11 · Final CTA lives in the footer */}
+    </S3Page>
+  );
 }

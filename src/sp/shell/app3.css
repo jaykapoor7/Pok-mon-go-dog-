@@ -1,0 +1,88 @@
+/* ════════════════════════════════════════════════════════════════════
+   StrayPaw 3.0 — the workspace screens.
+
+   Every NGO, municipal, community, education, animal, search and trust
+   screen reads its colours, type and surfaces from the 2.0 tokens below.
+   Re-pointing them inside the 3.0 shell (`.sp.sx3`) moves every screen to
+   the new system at once: calm off-white ground, white surfaces, hairline
+   rules, DM Sans throughout, StrayPaw blue for selection, flame only for
+   urgency. Component-level refinements follow the tokens.
+   ════════════════════════════════════════════════════════════════════ */
+
+.sp.sx3 {
+  --shell: #fbf9f4;
+  --shell-2: #f3f0e9;
+  --shell-3: #ebe7de;
+  --paper: #ffffff;
+  --card: #ffffff;
+  --ink: #0b1e3d;
+  --ink-2: #2a3a57;
+  --ink-3: #4a5872;
+  --mute: #5b6679;
+  --muted: #5b6679;
+  --faint: #8b93a2;
+  --line: rgba(11, 30, 61, 0.09);
+  --line-2: rgba(11, 30, 61, 0.15);
+  --line-3: rgba(11, 30, 61, 0.28);
+  --rule: rgba(11, 30, 61, 0.09);
+  --rule-2: rgba(11, 30, 61, 0.15);
+  --hair: rgba(11, 30, 61, 0.09);
+  --blue: #2457ce;
+  --blue-ink: #1c47ad;
+  --blue-soft: #eaf0fc;
+  --serif: var(--sans);
+  --sh-s: 0 1px 2px rgba(11, 30, 61, 0.05), 0 0 0 1px rgba(11, 30, 61, 0.08);
+  --sh: 0 1px 2px rgba(11, 30, 61, 0.04), 0 12px 32px -14px rgba(11, 30, 61, 0.18), 0 0 0 1px rgba(11, 30, 61, 0.08);
+  --sh-l: 0 2px 4px rgba(11, 30, 61, 0.04), 0 30px 60px -24px rgba(11, 30, 61, 0.3), 0 0 0 1px rgba(11, 30, 61, 0.08);
+  --r-s: 8px;
+  --r: 12px;
+  --r-l: 16px;
+  --gut: 32px;
+  --max: 1240px;
+}
+@media (max-width: 860px) { .sp.sx3 { --gut: 16px; } }
+
+/* No serif, no italics anywhere in the app. */
+.sp.sx3 :is(h1, h2, h3, h4, .serif, .display, em) { font-family: var(--s3-sans); font-style: normal; }
+.sp.sx3 h1 { letter-spacing: -0.025em; }
+.sp.sx3 :is(h2, h3) { letter-spacing: -0.015em; }
+
+/* The folk backdrop and paper fibre stay out of working screens. */
+.sp.sx3 :is(.folk-backdrop, .folk-ground, .folk-sky) { display: none !important; }
+
+/* Common building blocks used across the 2.0 screens. */
+.sp.sx3 :is(.btn, .button) { border-radius: 10px; font-family: var(--s3-sans); font-weight: 600; }
+.sp.sx3 .btn.is-flame { background: var(--s3-blue); border-color: var(--s3-blue); color: #fff; }
+.sp.sx3 .btn.is-flame:hover { background: var(--s3-blue-2); }
+.sp.sx3 :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]) { border-radius: 10px; font-family: var(--s3-sans); }
+.sp.sx3 :is(input, select, textarea):focus-visible { outline: none; border-color: var(--s3-blue); box-shadow: 0 0 0 3px rgba(36, 87, 206, 0.15); }
+.sp.sx3 kbd { font-family: var(--s3-sans); }
+.sp.sx3 table { font-variant-numeric: tabular-nums; }
+.sp.sx3 th { font-weight: 500; color: var(--s3-mute); }
+.sp.sx3 .k, .sp.sx3 .kicker, .sp.sx3 .eyebrow { letter-spacing: 0; text-transform: none; }
+
+/* Page canvas: one white sheet on the off-white ground, like a document. */
+.sp.sx3:not(.is-flush) .sp-main > :first-child:not(.ai3-full) { width: min(var(--max), 100% - 2 * var(--gut)); margin-inline: auto; }
+
+/* The NGO door (signed out / not a member). */
+.sp.sx3 .ngo-door { max-width: 760px; margin: 72px auto; padding: 40px; border-radius: 20px; background: #fff; box-shadow: var(--s3-sh-2); }
+.sp.sx3 .ngo-door h1 { font-size: clamp(30px, 4vw, 42px); line-height: 1.08; font-weight: 600; }
+.sp.sx3 .ngo-door .k { color: var(--s3-blue); font-weight: 600; font-size: 13.5px; }
+.sp.sx3 .ngo-door .btn { min-height: 44px; }
+@media (max-width: 860px) { .sp.sx3 .ngo-door { margin: 16px auto; padding: 24px; border-radius: 16px; } }
+
+/* Popovers, sheets and dialogs */
+.sp.sx3 .sp-pop { border-radius: 14px; box-shadow: var(--s3-sh-3); }
+.sp.sx3 .sp-finder { border-radius: 16px; box-shadow: var(--s3-sh-3); }
+.sp.sx3 .sp-finder-list li[aria-selected="true"] { background: var(--s3-blue-soft); }
+
+/* Page titles: product-sized, not poster-sized. */
+.sp.sx3 .sp-main h1 { font-size: clamp(26px, 2.4vw, 34px) !important; line-height: 1.12 !important; letter-spacing: -0.025em !important; font-weight: 600 !important; }
+.sp.sx3 .sp-main h2 { font-size: min(1em, 22px); font-weight: 600; }
+.sp.sx3 .sp-main :is(h1, h2, h3) em { color: inherit; }
+.sp.sx3 .sx3-ws-btn small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Pages built for the retired 2.0 console, inside the 3.0 shell. */
+.sp.sx3 .sx-legacy { display: block !important; min-height: 0 !important; height: auto; background: transparent !important; grid-template-columns: none !important; padding: 0; }
+.sp.sx3 .sx-legacy::before, .sp.sx3 .sx-legacy::after { display: none !important; }
+.sp.sx3 .sx-legacy :is(.sd-side, .sx-bar, .sd-foot, .folk-backdrop) { display: none !important; }

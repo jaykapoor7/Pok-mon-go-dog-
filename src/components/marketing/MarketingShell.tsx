@@ -1,7 +1,5 @@
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { AppShell } from "@/components/app/AppShell";
-import { DeskHeader } from "@/components/app/DeskHeader";
 import { BackLink } from "@/components/app/BackLink";
 import "@/components/site/site.css";
 import "./shell.css";
@@ -23,14 +21,8 @@ export function MarketingShell({
   wide?: boolean;
   children: React.ReactNode;
 }) {
-  if (inApp) return (
-    <AppShell>
-      <div className="sp ms ms-inapp">
-        <DeskHeader kicker={eyebrow} title={title} lede={intro} />
-        <div className="ms-body">{children}</div>
-      </div>
-    </AppShell>
-  );
+  /* StrayPaw 3.0: public pages always use the site layout; `inApp` is kept for callers. */
+  void inApp;
   return (
     <div className="sp ms">
       <SiteHeader />
