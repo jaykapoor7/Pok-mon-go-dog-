@@ -27,7 +27,7 @@ test("homepage leads with the operator product and a labelled demo", async ({ pa
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet StrayPaw, the platform that\s*proves every ABC procedure/);
   await expect(page.locator(".s4-hero").getByRole("link", { name: "Book a demo" })).toHaveAttribute("href", "/demo");
-  await expect(page.getByRole("group", { name: /Product demo: an ABC operator's workspace/ })).toBeVisible();
+  await expect(page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ })).toBeVisible();
   await expect(page.getByText("Product demo · illustrative records, not live programme data")).toBeAttached();
 });
 

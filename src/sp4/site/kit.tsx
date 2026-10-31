@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
+import { Live } from "@/sp4/site/Live";
 import "@/sp4/sp4.css";
 
 /* StrayPaw 4 page kit: the pieces every public page is built from. */
@@ -73,7 +74,7 @@ export function Cards({ items, cols = 3, idp }: { items: CardSpec[]; cols?: 2 | 
     <div className={`s4-cards is-${cols}`}>
       {items.map((c, i) => (
         <Rise key={c.title} className="s4-card" delay={(i % cols) * 70}>
-          <Grain v={c.v ?? i} id={`${idp}-${i}`}>{c.ui}</Grain>
+          <Grain v={c.v ?? i} id={`${idp}-${i}`}><Live>{c.ui}</Live></Grain>
           <h3>{c.title}</h3>
           <p>{c.body}</p>
         </Rise>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import {
   ArrowRight, ArrowUpRight, Camera, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
   KeyRound, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, Upload, UserCheck,
@@ -11,9 +11,18 @@ import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
 import { AiBand, UseCases, type Step } from "@/sp4/home/Interactive";
 import {
-  AskUi, CaptureUi, DuplicateUi, EvidenceUi, ExtractUi, GovUi, HeroPhone, HeroWindow, OvernightUi, ProposeUi, ReportUi, ReviewUi, RingUi, VetUi,
+  AskUi, CaptureUi, DuplicateUi, EvidenceUi, ExtractUi, GovUi, OvernightUi, ProposeUi, ReportUi, ReviewUi, RingUi, VetUi,
 } from "@/sp4/home/ui";
+import { HeroDemo } from "@/sp4/home/HeroDemo";
+import { Stories } from "@/sp4/home/Stories";
+import { CountUp } from "@/sp4/site/Live";
 import "@/sp4/home/home4.css";
+
+/** Headline words that rise one after another (CSS only; static without motion). */
+function Words({ lines }: { lines: string[] }) {
+  let i = 0;
+  return <>{lines.map((l, li) => <Fragment key={li}>{li > 0 && <br />}{l.split(" ").map((w) => <Fragment key={i}><span style={{ ["--i" as string]: i++ }}>{w}</span>{" "}</Fragment>)}</Fragment>)}</>;
+}
 
 export const metadata = {
   title: "StrayPaw · ABC Operations & Verification",
@@ -60,10 +69,10 @@ export default function HomePage() {
       {/* 1 · hero */}
       <section className="s4-hero" aria-labelledby="hero-title">
         <div className="s4-wrap">
-          <h1 id="hero-title" className="s4-h1">Meet StrayPaw, the platform that<br /> proves every ABC procedure</h1>
+          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet StrayPaw, the platform that", "proves every ABC procedure"]} /></h1>
           <p className="s4-lede">Capture animals, record treatment, check evidence, prepare reports, and more. One platform for your field team, your vets and StrayPaw AI to prove the work.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
-          <div className="s4-hero-stage"><HeroWindow /><HeroPhone /></div>
+          <div className="s4-hero-stage"><HeroDemo /></div>
         </div>
       </section>
 
@@ -131,22 +140,15 @@ export default function HomePage() {
         <div className="s4-wrap">
           <h2 id="res-title" className="s4-h2" style={{ marginBottom: 48 }}>Customer results</h2>
           <div className="s4-nums">
-            <Rise><b>{(story.results[0]?.n ?? 0).toLocaleString("en-IN")}</b><small>rescue requests documented by<br />The Pawsome People Project</small></Rise>
-            <Rise delay={60}><b>{(kh.results[0]?.n ?? 0).toLocaleString("en-IN")}</b><small>rescue and treatment requests<br />by The Kind Hour Foundation</small></Rise>
-            <Rise delay={120}><b>{partners.length}</b><small>confirmed field partners<br />across India</small></Rise>
+            <Rise><b><CountUp n={story.results[0]?.n ?? 0} /></b><small>rescue requests documented by<br />The Pawsome People Project</small></Rise>
+            <Rise delay={60}><b><CountUp n={kh.results[0]?.n ?? 0} /></b><small>rescue and treatment requests<br />by The Kind Hour Foundation</small></Rise>
+            <Rise delay={120}><b><CountUp n={partners.length} /></b><small>confirmed field partners<br />across India</small></Rise>
             <Link href="/customers" className="s4-link is-ink">Read customer stories <ArrowRight size={18} aria-hidden /></Link>
           </div>
-          <div className="s4-story">
-            <Rise className="s4-story-card">
-              <span className="s4-story-logo">{story.logo && <img src={story.logo} alt="" />}{story.name}</span>
-              <p>Coimbatore&apos;s rescue, sterilisation and vaccination registers, brought onto one record for every animal.</p>
-              <div><small>Figures above come from imported historical registers, not from work entered live in StrayPaw. No customer quote is shown until one is approved in writing.</small>
-                <Link href={`/customers/${story.slug}`} className="s4-link" style={{ marginTop: 18 }}>Read case study <ArrowRight size={16} aria-hidden /></Link></div>
-            </Rise>
-            {[["Rescue register", "2024–2026, imported"], ["ABC drive register", "Jan–Aug 2026, imported"], ["Vaccination records", "2024–2026, imported"]].map(([a, b], n) => (
-              <Grain key={a} v={n} id={`res-${n}`} className="s4-story-tile"><div className="s4-ui s4-ui-pad s4-reg"><span className="s4u-sq c-blue" aria-hidden><FileSpreadsheet size={11} /></span><b>{a}</b><small>{b}</small><span className="s4-tag">Historical imported record</span></div></Grain>
-            ))}
-          </div>
+          <Stories stories={[
+            { slug: story.slug, name: story.name, city: story.city, logo: story.logo, line: "Coimbatore's rescue, sterilisation and vaccination registers, brought onto one record for every animal.", note: "Figures come from imported historical registers, not from work entered live in StrayPaw. No customer quote is shown until one is approved in writing.", registers: [["Rescue register", "2024–2026"], ["ABC drive register", "Jan–Aug 2026"], ["Vaccination records", "2024–2026"]] },
+            { slug: kh.slug, name: kh.name, city: kh.city, logo: kh.logo, line: "A Lucknow rescue and treatment register, with each animal's condition and outcome kept together.", note: "A historical register import. The foundation does not yet run its day-to-day work in StrayPaw, and its records are not independently verified.", registers: [["Rescue and treatment register", "Jan 2024 – Aug 2026"]] },
+          ]} />
         </div>
       </section>
 

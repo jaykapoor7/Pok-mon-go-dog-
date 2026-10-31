@@ -24,12 +24,22 @@ test("landing closes with one demo call to action and the site index", async ({ 
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
-test("the hero demo shows the phone as a labelled, unconnected preview", async ({ page }) => {
+test("the hero demo is labelled, plays its story with the phone, and can be paused", async ({ page }) => {
   await page.goto("/");
-  const phone = page.getByRole("group", { name: /field message becoming a draft record \(WhatsApp not connected in production\)/ }).first();
-  await expect(phone).toBeVisible();
-  await expect(phone).toContainText("WhatsApp · demo");
-  await expect(phone).toContainText("Waiting for operator review");
+  const demo = page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ });
+  await expect(demo).toBeVisible();
+  await expect(demo).toContainText("Product demo · illustrative records");
+  await expect(demo).toContainText("WhatsApp not connected");
+  await expect(demo).toContainText("Here is your daily brief.");
+  /* the story moves on by itself, and the phone thread grows with it */
+  await expect(demo).toContainText("Weekly evidence check", { timeout: 15_000 });
+  await expect(demo).toContainText("Three of eighteen");
+  /* Pause holds the scene; a step can be chosen directly */
+  await demo.getByRole("button", { name: "Pause the demo" }).click();
+  await demo.getByRole("button", { name: "Show: Report package" }).click();
+  await expect(demo).toContainText("Ward 14 ABC drive · October 2026");
+  await page.waitForTimeout(6000);
+  await expect(demo).toContainText("Ward 14 ABC drive · October 2026");
 });
 
 test("the AI jobs advance by themselves and stop when one is chosen", async ({ page }) => {
