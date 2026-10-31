@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHead, S3Page } from "@/sp3/site/Sections";
+import { PageHead, S4Page } from "@/sp4/site/kit";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -242,26 +242,26 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
 
 export default function FaqPage() {
   return (
-    <S3Page>
-      <PageHead eyebrow="FAQ" title="Questions" lede={<>The ones that actually come up. If yours is not here, <Link className="s3-link" href="/contact">ask us</Link>.</>} />
-      <div className="s3-wrap s3h-faq" style={{ paddingBottom: 96 }}>
+    <S4Page>
+      <PageHead eyebrow="FAQ" title="Questions" lede={<>The ones that actually come up. If yours is not here, <Link className="s4-blue" href="/contact">ask us</Link>.</>} />
+      <div className="s4-wrap s4-docs">
         <nav aria-label="Sections" style={{ display: "grid", gap: 6, alignContent: "start", position: "sticky", top: 96 }}>
-          {SECTIONS.map((s) => <a key={s.title} href={`#${s.title.toLowerCase().replace(/[^a-z]+/g, "-")}`} style={{ color: "var(--s3-mute)", fontSize: 14.5 }}>{s.title}</a>)}
+          {SECTIONS.map((s) => <a key={s.title} href={`#${s.title.toLowerCase().replace(/[^a-z]+/g, "-")}`} style={{ color: "var(--s4-grey)", fontSize: 14.5 }}>{s.title}</a>)}
         </nav>
         <div>
           {SECTIONS.map((s) => (
             <section key={s.title} id={s.title.toLowerCase().replace(/[^a-z]+/g, "-")} style={{ scrollMarginTop: 90, marginBottom: 40 }}>
-              <h2 className="s3-h3" style={{ marginBottom: 6 }}>{s.title}</h2>
+              <h2 className="s4-h4" style={{ marginBottom: 6 }}>{s.title}</h2>
               {s.items.map((i) => (
                 <details key={i.q}>
                   <summary>{i.q}</summary>
-                  <div className="s3-body" style={{ padding: "0 0 20px", fontSize: 15.5, maxWidth: 680 }}>{i.a}</div>
+                  <div className="s4-body" style={{ padding: "0 0 20px", fontSize: 15.5, maxWidth: 680 }}>{i.a}</div>
                 </details>
               ))}
             </section>
           ))}
         </div>
       </div>
-    </S3Page>
+    </S4Page>
   );
 }

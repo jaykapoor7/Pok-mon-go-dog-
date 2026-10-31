@@ -1,41 +1,42 @@
 import type { ReactNode } from "react";
 import {
-  BookOpen, Building2, ClipboardCheck, FlaskConical, GraduationCap, HandHeart,
+  BookOpen, Building2, ClipboardCheck, FlaskConical, GraduationCap, HeartHandshake,
   Landmark, Map as MapIcon, MessageCircle, Plug, ShieldCheck, Sparkles, Stethoscope, Syringe, Users,
 } from "lucide-react";
 
-/* The site's navigation data. A plain module (not "use client") so server
-   pages such as /solutions can render the same lists the header shows. */
-export type Item = { href: string; label: string; hint: string; icon: ReactNode };
+/* The site's navigation data (StrayPaw 4, operator-first). A plain module,
+   not "use client", so server pages render the same lists the header shows.
+   `tone` colours the module square, as modules are coloured in the app. */
+export type Tone = "blue" | "flame" | "teal" | "green" | "amber" | "violet" | "ink";
+export type Item = { href: string; label: string; hint: string; icon: ReactNode; tone?: Tone };
 
 export const PLATFORM: Item[] = [
-  { href: "/platform", label: "Operations", hint: "Programmes, animals, cases, evidence and reports in one record", icon: <ClipboardCheck size={17} /> },
-  { href: "/ai", label: "StrayPaw AI", hint: "Search, summarise and prepare records with citations", icon: <Sparkles size={17} /> },
-  { href: "/whatsapp", label: "CareOS for WhatsApp", hint: "Field intake from a phone, prepared for review", icon: <MessageCircle size={17} /> },
-  { href: "/platform#integrations", label: "Integrations", hint: "Registers, imports, map embeds and email", icon: <Plug size={17} /> },
-  { href: "/platform#security", label: "Security & trust", hint: "Permissions, provenance, review and audit", icon: <ShieldCheck size={17} /> },
+  { href: "/abc-operations", label: "ABC Operations & Verification", hint: "Capture, treatment, evidence, review and the report package", icon: <ClipboardCheck size={16} />, tone: "blue" },
+  { href: "/ai", label: "StrayPaw AI", hint: "Finds gaps, prepares records, cites its sources", icon: <Sparkles size={16} />, tone: "violet" },
+  { href: "/whatsapp", label: "WhatsApp field intake", hint: "Field messages become draft records for review", icon: <MessageCircle size={16} />, tone: "green" },
+  { href: "/platform#integrations", label: "Integrations", hint: "Register imports, exports, email and map embeds", icon: <Plug size={16} />, tone: "amber" },
+  { href: "/security", label: "Security", hint: "Permissions, isolation, provenance and audit", icon: <ShieldCheck size={16} />, tone: "ink" },
 ];
 export const SOLUTIONS: Item[] = [
-  { href: "/for-governments", label: "Municipalities", hint: "Oversee ABC/ARV delivery and reports", icon: <Landmark size={17} /> },
-  { href: "/for-ngos", label: "NGOs", hint: "Record fieldwork, cases and care", icon: <Building2 size={17} /> },
-  { href: "/solutions/abc-arv", label: "ABC / ARV programmes", hint: "Sterilisation and vaccination, end to end", icon: <Syringe size={17} /> },
-  { href: "/solutions/rescue-care", label: "Rescue & care", hint: "Requests, treatment and follow-ups", icon: <Stethoscope size={17} /> },
-  { href: "/for-funders", label: "Funders", hint: "Scoped monitoring of funded programmes", icon: <HandHeart size={17} /> },
+  { href: "/for-ngos", label: "ABC operators & NGOs", hint: "Run funded programmes and prove the work", icon: <Building2 size={16} />, tone: "blue" },
+  { href: "/solutions/abc-arv", label: "ABC / ARV programmes", hint: "Sterilisation and vaccination, end to end", icon: <Syringe size={16} />, tone: "teal" },
+  { href: "/solutions/rescue-care", label: "Rescue & care", hint: "Requests, treatment and follow-ups", icon: <Stethoscope size={16} />, tone: "flame" },
+  { href: "/for-governments", label: "Government oversight", hint: "Review operator evidence and reports", icon: <Landmark size={16} />, tone: "ink" },
+  { href: "/for-community", label: "Community & welfare groups", hint: "Report animals and follow outcomes", icon: <HeartHandshake size={16} />, tone: "green" },
 ];
 export const RESOURCES: Item[] = [
-  { href: "/explore", label: "Public map", hint: "Recorded animals and care by place", icon: <MapIcon size={17} /> },
-  { href: "/evidence", label: "Research", hint: "Sources, methods and published findings", icon: <FlaskConical size={17} /> },
-  { href: "/learn", label: "Academy", hint: "Courses, workshops and teaching materials", icon: <GraduationCap size={17} /> },
-  { href: "/for-community", label: "Community", hint: "Report an animal, follow what happens", icon: <Users size={17} /> },
-  { href: "/docs", label: "Documentation", hint: "How the product works, step by step", icon: <BookOpen size={17} /> },
+  { href: "/docs", label: "Documentation", hint: "How the product works, step by step", icon: <BookOpen size={16} />, tone: "blue" },
+  { href: "/research", label: "Research", hint: "Methods, sources and the research archive", icon: <FlaskConical size={16} />, tone: "teal" },
+  { href: "/explore", label: "Public map", hint: "Recorded animals and care by place", icon: <MapIcon size={16} />, tone: "green" },
+  { href: "/learn", label: "Academy", hint: "Courses and teaching materials", icon: <GraduationCap size={16} />, tone: "amber" },
+  { href: "/for-community", label: "Report an animal", hint: "No account needed", icon: <Users size={16} />, tone: "flame" },
 ];
 /** Kept for pages that still list audiences. */
 export const AUDIENCES = [
-  { label: "Municipalities", href: "/for-governments", hint: "Oversee programmes. Review records." },
-  { label: "NGOs & Rescues", href: "/for-ngos", hint: "Record fieldwork. Manage cases." },
-  { label: "Funders", href: "/for-funders", hint: "Monitor funded programmes." },
+  { label: "ABC operators & NGOs", href: "/for-ngos", hint: "Run programmes. Prove the work." },
+  { label: "Government", href: "/for-governments", hint: "Review evidence. Accept reports." },
+  { label: "Rescue & care", href: "/solutions/rescue-care", hint: "Requests, treatment, follow-ups." },
   { label: "Community", href: "/for-community", hint: "Report animals. Follow updates." },
   { label: "Feeders", href: "/for-feeders", hint: "Know your animals. Record care." },
   { label: "Education", href: "/education", hint: "Learn, teach and share." },
 ];
-

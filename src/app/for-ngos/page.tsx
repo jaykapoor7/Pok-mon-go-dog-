@@ -1,45 +1,56 @@
-import { ClipboardList, FileSpreadsheet, Inbox, MessageCircle, PawPrint, Smartphone, Sparkles, Users, FileText } from "lucide-react";
-import { DemoWindow } from "@/sp3/home/Demos";
-import { SolutionPage } from "@/sp3/site/Solution";
+import { ClipboardList, FileSpreadsheet, FileText, Inbox, PawPrint, Smartphone, Sparkles, Users } from "lucide-react";
+import { ProductPage, Status } from "@/sp4/site/ProductPage";
+import { CaptureUi, EvidenceUi, MiniWindow, QueueUi, ReportUi } from "@/sp4/home/ui";
 
 export const metadata = {
-  title: "For NGOs & rescues · StrayPaw",
-  description: "A free operational workspace for verified NGOs: inbox, cases, animal register, programmes, field mode, imports and reports, with StrayPaw AI.",
+  title: "ABC operators & NGOs · StrayPaw",
+  description: "For NGOs and contractors running funded ABC and vaccination programmes: record the work once, check the evidence, and report it to the office that funds you.",
 };
 
-export default function NGOsPage() {
-  return <SolutionPage s={{
-    eyebrow: "For NGOs & rescues",
-    title: "Record your fieldwork once. Report it anywhere.",
-    lede: "A free workspace for verified NGOs: new requests, cases, the animal register, ABC/ARV drives and follow-ups, on a laptop or a phone in the field. Monthly reports come out of the same record.",
-    primary: { href: "/partner-apply", label: "Apply for a workspace" },
+export default function OperatorsPage() {
+  return <ProductPage s={{
+    id: "ngo",
+    eyebrow: "ABC operators & NGOs",
+    title: ["Record the work once.", "Get paid for all of it."],
+    lede: "Field capture, treatment, evidence and follow-ups on one record, on a laptop or a phone. Report packages for the office that funds you come out of the same record.",
+    primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "/sign-in?next=/ngo", label: "Sign in to your workspace" },
-    visual: <DemoWindow view="records" title="NGO workspace · Animal register" />,
-    problem: {
-      title: "Teams spend evenings re-typing registers.",
-      body: "Field updates arrive as photos and messages. Someone copies them into a spreadsheet, then again into a report for the municipality or a funder. Follow-ups slip because nobody can see what is due.",
-      points: ["Field updates scattered across phones and chat groups", "The same animal entered twice by two people", "Reports assembled by hand at month end"],
+    hero: <MiniWindow title="Home · Today" label="the operator's daily queue"><QueueUi /></MiniWindow>,
+    heroV: 1,
+    steps: {
+      title: ["How a programme", "runs on StrayPaw"],
+      items: [
+        { t: "Capture", d: "Field staff record each animal with photos and place." },
+        { t: "Treat", d: "Procedures recorded and authorised by the vet who did them." },
+        { t: "Check", d: "Evidence gaps and duplicates fixed the same week." },
+        { t: "Report", d: "A package for the funding office, from the records." },
+      ],
     },
-    steps: [
-      { t: "Intake", d: "Requests from residents and your own field team land in the inbox." },
-      { t: "Work the case", d: "Take it, treat it, schedule follow-ups and close it with an outcome." },
-      { t: "Programmes", d: "File sterilisations and vaccinations into a drive register with evidence." },
-      { t: "Report", d: "Programme reports and an evidence workbook, straight from the record." },
+    splits: [
+      { tag: <Status s="live" />, title: ["Built for the", "field team's phone"], body: "A one-hand field mode that works on low-end Android phones and slow networks.", ui: <CaptureUi />, v: 0 },
+      { tag: <Status s="staging" />, title: ["Know what is missing", "before month end"], body: "Each animal shows the evidence your contract asks for, so gaps are fixed while the team can still fix them.", ui: <EvidenceUi />, v: 2 },
+      { tag: <Status s="live" />, title: ["Reports without", "the late nights"], body: "Programme reports, evidence workbooks and municipal reports straight from the record, in PDF and XLSX.", ui: <ReportUi />, v: 5 },
     ],
-    features: [
-      { icon: <Inbox size={18} />, t: "Inbox & triage", d: "New reports and requests, with a clear next step for each.", href: "/ngo/inbox" },
-      { icon: <ClipboardList size={18} />, t: "Cases & follow-ups", d: "Assign, treat, follow up and close with an outcome.", href: "/ngo" },
-      { icon: <PawPrint size={18} />, t: "Animal register", d: "One history per animal: requests, care, sterilisation, vaccination.", href: "/ngo/animals" },
-      { icon: <Smartphone size={18} />, t: "Field mode", d: "A one-hand phone view for teams on the street.", href: "/ngo/field" },
-      { icon: <FileSpreadsheet size={18} />, t: "Register import", d: "Bring the Excel or CSV you already keep. Uncertain matches go to review.", href: "/ngo/import" },
-      { icon: <FileText size={18} />, t: "Reports & proof", d: "Programme reports and evidence on demand.", href: "/ngo/proof" },
-      { icon: <Sparkles size={18} />, t: "StrayPaw AI", d: "Paste a field message and get a prepared record. Ask what is due today.", href: "/ai" },
-      { icon: <MessageCircle size={18} />, t: "WhatsApp intake", d: "Coming with CareOS. Not connected yet; the web field mode works today.", href: "/whatsapp" },
-      { icon: <Users size={18} />, t: "Team & access", d: "Invite members with codes, set roles, remove access.", href: "/ngo/team" },
+    tiles: {
+      title: ["Everything in", "the operator workspace"],
+      items: [
+        { icon: <Inbox size={20} />, title: "Inbox & triage", body: "Requests, community reports and field drafts with a clear next step.", tag: <Status s="live" /> },
+        { icon: <ClipboardList size={20} />, title: "Cases & follow-ups", body: "Assign, treat, follow up and close with an outcome.", tag: <Status s="live" /> },
+        { icon: <PawPrint size={20} />, title: "Animal register", body: "One history per animal, from capture to release.", tag: <Status s="live" /> },
+        { icon: <Smartphone size={20} />, title: "Field mode", body: "A one-hand phone view for teams on the street.", tag: <Status s="live" /> },
+        { icon: <FileSpreadsheet size={20} />, title: "Register import", body: "Bring your Excel or CSV. Rows stay labelled as historical.", tag: <Status s="live" /> },
+        { icon: <FileText size={20} />, title: "Reports & proof", body: "Programme reports and evidence on demand.", tag: <Status s="live" /> },
+        { icon: <Sparkles size={20} />, title: "StrayPaw AI", body: "Find gaps, read field messages, prepare records for confirmation.", tag: <Status s="live" /> },
+        { icon: <Users size={20} />, title: "Team & roles", body: "Invite members with codes, set roles, remove access.", tag: <Status s="live" /> },
+        { icon: <Smartphone size={20} />, title: "WhatsApp intake", body: "Built, awaiting Meta approval. Field mode works meanwhile.", tag: <Status s="off" /> },
+      ],
+    },
+    note: <><b>Pricing.</b> StrayPaw is scoped and priced per programme before any work begins; we do not publish a price list yet. Small community and welfare groups can ask us about an accessible plan.</>,
+    faq: [
+      ["How long does setup take?", "It depends on your registers and team. We agree a plan with you before starting; most of the time goes into importing past registers and training field staff."],
+      ["Who owns our records?", "You do. Export everything to XLSX, CSV and PDF at any time."],
+      ["We are a small rescue, not an ABC contractor.", "Rescue and care run on the same record. Ask us about an accessible plan for small welfare groups."],
     ],
-    pricing: <>The core operational workspace is free for verified NGOs. Advanced AI reporting, evidence reconciliation for a municipal contract and institutional oversight may be paid services, agreed with the institution funding the programme.</>,
-    notes: ["A workspace opens after verification. Membership and every read are checked in the database, not in the browser."],
-    story: "the-pawsome-people-project",
-    cta: { title: "Bring the spreadsheet. Keep the ownership.", lede: "Apply for a workspace, import your register and invite your team.", primary: { href: "/partner-apply", label: "Apply for a workspace" }, secondary: { href: "/demo", label: "Book a walkthrough" } },
+    close: { a: "Bring your registers.", b: "Leave with a record you can prove.", primary: { href: "/demo", label: "Book a demo" }, secondary: { href: "/abc-operations", label: "See the workflow" } },
   }} />;
 }

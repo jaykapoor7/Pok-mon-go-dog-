@@ -1,112 +1,222 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  ArrowRight, ArrowUpRight, Camera, Check, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
+  KeyRound, Landmark, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, Upload, UserCheck,
+} from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
-import { AiShowcase, HeroDemo, PlatformScreens, ProductTour, UseCases } from "@/sp3/home/Demos";
-import { Integrations, S3Page, SecHead, Security, StoryCard, TrustStrip } from "@/sp3/site/Sections";
+import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
+import { Cards, Faq, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
+import { Grain } from "@/sp4/site/Grain";
+import { Rise } from "@/sp4/site/Rise";
+import { AiBand, UseCases, type Step } from "@/sp4/home/Interactive";
+import {
+  AskUi, CaptureUi, DuplicateUi, EvidenceUi, ExtractUi, GovUi, HeroPhone, HeroWindow, OvernightUi, ProposeUi, ReportUi, ReviewUi, RingUi, VetUi,
+} from "@/sp4/home/ui";
+import "@/sp4/home/home4.css";
 
 export const metadata = {
-  title: "StrayPaw · Every intervention. Accounted for.",
-  description: "Operations software for municipal ABC/ARV programmes and the NGOs that deliver them: one record for every animal, intervention, evidence review and report, with StrayPaw AI built in.",
+  title: "StrayPaw · ABC Operations & Verification",
+  description: "Software for animal birth control operators: record every animal from capture to release, check the evidence, and hand the reviewing office a report package it can accept. StrayPaw AI built in.",
 };
 
+/* ════════════════════════════════════════════════════════════════════
+   Homepage (StrayPaw 4). Twelve parts, in order:
+   1 hero + product · 2 field partners · 3 the workflow (sticky tabs) ·
+   4 StrayPaw AI as a teammate · 5 dark band: routine checks ·
+   6 WhatsApp field intake · 7 operator now, government next ·
+   8 integrations · 9 results · 10 security · 11 FAQ · 12 closing CTA.
+   Operator-first: the buyer is the funded ABC operator; government
+   oversight is the stage the record is built to reach.
+   ════════════════════════════════════════════════════════════════════ */
+
+const STEPS: Step[] = [
+  { tab: "Capture", title: <>Every animal on the record<br />from the moment it is caught.</>, body: "Photos, sex, coat, ear notch and the exact place, captured on a phone in the field. Each record says who created it and how.", href: "/abc-operations#capture", cta: "Explore capture", ui: <CaptureUi /> },
+  { tab: "Vet treatment", title: <>Procedures a veterinarian<br />actually authorised.</>, body: "Surgery, ear notch and anti-rabies vaccination are recorded against the animal and signed off by the registered vet who did the work.", href: "/abc-operations#treatment", cta: "Explore treatment", ui: <VetUi /> },
+  { tab: "Evidence", title: <>Know what is missing<br />before anyone asks.</>, body: "Each animal carries an evidence checklist: capture, surgery, ear notch, release photo and release place. Gaps show up the day they happen.", href: "/abc-operations#evidence", cta: "Explore evidence", ui: <EvidenceUi /> },
+  { tab: "Checks", title: <>Catch duplicates<br />and mismatches early.</>, body: "Possible duplicates, releases far from the capture ward and records without a vet sign-off are flagged for a person to decide.", href: "/abc-operations#checks", cta: "Explore checks", ui: <DuplicateUi /> },
+  { tab: "Operator review", title: <>Review the week<br />in one queue.</>, body: "Your coordinator sees every record and every open exception for the week, and approves what is ready for the report.", href: "/abc-operations#review", cta: "Explore review", ui: <ReviewUi /> },
+  { tab: "Report package", title: <>A report package<br />that holds up.</>, body: "Totals by ward and week, the evidence index, vet authorisations and an exceptions log, generated from the records themselves.", href: "/abc-operations#report", cta: "Explore reports", ui: <ReportUi /> },
+  { tab: "Government review", title: <>The reviewing office<br />checks, then accepts.</>, body: "A municipal reviewer gets read-only access to the package, can query any exception, and records their acceptance on the same record.", href: "/for-governments", cta: "Explore government review", ui: <GovUi /> },
+];
+
 const FAQ: [string, string][] = [
-  ["Who is StrayPaw for?", "Municipal corporations, urban local bodies and other public authorities that run or fund animal birth control (ABC) and anti-rabies vaccination (ARV) programmes, and the NGOs, veterinary teams and contractors that deliver them. Rescue, care centres, research and community reporting run on the same record."],
-  ["How does a department buy it?", "As a scoped deployment: a paid pilot or a licence with implementation, training and support, agreed in writing before work begins. Tell us how your department procures and we will work within it. We do not claim compliance with any tender until we have its specification."],
-  ["What does it cost?", "Verified NGOs get the core operational workspace free. Municipal and institutional deployments are scoped and priced per programme before any work begins. We do not publish a price list yet."],
-  ["Is WhatsApp intake live?", "Not yet. CareOS is built against the Meta WhatsApp Cloud API, but the number is not verified and Meta approval is pending, so nothing is sent or received over WhatsApp today. Field teams record work on the web and phone field mode in the meantime."],
-  ["Does the AI make decisions?", "No. StrayPaw AI searches, summarises and prepares records with citations. Anything that changes a record is shown to you first and saved only when you confirm. It cannot approve medical procedures, certify fieldwork or authorise payments."],
-  ["Can we bring our existing registers?", "Yes. Excel and CSV registers import as they are. Uncertain matches go to review, and imported rows stay labelled as imported."],
-  ["Is it free for residents?", "Yes. Reporting an animal and using the public map need no account and no fee."],
+  ["Who is StrayPaw for?", "Organisations that run funded animal birth control (ABC) and anti-rabies vaccination programmes: NGOs, veterinary teams and contractors. The record they keep is built to be reviewed by the municipal office that funds the work. Rescue, care and community reporting run on the same record."],
+  ["How do we start?", "With a scoped pilot on one programme. You tell us your wards, team and current registers; we set up the workspace, import what you have and train the team. Nothing is promised that we have not agreed in writing."],
+  ["What does it cost?", "Pricing is agreed per programme before any work begins, and we do not publish a price list yet. Small community and welfare groups can ask about an accessible plan."],
+  ["Is WhatsApp intake live?", "Not yet. Field intake is built against the Meta WhatsApp Cloud API, but the number is not verified and Meta approval is pending, so nothing is sent or received over WhatsApp today. Teams use the web and phone field mode meanwhile."],
+  ["Does the AI approve anything?", "No. StrayPaw AI searches, summarises and prepares records with citations. Anything that changes a record is shown to a person first and saved only when they confirm. It cannot authorise a procedure, accept a report or approve a payment."],
+  ["Can we bring our existing registers?", "Yes. Excel and CSV registers import as they are. Imported rows stay labelled as historical records, and uncertain matches go to review."],
 ];
 
 export default function HomePage() {
+  const partners = fieldPartnerStrip();
+  const story = STORIES[0];
+  const kh = STORIES[1];
   return (
-    <S3Page>
+    <S4Page>
       <PageView name="landing_view" />
-      {/* 1 + 2 · Hero and product demo */}
-      <section className="s3-hero" aria-labelledby="hero-title">
-        <div className="s3-wrap">
-          <div className="s3-hero-copy">
-            <Link href="/ai" className="s3-hero-pill"><b>New</b>StrayPaw AI, built into every workspace <ArrowRight size={13} /></Link>
-            <h1 id="hero-title" className="s3-h1">Every intervention.<br />Accounted for.</h1>
-            <p className="s3-lede">StrayPaw is the software municipalities use to run and verify animal birth control, anti-rabies vaccination and animal-welfare programmes. Implementing NGOs record each intervention once; the authority reviews the evidence and gets reports it can stand behind. StrayPaw AI does the paperwork in between.</p>
-            <div className="s3-actions"><Link href="/demo?type=pilot" className="s3-btn is-primary">Request a government demo <ArrowRight size={16} /></Link><Link href="#tour" className="s3-btn is-line">Take a tour</Link></div>
+
+      {/* 1 · hero */}
+      <section className="s4-hero" aria-labelledby="hero-title">
+        <div className="s4-wrap">
+          <h1 id="hero-title" className="s4-h1">Run ABC programmes your<br /> municipality can verify</h1>
+          <p className="s4-lede">Record every animal from capture to release, check the evidence, and send a report package the reviewing office can accept. One platform for your field team, your vets and StrayPaw AI.</p>
+          <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
+          <div className="s4-hero-stage"><HeroWindow /><HeroPhone /></div>
+        </div>
+      </section>
+
+      {/* 2 · field partners */}
+      <section className="s4-wrap s4-proof" aria-label="Field partners">
+        <p>Field partners whose work is on StrayPaw. Case studies say exactly what each relationship is.</p>
+        <div className="s4-wall">
+          {partners.map((p) => {
+            const s = STORIES.find((x) => x.name === p.name);
+            const inner = <>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}{s?.logo ? <><img src={s.logo} alt={p.name} /></> : <span><b>{p.name}</b><small>{p.city}</small></span>}</>;
+            return s ? <Link key={p.name} href={`/customers/${s.slug}`} aria-label={`${p.name} case study`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
+          })}
+        </div>
+      </section>
+
+      {/* 3 · the workflow */}
+      <div id="workflow" className="s4-sec">
+        <UseCases title="From capture to accepted report" steps={STEPS} />
+      </div>
+
+      {/* 4 · StrayPaw AI as a teammate */}
+      <section className="s4-sec" aria-labelledby="mate-title">
+        <div className="s4-wrap">
+          <SecHead id="mate-title" title={<TwoTone a="StrayPaw AI works" b="alongside your team" />} lede="It reads the programme record you are allowed to read, finds what needs attention and prepares the paperwork. People make the decisions." link={{ href: "/ai", label: "Meet StrayPaw AI" }} />
+          <Cards idp="mate2" cols={2} items={[
+            { title: "Knows your programme", body: "Ask in plain words. Every answer names the records it read, so anyone can check it.", ui: <AskUi />, v: 2 },
+            { title: "Prepares, never approves", body: "New cases, notes and follow-ups are drafted for you and saved only when a person confirms, with their name on the record.", ui: <ProposeUi />, v: 4 },
+          ]} />
+          <div style={{ height: 48 }} />
+          <Cards idp="mate3" cols={3} items={[
+            { title: "Works through the backlog", body: "Missing evidence, duplicates and unsigned procedures, found before the weekly report.", ui: <OvernightUi />, v: 0 },
+            { title: "Reads field messages", body: "A message from the field becomes a structured draft record for review.", ui: <ExtractUi />, v: 5 },
+            { title: "Keeps the report ready", body: "See how complete your evidence is for the period, at any time.", ui: <RingUi />, v: 1 },
+          ]} />
+        </div>
+      </section>
+
+      {/* 5 · dark band */}
+      <section className="s4-dark" aria-labelledby="ai-title">
+        <div className="s4-wrap"><AiBand /></div>
+      </section>
+
+      {/* 6 · WhatsApp field intake */}
+      <section className="s4-sec" aria-labelledby="wa-title">
+        <div className="s4-wrap s4-split">
+          <Rise className="s4-split-copy">
+            <span className="s4-tag is-amber" style={{ justifySelf: "start" }}>In development · not connected</span>
+            <h2 id="wa-title" className="s4-h2"><TwoTone a="Field teams report" b="from the phone they have" /></h2>
+            <p className="s4-lede">A catcher sends a photo and a line of text. StrayPaw turns it into a draft record and places it in the operator&apos;s intake queue for review. Nobody re-types a register at night.</p>
+            <ul>
+              <li><Check size={18} aria-hidden />Messages become drafts, never final records</li>
+              <li><Check size={18} aria-hidden />Every draft is reviewed by a person on the team</li>
+              <li><Check size={18} aria-hidden />Built on the official WhatsApp Cloud API; awaiting Meta approval</li>
+            </ul>
+            <Link href="/whatsapp" className="s4-link">How field intake works <ArrowRight size={18} aria-hidden /></Link>
+          </Rise>
+          <Grain v={3} id="wa-art" className="s4-split-art"><div style={{ position: "relative" }}><HeroPhone /></div></Grain>
+        </div>
+      </section>
+
+      {/* 7 · operator now, government next */}
+      <section className="s4-sec" aria-labelledby="stage-title">
+        <div className="s4-wrap">
+          <SecHead id="stage-title" title={<TwoTone a="Built for the operator." b="Ready for the reviewer." />} lede="StrayPaw starts with the organisation doing the work. The same record is what a municipal office reviews when it is ready to." />
+          <div className="s4-stages">
+            <Rise className="s4-stage is-now">
+              <span className="s4-tag is-blue">Available for pilots</span>
+              <h3>ABC Operations & Verification</h3>
+              <p>For funded ABC operators and NGOs running sterilisation and vaccination programmes.</p>
+              <ul>{["Capture, treatment and release on one record", "Vet authorisation and evidence checklists", "Operator review queue and exceptions", "Report packages generated from records"].map((x) => <li key={x}><Check size={16} aria-hidden />{x}</li>)}</ul>
+              <Link href="/abc-operations" className="s4-link" style={{ color: "#8fb0ff", fontSize: 17 }}>Explore the product <ArrowRight size={16} aria-hidden /></Link>
+            </Rise>
+            <Rise className="s4-stage" delay={80}>
+              <span className="s4-tag">Next stage</span>
+              <h3>Government oversight</h3>
+              <p>For the municipal office that funds the programme and must stand behind its numbers.</p>
+              <ul>{["Read-only access to submitted packages", "Query an exception on the record itself", "Record acceptance with name and date", "Compare operators and wards over time"].map((x) => <li key={x}><Landmark size={16} aria-hidden />{x}</li>)}</ul>
+              <Link href="/for-governments" className="s4-link is-ink">For government <ArrowRight size={16} aria-hidden /></Link>
+            </Rise>
           </div>
-          <div className="s3-hero-stage"><HeroDemo /></div>
         </div>
       </section>
 
-      {/* 3 · Trusted by */}
-      <TrustStrip />
-
-      {/* 4 · Product tour */}
-      <section className="s3-sec" id="tour" aria-labelledby="tour-title">
-        <div className="s3-wrap">
-          <SecHead eyebrow="How it works" title={<span id="tour-title">From a field message to a report a municipality can sign.</span>} lede="The four steps every ABC/ARV programme repeats, every day. StrayPaw keeps them on one record so nobody re-types a register at the end of the month." />
-          <ProductTour />
-        </div>
-      </section>
-
-      {/* 5 · Use cases */}
-      <section className="s3-sec is-line" aria-labelledby="uc-title">
-        <div className="s3-wrap">
-          <SecHead eyebrow="Use cases" title={<span id="uc-title">One record for the work programmes actually do.</span>} />
-          <UseCases />
-        </div>
-      </section>
-
-      {/* 6 · StrayPaw AI */}
-      <section className="s3-sec is-line" aria-labelledby="ai-title">
-        <div className="s3-wrap">
-          <SecHead eyebrow="StrayPaw AI" title={<span id="ai-title">An assistant that reads the record and does the admin.</span>} lede="Ask a question, find what is missing, or have a follow-up prepared. Every answer cites the records it used, and every change waits for your confirmation." />
-          <AiShowcase />
-          <p className="s3-small" style={{ marginTop: 18 }}>In the app, StrayPaw AI reads only what your account is allowed to read. <Link className="s3-link" href="/ai" style={{ fontSize: 13 }}>How it works <ArrowRight size={12} /></Link></p>
-        </div>
-      </section>
-
-      {/* 7 · Integrations */}
-      <section className="s3-sec is-line" id="integrations" aria-labelledby="int-title">
-        <div className="s3-wrap">
-          <SecHead eyebrow="Integrations" title={<span id="int-title">Works with how field teams already work.</span>} lede="Status labels are current. If a channel is not connected, it says so." />
-          <Integrations />
-        </div>
-      </section>
-
-      {/* 8 · Platform */}
-      <section className="s3-sec is-line" aria-labelledby="pf-title">
-        <div className="s3-wrap">
-          <SecHead eyebrow="Platform" title={<span id="pf-title">Programmes, records, fieldwork and reports. Maps when they help.</span>} />
-          <PlatformScreens />
-        </div>
-      </section>
-
-      {/* 9 · Customers */}
-      <section className="s3-sec is-line" aria-labelledby="cs-title">
-        <div className="s3-wrap">
-          <SecHead eyebrow="Customers" title={<span id="cs-title">Real registers, honestly labelled.</span>} lede="Our first partners brought years of rescue, sterilisation and vaccination records onto StrayPaw. We show what was imported, what is used live, and what we have not measured yet." />
-          <div style={{ display: "grid", gap: 20 }}>
-            <StoryCard slug="the-pawsome-people-project" />
-            <StoryCard slug="the-kind-hour-foundation" />
+      {/* 8 · integrations */}
+      <section className="s4-sec" aria-labelledby="int-title" id="integrations">
+        <div className="s4-wrap s4-int-wrap">
+          <div className="s4-int-head">
+            <h2 id="int-title" className="s4-h2"><TwoTone blue a="StrayPaw works with" b="the tools your team uses." /></h2>
+            <Link href="/platform#integrations" className="s4-link is-ink">Every integration and its status <ArrowRight size={18} aria-hidden /></Link>
           </div>
-          <p style={{ marginTop: 22 }}><Link className="s3-link" href="/customers">All customer stories <ArrowRight size={14} /></Link></p>
+          <div className="s4-int" aria-label="Integrations and their status">
+            {INT_COLS.map((col, c) => (
+              <div key={c} className="s4-int-col">
+                {col.map((t) => <div key={t.n} className="s4-int-t">{t.i}<b>{t.n}</b><small><i className={t.s === "Live" ? "is-live" : t.s === "Not connected" ? "is-off" : ""} />{t.s}</small></div>)}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* 10 · Security / trust */}
-      <section className="s3-sec is-line" id="security" aria-labelledby="sec-title">
-        <div className="s3-wrap">
-          <SecHead eyebrow="Trust" title={<span id="sec-title">Built for records someone has to defend.</span>} lede="Municipal programmes are audited. StrayPaw is designed so every figure can be traced, every decision has an owner, and every limitation is visible." />
-          <Security />
+      {/* 9 · results */}
+      <section className="s4-sec" aria-labelledby="res-title">
+        <div className="s4-wrap">
+          <h2 id="res-title" className="s4-h2" style={{ marginBottom: 48 }}><TwoTone a="Real registers," b="honestly labelled" /></h2>
+          <div className="s4-nums">
+            <Rise><b>{(story.results[0]?.n ?? 0).toLocaleString("en-IN")}</b><small>rescue requests documented by<br />The Pawsome People Project</small></Rise>
+            <Rise delay={60}><b>{(kh.results[0]?.n ?? 0).toLocaleString("en-IN")}</b><small>rescue and treatment requests<br />by The Kind Hour Foundation</small></Rise>
+            <Rise delay={120}><b>{partners.length}</b><small>confirmed field partners<br />across India</small></Rise>
+            <Link href="/customers" className="s4-link is-ink">Read customer stories <ArrowRight size={18} aria-hidden /></Link>
+          </div>
+          <div className="s4-story">
+            <Rise className="s4-story-card">
+              <span className="s4-story-logo">{story.logo && <img src={story.logo} alt="" />}{story.name}</span>
+              <p>Coimbatore&apos;s rescue, sterilisation and vaccination registers, brought onto one record for every animal.</p>
+              <div><small>Figures above come from imported historical registers, not from work entered live in StrayPaw. No customer quote is shown until one is approved in writing.</small>
+                <Link href={`/customers/${story.slug}`} className="s4-link" style={{ marginTop: 18 }}>Read case study <ArrowRight size={16} aria-hidden /></Link></div>
+            </Rise>
+            {[["Rescue register", "2024–2026, imported"], ["ABC drive register", "Jan–Aug 2026, imported"], ["Vaccination records", "2024–2026, imported"]].map(([a, b], n) => (
+              <Grain key={a} v={n + 1} id={`res-${n}`} dark><b>{a}</b><small>{b}</small></Grain>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="s3-sec is-line" aria-labelledby="faq-title">
-        <div className="s3-wrap s3h-faq">
-          <div><h2 id="faq-title" className="s3-h2">Questions</h2><p className="s3-body" style={{ marginTop: 12 }}>Something else? <Link className="s3-link" href="/contact">Ask us</Link></p></div>
-          <div>{FAQ.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div>
+      {/* 10 · security */}
+      <section className="s4-sec" aria-labelledby="sec-title">
+        <div className="s4-wrap">
+          <SecHead id="sec-title" title={<TwoTone a="Built for records" b="someone has to defend" />} link={{ href: "/security", label: "Explore security" }} />
+          <Tiles items={[
+            { icon: <ShieldCheck size={20} />, title: "Organisation isolation", body: "Database row-level security keeps each organisation's records to its own members." },
+            { icon: <KeyRound size={20} />, title: "Roles and permissions", body: "Owners, coordinators, field staff and reviewers see and change only what their role allows." },
+            { icon: <History size={20} />, title: "Audit history", body: "Every change to a case writes a dated line naming who made it." },
+            { icon: <Fingerprint size={20} />, title: "Provenance on every record", body: "Historical import, community report or operator-created, and whether a vet authorised it." },
+            { icon: <Sparkles size={20} />, title: "AI that cannot approve", body: "StrayPaw AI prepares; a named person confirms. It reads only what that person can read." },
+            { icon: <Download size={20} />, title: "Your data, exportable", body: "Registers, evidence indexes and reports export to XLSX and CSV whenever you need them." },
+          ]} />
         </div>
       </section>
-      {/* 11 · Final CTA lives in the footer */}
-    </S3Page>
+
+      {/* 11 · FAQ */}
+      <Faq items={FAQ} />
+      {/* 12 · closing CTA is rendered by S4Page */}
+    </S4Page>
   );
 }
+
+type IntTile = { n: string; s: "Live" | "Not connected" | "Planned"; i: ReactNode };
+const INT_COLS: IntTile[][] = [
+  [{ n: "Excel registers", s: "Live", i: <FileSpreadsheet /> }, { n: "Email", s: "Live", i: <Mail /> }],
+  [{ n: "CSV import", s: "Live", i: <Upload /> }, { n: "Phone field mode", s: "Live", i: <Smartphone /> }],
+  [{ n: "Photos", s: "Live", i: <Camera /> }],
+  [{ n: "WhatsApp", s: "Not connected", i: <MessageCircle /> }],
+  [{ n: "Maps", s: "Live", i: <MapPin /> }],
+  [{ n: "XLSX export", s: "Live", i: <ClipboardList /> }, { n: "PDF reports", s: "Live", i: <FileText /> }],
+  [{ n: "Record search", s: "Live", i: <ScanSearch /> }, { n: "Reviewer access", s: "Planned", i: <UserCheck /> }],
+];

@@ -1,46 +1,59 @@
-import Link from "next/link";
-import { ArrowRight, CheckCircle2, CircleDashed, Clock3 } from "lucide-react";
-import { PhoneThread, DemoWindow } from "@/sp3/home/Demos";
-import { CtaBand, PageHead, S3Page, SecHead } from "@/sp3/site/Sections";
+import { CheckCircle2, CircleDashed, Clock3 } from "lucide-react";
+import { ProductPage, Status } from "@/sp4/site/ProductPage";
+import { ExtractUi, HeroPhone, MiniWindow, QueueUi } from "@/sp4/home/ui";
+import { Rise } from "@/sp4/site/Rise";
+import { TwoTone } from "@/sp4/site/kit";
 
-export const metadata = { title: "CareOS for WhatsApp · StrayPaw", description: "Field intake from a phone into the StrayPaw record. Status: built, not yet connected to WhatsApp in production." };
+export const metadata = { title: "WhatsApp field intake · StrayPaw", description: "Field messages become draft records for operator review. Status: built and tested in staging; not yet connected to WhatsApp in production." };
 
 const STATUS: [string, "done" | "wait" | "todo", string][] = [
-  ["Intake contract (text, photo, location, procedure updates)", "done", "Defined in the app and the database contract."],
-  ["Database functions for intake, inbox and reporter notices", "done", "Deployed in the staging project and tested there. Not yet in production."],
-  ["Webhook endpoint with Meta signature check", "done", "In the app at /api/careos/webhook. Verifies X-Hub-Signature-256 and queues each message once into the CareOS job queue (format verified against the staging database). Refuses everything until Meta credentials are set."],
-  ["AI-assisted structuring of a field message", "done", "Works today: paste a message into StrayPaw AI in the NGO workspace."],
-  ["Verified WhatsApp Business number", "wait", "Needs the organisation's Meta Business verification."],
-  ["Meta app review and message templates", "wait", "Submitted by StrayPaw once the number is verified."],
+  ["Intake contract: text, photo, location, procedure updates", "done", "Defined in the app and the database contract."],
+  ["Database functions for intake and the operator inbox", "done", "Deployed and tested in the staging project. Not yet in production."],
+  ["Webhook with Meta signature check", "done", "Verifies X-Hub-Signature-256 and queues each message once. Refuses everything until Meta credentials are set."],
+  ["Structuring a field message into a draft", "done", "Works today: paste a message into StrayPaw AI in the operator workspace."],
+  ["Verified WhatsApp Business number", "wait", "Needs the operating organisation's Meta Business verification."],
+  ["Meta app review and message templates", "wait", "Submitted once the number is verified."],
   ["Production database functions", "todo", "Applied after review, never silently."],
-  ["WhatsApp group workflows", "todo", "Platform eligibility for groups is not verified. Not offered until it is."],
 ];
 
 export default function WhatsAppPage() {
-  return (
-    <S3Page>
-      <PageHead eyebrow="CareOS for WhatsApp" title="Field updates from a phone, straight into the record." lede="A field worker sends a photo, a location and what was done. CareOS structures it, asks for what is missing and prepares the record for a coordinator to review. Same records, same dashboard, no re-typing.">
-        <div className="s3-actions"><span className="s3-chip is-off" style={{ height: 32, fontSize: 13.5 }}><i />Not connected in production yet</span><Link href="/demo?type=careos" className="s3-btn is-primary">Join the pilot list <ArrowRight size={16} /></Link></div>
-      </PageHead>
-      <section className="s3-wrap" style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 48, alignItems: "center", paddingBottom: 72 }} data-stack>
-        <div style={{ justifySelf: "center" }}><PhoneThread /></div>
-        <DemoWindow view="prepared" title="NGO workspace · prepared from WhatsApp" />
+  return <ProductPage s={{
+    id: "wa",
+    eyebrow: <Status s="off" />,
+    title: ["Field reports from", "the phone they already have"],
+    lede: "A catcher sends a photo and a line of text. StrayPaw turns it into a draft record and places it in the operator's intake queue for a person to review.",
+    primary: { href: "/demo?type=careos", label: "Join the pilot list" },
+    secondary: { href: "/abc-operations", label: "ABC Operations" },
+    hero: <HeroPhone />,
+    heroV: 3,
+    steps: {
+      title: ["One channel", "into one record"],
+      items: [
+        { t: "Authorised sender", d: "Only numbers linked to a member of a verified organisation can send records." },
+        { t: "Structured draft", d: "Text, photo and location become a draft: animal, condition, place and time." },
+        { t: "Missing details", d: "It asks only for what the record still needs." },
+        { t: "Human review", d: "The draft waits in the operator's intake. A coordinator accepts it into the programme." },
+      ],
+    },
+    splits: [
+      { title: ["Drafts, never", "final records"], body: "Nothing from a message is saved as a finished record. It becomes a draft in the intake queue with the original message attached.", ui: <MiniWindow title="Intake · Today" label="the intake queue with a WhatsApp draft" active={0}><QueueUi /></MiniWindow>, v: 1 },
+      { title: ["Works today", "by pasting"], body: "Until WhatsApp is connected, a coordinator can paste a forwarded message into StrayPaw AI and get the same structured draft.", ui: <ExtractUi />, v: 5 },
+    ],
+    extra: (
+      <section className="s4-sec" aria-labelledby="wa-status">
+        <div className="s4-wrap">
+          <Rise className="s4-sechead"><div><h2 id="wa-status" className="s4-h2"><TwoTone a="Exactly where" b="field intake is today" /></h2><p className="s4-lede">We will not call it live until a real message has gone end to end in production.</p></div></Rise>
+          <div className="s4-faq" style={{ gridTemplateColumns: "minmax(0,1fr)" }}>
+            <div>{STATUS.map(([t, s, d]) => (
+              <div key={t} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 24, alignItems: "center", padding: "22px 0", borderTop: "1px solid var(--s4-line)" }}>
+                <div><b style={{ fontSize: 18, fontWeight: 500, letterSpacing: "-0.02em" }}>{t}</b><p className="s4-body" style={{ marginTop: 6 }}>{d}</p></div>
+                <span className={`s4-tag ${s === "done" ? "is-green" : s === "wait" ? "is-amber" : ""}`}>{s === "done" ? <CheckCircle2 size={12} /> : s === "wait" ? <Clock3 size={12} /> : <CircleDashed size={12} />}{s === "done" ? "Built" : s === "wait" ? "Waiting on Meta" : "Not started"}</span>
+              </div>
+            ))}</div>
+          </div>
+        </div>
       </section>
-      <section className="s3-sec is-line"><div className="s3-wrap">
-        <SecHead eyebrow="How it works" title="One channel into one record." />
-        <ol className="s3-steps">
-          <li><i>1</i><b>Authorised sender</b><p>Only phone numbers linked to a member of a verified organisation can file records.</p></li>
-          <li><i>2</i><b>Structured</b><p>Text, photo and location become a draft: intervention, animal, place, date.</p></li>
-          <li><i>3</i><b>Missing details</b><p>CareOS asks only for what the record still needs.</p></li>
-          <li><i>4</i><b>Human review</b><p>The draft waits in the NGO inbox. A coordinator accepts it into the programme.</p></li>
-        </ol>
-      </div></section>
-      <section className="s3-sec is-line"><div className="s3-wrap">
-        <SecHead eyebrow="Status" title="Exactly where CareOS is today." lede="We will not call it live until a real message has gone end to end in production." />
-        <div className="s3-rows">{STATUS.map(([t, s, d]) => <div key={t}><div><b style={{ fontSize: 16 }}>{t}</b><p>{d}</p></div><span className={`s3-chip ${s === "done" ? "is-live" : s === "wait" ? "is-off" : ""}`}>{s === "done" ? <CheckCircle2 size={13} /> : s === "wait" ? <Clock3 size={13} /> : <CircleDashed size={13} />}{s === "done" ? "Built" : s === "wait" ? "Waiting on Meta" : "Not started"}</span></div>)}</div>
-        <p className="s3-body" style={{ marginTop: 20 }}>Until then, teams use <Link className="s3-link" href="/ngo/field">field mode</Link> on a phone, and StrayPaw AI can structure a forwarded message you paste in.</p>
-      </div></section>
-      <CtaBand title="Want CareOS for your field team?" lede="Tell us your team size and programme. We onboard organisations as the WhatsApp number is approved." primary={{ href: "/demo?type=careos", label: "Join the pilot list" }} secondary={{ href: "/for-ngos", label: "For NGOs" }} />
-    </S3Page>
-  );
+    ),
+    close: { a: "Want field intake", b: "for your team?", primary: { href: "/demo?type=careos", label: "Join the pilot list" }, secondary: { href: "/for-ngos", label: "For operators" } },
+  }} />;
 }

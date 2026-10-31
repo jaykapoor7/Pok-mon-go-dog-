@@ -1,66 +1,51 @@
-import Link from "next/link";
-import { ArrowRight, BookOpenCheck, ClipboardPen, FileSearch, Lock, MessageSquareQuote, Route, ScanText, ShieldAlert, Sparkles } from "lucide-react";
-import { AiShowcase } from "@/sp3/home/Demos";
-import { CtaBand, PageHead, S3Page, SecHead } from "@/sp3/site/Sections";
+import { ClipboardPen, FileSearch, History, Lock, ScanText, ShieldAlert } from "lucide-react";
+import { ProductPage, Status } from "@/sp4/site/ProductPage";
+import { AskUi, ExtractUi, OvernightUi, ProposeUi } from "@/sp4/home/ui";
+import { AiBand } from "@/sp4/home/Interactive";
 
-export const metadata = { title: "StrayPaw AI · StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: search authorised records, answer with citations, find missing evidence, prepare records and reports for your confirmation." };
-
-const TOOLS: [string, string, string][] = [
-  ["search_records", "Search animals, cases and programmes you are allowed to read.", "Read"],
-  ["work_summary", "Summarise your team's queue: new requests, open cases, follow-ups due.", "Read"],
-  ["find_missing_evidence", "Records without a photo, place or date that should have one.", "Read"],
-  ["find_duplicates", "Possible duplicate animals in the same area, for a person to compare.", "Read"],
-  ["programme_report", "Recorded figures for a programme, with its sources.", "Read"],
-  ["extract_field_message", "Turn a pasted field update or register row into a structured draft.", "Prepare"],
-  ["propose_case / propose_followup / propose_note / propose_care", "Prepare a change you confirm before it is saved through the normal workflow.", "Write, after confirmation"],
-  ["navigate", "Open the right screen for what you asked.", "Navigate"],
-];
+export const metadata = { title: "StrayPaw AI · StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: searches the records you can read, answers with citations, finds gaps and prepares changes a person confirms." };
 
 export default function AiPage() {
-  return (
-    <S3Page>
-      <PageHead eyebrow={<><Sparkles size={14} /> StrayPaw AI</>} title="The admin work, done in the record." lede="StrayPaw AI is built into every workspace. It searches the records you can see, answers with citations, finds what is missing and prepares records and reports. You confirm every change.">
-        <div className="s3-actions"><Link href="/assistant" className="s3-btn is-primary">Open StrayPaw AI <ArrowRight size={16} /></Link><Link href="/demo" className="s3-btn is-line">Book a demo</Link></div>
-      </PageHead>
-      <section className="s3-wrap" style={{ paddingBottom: 72 }}><AiShowcase /></section>
-
-      <section className="s3-sec is-line"><div className="s3-wrap">
-        <SecHead eyebrow="What it does" title="Less navigating. Less re-typing." />
-        <div className="s3-grid-3">
-          {[
-            [<FileSearch key="1" size={18} />, "Answers with sources", "Every answer links the records it used, so you can check it in one click."],
-            [<ScanText key="2" size={18} />, "Reads field updates", "Paste a field message or register rows. It drafts the structured record and asks for what is missing."],
-            [<ClipboardPen key="3" size={18} />, "Prepares the change", "Open a case, add a note, schedule a follow-up, record care. You see a preview and confirm."],
-            [<ShieldAlert key="4" size={18} />, "Finds the gaps", "Missing evidence, likely duplicates, overdue follow-ups and inconsistencies."],
-            [<MessageSquareQuote key="5" size={18} />, "Summarises", "A case, a queue, a programme month, in plain language."],
-            [<Route key="6" size={18} />, "Takes you there", "Ask for a screen and it opens it, filtered to what you asked."],
-          ].map(([i, t, d]) => <div key={t as string} className="s3-card s3-feature"><span className="s3-ico" aria-hidden>{i}</span><h3>{t}</h3><p>{d}</p></div>)}
-        </div>
-      </div></section>
-
-      <section className="s3-sec is-line"><div className="s3-wrap">
-        <SecHead eyebrow="Tools" title="A real assistant, not a chatbot." lede="StrayPaw AI works through named tools over the same database the rest of the app uses. These are the tools it has today." />
-        <div className="s3-card" style={{ overflowX: "auto" }}>
-          <table className="s3-table" style={{ fontSize: 14 }}>
-            <thead><tr><th scope="col">Tool</th><th scope="col">What it does</th><th scope="col">Access</th></tr></thead>
-            <tbody>{TOOLS.map(([t, d, a]) => <tr key={t}><td className="is-id" style={{ whiteSpace: "normal" }}>{t}</td><td style={{ whiteSpace: "normal" }}>{d}</td><td><span className={`s3-chip ${a === "Read" ? "is-blue" : a === "Navigate" ? "" : "is-flame"}`}>{a}</span></td></tr>)}</tbody>
-          </table>
-        </div>
-      </div></section>
-
-      <section className="s3-sec is-line"><div className="s3-wrap" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48 }} data-stack>
-        <div style={{ display: "grid", gap: 16, alignContent: "start" }}><span className="s3-eyebrow"><Lock size={14} /> Guardrails</span><h2 className="s3-h2">It can only do what you are allowed to do.</h2></div>
-        <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 14, fontSize: 16, color: "var(--s3-ink-2)" }}>
-          <li><b>Your permissions, enforced by the database.</b> The assistant reads with your own signed-in session, so row-level security applies to every query.</li>
-          <li><b>Confirm before change.</b> Every write is shown as a preview and saved only when you press Confirm, through the same server-checked actions as the manual screens.</li>
-          <li><b>No autonomous approvals.</b> It cannot approve medical procedures, certify fieldwork, authorise payments or invent evidence.</li>
-          <li><b>An audit trail.</b> Changes prepared with the assistant are marked as such in the record&apos;s history.</li>
-          <li><b>Manual always works.</b> Everything the assistant does has a normal screen too.</li>
-          <li><b>Honest status.</b> Without a language model configured, StrayPaw AI still runs its record tools and says that free-form answers are off.</li>
-        </ul>
-      </div></section>
-      <CtaBand title="Try StrayPaw AI on your own records." lede="Sign in to your workspace and open the assistant from any screen, or press ⌘J." primary={{ href: "/assistant", label: "Open StrayPaw AI" }} secondary={{ href: "/docs#ai", label: "Read the documentation" }} />
-      <p className="s3-wrap s3-small" style={{ paddingBottom: 24 }}><BookOpenCheck size={12} style={{ verticalAlign: -1 }} /> Demo conversations on this page use illustrative record IDs.</p>
-    </S3Page>
-  );
+  return <ProductPage s={{
+    id: "ai",
+    eyebrow: "StrayPaw AI",
+    title: ["The paperwork between", "the work, done for you"],
+    lede: "StrayPaw AI reads the programme record you are allowed to read, answers with citations, finds what is missing and prepares records for you to confirm. It never approves anything on its own.",
+    primary: { href: "/assistant", label: "Open StrayPaw AI" },
+    secondary: { href: "/demo", label: "Book a demo" },
+    hero: <div style={{ display: "grid", gap: 14, justifyItems: "center" }}><AskUi /><ProposeUi /></div>,
+    heroV: 2,
+    pillars: {
+      title: ["An assistant with", "the same rules as your team"],
+      items: [
+        { t: "Your permissions", d: "It reads with your signed-in session, so database row-level security applies to every query it makes." },
+        { t: "Prepared, then confirmed", d: "Every change is shown as a preview and saved only when you press Confirm, through the same checked actions as the manual screens." },
+        { t: "Cited and logged", d: "Answers name the records they read. Confirmed changes carry the confirmer's name in the record's history." },
+      ],
+    },
+    extra: <section className="s4-dark" aria-labelledby="ai-title"><div className="s4-wrap"><AiBand /></div></section>,
+    splits: [
+      { tag: <Status s="live" />, title: ["Ask in plain words,", "check every answer"], body: "How many releases lack a photo? Which follow-ups are overdue? Answers come with the records behind them.", ui: <AskUi />, v: 0 },
+      { tag: <Status s="live" />, title: ["From a field message", "to a draft record"], body: "Paste a message or a register row. StrayPaw AI structures it into a draft and asks for what is still missing.", ui: <ExtractUi />, v: 5 },
+      { tag: <Status s="live" />, title: ["Find the gaps", "before the report"], body: "Missing evidence, possible duplicates and unsigned procedures, found on request across the records you can read.", ui: <OvernightUi />, v: 3 },
+    ],
+    tiles: {
+      title: ["What StrayPaw AI", "can and cannot do"],
+      items: [
+        { icon: <FileSearch size={20} />, title: "Search and cite", body: "Animals, cases and programmes you are allowed to read, with the records named in every answer." },
+        { icon: <ShieldAlert size={20} />, title: "Find gaps", body: "Missing evidence, likely duplicates and overdue follow-ups, for a person to resolve." },
+        { icon: <ScanText size={20} />, title: "Read field messages", body: "Turns a forwarded message or a register row into a structured draft." },
+        { icon: <ClipboardPen size={20} />, title: "Prepare changes", body: "Open a case, add a note, schedule a follow-up or record care, after you confirm." },
+        { icon: <Lock size={20} />, title: "Cannot approve", body: "It cannot authorise a procedure, accept a report, approve a payment or invent evidence." },
+        { icon: <History size={20} />, title: "Leaves a trail", body: "Changes prepared with StrayPaw AI are marked as such, with the confirmer's name." },
+      ],
+    },
+    note: <><b>Honest status.</b> The record tools above run today in every workspace. Free-form answers need a language model key on the deployment; without one, StrayPaw AI still runs its tools and says that free-form answers are off. Conversations on this page use illustrative records.</>,
+    faq: [
+      ["Does StrayPaw AI train on our data?", "No. Records are sent to the model provider's API only to answer your request at that moment, and are not used to train models."],
+      ["Can it see other organisations' records?", "No. It reads with your own session, so it sees exactly what you can see and nothing else."],
+      ["What if it is wrong?", "Every answer names its records so you can check it, and nothing it prepares is saved until a person confirms."],
+    ],
+    close: { a: "Give the routine checks", b: "to StrayPaw AI.", primary: { href: "/demo", label: "Book a demo" }, secondary: { href: "/assistant", label: "Open StrayPaw AI" } },
+  }} />;
 }

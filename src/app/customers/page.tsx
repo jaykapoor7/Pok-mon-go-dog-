@@ -1,44 +1,62 @@
 import Link from "next/link";
-import { ArrowRight, MapPin, ShieldCheck } from "lucide-react";
-import { getOperationalPartners } from "@/lib/partners";
+import { ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 import { RELATIONSHIP_LABEL, STORIES, fieldPartnerStrip } from "@/sp3/customers";
-import { CtaBand, PageHead, S3Page, SecHead, StoryCard } from "@/sp3/site/Sections";
+import { PageHead, S4Page, SecHead, TwoTone } from "@/sp4/site/kit";
+import { Grain } from "@/sp4/site/Grain";
+import { Rise } from "@/sp4/site/Rise";
+import "@/sp4/home/home4.css";
 
-export const revalidate = 300;
 export const metadata = { title: "Customers · StrayPaw", description: "The organisations whose records are on StrayPaw, what they use it for, and what we have and have not measured." };
 
-export default async function CustomersPage() {
-  const operational = await getOperationalPartners().catch(() => []);
+export default function CustomersPage() {
   const all = fieldPartnerStrip();
-  const totalImported = STORIES.reduce((s, x) => s + x.results.reduce((a, r) => a + r.n, 0), 0);
   return (
-    <S3Page>
-      <PageHead eyebrow="Customers" title="Built with the teams doing the work." lede="Our first partners brought years of field records onto StrayPaw. Every story below says what was imported, what is used day to day, and what has not been measured yet." />
-      <section className="s3-wrap" style={{ paddingBottom: 56 }}>
-        <div className="s3-stats">
-          <div><b className="s3-num">{operational.length || 1}</b><span>Operational partner</span><small>Workspace in use</small></div>
-          <div><b className="s3-num">{all.length}</b><span>Field partners</span><small>Confirmed by the product owner, 20 Oct 2026</small></div>
-          <div><b className="s3-num">{totalImported.toLocaleString("en-IN")}</b><span>Records in the case studies</span><small>Historical registers, imported</small></div>
-          <div><b>Pilot</b><span>Municipal deployments</span><small>The first is being scoped; none is live yet</small></div>
+    <S4Page close={undefined}>
+      <PageHead title={<TwoTone a="Built with the teams" b="doing the work" />} lede="Our first partners brought years of field records onto StrayPaw. Each story says what was imported, what is used day to day, and what has not been measured yet." />
+
+      <section className="s4-wrap" style={{ paddingTop: 72 }}>
+        <div className="s4-nums" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
+          <Rise><b>1</b><small>operational partner using<br />a workspace day to day</small></Rise>
+          <Rise delay={60}><b>{all.length}</b><small>confirmed field partners,<br />each labelled below</small></Rise>
+          <Rise delay={120}><b>0</b><small>municipal deployments live.<br />The first pilot is being scoped.</small></Rise>
         </div>
       </section>
-      <section className="s3-sec is-tight"><div className="s3-wrap" style={{ display: "grid", gap: 20 }}>
-        {STORIES.map((s) => <StoryCard key={s.slug} slug={s.slug} />)}
-      </div></section>
-      <section className="s3-sec is-line"><div className="s3-wrap">
-        <SecHead eyebrow="Partners" title="Every organisation on the record, labelled honestly." lede="A listing is not a deployment. Operational partners use a workspace; field partners' published or shared records are on StrayPaw with credit." />
-        <div className="s3-grid-3">
-          {all.map((p) => (
-            <div key={p.name} className="s3-card s3-feature">
-              <span className={`s3-chip ${p.relationship === "operational" ? "is-live" : p.relationship === "imported" ? "is-blue" : ""}`}>{p.relationship === "operational" && <ShieldCheck size={12} />}{RELATIONSHIP_LABEL[p.relationship]}</span>
-              <h3>{p.name}</h3>
-              <p><MapPin size={13} style={{ verticalAlign: -2 }} /> {p.city}</p>
-            </div>
-          ))}
+
+      <section className="s4-sec" aria-labelledby="cs-stories">
+        <div className="s4-wrap">
+          <h2 id="cs-stories" className="s4-h2" style={{ marginBottom: 48 }}><TwoTone a="Customer" b="stories" /></h2>
+          <div style={{ display: "grid", gap: 12 }}>
+            {STORIES.map((s, n) => (
+              <Rise key={s.slug} className="s4-story" style={{ gridTemplateColumns: "minmax(0,1.05fr) minmax(0,1.26fr)" }}>
+                <div className="s4-story-card" style={{ minHeight: 380 }}>
+                  <span className="s4-story-logo">{s.logo && <img src={s.logo} alt="" />}{s.name}</span>
+                  <p>{s.summary}</p>
+                  <div><small>{s.city} · {RELATIONSHIP_LABEL[s.relationship]}</small><Link href={`/customers/${s.slug}`} className="s4-link" style={{ marginTop: 16 }}>Read case study <ArrowRight size={16} aria-hidden /></Link></div>
+                </div>
+                <Grain v={n + 2} id={`cs-${n}`} className="s4-story-figs" style={{ borderRadius: 16, display: "grid", placeItems: "center", padding: 28 }}>
+                  <div className="s4-ui s4-ui-pad" style={{ width: "min(460px, 100%)", display: "grid", gap: 14 }}>
+                    {s.results.map((r) => <div key={r.label} style={{ display: "grid", gap: 2 }}><b style={{ fontSize: 34, fontWeight: 500, letterSpacing: "-0.04em" }}>{r.n.toLocaleString("en-IN")}</b><span style={{ fontSize: 14 }}>{r.label}</span><small className="s4-ui-sub">{r.note}</small></div>)}
+                    <small className="s4-ui-sub" style={{ borderTop: "1px solid var(--s4-line)", paddingTop: 10 }}>Imported historical register · time saved not yet measured</small>
+                  </div>
+                </Grain>
+              </Rise>
+            ))}
+          </div>
         </div>
-        <p style={{ marginTop: 20 }}><Link className="s3-link" href="/community/organisations">Organisation directory <ArrowRight size={14} /></Link></p>
-      </div></section>
-      <CtaBand title="Become the first municipal case study." lede="We are looking for one city to run an ABC/ARV programme end to end on StrayPaw and measure the time it saves, with us." primary={{ href: "/demo?type=pilot", label: "Request a municipal pilot" }} secondary={{ href: "/partner-apply", label: "Apply as an NGO" }} />
-    </S3Page>
+      </section>
+
+      <section className="s4-sec" aria-labelledby="cs-all">
+        <div className="s4-wrap">
+          <SecHead id="cs-all" title={<TwoTone a="Every partner," b="labelled honestly" />} lede="A listing is not a deployment. Operational partners use a workspace; field partners' records are on StrayPaw with credit." />
+          <div className="s4-wall">
+            {all.map((p) => {
+              const s = STORIES.find((x) => x.name === p.name);
+              const inner = <>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}<span><b>{p.name}</b><small><MapPin size={10} style={{ verticalAlign: -1 }} /> {p.city} · {RELATIONSHIP_LABEL[p.relationship].split(" · ")[0]}</small></span></>;
+              return s ? <Link key={p.name} href={`/customers/${s.slug}`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
+            })}
+          </div>
+        </div>
+      </section>
+    </S4Page>
   );
 }

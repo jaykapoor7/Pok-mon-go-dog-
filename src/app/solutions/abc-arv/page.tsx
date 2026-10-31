@@ -1,41 +1,36 @@
-import { BarChart3, CalendarClock, ClipboardList, Copy, ScanSearch, Syringe } from "lucide-react";
-import { DemoWindow } from "@/sp3/home/Demos";
-import { SolutionPage } from "@/sp3/site/Solution";
+import { Syringe, Stethoscope, Camera, FileCheck2, Copy, Landmark } from "lucide-react";
+import { ProductPage, Status } from "@/sp4/site/ProductPage";
+import { MiniWindow, ProgrammeUi, ReportUi, VetUi } from "@/sp4/home/ui";
 
 export const metadata = {
   title: "ABC / ARV programmes · StrayPaw",
-  description: "Animal birth control and anti-rabies vaccination programmes, end to end: drive registers, evidence, duplicate checks, review and reports.",
+  description: "Sterilisation and anti-rabies vaccination programmes recorded animal by animal, with vet authorisation, evidence and reports.",
 };
 
 export default function AbcArvPage() {
-  return <SolutionPage s={{
+  return <ProductPage s={{
+    id: "arv",
     eyebrow: "ABC / ARV programmes",
-    title: "Sterilisation and vaccination, counted once and counted right.",
-    lede: "StrayPaw's first and most complete workflow. Plan a drive, record each animal with its evidence, catch duplicates before they count, and report from accepted records.",
-    primary: { href: "/demo?type=pilot", label: "Request a pilot" },
-    secondary: { href: "/partner-programmes", label: "See recorded programmes" },
-    visual: <DemoWindow view="review" title="ABC drive · Evidence review" />,
-    problem: {
-      title: "The same dog, counted twice. The release photo, never taken.",
-      body: "ABC programmes are paid per animal. Without animal-level records and evidence, double counting and missing documentation are discovered at audit, if ever.",
-      points: ["Drive sheets typed up days later", "Ear notch and release evidence not linked to the animal", "Vaccination due dates nobody tracks"],
+    title: ["Sterilisation and vaccination,", "animal by animal"],
+    lede: "Run sterilisation drives and anti-rabies vaccination camps on one record: every animal, every procedure, every dose, and the evidence for each.",
+    primary: { href: "/abc-operations", label: "See ABC Operations" },
+    secondary: { href: "/demo", label: "Book a demo" },
+    hero: <MiniWindow title="Programmes · ABC drive" label="programme overview" active={5}><ProgrammeUi /></MiniWindow>,
+    heroV: 0,
+    splits: [
+      { tag: <Status s="staging" />, title: ["Procedures and doses,", "signed by the vet"], body: "Surgery, ear notch and vaccination are recorded on the animal and authorised by the vet who did them.", ui: <VetUi />, v: 1 },
+      { tag: <Status s="live" />, title: ["Drive totals", "you can open"], body: "Every total in a drive or camp report opens to the animals behind it.", ui: <ReportUi />, v: 5 },
+    ],
+    tiles: {
+      title: ["What each", "programme records"],
+      items: [
+        { icon: <Camera size={20} />, title: "Capture and release", body: "Photos and places for both, so release can be checked against capture." },
+        { icon: <Stethoscope size={20} />, title: "Surgery", body: "Procedure, vet and post-operative checks." },
+        { icon: <Syringe size={20} />, title: "Vaccination", body: "Anti-rabies doses with batch and date." },
+        { icon: <Copy size={20} />, title: "Duplicates", body: "Possible repeats flagged for a person to decide." },
+        { icon: <FileCheck2 size={20} />, title: "Evidence", body: "A checklist per programme, matched to your contract." },
+        { icon: <Landmark size={20} />, title: "Reporting", body: "Packages for the office that funds the programme." },
+      ],
     },
-    steps: [
-      { t: "Plan the drive", d: "Programme, area, team and the evidence each record needs." },
-      { t: "Record each animal", d: "Capture, surgery or vaccination, release, with photo and place." },
-      { t: "Check and review", d: "Duplicates and missing evidence flagged; a person decides." },
-      { t: "Report", d: "Accepted interventions by area and month, with sources." },
-    ],
-    features: [
-      { icon: <ClipboardList size={18} />, t: "Drive registers", d: "File animals and reports into an ABC or ARV programme.", href: "/ngo/programmes" },
-      { icon: <Copy size={18} />, t: "Duplicate candidates", d: "Same area, sex and marks within days are flagged for a person to compare." },
-      { icon: <ScanSearch size={18} />, t: "Evidence checks", d: "Records without required evidence wait in review instead of counting." },
-      { icon: <Syringe size={18} />, t: "ARV on the animal", d: "Vaccinations recorded against the animal, not a separate tally." },
-      { icon: <CalendarClock size={18} />, t: "Due lists", d: "Follow-ups and boosters that are due, by team and area." },
-      { icon: <BarChart3 size={18} />, t: "Programme reports", d: "Recorded figures with method, sources and limits.", href: "/city/programmes" },
-    ],
-    notes: ["Duplicate detection suggests candidates; nothing is merged without a person's decision.", "StrayPaw records veterinary procedures as reported by the organisation. It does not certify them."],
-    story: "the-pawsome-people-project",
-    cta: { title: "Run one drive on StrayPaw and compare the report.", primary: { href: "/demo?type=pilot", label: "Request a pilot" }, secondary: { href: "/for-governments", label: "For municipalities" } },
   }} />;
 }

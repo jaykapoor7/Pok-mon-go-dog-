@@ -7,18 +7,19 @@ import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import "@/sp3/sp3.css";
 import "@/sp3/legacy.css";
+import "@/sp4/sp4.css";
 
 /* ════════════════════════════════════════════════════════════════════
-   The StrayPaw 3.0 site navigation, on every public page.
+   The StrayPaw site navigation, on every public page (StrayPaw 4).
 
-   StrayPaw · Platform ▾ · StrayPaw AI · Solutions ▾ · Customers ·
-   Resources ▾ · Sign in · Book a demo. A signed-in visitor sees "Open app"
-   instead of "Sign in"; both go through /app, which sends a person to the
-   workspace their account can actually use.
+   StrayPaw · Platform ▾ · Solutions ▾ · Customers · Resources ▾ ·
+   Security — Sign in · Book a demo. Links sit centred in a 72px bar, as in
+   the reference. A signed-in visitor sees "Open app" instead of "Sign in";
+   both go through /app, which sends a person to the workspace their
+   account can actually use.
 
    The props are kept so every existing page that renders <SiteHeader/>
-   picks up the new bar without an edit; tone/overlay/float no longer change
-   the look (one bar, one identity).
+   picks up the bar without an edit.
    ════════════════════════════════════════════════════════════════════ */
 
 import { PLATFORM, RESOURCES, SOLUTIONS, type Item } from "@/sp3/site/nav-data";
@@ -37,14 +38,18 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
 
   useEffect(() => { setMenu(null); setSheet(false); }, [path]);
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 6);
+    const on = () => setScrolled(window.scrollY > 4);
     on(); window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
   useEffect(() => {
     if (!menu && !sheet) return;
-    const out = (e: PointerEvent) => { if (!bar.current?.contains(e.target as Node)) { setMenu(null); } };
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") { setMenu(null); setSheet(false); } };
+    const out = (e: PointerEvent) => { if (!bar.current?.contains(e.target as Node)) setMenu(null); };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (menu) bar.current?.querySelector<HTMLElement>(`[aria-controls="s4-dd-${menu}"]`)?.focus();
+      setMenu(null); setSheet(false);
+    };
     document.addEventListener("pointerdown", out); document.addEventListener("keydown", esc);
     return () => { document.removeEventListener("pointerdown", out); document.removeEventListener("keydown", esc); };
   }, [menu, sheet]);
@@ -52,9 +57,9 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
   useEffect(() => {
     if (!sheet) return;
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
-    const burger = bar.current?.querySelector<HTMLElement>(".s3-burger");
-    const focusables = () => Array.from(bar.current?.querySelectorAll<HTMLElement>(".s3-burger, #s3-sheet summary, #s3-sheet a") ?? []).filter((el) => el.getClientRects().length);
-    const frame = requestAnimationFrame(() => bar.current?.querySelector<HTMLElement>("#s3-sheet summary, #s3-sheet a")?.focus());
+    const burger = bar.current?.querySelector<HTMLElement>(".s4-burger");
+    const focusables = () => Array.from(bar.current?.querySelectorAll<HTMLElement>(".s4-burger, #s4-sheet summary, #s4-sheet a") ?? []).filter((el) => el.getClientRects().length);
+    const frame = requestAnimationFrame(() => bar.current?.querySelector<HTMLElement>("#s4-sheet summary, #s4-sheet a")?.focus());
     const trap = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const f = focusables(); const first = f[0], last = f[f.length - 1];
@@ -69,41 +74,40 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
   const toggle = (id: MenuId) => setMenu((m) => (m === id ? null : id));
 
   return (
-    <header ref={bar} className={`s3-root s3-nav${scrolled ? " is-scrolled" : ""}`}>
-      <div className="s3-nav-in">
-        <Link href="/" className="s3-brand" aria-label="StrayPaw home"><StrayPawMark size={30} /><span>StrayPaw</span></Link>
+    <header ref={bar} className={`s4 s4-nav${scrolled ? " is-scrolled" : ""}`}>
+      <div className="s4-wrap s4-nav-in">
+        <Link href="/" className="s4-brand" aria-label="StrayPaw home"><StrayPawMark size={28} /><span>StrayPaw</span></Link>
 
-        <nav className="s3-nav-links" aria-label="Site">
+        <nav className="s4-nav-links" aria-label="Site">
           <Dropdown id="platform" label="Platform" open={menu === "platform"} onToggle={toggle} items={PLATFORM} wide
-            side={<><b>Every intervention. Accounted for.</b><p>One record for the programme, the animal and the evidence, shared by the NGO doing the work and the office overseeing it.</p><Link className="s3-link" href="/platform">See the platform <ArrowRight size={14} /></Link></>} />
-          <Link href="/ai" aria-current={here("/ai") ? "page" : undefined}>StrayPaw AI</Link>
-          <Dropdown id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} items={SOLUTIONS}
-            foot={<><span>Also for</span><Link href="/for-community">Community</Link><Link href="/for-feeders">Feeders</Link><Link href="/education">Education</Link></>} />
+            side={<><b>ABC Operations & Verification</b><p>Record every animal from capture to release, check the evidence, and hand the reviewing office a report package it can accept.</p><Link className="s4-link" href="/abc-operations">See how it works <ArrowRight size={14} /></Link></>} />
+          <Dropdown id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} items={SOLUTIONS} />
           <Link href="/customers" aria-current={here("/customers") ? "page" : undefined}>Customers</Link>
           <Dropdown id="resources" label="Resources" open={menu === "resources"} onToggle={toggle} items={RESOURCES}
-            foot={<><Link href="/our-story">Our story</Link><Link href="/faq">FAQ</Link><Link href="/data-governance">Data governance</Link><Link href="/contact">Contact</Link></>} />
+            foot={<><Link href="/faq">FAQ</Link><Link href="/our-story">Our story</Link><Link href="/data-governance">Data governance</Link><Link href="/contact">Contact</Link></>} />
+          <Link href="/security" aria-current={here("/security") ? "page" : undefined}>Security</Link>
         </nav>
 
-        <div className="s3-nav-end">
+        <div className="s4-nav-end">
           {user
-            ? <Link href="/app" className="s3-nav-signin">Open app</Link>
-            : <Link href="/sign-in" className="s3-nav-signin">Sign in</Link>}
-          <Link href="/demo" className="s3-btn is-primary is-sm s3-hide-m">Book a demo</Link>
-          <button type="button" className="s3-burger" aria-label={sheet ? "Close menu" : "Open menu"} aria-expanded={sheet} aria-controls="s3-sheet" onClick={() => setSheet((v) => !v)}>
-            {sheet ? <X size={18} /> : <Menu size={18} />}
+            ? <Link href="/app" className="s4-nav-signin">Open app</Link>
+            : <Link href="/sign-in" className="s4-nav-signin">Sign in</Link>}
+          <Link href="/demo" className="s4-btn is-primary is-sm s4-hide-m">Book a demo</Link>
+          <button type="button" className="s4-burger" aria-label={sheet ? "Close menu" : "Open menu"} aria-expanded={sheet} aria-controls="s4-sheet" onClick={() => setSheet((v) => !v)}>
+            {sheet ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      <div id="s3-sheet" className={`s3-sheet${sheet ? " is-open" : ""}`} aria-hidden={!sheet} inert={!sheet ? true : undefined}>
+      <div id="s4-sheet" className={`s4-sheet${sheet ? " is-open" : ""}`} aria-hidden={!sheet} inert={!sheet ? true : undefined}>
         <SheetGroup label="Platform" items={PLATFORM} />
-        <Link href="/ai">StrayPaw AI</Link>
-        <SheetGroup label="Solutions" items={[...SOLUTIONS, { href: "/for-community", label: "Community", hint: "Report and follow street animals", icon: null }, { href: "/education", label: "Education", hint: "Learn, teach and share", icon: null }]} />
+        <SheetGroup label="Solutions" items={SOLUTIONS} />
         <Link href="/customers">Customers</Link>
-        <SheetGroup label="Resources" items={RESOURCES} />
-        <div className="s3-sheet-cta">
-          <Link href="/demo" className="s3-btn is-primary">Book a demo</Link>
-          <Link href={user ? "/app" : "/sign-in"} className="s3-btn is-line">{user ? "Open app" : "Sign in"}</Link>
+        <SheetGroup label="Resources" items={[...RESOURCES, { href: "/faq", label: "FAQ", hint: "Common questions", icon: null }]} />
+        <Link href="/security">Security</Link>
+        <div className="s4-sheet-cta">
+          <Link href="/demo" className="s4-btn is-primary">Book a demo</Link>
+          <Link href={user ? "/app" : "/sign-in"} className="s4-btn is-line">{user ? "Open app" : "Sign in"}</Link>
         </div>
       </div>
     </header>
@@ -115,38 +119,38 @@ function Dropdown({ id, label, open, onToggle, items, side, foot, wide }: { id: 
   /* Opened from the keyboard: focus the first item once the menu is rendered. */
   const focusFirst = useRef(false);
   useEffect(() => {
-    if (open && focusFirst.current) { focusFirst.current = false; ref.current?.querySelector<HTMLElement>(".s3-dd-menu a")?.focus(); }
+    if (open && focusFirst.current) { focusFirst.current = false; ref.current?.querySelector<HTMLElement>(".s4-dd-menu a")?.focus(); }
   }, [open]);
   return (
-    <div className="s3-dd" ref={ref}
+    <div className="s4-dd" ref={ref}
       onKeyDown={(e) => {
         if (!open) return;
-        const links = Array.from(ref.current?.querySelectorAll<HTMLElement>(".s3-dd-menu a") ?? []);
+        const links = Array.from(ref.current?.querySelectorAll<HTMLElement>(".s4-dd-menu a") ?? []);
         const i = links.indexOf(document.activeElement as HTMLElement);
         if (e.key === "ArrowDown") { e.preventDefault(); links[(i + 1) % links.length]?.focus(); }
         if (e.key === "ArrowUp") { e.preventDefault(); links[(i - 1 + links.length) % links.length]?.focus(); }
       }}>
-      <button type="button" aria-expanded={open} aria-controls={`s3-dd-${id}`} onClick={() => onToggle(id)}
+      <button type="button" aria-expanded={open} aria-controls={`s4-dd-${id}`} onClick={() => onToggle(id)}
         onKeyDown={(e) => { if (e.key === "ArrowDown" && !open) { e.preventDefault(); e.stopPropagation(); focusFirst.current = true; onToggle(id); } }}>
         {label}<ChevronDown size={14} aria-hidden />
       </button>
-      <div id={`s3-dd-${id}`} className={`s3-dd-menu${wide ? " is-wide" : ""}`} hidden={!open}>
-        {side ? <><div style={{ display: "grid", gap: 2 }}>{items.map((it) => <DdItem key={it.href} it={it} />)}</div><div className="s3-dd-side">{side}</div></>
-          : items.map((it) => <DdItem key={it.href} it={it} />)}
-        {foot && <div className="s3-dd-foot">{foot}</div>}
+      <div id={`s4-dd-${id}`} className={`s4-dd-menu${wide ? " is-wide" : ""}`} hidden={!open}>
+        {side ? <><div style={{ display: "grid", gap: 2 }}>{items.map((it) => <DdItem key={it.href} it={it} />)}</div><div className="s4-dd-side">{side}</div></>
+          : <div style={{ display: "grid", gap: 2 }}>{items.map((it) => <DdItem key={it.href + it.label} it={it} />)}</div>}
+        {foot && <div className="s4-dd-foot">{foot}</div>}
       </div>
     </div>
   );
 }
 
 function DdItem({ it }: { it: Item }) {
-  return <Link href={it.href} className="s3-dd-item"><span className="s3-ico" aria-hidden>{it.icon}</span><span><b>{it.label}</b><small>{it.hint}</small></span></Link>;
+  return <Link href={it.href} className="s4-dd-item"><span className={`s4-ico c-${it.tone ?? "blue"}`} aria-hidden>{it.icon}</span><span><b>{it.label}</b><small>{it.hint}</small></span></Link>;
 }
 
 function SheetGroup({ label, items }: { label: string; items: Item[] }) {
   return (
     <details>
-      <summary>{label}<ChevronDown size={18} aria-hidden /></summary>
+      <summary>{label}<ChevronDown size={20} aria-hidden /></summary>
       <div>{items.map((it) => <Link key={it.href + it.label} href={it.href}><b>{it.label}</b><small>{it.hint}</small></Link>)}</div>
     </details>
   );

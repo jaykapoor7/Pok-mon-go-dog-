@@ -4,48 +4,39 @@ import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import "@/sp3/sp3.css";
+import "@/sp4/sp4.css";
 
-/* What closes every public page: an optional demo call to action, the
-   site index and the legal strip. One component, so footers cannot drift. */
+/* What closes every public page (StrayPaw 4): the dark site index and the
+   legal strip. The closing call to action belongs to each page, above the
+   footer, so `cta` is accepted for old callers and ignored. */
 const COLS: [string, [string, string][]][] = [
-  ["Platform", [["Operations", "/platform"], ["StrayPaw AI", "/ai"], ["CareOS for WhatsApp", "/whatsapp"], ["Integrations", "/platform#integrations"], ["Security & trust", "/platform#security"]]],
-  ["Solutions", [["Municipalities", "/for-governments"], ["NGOs", "/for-ngos"], ["ABC / ARV programmes", "/solutions/abc-arv"], ["Rescue & care", "/solutions/rescue-care"], ["Funders", "/for-funders"], ["All solutions", "/solutions"]]],
-  ["Customers", [["Customer stories", "/customers"], ["The Pawsome People Project", "/customers/the-pawsome-people-project"], ["The Kind Hour Foundation", "/customers/the-kind-hour-foundation"], ["Partner programmes", "/partner-programmes"], ["Apply to partner", "/partner-apply"]]],
-  ["Resources", [["Public map", "/explore"], ["Research", "/evidence"], ["Academy", "/learn"], ["Community", "/for-community"], ["Documentation", "/docs"], ["FAQ", "/faq"]]],
-  ["Company", [["Our story", "/our-story"], ["Mission", "/mission"], ["Contact", "/contact"], ["Book a demo", "/demo"], ["Data governance", "/data-governance"], ["Licences", "/licences"]]],
+  ["Product", [["ABC Operations & Verification", "/abc-operations"], ["Platform overview", "/platform"], ["StrayPaw AI", "/ai"], ["WhatsApp field intake", "/whatsapp"], ["Integrations", "/platform#integrations"], ["Security", "/security"], ["Book a demo", "/demo"]]],
+  ["Solutions", [["ABC operators & NGOs", "/for-ngos"], ["ABC / ARV programmes", "/solutions/abc-arv"], ["Rescue & care", "/solutions/rescue-care"], ["Government oversight", "/for-governments"], ["Community & welfare groups", "/for-community"]]],
+  ["Resources", [["Customer stories", "/customers"], ["Documentation", "/docs"], ["Research", "/research"], ["Public map", "/explore"], ["Academy", "/learn"], ["FAQ", "/faq"]]],
+  ["Company", [["Our story", "/our-story"], ["Contact", "/contact"], ["Partner with us", "/partner-apply"], ["Data governance", "/data-governance"], ["Licences", "/licences"]]],
 ];
 
 export function SiteFooter({ className = "", cta = true }: { className?: string; cta?: boolean }) {
+  void cta;
   return (
-    <footer className={`s3-root s3-foot ${className}`.trim()}>
-      <div className="s3-wrap">
-        {cta && (
-          <div className="s3-foot-cta">
-            <div>
-              <h2>Run your next ABC/ARV programme on one record.</h2>
-              <p>Tell us your city, programme and current registers. We scope a municipal pilot with your NGO partners before any work begins.</p>
-            </div>
-            <div className="s3-actions">
-              <Link href="/demo" className="s3-btn is-primary">Book a demo <ArrowRight size={16} aria-hidden /></Link>
-              <Link href="/demo?type=pilot" className="s3-btn is-line">Request a municipal pilot</Link>
-            </div>
-          </div>
-        )}
-        <div className="s3-foot-grid">
-          <div className="s3-foot-brand">
-            <Link href="/" className="s3-brand"><StrayPawMark size={30} /><span>StrayPaw</span></Link>
-            <p>Operations software for street-animal programmes. Every intervention, accounted for.</p>
-            <LanguageSwitcher />
+    <footer className={`s4 s4-foot ${className}`.trim()}>
+      <div className="s4-wrap">
+        <div className="s4-foot-grid">
+          <div className="s4-foot-brand">
+            <Link href="/" className="s4-brand"><StrayPawMark size={28} /><span>StrayPaw</span></Link>
+            <p>Operations and verification software for animal birth control programmes, and the people who deliver them.</p>
+            <Link href="/for-community" className="s4-link">Report an animal <ArrowRight size={15} aria-hidden /></Link>
+            <div><LanguageSwitcher /></div>
           </div>
           {COLS.map(([h, links]) => (
-            <div key={h} className="s3-foot-col">
+            <div key={h}>
               <h4>{h}</h4>
               <ul>{links.map(([l, href]) => <li key={href}><Link href={href}>{l}</Link></li>)}</ul>
             </div>
           ))}
         </div>
-        <div className="s3-foot-base">
-          <span>© {new Date().getFullYear()} StrayPaw · Built in India</span>
+        <div className="s4-foot-base">
+          <span>© {new Date().getFullYear()} StrayPaw. Built in India.</span>
           <nav aria-label="Legal">
             <Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/cookies">Storage</Link>
             <Link href="/community-guidelines">Guidelines</Link><Link href="/report-content">Report content</Link>

@@ -1,48 +1,52 @@
-import { BarChart3, ClipboardCheck, FileSpreadsheet, Landmark, Map as MapIcon, ShieldCheck, Sparkles, Users } from "lucide-react";
-import { DemoWindow } from "@/sp3/home/Demos";
-import { SolutionPage } from "@/sp3/site/Solution";
+import { ClipboardCheck, Eye, FileCheck2, History, Landmark, MessageSquareWarning } from "lucide-react";
+import { ProductPage, Status } from "@/sp4/site/ProductPage";
+import { GovUi, MiniWindow, PackageListUi, ReportUi } from "@/sp4/home/ui";
 
 export const metadata = {
-  title: "For municipalities · StrayPaw",
-  description: "Oversee ABC and anti-rabies vaccination programmes delivered by NGO partners: one record of every intervention, an evidence review queue and monthly reports with sources.",
+  title: "Government oversight · StrayPaw",
+  description: "For municipal offices that fund ABC and anti-rabies programmes: review operator report packages on the same record, query exceptions and record acceptance.",
 };
 
-export default function MunicipalPage() {
-  return <SolutionPage s={{
-    eyebrow: "For municipalities",
-    title: "Oversee your ABC/ARV programme on the record, not in spreadsheets.",
-    lede: "Your NGO partners record each sterilisation and vaccination with its evidence. Your team reviews what is incomplete and gets a monthly report where every figure links to the records behind it.",
-    primary: { href: "/demo?type=pilot", label: "Request a municipal pilot" },
-    secondary: { href: "/city", label: "Open the city workspace" },
-    visual: <DemoWindow view="overview" title="City workspace · Programme overview" />,
-    problem: {
-      title: "Programme reports arrive as totals nobody can trace.",
-      body: "Contractors send a monthly count. Checking it means asking for registers, photos and vet sheets, then reconciling them by hand, usually after payment is due.",
-      points: ["Counts without the animal-level records behind them", "Missing release photos and duplicate entries found late, if at all", "Coverage maps that cannot tell no data from no animals"],
+export default function GovernmentPage() {
+  return <ProductPage s={{
+    id: "gov",
+    eyebrow: "Government oversight",
+    title: ["Check the work", "before you pay for it"],
+    lede: "Your ABC operator keeps every procedure on one record, with its evidence. Your reviewer sees the package they submit, queries what does not add up, and records acceptance on the same record.",
+    primary: { href: "/demo?type=pilot", label: "Request a government demo" },
+    secondary: { href: "/abc-operations", label: "How operators record the work" },
+    hero: <MiniWindow title="Reviewing office · Packages" label="the reviewing office's package list" active={4}><PackageListUi /></MiniWindow>,
+    heroV: 4,
+    pillars: {
+      title: ["Oversight without", "a second system"],
+      lede: "StrayPaw starts with the operator doing the work. The reviewing office joins the same record when it is ready, instead of receiving a spreadsheet of totals.",
+      items: [
+        { t: "Animal-level evidence", d: "Every count in a package opens to the animals behind it: capture, surgery, vaccination, release and photos." },
+        { t: "Exceptions, explained", d: "Missing evidence and possible duplicates are listed with the operator's explanation, not hidden in a total." },
+        { t: "Read-only by design", d: "Reviewers cannot edit operator records. Queries and acceptance are recorded separately, with names and dates." },
+      ],
     },
-    steps: [
-      { t: "Agree the programme", d: "Areas, partners, targets and the evidence each intervention needs." },
-      { t: "Partners record the work", d: "Each animal and intervention is recorded once, with photos and place, on the web or phone." },
-      { t: "Your team reviews", d: "Incomplete records, possible duplicates and inconsistencies arrive in one queue." },
-      { t: "Report from accepted records", d: "Monthly and programme reports with sources and method attached, ready to file." },
+    splits: [
+      { tag: <Status s="staging" />, title: ["Review a package", "in minutes, not weeks"], body: "Open a submitted package, see what was authorised by a vet and what is still an exception, and accept it or return it with a query.", ui: <GovUi />, v: 0 },
+      { tag: <Status s="live" />, title: ["Reports with", "their method attached"], body: "Totals by ward and week, the evidence index and the exceptions log, exported to PDF and XLSX for your file.", ui: <ReportUi />, v: 5 },
     ],
-    features: [
-      { icon: <Landmark size={18} />, t: "Programme overview", d: "Recorded sterilisations, vaccinations and requests per programme and area, with sources.", href: "/city/programmes" },
-      { icon: <ShieldCheck size={18} />, t: "Evidence review", d: "See which records are missing evidence or may be duplicates before they count.", href: "/platform#review" },
-      { icon: <BarChart3 size={18} />, t: "City reports", d: "A print-ready report with method, sources and limits, built from the record.", href: "/city/report" },
-      { icon: <FileSpreadsheet size={18} />, t: "Evidence workbook", d: "Export the records behind a figure for an auditor or council question." },
-      { icon: <MapIcon size={18} />, t: "Contextual map", d: "Coverage and gaps by area when geography matters. Never exact animal locations.", href: "/city" },
-      { icon: <Sparkles size={18} />, t: "StrayPaw AI", d: "Ask for the month's summary, the areas with no ARV recorded, or the records still open.", href: "/ai" },
-      { icon: <Users size={18} />, t: "Partner access", d: "Each NGO sees its own records; your office sees the programme. Enforced in the database." },
-      { icon: <ClipboardCheck size={18} />, t: "Decision history", d: "Every acceptance and request for evidence is kept with who made it and when." },
+    tiles: {
+      title: ["What a reviewer", "can and cannot do"],
+      items: [
+        { icon: <Eye size={20} />, title: "Read submitted packages", body: "Only the packages an operator has submitted to your office, and the records inside them." },
+        { icon: <MessageSquareWarning size={20} />, title: "Raise a query", body: "Ask about any exception. The operator answers on the record." },
+        { icon: <FileCheck2 size={20} />, title: "Record acceptance", body: "Accept a package with your name and the date. It is never accepted automatically." },
+        { icon: <ClipboardCheck size={20} />, title: "Cannot edit records", body: "Operator records stay the operator's. Reviewers cannot change them." },
+        { icon: <History size={20} />, title: "Full history", body: "Every submission, query, answer and acceptance is kept in order." },
+        { icon: <Landmark size={20} />, title: "Your procurement", body: "We work within how your department buys. We do not claim compliance with a tender we have not read." },
+      ],
+    },
+    note: <><b>Where this is today.</b> The operator side is live. The reviewer role, package submission, queries and acceptance are built and tested in our staging environment and are offered as part of a pilot with an operator you already fund. No municipality has accepted a package on StrayPaw yet.</>,
+    faq: [
+      ["Do we need to buy anything to review?", "A pilot is scoped with you and the operator you fund before any work begins. Pricing is agreed per programme."],
+      ["Can we compare operators?", "Once more than one operator submits packages to your office, yes: by ward, period and evidence completeness."],
+      ["Does StrayPaw replace our existing systems?", "No. It holds the programme record. We integrate with a department's system only when it asks."],
     ],
-    pricing: <>Municipal deployments are scoped per programme: areas, partners, duration, deliverables and fees are agreed in writing before work begins. Usage-based terms are possible but not yet standard. We do not publish a price list.</>,
-    notes: [
-      "Today the city workspace shows public programme evidence. Scoped municipal accounts with a private review queue are set up as part of a pilot.",
-      "Analysis areas are not municipal wards unless your ward boundaries are provided.",
-      "Recorded coverage is not an estimate of total population.",
-    ],
-    story: "the-pawsome-people-project",
-    cta: { title: "Start with one programme, one ward cluster, one month.", lede: "We will scope a pilot with your NGO partners and show the report before you commit.", primary: { href: "/demo?type=pilot", label: "Request a municipal pilot" }, secondary: { href: "/demo", label: "Book a demo" } },
+    close: { a: "Ask your operator for", b: "a package you can check.", primary: { href: "/demo?type=pilot", label: "Request a government demo" }, secondary: { href: "/abc-operations", label: "See the operator workflow" } },
   }} />;
 }
