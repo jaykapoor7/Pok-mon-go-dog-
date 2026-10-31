@@ -122,7 +122,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/straypaw-mark.png" alt="" width={26} height={26} />
-                <span><b>{mem.org && ws === "ngo" ? mem.org.name : "StrayPaw"}</b><small>{def.label} workspace</small></span>
+                <span><b>{mem.org && ws === "ngo" ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
                 <ChevronsUpDown size={15} aria-hidden />
               </button>
               {switcher && (

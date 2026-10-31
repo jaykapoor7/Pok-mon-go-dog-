@@ -244,3 +244,35 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
   .sp.sx3 .mobile-details-toggle { font: 500 14px/1.4 var(--s3-sans); color: var(--ink); }
   .sp.sx3 .ib-mobile-source { align-content: start; grid-auto-rows: min-content; min-height: 0; height: auto; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   Minimal pass. Fewer things on screen at once: the top bar holds only
+   the page name, StrayPaw AI and the one primary action (search lives in
+   Quick actions, ⌘K and /); "About this page" folds into one quiet
+   toggle on every screen; the workspace switcher shows a name only.
+   ════════════════════════════════════════════════════════════════════ */
+@media (min-width: 861px) {
+  .sp.sx3 .sp-find.sx3-find { display: none; }
+  .sp.sx3 .sp-bar-end { margin-left: auto; gap: 6px; }
+  .sp.sx3 .sx3-ai-btn { border-color: transparent; background: transparent; color: var(--ink-2); }
+  .sp.sx3 .sx3-ai-btn:hover, .sp.sx3 .sx3-ai-btn.is-on { border-color: transparent; background: var(--sx4-hover); }
+}
+.sp.sx3 .sx3-ws-btn { grid-template-columns: 22px minmax(0, 1fr) 14px; }
+.sp.sx3 .sx3-ws-btn b { line-height: 1.3; }
+
+/* "About this page": closed by default, everywhere */
+.sp.sx3 .brief-fold { display: block; min-width: 0; margin: 0; border: 0; }
+.sp.sx3 .brief-fold > .mobile-details-toggle { display: inline-flex; align-items: center; gap: 4px; width: auto; min-height: 36px; padding: 0; border: 0; background: none; color: var(--mute); font: 400 13px/1.4 var(--s3-sans); cursor: pointer; }
+.sp.sx3 .brief-fold > .mobile-details-toggle:hover { color: var(--ink); }
+.sp.sx3 .brief-fold > .mobile-details-toggle:focus-visible { outline: 2px solid var(--s3-blue); outline-offset: 2px; border-radius: 4px; }
+.sp.sx3 .brief-fold > .mobile-details-toggle > svg { width: 14px; height: 14px; margin-left: 0; transition: transform 160ms; }
+.sp.sx3 .brief-fold[data-open="true"] > .mobile-details-toggle > svg { transform: rotate(180deg); }
+.sp.sx3 .brief-fold > .mobile-details-content { display: block; }
+.sp.sx3 .brief-fold[data-open="false"] > .mobile-details-content { display: none; }
+.sp.sx3 .brief-fold .brief { border-bottom: 0; padding-bottom: 8px; }
+.sp.sx3 :is(.ngo-head, .ci-head) { border-bottom: 0; padding-bottom: 4px; }
+.sp.sx3 .ngo-head + .brief-fold { border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .sp.sx3 .brief-fold > .mobile-details-toggle > svg { transition: none; } }
+/* the organisation and section are already in the sidebar and top bar */
+.sp.sx3 :is(.ngo-head, .ci-head) > div > .k:first-child { display: none; }
+.sp.sx3 .ci-title > .k:first-child { display: none; }

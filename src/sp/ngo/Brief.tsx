@@ -15,10 +15,8 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, ArrowUp, CalendarClock, CircleAlert, ClipboardList, History, Inbox, Sparkles, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { getMyOrg } from "@/lib/actions";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
 import { DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
-import type { NGO } from "@/lib/types";
 import { useAi } from "@/sp3/ai/AiPanel";
 import { useMembership } from "../shell/Shell";
 import { Work } from "./Work";
@@ -35,7 +33,7 @@ const greeting = () => { const h = new Date().getHours(); return h < 12 ? "Good 
 const label = (c: { title?: string | null; animal_name?: string | null; case_code?: string | null }) => c.title || c.animal_name || c.case_code || "Untitled case";
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-type Data = { open: OpenCase[]; due: DueFollowup[]; counts: OpsCounts | null; closed: Change[]; org: NGO | null };
+type Data = { open: OpenCase[]; due: DueFollowup[]; counts: OpsCounts | null; closed: Change[] };
 
 export function Brief() {
   const { user, ready } = useAuth();
@@ -52,12 +50,12 @@ export function Brief() {
     /* Each part loads on its own, so one slow or failing read leaves the
        rest of the brief standing. Only when the open cases themselves
        cannot be read does the page say the brief failed. */
-    Promise.allSettled([openCases(), dueFollowups(), opsCounts(), recentChanges(8), getMyOrg()])
-      .then(([open, due, counts, closed, org]) => {
+    Promise.allSettled([openCases(), dueFollowups(), opsCounts(), recentChanges(8)])
+      .then(([open, due, counts, closed]) => {
         if (!live) return;
         if (open.status === "rejected") { setFailed(true); return; }
         const ok = <T,>(r: PromiseSettledResult<T>, fb: T) => (r.status === "fulfilled" ? r.value : fb);
-        setD({ open: open.value, due: ok(due, []), counts: ok(counts, null), closed: ok(closed, []), org: ok(org, null) });
+        setD({ open: open.value, due: ok(due, []), counts: ok(counts, null), closed: ok(closed, []) });
       });
     return () => { live = false; };
   }, [member]);
@@ -80,7 +78,7 @@ export function Brief() {
 
   type Row = { key: string; href: string; tone: string; icon: ReactNode; title: ReactNode; meta: string; tag?: string };
   const out: Row[] = d ? [
-    ...fresh.slice(0, 4).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: critical(c) ? "flame" : "blue", icon: <Inbox size={10} strokeWidth={2.4} />, title: label(c), meta: [c.zone || c.city, c.assignee_name ? `with ${c.assignee_name}` : "not yet assigned", ago(c.last_activity_at ?? c.occurred_at)].filter(Boolean).join(" · "), tag: critical(c) ? "Critical" : "Updated" })),
+    ...fresh.slice(0, 4).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: critical(c) ? "flame" : "blue", icon: <Inbox size={10} strokeWidth={2.4} />, title: label(c), meta: [c.zone || c.city, c.assignee_name ? `with ${c.assignee_name}` : "not yet assigned", ago(c.last_activity_at ?? c.occurred_at)].filter(Boolean).join(" · "), tag: critical(c) ? "Critical" : undefined })),
     ...closedNew.slice(0, 3).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: "green", icon: <ClipboardList size={10} strokeWidth={2.4} />, title: c.title || c.animal_name || "Case", meta: [c.zone, c.closure_reason || "closed", ago(c.last_activity_at)].filter(Boolean).join(" · "), tag: "Closed" })),
   ] : [];
   const todo: Row[] = d ? [
@@ -97,7 +95,7 @@ export function Brief() {
       <li key={r.key}><Link href={r.href}>
         <span className={`br-sq t-${r.tone}`} aria-hidden>{r.icon}</span>
         <span className="br-t"><span>{typeof r.title === "string" ? <b>{r.title}</b> : r.title}</span><small>{r.meta}</small></span>
-        {r.tag && <em className={`br-tag t-${r.tone}`}>{r.tag}</em>}
+        {r.tag ? <em className={`br-tag t-${r.tone}`}>{r.tag}</em> : <span />}
         {go && <ArrowRight size={14} aria-hidden className="br-go" />}
       </Link></li>
     ))}</ul>
@@ -106,7 +104,6 @@ export function Brief() {
   return (
     <div className="br">
       <div className="br-in">
-        <p className="br-org">{d?.org?.name ?? "Your organisation"}</p>
         <h1 className="br-hello">{greeting()}, {first}.<span>Here is your daily brief.</span></h1>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
