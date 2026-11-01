@@ -55,7 +55,7 @@ const FAQ: [string, string][] = [
   ["How do we start?", "With a scoped pilot on one programme. You tell us your wards, team and current registers; we set up the workspace, import what you have and train the team. Nothing is promised that we have not agreed in writing."],
   ["What does it cost?", "Pricing is agreed per programme before any work begins, and we do not publish a price list yet. Small community and welfare groups can ask about an accessible plan."],
   ["Is WhatsApp intake live?", "Not yet. Field intake is built against the Meta WhatsApp Cloud API, but the number is not verified and Meta approval is pending, so nothing is sent or received over WhatsApp today. Teams use the web and phone field mode meanwhile."],
-  ["Does the AI approve anything?", "No. Kaju searches, summarises and prepares records with citations. Anything that changes a record is shown to a person first and saved only when they confirm. It cannot authorise a procedure, accept a report or approve a payment."],
+  ["Does Kaju approve anything?", "No. Kaju searches, summarises and prepares records with citations. Anything that changes a record is shown to a person first and saved only when they confirm. It cannot authorise a procedure, accept a report or approve a payment."],
   ["Can we bring our existing registers?", "Yes. Excel and CSV registers import as they are. Imported rows stay labelled as historical records, and uncertain matches go to review."],
 ];
 
@@ -100,7 +100,7 @@ export default function HomePage() {
       {/* 4 · Kaju as a teammate */}
       <section className="s4-sec" aria-labelledby="mate-title">
         <div className="s4-wrap">
-          <SecHead id="mate-title" title="Your team's most reliable teammate" lede="It reads the programme record you are allowed to read, finds what needs attention and prepares the paperwork. People make the decisions." link={{ href: "/ai", label: "Meet Kaju" }} />
+          <SecHead id="mate-title" title="Kaju, your team's most reliable teammate" lede="Kaju reads the programme record you are allowed to read, finds what needs attention and prepares the paperwork. People make the decisions." link={{ href: "/ai", label: "Meet Kaju" }} />
           <Cards idp="mate2" cols={2} items={[
             { title: "Knows your programme", body: "Ask in plain words. Every answer names the records it read, so anyone can check it.", ui: <AskUi />, v: 2 },
             { title: "Prepares, never approves", body: "New cases, notes and follow-ups are drafted for you and saved only when a person confirms, with their name on the record.", ui: <ProposeUi />, v: 4 },
@@ -162,7 +162,7 @@ export default function HomePage() {
             { icon: <KeyRound size={20} />, title: "Roles and permissions", body: "Owners, coordinators, field staff and reviewers see and change only what their role allows." },
             { icon: <History size={20} />, title: "Audit history", body: "Every change to a case writes a dated line naming who made it." },
             { icon: <Fingerprint size={20} />, title: "Provenance on every record", body: "Historical import, community report or operator-created, and whether a vet authorised it." },
-            { icon: <Sparkles size={20} />, title: "AI that cannot approve", body: "Kaju prepares; a named person confirms. It reads only what that person can read." },
+            { icon: <Sparkles size={20} />, title: "Kaju cannot approve", body: "Kaju prepares; a named person confirms. It reads only what that person can read." },
             { icon: <Download size={20} />, title: "Your data, exportable", body: "Registers, evidence indexes and reports export to XLSX and CSV whenever you need them." },
           ]} />
         </div>

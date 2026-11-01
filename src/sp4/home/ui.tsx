@@ -3,6 +3,7 @@ import {
   ArrowUp, Bell, Camera, Check, ChevronLeft, ClipboardCheck, Copy, FileCheck2, FileText, Home, Inbox, Landmark,
   ListChecks, MapPin, MessageCircle, Mic, Paperclip, Search, ShieldCheck, Sparkles, Stethoscope, TriangleAlert,
 } from "lucide-react";
+import { KajuFace } from "@/kaju/Kaju";
 
 /* ════════════════════════════════════════════════════════════════════
    Product fragments: small, faithful StrayPaw screens for the website.
@@ -52,7 +53,7 @@ export function HeroWindow() {
               <li><span className="s4u-sq c-amber"><Camera size={11} /></span><span><b>3 records missing a release photo</b><small>SP-1031 · SP-1044 · SP-1067</small></span><span className="s4-tag">Evidence</span></li>
               <li><span className="s4u-sq c-violet"><Copy size={11} /></span><span><b>Possible duplicate</b><small>SP-1042 and SP-1067 · same ward, 2 days apart</small></span><span className="s4-tag is-violet">Check</span></li>
             </ul>
-            <div className="s4u-ask"><Sparkles size={14} /><span>Ask Kaju to prepare Friday&apos;s report package…</span><span className="s4u-ask-go"><ArrowUp size={13} /></span></div>
+            <div className="s4u-ask"><KajuFace size={18} /><span>Ask Kaju to prepare Friday&apos;s report package…</span><span className="s4u-ask-go"><ArrowUp size={13} /></span></div>
           </div>
         </div>
       </div>
@@ -195,14 +196,14 @@ export function AskUi() {
   return (
     <div className="s4-ui s4u-frag" style={{ width: 470 }}>
       <div className="s4-ui-pad"><p className="s4u-q"><span>Anita</span>How many Ward 14 releases this week lack a release photo?</p></div>
-      <div className="s4-ui-pad s4u-a"><span className="s4u-ai"><Sparkles size={11} /></span><p>Three of eighteen: <u>SP-1031</u>, <u>SP-1044</u> and <u>SP-1067</u>. All three were released on 31 Oct by the same team.<small><Search size={10} /> find_missing_evidence · 18 records read</small></p></div>
+      <div className="s4-ui-pad s4u-a"><span className="s4u-ai is-kaju"><KajuFace size={18} /></span><p>Three of eighteen: <u>SP-1031</u>, <u>SP-1044</u> and <u>SP-1067</u>. All three were released on 31 Oct by the same team.<small><Search size={10} /> find_missing_evidence · 18 records read</small></p></div>
     </div>
   );
 }
 export function ProposeUi() {
   return (
     <div className="s4-ui s4u-frag" style={{ width: 400 }}>
-      <div className="s4-ui-pad s4u-head"><span className="s4u-ai-lab"><Sparkles size={12} /> Prepared by Kaju</span></div>
+      <div className="s4-ui-pad s4u-head"><span className="s4u-ai-lab"><KajuFace size={16} /> Prepared by Kaju</span></div>
       <div className="s4-ui-pad"><p className="s4-ui-title">Schedule post-op check</p><p className="s4-ui-sub" style={{ marginTop: 4 }}>SP-1067 · Thursday, 2 Nov · assigned to Ravi</p></div>
       <div className="s4-ui-pad s4u-foot"><small>Saved only when you confirm</small><span className="s4u-btn">Confirm</span></div>
     </div>
