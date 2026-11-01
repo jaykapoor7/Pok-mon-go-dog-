@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Grain } from "@/sp4/site/Grain";
-import { AiToolsUi } from "@/sp4/home/ui";
+import { KajuRunUi, type KajuRun } from "@/sp4/home/ui";
 
 /* ════════════════════════════════════════════════════════════════════
    The two interactive homepage sections.
@@ -96,19 +96,23 @@ export function UseCases({ steps, title, kicker }: { steps: Step[]; title: React
   );
 }
 
-const BANDS = [
-  { title: <>Give the routine checks{" "}<br />to Kaju</>, org: "Kaju · Ward 14 ABC Unit", link: { href: "/ai", label: "See Kaju" }, jobs: [
-    "Find records missing evidence before the weekly report",
-    "Flag possible duplicates in this week's captures",
-    "Draft the monthly summary for the reviewing office",
-    "Turn a field message into a draft record",
-  ] },
-  { title: <>Kaju works for{" "}<br />every role</>, org: "Kaju · Zone 5 ARV programme", link: { href: "/assistant", label: "Open Kaju" }, jobs: [
-    "Show a vet which surgeries still need their signature",
-    "Remind the field team which second doses are due",
-    "List what the coordinator must fix before month end",
-    "Answer the reviewing office's query with the records behind it",
-  ] },
+const BANDS: { title: ReactNode; link: { href: string; label: string }; jobs: string[]; runs: KajuRun[] }[] = [
+  { title: <>Give recurring checks{" "}<br />to Kaju</>, link: { href: "/ai", label: "See Kaju" },
+    jobs: ["List releases missing a photo this week", "Check every surgery has a vet sign-off", "Flag possible duplicates from capture day", "Turn a field message into a record"],
+    runs: [
+      { who: "Anita", ask: "Which Ward 3 releases this week have no release photo?", scope: "Ward 3 · week 45", steps: [["search_records", "Read 52 releases"], ["find_missing_evidence", "Checked 5 evidence items each"], ["work_summary", "Grouped by field team"]], found: ["SP-3104", "SP-3117", "SP-3121"], prepared: "A reminder to Suresh's team for the 3 photos", by: "Asked on demand · reads only what Anita can read" },
+      { who: "Anita", ask: "Are any October surgeries in Ward 3 missing a vet sign-off?", scope: "Ward 3 · October", steps: [["search_records", "Read 44 surgeries"], ["find_missing_evidence", "Matched each to its authorisation"], ["programme_report", "Checked against the package"]], found: ["SP-3110", "SP-3126"], prepared: "A note for Dr. Thomas listing the 2 surgeries", by: "Asked on demand · held out of the package until signed" },
+      { who: "Ravi", ask: "Did we catch any dog twice on Tuesday's capture day?", scope: "Ward 3 · 7 Nov", steps: [["search_records", "Read 18 captures"], ["find_duplicates", "Compared coat, sex, place and photos"], ["work_summary", "Listed the closest pairs"]], found: ["SP-3131 / SP-3109", "SP-3135 / SP-3098"], prepared: "2 pairs for Anita to mark same or different", by: "Asked on demand · Kaju never merges records itself" },
+      { who: "Ravi", ask: "“two females released at the water tank, both notched, photos sent”", scope: "Field message", steps: [["extract_field_message", "Read the message"], ["search_records", "Matched 2 recent surgeries"], ["propose_note", "Drafted release notes"]], found: ["SP-3119", "SP-3122"], prepared: "Release notes on 2 records, with place and time", by: "Saved only when Ravi confirms" },
+    ] },
+  { title: <>Kaju works for{" "}<br />every role</>, link: { href: "/assistant", label: "Open Kaju" },
+    jobs: ["Show a vet what still needs their signature", "Remind the field team which second doses are due", "List what to fix before month end", "Answer a reviewer's query with the records"],
+    runs: [
+      { who: "Dr. Thomas", ask: "What still needs my signature?", scope: "Zone 5 · this week", steps: [["search_records", "Read 31 procedures"], ["find_missing_evidence", "Filtered to your patients"]], found: ["SP-5012", "SP-5019", "SP-5023", "SP-5030"], prepared: "Nothing: authorising is yours to do", by: "Kaju cannot sign for a vet" },
+      { who: "Priya", ask: "Which second anti-rabies doses are due in Ward 6?", scope: "Ward 6 · next 7 days", steps: [["work_summary", "Read 81 vaccinations"], ["propose_followup", "Grouped by street"]], found: ["9 dogs", "Mill colony", "Lake road"], prepared: "Follow-ups for the 9 dogs, assigned to Priya", by: "Saved only when Priya confirms" },
+      { who: "Anita", ask: "What must we fix before the Zone 5 package goes out?", scope: "Zone 5 · September", steps: [["programme_report", "Read 188 procedures"], ["find_missing_evidence", "Found 6 gaps"], ["find_duplicates", "Found 1 possible duplicate"]], found: ["6 evidence gaps", "1 duplicate", "2 late releases"], prepared: "A checklist for the coordinator, by owner", by: "Reads only Zone 5's records" },
+      { who: "Reviewer", ask: "Why was SP-5044 released 2 km away?", scope: "Zone 5 package", steps: [["search_records", "Opened SP-5044"], ["work_summary", "Read its history and notes"]], found: ["Capture: Ward 5", "Release: Ward 6", "Operator's note"], prepared: "A draft answer for the operator to send", by: "The operator replies; the office decides" },
+    ] },
 ];
 
 export function AiBand({ v = 0 }: { v?: number }) {
@@ -128,7 +132,7 @@ export function AiBand({ v = 0 }: { v?: number }) {
     if (held || still || !seen) return;
     const t = window.setTimeout(() => setI((n) => (n + 1) % JOBS.length), 5200);
     return () => window.clearTimeout(t);
-  }, [i, held, still, seen]);
+  }, [i, held, still, seen, JOBS.length]);
   return (
     <div ref={box} className="s4-band">
       <div>
@@ -142,7 +146,7 @@ export function AiBand({ v = 0 }: { v?: number }) {
         </div>
         <Link href={band.link.href} className="s4-link">{band.link.label} <ArrowRight size={18} aria-hidden /></Link>
       </div>
-      <AiToolsUi active={i} org={band.org} />
+      <KajuRunUi run={band.runs[i]} k={`${v}-${i}`} />
     </div>
   );
 }

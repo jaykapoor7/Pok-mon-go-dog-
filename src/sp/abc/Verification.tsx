@@ -18,7 +18,7 @@ const ORDER: Stage[] = ["evidence", "vet", "review", "returned", "ready", "packa
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
 export function Dots({ n }: { n: number }) {
-  return <span className="abc-dots" aria-label={`${n} of 5 evidence items`}>{[0, 1, 2, 3, 4].map((i) => <i key={i} className={i < n ? "is-on" : undefined} />)}<span aria-hidden>{n}/5</span></span>;
+  return <span className="abc-dots" aria-label={`${n} of 5 evidence items`}>{[0, 1, 2, 3, 4].map((i) => <i key={i} className={i < n ? "is-on" : undefined} />)}<span aria-hidden>{n} of 5</span></span>;
 }
 
 export function Verification() {
@@ -50,7 +50,7 @@ export function Verification() {
       <div className="ngo-page abc">
         <header className="ngo-head">
           <div><h1>Verification</h1></div>
-          <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : rows === null && !err ? <Reading>Reading your ABC records</Reading> : err ? "The verification queue could not be read. Nothing is shown as zero." : <><b>{counts.review}</b> to review · <b>{counts.vet}</b> with the vet · <b>{counts.evidence + counts.returned}</b> need evidence</>}</p>
+          <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : rows === null && !err ? <Reading>Reading your ABC records</Reading> : err ? "The verification queue could not be read. Nothing is shown as zero." : <><b>{counts.review}</b> to review · Awaiting vet: <b>{counts.vet}</b> · <b>{counts.evidence + counts.returned}</b> {counts.evidence + counts.returned === 1 ? "case needs" : "cases need"} evidence</>}</p>
           {(ctx?.role === "admin" || ctx?.role === "coordinator") && <div className="row ngo-head-act"><Link className="btn is-s" href="/ngo/packages">Report packages</Link></div>}
         </header>
 

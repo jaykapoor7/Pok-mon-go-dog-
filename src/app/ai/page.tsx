@@ -9,8 +9,8 @@ export default function AiPage() {
   return <ProductPage s={{
     id: "ai",
     eyebrow: "Kaju",
-    title: ["The paperwork between", "the work, done for you"],
-    lede: "Kaju reads the programme record you are allowed to read, answers with citations, finds what is missing and prepares records for you to confirm. It never approves anything on its own.",
+    title: ["Answers, checks and paperwork,", "done by Kaju"],
+    lede: "Kaju answers from your records, finds what is missing and prepares changes for your team to confirm.",
     primary: { href: "/assistant", label: "Open Kaju" },
     secondary: { href: "/demo", label: "Book a demo" },
     hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><AskUi v={3} /><ProposeUi v={1} /></div>,
@@ -42,9 +42,9 @@ export default function AiPage() {
     },
     note: <><b>Honest status.</b> The record tools above run today in every workspace. Free-form answers need a language model key on the deployment; without one, Kaju still runs its tools and says that free-form answers are off. Conversations on this page use illustrative records.</>,
     faq: [
-      ["Does Kaju train on our data?", "No. Records are sent to the model provider's API only to answer your request at that moment, and are not used to train models."],
-      ["Can it see other organisations' records?", "No. It reads with your own session, so it sees exactly what you can see and nothing else."],
-      ["What if it is wrong?", "Every answer names its records so you can check it, and nothing it prepares is saved until a person confirms."],
+      ["What can Kaju do?", "Search your records, summarise work, find missing evidence and duplicates, read field messages and prepare cases, notes, follow-ups and care records."],
+      ["Can Kaju see other organisations' records?", "No. Kaju reads with your own session, so it sees exactly what you can see."],
+      ["What if Kaju is wrong?", "Every answer names its records so you can check it, and nothing Kaju prepares is saved until a person confirms."],
     ],
     close: { a: "Give the routine checks", b: "to Kaju.", primary: { href: "/demo", label: "Book a demo" }, secondary: { href: "/assistant", label: "Open Kaju" } },
   }} />;

@@ -25,38 +25,39 @@ function Words({ lines }: { lines: string[] }) {
 }
 
 export const metadata = {
-  title: "StrayPaw · The platform for animal welfare programmes",
-  description: "One platform for the organisations and public bodies that care for street animals: field work, veterinary care, evidence and reporting, with Kaju built in. First product: ABC and anti-rabies Operations & Verification.",
+  title: "StrayPaw · Meet Kaju, the AI that verifies every sterilisation",
+  description: "Kaju is StrayPaw's AI agent for ABC and anti-rabies programmes. It handles capture, vet sign-off, evidence checks, report packages and municipal review on one shared record.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   Homepage (StrayPaw 4). Twelve parts, in order:
-   1 hero + product · 2 field partners · 3 the workflow (sticky tabs) ·
-   4 Kaju as a teammate · 5 dark band: routine checks ·
-   6 WhatsApp field intake · 7 operator now, government next ·
-   8 integrations · 9 results · 10 security · 11 FAQ · 12 closing CTA.
-   Operator-first: the buyer is the funded ABC operator; government
-   oversight is the stage the record is built to reach.
+   Homepage. Order (the GovDash blueprint, applied to StrayPaw):
+   1 hero · 2 partner wall · 3 use cases · 4 Kaju as a teammate ·
+   5 recurring checks for Kaju (dark) · 6 integrations · 7 security ·
+   8 customer results · 9 FAQ · 10 closing call to action.
+   Buyer: the municipal office that funds ABC and anti-rabies work, and
+   the operators it funds. Kaju is the agent; StrayPaw is the platform.
    ════════════════════════════════════════════════════════════════════ */
 
 const STEPS: Step[] = [
-  { tab: "Capture", title: <>Every animal on the record<br />from the moment it is caught.</>, body: "Photos, sex, coat, ear notch and the exact place, captured on a phone in the field. Each record says who created it and how.", href: "/abc-operations#capture", cta: "Explore capture", ui: <CaptureUi v={0} /> },
-  { tab: "Vet treatment", title: <>Procedures a veterinarian<br />actually authorised.</>, body: "Surgery, ear notch and anti-rabies vaccination are recorded against the animal and signed off by the registered vet who did the work.", href: "/abc-operations#treatment", cta: "Explore treatment", ui: <VetUi v={0} /> },
-  { tab: "Evidence", title: <>Know what is missing<br />before anyone asks.</>, body: "Each animal carries an evidence checklist: capture, surgery, ear notch, release photo and release place. Gaps show up the day they happen.", href: "/abc-operations#evidence", cta: "Explore evidence", ui: <EvidenceUi v={0} /> },
-  { tab: "Checks", title: <>Catch duplicates<br />and mismatches early.</>, body: "Possible duplicates, releases far from the capture ward and records without a vet sign-off are flagged for a person to decide.", href: "/abc-operations#checks", cta: "Explore checks", ui: <DuplicateUi v={0} /> },
-  { tab: "Operator review", title: <>Review the week<br />in one queue.</>, body: "Your coordinator sees every record and every open exception for the week, and approves what is ready for the report.", href: "/abc-operations#review", cta: "Explore review", ui: <ReviewUi v={0} /> },
-  { tab: "Report package", title: <>A report package<br />that holds up.</>, body: "Totals by ward and week, the evidence index, vet authorisations and an exceptions log, generated from the records themselves.", href: "/abc-operations#report", cta: "Explore reports", ui: <ReportUi v={2} /> },
-  { tab: "Government review", title: <>The reviewing office<br />checks, then accepts.</>, body: "A municipal reviewer gets read-only access to the package, can query any exception, and records their acceptance on the same record.", href: "/for-governments", cta: "Explore government review", ui: <GovUi v={1} /> },
+  { tab: "Capture", title: <>Capture: Every animal on the record<br />from the street.</>, body: "Kaju turns field photos, GPS and notes into a complete animal record, with who caught it and when.", href: "/abc-operations#capture", cta: "Explore capture", ui: <CaptureUi v={0} /> },
+  { tab: "Vet sign-off", title: <>Vet sign-off: Surgeries signed<br />by the vet who did them.</>, body: "Each procedure and anti-rabies dose is recorded against the animal. Kaju shows each vet what still needs their signature.", href: "/abc-operations#treatment", cta: "Explore vet sign-off", ui: <VetUi v={0} /> },
+  { tab: "Evidence", title: <>Evidence: Find what is missing<br />before month end.</>, body: "Kaju checks every animal against the five evidence items and lists the gaps the day they appear.", href: "/abc-operations#evidence", cta: "Explore evidence", ui: <EvidenceUi v={0} /> },
+  { tab: "Quality checks", title: <>Quality checks: Catch duplicates<br />and wrong-ward releases early.</>, body: "Kaju flags possible duplicates, releases outside the capture ward and unsigned procedures for a person to decide.", href: "/abc-operations#checks", cta: "Explore quality checks", ui: <DuplicateUi v={0} /> },
+  { tab: "Review", title: <>Review: Close the week<br />in one queue.</>, body: "Your coordinator approves ready records and answers exceptions in one place, with Kaju's summary of what changed.", href: "/abc-operations#review", cta: "Explore review", ui: <ReviewUi v={0} /> },
+  { tab: "Reporting", title: <>Reporting: A monthly package<br />built from the records.</>, body: "Totals by ward, the evidence index, vet authorisations and exceptions, assembled by Kaju and checked by your team.", href: "/abc-operations#report", cta: "Explore reporting", ui: <ReportUi v={2} /> },
+  { tab: "Municipal review", title: <>Municipal review: Check the work<br />before you pay for it.</>, body: "Your office opens the package, queries any animal and records its acceptance on the same record.", href: "/for-governments", cta: "Explore municipal review", ui: <GovUi v={1} /> },
 ];
 
 const FAQ: [string, string][] = [
-  ["Who is StrayPaw for?", "Organisations and public bodies that run animal welfare programmes: NGOs, veterinary teams, contractors and the municipal offices that fund them. Our first product is for funded animal birth control (ABC) and anti-rabies vaccination programmes, where the record has to stand up to review. Rescue, care, community reporting and education already run on the same record."],
-  ["Is StrayPaw only for ABC?", "No. ABC and anti-rabies drives are where we start because the need for verified records is sharpest there. The same platform holds rescue and treatment cases, feeding and community reports, research archives kept apart from operations, and education, and more programme types follow."],
-  ["How do we start?", "With a scoped pilot on one programme. You tell us your wards, team and current registers; we set up the workspace, import what you have and train the team. Nothing is promised that we have not agreed in writing."],
-  ["What does it cost?", "Pricing is agreed per programme before any work begins, and we do not publish a price list yet. Small community and welfare groups can ask about an accessible plan."],
-  ["Is WhatsApp intake live?", "Not yet. Field intake is built against the Meta WhatsApp Cloud API, but the number is not verified and Meta approval is pending, so nothing is sent or received over WhatsApp today. Teams use the web and phone field mode meanwhile."],
-  ["Does Kaju approve anything?", "No. Kaju searches, summarises and prepares records with citations. Anything that changes a record is shown to a person first and saved only when they confirm. It cannot authorise a procedure, accept a report or approve a payment."],
-  ["Can we bring our existing registers?", "Yes. Excel and CSV registers import as they are. Imported rows stay labelled as historical records, and uncertain matches go to review."],
+  ["What is Kaju?", "Kaju is StrayPaw's AI agent for animal welfare programmes. It works across capture, vet sign-off, evidence, reports and municipal review, using your organisation's own records."],
+  ["How is Kaju different from ChatGPT or Claude?", "Kaju works inside StrayPaw, on your programme's records, with your permissions. Every answer names the records it used, and every change is prepared for a person to confirm."],
+  ["Which parts of StrayPaw does Kaju work across?", "Animals, cases, follow-ups, evidence, programmes and reports. Kaju reads only what the signed-in person is allowed to read."],
+  ["Can Kaju approve a procedure or a bill?", "No. Kaju prepares; people decide. Vets authorise procedures, coordinators approve evidence and the municipal office accepts the package, each in their own name."],
+  ["Does Kaju train on our data?", "No. Your records are not used to train models and are never shared with other organisations."],
+  ["Who is StrayPaw for?", "Municipal offices that fund ABC and anti-rabies programmes, and the NGOs and operators that run them."],
+  ["How do we get started?", "With a scoped pilot on one programme. We import your current registers, set up your team and agree the scope in writing first."],
+  ["Can we bring our existing registers?", "Yes. Excel and CSV registers import as they are. Imported rows stay labelled as historical until checked through the workflow."],
+  ["How does pricing work?", "Pricing is agreed per programme before work begins. NGOs and small welfare groups can ask about an accessible plan."],
 ];
 
 export default function HomePage() {
@@ -70,8 +71,8 @@ export default function HomePage() {
       {/* 1 · hero */}
       <section className="s4-hero" aria-labelledby="hero-title">
         <div className="s4-wrap">
-          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet Kaju, the AI agent for", "animal welfare programmes"]} /></h1>
-          <p className="s4-lede">Capture animals, record care, check evidence, prepare reports, and more. We start with ABC and anti-rabies programmes, where every procedure is recorded, signed off and ready for the office that funds it.</p>
+          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet Kaju, the AI that", "verifies every sterilisation"]} /></h1>
+          <p className="s4-lede">Kaju handles capture, vet sign-off, evidence checks, report packages and municipal review for ABC and anti-rabies programmes, on one shared record.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
           <div className="s4-hero-stage"><HeroDemo /></div>
         </div>
@@ -94,36 +95,36 @@ export default function HomePage() {
 
       {/* 3 · the workflow */}
       <div id="workflow" className="s4-sec">
-        <UseCases title="Use cases" kicker="First product · ABC and anti-rabies Operations & Verification" steps={STEPS} />
+        <UseCases title="Use cases" steps={STEPS} />
       </div>
 
       {/* 4 · Kaju as a teammate */}
       <section className="s4-sec" aria-labelledby="mate-title">
         <div className="s4-wrap">
-          <SecHead id="mate-title" title="Kaju, your team's most reliable teammate" lede="Kaju reads the programme record you are allowed to read, finds what needs attention and prepares the paperwork. People make the decisions." link={{ href: "/ai", label: "Meet Kaju" }} />
+          <SecHead id="mate-title" title="Kaju, your team's most reliable teammate" lede="Kaju learns your programme, works across StrayPaw and prepares the work for your team to confirm." link={{ href: "/ai", label: "Meet Kaju" }} />
           <Cards idp="mate2" cols={2} items={[
-            { title: "Knows your programme", body: "Ask in plain words. Every answer names the records it read, so anyone can check it.", ui: <AskUi v={1} />, v: 2 },
-            { title: "Prepares, never approves", body: "New cases, notes and follow-ups are drafted for you and saved only when a person confirms, with their name on the record.", ui: <ProposeUi v={0} />, v: 4 },
+            { title: "Knows your programme", body: "Ask in plain words. Kaju answers from your records and names each one it used.", ui: <AskUi v={1} />, v: 2 },
+            { title: "Prepares, never approves", body: "Kaju drafts cases, notes and follow-ups. Nothing is saved until a person confirms.", ui: <ProposeUi v={0} />, v: 4 },
           ]} />
           <div style={{ height: 48 }} />
           <Cards idp="mate3" cols={3} items={[
-            { title: "Works through the backlog", body: "Missing evidence, duplicates and unsigned procedures, found before the weekly report.", ui: <OvernightUi v={1} />, v: 0 },
-            { title: "Reads field messages", body: "A message from the field becomes a structured draft record for review.", ui: <ExtractUi v={1} />, v: 5 },
-            { title: "Keeps the report ready", body: "See how complete your evidence is for the period, at any time.", ui: <RingUi />, v: 1 },
+            { title: "Clears the backlog", body: "Kaju finds missing evidence, duplicates and unsigned procedures before the weekly report.", ui: <OvernightUi v={1} />, v: 0 },
+            { title: "Reads field messages", body: "Paste a message from the field. Kaju turns it into a draft record.", ui: <ExtractUi v={1} />, v: 5 },
+            { title: "Keeps reports ready", body: "Kaju tracks evidence completion for the month, so the package is never a surprise.", ui: <RingUi />, v: 1 },
           ]} />
         </div>
       </section>
 
-      {/* 5 · dark band */}
+      {/* 5 · recurring checks for Kaju */}
       <section className="s4-dark" aria-labelledby="ai-title">
         <div className="s4-wrap"><AiBand /></div>
       </section>
 
-      {/* 8 · integrations */}
+      {/* 6 · integrations */}
       <section className="s4-sec" aria-labelledby="int-title" id="integrations">
         <div className="s4-wrap s4-int-wrap">
           <div className="s4-int-head">
-            <h2 id="int-title" className="s4-h2"><TwoTone blue a="StrayPaw works with" b="the tools your team uses." /></h2>
+            <h2 id="int-title" className="s4-h2"><TwoTone blue a="Kaju works with" b="the tools your team uses." /></h2>
             <Link href="/platform#integrations" className="s4-link is-ink">Every integration and its status <ArrowRight size={18} aria-hidden /></Link>
           </div>
           <div className="s4-int" aria-label="Integrations and their status">
@@ -136,7 +137,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 9 · results */}
+      {/* 7 · security */}
+      <section className="s4-sec" id="security" aria-labelledby="sec-title">
+        <div className="s4-wrap">
+          <SecHead id="sec-title" title={<TwoTone a="Built for public money," b="with audit-ready controls" />} link={{ href: "/security", label: "Explore security" }} />
+          <Tiles items={[
+            { icon: <ShieldCheck size={20} />, title: "Data isolation", body: "Each organisation's records are separated in the database and never shared across accounts." },
+            { icon: <KeyRound size={20} />, title: "Role-based access", body: "Leads, coordinators, vets, field staff and reviewers see and change only what their role allows." },
+            { icon: <History size={20} />, title: "Full audit trail", body: "Every change records who made it and when, including changes prepared by Kaju." },
+            { icon: <Fingerprint size={20} />, title: "Record provenance", body: "Every record shows where it came from: field capture, community report or historical import." },
+            { icon: <Sparkles size={20} />, title: "No automatic approvals", body: "Kaju prepares; a named person confirms. It reads only what that person can read." },
+            { icon: <Download size={20} />, title: "Your data, exportable", body: "Registers, evidence and reports export to XLSX and CSV at any time." },
+          ]} />
+        </div>
+      </section>
+
+      {/* 8 · customer results */}
       <section className="s4-sec" aria-labelledby="res-title">
         <div className="s4-wrap">
           <h2 id="res-title" className="s4-h2" style={{ marginBottom: 48 }}>Customer results</h2>
@@ -153,24 +169,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 10 · security */}
-      <section className="s4-sec" id="security" aria-labelledby="sec-title">
-        <div className="s4-wrap">
-          <SecHead id="sec-title" title={<TwoTone a="Built for records" b="someone has to defend" />} link={{ href: "/security", label: "Explore security" }} />
-          <Tiles items={[
-            { icon: <ShieldCheck size={20} />, title: "Organisation isolation", body: "Database row-level security keeps each organisation's records to its own members." },
-            { icon: <KeyRound size={20} />, title: "Roles and permissions", body: "Owners, coordinators, field staff and reviewers see and change only what their role allows." },
-            { icon: <History size={20} />, title: "Audit history", body: "Every change to a case writes a dated line naming who made it." },
-            { icon: <Fingerprint size={20} />, title: "Provenance on every record", body: "Historical import, community report or operator-created, and whether a vet authorised it." },
-            { icon: <Sparkles size={20} />, title: "Kaju cannot approve", body: "Kaju prepares; a named person confirms. It reads only what that person can read." },
-            { icon: <Download size={20} />, title: "Your data, exportable", body: "Registers, evidence indexes and reports export to XLSX and CSV whenever you need them." },
-          ]} />
-        </div>
-      </section>
-
-      {/* 11 · FAQ */}
+      {/* 9 · FAQ */}
       <Faq items={FAQ} title="FAQs" />
-      {/* 12 · closing CTA is rendered by S4Page */}
+      {/* 10 · closing call to action is rendered by S4Page */}
     </S4Page>
   );
 }
@@ -183,5 +184,5 @@ const INT_COLS: IntTile[][] = [
   [{ n: "WhatsApp", s: "Not connected", i: <MessageCircle /> }],
   [{ n: "Maps", s: "Live", i: <MapPin /> }],
   [{ n: "XLSX export", s: "Live", i: <ClipboardList /> }, { n: "PDF reports", s: "Live", i: <FileText /> }],
-  [{ n: "Record search", s: "Live", i: <ScanSearch /> }, { n: "Reviewer access", s: "Planned", i: <UserCheck /> }],
+  [{ n: "Record search", s: "Live", i: <ScanSearch /> }, { n: "Reviewer access", s: "Live", i: <UserCheck /> }],
 ];

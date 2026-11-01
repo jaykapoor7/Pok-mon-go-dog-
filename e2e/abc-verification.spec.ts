@@ -34,10 +34,10 @@ test("municipal package review asks a visitor to sign in", async ({ page, isMobi
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
-test("the homepage positions StrayPaw beyond ABC, with ABC/ARV as the first product", async ({ page }) => {
+test("the homepage introduces Kaju and what it handles", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI agent for\s*animal welfare programmes/);
-  await expect(page.getByText(/We start with ABC and anti-rabies programmes/)).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI that\s*verifies every sterilisation/);
+  await expect(page.getByText(/Kaju handles capture, vet sign-off, evidence checks/)).toBeVisible();
 });
 
 test("product fragments stay inside a phone screen (no text cut off at the edges)", async ({ page, isMobile }) => {

@@ -46,7 +46,7 @@ export function HeroWindow() {
           <div className="s4u-brief-in">
             <p className="s4u-hello">Good morning, Anita.<span>Here is today&apos;s programme brief.</span></p>
             <p className="s4u-since">Since yesterday: <b>18 animals</b> were released in Ward 14, <b>3 records</b> are missing a release photo, and <b>1 possible duplicate</b> needs a decision before Friday&apos;s report package goes to the <b>reviewing office</b>.</p>
-            <p className="s4u-h">While you were out</p>
+            <p className="s4u-h">Recent activity</p>
             <ul className="s4u-list">
               <li><span className="s4u-sq c-flame"><MessageCircle size={11} /></span><span><b>Pickup request from the field</b><small>Brown female, limping · Ward 14 market · 07:42</small></span><span className="s4-tag is-amber">Draft · review</span></li>
               <li><span className="s4u-sq c-teal"><Stethoscope size={11} /></span><span><b>Dr. Rao authorised 12 sterilisations</b><small>Surgery list, 30 Oct · all ear-notched</small></span><span className="s4-tag is-green">Vet-authorised</span></li>
@@ -242,8 +242,8 @@ export function GovUi({ v = 0 }: { v?: number }) {
 /* ── Kaju fragments ───────────────────────────────────────── */
 const ASK: { who: string; q: string; a: ReactNode; tool: string }[] = [
   { who: "Anita", q: "How many Ward 14 releases this week lack a release photo?", a: <>Three of eighteen: <u>SP-1031</u>, <u>SP-1044</u> and <u>SP-1067</u>. All three were released on 31 Oct by the same team.</>, tool: "find_missing_evidence · 18 records read" },
-  { who: "Meena", q: "Which Ward 9 dogs still need their second anti-rabies dose?", a: <>Seven are due before 12 Nov. The first two are <u>SP-0912</u> and <u>SP-0918</u>; all seven were caught near the mill road.</>, tool: "follow_ups_due · 97 records read" },
-  { who: "Dr. Menon", q: "How many surgeries did I sign in October, and are any missing a record?", a: <>You signed 61. One, <u>SP-2245</u>, has no surgery record attached yet, so it is held out of the package.</>, tool: "vet_sign_offs · 61 records read" },
+  { who: "Meena", q: "Which Ward 9 dogs still need their second anti-rabies dose?", a: <>Seven are due before 12 Nov. The first two are <u>SP-0912</u> and <u>SP-0918</u>; all seven were caught near the mill road.</>, tool: "work_summary · 97 records read" },
+  { who: "Dr. Menon", q: "How many surgeries did I sign in October, and are any missing a record?", a: <>You signed 61. One, <u>SP-2245</u>, has no surgery record attached yet, so it is held out of the package.</>, tool: "find_missing_evidence · 61 records read" },
   { who: "Suresh", q: "Summarise what the Ward 22 team did yesterday.", a: <>Nine captures, six surgeries and four releases. <u>SP-2231</u> is waiting for its post-operative check.</>, tool: "work_summary · 19 records read" },
   { who: "Anita", q: "Which programme has the lowest evidence completion this month?", a: <>Ward 22 at 79%. Most gaps are release photos from the bus-depot drive on <u>4 Nov</u>.</>, tool: "programme_report · 4 programmes read" },
 ];
@@ -417,6 +417,30 @@ export function RescueUi() {
     <div className="s4u-pg">
       <div className="s4u-pg-head"><div><b>Rescue cases</b><small>Requests, treatment and follow-ups</small></div><span className="s4u-btn">New case</span></div>
       <ul className="s4u-q-list">{rows.map(([a, b, c, t]) => <li key={a}><span><b>{a}</b><small>{b}</small></span><span className={`s4-tag is-${t}`}>{c}</span></li>)}</ul>
+    </div>
+  );
+}
+
+/* ── Kaju running a check, for the dark band ────────────────────────
+   One run per job: what was asked, the steps Kaju took (with the tool
+   each used), what it found, and the change it prepared for a person. */
+export type KajuRun = { who: string; ask: string; scope: string; steps: [string, string][]; found: string[]; prepared: string; by: string };
+export function KajuRunUi({ run, k }: { run: KajuRun; k: string | number }) {
+  return (
+    <div className="s4-ui s4u-run" key={k}>
+      <div className="s4-ui-pad s4u-head"><span className="s4u-ai-lab"><KajuFace size={18} /> Kaju</span><span className="s4-tag">{run.scope}</span></div>
+      <div className="s4-ui-pad"><p className="s4u-q"><span>{run.who}</span>{run.ask}</p></div>
+      <ol className="s4-ui-pad s4u-run-steps">
+        {run.steps.map(([tool, out], i) => <li key={tool + i} style={{ ["--i" as string]: i }}><Ok /><span><b>{out}</b><code>{tool}</code></span></li>)}
+      </ol>
+      <div className="s4-ui-pad s4u-run-found" style={{ ["--i" as string]: run.steps.length }}>
+        <p className="s4u-cfg-h">Found</p>
+        <div className="s4u-chips">{run.found.map((f) => <span key={f} className="is-on">{f}</span>)}</div>
+      </div>
+      <div className="s4-ui-pad s4u-foot s4u-run-prep" style={{ ["--i" as string]: run.steps.length + 1 }}>
+        <small><b>Prepared:</b> {run.prepared}</small><span className="s4u-btn">Confirm</span>
+      </div>
+      <p className="s4u-run-by">{run.by}</p>
     </div>
   );
 }

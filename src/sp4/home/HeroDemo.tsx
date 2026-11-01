@@ -143,7 +143,7 @@ function SceneHome({ t }: { t: number }) {
     <div className="s4d-brief">
       <p className="s4d-hello s4d-fade">Good morning, Anita.<span>Here is your daily brief.</span></p>
       <p className="s4d-since s4d-fade" style={{ animationDelay: "120ms" }}>Since yesterday: <b>18 animals</b> were released in Ward 14, <b>3 records</b> are missing a release photo, and <b>Friday&apos;s package</b> for the reviewing office is due in two days.</p>
-      <p className="s4d-h">While you were out</p>
+      <p className="s4d-h">Recent activity</p>
       <ul className="s4d-list">{rows.map(([c, x, tag], i) => (
         <li key={i} className="s4d-pop" style={{ animationDelay: `${300 + i * 140}ms` }}><span className={`s4u-sq c-${c}`} /><span>{x}</span><em className={`s4-tag ${c === "teal" ? "is-green" : c === "amber" ? "" : c === "violet" ? "is-violet" : "is-amber"}`}>{tag}</em></li>
       ))}</ul>

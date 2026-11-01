@@ -8,8 +8,8 @@ export default function SecurityPage() {
   return <ProductPage s={{
     id: "sec",
     eyebrow: "Security",
-    title: ["Records someone", "has to defend"],
-    lede: "Programme records are audited, queried and paid against. StrayPaw is built so every figure can be traced, every change has a name on it, and every limitation is visible.",
+    title: ["Security you", "can audit"],
+    lede: "Every figure is traceable, every change has a name on it, and each organisation's records stay its own.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "/data-governance", label: "Data governance" },
     hero: <MiniWindow title="Case SP-1067 · History" label="audit history of a case"><AuditUi v={2} /></MiniWindow>,

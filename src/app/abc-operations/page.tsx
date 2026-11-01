@@ -11,8 +11,8 @@ export default function AbcOperationsPage() {
   return <ProductPage s={{
     id: "abc",
     eyebrow: "ABC Operations & Verification",
-    title: ["Prove every procedure", "your programme is paid for"],
-    lede: "StrayPaw is the operating record for funded animal birth control programmes. Capture, treatment, evidence, review and the report package, on one record a reviewing office can check.",
+    title: ["Every procedure verified,", "before the bill"],
+    lede: "Capture, vet sign-off, evidence, review and the monthly package for funded ABC programmes, on one record your reviewing office can check.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "/demo?type=pilot", label: "Scope a pilot" },
     hero: <MiniWindow title="Programmes · ABC drive · October" label="programme overview by ward" active={5}><ProgrammeUi /></MiniWindow>,
@@ -60,7 +60,7 @@ export default function AbcOperationsPage() {
     note: <><b>What is live today.</b> Field capture, cases, follow-ups, case review, duplicate checks, missing-evidence search, register imports and PDF/XLSX reports run in the product now. The per-animal evidence checklist, vet authorisation, the weekly approval step and the government reviewer role are built in our staging environment and will be switched on with the first pilot. Records shown on this page are illustrative.</>,
     faq: [
       ["Do we have to change how our clinic works?", "No. StrayPaw records the steps you already take. The checklist is set per programme to match your contract."],
-      ["What about our past registers?", "Import them from Excel or CSV. They stay labelled as historical imported records, so they are never mixed up with work recorded live."],
+      ["What counts as complete evidence?", "Five items per animal: capture photo, surgery record, ear-notch photo, release photo and release place. The list is set per contract."],
       ["Who can mark a procedure as authorised?", "Only a member with the veterinarian role on that organisation, and only for themselves."],
       ["Can the municipal office change our records?", "No. Reviewers read submitted packages and can raise queries or record acceptance. They cannot edit operator records."],
     ],

@@ -8,15 +8,15 @@ export default function PlatformPage() {
   return <ProductPage s={{
     id: "pf",
     dark: true,
-    title: ["One record for the", "whole programme"],
-    lede: "Intake, animals, treatment, evidence, review and reports, with Kaju and field intake working on the same data. No second database, no copy for the AI, no spreadsheet at the end.",
+    title: ["One record for", "every programme"],
+    lede: "Intake, animals, treatment, evidence, review and reports, with Kaju working on the same data.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "#modules", label: "Take a tour" },
     hero: <div style={{ width: "min(1100px, 100%)" }}><HeroWindow /></div>,
     heroV: 2,
     strip: <><b>Field partners on StrayPaw</b><span>The Pawsome People Project</span><span>The Kind Hour Foundation</span><span>PAWS Chennai</span><span>Mission Rabies</span><span>Humane Animal Society</span></>,
     pillars: {
-      title: ["Built for organisations where", "the record has to hold up"],
+      title: ["Built for programmes", "paid with public money"],
       items: [
         { t: "Grounded in your records", d: "Every screen, answer and report reads the same records your team creates. Nothing is estimated or generated." },
         { t: "Permissions at the database", d: "Row-level security decides what each member can read and change, for people and for Kaju alike." },
@@ -54,9 +54,9 @@ export default function PlatformPage() {
       ],
     },
     faq: [
-      ["Is the AI a separate system?", "No. Kaju uses the same database and the same permissions as the rest of the app, through named tools. There is no separate copy of your data."],
+      ["Is Kaju a separate system?", "No. Kaju uses the same database and permissions as the rest of StrayPaw. There is no separate copy of your data."],
       ["Where is our data hosted?", "On Supabase (managed Postgres) and Vercel. Database row-level security isolates each organisation's records."],
-      ["Can we leave?", "Yes. Registers, evidence and reports export to XLSX, CSV and PDF at any time."],
+      ["Does it work on a phone?", "Yes. Field staff capture on a phone browser, into the same record the office sees."],
     ],
   }} />;
 }

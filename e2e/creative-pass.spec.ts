@@ -4,12 +4,12 @@ import fieldPartners from "../src/data/field-partners.json";
 /* StrayPaw 4 landing (operator-first, 31 Oct 2026). These tests hold the
    page to the same standards as before: usable at every width, real tap
    targets, keyboard access, no-JS essentials. */
-const H1=/Meet Kaju, the AI agent for\s*animal welfare programmes/;
+const H1=/Meet Kaju, the AI that\s*verifies every sterilisation/;
 for(const width of [320,390,768,1440])test(`hero and section order remain usable at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(H1);
  for(const a of await page.locator(".s4-hero .s4-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main h2:visible").allInnerTexts()).map(s=>s.replace(/\s+/g," ").trim());
- expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Kaju, your team's most reliable teammate","Give the routine checks to Kaju"]);
+ expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Kaju, your team's most reliable teammate","Give recurring checks to Kaju"]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.locator(".s4-hero .s4-actions [class*=flame]")).toHaveCount(0);
 });
@@ -47,5 +47,5 @@ test("essential public information and actions survive without JavaScript",async
  const context=await browser.newContext({javaScriptEnabled:false});const page=await context.newPage();await page.goto("/");
  await expect(page.getByRole("heading",{level:1})).toHaveText(H1);
  await expect(page.locator(".s4-hero a").filter({hasText:"Book a demo"})).toHaveAttribute("href","/demo");
- await page.getByText("What does it cost?",{exact:true}).click();await expect(page.locator("details").filter({hasText:"What does it cost?"})).toContainText("Pricing is agreed per programme");await context.close();
+ await page.getByText("How does pricing work?",{exact:true}).click();await expect(page.locator("details").filter({hasText:"How does pricing work?"})).toContainText("Pricing is agreed per programme");await context.close();
 });
