@@ -2,6 +2,8 @@
 
 Production: https://www.straypaw.org (the apex redirects here).
 
+NGO login report follow-up: [incident checks and compatibility repair](docs/sp4/LOGIN-INCIDENT-2026-11-01.md). Preserve legacy domain/DNS entry points as canonical redirects; do not execute the older domain-deletion checklist. The reported customer's account and invitation were checked read-only and left intact. The exact missing-URL error has not been reproduced from the supplied screenshot.
+
 ## Continuation — 1 November 2026
 
 Read [the current release results and exact remaining owner actions](docs/sp4/RELEASE-2026-11-01.md), then [the security continuation](docs/sp4/CONTINUATION-2026-11-01-SECURITY.md). They supersede the earlier gap matrix and historical notes below. Three non-destructive security/action/check migrations were tested in staging and applied to production. The authenticated desktop/phone ABC journey, private evidence and reviewer exports passed. Recurring explained checks, confirmation receipts and independent audit readback are implemented. Live model-backed chat and real external-provider journeys remain unverified. WhatsApp stays disconnected. Historical-data cleanup was not executed.

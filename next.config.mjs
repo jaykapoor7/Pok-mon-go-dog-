@@ -39,6 +39,15 @@ const nextConfig = {
        to 1.0 must not be fought by browsers caching permanent redirects. */
     const to = (pairs) => pairs.map(([source, destination]) => ({ source, destination, permanent: false }));
     return [
+      // Keep existing NGO bookmarks usable after the domain move. Match only
+      // known legacy hosts; preserve paths, query strings and POST methods.
+      // The old DNS/alias must stay attached so this redirect can run.
+      ...["straypaw.kapoorjay.com", "pok-mon-go-dog.vercel.app"].map((host) => ({
+        source: "/:path*",
+        has: [{ type: "host", value: host.replaceAll(".", "\\.") }],
+        destination: "https://www.straypaw.org/:path*",
+        permanent: false,
+      })),
       ...to([
         /* Community */
         ["/map", "/community"], ["/atlas", "/community"], ["/feed", "/community"],

@@ -1,5 +1,17 @@
 # Retiring `straypaw.kapoorjay.com`
 
+## Current rule — 1 November 2026
+
+An existing NGO user reported a missing-URL login error. Both the legacy domain and the canonical sign-in page currently return 200, so that report is not proof the domain was removed. The default Vercel hostname still redirects to the legacy domain. Existing staff codes and memberships must remain intact.
+
+**Keep the old domain, DNS and certificate.** `next.config.mjs` now redirects the two exact legacy hosts to `https://www.straypaw.org`, preserving the path/query and using HTTP 307. A permanent retirement must not strand NGO bookmarks. A missing-page screen also provides a direct workspace sign-in link.
+
+Sessions are stored per origin. A person moving from the old domain may need to enter their existing email/code once at the canonical sign-in page. Do not copy session tokens across domains, reset a valid code, delete DNS/email records, or remove the alias as a login fix.
+
+The connector can inspect domains but does not expose the existing-project-domain PATCH operation. The application redirect is the verified fallback. If changing the Vercel-level redirect later, point `pok-mon-go-dog.vercel.app` directly at `www.straypaw.org` and keep the old custom domain as a redirect. Recheck old root URLs, sign-in aliases, deep links and the actual code endpoint.
+
+The older removal checklist below is historical and **must not be followed for active NGO entry links**.
+
 Audited 2026-10-31. `straypaw.org` stays the canonical production domain
 (`NEXT_PUBLIC_SITE_URL=https://straypaw.org`; `src/lib/site-url.ts` serves
 canonicals on `https://www.straypaw.org`, which is where the apex 308-redirects).
