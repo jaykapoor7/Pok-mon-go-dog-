@@ -18,6 +18,7 @@ import { track } from "@/lib/analytics";
 import { claimOrgMembership } from "@/lib/programme";
 import { storeRole, type Role } from "@/lib/roles";
 import { isRecordingDemo } from "@/lib/recording-demo";
+import { demoUser } from "@/lib/demo/abc-demo";
 
 // ─────────────────────────────────────────────────────────────
 // Accounts.
@@ -74,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ── Session bootstrap ───────────────────────────────────────
   useEffect(() => {
     if (isRecordingDemo) {
-      setUser({ id: "recording-demo-operator", name: "Anjali", email: "anjali@paws-demo.invalid" });
+      { const u = demoUser(); setUser({ id: u.id, name: u.name, email: u.email }); }
       setReady(true);
       return;
     }

@@ -22,7 +22,10 @@ import { Portrait } from "../ui/Portrait";
 import { Ack, State, n, since, PageBrief } from "../ui";
 import { fileReports, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
+import { isRecordingDemo } from "@/lib/recording-demo";
+import { WhatsAppIntake } from "./WhatsAppIntake";
 import "./ngo.css";
+import "./whatsapp.css";
 
 type Source = "ours" | "community";
 const MOOD: Record<string, string> = { injured: "Injured", sick: "Unwell", scared: "Scared", aggressive: "Defensive", friendly: "Friendly", hungry: "Hungry", puppy: "Puppy" };
@@ -30,6 +33,7 @@ const MOOD: Record<string, string> = { injured: "Injured", sick: "Unwell", scare
 export function Inbox() {
   const mem = useMembership();
   const [src, setSrc] = useState<Source>("ours");
+  const [wa, setWa] = useState(isRecordingDemo);
   const [rows, setRows] = useState<Incoming[] | null>(null);
   const [counts, setCounts] = useState<Record<Source, number | null>>({ ours: null, community: null });
   const [drives, setDrives] = useState<CampaignStats[]>([]);
@@ -73,15 +77,22 @@ export function Inbox() {
           <nav className="ib-channels" aria-label="Channels">
             <p className="k">Channels</p>
             {(["ours", "community"] as Source[]).map((s) => (
-              <button key={s} type="button" className={`ib-ch${src === s ? " is-on" : ""}`} aria-pressed={src === s} onClick={() => { setSrc(s); setReceipt(null); }}>
+              <button key={s} type="button" className={`ib-ch${src === s && !wa ? " is-on" : ""}`} aria-pressed={src === s && !wa} onClick={() => { setWa(false); setSrc(s); setReceipt(null); }}>
                 <span className="ib-dot is-live" aria-hidden /><span><b>{s === "ours" ? "Sent to you" : "Community, in your places"}</b><small>{s === "ours" ? "Web and app reports your team or volunteers sent" : "Residents' reports near your areas"}</small></span><em className="mono">{counts[s] === null ? "…" : n(counts[s]!)}</em>
               </button>
             ))}
+            {isRecordingDemo ? (
+              <button type="button" className={`ib-ch${wa ? " is-on" : ""}`} aria-pressed={wa} onClick={() => setWa(true)}>
+                <span className="ib-dot is-live" aria-hidden /><span><b><MessageCircle size={13} aria-hidden /> WhatsApp</b><small>Photos and voice notes from your field team</small></span><em className="mono">1</em>
+              </button>
+            ) : (
             <div className="ib-ch is-off" aria-disabled="true">
               <span className="ib-dot" aria-hidden /><span><b><MessageCircle size={13} aria-hidden /> WhatsApp</b><small>WhatsApp intake is not connected for this organisation.</small></span>
             </div>
+            )}
           </nav>
 
+          {wa ? <div className="wa-span"><WhatsAppIntake /></div> : <>
           <section className="ib-list" aria-label="Reports">
             <div className="wk-tools">
               <button type="button" className="chip" aria-pressed={helpOnly} onClick={() => setHelpOnly((v) => !v)}>Injured or unwell only</button>
@@ -128,6 +139,7 @@ export function Inbox() {
             <div aria-live="polite">{busy ? <Ack state="pending">Sending to the record…</Ack> : receipt ? (receipt.ok ? <Ack state="saved">{receipt.what}</Ack> : <Ack state="failed">Not filed: {receipt.error}</Ack>) : null}</div>
             <p className="small">Filing records each animal&rsquo;s observed status in the drive. It does not say the animal was treated.</p>
           </aside>
+          </>}
         </div>
       </div>
     </NgoGate>

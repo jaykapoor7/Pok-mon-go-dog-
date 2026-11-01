@@ -1,0 +1,27 @@
+/* WhatsApp intake (recording build): the field worker's thread. */
+.sp .wa-span { grid-column: 2 / -1; padding: 20px 24px; }
+.sp .wa { display: grid; grid-template-rows: auto 1fr auto; max-width: 760px; border: 1px solid var(--s3-line, #e2e7ef); border-radius: 12px; overflow: hidden; background: #fff; }
+.sp .wa-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--s3-line, #e2e7ef); }
+.sp .wa-head b { display: block; font-size: 15px; }
+.sp .wa-head small { color: var(--mute, #5f6b7e); font-size: 12.5px; }
+.sp .wa-av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #e7efe9; color: #1f6b45; font-weight: 600; font-size: 13px; }
+.sp .wa-chip { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #e9f7ef; color: #13703f; font-size: 12.5px; font-weight: 600; }
+.sp .wa-chat { display: grid; gap: 10px; align-content: start; padding: 18px; min-height: 360px; background: #f3efe8 radial-gradient(rgba(11,30,61,.035) 1px, transparent 1px) 0 0 / 14px 14px; }
+.sp .wa-day { justify-self: center; margin: 0 0 4px; padding: 3px 10px; border-radius: 8px; background: #fff; color: #5f6b7e; font-size: 12px; }
+.sp .wa-msg { justify-self: start; max-width: 340px; margin: 0; padding: 5px; border-radius: 10px; border-top-left-radius: 2px; background: #fff; box-shadow: 0 1px 1px rgba(11,30,61,.08); }
+.sp .wa-msg.is-photo img { display: block; width: 300px; height: 230px; object-fit: cover; border-radius: 7px; }
+.sp .wa-msg figcaption, .sp .wa-msg small { display: flex; justify-content: flex-end; align-items: center; gap: 4px; padding: 4px 4px 0; color: #5f6b7e; font-size: 11.5px; }
+.sp .wa-msg figcaption svg, .sp .wa-msg small svg { color: #3a8edb; }
+.sp .wa-msg.is-voice { display: grid; grid-template-columns: 36px 1fr; gap: 4px 10px; align-items: center; width: 320px; padding: 10px 12px 6px; }
+.sp .wa-play { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; background: #0b1e3d; color: #fff; cursor: pointer; }
+.sp .wa-wave { display: flex; align-items: center; gap: 2.5px; height: 30px; }
+.sp .wa-wave i { width: 3px; border-radius: 2px; background: #9aa6b8; }
+.sp .wa-msg.is-playing .wa-wave i { background: #0b1e3d; animation: wa-bar 900ms ease-in-out infinite alternate; }
+@keyframes wa-bar { from { transform: scaleY(.55); } to { transform: scaleY(1.1); } }
+.sp .wa-len { grid-column: 2; display: inline-flex; align-items: center; gap: 4px; color: #5f6b7e; font-size: 12px; }
+.sp .wa-msg.is-voice small { grid-column: 1 / -1; }
+.sp .wa-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-top: 1px solid var(--s3-line, #e2e7ef); }
+.sp .wa-foot p { display: flex; align-items: center; gap: 8px; margin: 0; color: #33415c; font-size: 13.5px; }
+.sp .wa-foot p svg { color: var(--s3-blue, #2457ce); flex: none; }
+@media (max-width: 1100px) { .sp .wa-span { grid-column: 1 / -1; padding: 12px; } .sp .wa-msg.is-photo img { width: 240px; height: 190px; } .sp .wa-foot { flex-direction: column; align-items: stretch; } }
+@media (prefers-reduced-motion: reduce) { .sp .wa-msg.is-playing .wa-wave i { animation: none; } }

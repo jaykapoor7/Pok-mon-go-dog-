@@ -13,11 +13,13 @@ import { EVIDENCE_LABEL, NotEnabled, PACKAGE_LABEL, orgNames, packageAct, packag
 import { Reading } from "../ui/Reading";
 import { period } from "./Packages";
 import { EvidenceLink } from "./EvidenceLink";
+import { isRecordingDemo } from "@/lib/recording-demo";
+import { DEMO_RATE, demoSanction, demoSanctionPayment } from "@/lib/demo/abc-demo";
 import "../ngo/ngo.css";
 import "./abc.css";
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const KIND: Record<string, string> = { created: "Prepared", submitted: "Submitted", query: "Query", answer: "Answer", accepted: "Accepted", returned: "Returned" };
+const KIND: Record<string, string> = { created: "Prepared", submitted: "Submitted", query: "Query", answer: "Answer", accepted: "Accepted", returned: "Returned", sanctioned: "Payment sanctioned" };
 
 export function PackageView({ id, side }: { id: string; side: "operator" | "reviewer" }) {
   const [p, setP] = useState<Package | null>(null);
@@ -48,6 +50,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
   };
   const download = async (format: "pdf" | "xlsx") => {
     setBusy(true); setMsg(null);
+    if (isRecordingDemo) { await new Promise((r) => setTimeout(r, 600)); setMsg({ ok: true, text: `${format.toUpperCase()} prepared: ledger, evidence index and vet sign-offs for ${cases.length} records.` }); setBusy(false); return; }
     try {
       const session = await getSupabase()?.auth.getSession();
       const token = session?.data.session?.access_token;
@@ -114,6 +117,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
                 ))}</ol>
               </section>
               <Actions side={side} status={p.status} body={body} setBody={setBody} busy={busy} act={act} />
+              {isRecordingDemo && p.status === "accepted" && <Sanction id={p.id} side={side} records={cases.length} onDone={load} />}
             </aside>
           </div>
         </>
@@ -146,6 +150,32 @@ function Actions({ side, status, body, setBody, busy, act }: { side: "operator" 
         <button type="button" className="btn is-s" disabled={busy || !body.trim()} onClick={() => act("query", "Query sent to the operator.")}>Ask a question</button>
         <button type="button" className="btn is-s" disabled={busy || !body.trim()} onClick={() => act("returned", "Returned to the operator.")}>Return</button>
       </div></div>
+      <p className="abc-hint">Recorded in your name</p>
+    </section>
+  );
+}
+
+/* Payment sanction after acceptance (recording build): the reviewing office
+   records the amount cleared for payment against verified procedures. */
+function Sanction({ id, side, records, onDone }: { id: string; side: "operator" | "reviewer"; records: number; onDone: () => Promise<void> }) {
+  const [done, setDone] = useState(() => demoSanction(id));
+  const [busy, setBusy] = useState(false);
+  const amount = records * DEMO_RATE;
+  const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+  if (done) return (
+    <section className="abc-sec abc-sanction is-done" aria-label="Payment sanction">
+      <h2>Payment sanctioned</h2>
+      <p className="abc-sanction-amt">{inr(done.amount)}</p>
+      <p className="abc-note">{done.records} verified procedures × {inr(DEMO_RATE)} · sanctioned by {done.by} · ref {done.ref}</p>
+    </section>
+  );
+  if (side !== "reviewer") return <section className="abc-sec"><p className="abc-note">Accepted. Waiting for the payment sanction.</p></section>;
+  return (
+    <section className="abc-sec abc-sanction" aria-label="Payment sanction">
+      <h2>Sanction for payment</h2>
+      <p className="abc-sanction-amt">{inr(amount)}</p>
+      <p className="abc-note">{records} verified procedures × {inr(DEMO_RATE)} contract rate. The sanction goes to accounts with this package attached.</p>
+      <div className="abc-sign"><div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy} onClick={async () => { setBusy(true); setDone(await demoSanctionPayment(id)); await onDone(); setBusy(false); }}>Sanction {inr(amount)}</button></div></div>
       <p className="abc-hint">Recorded in your name</p>
     </section>
   );

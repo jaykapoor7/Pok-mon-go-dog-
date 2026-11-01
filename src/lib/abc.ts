@@ -10,6 +10,8 @@
 
 import { getSupabase } from "./supabase";
 import { compressForUpload } from "./photo/compress";
+import { isRecordingDemo } from "./recording-demo";
+import { demoRpc, demoTables } from "./demo/abc-demo";
 
 export const EVIDENCE_KINDS = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"] as const;
 export type EvidenceKind = (typeof EVIDENCE_KINDS)[number];
@@ -73,6 +75,7 @@ function db() {
   return supa;
 }
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
+  if (isRecordingDemo) return demoRpc<T>(fn, args);
   const { data, error } = await db().rpc(fn, args);
   if (error) throw clean(error);
   return data as T;
@@ -84,16 +87,19 @@ export const caseChecklist = (caseId: string) => rpc<Checklist>("abc_case_checkl
 export const caseHistory = (caseId: string) => rpc<HistoryRow[]>("abc_case_history", { p_case_id: caseId });
 
 export async function caseAttestations(caseId: string): Promise<Attestation[]> {
+  if (isRecordingDemo) return demoTables.attestations(caseId);
   const { data, error } = await db().from("abc_attestations").select("id,kind,actor_id,actor_name,actor_role,note,created_at,revoked_at").eq("case_id", caseId).order("created_at");
   if (error) throw clean(error);
   return (data ?? []) as Attestation[];
 }
 export async function caseEvidence(caseId: string): Promise<Evidence[]> {
+  if (isRecordingDemo) return demoTables.evidence(caseId);
   const { data, error } = await db().from("evidence_items").select("id,kind,url,title,location_text,captured_at,created_at").eq("case_id", caseId).order("created_at");
   if (error) throw clean(error);
   return (data ?? []) as Evidence[];
 }
 export async function caseHead(caseId: string) {
+  if (isRecordingDemo) return demoTables.head(caseId);
   const { data, error } = await db().from("cases").select("id,case_code,title,city,zone,created_at,provenance,status").eq("id", caseId).maybeSingle();
   if (error) throw clean(error);
   return data as { id: string; case_code: string | null; title: string | null; city: string | null; zone: string | null; created_at: string; provenance: string | null; status: string } | null;
@@ -126,6 +132,7 @@ export const isStoredEvidence = (url: string | null | undefined) => !!url && url
 
 /** A link a person can open: stored files get a signed link valid for five minutes. */
 export async function evidenceLink(url: string): Promise<string> {
+  if (isRecordingDemo) return url;
   if (!isStoredEvidence(url)) return url;
   const { data, error } = await db().storage.from(EVIDENCE_BUCKET).createSignedUrl(url.slice(STORE.length), 300);
   if (error || !data?.signedUrl) throw new Error("You cannot open this file");
@@ -138,21 +145,25 @@ export const returnEvidence = (caseId: string, reason: string) => rpc<string>("a
 export const withdrawSignOff = (attestationId: string, reason: string) => rpc<void>("abc_revoke_attestation", { p_attestation: attestationId, p_reason: reason });
 
 export async function offices(): Promise<Office[]> {
+  if (isRecordingDemo) return demoTables.offices();
   const { data, error } = await db().from("review_offices").select("id,name,city").order("name");
   if (error) throw clean(error);
   return (data ?? []) as Office[];
 }
 export async function packages(): Promise<Package[]> {
+  if (isRecordingDemo) return demoTables.packages();
   const { data, error } = await db().from("report_packages").select("id,ngo_id,office_id,title,period_start,period_end,case_ids,summary,status,created_at,submitted_at,decided_by_name,decided_at").order("created_at", { ascending: false }).limit(200);
   if (error) throw clean(error);
   return (data ?? []) as Package[];
 }
 export async function packageById(id: string): Promise<Package | null> {
+  if (isRecordingDemo) return demoTables.packageById(id);
   const { data, error } = await db().from("report_packages").select("id,ngo_id,office_id,title,period_start,period_end,case_ids,summary,status,created_at,submitted_at,decided_by_name,decided_at").eq("id", id).maybeSingle();
   if (error) throw clean(error);
   return (data ?? null) as Package | null;
 }
 export async function packageEvents(id: string): Promise<PackageEvent[]> {
+  if (isRecordingDemo) return demoTables.packageEvents(id);
   const { data, error } = await db().from("package_events").select("id,actor_name,side,kind,body,created_at").eq("package_id", id).order("created_at");
   if (error) throw clean(error);
   return (data ?? []) as PackageEvent[];
@@ -163,6 +174,7 @@ export const packageAct = (id: string, kind: "submitted" | "answer" | "query" | 
   rpc<string>("abc_package_act", { p_package: id, p_kind: kind, p_body: body ?? null });
 
 export async function orgNames(ids: string[]): Promise<Record<string, string>> {
+  if (isRecordingDemo) return demoTables.orgNames(ids);
   if (!ids.length) return {};
   const { data } = await db().from("ngos").select("id,name").in("id", ids);
   return Object.fromEntries(((data ?? []) as { id: string; name: string }[]).map((n) => [n.id, n.name]));

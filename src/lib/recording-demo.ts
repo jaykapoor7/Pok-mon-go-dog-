@@ -9,7 +9,7 @@ const hoursAgo = (hours: number) => new Date(Date.now() - hours * 3_600_000).toI
 const daysFromNow = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
 
 export const recordingDemoOrg: NGO = {
-  id: "recording-demo-paws-chennai", name: "PAWS Chennai", area: "South Chennai",
+  id: "recording-demo-coastal-paws", name: "Coastal Paws Trust", area: "South Chennai",
   city: "Chennai", state: "Tamil Nadu", logo_url: null, dogs_helped: 1248,
   verified: true, mission: "Street-animal care, ABC and rabies prevention across South Chennai.",
   areas_of_work: ["ABC", "Rabies vaccination", "Rescue"],
@@ -32,7 +32,7 @@ const records: Array<[string, string, number, number, Case["severity"], Case["st
 
 export const recordingDemoCases: Case[] = records.map(([title, zone, lat, lng, severity, status, category, hours, assignee, followUp], index) => ({
   id: `recording-demo-case-${index + 1}`, dog_id: `recording-demo-animal-${index + 1}`, title,
-  description: "Demo record for the PAWS Chennai recording workspace.", zone, lat, lng, severity, category,
+  description: "Demo record for the Coastal Paws Trust recording workspace.", zone, lat, lng, severity, category,
   tags: category === "injury" ? ["medical", "field follow-up"] : ["field team"], status,
   resolution: status === "resolved" ? (category === "sterilisation" ? "sterilized" : "treated") : null,
   assignee_id: assignee ? `recording-demo-${assignee.toLowerCase().replace(/\W+/g, "-")}` : null,
@@ -41,7 +41,7 @@ export const recordingDemoCases: Case[] = records.map(([title, zone, lat, lng, s
   last_activity_at: hoursAgo(hours), due_at: followUp === 0 ? hoursAgo(-4) : null,
   follow_up_at: followUp === undefined ? null : daysFromNow(followUp),
   resolved_at: status === "resolved" ? hoursAgo(Math.max(4, hours - 12)) : null,
-  before_url: null, after_url: null, outcome_note: status === "resolved" ? "Follow-up completed by the PAWS field team." : null,
+  before_url: null, after_url: null, outcome_note: status === "resolved" ? "Follow-up completed by the Coastal Paws field team." : null,
   proof_verified: status === "resolved", verified_at: status === "resolved" ? hoursAgo(6) : null,
   cost_estimate: null, cost_spent: null, species: "dog", medical_notes: null, photos: [],
 }));

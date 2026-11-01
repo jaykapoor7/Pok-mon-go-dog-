@@ -354,6 +354,7 @@ export async function getMyPartnerRequestStatus(): Promise<string | null> {
 /** The signed-in person's role in their organisation, for showing the
     right tools only (the database still checks every action). */
 export async function getMyRole(): Promise<{ role: string | null; reviewer: boolean }> {
+  if (isRecordingDemo) return { role: typeof window !== "undefined" && window.location.pathname.startsWith("/city") ? null : "coordinator", reviewer: typeof window !== "undefined" && window.location.pathname.startsWith("/city") };
   const supa = getSupabase();
   if (!supa) return { role: null, reviewer: false };
   const uid = (await supa.auth.getSession()).data.session?.user.id;
@@ -366,6 +367,7 @@ export async function getMyRole(): Promise<{ role: string | null; reviewer: bool
 }
 
 export async function getMyNgo(): Promise<{ id: string; name: string; logo_url: string | null } | null> {
+  if (isRecordingDemo) return typeof window !== "undefined" && window.location.pathname.startsWith("/city") ? null : { id: recordingDemoOrg.id, name: recordingDemoOrg.name, logo_url: null };
   const supa = getSupabase();
   if (!supa) return null;
   /* Signed out, there is no org to ask for; the call would only 401. */

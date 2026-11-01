@@ -27,6 +27,8 @@ import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT_MESSAGE } from "@/lib/files/limits";
 import { useKajuAmbient } from "@/kaju/ambient";
 import { useReducedMotion } from "@/kaju/controller";
 import type { KajuState } from "@/kaju/poses";
+import { isRecordingDemo } from "@/lib/recording-demo";
+import { demoExecute, demoKajuReply } from "@/lib/demo/kaju-demo";
 import "./ai.css";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string };
@@ -85,7 +87,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try { const s = sessionStorage.getItem(KEY); if (s) setMsgs(JSON.parse(s)); if (sessionStorage.getItem("sp3.ai.open") === "1") setOpen(true); } catch { /* storage blocked */ }
-    fetch("/api/ai").then((r) => r.json()).then((j) => setModel(!!j.model)).catch(() => setModel(null));
+    if (isRecordingDemo) setModel(true); else fetch("/api/ai").then((r) => r.json()).then((j) => setModel(!!j.model)).catch(() => setModel(null));
   }, []);
   useEffect(() => { try { sessionStorage.setItem(KEY, JSON.stringify(msgs.slice(-30))); } catch { /* fine */ } }, [msgs]);
   useEffect(() => { try { sessionStorage.setItem("sp3.ai.open", open ? "1" : "0"); } catch { /* fine */ } }, [open]);
@@ -98,6 +100,13 @@ export function AiProvider({ children }: { children: ReactNode }) {
     const history = [...msgsRef.current, user];
     setMsgs(history);
     setBusy(true);
+    if (isRecordingDemo) {
+      const { reply, ms } = demoKajuReply(text, path);
+      await new Promise((r) => setTimeout(r, ms));
+      setMsgs((m) => [...m, { id: uid(), role: "assistant", text: reply.text, reply }]);
+      setBusy(false);
+      return;
+    }
     try {
       const token = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
       const ws = path.startsWith("/ngo") ? "ngo" : path.startsWith("/city") ? "municipality" : path.startsWith("/learn") ? "education" : "community";
@@ -213,7 +222,7 @@ function Thread({ full = false }: { full?: boolean }) {
         {ai.msgs.length === 0 && (
           <div className="ai3-empty">
             {!full && <div className="ai3-empty-kaju"><KajuMark size={150} /></div>}
-            <p className="ai3-empty-h">{user ? `How can I help, ${user.name.split(" ")[0]}?` : "Ask about public programmes and animals."}</p>
+            <p className="ai3-empty-h">{user ? `How can I help, ${user.name.split(" ").find((w) => !w.endsWith(".")) ?? user.name}?` : "Ask about public programmes and animals."}</p>
             <p className="ai3-empty-s">{user ? "I read with your own access, cite the records I use, and prepare changes for you to confirm." : "Sign in to ask about your organisation's records. Public questions work without an account."}</p>
             <div className="ai3-sugg">{sugg.map((s) => <button key={s} type="button" onClick={() => ai.ask(s)}><Sparkles size={13} aria-hidden />{s.length > 70 ? `${s.slice(0, 68)}…` : s}</button>)}</div>
           </div>
@@ -284,7 +293,7 @@ function ProposalCard({ p }: { p: Proposal }) {
   async function confirm() {
     if (!user) return;
     setState("busy");
-    const r = await executeProposal(p, { id: user.id, name: user.name });
+    const r = isRecordingDemo ? await demoExecute(p) : await executeProposal(p, { id: user.id, name: user.name });
     setSaved(r); setState("idle");
   }
   if (state === "cancel") return <p className="ai3-notice"><X size={12} aria-hidden />Cancelled. Nothing was saved.</p>;
