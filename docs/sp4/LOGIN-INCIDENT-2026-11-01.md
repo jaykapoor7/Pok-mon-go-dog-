@@ -19,7 +19,9 @@ Both `straypaw.kapoorjay.com/sign-in` and `www.straypaw.org/sign-in` returned 20
 
 ## Verification
 
-`npm run build` and `npm run lint` passed after isolating the video package. Focused production-build browser suite: **9 passed, 1 desktop-only skip**. This verifies exact-host redirects, root/sign-in/legacy deep-link query preservation, POST 307 behaviour, canonical-host non-redirection, stale-page sign-in recovery and normal phone/desktop sign-in navigation. Live redirect verification must follow the deployment.
+`npm run build` and `npm run lint` passed after isolating the video package. Focused production-build browser suite: **9 passed, 1 desktop-only skip**. This verifies exact-host redirects, root/sign-in/legacy deep-link query preservation, POST 307 behaviour, canonical-host non-redirection, stale-page sign-in recovery and normal phone/desktop sign-in navigation.
+
+Application commit `5e1a1ae83996409f1ceef1ffd2b45c6d27acb61d` reached **READY** in Vercel deployment `dpl_915Pu2ma6ehFaqVxdda8gkV7bjue`. Canonical `/api/health` returned the exact SHA. Actual production phone-browser checks passed: the old custom-domain login redirects directly to the canonical host; the default Vercel hostname takes its existing first hop through the old domain and then reaches canonical sign-in; `next=/app` is preserved; a stale old-domain page recovers to the actual email/code form; and an old-domain POST receives 307 without submitting any customer credential.
 
 Do not claim the customer's exact error is resolved solely from a healthy guest page. If it persists at `https://www.straypaw.org/sign-in?next=/app`, capture the failing URL and exact screen error without sharing an access code or one-time token.
 
