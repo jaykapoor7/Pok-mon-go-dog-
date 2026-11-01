@@ -10,7 +10,11 @@ Kaju works with a person's Google Workspace or Microsoft 365 account, and with f
 | Files (no account) | Reads attached PDF, DOCX, XLSX, CSV, PPTX; makes reports in all five formats from the organisation's records (open cases, animal register, ABC verification) | No (download) |
 | Google Workspace | Finds and reads Drive files (Docs, Sheets, Slides exported to Office formats), analyses spreadsheets, drafts and sends Gmail, adds Calendar events, saves reports to Drive | Only after Confirm |
 | Microsoft 365 | Finds and reads OneDrive and SharePoint files, analyses Excel, drafts and sends Outlook mail, adds Calendar events, saves reports to OneDrive `/StrayPaw` | Only after Confirm |
-| Slack, WhatsApp, municipal systems | Planned; shown as "Coming later" | — |
+| Slack | Posts a message to a channel the person is in | Only after Confirm |
+| Zoho Workplace | Drafts and sends Zoho Mail (India data centre by default) | Only after Confirm |
+| SMS (MSG91), organisation-wide | Fills the organisation's DLT-approved template for field staff reminders; leads and coordinators only, once the lead switches it on | Only after Confirm |
+| Map exports (no account) | Animal register as GeoJSON or KML, real coordinates only | No (download) |
+| WhatsApp, Government e-Office, other municipal systems | Planned; shown as "Coming later" | — |
 
 Kaju is given a connection tool only when the person has connected an account that allows it (capability discovery). Anything that sends, creates or saves is a proposal; `/api/connections/act` runs it only when the person presses Confirm, re-checks every input, and logs it in `connection_audit`.
 
@@ -51,7 +55,22 @@ Until these are set in Vercel (Production) and the site is redeployed, both prov
    * Add the delegated permissions above and create a client secret.
    * Set `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET`. Optionally set `MICROSOFT_TENANT_ID`; the default is `common`.
    * Some tenants require admin consent for `Files.Read.All` or `Sites.Read.All`.
-4. **Redeploy**, then connect a test account and check:
+4. **Slack:**
+   * At api.slack.com/apps, create an app.
+   * OAuth redirect URL: `https://straypaw.org/api/connections/slack/callback`.
+   * User token scopes: `chat:write`, `channels:read`, `groups:read`.
+   * Set `SLACK_CLIENT_ID` and `SLACK_CLIENT_SECRET`.
+   * Distribute the app if other workspaces will connect.
+5. **Zoho Workplace:**
+   * At api-console.zoho.in, add a Server-based client.
+   * Redirect URI: `https://straypaw.org/api/connections/zoho/callback`.
+   * Set `ZOHO_CLIENT_ID` and `ZOHO_CLIENT_SECRET`.
+   * Outside India, also set `ZOHO_ACCOUNTS_URL` and `ZOHO_MAIL_URL` for the right data centre.
+6. **SMS (MSG91):**
+   * Register a sender ID and a message template on DLT (TRAI rules), then create a Flow in MSG91 with that template.
+   * Set `MSG91_AUTH_KEY` and `MSG91_TEMPLATE_ID`. The template's variables (`var1`–`var5`) are what Kaju fills in.
+   * An organisation lead then switches SMS on in Connections.
+7. **Redeploy**, then connect a test account and check:
    * Kaju finds a file.
    * Kaju reads a Sheet.
    * Kaju prepares an email, and it is sent only after Confirm.

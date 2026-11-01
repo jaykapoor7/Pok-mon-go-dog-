@@ -13,12 +13,12 @@ export async function buildReport(source: ReportSource, db: SupabaseClient, titl
   if (source === "open_cases") {
     const { data, error } = await db.from("org_case_facts").select("case_code,title,zone,city,status_class,occurred_at,assignee_name").neq("status_class", "closed").order("occurred_at", { ascending: false }).limit(1000);
     if (error) throw new Error(error.message);
-    return { ...head, columns: ["Case", "Title", "Place", "Status", "Opened", "Assigned to"], rows: (data ?? []).map((c) => [c.case_code ?? "", c.title ?? "", c.zone || c.city || "", c.status_class ?? "", String(c.occurred_at ?? "").slice(0, 10), c.assignee_name ?? "Unassigned"]), notes: ["Imported historical records are labelled as such in StrayPaw and are not counted as live work."] };
+    return { ...head, points: [], columns: ["Case", "Title", "Place", "Status", "Opened", "Assigned to"], rows: (data ?? []).map((c) => [c.case_code ?? "", c.title ?? "", c.zone || c.city || "", c.status_class ?? "", String(c.occurred_at ?? "").slice(0, 10), c.assignee_name ?? "Unassigned"]), notes: ["Imported historical records are labelled as such in StrayPaw and are not counted as live work."] };
   }
   if (source === "animals") {
-    const { data, error } = await db.from("dogs").select("straypaw_id,name,zone,city,sterilisation_status,vaccination_status,provenance").order("created_at", { ascending: false }).limit(2000);
+    const { data, error } = await db.from("dogs").select("straypaw_id,name,zone,city,sterilisation_status,vaccination_status,provenance,lat,lng").order("created_at", { ascending: false }).limit(2000);
     if (error) throw new Error(error.message);
-    return { ...head, columns: ["Tag", "Name", "Place", "Sterilisation", "Vaccination", "Source"], rows: (data ?? []).map((d) => [d.straypaw_id ?? "", d.name ?? "", d.zone || d.city || "", d.sterilisation_status ?? "unknown", d.vaccination_status ?? "unknown", d.provenance ?? ""]) };
+    return { ...head, points: (data ?? []).filter((d) => d.lat != null && d.lng != null).map((d) => ({ name: d.straypaw_id || d.name || "Animal", lat: Number(d.lat), lng: Number(d.lng), props: { sterilisation: d.sterilisation_status ?? "unknown", vaccination: d.vaccination_status ?? "unknown", place: d.zone || d.city || "", source: d.provenance ?? "" } })), columns: ["Tag", "Name", "Place", "Sterilisation", "Vaccination", "Source"], rows: (data ?? []).map((d) => [d.straypaw_id ?? "", d.name ?? "", d.zone || d.city || "", d.sterilisation_status ?? "unknown", d.vaccination_status ?? "unknown", d.provenance ?? ""]) };
   }
   const { data, error } = await db.rpc("abc_verification_queue", { p_limit: 500 });
   if (error) throw new Error(/does not exist|Could not find/i.test(error.message) ? "ABC verification is not switched on for this workspace" : error.message);

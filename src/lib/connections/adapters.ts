@@ -14,13 +14,21 @@ export type RemoteFile = { id: string; name: string; mime: string; modified: str
 export type EmailDraft = { to: string[]; cc?: string[]; subject: string; body: string };
 export type CalendarEvent = { title: string; start: string; end: string; attendees?: string[]; location?: string; description?: string };
 
+/* Every method is optional: a provider implements what its capabilities promise. */
 export interface Adapter {
-  search(token: string, query: string): Promise<RemoteFile[]>;
-  read(token: string, id: string): Promise<{ file: RemoteFile; content: ReadResult }>;
-  createDraft(token: string, d: EmailDraft): Promise<{ id: string; url: string | null }>;
-  sendDraft(token: string, draftId: string): Promise<void>;
-  createEvent(token: string, e: CalendarEvent): Promise<{ id: string; url: string | null }>;
-  saveFile(token: string, name: string, mime: string, bytes: Buffer): Promise<{ id: string; url: string | null }>;
+  search?(token: string, query: string): Promise<RemoteFile[]>;
+  read?(token: string, id: string): Promise<{ file: RemoteFile; content: ReadResult }>;
+  createDraft?(token: string, d: EmailDraft): Promise<{ id: string; url: string | null }>;
+  sendDraft?(token: string, draftId: string): Promise<void>;
+  createEvent?(token: string, e: CalendarEvent): Promise<{ id: string; url: string | null }>;
+  saveFile?(token: string, name: string, mime: string, bytes: Buffer): Promise<{ id: string; url: string | null }>;
+  listChannels?(token: string): Promise<{ id: string; name: string }[]>;
+  postMessage?(token: string, channel: string, text: string): Promise<{ id: string; url: string | null }>;
+}
+export function need<K extends keyof Adapter>(a: Adapter, k: K): NonNullable<Adapter[K]> {
+  const f = a[k];
+  if (!f) throw new Error("This account does not support that");
+  return f.bind(a) as NonNullable<Adapter[K]>;
 }
 
 async function call<T>(url: string, token: string, init: RequestInit = {}, as: "json" | "buffer" = "json"): Promise<T> {
@@ -123,4 +131,53 @@ const microsoft: Adapter = {
   },
 };
 
-export const ADAPTERS: Record<ProviderId, Adapter> = { google, microsoft };
+/* ── Slack (user token; posts as the person) ───────────────────────── */
+async function slackCall<T>(method: string, token: string, body?: Record<string, unknown>): Promise<T> {
+  const r = await fetch(`https://slack.com/api/${method}`, { method: body ? "POST" : "GET", headers: { Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json; charset=utf-8" } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (j.error === "invalid_auth" || j.error === "token_revoked" || j.error === "token_expired") throw new ProviderAuthError();
+  if (!j.ok) throw new Error(`Slack: ${j.error ?? r.status}`);
+  return j as T;
+}
+const slack: Adapter = {
+  async listChannels(token) {
+    const j = await slackCall<{ channels: { id: string; name: string; is_member?: boolean }[] }>("conversations.list?types=public_channel,private_channel&exclude_archived=true&limit=200", token);
+    return j.channels.filter((c) => c.is_member !== false).map((c) => ({ id: c.id, name: c.name }));
+  },
+  async postMessage(token, channel, text) {
+    const j = await slackCall<{ channel: string; ts: string }>("chat.postMessage", token, { channel, text, unfurl_links: false });
+    const link = await slackCall<{ permalink?: string }>(`chat.getPermalink?channel=${encodeURIComponent(j.channel)}&message_ts=${encodeURIComponent(j.ts)}`, token).catch(() => ({ permalink: undefined }));
+    return { id: j.ts, url: link.permalink ?? null };
+  },
+};
+
+/* ── Zoho Mail (India data centre by default) ──────────────────────── */
+const ZMAIL = () => (process.env.ZOHO_MAIL_URL?.trim() || "https://mail.zoho.in");
+async function zcall<T>(path: string, token: string, init: RequestInit = {}): Promise<T> {
+  const r = await fetch(`${ZMAIL()}${path}`, { ...init, headers: { Authorization: `Zoho-oauthtoken ${token}`, "Content-Type": "application/json", ...(init.headers ?? {}) } });
+  if (r.status === 401) throw new ProviderAuthError();
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j?.data?.moreInfo ?? j?.status?.description ?? `Zoho answered ${r.status}`);
+  return j as T;
+}
+async function zohoAccount(token: string) {
+  const j = await zcall<{ data: { accountId: string; primaryEmailAddress: string }[] }>("/api/accounts", token);
+  const a = j.data?.[0];
+  if (!a) throw new Error("No Zoho Mail account");
+  return a;
+}
+const zoho: Adapter = {
+  async createDraft(token, d) {
+    const a = await zohoAccount(token);
+    const j = await zcall<{ data: { messageId: string } }>(`/api/accounts/${a.accountId}/messages`, token, { method: "POST", body: JSON.stringify({ fromAddress: a.primaryEmailAddress, toAddress: d.to.join(","), ccAddress: (d.cc ?? []).join(","), subject: d.subject, content: d.body, mailFormat: "plaintext", mode: "draft" }) });
+    return { id: JSON.stringify({ to: d.to, cc: d.cc ?? [], subject: d.subject, body: d.body, draft: j.data?.messageId }), url: null };
+  },
+  /* Zoho sends a new message rather than a stored draft: the confirmed content is re-sent as is. */
+  async sendDraft(token, draftId) {
+    const d = JSON.parse(draftId) as { to: string[]; cc: string[]; subject: string; body: string };
+    const a = await zohoAccount(token);
+    await zcall(`/api/accounts/${a.accountId}/messages`, token, { method: "POST", body: JSON.stringify({ fromAddress: a.primaryEmailAddress, toAddress: d.to.join(","), ccAddress: d.cc.join(","), subject: d.subject, content: d.body, mailFormat: "plaintext" }) });
+  },
+};
+
+export const ADAPTERS: Record<ProviderId, Adapter> = { google, microsoft, slack, zoho };

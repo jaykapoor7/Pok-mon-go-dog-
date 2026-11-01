@@ -12,13 +12,14 @@ export async function POST(req: Request) {
   if (!c) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
   if (!c.ngoId || c.role !== "admin") return NextResponse.json({ error: "Only an organisation lead can change this." }, { status: 403 });
   const b = await req.json().catch(() => ({}));
-  if (!isProvider(String(b.provider))) return NextResponse.json({ error: "Unknown provider" }, { status: 400 });
+  /* "sms" is the organisation-wide SMS service; the rest are per-person providers. */
+  if (!isProvider(String(b.provider)) && b.provider !== "sms") return NextResponse.json({ error: "Unknown provider" }, { status: 400 });
   const row = { ngo_id: c.ngoId, provider: b.provider, allowed: b.allowed !== false, allow_org_sharing: !!b.allow_org_sharing, updated_by: c.userId, updated_at: new Date().toISOString() };
   const a = getSupabaseAdmin()!;
   const { error } = await a.from("org_connection_policies").upsert(row);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   /* Switching a provider off, or sharing off, withdraws existing shares at once. */
   if (!row.allowed || !row.allow_org_sharing) await a.from("connections").update({ share_with_org: false }).eq("ngo_id", c.ngoId).eq("provider", b.provider);
-  await audit({ user_id: c.userId, ngo_id: c.ngoId, provider: b.provider, action: "policy_changed", detail: { allowed: row.allowed, allow_org_sharing: row.allow_org_sharing } });
+  await audit({ user_id: c.userId, ngo_id: c.ngoId, provider: b.provider as never, action: "policy_changed", detail: { allowed: row.allowed, allow_org_sharing: row.allow_org_sharing } });
   return NextResponse.json({ ok: true });
 }

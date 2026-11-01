@@ -14,13 +14,15 @@ import { buildPdf, type PdfBlock } from "@/lib/plain-pdf";
    (see untrusted()) before it reaches the model.
    ════════════════════════════════════════════════════════════════════ */
 
-export type FileKind = "pdf" | "docx" | "xlsx" | "csv" | "pptx";
+export type FileKind = "pdf" | "docx" | "xlsx" | "csv" | "pptx" | "geojson" | "kml";
 export const MIME: Record<FileKind, string> = {
   pdf: "application/pdf",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   csv: "text/csv",
   pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  geojson: "application/geo+json",
+  kml: "application/vnd.google-earth.kml+xml",
 };
 export const MAX_READ_BYTES = 15 * 1024 * 1024;
 const MAX_TEXT = 60_000;
@@ -78,11 +80,23 @@ export function untrusted(source: string, text: string) {
 }
 
 /* ── one report shape, five formats ───────────────────────────────── */
-export type Report = { title: string; subtitle?: string; columns: string[]; rows: (string | number)[][]; notes?: string[] };
+export type Point = { name: string; lat: number; lng: number; props: Record<string, string> };
+export type Report = { title: string; subtitle?: string; columns: string[]; rows: (string | number)[][]; notes?: string[]; points?: Point[] };
 
 export async function makeFile(kind: FileKind, r: Report): Promise<{ bytes: Buffer; mime: string; filename: string }> {
   const base = r.title.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").slice(0, 60) || "StrayPaw-report";
   const filename = `${base}.${kind}`;
+  if (kind === "geojson" || kind === "kml") {
+    /* Map exports carry only records with real coordinates; the rest are counted, not guessed. */
+    const pts = (r.points ?? []).filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng) && Math.abs(p.lat) <= 90 && Math.abs(p.lng) <= 180);
+    if (kind === "geojson") {
+      const fc = { type: "FeatureCollection", name: r.title, features: pts.map((p) => ({ type: "Feature", geometry: { type: "Point", coordinates: [p.lng, p.lat] }, properties: { name: p.name, ...p.props } })) };
+      return { bytes: Buffer.from(JSON.stringify(fc, null, 1), "utf8"), mime: MIME.geojson, filename };
+    }
+    const x = (v: string) => v.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]!);
+    const kml = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${x(r.title)}</name>${pts.map((p) => `<Placemark><name>${x(p.name)}</name><ExtendedData>${Object.entries(p.props).map(([k, v]) => `<Data name="${x(k)}"><value>${x(v)}</value></Data>`).join("")}</ExtendedData><Point><coordinates>${p.lng},${p.lat}</coordinates></Point></Placemark>`).join("")}</Document></kml>`;
+    return { bytes: Buffer.from(kml, "utf8"), mime: MIME.kml, filename };
+  }
   if (kind === "csv") {
     const esc = (v: unknown) => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const csv = [r.columns, ...r.rows].map((row) => row.map(esc).join(",")).join("\n");

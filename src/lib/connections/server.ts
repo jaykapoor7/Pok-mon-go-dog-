@@ -170,57 +170,70 @@ export async function touch(id: string) {
   await admin().from("connections").update({ last_used_at: new Date().toISOString() }).eq("id", id);
 }
 
-/* ── OAuth endpoints ───────────────────────────────────────────────── */
-const MS_TENANT = () => process.env.MICROSOFT_TENANT_ID?.trim() || "common";
+/* ── OAuth endpoints (from each provider's OAuthSpec) ───────────── */
+const fill = (u: string) => u.replace("{tenant}", process.env.MICROSOFT_TENANT_ID?.trim() || "common").replace("{zoho}", process.env.ZOHO_ACCOUNTS_URL?.trim() || "https://accounts.zoho.in");
 export function authorizeUrl(req: Request, p: ProviderId, state: string, codeChallenge: string): string {
-  const q = new URLSearchParams({ response_type: "code", redirect_uri: redirectUri(req, p), scope: PROVIDERS[p].scopes.join(" "), state, code_challenge: codeChallenge, code_challenge_method: "S256" });
-  if (p === "google") {
-    q.set("client_id", process.env.GOOGLE_CLIENT_ID!); q.set("access_type", "offline"); q.set("prompt", "consent"); q.set("include_granted_scopes", "true");
-    return `https://accounts.google.com/o/oauth2/v2/auth?${q}`;
-  }
-  q.set("client_id", process.env.MICROSOFT_CLIENT_ID!); q.set("response_mode", "query");
-  return `https://login.microsoftonline.com/${MS_TENANT()}/oauth2/v2.0/authorize?${q}`;
+  const o = PROVIDERS[p].oauth;
+  const q = new URLSearchParams({ response_type: "code", client_id: process.env[o.clientIdEnv]!, redirect_uri: redirectUri(req, p), state, ...(o.extra ?? {}) });
+  q.set(o.scopeParam ?? "scope", PROVIDERS[p].scopes.join(o.scopeSep ?? " "));
+  if (o.pkce) { q.set("code_challenge", codeChallenge); q.set("code_challenge_method", "S256"); }
+  return `${fill(o.authorize)}?${q}`;
 }
-const TOKEN_URL = (p: ProviderId) => (p === "google" ? "https://oauth2.googleapis.com/token" : `https://login.microsoftonline.com/${MS_TENANT()}/oauth2/v2.0/token`);
-const creds = (p: ProviderId) => (p === "google"
-  ? { client_id: process.env.GOOGLE_CLIENT_ID!, client_secret: process.env.GOOGLE_CLIENT_SECRET! }
-  : { client_id: process.env.MICROSOFT_CLIENT_ID!, client_secret: process.env.MICROSOFT_CLIENT_SECRET! });
+const creds = (p: ProviderId) => ({ client_id: process.env[PROVIDERS[p].oauth.clientIdEnv]!, client_secret: process.env[PROVIDERS[p].oauth.clientSecretEnv]! });
 type TokenSet = { access_token: string; refresh_token?: string; expires_in?: number; scope?: string; id_token?: string };
 
+/* Slack returns the person's token under authed_user. */
+function normalise(p: ProviderId, j: Record<string, unknown>): TokenSet {
+  if (p === "slack") {
+    const u = (j.authed_user ?? {}) as Record<string, unknown>;
+    if (!j.ok || !u.access_token) throw new Error(String(j.error ?? "Slack refused the connection"));
+    return { access_token: String(u.access_token), refresh_token: u.refresh_token ? String(u.refresh_token) : undefined, expires_in: u.expires_in ? Number(u.expires_in) : undefined, scope: String(u.scope ?? "") };
+  }
+  if (!j.access_token) throw new Error(String(j.error_description ?? j.error ?? "Token exchange failed"));
+  return j as unknown as TokenSet;
+}
 export async function exchange(req: Request, p: ProviderId, code: string, verifier: string): Promise<TokenSet> {
-  const body = new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri(req, p), code_verifier: verifier, ...creds(p) });
-  const r = await fetch(TOKEN_URL(p), { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
+  const body = new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri(req, p), ...creds(p) });
+  if (PROVIDERS[p].oauth.pkce) body.set("code_verifier", verifier);
+  const r = await fetch(fill(PROVIDERS[p].oauth.token), { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok || !j.access_token) throw new Error(j.error_description || j.error || `Token exchange failed (${r.status})`);
-  return j as TokenSet;
+  if (!r.ok) throw new Error(j.error_description || j.error || `Token exchange failed (${r.status})`);
+  return normalise(p, j);
 }
 async function refresh(p: ProviderId, refreshToken: string): Promise<TokenSet> {
   const body = new URLSearchParams({ grant_type: "refresh_token", refresh_token: refreshToken, ...creds(p) });
   if (p === "microsoft") body.set("scope", PROVIDERS[p].scopes.join(" "));
-  const r = await fetch(TOKEN_URL(p), { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
+  const r = await fetch(fill(PROVIDERS[p].oauth.token), { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok || !j.access_token) throw new Error(j.error_description || j.error || `Refresh failed (${r.status})`);
-  return j as TokenSet;
+  if (!r.ok) throw new Error(j.error_description || j.error || `Refresh failed (${r.status})`);
+  return normalise(p, j);
 }
 export async function whoAmI(p: ProviderId, token: string): Promise<{ email: string | null; name: string | null }> {
-  const url = p === "google" ? "https://openidconnect.googleapis.com/v1/userinfo" : "https://graph.microsoft.com/v1.0/me";
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  const j = await r.json().catch(() => ({}));
-  return p === "google" ? { email: j.email ?? null, name: j.name ?? null } : { email: j.mail ?? j.userPrincipalName ?? null, name: j.displayName ?? null };
+  if (p === "slack") {
+    const j = await (await fetch("https://slack.com/api/auth.test", { headers: { Authorization: `Bearer ${token}` } })).json().catch(() => ({}));
+    return { email: j.user ? `${j.user} · ${j.team ?? "Slack"}` : null, name: j.user ?? null };
+  }
+  const url = p === "google" ? "https://openidconnect.googleapis.com/v1/userinfo" : p === "microsoft" ? "https://graph.microsoft.com/v1.0/me" : `${fill("{zoho}")}/oauth/user/info`;
+  const j = await (await fetch(url, { headers: { Authorization: `${p === "zoho" ? "Zoho-oauthtoken" : "Bearer"} ${token}` } })).json().catch(() => ({}));
+  if (p === "google") return { email: j.email ?? null, name: j.name ?? null };
+  if (p === "microsoft") return { email: j.mail ?? j.userPrincipalName ?? null, name: j.displayName ?? null };
+  return { email: j.Email ?? null, name: j.Display_Name ?? null };
 }
 
-/** Revoke at the provider (Google supports it; Microsoft revokes on the user's sessions page), then remove our copy. */
+/** Revoke at the provider where it offers a call (Google, Slack, Zoho; Microsoft is revoked from the user's account page), then remove our copy. */
 export async function disconnect(c: Caller, p: ProviderId) {
   const a = admin();
   const { data: conn } = await a.from("connections").select("id").eq("user_id", c.userId).eq("provider", p).maybeSingle();
   if (!conn) return false;
   const { data: s } = await a.from("connection_secrets").select("access_token_enc,refresh_token_enc").eq("connection_id", conn.id).maybeSingle();
   let revoked = false;
-  if (p === "google" && s) {
+  if (s) {
     try {
       const tok = open(s.refresh_token_enc ?? s.access_token_enc);
-      const r = await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(tok)}`, { method: "POST" });
-      revoked = r.ok;
+      const r = p === "google" ? await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(tok)}`, { method: "POST" })
+        : p === "slack" ? await fetch("https://slack.com/api/auth.revoke", { method: "POST", headers: { Authorization: `Bearer ${open(s.access_token_enc)}` } })
+          : p === "zoho" ? await fetch(`${fill("{zoho}")}/oauth/v2/token/revoke?token=${encodeURIComponent(tok)}`, { method: "POST" }) : null;
+      revoked = !!r?.ok;
     } catch { /* still remove locally */ }
   }
   await a.from("connection_secrets").delete().eq("connection_id", conn.id);

@@ -12,7 +12,7 @@ export const maxDuration = 60;
 /* POST { format, source, title }: a report file built from the person's
    own records (their session; row-level security applies). No external
    account needed. */
-const FORMATS: FileKind[] = ["pdf", "docx", "xlsx", "csv", "pptx"];
+const FORMATS: FileKind[] = ["pdf", "docx", "xlsx", "csv", "pptx", "geojson", "kml"];
 export async function POST(req: Request) {
   if (!(await allowRequest(clientIp(req), "file-export", 20, 600))) return NextResponse.json({ error: "Too many exports at once. Wait a minute." }, { status: 429 });
   const c = await caller(req);

@@ -274,8 +274,10 @@ function ProposalCard({ p }: { p: Proposal }) {
         : p.kind === "record_care" ? [["Action", "Record a care event"], ["Animal", p.dogLabel], ["Kind", p.careKind], ["Date", p.date ?? "Not given"], ["Notes", p.notes || "—"]]
           : p.kind === "email" ? [["Action", p.send ? `Send from ${p.providerName}` : `Save a draft in ${p.providerName}`], ["To", p.to.join(", ")], ...(p.cc.length ? [["Cc", p.cc.join(", ")] as [string, string]] : []), ["Subject", p.subject], ["Message", p.body.slice(0, 400) + (p.body.length > 400 ? "…" : "")]]
             : p.kind === "calendar_event" ? [["Action", `Add to ${p.providerName} calendar`], ["Event", p.title], ["Starts", when(p.start)], ["Ends", when(p.end)], ["Guests", p.attendees.join(", ") || "None"], ["Place", p.location ?? "Not given"]]
+              : p.kind === "chat_post" ? [["Action", `Post to Slack`], ["Channel", `#${p.channelName}`], ["Message", p.text.slice(0, 400) + (p.text.length > 400 ? "…" : "")]]
+                : p.kind === "sms" ? [["Action", "Send an SMS"], ["To", p.to.join(", ")], ["Template values", p.values.join(" · ") || "None"], ["For", p.note || "—"]]
               : [["Action", p.saveTo ? `Download and save to ${p.saveToName}` : "Download"], ["Report", p.title], ["Format", p.format.toUpperCase()]];
-  const outside = p.kind === "email" || p.kind === "calendar_event" || (p.kind === "report_file" && !!p.saveTo);
+  const outside = p.kind === "email" || p.kind === "calendar_event" || p.kind === "chat_post" || p.kind === "sms" || (p.kind === "report_file" && !!p.saveTo);
   async function confirm() {
     if (!user) return;
     setState("busy");
@@ -285,14 +287,14 @@ function ProposalCard({ p }: { p: Proposal }) {
   if (state === "cancel") return <p className="ai3-notice"><X size={12} aria-hidden />Cancelled. Nothing was saved.</p>;
   return (
     <div className={`ai3-prop${saved?.ok ? " is-done" : ""}`} role="group" aria-label="Prepared change">
-      <p className="ai3-prop-h">{saved?.ok ? <><CheckCircle2 size={14} />{p.kind === "email" || p.kind === "calendar_event" || p.kind === "report_file" ? saved.what : "Saved to the record"}</> : <><Sparkles size={13} />{outside ? "Prepared, not sent" : "Prepared, not saved"}</>}</p>
+      <p className="ai3-prop-h">{saved?.ok ? <><CheckCircle2 size={14} />{p.kind === "email" || p.kind === "calendar_event" || p.kind === "report_file" || p.kind === "chat_post" || p.kind === "sms" ? saved.what : "Saved to the record"}</> : <><Sparkles size={13} />{outside ? "Prepared, not sent" : "Prepared, not saved"}</>}</p>
       <dl>{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       {saved && !saved.ok && <p className="s3-err" role="alert">{saved.error}</p>}
       {saved?.ok ? (
-        <div className="ai3-prop-act">{saved.href && <Link className="s3-btn is-sm is-line" href={saved.href}>Open the record<ExternalLink size={13} /></Link>}<span className="s3-small">{p.kind === "email" || p.kind === "calendar_event" || p.kind === "report_file" ? "Done in your own account and logged." : "It appears in the normal screens with a note that the AI agent prepared it and you confirmed it."}</span></div>
+        <div className="ai3-prop-act">{saved.href && <Link className="s3-btn is-sm is-line" href={saved.href}>Open the record<ExternalLink size={13} /></Link>}<span className="s3-small">{p.kind === "email" || p.kind === "calendar_event" || p.kind === "report_file" || p.kind === "chat_post" || p.kind === "sms" ? "Done and logged." : "It appears in the normal screens with a note that the AI agent prepared it and you confirmed it."}</span></div>
       ) : (
         <div className="ai3-prop-act">
-          <button type="button" className="s3-btn is-sm is-primary" onClick={confirm} disabled={state === "busy" || !user}>{state === "busy" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}{p.kind === "email" && p.send ? "Confirm and send" : p.kind === "report_file" ? "Confirm and download" : p.kind === "calendar_event" ? "Confirm and add" : "Confirm and save"}</button>
+          <button type="button" className="s3-btn is-sm is-primary" onClick={confirm} disabled={state === "busy" || !user}>{state === "busy" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}{p.kind === "email" && p.send ? "Confirm and send" : p.kind === "chat_post" ? "Confirm and post" : p.kind === "sms" ? "Confirm and send SMS" : p.kind === "report_file" ? "Confirm and download" : p.kind === "calendar_event" ? "Confirm and add" : "Confirm and save"}</button>
           <button type="button" className="s3-btn is-sm is-ghost" onClick={() => setState("cancel")} disabled={state === "busy"}>Cancel</button>
           {!user && <span className="s3-small">Sign in to save.</span>}
         </div>

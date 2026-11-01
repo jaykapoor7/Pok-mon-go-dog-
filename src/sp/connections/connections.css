@@ -29,3 +29,4 @@
 .cx-ok { background: #e8f4ec; color: #1f6b3b; } .cx-err { background: #fdecea; color: #a12a1e; }
 .cx input[type="checkbox"] { width: 16px; height: 16px; }
 @media (max-width: 560px) { .cx-top { align-items: flex-start; flex-direction: column; } .cx-planned li { flex-direction: column; gap: 2px; } }
+.cx-logo.is-slack { background: #4a154b; } .cx-logo.is-zoho { background: #c8202f; }

@@ -11,10 +11,14 @@ export type Proposal = ProposalBase & (
   | { kind: "schedule_followup"; caseId: string; caseLabel: string; dogId: string | null; dueAt: string; note: string }
   | { kind: "record_care"; dogId: string; dogLabel: string; careKind: string; date: string | null; notes: string }
   /* Connections: these act outside StrayPaw, so they run only on Confirm (/api/connections/act). */
-  | { kind: "email"; provider: "google" | "microsoft"; providerName: string; to: string[]; cc: string[]; subject: string; body: string; send: boolean }
-  | { kind: "calendar_event"; provider: "google" | "microsoft"; providerName: string; title: string; start: string; end: string; attendees: string[]; location: string | null }
-  | { kind: "report_file"; format: "pdf" | "docx" | "xlsx" | "csv" | "pptx"; title: string; source: ReportSource; saveTo: "google" | "microsoft" | null; saveToName: string | null }
+  | { kind: "email"; provider: ConnProvider; providerName: string; to: string[]; cc: string[]; subject: string; body: string; send: boolean }
+  | { kind: "calendar_event"; provider: ConnProvider; providerName: string; title: string; start: string; end: string; attendees: string[]; location: string | null }
+  | { kind: "chat_post"; provider: ConnProvider; providerName: string; channel: string; channelName: string; text: string }
+  | { kind: "sms"; to: string[]; values: string[]; note: string }
+  | { kind: "report_file"; format: "pdf" | "docx" | "xlsx" | "csv" | "pptx" | "geojson" | "kml"; title: string; source: ReportSource; saveTo: ConnProvider | null; saveToName: string | null }
 );
+
+export type ConnProvider = "google" | "microsoft" | "slack" | "zoho";
 
 /** Records a report can be built from (server reads them with the person's own access). */
 export const REPORT_SOURCES = ["open_cases", "animals", "verification"] as const;

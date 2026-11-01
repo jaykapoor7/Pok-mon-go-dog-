@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Check, FileText, Lock, Plug, TriangleAlert } from "lucide-react";
+import { Check, FileText, Lock, MapPin, MessageSquare, Plug, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
 import { CAPABILITY, type Capability, type ConnectionView, type Provider, type ProviderId } from "@/lib/connections/providers";
@@ -16,8 +16,9 @@ import { Reading } from "../ui/Reading";
 import "../ngo/ngo.css";
 import "./connections.css";
 
-type Row = Omit<Provider, "scopes" | "env"> & { view?: ConnectionView; policy: { allowed: boolean; allow_org_sharing: boolean } };
-type Data = { me: { org: boolean; admin: boolean }; providers: Row[]; native: { name: string; line: string; read: string[]; create: string[] }; planned: readonly { name: string; line: string }[] };
+type Row = Omit<Provider, "scopes" | "env" | "oauth"> & { view?: ConnectionView; policy: { allowed: boolean; allow_org_sharing: boolean } };
+type Svc = { name: string; line: string; status: string; policy?: { allowed: boolean } };
+type Data = { me: { org: boolean; admin: boolean }; providers: Row[]; native: { name: string; line: string; read: string[]; create: string[] }; services: { maps: Svc; sms: Svc }; planned: readonly { name: string; line: string }[] };
 
 async function api(path: string, init: RequestInit = {}) {
   const t = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
@@ -44,7 +45,7 @@ export function Connections({ back }: { back: string }) {
   useEffect(() => {
     const s = params?.get("connection"), p = params?.get("provider");
     if (!s) return;
-    const name = p === "google" ? "Google Workspace" : p === "microsoft" ? "Microsoft 365" : "The account";
+    const name = ({ google: "Google Workspace", microsoft: "Microsoft 365", slack: "Slack", zoho: "Zoho Workplace" } as Record<string, string>)[p ?? ""] ?? "The account";
     setMsg(s === "connected" ? { ok: true, text: `${name} connected.` } : s === "cancelled" ? { ok: false, text: "Connection cancelled. Nothing was changed." } : { ok: false, text: `${name} could not be connected. Try again.` });
   }, [params]);
 
@@ -72,7 +73,7 @@ export function Connections({ back }: { back: string }) {
               return (
                 <li key={p.id} className="cx-card">
                   <div className="cx-top">
-                    <div className="cx-id"><span className={`cx-logo is-${p.id}`} aria-hidden>{p.id === "google" ? "G" : "M"}</span><div><b>{p.name}</b><small>{p.apps.join(" · ")}</small></div></div>
+                    <div className="cx-id"><span className={`cx-logo is-${p.id}`} aria-hidden>{({ google: "G", microsoft: "M", slack: "S", zoho: "Z" } as Record<string, string>)[p.id]}</span><div><b>{p.name}</b><small>{p.apps.join(" · ")}</small></div></div>
                     <span className={`cx-state is-${st.tone}`}>{st.label}</span>
                   </div>
                   <p className="cx-line">{p.line}</p>
@@ -111,6 +112,18 @@ export function Connections({ back }: { back: string }) {
             <li className="cx-card">
               <div className="cx-top"><div className="cx-id"><span className="cx-logo is-files" aria-hidden><FileText size={16} /></span><div><b>{d.native.name}</b><small>{d.native.read.join(" · ")}</small></div></div><span className="cx-state is-ok">Ready</span></div>
               <p className="cx-line">{d.native.line}</p>
+            </li>
+            <li className="cx-card">
+              <div className="cx-top"><div className="cx-id"><span className="cx-logo is-files" aria-hidden><MapPin size={16} /></span><div><b>{d.services.maps.name}</b><small>GeoJSON · KML</small></div></div><span className="cx-state is-ok">Ready</span></div>
+              <p className="cx-line">{d.services.maps.line}</p>
+            </li>
+            <li className="cx-card">
+              <div className="cx-top"><div className="cx-id"><span className="cx-logo is-files" aria-hidden><MessageSquare size={16} /></span><div><b>{d.services.sms.name}</b><small>For the whole organisation</small></div></div>
+                <span className={`cx-state is-${d.services.sms.status !== "configured" ? "off" : d.services.sms.policy?.allowed ? "ok" : "idle"}`}>{d.services.sms.status !== "configured" ? "Not available yet" : d.services.sms.policy?.allowed ? "On" : "Off"}</span></div>
+              <p className="cx-line">{d.services.sms.line}</p>
+              {d.services.sms.status !== "configured" ? <p className="cx-note"><Lock size={13} aria-hidden /> An administrator needs to add the organisation&rsquo;s SMS account and approved template.</p>
+                : d.me.admin ? <div className="cx-policy"><p>Organisation settings</p><label><input type="checkbox" checked={!!d.services.sms.policy?.allowed} disabled={!!busy} onChange={(e) => act("p:sms", () => api("/api/connections/policy", { method: "POST", body: JSON.stringify({ provider: "sms", allowed: e.target.checked, allow_org_sharing: false }) }))} /> Leads and coordinators may send SMS with Kaju</label></div>
+                  : <p className="cx-acct">Your organisation lead decides whether SMS is used.</p>}
             </li>
           </ul>
           <section className="cx-planned" aria-labelledby="cx-planned-h">

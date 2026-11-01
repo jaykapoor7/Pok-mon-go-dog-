@@ -40,6 +40,12 @@ export async function executeProposal(p: Proposal, actor: { id: string; name: st
     case "calendar_event":
       r = await act("calendar_event", p.provider, { title: p.title, start: p.start, end: p.end, attendees: p.attendees, location: p.location }, `Event added to ${p.providerName}`);
       break;
+    case "chat_post":
+      r = await act("chat_post", p.provider, { channel: p.channel, text: p.text }, `Posted to #${p.channelName}`);
+      break;
+    case "sms":
+      r = await act("sms", "sms", { to: p.to, values: p.values }, `SMS sent to ${p.to.length}`);
+      break;
     case "report_file": {
       const dl = await download(p.format, p.source, p.title);
       r = dl.ok && p.saveTo ? await act("save_report", p.saveTo, { format: p.format, source: p.source, title: p.title }, `Downloaded and saved to ${p.saveToName}`) : dl;
