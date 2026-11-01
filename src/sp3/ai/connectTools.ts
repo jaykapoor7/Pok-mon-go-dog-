@@ -73,7 +73,7 @@ export async function runConnectionTool(name: string, input: Record<string, unkn
     const format = FORMATS.includes(input.format as FileKind) ? (input.format as FileKind) : "pdf";
     const source = REPORT_SOURCES.includes(input.source as ReportSource) ? (input.source as ReportSource) : "open_cases";
     const saveTo = ctx && input.save_to ? pick(ctx, "files.create", input.save_to) : null;
-    const title = String(input.title ?? "").slice(0, 120) || { open_cases: "Open cases", animals: "Animal register", verification: "ABC verification status" }[source];
+    const title = String(input.title ?? "").slice(0, 120) || { open_cases: "Open cases", animals: "Animal register", verification: "ABC verification status", operations_checks: "Operations check report" }[source];
     return { data: { format, source, title, save_to: saveTo }, summary: `Prepared a ${format.toUpperCase()} report`, citations: [], proposals: [{ id: pid(), kind: "report_file", why: "Report requested", format, title, source, saveTo, saveToName: saveTo ? PROVIDERS[saveTo].name : null }] };
   }
   if (name === "send_sms") {
