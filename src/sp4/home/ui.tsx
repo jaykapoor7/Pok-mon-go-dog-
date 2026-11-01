@@ -52,7 +52,7 @@ export function HeroWindow() {
               <li><span className="s4u-sq c-amber"><Camera size={11} /></span><span><b>3 records missing a release photo</b><small>SP-1031 · SP-1044 · SP-1067</small></span><span className="s4-tag">Evidence</span></li>
               <li><span className="s4u-sq c-violet"><Copy size={11} /></span><span><b>Possible duplicate</b><small>SP-1042 and SP-1067 · same ward, 2 days apart</small></span><span className="s4-tag is-violet">Check</span></li>
             </ul>
-            <div className="s4u-ask"><Sparkles size={14} /><span>Ask StrayPaw AI to prepare Friday&apos;s report package…</span><span className="s4u-ask-go"><ArrowUp size={13} /></span></div>
+            <div className="s4u-ask"><Sparkles size={14} /><span>Ask Kaju to prepare Friday&apos;s report package…</span><span className="s4u-ask-go"><ArrowUp size={13} /></span></div>
           </div>
         </div>
       </div>
@@ -190,7 +190,7 @@ export function GovUi() {
   );
 }
 
-/* ── StrayPaw AI fragments ───────────────────────────────────────── */
+/* ── Kaju fragments ───────────────────────────────────────── */
 export function AskUi() {
   return (
     <div className="s4-ui s4u-frag" style={{ width: 470 }}>
@@ -202,7 +202,7 @@ export function AskUi() {
 export function ProposeUi() {
   return (
     <div className="s4-ui s4u-frag" style={{ width: 400 }}>
-      <div className="s4-ui-pad s4u-head"><span className="s4u-ai-lab"><Sparkles size={12} /> Prepared by StrayPaw AI</span></div>
+      <div className="s4-ui-pad s4u-head"><span className="s4u-ai-lab"><Sparkles size={12} /> Prepared by Kaju</span></div>
       <div className="s4-ui-pad"><p className="s4-ui-title">Schedule post-op check</p><p className="s4-ui-sub" style={{ marginTop: 4 }}>SP-1067 · Thursday, 2 Nov · assigned to Ravi</p></div>
       <div className="s4-ui-pad s4u-foot"><small>Saved only when you confirm</small><span className="s4u-btn">Confirm</span></div>
     </div>
@@ -248,7 +248,7 @@ export function AiToolsUi({ active }: { active: number }) {
   const on = new Set(uses[active] ?? []);
   return (
     <div className="s4-ui s4u-cfg">
-      <div className="s4-ui-pad s4u-head"><span className="s4-ui-title">StrayPaw AI · Ward 14 ABC Unit</span><span className="s4-tag is-green">Your permissions</span></div>
+      <div className="s4-ui-pad s4u-head"><span className="s4-ui-title">Kaju · Ward 14 ABC Unit</span><span className="s4-tag is-green">Your permissions</span></div>
       <div className="s4-ui-pad">
         <p className="s4u-cfg-h">What happens to changes?</p>
         <div className="s4u-radio">
@@ -256,7 +256,7 @@ export function AiToolsUi({ active }: { active: number }) {
           <div><span /><b>Read only</b><small>Answers with citations</small></div>
           <div className="is-off"><span /><b>Approve on its own</b><small>Not possible in StrayPaw</small></div>
         </div>
-        <p className="s4u-cfg-h">What can StrayPaw AI use?</p>
+        <p className="s4u-cfg-h">What can Kaju use?</p>
         <div className="s4u-chips">{tools.map((t, i) => <span key={t} className={on.has(i) ? "is-on" : ""}>{t}</span>)}</div>
         <p className="s4u-cfg-h">Every answer</p>
         <div className="s4u-chips is-quiet"><span>Cites the records it read</span><span>Reads only what you can read</span><span>Logged with the confirmer&apos;s name</span></div>
@@ -305,7 +305,7 @@ export function QueueUi() {
 }
 
 export function AuditUi() {
-  const rows: [string, string, string][] = [["10:42", "Dr. S. Rao", "authorised sterilisation · SP-1067"], ["10:15", "Anita (coordinator)", "marked SP-1042 and SP-1067 as different animals"], ["09:58", "StrayPaw AI → Anita", "follow-up prepared, confirmed by Anita"], ["09:31", "Ravi (field)", "created SP-1071 · operator-created"], ["Yesterday", "Import", "2,188 rows · historical imported record"]];
+  const rows: [string, string, string][] = [["10:42", "Dr. S. Rao", "authorised sterilisation · SP-1067"], ["10:15", "Anita (coordinator)", "marked SP-1042 and SP-1067 as different animals"], ["09:58", "Kaju → Anita", "follow-up prepared, confirmed by Anita"], ["09:31", "Ravi (field)", "created SP-1071 · operator-created"], ["Yesterday", "Import", "2,188 rows · historical imported record"]];
   return (
     <div className="s4u-pg">
       <div className="s4u-pg-head"><div><b>Audit history</b><small>Every change, who made it and when</small></div><span className="s4-tag">Read-only</span></div>

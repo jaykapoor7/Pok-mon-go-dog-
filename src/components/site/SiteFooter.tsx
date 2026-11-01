@@ -10,7 +10,7 @@ import "@/sp4/sp4.css";
    legal strip. The closing call to action belongs to each page, above the
    footer, so `cta` is accepted for old callers and ignored. */
 const COLS: [string, [string, string][]][] = [
-  ["Product", [["ABC Operations & Verification", "/abc-operations"], ["Platform overview", "/platform"], ["StrayPaw AI", "/ai"], ["WhatsApp field intake", "/whatsapp"], ["Integrations", "/platform#integrations"], ["Security", "/security"], ["Book a demo", "/demo"]]],
+  ["Product", [["ABC Operations & Verification", "/abc-operations"], ["Platform overview", "/platform"], ["Kaju", "/ai"], ["WhatsApp field intake", "/whatsapp"], ["Integrations", "/platform#integrations"], ["Security", "/security"], ["Book a demo", "/demo"]]],
   ["Solutions", [["ABC operators & NGOs", "/for-ngos"], ["ABC / ARV programmes", "/solutions/abc-arv"], ["Rescue & care", "/solutions/rescue-care"], ["Government oversight", "/for-governments"], ["Community & welfare groups", "/for-community"]]],
   ["Resources", [["Customer stories", "/customers"], ["Documentation", "/docs"], ["Research", "/research"], ["Public map", "/explore"], ["Academy", "/learn"], ["FAQ", "/faq"]]],
   ["Company", [["Our story", "/our-story"], ["Contact", "/contact"], ["Partner with us", "/partner-apply"], ["Data governance", "/data-governance"], ["Licences", "/licences"]]],

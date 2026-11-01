@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const KINDS = new Set(["open_case", "add_note", "schedule_followup", "record_care"]);
 
-/* Optional structured log of confirmed StrayPaw AI actions, written with the
+/* Optional structured log of confirmed Kaju actions, written with the
    caller's own session (RLS). The table is proposed, not applied
    (supabase/proposed/ai_action_log.sql); until it exists this answers
    not_deployed and the record's own history remains the audit trail. */

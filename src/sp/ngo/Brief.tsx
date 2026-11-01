@@ -6,7 +6,7 @@
    The first screen a coordinator sees, written like a colleague's note:
    a greeting, one sentence on what changed since yesterday, what came in
    while they were out, and what needs a person today, then a prompt for
-   StrayPaw AI. Every figure and row is read under the member's own
+   Kaju. Every figure and row is read under the member's own
    session from the same helpers the work queue uses; nothing here is
    invented, and empty sections say so plainly.
    ════════════════════════════════════════════════════════════════════ */
@@ -143,8 +143,8 @@ export function Brief() {
       <div className="br-dock">
         <form className="br-ask" onSubmit={ask}>
           <Sparkles size={15} aria-hidden />
-          <label htmlFor="br-q" className="br-sr">Ask StrayPaw AI</label>
-          <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask StrayPaw AI about your programme…" autoComplete="off" />
+          <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
+          <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju about your programme…" autoComplete="off" />
           <button type="submit" aria-label="Ask" disabled={!q.trim()}><ArrowUp size={14} /></button>
         </form>
       </div>

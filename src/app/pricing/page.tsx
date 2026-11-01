@@ -10,7 +10,7 @@ const PLANS: { name: string; who: string; price: string; cta: { href: string; la
   { name: "Community", who: "Small rescue, feeding and welfare groups", price: "Accessible plan", cta: { href: "/demo?type=ngo", label: "Ask about access" },
     items: ["Cases, follow-ups and the animal register", "Community reports in one inbox", "Phone field mode", "Register import from Excel or CSV"] },
   { name: "Operator", who: "Funded ABC operators and NGOs", price: "Scoped per programme", cta: { href: "/demo", label: "Book a demo" }, primary: true,
-    items: ["Everything in Community", "ABC capture, treatment and release on one record", "Evidence checks and duplicate review", "Report packages in PDF and XLSX", "StrayPaw AI with confirmed writes", "Onboarding, import and team training"] },
+    items: ["Everything in Community", "ABC capture, treatment and release on one record", "Evidence checks and duplicate review", "Report packages in PDF and XLSX", "Kaju with confirmed writes", "Onboarding, import and team training"] },
   { name: "Government", who: "Municipal offices that fund ABC programmes", price: "Pilot with an operator you fund", cta: { href: "/demo?type=pilot", label: "Request a government demo" },
     items: ["Read-only review of submitted packages", "Queries and acceptance on the record", "Programme and ward reporting", "Procurement on your department's terms"] },
 ];

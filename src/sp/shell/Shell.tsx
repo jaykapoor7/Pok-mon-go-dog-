@@ -4,7 +4,7 @@
    The StrayPaw 3.0 application shell.
 
    DESKTOP  A calm sidebar: the organisation / workspace switcher, Quick
-            actions (⌘K) and Ask StrayPaw AI (⌘J), the workspace's own
+            actions (⌘K) and Ask Kaju (⌘J), the workspace's own
             navigation, its other pages in collapsible groups, and the
             account at the foot. A thin top bar carries the breadcrumb,
             search, the AI toggle and the workspace's one primary action.
@@ -29,7 +29,8 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
 import { ORDER, WORKSPACES, currentDest, lastWorkspace, navOn, rememberWorkspace, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
-import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
+import { AiPanel, AiProvider, KajuMark, useAi } from "@/sp3/ai/AiPanel";
+import { KajuFace } from "@/kaju/Kaju";
 import { spFonts } from "../fonts";
 import "../sp.css";
 import "./shell.css";
@@ -156,7 +157,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             {nav.map(({ item: n, label }) => {
               const Icon = ICON[n.icon] ?? Home;
               const on = n.href === "/assistant" ? onAssistant : navOn(n, path);
-              const link = <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} title={collapsed ? n.label : undefined}>{n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />}<span>{n.label}</span></Link>;
+              const link = <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} title={collapsed ? n.label : undefined}>{n.icon === "kaju" ? <span className="sx4-sq is-kaju" aria-hidden><KajuFace size={20} /></span> : n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />}<span>{n.label}</span></Link>;
               return label ? <Fragment key={n.href}><p className="sx4-sec">{label}</p>{link}</Fragment> : link;
             })}
           </nav>
@@ -211,13 +212,13 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
               {here && here.href !== def.home && <><span aria-hidden>/</span><span aria-current="page">{here.label}</span></>}
-              {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">StrayPaw AI</span></>}
+              {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
             </nav>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
               <Search size={15} aria-hidden /><span>Search records</span><kbd>⌘K</kbd>
             </button>
             <div className="sp-bar-end">
-              {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="StrayPaw AI"><Sparkles size={16} aria-hidden /><span>Ask AI</span></button>}
+              {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuMark size={34} /></span><span>Ask Kaju</span></button>}
               {def.action && !reporting && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}
               <span className="sx3-acct-m"><Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} /></span>
             </div>
@@ -236,7 +237,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               : <Link key="act" href={def.action.href} className="sp-tabs-act" aria-label={def.action.label}><b>{def.action.href.includes("report") ? <Radio size={21} aria-hidden /> : <Plus size={21} aria-hidden />}</b><span>{def.action.short}</span></Link>];
             return node;
           })}
-          <button type="button" onClick={() => ai.toggle()} aria-pressed={ai.open} className={ai.open ? "is-on" : undefined}><Sparkles size={21} strokeWidth={1.8} aria-hidden /><span>AI</span></button>
+          <button type="button" onClick={() => ai.toggle()} aria-pressed={ai.open} className={ai.open ? "is-on" : undefined}><span className="sx3-tab-kaju" aria-hidden><KajuFace size={24} /></span><span>Kaju</span></button>
           <button type="button" onClick={() => setSheet(true)} aria-haspopup="dialog" aria-expanded={sheet}><Menu size={21} strokeWidth={1.8} aria-hidden /><span>More</span></button>
         </nav>
 
@@ -307,7 +308,7 @@ function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () =>
       <div className="sp-more">
         <header className="sp-more-head"><span className="sp-grip" aria-hidden /><h2><i aria-hidden style={{ background: def.ink }} />More in {def.label}</h2><button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><X size={18} /></button></header>
         {primary.length > 0 && (
-          <ul className="sx3-more-primary">{primary.map((n) => { const Icon = ICON[n.icon] ?? Home; return <li key={n.href}><Link href={n.href} onClick={onClose} aria-current={navOn(n, path) ? "page" : undefined}><Icon size={18} aria-hidden /><b>{n.label}</b></Link></li>; })}</ul>
+          <ul className="sx3-more-primary">{primary.map((n) => { const Icon = ICON[n.icon] ?? Home; return <li key={n.href}><Link href={n.href} onClick={onClose} aria-current={navOn(n, path) ? "page" : undefined}>{n.icon === "kaju" ? <KajuFace size={20} /> : <Icon size={18} aria-hidden />}<b>{n.label}</b></Link></li>; })}</ul>
         )}
         {def.index.map((g, i) => (
           <details key={`${ws}-${g.label}`} className="sp-more-group" open={i === (here >= 0 ? here : 0)}>

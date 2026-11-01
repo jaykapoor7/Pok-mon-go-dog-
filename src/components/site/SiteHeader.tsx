@@ -98,7 +98,7 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
     <header ref={bar} className={`s4 s4-nav${scrolled ? " is-scrolled" : ""}`}>
       {notice && !sheet && (
         <div className="s4-notice">
-          <p><Sparkles size={14} aria-hidden /> <span>New: StrayPaw AI is in every workspace.</span> <Link href="/ai">See how it works <ArrowRight size={14} aria-hidden /></Link></p>
+          <p><Sparkles size={14} aria-hidden /> <span>New: Kaju is in every workspace.</span> <Link href="/ai">See how it works <ArrowRight size={14} aria-hidden /></Link></p>
           <button type="button" onClick={dismiss} aria-label="Dismiss announcement"><X size={16} /></button>
         </div>
       )}
@@ -107,7 +107,7 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
 
         <nav className="s4-nav-links" aria-label="Site" onPointerLeave={(e) => { if (e.pointerType === "mouse") hover(null); }}>
           <Mega id="platform" label="Platform" open={menu === "platform"} onToggle={toggle} onHover={hover} cols={MEGA.platform}
-            feature={<><div className="s4-mega-shot" aria-hidden><span className="s4-mega-q">Which Ward 14 releases lack a photo?</span><span className="s4-mega-a"><Sparkles size={11} /> Three of eighteen: SP-1031, SP-1044, SP-1067.</span><span className="s4-mega-c">Prepared by StrayPaw AI · confirmed by Anita</span></div><p>StrayPaw AI finds missing evidence and prepares records. A person confirms every change. <Link href="/ai">Learn more</Link></p></>} />
+            feature={<><div className="s4-mega-shot" aria-hidden><span className="s4-mega-q">Which Ward 14 releases lack a photo?</span><span className="s4-mega-a"><Sparkles size={11} /> Three of eighteen: SP-1031, SP-1044, SP-1067.</span><span className="s4-mega-c">Prepared by Kaju · confirmed by Anita</span></div><p>Kaju finds missing evidence and prepares records. A person confirms every change. <Link href="/ai">Learn more</Link></p></>} />
           <Mega id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} onHover={hover} cols={MEGA.solutions} />
           <Link href="/customers" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/customers") ? "page" : undefined}>Customers</Link>
           <Mega id="resources" label="Resources" open={menu === "resources"} onToggle={toggle} onHover={hover} cols={MEGA.resources} />

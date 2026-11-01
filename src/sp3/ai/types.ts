@@ -1,4 +1,4 @@
-/* Shared shapes for StrayPaw AI (server engine ⇄ client panel). */
+/* Shared shapes for Kaju (server engine ⇄ client panel). */
 
 export type CitationKind = "animal" | "case" | "programme" | "place" | "page";
 export type Citation = { id: string; label: string; href: string; kind: CitationKind };

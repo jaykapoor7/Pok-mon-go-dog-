@@ -80,10 +80,10 @@ export function Integrations() {
 export function Security() {
   const items: [ReactNode, string, string][] = [
     [<Fingerprint key="p" size={20} />, "Provenance on every record", "Each record keeps where it came from: a field entry, a report, or a named imported register. Imported history is never shown as live work."],
-    [<UserCheck key="r" size={20} />, "People approve, not the AI", "Records count only after a person accepts them. StrayPaw AI prepares and suggests; it cannot approve procedures, certify fieldwork or authorise payments."],
+    [<UserCheck key="r" size={20} />, "People approve, not the AI", "Records count only after a person accepts them. Kaju prepares and suggests; it cannot approve procedures, certify fieldwork or authorise payments."],
     [<KeyRound key="k" size={20} />, "Permissions in the database", "Row-level security decides every read and write by organisation and role. Hiding a button is never the guard, and the AI reads with your own session."],
     [<Eye key="e" size={20} />, "Privacy by default", "Public views show areas, not exact locations. Reporter identity, veterinary notes and organisation data stay private to the people allowed to see them."],
-    [<History key="h" size={20} />, "An audit history", "Status changes, notes, follow-ups and reviews are kept on the record with who did them and when, including actions prepared with StrayPaw AI."],
+    [<History key="h" size={20} />, "An audit history", "Status changes, notes, follow-ups and reviews are kept on the record with who did them and when, including actions prepared with Kaju."],
     [<TriangleAlert key="t" size={20} />, "Honest limitations", "Recorded is not the same as true population. Gaps are shown as gaps. Integrations that are not connected say so."],
   ];
   return <div className="s3h-sec">{items.map(([icon, t, d]) => <div key={t}>{icon}<b>{t}</b><p>{d}</p></div>)}</div>;

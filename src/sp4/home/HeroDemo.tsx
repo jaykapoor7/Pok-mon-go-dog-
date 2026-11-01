@@ -12,7 +12,7 @@ import {
    moves in step with it.
 
      0 · Home          the coordinator's daily brief; a request is typed
-     1 · StrayPaw AI   the evidence check runs: chart, ring, steps
+     1 · Kaju   the evidence check runs: chart, ring, steps
      2 · Run result    what it found; the cursor opens the package
      3 · Package       the report package for the reviewing office
 
@@ -25,7 +25,7 @@ const SCENES = [5600, 5200, 4200, 5000];
 const TOTAL = SCENES.reduce((a, b) => a + b, 0);
 const START = SCENES.map((_, i) => SCENES.slice(0, i).reduce((a, b) => a + b, 0));
 const PROMPT = "Find releases missing a photo and draft Friday's package";
-const TABS = ["Home", "StrayPaw AI", "Run result", "Report package"];
+const TABS = ["Home", "Kaju", "Run result", "Report package"];
 
 type Msg = { at: number; who: "ravi" | "anita" | "ai"; text?: ReactNode; photos?: number; file?: string };
 const THREAD: Msg[] = [
@@ -40,7 +40,7 @@ const THREAD: Msg[] = [
   { at: 15000, who: "anita", text: <><u>@StrayPaw</u> draft Friday&apos;s package</> },
   { at: 16400, who: "ai", text: "Package ready for your review.", file: "Ward 14 · October package" },
 ];
-const NAME = { ravi: "Ravi", anita: "Anita", ai: "StrayPaw AI" } as const;
+const NAME = { ravi: "Ravi", anita: "Anita", ai: "Kaju" } as const;
 
 function useClock(run: boolean) {
   const [t, setT] = useState(0);
@@ -101,7 +101,7 @@ export function HeroDemo() {
           </ul>
           <small>Platform</small>
           <ul className="s4d-nav">
-            <li className={scene === 1 ? "is-on" : ""}><Sq c="ink"><Sparkles size={11} /></Sq>StrayPaw AI</li>
+            <li className={scene === 1 ? "is-on" : ""}><Sq c="ink"><Sparkles size={11} /></Sq>Kaju</li>
             <li><Sq c="slate"><Users size={11} /></Sq>Team</li>
           </ul>
         </aside>
@@ -149,7 +149,7 @@ function SceneHome({ t }: { t: number }) {
       ))}</ul>
       <div className={`s4d-ask${typed ? " is-typing" : ""}`}>
         <Sparkles size={14} />
-        <span>{typed || <i>Ask StrayPaw AI anything about your programme…</i>}{typed && !sent && <b className="s4d-caret" />}</span>
+        <span>{typed || <i>Ask Kaju anything about your programme…</i>}{typed && !sent && <b className="s4d-caret" />}</span>
         <span className={`s4d-go${sent ? " is-sent" : ""}`}><ArrowUp size={13} /></span>
       </div>
     </div>
@@ -166,7 +166,7 @@ function SceneRun({ t }: { t: number }) {
   const r = 30, c = 2 * Math.PI * r;
   return (
     <div className="s4d-run">
-      <div className="s4d-run-head s4d-fade"><div><b>Weekly evidence check</b><small>StrayPaw AI · Ward 14 · started by Anita</small></div><span className="s4-tag is-blue">Running</span></div>
+      <div className="s4d-run-head s4d-fade"><div><b>Weekly evidence check</b><small>Kaju · Ward 14 · started by Anita</small></div><span className="s4-tag is-blue">Running</span></div>
       <div className="s4d-run-grid">
         <div className="s4d-card s4d-pop">
           <p className="s4d-card-h">Records checked per day</p>
@@ -224,7 +224,7 @@ function ScenePackage({ t }: { t: number }) {
           <div><small>Released</small><b>{n(131)}</b></div>
           <div><small>Exceptions</small><b>{n(4)}</b><em>each explained</em></div>
         </div>
-        <p className="s4d-pkg-foot"><Sparkles size={11} /> Prepared by StrayPaw AI · confirmed by Anita, coordinator · not yet submitted</p>
+        <p className="s4d-pkg-foot"><Sparkles size={11} /> Prepared by Kaju · confirmed by Anita, coordinator · not yet submitted</p>
       </div>
     </div>
   );

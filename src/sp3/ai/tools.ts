@@ -5,7 +5,7 @@ import { CARE_KINDS, type Citation, type Proposal, type ToolRun } from "./types"
 import { isResearchArchiveProgramme } from "@/lib/public-programmes";
 
 /* ════════════════════════════════════════════════════════════════════
-   StrayPaw AI tools. Every read runs on `db`, a Supabase client carrying
+   Kaju tools. Every read runs on `db`, a Supabase client carrying
    the caller's own access token, so row-level security decides what comes
    back: an NGO member sees their organisation's records, everyone else
    the public projections. Nothing here uses the service role.

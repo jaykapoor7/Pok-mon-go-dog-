@@ -39,7 +39,7 @@ export function DemoChip({ children = "Product demo" }: { children?: ReactNode }
   return <span className="s3-chip is-demo"><i style={{ background: "var(--s3-faint)" }} />{children}</span>;
 }
 
-/* ── Hero: desktop dashboard + WhatsApp phone + StrayPaw AI ─────────── */
+/* ── Hero: desktop dashboard + WhatsApp phone + Kaju ─────────── */
 type View = "overview" | "records" | "review" | "reports";
 export function HeroDemo() {
   const [view, setView] = useState<View>("overview");
@@ -62,7 +62,7 @@ export function HeroDemo() {
             ))}
             <div className="s3-app-label">Context</div>
             <button type="button" className="s3-app-nav" onClick={() => setView("overview")}><MapIcon size={14} />Map</button>
-            <button type="button" className="s3-app-nav" onClick={() => setView("review")}><Sparkles size={14} />StrayPaw AI</button>
+            <button type="button" className="s3-app-nav" onClick={() => setView("review")}><Sparkles size={14} />Kaju</button>
           </aside>
           <div className="s3-app-main">
             {view === "overview" && <Overview />}
@@ -167,8 +167,8 @@ export function PhoneThread({ live = true }: { live?: boolean }) {
 
 function AiMini() {
   return (
-    <div className="s3-ai-card" role="group" aria-label="Demo: StrayPaw AI answer">
-      <header><span className="s3-ai-mark"><Sparkles size={12} /></span>StrayPaw AI<DemoChipSm /></header>
+    <div className="s3-ai-card" role="group" aria-label="Demo: Kaju answer">
+      <header><span className="s3-ai-mark"><Sparkles size={12} /></span>Kaju<DemoChipSm /></header>
       <div className="s3-ai-body">
         <div className="s3-ai-q">Which records can’t be counted this month?</div>
         <div className="s3-ai-tool"><CheckCircle2 size={12} />find_missing_evidence · 2 results</div>
@@ -182,7 +182,7 @@ function DemoChipSm() { return <span className="s3-chip is-demo" style={{ margin
 /* ── Product tour: field message → record → review → report ────────── */
 const TOUR = [
   { t: "Field message", d: "A field worker sends a photo, a location and what was done. Today on the web; over WhatsApp once CareOS is connected.", icon: <MessageCircle size={16} /> },
-  { t: "AI-prepared record", d: "StrayPaw AI reads the message, fills the structured record and asks only for what is missing.", icon: <Sparkles size={16} /> },
+  { t: "AI-prepared record", d: "Kaju reads the message, fills the structured record and asks only for what is missing.", icon: <Sparkles size={16} /> },
   { t: "Evidence review", d: "A coordinator accepts, asks for evidence or flags a duplicate. Nothing counts until a person accepts it.", icon: <ShieldCheck size={16} /> },
   { t: "Municipal report", d: "The programme dashboard and monthly report update from accepted records, each figure linked to its sources.", icon: <BarChart3 size={16} /> },
 ];
@@ -272,7 +272,7 @@ export function UseCases() {
   );
 }
 
-/* ── StrayPaw AI showcase ──────────────────────────────────────────── */
+/* ── Kaju showcase ──────────────────────────────────────────── */
 const ASK = [
   { q: "Summarise this week’s ABC work in Saibaba Colony", tool: "summarise_programme", a: <><b>6 sterilisations</b> recorded this week, 4 accepted, 2 waiting for review <span className="s3-cite">SP-CBE-4F2K</span>. All released in the same area cell.</> },
   { q: "Find records missing evidence", tool: "find_missing_evidence", a: <><b>1 record</b> has no release photo <span className="s3-cite">SP-CBE-2H8D</span>. I can draft a request to the field team for you to send.</> },
@@ -287,11 +287,11 @@ export function AiShowcase() {
   const a = ASK[i];
   return (
     <div className="s3h-aishow">
-      <div className="s3h-aiprompts" role="tablist" aria-label="Ask StrayPaw AI">
+      <div className="s3h-aiprompts" role="tablist" aria-label="Ask Kaju">
         {ASK.map((x, k) => <button key={x.q} type="button" role="tab" aria-selected={i === k} onClick={() => setI(k)}><Sparkles size={14} aria-hidden />{x.q}</button>)}
       </div>
       <div className="s3-ai-card s3h-aibig" role="tabpanel" aria-live="polite">
-        <header><span className="s3-ai-mark"><Sparkles size={12} /></span>StrayPaw AI<span className="s3-chip is-demo" style={{ marginLeft: "auto" }}>Demo conversation</span></header>
+        <header><span className="s3-ai-mark"><Sparkles size={12} /></span>Kaju<span className="s3-chip is-demo" style={{ marginLeft: "auto" }}>Demo conversation</span></header>
         <div className="s3-ai-body">
           <div className="s3-ai-q">{a.q}</div>
           <div className="s3-ai-tool">{typed ? <CheckCircle2 size={12} /> : <span className="s3h-spin" />}{a.tool}()</div>

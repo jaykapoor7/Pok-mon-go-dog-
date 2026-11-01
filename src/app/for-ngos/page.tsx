@@ -40,7 +40,7 @@ export default function OperatorsPage() {
         { icon: <Smartphone size={20} />, title: "Field mode", body: "A one-hand phone view for teams on the street.", tag: <Status s="live" /> },
         { icon: <FileSpreadsheet size={20} />, title: "Register import", body: "Bring your Excel or CSV. Rows stay labelled as historical.", tag: <Status s="live" /> },
         { icon: <FileText size={20} />, title: "Reports & proof", body: "Programme reports and evidence on demand.", tag: <Status s="live" /> },
-        { icon: <Sparkles size={20} />, title: "StrayPaw AI", body: "Find gaps, read field messages, prepare records for confirmation.", tag: <Status s="live" /> },
+        { icon: <Sparkles size={20} />, title: "Kaju", body: "Find gaps, read field messages, prepare records for confirmation.", tag: <Status s="live" /> },
         { icon: <Users size={20} />, title: "Team & roles", body: "Invite members with codes, set roles, remove access.", tag: <Status s="live" /> },
         { icon: <Smartphone size={20} />, title: "WhatsApp intake", body: "Built, awaiting Meta approval. Field mode works meanwhile.", tag: <Status s="off" /> },
       ],

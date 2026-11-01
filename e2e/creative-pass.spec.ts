@@ -9,7 +9,7 @@ for(const width of [320,390,768,1440])test(`hero and section order remain usable
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(H1);
  for(const a of await page.locator(".s4-hero .s4-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main h2:visible").allInnerTexts()).map(s=>s.replace(/\s+/g," ").trim());
- expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Your team's most reliable teammate","Give the routine checks to StrayPaw AI"]);
+ expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Your team's most reliable teammate","Give the routine checks to Kaju"]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.locator(".s4-hero .s4-actions [class*=flame]")).toHaveCount(0);
 });

@@ -5,7 +5,7 @@ import { NAV, TOOL_DEFS, runTool, toolRun, type ToolCtx, type ToolOut } from "./
 import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
 
 /* ════════════════════════════════════════════════════════════════════
-   StrayPaw AI engine.
+   Kaju engine.
 
    With ANTHROPIC_API_KEY set, Claude runs a tool-use loop over the tools
    in ./tools (reads under the caller's session; writes only as proposals).
@@ -19,7 +19,7 @@ import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
 const MODEL = process.env.STRAYPAW_AI_MODEL?.trim() || "claude-opus-5-5";
 const MAX_STEPS = 6;
 
-const SYSTEM = `You are StrayPaw AI, the assistant inside StrayPaw, operations software for street-animal programmes in India (municipal ABC sterilisation and ARV anti-rabies vaccination, rescue, care and reporting).
+const SYSTEM = `You are Kaju, StrayPaw's AI agent, working inside StrayPaw, operations software for street-animal programmes in India (municipal ABC sterilisation and ARV anti-rabies vaccination, rescue, care and reporting).
 
 How to work:
 - Use the tools to read records. Never state a figure, name, case or animal that a tool did not return in this conversation.
@@ -47,13 +47,13 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   if (modelConfigured()) {
     try { return await withModel(turns, ctx, context); }
     catch (e) {
-      console.error("StrayPaw AI model call failed", e instanceof Error ? e.message : e);
+      console.error("Kaju model call failed", e instanceof Error ? e.message : e);
       const r = await withTools(turns[turns.length - 1].text, ctx);
-      return { ...r, notice: "The language model did not answer, so this reply comes from the record tools alone." };
+      return { ...r, notice: "Kaju could not reach its reasoning service, so this reply comes from the record tools alone." };
     }
   }
   const r = await withTools(turns[turns.length - 1].text, ctx);
-  return { ...r, notice: "Free-form answers are off on this deployment (no language model is configured). This reply comes from StrayPaw's record tools." };
+  return { ...r, notice: "Kaju answered from StrayPaw's record tools. Free-form answers are off on this deployment." };
 }
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */

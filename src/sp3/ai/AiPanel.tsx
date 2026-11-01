@@ -1,7 +1,10 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   StrayPaw AI in the app: one conversation, three sizes.
+   Kaju, StrayPaw's AI agent, in the app: one conversation, three sizes.
+   The puppy is Kaju's mascot; his pose follows what the agent is really
+   doing (useKajuMood): greeting on open, thinking while /api/ai works,
+   pleased after an answer, concerned on an error, settling when closed.
      · the launcher (sidebar button, top bar, ⌘J, phone tab)
      · the right-side panel, docked beside any page
      · the full-screen workspace at /assistant
@@ -18,6 +21,10 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
 import { executeProposal, type Saved } from "./execute";
 import type { AiReply, Citation, Proposal } from "./types";
+import { Kaju } from "@/kaju/Kaju";
+import { useKajuAmbient } from "@/kaju/ambient";
+import { useReducedMotion } from "@/kaju/controller";
+import type { KajuState } from "@/kaju/poses";
 import "./ai.css";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string };
@@ -29,6 +36,39 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 export function useAi(): Ctx {
   const c = useContext(AiCtx);
   return c ?? { open: false, toggle: () => {}, setOpen: () => {}, ask: () => {}, msgs: [], busy: false, reset: () => {}, model: null };
+}
+
+/** Kaju's pose, from the agent's real state. Never from a pretend result. */
+export function useKajuMood(): KajuState {
+  const ai = useAi();
+  const [state, setState] = useState<KajuState>("lying");
+  const last = ai.msgs[ai.msgs.length - 1];
+  const lastKey = last ? `${last.id}:${last.error ? "e" : "a"}` : "";
+  const prevOpen = useRef(ai.open);
+  useEffect(() => {
+    let t: number | undefined;
+    if (ai.busy) setState("thinking");
+    else if (!ai.open && prevOpen.current) { setState("goodbye"); t = window.setTimeout(() => setState("lying"), 1100); }
+    else if (!ai.open) setState("lying");
+    else if (last?.role === "assistant" && last.error) setState("concerned");
+    else if (last?.role === "assistant" && last.reply) {
+      const found = (last.reply.citations?.length ?? 0) > 0 || (last.reply.proposals?.length ?? 0) > 0;
+      setState(found ? "success" : "explaining");
+      t = window.setTimeout(() => setState("listening"), 1600);
+    } else if (ai.open && !prevOpen.current) { setState("greeting"); t = window.setTimeout(() => setState("listening"), 1500); }
+    else setState("listening");
+    prevOpen.current = ai.open;
+    return () => window.clearTimeout(t);
+  }, [ai.busy, ai.open, lastKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  return state;
+}
+
+/** The mascot, for any place that shows Kaju's state. */
+export function KajuMark({ size = 40, state }: { size?: number; state?: KajuState }) {
+  const mood = useKajuMood();
+  const [ambient] = useKajuAmbient();
+  const reduced = useReducedMotion();
+  return <Kaju state={state ?? mood} size={size} still={!ambient || reduced} />;
 }
 
 export function AiProvider({ children }: { children: ReactNode }) {
@@ -64,7 +104,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ messages: history.slice(-12).map((m) => ({ role: m.role, text: m.reply?.text ?? m.text })), context: { path, workspace: ws } }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) setMsgs((m) => [...m, { id: uid(), role: "assistant", text: "", error: data.error ?? "StrayPaw AI could not answer. Nothing was changed." }]);
+      if (!res.ok) setMsgs((m) => [...m, { id: uid(), role: "assistant", text: "", error: data.error ?? "Kaju could not answer. Nothing was changed." }]);
       else setMsgs((m) => [...m, { id: uid(), role: "assistant", text: (data as AiReply).text, reply: data as AiReply }]);
     } catch {
       setMsgs((m) => [...m, { id: uid(), role: "assistant", text: "", error: "Could not reach StrayPaw. Check your connection; nothing was changed." }]);
@@ -98,13 +138,13 @@ export function AiPanel() {
   }, [ai]);
   if (!ai.open) return null;
   return (
-    <aside ref={ref} className="ai3-panel" aria-label="StrayPaw AI">
+    <aside ref={ref} className="ai3-panel" aria-label="Kaju">
       <header className="ai3-head">
-        <span className="s3-ai-mark"><Sparkles size={12} /></span><b>StrayPaw AI</b>
+        <span className="kaju-head-mark"><KajuMark size={46} /></span><b>Kaju</b><span className="ai3-head-sub">StrayPaw&rsquo;s AI agent</span>
         <span className="ai3-head-act">
           <button type="button" className="ai3-icon" onClick={ai.reset} aria-label="New conversation" title="New conversation"><RotateCcw size={15} /></button>
           <Link className="ai3-icon" href="/assistant" aria-label="Open full screen" title="Open full screen"><Maximize2 size={15} /></Link>
-          <button type="button" className="ai3-icon" onClick={() => ai.setOpen(false)} aria-label="Close StrayPaw AI"><X size={16} /></button>
+          <button type="button" className="ai3-icon" onClick={() => ai.setOpen(false)} aria-label="Close Kaju"><X size={16} /></button>
         </span>
       </header>
       <Thread />
@@ -119,7 +159,7 @@ export function AiWorkspace() {
     <div className="ai3-full">
       <div className="ai3-full-in">
         <header className="ai3-full-head">
-          <div><span className="s3-eyebrow"><Sparkles size={14} /> StrayPaw AI</span><h1>Ask the record.</h1><p>Questions, searches, summaries and prepared changes, over the records your account can read. Every change waits for your confirmation.</p></div>
+          <div className="ai3-full-id"><span className="ai3-full-kaju"><KajuMark size={120} /></span><div><span className="s3-eyebrow">Kaju · StrayPaw&rsquo;s AI agent</span><h1>Ask Kaju.</h1><p>Questions, searches, summaries and prepared changes, over the records your account can read. Every change waits for your confirmation.</p></div></div>
           {ai.msgs.length > 0 && <button type="button" className="s3-btn is-line is-sm" onClick={ai.reset}><RotateCcw size={14} />New conversation</button>}
         </header>
         <Thread full />
@@ -145,6 +185,7 @@ function Thread({ full = false }: { full?: boolean }) {
       <div className="ai3-scroll" aria-live="polite">
         {ai.msgs.length === 0 && (
           <div className="ai3-empty">
+            {!full && <div className="ai3-empty-kaju"><KajuMark size={150} /></div>}
             <p className="ai3-empty-h">{user ? `How can I help, ${user.name.split(" ")[0]}?` : "Ask about public programmes and animals."}</p>
             <p className="ai3-empty-s">{user ? "I read with your own access, cite the records I use, and prepare changes for you to confirm." : "Sign in to ask about your organisation's records. Public questions work without an account."}</p>
             <div className="ai3-sugg">{sugg.map((s) => <button key={s} type="button" onClick={() => ai.ask(s)}><Sparkles size={13} aria-hidden />{s.length > 70 ? `${s.slice(0, 68)}…` : s}</button>)}</div>
@@ -153,14 +194,14 @@ function Thread({ full = false }: { full?: boolean }) {
         {ai.msgs.map((m) => m.role === "user"
           ? <div key={m.id} className="ai3-q">{m.text}</div>
           : <Answer key={m.id} m={m} />)}
-        {ai.busy && <div className="ai3-thinking"><Loader2 size={14} className="animate-spin" />Reading the record</div>}
+        {ai.busy && <div className="ai3-thinking" role="status"><span className="ai3-thinking-kaju" aria-hidden><KajuMark size={44} state="thinking" /></span><Loader2 size={14} className="animate-spin" />Kaju is reading the record</div>}
         <div ref={end} />
       </div>
       <div className="ai3-compose">
-        <textarea ref={input} value={q} onChange={(e) => setQ(e.target.value)} rows={full ? 3 : 2} placeholder="Ask, search, or paste a field update…" aria-label="Message StrayPaw AI"
+        <textarea ref={input} value={q} onChange={(e) => setQ(e.target.value)} rows={full ? 3 : 2} placeholder="Ask Kaju, search, or paste a field update…" aria-label="Message Kaju"
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} />
         <button type="button" className="ai3-send" onClick={send} disabled={!q.trim() || ai.busy} aria-label="Send"><ArrowUp size={16} /></button>
-        <p className="ai3-foot">{ai.model === false ? "Record tools only: no language model is configured on this deployment." : "Answers cite records. Changes need your confirmation."}</p>
+        <p className="ai3-foot">{ai.model === false ? "Kaju answers from the record tools on this deployment; free-form answers are off." : "Answers cite records. Changes need your confirmation."}</p>
       </div>
     </div>
   );
@@ -217,7 +258,7 @@ function ProposalCard({ p }: { p: Proposal }) {
       <dl>{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       {saved && !saved.ok && <p className="s3-err" role="alert">{saved.error}</p>}
       {saved?.ok ? (
-        <div className="ai3-prop-act">{saved.href && <Link className="s3-btn is-sm is-line" href={saved.href}>Open the record<ExternalLink size={13} /></Link>}<span className="s3-small">It appears in the normal screens with a note that it was prepared with StrayPaw AI.</span></div>
+        <div className="ai3-prop-act">{saved.href && <Link className="s3-btn is-sm is-line" href={saved.href}>Open the record<ExternalLink size={13} /></Link>}<span className="s3-small">It appears in the normal screens with a note that the AI agent prepared it and you confirmed it.</span></div>
       ) : (
         <div className="ai3-prop-act">
           <button type="button" className="s3-btn is-sm is-primary" onClick={confirm} disabled={state === "busy" || !user}>{state === "busy" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}Confirm and save</button>

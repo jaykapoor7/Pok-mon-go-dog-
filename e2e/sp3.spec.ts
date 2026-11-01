@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-/* StrayPaw 3.0: the site, the entry flow, the app shell, StrayPaw AI and
+/* StrayPaw 3.0: the site, the entry flow, the app shell, Kaju and
    CareOS, as a visitor and an unauthenticated user can exercise them. */
 
 const PUBLIC = ["/", "/abc-operations", "/security", "/research", "/platform", "/ai", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
@@ -71,24 +71,24 @@ test("Open App offers ways in to a signed-out visitor", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Report an animal/ })).toBeVisible();
 });
 
-test("the app shell carries workspace navigation, search and StrayPaw AI", async ({ page, isMobile }) => {
+test("the app shell carries workspace navigation, search and Kaju", async ({ page, isMobile }) => {
   await page.goto("/city/programmes");
   if (!isMobile) {
     const side = page.getByRole("complementary", { name: "Workspace" });
     await expect(side.getByRole("link", { name: "Programmes" })).toHaveAttribute("aria-current", "page");
-    await expect(side.getByRole("link", { name: "StrayPaw AI" })).toBeVisible();
-    await page.getByRole("banner").getByRole("button", { name: "StrayPaw AI" }).click();
+    await expect(side.getByRole("link", { name: "Kaju" })).toBeVisible();
+    await page.getByRole("banner").getByRole("button", { name: "Kaju" }).click();
   } else {
-    await page.getByRole("navigation", { name: /navigation/ }).getByRole("button", { name: "AI" }).click();
+    await page.getByRole("navigation", { name: /navigation/ }).getByRole("button", { name: "Kaju" }).click();
   }
-  const panel = page.getByRole("complementary", { name: "StrayPaw AI" });
+  const panel = page.getByRole("complementary", { name: "Kaju" });
   await expect(panel).toBeVisible();
-  await expect(panel.getByRole("textbox", { name: "Message StrayPaw AI" })).toBeVisible();
+  await expect(panel.getByRole("textbox", { name: "Message Kaju" })).toBeVisible();
 });
 
 /* CI builds without Supabase keys: the AI must then say so (503), never
    answer from nothing. With a record store it must answer from real tools. */
-test("StrayPaw AI answers public questions with sources and refuses a forged session", async ({ request }) => {
+test("Kaju answers public questions with sources and refuses a forged session", async ({ request }) => {
   const res = await request.post("/api/ai", { data: { messages: [{ role: "user", text: "What programmes are published?" }] } });
   const body = await res.json();
   if (res.status() === 503) { expect(body.error).toMatch(/not configured/); return; }

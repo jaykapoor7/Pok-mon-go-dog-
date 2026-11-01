@@ -12,7 +12,7 @@ export type Item = { href: string; label: string; hint: string; icon: ReactNode;
 
 export const PLATFORM: Item[] = [
   { href: "/abc-operations", label: "ABC Operations & Verification", hint: "Capture, treatment, evidence, review and the report package", icon: <ClipboardCheck size={16} />, tone: "blue" },
-  { href: "/ai", label: "StrayPaw AI", hint: "Finds gaps, prepares records, cites its sources", icon: <Sparkles size={16} />, tone: "violet" },
+  { href: "/ai", label: "Kaju", hint: "Finds gaps, prepares records, cites its sources", icon: <Sparkles size={16} />, tone: "violet" },
   { href: "/whatsapp", label: "WhatsApp field intake", hint: "Field messages become draft records for review", icon: <MessageCircle size={16} />, tone: "green" },
   { href: "/platform#integrations", label: "Integrations", hint: "Register imports, exports, email and map embeds", icon: <Plug size={16} />, tone: "amber" },
   { href: "/security", label: "Security", hint: "Permissions, isolation, provenance and audit", icon: <ShieldCheck size={16} />, tone: "ink" },
@@ -48,7 +48,7 @@ export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
   platform: [
     { title: "Products", links: [
       { href: "/abc-operations", label: "ABC Operations & Verification", hint: "From capture to an accepted report" },
-      { href: "/ai", label: "StrayPaw AI", hint: "Finds gaps and prepares records" },
+      { href: "/ai", label: "Kaju", hint: "Finds gaps and prepares records" },
       { href: "/whatsapp", label: "WhatsApp field intake", hint: "Field messages become drafts" },
       { href: "/solutions/rescue-care", label: "Rescue & care", hint: "Requests, treatment and follow-ups" },
       { href: "/abc-operations#report", label: "Report packages", hint: "Evidence the office can check" },

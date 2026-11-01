@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-/* StrayPaw AI. The caller's own access token (if any) is forwarded to
+/* Kaju. The caller's own access token (if any) is forwarded to
    Supabase, so every tool read is decided by row-level security exactly as
    in the manual screens. No service-role key is used here. */
 function callerClient(token: string | null) {
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     const reply = await answer(body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", text: String(m.text ?? "") })), { db, orgId, userName }, body.context ?? {});
     return NextResponse.json(reply);
   } catch (e) {
-    console.error("StrayPaw AI failed", e instanceof Error ? e.message : e);
-    return NextResponse.json({ error: "StrayPaw AI could not answer. Nothing was changed." }, { status: 500 });
+    console.error("Kaju failed", e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: "Kaju could not answer. Nothing was changed." }, { status: 500 });
   }
 }

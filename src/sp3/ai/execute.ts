@@ -1,6 +1,6 @@
 "use client";
 
-/* Saving a confirmed StrayPaw AI proposal. Each kind runs the SAME
+/* Saving a confirmed Kaju proposal. Each kind runs the SAME
    server-authorised action the manual screens use (sp/data/work), under the
    person's own session, so permissions, validation and history are
    identical. The saved text carries "Prepared with StrayPaw AI, confirmed

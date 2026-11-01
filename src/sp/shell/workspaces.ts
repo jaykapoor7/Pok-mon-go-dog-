@@ -58,7 +58,7 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { href: "/community/stories", label: "Stories", icon: "book", tone: "blue", section: "Explore" },
       { href: "/community/organisations", label: "Organisations", icon: "building", tone: "teal" },
       { href: "/fundraisers", label: "Fundraisers", icon: "heart", tone: "flame" },
-      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+      { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
     ],
     index: [
       { label: "Read", links: [
@@ -90,7 +90,7 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal", roles: ["admin", "coordinator"] },
       { href: "/ngo/packages", label: "Report packages", icon: "check", tone: "amber", roles: ["admin", "coordinator"] },
       { href: "/ngo/map", label: "Map", icon: "map", tone: "flame" },
-      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+      { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
       { href: "/ngo/team", label: "Team & access", icon: "users", tone: "slate", roles: ["admin"] },
     ],
     index: [
@@ -141,7 +141,7 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { href: "/city/programmes", label: "Programmes", icon: "layers", tone: "teal", section: "Modules" },
       { href: "/city/report", label: "Reports", icon: "file", tone: "amber" },
       { href: "/city", label: "Map", icon: "map", exact: true, tone: "flame" },
-      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+      { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
     ],
     index: [
       { label: "Publish", links: [
@@ -167,7 +167,7 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
       { href: "/learn/workshops", label: "Workshops", icon: "users", tone: "blue", section: "Modules" },
       { href: "/learn/resources", label: "Resources", icon: "book", tone: "teal" },
       { href: "/learn/playground", label: "Playground", icon: "compass", tone: "amber" },
-      { href: "/assistant", label: "StrayPaw AI", icon: "sparkles", tone: "ink", section: "Platform" },
+      { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
     ],
     index: [
       { label: "Explore", links: [

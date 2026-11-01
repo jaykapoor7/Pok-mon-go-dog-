@@ -19,7 +19,7 @@ import "@/components/shell/calm.css";
    The 2.0 console shell, retired in StrayPaw 3.0.
 
    Every page that still mounts <AppShell> now renders inside the one 3.0
-   application shell (sidebar, top bar, StrayPaw AI). The `sx sd` scope is
+   application shell (sidebar, top bar, Kaju). The `sx sd` scope is
    kept on an inner wrapper so the page's own content styles still apply;
    the old chrome (ink bar, sidebar, folk ground) is gone.
    ════════════════════════════════════════════════════════════════════ */

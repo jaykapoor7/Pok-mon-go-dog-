@@ -9,9 +9,9 @@ import "@/sp4/home/home4.css";
    new" pill, one real product update at a time, and a product view.
    Only shipped changes are listed (each is in the repository history). */
 const NEWS = [
-  { t: "StrayPaw AI in every workspace", d: "Search your records, find missing evidence and prepare cases, notes and follow-ups. A person confirms every change.", href: "/ai", ui: <MiniWindow title="Home · Today" label="the operator's daily queue"><QueueUi /></MiniWindow> },
+  { t: "Kaju in every workspace", d: "Search your records, find missing evidence and prepare cases, notes and follow-ups. A person confirms every change.", href: "/ai", ui: <MiniWindow title="Home · Today" label="the operator's daily queue"><QueueUi /></MiniWindow> },
   { t: "Programmes on one record", d: "Programme figures carry their method and source, and published research datasets are kept apart from programme work.", href: "/abc-operations", ui: <MiniWindow title="Programmes · ABC drive" label="programme overview" active={5}><ProgrammeUi /></MiniWindow> },
-  { t: "History on every case", d: "Every change is dated and named, including changes prepared with StrayPaw AI and confirmed by a person.", href: "/security", ui: <MiniWindow title="Case SP-1067 · History" label="a case history"><AuditUi /></MiniWindow> },
+  { t: "History on every case", d: "Every change is dated and named, including changes prepared with Kaju and confirmed by a person.", href: "/security", ui: <MiniWindow title="Case SP-1067 · History" label="a case history"><AuditUi /></MiniWindow> },
 ];
 
 export function WhatsNew() {

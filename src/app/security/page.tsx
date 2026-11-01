@@ -22,7 +22,7 @@ export default function SecurityPage() {
         { icon: <KeyRound size={20} />, title: "Invitation-only access", body: "No self-chosen roles. An admin invites each member with their email and a one-time code." },
         { icon: <History size={20} />, title: "Audit history", body: "Status changes, notes, follow-ups and reviews are kept on the record with who did them and when." },
         { icon: <Fingerprint size={20} />, title: "Provenance", body: "Imported, community-reported and operator-created records are labelled and never mixed up." },
-        { icon: <Sparkles size={20} />, title: "AI with your permissions", body: "StrayPaw AI reads with the signed-in person's session and cannot save anything without their confirmation." },
+        { icon: <Sparkles size={20} />, title: "AI with your permissions", body: "Kaju reads with the signed-in person's session and cannot save anything without their confirmation." },
         { icon: <Eye size={20} />, title: "Privacy by default", body: "Public views show areas, not exact locations. Reporter identity and veterinary notes stay private." },
         { icon: <Download size={20} />, title: "Exportable", body: "Your registers, evidence and reports export to XLSX, CSV and PDF at any time." },
         { icon: <Server size={20} />, title: "Hosting", body: "Managed Postgres on Supabase and the app on Vercel, both over TLS." },

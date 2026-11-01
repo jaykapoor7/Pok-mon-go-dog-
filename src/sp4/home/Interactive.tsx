@@ -13,7 +13,7 @@ import { AiToolsUi } from "@/sp4/home/ui";
    the workflow, one step per screenful; tabs also jump. On phones and
    tablets the steps are a plain stacked list.
 
-   AiBand: the dark band. Jobs StrayPaw AI does today cycle while the band
+   AiBand: the dark band. Jobs Kaju does today cycle while the band
    is on screen; the panel shows which of its real tools each one uses.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -123,7 +123,7 @@ export function AiBand() {
   return (
     <div ref={box} className="s4-band">
       <div>
-        <h2 className="s4-h2" id="ai-title">Give the routine checks{" "}<br />to StrayPaw AI</h2>
+        <h2 className="s4-h2" id="ai-title">Give the routine checks{" "}<br />to Kaju</h2>
         <div className={`s4-jobs${still || held ? " is-still" : ""}`}>
           {JOBS.map((j, n) => (
             <button key={j} type="button" aria-pressed={n === i} onClick={() => { setI(n); setHeld(true); }}>
@@ -131,7 +131,7 @@ export function AiBand() {
             </button>
           ))}
         </div>
-        <Link href="/ai" className="s4-link">See StrayPaw AI <ArrowRight size={18} aria-hidden /></Link>
+        <Link href="/ai" className="s4-link">See Kaju <ArrowRight size={18} aria-hidden /></Link>
       </div>
       <AiToolsUi active={i} />
     </div>

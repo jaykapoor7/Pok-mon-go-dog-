@@ -2,14 +2,14 @@ import { Download, FileSpreadsheet, Landmark, Mail, Map as MapIcon, MessageCircl
 import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { AskUi, AuditUi, HeroWindow, QueueUi, MiniWindow, ReportUi } from "@/sp4/home/ui";
 
-export const metadata = { title: "Platform · StrayPaw", description: "One operating record for street-animal programmes: operations, StrayPaw AI and field intake, on the same data." };
+export const metadata = { title: "Platform · StrayPaw", description: "One operating record for street-animal programmes: operations, Kaju and field intake, on the same data." };
 
 export default function PlatformPage() {
   return <ProductPage s={{
     id: "pf",
     dark: true,
     title: ["One record for the", "whole programme"],
-    lede: "Intake, animals, treatment, evidence, review and reports, with StrayPaw AI and field intake working on the same data. No second database, no copy for the AI, no spreadsheet at the end.",
+    lede: "Intake, animals, treatment, evidence, review and reports, with Kaju and field intake working on the same data. No second database, no copy for the AI, no spreadsheet at the end.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "#modules", label: "Take a tour" },
     hero: <div style={{ width: "min(1100px, 100%)" }}><HeroWindow /></div>,
@@ -19,14 +19,14 @@ export default function PlatformPage() {
       title: ["Built for organisations where", "the record has to hold up"],
       items: [
         { t: "Grounded in your records", d: "Every screen, answer and report reads the same records your team creates. Nothing is estimated or generated." },
-        { t: "Permissions at the database", d: "Row-level security decides what each member can read and change, for people and for StrayPaw AI alike." },
+        { t: "Permissions at the database", d: "Row-level security decides what each member can read and change, for people and for Kaju alike." },
         { t: "Observable and auditable", d: "Every change is dated and named. Imported, reported and operator-created records stay distinguishable." },
       ],
     },
     splits: [
       { title: ["The day's work,", "in one queue"], body: "Requests, drafts from the field, follow-ups due and evidence gaps arrive in one place, ready to assign.", ui: <MiniWindow title="Home · Today" label="the operator's queue"><QueueUi /></MiniWindow>, v: 1 },
-      { title: ["Answers that", "cite their records"], body: "StrayPaw AI searches what you are allowed to read, answers in plain words and names its sources.", link: { href: "/ai", label: "StrayPaw AI" }, ui: <AskUi />, v: 2 },
-      { title: ["History you", "can audit"], body: "Every change to a case writes a line with who, what and when, including changes prepared by StrayPaw AI and confirmed by a person.", link: { href: "/security", label: "Security" }, ui: <MiniWindow title="Case SP-1067 · History" label="a case's audit history"><AuditUi /></MiniWindow>, v: 3 },
+      { title: ["Answers that", "cite their records"], body: "Kaju searches what you are allowed to read, answers in plain words and names its sources.", link: { href: "/ai", label: "Kaju" }, ui: <AskUi />, v: 2 },
+      { title: ["History you", "can audit"], body: "Every change to a case writes a line with who, what and when, including changes prepared by Kaju and confirmed by a person.", link: { href: "/security", label: "Security" }, ui: <MiniWindow title="Case SP-1067 · History" label="a case's audit history"><AuditUi /></MiniWindow>, v: 3 },
       { title: ["Reports built", "from the work"], body: "Programme and municipal reports, evidence workbooks and exports, generated from accepted records with the method attached.", ui: <ReportUi />, v: 4 },
     ],
     modules: {
@@ -34,7 +34,7 @@ export default function PlatformPage() {
       lede: "Each module works on its own and better together.",
       items: [
         { label: "Operate", t: "ABC Operations & Verification", d: "Capture to accepted report for sterilisation and vaccination programmes.", href: "/abc-operations", cta: "Explore" },
-        { label: "Assist", t: "StrayPaw AI", d: "Search, summarise, find gaps and prepare records for confirmation.", href: "/ai", cta: "Explore" },
+        { label: "Assist", t: "Kaju", d: "Search, summarise, find gaps and prepare records for confirmation.", href: "/ai", cta: "Explore" },
         { label: "Intake", t: "WhatsApp field intake", d: "Field messages into draft records for review. Not yet connected.", href: "/whatsapp", cta: "Explore" },
         { label: "Care", t: "Rescue & care", d: "Requests, treatment and follow-ups for injured and sick animals.", href: "/solutions/rescue-care", cta: "Explore" },
         { label: "Oversee", t: "Government review", d: "Read-only review and acceptance of operator packages.", href: "/for-governments", cta: "Explore" },
@@ -54,7 +54,7 @@ export default function PlatformPage() {
       ],
     },
     faq: [
-      ["Is the AI a separate system?", "No. StrayPaw AI uses the same database and the same permissions as the rest of the app, through named tools. There is no separate copy of your data."],
+      ["Is the AI a separate system?", "No. Kaju uses the same database and the same permissions as the rest of the app, through named tools. There is no separate copy of your data."],
       ["Where is our data hosted?", "On Supabase (managed Postgres) and Vercel. Database row-level security isolates each organisation's records."],
       ["Can we leave?", "Yes. Registers, evidence and reports export to XLSX, CSV and PDF at any time."],
     ],

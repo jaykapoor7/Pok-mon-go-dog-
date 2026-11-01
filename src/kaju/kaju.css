@@ -1,0 +1,99 @@
+/* Kaju's motion. Poses transition; loops run inside each part's joint. */
+.kaju { display: block; overflow: visible; max-width: 100%; height: auto; }
+.kaju .kj-pose, .kaju .kj-loop, .kaju .kj-ear-up, .kaju .kj-ear-flop, .kaju .twitch, .kaju .kj-flip, .kaju .kj-shadow {
+  transform-box: view-box; transform-origin: 0 0;
+}
+.kaju .kj-pose { transition: transform 560ms cubic-bezier(.34, 1.2, .5, 1), opacity 260ms ease; }
+.kaju .kj-head { transition-duration: 620ms; }
+.kaju .kj-ear-up, .kaju .kj-ear-flop { transition: transform 320ms cubic-bezier(.3, 1.4, .5, 1); }
+.kaju .kj-shadow { transform-origin: 120px 188px; transition: transform 560ms ease, opacity 300ms; fill: #0b1e3d; }
+.kaju.is-flip .kj-flip { transform: translateX(240px) scaleX(-1); }
+.kaju .kj-eyes { transform-box: fill-box; transform-origin: center; }
+
+/* walk: diagonal pairs swing together */
+@keyframes kj-swing { 0%, 100% { transform: rotate(16deg); } 50% { transform: rotate(-16deg); } }
+@keyframes kj-swing-b { 0%, 100% { transform: rotate(-16deg); } 50% { transform: rotate(16deg); } }
+@keyframes kj-tswing { 0%, 100% { transform: rotate(26deg); } 50% { transform: rotate(-24deg); } }
+@keyframes kj-tswing-b { 0%, 100% { transform: rotate(-24deg); } 50% { transform: rotate(26deg); } }
+.kaju .w-f1, .kaju .w-b2 { animation: kj-swing 900ms ease-in-out infinite; }
+.kaju .w-f2, .kaju .w-b1 { animation: kj-swing-b 900ms ease-in-out infinite; }
+.kaju .t-f1, .kaju .t-b2 { animation: kj-tswing 460ms ease-in-out infinite; }
+.kaju .t-f2, .kaju .t-b1 { animation: kj-tswing-b 460ms ease-in-out infinite; }
+@keyframes kj-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+@keyframes kj-bob-fast { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.kaju .bob { animation: kj-bob 450ms ease-in-out infinite; }
+.kaju .bob-fast { animation: kj-bob-fast 230ms ease-in-out infinite; }
+
+/* tail */
+@keyframes kj-wag { 0%, 100% { transform: rotate(-18deg); } 50% { transform: rotate(16deg); } }
+.kaju .wag { animation: kj-wag 300ms ease-in-out infinite; }
+.kaju .wag-slow { animation: kj-wag 1100ms ease-in-out infinite; }
+
+/* breath, blink, ear */
+@keyframes kj-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.035); } }
+.kaju .breathe { animation: kj-breathe 3.2s ease-in-out infinite; }
+@keyframes kj-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.08); } }
+.kaju .kj-eyes.blink { animation: kj-blink 4.8s ease-in-out infinite; }
+@keyframes kj-twitch { 0%, 82%, 100% { transform: rotate(0); } 86% { transform: rotate(-14deg); } 90% { transform: rotate(6deg); } 94% { transform: rotate(-8deg); } }
+.kaju .twitch { animation: kj-twitch 2.6s ease-in-out infinite; }
+
+/* head */
+@keyframes kj-look { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 30% { transform: rotate(-12deg); } 60% { transform: rotate(9deg); } 68% { transform: rotate(9deg); } }
+.kaju .look { animation: kj-look 3.2s ease-in-out infinite; }
+@keyframes kj-wake { 0% { transform: rotate(10deg); } 60% { transform: rotate(-6deg); } 100% { transform: rotate(0); } }
+.kaju .wake { animation: kj-wake 1.1s ease-out both; }
+@keyframes kj-stretch { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+.kaju .stretch { animation: kj-stretch 1.3s ease-in-out infinite; }
+
+/* paws */
+@keyframes kj-wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-24deg); } }
+.kaju .wave { animation: kj-wave 520ms ease-in-out infinite; }
+@keyframes kj-explain { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-14deg); } }
+.kaju .explain { animation: kj-explain 1.2s ease-in-out infinite; }
+@keyframes kj-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-12px); } 60% { transform: translateY(-12px); } }
+.kaju .hop { animation: kj-hop 700ms cubic-bezier(.3, .7, .4, 1) infinite; }
+
+/* signs */
+.kaju .kj-zz text { font: 600 14px/1 var(--font-dm-sans, system-ui), sans-serif; fill: #33415c; opacity: 0; animation: kj-zz 3s ease-in-out infinite; }
+.kaju .kj-zz text:nth-child(2) { animation-delay: .6s; } .kaju .kj-zz text:nth-child(3) { animation-delay: 1.2s; font-size: 18px; }
+@keyframes kj-zz { 0% { opacity: 0; transform: translateY(6px); } 30% { opacity: .75; } 80% { opacity: 0; transform: translateY(-8px); } 100% { opacity: 0; } }
+.kaju .kj-think circle { fill: #d99b1c; opacity: .2; animation: kj-dot 1.2s ease-in-out infinite; }
+.kaju .kj-think circle:nth-child(2) { animation-delay: .2s; } .kaju .kj-think circle:nth-child(3) { animation-delay: .4s; }
+@keyframes kj-dot { 0%, 100% { opacity: .2; } 50% { opacity: .95; } }
+.kaju .kj-spark path { fill: #f0b45a; transform-box: fill-box; transform-origin: center; animation: kj-spark 1.6s ease-in-out infinite; }
+.kaju .kj-spark path:nth-child(2) { animation-delay: .5s; }
+@keyframes kj-spark { 0%, 100% { opacity: .3; transform: scale(.7) rotate(0); } 50% { opacity: 1; transform: scale(1.1) rotate(20deg); } }
+
+/* still: ambient off, off-screen or reduced motion. The pose remains. */
+.kaju.is-still *, .kaju.is-paused * { animation-play-state: paused !important; }
+.kaju.is-still * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .kaju * { animation: none !important; transition-duration: 0ms !important; }
+  .kaju .kj-zz text { opacity: .6; }
+  .kaju .kj-think circle { opacity: .8; }
+}
+
+/* presence */
+.kaju-presence { display: inline-block; line-height: 0; pointer-events: none; }
+.kaju-presence.is-waiting { opacity: 0; transform: translateX(-60px); }
+.kaju-presence.is-entering { animation: kj-enter 1.8s cubic-bezier(.3, .6, .4, 1) both; }
+@keyframes kj-enter { from { opacity: 0; transform: translateX(-140px); } 15% { opacity: 1; } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .kaju-presence.is-entering, .kaju-presence.is-waiting { animation: none; opacity: 1; transform: none; } }
+
+.kaju-empty { display: flex; align-items: center; gap: 16px; padding: 20px; border: 1px dashed #e3d9ca; border-radius: 14px; background: #fbf7f0; }
+.kaju-empty-h { margin: 0; font-weight: 600; color: #0b1e3d; font-size: 15px; }
+.kaju-empty-b { margin-top: 4px; color: #5f6b7e; font-size: 14px; line-height: 1.5; }
+.kaju-empty-a { margin-top: 10px; }
+@media (max-width: 520px) { .kaju-empty { flex-direction: column; text-align: center; } }
+
+.kaju-insight { position: relative; margin-top: 30px; padding: 16px 18px; border: 1px solid #e3d9ca; border-radius: 14px; background: #fff; }
+.kaju-insight-peek { position: absolute; right: 14px; top: -46px; width: 84px; height: 46px; overflow: hidden; pointer-events: none; }
+.kaju-insight-peek .kaju { margin-top: -2px; }
+.kaju-insight-k { margin: 0; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #9b3149; font-weight: 600; }
+.kaju-insight-h { margin: 2px 0 0; font-weight: 600; color: #0b1e3d; }
+.kaju-insight-b { margin-top: 4px; color: #33415c; font-size: 14px; line-height: 1.5; }
+.kaju-insight-a { margin-top: 10px; }
+
+.kaju-toggle { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: center; font-size: 14px; color: #0b1e3d; cursor: pointer; }
+.kaju-toggle input { width: 18px; height: 18px; accent-color: #0b1e3d; }
+.kaju-toggle small { grid-column: 2; color: #5f6b7e; font-size: 12.5px; }

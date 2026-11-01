@@ -11,7 +11,7 @@ const STATUS: [string, "done" | "wait" | "todo", string][] = [
   ["Intake contract: text, photo, location, procedure updates", "done", "Defined in the app and the database contract."],
   ["Database functions for intake and the operator inbox", "done", "Deployed and tested in the staging project. Not yet in production."],
   ["Webhook with Meta signature check", "done", "Verifies X-Hub-Signature-256 and queues each message once. Refuses everything until Meta credentials are set."],
-  ["Structuring a field message into a draft", "done", "Works today: paste a message into StrayPaw AI in the operator workspace."],
+  ["Structuring a field message into a draft", "done", "Works today: paste a message into Kaju in the operator workspace."],
   ["Verified WhatsApp Business number", "wait", "Needs the operating organisation's Meta Business verification."],
   ["Meta app review and message templates", "wait", "Submitted once the number is verified."],
   ["Production database functions", "todo", "Applied after review, never silently."],
@@ -38,7 +38,7 @@ export default function WhatsAppPage() {
     },
     splits: [
       { title: ["Drafts, never", "final records"], body: "Nothing from a message is saved as a finished record. It becomes a draft in the intake queue with the original message attached.", ui: <MiniWindow title="Intake · Today" label="the intake queue with a WhatsApp draft" active={0}><QueueUi /></MiniWindow>, v: 1 },
-      { title: ["Works today", "by pasting"], body: "Until WhatsApp is connected, a coordinator can paste a forwarded message into StrayPaw AI and get the same structured draft.", ui: <ExtractUi />, v: 5 },
+      { title: ["Works today", "by pasting"], body: "Until WhatsApp is connected, a coordinator can paste a forwarded message into Kaju and get the same structured draft.", ui: <ExtractUi />, v: 5 },
     ],
     extra: (
       <section className="s4-sec" aria-labelledby="wa-status">

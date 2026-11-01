@@ -18,7 +18,7 @@ import { searchRegister, type RegisterRow } from "@/lib/case-register";
 import type { FoundAnimal, FoundPlace } from "@/lib/livingmap/server";
 import { WORKSPACES, type WorkspaceId } from "./workspaces";
 
-type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to" | "Ask AI"; title: string; detail: string; href: string };
+type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to" | "Ask Kaju"; title: string; detail: string; href: string };
 
 let cityList: Promise<string[]> | null = null;
 const cities = () => (cityList ??= fetch("/api/livingmap?kind=cities").then((r) => (r.ok ? r.json() : { cities: [] })).then((j) => ((j.cities ?? []) as { city: string }[]).map((c) => c.city)).catch(() => { cityList = null; return []; }));
@@ -60,7 +60,7 @@ export function Finder({ open, onClose, ws, member, onAsk }: { open: boolean; on
     const t = q.trim().toLowerCase();
     const out: Hit[] = [];
     const def = WORKSPACES[ws];
-    if (t && onAsk) out.push({ key: "ask", kind: "Ask AI", title: `Ask StrayPaw AI: “${q.trim()}”`, detail: "Searches your authorised records and answers with citations", href: "#ask" });
+    if (t && onAsk) out.push({ key: "ask", kind: "Ask Kaju", title: `Ask Kaju: “${q.trim()}”`, detail: "Searches your authorised records and answers with citations", href: "#ask" });
     for (const d of def.nav) if (!t || d.label.toLowerCase().includes(t)) out.push({ key: `go:${d.href}`, kind: "Go to", title: d.label, detail: def.label, href: d.href });
     for (const g of def.index) for (const l of g.links) if (t && l.label.toLowerCase().includes(t) && !def.nav.some((n) => n.href === l.href)) out.push({ key: `go:${l.href}`, kind: "Go to", title: l.label, detail: `${def.label} · ${g.label}`, href: l.href });
     if (t) {
@@ -73,7 +73,7 @@ export function Finder({ open, onClose, ws, member, onAsk }: { open: boolean; on
   }, [q, ws, allCities, places, animals, cases, onAsk]);
 
   useEffect(() => { setAt(0); }, [hits.length]);
-  const go = (h: Hit | undefined) => { if (!h) return; if (h.kind === "Ask AI") { onAsk?.(q.trim()); return; } onClose(); router.push(h.href); };
+  const go = (h: Hit | undefined) => { if (!h) return; if (h.kind === "Ask Kaju") { onAsk?.(q.trim()); return; } onClose(); router.push(h.href); };
 
   return (
     <dialog ref={ref} className="sp-finder" aria-label="Search" onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
@@ -91,7 +91,7 @@ export function Finder({ open, onClose, ws, member, onAsk }: { open: boolean; on
         </label>
         <ul id="sp-finder-list" role="listbox" aria-label="Results" className="sp-finder-list">
           {hits.map((h, i) => {
-            const Icon = h.kind === "Ask AI" ? Sparkles : h.kind === "Animal" ? PawPrint : h.kind === "Case" ? ClipboardList : h.kind === "Go to" ? ArrowRight : MapPin;
+            const Icon = h.kind === "Ask Kaju" ? Sparkles : h.kind === "Animal" ? PawPrint : h.kind === "Case" ? ClipboardList : h.kind === "Go to" ? ArrowRight : MapPin;
             return (
               <li key={h.key} id={`sp-hit-${i}`} role="option" aria-selected={i === at} onMouseEnter={() => setAt(i)} onClick={() => go(h)}>
                 <Icon size={17} aria-hidden /><span><b>{h.title}</b><small>{h.detail}</small></span><em className="k">{h.kind}</em>

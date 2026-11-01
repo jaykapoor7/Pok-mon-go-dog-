@@ -59,7 +59,7 @@ export function SignIn() {
         <p>Before you sign in, please read and acknowledge the following:</p>
         <ul>
           <li><b>Confidentiality:</b> StrayPaw workspaces hold private case, reporter, veterinary and organisation records. Use them only for your organisation&apos;s animal-care work, and do not share reporter details or exact locations outside the workspace.</li>
-          <li><b>Recorded activity:</b> Changes you make, including those prepared with StrayPaw AI, are kept in each record&apos;s history with your name and the time.</li>
+          <li><b>Recorded activity:</b> Changes you make, including those prepared with Kaju, are kept in each record&apos;s history with your name and the time.</li>
           <li><b>Access by permission:</b> What you can see and change is decided by your organisation and role, and checked by the database on every request.</li>
           <li><b>No unauthorised use:</b> Use only the access your organisation gave you. Access can be withdrawn by your organisation at any time.</li>
         </ul>

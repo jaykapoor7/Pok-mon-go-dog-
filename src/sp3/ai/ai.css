@@ -1,4 +1,4 @@
-/* StrayPaw AI: panel, full screen and shared message styles. */
+/* Kaju (StrayPaw AI agent): panel, full screen and shared message styles. */
 .ai3-panel { position: fixed; z-index: 55; top: 0; right: 0; bottom: 0; width: 400px; display: flex; flex-direction: column; background: #fff; border-left: 1px solid var(--s3-line); box-shadow: -24px 0 48px -32px rgba(11, 30, 61, 0.35); font-family: var(--s3-sans); color: var(--s3-ink); animation: ai3-in 220ms var(--s3-ease); }
 @keyframes ai3-in { from { transform: translateX(16px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ai3-panel { animation: none; } }
@@ -72,3 +72,16 @@
   .ai3-thread.is-full .ai3-sugg { grid-template-columns: 1fr; }
   .ai3-thread.is-full .ai3-compose { padding-bottom: calc(14px + var(--tabs, 0px)); }
 }
+
+/* Kaju, the agent's mascot, in the launcher, the panel and the workspace */
+.kaju-head-mark { display: inline-flex; width: 46px; height: 38px; margin: -8px 2px -8px -6px; }
+.ai3-head-sub { margin-left: 6px; font-size: 12px; color: var(--s3-mute, #5f6b7e); font-weight: 400; }
+.ai3-full-id { display: flex; align-items: center; gap: 18px; }
+.ai3-full-kaju { flex: none; width: 120px; }
+@media (max-width: 600px) { .ai3-full-id { flex-direction: column; align-items: flex-start; gap: 4px; } .ai3-full-kaju { width: 96px; } }
+.sx3-ai-kaju { display: inline-flex; width: 34px; height: 28px; margin: -6px -2px -4px -8px; }
+.sx3-tab-kaju { display: inline-flex; width: 24px; height: 24px; }
+.sx4-sq.is-kaju { background: #fbf2e2 !important; border: 1px solid #ecd9b8; overflow: hidden; }
+.sx4-sq.is-kaju .kaju-face { margin-top: 2px; }
+.ai3-empty-kaju { width: 150px; margin: 0 0 4px -10px; }
+.ai3-thinking-kaju { display: inline-flex; width: 44px; height: 36px; margin: -8px 0 -8px -6px; }

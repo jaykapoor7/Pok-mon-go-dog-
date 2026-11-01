@@ -17,7 +17,7 @@ export default function DemoPage() {
       <section className="s4-wrap" style={{ display: "grid", gridTemplateColumns: "minmax(0,0.9fr) minmax(0,1.1fr)", gap: 64, alignItems: "start", padding: "112px var(--s4-gut) 128px" }} data-s4-stack>
         <div style={{ display: "grid", gap: 24 }}>
           <h1 className="s4-h1"><span className="s4-tt"><span>See StrayPaw on</span><span>a programme like yours</span></span></h1>
-          <p className="s4-lede">A 30-minute walkthrough with the team that builds it, on the operator workspace, StrayPaw AI and the report package a reviewing office receives.</p>
+          <p className="s4-lede">A 30-minute walkthrough with the team that builds it, on the operator workspace, Kaju and the report package a reviewing office receives.</p>
           <ul style={{ display: "grid", gap: 22, marginTop: 12 }}>
             {POINTS.map(([i, t, d]) => (
               <li key={t} style={{ display: "grid", gridTemplateColumns: "40px 1fr", gap: 14 }}>
