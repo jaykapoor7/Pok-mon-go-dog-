@@ -45,7 +45,7 @@
   "role": "admin",
   "what": "desktop /ngo/map",
   "pass": false,
-  "detail": "200 | 1 still reading | 503 http://localhost:3200/api/livingmap?kind=cities&scope=org"
+  "detail": "200 | 1 still reading | 503 http://localhost:3200/api/livingmap?kind=cities&scope=org | 503 http://localhost:3200/api/livingmap?kind=cities&scope=org"
  },
  {
   "role": "admin",
@@ -56,8 +56,8 @@
  {
   "role": "admin",
   "what": "desktop /ngo/settings",
-  "pass": false,
-  "detail": "200 | 404 http://localhost:3200/orgs/demo-coimbatore-care?_rsc=Aun7y9PDzJWGBQ8O"
+  "pass": true,
+  "detail": "200"
  },
  {
   "role": "admin",
@@ -80,8 +80,8 @@
  {
   "role": "admin",
   "what": "desktop /ngo/evidence",
-  "pass": false,
-  "detail": "200 | 403 /rest/v1/documents?select=*&order=created_at.desc&limit=300"
+  "pass": true,
+  "detail": "200"
  },
  {
   "role": "admin",
@@ -141,7 +141,7 @@
   "role": "admin",
   "what": "phone /ngo/map",
   "pass": false,
-  "detail": "200 | 1 still reading | 503 http://localhost:3200/api/livingmap?kind=cities&scope=org"
+  "detail": "200 | 1 still reading | 503 http://localhost:3200/api/livingmap?kind=cities&scope=org | 503 http://localhost:3200/api/livingmap?kind=cities&scope=org"
  },
  {
   "role": "admin",
@@ -152,8 +152,8 @@
  {
   "role": "admin",
   "what": "phone /ngo/settings",
-  "pass": false,
-  "detail": "200 | 404 http://localhost:3200/orgs/demo-coimbatore-care?_rsc=Aun7y9PDzJWGBQ8O"
+  "pass": true,
+  "detail": "200"
  },
  {
   "role": "admin",
@@ -176,8 +176,8 @@
  {
   "role": "admin",
   "what": "phone /ngo/evidence",
-  "pass": false,
-  "detail": "200 | 403 /rest/v1/documents?select=*&order=created_at.desc&limit=300"
+  "pass": true,
+  "detail": "200"
  },
  {
   "role": "admin",
@@ -273,7 +273,7 @@
   "role": "reviewer",
   "what": "desktop /city",
   "pass": false,
-  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=national | 503 http://localhost:3200/api/livingmap?kind=cities"
+  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=national | 503 http://localhost:3200/api/livingmap?kind=cities"
  },
  {
   "role": "reviewer",
@@ -327,7 +327,7 @@
   "role": "community",
   "what": "desktop /community",
   "pass": false,
-  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=national | 503 http://localhost:3200/api/livingmap?kind=cities"
+  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=national | 503 http://localhost:3200/api/livingmap?kind=cities"
  },
  {
   "role": "community",
@@ -357,7 +357,7 @@
   "role": "community",
   "what": "phone /community",
   "pass": false,
-  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=national"
+  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=national | 503 http://localhost:3200/api/livingmap?kind=cities"
  },
  {
   "role": "community",
