@@ -5,12 +5,13 @@
 - **Founder video (1 minute):** only the founders, talking. YC says it is not the place for a product demo ([YC](https://www.ycombinator.com/video/)).
 - **Product demo (separate field):** show the product doing the core job, fast. Third-party guides agree: real product over slides, the main workflow end to end, roughly 1–3 minutes, and rough edges are fine ([Startup Grind](https://www.startupgrind.com/blog/y-combinator-application-video-tutorial/), [Pilot](https://pilot.com/blog/how-prepare-yc-application-video), [Wavect](https://wavect.io/blog/yc-application-technical-readiness-checklist/)).
 
-## The workflow the demo shows (about 2 minutes)
+## The workflow the demo shows (about 2.5 minutes)
 
 1. **Field intake.** At 7:42 am a field worker sends a photo and a Hindi voice note on WhatsApp. Kaju reads the photo, transcribes and translates the voice note, checks the animal register and prepares a new ABC record. The coordinator confirms it.
 2. **Month-end check.** The coordinator asks Kaju, "What's blocking the October package?" Kaju reads 146 procedures and finds the 4 problems: 2 missing release photos, 1 vet sign-off pending and 1 duplicate. It cites each record and prepares the fixes. The coordinator confirms them.
 3. **Billing package.** Coordinator Anjali Rao prepares the October package: 142 verified procedures, 710 evidence items and every vet sign-off. The 4 unready records stay out. She submits it to the municipal veterinary office.
-4. **Government side.** Dr. Kavitha Iyer opens the package and asks Kaju to check it. Kaju checks for missing evidence, animals billed twice (including earlier months) and release locations. She accepts the package and sanctions ₹2,34,300 for payment.
+4. **Files and tools.** Anjali attaches Dr. Menon's Excel surgery register from her laptop. Kaju cross-checks it, makes a real PowerPoint board deck and Excel ledger, saves both to Google Drive and emails them to the trustees through Google Workspace.
+5. **Government side.** Dr. Kavitha Iyer opens the package and asks Kaju to check it. Kaju checks for missing evidence, animals billed twice (including earlier months) and release locations. She accepts the package and sanctions ₹2,34,300 for payment.
 
 Arc: from a voice note on the street to a sanctioned payment.
 
@@ -22,6 +23,8 @@ Arc: from a voice note on the street to a sanctioned payment.
 | Kaju panel: tool runs, sources, prepared changes, Confirm | Live UI; answers in the recording are scripted |
 | WhatsApp intake | Not connected yet (waiting for Meta verification) |
 | Hindi voice-note transcription | Not connected yet (needs a speech-to-text key) |
+| Reading Excel/PDF/Word/PowerPoint, making PPTX/XLSX/DOCX/PDF/CSV | Built (native files); the deck and ledger in the video are real files from `scripts/make-walkthrough-files.cjs` |
+| Save to Google Drive, email through Google Workspace | Built; needs the Google OAuth keys and `CONNECTIONS_ENC_KEY` set in production |
 | Payment sanction | Walkthrough only; no table in the database yet |
 | SMS to field staff | Built; waiting for MSG91 DLT approval |
 
@@ -32,6 +35,10 @@ All people, organisations, records and amounts in the recording are illustrative
 ## Re-recording
 
 The walkthrough runs only in a local build with `NEXT_PUBLIC_DEMO_RECORDING=true`. Production never loads it.
+
+```bash
+node scripts/make-walkthrough-files.cjs
+```
 
 ```bash
 NEXT_PUBLIC_DEMO_RECORDING=true npx next build
@@ -53,7 +60,7 @@ The output goes to `demo-footage/kaju-walkthrough-raw.mp4`.
 
 ## Removing it later
 
-Delete `src/lib/demo/`, `src/sp/ngo/WhatsAppIntake.tsx`, `src/sp/ngo/whatsapp.css` and `scripts/record-yc-demo.cjs`. Then remove the `isRecordingDemo` branches in:
+Delete `src/lib/demo/`, `src/sp/demo/`, `src/sp/ngo/WhatsAppIntake.tsx`, `src/sp/ngo/whatsapp.css`, `public/walkthrough/`, `scripts/record-yc-demo.cjs` and `scripts/make-walkthrough-files.cjs`. Then remove the `isRecordingDemo` branches in:
 
 - `src/lib/abc.ts`
 - `src/sp3/ai/AiPanel.tsx`

@@ -3,10 +3,12 @@
    Confirm. Confirmed changes update the walkthrough's records only. */
 
 import type { AiReply, Proposal } from "@/sp3/ai/types";
+import { openDemoFile } from "@/sp/demo/FileViewer";
 import { DEMO_OFFICE, DEMO_PEOPLE, DEMO_RATE, demoAddIntakeCase, demoCaseByCode, demoResolve } from "./abc-demo";
 
 export const WHATSAPP_PROMPT = "Prepare a record from Ravi's WhatsApp message (photo and Hindi voice note).";
 export const BLOCK_PROMPT = "What's blocking the October package?";
+export const FILES_PROMPT = "Use Dr. Menon's register to double-check, then make the October board deck in PowerPoint and the ledger in Excel, and email both to the trustees.";
 export const REVIEW_PROMPT = "Check this package before I accept it.";
 
 const cite = (code: string) => ({ id: code, label: code, href: `/ngo/verification/${demoCaseByCode(code) ?? ""}`, kind: "case" as const });
@@ -40,6 +42,22 @@ export function demoKajuReply(q: string, path: string): { reply: AiReply; ms: nu
       { id: "p-dup", kind: "add_note", why: "Duplicate", caseId: demoCaseByCode("ADY-ABC-1141") ?? "", caseLabel: "ADY-ABC-1141 · Female, Besant Avenue", note: "Duplicate of ADY-ABC-1093. Merge and keep it out of every package." },
     ],
   } };
+  if (t.includes("board deck")) return { ms: 3600, reply: {
+    engine: "model", citations: [],
+    tools: [
+      { name: "read_file", summary: "Dr-Menon-surgery-register-October.xlsx: 146 surgeries, all 146 match StrayPaw records", ok: true },
+      { name: "programme_report", summary: "October: 142 billed, ₹2,34,300, by week and by area", ok: true },
+      { name: "make_file", summary: "October-2026-ABC-board-deck.pptx · 5 slides with chart and table", ok: true },
+      { name: "make_file", summary: "October-2026-ABC-ledger.xlsx · 142 rows with totals", ok: true },
+      { name: "google_workspace", summary: "Found the Trustees group (4 people) in your Google contacts", ok: true },
+    ],
+    text: "**Dr. Menon's register agrees with your records:** 146 surgeries, every one matched to a StrayPaw record. The only open item is the one we already chased: ADY-ABC-1122, sign-off pending.\n\nI made the board deck (5 slides: the month at a glance, pace by week, a table by area, and what is held for November) and the ledger (142 rows, rate and amount, with totals). Both save to your Google Drive, and the email to the trustees attaches them. Confirm each one.",
+    proposals: [
+      { id: "p-deck", kind: "report_file", why: "Board deck", format: "pptx", title: "ABC programme, October 2026 · board update", source: "verification", saveTo: "google", saveToName: "Google Drive" },
+      { id: "p-ledger", kind: "report_file", why: "Ledger", format: "xlsx", title: "ABC programme, October 2026 · ledger", source: "verification", saveTo: "google", saveToName: "Google Drive" },
+      { id: "p-mail", kind: "email", why: "Trustees", provider: "google", providerName: "Google Workspace", to: ["trustees@coastalpaws-demo.invalid"], cc: [], subject: "October ABC update: 142 procedures billed, ₹2,34,300", body: "Dear trustees,\n\nThe October package went to the Zone 13 office today: 142 verified sterilisations, ₹2,34,300. The board deck and ledger are attached.\n\nAnjali", send: true },
+    ],
+  } };
   if (t.includes("check this package") || (path.startsWith("/city") && t.includes("package"))) return { ms: 3200, reply: {
     engine: "model", citations: [], proposals: [],
     tools: [
@@ -58,6 +76,8 @@ export async function demoExecute(p: Proposal): Promise<{ ok: true; at: string; 
   await new Promise((r) => setTimeout(r, 650));
   const at = new Date().toISOString();
   if (p.kind === "open_case") { const id = demoAddIntakeCase(p.title, p.zone ?? "Adyar"); return { ok: true, at, what: "Record created", href: `/ngo/verification/${id}` }; }
+  if (p.kind === "report_file") { if (p.format === "pptx" || p.format === "xlsx") openDemoFile(p.format, p.title); return { ok: true, at, what: "Saved to Google Drive" }; }
+  if (p.kind === "email") return { ok: true, at, what: "Sent from Google Workspace to the 4 trustees" };
   if (p.kind === "sms") return { ok: true, at, what: "SMS sent to Ravi Kumar" };
   if (p.kind === "schedule_followup") { demoResolve("ADY-ABC-1122", "vet"); return { ok: true, at, what: "Saved to the record" }; }
   if (p.kind === "add_note") { demoResolve("ADY-ABC-1141", "duplicate"); return { ok: true, at, what: "Saved to the record" }; }

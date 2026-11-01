@@ -12,8 +12,10 @@ const W = 1920, H = 1080;
 
 const OVERLAY = () => {
   const css = `
-  #yc-cur{position:fixed;z-index:2147483647;left:0;top:0;width:22px;height:22px;pointer-events:none;transform:translate(-3px,-2px);transition:transform .05s}
-  #yc-cur.down svg{transform:scale(.85)}
+  #yc-cur{position:fixed;z-index:2147483647;left:0;top:0;width:30px;height:30px;pointer-events:none;transform:translate(-4px,-3px);filter:drop-shadow(0 2px 3px rgba(11,30,61,.35))}
+  #yc-cur svg{transition:transform .08s}#yc-cur.down svg{transform:scale(.82)}
+  .yc-ring{position:fixed;z-index:2147483646;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid rgba(36,87,206,.85);background:rgba(36,87,206,.15);pointer-events:none;animation:yc-ring .55s ease-out forwards}
+  @keyframes yc-ring{from{transform:scale(.3);opacity:1}to{transform:scale(1.25);opacity:0}}
   #yc-cap{position:fixed;z-index:2147483646;left:50%;bottom:34px;transform:translateX(-50%) translateY(12px);max-width:880px;padding:14px 22px;border-radius:14px;background:rgba(11,30,61,.92);color:#fff;font:500 21px/1.4 Inter,system-ui,sans-serif;letter-spacing:-.01em;text-align:center;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none;box-shadow:0 12px 40px rgba(11,30,61,.25)}
   #yc-cap.on{opacity:1;transform:translateX(-50%) translateY(0)}
   #yc-card{position:fixed;z-index:2147483645;inset:0;display:grid;place-items:center;background:#f7f3ec;opacity:0;transition:opacity .5s;pointer-events:none;font-family:Inter,system-ui,sans-serif;color:#0b1e3d;text-align:center}
@@ -26,13 +28,13 @@ const OVERLAY = () => {
     if (document.getElementById("yc-cur")) return;
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
     const cur = document.createElement("div"); cur.id = "yc-cur";
-    cur.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.6z" fill="#0b1e3d" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+    cur.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.6z" fill="#0b1e3d" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
     document.body.appendChild(cur);
     const cap = document.createElement("div"); cap.id = "yc-cap"; document.body.appendChild(cap);
     const card = document.createElement("div"); card.id = "yc-card"; document.body.appendChild(card);
     const p = JSON.parse(sessionStorage.getItem("yc.cur") || "[960,540]"); cur.style.left = p[0] + "px"; cur.style.top = p[1] + "px";
     addEventListener("mousemove", (e) => { cur.style.left = e.clientX + "px"; cur.style.top = e.clientY + "px"; sessionStorage.setItem("yc.cur", JSON.stringify([e.clientX, e.clientY])); }, true);
-    addEventListener("mousedown", () => cur.classList.add("down"), true);
+    addEventListener("mousedown", (e) => { cur.classList.add("down"); const r = document.createElement("div"); r.className = "yc-ring"; r.style.left = e.clientX + "px"; r.style.top = e.clientY + "px"; document.body.appendChild(r); setTimeout(() => r.remove(), 700); }, true);
     addEventListener("mouseup", () => cur.classList.remove("down"), true);
     window.__cap = (t) => { cap.textContent = t || ""; cap.classList.toggle("on", !!t); };
     window.__card = (h, p2, s) => { card.innerHTML = h ? `<div><img src="/straypaw-mark.png" alt=""><h1>${h}</h1><p>${p2 || ""}</p>${s ? `<small>${s}</small>` : ""}</div>` : ""; card.classList.toggle("on", !!h); };
@@ -138,6 +140,30 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await sleep(2400);
   await go(page.getByRole("button", { name: "Download PDF" }), { after: 1600 });
   await go(page.getByRole("button", { name: "Submit package" }), { after: 2200 });
+
+  /* 3b · Files on the laptop and the tools the team already uses */
+  await cap("Kaju also works with the files on your laptop and the tools you already use.");
+  await go(page.getByRole("button", { name: "Kaju", exact: true }), { after: 700 });
+  await go(page.getByRole("button", { name: "New conversation" }), { after: 400 });
+  const chooser = page.waitForEvent("filechooser");
+  await go(page.locator("label.ai3-attach"), { after: 200 });
+  await (await chooser).setFiles("demo-footage/files/Dr-Menon-surgery-register-October.xlsx");
+  await sleep(1100);
+  await typeKaju("Use Dr. Menon's register to double-check, then make the October board deck in PowerPoint and the ledger in Excel, and email both to the trustees.");
+  await cap("It checks the vet's own Excel register, then builds a real PowerPoint deck and Excel ledger.");
+  await sleep(4600);
+  await kajuScrollTo(".ai3-prop", 1800);
+  await sleep(700);
+  await go(page.getByRole("button", { name: /Confirm and download/ }), { after: 600 });
+  await cap("The real files open on the laptop, already saved to Google Drive.");
+  await sleep(6800);
+  await go(page.getByRole("button", { name: "Close file" }), { after: 500 });
+  await go(page.getByRole("button", { name: /Confirm and download/ }), { after: 3600 });
+  await go(page.getByRole("button", { name: "Close file" }), { after: 500 });
+  await kajuToBottom(900);
+  await cap("And emailed to the trustees from Google Workspace. Every step confirmed by a person.");
+  await go(page.getByRole("button", { name: /Confirm and send/ }), { after: 2400 });
+  await go(page.getByRole("button", { name: "Close Kaju" }), { after: 400 });
 
   /* 4 · Government side */
   await cap("");

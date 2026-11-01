@@ -29,6 +29,7 @@ import { useReducedMotion } from "@/kaju/controller";
 import type { KajuState } from "@/kaju/poses";
 import { isRecordingDemo } from "@/lib/recording-demo";
 import { demoExecute, demoKajuReply } from "@/lib/demo/kaju-demo";
+import { DemoFileViewer } from "@/sp/demo/FileViewer";
 import "./ai.css";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string };
@@ -124,7 +125,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
   }, [path]);
 
   const value = useMemo<Ctx>(() => ({ open, setOpen, toggle: () => setOpen((v) => !v), ask, msgs, busy, reset: () => setMsgs([]), model }), [open, ask, msgs, busy, model]);
-  return <AiCtx.Provider value={value}>{children}</AiCtx.Provider>;
+  return <AiCtx.Provider value={value}>{children}{isRecordingDemo && <DemoFileViewer />}</AiCtx.Provider>;
 }
 
 const connectionsHref = (path: string) => (path.startsWith("/city") ? "/city/connections" : "/ngo/settings/connections");
@@ -205,6 +206,13 @@ function Thread({ full = false }: { full?: boolean }) {
     setFileErr(null);
     if (!f) return;
     if (f.size > MAX_UPLOAD_BYTES) { setFileErr(UPLOAD_LIMIT_MESSAGE); return; }
+    if (isRecordingDemo) {
+      const XLSX = await import("xlsx");
+      const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+      const n = Math.max(0, (XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 }) as unknown[]).length - 1);
+      setFile({ name: f.name, text: `[${f.name} · ${n} rows]` });
+      return;
+    }
     try {
       const t = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
       const fd = new FormData(); fd.append("file", f);
