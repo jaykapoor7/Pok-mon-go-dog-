@@ -17,8 +17,8 @@ import { C, DEVA, INTER, SERIF, clamp, ease } from "./ui";
 const HAND = "SPHand, cursive";
 const sp = (f: number, d = 0, k: Partial<{ damping: number; stiffness: number; mass: number }> = {}) => spring({ frame: f - d, fps: 30, config: { damping: 15, stiffness: 120, mass: 0.9, ...k } });
 const io = (f: number, a: number, b: number, from = 0, to = 1, e = ease) => interpolate(f, [a, b], [from, to], { ...clamp, easing: e });
-const HERO = "dogs/brown-by-ladder.jpg";
-const DOG = { x: 220, y: 860 }; // her face in the 1080×1920 frame
+const HERO = "px/34754503.jpg";
+const DOG = { x: 500, y: 790 }; // her face in the 1080×1920 frame
 
 /* ── film texture ─────────────────────────────────────────────────── */
 function Grain() {
@@ -119,7 +119,7 @@ function Ribbon() {
   const playing = f > 40 && f < 200;
   return (
     <AbsoluteFill>
-      <Photo src={HERO} dur={240} from={1.3} to={1.2} blur={26} dark={0.45} warm />
+      <Photo src="px/30315845.jpg" dur={240} from={1.15} to={1.28} y={[0, -40]} blur={7} dark={0.32} />
       <Leak />
       <Label text="WhatsApp · voice note · Hindi" at={6} top={150} />
       {/* phone */}
@@ -159,7 +159,7 @@ function Ribbon() {
 }
 
 /* ══ C · The record is drawn, then signed (420–660) ═════════════════ */
-const ROWS: [string, string][] = [["Animal", "Adult female, brown"], ["Where", "Gandhi Nagar, 2nd Street"], ["Ear notch", "None · new ABC intake"], ["Register", "No match in 1,248 animals"], ["Health", "Limp, hind leg · vet to check"]];
+const ROWS: [string, string][] = [["Animal", "Adult female, cream"], ["Where", "Gandhi Nagar, 2nd Street"], ["Ear notch", "None · new ABC intake"], ["Register", "No match in 1,248 animals"], ["Health", "Limp, hind leg · vet to check"]];
 function Dossier() {
   const f = useCurrentFrame();
   const draw = io(f, 0, 28);
@@ -172,7 +172,7 @@ function Dossier() {
   const W = 900, H = 1020, X = 90, Y = 520;
   return (
     <AbsoluteFill>
-      <Photo src={HERO} dur={240} from={1.25} to={1.32} blur={30} dark={0.62} warm />
+      <Photo src="px/35131834.jpg" dur={240} from={1.2} to={1.32} blur={10} dark={0.45} />
       <Leak at={80} />
       <Label text="Kaju prepares the record" at={4} top={150} />
       <svg width={1080} height={1920} style={{ position: "absolute", inset: 0 }}>
@@ -225,7 +225,7 @@ function Dossier() {
 }
 
 /* ══ D · The wall of 146 (660–900) ═══════════════════════════════════ */
-const DOGS = ["asleep-by-bicycle", "beside-ac-unit", "black-tan-shopfront", "black-white-on-back", "black-white-snake-plant", "brown-on-ledge", "cream-forecourt", "cream-street-standing", "crossing-street", "dark-asleep-doorway", "ginger-under-chair", "golden-curled-indoors", "pale-by-bowls", "red-under-tables", "tan-granite-step", "tan-lobby-collar", "tan-outside-cafe", "tan-standing-night", "two-on-concrete", "walking-at-dusk", "white-stone-floor"];
+const DOGS = ["30935680", "35112437", "32797704", "20776972", "29372969", "17663165", "pinky", "34754503"];
 const COLS = 11, PW = 150, PH = 186, GX = 168, GY = 206;
 const BAD = [{ i: 36, n: "no release photo" }, { i: 49, n: "no release photo" }, { i: 104, n: "vet hasn't signed" }, { i: 118, n: "same dog twice!" }];
 const HERE = 73; // her polaroid sits in the middle of the wall
@@ -244,6 +244,7 @@ function Wall() {
   const count = Math.floor(io(f, 60, 118, 0, 146, (t) => t));
   return (
     <AbsoluteFill style={{ background: "#141922" }}>
+      <Photo src="px/11742771.jpg" dur={240} from={1.6} to={1.4} blur={22} dark={0.55} />
       <AbsoluteFill style={{ backgroundImage: `url(${staticFile("grain.png")})`, opacity: 0.35, mixBlendMode: "overlay" }} />
       <AbsoluteFill style={{ transform: `translate(${ox + camX}px, ${oy + camY}px)` }}>
         <div style={{ position: "absolute", left: 0, top: 0, transform: `scale(${z})`, transformOrigin: `${O.x}px ${O.y}px`, width: wallW, height: wallH }}>
@@ -251,7 +252,7 @@ function Wall() {
             const p = pos(i), bad = BAD.find((b) => b.i === i);
             const lift = bad && found ? sp(f, 120 + BAD.indexOf(bad) * 6, { damping: 10 }) : 0;
             return <div key={i} style={{ position: "absolute", left: p.x, top: p.y, width: PW, padding: "8px 8px 30px", background: "#F6F1E7", boxShadow: `0 ${6 + lift * 20}px ${14 + lift * 30}px rgba(0,0,0,.5)`, transform: `rotate(${(random(`r${i}`) - 0.5) * 9}deg) scale(${1 + lift * 0.25})`, zIndex: bad ? 5 : 1 }}>
-              <Img src={staticFile(i === HERE ? HERO : `dogs/${DOGS[i % DOGS.length]}.jpg`)} style={{ width: PW - 16, height: PH - 50, objectFit: "cover", display: "block", filter: "sepia(.2) contrast(1.05)" }} />
+              <Img src={staticFile(i === HERE ? HERO : `px/${DOGS[i % DOGS.length]}.jpg`)} style={{ width: PW - 16, height: PH - 50, objectFit: "cover", objectPosition: `${30 + random(`op${i}`) * 40}% ${40 + random(`oq${i}`) * 40}%`, display: "block", filter: `sepia(.2) contrast(1.05) hue-rotate(${(random(`h${i}`) - 0.5) * 20}deg)`, transform: i % 2 ? "scaleX(-1)" : "none" }} />
               {bad && found && <div style={{ position: "absolute", left: -10, top: PH - 70, width: 300, padding: "14px 16px", background: fixed ? "#BFF0CF" : "#FFE37A", fontFamily: HAND, fontSize: 50, lineHeight: 1, color: "#2a2300", transform: `rotate(${(BAD.indexOf(bad) % 2 ? 6 : -5)}deg) scale(${sp(f, 128 + BAD.indexOf(bad) * 6)})`, boxShadow: "0 8px 16px rgba(0,0,0,.4)" }}>{fixed ? "✓ fixed" : bad.n}</div>}
             </div>;
           })}
@@ -262,6 +263,7 @@ function Wall() {
           </svg>
         </div>
       </AbsoluteFill>
+      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(5,8,15,.85) 0%, rgba(5,8,15,0) 22%, rgba(5,8,15,0) 82%, rgba(5,8,15,.8) 100%)" }} />
       {/* Kaju's search light */}
       <AbsoluteFill style={{ background: `radial-gradient(circle 360px at ${spot.x}px ${spot.y}px, transparent 0%, rgba(5,8,15,${io(f, 60, 80, 0, 0.62) * io(f, 118, 130, 1, 0.15)}) 100%)` }} />
       <div style={{ position: "absolute", left: 70, top: 1700, fontFamily: INTER, fontWeight: 800, fontSize: 64, color: "#fff", fontVariantNumeric: "tabular-nums", opacity: io(f, 56, 66) }}>{count}<span style={{ color: "rgba(255,255,255,.5)", fontSize: 40 }}> / 146 checked</span></div>
@@ -280,13 +282,14 @@ function Folder() {
   const stickers = ["Google Workspace", "Excel", "PowerPoint", "Slack", "WhatsApp", "SMS"];
   return (
     <AbsoluteFill style={{ background: "#141922" }}>
+      <Photo src="px/28737040.jpg" dur={180} from={1.7} to={1.5} x={[-80, -20]} blur={9} dark={0.5} />
       <AbsoluteFill style={{ backgroundImage: `url(${staticFile("grain.png")})`, opacity: 0.35, mixBlendMode: "overlay" }} />
       <Leak color="255,190,110" />
       {/* polaroids raining into the folder */}
       {Array.from({ length: 22 }).map((_, i) => {
         const t = io(f, i * 1.6, i * 1.6 + 26, 0, 1, (x) => x * x);
         const sx = 120 + random(`fx${i}`) * 840, sy = -300 - random(`fy${i}`) * 300;
-        return t > 0 && t < 1 ? <div key={i} style={{ position: "absolute", left: sx + (540 - sx) * t - 60, top: sy + (1180 - sy) * t, width: 120, padding: "6px 6px 22px", background: "#F6F1E7", transform: `rotate(${(1 - t) * 180 * (random(`fr${i}`) - 0.5)}deg) scale(${1 - t * 0.4})` }}><Img src={staticFile(`dogs/${DOGS[i % DOGS.length]}.jpg`)} style={{ width: 108, height: 120, objectFit: "cover", display: "block" }} /></div> : null;
+        return t > 0 && t < 1 ? <div key={i} style={{ position: "absolute", left: sx + (540 - sx) * t - 60, top: sy + (1180 - sy) * t, width: 120, padding: "6px 6px 22px", background: "#F6F1E7", transform: `rotate(${(1 - t) * 180 * (random(`fr${i}`) - 0.5)}deg) scale(${1 - t * 0.4})` }}><Img src={staticFile(`px/${DOGS[i % DOGS.length]}.jpg`)} style={{ width: 108, height: 120, objectFit: "cover", display: "block" }} /></div> : null;
       })}
       {/* folder */}
       <div style={{ position: "absolute", left: 160, top: 1060, width: 760, height: 520, perspective: 1600 }}>
@@ -324,7 +327,7 @@ function City() {
   return (
     <AbsoluteFill>
       {!desk ? <>
-        <Photo src="skyline-dog-1920.jpg" dur={90} from={1.9} to={1.6} x={[-120, -60]} y={[60, 0]} dark={0.15} />
+        <Photo src="px/10538901.jpg" dur={90} from={1.45} to={1.12} x={[0, 0]} y={[-40, 0]} dark={0.28} />
         <svg width={1080} height={1920} style={{ position: "absolute", inset: 0 }}>
           <path id="route" d="M 160 1500 C 300 1300, 260 1100, 480 1040 S 820 900, 880 640" fill="none" stroke={C.gold} strokeWidth={8} strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={1500 * (1 - route)} style={{ filter: `drop-shadow(0 0 16px ${C.gold})` }} />
           <circle cx={160} cy={1500} r={18} fill="#fff" />
@@ -371,7 +374,7 @@ function Home() {
       <Photo src={HERO} dur={140} from={1.05} to={1.12} x={[0, 10]} y={[0, 10]} warm />
       <Leak />
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(5,8,15,.0) 40%, rgba(5,8,15,.85) 100%)" }} />
-      <KajuAt x={1240 - run * 520} y={1280 + (run < 1 ? -Math.abs(Math.sin(f * 0.7)) * 22 : 0)} size={300} state={run < 1 ? "trotting" : f < 80 ? "tailWag" : "sitting"} flip={run < 1} />
+      <KajuAt x={1240 - run * 360} y={1395 + (run < 1 ? -Math.abs(Math.sin(f * 0.7)) * 22 : 0)} size={300} state={run < 1 ? "trotting" : f < 80 ? "tailWag" : "sitting"} flip={run < 1} />
       <div style={{ position: "absolute", left: DOG.x - 40, top: DOG.y - 250, transform: `scale(${tag}) rotate(-4deg)`, transformOrigin: "bottom left", padding: "14px 22px", borderRadius: 14, background: "#fff", boxShadow: "0 10px 30px rgba(0,0,0,.4)", fontFamily: INTER }}>
         <div style={{ fontWeight: 800, fontSize: 26, color: C.navy }}>ADY-ABC-1147</div>
         <div style={{ fontWeight: 600, fontSize: 22, color: C.green }}>● on the record</div>
