@@ -2,6 +2,7 @@ import {fixture} from './fixture-env.mjs';
 import {createClient} from '@supabase/supabase-js';
 import {chromium,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 if(!fixture)throw Error('Isolated staging fixture required');
 const db=createClient(process.env.STAGING_URL,fixture.anon,{auth:{persistSession:false}});
 const {data,error}=await db.auth.signInWithPassword({email:fixture.users.coord.email,password:fixture.password});if(error)throw error;
@@ -9,12 +10,16 @@ const latest=()=>db.from('kaju_check_runs').select('id,ngo_id,checked_at').eq('n
 const before=await latest();if(before.error)throw before.error;
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',proxy:process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY,bypass:'localhost,127.0.0.1'}:undefined});
 try{const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});await context.addInitScript(([k,v])=>{localStorage.setItem(k,v);localStorage.setItem('straypaw.notice.storage.v1','1');localStorage.setItem('straypaw.analytics.optout','1');localStorage.setItem('straypaw.tour.v2','1')},[`sb-${fixture.ref}-auth-token`,JSON.stringify(data.session)]);
- const page=await context.newPage();await page.goto((process.env.BASE??'http://localhost:3104')+'/ngo');
+ const base=process.env.BASE??'http://localhost:3104';
+ const page=await context.newPage();
+ if(process.env.QA_BYPASS_FILE){const access=JSON.parse(fs.readFileSync(process.env.QA_BYPASS_FILE,'utf8'));await page.goto(access.url??`${base}?_vercel_share=${encodeURIComponent(access.secret)}`)}
+ await page.goto(base+'/ngo');
  const section=page.getByRole('region',{name:'Kaju activity'});await expect(section).toBeVisible();await expect(section.locator('time')).toHaveCount(1);
- const response=page.waitForResponse(r=>r.url().endsWith('/api/ai')&&r.request().method()==='POST');await section.getByRole('button',{name:'Check records with Kaju'}).click();const reply=await (await response).json();assert.ok(reply.tools.some(t=>t.name==='operations_insights'&&t.ok),JSON.stringify(reply));
+ const response=page.waitForResponse(r=>r.url().endsWith('/api/ai')&&r.request().method()==='POST');await section.getByRole('button',{name:'Check records with Kaju'}).click();const reply=await (await response).json();assert.ok(reply.tools.some(t=>t.name==='operations_insights'&&t.ok),JSON.stringify(reply));if(base.startsWith('https://'))assert.equal(reply.engine,'model',reply.notice);
  const after=await latest();if(after.error)throw after.error;assert.ok(after.data?.id);assert.notEqual(after.data.id,before.data?.id);assert.equal(after.data.ngo_id,fixture.ngo);
- await expect(section.locator('time')).toHaveAttribute('dateTime',after.data.checked_at);await page.screenshot({path:'/tmp/straypaw-kaju-activity-phone.png',fullPage:true});
+ await expect(section.locator('time')).toHaveAttribute('dateTime',after.data.checked_at);
+ await page.getByRole('button',{name:'Close Kaju',exact:true}).click();await section.scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/straypaw-kaju-activity-phone.png',fullPage:true});
  const other=createClient(process.env.STAGING_URL,fixture.anon,{auth:{persistSession:false}});const auth=await other.auth.signInWithPassword({email:fixture.users.other.email,password:fixture.password});if(auth.error)throw auth.error;
  const forbidden=await other.from('kaju_check_runs').select('id').eq('id',after.data.id);assert.deepEqual(forbidden.data,[]);
- console.log('PASS real dashboard snapshot, UI-triggered scoped check, immediate readback and another organisation denied');
+ console.log(`PASS real dashboard snapshot, UI-triggered scoped check (${reply.engine}), immediate readback and another organisation denied`);
 }finally{await browser.close()}

@@ -78,19 +78,30 @@ export function KajuMark({ size = 40, state }: { size?: number; state?: KajuStat
 }
 
 export function AiProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const identity = user?.id ?? "guest";
+  return <ScopedAiProvider key={identity} storageKey={`${KEY}.${identity}`}>{children}</ScopedAiProvider>;
+}
+
+/** Account changes discard in-flight work and never inherit another account's transcript. */
+function ScopedAiProvider({ children, storageKey }: { children: ReactNode; storageKey: string }) {
   const path = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
   const [model, setModel] = useState<boolean | null>(null);
   const msgsRef = useRef<Msg[]>([]);
+  const active = useRef(true);
+  const request = useRef<AbortController | null>(null);
   msgsRef.current = msgs;
 
   useEffect(() => {
-    try { const s = sessionStorage.getItem(KEY); if (s) setMsgs(JSON.parse(s)); if (sessionStorage.getItem("sp3.ai.open") === "1") setOpen(true); } catch { /* storage blocked */ }
-    if (isRecordingDemo) setModel(true); else fetch("/api/ai").then((r) => r.json()).then((j) => setModel(!!j.model)).catch(() => setModel(null));
-  }, []);
-  useEffect(() => { try { sessionStorage.setItem(KEY, JSON.stringify(msgs.slice(-30))); } catch { /* fine */ } }, [msgs]);
+    active.current = true;
+    try { sessionStorage.removeItem(KEY); const s = sessionStorage.getItem(storageKey); if (s) setMsgs(JSON.parse(s)); if (sessionStorage.getItem("sp3.ai.open") === "1") setOpen(true); } catch { /* storage blocked */ }
+    if (isRecordingDemo) setModel(true); else fetch("/api/ai").then((r) => r.json()).then((j) => { if (active.current) setModel(!!j.model); }).catch(() => { if (active.current) setModel(null); });
+    return () => { active.current = false; request.current?.abort(); };
+  }, [storageKey]);
+  useEffect(() => { try { sessionStorage.setItem(storageKey, JSON.stringify(msgs.slice(-30))); } catch { /* fine */ } }, [msgs, storageKey]);
   useEffect(() => { try { sessionStorage.setItem("sp3.ai.open", open ? "1" : "0"); } catch { /* fine */ } }, [open]);
 
   const ask = useCallback(async (q: string) => {
@@ -101,22 +112,29 @@ export function AiProvider({ children }: { children: ReactNode }) {
     const history = [...msgsRef.current, user];
     setMsgs(history);
     setBusy(true);
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
     if (isRecordingDemo) {
       const { reply, ms } = demoKajuReply(text, path);
       await new Promise((r) => setTimeout(r, ms));
+      if (!active.current || controller.signal.aborted) return;
       setMsgs((m) => [...m, { id: uid(), role: "assistant", text: reply.text, reply }]);
       setBusy(false);
       return;
     }
     try {
       const token = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
+      if (!active.current || controller.signal.aborted) return;
       const ws = path.startsWith("/ngo") ? "ngo" : path.startsWith("/city") ? "municipality" : path.startsWith("/learn") ? "education" : "community";
       const res = await fetch("/api/ai", {
         method: "POST",
+        signal: controller.signal,
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ messages: history.slice(-12).map((m) => ({ role: m.role, text: m.reply?.text ?? m.text })), context: { path, workspace: ws } }),
       });
       const data = await res.json().catch(() => ({}));
+      if (!active.current || controller.signal.aborted) return;
       if (!res.ok) setMsgs((m) => [...m, { id: uid(), role: "assistant", text: "", error: data.error ?? "Kaju could not answer. Nothing was changed." }]);
       else {
         const reply = data as AiReply;
@@ -125,8 +143,9 @@ export function AiProvider({ children }: { children: ReactNode }) {
         if (reply.tools.some(tool => tool.name === "operations_insights" && tool.ok)) window.dispatchEvent(new Event("kaju-check-completed"));
       }
     } catch {
+      if (!active.current || controller.signal.aborted) return;
       setMsgs((m) => [...m, { id: uid(), role: "assistant", text: "", error: "Could not reach StrayPaw. Check your connection; nothing was changed." }]);
-    } finally { setBusy(false); }
+    } finally { if (active.current && !controller.signal.aborted) setBusy(false); }
   }, [path]);
 
   const value = useMemo<Ctx>(() => ({ open, setOpen, toggle: () => setOpen((v) => !v), ask, msgs, busy, reset: () => setMsgs([]), model }), [open, ask, msgs, busy, model]);
