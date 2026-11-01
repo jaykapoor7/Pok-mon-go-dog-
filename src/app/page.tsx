@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import {
-  ArrowRight, ArrowUpRight, Camera, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
-  KeyRound, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, Upload, UserCheck,
+  ArrowRight, ArrowUpRight, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
+  KeyRound, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck,
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
@@ -152,7 +152,7 @@ export default function HomePage() {
           <div className="s4-int" aria-label="Integrations and their status">
             {INT_COLS.map((col, c) => (
               <div key={c} className="s4-int-col">
-                {col.map((t) => <div key={t.n} className="s4-int-t">{t.i}<b>{t.n}</b><small><i className={t.s === "Live" ? "is-live" : t.s === "Not connected" ? "is-off" : ""} />{t.s}</small></div>)}
+                {col.map((t) => <div key={t.n} className="s4-int-t">{t.i}<b>{t.n}</b><small><i className={t.s === "Live" ? "is-live" : t.s === "Not connected" ? "is-off" : t.s === "Setup pending" ? "is-setup" : ""} />{t.s}</small></div>)}
               </div>
             ))}
           </div>
@@ -181,13 +181,16 @@ export default function HomePage() {
   );
 }
 
-type IntTile = { n: string; s: "Live" | "Not connected" | "Planned"; i: ReactNode };
+type IntTile = { n: string; s: "Live" | "Setup pending" | "Not connected" | "Planned"; i: ReactNode };
+/* Connectors use plain letter marks, not the providers' logos. "Setup pending": built and tested, waiting for the
+   administrator's OAuth keys (docs/CONNECTIONS.md). Nothing here is shown as live before it is. */
+const Mark = ({ l, c }: { l: string; c: string }) => <span className="s4-int-mark" style={{ background: c }} aria-hidden>{l}</span>;
 const INT_COLS: IntTile[][] = [
-  [{ n: "Excel registers", s: "Live", i: <FileSpreadsheet /> }, { n: "Email", s: "Live", i: <Mail /> }],
-  [{ n: "CSV import", s: "Live", i: <Upload /> }, { n: "Phone field mode", s: "Live", i: <Smartphone /> }],
-  [{ n: "Photos", s: "Live", i: <Camera /> }],
-  [{ n: "WhatsApp", s: "Not connected", i: <MessageCircle /> }],
-  [{ n: "Maps", s: "Live", i: <MapPin /> }],
-  [{ n: "XLSX export", s: "Live", i: <ClipboardList /> }, { n: "PDF reports", s: "Live", i: <FileText /> }],
-  [{ n: "Record search", s: "Live", i: <ScanSearch /> }, { n: "Reviewer access", s: "Live", i: <UserCheck /> }],
+  [{ n: "Google Workspace", s: "Setup pending", i: <Mark l="G" c="#1a73e8" /> }, { n: "Excel & CSV", s: "Live", i: <FileSpreadsheet /> }, { n: "Email", s: "Live", i: <Mail /> }],
+  [{ n: "Microsoft 365", s: "Setup pending", i: <Mark l="M" c="#0f6cbd" /> }, { n: "Slack", s: "Setup pending", i: <Mark l="S" c="#4a154b" /> }, { n: "Phone field mode", s: "Live", i: <Smartphone /> }],
+  [{ n: "Zoho Mail", s: "Setup pending", i: <Mark l="Z" c="#c8202f" /> }, { n: "Photos & GPS", s: "Live", i: <Camera /> }],
+  [{ n: "SMS (MSG91)", s: "Setup pending", i: <MessageSquareText /> }],
+  [{ n: "WhatsApp", s: "Not connected", i: <MessageCircle /> }, { n: "Map exports", s: "Live", i: <MapPin /> }],
+  [{ n: "PDF · Word · PowerPoint", s: "Live", i: <FileText /> }, { n: "Reviewer access", s: "Live", i: <UserCheck /> }],
+  [{ n: "Record search", s: "Live", i: <ScanSearch /> }, { n: "Report packages", s: "Live", i: <ClipboardList /> }],
 ];
