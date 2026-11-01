@@ -1,0 +1,17 @@
+{
+  "name": "straypaw-launch-video",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render:reel": "remotion render KajuReel out/kaju-launch-9x16.mp4",
+    "render:x": "remotion render KajuX out/kaju-launch-16x9.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "@remotion/google-fonts": "4.0.539",
+    "remotion": "4.0.539",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": { "typescript": "5.6.3", "@types/react": "19.1.0" }
+}
