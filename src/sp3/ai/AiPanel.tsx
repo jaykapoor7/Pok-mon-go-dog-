@@ -16,6 +16,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Paperclip, Plug } from "lucide-react";
 import { ArrowRight, ArrowUp, Check, CheckCircle2, ClipboardList, ExternalLink, Info, Loader2, Maximize2, PawPrint, RotateCcw, Sparkles, TriangleAlert, X, Layers, MapPin, FileText } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
@@ -115,6 +116,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
   return <AiCtx.Provider value={value}>{children}</AiCtx.Provider>;
 }
 
+const connectionsHref = (path: string) => (path.startsWith("/city") ? "/city/connections" : "/ngo/settings/connections");
+
 /* ── suggestions, by where the person is ─────────────────────────── */
 function suggestions(path: string): string[] {
   if (path.startsWith("/ngo/animals")) return ["Find possible duplicate animals", "Which animals have no photo?", "Search the register for Brownie"];
@@ -129,6 +132,7 @@ function suggestions(path: string): string[] {
 /* ── the docked panel ─────────────────────────────────────────────── */
 export function AiPanel() {
   const ai = useAi();
+  const here = usePathname() ?? "";
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!ai.open) return;
@@ -143,6 +147,7 @@ export function AiPanel() {
         <span className="kaju-head-mark"><KajuMark size={46} /></span><b>Kaju</b><span className="ai3-head-sub">StrayPaw&rsquo;s AI agent</span>
         <span className="ai3-head-act">
           <button type="button" className="ai3-icon" onClick={ai.reset} aria-label="New conversation" title="New conversation"><RotateCcw size={15} /></button>
+          <Link className="ai3-icon" href={connectionsHref(here)} aria-label="Manage connections" title="Manage connections"><Plug size={15} /></Link>
           <Link className="ai3-icon" href="/assistant" aria-label="Open full screen" title="Open full screen"><Maximize2 size={15} /></Link>
           <button type="button" className="ai3-icon" onClick={() => ai.setOpen(false)} aria-label="Close Kaju"><X size={16} /></button>
         </span>
@@ -155,12 +160,13 @@ export function AiPanel() {
 /* ── full screen (/assistant) ─────────────────────────────────────── */
 export function AiWorkspace() {
   const ai = useAi();
+  const here = usePathname() ?? "";
   return (
     <div className="ai3-full">
       <div className="ai3-full-in">
         <header className="ai3-full-head">
           <div className="ai3-full-id"><span className="ai3-full-kaju"><KajuMark size={120} /></span><div><span className="s3-eyebrow">Kaju · StrayPaw&rsquo;s AI agent</span><h1>Ask Kaju.</h1><p>Questions, searches, summaries and prepared changes, over the records your account can read. Every change waits for your confirmation.</p></div></div>
-          {ai.msgs.length > 0 && <button type="button" className="s3-btn is-line is-sm" onClick={ai.reset}><RotateCcw size={14} />New conversation</button>}
+          <span className="ai3-full-acts"><Link className="s3-btn is-line is-sm" href={connectionsHref(here)}><Plug size={14} />Manage connections</Link>{ai.msgs.length > 0 && <button type="button" className="s3-btn is-line is-sm" onClick={ai.reset}><RotateCcw size={14} />New conversation</button>}</span>
         </header>
         <Thread full />
       </div>
@@ -177,7 +183,25 @@ function Thread({ full = false }: { full?: boolean }) {
   const input = useRef<HTMLTextAreaElement>(null);
   useEffect(() => { end.current?.scrollIntoView({ block: "end", behavior: "smooth" }); }, [ai.msgs.length, ai.busy]);
   useEffect(() => { input.current?.focus(); }, []);
-  const send = () => { if (!q.trim() || ai.busy) return; ai.ask(q); setQ(""); };
+  const [file, setFile] = useState<{ name: string; text: string } | null>(null);
+  const [fileErr, setFileErr] = useState<string | null>(null);
+  const send = () => {
+    if ((!q.trim() && !file) || ai.busy) return;
+    ai.ask(file ? `${q.trim() || `Summarise ${file.name}.`}\n\n${file.text}` : q);
+    setQ(""); setFile(null);
+  };
+  const attach = async (f: File | undefined) => {
+    setFileErr(null);
+    if (!f) return;
+    try {
+      const t = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
+      const fd = new FormData(); fd.append("file", f);
+      const r = await fetch("/api/files/read", { method: "POST", body: fd, headers: t ? { Authorization: `Bearer ${t}` } : {} });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error ?? "Could not read that file");
+      setFile({ name: j.name, text: j.text });
+    } catch (e) { setFileErr((e as Error).message); }
+  };
   const sugg = suggestions(path);
 
   return (
@@ -200,7 +224,9 @@ function Thread({ full = false }: { full?: boolean }) {
       <div className="ai3-compose">
         <textarea ref={input} value={q} onChange={(e) => setQ(e.target.value)} rows={full ? 3 : 2} placeholder="Ask Kaju, search, or paste a field update…" aria-label="Message Kaju"
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} />
-        <button type="button" className="ai3-send" onClick={send} disabled={!q.trim() || ai.busy} aria-label="Send"><ArrowUp size={16} /></button>
+        {user && <label className="ai3-attach" title="Attach a PDF, Word, Excel, CSV or PowerPoint file"><Paperclip size={15} aria-hidden /><span className="sr-only">Attach a file</span><input type="file" accept=".pdf,.docx,.xlsx,.xls,.csv,.pptx" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} /></label>}
+        <button type="button" className="ai3-send" onClick={send} disabled={(!q.trim() && !file) || ai.busy} aria-label="Send"><ArrowUp size={16} /></button>
+        {(file || fileErr) && <p className={`ai3-file${fileErr ? " is-err" : ""}`}>{fileErr ?? <>Attached: <b>{file!.name}</b> <button type="button" onClick={() => setFile(null)}>Remove</button></>}</p>}
         <p className="ai3-foot">{ai.model === false ? "Kaju answers from the record tools on this deployment; free-form answers are off." : "Answers cite records. Changes need your confirmation."}</p>
       </div>
     </div>
@@ -240,11 +266,16 @@ function ProposalCard({ p }: { p: Proposal }) {
   const { user } = useAuth();
   const [state, setState] = useState<"idle" | "busy" | "cancel">("idle");
   const [saved, setSaved] = useState<Saved | null>(null);
+  const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   const rows: [string, string][] = p.kind === "open_case"
     ? [["Action", "Open a case"], ["Title", p.title], ["City", p.city], ["Place", p.zone ?? "Not given"], ["Category", p.category], ["Severity", p.severity], ["Notes", p.description.slice(0, 220) + (p.description.length > 220 ? "…" : "")]]
     : p.kind === "add_note" ? [["Action", "Add a note"], ["Case", p.caseLabel], ["Note", p.note]]
       : p.kind === "schedule_followup" ? [["Action", "Schedule a follow-up"], ["Case", p.caseLabel], ["Due", new Date(p.dueAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })], ["Note", p.note || "—"]]
-        : [["Action", "Record a care event"], ["Animal", p.dogLabel], ["Kind", p.careKind], ["Date", p.date ?? "Not given"], ["Notes", p.notes || "—"]];
+        : p.kind === "record_care" ? [["Action", "Record a care event"], ["Animal", p.dogLabel], ["Kind", p.careKind], ["Date", p.date ?? "Not given"], ["Notes", p.notes || "—"]]
+          : p.kind === "email" ? [["Action", p.send ? `Send from ${p.providerName}` : `Save a draft in ${p.providerName}`], ["To", p.to.join(", ")], ...(p.cc.length ? [["Cc", p.cc.join(", ")] as [string, string]] : []), ["Subject", p.subject], ["Message", p.body.slice(0, 400) + (p.body.length > 400 ? "…" : "")]]
+            : p.kind === "calendar_event" ? [["Action", `Add to ${p.providerName} calendar`], ["Event", p.title], ["Starts", when(p.start)], ["Ends", when(p.end)], ["Guests", p.attendees.join(", ") || "None"], ["Place", p.location ?? "Not given"]]
+              : [["Action", p.saveTo ? `Download and save to ${p.saveToName}` : "Download"], ["Report", p.title], ["Format", p.format.toUpperCase()]];
+  const outside = p.kind === "email" || p.kind === "calendar_event" || (p.kind === "report_file" && !!p.saveTo);
   async function confirm() {
     if (!user) return;
     setState("busy");
@@ -254,14 +285,14 @@ function ProposalCard({ p }: { p: Proposal }) {
   if (state === "cancel") return <p className="ai3-notice"><X size={12} aria-hidden />Cancelled. Nothing was saved.</p>;
   return (
     <div className={`ai3-prop${saved?.ok ? " is-done" : ""}`} role="group" aria-label="Prepared change">
-      <p className="ai3-prop-h">{saved?.ok ? <><CheckCircle2 size={14} />Saved to the record</> : <><Sparkles size={13} />Prepared, not saved</>}</p>
+      <p className="ai3-prop-h">{saved?.ok ? <><CheckCircle2 size={14} />{p.kind === "email" || p.kind === "calendar_event" || p.kind === "report_file" ? saved.what : "Saved to the record"}</> : <><Sparkles size={13} />{outside ? "Prepared, not sent" : "Prepared, not saved"}</>}</p>
       <dl>{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       {saved && !saved.ok && <p className="s3-err" role="alert">{saved.error}</p>}
       {saved?.ok ? (
-        <div className="ai3-prop-act">{saved.href && <Link className="s3-btn is-sm is-line" href={saved.href}>Open the record<ExternalLink size={13} /></Link>}<span className="s3-small">It appears in the normal screens with a note that the AI agent prepared it and you confirmed it.</span></div>
+        <div className="ai3-prop-act">{saved.href && <Link className="s3-btn is-sm is-line" href={saved.href}>Open the record<ExternalLink size={13} /></Link>}<span className="s3-small">{p.kind === "email" || p.kind === "calendar_event" || p.kind === "report_file" ? "Done in your own account and logged." : "It appears in the normal screens with a note that the AI agent prepared it and you confirmed it."}</span></div>
       ) : (
         <div className="ai3-prop-act">
-          <button type="button" className="s3-btn is-sm is-primary" onClick={confirm} disabled={state === "busy" || !user}>{state === "busy" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}Confirm and save</button>
+          <button type="button" className="s3-btn is-sm is-primary" onClick={confirm} disabled={state === "busy" || !user}>{state === "busy" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}{p.kind === "email" && p.send ? "Confirm and send" : p.kind === "report_file" ? "Confirm and download" : p.kind === "calendar_event" ? "Confirm and add" : "Confirm and save"}</button>
           <button type="button" className="s3-btn is-sm is-ghost" onClick={() => setState("cancel")} disabled={state === "busy"}>Cancel</button>
           {!user && <span className="s3-small">Sign in to save.</span>}
         </div>

@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { extractFieldMessage } from "./extract";
 import { CARE_KINDS, type Citation, type Proposal, type ToolRun } from "./types";
 import { isResearchArchiveProgramme } from "@/lib/public-programmes";
+import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTools";
 
 /* ════════════════════════════════════════════════════════════════════
    Kaju tools. Every read runs on `db`, a Supabase client carrying
@@ -15,7 +16,7 @@ import { isResearchArchiveProgramme } from "@/lib/public-programmes";
    same server-authorised RPCs as the manual screens.
    ════════════════════════════════════════════════════════════════════ */
 
-export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null };
+export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; conn?: ConnCtx | null };
 export type ToolOut = { data: unknown; summary: string; citations: Citation[]; proposals?: Proposal[]; navigate?: { href: string; label: string }; ok?: boolean };
 
 const clean = (s: unknown, n = 80) => String(s ?? "").replace(/[%,()*\\]/g, " ").trim().slice(0, n);
@@ -70,7 +71,9 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
       const n = NAV[String(input.to)];
       return n ? { data: n, summary: `Open ${n.label}`, citations: [], navigate: n } : { data: { error: "Unknown screen" }, summary: "Unknown screen", citations: [], ok: false };
     }
-    default: return { data: { error: `Unknown tool ${name}` }, summary: "Unknown tool", citations: [], ok: false };
+    default:
+      if (isConnectionTool(name)) return runConnectionTool(name, input, ctx.conn ?? null, !!ctx.orgId);
+      return { data: { error: `Unknown tool ${name}` }, summary: "Unknown tool", citations: [], ok: false };
   }
 }
 

@@ -34,6 +34,17 @@ export async function executeProposal(p: Proposal, actor: { id: string; name: st
     case "record_care":
       r = { ...(await recordCare(p.dogId, { kind: p.careKind, date: p.date, notes: `${p.notes ? `${p.notes} · ` : ""}${MARK(actor.name)}`, by: actor.name })), href: `/ngo/animals/${p.dogId}` };
       break;
+    case "email":
+      r = await act(p.send ? "email_send" : "email_draft", p.provider, { to: p.to, cc: p.cc, subject: p.subject, body: p.body }, p.send ? `Email sent from ${p.providerName}` : `Draft saved in ${p.providerName}`);
+      break;
+    case "calendar_event":
+      r = await act("calendar_event", p.provider, { title: p.title, start: p.start, end: p.end, attendees: p.attendees, location: p.location }, `Event added to ${p.providerName}`);
+      break;
+    case "report_file": {
+      const dl = await download(p.format, p.source, p.title);
+      r = dl.ok && p.saveTo ? await act("save_report", p.saveTo, { format: p.format, source: p.source, title: p.title }, `Downloaded and saved to ${p.saveToName}`) : dl;
+      break;
+    }
   }
   void logAction(p, r);
   return r;
@@ -49,4 +60,27 @@ async function logAction(p: Proposal, r: Saved) {
     if (!token) return;
     await fetch("/api/ai/log", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ kind: p.kind, ok: r.ok, target: r.href ?? null, summary: "why" in p ? p.why : null }) });
   } catch { /* the record's own history already holds the change */ }
+}
+
+/* ── connections: actions outside StrayPaw, only ever after Confirm ── */
+async function token() {
+  return (await getSupabase()?.auth.getSession())?.data.session?.access_token ?? null;
+}
+async function act(action: string, provider: string, payload: Record<string, unknown>, what: string): Promise<Saved> {
+  const t = await token();
+  if (!t) return { ok: false, error: "Sign in again to continue." };
+  const res = await fetch("/api/connections/act", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ action, provider, payload }) });
+  const j = await res.json().catch(() => ({}));
+  return res.ok ? { ok: true, at: new Date().toISOString(), what, href: j.url ?? undefined } : { ok: false, error: j.error ?? "Not done. Nothing was sent." };
+}
+async function download(format: string, source: string, title: string): Promise<Saved> {
+  const t = await token();
+  if (!t) return { ok: false, error: "Sign in again to continue." };
+  const res = await fetch("/api/files/export", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ format, source, title }) });
+  if (!res.ok) { const j = await res.json().catch(() => ({})); return { ok: false, error: j.error ?? "The report could not be made." }; }
+  const blob = await res.blob();
+  const name = /filename="([^"]+)"/.exec(res.headers.get("content-disposition") ?? "")?.[1] ?? `report.${format}`;
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  return { ok: true, at: new Date().toISOString(), what: `${name} downloaded` };
 }

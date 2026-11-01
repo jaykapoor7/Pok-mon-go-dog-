@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { allowRequest, clientIp } from "@/lib/rate-limit";
 import { answer, modelConfigured } from "@/sp3/ai/engine";
 import type { AiRequest } from "@/sp3/ai/types";
+import { caller as connCaller, capabilitiesFor } from "@/lib/connections/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,8 +47,13 @@ export async function POST(req: Request) {
     orgId = typeof ngo === "string" ? ngo : null;
   }
 
+  /* Capability discovery: Kaju is offered only the connections this person has. */
+  let conn = null;
+  if (token && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try { const c = await connCaller(req); if (c) conn = { caller: c, caps: await capabilitiesFor(c) }; } catch { conn = null; }
+  }
   try {
-    const reply = await answer(body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", text: String(m.text ?? "") })), { db, orgId, userName }, body.context ?? {});
+    const reply = await answer(body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", text: String(m.text ?? "") })), { db, orgId, userName, conn }, body.context ?? {});
     return NextResponse.json(reply);
   } catch (e) {
     console.error("Kaju failed", e instanceof Error ? e.message : e);
