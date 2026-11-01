@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createBoundedSupabaseFetch } from "@/lib/bounded-supabase-fetch";
 import { allowRequest, clientIp } from "@/lib/rate-limit";
 import { answer, modelConfigured } from "@/sp3/ai/engine";
 import type { AiRequest } from "@/sp3/ai/types";
@@ -18,7 +19,7 @@ function callerClient(token: string | null) {
   if (!url || !anon) return null;
   return createClient(url, anon, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    global: { fetch: createBoundedSupabaseFetch(), ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}) },
   });
 }
 
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
   if (!(await allowRequest(clientIp(req), "ai", 40, 600))) return NextResponse.json({ error: "Too many questions at once. Wait a minute and try again." }, { status: 429 });
   let body: AiRequest;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
-  if (!Array.isArray(body?.messages) || body.messages.length > 40) return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
+  if (!Array.isArray(body?.messages) || body.messages.length > 40 || body.messages.some((m) => !m || !["user", "assistant"].includes(m.role) || typeof m.text !== "string" || m.text.length > 12000) || (body.context != null && (typeof body.context !== "object" || Array.isArray(body.context) || (body.context.path != null && typeof body.context.path !== "string") || (body.context.workspace != null && typeof body.context.workspace !== "string")))) return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
 
   const auth = req.headers.get("authorization");
   const token = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
@@ -39,12 +40,15 @@ export async function POST(req: Request) {
 
   let orgId: string | null = null;
   let userName: string | null = null;
+  let actorRole: string | null = null;
   if (token) {
     const { data: who, error } = await db.auth.getUser(token);
     if (error || !who?.user) return NextResponse.json({ error: "Your session has expired. Sign in again." }, { status: 401 });
+    if (!(await allowRequest(who.user.id, "ai_user", 40, 600))) return NextResponse.json({ error: "Too many questions at once. Wait a minute and try again." }, { status: 429 });
     userName = (who.user.user_metadata?.display_name as string | undefined) ?? who.user.email ?? null;
-    const { data: ngo } = await db.rpc("my_ngo");
+    const [{ data: ngo }, { data: abc }] = await Promise.all([db.rpc("my_ngo"), db.rpc("abc_my_context")]);
     orgId = typeof ngo === "string" ? ngo : null;
+    actorRole = typeof abc?.role === "string" ? abc.role : abc?.offices?.length ? "municipal_reviewer" : null;
   }
 
   /* Capability discovery: Kaju is offered only the connections this person has. */
@@ -53,7 +57,7 @@ export async function POST(req: Request) {
     try { const c = await connCaller(req); if (c) conn = { caller: c, caps: await capabilitiesFor(c) }; } catch { conn = null; }
   }
   try {
-    const reply = await answer(body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", text: String(m.text ?? "") })), { db, orgId, userName, conn }, body.context ?? {});
+    const reply = await answer(body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", text: String(m.text ?? "") })), { db, orgId, userName, actorRole, conn }, body.context ?? {});
     return NextResponse.json(reply);
   } catch (e) {
     console.error("Kaju failed", e instanceof Error ? e.message : e);

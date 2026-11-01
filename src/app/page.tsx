@@ -25,7 +25,7 @@ function Words({ lines }: { lines: string[] }) {
 }
 
 export const metadata = {
-  title: "StrayPaw · Meet Kaju, the AI that verifies every sterilisation",
+  title: "StrayPaw · ABC operations and verification",
   description: "Kaju is StrayPaw's AI agent for ABC and anti-rabies programmes. It handles capture, vet sign-off, evidence checks, report packages and municipal review on one shared record.",
 };
 
@@ -71,8 +71,8 @@ export default function HomePage() {
       {/* 1 · hero */}
       <section className="s4-hero" aria-labelledby="hero-title">
         <div className="s4-wrap">
-          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet Kaju, the AI that", "verifies every sterilisation"]} /></h1>
-          <p className="s4-lede">Kaju handles capture, vet sign-off, evidence checks, report packages and municipal review for ABC and anti-rabies programmes, on one shared record.</p>
+          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["ABC operations.", "Evidence at every step."]} /></h1>
+          <p className="s4-lede">Run capture, veterinary authorisation, evidence review and municipal reporting on one shared record. Kaju helps your team find gaps and prepare work for confirmation.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
           <div className="s4-hero-stage"><HeroDemo /></div>
         </div>
@@ -101,7 +101,7 @@ export default function HomePage() {
       {/* 4 · Kaju as a teammate */}
       <section className="s4-sec" aria-labelledby="mate-title">
         <div className="s4-wrap">
-          <SecHead id="mate-title" title="Kaju, your team's most reliable teammate" lede="Kaju learns your programme, works across StrayPaw and prepares the work for your team to confirm." link={{ href: "/ai", label: "Meet Kaju" }} />
+          <SecHead id="mate-title" title="Kaju works with your records" lede="Kaju reads available records, links its sources and prepares changes for your team to confirm." link={{ href: "/ai", label: "Meet Kaju" }} />
           <Cards idp="mate2" cols={2} items={[
             { title: "Knows your programme", body: "Ask in plain words. Kaju answers from your records and names each one it used.", ui: <AskUi v={1} />, v: 2 },
             { title: "Prepares, never approves", body: "Kaju drafts cases, notes and follow-ups. Nothing is saved until a person confirms.", ui: <ProposeUi v={0} />, v: 4 },

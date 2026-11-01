@@ -19,7 +19,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
   const back = state?.r ?? "/ngo/settings/connections";
   if (url.searchParams.get("error")) return home(`connection=cancelled&provider=${provider}`, back);
   const cookie = req.headers.get("cookie")?.match(new RegExp(`(?:^|; )sp_conn_${provider}=([^;]+)`))?.[1];
-  const [nonce, verifier] = decodeURIComponent(cookie ?? "").split(".");
+  let nonce: string | undefined, verifier: string | undefined;
+  try { [nonce, verifier] = decodeURIComponent(cookie ?? "").split("."); }
+  catch { return home(`connection=error&provider=${provider}&reason=state`, back); }
   const code = url.searchParams.get("code");
   if (!state || state.p !== provider || !nonce || nonce !== state.n || !verifier || !code) return home(`connection=error&provider=${provider}&reason=state`, back);
   const admin = getSupabaseAdmin();

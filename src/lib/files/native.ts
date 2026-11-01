@@ -98,7 +98,7 @@ export async function makeFile(kind: FileKind, r: Report): Promise<{ bytes: Buff
     return { bytes: Buffer.from(kml, "utf8"), mime: MIME.kml, filename };
   }
   if (kind === "csv") {
-    const esc = (v: unknown) => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const esc = (v: unknown) => { const raw = String(v ?? ""); const s = /^[\s]*[=+@-]/.test(raw) ? `'${raw}` : raw; return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const csv = [r.columns, ...r.rows].map((row) => row.map(esc).join(",")).join("\n");
     return { bytes: Buffer.from(`﻿${csv}`, "utf8"), mime: MIME.csv, filename };
   }

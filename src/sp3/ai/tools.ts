@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { searchKnowledge } from "./knowledge";
 import { extractFieldMessage } from "./extract";
 import { CARE_KINDS, type Citation, type Proposal, type ToolRun } from "./types";
 import { isResearchArchiveProgramme } from "@/lib/public-programmes";
@@ -16,7 +17,7 @@ import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTool
    same server-authorised RPCs as the manual screens.
    ════════════════════════════════════════════════════════════════════ */
 
-export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; conn?: ConnCtx | null };
+export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; actorRole?: string | null; conn?: ConnCtx | null };
 export type ToolOut = { data: unknown; summary: string; citations: Citation[]; proposals?: Proposal[]; navigate?: { href: string; label: string }; ok?: boolean };
 
 const clean = (s: unknown, n = 80) => String(s ?? "").replace(/[%,()*\\]/g, " ").trim().slice(0, n);
@@ -37,6 +38,9 @@ export const NAV: Record<string, { href: string; label: string }> = {
 };
 
 export const TOOL_DEFS = [
+  { name: "search_knowledge", description: "Search published StrayPaw Academy lessons about evidence, recorded counts, unknown status, coverage, population and field safety. Educational content, not current legislation or clinical advice. Returns cited passages; never invent policy.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
+  { name: "abc_verification_status", description: "Read the organisation ABC verification queue: missing evidence, vet authorisation and review flags. Bounded sample, never certifies a procedure.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "abc_package_status", description: "Read report package statuses visible to this organisation member or municipal reviewer. Includes periods and recorded summaries; never accepts a package.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "search_records", description: "Search animals, cases, programmes and places the user is allowed to read. Use for any question naming an animal, tag, case code, place or programme.", input_schema: { type: "object", properties: { query: { type: "string", description: "Words to search for: a name, StrayPaw tag, case code, locality or programme name." } }, required: ["query"], additionalProperties: false } },
   { name: "work_summary", description: "Summarise the organisation's current work: open cases, unassigned, critical, overdue follow-ups, historical imports awaiting review, and the most urgent open cases.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_missing_evidence", description: "Find the organisation's records that are missing evidence: animals with no photo, open cases with no linked animal or no place.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -54,6 +58,9 @@ export type ToolName = (typeof TOOL_DEFS)[number]["name"];
 
 export async function runTool(name: string, input: Record<string, unknown>, ctx: ToolCtx): Promise<ToolOut> {
   switch (name) {
+    case "abc_verification_status": return abcVerification(ctx);
+    case "abc_package_status": return abcPackages(ctx);
+    case "search_knowledge": return searchKnowledge(String(input.query ?? "").slice(0, 300));
     case "search_records": return searchRecords(clean(input.query), ctx);
     case "work_summary": return workSummary(ctx);
     case "find_missing_evidence": return missingEvidence(ctx);
@@ -86,6 +93,7 @@ async function searchRecords(q: string, { db, orgId }: ToolCtx): Promise<ToolOut
       db.from("dogs").select("id,straypaw_id,name,code,zone,city,status,last_seen").eq("ngo_id", orgId).or(`name.ilike.%${q}%,code.ilike.%${q}%,zone.ilike.%${q}%,straypaw_id.ilike.%${q}%`).order("last_seen", { ascending: false }).limit(8),
       db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,animal_name,straypaw_id,dog_id,occurred_at,assignee_name,provenance").or(`title.ilike.%${q}%,case_code.ilike.%${q}%,animal_name.ilike.%${q}%,straypaw_id.ilike.%${q}%,zone.ilike.%${q}%`).order("occurred_at", { ascending: false, nullsFirst: false }).limit(8),
     ]);
+    if (dogs.error || cases.error) return READ_FAILED;
     out.your_animals = dogs.data ?? [];
     out.your_cases = cases.data ?? [];
     for (const d of dogs.data ?? []) citations.push({ id: d.id, label: animalLabel(d), href: `/ngo/animals/${d.id}`, kind: "animal" });
@@ -95,6 +103,7 @@ async function searchRecords(q: string, { db, orgId }: ToolCtx): Promise<ToolOut
     db.from("public_spatial_animals").select("id,name,straypaw_id,city,zone").or(`straypaw_id.ilike.%${q}%,name.ilike.%${q}%,zone.ilike.%${q}%`).limit(6),
     db.from("public_programme_cards").select("id,name,city,ngo_name,animals_recorded,sterilised_recorded,vaccinated_recorded,starts_on,ends_on").or(`name.ilike.%${q}%,city.ilike.%${q}%,ngo_name.ilike.%${q}%`).limit(5),
   ]);
+  if (pub.error || progs.error) return READ_FAILED;
   out.public_animals = pub.data ?? [];
   out.programmes = (progs.data ?? []).filter((p) => !isResearchArchiveProgramme(p.id));
   for (const a of pub.data ?? []) if (!citations.some((c) => c.id === a.id)) citations.push({ id: a.id, label: animalLabel(a), href: `/animal/${a.id}`, kind: "animal" });
@@ -115,6 +124,7 @@ async function workSummary({ db, orgId }: ToolCtx): Promise<ToolOut> {
     base().eq("provenance", "imported_historical_record").is("reviewed_at", null),
     db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,assignee_name,next_due,occurred_at,severity").in("status_class", ["open", "in_progress"]).or(current).order("next_due", { ascending: true, nullsFirst: false }).limit(6),
   ]);
+  if ([open, unassigned, critical, overdue, historical, urgent].some((r) => r.error)) return READ_FAILED;
   const data = { open_current: open.count ?? 0, unassigned: unassigned.count ?? 0, critical: critical.count ?? 0, overdue_followups: overdue.count ?? 0, historical_imports_awaiting_review: historical.count ?? 0, next_cases: urgent.data ?? [] };
   return {
     data,
@@ -131,6 +141,7 @@ async function missingEvidence({ db, orgId }: ToolCtx): Promise<ToolOut> {
     db.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).is("zone", null).is("h3_r8", null),
     db.from("org_case_facts").select("id,case_code,title,condition_class,zone,dog_id,h3_r8,provenance").in("status_class", ["open", "in_progress"]).or("dog_id.is.null,and(zone.is.null,h3_r8.is.null)").order("occurred_at", { ascending: false, nullsFirst: false }).limit(6),
   ]);
+  if ([noPhoto, noAnimal, noPlace, list].some((r) => r.error)) return READ_FAILED;
   const data = { animals_without_photo: noPhoto.count ?? 0, open_cases_without_animal: noAnimal.count ?? 0, open_cases_without_place: noPlace.count ?? 0, examples: (list.data ?? []).map((c) => ({ ...c, missing: [!c.dog_id && "linked animal", !c.zone && !c.h3_r8 && "place"].filter(Boolean) })) };
   return { data, summary: `${data.animals_without_photo} animals without a photo · ${data.open_cases_without_animal} open cases without an animal · ${data.open_cases_without_place} without a place`, citations: (list.data ?? []).map((c) => ({ id: c.id, label: caseLabel(c), href: `/ngo/cases/${c.id}`, kind: "case" as const })) };
 }
@@ -157,14 +168,16 @@ async function programmeReport(q: string, { db, orgId }: ToolCtx): Promise<ToolO
   const citations: Citation[] = [];
   const data: Record<string, unknown> = {};
   if (orgId) {
-    const { data: own } = await db.rpc("org_campaigns", { p_include_archived: false });
+    const { data: own, error } = await db.rpc("org_campaigns", { p_include_archived: false });
+    if (error) return READ_FAILED;
     const list = Array.isArray(own) ? own : [];
     data.your_programmes = list.filter((p: { name?: string }) => !q || String(p.name ?? "").toLowerCase().includes(q.toLowerCase())).slice(0, 10);
     for (const p of data.your_programmes as { id: string; name: string }[]) citations.push({ id: p.id, label: p.name, href: `/ngo/programmes/${p.id}`, kind: "programme" });
   }
   let pub = db.from("public_programme_cards").select("id,name,city,ngo_name,kind,animals_recorded,sterilised_recorded,vaccinated_recorded,starts_on,ends_on,public_summary").order("ends_on", { ascending: false, nullsFirst: false }).limit(11);
   if (q) pub = pub.or(`name.ilike.%${q}%,city.ilike.%${q}%,ngo_name.ilike.%${q}%`);
-  const { data: all } = await pub;
+  const { data: all, error } = await pub;
+  if (error) return READ_FAILED;
   const rows = (all ?? []).filter((p) => !isResearchArchiveProgramme(p.id));
   data.published_programmes = rows;
   data.note = "Figures are recorded counts from each programme's register, including imported history; they are not population estimates.";
@@ -218,3 +231,25 @@ async function proposeCare(i: Record<string, unknown>, { db, orgId }: ToolCtx): 
 }
 
 export function toolRun(name: string, out: ToolOut): ToolRun { return { name, summary: out.summary, ok: out.ok !== false }; }
+
+/** An unavailable read is unknown, never a zero or a successful empty result. */
+const READ_FAILED: ToolOut = { data: { error: "Records could not be read. Counts are unknown; try again." }, summary: "Could not read the records. Try again.", citations: [], ok: false };
+
+async function abcVerification({ db, orgId }: ToolCtx): Promise<ToolOut> {
+  if (!orgId) return NEEDS_ORG;
+  const { data, error } = await db.rpc("abc_verification_queue", { p_limit: 100 });
+  if (error) return READ_FAILED;
+  const rows = Array.isArray(data) ? data.slice(0, 100) : [];
+  return { data: { records: rows, sampled: rows.length, limit: 100, note: "At most 100 visible cases. Flags are database attestations, not a new certification." }, summary: `${rows.length} ABC records checked (up to 100)`, citations: rows.slice(0, 12).map((r) => ({ id: r.case_id, label: caseLabel(r), href: `/ngo/verification/${r.case_id}`, kind: "case" as const })) };
+}
+
+async function abcPackages({ db }: ToolCtx): Promise<ToolOut> {
+  // RLS includes both organisation members and reviewers assigned to an office.
+  const { data, error } = await db.from("report_packages").select("id,title,status,period_start,period_end,summary,submitted_at").order("created_at", { ascending: false }).limit(50);
+  if (error) return READ_FAILED;
+  const rows = data ?? [];
+  const { data: context, error: contextError } = await db.rpc("abc_my_context");
+  if (contextError) return READ_FAILED;
+  const municipal = !context?.ngo_id && context?.offices?.length;
+  return { data: { packages: rows, limit: 50, note: "Visible packages only; at most 50 most recent. No decision was made." }, summary: `${rows.length} visible report packages (up to 50)`, citations: rows.slice(0, 12).map((r) => ({ id: r.id, label: r.title, href: `${municipal ? "/city/review" : "/ngo/packages"}/${r.id}`, kind: "page" as const })) };
+}

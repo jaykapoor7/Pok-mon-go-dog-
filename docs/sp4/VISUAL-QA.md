@@ -66,3 +66,7 @@ Screenshots: [`docs/sp4/qa/`](qa/).
 * The staging preview has no language model configured, so StrayPaw AI runs
   its record tools only (it says so under the composer).
 * WhatsApp intake is built but not connected; every mention says so.
+
+## 1 November continuation
+
+New baseline guest route checks and Explorer desktop/phone captures are in [the continuation report](CONTINUATION-2026-11-01.md). They do not repeat the authenticated role proofs above. The supplied Explorer reference now controls the shared artwork; full articulated motion remains unfinished.

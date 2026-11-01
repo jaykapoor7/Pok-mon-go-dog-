@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { getSupabase } from "@/lib/supabase";
 import { ArrowLeft } from "lucide-react";
 import { EVIDENCE_LABEL, NotEnabled, PACKAGE_LABEL, orgNames, packageAct, packageById, packageCases, packageEvents, type EvidenceKind, type Package, type PackageCase, type PackageEvent } from "@/lib/abc";
 import { Reading } from "../ui/Reading";
@@ -45,6 +46,21 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
     catch (x) { setMsg({ ok: false, text: (x as Error).message }); }
     finally { setBusy(false); }
   };
+  const download = async (format: "pdf" | "xlsx") => {
+    setBusy(true); setMsg(null);
+    try {
+      const session = await getSupabase()?.auth.getSession();
+      const token = session?.data.session?.access_token;
+      if (!token) throw new Error("Sign in again to export this package.");
+      const response = await fetch("/api/files/package", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ id, format }) });
+      if (!response.ok) throw new Error((await response.json()).error ?? "Could not export this package.");
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a"); link.href = url; link.download = `straypaw-package-${id}.${format}`;
+      document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setMsg({ ok: true, text: `${format.toUpperCase()} download prepared.` });
+    } catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
+    finally { setBusy(false); }
+  };
   const back = side === "operator" ? { href: "/ngo/packages", label: "Report packages" } : { href: "/city/review", label: "Package review" };
 
   return (
@@ -59,7 +75,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
           <header className="ngo-head abc-head">
             <div><h1>{p.title}</h1></div>
             <p className="ngo-sum">{org} · {period(p)}{p.submitted_at ? ` · submitted ${when(p.submitted_at)}` : ""}{p.decided_by_name ? ` · ${PACKAGE_LABEL[p.status].toLowerCase()} by ${p.decided_by_name}` : ""}</p>
-            <div className="row ngo-head-act"><span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span></div>
+            <div className="row ngo-head-act"><span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span><button type="button" className="btn is-s" disabled={busy} onClick={() => void download("pdf")}>Download PDF</button><button type="button" className="btn is-s" disabled={busy} onClick={() => void download("xlsx")}>Download XLSX</button></div>
           </header>
           {msg && <p className={msg.ok ? "abc-ok" : "abc-err"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
           <div className="abc-grid">

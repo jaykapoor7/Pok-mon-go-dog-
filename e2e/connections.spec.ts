@@ -21,7 +21,9 @@ test("connection APIs refuse requests without a session", async ({ request }) =>
 });
 
 test("an OAuth callback without a valid signed state is refused", async ({ request }) => {
-  const r = await request.get("/api/connections/google/callback?code=abc&state=forged.state", { maxRedirects: 0 });
+  // Resolve the host redirect before checking the application callback.
+  const origin = new URL((await request.get("/")).url()).origin;
+  const r = await request.get(`${origin}/api/connections/google/callback?code=abc&state=forged.state`, { maxRedirects: 0, headers: { Cookie: "sp_conn_google=%" } });
   expect(r.status()).toBeGreaterThanOrEqual(300);
   expect(r.status()).toBeLessThan(400);
   expect(r.headers()["location"]).toMatch(/connection=error/);

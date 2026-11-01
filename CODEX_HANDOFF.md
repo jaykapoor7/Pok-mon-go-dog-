@@ -1,6 +1,12 @@
 # Handoff for Codex (backend reliability, data, AI execution, security)
 
-Main, as of this handoff. Production: https://straypaw.org.
+Production: https://www.straypaw.org (the apex redirects here).
+
+## Continuation — 1 November 2026
+
+Read [the current gap matrix and actual verification results](docs/sp4/CONTINUATION-2026-11-01.md) before relying on the historical notes below. This continuation adds Kaju reliability/ABC/Academy tools, explicit export tenant scoping, package PDF/XLSX downloads, OAuth malformed-cookie handling and reference-based Explorer key poses. Full role workflows, real-model/provider operation, recurring intelligence and full articulated Explorer animation remain unverified or incomplete. WhatsApp remains disconnected. No database changes or cleanup were executed.
+
+The old vector rig is retained in `src/kaju/Rig.tsx`; the live `Kaju.tsx` renderer shares one Explorer atlas across existing placements. See `KAJU_CHARACTER.md` for motion limits.
 
 ## 1. Commits on main (this phase)
 | Commit | Change |
@@ -41,9 +47,9 @@ See `KAJU_CHARACTER.md`. The mascot reads only the agent's real state (`busy`, `
 
 ## 5. Server-side agent work for Codex
 - Set `ANTHROPIC_API_KEY` and test the tool-use loop end to end against staging data.
-- Add Kaju-native read tools for ABC verification (queue, package status) to `tools.ts`. The UI already handles the citations.
+- ABC queue and package status read tools are implemented; verify them with real coordinator and municipal sessions.
 - `withTools` routing for connection intents (email or calendar without a model) is minimal by design. Extend it once the model is live.
-- Rate-limit `/api/ai` per user as well as per IP.
+- Per-user and IP buckets are implemented; the existing shared limiter still fails open on database/configuration failure.
 
 ## 6. Marketing figures that need authoritative verification
 - Homepage "Customer results": imported historical register counts from `src/sp3/customers.ts` STORIES (Pawsome, Kind Hour), labelled as historical.
@@ -60,7 +66,7 @@ See `KAJU_CHARACTER.md`. The mascot reads only the agent's real state (`busy`, `
 - **Storage:** reviewers can read evidence files only for packages submitted to their office (storage policy `abc_evidence_read`).
 - **Gaps:**
   - No reviewing office exists in production yet.
-  - No PDF or XLSX package export from the reviewer view.
+  - PDF/XLSX downloads are implemented with session-scoped package reads; authenticated browser and cross-tenant proof remain required.
 
 ## 9. Known data inconsistencies
 - 2,280 imported cases are `verified` and should be `source_record`.

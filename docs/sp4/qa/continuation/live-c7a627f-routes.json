@@ -1,0 +1,244 @@
+[
+  {
+    "device": "desktop",
+    "route": "/",
+    "status": 200,
+    "final": "/",
+    "overflow": false,
+    "heading": [
+      "Meet Kaju, the AI that verifies every sterilisation "
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/sign-in",
+    "status": 200,
+    "final": "/sign-in",
+    "overflow": false,
+    "heading": [
+      "AttentionAuthorised users only"
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/pricing",
+    "status": 200,
+    "final": "/pricing",
+    "overflow": false,
+    "heading": [
+      "Pricing that fits the programme"
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/assistant",
+    "status": 200,
+    "final": "/assistant",
+    "overflow": false,
+    "heading": [
+      "Ask Kaju."
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/ngo",
+    "status": 200,
+    "final": "/ngo",
+    "overflow": false,
+    "heading": [
+      "Your organisation’s work, in one place."
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/ngo/work",
+    "status": 200,
+    "final": "/ngo/work",
+    "overflow": false,
+    "heading": [
+      "Your organisation’s work, in one place."
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/ngo/verification",
+    "status": 200,
+    "final": "/ngo/verification",
+    "overflow": false,
+    "heading": [
+      "Verification, for your organisation."
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/ngo/packages",
+    "status": 200,
+    "final": "/ngo/packages",
+    "overflow": false,
+    "heading": [
+      "Report packages, for your organisation."
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/city/review",
+    "status": 200,
+    "final": "/city/review",
+    "overflow": false,
+    "heading": [
+      "Package review, for reviewing offices."
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/ngo/settings/connections",
+    "status": 200,
+    "final": "/ngo/settings/connections",
+    "overflow": false,
+    "heading": [
+      "Connections"
+    ],
+    "errors": []
+  },
+  {
+    "device": "desktop",
+    "route": "/city/connections",
+    "status": 200,
+    "final": "/city/connections",
+    "overflow": false,
+    "heading": [
+      "Connections"
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/",
+    "status": 200,
+    "final": "/",
+    "overflow": false,
+    "heading": [
+      "Meet Kaju, the AI that verifies every sterilisation "
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/sign-in",
+    "status": 200,
+    "final": "/sign-in",
+    "overflow": false,
+    "heading": [
+      "AttentionAuthorised users only"
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/pricing",
+    "status": 200,
+    "final": "/pricing",
+    "overflow": false,
+    "heading": [
+      "Pricing that fits the programme"
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/assistant",
+    "status": 200,
+    "final": "/assistant",
+    "overflow": false,
+    "heading": [
+      "Ask Kaju."
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/ngo",
+    "status": 200,
+    "final": "/ngo",
+    "overflow": false,
+    "heading": [
+      "Your organisation’s work, in one place."
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/ngo/work",
+    "status": 200,
+    "final": "/ngo/work",
+    "overflow": false,
+    "heading": [
+      "Your organisation’s work, in one place."
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/ngo/verification",
+    "status": 200,
+    "final": "/ngo/verification",
+    "overflow": false,
+    "heading": [
+      "Verification, for your organisation."
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/ngo/packages",
+    "status": 200,
+    "final": "/ngo/packages",
+    "overflow": false,
+    "heading": [
+      "Report packages, for your organisation."
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/city/review",
+    "status": 200,
+    "final": "/city/review",
+    "overflow": false,
+    "heading": [
+      "Package review, for reviewing offices."
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/ngo/settings/connections",
+    "status": 200,
+    "final": "/ngo/settings/connections",
+    "overflow": false,
+    "heading": [
+      "Connections"
+    ],
+    "errors": []
+  },
+  {
+    "device": "phone",
+    "route": "/city/connections",
+    "status": 200,
+    "final": "/city/connections",
+    "overflow": false,
+    "heading": [
+      "Connections"
+    ],
+    "errors": []
+  }
+]

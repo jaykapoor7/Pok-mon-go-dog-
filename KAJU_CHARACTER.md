@@ -2,7 +2,15 @@
 
 Kaju is StrayPaw's AI agent. The puppy is Kaju's mascot: one character that shows what the agent is doing. He is not a second agent.
 
-## Identity
+## Canonical reference (1 November 2026)
+
+The owner-supplied Kaju Explorer character sheet supersedes earlier breed or imaginary-creature descriptions. Preserve its honey/apricot tactile coat, cream cheeks and chest, white forehead blaze, large brown eyes, left floppy/right upright ears, rounded paws, cream-tipped bushy tail, navy collar and gold shield pendant. Do not add equipment or alternate identities.
+
+`public/kaju/explorer-atlas.png` is a generated derivative of that supplied reference, with six illustrated key poses. It is not the original supplied sheet or a pixel-exact reproduction. The same atlas supplies every live `Kaju` and `KajuFace` placement.
+
+The state/controller/presence APIs are preserved; the previous articulated SVG is retained in `src/kaju/Rig.tsx` for further rig work. Current Explorer motion is restrained breathing with state-driven key-pose changes. Walking, trotting, blinking, ear/tail motion and smooth skeletal transitions are **not yet represented by full animation frames**. Do not describe those as finished.
+
+## Earlier rig identity (retained implementation reference)
 - **Breed:** an Indian indie puppy.
 - **Coat:** warm biscuit and honey-brown fur, with a cream muzzle and chest and a small white chest patch.
 - **Ears:** one upright, one floppy.
@@ -10,7 +18,7 @@ Kaju is StrayPaw's AI agent. The puppy is Kaju's mascot: one character that show
 - **Body:** rounded paws and a slightly curled tail.
 - **Voice:** warm, observant, calm and professional, with no pet talk. For example: "I found four records missing release photos."
 
-## Palette (`KAJU` in `src/kaju/Kaju.tsx`)
+## Palette (`KAJU` in `src/kaju/Rig.tsx`)
 | Part | Colour |
 |---|---|
 | Fur | #C98A3E |
@@ -24,7 +32,7 @@ Kaju is StrayPaw's AI agent. The puppy is Kaju's mascot: one character that show
 | Tongue | #E77F7A |
 | Line | #8E5A22 |
 
-## Rig
+## Retained vector rig
 - **Implementation:** a single articulated SVG with a 240×200 view box.
 - **Parts:** torso, head (scaled 1.2), tail and four legs. Each part is drawn around its own joint.
 - **Two layers per part:**

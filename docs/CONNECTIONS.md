@@ -3,7 +3,9 @@
 Settings → Connections (`/ngo/settings/connections`, municipal reviewers: `/city/connections`).
 Kaju works with a person's Google Workspace or Microsoft 365 account, and with files directly.
 
-## What works where
+## Implemented capabilities (provider availability requires verification)
+
+As checked on 1 November 2026, production has no provider credentials or connections encryption key configured. The table describes implemented adapters, not live integrations. Native-file and map-format checks pass locally; real-account workflows remain unverified. See [continuation results](sp4/CONTINUATION-2026-11-01.md).
 
 | Area | What Kaju does | Writes outside StrayPaw? |
 |---|---|---|
@@ -33,7 +35,7 @@ Kaju is given a connection tool only when the person has connected an account th
   * Microsoft has no per-app revocation call. Users can also remove the app at myapps.microsoft.com.
 * **Refresh:** expired tokens refresh automatically. A refusal marks the connection "Reconnect needed".
 * **Tests:**
-  * `scripts/test-connections.ts`: 23 checks.
+  * `npm run test:connections`: 33 isolated checks (including five native-format round trips and CSV injection protection).
   * `e2e/connections.spec.ts`
   * The staging RLS check: 9 of 9.
 
@@ -78,4 +80,4 @@ Until these are set in Vercel (Production) and the site is redeployed, both prov
    * Kaju saves a report.
    * Disconnect works.
 
-Only after step 4 passes should a provider be described as live anywhere on the site.
+Only after the real-account checks in step 7 pass for that provider should it be described as live anywhere on the site.

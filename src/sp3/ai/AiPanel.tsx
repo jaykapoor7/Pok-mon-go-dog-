@@ -54,7 +54,8 @@ export function useKajuMood(): KajuState {
     else if (last?.role === "assistant" && last.error) setState("concerned");
     else if (last?.role === "assistant" && last.reply) {
       const found = (last.reply.citations?.length ?? 0) > 0 || (last.reply.proposals?.length ?? 0) > 0;
-      setState(found ? "success" : "explaining");
+      const incomplete = last.reply.tools.some((tool) => !tool.ok) || last.reply.notice?.includes("incomplete");
+      setState(incomplete ? "concerned" : found ? "success" : "explaining");
       t = window.setTimeout(() => setState("listening"), 1600);
     } else if (ai.open && !prevOpen.current) { setState("greeting"); t = window.setTimeout(() => setState("listening"), 1500); }
     else setState("listening");
