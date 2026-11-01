@@ -5,8 +5,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 if(!fixture)throw Error('Isolated staging fixture required');
 const db=createClient(process.env.STAGING_URL,fixture.anon,{auth:{persistSession:false}});
-const {data,error}=await db.auth.signInWithPassword({email:fixture.users.coord.email,password:fixture.password});if(error)throw error;
-const latest=()=>db.from('kaju_check_runs').select('id,ngo_id,checked_at').eq('ngo_id',fixture.ngo).order('checked_at',{ascending:false}).limit(1).maybeSingle();
+const role=process.env.STAGING_ROLE??'coord';assert.ok(['coord','other'].includes(role));
+const {data,error}=await db.auth.signInWithPassword({email:fixture.users[role].email,password:fixture.password});if(error)throw error;
+const own=await db.rpc('my_ngo');if(own.error)throw own.error;const org=own.data;assert.ok(org);
+const existing=await db.from('kaju_check_runs').select('id').eq('ngo_id',org).limit(1);if(existing.error)throw existing.error;if(!existing.data.length){const check=await db.rpc('kaju_refresh_checks');if(check.error)throw check.error}
+const latest=()=>db.from('kaju_check_runs').select('id,ngo_id,checked_at,findings').eq('ngo_id',org).order('checked_at',{ascending:false}).limit(1).maybeSingle();
 const before=await latest();if(before.error)throw before.error;
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',proxy:process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY,bypass:'localhost,127.0.0.1'}:undefined});
 try{const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});await context.addInitScript(([k,v])=>{localStorage.setItem(k,v);localStorage.setItem('straypaw.notice.storage.v1','1');localStorage.setItem('straypaw.analytics.optout','1');localStorage.setItem('straypaw.tour.v2','1')},[`sb-${fixture.ref}-auth-token`,JSON.stringify(data.session)]);
@@ -15,11 +18,12 @@ try{const context=await browser.newContext({viewport:{width:390,height:844},redu
  if(process.env.QA_BYPASS_FILE){const access=JSON.parse(fs.readFileSync(process.env.QA_BYPASS_FILE,'utf8'));await page.goto(access.url??`${base}?_vercel_share=${encodeURIComponent(access.secret)}`)}
  await page.goto(base+'/ngo');
  const section=page.getByRole('region',{name:'Kaju activity'});await expect(section).toBeVisible();await expect(section.locator('time')).toHaveCount(1);
+ if(before.data.findings.some(f=>f.configured===false))await expect(section.getByText('reporting deadline: not set',{exact:true})).toBeVisible();
  const response=page.waitForResponse(r=>r.url().endsWith('/api/ai')&&r.request().method()==='POST');await section.getByRole('button',{name:'Check records with Kaju'}).click();const reply=await (await response).json();assert.ok(reply.tools.some(t=>t.name==='operations_insights'&&t.ok),JSON.stringify(reply));if(base.startsWith('https://'))assert.equal(reply.engine,'model',reply.notice);
- const after=await latest();if(after.error)throw after.error;assert.ok(after.data?.id);assert.notEqual(after.data.id,before.data?.id);assert.equal(after.data.ngo_id,fixture.ngo);
+ const after=await latest();if(after.error)throw after.error;assert.ok(after.data?.id);assert.notEqual(after.data.id,before.data?.id);assert.equal(after.data.ngo_id,org);
  await expect(section.locator('time')).toHaveAttribute('dateTime',after.data.checked_at);
  await page.getByRole('button',{name:'Close Kaju',exact:true}).click();await section.scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/straypaw-kaju-activity-phone.png',fullPage:true});
- const other=createClient(process.env.STAGING_URL,fixture.anon,{auth:{persistSession:false}});const auth=await other.auth.signInWithPassword({email:fixture.users.other.email,password:fixture.password});if(auth.error)throw auth.error;
+ const other=createClient(process.env.STAGING_URL,fixture.anon,{auth:{persistSession:false}});const auth=await other.auth.signInWithPassword({email:fixture.users[role==='other'?'coord':'other'].email,password:fixture.password});if(auth.error)throw auth.error;
  const forbidden=await other.from('kaju_check_runs').select('id').eq('id',after.data.id);assert.deepEqual(forbidden.data,[]);
  console.log(`PASS real dashboard snapshot, UI-triggered scoped check (${reply.engine}), immediate readback and another organisation denied`);
 }finally{await browser.close()}
