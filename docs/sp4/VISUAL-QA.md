@@ -25,14 +25,15 @@ Screenshots: [`docs/sp4/qa/`](qa/).
 | 14 | Municipal package review: records, evidence, signers, query/accept/return | municipal reviewer | `14-municipal-package-review-*` |
 | 15 | Municipal overview (findings) | municipal reviewer | `15-municipal-overview-*` |
 
-## Sidebar by role
+## Sidebar by role (2026-11: six places, screens as tabs)
 
-| Role | Sidebar (More holds the rest) |
-|---|---|
-| Coordinator / admin | Home, Inbox, Work queue · Verification, Animals, Programmes, Report packages, Map · StrayPaw AI (+ Team for admins) |
-| Veterinarian | Home · Verification, Animals, Map · StrayPaw AI |
-| Field staff | Home, Inbox, Work queue · Field operations, Verification, Animals, Map · StrayPaw AI |
-| Municipal reviewer | Package review, Overview · Programmes, Reports, Map · StrayPaw AI |
+| Role | Sidebar | Tabs inside |
+|---|---|---|
+| Lead / admin | Home, Work queue, Animals, Programmes, Reports, Team & settings · Kaju | Work queue · Inbox · Field mode / Register · Map / Programmes · Verification / Report packages · Reports & proof / Team · Settings · Connections |
+| Coordinator | Home, Work queue, Animals, Programmes, Reports · Kaju | as above, without Team |
+| Veterinarian | Home, Animals, Programmes (opens Verification) · Kaju | Programmes · Verification |
+| Field staff | Home, Work queue, Animals, Programmes · Kaju | Work queue · Inbox · Field mode |
+| Municipal reviewer | Package review, Overview · Programmes, Reports, Map · Kaju | — |
 
 ## Checked on every screen
 

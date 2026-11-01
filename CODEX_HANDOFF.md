@@ -89,4 +89,11 @@ These are covered by the cleanup proposal and are not executed. Staging has some
 - WhatsApp is not connected; Meta verification is pending.
 - Government e-Office is planned; there is no public API.
 - Microsoft disconnect cannot revoke at Microsoft; users remove the app at myapps.microsoft.com.
-- **App navigation:** the sidebar keeps role-based modules (Verification, Report packages, Field operations stay first-class) rather than the six-item structure in the brief. Merging Inbox into Work queue and Map into Animals needs product sign-off, because coordinators and vets use those modules directly.
+- **App navigation:** the NGO sidebar has six places: Home · Work queue · Animals · Programmes · Reports · Team & settings, plus Kaju.
+  - Each place's screens are tabs at the top of its list pages (`TAB_GROUPS` in `src/sp/shell/workspaces.ts`):
+    - Work queue · Inbox · Field mode
+    - Register · Map
+    - Programmes · Verification
+    - Report packages · Reports & proof
+    - Team · Settings · Connections
+  - Role-aware: a vet's Programmes opens Verification. Field staff don't see Reports or Team.

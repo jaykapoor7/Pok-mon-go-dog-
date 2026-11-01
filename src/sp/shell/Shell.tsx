@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
-import { ORDER, WORKSPACES, currentDest, lastWorkspace, navOn, rememberWorkspace, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
+import { ORDER, WORKSPACES, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
 import { AiPanel, AiProvider, KajuMark, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
@@ -55,7 +55,7 @@ const ICON: Record<string, typeof MapIcon> = {
 };
 const DEST_ICON: Record<string, typeof MapIcon> = {
   "/community": MapIcon, "/community/report": Radio, "/community/activity": Activity,
-  "/ngo": Compass, "/ngo/animals": PawPrint, "/ngo/map": MapIcon,
+  "/ngo": Compass, "/ngo/animals": PawPrint, "/ngo/map": MapIcon, "/ngo/programmes": Layers,
   "/city": Landmark, "/city/programmes": Layers, "/city/review": ClipboardCheck, "/city/insights": FileText,
   "/learn": GraduationCap, "/learn/workshops": Users, "/learn/resources": BookOpen,
 };
@@ -230,7 +230,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </div>
           </header>
 
-          <main id="sp-main" className="sp-main" tabIndex={-1}>{children}</main>
+          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} />{children}</main>
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
@@ -259,7 +259,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 function visibleNav(items: NavItem[], role: Role | null, reviewer: boolean) {
   let group: string | undefined;
   const tagged = items.map((n) => { if (n.section) group = n.section; return { item: n, group }; })
-    .filter(({ item }) => (!item.roles || !role || item.roles.includes(role)) && (!item.reviewer || reviewer));
+    .filter(({ item }) => (!item.roles || !role || item.roles.includes(role)) && (!item.reviewer || reviewer))
+    .map(({ item, group: g }) => ({ item: role && item.hrefFor?.[role] ? { ...item, href: item.hrefFor[role]! } : item, group: g }));
   let last: string | undefined;
   return tagged.map(({ item, group: g }) => { const label = g && g !== last ? g : undefined; last = g; return { item, label }; });
 }
@@ -326,5 +327,16 @@ function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () =>
         <footer className="sp-more-foot"><Link href="/" onClick={onClose}>Main site</Link><Link href="/docs" onClick={onClose}>Help</Link><Link href="/contact" onClick={onClose}>Contact</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
       </div>
     </dialog>
+  );
+}
+
+/** The screens inside the current sidebar place, as tabs above the page. */
+function SectionTabs({ path, role }: { path: string; role: Role | null }) {
+  const t = tabsFor(path, role);
+  if (!t) return null;
+  return (
+    <nav className="sx3-tabs" aria-label="In this section">
+      {t.tabs.map((x) => <Link key={x.href} href={x.href} aria-current={x.href === t.on ? "page" : undefined}>{x.label}</Link>)}
+    </nav>
   );
 }

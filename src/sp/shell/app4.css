@@ -295,3 +295,12 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp.sx3 .sx3-kaju-nook + .sx3-side-foot { margin-top: 0; }
 @media (max-height: 780px) { .sp.sx3 .sx3-kaju-nook + .sx3-side-foot { margin-top: auto; } }
 .sx3.is-collapsed .sx3-kaju-nook + .sx3-side-foot { margin-top: auto; }
+
+/* Section tabs: the screens inside one sidebar place */
+.sp.sx3 .sx3-tabs { display: flex; gap: 4px; padding: 14px 0 0; border-bottom: 1px solid var(--s3-line); overflow-x: auto; scrollbar-width: none; }
+.sp.sx3 .sx3-tabs a { padding: 8px 12px 10px; font-size: 14px; color: #5f6b7e; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.sp.sx3 .sx3-tabs a:hover { color: var(--s3-ink, #0b1e3d); }
+.sp.sx3 .sx3-tabs a[aria-current="page"] { color: var(--s3-ink, #0b1e3d); font-weight: 500; border-bottom-color: var(--s3-ink, #0b1e3d); }
+.sp.sx3 .sx3-tabs a:focus-visible { outline: 2px solid var(--s3-blue, #2457ce); outline-offset: -2px; border-radius: 6px; }
+.sp.sx3 .sx3-tabs a:first-child { padding-left: 0; }
+@media (max-width: 720px) { .sp.sx3 .sx3-tabs { padding: 10px 16px 0; } }

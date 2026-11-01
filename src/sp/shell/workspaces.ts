@@ -19,7 +19,9 @@ export type Role = "admin" | "coordinator" | "veterinarian" | "member";
     following items; `roles` limits the item to those organisation roles
     (no role known: every item shows); `reviewer` shows it only to people in
     a reviewing office. Display only: the database checks every action. */
-export type NavItem = { href: string; label: string; icon: string; match?: string[]; exact?: boolean; tone?: string; section?: string; roles?: Role[]; reviewer?: boolean };
+export type NavItem = { href: string; label: string; icon: string; match?: string[]; exact?: boolean; tone?: string; section?: string; roles?: Role[]; reviewer?: boolean;
+  /** Where the item leads for a given role (a vet's Programmes opens Verification). */
+  hrefFor?: Partial<Record<Role, string>> };
 export type IndexGroup = { label: string; links: { href: string; label: string; note?: string }[] };
 
 export type Workspace = {
@@ -75,24 +77,22 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
     id: "ngo", label: "NGO", purpose: "Implementing agencies: work queue, animal register and fieldwork", ink: "#1f6f80",
     home: "/ngo", members: true, settings: "/ngo/settings",
     dests: [
-      { href: "/ngo", label: "Home", match: ["/ngo/work", "/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field", "/ngo/verification", "/ngo/packages"] },
-      { href: "/ngo/animals", label: "Animals", match: ["/ngo/import"] },
-      { href: "/ngo/map", label: "Map", match: ["/ngo/programmes"] },
+      { href: "/ngo", label: "Home", match: ["/ngo/work", "/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field"] },
+      { href: "/ngo/animals", label: "Animals", match: ["/ngo/import", "/ngo/map", "/ngo/care"] },
+      { href: "/ngo/programmes", label: "Programmes", match: ["/ngo/verification", "/ngo/packages", "/ngo/proof"] },
     ],
     action: { href: "/ngo/cases/new", label: "New case", short: "New" },
+    /* Six places; every screen stays one click away through the section's tabs (TAB_GROUPS). */
     nav: [
       { href: "/ngo", label: "Home", icon: "home", exact: true },
-      { href: "/ngo/inbox", label: "Inbox", icon: "inbox", roles: ["admin", "coordinator", "member"] },
-      { href: "/ngo/work", label: "Work queue", icon: "list", match: ["/ngo/cases"], roles: ["admin", "coordinator", "member"] },
-      { href: "/ngo/field", label: "Field operations", icon: "phone", tone: "green", section: "Modules", roles: ["member"] },
-      { href: "/ngo/verification", label: "Verification", icon: "shield", tone: "violet", section: "Modules" },
-      { href: "/ngo/animals", label: "Animals", icon: "paw", match: ["/ngo/import"], tone: "blue" },
-      { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal", roles: ["admin", "coordinator"] },
-      { href: "/ngo/packages", label: "Report packages", icon: "check", tone: "amber", roles: ["admin", "coordinator"] },
-      { href: "/ngo/map", label: "Map", icon: "map", tone: "flame" },
+      { href: "/ngo/work", label: "Work queue", icon: "list", match: ["/ngo/cases", "/ngo/inbox", "/ngo/field", "/ngo/review", "/ngo/quality"], roles: ["admin", "coordinator", "member"] },
+      { href: "/ngo/animals", label: "Animals", icon: "paw", tone: "blue", section: "Modules", match: ["/ngo/map", "/ngo/import", "/ngo/care"] },
+      { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal", match: ["/ngo/verification"], hrefFor: { veterinarian: "/ngo/verification" } },
+      { href: "/ngo/packages", label: "Reports", icon: "check", tone: "amber", match: ["/ngo/proof"], roles: ["admin", "coordinator"] },
+      { href: "/ngo/team", label: "Team & settings", icon: "users", tone: "slate", match: ["/ngo/settings", "/ngo/volunteers"], roles: ["admin"] },
       { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
-      { href: "/ngo/team", label: "Team & access", icon: "users", tone: "slate", roles: ["admin"] },
     ],
+
     index: [
       { label: "Your register", links: [
         { href: "/ngo/import", label: "Import your register", note: "Excel or CSV, as your team keeps it" },
@@ -215,4 +215,24 @@ const KEY = "sp2.workspace";
 export function rememberWorkspace(id: WorkspaceId) { try { sessionStorage.setItem(KEY, id); } catch { /* storage blocked */ } }
 export function lastWorkspace(): WorkspaceId | null {
   try { const v = sessionStorage.getItem(KEY); return v && v in WORKSPACES ? (v as WorkspaceId) : null; } catch { return null; }
+}
+
+/* ── Section tabs: the screens inside one sidebar place ─────────────── */
+export type Tab = { href: string; label: string; roles?: Role[] };
+export const TAB_GROUPS: Tab[][] = [
+  [{ href: "/ngo/work", label: "Work queue", roles: ["admin", "coordinator", "member"] }, { href: "/ngo/inbox", label: "Inbox", roles: ["admin", "coordinator", "member"] }, { href: "/ngo/field", label: "Field mode", roles: ["admin", "coordinator", "member"] }],
+  [{ href: "/ngo/animals", label: "Register" }, { href: "/ngo/map", label: "Map" }],
+  [{ href: "/ngo/programmes", label: "Programmes" }, { href: "/ngo/verification", label: "Verification" }],
+  [{ href: "/ngo/packages", label: "Report packages", roles: ["admin", "coordinator"] }, { href: "/ngo/proof", label: "Reports & proof", roles: ["admin", "coordinator"] }],
+  [{ href: "/ngo/team", label: "Team", roles: ["admin"] }, { href: "/ngo/settings", label: "Settings" }, { href: "/ngo/settings/connections", label: "Connections" }],
+];
+/** The tabs to show on this exact screen (list screens only, not record pages). */
+export function tabsFor(path: string, role: Role | null): { tabs: Tab[]; on: string } | null {
+  for (const g of TAB_GROUPS) {
+    const hit = g.find((t) => t.href === path);
+    if (!hit) continue;
+    const tabs = g.filter((t) => !t.roles || !role || t.roles.includes(role));
+    return tabs.length > 1 ? { tabs, on: hit.href } : null;
+  }
+  return null;
 }

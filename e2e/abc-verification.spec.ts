@@ -11,9 +11,14 @@ test("verification is a module of the NGO workspace and asks a visitor to sign i
   await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
   if (!isMobile) {
     const side = page.getByRole("complementary", { name: "Workspace" });
-    await expect(side.getByRole("link", { name: "Verification" })).toHaveAttribute("aria-current", "page");
-    await expect(side.getByRole("link", { name: "Report packages" })).toBeVisible();
+    /* Six places in the sidebar; Verification is a tab inside Programmes. */
+    await expect(side.getByRole("link", { name: "Programmes" })).toHaveAttribute("aria-current", "page");
+    await expect(side.getByRole("link", { name: "Reports" })).toBeVisible();
+    for (const gone of ["Verification", "Report packages", "Inbox", "Map", "Field operations"]) await expect(side.getByRole("link", { name: gone, exact: true })).toHaveCount(0);
   }
+  const tabs = page.getByRole("navigation", { name: "In this section" });
+  await expect(tabs.getByRole("link", { name: "Verification" })).toHaveAttribute("aria-current", "page");
+  await expect(tabs.getByRole("link", { name: "Programmes" })).toHaveAttribute("href", "/ngo/programmes");
 });
 
 test("report packages ask a visitor to sign in", async ({ page }) => {
