@@ -23,9 +23,9 @@ test("consolidated URLs redirect to their 3.0 homes", async ({ request }) => {
   }
 });
 
-test("homepage leads with the operator product and a labelled demo", async ({ page }) => {
+test("homepage introduces the general platform and a labelled demo", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/ABC operations\.\s*Evidence at every step\./);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/The platform for\s*animal welfare programmes\./);
   await expect(page.locator(".s4-hero").getByRole("link", { name: "Book a demo" })).toHaveAttribute("href", "/demo");
   await expect(page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ })).toBeVisible();
   await expect(page.getByText("Product demo · illustrative records, not live programme data")).toBeAttached();
@@ -86,15 +86,14 @@ test("the app shell carries workspace navigation, search and Kaju", async ({ pag
   await expect(panel.getByRole("textbox", { name: "Message Kaju" })).toBeVisible();
 });
 
-/* CI builds without Supabase keys: the AI must then say so (503), never
-   answer from nothing. With a record store it must answer from real tools. */
+/* A missing distributed counter denies guest questions (429). Forged
+   sessions are still checked separately; no empty answer counts as success. */
 test("Kaju answers public questions with sources and refuses a forged session", async ({ request }) => {
   const res = await request.post("/api/ai", { data: { messages: [{ role: "user", text: "What programmes are published?" }] } });
   const body = await res.json();
-  if (res.status() === 503) { expect(body.error).toMatch(/not configured/); return; }
-  expect(res.status()).toBe(200);
-  expect(body.tools.length).toBeGreaterThan(0);
-  expect(body.proposals).toEqual([]);
+  if (res.status() === 429) { expect(body.error).toMatch(/temporarily unavailable|Too many/); expect(body.text).toBeUndefined(); }
+  else if (res.status() === 503) expect(body.error).toMatch(/not configured/);
+  else { expect(res.status()).toBe(200); expect(body.tools.length).toBeGreaterThan(0); expect(body.proposals).toEqual([]); }
   const forged = await request.post("/api/ai", { headers: { Authorization: "Bearer forged" }, data: { messages: [{ role: "user", text: "summarise my work" }] } });
   expect(forged.status()).toBe(401);
 });
@@ -102,6 +101,7 @@ test("Kaju answers public questions with sources and refuses a forged session", 
 test("organisation-only AI tools refuse without an organisation", async ({ request }) => {
   const res = await request.post("/api/ai", { data: { messages: [{ role: "user", text: "Which records are missing evidence?" }] } });
   const body = await res.json();
+  if (res.status() === 429) { expect(body.error).toMatch(/temporarily unavailable|Too many/); expect(body.text).toBeUndefined(); return; }
   if (res.status() === 503) { expect(body.error).toMatch(/not configured/); return; }
   expect(body.text).toMatch(/organisation workspace/);
   expect(body.proposals).toEqual([]);

@@ -1,5 +1,7 @@
 # StrayPaw 4: visual QA (2026-10-31)
 
+1 November follow-up: final hero and Explorer captures, authenticated ABC workflow results and accessibility checks are recorded in [the release handoff](RELEASE-2026-11-01.md). The original results below remain dated evidence.
+
 Screens captured from a production build of this branch, pointed at the
 **staging** database (a separate Supabase project) and signed in as the
 staging test accounts. Desktop 1440×900, phone 390×844. Records are labelled

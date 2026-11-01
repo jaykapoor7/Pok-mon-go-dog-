@@ -29,15 +29,15 @@ export type Pose = { parts: Record<Part, T>; eyes: Eyes; mouth: Mouth; ears: Ear
 
 /* Base bodies: standing, sitting, lying. Everything else varies one. */
 const STAND: Record<Part, T> = {
-  torso: { x: 118, y: 128 }, head: { x: 150, y: 106 }, tail: { x: 78, y: 120, r: 0 },
+  torso: { x: 118, y: 138, r: 90 }, head: { x: 156, y: 104 }, tail: { x: 85, y: 142, r: -8 },
   bFar: { x: 88, y: 142, r: 4 }, bNear: { x: 99, y: 144, r: -4 }, fFar: { x: 132, y: 142, r: -3 }, fNear: { x: 142, y: 144, r: 3 },
 };
 const SIT: Record<Part, T> = {
-  torso: { x: 110, y: 144, r: -40 }, head: { x: 126, y: 100, r: -2 }, tail: { x: 80, y: 174, r: -64 },
-  bFar: { x: 88, y: 164, r: -72, sy: 0.62 }, bNear: { x: 98, y: 166, r: -70, sy: 0.62 }, fFar: { x: 126, y: 142, r: 0 }, fNear: { x: 136, y: 144, r: 2 },
+  torso: { x: 117, y: 144 }, head: { x: 126, y: 100, r: -2 }, tail: { x: 88, y: 174, r: -8 },
+  bFar: { x: 89, y: 164 }, bNear: { x: 100, y: 166 }, fFar: { x: 123, y: 142, r: 0 }, fNear: { x: 138, y: 144, r: 2 },
 };
 const LIE: Record<Part, T> = {
-  torso: { x: 116, y: 162, sy: 0.9 }, head: { x: 150, y: 152, r: 6 }, tail: { x: 76, y: 168, r: -52 },
+  torso: { x: 116, y: 162, r: 90, sx: 0.8 }, head: { x: 150, y: 152, r: 6 }, tail: { x: 84, y: 178, r: -25, sx: .8, sy: .8 },
   bFar: { x: 88, y: 170, r: -80, sy: 0.6 }, bNear: { x: 98, y: 174, r: -82, sy: 0.6 }, fFar: { x: 136, y: 174, r: -90, sy: 0.86 }, fNear: { x: 144, y: 179, r: -92, sy: 0.9 },
 };
 const w = (base: Record<Part, T>, over: Partial<Record<Part, Partial<T>>>): Record<Part, T> =>
@@ -50,10 +50,10 @@ export const POSES: Record<KajuState, Pose> = {
   standing: { parts: STAND, eyes: "open", mouth: "smile", ears: "relaxed", loops: ["breathe", "blink"], label: "standing" },
   walking: { parts: STAND, eyes: "open", mouth: "smile", ears: "relaxed", loops: ["walk", "blink", "wagSlow"], label: "walking" },
   trotting: { parts: w(STAND, { head: { r: 4 }, tail: { r: -14 } }), eyes: "happy", mouth: "open", ears: "relaxed", loops: ["trot", "wag"], label: "trotting" },
-  sleeping: { parts: w(LIE, { head: { x: 146, y: 162, r: 22 }, tail: { x: 80, y: 174, r: -112 } }), eyes: "closed", mouth: "flat", ears: "relaxed", loops: ["breathe", "zz"], shadow: 1.15, label: "sleeping" },
+  sleeping: { parts: w(LIE, { head: { x: 146, y: 163, r: 22 }, tail: { x: 83, y: 181, r: -32 } }), eyes: "closed", mouth: "flat", ears: "relaxed", loops: ["breathe", "zz"], shadow: 1.15, label: "sleeping" },
   waking: { parts: w(LIE, { head: { x: 150, y: 148, r: -8 } }), eyes: "half", mouth: "open", ears: "relaxed", loops: ["wake"], shadow: 1.15, label: "waking up" },
   stretching: {
-    parts: w(STAND, { torso: { x: 116, y: 146, r: 16 }, head: { x: 150, y: 152, r: 10 }, tail: { x: 76, y: 130, r: -26 }, bFar: { x: 88, y: 136, r: 6 }, bNear: { x: 99, y: 138, r: 0 }, fFar: { x: 138, y: 160, r: -68, sy: 0.92 }, fNear: { x: 146, y: 162, r: -72, sy: 0.92 } }),
+    parts: w(STAND, { torso: { x: 116, y: 146, r: 108 }, head: { x: 150, y: 152, r: 10 }, tail: { x: 84, y: 142, r: -12 }, bFar: { x: 88, y: 136, r: 6 }, bNear: { x: 99, y: 138, r: 0 }, fFar: { x: 138, y: 160, r: -68, sy: 0.92 }, fNear: { x: 146, y: 162, r: -72, sy: 0.92 } }),
     eyes: "closed", mouth: "open", ears: "back", loops: ["stretch"], label: "stretching",
   },
   peeking: {

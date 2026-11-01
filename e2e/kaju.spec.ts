@@ -32,12 +32,14 @@ test("the workspace is called Kaju everywhere a person reads it", async ({ page 
   expect(await page.locator("body").innerText()).not.toMatch(/StrayPaw AI\b(?!, confirmed)/);
 });
 
-test("Explorer artwork loads from the shared atlas", async ({ page, request }) => {
+test("Explorer artwork loads as an articulated rig", async ({ page, request }) => {
   await page.goto("/assistant");
   const explorer = page.locator('svg[data-kaju-art="explorer"]:visible').first();
   await expect(explorer).toBeVisible();
-  const asset = await explorer.locator('image').getAttribute('href');
-  expect(asset).toContain('explorer-atlas');
+  await expect(explorer).toHaveAttribute('data-kaju-rig', 'articulated');
+  for (const part of ['head', 'torso', 'tail', 'fFar', 'fNear', 'bFar', 'bNear']) await expect(explorer.locator(`.kj-${part}`)).toHaveCount(1);
+  const asset = await explorer.locator('image').first().getAttribute('href');
+  expect(asset).toContain('explorer-rig');
   const response = await request.get(asset!);
   expect(response.ok()).toBeTruthy();
   expect(response.headers()['content-type']).toMatch(/^image\//);

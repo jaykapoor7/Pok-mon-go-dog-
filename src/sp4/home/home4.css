@@ -1,12 +1,31 @@
 /* StrayPaw 4 — homepage sections and product fragments. */
 
 /* ── hero ─────────────────────────────────────────────────────────── */
-.s4-hero { padding: 108px 0 0; }
-.s4-hero .s4-h1 { max-width: 900px; }
+.s4-hero { position: relative; padding: 76px 0 0; background: #eef3ff; overflow: clip; }
+.s4-hero::before { content: ""; position: absolute; top: 0; right: 0; width: 33%; height: 510px; background: #e2ebff; border-bottom-left-radius: 160px; pointer-events: none; }
+.s4-hero > .s4-wrap { position: relative; }
+.s4-hero-intro { display: grid; grid-template-columns: minmax(0, 1fr) 286px; gap: 48px; align-items: center; }
+.s4-hero .s4-h1 { max-width: 940px; }
 .s4-hero .s4-lede { margin-top: 28px; max-width: 660px; }
 .s4-hero .s4-actions { margin-top: 36px; }
 .s4-hero-stage { position: relative; margin-top: 56px; }
-@media (max-width: 640px) { .s4-hero { padding-top: 56px; } .s4-hero .s4-lede { margin-top: 20px; } .s4-hero .s4-actions { margin-top: 28px; } .s4-hero-stage { margin-top: 40px; } }
+.s4-hero-kaju { display: flex; flex-direction: column; align-items: center; text-align: center; padding-bottom: 12px; }
+.s4-hero-kaju .kaju-presence { width: 286px; max-width: 100%; }
+.s4-hero-kaju-link { display: inline-flex; align-items: center; gap: 5px; color: var(--s4-ink); font-size: 18px; font-weight: 500; margin-top: 6px; }
+.s4-hero-kaju > p { font-size: 14px; line-height: 1.5; color: #4f5f7a; margin-top: 6px; }
+@media (max-width: 1100px) { .s4-hero-intro { grid-template-columns: minmax(0, 1fr) 220px; gap: 28px; } .s4-hero-kaju .kaju-presence { width: 220px; } }
+@media (max-width: 760px) {
+  .s4-hero { padding-top: 44px; }
+  .s4-hero::before { top: auto; bottom: 0; width: 54%; height: 55%; border-bottom-left-radius: 0; border-top-left-radius: 100px; }
+  .s4-hero-intro { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .s4-hero .s4-lede { margin-top: 20px; font-size: 18px; }
+  .s4-hero .s4-actions { margin-top: 26px; }
+  .s4-hero-kaju { display: grid; grid-template-columns: 140px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; text-align: left; padding: 0; max-width: 390px; }
+  .s4-hero-kaju .kaju-presence { width: 140px; grid-row: 1 / 3; }
+  .s4-hero-kaju-link { align-self: end; margin: 0; }
+  .s4-hero-kaju > p { align-self: start; font-size: 13px; }
+  .s4-hero-stage { margin-top: 28px; }
+}
 
 /* the app window */
 .s4u-win { display: grid; grid-template-columns: 230px minmax(0, 1fr); height: 700px; background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 0 0 1px rgba(11, 30, 61, 0.1), 0 40px 80px -40px rgba(11, 30, 61, 0.25); overflow: hidden; font-size: 13px; letter-spacing: -0.01em; color: var(--s4-ink); -webkit-mask-image: linear-gradient(180deg, #000 86%, transparent); mask-image: linear-gradient(180deg, #000 86%, transparent); }

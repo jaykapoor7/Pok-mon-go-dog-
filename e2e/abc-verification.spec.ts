@@ -41,8 +41,9 @@ test("municipal package review asks a visitor to sign in", async ({ page, isMobi
 
 test("the homepage introduces Kaju and what it handles", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/ABC operations\.\s*Evidence at every step\./);
-  await expect(page.getByText(/Kaju helps your team find gaps and prepare work for confirmation/)).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/The platform for\s*animal welfare programmes\./);
+  await expect(page.locator('.s4-hero-kaju').getByRole('link', {name:'Meet Kaju'})).toBeVisible();
+  await expect(page.getByText(/Kaju finds record gaps and prepares work for your team to approve/)).toBeVisible();
 });
 
 test("product fragments stay inside a phone screen (no text cut off at the edges)", async ({ page, isMobile }) => {

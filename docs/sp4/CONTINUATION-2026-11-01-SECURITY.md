@@ -1,5 +1,7 @@
 # StrayPaw continuation — security and authenticated journeys
 
+Final follow-up results and owner actions: [release handoff](RELEASE-2026-11-01.md). Later results there supersede the pending checks below.
+
 This supplements the earlier continuation. It supersedes its deployment, security, rate-limit and authenticated-workflow status. Historical-data cleanup remains unapproved and was not executed.
 
 | Area | Verified | Incomplete or externally blocked |

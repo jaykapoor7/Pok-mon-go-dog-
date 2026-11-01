@@ -4,9 +4,9 @@ Production: https://www.straypaw.org (the apex redirects here).
 
 ## Continuation — 1 November 2026
 
-Read [the current gap matrix and actual verification results](docs/sp4/CONTINUATION-2026-11-01.md) before relying on the historical notes below. This continuation adds Kaju reliability/ABC/Academy tools, explicit export tenant scoping, package PDF/XLSX downloads, OAuth malformed-cookie handling and reference-based Explorer key poses. Full role workflows, real-model/provider operation, recurring intelligence and full articulated Explorer animation remain unverified or incomplete. WhatsApp remains disconnected. No database changes or cleanup were executed.
+Read [the current release results and exact remaining owner actions](docs/sp4/RELEASE-2026-11-01.md), then [the security continuation](docs/sp4/CONTINUATION-2026-11-01-SECURITY.md). They supersede the earlier gap matrix and historical notes below. Three non-destructive security/action/check migrations were tested in staging and applied to production. The authenticated desktop/phone ABC journey, private evidence and reviewer exports passed. Recurring explained checks, confirmation receipts and independent audit readback are implemented. Live model-backed chat and real external-provider journeys remain unverified. WhatsApp stays disconnected. Historical-data cleanup was not executed.
 
-The old vector rig is retained in `src/kaju/Rig.tsx`; the live `Kaju.tsx` renderer shares one Explorer atlas across existing placements. See `KAJU_CHARACTER.md` for motion limits.
+The old vector rig is retained in `src/kaju/Rig.tsx`; the live `Kaju.tsx` now uses articulated Explorer textures, independent joints and natural face expressions across existing placements. The homepage has a broader platform heading, a “Meet Kaju” introduction and a blue hero background. See `KAJU_CHARACTER.md` and the release's saved visual evidence. Production `adc58185` was verified live; the final hero commit still needs its own served-SHA/asset check after pushing.
 
 ## 1. Commits on main (this phase)
 | Commit | Change |

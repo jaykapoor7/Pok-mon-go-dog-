@@ -1,0 +1,24 @@
+/** Render every actual component state and inspect articulation in Chromium. */
+import {renderToStaticMarkup} from 'react-dom/server';
+import {readFileSync,mkdirSync} from 'node:fs';
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {Kaju} from '../../src/kaju/Kaju';
+import {ALL_STATES} from '../../src/kaju/poses';
+const out=process.env.OUT??'/tmp/straypaw-rig';mkdirSync(out,{recursive:true});
+const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_PATH??'/usr/bin/chromium'});
+const page=await browser.newPage({viewport:{width:1440,height:1200}});
+const content=renderToStaticMarkup(<main>{ALL_STATES.map(state=><figure key={state}><Kaju state={state} size={240}/><figcaption>{state}</figcaption></figure>)}</main>);
+await page.setContent(`<base href="${process.env.BASE??'http://localhost:3100'}"><style>${readFileSync('src/kaju/kaju.css','utf8')}body{margin:0;background:#fff;color:#122441;font:14px system-ui}main{display:grid;grid-template-columns:repeat(6,1fr);gap:0}figure{margin:0;height:250px;text-align:center}figcaption{padding:8px}</style>${content}`);
+const href=await page.locator('svg.kaju image').first().getAttribute('href');
+const asset=await page.request.get(`${process.env.BASE??'http://localhost:3100'}${href}`);assert.ok(asset.ok(),'Rig image must actually load');
+await page.waitForTimeout(1200);
+await page.screenshot({path:`${out}/states.png`,fullPage:true});
+const legMotion=async()=>page.locator('.is-walking .kj-pose > .kj-loop').evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).transform));
+const before=await legMotion();await page.waitForTimeout(150);const after=await legMotion();assert.ok(before.filter((v,i)=>v!==after[i]).length>=4);
+const phases=await page.locator('.is-walking .kj-pose > .kj-loop').evaluateAll(nodes=>nodes.filter(n=>/[wt]-[fb][12]/.test(n.className.baseVal)).map(n=>getComputedStyle(n).animationDelay));assert.equal(new Set(phases).size,4);
+assert.equal(await page.locator('.is-walking .kj-knee').count(),4);
+await page.emulateMedia({reducedMotion:'reduce'});
+assert.equal(await page.locator('svg.kaju *').evaluateAll(nodes=>nodes.filter(n=>getComputedStyle(n).animationName!=='none').length),0);
+await page.screenshot({path:`${out}/states-still.png`,fullPage:true});
+await browser.close();console.log('PASS 23 states rendered; four independent walking phases; knee articulation; reduced motion stops every loop');

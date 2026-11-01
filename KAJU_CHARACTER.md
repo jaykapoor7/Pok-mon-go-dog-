@@ -6,9 +6,11 @@ Kaju is StrayPaw's AI agent. The puppy is Kaju's mascot: one character that show
 
 The owner-supplied Kaju Explorer character sheet supersedes earlier breed or imaginary-creature descriptions. Preserve its honey/apricot tactile coat, cream cheeks and chest, white forehead blaze, large brown eyes, left floppy/right upright ears, rounded paws, cream-tipped bushy tail, navy collar and gold shield pendant. Do not add equipment or alternate identities.
 
-`public/kaju/explorer-atlas.png` is a generated derivative of that supplied reference, with six illustrated key poses. It is not the original supplied sheet or a pixel-exact reproduction. The same atlas supplies every live `Kaju` and `KajuFace` placement.
+The owner-supplied sheet remains the canonical design. Assets under `public/kaju/` are generated derivatives, not the original sheet or pixel-exact reproductions. `explorer-atlas.png` retains the previous six-pose artwork for provenance; the live character now uses `explorer-rig.png`, `explorer-torso.png` and `explorer-expressions.png`.
 
-The state/controller/presence APIs are preserved; the previous articulated SVG is retained in `src/kaju/Rig.tsx` for further rig work. Current Explorer motion is restrained breathing with state-driven key-pose changes. Walking, trotting, blinking, ear/tail motion and smooth skeletal transitions are **not yet represented by full animation frames**. Do not describe those as finished.
+The existing state/controller/presence APIs and all UI placements are preserved. `src/kaju/Kaju.tsx` draws independent head, ear, tail, torso, shoulder/hip and knee joints. All 23 states use joint transforms, with four phased walking steps, diagonal trotting, knee flex, breathing, ear response, tail wag, head turns and paw gestures. Sleeping and blinking use matching fur-textured face expressions. Body posture transitions use the existing motion timing; whole-character pose images are not swapped. The earlier vector rig is retained in `src/kaju/Rig.tsx` as an implementation reference, not a second mascot.
+
+Reduced motion, ambient-off and off-screen controls must stop loops. Visual QA must inspect actual loaded artwork across all 23 states and real placements, not infer fidelity from transform tests. This is a 2D texture rig; the original character sheet remains the standard for any further anatomy or rendering refinement. Do not claim pixel-exact reproduction or owner approval of generated derivatives.
 
 ## Earlier rig identity (retained implementation reference)
 - **Breed:** an Indian indie puppy.

@@ -40,9 +40,14 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
   const [notice, setNotice] = useState(true);
   const bar = useRef<HTMLElement>(null);
   const closeTimer = useRef<number | null>(null);
+  const previousPath = useRef(path);
 
   useEffect(() => { try { if (sessionStorage.getItem(NOTICE_KEY) === "0") setNotice(false); } catch { /* storage blocked */ } }, []);
-  useEffect(() => { setMenu(null); setSheet(false); }, [path]);
+  useEffect(() => {
+    if (previousPath.current === path) return;
+    previousPath.current = path;
+    setMenu(null); setSheet(false);
+  }, [path]);
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 4);
     on(); window.addEventListener("scroll", on, { passive: true });
@@ -99,7 +104,7 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
     <header ref={bar} className={`s4 s4-nav${scrolled ? " is-scrolled" : ""}`}>
       {notice && !sheet && (
         <div className="s4-notice">
-          <p><Sparkles size={14} aria-hidden /> <span>New: Kaju is in every workspace.</span> <Link href="/ai">See how it works <ArrowRight size={14} aria-hidden /></Link></p>
+          <p><Sparkles size={14} aria-hidden /> <Link href="/ai">Meet Kaju <ArrowRight size={14} aria-hidden /></Link> <span>Checks records. Prepares work for approval.</span></p>
           <button type="button" onClick={dismiss} aria-label="Dismiss announcement"><X size={16} /></button>
         </div>
       )}

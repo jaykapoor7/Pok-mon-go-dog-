@@ -16,6 +16,7 @@ import {
 import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Stories } from "@/sp4/home/Stories";
 import { CountUp } from "@/sp4/site/Live";
+import { KajuPresence } from "@/kaju/Presence";
 import "@/sp4/home/home4.css";
 
 /** Headline words that rise one after another (CSS only; static without motion). */
@@ -25,8 +26,8 @@ function Words({ lines }: { lines: string[] }) {
 }
 
 export const metadata = {
-  title: "StrayPaw · ABC operations and verification",
-  description: "Kaju is StrayPaw's AI agent for ABC and anti-rabies programmes. It handles capture, vet sign-off, evidence checks, report packages and municipal review on one shared record.",
+  title: "StrayPaw · Animal welfare operations",
+  description: "Run animal welfare programmes on one shared record: field operations, veterinary review, evidence and municipal reporting. Kaju finds record gaps and prepares work for approval.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -71,9 +72,18 @@ export default function HomePage() {
       {/* 1 · hero */}
       <section className="s4-hero" aria-labelledby="hero-title">
         <div className="s4-wrap">
-          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["ABC operations.", "Evidence at every step."]} /></h1>
-          <p className="s4-lede">Run capture, veterinary authorisation, evidence review and municipal reporting on one shared record. Kaju helps your team find gaps and prepare work for confirmation.</p>
-          <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
+          <div className="s4-hero-intro">
+            <div className="s4-hero-copy">
+              <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["The platform for", "animal welfare programmes."]} /></h1>
+              <p className="s4-lede">Run field operations, veterinary review and municipal reporting on one shared record. Kaju finds record gaps and prepares work for your team to approve.</p>
+              <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
+            </div>
+            <div className="s4-hero-kaju">
+              <KajuPresence state="listening" size={286} />
+              <Link href="/ai" className="s4-hero-kaju-link">Meet Kaju <ArrowUpRight size={17} aria-hidden /></Link>
+              <p>Checks records. Prepares follow-ups.<br />Drafts reports for review.</p>
+            </div>
+          </div>
           <div className="s4-hero-stage"><HeroDemo /></div>
         </div>
       </section>

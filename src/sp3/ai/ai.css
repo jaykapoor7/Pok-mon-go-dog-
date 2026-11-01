@@ -53,7 +53,7 @@
 .ai3-compose textarea:focus { border-color: var(--s3-blue); box-shadow: 0 0 0 3px rgba(36, 87, 206, 0.14); }
 .ai3-send { position: absolute; right: 22px; top: 20px; width: 34px; height: 34px; border-radius: 10px; border: 0; background: var(--s3-blue); color: #fff; display: grid; place-items: center; cursor: pointer; }
 .ai3-send:disabled { background: var(--s3-line-2); cursor: not-allowed; }
-.ai3-foot { margin: 8px 2px 0; font-size: 11.5px; color: var(--s3-faint); }
+.ai3-foot { margin: 8px 2px 0; font-size: 11.5px; color: var(--s3-mute); }
 .ai3-full { flex: 1; min-height: 0; display: flex; background: var(--s3-ground); }
 .ai3-full-in { flex: 1; min-height: 0; width: min(860px, 100%); margin: 0 auto; display: flex; flex-direction: column; padding: 32px 24px 0; }
 .ai3-full-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding-bottom: 20px; }

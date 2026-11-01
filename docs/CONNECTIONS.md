@@ -5,7 +5,9 @@ Kaju works with a person's Google Workspace or Microsoft 365 account, and with f
 
 ## Implemented capabilities (provider availability requires verification)
 
-As checked on 1 November 2026, production has no provider credentials or connections encryption key configured. The table describes implemented adapters, not live integrations. Native-file and map-format checks pass locally; real-account workflows remain unverified. See [continuation results](sp4/CONTINUATION-2026-11-01.md).
+As checked on 1 November 2026, production has no provider credentials or connections encryption key configured. The table describes implemented adapters, not live integrations. Native PDF/DOCX/XLSX/CSV/PPTX exports and upload/readback, plus GeoJSON/KML coordinates, passed 16 authenticated staging HTTP checks. Browser uploads are limited to 4 MB; connected-provider file reads retain the parser's 15 MB cap. Real external-account workflows remain unverified. See [continuation results](sp4/CONTINUATION-2026-11-01-SECURITY.md).
+
+Preview uses the staging public URL/key. Configure its own staging `SUPABASE_SERVICE_ROLE_KEY` in Preview before server-side imports or token-backed Connections testing. Production secrets must not be reused in Preview. The owner deferred that credential setup; imports remain blocked there.
 
 | Area | What Kaju does | Writes outside StrayPaw? |
 |---|---|---|

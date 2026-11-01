@@ -34,7 +34,7 @@
 .sp.sx3 .sx3-quick { justify-content: center; gap: 8px; height: 32px; margin: 0 0 12px; padding: 0 10px; border-radius: 7px; background: var(--s3-blue); color: #fff; font: 500 13px var(--s3-sans); }
 .sp.sx3 .sx3-quick span { flex: none; }
 .sp.sx3 .sx3-quick:hover { background: #1d48ad; }
-.sp.sx3 .sx3-quick kbd { font: 500 10.5px var(--s3-sans); padding: 1px 5px; border-radius: 4px; background: rgba(255, 255, 255, 0.22); opacity: 1; }
+.sp.sx3 .sx3-quick kbd { font: 500 10.5px var(--s3-sans); padding: 1px 5px; border-radius: 4px; background: rgba(0, 0, 0, 0.12); opacity: 1; }
 
 .sp.sx3 .sx3-nav { gap: 1px; }
 .sp.sx3 .sx3-nav a { gap: 10px; height: 30px; padding: 0 8px; border-radius: 6px; font-size: 13.5px; font-weight: 400; color: #2b3445; }
@@ -132,8 +132,8 @@
   --shell-3: #eceef2;
   --ink-2: #2b3445;
   --ink-3: #4a5468;
-  --mute: #6f7380;
-  --muted: #6f7380;
+  --mute: #5f6b7e;
+  --muted: #5f6b7e;
   --faint: #8a8f9a;
   --line: #ebecef;
   --line-2: #e1e3e8;
