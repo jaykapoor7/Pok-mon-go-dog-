@@ -15,7 +15,7 @@ import {
   type AbcContext, type Attestation, type Checklist, type Evidence, type EvidenceKind, type HistoryRow,
 } from "@/lib/abc";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { NgoGate } from "../ngo/Gate";
+import { NgoGate, useOrgOpen } from "../ngo/Gate";
 import { Reading } from "../ui/Reading";
 import { EvidenceLink } from "./EvidenceLink";
 import "../ngo/ngo.css";
@@ -37,7 +37,8 @@ export function VerificationCase({ id }: { id: string }) {
       setD({ head, chk, ev, att, hist, ctx }); setErr(null);
     } catch (e) { if (e instanceof NotEnabled) setOff(true); else setErr((e as Error).message); }
   }, [id]);
-  useEffect(() => { void load(); }, [load]);
+  const open = useOrgOpen();
+  useEffect(() => { if (open) void load(); }, [load, open]);
 
   const act = async (fn: () => Promise<unknown>, done: string) => {
     setBusy(true); setMsg(null);

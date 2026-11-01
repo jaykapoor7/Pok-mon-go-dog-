@@ -41,7 +41,7 @@ export function Settings() {
         <header className="ngo-head">
           <div><p className="k">{org && org !== "error" ? org.name : "Your organisation"} · settings</p><h1 className="serif">Settings</h1></div>
           <p className="ngo-sum">{org && org !== "error" ? <>{org.verified ? "Verified organisation." : "Not yet verified: your public page says so."} The public sees your name, mission, city, areas of work and website. Contact details are shown only if you fill them in.</> : <Reading>Reading your organisation</Reading>}</p>
-          {org && org !== "error" && org.slug && <div className="row"><Link className="btn is-s" href={`/orgs/${org.slug}`}>Your public page</Link></div>}
+          {org && org !== "error" && org.slug && <div className="row"><Link className="btn is-s" href={`/community/organisations/${org.slug}`}>Your public page</Link></div>}
         </header>
         {org === "error" && <p className="im-err"><Ack state="failed">Your organisation&rsquo;s profile could not be read.</Ack></p>}
         {f && (

@@ -1,0 +1,422 @@
+[
+ {
+  "role": "admin",
+  "what": "desktop /ngo",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/inbox",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/work",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/verification",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/animals",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/programmes",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/packages",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/map",
+  "pass": false,
+  "detail": "200 | 1 still reading | 503 http://localhost:3200/api/livingmap?kind=cities&scope=org"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/team",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/settings",
+  "pass": false,
+  "detail": "200 | 404 http://localhost:3200/orgs/demo-coimbatore-care?_rsc=Aun7y9PDzJWGBQ8O"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /assistant",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/field",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/import",
+  "pass": false,
+  "detail": "200 | 401 http://localhost:3200/api/partner/import"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/evidence",
+  "pass": false,
+  "detail": "200 | 403 /rest/v1/documents?select=*&order=created_at.desc&limit=300"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/care",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "desktop /ngo/cases/new",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/inbox",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/work",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/verification",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/animals",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/programmes",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/packages",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/map",
+  "pass": false,
+  "detail": "200 | 1 still reading | 503 http://localhost:3200/api/livingmap?kind=cities&scope=org"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/team",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/settings",
+  "pass": false,
+  "detail": "200 | 404 http://localhost:3200/orgs/demo-coimbatore-care?_rsc=Aun7y9PDzJWGBQ8O"
+ },
+ {
+  "role": "admin",
+  "what": "phone /assistant",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/field",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/import",
+  "pass": false,
+  "detail": "200 | 401 http://localhost:3200/api/partner/import"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/evidence",
+  "pass": false,
+  "detail": "200 | 403 /rest/v1/documents?select=*&order=created_at.desc&limit=300"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/care",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "phone /ngo/cases/new",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "coordinator",
+  "what": "desktop /ngo",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "coordinator",
+  "what": "desktop /ngo/verification",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "coordinator",
+  "what": "desktop /ngo/packages",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "coordinator",
+  "what": "phone /ngo",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "coordinator",
+  "what": "phone /ngo/verification",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "coordinator",
+  "what": "phone /ngo/packages",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "veterinarian",
+  "what": "desktop /ngo",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "veterinarian",
+  "what": "desktop /ngo/verification",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "veterinarian",
+  "what": "desktop /ngo/animals",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "veterinarian",
+  "what": "phone /ngo",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "veterinarian",
+  "what": "phone /ngo/verification",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "veterinarian",
+  "what": "phone /ngo/animals",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "reviewer",
+  "what": "desktop /city/review",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "reviewer",
+  "what": "desktop /city",
+  "pass": false,
+  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=national | 503 http://localhost:3200/api/livingmap?kind=cities"
+ },
+ {
+  "role": "reviewer",
+  "what": "desktop /city/programmes",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "reviewer",
+  "what": "desktop /city/report",
+  "pass": false,
+  "detail": "200 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4"
+ },
+ {
+  "role": "reviewer",
+  "what": "desktop /city/insights",
+  "pass": false,
+  "detail": "200 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4"
+ },
+ {
+  "role": "reviewer",
+  "what": "phone /city/review",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "reviewer",
+  "what": "phone /city",
+  "pass": false,
+  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=national"
+ },
+ {
+  "role": "reviewer",
+  "what": "phone /city/programmes",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "reviewer",
+  "what": "phone /city/report",
+  "pass": false,
+  "detail": "200 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4"
+ },
+ {
+  "role": "reviewer",
+  "what": "phone /city/insights",
+  "pass": false,
+  "detail": "200 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4 | 503 http://localhost:3200/api/spatial?kind=dataset&city=Coimbatore&v=4"
+ },
+ {
+  "role": "community",
+  "what": "desktop /community",
+  "pass": false,
+  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=national | 503 http://localhost:3200/api/livingmap?kind=cities"
+ },
+ {
+  "role": "community",
+  "what": "desktop /community/report",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "community",
+  "what": "desktop /community/activity",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "community",
+  "what": "desktop /community/help",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "community",
+  "what": "desktop /ngo",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "community",
+  "what": "phone /community",
+  "pass": false,
+  "detail": "200 | 503 http://localhost:3200/api/livingmap?kind=faces | 503 http://localhost:3200/api/livingmap?kind=cities | 503 http://localhost:3200/api/livingmap?kind=national"
+ },
+ {
+  "role": "community",
+  "what": "phone /community/report",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "community",
+  "what": "phone /community/activity",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "community",
+  "what": "phone /community/help",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "community",
+  "what": "phone /ngo",
+  "pass": true,
+  "detail": "200"
+ },
+ {
+  "role": "admin",
+  "what": "Team role choices include Veterinarian and Coordinator",
+  "pass": true,
+  "detail": "Lead, Coordinator, Veterinarian, Member, Field worker"
+ },
+ {
+  "role": "coordinator",
+  "what": "Upload an evidence photo",
+  "pass": true,
+  "detail": "no case missing photo evidence; upload checked by scripts/staging/roles-evidence-check.mjs"
+ },
+ {
+  "role": "coordinator",
+  "what": "No console errors during the upload flow",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "role": "veterinarian",
+  "what": "A veterinarian is never offered evidence approval",
+  "pass": true,
+  "detail": ""
+ },
+ {
+  "role": "admin",
+  "what": "StrayPaw AI answers from records (tools engine on staging)",
+  "pass": true,
+  "detail": " Free-form answers are off on this deployment (no language model is configured). This reply comes from StrayPaw's record tools. Record tools only: no language model is configured on this deployment."
+ },
+ {
+  "role": "admin",
+  "what": "No console errors in StrayPaw AI",
+  "pass": true,
+  "detail": ""
+ }
+]

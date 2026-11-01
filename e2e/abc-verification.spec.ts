@@ -39,3 +39,27 @@ test("the homepage positions StrayPaw beyond ABC, with ABC/ARV as the first prod
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/platform for\s*animal welfare programmes/);
   await expect(page.getByText(/We start with ABC and anti-rabies programmes/)).toBeVisible();
 });
+
+test("product fragments stay inside a phone screen (no text cut off at the edges)", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "phone layout");
+  for (const path of ["/", "/ai", "/abc-operations", "/for-governments"]) {
+    await page.goto(path);
+    const cut = await page.evaluate(() => [...document.querySelectorAll(".s4u-frag p, .s4u-frag li, .s4u-frag span")]
+      .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.left < -2 || r.right > innerWidth + 2); }).length);
+    expect(cut, path).toBe(0);
+  }
+});
+
+test("every public page has exactly one main heading (mission included)", async ({ page }) => {
+  await page.goto("/mission");
+  await expect(page.locator("h1")).toHaveCount(1);
+});
+
+test("the verification queue reads nothing for a signed-out visitor", async ({ page }) => {
+  const calls: string[] = [];
+  page.on("request", (r) => { if (/rpc\/abc_/.test(r.url())) calls.push(r.url()); });
+  await page.goto("/ngo/verification");
+  await page.goto("/ngo/packages");
+  await page.waitForTimeout(800);
+  expect(calls).toEqual([]);
+});

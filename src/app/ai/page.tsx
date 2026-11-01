@@ -13,7 +13,7 @@ export default function AiPage() {
     lede: "StrayPaw AI reads the programme record you are allowed to read, answers with citations, finds what is missing and prepares records for you to confirm. It never approves anything on its own.",
     primary: { href: "/assistant", label: "Open StrayPaw AI" },
     secondary: { href: "/demo", label: "Book a demo" },
-    hero: <div style={{ display: "grid", gap: 14, justifyItems: "center" }}><AskUi /><ProposeUi /></div>,
+    hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><AskUi /><ProposeUi /></div>,
     heroV: 2,
     pillars: {
       title: ["An assistant with", "the same rules as your team"],

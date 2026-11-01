@@ -10,6 +10,13 @@ import type { ReactNode } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useMembership } from "../shell/Shell";
 
+/** True once the signed-in person is a member of an organisation: read nothing private before. */
+export function useOrgOpen() {
+  const { user, ready } = useAuth();
+  const mem = useMembership();
+  return ready && !!user && mem.ready && mem.member;
+}
+
 export function NgoGate({ title, lede, children }: { title: string; lede: string; children: ReactNode }) {
   const { user, ready } = useAuth();
   const mem = useMembership();

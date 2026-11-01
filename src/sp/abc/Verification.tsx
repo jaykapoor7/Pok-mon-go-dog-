@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { NotEnabled, STAGE_LABEL, myContext, stageOf, verificationQueue, type AbcContext, type QueueRow, type Stage } from "@/lib/abc";
-import { NgoGate } from "../ngo/Gate";
+import { NgoGate, useOrgOpen } from "../ngo/Gate";
 import { Reading } from "../ui/Reading";
 import "../ngo/ngo.css";
 import "./abc.css";
@@ -28,13 +28,15 @@ export function Verification() {
   const [off, setOff] = useState(false);
   const [stage, setStage] = useState<Stage | "all">("all");
 
+  const open = useOrgOpen();
   useEffect(() => {
+    if (!open) return;
     let live = true;
     Promise.all([verificationQueue(), myContext()])
       .then(([r, c]) => { if (live) { setRows(r); setCtx(c); } })
       .catch((e) => { if (!live) return; if (e instanceof NotEnabled) setOff(true); else setErr(e.message); });
     return () => { live = false; };
-  }, []);
+  }, [open]);
 
   const counts = useMemo(() => {
     const m = Object.fromEntries(ORDER.map((s) => [s, 0])) as Record<Stage, number>;
