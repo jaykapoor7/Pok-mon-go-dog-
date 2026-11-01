@@ -40,14 +40,14 @@ Until these are set in Vercel (Production) and the site is redeployed, both prov
 1. **Encryption key:** set `CONNECTIONS_ENC_KEY` to 32 random bytes in base64 (`openssl rand -base64 32`). Keep it secret and never change it casually: changing it disconnects everyone.
 2. **Google Workspace:**
    * In Google Cloud Console, create an OAuth client (type: Web).
-   * Authorised redirect URI: `https://www.straypaw.org/api/connections/google/callback`.
+   * Authorised redirect URI: `https://straypaw.org/api/connections/google/callback`.
    * Enable the Drive, Gmail and Google Calendar APIs.
    * Configure the OAuth consent screen with the scopes above.
    * `gmail.compose` and `drive.readonly` are restricted or sensitive scopes, so Google app verification (and possibly a security assessment) is required before people outside your test users can connect.
    * Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 3. **Microsoft 365:**
    * In Microsoft Entra, register an app, multi-tenant if NGOs and municipalities use their own tenants.
-   * Redirect URI (Web): `https://www.straypaw.org/api/connections/microsoft/callback`.
+   * Redirect URI (Web): `https://straypaw.org/api/connections/microsoft/callback`.
    * Add the delegated permissions above and create a client secret.
    * Set `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET`. Optionally set `MICROSOFT_TENANT_ID`; the default is `common`.
    * Some tenants require admin consent for `Files.Read.All` or `Sites.Read.All`.
