@@ -13,7 +13,7 @@ export default function AiPage() {
     lede: "Kaju reads the programme record you are allowed to read, answers with citations, finds what is missing and prepares records for you to confirm. It never approves anything on its own.",
     primary: { href: "/assistant", label: "Open Kaju" },
     secondary: { href: "/demo", label: "Book a demo" },
-    hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><AskUi /><ProposeUi /></div>,
+    hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><AskUi v={3} /><ProposeUi v={1} /></div>,
     heroV: 2,
     pillars: {
       title: ["An assistant with", "the same rules as your team"],
@@ -23,11 +23,11 @@ export default function AiPage() {
         { t: "Cited and logged", d: "Answers name the records they read. Confirmed changes carry the confirmer's name in the record's history." },
       ],
     },
-    extra: <section className="s4-dark" aria-labelledby="ai-title"><div className="s4-wrap"><AiBand /></div></section>,
+    extra: <section className="s4-dark" aria-labelledby="ai-title"><div className="s4-wrap"><AiBand v={1} /></div></section>,
     splits: [
-      { tag: <Status s="live" />, title: ["Ask in plain words,", "check every answer"], body: "How many releases lack a photo? Which follow-ups are overdue? Answers come with the records behind them.", ui: <AskUi />, v: 0 },
-      { tag: <Status s="live" />, title: ["From a field message", "to a draft record"], body: "Paste a message or a register row. Kaju structures it into a draft and asks for what is still missing.", ui: <ExtractUi />, v: 5 },
-      { tag: <Status s="live" />, title: ["Find the gaps", "before the report"], body: "Missing evidence, possible duplicates and unsigned procedures, found on request across the records you can read.", ui: <OvernightUi />, v: 3 },
+      { tag: <Status s="live" />, title: ["Ask in plain words,", "check every answer"], body: "How many releases lack a photo? Which follow-ups are overdue? Answers come with the records behind them.", ui: <AskUi v={4} />, v: 0 },
+      { tag: <Status s="live" />, title: ["From a field message", "to a draft record"], body: "Paste a message or a register row. Kaju structures it into a draft and asks for what is still missing.", ui: <ExtractUi v={2} />, v: 5 },
+      { tag: <Status s="live" />, title: ["Find the gaps", "before the report"], body: "Missing evidence, possible duplicates and unsigned procedures, found on request across the records you can read.", ui: <OvernightUi v={2} />, v: 3 },
     ],
     tiles: {
       title: ["What Kaju", "can and cannot do"],

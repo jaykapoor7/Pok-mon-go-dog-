@@ -37,8 +37,8 @@ export default function WhatsAppPage() {
       ],
     },
     splits: [
-      { title: ["Drafts, never", "final records"], body: "Nothing from a message is saved as a finished record. It becomes a draft in the intake queue with the original message attached.", ui: <MiniWindow title="Intake · Today" label="the intake queue with a WhatsApp draft" active={0}><QueueUi /></MiniWindow>, v: 1 },
-      { title: ["Works today", "by pasting"], body: "Until WhatsApp is connected, a coordinator can paste a forwarded message into Kaju and get the same structured draft.", ui: <ExtractUi />, v: 5 },
+      { title: ["Drafts, never", "final records"], body: "Nothing from a message is saved as a finished record. It becomes a draft in the intake queue with the original message attached.", ui: <MiniWindow title="Intake · Today" label="the intake queue with a WhatsApp draft" active={0}><QueueUi v={2} /></MiniWindow>, v: 1 },
+      { title: ["Works today", "by pasting"], body: "Until WhatsApp is connected, a coordinator can paste a forwarded message into Kaju and get the same structured draft.", ui: <ExtractUi v={3} />, v: 5 },
     ],
     extra: (
       <section className="s4-sec" aria-labelledby="wa-status">

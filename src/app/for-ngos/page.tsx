@@ -15,7 +15,7 @@ export default function OperatorsPage() {
     lede: "Field capture, treatment, evidence and follow-ups on one record, on a laptop or a phone. Report packages for the office that funds you come out of the same record.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "/sign-in?next=/ngo", label: "Sign in to your workspace" },
-    hero: <MiniWindow title="Home · Today" label="the operator's daily queue"><QueueUi /></MiniWindow>,
+    hero: <MiniWindow title="Home · Today" label="the operator's daily queue"><QueueUi v={1} /></MiniWindow>,
     heroV: 1,
     steps: {
       title: ["How a programme", "runs on StrayPaw"],
@@ -27,9 +27,9 @@ export default function OperatorsPage() {
       ],
     },
     splits: [
-      { tag: <Status s="live" />, title: ["Built for the", "field team's phone"], body: "A one-hand field mode that works on low-end Android phones and slow networks.", ui: <CaptureUi />, v: 0 },
-      { tag: <Status s="staging" />, title: ["Know what is missing", "before month end"], body: "Each animal shows the evidence your contract asks for, so gaps are fixed while the team can still fix them.", ui: <EvidenceUi />, v: 2 },
-      { tag: <Status s="live" />, title: ["Reports without", "the late nights"], body: "Programme reports, evidence workbooks and municipal reports straight from the record, in PDF and XLSX.", ui: <ReportUi />, v: 5 },
+      { tag: <Status s="live" />, title: ["Built for the", "field team's phone"], body: "A one-hand field mode that works on low-end Android phones and slow networks.", ui: <CaptureUi v={2} />, v: 0 },
+      { tag: <Status s="staging" />, title: ["Know what is missing", "before month end"], body: "Each animal shows the evidence your contract asks for, so gaps are fixed while the team can still fix them.", ui: <EvidenceUi v={2} />, v: 2 },
+      { tag: <Status s="live" />, title: ["Reports without", "the late nights"], body: "Programme reports, evidence workbooks and municipal reports straight from the record, in PDF and XLSX.", ui: <ReportUi v={4} />, v: 5 },
     ],
     tiles: {
       title: ["Everything in", "the operator workspace"],

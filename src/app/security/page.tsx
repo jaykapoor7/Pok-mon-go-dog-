@@ -12,7 +12,7 @@ export default function SecurityPage() {
     lede: "Programme records are audited, queried and paid against. StrayPaw is built so every figure can be traced, every change has a name on it, and every limitation is visible.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "/data-governance", label: "Data governance" },
-    hero: <MiniWindow title="Case SP-1067 · History" label="audit history of a case"><AuditUi /></MiniWindow>,
+    hero: <MiniWindow title="Case SP-1067 · History" label="audit history of a case"><AuditUi v={2} /></MiniWindow>,
     heroV: 4,
     tiles: {
       title: ["Controls in the product", "today"],

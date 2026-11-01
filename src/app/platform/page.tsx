@@ -24,10 +24,10 @@ export default function PlatformPage() {
       ],
     },
     splits: [
-      { title: ["The day's work,", "in one queue"], body: "Requests, drafts from the field, follow-ups due and evidence gaps arrive in one place, ready to assign.", ui: <MiniWindow title="Home · Today" label="the operator's queue"><QueueUi /></MiniWindow>, v: 1 },
-      { title: ["Answers that", "cite their records"], body: "Kaju searches what you are allowed to read, answers in plain words and names its sources.", link: { href: "/ai", label: "Kaju" }, ui: <AskUi />, v: 2 },
-      { title: ["History you", "can audit"], body: "Every change to a case writes a line with who, what and when, including changes prepared by Kaju and confirmed by a person.", link: { href: "/security", label: "Security" }, ui: <MiniWindow title="Case SP-1067 · History" label="a case's audit history"><AuditUi /></MiniWindow>, v: 3 },
-      { title: ["Reports built", "from the work"], body: "Programme and municipal reports, evidence workbooks and exports, generated from accepted records with the method attached.", ui: <ReportUi />, v: 4 },
+      { title: ["The day's work,", "in one queue"], body: "Requests, drafts from the field, follow-ups due and evidence gaps arrive in one place, ready to assign.", ui: <MiniWindow title="Home · Today" label="the operator's queue"><QueueUi v={0} /></MiniWindow>, v: 1 },
+      { title: ["Answers that", "cite their records"], body: "Kaju searches what you are allowed to read, answers in plain words and names its sources.", link: { href: "/ai", label: "Kaju" }, ui: <AskUi v={2} />, v: 2 },
+      { title: ["History you", "can audit"], body: "Every change to a case writes a line with who, what and when, including changes prepared by Kaju and confirmed by a person.", link: { href: "/security", label: "Security" }, ui: <MiniWindow title="Case SP-1067 · History" label="a case's audit history"><AuditUi v={0} /></MiniWindow>, v: 3 },
+      { title: ["Reports built", "from the work"], body: "Programme and municipal reports, evidence workbooks and exports, generated from accepted records with the method attached.", ui: <ReportUi v={5} />, v: 4 },
     ],
     modules: {
       title: ["Run and verify", "street-animal programmes"],

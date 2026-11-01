@@ -27,8 +27,8 @@ export default function RescueCarePage() {
       ],
     },
     splits: [
-      { tag: <Status s="live" />, title: ["Follow-ups that", "do not slip"], body: "Kaju can prepare the next check for you; a person confirms it and the team sees what is due.", ui: <ProposeUi />, v: 2 },
-      { tag: <Status s="live" />, title: ["A history the", "vet can trust"], body: "Every treatment and note is dated and named, so whoever picks up the case knows what happened.", ui: <MiniWindow title="Case · History" label="a case history"><AuditUi /></MiniWindow>, v: 4 },
+      { tag: <Status s="live" />, title: ["Follow-ups that", "do not slip"], body: "Kaju can prepare the next check for you; a person confirms it and the team sees what is due.", ui: <ProposeUi v={2} />, v: 2 },
+      { tag: <Status s="live" />, title: ["A history the", "vet can trust"], body: "Every treatment and note is dated and named, so whoever picks up the case knows what happened.", ui: <MiniWindow title="Case · History" label="a case history"><AuditUi v={1} /></MiniWindow>, v: 4 },
     ],
     tiles: {
       title: ["Built for", "rescue teams"],

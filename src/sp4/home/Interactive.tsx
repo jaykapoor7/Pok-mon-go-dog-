@@ -96,14 +96,23 @@ export function UseCases({ steps, title, kicker }: { steps: Step[]; title: React
   );
 }
 
-const JOBS = [
-  "Find records missing evidence before the weekly report",
-  "Flag possible duplicates in this week's captures",
-  "Draft the monthly summary for the reviewing office",
-  "Turn a field message into a draft record",
+const BANDS = [
+  { title: <>Give the routine checks{" "}<br />to Kaju</>, org: "Kaju · Ward 14 ABC Unit", link: { href: "/ai", label: "See Kaju" }, jobs: [
+    "Find records missing evidence before the weekly report",
+    "Flag possible duplicates in this week's captures",
+    "Draft the monthly summary for the reviewing office",
+    "Turn a field message into a draft record",
+  ] },
+  { title: <>Kaju works for{" "}<br />every role</>, org: "Kaju · Zone 5 ARV programme", link: { href: "/assistant", label: "Open Kaju" }, jobs: [
+    "Show a vet which surgeries still need their signature",
+    "Remind the field team which second doses are due",
+    "List what the coordinator must fix before month end",
+    "Answer the reviewing office's query with the records behind it",
+  ] },
 ];
 
-export function AiBand() {
+export function AiBand({ v = 0 }: { v?: number }) {
+  const band = BANDS[v % BANDS.length], JOBS = band.jobs;
   const [i, setI] = useState(0);
   const [held, setHeld] = useState(false);
   const [still, setStill] = useState(false);
@@ -123,7 +132,7 @@ export function AiBand() {
   return (
     <div ref={box} className="s4-band">
       <div>
-        <h2 className="s4-h2" id="ai-title">Give the routine checks{" "}<br />to Kaju</h2>
+        <h2 className="s4-h2" id="ai-title">{band.title}</h2>
         <div className={`s4-jobs${still || held ? " is-still" : ""}`}>
           {JOBS.map((j, n) => (
             <button key={j} type="button" aria-pressed={n === i} onClick={() => { setI(n); setHeld(true); }}>
@@ -131,9 +140,9 @@ export function AiBand() {
             </button>
           ))}
         </div>
-        <Link href="/ai" className="s4-link">See Kaju <ArrowRight size={18} aria-hidden /></Link>
+        <Link href={band.link.href} className="s4-link">{band.link.label} <ArrowRight size={18} aria-hidden /></Link>
       </div>
-      <AiToolsUi active={i} />
+      <AiToolsUi active={i} org={band.org} />
     </div>
   );
 }

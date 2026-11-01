@@ -15,11 +15,11 @@ export default function AbcArvPage() {
     lede: "Run sterilisation drives and anti-rabies vaccination camps on one record: every animal, every procedure, every dose, and the evidence for each.",
     primary: { href: "/abc-operations", label: "See ABC Operations" },
     secondary: { href: "/demo", label: "Book a demo" },
-    hero: <MiniWindow title="Programmes · ABC drive" label="programme overview" active={5}><ProgrammeUi /></MiniWindow>,
+    hero: <MiniWindow title="Programmes · ABC drive" label="programme overview" active={5}><ProgrammeUi v={1} /></MiniWindow>,
     heroV: 0,
     splits: [
-      { tag: <Status s="staging" />, title: ["Procedures and doses,", "signed by the vet"], body: "Surgery, ear notch and vaccination are recorded on the animal and authorised by the vet who did them.", ui: <VetUi />, v: 1 },
-      { tag: <Status s="live" />, title: ["Drive totals", "you can open"], body: "Every total in a drive or camp report opens to the animals behind it.", ui: <ReportUi />, v: 5 },
+      { tag: <Status s="staging" />, title: ["Procedures and doses,", "signed by the vet"], body: "Surgery, ear notch and vaccination are recorded on the animal and authorised by the vet who did them.", ui: <VetUi v={2} />, v: 1 },
+      { tag: <Status s="live" />, title: ["Drive totals", "you can open"], body: "Every total in a drive or camp report opens to the animals behind it.", ui: <ReportUi v={0} />, v: 5 },
     ],
     tiles: {
       title: ["What each", "programme records"],

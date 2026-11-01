@@ -27,8 +27,8 @@ export default function GovernmentPage() {
       ],
     },
     splits: [
-      { tag: <Status s="staging" />, title: ["Review a package", "in minutes, not weeks"], body: "Open a submitted package, see what was authorised by a vet and what is still an exception, and accept it or return it with a query.", ui: <GovUi />, v: 0 },
-      { tag: <Status s="live" />, title: ["Reports with", "their method attached"], body: "Totals by ward and week, the evidence index and the exceptions log, exported to PDF and XLSX for your file.", ui: <ReportUi />, v: 5 },
+      { tag: <Status s="staging" />, title: ["Review a package", "in minutes, not weeks"], body: "Open a submitted package, see what was authorised by a vet and what is still an exception, and accept it or return it with a query.", ui: <GovUi v={2} />, v: 0 },
+      { tag: <Status s="live" />, title: ["Reports with", "their method attached"], body: "Totals by ward and week, the evidence index and the exceptions log, exported to PDF and XLSX for your file.", ui: <ReportUi v={3} />, v: 5 },
     ],
     tiles: {
       title: ["What a reviewer", "can and cannot do"],

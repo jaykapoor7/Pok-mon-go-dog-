@@ -40,13 +40,13 @@ export const metadata = {
    ════════════════════════════════════════════════════════════════════ */
 
 const STEPS: Step[] = [
-  { tab: "Capture", title: <>Every animal on the record<br />from the moment it is caught.</>, body: "Photos, sex, coat, ear notch and the exact place, captured on a phone in the field. Each record says who created it and how.", href: "/abc-operations#capture", cta: "Explore capture", ui: <CaptureUi /> },
-  { tab: "Vet treatment", title: <>Procedures a veterinarian<br />actually authorised.</>, body: "Surgery, ear notch and anti-rabies vaccination are recorded against the animal and signed off by the registered vet who did the work.", href: "/abc-operations#treatment", cta: "Explore treatment", ui: <VetUi /> },
-  { tab: "Evidence", title: <>Know what is missing<br />before anyone asks.</>, body: "Each animal carries an evidence checklist: capture, surgery, ear notch, release photo and release place. Gaps show up the day they happen.", href: "/abc-operations#evidence", cta: "Explore evidence", ui: <EvidenceUi /> },
-  { tab: "Checks", title: <>Catch duplicates<br />and mismatches early.</>, body: "Possible duplicates, releases far from the capture ward and records without a vet sign-off are flagged for a person to decide.", href: "/abc-operations#checks", cta: "Explore checks", ui: <DuplicateUi /> },
-  { tab: "Operator review", title: <>Review the week<br />in one queue.</>, body: "Your coordinator sees every record and every open exception for the week, and approves what is ready for the report.", href: "/abc-operations#review", cta: "Explore review", ui: <ReviewUi /> },
-  { tab: "Report package", title: <>A report package<br />that holds up.</>, body: "Totals by ward and week, the evidence index, vet authorisations and an exceptions log, generated from the records themselves.", href: "/abc-operations#report", cta: "Explore reports", ui: <ReportUi /> },
-  { tab: "Government review", title: <>The reviewing office<br />checks, then accepts.</>, body: "A municipal reviewer gets read-only access to the package, can query any exception, and records their acceptance on the same record.", href: "/for-governments", cta: "Explore government review", ui: <GovUi /> },
+  { tab: "Capture", title: <>Every animal on the record<br />from the moment it is caught.</>, body: "Photos, sex, coat, ear notch and the exact place, captured on a phone in the field. Each record says who created it and how.", href: "/abc-operations#capture", cta: "Explore capture", ui: <CaptureUi v={0} /> },
+  { tab: "Vet treatment", title: <>Procedures a veterinarian<br />actually authorised.</>, body: "Surgery, ear notch and anti-rabies vaccination are recorded against the animal and signed off by the registered vet who did the work.", href: "/abc-operations#treatment", cta: "Explore treatment", ui: <VetUi v={0} /> },
+  { tab: "Evidence", title: <>Know what is missing<br />before anyone asks.</>, body: "Each animal carries an evidence checklist: capture, surgery, ear notch, release photo and release place. Gaps show up the day they happen.", href: "/abc-operations#evidence", cta: "Explore evidence", ui: <EvidenceUi v={0} /> },
+  { tab: "Checks", title: <>Catch duplicates<br />and mismatches early.</>, body: "Possible duplicates, releases far from the capture ward and records without a vet sign-off are flagged for a person to decide.", href: "/abc-operations#checks", cta: "Explore checks", ui: <DuplicateUi v={0} /> },
+  { tab: "Operator review", title: <>Review the week<br />in one queue.</>, body: "Your coordinator sees every record and every open exception for the week, and approves what is ready for the report.", href: "/abc-operations#review", cta: "Explore review", ui: <ReviewUi v={0} /> },
+  { tab: "Report package", title: <>A report package<br />that holds up.</>, body: "Totals by ward and week, the evidence index, vet authorisations and an exceptions log, generated from the records themselves.", href: "/abc-operations#report", cta: "Explore reports", ui: <ReportUi v={2} /> },
+  { tab: "Government review", title: <>The reviewing office<br />checks, then accepts.</>, body: "A municipal reviewer gets read-only access to the package, can query any exception, and records their acceptance on the same record.", href: "/for-governments", cta: "Explore government review", ui: <GovUi v={1} /> },
 ];
 
 const FAQ: [string, string][] = [
@@ -102,13 +102,13 @@ export default function HomePage() {
         <div className="s4-wrap">
           <SecHead id="mate-title" title="Kaju, your team's most reliable teammate" lede="Kaju reads the programme record you are allowed to read, finds what needs attention and prepares the paperwork. People make the decisions." link={{ href: "/ai", label: "Meet Kaju" }} />
           <Cards idp="mate2" cols={2} items={[
-            { title: "Knows your programme", body: "Ask in plain words. Every answer names the records it read, so anyone can check it.", ui: <AskUi />, v: 2 },
-            { title: "Prepares, never approves", body: "New cases, notes and follow-ups are drafted for you and saved only when a person confirms, with their name on the record.", ui: <ProposeUi />, v: 4 },
+            { title: "Knows your programme", body: "Ask in plain words. Every answer names the records it read, so anyone can check it.", ui: <AskUi v={1} />, v: 2 },
+            { title: "Prepares, never approves", body: "New cases, notes and follow-ups are drafted for you and saved only when a person confirms, with their name on the record.", ui: <ProposeUi v={0} />, v: 4 },
           ]} />
           <div style={{ height: 48 }} />
           <Cards idp="mate3" cols={3} items={[
-            { title: "Works through the backlog", body: "Missing evidence, duplicates and unsigned procedures, found before the weekly report.", ui: <OvernightUi />, v: 0 },
-            { title: "Reads field messages", body: "A message from the field becomes a structured draft record for review.", ui: <ExtractUi />, v: 5 },
+            { title: "Works through the backlog", body: "Missing evidence, duplicates and unsigned procedures, found before the weekly report.", ui: <OvernightUi v={1} />, v: 0 },
+            { title: "Reads field messages", body: "A message from the field becomes a structured draft record for review.", ui: <ExtractUi v={1} />, v: 5 },
             { title: "Keeps the report ready", body: "See how complete your evidence is for the period, at any time.", ui: <RingUi />, v: 1 },
           ]} />
         </div>

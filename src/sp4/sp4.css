@@ -327,3 +327,4 @@ select.s4-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .s4-ico.c-amber { background: var(--s4-amber); }
 .s4-ico.c-violet { background: var(--s4-violet); }
 .s4-ico.c-ink { background: var(--s4-ink); }
+.s4-mega-shot .s4-mega-a .kaju-face { display: inline-block; vertical-align: -3px; margin-right: 5px; }
