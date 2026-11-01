@@ -12,7 +12,7 @@ Main, as of this handoff. Production: https://straypaw.org.
 | d1f1bb1 | Landing order, copy, Kaju run band |
 | f80461e, 064122d | Connections: Google, Microsoft, native files |
 | 8fa2446 | Slack, Zoho, SMS, map exports |
-| (this commit) | Kaju corners, handoff documents |
+| 8b09988 | Kaju corners, handoff documents |
 
 ## 2. Frontend components
 - `src/kaju/*`: the Kaju rig, poses, controller, presence (KajuCorner, KajuEmptyState, KajuInsight, KajuAmbientToggle) and the ambient setting.
