@@ -21,7 +21,7 @@ export type Proposal = ProposalBase & (
 export type ConnProvider = "google" | "microsoft" | "slack" | "zoho";
 
 /** Records a report can be built from (server reads them with the person's own access). */
-export const REPORT_SOURCES = ["open_cases", "animals", "verification"] as const;
+export const REPORT_SOURCES = ["open_cases", "animals", "verification", "operations_checks"] as const;
 export type ReportSource = (typeof REPORT_SOURCES)[number];
 
 export type AiReply = {

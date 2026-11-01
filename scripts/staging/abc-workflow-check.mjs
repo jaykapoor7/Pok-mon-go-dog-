@@ -17,6 +17,8 @@
      STAGING_PASSWORD=<demo password> node scripts/staging/abc-workflow-check.mjs
    Refuses to run against any project other than the staging ref below.
    ════════════════════════════════════════════════════════════════════ */
+import { fixture, person, userId } from "./fixture-env.mjs";
+import fs from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
 const URL = process.env.STAGING_URL, ANON = process.env.STAGING_ANON, PW = process.env.STAGING_PASSWORD;
@@ -24,10 +26,10 @@ const STAGING_REF = "ucxfxiddufwqithtdtix";
 if (!URL || !ANON || !PW) { console.error("Set STAGING_URL, STAGING_ANON and STAGING_PASSWORD."); process.exit(2); }
 if (!URL.includes(STAGING_REF)) { console.error("Refusing: this check only runs against staging."); process.exit(2); }
 
-const OFFICE = "30000000-0000-4000-8000-0000000000a1";
+const OFFICE = (fixture?.office ?? "30000000-0000-4000-8000-0000000000a1");
 const people = {
-  admin: "ngo.demo@straypaw.invalid", vet: "vet.demo@straypaw.invalid", coord: "coordinator.demo@straypaw.invalid",
-  reviewer: "reviewer.demo@straypaw.invalid", other: "other.demo@straypaw.invalid", community: "noorg.demo@straypaw.invalid",
+  admin: person("admin", "ngo.demo@straypaw.invalid"), vet: person("vet", "vet.demo@straypaw.invalid"), coord: person("coord", "coordinator.demo@straypaw.invalid"),
+  reviewer: person("reviewer", "reviewer.demo@straypaw.invalid"), other: person("other", "other.demo@straypaw.invalid"), community: person("community", "noorg.demo@straypaw.invalid"),
 };
 const results = [];
 const ok = (name, pass, detail = "") => { results.push({ name, pass, detail }); console.log(`${pass ? "PASS" : "FAIL"}  ${name}${detail ? `  (${detail})` : ""}`); };
@@ -57,18 +59,28 @@ for (const [k, want] of [["vet", "veterinarian"], ["coord", "coordinator"], ["ad
 
 // ── capture ───────────────────────────────────────────────────────────
 const stamp = new Date().toISOString().slice(0, 16);
-await c.coord.rpc("upsert_volunteer", { p_id: "10000000-0000-4000-8000-000000000005", p_name: "Ravi · coordinator demo" });
+await c.coord.rpc("upsert_volunteer", { p_id: userId("coord", "10000000-0000-4000-8000-000000000005"), p_name: "Ravi · coordinator demo" });
 const caseId = await expectOk("coordinator opens an ABC case", c.coord.rpc("create_case_with_location", {
   p_city: "Coimbatore", p_h3_r8: null, p_title: `STAGING TEST · ABC verification check ${stamp}`, p_description: "Automated staging check. Fictional.",
   p_dog_id: null, p_zone: "Gandhipuram", p_lat: null, p_lng: null, p_severity: "normal", p_category: "sterilisation", p_tags: [],
-  p_actor_id: "10000000-0000-4000-8000-000000000005", p_actor_name: "Ravi · coordinator demo", p_species: "dog",
+  p_actor_id: userId("coord", "10000000-0000-4000-8000-000000000005"), p_actor_name: "Ravi · coordinator demo", p_species: "dog",
   p_informer_contact: null, p_hospital: null, p_cost_estimate: null, p_cost_spent: null,
 }));
 { const { data } = await c.coord.from("cases").select("provenance").eq("id", caseId).single(); ok("new case is labelled operator_created, not community_report", data?.provenance === "operator_created", data?.provenance); }
 
 // ── evidence and vet sign-off ─────────────────────────────────────────
 await expectRefused("vet cannot authorise before a surgery record exists", c.vet.rpc("abc_vet_authorise", { p_case_id: caseId }), /surgery record/i);
-for (const [kind, url] of [["capture_photo", "https://example.invalid/capture.jpg"], ["surgery_record", "https://example.invalid/surgery.pdf"], ["ear_notch_photo", "https://example.invalid/notch.jpg"], ["release_photo", "https://example.invalid/release.jpg"]]) {
+for (const [kind, fallbackUrl] of [["capture_photo", "https://example.invalid/capture.jpg"], ["surgery_record", "https://example.invalid/surgery.pdf"], ["ear_notch_photo", "https://example.invalid/notch.jpg"], ["release_photo", "https://example.invalid/release.jpg"]]) {
+  let url = fallbackUrl;
+  if (fixture) {
+    const path = `${fixture.ngo}/${caseId}/${kind}-${Date.now()}.jpg`;
+    const bytes = Buffer.from("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==", "base64");
+    await expectOk(`private evidence file uploaded: ${kind}`,c.coord.storage.from("abc-evidence").upload(path,bytes,{contentType:"image/jpeg"}));
+    const read = await c.coord.storage.from("abc-evidence").download(path);
+    ok(`private evidence read back: ${kind}`, !read.error && read.data?.size === bytes.length);
+    url = `storage://abc-evidence/${path}`;
+    (fixture.evidence ??= []).push(path);
+  }
   await expectOk(`coordinator adds ${kind}`, c.coord.rpc("abc_add_evidence", { p_case_id: caseId, p_kind: kind, p_url: url }));
 }
 await expectRefused("a photo without its file is refused", c.coord.rpc("abc_add_evidence", { p_case_id: caseId, p_kind: "release_photo", p_url: "" }), /file link/i);
@@ -95,7 +107,7 @@ await expectRefused("another organisation cannot read the checklist", c.other.rp
 await expectRefused("another organisation cannot read the history", c.other.rpc("abc_case_history", { p_case_id: caseId }), /cannot read/i);
 await expectRefused("another organisation cannot add evidence", c.other.rpc("abc_add_evidence", { p_case_id: caseId, p_kind: "capture_photo", p_url: "https://example.invalid/x.jpg" }), /not in your organisation/i);
 await expectRefused("another organisation cannot return evidence", c.other.rpc("abc_return_evidence", { p_case_id: caseId, p_reason: "x" }), /not in your organisation/i);
-{ const { error } = await c.coord.from("abc_attestations").insert({ ngo_id: "20000000-0000-4000-8000-000000000001", case_id: caseId, kind: "vet_authorised", actor_id: "10000000-0000-4000-8000-000000000005", actor_name: "forged", actor_role: "veterinarian" });
+{ const { error } = await c.coord.from("abc_attestations").insert({ ngo_id: (fixture?.ngo ?? "20000000-0000-4000-8000-000000000001"), case_id: caseId, kind: "vet_authorised", actor_id: userId("coord", "10000000-0000-4000-8000-000000000005"), actor_name: "forged", actor_role: "veterinarian" });
   ok("a direct insert into sign-offs is refused (RLS / grants)", !!error, error?.message ?? "insert allowed"); }
 { const { data, error } = await c.coord.from("abc_attestations").update({ actor_name: "forged" }).eq("case_id", caseId).select("id");
   ok("a direct update of sign-offs changes nothing", !!error || (data ?? []).length === 0, error?.message ?? `${(data ?? []).length} rows`); }
@@ -103,14 +115,20 @@ await expectRefused("anonymous visitors cannot read the queue", anon.rpc("abc_ve
 await expectRefused("a signed-in person with no organisation cannot read the queue", c.community.rpc("abc_verification_queue", { p_limit: 5 }), /Organisation access/i);
 
 // ── package and municipal review ─────────────────────────────────────
+if (fixture) { fixture.abcCase = caseId; fs.writeFileSync(process.env.STAGING_FIXTURE_FILE,JSON.stringify(fixture),{mode:0o600}); }
 const today = new Date().toISOString().slice(0, 10);
 await expectRefused("vet cannot prepare a package", c.vet.rpc("abc_create_package", { p_title: "x", p_start: today, p_end: today, p_office: OFFICE }), /coordinator or admin/i);
 const pkg = await expectOk("coordinator prepares a package of reviewed records", c.coord.rpc("abc_create_package", { p_title: `STAGING TEST · Gandhipuram ABC ${stamp}`, p_start: today, p_end: today, p_office: OFFICE }));
+if (fixture) { fixture.packageId = pkg; fs.writeFileSync(process.env.STAGING_FIXTURE_FILE,JSON.stringify(fixture),{mode:0o600}); }
 { const { data } = await c.coord.rpc("abc_package_cases", { p_package: pkg }); ok("the package holds the reviewed case", (data ?? []).some((r) => r.case_id === caseId)); }
 { const { data } = await c.reviewer.from("report_packages").select("id").eq("id", pkg); ok("reviewer cannot see a draft package", (data ?? []).length === 0); }
 await expectRefused("reviewer cannot act on a draft", c.reviewer.rpc("abc_package_act", { p_package: pkg, p_kind: "accepted" }));
 await expectRefused("reviewer cannot submit for the operator", c.reviewer.rpc("abc_package_act", { p_package: pkg, p_kind: "submitted" }), /coordinator/i);
 await expectOk("coordinator submits the package", c.coord.rpc("abc_package_act", { p_package: pkg, p_kind: "submitted" }));
+if (fixture) {
+  const read = await c.reviewer.storage.from("abc-evidence").download(fixture.evidence.at(-1));
+  ok("assigned reviewer reads a submitted package's private evidence", !read.error && read.data?.size > 0);
+}
 await expectRefused("operator admin cannot accept their own package", c.admin.rpc("abc_package_act", { p_package: pkg, p_kind: "accepted" }), /reviewer/i);
 { const { data } = await c.reviewer.from("report_packages").select("status").eq("id", pkg).single(); ok("reviewer sees the submitted package", data?.status === "submitted", data?.status); }
 { const { data } = await c.reviewer.rpc("abc_package_cases", { p_package: pkg }); const r = (data ?? []).find((x) => x.case_id === caseId);

@@ -55,3 +55,6 @@ next-env.d.ts
 
 # GovDash reference captures (their imagery; local comparison only)
 docs/sp4/reference/
+
+# Local Supabase CLI metadata
+/supabase/.temp/

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { caller } from "@/lib/connections/server";
 import { makeFile, type FileKind } from "@/lib/files/native";
 import { buildReport } from "@/lib/files/reports";
-import { allowRequest, clientIp } from "@/lib/rate-limit";
+import { allowUserRequest } from "@/lib/rate-limit";
 import { REPORT_SOURCES, type ReportSource } from "@/sp3/ai/types";
 
 export const runtime = "nodejs";
@@ -14,9 +14,9 @@ export const maxDuration = 60;
    account needed. */
 const FORMATS: FileKind[] = ["pdf", "docx", "xlsx", "csv", "pptx", "geojson", "kml"];
 export async function POST(req: Request) {
-  if (!(await allowRequest(clientIp(req), "file-export", 20, 600))) return NextResponse.json({ error: "Too many exports at once. Wait a minute." }, { status: 429 });
   const c = await caller(req);
   if (!c) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  if (!(await allowUserRequest(c.db, "file-export"))) return NextResponse.json({ error: "Exports or files are temporarily limited. Try again shortly." }, { status: 429 });
   if (!c.ngoId) return NextResponse.json({ error: "Reports need an organisation workspace." }, { status: 403 });
   const b = await req.json().catch(() => ({}));
   const format = FORMATS.includes(b.format) ? (b.format as FileKind) : null;

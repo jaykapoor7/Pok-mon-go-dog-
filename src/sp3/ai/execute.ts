@@ -9,33 +9,24 @@
    change, so the audit cannot be skipped by the browser
    (supabase/staging-sync/2026-10-31-write-audit.sql). */
 
-import { addNote, openCase, recordCare, scheduleFollowup, type Receipt } from "@/sp/data/work";
+import { type Receipt } from "@/sp/data/work";
 import { getSupabase } from "@/lib/supabase";
 import type { Proposal } from "./types";
 
-const MARK = (who: string) => `Prepared with StrayPaw AI, confirmed by ${who}.`;
 
 export type Saved = Receipt & { href?: string };
 
 export async function executeProposal(p: Proposal, actor: { id: string; name: string }): Promise<Saved> {
   let r: Saved;
   switch (p.kind) {
-    case "open_case": {
-      const res = await openCase({ title: p.title, city: p.city, zone: p.zone, category: p.category, severity: p.severity, description: `${p.description}\n\n${MARK(actor.name)}`.trim(), dogId: p.dogId }, actor);
-      r = { ...res, href: res.ok && res.id ? `/ngo/cases/${res.id}` : undefined };
-      break;
-    }
+    case "open_case":
     case "add_note":
-      r = { ...(await addNote(p.caseId, actor, `${p.note}\n\n${MARK(actor.name)}`)), href: `/ngo/cases/${p.caseId}` };
-      break;
     case "schedule_followup":
-      r = { ...(await scheduleFollowup(p.caseId, p.dogId, p.dueAt, `${p.note ? `${p.note} · ` : ""}${MARK(actor.name)}`)), href: `/ngo/cases/${p.caseId}` };
-      break;
     case "record_care":
-      r = { ...(await recordCare(p.dogId, { kind: p.careKind, date: p.date, notes: `${p.notes ? `${p.notes} · ` : ""}${MARK(actor.name)}`, by: actor.name })), href: `/ngo/animals/${p.dogId}` };
+      r = await confirmedRecord(p);
       break;
     case "email":
-      r = await act(p.send ? "email_send" : "email_draft", p.provider, { to: p.to, cc: p.cc, subject: p.subject, body: p.body }, p.send ? `Email sent from ${p.providerName}` : `Draft saved in ${p.providerName}`);
+      r = await act(p.send ? "email_send" : "email_draft", p.provider, { to: p.to, cc: p.cc, subject: p.subject, body: p.body }, p.send ? `${p.providerName} accepted the email request; delivery is unverified` : `Draft saved in ${p.providerName}`);
       break;
     case "calendar_event":
       r = await act("calendar_event", p.provider, { title: p.title, start: p.start, end: p.end, attendees: p.attendees, location: p.location }, `Event added to ${p.providerName}`);
@@ -44,7 +35,7 @@ export async function executeProposal(p: Proposal, actor: { id: string; name: st
       r = await act("chat_post", p.provider, { channel: p.channel, text: p.text }, `Posted to #${p.channelName}`);
       break;
     case "sms":
-      r = await act("sms", "sms", { to: p.to, values: p.values }, `SMS sent to ${p.to.length}`);
+      r = await act("sms", "sms", { to: p.to, values: p.values }, `SMS request accepted for ${p.to.length} recipients; delivery is unverified`);
       break;
     case "report_file": {
       const dl = await download(p.format, p.source, p.title);
@@ -69,6 +60,15 @@ async function logAction(p: Proposal, r: Saved) {
 }
 
 /* ── connections: actions outside StrayPaw, only ever after Confirm ── */
+async function confirmedRecord(p: Proposal): Promise<Saved> {
+  const t = await token();
+  if (!t) return {ok:false,error:"Sign in again to confirm this proposal."};
+  try {
+    const response = await fetch("/api/ai/act", {method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${t}`},body:JSON.stringify({proposal:p,confirmed:true})});
+    const j = await response.json();
+    return response.ok && j.verified === true ? {ok:true,at:j.at,what:j.what,href:j.href} : {ok:false,error:j.error??"Verification is pending. Retry the same proposal to check it."};
+  } catch { return {ok:false,error:"The action status is unknown. Retry the same proposal to check it."}; }
+}
 async function token() {
   return (await getSupabase()?.auth.getSession())?.data.session?.access_token ?? null;
 }

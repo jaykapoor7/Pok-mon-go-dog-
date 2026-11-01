@@ -11,6 +11,7 @@ import type { NGO } from "@/lib/types";
 import { Ack } from "../ui";
 import { Reading } from "../ui/Reading";
 import { saveOrgProfile, type Receipt } from "../data/work";
+import { ReportDeadline } from "./ReportDeadline";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
 
@@ -72,6 +73,7 @@ export function Settings() {
             </section>
           </form>
         )}
+        {f && <ReportDeadline />}
       </div>
     </NgoGate>
   );

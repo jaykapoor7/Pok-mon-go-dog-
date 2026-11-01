@@ -1,5 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { verifyAction } from "./verify";
+import { operationsInsights } from "./insights";
 import { searchKnowledge } from "./knowledge";
 import { extractFieldMessage } from "./extract";
 import { CARE_KINDS, type Citation, type Proposal, type ToolRun } from "./types";
@@ -38,6 +40,8 @@ export const NAV: Record<string, { href: string; label: string }> = {
 };
 
 export const TOOL_DEFS = [
+  { name: "recent_confirmed_actions", description: "Independently verify up to five of this person’s recent confirmed Kaju actions by reading the saved records and audit rows. Use before claiming work was completed. Does not write.", input_schema: {type:"object",properties:{},additionalProperties:false} },
+  { name: "operations_insights", description: "Run and store explainable operational checks for overdue follow-ups, missing ABC evidence, veterinary authorisation, municipal clarifications, programme activity and a lead-configured reporting deadline. Returns bounded findings, source links and a report proposal. Does not change cases or send notifications.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "search_knowledge", description: "Search published StrayPaw Academy lessons about evidence, recorded counts, unknown status, coverage, population and field safety. Educational content, not current legislation or clinical advice. Returns cited passages; never invent policy.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
   { name: "abc_verification_status", description: "Read the organisation ABC verification queue: missing evidence, vet authorisation and review flags. Bounded sample, never certifies a procedure.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "abc_package_status", description: "Read report package statuses visible to this organisation member or municipal reviewer. Includes periods and recorded summaries; never accepts a package.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -61,6 +65,8 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "abc_verification_status": return abcVerification(ctx);
     case "abc_package_status": return abcPackages(ctx);
     case "search_knowledge": return searchKnowledge(String(input.query ?? "").slice(0, 300));
+    case "recent_confirmed_actions": return recentConfirmedActions(ctx);
+    case "operations_insights": return operationsInsights(ctx);
     case "search_records": return searchRecords(clean(input.query), ctx);
     case "work_summary": return workSummary(ctx);
     case "find_missing_evidence": return missingEvidence(ctx);
@@ -252,4 +258,13 @@ async function abcPackages({ db }: ToolCtx): Promise<ToolOut> {
   if (contextError) return READ_FAILED;
   const municipal = !context?.ngo_id && context?.offices?.length;
   return { data: { packages: rows, limit: 50, note: "Visible packages only; at most 50 most recent. No decision was made." }, summary: `${rows.length} visible report packages (up to 50)`, citations: rows.slice(0, 12).map((r) => ({ id: r.id, label: r.title, href: `${municipal ? "/city/review" : "/ngo/packages"}/${r.id}`, kind: "page" as const })) };
+}
+
+async function recentConfirmedActions({db,orgId}:ToolCtx):Promise<ToolOut>{
+ if(!orgId)return NEEDS_ORG;
+ const {data,error}=await db.from("kaju_action_receipts").select("actor_id,request_id").order("confirmed_at",{ascending:false}).limit(5);
+ if(error)return READ_FAILED;
+ const results=await Promise.all((data??[]).map(async r=>{try{return await verifyAction(db,r.actor_id,r.request_id);}catch{return {verified:false as const};}}));
+ const verified=results.filter((r):r is Extract<Awaited<ReturnType<typeof verifyAction>>,{verified:true}>=>r.verified);
+ return {data:{verified_actions:verified,pending:results.length-verified.length,limit:5},summary:`${verified.length} recent actions independently verified`,citations:verified.map(r=>({id:r.id,label:`${r.kind.replace(/_/g," ")} · audit ${r.auditId}`,href:r.href,kind:"page" as const}))};
 }

@@ -5,13 +5,19 @@ import type { ReportSource } from "@/sp3/ai/types";
 
 /* Report tables built from the organisation's records, read with the
    person's own session (row-level security decides what is included). */
-export const SOURCE_LABEL: Record<ReportSource, string> = { open_cases: "Open cases", animals: "Animal register", verification: "ABC verification status" };
+export const SOURCE_LABEL: Record<ReportSource, string> = { open_cases: "Open cases", animals: "Animal register", verification: "ABC verification status", operations_checks: "Operations check report" };
 
 export async function buildReport(source: ReportSource, db: SupabaseClient, title?: string): Promise<Report> {
   const { data: ngoId, error: membershipError } = await db.rpc("my_ngo");
   if (membershipError || typeof ngoId !== "string" || !ngoId) throw new Error("Reports need an organisation workspace.");
   const when = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   const head = { title: title?.trim() || SOURCE_LABEL[source], subtitle: `Prepared with Kaju from StrayPaw records · ${when}` };
+  if (source === "operations_checks") {
+    const { data, error } = await db.from("kaju_check_runs").select("id,checked_at,rules_version,findings").eq("ngo_id", ngoId).order("checked_at", { ascending: false }).limit(1).maybeSingle();
+    if (error || !data) throw new Error("Run operational checks before preparing this report.");
+    const findings = data.findings as { rule: string; explanation: string; count: number; due_on?: string; records: { label: string; href: string; missing?: string[]; due_at?: string }[] }[];
+    return { ...head, columns: ["Rule", "Explanation", "Sample count", "Record", "Detail", "Source"], rows: findings.flatMap(f => f.records.length ? f.records.map(r => [f.rule, f.explanation, f.count, r.label, r.missing?.join(", ") ?? r.due_at ?? "", r.href]) : [[f.rule, f.explanation, f.count, "", f.due_on ?? "", ""]]), notes: [`Snapshot: ${data.id}`, `Checked at: ${data.checked_at}`, `Rules: ${data.rules_version}`, "Counts are bounded samples of at most 100 records per rule. Findings describe recorded gaps; they do not certify fieldwork. No notification was sent."] };
+  }
   if (source === "open_cases") {
     const { data, error } = await db.from("org_case_facts").select("case_code,title,zone,city,status_class,occurred_at,assignee_name").neq("status_class", "closed").or("provenance.is.null,provenance.neq.imported_historical_record,reviewed_at.not.is.null").order("occurred_at", { ascending: false }).limit(1000);
     if (error) throw new Error(error.message);

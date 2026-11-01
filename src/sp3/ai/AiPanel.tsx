@@ -23,6 +23,7 @@ import { getSupabase } from "@/lib/supabase";
 import { executeProposal, type Saved } from "./execute";
 import type { AiReply, Citation, Proposal } from "./types";
 import { Kaju } from "@/kaju/Kaju";
+import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT_MESSAGE } from "@/lib/files/limits";
 import { useKajuAmbient } from "@/kaju/ambient";
 import { useReducedMotion } from "@/kaju/controller";
 import type { KajuState } from "@/kaju/poses";
@@ -124,7 +125,7 @@ function suggestions(path: string): string[] {
   if (path.startsWith("/ngo/animals")) return ["Find possible duplicate animals", "Which animals have no photo?", "Search the register for Brownie"];
   if (path.startsWith("/ngo/programmes")) return ["Summarise our programmes", "Which records are missing evidence?", "Show published ABC programmes"];
   if (path.startsWith("/ngo/inbox") || path.startsWith("/ngo/field")) return ["Summarise today's work", "Released after ABC near the temple, Saibaba Colony, Coimbatore. Female, ear notched. Photo attached.", "What follow-ups are overdue?"];
-  if (path.startsWith("/ngo")) return ["Summarise today's work", "Which records are missing evidence?", "Find possible duplicate animals", "Open the import screen"];
+  if (path.startsWith("/ngo")) return ["Run operational checks", "Summarise today's work", "Which records are missing evidence?", "Find possible duplicate animals", "Open the import screen"];
   if (path.startsWith("/city")) return ["Show published sterilisation programmes", "What programmes are in Coimbatore?", "Open the city report"];
   if (path.startsWith("/learn")) return ["Open the academy", "What programmes are published?"];
   return ["What programmes are published?", "Search for animals in Coimbatore", "How do I report an animal?"];
@@ -194,6 +195,7 @@ function Thread({ full = false }: { full?: boolean }) {
   const attach = async (f: File | undefined) => {
     setFileErr(null);
     if (!f) return;
+    if (f.size > MAX_UPLOAD_BYTES) { setFileErr(UPLOAD_LIMIT_MESSAGE); return; }
     try {
       const t = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
       const fd = new FormData(); fd.append("file", f);

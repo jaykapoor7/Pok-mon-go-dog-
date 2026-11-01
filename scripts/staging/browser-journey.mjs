@@ -1,0 +1,38 @@
+import {fixture} from './fixture-env.mjs';
+import {chromium,expect} from '@playwright/test';
+import {createClient} from '@supabase/supabase-js';
+import {makeFile,readFile} from '../../src/lib/files/native.ts';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+if(!fixture)throw Error('Isolated staging fixture required');
+const base=process.env.BASE??'http://localhost:3100';
+const browser=await chromium.launch({executablePath:'/usr/bin/chromium',proxy:{server:process.env.HTTPS_PROXY,bypass:'localhost,127.0.0.1'}});
+const clients={},sessions={};let n=0;const ok=s=>console.log(`PASS ${++n} ${s}`);
+for(const role of ['coord','vet','reviewer','other']){const db=createClient(process.env.STAGING_URL,process.env.STAGING_ANON,{auth:{persistSession:false}});const {data,error}=await db.auth.signInWithPassword({email:fixture.users[role].email,password:fixture.password});if(error)throw error;clients[role]=db;sessions[role]=data.session;}
+const pdf=await makeFile('pdf',{title:'STAGING TEST surgery document',columns:['Record','Description'],rows:[['QA','Fictional workflow fixture; no clinical outcome asserted.']]});
+await fs.writeFile('/tmp/straypaw-qa-procedure.pdf',pdf.bytes);
+try{
+for(const [vp,viewport] of [['desktop',{width:1440,height:900}],['phone',{width:390,height:844}]]){
+ const contexts={},pages={};
+ for(const role of ['coord','vet','reviewer']){const c=await browser.newContext({viewport,reducedMotion:'reduce',acceptDownloads:true});await c.addInitScript(([key,val])=>{localStorage.setItem(key,val);localStorage.setItem('straypaw.notice.storage.v1','1');localStorage.setItem('straypaw.analytics.optout','1');localStorage.setItem('straypaw.tour.v2','1');},[`sb-${fixture.ref}-auth-token`,JSON.stringify(sessions[role])]);contexts[role]=c;pages[role]=await c.newPage();}
+ const p=pages.coord,title=`STAGING TEST UI ABC ${vp} ${Date.now()}`;
+ await p.goto(base+'/ngo/cases/new');
+ await p.getByRole('radio',{name:/Sterilisation/}).check();await p.getByLabel('In a few words').fill(title);await p.getByLabel('City',{exact:true}).fill('Coimbatore');await p.getByLabel(/What you know/).fill('Fictional staging browser workflow. No real veterinary outcome.');await p.getByRole('button',{name:'Open the case',exact:true}).click();await p.waitForURL(/\/ngo\/cases\/[a-f0-9-]+$/,{timeout:30000});const id=p.url().split('/').at(-1);ok(`${vp}: coordinator creates case through UI`);
+ await p.goto(`${base}/ngo/verification/${id}`);await expect(p.getByRole('heading',{name:title,exact:true})).toBeVisible({timeout:20000});
+ for(const [kind,label,path] of [['capture_photo','Capture photo','public/kaju/explorer-atlas.png'],['surgery_record','Surgery record','/tmp/straypaw-qa-procedure.pdf'],['ear_notch_photo','Ear-notch photo','public/kaju/explorer-atlas.png'],['release_photo','Release photo','public/kaju/explorer-atlas.png']]){
+  await p.getByRole('combobox',{name:'Evidence to add'}).selectOption(kind);await p.getByLabel(`${label} file`,{exact:true}).setInputFiles(path);await p.getByRole('button',{name:'Add',exact:true}).click();await expect(p.getByRole('combobox',{name:'Evidence to add'}).locator(`option[value="${kind}"]`)).toHaveCount(0,{timeout:30000});ok(`${vp}: ${kind} uploaded through UI`);
+ }
+ await p.getByRole('combobox',{name:'Evidence to add'}).selectOption('release_location');await p.getByRole('textbox',{name:'Release location',exact:true}).fill('STAGING TEST Ward 14, Gandhipuram');await p.getByRole('button',{name:'Add',exact:true}).click();await expect(p.getByRole('textbox',{name:'Release location',exact:true})).toHaveCount(0,{timeout:20000});ok(`${vp}: release location recorded`);
+ assert.equal(await p.getByRole('button',{name:'Authorise procedure',exact:true}).count(),0);ok(`${vp}: coordinator has no veterinary authorisation control`);
+ const v=pages.vet;await v.goto(`${base}/ngo/verification/${id}`);await v.getByRole('textbox',{name:'Authorisation note'}).fill('STAGING TEST role authorisation only.');await v.getByRole('button',{name:'Authorise procedure',exact:true}).click();await expect(v.getByText('Procedure authorised in your name.',{exact:true})).toBeVisible({timeout:20000});assert.equal(await v.getByRole('button',{name:'Approve for reporting',exact:true}).count(),0);ok(`${vp}: veterinarian authorises; cannot coordinate evidence approval`);
+ await p.reload();await p.getByRole('textbox',{name:'Review note or return reason'}).fill('STAGING TEST all five artifacts checked.');await p.getByRole('button',{name:'Approve for reporting',exact:true}).click();await expect(p.getByText('Evidence approved for reporting.',{exact:true})).toBeVisible({timeout:20000});ok(`${vp}: coordinator approves evidence`);
+ await p.goto(base+'/ngo/packages');await p.getByLabel('Title',{exact:true}).fill(title+' package');const today=new Date().toISOString().slice(0,10);await p.getByLabel('From',{exact:true}).fill(today);await p.getByLabel('To',{exact:true}).fill(today);await p.getByRole('combobox',{name:/Reviewing office/}).selectOption(fixture.office);await p.getByRole('button',{name:'Prepare package',exact:true}).click();await p.waitForURL(/\/ngo\/packages\/[a-f0-9-]+$/,{timeout:20000});const pkg=p.url().split('/').at(-1);await p.getByRole('button',{name:'Submit package',exact:true}).click();await expect(p.getByText('Submitted to the reviewing office.',{exact:true})).toBeVisible({timeout:20000});ok(`${vp}: package prepared and submitted through UI`);
+ const r=pages.reviewer;await r.goto(`${base}/city/review/${pkg}`);await expect(r.getByRole('heading',{name:title+' package',exact:true})).toBeVisible({timeout:20000});
+ for(const format of ['PDF','XLSX']){const pending=r.waitForEvent('download');await r.getByRole('button',{name:`Download ${format}`,exact:true}).click();const download=await pending;const bytes=await fs.readFile(await download.path());const parsed=await readFile(bytes,download.suggestedFilename());assert.ok(parsed.text.includes(title));ok(`${vp}: reviewer ${format} download contains actual package record`);}
+ await r.getByRole('textbox',{name:'Review comment',exact:true}).fill('STAGING TEST confirm release ward.');await r.getByRole('button',{name:'Ask a question',exact:true}).click();await expect(r.getByText('Query sent to the operator.',{exact:true})).toBeVisible({timeout:20000});await p.reload();await p.getByRole('textbox',{name:'Answer',exact:true}).fill('STAGING TEST Ward 14 confirmed.');await p.getByRole('button',{name:'Send answer',exact:true}).click();await expect(p.getByText('Answer sent; the package is back with the office.',{exact:true})).toBeVisible({timeout:20000});await r.reload();await r.getByRole('button',{name:'Accept',exact:true}).click();await expect(r.getByText('Package accepted.',{exact:true})).toBeVisible({timeout:20000});ok(`${vp}: municipal query → operator answer → acceptance through UI`);
+ const q=await clients.coord.rpc('abc_verification_queue',{p_limit:500});assert.equal(q.error,null);assert.equal(q.data.find(x=>x.case_id===id)?.government_accepted,true);const events=await clients.coord.from('package_events').select('kind').eq('package_id',pkg);assert.ok(['created','submitted','query','answer','accepted'].every(k=>events.data.some(x=>x.kind===k)));ok(`${vp}: independent database read verifies acceptance and full audit thread`);
+ const bad=await fetch(base+'/api/files/package',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${sessions.other.access_token}`},body:JSON.stringify({id:pkg,format:'pdf'})});assert.equal(bad.status,403);ok(`${vp}: another organisation cannot export this package`);
+ for(const c of Object.values(contexts))await c.close();
+}
+console.log(`${n} authenticated browser journey checks passed`);
+}finally{await browser.close();}

@@ -17,7 +17,10 @@ import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
    source of a record ID.
    ════════════════════════════════════════════════════════════════════ */
 
-const MODEL = process.env.STRAYPAW_AI_MODEL?.trim() || "claude-opus-5-5";
+// Direct Anthropic remains supported. Vercel identity can authenticate Gateway.
+const gatewayToken = () => process.env.AI_GATEWAY_API_KEY?.trim() || (process.env.VERCEL === "1" ? process.env.VERCEL_OIDC_TOKEN?.trim() : undefined);
+const gatewaySelected = () => !process.env.ANTHROPIC_API_KEY?.trim() && Boolean(gatewayToken());
+const modelName = () => process.env.STRAYPAW_AI_MODEL?.trim() || (gatewaySelected() ? "anthropic/claude-sonnet-5.5" : "claude-opus-5-5");
 const MAX_STEPS = 6;
 const MAX_TOOL_CALLS = 12;
 const RUN_MS = 45000;
@@ -28,6 +31,7 @@ How to work:
 - Use the tools to read records. Never state a figure, name, case or animal that a tool did not return in this conversation.
 - Refer to records by the label the tool returned (case code, animal name or StrayPaw tag). The interface turns tool results into links; do not invent URLs.
 - To change anything (open a case, add a note, schedule a follow-up, record care), call the matching propose_ tool. It does NOT save. Tell the user to review and press Confirm. Never say something was saved.
+- Before claiming an action was completed, use recent_confirmed_actions. Only a verified source record and audit receipt establish completion. A prepared proposal or provider acknowledgement does not.
 - You cannot approve medical procedures, certify fieldwork, authorise payments, merge duplicates or create evidence. Say so if asked, and point to the manual screen.
 - Imported historical records are not live work. Recorded counts are not population estimates. A gap in the record is a gap, not a zero.
 - When a field message is pasted, call extract_field_message first, then ask only for what is missing before proposing a case.
@@ -45,7 +49,7 @@ function absorb(acc: Acc, name: string, out: ToolOut) {
   if (out.navigate) acc.navigate = out.navigate;
 }
 
-export const modelConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY?.trim());
+export const modelConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY?.trim() || gatewayToken());
 
 export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string }): Promise<AiReply> {
   const turns = messages.filter((m) => m.text?.trim()).slice(-12).map((m) => ({ role: m.role, text: m.text.slice(0, 6000) }));
@@ -70,7 +74,8 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */
 async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string }): Promise<AiReply> {
-  const client = new Anthropic({ maxRetries: 0, timeout: RUN_MS });
+  const gateway = gatewaySelected();
+  const client = new Anthropic({ maxRetries: 0, timeout: RUN_MS, ...(gateway ? { apiKey: null, authToken: gatewayToken(), baseURL: "https://ai-gateway.vercel.sh" } : {}) });
   const deadline = Date.now() + RUN_MS;
   let calls = 0;
   const acc: Acc = { citations: [], tools: [], proposals: [] };
@@ -80,10 +85,9 @@ async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: stri
   for (let step = 0; step < MAX_STEPS; step++) {
     if (Date.now() >= deadline) break;
     const res = await client.beta.messages.create({
-      model: MODEL,
+      model: modelName(),
       max_tokens: 4000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
+      ...(gateway ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
       output_config: { effort: "medium" },
       system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }, { type: "text", text: where }],
       tools: [...TOOL_DEFS, ...connectionToolDefs(ctx.conn ?? null, !!ctx.orgId)].map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema as unknown as Anthropic.Beta.BetaTool.InputSchema })),
@@ -130,6 +134,18 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   const done = (text: string): Omit<AiReply, "notice"> => ({ text, ...acc, engine: "tools" });
   const needsOrg = ctx.orgId ? "I could not read your records. Counts are unknown. Try again." : "That needs an organisation workspace. Join your organisation with its code, or ask me about published programmes and the public map.";
 
+  if (/what.*(completed|done|saved)|recent.*(actions|changes)|verify.*actions/.test(t)) {
+    const out = await call(acc, ctx, "recent_confirmed_actions");
+    if (out.ok === false) return done(out.summary);
+    const data = out.data as {verified_actions:unknown[];pending:number};
+    return done(`${data.verified_actions.length} recent actions have a readable source record and audit receipt.${data.pending?` ${data.pending} could not be independently verified.`:""} Open the linked records to inspect them.`);
+  }
+  if (/operational checks|scheduled checks|recurring|what needs attention|check overdue|check.*evidence/.test(t)) {
+    const out = await call(acc, ctx, "operations_insights");
+    if (out.ok === false) return done(out.summary);
+    const data = out.data as {checked_at:string;findings:{rule:string;count:number;explanation:string;configured?:boolean}[]};
+    return done(`Checked at ${data.checked_at}.\n\n${data.findings.map(f => `- **${f.rule.replace(/_/g," ")}**: ${f.configured===false?"deadline not set":f.count}. ${f.explanation}`).join("\n")}\n\nCounts are samples of up to 100 per rule. Review the linked records and the report draft. Nothing was sent or changed.`);
+  }
   if (/^(what|why|how|explain)\b/.test(t) && /unknown|denominator|population|coverage|animal count|bite|street safety/.test(t)) {
     const out = await call(acc, ctx, "search_knowledge", { query: q });
     const passages = (out.data as { passages?: { title: string; text: string }[] }).passages ?? [];

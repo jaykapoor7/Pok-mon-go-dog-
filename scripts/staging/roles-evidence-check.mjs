@@ -12,16 +12,17 @@
 
    Usage: STAGING_URL=… STAGING_ANON=… STAGING_PASSWORD=… node scripts/staging/roles-evidence-check.mjs
    ════════════════════════════════════════════════════════════════════ */
+import { fixture, person, userId } from "./fixture-env.mjs";
 import { createClient } from "@supabase/supabase-js";
 
 const URL = process.env.STAGING_URL, ANON = process.env.STAGING_ANON, PW = process.env.STAGING_PASSWORD;
 if (!URL || !ANON || !PW) { console.error("Set STAGING_URL, STAGING_ANON and STAGING_PASSWORD."); process.exit(2); }
 if (!URL.includes("ucxfxiddufwqithtdtix")) { console.error("Refusing: this check only runs against staging."); process.exit(2); }
 
-const NGO = "20000000-0000-4000-8000-000000000001", OTHER_NGO = "20000000-0000-4000-8000-000000000002";
+const NGO = (fixture?.ngo ?? "20000000-0000-4000-8000-000000000001"), OTHER_NGO = (fixture?.otherNgo ?? "20000000-0000-4000-8000-000000000002");
 const people = {
-  admin: "ngo.demo@straypaw.invalid", vet: "vet.demo@straypaw.invalid", coord: "coordinator.demo@straypaw.invalid",
-  other: "other.demo@straypaw.invalid", community: "noorg.demo@straypaw.invalid", reviewer: "reviewer.demo@straypaw.invalid",
+  admin: person("admin", "ngo.demo@straypaw.invalid"), vet: person("vet", "vet.demo@straypaw.invalid"), coord: person("coord", "coordinator.demo@straypaw.invalid"),
+  other: person("other", "other.demo@straypaw.invalid"), community: person("community", "noorg.demo@straypaw.invalid"), reviewer: person("reviewer", "reviewer.demo@straypaw.invalid"),
 };
 const results = [];
 const ok = (name, pass, detail = "") => { results.push({ name, pass }); console.log(`${pass ? "PASS" : "FAIL"}  ${name}${detail ? `  (${detail})` : ""}`); };
@@ -59,7 +60,9 @@ const coordId = await uid("coord"), adminId = await uid("admin");
 }
 
 // ── evidence photos ───────────────────────────────────────────────────
-const { data: kase } = await c.coord.from("cases").select("id").eq("ngo_id", NGO).limit(1).single();
+let ownQuery = c.coord.from("cases").select("id").eq("ngo_id", NGO);
+if (fixture?.storageCase) ownQuery = ownQuery.eq("id",fixture.storageCase);
+const { data: kase } = await ownQuery.limit(1).single();
 const { data: otherCase } = await c.other.from("cases").select("id").eq("ngo_id", OTHER_NGO).limit(1).maybeSingle();
 const jpeg = Buffer.from("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==", "base64");
 const path = `${NGO}/${kase.id}/check-${Date.now()}.jpg`;

@@ -12,6 +12,7 @@
      everyone     StrayPaw AI answers a record question with sources
 
    Usage: BASE=http://localhost:3200 STAGING_ANON=… STAGING_PASSWORD=… node scripts/qa/roles-qa.mjs */
+import { fixture, person } from "../staging/fixture-env.mjs";
 import { chromium } from "playwright";
 import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs";
@@ -24,17 +25,17 @@ const OUT = process.env.OUT ?? "docs/sp4/qa/roles";
 fs.mkdirSync(OUT, { recursive: true });
 
 const ROLES = {
-  admin: { email: "ngo.demo@straypaw.invalid", pages: ["/ngo", "/ngo/inbox", "/ngo/work", "/ngo/verification", "/ngo/animals", "/ngo/programmes", "/ngo/packages", "/ngo/map", "/ngo/team", "/ngo/settings", "/assistant", "/ngo/field", "/ngo/import", "/ngo/evidence", "/ngo/care", "/ngo/cases/new"] },
-  coordinator: { email: "coordinator.demo@straypaw.invalid", pages: ["/ngo", "/ngo/verification", "/ngo/packages"] },
-  veterinarian: { email: "vet.demo@straypaw.invalid", pages: ["/ngo", "/ngo/verification", "/ngo/animals"] },
-  reviewer: { email: "reviewer.demo@straypaw.invalid", pages: ["/city/review", "/city", "/city/programmes", "/city/report", "/city/insights"] },
-  community: { email: "noorg.demo@straypaw.invalid", pages: ["/community", "/community/report", "/community/activity", "/community/help", "/ngo"] },
+  admin: { email: person("admin","ngo.demo@straypaw.invalid"), pages: ["/ngo", "/ngo/inbox", "/ngo/work", "/ngo/verification", "/ngo/animals", "/ngo/programmes", "/ngo/packages", "/ngo/map", "/ngo/team", "/ngo/settings", "/assistant", "/ngo/field", "/ngo/import", "/ngo/evidence", "/ngo/care", "/ngo/cases/new"] },
+  coordinator: { email: person("coord","coordinator.demo@straypaw.invalid"), pages: ["/ngo", "/ngo/verification", "/ngo/packages"] },
+  veterinarian: { email: person("vet","vet.demo@straypaw.invalid"), pages: ["/ngo", "/ngo/verification", "/ngo/animals"] },
+  reviewer: { email: person("reviewer","reviewer.demo@straypaw.invalid"), pages: ["/city/review", "/city", "/city/programmes", "/city/report", "/city/insights"] },
+  community: { email: person("community","noorg.demo@straypaw.invalid"), pages: ["/community", "/community/report", "/community/activity", "/community/help", "/ngo"] },
 };
 const IGNORE = /(_vercel|maplibre-gl-worker|va\.vercel-scripts|favicon|mapbox.*events|tiles?\.|basemaps)/;
 const results = [];
 const note = (role, what, pass, detail = "") => { results.push({ role, what, pass, detail }); console.log(`${pass ? "PASS" : "FAIL"}  [${role}] ${what}${detail ? `  (${String(detail).slice(0, 160)})` : ""}`); };
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_PATH||undefined,proxy:process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY,bypass:"localhost,127.0.0.1"}:undefined});
 async function sessionFor(email) {
   const c = createClient(URL, ANON, { auth: { persistSession: false } });
   const { data, error } = await c.auth.signInWithPassword({ email, password: PW });

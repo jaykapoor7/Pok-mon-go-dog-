@@ -12,6 +12,7 @@
        naming the person; members read only their own organisation's
        rows and cannot insert, change or delete any.
    ════════════════════════════════════════════════════════════════════ */
+import { fixture, person, userId } from "./fixture-env.mjs";
 import { createClient } from "@supabase/supabase-js";
 
 const URL = process.env.STAGING_URL, ANON = process.env.STAGING_ANON, PW = process.env.STAGING_PASSWORD;
@@ -24,10 +25,10 @@ const ok = (name, pass, detail = "") => { results.push(pass); console.log(`${pas
 const mk = () => createClient(URL, ANON, { auth: { persistSession: false, autoRefreshToken: false } });
 async function as(email) { const c = mk(); const { error } = await c.auth.signInWithPassword({ email, password: PW }); if (error) throw new Error(`${email}: ${error.message}`); return c; }
 
-const ravi = await as("coordinator.demo@straypaw.invalid");
-const kiran = await as("other.demo@straypaw.invalid");
+const ravi = await as(person("coord", "coordinator.demo@straypaw.invalid"));
+const kiran = await as(person("other", "other.demo@straypaw.invalid"));
 const anon = mk();
-const RAVI = { id: "10000000-0000-4000-8000-000000000005", name: "Ravi · coordinator demo" };
+const RAVI = { id: userId("coord", "10000000-0000-4000-8000-000000000005"), name: "Ravi · coordinator demo" };
 const stamp = new Date().toISOString().slice(0, 16);
 
 // 1 open_case (as executeProposal does: description carries the mark)
@@ -47,12 +48,12 @@ const due = new Date(Date.now() + 3 * 86400000).toISOString();
 const { data: fu, error: e3 } = await ravi.rpc("add_case_followup", { p_case_id: caseId, p_dog_id: null, p_due_at: due, p_note: `Recheck wound · ${MARK(RAVI.name)}` });
 ok("AI schedule_followup saves", !e3 && !!fu, e3?.message);
 // 4 record_care (needs an animal of the organisation)
-const DOG = "50000000-0000-4000-8000-000000000001";
+const DOG = (fixture?.dog ?? "50000000-0000-4000-8000-000000000001");
 const { data: ev, error: e4 } = await ravi.rpc("add_medical_event", { p_dog_id: DOG, p_case_id: null, p_kind: "checkup", p_event_date: new Date().toISOString().slice(0, 10), p_notes: `Wound cleaned · ${MARK(RAVI.name)}`, p_performed_by: RAVI.name });
 ok("AI record_care saves", !e4 && !!ev, e4?.message);
 
 // permissions: another organisation and anonymous callers
-{ const { error } = await kiran.rpc("add_case_note", { p_case_id: caseId, p_actor_id: "10000000-0000-4000-8000-000000000006", p_actor_name: "Kiran", p_note: `forged ${MARK("Kiran")}` });
+{ const { error } = await kiran.rpc("add_case_note", { p_case_id: caseId, p_actor_id: userId("other", "10000000-0000-4000-8000-000000000006"), p_actor_name: "Kiran", p_note: `forged ${MARK("Kiran")}` });
   const { data: notes } = await ravi.from("case_updates").select("id").eq("case_id", caseId).ilike("note", "%forged%");
   ok("another organisation cannot add a note to this case", !!error || (notes ?? []).length === 0, error?.message ?? "no row written"); }
 { const { error } = await kiran.rpc("add_case_followup", { p_case_id: caseId, p_dog_id: null, p_due_at: due, p_note: "forged" });
