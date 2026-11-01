@@ -2,7 +2,7 @@
  * these prove control flow, not provider availability or deployed tenant RLS. */
 import assert from 'node:assert/strict';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { answer, withTools } from '../src/sp3/ai/engine';
+import { answer, modelConfigured, withTools } from '../src/sp3/ai/engine';
 import { runTool, type ToolCtx } from '../src/sp3/ai/tools';
 
 async function main() {
@@ -27,6 +27,10 @@ assert.ok(knowledge.citations.some(c => c.href.includes('unknown-is-not-zero')))
 const emptyKnowledge = await runTool('search_knowledge', { query: 'zzzzzzzzzzz' }, fail);
 assert.equal(emptyKnowledge.citations.length, 0); ok('unmatched knowledge query invents no citation');
 const before = calls.length;
+for (const question of ['Hello Kaju', 'What can you do?', 'How can you help me?']) {
+  const reply = await withTools(question, fail); assert.match(reply.text,/Hello.*Kaju/); assert.equal(reply.tools.length,0);
+}
+assert.equal(calls.length,before);ok('greetings and help explain real capabilities without searching or inventing records');
 assert.equal((await runTool('abc_verification_status', {}, { ...fail, orgId: null })).ok, false);
 assert.equal(calls.length, before); ok('ABC queue requires organisation before reading');
 const rows = [{ case_id: 'test-case', case_code: 'TEST-1', missing: ['release_photo'], vet_authorised: false }];
@@ -59,6 +63,30 @@ try {
 } finally {
   globalThis.fetch = originalFetch;
   if (originalKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = originalKey;
+}
+// Reproduce Vercel Functions: identity arrives in request context even when
+// build-time VERCEL and VERCEL_OIDC_TOKEN variables are absent.
+const symbol=Symbol.for('@vercel/request-context');
+const globalContext=globalThis as typeof globalThis & {[key:symbol]:unknown};
+const oldContext=globalContext[symbol];
+const names=['ANTHROPIC_API_KEY','AI_GATEWAY_API_KEY','VERCEL_OIDC_TOKEN','VERCEL_OIDC_TOKEN_FILE','VERCEL'] as const;
+const saved=Object.fromEntries(names.map(name=>[name,process.env[name]]));
+let tokenVersion=1;const seen:string[]=[];
+const jwt=()=>`${Buffer.from('{"alg":"none"}').toString('base64url')}.${Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600,jti:`isolated-${tokenVersion}`})).toString('base64url')}.isolated`;
+try{
+ for(const name of names)delete process.env[name];
+ globalContext[symbol]={get:()=>({headers:{'x-vercel-oidc-token':jwt()}})};
+ assert.equal(await modelConfigured(),true);ok('runtime request-context OIDC configures the model without broad system environment exposure');
+ globalThis.fetch=async(input,init)=>{
+  seen.push(new Headers(input instanceof Request?input.headers:init?.headers).get('authorization')??'');
+  return new Response(JSON.stringify({id:'isolated',type:'message',role:'assistant',model:'isolated',stop_reason:'end_turn',content:[{type:'text',text:'Hello. I can help with the available records.'}],usage:{input_tokens:1,output_tokens:1}}),{headers:{'content-type':'application/json'}});
+ };
+ assert.equal((await answer([{role:'user',text:'Hello'}],ctx,{})).engine,'model');tokenVersion++;
+ assert.equal((await answer([{role:'user',text:'Hello again'}],ctx,{})).engine,'model');
+ assert.ok(seen.every(value=>value.startsWith('Bearer ')));assert.notEqual(seen[0],seen[1]);ok('Gateway uses the current scoped token for each run rather than caching an old identity');
+}finally{
+ globalThis.fetch=originalFetch;if(oldContext===undefined)delete globalContext[symbol];else globalContext[symbol]=oldContext;
+ for(const name of names){if(saved[name]===undefined)delete process.env[name];else process.env[name]=saved[name];}
 }
 console.log(`kaju reliability: ${checks} checks passed`);
 }

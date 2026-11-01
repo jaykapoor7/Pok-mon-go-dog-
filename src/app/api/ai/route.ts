@@ -24,7 +24,7 @@ function callerClient(token: string | null) {
 }
 
 export async function GET() {
-  return NextResponse.json({ model: modelConfigured(), tools: true });
+  return NextResponse.json({ model: await modelConfigured(), tools: true });
 }
 
 export async function POST(req: Request) {

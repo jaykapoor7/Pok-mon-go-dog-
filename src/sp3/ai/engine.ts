@@ -1,5 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
+import { getVercelOidcToken } from "@vercel/oidc";
 import { extractFieldMessage } from "./extract";
 import { NAV, TOOL_DEFS, runTool, toolRun, type ToolCtx, type ToolOut } from "./tools";
 import { connectionToolDefs } from "./connectTools";
@@ -17,10 +18,16 @@ import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
    source of a record ID.
    ════════════════════════════════════════════════════════════════════ */
 
-// Direct Anthropic remains supported. Vercel identity can authenticate Gateway.
-const gatewayToken = () => process.env.AI_GATEWAY_API_KEY?.trim() || (process.env.VERCEL === "1" ? process.env.VERCEL_OIDC_TOKEN?.trim() : undefined);
-const gatewaySelected = () => !process.env.ANTHROPIC_API_KEY?.trim() && Boolean(gatewayToken());
-const modelName = () => process.env.STRAYPAW_AI_MODEL?.trim() || (gatewaySelected() ? "anthropic/claude-sonnet-5.5" : "claude-opus-5-5");
+type ModelAccess = { gateway: boolean; token: string; model: string };
+/** Runtime OIDC lives in Vercel's request context, not necessarily process.env.
+ * Resolve once per run; never cache a rotating identity or accept a client token. */
+async function modelAccess(): Promise<ModelAccess | null> {
+  const direct = process.env.ANTHROPIC_API_KEY?.trim();
+  if (direct) return { gateway: false, token: direct, model: process.env.STRAYPAW_AI_MODEL?.trim() || "claude-opus-5-5" };
+  let token = process.env.AI_GATEWAY_API_KEY?.trim();
+  if (!token) { try { token = (await getVercelOidcToken()).trim(); } catch { return null; } }
+  return token ? { gateway: true, token, model: process.env.STRAYPAW_AI_MODEL?.trim() || "anthropic/claude-sonnet-5.5" } : null;
+}
 const MAX_STEPS = 6;
 const MAX_TOOL_CALLS = 12;
 const RUN_MS = 45000;
@@ -49,7 +56,7 @@ function absorb(acc: Acc, name: string, out: ToolOut) {
   if (out.navigate) acc.navigate = out.navigate;
 }
 
-export const modelConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY?.trim() || gatewayToken());
+export const modelConfigured = async () => Boolean(await modelAccess());
 
 export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string }): Promise<AiReply> {
   const turns = messages.filter((m) => m.text?.trim()).slice(-12).map((m) => ({ role: m.role, text: m.text.slice(0, 6000) }));
@@ -60,8 +67,9 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   if (previous?.role === "assistant" && previous.text.includes("Tell me the city and I will prepare the case.") && report?.role === "user" && toolQuestion.length <= 80 && extractFieldMessage(toolQuestion).city) {
     toolQuestion = `${report.text}\nCity: ${extractFieldMessage(toolQuestion).city}`;
   }
-  if (modelConfigured()) {
-    try { return await withModel(turns, ctx, context); }
+  const access = await modelAccess();
+  if (access) {
+    try { return await withModel(turns, ctx, context, access); }
     catch (e) {
       console.error("Kaju model call failed", e instanceof Error ? e.message : e);
       const r = await withTools(toolQuestion, ctx);
@@ -73,9 +81,9 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
 }
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */
-async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string }): Promise<AiReply> {
-  const gateway = gatewaySelected();
-  const client = new Anthropic({ maxRetries: 0, timeout: RUN_MS, ...(gateway ? { apiKey: null, authToken: gatewayToken(), baseURL: "https://ai-gateway.vercel.sh" } : {}) });
+async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string }, access: ModelAccess): Promise<AiReply> {
+  const gateway = access.gateway;
+  const client = new Anthropic({ maxRetries: 0, timeout: RUN_MS, ...(gateway ? { apiKey: null, authToken: access.token, baseURL: "https://ai-gateway.vercel.sh" } : { apiKey: access.token }) });
   const deadline = Date.now() + RUN_MS;
   let calls = 0;
   const acc: Acc = { citations: [], tools: [], proposals: [] };
@@ -85,7 +93,7 @@ async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: stri
   for (let step = 0; step < MAX_STEPS; step++) {
     if (Date.now() >= deadline) break;
     const res = await client.beta.messages.create({
-      model: modelName(),
+      model: access.model,
       max_tokens: 4000,
       ...(gateway ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
       output_config: { effort: "medium" },
@@ -133,6 +141,12 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   const acc: Acc = { citations: [], tools: [], proposals: [] };
   const done = (text: string): Omit<AiReply, "notice"> => ({ text, ...acc, engine: "tools" });
   const needsOrg = ctx.orgId ? "I could not read your records. Counts are unknown. Try again." : "That needs an organisation workspace. Join your organisation with its code, or ask me about published programmes and the public map.";
+
+  if (/^(?:(?:hi|hello|hey)(?:\s+(?:kaju|there))?|good (?:morning|afternoon|evening)(?:\s+kaju)?|help|what can you do|how can you help(?: me)?|who are you|what is kaju)[?,.!\s]*$/i.test(q.trim())) {
+    return done(ctx.orgId
+      ? "Hello, I’m Kaju. I can summarise your current work, find missing evidence, check ABC records and prepare reports. I can also draft cases, notes and follow-ups for you to confirm. Try ‘What needs attention?’ or ‘Show my ABC verification queue’."
+      : "Hello, I’m Kaju. I can explain published programmes and help you find public records. Sign in to work with your organisation’s cases, evidence, follow-ups and reports.");
+  }
 
   if (/what.*(completed|done|saved)|recent.*(actions|changes)|verify.*actions/.test(t)) {
     const out = await call(acc, ctx, "recent_confirmed_actions");
