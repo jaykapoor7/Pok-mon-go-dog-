@@ -11,6 +11,7 @@ import { ArrowLeft } from "lucide-react";
 import { EVIDENCE_LABEL, NotEnabled, PACKAGE_LABEL, orgNames, packageAct, packageById, packageCases, packageEvents, type EvidenceKind, type Package, type PackageCase, type PackageEvent } from "@/lib/abc";
 import { Reading } from "../ui/Reading";
 import { period } from "./Packages";
+import { EvidenceLink } from "./EvidenceLink";
 import "../ngo/ngo.css";
 import "./abc.css";
 
@@ -78,7 +79,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
                     <tr key={c.case_id}>
                       <td>{side === "operator" ? <Link href={`/ngo/verification/${c.case_id}`}>{c.title || c.case_code}</Link> : c.title || c.case_code}<small>{[c.case_code, c.city].filter(Boolean).join(" · ")}</small></td>
                       <td><span className="ev">{c.evidence.map((e, i) => e.url
-                        ? <a key={i} href={e.url} target="_blank" rel="noreferrer">{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}</a>
+                        ? <EvidenceLink key={i} url={e.url}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}</EvidenceLink>
                         : <span key={i}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}{e.location ? `: ${e.location}` : ""}</span>)}</span></td>
                       <td>{c.vet_name ?? "—"}<small>Reviewed by {c.reviewer_name ?? "—"}</small></td>
                     </tr>

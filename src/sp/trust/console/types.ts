@@ -62,7 +62,7 @@ export type Overview = {
 
 export type SectionId =
   | "today" | "arrivals" | "sightings" | "partners" | "reports" | "feedback" | "verify"
-  | "orgs" | "imports" | "enrich"
+  | "orgs" | "offices" | "imports" | "enrich"
   | "dogs" | "feeding" | "fundraisers"
   | "volunteers" | "ngos";
 
@@ -74,3 +74,6 @@ export type Arrival = {
   animal: string | null; code: string | null; channel: string | null; demo: boolean;
 };
 export type ArrivalsRead = { arrivals: Arrival[]; week: number };
+
+/** A reviewing office and who reviews for it (/api/admin/offices). */
+export type Office = { id: string; name: string; city: string | null; created_at: string; packages: number; reviewers: { user_id: string; email: string | null; name: string | null; added_at: string }[] };

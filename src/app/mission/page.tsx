@@ -12,7 +12,7 @@ export default function MissionPage() {
   return (
     <div className={`sp field-site ${bungee.variable}`}>
       <SiteHeader float />
-      <main><MissionWall family={bungee.style.fontFamily} /></main>
+      <main><h1 style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>Our mission: every stray animal on record</h1><MissionWall family={bungee.style.fontFamily} /></main>
     </div>
   );
 }

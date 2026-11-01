@@ -570,3 +570,11 @@
 @media (max-width: 1000px) { .s4-story-pick { min-height: 220px; } .s4-story .s4-story-pick:last-child { display: grid; } }
 @media (max-width: 640px) { .s4-story { grid-template-columns: minmax(0, 1fr); } .s4-story-pick { min-height: 0; } }
 .s4 .s4-uc-kicker { margin: 0 0 10px; font-size: 14px; font-weight: 500; color: var(--s4-blue, #2457ce); letter-spacing: -0.01em; }
+
+/* Phones: product fragments take the column's width instead of their desktop width, so no text is cut off at the edges. */
+@media (max-width: 560px) {
+  .s4u-frag:not(.s4u-ring) { width: 100% !important; max-width: 100%; }
+  .s4-split-art, .s4-hero-art { min-width: 0; }
+  /* A fixed aspect ratio let a tall fragment widen its panel past the card. */
+  .s4-card .s4-grain, .s4-cards.is-3 .s4-card .s4-grain { aspect-ratio: auto; width: 100%; padding: 20px 16px; }
+}

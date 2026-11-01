@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
 import { NotEnabled, PACKAGE_LABEL, createPackage, myContext, offices, packages, type AbcContext, type Office, type Package } from "@/lib/abc";
-import { NgoGate } from "../ngo/Gate";
+import { NgoGate, useOrgOpen } from "../ngo/Gate";
 import { Reading } from "../ui/Reading";
 import "../ngo/ngo.css";
 import "./abc.css";
@@ -28,13 +28,15 @@ export function Packages() {
   const now = new Date();
   const [f, setF] = useState({ title: "", start: iso(new Date(now.getFullYear(), now.getMonth(), 1)), end: iso(now), office: "" });
 
+  const open = useOrgOpen();
   useEffect(() => {
+    if (!open) return;
     let live = true;
     Promise.all([packages(), offices(), myContext()])
       .then(([p, o, c]) => { if (!live) return; setList(p.filter((x) => x.ngo_id === c.ngo_id)); setOffs(o); setCtx(c); setF((v) => ({ ...v, office: v.office || o[0]?.id || "" })); })
       .catch((e) => { if (!live) return; if (e instanceof NotEnabled) setOff(true); else setErr(e.message); });
     return () => { live = false; };
-  }, []);
+  }, [open]);
 
   const canPrepare = ctx?.role === "admin" || ctx?.role === "coordinator";
   const submit = async (e: FormEvent) => {

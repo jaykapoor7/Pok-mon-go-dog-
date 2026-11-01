@@ -21,10 +21,14 @@ import { changeRole, inviteTeam, removeMember, revokeCode, type Receipt } from "
 import { NgoGate } from "./Gate";
 import "./ngo.css";
 
-const ROLE: Record<string, string> = { admin: "Lead", lead: "Lead", member: "Member", volunteer: "Volunteer" };
+const ROLE: Record<string, string> = { admin: "Lead", lead: "Lead", coordinator: "Coordinator", veterinarian: "Veterinarian", member: "Member", field_worker: "Field worker", volunteer: "Volunteer" };
+/* Roles a lead can give an existing member. The database accepts exactly these. */
+const ASSIGNABLE = ["admin", "coordinator", "veterinarian", "member", "field_worker"] as const;
 const CAN: { role: string; can: string[] }[] = [
-  { role: "Lead", can: ["Everything a member can", "Add people and change roles", "Revoke codes, remove members", "Import registers"] },
-  { role: "Member", can: ["Read and act on the organisation's cases", "Record care and follow-ups", "File reports into drives"] },
+  { role: "Lead", can: ["Everything a coordinator can", "Add people and change roles", "Revoke codes, remove members", "Import registers"] },
+  { role: "Coordinator", can: ["Review ABC evidence, approve or return it", "Prepare and submit report packages", "Answer reviewer queries"] },
+  { role: "Veterinarian", can: ["Authorise ABC procedures in their own name", "Cannot review evidence they signed"] },
+  { role: "Member / field worker", can: ["Read and act on the organisation's cases", "Add evidence, record care and follow-ups"] },
   { role: "Volunteer", can: ["Send reports credited to the organisation", "Sees nothing private"] },
 ];
 
@@ -59,7 +63,7 @@ export function Team() {
                   <span className="tm-who"><b>{p.name}{p.user_id === user?.id ? " (you)" : ""}</b><small>{ROLE[p.role] ?? p.role}</small></span>
                   {lead && p.user_id !== user?.id ? (
                     <span className="row" style={{ ["--g" as string]: "6px" }}>
-                      <select className="select ngo-sel" value={p.role} aria-label={`Role for ${p.name}`} onChange={async (e) => after(await changeRole(p.user_id, e.target.value))}><option value="admin">Lead</option><option value="member">Member</option></select>
+                      <select className="select ngo-sel" value={p.role} aria-label={`Role for ${p.name}`} onChange={async (e) => after(await changeRole(p.user_id, e.target.value))}>{ASSIGNABLE.map((k) => <option key={k} value={k}>{ROLE[k]}</option>)}{!(ASSIGNABLE as readonly string[]).includes(p.role) && <option value={p.role}>{ROLE[p.role] ?? p.role}</option>}</select>
                       <button type="button" className="btn is-ghost is-s" onClick={async () => { if (window.confirm(`Remove ${p.name} from the organisation? They lose access to its records at once.`)) await after(await removeMember(p.user_id)); }}>Remove</button>
                     </span>
                   ) : <span />}

@@ -41,6 +41,7 @@ async function ownBatch(admin: any, org: Org, id: string) {
 }
 
 export async function GET(req: Request) {
+  if (!getSupabaseAdmin()) return fail("Importing is not configured on this deployment (the server key is missing).", 503);
   const who = await member(req);
   if (!who) return fail("Sign in with your organisation account to import records.", 401);
   const { data } = await who.admin.from("import_batches").select("id,source_filename,status,rows_total,rows_imported,rows_needing_review,created_at,completed_at")
@@ -49,6 +50,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (!getSupabaseAdmin()) return fail("Importing is not configured on this deployment (the server key is missing).", 503);
   const who = await member(req);
   if (!who) return fail("Sign in with your organisation account to import records.", 401);
   const { admin, org, actor } = who;
