@@ -12,6 +12,7 @@ if (typeof document !== "undefined") {
     new FontFace("SPInter", `url(${staticFile("inter.woff2")})`, { weight: "100 900" }).load(),
     new FontFace("SPSerif", `url(${staticFile("serif-italic.woff2")})`, { style: "italic", weight: "400" }).load(),
     new FontFace("SPDeva", `url(${staticFile("deva.woff2")})`, { weight: "100 900" }).load(),
+    new FontFace("SPHand", `url(${staticFile("caveat.woff2")})`, { weight: "400 700" }).load(),
   ]).then((fs) => { fs.forEach((f) => document.fonts.add(f)); continueRender(h); }).catch((e) => { console.error(e); continueRender(h); });
 }
 
