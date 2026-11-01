@@ -4,7 +4,7 @@ import fieldPartners from "../src/data/field-partners.json";
 /* StrayPaw 4 landing (operator-first, 31 Oct 2026). These tests hold the
    page to the same standards as before: usable at every width, real tap
    targets, keyboard access, no-JS essentials. */
-const H1=/Meet StrayPaw, the platform for\s*animal welfare programmes/;
+const H1=/Meet Kaju, the AI agent for\s*animal welfare programmes/;
 for(const width of [320,390,768,1440])test(`hero and section order remain usable at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(H1);
  for(const a of await page.locator(".s4-hero .s4-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.height).toBeGreaterThanOrEqual(44);}

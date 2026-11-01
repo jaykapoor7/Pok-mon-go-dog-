@@ -25,7 +25,7 @@ test("consolidated URLs redirect to their 3.0 homes", async ({ request }) => {
 
 test("homepage leads with the operator product and a labelled demo", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet StrayPaw, the platform for\s*animal welfare programmes/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI agent for\s*animal welfare programmes/);
   await expect(page.locator(".s4-hero").getByRole("link", { name: "Book a demo" })).toHaveAttribute("href", "/demo");
   await expect(page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ })).toBeVisible();
   await expect(page.getByText("Product demo · illustrative records, not live programme data")).toBeAttached();

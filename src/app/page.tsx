@@ -70,7 +70,7 @@ export default function HomePage() {
       {/* 1 · hero */}
       <section className="s4-hero" aria-labelledby="hero-title">
         <div className="s4-wrap">
-          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet StrayPaw, the platform for", "animal welfare programmes"]} /></h1>
+          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet Kaju, the AI agent for", "animal welfare programmes"]} /></h1>
           <p className="s4-lede">Capture animals, record care, check evidence, prepare reports, and more. We start with ABC and anti-rabies programmes, where every procedure is recorded, signed off and ready for the office that funds it.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Take a tour</Link></div>
           <div className="s4-hero-stage"><HeroDemo /></div>

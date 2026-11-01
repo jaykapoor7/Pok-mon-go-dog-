@@ -36,7 +36,7 @@ test("municipal package review asks a visitor to sign in", async ({ page, isMobi
 
 test("the homepage positions StrayPaw beyond ABC, with ABC/ARV as the first product", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/platform for\s*animal welfare programmes/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI agent for\s*animal welfare programmes/);
   await expect(page.getByText(/We start with ABC and anti-rabies programmes/)).toBeVisible();
 });
 
