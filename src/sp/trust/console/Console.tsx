@@ -29,6 +29,7 @@ import { Today, type Need } from "./Today";
 import { Dogs, Feeding, Fundraisers } from "./Records";
 import { Helpers } from "./People";
 import { Orgs } from "./Orgs";
+import { Offices } from "./Offices";
 import type { ArrivalsRead, ContentReport, Feedback, Helper, HelpersRead, Overview, PartnerRequest, PartnersRead, PendingCase, SectionId, Sighting } from "./types";
 import "../trust.css";
 import "./console.css";
@@ -57,6 +58,7 @@ const GROUPS: { label: string; items: Def[] }[] = [
   ] },
   { label: "Setup", items: [
     { id: "orgs", label: "Organisations", note: "Workspaces, members and codes", path: "/api/admin/orgs", pick: (b) => b.orgs ?? [] },
+    { id: "offices", label: "Reviewing offices", note: "Government offices that receive ABC report packages, and their reviewers", path: "/api/admin/offices", pick: (b) => b.offices ?? [] },
     { id: "imports", label: "Master imports", note: "Load an organisation's workbook" },
     { id: "enrich", label: "Historical enrichment", note: "Match imported history to records" },
   ] },
@@ -181,6 +183,7 @@ export function Console() {
           {sec === "volunteers" && <Helpers {...P} read={(read as Read<HelpersRead> | undefined) && mapHelpers(read as Read<HelpersRead>, "volunteers")} empty={empty("No volunteer offers")} kind="volunteer" orgs={reads.orgs?.state === "read" ? (reads.orgs.data as { id: string; name: string }[]).map((o) => ({ id: o.id, name: o.name })) : []} />}
           {sec === "ngos" && <Helpers {...P} read={(read as Read<HelpersRead> | undefined) && mapHelpers(read as Read<HelpersRead>, "ngos")} empty={empty("No NGO offers")} kind="ngo" />}
           {sec === "orgs" && <Orgs {...P} empty={empty("No organisations yet")} />}
+          {sec === "offices" && <Offices {...P} empty={empty("No reviewing offices yet")} />}
           {sec === "imports" && <Carried title="Master imports"><MasterImport secret={secret} /></Carried>}
           {sec === "enrich" && <Carried title="Historical enrichment"><WorkbookEnrichment secret={secret} /></Carried>}
         </main>

@@ -119,3 +119,14 @@
 .abc-sign { padding: 14px 0; }
 .abc-hist li { padding: 6px 0; }
 .abc-sign textarea { min-height: 64px; }
+
+/* Evidence files: one tap opens the camera on a phone, the file picker elsewhere. */
+.abc-file { position: relative; display: flex; align-items: center; min-height: 34px; padding: 0 12px; border: 1px dashed var(--line, #d7dae0); border-radius: 8px; background: #fff; font-size: 14px; color: var(--ink-2, #3b3f4a); cursor: pointer; overflow: hidden; }
+.abc-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abc-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 16px; }
+.abc-file:focus-within { outline: 2px solid var(--s3-blue, #2457ce); outline-offset: 2px; }
+.abc-form .abc-more { justify-self: start; }
+.abc-linkbtn { padding: 0; border: 0; background: none; font: inherit; font-size: 13px; color: var(--s3-blue, #2457ce); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.abc-linkbtn:focus-visible { outline: 2px solid var(--s3-blue, #2457ce); outline-offset: 2px; border-radius: 3px; }
+.abc-err-inline { display: block; color: #b42318; font-size: 12px; }
+@media (max-width: 720px) { .abc-file { min-height: 44px; } }

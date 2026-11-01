@@ -11,12 +11,13 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ArrowLeft, Check } from "lucide-react";
 import {
   EVIDENCE_KINDS, EVIDENCE_LABEL, HISTORY_LABEL, NotEnabled, addEvidence, caseAttestations, caseChecklist, caseEvidence, caseHead, caseHistory,
-  myContext, returnEvidence, reviewEvidence, vetAuthorise, withdrawSignOff,
+  myContext, returnEvidence, reviewEvidence, uploadEvidenceFile, vetAuthorise, withdrawSignOff,
   type AbcContext, type Attestation, type Checklist, type Evidence, type EvidenceKind, type HistoryRow,
 } from "@/lib/abc";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { NgoGate } from "../ngo/Gate";
 import { Reading } from "../ui/Reading";
+import { EvidenceLink } from "./EvidenceLink";
 import "../ngo/ngo.css";
 import "./abc.css";
 
@@ -88,10 +89,13 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
               <li key={k}>
                 <span className={`ck${e ? " is-on" : ""}`} aria-hidden>{e && <Check size={11} strokeWidth={3} />}</span>
                 <span>{EVIDENCE_LABEL[k]}<small>{e ? [e.location_text, when(e.created_at)].filter(Boolean).join(" · ") : "Missing"}</small></span>
-                {e?.url ? <a href={e.url} target="_blank" rel="noreferrer">Open</a> : <span />}
+                {e?.url ? <EvidenceLink url={e.url} /> : <span />}
               </li>
             ); })}</ul>
-            {!locked && d.chk.missing.length > 0 && <AddEvidence missing={d.chk.missing} busy={busy} onAdd={(k, v) => act(() => addEvidence(id, k, v), `${EVIDENCE_LABEL[k]} added.`)} />}
+            {!locked && d.chk.missing.length > 0 && <AddEvidence missing={d.chk.missing} busy={busy} onAdd={(k, v) => act(async () => {
+              const url = v.file ? await uploadEvidenceFile(d.ctx.ngo_id ?? "", id, k, v.file) : v.url;
+              return addEvidence(id, k, { url, location: v.location });
+            }, `${EVIDENCE_LABEL[k]} added.`)} />}
           </section>
 
           <section className="abc-sec" aria-labelledby="hist-h">
@@ -154,19 +158,37 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
   );
 }
 
-function AddEvidence({ missing, busy, onAdd }: { missing: EvidenceKind[]; busy: boolean; onAdd: (k: EvidenceKind, v: { url?: string; location?: string }) => Promise<void> }) {
+function AddEvidence({ missing, busy, onAdd }: { missing: EvidenceKind[]; busy: boolean; onAdd: (k: EvidenceKind, v: { url?: string; location?: string; file?: File }) => Promise<void> }) {
   const [kind, setKind] = useState<EvidenceKind>(missing[0]);
   const [val, setVal] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [byLink, setByLink] = useState(false);
+  const [key, setKey] = useState(0);
   useEffect(() => { if (!missing.includes(kind)) setKind(missing[0]); }, [missing, kind]);
   const isPlace = kind === "release_location";
-  const submit = async (e: FormEvent) => { e.preventDefault(); if (!val.trim()) return; await onAdd(kind, isPlace ? { location: val } : { url: val }); setVal(""); };
+  const useFile = !isPlace && !byLink;
+  const ready = useFile ? !!file : !!val.trim();
+  const reset = () => { setVal(""); setFile(null); setKey((k) => k + 1); };
+  const submit = async (e: FormEvent) => {
+    e.preventDefault(); if (!ready) return;
+    await onAdd(kind, isPlace ? { location: val } : useFile ? { file: file! } : { url: val });
+    reset();
+  };
   return (
     <form className="abc-form" onSubmit={submit}>
       <div className="row2">
-        <select className="select" value={kind} onChange={(e) => setKind(e.target.value as EvidenceKind)} aria-label="Evidence to add">{missing.map((k) => <option key={k} value={k}>{EVIDENCE_LABEL[k]}</option>)}</select>
-        <input className="input" value={val} onChange={(e) => setVal(e.target.value)} placeholder={isPlace ? "Where the animal was released" : "Link to the file (photo or record)"} aria-label={isPlace ? "Release location" : "File link"} inputMode={isPlace ? "text" : "url"} />
-        <button type="submit" className="btn is-s" disabled={busy || !val.trim()}>Add</button>
+        <select className="select" value={kind} onChange={(e) => { setKind(e.target.value as EvidenceKind); reset(); }} aria-label="Evidence to add">{missing.map((k) => <option key={k} value={k}>{EVIDENCE_LABEL[k]}</option>)}</select>
+        {isPlace ? <input className="input" value={val} onChange={(e) => setVal(e.target.value)} placeholder="Where the animal was released" aria-label="Release location" />
+          : useFile ? (
+            <label className="abc-file">
+              <input key={key} type="file" accept={kind === "surgery_record" ? "image/*,application/pdf" : "image/*"} capture={kind === "surgery_record" ? undefined : "environment"} onChange={(e) => setFile(e.target.files?.[0] ?? null)} aria-label={`${EVIDENCE_LABEL[kind]} file`} />
+              <span>{file ? file.name : kind === "surgery_record" ? "Take a photo or choose a PDF" : "Take or choose a photo"}</span>
+            </label>
+          ) : <input className="input" value={val} onChange={(e) => setVal(e.target.value)} placeholder="Link to the file" aria-label="File link" inputMode="url" />}
+        <button type="submit" className="btn is-s" disabled={busy || !ready}>{busy ? "Saving" : "Add"}</button>
       </div>
+      {!isPlace && <button type="button" className="abc-more" onClick={() => { setByLink((v) => !v); reset(); }}>{byLink ? "Upload a file instead" : "Use a link instead"}</button>}
+      {useFile && <p className="abc-hint">Kept private to your organisation and, once submitted, the reviewing office.</p>}
     </form>
   );
 }

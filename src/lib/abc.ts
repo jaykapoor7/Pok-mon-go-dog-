@@ -9,6 +9,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { getSupabase } from "./supabase";
+import { compressForUpload } from "./photo/compress";
 
 export const EVIDENCE_KINDS = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"] as const;
 export type EvidenceKind = (typeof EVIDENCE_KINDS)[number];
@@ -100,6 +101,37 @@ export async function caseHead(caseId: string) {
 
 export const addEvidence = (caseId: string, kind: EvidenceKind, v: { url?: string; location?: string; title?: string }) =>
   rpc<string>("abc_add_evidence", { p_case_id: caseId, p_kind: kind, p_url: v.url ?? null, p_location: v.location ?? null, p_title: v.title ?? null });
+/* ── evidence files ─────────────────────────────────────────────────────
+   Photos and scanned records go to the private abc-evidence bucket under
+   <organisation>/<case>/<file>. The database only lets a member of that
+   organisation write there, never overwrites or deletes, and never serves a
+   public link: people read a file through a signed link that expires. The
+   evidence row stores storage://abc-evidence/<path>. */
+export const EVIDENCE_BUCKET = "abc-evidence";
+const STORE = "storage://abc-evidence/";
+export const MAX_EVIDENCE_BYTES = 15 * 1024 * 1024;
+
+export async function uploadEvidenceFile(ngoId: string, caseId: string, kind: EvidenceKind, file: File): Promise<string> {
+  if (!/^(image\/|application\/pdf$)/.test(file.type)) throw new Error("Choose a photo or a PDF");
+  const body = await compressForUpload(file);
+  if (body.size > MAX_EVIDENCE_BYTES) throw new Error("That file is over 15 MB");
+  const ext = (body.type === "application/pdf" ? "pdf" : body.type.split("/")[1] || "jpg").replace("jpeg", "jpg").replace(/[^a-z0-9]/g, "");
+  const path = `${ngoId}/${caseId}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await db().storage.from(EVIDENCE_BUCKET).upload(path, body, { contentType: body.type, upsert: false });
+  if (error) throw new Error(/row-level security|not authori[sz]ed|403/i.test(error.message) ? "You can only add files to your own organisation's cases" : error.message);
+  return STORE + path;
+}
+
+export const isStoredEvidence = (url: string | null | undefined) => !!url && url.startsWith(STORE);
+
+/** A link a person can open: stored files get a signed link valid for five minutes. */
+export async function evidenceLink(url: string): Promise<string> {
+  if (!isStoredEvidence(url)) return url;
+  const { data, error } = await db().storage.from(EVIDENCE_BUCKET).createSignedUrl(url.slice(STORE.length), 300);
+  if (error || !data?.signedUrl) throw new Error("You cannot open this file");
+  return data.signedUrl;
+}
+
 export const vetAuthorise = (caseId: string, note?: string) => rpc<string>("abc_vet_authorise", { p_case_id: caseId, p_note: note ?? null });
 export const reviewEvidence = (caseId: string, note?: string) => rpc<string>("abc_review_evidence", { p_case_id: caseId, p_note: note ?? null });
 export const returnEvidence = (caseId: string, reason: string) => rpc<string>("abc_return_evidence", { p_case_id: caseId, p_reason: reason });
