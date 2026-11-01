@@ -158,3 +158,21 @@ export function AiBand({ v = 0 }: { v?: number }) {
     </div>
   );
 }
+
+/* Kaju in the background: three jobs in one compact panel, one demo at a time. */
+export function MateTabs({ items }: { items: { title: string; body: string; ui: ReactNode }[] }) {
+  const [i, setI] = useState(0);
+  return (
+    <div className="s4-mtabs">
+      <div className="s4-mtabs-list" role="tablist" aria-label="What Kaju does in the background">
+        {items.map((x, n) => (
+          <button key={x.title} type="button" role="tab" id={`mt-${n}`} aria-selected={i === n} aria-controls="mt-panel" tabIndex={i === n ? 0 : -1} onClick={() => setI(n)}
+            onKeyDown={(e) => { const d = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0; if (d) { e.preventDefault(); const k = (n + d + items.length) % items.length; setI(k); document.getElementById(`mt-${k}`)?.focus(); } }}>
+            <b>{x.title}</b><span>{x.body}</span>
+          </button>
+        ))}
+      </div>
+      <div className="s4-mtabs-art s4-grain t-sand" role="tabpanel" id="mt-panel" aria-labelledby={`mt-${i}`} key={i}>{items[i].ui}</div>
+    </div>
+  );
+}

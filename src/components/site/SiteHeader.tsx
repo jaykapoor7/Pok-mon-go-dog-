@@ -27,8 +27,7 @@ import "@/sp4/sp4.css";
 import { MEGA, type MegaCol } from "@/sp3/site/nav-data";
 export { AUDIENCES, PLATFORM, RESOURCES, SOLUTIONS } from "@/sp3/site/nav-data";
 
-type MenuId = "platform" | "solutions" | "resources";
-const NOTICE_KEY = "sp4.notice.ai";
+type MenuId = "platform" | "solutions";
 
 export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean; float?: boolean } = {}) {
   void props;
@@ -37,12 +36,10 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
   const [menu, setMenu] = useState<MenuId | null>(null);
   const [sheet, setSheet] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [notice, setNotice] = useState(true);
   const bar = useRef<HTMLElement>(null);
   const closeTimer = useRef<number | null>(null);
   const previousPath = useRef(path);
 
-  useEffect(() => { try { if (sessionStorage.getItem(NOTICE_KEY) === "0") setNotice(false); } catch { /* storage blocked */ } }, []);
   useEffect(() => {
     if (previousPath.current === path) return;
     previousPath.current = path;
@@ -98,33 +95,25 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
     if (id) { if (menu !== id) hoverOpened.current = { id, at: Date.now() }; setMenu(id); }
     else { hoverOpened.current = null; closeTimer.current = window.setTimeout(() => setMenu(null), 140); }
   };
-  const dismiss = () => { setNotice(false); try { sessionStorage.setItem(NOTICE_KEY, "0"); } catch { /* fine */ } };
 
   return (
     <header ref={bar} className={`s4 s4-nav${scrolled ? " is-scrolled" : ""}`}>
-      {notice && !sheet && (
-        <div className="s4-notice">
-          <p><Sparkles size={14} aria-hidden /> <Link href="/ai">Meet Kaju <ArrowRight size={14} aria-hidden /></Link> <span>Checks records. Prepares work for approval.</span></p>
-          <button type="button" onClick={dismiss} aria-label="Dismiss announcement"><X size={16} /></button>
-        </div>
-      )}
       <div className="s4-wrap s4-nav-in">
         <Link href="/" className="s4-brand" aria-label="StrayPaw home"><StrayPawMark size={28} /><span>StrayPaw</span></Link>
 
         <nav className="s4-nav-links" aria-label="Site" onPointerLeave={(e) => { if (e.pointerType === "mouse") hover(null); }}>
-          <Mega id="platform" label="Platform" open={menu === "platform"} onToggle={toggle} onHover={hover} cols={MEGA.platform}
+          <Mega id="platform" label="Product" open={menu === "platform"} onToggle={toggle} onHover={hover} cols={[...MEGA.platform, ...MEGA.resources.slice(0, 1)]}
             feature={<><div className="s4-mega-shot" aria-hidden><span className="s4-mega-q">Which Ward 5 vaccinations have no batch number?</span><span className="s4-mega-a"><KajuFace size={14} /> One of 212, from the 29 Oct camp: SP-0507.</span><span className="s4-mega-c">Answered by Kaju · checked by Priya</span></div><p>Kaju finds missing evidence and prepares records. A person confirms every change. <Link href="/ai">Learn more</Link></p></>} />
           <Mega id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} onHover={hover} cols={MEGA.solutions} />
+          <Link href="/ai" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/ai") ? "page" : undefined} className="s4-nav-kaju"><KajuFace size={18} />Kaju</Link>
           <Link href="/customers" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/customers") ? "page" : undefined}>Customers</Link>
-          <Mega id="resources" label="Resources" open={menu === "resources"} onToggle={toggle} onHover={hover} cols={MEGA.resources} />
-          <Link href="/security" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/security") ? "page" : undefined}>Security</Link>
           <Link href="/pricing" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/pricing") ? "page" : undefined}>Pricing</Link>
         </nav>
 
         <div className="s4-nav-end">
           {user
             ? <Link href="/app" className="s4-nav-signin">Open app</Link>
-            : <Link href="/sign-in" className="s4-nav-signin">Login</Link>}
+            : <Link href="/sign-in" className="s4-nav-signin">Sign in</Link>}
           <Link href="/demo" className="s4-btn is-primary is-sm s4-hide-m">Book a demo</Link>
           <button type="button" className="s4-burger" aria-label={sheet ? "Close menu" : "Open menu"} aria-expanded={sheet} aria-controls="s4-sheet" onClick={() => setSheet((v) => !v)}>
             {sheet ? <X size={20} /> : <Menu size={20} />}
@@ -133,15 +122,14 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
       </div>
 
       <div id="s4-sheet" className={`s4-sheet${sheet ? " is-open" : ""}`} aria-hidden={!sheet} inert={!sheet ? true : undefined}>
-        <SheetGroup label="Platform" cols={MEGA.platform} />
+        <SheetGroup label="Product" cols={[...MEGA.platform, ...MEGA.resources.slice(0, 1)]} />
         <SheetGroup label="Solutions" cols={MEGA.solutions} />
+        <Link href="/ai">Kaju</Link>
         <Link href="/customers">Customers</Link>
-        <SheetGroup label="Resources" cols={MEGA.resources} />
-        <Link href="/security">Security</Link>
         <Link href="/pricing">Pricing</Link>
         <div className="s4-sheet-cta">
           <Link href="/demo" className="s4-btn is-primary">Book a demo</Link>
-          <Link href={user ? "/app" : "/sign-in"} className="s4-btn is-line">{user ? "Open app" : "Login"}</Link>
+          <Link href={user ? "/app" : "/sign-in"} className="s4-btn is-line">{user ? "Open app" : "Sign in"}</Link>
         </div>
       </div>
     </header>

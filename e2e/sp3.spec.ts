@@ -25,7 +25,7 @@ test("consolidated URLs redirect to their 3.0 homes", async ({ request }) => {
 
 test("homepage introduces the general platform and a labelled demo", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/The platform for\s*animal welfare programmes\./);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI agent for\s*animal welfare programmes/);
   await expect(page.locator(".s4-hero").getByRole("link", { name: "Book a demo" })).toHaveAttribute("href", "/demo");
   await expect(page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ })).toBeVisible();
   await expect(page.getByText("Product demo · illustrative records, not live programme data")).toBeAttached();
@@ -48,7 +48,7 @@ test("phone menu opens and reaches sign in and demo", async ({ page, isMobile })
   await page.getByRole("button", { name: "Open menu" }).click();
   const sheet = page.locator("#s4-sheet");
   await expect(sheet.getByRole("link", { name: "Book a demo" })).toBeVisible();
-  await expect(sheet.getByRole("link", { name: "Login" })).toBeVisible();
+  await expect(sheet.getByRole("link", { name: "Sign in" })).toBeVisible();
 });
 
 test("sign in shows the authorised-users notice, then the email and code form", async ({ page }) => {
