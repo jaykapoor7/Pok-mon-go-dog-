@@ -72,9 +72,15 @@ Do not market connected providers, model-backed conversation, autonomous verific
 
 - `npm run build`: passed on final source, including lint/type validation, route generation and build traces. Next.js 15.5.28.
 - `npm run lint`, `npm run typecheck`, `npm run check:fixtures`: passed.
-- Desktop/phone production-build suite: **55 passed, 3 skipped** (`kaju`, `connections`, `kaju-api`, `abc-verification`, `sp3`). Skips are device-specific navigation/layout cases. The suite covers 53 public/app routes per viewport plus redirects, guest navigation, sign-in entry, demo labels, ABC guest gates, malformed requests, forged sessions, OAuth state/cookie refusal, WhatsApp guard and reduced motion. It does not authenticate to staging.
+- Desktop/phone production-build suite: **55 passed, 3 skipped** (`kaju`, `connections`, `kaju-api`, `abc-verification`, `sp3`). Skips are device-specific navigation/layout cases. The suite covers 51 public/app routes per viewport plus redirects, guest navigation, sign-in entry, demo labels, ABC guest gates, malformed requests, forged sessions, OAuth state/cookie refusal, WhatsApp guard and reduced motion. It does not authenticate to staging.
 - After the final artwork crop adjustment, the focused Kaju suite was rerun: **8 passed**. Final visual inspection shows the six isolated poses without neighbouring atlas fragments.
 - Visual evidence: [desktop workspace](qa/continuation/kaju-desktop.png), [phone workspace](qa/continuation/kaju-phone.png), [six poses](qa/continuation/explorer-poses.png). These are local production-build guest screens, not customer sessions.
 - Initial visual testing found atlas row overlap and letterbox bleed; corrected with per-pose crop bounds and explicit clipping. The first new mobile asset test selected a hidden duplicate; corrected to inspect the visible placement.
 
-The release commit is the commit containing this report. Deployment status must be checked against that commit, not inferred from the successful local build. No full customer-readiness sign-off is given.
+Application release: `949ab452e1a9fe4696632046640a3cff3d520b88`, pushed directly to main. The subsequent documentation-only commit corrects the route inventory to 33 public + 18 app routes (51), without changing app code. Deployment status must be checked against the application commit, not inferred from the successful local build. No full customer-readiness sign-off is given.
+
+## Deployment check (06:42 UTC)
+
+Vercel created production deployment [`dpl_7TbxvUhXZrtW4ih8k71847n2NkzY`](https://vercel.com/jaykapoor700-1687s-projects/pok-mon-go-dog/7TbxvUhXZrtW4ih8k71847n2NkzY) for exact app commit `949ab452`. Repeated metadata checks still returned **QUEUED**; the build-events endpoint returned no events. No build failure or queue reason was provided. The project's domain configuration confirms `www.straypaw.org` belongs to this project, with an apex 308 redirect.
+
+Live probe at 06:42 UTC: `/kaju/explorer-atlas.png` returned **404**, and `/api/ai` returned `{"model":false,"tools":true}`. The new release is therefore **not verified live**. The owner should inspect the linked Vercel queue, let the deployment reach READY, then run the release checks on the canonical production origin. No deployment was cancelled or force-promoted. The documented baseline live checks remain checks of c7a627ff, not of the new release.
