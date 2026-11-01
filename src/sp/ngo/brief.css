@@ -11,6 +11,9 @@
 .br-since a, .br-empty a { color: #2457ce; }
 
 .br-sec { margin-top: 28px; }
+.br-kaju .br-empty, .br-kaju li { color: #5f6b7e; }
+.br-kaju ul { padding-left: 18px; font-size: 14px; line-height: 1.5; }
+.br-kaju li + li { margin-top: 6px; }
 .br-h { margin: 0 0 8px; font-size: 15px; font-weight: 500; letter-spacing: -0.015em; }
 .br-list { list-style: none; margin: 0 -10px; padding: 0; display: grid; gap: 0; }
 .br-list li { animation: br-in 460ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }

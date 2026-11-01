@@ -26,7 +26,7 @@ async function modelAccess(): Promise<ModelAccess | null> {
   if (direct) return { gateway: false, token: direct, model: process.env.STRAYPAW_AI_MODEL?.trim() || "claude-opus-5-5" };
   let token = process.env.AI_GATEWAY_API_KEY?.trim();
   if (!token) { try { token = (await getVercelOidcToken()).trim(); } catch { return null; } }
-  return token ? { gateway: true, token, model: process.env.STRAYPAW_AI_MODEL?.trim() || "anthropic/claude-sonnet-5.5" } : null;
+  return token ? { gateway: true, token, model: process.env.STRAYPAW_AI_MODEL?.trim() || "google/gemini-2.5-flash" } : null;
 }
 const MAX_STEPS = 6;
 const MAX_TOOL_CALLS = 12;
@@ -73,11 +73,11 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
     catch (e) {
       console.error("Kaju model call failed", e instanceof Error ? e.message : e);
       const r = await withTools(toolQuestion, ctx);
-      return { ...r, notice: "Kaju could not reach its reasoning service, so this reply comes from the record tools alone." };
+      return { ...r, notice: "Conversation is temporarily limited. This reply uses record tools." };
     }
   }
   const r = await withTools(toolQuestion, ctx);
-  return { ...r, notice: "Kaju answered from StrayPaw's record tools. Free-form answers are off on this deployment." };
+  return { ...r, notice: "Answered from StrayPaw’s record tools. General conversation is temporarily limited." };
 }
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */
@@ -96,7 +96,7 @@ async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: stri
       model: access.model,
       max_tokens: 4000,
       ...(gateway ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
-      output_config: { effort: "medium" },
+      ...(gateway ? {} : { output_config: { effort: "medium" as const } }),
       system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }, { type: "text", text: where }],
       tools: [...TOOL_DEFS, ...connectionToolDefs(ctx.conn ?? null, !!ctx.orgId)].map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema as unknown as Anthropic.Beta.BetaTool.InputSchema })),
       tool_choice: { type: "auto" },

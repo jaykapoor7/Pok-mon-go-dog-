@@ -21,6 +21,7 @@ import { useAi } from "@/sp3/ai/AiPanel";
 import { stageOf, verificationQueue, type QueueRow } from "@/lib/abc";
 import { useMembership } from "../shell/Shell";
 import { Work } from "./Work";
+import { KajuActivity } from "./KajuActivity";
 import "./brief.css";
 
 const H = 3_600_000, DAY = 24 * H;
@@ -138,6 +139,7 @@ export function Brief() {
             </section>
           </>
         )}
+        {mem.org && <KajuActivity key={mem.org.id} orgId={mem.org.id} />}
       </div>
 
       <div className="br-dock">

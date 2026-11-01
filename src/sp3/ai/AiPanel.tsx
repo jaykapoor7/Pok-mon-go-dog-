@@ -118,7 +118,12 @@ export function AiProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) setMsgs((m) => [...m, { id: uid(), role: "assistant", text: "", error: data.error ?? "Kaju could not answer. Nothing was changed." }]);
-      else setMsgs((m) => [...m, { id: uid(), role: "assistant", text: (data as AiReply).text, reply: data as AiReply }]);
+      else {
+        const reply = data as AiReply;
+        setModel(reply.engine === "model");
+        setMsgs((m) => [...m, { id: uid(), role: "assistant", text: reply.text, reply }]);
+        if (reply.tools.some(tool => tool.name === "operations_insights" && tool.ok)) window.dispatchEvent(new Event("kaju-check-completed"));
+      }
     } catch {
       setMsgs((m) => [...m, { id: uid(), role: "assistant", text: "", error: "Could not reach StrayPaw. Check your connection; nothing was changed." }]);
     } finally { setBusy(false); }
@@ -247,7 +252,7 @@ function Thread({ full = false }: { full?: boolean }) {
         {user && <label className="ai3-attach" title="Attach a PDF, Word, Excel, CSV or PowerPoint file"><Paperclip size={15} aria-hidden /><span className="sr-only">Attach a file</span><input type="file" accept=".pdf,.docx,.xlsx,.xls,.csv,.pptx" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} /></label>}
         <button type="button" className="ai3-send" onClick={send} disabled={(!q.trim() && !file) || ai.busy} aria-label="Send"><ArrowUp size={16} /></button>
         {(file || fileErr) && <p className={`ai3-file${fileErr ? " is-err" : ""}`}>{fileErr ?? <>Attached: <b>{file!.name}</b> <button type="button" onClick={() => setFile(null)}>Remove</button></>}</p>}
-        <p className="ai3-foot">{ai.model === false ? "Kaju answers from the record tools on this deployment; free-form answers are off." : "Answers cite records. Changes need your confirmation."}</p>
+        <p className="ai3-foot">{ai.model === false ? "Using record tools. Ask about cases, evidence or reports." : "Answers cite records. Changes need your confirmation."}</p>
       </div>
     </div>
   );
