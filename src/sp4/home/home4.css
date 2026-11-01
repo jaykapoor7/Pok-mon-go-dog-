@@ -597,3 +597,6 @@
 .s4u-run-by { padding: 0 20px 16px; font-size: 12px; color: var(--s4-grey); }
 @keyframes s4-run-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .s4u-run-steps li, .s4u-run-found, .s4u-run-prep { animation: none; } }
+.s4-run-wrap { position: relative; justify-self: end; width: 100%; max-width: 560px; }
+.s4-run-kaju { position: absolute; right: 26px; top: -72px; width: 92px; height: 77px; pointer-events: none; z-index: 1; }
+@media (max-width: 960px) { .s4-run-wrap { justify-self: stretch; margin-top: 56px; } }

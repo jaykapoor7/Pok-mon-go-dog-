@@ -31,6 +31,7 @@ import { ORDER, WORKSPACES, currentDest, lastWorkspace, navOn, rememberWorkspace
 import { Finder } from "./Finder";
 import { AiPanel, AiProvider, KajuMark, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
+import { KajuCorner } from "@/kaju/Presence";
 import { spFonts } from "../fonts";
 import "../sp.css";
 import "./shell.css";
@@ -181,6 +182,11 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           })()}
 
           <p className="sx4-hint">Press <kbd>/</kbd> for quick navigation</p>
+
+          {/* Kaju rests here while the agent is closed; he moves into the panel when it opens. */}
+          <div className="sx3-kaju-nook">
+            {!ai.open && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju"><KajuCorner sequence="chill" size={78} /></button>}
+          </div>
 
           <div className="sx3-side-foot">
             {def.settings && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}

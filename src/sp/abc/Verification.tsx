@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { NotEnabled, STAGE_LABEL, myContext, stageOf, verificationQueue, type AbcContext, type QueueRow, type Stage } from "@/lib/abc";
 import { NgoGate, useOrgOpen } from "../ngo/Gate";
+import { KajuEmptyState } from "@/kaju/Presence";
 import { Reading } from "../ui/Reading";
 import "../ngo/ngo.css";
 import "./abc.css";
@@ -74,7 +75,7 @@ export function Verification() {
                 </Link></li>
               ); })}</ul>
             ) : (
-              <div className="abc-empty"><b>{stage === "all" ? "No ABC procedures yet." : `Nothing is ${STAGE_LABEL[stage as Stage].toLowerCase()}.`}</b>{stage === "all" ? "Sterilisation cases appear here." : ""}</div>
+              <KajuEmptyState title={stage === "all" ? "No ABC procedures yet." : `Nothing is ${STAGE_LABEL[stage as Stage].toLowerCase()}.`}>{stage === "all" ? "Sterilisation cases appear here." : null}</KajuEmptyState>
             )}
             <p className="abc-foot">Historical imports and research datasets are not listed.</p>
           </>

@@ -5,6 +5,10 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Grain } from "@/sp4/site/Grain";
 import { KajuRunUi, type KajuRun } from "@/sp4/home/ui";
+import { KajuPresence } from "@/kaju/Presence";
+import type { Step as KajuStep } from "@/kaju/poses";
+
+const RUN_STEPS: KajuStep[] = [{ state: "thinking", ms: 1700 }, { state: "success", ms: 1300 }, { state: "sitting", ms: 0 }];
 
 /* ════════════════════════════════════════════════════════════════════
    The two interactive homepage sections.
@@ -146,7 +150,11 @@ export function AiBand({ v = 0 }: { v?: number }) {
         </div>
         <Link href={band.link.href} className="s4-link">{band.link.label} <ArrowRight size={18} aria-hidden /></Link>
       </div>
-      <KajuRunUi run={band.runs[i]} k={`${v}-${i}`} />
+      <div className="s4-run-wrap">
+        {/* Kaju sits on the panel's edge and works through each run with it. */}
+        <span className="s4-run-kaju" aria-hidden><KajuPresence key={`${v}-${i}`} sequence={RUN_STEPS} size={92} /></span>
+        <KajuRunUi run={band.runs[i]} k={`${v}-${i}`} />
+      </div>
     </div>
   );
 }

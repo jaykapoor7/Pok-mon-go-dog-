@@ -283,3 +283,15 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp.sx3 .ai3-sugg button:hover { box-shadow: inset 0 0 0 1px #b9cbf3; color: var(--s3-blue); }
 .sp.sx3 .ai3-prop { background: #fff; }
 .sp.sx3 .ai3-full-head h1 { font-weight: 500; }
+
+/* Kaju's nook: the spare space above the sidebar footer. Never over a link. */
+.sp.sx3 .sx3-kaju-nook { margin-top: auto; display: flex; justify-content: flex-start; padding: 0 4px; min-height: 72px; align-items: flex-end; }
+.sp.sx3 .sx3-kaju-nook button { border: 0; background: none; padding: 0; cursor: pointer; border-radius: 10px; line-height: 0; opacity: .92; }
+.sp.sx3 .sx3-kaju-nook button:hover { opacity: 1; }
+.sp.sx3 .sx3-kaju-nook button:focus-visible { outline: 2px solid var(--s3-blue, #2457ce); outline-offset: 2px; }
+.sp.sx3 .sx3-kaju-nook .kaju-presence { pointer-events: none; }
+@media (max-height: 780px) { .sp.sx3 .sx3-kaju-nook { display: none; } }
+.sx3.is-collapsed .sx3-kaju-nook { display: none !important; }
+.sp.sx3 .sx3-kaju-nook + .sx3-side-foot { margin-top: 0; }
+@media (max-height: 780px) { .sp.sx3 .sx3-kaju-nook + .sx3-side-foot { margin-top: auto; } }
+.sx3.is-collapsed .sx3-kaju-nook + .sx3-side-foot { margin-top: auto; }

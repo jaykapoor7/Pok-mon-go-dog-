@@ -10,6 +10,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
 import { NotEnabled, PACKAGE_LABEL, createPackage, myContext, offices, packages, type AbcContext, type Office, type Package } from "@/lib/abc";
 import { NgoGate, useOrgOpen } from "../ngo/Gate";
+import { KajuEmptyState } from "@/kaju/Presence";
 import { Reading } from "../ui/Reading";
 import "../ngo/ngo.css";
 import "./abc.css";
@@ -75,7 +76,7 @@ export function Packages() {
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>
               ))}</ul>
-            ) : <div className="abc-empty"><b>No packages yet.</b>Approve records in Verification first.</div>)}
+            ) : <KajuEmptyState title="No packages yet.">Approve records in Verification first.</KajuEmptyState>)}
           </>
         )}
       </div>
