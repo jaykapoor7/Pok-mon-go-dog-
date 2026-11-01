@@ -80,3 +80,9 @@ export function KajuAmbientToggle() {
     </label>
   );
 }
+
+/** Kaju chilling in a quiet corner: small, idle, never over content.
+    Place it inside a positioned parent, in space reserved for him. */
+export function KajuCorner({ sequence = "idle", size = 72, flip, className = "", label }: { sequence?: keyof typeof SEQUENCES; size?: number; flip?: boolean; className?: string; label?: string }) {
+  return <KajuPresence sequence={sequence} size={size} flip={flip} loop className={`kaju-corner ${className}`} label={label} />;
+}

@@ -86,6 +86,9 @@ export const SEQUENCES: Record<string, Step[]> = {
   wakeUp: [{ state: "sleeping", ms: 2200 }, { state: "waking", ms: 1100 }, { state: "stretching", ms: 1300 }, { state: "standing", ms: 600 }, { state: "tailWag", ms: 1400 }, { state: "sitting", ms: 0 }],
   arrive: [{ state: "trotting", ms: 1800 }, { state: "standing", ms: 400 }, { state: "sitting", ms: 1400 }, { state: "headTilt", ms: 1400 }, { state: "sitting", ms: 0 }],
   idle: [{ state: "sitting", ms: 5000 }, { state: "looking", ms: 3200 }, { state: "sitting", ms: 4000 }, { state: "earTwitch", ms: 1600 }, { state: "sitting", ms: 4000 }, { state: "settling", ms: 900 }, { state: "lying", ms: 6000 }, { state: "sleeping", ms: 0 }],
+  /* chilling: long, calm holds; mostly lying and dozing */
+  chill: [{ state: "lying", ms: 7000 }, { state: "earTwitch", ms: 1600 }, { state: "lying", ms: 6000 }, { state: "sleeping", ms: 14000 }, { state: "waking", ms: 1100 }, { state: "lying", ms: 5000 }],
+  perch: [{ state: "sitting", ms: 6000 }, { state: "looking", ms: 3200 }, { state: "sitting", ms: 5000 }, { state: "headTilt", ms: 1600 }, { state: "sitting", ms: 6000 }, { state: "tailWag", ms: 1400 }],
   open: [{ state: "greeting", ms: 1600 }, { state: "listening", ms: 0 }],
   close: [{ state: "goodbye", ms: 1100 }, { state: "settling", ms: 900 }, { state: "lying", ms: 0 }],
   done: [{ state: "success", ms: 1500 }, { state: "sitting", ms: 0 }],
