@@ -207,7 +207,7 @@ function CityCard(P: Props & { city: string }) {
   if (clinical && cityRow) {
     return (
       <div className="fm-card">
-        <p className="fm-k"><i className="fm-kind" style={{ background: KINDS.clinical.ink }} aria-hidden />Clinical register · city level only</p>
+        <p className="fm-k"><i className="fm-kind" style={{ background: KINDS.clinical.ink }} aria-hidden />Historical clinical register (2013–16) · city level only</p>
         <p className="fm-big"><b>{f(cityRow.animals)}</b> <span>animals in {P.city}&rsquo;s clinical register</span></p>
         <p className="fm-note">{ev?.note}</p>
         <p className="fm-note">Treatments on record: <b>{f(cityRow.treatments)}</b>. Last dated entry: {day(cityRow.last_activity) ?? "not recorded"}.</p>

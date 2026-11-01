@@ -45,7 +45,7 @@ export function Offices({ secret, read, reload, empty }: P<Office[]>) {
 
   const inspector = creating ? (
     <Inspector kicker="Reviewing offices" title="New reviewing office" onClose={() => setCreating(false)}>
-      <p className="small">An office that receives ABC report packages, for example a municipal corporation's veterinary department.</p>
+      <p className="small">An office that receives ABC report packages, for example the veterinary department of a municipal corporation.</p>
       <label className="field"><span className="label">Office name</span><input className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" placeholder="e.g. Coimbatore Corporation, Veterinary Section" /></label>
       <label className="field"><span className="label">City <span className="small">(optional)</span></span><input className="input" value={city} onChange={(e) => setCity(e.target.value)} autoComplete="off" /></label>
       <div className="cn-do">

@@ -12,8 +12,8 @@ export type EvidenceKind = "rescue" | "campaign" | "clinical" | "photo" | "regis
 
 export const KINDS: Record<EvidenceKind, { label: string; ink: string; echo: string; reads: string }> = {
   rescue: { label: "Rescue & care", ink: "#e0583a", echo: "#2f3d8f", reads: "Requests for help, treatment and outcomes" },
-  campaign: { label: "Vaccination campaign", ink: "#2c9aa6", echo: "#b65a3a", reads: "Where a campaign worked, from source GPS" },
-  clinical: { label: "Clinical register", ink: "#2f3d8f", echo: "#f05b40", reads: "An archive kept at city level only: drawn hollow" },
+  campaign: { label: "Historical vaccination campaign (2014–15)", ink: "#2c9aa6", echo: "#b65a3a", reads: "Where a campaign worked, from source GPS" },
+  clinical: { label: "Historical clinical register (2013–16)", ink: "#2f3d8f", echo: "#f05b40", reads: "An archive kept at city level only: drawn hollow" },
   photo: { label: "Photo observations", ink: "#d99b1c", echo: "#2457ce", reads: "Individual animals, photographed" },
   register: { label: "Place registers", ink: "#7d8db4", echo: "#9b3149", reads: "Smaller lists of recorded animals" },
 };
