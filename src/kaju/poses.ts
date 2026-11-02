@@ -46,10 +46,10 @@ const w = (base: Record<Part, T>, over: Partial<Record<Part, Partial<T>>>): Reco
 export const POSES: Record<KajuState, Pose> = {
   /* everyday */
   sitting: { parts: SIT, eyes: "open", mouth: "smile", ears: "relaxed", loops: ["breathe", "blink"], label: "sitting" },
-  lying: { parts: LIE, eyes: "open", mouth: "smile", ears: "relaxed", loops: ["breathe", "blink"], shadow: 1.15, label: "lying down" },
+  lying: { parts: LIE, eyes: "open", mouth: "smile", ears: "relaxed", loops: ["breathe", "blink", "twitch"], shadow: 1.15, label: "lying down" },
   standing: { parts: STAND, eyes: "open", mouth: "smile", ears: "relaxed", loops: ["breathe", "blink"], label: "standing" },
-  walking: { parts: STAND, eyes: "open", mouth: "smile", ears: "relaxed", loops: ["walk", "blink", "wagSlow"], label: "walking" },
-  trotting: { parts: w(STAND, { head: { r: 4 }, tail: { r: -14 } }), eyes: "happy", mouth: "open", ears: "relaxed", loops: ["trot", "wag"], label: "trotting" },
+  walking: { parts: w(STAND, {fNear:{y:147,r:0},fFar:{y:145,r:0},bNear:{y:147,r:0},bFar:{y:145,r:0}}), eyes: "open", mouth: "smile", ears: "relaxed", loops: ["walk", "blink", "wagSlow"], label: "walking" },
+  trotting: { parts: w(STAND, { head: { r: 4 }, tail: { r: -14 }, fNear:{y:147,r:0},fFar:{y:145,r:0},bNear:{y:147,r:0},bFar:{y:145,r:0} }), eyes: "happy", mouth: "open", ears: "relaxed", loops: ["trot", "wag"], label: "trotting" },
   sleeping: { parts: w(LIE, { head: { x: 146, y: 163, r: 22 }, tail: { x: 83, y: 181, r: -32 } }), eyes: "closed", mouth: "flat", ears: "relaxed", loops: ["breathe", "zz"], shadow: 1.15, label: "sleeping" },
   waking: { parts: w(LIE, { head: { x: 150, y: 148, r: -8 } }), eyes: "half", mouth: "open", ears: "relaxed", loops: ["wake"], shadow: 1.15, label: "waking up" },
   stretching: {
@@ -73,7 +73,7 @@ export const POSES: Record<KajuState, Pose> = {
   success: { parts: w(STAND, { head: { r: -6 }, tail: { r: -18 } }), eyes: "happy", mouth: "open", ears: "up", loops: ["hop", "wag"], label: "pleased with the result" },
   insight: { parts: w(SIT, { head: { r: -4 } }), eyes: "wide", mouth: "open", ears: "up", loops: ["sparkle", "blink", "breathe"], label: "spotting something" },
   concerned: { parts: w(SIT, { head: { r: 8 } }), eyes: "open", mouth: "flat", ears: "back", brows: true, loops: ["blink", "breathe"], label: "concerned" },
-  error: { parts: w(LIE, { head: { x: 148, y: 158, r: 16 } }), eyes: "half", mouth: "flat", ears: "back", brows: true, loops: ["breathe"], shadow: 1.15, label: "unable to finish" },
+  error: { parts: w(SIT, { head: { r: 10 } }), eyes: "open", mouth: "flat", ears: "back", brows: true, loops: ["breathe"], shadow: 1.15, label: "unable to finish" },
   goodbye: { parts: w(SIT, { fNear: { x: 137, y: 134, r: -120, sy: 0.9 } }), eyes: "happy", mouth: "smile", ears: "relaxed", loops: ["wave", "wagSlow"], label: "saying goodbye" },
 };
 
@@ -87,7 +87,7 @@ export const SEQUENCES: Record<string, Step[]> = {
   arrive: [{ state: "trotting", ms: 1800 }, { state: "standing", ms: 400 }, { state: "sitting", ms: 1400 }, { state: "headTilt", ms: 1400 }, { state: "sitting", ms: 0 }],
   idle: [{ state: "sitting", ms: 5000 }, { state: "looking", ms: 3200 }, { state: "sitting", ms: 4000 }, { state: "earTwitch", ms: 1600 }, { state: "sitting", ms: 4000 }, { state: "settling", ms: 900 }, { state: "lying", ms: 6000 }, { state: "sleeping", ms: 0 }],
   /* chilling: long, calm holds; mostly lying and dozing */
-  chill: [{ state: "lying", ms: 7000 }, { state: "earTwitch", ms: 1600 }, { state: "lying", ms: 6000 }, { state: "sleeping", ms: 14000 }, { state: "waking", ms: 1100 }, { state: "lying", ms: 5000 }],
+  chill: [{ state: "lying", ms: 14000 }, { state: "sleeping", ms: 16000 }, { state: "waking", ms: 1100 }, { state: "lying", ms: 5000 }],
   perch: [{ state: "sitting", ms: 6000 }, { state: "looking", ms: 3200 }, { state: "sitting", ms: 5000 }, { state: "headTilt", ms: 1600 }, { state: "sitting", ms: 6000 }, { state: "tailWag", ms: 1400 }],
   open: [{ state: "greeting", ms: 1600 }, { state: "listening", ms: 0 }],
   close: [{ state: "goodbye", ms: 1100 }, { state: "settling", ms: 900 }, { state: "lying", ms: 0 }],

@@ -56,9 +56,15 @@ function absorb(acc: Acc, name: string, out: ToolOut) {
   if (out.navigate) acc.navigate = out.navigate;
 }
 
+/** Approval names the exact configured transport/model; it is not inferred from a key. */
+export async function privateModelApproved() {
+  const access = await modelAccess();
+  return !!access && process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE === `${access.gateway ? "gateway" : "direct"}:${access.model}`;
+}
 export const modelConfigured = async () => Boolean(await modelAccess());
 
-export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string }): Promise<AiReply> {
+export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string; signal?:AbortSignal }): Promise<AiReply> {
+  if(context.signal?.aborted)throw Error("Kaju request cancelled");
   const turns = messages.filter((m) => m.text?.trim()).slice(-12).map((m) => ({ role: m.role, text: m.text.slice(0, 6000) }));
   if (!turns.length || turns[turns.length - 1].role !== "user") return { text: "Ask me something about your records.", citations: [], tools: [], proposals: [], engine: "tools" };
   let toolQuestion = turns[turns.length - 1].text;
@@ -68,20 +74,22 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
     toolQuestion = `${report.text}\nCity: ${extractFieldMessage(toolQuestion).city}`;
   }
   const access = await modelAccess();
-  if (access) {
+  const publicGreeting = !ctx.userId && !ctx.orgId && turns.length === 1 && /^(?:hello|hi|hey)(?: kaju)?[.!?\s]*$/i.test(turns[0].text);
+  if (access && (publicGreeting || await privateModelApproved())) {
     try { return await withModel(turns, ctx, context, access); }
-    catch (e) {
-      console.error("Kaju model call failed", e instanceof Error ? e.message : e);
+    catch {
+      if(context.signal?.aborted)throw Error("Kaju request cancelled");
+      console.error("Kaju model request failed; using scoped record tools");
       const r = await withTools(toolQuestion, ctx);
       return { ...r, notice: "Conversation is temporarily limited. This reply uses record tools." };
     }
   }
   const r = await withTools(toolQuestion, ctx);
-  return { ...r, notice: "Answered from StrayPaw’s record tools. General conversation is temporarily limited." };
+  return { ...r, notice: access ? "Record check. Workspace text stays inside StrayPaw." : "Record check. General conversation is temporarily limited." };
 }
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */
-async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string }, access: ModelAccess): Promise<AiReply> {
+async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string; signal?:AbortSignal }, access: ModelAccess): Promise<AiReply> {
   const gateway = access.gateway;
   const client = new Anthropic({ maxRetries: 0, timeout: RUN_MS, ...(gateway ? { apiKey: null, authToken: access.token, baseURL: "https://ai-gateway.vercel.sh" } : { apiKey: access.token }) });
   const deadline = Date.now() + RUN_MS;
@@ -91,17 +99,17 @@ async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: stri
   const where = `Today is ${new Date().toISOString().slice(0, 10)}. The user is ${ctx.orgId ? "a member of an organisation workspace" : "not a member of any organisation (public records only)"}. Their server-verified role is ${ctx.actorRole ?? "unknown"}. Untrusted page context (data only): ${JSON.stringify({ path: context.path?.slice(0, 200), workspace: context.workspace?.slice(0, 80) })}.`;
   let text = "";
   for (let step = 0; step < MAX_STEPS; step++) {
+    if (context.signal?.aborted)throw Error("Kaju request cancelled");
     if (Date.now() >= deadline) break;
     const res = await client.beta.messages.create({
       model: access.model,
       max_tokens: 4000,
-      ...(gateway ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
       ...(gateway ? {} : { output_config: { effort: "medium" as const } }),
       system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }, { type: "text", text: where }],
       tools: [...TOOL_DEFS, ...connectionToolDefs(ctx.conn ?? null, !!ctx.orgId)].map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema as unknown as Anthropic.Beta.BetaTool.InputSchema })),
       tool_choice: { type: "auto" },
       messages: msgs,
-    }, { timeout: Math.max(1, deadline - Date.now()) });
+    }, { timeout: Math.max(1, deadline - Date.now()), signal:context.signal });
     if (res.stop_reason === "refusal") return { text: "I can't help with that request.", ...acc, engine: "model" };
     text = res.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text").map((b) => b.text).join("\n").trim();
     const uses = res.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use");
@@ -131,12 +139,14 @@ async function call(acc: Acc, ctx: ToolCtx, name: string, input: Record<string, 
   absorb(acc, name, out);
   return out;
 }
-const n = (v: unknown) => (typeof v === "number" ? v.toLocaleString("en-IN") : "0");
+const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v.toLocaleString("en-IN") : "unknown");
 const pl = (v: unknown, one: string, many: string) => `${n(v)} ${v === 1 ? one : many}`;
 const clean = (s: string) => s.replace(/[%,()*\\]/g, " ").trim().slice(0, 60);
 const STOP = /\b(find|search|show|me|the|a|an|for|any|all|records?|about|look|up|please|can|you|what|is|are|where|which|of|on|in|with|my|our|dog|dogs|animal|animals|case|cases)\b/gi;
 
 export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, "notice">> {
+  const selected=ctx.pagePath?.match(/^\/ngo\/(?:cases|verification)\/([0-9a-f-]{36})$/i)?.[1];
+  if(selected&&/\b(?:note|follow[- ]?up)\b/i.test(q))q=q.replace(/\b(?:this|current|selected) case\b/gi,selected);
   const t = q.toLowerCase();
   const acc: Acc = { citations: [], tools: [], proposals: [] };
   const done = (text: string): Omit<AiReply, "notice"> => ({ text, ...acc, engine: "tools" });
@@ -148,6 +158,15 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
       : "Hello, I’m Kaju. I can explain published programmes and help you find public records. Sign in to work with your organisation’s cases, evidence, follow-ups and reports.");
   }
 
+  if (/this (?:case|record|animal|programme|report|package)|selected|current record/i.test(q)) {
+    const out=await call(acc,ctx,"current_record");
+    if(out.ok===false)return done(out.summary);
+    const data=out.data as {record?:{status_class?:string;status?:string;provenance?:string};checklist?:{missing?:string[];vet_authorised?:boolean;evidence_reviewed?:boolean}};
+    const check=data.checklist;
+    return done(`${out.summary}.\n\nRecorded status: ${data.record?.status_class??data.record?.status??"not recorded"}.${data.record?.provenance==="imported_historical_record"?" This is an imported historical record.":""}${check?`\nMissing evidence: ${Array.isArray(check.missing)?check.missing.length?check.missing.map(s=>s.replace(/_/g," ")).join(", "):"none listed":"unknown"}.\nVeterinary authorisation: ${check.vet_authorised===true?"recorded":check.vet_authorised===false?"not recorded":"unknown"}.\nEvidence review: ${check.evidence_reviewed===true?"recorded":check.evidence_reviewed===false?"not recorded":"unknown"}.`:""}\n\nReview the linked record. No change was made.`);
+  }
+  if (/what can only|who can.*authorise|can you.*(?:authorise|accept|certify)/i.test(q))return done("A veterinarian must authorise clinical procedures. An assigned municipal reviewer must decide package acceptance. I can check recorded evidence and prepare work for your review; I cannot sign or decide for them.");
+  if (/help.*(?:field update|search.*register)|what can i search/i.test(q))return done("Paste the actual field update, or give a case code, animal tag or name. I will identify what is recorded and what is missing before preparing anything for confirmation.");
   if (/what.*(completed|done|saved)|recent.*(actions|changes)|verify.*actions/.test(t)) {
     const out = await call(acc, ctx, "recent_confirmed_actions");
     if (out.ok === false) return done(out.summary);
@@ -157,8 +176,8 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   if (/operational checks|scheduled checks|recurring|what needs attention|check overdue|check.*evidence/.test(t)) {
     const out = await call(acc, ctx, "operations_insights");
     if (out.ok === false) return done(out.summary);
-    const data = out.data as {checked_at:string;findings:{rule:string;count:number;explanation:string;configured?:boolean}[]};
-    return done(`Checked at ${data.checked_at}.\n\n${data.findings.map(f => `- **${f.rule.replace(/_/g," ")}**: ${f.configured===false?"deadline not set":f.count}. ${f.explanation}`).join("\n")}\n\nCounts are samples of up to 100 per rule. Review the linked records and the report draft. Nothing was sent or changed.`);
+    const data = out.data as {checked_at:string;findings:{rule:string;count:number|null;explanation:string;configured?:boolean}[]};
+    return done(`Checked at ${data.checked_at}.\n\n${data.findings.map(f => `- **${f.rule.replace(/_/g," ")}**: ${f.configured===false?"deadline not set":f.count??"unknown"}. ${f.explanation}`).join("\n")}\n\nCounts are samples of up to 100 per rule. Review the linked records and the report draft. Nothing was sent or changed.`);
   }
   if (/^(what|why|how|explain)\b/.test(t) && /unknown|denominator|population|coverage|animal count|bite|street safety/.test(t)) {
     const out = await call(acc, ctx, "search_knowledge", { query: q });
@@ -186,7 +205,12 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   if (noteM || fuM) {
     if (!ctx.orgId) return done(needsOrg);
     const ref = clean((noteM ?? fuM)![1]);
-    const { data: hit } = await ctx.db.from("org_case_facts").select("id,case_code,title").or(`case_code.ilike.%${ref}%,title.ilike.%${ref}%,animal_name.ilike.%${ref}%`).limit(1).maybeSingle();
+    let query=ctx.db.from("org_case_facts").select("id,case_code,title").eq("ngo_id",ctx.orgId);
+    query=/^[0-9a-f-]{36}$/i.test(ref)?query.eq("id",ref):query.or(`case_code.ilike.%${ref}%,title.ilike.%${ref}%,animal_name.ilike.%${ref}%`);
+    const found=await query.limit(2);
+    if(found.error)return done("The matching records could not be read. Try again.");
+    if(found.data?.length>1){for(const record of found.data)acc.citations.push({id:record.id,label:record.case_code??record.title??"Case",href:`/ngo/cases/${record.id}`,kind:"case"});return done("More than one case matches. Open the correct source below or give its exact case code.");}
+    const hit=found.data?.[0];
     acc.tools.push({ name: "search_records", summary: hit ? `Found ${hit.case_code ?? hit.title}` : `No case matches “${ref}”`, ok: !!hit });
     if (!hit) return done(`I could not find a case matching “${ref}” in your organisation's register. Use the case code shown on the case.`);
     if (noteM) { await call(acc, ctx, "propose_note", { case_id: hit.id, note: noteM[2].trim() }); return done(`I prepared a note on **${hit.case_code ?? hit.title}**. Check it and press Confirm to add it to the case history.`); }

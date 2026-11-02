@@ -12,9 +12,10 @@
 import { type Receipt } from "@/sp/data/work";
 import { getSupabase } from "@/lib/supabase";
 import type { Proposal } from "./types";
+import {auditReference} from './validation';
 
 
-export type Saved = Receipt & { href?: string };
+export type Saved = Receipt & { href?: string; verified?:boolean; auditId?:string };
 
 export async function executeProposal(p: Proposal, actor: { id: string; name: string }): Promise<Saved> {
   let r: Saved;
@@ -66,7 +67,8 @@ async function confirmedRecord(p: Proposal): Promise<Saved> {
   try {
     const response = await fetch("/api/ai/act", {method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${t}`},body:JSON.stringify({proposal:p,confirmed:true})});
     const j = await response.json();
-    return response.ok && j.verified === true ? {ok:true,at:j.at,what:j.what,href:j.href} : {ok:false,error:j.error??"Verification is pending. Retry the same proposal to check it."};
+    const auditId=auditReference(j.auditId);
+    return response.ok && j.verified === true && typeof j.at==='string'&&auditId ? {ok:true,at:j.at,what:j.what,href:j.href,verified:true,auditId} : {ok:false,error:j.error??"Verification is pending. Retry the same proposal to check it."};
   } catch { return {ok:false,error:"The action status is unknown. Retry the same proposal to check it."}; }
 }
 async function token() {

@@ -7,7 +7,7 @@ const KEY = "kaju.ambient";
 const EVT = "kaju-ambient";
 
 export function useKajuAmbient(): [boolean, (on: boolean) => void] {
-  const [on, setOn] = useState(true);
+  const [on, setOn] = useState(false);
   useEffect(() => {
     const read = () => { try { setOn(localStorage.getItem(KEY) !== "off"); } catch { /* storage blocked */ } };
     read();

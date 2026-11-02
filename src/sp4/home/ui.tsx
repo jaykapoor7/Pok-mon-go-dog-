@@ -427,7 +427,7 @@ export function RescueUi() {
 export type KajuRun = { who: string; ask: string; scope: string; steps: [string, string][]; found: string[]; prepared: string; by: string };
 export function KajuRunUi({ run, k }: { run: KajuRun; k: string | number }) {
   return (
-    <div className="s4-ui s4u-run" key={k}>
+    <div className="s4-ui s4u-run" key={k} role="group" aria-label="Illustrative Kaju workflow">
       <div className="s4-ui-pad s4u-head"><span className="s4u-ai-lab"><KajuFace size={18} /> Kaju</span><span className="s4-tag">{run.scope}</span></div>
       <div className="s4-ui-pad"><p className="s4u-q"><span>{run.who}</span>{run.ask}</p></div>
       <ol className="s4-ui-pad s4u-run-steps">
@@ -441,6 +441,7 @@ export function KajuRunUi({ run, k }: { run: KajuRun; k: string | number }) {
         <small><b>Prepared:</b> {run.prepared}</small><span className="s4u-btn">Confirm</span>
       </div>
       <p className="s4u-run-by">{run.by}</p>
+      <p className="s4u-run-by">Illustrative workflow · example records</p>
     </div>
   );
 }

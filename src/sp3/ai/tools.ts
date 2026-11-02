@@ -19,7 +19,7 @@ import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTool
    same server-authorised RPCs as the manual screens.
    ════════════════════════════════════════════════════════════════════ */
 
-export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; actorRole?: string | null; conn?: ConnCtx | null };
+export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; userId?: string; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null };
 export type ToolOut = { data: unknown; summary: string; citations: Citation[]; proposals?: Proposal[]; navigate?: { href: string; label: string }; ok?: boolean };
 
 const clean = (s: unknown, n = 80) => String(s ?? "").replace(/[%,()*\\]/g, " ").trim().slice(0, n);
@@ -40,6 +40,7 @@ export const NAV: Record<string, { href: string; label: string }> = {
 };
 
 export const TOOL_DEFS = [
+  {name:'current_record',description:'Read the selected case, animal, programme or review package after checking access. Use for “this record” questions. A page URL does not grant access. Does not change anything.',input_schema:{type:'object',properties:{},additionalProperties:false}},
   { name: "recent_confirmed_actions", description: "Independently verify up to five of this person’s recent confirmed Kaju actions by reading the saved records and audit rows. Use before claiming work was completed. Does not write.", input_schema: {type:"object",properties:{},additionalProperties:false} },
   { name: "operations_insights", description: "Run and store explainable operational checks for overdue follow-ups, missing ABC evidence, veterinary authorisation, municipal clarifications, programme activity and a lead-configured reporting deadline. Returns bounded findings, source links and a report proposal. Does not change cases or send notifications.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "search_knowledge", description: "Search published StrayPaw Academy lessons about evidence, recorded counts, unknown status, coverage, population and field safety. Educational content, not current legislation or clinical advice. Returns cited passages; never invent policy.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
@@ -61,6 +62,7 @@ export const TOOL_DEFS = [
 export type ToolName = (typeof TOOL_DEFS)[number]["name"];
 
 export async function runTool(name: string, input: Record<string, unknown>, ctx: ToolCtx): Promise<ToolOut> {
+  if(name==='current_record')return currentRecord(ctx);
   switch (name) {
     case "abc_verification_status": return abcVerification(ctx);
     case "abc_package_status": return abcPackages(ctx);
@@ -97,7 +99,7 @@ async function searchRecords(q: string, { db, orgId }: ToolCtx): Promise<ToolOut
   if (orgId) {
     const [dogs, cases] = await Promise.all([
       db.from("dogs").select("id,straypaw_id,name,code,zone,city,status,last_seen").eq("ngo_id", orgId).or(`name.ilike.%${q}%,code.ilike.%${q}%,zone.ilike.%${q}%,straypaw_id.ilike.%${q}%`).order("last_seen", { ascending: false }).limit(8),
-      db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,animal_name,straypaw_id,dog_id,occurred_at,assignee_name,provenance").or(`title.ilike.%${q}%,case_code.ilike.%${q}%,animal_name.ilike.%${q}%,straypaw_id.ilike.%${q}%,zone.ilike.%${q}%`).order("occurred_at", { ascending: false, nullsFirst: false }).limit(8),
+      db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,animal_name,straypaw_id,dog_id,occurred_at,assignee_name,provenance").eq("ngo_id",orgId).or(`title.ilike.%${q}%,case_code.ilike.%${q}%,animal_name.ilike.%${q}%,straypaw_id.ilike.%${q}%,zone.ilike.%${q}%`).order("occurred_at", { ascending: false, nullsFirst: false }).limit(8),
     ]);
     if (dogs.error || cases.error) return READ_FAILED;
     out.your_animals = dogs.data ?? [];
@@ -123,14 +125,14 @@ async function workSummary({ db, orgId }: ToolCtx): Promise<ToolOut> {
   const now = new Date().toISOString();
   const current = "provenance.is.null,provenance.neq.imported_historical_record,reviewed_at.not.is.null";
   const crit = ["Road accident", "Maggot wound", "Human abuse", "Dog bite", "Entrapment", "Suspected rabies"];
-  const base = () => db.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]);
+  const base = () => db.from("org_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]);
   const [open, unassigned, critical, overdue, historical, urgent] = await Promise.all([
     base().or(current), base().or(current).is("assignee_name", null), base().or(current).in("condition_class", crit),
     base().or(current).not("next_due", "is", null).lt("next_due", now),
     base().eq("provenance", "imported_historical_record").is("reviewed_at", null),
-    db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,assignee_name,next_due,occurred_at,severity").in("status_class", ["open", "in_progress"]).or(current).order("next_due", { ascending: true, nullsFirst: false }).limit(6),
+    db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,assignee_name,next_due,occurred_at,severity").eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]).or(current).order("next_due", { ascending: true, nullsFirst: false }).limit(6),
   ]);
-  if ([open, unassigned, critical, overdue, historical, urgent].some((r) => r.error)) return READ_FAILED;
+  if ([open, unassigned, critical, overdue, historical, urgent].some((r) => r.error) || [open,unassigned,critical,overdue,historical].some(r=>typeof r.count!=="number")) return READ_FAILED;
   const data = { open_current: open.count ?? 0, unassigned: unassigned.count ?? 0, critical: critical.count ?? 0, overdue_followups: overdue.count ?? 0, historical_imports_awaiting_review: historical.count ?? 0, next_cases: urgent.data ?? [] };
   return {
     data,
@@ -143,11 +145,11 @@ async function missingEvidence({ db, orgId }: ToolCtx): Promise<ToolOut> {
   if (!orgId) return NEEDS_ORG;
   const [noPhoto, noAnimal, noPlace, list] = await Promise.all([
     db.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", orgId).or("cover_photo.is.null,cover_photo.eq."),
-    db.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).is("dog_id", null),
-    db.from("org_case_facts").select("id", { count: "exact", head: true }).in("status_class", ["open", "in_progress"]).is("zone", null).is("h3_r8", null),
-    db.from("org_case_facts").select("id,case_code,title,condition_class,zone,dog_id,h3_r8,provenance").in("status_class", ["open", "in_progress"]).or("dog_id.is.null,and(zone.is.null,h3_r8.is.null)").order("occurred_at", { ascending: false, nullsFirst: false }).limit(6),
+    db.from("org_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]).is("dog_id", null),
+    db.from("org_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]).is("zone", null).is("h3_r8", null),
+    db.from("org_case_facts").select("id,case_code,title,condition_class,zone,dog_id,h3_r8,provenance").eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]).or("dog_id.is.null,and(zone.is.null,h3_r8.is.null)").order("occurred_at", { ascending: false, nullsFirst: false }).limit(6),
   ]);
-  if ([noPhoto, noAnimal, noPlace, list].some((r) => r.error)) return READ_FAILED;
+  if ([noPhoto, noAnimal, noPlace, list].some((r) => r.error) || [noPhoto,noAnimal,noPlace].some(r=>typeof r.count!=="number")) return READ_FAILED;
   const data = { animals_without_photo: noPhoto.count ?? 0, open_cases_without_animal: noAnimal.count ?? 0, open_cases_without_place: noPlace.count ?? 0, examples: (list.data ?? []).map((c) => ({ ...c, missing: [!c.dog_id && "linked animal", !c.zone && !c.h3_r8 && "place"].filter(Boolean) })) };
   return { data, summary: `${data.animals_without_photo} animals without a photo · ${data.open_cases_without_animal} open cases without an animal · ${data.open_cases_without_place} without a place`, citations: (list.data ?? []).map((c) => ({ id: c.id, label: caseLabel(c), href: `/ngo/cases/${c.id}`, kind: "case" as const })) };
 }
@@ -191,8 +193,8 @@ async function programmeReport(q: string, { db, orgId }: ToolCtx): Promise<ToolO
   return { data, summary: `${citations.length} programme${citations.length === 1 ? "" : "s"}`, citations };
 }
 
-async function readCase(db: SupabaseClient, id: string) {
-  const { data } = await db.from("org_case_facts").select("id,case_code,title,condition_class,dog_id").eq("id", clean(id, 64)).maybeSingle();
+async function readCase(db: SupabaseClient, id: string, orgId:string) {
+  const { data } = await db.from("org_case_facts").select("id,case_code,title,condition_class,dog_id").eq("ngo_id",orgId).eq("id", clean(id, 64)).eq("ngo_id",orgId).maybeSingle();
   return data;
 }
 
@@ -211,7 +213,7 @@ async function proposeCase(i: Record<string, unknown>, { orgId, userName }: Tool
 
 async function proposeNote(i: Record<string, unknown>, { db, orgId }: ToolCtx): Promise<ToolOut> {
   if (!orgId) return NEEDS_ORG;
-  const c = await readCase(db, String(i.case_id ?? ""));
+  const c = await readCase(db, String(i.case_id ?? ""),orgId);
   if (!c) return { data: { error: "That case is not in your organisation's register" }, summary: "Case not found", citations: [], ok: false };
   const note = String(i.note ?? "").trim().slice(0, 1500);
   if (!note) return { data: { error: "Empty note" }, summary: "Empty note", citations: [], ok: false };
@@ -220,7 +222,7 @@ async function proposeNote(i: Record<string, unknown>, { db, orgId }: ToolCtx): 
 
 async function proposeFollowup(i: Record<string, unknown>, { db, orgId }: ToolCtx): Promise<ToolOut> {
   if (!orgId) return NEEDS_ORG;
-  const c = await readCase(db, String(i.case_id ?? ""));
+  const c = await readCase(db, String(i.case_id ?? ""),orgId);
   if (!c) return { data: { error: "That case is not in your organisation's register" }, summary: "Case not found", citations: [], ok: false };
   const due = new Date(String(i.due_date ?? ""));
   if (isNaN(due.getTime()) || due.getTime() < Date.now() - day) return { data: { error: "due_date must be today or later, YYYY-MM-DD" }, summary: "Invalid date", citations: [], ok: false };
@@ -267,4 +269,26 @@ async function recentConfirmedActions({db,orgId}:ToolCtx):Promise<ToolOut>{
  const results=await Promise.all((data??[]).map(async r=>{try{return await verifyAction(db,r.actor_id,r.request_id);}catch{return {verified:false as const};}}));
  const verified=results.filter((r):r is Extract<Awaited<ReturnType<typeof verifyAction>>,{verified:true}>=>r.verified);
  return {data:{verified_actions:verified,pending:results.length-verified.length,limit:5},summary:`${verified.length} recent actions independently verified`,citations:verified.map(r=>({id:r.id,label:`${r.kind.replace(/_/g," ")} · audit ${r.auditId}`,href:r.href,kind:"page" as const}))};
+}
+
+async function currentRecord(ctx:ToolCtx):Promise<ToolOut>{
+ const path=ctx.pagePath??'';
+ const match=path.match(/^\/(ngo\/(cases|verification|animals|programmes|packages)|city\/review)\/([0-9a-f-]{36})$/i);
+ if(!match)return {ok:false,data:{error:'No selected record'},summary:'Open a case, animal, programme or review package first.',citations:[]};
+ const id=match[3],kind=match[2]??'packages';
+ if(kind!=='packages'&&!ctx.orgId)return NEEDS_ORG;
+ const unavailable={ok:false,data:{error:'Record unavailable in this workspace'},summary:'This record is unavailable in your current workspace.',citations:[]} satisfies ToolOut;
+ if(kind==='cases'||kind==='verification'){
+  const own=await ctx.db.from('cases').select('id').eq('id',id).eq('ngo_id',ctx.orgId).maybeSingle();if(own.error)return READ_FAILED;if(!own.data)return unavailable;
+  const [row,check]=await Promise.all([ctx.db.from('org_case_facts').select('id,case_code,title,status_class,provenance,occurred_at').eq('id',id).maybeSingle(),ctx.db.rpc('abc_case_checklist',{p_case_id:id})]);
+  if(row.error||check.error)return READ_FAILED;if(!row.data)return unavailable;
+  return {data:{record:row.data,checklist:check.data,note:'Recorded evidence and attestations only; not clinical certification.'},summary:`Checked ${caseLabel(row.data)} and its recorded evidence`,citations:[{id,label:caseLabel(row.data),href:`/ngo/verification/${id}`,kind:'case'}]};
+ }
+ if(kind==='packages'){
+  const row=await ctx.db.from('report_packages').select('id,title,status,period_start,period_end,submitted_at').eq('id',id).maybeSingle();if(row.error)return READ_FAILED;if(!row.data)return unavailable;
+  return {data:{record:row.data,note:'A person assigned to the reviewing office decides acceptance.'},summary:`Read ${row.data.title}: ${row.data.status}`,citations:[{id,label:row.data.title,href:path,kind:'page'}]};
+ }
+ const animal=kind==='animals';
+ const row=animal?await ctx.db.from("dogs").select("id,name,straypaw_id,city,status,last_seen").eq("id",id).eq("ngo_id",ctx.orgId).maybeSingle():await ctx.db.from("campaigns").select("id,name,city,starts_on,ends_on").eq("id",id).eq("ngo_id",ctx.orgId).maybeSingle();if(row.error)return READ_FAILED;if(!row.data)return unavailable;
+ return {data:{record:row.data},summary:`Read selected ${animal?'animal':'programme'}`,citations:[{id,label:animal?animalLabel(row.data):row.data.name,href:path,kind:animal?'animal':'programme'}]};
 }

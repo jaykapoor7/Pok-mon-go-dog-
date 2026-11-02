@@ -25,6 +25,7 @@ export const REPORT_SOURCES = ["open_cases", "animals", "verification", "operati
 export type ReportSource = (typeof REPORT_SOURCES)[number];
 
 export type AiReply = {
+  scope?: string;
   text: string;
   citations: Citation[];
   tools: ToolRun[];
@@ -35,6 +36,6 @@ export type AiReply = {
 };
 
 export type ChatTurn = { role: "user" | "assistant"; text: string };
-export type AiRequest = { messages: ChatTurn[]; context?: { path?: string; workspace?: string } };
+export type AiRequest = { messages: ChatTurn[]; context?: { path?: string; workspace?: string; scope?: string } };
 
 export const CARE_KINDS = ["sterilisation", "vaccination", "treatment", "checkup", "deworming", "other"] as const;

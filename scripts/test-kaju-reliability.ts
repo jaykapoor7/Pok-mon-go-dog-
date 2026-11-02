@@ -46,6 +46,8 @@ assert.ok(followup.proposals.some(p => p.kind === 'open_case' && p.city === 'Del
 const originalFetch = globalThis.fetch;
 const originalKey = process.env.ANTHROPIC_API_KEY;
 process.env.ANTHROPIC_API_KEY = 'isolated-test-key';
+const oldApproval=process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;
+process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='direct:claude-opus-5-5';
 let responses = 0;
 let fanout = 1;
 globalThis.fetch = async () => {
@@ -61,6 +63,7 @@ try {
   const capped = await answer([{ role: 'user', text: 'Investigate' }], ctx, {});
   assert.equal(responses, 1); assert.equal(capped.tools.length, 0); assert.match(capped.notice ?? '', /incomplete/i); ok('oversized tool fan-out is refused before execution');
 } finally {
+  if(oldApproval===undefined)delete process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;else process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE=oldApproval;
   globalThis.fetch = originalFetch;
   if (originalKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = originalKey;
 }
@@ -69,13 +72,14 @@ try {
 const symbol=Symbol.for('@vercel/request-context');
 const globalContext=globalThis as typeof globalThis & {[key:symbol]:unknown};
 const oldContext=globalContext[symbol];
-const names=['ANTHROPIC_API_KEY','AI_GATEWAY_API_KEY','VERCEL_OIDC_TOKEN','VERCEL_OIDC_TOKEN_FILE','VERCEL'] as const;
+const names=['ANTHROPIC_API_KEY','AI_GATEWAY_API_KEY','VERCEL_OIDC_TOKEN','VERCEL_OIDC_TOKEN_FILE','VERCEL','STRAYPAW_AI_APPROVED_DATA_ROUTE'] as const;
 const saved=Object.fromEntries(names.map(name=>[name,process.env[name]]));
 let tokenVersion=1;const seen:string[]=[];
 const jwt=()=>`${Buffer.from('{"alg":"none"}').toString('base64url')}.${Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600,jti:`isolated-${tokenVersion}`})).toString('base64url')}.isolated`;
 try{
  for(const name of names)delete process.env[name];
  globalContext[symbol]={get:()=>({headers:{'x-vercel-oidc-token':jwt()}})};
+ process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='gateway:google/gemini-2.5-flash';
  assert.equal(await modelConfigured(),true);ok('runtime request-context OIDC configures the model without broad system environment exposure');
  globalThis.fetch=async(input,init)=>{
   seen.push(new Headers(input instanceof Request?input.headers:init?.headers).get('authorization')??'');

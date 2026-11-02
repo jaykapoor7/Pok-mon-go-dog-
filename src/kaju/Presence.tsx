@@ -27,6 +27,7 @@ export function KajuPresence({ sequence, state, size = 140, flip, label, loop = 
   const ref = useRef<HTMLDivElement>(null);
   const [seen, setSeen] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [arrived,setArrived]=useState(false);
   const [ambient] = useKajuAmbient();
   const reduced = useReducedMotion();
   useEffect(() => {
@@ -38,10 +39,10 @@ export function KajuPresence({ sequence, state, size = 140, flip, label, loop = 
   const still = !ambient || reduced;
   const seqState = useKajuSequence(steps, { loop, run: seen && visible && !still });
   const shown: KajuState = state ?? (steps ? (still ? steps[steps.length - 1].state : seen ? seqState : steps[0].state) : "sitting");
-  const entering = enter && seen && !still;
+  const entering = enter && seen && !still && !arrived;
   return (
-    <div ref={ref} className={`kaju-presence${entering ? " is-entering" : ""}${enter && !seen && !still ? " is-waiting" : ""} ${className}`} style={style}>
-      <Kaju state={shown} size={size} flip={flip} label={label} still={still || !visible} />
+    <div ref={ref} onAnimationEnd={e=>{if(e.target===ref.current)setArrived(true)}} className={`kaju-presence${entering ? " is-entering" : ""}${enter && !seen && !still ? " is-waiting" : ""}${!visible?' is-paused':''} ${className}`} style={{...style,'--kj-arrive-distance':`${size*.8}px`} as CSSProperties}>
+      <Kaju state={entering?'trotting':shown} size={size} flip={flip} label={label} still={still} />
     </div>
   );
 }
@@ -75,7 +76,7 @@ export function KajuAmbientToggle() {
   return (
     <label className="kaju-toggle">
       <input type="checkbox" checked={on} onChange={(e) => set(e.target.checked)} />
-      <span>Let Kaju move around</span>
+      <span>Animate Kaju</span>
       <small>Off keeps him still. Your device&rsquo;s reduced-motion setting always keeps him still.</small>
     </label>
   );

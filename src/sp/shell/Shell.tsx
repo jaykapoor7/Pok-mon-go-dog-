@@ -185,7 +185,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
           {/* Kaju rests here while the agent is closed; he moves into the panel when it opens. */}
           <div className="sx3-kaju-nook">
-            {!ai.open && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju"><KajuCorner sequence="chill" size={78} /></button>}
+            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju"><KajuCorner sequence="chill" size={78} /></button>}
           </div>
 
           <div className="sx3-side-foot">

@@ -49,7 +49,8 @@
     "test:careos-webhook": "node --import tsx scripts/test-careos-webhook.ts",
     "test:kaju-reliability": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-reliability.ts",
     "test:report-isolation": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-report-isolation.ts",
-    "test:connections": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-connections.ts"
+    "test:connections": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-connections.ts",
+    "test:kaju-polish": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-polish.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
