@@ -6,7 +6,7 @@ begin
  select * into c from public.cases where id=p_case_id and (ngo_id=org or ngo_id is null) and assignee_id is null and coalesce(btrim(assignee_name),'')='' for update;
  if not found then return false;end if;
  select coalesce(nullif(name,''),'Team member') into who from public.volunteers where id=uid;who:=coalesce(who,'Team member');
- update public.cases set ngo_id=org,assignee_id=uid,assignee_name=who,status=case when status='unverified' then 'assigned' else status end,updated_at=now(),last_activity_at=now() where id=c.id;
+ update public.cases set ngo_id=org,assignee_id=uid,assignee_name=who,status=case when status='unverified' then 'assigned' else status end,updated_at=now(),last_activity_at=now() where id=c.id returning * into c;
  insert into public.case_updates(case_id,actor_id,actor_name,type,to_status,note) values(c.id,uid,who,'claimed',c.status,who||' claimed this case');
  insert into public.operational_audit_log(ngo_id,actor_id,entity_type,entity_id,action,after_data) values(org,uid,'cases',c.id,'case_claimed',jsonb_build_object('assignee_id',uid));
  return true;
