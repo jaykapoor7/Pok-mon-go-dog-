@@ -267,7 +267,7 @@
 .s4u-btn.is-teal { background: var(--s4-teal); }
 .s4u-btn.is-ink { background: var(--s4-ink); }
 .s4u-btn.is-line { background: #fff; color: var(--s4-ink); box-shadow: inset 0 0 0 1px var(--s4-line-2); }
-.s4u-btn.is-off { background: #e7e9ef; color: #9aa0ab; }
+.s4u-btn.is-off { background: #e7e9ef; color: #626775; }
 .s4u-checks { display: grid; gap: 0; padding-top: 6px !important; padding-bottom: 6px !important; }
 .s4u-checks li { display: flex; align-items: center; gap: 10px; min-height: 38px; border-bottom: 1px solid #f0f1f4; font-size: 13px; }
 .s4u-checks li:last-child { border-bottom: 0; }

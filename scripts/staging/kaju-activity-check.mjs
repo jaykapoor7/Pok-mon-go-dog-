@@ -17,11 +17,11 @@ try{const context=await browser.newContext({viewport:{width:390,height:844},redu
  const page=await context.newPage();
  if(process.env.QA_BYPASS_FILE){const access=JSON.parse(fs.readFileSync(process.env.QA_BYPASS_FILE,'utf8'));await page.goto(access.url??`${base}?_vercel_share=${encodeURIComponent(access.secret)}`)}
  await page.goto(base+'/ngo');
- const section=page.getByRole('region',{name:'Kaju activity'});await expect(section).toBeVisible();await expect(section.locator('time')).toHaveCount(1);
- if(before.data.findings.some(f=>f.configured===false))await expect(section.getByText('reporting deadline: not set',{exact:true})).toBeVisible();
- const response=page.waitForResponse(r=>r.url().endsWith('/api/ai')&&r.request().method()==='POST');await section.getByRole('button',{name:'Check records with Kaju'}).click();const reply=await (await response).json();assert.ok(reply.tools.some(t=>t.name==='operations_insights'&&t.ok),JSON.stringify(reply));if(base.startsWith('https://'))assert.equal(reply.engine,'model',reply.notice);
+ const section=page.getByRole('region',{name:'Kaju activity'});await expect(section).toBeVisible();await expect(section.locator('time').first()).toBeVisible();
+ if(before.data.findings.some(f=>f.configured===false))await expect(section.getByText(/Reporting deadline: not set/i)).toBeVisible();
+ const response=page.waitForResponse(r=>r.url().endsWith('/api/ai')&&r.request().method()==='POST');await section.getByRole('button',{name:'Check records with Kaju'}).click();const reply=await (await response).json();assert.ok(reply.tools.some(t=>t.name==='operations_insights'&&t.ok),JSON.stringify(reply));assert.equal(reply.engine,process.env.EXPECT_MODEL==='true'?'model':'tools',reply.notice);
  const after=await latest();if(after.error)throw after.error;assert.ok(after.data?.id);assert.notEqual(after.data.id,before.data?.id);assert.equal(after.data.ngo_id,org);
- await expect(section.locator('time')).toHaveAttribute('dateTime',after.data.checked_at);
+ await expect(section.locator('time').first()).toHaveAttribute('dateTime',after.data.checked_at);
  await page.getByRole('button',{name:'Close Kaju',exact:true}).click();await section.scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/straypaw-kaju-activity-phone.png',fullPage:true});
  const other=createClient(process.env.STAGING_URL,fixture.anon,{auth:{persistSession:false}});const auth=await other.auth.signInWithPassword({email:fixture.users[role==='other'?'coord':'other'].email,password:fixture.password});if(auth.error)throw auth.error;
  const forbidden=await other.from('kaju_check_runs').select('id').eq('id',after.data.id);assert.deepEqual(forbidden.data,[]);

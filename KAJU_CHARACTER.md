@@ -12,6 +12,10 @@ The existing state/controller/presence APIs and all UI placements are preserved.
 
 Reduced motion, ambient-off and off-screen controls must stop loops. Visual QA must inspect actual loaded artwork across all 23 states and real placements, not infer fidelity from transform tests. This is a 2D texture rig; the original character sheet remains the standard for any further anatomy or rendering refinement. Do not claim pixel-exact reproduction or owner approval of generated derivatives.
 
+## Polish pass (2 November 2026)
+
+The original Explorer textures are unchanged. Walking/trotting use knee and ankle joints with inverse-kinematic stance contacts; posture layers crossfade. Blink overlays are clipped around the eyes so the mouth does not change on every blink. Sleeping ear movements stay in the resting posture. Hidden characters pause, reduced motion and ambient-off suppress loops, and entrance travel is matched to the gait. The hydrated QA gallery checks all 23 states and actual paw transforms; it supplements visual review rather than establishing pixel-exact fidelity.
+
 ## Earlier rig identity (retained implementation reference)
 - **Breed:** an Indian indie puppy.
 - **Coat:** warm biscuit and honey-brown fur, with a cream muzzle and chest and a small white chest patch.

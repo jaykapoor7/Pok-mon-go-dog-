@@ -2,6 +2,10 @@
 
 Production: https://www.straypaw.org (the apex redirects here).
 
+## Current Kaju pass — 2 November 2026
+
+Read [the Kaju polish evidence and remaining owner actions](docs/sp4/KAJU-POLISH-2026-11-02.md) first. It supersedes older model setup and rate-limit notes below. Preserve the existing agent and Explorer textures. Private workspace model calls require an explicitly approved, exact transport/model route; credentials alone do not enable private processing. Record tools and confirmed writes remain available. This work uses a tested branch/PR; deployment results are recorded in that report.
+
 NGO login report follow-up: [incident checks and compatibility repair](docs/sp4/LOGIN-INCIDENT-2026-11-01.md). Preserve legacy domain/DNS entry points as canonical redirects; do not execute the older domain-deletion checklist. The reported customer's account and invitation were checked read-only and left intact. The exact missing-URL error has not been reproduced from the supplied screenshot.
 
 ## Continuation — 1 November 2026

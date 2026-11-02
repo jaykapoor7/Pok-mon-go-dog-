@@ -58,9 +58,15 @@ jobs:
           npm run test:spatial
           npm run test:place-fallback
           npm run test:no-full-register
+      - name: Kaju privacy, reliability and document contracts
+        run: |
+          npm run test:kaju-polish
+          npm run test:kaju-reliability
+          npm run test:report-isolation
+          npm run test:connections
       - name: Install browser
         run: npx playwright install --with-deps chromium
       - name: Browser regression suite
         run: npm run test:e2e
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=critical
+        run: npm audit --omit=dev --audit-level=high

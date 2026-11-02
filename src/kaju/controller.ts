@@ -5,19 +5,12 @@
    Every step change is a pose change, so the rig transitions between them.
    Reduced motion: jump straight to the final state and hold it. */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { KajuState, Step } from "./poses";
 
-export function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const m = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const on = () => setReduced(m.matches);
-    on(); m.addEventListener("change", on);
-    return () => m.removeEventListener("change", on);
-  }, []);
-  return reduced;
-}
+const subscribeMotion=(notify:()=>void)=>{const media=window.matchMedia('(prefers-reduced-motion: reduce)');media.addEventListener('change',notify);return()=>media.removeEventListener('change',notify)};
+const readMotion=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+export function useReducedMotion() {return useSyncExternalStore(subscribeMotion,readMotion,()=>true)}
 
 export function useKajuSequence(steps: Step[] | undefined, { loop = false, run = true }: { loop?: boolean; run?: boolean } = {}): KajuState {
   const reduced = useReducedMotion();

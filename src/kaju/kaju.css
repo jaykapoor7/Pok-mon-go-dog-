@@ -101,18 +101,37 @@
 /* Explorer: fixed shoulder/hip joints, knee flex, four-beat walking and
    diagonal trotting. No layout movement and no whole-pose image swaps. */
 .kaju-explorer .kj-knee, .kaju-explorer .kj-flop-follow { transform-box: view-box; transform-origin: 0 0; }
-@keyframes kj-walk-step { 0%,100% { transform: rotate(-14deg); } 42% { transform: rotate(14deg); } 70% { transform: translateY(-2px) rotate(5deg); } }
-.kaju-explorer .w-f1, .kaju-explorer .w-f2, .kaju-explorer .w-b1, .kaju-explorer .w-b2 { animation: kj-walk-step 1.1s ease-in-out infinite; }
-.kaju-explorer .w-b2 { animation-delay: -.55s; }
-.kaju-explorer .w-f2 { animation-delay: -.825s; }
-.kaju-explorer .w-b1 { animation-delay: -.275s; }
-@keyframes kj-knee-flex { 0%,42%,100% { transform: rotate(0); } 70% { transform: rotate(13deg); } }
-.kaju-explorer .w-f1 .kj-knee, .kaju-explorer .w-f2 .kj-knee, .kaju-explorer .w-b1 .kj-knee, .kaju-explorer .w-b2 .kj-knee { animation: kj-knee-flex 1.1s ease-in-out infinite; }
-.kaju-explorer .w-b2 .kj-knee { animation-delay: -.55s; }
-.kaju-explorer .w-f2 .kj-knee { animation-delay: -.825s; }
-.kaju-explorer .w-b1 .kj-knee { animation-delay: -.275s; }
-.kaju-explorer .t-f1 .kj-knee, .kaju-explorer .t-b2 .kj-knee { animation: kj-knee-flex .46s ease-in-out infinite; }
-.kaju-explorer .t-f2 .kj-knee, .kaju-explorer .t-b1 .kj-knee { animation: kj-knee-flex .46s ease-in-out -.23s infinite; }
+/* Inverse-kinematic contacts: 20/17-unit joints, level paw during stance. */
+@keyframes kj-walk-hip{0%{transform:rotate(-31.745deg)}10%{transform:rotate(-29.960deg)}20%{transform:rotate(-26.322deg)}30%{transform:rotate(-21.312deg)}40%{transform:rotate(-15.123deg)}50%{transform:rotate(-7.772deg)}60%{transform:rotate(1.034deg)}70%{transform:rotate(-22.647deg)}80%{transform:rotate(-36.955deg)}90%{transform:rotate(-41.724deg)}100%{transform:rotate(-31.745deg)}}
+@keyframes kj-walk-knee{0%{transform:rotate(33.506deg)}10%{transform:rotate(41.225deg)}20%{transform:rotate(45.323deg)}30%{transform:rotate(46.625deg)}40%{transform:rotate(45.323deg)}50%{transform:rotate(41.225deg)}60%{transform:rotate(33.506deg)}70%{transform:rotate(70.990deg)}80%{transform:rotate(81.969deg)}90%{transform:rotate(70.990deg)}100%{transform:rotate(33.506deg)}}
+@keyframes kj-walk-ankle{0%{transform:rotate(-1.762deg)}10%{transform:rotate(-11.266deg)}20%{transform:rotate(-19.001deg)}30%{transform:rotate(-25.314deg)}40%{transform:rotate(-30.200deg)}50%{transform:rotate(-33.453deg)}60%{transform:rotate(-34.541deg)}70%{transform:rotate(-48.342deg)}80%{transform:rotate(-45.014deg)}90%{transform:rotate(-29.266deg)}100%{transform:rotate(-1.762deg)}}
+.kaju-explorer .w-f1{animation:kj-walk-hip 1.1s linear -0s infinite}
+.kaju-explorer .w-f1 .kj-knee{animation:kj-walk-knee 1.1s linear -0s infinite}
+.kaju-explorer .w-f1 .kj-ankle{animation:kj-walk-ankle 1.1s linear -0s infinite}
+.kaju-explorer .w-b2{animation:kj-walk-hip 1.1s linear -0.55s infinite}
+.kaju-explorer .w-b2 .kj-knee{animation:kj-walk-knee 1.1s linear -0.55s infinite}
+.kaju-explorer .w-b2 .kj-ankle{animation:kj-walk-ankle 1.1s linear -0.55s infinite}
+.kaju-explorer .w-f2{animation:kj-walk-hip 1.1s linear -0.825s infinite}
+.kaju-explorer .w-f2 .kj-knee{animation:kj-walk-knee 1.1s linear -0.825s infinite}
+.kaju-explorer .w-f2 .kj-ankle{animation:kj-walk-ankle 1.1s linear -0.825s infinite}
+.kaju-explorer .w-b1{animation:kj-walk-hip 1.1s linear -0.275s infinite}
+.kaju-explorer .w-b1 .kj-knee{animation:kj-walk-knee 1.1s linear -0.275s infinite}
+.kaju-explorer .w-b1 .kj-ankle{animation:kj-walk-ankle 1.1s linear -0.275s infinite}
+@keyframes kj-trot-hip{0%{transform:rotate(-31.383deg)}10%{transform:rotate(-30.389deg)}20%{transform:rotate(-25.046deg)}30%{transform:rotate(-16.970deg)}40%{transform:rotate(-6.476deg)}50%{transform:rotate(7.497deg)}60%{transform:rotate(-19.438deg)}70%{transform:rotate(-36.242deg)}80%{transform:rotate(-47.021deg)}90%{transform:rotate(-47.595deg)}100%{transform:rotate(-31.383deg)}}
+@keyframes kj-trot-knee{0%{transform:rotate(26.035deg)}10%{transform:rotate(40.271deg)}20%{transform:rotate(45.954deg)}30%{transform:rotate(45.954deg)}40%{transform:rotate(40.271deg)}50%{transform:rotate(26.035deg)}60%{transform:rotate(74.029deg)}70%{transform:rotate(93.037deg)}80%{transform:rotate(93.037deg)}90%{transform:rotate(74.029deg)}100%{transform:rotate(26.035deg)}}
+@keyframes kj-trot-ankle{0%{transform:rotate(5.349deg)}10%{transform:rotate(-9.882deg)}20%{transform:rotate(-20.908deg)}30%{transform:rotate(-28.984deg)}40%{transform:rotate(-33.795deg)}50%{transform:rotate(-33.531deg)}60%{transform:rotate(-54.591deg)}70%{transform:rotate(-56.794deg)}80%{transform:rotate(-46.016deg)}90%{transform:rotate(-26.434deg)}100%{transform:rotate(5.349deg)}}
+.kaju-explorer .t-f1{animation:kj-trot-hip .46s linear -0s infinite}
+.kaju-explorer .t-f1 .kj-knee{animation:kj-trot-knee .46s linear -0s infinite}
+.kaju-explorer .t-f1 .kj-ankle{animation:kj-trot-ankle .46s linear -0s infinite}
+.kaju-explorer .t-b2{animation:kj-trot-hip .46s linear -0s infinite}
+.kaju-explorer .t-b2 .kj-knee{animation:kj-trot-knee .46s linear -0s infinite}
+.kaju-explorer .t-b2 .kj-ankle{animation:kj-trot-ankle .46s linear -0s infinite}
+.kaju-explorer .t-f2{animation:kj-trot-hip .46s linear -0.23s infinite}
+.kaju-explorer .t-f2 .kj-knee{animation:kj-trot-knee .46s linear -0.23s infinite}
+.kaju-explorer .t-f2 .kj-ankle{animation:kj-trot-ankle .46s linear -0.23s infinite}
+.kaju-explorer .t-b1{animation:kj-trot-hip .46s linear -0.23s infinite}
+.kaju-explorer .t-b1 .kj-knee{animation:kj-trot-knee .46s linear -0.23s infinite}
+.kaju-explorer .t-b1 .kj-ankle{animation:kj-trot-ankle .46s linear -0.23s infinite}
 .kaju-explorer .kj-flop-follow { animation: kj-twitch 2.6s ease-in-out .1s infinite; }
 .kaju-explorer .kj-lids { opacity: 0; }
 @keyframes kj-natural-blink { 0%,93%,98%,100% { opacity: 0; } 95%,96% { opacity: 1; } }
@@ -124,3 +143,18 @@
 .kaju-empty { border-color: var(--s3-line, #e2e7ef); background: var(--s3-sunk, #f5f7fb); border-radius: 8px; }
 .kaju-insight { border-color: var(--s3-line, #e2e7ef); border-radius: 8px; }
 .kaju-insight-k { color: var(--s3-blue, #2457ce); letter-spacing: normal; text-transform: none; }
+
+/* Calm posture changes; visibility pauses keep the current animation phase. */
+.kaju .kj-pose, .kaju .kj-head { transition: transform 520ms cubic-bezier(.22,.61,.36,1), opacity 260ms ease; }
+.kaju .kj-ear-up, .kaju .kj-ear-flop { transition-timing-function: ease-in-out; }
+.kaju-explorer .kj-ankle { transform-box: view-box; transform-origin: 0 0; }
+.kaju-explorer .kj-haunch-shape, .kaju-explorer .kj-leg-shape, .kaju-explorer .kj-torso-upright, .kaju-explorer .kj-torso-level { transition: opacity 320ms ease; }
+@keyframes kj-breathe { 0%,100% {transform:scale(1)} 50% {transform:scale(1.007,1.013)} }
+.kaju .hop { animation-iteration-count:1; }
+.kaju.is-paused *, .kaju-presence.is-paused { animation-play-state:paused!important; }
+.kaju.is-still * { transition:none!important; }
+.kaju-presence.is-entering { animation:kj-enter 1.84s linear both; }
+@keyframes kj-enter { from {opacity:0;transform:translateX(calc(-1 * var(--kj-arrive-distance,112px)))} 10%{opacity:1} to{opacity:1;transform:translateX(0)} }
+
+.kaju.is-lying .twitch, .kaju.is-lying .kj-flop-follow {animation-duration:7.6s}
+.kaju-presence.is-entering .kj-pose {transition:none}

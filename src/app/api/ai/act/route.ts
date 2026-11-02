@@ -4,6 +4,13 @@ import {allowUserRequest} from '@/lib/rate-limit';
 import {verifyAction} from '@/sp3/ai/verify';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
+/** Restoring a receipt never replays a write or supplies confirmation. */
+export async function GET(req:Request){
+ const c=await caller(req);if(!c)return NextResponse.json({error:'Sign in again.'},{status:401});
+ const id=new URL(req.url).searchParams.get('request');if(!id||id.length>128)return NextResponse.json({error:'Invalid receipt.'},{status:400});
+ try{return NextResponse.json(await verifyAction(c.db,c.userId,id),{headers:{'Cache-Control':'no-store'}})}
+ catch{return NextResponse.json({error:'Receipt verification is unavailable.'},{status:503})}
+}
 export async function POST(req:Request){
  const c=await caller(req);
  if(!c)return NextResponse.json({error:'Sign in first.'},{status:401});
