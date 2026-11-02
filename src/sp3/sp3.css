@@ -367,6 +367,9 @@ textarea.s3-input { padding: 12px 14px; min-height: 120px; resize: vertical; lin
 select.s3-input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--s3-mute) 50%), linear-gradient(135deg, var(--s3-mute) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 36px; }
 .s3-input:focus { outline: none; border-color: var(--s3-blue); box-shadow: 0 0 0 3px rgba(36, 87, 206, 0.15); }
 .s3-input.is-code { font-family: var(--s3-mono); letter-spacing: 0.3em; text-transform: uppercase; }
+.s3-signin-sheet .s3-input { color-scheme: light; color: var(--s3-ink); -webkit-text-fill-color: var(--s3-ink); caret-color: var(--s3-ink); }
+.s3-signin-sheet .s3-input::placeholder { color: var(--s3-mute); -webkit-text-fill-color: var(--s3-mute); opacity: 1; }
+.s3-signin-sheet .s3-input:-webkit-autofill { -webkit-text-fill-color: var(--s3-ink); caret-color: var(--s3-ink); }
 .s3-err { font-size: 14px; color: var(--s3-flame-ink); font-weight: 500; }
 .s3-ok { font-size: 14px; color: var(--s3-green); font-weight: 500; }
 
