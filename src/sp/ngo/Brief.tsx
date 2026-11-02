@@ -37,7 +37,7 @@ const label = (c: { title?: string | null; animal_name?: string | null; case_cod
 const person = (n?: string | null) => (n ?? "").includes("@") ? (n as string).split("@")[0].replace(/[._-]+/g, " ") : n ?? "";
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-type Data = { open: OpenCase[]; due: DueFollowup[]; counts: OpsCounts | null; closed: Change[]; abc: QueueRow[] };
+type Data = { open: OpenCase[]; due: DueFollowup[]; counts: OpsCounts | null; closed: Change[]; abc: QueueRow[]; unavailable:string[] };
 
 export function Brief() {
   const { user, ready } = useAuth();
@@ -59,7 +59,7 @@ export function Brief() {
         if (!live) return;
         if (open.status === "rejected") { setFailed(true); return; }
         const ok = <T,>(r: PromiseSettledResult<T>, fb: T) => (r.status === "fulfilled" ? r.value : fb);
-        setD({ open: open.value, due: ok(due, []), counts: ok(counts, null), closed: ok(closed, []), abc: ok(abc, [] as QueueRow[]) });
+        setD({ open: open.value, due: ok(due, []), counts: ok(counts, null), closed: ok(closed, []), abc: ok(abc, [] as QueueRow[]), unavailable:([ ["follow-ups",due], ["counts",counts], ["recent changes",closed], ["ABC authorisations",abc] ] as const).filter(([,r])=>r.status==='rejected').map(([name])=>name) });
       });
     return () => { live = false; };
   }, [member]);
@@ -123,18 +123,19 @@ export function Brief() {
         <h1 className="br-hello">{greeting()}, {first}.<span>Here is your daily brief.</span></h1>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
-          : <p className="br-since">Since yesterday: <b>{fresh.length}</b> new or updated · <b>{closedNew.length}</b> closed · <b>{nOverdue}</b> overdue · <b>{nLive}</b> live in the queue</p>}
+          : <p className="br-since">Since yesterday: <b>{fresh.length}</b> new or updated · <b>{d.unavailable.includes("recent changes")?"not read":closedNew.length}</b> closed · <b>{d.unavailable.includes("follow-ups")?"not read":nOverdue}</b> overdue · <b>{d.unavailable.includes("counts")?"not read":nLive}</b> live in the queue</p>}
 
         {d && (
           <>
+            {d.unavailable.length>0&&<p role="status">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
             <section aria-labelledby="br-todo" className="br-sec">
               <h2 id="br-todo" className="br-h">What needs to be done</h2>
-              {todo.length ? rows(todo, true) : <p className="br-empty">{isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
+              {todo.length ? rows(todo, true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
               <div className="br-chips">{isVet ? <Link href="/ngo/verification">Open verification <ArrowRight size={12} aria-hidden /></Link> : <Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link>}{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
             </section>
             <section aria-labelledby="br-out" className="br-sec">
               <h2 id="br-out" className="br-h">Recent activity</h2>
-              {out.length ? rows(out, false) : <p className="br-empty">Nothing new in the last day.</p>}
+              {out.length ? rows(out, false) : <p className="br-empty">{d.unavailable.includes("recent changes")?"Recent changes could not be read.":"Nothing new in the last day."}</p>}
               {out.length > 1 && <div className="br-chips"><button type="button" onClick={() => send("Summarise the cases that came in, moved or closed since yesterday.")}><Sparkles size={12} aria-hidden />Summarise these</button></div>}
             </section>
           </>
