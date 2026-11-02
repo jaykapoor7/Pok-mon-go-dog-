@@ -3,8 +3,9 @@
    Drawn as fine lines on StrayPaw blue behind the product, the way a
    programme is planned on paper before it is run. Decorative only. */
 
-export function Blueprint({ className = "" }: { className?: string }) {
-  const L = "rgba(255,255,255,.22)", F = "rgba(255,255,255,.10)", S = "rgba(255,255,255,.4)";
+export function Blueprint({ className = "", tone = "light" }: { className?: string; tone?: "light" | "dark" }) {
+  const dark = tone === "dark";
+  const L = dark ? "rgba(255,255,255,.22)" : "rgba(36,87,206,.20)", F = dark ? "rgba(255,255,255,.10)" : "rgba(36,87,206,.09)", S = dark ? "rgba(255,255,255,.4)" : "rgba(36,87,206,.42)";
   return (
     <svg className={`s6-blueprint ${className}`} viewBox="0 0 1440 760" preserveAspectRatio="xMidYMid slice" aria-hidden focusable="false">
       {/* plots */}
@@ -39,7 +40,7 @@ export function Blueprint({ className = "" }: { className?: string }) {
         {[[250, 300], [610, 470], [1160, 330], [760, 160], [1230, 620], [470, 640]].map(([x, y], i) => (
           <g key={i} transform={`translate(${x} ${y})`}>
             <circle r="14" fill="none" stroke={S} strokeWidth="1" />
-            <circle r="4" fill={i % 2 ? "#f0b45a" : "#fff"} />
+            <circle r="4" fill={i % 2 ? "#d99b1c" : dark ? "#fff" : "#2457ce"} />
           </g>
         ))}
       </g>

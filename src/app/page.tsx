@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import {
-  ArrowRight, ArrowUpRight, Camera, Clock3, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
+  ArrowRight, ArrowUpRight, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
   KeyRound, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck,
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
@@ -51,24 +51,6 @@ const STEPS: Step[] = [
   { tab: "Review", title: <>Friday, week 44: 15 records ready,<br />3 exceptions to answer.</>, body: "The coordinator closes the week from one queue instead of five spreadsheets, with every exception explained.", kaju: "Summarises what changed this week and why each exception is open.", you: "The coordinator approves what is ready for the report.", href: "/abc-operations#review", cta: "Explore review", ui: <ReviewUi v={0} /> },
   { tab: "Reporting", title: <>October&rsquo;s package, built from<br />the records, not retyped.</>, body: "Totals by ward, the evidence index, vet authorisations and the exceptions list come straight from the approved records, with PDF and Excel exports.", kaju: "Assembles the package and leaves out anything not yet approved.", you: "The coordinator checks it and submits it to the office.", href: "/abc-operations#report", cta: "Explore reporting", ui: <ReportUi v={2} /> },
   { tab: "Municipal review", title: <>The Ward 9 office checks<br />the work before it pays.</>, body: "The reviewing office opens the package read-only, queries one animal and accepts the rest. The acceptance is recorded on the same record the field team started.", kaju: "Answers the reviewer's questions from the records, with sources.", you: "The office accepts, queries or returns the package.", href: "/for-governments", cta: "Explore municipal review", ui: <GovUi v={1} /> },
-];
-
-const DAILY: [string, string][] = [
-  ["Missing evidence", "ABC records without all five evidence items: capture, surgery, ear notch, release photo and place."],
-  ["Waiting for the vet", "A surgery record is attached but no veterinary authorisation is recorded yet."],
-  ["Overdue follow-ups", "Follow-ups dated before today on cases that are still open."],
-  ["Open municipal queries", "Submitted packages where the reviewing office's question is unanswered."],
-  ["Quiet programmes", "Active programmes with no animal recorded in the last seven days."],
-  ["Reporting deadline", "Days left before the deadline your organisation lead has set."],
-];
-
-type Recipe = { from: string; does: string; s: "Live" | "Setup pending" | "In testing" };
-const RECIPES: Recipe[] = [
-  { from: "Excel & CSV registers", does: "Imports last year's register, matches each row to an animal and flags what is missing.", s: "Live" },
-  { from: "PDF · Word · PowerPoint", does: "Builds the month's report package and a board deck straight from approved records.", s: "Live" },
-  { from: "Google Workspace · Microsoft 365", does: "Saves those files to Drive or OneDrive and drafts the email to your trustees.", s: "Setup pending" },
-  { from: "SMS", does: "Asks the field team for a missing release photo, sent only when you confirm.", s: "Setup pending" },
-  { from: "WhatsApp", does: "Turns a field worker's photo and voice note into a draft record.", s: "In testing" },
 ];
 
 const FAQ: [string, string][] = [
@@ -149,16 +131,6 @@ export default function HomePage() {
       <section className="s4-dark" aria-labelledby="ai-title">
         <div className="s4-wrap">
           <AiBand />
-          <div className="s6-daily">
-            <div className="s6-daily-head">
-              <span className="s6-daily-clock" aria-hidden><Clock3 size={18} /></span>
-              <div><h3>And every morning, without being asked</h3><p>Kaju runs six checks on each organisation&rsquo;s live records once a day. It changes nothing; it lists what needs a person, with the records to open.</p></div>
-            </div>
-            <div className="s6-runline" aria-hidden><span>Daily run</span><i /></div>
-            <ul className="s6-daily-list">
-              {DAILY.map(([t, d], i) => <li key={t}><span>{String(i + 1).padStart(2, "0")}</span><b>{t}</b><small>{d}</small></li>)}
-            </ul>
-          </div>
         </div>
       </section>
 
@@ -175,11 +147,6 @@ export default function HomePage() {
                 {col.map((t) => <div key={t.n} className="s4-int-t">{t.i}<b>{t.n}</b><small><i className={t.s === "Live" ? "is-live" : t.s === "Not connected" ? "is-off" : t.s === "Setup pending" ? "is-setup" : ""} />{t.s}</small></div>)}
               </div>
             ))}
-          </div>
-          <div className="s6-recipes">
-            <Blueprint />
-            <h3>What Kaju does with them</h3>
-            <ul>{RECIPES.map((r) => <li key={r.from}><span className="s6-r-from">{r.from}</span><span className="s6-r-line" aria-hidden /><span className="s6-r-do">{r.does}</span><i className={`s6-r-s is-${r.s === "Live" ? "live" : r.s === "In testing" ? "test" : "setup"}`}>{r.s}</i></li>)}</ul>
           </div>
         </div>
       </section>
@@ -217,13 +184,7 @@ export default function HomePage() {
       </section>
 
       {/* 9 · FAQ */}
-      <Faq items={FAQ} title="FAQs" aside={
-        <div className="s6-help">
-          <b>Talk to the team</b>
-          <p>Questions about your programme, your registers or pricing? We reply within one working day.</p>
-          <Link href="/contact" className="s4-link">Contact the team <ArrowRight size={16} aria-hidden /></Link>
-        </div>
-      } />
+      <div className="s6-faq"><Faq items={FAQ} title="FAQs" /></div>
     </S4Page>
   );
 }
