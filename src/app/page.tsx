@@ -6,15 +6,16 @@ import {
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
-import { Cards, Faq, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
+import { Cards, Close, Faq, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
 import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
-import { AiBand, MateTabs, UseCases, type Step } from "@/sp4/home/Interactive";
+import { AiBand, UseCases, type Step } from "@/sp4/home/Interactive";
 import {
   AskUi, CaptureUi, DuplicateUi, EvidenceUi, ExtractUi, GovUi, OvernightUi, ProposeUi, ReportUi, ReviewUi, RingUi, VetUi,
 } from "@/sp4/home/ui";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Blueprint } from "@/sp4/home/Blueprint";
+import { VideoCard } from "@/sp4/home/VideoCard";
 import { Stories } from "@/sp4/home/Stories";
 import { CountUp } from "@/sp4/site/Live";
 import { KajuPresence } from "@/kaju/Presence";
@@ -68,8 +69,9 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page className="s6-home" close={false}>
+    <S4Page className="s6-home" announce={<Link href="/whatsapp"><b>New</b>WhatsApp field intake is built and in testing. See where it stands <ArrowRight size={14} aria-hidden /></Link>} close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint /><Close /></div></div>}>
       <PageView name="landing_view" />
+      <VideoCard />
 
       {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
       <section className="s4-hero s6-hero" aria-labelledby="hero-title">
@@ -117,11 +119,11 @@ export default function HomePage() {
             { title: "Knows your programme", body: "Ask in plain words. Kaju answers from your records and names each one it used.", ui: <AskUi v={1} />, v: 2 },
             { title: "Prepares, never approves", body: "Kaju drafts cases, notes and follow-ups. Nothing is saved until a person confirms.", ui: <ProposeUi v={0} />, v: 4 },
           ]} />
-          <MateTabs items={[
-            { title: "Clears the backlog", body: "Kaju finds missing evidence, duplicates and unsigned procedures before the weekly report.", ui: <OvernightUi v={1} /> },
-            { title: "Reads field messages", body: "Paste a message from the field. Kaju turns it into a draft record.", ui: <ExtractUi v={1} /> },
-            { title: "Keeps reports ready", body: "Kaju tracks evidence completion for the month, so the package is never a surprise.", ui: <RingUi /> },
-          ]} />
+          <div className="s6-three"><Cards idp="mate3" cols={3} items={[
+            { title: "Clears the backlog", body: "Kaju finds missing evidence, duplicates and unsigned procedures before the weekly report.", ui: <OvernightUi v={1} />, v: 1 },
+            { title: "Reads field messages", body: "Paste a message from the field. Kaju turns it into a draft record.", ui: <ExtractUi v={1} />, v: 3 },
+            { title: "Keeps reports ready", body: "Kaju tracks evidence completion for the month, so the package is never a surprise.", ui: <RingUi />, v: 5 },
+          ]} /></div>
         </div>
       </section>
 
@@ -130,7 +132,7 @@ export default function HomePage() {
         <div className="s4-wrap"><AiBand /></div>
       </section>
 
-      {/* 7 · integrations */}
+      {/* 6 · integrations */}
       <section className="s4-sec" aria-labelledby="int-title" id="integrations">
         <div className="s4-wrap s4-int-wrap">
           <div className="s4-int-head">
@@ -144,6 +146,23 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* 7 · customer results (figures and stories; quotes appear only once a partner approves one in writing) */}
+      <section className="s4-sec" aria-labelledby="res-title">
+        <div className="s4-wrap">
+          <h2 id="res-title" className="s4-h2" style={{ marginBottom: 48 }}>Customer results</h2>
+          <div className="s4-nums">
+            <Rise><b><CountUp n={story.results[0]?.n ?? 0} /></b><small>rescue requests documented by<br />The Pawsome People Project</small></Rise>
+            <Rise delay={60}><b><CountUp n={kh.results[0]?.n ?? 0} /></b><small>rescue and treatment requests<br />by The Kind Hour Foundation</small></Rise>
+            <Rise delay={120}><b><CountUp n={partners.length} /></b><small>confirmed field partners<br />across India</small></Rise>
+            <Link href="/customers" className="s4-link is-ink">Read customer stories <ArrowRight size={18} aria-hidden /></Link>
+          </div>
+          <Stories stories={[
+            { slug: story.slug, name: story.name, city: story.city, logo: story.logo, line: "Coimbatore's rescue, sterilisation and vaccination registers, brought onto one record for every animal.", note: "Figures come from imported historical registers, not from work entered live in StrayPaw. No customer quote is shown until one is approved in writing.", registers: [["Rescue register", "2024–2026"], ["ABC drive register", "Jan–Aug 2026"], ["Vaccination records", "2024–2026"]] },
+            { slug: kh.slug, name: kh.name, city: kh.city, logo: kh.logo, line: "A Lucknow rescue and treatment register, with each animal's condition and outcome kept together.", note: "A historical register import. The foundation does not yet run its day-to-day work in StrayPaw, and its records are not independently verified.", registers: [["Rescue and treatment register", "Jan 2024 – Aug 2026"]] },
+          ]} />
         </div>
       </section>
 
@@ -170,23 +189,6 @@ export default function HomePage() {
           <Link href="/contact" className="s4-link">Contact the team <ArrowRight size={16} aria-hidden /></Link>
         </div>
       } />
-      {/* 10 · last word: our partners (stories and figures; quotes appear only once approved in writing) */}
-      <section className="s4-sec is-last s6-partners" aria-labelledby="res-title">
-        <div className="s4-wrap">
-          <div className="s4-sechead" style={{ marginBottom: 48 }}><h2 id="res-title" className="s4-h2"><TwoTone a="Hear from our partners" b="what they brought onto one record" /></h2></div>
-          <div className="s4-nums">
-            <Rise><b><CountUp n={story.results[0]?.n ?? 0} /></b><small>rescue requests documented by<br />The Pawsome People Project</small></Rise>
-            <Rise delay={60}><b><CountUp n={kh.results[0]?.n ?? 0} /></b><small>rescue and treatment requests<br />by The Kind Hour Foundation</small></Rise>
-            <Rise delay={120}><b><CountUp n={partners.length} /></b><small>confirmed field partners<br />across India</small></Rise>
-            <Link href="/customers" className="s4-link is-ink">Read customer stories <ArrowRight size={18} aria-hidden /></Link>
-          </div>
-          <Stories stories={[
-            { slug: story.slug, name: story.name, city: story.city, logo: story.logo, line: "Coimbatore's rescue, sterilisation and vaccination registers, brought onto one record for every animal.", note: "Figures come from imported historical registers, not from work entered live in StrayPaw. No customer quote is shown until one is approved in writing.", registers: [["Rescue register", "2024–2026"], ["ABC drive register", "Jan–Aug 2026"], ["Vaccination records", "2024–2026"]] },
-            { slug: kh.slug, name: kh.name, city: kh.city, logo: kh.logo, line: "A Lucknow rescue and treatment register, with each animal's condition and outcome kept together.", note: "A historical register import. The foundation does not yet run its day-to-day work in StrayPaw, and its records are not independently verified.", registers: [["Rescue and treatment register", "Jan 2024 – Aug 2026"]] },
-          ]} />
-        </div>
-      </section>
-
     </S4Page>
   );
 }

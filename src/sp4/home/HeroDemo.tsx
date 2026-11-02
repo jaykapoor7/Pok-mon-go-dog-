@@ -70,7 +70,7 @@ export function HeroDemo() {
     const on = () => setVisible(document.visibilityState === "visible");
     document.addEventListener("visibilitychange", on);
     const el = box.current;
-    const io = el && typeof IntersectionObserver !== "undefined" ? new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.2 }) : null;
+    const io = el && typeof IntersectionObserver !== "undefined" ? new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.08 }) : null;
     if (el && io) io.observe(el);
     return () => { document.removeEventListener("visibilitychange", on); io?.disconnect(); };
   }, []);
