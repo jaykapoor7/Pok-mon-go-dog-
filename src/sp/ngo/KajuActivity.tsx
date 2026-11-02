@@ -33,7 +33,7 @@ export function KajuActivity({orgId}:{orgId:string}){
    <p className="br-empty">At most 100 records per rule. These are record gaps, not clinical or government decisions.</p>
    {flagged.length>0&&<ul className="br-findings">{flagged.map(f=><li key={f.rule}>
     <b>{labels[f.rule]??f.rule.replaceAll('_',' ')}: {f.configured===false?'not set':f.count===null?'unknown':f.count}</b>
-    <p>{f.explanation}</p>{f.dueOn&&<p>Due <time dateTime={f.dueOn}>{new Date(f.dueOn+"T00:00:00Z").toLocaleDateString("en-IN",{dateStyle:"medium",timeZone:"UTC"})}</time>. Set by your organisation lead.</p>}<small>Checked <time dateTime={run.checked_at}>{time(run.checked_at)}</time></small>
+    <p>{f.explanation}</p>{f.dueOn&&<p>Due <time dateTime={f.dueOn}>{new Date(f.dueOn+"T00:00:00Z").toLocaleDateString("en-IN",{dateStyle:"medium",timeZone:"UTC"})}</time>. Set by your organisation lead.</p>}<small>Checked <time dateTime={run.checked_at}>{time(run.checked_at)}</time></small>{f.rule==='reporting_deadline'&&f.dueOn&&<div className="br-chips"><Link href="/ngo/settings#kaju-deadline-title">Deadline settings</Link></div>}
     {f.records.length>0?<div className="br-chips">{f.records.slice(0,3).map(r=><Link key={r.id} href={r.href}>{r.label}</Link>)}</div>:f.configured===false?<p>No deadline source is recorded. {ai.role==='admin'?<Link href="/ngo/settings">Set a reporting deadline</Link>:'Ask your organisation lead to set one.'}</p>:f.count===null?<p>The source could not establish a count.</p>:null}
    </li>)}</ul>}
   </>}

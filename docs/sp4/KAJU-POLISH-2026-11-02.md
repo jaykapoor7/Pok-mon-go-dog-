@@ -48,4 +48,8 @@ Evidence logs/screenshots are local under `/tmp/kaju-polish-*` and `/tmp/straypa
 4. Review Kaju on an actual iPhone and compare with the original reference. Existing generated textures are derivatives.
 5. Historical-data cleanup still requires separate owner approval. No cleanup is included here.
 
-Hosted deployment and final checks will be appended after verification.
+## Final local candidate checks
+
+Application commit `379985c7` passed the final production build, lint and TypeScript checks. All 15 homepage, AI, assistant, NGO and municipal placements passed Chromium page-error, horizontal-overflow and axe WCAG A/AA checks across 1440px desktop, 834px tablet and 390px phone. Authenticated pages waited for loaded content. The real nine-check Kaju journey passed again on this built candidate. Character screenshots were inspected against the original reference, including all 23 hydrated states; the paw-ground geometry assertion passed. This does not establish native Safari or owner art acceptance.
+
+[PR #45](https://github.com/jaykapoor7/Pok-mon-go-dog-/pull/45) carries the branch. Hosted deployment and final checks follow after verification.

@@ -9,8 +9,10 @@ async function main() {
   const sent: { to:string; reply_to?:string; subject:string; html:string }[] = [];
   let rejectDelivery = false;
   let storageAttempts = 0;
+  let rateAllowed = true;
   globalThis.fetch = async (input, init) => {
-    const url = String(input);
+    const url = input instanceof Request ? input.url : String(input);
+    if (url === "https://forms-test.supabase.co/rest/v1/rpc/check_rate_limit") return Response.json(rateAllowed);
     if (url === "https://api.resend.com/emails") {
       sent.push(JSON.parse(String(init?.body)));
       return Response.json(rejectDelivery ? {message:"Rejected for test"} : {id:"test-only"}, {status:rejectDelivery ? 503 : 200});
@@ -23,7 +25,7 @@ async function main() {
   };
   const {POST:contact} = await import("../src/app/api/contact/route");
   const {POST:application} = await import("../src/app/api/partner-apply/route");
-  const request=(body:unknown)=>new Request("http://localhost/api/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const request=(body:unknown)=>new Request("http://localhost/api/test",{method:"POST",headers:{"Content-Type":"application/json","x-forwarded-for":"198.51.100.17"},body:JSON.stringify(body)});
   for (const subject of ["Contact", "Request a Pilot", "Work With Us", "WhatsApp CareOS access"]) {
     const response=await contact(request({name:"<Test sender>",email:"sender@example.com",subject,message:"A mocked enquiry."}));
     assert.equal(response.status,200);assert.equal((await response.json()).delivered,true);
@@ -38,6 +40,14 @@ async function main() {
   assert.equal((await contact(request({name:"Test",email:"invalid",message:"No delivery"}))).status,400);
   assert.equal((await application(request({org_name:"Test",email:"invalid",about:"No delivery"}))).status,400);
   assert.equal(sent.length,count);
+  // The production limiter fails closed. Neither a denied bucket nor missing
+  // caller identity may reach the email provider.
+  rateAllowed=false;
+  assert.equal((await contact(request({name:"Test",email:"sender@example.com",message:"Rate denied"}))).status,429);
+  assert.equal((await apply()).status,429);
+  rateAllowed=true;
+  const unidentified=request({name:"Test",email:"sender@example.com",message:"No caller identity"});unidentified.headers.delete("x-forwarded-for");
+  assert.equal((await contact(unidentified)).status,429);assert.equal(sent.length,count);
   console.log("Contact delivery passed: Gmail routing, reply-to, HTML escaping, storage outage, provider failure and input validation. No emails sent.");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

@@ -181,7 +181,7 @@ const connectionsHref = (path: string) => (path.startsWith("/city") ? "/city/con
 /* ── suggestions, by where the person is ─────────────────────────── */
 function suggestions(path: string): string[] {
   if (/\/ngo\/(cases|verification)\/[^/]+$/.test(path)) return ["Check this case and its evidence", "What needs attention on this case?", "What can only the veterinarian authorise?"];
-  if (/\/(?:ngo\/packages|city\/review)\/[^/]+$/.test(path)) return ["Check this report package", "Show the municipal review queue", "What evidence should I review?"];
+  if (/\/(?:ngo\/packages|city\/review)\/[^/]+$/.test(path)) return ["Check this report package", "Show the municipal review queue", "What can only a municipal reviewer accept?"];
   if (path.startsWith('/ngo/verification')) return ["Show my ABC verification queue", "Which records need veterinary authorisation?", "Run operational checks"];
   if (path.startsWith("/ngo/animals")) return ["Find possible duplicate animals", "Which animals have no photo?", "What can I search in the register?"];
   if (path.startsWith("/ngo/programmes")) return ["Summarise our programmes", "Which records are missing evidence?", "Show published ABC programmes"];
