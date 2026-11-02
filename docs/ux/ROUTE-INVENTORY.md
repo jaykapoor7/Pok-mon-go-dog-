@@ -1,59 +1,61 @@
-# Canonical route and feature inventory
+# Canonical feature inventory
 
-Every existing deep link is retained. Visibility is not authorisation: server checks and RLS remain authoritative. “Existing” below means inspected implementation, not an authenticated pass. See OPERATIONS-UPGRADE.md and PR evidence for actual results.
+Every existing deep link is retained. Visibility does not grant access; server checks and RLS remain authoritative. Functional results are in OPERATIONS-UPGRADE.md and the PR. Existing retained means implementation inspected, not every button certified.
 
-| Workspace | Feature / purpose | Route | Discovery role | Parent workflow | Status |
+| Workspace | Feature / purpose | Route | Discovery role | Parent workflow | Implementation |
 |---|---|---|---|---|---|
-| ngo | Working zones & assignments | /ngo/programmes/zones | workspace entry | Programmes | New; staging QA |
-| community | Map | /community | workspace entry | Explore | Existing; retained |
-| community | Report an animal | /community/report | workspace entry | Explore | Existing; retained |
-| community | My activity | /community/activity | workspace entry | Explore | Existing; retained |
-| community | Stories | /community/stories | workspace entry | Explore | Existing; retained |
-| community | Organisations | /community/organisations | workspace entry | Explore | Existing; retained |
-| community | Fundraisers | /fundraisers | workspace entry | Explore | Existing; retained |
-| community | Kaju | /assistant | workspace entry | Platform | Existing; retained |
-| community | If an animal needs help | /community/help | workspace entry | Help | Existing; retained |
-| community | Feeding spots | /community/feeding | workspace entry | Help | Existing; retained |
-| ngo | Today | /ngo | workspace entry | Today | Existing; retained |
-| ngo | Work queue | /ngo/work | workspace entry | Work | Existing; retained |
-| ngo | Animals | /ngo/animals | workspace entry | Animals | Existing; retained |
-| ngo | Programmes | /ngo/programmes | workspace entry | Programmes | Existing; retained |
-| ngo | Reports | /ngo/packages | admin, coordinator | Reports | Existing; retained |
-| ngo | Team & settings | /ngo/team | admin | Organisation | Existing; retained |
-| ngo | Kaju | /assistant | workspace entry | Platform | Existing; retained |
-| ngo | Import your register | /ngo/import | admin | Animals | Existing; retained |
-| ngo | Inbox & triage | /ngo/inbox | admin, coordinator | Work | Existing; retained |
-| ngo | Field mode | /ngo/field | workspace entry | Work | Existing; retained |
-| ngo | Historical review | /ngo/review | admin, coordinator | Animals | Existing; retained |
-| ngo | Data quality | /ngo/quality | admin, coordinator | Animals | Existing; retained |
-| ngo | Reports & proof | /ngo/proof | admin, coordinator | Reports | Existing; retained |
-| ngo | Care ledger | /ngo/care | workspace entry | Animals | Existing; retained |
-| ngo | Evidence files | /ngo/evidence | workspace entry | Reports | Existing; retained |
-| ngo | Publish case stories | /ngo/stories | admin | Outreach | Existing; retained |
-| ngo | Fundraising | /ngo/fundraising | admin | Outreach | Existing; retained |
-| ngo | Volunteer sign-ups | /ngo/volunteers | admin | Organisation | Existing; retained |
-| ngo | Feeding spots | /ngo/feeding | workspace entry | Programmes | Existing; retained |
-| ngo | Projects | /ngo/projects | workspace entry | Programmes | Existing; retained |
-| ngo | Surveys & census | /ngo/surveys | workspace entry | Programmes | Existing; retained |
-| ngo | Settings | /ngo/settings | admin | Organisation | Existing; retained |
-| ngo | New case | /ngo/cases/new | workspace entry | Work | Existing; retained |
-| ngo | Connections | /ngo/settings/connections | admin | Organisation | Existing; retained |
-| city | Package review | /city/review | reviewing office | Verification | Existing; retained |
-| city | Overview | /city/insights | workspace entry | Overview | Existing; retained |
-| city | Programmes | /city/programmes | workspace entry | Overview | Existing; retained |
-| city | Reports | /city/report | workspace entry | Reports | Existing; retained |
-| city | Wards & map | /city | workspace entry | Wards | Existing; retained |
-| city | Kaju | /assistant | workspace entry | Overview | Existing; retained |
-| city | Data governance | /data-governance | workspace entry | Overview | Existing; retained |
-| city | Research standards | /research-standards | workspace entry | Overview | Existing; retained |
-| learn | Learn | /learn | workspace entry | Explore | Existing; retained |
-| learn | Workshops | /learn/workshops | workspace entry | Modules | Existing; retained |
-| learn | Resources | /learn/resources | workspace entry | Explore | Existing; retained |
-| learn | Playground | /learn/playground | workspace entry | Explore | Existing; retained |
-| learn | Kaju | /assistant | workspace entry | Platform | Existing; retained |
-| learn | Education at StrayPaw | /education | workspace entry | Explore | Existing; retained |
+| city | Connections | /city/connections | reviewing office | Organisation | Retained; see journey evidence |
+| ngo | ABC evidence & authorisation | /ngo/verification | workspace entry | Reports | Retained; see journey evidence |
+| ngo | Working zones & assignments | /ngo/programmes/zones | workspace entry | Programmes | New; staging-tested |
+| community | Map | /community | workspace entry | Explore | Retained; see journey evidence |
+| community | Report an animal | /community/report | workspace entry | Explore | Retained; see journey evidence |
+| community | My activity | /community/activity | workspace entry | Explore | Retained; see journey evidence |
+| community | Stories | /community/stories | workspace entry | Explore | Retained; see journey evidence |
+| community | Organisations | /community/organisations | workspace entry | Explore | Retained; see journey evidence |
+| community | Fundraisers | /fundraisers | workspace entry | Explore | Retained; see journey evidence |
+| community | Kaju | /assistant | workspace entry | Platform | Retained; see journey evidence |
+| community | If an animal needs help | /community/help | workspace entry | Help | Retained; see journey evidence |
+| community | Feeding spots | /community/feeding | workspace entry | Help | Retained; see journey evidence |
+| ngo | Today | /ngo | workspace entry | Today | Retained; see journey evidence |
+| ngo | Work queue | /ngo/work | workspace entry | Work | Retained; see journey evidence |
+| ngo | Animals | /ngo/animals | workspace entry | Animals | Retained; see journey evidence |
+| ngo | Programmes | /ngo/programmes | workspace entry | Programmes | Retained; see journey evidence |
+| ngo | Reports | /ngo/packages | admin, coordinator | Reports | Retained; see journey evidence |
+| ngo | Team & access | /ngo/team | admin | Organisation | Retained; see journey evidence |
+| ngo | Kaju | /assistant | workspace entry | Platform | Retained; see journey evidence |
+| ngo | Import your register | /ngo/import | admin | Animals | Retained; see journey evidence |
+| ngo | Inbox & triage | /ngo/inbox | admin, coordinator | Work | Retained; see journey evidence |
+| ngo | Field mode | /ngo/field | workspace entry | Work | Retained; see journey evidence |
+| ngo | Historical review | /ngo/review | admin, coordinator | Animals | Retained; see journey evidence |
+| ngo | Data quality | /ngo/quality | admin, coordinator | Animals | Retained; see journey evidence |
+| ngo | Reports & proof | /ngo/proof | admin, coordinator | Reports | Retained; see journey evidence |
+| ngo | Care ledger | /ngo/care | workspace entry | Animals | Retained; see journey evidence |
+| ngo | Evidence files | /ngo/evidence | workspace entry | Reports | Retained; see journey evidence |
+| ngo | Publish case stories | /ngo/stories | admin | Outreach | Retained; see journey evidence |
+| ngo | Fundraising | /ngo/fundraising | admin | Outreach | Retained; see journey evidence |
+| ngo | Volunteer sign-ups | /ngo/volunteers | admin | Organisation | Retained; see journey evidence |
+| ngo | Feeding spots | /ngo/feeding | workspace entry | Programmes | Retained; see journey evidence |
+| ngo | Projects | /ngo/projects | workspace entry | Programmes | Retained; see journey evidence |
+| ngo | Surveys & census | /ngo/surveys | workspace entry | Programmes | Retained; see journey evidence |
+| ngo | Settings | /ngo/settings | admin | Organisation | Retained; see journey evidence |
+| ngo | New case | /ngo/cases/new | workspace entry | Work | Retained; see journey evidence |
+| ngo | Connections | /ngo/settings/connections | admin | Organisation | Retained; see journey evidence |
+| city | Package review | /city/review | reviewing office | Verification | Retained; see journey evidence |
+| city | Overview | /city/insights | workspace entry | Overview | Retained; see journey evidence |
+| city | Programmes | /city/programmes | workspace entry | Overview | Retained; see journey evidence |
+| city | Reports | /city/report | workspace entry | Reports | Retained; see journey evidence |
+| city | Wards & map | /city | workspace entry | Wards | Retained; see journey evidence |
+| city | Kaju | /assistant | workspace entry | Overview | Retained; see journey evidence |
+| city | Data governance | /data-governance | workspace entry | Overview | Retained; see journey evidence |
+| city | Research standards | /research-standards | workspace entry | Overview | Retained; see journey evidence |
+| learn | Learn | /learn | workspace entry | Explore | Retained; see journey evidence |
+| learn | Workshops | /learn/workshops | workspace entry | Modules | Retained; see journey evidence |
+| learn | Resources | /learn/resources | workspace entry | Explore | Retained; see journey evidence |
+| learn | Playground | /learn/playground | workspace entry | Explore | Retained; see journey evidence |
+| learn | Kaju | /assistant | workspace entry | Platform | Retained; see journey evidence |
+| learn | Education at StrayPaw | /education | workspace entry | Explore | Retained; see journey evidence |
 
-## Retained dynamic and supporting route files
+## Retained dynamic and supporting pages
 
 - src/app/city/connections/page.tsx
 - src/app/city/insights/page.tsx

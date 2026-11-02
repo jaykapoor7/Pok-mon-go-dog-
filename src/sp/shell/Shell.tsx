@@ -115,6 +115,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const isMap = path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city";
   const isFlush = flush || isMap || path === "/ngo/work" || path === "/assistant";
   const here = currentDestination(ws,path,mem.role,mem.reviewer);
+  const section=def.index.find(g=>g.label===here?.group)?.links.find(l=>l.primary);
   const onAssistant = path === "/assistant";
 
   return (
@@ -208,7 +209,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </div>
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
-              {here && here.href !== def.home && <><span aria-hidden>/</span><span aria-current="page">{here.label}</span></>}
+              {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
+              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
               {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
             </nav>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
