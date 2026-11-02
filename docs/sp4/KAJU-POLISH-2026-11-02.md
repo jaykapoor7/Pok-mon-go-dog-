@@ -47,6 +47,7 @@ Evidence logs/screenshots are local under `/tmp/kaju-polish-*` and `/tmp/straypa
 3. Complete provider-owned OAuth/SMS setup and real account tests before advertising those Connections as live. WhatsApp stays disconnected.
 4. Review Kaju on an actual iPhone and compare with the original reference. Existing generated textures are derivatives.
 5. Historical-data cleanup still requires separate owner approval. No cleanup is included here.
+6. Provision the real municipal reviewing office and reviewer assignments before a production municipal pilot. The 2 November read-only production check found neither configured; staged acceptance is not production acceptance.
 
 ## Final local candidate checks
 
@@ -57,3 +58,10 @@ Application commit `379985c7` passed the final production build, lint and TypeSc
 The full PR CI run exposed a focus race that the slower staging permission check had masked. Launcher focus is now captured in a layout effect before thread autofocus. A no-database authenticated request fails closed with 401 consistently with GET. The existing hero workflow-anchor regression now clicks its actual section target. The contact test supplies the required mocked IP/rate policy and verifies denied buckets cannot send email; production limiter behavior is preserved. Exported operational findings use the validated snapshot and display Unknown/Not set rather than a missing denominator as zero.
 
 The final CI, hosted application SHA and production rollout results are maintained in the linked PR description. Do not infer production deployment from a branch push or preview READY state.
+
+
+## Dependency safety check
+
+The production dependency audit found a critical tar advisory and high findings in the old SheetJS/image parser, nested PostCSS and Zod trees. Targeted, pinned fixes preserve the existing Next.js, PptxGenJS, Anthropic SDK and OIDC versions: official SheetJS 0.20.3 tarball (lockfile integrity recorded), image-size 2.0.4, tar 7.5.22, PostCSS 8.5.32 and Zod 4.6.7. Parser/provider contract tests and the master import regression passed after installation. CI now gates high as well as critical advisories.
+
+The new production-dependency audit reports **zero high and zero critical findings**. Six moderate advisory entries remain in the legacy optional canvas installation chain; no major unpdf upgrade is included in this polish pass. Operational CSV rows now retain the snapshot ID, checked-at timestamp and rule version even though CSV does not render report footnotes. A real authenticated staged CSV readback verified Not set plus the exact immutable snapshot ID, and the temporary deadline setting was restored.

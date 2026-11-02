@@ -88,7 +88,7 @@
     "sonner": "^2.0.8",
     "tailwind-merge": "^2.5.2",
     "unpdf": "^0.12.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
@@ -112,5 +112,17 @@
     "firefox >= 111",
     "safari >= 16.4",
     "not dead"
-  ]
+  ],
+  "overrides": {
+    "next": {
+      "postcss": "8.5.32"
+    },
+    "pptxgenjs": {
+      "image-size": "2.0.4"
+    },
+    "@mapbox/node-pre-gyp": {
+      "tar": "7.5.22"
+    },
+    "zod": "4.6.7"
+  }
 }

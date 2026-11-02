@@ -69,4 +69,4 @@ jobs:
       - name: Browser regression suite
         run: npm run test:e2e
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=critical
+        run: npm audit --omit=dev --audit-level=high
