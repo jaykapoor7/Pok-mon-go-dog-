@@ -38,7 +38,7 @@ Primary references: [WVS Data Collection App](https://wvs.org.uk/data-collection
 
 ## Security and staging migrations
 
-Three additive migrations were applied to staging only: `20261102120453_field_note_receipts`, `20261102121341_programme_work_zones`, `20261102122025_field_evidence_receipts`. New tables have RLS; anonymous function execution and direct client writes are revoked. Each action uses current authenticated organisation and records an audit entry. These migrations must be reviewed and installed in the correct production project before this branch can be released. No production credentials were copied to Preview.
+Four migrations were applied to staging only: `20261102120453_field_note_receipts`, `20261102121341_programme_work_zones`, `20261102122025_field_evidence_receipts`, and `20261102122918_scoped_case_assignment`. The assignment migration repairs staging drift found by actual field QA; production’s existing functions already had actor and tenant guards. The new implementation retains those guards and adds coordinator-only assignment and audit entries. Staging was refined again to preserve non-empty legacy assignee names and public-only legacy claim behavior. New tables have RLS; anonymous function execution and direct client writes are revoked. Each action uses current authenticated organisation and records an audit entry. These migrations must be reviewed and installed in the correct production project before this branch can be released. No production credentials were copied to Preview.
 
 Field caching holds private records on the current browser/device. It is partitioned by user and organisation, and hidden when identity changes. Offline cached role information permits local viewing only; sync rechecks the current server session and database permissions. Shared-device data management and cache retention policy require further review before broad rollout. No API, evidence response, signed URL or auth endpoint is cached by the service worker.
 
@@ -53,3 +53,5 @@ Field caching holds private records on the current browser/device. It is partiti
 - Twenty-one Kaju reliability checks passed after sharing the destination registry; a denied navigation request no longer claims it opened a screen.
 
 Final complete-build, offline photo journey, final responsive screenshots, accessibility and CI results are recorded in the PR as they complete. Earlier test passes do not certify later code changes. Full offline animal identification/creation, rapid ARV events, verified survey coverage, contract reconciliation and disposition exception templates are not complete. This PR is an operations foundation, not a claim that the entire master scope is finished.
+
+The final field view loads assignment IDs from the authenticated case table rather than comparing display names. A shared display name cannot change whose cases are displayed.

@@ -55,12 +55,7 @@ const ICON: Record<string, typeof MapIcon> = {
   home: Home, inbox: Inbox, paw: PawPrint, layers: Layers, phone: Smartphone, shield: ShieldCheck, file: FileText, grad: GraduationCap,
   users: Users, compass: Compass, landmark: Landmark, list: ListChecks, check: ClipboardCheck,
 };
-const DEST_ICON: Record<string, typeof MapIcon> = {
-  "/community": MapIcon, "/community/report": Radio, "/community/activity": Activity,
-  "/ngo": Compass, "/ngo/animals": PawPrint, "/ngo/map": MapIcon, "/ngo/programmes": Layers,
-  "/city": Landmark, "/city/programmes": Layers, "/city/review": ClipboardCheck, "/city/insights": FileText,
-  "/learn": GraduationCap, "/learn/workshops": Users, "/learn/resources": BookOpen,
-};
+
 
 const Nested = createContext(false);
 
@@ -94,7 +89,6 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
      labelled once. Unknown role (signed out, or before it loads): all. */
   const def = workspaceView(aiWorkspace, mem.role, mem.reviewer);
   const nav = visibleNav(def.nav, mem.role, mem.reviewer);
-  const cur = currentDestination(ws,path,mem.role,mem.reviewer)?.href;
 
   const [find, setFind] = useState(false);
   const [sheet, setSheet] = useState(false);
@@ -234,8 +228,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
         <nav className="sp-tabs" aria-label={`${def.label} navigation`}>
           {def.dests.filter((d) => d.href !== def.action?.href).map((d, i, arr) => {
-            const Icon = DEST_ICON[d.href] ?? MapIcon;
-            const node = <Link key={d.href} href={d.href} aria-current={cur === d.href ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>;
+            const Icon = ICON[d.icon] ?? MapIcon;
+            const node = <Link key={d.href} href={d.href} aria-current={navOn(d,path) ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>;
             if (ws !== "ngo" && def.action && i === Math.ceil(arr.length / 2) - 1) return [node, reporting
               ? <Link key="act" href={def.action.href} aria-current="page"><Radio size={21} strokeWidth={1.8} aria-hidden /><span>{def.action.short}</span></Link>
               : <Link key="act" href={def.action.href} className="sp-tabs-act" aria-label={def.action.label}><b>{def.action.href.includes("report") ? <Radio size={21} aria-hidden /> : <Plus size={21} aria-hidden />}</b><span>{def.action.short}</span></Link>];

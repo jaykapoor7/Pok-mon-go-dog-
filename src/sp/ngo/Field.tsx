@@ -22,6 +22,7 @@ import { NgoGate } from "./Gate";
 import "./ngo.css";
 import {useMembership} from "../shell/Shell";
 import {readDrafts,putDraft,deleteDraft,fieldCache,type FieldDraft} from "@/lib/field/outbox";
+import {getSupabase} from "@/lib/supabase";
 import {submitFieldDraft} from "@/lib/field/sync";
 import {compressForUpload} from "@/lib/photo/compress";
 import {EVIDENCE_LABEL,type EvidenceKind} from "@/lib/abc";
@@ -37,6 +38,7 @@ export function Field() {
   const [offlineReady,setOfflineReady]=useState(false);
   useEffect(()=>{if(!("serviceWorker" in navigator))return;let live=true;void navigator.serviceWorker.register("/field-sw.js",{scope:"/ngo/field"}).then(async registration=>{await navigator.serviceWorker.ready;const urls=performance.getEntriesByType("resource").map(e=>e.name);(registration.active??registration.waiting)?.postMessage({type:"warm-field-shell",urls});if(live)setOfflineReady(true)}).catch(()=>{});return()=>{live=false}},[]);
   const [cachedAt,setCachedAt]=useState<string|null>(null);
+  const [assignedIds,setAssignedIds]=useState<string[]>([]);
   const [cases, setCases] = useState<OpenCase[] | null>(null);
   const [fus, setFus] = useState<DueFollowup[]>([]);
   const [online, setOnline] = useState(true);
@@ -47,9 +49,9 @@ export function Field() {
 
   const load = useCallback(async () => {
     setFailed(false);
-    try { const [c, f] = await Promise.all([openCases(), dueFollowups()]); if(currentScope.current!==scope)return;setCases(c);setFus(f);setCachedAt(null);if(scope)await fieldCache(scope,{cases:c,fus:f}).catch(()=>setStorageError("Assignments could not be cached on this device. Keep the page open when offline.")); } catch { if(currentScope.current!==scope)return;setFailed(true);if(scope){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[]}>(scope).catch(()=>undefined);setCases(cached?.value.cases??[]);setFus(cached?.value.fus??[]);setCachedAt(cached?.at??null)} }
-  }, [scope]);
-  useEffect(() => { setCases(null);setFus([]);if (user&&scope) void load(); }, [user, scope, load]);
+    try { const db=getSupabase();if(!db||!user||!mem.org)throw Error("Workspace unavailable");const [c, f, assigned] = await Promise.all([openCases(), dueFollowups(),db.from("cases").select("id").eq("ngo_id",mem.org.id).eq("assignee_id",user.id).limit(800)]);if(assigned.error)throw assigned.error;const ids=(assigned.data??[]).map(c=>c.id); if(currentScope.current!==scope)return;setCases(c);setFus(f);setAssignedIds(ids);setCachedAt(null);if(scope)await fieldCache(scope,{cases:c,fus:f,assignedIds:ids}).catch(()=>setStorageError("Assignments could not be cached on this device. Keep the page open when offline.")); } catch { if(currentScope.current!==scope)return;setFailed(true);if(scope){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[];assignedIds:string[]}>(scope).catch(()=>undefined);setCases(cached?.value.cases??[]);setFus(cached?.value.fus??[]);setAssignedIds(cached?.value.assignedIds??[]);setCachedAt(cached?.at??null)} }
+  }, [scope,user,mem.org]);
+  useEffect(() => { setCases(null);setFus([]);setAssignedIds([]);if (user&&scope) void load(); }, [user, scope, load]);
   useEffect(() => {
     setDrafts([]);
     let live=true;
@@ -60,9 +62,8 @@ export function Field() {
     return () => { live=false; window.removeEventListener("online", on); window.removeEventListener("offline", off); };
   }, [scope]);
 
-  const me = user?.name ?? "";
-  const mine = useMemo(() => (cases ?? []).filter((c) => c.assignee_name === me && c.provenance !== "imported_historical_record"), [cases, me]);
-  const myFus = useMemo(() => { const ids = new Set(mine.map((c) => c.id)); return fus.filter((f) => f.source === "scheduled" && (f.assignee_name === me || (f.case_id && ids.has(f.case_id)))).sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at)); }, [fus, mine, me]);
+  const mine = useMemo(() => (cases ?? []).filter((c) => assignedIds.includes(c.id) && c.provenance !== "imported_historical_record"), [cases, assignedIds]);
+  const myFus = useMemo(() => { const ids = new Set(mine.map((c) => c.id)); return fus.filter((f) => f.source === "scheduled" && (f.case_id && ids.has(f.case_id))).sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at)); }, [fus, mine]);
   const unowned = useMemo(() => (cases ?? []).filter((c) => !c.assignee_name && c.provenance !== "imported_historical_record").length, [cases]);
   const actor = user ? { id: user.id, name: user.name } : null;
   const done = (k: string, x: Receipt) => setR((m) => ({ ...m, [k]: x }));
