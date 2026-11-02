@@ -192,3 +192,25 @@
 .s6-r-s.is-live { background: rgba(126, 220, 168, .18); color: #9ff0c3; }
 .s6-r-s.is-setup { background: rgba(240, 180, 90, .2); color: #ffd59a; }
 .s6-r-s.is-test { background: rgba(255, 255, 255, .16); color: #fff; }
+
+/* ── hero: the rotating second line ───────────────────────────────── */
+.s6-h1 { position: relative; }
+.s6-rot { position: relative; display: inline-grid; min-height: 1.08em; color: var(--s4-blue); white-space: nowrap; }
+.s6-rot-line { grid-area: 1 / 1; display: inline-block; }
+.s6-rot-w { display: inline-block; white-space: nowrap; }
+.s6-rot-w > span { display: inline-block; animation: s6-flick 760ms cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--k) * 22ms); }
+@keyframes s6-flick {
+  0% { opacity: 0; transform: translateY(.18em); filter: blur(6px); }
+  35% { opacity: .9; filter: blur(0); }
+  48% { opacity: .25; }
+  62% { opacity: 1; transform: none; }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+.s6-rot-line.is-out { animation: s6-lift 420ms cubic-bezier(.4, 0, .2, 1) both; }
+@keyframes s6-lift { to { opacity: 0; transform: translateY(-.32em); filter: blur(6px); } }
+/* a drafting caret after the phrase */
+.s6-rot-line.is-in::after { content: ""; display: inline-block; vertical-align: -.08em; width: .06em; height: .86em; margin-left: .1em; background: #f0b45a; animation: s6-caret 1.1s steps(2, jump-none) infinite; }
+@keyframes s6-caret { 50% { opacity: 0; } }
+.s6-center .s4-actions { margin-top: 40px; }
+@media (max-width: 760px) { .s6-rot { white-space: normal; min-height: 2.16em; } .s6-rot-line { width: 100%; } .s6-rot-line.is-in::after { display: none; } }
+@media (prefers-reduced-motion: reduce) { .s6-rot-w > span, .s6-rot-line.is-out, .s6-rot-line.is-in::after { animation: none !important; } }

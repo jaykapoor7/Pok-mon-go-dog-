@@ -15,6 +15,7 @@ import {
 } from "@/sp4/home/ui";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Blueprint } from "@/sp4/home/Blueprint";
+import { HeroRotator } from "@/sp4/home/HeroRotator";
 import { VideoCard } from "@/sp4/home/VideoCard";
 import { Stories } from "@/sp4/home/Stories";
 import { CountUp } from "@/sp4/site/Live";
@@ -95,8 +96,7 @@ export default function HomePage() {
       <section className="s4-hero s6-hero" aria-labelledby="hero-title">
         <div className="s4-wrap s6-center">
           <Link href="/ai" className="s4-hero-eyebrow"><span>New</span>Kaju is in every workspace <ArrowRight size={14} aria-hidden /></Link>
-          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet Kaju, the AI agent for", "animal welfare programmes"]} mark="Kaju" /></h1>
-          <p className="s4-lede">StrayPaw runs animal welfare programmes on one shared record: field capture, veterinary sign-off, evidence and municipal reporting. Kaju does the checking and drafting. Your team approves.</p>
+          <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">See how it works</Link></div>
           <div className="s6-canvas">
             <Blueprint />
