@@ -41,7 +41,7 @@ export function KajuPresence({ sequence, state, size = 140, flip, label, loop = 
   const shown: KajuState = state ?? (steps ? (still ? steps[steps.length - 1].state : seen ? seqState : steps[0].state) : "sitting");
   const entering = enter && seen && !still && !arrived;
   return (
-    <div ref={ref} onAnimationEnd={e=>{if(e.target===ref.current)setArrived(true)}} className={`kaju-presence${entering ? " is-entering" : ""}${enter && !seen && !still ? " is-waiting" : ""}${!visible?' is-paused':''} ${className}`} style={{...style,'--kj-arrive-distance':`${size*.8}px`} as CSSProperties}>
+    <div ref={ref} onAnimationEnd={e=>{if(e.target===ref.current)setArrived(true)}} className={`kaju-presence${entering ? " is-entering" : ""}${enter && !seen && !still ? " is-waiting" : ""}${!visible?' is-paused':''} ${className}`} style={{...style,'--kj-arrive-distance':'80%'} as CSSProperties}>
       <Kaju state={entering?'trotting':shown} size={size} flip={flip} label={label} still={still} />
     </div>
   );

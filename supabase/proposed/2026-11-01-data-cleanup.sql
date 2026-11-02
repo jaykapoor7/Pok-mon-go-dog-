@@ -1,9 +1,17 @@
 -- PRODUCTION DATA CLEANUP — PROPOSED, NOT APPLIED. Needs the owner's separate approval.
 -- Plan, counts and reasons: docs/sp4/CLEANUP-PROPOSAL-2026-11.md.
--- Same steps as tested on staging on 2026-10-31 (DATA-PROVENANCE.md §8):
+-- NOT EXECUTION-READY: source inventory and exact view diffs must be refreshed.
+-- The older analogous staging rehearsal (DATA-PROVENANCE.md §8) does not
+-- validate this revised production script or the current production rows.
+-- Same type of steps tested on staging on 2026-10-31:
 -- applied, reversed exactly, re-applied. Nothing is deleted. Every changed
 -- value is saved in provenance_corrections first, so rollback is exact.
 begin;
+
+-- Deliberate safety stop. Replace only in a separately approved execution copy
+-- after freezing explicit source/case IDs, expected old values, fresh counts,
+-- backup checksums and the complete public-view apply/rollback definitions.
+do $$ begin raise exception 'Proposal only: current allowlist, backup and view diffs require separate owner approval'; end $$;
 
 -- 0. Guard: refuse to run twice.
 do $$ begin

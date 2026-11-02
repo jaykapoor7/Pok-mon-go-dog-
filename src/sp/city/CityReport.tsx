@@ -62,7 +62,7 @@ export function CityReport() {
                 <li>Animal profiles, requests, sightings and care events are different units. None of them, alone or added together, is a count of unique animals.</li>
                 <li>Places are areas of about 0.74 km² or recorded localities. They are analysis areas, not wards, and never an animal&rsquo;s exact spot.</li>
                 <li>Where something was not recorded, it is reported as not recorded, never as zero or as no.</li>
-                <li>Official census and research estimates, where they exist, are separate sources with their own year and method, and are not mixed into these figures.</li>
+                <li>Recorded totals can include imported and research datasets. They are not verified programme outcomes or population estimates. Check each source&rsquo;s year and method before using a figure.</li>
               </ul>
               <p className="small">Figures are read from the live record when the report is opened and may change as organisations add records. Cite with the build date above.</p>
             </div>

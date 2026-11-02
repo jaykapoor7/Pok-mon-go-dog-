@@ -82,7 +82,7 @@ export default function HomePage() {
             <Blueprint />
             <div className="s4-hero-stage s6-stage">
               {/* Kaju rests on the product window: the agent lives inside the work. */}
-              <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" loop size={112} /></span>
+              <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" enter loop size={112} /></span>
               <HeroDemo />
             </div>
           </div>

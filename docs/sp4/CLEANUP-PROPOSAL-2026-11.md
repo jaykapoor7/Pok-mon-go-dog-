@@ -5,7 +5,22 @@ owner's separate approval. Staging has run the same steps, reversed them exactly
 re-applied them (DATA-PROVENANCE.md §8).
 
 **Files:** `supabase/proposed/2026-11-01-data-cleanup.sql` (apply) and
-`supabase/proposed/2026-11-01-data-cleanup.rollback.sql` (exact reverse).
+`supabase/proposed/2026-11-01-data-cleanup.rollback.sql` (guarded reverse).
+
+**2 November safety review:** the apply file now deliberately aborts before any
+changes. Its old “all sources except one” predicate is not an approved inventory;
+it could include newly added operational sources. The November 1 counts below
+are historical, not a current execution manifest. Before requesting approval,
+freeze explicit source/case IDs and expected old values, refresh aggregate counts,
+save backup checksums and produce complete apply/rollback diffs for every public
+view and cache. The current Supabase connector returned authentication retry
+responses, so a fresh inventory was not obtained in this pass. No cleanup ran.
+
+Rollback now checks that every corrected row still exists and still has the
+recorded new value, then restores the recorded old value (including source scope).
+It aborts instead of overwriting intervening changes. This revised SQL has not
+been installed or rehearsed on production; the earlier staging exercise is not
+proof for these revisions. Keep the ledger and review any conflict separately.
 
 ## Why
 
@@ -47,6 +62,7 @@ re-applied them (DATA-PROVENANCE.md §8).
 
 ## Rollback
 
-`2026-11-01-data-cleanup.rollback.sql` restores every changed value from `provenance_corrections`.
-Then restore the saved view definitions and refresh the cache. No data is lost at any point,
-because nothing is deleted.
+`2026-11-01-data-cleanup.rollback.sql` proposes restoring changed values from `provenance_corrections`, after its conflict checks.
+Then restore the separately reviewed view definitions and refresh the cache.
+No deletion is proposed. A current backup and a successful isolated rehearsal are
+still required; do not describe this proposal as a verified production rollback.

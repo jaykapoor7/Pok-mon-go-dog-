@@ -2,6 +2,7 @@ import { ClipboardPen, FileSearch, History, Lock, ScanText, ShieldAlert } from "
 import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { AskUi, ExtractUi, OvernightUi, ProposeUi } from "@/sp4/home/ui";
 import { AiBand } from "@/sp4/home/Interactive";
+import { KajuMotionPreview } from "@/kaju/MotionPreview";
 
 export const metadata = { title: "Kaju · StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: searches the records you can read, answers with citations, finds gaps and prepares changes a person confirms." };
 
@@ -23,7 +24,7 @@ export default function AiPage() {
         { t: "Cited and logged", d: "Answers name the records they read. Confirmed changes carry the confirmer's name in the record's history." },
       ],
     },
-    extra: <section className="s4-dark" aria-labelledby="ai-title"><div className="s4-wrap"><AiBand v={1} /></div></section>,
+    extra: <><section className="s4-dark" aria-labelledby="ai-title"><div className="s4-wrap"><AiBand v={1} /></div></section><section className="s4-wrap s4-sec" aria-label="Kaju movements"><KajuMotionPreview /></section></>,
     splits: [
       { tag: <Status s="live" />, title: ["Ask in plain words,", "check every answer"], body: "How many releases lack a photo? Which follow-ups are overdue? Answers come with the records behind them.", ui: <AskUi v={4} />, v: 0 },
       { tag: <Status s="live" />, title: ["From a field message", "to a draft record"], body: "Paste a message or a register row. Kaju structures it into a draft and asks for what is still missing.", ui: <ExtractUi v={2} />, v: 5 },

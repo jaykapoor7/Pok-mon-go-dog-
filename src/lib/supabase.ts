@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createBoundedSupabaseFetch } from "./bounded-supabase-fetch";
+import {allowedServerProject} from './supabase-server-scope';
 
 const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
@@ -31,7 +32,7 @@ let client: SupabaseClient | null = null;
 
 /**
  * Returns a Supabase client, or null when not configured / misconfigured.
- * Never throws, the data layer transparently falls back to demo data.
+ * Never throws; callers show their unavailable or empty state.
  */
 export function getSupabase(): SupabaseClient | null {
   if (!isSupabaseConfigured) return null;
@@ -66,7 +67,7 @@ export function getSupabase(): SupabaseClient | null {
  */
 export function getSupabaseAdmin(): SupabaseClient | null {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if (!url || !serviceKey) return null;
+  if (!url || !serviceKey || !allowedServerProject(url,serviceKey,process.env.VERCEL_ENV)) return null;
   try {
     return createClient(url, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
