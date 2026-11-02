@@ -62,8 +62,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const TOP = Math.round((m.oh - m.ih) * 1.25 + m.sy * 1.25);
   console.log("page area", m, "capture top", TOP);
 
-  const cap = (t) => page.evaluate((x) => window.__cap?.(x), t);
-  const card = (h, p, s) => page.evaluate(([a, b, c]) => window.__card?.(a, b, c), [h, p, s]);
+  /* CLEAN=1: no captions or title cards (for re-editing); every caption call still logs a timed marker. */
+  const CLEAN = !!process.env.CLEAN, marks = []; let t0 = 0;
+  const cap = (t) => { if (t0 && t) marks.push({ t: (Date.now() - t0) / 1000, text: t }); return CLEAN ? Promise.resolve() : page.evaluate((x) => window.__cap?.(x), t); };
+  const card = (h, p, s) => { if (t0 && h) marks.push({ t: (Date.now() - t0) / 1000, text: `card: ${h}` }); return CLEAN ? Promise.resolve() : page.evaluate(([a, b, c]) => window.__card?.(a, b, c), [h, p, s]); };
   let pos = [960 / 1.25, 540 / 1.25];
   const glide = async (x, y, ms = 650) => { const steps = Math.max(8, Math.round(ms / 16)); for (let i = 1; i <= steps; i++) { const t = i / steps, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; await page.mouse.move(pos[0] + (x - pos[0]) * e, pos[1] + (y - pos[1]) * e); await sleep(16); } pos = [x, y]; };
   const click = async (loc, { ms = 650, after = 500 } = {}) => {
@@ -94,7 +96,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await sleep(600);
 
   const rec = global.__rec = spawn("ffmpeg", ["-y", "-loglevel", "error", "-f", "x11grab", "-video_size", `${W}x${H}`, "-framerate", "30", "-draw_mouse", "0", "-i", `${process.env.DISPLAY || ":99"}+0,${TOP}`, "-c:v", "libx264", "-preset", "veryfast", "-crf", "16", "-pix_fmt", "yuv420p", OUT], { stdio: ["pipe", "inherit", "inherit"] });
-  await sleep(3200);
+  t0 = Date.now();
+  await sleep(CLEAN ? 600 : 3200);
   await card("", "");
   await sleep(700);
 
@@ -194,6 +197,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await sleep(4200);
 
   rec.stdin.write("q"); await new Promise((r) => rec.on("close", r));
+  require("node:fs").writeFileSync(OUT.replace(/\.mp4$/, ".marks.json"), JSON.stringify(marks, null, 1));
   await browser.close();
   console.log("Saved", OUT);
 })().catch((e) => { console.error(e); global.__rec?.kill("SIGINT"); setTimeout(() => process.exit(1), 1500); });
