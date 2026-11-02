@@ -5,6 +5,7 @@ Every existing deep link is retained. Visibility does not grant access; server c
 | Workspace | Feature / purpose | Route | Discovery role | Parent workflow | Implementation |
 |---|---|---|---|---|---|
 | city | Connections | /city/connections | reviewing office | Organisation | Retained; see journey evidence |
+| ngo | Animal & field map | /ngo/map | workspace entry | Animals | Retained; staging browser-tested |
 | ngo | ABC evidence & authorisation | /ngo/verification | workspace entry | Reports | Retained; see journey evidence |
 | ngo | Working zones & assignments | /ngo/programmes/zones | workspace entry | Programmes | New; staging-tested |
 | community | Map | /community | workspace entry | Explore | Retained; see journey evidence |

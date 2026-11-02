@@ -39,7 +39,7 @@ export function Programmes() {
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · programmes</p><h1 className="serif">Programmes</h1></div>
           <p className="ngo-sum">{o ? <>Across your drives, <b>{n(o.total)}</b> animals: sterilisation recorded for <b>{n(o.sterilised + o.not_sterilised)}</b>, not recorded for <b>{n(o.ster_unknown)}</b>.</> : "Sterilisation, vaccination, census and treatment drives, each with the animals filed into it."}{bd && bd.waiting.ours + bd.waiting.community > 0 ? <> <Link className="link" href="/ngo/inbox">{n(bd.waiting.ours + bd.waiting.community)} reports waiting to be filed</Link>.</> : null}</p>
-          <div className="row"><button type="button" className="btn is-ink is-s" onClick={() => setCreating((v) => !v)}><Plus size={14} aria-hidden /> Start a drive</button></div>
+          {leader&&<div className="row"><button type="button" className="btn is-ink is-s" onClick={() => setCreating((v) => !v)}><Plus size={14} aria-hidden /> Start a drive</button></div>}
         </header>
         {creating && leader && <NewDrive onDone={() => { setCreating(false); void load(); }} />}
         {o && (

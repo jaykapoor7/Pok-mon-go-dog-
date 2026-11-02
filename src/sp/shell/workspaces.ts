@@ -7,6 +7,7 @@ export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:bo
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
 export const DESTINATIONS:Destination[]=[
+ {workspace:"ngo",href:"/ngo/map",label:"Animal & field map",assistantKey:"field_map",icon:"map",group:"Animals",primary:false},
  {workspace:"city",href:"/city/connections",label:"Connections",icon:"layers",group:"Organisation",primary:false,reviewer:true},
  {workspace:"ngo",href:"/ngo/verification",label:"ABC evidence & authorisation",short:"Clinical",icon:"shield",group:"Reports",primary:false,primaryFor:["veterinarian"],mobile:true,assistantKey:"verification"},
  {workspace:"ngo",href:"/ngo/programmes/zones",label:"Working zones & assignments",assistantKey:"working_zones",icon:"map",group:"Programmes",primary:false},

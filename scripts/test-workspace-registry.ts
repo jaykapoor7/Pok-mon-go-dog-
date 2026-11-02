@@ -10,4 +10,5 @@ check('reviewer-only discovery denied by default',()=>assert.ok(!destinations('c
 check('reviewer discovery allowed with verified context',()=>assert.ok(destinations('city',null,true).some(n=>n.href==='/city/review')));
 check('longest path wins for record breadcrumbs',()=>assert.equal(currentDestination('ngo','/ngo/cases/new','coordinator')?.href,'/ngo/cases/new'));
 check('existing case links remain in Work',()=>assert.equal(tabsFor('/ngo/cases/new','coordinator')?.tabs.some(n=>n.href==='/ngo/work'),true));
+check('organisation map belongs to Animals on every surface',()=>{assert.equal(currentDestination('ngo','/ngo/map','member')?.group,'Animals');assert.ok(tabsFor('/ngo/map','member')?.tabs.some(n=>n.href==='/ngo/animals'))});
 console.log(`${n} registry checks passed`);

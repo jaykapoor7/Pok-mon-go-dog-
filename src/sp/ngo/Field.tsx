@@ -20,8 +20,9 @@ import { Reading } from "../ui/Reading";
 import { addNote, setFollowup, startWork, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
+import {VaccinationDraft} from "./VaccinationDraft";
 import {useMembership} from "../shell/Shell";
-import {readDrafts,putDraft,deleteDraft,fieldCache,type FieldDraft} from "@/lib/field/outbox";
+import {readDrafts,putDraft,deleteDraft,fieldCache,type VaccinationData,type FieldDraft} from "@/lib/field/outbox";
 import {getSupabase} from "@/lib/supabase";
 import {submitFieldDraft} from "@/lib/field/sync";
 import {compressForUpload} from "@/lib/photo/compress";
@@ -31,6 +32,8 @@ export function Field() {
   const { user } = useAuth();
   const mem=useMembership();
   const scope=user&&mem.org?`${user.id}:${mem.org.id}`:null;
+  const [vaccinationDefaults,setVaccinationDefaults]=useState<Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>|undefined>();
+  useEffect(()=>{let live=true;setVaccinationDefaults(undefined);if(scope)void fieldCache<Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>>(`vaccination-settings:${scope}`).then(c=>{if(live)setVaccinationDefaults(c?.value)}).catch(()=>{});return()=>{live=false}},[scope]);
   const [legacyDrafts,setLegacyDrafts]=useState(false);
   useEffect(()=>{try{setLegacyDrafts(localStorage.getItem("sp2.field.drafts")!==null)}catch{}},[]);
   const [storageError,setStorageError]=useState<string|null>(null);
@@ -91,6 +94,7 @@ export function Field() {
     const body=file?await compressForUpload(file):undefined;if(body&&body.size>15*1024*1024)throw Error('File is over 15 MB');
     await putDraft({id:crypto.randomUUID(),scope,caseId:c.id,code:c.case_code,note:EVIDENCE_LABEL[kind],kind,file:body,location,at:new Date().toISOString(),status:'pending'});setDrafts(await readDrafts(scope));
   };
+  const vaccination=async(c:OpenCase,v:VaccinationData)=>{if(!scope||c.dog_id!==v.dogId)throw Error('Open the matching registered animal first');await putDraft({id:crypto.randomUUID(),scope,caseId:c.id,code:c.case_code,note:`ARV field record · ${v.vaccine} · batch ${v.batch}`,vaccination:v,at:new Date().toISOString(),status:'pending'});const defaults={vaccine:v.vaccine,batch:v.batch,performedBy:v.performedBy};if(currentScope.current===scope)setVaccinationDefaults(defaults);await fieldCache(`vaccination-settings:${scope}`,defaults).catch(()=>{});setDrafts(await readDrafts(scope))};
   const sendDrafts = async (selected?:string[]) => {
     if (!actor||!scope||syncLock.current) return;
     syncLock.current=true;setSyncing(true);
@@ -109,13 +113,13 @@ export function Field() {
         {storageError&&<p role="alert">{storageError}</p>}
         {legacyDrafts&&<p role="status">Older field drafts remain on this device. They have no account identity, so they cannot be imported automatically. Ask your organisation administrator to arrange recovery with the person who recorded them.</p>}
         {cachedAt&&<p role="status">Offline assignment snapshot from {new Date(cachedAt).toLocaleString()}. Assignments may have changed; synchronisation checks current access.</p>}
-        {visibleDrafts.length>0&&<section aria-label="Unsent field records"><h2>On this device · not submitted</h2>{visibleDrafts.map(d=><details key={d.id}><summary>{d.code??'Case'} · {new Date(d.at).toLocaleString()} · {d.status==='failed'?'Needs retry':'Pending'}</summary><p style={{whiteSpace:'pre-wrap'}}>{d.note}</p>{d.location&&<p>{d.location}</p>}{d.file&&<button className="btn" type="button" onClick={()=>{const url=URL.createObjectURL(d.file!);const a=document.createElement('a');a.href=url;a.download=`field-evidence-${d.id}.${d.file!.type==='application/pdf'?'pdf':d.file!.type==='image/png'?'png':d.file!.type==='image/webp'?'webp':'jpg'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}>Download device file</button>}<button className="btn" disabled={!online||syncing} onClick={()=>void sendDrafts([d.id])}>Synchronise this record</button><button className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove this device copy? An already synchronised record will remain on the server.'))return;try{await deleteDraft(d.id);setDrafts(await readDrafts(scope))}catch{setStorageError('The device copy could not be removed.')}}}>Remove device copy</button><Link href={`/ngo/cases/${d.caseId}`}>Open case</Link></details>)}</section>}
+        {visibleDrafts.length>0&&<section aria-label="Unsent field records"><h2>On this device · not submitted</h2>{visibleDrafts.map(d=><details key={d.id}><summary>{d.code??'Case'} · {new Date(d.at).toLocaleString()} · {d.status==='failed'?'Needs retry':'Pending'}</summary><p style={{whiteSpace:'pre-wrap'}}>{d.note}</p>{d.location&&<p>{d.location}</p>}{d.vaccination&&<p>{d.vaccination.eventDate} · reported vaccinator {d.vaccination.performedBy} · {d.vaccination.dose||"dose not recorded"} · {d.vaccination.route||"route not recorded"} · {d.vaccination.location} · {d.vaccination.notes}</p>}{d.file&&<button className="btn" type="button" onClick={()=>{const url=URL.createObjectURL(d.file!);const a=document.createElement('a');a.href=url;a.download=`field-evidence-${d.id}.${d.file!.type==='application/pdf'?'pdf':d.file!.type==='image/png'?'png':d.file!.type==='image/webp'?'webp':'jpg'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}>Download device file</button>}<button className="btn" disabled={!online||syncing} onClick={()=>void sendDrafts([d.id])}>Synchronise this record</button><button className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove this device copy? An already synchronised record will remain on the server.'))return;try{await deleteDraft(d.id);setDrafts(await readDrafts(scope))}catch{setStorageError('The device copy could not be removed.')}}}>Remove device copy</button><Link href={`/ngo/cases/${d.caseId}`}>Open case</Link></details>)}</section>}
         {visibleDrafts.map(d=>d.error&&<p key={d.id} role="status">{d.code??"Case"}: {d.error}</p>)}
         <header className="fd-head">
           <p className="small">{offlineReady?"Field page available offline on this device.":"Preparing this device for offline work…"}</p>
           <p className="k">Field · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" })}</p>
           <h1 className="serif">{cases === null ? failed?"Assignments unavailable":<Reading>Reading your day</Reading> : `${mine.length} case${mine.length === 1 ? "" : "s"}, ${myFus.length} follow-up${myFus.length === 1 ? "" : "s"}`}</h1>
-          {!online && <p className="fd-off" role="status"><WifiOff size={15} aria-hidden /> No connection. Notes stay on this phone as drafts until you send them.</p>}
+          {!online && <p className="fd-off" role="status"><WifiOff size={15} aria-hidden /> No connection. Field records stay on this device as drafts until you synchronise.</p>}
           {visibleDrafts.length > 0 && (
             <div className="fd-drafts">
               <Ack state="draft">{visibleDrafts.length} field record{visibleDrafts.length === 1 ? "" : "s"} not sent</Ack>
@@ -147,7 +151,7 @@ export function Field() {
         </ul>
         {mine.length > 0 && <h2 className="fd-h">Yours</h2>}
         <ul className="fd-cards">
-          {mine.map((c) => <CaseCard key={c.id} c={c} online={online} receipt={r[`n${c.id}`]} startR={r[`s${c.id}`]} drafted={visibleDrafts.filter((d) => d.caseId === c.id).length} onStart={async () => actor && done(`s${c.id}`, await startWork(c.id, actor))} onNote={(t) => note(c, t)} onEvidence={(kind,file,location)=>evidence(c,kind,file,location)} />)}
+          {mine.map((c) => <CaseCard key={c.id} c={c} online={online} receipt={r[`n${c.id}`]} startR={r[`s${c.id}`]} drafted={visibleDrafts.filter((d) => d.caseId === c.id).length} onStart={async () => actor && done(`s${c.id}`, await startWork(c.id, actor))} onNote={(t) => note(c, t)} onEvidence={(kind,file,location)=>evidence(c,kind,file,location)} onVaccination={v=>vaccination(c,v)} vaccinationDefaults={vaccinationDefaults} />)}
         </ul>
         {cases !== null && !failed && !mine.length && !myFus.length && (
           <State art="ngo-empty" title="Nothing held by you" action={<Link className="btn is-ink" href="/ngo/work?focus=unowned">See {unowned} unowned case{unowned === 1 ? "" : "s"}</Link>}>Take a case from Work and it appears here for the field.</State>
@@ -158,8 +162,9 @@ export function Field() {
   );
 }
 
-function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvidence }: { c: OpenCase; online: boolean; receipt?: Receipt; startR?: Receipt; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>;onEvidence:(kind:EvidenceKind,file:File|null,location:string)=>Promise<void> }) {
+function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvidence, onVaccination, vaccinationDefaults }: { c: OpenCase; online: boolean; receipt?: Receipt; startR?: Receipt; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>;onEvidence:(kind:EvidenceKind,file:File|null,location:string)=>Promise<void>;onVaccination:(v:VaccinationData)=>Promise<void>;vaccinationDefaults?:Pick<VaccinationData,'vaccine'|'batch'|'performedBy'> }) {
   const [open, setOpen] = useState(false);
+  const [addingVaccination,setAddingVaccination]=useState(false);
   const [addingEvidence,setAddingEvidence]=useState(false),[kind,setKind]=useState<EvidenceKind>('capture_photo'),[file,setFile]=useState<File|null>(null),[location,setLocation]=useState(''),[error,setError]=useState<string|null>(null);
   const [t, setT] = useState("");
   const [busy, setBusy] = useState(false);
@@ -168,6 +173,7 @@ function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvid
       <p className="k">{c.case_code ?? "Case"} · {c.status_class === "in_progress" ? "in progress" : "open"} · {since(c.occurred_at)}</p>
       <h3><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></h3>
       <p className="small">{[c.animal_name, c.zone].filter(Boolean).join(" · ") || "Animal and place not recorded"}</p>
+      {addingVaccination&&c.dog_id&&<VaccinationDraft dogId={c.dog_id} defaults={vaccinationDefaults} onSave={onVaccination} onCancel={()=>setAddingVaccination(false)}/>}
       {error&&<p role="alert">{error}</p>}
       {addingEvidence&&<form className="stack" onSubmit={async e=>{e.preventDefault();setBusy(true);try{await onEvidence(kind,file,location);setAddingEvidence(false);setFile(null);setLocation('');setError(null)}catch(x){setError(x instanceof Error?x.message:'Evidence could not be stored. Keep the file on this device.')}finally{setBusy(false)}}}>
         <label>Evidence type<select aria-label="Evidence type" className="input" value={kind} onChange={e=>setKind(e.target.value as EvidenceKind)}>{Object.entries(EVIDENCE_LABEL).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
@@ -186,6 +192,7 @@ function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvid
           {c.status_class !== "in_progress" && !startR?.ok && <button type="button" className="btn is-ink" disabled={!online} onClick={onStart}>Start</button>}
           <button type="button" className="btn" onClick={() => setOpen(true)}>Add a note</button>
           <button type="button" className="btn" onClick={()=>setAddingEvidence(true)}>Add evidence</button>
+          {c.dog_id&&<button type="button" className="btn" onClick={()=>setAddingVaccination(true)}>Record ARV vaccination</button>}
           <Link className="btn is-ghost" href={`/ngo/cases/${c.id}`}>Close or more</Link>
         </div>
       )}

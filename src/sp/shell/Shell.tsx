@@ -9,7 +9,7 @@
             account at the foot. A thin top bar carries the breadcrumb,
             search, the AI toggle and the workspace's one primary action.
    PHONE    A compact top bar and the thumb bar (destinations, the action
-            at the centre, More in a sheet), unchanged in behaviour.
+            and grouped workspace utilities).
    AI       The assistant docks on the right on any page and shares one
             conversation with the full-screen /assistant.
 
@@ -45,7 +45,7 @@ import "./app4.css";
 import {fieldCache} from "@/lib/field/outbox";
 
 type Org = { id: string; name: string } | null;
-type Mem = { member: boolean; ready: boolean; org: Org; role: Role | null; reviewer: boolean };
+type Mem = { member: boolean; ready: boolean; org: Org; role: Role | null; reviewer: boolean; owner?:string };
 const Membership = createContext<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
 /** Whether the signed-in person belongs to an organisation (display only: the server decides access). */
 export const useMembership = () => useContext(Membership);
@@ -73,20 +73,24 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const ai = useAi();
 
   const { user, ready, signOut, openSignIn } = useAuth();
-  const [mem, setMem] = useState<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
+  const [memState, setMem] = useState<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
+  const mem:Mem=!user?{member:false,ready,org:null,role:null,reviewer:false}:memState.owner===user.id?memState:{member:false,ready:false,org:null,role:null,reviewer:false};
+  const [connectionEpoch,setConnectionEpoch]=useState(0);
+  useEffect(()=>{const online=()=>setConnectionEpoch(n=>n+1);window.addEventListener('online',online);return()=>window.removeEventListener('online',online)},[]);
   useEffect(() => {
     if (!ready) return;
     if (!user) { setMem({ member: false, ready: true, org: null, role: null, reviewer: false }); return; }
     let live = true;
-    if(!navigator.onLine){void fieldCache<Mem>(`membership:${user.id}`).then(c=>{if(live)setMem(c?.value??{member:false,ready:true,org:null,role:null,reviewer:false})});return()=>{live=false}}
+    setMem({owner:user.id,member:false,ready:false,org:null,role:null,reviewer:false});
+    if(!navigator.onLine){void fieldCache<Mem>(`membership:${user.id}`).then(c=>{if(live)setMem(c?.value.owner===user.id?c.value:{owner:user.id,member:false,ready:true,org:null,role:null,reviewer:false})}).catch(()=>{if(live)setMem({owner:user.id,member:false,ready:true,org:null,role:null,reviewer:false})});return()=>{live=false}}
     Promise.all([isNgoMember().catch(() => false), getMyNgo().catch(() => null), getMyRole().catch(() => ({ role: null, reviewer: false }))]).then(([m, o, r]) => {
       const role = (["admin", "coordinator", "veterinarian", "member"] as const).find((x) => x === r.role) ?? null;
-      if (live) {const checked={ member: m, ready: true, org: o ? { id: o.id, name: o.name } : null, role, reviewer: r.reviewer };setMem(checked);if(m&&o)void fieldCache(`membership:${user.id}`,checked).catch(()=>{})}
+      if (live) {const checked={ owner:user.id,member: m, ready: true, org: o ? { id: o.id, name: o.name } : null, role, reviewer: r.reviewer };setMem(checked);if(m&&o)void fieldCache(`membership:${user.id}`,checked).catch(()=>{})}
     });
     return () => { live = false; };
-  }, [user, ready]);
+  }, [user, ready, connectionEpoch]);
   /* The sidebar for this person: their role's tools only, each group
-     labelled once. Unknown role (signed out, or before it loads): all. */
+     labelled once. Restricted links fail closed while the role loads. */
   const def = workspaceView(aiWorkspace, mem.role, mem.reviewer);
   const nav = visibleNav(def.nav, mem.role, mem.reviewer);
 
@@ -224,7 +228,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </div>
           </header>
 
-          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} />{children}</main>
+          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}

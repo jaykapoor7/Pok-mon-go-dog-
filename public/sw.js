@@ -41,6 +41,12 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Only fixed public artwork may be cached alongside immutable build assets.
+// Never cache arbitrary image-optimiser URLs: they may point at private evidence.
+function isPublicArt(url) {
+  if (url.pathname === '/straypaw-mark.png') return true;
+  return url.pathname === '/_next/image' && ['/kaju/explorer-rig.png','/kaju/explorer-expressions.png','/kaju/explorer-torso.png'].includes(url.searchParams.get('url'));
+}
 function isBuildAsset(url) {
   return url.pathname.startsWith("/_next/static/");
 }
@@ -53,6 +59,14 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
   // The register and every mutation path stay live, never cached.
   if (url.pathname.startsWith("/api/")) return;
+
+  if (isPublicArt(url)) {
+    event.respondWith(fetch(request).then(async res => {
+      if (res.ok) await (await caches.open(SHELL)).put(request, res.clone());
+      return res;
+    }).catch(async () => (await caches.match(request)) || Response.error()));
+    return;
+  }
 
   if (isBuildAsset(url)) {
     event.respondWith(
@@ -101,9 +115,9 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener('message',event=>{
  if(event.data?.type!=='warm-field-shell'||!Array.isArray(event.data.urls))return;
  event.waitUntil((async()=>{
+  const urls=event.data.urls.filter(value=>{try{const u=new URL(value,self.location.origin);return u.origin===self.location.origin&&(isBuildAsset(u)||isPublicArt(u))}catch{return false}}).slice(0,120);
   try{const shell=await caches.open(SHELL),pages=await caches.open(PAGES);await pages.add('/ngo/field');
-   const urls=event.data.urls.filter(value=>{try{const u=new URL(value,self.location.origin);return u.origin===self.location.origin&&isBuildAsset(u)}catch{return false}}).slice(0,120);
    await Promise.all(urls.map(url=>shell.add(url)));event.ports[0]?.postMessage({ready:true});
-  }catch{event.ports[0]?.postMessage({ready:false})}
+  }catch{const cached=await Promise.all(urls.map(url=>caches.match(url)));event.ports[0]?.postMessage({ready:!!await caches.match('/ngo/field')&&cached.every(Boolean)})}
  })());
 });
