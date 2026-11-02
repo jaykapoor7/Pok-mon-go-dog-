@@ -152,3 +152,55 @@
 /* section rhythm */
 .s6-home .s4-sechead { margin-bottom: 48px; }
 .s6-home .s4-card { border-radius: 18px; }
+
+/* ════ phone and small tablet ═══════════════════════════════════════ */
+@media (max-width: 640px) {
+  .s6-home { --s4-sec: 72px; }
+  .s6-home .s4-sechead { margin-bottom: 32px; }
+
+  /* hero demo: shorter window, phone tucked over its right edge */
+  .s6-home .s4d-win { height: 420px; }
+  .s6-home .s4d-phone { width: 232px; height: 450px; margin: -236px 4px 0 auto; box-shadow: 0 0 0 7px #0f1115, 0 30px 60px -20px rgba(5, 12, 30, .6); }
+  .s6-home .s4d-ctrl { top: 372px; left: 12px; right: auto; transform: none; }
+  .s6-canvas { padding-bottom: 18px; }
+
+  /* partner wall: compact two-up */
+  .s6-home .s4-wall { gap: 8px; }
+  .s6-home .s4-wall > * { height: 84px; padding: 12px; }
+  .s6-home .s4-wall img { height: 52px; }
+  .s6-home .s4-wall b { font-size: 14px; }
+
+  /* use cases list: tighter rhythm */
+  .s6-home .s4-uc-list { gap: 52px; }
+  .s4-uc-roles { padding: 14px; }
+  .s4-uc-roles div { grid-template-columns: 78px 1fr; gap: 10px; }
+  .s4-uc-roles dd { font-size: 14px; }
+
+  /* integrations: every tool, three to a row */
+  .s6-home .s4-int { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .s6-home .s4-int-col { display: contents; }
+  .s6-home .s4-int-col:nth-child(n + 3) { display: contents; }
+  .s6-home .s4-int-t { aspect-ratio: auto; padding: 14px 8px; gap: 6px; border-radius: 12px; }
+  .s6-home .s4-int-t svg { width: 26px; height: 26px; }
+  .s6-home .s4-int-mark { width: 30px; height: 30px; font-size: 14px; }
+  .s6-home .s4-int-t b { font-size: 12px; line-height: 1.25; }
+  .s6-home .s4-int-t small { font-size: 10.5px; }
+
+  /* security: compact rows, icon on the left */
+  .s6-security .s4-tiles { gap: 8px; }
+  .s6-security .s4-tile { grid-template-columns: 36px minmax(0, 1fr); column-gap: 14px; row-gap: 4px; padding: 18px; min-height: 0; }
+  .s6-security .s4-tile .s4-tile-ico { grid-row: span 2; margin: 0; }
+  .s6-security .s4-tile h3 { font-size: 17px; }
+  .s6-security .s4-tile p { font-size: 14.5px; }
+
+  /* close card */
+  .s6-closecard .s4-close .s4-h2 { font-size: 32px; }
+  .s6-closecard .s4-actions { flex-direction: column; align-items: stretch; width: 100%; padding: 0 20px; }
+}
+@media (max-width: 640px) {
+  /* demo controls sit under the phone, not over it */
+  .s6-home .s4d-ctrl { position: relative; top: auto; left: auto; bottom: auto; right: auto; transform: none; width: max-content; margin: 14px auto 0; }
+  /* case-study marker: the arrow only, clear of the partner name */
+  .s6-home .s4-wall .s4-cs { font-size: 0; gap: 0; height: 20px; padding: 0 5px; top: 6px; right: 6px; }
+  .s6-home .s4-wall .s4-cs svg { width: 11px; height: 11px; }
+}
