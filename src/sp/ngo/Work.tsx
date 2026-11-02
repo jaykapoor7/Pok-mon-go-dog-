@@ -84,8 +84,7 @@ export function Work() {
   const listRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    const f = q.get("focus"), c = q.get("cohort");
-    if (f && ["mine", "unowned", "critical", "followup"].includes(f)) setFocus(f as Focus);
+    const c = q.get("cohort");
     if (c === "decide" || c === "history") setCohort(c);
   }, []);
   const searchRef = useRef<HTMLInputElement>(null);
