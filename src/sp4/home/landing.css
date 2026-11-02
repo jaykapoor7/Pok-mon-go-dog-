@@ -80,17 +80,18 @@
 @media (max-width: 1000px) { .s6-security .s4-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .s6-security .s4-tiles { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; } }
 
-/* ── FAQ: one centred column ─────────────────────────────────────── */
-.s6-faq .s4-faq { display: block; max-width: 880px; margin: 0 auto; }
-.s6-faq .s4-faq-side { text-align: center; margin-bottom: 44px; }
-.s6-faq .s4-faq-side .s4-body { margin-top: 14px !important; }
+/* ── FAQ: title on the left, questions on the right, aligned to the first row ── */
+.s6-faq .s4-faq { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 72px; align-items: start; }
+.s6-faq .s4-faq-side { position: sticky; top: 120px; padding-top: 18px; }
+.s6-faq .s4-faq-side .s4-body { margin-top: 16px !important; }
 .s6-faq .s4-faq details { border-bottom: 1px solid var(--s4-line); }
 .s6-faq .s4-faq details:first-child { border-top: 1px solid var(--s4-line); }
-.s6-faq .s4-faq summary { padding: 24px 4px; font-size: 19px; gap: 24px; }
-.s6-faq .s4-faq summary svg { width: 30px; height: 30px; padding: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--s4-line-2); color: var(--s4-ink); transition: transform 200ms var(--s4-ease), background 160ms; }
+.s6-faq .s4-faq summary { padding: 24px 0; font-size: 19px; gap: 24px; }
+.s6-faq .s4-faq summary svg { flex: none; width: 30px; height: 30px; padding: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--s4-line-2); color: var(--s4-ink); transition: transform 200ms var(--s4-ease), background 160ms; }
 .s6-faq .s4-faq summary:hover svg { background: var(--s4-blue-soft); }
 .s6-faq .s4-faq details[open] summary svg { background: var(--s4-blue); color: #fff; box-shadow: none; }
-.s6-faq .s4-faq details p { padding: 0 64px 26px 4px; margin: 0; }
+.s6-faq .s4-faq details p { padding: 0 60px 26px 0; margin: 0; max-width: 720px; }
+@media (max-width: 900px) { .s6-faq .s4-faq { grid-template-columns: minmax(0, 1fr); gap: 28px; } .s6-faq .s4-faq-side { position: static; padding-top: 0; } }
 @media (max-width: 640px) { .s6-faq .s4-faq summary { font-size: 17px; padding: 20px 0; } .s6-faq .s4-faq details p { padding-right: 0; } }
 
 /* ── close: the same light blueprint paper, contained ─────────────── */
@@ -133,3 +134,21 @@
 @media (max-width: 760px) { .s6-hero-tight { padding-top: 36px; } }
 .s4-announce-note { padding: 1px 8px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3); font-size: 12px; color: rgba(255, 255, 255, .8); }
 @media (max-width: 640px) { .s4-announce-note { display: none; } }
+
+/* ── deep blueprint: the demo canvas and the closing card ─────────── */
+.s6-home { --s6-deep: linear-gradient(170deg, #1f4fc1 0%, #173c98 40%, #0f2a6e 100%); }
+.s6-canvas { background: var(--s6-deep); box-shadow: 0 30px 80px rgba(15, 42, 110, .22); padding-bottom: 56px; border-radius: 28px; }
+.s6-canvas::after { display: none; }
+.s6-stage > :not(.s4-hero-perch) { box-shadow: 0 40px 90px rgba(5, 14, 40, .5), 0 0 0 1px rgba(255, 255, 255, .14); }
+@media (max-width: 900px) { .s6-canvas { padding-bottom: 16px; border-radius: 20px; } }
+.s6-closecard-in { background: var(--s6-deep); box-shadow: 0 30px 80px rgba(15, 42, 110, .2); color: #fff; }
+.s6-closecard-in .s6-blueprint { opacity: .6; }
+.s6-closecard .s4-h2 { color: #fff; }
+.s6-closecard .s4-lede { color: rgba(255, 255, 255, .78); }
+.s6-closecard .s4-btn.is-primary { background: #fff; color: var(--s4-ink); box-shadow: 0 10px 30px rgba(0, 0, 0, .2); }
+.s6-closecard .s4-btn.is-primary:hover { background: #eef2fb; }
+.s6-closecard .s4-btn.is-line { background: transparent; color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55); }
+.s6-closecard .s4-btn.is-line:hover { background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px #fff; }
+/* section rhythm */
+.s6-home .s4-sechead { margin-bottom: 48px; }
+.s6-home .s4-card { border-radius: 18px; }
