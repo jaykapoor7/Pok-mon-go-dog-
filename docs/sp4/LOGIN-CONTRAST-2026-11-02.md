@@ -15,4 +15,4 @@ The owner explicitly requested testing the affected person's existing standing c
 
 No code was reset or posted to chat, Git or logs. The temporary credential input was deleted after the check. No organisation claim, clinical-record read/write or model request was made. Normal authentication updates its sign-in audit; this support test is not evidence of activity performed by the account holder or of a fix to their unidentified Google missing-file URL.
 
-Live deployment verification follows the application commit.
+Application commit `21184eed2a6978502562115e0e6110713bc35b24` reached READY in production deployment `dpl_Btkz3WeSpDCyPmyeGrzQi4iMQhSa`. Canonical `/api/health` returned that exact SHA and `environment: production`. The live contrast suite then passed **6 tests, 2 desktop-only skips**, covering the full sign-in page and phone pop-up in light/dark themes, typed values and actual Chromium autofill rendering. This reproduces the failing production dark-theme check as a pass after deployment. A documentation-only follow-up records these results without changing application assets.
