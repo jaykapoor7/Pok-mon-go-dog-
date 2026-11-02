@@ -1,0 +1,11 @@
+/** Device-local pending work, partitioned by authenticated user and organisation.
+ * No customer data is stored in localStorage. A failed transaction must surface. */
+export type FieldDraft={id:string;scope:string;caseId:string;code:string|null;note:string;at:string;status:'pending'|'sending'|'failed';error?:string;kind?:'capture_photo'|'surgery_record'|'ear_notch_photo'|'release_photo'|'release_location';file?:Blob;location?:string};
+const DB='straypaw-field-v1';
+function open():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,2);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('drafts'))r.result.createObjectStore('drafts',{keyPath:'id'}).createIndex('scope','scope');if(!r.result.objectStoreNames.contains('cache'))r.result.createObjectStore('cache',{keyPath:'scope'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error??Error('Device storage unavailable'));r.onblocked=()=>reject(Error('Close other StrayPaw tabs to open device storage'))})}
+async function transact<T>(mode:IDBTransactionMode,make:(store:IDBObjectStore)=>IDBRequest<T>):Promise<T>{const db=await open();return new Promise((resolve,reject)=>{const tx=db.transaction('drafts',mode),r=make(tx.objectStore('drafts'));tx.oncomplete=()=>{db.close();resolve(r.result)};tx.onabort=tx.onerror=()=>{db.close();reject(tx.error??r.error??Error('Draft was not stored'))}})}
+export const readDrafts=(scope:string)=>transact('readonly',s=>s.index('scope').getAll(scope)) as Promise<FieldDraft[]>;
+export const putDraft=(draft:FieldDraft)=>transact('readwrite',s=>s.put(draft));
+export const deleteDraft=(id:string)=>transact('readwrite',s=>s.delete(id));
+
+export async function fieldCache<T>(scope:string,value?:T):Promise<{scope:string;at:string;value:T}|undefined>{const db=await open();return new Promise((resolve,reject)=>{const tx=db.transaction('cache',value===undefined?'readonly':'readwrite'),store=tx.objectStore('cache');const r=value===undefined?store.get(scope):store.put({scope,at:new Date().toISOString(),value});tx.oncomplete=()=>{db.close();resolve(value===undefined?r.result:undefined)};tx.onabort=tx.onerror=()=>{db.close();reject(tx.error??Error('Field cache unavailable'))}})}

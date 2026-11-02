@@ -202,7 +202,7 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   const looksLikeField = q.length > 90 || has(t, /\b(released|rescued|spotted|found|injured|sterili[sz]ed|vaccinated|ear ?notch|limping|bleeding|stuck)\b/);
   if (has(t, /\b(go to|open|take me|navigate|show me the)\b/) && !looksLikeField) {
     const key = Object.keys(NAV).sort((a, b) => b.length - a.length).find((k) => t.includes(k.replace(/_/g, " ")) || t.includes(NAV[k].label.toLowerCase()));
-    if (key) { await call(acc, ctx, "navigate", { to: key }); return done(`Opening ${NAV[key].label}.`); }
+    if (key) { const out=await call(acc, ctx, "navigate", { to: key }); return done(out.ok===false?out.summary:`Opening ${NAV[key].label}.`); }
   }
   /* "Add a note to CASE-123: text" · "Follow up on CASE-123 tomorrow / on 2026-11-04 / in 3 days" */
   const noteM = q.match(/\b(?:add|write|log|put)\b[^:]*?\bnote\b\s*(?:on|to|for)?\s*([^:]+?)\s*:\s*([\s\S]+)$/i);

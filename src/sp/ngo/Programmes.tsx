@@ -26,8 +26,10 @@ export function Programmes() {
   const [drives, setDrives] = useState<CampaignStats[] | null>(null);
   const [bd, setBd] = useState<Breakdown | null>(null);
   const [archived, setArchived] = useState(false);
+  const [error,setError]=useState<string|null>(null);
+  const leader=mem.role==='admin'||mem.role==='coordinator';
   const [creating, setCreating] = useState(false);
-  const load = useCallback(async () => { setDrives(null); const [d, b] = await Promise.all([orgCampaigns(archived).catch(() => []), programmeBreakdown().catch(() => null)]); setDrives(d); setBd(b); }, [archived]);
+  const load = useCallback(async () => { setDrives(null);setError(null);try{const [d,b]=await Promise.all([orgCampaigns(archived),programmeBreakdown()]);setDrives(d);setBd(b)}catch{setError("Programme records could not be read. Try again; unavailable data is not zero.")} }, [archived]);
   useEffect(() => { if (mem.member) void load(); }, [mem.member, load]);
   const o = bd?.overall;
 
@@ -39,7 +41,7 @@ export function Programmes() {
           <p className="ngo-sum">{o ? <>Across your drives, <b>{n(o.total)}</b> animals: sterilisation recorded for <b>{n(o.sterilised + o.not_sterilised)}</b>, not recorded for <b>{n(o.ster_unknown)}</b>.</> : "Sterilisation, vaccination, census and treatment drives, each with the animals filed into it."}{bd && bd.waiting.ours + bd.waiting.community > 0 ? <> <Link className="link" href="/ngo/inbox">{n(bd.waiting.ours + bd.waiting.community)} reports waiting to be filed</Link>.</> : null}</p>
           <div className="row"><button type="button" className="btn is-ink is-s" onClick={() => setCreating((v) => !v)}><Plus size={14} aria-hidden /> Start a drive</button></div>
         </header>
-        {creating && <NewDrive onDone={() => { setCreating(false); void load(); }} />}
+        {creating && leader && <NewDrive onDone={() => { setCreating(false); void load(); }} />}
         {o && (
           <section className="pg-all">
             <div><p className="k">All drives · sterilisation</p><Partition yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" /></div>
@@ -48,8 +50,9 @@ export function Programmes() {
           </section>
         )}
         <div className="wk-tools"><button type="button" className="chip" aria-pressed={archived} onClick={() => setArchived((v) => !v)}>Include archived drives</button></div>
-        {drives === null && <div className="stack" style={{ padding: "0 28px" }}>{[0, 1, 2].map((i) => <div key={i} className="skel" style={{ height: 120 }} />)}</div>}
-        {drives && !drives.length && <State art="ngo-empty" title="No drive yet" action={<button type="button" className="btn is-ink" onClick={() => setCreating(true)}>Start a drive</button>}>A drive groups the animals your team sees during a sterilisation, vaccination, census or treatment camp, so its coverage can be read honestly.</State>}
+        {error&&<State kind="error" title="Programmes not read" action={<button className="btn" onClick={()=>void load()}>Try again</button>}>{error}</State>}
+        {drives === null && !error && <div className="stack" style={{ padding: "0 28px" }}>{[0, 1, 2].map((i) => <div key={i} className="skel" style={{ height: 120 }} />)}</div>}
+        {drives && !drives.length && leader && <State art="ngo-empty" title="No drive yet" action={<button type="button" className="btn is-ink" onClick={() => setCreating(true)}>Start a drive</button>}>A drive groups the animals your team sees during a sterilisation, vaccination, census or treatment camp, so its coverage can be read honestly.</State>}
         <ol className="pg-list">
           {drives?.map((d) => (
             <li key={d.id}>

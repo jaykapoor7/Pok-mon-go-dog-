@@ -1,4 +1,5 @@
 import "server-only";
+import {DESTINATIONS,canDiscover,type Role} from "@/sp/shell/workspaces";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { verifyAction } from "./verify";
 import { operationsInsights } from "./insights";
@@ -29,15 +30,7 @@ const caseLabel = (c: { case_code?: string | null; title?: string | null; condit
 const animalLabel = (a: { name?: string | null; straypaw_id?: string | null; code?: string | null }) => a.name || a.straypaw_id || a.code || "Animal";
 const NEEDS_ORG = { data: { error: "Organisation access required" }, summary: "Needs an organisation workspace", citations: [], ok: false } satisfies ToolOut;
 
-export const NAV: Record<string, { href: string; label: string }> = {
-  work: { href: "/ngo/work", label: "Work queue" }, inbox: { href: "/ngo/inbox", label: "Inbox" }, animals: { href: "/ngo/animals", label: "Animals" },
-  programmes: { href: "/ngo/programmes", label: "Programmes" }, field: { href: "/ngo/field", label: "Field mode" }, review: { href: "/ngo/review", label: "Evidence review" },
-  quality: { href: "/ngo/quality", label: "Data quality" }, reports: { href: "/ngo/proof", label: "Reports & proof" }, import: { href: "/ngo/import", label: "Import a register" },
-  team: { href: "/ngo/team", label: "Team & access" }, settings: { href: "/ngo/settings", label: "Settings" }, new_case: { href: "/ngo/cases/new", label: "New case" },
-  map: { href: "/community", label: "Community map" }, report_animal: { href: "/community/report", label: "Report an animal" },
-  city: { href: "/city", label: "City evidence map" }, city_programmes: { href: "/city/programmes", label: "City programmes" }, city_report: { href: "/city/report", label: "City report" },
-  insights: { href: "/city/insights", label: "City overview" }, academy: { href: "/learn", label: "Academy" }, care_ledger: { href: "/ngo/care", label: "Care ledger" },
-};
+export const NAV:Record<string,{href:string;label:string}>=Object.fromEntries(DESTINATIONS.filter(n=>n.assistantKey).map(n=>[n.assistantKey!,{href:n.href,label:n.label}]));
 
 export const TOOL_DEFS = [
   {name:'current_record',description:'Read the selected case, animal, programme or review package after checking access. Use for “this record” questions. A page URL does not grant access. Does not change anything.',input_schema:{type:'object',properties:{},additionalProperties:false}},
@@ -84,6 +77,9 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "propose_care": return proposeCare(input, ctx);
     case "navigate": {
       const n = NAV[String(input.to)];
+      const destination=DESTINATIONS.find(d=>d.assistantKey===String(input.to));
+      const role=['admin','coordinator','veterinarian','member'].includes(ctx.actorRole??'')?ctx.actorRole as Role:null;
+      if(destination&&(!canDiscover(destination,role,ctx.actorRole==='municipal_reviewer')||destination.workspace==='ngo'&&!ctx.orgId))return {data:{error:'This screen requires an authorised workspace role'},summary:'This screen requires an authorised workspace role',citations:[],ok:false};
       return n ? { data: n, summary: `Open ${n.label}`, citations: [], navigate: n } : { data: { error: "Unknown screen" }, summary: "Unknown screen", citations: [], ok: false };
     }
     default:

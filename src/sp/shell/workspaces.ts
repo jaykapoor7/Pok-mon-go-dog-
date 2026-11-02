@@ -1,238 +1,590 @@
-/* ════════════════════════════════════════════════════════════════════
-   StrayPaw 2.0 workspaces (decisions 013, 014, 015).
-
-   One product, one identity, four workspaces with three destinations
-   each. Secondary tools are contextual (the index), never a fourth tab.
-   Feeder, volunteer, vet, funder and reviewer contexts enter through
-   scoped roles and workflows, not separate shells.
-
-   A workspace in the switcher is a place to go, never a grant: what a
-   person may read or change is decided on the server for every record.
-   ════════════════════════════════════════════════════════════════════ */
-
-export type WorkspaceId = "community" | "ngo" | "city" | "learn";
-
-export type Dest = { href: string; label: string; short?: string; match?: string[] };
-/** A sidebar entry (3.0). `icon` names a lucide icon mapped in Shell. */
-export type Role = "admin" | "coordinator" | "veterinarian" | "member";
-/** A sidebar entry. `section` starts a labelled group that carries on to the
-    following items; `roles` limits the item to those organisation roles
-    (no role known: every item shows); `reviewer` shows it only to people in
-    a reviewing office. Display only: the database checks every action. */
-export type NavItem = { href: string; label: string; icon: string; match?: string[]; exact?: boolean; tone?: string; section?: string; roles?: Role[]; reviewer?: boolean;
-  /** Where the item leads for a given role (a vet's Programmes opens Verification). */
-  hrefFor?: Partial<Record<Role, string>> };
-export type IndexGroup = { label: string; links: { href: string; label: string; note?: string }[] };
-
-export type Workspace = {
-  id: WorkspaceId;
-  label: string;
-  /** What the workspace is for, in the switcher. */
-  purpose: string;
-  /** The ink that marks the workspace in the switcher (identity, not data). */
-  ink: string;
-  home: string;
-  dests: [Dest, Dest, Dest];
-  action: { href: string; label: string; short: string } | null;
-  index: IndexGroup[];
-  /** Needs an organisation membership to show its records (still visitable). */
-  members?: boolean;
-  /** The 3.0 sidebar: the workspace's primary navigation, in order. */
-  nav: NavItem[];
-  /** The workspace's settings page, shown at the foot of the sidebar. */
-  settings?: string;
-};
-
-export const WORKSPACES: Record<WorkspaceId, Workspace> = {
-  community: {
-    id: "community", label: "Community", purpose: "The map of India's street animals, your reports and what happened next", ink: "#2457ce",
-    home: "/community",
-    dests: [
-      { href: "/community", label: "Map", match: ["/animal"] },
-      { href: "/community/report", label: "Report" },
-      { href: "/community/activity", label: "My Activity", short: "Activity" },
+/** Canonical destinations. Every navigation surface is derived from this registry.
+ * Visibility is fail-closed for restricted destinations; RLS remains authoritative. */
+export type WorkspaceId='community'|'ngo'|'city'|'learn';
+export type Role='admin'|'coordinator'|'veterinarian'|'member';
+export type NavItem={href:string;label:string;icon:string;match?:string[];exact?:boolean;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>};
+export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:boolean;mobile?:boolean;primaryFor?:Role[];assistantKey?:string;note?:string};
+export type Dest=NavItem & {short?:string};
+export type IndexGroup={label:string;links:Destination[]};
+export const DESTINATIONS:Destination[]=[
+ {workspace:"ngo",href:"/ngo/programmes/zones",label:"Working zones & assignments",assistantKey:"working_zones",icon:"map",group:"Programmes",primary:false},
+  {
+    "workspace": "community",
+    "href": "/community",
+    "assistantKey": "map",
+    "label": "Map",
+    "icon": "map",
+    "match": [
+      "/animal"
     ],
-    action: { href: "/community/report", label: "Report an animal", short: "Report" },
-    nav: [
-      { href: "/community", label: "Map", icon: "map", match: ["/animal"], exact: true },
-      { href: "/community/report", label: "Report an animal", icon: "radio" },
-      { href: "/community/activity", label: "My activity", icon: "activity" },
-      { href: "/community/stories", label: "Stories", icon: "book", tone: "blue", section: "Explore" },
-      { href: "/community/organisations", label: "Organisations", icon: "building", tone: "teal" },
-      { href: "/fundraisers", label: "Fundraisers", icon: "heart", tone: "flame" },
-      { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
-    ],
-    index: [
-      { label: "Read", links: [
-        { href: "/community/stories", label: "Stories", note: "Documented animals, start to finish" },
-        { href: "/community/organisations", label: "Organisations", note: "Who keeps the record" },
-      ] },
-      { label: "Help", links: [
-        { href: "/community/help", label: "If an animal needs help", note: "What to do now, who to call" },
-        { href: "/community/feeding", label: "Feeding spots", note: "For feeders and volunteers" },
-      ] },
-    ],
+    "exact": true,
+    "group": "Explore",
+    "primary": true,
+    "mobile": true
   },
-  ngo: {
-    id: "ngo", label: "NGO", purpose: "Implementing agencies: work queue, animal register and fieldwork", ink: "#1f6f80",
-    home: "/ngo", members: true, settings: "/ngo/settings",
-    dests: [
-      { href: "/ngo", label: "Home", match: ["/ngo/work", "/ngo/cases", "/ngo/inbox", "/ngo/review", "/ngo/field"] },
-      { href: "/ngo/animals", label: "Animals", match: ["/ngo/import", "/ngo/map", "/ngo/care"] },
-      { href: "/ngo/programmes", label: "Programmes", match: ["/ngo/verification", "/ngo/packages", "/ngo/proof"] },
-    ],
-    action: { href: "/ngo/cases/new", label: "New case", short: "New" },
-    /* Six places; every screen stays one click away through the section's tabs (TAB_GROUPS). */
-    nav: [
-      { href: "/ngo", label: "Home", icon: "home", exact: true },
-      { href: "/ngo/work", label: "Work queue", icon: "list", match: ["/ngo/cases", "/ngo/inbox", "/ngo/field", "/ngo/review", "/ngo/quality"], roles: ["admin", "coordinator", "member"] },
-      { href: "/ngo/animals", label: "Animals", icon: "paw", tone: "blue", section: "Modules", match: ["/ngo/map", "/ngo/import", "/ngo/care"] },
-      { href: "/ngo/programmes", label: "Programmes", icon: "layers", tone: "teal", match: ["/ngo/verification"], hrefFor: { veterinarian: "/ngo/verification" } },
-      { href: "/ngo/packages", label: "Reports", icon: "check", tone: "amber", match: ["/ngo/proof"], roles: ["admin", "coordinator"] },
-      { href: "/ngo/team", label: "Team & settings", icon: "users", tone: "slate", match: ["/ngo/settings", "/ngo/volunteers"], roles: ["admin"] },
-      { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
-    ],
-
-    index: [
-      { label: "Your register", links: [
-        { href: "/ngo/import", label: "Import your register", note: "Excel or CSV, as your team keeps it" },
-        { href: "/ngo/animals", label: "Animals", note: "Every animal on your register" },
-      ] },
-      { label: "Work", links: [
-        { href: "/ngo/inbox", label: "Inbox & triage", note: "New reports and offers" },
-        { href: "/ngo/field", label: "Field mode", note: "Phone, one hand" },
-        { href: "/ngo/review", label: "Historical review", note: "Imported statuses, never today's work" },
-        { href: "/ngo/quality", label: "Data quality", note: "Gaps and checks in the register" },
-      ] },
-      { label: "Registers & reporting", links: [
-        { href: "/ngo/programmes", label: "Programmes", note: "ABC / ARV drives, surveys" },
-        { href: "/ngo/proof", label: "Reports & proof", note: "Evidence on demand" },
-      ] },
-      { label: "Records", links: [
-        { href: "/ngo/care", label: "Care ledger", note: "Every care record, across animals" },
-        { href: "/ngo/evidence", label: "Evidence files", note: "Register pages, ledgers, threads" },
-      ] },
-      { label: "Outreach", links: [
-        { href: "/ngo/stories", label: "Publish case stories" },
-        { href: "/ngo/fundraising", label: "Fundraising" },
-        { href: "/ngo/volunteers", label: "Volunteer sign-ups" },
-        { href: "/ngo/feeding", label: "Feeding spots" },
-        { href: "/ngo/projects", label: "Projects" },
-        { href: "/ngo/surveys", label: "Surveys & census" },
-      ] },
-      { label: "Organisation", links: [
-        { href: "/ngo/team", label: "Team & access", note: "Members, roles, invitations" },
-        { href: "/ngo/settings", label: "Settings" },
-      ] },
-    ],
+  {
+    "workspace": "community",
+    "href": "/community/report",
+    "assistantKey": "report_animal",
+    "label": "Report an animal",
+    "icon": "radio",
+    "group": "Explore",
+    "primary": true,
+    "mobile": true
   },
-  city: {
-    id: "city", label: "Municipality", purpose: "Programme oversight: delivery, evidence and reports for a city", ink: "#2457ce",
-    home: "/city",
-    dests: [
-      { href: "/city", label: "Map" },
-      { href: "/city/review", label: "Review", match: ["/city/programmes"] },
-      { href: "/city/insights", label: "Insights", match: ["/city/report"] },
-    ],
-    action: null,
-    nav: [
-      { href: "/city/review", label: "Package review", icon: "check", reviewer: true },
-      { href: "/city/insights", label: "Overview", icon: "home" },
-      { href: "/city/programmes", label: "Programmes", icon: "layers", tone: "teal", section: "Modules" },
-      { href: "/city/report", label: "Reports", icon: "file", tone: "amber" },
-      { href: "/city", label: "Map", icon: "map", exact: true, tone: "flame" },
-      { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
-    ],
-    index: [
-      { label: "Publish", links: [
-        { href: "/city/report", label: "City report", note: "Print-ready, with sources" },
-      ] },
-      { label: "Method", links: [
-        { href: "/data-governance", label: "Data governance" },
-        { href: "/research-standards", label: "Research standards" },
-      ] },
-    ],
+  {
+    "workspace": "community",
+    "href": "/community/activity",
+    "label": "My activity",
+    "icon": "activity",
+    "group": "Explore",
+    "primary": true,
+    "mobile": true
   },
-  learn: {
-    id: "learn", label: "Education", purpose: "The StrayPaw Learning Academy: courses, workshops and resources", ink: "#b65a3a",
-    home: "/learn",
-    dests: [
-      { href: "/learn", label: "Learn", match: ["/learn/courses", "/learn/playground"] },
-      { href: "/learn/workshops", label: "Workshops" },
-      { href: "/learn/resources", label: "Resources" },
-    ],
-    action: null,
-    nav: [
-      { href: "/learn", label: "Learn", icon: "grad", match: ["/learn/courses"], exact: true },
-      { href: "/learn/workshops", label: "Workshops", icon: "users", tone: "blue", section: "Modules" },
-      { href: "/learn/resources", label: "Resources", icon: "book", tone: "teal" },
-      { href: "/learn/playground", label: "Playground", icon: "compass", tone: "amber" },
-      { href: "/assistant", label: "Kaju", icon: "kaju", section: "Platform" },
-    ],
-    index: [
-      { label: "Explore", links: [
-        { href: "/learn/playground", label: "Neighbourhood playground", note: "Illustrative, never a forecast" },
-        { href: "/education", label: "Education at StrayPaw", note: "For schools and partners" },
-      ] },
-    ],
+  {
+    "workspace": "community",
+    "href": "/community/stories",
+    "label": "Stories",
+    "icon": "book",
+    "tone": "blue",
+    "group": "Explore",
+    "primary": true,
+    "note": "Documented animals, start to finish"
   },
-};
-
-/** Switcher order: operational workspaces first (3.0). */
-export const ORDER: WorkspaceId[] = ["city", "ngo", "community", "learn"];
-
-/** Whether a sidebar item is the current page. */
-export function navOn(item: NavItem, path: string): boolean {
-  if (path === item.href) return true;
-  if (!item.exact && path.startsWith(item.href + "/")) return true;
-  return (item.match ?? []).some((m) => path === m || path.startsWith(m + "/"));
-}
-
-/** Which workspace a path belongs to; shared routes keep the last one. */
-export function workspaceFor(path: string, last: WorkspaceId | null): WorkspaceId {
-  if (path.startsWith("/ngo")) return "ngo";
-  if (path.startsWith("/city")) return "city";
-  if (path.startsWith("/learn")) return "learn";
-  if (path.startsWith("/community")) return "community";
-  return last ?? "community";
-}
-
-/** The one current destination: exact, then the longest declared prefix. */
-export function currentDest(ws: Workspace, path: string): string | null {
-  let best: { href: string; len: number } | null = null;
-  for (const d of ws.dests) {
-    const pres = [d.href, ...(d.match ?? [])];
-    for (const p of pres) {
-      const hit = path === p || (p !== ws.home && path.startsWith(p.endsWith("/") ? p : `${p}/`)) || (p !== d.href && path.startsWith(p));
-      if (hit && (!best || p.length > best.len)) best = { href: d.href, len: p.length };
-    }
+  {
+    "workspace": "community",
+    "href": "/community/organisations",
+    "label": "Organisations",
+    "icon": "building",
+    "tone": "teal",
+    "group": "Explore",
+    "primary": true,
+    "note": "Who keeps the record"
+  },
+  {
+    "workspace": "community",
+    "href": "/fundraisers",
+    "label": "Fundraisers",
+    "icon": "heart",
+    "tone": "flame",
+    "group": "Explore",
+    "primary": true
+  },
+  {
+    "workspace": "community",
+    "href": "/assistant",
+    "label": "Kaju",
+    "icon": "kaju",
+    "group": "Platform",
+    "primary": true
+  },
+  {
+    "workspace": "community",
+    "href": "/community/help",
+    "label": "If an animal needs help",
+    "note": "What to do now, who to call",
+    "group": "Help",
+    "icon": "file",
+    "primary": false
+  },
+  {
+    "workspace": "community",
+    "href": "/community/feeding",
+    "label": "Feeding spots",
+    "note": "For feeders and volunteers",
+    "group": "Help",
+    "icon": "file",
+    "primary": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo",
+    "label": "Today",
+    "icon": "home",
+    "exact": true,
+    "group": "Today",
+    "primary": true,
+    "mobile": true
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/work",
+    "assistantKey": "work",
+    "match": ["/ngo/cases"],
+    "label": "Work queue",
+    "icon": "list",
+    "group": "Work",
+    "primary": true,
+    "mobile": true
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/animals",
+    "assistantKey": "animals",
+    "label": "Animals",
+    "icon": "paw",
+    "tone": "blue",
+    "group": "Animals",
+    "primary": true,
+    "note": "Every animal on your register",
+    "mobile": true
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/programmes",
+    "assistantKey": "programmes",
+    "label": "Programmes",
+    "icon": "layers",
+    "tone": "teal",
+    "group": "Programmes",
+    "primary": true,
+    "note": "ABC / ARV drives, surveys",
+    "mobile": true
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/packages",
+    "assistantKey": "reports",
+    "label": "Reports",
+    "icon": "check",
+    "tone": "amber",
+    "group": "Reports",
+    "primary": true,
+    "mobile": true,
+    "roles": [
+      "admin",
+      "coordinator"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/team",
+    "assistantKey": "team",
+    "label": "Team & settings",
+    "icon": "users",
+    "tone": "slate",
+    "group": "Organisation",
+    "primary": false,
+    "note": "Members, roles, invitations",
+    "mobile": false,
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/assistant",
+    "label": "Kaju",
+    "icon": "kaju",
+    "group": "Platform",
+    "primary": true,
+    "mobile": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/import",
+    "assistantKey": "import",
+    "label": "Import your register",
+    "note": "Excel or CSV, as your team keeps it",
+    "group": "Animals",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/inbox",
+    "assistantKey": "inbox",
+    "label": "Inbox & triage",
+    "note": "New reports and offers",
+    "group": "Work",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin",
+      "coordinator"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/field",
+    "assistantKey": "field",
+    "label": "Field mode",
+    "note": "Phone, one hand",
+    "group": "Work",
+    "icon": "file",
+    "primary": false,
+    "mobile": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/review",
+    "assistantKey": "review",
+    "label": "Historical review",
+    "note": "Imported statuses, never today's work",
+    "group": "Animals",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin",
+      "coordinator"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/quality",
+    "assistantKey": "quality",
+    "label": "Data quality",
+    "note": "Gaps and checks in the register",
+    "group": "Animals",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin",
+      "coordinator"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/proof",
+    "assistantKey": "report_exports",
+    "label": "Reports & proof",
+    "note": "Evidence on demand",
+    "group": "Reports",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin",
+      "coordinator"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/care",
+    "assistantKey": "care_ledger",
+    "label": "Care ledger",
+    "note": "Every care record, across animals",
+    "group": "Animals",
+    "icon": "file",
+    "primary": false,
+    "mobile": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/evidence",
+    "label": "Evidence files",
+    "note": "Register pages, ledgers, threads",
+    "group": "Reports",
+    "icon": "file",
+    "primary": false,
+    "mobile": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/stories",
+    "label": "Publish case stories",
+    "group": "Outreach",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/fundraising",
+    "label": "Fundraising",
+    "group": "Outreach",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/volunteers",
+    "label": "Volunteer sign-ups",
+    "group": "Organisation",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/feeding",
+    "label": "Feeding spots",
+    "group": "Programmes",
+    "icon": "file",
+    "primary": false,
+    "mobile": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/projects",
+    "label": "Projects",
+    "group": "Programmes",
+    "icon": "file",
+    "primary": false,
+    "mobile": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/surveys",
+    "label": "Surveys & census",
+    "group": "Programmes",
+    "icon": "file",
+    "primary": false,
+    "mobile": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/settings",
+    "assistantKey": "settings",
+    "label": "Settings",
+    "group": "Organisation",
+    "icon": "file",
+    "primary": false,
+    "mobile": false,
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/cases/new",
+    "assistantKey": "new_case",
+    "label": "New case",
+    "icon": "radio",
+    "primary": false,
+    "group": "Work",
+    "mobile": false
+  },
+  {
+    "workspace": "ngo",
+    "href": "/ngo/settings/connections",
+    "label": "Connections",
+    "icon": "layers",
+    "primary": false,
+    "group": "Organisation",
+    "mobile": false,
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "workspace": "city",
+    "href": "/city/review",
+    "label": "Package review",
+    "icon": "check",
+    "reviewer": true,
+    "group": "Verification",
+    "primary": true,
+    "mobile": true
+  },
+  {
+    "workspace": "city",
+    "href": "/city/insights",
+    "assistantKey": "insights",
+    "label": "Overview",
+    "icon": "home",
+    "group": "Overview",
+    "primary": true,
+    "mobile": true
+  },
+  {
+    "workspace": "city",
+    "href": "/city/programmes",
+    "assistantKey": "city_programmes",
+    "label": "Programmes",
+    "icon": "layers",
+    "tone": "teal",
+    "group": "Overview",
+    "primary": true
+  },
+  {
+    "workspace": "city",
+    "href": "/city/report",
+    "assistantKey": "city_report",
+    "label": "Reports",
+    "icon": "file",
+    "tone": "amber",
+    "group": "Reports",
+    "primary": true,
+    "note": "Print-ready, with sources"
+  },
+  {
+    "workspace": "city",
+    "href": "/city",
+    "assistantKey": "city",
+    "label": "Wards & map",
+    "icon": "map",
+    "exact": true,
+    "tone": "flame",
+    "group": "Wards",
+    "primary": true,
+    "mobile": true
+  },
+  {
+    "workspace": "city",
+    "href": "/assistant",
+    "label": "Kaju",
+    "icon": "kaju",
+    "group": "Overview",
+    "primary": true
+  },
+  {
+    "workspace": "city",
+    "href": "/data-governance",
+    "label": "Data governance",
+    "group": "Overview",
+    "icon": "file",
+    "primary": false
+  },
+  {
+    "workspace": "city",
+    "href": "/research-standards",
+    "label": "Research standards",
+    "group": "Overview",
+    "icon": "file",
+    "primary": false
+  },
+  {
+    "workspace": "learn",
+    "href": "/learn",
+    "assistantKey": "academy",
+    "label": "Learn",
+    "icon": "grad",
+    "match": [
+      "/learn/courses"
+    ],
+    "exact": true,
+    "group": "Explore",
+    "primary": true,
+    "mobile": true
+  },
+  {
+    "workspace": "learn",
+    "href": "/learn/workshops",
+    "label": "Workshops",
+    "icon": "users",
+    "tone": "blue",
+    "group": "Modules",
+    "primary": true,
+    "mobile": true
+  },
+  {
+    "workspace": "learn",
+    "href": "/learn/resources",
+    "label": "Resources",
+    "icon": "book",
+    "tone": "teal",
+    "group": "Explore",
+    "primary": true,
+    "mobile": true
+  },
+  {
+    "workspace": "learn",
+    "href": "/learn/playground",
+    "label": "Playground",
+    "icon": "compass",
+    "tone": "amber",
+    "group": "Explore",
+    "primary": true,
+    "note": "Illustrative, never a forecast"
+  },
+  {
+    "workspace": "learn",
+    "href": "/assistant",
+    "label": "Kaju",
+    "icon": "kaju",
+    "group": "Platform",
+    "primary": true
+  },
+  {
+    "workspace": "learn",
+    "href": "/education",
+    "label": "Education at StrayPaw",
+    "note": "For schools and partners",
+    "group": "Explore",
+    "icon": "file",
+    "primary": false
   }
-  if (!best && path === ws.home) return ws.home;
-  return best?.href ?? null;
-}
-
-const KEY = "sp2.workspace";
-export function rememberWorkspace(id: WorkspaceId) { try { sessionStorage.setItem(KEY, id); } catch { /* storage blocked */ } }
-export function lastWorkspace(): WorkspaceId | null {
-  try { const v = sessionStorage.getItem(KEY); return v && v in WORKSPACES ? (v as WorkspaceId) : null; } catch { return null; }
-}
-
-/* ── Section tabs: the screens inside one sidebar place ─────────────── */
-export type Tab = { href: string; label: string; roles?: Role[] };
-export const TAB_GROUPS: Tab[][] = [
-  [{ href: "/ngo/work", label: "Work queue", roles: ["admin", "coordinator", "member"] }, { href: "/ngo/inbox", label: "Inbox", roles: ["admin", "coordinator", "member"] }, { href: "/ngo/field", label: "Field mode", roles: ["admin", "coordinator", "member"] }],
-  [{ href: "/ngo/animals", label: "Register" }, { href: "/ngo/map", label: "Map" }],
-  [{ href: "/ngo/programmes", label: "Programmes" }, { href: "/ngo/verification", label: "Verification" }],
-  [{ href: "/ngo/packages", label: "Report packages", roles: ["admin", "coordinator"] }, { href: "/ngo/proof", label: "Reports & proof", roles: ["admin", "coordinator"] }],
-  [{ href: "/ngo/team", label: "Team", roles: ["admin"] }, { href: "/ngo/settings", label: "Settings" }, { href: "/ngo/settings/connections", label: "Connections" }],
 ];
-/** The tabs to show on this exact screen (list screens only, not record pages). */
-export function tabsFor(path: string, role: Role | null): { tabs: Tab[]; on: string } | null {
-  for (const g of TAB_GROUPS) {
-    const hit = g.find((t) => t.href === path);
-    if (!hit) continue;
-    const tabs = g.filter((t) => !t.roles || !role || t.roles.includes(role));
-    return tabs.length > 1 ? { tabs, on: hit.href } : null;
+const META={
+  "community": {
+    "id": "community",
+    "label": "Community",
+    "purpose": "The map of India's street animals, your reports and what happened next",
+    "ink": "#2457ce",
+    "home": "/community",
+    "action": {
+      "href": "/community/report",
+      "label": "Report an animal",
+      "short": "Report"
+    }
+  },
+  "ngo": {
+    "id": "ngo",
+    "label": "NGO",
+    "purpose": "Implementing agencies: work queue, animal register and fieldwork",
+    "ink": "#1f6f80",
+    "home": "/ngo",
+    "members": true,
+    "settings": "/ngo/settings",
+    "action": {
+      "href": "/ngo/cases/new",
+      "label": "New case",
+      "short": "New"
+    }
+  },
+  "city": {
+    "id": "city",
+    "label": "Municipality",
+    "purpose": "Programme oversight: delivery, evidence and reports for a city",
+    "ink": "#2457ce",
+    "home": "/city",
+    "action": null
+  },
+  "learn": {
+    "id": "learn",
+    "label": "Education",
+    "purpose": "The StrayPaw Learning Academy: courses, workshops and resources",
+    "ink": "#b65a3a",
+    "home": "/learn",
+    "action": null
   }
-  return null;
+} as const;
+export type Workspace={id:WorkspaceId;label:string;purpose:string;ink:string;home:string;action:{href:string;label:string;short:string}|null;members?:boolean;settings?:string;nav:NavItem[];dests:Dest[];index:IndexGroup[]};
+export function canDiscover(n:NavItem,role:Role|null,reviewer=false){return (!n.roles||!!role&&n.roles.includes(role))&&(!n.reviewer||reviewer)}
+export function destinations(ws:WorkspaceId,role:Role|null,reviewer=false){return DESTINATIONS.filter(n=>n.workspace===ws&&canDiscover(n,role,reviewer))}
+export function workspaceView(ws:WorkspaceId,role:Role|null,reviewer=false):Workspace{
+ const all=destinations(ws,role,reviewer),primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href).map(x=>x.href)]}));
+ const groups=[...new Set(all.map(n=>n.group))].map(label=>({label,links:all.filter(n=>n.group===label)}));
+ return {...META[ws],home:ws==='city'&&reviewer?'/city/review':META[ws].home,nav:primary,index:groups,dests:primary.filter(n=>n.mobile)};
 }
+/** Compatibility views only: no independent route definitions. */
+export const WORKSPACES=Object.fromEntries(Object.keys(META).map(ws=>[ws,workspaceView(ws as WorkspaceId,null)])) as Record<WorkspaceId,Workspace>;
+export const ORDER:WorkspaceId[]=['city','ngo','community','learn'];
+export function workspaceFor(path:string,last:WorkspaceId|null):WorkspaceId{return ORDER.find(w=>path===`/${w}`||path.startsWith(`/${w}/`))??last??'community'}
+export function navOn(n:NavItem,path:string){return path===n.href||!n.exact&&path.startsWith(n.href+'/')||(n.match??[]).some(p=>path===p||path.startsWith(p+'/'))}
+export function currentDestination(ws:WorkspaceId,path:string,role:Role|null,reviewer=false){return destinations(ws,role,reviewer).filter(n=>navOn(n,path)).sort((a,b)=>b.href.length-a.href.length)[0]??null}
+export function currentDest(ws:Workspace,path:string){const n=currentDestination(ws.id,path,null);return n?.href??null}
+export type Tab={href:string;label:string;roles?:Role[]};
+export function tabsFor(path:string,role:Role|null,reviewer=false){const ws=workspaceFor(path,null),current=currentDestination(ws,path,role,reviewer);if(!current)return null;
+ const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant');return tabs.length>1?{tabs,on:current.href}:null}
+const KEY='sp2.workspace';
+export function rememberWorkspace(id:WorkspaceId){try{sessionStorage.setItem(KEY,id)}catch{}}
+export function lastWorkspace():WorkspaceId|null{try{const v=sessionStorage.getItem(KEY);return v&&v in META?v as WorkspaceId:null}catch{return null}}

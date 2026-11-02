@@ -87,7 +87,8 @@ export async function orgCampaigns(
   const { data, error } = await supa.rpc("org_campaigns", {
     p_include_archived: includeArchived,
   });
-  if (error || !Array.isArray(data)) return [];
+  if (error) throw error;
+  if (!Array.isArray(data)) throw new Error("Programme records could not be read");
   return (data as CampaignStats[]).filter(Boolean);
 }
 

@@ -91,34 +91,16 @@ test("signed-out NGO page shows what the workspace includes at every width", asy
   }
 });
 
-test("desktop sidebar groups the workspace's other pages under More", async ({ page, isMobile }) => {
-  test.skip(!!isMobile, "phones use the More sheet");
-  await page.goto("/ngo");
-  const side = page.getByRole("complementary", { name: "Workspace" });
-  await expect(side.locator(".sx4-sec")).toHaveText(["Modules", "Platform"]);
-  const more = side.locator(".sx3-more");
-  const groups = more.locator(".sx3-group");
-  expect(await groups.count()).toBeGreaterThan(1);
-  await expect(groups.first().locator("ul")).toBeHidden();
-  await more.locator("summary").click();
-  await expect(groups.first().locator("ul")).toBeVisible();
-  await expect(page).toHaveURL(/\/ngo$/);
+test("desktop secondary destinations use named workflow groups", async ({page,isMobile})=>{
+ test.skip(!!isMobile,'desktop sidebar');await page.goto('/ngo');const side=page.getByRole('complementary',{name:'Workspace'});
+ await expect(side.getByRole('link',{name:'Today',exact:true})).toBeVisible();await expect(side.getByText('More',{exact:true})).toHaveCount(0);
+ await expect(side.getByRole('link',{name:'Team & settings',exact:true})).toHaveCount(0);
+ const group=side.locator('.sx3-more').first();await group.locator('summary').click();await expect(group.locator('ul')).toBeVisible();
 });
-
-test("More is grouped and closes without losing the workspace", async ({ page, isMobile }) => {
-  test.skip(!isMobile, "desktop uses the sidebar groups");
-  await page.goto("/ngo");
-  await page.getByRole("button", { name: "More", exact: true }).first().click();
-  const more = page.getByRole("dialog", { name: "More in NGO" });
-  await expect(more).toBeVisible();
-  const groups = more.locator(".sp-more-group");
-  expect(await groups.count()).toBeGreaterThan(1);
-  await expect(groups.first().locator("ul")).toBeVisible();
-  await groups.nth(1).locator("summary").click();
-  await expect(groups.nth(1).locator("ul")).toBeVisible();
-  await more.getByRole("button", { name: "Close" }).click();
-  await expect(more).not.toBeVisible();
-  await expect(page).toHaveURL(/\/ngo$/);
+test("mobile sections close without losing workspace and hide admin tools",async({page,isMobile})=>{
+ test.skip(!isMobile,'mobile sections');await page.goto('/ngo');await page.getByRole('button',{name:'Workspace sections',exact:true}).click();
+ const sheet=page.getByRole('dialog',{name:'Sections in NGO'});await expect(sheet).toBeVisible();await expect(sheet.getByRole('link',{name:'Team & access',exact:true})).toHaveCount(0);
+ await sheet.getByRole('button',{name:'Close',exact:true}).click();await expect(sheet).not.toBeVisible();await expect(page).toHaveURL(/\/ngo$/);
 });
 
 test("workshops scroll through every activity and pair attributed originals", async ({ page }) => {
