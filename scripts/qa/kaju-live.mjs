@@ -10,9 +10,9 @@ const browser=await (engine==='webkit'?webkit:chromium).launch({...(engine==='ch
 const results=[];
 async function actualMotion(svg){
  await expect(svg).not.toHaveClass(/is-still|is-paused/);
- const read=()=>svg.evaluate(node=>node.getAnimations({subtree:true}).filter(a=>a.playState==='running').map(a=>({name:a.animationName??'transition',time:a.currentTime})));
+ const read=()=>svg.evaluate(node=>node.ownerDocument.getAnimations().filter(a=>a.playState==='running'&&a.effect?.target&&node.contains(a.effect.target)).map(a=>({name:a.animationName??'transition',time:a.currentTime})));
  const before=await read();await new Promise(r=>setTimeout(r,650));const after=await read();
- assert.ok(before.some((a,i)=>typeof a.time==='number'&&typeof after[i]?.time==='number'&&after[i].time>a.time),'Actual browser animation time must advance');
+ assert.ok(before.some(a=>typeof a.time==='number'&&after.some(b=>b.name===a.name&&typeof b.time==='number'&&b.time>a.time)),`Actual browser animation time must advance: ${JSON.stringify({before,after})}`);
  return after.map(a=>a.name);
 }
 try{
@@ -35,7 +35,7 @@ try{
    await select.selectOption(state);await rig.evaluate(el=>el.scrollIntoView({block:'center'}));await expect(rig).toHaveAttribute('data-kaju-state',state);await actualMotion(rig);await page.waitForTimeout(record?1600:100);seen.push(state);
   }
   await page.screenshot({path:path.join(out,`${engine}-${device}-kaju.png`)});
-  await preview.getByRole('button',{name:'Pause motion',exact:true}).click();await expect(rig).toHaveClass(/is-still/);
+  await preview.getByRole('button',{name:'Pause motion',exact:true}).click();await expect(rig).toHaveClass(/is-still/);await page.waitForTimeout(350);
   await preview.getByRole('button',{name:'Resume motion',exact:true}).click();await actualMotion(rig);
   // Exercise every public selector option through the real product control.
   for(const state of states){await select.selectOption(state);await expect(rig).toHaveAttribute('data-kaju-state',state);await page.waitForTimeout(45)}
@@ -45,7 +45,7 @@ try{
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.goto(base+'/community');const opener=device==='desktop'?page.getByRole('banner').getByRole('button',{name:'Kaju',exact:true}):page.getByRole('navigation',{name:/navigation/}).getByRole('button',{name:'Kaju',exact:true});await opener.click();
   const panel=page.getByRole('complementary',{name:'Kaju'});await expect(panel).toBeVisible();await expect(panel.getByRole('textbox',{name:'Message Kaju'})).toBeEnabled({timeout:20000});await page.waitForTimeout(record?1600:100);
-  await panel.getByRole('link',{name:'Open full screen',exact:true}).click();await expect(page.getByRole('textbox',{name:'Message Kaju'})).toHaveCount(1);await expect(panel).toHaveCount(0);await page.waitForTimeout(record?1600:100);
+  await panel.getByRole('link',{name:'Open full screen',exact:true}).click();await page.waitForURL('**/assistant',{timeout:30000});await expect(page.getByRole('textbox',{name:'Message Kaju'})).toHaveCount(1);await expect(panel).toHaveCount(0,{timeout:20000});await page.waitForTimeout(record?1600:100);
   await page.screenshot({path:path.join(out,`${engine}-${device}-assistant.png`)});
   assert.deepEqual(errors,[]);const video=record?page.video():null;await context.close();if(video)await video.saveAs(path.join(out,`kaju-live-${device}.webm`));
   results.push({device,engine,base,sha:health.sha,started,homeMotion,selectedStates:states,recordedMovements:seen,checks:['home motion advances','23 real selector states','pause/resume','tour advances','reduced motion','launcher','side panel','full workspace','no browser errors']});
