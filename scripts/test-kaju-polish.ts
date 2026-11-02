@@ -33,6 +33,9 @@ async function main(){
   const error=await answer([{role:'user',text:'Hello'}],context,{});assert.equal(error.engine,'tools');assert.equal(requests,1);ok('provider errors fall back honestly, without automatic retries or writes');
   globalThis.fetch=async()=>new Response(JSON.stringify({content:null,stop_reason:'end_turn'}),{headers:{'content-type':'application/json'}});
   assert.equal((await answer([{role:'user',text:'Hello'}],context,{})).engine,'tools');ok('malformed provider envelopes cannot crash the caller');
+  delete process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;
+  globalThis.fetch=async(_input,init)=>{assert.doesNotMatch(String(init?.body),/PRIVATE_CONTEXT/);return Response.json({content:[{type:'text',text:'Hello!'}],stop_reason:'end_turn'})};
+  const publicReply=await answer([{role:'user',text:'Hello'}],{...context,userId:undefined,orgId:null,actorRole:'PRIVATE_CONTEXT',pagePath:'/PRIVATE_CONTEXT'},{path:'/PRIVATE_CONTEXT',workspace:'PRIVATE_CONTEXT'});assert.equal(publicReply.engine,'model');ok('the public greeting strips browser context and role before provider access');
  }finally{globalThis.fetch=fetcher;for(const [key,value] of Object.entries({ANTHROPIC_API_KEY:saved.key,STRAYPAW_AI_APPROVED_DATA_ROUTE:saved.approval,STRAYPAW_AI_MODEL:saved.model})){if(value===undefined)delete process.env[key];else process.env[key]=value}}
  const failed={from:()=>{const q=new Proxy({},{get:(_,k)=>k==='then'?(resolve:(r:unknown)=>unknown)=>Promise.resolve({count:null,data:[],error:null}).then(resolve):()=>q});return q;}} as unknown as SupabaseClient;
  assert.equal((await runTool('work_summary',{}, {...context,db:failed})).ok,false);ok('a successful transport with a missing count is unknown, never zero');

@@ -75,8 +75,13 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   }
   const access = await modelAccess();
   const publicGreeting = !ctx.userId && !ctx.orgId && turns.length === 1 && /^(?:hello|hi|hey)(?: kaju)?[.!?\s]*$/i.test(turns[0].text);
-  if (access && (publicGreeting || await privateModelApproved())) {
-    try { return await withModel(turns, ctx, context, access); }
+  const approved=access&&await privateModelApproved();
+  if (access && (publicGreeting || approved)) {
+    // Even a generic guest greeting must not carry a private URL or arbitrary
+    // browser-supplied workspace text onto an unapproved processing route.
+    const modelCtx=approved?ctx:{db:ctx.db,orgId:null,userName:null};
+    const modelContext=approved?context:{path:'/assistant',workspace:'community',signal:context.signal};
+    try { return await withModel(turns, modelCtx, modelContext, access); }
     catch {
       if(context.signal?.aborted)throw Error("Kaju request cancelled");
       console.error("Kaju model request failed; using scoped record tools");

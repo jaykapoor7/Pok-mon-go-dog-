@@ -29,7 +29,7 @@ This pass preserves the production agent, blue-and-white interface and Explorer 
 | Check | Actual result |
 | --- | --- |
 | Production build, lint, TypeScript | Passed; rerun after any further source changes. |
-| Kaju contracts | 13: scope/fail-closed reads, private-route gate, cancellation, provider error/malformed response, safe citations/proposals, unknown counts, numeric audit IDs and honest exported findings. |
+| Kaju contracts | 14: scope/fail-closed reads, private-route gate, cancellation, provider error/malformed response, safe citations/proposals, unknown counts, numeric audit IDs and honest exported findings. |
 | Existing reliability / native files & Connections / export isolation | 21 / 33 / 4 passed. Provider tests use isolated fakes; they do not establish real external account availability. |
 | Relevant desktop/phone browser regression | 67 passed, 3 intentional skips; the final focused suite passed 14 including both phone/desktop timeout cases. |
 | Real staging confirmed actions / roles & evidence / security | 22 / 25 / 15 passed. |
@@ -65,3 +65,5 @@ The final CI, hosted application SHA and production rollout results are maintain
 The production dependency audit found a critical tar advisory and high findings in the old SheetJS/image parser, nested PostCSS and Zod trees. Targeted, pinned fixes preserve the existing Next.js, PptxGenJS, Anthropic SDK and OIDC versions: official SheetJS 0.20.3 tarball (lockfile integrity recorded), image-size 2.0.4, tar 7.5.22, PostCSS 8.5.32 and Zod 4.6.7. Parser/provider contract tests and the master import regression passed after installation. CI now gates high as well as critical advisories.
 
 The new production-dependency audit reports **zero high and zero critical findings**. Six moderate advisory entries remain in the legacy optional canvas installation chain; no major unpdf upgrade is included in this polish pass. Operational CSV rows now retain the snapshot ID, checked-at timestamp and rule version even though CSV does not render report footnotes. A real authenticated staged CSV readback verified Not set plus the exact immutable snapshot ID, and the temporary deadline setting was restored.
+
+The unapproved public-greeting exception now strips page/workspace context and role before provider access. An adversarial contract checks that private strings supplied through those fields never enter the provider request. Private authenticated requests still make zero provider calls without an approved route. The patched build repeated all 16 native-document HTTP checks and the 30-step desktop/phone ABC journey successfully.
