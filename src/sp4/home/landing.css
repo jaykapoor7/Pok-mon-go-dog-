@@ -162,3 +162,33 @@
 .s6-r-s.is-setup { background: #fdf3e2; color: #8a5a00; }
 .s6-r-s.is-test { background: #eef2fb; color: var(--s4-blue); }
 @media (max-width: 860px) { .s6-recipes { padding: 20px; } .s6-recipes li { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; } .s6-recipes li > svg { display: none; } .s6-r-do { grid-column: 1 / -1; grid-row: 2; } }
+
+/* ── blueprint language for the new pieces ────────────────────────── */
+/* Use-case roles: a drafting note, dashed outline and monospace labels. */
+.s4-uc-roles { background: rgba(255, 255, 255, .7); box-shadow: none; border: 1px dashed rgba(36, 87, 206, .45); border-radius: 10px; }
+.s4-uc-roles dt { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; letter-spacing: .12em; }
+
+/* Daily checks: a run-line with ticks, like the scale bar on the plan. */
+.s6-runline { position: relative; height: 26px; margin: 34px 0 -10px; }
+.s6-runline i { position: absolute; left: 0; right: 0; top: 12px; height: 1px; background: rgba(255, 255, 255, .28);
+  -webkit-mask-image: none; }
+.s6-runline i::before { content: ""; position: absolute; inset: -6px 0 0; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .35) 0 1px, transparent 1px calc(100% / 6)); height: 12px; top: -6px; }
+.s6-runline span { position: absolute; left: 0; top: -6px; padding: 0 10px 0 0; background: var(--s4-night); font: 600 11.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: #f0b45a; z-index: 1; }
+.s6-daily-list li { background: transparent; box-shadow: none; border: 1px dashed rgba(255, 255, 255, .22); border-radius: 10px; }
+.s6-daily-list li:hover { border-style: solid; border-color: rgba(255, 255, 255, .4); }
+
+/* Integrations: the recipes sit on the blueprint canvas, tool → Kaju's work. */
+.s6-recipes { overflow: hidden; isolation: isolate; color: #fff; box-shadow: 0 30px 80px rgba(22, 58, 143, .22);
+  background: linear-gradient(165deg, var(--s6-blue-a) 0%, var(--s6-blue-b) 55%, var(--s6-blue-c) 100%); }
+.s6-recipes .s6-blueprint { opacity: .45; }
+.s6-recipes h3 { color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 18px; }
+.s6-recipes li { border-top: 1px dashed rgba(255, 255, 255, .28); }
+.s6-recipes li { grid-template-columns: 250px 64px 1fr auto; }
+.s6-r-line { position: relative; height: 1px; border-top: 1px dashed rgba(240, 180, 90, .9); }
+.s6-r-line::after { content: ""; position: absolute; right: -1px; top: -5px; border: 4.5px solid transparent; border-left: 7px solid #f0b45a; }
+@media (max-width: 860px) { .s6-recipes li { grid-template-columns: minmax(0, 1fr) auto; } .s6-r-line { display: none; } }
+.s6-r-from { color: #fff; }
+.s6-r-do { color: rgba(255, 255, 255, .82); }
+.s6-r-s.is-live { background: rgba(126, 220, 168, .18); color: #9ff0c3; }
+.s6-r-s.is-setup { background: rgba(240, 180, 90, .2); color: #ffd59a; }
+.s6-r-s.is-test { background: rgba(255, 255, 255, .16); color: #fff; }

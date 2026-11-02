@@ -154,6 +154,7 @@ export default function HomePage() {
               <span className="s6-daily-clock" aria-hidden><Clock3 size={18} /></span>
               <div><h3>And every morning, without being asked</h3><p>Kaju runs six checks on each organisation&rsquo;s live records once a day. It changes nothing; it lists what needs a person, with the records to open.</p></div>
             </div>
+            <div className="s6-runline" aria-hidden><span>Daily run</span><i /></div>
             <ul className="s6-daily-list">
               {DAILY.map(([t, d], i) => <li key={t}><span>{String(i + 1).padStart(2, "0")}</span><b>{t}</b><small>{d}</small></li>)}
             </ul>
@@ -176,8 +177,9 @@ export default function HomePage() {
             ))}
           </div>
           <div className="s6-recipes">
+            <Blueprint />
             <h3>What Kaju does with them</h3>
-            <ul>{RECIPES.map((r) => <li key={r.from}><span className="s6-r-from">{r.from}</span><ArrowRight size={16} aria-hidden /><span className="s6-r-do">{r.does}</span><i className={`s6-r-s is-${r.s === "Live" ? "live" : r.s === "In testing" ? "test" : "setup"}`}>{r.s}</i></li>)}</ul>
+            <ul>{RECIPES.map((r) => <li key={r.from}><span className="s6-r-from">{r.from}</span><span className="s6-r-line" aria-hidden /><span className="s6-r-do">{r.does}</span><i className={`s6-r-s is-${r.s === "Live" ? "live" : r.s === "In testing" ? "test" : "setup"}`}>{r.s}</i></li>)}</ul>
           </div>
         </div>
       </section>
