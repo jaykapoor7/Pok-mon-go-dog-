@@ -31,7 +31,7 @@ export function Stories({ stories }: { stories: StoryLite[] }) {
         </button>
       ))}
       <Link href="/demo" className="s4-story-pick is-next">
-        <span className="s4-ui s4-ui-pad s4-reg"><b>Your programme</b><small>Bring your registers and see them on one record.</small><span className="s4-tag is-blue">Book a demo</span></span>
+        <span className="s4-ui s4-ui-pad s4-reg"><b>Your programme</b><small>Bring your registers and see them on one record.</small><span className="s4-tag is-blue">Import your registers</span></span>
       </Link>
     </div>
   );

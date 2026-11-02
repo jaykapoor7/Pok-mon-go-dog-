@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
-import { Cards, Close, Faq, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
+import { Cards, Faq, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
 import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
 import { AiBand, MateTabs, UseCases, type Step } from "@/sp4/home/Interactive";
@@ -68,12 +68,12 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page className="s6-home" close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint /><Close /></div></div>}>
+    <S4Page className="s6-home" close={false}>
       <PageView name="landing_view" />
 
       {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
       <section className="s4-hero s6-hero" aria-labelledby="hero-title">
-        <div className="s4-wrap">
+        <div className="s4-wrap s6-center">
           <Link href="/ai" className="s4-hero-eyebrow"><span>New</span>Kaju is in every workspace <ArrowRight size={14} aria-hidden /></Link>
           <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet Kaju, the AI agent for", "animal welfare programmes"]} mark="Kaju" /></h1>
           <p className="s4-lede">StrayPaw runs animal welfare programmes on one shared record: field capture, veterinary sign-off, evidence and municipal reporting. Kaju does the checking and drafting. Your team approves.</p>
@@ -130,23 +130,6 @@ export default function HomePage() {
         <div className="s4-wrap"><AiBand /></div>
       </section>
 
-      {/* 6 · customer results */}
-      <section className="s4-sec" aria-labelledby="res-title">
-        <div className="s4-wrap">
-          <h2 id="res-title" className="s4-h2" style={{ marginBottom: 48 }}>Customer results</h2>
-          <div className="s4-nums">
-            <Rise><b><CountUp n={story.results[0]?.n ?? 0} /></b><small>rescue requests documented by<br />The Pawsome People Project</small></Rise>
-            <Rise delay={60}><b><CountUp n={kh.results[0]?.n ?? 0} /></b><small>rescue and treatment requests<br />by The Kind Hour Foundation</small></Rise>
-            <Rise delay={120}><b><CountUp n={partners.length} /></b><small>confirmed field partners<br />across India</small></Rise>
-            <Link href="/customers" className="s4-link is-ink">Read customer stories <ArrowRight size={18} aria-hidden /></Link>
-          </div>
-          <Stories stories={[
-            { slug: story.slug, name: story.name, city: story.city, logo: story.logo, line: "Coimbatore's rescue, sterilisation and vaccination registers, brought onto one record for every animal.", note: "Figures come from imported historical registers, not from work entered live in StrayPaw. No customer quote is shown until one is approved in writing.", registers: [["Rescue register", "2024–2026"], ["ABC drive register", "Jan–Aug 2026"], ["Vaccination records", "2024–2026"]] },
-            { slug: kh.slug, name: kh.name, city: kh.city, logo: kh.logo, line: "A Lucknow rescue and treatment register, with each animal's condition and outcome kept together.", note: "A historical register import. The foundation does not yet run its day-to-day work in StrayPaw, and its records are not independently verified.", registers: [["Rescue and treatment register", "Jan 2024 – Aug 2026"]] },
-          ]} />
-        </div>
-      </section>
-
       {/* 7 · integrations */}
       <section className="s4-sec" aria-labelledby="int-title" id="integrations">
         <div className="s4-wrap s4-int-wrap">
@@ -183,11 +166,27 @@ export default function HomePage() {
       <Faq items={FAQ} title="FAQs" aside={
         <div className="s6-help">
           <b>Talk to the team</b>
-          <p>We&rsquo;ll walk through Kaju on a programme like yours, using last month&rsquo;s register.</p>
-          <Link href="/demo" className="s4-link">Book a demo <ArrowRight size={16} aria-hidden /></Link>
+          <p>Questions about your programme, your registers or pricing? We reply within one working day.</p>
+          <Link href="/contact" className="s4-link">Contact the team <ArrowRight size={16} aria-hidden /></Link>
         </div>
       } />
-      {/* 10 · closing call to action is rendered by S4Page */}
+      {/* 10 · last word: our partners (stories and figures; quotes appear only once approved in writing) */}
+      <section className="s4-sec is-last s6-partners" aria-labelledby="res-title">
+        <div className="s4-wrap">
+          <div className="s4-sechead" style={{ marginBottom: 48 }}><h2 id="res-title" className="s4-h2"><TwoTone a="Hear from our partners" b="what they brought onto one record" /></h2></div>
+          <div className="s4-nums">
+            <Rise><b><CountUp n={story.results[0]?.n ?? 0} /></b><small>rescue requests documented by<br />The Pawsome People Project</small></Rise>
+            <Rise delay={60}><b><CountUp n={kh.results[0]?.n ?? 0} /></b><small>rescue and treatment requests<br />by The Kind Hour Foundation</small></Rise>
+            <Rise delay={120}><b><CountUp n={partners.length} /></b><small>confirmed field partners<br />across India</small></Rise>
+            <Link href="/customers" className="s4-link is-ink">Read customer stories <ArrowRight size={18} aria-hidden /></Link>
+          </div>
+          <Stories stories={[
+            { slug: story.slug, name: story.name, city: story.city, logo: story.logo, line: "Coimbatore's rescue, sterilisation and vaccination registers, brought onto one record for every animal.", note: "Figures come from imported historical registers, not from work entered live in StrayPaw. No customer quote is shown until one is approved in writing.", registers: [["Rescue register", "2024–2026"], ["ABC drive register", "Jan–Aug 2026"], ["Vaccination records", "2024–2026"]] },
+            { slug: kh.slug, name: kh.name, city: kh.city, logo: kh.logo, line: "A Lucknow rescue and treatment register, with each animal's condition and outcome kept together.", note: "A historical register import. The foundation does not yet run its day-to-day work in StrayPaw, and its records are not independently verified.", registers: [["Rescue and treatment register", "Jan 2024 – Aug 2026"]] },
+          ]} />
+        </div>
+      </section>
+
     </S4Page>
   );
 }

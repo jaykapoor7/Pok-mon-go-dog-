@@ -14,11 +14,11 @@ async function scrollThrough(page: Page, selector: string, f: number) {
   await page.waitForTimeout(250);
 }
 
-test("landing closes with one demo call to action and the site index", async ({ page }) => {
+test("landing ends on our partners, with one demo call to action and the site index", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("main .s4-close")).toHaveCount(1);
-  await expect(page.locator("main .s4-close .is-primary")).toHaveCount(1);
-  await expect(page.locator("main .s4-close .is-primary")).toHaveText("Book a demo");
+  await expect(page.locator("main .s4-close")).toHaveCount(0);
+  await expect(page.locator("main a").filter({ hasText: /^Book a demo$/ })).toHaveCount(1);
+  await expect(page.locator("main h2").last()).toContainText("Hear from our partners");
   const end = page.getByRole("contentinfo");
   for (const col of ["Product", "Solutions", "Resources", "Company"]) await expect(end.getByRole("heading", { name: col, exact: true })).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

@@ -80,3 +80,18 @@
 @media (prefers-reduced-motion: reduce) {
   .s6-home .s4-sec .s4-sechead, .s6-home .s4-tile, .s6-home .s4-card, .s6-home .s4-wall > * { animation: none !important; }
 }
+
+/* Centred hero copy (the canvas stays full width beneath). */
+.s6-center { text-align: center; }
+.s6-center > .s4-hero-eyebrow { margin-left: auto; margin-right: auto; }
+.s6-center .s4-h1, .s6-center .s4-lede { margin-left: auto; margin-right: auto; }
+.s6-center .s4-actions { justify-content: center; }
+.s6-center .s6-canvas { text-align: left; }
+.s6-center > .s4-hero-eyebrow { display: flex; width: max-content; }
+
+/* Partners, last: the closing word belongs to the people doing the work. */
+.s6-partners { padding-bottom: var(--s4-sec); }
+@media (max-width: 760px) {
+  .s6-canvas { margin-top: 28px; padding: 74px 12px 14px; }
+  .s6-canvas .s4-hero-perch { top: -64px; }
+}

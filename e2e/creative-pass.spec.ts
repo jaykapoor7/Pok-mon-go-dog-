@@ -34,7 +34,7 @@ test("audiences remain one click away in the Solutions menu",async({page})=>{
 });
 test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
  await page.goto("/");const question=page.locator(".s4-faq summary").first();await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".s4-faq details").first()).toHaveAttribute("open","");
- await expect(page.locator(".s4-close a").first()).toHaveText(/Book a demo/);await expect(page.locator(".s4-close .is-primary")).toHaveCount(1);
+ await expect(page.locator(".s4-close")).toHaveCount(0);await expect(page.locator("main a").filter({hasText:/^Book a demo$/})).toHaveCount(1);await expect(page.locator("main h2").last()).toContainText("Hear from our partners");
 });
 test("every published field partner has an accessible organisation profile",async({request})=>{
  for(const partner of fieldPartners.organisations){
