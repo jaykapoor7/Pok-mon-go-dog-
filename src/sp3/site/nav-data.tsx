@@ -58,7 +58,6 @@ export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
       { href: "/platform#integrations", label: "Integrations" },
       { href: "/security", label: "Security" },
       { href: "/data-governance", label: "Data governance" },
-      { href: "/docs", label: "Documentation" },
       { href: "/explore", label: "Public map" },
     ] },
   ],

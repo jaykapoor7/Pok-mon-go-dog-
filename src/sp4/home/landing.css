@@ -1,0 +1,82 @@
+/* ════════════════════════════════════════════════════════════════════
+   Landing, presentation layer (homepage only, scoped to .s6-home).
+   GovDash's blueprint, in StrayPaw's terms: clean paper for the copy and a
+   blue blueprint of a ward behind the product. No decorative grids or
+   glows on the page itself. Motion stops under prefers-reduced-motion.
+   ════════════════════════════════════════════════════════════════════ */
+
+.s6-home { --s6-blue-a: #2b60d8; --s6-blue-b: #1d46ad; --s6-blue-c: #163a8f; }
+
+/* ── hero ─────────────────────────────────────────────────────────── */
+.s6-hero { background: linear-gradient(180deg, #f4f7fc 0%, #f8fafd 55%, var(--s4-bg) 100%); padding-top: 88px; }
+.s6-hero::before { display: none; }
+.s6-hero .s4-h1 { max-width: 1040px; font-size: clamp(40px, 5vw, 72px); line-height: 1.02; letter-spacing: -0.05em; }
+.s6-hero .s4-lede { max-width: 680px; }
+.s6-hero .s4-hero-eyebrow { background: #fff; color: var(--s4-ink-2); box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .12), 0 1px 2px rgba(11, 30, 61, .05); }
+.s6-hero .s4-hero-eyebrow::before { background: var(--s4-blue); }
+.s6-mark { color: var(--s4-blue); }
+
+/* The blueprint canvas: the product window rests on a plan of the ward. */
+.s6-canvas { position: relative; margin-top: 72px; padding: 112px 64px 64px; border-radius: 28px; overflow: hidden; isolation: isolate;
+  background: linear-gradient(165deg, var(--s6-blue-a) 0%, var(--s6-blue-b) 55%, var(--s6-blue-c) 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 30px 80px rgba(22, 58, 143, .22); }
+.s6-blueprint { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+.s6-stage { margin-top: 0 !important; }
+.s6-stage > :not(.s4-hero-perch) { box-shadow: 0 40px 90px rgba(8, 20, 50, .45), 0 0 0 1px rgba(255, 255, 255, .12); border-radius: 16px; }
+.s6-canvas .s4-hero-perch { top: -88px; }
+@media (max-width: 900px) { .s6-canvas { padding: 92px 18px 24px; border-radius: 20px; margin-top: 48px; } }
+@media (max-width: 760px) { .s6-hero { padding-top: 44px; } .s6-canvas .s4-hero-perch { top: -66px; } }
+
+/* ── use cases: progress under the tabs ───────────────────────────── */
+.s4-uc-progress { height: 2px; margin-top: -1px; background: rgba(11, 30, 61, .08); border-radius: 2px; overflow: hidden; }
+.s4-uc-progress i { display: block; height: 100%; background: var(--s4-blue); transform-origin: left; transition: transform 420ms var(--s4-ease); }
+
+/* ── partners and integrations: crisp white tiles ─────────────────── */
+.s6-home .s4-wall > * { background: #fff; box-shadow: 0 0 0 1px var(--s4-line); transition: transform 200ms var(--s4-ease), box-shadow 200ms var(--s4-ease); }
+.s6-home .s4-wall > a:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 0 0 1px var(--s4-line-2), 0 12px 28px rgba(11, 30, 61, .08); }
+
+/* ── security: one feature tile, five supporting ─────────────────── */
+.s6-security .s4-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.s6-security .s4-tile { background: #fff; box-shadow: 0 0 0 1px var(--s4-line); }
+.s6-security .s4-tile:first-child { grid-row: span 2; color: #fff; justify-content: flex-end;
+  background: linear-gradient(165deg, var(--s6-blue-a), var(--s6-blue-c)); box-shadow: none; }
+.s6-security .s4-tile:first-child * { color: inherit; }
+.s6-security .s4-tile:first-child p, .s6-security .s4-tile:first-child small { color: rgba(255, 255, 255, .78); }
+.s6-security .s4-tile:first-child .s4-tile-ico { background: rgba(255, 255, 255, .14); }
+@media (max-width: 900px) { .s6-security .s4-tiles { grid-template-columns: minmax(0, 1fr); } .s6-security .s4-tile:first-child { grid-row: auto; } }
+
+/* ── FAQ: heading and help aligned to the first question ──────────── */
+.s6-home .s4-faq { align-items: start; }
+.s6-home .s4-faq-side { position: sticky; top: 112px; }
+.s6-home .s4-faq-side .s4-h2 { margin-top: -6px; }
+.s6-help { margin-top: 40px; max-width: 380px; padding: 24px 24px 22px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--s4-line); display: grid; gap: 8px; }
+.s6-help b { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; color: var(--s4-ink); }
+.s6-help p { margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--s4-grey); }
+.s6-help .s4-link { margin-top: 6px; font-size: 16px; }
+@media (max-width: 860px) { .s6-home .s4-faq-side { position: static; } .s6-help { max-width: none; } }
+
+/* ── close: a contained blueprint card ───────────────────────────── */
+.s6-closecard { padding-top: var(--s4-sec); padding-bottom: 96px; }
+.s6-closecard-in { position: relative; overflow: hidden; isolation: isolate; border-radius: 28px; color: #fff;
+  background: linear-gradient(165deg, var(--s6-blue-a) 0%, var(--s6-blue-b) 55%, var(--s6-blue-c) 100%); }
+.s6-closecard-in .s6-blueprint { opacity: .55; }
+.s6-closecard .s4-close { padding-top: 150px; padding-bottom: 104px; }
+.s6-closecard .s4-h2 { color: #fff; }
+.s6-closecard .s4-lede { color: rgba(255, 255, 255, .8); }
+.s6-closecard .s4-btn.is-primary { background: #fff; color: var(--s4-ink); }
+.s6-closecard .s4-btn.is-primary:hover { background: #eef2fb; }
+.s6-closecard .s4-btn.is-line { color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55); }
+.s6-closecard .s4-btn.is-line:hover { background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px #fff; }
+.s6-close-kaju { position: absolute; left: 50%; top: 30px; transform: translateX(-50%); width: 120px; height: 100px; pointer-events: none; }
+@media (max-width: 760px) { .s6-closecard { padding-bottom: 56px; } .s6-closecard .s4-close { padding-top: 130px; padding-bottom: 72px; } }
+
+/* ── gentle reveals (scroll-timeline browsers; elsewhere simply shown) ── */
+@supports (animation-timeline: view()) {
+  .s6-home .s4-sec .s4-sechead, .s6-home .s4-tile, .s6-home .s4-card, .s6-home .s4-wall > * {
+    animation: s6-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 45%;
+  }
+  @keyframes s6-rise { from { opacity: 0; transform: translateY(20px); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .s6-home .s4-sec .s4-sechead, .s6-home .s4-tile, .s6-home .s4-card, .s6-home .s4-wall > * { animation: none !important; }
+}

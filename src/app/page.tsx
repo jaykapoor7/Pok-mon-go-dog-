@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
-import { Cards, Faq, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
+import { Cards, Close, Faq, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
 import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
 import { AiBand, MateTabs, UseCases, type Step } from "@/sp4/home/Interactive";
@@ -14,15 +14,17 @@ import {
   AskUi, CaptureUi, DuplicateUi, EvidenceUi, ExtractUi, GovUi, OvernightUi, ProposeUi, ReportUi, ReviewUi, RingUi, VetUi,
 } from "@/sp4/home/ui";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
+import { Blueprint } from "@/sp4/home/Blueprint";
 import { Stories } from "@/sp4/home/Stories";
 import { CountUp } from "@/sp4/site/Live";
 import { KajuPresence } from "@/kaju/Presence";
 import "@/sp4/home/home4.css";
+import "@/sp4/home/landing.css";
 
 /** Headline words that rise one after another (CSS only; static without motion). */
-function Words({ lines }: { lines: string[] }) {
+function Words({ lines, mark }: { lines: string[]; mark?: string }) {
   let i = 0;
-  return <>{lines.map((l, li) => <Fragment key={li}>{li > 0 && <br />}{l.split(" ").map((w) => <Fragment key={i}><span style={{ ["--i" as string]: i++ }}>{w}</span>{" "}</Fragment>)}</Fragment>)}</>;
+  return <>{lines.map((l, li) => <Fragment key={li}>{li > 0 && <br />}{l.split(" ").map((w) => <Fragment key={i}><span style={{ ["--i" as string]: i++ }} className={mark && w.replace(/[^\w]/g, "") === mark ? "s6-mark" : undefined}>{w}</span>{" "}</Fragment>)}</Fragment>)}</>;
 }
 
 export const metadata = {
@@ -66,20 +68,23 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page>
+    <S4Page className="s6-home" close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint /><Close /></div></div>}>
       <PageView name="landing_view" />
 
-      {/* 1 · hero */}
-      <section className="s4-hero" aria-labelledby="hero-title">
+      {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
+      <section className="s4-hero s6-hero" aria-labelledby="hero-title">
         <div className="s4-wrap">
           <Link href="/ai" className="s4-hero-eyebrow"><span>New</span>Kaju is in every workspace <ArrowRight size={14} aria-hidden /></Link>
-          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet Kaju, the AI agent for", "animal welfare programmes"]} /></h1>
+          <h1 id="hero-title" className="s4-h1 s4-words"><Words lines={["Meet Kaju, the AI agent for", "animal welfare programmes"]} mark="Kaju" /></h1>
           <p className="s4-lede">StrayPaw runs animal welfare programmes on one shared record: field capture, veterinary sign-off, evidence and municipal reporting. Kaju does the checking and drafting. Your team approves.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">See how it works</Link></div>
-          <div className="s4-hero-stage">
-            {/* Kaju rests on the product window: the agent lives inside the work. */}
-            <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" enter loop size={112} /></span>
-            <HeroDemo />
+          <div className="s6-canvas">
+            <Blueprint />
+            <div className="s4-hero-stage s6-stage">
+              {/* Kaju rests on the product window: the agent lives inside the work. */}
+              <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" enter loop size={112} /></span>
+              <HeroDemo />
+            </div>
           </div>
         </div>
       </section>
@@ -160,7 +165,7 @@ export default function HomePage() {
       </section>
 
       {/* 8 · security */}
-      <section className="s4-sec" id="security" aria-labelledby="sec-title">
+      <section className="s4-sec s6-security" id="security" aria-labelledby="sec-title">
         <div className="s4-wrap">
           <SecHead id="sec-title" title={<TwoTone a="Built for public money," b="with audit-ready controls" />} link={{ href: "/security", label: "Explore security" }} />
           <Tiles items={[
@@ -175,7 +180,13 @@ export default function HomePage() {
       </section>
 
       {/* 9 · FAQ */}
-      <Faq items={FAQ} title="FAQs" />
+      <Faq items={FAQ} title="FAQs" aside={
+        <div className="s6-help">
+          <b>Talk to the team</b>
+          <p>We&rsquo;ll walk through Kaju on a programme like yours, using last month&rsquo;s register.</p>
+          <Link href="/demo" className="s4-link">Book a demo <ArrowRight size={16} aria-hidden /></Link>
+        </div>
+      } />
       {/* 10 · closing call to action is rendered by S4Page */}
     </S4Page>
   );

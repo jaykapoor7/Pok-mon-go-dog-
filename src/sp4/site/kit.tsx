@@ -10,9 +10,9 @@ import "@/sp4/sp4.css";
 
 /* StrayPaw 4 page kit: the pieces every public page is built from. */
 
-export function S4Page({ children, close }: { children: ReactNode; close?: ReactNode | false }) {
+export function S4Page({ children, close, className = "" }: { children: ReactNode; close?: ReactNode | false; className?: string }) {
   return (
-    <div className="s4 s4-page">
+    <div className={`s4 s4-page ${className}`}>
       <SiteHeader />
       <main id="main">
         {children}
@@ -83,13 +83,14 @@ export function Cards({ items, cols = 3, idp }: { items: CardSpec[]; cols?: 2 | 
   );
 }
 
-export function Faq({ items, title = "Frequently asked questions" }: { items: [string, ReactNode][]; title?: ReactNode }) {
+export function Faq({ items, title = "Frequently asked questions", aside }: { items: [string, ReactNode][]; title?: ReactNode; aside?: ReactNode }) {
   return (
     <section className="s4-sec" aria-labelledby="faq-title">
       <div className="s4-wrap s4-faq">
-        <div>
+        <div className="s4-faq-side">
           <h2 id="faq-title" className="s4-h2">{title}</h2>
           <p className="s4-body" style={{ marginTop: 20, fontSize: 17 }}>Something else? <Link className="s4-blue" href="/contact">Ask us</Link></p>
+          {aside}
         </div>
         <div>{items.map(([q, a]) => <details key={q}><summary>{q}<Plus size={22} aria-hidden /></summary><p>{a}</p></details>)}</div>
       </div>

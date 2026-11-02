@@ -28,7 +28,7 @@ const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefe
 export function UseCases({ steps, title, kicker }: { steps: Step[]; title: ReactNode; kicker?: ReactNode }) {
   const sec = useRef<HTMLElement>(null);
   const [i, setI] = useState(0);
-  const per = 620;
+  const per = 430;
 
   useEffect(() => {
     const on = () => {
@@ -71,6 +71,7 @@ export function UseCases({ steps, title, kicker }: { steps: Step[]; title: React
                   }}>{t.tab}</button>
               ))}
             </div>
+            <div className="s4-uc-progress" aria-hidden><i style={{ transform: `scaleX(${(i + 1) / steps.length})` }} /></div>
             <div id="uc-panel" role="tabpanel" aria-labelledby={`uc-tab-${i}`} className="s4-uc-panel">
               <div key={`c${i}`} className="s4-uc-copy s4-uc-swap">
                 {s.tag}
