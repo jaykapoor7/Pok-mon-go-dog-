@@ -70,7 +70,7 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page className="s6-home" announce={<Link href="/ai"><b>New</b>Kaju is in every workspace <ArrowRight size={14} aria-hidden /></Link>} close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint /><Close a="Put Kaju to work" b="on your programme." sub="See what Kaju would check, prepare and report on a programme like yours." primary={{ href: "/platform", label: "Explore the platform" }} secondary={{ href: "/contact", label: "Talk to the team" }} /></div></div>}>
+    <S4Page className="s6-home" announce={<Link href="/whatsapp"><b>New</b>WhatsApp field intake and monthly reporting <span className="s4-announce-note">intake in testing</span> <ArrowRight size={14} aria-hidden /></Link>} close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint /><Close a="Put Kaju to work" b="on your programme." sub="See what Kaju would check, prepare and report on a programme like yours." primary={{ href: "/platform", label: "Explore the platform" }} secondary={{ href: "/contact", label: "Talk to the team" }} /></div></div>}>
       <PageView name="landing_view" />
       <VideoCard />
 
