@@ -41,3 +41,10 @@ test('a timed out request can be retried and cannot append its late reply',async
  await page.goto('/assistant');await page.clock.install();await page.getByRole('textbox',{name:'Message Kaju'}).fill('Timeout transport test');await page.getByRole('button',{name:'Send',exact:true}).click();await received;await page.clock.fastForward(56000);
  await expect(page.getByRole('alert').filter({hasText:/timed out/i})).toBeVisible();await expect(page.getByRole('button',{name:'Try again',exact:true})).toBeVisible();release();await expect(page.getByText('LATE TIMEOUT TEXT')).toHaveCount(0);
 });
+test('a short phone keeps the empty greeting at the top of the conversation',async({page})=>{
+ await page.setViewportSize({width:390,height:700});await page.emulateMedia({reducedMotion:'reduce'});
+ await page.route('**/api/ai',r=>r.fulfill({json:{scope:'guest',actorRole:'coordinator',tools:true,model:false}}));
+ await page.goto('/assistant');await expect(page.getByRole('textbox',{name:'Message Kaju'})).toBeEnabled();await expect(page.getByRole('button',{name:'Run operational checks',exact:true})).toBeVisible();
+ const log=page.getByRole('log',{name:'Kaju conversation'});await expect.poll(()=>log.evaluate(el=>el.scrollTop)).toBe(0);
+ const heading=await page.locator('.ai3-empty-h').boundingBox(),box=await log.boundingBox();expect(heading&&box&&heading.y>=box.y&&heading.y+heading.height<=box.y+box.height).toBeTruthy();
+});

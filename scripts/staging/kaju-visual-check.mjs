@@ -19,7 +19,11 @@ try{
    await context.addInitScript(({ref,session})=>{if(session)localStorage.setItem(`sb-${ref}-auth-token`,JSON.stringify(session));localStorage.setItem('straypaw.notice.storage.v1','1');localStorage.setItem('straypaw.analytics.optout','1');localStorage.setItem('straypaw.tour.v2','1')},{ref:fixture.ref,session:role?sessions[role]:null});
    const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto(base+path);await expect(page.locator('h1').first()).toBeVisible();
-   if(name==='assistant')await expect(page.getByRole('textbox',{name:'Message Kaju'})).toBeEnabled({timeout:20000});
+   if(name==='assistant'){
+    await expect(page.getByRole('textbox',{name:'Message Kaju'})).toBeEnabled({timeout:20000});
+    const heading=await page.locator('.ai3-empty-h').boundingBox(),log=await page.getByRole('log',{name:'Kaju conversation'}).boundingBox();
+    assert.ok(heading&&log&&heading.y>=log.y,'The empty greeting must not be scrolled out of view');
+   }
    if(name==='ngo'){await expect(page.getByRole('region',{name:'Kaju activity'}).locator('time').first()).toBeVisible();await expect(page.locator('.br-skel')).toHaveCount(0,{timeout:30000})}
    if(name==='municipal')await expect(page.getByRole('group',{name:'Show'})).toBeVisible();
    await page.screenshot({path:`${output}/${name}-${device}.png`,fullPage:true});
