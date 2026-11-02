@@ -51,7 +51,7 @@ export function KajuMotionPreview(){
      <button type="button" className="s4-btn is-primary" disabled={!ambient||reduced||cycling&&!paused} onClick={()=>{setCycling(true);setPaused(false)}}>Play all movements</button>
      <button type="button" className="s4-btn is-line" disabled={!ambient||reduced} onClick={()=>setPaused(v=>!v)}>{paused?'Resume motion':'Pause motion'}</button>
     </div>
-    <p className="s4-small">{reduced?'Your device requests reduced motion. You can still select each pose.':!ambient?'Animation is off in your StrayPaw settings. You can still select each pose.':paused?'Motion paused.':'Blinking, ears, tail and limbs use the existing articulated rig.'}</p>
+    <p className="s4-small">{reduced?'Your device requests reduced motion. You can still select each pose.':!ambient?'Animation is off in your StrayPaw settings. You can still select each pose.':paused?'Motion paused.':'Choose a movement or play the full sequence.'}</p>
    </div>
   </div>}
  </details>;
