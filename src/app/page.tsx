@@ -70,14 +70,13 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page className="s6-home" close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint /><Close a="Put Kaju to work" b="on your programme." sub="See what Kaju would check, prepare and report on a programme like yours." primary={{ href: "/platform", label: "Explore the platform" }} secondary={{ href: "/contact", label: "Talk to the team" }} /></div></div>}>
+    <S4Page className="s6-home" announce={<Link href="/ai"><b>New</b>Kaju is in every workspace <ArrowRight size={14} aria-hidden /></Link>} close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint /><Close a="Put Kaju to work" b="on your programme." sub="See what Kaju would check, prepare and report on a programme like yours." primary={{ href: "/platform", label: "Explore the platform" }} secondary={{ href: "/contact", label: "Talk to the team" }} /></div></div>}>
       <PageView name="landing_view" />
       <VideoCard />
 
       {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
-      <section className="s4-hero s6-hero" aria-labelledby="hero-title">
+      <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">
         <div className="s4-wrap s6-center">
-          <Link href="/ai" className="s4-hero-eyebrow"><span>New</span>Kaju is in every workspace <ArrowRight size={14} aria-hidden /></Link>
           <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">See how it works</Link></div>
           <div className="s6-canvas">

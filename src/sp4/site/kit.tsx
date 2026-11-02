@@ -13,6 +13,7 @@ import "@/sp4/sp4.css";
 export function S4Page({ children, close, className = "", announce }: { children: ReactNode; close?: ReactNode | false; className?: string; announce?: ReactNode }) {
   return (
     <div className={`s4 s4-page ${className}`}>
+      {/* News always goes here, above the navigation: one item at a time, never inside a section. */}
       {announce && <div className="s4-announce">{announce}</div>}
       <SiteHeader />
       <main id="main">

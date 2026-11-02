@@ -128,3 +128,6 @@
   .s6-home .s4-sec .s4-sechead, .s6-home .s4-tile, .s6-home .s4-card, .s6-home .s4-wall > *,
   .s6-rot-w > span, .s6-rot-line.is-out, .s6-rot-line.is-in::after, .s6-vcard { animation: none !important; }
 }
+/* News lives in the bar above the navigation, so the hero opens on the headline. */
+.s6-hero-tight { padding-top: 72px; }
+@media (max-width: 760px) { .s6-hero-tight { padding-top: 36px; } }
