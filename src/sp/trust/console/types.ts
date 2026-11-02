@@ -76,4 +76,4 @@ export type Arrival = {
 export type ArrivalsRead = { arrivals: Arrival[]; week: number };
 
 /** A reviewing office and who reviews for it (/api/admin/offices). */
-export type Office = { id: string; name: string; city: string | null; created_at: string; packages: number; reviewers: { user_id: string; email: string | null; name: string | null; added_at: string }[] };
+export type Office = { id: string; name: string; city: string | null; created_at: string; packages: number; reviewer_count?:number; reviewers: { user_id: string; email: string | null; name: string | null; added_at: string }[] };
