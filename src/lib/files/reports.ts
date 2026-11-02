@@ -17,10 +17,10 @@ export async function buildReport(source: ReportSource, db: SupabaseClient, titl
     const { data, error } = await db.from("kaju_check_runs").select("id,checked_at,rules_version,findings").eq("ngo_id", ngoId).order("checked_at", { ascending: false }).limit(1).maybeSingle();
     const snapshot=readSnapshot(data);
     if (error || !snapshot) throw new Error("Run operational checks before preparing this report.");
-    return { ...head, columns: ["Rule", "Explanation", "Sample count", "Record", "Detail", "Source"], rows: snapshot.findings.flatMap(f => {
+    return { ...head, columns: ["Rule", "Explanation", "Sample count", "Record", "Detail", "Source", "Snapshot", "Checked at", "Rules version"], rows: snapshot.findings.flatMap(f => {
       const count=f.configured===false?"Not set":f.count??"Unknown";
       return f.records.length ? f.records.map(r => [f.rule, f.explanation, count, r.label, Array.isArray(r.missing)?r.missing.filter(v=>typeof v==='string').join(", "):typeof r.due_at==='string'?r.due_at:"", r.href]) : [[f.rule, f.explanation, count, "", f.dueOn ?? "", f.rule==='reporting_deadline'&&f.dueOn?"/ngo/settings#kaju-deadline-title":""]];
-    }), notes: [`Snapshot: ${snapshot.id}`, `Checked at: ${snapshot.checked_at}`, `Rules: ${snapshot.rules_version}`, "Counts are bounded samples of at most 100 records per rule. Findings describe recorded gaps; they do not certify fieldwork. No notification was sent."] };
+    }).map(row=>[...row,snapshot.id,snapshot.checked_at,snapshot.rules_version]), notes: [`Snapshot: ${snapshot.id}`, `Checked at: ${snapshot.checked_at}`, `Rules: ${snapshot.rules_version}`, "Counts are bounded samples of at most 100 records per rule. Findings describe recorded gaps; they do not certify fieldwork. No notification was sent."] };
   }
   if (source === "open_cases") {
     const { data, error } = await db.from("org_case_facts").select("case_code,title,zone,city,status_class,occurred_at,assignee_name").neq("status_class", "closed").or("provenance.is.null,provenance.neq.imported_historical_record,reviewed_at.not.is.null").order("occurred_at", { ascending: false }).limit(1000);
