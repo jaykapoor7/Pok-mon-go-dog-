@@ -21,7 +21,12 @@ const RUN_STEPS: KajuStep[] = [{ state: "thinking", ms: 1700 }, { state: "succes
    is on screen; the panel shows which of its real tools each one uses.
    ════════════════════════════════════════════════════════════════════ */
 
-export type Step = { tab: string; title: ReactNode; body: string; tag?: ReactNode; href: string; cta: string; ui: ReactNode };
+export type Step = { tab: string; title: ReactNode; body: string; tag?: ReactNode; href: string; cta: string; ui: ReactNode; kaju?: string; you?: string };
+
+function Roles({ s }: { s: Step }) {
+  if (!s.kaju && !s.you) return null;
+  return <dl className="s4-uc-roles">{s.kaju && <div><dt>Kaju</dt><dd>{s.kaju}</dd></div>}{s.you && <div><dt>Your team</dt><dd>{s.you}</dd></div>}</dl>;
+}
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -77,6 +82,7 @@ export function UseCases({ steps, title, kicker }: { steps: Step[]; title: React
                 {s.tag}
                 <h3 className="s4-h3">{s.title}</h3>
                 <p className="s4-lede">{s.body}</p>
+                <Roles s={s} />
                 <Link href={s.href} className="s4-link">{s.cta} <ArrowRight size={18} aria-hidden /></Link>
               </div>
               <Grain v={i} id="uc-art" className="s4-uc-art"><div key={`u${i}`} className="s4-uc-swap">{s.ui}</div></Grain>
@@ -92,6 +98,7 @@ export function UseCases({ steps, title, kicker }: { steps: Step[]; title: React
             <span className="s4-eyebrow" style={{ marginBottom: 0 }}>{n + 1} · {t.tab}</span>
             <h3 className="s4-h3">{t.title}</h3>
             <p className="s4-lede">{t.body}</p>
+            <Roles s={t} />
             <Grain v={n} id={`uc-m${n}`}>{t.ui}</Grain>
             <Link href={t.href} className="s4-link is-sm">{t.cta} <ArrowRight size={16} aria-hidden /></Link>
           </article>

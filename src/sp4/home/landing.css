@@ -127,3 +127,38 @@
 .s6-hero { padding-top: 60px; }
 .s6-canvas { margin-top: 52px; padding-top: 100px; }
 @media (max-width: 760px) { .s6-hero { padding-top: 28px; } .s6-canvas { margin-top: 22px; padding-top: 70px; } }
+
+/* ── use cases: who does what, under each story ───────────────────── */
+.s4-uc-roles { display: grid; gap: 10px; margin: 2px 0 4px; padding: 16px 18px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--s4-line); max-width: 480px; }
+.s4-uc-roles div { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: baseline; }
+.s4-uc-roles dt { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--s4-blue); }
+.s4-uc-roles div + div dt { color: var(--s4-green); }
+.s4-uc-roles dd { margin: 0; font-size: 15px; line-height: 1.45; color: var(--s4-ink-2); }
+.s4-uc-copy .s4-h3 { font-size: clamp(26px, 2.6vw, 36px); line-height: 1.12; }
+
+/* ── automations: the daily run, under the on-demand examples ─────── */
+.s6-daily { margin-top: 72px; padding-top: 48px; border-top: 1px solid rgba(255, 255, 255, .12); }
+.s6-daily-head { display: flex; gap: 16px; align-items: flex-start; max-width: 760px; }
+.s6-daily-clock { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, .1); color: #f0b45a; }
+.s6-daily-head h3 { margin: 0; font-size: 26px; font-weight: 500; letter-spacing: -0.03em; color: #fff; }
+.s6-daily-head p { margin: 8px 0 0; font-size: 16px; line-height: 1.5; color: rgba(255, 255, 255, .65); }
+.s6-daily-list { list-style: none; margin: 36px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.s6-daily-list li { display: grid; gap: 6px; padding: 20px; border-radius: 14px; background: rgba(255, 255, 255, .05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1); }
+.s6-daily-list span { font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: #f0b45a; letter-spacing: .08em; }
+.s6-daily-list b { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; color: #fff; }
+.s6-daily-list small { font-size: 14px; line-height: 1.45; color: rgba(255, 255, 255, .6); }
+@media (max-width: 900px) { .s6-daily-list { grid-template-columns: minmax(0, 1fr); } .s6-daily { margin-top: 48px; } }
+
+/* ── integrations: what Kaju does with each tool ──────────────────── */
+.s6-recipes { position: relative; z-index: 2; margin: 8px auto 0; max-width: 1040px; padding: 28px; border-radius: 22px; background: #fff; box-shadow: 0 0 0 1px var(--s4-line), 0 24px 60px rgba(11, 30, 61, .08); }
+.s6-recipes h3 { margin: 0 0 14px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; color: var(--s4-ink); }
+.s6-recipes ul { list-style: none; margin: 0; padding: 0; }
+.s6-recipes li { display: grid; grid-template-columns: 250px 18px 1fr auto; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--s4-line); }
+.s6-recipes li > svg { color: var(--s4-blue); }
+.s6-r-from { font-size: 15px; font-weight: 600; color: var(--s4-ink); letter-spacing: -0.01em; }
+.s6-r-do { font-size: 15px; line-height: 1.45; color: var(--s4-grey); }
+.s6-r-s { font-style: normal; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.s6-r-s.is-live { background: #e6f4ec; color: var(--s4-green); }
+.s6-r-s.is-setup { background: #fdf3e2; color: #8a5a00; }
+.s6-r-s.is-test { background: #eef2fb; color: var(--s4-blue); }
+@media (max-width: 860px) { .s6-recipes { padding: 20px; } .s6-recipes li { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; } .s6-recipes li > svg { display: none; } .s6-r-do { grid-column: 1 / -1; grid-row: 2; } }
