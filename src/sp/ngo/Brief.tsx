@@ -75,13 +75,13 @@ export function Brief() {
   const since = Date.now() - DAY;
   const fresh = d ? d.open.filter((c) => Date.parse(c.last_activity_at ?? c.occurred_at ?? "") > since && !isHistoricalCase(c)) : [];
   const closedNew = d ? d.closed.filter((c) => Date.parse(c.last_activity_at ?? "") > since) : [];
-  const overdue = d ? d.due.filter((f) => f.due_at && Date.parse(f.due_at) < Date.now() && Date.now() - Date.parse(f.due_at) < 90 * DAY) : [];
+  const overdue = d ? d.due.filter((f) => f.source === "scheduled" && f.due_at && Date.parse(f.due_at) < Date.now() && Date.now() - Date.parse(f.due_at) < 90 * DAY) : [];
   const crit = d ? d.open.filter((c) => critical(c) && !isHistoricalCase(c) && !c.assignee_name) : [];
   const stale = d ? d.open.filter((c) => !isHistoricalCase(c) && isStale(c)).length : 0;
   const history = d?.counts?.historicalReview ?? 0;
   /* Prefer the server's counts; when they cannot be read, count what loaded. */
   const nOverdue = d?.counts?.overdueScheduled ?? overdue.length;
-  const nWeek = d?.counts?.dueWeekScheduled ?? (d ? d.due.filter((f) => f.due_at && Date.parse(f.due_at) >= Date.now()).length : 0);
+  const nWeek = d?.counts?.dueWeekScheduled ?? (d ? d.due.filter((f) => f.source === "scheduled" && f.due_at && Date.parse(f.due_at) >= Date.now()).length : 0);
   const nLive = d?.counts?.liveWork ?? (d ? d.open.filter((c) => !isHistoricalCase(c)).length - stale : 0);
 
   type Row = { key: string; href: string; tone: string; icon: ReactNode; title: ReactNode; meta: string; tag?: string };

@@ -61,18 +61,23 @@ export async function dueFollowups(): Promise<DueFollowup[]> {
   if (error) throw new Error(error.message);
   type Base = Omit<DueFollowup, "source" | "case_code" | "case_title" | "condition_class" | "assignee_name" | "animal_name" | "straypaw_id" | "zone" | "city">;
   type CaseIdentity = { id: string; dog_id: string | null; case_code: string | null; title: string | null; condition_class: string | null; assignee_name: string | null; zone: string | null; city: string | null; provenance: string | null };
-  type AnimalIdentity = { id: string; name: string | null; straypaw_id: string | null; zone: string | null; city: string | null; provenance: string | null };
+  type AnimalIdentity = { id: string; name: string | null; straypaw_id: string | null; zone: string | null; city: string | null; provenance: string | null; is_demo?:boolean|null };
   const base = (data ?? []) as Base[];
   const caseIds = [...new Set(base.map((x) => x.case_id).filter(Boolean) as string[])];
   const dogIds = [...new Set(base.map((x) => x.dog_id).filter(Boolean) as string[])];
-  const caseRes = caseIds.length ? await supa.from("org_case_facts").select("id,dog_id,case_code,title,condition_class,assignee_name,zone,city,provenance").in("id", caseIds) : { data: [] as CaseIdentity[], error: null };
+  const [caseDemoRes,caseRes] = await Promise.all([
+    caseIds.length ? supa.from("cases").select("id,is_demo").in("id",caseIds) : Promise.resolve({data:[] as {id:string;is_demo:boolean|null}[],error:null}),
+    caseIds.length ? supa.from("org_case_facts").select("id,dog_id,case_code,title,condition_class,assignee_name,zone,city,provenance").in("id", caseIds) : Promise.resolve({data:[] as CaseIdentity[],error:null}),
+  ]);
+  if(caseDemoRes.error)throw new Error(caseDemoRes.error.message);
+  const caseDemo=new Map((caseDemoRes.data??[]).map(c=>[c.id,c.is_demo]));
   if (caseRes.error) throw new Error(caseRes.error.message);
   const cases = new Map(((caseRes.data ?? []) as CaseIdentity[]).map((x) => [x.id, x]));
   for (const c of cases.values()) if (c.dog_id && !dogIds.includes(c.dog_id)) dogIds.push(c.dog_id);
-  const dogRes = dogIds.length ? await supa.from("dogs").select("id,name,straypaw_id,zone,city,provenance").in("id", dogIds) : { data: [] as AnimalIdentity[], error: null };
+  const dogRes = dogIds.length ? await supa.from("dogs").select("id,name,straypaw_id,zone,city,provenance,is_demo").in("id", dogIds) : { data: [] as AnimalIdentity[], error: null };
   if (dogRes.error) throw new Error(dogRes.error.message);
   const animals = new Map(((dogRes.data ?? []) as AnimalIdentity[]).map((x) => [x.id, x]));
-  return base.map((f) => {
+  return base.filter(f=>!(f.case_id?caseDemo.get(f.case_id)??(f.dog_id?animals.get(f.dog_id)?.is_demo:false):f.dog_id?animals.get(f.dog_id)?.is_demo:false)).map((f) => {
     const c = f.case_id ? cases.get(f.case_id) : null;
     const a = f.dog_id ? animals.get(f.dog_id) : c?.dog_id ? animals.get(c.dog_id) : null;
     const historical = isHistoricalFollowup({ ...f, case_provenance: c?.provenance, animal_provenance: a?.provenance });
@@ -113,16 +118,18 @@ export async function opsCounts(): Promise<OpsCounts | null> {
   ]);
   if ([openRes, quietRes, historicalRes, historicalReviewRes, followupRes, criticalRes].some((r) => r.error)) throw new Error("Organisation workload counts could not be read.");
   const followupCounts = followupRes.data as { scheduled_overdue?: number | string; scheduled_due_week?: number | string; historical_upcoming?: number | string } | null;
-  const currentOpen = openRes.count ?? 0, quiet = quietRes.count ?? 0;
+  const values=[openRes.count,quietRes.count,historicalRes.count,historicalReviewRes.count,criticalRes.count,followupCounts?.scheduled_overdue,followupCounts?.scheduled_due_week,followupCounts?.historical_upcoming];
+  if(values.some(v=>(typeof v!=="number"&&(typeof v!=="string"||!/^\d+$/.test(v)))||!Number.isSafeInteger(Number(v))||Number(v)<0))throw new Error("Organisation workload counts are incomplete.");
+  const currentOpen = openRes.count!, quiet = quietRes.count!;
   return {
     currentOpen,
     quiet,
-    historicalOpen: historicalRes.count ?? 0,
-    historicalReview: historicalReviewRes.count ?? 0,
-    overdueScheduled: Number(followupCounts?.scheduled_overdue ?? 0),
-    dueWeekScheduled: Number(followupCounts?.scheduled_due_week ?? 0),
-    historicalFollowups: Number(followupCounts?.historical_upcoming ?? 0),
-    critical: criticalRes.count ?? 0,
+    historicalOpen: historicalRes.count!,
+    historicalReview: historicalReviewRes.count!,
+    overdueScheduled: Number(followupCounts!.scheduled_overdue),
+    dueWeekScheduled: Number(followupCounts!.scheduled_due_week),
+    historicalFollowups: Number(followupCounts!.historical_upcoming),
+    critical: criticalRes.count!,
     liveWork: Math.max(0, currentOpen - quiet),
   };
 }
