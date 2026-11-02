@@ -23,6 +23,7 @@ import { REVIEW_REASONS, type ReviewReason } from "@/lib/review";
 import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
 import type { CaseResolution } from "@/lib/types";
 import { addNote, assignTo, decideCase, resolveCase, scheduleFollowup, setFollowup, startWork, takeCase, type Receipt } from "../data/work";
+import {useMembership} from "../shell/Shell";
 import { Ack, day } from "../ui";
 
 const DAY = 86_400_000;
@@ -30,6 +31,7 @@ type Mode = null | "outcome" | "close" | "note" | "followup";
 
 export function NextStep({ file, cohort, onChanged }: { file: CaseFile; cohort: "live" | "decide" | "history"; onChanged: () => Promise<void> }) {
   const { user } = useAuth();
+  const membership=useMembership();
   const { c, reg, followups } = file;
   const [members, setMembers] = useState<OrgMember[]>([]);
   const [mode, setMode] = useState<Mode>(null);
@@ -94,8 +96,8 @@ export function NextStep({ file, cohort, onChanged }: { file: CaseFile; cohort: 
             <>
               <p>{mine ? <>This case is <b>with you</b>{c.status === "in_progress" ? ", in progress" : ""}.</> : c.assignee_name ? <>Held by <b>{c.assignee_name}</b>.</> : <><b>Nobody holds this case.</b> Take it, or give it to a named person.</>}</p>
               <div className="row">
-                {!c.assignee_id && self && <button type="button" className="btn is-flame is-s" disabled={!!busy} onClick={() => go("take", () => assignTo(c.id, { id: self.user_id, name: self.name }, actor))}>Take it</button>}
-                {members.length > 0 && (
+                {!c.assignee_id && self && <button type="button" className="btn is-flame is-s" disabled={!!busy} onClick={() => go("take", () => takeCase(c.id, actor))}>Take it</button>}
+                {(membership.role==='admin'||membership.role==='coordinator') && members.length > 0 && (
                   <select className="select next-select" value="" disabled={!!busy} aria-label={c.assignee_id ? "Reassign to" : "Assign to"} onChange={(e) => { const m = members.find((x) => x.user_id === e.target.value); if (m) void go("assign", () => assignTo(c.id, { id: m.user_id, name: m.name }, actor)); }}>
                     <option value="">{c.assignee_id ? "Reassign to…" : "Assign to…"}</option>
                     {members.filter((m) => m.user_id !== c.assignee_id).map((m) => <option key={m.user_id} value={m.user_id}>{m.name}{m.user_id === actor.id ? " (you)" : ""} · {m.role}</option>)}

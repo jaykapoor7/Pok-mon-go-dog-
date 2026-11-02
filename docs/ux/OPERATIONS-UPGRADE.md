@@ -24,7 +24,7 @@ Primary references: [WVS Data Collection App](https://wvs.org.uk/data-collection
 
 | Capability | Adoption / files | Verification / limits |
 |---|---|---|
-| Offline field text | Improved: `Field.tsx`, `lib/field/outbox.ts`, `field-sw.js` | User/org-scoped IndexedDB, shell/static assets only in service-worker cache; pending records remain distinct from submitted records |
+| Offline field text | Improved: `Field.tsx`, `lib/field/outbox.ts`, the existing `sw.js` | User/org-scoped IndexedDB, shell/static assets only in service-worker cache; pending records remain distinct from submitted records |
 | Offline private photos and location observations | New: `lib/field/sync.ts`, field evidence receipt migration | Blob bytes stay in IndexedDB; private deterministic upload paths; matching-file readback on retry; records and audit read independently; GPS requires an explicit user action |
 | Interrupted sync / duplicates | New: note/evidence receipt RPCs | Actor/request lock and payload hash; failed and ambiguous sync retains the draft; retries reuse the same request |
 | Working boundaries / staff | New: working-zone migration, `WorkingZones.tsx`, existing `FieldMap.tsx` | PostGIS geometry validation, programme-owned zones, same-organisation authorised staff, MapLibre overlays; no second map engine |
@@ -45,13 +45,17 @@ Field caching holds private records on the current browser/device. It is partiti
 ## Verification so far
 
 - TypeScript and lint passed during implementation.
-- Ten canonical navigation checks passed across unknown/member/veterinarian/coordinator/admin and reviewer states.
+- Eleven canonical navigation checks passed across unknown/member/veterinarian/coordinator/admin and reviewer states.
 - Nine real staging note-sync checks passed: source/audit, replay, changed-payload rejection, anonymous denial, cross-org denial and receipt forgery denial.
 - Twelve real staging working-zone checks passed: valid geometry, role/tenant checks, assignment, distinct report/review stages, source/audit and retry.
 - Thirty real authenticated browser ABC checks passed at desktop and phone widths after the initial navigation changes: evidence, vet authorisation, coordinator review, monthly package, municipal query/answer/acceptance, actual reviewer PDF/XLSX and cross-org export denial.
 - Two actual IndexedDB browser tests passed for offline persistence, reload and user/org isolation.
 - Twenty-one Kaju reliability checks passed after sharing the destination registry; a denied navigation request no longer claims it opened a screen.
 
-Final complete-build, offline photo journey, final responsive screenshots, accessibility and CI results are recorded in the PR as they complete. Earlier test passes do not certify later code changes. Full offline animal identification/creation, rapid ARV events, verified survey coverage, contract reconciliation and disposition exception templates are not complete. This PR is an operations foundation, not a claim that the entire master scope is finished.
+The completed build passed seven real offline-phone checks (note + private photo + location, fully offline reload, timestamped cached assignments, sync and file readback) and six real working-zone browser checks (coordinator create/assign, staff report, separate supervisor review, database state and existing map). Fifteen desktop/tablet/phone public/authenticated accessibility checks passed with no automated WCAG A/AA findings after correcting existing hero-demo contrast. Final CI results are recorded in the PR. Vercel rejected Preview builds with an account build-rate-limit error; no purchase or plan change was made. Earlier test passes do not certify later code changes. Full offline animal identification/creation, rapid ARV events, verified survey coverage, contract reconciliation and disposition exception templates are not complete. This PR is an operations foundation, not a claim that the entire master scope is finished.
 
 The final field view loads assignment IDs from the authenticated case table rather than comparing display names. A shared display name cannot change whose cases are displayed.
+
+Older unscoped localStorage drafts are not automatically attributed to a new user. They are retained and a recovery notice points to organisation-admin-assisted recovery with the original recorder. No legacy draft text is exposed to a different account.
+
+CI on the earlier 15ef06f5 head passed 226 browser tests and skipped 15, with three failures: two detected a missing explicit verification destination and one detected narrow-phone header overflow. Both causes were corrected rather than hiding the tests. Final-head CI is still required. Vercel Preview creation is blocked by its account build-rate limit (the check links to `upgradeToPro=build-rate-limit`); a paid upgrade was not attempted.

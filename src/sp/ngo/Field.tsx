@@ -31,12 +31,24 @@ export function Field() {
   const { user } = useAuth();
   const mem=useMembership();
   const scope=user&&mem.org?`${user.id}:${mem.org.id}`:null;
+  const [legacyDrafts,setLegacyDrafts]=useState(false);
+  useEffect(()=>{try{setLegacyDrafts(localStorage.getItem("sp2.field.drafts")!==null)}catch{}},[]);
   const [storageError,setStorageError]=useState<string|null>(null);
   const [syncing,setSyncing]=useState(false);
   const currentScope=useRef(scope);currentScope.current=scope;
   const syncLock=useRef(false);
   const [offlineReady,setOfflineReady]=useState(false);
-  useEffect(()=>{if(!("serviceWorker" in navigator))return;let live=true;void navigator.serviceWorker.register("/field-sw.js",{scope:"/ngo/field"}).then(async registration=>{await navigator.serviceWorker.ready;const urls=performance.getEntriesByType("resource").map(e=>e.name);(registration.active??registration.waiting)?.postMessage({type:"warm-field-shell",urls});if(live)setOfflineReady(true)}).catch(()=>{});return()=>{live=false}},[]);
+  useEffect(()=>{
+    if(!('serviceWorker' in navigator))return;let live=true;
+    void(async()=>{
+      const registration=await navigator.serviceWorker.register('/sw.js');
+      const worker=registration.installing??registration.waiting??registration.active;
+      if(!worker)throw Error('Offline worker unavailable');
+      if(worker.state!=='activated')await new Promise<void>((resolve,reject)=>{worker.addEventListener('statechange',()=>{if(worker.state==='activated')resolve();if(worker.state==='redundant')reject(Error('Offline setup interrupted'))})});
+      const ready=await new Promise<boolean>(resolve=>{const channel=new MessageChannel();const timer=setTimeout(()=>resolve(false),15000);channel.port1.onmessage=e=>{clearTimeout(timer);resolve(e.data?.ready===true)};worker.postMessage({type:'warm-field-shell',urls:performance.getEntriesByType('resource').map(e=>e.name)},[channel.port2])});
+      if(live)setOfflineReady(ready);
+    })().catch(()=>{});return()=>{live=false};
+  },[]);
   const [cachedAt,setCachedAt]=useState<string|null>(null);
   const [assignedIds,setAssignedIds]=useState<string[]>([]);
   const [cases, setCases] = useState<OpenCase[] | null>(null);
@@ -49,7 +61,8 @@ export function Field() {
 
   const load = useCallback(async () => {
     setFailed(false);
-    try { const db=getSupabase();if(!db||!user||!mem.org)throw Error("Workspace unavailable");const [c, f, assigned] = await Promise.all([openCases(), dueFollowups(),db.from("cases").select("id").eq("ngo_id",mem.org.id).eq("assignee_id",user.id).limit(800)]);if(assigned.error)throw assigned.error;const ids=(assigned.data??[]).map(c=>c.id); if(currentScope.current!==scope)return;setCases(c);setFus(f);setAssignedIds(ids);setCachedAt(null);if(scope)await fieldCache(scope,{cases:c,fus:f,assignedIds:ids}).catch(()=>setStorageError("Assignments could not be cached on this device. Keep the page open when offline.")); } catch { if(currentScope.current!==scope)return;setFailed(true);if(scope){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[];assignedIds:string[]}>(scope).catch(()=>undefined);setCases(cached?.value.cases??[]);setFus(cached?.value.fus??[]);setAssignedIds(cached?.value.assignedIds??[]);setCachedAt(cached?.at??null)} }
+    if(scope&&!navigator.onLine){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[];assignedIds:string[]}>(scope).catch(()=>undefined);if(currentScope.current!==scope)return;setCases(cached?.value.cases??null);setFus(cached?.value.fus??[]);setAssignedIds(cached?.value.assignedIds??[]);setCachedAt(cached?.at??null);setFailed(!cached);return}
+    try { const db=getSupabase();if(!db||!user||!mem.org)throw Error("Workspace unavailable");const [c, f, assigned] = await Promise.all([openCases(), dueFollowups(),db.from("cases").select("id").eq("ngo_id",mem.org.id).eq("assignee_id",user.id).limit(800)]);if(assigned.error)throw assigned.error;const ids=(assigned.data??[]).map(c=>c.id); if(currentScope.current!==scope)return;setCases(c);setFus(f);setAssignedIds(ids);setCachedAt(null);if(scope)await fieldCache(scope,{cases:c,fus:f,assignedIds:ids}).catch(()=>setStorageError("Assignments could not be cached on this device. Keep the page open when offline.")); } catch { if(currentScope.current!==scope)return;setFailed(true);if(scope){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[];assignedIds:string[]}>(scope).catch(()=>undefined);setCases(cached?.value.cases??null);setFus(cached?.value.fus??[]);setAssignedIds(cached?.value.assignedIds??[]);setCachedAt(cached?.at??null)} }
   }, [scope,user,mem.org]);
   useEffect(() => { setCases(null);setFus([]);setAssignedIds([]);if (user&&scope) void load(); }, [user, scope, load]);
   useEffect(() => {
@@ -78,10 +91,10 @@ export function Field() {
     const body=file?await compressForUpload(file):undefined;if(body&&body.size>15*1024*1024)throw Error('File is over 15 MB');
     await putDraft({id:crypto.randomUUID(),scope,caseId:c.id,code:c.case_code,note:EVIDENCE_LABEL[kind],kind,file:body,location,at:new Date().toISOString(),status:'pending'});setDrafts(await readDrafts(scope));
   };
-  const sendDrafts = async () => {
+  const sendDrafts = async (selected?:string[]) => {
     if (!actor||!scope||syncLock.current) return;
     syncLock.current=true;setSyncing(true);
-    try{for(const d of await readDrafts(scope)){
+    try{for(const d of (await readDrafts(scope)).filter(d=>!selected||selected.includes(d.id))){
       if(currentScope.current!==scope)break;
       let confirmedAt:string;try{const saved=await submitFieldDraft(d,actor.id,mem.org!.id);confirmedAt=saved.confirmedAt}catch(e){await putDraft({...d,status:'failed',error:e instanceof Error?e.message:'Sync interrupted'});continue}
       await deleteDraft(d.id);done(`n${d.caseId}`,{ok:true,at:confirmedAt,what:'Field record synchronised; source and audit checked'});
@@ -94,13 +107,14 @@ export function Field() {
       <div className="fd">
         <p><Link href="/ngo/programmes/zones">Working zones and assignments</Link></p>
         {storageError&&<p role="alert">{storageError}</p>}
+        {legacyDrafts&&<p role="status">Older field drafts remain on this device. They have no account identity, so they cannot be imported automatically. Ask your organisation administrator to arrange recovery with the person who recorded them.</p>}
         {cachedAt&&<p role="status">Offline assignment snapshot from {new Date(cachedAt).toLocaleString()}. Assignments may have changed; synchronisation checks current access.</p>}
-        {visibleDrafts.length>0&&<section aria-label="Unsent field records"><h2>On this device · not submitted</h2>{visibleDrafts.map(d=><details key={d.id}><summary>{d.code??'Case'} · {new Date(d.at).toLocaleString()} · {d.status==='failed'?'Needs retry':'Pending'}</summary><p style={{whiteSpace:'pre-wrap'}}>{d.note}</p><Link href={`/ngo/cases/${d.caseId}`}>Open case</Link></details>)}</section>}
+        {visibleDrafts.length>0&&<section aria-label="Unsent field records"><h2>On this device · not submitted</h2>{visibleDrafts.map(d=><details key={d.id}><summary>{d.code??'Case'} · {new Date(d.at).toLocaleString()} · {d.status==='failed'?'Needs retry':'Pending'}</summary><p style={{whiteSpace:'pre-wrap'}}>{d.note}</p>{d.location&&<p>{d.location}</p>}{d.file&&<button className="btn" type="button" onClick={()=>{const url=URL.createObjectURL(d.file!);const a=document.createElement('a');a.href=url;a.download=`field-evidence-${d.id}.${d.file!.type==='application/pdf'?'pdf':d.file!.type==='image/png'?'png':d.file!.type==='image/webp'?'webp':'jpg'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}>Download device file</button>}<button className="btn" disabled={!online||syncing} onClick={()=>void sendDrafts([d.id])}>Synchronise this record</button><button className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove this device copy? An already synchronised record will remain on the server.'))return;try{await deleteDraft(d.id);setDrafts(await readDrafts(scope))}catch{setStorageError('The device copy could not be removed.')}}}>Remove device copy</button><Link href={`/ngo/cases/${d.caseId}`}>Open case</Link></details>)}</section>}
         {visibleDrafts.map(d=>d.error&&<p key={d.id} role="status">{d.code??"Case"}: {d.error}</p>)}
         <header className="fd-head">
           <p className="small">{offlineReady?"Field page available offline on this device.":"Preparing this device for offline work…"}</p>
           <p className="k">Field · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" })}</p>
-          <h1 className="serif">{cases === null ? <Reading>Reading your day</Reading> : `${mine.length} case${mine.length === 1 ? "" : "s"}, ${myFus.length} follow-up${myFus.length === 1 ? "" : "s"}`}</h1>
+          <h1 className="serif">{cases === null ? failed?"Assignments unavailable":<Reading>Reading your day</Reading> : `${mine.length} case${mine.length === 1 ? "" : "s"}, ${myFus.length} follow-up${myFus.length === 1 ? "" : "s"}`}</h1>
           {!online && <p className="fd-off" role="status"><WifiOff size={15} aria-hidden /> No connection. Notes stay on this phone as drafts until you send them.</p>}
           {visibleDrafts.length > 0 && (
             <div className="fd-drafts">
@@ -156,15 +170,15 @@ function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvid
       <p className="small">{[c.animal_name, c.zone].filter(Boolean).join(" · ") || "Animal and place not recorded"}</p>
       {error&&<p role="alert">{error}</p>}
       {addingEvidence&&<form className="stack" onSubmit={async e=>{e.preventDefault();setBusy(true);try{await onEvidence(kind,file,location);setAddingEvidence(false);setFile(null);setLocation('');setError(null)}catch(x){setError(x instanceof Error?x.message:'Evidence could not be stored. Keep the file on this device.')}finally{setBusy(false)}}}>
-        <label>Evidence type<select className="input" value={kind} onChange={e=>setKind(e.target.value as EvidenceKind)}>{Object.entries(EVIDENCE_LABEL).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+        <label>Evidence type<select aria-label="Evidence type" className="input" value={kind} onChange={e=>setKind(e.target.value as EvidenceKind)}>{Object.entries(EVIDENCE_LABEL).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
         {kind!=='release_location'&&<label>Evidence file<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required onChange={e=>setFile(e.target.files?.[0]??null)}/></label>}
-        <label>Location observation<textarea className="textarea" required={kind==='release_location'} value={location} onChange={e=>setLocation(e.target.value)}/></label>
+        <label>Location observation<textarea className="textarea" maxLength={1500} required={kind==='release_location'} value={location} onChange={e=>setLocation(e.target.value)}/></label>
         <button type="button" className="btn" onClick={()=>navigator.geolocation.getCurrentPosition(p=>setLocation(`Observed GPS: ${p.coords.latitude}, ${p.coords.longitude}; accuracy ${Math.round(p.coords.accuracy)} m; ${new Date(p.timestamp).toISOString()}`),()=>setError('Location unavailable. You can record the location in words.'))}>Use current location</button>
         <button className="btn is-ink" disabled={busy}>Keep evidence as draft</button><button className="btn" type="button" onClick={()=>setAddingEvidence(false)}>Cancel</button>
       </form>}
       {open ? (
         <form className="fd-note" onSubmit={async (e) => { e.preventDefault(); if (!t.trim()) return; setBusy(true); try{await onNote(t.trim());setT("");setOpen(false)}catch{/* Keep unsaved text visible. */}finally{setBusy(false)} }}>
-          <textarea className="textarea" value={t} onChange={(e) => setT(e.target.value)} placeholder="What you saw or did" autoFocus aria-label="Note" />
+          <textarea className="textarea" value={t} onChange={(e) => setT(e.target.value)} placeholder="What you saw or did" maxLength={1500} autoFocus aria-label="Note" />
           <div className="fd-act"><button type="submit" className="btn is-ink" disabled={busy || !t.trim()}>{online ? (busy ? "Saving…" : "Keep as draft") : "Keep as draft"}</button><button type="button" className="btn is-ghost" onClick={() => setOpen(false)}>Cancel</button></div>
         </form>
       ) : (

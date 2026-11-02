@@ -4,8 +4,8 @@
    worse than none: it serves a stale register to somebody standing in front
    of the animal. So this only does two things.
 
-   1. Navigations are network-first. If the network fails, the last copy of
-      that page is served; if there is no copy, the offline page is. The
+   1. Allowed shell navigations are network-first. If the network fails, the last copy of
+      the home, offline or Field client shell is served; if there is no copy, the offline page is. The
       register is never served from cache while the network is available.
    2. Build assets (immutable, content-hashed) are cache-first.
 
@@ -13,7 +13,7 @@
    passed straight through. A queued report must never be answered by a
    cached 200, and no personal data belongs in the cache. */
 
-const VERSION = "straypaw-v1";
+const VERSION = "straypaw-v2";
 const SHELL = `${VERSION}-shell`;
 const PAGES = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline";
@@ -34,7 +34,7 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((keys) =>
         Promise.all(
-          keys.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k)),
+          keys.filter((k) => (k.startsWith("straypaw-v1-") || k.startsWith("straypaw-field-shell-"))).map((k) => caches.delete(k)),
         ),
       )
       .then(() => self.clients.claim()),
@@ -71,7 +71,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (request.mode === "navigate") {
+  if (request.mode === "navigate" && ["/", "/offline", "/ngo/field"].includes(url.pathname)) {
     event.respondWith(
       fetch(request)
         .then((res) => {
@@ -95,4 +95,15 @@ self.addEventListener("fetch", (event) => {
         }),
     );
   }
+});
+
+// Warm only the non-personalised Field client shell and immutable assets.
+self.addEventListener('message',event=>{
+ if(event.data?.type!=='warm-field-shell'||!Array.isArray(event.data.urls))return;
+ event.waitUntil((async()=>{
+  try{const shell=await caches.open(SHELL),pages=await caches.open(PAGES);await pages.add('/ngo/field');
+   const urls=event.data.urls.filter(value=>{try{const u=new URL(value,self.location.origin);return u.origin===self.location.origin&&isBuildAsset(u)}catch{return false}}).slice(0,120);
+   await Promise.all(urls.map(url=>shell.add(url)));event.ports[0]?.postMessage({ready:true});
+  }catch{event.ports[0]?.postMessage({ready:false})}
+ })());
 });

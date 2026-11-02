@@ -2,11 +2,13 @@
  * Visibility is fail-closed for restricted destinations; RLS remains authoritative. */
 export type WorkspaceId='community'|'ngo'|'city'|'learn';
 export type Role='admin'|'coordinator'|'veterinarian'|'member';
-export type NavItem={href:string;label:string;icon:string;match?:string[];exact?:boolean;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>};
+export type NavItem={href:string;label:string;icon:string;match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>};
 export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:boolean;mobile?:boolean;primaryFor?:Role[];assistantKey?:string;note?:string};
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
 export const DESTINATIONS:Destination[]=[
+ {workspace:"city",href:"/city/connections",label:"Connections",icon:"layers",group:"Organisation",primary:false,reviewer:true},
+ {workspace:"ngo",href:"/ngo/verification",label:"ABC evidence & authorisation",short:"Clinical",icon:"shield",group:"Reports",primary:false,primaryFor:["veterinarian"],mobile:true,assistantKey:"verification"},
  {workspace:"ngo",href:"/ngo/programmes/zones",label:"Working zones & assignments",assistantKey:"working_zones",icon:"map",group:"Programmes",primary:false},
   {
     "workspace": "community",
@@ -160,7 +162,7 @@ export const DESTINATIONS:Destination[]=[
     "workspace": "ngo",
     "href": "/ngo/team",
     "assistantKey": "team",
-    "label": "Team & settings",
+    "label": "Team & access",
     "icon": "users",
     "tone": "slate",
     "group": "Organisation",
@@ -571,7 +573,7 @@ export type Workspace={id:WorkspaceId;label:string;purpose:string;ink:string;hom
 export function canDiscover(n:NavItem,role:Role|null,reviewer=false){return (!n.roles||!!role&&n.roles.includes(role))&&(!n.reviewer||reviewer)}
 export function destinations(ws:WorkspaceId,role:Role|null,reviewer=false){return DESTINATIONS.filter(n=>n.workspace===ws&&canDiscover(n,role,reviewer))}
 export function workspaceView(ws:WorkspaceId,role:Role|null,reviewer=false):Workspace{
- const all=destinations(ws,role,reviewer),primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href).map(x=>x.href)]}));
+ const all=destinations(ws,role,reviewer),primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).sort((a,b)=>Number(b.href===META[ws].home)-Number(a.href===META[ws].home)).map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href).map(x=>x.href)]}));
  const groups=[...new Set(all.map(n=>n.group))].map(label=>({label,links:all.filter(n=>n.group===label)}));
  return {...META[ws],home:ws==='city'&&reviewer?'/city/review':META[ws].home,nav:primary,index:groups,dests:primary.filter(n=>n.mobile)};
 }
@@ -584,7 +586,7 @@ export function currentDestination(ws:WorkspaceId,path:string,role:Role|null,rev
 export function currentDest(ws:Workspace,path:string){const n=currentDestination(ws.id,path,null);return n?.href??null}
 export type Tab={href:string;label:string;roles?:Role[]};
 export function tabsFor(path:string,role:Role|null,reviewer=false){const ws=workspaceFor(path,null),current=currentDestination(ws,path,role,reviewer);if(!current)return null;
- const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant');return tabs.length>1?{tabs,on:current.href}:null}
+ const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant').sort((a,b)=>Number(b.primary)-Number(a.primary));return tabs.length>1?{tabs,on:current.href}:null}
 const KEY='sp2.workspace';
 export function rememberWorkspace(id:WorkspaceId){try{sessionStorage.setItem(KEY,id)}catch{}}
 export function lastWorkspace():WorkspaceId|null{try{const v=sessionStorage.getItem(KEY);return v&&v in META?v as WorkspaceId:null}catch{return null}}
