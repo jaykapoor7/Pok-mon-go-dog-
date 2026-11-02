@@ -15,7 +15,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Paperclip, Plug } from "lucide-react";
 import { ArrowRight, ArrowUp, Check, CheckCircle2, ClipboardList, ExternalLink, Info, Loader2, Maximize2, PawPrint, RotateCcw, Sparkles, TriangleAlert, X, Layers, MapPin, FileText } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -197,7 +197,8 @@ export function AiPanel() {
   const ai = useAi();
   const here = usePathname() ?? "";
   const ref = useRef<HTMLElement>(null);
-  useEffect(() => {
+  // Capture the launcher before the thread's passive autofocus runs.
+  useLayoutEffect(() => {
     if (!ai.open || here === '/assistant') return;
     const previous=document.activeElement instanceof HTMLElement?document.activeElement:null;
     const timer=window.setTimeout(()=>ref.current?.querySelector<HTMLTextAreaElement>('textarea')?.focus({preventScroll:true}),50);

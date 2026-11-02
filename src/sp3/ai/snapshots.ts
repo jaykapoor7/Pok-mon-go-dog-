@@ -1,5 +1,5 @@
 import {safeAiHref} from './validation';
-export type CheckFinding={rule:string;count:number|null;explanation:string;configured?:boolean;dueOn?:string;records:{id:string;label:string;href:string}[]};
+export type CheckFinding={rule:string;count:number|null;explanation:string;configured?:boolean;dueOn?:string;records:{id:string;label:string;href:string;missing?:string[];due_at?:string}[]};
 export type CheckSnapshot={id:string;checked_at:string;rules_version:string;findings:CheckFinding[]};
 export function readSnapshot(value:unknown):CheckSnapshot|null{
  if(!value||typeof value!=='object')return null;

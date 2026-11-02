@@ -21,6 +21,7 @@ test('a server workspace scope change hides the old conversation',async({page})=
  scope='isolated-scope-two';await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect(page.getByText('FIRST WORKSPACE PRIVATE TEST TEXT')).toHaveCount(0);
 });
 test('panel restores launcher focus and full screen never duplicates the thread',async({page,isMobile})=>{
+ await page.route('**/api/ai',r=>r.fulfill({json:{scope:'guest',tools:true,model:false}}));
  await page.goto('/community');const opener=isMobile?page.getByRole('navigation',{name:/navigation/}).getByRole('button',{name:'Kaju',exact:true}):page.getByRole('banner').getByRole('button',{name:'Kaju',exact:true});await opener.click();
  const panel=page.getByRole('complementary',{name:'Kaju'});await expect(panel).toBeVisible();await expect(panel.getByRole('textbox',{name:'Message Kaju'})).toBeFocused();await page.keyboard.press('Escape');await expect(panel).toHaveCount(0);await expect(opener).toBeFocused();
  await opener.click();await page.getByRole('link',{name:'Open full screen',exact:true}).click();await expect(page.getByRole('textbox',{name:'Message Kaju'})).toHaveCount(1);await expect(page.getByRole('complementary',{name:'Kaju'})).toHaveCount(0);

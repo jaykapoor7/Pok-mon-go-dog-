@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {answer,privateModelApproved} from '../src/sp3/ai/engine';
 import {isAiReply,safeAiHref,auditReference} from '../src/sp3/ai/validation';
+import {buildReport} from '../src/lib/files/reports';
 import {readSnapshot} from '../src/sp3/ai/snapshots';
 import {readAiScope} from '../src/sp3/ai/scope';
 import {runTool,type ToolCtx} from '../src/sp3/ai/tools';
@@ -13,6 +14,9 @@ async function main(){
  assert.equal(safeAiHref('/ngo/verification/case'),true);assert.equal(safeAiHref('https://drive.google.com/file/x'),true);ok('record and provider sources accept safe destinations only');
  assert.equal(auditReference(42),'42');assert.equal(auditReference('audit-id'),'audit-id');for(const invalid of [null,0,-1,1.5,Number.MAX_SAFE_INTEGER+1,{}])assert.equal(auditReference(invalid),null);ok('numeric and text audit IDs are accepted without inventing a receipt');
  const raw={id:'run',checked_at:'2026-11-02T04:34:00Z',rules_version:'v1',findings:[{rule:'missing',count:null,explanation:'Unknown',records:[]}]};assert.equal(readSnapshot(raw)?.findings[0].count,null);assert.equal(readSnapshot({...raw,findings:null}),null);assert.equal(readSnapshot({...raw,checked_at:'invalid'}),null);ok('missing snapshot counts remain unknown; malformed runs do not become empty success');
+ let stored:unknown={...raw,findings:[...raw.findings,{rule:'reporting_deadline',count:0,configured:false,explanation:'No date supplied',records:[]}]};
+ const reportDb={rpc:async()=>({data:'org-a',error:null}),from:()=>{const q=new Proxy({},{get:(_,key)=>key==='maybeSingle'?async()=>({data:stored,error:null}):()=>q});return q}} as unknown as SupabaseClient;
+ const report=await buildReport('operations_checks',reportDb);assert.equal(report.rows[0][2],'Unknown');assert.equal(report.rows[1][2],'Not set');stored={...raw,findings:null};await assert.rejects(buildReport('operations_checks',reportDb),/Run operational checks/);ok('exported findings preserve unknown/unset values and reject malformed snapshots');
  let ngo='org-a';let role='coordinator';const db={rpc:async(name:string)=>({data:name==='my_ngo'?ngo:{role,offices:[{id:'office-z'},{id:'office-a'}]},error:null})} as unknown as SupabaseClient;
  const a=await readAiScope(db,'user');ngo='org-b';const b=await readAiScope(db,'user');assert.notEqual(a.scope,b.scope);role='member';assert.notEqual(b.scope,(await readAiScope(db,'user')).scope);ok('organisation and role changes produce distinct server scope fingerprints');
  await assert.rejects(readAiScope({rpc:async()=>({data:null,error:{message:'denied'}})} as unknown as SupabaseClient,'user'));ok('workspace lookup errors fail closed');

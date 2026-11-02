@@ -45,7 +45,9 @@ export async function POST(req: Request) {
   if (!token && !(await allowRequest(clientIp(req), "ai", 40, 600))) return NextResponse.json({ error: "Questions are temporarily unavailable. Try again shortly." }, { status: 429 });
   if(auth&&!token)return NextResponse.json({error:"Sign in again."},{status:401});
   const db = callerClient(token,req.signal);
-  if (!db) return NextResponse.json({ error: "The record store is not configured on this deployment." }, { status: 503 });
+  if (!db) return token
+    ? NextResponse.json({ error: "Sign in again." }, { status: 401 })
+    : NextResponse.json({ error: "The record store is not configured on this deployment." }, { status: 503 });
 
   let orgId: string | null = null;
   let userName: string | null = null;

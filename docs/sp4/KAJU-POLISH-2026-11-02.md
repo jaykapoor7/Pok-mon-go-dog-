@@ -29,7 +29,7 @@ This pass preserves the production agent, blue-and-white interface and Explorer 
 | Check | Actual result |
 | --- | --- |
 | Production build, lint, TypeScript | Passed; rerun after any further source changes. |
-| Kaju contracts | 12: scope/fail-closed reads, private-route gate, cancellation, provider error/malformed response, safe citations/proposals, unknown counts, numeric audit IDs. |
+| Kaju contracts | 13: scope/fail-closed reads, private-route gate, cancellation, provider error/malformed response, safe citations/proposals, unknown counts, numeric audit IDs and honest exported findings. |
 | Existing reliability / native files & Connections / export isolation | 21 / 33 / 4 passed. Provider tests use isolated fakes; they do not establish real external account availability. |
 | Relevant desktop/phone browser regression | 67 passed, 3 intentional skips; the final focused suite passed 14 including both phone/desktop timeout cases. |
 | Real staging confirmed actions / roles & evidence / security | 22 / 25 / 15 passed. |
@@ -52,4 +52,8 @@ Evidence logs/screenshots are local under `/tmp/kaju-polish-*` and `/tmp/straypa
 
 Application commit `379985c7` passed the final production build, lint and TypeScript checks. All 15 homepage, AI, assistant, NGO and municipal placements passed Chromium page-error, horizontal-overflow and axe WCAG A/AA checks across 1440px desktop, 834px tablet and 390px phone. Authenticated pages waited for loaded content. The real nine-check Kaju journey passed again on this built candidate. Character screenshots were inspected against the original reference, including all 23 hydrated states; the paw-ground geometry assertion passed. This does not establish native Safari or owner art acceptance.
 
-[PR #45](https://github.com/jaykapoor7/Pok-mon-go-dog-/pull/45) carries the branch. Hosted deployment and final checks follow after verification.
+[PR #45](https://github.com/jaykapoor7/Pok-mon-go-dog-/pull/45) carries the branch. Hosted preview `f616bced` reached READY. Its real nine-check authenticated Kaju journey and all 15 desktop/tablet/phone visual/accessibility checks passed again through Vercel protection, using only isolated staging sessions. Actual native HTTP document checks passed 16 assertions, including five export/readback formats, GeoJSON/KML coordinates, anonymous denial and upload size limits. Ten real recurring-intelligence permission/persistence checks passed.
+
+The full PR CI run exposed a focus race that the slower staging permission check had masked. Launcher focus is now captured in a layout effect before thread autofocus. A no-database authenticated request fails closed with 401 consistently with GET. The existing hero workflow-anchor regression now clicks its actual section target. The contact test supplies the required mocked IP/rate policy and verifies denied buckets cannot send email; production limiter behavior is preserved. Exported operational findings use the validated snapshot and display Unknown/Not set rather than a missing denominator as zero.
+
+The final CI, hosted application SHA and production rollout results are maintained in the linked PR description. Do not infer production deployment from a branch push or preview READY state.
