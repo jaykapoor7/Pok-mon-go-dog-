@@ -78,7 +78,7 @@ export default function HomePage() {
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">See how it works</Link></div>
           <div className="s4-hero-stage">
             {/* Kaju rests on the product window: the agent lives inside the work. */}
-            <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" loop size={112} /></span>
+            <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" enter loop size={112} /></span>
             <HeroDemo />
           </div>
         </div>

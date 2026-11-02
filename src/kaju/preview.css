@@ -1,0 +1,12 @@
+.kj-preview {border-top:1px solid var(--s4-line);border-bottom:1px solid var(--s4-line)}
+.kj-preview summary {cursor:pointer;padding:22px 0;font-size:18px;font-weight:500;color:var(--s4-ink)}
+.kj-preview-in {display:grid;grid-template-columns:minmax(240px,.8fr) minmax(0,1.2fr);gap:36px;align-items:center;padding:12px 0 32px}
+.kj-preview-stage {min-height:270px;display:grid;place-items:center;overflow:hidden}
+.kj-preview-controls {display:grid;gap:12px;max-width:600px}
+.kj-preview-controls .s4-eyebrow {margin:0}
+.kj-preview-controls label {font-size:14px;font-weight:500}
+.kj-preview-controls select {width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--s4-line-2);border-radius:8px;background:#fff;color:var(--s4-ink);font:inherit}
+.kj-preview-actions {display:flex;flex-wrap:wrap;gap:8px}
+.kj-preview-actions .s4-btn {min-height:44px;font-size:14px;padding:10px 18px}
+.kj-preview-actions button:disabled {opacity:.6;cursor:default}
+@media(max-width:640px){.kj-preview-in{grid-template-columns:minmax(0,1fr);gap:12px}.kj-preview-stage{min-height:230px}.kj-preview-stage .kaju{width:240px}}
