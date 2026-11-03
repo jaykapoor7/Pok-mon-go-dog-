@@ -5,6 +5,9 @@
    records, figures and thread on both sides; the database decides which
    actions each person may take and refuses the rest. */
 
+import {useMembership} from '../shell/Shell';
+import {Reconciliation} from "./Reconciliation";
+import {OperationsPanel} from "../ngo/OperationsPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
@@ -19,9 +22,12 @@ import "../ngo/ngo.css";
 import "./abc.css";
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const KIND: Record<string, string> = { created: "Prepared", submitted: "Submitted", query: "Query", answer: "Answer", accepted: "Accepted", returned: "Returned", sanctioned: "Payment sanctioned" };
+const KIND: Record<string, string> = { created: "Prepared", submitted: "Submitted", query: "Query", answer: "Answer", accepted: "Accepted", returned: "Returned", partial_review:"Partial package decision", sanctioned: "Payment sanctioned" };
 
 export function PackageView({ id, side }: { id: string; side: "operator" | "reviewer" }) {
+  const mem=useMembership(),canExport=side==="reviewer"?mem.reviewer:["admin","coordinator"].includes(mem.role??"");
+  const [recordPage,setRecordPage]=useState(0);
+  const [operationCase,setOperationCase]=useState<string|null>(null);
   const [p, setP] = useState<Package | null>(null);
   const [cases, setCases] = useState<PackageCase[]>([]);
   const [ev, setEv] = useState<PackageEvent[]>([]);
@@ -78,7 +84,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
           <header className="ngo-head abc-head">
             <div><h1>{p.title}</h1></div>
             <p className="ngo-sum">{org} · {period(p)}{p.submitted_at ? ` · submitted ${when(p.submitted_at)}` : ""}{p.decided_by_name ? ` · ${PACKAGE_LABEL[p.status].toLowerCase()} by ${p.decided_by_name}` : ""}</p>
-            <div className="row ngo-head-act"><span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span><button type="button" className="btn is-s" disabled={busy} onClick={() => void download("pdf")}>Download PDF</button><button type="button" className="btn is-s" disabled={busy} onClick={() => void download("xlsx")}>Download XLSX</button></div>
+            <div className="row ngo-head-act"><span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span>{canExport&&<button type="button" className="btn is-s" disabled={busy} onClick={() => void download("pdf")}>Download PDF</button>}{canExport&&<button type="button" className="btn is-s" disabled={busy} onClick={() => void download("xlsx")}>Download XLSX</button>}</div>
           </header>
           {msg && <p className={msg.ok ? "abc-ok" : "abc-err"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
           <div className="abc-grid">
@@ -94,7 +100,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
                 <h2 id="rec-h">Records</h2>
                 <table className="abc-cases">
                   <thead><tr><th>Record</th><th>Evidence</th><th>Signed by</th></tr></thead>
-                  <tbody>{cases.map((c) => (
+                  <tbody>{cases.slice(recordPage*25,recordPage*25+25).map((c) => (
                     <tr key={c.case_id}>
                       <td>{side === "operator" ? <Link href={`/ngo/verification/${c.case_id}`}>{c.title || c.case_code}</Link> : c.title || c.case_code}<small>{[c.case_code, c.city].filter(Boolean).join(" · ")}</small></td>
                       <td><span className="ev">{c.evidence.map((e, i) => e.url
@@ -103,8 +109,10 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
                       <td>{c.vet_name ?? "—"}<small>Reviewed by {c.reviewer_name ?? "—"}</small></td>
                     </tr>
                   ))}</tbody>
-                </table>
+                </table><div className="row"><button className="btn" disabled={recordPage===0} onClick={()=>setRecordPage(v=>v-1)}>Previous records</button><span>{cases.length?recordPage*25+1:0}–{Math.min((recordPage+1)*25,cases.length)} of {cases.length}</span><button className="btn" disabled={(recordPage+1)*25>=cases.length} onClick={()=>setRecordPage(v=>v+1)}>Next records</button></div>
               </section>
+              <Reconciliation pkg={p} side={side} onChanged={load} sourceCases={cases}/>
+              {side==="reviewer"&&<details><summary>Inspect current animal operation history</summary><label>Animal record<select className="input" aria-label="Inspect animal operations" value={operationCase??""} onChange={e=>setOperationCase(e.target.value||null)}><option value="">Choose one submitted animal</option>{cases.map(c=><option key={c.case_id} value={c.case_id}>{c.title||c.case_code}</option>)}</select></label>{operationCase&&<OperationsPanel key={operationCase} caseId={operationCase} readOnly/>}</details>}
             </div>
             <aside className="abc-side" aria-label="Review thread">
               <section className="abc-sec">
@@ -116,7 +124,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
                   </li>
                 ))}</ol>
               </section>
-              <Actions side={side} status={p.status} body={body} setBody={setBody} busy={busy} act={act} />
+              {(!p.item_review_enabled||side==="operator"&&["draft","queried"].includes(p.status))&&<Actions side={side} status={p.status} body={body} setBody={setBody} busy={busy} act={act} />}
               {isRecordingDemo && p.status === "accepted" && <Sanction id={p.id} side={side} records={cases.length} onDone={load} />}
             </aside>
           </div>

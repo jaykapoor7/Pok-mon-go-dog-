@@ -133,14 +133,14 @@ export interface AnimalTimelineEvent {
  * and follow-up events created by the operational record migration. */
 export async function getAnimalTimeline(dogId: string): Promise<AnimalTimelineEvent[]> {
   const supa = getSupabase();
-  if (!supa) return [];
+  if (!supa) throw new Error("The clinical record service is unavailable.");
   const { data, error } = await supa
     .from("animal_timeline_events")
     .select("id,event_type,title,details,occurred_at,provenance,source_ref")
     .eq("dog_id", dogId)
     .order("occurred_at", { ascending: false })
     .limit(200);
-  if (error) return [];
+  if (error) throw new Error(error.message);
   return (data ?? []).map((row: any) => ({
     id: row.id,
     event_type: row.event_type,
@@ -164,8 +164,9 @@ export interface PartnerMedicalEvent extends MedicalEvent {
 
 export async function getMedicalEvents(dogId: string): Promise<MedicalEvent[]> {
   const supa = getSupabase();
-  if (!supa) return [];
-  const { data } = await supa.from("medical_events").select("id,dog_id,case_id,kind,event_date,notes,performed_by,created_at").eq("dog_id", dogId).order("event_date", { ascending: false }).limit(200);
+  if (!supa) throw new Error("The clinical record service is unavailable.");
+  const { data,error } = await supa.from("medical_events").select("id,dog_id,case_id,kind,event_date,notes,performed_by,created_at").eq("dog_id", dogId).order("event_date", { ascending: false }).limit(200);
+  if(error)throw new Error(error.message);
   return (data ?? []).map((r: any) => ({
     id: r.id, dog_id: r.dog_id ?? null, case_id: r.case_id ?? null, kind: r.kind,
     event_date: r.event_date, notes: r.notes ?? null, performed_by: r.performed_by ?? null, created_at: r.created_at,
@@ -175,9 +176,9 @@ export async function getMedicalEvents(dogId: string): Promise<MedicalEvent[]> {
 /** A team-only care ledger, with each event kept beside its animal record. */
 export async function getPartnerMedicalEvents(limit = 200): Promise<PartnerMedicalEvent[]> {
   const supa = getSupabase();
-  if (!supa) return [];
+  if (!supa) throw new Error("The clinical record service is unavailable.");
   const { data: ngoId, error: orgError } = await supa.rpc("my_ngo");
-  if (orgError || !ngoId) return [];
+  if (orgError || !ngoId) throw new Error("Organisation access required.");
 
   const { data: rows, error } = await supa
     .from("medical_events")
@@ -185,7 +186,7 @@ export async function getPartnerMedicalEvents(limit = 200): Promise<PartnerMedic
     .eq("dogs.ngo_id", ngoId)
     .order("event_date", { ascending: false })
     .limit(Math.min(250, Math.max(1, Math.floor(limit))));
-  if (error) return [];
+  if (error) throw new Error(error.message);
 
   return (rows ?? []).flatMap((r: any) => {
     const animal = Array.isArray(r.dogs) ? r.dogs[0] : r.dogs;
@@ -214,7 +215,7 @@ export async function addMedicalEvent(input: {
   dogId?: string | null; caseId?: string | null; kind: string; eventDate?: string | null; notes?: string; performedBy?: string;
 }): Promise<string | null> {
   const supa = getSupabase();
-  if (!supa) return "demo-event";
+  if (!supa) throw new Error("The clinical record service is unavailable.");
   const { data, error } = await supa.rpc("add_medical_event", {
     p_dog_id: input.dogId ?? null, p_case_id: input.caseId ?? null, p_kind: input.kind,
     p_event_date: input.eventDate ?? null, p_notes: input.notes ?? null, p_performed_by: input.performedBy ?? null,

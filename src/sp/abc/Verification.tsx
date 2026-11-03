@@ -18,8 +18,8 @@ import "./abc.css";
 const ORDER: Stage[] = ["evidence", "vet", "review", "returned", "ready", "packaged", "accepted"];
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
-export function Dots({ n }: { n: number }) {
-  return <span className="abc-dots" aria-label={`${n} of 5 evidence items`}>{[0, 1, 2, 3, 4].map((i) => <i key={i} className={i < n ? "is-on" : undefined} />)}<span aria-hidden>{n} of 5</span></span>;
+export function Dots({ n,total=5 }: { n: number;total?:number }) {
+  return <span className="abc-dots" aria-label={`${n} of ${total} evidence items`}>{Array.from({length:total},(_,i)=>i).map((i) => <i key={i} className={i < n ? "is-on" : undefined} />)}<span aria-hidden>{n} of {total}</span></span>;
 }
 
 export function Verification() {
@@ -69,7 +69,7 @@ export function Verification() {
               <ul className="abc-list">{shown.map((r) => { const s = stageOf(r); return (
                 <li key={r.case_id}><Link href={`/ngo/verification/${r.case_id}`}>
                   <span className="abc-t"><b>{r.title || r.case_code || "ABC case"}</b><small>{[r.city, day(r.created_at), r.returned_note ? `Returned: ${r.returned_note}` : null].filter(Boolean).join(" · ")}</small></span>
-                  <Dots n={r.evidence_count} />
+                  <Dots total={r.evidence_count+r.missing.length} n={r.evidence_count} />
                   <span className={`abc-tag t-${s}`}>{STAGE_LABEL[s]}</span>
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>

@@ -5,7 +5,7 @@ import { getSupabase } from "./supabase";
 export async function createSurvey(title: string, species: string, description?: string): Promise<string | null> {
   if (species !== "dog") throw new Error("StrayPaw currently records dogs only.");
   const supa = getSupabase();
-  if (!supa) return "demo-survey";
+  if (!supa) throw new Error("The record service is unavailable.");
   const { data, error } = await supa.rpc("create_survey", {
     p_title: title,
     p_species: species,
@@ -48,7 +48,7 @@ export interface SurveyResponseInput {
 export async function submitSurveyResponse(input: SurveyResponseInput): Promise<string | null> {
   if (input.species && input.species !== "dog") throw new Error("StrayPaw currently records dogs only.");
   const supa = getSupabase();
-  if (!supa) return "demo-response";
+  if (!supa) throw new Error("The record service is unavailable.");
   const { data, error } = await supa.rpc("submit_survey_response", {
     p_survey_id: input.surveyId,
     p_area_id: input.areaId ?? null,

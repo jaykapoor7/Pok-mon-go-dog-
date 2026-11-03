@@ -12,7 +12,7 @@ async function main() {
   if (key === 'maybeSingle') return async () => ({ data: packageVisible ? { id: 'test-package', title: 'Isolated test', status: 'submitted', period_start: '2026-10-01', period_end: '2026-10-31' } : null, error: null });
   return (...args: unknown[]) => { filters.push([key, ...args]); return builder; };
  } });
- const db = { rpc: async (name: string) => { reads++; return { data: name === 'my_ngo' ? membership : [{ case_id: 'test-case', case_code: 'TEST-1', evidence: [], vet_name: null }], error: null }; }, from: (name: string) => { filters.push(['from', name]); return builder; } } as unknown as SupabaseClient;
+ const db = { rpc: async (name: string) => { reads++; return { data: name === 'my_ngo' ? membership : name==='operations_reconciliation'?{generated_at:'2026-11-03T00:00:00Z',contract:null,claimed_amount:null,reviewed_amount:null,accepted_amount:null,paid_amount:null,items:[{key:'test-case',case_id:'test-case',procedure_label:'Animal record',claimed_units:1,unit_rate:null,claimed_amount:null,decision:'pending',accepted_units:null,missing:[],note:null,reviewer:null}]}:[{ case_id: 'test-case', case_code: 'TEST-1', evidence: [], vet_name: null }], error: null }; }, from: (name: string) => { filters.push(['from', name]); return builder; } } as unknown as SupabaseClient;
  await buildReport('animals', db);
  assert.ok(filters.some(f => f[0] === 'eq' && f[1] === 'ngo_id' && f[2] === 'test-ngo'));
  console.log('PASS animal report explicitly filters by authenticated organisation');
@@ -25,7 +25,7 @@ async function main() {
  console.log('PASS inaccessible package never reads its case RPC');
  packageVisible = true;
  const report = await buildPackageReport('test-package', db);
- assert.equal(report.rows[0][0], 'TEST-1'); assert.ok(report.notes?.some(n => n.includes('test-package')));
+ assert.equal(report.rows[0][0], 'TEST-1');assert.equal(report.rows[0][4],'Unknown');assert.equal(report.rows[0][7],'Not accepted'); assert.ok(report.notes?.some(n => n.includes('test-package')));
  assert.ok(report.notes?.some(n => n.includes('no signed file links')));
  console.log('PASS package export uses scoped RPC results, provenance and no evidence access URLs');
 }

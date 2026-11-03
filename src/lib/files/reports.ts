@@ -35,7 +35,7 @@ export async function buildReport(source: ReportSource, db: SupabaseClient, titl
   const { data, error } = await db.rpc("abc_verification_queue", { p_limit: 500 });
   if (error) throw new Error(/does not exist|Could not find/i.test(error.message) ? "ABC verification is not switched on for this workspace" : error.message);
   const rows = (data ?? []) as { case_code: string | null; title: string | null; evidence_count: number; vet_authorised: boolean; evidence_reviewed: boolean; government_accepted: boolean; returned_note: string | null }[];
-  return { ...head, notes: ["At most 500 visible ABC records. Attestations are recorded claims, not a new certification."], columns: ["Case", "Title", "Evidence", "Vet authorised", "Reviewed", "Accepted", "Returned"], rows: rows.map((r) => [r.case_code ?? "", r.title ?? "", `${r.evidence_count} of 5`, r.vet_authorised ? "Yes" : "No", r.evidence_reviewed ? "Yes" : "No", r.government_accepted ? "Yes" : "No", r.returned_note ?? ""]) };
+  return { ...head, notes: ["At most 500 visible ABC records. Attestations are recorded claims, not a new certification."], columns: ["Case", "Title", "Evidence", "Vet authorised", "Reviewed", "Accepted", "Returned"], rows: rows.map((r) => [r.case_code ?? "", r.title ?? "", String(r.evidence_count), r.vet_authorised ? "Yes" : "No", r.evidence_reviewed ? "Yes" : "No", r.government_accepted ? "Yes" : "No", r.returned_note ?? ""]) };
 }
 
 
@@ -46,10 +46,15 @@ export async function buildPackageReport(id: string, db: SupabaseClient): Promis
   const { data, error: recordsError } = await db.rpc("abc_package_cases", { p_package: id });
   if (recordsError) throw new Error("Could not read this package's records.");
   const rows = (Array.isArray(data) ? data : []) as { case_id: string; case_code: string | null; title: string | null; city: string | null; evidence: { kind: string }[]; vet_name: string | null; reviewer_name: string | null }[];
+  const {data:reconciliation,error:reconciliationError}=await db.rpc("operations_reconciliation",{p_package:id});
+  if(reconciliationError||!reconciliation||!Array.isArray(reconciliation.items))throw new Error("Reconciliation is unavailable or this account cannot export it.");
+  type Item={snapshot_at?:string;source_hash?:string;signoffs_snapshot?:{kind:string;actor:string}[];evidence_snapshot?:{kind:string}[];key:string;case_id:string;procedure_label:string;claimed_units:number;unit_rate:string|null;claimed_amount:string|null;decision:string;accepted_units:number|null;missing:string[];note:string|null;reviewer:string|null};
+  const items=reconciliation.items as Item[];
+  const source=new Map(rows.map(r=>[r.case_id,r]));
   return {
-    title: p.title, subtitle: `${p.period_start} to ${p.period_end} · Status: ${p.status}`,
-    columns: ["Case", "Title", "City", "Evidence recorded", "Vet authorised by", "Reviewed by"],
-    rows: rows.map(r => [r.case_code ?? r.case_id, r.title ?? "", r.city ?? "", r.evidence.map(e => e.kind).join(", "), r.vet_name ?? "Not recorded", r.reviewer_name ?? "Not recorded"]),
-    notes: [`Package: ${p.id}`, `Exported at ${new Date().toISOString()}`, "Source: StrayPaw package records available to your account. Evidence files remain private; this export contains no signed file links.", ...(p.decided_at ? [`Decision recorded at ${p.decided_at} by ${p.decided_by_name ?? "Not recorded"}`] : [])],
+    title:p.title,subtitle:`${p.period_start} to ${p.period_end} · Status: ${p.status}`,
+    columns:["Case","Title","Procedure","Claimed qty","INR rate","INR claimed","Decision","Accepted qty","Missing / exception","Review note","Decided by","Vet authorised by","Evidence reviewed by","Evidence recorded","Submission snapshot at","Submission source hash"],
+    rows:items.map(item=>{const r=source.get(item.case_id);if(!r)throw new Error("A reconciliation item is outside the visible package source.");return[r.case_code??r.case_id,r.title??"",item.procedure_label,item.claimed_units,item.unit_rate??"Unknown",item.claimed_amount??"Unknown",item.decision,item.accepted_units??"Not accepted",item.missing.join("; "),item.note??"",item.reviewer??"Not recorded",(item.signoffs_snapshot?item.signoffs_snapshot.find(a=>a.kind==="vet_authorised")?.actor:r.vet_name)??"Not recorded",(item.signoffs_snapshot?item.signoffs_snapshot.find(a=>a.kind==="evidence_reviewed")?.actor:r.reviewer_name)??"Not recorded",(item.evidence_snapshot??r.evidence).map(e=>e.kind).join(", "),item.snapshot_at??"Draft / not snapshotted",item.source_hash??"Not recorded"]}),
+    notes:[`Package: ${p.id}`,`Exported at ${reconciliation.generated_at}`,reconciliation.contract?`Source contract: ${reconciliation.contract.name} version ${reconciliation.contract.version}; ${reconciliation.contract.reference}`:"No source contract configured; financial amounts are unknown.",...(reconciliation.contract?.illustrative?["ILLUSTRATIVE CONTRACT: training/testing only; not a real commercial agreement."]:[]),`INR totals · claimed: ${reconciliation.claimed_amount??"Unknown"}; reviewed: ${reconciliation.reviewed_amount??"Unknown"}; accepted: ${reconciliation.accepted_amount??"Unknown"}; externally evidenced payment: ${reconciliation.paid_amount??"Unknown"}`,"StrayPaw does not initiate or approve payments. Payment amounts describe supplied source evidence, not independent bank verification.","Source: StrayPaw package records available to your account. Evidence files remain private; this export contains no signed file links.",...(reconciliation.payment_exceeds_accepted?["Exception: payment references exceed currently accepted claims; review required."]:[]),...(p.decided_at?[`Package decision at ${p.decided_at} by ${p.decided_by_name??"Not recorded"}`]:[])],
   };
 }

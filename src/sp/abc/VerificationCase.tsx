@@ -66,11 +66,12 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
   const vet = live("vet_authorised"), rev = live("evidence_reviewed"), ret = live("evidence_returned");
   const role = d.ctx.role;
   const canSign = role === "veterinarian";
+  const clinicalReady=d.chk.clinical_ready??d.chk.items.surgery_record;
   const canReview = role === "coordinator" || role === "admin";
   const { user } = useAuth();
   const me = user?.id ?? null;
   const selfSigned = !!vet && vet.actor_id === me;
-  const locked = d.chk.government_accepted || d.hist.some((h) => h.kind === "package:submitted") && !d.hist.some((h) => h.kind === "package:returned");
+  const locked = d.chk.amendable !== undefined ? !d.chk.amendable : d.chk.government_accepted || d.hist.some((h) => h.kind === "package:submitted") && !d.hist.some((h) => h.kind === "package:returned");
   const [note, setNote] = useState("");
   const [reason, setReason] = useState("");
   const [why, setWhy] = useState("");
@@ -86,15 +87,15 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
       <div className="abc-grid">
         <div>
           <section className="abc-sec" aria-labelledby="ev-h">
-            <h2 id="ev-h">Evidence · {5 - d.chk.missing.length} of 5</h2>
-            <ul className="abc-check">{EVIDENCE_KINDS.map((k) => { const e = [...d.ev].reverse().find((x) => x.kind === k); return (
+            <h2 id="ev-h">Evidence · {(d.chk.required??EVIDENCE_KINDS).length - d.chk.missing.length} of {(d.chk.required??EVIDENCE_KINDS).length}</h2>
+            <ul className="abc-check">{(d.chk.required??EVIDENCE_KINDS).map((k) => { const e = [...d.ev].reverse().find((x) => x.kind === k); return (
               <li key={k}>
                 <span className={`ck${e ? " is-on" : ""}`} aria-hidden>{e && <Check size={11} strokeWidth={3} />}</span>
                 <span>{EVIDENCE_LABEL[k]}<small>{e ? [e.location_text, when(e.created_at)].filter(Boolean).join(" · ") : "Missing"}</small></span>
                 {e?.url ? <EvidenceLink url={e.url} /> : <span />}
               </li>
             ); })}</ul>
-            {!locked && d.chk.missing.length > 0 && <AddEvidence missing={d.chk.missing} busy={busy} onAdd={(k, v) => act(async () => {
+            {!locked && <AddEvidence missing={d.chk.missing.length ? d.chk.missing : d.chk.required??EVIDENCE_KINDS} busy={busy} onAdd={(k, v) => act(async () => {
               const url = v.file ? await uploadEvidenceFile(d.ctx.ngo_id ?? "", id, k, v.file) : v.url;
               return addEvidence(id, k, { url, location: v.location });
             }, `${EVIDENCE_LABEL[k]} added.`)} />}
@@ -113,8 +114,8 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
         <aside className="abc-side" aria-label="Sign-offs">
           <div className="abc-sign">
             <b>Veterinary authorisation</b>
-            <p>{vet ? `${vet.actor_name} · ${when(vet.created_at)}` : d.chk.items.surgery_record ? "Waiting for a veterinarian" : "Needs the surgery record"}</p>
-            {!locked && !vet && canSign && d.chk.items.surgery_record && (
+            <p>{vet ? `${vet.actor_name} · ${when(vet.created_at)}` : clinicalReady ? "Waiting for a veterinarian" : "Needs the procedure record"}</p>
+            {!locked && !vet && canSign && clinicalReady && (
               <>
                 <textarea className="textarea" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} aria-label="Authorisation note" />
                 <div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => act(() => vetAuthorise(id, note), "Procedure authorised in your name.").then(() => setNote(""))}>Authorise procedure</button></div>
@@ -139,7 +140,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
                     <button type="button" className="btn is-ink is-s" disabled={busy || d.chk.missing.length > 0 || !vet} onClick={() => act(() => reviewEvidence(id, reason), "Evidence approved for reporting.").then(() => setReason(""))}>Approve for reporting</button>
                     <button type="button" className="btn is-s" disabled={busy || !reason.trim()} onClick={() => act(() => returnEvidence(id, reason), "Returned with your reason.").then(() => setReason(""))}>Return</button>
                   </div>
-                  {(d.chk.missing.length > 0 || !vet) && <p className="abc-hint">{d.chk.missing.length > 0 ? "Approve after all five items" : "Approve after the vet signs"}</p>}
+                  {(d.chk.missing.length > 0 || !vet) && <p className="abc-hint">{d.chk.missing.length > 0 ? "Complete the required evidence first" : "Approve after the vet signs"}</p>}
                 </>
               )
             )}
@@ -161,11 +162,11 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
   );
 }
 
-function AddEvidence({ missing, busy, onAdd }: { missing: EvidenceKind[]; busy: boolean; onAdd: (k: EvidenceKind, v: { url?: string; location?: string; file?: File }) => Promise<void> }) {
+function AddEvidence({ missing, busy, onAdd }: { missing: readonly EvidenceKind[]; busy: boolean; onAdd: (k: EvidenceKind, v: { url?: string; location?: string; file?: File }) => Promise<void> }) {
   const [kind, setKind] = useState<EvidenceKind>(missing[0]);
   const [val, setVal] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [byLink, setByLink] = useState(false);
+  const byLink = false;
   const [key, setKey] = useState(0);
   useEffect(() => { if (!missing.includes(kind)) setKind(missing[0]); }, [missing, kind]);
   const isPlace = kind === "release_location";
@@ -180,17 +181,17 @@ function AddEvidence({ missing, busy, onAdd }: { missing: EvidenceKind[]; busy: 
   return (
     <form className="abc-form" onSubmit={submit}>
       <div className="row2">
-        <select className="select" value={kind} onChange={(e) => { setKind(e.target.value as EvidenceKind); reset(); }} aria-label="Evidence to add">{missing.map((k) => <option key={k} value={k}>{EVIDENCE_LABEL[k]}</option>)}</select>
-        {isPlace ? <input className="input" value={val} onChange={(e) => setVal(e.target.value)} placeholder="Where the animal was released" aria-label="Release location" />
+        <select disabled={busy} className="select" value={kind} onChange={(e) => { setKind(e.target.value as EvidenceKind); reset(); }} aria-label="Evidence to add">{missing.map((k) => <option key={k} value={k}>{EVIDENCE_LABEL[k]}</option>)}</select>
+        {isPlace ? <input disabled={busy} className="input" value={val} onChange={(e) => setVal(e.target.value)} placeholder="Where the animal was released" aria-label="Release location" />
           : useFile ? (
             <label className="abc-file">
-              <input key={key} type="file" accept={kind === "surgery_record" ? "image/*,application/pdf" : "image/*"} capture={kind === "surgery_record" ? undefined : "environment"} onChange={(e) => setFile(e.target.files?.[0] ?? null)} aria-label={`${EVIDENCE_LABEL[kind]} file`} />
+              <input disabled={busy} key={key} type="file" accept={kind === "surgery_record" ? "image/*,application/pdf" : "image/*"} capture={kind === "surgery_record" ? undefined : "environment"} onChange={(e) => setFile(e.target.files?.[0] ?? null)} aria-label={`${EVIDENCE_LABEL[kind]} file`} />
               <span>{file ? file.name : kind === "surgery_record" ? "Take a photo or choose a PDF" : "Take or choose a photo"}</span>
             </label>
-          ) : <input className="input" value={val} onChange={(e) => setVal(e.target.value)} placeholder="Link to the file" aria-label="File link" inputMode="url" />}
+          ) : <input disabled={busy} className="input" value={val} onChange={(e) => setVal(e.target.value)} placeholder="Link to the file" aria-label="File link" inputMode="url" />}
         <button type="submit" className="btn is-s" disabled={busy || !ready}>{busy ? "Saving" : "Add"}</button>
       </div>
-      {!isPlace && <button type="button" className="abc-more" onClick={() => { setByLink((v) => !v); reset(); }}>{byLink ? "Upload a file instead" : "Use a link instead"}</button>}
+
       {useFile && <p className="abc-hint">Kept private to your organisation and, once submitted, the reviewing office.</p>}
     </form>
   );

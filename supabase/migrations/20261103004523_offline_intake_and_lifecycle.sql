@@ -10,7 +10,7 @@ create table public.operations_receipts (
 alter table public.operations_receipts enable row level security;
 revoke all on public.operations_receipts from public,anon,authenticated;
 grant select on public.operations_receipts to authenticated;
-create policy operations_receipt_read on public.operations_receipts for select to authenticated using(actor_id=auth.uid());
+create policy operations_receipt_read on public.operations_receipts for select to authenticated using(actor_id=auth.uid() and (ngo_id=public.my_ngo() or exists(select 1 from public.review_office_members m where m.user_id=auth.uid() and m.office_id=nullif(result->>'office_id','')::uuid) or exists(select 1 from public.report_packages p join public.review_office_members m on m.office_id=p.office_id where m.user_id=auth.uid() and p.id=nullif(result->>'package_id','')::uuid and p.status<>'draft')));
 create function operations_private.replay(p_request uuid,p_action text,p_payload jsonb)
 returns jsonb language plpgsql security definer set search_path=pg_catalog,public,pg_temp as $$
 declare old public.operations_receipts;
@@ -170,6 +170,9 @@ declare org uuid:=public.my_ngo();input jsonb:=jsonb_build_array(p_name,p_versio
 begin
  if auth.uid() is null or org is null or coalesce(public.sp_member_role(org),'') not in ('admin','coordinator') then raise exception 'Coordinator access required';end if;
  if nullif(btrim(p_reference),'') is null or p_version<1 or jsonb_typeof(p_rules) is distinct from 'object' or octet_length(p_rules::text)>20000 then raise exception 'Supply versioned workflow rules and their source reference';end if;
+ if exists(select 1 from jsonb_object_keys(p_rules) k where k not in ('releaseRequiresVet','requiredFields')) or (p_rules?'releaseRequiresVet' and jsonb_typeof(p_rules->'releaseRequiresVet')<>'boolean') or (p_rules?'requiredFields' and jsonb_typeof(p_rules->'requiredFields')<>'object') then raise exception 'Unsupported policy shape';end if;
+ if exists(select 1 from jsonb_each(coalesce(p_rules->'requiredFields','{}')) r where r.key not in ('capture','intake','sterilisation','vaccination','recovery','release','transfer','followup','complication','exception','correction','identification') or jsonb_typeof(r.value)<>'array') then raise exception 'Unsupported policy record type';end if;
+ if exists(select 1 from jsonb_each(coalesce(p_rules->'requiredFields','{}')) r cross join lateral jsonb_array_elements_text(r.value) f where f not in ('performedBy','facility','procedure','location','destination','reason','dueDate','vaccine','batch','dose','route','notes')) then raise exception 'Unsupported required policy field';end if;
  result:=operations_private.replay(p_request,'policy',input);if result is not null then return result;end if;
  insert into public.operations_policies(ngo_id,name,version,rules,source_reference,created_by) values(org,btrim(p_name),p_version,p_rules,btrim(p_reference),auth.uid()) returning id into rid;
  insert into public.operational_audit_log(ngo_id,actor_id,entity_type,entity_id,action,after_data) values(org,auth.uid(),'operations_policies',rid,'configure_workflow_policy',jsonb_build_object('request_id',p_request,'version',p_version)) returning id into aid;

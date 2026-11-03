@@ -7,6 +7,10 @@ export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:bo
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
 export const DESTINATIONS:Destination[]=[
+ {workspace:'ngo',href:'/ngo/animals/identity',label:'Identity & duplicate review',icon:'paw',group:'Animals',primary:false,roles:['admin','coordinator']},
+ {workspace:'ngo',href:'/ngo/settings/policies',label:'Workflow policies',icon:'settings',group:'Organisation',primary:false,roles:['admin','coordinator']},
+ {workspace:"ngo",href:"/ngo/contracts",label:"Contracts & reconciliation",assistantKey:"contracts",icon:"file",group:"Reports",primary:false,roles:["admin","coordinator"]},
+ {workspace:"city",href:"/city/contracts",label:"Contracts",icon:"file",group:"Contracts",primary:true,mobile:true,reviewer:true},
  {workspace:"ngo",href:"/ngo/map",label:"Animal & field map",assistantKey:"field_map",icon:"map",group:"Animals",primary:false},
  {workspace:"city",href:"/city/connections",label:"Connections",icon:"layers",group:"Organisation",primary:false,reviewer:true},
  {workspace:"ngo",href:"/ngo/verification",label:"ABC evidence & authorisation",short:"Clinical",icon:"shield",group:"Reports",primary:false,primaryFor:["veterinarian"],mobile:true,assistantKey:"verification"},
