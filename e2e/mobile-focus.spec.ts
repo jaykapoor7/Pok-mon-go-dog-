@@ -56,12 +56,10 @@ test("the AI jobs advance by themselves and stop when one is chosen", async ({ p
   await expect(jobs.nth(3)).toHaveAttribute("aria-pressed", "true");
 });
 
-test("NGO remains a workspace on both Community and NGO pages", async ({ page }) => {
+test("only a verified dual-role member gets a workspace switcher", async ({ page }) => {
   for (const path of ["/community", "/ngo"]) {
     await page.goto(path);
-    await page.locator(".sx3-ws-btn:visible, .sp-ws-btn:visible").first().click();
-    await expect(page.getByRole("menuitemradio", { name: /NGO/ })).toHaveCount(1);
-    await page.keyboard.press("Escape");
+    await expect(page.locator(".sx3-ws-btn:visible, .sp-ws-btn:visible")).toHaveCount(0);
   }
 });
 
@@ -91,11 +89,12 @@ test("signed-out NGO page shows what the workspace includes at every width", asy
   }
 });
 
-test("desktop secondary destinations use named workflow groups", async ({page,isMobile})=>{
+test("desktop sidebar follows the five steps, each place once", async ({page,isMobile})=>{
  test.skip(!!isMobile,'desktop sidebar');await page.goto('/ngo');const side=page.getByRole('complementary',{name:'Workspace'});
- await expect(side.getByRole('link',{name:'Today',exact:true})).toBeVisible();await expect(side.getByText('More',{exact:true})).toHaveCount(0);
+ await expect(side.getByRole('link',{name:'Today',exact:true})).toBeVisible();
+ for (const step of ['Receive reports','Register animals','Treat & sign off','Release']) await expect(side.getByRole('link',{name:step,exact:true})).toHaveCount(1);
  await expect(side.getByRole('link',{name:'Team & settings',exact:true})).toHaveCount(0);
- const group=side.locator('.sx3-more').first();await group.locator('summary').click();await expect(group.locator('ul')).toBeVisible();
+ await expect(side.getByRole('button',{name:'Quick actions'})).toHaveCount(0);
 });
 test("mobile sections close without losing workspace and hide admin tools",async({page,isMobile})=>{
  test.skip(!isMobile,'mobile sections');await page.goto('/ngo');await page.getByRole('button',{name:'Workspace sections',exact:true}).click();

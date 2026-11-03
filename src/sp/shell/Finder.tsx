@@ -11,6 +11,7 @@
    for places, at what precision the record holds it.
    ════════════════════════════════════════════════════════════════════ */
 
+import { shortCode } from "@/lib/caseCode";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ClipboardList, MapPin, PawPrint, Search, Sparkles, X } from "lucide-react";
@@ -61,13 +62,13 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk }: { o
     const out: Hit[] = [];
     const def = workspaceView(ws,role,reviewer);
     if (t && onAsk) out.push({ key: "ask", kind: "Ask Kaju", title: `Ask Kaju: “${q.trim()}”`, detail: "Searches your authorised records and answers with citations", href: "#ask" });
-    for (const d of def.nav) if (!t || d.label.toLowerCase().includes(t)) out.push({ key: `go:${d.href}`, kind: "Go to", title: d.label, detail: def.label, href: d.href });
+    for (const d of def.nav) if (!t || d.label.toLowerCase().includes(t)) { const href = d.query ? `${d.href}?${d.query}` : d.href; out.push({ key: `go:${href}`, kind: "Go to", title: d.step ? `Step ${d.step} · ${d.label}` : d.label, detail: def.label, href }); }
     for (const g of def.index) for (const l of g.links) if (t && l.label.toLowerCase().includes(t) && !def.nav.some((n) => n.href === l.href)) out.push({ key: `go:${l.href}`, kind: "Go to", title: l.label, detail: `${def.label} · ${g.label}`, href: l.href });
     if (t) {
       for (const c of allCities.filter((c) => c.toLowerCase().includes(t)).slice(0, 4)) out.push({ key: `c:${c}`, kind: "City", title: c, detail: "City register on the map", href: `/community?city=${encodeURIComponent(c)}` });
       for (const p of places) out.push({ key: `p:${p.city}:${p.name}`, kind: "Place", title: p.name, detail: `${p.city} · ${p.animals.toLocaleString("en-IN")} animal record${p.animals === 1 ? "" : "s"} placed in this locality`, href: `/community?city=${encodeURIComponent(p.city)}&place=${encodeURIComponent(p.name)}` });
       for (const a of animals) out.push({ key: `a:${a.id}`, kind: "Animal", title: a.title, detail: [a.zone, a.city].filter(Boolean).join(", ") || "Place not recorded", href: `/animal/${a.id}` });
-      for (const c of cases) out.push({ key: `k:${c.id}`, kind: "Case", title: `${c.case_code ?? "Case"} · ${c.condition_class ?? c.title ?? "Open case"}`, detail: [c.animal_name && !/·/.test(c.animal_name) ? c.animal_name : c.straypaw_id, c.zone, c.status_class?.replace(/_/g, " ")].filter(Boolean).join(" · "), href: `/ngo/cases/${c.id}` });
+      for (const c of cases) out.push({ key: `k:${c.id}`, kind: "Case", title: `${shortCode(c.case_code)} · ${c.condition_class ?? c.title ?? "Open case"}`, detail: [c.animal_name && !/·/.test(c.animal_name) ? c.animal_name : c.straypaw_id, c.zone, c.status_class?.replace(/_/g, " ")].filter(Boolean).join(" · "), href: `/ngo/cases/${c.id}` });
     }
     return out;
   }, [q, ws, role, reviewer, allCities, places, animals, cases, onAsk]);

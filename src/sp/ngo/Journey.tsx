@@ -43,11 +43,11 @@ export function Journey({ orgId, role }: { orgId: string; role: string | null })
 
   const lead = role === "admin" || role === "coordinator";
   const steps: Step[] = [
-    { key: "arrived", n: "1", title: "Arrived", hint: "Reports to prepare", href: "/ngo/inbox", mine: role === "member" || lead },
-    { key: "identity", n: "2", title: "Identity", hint: "Animals to confirm", href: "/ngo/animals/identity", mine: lead },
-    { key: "vet", n: "3", title: "Veterinary", hint: "Awaiting a vet’s record", href: "/ngo/verification?stage=vet", mine: role === "veterinarian" },
-    { key: "release", n: "4", title: "Recovery & release", hint: "Release photo or place missing", href: "/ngo/verification?stage=evidence", mine: role === "member" || lead },
-    { key: "claimable", n: "5", title: "Submission", hint: "Approved, not yet in a package", href: "/ngo/packages", mine: lead },
+    { key: "arrived", n: "1", title: "Receive", hint: "New reports to prepare", href: "/ngo/inbox", mine: role === "member" || lead },
+    { key: "identity", n: "2", title: "Register", hint: "Animals to confirm", href: "/ngo/animals/identity", mine: lead },
+    { key: "vet", n: "3", title: "Treat", hint: "Waiting for the vet", href: "/ngo/verification?stage=vet", mine: role === "veterinarian" },
+    { key: "release", n: "4", title: "Release", hint: "Release photo or place missing", href: "/ngo/verification?stage=evidence", mine: role === "member" || lead },
+    { key: "claimable", n: "5", title: "Submit", hint: "Approved, ready to bill", href: "/ngo/packages", mine: lead },
   ];
   return (
     <nav className="jy" aria-label="Today across the five steps">

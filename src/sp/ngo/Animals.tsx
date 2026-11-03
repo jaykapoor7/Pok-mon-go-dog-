@@ -26,7 +26,7 @@ import { NgoGate } from "./Gate";
 import { MobileDetails } from "../ui/MobileDetails";
 import "./ngo.css";
 
-const PAGE = 100;
+const PAGE = 20;
 type Filter = { ster: "sterilised" | "not_sterilised" | "unknown" | null; vacc: "vaccinated" | "not_vaccinated" | "unknown" | null; help: boolean | null; zone: string };
 
 export function Animals() {
@@ -80,7 +80,7 @@ export function Animals() {
             const t = animalTitle({ name: a.name, straypaw_id: a.straypaw_id, id: a.id });
             return (
               <Link key={a.id} href={`/ngo/animals/${a.id}`} className={`reg-row${a.needs_help ? " is-help" : ""}`} role="row">
-                <span className="reg-id" role="cell"><Portrait src={a.cover_photo} tag={t} sensitive={a.needs_help} size="s" /><span><b>{t}</b><small className="mono">{a.straypaw_id ?? "ID pending"}{a.code ? ` · ${a.code}` : ""}</small>{a.needs_help && <em className="pill is-urgent">Needs help</em>}</span></span>
+                <span className="reg-id" role="cell"><Portrait src={a.cover_photo} tag={t} sensitive={a.needs_help} size="s" /><span><b>{t}</b>{a.name ? <small className="mono">{a.straypaw_id ?? "ID pending"}{a.code ? ` · ${a.code}` : ""}</small> : a.code ? <small className="mono">{a.code}</small> : null}{a.needs_help && <em className="pill is-urgent">Needs help</em>}</span></span>
                 <span role="cell">{a.zone ?? <i className="small">not recorded</i>}</span>
                 <span role="cell"><Status v={a.sterilisation_status} yes="Sterilised" /></span>
                 <span role="cell"><Status v={a.vaccination_status} yes="Vaccinated" /></span>
@@ -91,7 +91,7 @@ export function Animals() {
           })}
         </div>
         {total > PAGE && <div className="row ngo-pager"><button type="button" className="btn is-s" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</button><span className="small">Page {page + 1} of {Math.ceil(total / PAGE)}</span><button type="button" className="btn is-s" disabled={(page + 1) * PAGE >= total} onClick={() => setPage((p) => p + 1)}>Next</button></div>}
-        <p className="small ngo-foot">Possible duplicates are compared by a person: same animal, different animals, or not sure. Identity links can be undone and keep their source codes. A reviewed identity-merge tool needs new backend support and is not offered here yet.</p>
+        <p className="small ngo-foot">Possible duplicates are compared by a person: same animal, different animals, or not sure. Identity links can be undone and keep their source codes.</p>
       </div>
     </NgoGate>
   );

@@ -12,6 +12,7 @@
    unless a separately authenticated veterinary sign-off exists in the linked case.
    ════════════════════════════════════════════════════════════════════ */
 
+import { shortCode } from "@/lib/caseCode";
 import {clinicalNarrative} from '@/lib/clinical-narrative';
 import {OperationsPanel} from './OperationsPanel';
 import Link from "next/link";
@@ -95,7 +96,7 @@ export function Casefile({ id }: { id: string }) {
             <div className="cf-body">
               <section className="cf-sec">
                 <h2 className="h2">Cases</h2>
-                {sourceErrors.cases?<p role="alert">{sourceErrors.cases}</p>:cases.length ? <ul className="cf-cases">{cases.map((c) => <li key={c.id}><Link href={`/ngo/cases/${c.id}`}><span className="mono">{c.case_code ?? "Case"}</span><b>{c.condition_class ?? "Request"}</b><span className="pill">{STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}</span><small>{day(c.occurred_at)}{c.assignee_name ? ` · ${c.assignee_name}` : ""}{c.provenance === "imported_historical_record" ? " · imported" : ""}</small><ArrowUpRight size={14} aria-hidden /></Link></li>)}</ul> : <p className="small">No case on this animal in your organisation.</p>}
+                {sourceErrors.cases?<p role="alert">{sourceErrors.cases}</p>:cases.length ? <ul className="cf-cases">{cases.map((c) => <li key={c.id}><Link href={`/ngo/cases/${c.id}`}><span className="mono">{shortCode(c.case_code)}</span><b>{c.condition_class ?? "Request"}</b><span className="pill">{STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}</span><small>{day(c.occurred_at)}{c.assignee_name ? ` · ${c.assignee_name}` : ""}{c.provenance === "imported_historical_record" ? " · imported" : ""}</small><ArrowUpRight size={14} aria-hidden /></Link></li>)}</ul> : <p className="small">No case on this animal in your organisation.</p>}
                 <h2 className="h2">Follow-ups</h2>
                 {sourceErrors.followups?<p role="alert">{sourceErrors.followups}</p>:fus.length ? <ul className="fus">{fus.map((f) => <li key={f.id}><span><b>{(f.kind ?? "Recheck").replace(/_/g, " ")}</b><small>{f.note ?? ""}</small></span><span className={`pill ${f.status === "done" ? "is-care" : f.status === "missed" ? "is-caution" : Date.parse(f.due_at) < Date.now() && f.status === "upcoming" ? "is-urgent" : "is-info"}`}>{f.status} · {day(f.due_at)}</span></li>)}</ul> : <p className="small">No follow-ups on this animal.</p>}
                 <details><summary>Earlier source timeline{timeline?` · ${timeline.length} entries`:""}</summary>

@@ -13,6 +13,7 @@
    history with the person's name. Nothing closes on a timer.
    ════════════════════════════════════════════════════════════════════ */
 
+import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -91,7 +92,7 @@ function Item({ c, cohort, receipt, onAct }: { c: ReviewCase; cohort: Cohort; re
   return (
     <li className={`rv-item${settled ? " is-done" : ""}`}>
       <div className="rv-id">
-        <Link className="mono small" href={`/ngo/cases/${c.id}`}>{c.case_code ?? "Case"}</Link>
+        <Link className="mono small" href={`/ngo/cases/${c.id}`}>{shortCode(c.case_code)}</Link>
         <b>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Request"}</b>
         <small>{[c.animal_name, c.zone].filter(Boolean).join(" · ") || "Animal and place not recorded"}</small>
       </div>

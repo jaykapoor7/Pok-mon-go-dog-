@@ -14,7 +14,7 @@
 
 html .sp-header {
   --hd-ink: #0b1e3d; --hd-frame: #050f23; --hd-blue: #2457ce; --hd-dim: #33415c;
-  --hd-paper: #fffdf9; --hd-tint: #e4ebfa; --hd-ground: #f3ede4; --hd-rule: #d9dee6;
+  --hd-paper: #ffffff; --hd-tint: #e4ebfa; --hd-ground: #f5f7fb; --hd-rule: #d9dee6;
   --hd-ease: cubic-bezier(.23, 1, .32, 1);
   position: sticky; top: 0; z-index: 60; display: block; padding: 8px 0; background: var(--hd-ground); color: var(--hd-ink); border: 0; isolation: isolate;
 }

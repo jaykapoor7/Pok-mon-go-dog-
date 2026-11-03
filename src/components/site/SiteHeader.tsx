@@ -29,6 +29,13 @@ export { AUDIENCES, PLATFORM, RESOURCES, SOLUTIONS } from "@/sp3/site/nav-data";
 
 type MenuId = "platform" | "solutions";
 
+/** Community, Research and Education: public products anyone can open, no account needed. */
+const PUBLIC = [
+  { label: "Community", href: "/community", on: ["/community", "/for-community"] },
+  { label: "Research", href: "/research", on: ["/research", "/research-standards"] },
+  { label: "Education", href: "/education", on: ["/education", "/learn"] },
+];
+
 export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean; float?: boolean } = {}) {
   void props;
   const path = usePathname() ?? "";
@@ -104,9 +111,10 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
         <nav className="s4-nav-links" aria-label="Site" onPointerLeave={(e) => { if (e.pointerType === "mouse") hover(null); }}>
           <Mega id="platform" label="Product" open={menu === "platform"} onToggle={toggle} onHover={hover} cols={[...MEGA.platform, ...MEGA.resources.slice(0, 1)]}
             feature={<><div className="s4-mega-shot" aria-hidden><span className="s4-mega-q">Which Ward 5 vaccinations have no batch number?</span><span className="s4-mega-a"><KajuFace size={14} /> One of 212, from the 29 Oct camp: SP-0507.</span><span className="s4-mega-c">Answered by Kaju · checked by Priya</span></div><p>Kaju finds missing evidence and prepares records. A person confirms every change. <Link href="/ai">Learn more</Link></p></>} />
-          <Mega id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} onHover={hover} cols={MEGA.solutions} />
+          <Mega id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} onHover={hover} cols={[...MEGA.solutions, ...MEGA.resources.slice(1, 2)]} />
           <Link href="/ai" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/ai") ? "page" : undefined} className="s4-nav-kaju"><KajuFace size={18} />Kaju</Link>
-          <Link href="/customers" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/customers") ? "page" : undefined}>Customers</Link>
+          {/* The three public products, each opening its own tool. */}
+          {PUBLIC.map((p) => <Link key={p.href} href={p.href} onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={p.on.some(here) ? "page" : undefined}>{p.label}</Link>)}
           <Link href="/pricing" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/pricing") ? "page" : undefined}>Pricing</Link>
         </nav>
 
@@ -123,9 +131,9 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
 
       <div id="s4-sheet" className={`s4-sheet${sheet ? " is-open" : ""}`} aria-hidden={!sheet} inert={!sheet ? true : undefined}>
         <SheetGroup label="Product" cols={[...MEGA.platform, ...MEGA.resources.slice(0, 1)]} />
-        <SheetGroup label="Solutions" cols={MEGA.solutions} />
+        <SheetGroup label="Solutions" cols={[...MEGA.solutions, ...MEGA.resources.slice(1, 2)]} />
         <Link href="/ai">Kaju</Link>
-        <Link href="/customers">Customers</Link>
+        {PUBLIC.map((p) => <Link key={p.href} href={p.href}>{p.label}</Link>)}
         <Link href="/pricing">Pricing</Link>
         <div className="s4-sheet-cta">
           <Link href="/demo" className="s4-btn is-primary">Book a demo</Link>

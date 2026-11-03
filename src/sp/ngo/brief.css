@@ -132,3 +132,43 @@
 }
 @media (prefers-reduced-motion: reduce) { .jy a { transition: none; } }
 .kp-calm { display: flex; align-items: center; gap: 10px; }
+
+/* 4.1: Today fits one screen on a desktop. The five steps run across the top;
+   what to do now sits left, Kaju's prepared work and the month sit right. */
+.br-in { max-width: 1180px; padding: 32px 32px 24px; }
+.br-hello { font-size: 30px; line-height: 1.15; }
+.br-hello span { display: inline; margin-left: 10px; font-size: 18px; letter-spacing: -0.02em; }
+.br-since { margin-top: 8px; font-size: 14px; }
+.br-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 40px; }
+.br-main, .br-rail { min-width: 0; }
+@media (min-width: 1200px) {
+  .br-cols { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  .br-rail > :first-child { margin-top: 28px; }
+}
+.br-dock { max-width: 1180px; padding-left: 32px; padding-right: 32px; }
+.br-fold > summary { list-style: none; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; cursor: pointer; padding: 6px 0; border-top: 1px solid #eceef2; }
+.br-fold > summary::-webkit-details-marker { display: none; }
+.br-fold > summary .br-h { margin: 0; }
+.br-fold > summary::after { content: "Show"; font-size: 12.5px; color: #2457ce; }
+.br-fold[open] > summary::after { content: "Hide"; }
+.br-fold-n { margin-left: auto; font-size: 12.5px; color: #6f7380; }
+@media (max-width: 860px) {
+  .br-in { padding: 20px 16px 16px; }
+  .br-hello { font-size: 24px; }
+  .br-hello span { display: block; margin: 2px 0 0; font-size: 16px; }
+}
+/* The five steps as five calm cards: number, verb, what is waiting, the count. */
+.jy { margin: 20px 0 4px; }
+.jy ol { gap: 10px; border: 0; }
+.jy li + li { border-left: 0; }
+.jy a { min-height: 104px; padding: 14px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px #e6e9ef; transition: box-shadow 160ms, transform 160ms; }
+.jy a:hover { background: #fff; box-shadow: 0 0 0 1px #2457ce, 0 8px 22px -14px rgba(36, 87, 206, .45); transform: translateY(-1px); }
+.jy-t b { font-size: 14.5px; }
+.jy-c { margin-top: 10px; font-size: 26px; font-variant-numeric: tabular-nums; }
+.jy-c.is-on { color: #2457ce; }
+@media (max-width: 860px) {
+  .jy ol { gap: 6px; }
+  .jy a { min-height: 56px; padding: 10px 12px; }
+  .jy-c { margin-top: 0; font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .jy a:hover { transform: none; } }

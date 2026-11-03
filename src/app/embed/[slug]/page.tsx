@@ -134,23 +134,13 @@ function MiniFootprint({ cells, place }: { cells: PublicOrgH3Cell[]; place: stri
 
   return (
     <div className={styles.miniMap}>
-      <div className={styles.miniMapHead}>
-        <span>Recorded footprint</span>
-        <span>{place}</span>
-      </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className={styles.miniMapPlot}
         role="img"
-        aria-label={`Public coarse-location footprint for ${place}`}
+        aria-label={`Where records come from in ${place}: ${formatter.format(visible.length)} areas`}
         preserveAspectRatio="xMidYMid meet"
       >
-        <g className={styles.mapGraticule} aria-hidden="true">
-          <line x1={width / 3} y1="0" x2={width / 3} y2={height} />
-          <line x1={(width / 3) * 2} y1="0" x2={(width / 3) * 2} y2={height} />
-          <line x1="0" y1={height / 3} x2={width} y2={height / 3} />
-          <line x1="0" y1={(height / 3) * 2} x2={width} y2={(height / 3) * 2} />
-        </g>
         <g aria-hidden="true">
           {edgeRings.map((ring, index) => (
             <path key={`edge-${index}`} d={pathOf(ring)} className={styles.mapEdge} />
@@ -170,22 +160,11 @@ function MiniFootprint({ cells, place }: { cells: PublicOrgH3Cell[]; place: stri
         <g aria-hidden="true">
           {hotspots.map((cell) => {
             const { x, y } = project(cell.lng, cell.lat);
-            return (
-              <circle
-                key={`hot-${cell.h3}`}
-                cx={x}
-                cy={y}
-                r={5 + Math.sqrt(cell.records / maxRecords) * 5}
-                className={styles.mapHotspot}
-              />
-            );
+            return <circle key={`hot-${cell.h3}`} cx={x} cy={y} r={4 + Math.sqrt(cell.records / maxRecords) * 4} className={styles.mapHotspot} />;
           })}
         </g>
       </svg>
-      <div className={styles.mapFoot}>
-        <span>Recorded animals, not population.</span>
-        <span>{formatter.format(visible.length)} mapped cells</span>
-      </div>
+      <span className={styles.mapTag}>{place} · {formatter.format(visible.length)} areas</span>
     </div>
   );
 }
@@ -206,61 +185,58 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
   const compactMetrics = impact ? [
     impact.sterilised > 0 && { value: formatter.format(impact.sterilised), label: "Sterilised" },
     impact.vaccinated > 0 && { value: formatter.format(impact.vaccinated), label: "Vaccinated" },
-    impact.activeCases > 0 && { value: formatter.format(impact.activeCases), label: "Active cases" },
+    impact.activeCases > 0 && { value: formatter.format(impact.activeCases), label: "Being helped now" },
     medianRounded != null && {
       value: medianRounded === 0 ? "Same day" : `${medianRounded} day${medianRounded === 1 ? "" : "s"}`,
-      label: "Median first action",
+      label: "Typical time to help",
     },
   ].filter(Boolean) as { value: string; label: string }[] : [];
   const initials = org.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const updated = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" }).format(new Date());
+  const href = `${SITE_URL}/org/${org.slug}`;
 
+  /* The whole card is one link, so a tap anywhere opens the live record on
+     StrayPaw in a new tab. The page reloads itself every five minutes, so the
+     partner's website always shows current numbers without any change there. */
   return (
     <main className={styles.embed} aria-label={`${org.name} live animal welfare records`}>
-      <section className={styles.card}>
+      <meta httpEquiv="refresh" content="300" />
+      <a className={styles.card} href={href} target="_blank" rel="noopener noreferrer" aria-label={`Open ${org.name}'s live records on StrayPaw (opens in a new tab)`}>
         <header className={styles.identity}>
           {org.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className={styles.logo} src={org.logo_url} alt={`${org.name} logo`} />
+            <img className={styles.logo} src={org.logo_url} alt="" />
           ) : <span className={styles.logoFallback} aria-hidden="true">{initials || "NGO"}</span>}
-          <div className={styles.identityCopy}>
-            <p className={styles.live}><span aria-hidden="true" />{impact ? "Live records" : "Public records"}</p>
-            <h1 className={styles.name}>{org.name}</h1>
-            {location && <p className={styles.place}>{location}</p>}
-          </div>
+          <span className={styles.identityCopy}>
+            <span className={styles.name}>{org.name}</span>
+            {location && <span className={styles.place}>{location}</span>}
+          </span>
+          <span className={styles.live}><i aria-hidden="true" />Live</span>
         </header>
 
-        <div className={styles.primary}>
-          <div className={styles.primaryStat}>
-            {impact ? <>
-              <strong className={styles.primaryNumber}>{formatter.format(impact.animalsRecorded)}</strong>
-              <div className={styles.primaryCopy}>
-                <span className={styles.primaryLabel}>Dogs on record</span>
-                {impact.caseRecords > 0 && (
-                  <span className={styles.caseLine}>{formatter.format(impact.caseRecords)} documented case records</span>
-                )}
-              </div>
-            </> : <p className={styles.countsUnavailable}>Live counts are temporarily unavailable. Open the organisation record to try again.</p>}
+        {impact ? (
+          <div className={styles.primary}>
+            <strong className={styles.primaryNumber}>{formatter.format(impact.animalsRecorded)}</strong>
+            <span className={styles.primaryLabel}>street dogs cared for and recorded</span>
           </div>
-          <MiniFootprint cells={h3Cells} place={mapPlace} />
-        </div>
+        ) : <p className={styles.countsUnavailable}>Live counts are refreshing. Tap to see the full record.</p>}
 
-        <div className={styles.lower}>
-          {compactMetrics.length > 0 && (
-            <div className={styles.metrics} aria-label="Documented impact">
-              {compactMetrics.map((metric) => (
-                <div className={styles.metric} key={metric.label}>
-                  <strong className={styles.metricValue}>{metric.value}</strong>
-                  <span className={styles.metricLabel}>{metric.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          <a className={styles.cta} href={`${SITE_URL}/org/${org.slug}`} target="_blank" rel="noopener noreferrer">
-            <span>Explore live records</span><ArrowUpRight aria-hidden="true" size={17} strokeWidth={2} />
-          </a>
-          <p className={styles.attribution}>Data infrastructure by <strong>StrayPaw</strong></p>
-        </div>
-      </section>
+        <MiniFootprint cells={h3Cells} place={mapPlace} />
+
+        {compactMetrics.length > 0 && (
+          <div className={styles.metrics} aria-label="Documented work">
+            {compactMetrics.map((metric) => (
+              <span className={styles.metric} key={metric.label}>
+                <strong className={styles.metricValue}>{metric.value}</strong>
+                <span className={styles.metricLabel}>{metric.label}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <span className={styles.cta}><span>See live records</span><ArrowUpRight aria-hidden="true" size={16} strokeWidth={2.2} /></span>
+        <span className={styles.attribution}>Updated {updated} · Records kept on <b>StrayPaw</b></span>
+      </a>
     </main>
   );
 }

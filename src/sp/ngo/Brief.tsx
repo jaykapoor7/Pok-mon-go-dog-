@@ -11,6 +11,7 @@
    invented, and empty sections say so plainly.
    ════════════════════════════════════════════════════════════════════ */
 
+import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, ArrowUp, CalendarClock, CircleAlert, ClipboardList, History, Inbox, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
@@ -97,8 +98,8 @@ export function Brief() {
   /* Each role's own next steps first: a vet's procedures to authorise, a
      coordinator's records to review (when verification is switched on). */
   const abcTodo: Row[] = d ? (isVet
-    ? d.abc.filter((r) => stageOf(r) === "vet").slice(0, 3).map((r) => ({ key: `v${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || r.case_code}</b> needs your authorisation</>, meta: r.city ?? "ABC procedure" }))
-    : reviews ? d.abc.filter((r) => stageOf(r) === "review").slice(0, 2).map((r) => ({ key: `r${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || r.case_code}</b> is ready for your review</>, meta: `Authorised by ${r.vet_name ?? "a veterinarian"}` }))
+    ? d.abc.filter((r) => stageOf(r) === "vet").slice(0, 3).map((r) => ({ key: `v${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || shortCode(r.case_code)}</b> needs your authorisation</>, meta: r.city ?? "ABC procedure" }))
+    : reviews ? d.abc.filter((r) => stageOf(r) === "review").slice(0, 2).map((r) => ({ key: `r${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || shortCode(r.case_code)}</b> is ready for your review</>, meta: `Authorised by ${r.vet_name ?? "a veterinarian"}` }))
     : []) : [];
   const todo: Row[] = isVet ? abcTodo : d ? [
     ...abcTodo,
@@ -124,20 +125,21 @@ export function Brief() {
   return (
     <div className="br">
       <div className="br-in">
-        <h1 className="br-hello">{greeting()}, {first}.<span>Here is your daily brief.</span></h1>
+        <h1 className="br-hello">{greeting()}, {first}.<span>Here is today, step by step.</span></h1>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
           : <p className="br-since">Since yesterday: <b>{fresh.length}</b> new or updated · <b>{d.unavailable.includes("recent changes")?"not read":closedNew.length}</b> closed · <b>{d.unavailable.includes("follow-ups")?"not read":nOverdue}</b> overdue · <b>{d.unavailable.includes("counts")?"not read":nLive}</b> live in the queue</p>}
 
         {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
         {d && (
-          <>
+          <div className="br-cols"><div className="br-main">
             {d.unavailable.length>0&&<p role="status">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
             <section aria-labelledby="br-todo" className="br-sec">
               <h2 id="br-todo" className="br-h">What needs to be done</h2>
               {todo.length ? rows(todo, true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
               <div className="br-chips">{isVet ? <Link href="/ngo/verification">Open verification <ArrowRight size={12} aria-hidden /></Link> : <>{role === "member" ? <Link href="/ngo/field">Open field mode <ArrowRight size={12} aria-hidden /></Link> : <Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link>}<Link href="/ngo/inbox?paste=1"><Sparkles size={12} aria-hidden />Paste WhatsApp reports</Link></>}{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
             </section>
+            </div><div className="br-rail">
             {reviews && <MonthlySubmission canPrepare compact />}
             {!isVet && <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
             <section aria-labelledby="br-out" className="br-sec">
@@ -145,9 +147,9 @@ export function Brief() {
               {out.length ? rows(out, false) : <p className="br-empty">{d.unavailable.includes("recent changes")?"Recent changes could not be read.":"Nothing new in the last day."}</p>}
               {out.length > 1 && <div className="br-chips"><button type="button" onClick={() => send("Summarise the cases that came in, moved or closed since yesterday.")}><Sparkles size={12} aria-hidden />Summarise these</button></div>}
             </section>
-          </>
+            {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
+            </div></div>
         )}
-        {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
       </div>
 
       <div className="br-dock">

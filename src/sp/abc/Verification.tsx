@@ -5,8 +5,10 @@
    imports and research datasets are not listed (the database excludes
    them); they stay in their own review until validated by this workflow. */
 
+import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { NotEnabled, STAGE_LABEL, myContext, stageOf, verificationQueue, type AbcContext, type QueueRow, type Stage } from "@/lib/abc";
 import { NgoGate, useOrgOpen } from "../ngo/Gate";
@@ -27,9 +29,12 @@ export function Verification() {
   const [ctx, setCtx] = useState<AbcContext | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [off, setOff] = useState(false);
-  const [stage, setStage] = useState<Stage | "all">("all");
-  /* Links from Kaju's monthly plan open the exact blocked stage (after hydration). */
-  useEffect(() => { const v = new URLSearchParams(window.location.search).get("stage"); if (v && v in STAGE_LABEL) setStage(v as Stage); }, []);
+  /* The stage lives in the address, so the sidebar's Treat (vet) and Release (evidence)
+     steps, Kaju's links and the filter buttons always agree. */
+  const params = useSearchParams(), router = useRouter(), here = usePathname();
+  const q = params?.get("stage");
+  const stage: Stage | "all" = q && q in STAGE_LABEL ? (q as Stage) : "all";
+  const setStage = (s: Stage | "all") => router.replace(s === "all" ? here : `${here}?stage=${s}`, { scroll: false });
 
   const open = useOrgOpen();
   useEffect(() => {
@@ -52,7 +57,7 @@ export function Verification() {
     <NgoGate title="Verification" lede="Every ABC procedure with its evidence, veterinary sign-off and review.">
       <div className="ngo-page abc">
         <header className="ngo-head">
-          <div><h1>Verification</h1></div>
+          <div>{stage === "vet" ? <><p className="ngo-step">Step 3 of 5</p><h1>Treat &amp; sign off</h1></> : stage === "evidence" ? <><p className="ngo-step">Step 4 of 5</p><h1>Release</h1></> : <h1>Verification</h1>}</div>
           <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : rows === null && !err ? <Reading>Reading your ABC records</Reading> : err ? "The verification queue could not be read. Nothing is shown as zero." : <><b>{counts.review}</b> to review · Awaiting vet: <b>{counts.vet}</b> · <b>{counts.evidence + counts.returned}</b> {counts.evidence + counts.returned === 1 ? "case needs" : "cases need"} evidence</>}</p>
           {(ctx?.role === "admin" || ctx?.role === "coordinator") && <div className="row ngo-head-act"><Link className="btn is-s" href="/ngo/packages">Report packages</Link></div>}
         </header>
@@ -70,7 +75,7 @@ export function Verification() {
             {shown.length ? (
               <ul className="abc-list">{shown.map((r) => { const s = stageOf(r); return (
                 <li key={r.case_id}><Link href={`/ngo/verification/${r.case_id}`}>
-                  <span className="abc-t"><b>{r.title || r.case_code || "ABC case"}</b><small>{[r.city, day(r.created_at), r.returned_note ? `Returned: ${r.returned_note}` : null].filter(Boolean).join(" · ")}</small></span>
+                  <span className="abc-t"><b>{r.title || shortCode(r.case_code, "ABC case")}</b><small>{[r.city, day(r.created_at), r.returned_note ? `Returned: ${r.returned_note}` : null].filter(Boolean).join(" · ")}</small></span>
                   <Dots total={r.evidence_count+r.missing.length} n={r.evidence_count} />
                   <span className={`abc-tag t-${s}`}>{STAGE_LABEL[s]}</span>
                   <ArrowRight size={14} aria-hidden className="abc-go" />

@@ -83,7 +83,7 @@
 .s4e {
   --s3-sans: var(--s4-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --s3-ink: #0b1e3d; --s3-ink-2: #23304a; --s3-mute: #6f7380; --s3-faint: #9a9ea8;
-  --s3-ground: #fffefa; --s3-sunk: #f4f3ef; --s3-line: rgba(11, 30, 61, 0.1); --s3-line-2: rgba(11, 30, 61, 0.16);
+  --s3-ground: #ffffff; --s3-sunk: #f4f3ef; --s3-line: rgba(11, 30, 61, 0.1); --s3-line-2: rgba(11, 30, 61, 0.16);
   --s3-blue: #2457ce; --s3-blue-soft: #e8eefb;
 }
 .s4e.s3g { background: #f7f7f7; }

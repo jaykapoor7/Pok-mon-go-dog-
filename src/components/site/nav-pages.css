@@ -4,7 +4,7 @@
    StrayPaw blue, and licensed folk paintings as the creative voice.
    The landing page and its hero are not touched by this file.
    ════════════════════════════════════════════════════════════════════ */
-html body .navlight { --nl-ink: #0b1e3d; --nl-ink-2: #33415c; --nl-mute: #5d6b7c; --nl-shell: #f3ede4; --nl-paper: #fffdf9; --nl-blue: #2457ce; --nl-line: rgba(11, 30, 61, 0.1);
+html body .navlight { --nl-ink: #0b1e3d; --nl-ink-2: #33415c; --nl-mute: #5d6b7c; --nl-shell: #f5f7fb; --nl-paper: #ffffff; --nl-blue: #2457ce; --nl-line: rgba(11, 30, 61, 0.1);
   font-family: var(--sx-sans), "DM Sans", system-ui, sans-serif; background: var(--nl-shell); color: var(--nl-ink); }
 html body .navlight :is(h1, h2, h3) { font-family: inherit; letter-spacing: -0.035em; }
 html body .navlight :is(h1, h2, h3) :is(em, span) { font-family: inherit; font-style: normal; font-weight: inherit; letter-spacing: inherit; color: var(--nl-blue); }
@@ -40,7 +40,7 @@ html body .navlight :is(.mk-h1, .mk-h2) span { color: var(--nl-blue); }
 html body .navlight .mk-ink .mk-step { background: var(--nl-shell); color: var(--nl-ink); border-color: var(--nl-line); }
 
 /* Footer on these pages: light, a hairline above. */
-html body footer.sp-footer.is-light { background: var(--nl-paper, #fffdf9); color: #0b1e3d; border-top: 1px solid rgba(11, 30, 61, 0.1); }
+html body footer.sp-footer.is-light { background: var(--nl-paper, #ffffff); color: #0b1e3d; border-top: 1px solid rgba(11, 30, 61, 0.1); }
 html body footer.sp-footer.is-light .fx .fx-col { border-top-color: rgba(11, 30, 61, 0.12); }
 html body footer.sp-footer.is-light :is(a, h2, h3, b, span, p, li, .sp-footer-bottom) { color: #33415c; }
 html body footer.sp-footer.is-light .sp-footer-bottom { border-top-color: rgba(11, 30, 61, 0.1); }

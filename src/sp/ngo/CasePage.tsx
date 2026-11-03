@@ -11,6 +11,7 @@
    member's session; every action waits for the database's answer.
    ════════════════════════════════════════════════════════════════════ */
 
+import { shortCode } from "@/lib/caseCode";
 import {OperationsPanel} from "./OperationsPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -57,7 +58,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
   return (
     <article className="cs">
       <header className="cs-head">
-        <div className="cs-crumb"><Link href="/ngo" className="link"><ArrowLeft size={14} aria-hidden /> Work</Link><span className="mono small">{reg.case_code ?? "Case"}</span></div>
+        <div className="cs-crumb"><Link href="/ngo" className="link"><ArrowLeft size={14} aria-hidden /> Work</Link><span className="mono small">{shortCode(reg.case_code)}</span></div>
         <div className="cs-title">
           <p className="k">{STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}{imported ? " · imported historical record" : ""}{cohort === "decide" ? " · waiting on a decision" : ""}</p>
           <h1 className="display">{title}</h1>
@@ -116,7 +117,7 @@ function Related({ title, note, rows }: { title: string; note?: string; rows: Ne
     <section className="cf-card">
       <h3 className="h3">{title} <span className="mono small">{rows.length}</span></h3>
       {note && <p className="small">{note}</p>}
-      <ul className="cs-rel">{rows.slice(0, 8).map((r) => <li key={r.id}><Link href={`/ngo/cases/${r.id}`}><span className="mono">{r.case_code ?? "Case"}</span><b>{r.condition_class ?? r.title ?? "Request"}</b><small>{STATUS_META[(r.status_class ?? "unknown") as StatusClass]?.short ?? "—"} · {day(r.occurred_at)}</small></Link></li>)}</ul>
+      <ul className="cs-rel">{rows.slice(0, 8).map((r) => <li key={r.id}><Link href={`/ngo/cases/${r.id}`}><span className="mono">{shortCode(r.case_code)}</span><b>{r.condition_class ?? r.title ?? "Request"}</b><small>{STATUS_META[(r.status_class ?? "unknown") as StatusClass]?.short ?? "—"} · {day(r.occurred_at)}</small></Link></li>)}</ul>
     </section>
   );
 }
