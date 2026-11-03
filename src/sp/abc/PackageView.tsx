@@ -12,7 +12,6 @@ import {OperationsPanel} from "../ngo/OperationsPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
-import { ArrowLeft } from "lucide-react";
 import { EVIDENCE_LABEL, NotEnabled, PACKAGE_LABEL, orgNames, packageAct, packageById, packageCases, packageEvents, type EvidenceKind, type Package, type PackageCase, type PackageEvent } from "@/lib/abc";
 import { Reading } from "../ui/Reading";
 import { period } from "./Packages";
@@ -71,11 +70,9 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
     } catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
     finally { setBusy(false); }
   };
-  const back = side === "operator" ? { href: "/ngo/packages", label: "Report packages" } : { href: "/city/review", label: "Package review" };
 
   return (
     <div className="ngo-page abc">
-      <Link href={back.href} className="abc-back"><ArrowLeft size={14} aria-hidden />{back.label}</Link>
       {state === "loading" && <div className="abc-empty"><Reading>Reading the package</Reading></div>}
       {state === "off" && <div className="abc-empty"><b>Package review is not switched on here yet.</b></div>}
       {state === "missing" && <div className="abc-empty"><b>This package is not available to you.</b>It may still be a draft, or belong to another office.</div>}

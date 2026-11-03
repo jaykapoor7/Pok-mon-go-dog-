@@ -1,6 +1,6 @@
 "use client";
 
-/* A small card in the corner, after the visitor has scrolled a little:
+/* A small card in the corner, after the storage notice is acknowledged and the visitor has scrolled a little:
    "Watch Kaju in 52 seconds". Opens the product demo (illustrative records,
    labelled in the video). Dismissed once, it stays dismissed on this device. */
 
@@ -17,9 +17,17 @@ export function VideoCard() {
     let off = false;
     try { off = localStorage.getItem(KEY) === "1"; } catch { /* storage blocked */ }
     if (off) return;
-    const on = () => { if (window.scrollY > 700) { setShow(true); window.removeEventListener("scroll", on); } };
+    // Never on top of the storage notice: the card waits until that notice is
+    // acknowledged, then appears after the visitor has scrolled a little.
+    let seen = false;
+    try { seen = !!localStorage.getItem("straypaw.notice.storage.v1"); } catch { seen = true; }
+    // Only once the hero (and its demo) has scrolled away, so it never covers the product.
+    const past = () => { const h = document.querySelector(".s4-hero"); return h ? h.getBoundingClientRect().bottom < 0 : window.scrollY > 700; };
+    const on = () => { if (seen && past()) { setShow(true); window.removeEventListener("scroll", on); } };
+    const ack = () => { seen = true; on(); };
     window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
+    window.addEventListener("straypaw:storage-notice-dismissed", ack);
+    return () => { window.removeEventListener("scroll", on); window.removeEventListener("straypaw:storage-notice-dismissed", ack); };
   }, []);
   useEffect(() => { const d = dlg.current; if (!d) return; if (open && !d.open) d.showModal(); if (!open && d.open) d.close(); }, [open]);
   const dismiss = () => { setShow(false); try { localStorage.setItem(KEY, "1"); } catch { /* fine */ } };

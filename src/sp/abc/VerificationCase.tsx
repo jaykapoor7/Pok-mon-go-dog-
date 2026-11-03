@@ -9,7 +9,7 @@
 import {OperationsPanel} from "../ngo/OperationsPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import {
   EVIDENCE_KINDS, EVIDENCE_LABEL, HISTORY_LABEL, NotEnabled, addEvidence, caseAttestations, caseChecklist, caseEvidence, caseHead, caseHistory,
   myContext, returnEvidence, reviewEvidence, uploadEvidenceFile, vetAuthorise, withdrawSignOff,
@@ -53,7 +53,7 @@ export function VerificationCase({ id }: { id: string }) {
   return (
     <NgoGate title="Verification" lede="Every ABC procedure with its evidence, veterinary sign-off and review.">
       <div className="ngo-page abc">
-        <Link href="/ngo/verification" className="abc-back"><ArrowLeft size={14} aria-hidden />Verification</Link>
+        
         {off ? <div className="abc-empty"><b>Verification is not switched on here yet.</b></div>
           : err ? <p className="abc-err" role="alert">{err}</p>
           : !d ? <div className="abc-empty"><Reading>Reading this procedure</Reading></div>

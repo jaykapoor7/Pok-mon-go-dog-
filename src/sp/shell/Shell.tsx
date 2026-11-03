@@ -251,7 +251,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               <button type="button" className="icon-btn sx5-menu-m" aria-label="Workspace sections" onClick={()=>setSheet(true)}><Menu size={18} aria-hidden /></button>
               {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuFace size={24} /></span><span>Ask Kaju</span></button>}
               {def.action && !reporting && (ws !== "ngo" || mem.member) && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}
-              <span className="sx3-acct-m"><Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} /></span>
+              <span className={`sx3-acct-m${user ? "" : " is-out"}`}><Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} /></span>
             </div>
           </header>
 
@@ -390,6 +390,7 @@ function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose:
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); else if (!open && d.open) d.close(); }, [open]);
   const mem=useMembership();
+  const { user, openSignIn } = useAuth();
   const def = workspaceView(ws,mem.role,mem.reviewer);
   const utilityGroups=def.index.filter(g=>!def.nav.some(n=>g.links.some(l=>l.href===n.href)));
   const here = utilityGroups.findIndex((g) => g.links.some((l) => path === l.href));
@@ -408,6 +409,7 @@ function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose:
           </details>
         ))}
         <div className="sx3-more-ws">{/* Another professional workspace only for verified dual-role members; public products for everyone. */}{ORDER.filter((id) => id !== ws && (id === "community" || id === "learn" || dual)).map((id) => <Link key={id} href={WORKSPACES[id].home} onClick={onClose}><i aria-hidden style={{ background: WORKSPACES[id].ink }} />{WORKSPACES[id].label}</Link>)}</div>
+        {!user && <button type="button" className="sp-action sx5-sheet-signin" onClick={() => { onClose(); openSignIn(); }}>Sign in</button>}
         <footer className="sp-more-foot"><Link href="/" onClick={onClose}>Main site</Link><Link href="/docs" onClick={onClose}>Help</Link><Link href="/contact" onClick={onClose}>Contact</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
       </div>
     </dialog>

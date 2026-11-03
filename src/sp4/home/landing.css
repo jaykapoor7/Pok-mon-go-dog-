@@ -295,3 +295,12 @@
   .s6-home .s6-wall .s4-cs::before { content: "Case study"; font-size: 11px; }
   .s6-int-color .s4-int-t small { white-space: nowrap; font-size: 10px; padding: 2px 6px; }
 }
+/* Phone: a slim pill, not a card with a big play button over the page. */
+@media (max-width: 640px) {
+  .s6-vcard { left: 12px; right: auto; bottom: 12px; width: auto; max-width: calc(100vw - 24px); grid-template-columns: 40px auto; align-items: center; column-gap: 10px; padding: 6px 40px 6px 6px; border-radius: 99px; }
+  .s6-vcard-play { grid-row: auto; width: 40px; height: 40px; border-radius: 50%; background: var(--s4-blue); }
+  .s6-vcard-play img { display: none; }
+  .s6-vcard-btn { position: static; transform: none; width: 40px; height: 40px; background: transparent; color: #fff; box-shadow: none; }
+  .s6-vcard b { margin: 0; font-size: 14px; white-space: nowrap; }
+  .s6-vcard-x { right: 6px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; box-shadow: none; background: #f1f4f9; }
+}

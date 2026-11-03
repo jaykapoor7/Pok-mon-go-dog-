@@ -16,7 +16,7 @@ import {OperationsPanel} from "./OperationsPanel";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { loadCaseFile, type CaseFile, type Neighbour } from "@/lib/case-file";
 import { isHistoricalCase, isStale } from "@/lib/ops";
 import { STATUS_META, type StatusClass } from "@/lib/register/taxonomy";
@@ -61,7 +61,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
   return (
     <article className="cs">
       <header className="cs-head">
-        <div className="cs-crumb"><Link href="/ngo/work" className="link"><ArrowLeft size={14} aria-hidden /> Work queue</Link><span className="mono small">{shortCode(reg.case_code)}</span><span className="cs-crumb-end"><DeleteRecord kind="case" id={c.id} what="this case" compact={false} onDone={() => router.push("/ngo/work")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></span></div>
+        <div className="cs-crumb"><span className="mono small">{shortCode(reg.case_code)}</span><span className="cs-crumb-end"><DeleteRecord kind="case" id={c.id} what="this case" compact={false} onDone={() => router.push("/ngo/work")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></span></div>
         <div className="cs-title">
           <p className="k">{STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}{imported ? " · imported historical record" : ""}{cohort === "decide" ? " · waiting on a decision" : ""}</p>
           <h1 className="display">{title}</h1>
