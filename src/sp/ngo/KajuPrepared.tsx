@@ -18,6 +18,7 @@ import { getSupabase } from "@/lib/supabase";
 import { confirmMany, confirmVerified, type Saved as Result } from "@/sp3/ai/execute";
 import type { Proposal } from "@/sp3/ai/types";
 import type { LocalityGroup, PromisedReview, Stalled } from "@/sp3/ai/prepare";
+import { KajuPresence } from "@/kaju/Presence";
 
 type Prepared = {
   checkedAt: string; unavailable: string[]; partial: string[];
@@ -83,7 +84,7 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
       <h2 id="kp-h" className="br-h"><Sparkles size={14} aria-hidden /> Kaju prepared</h2>
       {d.unavailable.length > 0 && <p className="br-empty" role="status">Could not read: {d.unavailable.join(", ")}. Those checks are unknown, not clear.</p>}
       {d.partial.length > 0 && <p className="br-empty" role="status">Checked only part of: {d.partial.join(", ")}. More may exist.</p>}
-      {nothing && !d.unavailable.length && <p className="br-empty">No quiet critical cases, unscheduled reviews or split localities found.</p>}
+      {nothing && !d.unavailable.length && <div className="kp-calm"><KajuPresence state="lying" size={64} /><p className="br-empty">All quiet: no critical case has gone silent and no promised review is unscheduled.</p></div>}
 
       {d.stalled.length > 0 && <ul className="br-list kp-list">{d.stalled.map((s) => (
         <li key={s.caseId}><div className="kp-row">

@@ -25,9 +25,9 @@ export default function AiPage() {
     },
     extra: <section className="s4-dark" aria-labelledby="ai-title"><div className="s4-wrap"><AiBand v={1} /></div></section>,
     splits: [
-      { tag: <Status s="live" />, title: ["Ask in plain words,", "check every answer"], body: "How many releases lack a photo? Which follow-ups are overdue? Answers come with the records behind them.", ui: <AskUi v={4} />, v: 0 },
+      { tag: <Status s="live" />, title: ["Ask for the job,", "check every answer"], body: "Which records are missing evidence? What should I do first? Open intake. Kaju runs the matching record tool and shows the records behind the answer. When a request is unclear, it offers the actions it can run.", ui: <AskUi v={4} />, v: 0 },
       { tag: <Status s="live" />, title: ["From a field message", "to a draft record"], body: "Paste a message or a register row. Kaju structures it into a draft and asks for what is still missing.", ui: <ExtractUi v={2} />, v: 5 },
-      { tag: <Status s="live" />, title: ["Find the gaps", "before the report"], body: "Missing evidence, possible duplicates and unsigned procedures, found on request across the records you can read.", ui: <OvernightUi v={2} />, v: 3 },
+      { tag: <Status s="live" />, title: ["Find the gaps", "before the report"], body: "Quiet critical cases, unscheduled reviews, missing evidence, unsigned procedures and this month's claimable records, found before anyone goes looking, with follow-ups and the month's package ready to confirm.", ui: <OvernightUi v={2} />, v: 3 },
     ],
     tiles: {
       title: ["What Kaju", "can and cannot do"],
@@ -40,7 +40,7 @@ export default function AiPage() {
         { icon: <History size={20} />, title: "Leaves a trail", body: "Changes prepared with Kaju are marked as such, with the confirmer's name." },
       ],
     },
-    note: <><b>Honest status.</b> Record tools use your authorised workspace access. Model-backed conversation requires an approved processing route. Prepared changes wait for your confirmation. Conversations on this page use illustrative records.</>,
+    note: <><b>Honest status.</b> Kaju currently runs on record tools only: no language model is called, and free-form conversation is off until it is deliberately enabled with a spending limit. Record tools use your authorised workspace access. Prepared changes wait for your confirmation. Conversations on this page use illustrative records.</>,
     faq: [
       ["What can Kaju do?", "Search your records, summarise work, find missing evidence and duplicates, read field messages and prepare cases, notes, follow-ups and care records."],
       ["Can Kaju see other organisations' records?", "No. Kaju reads with your own session, so it sees exactly what you can see."],

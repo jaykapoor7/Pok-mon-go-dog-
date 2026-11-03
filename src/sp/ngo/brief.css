@@ -131,3 +131,4 @@
   .jy-c { grid-column: 3; grid-row: 1; margin: 0; font-size: 17px; }
 }
 @media (prefers-reduced-motion: reduce) { .jy a { transition: none; } }
+.kp-calm { display: flex; align-items: center; gap: 10px; }
