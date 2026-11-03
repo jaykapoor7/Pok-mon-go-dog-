@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import {
   ArrowRight, ArrowUpRight, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
-  KeyRound, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck, Plus,
+  KeyRound, Landmark, MapPin, MessageCircle, ShieldCheck, Smartphone, Sparkles, UserCheck, Plus,
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
@@ -96,10 +96,11 @@ export default function HomePage() {
           <h2 id="proof-title" className="s4-h2">Animal-welfare teams working with StrayPaw</h2>
           <Link href="/customers" className="s4-link is-ink">Hear from our partners <ArrowRight size={18} aria-hidden /></Link>
         </div>
-        <div className="s4-wall">
+        <div className="s4-wall s6-wall">
           {partners.map((p) => {
             const s = STORIES.find((x) => x.name === p.name);
-            const inner = <>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}{s?.logo ? <><img src={s.logo} alt={p.name} /></> : <span><b>{p.name}</b><small>{p.city}</small></span>}</>;
+            const tint = TINTS[[...p.name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % TINTS.length];
+            const inner = <><span className="s6-pt-av" aria-hidden style={{ ["--pt" as string]: tint }}>{p.name.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !/^(the|of|and|for)$/i.test(w)).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("")}</span><span className="s6-pt-txt"><b>{p.name}</b><small><MapPin size={12} aria-hidden />{p.city}</small></span>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}</>;
             return s ? <Link key={p.name} href={`/customers/${s.slug}`} aria-label={`${p.name} case study`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
           })}
         </div>
@@ -140,11 +141,12 @@ export default function HomePage() {
             <h2 id="int-title" className="s4-h2"><TwoTone blue a="Kaju works with" b="the tools your team uses." /></h2>
             <Link href="/platform#integrations" className="s4-link is-ink">Every integration and its status <ArrowRight size={18} aria-hidden /></Link>
           </div>
-          <div className="s4-int" aria-label="Integrations and their status">
-            {INT_COLS.map((col, c) => (
-              <div key={c} className="s4-int-col">
-                {col.map((t) => <div key={t.n} className="s4-int-t">{t.i}<b>{t.n}</b><small><i className={t.s === "Live" ? "is-live" : t.s === "Not connected" ? "is-off" : t.s === "Setup pending" ? "is-setup" : ""} />{t.s}</small></div>)}
-              </div>
+          <div className="s6-int" aria-label="Integrations and their status">
+            {INT_GROUPS.map((g) => (
+              <section key={g.k} className={`s6-int-g is-${g.k}`} aria-labelledby={`int-${g.k}`}>
+                <h3 id={`int-${g.k}`}><i aria-hidden />{g.title}<small>{g.note}</small></h3>
+                <ul>{g.items.map((t) => <li key={t.n}><span className="s6-int-ic" aria-hidden style={{ ["--ic" as string]: t.c }}>{t.i}</span><span><b>{t.n}</b><small>{t.d}</small></span></li>)}</ul>
+              </section>
             ))}
           </div>
         </div>
@@ -184,7 +186,7 @@ export default function HomePage() {
 
       {/* 9 · FAQ */}
       <section className="s6-faq2" aria-labelledby="faq-title">
-        <div className="s4-wrap">
+        <div className="s4-wrap"><div className="s6-faq2-panel">
           <div className="s6-faq2-head">
             <h2 id="faq-title" className="s4-h2">Questions, answered</h2>
             <p>Plain answers about Kaju, your data and getting started. Something else? <Link href="/contact">Ask us</Link></p>
@@ -196,22 +198,38 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
+        </div></div>
       </section>
     </S4Page>
   );
 }
 
-type IntTile = { n: string; s: "Live" | "Setup pending" | "Not connected" | "Planned"; i: ReactNode };
-/* Connectors use plain letter marks, not the providers' logos. "Setup pending": built and tested, waiting for the
-   administrator's OAuth keys (docs/CONNECTIONS.md). Nothing here is shown as live before it is. */
-const Mark = ({ l, c }: { l: string; c: string }) => <span className="s4-int-mark" style={{ background: c }} aria-hidden>{l}</span>;
-const INT_COLS: IntTile[][] = [
-  [{ n: "Google Workspace", s: "Setup pending", i: <Mark l="G" c="#1a73e8" /> }, { n: "Excel & CSV", s: "Live", i: <FileSpreadsheet /> }, { n: "Email", s: "Live", i: <Mail /> }],
-  [{ n: "Microsoft 365", s: "Setup pending", i: <Mark l="M" c="#0f6cbd" /> }, { n: "Slack", s: "Setup pending", i: <Mark l="S" c="#4a154b" /> }, { n: "Phone field mode", s: "Live", i: <Smartphone /> }],
-  [{ n: "Zoho Mail", s: "Setup pending", i: <Mark l="Z" c="#c8202f" /> }, { n: "Photos & GPS", s: "Live", i: <Camera /> }],
-  [{ n: "SMS (MSG91)", s: "Setup pending", i: <MessageSquareText /> }],
-  [{ n: "WhatsApp (direct)", s: "Not connected", i: <MessageCircle /> }, { n: "WhatsApp paste intake", s: "Live", i: <MessageCircle /> }, { n: "Map exports", s: "Live", i: <MapPin /> }],
-  [{ n: "PDF · Word · PowerPoint", s: "Live", i: <FileText /> }, { n: "Reviewer access", s: "Live", i: <UserCheck /> }],
-  [{ n: "Record search", s: "Live", i: <ScanSearch /> }, { n: "Report packages", s: "Live", i: <ClipboardList /> }],
+/* Integrations as they really stand (docs/CONNECTIONS.md). Providers use plain letter marks in their colour, not
+   their logos. "Built, needs account setup": the adapter is built and tested, waiting for the administrator's OAuth
+   keys. Nothing is shown as working before it does. */
+type Int = { n: string; d: string; c: string; i: ReactNode };
+const Mark = ({ l }: { l: string }) => <span className="s6-int-mark">{l}</span>;
+const TINTS = ["#2457ce", "#0f7b8a", "#c2532d", "#6b4fd8", "#1f8a52", "#b4590f"];
+const INT_GROUPS: { k: "live" | "setup" | "plan"; title: string; note: string; items: Int[] }[] = [
+  { k: "live", title: "Works today", note: "No account needed", items: [
+    { n: "Excel & CSV", d: "Import registers, export any list", c: "#1f8a52", i: <FileSpreadsheet /> },
+    { n: "PDF · Word · PowerPoint", d: "Read attachments, make reports", c: "#c2532d", i: <FileText /> },
+    { n: "WhatsApp paste intake", d: "Paste messages, get draft records", c: "#1f9d55", i: <MessageCircle /> },
+    { n: "Phone field mode", d: "Low-end Android, slow networks", c: "#2457ce", i: <Smartphone /> },
+    { n: "Photos & GPS", d: "Evidence with place and time", c: "#6b4fd8", i: <Camera /> },
+    { n: "Map exports", d: "GeoJSON and KML, real points only", c: "#0f7b8a", i: <MapPin /> },
+    { n: "Report packages", d: "Monthly bill with its evidence", c: "#2457ce", i: <ClipboardList /> },
+    { n: "Reviewer access", d: "Government offices read the record", c: "#0f7b8a", i: <UserCheck /> },
+  ] },
+  { k: "setup", title: "Built, needs account setup", note: "Turns on when your administrator connects it", items: [
+    { n: "Google Workspace", d: "Drive, Sheets, Gmail, Calendar", c: "#1a73e8", i: <Mark l="G" /> },
+    { n: "Microsoft 365", d: "OneDrive, Excel, Outlook", c: "#0f6cbd", i: <Mark l="M" /> },
+    { n: "Slack", d: "Post to a channel you are in", c: "#4a154b", i: <Mark l="S" /> },
+    { n: "Zoho Mail", d: "India data centre by default", c: "#c8202f", i: <Mark l="Z" /> },
+    { n: "SMS (MSG91)", d: "Approved reminders to field staff", c: "#b4590f", i: <MessageSquareText /> },
+  ] },
+  { k: "plan", title: "Planned", note: "Not connected yet", items: [
+    { n: "WhatsApp (direct)", d: "Waiting for Meta approval", c: "#1f9d55", i: <MessageCircle /> },
+    { n: "Government e-Office", d: "File movement with municipal offices", c: "#2457ce", i: <Landmark /> },
+  ] },
 ];
