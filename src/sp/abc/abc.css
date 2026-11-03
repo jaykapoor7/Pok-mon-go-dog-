@@ -171,3 +171,5 @@
 .abc-perf th, .abc-perf td { text-align: left; padding: 8px 6px; border-top: 1px solid rgba(11, 30, 61, 0.07); font-weight: 400; }
 .abc-perf thead th { font-size: 12px; color: #6f7380; }
 .abc-perf tbody th { color: #0b1e3d; font-weight: 500; }
+.ms-office { display: grid; gap: 4px; max-width: 360px; font-size: 13px; color: #5b6475; }
+.ms-bill ul { margin: 2px 0; padding-left: 18px; font-size: 13.5px; }

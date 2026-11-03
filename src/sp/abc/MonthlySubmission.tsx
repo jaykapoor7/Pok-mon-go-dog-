@@ -12,11 +12,16 @@ import { useEffect, useState } from "react";
 import { ArrowRight, FileCheck2, Sparkles } from "lucide-react";
 import { createPackage, offices, packages, verificationQueue, type Office } from "@/lib/abc";
 import { readContracts } from "@/lib/reconciliation";
-import { monthlyPlan, type MonthlyPlan } from "@/sp3/ai/monthly";
+import { monthlyPlan, type Procedure } from "@/sp3/ai/monthly";
+import { getSupabase } from "@/lib/supabase";
+import type { Contract, ContractRate } from "@/lib/reconciliation";
+import type { QueueRow } from "@/lib/abc";
 
 export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare: boolean; compact?: boolean }) {
   const router = useRouter();
-  const [plan, setPlan] = useState<{ current: MonthlyPlan; previous: MonthlyPlan; office: Office | null; existing: Set<string> } | null>(null);
+  type Source = { rows: QueueRow[]; catalog: { contracts: Contract[]; rates: ContractRate[] }; offices: Office[]; existing: Set<string>; procedureOf: Record<string, Procedure> };
+  const [src, setSrc] = useState<Source | null>(null);
+  const [office, setOffice] = useState<string>("");
   const [which, setWhich] = useState<"current" | "previous">("current");
   const [state, setState] = useState<"loading" | "ok" | "off" | "error">("loading");
   const [busy, setBusy] = useState(false);
@@ -24,19 +29,31 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
 
   useEffect(() => {
     let live = true;
-    Promise.all([verificationQueue(300), readContracts().catch(() => ({ contracts: [], rates: [] })), offices(), packages()])
-      .then(([rows, catalog, offs, pkgs]) => {
+    Promise.all([verificationQueue(500), readContracts().catch(() => ({ contracts: [], rates: [] })), offices(), packages()])
+      .then(async ([rows, catalog, offs, pkgs]) => {
+        /* Procedure type per case, so each is priced at its own contract rate. */
+        const procedureOf: Record<string, Procedure> = {};
+        const ids = rows.map((r) => r.case_id);
+        for (let i = 0; i < ids.length; i += 150) {
+          const { data, error } = await getSupabase()!.from("cases").select("id,category").in("id", ids.slice(i, i + 150));
+          if (error) throw error;
+          for (const c of data ?? []) if (c.category === "sterilisation" || c.category === "vaccination") procedureOf[c.id] = c.category;
+        }
         if (!live) return;
-        const office = offs[0] ?? null, now = new Date();
-        const current = monthlyPlan(rows, catalog, office?.id ?? null, now), previous = monthlyPlan(rows, catalog, office?.id ?? null, now, true);
-        setPlan({ current, previous, office, existing: new Set(pkgs.map((p) => `${p.period_start.slice(0, 10)}|${p.office_id}`)) });
-        /* In the first week, last month's submission is the one that is due. */
-        if (now.getUTCDate() <= 7 && previous.claimable + previous.blockedBy.length > 0) setWhich("previous");
+        setSrc({ rows, catalog, offices: offs, existing: new Set(pkgs.map((p) => `${p.period_start.slice(0, 10)}|${p.office_id}`)), procedureOf });
+        /* One office: chosen for you. Several: you choose; nothing is assumed. */
+        if (offs.length === 1) setOffice(offs[0].id);
+        if (new Date().getUTCDate() <= 7) setWhich("previous");
         setState("ok");
       })
       .catch((e: Error) => { if (live) setState(/not switched on/i.test(e.message) ? "off" : "error"); });
     return () => { live = false; };
   }, []);
+  const plan = src ? {
+    current: monthlyPlan(src.rows, src.catalog, office || null, new Date(), false, src.procedureOf),
+    previous: monthlyPlan(src.rows, src.catalog, office || null, new Date(), true, src.procedureOf),
+    office: src.offices.find((o) => o.id === office) ?? null, existing: src.existing,
+  } : null;
 
   if (state === "off") return null;
   if (state === "loading") return <section className="ms" aria-busy="true"><h2 className="ms-h"><Sparkles size={14} aria-hidden /> Monthly submission</h2><p className="ms-p">Kaju is reading this month’s procedures and contract…</p></section>;
@@ -44,6 +61,7 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
 
   const p = plan[which];
   const already = plan.office ? plan.existing.has(`${p.start}|${plan.office.id}`) : false;
+  const offs = src?.offices ?? [];
   const prepare = async () => {
     if (!plan.office || !window.confirm(`Prepare the ${p.label} package for ${plan.office.name}? It is created as a draft with the ${p.claimable} approved procedure${p.claimable === 1 ? "" : "s"}; you review and submit it yourself.`)) return;
     setBusy(true); setErr(null);
@@ -66,9 +84,15 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
         {p.blockedBy.length > 0 && <ul className="ms-list">{p.blockedBy.slice(0, compact ? 3 : 6).map((x) => (
           <li key={x.reason}><Link href={x.href}><span>{x.reason}</span><b>{x.count}</b><ArrowRight size={13} aria-hidden /></Link></li>
         ))}</ul>}
+        {offs.length > 1 && <label className="ms-office">Reviewing office <select className="select" value={office} onChange={(e) => setOffice(e.target.value)}><option value="">Choose…</option>{offs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>}
         <div className="ms-bill">
-          {p.bill ? <p><FileCheck2 size={14} aria-hidden /> Draft bill: <b>{p.bill.units} × ₹{p.bill.rate} = ₹{p.bill.amount}</b> <small>{p.bill.contract} · source {p.bill.reference}{p.bill.illustrative ? " · illustrative contract" : ""}</small></p> : null}
-          <small>{p.billNote}</small>
+          {p.bill && p.bill.lines.length > 0 && <>
+            <p><FileCheck2 size={14} aria-hidden /> Draft bill <small>{p.bill.contract} · source {p.bill.reference}{p.bill.illustrative ? " · illustrative contract" : ""}</small></p>
+            <ul>{p.bill.lines.map((l) => <li key={l.code}>{l.code === "sterilisation" ? "Sterilisation (ABC)" : "Anti-rabies vaccination"}: {l.units} × {l.rate ? `₹${l.rate} = ₹${l.amount}` : "rate not in contract"}</li>)}</ul>
+            {p.bill.total && <p>Total <b>₹{p.bill.total}</b></p>}
+          </>}
+          <small>{p.billNote} {p.basis}</small>
+          {p.partial && <small role="status">Only the 500 most recent ABC records were read, and they did not reach the start of {p.label}. Counts for the month may be low.</small>}
         </div>
       </>}
       {canPrepare && plan.office && p.claimable > 0 && (already
