@@ -181,6 +181,7 @@ begin
  select * into p from public.report_packages where id=p_package for update;
  if not found or not p.item_review_enabled or p.status='draft' or p.ngo_id=public.my_ngo() or not exists(select 1 from public.review_office_members m where m.office_id=p.office_id and m.user_id=auth.uid()) then raise exception 'Only an independent reviewer at the receiving office can decide submitted items';end if;
  if p_decision not in ('accepted','query','returned','rejected') or nullif(btrim(p_note),'') is null or length(p_note)>3000 then raise exception 'Record an individual decision and review note';end if;
+ perform 1 from public.cases where id=p_case and ngo_id=p.ngo_id for update;
  select value into item from jsonb_array_elements(public.operations_package_items(p.id)) where (value->>'case_id')::uuid=p_case and nullif(value->>'claim_id','')::uuid is not distinct from p_claim;
  if item is null then raise exception 'This claim is not in the package’s current configuration';end if;
  if p_decision='accepted' and (p_units is null or p_units<=0 or p_units is distinct from (item->>'claimed_units')::numeric or jsonb_array_length(item->'missing')>0) then raise exception 'Resolve missing requirements and confirm accepted quantity within the claim';end if;
@@ -259,6 +260,7 @@ begin
   if p_kind='returned' and exists(select 1 from public.operations_item_decisions d where d.package_id=p.id and d.decision='accepted') then raise exception 'Return individual records; accepted quantities have their own audit history';end if;
   if p_kind='submitted' then
    if p.ngo_id is distinct from public.my_ngo() or coalesce(public.sp_member_role(p.ngo_id),'') not in ('admin','coordinator') then raise exception 'Coordinator access required';end if;
+   perform 1 from public.cases where id=any(p.case_ids) order by id for update;
    items:=public.operations_package_items(p.id);
    if exists(select 1 from jsonb_array_elements(items) i where jsonb_array_length(i->'missing')>0) then raise exception 'Resolve missing evidence, authorisations and disposition reviews before submission';end if;
    if exists(select 1 from jsonb_array_elements(items) i where i->>'animal_id' is not null and i->>'procedure'<>'animal_record' group by i->>'animal_id',i->>'procedure' having count(*)>1) then raise exception 'The same animal/procedure is claimed more than once in this package';end if;
@@ -350,7 +352,8 @@ declare v_ngo uuid := public.my_ngo(); v_id uuid; v_name text := public.sp_actor
 begin
   if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
   if public.sp_member_role(v_ngo) is distinct from 'veterinarian' then raise exception 'Only a veterinarian in this organisation can authorise a procedure'; end if;
-  if not exists (select 1 from cases where id = p_case_id and ngo_id = v_ngo) then raise exception 'That case is not in your organisation'; end if;
+  perform 1 from public.cases where id=p_case_id and ngo_id=v_ngo for update;
+  if not found then raise exception 'That case is not in your organisation';end if;
   if exists(select 1 from cases where id=p_case_id and category='vaccination') then
     if not exists(select 1 from medical_events where case_id=p_case_id and kind='vaccination') then raise exception 'Record the vaccination details before veterinary authorisation';end if;
   elsif not exists (select 1 from evidence_items where case_id = p_case_id and kind = 'surgery_record') then raise exception 'Add the surgery record before authorising'; end if;
@@ -398,6 +401,7 @@ end $function$
 create function operations_private.protect_attested_medical()
 returns trigger language plpgsql security definer set search_path=pg_catalog,public,pg_temp as $$
 begin
+ if new.case_id is not null then perform 1 from public.cases where id=new.case_id for update;end if;
  if new.case_id is not null and new.kind in ('sterilisation','vaccination') and exists(select 1 from public.abc_attestations where case_id=new.case_id and revoked_at is null and kind in ('vet_authorised','evidence_reviewed')) then raise exception 'Withdraw the existing clinical sign-off with a reason before adding another procedure to this case';end if;
  return new;
 end $$;
@@ -449,7 +453,7 @@ declare v_ngo uuid := public.my_ngo(); v_id uuid; v_dog uuid;
 begin
   if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
   if p_kind not in ('capture_photo','surgery_record','ear_notch_photo','release_photo','release_location') then raise exception 'Unknown evidence kind'; end if;
-  select dog_id into v_dog from cases where id = p_case_id and ngo_id = v_ngo;
+  select dog_id into v_dog from cases where id = p_case_id and ngo_id = v_ngo for update;
   if not found then raise exception 'That case is not in your organisation'; end if;
   if not public.operations_case_amendable(p_case_id) then raise exception 'This submitted record is locked; the receiving office must query or return the individual claim first';end if;
   if p_kind<>'release_location' and (p_url is null or p_url not like 'storage://abc-evidence/'||v_ngo::text||'/'||p_case_id::text||'/%' or not exists(select 1 from storage.objects where bucket_id='abc-evidence' and name=replace(p_url,'storage://abc-evidence/',''))) then raise exception 'Upload a private source file for this evidence item';end if;
@@ -475,7 +479,8 @@ declare v_ngo uuid := public.my_ngo(); v_id uuid; v_name text := public.sp_actor
 begin
   if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
   if coalesce(public.sp_member_role(v_ngo), '') not in ('admin', 'coordinator') then raise exception 'Only a coordinator or admin can return evidence'; end if;
-  if not exists (select 1 from cases where id = p_case_id and ngo_id = v_ngo) then raise exception 'That case is not in your organisation'; end if;
+  perform 1 from public.cases where id=p_case_id and ngo_id=v_ngo for update;
+  if not found then raise exception 'That case is not in your organisation';end if;
   if coalesce(btrim(p_reason), '') = '' then raise exception 'Say what is missing or wrong'; end if;
   if not public.operations_case_amendable(p_case_id) then raise exception 'This submitted record is locked; resolve it through individual municipal review';end if;
   update abc_attestations set revoked_at = now(), revoked_by = auth.uid() where case_id = p_case_id and kind in ('evidence_reviewed', 'evidence_returned') and revoked_at is null;
@@ -497,6 +502,7 @@ AS $function$
 declare a abc_attestations%rowtype; v_ngo uuid := public.my_ngo(); v_name text := public.sp_actor_name();
 begin
   if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
+  perform 1 from public.cases where id=(select case_id from public.abc_attestations where id=p_attestation and ngo_id=v_ngo) and ngo_id=v_ngo for update;
   select * into a from abc_attestations where id = p_attestation and ngo_id = v_ngo and revoked_at is null for update;
   if not found then raise exception 'Sign-off not found'; end if;
   if a.kind = 'evidence_returned' then raise exception 'A return is cleared by reviewing the evidence again'; end if;
@@ -528,3 +534,30 @@ begin
 end $$;
 revoke all on function public.abc_verification_queue(integer),public.abc_add_evidence(uuid,text,text,text,text),public.abc_revoke_attestation(uuid,text),public.abc_return_evidence(uuid,text),public.abc_case_checklist(uuid),public.abc_package_cases(uuid),public.abc_create_package(text,date,date,uuid),public.abc_vet_authorise(uuid,text) from public,anon;
 grant execute on function public.abc_verification_queue(integer),public.abc_add_evidence(uuid,text,text,text,text),public.abc_revoke_attestation(uuid,text),public.abc_return_evidence(uuid,text),public.abc_case_checklist(uuid),public.abc_package_cases(uuid),public.abc_create_package(text,date,date,uuid),public.abc_vet_authorise(uuid,text) to authenticated;
+
+-- Coordinator review serialises with evidence replacement and clinical sign-off.
+CREATE OR REPLACE FUNCTION public.abc_review_evidence(p_case_id uuid, p_note text DEFAULT NULL::text)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO pg_catalog, public, pg_temp
+AS $function$
+declare v_ngo uuid := public.my_ngo(); v_id uuid; v_chk jsonb; v_name text := public.sp_actor_name();
+begin
+  if auth.uid() is null or v_ngo is null then raise exception 'Organisation access required'; end if;
+  if coalesce(public.sp_member_role(v_ngo), '') not in ('admin', 'coordinator') then raise exception 'Only a coordinator or admin can review evidence'; end if;
+  perform 1 from public.cases where id=p_case_id and ngo_id=v_ngo for update;
+  if not found then raise exception 'That case is not in your organisation';end if;
+  v_chk := public.abc_case_checklist(p_case_id);
+  if jsonb_array_length(v_chk->'missing') > 0 then raise exception 'Evidence incomplete: %', (select string_agg(replace(x, '_', ' '), ', ') from jsonb_array_elements_text(v_chk->'missing') x); end if;
+  if not (v_chk->>'vet_authorised')::boolean then raise exception 'A veterinarian has not authorised this procedure yet'; end if;
+  if exists (select 1 from abc_attestations where case_id = p_case_id and kind = 'vet_authorised' and revoked_at is null and actor_id = auth.uid()) then raise exception 'You authorised this procedure; another person must review its evidence'; end if;
+  insert into abc_attestations (ngo_id, case_id, kind, actor_id, actor_name, actor_role, note, snapshot)
+  values (v_ngo, p_case_id, 'evidence_reviewed', auth.uid(), v_name, public.sp_member_role(v_ngo), nullif(btrim(p_note), ''), v_chk)
+  returning id into v_id;
+  update abc_attestations set revoked_at = now(), revoked_by = auth.uid() where case_id = p_case_id and kind = 'evidence_returned' and revoked_at is null;
+  insert into case_updates (case_id, actor_id, actor_name, type, note) values (p_case_id, auth.uid(), v_name, 'note', 'Evidence reviewed and approved for reporting by ' || v_name);
+  insert into operational_audit_log (ngo_id, actor_id, entity_type, entity_id, action, after_data) values (v_ngo, auth.uid(), 'case', p_case_id, 'abc_review_evidence', jsonb_build_object('attestation', v_id));
+  return v_id;
+end $function$
+;
