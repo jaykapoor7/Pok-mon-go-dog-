@@ -42,7 +42,7 @@ export function Organisations({ orgs, impacts }: { orgs: DirectoryOrg[]; impacts
                       <b>{o.name}</b>
                       <small>{[o.city, o.state].filter(Boolean).join(", ") || "Place not published"}</small>
                       {o.mission && <span className="og-mission">{o.mission}</span>}
-                      <span className="og-figs2">{figs.length ? figs.map(([n, l]) => <span key={l}><b>{f(n)}</b> {l}</span>) : <span className="is-none">{im ? "No public records yet" : "Figures not read just now"}</span>}</span>
+                      <span className="og-figs2">{figs.length ? figs.map(([n, l]) => <span key={l}><b>{f(n)}</b> {l}</span>) : <span className="is-none">{impacts ? "No public records yet" : "Figures not read just now"}</span>}</span>
                     </span>
                   </Link>
                 </li>
