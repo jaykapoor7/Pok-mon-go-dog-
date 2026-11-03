@@ -81,7 +81,7 @@ function MiniFootprint({ cells, place }: { cells: PublicOrgH3Cell[]; place: stri
   if (!visible.length) return null;
 
   const width = 420;
-  const height = 210;
+  const height = 150;
   const pad = 8;
   const midLat = (south + north) / 2;
   const lngScale = Math.cos((midLat * Math.PI) / 180);
