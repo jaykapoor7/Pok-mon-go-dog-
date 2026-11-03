@@ -11,6 +11,7 @@
    member's session; every action waits for the database's answer.
    ════════════════════════════════════════════════════════════════════ */
 
+import {OperationsPanel} from "./OperationsPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
@@ -77,6 +78,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
       <div className="cs-body">
         <div className="cs-main">
           <section className="cs-step"><NextStep file={file} cohort={cohort} onChanged={onChanged} /></section>
+          <OperationsPanel caseId={c.id}/>
           <section className="cf-sec">
             <h2 className="h2">Chronology <span className="mono small">{history.length}</span></h2>
             {history.length ? <ol className="chrono">{history.map((h, i) => <li key={i} className={`is-${h.k === "care" ? "care" : h.k === "note" ? "sight" : "report"}`}><time className="mono">{day(h.at)}</time><span><b>{h.t}</b></span><small>{h.k === "care" ? "Care, recorded by an organisation" : h.k === "note" ? "Note" : "Status"}{h.who ? ` · ${h.who}` : ""}</small></li>)}</ol> : <p className="small">Nothing recorded on this case since it was opened.</p>}

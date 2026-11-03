@@ -37,7 +37,7 @@ export function PrivateSurvey({ id, collect = false }: { id?: string; collect?: 
  );
  if (error) return <div className="dk-page">{head("This survey could not be opened.")}<p role="alert" className="ops-alert">{error}</p></div>;
  if (member===false) return <div className="dk-page">{head("Surveys and field observations are private to the organisation that keeps them.", !user ? <button type="button" className="dk-btn" onClick={openSignIn}>Sign in</button> : undefined)}{user && <p className="dk-note">Your organisation access is not active yet.</p>}</div>;
- if (id && survey) return collect ? <CollectFlow survey={survey} areas={areas} /> : <SurveyDetail survey={survey} areas={areas} onChanged={load} />;
+ if (id && survey) return collect ? <CollectFlow key={`${user?.id}:${id}`} survey={survey} areas={areas} /> : <SurveyDetail survey={survey} areas={areas} onChanged={load} />;
  if (id || surveys===null) return <div className="dk-page">{head(<span role="status">Loading your organisation’s surveys…</span>)}</div>;
  return (
    <div className="dk-page">

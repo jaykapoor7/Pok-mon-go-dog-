@@ -9,7 +9,7 @@
             account at the foot. A thin top bar carries the breadcrumb,
             search, the AI toggle and the workspace's one primary action.
    PHONE    A compact top bar and the thumb bar (destinations, the action
-            at the centre, More in a sheet), unchanged in behaviour.
+            and grouped workspace utilities).
    AI       The assistant docks on the right on any page and shares one
             conversation with the full-screen /assistant.
 
@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
-import { ORDER, WORKSPACES, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
+import { ORDER, WORKSPACES, workspaceView, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
 import { AiPanel, AiProvider, KajuMark, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
@@ -42,8 +42,10 @@ import "./shell3.css";
 import "./app3.css";
 import "./app4.css";
 
+import {fieldCache} from "@/lib/field/outbox";
+
 type Org = { id: string; name: string } | null;
-type Mem = { member: boolean; ready: boolean; org: Org; role: Role | null; reviewer: boolean };
+type Mem = { member: boolean; ready: boolean; org: Org; role: Role | null; reviewer: boolean; owner?:string };
 const Membership = createContext<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
 /** Whether the signed-in person belongs to an organisation (display only: the server decides access). */
 export const useMembership = () => useContext(Membership);
@@ -53,12 +55,7 @@ const ICON: Record<string, typeof MapIcon> = {
   home: Home, inbox: Inbox, paw: PawPrint, layers: Layers, phone: Smartphone, shield: ShieldCheck, file: FileText, grad: GraduationCap,
   users: Users, compass: Compass, landmark: Landmark, list: ListChecks, check: ClipboardCheck,
 };
-const DEST_ICON: Record<string, typeof MapIcon> = {
-  "/community": MapIcon, "/community/report": Radio, "/community/activity": Activity,
-  "/ngo": Compass, "/ngo/animals": PawPrint, "/ngo/map": MapIcon, "/ngo/programmes": Layers,
-  "/city": Landmark, "/city/programmes": Layers, "/city/review": ClipboardCheck, "/city/insights": FileText,
-  "/learn": GraduationCap, "/learn/workshops": Users, "/learn/resources": BookOpen,
-};
+
 
 const Nested = createContext(false);
 
@@ -72,24 +69,29 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const path = usePathname() ?? "/";
   const [ws, setWs] = useState<WorkspaceId>(() => workspaceFor(path, null));
   useEffect(() => { const w = workspaceFor(path, lastWorkspace()); setWs(w); rememberWorkspace(w); }, [path]);
-  const def = WORKSPACES[ws];
-  const cur = currentDest(def, path);
+  const aiWorkspace = ws;
   const ai = useAi();
 
   const { user, ready, signOut, openSignIn } = useAuth();
-  const [mem, setMem] = useState<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
+  const [memState, setMem] = useState<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
+  const mem:Mem=!user?{member:false,ready,org:null,role:null,reviewer:false}:memState.owner===user.id?memState:{member:false,ready:false,org:null,role:null,reviewer:false};
+  const [connectionEpoch,setConnectionEpoch]=useState(0);
+  useEffect(()=>{const online=()=>setConnectionEpoch(n=>n+1);window.addEventListener('online',online);return()=>window.removeEventListener('online',online)},[]);
   useEffect(() => {
     if (!ready) return;
     if (!user) { setMem({ member: false, ready: true, org: null, role: null, reviewer: false }); return; }
     let live = true;
+    setMem({owner:user.id,member:false,ready:false,org:null,role:null,reviewer:false});
+    if(!navigator.onLine){void fieldCache<Mem>(`membership:${user.id}`).then(c=>{if(live)setMem(c?.value.owner===user.id?c.value:{owner:user.id,member:false,ready:true,org:null,role:null,reviewer:false})}).catch(()=>{if(live)setMem({owner:user.id,member:false,ready:true,org:null,role:null,reviewer:false})});return()=>{live=false}}
     Promise.all([isNgoMember().catch(() => false), getMyNgo().catch(() => null), getMyRole().catch(() => ({ role: null, reviewer: false }))]).then(([m, o, r]) => {
       const role = (["admin", "coordinator", "veterinarian", "member"] as const).find((x) => x === r.role) ?? null;
-      if (live) setMem({ member: m, ready: true, org: o ? { id: o.id, name: o.name } : null, role, reviewer: r.reviewer });
+      if (live) {const checked={ owner:user.id,member: m, ready: true, org: o ? { id: o.id, name: o.name } : null, role, reviewer: r.reviewer };setMem(checked);if(m&&o)void fieldCache(`membership:${user.id}`,checked).catch(()=>{})}
     });
     return () => { live = false; };
-  }, [user, ready]);
+  }, [user, ready, connectionEpoch]);
   /* The sidebar for this person: their role's tools only, each group
-     labelled once. Unknown role (signed out, or before it loads): all. */
+     labelled once. Restricted links fail closed while the role loads. */
+  const def = workspaceView(aiWorkspace, mem.role, mem.reviewer);
   const nav = visibleNav(def.nav, mem.role, mem.reviewer);
 
   const [find, setFind] = useState(false);
@@ -116,7 +118,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const reporting = path.startsWith("/community/report");
   const isMap = path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city";
   const isFlush = flush || isMap || path === "/ngo/work" || path === "/assistant";
-  const here = def.nav.find((n) => navOn(n, path)) ?? def.index.flatMap((g) => g.links).find((l) => path === l.href || path.startsWith(l.href + "/"));
+  const here = currentDestination(ws,path,mem.role,mem.reviewer);
+  const section=def.index.find(g=>g.label===here?.group)?.links.find(l=>l.primary);
   const onAssistant = path === "/assistant";
 
   return (
@@ -168,17 +171,10 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             const groups = def.index.map((g) => ({ ...g, links: g.links.filter((l) => !nav.some((n) => n.item.href === l.href) && l.href !== def.settings) })).filter((g) => g.links.length);
             if (!groups.length) return null;
             const inside = groups.some((g) => g.links.some((l) => path === l.href || path.startsWith(l.href + "/")));
-            return (
-              <details key={`${ws}-more`} className="sx3-more" open={inside || undefined}>
-                <summary><MoreHorizontal size={16} aria-hidden /><span>More</span><ChevronDown size={13} aria-hidden /></summary>
-                <div>{groups.map((g) => (
-                  <div key={g.label} className="sx3-group">
-                    <p>{g.label}</p>
-                    <ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul>
-                  </div>
-                ))}</div>
-              </details>
-            );
+            return <div>{groups.map(g=><details key={g.label} className="sx3-more" open={g.links.some(l=>path===l.href)||undefined}>
+              <summary><span>{g.label}</span><ChevronDown size={13} aria-hidden /></summary>
+              <ul>{g.links.map(l=><li key={l.href}><Link href={l.href} aria-current={path===l.href?'page':undefined}>{l.label}</Link></li>)}</ul>
+            </details>)}</div>;
           })()}
 
           <p className="sx4-hint">Press <kbd>/</kbd> for quick navigation</p>
@@ -189,7 +185,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           </div>
 
           <div className="sx3-side-foot">
-            {def.settings && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}
+            {def.settings && mem.role === "admin" && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}
             <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help &amp; docs</span></Link>
             <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
           </div>
@@ -217,38 +213,40 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </div>
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
-              {here && here.href !== def.home && <><span aria-hidden>/</span><span aria-current="page">{here.label}</span></>}
+              {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
+              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
               {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
             </nav>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
               <Search size={15} aria-hidden /><span>Search records</span><kbd>⌘K</kbd>
             </button>
             <div className="sp-bar-end">
+              <button type="button" className="icon-btn" aria-label="Workspace sections" onClick={()=>setSheet(true)}><Menu size={18} aria-hidden /></button>
               {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuMark size={34} /></span><span>Ask Kaju</span></button>}
               {def.action && !reporting && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}
               <span className="sx3-acct-m"><Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} /></span>
             </div>
           </header>
 
-          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} />{children}</main>
+          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
         <nav className="sp-tabs" aria-label={`${def.label} navigation`}>
           {def.dests.filter((d) => d.href !== def.action?.href).map((d, i, arr) => {
-            const Icon = DEST_ICON[d.href] ?? MapIcon;
-            const node = <Link key={d.href} href={d.href} aria-current={cur === d.href ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>;
-            if (def.action && i === Math.ceil(arr.length / 2) - 1) return [node, reporting
+            const Icon = ICON[d.icon] ?? MapIcon;
+            const node = <Link key={d.href} href={d.href} aria-current={navOn(d,path) ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>;
+            if (ws !== "ngo" && def.action && i === Math.ceil(arr.length / 2) - 1) return [node, reporting
               ? <Link key="act" href={def.action.href} aria-current="page"><Radio size={21} strokeWidth={1.8} aria-hidden /><span>{def.action.short}</span></Link>
               : <Link key="act" href={def.action.href} className="sp-tabs-act" aria-label={def.action.label}><b>{def.action.href.includes("report") ? <Radio size={21} aria-hidden /> : <Plus size={21} aria-hidden />}</b><span>{def.action.short}</span></Link>];
             return node;
           })}
           <button type="button" onClick={() => ai.toggle()} aria-pressed={ai.open} className={ai.open ? "is-on" : undefined}><span className="sx3-tab-kaju" aria-hidden><KajuFace size={24} /></span><span>Kaju</span></button>
-          <button type="button" onClick={() => setSheet(true)} aria-haspopup="dialog" aria-expanded={sheet}><Menu size={21} strokeWidth={1.8} aria-hidden /><span>More</span></button>
+
         </nav>
 
         <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} />
-        <Finder open={find} onClose={closeFind} ws={ws} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
+        <Finder open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
     </Membership.Provider>
@@ -259,7 +257,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 function visibleNav(items: NavItem[], role: Role | null, reviewer: boolean) {
   let group: string | undefined;
   const tagged = items.map((n) => { if (n.section) group = n.section; return { item: n, group }; })
-    .filter(({ item }) => (!item.roles || !role || item.roles.includes(role)) && (!item.reviewer || reviewer))
+    .filter(({ item }) => (!item.roles || !!role && item.roles.includes(role)) && (!item.reviewer || reviewer))
     .map(({ item, group: g }) => ({ item: role && item.hrefFor?.[role] ? { ...item, href: item.hrefFor[role]! } : item, group: g }));
   let last: string | undefined;
   return tagged.map(({ item, group: g }) => { const label = g && g !== last ? g : undefined; last = g; return { item, label }; });
@@ -280,6 +278,7 @@ function Popover({ children, onClose, className, label }: { children: ReactNode;
 function Account({ user, org, onSignIn, onSignOut, side = false }: { user: { name: string; email: string | null } | null; org: Org; onSignIn: () => void; onSignOut: () => void; side?: boolean }) {
   const [open, setOpen] = useState(false);
   const here = usePathname() ?? "/app";
+  const mem=useMembership();
   if (!user) return side
     ? <Link href={`/sign-in?next=${encodeURIComponent(here)}`} className="sx3-signin">Sign in</Link>
     : <button type="button" className="sp-acct is-out" onClick={onSignIn}>Sign in</button>;
@@ -292,8 +291,8 @@ function Account({ user, org, onSignIn, onSignOut, side = false }: { user: { nam
       {open && (
         <Popover onClose={() => setOpen(false)} className={`sp-acct-menu${side ? " sx3-acct-menu" : ""}`} label="Account">
           <div className="sp-acct-who"><b>{user.name}</b><small>{org ? org.name : user.email ?? "Not in an organisation"}</small></div>
-          {org ? <Link href="/ngo/team" onClick={() => setOpen(false)}>Team &amp; access</Link> : <Link href="/join" onClick={() => setOpen(false)}>Join an organisation with a code</Link>}
-          {org && <Link href="/ngo/settings" onClick={() => setOpen(false)}>Organisation settings</Link>}
+          {org && mem.role === "admin" ? <Link href="/ngo/team" onClick={() => setOpen(false)}>Team &amp; access</Link> : <Link href="/join" onClick={() => setOpen(false)}>Join an organisation with a code</Link>}
+          {org && mem.role === "admin" && <Link href="/ngo/settings" onClick={() => setOpen(false)}>Organisation settings</Link>}
           <Link href="/community/activity" onClick={() => setOpen(false)}>My activity</Link>
           <Link href="/docs" onClick={() => setOpen(false)}>Help</Link>
           <button type="button" onClick={() => { setOpen(false); onSignOut(); }}><LogOut size={14} aria-hidden style={{ marginRight: 8 }} />Sign out</button>
@@ -307,17 +306,19 @@ function Account({ user, org, onSignIn, onSignOut, side = false }: { user: { nam
 function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); else if (!open && d.open) d.close(); }, [open]);
-  const def = WORKSPACES[ws];
-  const here = def.index.findIndex((g) => g.links.some((l) => path === l.href));
+  const mem=useMembership();
+  const def = workspaceView(ws,mem.role,mem.reviewer);
+  const utilityGroups=def.index.filter(g=>!def.nav.some(n=>g.links.some(l=>l.href===n.href)));
+  const here = utilityGroups.findIndex((g) => g.links.some((l) => path === l.href));
   const primary = def.nav.filter((n) => !def.dests.some((d) => d.href === n.href));
   return (
-    <dialog ref={ref} className="sp-index" aria-label={`More in ${def.label}`} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
+    <dialog ref={ref} className="sp-index" aria-label={`Sections in ${def.label}`} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
       <div className="sp-more">
-        <header className="sp-more-head"><span className="sp-grip" aria-hidden /><h2><i aria-hidden style={{ background: def.ink }} />More in {def.label}</h2><button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><X size={18} /></button></header>
+        <header className="sp-more-head"><span className="sp-grip" aria-hidden /><h2><i aria-hidden style={{ background: def.ink }} />Sections in {def.label}</h2><button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><X size={18} /></button></header>
         {primary.length > 0 && (
           <ul className="sx3-more-primary">{primary.map((n) => { const Icon = ICON[n.icon] ?? Home; return <li key={n.href}><Link href={n.href} onClick={onClose} aria-current={navOn(n, path) ? "page" : undefined}>{n.icon === "kaju" ? <KajuFace size={20} /> : <Icon size={18} aria-hidden />}<b>{n.label}</b></Link></li>; })}</ul>
         )}
-        {def.index.map((g, i) => (
+        {utilityGroups.map((g, i) => (
           <details key={`${ws}-${g.label}`} className="sp-more-group" open={i === (here >= 0 ? here : 0)}>
             <summary><span><b>{g.label}</b><small>{g.links.map((l) => l.label).join(" · ")}</small></span><ChevronDown size={18} aria-hidden /></summary>
             <ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} onClick={onClose} aria-current={path === l.href ? "page" : undefined}><b>{l.label}</b>{l.note && <small>{l.note}</small>}</Link></li>)}</ul>
@@ -331,8 +332,8 @@ function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () =>
 }
 
 /** The screens inside the current sidebar place, as tabs above the page. */
-function SectionTabs({ path, role }: { path: string; role: Role | null }) {
-  const t = tabsFor(path, role);
+function SectionTabs({ path, role, reviewer }: { path: string; role: Role | null; reviewer:boolean }) {
+  const t = tabsFor(path, role, reviewer);
   if (!t) return null;
   return (
     <nav className="sx3-tabs" aria-label="In this section">

@@ -1,6 +1,7 @@
 // Client-side CSV export, build a CSV from rows and trigger a download.
 function escape(v: unknown): string {
-  const s = v == null ? "" : String(v);
+  const raw = v == null ? "" : String(v);
+  const s = typeof v === "string" && /^[\s]*[=+@-]|^[\t\r]/.test(raw) ? "\'" + raw : raw;
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

@@ -473,3 +473,9 @@
   .sp.sp-app .ngo-door-act { display: grid; }
   .sp.sp-app .ngo-door-act .btn { width: 100%; justify-content: center; }
 }
+
+/* Long source identifiers must not overlap clinical labels on small screens. */
+.sp .cf-cases .mono { overflow-wrap: anywhere; min-width: 0; }
+.sp .cf-head .portrait.is-none:not(.is-s) .portrait-none { max-width: none; }
+.sp .cf-head .portrait.is-none:not(.is-s) .portrait-none b { color: #eef3ff; text-shadow: none; }
+@media(max-width:640px){.sp .cf-cases a { grid-template-columns:minmax(0,1fr) auto 16px; gap:6px 10px; }.sp .cf-cases .mono { grid-column:1 / -1; }.sp .cf-cases small { grid-column:1 / 3; }}

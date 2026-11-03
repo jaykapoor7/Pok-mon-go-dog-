@@ -60,7 +60,7 @@ export function Packages() {
                 <label>Title<input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g. Ward 14 ABC drive · October" /></label>
                 <label>From<input className="input" type="date" value={f.start} onChange={(e) => setF({ ...f, start: e.target.value })} /></label>
                 <label>To<input className="input" type="date" value={f.end} onChange={(e) => setF({ ...f, end: e.target.value })} /></label>
-                <label>Reviewing office<select className="select" value={f.office} onChange={(e) => setF({ ...f, office: e.target.value })}>{offs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+                <label>Reviewing office<select aria-label="Reviewing office" className="select" value={f.office} onChange={(e) => setF({ ...f, office: e.target.value })}>{offs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
                 <button type="submit" className="btn is-ink is-s" disabled={busy || !f.office}>Prepare package</button>
               </form>
             )}

@@ -1,0 +1,18 @@
+import {fixture} from './fixture-env.mjs';import {createClient} from '@supabase/supabase-js';import assert from 'node:assert/strict';
+if(!fixture)throw Error('Isolated fixture required');const as=async(role)=>{const db=createClient(process.env.STAGING_URL,fixture.anon,{auth:{persistSession:false}});const r=await db.auth.signInWithPassword({email:fixture.users[role].email,password:fixture.password});if(r.error)throw r.error;return db};const coord=await as('coord'),vet=await as('vet'),other=await as('other');let n=0;const ok=m=>console.log(`PASS ${++n} ${m}`);
+const campaign=await coord.from('campaigns').insert({ngo_id:fixture.ngo,name:`STAGING TEST zones ${Date.now()}`,kind:'vaccination',created_by:fixture.users.coord.id}).select('id').single();assert.equal(campaign.error,null,campaign.error?.message);
+const zone=crypto.randomUUID(),request=crypto.randomUUID();const payload={name:'STAGING TEST working boundary',campaign_id:campaign.data.id,planned:10,geometry:{type:'Polygon',coordinates:[[[76.95,11.01],[76.96,11.01],[76.96,11.02],[76.95,11.02],[76.95,11.01]]]}};
+const act=(db,action,p,req=crypto.randomUUID(),id=zone)=>db.rpc('zone_action',{p_request:req,p_zone:id,p_action:action,p_payload:p});
+const made=await act(coord,'create',payload,request);assert.equal(made.error,null,made.error?.message);ok('coordinator creates valid programme boundary');
+assert.equal((await act(coord,'create',payload,request)).data.replayed,true);ok('creation retry does not duplicate zone');
+assert.ok((await act(vet,'assign',{user_id:fixture.users.vet.id})).error);ok('non-coordinator cannot assign staff');
+assert.ok((await act(coord,'assign',{user_id:fixture.users.other.id})).error);ok('cannot assign another organisation member');
+assert.equal((await act(coord,'assign',{user_id:fixture.users.vet.id})).error,null);ok('authorised staff assignment persisted');
+assert.ok((await act(coord,'report_complete',{note:'Not assigned'})).error);ok('unassigned person cannot report completion');
+assert.equal((await act(vet,'report_complete',{note:'STAGING TEST work reported complete; no coverage claim'})).error,null);ok('assigned staff report work complete');
+assert.ok((await act(vet,'review_completion',{note:'Cannot self-review'})).error);ok('staff cannot grant supervisor review');
+const reviewed=await act(coord,'review_completion',{note:'STAGING TEST supervisor review only'});assert.equal(reviewed.error,null);ok('coordinator records separate supervisor review');
+const row=await coord.from('programme_work_zones').select('status').eq('id',zone).single();assert.equal(row.data.status,'supervisor_reviewed');const audit=await coord.from('operational_audit_log').select('id').eq('id',reviewed.data.audit_id).single();assert.equal(audit.error,null);ok('source state and audit read independently');
+const hidden=await other.rpc('org_work_zones');assert.equal(hidden.error,null);assert.ok(!hidden.data.some(z=>z.id===zone));ok('zone boundary hidden from other organisation');
+assert.ok((await act(coord,'create',{...payload,geometry:{type:'Polygon',coordinates:[[[181,91],[182,91],[182,92],[181,91]]]}},crypto.randomUUID(),crypto.randomUUID())).error);ok('invalid boundary rejected');
+console.log(`${n} actual working-zone checks passed`);

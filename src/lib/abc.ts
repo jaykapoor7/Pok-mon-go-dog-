@@ -47,7 +47,7 @@ export function stageOf(r: QueueRow): Stage {
   return r.missing.length ? "evidence" : "review";
 }
 
-export type Checklist = { items: Record<EvidenceKind, boolean>; missing: EvidenceKind[]; vet_authorised: boolean; evidence_reviewed: boolean; government_accepted: boolean };
+export type Checklist = { amendable?: boolean; clinical_ready?:boolean; items: Record<EvidenceKind, boolean>; required?:EvidenceKind[]; missing: EvidenceKind[]; vet_authorised: boolean; evidence_reviewed: boolean; government_accepted: boolean };
 export type Attestation = { id: string; kind: "vet_authorised" | "evidence_reviewed" | "evidence_returned"; actor_id: string; actor_name: string; actor_role: string; note: string | null; created_at: string; revoked_at: string | null };
 export type HistoryRow = { at: string; kind: string; actor: string; detail: string };
 export type Evidence = { id: string; kind: string; url: string | null; title: string | null; location_text: string | null; captured_at: string | null; created_at: string };
@@ -55,7 +55,7 @@ export type Evidence = { id: string; kind: string; url: string | null; title: st
 export type Package = {
   id: string; ngo_id: string; office_id: string; title: string; period_start: string; period_end: string; case_ids: string[];
   summary: { records?: number; vet_authorised?: number; evidence_items?: number; generated_at?: string };
-  status: "draft" | "submitted" | "queried" | "accepted" | "returned"; created_at: string; submitted_at: string | null; decided_by_name: string | null; decided_at: string | null;
+  status: "draft" | "submitted" | "queried" | "accepted" | "returned" | "partially_accepted"; item_review_enabled?:boolean; created_at: string; submitted_at: string | null; decided_by_name: string | null; decided_at: string | null;
 };
 export type PackageEvent = { id: string; actor_name: string; side: "operator" | "reviewer"; kind: string; body: string | null; created_at: string };
 export type PackageCase = { case_id: string; case_code: string | null; title: string | null; city: string | null; created_at: string; evidence: { kind: string; url: string | null; location: string | null; at: string | null }[]; vet_name: string | null; reviewer_name: string | null };
@@ -128,13 +128,13 @@ export async function uploadEvidenceFile(ngoId: string, caseId: string, kind: Ev
   return STORE + path;
 }
 
-export const isStoredEvidence = (url: string | null | undefined) => !!url && url.startsWith(STORE);
+export const isStoredEvidence = (url: string | null | undefined) => !!url && ['abc-evidence','operations-documents','operations-survey-evidence'].some(bucket=>url.startsWith(`storage://${bucket}/`));
 
 /** A link a person can open: stored files get a signed link valid for five minutes. */
 export async function evidenceLink(url: string): Promise<string> {
   if (isRecordingDemo) return url;
   if (!isStoredEvidence(url)) return url;
-  const { data, error } = await db().storage.from(EVIDENCE_BUCKET).createSignedUrl(url.slice(STORE.length), 300);
+  const { data, error } = await db().storage.from(url.slice('storage://'.length).split('/')[0]).createSignedUrl(url.slice('storage://'.length).split('/').slice(1).join('/'), 300);
   if (error || !data?.signedUrl) throw new Error("You cannot open this file");
   return data.signedUrl;
 }
@@ -152,13 +152,13 @@ export async function offices(): Promise<Office[]> {
 }
 export async function packages(): Promise<Package[]> {
   if (isRecordingDemo) return demoTables.packages();
-  const { data, error } = await db().from("report_packages").select("id,ngo_id,office_id,title,period_start,period_end,case_ids,summary,status,created_at,submitted_at,decided_by_name,decided_at").order("created_at", { ascending: false }).limit(200);
+  const { data, error } = await db().from("report_packages").select("id,ngo_id,office_id,title,period_start,period_end,case_ids,summary,status,item_review_enabled,created_at,submitted_at,decided_by_name,decided_at").order("created_at", { ascending: false }).limit(200);
   if (error) throw clean(error);
   return (data ?? []) as Package[];
 }
 export async function packageById(id: string): Promise<Package | null> {
   if (isRecordingDemo) return demoTables.packageById(id);
-  const { data, error } = await db().from("report_packages").select("id,ngo_id,office_id,title,period_start,period_end,case_ids,summary,status,created_at,submitted_at,decided_by_name,decided_at").eq("id", id).maybeSingle();
+  const { data, error } = await db().from("report_packages").select("id,ngo_id,office_id,title,period_start,period_end,case_ids,summary,status,item_review_enabled,created_at,submitted_at,decided_by_name,decided_at").eq("id", id).maybeSingle();
   if (error) throw clean(error);
   return (data ?? null) as Package | null;
 }
@@ -180,10 +180,10 @@ export async function orgNames(ids: string[]): Promise<Record<string, string>> {
   return Object.fromEntries(((data ?? []) as { id: string; name: string }[]).map((n) => [n.id, n.name]));
 }
 
-export const PACKAGE_LABEL: Record<Package["status"], string> = { draft: "Draft", submitted: "Submitted", queried: "Query open", accepted: "Accepted", returned: "Returned" };
+export const PACKAGE_LABEL: Record<Package["status"], string> = { draft: "Draft", submitted: "Submitted", queried: "Query open", accepted: "Accepted", returned: "Returned", partially_accepted:"Partially accepted" };
 export const HISTORY_LABEL = (k: string) => ({
   evidence: "Evidence added", vet_authorised: "Procedure authorised", evidence_reviewed: "Evidence approved", evidence_returned: "Evidence returned",
   "withdrawn:vet_authorised": "Vet authorisation withdrawn", "withdrawn:evidence_reviewed": "Approval withdrawn",
   "package:created": "Added to a package", "package:submitted": "Package submitted", "package:query": "Reviewer query", "package:answer": "Operator answer",
-  "package:accepted": "Accepted by the reviewing office", "package:returned": "Returned by the reviewing office",
+  "package:partial_review":"Partial package decision", "package:accepted": "Accepted by the reviewing office", "package:returned": "Returned by the reviewing office",
 } as Record<string, string>)[k] ?? k;

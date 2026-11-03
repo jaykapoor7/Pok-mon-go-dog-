@@ -16,14 +16,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ClipboardList, MapPin, PawPrint, Search, Sparkles, X } from "lucide-react";
 import { searchRegister, type RegisterRow } from "@/lib/case-register";
 import type { FoundAnimal, FoundPlace } from "@/lib/livingmap/server";
-import { WORKSPACES, type WorkspaceId } from "./workspaces";
+import { WORKSPACES, workspaceView, type Role, type WorkspaceId } from "./workspaces";
 
 type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to" | "Ask Kaju"; title: string; detail: string; href: string };
 
 let cityList: Promise<string[]> | null = null;
 const cities = () => (cityList ??= fetch("/api/livingmap?kind=cities").then((r) => (r.ok ? r.json() : { cities: [] })).then((j) => ((j.cities ?? []) as { city: string }[]).map((c) => c.city)).catch(() => { cityList = null; return []; }));
 
-export function Finder({ open, onClose, ws, member, onAsk }: { open: boolean; onClose: () => void; ws: WorkspaceId; member: boolean; onAsk?: (q: string) => void }) {
+export function Finder({ open, onClose, ws, member, role, reviewer, onAsk }: { open: boolean; onClose: () => void; ws: WorkspaceId; member: boolean; role:Role|null; reviewer:boolean; onAsk?: (q: string) => void }) {
   const router = useRouter();
   const ref = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -59,7 +59,7 @@ export function Finder({ open, onClose, ws, member, onAsk }: { open: boolean; on
   const hits: Hit[] = useMemo(() => {
     const t = q.trim().toLowerCase();
     const out: Hit[] = [];
-    const def = WORKSPACES[ws];
+    const def = workspaceView(ws,role,reviewer);
     if (t && onAsk) out.push({ key: "ask", kind: "Ask Kaju", title: `Ask Kaju: “${q.trim()}”`, detail: "Searches your authorised records and answers with citations", href: "#ask" });
     for (const d of def.nav) if (!t || d.label.toLowerCase().includes(t)) out.push({ key: `go:${d.href}`, kind: "Go to", title: d.label, detail: def.label, href: d.href });
     for (const g of def.index) for (const l of g.links) if (t && l.label.toLowerCase().includes(t) && !def.nav.some((n) => n.href === l.href)) out.push({ key: `go:${l.href}`, kind: "Go to", title: l.label, detail: `${def.label} · ${g.label}`, href: l.href });
@@ -70,7 +70,7 @@ export function Finder({ open, onClose, ws, member, onAsk }: { open: boolean; on
       for (const c of cases) out.push({ key: `k:${c.id}`, kind: "Case", title: `${c.case_code ?? "Case"} · ${c.condition_class ?? c.title ?? "Open case"}`, detail: [c.animal_name && !/·/.test(c.animal_name) ? c.animal_name : c.straypaw_id, c.zone, c.status_class?.replace(/_/g, " ")].filter(Boolean).join(" · "), href: `/ngo/cases/${c.id}` });
     }
     return out;
-  }, [q, ws, allCities, places, animals, cases, onAsk]);
+  }, [q, ws, role, reviewer, allCities, places, animals, cases, onAsk]);
 
   useEffect(() => { setAt(0); }, [hits.length]);
   const go = (h: Hit | undefined) => { if (!h) return; if (h.kind === "Ask Kaju") { onAsk?.(q.trim()); return; } onClose(); router.push(h.href); };

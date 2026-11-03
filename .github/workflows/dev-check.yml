@@ -60,6 +60,7 @@ jobs:
           npm run test:no-full-register
       - name: Kaju privacy, reliability and document contracts
         run: |
+          node --import tsx scripts/test-workspace-registry.ts
           npm run test:kaju-polish
           npm run test:kaju-reliability
           npm run test:report-isolation

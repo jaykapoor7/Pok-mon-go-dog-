@@ -9,9 +9,11 @@
    animal, care events with who recorded them, follow-ups that survive
    closures, and the operational timeline. Clinical records are labelled
    by what they are: recorded by an organisation, not clinician-signed
-   unless a verified sign-off exists (no such sign-off backend yet).
+   unless a separately authenticated veterinary sign-off exists in the linked case.
    ════════════════════════════════════════════════════════════════════ */
 
+import {clinicalNarrative} from '@/lib/clinical-narrative';
+import {OperationsPanel} from './OperationsPanel';
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, Eye } from "lucide-react";
@@ -35,9 +37,10 @@ export function Casefile({ id }: { id: string }) {
   const mem = useMembership();
   const [dog, setDog] = useState<Dog | null | "missing" | "error">(null);
   const [cases, setCases] = useState<OrgCase[]>([]);
-  const [care, setCare] = useState<MedicalEvent[]>([]);
+  const [care, setCare] = useState<MedicalEvent[]|null>(null);
   const [fus, setFus] = useState<Fu[]>([]);
-  const [timeline, setTimeline] = useState<AnimalTimelineEvent[]>([]);
+  const [timeline, setTimeline] = useState<AnimalTimelineEvent[]|null>(null);
+  const [sourceErrors,setSourceErrors]=useState<Record<string,string>>({});
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
 
@@ -51,10 +54,12 @@ export function Casefile({ id }: { id: string }) {
         supa.from("animal_followups").select("id,due_at,status,kind,note,case_id").eq("dog_id", id).order("due_at", { ascending: false }).limit(50),
       ]);
       if (d.error) throw d.error;
+      setSourceErrors({});if(c.error||f.error)setSourceErrors({cases:c.error?"Cases could not be read.":"",followups:f.error?"Follow-ups could not be read.":""});
       if (!d.data) { setDog("missing"); return; }
       setDog(mapDog(d.data)); setCases((c.data ?? []) as OrgCase[]); setFus((f.data ?? []) as Fu[]);
-      const [m, t] = await Promise.all([getMedicalEvents(id), getAnimalTimeline(id)]);
-      setCare(m); setTimeline(t);
+      const [m,t]=await Promise.allSettled([getMedicalEvents(id),getAnimalTimeline(id)]);
+      if(m.status==="fulfilled")setCare(m.value);else setSourceErrors(v=>({...v,care:"Clinical records could not be read. Their count is unknown."}));
+      if(t.status==="fulfilled")setTimeline(t.value);else setSourceErrors(v=>({...v,timeline:"The earlier source timeline could not be read."}));
     } catch { setDog("error"); }
   }, [id]);
   useEffect(() => { if (mem.member) void load(); }, [mem.member, load]);
@@ -70,12 +75,12 @@ export function Casefile({ id }: { id: string }) {
               <Portrait src={dog.cover_photo || null} tag={dog.straypaw_id ?? dog.id.slice(0, 6)} sensitive={!!dog.needs_help} size="l" />
               <div className="stack" style={{ ["--g" as string]: "12px" }}>
                 <p className="k">Casefile · private to {mem.org?.name ?? "your organisation"}</p>
-                <h1 className="display">{animalTitle({ name: dog.name, straypaw_id: dog.straypaw_id ?? null, id: dog.id })}</h1>
+                <h1 className="display">{animalTitle({ name: dog.name,city:dog.city,zone:dog.zone, straypaw_id: dog.straypaw_id ?? null, id: dog.id })}</h1>
                 <p className="mono small">{dog.straypaw_id ?? "StrayPaw ID pending"}{dog.code ? ` · your code ${dog.code}` : ""}{dog.provenance === "imported_historical_record" ? " · imported" : ""}</p>
                 <dl className="ledger">
                   <div><dt>Place</dt><dd>{[dog.zone, dog.city].filter(Boolean).join(", ") || "not recorded"} <small>· {dog.lat && dog.lng ? "exact point held privately" : "locality only"}</small></dd></div>
-                  <div><dt>Sterilisation</dt><dd>{dog.sterilisation_status === "sterilised" ? "Recorded sterilised" : dog.sterilisation_status === "not_sterilised" ? "Recorded not sterilised" : "Not recorded"}</dd></div>
-                  <div><dt>Vaccination</dt><dd>{dog.vaccination_status === "vaccinated" ? "Recorded vaccinated" : dog.vaccination_status === "not_vaccinated" ? "Recorded not vaccinated" : "Not recorded"}</dd></div>
+                  <div><dt>Register sterilisation status</dt><dd>{dog.sterilisation_status === "sterilised" ? "Recorded sterilised" : dog.sterilisation_status === "not_sterilised" ? "Recorded not sterilised" : "Not recorded in the status register"}</dd></div>
+                  <div><dt>Register vaccination status</dt><dd>{dog.vaccination_status === "vaccinated" ? "Recorded vaccinated" : dog.vaccination_status === "not_vaccinated" ? "Recorded not vaccinated" : "Not recorded in the status register"}</dd></div>
                   {dog.owner_name && <div><dt>Carer</dt><dd>{dog.owner_name} <small>· contact private</small></dd></div>}
                   {dog.intake_notes && <div><dt>Intake note</dt><dd>{dog.intake_notes}</dd></div>}
                 </dl>
@@ -90,17 +95,17 @@ export function Casefile({ id }: { id: string }) {
             <div className="cf-body">
               <section className="cf-sec">
                 <h2 className="h2">Cases</h2>
-                {cases.length ? <ul className="cf-cases">{cases.map((c) => <li key={c.id}><Link href={`/ngo/cases/${c.id}`}><span className="mono">{c.case_code ?? "Case"}</span><b>{c.condition_class ?? "Request"}</b><span className="pill">{STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}</span><small>{day(c.occurred_at)}{c.assignee_name ? ` · ${c.assignee_name}` : ""}{c.provenance === "imported_historical_record" ? " · imported" : ""}</small><ArrowUpRight size={14} aria-hidden /></Link></li>)}</ul> : <p className="small">No case on this animal in your organisation.</p>}
+                {sourceErrors.cases?<p role="alert">{sourceErrors.cases}</p>:cases.length ? <ul className="cf-cases">{cases.map((c) => <li key={c.id}><Link href={`/ngo/cases/${c.id}`}><span className="mono">{c.case_code ?? "Case"}</span><b>{c.condition_class ?? "Request"}</b><span className="pill">{STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}</span><small>{day(c.occurred_at)}{c.assignee_name ? ` · ${c.assignee_name}` : ""}{c.provenance === "imported_historical_record" ? " · imported" : ""}</small><ArrowUpRight size={14} aria-hidden /></Link></li>)}</ul> : <p className="small">No case on this animal in your organisation.</p>}
                 <h2 className="h2">Follow-ups</h2>
-                {fus.length ? <ul className="fus">{fus.map((f) => <li key={f.id}><span><b>{(f.kind ?? "Recheck").replace(/_/g, " ")}</b><small>{f.note ?? ""}</small></span><span className={`pill ${f.status === "done" ? "is-care" : f.status === "missed" ? "is-caution" : Date.parse(f.due_at) < Date.now() && f.status === "upcoming" ? "is-urgent" : "is-info"}`}>{f.status} · {day(f.due_at)}</span></li>)}</ul> : <p className="small">No follow-ups on this animal.</p>}
-                <h2 className="h2">Timeline</h2>
-                {timeline.length ? <ol className="chrono">{timeline.slice(0, 40).map((t) => <li key={t.id} className={t.medicalEventId ? "is-care" : ""}><time className="mono">{day(t.occurred_at)}</time><span><b>{t.title}</b>{t.details ? <> · {t.details}</> : null}</span><small>{t.provenance.replace(/_/g, " ")}</small></li>)}</ol> : <p className="small">No operational events yet.</p>}
+                {sourceErrors.followups?<p role="alert">{sourceErrors.followups}</p>:fus.length ? <ul className="fus">{fus.map((f) => <li key={f.id}><span><b>{(f.kind ?? "Recheck").replace(/_/g, " ")}</b><small>{f.note ?? ""}</small></span><span className={`pill ${f.status === "done" ? "is-care" : f.status === "missed" ? "is-caution" : Date.parse(f.due_at) < Date.now() && f.status === "upcoming" ? "is-urgent" : "is-info"}`}>{f.status} · {day(f.due_at)}</span></li>)}</ul> : <p className="small">No follow-ups on this animal.</p>}
+                <details><summary>Earlier source timeline{timeline?` · ${timeline.length} entries`:""}</summary>
+                {sourceErrors.timeline?<p role="alert">{sourceErrors.timeline}</p>:timeline===null?<p role="status">Reading source history…</p>:timeline.length ? <ol className="chrono">{timeline.slice(0, 40).map((t) => <li key={t.id} className={t.medicalEventId ? "is-care" : ""}><time className="mono">{day(t.occurred_at)}</time><span><b>{t.title}</b>{t.details ? <> · {clinicalNarrative(t.details)}</> : null}</span><small>{t.provenance.replace(/_/g, " ")}</small></li>)}</ol> : <p className="small">No earlier timeline entries. Structured operations are shown separately.</p>}</details>
               </section>
-              <aside className="cf-side">
+              <aside className="cf-side"><OperationsPanel dogId={id} readOnly/>
                 <CareForm dogId={dog.id} onDone={load} />
                 <section className="cf-card">
-                  <h3 className="h3">Care on record <span className="mono small">{care.length}</span></h3>
-                  {care.length ? <ul className="cf-care">{care.slice(0, 12).map((m) => <li key={m.id}><b>{MEDICAL_KINDS.find((k) => k.id === m.kind)?.label ?? m.kind}</b><small>{day(m.event_date)}{m.performed_by ? ` · ${m.performed_by}` : ""}</small>{m.notes && <p>{m.notes}</p>}</li>)}</ul> : <p className="small">No care events recorded.</p>}
+                  <h3 className="h3">Care on record <span className="mono small">{care?.length??"—"}</span></h3>
+                  {sourceErrors.care?<p role="alert">{sourceErrors.care} <button className="btn" onClick={()=>void load()}>Read clinical records again</button></p>:care===null?<p role="status">Reading clinical records…</p>:care.length ? <ul className="cf-care">{care.slice(0, 12).map((m) => <li key={m.id}><b>{MEDICAL_KINDS.find((k) => k.id === m.kind)?.label ?? m.kind}</b><small>{day(m.event_date)}{m.performed_by ? ` · ${m.performed_by}` : ""}</small>{m.notes && <><p style={{whiteSpace:"pre-line"}}>{clinicalNarrative(m.notes)}</p>{clinicalNarrative(m.notes)!==m.notes&&<details><summary>Read complete source note</summary><p style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{m.notes}</p></details>}</>}</li>)}</ul> : <p className="small">No care events recorded.</p>}
                   <p className="small">Each is recorded by an organisation. A named vet in a note is not an authenticated sign-off.</p>
                 </section>
               </aside>

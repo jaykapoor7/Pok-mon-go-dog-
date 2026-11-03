@@ -33,7 +33,7 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
       first_seen: r.created_at, last_seen: r.created_at, last_fed_at: null, community_notes: [],
     }));
 
-  const coverage = totals?.areas ? Math.round((totals.covered / totals.areas) * 100) : 0;
+  const coverage = totals?.areas ? Math.round((totals.covered / totals.areas) * 100) : null;
 
   return (
     <div className="dk-form-page is-wide">
@@ -45,9 +45,9 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
           { label: "areas", value: totals?.areas ?? null },
           { label: "responses", value: totals?.responses ?? null },
           { label: "dogs counted", value: totals?.animals ?? null },
-          { label: "areas started", value: totals ? `${coverage}%` : null, tone: "quiet" },
+          { label: "areas started", value: coverage===null ? null : `${coverage}%`, tone: "quiet" },
         ]}
-        actions={<Link href="/partner/surveys" className="dk-btn is-tint"><ArrowLeft size={15} /> Surveys</Link>}
+        actions={<Link href="/ngo/surveys" className="dk-btn is-tint"><ArrowLeft size={15} /> Surveys</Link>}
       />
 
       {error && <p role="alert" className="mt-4 text-status-injured">{error}</p>}
@@ -62,7 +62,7 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
       {/* geographic coverage */}
       {responseMarkers.length > 0 && (
         <div className="mt-6">
-          <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-bark-400">Coverage map</h2>
+          <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-bark-400">Observation map</h2>
           <div className="h-72 overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/[0.1]">
             <MapCanvas dogs={responseMarkers} />
           </div>
@@ -80,7 +80,7 @@ export function SurveyDetail({ survey, areas, onChanged }: { survey: Survey; are
                 const areaName = new Map(areas.map((a) => [a.id, a.name]));
                 downloadCsv(`${survey.title.replace(/\W+/g, "-").toLowerCase()}-responses.csv`, responses.map((r) => ({
                   date: r.created_at, area: r.area_id ? areaName.get(r.area_id) ?? "" : "", species: speciesLabel(r.species),
-                  count: r.count, lat: r.lat ?? "", lng: r.lng ?? "", sterilised: (r.attributes as any)?.sterilised ?? "", notes: r.notes ?? "",
+                  count: r.count, lat: r.lat ?? "", lng: r.lng ?? "", sterilised: (r.attributes as any)?.sterilised ?? "Unknown", vaccination_mark:r.attributes.vaccination_mark??"Unknown", animal_id:r.attributes.animal_id??"Not identified", notes: r.notes ?? "",
                 })));
               }}
               className="inline-flex items-center gap-1 text-[13px] font-medium text-paw-600 hover:underline"

@@ -71,7 +71,9 @@ export function Work() {
   const [org, setOrg] = useState<NGO | null>(null);
   const [failed, setFailed] = useState(false);
   const [cohort, setCohort] = useState<Cohort>("live");
-  const [focus, setFocus] = useState<Focus>("all");
+  const [focus, setFocusState] = useState<Focus>("all");
+  const setFocus=useCallback((value:Focus)=>{setFocusState(value);const url=new URL(window.location.href);if(value==='all')url.searchParams.delete('focus');else url.searchParams.set('focus',value);window.history.replaceState(window.history.state,'',url)},[]);
+  useEffect(()=>{const read=()=>{const value=new URLSearchParams(window.location.search).get('focus');setFocusState(['mine','unowned','critical','followup'].includes(value??'')?value as Focus:'all')};read();window.addEventListener('popstate',read);return()=>window.removeEventListener('popstate',read)},[]);
   const [group, setGroup] = useState<"priority" | "owner">("priority");
   const [text, setText] = useState("");
   const [cell, setCell] = useState<string | null>(null);
@@ -82,8 +84,7 @@ export function Work() {
   const listRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    const f = q.get("focus"), c = q.get("cohort");
-    if (f && ["mine", "unowned", "critical", "followup"].includes(f)) setFocus(f as Focus);
+    const c = q.get("cohort");
     if (c === "decide" || c === "history") setCohort(c);
   }, []);
   const searchRef = useRef<HTMLInputElement>(null);

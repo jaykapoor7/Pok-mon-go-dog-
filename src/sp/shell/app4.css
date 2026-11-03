@@ -2,7 +2,7 @@
    StrayPaw 4 application shell. The same product the website shows in
    its hero window: Inter, a white sidebar with Quick actions, a short
    list of everyday places, coloured module squares, a Platform section,
-   "More", a quick-navigation hint, then settings, help and the account.
+   named workflow groups, a quick-navigation hint, settings, help and account.
    One primary colour (StrayPaw blue); compact 13–14px working type.
    Loaded after shell3.css; phone layout keeps its own rules there.
    ════════════════════════════════════════════════════════════════════ */
@@ -304,3 +304,6 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp.sx3 .sx3-tabs a:focus-visible { outline: 2px solid var(--s3-blue, #2457ce); outline-offset: -2px; border-radius: 6px; }
 .sp.sx3 .sx3-tabs a:first-child { padding-left: 0; }
 @media (max-width: 720px) { .sp.sx3 .sx3-tabs { padding: 10px 16px 0; } }
+
+/* Kaju stays in the thumb bar; avoid duplicate controls crowding narrow phones. */
+@media(max-width:860px){.sp.sx3 .sp-bar-end .sx3-ai-btn{display:none}}
