@@ -31,6 +31,8 @@ export type AiReply = {
   tools: ToolRun[];
   proposals: Proposal[];
   navigate?: { href: string; label: string };
+  /** One-tap next commands when a request is ambiguous or finished: asked again through the same router. */
+  suggestions?: string[];
   engine: "model" | "tools";
   notice?: string;
 };

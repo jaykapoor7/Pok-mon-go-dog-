@@ -107,6 +107,10 @@ try{
  for(const name of names){if(saved[name]===undefined)delete process.env[name];else process.env[name]=saved[name];}
  delete process.env.STRAYPAW_AI_ALLOW_OIDC;disable();
 }
+{
+ const nav=await withTools('open intake',{...ctx,actorRole:'member'});assert.equal(nav.navigate?.href,'/ngo/inbox');ok('a plain navigation command opens the screen without a model');
+ const lost=await withTools('zzqx plorb',{...ctx,db:db({data:[],error:null})});assert.ok((lost as {suggestions?:string[]}).suggestions?.includes('What should I do first?'));ok('an unmatched request offers runnable next steps instead of a dead end');
+}
 console.log(`kaju reliability: ${checks} checks passed`);
 }
 main().catch(e => { console.error(e); process.exitCode = 1; });

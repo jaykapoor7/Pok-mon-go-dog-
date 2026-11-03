@@ -157,6 +157,13 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
       : "Hello, I’m Kaju. I can explain published programmes and help you find public records. Sign in to work with your organisation’s cases, evidence, follow-ups and reports.");
   }
 
+  /* "open intake", "go to verification", "show me the field map": a screen, not a search. */
+  const go = t.match(/^(?:please\s+)?(?:open|go to|take me to|show me|show)\s+(?:the\s+|my\s+)?(.{3,40}?)(?:\s+page|\s+screen)?[.!?\s]*$/);
+  if (go) {
+    const want = go[1].replace(/&/g, "and").trim();
+    const key = Object.entries(NAV).find(([k, v]) => k.replace(/_/g, " ") === want || v.label.toLowerCase().replace(/&/g, "and") === want || v.label.toLowerCase().startsWith(want))?.[0];
+    if (key) { const out = await call(acc, ctx, "navigate", { to: key }); return done(out.ok === false ? out.summary : `Opening ${(out.navigate ?? NAV[key]).label}.`); }
+  }
   if (/this (?:case|record|animal|programme|report|package)|selected|current record/i.test(q)) {
     const out=await call(acc,ctx,"current_record");
     if(out.ok===false)return done(out.summary);
@@ -298,5 +305,9 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   if (out.ok === false) return done(out.summary);
   const d = out.data as Record<string, unknown[]>;
   const parts = [d.your_cases?.length && `${d.your_cases.length} of your cases`, d.your_animals?.length && `${d.your_animals.length} of your animals`, d.public_animals?.length && `${d.public_animals.length} public animal records`, d.programmes?.length && `${d.programmes.length} programmes`].filter(Boolean);
-  return done(parts.length ? `For “${query}” I found ${parts.join(", ")}. They are linked below.` : `Nothing you can see matches “${query}”. Try a StrayPaw tag, a case code or a locality.`);
+  if (parts.length) return done(`For “${query}” I found ${parts.join(", ")}. They are linked below.`);
+  /* Nothing matched: say so plainly and offer the commands Kaju can actually run. */
+  return { ...done(`I could not match “${query}” to a record or a task. These are things I can do right now:`), suggestions: ctx.orgId
+    ? ["What should I do first?", "Which records are missing evidence?", "Find possible duplicate animals", "Open intake"]
+    : ["Show published programmes", "Open the map", "What is unknown status?"] };
 }
