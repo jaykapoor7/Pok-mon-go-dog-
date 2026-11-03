@@ -25,6 +25,7 @@ import { State, day } from "../ui";
 import { FollowupList, NextStep } from "./NextStep";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
+import { DeleteRecord } from "../ui/DeleteRecord";
 
 const realName = (s: string | null | undefined) => { const t = (s ?? "").trim(); return t && !/·/.test(t) ? t : null; };
 
@@ -50,15 +51,15 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
   const facts = { ...c, occurred_at: reg.occurred_at, status_class: reg.status_class, provenance: reg.provenance, reviewed_at: reg.status_reviewed_at, last_activity_at: c.last_activity_at ?? c.updated_at } as never;
   const cohort = isHistoricalCase(facts) ? "history" : isStale(facts, Date.now()) ? "decide" : "live";
   const history = [
-    ...updates.map((u) => ({ at: u.created_at, k: u.type === "note" ? "note" : "update", t: u.note || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : u.type.replace(/_/g, " ")), who: u.actor_name })),
-    ...medical.map((m) => ({ at: m.event_date, k: "care", t: `${m.kind.replace(/_/g, " ")}${m.notes ? `: ${m.notes}` : ""}`, who: m.performed_by })),
+    ...updates.map((u) => ({ id: u.id, kind: "update" as const, at: u.created_at, k: u.type === "note" ? "note" : "update", t: u.note || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : u.type.replace(/_/g, " ")), who: u.actor_name })),
+    ...medical.map((m) => ({ id: m.id, kind: "care" as const, at: m.event_date, k: "care", t: `${m.kind.replace(/_/g, " ")}${m.notes ? `: ${m.notes}` : ""}`, who: m.performed_by })),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   const title = reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title;
 
   return (
     <article className="cs">
       <header className="cs-head">
-        <div className="cs-crumb"><Link href="/ngo" className="link"><ArrowLeft size={14} aria-hidden /> Work</Link><span className="mono small">{shortCode(reg.case_code)}</span></div>
+        <div className="cs-crumb"><Link href="/ngo/work" className="link"><ArrowLeft size={14} aria-hidden /> Work queue</Link><span className="mono small">{shortCode(reg.case_code)}</span><span className="cs-crumb-end"><DeleteRecord kind="case" id={c.id} what="this case" compact={false} onDone={() => { window.location.assign("/ngo/work"); }} /></span></div>
         <div className="cs-title">
           <p className="k">{STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}{imported ? " · imported historical record" : ""}{cohort === "decide" ? " · waiting on a decision" : ""}</p>
           <h1 className="display">{title}</h1>
@@ -82,7 +83,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
           <OperationsPanel caseId={c.id}/>
           <section className="cf-sec">
             <h2 className="h2">Chronology <span className="mono small">{history.length}</span></h2>
-            {history.length ? <ol className="chrono">{history.map((h, i) => <li key={i} className={`is-${h.k === "care" ? "care" : h.k === "note" ? "sight" : "report"}`}><time className="mono">{day(h.at)}</time><span><b>{h.t}</b></span><small>{h.k === "care" ? "Care, recorded by an organisation" : h.k === "note" ? "Note" : "Status"}{h.who ? ` · ${h.who}` : ""}</small></li>)}</ol> : <p className="small">Nothing recorded on this case since it was opened.</p>}
+            {history.length ? <ol className="chrono">{history.map((h, i) => <li key={`${h.kind}${h.id ?? i}`} className={`dr-row is-${h.k === "care" ? "care" : h.k === "note" ? "sight" : "report"}`}><time className="mono">{day(h.at)}</time><span><b>{h.t}</b></span><small>{h.k === "care" ? "Care, recorded by an organisation" : h.k === "note" ? "Note" : "Status"}{h.who ? ` · ${h.who}` : ""}</small>{h.id && <DeleteRecord kind={h.kind} id={h.id} what={h.k === "care" ? "this care record" : h.k === "note" ? "this note" : "this update"} onDone={() => void onChanged()} />}</li>)}</ol> : <p className="small">Nothing recorded on this case since it was opened.</p>}
           </section>
           {(c.before_url || c.after_url || (c.photos ?? []).length > 0) && (
             <section className="cf-sec">

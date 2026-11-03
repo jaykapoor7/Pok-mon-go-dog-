@@ -44,3 +44,29 @@
   .rs-stat + .rs-stat { border-left: 0; border-top: 1px solid var(--s4-line, rgba(11, 30, 61, .1)); }
   .rs-ds dl > div { grid-template-columns: 1fr; gap: 2px; }
 }
+
+/* ── Research 4.0: an academic catalogue, not a landing page ─────────── */
+.rs-top { padding: 56px 0 28px; border-bottom: 1px solid #e4e8f0; }
+.rs-top-in { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 48px; align-items: start; }
+.rs-eyebrow { margin: 0 0 12px; font-size: 14px; font-weight: 500; color: #2457ce; }
+.rs-h1 { margin: 0; font-size: clamp(36px, 4.4vw, 56px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 600; }
+.rs-lede { margin: 18px 0 0; max-width: 60ch; font-size: 17px; line-height: 1.6; color: #4a5568; }
+.rs-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.rs-glance { padding: 20px 22px; border-radius: 14px; background: #f5f7fb; box-shadow: inset 0 0 0 1px #e4e8f0; }
+.rs-glance-h { margin: 0 0 8px; font-size: 12.5px; font-weight: 600; color: #6b7486; text-transform: none; }
+.rs-glance dl { margin: 0 0 18px; display: grid; gap: 6px; }
+.rs-glance dl > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; }
+.rs-glance dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rs-glance-st { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rs-glance-st a { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; margin: 0 -8px; border-radius: 8px; color: inherit; text-decoration: none; }
+.rs-glance-st a:hover { background: #fff; }
+.rs-glance-note { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: #6b7486; }
+.rs-body { padding-top: 32px; padding-bottom: 32px; }
+.rs-cols { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 48px; align-items: start; }
+.rs-sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.rs-h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em; }
+.rs-rules { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 12px; }
+.rs-rules li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; font-size: 14px; line-height: 1.5; color: #4a5568; }
+.rs-rules svg { margin-top: 2px; color: #2457ce; }
+.rs-rules b { color: #0b1e3d; font-weight: 600; }
+@media (max-width: 960px) { .rs-top-in, .rs-cols { grid-template-columns: 1fr; gap: 28px; } .rs-top { padding-top: 32px; } }

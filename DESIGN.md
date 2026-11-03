@@ -1,5 +1,94 @@
 # StrayPaw product design system
 
+## StrayPaw 4.0: the authoritative specification (3 November 2026)
+
+This section governs every surface after the homepage hero. Where any older
+note below conflicts with it, this section wins; the older notes are kept as
+history only. The homepage hero, landing sections and scripted hero demo are
+out of scope for this system and are not to be redesigned.
+
+**Benchmark.** GovDash for composition, density, hierarchy and polish. We adopt
+its principles, never its branding or code. StrayPaw's identity is the
+white-and-blue ground, Kaju, and an institutional, evidence-first voice.
+
+### 1. The one test
+On any dashboard a person must see within five seconds: where they are (title
+and breadcrumb), what matters now (the few numbers that need a decision),
+what they can do (one primary action, verbs on rows) and what happens next
+(the next step named on each record).
+
+### 2. Foundations
+- **Colour.** Ground and surfaces pure white `#ffffff`; quiet fill `#f5f7fb`;
+  hairline `#e4e8f0`. Ink `#0b1e3d`, body `#4a5568`, muted `#6b7486`. Blue
+  `#2457ce` is selection, primary action and neutral data. Flame `#f05b40`
+  only for urgency and Report. Green `#1f7a4d` only for accepted/complete.
+  Amber `#d08a1d` only for waiting/overdue. No cream, no paper, no dark
+  page grounds. A faint drifting blue glow sits behind app pages (off under
+  reduced motion and on map pages).
+- **Type.** One family (DM Sans / Inter fallback), no serif, no italics.
+  App page title 28-32px/500; section title 15-16px/500; body 14px;
+  meta 12-12.5px. Numbers use tabular figures.
+- **Space.** 4px grid. Page gutter 32px desktop, 16px phone, identical for
+  tabs, headers and tables so everything lines up with the sidebar edge.
+- **Shape.** Radius 8 (controls), 12 (cards), 999 (chips). Hairline
+  borders, shadow only on things that float (menus, drawers, toasts).
+
+### 3. Components (fewer, better)
+- **Page header:** title, one-line purpose, at most one primary and one
+  secondary action on the right. Never a second "New case" when the top
+  bar has one.
+- **Stat strip:** 3-5 real, permission-scoped counts that open the filtered
+  list they count. Unknown shows "not read", never zero.
+- **Table/list:** one row per record, primary label, short code
+  (`shortCode()`), status chip, owner, age, row verb. Max 20 rows per page,
+  pager top-right of the footer.
+- **Tabs:** underlined text, sub-pages of the current sidebar place only.
+- **Chips:** filters and status only.
+- **Empty / loading / error:** one sentence of fact plus one action;
+  skeletons match the final layout; errors never show zero.
+- **Destructive actions:** a visible Delete on anything a person or Kaju
+  added, with a confirmation that states the consequence; deletions are
+  archived and can be restored by an admin.
+
+### 4. Navigation
+- **Site header:** at most five groups (Product, Solutions, Proof, Research,
+  Learn & Community) plus Sign in/Open app and one CTA (Book a demo).
+- **NGO sidebar:** Today, Work queue, then the five steps numbered
+  (1 Receive, 2 Register, 3 Treat, 4 Release, 5 Submit), then Organisation
+  and one "More". Advanced tools live in tabs and on records, not in the
+  sidebar.
+- **Government sidebar:** From NGOs (Review submissions, Contracts & rates),
+  then Oversight (Wards & map, Overview, Programmes, Reports).
+- **Phone:** thumb bar of four places plus Kaju; everything else in the
+  sections sheet. Touch targets 44px.
+
+### 5. Kaju
+Kaju is the Explorer puppy (KAJU_CHARACTER.md), never redrawn. One "Ask Kaju"
+button in the top bar, his corner in the sidebar, the docked panel on any
+page. He prepares; people confirm. Every action card says exactly what will
+change and is saved through the normal audited RPCs. No paid inference
+unless the owner enables it; no automatic clinical approval.
+
+### 6. Motion
+Motion explains a state change: panels slide 200-260ms on
+cubic-bezier(.2,.7,.2,1); lists rise in with 40-50ms stagger; hover lifts 1px;
+selection fills blue. Kaju's sequences come from `src/kaju/poses.ts`. No
+typed tricks or joke copy; this is professional software. Everything
+respects `prefers-reduced-motion`.
+
+### 7. Voice
+Plain English for low tech- and AI-literacy users in India. Verbs on
+buttons ("Prepare the October package"), facts in sentences ("2 animals are
+missing a release photo"). Never developer words (backend, RPC, migration,
+schema), never "Lorem", never placeholder descriptions. Honest labels:
+"Product demo", "Not connected", "imported record", "illustrative contract".
+Acceptance is not payment; never imply a claim was paid.
+
+---
+
+## History (superseded where it conflicts with 4.0)
+
+
 > **StrayPaw 3.0 (31 October 2026) supersedes the notes below where they
 > conflict.** One system across the site, sign-in and app
 > (`src/sp3/sp3.css`; app tokens re-pointed in `src/sp/shell/app3.css`).

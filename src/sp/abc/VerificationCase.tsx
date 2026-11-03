@@ -21,6 +21,7 @@ import { Reading } from "../ui/Reading";
 import { EvidenceLink } from "./EvidenceLink";
 import "../ngo/ngo.css";
 import "./abc.css";
+import { DeleteRecord } from "../ui/DeleteRecord";
 
 type Data = { head: Awaited<ReturnType<typeof caseHead>>; chk: Checklist; ev: Evidence[]; att: Attestation[]; hist: HistoryRow[]; ctx: AbcContext };
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -106,6 +107,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
                 <span className={`ck${e ? " is-on" : ""}`} aria-hidden>{e && <Check size={11} strokeWidth={3} />}</span>
                 <span>{EVIDENCE_LABEL[k]}<small>{e ? [e.location_text, when(e.created_at)].filter(Boolean).join(" · ") : "Missing"}</small></span>
                 {e?.url ? <EvidenceLink url={e.url} /> : <span />}
+                {e && !locked && <DeleteRecord kind="evidence" id={e.id} what={`this ${EVIDENCE_LABEL[k].toLowerCase()}`} onDone={() => void act(async () => null, "Evidence deleted.")} />}
               </li>
             ); })}</ul>
             {!locked && <AddEvidence missing={d.chk.missing.length ? d.chk.missing : d.chk.required??EVIDENCE_KINDS} busy={busy} onAdd={(k, v) => act(async () => {

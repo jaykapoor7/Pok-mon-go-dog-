@@ -29,6 +29,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
 import { ORDER, PROFESSIONAL, WORKSPACES, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
+import { RemovedToast } from "../ui/DeleteRecord";
 import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
 import { KajuPresence } from "@/kaju/Presence";
@@ -256,6 +257,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         </nav>
 
+        <RemovedToast />
         <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} dual={!!dual} />
         <Finder open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}

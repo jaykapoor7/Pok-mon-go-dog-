@@ -25,6 +25,7 @@ import type { CaseResolution } from "@/lib/types";
 import { addNote, assignTo, decideCase, resolveCase, scheduleFollowup, setFollowup, startWork, takeCase, type Receipt } from "../data/work";
 import {useMembership} from "../shell/Shell";
 import { Ack, day } from "../ui";
+import { DeleteRecord } from "../ui/DeleteRecord";
 
 const DAY = 86_400_000;
 type Mode = null | "outcome" | "close" | "note" | "followup";
@@ -250,6 +251,7 @@ export function FollowupList({ file, onChanged }: { file: CaseFile; onChanged: (
                   <button type="button" className="btn is-xs is-ghost" disabled={busy === f.id} onClick={() => act(f.id, "postponed", new Date(Date.now() + 7 * DAY).toISOString())}>+7 days</button>
                 </span>
               )}
+              <DeleteRecord kind="followup" id={f.id} what="this follow-up" onDone={() => void onChanged()} />
             </li>
           );
         })}

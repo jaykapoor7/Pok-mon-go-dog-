@@ -382,3 +382,49 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .jy li:nth-child(2) { animation-delay: 50ms; } .jy li:nth-child(3) { animation-delay: 100ms; } .jy li:nth-child(4) { animation-delay: 150ms; } .jy li:nth-child(5) { animation-delay: 200ms; }
 @keyframes sx5-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .sp.sx3 .sx3-kaju-nook button, .jy li { transition: none; animation: none; } }
+
+/* Delete control and its undo toast. */
+.sp .dr { position: relative; display: inline-flex; }
+.sp .dr-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: #6b7486; font: inherit; font-size: 13px; cursor: pointer; transition: background 140ms, color 140ms; }
+.sp .dr-btn.is-compact { width: 32px; padding: 0; justify-content: center; }
+.sp .dr-btn:hover, .sp .dr-btn[aria-expanded="true"] { background: #fdecea; color: #b2401f; }
+.sp .dr-btn:focus-visible { outline: 2px solid #2457ce; outline-offset: 1px; }
+.sp .dr-pop { position: absolute; z-index: 40; top: calc(100% + 6px); right: 0; width: 300px; padding: 14px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px #e4e8f0, 0 18px 40px -20px rgba(11, 30, 61, .35); display: grid; gap: 10px; animation: dr-in 160ms cubic-bezier(.2,.7,.2,1); text-align: left; }
+.sp .dr-pop p { margin: 0; font-size: 13px; line-height: 1.45; color: #4a5568; }
+.sp .dr-pop p b { color: #0b1e3d; font-weight: 600; }
+.sp .dr-pop textarea { min-height: 0; font-size: 14px; padding: 8px 10px; }
+.sp .dr-err { color: #b2401f !important; }
+.sp .dr-act { display: flex; justify-content: flex-end; gap: 8px; }
+.sp .dr-danger { background: #c2412a; color: #fff; border-color: #c2412a; }
+.sp .dr-danger:hover { background: #a63521; }
+.sp .dr-toast { position: fixed; z-index: 80; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border-radius: 12px; background: #0b1e3d; color: #fff; font-size: 14px; box-shadow: 0 18px 40px -18px rgba(11, 30, 61, .6); animation: dr-up 200ms cubic-bezier(.2,.7,.2,1); }
+.sp .dr-toast button { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 0; border-radius: 8px; background: rgba(255,255,255,.12); color: #fff; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.sp .dr-toast button:hover { background: rgba(255,255,255,.2); }
+.sp .dr-toast .dr-x { width: 30px; padding: 0; justify-content: center; background: transparent; }
+@keyframes dr-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes dr-up { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (max-width: 860px) { .sp .dr-toast { bottom: calc(var(--tabs, 64px) + 12px); } .sp .dr-pop { width: min(300px, calc(100vw - 32px)); } }
+@media (prefers-reduced-motion: reduce) { .sp .dr-pop, .sp .dr-toast { animation: none; } }
+/* Rows that can be deleted keep the button at their end, quiet until hovered. */
+.sp .dr-row { position: relative; }
+.sp .cf-care > li.dr-row > .dr { position: absolute; top: 6px; right: 0; }
+.sp .chrono > li.dr-row, .sp .fus > li.dr-row { padding-right: 40px; }
+.sp .chrono > li.dr-row > .dr, .sp .fus > li.dr-row > .dr { position: absolute; top: 50%; right: 0; transform: translateY(-50%); }
+@media (hover: hover) { .sp .dr-row > .dr .dr-btn:not([aria-expanded="true"]) { opacity: .55; } .sp .dr-row:hover > .dr .dr-btn { opacity: 1; } }
+.sp .cs-crumb-end { margin-left: auto; }
+/* Case page: care and movements as one tidy section; quiet back link. */
+.sp .ops { margin-top: 18px; }
+.sp .ops-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.sp .ops-head h2 { margin: 0 0 2px; font-size: 16px; font-weight: 500; }
+.sp .ops-head p { margin: 0; font-size: 13px; color: #6b7486; max-width: 52ch; }
+.sp .ops-empty { margin: 6px 0 0; font-size: 13.5px; color: #6b7486; }
+.sp .ops-pager { justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.sp .cs-crumb { display: flex; align-items: center; gap: 12px; }
+.sp .cs-crumb .link { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 500; text-decoration: none; color: #2457ce; }
+.sp .cs-crumb .link:hover { text-decoration: underline; }
+.sp .cs-animal small.mono, .sp .cs-animal b { overflow-wrap: anywhere; }
+/* Government queue rows: title, size, status, verb — nothing spills out. */
+.sp .gv-main .abc-list a { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+.sp .gv-main .abc-t small { white-space: normal; }
+.sp.sx3 .gv-path { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+@media (max-width: 860px) { .sp .gv-main .abc-list a { grid-template-columns: minmax(0, 1fr) auto; } }
