@@ -169,11 +169,7 @@ export const DESTINATIONS:Destination[]=[
     "tone": "amber",
     "group": "Reports",
     "primary": true,
-    "mobile": false,
-    "roles": [
-      "admin",
-      "coordinator"
-    ]
+    "mobile": false
   },
   {
     "workspace": "ngo",

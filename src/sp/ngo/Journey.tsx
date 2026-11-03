@@ -46,7 +46,7 @@ export function Journey({ orgId, role }: { orgId: string; role: string | null })
     { key: "arrived", n: "1", title: "Receive", hint: "New reports to prepare", href: "/ngo/inbox", mine: role === "member" || lead },
     { key: "identity", n: "2", title: "Register", hint: "Animals to confirm", href: "/ngo/animals/identity", mine: lead },
     { key: "vet", n: "3", title: "Treat", hint: "Waiting for the vet", href: "/ngo/verification?stage=vet", mine: role === "veterinarian" },
-    { key: "release", n: "4", title: "Release", hint: "Release photo or place missing", href: "/ngo/verification?stage=evidence", mine: role === "member" || lead },
+    { key: "release", n: "4", title: "Release", hint: "Photo or place missing", href: "/ngo/verification?stage=evidence", mine: role === "member" || lead },
     { key: "claimable", n: "5", title: "Submit", hint: "Approved, ready to bill", href: "/ngo/packages", mine: lead },
   ];
   return (

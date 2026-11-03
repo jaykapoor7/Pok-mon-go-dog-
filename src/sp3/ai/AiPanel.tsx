@@ -33,8 +33,8 @@ import { demoExecute, demoKajuReply } from "@/lib/demo/kaju-demo";
 import { DemoFileViewer } from "@/sp/demo/FileViewer";
 import "./ai.css";
 
-type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string; retry?:string };
-type Ctx = { open: boolean; toggle: () => void; setOpen: (v: boolean) => void; ask: (q: string) => void; msgs: Msg[]; busy: boolean; reset: () => void; stop:()=>void; model: boolean | null; scope:string|null; role:string|null; contextPath:string; scopeError:string|null; refreshScope:()=>void; revision:number };
+type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string; retry?:string; display?: string; fileName?: string };
+type Ctx = { open: boolean; toggle: () => void; setOpen: (v: boolean) => void; ask: (q: string, extra?: { display?: string; fileName?: string }) => void; msgs: Msg[]; busy: boolean; reset: () => void; stop:()=>void; model: boolean | null; scope:string|null; role:string|null; contextPath:string; scopeError:string|null; refreshScope:()=>void; revision:number };
 const AiCtx = createContext<Ctx | null>(null);
 const KEY = "sp3.ai.thread";
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -146,11 +146,11 @@ function ScopedAiProvider({children,identity,access,refreshScope}:{children:Reac
   useEffect(()=>{if(storageKey&&history.key===storageKey)try{sessionStorage.setItem(storageKey,JSON.stringify(history.msgs.slice(-30)))}catch{/* Storage is optional. */}},[storageKey,history]);
   useEffect(()=>{setModel(access?.model??null)},[access?.model]);
   const reset=useCallback(()=>{stop();setMsgs([]);setRevision(v=>v+1)},[stop,setMsgs]);
-  const ask=useCallback(async(q:string)=>{
+  const ask=useCallback(async(q:string,extra?:{display?:string;fileName?:string})=>{
     const text=q.trim();if(!text||!scope||locked.current)return;
     const key=storageKey;const controller=new AbortController();request.current=controller;locked.current=true;setBusy(true);
     if(path!=='/assistant')setOpen(true);
-    const next=[...msgsRef.current,{id:uid(),role:'user' as const,text}];msgsRef.current=next;setMsgs(next);
+    const next=[...msgsRef.current,{id:uid(),role:'user' as const,text,...(extra?.display!==undefined?{display:extra.display}:{}),...(extra?.fileName?{fileName:extra.fileName}:{})}];msgsRef.current=next;setMsgs(next);
     const current=()=>live.current&&currentKey.current===key&&request.current===controller&&!controller.signal.aborted;
     const fail=(error:string)=>setMsgs(m=>[...m,{id:uid(),role:'assistant',text:'',error,retry:text}]);
     let timedOut=false;
@@ -244,6 +244,7 @@ export function AiWorkspace() {
 
 function Thread({ full = false }: { full?: boolean }) {
   const ai = useAi();
+  const router = useRouter();
   const path = usePathname() ?? "/";
   const { user } = useAuth();
   const [q, setQ] = useState("");
@@ -254,15 +255,25 @@ function Thread({ full = false }: { full?: boolean }) {
   const reduced=useReducedMotion();
   useEffect(()=>{if(ai.scope&&ai.open&&!full)input.current?.focus({preventScroll:true})},[ai.scope,ai.open,full]);
   useEffect(() => {if(scroll.current&&(!ai.msgs.length&&!ai.busy||follow.current))scroll.current.scrollTo({top:ai.msgs.length||ai.busy?scroll.current.scrollHeight:0,behavior:!ai.msgs.length||reduced?'auto':'smooth'})},[ai.msgs.length,ai.busy,reduced]);
-  const [file, setFile] = useState<{ name: string; text: string } | null>(null);
+  const [file, setFile] = useState<KajuFile | null>(null);
+  const [progress, setProgress] = useState<{ name: string; size: number; pct: number; phase: "uploading" | "reading" } | null>(null);
   const [fileErr, setFileErr] = useState<string | null>(null);
   const [fileBusy,setFileBusy]=useState(false);
   const upload=useRef<AbortController|null>(null);
   useEffect(()=>()=>upload.current?.abort(),[]);
   const send = () => {
     if ((!q.trim() && !file) || ai.busy || fileBusy) return;
-    ai.ask(file ? `${q.trim() || `Summarise ${file.name}.`}\n\n${file.text}` : q);
+    if (file) {
+      const question = q.trim() || (file.register ? `This looks like an animal register (${file.rows ?? "some"} rows). Summarise it and tell me what importing it would add.` : `Summarise ${file.name} and tell me what in it matters for our work.`);
+      /* The file's text travels with the question; the chat shows only the question and the file's name. */
+      ai.ask(`${question}\n\n${file.text.slice(0, 12000)}`, { display: question, fileName: file.name });
+    } else ai.ask(q);
     setQ(""); setFile(null);
+  };
+  const importRegister = () => {
+    if (!file?.raw) return;
+    (window as unknown as { __spPendingImport?: File }).__spPendingImport = file.raw;
+    router.push("/ngo/import");
   };
   const attach = async (f: File | undefined) => {
     upload.current?.abort();
@@ -275,24 +286,31 @@ function Thread({ full = false }: { full?: boolean }) {
       const XLSX = await import("xlsx");
       const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
       const n = Math.max(0, (XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 }) as unknown[]).length - 1);
-      setFile({ name: f.name, text: `[${f.name} · ${n} rows]` });
+      setFile({ name: f.name, text: `[${f.name} · ${n} rows]`, size: f.size, label: `Animal register · ${n} rows`, register: true, rows: n, raw: f });
       return;
     }
     try {
-      setFileBusy(true);
+      setFileBusy(true); setProgress({ name: f.name, size: f.size, pct: 0, phase: "uploading" });
       const session=(await getSupabase()?.auth.getSession())?.data.session;
       if(controller.signal.aborted)return;
       if(session?.user.id!==user?.id)throw Error('Your session changed. Reopen Kaju before attaching a file.');
       const t=session?.access_token;
       const fd = new FormData(); fd.append("file", f);
-      const r = await fetch("/api/files/read", { method: "POST", body: fd, signal:controller.signal, headers: t ? { Authorization: `Bearer ${t}` } : {} });
-      const j = await r.json();
+      /* Upload with visible progress, then the server reads the file's text. */
+      const j = await new Promise<{ name?: unknown; text?: unknown; error?: string }>((resolve, reject) => {
+        const x = new XMLHttpRequest(); x.open("POST", "/api/files/read"); if (t) x.setRequestHeader("Authorization", `Bearer ${t}`);
+        x.upload.onprogress = (e) => { if (e.lengthComputable) setProgress((p) => p && { ...p, pct: Math.round((e.loaded / e.total) * 100) }); };
+        x.upload.onload = () => setProgress((p) => p && { ...p, pct: 100, phase: "reading" });
+        x.onload = () => { let body: { name?: unknown; text?: unknown; error?: string } = {}; try { body = JSON.parse(x.responseText); } catch { /* not JSON */ } if (x.status >= 200 && x.status < 300) resolve(body); else reject(new Error(body.error ?? "The file could not be read.")); };
+        x.onerror = () => reject(new Error("The upload did not finish. Check the connection and try again."));
+        controller.signal.addEventListener("abort", () => x.abort(), { once: true });
+        x.send(fd);
+      });
       if(controller.signal.aborted)return;
-      if (!r.ok) throw new Error(j.error ?? "Could not read that file");
       if(typeof j.name!=='string'||typeof j.text!=='string')throw Error('The file response was incomplete. Attach it again.');
-      setFile({ name: j.name, text: j.text });
+      setFile({ name: j.name, text: j.text, size: f.size, ...(await describeFile(f)), raw: f });
     } catch (e) {if(!controller.signal.aborted)setFileErr((e as Error).message);}
-    finally{if(!controller.signal.aborted)setFileBusy(false)}
+    finally{if(!controller.signal.aborted){setFileBusy(false);setProgress(null)}}
   };
   const sugg = suggestions(ai.contextPath);
 
@@ -310,7 +328,7 @@ function Thread({ full = false }: { full?: boolean }) {
           </div>
         )}
         {ai.msgs.map((m) => m.role === "user"
-          ? <div key={m.id} className="ai3-q">{m.text}</div>
+          ? <div key={m.id} className="ai3-q">{m.fileName && <span className="ai3-q-file"><Paperclip size={13} aria-hidden />{m.fileName}</span>}{m.display ?? m.text}</div>
           : <Answer key={m.id} m={m} />)}
         {ai.busy && <div className="ai3-thinking" role="status"><span className="ai3-thinking-kaju" aria-hidden><KajuMark size={44} state="thinking" /></span><Loader2 size={14} className="animate-spin" />Kaju is checking your request</div>}
         <div ref={end} />
@@ -320,8 +338,9 @@ function Thread({ full = false }: { full?: boolean }) {
           disabled={!ai.scope} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); follow.current=true;send(); } }} />
         {user && <label className="ai3-attach" title="Attach a PDF, Word, Excel, CSV or PowerPoint file"><Paperclip size={15} aria-hidden /><span className="sr-only">Attach a file</span><input type="file" accept=".pdf,.docx,.xlsx,.xls,.csv,.pptx" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} /></label>}
         {ai.busy?<button type="button" className="ai3-send" onClick={ai.stop} aria-label="Stop waiting"><X size={16}/></button>:<button type="button" className="ai3-send" onClick={()=>{follow.current=true;send()}} disabled={!ai.scope||fileBusy||(!q.trim()&&!file)} aria-label="Send"><ArrowUp size={16} /></button>}
-        {fileBusy&&<p className="ai3-file" role="status">Reading the attached file…</p>}
-        {(file || fileErr) && <p className={`ai3-file${fileErr ? " is-err" : ""}`}>{fileErr ?? <>Attached: <b>{file!.name}</b> <button type="button" onClick={() => setFile(null)}>Remove</button></>}</p>}
+        {progress && <div className="ai3-fc" role="status"><span className="ai3-fc-ico" aria-hidden><Loader2 size={16} className="animate-spin" /></span><span className="ai3-fc-t"><b>{progress.name}</b><small>{progress.phase === "uploading" ? `Uploading · ${progress.pct}%` : "Reading the file…"} · {kb(progress.size)}</small><i className="ai3-fc-bar"><i style={{ width: `${progress.phase === "reading" ? 100 : progress.pct}%` }} /></i></span></div>}
+        {fileErr && <div className="ai3-fc is-err" role="alert"><span className="ai3-fc-ico" aria-hidden><TriangleAlert size={16} /></span><span className="ai3-fc-t"><b>Not attached</b><small>{fileErr}</small></span><button type="button" className="ai3-fc-x" onClick={() => setFileErr(null)} aria-label="Dismiss"><X size={14} /></button></div>}
+        {file && !progress && <div className="ai3-fc is-ready"><span className="ai3-fc-ico" aria-hidden><Paperclip size={16} /></span><span className="ai3-fc-t"><b>{file.name}</b><small>{file.label} · {kb(file.size)}</small></span>{file.register && <button type="button" className="ai3-fc-act" onClick={importRegister}>Import as register</button>}<button type="button" className="ai3-fc-x" onClick={() => setFile(null)} aria-label={`Remove ${file.name}`}><X size={14} /></button></div>}
         <p className="ai3-foot">{ai.model === false ? "Using record tools. Ask about cases, evidence or reports." : "Answers cite records. Changes need your confirmation."}</p>
       </div>
     </div>
@@ -420,4 +439,25 @@ function Rich({ text }: { text: string }) {
     if (lines.every((l) => /^\s*[-•*]\s+/.test(l))) return <ul key={i}>{lines.map((l, j) => <li key={j}>{inline(l.replace(/^\s*[-•*]\s+/, ""))}</li>)}</ul>;
     return <p key={i}>{lines.map((l, j) => <span key={j}>{j > 0 && <br />}{inline(l)}</span>)}</p>;
   })}</>;
+}
+
+
+/* ── attached files ───────────────────────────────────────────────── */
+type KajuFile = { name: string; text: string; size: number; label: string; register: boolean; rows?: number; raw?: File };
+const kb = (n: number) => n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
+/** What kind of file this is, in words, and whether it looks like an animal register. */
+async function describeFile(f: File): Promise<{ label: string; register: boolean; rows?: number }> {
+  const ext = (f.name.split(".").pop() ?? "").toLowerCase();
+  if (ext === "xlsx" || ext === "xls" || ext === "csv") {
+    try {
+      const XLSX = await import("xlsx");
+      const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 }) as unknown[][];
+      const head = (rows[0] ?? []).map((h) => String(h ?? "").toLowerCase()).join(" ");
+      const hits = ["name", "zone", "area", "locality", "ward", "steril", "vaccin", "gender", "sex", "colour", "color", "tag", "date", "rescue", "case"].filter((k) => head.includes(k)).length;
+      const n = Math.max(0, rows.length - 1);
+      return hits >= 2 ? { label: `Animal register · ${n.toLocaleString("en-IN")} rows`, register: true, rows: n } : { label: `Spreadsheet · ${n.toLocaleString("en-IN")} rows`, register: false, rows: n };
+    } catch { return { label: "Spreadsheet", register: false }; }
+  }
+  return { label: ext === "pdf" ? "PDF document" : ext === "docx" ? "Word document" : ext === "pptx" ? "PowerPoint deck" : "Document", register: false };
 }

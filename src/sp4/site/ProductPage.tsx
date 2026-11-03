@@ -4,6 +4,7 @@ import { ArrowRight, Check, Info } from "lucide-react";
 import { Close, Faq, S4Page, SecHead, Tiles, TwoTone, type TileSpec } from "@/sp4/site/kit";
 import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
+import { SplitTabs } from "@/sp4/site/SplitTabs";
 import "@/sp4/home/home4.css";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -75,20 +76,22 @@ export function ProductPage({ s }: { s: ProductSpec }) {
         </section>
       )}
 
-      {s.splits?.map((f, n) => (
-        <section key={n} id={f.id} className="s4-sec" aria-labelledby={`${s.id}-sp${n}`} style={{ scrollMarginTop: 80 }}>
-          <div className={`s4-wrap s4-split${n % 2 ? " is-flip" : ""}`}>
-            <Rise className="s4-split-copy">
+      {/* Features as one tabbed showcase: the same copy and screens, a fraction of the scrolling. */}
+      {s.splits && s.splits.length > 0 && (
+        <SplitTabs label="What it does" items={s.splits.map((f, n) => ({
+          id: f.id,
+          head: <TwoTone a={f.title[0]} b={f.title[1]} />,
+          detail: (
+            <div className="s4-feat-copy">
               {f.tag && <span style={{ justifySelf: "start" }}>{f.tag}</span>}
-              <h2 id={`${s.id}-sp${n}`} className="s4-h2" style={{ fontSize: "clamp(31px, 3.4vw, 44px)" }}><TwoTone a={f.title[0]} b={f.title[1]} /></h2>
-              <p className="s4-lede">{f.body}</p>
-              {f.points && <ul>{f.points.map((p, i) => <li key={i}><Check size={18} aria-hidden />{p}</li>)}</ul>}
-              {f.link && <Link href={f.link.href} className="s4-link">{f.link.label} <ArrowRight size={18} aria-hidden /></Link>}
-            </Rise>
-            <Grain v={f.v ?? n + 1} id={`${s.id}-art${n}`} className="s4-split-art">{f.ui}</Grain>
-          </div>
-        </section>
-      ))}
+              <p>{f.body}</p>
+              {f.points && <ul>{f.points.map((p, i) => <li key={i}><Check size={17} aria-hidden />{p}</li>)}</ul>}
+              {f.link && <Link href={f.link.href} className="s4-link">{f.link.label} <ArrowRight size={17} aria-hidden /></Link>}
+            </div>
+          ),
+          art: <Grain v={f.v ?? n + 1} id={`${s.id}-art${n}`} className="s4-split-art">{f.ui}</Grain>,
+        }))} />
+      )}
 
       {s.modules && (
         <section className="s4-dark" id="modules" aria-labelledby={`${s.id}-mod`} style={{ scrollMarginTop: 72 }}>

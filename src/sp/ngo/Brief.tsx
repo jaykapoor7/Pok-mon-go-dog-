@@ -130,6 +130,13 @@ export function Brief() {
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
           : <p className="br-since">Since yesterday: <b>{fresh.length}</b> new or updated · <b>{d.unavailable.includes("recent changes")?"not read":closedNew.length}</b> closed · <b>{d.unavailable.includes("follow-ups")?"not read":nOverdue}</b> overdue · <b>{d.unavailable.includes("counts")?"not read":nLive}</b> live in the queue</p>}
 
+        {/* Ask Kaju sits at the top, in the page, never floating over content. */}
+        <form className="br-ask br-ask-top" onSubmit={ask}>
+          <Sparkles size={15} aria-hidden />
+          <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
+          <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju anything about your animals, cases or this month…" autoComplete="off" />
+          <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
+        </form>
         {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
         {/* The few things this person does most, as large buttons: one row per role. */}
         {mem.org && <nav className="br-quick" aria-label="Start here">
@@ -153,29 +160,21 @@ export function Brief() {
             <section aria-labelledby="br-todo" className="br-sec">
               <h2 id="br-todo" className="br-h">What needs to be done</h2>
               {todo.length ? rows(todo, true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
-              <div className="br-chips">{isVet ? <Link href="/ngo/verification">Open verification <ArrowRight size={12} aria-hidden /></Link> : <>{role === "member" ? <Link href="/ngo/field">Open field mode <ArrowRight size={12} aria-hidden /></Link> : <Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link>}<Link href="/ngo/inbox?paste=1"><Sparkles size={12} aria-hidden />Paste WhatsApp reports</Link></>}{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
+              {todo.length > 0 && <div className="br-chips"><button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button></div>}
             </section>
             </div><div className="br-rail">
             {reviews && <MonthlySubmission canPrepare compact />}
             {!isVet && <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
-            <section aria-labelledby="br-out" className="br-sec">
-              <h2 id="br-out" className="br-h">Recent activity</h2>
+            <details className="br-sec br-fold br-recent">
+              <summary><h2 id="br-out" className="br-h">Recent activity</h2><span className="br-fold-n">{out.length ? `${out.length} since yesterday` : "nothing new"}</span></summary>
               {out.length ? rows(out, false) : <p className="br-empty">{d.unavailable.includes("recent changes")?"Recent changes could not be read.":"Nothing new in the last day."}</p>}
               {out.length > 1 && <div className="br-chips"><button type="button" onClick={() => send("Summarise the cases that came in, moved or closed since yesterday.")}><Sparkles size={12} aria-hidden />Summarise these</button></div>}
-            </section>
+            </details>
             {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
             </div></div>
         )}
       </div>
 
-      <div className="br-dock">
-        <form className="br-ask" onSubmit={ask}>
-          <Sparkles size={15} aria-hidden />
-          <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
-          <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju about your programme…" autoComplete="off" />
-          <button type="submit" aria-label="Ask" disabled={!q.trim()}><ArrowUp size={14} /></button>
-        </form>
-      </div>
     </div>
   );
 }

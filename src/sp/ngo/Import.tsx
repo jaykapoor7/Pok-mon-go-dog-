@@ -77,6 +77,13 @@ export function ImportFlow() {
       setData(buf); setBook(wb); setPhase("review");
     } catch (e) { setErr(e instanceof Error ? e.message : "The file could not be read."); setPhase("pick"); }
   };
+  /* A register attached in Kaju arrives here ready to read. */
+  useEffect(() => {
+    const w = window as unknown as { __spPendingImport?: File };
+    const f = w.__spPendingImport; if (!f || !mem.member) return;
+    w.__spPendingImport = undefined; void choose(f);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mem.member]);
 
   const change = (name: string, kind: SheetKind, mapping?: Mapping, year?: number | null) => {
     if (!book || !data || !XLSX.current) return;

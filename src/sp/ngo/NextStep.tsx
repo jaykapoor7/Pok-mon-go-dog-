@@ -26,6 +26,7 @@ import { addNote, assignTo, decideCase, resolveCase, scheduleFollowup, setFollow
 import {useMembership} from "../shell/Shell";
 import { Ack, day } from "../ui";
 import { DeleteRecord } from "../ui/DeleteRecord";
+import { notify } from "../ui/Notice";
 
 const DAY = 86_400_000;
 type Mode = null | "outcome" | "close" | "note" | "followup";
@@ -56,9 +57,11 @@ export function NextStep({ file, cohort, onChanged }: { file: CaseFile; cohort: 
 
   const go = async (key: string, fn: () => Promise<Receipt>) => {
     setBusy(key); setReceipt(null);
-    const r = await fn();
+    let r: Receipt;
+    try { r = await fn(); } catch { r = { ok: false, error: "The connection dropped." } as Receipt; }
     setReceipt(r); setBusy(null);
-    if (r.ok) { setMode(null); await onChanged(); }
+    if (r.ok) { notify({ tone: "ok", text: "Saved to the case." }); setMode(null); await onChanged(); }
+    else notify({ tone: "error", text: `Not saved. ${("error" in r && r.error) || "Try again."}`, action: { label: "Try again", run: () => go(key, fn) } });
   };
   const self = members.find((m) => m.user_id === actor.id);
 
@@ -231,9 +234,11 @@ export function FollowupList({ file, onChanged }: { file: CaseFile; onChanged: (
   if (!fus.length) return <p className="small">No follow-up scheduled on this case.</p>;
   const act = async (id: string, s: "done" | "missed" | "postponed", dueAt?: string) => {
     setBusy(id); setReceipt(null);
-    const r = await setFollowup(id, s, undefined, dueAt);
+    let r: Receipt;
+    try { r = await setFollowup(id, s, undefined, dueAt); } catch { r = { ok: false, error: "The connection dropped." } as Receipt; }
     setReceipt(r); setBusy(null);
-    if (r.ok) await onChanged();
+    if (r.ok) { notify({ tone: "ok", text: s === "done" ? "Follow-up marked done." : s === "missed" ? "Follow-up marked missed." : "Follow-up moved by 7 days." }); await onChanged(); }
+    else notify({ tone: "error", text: `Not saved. ${("error" in r && r.error) || "Try again."}`, action: { label: "Try again", run: () => act(id, s, dueAt) } });
   };
   return (
     <>

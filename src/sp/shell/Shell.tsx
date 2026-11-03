@@ -29,7 +29,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
 import { ORDER, PROFESSIONAL, WORKSPACES, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
-import { RemovedToast } from "../ui/DeleteRecord";
+import { Notices } from "../ui/Notice";
 import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
 import { KajuPresence } from "@/kaju/Presence";
@@ -182,6 +182,9 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             const groups = def.index.filter((g) => !own.has(g.label)).map((g) => ({ ...g, links: g.links.filter((l) => l.href !== def.settings && l.href !== "/assistant") })).filter((g) => g.links.length);
             if (!groups.length) return null;
             const inside = groups.some((g) => g.links.some((l) => path === l.href || path.startsWith(l.href + "/")));
+            /* A short list is shown as is; only a long one folds under "More". */
+            const all = groups.flatMap((g) => g.links);
+            if (all.length <= 4) return <nav className="sx3-nav sx5-flat" aria-label="Other pages"><p className="sx4-sec">Also</p>{all.map((l) => <Link key={l.href} href={l.href} aria-current={path === l.href ? "page" : undefined}><FileText size={16} aria-hidden /><span>{l.label}</span></Link>)}</nav>;
             return <details className="sx3-more sx5-more" open={inside || undefined}>
               <summary><span>More</span><ChevronDown size={13} aria-hidden /></summary>
               {groups.map((g) => <div key={g.label}><p className="sx5-more-h">{g.label}</p><ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul></div>)}
@@ -256,7 +259,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         </nav>
 
-        <RemovedToast />
+        <Notices />
         <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} dual={!!dual} />
         <Finder open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}

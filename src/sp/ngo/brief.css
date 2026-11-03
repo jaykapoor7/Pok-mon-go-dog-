@@ -214,3 +214,19 @@
   .br:is(.is-coordinator, .is-admin) .jy-t b { font-size: 11.5px; }
   .br:is(.is-coordinator, .is-admin) .jy-c { margin: 0; font-size: 18px; grid-column: auto; grid-row: auto; }
 }
+
+/* ── Today, decluttered ─────────────────────────────────────────────
+   Greeting · Ask Kaju · five steps · your buttons · two panels. */
+.br-ask-top { margin: 16px 0 0; height: 48px; }
+.br .br-since { font-size: 13.5px; margin-top: 6px; }
+.br .br-cols { margin-top: 18px; gap: 16px 20px; align-items: start; }
+.br .br-main > .br-sec, .br .br-rail > :is(section, details) { margin-top: 0; padding: 16px 18px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px #e8ebf2; }
+.br .br-rail { display: grid; gap: 12px; }
+.br .br-main { display: grid; gap: 12px; }
+.br .br-h { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.br .br-list { margin: 0 -10px; }
+.br .kp-how { display: none; }
+.br .br-fold > summary { border-top: 0; padding: 0; }
+.br .br-fold[open] > summary { margin-bottom: 8px; }
+@media (min-width: 1200px) { .br .br-rail > :first-child { margin-top: 0; } }
+@media (max-width: 860px) { .br .br-main > .br-sec, .br .br-rail > :is(section, details) { padding: 14px; } .br-ask-top { order: -1; margin: 12px 0 2px; } }

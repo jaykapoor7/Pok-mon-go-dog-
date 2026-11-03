@@ -14,6 +14,7 @@
 import { shortCode } from "@/lib/caseCode";
 import {OperationsPanel} from "./OperationsPanel";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { loadCaseFile, type CaseFile, type Neighbour } from "@/lib/case-file";
@@ -46,6 +47,7 @@ export function CasePage({ id }: { id: string }) {
 }
 
 function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<void> }) {
+  const router = useRouter();
   const { c, reg, animal, updates, medical, neighbours, sameAnimal, followups } = file;
   const imported = reg.provenance === "imported_historical_record";
   const facts = { ...c, occurred_at: reg.occurred_at, status_class: reg.status_class, provenance: reg.provenance, reviewed_at: reg.status_reviewed_at, last_activity_at: c.last_activity_at ?? c.updated_at } as never;
@@ -59,7 +61,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
   return (
     <article className="cs">
       <header className="cs-head">
-        <div className="cs-crumb"><Link href="/ngo/work" className="link"><ArrowLeft size={14} aria-hidden /> Work queue</Link><span className="mono small">{shortCode(reg.case_code)}</span><span className="cs-crumb-end"><DeleteRecord kind="case" id={c.id} what="this case" compact={false} onDone={() => { window.location.assign("/ngo/work"); }} /></span></div>
+        <div className="cs-crumb"><Link href="/ngo/work" className="link"><ArrowLeft size={14} aria-hidden /> Work queue</Link><span className="mono small">{shortCode(reg.case_code)}</span><span className="cs-crumb-end"><DeleteRecord kind="case" id={c.id} what="this case" compact={false} onDone={() => router.push("/ngo/work")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></span></div>
         <div className="cs-title">
           <p className="k">{STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}{imported ? " · imported historical record" : ""}{cohort === "decide" ? " · waiting on a decision" : ""}</p>
           <h1 className="display">{title}</h1>
