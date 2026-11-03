@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
-import { ORDER, PROFESSIONAL, PUBLIC_PRODUCTS, WORKSPACES, workspaceView, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
+import { ORDER, PROFESSIONAL, WORKSPACES, workspaceView, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
 import { AiPanel, AiProvider, KajuMark, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
@@ -104,6 +104,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
   const [find, setFind] = useState(false);
   const [sheet, setSheet] = useState(false);
+  /* Server-verified memberships only: both an organisation and a reviewing office. */
+  const dual = mem.ready && mem.member && mem.reviewer;
   const [switcher, setSwitcher] = useState(false);
   const [switcherM, setSwitcherM] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -141,34 +143,31 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         {/* ── Desktop sidebar ─────────────────────────────────────── */}
         <aside className="sx3-side" aria-label="Workspace">
           <div className="sx3-side-top">
+            {/* Only a verified dual-role member gets a chooser; everyone else sees their one workspace. */}
+            {dual ? (
             <div className="sx3-ws">
               <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/straypaw-mark.png" alt="" width={26} height={26} />
-                <span><b>{mem.org && ws === "ngo" ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
+                <span><b>{ws === "ngo" && mem.org ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
                 <ChevronsUpDown size={15} aria-hidden />
               </button>
               {switcher && (
-                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Workspaces">
-                  <p className="sx3-ws-k">{mem.member && mem.reviewer ? "Your workspaces" : "Your workspace"}</p>
-                  {PROFESSIONAL.filter((id) => id === ws || (id === "ngo" ? mem.member : mem.reviewer)).map((id) => {
-                    const w = WORKSPACES[id];
-                    return (
-                      <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
-                        <i aria-hidden style={{ background: w.ink }} />
-                        <span><b>{w.label}</b><small>{w.purpose}</small></span>
-                      </Link>
-                    );
-                  })}
-                  <p className="sx3-ws-k">Public sites</p>
-                  {PUBLIC_PRODUCTS.map((id) => { const w = WORKSPACES[id]; return (
+                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Your workspaces">
+                  {PROFESSIONAL.map((id) => { const w = WORKSPACES[id]; return (
                     <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
-                      <i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>Open to everyone, no sign-in needed</small></span>
+                      <i aria-hidden style={{ background: w.ink }} /><span><b>{id === "ngo" && mem.org ? mem.org.name : w.label}</b><small>{w.purpose}</small></span>
                     </Link>); })}
-                  <div className="sx3-ws-foot"><Link href="/app?choose=1" onClick={() => setSwitcher(false)}>All ways in</Link><Link href="/" onClick={() => setSwitcher(false)}>Main site</Link></div>
                 </Popover>
               )}
             </div>
+            ) : (
+            <Link href={def.home} className="sx3-ws sx3-ws-static">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/straypaw-mark.png" alt="" width={26} height={26} />
+              <span><b>{ws === "ngo" && mem.org ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
+            </Link>
+            )}
             <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button>
           </div>
 
@@ -204,6 +203,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           <div className="sx3-side-foot">
             {def.settings && mem.role === "admin" && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}
             <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help &amp; docs</span></Link>
+            <p className="sx3-public" aria-label="Public sites"><Link href="/community">Community</Link><Link href="/research">Research</Link><Link href="/learn">Education</Link><Link href="/">Main site</Link></p>
             <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
           </div>
         </aside>
@@ -215,24 +215,20 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/straypaw-mark.png" alt="" width={28} height={28} />
             </Link>
+            {dual ? (
             <div className="sp-ws sx3-ws-m">
               <button type="button" className="sp-ws-btn" aria-expanded={switcherM} aria-haspopup="menu" onClick={() => setSwitcherM((v) => !v)}>
                 <i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span><ChevronDown size={14} aria-hidden />
               </button>
               {switcherM && (
-                <Popover onClose={() => setSwitcherM(false)} className="sp-ws-menu" label="Workspaces">
-                  <p className="sx3-ws-k">{mem.member && mem.reviewer ? "Your workspaces" : "Your workspace"}</p>
-                  {PROFESSIONAL.filter((id) => id === ws || (id === "ngo" ? mem.member : mem.reviewer)).map((id) => { const w = WORKSPACES[id]; return (
+                <Popover onClose={() => setSwitcherM(false)} className="sp-ws-menu" label="Your workspaces">
+                  {PROFESSIONAL.map((id) => { const w = WORKSPACES[id]; return (
                     <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcherM(false)} className={id === ws ? "is-on" : undefined}><i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>{w.purpose}</small></span></Link>
                   ); })}
-                  <p className="sx3-ws-k">Public sites</p>
-                  {PUBLIC_PRODUCTS.map((id) => { const w = WORKSPACES[id]; return (
-                    <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcherM(false)} className={id === ws ? "is-on" : undefined}><i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>Open to everyone</small></span></Link>
-                  ); })}
-                  <div className="sx3-ws-foot"><Link href="/app?choose=1" onClick={() => setSwitcherM(false)}>All ways in</Link><Link href="/" onClick={() => setSwitcherM(false)}>Main site</Link></div>
                 </Popover>
               )}
             </div>
+            ) : <span className="sp-ws sx3-ws-m sx3-ws-static"><i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span></span>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}

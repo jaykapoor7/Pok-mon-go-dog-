@@ -154,3 +154,11 @@
   background: radial-gradient(circle, rgba(36, 87, 206, 0.16), transparent 68%); opacity: 0; transform: scale(0.8); transition: opacity 500ms ease, transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1); }
 .sx3-kaju-nook.is-cheer::before { opacity: 1; transform: scale(1.08); }
 @media (prefers-reduced-motion: reduce) { .sx3-kaju-nook::before { transition: none; } }
+.sx3-ws-static { display: flex; align-items: center; gap: 10px; min-width: 0; color: inherit; text-decoration: none; padding: 4px 6px; border-radius: 8px; }
+.sx3-ws-static b { font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sx3-ws-static:hover { background: rgba(11, 30, 61, .04); }
+.sp-ws.sx3-ws-static { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; }
+.sp-ws.sx3-ws-static i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.sx3-public { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 8px 2px; font-size: 12px; }
+.sx3-public a { color: #6f7380; text-decoration: none; }
+.sx3-public a:hover, .sx3-public a:focus-visible { color: #2457ce; text-decoration: underline; }
