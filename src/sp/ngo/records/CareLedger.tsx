@@ -65,7 +65,12 @@ function Events() {
 
   const rows = useMemo(() => (d.state === "read" ? d.rows : []), [d]);
   const kinds = useMemo(() => { const m = new Map<string, number>(); rows.forEach((e) => m.set(e.kind, (m.get(e.kind) ?? 0) + 1)); return [...m.entries()]; }, [rows]);
-  const visible = kind === "all" ? rows : rows.filter((e) => e.kind === kind);
+  const [page, setPage] = useState(0);
+  useEffect(() => setPage(0), [kind]);
+  const PER = 20;
+  const filtered = kind === "all" ? rows : rows.filter((e) => e.kind === kind);
+  const pages = Math.max(1, Math.ceil(filtered.length / PER));
+  const visible = filtered.slice(page * PER, page * PER + PER);
   const groups = useMemo(() => { const g: { m: string; rows: PartnerMedicalEvent[] }[] = []; for (const e of visible) { const m = month(e.event_date); if (g.at(-1)?.m !== m) g.push({ m, rows: [] }); g.at(-1)!.rows.push(e); } return g; }, [visible]);
 
   if (d.state === "loading") return <div className="rc-skel" aria-label="Reading care history"><span className="skel" /><span className="skel" /><span className="skel" /></div>;
@@ -103,6 +108,7 @@ function Events() {
           ))}
         </table>
       </div>
+      {pages > 1 && <div className="row ngo-pager"><button type="button" className="btn is-s" disabled={page === 0} onClick={() => setPage((v) => v - 1)}>Previous</button><span className="small">Page {page + 1} of {pages}</span><button type="button" className="btn is-s" disabled={page + 1 >= pages} onClick={() => setPage((v) => v + 1)}>Next</button></div>}
       {!visible.length && <p className="small">No {labelFor(kind).toLowerCase()} entries in this organisation&rsquo;s record.</p>}
     </div>
   );
