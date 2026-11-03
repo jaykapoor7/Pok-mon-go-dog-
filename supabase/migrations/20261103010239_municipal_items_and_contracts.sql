@@ -247,6 +247,7 @@ revoke all on function public.operations_case_accepted(uuid) from public,anon,au
 
 -- Keep old package actions for pre-upgrade records, under the existing checks.
 alter function public.abc_package_act(uuid,text,text) rename to operations_legacy_package_act;
+alter function public.operations_legacy_package_act(uuid,text,text) set search_path=pg_catalog,public,pg_temp;
 revoke all on function public.operations_legacy_package_act(uuid,text,text) from public,anon,authenticated;
 create function public.abc_package_act(p_package uuid,p_kind text,p_body text default null)
 returns text language plpgsql security definer set search_path=pg_catalog,public,pg_temp as $$

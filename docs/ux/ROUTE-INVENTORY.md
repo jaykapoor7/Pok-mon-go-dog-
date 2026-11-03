@@ -114,3 +114,15 @@ Every existing deep link is retained. Visibility does not grant access; server c
 - src/app/ngo/verification/page.tsx
 - src/app/ngo/volunteers/page.tsx
 - src/app/ngo/work/page.tsx
+
+
+November 3 retained operational destinations (existing deep links remain):
+
+| Destination | Role / placement | Functional evidence |
+|---|---|---|
+| `/ngo/animals/identity` | Admin/coordinator; Animals section | Real coordinator provisional identity decision and source/audit readback |
+| `/ngo/settings/policies` | Admin/coordinator; organisation utilities | Real browser save of immutable source-backed policy version |
+| `/ngo/contracts` | Admin/coordinator; Reports section | Real browser configuration, explicit claims, partial municipal review and native exports |
+| `/city/contracts` | Authorised office reviewer; Contracts primary destination | Same audited configuration backend with receiving-office scope; illustrative API configuration tested |
+| `/ngo/programmes/zones` | Organisation member; Programmes section | Boundary/assignment/supervisor workflow plus geographic and separately reviewed survey reporting |
+| `/surveys/[id]/collect` | Owning organisation member | Encrypted phone photo/GPS/note draft, Field-mode recovery and duplicate-safe private-photo submission |
