@@ -32,16 +32,17 @@ export function KajuIntake({ actor }: { actor: { id: string; name: string } }) {
   const [error, setError] = useState<string | null>(null);
   const [partial, setPartial] = useState(false);
 
-  const prepare = async () => {
+  const [simulated, setSimulated] = useState(false);
+  const prepare = async (simulate = false) => {
     setBusy(true); setError(null); setPlans(null);
     try {
       const token = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
       if (!token) throw Error("Sign in again to continue.");
-      const r = await fetch("/api/ai/intake", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ text }) });
+      const r = await fetch("/api/ai/intake", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(simulate ? { simulate: true } : { text }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw Error(j.error ?? "Kaju could not prepare these reports.");
       const ps = j.plans as IntakePlan[];
-      setPartial(!!j.partial);
+      setPartial(!!j.partial); setSimulated(!!j.simulated);
       setPlans(ps);
       setChoice(Object.fromEntries(ps.map((p, i) => [i, p.options.find((o) => o.recommended)?.key ?? ""])));
       setSaved(Object.fromEntries((j.done as { request_id: string }[]).map((d) => [d.request_id, { state: "done" } as Saved])));
@@ -75,10 +76,12 @@ export function KajuIntake({ actor }: { actor: { id: string; name: string } }) {
         placeholder={"Injured dog near Gandhipuram bus stand, bleeding from leg. Photo attached\n\nReleased after ABC at Saibaba Colony, female, ear notched"} />
       <div className="ki-bar">
         <button type="button" className="btn is-ink" disabled={busy || text.trim().length < 8} onClick={() => void prepare()}><ClipboardPaste size={14} aria-hidden /> {busy && !plans ? "Preparing…" : "Prepare with Kaju"}</button>
+        {(process.env.NEXT_PUBLIC_VERCEL_ENV === "preview" || process.env.NODE_ENV === "development") && <button type="button" className="btn" disabled={busy} onClick={() => void prepare(true)}>Simulate incoming WhatsApp (test only)</button>}
         {clear.length > 1 && <button type="button" className="btn" disabled={busy} onClick={() => void confirmClear()}><Check size={14} aria-hidden /> Confirm all {clear.length} clear reports</button>}
       </div>
       {error && <p className="ki-err" role="alert">{error} Nothing was saved.</p>}
 
+      {plans && simulated && <p className="ki-miss" role="status">Simulated WhatsApp messages from the test fixture. Confirm only in a test workspace.</p>}
       {plans && partial && <p className="ki-miss" role="status">Duplicates were checked against your 800 most recent open cases only.</p>}
       {plans && <ol className="ki-list" aria-label="Prepared reports">{plans.map((p, i) => {
         const done = savedFor(p);

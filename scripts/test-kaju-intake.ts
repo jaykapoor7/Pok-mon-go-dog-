@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { extractFieldMessage } from "../src/sp3/ai/extract";
 import { planIntake, splitMessages } from "../src/sp3/ai/intake";
 import { toJobs } from "../src/lib/careos/webhook";
-import { fromJob, groupByThread } from "../src/lib/careos/intake";
+import { SIMULATED_INBOUND, fromJob, groupByThread } from "../src/lib/careos/intake";
 
 async function main() {
 const now = new Date("2026-11-03T06:00:00Z");
@@ -88,6 +88,11 @@ assert.ok(!grouped[0].text.includes("9876543210"));
 const wp = planIntake(grouped[0].text, extractFieldMessage(grouped[0].text, now), ctx);
 assert.equal(wp.extracted.category, "injury"); assert.ok(wp.extracted.hasPhoto && wp.extracted.hasLocation); assert.ok(wp.options.length > 0);
 ok("a WhatsApp webhook fixture becomes one masked, prepared report through the same planner");
+
+const sim = groupByThread(toJobs(SIMULATED_INBOUND).map((j) => ({ j, s: fromJob(j) })).filter((x) => x.s).map((x) => ({ thread: String(x.j.payload.from), at: Number(x.j.payload.timestamp) * 1000, source: x.s! })));
+assert.equal(sim.length, 2); assert.ok(sim[0].text.includes("(11.01681, 76.95583)") && sim[0].hasPhoto, "photo, caption and GPS pin become one report with coordinates kept");
+assert.equal(extractFieldMessage(sim[1].text, now).severity, "critical");
+ok("simulated inbound WhatsApp traffic runs through the real parser: two reports, GPS kept, urgency found");
 
 const { confirmMany } = await import("../src/sp3/ai/execute");
 const prop = (id: string) => ({ id, kind: "add_note" as const, why: "t", caseId: "c", caseLabel: "c", note: "n" });

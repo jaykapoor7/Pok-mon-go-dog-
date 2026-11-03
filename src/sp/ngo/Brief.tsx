@@ -23,6 +23,9 @@ import { useMembership } from "../shell/Shell";
 import { Work } from "./Work";
 import { KajuActivity } from "./KajuActivity";
 import { KajuPrepared } from "./KajuPrepared";
+import { Journey } from "./Journey";
+import { MonthlySubmission } from "../abc/MonthlySubmission";
+import "../abc/abc.css";
 import "./brief.css";
 
 const H = 3_600_000, DAY = 24 * H;
@@ -126,6 +129,7 @@ export function Brief() {
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
           : <p className="br-since">Since yesterday: <b>{fresh.length}</b> new or updated · <b>{d.unavailable.includes("recent changes")?"not read":closedNew.length}</b> closed · <b>{d.unavailable.includes("follow-ups")?"not read":nOverdue}</b> overdue · <b>{d.unavailable.includes("counts")?"not read":nLive}</b> live in the queue</p>}
 
+        {mem.org && <Journey key={mem.org.id} orgId={mem.org.id} role={role} />}
         {d && (
           <>
             {d.unavailable.length>0&&<p role="status">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
@@ -134,6 +138,7 @@ export function Brief() {
               {todo.length ? rows(todo, true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
               <div className="br-chips">{isVet ? <Link href="/ngo/verification">Open verification <ArrowRight size={12} aria-hidden /></Link> : <>{role === "member" ? <Link href="/ngo/field">Open field mode <ArrowRight size={12} aria-hidden /></Link> : <Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link>}<Link href="/ngo/inbox?paste=1"><Sparkles size={12} aria-hidden />Paste WhatsApp reports</Link></>}{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
             </section>
+            {reviews && <MonthlySubmission canPrepare compact />}
             {!isVet && <KajuPrepared key={mem.org?.id ?? "org"} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
             <section aria-labelledby="br-out" className="br-sec">
               <h2 id="br-out" className="br-h">Recent activity</h2>
