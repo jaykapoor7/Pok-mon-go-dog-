@@ -166,3 +166,8 @@
 .ms-err { margin: 0; color: #b4361f; font-size: 13px; }
 .abc-next { margin: 4px 0 14px; padding: 10px 12px; border-left: 3px solid #2457ce; background: rgba(36, 87, 206, 0.05); font-size: 14px; line-height: 1.5; color: #0b1e3d; border-radius: 0 8px 8px 0; }
 .abc-next.is-done { border-left-color: #1f7a4d; background: rgba(31, 122, 77, 0.06); }
+.abc-perf { width: 100%; margin: 6px 0 16px; border-collapse: collapse; font-size: 13.5px; }
+.abc-perf caption { text-align: left; font-size: 12.5px; color: #6f7380; padding-bottom: 6px; }
+.abc-perf th, .abc-perf td { text-align: left; padding: 8px 6px; border-top: 1px solid rgba(11, 30, 61, 0.07); font-weight: 400; }
+.abc-perf thead th { font-size: 12px; color: #6f7380; }
+.abc-perf tbody th { color: #0b1e3d; font-weight: 500; }

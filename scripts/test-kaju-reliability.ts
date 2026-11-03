@@ -109,6 +109,10 @@ try{
 }
 {
  const nav=await withTools('open intake',{...ctx,actorRole:'member'});assert.equal(nav.navigate?.href,'/ngo/inbox');ok('a plain navigation command opens the screen without a model');
+ const conn={caller:{userId:'u',email:null,ngoId:'isolated-test-org',role:'coordinator',db:ctx.db},caps:{google:['calendar.create']}} as never;
+ const visit=await withTools('schedule a field visit for Ward 14 tomorrow at 10am',{...ctx,conn});const ev=visit.proposals.find(p=>p.kind==='calendar_event') as {start:string;title:string}|undefined;
+ assert.ok(ev&&ev.title.startsWith('Field visit')&&ev.start.endsWith(':30:00.000Z'));ok('a field visit is prepared for the connected calendar without a model, in IST, pending confirmation');
+ assert.match((await withTools('find emails about ward 14',{...ctx,conn})).text,/Find correspondence/);ok('correspondence search is refused plainly when it was not allowed');
  const lost=await withTools('zzqx plorb',{...ctx,db:db({data:[],error:null})});assert.ok((lost as {suggestions?:string[]}).suggestions?.includes('What should I do first?'));ok('an unmatched request offers runnable next steps instead of a dead end');
 }
 console.log(`kaju reliability: ${checks} checks passed`);

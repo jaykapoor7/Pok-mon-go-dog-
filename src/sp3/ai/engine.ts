@@ -256,6 +256,38 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     if (out.ok === false) return done(needsOrg);
     return done(`I prepared a **${format.toUpperCase()}** report of ${source === "animals" ? "your animal register" : source === "verification" ? "ABC verification status" : "open cases"}. Press Confirm to download it.`);
   }
+  /* Connected apps, deterministically: each needs the matching connection
+     and every write is a proposal the person confirms. */
+  const hasCap = (cap: string) => !!ctx.conn && Object.values(ctx.conn.caps).some((c) => c?.includes(cap as never));
+  const mailQ = q.match(/\b(?:find|search|show)\b\s+(?:the\s+)?(?:emails?|mails?|correspondence)\s+(?:about|for|on|from)\s+(.{2,80})$/i);
+  if (mailQ) {
+    if (!hasCap("mail.search")) return { ...done("Finding correspondence needs a Google account connected with “Find correspondence” allowed."), suggestions: ["Open settings"] };
+    const out = await call(acc, ctx, "find_email", { query: mailQ[1].trim() });
+    const d = out.data as { messages?: { from: string; subject: string; date: string | null }[] };
+    return done(out.ok === false ? out.summary : d.messages?.length ? `Found ${d.messages.length}:\n${d.messages.slice(0, 8).map((m) => `- **${m.subject || "(no subject)"}**: ${m.from}${m.date ? `, ${m.date}` : ""}`).join("\n")}` : `No email matches “${mailQ[1].trim()}”.`);
+  }
+  const sheetQ = q.match(/\breconcile\b\s+(?:the\s+)?(?:sheet|spreadsheet|register)?\s*["“]?([^"”]{2,80})["”]?$/i);
+  if (sheetQ) {
+    if (!hasCap("sheets.read")) return done("Reconciling a sheet needs a connected Google or Microsoft account.");
+    const found = await call(acc, ctx, "find_files", { query: sheetQ[1].trim() });
+    const file = (found.data as { files?: { id: string; name: string }[] }).files?.[0];
+    if (!file) return done(`No file matching “${sheetQ[1].trim()}” in your connected account.`);
+    const out = await call(acc, ctx, "reconcile_sheet", { file_id: file.id });
+    const d = out.data as { matched?: number; notInRegister?: string[]; repeatedInSheet?: string[]; notInSheet?: { label: string }[]; note?: string; tagColumn?: string | null };
+    return done(out.ok === false ? out.summary : !d.tagColumn ? `${file.name}: ${d.note}` : `**${file.name}** against your register, by ${d.tagColumn}: **${d.matched}** matched · **${d.notInRegister?.length ?? 0}** sheet tags not in StrayPaw · **${d.repeatedInSheet?.length ?? 0}** repeated in the sheet${d.notInSheet?.length ? ` · ${d.notInSheet.length} register animals missing from the sheet` : ""}.\n\n${d.note}`);
+  }
+  const visitQ = q.match(/\b(?:schedule|book|plan)\b\s+(?:a\s+)?(visit|field visit|meeting|camp|review)\s+(?:for|about|at|with)?\s*(.{0,60}?)\s+(today|tomorrow|on \d{4}-\d{2}-\d{2})(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?\s*$/i);
+  if (visitQ) {
+    if (!hasCap("calendar.create")) return done("Adding to a calendar needs a connected Google or Microsoft calendar.");
+    const base = visitQ[3].toLowerCase() === "today" ? new Date() : visitQ[3].toLowerCase() === "tomorrow" ? new Date(Date.now() + 86_400_000) : new Date(visitQ[3].slice(3));
+    let h = Number(visitQ[4] ?? 10); if (visitQ[6]?.toLowerCase() === "pm" && h < 12) h += 12;
+    const day = base.toISOString().slice(0, 10);
+    /* Times are India Standard Time. */
+    const start = new Date(`${day}T${String(h).padStart(2, "0")}:${visitQ[5] ?? "00"}:00+05:30`);
+    const title = `${visitQ[1][0].toUpperCase()}${visitQ[1].slice(1)}${visitQ[2] ? `: ${visitQ[2].trim()}` : ""}`;
+    const out = await call(acc, ctx, "schedule_event", { title, start: start.toISOString(), end: new Date(start.getTime() + 3_600_000).toISOString() });
+    return done(out.ok === false ? out.summary : `I prepared **${title}** on ${day} at ${String(h).padStart(2, "0")}:${visitQ[5] ?? "00"} IST. Press Confirm to add it to your calendar.`);
+  }
   const fileQ = q.match(/\b(?:find|search|look for|open)\b\s+(?:the\s+|my\s+|our\s+)?(?:file|doc|document|sheet|spreadsheet|deck|presentation)s?\s+(?:called|named|about|for)?\s*["“]?([^"”]+)["”]?/i);
   if (fileQ && ctx.conn && Object.keys(ctx.conn.caps).length) {
     const out = await call(acc, ctx, "find_files", { query: fileQ[1].trim() });

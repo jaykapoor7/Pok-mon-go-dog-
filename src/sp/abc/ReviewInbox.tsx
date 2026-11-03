@@ -82,6 +82,14 @@ export function ReviewInbox() {
               <button type="button" aria-pressed={tab === "operator"} onClick={() => setTab("operator")}>Waiting on the operator <b>{onOperator.length}</b></button>
               <button type="button" aria-pressed={tab === "all"} onClick={() => setTab("all")}>All <b>{list.length}</b></button>
             </div>
+            {/* Contractor performance from recorded package outcomes only. */}
+            {(() => {
+              const by = new Map<string, Package[]>();
+              for (const p of list) by.set(p.ngo_id, [...(by.get(p.ngo_id) ?? []), p]);
+              if (!by.size) return null;
+              return <table className="abc-perf"><caption>Operators · recorded package outcomes</caption><thead><tr><th scope="col">Operator</th><th scope="col">Waiting</th><th scope="col">Query or returned</th><th scope="col">Accepted (fully / partly)</th></tr></thead>
+                <tbody>{[...by].map(([id, ps]) => <tr key={id}><th scope="row">{names[id] ?? "Operator"}</th><td>{ps.filter((p) => p.status === "submitted").length}</td><td>{ps.filter((p) => p.status === "queried" || p.status === "returned").length}</td><td>{ps.filter((p) => p.status === "accepted").length} / {ps.filter((p) => p.status === "partially_accepted").length}</td></tr>)}</tbody></table>;
+            })()}
             {shown.length ? (
               <ul className="abc-list">{shown.map((p) => (
                 <li key={p.id}><Link href={`/city/review/${p.id}`}>
