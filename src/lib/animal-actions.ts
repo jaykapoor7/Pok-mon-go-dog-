@@ -180,16 +180,24 @@ export async function getPartnerMedicalEvents(limit = 200): Promise<PartnerMedic
   const { data: ngoId, error: orgError } = await supa.rpc("my_ngo");
   if (orgError || !ngoId) throw new Error("Organisation access required.");
 
-  const { data: rows, error } = await supa
-    .from("medical_events")
-    .select("id, dog_id, case_id, kind, event_date, notes, performed_by, created_at, dogs!inner(id, name, code, zone, cover_photo, ngo_id)")
-    .eq("dogs.ngo_id", ngoId)
-    .order("event_date", { ascending: false })
-    .limit(Math.min(250, Math.max(1, Math.floor(limit))));
+  /* Read from the organisation's animals into their care, not the other way
+     round: starting from medical_events makes the database check permissions
+     on every care record in the system, which times out on a large register.
+     Starting from the organisation's own animals uses its index and is fast.
+     Same rows, same order (newest first), same limit. */
+  const cap = Math.min(250, Math.max(1, Math.floor(limit)));
+  const { data: dogs, error } = await supa
+    .from("dogs")
+    .select("id, name, code, zone, cover_photo, medical_events!inner(id, dog_id, case_id, kind, event_date, notes, performed_by, created_at)")
+    .eq("ngo_id", ngoId)
+    .limit(5000);
   if (error) throw new Error(error.message);
+  const rows = (dogs ?? []).flatMap((d: any) => (d.medical_events ?? []).map((m: any) => ({ ...m, dogs: d })))
+    .sort((x: any, y: any) => String(y.event_date ?? "").localeCompare(String(x.event_date ?? "")) || String(y.created_at ?? "").localeCompare(String(x.created_at ?? "")))
+    .slice(0, cap);
 
-  return (rows ?? []).flatMap((r: any) => {
-    const animal = Array.isArray(r.dogs) ? r.dogs[0] : r.dogs;
+  return rows.flatMap((r: any) => {
+    const animal = r.dogs;
     if (!animal) return [];
     return [{
       id: r.id,

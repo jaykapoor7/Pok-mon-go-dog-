@@ -46,9 +46,15 @@ export async function readCare(): Promise<{ rows: PartnerMedicalEvent[]; total: 
   const { supa, ngoId } = await org();
   const [rows, head] = await Promise.all([
     getPartnerMedicalEvents(CARE_LIMIT),
-    supa.from("medical_events").select("id, dogs!inner(ngo_id)", { count: "exact", head: true }).eq("dogs.ngo_id", ngoId),
+    Promise.race([
+      Promise.resolve(supa.from("medical_events").select("id, dogs!inner(ngo_id)", { count: "exact", head: true }).eq("dogs.ngo_id", ngoId)).catch(() => null),
+      new Promise<null>((r) => setTimeout(() => r(null), 4000)),
+    ]),
   ]);
-  const total = counted(head as Head, "Care events");
+  /* On a large register the exact count can be slower than the rows; the rows
+     still show, and the total is then "at least" what came back. */
+  let total = rows.length;
+  try { if (head) total = counted(head as Head, "Care events"); } catch { total = rows.length; }
   if (total > 0 && rows.length === 0) throw new Error(PARTIAL);
   return { rows, total };
 }
@@ -57,37 +63,40 @@ export type QualityInput = {
   animals: Awaited<ReturnType<typeof getMyAnimals>>;
   records: PartnerRecordRow[];
   totals: { animals: number; cases: number; care: number; followups: number; outcomes: number };
+  /** True when the queues were computed from the records that came back, not the whole register. */
+  partial: boolean;
 };
 
 /** Everything the data-quality queues are computed from, with the scope it covers. */
 export async function readQuality(): Promise<QualityInput> {
   const { supa, ngoId } = await org();
+  /* Counts get a few seconds; the queues never wait on a slow count. */
+  const soft = <T,>(q: PromiseLike<T>) => Promise.race([Promise.resolve(q).catch(() => null), new Promise<null>((r) => setTimeout(() => r(null), 5000))]);
   const [animals, records, a, c, m, f, t] = await Promise.all([
     getMyAnimals(ANIMAL_LIMIT),
     getPartnerRecordRows(),
-    supa.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
-    supa.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId),
-    supa.from("medical_events").select("id, dogs!inner(ngo_id)", { count: "exact", head: true }).eq("dogs.ngo_id", ngoId),
-    supa.from("animal_followups").select("id, dogs!inner(ngo_id)", { count: "exact", head: true }).eq("dogs.ngo_id", ngoId),
-    supa.from("animal_timeline_events").select("id, dogs!inner(ngo_id)", { count: "exact", head: true }).eq("ngo_id", ngoId).in("event_type", OUTCOME_EVENTS),
+    soft(supa.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)),
+    soft(supa.from("cases").select("id", { count: "exact", head: true }).eq("ngo_id", ngoId)),
+    soft(supa.from("medical_events").select("id, dogs!inner(ngo_id)", { count: "exact", head: true }).eq("dogs.ngo_id", ngoId)),
+    soft(supa.from("animal_followups").select("id, dogs!inner(ngo_id)", { count: "exact", head: true }).eq("dogs.ngo_id", ngoId)),
+    soft(supa.from("animal_timeline_events").select("id, dogs!inner(ngo_id)", { count: "exact", head: true }).eq("ngo_id", ngoId).in("event_type", OUTCOME_EVENTS)),
   ]);
-  const totals = {
-    animals: counted(a as Head, "Animals"),
-    cases: counted(c as Head, "Cases"),
-    care: counted(m as Head, "Care events"),
-    followups: counted(f as Head, "Follow-ups"),
-    outcomes: counted(t as Head, "Outcome entries"),
-  };
   const by = (s: PartnerRecordRow["source"]) => records.filter((r) => r.source === s).length;
   const rescues = records.filter((r) => r.kind === "rescue").length;
-  if (
-    (totals.animals > 0 && animals.length === 0) ||
-    rescues < totals.cases ||
-    (totals.care > 0 && by("medical") === 0) ||
-    (totals.followups > 0 && by("follow_up") === 0) ||
-    (totals.outcomes > 0 && by("timeline") === 0)
-  ) throw new Error(PARTIAL);
-  return { animals, records, totals };
+  /* A count that did not come back is taken as what was read, never as zero. */
+  const safe = (h: unknown, what: string, fallback: number) => { try { return h ? counted(h as Head, what) : fallback; } catch { return fallback; } };
+  const totals = {
+    animals: safe(a, "Animals", animals.length),
+    cases: safe(c, "Cases", rescues),
+    care: safe(m, "Care events", by("medical")),
+    followups: safe(f, "Follow-ups", by("follow_up")),
+    outcomes: safe(t, "Outcome entries", by("timeline")),
+  };
+  /* Nothing came back although records exist: that is a failed read. */
+  if (totals.animals > 0 && animals.length === 0 && records.length === 0) throw new Error(PARTIAL);
+  const partial = animals.length < totals.animals || rescues < totals.cases ||
+    (totals.care > 0 && by("medical") === 0) || (totals.followups > 0 && by("follow_up") === 0) || (totals.outcomes > 0 && by("timeline") === 0);
+  return { animals, records, totals, partial };
 }
 
 /** Volunteer sign-ups: the same org_volunteers RPC as 1.0, with its error kept. */

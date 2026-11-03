@@ -24,7 +24,7 @@ import "../ngo.css";
 import "./records.css";
 import { friendlyError } from "@/lib/friendly-error";
 
-const labelFor = (kind: string) => MEDICAL_KINDS.find((k) => k.id === kind)?.label ?? kind;
+const labelFor = (kind: string) => MEDICAL_KINDS.find((k) => k.id === kind)?.label ?? (kind.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()));
 const MEDICAL_CATEGORIES = new Set(["injury", "vaccination", "sterilisation"]);
 const isMedical = (c: Case) => !!c.medical_notes || MEDICAL_CATEGORIES.has(c.category);
 const month = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });

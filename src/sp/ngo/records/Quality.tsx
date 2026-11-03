@@ -76,7 +76,7 @@ export function Quality() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">What needs cleaning</h1></div>
-          <p className="ngo-sum">{d.state === "loading" ? <Reading>Reading your records</Reading> : d.state === "failed" ? "Not read. No queue is shown as zero." : total === 0 ? "Nothing to review in the records read." : <><b>{n(total)}</b> record{total === 1 ? "" : "s"} to review. Queues, not scores: the original source stays intact.</>}</p>
+          <p className="ngo-sum">{d.state === "loading" ? <Reading>Reading your records</Reading> : d.state === "failed" ? "Didn’t load. No queue is shown as zero." : total === 0 ? "Nothing to review in the records read." : <><b>{n(total)}</b> record{total === 1 ? "" : "s"} to review{d.state === "read" && d.input.partial ? <>, from the {n(checked)} most recent animals</> : null}. The original source stays as it is.</>}</p>
         </header>
         {/* One place for record quality: the related review screens and Kaju's spelling check. */}
         <nav className="rq-hub" aria-label="Record quality">
