@@ -77,7 +77,7 @@ export function Inbox() {
         </header>
         <PageBrief items={[["For", "Reports waiting for a person: sent to you, and community reports near you."], ["Watch", "Injured or unwell first."], ["Next", "File into a drive, or open a case."], ["After", "It leaves the inbox; the reporter’s receipt still says received, not accepted."]]} />
         <div className="ib-grid">
-          <label className="ib-mobile-source"><span className="label">Reports</span><select className="select" value={src} onChange={e => { setSrc(e.target.value as Source); setReceipt(null); }}><option value="ours">Sent to you ({counts.ours ?? "…"})</option><option value="community">Community in your areas ({counts.community ?? "…"})</option></select><small>WhatsApp intake is not connected for this organisation.</small></label>
+          <label className="ib-mobile-source"><span className="label">Show</span><select className="select" value={paste ? "paste" : src} onChange={e => { const v = e.target.value; setReceipt(null); if (v === "paste") { setPaste(true); setWa(false); } else { setPaste(false); setSrc(v as Source); } }}><option value="paste">Paste from WhatsApp (Kaju)</option><option value="ours">Sent to you ({counts.ours ?? "…"})</option><option value="community">Community in your areas ({counts.community ?? "…"})</option></select><small>Direct WhatsApp is not connected yet; paste messages instead.</small></label>
           <nav className="ib-channels" aria-label="Channels">
             <p className="k">Channels</p>
             {(["ours", "community"] as Source[]).map((s) => (
