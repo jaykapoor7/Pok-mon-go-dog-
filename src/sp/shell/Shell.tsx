@@ -150,8 +150,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               </button>
               {switcher && (
                 <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Workspaces">
-                  <p className="sx3-ws-k">Workspaces</p>
-                  {PROFESSIONAL.map((id) => {
+                  <p className="sx3-ws-k">{mem.member && mem.reviewer ? "Your workspaces" : "Your workspace"}</p>
+                  {PROFESSIONAL.filter((id) => id === ws || (id === "ngo" ? mem.member : mem.reviewer)).map((id) => {
                     const w = WORKSPACES[id];
                     return (
                       <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
@@ -160,7 +160,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
                       </Link>
                     );
                   })}
-                  <p className="sx3-ws-k">Public products</p>
+                  <p className="sx3-ws-k">Public sites</p>
                   {PUBLIC_PRODUCTS.map((id) => { const w = WORKSPACES[id]; return (
                     <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
                       <i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>Open to everyone, no sign-in needed</small></span>
@@ -221,11 +221,11 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               </button>
               {switcherM && (
                 <Popover onClose={() => setSwitcherM(false)} className="sp-ws-menu" label="Workspaces">
-                  <p className="sx3-ws-k">Workspaces</p>
-                  {PROFESSIONAL.map((id) => { const w = WORKSPACES[id]; return (
+                  <p className="sx3-ws-k">{mem.member && mem.reviewer ? "Your workspaces" : "Your workspace"}</p>
+                  {PROFESSIONAL.filter((id) => id === ws || (id === "ngo" ? mem.member : mem.reviewer)).map((id) => { const w = WORKSPACES[id]; return (
                     <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcherM(false)} className={id === ws ? "is-on" : undefined}><i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>{w.purpose}</small></span></Link>
                   ); })}
-                  <p className="sx3-ws-k">Public products</p>
+                  <p className="sx3-ws-k">Public sites</p>
                   {PUBLIC_PRODUCTS.map((id) => { const w = WORKSPACES[id]; return (
                     <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcherM(false)} className={id === ws ? "is-on" : undefined}><i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>Open to everyone</small></span></Link>
                   ); })}
