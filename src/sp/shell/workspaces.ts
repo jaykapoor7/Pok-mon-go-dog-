@@ -3,17 +3,17 @@
 export type WorkspaceId='community'|'ngo'|'city'|'learn';
 export type Role='admin'|'coordinator'|'veterinarian'|'member';
 export type NavItem={href:string;label:string;icon:string;match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>};
-export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:boolean;mobile?:boolean;primaryFor?:Role[];assistantKey?:string;note?:string};
+export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:boolean;mobile?:boolean;primaryFor?:Role[];assistantKey?:string;note?:string;/** false: reached from its hub page and search, not listed in the sidebar. */listed?:boolean};
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
 export const DESTINATIONS:Destination[]=[
- {workspace:'ngo',href:'/ngo/animals/identity',label:'Identity & duplicate review',icon:'paw',group:'Animals',primary:false,roles:['admin','coordinator']},
+ {workspace:'ngo',href:'/ngo/animals/identity',label:'Identity & duplicate review',icon:'paw',group:'Animals',primary:false,roles:['admin','coordinator'],listed:false},
  {workspace:'ngo',href:'/ngo/settings/policies',label:'Workflow policies',icon:'settings',group:'Organisation',primary:false,roles:['admin','coordinator']},
  {workspace:"ngo",href:"/ngo/contracts",label:"Contracts & reconciliation",assistantKey:"contracts",icon:"file",group:"Reports",primary:false,roles:["admin","coordinator"]},
  {workspace:"city",href:"/city/contracts",label:"Contracts",icon:"file",group:"Contracts",primary:true,mobile:true,reviewer:true},
  {workspace:"ngo",href:"/ngo/map",label:"Animal & field map",assistantKey:"field_map",icon:"map",group:"Animals",primary:false},
  {workspace:"city",href:"/city/connections",label:"Connections",icon:"layers",group:"Organisation",primary:false,reviewer:true},
- {workspace:"ngo",href:"/ngo/verification",label:"ABC evidence & authorisation",short:"Clinical",icon:"shield",group:"Reports",primary:false,primaryFor:["veterinarian"],mobile:true,assistantKey:"verification"},
+ {workspace:"ngo",href:"/ngo/verification",label:"ABC evidence & authorisation",short:"Clinical",icon:"shield",group:"Clinical",primary:false,primaryFor:["veterinarian"],mobile:true,assistantKey:"verification"},
  {workspace:"ngo",href:"/ngo/programmes/zones",label:"Working zones & assignments",assistantKey:"working_zones",icon:"map",group:"Programmes",primary:false},
   {
     "workspace": "community",
@@ -205,16 +205,12 @@ export const DESTINATIONS:Destination[]=[
     "workspace": "ngo",
     "href": "/ngo/inbox",
     "assistantKey": "inbox",
-    "label": "Inbox & triage",
-    "note": "New reports and offers",
-    "group": "Work",
+    "label": "Intake",
+    "note": "Reports and WhatsApp messages, prepared by Kaju",
+    "group": "Intake",
     "icon": "file",
-    "primary": false,
-    "mobile": false,
-    "roles": [
-      "admin",
-      "coordinator"
-    ]
+    "primary": true,
+    "mobile": true
   },
   {
     "workspace": "ngo",
@@ -225,6 +221,7 @@ export const DESTINATIONS:Destination[]=[
     "group": "Work",
     "icon": "file",
     "primary": false,
+    "primaryFor": ["member"],
     "mobile": false
   },
   {
@@ -236,6 +233,7 @@ export const DESTINATIONS:Destination[]=[
     "group": "Animals",
     "icon": "file",
     "primary": false,
+    "listed": false,
     "mobile": false,
     "roles": [
       "admin",
@@ -559,8 +557,8 @@ const META={
   },
   "city": {
     "id": "city",
-    "label": "Municipality",
-    "purpose": "Programme oversight: delivery, evidence and reports for a city",
+    "label": "Government",
+    "purpose": "Municipal oversight: wards, evidence, claims and decisions",
     "ink": "#2457ce",
     "home": "/city",
     "action": null
@@ -579,19 +577,22 @@ export function canDiscover(n:NavItem,role:Role|null,reviewer=false){return (!n.
 export function destinations(ws:WorkspaceId,role:Role|null,reviewer=false){return DESTINATIONS.filter(n=>n.workspace===ws&&canDiscover(n,role,reviewer))}
 export function workspaceView(ws:WorkspaceId,role:Role|null,reviewer=false):Workspace{
  const all=destinations(ws,role,reviewer),primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).sort((a,b)=>Number(b.href===META[ws].home)-Number(a.href===META[ws].home)).map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href).map(x=>x.href)]}));
- const groups=[...new Set(all.map(n=>n.group))].map(label=>({label,links:all.filter(n=>n.group===label)}));
+ const listed=all.filter(n=>n.listed!==false),groups=[...new Set(listed.map(n=>n.group))].map(label=>({label,links:listed.filter(n=>n.group===label)}));
  return {...META[ws],home:ws==='city'&&reviewer?'/city/review':META[ws].home,nav:primary,index:groups,dests:primary.filter(n=>n.mobile)};
 }
 /** Compatibility views only: no independent route definitions. */
 export const WORKSPACES=Object.fromEntries(Object.keys(META).map(ws=>[ws,workspaceView(ws as WorkspaceId,null)])) as Record<WorkspaceId,Workspace>;
 export const ORDER:WorkspaceId[]=['city','ngo','community','learn'];
+/** Signed-in professional workspaces; Community and Education are public products, open to anyone. */
+export const PROFESSIONAL:WorkspaceId[]=['ngo','city'];
+export const PUBLIC_PRODUCTS:WorkspaceId[]=['community','learn'];
 export function workspaceFor(path:string,last:WorkspaceId|null):WorkspaceId{return ORDER.find(w=>path===`/${w}`||path.startsWith(`/${w}/`))??last??'community'}
 export function navOn(n:NavItem,path:string){return path===n.href||!n.exact&&path.startsWith(n.href+'/')||(n.match??[]).some(p=>path===p||path.startsWith(p+'/'))}
 export function currentDestination(ws:WorkspaceId,path:string,role:Role|null,reviewer=false){return destinations(ws,role,reviewer).filter(n=>navOn(n,path)).sort((a,b)=>b.href.length-a.href.length)[0]??null}
 export function currentDest(ws:Workspace,path:string){const n=currentDestination(ws.id,path,null);return n?.href??null}
 export type Tab={href:string;label:string;roles?:Role[]};
 export function tabsFor(path:string,role:Role|null,reviewer=false){const ws=workspaceFor(path,null),current=currentDestination(ws,path,role,reviewer);if(!current)return null;
- const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant').sort((a,b)=>Number(b.primary)-Number(a.primary));return tabs.length>1?{tabs,on:current.href}:null}
+ const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant'&&(n.listed!==false||n.href===current.href)).sort((a,b)=>Number(b.primary)-Number(a.primary));return tabs.length>1?{tabs,on:current.href}:null}
 const KEY='sp2.workspace';
 export function rememberWorkspace(id:WorkspaceId){try{sessionStorage.setItem(KEY,id)}catch{}}
 export function lastWorkspace():WorkspaceId|null{try{const v=sessionStorage.getItem(KEY);return v&&v in META?v as WorkspaceId:null}catch{return null}}

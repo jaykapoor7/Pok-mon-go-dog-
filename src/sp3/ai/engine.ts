@@ -1,6 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import { getVercelOidcToken } from "@vercel/oidc";
+import { inferenceAllowed, modelCredentials, withInferenceSlot, type InferenceScope } from "@/lib/ai/inference";
 import { extractFieldMessage } from "./extract";
 import { NAV, TOOL_DEFS, runTool, toolRun, type ToolCtx, type ToolOut } from "./tools";
 import { connectionToolDefs } from "./connectTools";
@@ -19,14 +19,11 @@ import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
    ════════════════════════════════════════════════════════════════════ */
 
 type ModelAccess = { gateway: boolean; token: string; model: string };
-/** Runtime OIDC lives in Vercel's request context, not necessarily process.env.
- * Resolve once per run; never cache a rotating identity or accept a client token. */
-async function modelAccess(): Promise<ModelAccess | null> {
-  const direct = process.env.ANTHROPIC_API_KEY?.trim();
-  if (direct) return { gateway: false, token: direct, model: process.env.STRAYPAW_AI_MODEL?.trim() || "claude-opus-5-5" };
-  let token = process.env.AI_GATEWAY_API_KEY?.trim();
-  if (!token) { try { token = (await getVercelOidcToken()).trim(); } catch { return null; } }
-  return token ? { gateway: true, token, model: process.env.STRAYPAW_AI_MODEL?.trim() || "google/gemini-2.5-flash" } : null;
+/* Model access exists only when the central gate allows this request.
+   With STRAYPAW_AI_MODE unset or "tools_only" (the default) no credential,
+   key or Vercel OIDC token is ever resolved. */
+async function modelAccess(scope: InferenceScope): Promise<ModelAccess | null> {
+  return modelCredentials(await inferenceAllowed(scope));
 }
 const MAX_STEPS = 6;
 const MAX_TOOL_CALLS = 12;
@@ -57,11 +54,10 @@ function absorb(acc: Acc, name: string, out: ToolOut) {
 }
 
 /** Approval names the exact configured transport/model; it is not inferred from a key. */
-export async function privateModelApproved() {
-  const access = await modelAccess();
+export async function privateModelApproved(scope: InferenceScope = { purpose: "kaju_chat", userId: null, orgId: null }) {
+  const access = await modelAccess(scope);
   return !!access && process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE === `${access.gateway ? "gateway" : "direct"}:${access.model}`;
 }
-export const modelConfigured = async () => Boolean(await modelAccess());
 
 export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string; signal?:AbortSignal }): Promise<AiReply> {
   if(context.signal?.aborted)throw Error("Kaju request cancelled");
@@ -73,15 +69,13 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   if (previous?.role === "assistant" && previous.text.includes("Tell me the city and I will prepare the case.") && report?.role === "user" && toolQuestion.length <= 80 && extractFieldMessage(toolQuestion).city) {
     toolQuestion = `${report.text}\nCity: ${extractFieldMessage(toolQuestion).city}`;
   }
-  const access = await modelAccess();
-  const publicGreeting = !ctx.userId && !ctx.orgId && turns.length === 1 && /^(?:hello|hi|hey)(?: kaju)?[.!?\s]*$/i.test(turns[0].text);
-  const approved=access&&await privateModelApproved();
-  if (access && (publicGreeting || approved)) {
-    // Even a generic guest greeting must not carry a private URL or arbitrary
-    // browser-supplied workspace text onto an unapproved processing route.
-    const modelCtx=approved?ctx:{db:ctx.db,orgId:null,userName:null};
-    const modelContext=approved?context:{path:'/assistant',workspace:'community',signal:context.signal};
-    try { return await withModel(turns, modelCtx, modelContext, access); }
+  /* Guests never reach a paid model; signed-in people only when the
+     central gate allows it AND the data route is approved. */
+  const scope: InferenceScope = { purpose: "kaju_chat", userId: ctx.userId ?? null, orgId: ctx.orgId };
+  const access = ctx.userId ? await modelAccess(scope) : null;
+  const approved = !!access && process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE === `${access.gateway ? "gateway" : "direct"}:${access.model}`;
+  if (access && approved) {
+    try { return await withInferenceSlot(() => withModel(turns, ctx, context, access)); }
     catch {
       if(context.signal?.aborted)throw Error("Kaju request cancelled");
       console.error("Kaju model request failed; using scoped record tools");
@@ -90,7 +84,7 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
     }
   }
   const r = await withTools(toolQuestion, ctx);
-  return { ...r, notice: access ? "Record check. Workspace text stays inside StrayPaw." : "Record check. General conversation is temporarily limited." };
+  return { ...r, notice: access ? "Record check. Workspace text stays inside StrayPaw." : "Record tools. Kaju works from your records without a language model." };
 }
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */
@@ -163,6 +157,13 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
       : "Hello, I’m Kaju. I can explain published programmes and help you find public records. Sign in to work with your organisation’s cases, evidence, follow-ups and reports.");
   }
 
+  /* "open intake", "go to verification", "show me the field map": a screen, not a search. */
+  const go = t.match(/^(?:please\s+)?(?:open|go to|take me to|show me|show)\s+(?:the\s+|my\s+)?(.{3,40}?)(?:\s+page|\s+screen)?[.!?\s]*$/);
+  if (go) {
+    const want = go[1].replace(/&/g, "and").trim();
+    const key = Object.entries(NAV).find(([k, v]) => k.replace(/_/g, " ") === want || v.label.toLowerCase().replace(/&/g, "and") === want || v.label.toLowerCase().startsWith(want))?.[0];
+    if (key) { const out = await call(acc, ctx, "navigate", { to: key }); return done(out.ok === false ? out.summary : `Opening ${(out.navigate ?? NAV[key]).label}.`); }
+  }
   if (/this (?:case|record|animal|programme|report|package)|selected|current record/i.test(q)) {
     const out=await call(acc,ctx,"current_record");
     if(out.ok===false)return done(out.summary);
@@ -177,6 +178,29 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     if (out.ok === false) return done(out.summary);
     const data = out.data as {verified_actions:unknown[];pending:number};
     return done(`${data.verified_actions.length} recent actions have a readable source record and audit receipt.${data.pending?` ${data.pending} could not be independently verified.`:""} Open the linked records to inspect them.`);
+  }
+  if (/what should i do first|prepared work|what did kaju (?:find|prepare)|quiet|stalled|promised review|spellings?/.test(t)) {
+    const out = await call(acc, ctx, "prepared_work");
+    if (out.ok === false && !acc.proposals.length) return done(ctx.orgId ? out.summary : needsOrg);
+    const d = out.data as { stalled: { label: string; quietDays: number; holder: string | null }[]; reviews: { missed: number; upcoming: number }; localities: { canonical: string; variants: unknown[]; total: number }[] };
+    const lines = [
+      ...d.stalled.map((s) => `- **${s.label}** is critical with no update for ${s.quietDays} days${s.holder ? ` (held by ${s.holder})` : ""}.`),
+      d.reviews.missed || d.reviews.upcoming ? `- ${d.reviews.missed} review(s) promised in care notes passed unrecorded; ${d.reviews.upcoming} upcoming are unscheduled.` : "",
+      ...d.localities.slice(0, 3).map((l) => `- ${l.canonical} is spelled ${l.variants.length} ways across ${l.total} animals.`),
+    ].filter(Boolean);
+    return done(lines.length ? `First, in this order:\n${lines.join("\n")}\n\nI prepared ${acc.proposals.length} follow-up(s); confirm the ones you want.` : "Nothing quiet, unscheduled or split was found in your records today.");
+  }
+  if (/\b(prepare|paste|forward(?:ed)?|whatsapp)\b/.test(t) && q.length > 40) {
+    const out = await call(acc, ctx, "prepare_intake", { text: q.replace(/^.*?(?:prepare|paste|forward(?:ed)?)[^:\n]*[:\n]/i, "") });
+    return done(out.ok === false ? (ctx.orgId ? out.summary : needsOrg) : `${out.summary}. Each prepared record is below; confirm the right option. Nothing is saved until you do.`);
+  }
+  if (/\b(check|review)\b.*\bpackage\b/.test(t)) {
+    const id = ctx.pagePath?.match(/\/(?:city\/review|ngo\/packages)\/([0-9a-f-]{36})/i)?.[1];
+    if (id) {
+      const out = await call(acc, ctx, "check_package", { package_id: id });
+      const d = out.data as { by_issue?: { issue: string; count: number }[] };
+      return done(out.ok === false ? out.summary : `${out.summary}.${d.by_issue?.length ? `\n\n${d.by_issue.map((x) => `- ${x.issue}: ${x.count}`).join("\n")}` : ""}\n\nDraft notes are ready in the claims list. Every decision is yours.`);
+    }
   }
   if (/operational checks|scheduled checks|recurring|what needs attention|check overdue|check.*evidence/.test(t)) {
     const out = await call(acc, ctx, "operations_insights");
@@ -232,6 +256,38 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     if (out.ok === false) return done(needsOrg);
     return done(`I prepared a **${format.toUpperCase()}** report of ${source === "animals" ? "your animal register" : source === "verification" ? "ABC verification status" : "open cases"}. Press Confirm to download it.`);
   }
+  /* Connected apps, deterministically: each needs the matching connection
+     and every write is a proposal the person confirms. */
+  const hasCap = (cap: string) => !!ctx.conn && Object.values(ctx.conn.caps).some((c) => c?.includes(cap as never));
+  const mailQ = q.match(/\b(?:find|search|show)\b\s+(?:the\s+)?(?:emails?|mails?|correspondence)\s+(?:about|for|on|from)\s+(.{2,80})$/i);
+  if (mailQ) {
+    if (!hasCap("mail.search")) return { ...done("Finding correspondence needs a Google account connected with “Find correspondence” allowed."), suggestions: ["Open settings"] };
+    const out = await call(acc, ctx, "find_email", { query: mailQ[1].trim() });
+    const d = out.data as { messages?: { from: string; subject: string; date: string | null }[] };
+    return done(out.ok === false ? out.summary : d.messages?.length ? `Found ${d.messages.length}:\n${d.messages.slice(0, 8).map((m) => `- **${m.subject || "(no subject)"}**: ${m.from}${m.date ? `, ${m.date}` : ""}`).join("\n")}` : `No email matches “${mailQ[1].trim()}”.`);
+  }
+  const sheetQ = q.match(/\breconcile\b\s+(?:the\s+)?(?:sheet|spreadsheet|register)?\s*["“]?([^"”]{2,80})["”]?$/i);
+  if (sheetQ) {
+    if (!hasCap("sheets.read")) return done("Reconciling a sheet needs a connected Google or Microsoft account.");
+    const found = await call(acc, ctx, "find_files", { query: sheetQ[1].trim() });
+    const file = (found.data as { files?: { id: string; name: string }[] }).files?.[0];
+    if (!file) return done(`No file matching “${sheetQ[1].trim()}” in your connected account.`);
+    const out = await call(acc, ctx, "reconcile_sheet", { file_id: file.id });
+    const d = out.data as { matched?: number; notInRegister?: string[]; repeatedInSheet?: string[]; notInSheet?: { label: string }[]; note?: string; tagColumn?: string | null };
+    return done(out.ok === false ? out.summary : !d.tagColumn ? `${file.name}: ${d.note}` : `**${file.name}** against your register, by ${d.tagColumn}: **${d.matched}** matched · **${d.notInRegister?.length ?? 0}** sheet tags not in StrayPaw · **${d.repeatedInSheet?.length ?? 0}** repeated in the sheet${d.notInSheet?.length ? ` · ${d.notInSheet.length} register animals missing from the sheet` : ""}.\n\n${d.note}`);
+  }
+  const visitQ = q.match(/\b(?:schedule|book|plan)\b\s+(?:a\s+)?(visit|field visit|meeting|camp|review)\s+(?:for|about|at|with)?\s*(.{0,60}?)\s+(today|tomorrow|on \d{4}-\d{2}-\d{2})(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?\s*$/i);
+  if (visitQ) {
+    if (!hasCap("calendar.create")) return done("Adding to a calendar needs a connected Google or Microsoft calendar.");
+    const base = visitQ[3].toLowerCase() === "today" ? new Date() : visitQ[3].toLowerCase() === "tomorrow" ? new Date(Date.now() + 86_400_000) : new Date(visitQ[3].slice(3));
+    let h = Number(visitQ[4] ?? 10); if (visitQ[6]?.toLowerCase() === "pm" && h < 12) h += 12;
+    const day = base.toISOString().slice(0, 10);
+    /* Times are India Standard Time. */
+    const start = new Date(`${day}T${String(h).padStart(2, "0")}:${visitQ[5] ?? "00"}:00+05:30`);
+    const title = `${visitQ[1][0].toUpperCase()}${visitQ[1].slice(1)}${visitQ[2] ? `: ${visitQ[2].trim()}` : ""}`;
+    const out = await call(acc, ctx, "schedule_event", { title, start: start.toISOString(), end: new Date(start.getTime() + 3_600_000).toISOString() });
+    return done(out.ok === false ? out.summary : `I prepared **${title}** on ${day} at ${String(h).padStart(2, "0")}:${visitQ[5] ?? "00"} IST. Press Confirm to add it to your calendar.`);
+  }
   const fileQ = q.match(/\b(?:find|search|look for|open)\b\s+(?:the\s+|my\s+|our\s+)?(?:file|doc|document|sheet|spreadsheet|deck|presentation)s?\s+(?:called|named|about|for)?\s*["“]?([^"”]+)["”]?/i);
   if (fileQ && ctx.conn && Object.keys(ctx.conn.caps).length) {
     const out = await call(acc, ctx, "find_files", { query: fileQ[1].trim() });
@@ -281,5 +337,9 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   if (out.ok === false) return done(out.summary);
   const d = out.data as Record<string, unknown[]>;
   const parts = [d.your_cases?.length && `${d.your_cases.length} of your cases`, d.your_animals?.length && `${d.your_animals.length} of your animals`, d.public_animals?.length && `${d.public_animals.length} public animal records`, d.programmes?.length && `${d.programmes.length} programmes`].filter(Boolean);
-  return done(parts.length ? `For “${query}” I found ${parts.join(", ")}. They are linked below.` : `Nothing you can see matches “${query}”. Try a StrayPaw tag, a case code or a locality.`);
+  if (parts.length) return done(`For “${query}” I found ${parts.join(", ")}. They are linked below.`);
+  /* Nothing matched: say so plainly and offer the commands Kaju can actually run. */
+  return { ...done(`I could not match “${query}” to a record or a task. These are things I can do right now:`), suggestions: ctx.orgId
+    ? ["What should I do first?", "Which records are missing evidence?", "Find possible duplicate animals", "Open intake"]
+    : ["Show published programmes", "Open the map", "What is unknown status?"] };
 }

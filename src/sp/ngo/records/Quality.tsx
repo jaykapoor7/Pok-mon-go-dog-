@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PartnerRecordRow } from "@/lib/partner-record-explorer";
 import { useMembership } from "../../shell/Shell";
+import { LocalitySpellings } from "../KajuPrepared";
 import { Method, State, day, n } from "../../ui";
 import { Reading } from "../../ui/Reading";
 import { NgoGate } from "../Gate";
@@ -76,6 +77,13 @@ export function Quality() {
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">What needs cleaning</h1></div>
           <p className="ngo-sum">{d.state === "loading" ? <Reading>Reading your records</Reading> : d.state === "failed" ? "Not read. No queue is shown as zero." : total === 0 ? "Nothing to review in the records read." : <><b>{n(total)}</b> record{total === 1 ? "" : "s"} to review. Queues, not scores: the original source stays intact.</>}</p>
         </header>
+        {/* One place for record quality: the related review screens and Kaju's spelling check. */}
+        <nav className="rq-hub" aria-label="Record quality">
+          <Link href="/ngo/animals/identity"><b>Identity & duplicates</b><small>Provisional animals and possible duplicates to confirm</small></Link>
+          <Link href="/ngo/review?cohort=history"><b>Imported records</b><small>Statuses from your registers, not yet confirmed</small></Link>
+          <Link href="/ngo/review"><b>Cases needing a decision</b><small>Open for months with nothing recorded</small></Link>
+        </nav>
+        <LocalitySpellings />
         <div className="rc-body">
           {d.state === "loading" && <div className="rc-skel" aria-label="Reading records"><span className="skel" /><span className="skel" /><span className="skel" /></div>}
           {d.state === "failed" && <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>The review queues could not be read ({d.error}). No queue is shown as zero.</State>}

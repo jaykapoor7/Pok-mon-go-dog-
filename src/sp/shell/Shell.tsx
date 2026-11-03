@@ -27,11 +27,12 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
-import { ORDER, WORKSPACES, workspaceView, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
+import { ORDER, PROFESSIONAL, WORKSPACES, workspaceView, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
 import { AiPanel, AiProvider, KajuMark, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
-import { KajuCorner } from "@/kaju/Presence";
+import { KajuCorner, KajuPresence } from "@/kaju/Presence";
+import { AmbientLight, KAJU_VERIFIED } from "./Ambient";
 import { spFonts } from "../fonts";
 import "../sp.css";
 import "./shell.css";
@@ -91,14 +92,26 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   }, [user, ready, connectionEpoch]);
   /* The sidebar for this person: their role's tools only, each group
      labelled once. Restricted links fail closed while the role loads. */
+  /* A shared page such as /assistant opened directly (a bookmark, a new
+     tab) belongs to the person's professional workspace, not Community. */
+  useEffect(() => {
+    if (!mem.ready || lastWorkspace() || ORDER.some((w) => path === `/${w}` || path.startsWith(`/${w}/`))) return;
+    const home: WorkspaceId | null = mem.member ? "ngo" : mem.reviewer ? "city" : null;
+    if (home) { setWs(home); rememberWorkspace(home); }
+  }, [mem.ready, mem.member, mem.reviewer, path]);
   const def = workspaceView(aiWorkspace, mem.role, mem.reviewer);
   const nav = visibleNav(def.nav, mem.role, mem.reviewer);
 
   const [find, setFind] = useState(false);
   const [sheet, setSheet] = useState(false);
+  /* Server-verified memberships only: both an organisation and a reviewing office. */
+  const dual = mem.ready && mem.member && mem.reviewer;
   const [switcher, setSwitcher] = useState(false);
   const [switcherM, setSwitcherM] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  /* Kaju looks pleased for a moment when prepared work is saved and verified. */
+  const [cheer, setCheer] = useState(false);
+  useEffect(() => { let t = 0; const on = () => { setCheer(true); window.clearTimeout(t); t = window.setTimeout(() => setCheer(false), 2600); }; window.addEventListener(KAJU_VERIFIED, on); return () => { window.removeEventListener(KAJU_VERIFIED, on); window.clearTimeout(t); }; }, []);
   useEffect(() => { try { setCollapsed(localStorage.getItem("sp3.side") === "0"); } catch { /* storage blocked */ } }, []);
   const toggleSide = () => setCollapsed((v) => { try { localStorage.setItem("sp3.side", v ? "1" : "0"); } catch { /* fine */ } return !v; });
   useEffect(() => { setSheet(false); setSwitcher(false); setSwitcherM(false); }, [path]);
@@ -130,28 +143,31 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         {/* ── Desktop sidebar ─────────────────────────────────────── */}
         <aside className="sx3-side" aria-label="Workspace">
           <div className="sx3-side-top">
+            {/* Only a verified dual-role member gets a chooser; everyone else sees their one workspace. */}
+            {dual ? (
             <div className="sx3-ws">
               <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/straypaw-mark.png" alt="" width={26} height={26} />
-                <span><b>{mem.org && ws === "ngo" ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
+                <span><b>{ws === "ngo" && mem.org ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
                 <ChevronsUpDown size={15} aria-hidden />
               </button>
               {switcher && (
-                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Workspaces">
-                  {ORDER.map((id) => {
-                    const w = WORKSPACES[id];
-                    return (
-                      <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
-                        <i aria-hidden style={{ background: w.ink }} />
-                        <span><b>{w.label}</b><small>{w.purpose}</small></span>
-                      </Link>
-                    );
-                  })}
-                  <div className="sx3-ws-foot"><Link href="/app?choose=1" onClick={() => setSwitcher(false)}>All ways in</Link><Link href="/" onClick={() => setSwitcher(false)}>Main site</Link></div>
+                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Your workspaces">
+                  {PROFESSIONAL.map((id) => { const w = WORKSPACES[id]; return (
+                    <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
+                      <i aria-hidden style={{ background: w.ink }} /><span><b>{id === "ngo" && mem.org ? mem.org.name : w.label}</b><small>{w.purpose}</small></span>
+                    </Link>); })}
                 </Popover>
               )}
             </div>
+            ) : (
+            <Link href={def.home} className="sx3-ws sx3-ws-static">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/straypaw-mark.png" alt="" width={26} height={26} />
+              <span><b>{ws === "ngo" && mem.org ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
+            </Link>
+            )}
             <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button>
           </div>
 
@@ -180,13 +196,14 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           <p className="sx4-hint">Press <kbd>/</kbd> for quick navigation</p>
 
           {/* Kaju rests here while the agent is closed; he moves into the panel when it opens. */}
-          <div className="sx3-kaju-nook">
-            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju"><KajuCorner sequence="chill" size={78} /></button>}
+          <div className={`sx3-kaju-nook${cheer ? " is-cheer" : ""}`}>
+            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju">{cheer ? <KajuPresence state="success" size={78} /> : <KajuCorner sequence="chill" size={78} />}</button>}
           </div>
 
           <div className="sx3-side-foot">
             {def.settings && mem.role === "admin" && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}
             <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help &amp; docs</span></Link>
+            <p className="sx3-public" aria-label="Public sites"><Link href="/community">Community</Link><Link href="/research">Research</Link><Link href="/learn">Education</Link><Link href="/">Main site</Link></p>
             <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
           </div>
         </aside>
@@ -198,19 +215,20 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/straypaw-mark.png" alt="" width={28} height={28} />
             </Link>
+            {dual ? (
             <div className="sp-ws sx3-ws-m">
               <button type="button" className="sp-ws-btn" aria-expanded={switcherM} aria-haspopup="menu" onClick={() => setSwitcherM((v) => !v)}>
                 <i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span><ChevronDown size={14} aria-hidden />
               </button>
               {switcherM && (
-                <Popover onClose={() => setSwitcherM(false)} className="sp-ws-menu" label="Workspaces">
-                  {ORDER.map((id) => { const w = WORKSPACES[id]; return (
+                <Popover onClose={() => setSwitcherM(false)} className="sp-ws-menu" label="Your workspaces">
+                  {PROFESSIONAL.map((id) => { const w = WORKSPACES[id]; return (
                     <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcherM(false)} className={id === ws ? "is-on" : undefined}><i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>{w.purpose}</small></span></Link>
                   ); })}
-                  <div className="sx3-ws-foot"><Link href="/app?choose=1" onClick={() => setSwitcherM(false)}>All ways in</Link><Link href="/" onClick={() => setSwitcherM(false)}>Main site</Link></div>
                 </Popover>
               )}
             </div>
+            ) : <span className="sp-ws sx3-ws-m sx3-ws-static"><i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span></span>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
@@ -228,6 +246,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </div>
           </header>
 
+          <AmbientLight />
           <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
         </div>
 
@@ -245,7 +264,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         </nav>
 
-        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} />
+        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} dual={!!dual} />
         <Finder open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
@@ -303,7 +322,7 @@ function Account({ user, org, onSignIn, onSignOut, side = false }: { user: { nam
 }
 
 /** "More" on a phone: every page of the workspace, in named groups. */
-function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string }) {
+function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string; dual: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); else if (!open && d.open) d.close(); }, [open]);
   const mem=useMembership();
@@ -324,7 +343,7 @@ function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () =>
             <ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} onClick={onClose} aria-current={path === l.href ? "page" : undefined}><b>{l.label}</b>{l.note && <small>{l.note}</small>}</Link></li>)}</ul>
           </details>
         ))}
-        <div className="sx3-more-ws">{ORDER.filter((id) => id !== ws).map((id) => <Link key={id} href={WORKSPACES[id].home} onClick={onClose}><i aria-hidden style={{ background: WORKSPACES[id].ink }} />{WORKSPACES[id].label}</Link>)}</div>
+        <div className="sx3-more-ws">{/* Another professional workspace only for verified dual-role members; public products for everyone. */}{ORDER.filter((id) => id !== ws && (id === "community" || id === "learn" || dual)).map((id) => <Link key={id} href={WORKSPACES[id].home} onClick={onClose}><i aria-hidden style={{ background: WORKSPACES[id].ink }} />{WORKSPACES[id].label}</Link>)}</div>
         <footer className="sp-more-foot"><Link href="/" onClick={onClose}>Main site</Link><Link href="/docs" onClick={onClose}>Help</Link><Link href="/contact" onClick={onClose}>Contact</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
       </div>
     </dialog>

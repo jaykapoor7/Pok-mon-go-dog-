@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createBoundedSupabaseFetch } from "@/lib/bounded-supabase-fetch";
 import { allowRequest, allowUserRequest, clientIp } from "@/lib/rate-limit";
 import { answer, privateModelApproved } from "@/sp3/ai/engine";
+import { inferenceMode } from "@/lib/ai/inference";
 import { readAiScope } from "@/sp3/ai/scope";
 import type { AiRequest } from "@/sp3/ai/types";
 import { caller as connCaller, capabilitiesFor } from "@/lib/connections/server";
@@ -27,11 +28,11 @@ function callerClient(token: string | null, signal?:AbortSignal) {
 
 export async function GET(req:Request) {
   const auth=req.headers.get("authorization");
-  if(!auth)return NextResponse.json({model:await privateModelApproved(),tools:true,scope:"guest",actorRole:null},{headers:{"Cache-Control":"no-store"}});
+  if(!auth)return NextResponse.json({model:false,mode:inferenceMode(),tools:true,scope:"guest",actorRole:null},{headers:{"Cache-Control":"no-store"}});
   const token=auth.startsWith("Bearer ")?auth.slice(7).trim():"";
   const db=callerClient(token,req.signal);if(!db||!token)return NextResponse.json({error:"Sign in again."},{status:401});
   const who=await db.auth.getUser(token);if(who.error||!who.data.user)return NextResponse.json({error:"Your session has expired. Sign in again."},{status:401});
-  try {return NextResponse.json({model:await privateModelApproved(),tools:true,userId:who.data.user.id,...await readAiScope(db,who.data.user.id)},{headers:{"Cache-Control":"no-store"}});}
+  try {return NextResponse.json({model:await privateModelApproved({purpose:"kaju_chat",userId:who.data.user.id,orgId:null}),mode:inferenceMode(),tools:true,userId:who.data.user.id,...await readAiScope(db,who.data.user.id)},{headers:{"Cache-Control":"no-store"}});}
   catch {return NextResponse.json({error:"Workspace permissions could not be checked."},{status:503});}
 }
 

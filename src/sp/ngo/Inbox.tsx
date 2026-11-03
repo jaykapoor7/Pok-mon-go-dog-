@@ -15,7 +15,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MessageCircle } from "lucide-react";
+import { ClipboardPaste, MessageCircle } from "lucide-react";
 import { orgCampaigns, orgIncoming, KIND_LABEL, type CampaignStats, type Incoming } from "@/lib/campaigns";
 import { useMembership } from "../shell/Shell";
 import { Portrait } from "../ui/Portrait";
@@ -24,6 +24,8 @@ import { fileReports, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import { isRecordingDemo } from "@/lib/recording-demo";
 import { WhatsAppIntake } from "./WhatsAppIntake";
+import { KajuIntake } from "./KajuIntake";
+import { useAuth } from "@/components/auth/AuthProvider";
 import "./ngo.css";
 import "./whatsapp.css";
 
@@ -34,6 +36,9 @@ export function Inbox() {
   const mem = useMembership();
   const [src, setSrc] = useState<Source>("ours");
   const [wa, setWa] = useState(isRecordingDemo);
+  const { user } = useAuth();
+  /* Most reports still arrive as WhatsApp messages, so the Kaju desk opens first. */
+  const [paste, setPaste] = useState(!isRecordingDemo);
   const [rows, setRows] = useState<Incoming[] | null>(null);
   const [counts, setCounts] = useState<Record<Source, number | null>>({ ours: null, community: null });
   const [drives, setDrives] = useState<CampaignStats[]>([]);
@@ -64,25 +69,27 @@ export function Inbox() {
   };
 
   return (
-    <NgoGate title="Inbox" lede="Reports that have arrived, waiting for a person to decide what they become.">
+    <NgoGate title="Intake" lede="Reports that have arrived, prepared by Kaju, waiting for a person to decide what they become.">
       <div className="ngo-page ib">
         <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · triage</p><h1 className="serif">Inbox</h1></div>
-          <p className="ngo-sum">A person decides what each report becomes: a case, an animal filed into a drive, or nothing yet. Nothing turns into work on its own.</p>
-          <div className="row"><Link className="btn is-s" href="/ngo">Back to Work</Link></div>
+          <div><p className="k">{mem.org?.name ?? "Your organisation"} · intake</p><h1 className="serif">Intake</h1></div>
+          <p className="ngo-sum">Paste WhatsApp messages or open a report. Kaju prepares each one and checks it against your register; you decide what it becomes.</p>
         </header>
         <PageBrief items={[["For", "Reports waiting for a person: sent to you, and community reports near you."], ["Watch", "Injured or unwell first."], ["Next", "File into a drive, or open a case."], ["After", "It leaves the inbox; the reporter’s receipt still says received, not accepted."]]} />
         <div className="ib-grid">
-          <label className="ib-mobile-source"><span className="label">Reports</span><select className="select" value={src} onChange={e => { setSrc(e.target.value as Source); setReceipt(null); }}><option value="ours">Sent to you ({counts.ours ?? "…"})</option><option value="community">Community in your areas ({counts.community ?? "…"})</option></select><small>WhatsApp intake is not connected for this organisation.</small></label>
+          <label className="ib-mobile-source"><span className="label">Show</span><select className="select" value={paste ? "paste" : src} onChange={e => { const v = e.target.value; setReceipt(null); if (v === "paste") { setPaste(true); setWa(false); } else { setPaste(false); setSrc(v as Source); } }}><option value="paste">Paste from WhatsApp (Kaju)</option><option value="ours">Sent to you ({counts.ours ?? "…"})</option><option value="community">Community in your areas ({counts.community ?? "…"})</option></select><small>Direct WhatsApp is not connected yet; paste messages instead.</small></label>
           <nav className="ib-channels" aria-label="Channels">
             <p className="k">Channels</p>
             {(["ours", "community"] as Source[]).map((s) => (
-              <button key={s} type="button" className={`ib-ch${src === s && !wa ? " is-on" : ""}`} aria-pressed={src === s && !wa} onClick={() => { setWa(false); setSrc(s); setReceipt(null); }}>
+              <button key={s} type="button" className={`ib-ch${src === s && !wa && !paste ? " is-on" : ""}`} aria-pressed={src === s && !wa && !paste} onClick={() => { setWa(false); setPaste(false); setSrc(s); setReceipt(null); }}>
                 <span className="ib-dot is-live" aria-hidden /><span><b>{s === "ours" ? "Sent to you" : "Community, in your places"}</b><small>{s === "ours" ? "Web and app reports your team or volunteers sent" : "Residents' reports near your areas"}</small></span><em className="mono">{counts[s] === null ? "…" : n(counts[s]!)}</em>
               </button>
             ))}
+            <button type="button" className={`ib-ch${paste ? " is-on" : ""}`} aria-pressed={paste} onClick={() => { setPaste(true); setWa(false); setReceipt(null); }}>
+              <span className="ib-dot is-live" aria-hidden /><span><b><ClipboardPaste size={13} aria-hidden /> Paste from WhatsApp</b><small>Kaju prepares forwarded messages and exported chats</small></span>
+            </button>
             {isRecordingDemo ? (
-              <button type="button" className={`ib-ch${wa ? " is-on" : ""}`} aria-pressed={wa} onClick={() => setWa(true)}>
+              <button type="button" className={`ib-ch${wa ? " is-on" : ""}`} aria-pressed={wa} onClick={() => { setWa(true); setPaste(false); }}>
                 <span className="ib-dot is-live" aria-hidden /><span><b><MessageCircle size={13} aria-hidden /> WhatsApp</b><small>Photos and voice notes from your field team</small></span><em className="mono">1</em>
               </button>
             ) : (
@@ -92,7 +99,7 @@ export function Inbox() {
             )}
           </nav>
 
-          {wa ? <div className="wa-span"><WhatsAppIntake /></div> : <>
+          {paste && user ? <div className="wa-span"><KajuIntake actor={{ id: user.id, name: user.name ?? "Team member" }} /></div> : wa ? <div className="wa-span"><WhatsAppIntake /></div> : <>
           <section className="ib-list" aria-label="Reports">
             <div className="wk-tools">
               <button type="button" className="chip" aria-pressed={helpOnly} onClick={() => setHelpOnly((v) => !v)}>Injured or unwell only</button>

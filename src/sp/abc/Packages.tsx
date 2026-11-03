@@ -12,6 +12,7 @@ import { NotEnabled, PACKAGE_LABEL, createPackage, myContext, offices, packages,
 import { NgoGate, useOrgOpen } from "../ngo/Gate";
 import { KajuEmptyState } from "@/kaju/Presence";
 import { Reading } from "../ui/Reading";
+import { MonthlySubmission } from "./MonthlySubmission";
 import "../ngo/ngo.css";
 import "./abc.css";
 
@@ -53,6 +54,7 @@ export function Packages() {
           <div><h1>Report packages</h1></div>
           <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : list === null && !err ? <Reading>Reading your packages</Reading> : <>Approved records, sent to the office that funds the work</>}</p>
         </header>
+        {ctx && <MonthlySubmission canPrepare={canPrepare} />}
         {off ? <div className="abc-empty"><b>Report packages are not switched on here yet.</b></div> : (
           <>
             {canPrepare && offs.length > 0 && (

@@ -134,3 +134,50 @@
 .abc-sanction { border: 1px solid var(--s3-line, #e2e7ef); border-radius: 10px; padding: 14px 16px; background: #fbfcfe; }
 .abc-sanction.is-done { background: #eef8f1; border-color: #bfe3cb; }
 .abc-sanction-amt { margin: 4px 0 6px; font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: #0b1e3d; font-variant-numeric: tabular-nums; }
+
+/* Kaju package check: one quiet block above the claims. */
+.kpc { margin: 14px 0 18px; padding: 14px 0; border-top: 1px solid rgba(11, 30, 61, 0.09); border-bottom: 1px solid rgba(11, 30, 61, 0.09); display: grid; gap: 8px; }
+.kpc h3 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 15px; font-weight: 500; color: #0b1e3d; }
+.kpc h3 svg { color: #2457ce; }
+.kpc p { margin: 0; font-size: 14px; line-height: 1.55; color: #3d4556; }
+.kpc b { color: #0b1e3d; font-weight: 500; }
+.kpc ul { margin: 0; padding-left: 18px; font-size: 13px; color: #5b6475; }
+.kpc .kpc-note { font-size: 12.5px; color: #6f7380; }
+.abc-kaju { color: #2457ce; }
+
+/* Monthly submission (step 5), prepared by Kaju. */
+.ms { display: grid; gap: 10px; padding: 18px 0; border-top: 1px solid rgba(11, 30, 61, 0.09); }
+.ms-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ms-h { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 15px; font-weight: 500; color: #0b1e3d; }
+.ms-h svg { color: #2457ce; }
+.ms-p { margin: 0; font-size: 14px; line-height: 1.55; color: #3d4556; }
+.ms-p b, .ms-bill b { color: #0b1e3d; font-weight: 500; }
+.ms-switch { display: inline-flex; border: 1px solid rgba(11, 30, 61, 0.12); border-radius: 8px; overflow: hidden; }
+.ms-switch button { min-height: 32px; padding: 0 12px; border: 0; background: #fff; font: inherit; font-size: 13px; color: #5b6475; cursor: pointer; }
+.ms-switch button[aria-pressed="true"] { background: rgba(36, 87, 206, 0.08); color: #2457ce; }
+.ms-list { list-style: none; margin: 0; padding: 0; }
+.ms-list a { display: grid; grid-template-columns: minmax(0, 1fr) auto 16px; gap: 10px; align-items: center; min-height: 44px; padding: 6px 4px; border-top: 1px solid rgba(11, 30, 61, 0.06); color: #2b3445; text-decoration: none; font-size: 14px; }
+.ms-list a:hover { background: #f4f6fa; }
+.ms-list a:focus-visible { outline: 2px solid #2457ce; outline-offset: 0; }
+.ms-bill { display: grid; gap: 2px; font-size: 14px; color: #3d4556; }
+.ms-bill p { margin: 0; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.ms-bill svg { color: #2457ce; transform: translateY(2px); }
+.ms-bill small { color: #6f7380; font-size: 12.5px; }
+.ms-err { margin: 0; color: #b4361f; font-size: 13px; }
+.abc-next { margin: 4px 0 14px; padding: 10px 12px; border-left: 3px solid #2457ce; background: rgba(36, 87, 206, 0.05); font-size: 14px; line-height: 1.5; color: #0b1e3d; border-radius: 0 8px 8px 0; }
+.abc-next.is-done { border-left-color: #1f7a4d; background: rgba(31, 122, 77, 0.06); }
+.abc-perf { width: 100%; margin: 6px 0 16px; border-collapse: collapse; font-size: 13.5px; }
+.abc-perf caption { text-align: left; font-size: 12.5px; color: #6f7380; padding-bottom: 6px; }
+.abc-perf th, .abc-perf td { text-align: left; padding: 8px 6px; border-top: 1px solid rgba(11, 30, 61, 0.07); font-weight: 400; }
+.abc-perf thead th { font-size: 12px; color: #6f7380; }
+.abc-perf tbody th { color: #0b1e3d; font-weight: 500; }
+.ms-office { display: grid; gap: 4px; max-width: 360px; font-size: 13px; color: #5b6475; }
+.ms-bill ul { margin: 2px 0; padding-left: 18px; font-size: 13.5px; }
+.abc-glance { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 4px 0 16px; border-top: 1px solid rgba(11, 30, 61, .09); border-bottom: 1px solid rgba(11, 30, 61, .09); }
+.abc-glance > div { padding: 12px 14px; display: grid; gap: 4px; }
+.abc-glance > div + div { border-left: 1px solid rgba(11, 30, 61, .07); }
+.abc-glance dt { font-size: 12.5px; color: #6f7380; }
+.abc-glance dd { margin: 0; font-size: 24px; font-weight: 500; letter-spacing: -0.02em; color: #0b1e3d; }
+.abc-glance small { font-size: 12.5px; font-weight: 400; color: #6f7380; letter-spacing: 0; }
+.abc-glance small.is-late { color: #b4361f; }
+@media (max-width: 760px) { .abc-glance { grid-template-columns: 1fr 1fr; } .abc-glance > div:nth-child(3) { border-left: 0; } .abc-glance > div:nth-child(n+3) { border-top: 1px solid rgba(11, 30, 61, .07); } }

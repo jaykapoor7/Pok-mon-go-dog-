@@ -92,3 +92,28 @@ async function download(format: string, source: string, title: string): Promise<
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   return { ok: true, at: new Date().toISOString(), what: `${name} downloaded` };
 }
+
+/* ── confirming prepared work reliably ──────────────────────────────
+   A confirm whose verification is still pending is retried with the SAME
+   request ID (the database replays it, never duplicates). A batch runs one
+   at a time, each its own audited transaction, and stops at the first
+   rate limit or sign-in problem instead of failing every remaining item. */
+const PENDING = /pending|status is unknown|may have been recorded/i;
+export const STOP_MESSAGE = /temporarily limited|sign in again/i;
+const STOP = STOP_MESSAGE;
+export async function confirmVerified(p: Proposal, actor: { id: string; name: string }, wait = (ms: number) => new Promise((r) => setTimeout(r, ms))): Promise<Saved> {
+  let r = await executeProposal(p, actor);
+  for (let i = 0; i < 2 && !r.ok && PENDING.test(r.error ?? ""); i++) { await wait(1200 * (i + 1)); r = await executeProposal(p, actor); }
+  if (r.ok && r.verified && typeof window !== "undefined") window.dispatchEvent(new Event("kaju:verified"));
+  return r;
+}
+export async function confirmMany(ps: Proposal[], actor: { id: string; name: string }, onEach: (p: Proposal, r: Saved) => void, run = confirmVerified): Promise<{ done: number; stopped: string | null }> {
+  let done = 0;
+  for (const p of ps) {
+    const r = await run(p, actor);
+    onEach(p, r);
+    if (r.ok) done++;
+    else if (STOP.test(r.error ?? "")) return { done, stopped: r.error ?? "Stopped" };
+  }
+  return { done, stopped: null };
+}

@@ -2,7 +2,12 @@
  * these prove control flow, not provider availability or deployed tenant RLS. */
 import assert from 'node:assert/strict';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { answer, modelConfigured, withTools } from '../src/sp3/ai/engine';
+import { answer, privateModelApproved, withTools } from '../src/sp3/ai/engine';
+import { setInferenceLedger } from '../src/lib/ai/inference';
+/* Model paths are exercised against mocked fetch only, with the gate switched on explicitly. */
+const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50'} as const;
+const enable=()=>{Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0})})};
+const disable=()=>{for(const k of Object.keys(ON))delete process.env[k];setInferenceLedger(null)};
 import { runTool, type ToolCtx } from '../src/sp3/ai/tools';
 
 async function main() {
@@ -46,6 +51,7 @@ assert.ok(followup.proposals.some(p => p.kind === 'open_case' && p.city === 'Del
 const originalFetch = globalThis.fetch;
 const originalKey = process.env.ANTHROPIC_API_KEY;
 process.env.ANTHROPIC_API_KEY = 'isolated-test-key';
+enable();
 const oldApproval=process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;
 process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='direct:claude-opus-5-5';
 let responses = 0;
@@ -57,15 +63,17 @@ globalThis.fetch = async () => {
     usage: { input_tokens: 1, output_tokens: 1 } }), { headers: { 'content-type': 'application/json' } });
 };
 try {
-  const r = await answer([{ role: 'user', text: 'Investigate' }], ctx, {});
+  const signed: ToolCtx = { ...ctx, userId: 'user' };
+  const r = await answer([{ role: 'user', text: 'Investigate' }], signed, {});
   assert.equal(responses, 6); assert.equal(r.tools.length, 6); assert.match(r.notice ?? '', /incomplete/i); assert.doesNotMatch(r.text, /^Done/); ok('step exhaustion reports incomplete and preserves tool evidence');
   responses = 0; fanout = 13;
-  const capped = await answer([{ role: 'user', text: 'Investigate' }], ctx, {});
+  const capped = await answer([{ role: 'user', text: 'Investigate' }], signed, {});
   assert.equal(responses, 1); assert.equal(capped.tools.length, 0); assert.match(capped.notice ?? '', /incomplete/i); ok('oversized tool fan-out is refused before execution');
 } finally {
   if(oldApproval===undefined)delete process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;else process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE=oldApproval;
   globalThis.fetch = originalFetch;
   if (originalKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = originalKey;
+  disable();
 }
 // Reproduce Vercel Functions: identity arrives in request context even when
 // build-time VERCEL and VERCEL_OIDC_TOKEN variables are absent.
@@ -80,17 +88,32 @@ try{
  for(const name of names)delete process.env[name];
  globalContext[symbol]={get:()=>({headers:{'x-vercel-oidc-token':jwt()}})};
  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='gateway:google/gemini-2.5-flash';
- assert.equal(await modelConfigured(),true);ok('runtime request-context OIDC configures the model without broad system environment exposure');
+ let oidcCalls=0;const realFetch=globalThis.fetch;globalThis.fetch=async()=>{oidcCalls++;throw Error('no provider call while off')};
+ assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org'}),false);
+ assert.equal((await answer([{role:'user',text:'Hello'}],ctx,{})).engine,'tools');assert.equal(oidcCalls,0);ok('with inference off, a present OIDC identity is never used and no provider is called');
+ globalThis.fetch=realFetch;enable();
+ assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org'}),false);ok('OIDC needs its own explicit opt-in even when inference is on');
+ process.env.STRAYPAW_AI_ALLOW_OIDC='true';
+ assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org'}),true);ok('runtime request-context OIDC configures the model only after explicit enablement');
  globalThis.fetch=async(input,init)=>{
   seen.push(new Headers(input instanceof Request?input.headers:init?.headers).get('authorization')??'');
   return new Response(JSON.stringify({id:'isolated',type:'message',role:'assistant',model:'isolated',stop_reason:'end_turn',content:[{type:'text',text:'Hello. I can help with the available records.'}],usage:{input_tokens:1,output_tokens:1}}),{headers:{'content-type':'application/json'}});
  };
- assert.equal((await answer([{role:'user',text:'Hello'}],ctx,{})).engine,'model');tokenVersion++;
- assert.equal((await answer([{role:'user',text:'Hello again'}],ctx,{})).engine,'model');
+ assert.equal((await answer([{role:'user',text:'Hello'}],{...ctx,userId:'user'},{})).engine,'model');tokenVersion++;
+ assert.equal((await answer([{role:'user',text:'Hello again'}],{...ctx,userId:'user'},{})).engine,'model');
  assert.ok(seen.every(value=>value.startsWith('Bearer ')));assert.notEqual(seen[0],seen[1]);ok('Gateway uses the current scoped token for each run rather than caching an old identity');
 }finally{
  globalThis.fetch=originalFetch;if(oldContext===undefined)delete globalContext[symbol];else globalContext[symbol]=oldContext;
  for(const name of names){if(saved[name]===undefined)delete process.env[name];else process.env[name]=saved[name];}
+ delete process.env.STRAYPAW_AI_ALLOW_OIDC;disable();
+}
+{
+ const nav=await withTools('open intake',{...ctx,actorRole:'member'});assert.equal(nav.navigate?.href,'/ngo/inbox');ok('a plain navigation command opens the screen without a model');
+ const conn={caller:{userId:'u',email:null,ngoId:'isolated-test-org',role:'coordinator',db:ctx.db},caps:{google:['calendar.create']}} as never;
+ const visit=await withTools('schedule a field visit for Ward 14 tomorrow at 10am',{...ctx,conn});const ev=visit.proposals.find(p=>p.kind==='calendar_event') as {start:string;title:string}|undefined;
+ assert.ok(ev&&ev.title.startsWith('Field visit')&&ev.start.endsWith(':30:00.000Z'));ok('a field visit is prepared for the connected calendar without a model, in IST, pending confirmation');
+ assert.match((await withTools('find emails about ward 14',{...ctx,conn})).text,/Find correspondence/);ok('correspondence search is refused plainly when it was not allowed');
+ const lost=await withTools('zzqx plorb',{...ctx,db:db({data:[],error:null})});assert.ok((lost as {suggestions?:string[]}).suggestions?.includes('What should I do first?'));ok('an unmatched request offers runnable next steps instead of a dead end');
 }
 console.log(`kaju reliability: ${checks} checks passed`);
 }

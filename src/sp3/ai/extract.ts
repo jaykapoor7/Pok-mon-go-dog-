@@ -32,7 +32,7 @@ export function extractFieldMessage(raw: string, today = new Date()): Extracted 
   const text = raw.replace(/\s+/g, " ").trim();
   const t = text.toLowerCase();
   const category: Extracted["category"] =
-    /\b(abc\b|steril|spay|neuter|castrat|ear ?-?notch|surgery)/.test(t) ? "sterilisation"
+    /\b(abc\b|steril|spay|neuter|castrat|surgery)/.test(t) || (/ear ?-?notch/.test(t) && !INJURY.test(t)) ? "sterilisation"
       : /\b(arv\b|vaccin|rabies shot|anti-?rabies|booster)/.test(t) ? "vaccination"
         : INJURY.test(t) ? "injury"
           : /\b(rescu|stuck|trapped|drain|pit\b|abandon|pupp|pups\b)/.test(t) ? "rescue" : "other";

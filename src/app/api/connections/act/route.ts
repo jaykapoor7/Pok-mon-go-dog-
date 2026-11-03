@@ -45,6 +45,8 @@ export async function POST(req: Request) {
   if (!PROVIDERS[p].capabilities.includes(cap)) return NextResponse.json({ error: "Not supported by this provider" }, { status: 400 });
   const t = await accessToken(c, p);
   if ("error" in t) return NextResponse.json({ error: t.error }, { status: 409 });
+  /* What this person granted, not what the provider could offer. */
+  if (!t.capabilities.includes(cap)) return NextResponse.json({ error: `Your ${PROVIDERS[p].name} connection was not given permission for this. Reconnect and allow it.` }, { status: 403 });
   const A = ADAPTERS[p];
   try {
     let result: { id: string; url: string | null };
@@ -77,11 +79,20 @@ export async function POST(req: Request) {
       const format = FORMATS.includes(x.format as FileKind) ? (x.format as FileKind) : "pdf";
       const source = REPORT_SOURCES.includes(x.source as ReportSource) ? (x.source as ReportSource) : "open_cases";
       const file = await makeFile(format, await buildReport(source, c.db, String(x.title ?? "")));
-      result = await fn(A, "saveFile")(t.token, file.filename, file.mime, file.bytes);
+      /* A Word report saved to Google becomes an editable Google Doc when that was granted. */
+      const asDoc = p === "google" && format === "docx" && t.capabilities.includes("docs.create");
+      result = await fn(A, "saveFile")(t.token, file.filename, file.mime, file.bytes, asDoc ? "application/vnd.google-apps.document" : undefined);
+    }
+    /* Read the result back from the provider before reporting success. */
+    const kind = b.action === "calendar_event" ? "event" : b.action === "save_report" ? "file" : b.action === "email_draft" ? "draft" : null;
+    const verified = kind && A.verify && result.id ? await A.verify(t.token, kind, result.id) : null;
+    if (verified === false) {
+      await audit({ connection_id: t.connectionId, user_id: c.userId, ngo_id: c.ngoId, provider: p, action: `${b.action}_unverified`, detail: { id: result.id } });
+      return NextResponse.json({ error: `${PROVIDERS[p].name} accepted the request but the result could not be found. Check it there before trying again.` }, { status: 502 });
     }
     await touch(t.connectionId);
-    await audit({ connection_id: t.connectionId, user_id: c.userId, ngo_id: c.ngoId, provider: p, action: b.action, detail: { id: result.id } });
-    return NextResponse.json({ ok: true, ...result });
+    await audit({ connection_id: t.connectionId, user_id: c.userId, ngo_id: c.ngoId, provider: p, action: b.action, detail: { id: result.id, verified } });
+    return NextResponse.json({ ok: true, ...result, verified });
   } catch (e) {
     if (e instanceof ProviderAuthError) { await markStatus(t.connectionId, "expired", "Access no longer accepted"); return NextResponse.json({ error: `Reconnect ${PROVIDERS[p].name} in Settings → Connections.` }, { status: 409 }); }
     await audit({ connection_id: t.connectionId, user_id: c.userId, ngo_id: c.ngoId, provider: p, action: `${b.action}_failed`, detail: { error: (e as Error).message.slice(0, 200) } });

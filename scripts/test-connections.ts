@@ -89,6 +89,43 @@ assert.equal((await runConnectionTool("send_sms", { to: ["9876543210"], values: 
 assert.ok(connectionToolDefs({ caller, caps: { slack: ["chat.post"] } }, true).some((t) => t.name === "post_message")); ok("Slack posting is offered only with a Slack connection");
 assert.equal((await runConnectionTool("post_message", { channel: "field", text: "hi" }, { caller, caps: {} }, true)).ok, false); ok("posting without Slack is refused");
 
+// Google Workspace: granted scopes decide capabilities; restricted mail reading is opt-in
+{
+const { grantedCapabilities, consentScopes, PROVIDERS } = await import("../src/lib/connections/providers");
+const ro = "https://www.googleapis.com/auth/drive.readonly", file = "https://www.googleapis.com/auth/drive.file", mail = "https://www.googleapis.com/auth/gmail.readonly";
+assert.deepEqual(grantedCapabilities("google", [ro]).sort(), ["files.read", "files.search", "sheets.read"]); ok("a person who grants only Drive read gets only read capabilities");
+assert.ok(!grantedCapabilities("google", PROVIDERS.google.scopes).includes("mail.search")); ok("finding correspondence needs its own grant");
+assert.ok(grantedCapabilities("google", [file]).includes("docs.create")); ok("creating Google Docs follows the per-file Drive grant");
+assert.ok(!consentScopes("google").includes(mail) && consentScopes("google", ["mail.search"]).includes(mail)); ok("the restricted Gmail read scope is requested only on opt-in");
+assert.deepEqual(consentScopes("slack", ["mail.search"]), PROVIDERS.slack.scopes); ok("optional capabilities never widen another provider's consent");
+
+const { reconcileRegister, tagColumn } = await import("../src/lib/connections/reconcile");
+const sheet = { name: "Ward 14 ABC", header: ["Date", "Ear tag", "Ward"], rows: [["1/10", "SP-CBE-7K2Q", "14"], ["2/10", "sp-cbe-9x3m", "14"], ["2/10", "SP-CBE-9X3M", "14"], ["3/10", "SP-CBE-0000", "14"]], total: 4 };
+const reg = [{ id: "a", tags: ["SP-CBE-7K2Q"], label: "Bholu" }, { id: "b", tags: ["SP-CBE-9X3M"], label: "Kali" }, { id: "c", tags: ["SP-CBE-5T5T"], label: "Moti" }];
+assert.equal(tagColumn(sheet), 1);
+const rc = reconcileRegister(sheet, reg);
+assert.equal(rc.matched, 2); assert.deepEqual(rc.notInRegister, ["SP-CBE-0000"]); assert.deepEqual(rc.repeatedInSheet, ["SP-CBE-9X3M"]); assert.deepEqual(rc.notInSheet.map((x) => x.id), ["c"]);
+ok("a sheet register reconciles against StrayPaw by tag, case-insensitively");
+assert.deepEqual(reconcileRegister({ ...sheet, total: 900 }, reg).notInSheet, []); ok("a partly read sheet never claims animals are missing from it");
+assert.equal(reconcileRegister({ name: "x", header: ["Notes"], rows: [["fed"], ["fed"], ["fed"]], total: 3 }, reg).tagColumn, null); ok("no tag column means no matching, said plainly");
+
+const { ADAPTERS } = await import("../src/lib/connections/adapters");
+const real = globalThis.fetch;
+const calls: string[] = [];
+globalThis.fetch = (async (u: string) => {
+  calls.push(String(u));
+  const url = String(u);
+  const body = url.includes("/messages?") ? { messages: [{ id: "m1", threadId: "t1" }] }
+    : url.includes("/messages/m1") ? { id: "m1", threadId: "t1", snippet: "Query on ward 14 claims", payload: { headers: [{ name: "From", value: "Ward Office <ward@example.gov.in>" }, { name: "Subject", value: "ABC package October" }, { name: "Date", value: "Mon, 2 Nov 2026" }] } }
+    : url.includes("/files/gone") ? { id: "gone", trashed: true } : { id: "x" };
+  return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
+}) as typeof fetch;
+const hits = await ADAPTERS.google.searchMail!("tok", "ward 14");
+assert.equal(hits[0].subject, "ABC package October"); assert.ok(calls.every((c) => !c.includes("format=full"))); ok("Gmail search reads metadata and snippets, never full bodies");
+assert.equal(await ADAPTERS.google.verify!("tok", "file", "ok1"), true); assert.equal(await ADAPTERS.google.verify!("tok", "file", "gone"), false); ok("a provider result is read back; a trashed file does not count as saved");
+globalThis.fetch = real;
+}
+
 console.log(`\nconnections: ${n} checks passed`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

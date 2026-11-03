@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {answer,privateModelApproved} from '../src/sp3/ai/engine';
+import {setInferenceLedger} from '../src/lib/ai/inference';
+const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50'};
 import {isAiReply,safeAiHref,auditReference} from '../src/sp3/ai/validation';
 import {buildReport} from '../src/lib/files/reports';
 import {readSnapshot} from '../src/sp3/ai/snapshots';
@@ -23,11 +25,12 @@ async function main(){
  const saved={key:process.env.ANTHROPIC_API_KEY,approval:process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE,model:process.env.STRAYPAW_AI_MODEL};const fetcher=globalThis.fetch;
  const context:ToolCtx={db,orgId:'private-org',userId:'user',userName:'Private name'};let requests=0;
  try{
+  Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0})});
   process.env.ANTHROPIC_API_KEY='isolated-test-key';delete process.env.STRAYPAW_AI_MODEL;delete process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;
   globalThis.fetch=async()=>{requests++;throw Error('should not leave StrayPaw')};
   const reply=await answer([{role:'user',text:'Hello'}],context,{});assert.equal(reply.engine,'tools');assert.equal(requests,0);assert.match(reply.notice??'',/inside StrayPaw/);ok('private workspace text never reaches an unapproved model route');
-  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='gateway:google/gemini-2.5-flash';assert.equal(await privateModelApproved(),false);ok('approval for another transport/model cannot enable this route');
-  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='direct:claude-opus-5-5';assert.equal(await privateModelApproved(),true);
+  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='gateway:google/gemini-2.5-flash';assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'private-org'}),false);ok('approval for another transport/model cannot enable this route');
+  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='direct:claude-opus-5-5';assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'private-org'}),true);
   const cancelled=new AbortController();cancelled.abort();await assert.rejects(answer([{role:'user',text:'Hello'}],context,{signal:cancelled.signal}));assert.equal(requests,0);ok('cancelled model requests stop before provider access');
   globalThis.fetch=async()=>{requests++;return new Response('unavailable',{status:503})};
   const error=await answer([{role:'user',text:'Hello'}],context,{});assert.equal(error.engine,'tools');assert.equal(requests,1);ok('provider errors fall back honestly, without automatic retries or writes');
@@ -35,8 +38,8 @@ async function main(){
   assert.equal((await answer([{role:'user',text:'Hello'}],context,{})).engine,'tools');ok('malformed provider envelopes cannot crash the caller');
   delete process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;
   globalThis.fetch=async(_input,init)=>{assert.doesNotMatch(String(init?.body),/PRIVATE_CONTEXT/);return Response.json({content:[{type:'text',text:'Hello!'}],stop_reason:'end_turn'})};
-  const publicReply=await answer([{role:'user',text:'Hello'}],{...context,userId:undefined,orgId:null,actorRole:'PRIVATE_CONTEXT',pagePath:'/PRIVATE_CONTEXT'},{path:'/PRIVATE_CONTEXT',workspace:'PRIVATE_CONTEXT'});assert.equal(publicReply.engine,'model');ok('the public greeting strips browser context and role before provider access');
- }finally{globalThis.fetch=fetcher;for(const [key,value] of Object.entries({ANTHROPIC_API_KEY:saved.key,STRAYPAW_AI_APPROVED_DATA_ROUTE:saved.approval,STRAYPAW_AI_MODEL:saved.model})){if(value===undefined)delete process.env[key];else process.env[key]=value}}
+  requests=0;globalThis.fetch=async()=>{requests++;throw Error('guests never reach a model')};const publicReply=await answer([{role:'user',text:'Hello'}],{...context,userId:undefined,orgId:null,actorRole:'PRIVATE_CONTEXT',pagePath:'/PRIVATE_CONTEXT'},{path:'/PRIVATE_CONTEXT',workspace:'PRIVATE_CONTEXT'});assert.equal(publicReply.engine,'tools');assert.equal(requests,0);ok('signed-out greetings never reach a paid model');ok('the public greeting strips browser context and role before provider access');
+ }finally{globalThis.fetch=fetcher;for(const k of Object.keys(ON))delete process.env[k];setInferenceLedger(null);for(const [key,value] of Object.entries({ANTHROPIC_API_KEY:saved.key,STRAYPAW_AI_APPROVED_DATA_ROUTE:saved.approval,STRAYPAW_AI_MODEL:saved.model})){if(value===undefined)delete process.env[key];else process.env[key]=value}}
  const failed={from:()=>{const q=new Proxy({},{get:(_,k)=>k==='then'?(resolve:(r:unknown)=>unknown)=>Promise.resolve({count:null,data:[],error:null}).then(resolve):()=>q});return q;}} as unknown as SupabaseClient;
  assert.equal((await runTool('work_summary',{}, {...context,db:failed})).ok,false);ok('a successful transport with a missing count is unknown, never zero');
  console.log(`${checks} Kaju polish contract checks passed`);

@@ -28,6 +28,8 @@ export function Verification() {
   const [err, setErr] = useState<string | null>(null);
   const [off, setOff] = useState(false);
   const [stage, setStage] = useState<Stage | "all">("all");
+  /* Links from Kaju's monthly plan open the exact blocked stage (after hydration). */
+  useEffect(() => { const v = new URLSearchParams(window.location.search).get("stage"); if (v && v in STAGE_LABEL) setStage(v as Stage); }, []);
 
   const open = useOrgOpen();
   useEffect(() => {

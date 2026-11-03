@@ -1,7 +1,7 @@
 -- Private operational zones. Completion here is not coverage, clinical sign-off or municipal acceptance.
 create table public.programme_work_zones (
  id uuid primary key, ngo_id uuid not null, campaign_id uuid not null references public.campaigns(id),
- name text not null check(length(name) between 3 and 120), boundary public.geometry(MultiPolygon,4326) not null,
+ name text not null check(length(name) between 3 and 120), boundary geometry(MultiPolygon,4326) not null,
  planned integer check(planned between 0 and 1000000),
  status text not null default 'assigned' check(status in ('assigned','reported_complete','supervisor_reviewed')),
  note text, updated_at timestamptz not null default now()
@@ -16,11 +16,11 @@ grant select on public.programme_work_zones,public.programme_zone_staff,public.p
 create policy zone_read on public.programme_work_zones for select to authenticated using(ngo_id=public.my_ngo());
 create policy zone_staff_read on public.programme_zone_staff for select to authenticated using(exists(select 1 from public.programme_work_zones z where z.id=zone_id and z.ngo_id=public.my_ngo()));
 create policy zone_receipt_read on public.programme_zone_receipts for select to authenticated using(actor_id=auth.uid() and ngo_id=public.my_ngo());
-create function public.org_work_zones() returns jsonb language sql stable security invoker set search_path=pg_catalog,public as $$
- select coalesce(jsonb_agg(jsonb_build_object('id',z.id,'campaign_id',z.campaign_id,'name',z.name,'planned',z.planned,'status',z.status,'note',z.note,'updated_at',z.updated_at,'geometry',public.st_asgeojson(z.boundary)::jsonb,'staff',(select coalesce(jsonb_agg(s.user_id),'[]') from public.programme_zone_staff s where s.zone_id=z.id)) order by z.updated_at desc),'[]') from (select * from public.programme_work_zones where ngo_id=public.my_ngo() order by updated_at desc limit 200) z
+create function public.org_work_zones() returns jsonb language sql stable security invoker set search_path=pg_catalog,public,extensions as $$
+ select coalesce(jsonb_agg(jsonb_build_object('id',z.id,'campaign_id',z.campaign_id,'name',z.name,'planned',z.planned,'status',z.status,'note',z.note,'updated_at',z.updated_at,'geometry',st_asgeojson(z.boundary)::jsonb,'staff',(select coalesce(jsonb_agg(s.user_id),'[]') from public.programme_zone_staff s where s.zone_id=z.id)) order by z.updated_at desc),'[]') from (select * from public.programme_work_zones where ngo_id=public.my_ngo() order by updated_at desc limit 200) z
 $$;
-create function public.zone_action(p_request uuid,p_zone uuid,p_action text,p_payload jsonb) returns jsonb language plpgsql security definer set search_path=pg_catalog,public as $$
-declare uid uuid:=auth.uid();org uuid:=public.my_ngo();leader boolean;old public.programme_zone_receipts;z public.programme_work_zones;h bytea;g public.geometry;aid bigint;staff uuid;
+create function public.zone_action(p_request uuid,p_zone uuid,p_action text,p_payload jsonb) returns jsonb language plpgsql security definer set search_path=pg_catalog,public,extensions as $$
+declare uid uuid:=auth.uid();org uuid:=public.my_ngo();leader boolean;old public.programme_zone_receipts;z public.programme_work_zones;h bytea;g geometry;aid bigint;staff uuid;
 begin
  if uid is null or org is null then raise exception 'Organisation access required';end if;
  if p_request is null or p_zone is null or p_action not in ('create','assign','report_complete','review_completion') or jsonb_typeof(p_payload) is distinct from 'object' or octet_length(p_payload::text)>100000 then raise exception 'Invalid zone action';end if;
@@ -36,8 +36,8 @@ begin
   if not leader then raise exception 'Coordinator access required';end if;
   if not exists(select 1 from public.campaigns where id=(p_payload->>'campaign_id')::uuid and ngo_id=org and archived_at is null) then raise exception 'Choose an active programme in your organisation';end if;
   if length(btrim(coalesce(p_payload->>'name','')))<3 then raise exception 'Name the working zone';end if;
-  g:=public.st_multi(public.st_setsrid(public.st_geomfromgeojson(p_payload->>'geometry'),4326));
-  if public.geometrytype(g)<>'MULTIPOLYGON' or public.st_isempty(g) or not public.st_isvalid(g) or public.st_xmin(g::public.box3d)<-180 or public.st_xmax(g::public.box3d)>180 or public.st_ymin(g::public.box3d)<-90 or public.st_ymax(g::public.box3d)>90 then raise exception 'Supply a valid GeoJSON Polygon or MultiPolygon in longitude/latitude';end if;
+  g:=st_multi(st_setsrid(st_geomfromgeojson(p_payload->>'geometry'),4326));
+  if geometrytype(g)<>'MULTIPOLYGON' or st_isempty(g) or not st_isvalid(g) or st_xmin(g::box3d)<-180 or st_xmax(g::box3d)>180 or st_ymin(g::box3d)<-90 or st_ymax(g::box3d)>90 then raise exception 'Supply a valid GeoJSON Polygon or MultiPolygon in longitude/latitude';end if;
   insert into public.programme_work_zones(id,ngo_id,campaign_id,name,boundary,planned) values(p_zone,org,(p_payload->>'campaign_id')::uuid,btrim(p_payload->>'name'),g,nullif(p_payload->>'planned','')::integer);
  else
   select * into z from public.programme_work_zones where id=p_zone and ngo_id=org for update;

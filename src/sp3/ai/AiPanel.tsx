@@ -339,6 +339,7 @@ function Answer({ m }: { m: Msg }) {
       {r.citations.length > 0 && <Sources items={r.citations} />}
       {r.proposals.map((p) => <ProposalCard key={p.id} p={p} />)}
       {r.navigate && safeAiHref(r.navigate.href) && <button type="button" className="s3-btn is-sm is-line ai3-go" onClick={() => router.push(r.navigate!.href)}>Open {r.navigate.label}<ArrowRight size={14} /></button>}
+      {r.suggestions && r.suggestions.length > 0 && <div className="ai3-sugg" role="group" aria-label="Next steps">{r.suggestions.slice(0, 4).map((s) => <button key={s} type="button" disabled={ai.busy || !ai.scope} onClick={() => ai.ask(s)}>{s}</button>)}</div>}
       {r.notice && <p className="ai3-notice"><Info size={12} aria-hidden />{r.notice}</p>}
     </div>
   );

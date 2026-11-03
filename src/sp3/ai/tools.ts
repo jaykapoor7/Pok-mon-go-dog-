@@ -5,6 +5,9 @@ import { verifyAction } from "./verify";
 import { operationsInsights } from "./insights";
 import { searchKnowledge } from "./knowledge";
 import { extractFieldMessage } from "./extract";
+import { planIntake, splitMessages } from "./intake";
+import { checkPackage } from "./packageCheck";
+import { preparedWork } from "./preparedWork";
 import { CARE_KINDS, type Citation, type Proposal, type ToolRun } from "./types";
 import { isResearchArchiveProgramme } from "@/lib/public-programmes";
 import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTools";
@@ -33,6 +36,9 @@ const NEEDS_ORG = { data: { error: "Organisation access required" }, summary: "N
 export const NAV:Record<string,{href:string;label:string}>=Object.fromEntries(DESTINATIONS.filter(n=>n.assistantKey).map(n=>[n.assistantKey!,{href:n.href,label:n.label}]));
 
 export const TOOL_DEFS = [
+  { name: "prepared_work", description: "Find work that needs a person before anyone notices: critical cases with no update for 14 days, reviews promised in care notes but never scheduled, and localities spelled several ways. Returns follow-up proposals the person confirms. Changes nothing.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "prepare_intake", description: "Turn pasted WhatsApp messages or field reports into prepared records: extract the facts, link an animal only on an exact tag, find an open case it may duplicate, and return case or note proposals to confirm. Phone numbers are masked. Saves nothing.", input_schema: { type: "object", properties: { text: { type: "string" } }, required: ["text"], additionalProperties: false } },
+  { name: "check_package", description: "For a report package the person can see (municipal reviewer or operator): compare every animal claim with its evidence, sign-offs, contract rate and arithmetic; list exceptions and draft review notes. Never accepts, queries or rejects.", input_schema: { type: "object", properties: { package_id: { type: "string" } }, required: ["package_id"], additionalProperties: false } },
   {name:'current_record',description:'Read the selected case, animal, programme or review package after checking access. Use for “this record” questions. A page URL does not grant access. Does not change anything.',input_schema:{type:'object',properties:{},additionalProperties:false}},
   { name: "recent_confirmed_actions", description: "Independently verify up to five of this person’s recent confirmed Kaju actions by reading the saved records and audit rows. Use before claiming work was completed. Does not write.", input_schema: {type:"object",properties:{},additionalProperties:false} },
   { name: "operations_insights", description: "Run and store explainable operational checks for overdue follow-ups, missing ABC evidence, veterinary authorisation, municipal clarifications, programme activity and a lead-configured reporting deadline. Returns bounded findings, source links and a report proposal. Does not change cases or send notifications.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -57,6 +63,9 @@ export type ToolName = (typeof TOOL_DEFS)[number]["name"];
 export async function runTool(name: string, input: Record<string, unknown>, ctx: ToolCtx): Promise<ToolOut> {
   if(name==='current_record')return currentRecord(ctx);
   switch (name) {
+    case "prepared_work": return preparedTool(ctx);
+    case "prepare_intake": return intakeTool(String(input.text ?? "").slice(0, 12000), ctx);
+    case "check_package": return packageTool(clean(input.package_id, 64), ctx);
     case "abc_verification_status": return abcVerification(ctx);
     case "abc_package_status": return abcPackages(ctx);
     case "search_knowledge": return searchKnowledge(String(input.query ?? "").slice(0, 300));
@@ -287,4 +296,54 @@ async function currentRecord(ctx:ToolCtx):Promise<ToolOut>{
  const animal=kind==='animals';
  const row=animal?await ctx.db.from("dogs").select("id,name,straypaw_id,city,status,last_seen").eq("id",id).eq("ngo_id",ctx.orgId).maybeSingle():await ctx.db.from("campaigns").select("id,name,city,starts_on,ends_on").eq("id",id).eq("ngo_id",ctx.orgId).maybeSingle();if(row.error)return READ_FAILED;if(!row.data)return unavailable;
  return {data:{record:row.data},summary:`Read selected ${animal?'animal':'programme'}`,citations:[{id,label:animal?animalLabel(row.data):row.data.name,href:path,kind:animal?'animal':'programme'}]};
+}
+
+
+/* ── Kaju prepared work, intake and package checks as tools ─────────── */
+async function preparedTool(ctx: ToolCtx): Promise<ToolOut> {
+  if (!ctx.orgId || !ctx.userId) return NEEDS_ORG;
+  const w = await preparedWork(ctx.db, ctx.orgId, ctx.userId);
+  const open = w.proposals.filter((p) => !w.done.includes(p.id));
+  return {
+    data: { stalled: w.stalled, reviews: { missed: w.reviews.missed, upcoming: w.reviews.upcoming }, localities: w.localities.slice(0, 4), unavailable: w.unavailable, partial: w.partial, rules: w.rules },
+    summary: `${w.stalled.length} quiet critical · ${w.reviews.missed} missed reviews · ${w.localities.length} split localities`,
+    citations: w.stalled.map((x) => ({ id: x.caseId, label: x.label, href: `/ngo/cases/${x.caseId}`, kind: "case" as const })),
+    proposals: open, ok: w.unavailable.length === 0,
+  };
+}
+async function intakeTool(text: string, ctx: ToolCtx): Promise<ToolOut> {
+  if (!ctx.orgId) return NEEDS_ORG;
+  const msgs = splitMessages(text);
+  if (!msgs.length) return { data: { error: "No report found in the text" }, summary: "Nothing to prepare", citations: [], ok: false };
+  const now = new Date();
+  const [{ data: org }, cases] = await Promise.all([
+    ctx.db.from("ngos").select("city").eq("id", ctx.orgId).maybeSingle(),
+    ctx.db.from("org_case_facts").select("id,case_code,title,dog_id,zone,occurred_at").eq("ngo_id", ctx.orgId).in("status_class", ["open", "in_progress"]).limit(800),
+  ]);
+  if (cases.error) return READ_FAILED;
+  const xs = msgs.map((m) => extractFieldMessage(m, now));
+  const tags = [...new Set(xs.map((x) => x.tag).filter(Boolean) as string[])];
+  const dogs = tags.length ? await ctx.db.from("dogs").select("id,name,straypaw_id,code,zone,sex").eq("ngo_id", ctx.orgId).or(tags.map((t) => `straypaw_id.eq.${clean(t)},code.eq.${clean(t)}`).join(",")).limit(20) : { data: [], error: null };
+  if (dogs.error) return READ_FAILED;
+  const animals = (dogs.data ?? []).flatMap((d) => [d.straypaw_id, d.code].filter(Boolean).map((tag) => ({ id: d.id, label: animalLabel(d), tag: tag as string, zone: d.zone, sex: d.sex })));
+  const openCases = (cases.data ?? []).map((c) => ({ id: c.id, label: c.case_code || c.title || "Open case", dogId: c.dog_id, zone: c.zone, occurredAt: c.occurred_at }));
+  const plans = msgs.map((m, i) => planIntake(m, xs[i], { orgId: ctx.orgId as string, defaultCity: (org?.city as string | null) ?? null, animals, openCases, now }));
+  return {
+    data: plans.map((p) => ({ report: p.extracted.summary, missing: p.missing, blockers: p.blockers, duplicate: p.duplicate?.label ?? null, options: p.options.map((o) => ({ label: o.label, recommended: o.recommended })) })),
+    summary: `Prepared ${plans.length} report${plans.length === 1 ? "" : "s"}; ${plans.filter((p) => p.clear).length} clear`,
+    citations: plans.flatMap((p) => p.duplicate ? [{ id: p.duplicate.id, label: p.duplicate.label, href: `/ngo/cases/${p.duplicate.id}`, kind: "case" as const }] : []),
+    proposals: plans.flatMap((p) => p.options.filter((o) => o.recommended).map((o) => o.proposal)),
+  };
+}
+async function packageTool(id: string, ctx: ToolCtx): Promise<ToolOut> {
+  if (!id) return { data: { error: "Which package?" }, summary: "No package given", citations: [], ok: false };
+  const [r, c] = await Promise.all([ctx.db.rpc("operations_reconciliation", { p_package: id }), ctx.db.rpc("abc_package_cases", { p_package: id })]);
+  if (r.error || c.error || !r.data) return { data: { error: "That package could not be read with your access" }, summary: "Package not readable", citations: [], ok: false };
+  const rec = r.data as { items: Parameters<typeof checkPackage>[0]; status: string; contract: { name: string } | null };
+  const chk = checkPackage(rec.items ?? [], (c.data ?? []) as Parameters<typeof checkPackage>[1]);
+  return {
+    data: { status: rec.status, contract: rec.contract?.name ?? null, clean: chk.clean, exceptions: chk.exceptions, decided: chk.decided, by_issue: chk.byIssue, exceptions_detail: chk.checks.filter((x) => !x.clean).slice(0, 15).map((x) => ({ claim: x.key, issues: x.issues, draft_note: x.draft })), note: "Kaju compares records; every decision is the reviewer's own." },
+    summary: `${chk.clean} clean · ${chk.exceptions} with exceptions`,
+    citations: [{ id, label: "Package", href: ctx.actorRole === "municipal_reviewer" ? `/city/review/${id}` : `/ngo/packages/${id}`, kind: "page" }],
+  };
 }
