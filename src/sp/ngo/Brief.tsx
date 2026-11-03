@@ -129,7 +129,7 @@ export function Brief() {
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
           : <p className="br-since">Since yesterday: <b>{fresh.length}</b> new or updated · <b>{d.unavailable.includes("recent changes")?"not read":closedNew.length}</b> closed · <b>{d.unavailable.includes("follow-ups")?"not read":nOverdue}</b> overdue · <b>{d.unavailable.includes("counts")?"not read":nLive}</b> live in the queue</p>}
 
-        {mem.org && <Journey key={mem.org.id} orgId={mem.org.id} role={role} />}
+        {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
         {d && (
           <>
             {d.unavailable.length>0&&<p role="status">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
@@ -139,7 +139,7 @@ export function Brief() {
               <div className="br-chips">{isVet ? <Link href="/ngo/verification">Open verification <ArrowRight size={12} aria-hidden /></Link> : <>{role === "member" ? <Link href="/ngo/field">Open field mode <ArrowRight size={12} aria-hidden /></Link> : <Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link>}<Link href="/ngo/inbox?paste=1"><Sparkles size={12} aria-hidden />Paste WhatsApp reports</Link></>}{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
             </section>
             {reviews && <MonthlySubmission canPrepare compact />}
-            {!isVet && <KajuPrepared key={mem.org?.id ?? "org"} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
+            {!isVet && <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
             <section aria-labelledby="br-out" className="br-sec">
               <h2 id="br-out" className="br-h">Recent activity</h2>
               {out.length ? rows(out, false) : <p className="br-empty">{d.unavailable.includes("recent changes")?"Recent changes could not be read.":"Nothing new in the last day."}</p>}
@@ -147,7 +147,7 @@ export function Brief() {
             </section>
           </>
         )}
-        {mem.org && <KajuActivity key={mem.org.id} orgId={mem.org.id} />}
+        {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
       </div>
 
       <div className="br-dock">
