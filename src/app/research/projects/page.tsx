@@ -9,7 +9,7 @@ export const metadata = { title: "Projects · StrayPaw Research", description: "
 
 export default function ProjectsPage() {
   return (
-    <S4Page close={undefined}>
+    <S4Page close={undefined} className="rs-sub">
       <PageHead eyebrow={<Link href="/research">StrayPaw Research</Link>} title={<TwoTone a="Research" b="projects" />}
         lede="Status is stated plainly. Published means a public, citable output; in progress means work under way with no finding claimed; proposed means no data has been collected." />
       {(["published", "in_progress", "proposed"] as Status[]).map((s) => {

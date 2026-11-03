@@ -279,3 +279,5 @@
 .s6-home .s6-wall .s6-pt-txt small { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-size: 12.5px; color: var(--s4-grey); }
 .s6-home .s6-wall .s4-cs { position: static; grid-column: 2; justify-self: start; margin-top: 2px; background: #eef3fd; color: #1d4fc4; box-shadow: none; }
 @media (max-width: 600px) { .s6-home .s6-wall { grid-template-columns: minmax(0, 1fr); } .s6-home .s6-wall > * { padding: 14px; } }
+.s6-closecard .s6-cta.s4-close { padding: 40px 48px; text-align: left; justify-items: stretch; gap: 28px; }
+@media (max-width: 860px) { .s6-closecard .s6-cta.s4-close { padding: 28px 20px; justify-items: start; gap: 16px; } }

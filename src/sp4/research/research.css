@@ -70,3 +70,22 @@
 .rs-rules svg { margin-top: 2px; color: #2457ce; }
 .rs-rules b { color: #0b1e3d; font-weight: 600; }
 @media (max-width: 960px) { .rs-top-in, .rs-cols { grid-template-columns: 1fr; gap: 28px; } .rs-top { padding-top: 32px; } }
+
+/* Research subpages: a compact head, and datasets as cards with the full spec one tap away. */
+.rs-sub .s4-head { padding-top: 56px; padding-bottom: 8px; }
+.rs-sub .s4-head .s4-h1 { font-size: clamp(34px, 4vw, 52px); }
+.rs-sub .s4-head .s4-lede { font-size: 17px; max-width: 720px; }
+.rs-ds-sec { padding-top: 24px; }
+.rs-ds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; align-items: start; }
+.rs-ds-grid .rs-ds { padding: 22px; border-top: 0; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px #e6e9f0, 0 14px 30px -24px rgba(15, 42, 110, .35); }
+.rs-ds-grid .rs-ds h2 { font-size: 19px; font-weight: 600; }
+.rs-ds-meta { margin: 0; font-size: 14.5px; line-height: 1.5; color: #4b5568; }
+.rs-ds-meta b { font-weight: 600; color: #0b1e3d; }
+.rs-ds-more { border-radius: 12px; background: #f5f7fb; }
+.rs-ds-more summary { cursor: pointer; padding: 10px 14px; font-size: 14px; font-weight: 500; color: #1d4fc4; list-style: none; }
+.rs-ds-more summary::-webkit-details-marker { display: none; }
+.rs-ds-more summary::after { content: " +"; }
+.rs-ds-more[open] summary::after { content: " −"; }
+.rs-ds-more dl { padding: 0 14px 10px; }
+.rs-ds-grid .rs-ds dl > div { grid-template-columns: 130px minmax(0, 1fr); }
+@media (max-width: 760px) { .rs-ds-grid { grid-template-columns: minmax(0, 1fr); } .rs-ds-grid .rs-ds dl > div { grid-template-columns: 1fr; } }

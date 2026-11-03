@@ -9,7 +9,7 @@ export const metadata = { title: "Request data access · StrayPaw Research", des
 
 export default function AccessPage() {
   return (
-    <S4Page close={undefined}>
+    <S4Page close={undefined} className="rs-sub">
       <PageHead eyebrow={<Link href="/research">StrayPaw Research</Link>} title={<TwoTone a="Request" b="data access" />}
         lede="Restricted data is released only as de-identified extracts, with the data-owning organisation's written approval and a data-sharing agreement, and with ethics approval where people are involved. Sending this form grants nothing; it starts a review." />
       <section className="s4-sec"><div className="s4-wrap rs-form-wrap">
