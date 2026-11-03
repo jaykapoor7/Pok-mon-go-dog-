@@ -90,7 +90,7 @@ export function KajuIntake({ actor }: { actor: { id: string; name: string } }) {
           <p className="ki-facts"><b className={`ki-sev s-${x.severity}`}>{SEV[x.severity]}</b> {CAT[x.category]}{x.place ? ` · ${x.place}` : ""}{x.city ? ` · ${x.city}${p.cityFrom === "organisation" ? " (your organisation’s city)" : ""}` : ""}{x.sex ? ` · ${x.sex}` : ""}{x.age ? ` · ${x.age}` : ""}{x.earNotch ? " · ear notched" : ""}</p>
           {p.missing.length > 0 && <p className="ki-miss">Not in the message: {p.missing.join(", ")}</p>}
           {p.blockers.length > 0 && <p className="ki-err">{p.blockers.join(". ")}: no city in the message or on your organisation profile. Add it to the message and prepare again.</p>}
-          {done ? <p className="ki-done" role="status"><Check size={14} aria-hidden /> Saved and verified{done.href ? <> · <Link href={done.href}>open the record</Link></> : null}</p>
+          {done ? <p className="ki-done" role="status"><Check size={14} aria-hidden /> Saved and verified{done.href ? <> · Next: <Link href={done.href}>{x.severity === "critical" || x.severity === "high" ? "assign someone now" : "open the case to assign it"}</Link></> : null}</p>
             : p.options.length > 0 && <fieldset className="ki-opts">
               <legend className="ki-sr">What should this report become?</legend>
               {p.options.map((o) => <label key={o.key} className={`ki-opt${choice[i] === o.key ? " is-on" : ""}`}>
