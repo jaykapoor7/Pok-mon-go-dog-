@@ -22,6 +22,7 @@ import { EvidenceLink } from "./EvidenceLink";
 import "../ngo/ngo.css";
 import "./abc.css";
 import { DeleteRecord } from "../ui/DeleteRecord";
+import { shortCode } from "@/lib/caseCode";
 
 type Data = { head: Awaited<ReturnType<typeof caseHead>>; chk: Checklist; ev: Evidence[]; att: Attestation[]; hist: HistoryRow[]; ctx: AbcContext };
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -82,7 +83,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
     <>
       <header className="ngo-head abc-head">
         <div><h1>{d.head?.title || d.head?.case_code || "ABC procedure"}</h1></div>
-        <p className="ngo-sum">{[d.head?.zone || d.head?.city, d.head ? `opened ${when(d.head.created_at)}` : null].filter(Boolean).join(" · ")}{d.head?.case_code && <span className="abc-code" title={d.head.case_code}>{d.head.case_code.length > 16 ? `${d.head.case_code.slice(0, 13)}…` : d.head.case_code}</span>}</p>
+        <p className="ngo-sum">{[d.head?.zone || d.head?.city, d.head ? `opened ${when(d.head.created_at)}` : null].filter(Boolean).join(" · ")}{d.head?.case_code && <span className="abc-code" title={d.head.case_code}>{shortCode(d.head.case_code)}</span>}</p>
       </header>
       {msg && <p className={msg.ok ? "abc-ok" : "abc-err"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
       {(() => {

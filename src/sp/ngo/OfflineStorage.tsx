@@ -10,5 +10,5 @@ export function OfflineStorage({scope,onUnlock}:{scope:string;onUnlock:()=>void}
  <div className="field"><label htmlFor="fd-pass">Offline passphrase</label><input id="fd-pass" className="input" type="password" autoComplete={exists?'current-password':'new-password'} minLength={10} required value={pass} onChange={e=>setPass(e.target.value)}/></div>
  {!exists&&<><div className="field"><label htmlFor="fd-pass2">Repeat offline passphrase</label><input id="fd-pass2" className="input" type="password" autoComplete="new-password" minLength={10} required value={confirm} onChange={e=>setConfirm(e.target.value)}/></div><p className="fd-hint">Use at least 10 characters. Keep this passphrase safe: StrayPaw cannot recover it. Unsynchronised records remain on this device.</p></>}
  <button className="btn is-ink" disabled={busy||exists===null}>{busy?'Unlocking…':exists?'Unlock offline records':'Enable secure offline work'}</button></form>}
- {error&&<p role="alert" className="fd-err">{error}</p>}<Link className="btn is-s fd-back" href="/ngo/work">Back to the work queue</Link></div>
+ {error&&<p role="alert" className="fd-err">{error}</p>}<Link className="btn is-s fd-back" href="/ngo/work">Work online instead</Link></div>
 }

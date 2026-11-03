@@ -110,7 +110,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
                       <td>{c.vet_name ?? "—"}<small>Reviewed by {c.reviewer_name ?? "—"}</small></td>
                     </tr>
                   ))}</tbody>
-                </table><div className="row"><button className="btn" disabled={recordPage===0} onClick={()=>setRecordPage(v=>v-1)}>Previous records</button><span>{cases.length?recordPage*25+1:0}–{Math.min((recordPage+1)*25,cases.length)} of {cases.length}</span><button className="btn" disabled={(recordPage+1)*25>=cases.length} onClick={()=>setRecordPage(v=>v+1)}>Next records</button></div>
+                </table>{cases.length>25&&<div className="row"><button className="btn" disabled={recordPage===0} onClick={()=>setRecordPage(v=>v-1)}>Previous records</button><span>{cases.length?recordPage*25+1:0}–{Math.min((recordPage+1)*25,cases.length)} of {cases.length}</span><button className="btn" disabled={(recordPage+1)*25>=cases.length} onClick={()=>setRecordPage(v=>v+1)}>Next records</button></div>}
               </section>
               <Reconciliation pkg={p} side={side} onChanged={load} sourceCases={cases}/>
               {side==="reviewer"&&<details><summary>Inspect current animal operation history</summary><label>Animal record<select className="input" aria-label="Inspect animal operations" value={operationCase??""} onChange={e=>setOperationCase(e.target.value||null)}><option value="">Choose one submitted animal</option>{cases.map(c=><option key={c.case_id} value={c.case_id}>{c.title||c.case_code}</option>)}</select></label>{operationCase&&<OperationsPanel key={operationCase} caseId={operationCase} readOnly/>}</details>}

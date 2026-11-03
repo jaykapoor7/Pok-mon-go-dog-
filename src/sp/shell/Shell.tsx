@@ -70,7 +70,7 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
 function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }) {
   const path = usePathname() ?? "/";
   const [ws, setWs] = useState<WorkspaceId>(() => workspaceFor(path, null));
-  useEffect(() => { const w = workspaceFor(path, lastWorkspace()); setWs(w); rememberWorkspace(w); }, [path]);
+  useEffect(() => { const w = workspaceFor(path, lastWorkspace()); setWs(w); if (ORDER.some((x) => path === `/${x}` || path.startsWith(`/${x}/`))) rememberWorkspace(w); }, [path]);
   const aiWorkspace = ws;
   const ai = useAi();
 
@@ -195,8 +195,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
           <div className="sx3-side-foot">
             {def.settings && mem.role === "admin" && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}
-            <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help &amp; docs</span></Link>
-            <p className="sx3-public" aria-label="Public sites"><Link href="/community">Community</Link><Link href="/research">Research</Link><Link href="/learn">Education</Link><Link href="/">Main site</Link></p>
+            <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help</span></Link>
             <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
           </div>
         </aside>
@@ -245,9 +244,9 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
         <nav className="sp-tabs" aria-label={`${def.label} navigation`}>
-          {def.dests.filter((d) => d.href !== def.action?.href).map((d, i, arr) => {
+          {phoneTabs(ws, mem.role, def.dests).filter((d) => d.href !== def.action?.href).map((d, i, arr) => {
             const Icon = ICON[d.icon] ?? MapIcon;
-            const node = <Link key={d.href} href={d.href} aria-current={navOn(d,path) ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>;
+            const node = <Link key={d.href + (d.query ?? "")} href={d.query ? `${d.href}?${d.query}` : d.href} aria-current={navOn(d,path) ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>;
             if (ws !== "ngo" && def.action && i === Math.ceil(arr.length / 2) - 1) return [node, reporting
               ? <Link key="act" href={def.action.href} aria-current="page"><Radio size={21} strokeWidth={1.8} aria-hidden /><span>{def.action.short}</span></Link>
               : <Link key="act" href={def.action.href} className="sp-tabs-act" aria-label={def.action.label}><b>{def.action.href.includes("report") ? <Radio size={21} aria-hidden /> : <Plus size={21} aria-hidden />}</b><span>{def.action.short}</span></Link>];
@@ -300,6 +299,24 @@ function SideNav({ nav, path, search, collapsed, onAssistant, label }: SideNavPr
       })}
     </nav>
   );
+}
+
+/** The phone's thumb bar, by role: each person gets only the four places they use on the move. */
+function phoneTabs(ws: WorkspaceId, role: Role | null, dests: NavItem[]): NavItem[] {
+  if (ws !== "ngo" || !role) return dests;
+  if (role === "veterinarian") return [
+    { href: "/ngo", label: "Today", short: "Today", icon: "home", exact: true },
+    { href: "/ngo/verification", query: "stage=vet", label: "Sign off", short: "Sign off", icon: "shield" },
+    { href: "/ngo/animals", label: "Animals", short: "Animals", icon: "paw" },
+    { href: "/ngo/care", label: "Care records", short: "Care", icon: "file" },
+  ];
+  if (role === "member") return [
+    { href: "/ngo", label: "Today", short: "Today", icon: "home", exact: true },
+    { href: "/ngo/field", label: "Field mode", short: "Field", icon: "phone" },
+    { href: "/ngo/cases/new", label: "New case", short: "New case", icon: "radio" },
+    { href: "/ngo/inbox", label: "Receive reports", short: "Receive", icon: "inbox" },
+  ];
+  return dests;
 }
 
 /** Items this person sees, in order, with a group label where a group starts. */

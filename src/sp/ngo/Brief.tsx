@@ -123,7 +123,7 @@ export function Brief() {
   );
 
   return (
-    <div className="br">
+    <div className={`br${role ? ` is-${role}` : ""}`}>
       <div className="br-in">
         <h1 className="br-hello">{greeting()}, {first}.<span>Here is today, step by step.</span></h1>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
@@ -131,6 +131,22 @@ export function Brief() {
           : <p className="br-since">Since yesterday: <b>{fresh.length}</b> new or updated · <b>{d.unavailable.includes("recent changes")?"not read":closedNew.length}</b> closed · <b>{d.unavailable.includes("follow-ups")?"not read":nOverdue}</b> overdue · <b>{d.unavailable.includes("counts")?"not read":nLive}</b> live in the queue</p>}
 
         {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
+        {/* The few things this person does most, as large buttons: one row per role. */}
+        {mem.org && <nav className="br-quick" aria-label="Start here">
+          {isVet ? <>
+            <Link className="br-qb is-main" href="/ngo/verification?stage=vet"><ShieldCheck size={18} aria-hidden /><span><b>Sign off procedures</b><small>{d ? `${d.abc.filter((r) => stageOf(r) === "vet").length} waiting for you` : "Open your sign-off list"}</small></span></Link>
+            <Link className="br-qb" href="/ngo/care"><ClipboardList size={18} aria-hidden /><span><b>Care records</b><small>Every treatment, across animals</small></span></Link>
+          </> : role === "member" ? <>
+            <Link className="br-qb is-main" href="/ngo/cases/new"><CircleAlert size={18} aria-hidden /><span><b>Add a new case</b><small>An animal that needs help</small></span></Link>
+            <Link className="br-qb" href="/ngo/field"><ClipboardList size={18} aria-hidden /><span><b>Field mode</b><small>Your cases, on the phone</small></span></Link>
+            <Link className="br-qb" href="/ngo/inbox?paste=1"><Inbox size={18} aria-hidden /><span><b>Paste WhatsApp reports</b><small>Kaju prepares them</small></span></Link>
+          </> : <>
+            <Link className="br-qb is-main" href="/ngo/verification?stage=review"><ShieldCheck size={18} aria-hidden /><span><b>Review evidence</b><small>{d ? `${d.abc.filter((r) => stageOf(r) === "review").length} ready for you` : "Approve what the vet signed"}</small></span></Link>
+            <Link className="br-qb" href="/ngo/packages"><ClipboardList size={18} aria-hidden /><span><b>Prepare the monthly bill</b><small>Step 5 · Submit</small></span></Link>
+            <Link className="br-qb" href="/ngo/work"><Inbox size={18} aria-hidden /><span><b>Work queue</b><small>Assign and follow up</small></span></Link>
+            {role === "admin" && <Link className="br-qb" href="/ngo/team"><ClipboardList size={18} aria-hidden /><span><b>Team &amp; access</b><small>Members, roles, invitations</small></span></Link>}
+          </>}
+        </nav>}
         {d && (
           <div className="br-cols"><div className="br-main">
             {d.unavailable.length>0&&<p role="status">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}

@@ -172,3 +172,45 @@
   .jy-c { margin-top: 0; font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { .jy a:hover { transform: none; } }
+/* Start here: large, role-specific actions under the five steps. */
+.br-quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+.br-qb { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: center; min-height: 56px; padding: 10px 14px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px #e4e8f0; color: #0b1e3d; text-decoration: none; transition: box-shadow 160ms, transform 160ms, background 160ms; }
+.br-qb svg { color: #2457ce; }
+.br-qb span { display: grid; min-width: 0; }
+.br-qb b { font-size: 14px; font-weight: 500; }
+.br-qb small { font-size: 12.5px; color: #6b7486; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.br-qb:hover { box-shadow: 0 0 0 1px #2457ce, 0 8px 22px -16px rgba(36, 87, 206, .5); transform: translateY(-1px); }
+.br-qb:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
+.br-qb.is-main { background: #2457ce; box-shadow: none; color: #fff; }
+.br-qb.is-main svg, .br-qb.is-main small { color: rgba(255, 255, 255, .85); }
+.br-qb.is-main:hover { background: #1d49b0; }
+/* A to-do title may take two lines rather than being cut mid-word. */
+.br-t > :first-child { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+@media (max-width: 860px) { .br-quick { grid-template-columns: 1fr; } .br-qb { min-height: 60px; } }
+@media (prefers-reduced-motion: reduce) { .br-qb { transition: none; } .br-qb:hover { transform: none; } }
+/* Kaju is asked from the top bar and the phone tab; Today needs no third composer floating over content. */
+.sp.sx3 .br-dock { display: none; }
+
+/* ── Phone: one simple screen per role ──────────────────────────────────
+   On a phone people act, on a laptop they plan. The phone shows the
+   person's own big buttons first and drops desk work (the monthly bill
+   form, record checks). Field workers and vets do not need the five-step
+   overview at all on the move; their buttons and to-do list are enough. */
+@media (max-width: 860px) {
+  .br-in { display: flex; flex-direction: column; }
+  .br-hello { order: -3; } .br-since { order: -2; } .br-quick { order: -1; margin: 14px 0 6px; }
+  .br .ms, .br .br-kaju { display: none; }
+  .br.is-member .jy, .br.is-veterinarian .jy { display: none; }
+  .br.is-member .br-since, .br.is-veterinarian .br-since { display: none; }
+  .br-qb { min-height: 64px; border-radius: 14px; }
+  .br-qb b { font-size: 15.5px; }
+}
+@media (max-width: 860px) {
+  .br.is-member .br-rail > section:last-of-type, .br.is-veterinarian .br-rail > section:last-of-type { display: none; }
+  /* Coordinators keep the five steps on the phone as one compact row of counts. */
+  .br:is(.is-coordinator, .is-admin) .jy ol { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .br:is(.is-coordinator, .is-admin) .jy a { display: grid; grid-template-columns: 1fr; justify-items: center; gap: 2px; min-height: 0; padding: 10px 4px; text-align: center; }
+  .br:is(.is-coordinator, .is-admin) .jy-t small { display: none; }
+  .br:is(.is-coordinator, .is-admin) .jy-t b { font-size: 11.5px; }
+  .br:is(.is-coordinator, .is-admin) .jy-c { margin: 0; font-size: 18px; grid-column: auto; grid-row: auto; }
+}

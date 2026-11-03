@@ -217,3 +217,32 @@
 @media (max-width: 860px) { .sp .gv-stats { grid-template-columns: 1fr 1fr; } .sp .gv-stat b { font-size: 22px; } }
 @media (prefers-reduced-motion: reduce) { .sp .gv-stat { transition: none; } .sp .gv-stat:hover { transform: none; } }
 .sp .abc-check li:has(> .dr) { grid-template-columns: 20px minmax(0, 1fr) auto auto; }
+
+/* Claims, animal by animal: same type scale and controls as the rest of the app. */
+.sp .rc { margin-top: 24px; padding-top: 20px; border-top: 1px solid #eceef2; font-size: 14px; }
+.sp .rc > h2 { margin: 0 0 4px; font-size: 16px; font-weight: 500; }
+.sp .rc p { margin: 6px 0; font-size: 14px; line-height: 1.5; color: #4a5568; }
+.sp .rc .rc-note { font-size: 13px; color: #6b7486; }
+.sp .rc .ledger { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.sp .rc .ledger > div { display: grid; gap: 2px; padding: 10px 12px; border-radius: 10px; background: #f5f7fb; border: 0; }
+.sp .rc .ledger dt { font-size: 12px; color: #6b7486; }
+.sp .rc .ledger dd { margin: 0; font-size: 15px; font-weight: 600; color: #0b1e3d; font-variant-numeric: tabular-nums; }
+.sp .rc .rc-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; margin-top: 12px; }
+.sp .rc .rc-filters label { display: grid; gap: 4px; font-size: 12.5px; color: #6b7486; }
+.sp .rc .rc-count { font-size: 12.5px; color: #6b7486; }
+.sp .rc .fd-cards { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 8px; }
+.sp .rc .fd-card { padding: 14px 16px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px #e4e8f0; }
+.sp .rc .fd-card h3 { margin: 0 0 2px; font-size: 15px; font-weight: 500; color: #0b1e3d; }
+.sp .rc .fd-card p { margin: 2px 0; font-size: 13px; }
+.sp .rc details { margin-top: 8px; }
+.sp .rc summary { cursor: pointer; font-size: 13.5px; font-weight: 500; color: #2457ce; list-style: none; }
+.sp .rc summary::-webkit-details-marker { display: none; }
+.sp .rc summary::before { content: "+ "; }
+.sp .rc details[open] > summary::before { content: "– "; }
+.sp .rc label { display: grid; gap: 4px; font-size: 12.5px; color: #6b7486; margin-top: 8px; }
+@media (max-width: 860px) { .sp .rc .ledger { grid-template-columns: 1fr 1fr; } .sp .rc .rc-filters { grid-template-columns: 1fr; } }
+.sp .rc .ledger > div { grid-template-columns: 1fr; }
+.sp .abc details > summary { cursor: pointer; font-size: 13.5px; font-weight: 500; color: #2457ce; list-style: none; padding: 6px 0; }
+.sp .abc details > summary::-webkit-details-marker { display: none; }
+.sp .abc details > summary::before { content: "+ "; }
+.sp .abc details[open] > summary::before { content: "– "; }

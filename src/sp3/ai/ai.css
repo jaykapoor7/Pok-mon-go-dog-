@@ -140,3 +140,21 @@
 @media(prefers-reduced-motion:reduce){.ai3-scroll{scroll-behavior:auto}.ai3-thinking .animate-spin{animation:none}}
 
 @media(max-width:860px){.ai3-send{width:40px;height:40px}.ai3-attach{width:40px;height:40px}}
+
+/* Kaju full screen: the conversation and its composer always fit the screen. */
+.ai3-full { height: calc(100dvh - var(--bar, 56px)); overflow: hidden; }
+.ai3-full-in { min-height: 0; }
+@media (max-width: 860px) {
+  .ai3-full { height: calc(100dvh - var(--bar, 56px) - var(--tabs, 64px)); }
+  .ai3-full-head { flex-direction: row; align-items: center; gap: 12px; padding-bottom: 10px; }
+  .ai3-full-id { gap: 10px; }
+  .ai3-full-kaju svg { width: 52px !important; height: auto !important; }
+  .ai3-full-head .s3-eyebrow, .ai3-full-head p { display: none; }
+  .ai3-full-head h1 { margin: 0; font-size: 22px; }
+  .ai3-full-acts .s3-btn { font-size: 0; gap: 0; width: 38px; height: 38px; padding: 0; justify-content: center; }
+  .ai3-full-acts .s3-btn svg { width: 16px; height: 16px; }
+}
+@media (max-width: 860px) { .ai3-full-id { flex-direction: row; align-items: center; gap: 10px; } .ai3-full-kaju { width: 52px; } }
+@media (max-width: 860px) { .ai3-full { height: calc(100dvh - 84px - var(--tabs, 64px) - 8px); } }
+/* Nothing scrolls below Kaju's chat box. */
+.sp.sx3 .sp-main:has(.ai3-full) { padding-bottom: 0 !important; overflow: hidden; }
