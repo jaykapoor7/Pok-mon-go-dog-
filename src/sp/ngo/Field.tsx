@@ -20,9 +20,13 @@ import { Reading } from "../ui/Reading";
 import { addNote, setFollowup, startWork, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
+import {OfflineStorage} from "./OfflineStorage";
+import {IntakeDraft,type KnownAnimal} from "./IntakeDraft";
+import {LifecycleForm} from "./LifecycleForm";
+import type {IntakeData,LifecycleData,OperationKind,WorkflowPolicy} from "@/lib/operations";
 import {VaccinationDraft} from "./VaccinationDraft";
 import {useMembership} from "../shell/Shell";
-import {readDrafts,putDraft,deleteDraft,fieldCache,type VaccinationData,type FieldDraft} from "@/lib/field/outbox";
+import {readDrafts,putDraft,deleteDraft,fieldCache,archiveDraft,readSynced,offlineUnlocked,lockOffline,clearOfflineDevice,type SyncedFieldRecord,type VaccinationData,type FieldDraft} from "@/lib/field/outbox";
 import {getSupabase} from "@/lib/supabase";
 import {submitFieldDraft} from "@/lib/field/sync";
 import {compressForUpload} from "@/lib/photo/compress";
@@ -32,8 +36,11 @@ export function Field() {
   const { user } = useAuth();
   const mem=useMembership();
   const scope=user&&mem.org?`${user.id}:${mem.org.id}`:null;
+  const [storageOpen,setStorageOpen]=useState(false),[addingIntake,setAddingIntake]=useState(false);
+  const [known,setKnown]=useState<KnownAnimal[]>([]),[policies,setPolicies]=useState<WorkflowPolicy[]>([]),[synced,setSynced]=useState<SyncedFieldRecord[]>([]);
+  useEffect(()=>{setStorageOpen(!!scope&&offlineUnlocked(scope));const lock=()=>setStorageOpen(false);window.addEventListener("straypaw-offline-locked",lock);return()=>window.removeEventListener("straypaw-offline-locked",lock)},[scope]);
   const [vaccinationDefaults,setVaccinationDefaults]=useState<Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>|undefined>();
-  useEffect(()=>{let live=true;setVaccinationDefaults(undefined);if(scope)void fieldCache<Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>>(`vaccination-settings:${scope}`).then(c=>{if(live)setVaccinationDefaults(c?.value)}).catch(()=>{});return()=>{live=false}},[scope]);
+  useEffect(()=>{let live=true;setVaccinationDefaults(undefined);if(scope)void fieldCache<Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>>(`vaccination-settings:${scope}`).then(c=>{if(live)setVaccinationDefaults(c?.value)}).catch(()=>{});return()=>{live=false}},[scope,storageOpen]);
   const [legacyDrafts,setLegacyDrafts]=useState(false);
   useEffect(()=>{try{setLegacyDrafts(localStorage.getItem("sp2.field.drafts")!==null)}catch{}},[]);
   const [storageError,setStorageError]=useState<string|null>(null);
@@ -64,19 +71,19 @@ export function Field() {
 
   const load = useCallback(async () => {
     setFailed(false);
-    if(scope&&!navigator.onLine){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[];assignedIds:string[]}>(scope).catch(()=>undefined);if(currentScope.current!==scope)return;setCases(cached?.value.cases??null);setFus(cached?.value.fus??[]);setAssignedIds(cached?.value.assignedIds??[]);setCachedAt(cached?.at??null);setFailed(!cached);return}
-    try { const db=getSupabase();if(!db||!user||!mem.org)throw Error("Workspace unavailable");const [c, f, assigned] = await Promise.all([openCases(), dueFollowups(),db.from("cases").select("id").eq("ngo_id",mem.org.id).eq("assignee_id",user.id).limit(800)]);if(assigned.error)throw assigned.error;const ids=(assigned.data??[]).map(c=>c.id); if(currentScope.current!==scope)return;setCases(c);setFus(f);setAssignedIds(ids);setCachedAt(null);if(scope)await fieldCache(scope,{cases:c,fus:f,assignedIds:ids}).catch(()=>setStorageError("Assignments could not be cached on this device. Keep the page open when offline.")); } catch { if(currentScope.current!==scope)return;setFailed(true);if(scope){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[];assignedIds:string[]}>(scope).catch(()=>undefined);setCases(cached?.value.cases??null);setFus(cached?.value.fus??[]);setAssignedIds(cached?.value.assignedIds??[]);setCachedAt(cached?.at??null)} }
+    if(scope&&!navigator.onLine){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[];assignedIds:string[];known?:KnownAnimal[];policies?:WorkflowPolicy[]}>(scope).catch(()=>undefined);if(currentScope.current!==scope)return;setCases(cached?.value.cases??null);setFus(cached?.value.fus??[]);setAssignedIds(cached?.value.assignedIds??[]);setCachedAt(cached?.at??null);setKnown(cached?.value.known??[]);setPolicies(cached?.value.policies??[]);setFailed(!cached);return}
+    try { const db=getSupabase();if(!db||!user||!mem.org)throw Error("Workspace unavailable");const [c, f, assigned, animals, policy] = await Promise.all([openCases(), dueFollowups(),db.from("cases").select("id").eq("ngo_id",mem.org.id).eq("assignee_id",user.id).limit(800),db.from("dogs").select("id,name,code,straypaw_id,identifiers").eq("ngo_id",mem.org.id).order("created_at",{ascending:false}).limit(500),db.from("operations_policies").select("id,name,version,rules,source_reference").eq("ngo_id",mem.org.id).order("created_at",{ascending:false}).limit(100)]);if(assigned.error||animals.error||policy.error)throw assigned.error??animals.error??policy.error;const ids=(assigned.data??[]).map(c=>c.id); if(currentScope.current!==scope)return;setCases(c);setFus(f);setAssignedIds(ids);setCachedAt(null);setKnown(animals.data??[]);setPolicies((policy.data??[]) as WorkflowPolicy[]);if(scope)await fieldCache(scope,{cases:c,fus:f,assignedIds:ids,known:animals.data??[],policies:policy.data??[]}).catch(()=>setStorageError("Assignments could not be cached on this device. Keep the page open when offline.")); } catch { if(currentScope.current!==scope)return;setFailed(true);if(scope){const cached=await fieldCache<{cases:OpenCase[];fus:DueFollowup[];assignedIds:string[];known?:KnownAnimal[];policies?:WorkflowPolicy[]}>(scope).catch(()=>undefined);setCases(cached?.value.cases??null);setFus(cached?.value.fus??[]);setAssignedIds(cached?.value.assignedIds??[]);setCachedAt(cached?.at??null)} }
   }, [scope,user,mem.org]);
-  useEffect(() => { setCases(null);setFus([]);setAssignedIds([]);if (user&&scope) void load(); }, [user, scope, load]);
+  useEffect(() => { setCases(null);setFus([]);setAssignedIds([]);if (user&&scope&&storageOpen) void load(); }, [user, scope, load,storageOpen]);
   useEffect(() => {
     setDrafts([]);
     let live=true;
-    if(scope)readDrafts(scope).then(d=>{if(live)setDrafts(d)}).catch(()=>{if(live)setStorageError("Device storage could not be opened. Keep this page open and copy your unsent note.")});
+    if(scope&&storageOpen)Promise.all([readDrafts(scope),readSynced(scope)]).then(([d,journal])=>{if(live){setDrafts(d);setSynced(journal)}}).catch(()=>{if(live)setStorageError("Device storage could not be opened. Keep this page open and copy your unsent note.")});
     setOnline(navigator.onLine);
     const on = () => setOnline(true), off = () => setOnline(false);
     window.addEventListener("online", on); window.addEventListener("offline", off);
     return () => { live=false; window.removeEventListener("online", on); window.removeEventListener("offline", off); };
-  }, [scope]);
+  }, [scope,storageOpen]);
 
   const mine = useMemo(() => (cases ?? []).filter((c) => assignedIds.includes(c.id) && c.provenance !== "imported_historical_record"), [cases, assignedIds]);
   const myFus = useMemo(() => { const ids = new Set(mine.map((c) => c.id)); return fus.filter((f) => f.source === "scheduled" && (f.case_id && ids.has(f.case_id))).sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at)); }, [fus, mine]);
@@ -95,25 +102,33 @@ export function Field() {
     await putDraft({id:crypto.randomUUID(),scope,caseId:c.id,code:c.case_code,note:EVIDENCE_LABEL[kind],kind,file:body,location,at:new Date().toISOString(),status:'pending'});setDrafts(await readDrafts(scope));
   };
   const vaccination=async(c:OpenCase,v:VaccinationData)=>{if(!scope||c.dog_id!==v.dogId)throw Error('Open the matching registered animal first');await putDraft({id:crypto.randomUUID(),scope,caseId:c.id,code:c.case_code,note:`ARV field record · ${v.vaccine} · batch ${v.batch}`,vaccination:v,at:new Date().toISOString(),status:'pending'});const defaults={vaccine:v.vaccine,batch:v.batch,performedBy:v.performedBy};if(currentScope.current===scope)setVaccinationDefaults(defaults);await fieldCache(`vaccination-settings:${scope}`,defaults).catch(()=>{});setDrafts(await readDrafts(scope))};
-  const sendDrafts = async (selected?:string[]) => {
-    if (!actor||!scope||syncLock.current) return;
-    syncLock.current=true;setSyncing(true);
-    try{for(const d of (await readDrafts(scope)).filter(d=>!selected||selected.includes(d.id))){
-      if(currentScope.current!==scope)break;
-      let confirmedAt:string;try{const saved=await submitFieldDraft(d,actor.id,mem.org!.id);confirmedAt=saved.confirmedAt}catch(e){await putDraft({...d,status:'failed',error:e instanceof Error?e.message:'Sync interrupted'});continue}
-      await deleteDraft(d.id);done(`n${d.caseId}`,{ok:true,at:confirmedAt,what:'Field record synchronised; source and audit checked'});
-    }}catch(e){setStorageError(e instanceof Error?e.message:'Sync interrupted. Drafts remain on this device.')}
-    finally{syncLock.current=false;setSyncing(false);if(currentScope.current===scope)try{setDrafts(await readDrafts(scope))}catch{setStorageError("Device storage could not be read. Drafts were not discarded.")}}
+  const intake=async(data:IntakeData,file:File|null,requestId:string)=>{
+    if(!scope)throw Error('Sign in first');if(file&&!/^image\/(jpeg|png|webp)$/.test(file.type))throw Error('Choose a JPEG, PNG or WebP photo');const body=file?await compressForUpload(file):undefined;if(body&&body.size>15*1024*1024)throw Error('Photo is over 15 MB');
+    await putDraft({id:requestId,caseId:requestId,scope,code:null,note:`Animal intake · ${data.name||data.code||data.identifiers||'identity provisional'}`,intake:data,file:body,at:data.observedAt,status:'pending'});setDrafts(await readDrafts(scope));
   };
+  const operation=async(caseId:string,code:string|null,kind:OperationKind,data:LifecycleData,policyId:string|null,requestId:string,intakeRequest?:string)=>{
+    if(!scope)throw Error('Sign in first');await putDraft({id:requestId,scope,caseId,code,note:`${kind} · ${data.notes}`,lifecycle:{kind,data,policyId},intakeRequest,at:data.occurredAt,status:'pending'});setDrafts(await readDrafts(scope));
+  };
+  const sendDrafts = async (selected?:string[]) => {
+    if (!actor||!scope||syncLock.current||!storageOpen) return;
+    syncLock.current=true;setSyncing(true);
+    try{const queued=(await readDrafts(scope)).filter(d=>!selected||selected.includes(d.id)).sort((a,b)=>Number(!!b.intake)-Number(!!a.intake)||Date.parse(a.at)-Date.parse(b.at));for(const d of queued){
+      if(currentScope.current!==scope)break;
+      try{const saved=await submitFieldDraft(d,actor.id,mem.org!.id);await archiveDraft(d,{id:d.id,scope,at:saved.confirmedAt,caseId:saved.caseId,dogId:saved.dogId,auditId:saved.audit_id,label:d.note.slice(0,120)});done(`n${d.caseId}`,{ok:true,at:saved.confirmedAt,what:'Field record synchronised; source and audit checked'})}catch(e){await putDraft({...d,status:'failed',error:e instanceof Error?e.message:'Sync interrupted'})}
+    }await load()}catch(e){setStorageError(e instanceof Error?e.message:'Sync interrupted. Drafts remain on this device.')}
+    finally{syncLock.current=false;setSyncing(false);if(currentScope.current===scope)try{setDrafts(await readDrafts(scope));setSynced(await readSynced(scope))}catch{setStorageError("Device storage could not be read. Drafts were not discarded.")}}
+  };
+  if(scope&&!storageOpen)return <NgoGate title="Field mode" lede="Your assigned fieldwork."><OfflineStorage scope={scope} onUnlock={()=>setStorageOpen(true)}/></NgoGate>;
 
   return (
     <NgoGate title="Field mode" lede="Your cases and follow-ups for today, one hand, on the street.">
       <div className="fd">
-        <p><Link href="/ngo/programmes/zones">Working zones and assignments</Link></p>
+        <div className="row"><button type="button" className="btn is-ink" onClick={()=>setAddingIntake(v=>!v)}>Register animal intake</button><Link href="/ngo/programmes/zones">Working zones and assignments</Link><button type="button" className="btn" onClick={()=>lockOffline()}>Lock offline records</button><button type="button" className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove synchronised device data? Pending drafts must be synchronised or explicitly removed first.'))return;try{await clearOfflineDevice(scope);setStorageOpen(false)}catch(e){setStorageError(e instanceof Error?e.message:'Device data was not removed.')}}}>Clear synchronised device data</button></div>
+        {addingIntake&&<IntakeDraft known={known} onSave={intake} onCancel={()=>setAddingIntake(false)}/>}
         {storageError&&<p role="alert">{storageError}</p>}
         {legacyDrafts&&<p role="status">Older field drafts remain on this device. They have no account identity, so they cannot be imported automatically. Ask your organisation administrator to arrange recovery with the person who recorded them.</p>}
         {cachedAt&&<p role="status">Offline assignment snapshot from {new Date(cachedAt).toLocaleString()}. Assignments may have changed; synchronisation checks current access.</p>}
-        {visibleDrafts.length>0&&<section aria-label="Unsent field records"><h2>On this device · not submitted</h2>{visibleDrafts.map(d=><details key={d.id}><summary>{d.code??'Case'} · {new Date(d.at).toLocaleString()} · {d.status==='failed'?'Needs retry':'Pending'}</summary><p style={{whiteSpace:'pre-wrap'}}>{d.note}</p>{d.location&&<p>{d.location}</p>}{d.vaccination&&<p>{d.vaccination.eventDate} · reported vaccinator {d.vaccination.performedBy} · {d.vaccination.dose||"dose not recorded"} · {d.vaccination.route||"route not recorded"} · {d.vaccination.location} · {d.vaccination.notes}</p>}{d.file&&<button className="btn" type="button" onClick={()=>{const url=URL.createObjectURL(d.file!);const a=document.createElement('a');a.href=url;a.download=`field-evidence-${d.id}.${d.file!.type==='application/pdf'?'pdf':d.file!.type==='image/png'?'png':d.file!.type==='image/webp'?'webp':'jpg'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}>Download device file</button>}<button className="btn" disabled={!online||syncing} onClick={()=>void sendDrafts([d.id])}>Synchronise this record</button><button className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove this device copy? An already synchronised record will remain on the server.'))return;try{await deleteDraft(d.id);setDrafts(await readDrafts(scope))}catch{setStorageError('The device copy could not be removed.')}}}>Remove device copy</button><Link href={`/ngo/cases/${d.caseId}`}>Open case</Link></details>)}</section>}
+        {visibleDrafts.length>0&&<section aria-label="Unsent field records"><h2>On this device · not submitted</h2>{visibleDrafts.map(d=><details key={d.id}><summary>{d.intake?'Unregistered animal intake':d.code??'Field record'} · {new Date(d.at).toLocaleString()} · {d.status==='failed'?'Needs retry':'Pending'}</summary><p style={{whiteSpace:'pre-wrap'}}>{d.note}</p>{d.location&&<p>{d.location}</p>}{d.vaccination&&<p>{d.vaccination.eventDate} · reported vaccinator {d.vaccination.performedBy} · {d.vaccination.dose||"dose not recorded"} · {d.vaccination.route||"route not recorded"} · {d.vaccination.location} · {d.vaccination.notes}</p>}{d.file&&<button className="btn" type="button" onClick={()=>{const url=URL.createObjectURL(d.file!);const a=document.createElement('a');a.href=url;a.download=`field-evidence-${d.id}.${d.file!.type==='application/pdf'?'pdf':d.file!.type==='image/png'?'png':d.file!.type==='image/webp'?'webp':'jpg'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}>Download device file</button>}<button className="btn" disabled={!online||syncing} onClick={()=>void sendDrafts([d.id])}>Synchronise this record</button><button className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove this device copy? An already synchronised record will remain on the server.'))return;try{await deleteDraft(d.id);setDrafts(await readDrafts(scope))}catch{setStorageError('The device copy could not be removed.')}}}>Remove device copy</button>{!d.intake&&!d.intakeRequest&&<Link href={`/ngo/cases/${d.caseId}`}>Open case</Link>}{d.intake&&<PendingIntakeOperation policies={policies} onSave={(kind,data,policyId,requestId)=>operation(d.caseId,d.code,kind,data,policyId,requestId,d.id)}/>}</details>)}</section>}
         {visibleDrafts.map(d=>d.error&&<p key={d.id} role="status">{d.code??"Case"}: {d.error}</p>)}
         <header className="fd-head">
           <p className="small">{offlineReady?"Field page available offline on this device.":"Preparing this device for offline work…"}</p>
@@ -127,6 +142,7 @@ export function Field() {
             </div>
           )}
         </header>
+        {synced.length>0&&<details><summary>Synchronised on this device · source and audit checked</summary><ul>{[...synced].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).slice(0,30).map(r=><li key={r.id}><Link href={`/ngo/cases/${r.caseId}`}>{r.label}</Link> · synced {new Date(r.at).toLocaleString()} · audit {r.auditId}</li>)}</ul></details>}
         <PageBrief items={[["For", "The cases you hold, on your phone, one hand."], ["Watch", "Late follow-ups first."], ["Next", "Done, Missed, Start or a note: one tap each."], ["After", "Saved means the database answered; drafts stay on this device until you choose to synchronise."]]} />
         {failed && <State kind="error" title="Not read" action={<button type="button" className="btn" onClick={() => void load()}>Try again</button>}>Your cases could not be read. If you are offline, drafts still work.</State>}
         {myFus.length > 0 && <h2 className="fd-h">Due</h2>}
@@ -151,7 +167,7 @@ export function Field() {
         </ul>
         {mine.length > 0 && <h2 className="fd-h">Yours</h2>}
         <ul className="fd-cards">
-          {mine.map((c) => <CaseCard key={c.id} c={c} online={online} receipt={r[`n${c.id}`]} startR={r[`s${c.id}`]} drafted={visibleDrafts.filter((d) => d.caseId === c.id).length} onStart={async () => actor && done(`s${c.id}`, await startWork(c.id, actor))} onNote={(t) => note(c, t)} onEvidence={(kind,file,location)=>evidence(c,kind,file,location)} onVaccination={v=>vaccination(c,v)} vaccinationDefaults={vaccinationDefaults} />)}
+          {mine.map((c) => <CaseCard key={c.id} c={c} online={online} receipt={r[`n${c.id}`]} startR={r[`s${c.id}`]} drafted={visibleDrafts.filter((d) => d.caseId === c.id).length} onStart={async () => actor && done(`s${c.id}`, await startWork(c.id, actor))} onNote={(t) => note(c, t)} onEvidence={(kind,file,location)=>evidence(c,kind,file,location)} onVaccination={v=>vaccination(c,v)} vaccinationDefaults={vaccinationDefaults} policies={policies} onOperation={(kind,data,policyId,requestId)=>operation(c.id,c.case_code,kind,data,policyId,requestId)} />)}
         </ul>
         {cases !== null && !failed && !mine.length && !myFus.length && (
           <State art="ngo-empty" title="Nothing held by you" action={<Link className="btn is-ink" href="/ngo/work?focus=unowned">See {unowned} unowned case{unowned === 1 ? "" : "s"}</Link>}>Take a case from Work and it appears here for the field.</State>
@@ -162,8 +178,9 @@ export function Field() {
   );
 }
 
-function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvidence, onVaccination, vaccinationDefaults }: { c: OpenCase; online: boolean; receipt?: Receipt; startR?: Receipt; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>;onEvidence:(kind:EvidenceKind,file:File|null,location:string)=>Promise<void>;onVaccination:(v:VaccinationData)=>Promise<void>;vaccinationDefaults?:Pick<VaccinationData,'vaccine'|'batch'|'performedBy'> }) {
+function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvidence, onVaccination, vaccinationDefaults,policies,onOperation }: { c: OpenCase; online: boolean; receipt?: Receipt; startR?: Receipt; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>;onEvidence:(kind:EvidenceKind,file:File|null,location:string)=>Promise<void>;onVaccination:(v:VaccinationData)=>Promise<void>;vaccinationDefaults?:Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>;policies:WorkflowPolicy[];onOperation:(kind:OperationKind,data:LifecycleData,policyId:string|null,requestId:string)=>Promise<void> }) {
   const [open, setOpen] = useState(false);
+  const [addingOperation,setAddingOperation]=useState(false);
   const [addingVaccination,setAddingVaccination]=useState(false);
   const [addingEvidence,setAddingEvidence]=useState(false),[kind,setKind]=useState<EvidenceKind>('capture_photo'),[file,setFile]=useState<File|null>(null),[location,setLocation]=useState(''),[error,setError]=useState<string|null>(null);
   const [t, setT] = useState("");
@@ -173,6 +190,7 @@ function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvid
       <p className="k">{c.case_code ?? "Case"} · {c.status_class === "in_progress" ? "in progress" : "open"} · {since(c.occurred_at)}</p>
       <h3><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></h3>
       <p className="small">{[c.animal_name, c.zone].filter(Boolean).join(" · ") || "Animal and place not recorded"}</p>
+      {addingOperation&&<LifecycleForm policies={policies} onSave={onOperation} onCancel={()=>setAddingOperation(false)}/>}
       {addingVaccination&&c.dog_id&&<VaccinationDraft dogId={c.dog_id} defaults={vaccinationDefaults} onSave={onVaccination} onCancel={()=>setAddingVaccination(false)}/>}
       {error&&<p role="alert">{error}</p>}
       {addingEvidence&&<form className="stack" onSubmit={async e=>{e.preventDefault();setBusy(true);try{await onEvidence(kind,file,location);setAddingEvidence(false);setFile(null);setLocation('');setError(null)}catch(x){setError(x instanceof Error?x.message:'Evidence could not be stored. Keep the file on this device.')}finally{setBusy(false)}}}>
@@ -192,7 +210,7 @@ function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvid
           {c.status_class !== "in_progress" && !startR?.ok && <button type="button" className="btn is-ink" disabled={!online} onClick={onStart}>Start</button>}
           <button type="button" className="btn" onClick={() => setOpen(true)}>Add a note</button>
           <button type="button" className="btn" onClick={()=>setAddingEvidence(true)}>Add evidence</button>
-          {c.dog_id&&<button type="button" className="btn" onClick={()=>setAddingVaccination(true)}>Record ARV vaccination</button>}
+          {c.dog_id&&<><button type="button" className="btn" onClick={()=>setAddingVaccination(true)}>Record ARV vaccination</button><button type="button" className="btn" onClick={()=>setAddingOperation(true)}>Record care or movement</button></>}
           <Link className="btn is-ghost" href={`/ngo/cases/${c.id}`}>Close or more</Link>
         </div>
       )}
@@ -204,3 +222,5 @@ function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvid
     </li>
   );
 }
+
+function PendingIntakeOperation({policies,onSave}:{policies:WorkflowPolicy[];onSave:(kind:OperationKind,data:LifecycleData,policyId:string|null,requestId:string)=>Promise<void>}){const [open,setOpen]=useState(false);return open?<LifecycleForm policies={policies} onSave={onSave} onCancel={()=>setOpen(false)}/>:<button className="btn" onClick={()=>setOpen(true)}>Add intervention to this intake</button>}

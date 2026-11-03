@@ -1,0 +1,28 @@
+"use client";
+import {useState,useRef} from 'react';
+import type {IntakeData} from '@/lib/operations';
+export type KnownAnimal={id:string;name:string|null;code:string|null;straypaw_id:string|null;identifiers:string|null};
+export function IntakeDraft({known,onSave,onCancel}:{known:KnownAnimal[];onSave:(data:IntakeData,file:File|null,requestId:string)=>Promise<void>;onCancel:()=>void}){
+ const request=useRef(crypto.randomUUID()),saving=useRef(false);
+ const [data,setData]=useState<IntakeData>({template:'field-intake-v1',name:'',code:'',city:'',zone:'',sex:'',identifiers:'',description:'',category:'sterilisation',lat:NaN,lng:NaN,accuracy:null,observedAt:new Date().toISOString()});
+ const [file,setFile]=useState<File|null>(null),[search,setSearch]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null);
+ const input=(key:'name'|'code'|'city'|'zone'|'identifiers',label:string,required=false)=><label>{label}<input className="input" aria-label={label} maxLength={key==='identifiers'?500:120} required={required} value={data[key]} onChange={e=>setData(d=>({...d,[key]:e.target.value}))}/></label>;
+ const matches=search.trim()?known.filter(a=>[a.name,a.code,a.straypaw_id,a.identifiers].filter(Boolean).join(' ').toLowerCase().includes(search.toLowerCase())).slice(0,8):[];
+ return <form className="stack" onSubmit={async e=>{e.preventDefault();if(saving.current)return;saving.current=true;setBusy(true);setError(null);try{if(!Number.isFinite(data.lat)||!Number.isFinite(data.lng))throw Error('Record observed coordinates or use current location.');await onSave(data,file,request.current);onCancel()}catch(x){setError(x instanceof Error?x.message:'The device could not store this intake.')}finally{saving.current=false;setBusy(false)}}}>
+ <h2>Animal intake draft</h2><p>Check the register before creating an animal. New identity records stay provisional until coordinator review.</p>
+ <label>Find an existing animal<input className="input" aria-label="Find an existing animal" value={search} onChange={e=>setSearch(e.target.value)}/></label>
+ {matches.length>0&&<ul>{matches.map(a=><li key={a.id}><button className="btn" type="button" onClick={()=>setData(d=>({...d,existingDogId:a.id,name:a.name??'',code:a.code??a.straypaw_id??''}))}>Use {a.name||a.straypaw_id||a.code}</button></li>)}</ul>}
+ {data.existingDogId&&<p role="status">Existing animal selected. Its original identity and history will be preserved. <button className="btn" type="button" onClick={()=>setData(d=>({...d,existingDogId:undefined,code:''}))}>Create a separate animal instead</button></p>}
+ <p className="small">Search uses up to {known.length} cached register records. On synchronisation, an existing matching identifier prevents duplicate creation.</p>
+ {input('name','Animal name (if known)')}{input('code','Tag or existing identifier')}{input('city','City',true)}{input('zone','Locality',true)}{input('identifiers','Distinctive markings')}
+ <label>Sex recorded<select className="input" aria-label="Sex recorded" value={data.sex} onChange={e=>setData(d=>({...d,sex:e.target.value}))}><option value="">Not recorded</option><option>Female</option><option>Male</option><option>Unknown</option></select></label>
+ <label>Intake purpose<select className="input" aria-label="Intake purpose" value={data.category} onChange={e=>setData(d=>({...d,category:e.target.value as IntakeData['category']}))}><option value="sterilisation">ABC programme</option><option value="vaccination">ARV vaccination</option><option value="rescue">Rescue</option><option value="injury">Injury</option><option value="other">Other care</option></select></label>
+ <label>Intake observation<textarea className="textarea" aria-label="Intake observation" required maxLength={3000} value={data.description} onChange={e=>setData(d=>({...d,description:e.target.value}))}/></label>
+ <label>Observed at<input className="input" type="datetime-local" aria-label="Intake observed at" required value={new Date(Date.parse(data.observedAt)-new Date(data.observedAt).getTimezoneOffset()*60000).toISOString().slice(0,16)} onChange={e=>{if(e.target.value)setData(d=>({...d,observedAt:new Date(e.target.value).toISOString()}))}}/></label>
+ <div className="row"><label>Latitude observed<input className="input" aria-label="Latitude observed" type="number" step="any" min={-90} max={90} required value={Number.isFinite(data.lat)?data.lat:''} onChange={e=>setData(d=>({...d,lat:e.target.value===''?NaN:Number(e.target.value),accuracy:null}))}/></label><label>Longitude observed<input className="input" aria-label="Longitude observed" type="number" step="any" min={-180} max={180} required value={Number.isFinite(data.lng)?data.lng:''} onChange={e=>setData(d=>({...d,lng:e.target.value===''?NaN:Number(e.target.value),accuracy:null}))}/></label></div>
+ <button type="button" className="btn" onClick={()=>navigator.geolocation.getCurrentPosition(p=>setData(d=>({...d,lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy,observedAt:new Date(p.timestamp).toISOString()})),()=>setError('Location unavailable. Record the observed coordinates manually.'),{enableHighAccuracy:true,timeout:15000})}>Use current location</button>
+ {data.accuracy!==null&&<p>GPS accuracy: {Math.round(data.accuracy)} m. Location is an observation, not a verified boundary.</p>}
+ <label>Intake photo<input type="file" aria-label="Intake photo" accept="image/jpeg,image/png,image/webp" onChange={e=>setFile(e.target.files?.[0]??null)}/></label>
+ {error&&<p role="alert">{error}</p>}<div className="row"><button className="btn is-ink" disabled={busy}>Keep intake as draft</button><button className="btn" type="button" onClick={onCancel}>Cancel intake</button></div>
+ </form>
+}

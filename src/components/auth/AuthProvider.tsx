@@ -11,6 +11,7 @@ import {
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { KeyRound, X, Loader2, LogIn } from "lucide-react";
+import {lockOffline} from "@/lib/field/outbox";
 import { getSupabase } from "@/lib/supabase";
 import "@/sp3/sp3.css";
 import { exchangeToken } from "@/lib/auth-exchange";
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
      context the server never saw. */
   const [ready, setReady] = useState(!supa && !isRecordingDemo);
   const [open, setOpen] = useState(false);
+  const offlineOwner=useRef<string|null>(null);
   const pendingRef = useRef<null | (() => void)>(null);
 
   // ── Session bootstrap ───────────────────────────────────────
@@ -133,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   function applySession(
     u: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null
   ) {
+    if(offlineOwner.current!==u?.id){lockOffline();offlineOwner.current=u?.id??null}
     if (!u) {
       setUser(null);
       return;
@@ -145,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(() => {
     if (isRecordingDemo) return;
+    lockOffline();
     if (supa) {
       supa.auth.signOut();
       setUser(null);

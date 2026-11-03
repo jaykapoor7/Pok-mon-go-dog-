@@ -6,6 +6,7 @@
    coordinator or admin approves or returns, nobody reviews their own
    sign-off, and a record in a submitted package is locked here. */
 
+import {OperationsPanel} from "../ngo/OperationsPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ArrowLeft, Check } from "lucide-react";
@@ -99,6 +100,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
             }, `${EVIDENCE_LABEL[k]} added.`)} />}
           </section>
 
+          <OperationsPanel caseId={id}/>
           <section className="abc-sec" aria-labelledby="hist-h">
             <h2 id="hist-h">History</h2>
             {d.hist.length ? <ol className="abc-hist">{(allHist ? d.hist : d.hist.slice(-5)).map((h, i) => (

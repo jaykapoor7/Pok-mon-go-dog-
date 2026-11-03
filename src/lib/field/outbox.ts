@@ -1,12 +1,46 @@
-/** Device-local pending work, partitioned by authenticated user and organisation.
- * No customer data is stored in localStorage. A failed transaction must surface. */
+import type {IntakeData,LifecycleData,OperationKind} from '../operations';
+/** Private field data is encrypted on the device. Keys exist only in memory. */
 export type VaccinationData={template:'arv-field-v1';dogId:string;eventDate:string;vaccine:string;batch:string;performedBy:string;dose:string;route:string;location:string;notes:string};
-export type FieldDraft={id:string;scope:string;caseId:string;code:string|null;note:string;at:string;status:'pending'|'sending'|'failed';error?:string;kind?:'capture_photo'|'surgery_record'|'ear_notch_photo'|'release_photo'|'release_location';file?:Blob;location?:string;vaccination?:VaccinationData};
-const DB='straypaw-field-v1';
-function open():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,2);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('drafts'))r.result.createObjectStore('drafts',{keyPath:'id'}).createIndex('scope','scope');if(!r.result.objectStoreNames.contains('cache'))r.result.createObjectStore('cache',{keyPath:'scope'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error??Error('Device storage unavailable'));r.onblocked=()=>reject(Error('Close other StrayPaw tabs to open device storage'))})}
-async function transact<T>(mode:IDBTransactionMode,make:(store:IDBObjectStore)=>IDBRequest<T>):Promise<T>{const db=await open();return new Promise((resolve,reject)=>{const tx=db.transaction('drafts',mode),r=make(tx.objectStore('drafts'));tx.oncomplete=()=>{db.close();resolve(r.result)};tx.onabort=tx.onerror=()=>{db.close();reject(tx.error??r.error??Error('Draft was not stored'))}})}
-export const readDrafts=(scope:string)=>transact('readonly',s=>s.index('scope').getAll(scope)) as Promise<FieldDraft[]>;
-export const putDraft=(draft:FieldDraft)=>transact('readwrite',s=>s.put(draft));
-export const deleteDraft=(id:string)=>transact('readwrite',s=>s.delete(id));
-
-export async function fieldCache<T>(scope:string,value?:T):Promise<{scope:string;at:string;value:T}|undefined>{const db=await open();return new Promise((resolve,reject)=>{const tx=db.transaction('cache',value===undefined?'readonly':'readwrite'),store=tx.objectStore('cache');const r=value===undefined?store.get(scope):store.put({scope,at:new Date().toISOString(),value});tx.oncomplete=()=>{db.close();resolve(value===undefined?r.result:undefined)};tx.onabort=tx.onerror=()=>{db.close();reject(tx.error??Error('Field cache unavailable'))}})}
+export type FieldDraft={id:string;scope:string;caseId:string;code:string|null;note:string;at:string;status:'pending'|'sending'|'failed';error?:string;kind?:'capture_photo'|'surgery_record'|'ear_notch_photo'|'release_photo'|'release_location';file?:Blob;location?:string;vaccination?:VaccinationData;intake?:IntakeData;intakeRequest?:string;lifecycle?:{kind:OperationKind;data:LifecycleData;policyId:string|null}};
+export type SyncedFieldRecord={id:string;scope:string;at:string;caseId:string;dogId?:string;auditId:number;label:string};
+type Cipher={v:1;iv:string;body:string};type Stored={id:string;scope:string;encrypted:Cipher};
+type Vault={scope:string;salt:string;check:Cipher};
+const DB='straypaw-field-v1',keys=new Map<string,CryptoKey>(),encoder=new TextEncoder(),decoder=new TextDecoder();
+export class OfflineLocked extends Error{constructor(){super('Unlock this organisation’s offline records first.')}}
+const b64=(bytes:Uint8Array)=>{let s='';for(let i=0;i<bytes.length;i+=16384)s+=String.fromCharCode(...bytes.subarray(i,i+16384));return btoa(s)};
+const bytes=(s:string)=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+function open():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,3);r.onupgradeneeded=()=>{for(const store of ['drafts','synced'])if(!r.result.objectStoreNames.contains(store))r.result.createObjectStore(store,{keyPath:'id'}).createIndex('scope','scope');for(const store of ['cache','vault'])if(!r.result.objectStoreNames.contains(store))r.result.createObjectStore(store,{keyPath:'scope'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error??Error('Device storage unavailable'));r.onblocked=()=>reject(Error('Close other StrayPaw tabs to open device storage'))})}
+async function tx<T>(store:string,mode:IDBTransactionMode,make:(s:IDBObjectStore)=>IDBRequest<T>):Promise<T>{const db=await open();return new Promise((resolve,reject)=>{const t=db.transaction(store,mode),r=make(t.objectStore(store));t.oncomplete=()=>{db.close();resolve(r.result)};t.onabort=t.onerror=()=>{db.close();reject(t.error??r.error??Error('Device transaction failed; records were retained'))}})}
+async function crypt(key:CryptoKey,value:unknown,scope:string):Promise<Cipher>{const iv=crypto.getRandomValues(new Uint8Array(12));const body=await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:encoder.encode(scope)},key,encoder.encode(JSON.stringify(value)));return{v:1,iv:b64(iv),body:b64(new Uint8Array(body))}}
+async function decrypt<T>(key:CryptoKey,value:Cipher,scope:string):Promise<T>{const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(value.iv),additionalData:encoder.encode(scope)},key,bytes(value.body));return JSON.parse(decoder.decode(plain)) as T}
+function keyFor(scope:string){const key=keys.get(scope);if(!key)throw new OfflineLocked();return key}
+export const offlineUnlocked=(scope:string)=>keys.has(scope);
+export const offlineVaultExists=async(scope:string)=>!!await tx('vault','readonly',s=>s.get(scope));
+export function lockOffline(){keys.clear();if(typeof window!=='undefined')window.dispatchEvent(new Event('straypaw-offline-locked'))}
+export async function unlockOffline(scope:string,passphrase:string){
+ if(passphrase.length<10)throw Error('Use at least 10 characters. Keep this passphrase: it cannot be recovered.');
+ let saved=await tx<Vault|undefined>('vault','readonly',s=>s.get(scope));const salt=saved?bytes(saved.salt):crypto.getRandomValues(new Uint8Array(16));
+ const material=await crypto.subtle.importKey('raw',encoder.encode(passphrase),'PBKDF2',false,['deriveKey']);const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+ if(saved){try{const check=await decrypt<string>(key,saved.check,scope);if(check!==`StrayPaw offline:${scope}`)throw Error('Mismatch')}catch{throw Error('The passphrase did not unlock these records. Nothing was removed.')}}
+ else{saved={scope,salt:b64(salt),check:await crypt(key,`StrayPaw offline:${scope}`,scope)};try{await tx('vault','readwrite',s=>s.add(saved!))}catch{if(await offlineVaultExists(scope))return unlockOffline(scope,passphrase);throw Error('The device could not create secure storage.')}}
+ keys.clear();keys.set(scope,key);
+ // Upgrade only this authenticated scope's older drafts, preserving original blobs.
+ const old=await tx<(FieldDraft|Stored)[]>('drafts','readonly',s=>s.index('scope').getAll(scope));for(const record of old)if(!('encrypted'in record))await putDraft(record);
+ // Cached record snapshots were only a convenience; encrypt this scope's old snapshot in place.
+ for(const cacheKey of [scope,`vaccination-settings:${scope}`]){const c=await tx<{scope:string;at:string;value?:unknown;encrypted?:Cipher}|undefined>('cache','readonly',s=>s.get(cacheKey));if(c&&!c.encrypted&&c.value!==undefined){const encrypted=await crypt(key,c.value,`cache:${cacheKey}`);await tx('cache','readwrite',s=>s.put({scope:cacheKey,at:c.at,encrypted}))}}
+}
+async function storedDraft(d:FieldDraft):Promise<Stored>{const {file,...data}=d;const packed={...data,...(file?{file:{type:file.type,body:b64(new Uint8Array(await file.arrayBuffer()))}}:{})};return{id:d.id,scope:d.scope,encrypted:await crypt(keyFor(d.scope),packed,`${d.scope}:drafts:${d.id}`)}}
+export async function readDrafts(scope:string):Promise<FieldDraft[]>{const key=keyFor(scope),rows=await tx<Stored[]>('drafts','readonly',s=>s.index('scope').getAll(scope));return Promise.all(rows.map(async r=>{if(!r.encrypted)throw Error('Older device records require the storage upgrade. Unlock again.');const d=await decrypt<Omit<FieldDraft,'file'>&{file?:{type:string;body:string}}>(key,r.encrypted,`${scope}:drafts:${r.id}`);if(d.scope!==scope||d.id!==r.id)throw Error('Offline record identity mismatch');return{...d,...(d.file?{file:new Blob([bytes(d.file.body)],{type:d.file.type})}:{})} as FieldDraft}))}
+export const putDraft=async(d:FieldDraft)=>{const row=await storedDraft(d);return tx('drafts','readwrite',s=>s.put(row))};
+export async function deleteDraft(id:string){const row=await tx<Stored|undefined>('drafts','readonly',s=>s.get(id));if(row)keyFor(row.scope);return tx('drafts','readwrite',s=>s.delete(id))}
+export async function archiveDraft(d:FieldDraft,receipt:SyncedFieldRecord){const row={id:d.id,scope:d.scope,encrypted:await crypt(keyFor(d.scope),receipt,`${d.scope}:synced:${d.id}`)};const db=await open();return new Promise<void>((resolve,reject)=>{const t=db.transaction(['drafts','synced'],'readwrite');t.objectStore('synced').put(row);t.objectStore('drafts').delete(d.id);t.oncomplete=()=>{db.close();resolve()};t.onabort=t.onerror=()=>{db.close();reject(t.error??Error('Sync receipt could not be kept; retry the same record'))}})}
+export async function readSynced(scope:string){const key=keyFor(scope),rows=await tx<Stored[]>('synced','readonly',s=>s.index('scope').getAll(scope));return Promise.all(rows.map(r=>decrypt<SyncedFieldRecord>(key,r.encrypted,`${scope}:synced:${r.id}`)))}
+const cacheScope=(scope:string)=>scope.startsWith('vaccination-settings:')?scope.slice('vaccination-settings:'.length):scope;
+export async function fieldCache<T>(scope:string,value?:T):Promise<{scope:string;at:string;value:T}|undefined>{
+ const membership=scope.startsWith('membership:'); // Minimal identity/role gate only; never animal data.
+ if(value!==undefined){const at=new Date().toISOString(),row=membership?{scope,at,value}:{scope,at,encrypted:await crypt(keyFor(cacheScope(scope)),value,`cache:${scope}`)};await tx('cache','readwrite',s=>s.put(row));return undefined}
+ const r=await tx<{scope:string;at:string;value?:T;encrypted?:Cipher}|undefined>('cache','readonly',s=>s.get(scope));if(!r)return undefined;if(membership)return r as {scope:string;at:string;value:T};
+ const key=keyFor(cacheScope(scope));if(!r.encrypted)throw new OfflineLocked();return{scope,at:r.at,value:await decrypt<T>(key,r.encrypted,`cache:${scope}`)};
+}
+/** Explicit device removal: never silently discards unsynchronised work. */
+export async function clearOfflineDevice(scope:string){if((await readDrafts(scope)).length)throw Error('Synchronise or explicitly remove each pending draft before clearing device storage.');const db=await open();await new Promise<void>((resolve,reject)=>{const t=db.transaction(['drafts','synced','cache','vault'],'readwrite');for(const store of ['drafts','synced']){const cursor=t.objectStore(store).index('scope').openCursor(scope);cursor.onsuccess=()=>{const c=cursor.result;if(c){c.delete();c.continue()}}}for(const key of [scope,`vaccination-settings:${scope}`,`membership:${scope.split(':')[0]}`])t.objectStore('cache').delete(key);t.objectStore('vault').delete(scope);t.oncomplete=()=>{db.close();resolve()};t.onabort=t.onerror=()=>{db.close();reject(t.error)}});keys.delete(scope)}
