@@ -2,11 +2,11 @@ import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import {
   ArrowRight, ArrowUpRight, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
-  KeyRound, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck,
+  KeyRound, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck, Plus,
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
-import { Cards, Close, Faq, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
+import { Cards, S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
 import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
 import { AiBand, UseCases, type Step } from "@/sp4/home/Interactive";
@@ -70,7 +70,7 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page className="s6-home" announce={<Link href="/whatsapp"><b>New</b>Kaju intake: paste WhatsApp reports, get prepared records <span className="s4-announce-note">direct WhatsApp connection awaits Meta approval</span> <ArrowRight size={14} aria-hidden /></Link>} close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint tone="dark" /><Close a="Put Kaju to work" b="on your programme." sub="See what Kaju would check, prepare and report on a programme like yours." primary={{ href: "/platform", label: "Explore the platform" }} secondary={{ href: "/contact", label: "Talk to the team" }} /></div></div>}>
+    <S4Page className="s6-home" announce={<Link href="/whatsapp"><b>New</b>Kaju intake: paste WhatsApp reports, get prepared records <span className="s4-announce-note">direct WhatsApp connection awaits Meta approval</span> <ArrowRight size={14} aria-hidden /></Link>} close={<div className="s4-wrap s6-closecard"><section className="s6-closecard-in s6-cta" aria-labelledby="cta-title"><Blueprint tone="dark" /><span className="s6-cta-kaju" aria-hidden><KajuPresence sequence="perch" loop size={84} /></span><div className="s6-cta-copy"><h2 id="cta-title">Put Kaju to work on your programme.</h2><p>See what Kaju would check, prepare and report on a programme like yours.</p></div><div className="s6-cta-act"><Link href="/contact" className="s4-btn is-primary">Talk to the team</Link><Link href="/platform" className="s4-btn is-line">Explore the platform</Link></div></section></div>}>
       <PageView name="landing_view" />
       <VideoCard />
 
@@ -183,7 +183,21 @@ export default function HomePage() {
       </section>
 
       {/* 9 · FAQ */}
-      <div className="s6-faq"><Faq items={FAQ} title="FAQs" /></div>
+      <section className="s6-faq2" aria-labelledby="faq-title">
+        <div className="s4-wrap">
+          <div className="s6-faq2-head">
+            <h2 id="faq-title" className="s4-h2">Questions, answered</h2>
+            <p>Plain answers about Kaju, your data and getting started. Something else? <Link href="/contact">Ask us</Link></p>
+          </div>
+          <div className="s6-faq2-grid">
+            {[FAQ.slice(0, Math.ceil(FAQ.length / 2)), FAQ.slice(Math.ceil(FAQ.length / 2))].map((col, c) => (
+              <div key={c} className="s6-faq2-col">
+                {col.map(([q, a]) => <details key={q}><summary>{q}<Plus size={18} aria-hidden /></summary><p>{a}</p></details>)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </S4Page>
   );
 }

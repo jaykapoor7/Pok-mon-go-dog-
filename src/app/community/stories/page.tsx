@@ -10,7 +10,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   const city = q.city?.trim() || null;
   const before = q.before && q.id ? { occurredAt: q.before, id: q.id } : null;
   const [page, total, cities] = await Promise.all([
-    getPublishedCaseStoriesPage({ limit: 24, before, city }).catch((e: Error) => ({ rows: [], care: [], next: null, error: e.message })),
+    getPublishedCaseStoriesPage({ limit: 12, before, city }).catch((e: Error) => ({ rows: [], care: [], next: null, error: e.message })),
     countPublicCaseStories(city).catch(() => null),
     getMapCities().catch(() => []),
   ]);

@@ -204,3 +204,39 @@
   .s6-home .s4-wall .s4-cs { font-size: 0; gap: 0; height: 20px; padding: 0 5px; top: 6px; right: 6px; }
   .s6-home .s4-wall .s4-cs svg { width: 11px; height: 11px; }
 }
+
+/* ── FAQ: centred heading, two columns of cards on a soft blue panel ── */
+.s6-faq2 { padding: 88px 0; }
+.s6-faq2 > .s4-wrap { border-radius: 28px; padding: 64px 56px; background: linear-gradient(180deg, #f2f6fd 0%, #eaf0fb 100%); box-shadow: inset 0 0 0 1px rgba(36, 87, 206, .08); }
+.s6-faq2-head { display: grid; gap: 12px; justify-items: center; text-align: center; margin-bottom: 40px; }
+.s6-faq2-head .s4-h2 { font-size: clamp(30px, 3.4vw, 44px); }
+.s6-faq2-head p { max-width: 560px; font-size: 16.5px; line-height: 1.5; color: var(--s4-grey); }
+.s6-faq2-head a { color: var(--s4-blue); text-decoration: underline; text-underline-offset: 3px; }
+.s6-faq2-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.s6-faq2-col { display: grid; gap: 12px; }
+.s6-faq2 details { border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px rgba(15, 23, 42, .06), 0 1px 2px rgba(15, 23, 42, .04); transition: box-shadow 180ms ease; }
+.s6-faq2 details:hover { box-shadow: 0 0 0 1px rgba(36, 87, 206, .22), 0 6px 18px -10px rgba(15, 42, 110, .25); }
+.s6-faq2 details[open] { box-shadow: 0 0 0 1.5px rgba(36, 87, 206, .35), 0 10px 24px -14px rgba(15, 42, 110, .3); }
+.s6-faq2 summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; font-size: 16.5px; font-weight: 500; letter-spacing: -0.015em; line-height: 1.35; color: var(--s4-ink); cursor: pointer; border-radius: 16px; }
+.s6-faq2 summary::-webkit-details-marker { display: none; }
+.s6-faq2 summary:focus-visible { outline: 2px solid var(--s4-blue); outline-offset: 2px; }
+.s6-faq2 summary svg { flex: none; width: 28px; height: 28px; padding: 5px; border-radius: 50%; background: #eef3fd; color: var(--s4-blue); transition: transform 200ms ease, background-color 200ms ease, color 200ms ease; }
+.s6-faq2 details[open] summary svg { transform: rotate(45deg); background: var(--s4-blue); color: #fff; }
+.s6-faq2 details p { margin: 0; padding: 0 20px 20px; font-size: 15.5px; line-height: 1.55; color: var(--s4-grey); }
+.s6-faq2 details[open] p { animation: s6FaqIn 220ms ease; }
+@keyframes s6FaqIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (max-width: 860px) { .s6-faq2 { padding: 56px 0; } .s6-faq2 > .s4-wrap { padding: 36px 16px; border-radius: 22px; } .s6-faq2-grid { grid-template-columns: minmax(0, 1fr); } .s6-faq2-head { margin-bottom: 24px; } }
+@media (prefers-reduced-motion: reduce) { .s6-faq2 details[open] p { animation: none; } .s6-faq2 summary svg { transition: none; } }
+
+/* ── Closing call to action: one compact strip, not a full screen ── */
+.s6-closecard { padding-top: 0; padding-bottom: 88px; }
+.s6-cta { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 28px; padding: 40px 48px; border-radius: 24px; }
+.s6-cta-kaju { position: relative; width: 84px; height: 76px; display: grid; place-items: center; pointer-events: none; }
+.s6-cta-copy { display: grid; gap: 8px; }
+.s6-cta-copy h2 { margin: 0; font-size: clamp(24px, 2.4vw, 32px); font-weight: 500; letter-spacing: -0.025em; line-height: 1.15; color: #fff; }
+.s6-cta-copy p { margin: 0; font-size: 16px; line-height: 1.5; color: rgba(255, 255, 255, .78); }
+.s6-cta-act { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.s6-cta .s4-btn.is-primary { background: #fff; color: #173c98; }
+.s6-cta .s4-btn.is-line { background: transparent; color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45); }
+.s6-cta .s4-btn.is-line:hover { box-shadow: inset 0 0 0 1px #fff; }
+@media (max-width: 860px) { .s6-closecard { padding-bottom: 56px; } .s6-cta { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 16px; padding: 28px 20px; } .s6-cta-act { justify-content: flex-start; } .s6-cta-kaju { width: 64px; height: 58px; } }

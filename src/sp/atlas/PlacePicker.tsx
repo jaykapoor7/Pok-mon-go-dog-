@@ -7,6 +7,7 @@
    shows the area (≈0.74 km²) it falls in.
    ════════════════════════════════════════════════════════════════════ */
 
+import { locateMe } from "./locate";
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
 import "./picker.css";
@@ -69,10 +70,10 @@ export function PlacePicker({ value, onChange }: { value: { lat: number; lng: nu
   }, [q]);
 
   const fly = (lat: number, lng: number) => mapRef.current?.flyTo({ center: [lng, lat], zoom: 17, duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 900 });
+  const [where, setWhere] = useState<string | null>(null);
   const here = () => {
-    if (!navigator.geolocation) return;
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(({ coords }) => { setLocating(false); fly(coords.latitude, coords.longitude); }, () => setLocating(false), { enableHighAccuracy: true, timeout: 10000 });
+    setLocating(true); setWhere(null);
+    locateMe((lat, lng) => { setLocating(false); fly(lat, lng); }, (m) => { setLocating(false); setWhere(m); });
   };
 
   return (
@@ -81,6 +82,7 @@ export function PlacePicker({ value, onChange }: { value: { lat: number; lng: nu
         <label className="search"><Search size={15} aria-hidden /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a street, landmark or area" aria-label="Search a place" /></label>
         <button type="button" className="btn is-s" onClick={here} disabled={locating}><Crosshair size={15} aria-hidden /> {locating ? "Finding you…" : "Where I am"}</button>
       </div>
+      {where && <p className="picker-where" role="alert">{where}</p>}
       {hits.length > 0 && <ul className="picker-hits float">{hits.map((h) => <li key={`${h.lat},${h.lng}`}><button type="button" onClick={() => { setQ(h.label.split(",").slice(0, 2).join(",")); setHits([]); fly(h.lat, h.lng); }}>{h.label}</button></li>)}</ul>}
       <div className="picker-map">
         <div ref={el} className="picker-canvas" />

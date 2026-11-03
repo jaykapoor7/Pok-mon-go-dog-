@@ -18,6 +18,7 @@
    known animal is a claim for review, never a merge.
    ════════════════════════════════════════════════════════════════════ */
 
+import { locateMe } from "@/sp/atlas/locate";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -331,15 +332,16 @@ function WhereTools({ onFly }: { onFly: (lat: number, lng: number) => void }) {
     }, 350);
     return () => window.clearTimeout(id);
   }, [q]);
+  const [where, setWhere] = useState<string | null>(null);
   const here = () => {
-    if (!navigator.geolocation) return;
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(({ coords }) => { setLocating(false); onFly(coords.latitude, coords.longitude); }, () => setLocating(false), { enableHighAccuracy: true, timeout: 10000 });
+    setLocating(true); setWhere(null);
+    locateMe((lat, lng) => { setLocating(false); onFly(lat, lng); }, (m) => { setLocating(false); setWhere(m); });
   };
   return (
     <div className="rp2-tools">
       <label className="rp2-search"><Search size={16} aria-hidden /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a street, landmark or area" aria-label="Search a place" /></label>
-      <button type="button" className="rp2-btn" onClick={here} disabled={locating}><Crosshair size={16} aria-hidden /> {locating ? "Finding you…" : "Where I am"}</button>
+      <button type="button" className="rp2-btn" onClick={here} disabled={locating}><Crosshair size={16} aria-hidden className={locating ? "rp2-spin" : undefined} /> {locating ? "Finding you…" : "Where I am"}</button>
+      {where && <p className="rp2-where" role="alert">{where}</p>}
       {hits.length > 0 && <ul className="rp2-hits">{hits.map((h) => <li key={`${h.lat},${h.lng}`}><button type="button" onClick={() => { setQ(h.label.split(",").slice(0, 2).join(",")); setHits([]); onFly(h.lat, h.lng); }}>{h.label}</button></li>)}</ul>}
     </div>
   );

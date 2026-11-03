@@ -140,6 +140,12 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const here = currentDestination(ws,path,mem.role,mem.reviewer);
   const section=def.index.find(g=>g.label===here?.group)?.links.find(l=>l.primary);
   const atHome = path === def.home;
+  // Every link the sidebar shows (its places, and the short "Also" list), so page tabs never repeat them.
+  const sideHrefs = (() => {
+    const own = new Set(nav.map((n) => (n.item as Destination).group));
+    const extra = def.index.filter((g) => !own.has(g.label)).flatMap((g) => g.links).filter((l) => l.href !== def.settings && l.href !== "/assistant");
+    return new Set([...nav.map((r) => r.item.href), ...(extra.length <= 4 ? extra.map((l) => l.href) : [])]);
+  })();
   const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
 
@@ -250,7 +256,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           </header>
 
           <AmbientLight />
-          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
+          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
@@ -409,9 +415,10 @@ function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose:
 }
 
 /** The screens inside the current sidebar place, as tabs above the page. */
-function SectionTabs({ path, role, reviewer }: { path: string; role: Role | null; reviewer:boolean }) {
+function SectionTabs({ path, role, reviewer, listed }: { path: string; role: Role | null; reviewer:boolean; listed: Set<string> }) {
   const t = tabsFor(path, role, reviewer);
-  if (!t) return null;
+  // Tabs only for screens the sidebar does not already list; never the same links twice.
+  if (!t || t.tabs.filter((x) => listed.has(x.href)).length > 1) return null;
   return (
     <nav className="sx3-tabs" aria-label="In this section">
       {t.tabs.map((x) => <Link key={x.href} href={x.href} aria-current={x.href === t.on ? "page" : undefined}>{x.label}</Link>)}
