@@ -132,7 +132,7 @@ export function Brief() {
             <section aria-labelledby="br-todo" className="br-sec">
               <h2 id="br-todo" className="br-h">What needs to be done</h2>
               {todo.length ? rows(todo, true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
-              <div className="br-chips">{isVet ? <Link href="/ngo/verification">Open verification <ArrowRight size={12} aria-hidden /></Link> : <Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link>}{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
+              <div className="br-chips">{isVet ? <Link href="/ngo/verification">Open verification <ArrowRight size={12} aria-hidden /></Link> : <><Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link><Link href="/ngo/inbox?paste=1"><Sparkles size={12} aria-hidden />Paste WhatsApp reports</Link></>}{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
             </section>
             {!isVet && <KajuPrepared key={mem.org?.id ?? "org"} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
             <section aria-labelledby="br-out" className="br-sec">
