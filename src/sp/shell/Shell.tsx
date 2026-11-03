@@ -264,7 +264,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         </nav>
 
-        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} />
+        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} dual={!!dual} />
         <Finder open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
@@ -322,7 +322,7 @@ function Account({ user, org, onSignIn, onSignOut, side = false }: { user: { nam
 }
 
 /** "More" on a phone: every page of the workspace, in named groups. */
-function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string }) {
+function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string; dual: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); else if (!open && d.open) d.close(); }, [open]);
   const mem=useMembership();
@@ -343,7 +343,7 @@ function IndexSheet({ open, onClose, ws, path }: { open: boolean; onClose: () =>
             <ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} onClick={onClose} aria-current={path === l.href ? "page" : undefined}><b>{l.label}</b>{l.note && <small>{l.note}</small>}</Link></li>)}</ul>
           </details>
         ))}
-        <div className="sx3-more-ws">{ORDER.filter((id) => id !== ws).map((id) => <Link key={id} href={WORKSPACES[id].home} onClick={onClose}><i aria-hidden style={{ background: WORKSPACES[id].ink }} />{WORKSPACES[id].label}</Link>)}</div>
+        <div className="sx3-more-ws">{/* Another professional workspace only for verified dual-role members; public products for everyone. */}{ORDER.filter((id) => id !== ws && (id === "community" || id === "learn" || dual)).map((id) => <Link key={id} href={WORKSPACES[id].home} onClick={onClose}><i aria-hidden style={{ background: WORKSPACES[id].ink }} />{WORKSPACES[id].label}</Link>)}</div>
         <footer className="sp-more-foot"><Link href="/" onClick={onClose}>Main site</Link><Link href="/docs" onClick={onClose}>Help</Link><Link href="/contact" onClick={onClose}>Contact</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
       </div>
     </dialog>

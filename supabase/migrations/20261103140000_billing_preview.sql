@@ -4,8 +4,8 @@
 --
 -- Depends on 20261103010239_municipal_items_and_contracts (PR #48).
 --
--- Period basis: the procedure date (the latest recorded sterilisation or
--- vaccination event for the case), falling back to the case date only when
+-- Period basis: the procedure date (the latest recorded event of the case's
+-- own procedure kind), falling back to the case date only when
 -- no procedure date exists; this is the rule PR #48's abc_create_package
 -- already uses. Added here: imported historical and public-dataset records
 -- are excluded, as in the verification queue.
@@ -13,17 +13,32 @@
 create or replace function operations_private.package_candidates(p_ngo uuid, p_start date, p_end date)
 returns table(case_id uuid, case_code text, procedure text, procedure_date date, created_at timestamptz)
 language sql stable security definer set search_path = pg_catalog, public, pg_temp as $$
-  select c.id, c.case_code, c.category::text, d.procedure_date, c.created_at
-  from public.cases c
-  cross join lateral (
-    select coalesce((select max(m.event_date) from public.medical_events m where m.case_id = c.id and m.kind in ('sterilisation','vaccination')), c.created_at::date) as procedure_date
-  ) d
-  where c.ngo_id = p_ngo
-    and coalesce(c.provenance, '') not in ('imported_historical_record', 'public_dataset')
-    and d.procedure_date between p_start and p_end
-    and exists (select 1 from public.abc_attestations a where a.case_id = c.id and a.kind = 'evidence_reviewed' and a.revoked_at is null)
-    and not public.operations_case_accepted(c.id)
-    and not exists (select 1 from public.report_packages q where c.id = any (q.case_ids) and q.status <> 'returned' and (q.status = 'draft' or not public.operations_case_amendable(c.id)))
+  with base as (
+    select c.id, c.case_code, c.category::text as procedure, c.dog_id, c.created_at,
+           -- the date of THIS case's own procedure; another procedure on the same animal never sets it
+           coalesce((select max(m.event_date) from public.medical_events m where m.case_id = c.id and m.kind = c.category::text), c.created_at::date) as procedure_date
+    from public.cases c
+    where c.ngo_id = p_ngo
+      and coalesce(c.provenance, '') not in ('imported_historical_record', 'public_dataset')
+      and exists (select 1 from public.abc_attestations a where a.case_id = c.id and a.kind = 'evidence_reviewed' and a.revoked_at is null)
+      and not public.operations_case_accepted(c.id)
+      and not exists (select 1 from public.report_packages q where c.id = any (q.case_ids) and q.status <> 'returned' and (q.status = 'draft' or not public.operations_case_amendable(c.id)))
+  ), period as (
+    select b.*, row_number() over (partition by coalesce(b.dog_id, b.id), b.procedure order by b.procedure_date, b.created_at, b.id) as nth
+    from base b where b.procedure_date between p_start and p_end
+  )
+  select k.id, k.case_code, k.procedure, k.procedure_date, k.created_at from period k
+  -- one claim per animal and procedure in the period
+  where (k.dog_id is null or k.nth = 1)
+    -- an animal is sterilised once: never bill it again after another sterilisation case was claimed or accepted
+    and not (k.procedure = 'sterilisation' and k.dog_id is not null and exists (
+      select 1 from public.cases o join public.report_packages q on o.id = any (q.case_ids) and q.status <> 'returned'
+      where o.dog_id = k.dog_id and o.id <> k.id and o.category::text = 'sterilisation'))
+    -- a repeat vaccination is claimable in a later period, not twice in the same one
+    and not (k.procedure = 'vaccination' and k.dog_id is not null and exists (
+      select 1 from public.cases o join public.report_packages q on o.id = any (q.case_ids) and q.status <> 'returned'
+      where o.dog_id = k.dog_id and o.id <> k.id and o.category::text = 'vaccination'
+        and coalesce((select max(m.event_date) from public.medical_events m where m.case_id = o.id and m.kind = 'vaccination'), o.created_at::date) between p_start and p_end))
 $$;
 revoke all on function operations_private.package_candidates(uuid, date, date) from public, anon, authenticated;
 
