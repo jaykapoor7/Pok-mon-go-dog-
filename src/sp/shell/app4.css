@@ -498,3 +498,20 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp.sx3 button:not(:disabled):active, .sp.sx3 a.btn:active { transform: scale(.97); }
 .sp.sx3 button:disabled { cursor: not-allowed; opacity: .6; }
 @media (prefers-reduced-motion: reduce) { .sp .dr-dlg[open], .sp .nt, .sp .dr-spin, .sp .nt-spin { animation: none; } .sp.sx3 button:active, .sp.sx3 a.btn:active { transform: none; } }
+
+/* Notice countdown: a thin bar shows how long Undo stays; pointer or focus on
+   the notice pauses it. It is a timer, not decoration, so it keeps running
+   (linearly, without movement elsewhere) under reduced motion. */
+.sp .nt { position: relative; overflow: hidden; }
+.sp .nt-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.55); transform-origin: left center; animation: nt-count var(--nt-ms, 6000ms) linear forwards; }
+.sp .nt.is-ok .nt-bar { background: #6fe0a6; }
+.sp .nt.is-error .nt-bar { background: #ffb4a6; }
+.sp .nt:hover .nt-bar, .sp .nt:focus-within .nt-bar { animation-play-state: paused; }
+@keyframes nt-count { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .sp .nt .nt-bar { animation-duration: var(--nt-ms, 6000ms) !important; } }
+
+/* Back: every page but the workspace home has one, top left. */
+.sp.sx3 .sx5-back { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 8px; margin-right: 4px; border: 0; border-radius: 9px; background: #eef3fd; color: #1d4fc4; font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; flex: none; transition: background-color 140ms ease, transform 120ms ease; }
+.sp.sx3 .sx5-back:hover { background: #e0e9fb; }
+.sp.sx3 .sx5-back:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
+@media (max-width: 860px) { .sp.sx3 .sx5-back { height: 36px; padding: 0 10px; } .sp.sx3 .sx5-back span { display: none; } .sp.sx3 .sx5-back svg { width: 18px; height: 18px; } }

@@ -10,6 +10,7 @@
    shown, say what they are a share of.
    ════════════════════════════════════════════════════════════════════ */
 
+import { CancelButton } from "@/sp/ui/CancelButton";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, Plus } from "lucide-react";
@@ -41,7 +42,7 @@ export function Programmes() {
           <p className="ngo-sum">{o ? <>In your register, <b>{n(o.total)}</b> animals: sterilisation recorded for <b>{n(o.sterilised + o.not_sterilised)}</b>, not recorded for <b>{n(o.ster_unknown)}</b>.</> : "Sterilisation, vaccination, census and treatment drives, each with the animals filed into it."}{bd && bd.waiting.ours + bd.waiting.community > 0 ? <> <Link className="link" href="/ngo/inbox">{n(bd.waiting.ours + bd.waiting.community)} reports waiting to be filed</Link>.</> : null}</p>
           {leader&&<div className="row"><button type="button" className="btn is-ink is-s" onClick={() => setCreating((v) => !v)}><Plus size={14} aria-hidden /> Start a drive</button></div>}
         </header>
-        {creating && leader && <NewDrive onDone={() => { setCreating(false); void load(); }} />}
+        {creating && leader && <NewDrive onDone={() => { setCreating(false); void load(); }} onCancel={() => setCreating(false)} />}
         {o && (
           <section className="pg-all">
             <div><p className="k">Whole register · sterilisation</p><Partition yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" /></div>
@@ -74,7 +75,7 @@ export function Programmes() {
 }
 
 const KINDS: CampaignKind[] = ["sterilisation", "vaccination", "census", "treatment", "other"];
-function NewDrive({ onDone }: { onDone: () => void }) {
+function NewDrive({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState("");
   const [kind, setKind] = useState<CampaignKind>("sterilisation");
   const [zone, setZone] = useState("");
@@ -89,7 +90,7 @@ function NewDrive({ onDone }: { onDone: () => void }) {
       <div className="field"><label htmlFor="pg-z">Locality <span className="small">optional</span></label><input id="pg-z" className="input" value={zone} onChange={(e) => setZone(e.target.value)} /></div>
       <div className="field"><label htmlFor="pg-f">From</label><input id="pg-f" type="date" className="input" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
       <div className="field"><label htmlFor="pg-t">To <span className="small">optional</span></label><input id="pg-t" type="date" className="input" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} /></div>
-      <div className="pg-new-go"><button type="submit" className="btn is-ink" disabled={busy || name.trim().length < 3}>{busy ? "Sending…" : "Create the drive"}</button><span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not created: {r.error}</Ack>) : null}</span></div>
+      <div className="pg-new-go"><button type="submit" className="btn is-ink" disabled={busy || name.trim().length < 3}>{busy ? "Sending…" : "Create the drive"}</button><CancelButton onCancel={onCancel} disabled={busy} /><span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not created: {r.error}</Ack>) : null}</span></div>
     </form>
   );
 }

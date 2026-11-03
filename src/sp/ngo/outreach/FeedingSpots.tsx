@@ -11,6 +11,7 @@
    can sign up (/community/feeding).
    ════════════════════════════════════════════════════════════════════ */
 
+import { CancelButton } from "@/sp/ui/CancelButton";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { latLngToCell } from "h3-js";
@@ -63,7 +64,7 @@ export function FeedingSpots() {
         </header>
         <PageBrief items={[["For", "The places your team feeds, and who offered to help there."], ["Watch", "Spots not fed in 7 days, or never recorded as fed."], ["Next", "Add a spot on site: the location is captured from your phone."], ["After", "It appears on the public feeding map, where volunteers can sign up."]]} />
 
-        {adding && <AddSpot onDone={async (ok) => { if (ok) { setAdding(false); await read(); } }} />}
+        {adding && <AddSpot onDone={async (ok) => { if (ok) { setAdding(false); await read(); } }} onCancel={() => setAdding(false)} />}
 
         {load.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={() => void read()}>Try again</button>}>{load.error} A failed read is never shown as no spots.</State>}
         {load.state === "reading" && <div className="stack" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="skel" style={{ height: 44 }} />)}</div>}
@@ -105,7 +106,7 @@ export function FeedingSpots() {
   );
 }
 
-function AddSpot({ onDone }: { onDone: (ok: boolean) => void | Promise<void> }) {
+function AddSpot({ onDone, onCancel }: { onDone: (ok: boolean) => void | Promise<void>; onCancel: () => void }) {
   const [name, setName] = useState("");
   const [zone, setZone] = useState("");
   const [description, setDescription] = useState("");
@@ -140,7 +141,7 @@ function AddSpot({ onDone }: { onDone: (ok: boolean) => void | Promise<void> }) 
       <div className="row" style={{ ["--g" as string]: "8px" }}>
         <button type="button" className="btn" onClick={locate} disabled={locating}><Crosshair size={15} aria-hidden /> {coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : locating ? "Locating…" : "Capture location (required)"}</button>
         <label className="btn"><Camera size={15} aria-hidden /> {photo ? photo.name.slice(0, 24) : "Photo (optional)"}<input type="file" accept="image/*" hidden onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></label>
-        <button type="submit" className="btn is-ink" disabled={busy}>{busy ? "Saving…" : "Add the spot"}</button>
+        <button type="submit" className="btn is-ink" disabled={busy}>{busy ? "Saving…" : "Add the spot"}</button><CancelButton onCancel={onCancel} disabled={busy} />
       </div>
       {err && <Ack state="failed">{err}</Ack>}
       {r && (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">{r.error}</Ack>)}

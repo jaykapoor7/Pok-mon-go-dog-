@@ -18,12 +18,12 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity, BookOpen, Building2, ChevronDown, ChevronsUpDown, Compass, FileText, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers,
   LifeBuoy, LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
-  ListChecks, MoreHorizontal, Settings, ClipboardCheck,
+  ListChecks, MoreHorizontal, Settings, ClipboardCheck, ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
@@ -69,6 +69,11 @@ export function Shell({ children, flush = false }: { children: ReactNode; flush?
 
 function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }) {
   const path = usePathname() ?? "/";
+  const router = useRouter();
+  // Pages visited inside the app this session, so Back can return to the
+  // previous screen instead of leaving StrayPaw.
+  const visits = useRef(0);
+  useEffect(() => { visits.current += 1; }, [path]);
   const [ws, setWs] = useState<WorkspaceId>(() => workspaceFor(path, null));
   useEffect(() => { const w = workspaceFor(path, lastWorkspace()); setWs(w); if (ORDER.some((x) => path === `/${x}` || path.startsWith(`/${x}/`))) rememberWorkspace(w); }, [path]);
   const aiWorkspace = ws;
@@ -134,6 +139,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const isFlush = flush || isMap || path === "/ngo/work" || path === "/assistant";
   const here = currentDestination(ws,path,mem.role,mem.reviewer);
   const section=def.index.find(g=>g.label===here?.group)?.links.find(l=>l.primary);
+  const atHome = path === def.home;
+  const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
 
   return (
@@ -224,6 +231,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               )}
             </div>
             ) : <span className="sp-ws sx3-ws-m sx3-ws-static"><i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span></span>}
+            {!atHome && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
