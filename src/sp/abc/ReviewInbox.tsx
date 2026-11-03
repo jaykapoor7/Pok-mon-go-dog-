@@ -77,6 +77,19 @@ export function ReviewInbox() {
         : ctx && ctx.offices.length === 0 ? <div className="abc-empty"><b>No reviewing office.</b>Ask your programme lead, or <Link href="/contact">contact us</Link>.</div>
         : list && (
           <>
+            {/* Oversight at a glance: decisions due, what is overdue, where packages stand. */}
+            {(() => {
+              const overdue = waiting.filter((p) => (days(p.submitted_at) ?? 0) > 14).length;
+              const exceptions = Object.values(checks).reduce((n, c) => n + (c === "unavailable" ? 0 : c.exceptions), 0);
+              const unread = waiting.filter((p) => p.item_review_enabled && (!checks[p.id] || checks[p.id] === "unavailable")).length;
+              const accepted = list.filter((p) => p.status === "accepted").length, partly = list.filter((p) => p.status === "partially_accepted").length;
+              return <dl className="abc-glance">
+                <div><dt>Waiting for decision</dt><dd>{waiting.length}{overdue ? <small className="is-late"> · {overdue} over 14 days</small> : null}</dd></div>
+                <div><dt>Claim exceptions found</dt><dd>{exceptions}{unread ? <small> · {unread} not yet checked</small> : null}</dd></div>
+                <div><dt>With the operator</dt><dd>{onOperator.length}</dd></div>
+                <div><dt>Accepted</dt><dd>{accepted}{partly ? <small> · {partly} partly</small> : null}</dd></div>
+              </dl>;
+            })()}
             <div className="abc-stages" role="group" aria-label="Show">
               <button type="button" aria-pressed={tab === "waiting"} onClick={() => setTab("waiting")}>Waiting for you <b>{waiting.length}</b></button>
               <button type="button" aria-pressed={tab === "operator"} onClick={() => setTab("operator")}>Waiting on the operator <b>{onOperator.length}</b></button>

@@ -173,3 +173,11 @@
 .abc-perf tbody th { color: #0b1e3d; font-weight: 500; }
 .ms-office { display: grid; gap: 4px; max-width: 360px; font-size: 13px; color: #5b6475; }
 .ms-bill ul { margin: 2px 0; padding-left: 18px; font-size: 13.5px; }
+.abc-glance { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 4px 0 16px; border-top: 1px solid rgba(11, 30, 61, .09); border-bottom: 1px solid rgba(11, 30, 61, .09); }
+.abc-glance > div { padding: 12px 14px; display: grid; gap: 4px; }
+.abc-glance > div + div { border-left: 1px solid rgba(11, 30, 61, .07); }
+.abc-glance dt { font-size: 12.5px; color: #6f7380; }
+.abc-glance dd { margin: 0; font-size: 24px; font-weight: 500; letter-spacing: -0.02em; color: #0b1e3d; }
+.abc-glance small { font-size: 12.5px; font-weight: 400; color: #6f7380; letter-spacing: 0; }
+.abc-glance small.is-late { color: #b4361f; }
+@media (max-width: 760px) { .abc-glance { grid-template-columns: 1fr 1fr; } .abc-glance > div:nth-child(3) { border-left: 0; } .abc-glance > div:nth-child(n+3) { border-top: 1px solid rgba(11, 30, 61, .07); } }
