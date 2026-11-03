@@ -38,15 +38,15 @@ export function Programmes() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · programmes</p><h1 className="serif">Programmes</h1></div>
-          <p className="ngo-sum">{o ? <>Across your drives, <b>{n(o.total)}</b> animals: sterilisation recorded for <b>{n(o.sterilised + o.not_sterilised)}</b>, not recorded for <b>{n(o.ster_unknown)}</b>.</> : "Sterilisation, vaccination, census and treatment drives, each with the animals filed into it."}{bd && bd.waiting.ours + bd.waiting.community > 0 ? <> <Link className="link" href="/ngo/inbox">{n(bd.waiting.ours + bd.waiting.community)} reports waiting to be filed</Link>.</> : null}</p>
+          <p className="ngo-sum">{o ? <>In your register, <b>{n(o.total)}</b> animals: sterilisation recorded for <b>{n(o.sterilised + o.not_sterilised)}</b>, not recorded for <b>{n(o.ster_unknown)}</b>.</> : "Sterilisation, vaccination, census and treatment drives, each with the animals filed into it."}{bd && bd.waiting.ours + bd.waiting.community > 0 ? <> <Link className="link" href="/ngo/inbox">{n(bd.waiting.ours + bd.waiting.community)} reports waiting to be filed</Link>.</> : null}</p>
           {leader&&<div className="row"><button type="button" className="btn is-ink is-s" onClick={() => setCreating((v) => !v)}><Plus size={14} aria-hidden /> Start a drive</button></div>}
         </header>
         {creating && leader && <NewDrive onDone={() => { setCreating(false); void load(); }} />}
         {o && (
           <section className="pg-all">
-            <div><p className="k">All drives · sterilisation</p><Partition yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" /></div>
-            <div><p className="k">All drives · vaccination</p><Partition yes={o.vaccinated} no={o.not_vaccinated} unknown={o.vacc_unknown} yesLabel="vaccinated" /></div>
-            {bd && bd.unfiled.animals > 0 && <p className="small">{n(bd.unfiled.animals)} animals in your register are in no drive; they are not counted above.</p>}
+            <div><p className="k">Whole register · sterilisation</p><Partition yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" /></div>
+            <div><p className="k">Whole register · vaccination</p><Partition yes={o.vaccinated} no={o.not_vaccinated} unknown={o.vacc_unknown} yesLabel="vaccinated" /></div>
+            {bd && bd.unfiled.animals > 0 && <p className="small">{n(bd.unfiled.animals)} of these animals are not in any drive yet. Start a drive to read a camp’s own coverage.</p>}
           </section>
         )}
         <div className="wk-tools"><button type="button" className="chip" aria-pressed={archived} onClick={() => setArchived((v) => !v)}>Include archived drives</button></div>

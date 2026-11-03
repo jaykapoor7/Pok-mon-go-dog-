@@ -22,6 +22,7 @@ import { stageOf, verificationQueue, type QueueRow } from "@/lib/abc";
 import { useMembership } from "../shell/Shell";
 import { Work } from "./Work";
 import { KajuActivity } from "./KajuActivity";
+import { KajuPrepared } from "./KajuPrepared";
 import "./brief.css";
 
 const H = 3_600_000, DAY = 24 * H;
@@ -133,6 +134,7 @@ export function Brief() {
               {todo.length ? rows(todo, true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
               <div className="br-chips">{isVet ? <Link href="/ngo/verification">Open verification <ArrowRight size={12} aria-hidden /></Link> : <Link href="/ngo/work">Open the work queue <ArrowRight size={12} aria-hidden /></Link>}{todo.length > 0 && <button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button>}</div>
             </section>
+            {!isVet && <KajuPrepared key={mem.org?.id ?? "org"} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
             <section aria-labelledby="br-out" className="br-sec">
               <h2 id="br-out" className="br-h">Recent activity</h2>
               {out.length ? rows(out, false) : <p className="br-empty">{d.unavailable.includes("recent changes")?"Recent changes could not be read.":"Nothing new in the last day."}</p>}

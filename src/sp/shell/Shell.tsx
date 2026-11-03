@@ -91,6 +91,13 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   }, [user, ready, connectionEpoch]);
   /* The sidebar for this person: their role's tools only, each group
      labelled once. Restricted links fail closed while the role loads. */
+  /* A shared page such as /assistant opened directly (a bookmark, a new
+     tab) belongs to the person's professional workspace, not Community. */
+  useEffect(() => {
+    if (!mem.ready || lastWorkspace() || ORDER.some((w) => path === `/${w}` || path.startsWith(`/${w}/`))) return;
+    const home: WorkspaceId | null = mem.member ? "ngo" : mem.reviewer ? "city" : null;
+    if (home) { setWs(home); rememberWorkspace(home); }
+  }, [mem.ready, mem.member, mem.reviewer, path]);
   const def = workspaceView(aiWorkspace, mem.role, mem.reviewer);
   const nav = visibleNav(def.nav, mem.role, mem.reviewer);
 
