@@ -1,8 +1,8 @@
 /* Shared product identity. Deliberately scoped so partner forms and public
    navigation use the same palette without changing their behaviour. */
 html .sp {
- --ink:#0b1e3d; --slate:#163966; --steel:#234777; --paper:#fffdf9;
- --bone:#eae0d2; --electric:#b6d0ff; --electric-ink:#2457ce;
+ --ink:#0b1e3d; --slate:#163966; --steel:#234777; --paper:#ffffff;
+ --bone:#eef2f9; --electric:#b6d0ff; --electric-ink:#2457ce;
  --vermilion:#f05b40; --vermilion-ink:#a8300f; --cyan:#66c5d5;
  --line:#e3d9ca; --line-dark:#3d5b80;
  --primary:222 68% 47%; --primary-foreground:0 0% 100%;

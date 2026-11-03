@@ -17,7 +17,7 @@
 
 .sp {
   --ink: #0b1e3d; --ink-2: #33415c; --ink-3: #4f5d75; --mute: #5d6b7c; --faint: #8a93a3;
-  --shell: #f3ede4; --shell-2: #ece4d7; --shell-3: #e2d8c8; --paper: #fffdf9;
+  --shell: #f5f7fb; --shell-2: #ece4d7; --shell-3: #e2d8c8; --paper: #ffffff;
   --flame: #f05b40; --flame-ink: #c1391c; --flame-soft: #fde6df;
   --blue: #2457ce; --blue-ink: #1b46b0; --blue-soft: #e4ebfa;
   --teal: #1f6f80; --teal-soft: #dcefef; --amber: #9a6a0c; --amber-soft: #f6e9cb;
@@ -154,7 +154,7 @@ html .sp :is(.ngo-head, .ci-head, .mo-head, .tr-head, .ac-cover, .ac-cover.is-sl
 .sp .portrait.is-art figcaption.portrait-credit i { font-style: normal; }
 
 /* v3: no dark-blue surfaces. The old navy sheet token points at StrayPaw blue. */
-.sp { --sheet: #2457ce; --sheet-2: #1b46b0; --sheet-ink: #fffdf9; --sheet-mute: #e4ebfa; }
+.sp { --sheet: #2457ce; --sheet-2: #1b46b0; --sheet-ink: #ffffff; --sheet-mute: #e4ebfa; }
 
 /* Phones: rows of tabs and channels swipe sideways instead of running off the edge; IDs stay legible. */
 @media (max-width: 760px) {

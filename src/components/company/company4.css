@@ -83,7 +83,7 @@
 .w4-contact { margin: 26px 0 0; font-size: 14.5px; color: var(--ink-2); }
 .w4-contact a { color: var(--ink); font-weight: 650; text-underline-offset: 3px; }
 .rs { width: 100%; height: auto; max-height: 76svh; overflow: visible; }
-.rs-land { fill: #f3ede4; stroke: var(--ink); stroke-width: 0.3; stroke-linejoin: round; }
+.rs-land { fill: #f5f7fb; stroke: var(--ink); stroke-width: 0.3; stroke-linejoin: round; }
 .rs-echo { fill: none; stroke: var(--flame); stroke-width: 0.3; opacity: 0.6; }
 .rs-pt { fill: #dcc9a6; transition: fill 0.6s var(--out); }
 .rs.is-lit .rs-pt { fill: var(--flame); transition-delay: calc(var(--d) * 0.6s); }

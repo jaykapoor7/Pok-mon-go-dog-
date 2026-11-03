@@ -20,7 +20,7 @@
   --x-ink-3: #1e3763;
   --x-paper: #f4efe6;
   --x-paper-2: #ebe3d6;
-  --x-card: #fffdf9;
+  --x-card: #ffffff;
   --x-text: #0b1e3d;
   --x-body: #344257;
   --x-mute: #5b6676;
@@ -35,7 +35,7 @@
   --x-teal: #237f8f;
   --x-teal-soft: #dcf0f2;
   --x-cyan: #66c5d5;
-  --x-on-night: #f4eee5;
+  --x-on-night: #f5f7fb;
   --x-on-night-dim: #b9c7dd;
   --x-on-night-line: rgba(244, 238, 229, 0.14);
   --x-hatch: repeating-linear-gradient(-45deg, rgba(11, 30, 61, 0.16) 0 1.5px, transparent 1.5px 6px);

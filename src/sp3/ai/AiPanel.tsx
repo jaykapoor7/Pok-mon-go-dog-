@@ -404,6 +404,7 @@ function ProposalCard({ p }: { p: Proposal }) {
           <button type="button" className="s3-btn is-sm is-primary" onClick={confirm} disabled={state === "busy" || checking || !user}>{state === "busy" ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}{p.kind === "email" && p.send ? "Confirm and send" : p.kind === "chat_post" ? "Confirm and post" : p.kind === "sms" ? "Confirm and send SMS" : p.kind === "report_file" ? "Confirm and download" : p.kind === "calendar_event" ? "Confirm and add" : "Confirm and save"}</button>
           <button type="button" className="s3-btn is-sm is-ghost" onClick={() => setState("cancel")} disabled={state === "busy"}>Cancel</button>
           {!user && <span className="s3-small">Sign in to save.</span>}
+          <span className="ai3-prop-who">{outside ? "Nothing leaves StrayPaw until you confirm." : "Saved in your name, with the time, only when you confirm."}</span>
         </div>
       )}
     </div>

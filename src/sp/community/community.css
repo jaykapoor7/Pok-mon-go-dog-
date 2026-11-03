@@ -88,7 +88,7 @@
 .sp .ar-photo { position: sticky; top: calc(var(--bar) + 20px); display: grid; gap: 8px; }
 .sp .ar-photo .portrait.is-l { aspect-ratio: 5 / 4; border-radius: 6px; box-shadow: 0 30px 60px -40px rgba(11, 30, 61, 0.6); }
 .sp .ar-id { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 10px; }
-.sp .ar-strip { display: inline-block; width: fit-content; padding: 4px 10px; border-radius: 4px; background: var(--ink); color: #f3ede4; font-size: 12.5px; }
+.sp .ar-strip { display: inline-block; width: fit-content; padding: 4px 10px; border-radius: 4px; background: var(--ink); color: #f5f7fb; font-size: 12.5px; }
 .sp .ar-id .display { font-size: clamp(54px, 7vw, 108px); }
 .sp .ar-where { font-size: 16px; color: var(--ink-2); }
 .sp .ar-where .serif { font-size: 28px; color: var(--ink); }

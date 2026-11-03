@@ -65,7 +65,7 @@ export function FeedingSpots() {
 
         {adding && <AddSpot onDone={async (ok) => { if (ok) { setAdding(false); await read(); } }} />}
 
-        {load.state === "failed" && <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={() => void read()}>Try again</button>}>{load.error} A failed read is never shown as no spots.</State>}
+        {load.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={() => void read()}>Try again</button>}>{load.error} A failed read is never shown as no spots.</State>}
         {load.state === "reading" && <div className="stack" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="skel" style={{ height: 44 }} />)}</div>}
         {load.state === "read" && !rows.length && <State art="ngo-empty" title="No feeding spots yet" action={<button type="button" className="btn is-ink" onClick={() => setAdding(true)}>Add the first spot</button>}>Add the places your team feeds. Each needs its location captured on site.</State>}
 

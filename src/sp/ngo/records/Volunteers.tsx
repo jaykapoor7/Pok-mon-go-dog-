@@ -20,6 +20,7 @@ import { NgoGate } from "../Gate";
 import { readVolunteers } from "./read";
 import "../ngo.css";
 import "./records.css";
+import { friendlyError } from "@/lib/friendly-error";
 
 const isEmail = (c: string) => c.includes("@");
 const contactHref = (c: string) => (isEmail(c) ? `mailto:${c}` : `tel:${c.replace(/\s+/g, "")}`);
@@ -43,7 +44,7 @@ export function Volunteers() {
         <PageBrief items={[["For", "People who offered to help an animal your organisation keeps, and sign-ups StrayPaw shared with you. No other organisation sees them."], ["Watch", "The newest offers; they are not yet on your team."], ["Next", "Contact them, then add them on Team with a personal code."], ["After", "They can report for your organisation, and see nothing private."]]} />
         <div className="rc-body">
           {d.state === "loading" && <div className="rc-skel" aria-label="Reading sign-ups"><span className="skel" /><span className="skel" /><span className="skel" /></div>}
-          {d.state === "failed" && <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Sign-ups could not be read ({d.error}). This is not the same as no sign-ups.</State>}
+          {d.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Sign-ups could not be read. {friendlyError(d.error)} This is not the same as no sign-ups.</State>}
           {d.state === "read" && !d.rows.length && <State art="ngo-empty" title="No sign-ups yet" action={<Link className="btn is-ink" href="/ngo/team">Add someone to your team</Link>}>People who offer to help on StrayPaw appear here with how to reach them. Someone you already know can be added to your team with a personal code instead.</State>}
           {d.state === "read" && d.rows.length > 0 && (
             <div className="rc-stack">

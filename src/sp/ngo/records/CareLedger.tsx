@@ -22,6 +22,7 @@ import { NgoGate } from "../Gate";
 import { CARE_LIMIT, readCare } from "./read";
 import "../ngo.css";
 import "./records.css";
+import { friendlyError } from "@/lib/friendly-error";
 
 const labelFor = (kind: string) => MEDICAL_KINDS.find((k) => k.id === kind)?.label ?? kind;
 const MEDICAL_CATEGORIES = new Set(["injury", "vaccination", "sterilisation"]);
@@ -68,7 +69,7 @@ function Events() {
   const groups = useMemo(() => { const g: { m: string; rows: PartnerMedicalEvent[] }[] = []; for (const e of visible) { const m = month(e.event_date); if (g.at(-1)?.m !== m) g.push({ m, rows: [] }); g.at(-1)!.rows.push(e); } return g; }, [visible]);
 
   if (d.state === "loading") return <div className="rc-skel" aria-label="Reading care history"><span className="skel" /><span className="skel" /><span className="skel" /></div>;
-  if (d.state === "failed") return <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>The care history could not be read ({d.error}). Nothing is shown as empty.</State>;
+  if (d.state === "failed") return <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>The care history did not load. {friendlyError(d.error)} Nothing is shown as empty.</State>;
   if (!d.rows.length) return <State art="ngo-empty" title="No care recorded yet" action={<Link className="btn is-ink" href="/ngo/animals">Open the animal register</Link>}>Open an animal and add treatment, vaccination or sterilisation to its history. It appears here, dated and attached to that animal.</State>;
 
   return (
@@ -117,7 +118,7 @@ function MedicalCases() {
   const medical = useMemo(() => (d.state === "read" ? d.rows.filter(isMedical).sort((a, b) => +new Date(b.last_activity_at) - +new Date(a.last_activity_at)) : []), [d]);
 
   if (d.state === "loading") return <div className="rc-skel" aria-label="Reading medical cases"><span className="skel" /><span className="skel" /><span className="skel" /></div>;
-  if (d.state === "failed") return <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Medical cases could not be read ({d.error}). Nothing is shown as empty.</State>;
+  if (d.state === "failed") return <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Medical cases could not be read. {friendlyError(d.error)} Nothing is shown as empty.</State>;
   if (!medical.length) return <State art="ngo-empty" title="No medical cases yet" action={<Link className="btn is-ink" href="/ngo">Open the work queue</Link>}>Cases about injury, vaccination or sterilisation, or with medical notes, appear here. Cases from other organisations never do.</State>;
 
   return (

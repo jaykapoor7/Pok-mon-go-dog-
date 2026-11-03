@@ -6,7 +6,7 @@
      blue    #2457ce  primary action, selection, neutral data
      flame   #f05b40  urgency and Report only, never decoration
      teal    #1f6f80  care / ARV
-     ground  #fbf9f4  warm off-white page
+     ground  #ffffff  warm off-white page
      surface #ffffff  raised panels and product windows
    Type: DM Sans throughout. Weight and size carry hierarchy.
    Motion: 160–220ms, cubic-bezier(.23,1,.32,1); none under reduced motion.
@@ -17,7 +17,7 @@
   --s3-ink-2: #2a3a57;
   --s3-mute: #5b6679;
   --s3-faint: #8b93a2;
-  --s3-ground: #fbf9f4;
+  --s3-ground: #ffffff;
   --s3-ground-2: #f4f0e8;
   --s3-surface: #ffffff;
   --s3-sunk: #f7f5f0;

@@ -1,5 +1,5 @@
 /* Reading surfaces stay still. Art establishes the identity; the record supplies the proof. */
-.precision { --ink: #0b1e3d; --ink-2: #33415c; --mute: #5d6b7c; --shell: #f3ede4; --paper: #fffdf9; --flame: #f05b40; --blue: #2457ce; --teal: #1f6f80; --marigold: #f2b632; background: var(--shell); color: var(--ink); }
+.precision { --ink: #0b1e3d; --ink-2: #33415c; --mute: #5d6b7c; --shell: #f5f7fb; --paper: #ffffff; --flame: #f05b40; --blue: #2457ce; --teal: #1f6f80; --marigold: #f2b632; background: var(--shell); color: var(--ink); }
 .precision main { overflow: visible; }
 .precision h1, .precision h2, .precision h3 { text-wrap: balance; }
 .precision a { text-underline-offset: 4px; }

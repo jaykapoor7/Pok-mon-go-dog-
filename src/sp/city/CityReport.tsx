@@ -36,7 +36,7 @@ export function CityReport() {
         <button type="button" className="btn is-ink is-s" onClick={() => window.print()} disabled={!list.length}><Printer size={14} aria-hidden /> Print or save as PDF</button>
       </div>
       {loading && <div className="skel" style={{ height: 600, margin: 28 }} />}
-      {error && <State kind="error" title="Not read">{error}</State>}
+      {error && <State kind="error" title="Didn't load">{error}</State>}
       {city && !loading && !error && (
         <article className="cr-doc">
           <section className="cr-cover">

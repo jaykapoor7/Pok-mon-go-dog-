@@ -13,7 +13,7 @@
 .sp .atlas .maplibregl-ctrl-attrib { font-size: 10px; background: rgba(251, 246, 238, 0.85); }
 .sp .atlas .maplibregl-ctrl-bottom-right { right: calc(var(--insp) + 28px); }
 .sp .atlas-err { position: absolute; z-index: 6; top: 120px; left: 24px; max-width: 360px; padding: 12px 14px; font-size: 14px; }
-.sp .atlas-tip { position: absolute; z-index: 7; pointer-events: none; display: grid; gap: 1px; max-width: 280px; padding: 8px 11px; border-radius: 10px; background: var(--ink); color: #f3ede4; font-size: 12.5px; line-height: 1.35; box-shadow: 0 10px 24px -10px rgba(11, 30, 61, 0.6); }
+.sp .atlas-tip { position: absolute; z-index: 7; pointer-events: none; display: grid; gap: 1px; max-width: 280px; padding: 8px 11px; border-radius: 10px; background: var(--ink); color: #f5f7fb; font-size: 12.5px; line-height: 1.35; box-shadow: 0 10px 24px -10px rgba(11, 30, 61, 0.6); }
 .sp .atlas-tip span { color: rgba(243, 237, 228, 0.78); }
 
 /* ── the place, printed on the map ─────────────────────────────────── */

@@ -85,7 +85,7 @@ export function Evidence() {
         <div aria-live="polite" className="or-receipt">{receipts.map((r, i) => <div key={i}>{r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not saved: {r.error}</Ack>}</div>)}</div>
 
         {failed ? (
-          <State kind="error" title="Not read" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed} A failed read is never shown as an empty library.</State>
+          <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed} A failed read is never shown as an empty library.</State>
         ) : docs === null ? (
           <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 180 }} /></div>
         ) : docs.length === 0 ? (
@@ -129,7 +129,7 @@ export function Evidence() {
             )}
           </>
         )}
-        <p className="small ngo-foot" style={{ paddingTop: 18 }}>Any member of your organisation can file, describe and attach scans; the database checks membership on every write and refuses anyone else.</p>
+        <p className="small ngo-foot" style={{ paddingTop: 18 }}>Anyone in your organisation can file and attach scans. People outside it cannot.</p>
       </div>
     </NgoGate>
   );

@@ -257,7 +257,7 @@ html .spa.spa .spa-mobile-report{display:none}
 /* A field workspace should have a ground. The map, lists and report form
    remain crisp working surfaces; the space around them now carries the quiet
    scale and orientation of a city atlas instead of defaulting to white. */
-html .spa.spa{background:var(--sp-ground)}html .spa.spa .spa-body{background:var(--sp-ground)}html .spa.spa .spa-side{background: var(--x-card, #fffdf9)}/* The console ground is the warm ground, and nothing else.
+html .spa.spa{background:var(--sp-ground)}html .spa.spa .spa-body{background:var(--sp-ground)}html .spa.spa .spa-side{background: var(--x-card, #ffffff)}/* The console ground is the warm ground, and nothing else.
    What stood here was a repeating dot field (two radial-gradients tiled
    at 43px and 31px) plus a hairline rule at 91%, and the ::before below
    it was a fixed 560px circle with two concentric ring shadows in the
@@ -833,7 +833,7 @@ html .spa.spa .spa-top {
 }
 html .spa.spa .spa-side a { border-radius: 6px; }
 html .spa.spa .spa-side a.active {
-  background: var(--x-card, #fffdf9);
+  background: var(--x-card, #ffffff);
   color: var(--sp-blue);
   box-shadow: inset 2px 0 0 var(--sp-blue);
 }
@@ -1281,7 +1281,7 @@ html .spa .partner-gate { border-radius: 0; background: rgba(36,87,206,.055); }
 .ch-dot { padding:0 8px; color:var(--sp-rule); }
 /* The single orange thing on the page, because filing a record is the one
    action this screen exists to make obvious. */
-.ch-report { display:inline-flex; flex:none; align-items:center; gap:8px; min-height:var(--ctl-h); padding:var(--ctl-pad); border-radius:var(--ctl-r); background:var(--sp-flame-deep); color:#fffdf9; font-size:var(--ctl-fs); font-weight:var(--ctl-fw); text-decoration:none; transition:background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io); }
+.ch-report { display:inline-flex; flex:none; align-items:center; gap:8px; min-height:var(--ctl-h); padding:var(--ctl-pad); border-radius:var(--ctl-r); background:var(--sp-flame-deep); color:#ffffff; font-size:var(--ctl-fs); font-weight:var(--ctl-fw); text-decoration:none; transition:background var(--sp-fast) var(--sp-ease-io), transform var(--sp-fast) var(--sp-ease-io); }
 .ch-report:hover { background:var(--sp-ember); }
 .ch-report:active { transform:var(--ctl-press); }
 .ch-error { margin:14px 0 0; color:var(--sp-ember); font-size:13px; }

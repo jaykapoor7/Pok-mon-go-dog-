@@ -14,7 +14,7 @@
   --d-panel-2: #132a52;
   --d-line: rgba(244, 238, 229, 0.08);
   --d-line-2: rgba(244, 238, 229, 0.16);
-  --d-text: #f4eee5;
+  --d-text: #f5f7fb;
   --d-dim: #c3cfe2;
   --d-mute: #93a4bf;
   --d-sky: #8fb7ff;
@@ -29,7 +29,7 @@
   --x-mute: var(--d-mute);
   --x-line: var(--d-line);
   --x-line-2: var(--d-line-2);
-  --x-ink: #f4eee5;
+  --x-ink: #f5f7fb;
   --x-ink-2: #e8dfd1;
   --x-ink-3: #ffffff;
   --x-blue: var(--d-sky);
@@ -41,7 +41,7 @@
   --x-hatch: repeating-linear-gradient(-45deg, rgba(244, 238, 229, 0.16) 0 1.5px, transparent 1.5px 6px);
 
   /* Older component tokens. */
-  --sp-ink: #f4eee5;
+  --sp-ink: #f5f7fb;
   --sp-paper: var(--d-panel);
   --sp-bone: var(--d-bg);
   --sp-shell: var(--d-panel-2);
@@ -54,7 +54,7 @@
   --sp-deepsky: var(--d-sky);
   --ctl-tint: rgba(143, 183, 255, 0.12);
   --ctl-tint-hover: rgba(143, 183, 255, 0.2);
-  --ink: #f4eee5;
+  --ink: #f5f7fb;
   --paper: var(--d-panel);
   --bone: var(--d-panel-2);
   --electric-ink: var(--d-sky);

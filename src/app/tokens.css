@@ -63,14 +63,14 @@
   --sp-muted: #505d70;       /* labels, captions, secondary          */
 
   /* ── Ground ───────────────────────────────────────────────────── */
-  --sp-paper: #fffdf9;       /* panels and cards                     */
-  --sp-bone: #f4eee5;        /* the warm light section ground        */
-  --sp-shell: #eae0d2;       /* one step down, for alternating       */
-  --sp-ground: #f3ede4;      /* the console's page ground            */
+  --sp-paper: #ffffff;       /* panels and cards                     */
+  --sp-bone: #f5f7fb;        /* the light section ground (4.0: blue-grey, never cream) */
+  --sp-shell: #eef2f9;       /* one step down, for alternating       */
+  --sp-ground: #f5f7fb;      /* the console's page ground            */
 
   /* ── Line ─────────────────────────────────────────────────────── */
-  --sp-line: #e3d9ca;
-  --sp-panel-line: #e6ddd0;
+  --sp-line: #e4e8f0;
+  --sp-panel-line: #e4e8f0;
   --sp-rule: rgba(11, 30, 61, 0.15);
   --sp-rule-dark: rgba(255, 255, 255, 0.18);
 
@@ -258,7 +258,7 @@
 /* ════════════════════════════════════════════════════════════════════
    SECTION GROUNDS — the landing page's rhythm.
 
-   Measured, the page ran: #f7f2ea hero, #ede5d9, #0b1e3d, #eae0d2,
+   Measured, the page ran: #f7f2ea hero, #ede5d9, #0b1e3d, #eef2f9,
    #a8300f. Two problems with that. The hero — the most important screen
    in the product — was the LIGHTEST thing on the page, and it sat four
    points away from the section directly beneath it, so the two barely
@@ -284,7 +284,7 @@
 
   /* Type on the dark plates. Set here rather than per-section so the
      hero and the console section cannot drift apart. */
-  --sp-on-field: #f4eee5;            /* headings and body on ink     */
+  --sp-on-field: #f5f7fb;            /* headings and body on ink     */
   --sp-on-field-dim: #b9c7dd;        /* secondary on ink             */
   --sp-on-field-accent: var(--sp-flame); /* the orange that works on ink */
 }

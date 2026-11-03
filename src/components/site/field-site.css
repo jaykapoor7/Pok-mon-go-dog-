@@ -176,7 +176,7 @@
 
 /* Launch surface: a record, not a decorative map. The dark field ground
    gives the public product its own atmosphere without paper-white sprawl. */
-.product-site{background:var(--pl-bone,#f4eee5)}/* THE HERO GROUND IS A GROUND.
+.product-site{background:var(--pl-bone,#f5f7fb)}/* THE HERO GROUND IS A GROUND.
 
    Five layers were stacked here: a dot field at 31px, a second dot
    field at 43px, a diagonal streak, and a 72px graph-paper grid made of
@@ -195,7 +195,7 @@
 /* A short depth-change, not a four-screen carousel. The record is the same
    throughout; the context around it changes as the reader moves down. */
 
-.role-help{background:var(--pl-shell,#eae0d2)!important}.role-help-links{background:transparent!important}/* Back on ink. At full bleed the vermilion stops being an accent and
+.role-help{background:var(--pl-shell,#eef2f9)!important}.role-help-links{background:transparent!important}/* Back on ink. At full bleed the vermilion stops being an accent and
    becomes the ground — and the closing headline's own accent word then
    sits vermilion on vermilion at 1.17:1, which is not low contrast, it is
    invisible. The accent still carries the italic line, against ink. */
@@ -412,8 +412,8 @@
 
      ink    #0b1e3d   every dark section, no exceptions
      deep   #071630   the closing, a shade of the same hue
-     bone   #f4eee5   the light ground
-     shell  #eae0d2   the second light ground, for banding
+     bone   #f5f7fb   the light ground
+     shell  #eef2f9   the second light ground, for banding
      flame  #f05b40   the accent, carried through every section
      ember  #a8300f   flame at small sizes on bone (4.5:1)
      sky    #8fb7ff   cool support on dark
@@ -1115,7 +1115,7 @@ html .sp.product-site .role-help-note {
 .role-help { max-width: none; padding-left: max(6vw, 28px); padding-right: max(6vw, 28px); background: #f7f2ea !important; }
 .role-help-links { border-color: var(--sp-rule); }
 .role-help-links a { border-color: var(--sp-rule); }
-.role-help-links a:hover { background: #fffdf9 !important; padding-left: 14px; }
+.role-help-links a:hover { background: #ffffff !important; padding-left: 14px; }
 .field-footer { background: var(--sp-ink); border-top: 1px solid rgba(255,255,255,.16); }
 .field-footer-brand,
 .field-footer nav a { color: #fff; }

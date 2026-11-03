@@ -5,7 +5,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 .fm {
-  --paper: #fffdf9; --card: #fffdf9; --shell: #f3ede4; --ink: #0b1e3d; --ink-2: #33415c; --muted: #5d6b7c; --rule: rgba(11, 30, 61, 0.09); --rule-2: rgba(11, 30, 61, 0.15);
+  --paper: #ffffff; --card: #ffffff; --shell: #f5f7fb; --ink: #0b1e3d; --ink-2: #33415c; --muted: #5d6b7c; --rule: rgba(11, 30, 61, 0.09); --rule-2: rgba(11, 30, 61, 0.15);
   --vermilion: #f05b40; --flame-ink: #c1391c; --teal: #1f6f80; --blue: #2457ce; --blue-soft: #e4ebfa; --turmeric: #d99b1c;
   --deva: var(--sp-deva-f), serif; --mono: var(--sp-mono-f), ui-monospace, monospace;
   --sh-s: 0 1px 2px rgba(11, 30, 61, 0.06);
@@ -218,7 +218,7 @@
 .fm-region.is-major b { font-size: 12px; }
 .fm-region i { font-family: var(--deva); font-style: normal; font-size: 11px; color: var(--flame-ink); opacity: 0.85; }
 .fm-region.is-range b { color: #8a3b2d; } .fm-region.is-plateau b { color: #7d5a14; } .fm-region.is-plain b { color: #3e6a40; } .fm-region.is-desert b { color: #85571a; } .fm-region.is-delta b, .fm-region.is-coast b { color: #1f5f6c; } .fm-region.is-peninsula b { color: #75561e; }
-.fm-place { pointer-events: none; font-weight: 600; font-size: 12.5px; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; opacity: 0; transition: opacity 0.3s; text-shadow: 0 0 2px #fffdf9, 0 0 6px #fffdf9, 0 0 10px #fffdf9; }
+.fm-place { pointer-events: none; font-weight: 600; font-size: 12.5px; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; opacity: 0; transition: opacity 0.3s; text-shadow: 0 0 2px #ffffff, 0 0 6px #ffffff, 0 0 10px #ffffff; }
 .fm-place.is-major { font-size: 14px; font-weight: 650; }
 .fm-place.is-on { opacity: 1; }
 .fm .is-crowded { opacity: 0 !important; pointer-events: none !important; }
@@ -252,7 +252,7 @@
 .fm-tip { position: absolute; z-index: 8; pointer-events: none; display: grid; gap: 2px; max-width: 280px; padding: 8px 11px; border-radius: 10px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--sh); font-size: 12.5px; color: var(--ink-2); }
 .fm-tip b { font-size: 13.5px; font-weight: 650; color: var(--ink); }
 .fm-err { position: absolute; z-index: 9; left: 50%; top: 92px; transform: translateX(-50%); width: min(420px, calc(100% - 32px)); padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--sh-l); text-align: center; }
-.fm-cross { position: absolute; z-index: 6; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--vermilion); pointer-events: none; filter: drop-shadow(0 0 2px #fffdf9); }
+.fm-cross { position: absolute; z-index: 6; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--vermilion); pointer-events: none; filter: drop-shadow(0 0 2px #ffffff); }
 .fm-pick { position: absolute; z-index: 9; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(520px, calc(100% - 32px)); display: grid; gap: 10px; padding: 16px 18px; border-radius: 18px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--sh-l); }
 .fm-pick p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 
@@ -304,10 +304,10 @@
 
 
 /* Daylight cartography, shared by the public and operational map. */
-.fm { background:#f3ede4; }
+.fm { background:#f5f7fb; }
 .fm-ctl button { width:44px; height:44px; }
 .fm-lenses button { min-height:44px; }
-.fm-sw.is-city { width:12px; height:12px; background:#2457ce; border:1px solid #fffdf9; }
+.fm-sw.is-city { width:12px; height:12px; background:#2457ce; border:1px solid #ffffff; }
 .fm-plate { background:#e4ebfa; }
 .fm-plate p { color:#0b1e3d; }
 .fm-plate p span { color:#46546b; }

@@ -13,6 +13,7 @@ import { since } from "../../ui";
 import { send, type Read } from "./api";
 import { ReceiptLine, useReceipt } from "./parts";
 import type { Overview, SectionId } from "./types";
+import { friendlyError } from "@/lib/friendly-error";
 
 export type Need = { id: SectionId; label: string; n: number; oldest: string | null; what: string };
 
@@ -48,7 +49,7 @@ export function Today({ secret, read, needs, onGo, reload }: { secret: string; r
       </section>
 
       {read?.state === "failed" && !read.data ? (
-        <p className="op-err" role="alert"><AlertTriangle size={16} aria-hidden /> The overview could not be read ({read.error}). The queues on the left were read separately.</p>
+        <p className="op-err" role="alert"><AlertTriangle size={16} aria-hidden /> The overview could not be read. {friendlyError(read.error)} The queues on the left were read separately.</p>
       ) : !o ? (
         <div className="cn-reading" role="status" aria-label="Reading the overview"><span className="skel" /><span className="skel" /><span className="skel" /></div>
       ) : (

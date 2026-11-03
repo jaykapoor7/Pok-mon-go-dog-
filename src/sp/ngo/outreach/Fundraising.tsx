@@ -56,7 +56,7 @@ export function Fundraising() {
         <div style={{ padding: "0 28px 8px" }}><Method items={[["Source", "your organisation's campaigns"], ["Raised", "reported by your organisation, not verified"], ["Money", "held by you, not StrayPaw"]]} /></div>
 
         {failed ? (
-          <State kind="error" title="Not read" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed}</State>
+          <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed}</State>
         ) : rows === null ? (
           <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 160 }} /></div>
         ) : rows.length === 0 ? (

@@ -23,6 +23,7 @@ import { NgoGate } from "../Gate";
 import { readOwnStories, type OwnStory } from "./read";
 import "../ngo.css";
 import "./records.css";
+import { friendlyError } from "@/lib/friendly-error";
 
 const blank = (): StoryStage[] => [{ label: "Reported", date: "" }, { label: "Care completed", date: "" }, { label: "Outcome", date: "" }];
 const MAX_STAGES = 7; /* the server keeps at most seven */
@@ -76,7 +77,7 @@ export function Stories() {
         <div className="rc-body rc-story">
           <form className="rc-form" onSubmit={(e) => { e.preventDefault(); void publish(); }}>
             <h2 className="h3">Feature a resolved case</h2>
-            {cases.state === "failed" && <State kind="error" title="Cases not read" action={<button type="button" className="btn is-s" onClick={loadCases}>Try again</button>}>Your resolved cases could not be read ({cases.error}). This is not the same as having none.</State>}
+            {cases.state === "failed" && <State kind="error" title="Cases not read" action={<button type="button" className="btn is-s" onClick={loadCases}>Try again</button>}>Your resolved cases could not be read. {friendlyError(cases.error)} This is not the same as having none.</State>}
             {cases.state === "loading" && <span className="skel" style={{ height: 46 }} />}
             {cases.state === "read" && (
               <div className="field">
@@ -124,7 +125,7 @@ export function Stories() {
             <section className="rc-published">
               <h2 className="h3">Published</h2>
               {own.state === "loading" && <span className="skel" style={{ height: 80 }} />}
-              {own.state === "failed" && <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={loadOwn}>Try again</button>}>Your published stories could not be read ({own.error}).</State>}
+              {own.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={loadOwn}>Try again</button>}>Your published stories could not be read. {friendlyError(own.error)}</State>}
               {own.state === "read" && !own.rows.length && <p className="small">Nothing published yet. Your first story appears here and on the public feed.</p>}
               {own.state === "read" && own.rows.length > 0 && (
                 <ol className="chrono">

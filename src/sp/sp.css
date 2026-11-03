@@ -7,7 +7,7 @@
 
    INKS (brand, unchanged)
      ink    #0B1E3D  text, linework, authority, the top bar
-     shell  #F3EDE4  paper ground
+     shell  #f5f7fb  paper ground
      flame  #F05B40  urgency and the single strongest action, never ornament
      blue   #2457CE  selection and neutral evidence
    FIELD INKS (map marks and editorial colour; meaning set by each legend)
@@ -29,10 +29,10 @@
   --ink-3: #4a5a76;
   --mute: #5f6b7e;
   --faint: #8a93a3;
-  --shell: #f3ede4;
+  --shell: #f5f7fb;
   --shell-2: #ebe3d6;
   --shell-3: #e2d8c8;
-  --paper: #fffdf9;
+  --paper: #ffffff;
   --flame: #f05b40;
   --flame-ink: #b4361a;
   --flame-soft: #fde4dc;
@@ -318,9 +318,9 @@
 .sp .portrait-none b { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 2.6vw, 38px); line-height: 0.98; color: #fbf6ee; text-shadow: 0 1px 0 rgba(0,0,0,0.25); }
 .sp .portrait.is-art .portrait-none b { color: #fbf6ee; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4); }
 .sp .portrait.is-art .portrait-none .mono { color: #fbf6ee; }
-.sp .portrait.is-art.is-dark .portrait-none .mono { color: #f3ede4; }
+.sp .portrait.is-art.is-dark .portrait-none .mono { color: #f5f7fb; }
 .sp .portrait-none .mono { font-size: 12px; letter-spacing: 0.08em; color: inherit; opacity: 0.8; }
-.sp .portrait.is-art figcaption.portrait-credit { position: absolute; left: 0; right: 0; bottom: 0; padding: 7px 12px; border-radius: 0; background: rgba(11, 30, 61, 0.78); color: #f3ede4; font-family: var(--mono); font-size: 10.5px; line-height: 1.35; }
+.sp .portrait.is-art figcaption.portrait-credit { position: absolute; left: 0; right: 0; bottom: 0; padding: 7px 12px; border-radius: 0; background: rgba(11, 30, 61, 0.78); color: #f5f7fb; font-family: var(--mono); font-size: 10.5px; line-height: 1.35; }
 .sp .portrait.is-m .portrait-none b { font-size: 20px; }
 
 

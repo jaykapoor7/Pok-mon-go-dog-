@@ -41,7 +41,7 @@ export function Readout<T>({ read, what, onRetry, children }: { read: Read<T> | 
   }
   if (read.state === "failed" && read.data === undefined) {
     return (
-      <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={onRetry}>Read again</button>}>
+      <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={onRetry}>Read again</button>}>
         <p>The {what} could not be read{read.status ? ` (the server answered ${read.status})` : ""}. This is not the same as there being none.</p>
         <p className="mono small">{read.error}</p>
       </State>

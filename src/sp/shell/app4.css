@@ -465,3 +465,8 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp.sx3 .sx3-side { transition: padding 200ms cubic-bezier(.2,.7,.2,1); }
 .sp.sx3 .sx3-nav a > span:not(.sx5-step):not(.sx4-sq) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp.sx3.is-collapsed .sx3-nav a .sx4-sq { display: grid; }
+
+/* Reports & proof: the scope sentence is a summary line, not a second title. */
+.sp.sx3 .pf-sentence { font-family: inherit !important; font-size: 17px !important; line-height: 1.5 !important; font-weight: 500 !important; letter-spacing: -0.01em !important; color: #0b1e3d; margin: 8px 0 12px !important; max-width: 70ch; }
+.sp.sx3 .pf-sentence em { font-style: normal; color: #2457ce; }
+.sp.sx3 .pf-not { color: #8a5a00 !important; }

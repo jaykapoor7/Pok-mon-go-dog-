@@ -4,7 +4,7 @@
    nothing floating over empty space.
    ════════════════════════════════════════════════════════════════════ */
 .rp3 {
-  --paper: #fffdf9; --shell: #f3ede4; --ink: #0b1e3d; --ink-2: #33415c; --muted: #5d6b7c; --rule: rgba(11, 30, 61, 0.09); --rule-2: rgba(11, 30, 61, 0.15);
+  --paper: #ffffff; --shell: #f5f7fb; --ink: #0b1e3d; --ink-2: #33415c; --muted: #5d6b7c; --rule: rgba(11, 30, 61, 0.09); --rule-2: rgba(11, 30, 61, 0.15);
   --vermilion: #f05b40; --flame-ink: #c1391c; --teal: #1f6f80; --blue: #2457ce; --blue-soft: #e4ebfa;
   --sh-s: 0 1px 2px rgba(11, 30, 61, 0.06); --sh: 0 1px 2px rgba(11, 30, 61, 0.05), 0 12px 32px -16px rgba(11, 30, 61, 0.25);
   flex: 1; display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: 40px; align-items: start;

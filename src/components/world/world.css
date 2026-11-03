@@ -4,9 +4,9 @@
    function of the stage's --p, so it plays the same both ways.
    ════════════════════════════════════════════════════════════════════ */
 
-.w1 .bs-frame { background: #f3ede4; }
+.w1 .bs-frame { background: #f5f7fb; }
 .wd { position: absolute; inset: 0; overflow: hidden; }
-.wd-map { position: absolute; inset: 0; background: #f3ede4; }
+.wd-map { position: absolute; inset: 0; background: #f5f7fb; }
 .wd-map .maplibregl-ctrl-attrib { background: rgba(255, 253, 249, 0.75) !important; font-size: 10px; }
 /* the painting, over the map: pushed into by the scroll, opened from its centre */
 .wd-art { position: absolute; inset: 0; overflow: hidden; background: #8c1c1c; --push: 1; --lx: 0px; --ly: 0px; }

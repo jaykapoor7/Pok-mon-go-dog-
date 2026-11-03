@@ -38,7 +38,7 @@ export function CasePage({ id }: { id: string }) {
   return (
     <NgoGate title="Case file" lede="One case your organisation holds, with its history and its next step.">
       {file === "loading" ? <div className="ngo-page"><div className="skel" style={{ height: 320, margin: 28 }} /></div>
-        : file === "error" ? <div className="ngo-page"><State kind="error" title="Not read" action={<button type="button" className="btn" onClick={() => void read()}>Try again</button>}>This case could not be read just now. Nothing was changed.</State></div>
+        : file === "error" ? <div className="ngo-page"><State kind="error" title="Didn't load" action={<button type="button" className="btn" onClick={() => void read()}>Try again</button>}>This case could not be read just now. Nothing was changed.</State></div>
         : !file ? <div className="ngo-page"><State kind="forbidden" title="Not available" action={<Link className="btn" href="/ngo">Back to Work</Link>}>This case is not readable with your organisation&rsquo;s access. It may belong to another organisation; cross-organisation access needs an accepted grant.</State></div>
         : <Body file={file} onChanged={read} />}
     </NgoGate>

@@ -58,7 +58,7 @@ export function Surveys() {
         {(making || (rows && rows.length === 0)) && <NewSurvey onCancel={rows && rows.length ? () => setMaking(false) : undefined} onDone={load} />}
 
         {failed ? (
-          <State kind="error" title="Not read" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed}</State>
+          <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed}</State>
         ) : rows === null ? (
           <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 140 }} /></div>
         ) : rows.length === 0 ? (
@@ -81,7 +81,7 @@ export function Surveys() {
           </div>
         )}
         {all >= 200 && <p className="small ngo-foot" style={{ paddingTop: 12 }}>Showing the 200 most recent surveys and projects.</p>}
-        <p className="small ngo-foot" style={{ paddingTop: 12 }}>Any member of your organisation can create a survey and collect counts; the database checks membership on every write.</p>
+        <p className="small ngo-foot" style={{ paddingTop: 12 }}>Anyone in your organisation can create a survey and add counts.</p>
       </div>
     </NgoGate>
   );

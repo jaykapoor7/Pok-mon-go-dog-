@@ -325,7 +325,7 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
     );
   }
   if (file === "loading") return <div className="wk-insp" aria-busy="true"><div className="skel" style={{ height: 14, width: "40%" }} /><div className="skel" style={{ height: 40, width: "80%", marginTop: 12 }} /><div className="skel" style={{ height: 180, marginTop: 18 }} /></div>;
-  if (file === "error") return <div className="wk-insp"><State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={() => void read()}>Try again</button>}>This case could not be read just now. Nothing was changed.</State></div>;
+  if (file === "error") return <div className="wk-insp"><State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={() => void read()}>Try again</button>}>This case could not be read just now. Nothing was changed.</State></div>;
   if (!file) return <div className="wk-insp"><State kind="forbidden" title="Not available">This case is not readable with your organisation&rsquo;s access. It may belong to another organisation; cross-organisation access needs an accepted grant.</State></div>;
 
   const { c, reg, animal, updates, followups, medical, neighbours, sameAnimal } = file;

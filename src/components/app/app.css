@@ -21,7 +21,7 @@
   --ink: #0b1e3d;
   --slate: #0e2240;
   --steel: #163056;
-  --paper: #fffdf9;
+  --paper: #ffffff;
   --bone: #e3d9ca;
   --electric: #8fb7ff;
   /* Softened from #ff6a4f so display headings clear 3:1 on the light
@@ -2549,7 +2549,7 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
   left: 14px;
   margin: 0;
 }
-.spa-profile-links.out .pp-code:hover { border-color: var(--electric-ink); background: var(--x-card, #fffdf9); }
+.spa-profile-links.out .pp-code:hover { border-color: var(--electric-ink); background: var(--x-card, #ffffff); }
 .spa-profile-links.out .pp-signin:active,
 .spa-profile-links.out .pp-code:active { transform: var(--ctl-press); }
 
@@ -3301,7 +3301,7 @@ html .spa.spa .spa-profile-links.out a.pp-signin:hover { background: #1d2942; co
    Two hues, validated against both console surfaces rather than picked:
    #2457ce and #c1391c clear the lightness band, the chroma floor, CVD
    separation (worst adjacent pair ΔE 27.2 protan), the normal-vision
-   floor (ΔE 33.8) and 3:1 contrast on #fffdf9 and #f3ede4 alike.
+   floor (ΔE 33.8) and 3:1 contrast on #ffffff and #f5f7fb alike.
 
    "Not examined" has no hue on purpose: it is the unfilled track. Any
    neutral fails a chroma floor by definition, and the honest reading is

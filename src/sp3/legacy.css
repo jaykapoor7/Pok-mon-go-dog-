@@ -7,10 +7,10 @@
 
 :is(.co3, .ms, .mk, .sitepage, .field-site, .product-site) { --serif: var(--sp-sans-f, var(--sx-sans, "DM Sans")), "DM Sans", system-ui, sans-serif; }
 :is(.co3, .ms, .mk, .sitepage, .field-site, .product-site) em { font-family: inherit !important; font-style: normal !important; font-weight: inherit !important; color: inherit !important; letter-spacing: inherit !important; }
-.sp.co3, .co3 { background: #fbf9f4; }
+.sp.co3, .co3 { background: #ffffff; }
 
 /* CoShell hero: from a night poster to a calm product page header. */
-.co3-hero { min-height: 0 !important; padding: clamp(72px, 10svh, 112px) max(clamp(20px, 5vw, 72px), calc((100vw - 1200px) / 2)) 56px !important; background: #fbf9f4 !important; color: #0b1e3d !important; border-bottom: 1px solid rgba(11, 30, 61, 0.09); }
+.co3-hero { min-height: 0 !important; padding: clamp(72px, 10svh, 112px) max(clamp(20px, 5vw, 72px), calc((100vw - 1200px) / 2)) 56px !important; background: #ffffff !important; color: #0b1e3d !important; border-bottom: 1px solid rgba(11, 30, 61, 0.09); }
 .co3-hero::after { display: none; }
 .co3-hero h1 { color: #0b1e3d !important; font-size: clamp(38px, 5vw, 64px) !important; line-height: 1.04 !important; font-weight: 600 !important; letter-spacing: -0.035em !important; }
 .co3-hero .co3-k, .co3-k { font-family: inherit !important; color: #2457ce !important; font-size: 13.5px !important; font-weight: 600; letter-spacing: 0 !important; }
@@ -29,4 +29,4 @@
 /* SitePage / field-site and MarketingPage headings */
 :is(.sitepage, .field-site, .mk, .ms) h1 { font-weight: 600 !important; letter-spacing: -0.035em !important; }
 :is(.sitepage, .field-site) :is(h1, h2) :is(span, b)[class*="accent"] { color: inherit !important; }
-.ms, .mk { background: #fbf9f4; }
+.ms, .mk { background: #ffffff; }

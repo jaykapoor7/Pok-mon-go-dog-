@@ -8,7 +8,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 .sw {
-  --ink: #0b1e3d; --ink-2: #33415c; --mute: #5d6b7c; --shell: #f3ede4; --paper: #fffdf9; --ivory: #fff8ec;
+  --ink: #0b1e3d; --ink-2: #33415c; --mute: #5d6b7c; --shell: #f5f7fb; --paper: #ffffff; --ivory: #fff8ec;
   --flame: #f05b40; --flame-ink: #c1391c; --blue: #2457ce; --teal: #1f6f80;
   --marigold: #f2b632; --saffron: #f28c38; --clay: #a9512d; --leaf: #3f8f6a; --rose: #d9738f;
   --serif: var(--sx-serif), "Instrument Serif", Georgia, serif; --mono: var(--sp-mono-f, "DM Mono"), ui-monospace, monospace;
@@ -37,7 +37,7 @@
 .sw .bs.is-still .bs-frame { position: relative; height: auto; min-height: 100svh; }
 
 /* painted India (VectorIndia): handmade paper, inked twice, the record in vermilion */
-.vi-land { fill: #f3ede4; stroke: var(--ink, #0b1e3d); stroke-width: 0.3; stroke-linejoin: round; }
+.vi-land { fill: #f5f7fb; stroke: var(--ink, #0b1e3d); stroke-width: 0.3; stroke-linejoin: round; }
 .vi-echo { fill: none; stroke: #f05b40; stroke-width: 0.3; opacity: 0.6; }
 .vi-pt { fill: #f05b40; stroke: #f2b632; stroke-width: 0.25; }
 

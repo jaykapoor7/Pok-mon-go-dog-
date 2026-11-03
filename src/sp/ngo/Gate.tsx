@@ -28,7 +28,7 @@ export function NgoGate({ title, lede, children }: { title: string; lede: string
       <header className="ngo-door-head">
         <p className="k">NGO workspace · {title}</p>
         <h1>{title === "Inbox" ? "Reports waiting for a person on your team." : `${title}, for your organisation.`}</h1>
-        <p className="ngo-door-sum">{lede} It loads only for members of an organisation, and the database checks every read. {signedIn
+        <p className="ngo-door-sum">{lede} Only members of your organisation can open it. {signedIn
           ? "Your account is not part of an organisation yet. Join with the invitation code your organisation's admin gave you, or apply to partner."
           : "Sign in with the code your organisation gave you to open its private workspace."}</p>
         <div className="ngo-door-act">

@@ -30,7 +30,7 @@ export function Stories({ rows, care, total, cities, city, next, error }: { rows
         <p className="lede">Animals whose requests for help are on the public record, from the day someone asked to where the record stops.{total !== null ? <> <b>{total.toLocaleString("en-IN")}</b> animals{city ? ` in ${city}` : ""}.</> : null} Photographs are the organisations&rsquo; own; where none was recorded, the page says so.</p>
         <nav className="row mo-cities" aria-label="City"><Link className="chip" aria-pressed={!city} href="/community/stories">Every city</Link>{cities.map((c) => <Link key={c} className="chip" aria-pressed={city === c} href={`/community/stories?city=${encodeURIComponent(c)}`}>{c}</Link>)}</nav>
       </header>
-      {error && <State kind="error" title="Not read">The stories could not be read just now. Nothing is shown as none.</State>}
+      {error && <State kind="error" title="Didn't load">The stories could not be read just now. Nothing is shown as none.</State>}
       {!error && !rows.length && <State title="No story here yet">{city ? `No organisation in ${city} has a public story yet.` : "No public story yet."}</State>}
       {[...byYear.entries()].map(([y, list]) => (
         <section key={y} className="st-year" aria-label={String(y)}>

@@ -23,7 +23,7 @@ export function Organisations({ orgs, impacts }: { orgs: DirectoryOrg[]; impacts
         <h1 className="display">Who keeps the record</h1>
         <p className="lede">The organisations whose work is on StrayPaw, and what kind of record each keeps. Listing is not an endorsement, a rating or a claim that they cover a whole city.</p>
       </header>
-      {!orgs.length && <State title="Not read">The directory could not be read just now.</State>}
+      {!orgs.length && <State title="Didn't load">The directory could not be read just now.</State>}
       {kinds.map(({ k, list }) => (
         <section key={k} className="og-sec" aria-labelledby={`og-${k}`}>
           <h2 id={`og-${k}`} className="og-k serif">{k}s <small className="small">{KIND_NOTE[k]}</small></h2>

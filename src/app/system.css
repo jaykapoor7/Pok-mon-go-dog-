@@ -99,7 +99,7 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   height: var(--ctl-h); padding: var(--ctl-pad); border-radius: var(--ctl-r); border: 0;
   font: inherit; font-size: var(--ctl-fs); font-weight: var(--ctl-fw); white-space: nowrap; text-decoration: none; cursor: pointer;
-  background: var(--sp-blue); color: #fffdf9;
+  background: var(--sp-blue); color: #ffffff;
   transition: var(--ctl-press-t);
 }
 .sys-btn:hover { background: var(--sp-blue-deep); }

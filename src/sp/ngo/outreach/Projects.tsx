@@ -61,7 +61,7 @@ export function Projects() {
         {(making || (projects && projects.length === 0)) && <NewProject onCancel={projects?.length ? () => setMaking(false) : undefined} onDone={async (id) => { setMaking(false); await reload(id); }} />}
 
         {failed ? (
-          <State kind="error" title="Not read" action={<button type="button" className="btn is-ink" onClick={() => void reload()}>Try again</button>}>{failed}</State>
+          <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void reload()}>Try again</button>}>{failed}</State>
         ) : projects === null ? (
           <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 200 }} /></div>
         ) : projects.length === 0 ? (
@@ -78,7 +78,7 @@ export function Projects() {
             {project && <Register key={project.id} project={project} />}
           </div>
         )}
-        <p className="small ngo-foot" style={{ paddingTop: 18 }}>Any member of your organisation can create a project and add entries; the database checks membership on every write.</p>
+        <p className="small ngo-foot" style={{ paddingTop: 18 }}>Anyone in your organisation can create a project and add entries.</p>
       </div>
     </NgoGate>
   );
@@ -117,7 +117,7 @@ function Register({ project }: { project: Survey }) {
         <Method items={[["Total", total !== null ? `${n(total)} ${total === 1 ? "entry" : "entries"}` : "not read"], ["Shown", entries ? `latest ${n(entries.length)} (up to ${CAP})` : "not read"], ["Fields", String(fields.length)]]} />
       </div>
       {failed ? (
-        <State kind="error" title="Not read" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed}</State>
+        <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed}</State>
       ) : entries === null ? (
         <div className="or-pj-sec"><div className="skel" style={{ height: 120 }} /></div>
       ) : (

@@ -17,7 +17,7 @@
 /* The can: it hangs off the point where its paint lands (the element's
    origin), leans into the wall, and throws a jet of paint at it. */
 .mw-hand { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; pointer-events: none; will-change: transform; transition: opacity .5s;
-  --can: #f05b40; --can-label: #fffdf9; --size: 80px; --tilt: -34deg; --jet: 40px; }
+  --can: #f05b40; --can-label: #ffffff; --size: 80px; --tilt: -34deg; --jet: 40px; }
 .mw-canwrap { position: absolute; left: var(--ox, 30px); top: var(--oy, 40px); width: var(--size); height: calc(var(--size) * 260 / 120);
   transform: translate(-50%, -5.4%) rotate(var(--tilt)); transform-origin: 50% 5.4%; }
 .mw-can { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(10px 18px 14px rgba(0, 0, 0, .45)); transform-origin: 50% 5.4%; }
@@ -37,10 +37,10 @@
 @keyframes mw-swap { 0% { transform: none; } 25% { transform: translate(30%, 60%) rotate(30deg); opacity: .15; } 45% { transform: translateY(6%) rotate(-14deg); opacity: 1; }
   55%, 75% { transform: translateY(-4%) rotate(12deg); } 65%, 85% { transform: translateY(4%) rotate(-12deg); } 100% { transform: none; } }
 
-.mw-again, .mw-sound { position: absolute; z-index: 5; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid rgba(255, 253, 249, .35); border-radius: 999px; background: rgba(12, 10, 16, .55); color: #fffdf9; cursor: pointer; backdrop-filter: blur(6px); }
+.mw-again, .mw-sound { position: absolute; z-index: 5; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid rgba(255, 253, 249, .35); border-radius: 999px; background: rgba(12, 10, 16, .55); color: #ffffff; cursor: pointer; backdrop-filter: blur(6px); }
 .mw-again { left: 0; right: 0; bottom: 28px; width: max-content; margin: 0 auto; min-height: 46px; padding: 0 22px; font: 700 15px var(--font-sans, sans-serif); animation: mw-rise .6s ease both; }
 .mw-sound { left: 20px; bottom: 28px; width: 44px; height: 44px; }
-.mw-again:hover, .mw-sound:hover { border-color: #fffdf9; }
+.mw-again:hover, .mw-sound:hover { border-color: #ffffff; }
 .mw-again:focus-visible, .mw-sound:focus-visible { outline: 3px solid #8fb7ff; outline-offset: 3px; }
 .mw-again:active { transform: scale(.97); }
 @keyframes mw-rise { from { opacity: 0; transform: translateY(10px); } }

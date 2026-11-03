@@ -94,7 +94,7 @@
   max-height: inherit;
   overflow-y: auto;
   padding: 24px;
-  background: var(--x-card, #fffdf9);
+  background: var(--x-card, #ffffff);
   border: 1px solid #e3d9ca;
   border-radius: 14px;
   box-shadow: 0 30px 70px rgba(11, 30, 61, 0.22);

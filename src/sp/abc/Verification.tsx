@@ -24,6 +24,11 @@ export function Dots({ n,total=5 }: { n: number;total?:number }) {
   return <span className="abc-dots" aria-label={`${n} of ${total} evidence items`}>{Array.from({length:total},(_,i)=>i).map((i) => <i key={i} className={i < n ? "is-on" : undefined} />)}<span aria-hidden>{n} of {total}</span></span>;
 }
 
+const EMPTY_STAGE: Record<Stage, string> = {
+  evidence: "No procedure is missing evidence.", vet: "Nothing is waiting for the vet.", review: "Nothing is waiting for review.",
+  returned: "Nothing has been returned.", ready: "Nothing is approved and waiting.", packaged: "Nothing is in a package.", accepted: "Nothing has been accepted yet.",
+};
+
 export function Verification() {
   const [rows, setRows] = useState<QueueRow[] | null>(null);
   const [ctx, setCtx] = useState<AbcContext | null>(null);
@@ -82,7 +87,7 @@ export function Verification() {
                 </Link></li>
               ); })}</ul>
             ) : (
-              <KajuEmptyState title={stage === "all" ? "No ABC procedures yet." : `Nothing is ${STAGE_LABEL[stage as Stage].toLowerCase()}.`}>{stage === "all" ? "Sterilisation cases appear here." : null}</KajuEmptyState>
+              <KajuEmptyState title={stage === "all" ? "No ABC procedures yet." : EMPTY_STAGE[stage as Stage]}>{stage === "all" ? "Sterilisation cases appear here." : null}</KajuEmptyState>
             )}
             <p className="abc-foot">Historical imports and research datasets are not listed.</p>
           </>

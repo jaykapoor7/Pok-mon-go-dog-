@@ -91,7 +91,7 @@
 .sx.sd .x-btn.is-flame:hover { background: #dc4628; border-color: #dc4628; }
 .sx.sd .x-btn.is-ghost { background: transparent; border-color: transparent; color: var(--d-sky); }
 .sx.sd :is(.dk-btn, .sys-btn).is-flame { background: var(--d-flame); border-color: var(--d-flame); color: #fff; }
-.sx.sd .x-night { background: #0b1e3d; color: #f4eee5; }
+.sx.sd .x-night { background: #0b1e3d; color: #f5f7fb; }
 .sx.sd .dh-extra nav a.is-on, .sx.sd .x-chip[aria-pressed="true"] { background: var(--d-text); color: #fff; }
 .sx.sd .ib-period button.is-on { color: var(--d-text); border-bottom-color: var(--d-flame); }
 .sx.sd :is(.text-paw-500, .text-paw-600, .text-paw-700, .text-paw-800) { color: var(--d-flame-ink); }
@@ -174,7 +174,7 @@
 .sx.sd .sm.ax.is-night {
   --d-bg: #07122a; --d-panel: #0b1a38; --d-panel-2: #11244a;
   --d-line: rgba(244, 238, 229, 0.08); --d-line-2: rgba(244, 238, 229, 0.16);
-  --d-text: #f4eee5; --d-dim: #b7c3d6; --d-mute: #8292ad; --d-sky: #8fb7ff;
+  --d-text: #f5f7fb; --d-dim: #b7c3d6; --d-mute: #8292ad; --d-sky: #8fb7ff;
   color: var(--d-text);
 }
 .sx.sd .db-map { border-radius: 22px; box-shadow: 0 30px 60px -36px rgba(11, 30, 61, 0.6), 0 0 0 1px rgba(11, 30, 61, 0.2); }
@@ -319,7 +319,7 @@
    the map shows, and a details card that appears only when asked.
    ════════════════════════════════════════════════════════════════════ */
 .sx.sd .sm.ax { --ax-gap: 18px; --ax-ink: #0b1e3d; --ax-halo: 0 0 2px #f4f3eb, 0 0 10px rgba(244, 243, 235, 0.95), 0 0 22px rgba(244, 243, 235, 0.8); }
-.sx.sd .sm.ax.is-night { --ax-ink: #f4eee5; --ax-halo: 0 0 2px #081631, 0 0 12px rgba(8, 22, 49, 0.95), 0 0 24px rgba(8, 22, 49, 0.8); }
+.sx.sd .sm.ax.is-night { --ax-ink: #f5f7fb; --ax-halo: 0 0 2px #081631, 0 0 12px rgba(8, 22, 49, 0.95), 0 0 24px rgba(8, 22, 49, 0.8); }
 .sx.sd .ax-scale, .sx.sd .ax-rail-open { display: none !important; }
 
 .sx.sd .ax-cap { position: absolute; z-index: 4; top: calc(var(--ax-gap) + 4px); left: calc(var(--ax-gap) + 10px); max-width: min(520px, calc(100% - 120px)); pointer-events: none; color: var(--ax-ink); }

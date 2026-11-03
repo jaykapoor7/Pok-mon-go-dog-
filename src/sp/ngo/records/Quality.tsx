@@ -20,6 +20,7 @@ import { NgoGate } from "../Gate";
 import { ANIMAL_LIMIT, readQuality, type QualityInput } from "./read";
 import "../ngo.css";
 import "./records.css";
+import { friendlyError } from "@/lib/friendly-error";
 
 const DAY = 86_400_000;
 type Animal = QualityInput["animals"][number];
@@ -86,7 +87,7 @@ export function Quality() {
         <LocalitySpellings />
         <div className="rc-body">
           {d.state === "loading" && <div className="rc-skel" aria-label="Reading records"><span className="skel" /><span className="skel" /><span className="skel" /></div>}
-          {d.state === "failed" && <State kind="error" title="Not read" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>The review queues could not be read ({d.error}). No queue is shown as zero.</State>}
+          {d.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>The review queues could not be read. {friendlyError(d.error)} No queue is shown as zero.</State>}
           {d.state === "read" && t && qs && (
             <div className="rc-stack">
               <Method items={[["Animals checked", checked < t.animals ? `${n(checked)} most recently seen of ${n(t.animals)}` : `all ${n(t.animals)}`], ["Records", `${n(t.cases)} cases, ${n(t.care)} care, ${n(t.followups)} follow-ups, ${n(t.outcomes)} outcomes`], ["Rules", "as in 1.0"]]} />

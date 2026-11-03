@@ -5,7 +5,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 .w2 .bs-frame { display: grid; grid-template-rows: auto 1fr auto; justify-items: center; padding: clamp(76px, 10svh, 100px) 0 16px;
-  background: radial-gradient(70% 60% at 50% 45%, #fbf6ee 0%, #f3ede4 72%); }
+  background: radial-gradient(70% 60% at 50% 45%, #fbf6ee 0%, #f5f7fb 72%); }
 .cv { display: contents; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
@@ -31,7 +31,7 @@
 
 /* scraps of the old way: torn paper, taped */
 .cv-frags { position: absolute; inset: 0; pointer-events: none; opacity: calc(1 - clamp(0, calc((var(--gather) - 0.9) * 10), 1)); }
-.cv-frag { position: absolute; left: 0; top: 0; padding: 10px 14px; background: #fffdf9; color: var(--ink); font-size: 17px; font-weight: 550; white-space: nowrap; border: 1px solid rgba(11, 30, 61, 0.2); box-shadow: 0 10px 24px -14px rgba(11, 30, 61, 0.5); clip-path: polygon(0 4%, 6% 0, 18% 3%, 34% 0, 52% 4%, 70% 0, 86% 3%, 100% 0, 99% 50%, 100% 100%, 82% 97%, 64% 100%, 46% 96%, 28% 100%, 12% 97%, 0 100%, 1% 50%); }
+.cv-frag { position: absolute; left: 0; top: 0; padding: 10px 14px; background: #ffffff; color: var(--ink); font-size: 17px; font-weight: 550; white-space: nowrap; border: 1px solid rgba(11, 30, 61, 0.2); box-shadow: 0 10px 24px -14px rgba(11, 30, 61, 0.5); clip-path: polygon(0 4%, 6% 0, 18% 3%, 34% 0, 52% 4%, 70% 0, 86% 3%, 100% 0, 99% 50%, 100% 100%, 82% 97%, 64% 100%, 46% 96%, 28% 100%, 12% 97%, 0 100%, 1% 50%); }
 .cv-frag::before { content: ""; position: absolute; left: 50%; top: -6px; width: 44px; height: 14px; translate: -50% 0; rotate: -4deg; background: rgba(242, 182, 50, 0.55); }
 .cv-frag.is-sheet { font-family: var(--mono); font-size: 14.5px; background: #eaf3e6; }
 .cv-frag.is-file { font-family: var(--mono); font-size: 14.5px; background: #eef1f7; }

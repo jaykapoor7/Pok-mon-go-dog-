@@ -12,7 +12,7 @@
    `place-items: center` on a 100dvh grid was also pushing the card ~110px
    down a phone screen with nothing above it. It starts near the top on a
    phone and only centres when there is room to spare. */
-.join-shell { min-height: 100dvh; background: var(--sp-shell, #f3ede4); }
+.join-shell { min-height: 100dvh; background: var(--sp-shell, #f5f7fb); }
 .join-page { min-height: calc(100dvh - 72px); padding: 20px; }
 /* Clear the floating Report action on a phone so it never overlaps the card. */
 @media (max-width: 760px) { .join-page { padding-bottom: 36px; } }
@@ -21,7 +21,7 @@
   display: grid;
   place-items: start center;
   padding: 20px 18px 56px;
-  background: var(--sp-shell, #f3ede4);
+  background: var(--sp-shell, #f5f7fb);
   color: var(--ink, #0b1020);
 }
 @media (min-height: 760px) {
@@ -96,7 +96,7 @@
      job of saying "type here". At 18% alpha it did not. */
   border: 1.5px solid rgba(11, 16, 32, 0.30);
   border-radius: 10px;
-  background: var(--sp-paper, #fffdf9);
+  background: var(--sp-paper, #ffffff);
   color: var(--ink, #0b1020);
   font: inherit;
   font-size: 16px; /* 16px, so iOS does not zoom the page on focus */

@@ -23,6 +23,11 @@ const url = validUrl(rawUrl);
  * this module, including the server-role reader, and turns a stalled network
  * request into the existing per-route empty/error states. */
 const boundedSupabaseFetch = createBoundedSupabaseFetch();
+/* In the browser a signed-in organisation reads its own records under row
+ * security, which on a large register (thousands of animals) can take
+ * several seconds. The browser client waits longer so those reads finish;
+ * server renders keep the short bound above. */
+const browserSupabaseFetch = createBoundedSupabaseFetch({ timeoutMs: 25_000 });
 
 /** True when valid Supabase credentials are configured. */
 export const isSupabaseConfigured = Boolean(url && anonKey);
@@ -49,7 +54,7 @@ export function getSupabase(): SupabaseClient | null {
           // otherwise fails with "string did not match the expected pattern").
           flowType: "implicit",
         },
-        global: { fetch: boundedSupabaseFetch },
+        global: { fetch: typeof window === "undefined" ? boundedSupabaseFetch : browserSupabaseFetch },
       });
     } catch {
       return null;

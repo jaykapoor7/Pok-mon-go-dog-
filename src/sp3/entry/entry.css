@@ -33,7 +33,7 @@
 .s3e-news b { font-size: 16px; font-weight: 600; }
 .s3e-news span { font-size: 14px; color: rgba(255, 255, 255, 0.7); }
 .s3e-preview { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 0; border-radius: 14px; background: #fff; height: 220px; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5); overflow: hidden; }
-.s3e-pv-side { background: #f6f4ef; display: grid; align-content: start; gap: 10px; padding: 14px 12px; }
+.s3e-pv-side { background: #ffffff; display: grid; align-content: start; gap: 10px; padding: 14px 12px; }
 .s3e-pv-side i { height: 8px; border-radius: 4px; background: #dcd7cc; }
 .s3e-pv-side i.on { background: var(--s3-blue); }
 .s3e-pv-main { padding: 16px; display: grid; gap: 12px; align-content: start; }
