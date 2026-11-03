@@ -114,6 +114,7 @@ export function fieldPartnerStrip() {
   return fieldPartners.organisations.map((o) => ({
     name: o.name,
     city: o.city,
+    logo: o.logoUrl ?? null,
     relationship: (o.name === "The Pawsome People Project" ? "operational" : o.name === "The Kind Hour Foundation" ? "imported" : "field") as Relationship,
   })).sort((a, b) => (a.relationship === b.relationship ? a.name.localeCompare(b.name) : a.relationship === "operational" ? -1 : b.relationship === "operational" ? 1 : a.relationship === "imported" ? -1 : 1));
 }

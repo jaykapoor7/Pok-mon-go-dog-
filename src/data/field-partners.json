@@ -10,7 +10,7 @@
       "state": null,
       "mission": null,
       "website": null,
-      "logoUrl": null
+      "logoUrl": "/partners/humane-animal-society.png"
     },
     {
       "id": "57d7e234-d0d1-413e-912a-95d8f9ce8aad",
@@ -30,7 +30,7 @@
       "state": "Assam",
       "mission": "One Health research and rabies-elimination programmes.",
       "website": "https://www.creindia.org/",
-      "logoUrl": null
+      "logoUrl": "/partners/jh-creindia-foundation.webp"
     },
     {
       "id": "6bdb78ef-c0e7-4a4e-9b5e-c91a498ae935",
@@ -40,7 +40,7 @@
       "state": null,
       "mission": null,
       "website": null,
-      "logoUrl": null
+      "logoUrl": "/partners/just-be-friendly.png"
     },
     {
       "id": "a77d2cf8-f422-4a9d-95c7-df47aa75b435",
@@ -50,7 +50,7 @@
       "state": "Jharkhand",
       "mission": "Eliminating dog-mediated rabies through evidence-led vaccination.",
       "website": "https://missionrabies.com",
-      "logoUrl": null
+      "logoUrl": "/partners/mission-rabies.svg"
     },
     {
       "id": "01356602-a0c6-461a-ae5d-cbd51a88401a",
@@ -70,7 +70,7 @@
       "state": null,
       "mission": null,
       "website": null,
-      "logoUrl": null
+      "logoUrl": "/partners/peedu-s-people.png"
     },
     {
       "id": "08bc60e8-a1dd-4f6e-96f1-1c1128697586",
@@ -80,7 +80,7 @@
       "state": null,
       "mission": null,
       "website": null,
-      "logoUrl": null
+      "logoUrl": "/partners/save-our-strays.png"
     },
     {
       "id": "4439043c-bba8-476e-9277-6af639eea4dd",
@@ -90,7 +90,7 @@
       "state": "Uttar Pradesh",
       "mission": "Our aim, long term, is to replace rescue and shelter organisations with local communities that respect and care for the animals in their vicinity.",
       "website": "https://www.thekindhour.org",
-      "logoUrl": null
+      "logoUrl": "/partners/the-kind-hour-foundation.webp"
     },
     {
       "id": "857b629a-6f17-4a42-b419-8ef804527443",
@@ -100,7 +100,7 @@
       "state": "Tamil Nadu",
       "mission": "Community animal rescue, treatment follow-up, sterilisation and vaccination work in Coimbatore.",
       "website": null,
-      "logoUrl": "https://www.straypaw.org/partners/pawsome-people-project-logo.svg"
+      "logoUrl": "/partners/pawsome-people-project-logo.svg"
     }
   ]
 }

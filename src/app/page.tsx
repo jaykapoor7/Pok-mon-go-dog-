@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import {
   ArrowRight, ArrowUpRight, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History,
-  KeyRound, Landmark, MapPin, MessageCircle, ShieldCheck, Smartphone, Sparkles, UserCheck, Plus,
+  KeyRound, Landmark, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck, Plus,
 } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
@@ -100,7 +100,9 @@ export default function HomePage() {
           {partners.map((p) => {
             const s = STORIES.find((x) => x.name === p.name);
             const tint = TINTS[[...p.name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % TINTS.length];
-            const inner = <><span className="s6-pt-av" aria-hidden style={{ ["--pt" as string]: tint }}>{p.name.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !/^(the|of|and|for)$/i.test(w)).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("")}</span><span className="s6-pt-txt"><b>{p.name}</b><small><MapPin size={12} aria-hidden />{p.city}</small></span>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}</>;
+            const inner = <>{p.logo
+              ? <span className="s6-pt-logo"><img src={p.logo} alt={`${p.name} logo`} loading="lazy" decoding="async" /></span>
+              : <span className="s6-pt-av" aria-hidden style={{ ["--pt" as string]: tint }}>{p.name.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !/^(the|of|and|for)$/i.test(w)).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("")}</span>}<span className="s6-pt-txt"><b>{p.name}</b><small><MapPin size={12} aria-hidden />{p.city}</small></span>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}</>;
             return s ? <Link key={p.name} href={`/customers/${s.slug}`} aria-label={`${p.name} case study`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
           })}
         </div>
@@ -141,12 +143,11 @@ export default function HomePage() {
             <h2 id="int-title" className="s4-h2"><TwoTone blue a="Kaju works with" b="the tools your team uses." /></h2>
             <Link href="/platform#integrations" className="s4-link is-ink">Every integration and its status <ArrowRight size={18} aria-hidden /></Link>
           </div>
-          <div className="s6-int" aria-label="Integrations and their status">
-            {INT_GROUPS.map((g) => (
-              <section key={g.k} className={`s6-int-g is-${g.k}`} aria-labelledby={`int-${g.k}`}>
-                <h3 id={`int-${g.k}`}><i aria-hidden />{g.title}<small>{g.note}</small></h3>
-                <ul>{g.items.map((t) => <li key={t.n}><span className="s6-int-ic" aria-hidden style={{ ["--ic" as string]: t.c }}>{t.i}</span><span><b>{t.n}</b><small>{t.d}</small></span></li>)}</ul>
-              </section>
+          <div className="s4-int s6-int-color" aria-label="Integrations and their status">
+            {INT_COLS.map((col, c) => (
+              <div key={c} className="s4-int-col">
+                {col.map((t) => <div key={t.n} className={`s4-int-t is-${t.s === "Live" ? "live" : t.s === "Setup pending" ? "setup" : "plan"}`} style={{ ["--ic" as string]: t.c }}><span className="s6-int-ic" aria-hidden>{t.i}</span><b>{t.n}</b><small><i className={t.s === "Live" ? "is-live" : t.s === "Not connected" ? "is-off" : t.s === "Setup pending" ? "is-setup" : ""} />{t.s}</small></div>)}
+              </div>
             ))}
           </div>
         </div>
@@ -204,32 +205,18 @@ export default function HomePage() {
   );
 }
 
-/* Integrations as they really stand (docs/CONNECTIONS.md). Providers use plain letter marks in their colour, not
-   their logos. "Built, needs account setup": the adapter is built and tested, waiting for the administrator's OAuth
-   keys. Nothing is shown as working before it does. */
-type Int = { n: string; d: string; c: string; i: ReactNode };
-const Mark = ({ l }: { l: string }) => <span className="s6-int-mark">{l}</span>;
+/* Integrations as they really stand (docs/CONNECTIONS.md). Providers use plain letter marks in their own colour, not
+   their logos. "Setup pending": built and tested, waiting for the administrator's OAuth keys. "Planned": not built yet.
+   Nothing here is shown as live before it is. */
 const TINTS = ["#2457ce", "#0f7b8a", "#c2532d", "#6b4fd8", "#1f8a52", "#b4590f"];
-const INT_GROUPS: { k: "live" | "setup" | "plan"; title: string; note: string; items: Int[] }[] = [
-  { k: "live", title: "Works today", note: "No account needed", items: [
-    { n: "Excel & CSV", d: "Import registers, export any list", c: "#1f8a52", i: <FileSpreadsheet /> },
-    { n: "PDF · Word · PowerPoint", d: "Read attachments, make reports", c: "#c2532d", i: <FileText /> },
-    { n: "WhatsApp paste intake", d: "Paste messages, get draft records", c: "#1f9d55", i: <MessageCircle /> },
-    { n: "Phone field mode", d: "Low-end Android, slow networks", c: "#2457ce", i: <Smartphone /> },
-    { n: "Photos & GPS", d: "Evidence with place and time", c: "#6b4fd8", i: <Camera /> },
-    { n: "Map exports", d: "GeoJSON and KML, real points only", c: "#0f7b8a", i: <MapPin /> },
-    { n: "Report packages", d: "Monthly bill with its evidence", c: "#2457ce", i: <ClipboardList /> },
-    { n: "Reviewer access", d: "Government offices read the record", c: "#0f7b8a", i: <UserCheck /> },
-  ] },
-  { k: "setup", title: "Built, needs account setup", note: "Turns on when your administrator connects it", items: [
-    { n: "Google Workspace", d: "Drive, Sheets, Gmail, Calendar", c: "#1a73e8", i: <Mark l="G" /> },
-    { n: "Microsoft 365", d: "OneDrive, Excel, Outlook", c: "#0f6cbd", i: <Mark l="M" /> },
-    { n: "Slack", d: "Post to a channel you are in", c: "#4a154b", i: <Mark l="S" /> },
-    { n: "Zoho Mail", d: "India data centre by default", c: "#c8202f", i: <Mark l="Z" /> },
-    { n: "SMS (MSG91)", d: "Approved reminders to field staff", c: "#b4590f", i: <MessageSquareText /> },
-  ] },
-  { k: "plan", title: "Planned", note: "Not connected yet", items: [
-    { n: "WhatsApp (direct)", d: "Waiting for Meta approval", c: "#1f9d55", i: <MessageCircle /> },
-    { n: "Government e-Office", d: "File movement with municipal offices", c: "#2457ce", i: <Landmark /> },
-  ] },
+type IntTile = { n: string; s: "Live" | "Setup pending" | "Not connected" | "Planned"; c: string; i: ReactNode };
+const Mark = ({ l }: { l: string }) => <span className="s4-int-mark">{l}</span>;
+const INT_COLS: IntTile[][] = [
+  [{ n: "Google Workspace", s: "Setup pending", c: "#1a73e8", i: <Mark l="G" /> }, { n: "Excel & CSV", s: "Live", c: "#1f8a52", i: <FileSpreadsheet /> }, { n: "Email", s: "Live", c: "#2457ce", i: <Mail /> }],
+  [{ n: "Microsoft 365", s: "Setup pending", c: "#0f6cbd", i: <Mark l="M" /> }, { n: "Slack", s: "Setup pending", c: "#4a154b", i: <Mark l="S" /> }, { n: "Phone field mode", s: "Live", c: "#2457ce", i: <Smartphone /> }],
+  [{ n: "Zoho Mail", s: "Setup pending", c: "#c8202f", i: <Mark l="Z" /> }, { n: "Photos & GPS", s: "Live", c: "#6b4fd8", i: <Camera /> }],
+  [{ n: "SMS (MSG91)", s: "Setup pending", c: "#b4590f", i: <MessageSquareText /> }, { n: "Government e-Office", s: "Planned", c: "#5b6b8c", i: <Landmark /> }],
+  [{ n: "WhatsApp (direct)", s: "Not connected", c: "#1f9d55", i: <MessageCircle /> }, { n: "WhatsApp paste intake", s: "Live", c: "#1f9d55", i: <MessageCircle /> }, { n: "Map exports", s: "Live", c: "#0f7b8a", i: <MapPin /> }],
+  [{ n: "PDF · Word · PowerPoint", s: "Live", c: "#c2532d", i: <FileText /> }, { n: "Reviewer access", s: "Live", c: "#0f7b8a", i: <UserCheck /> }],
+  [{ n: "Record search", s: "Live", c: "#2457ce", i: <ScanSearch /> }, { n: "Report packages", s: "Live", c: "#6b4fd8", i: <ClipboardList /> }],
 ];
