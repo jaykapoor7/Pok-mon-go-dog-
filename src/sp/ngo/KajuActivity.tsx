@@ -24,8 +24,8 @@ export function KajuActivity({orgId}:{orgId:string}){
  const flagged=run?.findings.filter(f=>f.count!==0||f.configured===false)??[];
  const stale=run&&Date.now()-Date.parse(run.checked_at)>26*3600000;
  const time=(date:string)=>new Date(date).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
- return <section className="br-sec br-kaju" aria-labelledby="br-kaju-activity">
-  <h2 id="br-kaju-activity" className="br-h">Kaju activity</h2>
+ return <details className="br-sec br-kaju br-fold" aria-labelledby="br-kaju-activity">
+  <summary><h2 id="br-kaju-activity" className="br-h">Kaju&rsquo;s record checks</h2><span className="br-fold-n">{run?`${flagged.length} to look at`:''}</span></summary>
   <div role="status"><p className="br-empty">{!current||current.loading?'Reading the latest record check…':current.failed?'The latest check could not be read. Findings are unknown.':run?<>Records checked <time dateTime={run.checked_at}>{time(run.checked_at)}</time>. {flagged.length} of {run.findings.length} rules need review.</>:'No operational check is recorded yet.'}</p></div>
   {current?.failed&&<button type="button" className="ai3-inline" onClick={()=>void load()}>Read check again</button>}
   {run&&<>
@@ -38,5 +38,5 @@ export function KajuActivity({orgId}:{orgId:string}){
    </li>)}</ul>}
   </>}
   <div className="br-chips"><button type="button" disabled={ai.busy||!ai.scope} onClick={()=>ai.ask('Run operational checks on my organisation. Explain the recorded gaps and prepare a report for review. Do not change any case or send a message.')}>{ai.busy?'Checking records…':'Check records with Kaju'}</button></div>
- </section>;
+ </details>;
 }

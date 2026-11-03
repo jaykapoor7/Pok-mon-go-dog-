@@ -25,6 +25,7 @@
    Keys: j/k ↓/↑ move · Enter open · Esc close · o case file · m map · / search
    ════════════════════════════════════════════════════════════════════ */
 
+import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Search, Upload, X } from "lucide-react";
@@ -182,10 +183,8 @@ export function Work() {
         {!loading && !failed && cohort === "live" && <Ribbon rows={co.live} focus={focus} onFocus={(f) => { setFocus(f); setSel(null); }} />}
         </MobileDetails>
         <nav className="wk2-go" aria-label="Work tools">
-          <Link href="/ngo/inbox" className="wk2-btn">Inbox &amp; triage</Link>
-          <Link href="/ngo/field" className="wk2-btn">Field mode</Link>
+          {/* New case lives in the top bar and Field mode in the tabs above; only the import is unique to this page. */}
           <Link href="/ngo/import" className="wk2-btn"><Upload size={15} aria-hidden />Import register</Link>
-          <Link href="/ngo/cases/new" className="wk2-btn is-ink">New case</Link>
         </nav>
       </header>
 
@@ -287,7 +286,7 @@ function QueueRow({ r, on, me, onPick }: { r: Row; on: boolean; me: string; onPi
   const tone = r.crit ? "crit" : r.kind === "followup" ? "late" : status === "In progress" ? "work" : "open";
   return (
     <div id={`wk-${r.key}`} data-key={r.key} role="option" aria-selected={on} className={`wk2-row is-${tone}${on ? " is-on" : ""}`} onClick={onPick}>
-      <span className="wk2-code">{c?.case_code ?? f?.case_code ?? "—"}</span>
+      <span className="wk2-code">{shortCode(c?.case_code ?? f?.case_code, "—")}</span>
       <span className="wk2-age" title={r.kind === "followup" ? `Due ${day(f?.due_at)}` : `Recorded ${day(c?.occurred_at)}`}>{r.kind === "followup" ? `${short(f?.due_at ?? null)} late` : short(c?.occurred_at ?? null)}</span>
       <b className="wk2-t">{title}</b>
       <small className="wk2-s">{[who, place].filter(Boolean).join(" · ") || "Animal and place not recorded"}{r.cell ? "" : " · no location"}</small>
@@ -338,7 +337,7 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
   const reloadAll = async () => { await read(); await onChanged(); };
   return (
     <div className="wk-insp">
-      <p className="k">{reg.case_code ?? "Case"} · {STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}{imported ? " · imported record" : ""}</p>
+      <p className="k">{shortCode(reg.case_code)} · {STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}{imported ? " · imported record" : ""}</p>
       <h2 className="wk2-ih">{reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title}</h2>
       <Chain steps={[
         { k: "Priority", v: row.kind === "followup" ? "Follow-up overdue" : row.crit ? "Critical" : cohort === "live" ? "Open" : cohort === "decide" ? "Needs a decision" : "Historical review", tone: row.crit || row.kind === "followup" ? "urgent" : undefined },

@@ -25,9 +25,14 @@ export function Insights() {
   const router = useRouter();
   const { ds, ix, city, cities, error, loading } = useSpatialDataset("public");
   const [period, setPeriod] = useState<Period>("all");
+  /* One finding at a time: the numbered list is the menu, so the page never runs long. */
+  const [on, setOn] = useState(0);
   const row = cities.find((c) => c.city === city);
   const ld = useMemo(() => (ds && ix && city && row ? loadedScope(ds, ix, city, { cases: row.cases, animals: row.animals, open: row.open_cases ?? null }) : null), [ds, ix, city, row]);
   const list = useMemo(() => (ds && ix && city && ld ? findings(ds, ix, city, period, ld) : []), [ds, ix, city, period, ld]);
+  useEffect(() => { setOn(0); }, [city, period]);
+  useEffect(() => { const id = window.location.hash.slice(1); const i = list.findIndex((x) => x.id === id); if (i >= 0) setOn(i); }, [list]);
+  const shown = list[Math.min(on, Math.max(0, list.length - 1))];
   const ev = city ? cityEvidence(city, cities.find((c) => c.city === city)?.cells ?? 0) : null;
   const pick = (c: string) => { rememberHome(c); router.replace(`/city/insights?city=${encodeURIComponent(c)}`, { scroll: false }); };
   /* With no city in the link, open the person's own city, not simply the largest. */
@@ -62,10 +67,17 @@ export function Insights() {
         <div className="ci-wrap">
           <MobileDetails label="Jump to a finding" className="ci-index-fold"><nav className="ci-index" aria-label="Findings">
             <p className="k">{list.length} findings</p>
-            <ol>{list.map((x, i) => <li key={x.id}><a href={`#${x.id}`}><span className="mono">{String(i + 1).padStart(2, "0")}</span>{x.kicker}</a></li>)}</ol>
+            <ol>{list.map((x, i) => <li key={x.id}><button type="button" className="ci-tab" aria-current={i === on ? "true" : undefined} onClick={() => { setOn(i); history.replaceState(null, "", `#${x.id}`); }}><span className="mono">{String(i + 1).padStart(2, "0")}</span>{x.kicker}</button></li>)}</ol>
             <p className="small">Each finding says what it counts and what it cannot say. Figures come from the live record when this page was opened.</p>
           </nav></MobileDetails>
-          <div className="ci-list">{list.map((x, i) => <FindingView key={x.id} x={x} i={i} city={city!} />)}</div>
+          <div className="ci-list">
+            {shown && <FindingView key={shown.id} x={shown} i={on} city={city!} />}
+            <div className="ci-step">
+              <button type="button" className="btn is-s" disabled={on === 0} onClick={() => setOn((n) => n - 1)}>Previous finding</button>
+              <span className="small">{on + 1} of {list.length}</span>
+              <button type="button" className="btn is-s is-ink" disabled={on >= list.length - 1} onClick={() => setOn((n) => n + 1)}>Next finding</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

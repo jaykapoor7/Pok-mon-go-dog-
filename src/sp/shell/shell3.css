@@ -9,7 +9,7 @@
 @media (min-width: 1240px) { .sp.sx3.has-ai { padding-right: 400px; } }
 
 /* ── sidebar ─────────────────────────────────────────────────────── */
-.sx3-side { position: sticky; top: 0; height: 100dvh; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 2px; padding: 12px 10px 10px; background: #f6f4ef; border-right: 1px solid var(--s3-line); scrollbar-width: thin; }
+.sx3-side { position: sticky; top: 0; height: 100dvh; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 2px; padding: 12px 10px 10px; background: #ffffff; border-right: 1px solid var(--s3-line); scrollbar-width: thin; }
 .sx3-side-top { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
 .sx3-ws { position: relative; flex: 1; min-width: 0; }
 .sx3-ws-btn { width: 100%; display: grid; grid-template-columns: 26px minmax(0, 1fr) 15px; align-items: center; gap: 9px; padding: 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--s3-ink); text-align: left; cursor: pointer; transition: background var(--s3-t); }

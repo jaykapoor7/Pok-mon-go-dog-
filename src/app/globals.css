@@ -804,3 +804,6 @@ body:has([role="dialog"]) :is(.sp-install-prompt, .snotice) { display: none; }
   line-height: 14px !important;
   font-weight: 400;
 }
+
+/* The storage notice is white with a blue-grey hairline, never cream. */
+.snotice { background: #ffffff; border-color: #e4e8f0; box-shadow: 0 18px 40px -24px rgba(11, 30, 61, .28); }

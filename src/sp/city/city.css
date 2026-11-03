@@ -173,3 +173,10 @@
   .sp-header, .sp .ci-controls, .sp .cp-cats, .sp-bar, .sp-tabbar, .sp-dock { display: none !important; }
   .sp .cp a { color: inherit; text-decoration: none; }
 }
+
+/* Findings as a menu: one finding on screen, the list selects it. */
+.sp .ci-index .ci-tab { display: flex; gap: 10px; width: 100%; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 13.5px; text-align: left; color: #2b3445; cursor: pointer; }
+.sp .ci-index .ci-tab:hover { background: #f2f5fc; }
+.sp .ci-index .ci-tab[aria-current="true"] { background: #e8eefb; color: #0b1e3d; font-weight: 500; }
+.sp .ci-index .ci-tab .mono { color: #2457ce; }
+.sp .ci-step { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0 8px; border-top: 1px solid #eceef2; margin-top: 8px; }

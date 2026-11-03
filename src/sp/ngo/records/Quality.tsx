@@ -44,7 +44,7 @@ function queues({ animals, records }: QualityInput): Queue[] {
   }
   const closed = (r: PartnerRecordRow) => /resolved|closed/i.test(r.status || "");
   return [
-    { title: "Animals missing StrayPaw ID", detail: "Permanent identity is missing. Run the rollout migration before relying on cross-register search or exports.", href: "/ngo/animals", items: animals.filter((a) => !a.straypaw_id?.trim()).map(animalItem) },
+    { title: "Animals missing StrayPaw ID", detail: "These animals do not have a permanent StrayPaw ID yet. Search across registers and exports may miss them until they do.", href: "/ngo/animals", items: animals.filter((a) => !a.straypaw_id?.trim()).map(animalItem) },
     { title: "Animals missing source ID", detail: "The profile exists, but cannot be matched back to an NGO spreadsheet, clinic register or tag.", href: "/ngo/animals", items: animals.filter((a) => !a.code?.trim()).map(animalItem) },
     { title: "Animals missing locality", detail: "Cannot support ward or locality reporting, cluster analysis or repeat-hotspot work.", href: "/ngo/animals", items: animals.filter((a) => !a.zone?.trim()).map(animalItem) },
     { title: "Suspicious record dates", detail: "Unparseable, future or extreme outlier dates distort yearly figures and map activity. Check the source before changing it.", href: "/ngo", items: records.filter((r) => { const t = Date.parse(r.date); return !Number.isFinite(t) || t > now + 30 * DAY || Math.abs(t - median) > 5 * 365 * DAY; }).map(recordItem) },

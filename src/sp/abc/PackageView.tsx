@@ -5,6 +5,7 @@
    records, figures and thread on both sides; the database decides which
    actions each person may take and refuses the rest. */
 
+import { shortCode } from "@/lib/caseCode";
 import {useMembership} from '../shell/Shell';
 import {Reconciliation} from "./Reconciliation";
 import {OperationsPanel} from "../ngo/OperationsPanel";
@@ -102,7 +103,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
                   <thead><tr><th>Record</th><th>Evidence</th><th>Signed by</th></tr></thead>
                   <tbody>{cases.slice(recordPage*25,recordPage*25+25).map((c) => (
                     <tr key={c.case_id}>
-                      <td>{side === "operator" ? <Link href={`/ngo/verification/${c.case_id}`}>{c.title || c.case_code}</Link> : c.title || c.case_code}<small>{[c.case_code, c.city].filter(Boolean).join(" · ")}</small></td>
+                      <td>{side === "operator" ? <Link href={`/ngo/verification/${c.case_id}`}>{c.title || c.case_code}</Link> : c.title || c.case_code}<small>{[c.case_code ? shortCode(c.case_code) : null, c.city].filter(Boolean).join(" · ")}</small></td>
                       <td><span className="ev">{c.evidence.map((e, i) => e.url
                         ? <EvidenceLink key={i} url={e.url}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}</EvidenceLink>
                         : <span key={i}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}{e.location ? `: ${e.location}` : ""}</span>)}</span></td>

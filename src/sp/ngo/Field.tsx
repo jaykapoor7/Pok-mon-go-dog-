@@ -10,6 +10,7 @@
    when you choose to once the connection is back. Pending is never saved.
    ════════════════════════════════════════════════════════════════════ */
 
+import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { WifiOff } from "lucide-react";
@@ -151,7 +152,7 @@ export function Field() {
             const late = Date.parse(f.due_at) < Date.now();
             return (
               <li key={f.id} className={`fd-card${late ? " is-late" : ""}`}>
-                <p className="k">{late ? `Late · due ${day(f.due_at)}` : `Due ${day(f.due_at)}`} · {f.case_code ?? "follow-up"}</p>
+                <p className="k">{late ? `Late · due ${day(f.due_at)}` : `Due ${day(f.due_at)}`} · {shortCode(f.case_code, "follow-up")}</p>
                 <h3>{(f.kind ?? "Recheck").replace(/_/g, " ")}{f.animal_name ? ` · ${f.animal_name}` : ""}</h3>
                 <p className="small">{[f.zone, f.note].filter(Boolean).join(" · ") || "No note"}</p>
                 {r[`f${f.id}`]?.ok ? <Ack state="saved">{(r[`f${f.id}`] as { what: string }).what}</Ack> : (
@@ -187,7 +188,7 @@ function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvid
   const [busy, setBusy] = useState(false);
   return (
     <li className="fd-card">
-      <p className="k">{c.case_code ?? "Case"} · {c.status_class === "in_progress" ? "in progress" : "open"} · {since(c.occurred_at)}</p>
+      <p className="k">{shortCode(c.case_code)} · {c.status_class === "in_progress" ? "in progress" : "open"} · {since(c.occurred_at)}</p>
       <h3><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></h3>
       <p className="small">{[c.animal_name, c.zone].filter(Boolean).join(" · ") || "Animal and place not recorded"}</p>
       {addingOperation&&<LifecycleForm policies={policies} onSave={onOperation} onCancel={()=>setAddingOperation(false)}/>}

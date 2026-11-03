@@ -9,9 +9,8 @@ test("verification is a module of the NGO workspace and asks a visitor to sign i
   await page.goto("/ngo/verification");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Verification");
   await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
-  const tabs=page.getByRole('navigation',{name:'In this section'});
-  await expect(tabs.getByRole('link',{name:'ABC evidence & authorisation',exact:true})).toHaveAttribute('aria-current','page');
-  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Team & access',exact:true})).toHaveCount(0)}
+  /* Verification is steps 3 (Treat) and 4 (Release) of the five-step sidebar. */
+  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Treat & sign off',exact:true})).toHaveAttribute('aria-current','page');await expect(side.getByRole('link',{name:'Team & access',exact:true})).toHaveCount(0)}
 
 });
 
@@ -36,7 +35,7 @@ test("municipal package review asks a visitor to sign in", async ({ page, isMobi
 test("the homepage introduces Kaju and what it handles", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI agent for\s*animal welfare programmes/);
-  await expect(page.locator(".s4-announce").getByRole("link", { name: /WhatsApp field intake and monthly reporting/ })).toHaveAttribute("href", "/whatsapp");
+  await expect(page.locator(".s4-announce").getByRole("link", { name: /Kaju intake: paste WhatsApp reports/ })).toHaveAttribute("href", "/whatsapp");
   await expect(page.locator(".s4-hero .s4-hero-eyebrow")).toHaveCount(0);
   await expect(page.locator(".s4-hero .s6-rot")).toBeVisible();
 });

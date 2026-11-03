@@ -18,8 +18,8 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { createContext, Fragment, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity, BookOpen, Building2, ChevronDown, ChevronsUpDown, Compass, FileText, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers,
   LifeBuoy, LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
@@ -27,11 +27,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
-import { ORDER, PROFESSIONAL, WORKSPACES, workspaceView, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
+import { ORDER, PROFESSIONAL, WORKSPACES, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
-import { AiPanel, AiProvider, KajuMark, useAi } from "@/sp3/ai/AiPanel";
+import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
-import { KajuCorner, KajuPresence } from "@/kaju/Presence";
+import { KajuPresence } from "@/kaju/Presence";
 import { AmbientLight, KAJU_VERIFIED } from "./Ambient";
 import { spFonts } from "../fonts";
 import "../sp.css";
@@ -171,33 +171,25 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button>
           </div>
 
-          <button type="button" className="sx3-quick" onClick={() => setFind(true)} aria-keyshortcuts="Control+K Meta+K"><span>Quick actions</span><kbd>⌘K</kbd></button>
-
-          <nav className="sx3-nav" aria-label={`${def.label} navigation`}>
-            {nav.map(({ item: n, label }) => {
-              const Icon = ICON[n.icon] ?? Home;
-              const on = n.href === "/assistant" ? onAssistant : navOn(n, path);
-              const link = <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} title={collapsed ? n.label : undefined}>{n.icon === "kaju" ? <span className="sx4-sq is-kaju" aria-hidden><KajuFace size={20} /></span> : n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />}<span>{n.label}</span></Link>;
-              return label ? <Fragment key={n.href}><p className="sx4-sec">{label}</p>{link}</Fragment> : link;
-            })}
-          </nav>
+          <Suspense fallback={<SideNav nav={nav} path={path} search="" collapsed={collapsed} onAssistant={onAssistant} label={def.label} />}>
+            <SideNavLive nav={nav} path={path} collapsed={collapsed} onAssistant={onAssistant} label={def.label} />
+          </Suspense>
 
           {(() => {
-            /* The workspace's other pages, folded under "More" (open while one of them is the current page). */
-            const groups = def.index.map((g) => ({ ...g, links: g.links.filter((l) => !nav.some((n) => n.item.href === l.href) && l.href !== def.settings) })).filter((g) => g.links.length);
+            /* Pages whose section has no place of its own in the sidebar (team, outreach…), folded once under "More". */
+            const own = new Set(nav.map((n) => (n.item as Destination).group));
+            const groups = def.index.filter((g) => !own.has(g.label)).map((g) => ({ ...g, links: g.links.filter((l) => l.href !== def.settings && l.href !== "/assistant") })).filter((g) => g.links.length);
             if (!groups.length) return null;
             const inside = groups.some((g) => g.links.some((l) => path === l.href || path.startsWith(l.href + "/")));
-            return <div>{groups.map(g=><details key={g.label} className="sx3-more" open={g.links.some(l=>path===l.href)||undefined}>
-              <summary><span>{g.label}</span><ChevronDown size={13} aria-hidden /></summary>
-              <ul>{g.links.map(l=><li key={l.href}><Link href={l.href} aria-current={path===l.href?'page':undefined}>{l.label}</Link></li>)}</ul>
-            </details>)}</div>;
+            return <details className="sx3-more sx5-more" open={inside || undefined}>
+              <summary><span>More</span><ChevronDown size={13} aria-hidden /></summary>
+              {groups.map((g) => <div key={g.label}><p className="sx5-more-h">{g.label}</p><ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul></div>)}
+            </details>;
           })()}
-
-          <p className="sx4-hint">Press <kbd>/</kbd> for quick navigation</p>
 
           {/* Kaju rests here while the agent is closed; he moves into the panel when it opens. */}
           <div className={`sx3-kaju-nook${cheer ? " is-cheer" : ""}`}>
-            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju">{cheer ? <KajuPresence state="success" size={78} /> : <KajuCorner sequence="chill" size={78} />}</button>}
+            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju">{cheer ? <KajuPresence state="success" size={92} /> : <KajuPresence sequence="arrive" enter size={92} className="sx5-kaju-walk" />}</button>}
           </div>
 
           <div className="sx3-side-foot">
@@ -232,16 +224,16 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
-              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
+              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? (here as Destination).group : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
               {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
             </nav>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
               <Search size={15} aria-hidden /><span>Search records</span><kbd>⌘K</kbd>
             </button>
             <div className="sp-bar-end">
-              <button type="button" className="icon-btn" aria-label="Workspace sections" onClick={()=>setSheet(true)}><Menu size={18} aria-hidden /></button>
-              {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuMark size={34} /></span><span>Ask Kaju</span></button>}
-              {def.action && !reporting && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}
+              <button type="button" className="icon-btn sx5-menu-m" aria-label="Workspace sections" onClick={()=>setSheet(true)}><Menu size={18} aria-hidden /></button>
+              {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuFace size={24} /></span><span>Ask Kaju</span></button>}
+              {def.action && !reporting && (ws !== "ngo" || mem.member) && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}
               <span className="sx3-acct-m"><Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} /></span>
             </div>
           </header>
@@ -269,6 +261,42 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         {!onAssistant && <AiPanel />}
       </div>
     </Membership.Provider>
+  );
+}
+
+type NavRow = { item: NavItem; label?: string };
+type SideNavProps = { nav: NavRow[]; path: string; collapsed: boolean; onAssistant: boolean; label: string };
+
+function SideNavLive(p: SideNavProps) {
+  const sp = useSearchParams();
+  return <SideNav {...p} search={sp?.toString() ?? ""} />;
+}
+
+/** The sidebar: the workspace's places in order, the five steps numbered. Kaju has
+    his own button and corner, so he is not repeated here. Views of one page
+    (Treat and Release are two stages of verification) light up by their query. */
+function SideNav({ nav, path, search, collapsed, onAssistant, label }: SideNavProps & { search: string }) {
+  const rows = nav.filter(({ item }) => item.icon !== "kaju");
+  const stage = new URLSearchParams(search).get("stage");
+  const isOn = (n: NavItem) => {
+    if (n.href === "/assistant") return onAssistant;
+    if (!navOn(n, path)) return false;
+    const twins = rows.filter((r) => r.item.href === n.href);
+    if (twins.length < 2) return true;
+    const exact = twins.find((r) => r.item.query && new URLSearchParams(r.item.query).get("stage") === stage);
+    return (exact ?? twins[0]).item === n;
+  };
+  return (
+    <nav className="sx3-nav" aria-label={`${label} navigation`}>
+      {rows.map(({ item: n, label: sec }) => {
+        const Icon = ICON[n.icon] ?? Home;
+        const href = n.query ? `${n.href}?${n.query}` : n.href;
+        const key = href;
+        const lead = n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />;
+        const link = <Link key={key} href={href} aria-current={isOn(n) ? "page" : undefined} title={collapsed ? n.label : (n as Destination).note}>{lead}<span>{n.label}</span></Link>;
+        return sec ? <Fragment key={key}><p className="sx4-sec">{sec}</p>{link}</Fragment> : link;
+      })}
+    </nav>
   );
 }
 
@@ -335,7 +363,7 @@ function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose:
       <div className="sp-more">
         <header className="sp-more-head"><span className="sp-grip" aria-hidden /><h2><i aria-hidden style={{ background: def.ink }} />Sections in {def.label}</h2><button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><X size={18} /></button></header>
         {primary.length > 0 && (
-          <ul className="sx3-more-primary">{primary.map((n) => { const Icon = ICON[n.icon] ?? Home; return <li key={n.href}><Link href={n.href} onClick={onClose} aria-current={navOn(n, path) ? "page" : undefined}>{n.icon === "kaju" ? <KajuFace size={20} /> : <Icon size={18} aria-hidden />}<b>{n.label}</b></Link></li>; })}</ul>
+          <ul className="sx3-more-primary">{primary.map((n) => { const Icon = ICON[n.icon] ?? Home; return <li key={n.href + (n.query ?? "")}><Link href={n.query ? `${n.href}?${n.query}` : n.href} onClick={onClose} aria-current={navOn(n, path) ? "page" : undefined}>{n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : n.icon === "kaju" ? <KajuFace size={20} /> : <Icon size={18} aria-hidden />}<b>{n.label}</b></Link></li>; })}</ul>
         )}
         {utilityGroups.map((g, i) => (
           <details key={`${ws}-${g.label}`} className="sp-more-group" open={i === (here >= 0 ? here : 0)}>
@@ -360,3 +388,4 @@ function SectionTabs({ path, role, reviewer }: { path: string; role: Role | null
     </nav>
   );
 }
+

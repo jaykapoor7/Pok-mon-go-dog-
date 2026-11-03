@@ -2,7 +2,7 @@
  * Visibility is fail-closed for restricted destinations; RLS remains authoritative. */
 export type WorkspaceId='community'|'ngo'|'city'|'learn';
 export type Role='admin'|'coordinator'|'veterinarian'|'member';
-export type NavItem={href:string;label:string;icon:string;match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>};
+export type NavItem={href:string;label:string;icon:string;match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>;/** Position in the five-step NGO workflow. */step?:number;/** Query string that selects a view of the page (e.g. stage=vet). */query?:string;order?:number};
 export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:boolean;mobile?:boolean;primaryFor?:Role[];assistantKey?:string;note?:string;/** false: reached from its hub page and search, not listed in the sidebar. */listed?:boolean};
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
@@ -10,10 +10,11 @@ export const DESTINATIONS:Destination[]=[
  {workspace:'ngo',href:'/ngo/animals/identity',label:'Identity & duplicate review',icon:'paw',group:'Animals',primary:false,roles:['admin','coordinator'],listed:false},
  {workspace:'ngo',href:'/ngo/settings/policies',label:'Workflow policies',icon:'settings',group:'Organisation',primary:false,roles:['admin','coordinator']},
  {workspace:"ngo",href:"/ngo/contracts",label:"Contracts & reconciliation",assistantKey:"contracts",icon:"file",group:"Reports",primary:false,roles:["admin","coordinator"]},
- {workspace:"city",href:"/city/contracts",label:"Contracts",icon:"file",group:"Contracts",primary:true,mobile:true,reviewer:true},
+ {workspace:"city",href:"/city/contracts",label:"Contracts & rates",short:"Contracts",icon:"file",group:"Contracts",primary:true,mobile:true,reviewer:true,order:2},
  {workspace:"ngo",href:"/ngo/map",label:"Animal & field map",assistantKey:"field_map",icon:"map",group:"Animals",primary:false},
  {workspace:"city",href:"/city/connections",label:"Connections",icon:"layers",group:"Organisation",primary:false,reviewer:true},
- {workspace:"ngo",href:"/ngo/verification",label:"ABC evidence & authorisation",short:"Clinical",icon:"shield",group:"Clinical",primary:false,primaryFor:["veterinarian"],mobile:true,assistantKey:"verification"},
+ {workspace:"ngo",href:"/ngo/verification",query:"stage=vet",label:"Treat & sign off",short:"Treat",note:"The vet records the procedure and signs it",icon:"shield",group:"Clinical",primary:true,step:3,order:4,mobile:false,assistantKey:"verification"},
+ {workspace:"ngo",href:"/ngo/verification",query:"stage=evidence",label:"Release",short:"Release",note:"Release photo and place",icon:"shield",group:"Clinical",primary:true,step:4,order:5,mobile:false,listed:false},
  {workspace:"ngo",href:"/ngo/programmes/zones",label:"Working zones & assignments",assistantKey:"working_zones",icon:"map",group:"Programmes",primary:false},
   {
     "workspace": "community",
@@ -106,6 +107,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/ngo",
+    "order": 0,
     "label": "Today",
     "icon": "home",
     "exact": true,
@@ -116,6 +118,8 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/ngo/work",
+    "short": "Queue",
+    "order": 1,
     "assistantKey": "work",
     "match": ["/ngo/cases"],
     "label": "Work queue",
@@ -127,8 +131,11 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/ngo/animals",
+    "order": 3,
+    "step": 2,
+    "short": "Animals",
     "assistantKey": "animals",
-    "label": "Animals",
+    "label": "Register animals",
     "icon": "paw",
     "tone": "blue",
     "group": "Animals",
@@ -139,6 +146,8 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/ngo/programmes",
+    "section": "Organisation",
+    "order": 7,
     "assistantKey": "programmes",
     "label": "Programmes",
     "icon": "layers",
@@ -146,18 +155,21 @@ export const DESTINATIONS:Destination[]=[
     "group": "Programmes",
     "primary": true,
     "note": "ABC / ARV drives, surveys",
-    "mobile": true
+    "mobile": false
   },
   {
     "workspace": "ngo",
     "href": "/ngo/packages",
+    "order": 6,
+    "step": 5,
+    "short": "Submit",
     "assistantKey": "reports",
-    "label": "Reports",
+    "label": "Submit & bill",
     "icon": "check",
     "tone": "amber",
     "group": "Reports",
     "primary": true,
-    "mobile": true,
+    "mobile": false,
     "roles": [
       "admin",
       "coordinator"
@@ -181,6 +193,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/assistant",
+    "order": 9,
     "label": "Kaju",
     "icon": "kaju",
     "group": "Platform",
@@ -204,8 +217,12 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/ngo/inbox",
+    "section": "Five steps",
+    "order": 2,
+    "step": 1,
+    "short": "Receive",
     "assistantKey": "inbox",
-    "label": "Intake",
+    "label": "Receive reports",
     "note": "Reports and WhatsApp messages, prepared by Kaju",
     "group": "Intake",
     "icon": "file",
@@ -221,7 +238,6 @@ export const DESTINATIONS:Destination[]=[
     "group": "Work",
     "icon": "file",
     "primary": false,
-    "primaryFor": ["member"],
     "mobile": false
   },
   {
@@ -370,6 +386,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/ngo/cases/new",
+    "listed": false,
     "assistantKey": "new_case",
     "label": "New case",
     "icon": "radio",
@@ -392,7 +409,10 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "city",
     "href": "/city/review",
-    "label": "Package review",
+    "section": "From NGOs",
+    "order": 1,
+    "short": "Review",
+    "label": "Review submissions",
     "icon": "check",
     "reviewer": true,
     "group": "Verification",
@@ -402,6 +422,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "city",
     "href": "/city/insights",
+    "order": 4,
     "assistantKey": "insights",
     "label": "Overview",
     "icon": "home",
@@ -412,6 +433,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "city",
     "href": "/city/programmes",
+    "order": 5,
     "assistantKey": "city_programmes",
     "label": "Programmes",
     "icon": "layers",
@@ -422,6 +444,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "city",
     "href": "/city/report",
+    "order": 6,
     "assistantKey": "city_report",
     "label": "Reports",
     "icon": "file",
@@ -433,6 +456,8 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "city",
     "href": "/city",
+    "section": "Oversight",
+    "order": 3,
     "assistantKey": "city",
     "label": "Wards & map",
     "icon": "map",
@@ -445,6 +470,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "city",
     "href": "/assistant",
+    "order": 9,
     "label": "Kaju",
     "icon": "kaju",
     "group": "Overview",
@@ -576,7 +602,7 @@ export type Workspace={id:WorkspaceId;label:string;purpose:string;ink:string;hom
 export function canDiscover(n:NavItem,role:Role|null,reviewer=false){return (!n.roles||!!role&&n.roles.includes(role))&&(!n.reviewer||reviewer)}
 export function destinations(ws:WorkspaceId,role:Role|null,reviewer=false){return DESTINATIONS.filter(n=>n.workspace===ws&&canDiscover(n,role,reviewer))}
 export function workspaceView(ws:WorkspaceId,role:Role|null,reviewer=false):Workspace{
- const all=destinations(ws,role,reviewer),primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).sort((a,b)=>Number(b.href===META[ws].home)-Number(a.href===META[ws].home)).map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href).map(x=>x.href)]}));
+ const all=destinations(ws,role,reviewer),rank=(n:Destination)=>n.order??(n.href===META[ws].home?-1:50),primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).sort((a,b)=>rank(a)-rank(b)).map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href).map(x=>x.href)]}));
  const listed=all.filter(n=>n.listed!==false),groups=[...new Set(listed.map(n=>n.group))].map(label=>({label,links:listed.filter(n=>n.group===label)}));
  return {...META[ws],home:ws==='city'&&reviewer?'/city/review':META[ws].home,nav:primary,index:groups,dests:primary.filter(n=>n.mobile)};
 }
@@ -592,7 +618,7 @@ export function currentDestination(ws:WorkspaceId,path:string,role:Role|null,rev
 export function currentDest(ws:Workspace,path:string){const n=currentDestination(ws.id,path,null);return n?.href??null}
 export type Tab={href:string;label:string;roles?:Role[]};
 export function tabsFor(path:string,role:Role|null,reviewer=false){const ws=workspaceFor(path,null),current=currentDestination(ws,path,role,reviewer);if(!current)return null;
- const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant'&&(n.listed!==false||n.href===current.href)).sort((a,b)=>Number(b.primary)-Number(a.primary));return tabs.length>1?{tabs,on:current.href}:null}
+ const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant'&&(n.listed!==false||n.href===current.href)).sort((a,b)=>Number(b.primary)-Number(a.primary)).filter((n,i,all)=>all.findIndex(x=>x.href===n.href)===i);return tabs.length>1?{tabs,on:current.href}:null}
 const KEY='sp2.workspace';
 export function rememberWorkspace(id:WorkspaceId){try{sessionStorage.setItem(KEY,id)}catch{}}
 export function lastWorkspace():WorkspaceId|null{try{const v=sessionStorage.getItem(KEY);return v&&v in META?v as WorkspaceId:null}catch{return null}}
