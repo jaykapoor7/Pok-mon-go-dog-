@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Check, ClipboardPaste, Sparkles } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { executeProposal } from "@/sp3/ai/execute";
+import { confirmVerified, STOP_MESSAGE } from "@/sp3/ai/execute";
 import type { IntakePlan } from "@/sp3/ai/intake";
 import "./intake.css";
 
@@ -30,6 +30,7 @@ export function KajuIntake({ actor }: { actor: { id: string; name: string } }) {
   const [saved, setSaved] = useState<Record<string, Saved>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [partial, setPartial] = useState(false);
 
   const prepare = async () => {
     setBusy(true); setError(null); setPlans(null);
@@ -40,6 +41,7 @@ export function KajuIntake({ actor }: { actor: { id: string; name: string } }) {
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw Error(j.error ?? "Kaju could not prepare these reports.");
       const ps = j.plans as IntakePlan[];
+      setPartial(!!j.partial);
       setPlans(ps);
       setChoice(Object.fromEntries(ps.map((p, i) => [i, p.options.find((o) => o.recommended)?.key ?? ""])));
       setSaved(Object.fromEntries((j.done as { request_id: string }[]).map((d) => [d.request_id, { state: "done" } as Saved])));
@@ -51,18 +53,23 @@ export function KajuIntake({ actor }: { actor: { id: string; name: string } }) {
   const confirm = async (i: number) => {
     const p = plans?.[i];
     const o = p?.options.find((x) => x.key === choice[i]);
-    if (!p || !o || savedFor(p)) return;
+    if (!p || !o || savedFor(p)) return null;
     setSaved((s) => ({ ...s, [o.proposal.id]: { state: "saving" } }));
-    const r = await executeProposal(o.proposal, actor);
-    setSaved((s) => ({ ...s, [o.proposal.id]: r.ok && r.verified ? { state: "done", href: r.href } : { state: "failed", error: r.ok ? "Saved, but not yet verified. Confirm again to check." : r.error } }));
+    const r = await confirmVerified(o.proposal, actor);
+    setSaved((s) => ({ ...s, [o.proposal.id]: r.ok && r.verified ? { state: "done", href: r.href } : { state: "failed", error: r.ok ? "Saved, but not yet verified. Confirm again to check." : r.error ?? "Not saved." } }));
+    return r;
   };
   const clear = (plans ?? []).map((p, i) => ({ p, i })).filter(({ p, i }) => p.clear && !savedFor(p) && p.options.find((o) => o.key === choice[i])?.recommended);
-  const confirmClear = async () => { setBusy(true); for (const { i } of clear) await confirm(i); setBusy(false); };
+  const confirmClear = async () => {
+    setBusy(true);
+    for (const { i } of clear) { const r = await confirm(i); if (r && !r.ok && STOP_MESSAGE.test(r.error ?? "")) break; }
+    setBusy(false);
+  };
 
   return (
     <section className="ki" aria-labelledby="ki-h">
       <h2 id="ki-h" className="ki-h"><Sparkles size={15} aria-hidden /> Paste from WhatsApp</h2>
-      <p className="ki-lede">Paste messages or an exported chat. Kaju prepares each report, checks your register for the animal and for an open case, and you confirm. Sender names and phone numbers are not kept.</p>
+      <p className="ki-lede">Paste messages or an exported chat. Kaju prepares each report, checks your register for the animal and for an open case, and you confirm. Sender names are dropped, and phone numbers and email addresses in the text are masked before anything is saved.</p>
       <label htmlFor="ki-text" className="ki-sr">Reports to prepare</label>
       <textarea id="ki-text" className="textarea ki-text" rows={5} maxLength={12000} value={text} onChange={(e) => setText(e.target.value)}
         placeholder={"Injured dog near Gandhipuram bus stand, bleeding from leg. Photo attached\n\nReleased after ABC at Saibaba Colony, female, ear notched"} />
@@ -72,6 +79,7 @@ export function KajuIntake({ actor }: { actor: { id: string; name: string } }) {
       </div>
       {error && <p className="ki-err" role="alert">{error} Nothing was saved.</p>}
 
+      {plans && partial && <p className="ki-miss" role="status">Duplicates were checked against your 800 most recent open cases only.</p>}
       {plans && <ol className="ki-list" aria-label="Prepared reports">{plans.map((p, i) => {
         const done = savedFor(p);
         const pickedOpt = p.options.find((o) => o.key === choice[i]);

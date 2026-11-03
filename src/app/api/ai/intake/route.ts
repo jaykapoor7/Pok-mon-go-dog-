@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { caller } from "@/lib/connections/server";
 import { allowUserRequest } from "@/lib/rate-limit";
 import { extractFieldMessage } from "@/sp3/ai/extract";
-import { planIntake, splitMessages, type AnimalCandidate, type CaseCandidate } from "@/sp3/ai/intake";
+import { clean, planIntake, splitMessages, type AnimalCandidate, type CaseCandidate } from "@/sp3/ai/intake";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,14 +19,16 @@ export async function POST(req: Request) {
   if (!c.ngoId) return NextResponse.json({ error: "An organisation workspace is required." }, { status: 403 });
   if (!(await allowUserRequest(c.db, "ai"))) return NextResponse.json({ error: "Kaju is busy for a moment. Try again shortly." }, { status: 429 });
   const body = await req.json().catch(() => null);
-  const raw = typeof body?.text === "string" ? body.text.slice(0, 12000) : "";
-  const messages = splitMessages(raw);
+  /* Pasted text, or already-separated messages (the WhatsApp inbox, once connected). */
+  const messages = Array.isArray(body?.messages)
+    ? clean(body.messages.filter((m: unknown): m is string => typeof m === "string").map((m: string) => m.slice(0, 2000)))
+    : splitMessages(typeof body?.text === "string" ? body.text.slice(0, 12000) : "");
   if (!messages.length) return NextResponse.json({ error: "Paste at least one report." }, { status: 400 });
 
   const now = new Date();
   const extracted = messages.map((m) => extractFieldMessage(m, now));
   const tags = [...new Set(extracted.map((x) => x.tag).filter(Boolean) as string[])];
-  const places = [...new Set(extracted.map((x) => x.place).filter(Boolean) as string[])].slice(0, 12);
+  const places = [...new Set(extracted.map((x) => x.place).filter((p): p is string => !!p && p.length >= 4))].slice(0, 12);
 
   const dogCols = "id,name,straypaw_id,code,zone,sex";
   const [ngo, cases, byTag, ...byPlace] = await Promise.all([
@@ -53,5 +55,7 @@ export async function POST(req: Request) {
   const plans = messages.map((m, i) => planIntake(m, extracted[i], { orgId: c.ngoId as string, defaultCity, animals, openCases, now }));
   const ids = plans.flatMap((p) => p.options.map((o) => o.proposal.id));
   const done = ids.length ? (await c.db.from("kaju_action_receipts").select("request_id,record_id,record_table").eq("actor_id", c.userId).in("request_id", ids)).data ?? [] : [];
-  return NextResponse.json({ plans, done, defaultCity }, { headers: { "Cache-Control": "no-store" } });
+  /* Only the 800 most recent open cases are compared; say so rather than imply a full check. */
+  const partial = (cases.data ?? []).length >= 800;
+  return NextResponse.json({ plans, done, defaultCity, partial }, { headers: { "Cache-Control": "no-store" } });
 }

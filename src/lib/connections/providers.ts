@@ -14,7 +14,8 @@ export type ProviderId = "google" | "microsoft" | "slack" | "zoho";
 
 export type Capability =
   | "files.search" | "files.read" | "sheets.read" | "mail.draft" | "mail.send"
-  | "calendar.read" | "calendar.create" | "files.create" | "chat.post";
+  | "calendar.read" | "calendar.create" | "files.create" | "chat.post"
+  | "mail.search" | "docs.create";
 
 export const CAPABILITY: Record<Capability, { label: string; writes: boolean }> = {
   "files.search": { label: "Find files", writes: false },
@@ -26,6 +27,8 @@ export const CAPABILITY: Record<Capability, { label: string; writes: boolean }> 
   "calendar.create": { label: "Add events you approve", writes: true },
   "files.create": { label: "Save reports you approve", writes: true },
   "chat.post": { label: "Post messages you approve", writes: true },
+  "mail.search": { label: "Find correspondence about a case", writes: false },
+  "docs.create": { label: "Create documents you approve", writes: true },
 };
 
 /* How each provider signs people in. Data, not code: a new provider adds an entry. */
@@ -48,8 +51,15 @@ export type Provider = {
   scopes: string[];
   /** Environment variables an administrator must set before anyone can connect. */
   env: string[];
+  /** Scope(s) each capability needs; a capability is usable only when one of them was granted. */
+  needs?: Partial<Record<Capability, string[]>>;
+  /** Asked for only when an administrator turns the capability on (incremental consent). */
+  optional?: Partial<Record<Capability, string[]>>;
   oauth: OAuthSpec;
 };
+const G_DRIVE_RO = "https://www.googleapis.com/auth/drive.readonly", G_DRIVE_FILE = "https://www.googleapis.com/auth/drive.file";
+const G_COMPOSE = "https://www.googleapis.com/auth/gmail.compose", G_CAL = "https://www.googleapis.com/auth/calendar.events";
+const G_MAIL_RO = "https://www.googleapis.com/auth/gmail.readonly";
 const MS = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0";
 
 export const PROVIDERS: Record<ProviderId, Provider> = {
@@ -58,7 +68,15 @@ export const PROVIDERS: Record<ProviderId, Provider> = {
     name: "Google Workspace",
     apps: ["Gmail", "Drive", "Docs", "Sheets", "Slides", "Calendar"],
     line: "Find and read files in Drive, draft and send email from Gmail, and add events to Calendar.",
-    capabilities: ["files.search", "files.read", "sheets.read", "mail.draft", "mail.send", "calendar.read", "calendar.create", "files.create"],
+    capabilities: ["files.search", "files.read", "sheets.read", "mail.draft", "mail.send", "calendar.read", "calendar.create", "files.create", "docs.create", "mail.search"],
+    needs: {
+      "files.search": [G_DRIVE_RO], "files.read": [G_DRIVE_RO], "sheets.read": [G_DRIVE_RO],
+      "mail.draft": [G_COMPOSE], "mail.send": [G_COMPOSE], "calendar.read": [G_CAL], "calendar.create": [G_CAL],
+      "files.create": [G_DRIVE_FILE], "docs.create": [G_DRIVE_FILE], "mail.search": [G_MAIL_RO],
+    },
+    /* Reading mail is a restricted Google scope: it needs Google's app
+       verification and is requested only after an administrator enables it. */
+    optional: { "mail.search": [G_MAIL_RO] },
     scopes: [
       "openid", "email", "profile",
       "https://www.googleapis.com/auth/drive.readonly",
@@ -100,6 +118,20 @@ export const PROVIDERS: Record<ProviderId, Provider> = {
     oauth: { authorize: "{zoho}/oauth/v2/auth", token: "{zoho}/oauth/v2/token", scopeSep: ",", pkce: false, extra: { access_type: "offline", prompt: "consent" }, clientIdEnv: "ZOHO_CLIENT_ID", clientSecretEnv: "ZOHO_CLIENT_SECRET" },
   },
 };
+
+/** What a connection can really do: only capabilities whose scopes the provider granted.
+ *  Providers without a scope map keep their declared capabilities. */
+export function grantedCapabilities(p: ProviderId, granted: string[]): Capability[] {
+  const pr = PROVIDERS[p];
+  if (!pr.needs) return pr.capabilities;
+  const have = new Set(granted);
+  return pr.capabilities.filter((c) => (pr.needs?.[c] ?? []).some((s) => have.has(s)));
+}
+/** Scopes for a consent request: the base set plus optional capabilities an administrator enabled. */
+export function consentScopes(p: ProviderId, enabled: Capability[] = []): string[] {
+  const pr = PROVIDERS[p];
+  return [...new Set([...pr.scopes, ...enabled.flatMap((c) => pr.optional?.[c] ?? [])])];
+}
 
 export const PROVIDER_IDS = Object.keys(PROVIDERS) as ProviderId[];
 export const isProvider = (v: string): v is ProviderId => v in PROVIDERS;

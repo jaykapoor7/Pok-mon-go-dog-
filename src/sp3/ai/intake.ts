@@ -36,7 +36,11 @@ export function splitMessages(raw: string): string[] {
   }
   return clean(text.split(/\n\s*\n/));
 }
-const clean = (xs: string[]) => xs.map((x) => x.replace(/<media omitted>|image omitted|‎/gi, "[photo]").trim())
+/** Phone numbers and email addresses in a report are masked before anything is prepared or saved. */
+export const redact = (x: string) => x
+  .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[email removed]")
+  .replace(/(?:\+?91[\s-]?)?(?<!\d)[6-9]\d{4}[\s-]?\d{5}(?!\d)/g, "[phone removed]");
+export const clean = (xs: string[]) => xs.map((x) => redact(x.replace(/<media omitted>|image omitted|‎/gi, "[photo]")).trim())
   .filter((x) => x.length >= 8 && !/^(ok+|okay|thanks?|thank you|noted|👍+|done)\.?$/i.test(x)).slice(0, 12);
 
 export type AnimalCandidate = { id: string; label: string; tag: string | null; zone: string | null; sex: string | null };
@@ -66,11 +70,11 @@ export function planIntake(
   const animal = x.tag ? ctx.animals.find((a) => a.tag && lower(a.tag) === lower(x.tag)) ?? null : null;
   const similarAnimals = animal ? [] : ctx.animals
     .filter((a, i, all) => all.findIndex((b) => b.id === a.id) === i)
-    .filter((a) => x.place && sameZone(a.zone, x.place) && (!x.sex || !a.sex || lower(a.sex).startsWith(x.sex[0])))
+    .filter((a) => x.place && x.place.length >= 4 && sameZone(a.zone, x.place) && (!x.sex || !a.sex || lower(a.sex).startsWith(x.sex[0])))
     .slice(0, 3);
   const recent = (c: CaseCandidate) => c.occurredAt && ctx.now.getTime() - Date.parse(c.occurredAt) < 14 * 86_400_000;
   const duplicate = (animal && ctx.openCases.find((c) => c.dogId === animal.id))
-    || (x.place ? ctx.openCases.find((c) => recent(c) && sameZone(c.zone, x.place)) : undefined) || null;
+    || (x.place && x.place.length >= 4 ? ctx.openCases.find((c) => recent(c) && sameZone(c.zone, x.place)) : undefined) || null;
   const strongDuplicate = !!duplicate && !!animal && duplicate.dogId === animal.id;
 
   const city = x.city ?? ctx.defaultCity;
@@ -93,7 +97,7 @@ export function planIntake(
     if (animal) options.push(open(animal, "a", !strongDuplicate, `Tag ${animal.tag} matches this animal exactly.`));
     else {
       options.push(open(null, "", !duplicate, "The animal can be linked after someone identifies it."));
-      similarAnimals.forEach((a, i) => options.push(open(a, String(i), false, `Same locality${a.sex ? ` · ${a.sex}` : ""}. Compare before choosing.`)));
+      similarAnimals.forEach((a, i) => options.push(open(a, String(i), false, `Possible match by locality only${a.sex ? ` · ${a.sex}` : ""}. Check a photo, tag or marking before choosing.`)));
     }
   }
   /* "Confirm all" only takes plans with one obvious answer. */

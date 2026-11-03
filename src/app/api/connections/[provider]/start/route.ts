@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash, randomBytes } from "node:crypto";
 import { authorizeUrl, caller, configured, missingEnv, policy, signState } from "@/lib/connections/server";
-import { isProvider, PROVIDERS } from "@/lib/connections/providers";
+import { isProvider, PROVIDERS, type Capability } from "@/lib/connections/providers";
 import { allowRequest, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -24,7 +24,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ provide
   const nonce = randomBytes(16).toString("base64url");
   const back = new URL(req.url).searchParams.get("back") ?? "";
   const state = signState({ u: c.userId, p: provider, n: nonce, r: back.startsWith("/") && !back.startsWith("//") ? back : "/ngo/settings/connections" });
-  const res = NextResponse.json({ url: authorizeUrl(req, provider, state, challenge) });
+  /* Incremental consent: a person may add an optional capability (such as
+     finding correspondence) for their own account; nothing else is widened. */
+  const optional = PROVIDERS[provider].optional ?? {};
+  const enabled = (new URL(req.url).searchParams.get("caps") ?? "").split(",").filter((x): x is Capability => x in optional);
+  const res = NextResponse.json({ url: authorizeUrl(req, provider, state, challenge, enabled) });
   res.cookies.set(`sp_conn_${provider}`, `${nonce}.${verifier}`, { httpOnly: true, secure: true, sameSite: "lax", path: `/api/connections/${provider}`, maxAge: 600 });
   return res;
 }

@@ -12,6 +12,7 @@ import type { ProviderId } from "./providers";
 
 export type RemoteFile = { id: string; name: string; mime: string; modified: string | null; url: string | null; size: number | null };
 export type EmailDraft = { to: string[]; cc?: string[]; subject: string; body: string };
+export type MailHit = { id: string; threadId: string; from: string; subject: string; date: string | null; snippet: string; url: string };
 export type CalendarEvent = { title: string; start: string; end: string; attendees?: string[]; location?: string; description?: string };
 
 /* Every method is optional: a provider implements what its capabilities promise. */
@@ -21,7 +22,10 @@ export interface Adapter {
   createDraft?(token: string, d: EmailDraft): Promise<{ id: string; url: string | null }>;
   sendDraft?(token: string, draftId: string): Promise<void>;
   createEvent?(token: string, e: CalendarEvent): Promise<{ id: string; url: string | null }>;
-  saveFile?(token: string, name: string, mime: string, bytes: Buffer): Promise<{ id: string; url: string | null }>;
+  saveFile?(token: string, name: string, mime: string, bytes: Buffer, convertTo?: string): Promise<{ id: string; url: string | null }>;
+  searchMail?(token: string, query: string): Promise<MailHit[]>;
+  /** Independent read-back of something the provider said it created. */
+  verify?(token: string, kind: "draft" | "event" | "file", id: string): Promise<boolean>;
   listChannels?(token: string): Promise<{ id: string; name: string }[]>;
   postMessage?(token: string, channel: string, text: string): Promise<{ id: string; url: string | null }>;
 }
@@ -81,14 +85,31 @@ const google: Adapter = {
     }) });
     return { id: j.id, url: j.htmlLink ?? null };
   },
-  async saveFile(token, name, mime, bytes) {
+  async saveFile(token, name, mime, bytes, convertTo) {
     const boundary = `sp${Date.now()}`;
     const body = Buffer.concat([
-      Buffer.from(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ name })}\r\n--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`),
+      Buffer.from(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(convertTo ? { name: name.replace(/\.[a-z]+$/, ""), mimeType: convertTo } : { name })}\r\n--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`),
       bytes, Buffer.from(`\r\n--${boundary}--`),
     ]);
     const j = await call<{ id: string; webViewLink?: string }>("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink", token, { method: "POST", headers: { "Content-Type": `multipart/related; boundary=${boundary}` }, body: new Uint8Array(body) });
     return { id: j.id, url: j.webViewLink ?? null };
+  },
+  async searchMail(token, query) {
+    /* Metadata and Gmail's own snippet only; bodies are never fetched here. */
+    const list = await call<{ messages?: { id: string; threadId: string }[] }>(`https://gmail.googleapis.com/gmail/v1/users/me/messages?${new URLSearchParams({ q: query.slice(0, 200), maxResults: "10" })}`, token);
+    const hits = await Promise.all((list.messages ?? []).slice(0, 10).map((m) => call<{ id: string; threadId: string; snippet?: string; payload?: { headers?: { name: string; value: string }[] } }>(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(m.id)}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`, token)));
+    return hits.map((h) => {
+      const hd = (n: string) => h.payload?.headers?.find((x) => x.name.toLowerCase() === n)?.value ?? "";
+      return { id: h.id, threadId: h.threadId, from: hd("from"), subject: hd("subject"), date: hd("date") || null, snippet: h.snippet ?? "", url: `https://mail.google.com/mail/u/0/#all/${h.threadId}` };
+    });
+  },
+  async verify(token, kind, id) {
+    const url = kind === "draft" ? `https://gmail.googleapis.com/gmail/v1/users/me/drafts/${encodeURIComponent(id)}?format=minimal`
+      : kind === "event" ? `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(id)}`
+      : `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?fields=id,trashed&supportsAllDrives=true`;
+    try { const j = await call<{ id?: string; trashed?: boolean; status?: string }>(url, token); return !!j?.id && !j.trashed && j.status !== "cancelled"; }
+    catch (e) { if (e instanceof ProviderAuthError) throw e; return false; }
   },
 };
 

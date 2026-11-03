@@ -2,7 +2,7 @@ import "server-only";
 import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { PROVIDERS, type Capability, type ConnectionView, type ProviderId } from "./providers";
+import { PROVIDERS, consentScopes, grantedCapabilities, type Capability, type ConnectionView, type ProviderId } from "./providers";
 
 /* ════════════════════════════════════════════════════════════════════
    Kaju Connections, server side: who is asking, encrypted token storage,
@@ -99,7 +99,8 @@ export async function policy(ngoId: string | null, p: ProviderId) {
 
 export async function saveConnection(c: Caller, p: ProviderId, t: { access_token: string; refresh_token?: string | null; expires_in?: number; scope?: string }, who: { email: string | null; name: string | null }) {
   const a = admin();
-  const caps = PROVIDERS[p].capabilities;
+  /* Only what the person actually granted: Google lets people untick scopes. */
+  const caps = t.scope ? grantedCapabilities(p, t.scope.split(/[\s,]+/).filter(Boolean)) : PROVIDERS[p].capabilities;
   const { data, error } = await a.from("connections").upsert({
     user_id: c.userId, ngo_id: c.ngoId, provider: p, account_email: who.email, account_name: who.name,
     scopes: (t.scope ?? "").split(/\s+/).filter(Boolean), capabilities: caps, status: "connected", last_error: null,
@@ -136,16 +137,16 @@ export async function listFor(c: Caller): Promise<ConnectionView[]> {
 }
 
 /** A usable access token for this person and provider, refreshed when expired. */
-export async function accessToken(c: Caller, p: ProviderId): Promise<{ token: string; connectionId: string } | { error: string }> {
+export async function accessToken(c: Caller, p: ProviderId): Promise<{ token: string; connectionId: string; capabilities: Capability[] } | { error: string }> {
   const a = admin();
   if (!(await policy(c.ngoId, p)).allowed) return { error: `${PROVIDERS[p].name} is switched off for your organisation.` };
-  const { data: conn } = await a.from("connections").select("id,status,ngo_id").eq("user_id", c.userId).eq("provider", p).maybeSingle();
+  const { data: conn } = await a.from("connections").select("id,status,ngo_id,capabilities").eq("user_id", c.userId).eq("provider", p).maybeSingle();
   if (!conn || conn.status === "revoked") return { error: `Connect ${PROVIDERS[p].name} first, in Settings → Connections.` };
   /* A connection made in one organisation is never used from another. */
   if (conn.ngo_id && conn.ngo_id !== c.ngoId) return { error: "This connection belongs to a different organisation." };
   const { data: s } = await a.from("connection_secrets").select("access_token_enc,refresh_token_enc,expires_at").eq("connection_id", conn.id).maybeSingle();
   if (!s) return { error: `Reconnect ${PROVIDERS[p].name}.` };
-  if (!s.expires_at || Date.parse(s.expires_at) > Date.now()) return { token: open(s.access_token_enc), connectionId: conn.id };
+  if (!s.expires_at || Date.parse(s.expires_at) > Date.now()) return { token: open(s.access_token_enc), connectionId: conn.id, capabilities: (conn.capabilities ?? []) as Capability[] };
   if (!s.refresh_token_enc) { await markStatus(conn.id, "expired", "Access expired"); return { error: `Reconnect ${PROVIDERS[p].name}: access expired.` }; }
   try {
     const t = await refresh(p, open(s.refresh_token_enc));
@@ -155,7 +156,7 @@ export async function accessToken(c: Caller, p: ProviderId): Promise<{ token: st
     }).eq("connection_id", conn.id);
     await a.from("connections").update({ status: "connected", last_error: null, last_refreshed_at: new Date().toISOString() }).eq("id", conn.id);
     await audit({ connection_id: conn.id, user_id: c.userId, ngo_id: c.ngoId, provider: p, action: "refreshed" });
-    return { token: t.access_token, connectionId: conn.id };
+    return { token: t.access_token, connectionId: conn.id, capabilities: (conn.capabilities ?? []) as Capability[] };
   } catch (e) {
     await markStatus(conn.id, "expired", (e as Error).message.slice(0, 200));
     await audit({ connection_id: conn.id, user_id: c.userId, ngo_id: c.ngoId, provider: p, action: "refresh_failed", detail: { error: (e as Error).message.slice(0, 200) } });
@@ -172,10 +173,10 @@ export async function touch(id: string) {
 
 /* ── OAuth endpoints (from each provider's OAuthSpec) ───────────── */
 const fill = (u: string) => u.replace("{tenant}", process.env.MICROSOFT_TENANT_ID?.trim() || "common").replace("{zoho}", process.env.ZOHO_ACCOUNTS_URL?.trim() || "https://accounts.zoho.in");
-export function authorizeUrl(req: Request, p: ProviderId, state: string, codeChallenge: string): string {
+export function authorizeUrl(req: Request, p: ProviderId, state: string, codeChallenge: string, enabled: Capability[] = []): string {
   const o = PROVIDERS[p].oauth;
   const q = new URLSearchParams({ response_type: "code", client_id: process.env[o.clientIdEnv]!, redirect_uri: redirectUri(req, p), state, ...(o.extra ?? {}) });
-  q.set(o.scopeParam ?? "scope", PROVIDERS[p].scopes.join(o.scopeSep ?? " "));
+  q.set(o.scopeParam ?? "scope", consentScopes(p, enabled).join(o.scopeSep ?? " "));
   if (o.pkce) { q.set("code_challenge", codeChallenge); q.set("code_challenge_method", "S256"); }
   return `${fill(o.authorize)}?${q}`;
 }

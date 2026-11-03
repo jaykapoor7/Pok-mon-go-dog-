@@ -15,12 +15,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CalendarCheck, CalendarClock, Check, CircleAlert, MapPin, Sparkles } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { executeProposal } from "@/sp3/ai/execute";
+import { confirmMany, confirmVerified, type Saved as Result } from "@/sp3/ai/execute";
 import type { Proposal } from "@/sp3/ai/types";
 import type { LocalityGroup, PromisedReview, Stalled } from "@/sp3/ai/prepare";
 
 type Prepared = {
-  checkedAt: string; unavailable: string[];
+  checkedAt: string; unavailable: string[]; partial: string[];
   stalled: Stalled[];
   reviews: { missed: number; upcoming: number; items: PromisedReview[] };
   localities: LocalityGroup[];
@@ -52,17 +52,14 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
   }, []);
   useEffect(() => { void load(); }, [load]);
 
-  const confirm = async (p: Proposal) => {
-    setStatus((s) => ({ ...s, [p.id]: { state: "saving" } }));
-    const r = await executeProposal(p, actor);
-    setStatus((s) => ({ ...s, [p.id]: r.ok && r.verified ? { state: "done", href: r.href } : { state: "failed", error: r.ok ? "Saved, but not yet verified. Tap again to check." : r.error } }));
-    return r.ok && r.verified;
-  };
+  const [stopped, setStopped] = useState<string | null>(null);
+  const record = (p: Proposal, r: Result) => setStatus((s) => ({ ...s, [p.id]: r.ok && r.verified ? { state: "done", href: r.href } : { state: "failed", error: r.ok ? "Saved, but not yet verified. Tap again to check." : r.error ?? "Not saved." } }));
+  const confirm = async (p: Proposal) => { setStatus((s) => ({ ...s, [p.id]: { state: "saving" } })); record(p, await confirmVerified(p, actor)); };
   const pending = d ? d.proposals.filter((p) => status[p.id]?.state !== "done") : [];
   const confirmAll = async () => {
-    setBatch(true);
-    /* One at a time: each is its own audited transaction and receipt. */
-    for (const p of pending) await confirm(p);
+    setBatch(true); setStopped(null);
+    const r = await confirmMany(pending, actor, (p, res) => record(p, res), async (p, a) => { setStatus((s) => ({ ...s, [p.id]: { state: "saving" } })); return confirmVerified(p, a); });
+    if (r.stopped) setStopped(`${r.done} scheduled. Stopped: ${r.stopped} The rest are still prepared.`);
     setBatch(false);
   };
 
@@ -85,6 +82,7 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
     <section className="br-sec kp" aria-labelledby="kp-h">
       <h2 id="kp-h" className="br-h"><Sparkles size={14} aria-hidden /> Kaju prepared</h2>
       {d.unavailable.length > 0 && <p className="br-empty" role="status">Could not read: {d.unavailable.join(", ")}. Those checks are unknown, not clear.</p>}
+      {d.partial.length > 0 && <p className="br-empty" role="status">Checked only part of: {d.partial.join(", ")}. More may exist.</p>}
       {nothing && !d.unavailable.length && <p className="br-empty">No quiet critical cases, unscheduled reviews or split localities found.</p>}
 
       {d.stalled.length > 0 && <ul className="br-list kp-list">{d.stalled.map((s) => (
@@ -119,6 +117,7 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
         {pending.length > 1 && <button type="button" onClick={() => void confirmAll()} disabled={batch}><Check size={12} aria-hidden />{batch ? "Scheduling…" : `Schedule all ${pending.length} prepared follow-ups`}</button>}
         {d.localities.length > 0 && <Link href="/ngo/quality">Open data quality</Link>}
       </div>
+      {stopped && <p className="kp-err" role="alert" style={{ textAlign: "left", maxWidth: "none" }}>{stopped}</p>}
       <details className="kp-how"><summary>How Kaju found these</summary><ul>{Object.values(d.rules).map((r) => <li key={r}>{r}</li>)}</ul><p>Checked {new Date(d.checkedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}. Each follow-up is saved under your name with an audit entry, then read back before it shows as scheduled. Nothing is closed, merged or renamed automatically.</p></details>
     </section>
   );

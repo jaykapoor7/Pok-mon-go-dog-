@@ -3,7 +3,10 @@
 import assert from "node:assert/strict";
 import { extractFieldMessage } from "../src/sp3/ai/extract";
 import { planIntake, splitMessages } from "../src/sp3/ai/intake";
+import { toJobs } from "../src/lib/careos/webhook";
+import { fromJob, groupByThread } from "../src/lib/careos/intake";
 
+async function main() {
 const now = new Date("2026-11-03T06:00:00Z");
 let n = 0;
 const ok = (m: string) => { n++; console.log(`ok ${n} - ${m}`); };
@@ -63,4 +66,37 @@ assert.notEqual(p2.options[0].proposal.id, planIntake(t2, extractFieldMessage(t2
 for (const o of p2.options) assert.match(o.proposal.id, /^[a-zA-Z0-9_-]{6,80}$/);
 ok("preparing the same message twice yields the same request IDs, scoped to the organisation");
 
+const masked = splitMessages("Call 98765 43210 or +91-9876543210, mail ravi@example.org: dog hit near Podanur");
+assert.ok(!/\d{5}/.test(masked[0]) && !masked[0].includes("@"), masked[0]);
+ok("phone numbers and email addresses inside a report are masked before preparing");
+
+const fixture = { object: "whatsapp_business_account", entry: [{ changes: [{ field: "messages", value: {
+  metadata: { phone_number_id: "PN1" }, contacts: [{ wa_id: "919876543210", profile: { name: "Reporter" } }],
+  messages: [
+    { id: "wamid.1", from: "919876543210", timestamp: "1793680000", type: "image", image: { id: "media1", mime_type: "image/jpeg" } },
+    { id: "wamid.2", from: "919876543210", timestamp: "1793680060", type: "text", text: { body: "Dog bleeding near Gandhipuram bus stand, Coimbatore. Call me 9876543210" } },
+    { id: "wamid.3", from: "919876543210", timestamp: "1793680090", type: "location", location: { latitude: 11.0168, longitude: 76.9558, name: "Gandhipuram" } },
+  ],
+  statuses: [{ id: "wamid.0", status: "delivered", timestamp: "1793680000", recipient_id: "919876543210" }],
+} }] }] };
+const jobs = toJobs(fixture);
+const sources = jobs.map((j) => ({ j, s: fromJob(j) })).filter((x) => x.s).map((x) => ({ thread: String(x.j.payload.from), at: Number(x.j.payload.timestamp) * 1000, source: x.s! }));
+const grouped = groupByThread(sources);
+assert.equal(grouped.length, 1, "photo, words and pin from one reporter are one report");
+assert.ok(grouped[0].hasPhoto && grouped[0].location?.label === "Gandhipuram");
+assert.ok(!grouped[0].text.includes("9876543210"));
+const wp = planIntake(grouped[0].text, extractFieldMessage(grouped[0].text, now), ctx);
+assert.equal(wp.extracted.category, "injury"); assert.ok(wp.extracted.hasPhoto && wp.extracted.hasLocation); assert.ok(wp.options.length > 0);
+ok("a WhatsApp webhook fixture becomes one masked, prepared report through the same planner");
+
+const { confirmMany } = await import("../src/sp3/ai/execute");
+const prop = (id: string) => ({ id, kind: "add_note" as const, why: "t", caseId: "c", caseLabel: "c", note: "n" });
+const seenIds: string[] = [];
+const res = await confirmMany([prop("a1aaaa"), prop("b2bbbb"), prop("c3cccc")], { id: "u", name: "U" }, (p) => seenIds.push(p.id),
+  async (p) => p.id.startsWith("b") ? { ok: false, error: "Actions are temporarily limited. Try again shortly." } : { ok: true, at: "", what: "", verified: true });
+assert.deepEqual(seenIds, ["a1aaaa", "b2bbbb"]); assert.equal(res.done, 1); assert.ok(res.stopped);
+ok("a batch stops at a rate limit and leaves the rest prepared");
+
 console.log(`\n${n} passed`);
+}
+main().catch((e) => { console.error(e); process.exit(1); });

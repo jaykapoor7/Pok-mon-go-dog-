@@ -41,12 +41,15 @@ export async function GET(req: Request) {
     const d = Array.isArray(e.dogs) ? e.dogs[0] ?? null : e.dogs;
     return { id: e.id, dog_id: e.dog_id, case_id: e.case_id, event_date: e.event_date, notes: e.notes, dog_label: label(d), zone: d?.zone ?? null };
   });
-  const dogIds = [...new Set(events.map((e) => e.dog_id))].slice(0, 600);
+  const dogIds = [...new Set(events.map((e) => e.dog_id))];
   let followups: FollowupRow[] = [];
   if (dogIds.length) {
-    const f = await c.db.from("animal_followups").select("dog_id,case_id,due_at").in("dog_id", dogIds).gte("due_at", since).limit(2000);
-    if (f.error) unavailable.push("follow-ups");
-    followups = (f.data ?? []) as FollowupRow[];
+    /* In chunks: a long id list would overflow the request URL and silently read nothing. */
+    for (let i = 0; i < dogIds.length; i += 100) {
+      const f = await c.db.from("animal_followups").select("dog_id,case_id,due_at").in("dog_id", dogIds.slice(i, i + 100)).gte("due_at", since).limit(1000);
+      if (f.error) { unavailable.push("follow-ups"); break; }
+      followups = followups.concat((f.data ?? []) as FollowupRow[]);
+    }
   }
 
   const facts: CaseFact[] = ((cases.data ?? []) as Omit<CaseFact, "critical">[]).map((x) => ({ ...x, critical: DEFAULT_TRIAGE[(x.condition_class ?? "Not recorded") as Condition] === "Critical" }));
@@ -82,6 +85,8 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     checkedAt: now.toISOString(), unavailable,
+    /* Reads that hit their cap are reported, so a short list is never taken as complete. */
+    partial: [(cases.data ?? []).length >= 800 && "open cases (first 800)", (care.data ?? []).length >= 2000 && "care notes (latest 2,000)"].filter(Boolean),
     stalled: stalled.slice(0, 5),
     reviews: { missed: reviews.filter((r) => r.state === "missed").length, upcoming: reviews.filter((r) => r.state === "upcoming").length, items: reviews.slice(-12).reverse() },
     localities,

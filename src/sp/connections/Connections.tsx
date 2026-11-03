@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, FileText, Lock, MapPin, MessageSquare, Plug, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
-import { CAPABILITY, type Capability, type ConnectionView, type Provider, type ProviderId } from "@/lib/connections/providers";
+import { CAPABILITY, PROVIDERS, type Capability, type ConnectionView, type Provider, type ProviderId } from "@/lib/connections/providers";
 import { Reading } from "../ui/Reading";
 import "../ngo/ngo.css";
 import "./connections.css";
@@ -53,7 +53,7 @@ export function Connections({ back }: { back: string }) {
     setBusy(key); setMsg(null);
     try { await fn(); if (done) setMsg({ ok: true, text: done }); await load(); } catch (e) { setMsg({ ok: false, text: (e as Error).message }); } finally { setBusy(null); }
   };
-  const connect = (p: ProviderId) => act(`c:${p}`, async () => { const j = await api(`/api/connections/${p}/start?back=${encodeURIComponent(back)}`, { method: "POST" }); window.location.assign(j.url); });
+  const connect = (p: ProviderId, caps: Capability[] = []) => act(`c:${p}`, async () => { const j = await api(`/api/connections/${p}/start?back=${encodeURIComponent(back)}${caps.length ? `&caps=${caps.join(",")}` : ""}`, { method: "POST" }); window.location.assign(j.url); });
 
   if (ready && !user) return <div className="ngo-page"><header className="ngo-head"><div><h1>Connections</h1></div><p className="ngo-sum">Sign in to connect your tools with Kaju.</p></header><Link className="btn is-s" href="/sign-in">Sign in</Link></div>;
 
@@ -82,7 +82,15 @@ export function Connections({ back }: { back: string }) {
                   {v?.status === "unavailable" && <p className="cx-note"><Lock size={13} aria-hidden /> An administrator needs to finish setting this up before anyone can connect.</p>}
                   <details className="cx-perm">
                     <summary>What Kaju can do</summary>
-                    <ul>{p.capabilities.map((c: Capability) => <li key={c}>{CAPABILITY[c].label}{CAPABILITY[c].writes ? <em>asks you first</em> : null}</li>)}</ul>
+                    <ul>{p.capabilities.map((c: Capability) => {
+                      const granted = !on || (v?.capabilities ?? []).includes(c);
+                      const opt = (PROVIDERS[p.id].optional ?? {})[c];
+                      return <li key={c} className={granted ? undefined : "is-off"}>{CAPABILITY[c].label}{CAPABILITY[c].writes ? <em>asks you first</em> : null}
+                        {on && !granted && <em>{opt ? "not allowed yet" : "not granted"}</em>}
+                        {!on && opt && <em>only if you allow it</em>}
+                        {on && !granted && opt && <button type="button" className="ai3-inline" disabled={!!busy} onClick={() => connect(p.id, [c])}>Allow</button>}
+                      </li>;
+                    })}</ul>
                     <p>Kaju uses your own access, so it sees only what you can see in {p.name}. Sending, creating and saving always wait for your confirmation.</p>
                   </details>
                   <div className="cx-act">
