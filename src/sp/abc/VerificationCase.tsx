@@ -84,6 +84,19 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
         <p className="ngo-sum">{[d.head?.zone || d.head?.city, d.head ? `opened ${when(d.head.created_at)}` : null].filter(Boolean).join(" · ")}{d.head?.case_code && <span className="abc-code" title={d.head.case_code}>{d.head.case_code.length > 16 ? `${d.head.case_code.slice(0, 13)}…` : d.head.case_code}</span>}</p>
       </header>
       {msg && <p className={msg.ok ? "abc-ok" : "abc-err"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
+      {(() => {
+        /* The one next step on this record, for whoever is looking. */
+        const missing = d.chk.missing.map((k) => EVIDENCE_LABEL[k].toLowerCase());
+        const release = d.chk.missing.filter((k) => k === "release_photo" || k === "release_location").length > 0;
+        const next = locked ? "This record is in a submitted or accepted package. It can no longer change here."
+          : ret ? `Returned: ${ret.note ?? "see the note below"}. Fix it, then the vet and coordinator sign again.`
+          : !clinicalReady ? `Next: the surgery record. ${canSign ? "Add it below, then authorise." : "The vet adds it and authorises."}`
+          : !vet ? (canSign ? "Next: your veterinary authorisation, below." : "Next: veterinary authorisation by the vet.")
+          : missing.length ? `Next: ${missing.join(", ")}.${release ? " Take the release photo at the release spot so its place is recorded." : ""}`
+          : !rev ? (canReview ? "Next: your evidence review, below. Everything required is present." : "Next: a coordinator reviews the evidence.")
+          : "Complete. Kaju includes it in this month’s submission.";
+        return <p className={`abc-next${!locked && !ret && vet && rev && !missing.length ? " is-done" : ""}`} role="status">{next}</p>;
+      })()}
       <div className="abc-grid">
         <div>
           <section className="abc-sec" aria-labelledby="ev-h">

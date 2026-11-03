@@ -164,3 +164,5 @@
 .ms-bill svg { color: #2457ce; transform: translateY(2px); }
 .ms-bill small { color: #6f7380; font-size: 12.5px; }
 .ms-err { margin: 0; color: #b4361f; font-size: 13px; }
+.abc-next { margin: 4px 0 14px; padding: 10px 12px; border-left: 3px solid #2457ce; background: rgba(36, 87, 206, 0.05); font-size: 14px; line-height: 1.5; color: #0b1e3d; border-radius: 0 8px 8px 0; }
+.abc-next.is-done { border-left-color: #1f7a4d; background: rgba(31, 122, 77, 0.06); }

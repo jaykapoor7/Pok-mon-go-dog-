@@ -106,19 +106,43 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
         })}</ul>
       </>}
 
-      {d.localities.length > 0 && <>
-        <p className="kp-lede"><MapPin size={13} aria-hidden /> One place, several spellings. Ward and locality counts are split until these are made consistent at the source.</p>
-        <ul className="kp-places">{d.localities.slice(0, 4).map((g) => (
-          <li key={g.canonical}><b>{g.canonical}</b> <small>{g.total} animals across {g.variants.length} spellings: {g.variants.slice(0, 5).map((v) => `${v.zone} (${v.count})`).join(", ")}{g.variants.length > 5 ? `, and ${g.variants.length - 5} more` : ""}</small></li>
-        ))}</ul>
-      </>}
+      {d.localities.length > 0 && <p className="kp-lede"><MapPin size={13} aria-hidden /> <span><b>{d.localities[0].canonical}</b> is spelled {d.localities[0].variants.length} ways{d.localities.length > 1 ? `, and ${d.localities.length - 1} more place${d.localities.length === 2 ? "" : "s"} too` : ""}. <Link href="/ngo/quality">Review spellings</Link></span></p>}
 
       <div className="br-chips">
         {pending.length > 1 && <button type="button" onClick={() => void confirmAll()} disabled={batch}><Check size={12} aria-hidden />{batch ? "Scheduling…" : `Schedule all ${pending.length} prepared follow-ups`}</button>}
-        {d.localities.length > 0 && <Link href="/ngo/quality">Open data quality</Link>}
       </div>
       {stopped && <p className="kp-err" role="alert" style={{ textAlign: "left", maxWidth: "none" }}>{stopped}</p>}
       <details className="kp-how"><summary>How Kaju found these</summary><ul>{Object.values(d.rules).map((r) => <li key={r}>{r}</li>)}</ul><p>Checked {new Date(d.checkedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}. Each follow-up is saved under your name with an audit entry, then read back before it shows as scheduled. Nothing is closed, merged or renamed automatically.</p></details>
+    </section>
+  );
+}
+
+/** Data quality: Kaju's locality spelling clusters on their own. Candidates
+ *  only; correcting them happens at the source, never by automatic merge. */
+export function LocalitySpellings() {
+  const [g, setG] = useState<LocalityGroup[] | null | "failed">(null);
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const token = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
+        if (!token) throw Error();
+        const r = await fetch("/api/ai/prepared", { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+        const j = await r.json();
+        if (!r.ok || j.unavailable?.includes("localities")) throw Error();
+        if (live) setG(j.localities as LocalityGroup[]);
+      } catch { if (live) setG("failed"); }
+    })();
+    return () => { live = false; };
+  }, []);
+  if (g === null) return <p className="rq-sp" role="status">Kaju is comparing locality spellings…</p>;
+  if (g === "failed") return <p className="rq-sp" role="status">Locality spellings could not be compared just now.</p>;
+  if (!g.length) return null;
+  return (
+    <section className="rq-sp" aria-labelledby="rq-sp-h">
+      <h2 id="rq-sp-h"><MapPin size={14} aria-hidden /> One place, several spellings</h2>
+      <p>Ward and locality reports count these separately. Pick the correct spelling and fix the others at their source; Kaju never merges places or animals on its own.</p>
+      <ul>{g.map((x) => <li key={x.canonical}><b>{x.canonical}</b> <small>{x.total} animals · {x.variants.map((v) => `${v.zone} (${v.count})`).join(", ")}</small></li>)}</ul>
     </section>
   );
 }
