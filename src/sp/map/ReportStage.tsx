@@ -13,7 +13,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { Map as MLMap, Marker } from "maplibre-gl";
 import { supportsWebGL2 } from "@/components/map/basemap";
-import { reverseGeocode, nearestCity } from "@/lib/delhi";
+import { describeSpot, nearestCity } from "@/lib/delhi";
 import { looksIndian } from "@/lib/exif";
 import { GLYPHS, collapseAttribution, drawGround, groundStyle } from "./ground";
 
@@ -40,8 +40,8 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
       // Selection must work even when WebGL or the map is unavailable.
       cb.current.onPick({ lat, lng, zone }); cb.current.onLabel?.(zone);
       const version = lookup.current;
-      reverseGeocode(lat, lng).then(zone => {
-        if (version === lookup.current && cb.current.picking) cb.current.onPick({ lat, lng, zone });
+      describeSpot(lat, lng).then(({ zone, street }) => {
+        if (version === lookup.current && cb.current.picking) { cb.current.onPick({ lat, lng, zone }); cb.current.onLabel?.(street ? `${street}, ${zone}` : zone); }
       }).catch(() => {});
       mapRef.current?.flyTo({ center: [lng, lat], zoom: z, duration: reduced() ? 0 : 1100 });
     } }), []);
@@ -75,8 +75,8 @@ export const ReportStage = forwardRef<StageHandle, { coords: { lat: number; lng:
             if (!looksIndian(c.lat, c.lng)) { cb.current.onLabel?.("Outside India"); return; }
             const near = nearestCity(c.lat, c.lng);
             cb.current.onPick({ lat: c.lat, lng: c.lng, zone: near });
-            reverseGeocode(c.lat, c.lng).then((z) => {
-              if (!dead && cb.current.picking && version === lookup.current) cb.current.onPick({ lat: c.lat, lng: c.lng, zone: z });
+            describeSpot(c.lat, c.lng).then(({ zone, street }) => {
+              if (!dead && cb.current.picking && version === lookup.current) { cb.current.onPick({ lat: c.lat, lng: c.lng, zone }); cb.current.onLabel?.(street ? `${street}, ${zone}` : zone); }
             }).catch(() => {});
           }, 250);
         });

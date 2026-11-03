@@ -341,7 +341,7 @@ function WhereTools({ onFly }: { onFly: (lat: number, lng: number) => void }) {
     <div className="rp2-tools">
       <label className="rp2-search"><Search size={16} aria-hidden /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a street, landmark or area" aria-label="Search a place" /></label>
       <button type="button" className="rp2-btn" onClick={here} disabled={locating}><Crosshair size={16} aria-hidden className={locating ? "rp2-spin" : undefined} /> {locating ? "Finding you…" : "Where I am"}</button>
-      {where && <p className="rp2-where" role="alert">{where}</p>}
+      {where && <p className="rp2-locfail" role="alert">{where}</p>}
       {hits.length > 0 && <ul className="rp2-hits">{hits.map((h) => <li key={`${h.lat},${h.lng}`}><button type="button" onClick={() => { setQ(h.label.split(",").slice(0, 2).join(",")); setHits([]); onFly(h.lat, h.lng); }}>{h.label}</button></li>)}</ul>}
     </div>
   );

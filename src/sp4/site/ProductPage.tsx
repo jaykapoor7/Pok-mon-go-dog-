@@ -80,16 +80,16 @@ export function ProductPage({ s }: { s: ProductSpec }) {
       {s.splits && s.splits.length > 0 && (
         <SplitTabs label="What it does" items={s.splits.map((f, n) => ({
           id: f.id,
-          head: <TwoTone a={f.title[0]} b={f.title[1]} />,
+          head: <TwoTone key={`h${n}`} a={f.title[0]} b={f.title[1]} />,
           detail: (
-            <div className="s4-feat-copy">
+            <div key={`d${n}`} className="s4-feat-copy">
               {f.tag && <span style={{ justifySelf: "start" }}>{f.tag}</span>}
               <p>{f.body}</p>
               {f.points && <ul>{f.points.map((p, i) => <li key={i}><Check size={17} aria-hidden />{p}</li>)}</ul>}
               {f.link && <Link href={f.link.href} className="s4-link">{f.link.label} <ArrowRight size={17} aria-hidden /></Link>}
             </div>
           ),
-          art: <Grain v={f.v ?? n + 1} id={`${s.id}-art${n}`} className="s4-split-art">{f.ui}</Grain>,
+          art: <Grain key={`a${n}`} v={f.v ?? n + 1} id={`${s.id}-art${n}`} className="s4-split-art">{f.ui}</Grain>,
         }))} />
       )}
 

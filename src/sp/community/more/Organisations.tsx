@@ -27,7 +27,8 @@ export function Organisations({ orgs, impacts }: { orgs: DirectoryOrg[]; impacts
         <p className="lede">The organisations whose work is on StrayPaw, and what kind of record each keeps. Listing is not an endorsement, a rating or a claim that they cover a whole city.</p>
       </header>
       {!orgs.length && <State title="Didn't load">The directory could not be read just now.</State>}
-      {kinds.map(({ k, list }) => (
+      {kinds.map(({ k, list }) => {
+        const section = (
         <section key={k} className="og-sec" aria-labelledby={`og-${k}`}>
           <h2 id={`og-${k}`} className="og-k serif">{k}s <small className="small">{KIND_NOTE[k]}</small></h2>
           <ul className="og-grid">
@@ -50,7 +51,12 @@ export function Organisations({ orgs, impacts }: { orgs: DirectoryOrg[]; impacts
             })}
           </ul>
         </section>
-      ))}
+        );
+        // Data sources (councils, archives, observation platforms) fold away so field partners lead.
+        return k === "Data source"
+          ? <details key={k} className="og-fold"><summary><span>{k}s <small>{list.length} that shared a historical register or observations</small></span></summary>{section}</details>
+          : section;
+      })}
       <p className="small mo-foot">{impacts ? "Figures are each organisation's public record: animal profiles, requests and recorded sterilisations are different units and are not added together." : "Figures are unavailable just now; a dash means not read, not zero."}</p>
     </div>
   );

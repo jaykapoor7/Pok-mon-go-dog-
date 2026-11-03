@@ -174,3 +174,25 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
   }
 }
 
+
+/**
+ * The area to save and the street to show while pinning. The area
+ * (neighbourhood, city) is what the record keeps and may publish; the street
+ * is only shown to the reporter so they can tell the pin is right, and is
+ * never stored. OpenStreetMap's Nominatim first, then the area-only lookup.
+ */
+export async function describeSpot(lat: number, lng: number): Promise<{ zone: string; street: string | null }> {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=en`,
+      { headers: { Accept: "application/json" }, signal: AbortSignal.timeout?.(5000) });
+    if (!res.ok) throw new Error("reverse failed");
+    const a = ((await res.json()) as { address?: Record<string, string> }).address ?? {};
+    const area = a.suburb || a.neighbourhood || a.quarter || a.residential || a.village || a.hamlet || a.city_district;
+    const city = a.city || a.town || a.municipality || a.state_district || a.county;
+    const zone = formatPlace(area, city);
+    if (zone === "Location not recorded") throw new Error("no area");
+    return { zone, street: a.road || a.pedestrian || a.footway || null };
+  } catch {
+    return { zone: await reverseGeocode(lat, lng), street: null };
+  }
+}

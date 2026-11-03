@@ -83,6 +83,6 @@
   .rp2-door { min-height: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .rp3 * { transition: none !important; } }
-.rp2-where { flex-basis: 100%; margin: 0; padding: 10px 12px; border-radius: 10px; background: #fff4e5; color: #7a4a00; font-size: 14px; line-height: 1.45; }
+.rp2-locfail { flex-basis: 100%; margin: 0; padding: 10px 12px; border-radius: 10px; background: #fff4e5; color: #7a4a00; font-size: 14px; line-height: 1.45; }
 .rp2-spin { animation: rp2-spin 1s linear infinite; }
 @keyframes rp2-spin { to { transform: rotate(360deg); } }

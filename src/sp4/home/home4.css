@@ -687,3 +687,20 @@ a.s4-hero-eyebrow:hover { box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .3); }
 @media (max-width: 640px) { .s4-pp-hero { padding-top: 48px; } }
 .s4-feat-art.is-inline { margin-top: 18px; }
 @media (max-width: 900px) { .s4-feat-art.is-inline .s4-split-art { aspect-ratio: auto; padding: 20px 12px; } }
+
+/* Product pages on a phone: modules swipe sideways, tiles become a compact
+   list, the hero picture and the closing call to action take less height. */
+@media (max-width: 640px) {
+  .s4-modules { display: flex; grid-template-columns: none; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 32px -16px 0; padding: 0 16px 8px; scrollbar-width: none; }
+  .s4-modules::-webkit-scrollbar { display: none; }
+  .s4-module { flex: 0 0 82%; scroll-snap-align: start; min-height: 0; padding: 20px; }
+  .s4-module > span { margin-bottom: 8px; }
+  .s4-page:not(.s6-home) .s4-tiles { gap: 8px; }
+  .s4-page:not(.s6-home) .s4-tile { grid-template-columns: 36px minmax(0, 1fr); column-gap: 14px; row-gap: 4px; padding: 16px; min-height: 0; }
+  .s4-page:not(.s6-home) .s4-tile > .s4-tile-ico { grid-row: span 3; width: 36px; height: 36px; margin: 0; }
+  .s4-page:not(.s6-home) .s4-tile h3 { font-size: 16px; }
+  .s4-page:not(.s6-home) .s4-tile p { font-size: 14px; }
+  .s4-pp-art { margin-top: 24px; padding: 16px 8px; }
+  .s4-page:not(.s6-home) .s4-close { padding-top: 56px; padding-bottom: 56px; gap: 20px; }
+  .s4-pillars > div { padding: 18px 0 20px; }
+}
