@@ -9,7 +9,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { NotEnabled, PACKAGE_LABEL, myContext, orgNames, packages, type AbcContext, type Package } from "@/lib/abc";
+import { NotEnabled, PACKAGE_LABEL, myContext, orgNames, packageCases, packages, type AbcContext, type Package } from "@/lib/abc";
+import { readReconciliation } from "@/lib/reconciliation";
+import { checkPackage, type PackageCheck } from "@/sp3/ai/packageCheck";
 import { Reading } from "../ui/Reading";
 import { period } from "./Packages";
 import "../ngo/ngo.css";
@@ -22,7 +24,8 @@ export function ReviewInbox() {
   const [names, setNames] = useState<Record<string, string>>({});
   const [off, setOff] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<"waiting" | "all">("waiting");
+  const [tab, setTab] = useState<"waiting" | "operator" | "all">("waiting");
+  const [checks, setChecks] = useState<Record<string, PackageCheck | "unavailable">>({});
 
   useEffect(() => {
     if (!user) return;
@@ -37,8 +40,23 @@ export function ReviewInbox() {
     return () => { live = false; };
   }, [user]);
 
-  const waiting = useMemo(() => (list ?? []).filter((p) => p.status === "submitted"), [list]);
-  const shown = tab === "waiting" ? waiting : list ?? [];
+  /* Oldest submission first: the decision that has waited longest. */
+  const waiting = useMemo(() => (list ?? []).filter((p) => p.status === "submitted").sort((a, b) => (a.submitted_at ?? a.created_at).localeCompare(b.submitted_at ?? b.created_at)), [list]);
+  const onOperator = useMemo(() => (list ?? []).filter((p) => p.status === "queried" || p.status === "returned"), [list]);
+  const shown = tab === "waiting" ? waiting : tab === "operator" ? onOperator : list ?? [];
+  /* Kaju checks the claims in each waiting package before it is opened. */
+  useEffect(() => {
+    let live = true;
+    for (const p of waiting.slice(0, 8)) {
+      if (checks[p.id] || !p.item_review_enabled) continue;
+      Promise.all([readReconciliation(p.id), packageCases(p.id)])
+        .then(([r, c]) => { if (live) setChecks((x) => ({ ...x, [p.id]: checkPackage(r.items, c) })); })
+        .catch(() => { if (live) setChecks((x) => ({ ...x, [p.id]: "unavailable" })); });
+    }
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waiting]);
+  const days = (iso: string | null) => iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000)) : null;
 
   if (ready && !user) return (
     <div className="ngo-door"><header className="ngo-door-head">
@@ -61,18 +79,20 @@ export function ReviewInbox() {
           <>
             <div className="abc-stages" role="group" aria-label="Show">
               <button type="button" aria-pressed={tab === "waiting"} onClick={() => setTab("waiting")}>Waiting for you <b>{waiting.length}</b></button>
+              <button type="button" aria-pressed={tab === "operator"} onClick={() => setTab("operator")}>Waiting on the operator <b>{onOperator.length}</b></button>
               <button type="button" aria-pressed={tab === "all"} onClick={() => setTab("all")}>All <b>{list.length}</b></button>
             </div>
             {shown.length ? (
               <ul className="abc-list">{shown.map((p) => (
                 <li key={p.id}><Link href={`/city/review/${p.id}`}>
-                  <span className="abc-t"><b>{p.title}</b><small>{names[p.ngo_id] ?? "Operator"} · {period(p)}</small></span>
+                  <span className="abc-t"><b>{p.title}</b><small>{names[p.ngo_id] ?? "Operator"} · {period(p)}{p.status === "submitted" && days(p.submitted_at) !== null ? ` · waiting ${days(p.submitted_at)} d` : ""}</small>
+                    {p.status === "submitted" && (() => { const c = checks[p.id]; return c === "unavailable" ? <small>Kaju could not read the claims; open the package to review.</small> : c ? <small className="abc-kaju">Kaju: {c.clean} clean · {c.exceptions} with exceptions{c.byIssue[0] ? ` (most: ${c.byIssue[0].issue.toLowerCase()})` : ""}</small> : p.item_review_enabled ? <small>Kaju is checking the claims…</small> : null; })()}</span>
                   <span className="abc-dots"><span>{(() => { const n = p.summary.records ?? p.case_ids.length; return `${n} ${n === 1 ? "record" : "records"}`; })()}</span></span>
                   <span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span>
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>
               ))}</ul>
-            ) : <div className="abc-empty"><b>{tab === "waiting" ? "Nothing is waiting for you." : "No packages yet."}</b></div>}
+            ) : <div className="abc-empty"><b>{tab === "waiting" ? "Nothing is waiting for you." : tab === "operator" ? "No package is waiting on an operator." : "No packages yet."}</b></div>}
           </>
         )}
     </div>

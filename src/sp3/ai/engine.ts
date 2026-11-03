@@ -178,6 +178,29 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     const data = out.data as {verified_actions:unknown[];pending:number};
     return done(`${data.verified_actions.length} recent actions have a readable source record and audit receipt.${data.pending?` ${data.pending} could not be independently verified.`:""} Open the linked records to inspect them.`);
   }
+  if (/what should i do first|prepared work|what did kaju (?:find|prepare)|quiet|stalled|promised review|spellings?/.test(t)) {
+    const out = await call(acc, ctx, "prepared_work");
+    if (out.ok === false && !acc.proposals.length) return done(ctx.orgId ? out.summary : needsOrg);
+    const d = out.data as { stalled: { label: string; quietDays: number; holder: string | null }[]; reviews: { missed: number; upcoming: number }; localities: { canonical: string; variants: unknown[]; total: number }[] };
+    const lines = [
+      ...d.stalled.map((s) => `- **${s.label}** is critical with no update for ${s.quietDays} days${s.holder ? ` (held by ${s.holder})` : ""}.`),
+      d.reviews.missed || d.reviews.upcoming ? `- ${d.reviews.missed} review(s) promised in care notes passed unrecorded; ${d.reviews.upcoming} upcoming are unscheduled.` : "",
+      ...d.localities.slice(0, 3).map((l) => `- ${l.canonical} is spelled ${l.variants.length} ways across ${l.total} animals.`),
+    ].filter(Boolean);
+    return done(lines.length ? `First, in this order:\n${lines.join("\n")}\n\nI prepared ${acc.proposals.length} follow-up(s); confirm the ones you want.` : "Nothing quiet, unscheduled or split was found in your records today.");
+  }
+  if (/\b(prepare|paste|forward(?:ed)?|whatsapp)\b/.test(t) && q.length > 40) {
+    const out = await call(acc, ctx, "prepare_intake", { text: q.replace(/^.*?(?:prepare|paste|forward(?:ed)?)[^:\n]*[:\n]/i, "") });
+    return done(out.ok === false ? (ctx.orgId ? out.summary : needsOrg) : `${out.summary}. Each prepared record is below; confirm the right option. Nothing is saved until you do.`);
+  }
+  if (/\b(check|review)\b.*\bpackage\b/.test(t)) {
+    const id = ctx.pagePath?.match(/\/(?:city\/review|ngo\/packages)\/([0-9a-f-]{36})/i)?.[1];
+    if (id) {
+      const out = await call(acc, ctx, "check_package", { package_id: id });
+      const d = out.data as { by_issue?: { issue: string; count: number }[] };
+      return done(out.ok === false ? out.summary : `${out.summary}.${d.by_issue?.length ? `\n\n${d.by_issue.map((x) => `- ${x.issue}: ${x.count}`).join("\n")}` : ""}\n\nDraft notes are ready in the claims list. Every decision is yours.`);
+    }
+  }
   if (/operational checks|scheduled checks|recurring|what needs attention|check overdue|check.*evidence/.test(t)) {
     const out = await call(acc, ctx, "operations_insights");
     if (out.ok === false) return done(out.summary);

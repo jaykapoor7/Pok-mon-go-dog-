@@ -52,6 +52,7 @@
     "test:connections": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-connections.ts",
     "test:kaju-polish": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-polish.ts",
     "test:kaju-prepare": "node --import tsx scripts/test-kaju-prepare.ts",
+    "test:package-check": "node --import tsx scripts/test-package-check.ts",
     "test:kaju-intake": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-intake.ts"
   },
   "dependencies": {
