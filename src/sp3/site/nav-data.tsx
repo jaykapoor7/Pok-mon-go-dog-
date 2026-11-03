@@ -26,7 +26,7 @@ export const SOLUTIONS: Item[] = [
 ];
 export const RESOURCES: Item[] = [
   { href: "/docs", label: "Documentation", hint: "How the product works, step by step", icon: <BookOpen size={16} />, tone: "blue" },
-  { href: "/research", label: "Research", hint: "Methods, sources and the research archive", icon: <FlaskConical size={16} />, tone: "teal" },
+  { href: "/research", label: "Research", hint: "Datasets, methods and data access", icon: <FlaskConical size={16} />, tone: "teal" },
   { href: "/explore", label: "Public map", hint: "Recorded animals and care by place", icon: <MapIcon size={16} />, tone: "green" },
   { href: "/learn", label: "Academy", hint: "Courses and teaching materials", icon: <GraduationCap size={16} />, tone: "amber" },
   { href: "/for-community", label: "Report an animal", hint: "No account needed", icon: <Users size={16} />, tone: "flame" },
@@ -88,7 +88,7 @@ export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
     ] },
     { title: "Evidence", links: [
       { href: "/customers", label: "Customer stories", hint: "What partners record, and what we have not measured" },
-      { href: "/research", label: "Research", hint: "Methods and the research archive" },
+      { href: "/research", label: "Research", hint: "Datasets, methods and data access" },
       { href: "/explore", label: "Public map", hint: "Recorded animals and care by place" },
     ] },
     { title: "Company", links: [
