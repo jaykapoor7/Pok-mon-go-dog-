@@ -11,6 +11,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Anthropic from "@anthropic-ai/sdk";
+import { inferenceAllowed, inferenceConfig, modelCredentials, withInferenceSlot } from "@/lib/ai/inference";
 
 export type PhotoVerdict = { ok: boolean; reason: string; animal?: boolean; identifying?: boolean; injury?: boolean };
 
@@ -36,16 +37,20 @@ visible_injury: is a wound, blood, a fracture, maggots, burns or a dead animal v
 
 Then give one short note describing the photo.`;
 
+/** Only with model inference switched on centrally and a direct key (images do not use the gateway route). */
 export function photoCheckAvailable() {
-  return !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+  return inferenceConfig().allowed && !!process.env.ANTHROPIC_API_KEY?.trim();
 }
 
-export async function checkSightingPhoto(photoUrl: string): Promise<PhotoVerdict> {
+/** `requestedBy` is the signed-in reporter or moderator; anonymous requests never reach a paid model. */
+export async function checkSightingPhoto(photoUrl: string, requestedBy: { userId: string | null; orgId?: string | null } = { userId: null }): Promise<PhotoVerdict> {
   if (!photoCheckAvailable()) return { ok: false, reason: "Photo check unavailable" };
   if (!/^https:\/\//i.test(photoUrl)) return { ok: false, reason: "Photo is not a public https link" };
-  const client = new Anthropic({ timeout: 25_000, maxRetries: 1 });
+  const creds = await modelCredentials(await inferenceAllowed({ purpose: "photo_check", userId: requestedBy.userId, orgId: requestedBy.orgId ?? null }));
+  if (!creds || creds.gateway) return { ok: false, reason: "Photo check unavailable" };
+  const client = new Anthropic({ apiKey: creds.token, timeout: 25_000, maxRetries: 0 });
   try {
-    const response = await client.beta.messages.create({
+    const response = await withInferenceSlot(() => client.beta.messages.create({
       model: "claude-opus-5-5",
       max_tokens: 4000,
       betas: ["server-side-fallback-2026-07-01"],
@@ -58,7 +63,7 @@ export async function checkSightingPhoto(photoUrl: string): Promise<PhotoVerdict
           { type: "text", text: PROMPT },
         ],
       }],
-    });
+    }));
     if (response.stop_reason === "refusal") return { ok: false, reason: "Photo check declined" };
     const text = response.content.find((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text")?.text;
     if (!text) return { ok: false, reason: "Photo check gave no answer" };

@@ -33,7 +33,7 @@
     "test:operational-cohorts": "node --import tsx scripts/test-operational-cohorts.ts",
     "test:place-fallback": "node --import tsx scripts/test-place-fallback.ts",
     "test:location-cell": "node --import tsx scripts/test-location-cell.ts",
-    "test:auto-approve": "node --import tsx scripts/test-auto-approve.ts",
+    "test:auto-approve": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-auto-approve.ts",
     "test:no-full-register": "node --import tsx scripts/test-no-full-register-reads.ts",
     "test:v1-cleanup-chunks": "node --import tsx scripts/test-v1-cleanup-chunks.ts",
     "prebuild": "node scripts/build-info.mjs && node scripts/no-fixtures.mjs && node scripts/copy-maplibre-worker.mjs",
@@ -52,6 +52,7 @@
     "test:connections": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-connections.ts",
     "test:kaju-polish": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-polish.ts",
     "test:kaju-prepare": "node --import tsx scripts/test-kaju-prepare.ts",
+    "test:inference-off": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-inference-off.ts",
     "test:package-check": "node --import tsx scripts/test-package-check.ts",
     "test:kaju-intake": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-intake.ts"
   },

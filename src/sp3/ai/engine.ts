@@ -1,6 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import { getVercelOidcToken } from "@vercel/oidc";
+import { inferenceAllowed, modelCredentials, withInferenceSlot, type InferenceScope } from "@/lib/ai/inference";
 import { extractFieldMessage } from "./extract";
 import { NAV, TOOL_DEFS, runTool, toolRun, type ToolCtx, type ToolOut } from "./tools";
 import { connectionToolDefs } from "./connectTools";
@@ -19,14 +19,11 @@ import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
    ════════════════════════════════════════════════════════════════════ */
 
 type ModelAccess = { gateway: boolean; token: string; model: string };
-/** Runtime OIDC lives in Vercel's request context, not necessarily process.env.
- * Resolve once per run; never cache a rotating identity or accept a client token. */
-async function modelAccess(): Promise<ModelAccess | null> {
-  const direct = process.env.ANTHROPIC_API_KEY?.trim();
-  if (direct) return { gateway: false, token: direct, model: process.env.STRAYPAW_AI_MODEL?.trim() || "claude-opus-5-5" };
-  let token = process.env.AI_GATEWAY_API_KEY?.trim();
-  if (!token) { try { token = (await getVercelOidcToken()).trim(); } catch { return null; } }
-  return token ? { gateway: true, token, model: process.env.STRAYPAW_AI_MODEL?.trim() || "google/gemini-2.5-flash" } : null;
+/* Model access exists only when the central gate allows this request.
+   With STRAYPAW_AI_MODE unset or "tools_only" (the default) no credential,
+   key or Vercel OIDC token is ever resolved. */
+async function modelAccess(scope: InferenceScope): Promise<ModelAccess | null> {
+  return modelCredentials(await inferenceAllowed(scope));
 }
 const MAX_STEPS = 6;
 const MAX_TOOL_CALLS = 12;
@@ -57,11 +54,10 @@ function absorb(acc: Acc, name: string, out: ToolOut) {
 }
 
 /** Approval names the exact configured transport/model; it is not inferred from a key. */
-export async function privateModelApproved() {
-  const access = await modelAccess();
+export async function privateModelApproved(scope: InferenceScope = { purpose: "kaju_chat", userId: null, orgId: null }) {
+  const access = await modelAccess(scope);
   return !!access && process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE === `${access.gateway ? "gateway" : "direct"}:${access.model}`;
 }
-export const modelConfigured = async () => Boolean(await modelAccess());
 
 export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string; signal?:AbortSignal }): Promise<AiReply> {
   if(context.signal?.aborted)throw Error("Kaju request cancelled");
@@ -73,15 +69,13 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   if (previous?.role === "assistant" && previous.text.includes("Tell me the city and I will prepare the case.") && report?.role === "user" && toolQuestion.length <= 80 && extractFieldMessage(toolQuestion).city) {
     toolQuestion = `${report.text}\nCity: ${extractFieldMessage(toolQuestion).city}`;
   }
-  const access = await modelAccess();
-  const publicGreeting = !ctx.userId && !ctx.orgId && turns.length === 1 && /^(?:hello|hi|hey)(?: kaju)?[.!?\s]*$/i.test(turns[0].text);
-  const approved=access&&await privateModelApproved();
-  if (access && (publicGreeting || approved)) {
-    // Even a generic guest greeting must not carry a private URL or arbitrary
-    // browser-supplied workspace text onto an unapproved processing route.
-    const modelCtx=approved?ctx:{db:ctx.db,orgId:null,userName:null};
-    const modelContext=approved?context:{path:'/assistant',workspace:'community',signal:context.signal};
-    try { return await withModel(turns, modelCtx, modelContext, access); }
+  /* Guests never reach a paid model; signed-in people only when the
+     central gate allows it AND the data route is approved. */
+  const scope: InferenceScope = { purpose: "kaju_chat", userId: ctx.userId ?? null, orgId: ctx.orgId };
+  const access = ctx.userId ? await modelAccess(scope) : null;
+  const approved = !!access && process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE === `${access.gateway ? "gateway" : "direct"}:${access.model}`;
+  if (access && approved) {
+    try { return await withInferenceSlot(() => withModel(turns, ctx, context, access)); }
     catch {
       if(context.signal?.aborted)throw Error("Kaju request cancelled");
       console.error("Kaju model request failed; using scoped record tools");
@@ -90,7 +84,7 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
     }
   }
   const r = await withTools(toolQuestion, ctx);
-  return { ...r, notice: access ? "Record check. Workspace text stays inside StrayPaw." : "Record check. General conversation is temporarily limited." };
+  return { ...r, notice: access ? "Record check. Workspace text stays inside StrayPaw." : "Record tools. Kaju works from your records without a language model." };
 }
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */

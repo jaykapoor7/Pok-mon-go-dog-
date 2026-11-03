@@ -58,6 +58,7 @@ async function photo() {
   const v = await checkSightingPhoto("https://example.com/dog.jpg");
   assert.equal(v.ok, false, "no key: the photo check never approves");
   process.env.ANTHROPIC_API_KEY = "test-key-not-real";
+  assert.equal(photoCheckAvailable(), false, "a key alone never enables paid photo checks: inference is off by default");
   const insecure = await checkSightingPhoto("http://example.com/dog.jpg");
   assert.equal(insecure.ok, false, "non-https photos are never sent");
   delete process.env.ANTHROPIC_API_KEY;

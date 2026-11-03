@@ -219,8 +219,10 @@ export async function POST(req: Request) {
   });
   /* When a Claude API key is configured, the photo must also show an animal
      and nothing that identifies a person; any doubt leaves it for review. */
-  const verdict = rulesPass && photoCheckAvailable() && photoUrl ? await checkSightingPhoto(photoUrl) : null;
-  const photoPass = rulesPass && (!photoCheckAvailable() || !!verdict?.ok);
+  /* Fail closed: a report with a photo goes live on its own only when the
+     photo check ran and passed. With model inference off it waits for a person. */
+  const verdict = rulesPass && photoCheckAvailable() && photoUrl ? await checkSightingPhoto(photoUrl, { userId: userId ?? null, orgId: orgCtx?.ngo_id ?? null }) : null;
+  const photoPass = rulesPass && (photoUrl ? !!verdict?.ok : true);
   if (result?.sighting_id && rulesPass && photoPass) {
     const { data: approved, error: approveError } = await supa.rpc("approve_sighting", { p_sighting_id: result.sighting_id, p_dog_id: null });
     if (!approveError) {
