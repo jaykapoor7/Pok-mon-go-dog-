@@ -37,8 +37,8 @@ export function Inbox() {
   const [src, setSrc] = useState<Source>("ours");
   const [wa, setWa] = useState(isRecordingDemo);
   const { user } = useAuth();
-  const [paste, setPaste] = useState(false);
-  useEffect(() => { if (new URLSearchParams(window.location.search).has("paste")) { setPaste(true); setWa(false); } }, []);
+  /* Most reports still arrive as WhatsApp messages, so the Kaju desk opens first. */
+  const [paste, setPaste] = useState(!isRecordingDemo);
   const [rows, setRows] = useState<Incoming[] | null>(null);
   const [counts, setCounts] = useState<Record<Source, number | null>>({ ours: null, community: null });
   const [drives, setDrives] = useState<CampaignStats[]>([]);
@@ -69,12 +69,11 @@ export function Inbox() {
   };
 
   return (
-    <NgoGate title="Inbox" lede="Reports that have arrived, waiting for a person to decide what they become.">
+    <NgoGate title="Intake" lede="Reports that have arrived, prepared by Kaju, waiting for a person to decide what they become.">
       <div className="ngo-page ib">
         <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · triage</p><h1 className="serif">Inbox</h1></div>
-          <p className="ngo-sum">A person decides what each report becomes: a case, an animal filed into a drive, or nothing yet. Nothing turns into work on its own.</p>
-          <div className="row"><Link className="btn is-s" href="/ngo">Back to Work</Link></div>
+          <div><p className="k">{mem.org?.name ?? "Your organisation"} · intake</p><h1 className="serif">Intake</h1></div>
+          <p className="ngo-sum">Paste WhatsApp messages or open a report. Kaju prepares each one and checks it against your register; you decide what it becomes.</p>
         </header>
         <PageBrief items={[["For", "Reports waiting for a person: sent to you, and community reports near you."], ["Watch", "Injured or unwell first."], ["Next", "File into a drive, or open a case."], ["After", "It leaves the inbox; the reporter’s receipt still says received, not accepted."]]} />
         <div className="ib-grid">

@@ -70,7 +70,7 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page className="s6-home" announce={<Link href="/whatsapp"><b>New</b>WhatsApp field intake and monthly reporting <span className="s4-announce-note">intake in testing</span> <ArrowRight size={14} aria-hidden /></Link>} close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint tone="dark" /><Close a="Put Kaju to work" b="on your programme." sub="See what Kaju would check, prepare and report on a programme like yours." primary={{ href: "/platform", label: "Explore the platform" }} secondary={{ href: "/contact", label: "Talk to the team" }} /></div></div>}>
+    <S4Page className="s6-home" announce={<Link href="/whatsapp"><b>New</b>Kaju intake: paste WhatsApp reports, get prepared records <span className="s4-announce-note">direct WhatsApp connection awaits Meta approval</span> <ArrowRight size={14} aria-hidden /></Link>} close={<div className="s4-wrap s6-closecard"><div className="s6-closecard-in"><span className="s6-close-kaju" aria-hidden><KajuPresence sequence="perch" loop size={120} /></span><Blueprint tone="dark" /><Close a="Put Kaju to work" b="on your programme." sub="See what Kaju would check, prepare and report on a programme like yours." primary={{ href: "/platform", label: "Explore the platform" }} secondary={{ href: "/contact", label: "Talk to the team" }} /></div></div>}>
       <PageView name="landing_view" />
       <VideoCard />
 
@@ -119,8 +119,8 @@ export default function HomePage() {
             { title: "Prepares, never approves", body: "Kaju drafts cases, notes and follow-ups. Nothing is saved until a person confirms.", ui: <ProposeUi v={0} />, v: 4 },
           ]} />
           <div className="s6-three"><Cards idp="mate3" cols={3} items={[
-            { title: "Clears the backlog", body: "Kaju finds missing evidence, duplicates and unsigned procedures before the weekly report.", ui: <OvernightUi v={1} />, v: 1 },
-            { title: "Reads field messages", body: "Paste a message from the field. Kaju turns it into a draft record.", ui: <ExtractUi v={1} />, v: 3 },
+            { title: "Notices what went quiet", body: "Kaju finds critical cases with no update, reviews promised in care notes but never scheduled, and one place spelled five ways. Follow-ups are ready to confirm.", ui: <OvernightUi v={1} />, v: 1 },
+            { title: "Reads field messages", body: "Paste WhatsApp messages or a whole exported chat. Kaju checks the register for the animal and any open case, then prepares the record.", ui: <ExtractUi v={1} />, v: 3 },
             { title: "Keeps reports ready", body: "Kaju tracks evidence completion for the month, so the package is never a surprise.", ui: <RingUi />, v: 5 },
           ]} /></div>
         </div>
@@ -197,7 +197,7 @@ const INT_COLS: IntTile[][] = [
   [{ n: "Microsoft 365", s: "Setup pending", i: <Mark l="M" c="#0f6cbd" /> }, { n: "Slack", s: "Setup pending", i: <Mark l="S" c="#4a154b" /> }, { n: "Phone field mode", s: "Live", i: <Smartphone /> }],
   [{ n: "Zoho Mail", s: "Setup pending", i: <Mark l="Z" c="#c8202f" /> }, { n: "Photos & GPS", s: "Live", i: <Camera /> }],
   [{ n: "SMS (MSG91)", s: "Setup pending", i: <MessageSquareText /> }],
-  [{ n: "WhatsApp", s: "Not connected", i: <MessageCircle /> }, { n: "Map exports", s: "Live", i: <MapPin /> }],
+  [{ n: "WhatsApp (direct)", s: "Not connected", i: <MessageCircle /> }, { n: "WhatsApp paste intake", s: "Live", i: <MessageCircle /> }, { n: "Map exports", s: "Live", i: <MapPin /> }],
   [{ n: "PDF · Word · PowerPoint", s: "Live", i: <FileText /> }, { n: "Reviewer access", s: "Live", i: <UserCheck /> }],
   [{ n: "Record search", s: "Live", i: <ScanSearch /> }, { n: "Report packages", s: "Live", i: <ClipboardList /> }],
 ];

@@ -27,7 +27,7 @@ export default function GovernmentPage() {
       ],
     },
     splits: [
-      { tag: <Status s="staging" />, title: ["Review a package", "in minutes, not weeks"], body: "Open a submitted package, see what was authorised by a vet and what is still an exception, and accept it or return it with a query.", ui: <GovUi v={2} />, v: 0 },
+      { tag: <Status s="staging" />, title: ["Review a package", "in minutes, not weeks"], body: "Kaju checks every animal claim against its evidence, vet sign-off, contract rate and arithmetic before you open it, and drafts a note for each. You decide claim by claim, or record the clean ones together; every decision is yours.", ui: <GovUi v={2} />, v: 0 },
       { tag: <Status s="live" />, title: ["Reports with", "their method attached"], body: "Totals by ward and week, the evidence index and the exceptions log, exported to PDF and XLSX for your file.", ui: <ReportUi v={3} />, v: 5 },
     ],
     tiles: {
@@ -35,7 +35,7 @@ export default function GovernmentPage() {
       items: [
         { icon: <Eye size={20} />, title: "Read submitted packages", body: "Only the packages an operator has submitted to your office, and the records inside them." },
         { icon: <MessageSquareWarning size={20} />, title: "Raise a query", body: "Ask about any exception. The operator answers on the record." },
-        { icon: <FileCheck2 size={20} />, title: "Record acceptance", body: "Accept a package with your name and the date. It is never accepted automatically." },
+        { icon: <FileCheck2 size={20} />, title: "Decide each claim", body: "Accept, query, return or reject individual animal claims with your name and note, then close the package with partial totals. Nothing is accepted automatically, and StrayPaw does not process payments." },
         { icon: <ClipboardCheck size={20} />, title: "Cannot edit records", body: "Operator records stay the operator's. Reviewers cannot change them." },
         { icon: <History size={20} />, title: "Full history", body: "Every submission, query, answer and acceptance is kept in order." },
         { icon: <Landmark size={20} />, title: "Your procurement", body: "We work within how your department buys. We do not claim compliance with a tender we have not read." },

@@ -13,7 +13,7 @@ export const DESTINATIONS:Destination[]=[
  {workspace:"city",href:"/city/contracts",label:"Contracts",icon:"file",group:"Contracts",primary:true,mobile:true,reviewer:true},
  {workspace:"ngo",href:"/ngo/map",label:"Animal & field map",assistantKey:"field_map",icon:"map",group:"Animals",primary:false},
  {workspace:"city",href:"/city/connections",label:"Connections",icon:"layers",group:"Organisation",primary:false,reviewer:true},
- {workspace:"ngo",href:"/ngo/verification",label:"ABC evidence & authorisation",short:"Clinical",icon:"shield",group:"Reports",primary:false,primaryFor:["veterinarian"],mobile:true,assistantKey:"verification"},
+ {workspace:"ngo",href:"/ngo/verification",label:"ABC evidence & authorisation",short:"Clinical",icon:"shield",group:"Clinical",primary:false,primaryFor:["veterinarian"],mobile:true,assistantKey:"verification"},
  {workspace:"ngo",href:"/ngo/programmes/zones",label:"Working zones & assignments",assistantKey:"working_zones",icon:"map",group:"Programmes",primary:false},
   {
     "workspace": "community",
@@ -205,16 +205,12 @@ export const DESTINATIONS:Destination[]=[
     "workspace": "ngo",
     "href": "/ngo/inbox",
     "assistantKey": "inbox",
-    "label": "Inbox & triage",
-    "note": "New reports and offers",
-    "group": "Work",
+    "label": "Intake",
+    "note": "Reports and WhatsApp messages, prepared by Kaju",
+    "group": "Intake",
     "icon": "file",
-    "primary": false,
-    "mobile": false,
-    "roles": [
-      "admin",
-      "coordinator"
-    ]
+    "primary": true,
+    "mobile": true
   },
   {
     "workspace": "ngo",
@@ -225,6 +221,7 @@ export const DESTINATIONS:Destination[]=[
     "group": "Work",
     "icon": "file",
     "primary": false,
+    "primaryFor": ["member"],
     "mobile": false
   },
   {
@@ -559,8 +556,8 @@ const META={
   },
   "city": {
     "id": "city",
-    "label": "Municipality",
-    "purpose": "Programme oversight: delivery, evidence and reports for a city",
+    "label": "Government",
+    "purpose": "Municipal oversight: wards, evidence, claims and decisions",
     "ink": "#2457ce",
     "home": "/city",
     "action": null
@@ -585,6 +582,9 @@ export function workspaceView(ws:WorkspaceId,role:Role|null,reviewer=false):Work
 /** Compatibility views only: no independent route definitions. */
 export const WORKSPACES=Object.fromEntries(Object.keys(META).map(ws=>[ws,workspaceView(ws as WorkspaceId,null)])) as Record<WorkspaceId,Workspace>;
 export const ORDER:WorkspaceId[]=['city','ngo','community','learn'];
+/** Signed-in professional workspaces; Community and Education are public products, open to anyone. */
+export const PROFESSIONAL:WorkspaceId[]=['ngo','city'];
+export const PUBLIC_PRODUCTS:WorkspaceId[]=['community','learn'];
 export function workspaceFor(path:string,last:WorkspaceId|null):WorkspaceId{return ORDER.find(w=>path===`/${w}`||path.startsWith(`/${w}/`))??last??'community'}
 export function navOn(n:NavItem,path:string){return path===n.href||!n.exact&&path.startsWith(n.href+'/')||(n.match??[]).some(p=>path===p||path.startsWith(p+'/'))}
 export function currentDestination(ws:WorkspaceId,path:string,role:Role|null,reviewer=false){return destinations(ws,role,reviewer).filter(n=>navOn(n,path)).sort((a,b)=>b.href.length-a.href.length)[0]??null}

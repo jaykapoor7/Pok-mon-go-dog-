@@ -27,11 +27,12 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
-import { ORDER, WORKSPACES, workspaceView, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
+import { ORDER, PROFESSIONAL, PUBLIC_PRODUCTS, WORKSPACES, workspaceView, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
 import { AiPanel, AiProvider, KajuMark, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
-import { KajuCorner } from "@/kaju/Presence";
+import { KajuCorner, KajuPresence } from "@/kaju/Presence";
+import { AmbientLight, KAJU_VERIFIED } from "./Ambient";
 import { spFonts } from "../fonts";
 import "../sp.css";
 import "./shell.css";
@@ -106,6 +107,9 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const [switcher, setSwitcher] = useState(false);
   const [switcherM, setSwitcherM] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  /* Kaju looks pleased for a moment when prepared work is saved and verified. */
+  const [cheer, setCheer] = useState(false);
+  useEffect(() => { let t = 0; const on = () => { setCheer(true); window.clearTimeout(t); t = window.setTimeout(() => setCheer(false), 2600); }; window.addEventListener(KAJU_VERIFIED, on); return () => { window.removeEventListener(KAJU_VERIFIED, on); window.clearTimeout(t); }; }, []);
   useEffect(() => { try { setCollapsed(localStorage.getItem("sp3.side") === "0"); } catch { /* storage blocked */ } }, []);
   const toggleSide = () => setCollapsed((v) => { try { localStorage.setItem("sp3.side", v ? "1" : "0"); } catch { /* fine */ } return !v; });
   useEffect(() => { setSheet(false); setSwitcher(false); setSwitcherM(false); }, [path]);
@@ -146,7 +150,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               </button>
               {switcher && (
                 <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Workspaces">
-                  {ORDER.map((id) => {
+                  <p className="sx3-ws-k">Workspaces</p>
+                  {PROFESSIONAL.map((id) => {
                     const w = WORKSPACES[id];
                     return (
                       <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
@@ -155,6 +160,11 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
                       </Link>
                     );
                   })}
+                  <p className="sx3-ws-k">Public products</p>
+                  {PUBLIC_PRODUCTS.map((id) => { const w = WORKSPACES[id]; return (
+                    <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
+                      <i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>Open to everyone, no sign-in needed</small></span>
+                    </Link>); })}
                   <div className="sx3-ws-foot"><Link href="/app?choose=1" onClick={() => setSwitcher(false)}>All ways in</Link><Link href="/" onClick={() => setSwitcher(false)}>Main site</Link></div>
                 </Popover>
               )}
@@ -187,8 +197,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           <p className="sx4-hint">Press <kbd>/</kbd> for quick navigation</p>
 
           {/* Kaju rests here while the agent is closed; he moves into the panel when it opens. */}
-          <div className="sx3-kaju-nook">
-            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju"><KajuCorner sequence="chill" size={78} /></button>}
+          <div className={`sx3-kaju-nook${cheer ? " is-cheer" : ""}`}>
+            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju">{cheer ? <KajuPresence state="success" size={78} /> : <KajuCorner sequence="chill" size={78} />}</button>}
           </div>
 
           <div className="sx3-side-foot">
@@ -211,8 +221,13 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               </button>
               {switcherM && (
                 <Popover onClose={() => setSwitcherM(false)} className="sp-ws-menu" label="Workspaces">
-                  {ORDER.map((id) => { const w = WORKSPACES[id]; return (
+                  <p className="sx3-ws-k">Workspaces</p>
+                  {PROFESSIONAL.map((id) => { const w = WORKSPACES[id]; return (
                     <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcherM(false)} className={id === ws ? "is-on" : undefined}><i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>{w.purpose}</small></span></Link>
+                  ); })}
+                  <p className="sx3-ws-k">Public products</p>
+                  {PUBLIC_PRODUCTS.map((id) => { const w = WORKSPACES[id]; return (
+                    <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcherM(false)} className={id === ws ? "is-on" : undefined}><i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>Open to everyone</small></span></Link>
                   ); })}
                   <div className="sx3-ws-foot"><Link href="/app?choose=1" onClick={() => setSwitcherM(false)}>All ways in</Link><Link href="/" onClick={() => setSwitcherM(false)}>Main site</Link></div>
                 </Popover>
@@ -235,6 +250,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </div>
           </header>
 
+          <AmbientLight />
           <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
         </div>
 

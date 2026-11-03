@@ -104,6 +104,7 @@ const STOP = STOP_MESSAGE;
 export async function confirmVerified(p: Proposal, actor: { id: string; name: string }, wait = (ms: number) => new Promise((r) => setTimeout(r, ms))): Promise<Saved> {
   let r = await executeProposal(p, actor);
   for (let i = 0; i < 2 && !r.ok && PENDING.test(r.error ?? ""); i++) { await wait(1200 * (i + 1)); r = await executeProposal(p, actor); }
+  if (r.ok && r.verified && typeof window !== "undefined") window.dispatchEvent(new Event("kaju:verified"));
   return r;
 }
 export async function confirmMany(ps: Proposal[], actor: { id: string; name: string }, onEach: (p: Proposal, r: Saved) => void, run = confirmVerified): Promise<{ done: number; stopped: string | null }> {
