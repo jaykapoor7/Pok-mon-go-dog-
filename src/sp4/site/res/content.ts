@@ -38,7 +38,7 @@ export const POSTS: Post[] = [
       { h: "Then let Kaju find the duplicates", p: "The same dog often appears in two sheets under two spellings. Kaju compares coat, sex, notch and place, and lists likely duplicates for a person to merge." },
     ] },
   { slug: "pawsome-one-record", kind: "Case studies", date: "2026-10-20", minutes: 4,
-    title: "The Pawsome People Project: rescue, ABC and vaccination on one record",
+    title: "Pawsome People Project: three registers, one record",
     dek: "How a Coimbatore team brought three separate registers together, and what we have not measured yet.",
     cover: { tone: "blue", label: "Case study", word: "Coimbatore" },
     body: [

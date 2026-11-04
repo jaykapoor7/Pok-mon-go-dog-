@@ -12,14 +12,14 @@ export default function GovernmentPage() {
     id: "gov",
     eyebrow: "Government oversight",
     title: ["Check the work", "before you pay for it"],
-    lede: "Your ABC operator keeps every procedure on one record, with its evidence. Your reviewer sees the package they submit, queries what does not add up, and records acceptance on the same record.",
+    lede: "Every procedure your operator claims, with its evidence. Query what does not add up and accept on the same record.",
     primary: { href: "/demo?type=pilot", label: "Request a government demo" },
     secondary: { href: "/abc-operations", label: "How operators record the work" },
     hero: <MiniWindow title="Reviewing office · Packages" label="the reviewing office's package list" active={4}><PackageListUi /></MiniWindow>,
     heroV: 4,
     pillars: {
       title: ["Oversight without", "a second system"],
-      lede: "StrayPaw starts with the operator doing the work. The reviewing office joins the same record when it is ready, instead of receiving a spreadsheet of totals.",
+      lede: "The operator starts the record. Your office joins it when ready, instead of receiving a spreadsheet of totals.",
       items: [
         { t: "Animal-level evidence", d: "Every count in a package opens to the animals behind it: capture, surgery, vaccination, release and photos." },
         { t: "Exceptions, explained", d: "Missing evidence and possible duplicates are listed with the operator's explanation, not hidden in a total." },
@@ -27,7 +27,7 @@ export default function GovernmentPage() {
       ],
     },
     splits: [
-      { tag: <Status s="staging" />, title: ["Review a package", "in minutes, not weeks"], body: "Kaju checks every animal claim against its evidence, vet sign-off, contract rate and arithmetic before you open it, and drafts a note for each. You decide claim by claim, or record the clean ones together; every decision is yours.", ui: <GovUi v={2} />, v: 0 },
+      { tag: <Status s="staging" />, title: ["Review a package", "in minutes, not weeks"], body: "Before you open a package, Kaju checks each claim against its evidence, vet sign-off and contract rate. You decide every line.", ui: <GovUi v={2} />, v: 0 },
       { tag: <Status s="live" />, title: ["Reports with", "their method attached"], body: "Totals by ward and week, the evidence index and the exceptions log, exported to PDF and XLSX for your file.", ui: <ReportUi v={3} />, v: 5 },
     ],
     tiles: {

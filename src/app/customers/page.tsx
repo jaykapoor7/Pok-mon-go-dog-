@@ -12,7 +12,7 @@ export default function CustomersPage() {
   const all = fieldPartnerStrip();
   return (
     <S4Page close={undefined}>
-      <PageHead title={<TwoTone a="Built with the teams" b="doing the work" />} lede="Our first partners brought years of field records onto StrayPaw. Each story says what was imported, what is used day to day, and what has not been measured yet." />
+      <PageHead title={<TwoTone a="Built with the teams" b="doing the work" />} lede="Our first partners brought years of records onto StrayPaw. Each story says what was imported and what is unmeasured." />
 
       <section className="s4-wrap" style={{ paddingTop: 72 }}>
         <div className="s4-nums" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>

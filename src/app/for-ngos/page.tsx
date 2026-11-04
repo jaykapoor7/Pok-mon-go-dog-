@@ -12,7 +12,7 @@ export default function OperatorsPage() {
     id: "ngo",
     eyebrow: "ABC operators & NGOs",
     title: ["Record the work once.", "Get paid for all of it."],
-    lede: "Field capture, treatment, evidence and follow-ups on one record, on a laptop or a phone. Report packages for the office that funds you come out of the same record.",
+    lede: "Capture, treatment, evidence and follow-ups on one record. The report for your funder comes from the same record.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "/sign-in?next=/ngo", label: "Sign in to your workspace" },
     hero: <MiniWindow title="Home · Today" label="the operator's daily queue"><QueueUi v={1} /></MiniWindow>,

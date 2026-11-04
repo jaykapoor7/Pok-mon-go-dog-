@@ -22,7 +22,7 @@ export default function WhatsAppPage() {
     id: "wa",
     eyebrow: <Status s="off" />,
     title: ["Field reports from", "the phone they already have"],
-    lede: "A catcher sends a photo and a line of text. StrayPaw turns it into a draft record and places it in the operator's intake queue for a person to review.",
+    lede: "A catcher sends a photo and a line. Kaju drafts the record for a person to review.",
     primary: { href: "/demo?type=careos", label: "Join the pilot list" },
     secondary: { href: "/abc-operations", label: "ABC Operations" },
     hero: <HeroPhone />,
@@ -38,7 +38,7 @@ export default function WhatsAppPage() {
     },
     splits: [
       { title: ["Drafts, never", "final records"], body: "Nothing from a message is saved as a finished record. It becomes a draft in the intake queue with the original message attached.", ui: <MiniWindow title="Intake · Today" label="the intake queue with a WhatsApp draft" active={0}><QueueUi v={2} /></MiniWindow>, v: 1 },
-      { title: ["Works today", "by pasting"], body: "Until WhatsApp is connected, any team member can paste forwarded messages or an exported chat into Intake and get the same prepared record, checked against the register, with phone numbers masked.", ui: <ExtractUi v={3} />, v: 5 },
+      { title: ["Works today", "by pasting"], body: "Until WhatsApp is connected, paste forwarded messages or an exported chat into Intake. You get the same prepared record, with phone numbers masked.", ui: <ExtractUi v={3} />, v: 5 },
     ],
     extra: (
       <section className="s4-sec" aria-labelledby="wa-status">

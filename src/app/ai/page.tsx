@@ -25,7 +25,7 @@ export default function AiPage() {
     },
     extra: <section className="s4-dark" aria-labelledby="ai-title"><div className="s4-wrap"><AiBand v={1} /></div></section>,
     splits: [
-      { tag: <Status s="live" />, title: ["Ask for the job,", "check every answer"], body: "Which records are missing evidence? What should I do first? Open intake. Kaju runs the matching record tool and shows the records behind the answer. When a request is unclear, it offers the actions it can run.", ui: <AskUi v={4} />, v: 0 },
+      { tag: <Status s="live" />, title: ["Ask for the job,", "check every answer"], body: "Ask “which records are missing evidence?” Kaju runs the right tool and shows the records behind its answer. Unclear requests get a list of actions it can run.", ui: <AskUi v={4} />, v: 0 },
       { tag: <Status s="live" />, title: ["From a field message", "to a draft record"], body: "Paste a message or a register row. Kaju structures it into a draft and asks for what is still missing.", ui: <ExtractUi v={2} />, v: 5 },
       { tag: <Status s="live" />, title: ["Find the gaps", "before the report"], body: "Quiet critical cases, unscheduled reviews, missing evidence, unsigned procedures and this month's claimable records, found before anyone goes looking, with follow-ups and the month's package ready to confirm.", ui: <OvernightUi v={2} />, v: 3 },
     ],

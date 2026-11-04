@@ -10,7 +10,7 @@ export const metadata = { title: "Roadmap · StrayPaw", description: "What Stray
 export default function RoadmapPage() {
   return (
     <S4Page className="r7" close={false}>
-      <ResHero title={<>StrayPaw roadmap<br />& releases</>} lede="What has shipped and what comes next, from the tools a field team uses today to one national record of India's street animals, open to research and to schools." art={false} />
+      <ResHero title={<>StrayPaw roadmap<br />& releases</>} lede="What has shipped and what comes next, up to one national record of India's street animals." art={false} />
       <div className="s4-wrap r7-road">
         {ROADMAP.map((a) => (
           <section key={a.key} className="r7-area" aria-labelledby={`rm-${a.key}`}>

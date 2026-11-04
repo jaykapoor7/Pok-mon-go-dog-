@@ -10,7 +10,7 @@ export const metadata = { title: "Product updates · StrayPaw", description: "Ev
 export default function UpdatesPage() {
   return (
     <S4Page className="r7" close={false}>
-      <ResHero title="Every release, in one place." lede="We ship most weeks, and most of what we build starts as feedback from the field teams, vets and offices using StrayPaw.">
+      <ResHero title="Every release, in one place." lede="We ship most weeks. Most of it starts as feedback from field teams, vets and offices.">
         <div className="s7-row" style={{ gap: 12 }}><Link href="/roadmap" className="r7-btn is-blue">See the roadmap <ArrowRight size={16} aria-hidden /></Link></div>
       </ResHero>
       <section className="r7-sec">

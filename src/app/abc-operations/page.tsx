@@ -12,14 +12,14 @@ export default function AbcOperationsPage() {
     id: "abc",
     eyebrow: "ABC Operations & Verification",
     title: ["Every procedure verified,", "before the bill"],
-    lede: "Capture, vet sign-off, evidence, review and the monthly package for funded ABC programmes, on one record your reviewing office can check.",
+    lede: "Capture, vet sign-off, evidence and the monthly package, on one record your reviewing office can check.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "/demo?type=pilot", label: "Scope a pilot" },
     hero: <MiniWindow title="Programmes · ABC drive · October" label="programme overview by ward" active={5}><ProgrammeUi /></MiniWindow>,
     heroV: 4,
     pillars: {
       title: ["Built for programmes", "where every number is checked"],
-      lede: "ABC contracts are paid per procedure. The operator who can show the evidence for each one gets paid on time and keeps the contract.",
+      lede: "ABC contracts pay per procedure. Show the evidence for each one and you get paid on time.",
       items: [
         { t: "One record per animal", d: "Capture, surgery, vaccination and release belong to the same animal, with photos, places and the people involved." },
         { t: "Verification built in", d: "Evidence checklists, vet authorisation and duplicate checks run as the work happens, not at the end of the month." },

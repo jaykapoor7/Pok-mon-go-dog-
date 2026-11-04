@@ -18,7 +18,7 @@ const PLANS: { name: string; who: string; price: string; cta: { href: string; la
 export default function PricingPage() {
   return (
     <S4Page>
-      <PageHead title="Pricing that fits the programme" lede="StrayPaw is priced per programme and agreed in writing before any work begins. We do not publish a price list yet, and small community and welfare groups can ask about an accessible plan." />
+      <PageHead title="Pricing that fits the programme" lede="Priced per programme and agreed in writing before work begins. Small welfare groups can ask about an accessible plan." />
       <section className="s4-wrap s4-sec" style={{ paddingTop: 72 }} aria-label="Plans">
         <div className="s4-plans">
           {PLANS.map((p, i) => (

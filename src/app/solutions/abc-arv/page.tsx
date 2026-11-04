@@ -12,7 +12,7 @@ export default function AbcArvPage() {
     id: "arv",
     eyebrow: "ABC / ARV programmes",
     title: ["Sterilisation and vaccination,", "animal by animal"],
-    lede: "Run sterilisation drives and anti-rabies vaccination camps on one record: every animal, every procedure, every dose, and the evidence for each.",
+    lede: "Sterilisation drives and vaccination camps on one record: every animal, procedure and dose, with evidence.",
     primary: { href: "/abc-operations", label: "See ABC Operations" },
     secondary: { href: "/demo", label: "Book a demo" },
     hero: <MiniWindow title="Programmes · ABC drive" label="programme overview" active={5}><ProgrammeUi v={1} /></MiniWindow>,

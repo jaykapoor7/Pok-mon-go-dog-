@@ -20,7 +20,7 @@ export default function ResearchPage() {
           <div className="rs-top-main">
             <p className="rs-eyebrow">StrayPaw Research</p>
             <h1 className="rs-h1"><TwoTone a="Records you can check," b="data you can cite" /></h1>
-            <p className="rs-lede">For universities, public-health researchers and data partners working on dog population management and rabies control in India. Every dataset states its source, geography, time span, licence and what it cannot show.</p>
+            <p className="rs-lede">For researchers working on dog populations and rabies in India. Every dataset states its source, licence and limits.</p>
             <div className="rs-actions"><Link href="/research/datasets" className="s4-btn is-primary">Browse datasets</Link><Link href="/research/access" className="s4-btn is-line">Request data access</Link></div>
           </div>
           <aside className="rs-glance" aria-label="Catalogue at a glance">

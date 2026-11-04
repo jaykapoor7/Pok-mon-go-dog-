@@ -12,7 +12,7 @@ export default function RescueCarePage() {
     id: "rc",
     eyebrow: "Rescue & care",
     title: ["From a request", "to a recorded outcome"],
-    lede: "Requests from residents and field teams arrive in one inbox. Cases are taken, treated, followed up and closed with an outcome, on the same history as the animal's sterilisation and vaccination.",
+    lede: "Every rescue request lands in one inbox and closes with an outcome, on the animal's full history.",
     primary: { href: "/demo", label: "Book a demo" },
     secondary: { href: "/community/report", label: "Report an animal" },
     hero: <MiniWindow title="Rescue · Cases" label="rescue case list" active={2}><RescueUi /></MiniWindow>,

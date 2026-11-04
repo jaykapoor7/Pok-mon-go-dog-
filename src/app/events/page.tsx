@@ -12,7 +12,7 @@ const TONES = ["split", "blue", "navy", "tint"] as const;
 export default function EventsPage() {
   return (
     <S4Page className="r7" close={false}>
-      <ResHero title="Live sessions with practitioners." lede="Short, practical sessions for programme teams, municipal reviewers and schools. They run on request while our first dated series is scheduled." />
+      <ResHero title="Live sessions with practitioners." lede="Practical sessions for programme teams, reviewers and schools. Booked on request for now." />
       <section className="r7-sec" style={{ paddingBottom: 0 }}>
         <div className="s4-wrap"><div className="r7-sec-h"><h2>Sessions you can book</h2></div></div>
       </section>

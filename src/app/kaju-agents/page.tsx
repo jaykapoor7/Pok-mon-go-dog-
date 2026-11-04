@@ -16,9 +16,9 @@ export const metadata = {
 };
 
 const FAQ: [string, string][] = [
-  ["What is a Kaju agent?", "A recurring job Kaju runs for your organisation, on a schedule or when something happens: for example, chasing missing release photos every evening. Each agent says what it may read and whom it tells."],
+  ["What is a Kaju agent?", "A job Kaju runs on a schedule or when something happens, like chasing release photos every evening. Each agent states what it reads and whom it tells."],
   ["Can an agent approve or submit anything?", "No. Agents prepare drafts, reminders and reports. A named person confirms every change: vets authorise procedures, coordinators approve evidence, the programme lead submits the claim."],
-  ["What can an agent read?", "Only what you allow when you set it up, and never more than the person who owns it can read. Every run is logged with what it read and what it prepared."],
+  ["What can an agent read?", "Only what you allow, and never more than its owner can read. Every run logs what it read and prepared."],
   ["Do agents work on WhatsApp?", "Today Kaju reads pasted or forwarded WhatsApp messages and prepares cases. The direct WhatsApp connection is waiting for Meta approval and is shown as not connected until then."],
   ["Do we need to be technical to set one up?", "No. Pick a common job, choose when it runs and what it can use. Most organisations start with release photos and the monthly claim."],
   ["Does Kaju train on our records?", "No. Your records are not used to train models and are never shared with other organisations."],
@@ -31,7 +31,7 @@ export default function KajuAgentsPage() {
       <section className="s7a-hero" aria-labelledby="ag-title">
         <div className="s4-wrap">
           <h1 id="ag-title" className="s7a-h1">Automate away the paperwork of animal welfare</h1>
-          <p className="s7a-lede">Kaju agents chase missing evidence, draft vet notes, keep the register clean and build the monthly claim: the jobs your team repeats every week. They work inside StrayPaw, on the records that already live there.</p>
+          <p className="s7a-lede">Kaju agents chase evidence, draft vet notes and build the monthly claim: the work your team repeats every week.</p>
           <div className="s7-row"><Link href="/demo" className="s7-btn is-blue is-lg">Book a demo <ArrowRight size={16} aria-hidden /></Link><Link href="/platform" className="s7-btn is-ghost is-lg">See StrayPaw</Link></div>
           <div className="s7a-roster" aria-hidden>{ROLES.map((r) => <span key={r.key} title={r.name}><RoleBot tint={r.tint} size={40} /></span>)}</div>
         </div>

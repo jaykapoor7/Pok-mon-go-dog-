@@ -11,13 +11,13 @@ export default function FundersPage() {
   return <SolutionPage s={{
     eyebrow: "For funders",
     title: "See what your grant actually did, record by record.",
-    lede: "When a programme you fund runs on StrayPaw, you can follow its recorded interventions, evidence and reports directly, scoped to that programme and nothing else.",
+    lede: "Follow the work you fund directly: every recorded intervention, its evidence and its reports.",
     primary: { href: "/demo?type=funder", label: "Talk to us" },
     secondary: { href: "/partner-programmes", label: "See published programmes" },
     visual: <DemoWindow view="reports" title="Programme report · scoped view" />,
     problem: {
       title: "Grant reports are written after the fact.",
-      body: "Funders receive a narrative and a number at the end of a grant, with little way to see how it was counted or what is still incomplete.",
+      body: "At the end of a grant, funders get a story and a number, with no way to check either.",
       points: ["Totals without underlying records", "No view of what is missing or still in review", "Different formats from every grantee"],
     },
     steps: [
