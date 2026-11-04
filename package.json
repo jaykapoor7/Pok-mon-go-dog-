@@ -1,8 +1,8 @@
 {
-  "name": "straypaw-delhi",
+  "name": "straypaw",
   "version": "1.0.0",
   "private": true,
-  "description": "StrayPaw Delhi \u2014 a community-powered map for discovering and caring for Delhi's street dogs.",
+  "description": "StrayPaw software for animal welfare operations, ABC/ARV evidence, and municipal programme review.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
