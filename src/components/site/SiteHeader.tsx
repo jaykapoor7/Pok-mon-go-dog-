@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ChevronDown, Menu, Sparkles, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { KajuFace } from "@/kaju/Kaju";
 import "@/sp3/sp3.css";
 import "@/sp3/legacy.css";
 import "@/sp4/sp4.css";
@@ -28,7 +27,7 @@ import "@/sp4/sp4.css";
 import { MEGA, type MegaCol } from "@/sp3/site/nav-data";
 export { AUDIENCES, PLATFORM, RESOURCES, SOLUTIONS } from "@/sp3/site/nav-data";
 
-type MenuId = "platform" | "solutions" | "proof" | "community";
+type MenuId = "platform" | "solutions" | "resources";
 
 
 
@@ -105,12 +104,12 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
         <Link href="/" className="s4-brand s4-brand-art" aria-label="StrayPaw home"><BrandLogo/></Link>
 
         <nav className="s4-nav-links" aria-label="Site" onPointerLeave={(e) => { if (e.pointerType === "mouse") hover(null); }}>
-          <Mega id="platform" label="Product" open={menu === "platform"} onToggle={toggle} onHover={hover} cols={MEGA.platform}
-            feature={<><div className="s4-mega-shot" aria-hidden><span className="s4-mega-q">Which Ward 5 vaccinations have no batch number?</span><span className="s4-mega-a"><KajuFace size={14} /> One of 212, from the 29 Oct camp: SP-0507.</span><span className="s4-mega-c">Answered by Kaju · checked by Priya</span></div><p>Kaju finds missing evidence and prepares records. A person confirms every change. <Link href="/ai">Learn more</Link></p></>} />
+          <Mega id="platform" label="Platform" open={menu === "platform"} onToggle={toggle} onHover={hover} cols={MEGA.platform}
+            feature={<><Link href="/kaju-agents" className="s4-mega-agents" aria-label="Kaju agents"><span className="s4-mega-agents-h">Your agents</span>{[["Release Photo Chaser", "Every day · 6 PM", "#d97706"], ["Monthly Claim Builder", "1st of the month", "#c2532d"], ["Field Intake Agent", "On new messages", "#1f9d55"]].map(([n, w, c]) => <span key={n} className="s4-mega-agent"><i style={{ background: c }} /><b>{n}</b><small>{w}</small></span>)}</Link><p>Kaju agents run the work your team repeats every week, on your own records. <Link href="/kaju-agents">Learn more</Link></p></>} />
           <Mega id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} onHover={hover} cols={MEGA.solutions} />
-          <Mega id="proof" label="Proof" open={menu === "proof"} onToggle={toggle} onHover={hover} cols={MEGA.proof} />
-          <Link href="/research" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/research") || here("/research-standards") ? "page" : undefined}>Research</Link>
-          <Mega id="community" label="Learn & Community" open={menu === "community"} onToggle={toggle} onHover={hover} cols={MEGA.community} />
+          <Mega id="resources" label="Resources" open={menu === "resources"} onToggle={toggle} onHover={hover} cols={MEGA.resources} />
+          <Link href="/security" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/security") ? "page" : undefined}>Security</Link>
+          <Link href="/pricing" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/pricing") ? "page" : undefined}>Pricing</Link>
         </nav>
 
         <div className="s4-nav-end">
@@ -125,11 +124,11 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
       </div>
 
       <div id="s4-sheet" className={`s4-sheet${sheet ? " is-open" : ""}`} aria-hidden={!sheet} inert={!sheet ? true : undefined}>
-        <SheetGroup label="Product" cols={MEGA.platform} />
+        <SheetGroup label="Platform" cols={MEGA.platform} />
         <SheetGroup label="Solutions" cols={MEGA.solutions} />
-        <SheetGroup label="Proof" cols={MEGA.proof} />
-        <Link href="/research">Research</Link>
-        <SheetGroup label="Learn & Community" cols={MEGA.community} />
+        <SheetGroup label="Resources" cols={MEGA.resources} />
+        <Link href="/security">Security</Link>
+        <Link href="/pricing">Pricing</Link>
         <div className="s4-sheet-cta">
           <Link href="/demo" className="s4-btn is-primary">Book a demo</Link>
           <Link href={user ? "/app" : "/sign-in"} className="s4-btn is-line">{user ? "Open app" : "Sign in"}</Link>

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /* StrayPaw 3.0: the site, the entry flow, the app shell, Kaju and
    CareOS, as a visitor and an unauthenticated user can exercise them. */
 
-const PUBLIC = ["/", "/abc-operations", "/security", "/research", "/platform", "/ai", "/kaju-agents", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
+const PUBLIC = ["/", "/abc-operations", "/security", "/research", "/platform", "/ai", "/kaju-agents", "/blog", "/product-updates", "/roadmap", "/events", "/teams/coordinators", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
   "/customers", "/customers/the-pawsome-people-project", "/customers/the-kind-hour-foundation", "/demo", "/docs", "/faq", "/sign-in", "/app", "/join", "/access",
   "/our-story", "/mission", "/contact", "/privacy", "/explore", "/evidence", "/for-community", "/education", "/partner-apply", "/partner-programmes"];
 const APP = ["/ngo", "/ngo/animals", "/ngo/inbox", "/ngo/programmes", "/ngo/field", "/ngo/review", "/ngo/proof", "/ngo/team", "/city", "/city/programmes", "/city/insights", "/city/report", "/community", "/community/report", "/learn", "/assistant", "/fundraisers", "/surveys"];
@@ -37,7 +37,7 @@ test("navigation dropdowns open, list solutions and close on Escape", async ({ p
   const solutions = page.getByRole("button", { name: "Solutions" });
   await solutions.click();
   await expect(solutions).toHaveAttribute("aria-expanded", "true");
-  for (const name of ["ABC operators & NGOs", "Government oversight", "Rescue groups", "Anti-rabies vaccination", "Government reviewers"]) await expect(page.locator("#s4-dd-solutions").getByRole("link", { name: new RegExp(name) })).toBeVisible();
+  for (const name of ["NGOs & ABC operators", "Municipal corporations", "Rescue & community groups", "Anti-rabies vaccination", "Municipal reviewers"]) await expect(page.locator("#s4-dd-solutions").getByRole("link", { name: new RegExp(name) })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(solutions).toHaveAttribute("aria-expanded", "false");
 });

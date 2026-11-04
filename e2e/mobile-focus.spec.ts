@@ -71,7 +71,7 @@ test("phone menu: grouped places, one demo action, one sign in", async ({ page }
   const sheet = page.locator("#s4-sheet");
   await expect(sheet.getByRole("link", { name: "Book a demo" })).toHaveCount(1);
   await expect(sheet.getByRole("link", { name: "Sign in" })).toHaveCount(1);
-  await expect(sheet.locator("details > summary")).toHaveCount(4);
+  await expect(sheet.locator("details > summary")).toHaveCount(3);
   await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "Open menu", exact: true })).toHaveAttribute("aria-expanded", "false");
 });

@@ -34,7 +34,7 @@ const STEPS: Step[] = [
   { key: "submit", n: "05", tab: "Submit & bill", title: "The monthly claim, ready the day it is due.",
     lede: "Approved records become the package the municipal office reviews: counts, rates, evidence index and exceptions, every figure linked to its animal.",
     kaju: ["Builds the claim at your contract rates", "Explains every exception before the office asks", "Exports the package as PDF, Excel and slides"],
-    link: { href: "/abc-operations#package", label: "How packages work" }, screen: <SubmitScreen /> },
+    link: { href: "/abc-operations#report", label: "How packages work" }, screen: <SubmitScreen /> },
 ];
 
 export function FiveSteps() {

@@ -44,93 +44,71 @@ export const AUDIENCES = [
 /* ── StrayPaw 4 mega menus: three columns, title + one line, no icons ── */
 export type MegaLink = { href: string; label: string; hint?: string };
 export type MegaCol = { title: string; links: MegaLink[] };
-export const MEGA: Record<"platform" | "solutions" | "resources" | "proof" | "community", MegaCol[]> = {
+export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
   platform: [
     { title: "Products", links: [
-      { href: "/abc-operations", label: "ABC Operations & Verification", hint: "From capture to an accepted report" },
-      { href: "/ai", label: "Kaju", hint: "Finds gaps and prepares records" },
-      { href: "/whatsapp", label: "WhatsApp field intake", hint: "Field messages become drafts" },
-      { href: "/solutions/rescue-care", label: "Rescue & care", hint: "Requests, treatment and follow-ups" },
-      { href: "/abc-operations#report", label: "Report packages", hint: "Evidence the office can check" },
-      { href: "/pricing", label: "Pricing", hint: "Plans for operators and offices" },
+      { href: "/whatsapp", label: "Receive", hint: "Field and public reports become cases" },
+      { href: "/abc-operations#capture", label: "Register", hint: "One record per animal, from capture on" },
+      { href: "/abc-operations#treatment", label: "Treat", hint: "Procedures the vet actually signed" },
+      { href: "/abc-operations#evidence", label: "Release", hint: "Released where captured, with proof" },
+      { href: "/abc-operations#report", label: "Submit & bill", hint: "The monthly claim the office can check" },
     ] },
     { title: "Platform", links: [
       { href: "/platform", label: "Platform overview" },
+      { href: "/roadmap", label: "Roadmap" },
+      { href: "/ai", label: "Kaju AI" },
+      { href: "/kaju-agents", label: "Kaju agents" },
+      { href: "/whatsapp", label: "WhatsApp intake" },
+      { href: "/for-governments", label: "Government workspace" },
       { href: "/platform#integrations", label: "Integrations" },
-      { href: "/security", label: "Security" },
       { href: "/data-governance", label: "Data governance" },
+    ] },
+    { title: "Open to everyone", links: [
+      { href: "/community", label: "National register", hint: "The public map of India's street animals" },
+      { href: "/research", label: "Research", hint: "Open data, methods and studies" },
+      { href: "/learn", label: "Academy", hint: "Courses, school programmes and practicums" },
+      { href: "/community/report", label: "Report an animal", hint: "No account needed" },
     ] },
   ],
   solutions: [
     { title: "By organisation", links: [
-      { href: "/for-ngos", label: "ABC operators & NGOs", hint: "Run funded programmes and prove the work" },
-      { href: "/for-governments", label: "Government oversight", hint: "Review operator evidence and reports" },
-      { href: "/solutions/rescue-care", label: "Rescue groups", hint: "Requests, treatment and outcomes" },
-      { href: "/for-community", label: "Community & welfare groups", hint: "Report animals and follow outcomes" },
+      { href: "/for-ngos", label: "NGOs & ABC operators", hint: "Run funded programmes and prove the work" },
+      { href: "/for-governments", label: "Municipal corporations", hint: "Review claims animal by animal" },
+      { href: "/for-funders", label: "Funders & CSR", hint: "See what your grant achieved" },
+      { href: "/solutions/rescue-care", label: "Rescue & community groups", hint: "Requests, treatment and outcomes" },
     ] },
     { title: "By programme", links: [
       { href: "/abc-operations", label: "Animal birth control", hint: "Capture, surgery and release" },
       { href: "/solutions/abc-arv", label: "Anti-rabies vaccination", hint: "Doses recorded animal by animal" },
       { href: "/solutions/rescue-care", label: "Rescue & treatment", hint: "Every case closed with an outcome" },
+      { href: "/for-feeders", label: "Feeding & community care", hint: "Know the animals you feed" },
     ] },
     { title: "By team", links: [
-      { href: "/abc-operations#capture", label: "Field teams" },
-      { href: "/abc-operations#treatment", label: "Veterinarians" },
-      { href: "/abc-operations#review", label: "Coordinators" },
-      { href: "/for-governments", label: "Government reviewers" },
+      { href: "/teams/coordinators", label: "Coordinators" },
+      { href: "/teams/field-staff", label: "Field staff" },
+      { href: "/teams/veterinarians", label: "Veterinarians" },
+      { href: "/teams/municipal-reviewers", label: "Municipal reviewers" },
+      { href: "/teams/leadership", label: "Leadership" },
     ] },
   ],
   resources: [
-    { title: "Learn", links: [
-      { href: "/docs", label: "Documentation", hint: "How the product works" },
-      { href: "/learn", label: "Academy", hint: "Courses and teaching materials" },
+    { title: "Get updated", links: [
+      { href: "/blog", label: "Blog", hint: "Field guides, case studies and notes" },
+      { href: "/product-updates", label: "Product updates", hint: "New features and improvements" },
+      { href: "/blog?kind=Research%20notes", label: "Research notes", hint: "Methods, data and what they can say" },
+      { href: "/roadmap", label: "Roadmap", hint: "What we've shipped and what's next" },
+    ] },
+    { title: "Get connected", links: [
+      { href: "/events", label: "Events & webinars", hint: "Live sessions with practitioners" },
+      { href: "/blog?kind=Newsroom", label: "Newsroom", hint: "Announcements and press" },
+      { href: "/customers", label: "Customer stories", hint: "What partners record, honestly" },
+      { href: "/partner-apply", label: "Partner with us", hint: "Join as an NGO, office or university" },
+    ] },
+    { title: "Get started", links: [
+      { href: "/docs", label: "Help center", hint: "Docs, guides and quick answers" },
+      { href: "/pricing", label: "Pricing", hint: "Plans for every programme" },
       { href: "/faq", label: "FAQ", hint: "Common questions, plainly answered" },
-    ] },
-    { title: "Evidence", links: [
-      { href: "/customers", label: "Customer stories", hint: "What partners record, and what we have not measured" },
-      { href: "/research", label: "Research", hint: "Datasets, methods and data access" },
-      { href: "/explore", label: "Public map", hint: "Recorded animals and care by place" },
-    ] },
-    { title: "Company", links: [
-      { href: "/our-story", label: "Our story" },
-      { href: "/contact", label: "Contact" },
-      { href: "/partner-apply", label: "Partner with us" },
-      { href: "/for-community", label: "Report an animal" },
-    ] },
-  ],
-  /* Proof: what partners record, the public record itself, and who we are. */
-  proof: [
-    { title: "Evidence", links: [
-      { href: "/customers", label: "Customer stories", hint: "What partners record, and what we have not measured" },
-      { href: "/explore", label: "Public map", hint: "Recorded animals and care by place" },
-      { href: "/city/insights", label: "City insights", hint: "Numbered findings, each with its limits" },
-    ] },
-    { title: "Trust", links: [
-      { href: "/security", label: "Security", hint: "How records and access are protected" },
-      { href: "/data-governance", label: "Data governance", hint: "Who sees what, and why" },
-      { href: "/research-standards", label: "Research standards", hint: "How a finding is allowed to be stated" },
-    ] },
-    { title: "Company", links: [
-      { href: "/our-story", label: "Our story" },
-      { href: "/contact", label: "Contact" },
-      { href: "/partner-apply", label: "Partner with us" },
-    ] },
-  ],
-  /* Learn & Community: the public products, open to anyone. */
-  community: [
-    { title: "Community", links: [
-      { href: "/community/report", label: "Report an animal", hint: "No account needed" },
-      { href: "/community", label: "Map", hint: "Animals and care near you" },
-      { href: "/community/stories", label: "Insights & stories", hint: "What happened next, start to finish" },
-    ] },
-    { title: "Education", links: [
-      { href: "/education", label: "Education", hint: "For schools, volunteers and partners" },
-      { href: "/learn", label: "Academy", hint: "Short courses on street animal care" },
-      { href: "/learn/workshops", label: "Workshops", hint: "Ready-to-run sessions" },
-    ] },
-    { title: "Help", links: [
-      { href: "/docs", label: "Documentation", hint: "How the product works" },
-      { href: "/faq", label: "FAQ", hint: "Common questions, plainly answered" },
+      { href: "/our-story", label: "Our story", hint: "Why we are building StrayPaw" },
     ] },
   ],
 };
