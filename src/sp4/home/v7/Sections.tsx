@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ArrowUpRight, Camera, Check, ChevronRight, ClipboardList, FileSpreadsheet, FileText, Map as MapIcon, MapPin, MessageCircle, MessageSquareText, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
+import { CountUp } from "@/sp4/site/Live";
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -63,9 +64,26 @@ function KnowsArt() {
   );
 }
 function ToolsArt() {
-  const tools: [string, string, ReactNode][] = [["WhatsApp", "#1f9d55", <MessageCircle key="w" size={20} />], ["Excel", "#1f7a45", <FileSpreadsheet key="x" size={20} />], ["Google", "#1a73e8", <b key="g">G</b>], ["Microsoft 365", "#0f6cbd", <b key="m">M</b>], ["Maps", "#0f7b8a", <MapPin key="p" size={20} />], ["PDF & Word", "#c2532d", <FileText key="f" size={20} />], ["SMS", "#b4590f", <MessageSquareText key="s" size={20} />], ["Camera & GPS", "#6b4fd8", <Camera key="c" size={20} />]];
-  return <div className="s7-tools">{tools.map(([n, c, i], k) => <span key={n} title={n} className={k === 0 || k === 5 ? "is-hi" : ""} style={{ ["--c" as string]: c, animationDelay: `${k * 0.5}s` }}>{i}</span>)}</div>;
+  // The tools sit on a ring around Kaju; lines draw from each one into him, one after another.
+  const tools: [string, string, ReactNode][] = [
+    ["WhatsApp", "#1f9d55", <Brand key="w" src="whatsapp-icon" />], ["Google Workspace", "#1a73e8", <Brand key="g" src="google-icon" />],
+    ["Microsoft 365", "#0f6cbd", <Brand key="m" src="microsoft-icon" />], ["Excel", "#1f7a45", <Brand key="x" src="excel" />],
+    ["Slack", "#4a154b", <Brand key="s" src="slack-icon" />], ["Gmail", "#c5221f", <Brand key="e" src="google-gmail" />],
+    ["Maps & GPS", "#0f7b8a", <MapPin key="p" size={22} />], ["Camera", "#6b4fd8", <Camera key="c" size={22} />],
+  ];
+  const R = 38;
+  return (
+    <div className="s7-hub">
+      <svg className="s7-hub-lines" viewBox="0 0 100 100" aria-hidden>
+        {tools.map(([n], k) => { const a = (k / tools.length) * Math.PI * 2 - Math.PI / 2; return <line key={n} x1={50 + Math.cos(a) * R} y1={50 + Math.sin(a) * R} x2="50" y2="50" style={{ animationDelay: `${k * 0.35}s` }} />; })}
+      </svg>
+      <span className="s7-hub-k"><KajuFace size={44} /></span>
+      {tools.map(([n, c, i], k) => { const a = (k / tools.length) * Math.PI * 2 - Math.PI / 2; return <span key={n} title={n} className="s7-hub-t" style={{ left: `${50 + Math.cos(a) * R}%`, top: `${50 + Math.sin(a) * R}%`, ["--c" as string]: c, animationDelay: `${k * 0.35}s` }}>{i}</span>; })}
+    </div>
+  );
 }
+// eslint-disable-next-line @next/next/no-img-element
+function Brand({ src }: { src: string }) { return <img src={`/brand/tools/${src}.svg`} alt="" width={26} height={26} />; }
 function Ring() {
   const r = 34, c = 2 * Math.PI * r, pct = 0.94;
   return (
@@ -132,15 +150,15 @@ export function Recurring() {
 }
 
 /* ── Integrated tools: one card open, the others expand on hover ──── */
-type Tool = { key: string; name: string; logos: [string, string][]; line: string; demo: ReactNode; status: string };
+type Tool = { key: string; name: string; logos: [string, string][]; /* [logo file or glyph, colour] */ line: string; demo: ReactNode; status: string };
 const TOOLS: Tool[] = [
-  { key: "wa", name: "WhatsApp", logos: [["W", "#1f9d55"]], line: "Paste or forward the group's messages and ask @kaju. It reads the thread, checks the register and prepares the records.", status: "Paste intake works today · direct connection awaits Meta approval",
+  { key: "wa", name: "WhatsApp", logos: [["whatsapp-icon", "#1f9d55"]], line: "Paste or forward the group's messages and ask @kaju. It reads the thread, checks the register and prepares the records.", status: "Paste intake works today · direct connection awaits Meta approval",
     demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> what did the field team report today?</p><div className="s7-tans"><p><Check size={12} /> Read 38 messages from 5 people</p><table><thead><tr><th>Case</th><th>Ward</th><th>Status</th></tr></thead><tbody><tr><td>Brown female, limping</td><td>14</td><td>Draft</td></tr><tr><td>Pup with mange</td><td>9</td><td>Draft</td></tr><tr><td>Hit by auto, bleeding</td><td>12</td><td>Urgent</td></tr></tbody></table><p><b>Bottom line:</b> one urgent case on Canal Road. I drafted it and assigned Ravi, nearest.</p></div></div> },
-  { key: "gw", name: "Google Workspace", logos: [["G", "#1a73e8"]], line: "Kaju reads registers in Sheets and Drive, drafts the Gmail to the municipal office and saves reports to Drive.", status: "Built · needs your administrator to connect it",
+  { key: "gw", name: "Google Workspace", logos: [["google-icon", "#1a73e8"], ["google-gmail", "#1a73e8"], ["google-drive", "#1a73e8"]], line: "Kaju reads registers in Sheets and Drive, drafts the Gmail to the municipal office and saves reports to Drive.", status: "Built · needs your administrator to connect it",
     demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> email the October package to the municipal office</p><div className="s7-tans"><p><Check size={12} /> Drafted from the approved package</p><div className="s7-mail"><b>To:</b> abc.cell@municipal.gov.in<br /><b>Subject:</b> Ward 14 ABC claim · October 2026<br /><span>Attached: package.pdf, claim.xlsx</span></div><p><b>Waiting for you:</b> nothing is sent until you press Send.</p></div></div> },
-  { key: "ms", name: "Microsoft 365", logos: [["M", "#0f6cbd"]], line: "Excel registers, Word reports and PowerPoint reviews, read and written by Kaju in OneDrive.", status: "Built · needs your administrator to connect it",
+  { key: "ms", name: "Microsoft 365", logos: [["microsoft-icon", "#0f6cbd"], ["microsoft-onedrive", "#0f6cbd"], ["excel", "#0f6cbd"]], line: "Excel registers, Word reports and PowerPoint reviews, read and written by Kaju in OneDrive.", status: "Built · needs your administrator to connect it",
     demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> import last month&apos;s register from OneDrive and make the review slides</p><div className="s7-tans"><p><Check size={12} /> Read October_register.xlsx · 412 rows</p><table><thead><tr><th>Result</th><th>Rows</th><th>Next</th></tr></thead><tbody><tr><td>Matched to animals</td><td>398</td><td>Done</td></tr><tr><td>New animals</td><td>11</td><td>Draft</td></tr><tr><td>Possible duplicates</td><td>3</td><td>You decide</td></tr></tbody></table><p><Check size={12} /> Saved October review.pptx to OneDrive /StrayPaw</p></div></div> },
-  { key: "xl", name: "Excel & CSV", logos: [["X", "#1f7a45"]], line: "Bring the registers you already keep. Kaju imports them as they are and labels them until checked.", status: "Works today",
+  { key: "xl", name: "Excel & CSV", logos: [["excel", "#1f7a45"]], line: "Bring the registers you already keep. Kaju imports them as they are and labels them until checked.", status: "Works today",
     demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> bring in our 2024 register</p><div className="s7-tans"><p><Check size={12} /> register_2024.xlsx · 2,277 rows imported</p><table><thead><tr><th>Column in your sheet</th><th>Becomes</th><th>Filled</th></tr></thead><tbody><tr><td>Dog no.</td><td>StrayPaw ID</td><td>100%</td></tr><tr><td>Area / locality</td><td>Ward</td><td>96%</td></tr><tr><td>Opn date</td><td>Sterilisation date</td><td>91%</td></tr></tbody></table><p><b>Kept as historical</b> until each animal is checked by your team.</p></div></div> },
   { key: "map", name: "Maps & GPS", logos: [["◎", "#0f7b8a"]], line: "Every capture and release has a place. Export the register as GeoJSON or KML, real points only.", status: "Works today",
     demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> were this week&apos;s dogs released where they were caught?</p><div className="s7-tans"><p><Check size={12} /> Checked 164 releases against their capture points</p><table><thead><tr><th>Animal</th><th>Distance</th><th>Status</th></tr></thead><tbody><tr><td>SP-1031</td><td>40 m</td><td>OK</td></tr><tr><td>SP-1083</td><td>110 m</td><td>OK</td></tr><tr><td>SP-1078</td><td>2.1 km</td><td>Flagged</td></tr></tbody></table><p><b>Bottom line:</b> one release outside its ward. I flagged it for the coordinator.</p></div></div> },
@@ -162,7 +180,7 @@ export function ToolsAccordion() {
             <article key={t.key} className={`s7-tc${on === i ? " is-on" : ""}`} style={{ ["--c" as string]: t.logos[0][1] }}
               onMouseEnter={() => { setHover(true); setOn(i); }} onFocus={() => setOn(i)} tabIndex={0}>
               <div className="s7-tc-head">
-                <span className="s7-tc-logos">{t.logos.map(([l, c]) => <b key={l} style={{ background: c }}>{l}</b>)}</span>
+                <span className="s7-tc-logos">{t.logos.map(([l, c]) => l.length > 2 ? <i key={l} className="s7-tc-logo">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={`/brand/tools/${l}.svg`} alt="" /></i> : <b key={l} style={{ background: c }}>{l}</b>)}</span>
                 <h3>{t.name}</h3>
               </div>
               <div className="s7-tc-body" hidden={on !== i}>
@@ -180,7 +198,7 @@ export function ToolsAccordion() {
 
 /* ── Customer results ─────────────────────────────────────────────── */
 export type ResultCard = { slug?: string; name: string; city: string; logo?: string | null; color: string; figure?: string; figureLabel?: string; line: string; note?: string };
-export function Results({ stats, cards }: { stats: { n: string; label: string }[]; cards: ResultCard[] }) {
+export function Results({ stats, cards }: { stats: { n: number; label: string }[]; cards: ResultCard[] }) {
   const [on, setOn] = useState(0);
   const [hover, setHover] = useState(false);
   const total = cards.length;
@@ -194,7 +212,7 @@ export function Results({ stats, cards }: { stats: { n: string; label: string }[
       <div className="s4-wrap">
         <h2 id="res-title" className="sr-only">Customer results</h2>
         <div className="s7-res-stats">
-          {stats.map((s) => <div key={s.label}><b>{s.n}</b><small>{s.label}</small></div>)}
+          {stats.map((s) => <div key={s.label}><b><CountUp n={s.n} /></b><small>{s.label}</small></div>)}
           <Link href="/customers" className="s7-link">Read customer stories <ArrowRight size={18} aria-hidden /></Link>
         </div>
         <div className="s7-res-row" onMouseLeave={() => setHover(false)}>

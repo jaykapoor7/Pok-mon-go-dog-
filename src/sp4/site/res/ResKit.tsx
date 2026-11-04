@@ -26,11 +26,16 @@ export function ResHero({ title, lede, children, art = true }: { title: ReactNod
   );
 }
 
+/** A drawn cover, different for each kind of post. */
 export function CoverArt({ c }: { c: Cover }) {
+  const kind = /guide/i.test(c.label) ? "guide" : /case/i.test(c.label) ? "case" : /research/i.test(c.label) ? "research" : /news/i.test(c.label) ? "news" : "event";
   return (
-    <span className={`r7-cover is-${c.tone}`} aria-hidden>
-      <span className="r7-cover-k"><KajuFace size={64} /></span>
-      <span className="r7-cover-t"><small>{c.label}</small><b>{c.word}</b></span>
+    <span className={`r7-cover is-${c.tone} is-${kind}`} aria-hidden>
+      {kind === "guide" && <span className="r7-art-list">{["Photo of the animal", "Place inside the ward", "Date after recovery", "Vet's authorisation"].map((x, i) => <i key={x} className={i < 3 ? "is-ok" : ""}><b />{x}</i>)}</span>}
+      {kind === "case" && <span className="r7-art-cards"><i><b>Before</b>3 registers</i><i><b>After</b>1 record</i></span>}
+      {kind === "research" && <span className="r7-art-bars">{[38, 52, 46, 68, 61, 84].map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</span>}
+      {(kind === "news" || kind === "event") && <span className="r7-cover-k"><KajuFace size={64} /></span>}
+      <span className="r7-cover-t"><small>{c.label}</small>{c.word && <b>{c.word}</b>}</span>
     </span>
   );
 }

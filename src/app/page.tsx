@@ -11,6 +11,8 @@ import { Announce } from "@/sp4/home/v7/Announce";
 import { Welcome } from "@/sp4/home/v7/Welcome";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
 import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
+import { AuditTrail, HeroScroll, PhotoStrip, WhyNow, type Photo } from "@/sp4/home/v7/Extras";
+import credits from "@/data/register-photo-credits.json";
 import "@/sp4/home/v7/landing7.css";
 import { KajuPresence } from "@/kaju/Presence";
 import "@/sp4/home/home4.css";
@@ -64,7 +66,9 @@ export default function HomePage() {
       <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">
         <div className="s4-wrap s6-center">
           <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
-          <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">See how it works</Link></div>
+          <p className="s7-hero-sub">Sterilisation, vaccination and rescue programmes, recorded and reported by Kaju.</p>
+          <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link></div>
+          <HeroScroll />
           <div className="s6-canvas">
             <Blueprint tone="dark" />
             <div className="s4-hero-stage s6-stage">
@@ -93,6 +97,12 @@ export default function HomePage() {
           })}
         </div>
       </section>
+
+      {/* 2b · the animals behind every record */}
+      <PhotoStrip photos={PHOTOS} />
+
+      {/* 2c · how most programmes run today */}
+      <WhyNow />
 
       {/* 3 · use cases: the five steps, each a full product screen with what Kaju does in it */}
       <FiveSteps />
@@ -126,9 +136,9 @@ export default function HomePage() {
       {/* 7 · customer results: recorded figures, no quotes until a partner approves one in writing */}
       <Results
         stats={[
-          { n: (story.results[0]?.n ?? 0).toLocaleString("en-IN"), label: "rescue requests on one record, Coimbatore" },
-          { n: (kh.results[0]?.n ?? 0).toLocaleString("en-IN"), label: "rescue and treatment requests, Lucknow" },
-          { n: String(partners.length), label: "field partners across India" },
+          { n: story.results[0]?.n ?? 0, label: "rescue requests on one record, Coimbatore" },
+          { n: story.results[1]?.n ?? 0, label: "sterilisations in one drive register, Coimbatore" },
+          { n: kh.results[0]?.n ?? 0, label: "rescue and treatment requests, Lucknow" },
         ]}
         cards={partners.slice(0, 6).map((p, i) => {
           // Partners with a case study first; quotes appear only once a partner approves one in writing.
@@ -146,14 +156,7 @@ export default function HomePage() {
       <section className="s4-sec s6-security" id="security" aria-labelledby="sec-title">
         <div className="s4-wrap">
           <SecHead id="sec-title" title={<TwoTone a="Built for public money," b="with audit-ready controls" />} link={{ href: "/security", label: "Explore security" }} />
-          <Tiles items={[
-            { icon: <ShieldCheck size={20} />, title: "Data isolation", body: "Each organisation's records are separated in the database and never shared across accounts." },
-            { icon: <KeyRound size={20} />, title: "Role-based access", body: "Leads, coordinators, vets, field staff and reviewers see and change only what their role allows." },
-            { icon: <History size={20} />, title: "Full audit trail", body: "Every change records who made it and when, including changes prepared by Kaju." },
-            { icon: <Fingerprint size={20} />, title: "Record provenance", body: "Every record shows where it came from: field capture, community report or historical import." },
-            { icon: <Sparkles size={20} />, title: "No automatic approvals", body: "Kaju prepares; a named person confirms. It reads only what that person can read." },
-            { icon: <Download size={20} />, title: "Your data, exportable", body: "Registers, evidence and reports export to XLSX and CSV at any time." },
-          ]} />
+          <AuditTrail />
         </div>
       </section>
 
@@ -166,15 +169,21 @@ export default function HomePage() {
 /* Integrations as they really stand (docs/CONNECTIONS.md). Providers use plain letter marks in their own colour, not
    their logos. "Setup pending": built and tested, waiting for the administrator's OAuth keys. "Planned": not built yet.
    Nothing here is shown as live before it is. */
+const PHOTOS: Photo[] = (credits as { photographer: string; source_url: string; licence_url: string; local_path: string }[]).map((c) => ({
+  src: c.local_path, by: c.photographer, source: c.source_url, licenceUrl: c.licence_url,
+  licence: /by-sa/.test(c.licence_url) ? "CC BY-SA" : "CC BY",
+}));
 const TINTS = ["#1e3a6e", "#2f4a63", "#2c4f8f", "#3b4a5e", "#25507a", "#344868"];
 type IntTile = { n: string; s: "Live" | "Setup pending" | "Not connected" | "Planned"; c: string; i: ReactNode };
-const Mark = ({ l }: { l: string }) => <span className="s4-int-mark">{l}</span>;
+/* Real brand marks for the tools Kaju connects to (gilbarbara/logos, CC0); generic tools keep an icon. */
+// eslint-disable-next-line @next/next/no-img-element
+const Logo = ({ src }: { src: string }) => <img className="s4-int-logo" src={`/brand/tools/${src}.svg`} alt="" width={34} height={34} loading="lazy" />;
 const INT_COLS: IntTile[][] = [
-  [{ n: "Google Workspace", s: "Setup pending", c: "#1a73e8", i: <Mark l="G" /> }, { n: "Excel & CSV", s: "Live", c: "#1f8a52", i: <FileSpreadsheet /> }, { n: "Email", s: "Live", c: "#2457ce", i: <Mail /> }],
-  [{ n: "Microsoft 365", s: "Setup pending", c: "#0f6cbd", i: <Mark l="M" /> }, { n: "Slack", s: "Setup pending", c: "#4a154b", i: <Mark l="S" /> }, { n: "Phone field mode", s: "Live", c: "#2457ce", i: <Smartphone /> }],
-  [{ n: "Zoho Mail", s: "Setup pending", c: "#c8202f", i: <Mark l="Z" /> }, { n: "Photos & GPS", s: "Live", c: "#6b4fd8", i: <Camera /> }],
+  [{ n: "Google Workspace", s: "Setup pending", c: "#1a73e8", i: <Logo src="google-icon" /> }, { n: "Excel & CSV", s: "Live", c: "#1f8a52", i: <Logo src="excel" /> }, { n: "Email", s: "Live", c: "#2457ce", i: <Logo src="google-gmail" /> }],
+  [{ n: "Microsoft 365", s: "Setup pending", c: "#0f6cbd", i: <Logo src="microsoft-icon" /> }, { n: "Slack", s: "Setup pending", c: "#4a154b", i: <Logo src="slack-icon" /> }, { n: "Phone field mode", s: "Live", c: "#2457ce", i: <Smartphone /> }],
+  [{ n: "Zoho Mail", s: "Setup pending", c: "#c8202f", i: <Logo src="zoho" /> }, { n: "Photos & GPS", s: "Live", c: "#6b4fd8", i: <Camera /> }],
   [{ n: "SMS (MSG91)", s: "Setup pending", c: "#b4590f", i: <MessageSquareText /> }, { n: "Government e-Office", s: "Planned", c: "#5b6b8c", i: <Landmark /> }],
-  [{ n: "WhatsApp (direct)", s: "Not connected", c: "#1f9d55", i: <MessageCircle /> }, { n: "WhatsApp paste intake", s: "Live", c: "#1f9d55", i: <MessageCircle /> }, { n: "Map exports", s: "Live", c: "#0f7b8a", i: <MapPin /> }],
+  [{ n: "WhatsApp (direct)", s: "Not connected", c: "#1f9d55", i: <Logo src="whatsapp-icon" /> }, { n: "WhatsApp paste intake", s: "Live", c: "#1f9d55", i: <Logo src="whatsapp-icon" /> }, { n: "Map exports", s: "Live", c: "#0f7b8a", i: <MapPin /> }],
   [{ n: "PDF · Word · PowerPoint", s: "Live", c: "#c2532d", i: <FileText /> }, { n: "Reviewer access", s: "Live", c: "#0f7b8a", i: <UserCheck /> }],
   [{ n: "Record search", s: "Live", c: "#2457ce", i: <ScanSearch /> }, { n: "Report packages", s: "Live", c: "#6b4fd8", i: <ClipboardList /> }],
 ];

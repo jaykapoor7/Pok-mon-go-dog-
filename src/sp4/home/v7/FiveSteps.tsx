@@ -39,7 +39,9 @@ const STEPS: Step[] = [
 
 export function FiveSteps() {
   const box = useRef<HTMLElement>(null);
+  const swipe = useRef<HTMLDivElement>(null);
   const [on, setOn] = useState(0);
+  const [prog, setProg] = useState(0);
   const [pinned, setPinned] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1000px) and (min-height: 700px)");
@@ -47,6 +49,7 @@ export function FiveSteps() {
     mq.addEventListener("change", set);
     return () => mq.removeEventListener("change", set);
   }, []);
+  // Laptop: the section is pinned and scrolling moves through the steps; a bar fills as you go.
   useEffect(() => {
     if (!pinned) return;
     let raf = 0;
@@ -54,19 +57,48 @@ export function FiveSteps() {
       raf = 0; const el = box.current; if (!el) return;
       const r = el.getBoundingClientRect(); const span = el.offsetHeight - window.innerHeight;
       const p = Math.min(0.999, Math.max(0, -r.top / Math.max(1, span)));
-      setOn(Math.floor(p * STEPS.length));
+      setProg(p); setOn(Math.floor(p * STEPS.length));
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(tick); };
     tick(); window.addEventListener("scroll", onScroll, { passive: true }); window.addEventListener("resize", onScroll);
     return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(raf); };
   }, [pinned]);
+  // Phone: the five steps sit in a row you swipe; the tabs follow the card in view.
+  const onSwipe = () => {
+    const el = swipe.current; if (!el) return;
+    const i = Math.round(el.scrollLeft / Math.max(1, el.clientWidth * 0.88));
+    setOn(Math.min(STEPS.length - 1, Math.max(0, i)));
+  };
   const go = (i: number) => {
     const el = box.current;
-    if (!pinned || !el) { setOn(i); return; }
+    const smooth = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    if (!pinned) {
+      setOn(i);
+      const card = swipe.current?.children[i] as HTMLElement | undefined;
+      if (card && swipe.current) swipe.current.scrollTo({ left: card.offsetLeft - swipe.current.offsetLeft, behavior: smooth });
+      return;
+    }
+    if (!el) return;
     const span = el.offsetHeight - window.innerHeight;
     const top = el.getBoundingClientRect().top + window.scrollY + span * ((i + 0.5) / STEPS.length);
-    window.scrollTo({ top, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    window.scrollTo({ top, behavior: smooth });
   };
+  const panel = (s: Step, key?: string) => (
+    <div className="s7-step" key={key}>
+      <div className="s7-step-copy">
+        <h3>{s.title}</h3>
+        <p>{s.lede}</p>
+        <div className="s7-step-kaju">
+          <p><KajuFace size={20} /> <b>What Kaju does here</b></p>
+          <ul>{s.kaju.map((k) => <li key={k}><Check size={15} aria-hidden />{k}</li>)}</ul>
+        </div>
+        <Link href={s.link.href} className="s7-link">{s.link.label} <ChevronRight size={18} aria-hidden /></Link>
+      </div>
+      <div className="s7-step-stage" aria-hidden>
+        <div className="s7-screen">{s.screen}</div>
+      </div>
+    </div>
+  );
   const s = STEPS[on];
   return (
     <section ref={box} id="workflow" className={`s7-steps${pinned ? " is-pinned" : ""}`} aria-labelledby="steps-title" style={pinned ? { height: `${STEPS.length * 85 + 40}vh` } : undefined}>
@@ -80,24 +112,15 @@ export function FiveSteps() {
             {STEPS.map((x, i) => (
               <button key={x.key} type="button" role="tab" aria-selected={on === i} aria-controls="s7-step-panel" onClick={() => go(i)}>
                 <span className="s7-steps-n">{x.n}</span>{x.tab}
-                {on === i && <i className="s7-steps-bar" aria-hidden />}
+                {on === i && !pinned && <i className="s7-steps-bar" aria-hidden />}
               </button>
             ))}
+            {pinned && <i className="s7-steps-prog" aria-hidden style={{ transform: `scaleX(${prog})` }} />}
           </div>
-          <div id="s7-step-panel" role="tabpanel" className="s7-step" key={s.key}>
-            <div className="s7-step-copy">
-              <h3>{s.title}</h3>
-              <p>{s.lede}</p>
-              <div className="s7-step-kaju">
-                <p><KajuFace size={20} /> <b>What Kaju does here</b></p>
-                <ul>{s.kaju.map((k) => <li key={k}><Check size={15} aria-hidden />{k}</li>)}</ul>
-              </div>
-              <Link href={s.link.href} className="s7-link">{s.link.label} <ChevronRight size={18} aria-hidden /></Link>
-            </div>
-            <div className="s7-step-stage" aria-hidden>
-              <div className="s7-screen">{s.screen}</div>
-            </div>
-          </div>
+          {pinned
+            ? <div id="s7-step-panel" role="tabpanel">{panel(s, s.key)}</div>
+            : <div id="s7-step-panel" role="tabpanel" className="s7-swipe" ref={swipe} onScroll={onSwipe}>{STEPS.map((x) => <div key={x.key} className="s7-swipe-card">{panel(x)}</div>)}</div>}
+          {!pinned && <p className="s7-swipe-hint" aria-hidden>Swipe for the next step →</p>}
         </div>
       </div>
     </section>
