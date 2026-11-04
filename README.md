@@ -1,122 +1,92 @@
 # StrayPaw
 
-> **Every street animal on the record.**
+**Accountable animal welfare, from field record to programme review.**
 
-StrayPaw is a community-powered web app and animal-welfare operations platform
-for India's street animals. People report and explore animals on a live map;
-NGOs and municipalities run cases, care, sterilisation and vaccination records,
-imports, surveys and dashboards on top of the same data. It runs in any browser
-and deploys to a URL — there is no native app.
+[Website](https://straypaw.org) · [Product](https://straypaw.org/product) · [Contact](https://straypaw.org/contact)
 
-Live: **https://straypaw.org**
+StrayPaw builds software for the people who deliver, supervise and evaluate animal welfare programmes. Our first focus is animal birth control (ABC) and anti-rabies vaccination (ARV) in India: field teams document the work, veterinarians sign off clinical records, and municipal offices can review the evidence behind contractor submissions.
 
-- **Stack:** Next.js 15 (App Router, React 19) · TypeScript · Tailwind · MapLibre/Mapbox GL + H3 · Supabase (Postgres 17 + PostGIS) · Vercel.
-- **Scale today:** ~30k animals, ~23k cases across 28 canonical cities, designed to stay bounded to 1M+ records (see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
+The longer-term goal is an interoperable record of animal care across organisations and programmes — spanning identification, rescue, treatment, vaccination, sterilisation, release and follow-up. We are building that infrastructure through one practical problem at a time, beginning with verifiable ABC and ARV operations.
 
-## How it fits together
+## What StrayPaw does
 
-```
- Browser ──► Next.js (Vercel functions, region icn1 / Seoul)
-                │  server components + /api routes
-                ▼
-          Supabase Postgres (ap-northeast-2 / Seoul)
-            • bounded public views  (public_* )
-            • SECURITY DEFINER RPCs  (list_public_spatial_cities, …)
-            • H3 cell rollups        (spatial_city_cells)
-            • RLS on every base table
-```
+A programme follows a common record from intake through review:
 
-Vercel functions are pinned to **`icn1` (Seoul)** to sit next to the Supabase
-project in **`ap-northeast-2` (Seoul)**; every server-side database read is then
-a local round trip rather than a cross-Pacific one. Full data-flow, the spatial
-rollup pipeline, caching and the scalability model are in
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+1. **Receive work.** Record reports, field observations and programme tasks.
+2. **Identify the animal.** Capture a photo, location, source, history and distinguishing markers; import existing registers without treating historical entries as newly completed work.
+3. **Document care.** Record examination, sterilisation and vaccination with the responsible veterinary sign-off and supporting evidence.
+4. **Record release and follow-up.** Keep the outcome, date and locality connected to the same animal.
+5. **Prepare and review submissions.** Assemble month-end evidence and contract-linked claims for animal-by-animal municipal review, queries and decisions.
 
-The golden rule: **no visitor request ever reads the whole register.** Public
-surfaces read compact city/cell rollups and, only at close zoom, a bounded set
-of animals inside a viewport. See the performance contract in the architecture doc.
+An NGO or programme operator records work once rather than rebuilding the evidence from spreadsheets, messages and photographs. A reviewing office receives an inspectable submission rather than an unsupported total.
 
-## Documentation
+**Kaju**, StrayPaw's workflow assistant, helps users find records, identify missing evidence and prepare work for human review. Veterinary authorisation, municipal decisions and other consequential actions remain subject to explicit user permissions and confirmation.
 
-| Doc | What it covers |
-|---|---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System map, data flow, spatial pipeline, caching/revalidation, performance contract, scalability to 1M+ |
-| [`docs/DATABASE.md`](docs/DATABASE.md) | Schema overview, key tables/views/RPCs, RLS strategy, index strategy |
-| [`docs/IMPORTS.md`](docs/IMPORTS.md) | Chunked/resumable/idempotent import pipeline and the spatial refresh queue |
-| [`docs/QA-CHECKLIST.md`](docs/QA-CHECKLIST.md) | Manual QA pass before a release |
-| [`REVERT.md`](REVERT.md) | Rollback options |
+## Product status
 
-## Local setup
+| Area | Status | Scope |
+| --- | --- | --- |
+| NGO operations | **Live** | Animal records, case work, register imports and reporting |
+| Municipal review | **In staging** | Evidence packages, queries, case-level review and decisions |
+| WhatsApp intake | **Not connected** | Integration work exists, but live Meta connectivity is not enabled |
+| Wider programme coverage | **Planned** | Extensions beyond the initial ABC/ARV workflow |
 
-Requirements: Node 20+ (CI and production use 22/24), npm.
+These labels distinguish software that can be used today from work still being validated. A tested municipal review journey is **not** a claim that a municipal office has accepted a real contractor package. Availability can vary by workspace and deployment configuration.
 
-```bash
-npm install
-cp .env.example .env.local   # fill in at least the NEXT_PUBLIC_SUPABASE_* values
-npm run dev                  # http://localhost:3000
-```
+## Evidence and data integrity
 
-With no Supabase keys the app still runs; reads simply return empty. For real
-data, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (safe
-to expose — all writes are guarded by RLS and `SECURITY DEFINER` functions).
-See [`.env.example`](.env.example) for the full list and what each variable does.
+StrayPaw distinguishes records entered through active workflows from historical NGO register imports, research datasets and illustrative product demonstrations. An imported record is not automatically independently verified; a record count is not a count of completed sterilisations or vaccinations. Programme metrics need a named source, date range, provenance and appropriate review status.
 
-## Checks (what CI runs)
+This distinction is part of the product, not just a reporting convention. The goal is to let programme teams and public authorities see what happened, who recorded it, what evidence exists and what remains unresolved.
+
+## Technology
+
+- **Application:** Next.js 15, React 19, TypeScript and Tailwind CSS
+- **Data:** Supabase/PostgreSQL, PostGIS and row-level security
+- **Geospatial:** MapLibre GL and H3 spatial aggregation
+- **Delivery:** Vercel
+- **Testing:** TypeScript, script-level regression tests and Playwright
+
+The application uses permission-scoped records and bounded geospatial reads; sensitive records and operational actions must stay behind the appropriate access checks.
+
+See the [documentation index](docs/README.md), [architecture](docs/ARCHITECTURE.md), [database](docs/DATABASE.md), and [data imports](docs/IMPORTS.md) for the engineering detail.
+
+## Development
+
+Requires Node.js 22 and npm.
 
 ```bash
-npm run typecheck            # tsc --noEmit
-npm run build                # next build (prebuild guards against test fixtures)
-npm run test:spatial         # spatial engine + rollup regression
-npm run test:master-import   # import pipeline (+ :pagination :locality :staging :resume)
-npm run test:sql-rpc-mapping # RPC argument-mapping guard
-npm run test:e2e             # Playwright (mobile + desktop)
+npm ci
+cp .env.example .env.local
+# Configure the environment values needed for the workspace under test
+npm run dev
 ```
 
-The quality gate (`.github/workflows/dev-check.yml`) runs all of these plus
-`npm audit --omit=dev --audit-level=critical` on every push/PR to `main`/`dev`.
-
-Playwright boots a production build. On an image that ships its own Chromium,
-point it at the binary: `PLAYWRIGHT_CHROMIUM_PATH=/path/to/chrome npm run test:e2e`.
-
-## Deployment
-
-Vercel is connected to this repo; **pushing to `main` deploys production**
-(`straypaw.org`). Preview deployments build for every other branch. Region,
-crons and git behaviour live in [`vercel.json`](vercel.json).
-
-- **Cron:** `/api/admin/spatial/refresh` runs daily at 03:00 UTC to drain the
-  spatial refresh queue (see [`docs/IMPORTS.md`](docs/IMPORTS.md)). It is
-  authorised by `CRON_SECRET` — set that env var in Vercel or the scheduled
-  drain is rejected.
-- **Rollback:** reassign the production alias to a previous deployment, or see
-  [`REVERT.md`](REVERT.md).
-
-## Database migrations
-
-SQL lives in [`supabase/`](supabase/). Apply a migration set with the pooler URL
-(Supabase → Connect → Session pooler):
+Useful checks:
 
 ```bash
-SUPABASE_POOLER_URL='postgresql://…' npm run db:migrate -- pilot
+npm run typecheck
+npm run build
+npm run test:spatial
+npm run test:sql-rpc-mapping
+npm run test:e2e
 ```
 
-Sets are defined in [`scripts/db-migrate.mjs`](scripts/db-migrate.mjs)
-(`pilot`, `rollout`, `register`, `wards`, `personal`, `all`). The GitHub
-Action **Apply Supabase migration** runs the same script with the
-`SUPABASE_POOLER_URL` repository secret. Day-to-day schema changes are applied
-as tracked Supabase migrations; recovery/hardening history is captured in
-[`supabase/final-site-recovery.sql`](supabase/final-site-recovery.sql) and
-[`supabase/post-recovery-hardening.sql`](supabase/post-recovery-hardening.sql).
-See [`docs/DATABASE.md`](docs/DATABASE.md) for the schema and index strategy.
+Some operations and tests need configured services, accounts or browser dependencies. Never add credentials or personal animal/reporter records to a commit.
 
-## Repository layout
+## Repository guide
 
-```
-src/app/            Next.js routes (public pages, /app community, /partner org console, /api)
-src/components/      React components (app shell, spatial map, casefile, partner, …)
-src/lib/             Data layer, spatial engine, import pipeline, taxonomy, utilities
-supabase/            SQL schema, migrations, RPCs, views, RLS (see docs/DATABASE.md)
-scripts/             Migration runner, regression tests, import staging, media tooling
-e2e/                 Playwright specs (design, rebuild, report)
-docs/                Architecture and operational documentation
-```
+| Path | Purpose |
+| --- | --- |
+| `src/app/` | Routes and API endpoints |
+| `src/components/`, `src/sp*/`, `src/kaju/` | Product UI and workflow surfaces |
+| `src/lib/` | Shared services and data access |
+| `supabase/` | Database migrations, policies and functions |
+| `scripts/`, `e2e/` | Operational tooling and tests |
+| `docs/` | Architecture, security notes and product documentation |
+
+Read [contributing guidelines](CONTRIBUTING.md) and the [quality checklist](docs/QA-CHECKLIST.md) before proposing changes. Changes to production services, access policies, database data or deployment settings require explicit review.
+
+---
+
+**StrayPaw is developing durable infrastructure for animal welfare programmes: one accountable animal record, from field action to evidence-based decision.**

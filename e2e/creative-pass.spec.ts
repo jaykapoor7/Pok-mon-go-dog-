@@ -1,15 +1,18 @@
 import {test,expect} from "@playwright/test";
 import fieldPartners from "../src/data/field-partners.json";
 
-/* StrayPaw 4 landing (operator-first, 31 Oct 2026). These tests hold the
-   page to the same standards as before: usable at every width, real tap
-   targets, keyboard access, no-JS essentials. */
+/* Landing-page contracts: usable layouts, tap targets, keyboard access and
+   essential server-rendered content. Assert roles and structure instead of
+   freezing marketing copy or an obsolete accordion implementation. */
 const H1=/Meet Kaju, the AI agent for\s*animal welfare programmes/;
 for(const width of [320,390,768,1440])test(`hero and section order remain usable at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(H1);
  for(const a of await page.locator(".s4-hero .s4-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.height).toBeGreaterThanOrEqual(44);}
- const headings=(await page.locator("main h2:visible").allInnerTexts()).map(s=>s.replace(/\s+/g," ").trim());
- expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Kaju works with your records","Give recurring checks to Kaju"]);
+ const sections=await page.locator("main h2").evaluateAll(nodes=>nodes.map(node=>node.id));
+ const keys=["proof-title","steps-title","mate-title","rec-title"];
+ const positions=keys.map(id=>sections.indexOf(id));
+ expect(positions.every(i=>i>=0)).toBe(true);
+ expect(positions).toEqual([...positions].sort((a,b)=>a-b));
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.locator(".s4-hero .s4-actions [class*=flame]")).toHaveCount(0);
 });
@@ -32,9 +35,16 @@ test("audiences remain one click away in the Solutions menu",async({page})=>{
  const menu=page.locator("#s4-dd-solutions");
  for(const href of ["/for-ngos","/for-governments","/solutions/rescue-care","/for-community","/abc-operations","/solutions/abc-arv"])await expect(menu.locator(`a[href="${href}"]`).first()).toBeVisible();
 });
-test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
- await page.goto("/");const faq=page.getByRole("region",{name:"Questions, answered"});const question=faq.locator("summary").first();await question.focus();await page.keyboard.press("Enter");await expect(faq.locator("details").first()).toHaveAttribute("open","");
- await expect(page.locator(".s4-close .is-primary")).toHaveCount(1);await expect(page.locator("main a").filter({hasText:/^Book a demo$/})).toHaveCount(1);
+test("FAQ is keyboard-operable and closing actions link to real destinations",async({page})=>{
+ await page.goto("/");
+ const faq=page.locator(".s7-q");
+ const question=faq.getByRole("button",{name:"How does pricing work?"});
+ await question.focus();await page.keyboard.press("Enter");
+ await expect(question).toHaveAttribute("aria-expanded","true");
+ await expect(page.locator("#s7-q-8")).toBeVisible();
+ await expect(page.locator("#s7-q-8")).toContainText("Pricing is agreed per programme");
+ await expect(page.locator(".s4-close a[href=\"/platform\"]")).toBeVisible();
+ await expect(page.locator(".s4-close a[href=\"/contact\"]")).toBeVisible();
 });
 test("every published field partner has an accessible organisation profile",async({request})=>{
  for(const partner of fieldPartners.organisations){
@@ -47,5 +57,7 @@ test("essential public information and actions survive without JavaScript",async
  const context=await browser.newContext({javaScriptEnabled:false});const page=await context.newPage();await page.goto("/");
  await expect(page.getByRole("heading",{level:1})).toHaveText(H1);
  await expect(page.locator(".s4-hero a").filter({hasText:"Book a demo"})).toHaveAttribute("href","/demo");
- await page.getByText("How does pricing work?",{exact:true}).click();await expect(page.locator("details").filter({hasText:"How does pricing work?"})).toContainText("Pricing is agreed per programme");await context.close();
+ await expect(page.locator(".s7-q-row.is-open")).toContainText("Kaju is StrayPaw\'s AI agent");
+ await expect(page.locator(".s4-close a[href=\"/contact\"]")).toHaveCount(1);
+ await context.close();
 });

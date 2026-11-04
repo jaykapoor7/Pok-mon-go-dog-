@@ -1,0 +1,5 @@
+# Engineering ownership and protected files
+* @jaykapoor7
+/.github/ @jaykapoor7
+/supabase/ @jaykapoor7
+/scripts/db-migrate.mjs @jaykapoor7

@@ -14,22 +14,30 @@
  * A blank address means Lucknow city-level, not a withheld encounter.
  *
  * Usage:
- *   node scripts/import-kind-hour.mjs --audit
- *   node scripts/import-kind-hour.mjs --sql-only > kind-hour-v2.sql
- *   DATABASE_URL=... node scripts/import-kind-hour.mjs --apply
+ *   KIND_HOUR_IMPORT_DIR=/secure/kind-hour KIND_HOUR_SOURCE_FILE_ID=... node scripts/import-kind-hour.mjs --audit
+ *   KIND_HOUR_IMPORT_DIR=/secure/kind-hour KIND_HOUR_SOURCE_FILE_ID=... node scripts/import-kind-hour.mjs --sql-only > kind-hour-v2.sql
+ *   KIND_HOUR_IMPORT_DIR=/secure/kind-hour KIND_HOUR_SOURCE_FILE_ID=... DATABASE_URL=... node scripts/import-kind-hour.mjs --apply
+ * Private source files must not be committed or placed under public/.
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { latLngToCell } from "h3-js";
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dir = path.join(root, "scripts", "kind-hour");
+const privateImportDir = process.env.KIND_HOUR_IMPORT_DIR;
+if (!privateImportDir) {
+  console.error("KIND_HOUR_IMPORT_DIR is required: supply the private register, ledger-values.json and places.json outside the repository.");
+  process.exit(2);
+}
+const dir = path.resolve(privateImportDir);
 const ORG_SLUG = "the-kind-hour-foundation";
 const SOURCE_SLUG = "kind-hour-rescue-register-2024-2026";
 const IMPORTER = "kind-hour-register-v3";
 const SOURCE_SHA256 = "601d207f26466dc83f2d9b3113b471e2dd3e80e78037ccf3ba4c2fd8631434d6";
-const SOURCE_FILE_ID = "1dXXZFtooM2yRZVGaK9Ouai-k2OsD6SS8";
+const SOURCE_FILE_ID = process.env.KIND_HOUR_SOURCE_FILE_ID;
+if (!SOURCE_FILE_ID) {
+  console.error("KIND_HOUR_SOURCE_FILE_ID is required to preserve the original register provenance.");
+  process.exit(2);
+}
 const SHEET = "Rescue (Kind Hour register)";
 const DUPLICATE_IDS = new Set(["KH-RR-037", "KH-RR-084"]);
 const NO_ANIMAL_EVIDENCE = new Set(["KH-RR-106"]);
