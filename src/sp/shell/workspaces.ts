@@ -2,7 +2,7 @@
  * Visibility is fail-closed for restricted destinations; RLS remains authoritative. */
 export type WorkspaceId='community'|'ngo'|'city'|'learn';
 export type Role='admin'|'coordinator'|'veterinarian'|'member';
-export type NavItem={href:string;label:string;icon:string;match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>;/** Position in the five-step NGO workflow. */step?:number;/** Query string that selects a view of the page (e.g. stage=vet). */query?:string;order?:number};
+export type NavItem={href:string;label:string;icon:string;aliases?:string[];match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>;/** Position in the five-step NGO workflow. */step?:number;/** Query string that selects a view of the page (e.g. stage=vet). */query?:string;order?:number};
 export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:boolean;mobile?:boolean;primaryFor?:Role[];assistantKey?:string;note?:string;/** false: reached from its hub page and search, not listed in the sidebar. */listed?:boolean};
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
@@ -160,6 +160,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/ngo/packages",
+    "roles": ["admin", "coordinator"],
     "order": 6,
     "step": 5,
     "short": "Submit",
@@ -213,6 +214,7 @@ export const DESTINATIONS:Destination[]=[
   {
     "workspace": "ngo",
     "href": "/ngo/inbox",
+    "aliases": ["intake", "inbox"],
     "section": "Five steps",
     "order": 2,
     "step": 1,
