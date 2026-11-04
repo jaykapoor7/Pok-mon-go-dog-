@@ -39,3 +39,8 @@ yarn-error.log*
 
 # Third-party design reference captures (local comparison only)
 /docs/sp4/reference/
+
+# Partner-supplied import registers and derived private extracts
+/scripts/kind-hour/*.csv
+/scripts/kind-hour/*.json
+/scripts/kind-hour/*.xlsx
