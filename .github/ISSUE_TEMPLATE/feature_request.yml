@@ -1,0 +1,23 @@
+name: Product improvement
+description: Propose a scoped, evidence-based improvement
+title: "feat: "
+body:
+  - type: textarea
+    id: audience
+    attributes:
+      label: User and workflow
+      description: Who needs this, and where do they get stuck?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Proposed outcome
+      description: Describe the observable behaviour, not implementation hype.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Data, permissions and rollout constraints
+      description: Include relevant animal-record, veterinary and municipal review boundaries.

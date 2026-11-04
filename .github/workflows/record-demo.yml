@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       public_base_url: { description: 'Live public URL', required: true, default: 'https://www.straypaw.org' }
+permissions:
+  contents: read
+
 jobs:
   record:
     runs-on: ubuntu-latest
@@ -12,8 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm install --no-audit --no-fund
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
       - run: npx playwright install --with-deps chromium
       # demo:record starts a local Next server with NEXT_PUBLIC_DEMO_RECORDING.
       # It uses in-memory PAWS Chennai data, never a database or production session.

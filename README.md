@@ -49,7 +49,7 @@ This distinction is part of the product, not just a reporting convention. The go
 
 The application uses permission-scoped records and bounded geospatial reads; sensitive records and operational actions must stay behind the appropriate access checks.
 
-See [architecture](docs/ARCHITECTURE.md), [database](docs/DATABASE.md), and [data imports](docs/IMPORTS.md) for the engineering detail.
+See the [documentation index](docs/README.md), [architecture](docs/ARCHITECTURE.md), [database](docs/DATABASE.md), and [data imports](docs/IMPORTS.md) for the engineering detail.
 
 ## Development
 

@@ -1,61 +1,41 @@
-# dependencies
-/node_modules
+# Dependencies and generated builds
+/node_modules/
 /.pnp
 .pnp.js
-
-# next.js
 /.next/
 /out/
+/build/
+*.tsbuildinfo
+next-env.d.ts
+/.vercel/
 
-# production
-/build
-
-# misc
-.DS_Store
+# Local configuration, credentials and private keys
+.env
+.env.*
+!.env.example
 *.pem
+*.key
+*.p12
+*.p8
 
-# debug
+# Local machine and package manager outputs
+.DS_Store
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# local env files
-.env
-.env*.local
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# vercel
-.vercel
-
-# Playwright
 /test-results/
 /playwright-report/
 /blob-report/
 
-# MapLibre's worker and shared chunk are copied out of node_modules into
-# public/ by scripts/copy-maplibre-worker.mjs, which runs on prebuild and
-# predev. They are build output, not source: committing them would duplicate
-# node_modules in the repository and let the copy drift from the installed
-# maplibre-gl version. Vercel regenerates them during its own build.
+# Rebuilt assets, local exports and test output
 /public/maplibre/
+/demo-footage/
+/out6/
+/staging/local/results.json
+/supabase/.temp/
 
-# Output from the /founder: skills in .claude/skills/founder/. They write a
-# founder/ directory at the repository root and read each other's files from
-# it, so it accumulates whatever the skills are told about StrayPaw's stage,
-# metrics, team and any raise. That is working material, and some of it is
-# not ours to publish, so it stays local.
-#
-# Rooted on purpose: a bare "founder/" would also match the skill pack at
-# .claude/skills/founder/ and the sample output inside its examples, which
-# are committed and must stay that way.
+# Local founder working notes; never publish strategy or partner material here
 /founder/
 
-# GovDash reference captures (their imagery; local comparison only)
-docs/sp4/reference/
-
-# Local Supabase CLI metadata
-/supabase/.temp/
-demo-footage/
+# Third-party design reference captures (local comparison only)
+/docs/sp4/reference/
