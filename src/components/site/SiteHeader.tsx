@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import {BrandLogo} from "./BrandLogo";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ChevronDown, Menu, Sparkles, X } from "lucide-react";
@@ -101,7 +102,7 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
   return (
     <header ref={bar} className={`s4 s4-nav${scrolled ? " is-scrolled" : ""}`}>
       <div className="s4-wrap s4-nav-in">
-        <Link href="/" className="s4-brand" aria-label="StrayPaw home"><StrayPawMark size={28} /><span>StrayPaw</span></Link>
+        <Link href="/" className="s4-brand s4-brand-art" aria-label="StrayPaw home"><BrandLogo/></Link>
 
         <nav className="s4-nav-links" aria-label="Site" onPointerLeave={(e) => { if (e.pointerType === "mouse") hover(null); }}>
           <Mega id="platform" label="Product" open={menu === "platform"} onToggle={toggle} onHover={hover} cols={MEGA.platform}
@@ -182,11 +183,5 @@ function SheetGroup({ label, cols }: { label: string; cols: MegaCol[] }) {
   );
 }
 
-/** The StrayPaw mark: the dog looking over the rim of its circle. */
-export function StrayPawMark({ size = 28 }: { size?: number }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src="/straypaw-mark.png" alt="" width={size} height={size} aria-hidden="true"
-      style={{ flexShrink: 0, borderRadius: "50%", display: "block", boxShadow: "0 0 0 1px rgba(11,16,32,0.12)" }} />
-  );
-}
+/** Compact crop of the same owner-supplied animal wordmark. */
+export function StrayPawMark({size=28}:{size?:number}){return<BrandLogo compact size={size}/>}

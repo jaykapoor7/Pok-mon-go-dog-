@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-/* Kaju is StrayPaw's AI agent; the puppy is its mascot. His pose follows
+/* Kaju is StrayPaw's AI agent; the companion is its mascot. His pose follows
    the agent's real state and he never moves under reduced motion. */
 
 test("Kaju greets when the agent opens and listens after", async ({ page, isMobile }) => {
@@ -32,14 +32,17 @@ test("the workspace is called Kaju everywhere a person reads it", async ({ page 
   expect(await page.locator("body").innerText()).not.toMatch(/StrayPaw AI\b(?!, confirmed)/);
 });
 
-test("Explorer artwork loads as an articulated rig", async ({ page, request }) => {
+test("Companion artwork loads as an articulated rig", async ({ page, request }) => {
   await page.goto("/assistant");
-  const explorer = page.locator('svg[data-kaju-art="explorer"]:visible').first();
+  const explorer = page.locator('svg[data-kaju-art="companion"]:visible').first();
   await expect(explorer).toBeVisible();
   await expect(explorer).toHaveAttribute('data-kaju-rig', 'articulated');
-  for (const part of ['head', 'torso', 'tail', 'fFar', 'fNear', 'bFar', 'bNear']) await expect(explorer.locator(`.kj-${part}`)).toHaveCount(1);
+  for (const part of ['head', 'torso', 'fFar', 'fNear', 'bFar', 'bNear']) await expect(explorer.locator(`.kj-${part}`)).toHaveCount(1);
+  await expect(explorer.locator('.kj-ear')).toHaveCount(2);
+  await expect(explorer.locator('.kj-elbow')).toHaveCount(2);
+  await expect(explorer.locator('.kj-display')).toHaveCount(1);
   const asset = await explorer.locator('image').first().getAttribute('href');
-  expect(asset).toContain('explorer-rig');
+  expect(asset).toContain('companion-rig');
   const response = await request.get(asset!);
   expect(response.ok()).toBeTruthy();
   expect(response.headers()['content-type']).toMatch(/^image\//);

@@ -1,0 +1,12 @@
+.brand-logo{display:block;flex:none;width:174px;max-width:100%;height:auto;overflow:hidden;background:none}
+.brand-logo.is-compact{width:32px;height:46px}
+.s4-brand.s4-brand-art{gap:0;line-height:0}
+.s4-nav .s4-brand-art .brand-logo{width:170px;max-height:68px}
+.s4-foot .s4-brand-art .brand-logo{width:244px;max-width:100%;filter:drop-shadow(0 0 1px rgba(223,237,255,.5))}
+.s4-foot .s4-brand-art{padding:8px 0;background:radial-gradient(ellipse at 50% 48%,rgba(117,164,244,.14),transparent 72%)}
+@media(max-width:760px){.s4-nav .s4-brand-art .brand-logo{width:140px;max-height:65px}.s4-foot .s4-brand-art .brand-logo{width:224px}}
+
+.s4-foot-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.kaju-motion-button{font:inherit;font-size:12px;color:inherit;background:transparent;border:1px solid currentColor;border-radius:999px;padding:7px 11px;cursor:pointer}
+.kaju-motion-button:focus-visible{outline:2px solid #93c5fd;outline-offset:4px}
+.kaju-motion-button:disabled{cursor:default;opacity:.7}
