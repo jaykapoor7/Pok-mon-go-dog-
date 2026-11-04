@@ -704,3 +704,6 @@ a.s4-hero-eyebrow:hover { box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .3); }
   .s4-page:not(.s6-home) .s4-close { padding-top: 56px; padding-bottom: 56px; gap: 20px; }
   .s4-pillars > div { padding: 18px 0 20px; }
 }
+/* The greeting is anchored beside the product, clear of the hero actions. */
+.s6-canvas .s4-hero-perch{width:144px;height:120px;top:-94px}
+@media(max-width:760px){.s6-canvas .s4-hero-perch{width:108px;height:90px;top:-66px}.s6-canvas .s4-hero-perch .kaju{width:108px}}

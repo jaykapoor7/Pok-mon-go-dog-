@@ -16,7 +16,7 @@ const nextConfig = {
   // treating the parent workspace as the application root during builds.
   outputFileTracingRoot: new URL(".", import.meta.url).pathname,
   images: {
-    qualities: [75, 85],
+    qualities: [75, 85, 90, 95],
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "plus.unsplash.com" },

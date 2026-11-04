@@ -2,7 +2,7 @@
 
 /* ════════════════════════════════════════════════════════════════════
    Kaju, StrayPaw's AI agent, in the app: one conversation, three sizes.
-   The puppy is Kaju's mascot; his pose follows what the agent is really
+   The companion is Kaju's mascot; his pose follows what the agent is really
    doing (useKajuMood): greeting on open, thinking while /api/ai works,
    pleased after an answer, concerned on an error, settling when closed.
      · the launcher (sidebar button, top bar, ⌘J, phone tab)
@@ -56,7 +56,7 @@ export function useKajuMood(): KajuState {
   useEffect(()=>{let timer:number|undefined;const verified=()=>{setState('success');window.clearTimeout(timer);timer=window.setTimeout(()=>setState(active?'listening':'lying'),1600)};window.addEventListener('kaju-action-verified',verified);return()=>{window.clearTimeout(timer);window.removeEventListener('kaju-action-verified',verified)}},[active]);
   useEffect(() => {
     let t: number | undefined;
-    if (ai.busy) setState("thinking");
+    if (ai.busy) setState("working");
     else if (!active && prevOpen.current) { setState("goodbye"); t = window.setTimeout(() => setState("lying"), 1100); }
     else if (!active) setState("lying");
     else if (last?.role === "assistant" && last.error) setState("concerned");
