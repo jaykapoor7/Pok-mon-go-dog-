@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {DESTINATIONS,workspaceView,destinations,tabsFor,currentDestination,type Role} from '../src/sp/shell/workspaces';
 let n=0;function check(label:string,fn:()=>void){fn();console.log(`PASS ${++n} ${label}`)}
-check('unique destinations per workspace',()=>assert.equal(new Set(DESTINATIONS.map(x=>x.workspace+':'+x.href)).size,DESTINATIONS.length));
+check('unique destinations per workspace, including page views',()=>assert.equal(new Set(DESTINATIONS.map(x=>x.workspace+':'+x.href+(x.query?'?'+x.query:''))).size,DESTINATIONS.length));
 for(const role of [null,'member','veterinarian','coordinator','admin'] as (Role|null)[]){
  check(`all surfaces share visibility for ${role??'unknown'}`,()=>{const view=workspaceView('ngo',role);const allowed=new Set(destinations('ngo',role).map(x=>x.href));for(const x of [...view.nav,...view.dests,...view.index.flatMap(g=>g.links)])assert.ok(allowed.has(x.href));for(const x of DESTINATIONS.filter(x=>x.workspace==='ngo'))for(const t of tabsFor(x.href,role)?.tabs??[])assert.ok(allowed.has(t.href));if(role!=='admin')assert.ok(!allowed.has('/ngo/team'));if(!role)assert.ok(!allowed.has('/ngo/packages'))});
 }
