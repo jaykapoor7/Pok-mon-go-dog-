@@ -109,7 +109,8 @@ test("the Municipality map opens on its evidence layers", async ({ page }) => {
 
 test("the NGO map explains itself when signed out", async ({ page }) => {
   await page.goto("/ngo/map");
-  await expect(page.getByText(/only for members of an organisation/)).toBeVisible();
+  await expect(page.getByText(/Only members of your organisation can open it/)).toBeVisible();
+  await expect(page.locator(".fm-map canvas")).toHaveCount(0);
 });
 
 test.describe("reporting", () => {
@@ -153,7 +154,8 @@ test.describe("reporting", () => {
 
 test("the NGO workspace explains itself when signed out", async ({ page }) => {
   await page.goto("/ngo/animals");
-  await expect(page.getByText(/only for members of an organisation/)).toBeVisible();
+  await expect(page.getByText(/Only members of your organisation can open it/)).toBeVisible();
+  await expect(page.locator(".fm-map canvas")).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Sign in with your code/ })).toBeVisible();
 });
 
