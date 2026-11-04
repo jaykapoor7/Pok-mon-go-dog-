@@ -1,7 +1,6 @@
 import { ClipboardPen, FileSearch, History, Lock, ScanText, ShieldAlert } from "lucide-react";
 import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { AskUi, ExtractUi, OvernightUi, ProposeUi } from "@/sp4/home/ui";
-import {KajuPresence} from "@/kaju/Presence";
 import { AiBand } from "@/sp4/home/Interactive";
 
 export const metadata = { title: "Kaju · StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: searches the records you can read, answers with citations, finds gaps and prepares changes a person confirms." };
@@ -14,7 +13,7 @@ export default function AiPage() {
     lede: "Kaju answers from your records, finds what is missing and prepares changes for your team to confirm.",
     primary: { href: "/assistant", label: "Open Kaju" },
     secondary: { href: "/demo", label: "Book a demo" },
-    hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><KajuPresence sequence="desk" loop size={172}/><AskUi v={3} /><ProposeUi v={1} /></div>,
+    hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><AskUi v={3} /><ProposeUi v={1} /></div>,
     heroV: 2,
     pillars: {
       title: ["An assistant with", "the same rules as your team"],

@@ -87,10 +87,3 @@ export function KajuAmbientToggle() {
 export function KajuCorner({ sequence = "idle", size = 72, flip, className = "", label }: { sequence?: keyof typeof SEQUENCES; size?: number; flip?: boolean; className?: string; label?: string }) {
   return <KajuPresence sequence={sequence} size={size} flip={flip} loop className={`kaju-corner ${className}`} label={label} />;
 }
-
-/** Public pages expose the same device-wide animation preference as settings. */
-export function KajuMotionButton() {
-  const [on, set] = useKajuAmbient();
-  const reduced = useReducedMotion();
-  return <button type="button" className="kaju-motion-button" aria-pressed={on && !reduced} disabled={reduced} onClick={() => set(!on)}>{reduced ? 'Kaju · reduced motion' : on ? 'Pause Kaju' : 'Animate Kaju'}</button>;
-}

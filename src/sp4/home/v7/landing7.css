@@ -386,3 +386,47 @@
 .s7-rc-closed .s7-rc-logo.is-s { position: static; justify-self: start; }
 .s7-rc-closed b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 @media (min-width: 961px) { .s7-rc:not(.is-on) .s7-rc-closed b { font-size: 13px; } }
+
+/* ════ Calm pass: no glows, no radial highlights, no floating tiles.
+   Flat colour, hairline borders, one blue. ════ */
+.s7-welcome { background: #fff; box-shadow: 0 0 0 1px #e3e7ee, 0 20px 40px -24px rgba(11, 30, 61, .3); }
+.s7-step-stage { background: #1f3f8f; }
+.s7-step-stage::before { background-image: linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px); mask-image: none; }
+.s7-step-kaju { background: #f6f8fb; box-shadow: inset 0 0 0 1px #e6eaf0; }
+.s7-win { box-shadow: 0 20px 40px -28px rgba(5, 12, 30, .55); }
+.s7-mate { background: #f6f7f9; }
+.s7-mstage { background: #fff; box-shadow: inset 0 0 0 1px #e6e9ee; }
+.s7-mstage::before { display: none; }
+.s7-knows-k { background: #1f3f8f; box-shadow: none; }
+.s7-knows li, .s7-knows li i::after { animation: none; }
+.s7-knows li { box-shadow: 0 0 0 1px #e3e7ee; }
+.s7-knows li i::after { display: none; }
+.s7-tools span { animation: none; box-shadow: 0 0 0 1px #e3e7ee; color: #3b4a5e; }
+.s7-tools span.is-hi { box-shadow: 0 0 0 1px #e3e7ee; }
+.s7-log, .s7-pchat p { box-shadow: 0 0 0 1px #e3e7ee; }
+.s7-pchat p.is-k { background: #f6f8fb; box-shadow: 0 0 0 1px #e3e7ee; }
+.s7-ring svg circle + circle { stroke: #1f3f8f; }
+.s7-rec { background: #0f1a33; }
+.s7-rec-prog { background: #8fa6d6; }
+.s7-rec-list button[aria-pressed="true"] svg { color: #8fa6d6; }
+.s7-agent { box-shadow: 0 30px 60px -40px rgba(0, 0, 0, .6); }
+.s7-tc { background: #f6f7f9; box-shadow: inset 0 0 0 1px #e6e9ee; }
+.s7-tc.is-on { background: #0f1a33; }
+.s7-tc-logos b { box-shadow: none; }
+.s7-rc { background: color-mix(in srgb, var(--c) 92%, #000); }
+.s7-rc.is-on { background: #0f1a33; }
+.s7-close .s7-close-card.s4-close { background: #1f3f8f; }
+.s7-close-card::before { display: none; }
+.s7-q-pic { background: #f3f5f8; box-shadow: inset 0 0 0 1px #e6e9ee; }
+.s7-q-k { box-shadow: 0 0 0 1px #e3e7ee; }
+.s7-kn { background: #f6f8fb; box-shadow: inset 0 0 0 1px #e3e7ee; }
+.s7-kn b { color: #1f3f8f; }
+.s7-ann { background: #1f3f8f; }
+.s4-announce:has(.s7-ann) { background: #1f3f8f; }
+/* integrations: white tiles with a hairline, the tool's colour only on its icon */
+.s6-int-color .s4-int-t { background: #fff; box-shadow: 0 0 0 1px #e6e9ee; }
+.s6-int-color .s4-int-t:hover { transform: none; box-shadow: 0 0 0 1px #c9d2e0; }
+.s6-int-color .s4-int-mark { box-shadow: none; }
+/* partner cards: initials in quiet navy and slate */
+.s6-pt-av { background: color-mix(in srgb, var(--pt) 9%, #fff); }
+.s7-ring small { grid-row: 2; margin-top: 4px; font-size: 12px; } .s7-ring b { margin-top: 0; }

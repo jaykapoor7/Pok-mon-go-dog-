@@ -12,7 +12,7 @@ import { State } from "../../ui";
 import "./more.css";
 
 const f = (n: number) => n.toLocaleString("en-IN");
-const TINTS = ["#2457ce", "#0f7b8a", "#c2532d", "#6b4fd8", "#1f8a52", "#b4590f"];
+const TINTS = ["#1e3a6e", "#2f4a63", "#2c4f8f", "#3b4a5e", "#25507a", "#344868"];
 const hash = (t: string) => [...t].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 const initials = (t: string) => t.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !/^(the|of|and|for)$/i.test(w)).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 const KIND_NOTE: Record<DirectoryOrg["kind"], string> = { "Field partner": "Animal-welfare organisations on StrayPaw", "Listed NGO": "Has a StrayPaw workspace", "Data source": "Shared a historical register" };

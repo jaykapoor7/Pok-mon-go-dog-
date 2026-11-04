@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
-import {KajuMotionButton} from "@/kaju/Presence";
 import {BrandLogo} from "./BrandLogo";
 import "@/sp3/sp3.css";
 import "@/sp4/sp4.css";
@@ -27,7 +26,7 @@ export function SiteFooter({ className = "", cta = true }: { className?: string;
             <Link href="/" className="s4-brand s4-brand-art" aria-label="StrayPaw home"><BrandLogo/></Link>
             <p>Operations and verification software for animal birth control programmes, and the people who deliver them.</p>
             <Link href="/for-community" className="s4-link">Report an animal <ArrowRight size={15} aria-hidden /></Link>
-            <div className="s4-foot-controls"><LanguageSwitcher /><KajuMotionButton/></div>
+            <div className="s4-foot-controls"><LanguageSwitcher /></div>
           </div>
           {COLS.map(([h, links]) => (
             <div key={h}>

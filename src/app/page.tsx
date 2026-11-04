@@ -68,8 +68,8 @@ export default function HomePage() {
           <div className="s6-canvas">
             <Blueprint tone="dark" />
             <div className="s4-hero-stage s6-stage">
-              {/* Kaju waves from the product window: the agent lives inside the work. */}
-              <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="hello" loop size={144} /></span>
+              {/* Kaju rests on the product window: the agent lives inside the work. */}
+              <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" loop size={112} /></span>
               <HeroDemo />
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function HomePage() {
 /* Integrations as they really stand (docs/CONNECTIONS.md). Providers use plain letter marks in their own colour, not
    their logos. "Setup pending": built and tested, waiting for the administrator's OAuth keys. "Planned": not built yet.
    Nothing here is shown as live before it is. */
-const TINTS = ["#2457ce", "#0f7b8a", "#c2532d", "#6b4fd8", "#1f8a52", "#b4590f"];
+const TINTS = ["#1e3a6e", "#2f4a63", "#2c4f8f", "#3b4a5e", "#25507a", "#344868"];
 type IntTile = { n: string; s: "Live" | "Setup pending" | "Not connected" | "Planned"; c: string; i: ReactNode };
 const Mark = ({ l }: { l: string }) => <span className="s4-int-mark">{l}</span>;
 const INT_COLS: IntTile[][] = [
