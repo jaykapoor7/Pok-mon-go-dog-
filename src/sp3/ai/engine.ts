@@ -161,7 +161,7 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   const go = t.match(/^(?:please\s+)?(?:open|go to|take me to|show me|show)\s+(?:the\s+|my\s+)?(.{3,40}?)(?:\s+page|\s+screen)?[.!?\s]*$/);
   if (go) {
     const want = go[1].replace(/&/g, "and").trim();
-    const key = Object.entries(NAV).find(([k, v]) => k.replace(/_/g, " ") === want || v.label.toLowerCase().replace(/&/g, "and") === want || v.label.toLowerCase().startsWith(want))?.[0];
+    const key = Object.entries(NAV).find(([k, v]) => k.replace(/_/g, " ") === want || v.aliases?.includes(want) || v.label.toLowerCase().replace(/&/g, "and") === want || v.label.toLowerCase().startsWith(want))?.[0];
     if (key) { const out = await call(acc, ctx, "navigate", { to: key }); return done(out.ok === false ? out.summary : `Opening ${(out.navigate ?? NAV[key]).label}.`); }
   }
   if (/this (?:case|record|animal|programme|report|package)|selected|current record/i.test(q)) {

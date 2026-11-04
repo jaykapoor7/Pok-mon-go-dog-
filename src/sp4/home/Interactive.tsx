@@ -8,7 +8,7 @@ import { KajuRunUi, type KajuRun } from "@/sp4/home/ui";
 import { KajuPresence } from "@/kaju/Presence";
 import type { Step as KajuStep } from "@/kaju/poses";
 
-const RUN_STEPS: KajuStep[] = [{ state: "thinking", ms: 1700 }, { state: "success", ms: 1300 }, { state: "sitting", ms: 0 }];
+const RUN_STEPS: KajuStep[] = [{ state: "working", ms: 1700 },{state:"thinking",ms:1000}, { state: "success", ms: 1300 }, { state: "sitting", ms: 0 }];
 
 /* ════════════════════════════════════════════════════════════════════
    The two interactive homepage sections.

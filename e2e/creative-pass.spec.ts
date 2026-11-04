@@ -33,7 +33,7 @@ test("audiences remain one click away in the Solutions menu",async({page})=>{
  for(const href of ["/for-ngos","/for-governments","/solutions/rescue-care","/for-community","/abc-operations","/solutions/abc-arv"])await expect(menu.locator(`a[href="${href}"]`).first()).toBeVisible();
 });
 test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
- await page.goto("/");const question=page.locator(".s4-faq summary").first();await question.focus();await page.keyboard.press("Enter");await expect(page.locator(".s4-faq details").first()).toHaveAttribute("open","");
+ await page.goto("/");const faq=page.getByRole("region",{name:"Questions, answered"});const question=faq.locator("summary").first();await question.focus();await page.keyboard.press("Enter");await expect(faq.locator("details").first()).toHaveAttribute("open","");
  await expect(page.locator(".s4-close .is-primary")).toHaveCount(1);await expect(page.locator("main a").filter({hasText:/^Book a demo$/})).toHaveCount(1);
 });
 test("every published field partner has an accessible organisation profile",async({request})=>{
