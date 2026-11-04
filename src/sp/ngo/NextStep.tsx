@@ -22,7 +22,7 @@ import type { CaseFile } from "@/lib/case-file";
 import { REVIEW_REASONS, type ReviewReason } from "@/lib/review";
 import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
 import type { CaseResolution } from "@/lib/types";
-import { addNote, assignTo, decideCase, resolveCase, scheduleFollowup, setFollowup, startWork, takeCase, type Receipt } from "../data/work";
+import { addNote, assignTo, backToAssigned, decideCase, resolveCase, scheduleFollowup, setFollowup, startWork, takeCase, type Receipt } from "../data/work";
 import {useMembership} from "../shell/Shell";
 import { Ack, day } from "../ui";
 import { DeleteRecord } from "../ui/DeleteRecord";
@@ -55,12 +55,22 @@ export function NextStep({ file, cohort, onChanged }: { file: CaseFile; cohort: 
   const reasonless = !open && (reg.status_class === "no_action" || reg.status_class === "not_attended") && (!reg.closure_reason || reg.closure_reason === "unspecified");
   const dueAfter = followups.filter((f) => f.status === "upcoming");
 
-  const go = async (key: string, fn: () => Promise<Receipt>) => {
+  /* undo: the reverse step, offered only where the database allows it (giving
+     the case back to whoever held it; moving "in progress" back to "assigned"). */
+  const go = async (key: string, fn: () => Promise<Receipt>, undo?: { text: string; fn: () => Promise<Receipt> }) => {
     setBusy(key); setReceipt(null);
     let r: Receipt;
     try { r = await fn(); } catch { r = { ok: false, error: "The connection dropped." } as Receipt; }
     setReceipt(r); setBusy(null);
-    if (r.ok) { notify({ tone: "ok", text: "Saved to the case." }); setMode(null); await onChanged(); }
+    if (r.ok) {
+      notify({ tone: "ok", text: undo ? undo.text : "Saved to the case.", action: undo ? { label: "Undo", run: async () => {
+        let u: Receipt;
+        try { u = await undo.fn(); } catch { u = { ok: false, error: "The connection dropped." } as Receipt; }
+        if (u.ok) { notify({ tone: "ok", text: "Undone." }); await onChanged(); }
+        else notify({ tone: "error", text: `Not undone. ${("error" in u && u.error) || "Try again."}` });
+      } } : undefined });
+      setMode(null); await onChanged();
+    }
     else notify({ tone: "error", text: `Not saved. ${("error" in r && r.error) || "Try again."}`, action: { label: "Try again", run: () => go(key, fn) } });
   };
   const self = members.find((m) => m.user_id === actor.id);
@@ -102,12 +112,12 @@ export function NextStep({ file, cohort, onChanged }: { file: CaseFile; cohort: 
               <div className="row">
                 {!c.assignee_id && self && <button type="button" className="btn is-flame is-s" disabled={!!busy} onClick={() => go("take", () => takeCase(c.id, actor))}>Take it</button>}
                 {(membership.role==='admin'||membership.role==='coordinator') && members.length > 0 && (
-                  <select className="select next-select" value="" disabled={!!busy} aria-label={c.assignee_id ? "Reassign to" : "Assign to"} onChange={(e) => { const m = members.find((x) => x.user_id === e.target.value); if (m) void go("assign", () => assignTo(c.id, { id: m.user_id, name: m.name }, actor)); }}>
+                  <select className="select next-select" value="" disabled={!!busy} aria-label={c.assignee_id ? "Reassign to" : "Assign to"} onChange={(e) => { const m = members.find((x) => x.user_id === e.target.value); if (m) { const prev = c.assignee_id && c.assignee_name ? { id: c.assignee_id, name: c.assignee_name } : null; void go("assign", () => assignTo(c.id, { id: m.user_id, name: m.name }, actor), prev ? { text: `Given to ${m.name}.`, fn: () => assignTo(c.id, prev, actor) } : undefined); } }}>
                     <option value="">{c.assignee_id ? "Reassign to…" : "Assign to…"}</option>
                     {members.filter((m) => m.user_id !== c.assignee_id).map((m) => <option key={m.user_id} value={m.user_id}>{m.name}{m.user_id === actor.id ? " (you)" : ""} · {m.role}</option>)}
                   </select>
                 )}
-                {mine && c.status === "assigned" && <button type="button" className="btn is-s" disabled={!!busy} onClick={() => go("start", () => startWork(c.id, actor))}>Start work</button>}
+                {mine && c.status === "assigned" && <button type="button" className="btn is-s" disabled={!!busy} onClick={() => go("start", () => startWork(c.id, actor), { text: "Marked in progress.", fn: () => backToAssigned(c.id, actor) })}>Start work</button>}
                 {mine && <button type="button" className="btn is-ink is-s" disabled={!!busy} onClick={() => setMode(mode === "outcome" ? null : "outcome")}>Record the outcome…</button>}
               </div>
             </>

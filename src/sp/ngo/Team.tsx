@@ -10,6 +10,7 @@
    says so and shows the answer.
    ════════════════════════════════════════════════════════════════════ */
 
+import { CancelButton } from "@/sp/ui/CancelButton";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyOrgMembers, type OrgMember } from "@/lib/team-actions";
@@ -107,7 +108,7 @@ function Invite({ onDone }: { onDone: (r: Receipt) => Promise<void> }) {
       <div className="field"><label htmlFor="tm-n">Name</label><input id="tm-n" className="input" value={name} onChange={(e) => setName(e.target.value)} required /></div>
       <div className="field"><label htmlFor="tm-e">Email</label><input id="tm-e" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
       <div className="seg" role="group" aria-label="Role">{(["member", "lead", "volunteer"] as const).map((k) => <button key={k} type="button" aria-pressed={role === k} onClick={() => setRole(k)}>{ROLE[k]}</button>)}</div>
-      <button type="submit" className="btn is-ink is-s" disabled={busy}>{busy ? "Sending…" : "Add and send their code"}</button>
+      <button type="submit" className="btn is-ink is-s" disabled={busy}>{busy ? "Sending…" : "Add and send their code"}</button>{(email || name) && <CancelButton label="Clear" disabled={busy} onCancel={() => { setEmail(""); setName(""); }} />}
       <p className="small">They get a personal code by email. If the email cannot be sent, the code is shown here for you to pass on.</p>
     </form>
   );

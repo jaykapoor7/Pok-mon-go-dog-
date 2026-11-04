@@ -6,6 +6,7 @@
    coordinator or admin approves or returns, nobody reviews their own
    sign-off, and a record in a submitted package is locked here. */
 
+import { notify } from "../ui/Notice";
 import {OperationsPanel} from "../ngo/OperationsPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -43,10 +44,20 @@ export function VerificationCase({ id }: { id: string }) {
   const open = useOrgOpen();
   useEffect(() => { if (open) void load(); }, [load, open]);
 
-  const act = async (fn: () => Promise<unknown>, done: string) => {
+  /* A sign-off returns its id; Undo withdraws it straight away with a stated
+     reason, through the same audited withdrawal a vet or admin would use. */
+  const act = async (fn: () => Promise<unknown>, done: string, signOff = false) => {
     setBusy(true); setMsg(null);
-    try { await fn(); setMsg({ ok: true, text: done }); await load(); }
-    catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
+    try {
+      const r = await fn();
+      const sid = signOff && typeof r === "string" && /^[0-9a-f-]{36}$/i.test(r) ? r : null;
+      notify({ tone: "ok", text: done, action: sid ? { label: "Undo", run: async () => {
+        try { await withdrawSignOff(sid, "Undone straight after signing: pressed by mistake."); notify({ tone: "ok", text: "Sign-off withdrawn. The case history notes it." }); await load(); }
+        catch (e) { notify({ tone: "error", text: `Not undone. ${(e as Error).message}` }); }
+      } } : undefined });
+      await load();
+    }
+    catch (e) { setMsg({ ok: false, text: (e as Error).message }); notify({ tone: "error", text: `Not saved. ${(e as Error).message}` }); }
     finally { setBusy(false); }
   };
 
@@ -63,7 +74,7 @@ export function VerificationCase({ id }: { id: string }) {
   );
 }
 
-function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: boolean; text: string } | null; act: (fn: () => Promise<unknown>, done: string) => Promise<void>; id: string }) {
+function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: boolean; text: string } | null; act: (fn: () => Promise<unknown>, done: string, signOff?: boolean) => Promise<void>; id: string }) {
   const live = (k: Attestation["kind"]) => d.att.find((a) => a.kind === k && !a.revoked_at) ?? null;
   const vet = live("vet_authorised"), rev = live("evidence_reviewed"), ret = live("evidence_returned");
   const role = d.ctx.role;
@@ -134,7 +145,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
             {!locked && !vet && canSign && clinicalReady && (
               <>
                 <textarea className="textarea" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} aria-label="Authorisation note" />
-                <div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => act(() => vetAuthorise(id, note), "Procedure authorised in your name.").then(() => setNote(""))}>Authorise procedure</button></div>
+                <div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => act(() => vetAuthorise(id, note), "Procedure authorised in your name.", true).then(() => setNote(""))}>Authorise procedure</button></div>
               </>
             )}
             {!locked && vet && (vet.actor_id === me || role === "admin") && (
@@ -153,7 +164,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
                 <>
                   <textarea className="textarea" placeholder="Note (required to return)" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Review note or return reason" />
                   <div className="acts">
-                    <button type="button" className="btn is-ink is-s" disabled={busy || d.chk.missing.length > 0 || !vet} onClick={() => act(() => reviewEvidence(id, reason), "Evidence approved for reporting.").then(() => setReason(""))}>Approve for reporting</button>
+                    <button type="button" className="btn is-ink is-s" disabled={busy || d.chk.missing.length > 0 || !vet} onClick={() => act(() => reviewEvidence(id, reason), "Evidence approved for reporting.", true).then(() => setReason(""))}>Approve for reporting</button>
                     <button type="button" className="btn is-s" disabled={busy || !reason.trim()} onClick={() => act(() => returnEvidence(id, reason), "Returned with your reason.").then(() => setReason(""))}>Return</button>
                   </div>
                   {(d.chk.missing.length > 0 || !vet) && <p className="abc-hint">{d.chk.missing.length > 0 ? "Complete the required evidence first" : "Approve after the vet signs"}</p>}

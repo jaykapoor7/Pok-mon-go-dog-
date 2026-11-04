@@ -43,6 +43,8 @@ export async function run(key: string, what: string, fn: () => Promise<boolean |
 
 export const takeCase = (id: string, actor: Actor) => run(`take:${id}`, "You hold this case", () => claimCase(id, actor));
 export const assignTo = (id: string, to: { id: string; name: string }, actor: Actor) => run(`assign:${id}`, `Assigned to ${to.name}`, () => assignCase(id, to, actor));
+/** Undo for "Start work": the assignee moves the case back to assigned (the database allows this step). */
+export const backToAssigned = (id: string, actor: Actor) => run(`unstart:${id}`, "Back to assigned", () => updateCaseStatus(id, "assigned", actor, { note: "Undo: back to assigned" }));
 export const startWork = (id: string, actor: Actor) => run(`start:${id}`, "Marked in progress", () => updateCaseStatus(id, "in_progress", actor));
 export const resolveCase = (id: string, actor: Actor, v: { resolution: CaseResolution; note: string; afterUrl?: string | null }) =>
   run(`resolve:${id}`, "Outcome recorded and case closed", () => updateCaseStatus(id, "resolved", actor, { resolution: v.resolution, outcomeNote: v.note, afterUrl: v.afterUrl ?? null }));

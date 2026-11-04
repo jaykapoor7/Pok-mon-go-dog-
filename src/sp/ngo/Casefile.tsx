@@ -12,6 +12,7 @@
    unless a separately authenticated veterinary sign-off exists in the linked case.
    ════════════════════════════════════════════════════════════════════ */
 
+import { CancelButton } from "@/sp/ui/CancelButton";
 import { shortCode } from "@/lib/caseCode";
 import {clinicalNarrative} from '@/lib/clinical-narrative';
 import {OperationsPanel} from './OperationsPanel';
@@ -132,7 +133,7 @@ function CareForm({ dogId, onDone }: { dogId: string; onDone: () => Promise<void
       <div className="field"><label htmlFor="cd">When</label><input id="cd" type="date" className="input" value={date} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setDate(e.target.value)} /></div>
       <div className="field"><label htmlFor="cb">Done by <span className="small">optional</span></label><input id="cb" className="input" value={by} onChange={(e) => setBy(e.target.value)} placeholder="Clinic or person" /></div>
       <div className="field"><label htmlFor="cn">Notes <span className="small">optional</span></label><textarea id="cn" className="textarea" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
-      <button type="submit" className="btn is-ink is-s" disabled={state === "pending"}>{state === "pending" ? "Sending…" : "Add to the history"}</button>
+      <button type="submit" className="btn is-ink is-s" disabled={state === "pending"}>{state === "pending" ? "Sending…" : "Add to the history"}</button>{(notes || by) && <CancelButton label="Clear" disabled={state === "pending"} onCancel={() => { setNotes(""); setBy(""); }} />}
       <div aria-live="polite">{state === "pending" ? <Ack state="pending">Sending to the record…</Ack> : receipt ? (receipt.ok ? <Ack state="saved">{receipt.what}</Ack> : <Ack state="failed">Not saved: {receipt.error}</Ack>) : null}</div>
     </form>
   );
