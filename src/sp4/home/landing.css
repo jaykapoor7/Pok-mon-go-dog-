@@ -304,3 +304,10 @@
   .s6-vcard b { margin: 0; font-size: 14px; white-space: nowrap; }
   .s6-vcard-x { right: 6px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; box-shadow: none; background: #f1f4f9; }
 }
+/* Phone hero: the phone mockup sits under the dashboard window, overlapping
+   only its bottom edge, so it no longer hides the window's text. */
+@media (max-width: 760px) {
+  .s6-home .s4d-win { height: 380px; }
+  .s6-home .s4d-phone { margin: -48px auto 0; height: 400px; }
+  .s6-home .s4d-ctrl { top: 330px; }
+}

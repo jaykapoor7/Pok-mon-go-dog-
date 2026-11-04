@@ -519,8 +519,11 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 /* Phone top bar: logo, Back, search, menu, account. The dashboard name is in
    the menu's heading, and Sign in moves into the menu, so the row never crowds. */
 @media (max-width: 860px) {
-  .sp.sx3 .sx3-ws-m { display: none; }
-  .sp.sx3 .sx3-acct-m.is-out { display: none; }
+  .sp.sx3 .sx3-top .sx3-ws-m { display: none !important; }
+  .sp.sx3 .sx3-top .sx3-acct-m.is-out { display: none !important; }
   .sp.sx3 .sx5-back { margin-left: 4px; }
 }
 .sp .sx5-sheet-signin { display: flex; justify-content: center; width: calc(100% - 32px); margin: 12px 16px 4px; height: 46px; border-radius: 12px; font-size: 16px; }
+
+/* The review path reads in full: it wraps instead of scrolling off the edge. */
+.sp.sx3 .gv-path { flex-wrap: wrap; white-space: normal; overflow: visible; row-gap: 4px; }
