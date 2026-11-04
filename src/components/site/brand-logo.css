@@ -10,3 +10,9 @@
 .kaju-motion-button{font:inherit;font-size:12px;color:inherit;background:transparent;border:1px solid currentColor;border-radius:999px;padding:7px 11px;cursor:pointer}
 .kaju-motion-button:focus-visible{outline:2px solid #93c5fd;outline-offset:4px}
 .kaju-motion-button:disabled{cursor:default;opacity:.7}
+/* The full wordmark as a pre-sized, sharpened image: crisp at header size. */
+.brand-logo.is-art{width:auto;height:64px;max-width:none;image-rendering:auto}
+.s4-nav .s4-brand-art .brand-logo.is-art{width:auto;height:64px;max-height:none}
+.s4-foot .s4-brand-art .brand-logo.is-art{width:auto;height:110px;filter:none}
+.s4-foot .s4-brand-art{background:none}
+@media(max-width:760px){.s4-nav .s4-brand-art .brand-logo.is-art{height:50px;width:auto}.s4-foot .s4-brand-art .brand-logo.is-art{height:96px}}

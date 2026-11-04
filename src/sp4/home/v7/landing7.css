@@ -387,46 +387,45 @@
 .s7-rc-closed b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 @media (min-width: 961px) { .s7-rc:not(.is-on) .s7-rc-closed b { font-size: 13px; } }
 
-/* ════ Calm pass: no glows, no radial highlights, no floating tiles.
-   Flat colour, hairline borders, one blue. ════ */
+/* ════ Calm pass: flat colour instead of glows and radial highlights.
+   Motion, patterns and each tool's own colour stay. ════ */
 .s7-welcome { background: #fff; box-shadow: 0 0 0 1px #e3e7ee, 0 20px 40px -24px rgba(11, 30, 61, .3); }
 .s7-step-stage { background: #1f3f8f; }
-.s7-step-stage::before { background-image: linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px); mask-image: none; }
 .s7-step-kaju { background: #f6f8fb; box-shadow: inset 0 0 0 1px #e6eaf0; }
-.s7-win { box-shadow: 0 20px 40px -28px rgba(5, 12, 30, .55); }
 .s7-mate { background: #f6f7f9; }
 .s7-mstage { background: #fff; box-shadow: inset 0 0 0 1px #e6e9ee; }
-.s7-mstage::before { display: none; }
-.s7-knows-k { background: #1f3f8f; box-shadow: none; }
-.s7-knows li, .s7-knows li i::after { animation: none; }
-.s7-knows li { box-shadow: 0 0 0 1px #e3e7ee; }
-.s7-knows li i::after { display: none; }
-.s7-tools span { animation: none; box-shadow: 0 0 0 1px #e3e7ee; color: #3b4a5e; }
-.s7-tools span.is-hi { box-shadow: 0 0 0 1px #e3e7ee; }
-.s7-log, .s7-pchat p { box-shadow: 0 0 0 1px #e3e7ee; }
+.s7-knows-k { background: #1f3f8f; box-shadow: 0 14px 30px -18px rgba(15, 42, 110, .55); }
+@keyframes s7-chip { 0%, 100% { box-shadow: 0 0 0 1px #e3e7ee; } 50% { box-shadow: 0 0 0 1.5px #2457ce; } }
+@keyframes s7-tool { 0%, 100% { transform: none; } 50% { transform: translateY(-4px); box-shadow: 0 0 0 1.5px var(--c), 0 10px 18px -12px rgba(11, 30, 61, .35); } }
 .s7-pchat p.is-k { background: #f6f8fb; box-shadow: 0 0 0 1px #e3e7ee; }
 .s7-ring svg circle + circle { stroke: #1f3f8f; }
 .s7-rec { background: #0f1a33; }
-.s7-rec-prog { background: #8fa6d6; }
-.s7-rec-list button[aria-pressed="true"] svg { color: #8fa6d6; }
-.s7-agent { box-shadow: 0 30px 60px -40px rgba(0, 0, 0, .6); }
-.s7-tc { background: #f6f7f9; box-shadow: inset 0 0 0 1px #e6e9ee; }
+.s7-tc { background: color-mix(in srgb, var(--c) 7%, #fff); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 18%, transparent); }
 .s7-tc.is-on { background: #0f1a33; }
-.s7-tc-logos b { box-shadow: none; }
 .s7-rc { background: color-mix(in srgb, var(--c) 92%, #000); }
 .s7-rc.is-on { background: #0f1a33; }
 .s7-close .s7-close-card.s4-close { background: #1f3f8f; }
-.s7-close-card::before { display: none; }
 .s7-q-pic { background: #f3f5f8; box-shadow: inset 0 0 0 1px #e6e9ee; }
-.s7-q-k { box-shadow: 0 0 0 1px #e3e7ee; }
 .s7-kn { background: #f6f8fb; box-shadow: inset 0 0 0 1px #e3e7ee; }
 .s7-kn b { color: #1f3f8f; }
-.s7-ann { background: #1f3f8f; }
-.s4-announce:has(.s7-ann) { background: #1f3f8f; }
-/* integrations: white tiles with a hairline, the tool's colour only on its icon */
+.s7-ann, .s4-announce:has(.s7-ann) { background: #1f3f8f; }
 .s6-int-color .s4-int-t { background: #fff; box-shadow: 0 0 0 1px #e6e9ee; }
-.s6-int-color .s4-int-t:hover { transform: none; box-shadow: 0 0 0 1px #c9d2e0; }
 .s6-int-color .s4-int-mark { box-shadow: none; }
-/* partner cards: initials in quiet navy and slate */
 .s6-pt-av { background: color-mix(in srgb, var(--pt) 9%, #fff); }
 .s7-ring small { grid-row: 2; margin-top: 4px; font-size: 12px; } .s7-ring b { margin-top: 0; }
+
+/* One rhythm between sections: 112px; banded sections pad both ends. */
+.s7-home main > .s4-sec { padding-top: 112px; padding-bottom: 0; }
+.s7-home main > .s4-sec.s7-mate { padding-bottom: 112px; margin-top: 112px; padding-top: 104px; }
+.s7-home main > .s7-steps + .s4-sec.s7-mate { margin-top: 40px; }
+.s7-home main > .s4-sec.s7-tacc-sec { padding-top: 24px; }
+.s7-home main > .s4-sec.s6-security { padding-bottom: 112px; }
+.s7-home main > .s4-proof { padding-top: 104px; }
+.s7-home .s7-steps:not(.is-pinned) .s7-steps-pin { padding: 104px 0 0; }
+@media (max-width: 760px) {
+  .s7-home main > .s4-sec { padding-top: 72px; }
+  .s7-home main > .s4-sec.s7-mate { padding: 64px 0; margin-top: 72px; }
+  .s7-home main > .s4-sec.s6-security { padding-bottom: 72px; }
+  .s7-home main > .s4-proof { padding-top: 64px; }
+  .s7-home .s7-steps:not(.is-pinned) .s7-steps-pin { padding-top: 64px; }
+}
