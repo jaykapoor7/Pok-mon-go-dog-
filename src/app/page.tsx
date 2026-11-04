@@ -11,7 +11,7 @@ import { Announce } from "@/sp4/home/v7/Announce";
 import { Welcome } from "@/sp4/home/v7/Welcome";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
 import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
-import { AuditTrail, HeroScroll, PhotoStrip, WhyNow, type Photo } from "@/sp4/home/v7/Extras";
+import { AuditTrail, HeroScroll, PhotoStrip, Reveal, WhyNow, type Photo } from "@/sp4/home/v7/Extras";
 import credits from "@/data/register-photo-credits.json";
 import "@/sp4/home/v7/landing7.css";
 import { KajuPresence } from "@/kaju/Presence";
@@ -61,6 +61,7 @@ export default function HomePage() {
     <S4Page className="s6-home s7-home" announce={<Announce />} close={false}>
       <PageView name="landing_view" />
       <Welcome />
+      <Reveal />
 
       {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
       <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">

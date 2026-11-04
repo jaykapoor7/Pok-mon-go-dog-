@@ -379,7 +379,7 @@
 .s7-tc-body[hidden], .s7-rc-open[hidden], .s7-rc-closed[hidden] { display: none !important; }
 .s7-tc:not(.is-on) .s7-tc-head { margin-top: 0; height: 100%; align-content: center; }
 .s7-tc:not(.is-on) h3 { font-size: 19px; }
-.s7-tacc { height: 520px; }
+@media (min-width: 961px) { .s7-tacc { height: 520px; } }
 .s7-tc:not(.is-on) { display: grid; place-items: center; }
 .s7-tc:not(.is-on) .s7-tc-head { height: auto; }
 .s7-rc-closed { inset: auto 0 0 0; padding: 16px; gap: 8px; align-content: end; }
@@ -528,4 +528,46 @@
 @media (prefers-reduced-motion: reduce) {
   .s7-photos-track ul, .s7-hub-lines line, .s7-hub-t, .s7-why-art.is-chat span { animation: none; }
   .s7-home .s6-hero .s6-canvas { transform: none; }
+}
+
+/* ════ Section rhythm v2: ~128px between sections on a laptop, ~88px on a phone.
+   Banded sections (teammate, recurring work) carry their own padding. ════ */
+.s7-home main > .s4-proof { padding-top: 120px; }
+.s7-home .s7-photos { padding-top: 128px; }
+.s7-home .s7-why { padding-top: 120px; padding-bottom: 8px; }
+.s7-home .s7-steps:not(.is-pinned) .s7-steps-pin { padding-top: 120px; }
+.s7-home main > .s4-sec.s7-mate { margin-top: 64px; padding-top: 112px; padding-bottom: 112px; }
+.s7-home .s7-rec { padding: 112px 0; }
+.s7-home main > section#integrations { padding-top: 64px; }
+.s7-home main > .s4-sec.s7-tacc-sec { padding-top: 40px; }
+.s7-home main > .s4-sec.s7-res { padding-top: 128px; }
+.s7-home main > .s4-sec.s6-security { padding-top: 128px; padding-bottom: 24px; }
+.s7-home .s7-close { padding-top: 104px; }
+@media (max-width: 760px) {
+  .s7-home main > .s4-proof { padding-top: 88px; }
+  .s7-home .s7-photos { padding-top: 88px; }
+  .s7-home .s7-why { padding-top: 80px; }
+  .s7-home .s7-steps:not(.is-pinned) .s7-steps-pin { padding-top: 80px; }
+  .s7-home main > .s4-sec.s7-mate { margin-top: 80px; padding: 72px 0; }
+  .s7-home .s7-rec { padding: 72px 0; }
+  .s7-home main > section#integrations { padding-top: 40px; }
+  .s7-home main > .s4-sec.s7-tacc-sec { padding-top: 32px; }
+  .s7-home main > .s4-sec.s7-res { padding-top: 88px; }
+  .s7-home main > .s4-sec.s6-security { padding-top: 88px; padding-bottom: 8px; }
+  .s7-home .s7-close { padding-top: 80px; }
+}
+
+/* ════ Scroll reveal: content rises softly into place, once. ════ */
+.s7-rv-on [data-rv] { opacity: 0; transform: translateY(20px); transition: opacity 700ms cubic-bezier(.2, .8, .2, 1), transform 700ms cubic-bezier(.2, .8, .2, 1); transition-delay: var(--rv-d, 0ms); }
+.s7-rv-on [data-rv].is-in { opacity: 1; transform: none; }
+/* dark band eases in from a slightly deeper tone */
+.s7-rv-on .s7-rec[data-rv-band] { transition: background-color 900ms ease; background-color: #0a1226; }
+.s7-rv-on .s7-rec[data-rv-band].is-in { background-color: #0f1a33; }
+@media (prefers-reduced-motion: reduce) { .s7-rv-on [data-rv] { opacity: 1; transform: none; transition: none; } }
+@media (max-width: 960px) { .s7-tc, .s7-rc { flex: 0 0 auto; } .s7-tc:not(.is-on) { min-height: 76px; place-items: center start; } }
+@media (min-width: 761px) {
+  .s7-home main > .s4-proof { padding-top: 64px; }
+  .s7-home .s7-why { padding-bottom: 64px; }
+  .s7-home main > .s4-sec.s6-security { padding-top: 96px; }
+  .s7-home .s7-close { padding-top: 72px; }
 }
