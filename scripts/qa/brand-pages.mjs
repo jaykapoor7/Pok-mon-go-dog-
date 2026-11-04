@@ -1,5 +1,5 @@
 /** Real public-page and assistant interactions; no private records or model requests. */
-import{chromium}from'@playwright/test';import fs from'node:fs';import assert from'node:assert/strict';
+import{chromium,expect}from'@playwright/test';import fs from'node:fs';import assert from'node:assert/strict';
 const base=process.env.BASE??'http://localhost:3150',out=process.env.OUT??'/tmp/straypaw-companion';fs.mkdirSync(out,{recursive:true});
 const b=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_PATH??'/usr/bin/chromium'});
 try{
@@ -23,7 +23,7 @@ try{
   await p.screenshot({path:`${out}/footer-${device}.png`});
   await p.goto(`${base}/ai`,{timeout:120000});const work=p.locator('[data-kaju-state="working"]').first();await work.waitFor({state:'visible',timeout:20000});
   await work.evaluate(n=>n.scrollIntoView({block:'center'}));await p.waitForTimeout(150);
-  assert.equal(await work.locator('[data-kaju-prop="laptop"]').evaluate(n=>getComputedStyle(n).opacity),'1');
+  await expect(work.locator('[data-kaju-prop="laptop"]')).toHaveCSS('opacity','1');
   await p.screenshot({path:`${out}/ai-${device}.png`});if(process.env.RECORD)await p.waitForTimeout(3000);
   await p.goto(`${base}/assistant`,{timeout:120000});await p.getByRole('textbox',{name:'Message Kaju'}).waitFor();
   await p.getByRole('textbox',{name:'Message Kaju'}).fill('Draft remains editable');
