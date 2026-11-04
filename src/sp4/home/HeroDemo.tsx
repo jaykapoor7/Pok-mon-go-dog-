@@ -15,30 +15,33 @@ import {
      1 · Kaju   the evidence check runs: chart, ring, steps
      2 · Run result    what it found; the cursor opens the package
      3 · Package       the report package for the reviewing office
+     4 · Review deck   Kaju builds Monday's slides for the municipal review
 
    Illustrative records, labelled as a product demo. Loops while on screen,
    pauses off screen and when the tab is hidden, has Pause/Play (WCAG
    2.2.2) and holds still for people who prefer reduced motion.
    ════════════════════════════════════════════════════════════════════ */
 
-const SCENES = [5600, 5200, 4200, 5000];
+const SCENES = [5600, 5200, 4200, 5000, 5600];
 const TOTAL = SCENES.reduce((a, b) => a + b, 0);
 const START = SCENES.map((_, i) => SCENES.slice(0, i).reduce((a, b) => a + b, 0));
 const PROMPT = "Find releases missing a photo and draft Friday's package";
-const TABS = ["Home", "Kaju", "Run result", "Report package"];
+const TABS = ["Home", "Kaju", "Run result", "Report package", "Review deck"];
 
 type Msg = { at: number; who: "ravi" | "anita" | "ai"; text?: ReactNode; photos?: number; file?: string };
 const THREAD: Msg[] = [
   { at: 300, who: "ravi", text: "Brown female at the market gate, limping on the back left leg. Not ear-notched." },
   { at: 1400, who: "ravi", photos: 2 },
   { at: 2600, who: "ai", text: "Draft record prepared. Waiting for review." },
-  { at: 4600, who: "anita", text: <><u>@StrayPaw</u> which releases this week still need a photo?</> },
+  { at: 4600, who: "anita", text: <><u>@kaju</u> which releases this week still need a photo?</> },
   { at: 6400, who: "ai", text: "Three of eighteen: SP-1031, SP-1044 and SP-1067." },
   { at: 8800, who: "ravi", text: "On it. Sending SP-1031 now." },
   { at: 10200, who: "ravi", photos: 1 },
   { at: 11600, who: "ai", text: "Release photo added to SP-1031. Two still missing." },
-  { at: 15000, who: "anita", text: <><u>@StrayPaw</u> draft Friday&apos;s package</> },
-  { at: 16400, who: "ai", text: "Package ready for your review.", file: "Ward 14 · October package" },
+  { at: 15000, who: "anita", text: <><u>@kaju</u> draft Friday&apos;s package</> },
+  { at: 16400, who: "ai", text: "Package ready for your review.", file: "Ward 14 · October package.pdf" },
+  { at: 20400, who: "anita", text: <><u>@kaju</u> make the slides for Monday&apos;s municipal review</> },
+  { at: 23600, who: "ai", text: "Six slides, every number linked to its records.", file: "October review · 6 slides.pptx" },
 ];
 const NAME = { ravi: "Ravi", anita: "Anita", ai: "Kaju" } as const;
 
@@ -97,7 +100,7 @@ export function HeroDemo() {
             <li><Sq c="teal"><Stethoscope size={11} /></Sq>Treatment</li>
             <li><Sq c="amber"><Camera size={11} /></Sq>Evidence</li>
             <li className={scene === 2 ? "is-on" : ""}><Sq c="violet"><ClipboardCheck size={11} /></Sq>Review</li>
-            <li className={scene === 3 ? "is-on" : ""}><Sq c="green"><FileText size={11} /></Sq>Reports</li>
+            <li className={scene === 3 || scene === 4 ? "is-on" : ""}><Sq c="green"><FileText size={11} /></Sq>Reports</li>
           </ul>
           <small>Platform</small>
           <ul className="s4d-nav">
@@ -113,6 +116,7 @@ export function HeroDemo() {
             {scene === 1 && <SceneRun t={local} />}
             {scene === 2 && <SceneResult t={local} />}
             {scene === 3 && <ScenePackage t={local} />}
+            {scene === 4 && <SceneDeck t={local} />}
           </div>
         </div>
       </div>
@@ -225,6 +229,36 @@ function ScenePackage({ t }: { t: number }) {
           <div><small>Exceptions</small><b>{n(4)}</b><em>each explained</em></div>
         </div>
         <p className="s4d-pkg-foot"><Sparkles size={11} /> Prepared by Kaju · confirmed by Anita, coordinator · not yet submitted</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── 4 · the municipal review deck, built slide by slide ───────── */
+const WARDS: [string, number][] = [["Ward 9", 98], ["Ward 12", 76], ["Ward 14", 142], ["Ward 17", 61], ["Ward 22", 88]];
+function SceneDeck({ t }: { t: number }) {
+  const built = Math.min(6, Math.floor(t / 520) + 1);
+  const grow = Math.min(1, Math.max(0, (t - 700) / 1500));
+  const max = Math.max(...WARDS.map(([, v]) => v));
+  const steps = ["Read the October package", "Pulled ward totals and exceptions", "Built 6 slides with sources", "Saved to Drive · /StrayPaw/Reviews"];
+  const shown = Math.min(steps.length, Math.floor((t - 400) / 900) + 1);
+  return (
+    <div className="s4d-deck s4d-fade">
+      <div className="s4d-deck-rail" aria-hidden>{Array.from({ length: 6 }).map((_, i) => <span key={i} className={`${i < built ? "is-built" : ""}${i === 2 ? " is-on" : ""}`}><i /><i /><i /></span>)}</div>
+      <div className="s4d-deck-main">
+        <div className="s4d-deck-bar"><span className="s4d-ppt">P</span><b>October review · Ward ABC programme.pptx</b><span className="s4-tag is-blue">{built < 6 ? `Building ${built} of 6` : "Ready"}</span></div>
+        <div className="s4d-slide">
+          <p className="s4d-kicker">Slide 3 · Sterilisations by ward</p>
+          <p className="s4d-slide-h">Ward 14 led October with 142 sterilisations</p>
+          <div className="s4d-bars">{WARDS.map(([w, v], i) => (
+            <div key={w} className={w === "Ward 14" ? "is-hi" : ""}><span style={{ height: `${(v / max) * 100 * grow}%`, transitionDelay: `${i * 60}ms` }}><em>{Math.round(v * grow)}</em></span><small>{w}</small></div>
+          ))}</div>
+          <p className="s4d-slide-src"><Sparkles size={10} /> Source: 465 vet-authorised records · exceptions on slide 5</p>
+        </div>
+      </div>
+      <div className="s4d-deck-kaju">
+        <p><Sparkles size={12} /> <b>Kaju</b></p>
+        <ul>{steps.slice(0, Math.max(0, shown)).map((x, i) => <li key={x} className="s4d-pop">{i < shown - 1 || t > 4400 ? <span className="s4-check"><Check size={10} strokeWidth={3} /></span> : <span className="s4d-spin" />}{x}</li>)}</ul>
       </div>
     </div>
   );

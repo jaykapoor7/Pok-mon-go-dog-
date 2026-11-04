@@ -45,9 +45,10 @@ test("the hero demo is labelled, plays its story with the phone, and can be paus
 
 test("the AI jobs advance by themselves and stop when one is chosen", async ({ page }) => {
   await page.goto("/");
-  const band = page.locator(".s4-band");
+  const band = page.locator(".s7-rec");
   await band.scrollIntoViewIfNeeded();
-  const jobs = band.locator(".s4-jobs button");
+  await page.mouse.move(0, 0);
+  const jobs = band.locator(".s7-rec-list button");
   await expect(jobs.first()).toHaveAttribute("aria-pressed", "true");
   await expect(jobs.nth(1)).toHaveAttribute("aria-pressed", "true", { timeout: 12_000 });
   await jobs.nth(3).click();

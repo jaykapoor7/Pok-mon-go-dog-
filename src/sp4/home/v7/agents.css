@@ -1,0 +1,121 @@
+/* ── Kaju agents page ── */
+.s7a-face { display: inline-grid; place-items: center; flex: none; border-radius: 30%; background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--c) 30%, #fff) 0%, color-mix(in srgb, var(--c) 16%, #fff) 70%); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent), 0 8px 18px -10px var(--c); }
+
+.s7a-hero { position: relative; overflow: hidden; padding: 112px 0 96px; color: #fff; background: radial-gradient(70% 80% at 85% 0%, rgba(59, 108, 224, .55) 0%, transparent 60%), var(--s7-navy, #0b1530); isolation: isolate; }
+.s7a-hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(rgba(255, 255, 255, .12) 1px, transparent 1px); background-size: 22px 22px; mask-image: linear-gradient(180deg, #000, transparent 85%); }
+.s7a-h1 { margin: 0; max-width: 820px; font-size: clamp(40px, 5.4vw, 72px); line-height: 1.02; font-weight: 600; letter-spacing: -0.04em; color: #fff; }
+.s7a-lede { margin: 24px 0 32px; max-width: 640px; font-size: 18px; line-height: 1.55; color: rgba(255, 255, 255, .78); }
+.s7-btn.is-lg { height: 48px; padding: 0 22px; font-size: 16px; }
+.s7a-roster { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 56px; }
+.s7a-roster span { animation: s7a-bob 4s ease-in-out infinite; }
+.s7a-roster span:nth-child(2n) { animation-delay: .6s; } .s7a-roster span:nth-child(3n) { animation-delay: 1.2s; }
+@keyframes s7a-bob { 50% { transform: translateY(-5px); } }
+
+.s7a-center { text-align: center; }
+.s7a-sub { margin: 14px auto 40px; max-width: 640px; text-align: center; font-size: 17px; line-height: 1.55; color: var(--s4-grey); }
+.s7a-sub.is-left { margin-left: 0; text-align: left; }
+
+/* featured agents */
+.s7a-feat { border-radius: 24px; overflow: hidden; box-shadow: 0 0 0 1px var(--s7-line, #e3e8f2); background: #fff; }
+.s7a-feat-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.s7a-feat-tabs button { display: grid; gap: 8px; align-content: start; padding: 26px 28px; border: 0; border-right: 1px solid var(--s7-line, #e3e8f2); background: #fff; text-align: left; font: inherit; cursor: pointer; color: var(--s4-grey); transition: background-color 200ms ease; }
+.s7a-feat-tabs button:last-child { border-right: 0; }
+.s7a-feat-tabs button:hover { background: #fafbfd; }
+.s7a-feat-tabs b { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 500; letter-spacing: -0.02em; color: #8a92a3; }
+.s7a-feat-tabs b i { width: 8px; height: 8px; border-radius: 50%; }
+.s7a-feat-tabs button[aria-selected="true"] b { color: var(--s4-ink); }
+.s7a-feat-tabs span { font-size: 15px; line-height: 1.5; }
+.s7a-stage { position: relative; padding: 56px 72px 0; background: radial-gradient(90% 90% at 80% 0%, #3b6ce0 0%, transparent 60%), linear-gradient(165deg, #2457ce 0%, #173c98 55%, #0f2a6e 100%); overflow: hidden; animation: s7-fade 420ms var(--s7-ease, ease); }
+.s7a-stage.is-tight { padding: 40px 40px 0; border-radius: 24px; }
+.s7a-app, .s7a-setup { border-radius: 14px 14px 0 0; background: #fff; box-shadow: 0 30px 60px -30px rgba(5, 12, 30, .7); overflow: hidden; font-size: 12.5px; color: var(--s4-ink); }
+.s7a-app-bar { display: flex; gap: 6px; padding: 12px 16px; background: #f1f3f7; }
+.s7a-app-bar i { width: 10px; height: 10px; border-radius: 50%; background: #c7ccd6; }
+.s7a-app-in { display: grid; grid-template-columns: 170px minmax(0, 1fr); min-height: 420px; }
+.s7a-side { padding: 14px 12px; border-right: 1px solid #eef0f4; display: grid; gap: 4px; align-content: start; }
+.s7a-side p { margin: 0 0 8px; font-size: 13px; }
+.s7a-side small { margin-top: 10px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8a92a3; }
+.s7a-side span { padding: 6px 8px; border-radius: 7px; color: #3b4558; }
+.s7a-side span.is-on { background: #eef3fd; color: #1d4fc4; font-weight: 600; }
+.s7a-main { padding: 14px 18px; display: grid; gap: 12px; align-content: start; }
+.s7a-head { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid #eef0f4; flex-wrap: wrap; }
+.s7a-head b { font-size: 16px; font-weight: 600; }
+.s7a-head small { display: inline-flex; align-items: center; gap: 4px; color: #6b7486; }
+.s7a-sp { flex: 1; }
+.s7a-cols { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; }
+.s7a-runs { display: grid; gap: 8px; align-content: start; }
+.s7a-spark { display: flex; align-items: flex-end; gap: 4px; height: 64px; padding: 6px 0; border-bottom: 1px solid #eef0f4; }
+.s7a-spark i { flex: 1; border-radius: 3px 3px 0 0; opacity: .85; }
+.s7a-run { display: grid; gap: 3px; padding: 10px; border-radius: 10px; }
+.s7a-run.is-on { background: #f5f7fb; }
+.s7a-run small { color: #6b7486; }
+.s7a-out { display: grid; gap: 8px; align-content: start; }
+.s7a-out-h { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.s7a-steps { margin: 0; display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 8px; box-shadow: inset 0 0 0 1px #e3e8f2; color: #6b4fd8; }
+.s7a-sum-h { margin: 6px 0 0; font-size: 16px; font-weight: 600; }
+.s7a-sum { margin: 0; color: #3b4558; }
+.s7a-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.s7a-table th { text-align: left; font-weight: 500; color: #6b7486; padding: 7px 8px; border-bottom: 1px solid #e3e8f2; font-size: 11px; }
+.s7a-table td { padding: 8px; border-bottom: 1px solid #f0f2f6; }
+.s7a-table td:first-child { font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+.s7a-foot { margin: 4px 0 0; display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6b4fd8; }
+
+/* roles grid */
+.s7a-roles-sec { background: var(--s7-tint, #f3f6fd); }
+.s7a-roles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.s7a-roles li { display: grid; gap: 10px; align-content: start; padding: 22px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px #e6e9f0; min-height: 230px; transition: transform 180ms ease, box-shadow 180ms ease; }
+.s7a-roles li:hover { transform: translateY(-3px); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--c) 45%, transparent), 0 16px 32px -20px var(--c); }
+.s7a-roles li b { margin-top: 6px; font-size: 16.5px; font-weight: 600; letter-spacing: -0.01em; color: var(--s4-ink); }
+.s7a-roles li p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--s4-grey); }
+.s7a-roles li small { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; font-size: 11.5px; }
+.s7a-roles li small span { width: 100%; color: color-mix(in srgb, var(--c) 80%, #000); font-weight: 600; }
+.s7a-roles li small em { font-style: normal; padding: 2px 8px; border-radius: 99px; background: #f1f4f9; color: #4b5568; }
+
+/* autopilot */
+.s7a-split-in { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 56px; align-items: center; }
+.s7a-setup-in { padding: 22px; display: grid; gap: 12px; }
+.s7a-start { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: #f5f7fb; }
+.s7a-start b, .s7a-start small { display: block; }
+.s7a-start small { color: #6b7486; }
+.s7-toggle.is-btn { border: 0; background: #fff; font: inherit; cursor: pointer; }
+.s7-toggle i.is-off { background: #cfd6e3; }
+.s7-toggle i.is-off::after { left: 2px; }
+
+/* three benefits */
+.s7a-hours { background: #f7f9fc; }
+.s7a-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.s7a-three article { padding: 28px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px #e6e9f0; display: grid; gap: 10px; align-content: start; min-height: 240px; }
+.s7a-three article span { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: #eef3fd; color: #2457ce; margin-bottom: 30px; }
+.s7a-three h3 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.s7a-three p { margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--s4-grey); }
+
+@media (max-width: 1000px) {
+  .s7a-feat-tabs { grid-template-columns: minmax(0, 1fr); }
+  .s7a-feat-tabs button { border-right: 0; border-bottom: 1px solid #e3e8f2; padding: 16px 18px; }
+  .s7a-feat-tabs button[aria-selected="false"] span { display: none; }
+  .s7a-stage { padding: 20px 14px 0; }
+  .s7a-app-in { grid-template-columns: minmax(0, 1fr); }
+  .s7a-side { display: none; }
+  .s7a-cols { grid-template-columns: minmax(0, 1fr); }
+  .s7a-runs { display: none; }
+  .s7a-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .s7a-split-in { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .s7a-three { grid-template-columns: minmax(0, 1fr); }
+  .s7a-hero { padding: 72px 0 56px; }
+}
+@media (max-width: 560px) { .s7a-roles { grid-template-columns: minmax(0, 1fr); } .s7a-roles li { min-height: 0; } .s7a-head .s7-btn { display: none; } }
+@media (prefers-reduced-motion: reduce) { .s7a-roster span, .s7a-stage { animation: none; } .s7a-roles li { transition: none; } }
+
+/* Roles grid, as plain cards: a small Kaju in the role's colour, the name and
+   one line. The second row tucks under the first. */
+.s7a-roles-sec { background: #fcfcfb; }
+.s7a-roles { grid-template-columns: repeat(4, minmax(0, 236px)); justify-content: center; gap: 0 32px; }
+.s7a-roles li { min-height: 240px; padding: 26px 24px; gap: 8px; border-radius: 8px; background: #fff; box-shadow: none; border: 1px solid #e4e4e0; transition: transform 180ms ease, box-shadow 180ms ease; }
+.s7a-roles li:nth-child(n + 5) { margin-top: -38px; }
+.s7a-roles li:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -20px rgba(11, 30, 61, .35); }
+.s7a-roles li b { margin-top: 14px; font-size: 15px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.35; }
+.s7a-roles li p { font-size: 13px; line-height: 1.45; color: #555b66; }
+.s7a-bot { display: inline-block; width: max-content; filter: saturate(.8); }
+.s7a-bot .kaju-face { display: block; }
+.s7a-roster { gap: 18px; }
+@media (max-width: 1100px) { .s7a-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; } .s7a-roles li:nth-child(n + 3) { margin-top: -30px; } }
+@media (max-width: 560px) { .s7a-roles { grid-template-columns: minmax(0, 1fr); } .s7a-roles li { min-height: 0; } .s7a-roles li:nth-child(n + 2) { margin-top: -1px; border-radius: 0; } .s7a-roles li:first-child { border-radius: 8px 8px 0 0; } .s7a-roles li:last-child { border-radius: 0 0 8px 8px; } }

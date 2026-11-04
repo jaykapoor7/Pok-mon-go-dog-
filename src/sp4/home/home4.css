@@ -704,3 +704,32 @@ a.s4-hero-eyebrow:hover { box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .3); }
   .s4-page:not(.s6-home) .s4-close { padding-top: 56px; padding-bottom: 56px; gap: 20px; }
   .s4-pillars > div { padding: 18px 0 20px; }
 }
+
+/* ── hero demo · scene 4: the review deck ── */
+.s4d-deck { display: grid; grid-template-columns: 96px minmax(0, 1fr); height: 100%; background: #fff; padding-right: 290px; position: relative; }
+.s4d-deck-rail { border-right: 1px solid var(--s4-line); padding: 12px 10px; display: grid; gap: 8px; align-content: start; background: #fafbfc; }
+.s4d-deck-rail span { display: grid; gap: 4px; padding: 7px; height: 48px; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px var(--s4-line); opacity: .45; transition: opacity 300ms ease; }
+.s4d-deck-rail span.is-built { opacity: 1; }
+.s4d-deck-rail span.is-on { box-shadow: 0 0 0 2px #c2532d; }
+.s4d-deck-rail i { display: block; height: 4px; border-radius: 3px; background: #e5e8ee; }
+.s4d-deck-rail i:first-child { width: 55%; background: #f2c7b5; }
+.s4d-deck-main { padding: 14px 18px 0; display: grid; gap: 12px; align-content: start; }
+.s4d-deck-bar { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.s4d-deck-bar b { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s4d-ppt { width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center; background: #c2532d; color: #fff; font-size: 11px; font-weight: 700; }
+.s4d-slide { aspect-ratio: 16 / 9; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px var(--s4-line), 0 18px 40px -26px rgba(11, 30, 61, .45); padding: 22px 26px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 6px; }
+.s4d-slide-h { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; color: var(--s4-ink); }
+.s4d-bars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; align-items: end; padding-top: 10px; min-height: 0; }
+.s4d-bars > div { display: grid; grid-template-rows: 1fr auto; height: 100%; gap: 4px; text-align: center; }
+.s4d-bars span { align-self: end; position: relative; border-radius: 6px 6px 0 0; background: #c9d6f2; transition: height 900ms cubic-bezier(.2, .8, .2, 1); }
+.s4d-bars .is-hi span { background: var(--s4-blue); }
+.s4d-bars em { position: absolute; top: -18px; left: 0; right: 0; font-style: normal; font-size: 11px; font-weight: 600; color: var(--s4-ink); font-variant-numeric: tabular-nums; }
+.s4d-bars small { font-size: 10.5px; color: var(--s4-grey); }
+.s4d-slide-src { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--s4-violet); }
+.s4d-deck-kaju { grid-column: 2; padding: 10px 18px 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--s4-ink-2); }
+.s4d-deck-kaju p { display: flex; align-items: center; gap: 5px; color: var(--s4-violet); }
+.s4d-deck-kaju ul { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.s4d-deck-kaju li { display: flex; align-items: center; gap: 6px; }
+@media (max-width: 1100px) { .s4d-deck { padding-right: 260px; } }
+@media (max-width: 900px) { .s4d-deck { padding-right: 0; grid-template-columns: minmax(0, 1fr); } .s4d-deck-rail { display: none; } .s4d-deck-kaju { grid-column: 1; } }
+@media (prefers-reduced-motion: reduce) { .s4d-bars span, .s4d-deck-rail span { transition: none; } }

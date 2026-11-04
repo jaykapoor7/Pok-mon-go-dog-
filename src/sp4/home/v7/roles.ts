@@ -1,0 +1,14 @@
+/* The roles Kaju plays for an animal-welfare organisation, each in its own colour. */
+
+export type Role = { key: string; name: string; does: string; short: string; tint: string; color: string; when: string; uses: string[] };
+export const ROLES: Role[] = [
+  { key: "intake", short: "Turns field WhatsApp messages into draft cases.", tint: "hue-rotate(130deg) saturate(.75) brightness(1.08)", name: "Field Intake Agent", does: "Turns the field WhatsApp group into draft cases with photos, ward and condition.", color: "#1f9d55", when: "When a message arrives", uses: ["WhatsApp", "Register", "Maps"] },
+  { key: "register", short: "Finds duplicate animals in the register.", tint: "hue-rotate(190deg) saturate(.8) brightness(1.08)", name: "Register Keeper", does: "Finds the same dog registered twice and fills missing sex, coat and notch.", color: "#2457ce", when: "When an animal is added", uses: ["Register", "Photos"] },
+  { key: "vet", short: "Drafts surgical notes for the vet to sign.", tint: "hue-rotate(255deg) saturate(.35) brightness(1.12)", name: "Vet Sign-off Assistant", does: "Drafts surgical notes from the OT register and lines up the vet's sign-off list.", color: "#0f7b8a", when: "Every evening at 7:00 PM", uses: ["OT register", "Care records"] },
+  { key: "release", short: "Chases missing release photos by name.", tint: "hue-rotate(22deg) saturate(.8) brightness(1.12)", name: "Release Photo Chaser", does: "Finds releases without a photo or place and asks the right field worker by name.", color: "#d97706", when: "Every day at 6:00 PM", uses: ["Releases", "Team", "WhatsApp"] },
+  { key: "followup", short: "Reminds staff of post-op checks and doses.", tint: "hue-rotate(240deg) saturate(.6) brightness(1.1)", name: "Follow-up Reminder", does: "Reminds staff of post-op checks and second doses due this week, nearest first.", color: "#6b4fd8", when: "Every morning at 7:30 AM", uses: ["Follow-ups", "SMS"] },
+  { key: "claim", short: "Builds the monthly claim at contract rates.", tint: "hue-rotate(-8deg) saturate(.55) brightness(1.12)", name: "Monthly Claim Builder", does: "Builds the claim at contract rates and explains every exception before submission.", color: "#c2532d", when: "1st of every month", uses: ["Vet sign-offs", "Rates", "Excel"] },
+  { key: "review", short: "Prepares slides for the municipal review.", tint: "hue-rotate(188deg) saturate(.35) brightness(1.02)", name: "Municipal Review Prep", does: "Makes the slides and summary for the office's monthly review, every figure sourced.", color: "#0f6cbd", when: "Before each review meeting", uses: ["Package", "PowerPoint"] },
+  { key: "quality", short: "Catches misspelled places and quiet records.", tint: "hue-rotate(300deg) saturate(.6) brightness(1.1)", name: "Data Quality Watch", does: "Catches localities spelled five ways, missing dates and records that went quiet.", color: "#be185d", when: "Every Monday at 8:00 AM", uses: ["Register", "Cases"] },
+];
+

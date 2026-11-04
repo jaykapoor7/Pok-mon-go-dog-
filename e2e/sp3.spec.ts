@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /* StrayPaw 3.0: the site, the entry flow, the app shell, Kaju and
    CareOS, as a visitor and an unauthenticated user can exercise them. */
 
-const PUBLIC = ["/", "/abc-operations", "/security", "/research", "/platform", "/ai", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
+const PUBLIC = ["/", "/abc-operations", "/security", "/research", "/platform", "/ai", "/kaju-agents", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
   "/customers", "/customers/the-pawsome-people-project", "/customers/the-kind-hour-foundation", "/demo", "/docs", "/faq", "/sign-in", "/app", "/join", "/access",
   "/our-story", "/mission", "/contact", "/privacy", "/explore", "/evidence", "/for-community", "/education", "/partner-apply", "/partner-programmes"];
 const APP = ["/ngo", "/ngo/animals", "/ngo/inbox", "/ngo/programmes", "/ngo/field", "/ngo/review", "/ngo/proof", "/ngo/team", "/city", "/city/programmes", "/city/insights", "/city/report", "/community", "/community/report", "/learn", "/assistant", "/fundraisers", "/surveys"];
