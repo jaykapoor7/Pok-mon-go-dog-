@@ -84,7 +84,7 @@ export function Security() {
     [<KeyRound key="k" size={20} />, "Permissions in the database", "Row-level security decides every read and write by organisation and role. Hiding a button is never the guard, and the AI reads with your own session."],
     [<Eye key="e" size={20} />, "Privacy by default", "Public views show areas, not exact locations. Reporter identity, veterinary notes and organisation data stay private to the people allowed to see them."],
     [<History key="h" size={20} />, "An audit history", "Status changes, notes, follow-ups and reviews are kept on the record with who did them and when, including actions prepared with Kaju."],
-    [<TriangleAlert key="t" size={20} />, "Honest limitations", "Recorded is not the same as true population. Gaps are shown as gaps. Integrations that are not connected say so."],
+    [<TriangleAlert key="t" size={20} />, "Clear limits", "Recorded is not the same as true population. Gaps are shown as gaps. Integrations that are not connected say so."],
   ];
   return <div className="s3h-sec">{items.map(([icon, t, d]) => <div key={t}>{icon}<b>{t}</b><p>{d}</p></div>)}</div>;
 }
@@ -104,7 +104,7 @@ export function StoryCard({ slug }: { slug: string }) {
       </div>
       <div className="s3-story-figs">
         {s.results.map((r) => <div key={r.label}><b className="s3-num">{r.n.toLocaleString("en-IN")}</b><span>{r.label}</span><small>{r.note}</small></div>)}
-        <div><small><Lock size={11} style={{ verticalAlign: -1 }} /> Imported historical register. Time savings not yet measured.</small></div>
+        <div><small><Lock size={11} style={{ verticalAlign: -1 }} /> From their imported registers.</small></div>
       </div>
     </article>
   );

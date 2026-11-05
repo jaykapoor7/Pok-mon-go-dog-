@@ -10,6 +10,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ArrowUpRight, Camera, Check, ChevronRight, ClipboardList, FileSpreadsheet, FileText, Map as MapIcon, MapPin, MessageCircle, MessageSquareText, PawPrint, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
+import { Blueprint } from "@/sp4/home/Blueprint";
+import { AliveLogo } from "./AliveLogo";
 import { CountUp } from "@/sp4/site/Live";
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -283,29 +285,18 @@ export function CloseAndQuestions({ faq }: { faq: [string, string][] }) {
             ))}
             <p className="s7-q-more">Something else? <Link href="/contact">Ask us</Link></p>
           </div>
-          <div className="s7-q-art" aria-hidden>
-            <div className="s7-q-pic">
-              <span className="s7-q-k"><KajuFace size={72} /></span>
-              <div className="s7-q-card"><p className="s7-cap">Kaju · answering</p><p><b>Can Kaju approve a bill?</b></p><p>No. Kaju prepares; a named person confirms. Vets authorise, coordinators approve, the municipal office accepts.</p></div>
-            </div>
-          </div>
         </div>
-        <div className="s7-close-card s4-close s7-close2">
-          <div className="s7-c2-copy">
-            <h2 id="close-title">Put Kaju to work on your programme.</h2>
-            <p>Bring last month&apos;s register. See what Kaju checks, prepares and reports.</p>
-            <div className="s7-row"><Link href="/platform" className="s7-btn is-blue is-primary">Explore the platform</Link><Link href="/contact" className="s7-btn is-ink">Talk to the team</Link></div>
+        <div className="s7-close-card s4-close s7-close4">
+          <Blueprint tone="dark" className="s7-c4-map" />
+          <div className="s7-c4-copy">
+            <h2 id="close-title">Put Kaju to work.</h2>
+            <p>Import your records and see Kaju work on them, in action.</p>
+            <div className="s7-row"><Link href="/platform" className="s7-btn is-white is-primary">Explore the platform</Link><Link href="/contact" className="s7-btn is-ghost">Talk to the team</Link></div>
           </div>
-          <div className="s7-c2-ticket" aria-hidden>
-            <p className="s7-c2-head"><KajuFace size={22} /><b>Kaju</b><span>October close</span></p>
-            <ul>
-              <li style={{ ["--d" as string]: "0s" }}><i /><span>Register checked<small>412 animals, 3 possible duplicates</small></span></li>
-              <li style={{ ["--d" as string]: ".9s" }}><i /><span>Release photos chased<small>Field staff reminded by name</small></span></li>
-              <li style={{ ["--d" as string]: "1.8s" }}><i /><span>Claim built at contract rates<small>Every figure linked to its record</small></span></li>
-            </ul>
-            <p className="s7-c2-wait">Waiting for the programme lead to sign off</p>
-          </div>
-          <div className="s7-c2-trail" aria-hidden>{Array.from({ length: 14 }, (_, i) => <PawPrint key={i} size={14} style={{ ["--i" as string]: i }} />)}</div>
+          <Link href="/our-story" className="s7-c4-art" aria-label="Our story: every animal deserves a record">
+            <AliveLogo />
+            <small>Every animal deserves a record.</small>
+          </Link>
         </div>
       </div>
     </section>

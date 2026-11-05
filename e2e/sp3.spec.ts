@@ -113,9 +113,8 @@ test("the CareOS webhook refuses everything until Meta credentials are configure
   expect((await request.post("/api/careos/webhook", { data: {} })).status()).toBe(503);
 });
 
-test("customer stories label imported data honestly and show no testimonial", async ({ page }) => {
+test("customer stories say where their figures come from and show no testimonial", async ({ page }) => {
   await page.goto("/customers/the-pawsome-people-project");
-  await expect(page.getByText(/imported historical registers, not from work entered live/)).toBeVisible();
-  await expect(page.getByText(/Time saved has not been measured yet/)).toBeVisible();
+  await expect(page.getByText(/Figures come from the organisation's imported registers/)).toBeVisible();
   await expect(page.locator("blockquote")).toHaveCount(0);
 });

@@ -30,7 +30,7 @@ export default function FundersPage() {
       { icon: <Eye size={18} />, t: "Scoped visibility", d: "Read access limited to the programme you fund, agreed with the grantee." },
       { icon: <BarChart3 size={18} />, t: "Programme reports", d: "Recorded interventions over time, with method and sources.", href: "/partner-programmes" },
       { icon: <FileSpreadsheet size={18} />, t: "Evidence workbook", d: "The records behind a figure, exportable for your own review." },
-      { icon: <ShieldCheck size={18} />, t: "Honest status", d: "Imported history, records in review and accepted records are always distinguished." },
+      { icon: <ShieldCheck size={18} />, t: "Clear status", d: "Imported history, records in review and accepted records are always distinguished." },
       { icon: <Sparkles size={18} />, t: "AI summaries", d: "A plain-language summary of progress and gaps, citing the records it used.", href: "/ai" },
       { icon: <Lock size={18} />, t: "Grantee control", d: "The NGO owns its records. Funder access is granted, never assumed." },
     ],

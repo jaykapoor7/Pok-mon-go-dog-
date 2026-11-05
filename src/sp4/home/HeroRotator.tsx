@@ -1,7 +1,8 @@
 "use client";
 
 /* The second line of the hero: the programmes Kaju runs, one at a time.
-   Each phrase rises in, holds, then lifts away as the next arrives.
+   Each phrase rolls up into a clipped line, then a thin marker underline
+   sweeps beneath it, so the change is plain without being loud.
    Decorative: the h1 carries a stable sentence for screen readers.
    Reduced motion shows the first phrase, still. */
 
@@ -33,8 +34,8 @@ export function HeroRotator() {
   }, []);
   return (
     <span className="s6-rot" aria-hidden>
-      {prev !== null && <span key={`o${prev}-${i}`} className="s6-rot-line is-out">{HERO_PHRASES[prev]}</span>}
-      <span key={`i${i}`} className="s6-rot-line is-in">{HERO_PHRASES[i]}</span>
+      {prev !== null && <span key={`o${prev}-${i}`} className="s6-rot-line is-out"><span className="s6-rot-mark is-done">{HERO_PHRASES[prev]}</span></span>}
+      <span key={`i${i}`} className="s6-rot-line is-in"><span className="s6-rot-mark">{HERO_PHRASES[i]}</span></span>
     </span>
   );
 }

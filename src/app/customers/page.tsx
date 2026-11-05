@@ -6,21 +6,13 @@ import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
 import "@/sp4/home/home4.css";
 
-export const metadata = { title: "Customers · StrayPaw", description: "The organisations whose records are on StrayPaw, what they use it for, and what we have and have not measured." };
+export const metadata = { title: "Customers · StrayPaw", description: "The animal-welfare organisations working with StrayPaw, and what they use it for." };
 
 export default function CustomersPage() {
   const all = fieldPartnerStrip();
   return (
     <S4Page close={undefined}>
-      <PageHead title={<TwoTone a="Built with the teams" b="doing the work" />} lede="Our first partners brought years of records onto StrayPaw. Each story says what was imported and what is unmeasured." />
-
-      <section className="s4-wrap" style={{ paddingTop: 72 }}>
-        <div className="s4-nums" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
-          <Rise><b>1</b><small>operational partner using<br />a workspace day to day</small></Rise>
-          <Rise delay={60}><b>{all.length}</b><small>confirmed field partners,<br />each labelled below</small></Rise>
-          <Rise delay={120}><b>0</b><small>municipal deployments live.<br />The first pilot is being scoped.</small></Rise>
-        </div>
-      </section>
+      <PageHead title={<TwoTone a="Built with the teams" b="doing the work" />} lede="Our partners brought years of records onto StrayPaw. Here is what they use it for." />
 
       <section className="s4-sec" aria-labelledby="cs-stories">
         <div className="s4-wrap">
@@ -36,7 +28,7 @@ export default function CustomersPage() {
                 <Grain v={n + 2} id={`cs-${n}`} className="s4-story-figs" style={{ borderRadius: 16, display: "grid", placeItems: "center", padding: 28 }}>
                   <div className="s4-ui s4-ui-pad" style={{ width: "min(460px, 100%)", display: "grid", gap: 14 }}>
                     {s.results.map((r) => <div key={r.label} style={{ display: "grid", gap: 2 }}><b style={{ fontSize: 34, fontWeight: 500, letterSpacing: "-0.04em" }}>{r.n.toLocaleString("en-IN")}</b><span style={{ fontSize: 14 }}>{r.label}</span><small className="s4-ui-sub">{r.note}</small></div>)}
-                    <small className="s4-ui-sub" style={{ borderTop: "1px solid var(--s4-line)", paddingTop: 10 }}>Imported historical register · time saved not yet measured</small>
+                    <small className="s4-ui-sub" style={{ borderTop: "1px solid var(--s4-line)", paddingTop: 10 }}>From their imported registers</small>
                   </div>
                 </Grain>
               </Rise>
@@ -47,7 +39,7 @@ export default function CustomersPage() {
 
       <section className="s4-sec" aria-labelledby="cs-all">
         <div className="s4-wrap">
-          <SecHead id="cs-all" title={<TwoTone a="Every partner," b="labelled honestly" />} lede="A listing is not a deployment. Operational partners use a workspace; field partners' records are on StrayPaw with credit." />
+          <SecHead id="cs-all" title={<TwoTone a="Animal-welfare teams" b="on StrayPaw" />} lede="NGOs and rescue groups across India keep their records on StrayPaw." />
           <div className="s4-wall">
             {all.map((p) => {
               const s = STORIES.find((x) => x.name === p.name);

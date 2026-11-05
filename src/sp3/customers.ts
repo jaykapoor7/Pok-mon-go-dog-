@@ -72,9 +72,7 @@ export const STORIES: Story[] = [
       { n: pVacc?.vaccinated_recorded ?? 0, label: "animals with a recorded vaccination", note: "explicit ARV or vaccination entries, 2024–2026" },
     ],
     limits: [
-      "These figures come from imported historical registers, not from work entered live in StrayPaw.",
-      "Source records are attributed to the organisation; StrayPaw has not independently verified each one.",
-      "Time saved has not been measured yet. We will publish it only once it is measured with the team.",
+      "Figures come from the organisation's imported registers.",
     ],
     quote: null,
     programmes: pawsome,
@@ -99,8 +97,7 @@ export const STORIES: Story[] = [
       { n: num(kRescue?.public_summary, /(\d[\d,]*) rescue requests/) || (kRescue?.animals_recorded ?? 0), label: "rescue requests documented", note: `for ${(kRescue?.animals_recorded ?? 0).toLocaleString("en-IN")} animals, Jan 2024 – Aug 2026` },
     ],
     limits: [
-      "This is a historical register import. The foundation does not yet run its day-to-day work in StrayPaw.",
-      "Source records are attributed to the foundation and are not independently verified.",
+      "Figures come from the foundation's imported register.",
     ],
     quote: null,
     programmes: kind,

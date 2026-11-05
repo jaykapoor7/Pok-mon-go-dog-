@@ -38,7 +38,7 @@ export default function RescueCarePage() {
         { icon: <HeartPulse size={20} />, title: "Care ledger", body: "Every care record across animals, for the team and the vet." },
         { icon: <CalendarClock size={20} />, title: "Follow-ups", body: "What is due today, overdue, or moved." },
         { icon: <Users size={20} />, title: "Team assignment", body: "Who holds which case, visible to the team." },
-        { icon: <Bell size={20} />, title: "Honest receipts", body: "Residents see their report was received, never a promise of a rescue time." },
+        { icon: <Bell size={20} />, title: "Clear receipts", body: "Residents see their report was received, never a promise of a rescue time." },
       ],
     },
     close: { a: "Close every case", b: "with an outcome.", primary: { href: "/demo", label: "Book a demo" }, secondary: { href: "/for-community", label: "For community groups" } },

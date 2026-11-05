@@ -101,7 +101,7 @@ export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
     { title: "Get connected", links: [
       { href: "/events", label: "Events & webinars", hint: "Live sessions with practitioners" },
       { href: "/blog?kind=Newsroom", label: "Newsroom", hint: "Announcements and press" },
-      { href: "/customers", label: "Customer stories", hint: "What partners record, honestly" },
+      { href: "/customers", label: "Customer stories", hint: "How partners use StrayPaw" },
       { href: "/partner-apply", label: "Partner with us", hint: "Join as an NGO, office or university" },
     ] },
     { title: "Get started", links: [

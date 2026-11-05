@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { RELATIONSHIP_LABEL, STORIES, storyBySlug } from "@/sp3/customers";
 import { S4Page, TwoTone } from "@/sp4/site/kit";
 import { Grain } from "@/sp4/site/Grain";
@@ -48,9 +48,7 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
                   <table className="s4u-table" style={{ fontSize: 14.5 }}><thead><tr><th scope="col">Programme</th><th scope="col">Period</th><th scope="col">Recorded</th></tr></thead>
                     <tbody>{s.programmes.map((p) => <tr key={p.id}><td style={{ whiteSpace: "normal" }}><Link href={`/city/programmes/${p.id}`}>{p.name}</Link></td><td>{month(p.starts_on)} – {month(p.ends_on)}</td><td>{(p.animals_recorded ?? 0).toLocaleString("en-IN")} animals</td></tr>)}</tbody></table>
                 </div></div>
-              <div style={{ display: "grid", gap: 12 }}><h2 className="s4-h3" style={{ fontSize: 30 }}>Limitations</h2>
-                {s.limits.map((l) => <p key={l} className="s4-note"><Info size={18} aria-hidden /><span>{l}</span></p>)}</div>
-              <p className="s4-small">No testimonial is shown: we publish quotes only after the organisation approves the wording.</p>
+              {s.limits.map((l) => <p key={l} className="s4-small">{l}</p>)}
             </div>
           </div>
         </section>

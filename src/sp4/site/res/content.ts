@@ -39,12 +39,12 @@ export const POSTS: Post[] = [
     ] },
   { slug: "pawsome-one-record", kind: "Case studies", date: "2026-10-20", minutes: 4,
     title: "Pawsome People Project: three registers, one record",
-    dek: "How a Coimbatore team brought three separate registers together, and what we have not measured yet.",
+    dek: "How a Coimbatore team brought three separate registers into one record.",
     cover: { tone: "blue", label: "Case study", word: "Coimbatore" },
     body: [
       { p: "The Pawsome People Project kept rescue requests, ABC drive sheets and vaccination notes in separate spreadsheets and message threads. Answering a simple question, such as how many animals from a drive were released with evidence, meant reading all three." },
       { h: "What changed", list: ["Historical rescue, ABC and vaccination registers imported with their sources", "One history per animal: request, treatment, sterilisation, vaccination, outcome", "An NGO workspace for new work: intake, cases, follow-ups and registers"] },
-      { h: "What we have not measured", p: "These figures come from imported historical registers, not from work entered live in StrayPaw. Time saved has not been measured yet, and we will not publish a figure until it has." },
+      { h: "What comes next", p: "New intake, cases and follow-ups now run in the NGO workspace, on the same record as the history." },
     ] },
   { slug: "what-a-street-count-can-say", kind: "Research notes", date: "2026-10-14", minutes: 7,
     title: "What a street survey can and cannot say about coverage",
@@ -133,7 +133,7 @@ export const TEAMS: Team[] = [
     points: [{ h: "Evidence, not totals", p: "Every number opens to the animals behind it, with photos, places and the vet's name." }, { h: "Exceptions explained", p: "The operator's reasons are attached before you start." }, { h: "Decisions on record", p: "Every acceptance, query and return is recorded with who and when." }],
     kaju: ["Package checks before you open it", "Municipal Review Prep for the monthly meeting"] },
   { key: "leadership", label: "Leadership", title: "Know what your programme achieved.", lede: "Sterilisations, vaccinations and outcomes you can show a funder or a council, with the method attached.",
-    points: [{ h: "One honest number", p: "Figures from verified records, with what they can and cannot say." }, { h: "Every ward, one view", p: "Progress, gaps and exceptions by ward and by month." }, { h: "Reports in your format", p: "PDF, Excel and slides, built from the records." }],
+    points: [{ h: "One verified number", p: "Figures from verified records, with what they can and cannot say." }, { h: "Every ward, one view", p: "Progress, gaps and exceptions by ward and by month." }, { h: "Reports in your format", p: "PDF, Excel and slides, built from the records." }],
     kaju: ["Monthly review slides", "Data Quality Watch every Monday"] },
 ];
 

@@ -24,7 +24,7 @@ export function Organisations({ orgs, impacts }: { orgs: DirectoryOrg[]; impacts
       <header className="mo-head st-head">
         <p className="k">Community · organisations</p>
         <h1 className="display">Who keeps the record</h1>
-        <p className="lede">The organisations whose work is on StrayPaw, and what kind of record each keeps. Listing is not an endorsement, a rating or a claim that they cover a whole city.</p>
+        <p className="lede">The organisations whose work is on StrayPaw, and what kind of record each keeps.</p>
       </header>
       {!orgs.length && <State title="Didn't load">The directory could not be read just now.</State>}
       {kinds.map(({ k, list }) => {

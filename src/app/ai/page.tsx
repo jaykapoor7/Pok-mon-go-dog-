@@ -40,7 +40,7 @@ export default function AiPage() {
         { icon: <History size={20} />, title: "Leaves a trail", body: "Changes prepared with Kaju are marked as such, with the confirmer's name." },
       ],
     },
-    note: <><b>Honest status.</b> Kaju currently runs on record tools only: no language model is called, and free-form conversation is off until it is deliberately enabled with a spending limit. Record tools use your authorised workspace access. Prepared changes wait for your confirmation. Conversations on this page use illustrative records.</>,
+    note: <><b>Status.</b> Kaju currently runs on record tools only: no language model is called, and free-form conversation is off until it is deliberately enabled with a spending limit. Record tools use your authorised workspace access. Prepared changes wait for your confirmation. Conversations on this page use illustrative records.</>,
     faq: [
       ["What can Kaju do?", "Search your records, summarise work, find missing evidence and duplicates, read field messages and prepare cases, notes, follow-ups and care records."],
       ["Can Kaju see other organisations' records?", "No. Kaju reads with your own session, so it sees exactly what you can see."],
