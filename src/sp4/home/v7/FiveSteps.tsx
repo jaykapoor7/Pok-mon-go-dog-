@@ -15,25 +15,25 @@ import { KajuFace } from "@/kaju/Kaju";
 type Step = { key: string; n: string; tab: string; title: string; lede: string; kaju: string[]; link: { href: string; label: string }; screen: ReactNode };
 
 const STEPS: Step[] = [
-  { key: "receive", n: "01", tab: "Receive", title: "Every report becomes a case, not a lost message.",
-    lede: "Field staff and the public keep reporting the way they already do. Kaju reads the WhatsApp group, the call log and community reports, and prepares each one as a case.",
-    kaju: ["Turns photos, voice notes and addresses into draft cases", "Spots a report about an animal you already have open", "Places each report in its ward, ready to assign"],
+  { key: "receive", n: "01", tab: "Receive", title: "Every report becomes a case.",
+    lede: "Kaju turns WhatsApp messages and public reports into draft cases.",
+    kaju: ["Drafts cases from photos and notes", "Merges repeat reports of one animal"],
     link: { href: "/whatsapp", label: "How intake works" }, screen: <ReceiveScreen /> },
-  { key: "register", n: "02", tab: "Register", title: "One record per animal, however it was spelled.",
-    lede: "The register is the base of every claim. Kaju keeps it clean: one animal, one ID, its photos, ear notch and history, from capture to release.",
-    kaju: ["Finds the same dog registered twice under two names", "Fills sex, coat and notch from the capture photos", "Keeps imported registers labelled until a person checks them"],
+  { key: "register", n: "02", tab: "Register", title: "One animal, one record.",
+    lede: "Kaju keeps the register clean, however a name was spelled.",
+    kaju: ["Finds the same dog registered twice", "Fills details from capture photos"],
     link: { href: "/abc-operations#capture", label: "How registration works" }, screen: <RegisterScreen /> },
-  { key: "treat", n: "03", tab: "Treat", title: "The vet signs. Kaju does the paperwork.",
-    lede: "Procedures are recorded against the animal and authorised by a named vet. Kaju drafts the surgical record from the OT register, so the vet only checks and signs.",
-    kaju: ["Drafts each surgical note from the OT register", "Checks the dose against the animal's weight", "Lines up today's sign-off list for the vet"],
+  { key: "treat", n: "03", tab: "Treat", title: "The vet signs. Kaju drafts.",
+    lede: "Surgical notes are drafted from the OT register, ready to check.",
+    kaju: ["Drafts each note for the vet", "Checks dose against weight"],
     link: { href: "/abc-operations#treatment", label: "How sign-off works" }, screen: <TreatScreen /> },
-  { key: "release", n: "04", tab: "Release", title: "Released where captured, with proof.",
-    lede: "Every release needs a photo and a place that matches the capture ward. Kaju checks both the same day, while the field team can still fix a gap.",
-    kaju: ["Matches each release to its capture ward on the map", "Finds releases missing a photo before the month closes", "Asks the right field worker on WhatsApp, by name"],
+  { key: "release", n: "04", tab: "Release", title: "Released where captured.",
+    lede: "Kaju checks every release photo and place the same day.",
+    kaju: ["Matches release to capture point", "Chases missing photos by name"],
     link: { href: "/abc-operations#evidence", label: "How evidence works" }, screen: <ReleaseScreen /> },
-  { key: "submit", n: "05", tab: "Submit & bill", title: "The monthly claim, ready the day it is due.",
-    lede: "Approved records become the package the municipal office reviews: counts, rates, evidence index and exceptions, every figure linked to its animal.",
-    kaju: ["Builds the claim at your contract rates", "Explains every exception before the office asks", "Exports the package as PDF, Excel and slides"],
+  { key: "submit", n: "05", tab: "Submit & bill", title: "The claim, ready on day one.",
+    lede: "Approved records become the package the municipal office checks.",
+    kaju: ["Builds the claim at contract rates", "Explains every exception"],
     link: { href: "/abc-operations#report", label: "How packages work" }, screen: <SubmitScreen /> },
 ];
 
@@ -140,32 +140,29 @@ function KajuNote({ children }: { children: ReactNode }) { return <div className
 
 /* ── 01 · Receive: the WhatsApp group becomes draft cases ─────────── */
 function ReceiveScreen() {
-  const msgs: [string, string, string, boolean?][] = [
-    ["Ravi", "07:42", "Brown female near the market gate, limping back left leg. Not notched.", true],
-    ["Meena", "08:05", "Pup with mange outside the Ward 9 school, mother around", true],
-    ["Public · 98xxxx2210", "08:31", "Dog hit by auto on Canal Road, bleeding, please come"],
-    ["Ravi", "09:10", "Same brown female, now near the bus stand", true],
+  const msgs: [string, string, string][] = [
+    ["Ravi", "07:42", "Brown female, limping, market gate"],
+    ["Meena", "08:05", "Pup with mange near the school"],
+    ["Ravi", "09:10", "Same brown female, bus stand"],
   ];
   return (
-    <Win title="Intake" tabs={["Inbox", "Drafts", "Assigned"]} badge={<span className="s7-pill is-blue">12 drafts</span>}>
+    <Win title="Intake" tabs={["Inbox", "Drafts"]} badge={<span className="s7-pill is-blue">3 new</span>}>
       <div className="s7-rx">
         <ul className="s7-rx-list">
-          <li className="s7-rx-src"><MessageCircle size={13} /> Ward 14 field team · WhatsApp</li>
-          {msgs.map(([w, t, x, ph], i) => (
-            <li key={i} className={i === 0 ? "is-on" : ""}><span className="s7-av">{w[0]}</span><span><b>{w}</b><small>{x}</small>{ph && <em><Camera size={11} /> 2 photos</em>}</span><time>{t}</time></li>
+          <li className="s7-rx-src"><MessageCircle size={13} /> Field team · WhatsApp</li>
+          {msgs.map(([w, t, x], i) => (
+            <li key={i} className={i === 0 ? "is-on" : ""}><span className="s7-av">{w[0]}</span><span><b>{w}</b><small>{x}</small></span><time>{t}</time></li>
           ))}
         </ul>
         <div className="s7-rx-draft">
-          <p className="s7-cap">Draft case · prepared by Kaju</p>
+          <p className="s7-cap">Draft case · by Kaju</p>
           <div className="s7-rx-photos"><i className="p0" /><i className="p1" /></div>
           <dl>
-            <div><dt>Animal</dt><dd>Adult female · brown · not ear-notched</dd></div>
-            <div><dt>Condition</dt><dd>Limping, back left leg</dd></div>
-            <div><dt>Place</dt><dd><MapPin size={12} /> Market gate · Ward 14</dd></div>
-            <div><dt>Reported by</dt><dd>Ravi · 07:42</dd></div>
+            <div><dt>Animal</dt><dd>Female · brown</dd></div>
+            <div><dt>Place</dt><dd><MapPin size={12} /> Ward 14</dd></div>
           </dl>
-          <KajuNote><b>09:10 is the same dog.</b> Ravi saw her again near the bus stand. Merged into this case.</KajuNote>
-          <div className="s7-row"><span className="s7-btn is-blue">Confirm case</span><span className="s7-btn">Assign to Ravi</span></div>
+          <KajuNote><b>09:10 is the same dog.</b> Merged.</KajuNote>
+          <div className="s7-row"><span className="s7-btn is-blue">Confirm</span></div>
         </div>
       </div>
     </Win>
@@ -174,23 +171,22 @@ function ReceiveScreen() {
 
 /* ── 02 · Register: the animal register, with a duplicate found ───── */
 function RegisterScreen() {
-  const rows: [string, string, string, string, string, string, string, string?][] = [
-    ["SP-1031", "Bruno", "M", "Black, tan legs", "Notched", "Ward 14", "Released"],
-    ["SP-1042", "Lali", "F", "Brown", "Notched", "Ward 14", "In care"],
-    ["SP-1044", "—", "F", "White, black ear", "Notched", "Ward 12", "Released"],
-    ["SP-1067", "Laali", "F", "Brown", "Notched", "Ward 14", "In care", "dup"],
-    ["SP-1071", "Sheru", "M", "Fawn", "Not yet", "Ward 9", "Captured"],
-    ["SP-1078", "—", "F", "Black", "Notched", "Ward 17", "Released"],
+  const rows: [string, string, string, string, string?][] = [
+    ["SP-1031", "Bruno", "Ward 14", "Released"],
+    ["SP-1042", "Lali", "Ward 14", "In care", "pair"],
+    ["SP-1044", "—", "Ward 12", "Released"],
+    ["SP-1067", "Laali", "Ward 14", "In care", "pair"],
+    ["SP-1071", "Sheru", "Ward 9", "Captured"],
   ];
   return (
-    <Win title="Animal register" tabs={["All animals", "In care", "Released"]} badge={<span className="s7-search"><Search size={12} /> Search 2,277 animals</span>}>
+    <Win title="Animal register" badge={<span className="s7-search"><Search size={12} /> 2,277 animals</span>}>
       <table className="s7-table">
-        <thead><tr><th>ID</th><th /><th>Name</th><th>Sex</th><th>Coat</th><th>Ear notch</th><th>Ward</th><th>Status</th></tr></thead>
-        <tbody>{rows.map(([id, nm, sx, coat, ear, w, st, flag]) => (
-          <tr key={id} className={flag ? "is-flag" : id === "SP-1042" ? "is-pair" : ""}><td className="s7-mono">{id}</td><td><i className={`s7-thumb t${id.slice(-1)}`} /></td><td>{nm}</td><td>{sx}</td><td>{coat}</td><td>{ear}</td><td>{w}</td><td><span className={`s7-pill ${st === "Released" ? "is-green" : st === "In care" ? "is-amber" : ""}`}>{st}</span></td></tr>
+        <thead><tr><th>ID</th><th /><th>Name</th><th>Ward</th><th>Status</th></tr></thead>
+        <tbody>{rows.map(([id, nm, w, st, flag]) => (
+          <tr key={id} className={flag ? "is-flag" : ""}><td className="s7-mono">{id}</td><td><i className={`s7-thumb t${id.slice(-1)}`} /></td><td>{nm}</td><td>{w}</td><td><span className={`s7-pill ${st === "Released" ? "is-green" : st === "In care" ? "is-amber" : ""}`}>{st}</span></td></tr>
         ))}</tbody>
       </table>
-      <KajuNote><b>SP-1042 and SP-1067 look like the same dog (94%).</b> Same coat, same notch, captured 40 m apart, names spelled two ways. <span className="s7-inline-btn">Compare and merge</span></KajuNote>
+      <KajuNote><b>Lali and Laali are the same dog.</b> <span className="s7-inline-btn">Merge</span></KajuNote>
     </Win>
   );
 }
@@ -198,25 +194,22 @@ function RegisterScreen() {
 /* ── 03 · Treat: a surgical record drafted for the vet's signature ── */
 function TreatScreen() {
   return (
-    <Win title={<><FileText size={14} /> Surgical record · SP-1071</>} badge={<span className="s7-pill is-amber">Waiting for Dr. Rao</span>}>
+    <Win title={<><FileText size={14} /> Surgical record · SP-1071</>} badge={<span className="s7-pill is-amber">Awaiting Dr. Rao</span>}>
       <div className="s7-doc">
         <div className="s7-doc-page">
-          <p className="s7-doc-h">Ovariohysterectomy · 30 Oct 2026</p>
-          <p className="s7-doc-meta">Sheru · male? <s>male</s> female on examination · 14.2 kg · Ward 9 capture</p>
-          <p><mark>Procedure completed under general anaesthesia. Flank approach, 2 cm incision, closed in three layers with absorbable suture.</mark></p>
-          <p><mark>Ear notched (left). Anti-rabies vaccine given, batch ARV-2291. Recovery normal; release after 72 hours.</mark></p>
-          <p className="s7-doc-dim">Meloxicam 0.2 mg/kg · 2.8 mg given · dose matches weight</p>
+          <p className="s7-doc-h">Sterilisation · 30 Oct</p>
+          <p className="s7-doc-meta">Sheru · female · 14.2 kg · Ward 9</p>
+          <p><mark>Procedure completed under general anaesthesia. Ear notched. Anti-rabies given.</mark></p>
+          <p className="s7-doc-dim"><Check size={12} /> Dose matches weight</p>
         </div>
         <div className="s7-doc-side">
-          <p className="s7-cap"><Sparkles size={11} /> Kaju drafted this from</p>
+          <p className="s7-cap"><Sparkles size={11} /> Drafted from</p>
           <ul>
-            <li><FileSpreadsheet size={13} /> OT register, row 18</li>
-            <li><Camera size={13} /> 3 surgery photos</li>
-            <li><FileText size={13} /> Capture record SP-1071</li>
+            <li><FileSpreadsheet size={13} /> OT register</li>
+            <li><Camera size={13} /> 3 photos</li>
           </ul>
-          <KajuNote><b>Sex corrected</b> from the capture record after examination. Highlighted text is Kaju&apos;s draft.</KajuNote>
-          <span className="s7-btn is-blue is-full"><ShieldCheck size={14} /> Authorise in my name</span>
-          <small className="s7-doc-foot">Only Dr. Rao can sign. Kaju never authorises.</small>
+          <span className="s7-btn is-blue is-full"><ShieldCheck size={14} /> Sign</span>
+          <small className="s7-doc-foot">Only the vet can sign.</small>
         </div>
       </div>
     </Win>
@@ -225,25 +218,46 @@ function TreatScreen() {
 
 /* ── 04 · Release: release vs capture on the ward map, photo gaps ─── */
 function ReleaseScreen() {
-  const pins: [number, number, boolean][] = [[22, 38, true], [34, 52, true], [48, 30, true], [58, 62, false], [68, 42, true], [40, 70, true], [76, 58, false], [30, 26, true], [62, 22, true]];
+  /* capture point → release point; ok = released within the ward with a photo */
+  const trips: { c: [number, number]; r: [number, number]; ok: boolean; id: string }[] = [
+    { c: [118, 92], r: [126, 98], ok: true, id: "SP-1031" },
+    { c: [212, 70], r: [204, 78], ok: true, id: "SP-1083" },
+    { c: [262, 150], r: [268, 160], ok: false, id: "SP-1044" },
+    { c: [160, 182], r: [154, 190], ok: true, id: "SP-1090" },
+    { c: [300, 96], r: [372, 214], ok: false, id: "SP-1078" },
+  ];
   return (
-    <Win title="Releases · this week" tabs={["Map", "List"]} badge={<span className="s7-pill is-amber">3 need a photo</span>}>
+    <Win title="Releases · this week" badge={<span className="s7-pill is-amber">2 to fix</span>}>
       <div className="s7-rel">
-        <div className="s7-map">
-          <svg viewBox="0 0 100 80" preserveAspectRatio="none" aria-hidden>
-            <path d="M8 12 L60 6 L92 20 L88 70 L40 76 L10 60 Z" className="s7-ward" />
-            <path d="M0 44 Q30 40 50 46 T100 40" className="s7-road" /><path d="M46 0 Q50 30 44 80" className="s7-road" />
+        <div className="s7-map" aria-hidden>
+          <svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="240" fill="#eef1ec" />
+            {/* city blocks */}
+            {[[20, 20, 70, 50], [100, 20, 80, 40], [190, 15, 90, 45], [300, 20, 80, 55], [20, 90, 60, 70], [92, 110, 90, 50], [196, 98, 80, 40], [292, 110, 90, 45], [20, 175, 100, 50], [135, 205, 90, 30], [240, 175, 70, 50], [324, 175, 60, 50]].map(([x, y, w, h], i) => <rect key={i} x={x} y={y} width={w} height={h} rx="4" fill="#e3e7e0" />)}
+            <rect x="196" y="150" width="80" height="16" rx="4" fill="#d7ecd3" />
+            <path d="M0 214 Q80 206 140 222 T260 236" stroke="#c9dcef" strokeWidth="10" fill="none" />
+            {/* roads */}
+            <path d="M0 80 H400 M0 168 H400 M90 0 V240 M186 0 V240 M288 0 V240" stroke="#fff" strokeWidth="7" />
+            <path d="M0 80 H400 M0 168 H400 M90 0 V240 M186 0 V240 M288 0 V240" stroke="#f7d9a6" strokeWidth="1.2" opacity=".6" />
+            {/* ward boundary */}
+            <path d="M40 40 L330 30 L345 200 L60 210 Z" fill="rgba(36,87,206,.06)" stroke="#2457ce" strokeWidth="1.6" strokeDasharray="6 5" />
+            <text x="48" y="56" fontSize="11" fontWeight="700" fill="#2457ce">WARD 14</text>
+            {/* capture → release */}
+            {trips.map((t) => <g key={t.id}>
+              <line x1={t.c[0]} y1={t.c[1]} x2={t.r[0]} y2={t.r[1]} stroke={t.ok ? "#1f8a52" : "#d97706"} strokeWidth="1.6" strokeDasharray="3 3" />
+              <circle cx={t.c[0]} cy={t.c[1]} r="4" fill="#fff" stroke={t.ok ? "#1f8a52" : "#d97706"} strokeWidth="2" />
+              <circle cx={t.r[0]} cy={t.r[1]} r="7" fill={t.ok ? "#1f8a52" : "#d97706"} stroke="#fff" strokeWidth="2.5" className={t.ok ? "" : "s7-ping"} />
+            </g>)}
           </svg>
-          {pins.map(([x, y, ok], i) => <span key={i} className={`s7-pin ${ok ? "is-ok" : "is-miss"}`} style={{ left: `${x}%`, top: `${y}%` }} />)}
-          <span className="s7-map-label">Ward 14 boundary</span>
+          <span className="s7-map-key"><i className="is-c" /> Capture <i className="is-ok" /> Released <i className="is-miss" /> To fix</span>
         </div>
         <ul className="s7-rel-list">
-          {[["SP-1031", "Released at capture point", true], ["SP-1044", "No release photo", false], ["SP-1067", "No release photo", false], ["SP-1078", "Released 2.1 km from capture", false], ["SP-1083", "Released at capture point", true]].map(([id, t, ok]) => (
+          {[["SP-1031", "At capture point", true], ["SP-1044", "No release photo", false], ["SP-1078", "Outside the ward", false]].map(([id, t, ok]) => (
             <li key={id as string}><span className={`s7-chk ${ok ? "is-ok" : "is-miss"}`}>{ok ? <Check size={11} strokeWidth={3} /> : <TriangleAlert size={11} />}</span><span className="s7-mono">{id as string}</span><span>{t as string}</span></li>
           ))}
         </ul>
       </div>
-      <KajuNote><b>Asked Ravi and Meena on WhatsApp</b> for the two missing photos. SP-1078 is flagged for the coordinator: released outside its capture ward.</KajuNote>
+      <KajuNote><b>Asked Ravi for SP-1044&apos;s photo.</b></KajuNote>
     </Win>
   );
 }
@@ -269,7 +283,7 @@ function SubmitScreen() {
         <div className="s7-pack">
           <p className="s7-cap">Package for the municipal office</p>
           {[["PDF", "Summary and evidence index", "is-red"], ["XLSX", "Claim at contract rates", "is-green"], ["PPTX", "Monday review · 6 slides", "is-orange"]].map(([k, t, c]) => <div key={k} className="s7-file"><span className={`s7-ft ${c}`}>{k}</span><span>{t}</span></div>)}
-          <KajuNote><b>4 exceptions, each explained:</b> 2 release photos taken late, 1 dose corrected, 1 animal held 2 extra days for a wound check.</KajuNote>
+          <KajuNote><b>4 exceptions, each explained.</b></KajuNote>
           <span className="s7-btn is-blue is-full">Review and submit <ArrowRight size={14} /></span>
         </div>
       </div>

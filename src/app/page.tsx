@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import { ArrowRight, ArrowUpRight, PawPrint, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History, KeyRound, Landmark, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
-import { BrandLogo } from "@/components/site/BrandLogo";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
 import { S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
@@ -159,7 +158,11 @@ export default function HomePage() {
       <CloseAndQuestions faq={FAQ} />
 
       {/* A small easter egg: the hand-drawn StrayPaw, every animal, at the end of the page. */}
-      <Link href="/our-story" className="s7-egg" aria-label="Our story: every animal deserves a record"><BrandLogo /><small>Every animal deserves a record.</small></Link>
+      <Link href="/our-story" className="s7-egg" aria-label="Our story: every animal deserves a record">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/straypaw-logo-1000.webp" srcSet="/brand/straypaw-logo-600.webp 600w, /brand/straypaw-logo-1000.webp 1000w, /brand/straypaw-logo-1600.webp 1600w" sizes="(max-width: 760px) 92vw, 1100px" width={1600} height={766} alt="" loading="lazy" decoding="async" />
+        <small>Every animal deserves a record.</small>
+      </Link>
     </S4Page>
   );
 }
