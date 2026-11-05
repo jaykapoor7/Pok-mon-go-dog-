@@ -66,7 +66,7 @@ export default function HomePage() {
       <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">
         <div className="s4-wrap s6-center">
           <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
-          <p className="s7-hero-sub">Sterilisation, vaccination and rescue programmes, recorded and reported by Kaju.</p>
+          <p className="s7-hero-sub">Kaju turns field reports into vet-signed records and the monthly claim. Your team approves.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link></div>
           <HeroScroll />
           <div className="s6-canvas">
@@ -96,6 +96,19 @@ export default function HomePage() {
             return s ? <Link key={p.name} href={`/customers/${s.slug}`} aria-label={`${p.name} case study`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
           })}
         </div>
+        {/* Phones: one calm moving row of partner logos instead of a long wall of uneven cards. */}
+        <div className="s7-pmarq" aria-label="Partner organisations">
+          <div className="s7-pmarq-track">
+            {[0, 1].map((copy) => partners.map((p) => (
+              <span key={`${copy}-${p.name}`} className="s7-pmarq-t" aria-hidden={copy === 1 || undefined}>
+                {p.logo
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={p.logo} alt={copy === 0 ? p.name : ""} loading="lazy" decoding="async" />
+                  : <span className="s7-pmarq-word"><PawPrint size={16} aria-hidden />{p.name}</span>}
+              </span>
+            )))}
+          </div>
+        </div>
       </section>
 
       {/* 3 · use cases: the five steps, each a full product screen with what Kaju does in it */}
@@ -121,6 +134,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+          <p className="s7-int-key" aria-hidden><span><i className="is-live" />Live</span><span><i className="is-setup" />Setup pending</span></p>
         </div>
       </section>
 
@@ -159,7 +173,7 @@ export default function HomePage() {
 
       {/* A small easter egg: the hand-drawn StrayPaw, every animal, at the end of the page. */}
       <Link href="/our-story" className="s7-egg" aria-label="Our story: every animal deserves a record">
-        {/* The hand-drawn logo, with the cat, monkey and parrot cut out so they can move. */}
+        {/* The hand-drawn logo with its animals alive: the cat and monkey swing, the parrot flies a loop, the horse, sheep and goat breathe. */}
         <span className="s7-egg-art" aria-hidden>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="s7-egg-base" src="/brand/egg/base-900.webp" width={900} height={431} alt="" loading="lazy" decoding="async" />
@@ -168,7 +182,16 @@ export default function HomePage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="s7-egg-a is-cat" src="/brand/egg/cat.webp" width={154} height={286} alt="" loading="lazy" decoding="async" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="s7-egg-a is-parrot" src="/brand/egg/parrot.webp" width={188} height={203} alt="" loading="lazy" decoding="async" />
+          <img className="s7-egg-a is-sheep" src="/brand/egg/sheep.webp" width={270} height={211} alt="" loading="lazy" decoding="async" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="s7-egg-a is-goat" src="/brand/egg/goat.webp" width={295} height={301} alt="" loading="lazy" decoding="async" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="s7-egg-a is-horse" src="/brand/egg/horse.webp" width={344} height={176} alt="" loading="lazy" decoding="async" />
+          <span className="s7-egg-z"><i>z</i><i>z</i><i>z</i></span>
+          <span className="s7-egg-loop">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="s7-egg-a is-parrot" src="/brand/egg/parrot.webp" width={188} height={203} alt="" loading="lazy" decoding="async" />
+          </span>
         </span>
         <small>Every animal deserves a record.</small>
       </Link>

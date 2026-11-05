@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, ArrowUpRight, Camera, Check, ChevronRight, ClipboardList, FileSpreadsheet, FileText, Map as MapIcon, MapPin, MessageCircle, MessageSquareText, ShieldCheck, Stethoscope, Users } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Camera, Check, ChevronRight, ClipboardList, FileSpreadsheet, FileText, Map as MapIcon, MapPin, MessageCircle, MessageSquareText, PawPrint, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import { CountUp } from "@/sp4/site/Live";
 
@@ -20,6 +20,7 @@ export function Teammate() {
     <section className="s4-sec s7-mate" aria-labelledby="mate-title">
       <div className="s4-wrap">
         <h2 id="mate-title" className="s4-h2">Your team&rsquo;s favourite teammate</h2>
+        <div className="s7-mate-rail">
         <div className="s7-mate-big">
           <article className="s7-mcard">
             <div className="s7-mstage"><KnowsArt /></div>
@@ -48,6 +49,7 @@ export function Teammate() {
             <h3>Improves results and records</h3>
             <p>Kaju shares context across intake, vets, field and reporting, so gaps are fixed the same week, not at month end.</p>
           </article>
+        </div>
         </div>
       </div>
     </section>
@@ -288,11 +290,22 @@ export function CloseAndQuestions({ faq }: { faq: [string, string][] }) {
             </div>
           </div>
         </div>
-        <div className="s7-close-card s4-close">
-          <span className="s7-close-kaju" aria-hidden><KajuFace size={64} /></span>
-          <h2 id="close-title">Put Kaju to work on your programme.</h2>
-          <p>See what Kaju would check, prepare and report on a programme like yours, with your own register.</p>
-          <div className="s7-row is-c"><Link href="/platform" className="s7-btn is-white is-primary">Explore the platform</Link><Link href="/contact" className="s7-btn is-ghost">Talk to the team</Link></div>
+        <div className="s7-close-card s4-close s7-close2">
+          <div className="s7-c2-copy">
+            <h2 id="close-title">Put Kaju to work on your programme.</h2>
+            <p>Bring last month&apos;s register. See what Kaju checks, prepares and reports.</p>
+            <div className="s7-row"><Link href="/platform" className="s7-btn is-blue is-primary">Explore the platform</Link><Link href="/contact" className="s7-btn is-ink">Talk to the team</Link></div>
+          </div>
+          <div className="s7-c2-ticket" aria-hidden>
+            <p className="s7-c2-head"><KajuFace size={22} /><b>Kaju</b><span>October close</span></p>
+            <ul>
+              <li style={{ ["--d" as string]: "0s" }}><i /><span>Register checked<small>412 animals, 3 possible duplicates</small></span></li>
+              <li style={{ ["--d" as string]: ".9s" }}><i /><span>Release photos chased<small>Field staff reminded by name</small></span></li>
+              <li style={{ ["--d" as string]: "1.8s" }}><i /><span>Claim built at contract rates<small>Every figure linked to its record</small></span></li>
+            </ul>
+            <p className="s7-c2-wait">Waiting for the programme lead to sign off</p>
+          </div>
+          <div className="s7-c2-trail" aria-hidden>{Array.from({ length: 14 }, (_, i) => <PawPrint key={i} size={14} style={{ ["--i" as string]: i }} />)}</div>
         </div>
       </div>
     </section>
