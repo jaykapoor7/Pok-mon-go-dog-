@@ -965,3 +965,64 @@ details.s7-q-row[open] > summary svg { transform: rotate(90deg); background: var
   .s7-step-stage { padding: 16px; border-radius: 6px; }
 }
 @media (max-width: 760px) { .s7-swipe .s7-step-copy h3 { font-size: 26px; } .s7-swipe .s7-step-copy > p { font-size: 16px; } }
+
+/* ── hero rotator v4: a liquid morph between phrases, crisp at rest ── */
+.s7-home .s6-rot { overflow: visible; padding-bottom: 0; margin-bottom: 0; }
+.s6-rot.is-morph { filter: url(#s6-rot-goo); }
+.s6-rot-defs { position: absolute; width: 0; height: 0; }
+.s7-home .s6-rot-line, .s7-home .s6-rot-line.is-in, .s7-home .s6-rot-line.is-out { animation: none; will-change: filter, opacity; }
+.s6-rot-line.is-next { opacity: 0; }
+
+/* ══ PHONE, the govdash way: left-aligned hero, even logo tiles, stacked use cases
+   with sticky tabs, stacked teammate cards ══ */
+@media (max-width: 760px) {
+  /* hero: left aligned, compact buttons side by side */
+  .s7-home .s6-hero .s6-center { text-align: left; }
+  .s7-home .s6-hero .s4-h1 { margin-left: 0; margin-right: 0; font-size: 36px; }
+  .s7-home .s6-hero .s6-rot { justify-items: start; }
+  .s7-home .s6-hero .s7-hero-sub { margin-left: 0; margin-right: 0; max-width: none; padding: 0; text-align: left; font-size: 17px; }
+  .s7-home .s6-hero .s4-actions { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; width: auto; }
+  .s7-home .s6-hero .s4-actions .s4-btn { width: auto; height: 46px; padding: 0 18px; font-size: 15.5px; }
+
+  /* partners: a 2-across grid of even grey logo tiles */
+  .s7-home .s4-proof .s4-sechead { justify-items: start; text-align: left; }
+  .s7-home .s4-proof .s4-sechead .s4-h2 { max-width: none; }
+  .s7-pmarq { display: none !important; }
+  .s7-home .s4-proof .s4-wall { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .s7-home .s4-proof .s4-wall > * { position: relative; height: 104px !important; padding: 0 !important; display: grid !important; place-items: center; border-radius: 14px; background: #f2f4f7 !important; box-shadow: none !important; border: 0 !important; }
+  .s7-home .s4-proof .s4-wall .s6-pt-txt { display: none !important; }
+  .s7-home .s4-proof .s4-wall .s6-pt-logo { width: 100%; height: 100%; display: grid; place-items: center; padding: 18px 20px; background: none !important; box-shadow: none !important; border: 0 !important; margin: 0 !important; }
+  .s7-home .s4-proof .s4-wall .s6-pt-logo img { max-width: 78%; max-height: 46px !important; height: auto !important; width: auto !important; object-fit: contain; mix-blend-mode: multiply; }
+  .s7-home .s4-proof .s4-wall .s6-pt-word b { font-size: 14px; }
+  .s7-home .s4-proof .s4-wall .s4-cs { position: absolute; top: 7px; right: 7px; height: 22px; padding: 0 8px; font-size: 11px; border-radius: 7px; background: #fff; }
+
+  /* use cases: stacked, tabs stick under the header and follow the step in view */
+  .s7-steps:not(.is-pinned) .s7-steps-tabs { position: sticky; top: 64px; z-index: 6; margin: 20px -20px 0; padding: 0 20px; background: var(--s4-bg, #fff); box-shadow: 0 1px 0 #eceef2; }
+  .s7-stack { display: grid; gap: 64px; margin-top: 28px; }
+  .s7-stack .s7-step { margin-top: 0; animation: none; }
+  .s7-stack .s7-step-copy h3 { font-size: 24px; }
+  .s7-stack .s7-step-copy > p { font-size: 16px; margin-top: 10px; }
+  .s7-stack .s7-step-copy .s7-link { margin-top: 14px; font-size: 16px; }
+  .s7-stack .s7-step-stage { height: 400px; padding: 14px; -webkit-mask-image: linear-gradient(180deg, #000 85%, transparent); mask-image: linear-gradient(180deg, #000 85%, transparent); }
+
+  /* teammate: stacked cards, full width */
+  .s7-mate-rail { display: grid; gap: 40px; overflow: visible; margin: 28px 0 0; padding: 0; }
+  .s7-mate-rail .s7-mate-big, .s7-mate-rail .s7-mate-small { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; margin: 0; }
+  .s7-mate-rail .s7-mcard { flex: none; padding: 0; background: none; box-shadow: none; border-radius: 0; }
+  .s7-mate-rail .s7-mstage, .s7-mate-rail .s7-mstage.is-s { height: 230px; border-radius: 14px; background: #f2f4f7; }
+  .s7-mate-rail .s7-mcard h3 { padding: 0; margin-top: 18px; font-size: 20px; }
+  .s7-mate-rail .s7-mcard p { padding: 0; font-size: 16px; }
+
+  /* questions: heading on the left */
+  .s7-q-list .s4-h2, .s7-q-more { text-align: left; }
+}
+@media (max-width: 760px) {
+  .s7-home .s4-proof .s6-wall .s4-cs { position: absolute !important; top: 7px; right: 7px; grid-column: auto; margin: 0; display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 8px; font-size: 11px; border-radius: 7px; background: #fff; color: #1d4fc4; box-shadow: 0 0 0 1px #e3e7ee; }
+  .s7-home .s4-proof .s6-wall .s4-cs::before { content: none; }
+  .s7-home .s4-proof .s4-wall > * { grid-template-columns: none !important; }
+}
+@media (max-width: 760px) {
+  .s7-home .s4-proof .s4-wall .s6-pt-logo { position: absolute !important; inset: 0; width: auto; height: auto !important; display: grid !important; place-items: center; padding: 20px 18px 16px !important; overflow: visible; }
+  .s7-home .s4-proof .s4-wall .s6-pt-logo img { max-height: 48px !important; max-width: 82%; }
+  .s7-home .s4-proof .s4-wall .s4-cs { z-index: 1; }
+}

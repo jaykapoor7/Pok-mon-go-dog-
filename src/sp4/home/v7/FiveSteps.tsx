@@ -63,19 +63,22 @@ export function FiveSteps() {
     tick(); window.addEventListener("scroll", onScroll, { passive: true }); window.addEventListener("resize", onScroll);
     return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(raf); };
   }, [pinned]);
-  // Phone: the five steps sit in a row you swipe; the tabs follow the card in view.
-  const onSwipe = () => {
-    const el = swipe.current; if (!el) return;
-    const i = Math.round(el.scrollLeft / Math.max(1, el.clientWidth * 0.88));
-    setOn(Math.min(STEPS.length - 1, Math.max(0, i)));
-  };
+  // Phone: the five steps stack; the sticky tabs follow the step in view.
+  useEffect(() => {
+    if (pinned) return;
+    const cards = [...(swipe.current?.children ?? [])] as HTMLElement[];
+    if (!cards.length || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) setOn(cards.indexOf(e.target as HTMLElement)); }, { rootMargin: "-40% 0px -55% 0px" });
+    cards.forEach((c) => io.observe(c));
+    return () => io.disconnect();
+  }, [pinned]);
   const go = (i: number) => {
     const el = box.current;
     const smooth = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
     if (!pinned) {
       setOn(i);
       const card = swipe.current?.children[i] as HTMLElement | undefined;
-      if (card && swipe.current) swipe.current.scrollTo({ left: card.offsetLeft - swipe.current.offsetLeft, behavior: smooth });
+      if (card) window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 128, behavior: smooth });
       return;
     }
     if (!el) return;
@@ -113,8 +116,7 @@ export function FiveSteps() {
           </div>
           {pinned
             ? <div id="s7-step-panel" role="tabpanel">{panel(s, s.key)}</div>
-            : <div id="s7-step-panel" role="tabpanel" className="s7-swipe" ref={swipe} onScroll={onSwipe}>{STEPS.map((x) => <div key={x.key} className="s7-swipe-card">{panel(x)}</div>)}</div>}
-          {!pinned && <p className="s7-swipe-hint" aria-hidden>Swipe for the next step →</p>}
+            : <div id="s7-step-panel" role="tabpanel" className="s7-stack" ref={swipe}>{STEPS.map((x) => <div key={x.key} className="s7-stack-card">{panel(x)}</div>)}</div>}
         </div>
       </div>
     </section>

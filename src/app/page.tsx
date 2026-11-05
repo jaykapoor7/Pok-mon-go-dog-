@@ -66,7 +66,7 @@ export default function HomePage() {
       <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">
         <div className="s4-wrap s6-center">
           <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
-          <p className="s7-hero-sub">Kaju turns field reports into vet-signed records and the monthly claim. Your team approves.</p>
+          <p className="s7-hero-sub">Every animal deserves a record. Kaju keeps it, from the first report to the monthly claim.</p>
           <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link></div>
           <HeroScroll />
           <div className="s6-canvas">
