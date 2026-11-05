@@ -159,8 +159,17 @@ export default function HomePage() {
 
       {/* A small easter egg: the hand-drawn StrayPaw, every animal, at the end of the page. */}
       <Link href="/our-story" className="s7-egg" aria-label="Our story: every animal deserves a record">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/straypaw-logo-1000.webp" srcSet="/brand/straypaw-logo-600.webp 600w, /brand/straypaw-logo-1000.webp 1000w, /brand/straypaw-logo-1600.webp 1600w" sizes="(max-width: 760px) 92vw, 1100px" width={1600} height={766} alt="" loading="lazy" decoding="async" />
+        {/* The hand-drawn logo, with the cat, monkey and parrot cut out so they can move. */}
+        <span className="s7-egg-art" aria-hidden>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="s7-egg-base" src="/brand/egg/base-900.webp" width={900} height={431} alt="" loading="lazy" decoding="async" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="s7-egg-a is-monkey" src="/brand/egg/monkey.webp" width={228} height={211} alt="" loading="lazy" decoding="async" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="s7-egg-a is-cat" src="/brand/egg/cat.webp" width={154} height={286} alt="" loading="lazy" decoding="async" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="s7-egg-a is-parrot" src="/brand/egg/parrot.webp" width={188} height={203} alt="" loading="lazy" decoding="async" />
+        </span>
         <small>Every animal deserves a record.</small>
       </Link>
     </S4Page>

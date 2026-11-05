@@ -7,7 +7,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ArrowUpRight, Camera, Check, ChevronRight, ClipboardList, FileSpreadsheet, FileText, Map as MapIcon, MapPin, MessageCircle, MessageSquareText, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import { CountUp } from "@/sp4/site/Live";
@@ -55,11 +55,18 @@ export function Teammate() {
 }
 
 function KnowsArt() {
+  // Five sources on the left, each joined by a curve into Kaju on the right. One coordinate system, so every line meets the tile.
   const chips = ["Animals & cases", "Vet sign-offs", "Contract rates", "Wards & maps", "Team & roles"];
+  const W = 420, H = 260, cx = 300, cy = 130, chipR = 168;
+  const ys = chips.map((_, i) => 30 + i * 50);
   return (
-    <div className="s7-knows">
-      <ul>{chips.map((c, i) => <li key={c} style={{ animationDelay: `${i * 0.6}s` }}>{c}<i /></li>)}</ul>
-      <span className="s7-knows-k"><KajuFace size={46} /></span>
+    <div className="s7-knows2" style={{ aspectRatio: `${W} / ${H}` }}>
+      <svg viewBox={`0 0 ${W} ${H}`} aria-hidden>
+        {ys.map((y, i) => <path key={i} d={`M${chipR} ${y} C ${chipR + 60} ${y}, ${cx - 90} ${cy}, ${cx - 40} ${cy}`} className="s7-k2-line" style={{ animationDelay: `${i * 0.4}s` }} />)}
+        {ys.map((y, i) => <circle key={i} cx={chipR} cy={y} r="3.5" className="s7-k2-dot" />)}
+      </svg>
+      {chips.map((c, i) => <span key={c} className="s7-k2-chip" style={{ top: `${(ys[i] / H) * 100}%`, animationDelay: `${i * 0.4}s` }}>{c}</span>)}
+      <span className="s7-k2-k" style={{ left: `${((cx - 40) / W) * 100}%`, top: "50%" }}><KajuFace size={46} /></span>
     </div>
   );
 }
@@ -109,28 +116,35 @@ const ALL_SOURCES = ["Register", "Cases", "Releases", "Evidence", "Vet sign-offs
 export function Recurring() {
   const [on, setOn] = useState(0);
   const [hold, setHold] = useState(false);
+  const [seen, setSeen] = useState(false);
   const [chosen, setChosen] = useState(false);
   const [tick, setTick] = useState(0);
-  // Advances by itself until the reader picks one; hovering pauses it.
+  const ref = useRef<HTMLElement>(null);
+  // The bar under the open job is the timer: when it fills, the next job opens.
+  // It pauses while the section is off screen or the reader is on the card,
+  // and stops once the reader picks a job.
   useEffect(() => {
-    if (hold || chosen || reduced()) return;
-    const id = window.setInterval(() => { setOn((v) => (v + 1) % JOBS.length); setTick((x) => x + 1); }, 6500);
-    return () => window.clearInterval(id);
-  }, [hold, chosen]);
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") { setSeen(true); return; }
+    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.35 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const next = () => { setOn((v) => (v + 1) % JOBS.length); setTick((x) => x + 1); };
   const j = JOBS[on];
   return (
-    <section className="s7-rec" aria-labelledby="rec-title" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)}>
+    <section ref={ref} className="s7-rec" aria-labelledby="rec-title">
       <div className="s4-wrap s7-rec-in">
         <div className="s7-rec-copy">
           <h2 id="rec-title" className="s4-h2">Give recurring work to Kaju</h2>
           <ul className="s7-rec-list">
             {JOBS.map((x, i) => (
-              <li key={x.title}><button type="button" aria-pressed={on === i} onClick={() => { setOn(i); setChosen(true); setTick((t) => t + 1); }}><ArrowUpRight size={18} aria-hidden />{x.title}</button>{on === i && !hold && !chosen && <i key={tick} className="s7-rec-prog" aria-hidden />}</li>
+              <li key={x.title}><button type="button" aria-pressed={on === i} onClick={() => { setOn(i); setChosen(true); }}><ArrowUpRight size={18} aria-hidden />{x.title}</button>{on === i && !chosen && <i key={tick} className="s7-rec-prog" aria-hidden style={{ animationPlayState: hold || !seen ? "paused" : "running" }} onAnimationEnd={next} />}</li>
             ))}
           </ul>
           <Link href="/kaju-agents" className="s7-link is-light">See Kaju agents <ArrowRight size={18} aria-hidden /></Link>
         </div>
-        <div className="s7-agent" key={on} aria-label={`Example agent: ${j.agent}`}>
+        <div className="s7-agent" key={on} aria-label={`Example agent: ${j.agent}`} onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
           <span className="s7-agent-ic"><KajuFace size={22} /></span>
           <p className="s7-agent-name">{j.agent}</p>
           <div className="s7-row"><span className="s7-sel">Entire team ▾</span><span className="s7-toggle"><i /> Enabled</span><span className="s7-dim">Notifies {j.notify.toLowerCase()}</span></div>
