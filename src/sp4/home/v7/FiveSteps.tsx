@@ -88,10 +88,6 @@ export function FiveSteps() {
       <div className="s7-step-copy">
         <h3>{s.title}</h3>
         <p>{s.lede}</p>
-        <div className="s7-step-kaju">
-          <p><KajuFace size={20} /> <b>What Kaju does here</b></p>
-          <ul>{s.kaju.map((k) => <li key={k}><Check size={15} aria-hidden />{k}</li>)}</ul>
-        </div>
         <Link href={s.link.href} className="s7-link">{s.link.label} <ChevronRight size={18} aria-hidden /></Link>
       </div>
       <div className="s7-step-stage" aria-hidden>
@@ -106,16 +102,14 @@ export function FiveSteps() {
         <div className="s4-wrap">
           <div className="s7-steps-head">
             <h2 id="steps-title" className="s4-h2">Use cases</h2>
-            <p>Five steps run every ABC programme. Kaju works inside each one.</p>
           </div>
           <div className="s7-steps-tabs" role="tablist" aria-label="The five steps">
             {STEPS.map((x, i) => (
               <button key={x.key} type="button" role="tab" aria-selected={on === i} aria-controls="s7-step-panel" onClick={() => go(i)}>
-                <span className="s7-steps-n">{x.n}</span>{x.tab}
-                {on === i && !pinned && <i className="s7-steps-bar" aria-hidden />}
+                {x.tab}
+                {on === i && <i className="s7-steps-bar" aria-hidden />}
               </button>
             ))}
-            {pinned && <i className="s7-steps-prog" aria-hidden style={{ transform: `scaleX(${prog})` }} />}
           </div>
           {pinned
             ? <div id="s7-step-panel" role="tabpanel">{panel(s, s.key)}</div>
