@@ -158,3 +158,23 @@
 
 .kaju.is-lying .twitch, .kaju.is-lying .kj-flop-follow {animation-duration:7.6s}
 .kaju-presence.is-entering .kj-pose {transition:none}
+
+/* ── life pass: depth, idle motion and hover reactions ── */
+/* depth: a soft contact shadow and a faint lift off the page */
+.kaju-explorer .kj-flip > .kj-loop { filter: drop-shadow(0 1.5px 1.2px rgba(11, 30, 61, .14)); }
+.kaju .kj-shadow { transition: transform 560ms ease, opacity 300ms; }
+/* breathing reads as breathing: chest rises, shoulders follow */
+@keyframes kj-breathe { 0%, 100% { transform: scale(1, 1); } 45% { transform: scale(1.012, 1.028); } }
+.kaju .breathe { animation: kj-breathe 3.4s cubic-bezier(.45, 0, .55, 1) infinite; }
+/* the tail is never quite still */
+@keyframes kj-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(5deg); } }
+.kaju .sway { animation: kj-sway 3.6s cubic-bezier(.45, 0, .55, 1) infinite; }
+/* the head settles and drifts a little between other moves */
+@keyframes kj-idle-head { 0%, 100% { transform: rotate(0) translateY(0); } 30% { transform: rotate(-2.2deg) translateY(-.4px); } 62% { transform: rotate(1.6deg) translateY(.3px); } }
+.kaju .idle-head { animation: kj-idle-head 6.4s cubic-bezier(.45, 0, .55, 1) infinite; }
+/* hover: the head follows the cursor; on contact he perks up with one small bounce */
+.kaju .kj-gaze { transform-box: view-box; transform-origin: 0 0; transition: transform 520ms cubic-bezier(.22, .61, .36, 1); }
+@keyframes kj-boing { 0% { transform: translateY(0) scale(1, 1); } 30% { transform: translateY(-5px) scale(.985, 1.02); } 60% { transform: translateY(0) scale(1.015, .985); } 100% { transform: translateY(0) scale(1, 1); } }
+.kaju.is-hover .kj-flip > .kj-loop { transform-box: view-box; transform-origin: 120px 190px; animation: kj-boing 560ms cubic-bezier(.3, 1.4, .5, 1) 1; }
+.kaju.is-hover .kj-shadow { transform: scaleX(.92); }
+@media (prefers-reduced-motion: reduce) { .kaju .kj-gaze { transition: none; } }

@@ -29,24 +29,47 @@ export function Kaju({ state = "sitting", size = 120, label, still = false, flip
   const [ambient]=useKajuAmbient();const reduced=useReducedMotion();
   useEffect(()=>{const node=ref.current;if(!node)return;const io=new IntersectionObserver(([entry])=>setVisible(entry.isIntersecting));io.observe(node);const read=()=>setAwake(document.visibilityState==='visible');read();document.addEventListener('visibilitychange',read);return()=>{io.disconnect();document.removeEventListener('visibilitychange',read)}},[]);
   still=still||!ambient||reduced;
+  // Hover life: Kaju turns his head toward a nearby cursor, and perks up when it
+  // reaches him. Read from the window so his anchor never blocks clicks.
+  const [gaze,setGaze]=useState({r:0,y:0});
+  const [hover,setHover]=useState(false);
+  useEffect(()=>{
+    if(still||!visible||!awake||typeof window==='undefined'||!window.matchMedia('(hover: hover)').matches)return;
+    let raf=0,px=0,py=0;
+    const tick=()=>{raf=0;const el=ref.current;if(!el)return;const b=el.getBoundingClientRect();
+      const cx=b.left+b.width*.55,cy=b.top+b.height*.35,dx=px-cx,dy=py-cy,d=Math.hypot(dx,dy),reach=Math.max(320,b.width*2.5);
+      const inside=px>b.left-6&&px<b.right+6&&py>b.top-6&&py<b.bottom+6;
+      setHover(h=>h===inside?h:inside);
+      if(d>reach){setGaze(g=>g.r||g.y?{r:0,y:0}:g);return;}
+      const k=1-d/reach,dir=flip?-1:1;
+      setGaze({r:Math.max(-10,Math.min(10,dx/22*k))*dir,y:Math.max(-3,Math.min(3,dy/60*k))});};
+    const on=(e:PointerEvent)=>{px=e.clientX;py=e.clientY;if(!raf)raf=requestAnimationFrame(tick);};
+    window.addEventListener('pointermove',on,{passive:true});
+    return()=>{window.removeEventListener('pointermove',on);cancelAnimationFrame(raf);setGaze({r:0,y:0});setHover(false);};
+  },[still,visible,awake,flip]);
+  const shade=useId();
   const pose = POSES[state] ?? POSES.sitting;
   const loops = still ? [] : pose.loops;
   const has = (name: string) => loops.some(l => l === name);
   const upright = !["standing", "walking", "trotting", "tailWag", "success", "stretching", "lying", "sleeping", "waking", "settling"].includes(state);
   const gait = has("walk") ? "w" : has("trot") ? "t" : "";
+  const asleep = pose.eyes === "closed";
+  const perky = hover && !asleep;
+  const idleHead = !has("look") && !has("walk") && !has("trot") && !has("wake") && !has("stretch");
   const part = (name: Part, child: ReactNode, loop = "") => <g className={`kj-pose kj-${name}`} style={transform(pose.parts[name])}><g className={`kj-loop ${loop}`}>{child}</g></g>;
-  return <svg ref={ref} className={`kaju kaju-explorer is-${state} eyes-${pose.eyes}${still ? " is-still" : ""}${!visible||!awake?' is-paused':''}${flip ? " is-flip" : ""} ${loops.map(l => `l-${l}`).join(" ")} ${className}`}
+  return <svg ref={ref} className={`kaju kaju-explorer is-${state} eyes-${pose.eyes}${still ? " is-still" : ""}${!visible||!awake?' is-paused':''}${flip ? " is-flip" : ""}${perky ? " is-hover" : ""} ${loops.map(l => `l-${l}`).join(" ")} ${className}`}
     viewBox="0 0 240 200" width={size} height={typeof size === "number" ? size * 200 / 240 : undefined} role={label ? "img" : undefined} aria-label={label ? `${label} (${pose.label})` : undefined} aria-hidden={label ? undefined : true} focusable="false" data-kaju-state={state} data-kaju-art="explorer" data-kaju-rig="articulated">
     <g className="kj-flip">
-      <ellipse className="kj-shadow" cx="120" cy="190" rx="58" ry="4" style={{ opacity: pose.shadow === 0 ? 0 : .1, transform: `scaleX(${pose.shadow ?? 1})` }} />
+      <defs><radialGradient id={shade}><stop offset="0" stopColor="#0b1e3d" stopOpacity=".55"/><stop offset=".6" stopColor="#0b1e3d" stopOpacity=".18"/><stop offset="1" stopColor="#0b1e3d" stopOpacity="0"/></radialGradient></defs>
+      <ellipse className="kj-shadow" cx="120" cy="190" rx="62" ry="6" fill={`url(#${shade})`} style={{ opacity: pose.shadow === 0 ? 0 : .38, transform: `scaleX(${pose.shadow ?? 1})` }} />
       <g className={`kj-loop${has("hop") ? " hop" : ""}`}>
       {part("bFar", <Leg far haunch={upright} />, gait ? `${gait}-b2` : "")}
       {part("fFar", <Leg far />, gait ? `${gait}-f2` : "")}
-      {part("tail", <Texture name="tail" x={-38} y={-61} width={44} height={66} />, has("wag") ? "wag" : has("wagSlow") ? "wag-slow" : "")}
+      {part("tail", <Texture name="tail" x={-38} y={-61} width={44} height={66} />, has("wag") || perky ? "wag" : has("wagSlow") ? "wag-slow" : asleep ? "" : "sway")}
       {part("torso", <g><g className="kj-torso-upright" style={{opacity:upright?1:0}}><Texture name="torso" x={-31} y={-43} width={62} height={81}/></g><g className="kj-torso-level" style={{opacity:upright?0:1}} transform="rotate(-90)"><image href={BODY} x={-47} y={-41} width={97} height={65}/></g></g>, has("walk") ? "bob" : has("trot") ? "bob-fast" : has("breathe") ? "breathe" : "")}
       {part("bNear", <Leg haunch={upright} />, gait ? `${gait}-b1` : "")}
       {part("fNear", <Leg />, gait ? `${gait}-f1` : has("wave") ? "wave" : has("explain") ? "explain" : "")}
-      {part("head", <Head eyes={pose.eyes} mouth={pose.mouth} ears={pose.ears} blink={has("blink")} twitch={has("twitch")} />, has("look") ? "look" : has("walk") ? "bob" : has("trot") ? "bob-fast" : has("wake") ? "wake" : has("stretch") ? "stretch" : "")}
+      {part("head", <g className="kj-gaze" style={{ transform: `translate(0px, ${gaze.y.toFixed(2)}px) rotate(${gaze.r.toFixed(2)}deg)` }}><Head eyes={pose.eyes} mouth={perky ? "open" : pose.mouth} ears={perky ? "up" : pose.ears} blink={has("blink")} twitch={has("twitch") || perky} /></g>, has("look") ? "look" : has("walk") ? "bob" : has("trot") ? "bob-fast" : has("wake") ? "wake" : has("stretch") ? "stretch" : idleHead && !asleep ? "idle-head" : "")}
       </g>
       {has("zz") && <g className="kj-zz" aria-hidden><text x="180" y="124">z</text><text x="194" y="108">z</text><text x="205" y="92">Z</text></g>}
       {has("think") && <g className="kj-think" aria-hidden><circle cx="174" cy="66" r="2"/><circle cx="183" cy="57" r="3"/><circle cx="194" cy="47" r="4"/></g>}
