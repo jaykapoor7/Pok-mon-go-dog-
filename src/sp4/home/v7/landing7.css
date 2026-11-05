@@ -571,3 +571,73 @@
   .s7-home main > .s4-sec.s6-security { padding-top: 96px; }
   .s7-home .s7-close { padding-top: 72px; }
 }
+
+/* ── easter egg: the hand-drawn logo, quietly at the end ── */
+.s7-egg { display: grid; justify-items: center; gap: 10px; margin: 0 auto; padding: 8px 16px 72px; width: max-content; max-width: 100%; text-decoration: none; }
+.s7-egg .brand-logo.is-art { height: 92px; width: auto; opacity: .55; filter: saturate(.6); transition: opacity 300ms ease, filter 300ms ease, transform 500ms cubic-bezier(.34, 1.56, .64, 1); }
+.s7-egg small { font-size: 13px; color: #8a92a3; opacity: 0; transform: translateY(-4px); transition: opacity 300ms ease, transform 300ms ease; }
+.s7-egg:hover .brand-logo.is-art, .s7-egg:focus-visible .brand-logo.is-art { opacity: 1; filter: none; transform: translateY(-6px) rotate(-1.5deg); }
+.s7-egg:hover small, .s7-egg:focus-visible small { opacity: 1; transform: none; }
+@media (hover: none) { .s7-egg .brand-logo.is-art { opacity: .9; filter: none; } .s7-egg small { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .s7-egg .brand-logo.is-art, .s7-egg small { transition: none; } }
+
+/* ════ Order: questions first, then the closing card ════ */
+.s7-q { margin-top: 0; }
+.s7-close .s7-close-card.s4-close { margin-top: 112px; }
+.s7-home .s7-close { padding-bottom: 88px; }
+
+/* ════ Phone pass ════ */
+@media (max-width: 760px) {
+  /* hero demo: a short window, the phone below it, no overlap */
+  .s6-home .s4d-win { height: 340px; }
+  .s6-home .s4d-phone { margin: 16px auto 0; height: 380px; transform: none; }
+  .s6-home .s4d-ctrl { top: 296px; }
+  /* use cases: cards keep the page gutter when they snap */
+  .s7-swipe { scroll-padding-inline: 16px; }
+  .s7-swipe-card { flex-basis: 86%; }
+  .s7-step-copy h3 { font-size: 26px; }
+  /* teammate: shorter stages */
+  .s7-mate-big, .s7-mate-small { margin-top: 24px; gap: 12px; }
+  .s7-mstage { height: 220px; }
+  .s7-mstage.is-s { height: 190px; }
+  .s7-mcard h3 { margin-top: 14px; font-size: 19px; }
+  .s7-mcard p { font-size: 15px; }
+  .s7-knows { gap: 18px; transform: scale(.86); }
+  .s7-hub { transform: scale(.82); }
+  .s7-log { width: 92%; padding: 12px; font-size: 12.5px; }
+  /* recurring work: a compact agent card */
+  .s7-rec-list { margin-top: 24px; }
+  .s7-agent .s7-agent-h:last-of-type, .s7-agent .s7-uses, .s7-agent .s7-saved { display: none; }
+  .s7-sched > em { margin-left: 0; }
+  /* integrations: tighter tiles */
+  .s6-int-color .s4-int-t { padding: 12px 6px; gap: 6px; }
+  .s6-int-color .s6-int-ic, .s6-int-color .s4-int-mark { width: 36px; height: 36px; }
+  .s4-int-logo { width: 24px; height: 24px; }
+  .s6-int-color .s4-int-t b { font-size: 12px; }
+  .s6-int-color .s4-int-t small { font-size: 10px; padding: 1px 6px; }
+  /* customer results: closed cards as one tidy row each */
+  .s7-rc-closed { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; align-items: center; padding: 12px 14px; min-height: 0; background: none; }
+  .s7-rc-closed .s7-rc-logo.is-s { position: static; transform: none; grid-row: span 2; padding: 4px 6px; }
+  .s7-rc-closed .s7-rc-logo.is-s img { height: 30px; max-width: 64px; }
+  .s7-rc { min-height: 0; }
+  .s7-res-stats b { font-size: 40px; }
+  /* questions and close */
+  .s7-close .s7-close-card.s4-close { margin-top: 72px; }
+}
+/* questions as native details: works without JavaScript */
+details.s7-q-row > summary { list-style: none; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 2px; font-size: 18px; font-weight: 500; letter-spacing: -0.015em; color: var(--s4-ink); cursor: pointer; }
+details.s7-q-row > summary::-webkit-details-marker { display: none; }
+details.s7-q-row > summary:hover { color: var(--s7-blue); }
+details.s7-q-row > summary:focus-visible { outline: 2px solid var(--s7-blue); outline-offset: 2px; border-radius: 6px; }
+details.s7-q-row > summary svg { flex: none; width: 30px; height: 30px; padding: 6px; border-radius: 50%; background: #eef3fd; color: var(--s7-blue); transition: transform 240ms var(--s7-ease), background-color 200ms ease, color 200ms ease; }
+details.s7-q-row[open] > summary svg { transform: rotate(90deg); background: var(--s7-blue); color: #fff; }
+@media (max-width: 960px) { details.s7-q-row > summary { font-size: 16px; } }
+/* Phone hero: one device, not two. The field chat tells the story; the app window stays on larger screens. */
+@media (max-width: 640px) {
+  .s6-home .s4d-win { display: none; }
+  .s6-home .s4d { display: grid; justify-items: center; padding-bottom: 8px; }
+  .s6-home .s4d-phone { position: relative; margin: 8px auto 0; height: 420px; width: 240px; }
+  .s6-home .s4d-ctrl { position: static; transform: none; margin: 14px auto 0; justify-self: center; }
+  .s6-home .s6-canvas { padding: 40px 0 22px; }
+  .s6-home .s4-hero-perch { top: -28px; }
+}

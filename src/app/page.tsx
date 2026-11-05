@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
-import { ArrowRight, ArrowUpRight, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History, KeyRound, Landmark, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, PawPrint, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History, KeyRound, Landmark, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
 import { S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
@@ -11,8 +12,7 @@ import { Announce } from "@/sp4/home/v7/Announce";
 import { Welcome } from "@/sp4/home/v7/Welcome";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
 import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
-import { AuditTrail, HeroScroll, PhotoStrip, Reveal, WhyNow, type Photo } from "@/sp4/home/v7/Extras";
-import credits from "@/data/register-photo-credits.json";
+import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
 import "@/sp4/home/v7/landing7.css";
 import { KajuPresence } from "@/kaju/Presence";
 import "@/sp4/home/home4.css";
@@ -93,17 +93,11 @@ export default function HomePage() {
             const tint = TINTS[[...p.name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % TINTS.length];
             const inner = <>{p.logo
               ? <span className="s6-pt-logo"><img src={p.logo} alt={`${p.name} logo`} loading="lazy" decoding="async" /></span>
-              : <span className="s6-pt-av" aria-hidden style={{ ["--pt" as string]: tint }}>{p.name.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !/^(the|of|and|for)$/i.test(w)).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("")}</span>}<span className="s6-pt-txt"><b>{p.name}</b><small><MapPin size={12} aria-hidden />{p.city}</small></span>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}</>;
+              : <span className="s6-pt-logo s6-pt-word" aria-hidden><PawPrint size={22} /><b>{p.name}</b></span>}<span className="s6-pt-txt"><b>{p.name}</b><small><MapPin size={12} aria-hidden />{p.city}</small></span>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}</>;
             return s ? <Link key={p.name} href={`/customers/${s.slug}`} aria-label={`${p.name} case study`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
           })}
         </div>
       </section>
-
-      {/* 2b · the animals behind every record */}
-      <PhotoStrip photos={PHOTOS} />
-
-      {/* 2c · how most programmes run today */}
-      <WhyNow />
 
       {/* 3 · use cases: the five steps, each a full product screen with what Kaju does in it */}
       <FiveSteps />
@@ -163,6 +157,9 @@ export default function HomePage() {
 
       {/* 9 · put Kaju to work, then common questions */}
       <CloseAndQuestions faq={FAQ} />
+
+      {/* A small easter egg: the hand-drawn StrayPaw, every animal, at the end of the page. */}
+      <Link href="/our-story" className="s7-egg" aria-label="Our story: every animal deserves a record"><BrandLogo /><small>Every animal deserves a record.</small></Link>
     </S4Page>
   );
 }
@@ -170,15 +167,11 @@ export default function HomePage() {
 /* Integrations as they really stand (docs/CONNECTIONS.md). Providers use plain letter marks in their own colour, not
    their logos. "Setup pending": built and tested, waiting for the administrator's OAuth keys. "Planned": not built yet.
    Nothing here is shown as live before it is. */
-const PHOTOS: Photo[] = (credits as { photographer: string; source_url: string; licence_url: string; local_path: string }[]).map((c) => ({
-  src: c.local_path, by: c.photographer, source: c.source_url, licenceUrl: c.licence_url,
-  licence: /by-sa/.test(c.licence_url) ? "CC BY-SA" : "CC BY",
-}));
 const TINTS = ["#1e3a6e", "#2f4a63", "#2c4f8f", "#3b4a5e", "#25507a", "#344868"];
 type IntTile = { n: string; s: "Live" | "Setup pending" | "Not connected" | "Planned"; c: string; i: ReactNode };
 /* Real brand marks for the tools Kaju connects to (gilbarbara/logos, CC0); generic tools keep an icon. */
 // eslint-disable-next-line @next/next/no-img-element
-const Logo = ({ src }: { src: string }) => <img className="s4-int-logo" src={`/brand/tools/${src}.svg`} alt="" width={34} height={34} loading="lazy" />;
+const Logo = ({ src }: { src: string }) => <img className="s4-int-logo" src={`/brand/tools/${src}.svg`} alt="" width={34} height={34} />;
 const INT_COLS: IntTile[][] = [
   [{ n: "Google Workspace", s: "Setup pending", c: "#1a73e8", i: <Logo src="google-icon" /> }, { n: "Excel & CSV", s: "Live", c: "#1f8a52", i: <Logo src="excel" /> }, { n: "Email", s: "Live", c: "#2457ce", i: <Logo src="google-gmail" /> }],
   [{ n: "Microsoft 365", s: "Setup pending", c: "#0f6cbd", i: <Logo src="microsoft-icon" /> }, { n: "Slack", s: "Setup pending", c: "#4a154b", i: <Logo src="slack-icon" /> }, { n: "Phone field mode", s: "Live", c: "#2457ce", i: <Smartphone /> }],

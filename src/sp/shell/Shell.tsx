@@ -18,7 +18,6 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import {BrandLogo} from "@/components/site/BrandLogo";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -162,7 +161,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             {dual ? (
             <div className="sx3-ws">
               <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
-                  <BrandLogo compact size={26}/>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+<img src="/straypaw-mark.png" alt="" width={26} height={26} />
                 <span><b>{ws === "ngo" && mem.org ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
                 <ChevronsUpDown size={15} aria-hidden />
               </button>
@@ -177,7 +177,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </div>
             ) : (
             <Link href={def.home} className="sx3-ws sx3-ws-static">
-              <BrandLogo compact size={26}/>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+<img src="/straypaw-mark.png" alt="" width={26} height={26} />
               <span><b>{ws === "ngo" && mem.org ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
             </Link>
             )}
@@ -219,7 +220,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         <div className="sx3-col">
           <header className="sp-bar sx3-top">
             <Link href={def.home} className="sp-mark sx3-mark-m" aria-label={`StrayPaw, ${def.label} home`}>
-              <BrandLogo compact size={28}/>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+<img src="/straypaw-mark.png" alt="" width={28} height={28} />
             </Link>
             {dual ? (
             <div className="sp-ws sx3-ws-m">

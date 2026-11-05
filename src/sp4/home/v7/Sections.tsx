@@ -7,7 +7,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, ArrowUpRight, Camera, Check, ChevronRight, ClipboardList, FileSpreadsheet, FileText, Map as MapIcon, MapPin, MessageCircle, MessageSquareText, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import { CountUp } from "@/sp4/site/Live";
@@ -252,25 +252,18 @@ function RecordArt({ name, city }: { name: string; city: string }) {
 
 /* ── Closing: put Kaju to work, then common questions ─────────────── */
 export function CloseAndQuestions({ faq }: { faq: [string, string][] }) {
-  const [open, setOpen] = useState<number | null>(0);
-  const list = useRef<HTMLDivElement>(null);
+
   return (
     <section className="s7-close" aria-labelledby="close-title">
       <div className="s4-wrap">
-        <div className="s7-close-card s4-close">
-          <span className="s7-close-kaju" aria-hidden><KajuFace size={64} /></span>
-          <h2 id="close-title">Put Kaju to work on your programme.</h2>
-          <p>See what Kaju would check, prepare and report on a programme like yours, with your own register.</p>
-          <div className="s7-row is-c"><Link href="/platform" className="s7-btn is-white is-primary">Explore the platform</Link><Link href="/contact" className="s7-btn is-ghost">Talk to the team</Link></div>
-        </div>
-        <div className="s7-q">
-          <div className="s7-q-list" ref={list}>
+        <div className="s7-q" role="region" aria-label="Common questions">
+          <div className="s7-q-list">
             <h2 className="s4-h2">Common questions</h2>
             {faq.map(([q, a], i) => (
-              <div key={q} className={`s7-q-row${open === i ? " is-open" : ""}`}>
-                <button type="button" aria-expanded={open === i} aria-controls={`s7-q-${i}`} onClick={() => setOpen(open === i ? null : i)}>{q}<ChevronRight size={18} aria-hidden /></button>
-                <div id={`s7-q-${i}`} className="s7-q-a" hidden={open !== i}><p>{a}</p></div>
-              </div>
+              <details key={q} className="s7-q-row" open={i === 0 || undefined}>
+                <summary>{q}<ChevronRight size={18} aria-hidden /></summary>
+                <div className="s7-q-a"><p>{a}</p></div>
+              </details>
             ))}
             <p className="s7-q-more">Something else? <Link href="/contact">Ask us</Link></p>
           </div>
@@ -280,6 +273,12 @@ export function CloseAndQuestions({ faq }: { faq: [string, string][] }) {
               <div className="s7-q-card"><p className="s7-cap">Kaju · answering</p><p><b>Can Kaju approve a bill?</b></p><p>No. Kaju prepares; a named person confirms. Vets authorise, coordinators approve, the municipal office accepts.</p></div>
             </div>
           </div>
+        </div>
+        <div className="s7-close-card s4-close">
+          <span className="s7-close-kaju" aria-hidden><KajuFace size={64} /></span>
+          <h2 id="close-title">Put Kaju to work on your programme.</h2>
+          <p>See what Kaju would check, prepare and report on a programme like yours, with your own register.</p>
+          <div className="s7-row is-c"><Link href="/platform" className="s7-btn is-white is-primary">Explore the platform</Link><Link href="/contact" className="s7-btn is-ghost">Talk to the team</Link></div>
         </div>
       </div>
     </section>

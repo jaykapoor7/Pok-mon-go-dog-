@@ -311,3 +311,11 @@
   .s6-home .s4d-phone { margin: -48px auto 0; height: 400px; }
   .s6-home .s4d-ctrl { top: 330px; }
 }
+/* A partner without a logo yet: a drawn wordmark in the logo frame, not initials. */
+.s6-pt-word { display: flex !important; align-items: center; justify-content: center; gap: 8px; color: #1f3f8f; }
+.s6-pt-word b { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; filter: none !important; color: #1f3f8f !important; }
+/* Partner wall: rows centred, so an uneven last row sits balanced. */
+.s6-home .s6-wall { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.s6-home .s6-wall > * { flex: 0 0 calc((100% - 48px) / 5); min-width: 0; }
+@media (max-width: 1000px) { .s6-home .s6-wall > * { flex-basis: calc((100% - 24px) / 3); } }
+@media (max-width: 600px) { .s6-home .s6-wall { gap: 8px; } .s6-home .s6-wall > * { flex-basis: calc((100% - 8px) / 2); } }

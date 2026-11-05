@@ -9,7 +9,7 @@ for(const width of [320,390,768,1440])test(`hero and section order remain usable
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(H1);
  for(const a of await page.locator(".s4-hero .s4-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main h2:visible").allInnerTexts()).map(s=>s.replace(/\s+/g," ").trim());
- expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Kaju works with your records","Give recurring checks to Kaju"]);
+ expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Your team’s favourite teammate","Give recurring work to Kaju"]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.locator(".s4-hero .s4-actions [class*=flame]")).toHaveCount(0);
 });
@@ -21,7 +21,7 @@ test("Our Story describes the company without founder or staff identities",async
 });
 test("navigation dropdown stays accessible and closes on Escape",async({page})=>{
  await page.setViewportSize({width:1440,height:900});await page.goto("/");
- const toggle=page.getByRole("button",{name:"Product",exact:true});
+ const toggle=page.getByRole("button",{name:"Platform",exact:true});
  /* Keyboard handlers attach on hydration; retry the keypress until they have. */
  await expect(async()=>{await toggle.focus();await page.keyboard.press("ArrowDown");await expect(toggle).toHaveAttribute("aria-expanded","true",{timeout:1000});}).toPass({timeout:15_000});await expect(page.locator("#s4-dd-platform a").first()).toBeFocused();
  await page.keyboard.press("Escape");await expect(toggle).toHaveAttribute("aria-expanded","false");
@@ -30,10 +30,10 @@ test("audiences remain one click away in the Solutions menu",async({page})=>{
  await page.setViewportSize({width:1440,height:900});await page.goto("/");
  await page.getByRole("button",{name:"Solutions",exact:true}).click();
  const menu=page.locator("#s4-dd-solutions");
- for(const href of ["/for-ngos","/for-governments","/solutions/rescue-care","/for-community","/abc-operations","/solutions/abc-arv"])await expect(menu.locator(`a[href="${href}"]`).first()).toBeVisible();
+ for(const href of ["/for-ngos","/for-governments","/solutions/rescue-care","/for-funders","/abc-operations","/solutions/abc-arv"])await expect(menu.locator(`a[href="${href}"]`).first()).toBeVisible();
 });
 test("FAQ opens by keyboard and the ending has one purposeful action",async({page})=>{
- await page.goto("/");const faq=page.getByRole("region",{name:"Questions, answered"});const question=faq.locator("summary").first();await question.focus();await page.keyboard.press("Enter");await expect(faq.locator("details").first()).toHaveAttribute("open","");
+ await page.goto("/");const faq=page.getByRole("region",{name:"Common questions"});await expect(faq.locator("details").first()).toHaveAttribute("open","");const second=faq.locator("summary").nth(1);await second.focus();await page.keyboard.press("Enter");await expect(faq.locator("details").nth(1)).toHaveAttribute("open","");
  await expect(page.locator(".s4-close .is-primary")).toHaveCount(1);await expect(page.locator("main a").filter({hasText:/^Book a demo$/})).toHaveCount(1);
 });
 test("every published field partner has an accessible organisation profile",async({request})=>{
