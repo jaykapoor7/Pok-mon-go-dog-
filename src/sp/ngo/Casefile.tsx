@@ -16,6 +16,7 @@ import { CancelButton } from "@/sp/ui/CancelButton";
 import { shortCode } from "@/lib/caseCode";
 import {clinicalNarrative} from '@/lib/clinical-narrative';
 import {OperationsPanel} from './OperationsPanel';
+import { Identifiers } from "./Identifiers";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, Eye } from "lucide-react";
@@ -36,7 +37,7 @@ import { DeleteRecord } from "../ui/DeleteRecord";
 type OrgCase = { id: string; case_code: string | null; condition_class: string | null; status_class: string | null; occurred_at: string | null; assignee_name: string | null; provenance: string | null };
 type Fu = { id: string; due_at: string; status: string; kind: string | null; note: string | null; case_id: string | null };
 
-export function Casefile({ id }: { id: string }) {
+export function Casefile({ id, identifiers = false }: { id: string; identifiers?: boolean }) {
   const mem = useMembership();
   const [dog, setDog] = useState<Dog | null | "missing" | "error">(null);
   const [cases, setCases] = useState<OrgCase[]>([]);
@@ -105,6 +106,7 @@ export function Casefile({ id }: { id: string }) {
                 {sourceErrors.timeline?<p role="alert">{sourceErrors.timeline}</p>:timeline===null?<p role="status">Reading source history…</p>:timeline.length ? <ol className="chrono">{timeline.slice(0, 40).map((t) => <li key={t.id} className={`dr-row${t.medicalEventId ? " is-care" : ""}`}><time className="mono">{day(t.occurred_at)}</time><span><b>{t.title}</b>{t.details ? <> · {clinicalNarrative(t.details)}</> : null}</span><small>{t.provenance.replace(/_/g, " ")}</small><DeleteRecord kind="timeline" id={t.id} what="this history entry" onDone={() => void load()} /></li>)}</ol> : <p className="small">No earlier timeline entries. Structured operations are shown separately.</p>}</details>
               </section>
               <aside className="cf-side"><OperationsPanel dogId={id} readOnly/>
+                {identifiers && <Identifiers dogId={dog.id} />}
                 <CareForm dogId={dog.id} onDone={load} />
                 <section className="cf-card">
                   <h3 className="h3">Care on record <span className="mono small">{care?.length??"—"}</span></h3>

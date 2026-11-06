@@ -55,7 +55,7 @@ export const MODULES: Module[] = [
   { id: "citizen-bite", name: "Bite or scratch help", area: "Citizens", status: "BLOCKED", december: true, waitsOn: "Clinical review of the guidance, and a verified list of anti-rabies vaccine centres from the health department.", evidence: "Prototype guidance and triage behind a flag; nothing public.", flag: "citizen_bite_assist" },
 
   // Identity
-  { id: "identity-rfid", name: "RFID, microchip and QR identity", area: "Identity", status: "PLANNED", december: true, evidence: "Not built: identifier store, scanner input and lookup.", flag: "animal_identifiers" },
+  { id: "identity-rfid", name: "RFID, microchip and QR identity", area: "Identity", status: "STAGING", december: true, evidence: "Identifier store with one active owner per identifier, organisation-scoped reads, audited add and retire, ISO microchip validation, keyboard-scanner and camera-QR input, scan-to-open lookup and a Kaju lookup tool. Verified on staging as two organisations.", next: "Apply the migration to production, choose a reader with the pilot team, and print QR tags.", flag: "animal_identifiers" },
   { id: "identity-dedupe", name: "Duplicate review", area: "Identity", status: "LIVE", december: true, evidence: "Provisional identification and duplicate review for the register." },
 
   // Integrations

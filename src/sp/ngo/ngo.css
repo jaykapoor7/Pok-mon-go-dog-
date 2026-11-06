@@ -496,3 +496,28 @@
 .sp .rq-sp li { padding: 7px 0; border-top: 1px solid rgba(11, 30, 61, 0.06); }
 .sp .rq-sp small { display: block; color: #6f7380; font-size: 12.5px; }
 @media (max-width: 760px) { .sp .rq-hub { grid-template-columns: 1fr; } .sp .rq-hub a + a { border-left: 0; border-top: 1px solid rgba(11, 30, 61, 0.07); } }
+
+/* identifiers: microchip, RFID, QR */
+.idn-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.idn-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 10px; border-radius: 10px; background: var(--sunk, #f5f7fb); }
+.idn-kind { font-size: 12px; color: #6b7486; }
+.idn-val { font-size: 14px; letter-spacing: .02em; color: var(--ink, #0b1e3d); }
+.idn-list small { flex-basis: 100%; color: #6b7486; font-size: 12.5px; }
+.idn-x { margin-left: auto; }
+.idn-retire { display: flex; gap: 6px; flex-basis: 100%; }
+.idn-retire input { flex: 1; min-width: 0; }
+.idn-form { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 10px; margin-top: 14px; }
+.idn-form label { display: grid; gap: 4px; font-size: 12.5px; color: #4b5568; }
+.idn-form input, .idn-form select, .idn-retire input { height: 38px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-2, #dfe3ea); background: #fff; font: inherit; font-size: 14px; }
+.idn-note, .idn-act, .idn-hint { grid-column: 1 / -1; }
+.idn-act { display: flex; gap: 8px; flex-wrap: wrap; }
+.idn-hint { margin: 0; }
+.idn-scan { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(8, 14, 30, .72); padding: 16px; }
+.idn-scan-in { width: min(420px, 100%); display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: #fff; text-align: center; }
+.idn-scan video { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; background: #0b1e3d; }
+.idn-scan p { margin: 0; font-size: 14px; color: #4b5568; }
+.scan-form { display: flex; gap: 8px; flex-wrap: wrap; max-width: 640px; margin-top: 20px; }
+.scan-form input { flex: 1 1 260px; height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-2, #dfe3ea); font: inherit; font-size: 17px; letter-spacing: .02em; }
+.scan-out { max-width: 640px; margin-top: 16px; font-size: 15px; line-height: 1.5; }
+.idn-form input, .idn-form select { width: 100%; min-width: 0; box-sizing: border-box; }
+.idn-form label { min-width: 0; }

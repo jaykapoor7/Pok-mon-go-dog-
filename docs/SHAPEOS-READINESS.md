@@ -49,7 +49,8 @@ Every model run is written to `kaju_model_usage` with its tokens and rupee cost.
 - [x] Public map and datasets with method notes
 - [ ] Researcher workspace with approved-study exports (needs data-sharing terms)
 - [ ] Training LMS: courses, assignments, completions
-- [ ] RFID, microchip and QR identifiers with scanner lookup
+- [x] RFID, microchip and QR identifiers with scanner lookup (staging, flag `animal_identifiers`)
+- [ ] Identifier migration on production (needs approval)
 - [ ] Bite or scratch help: clinical review and verified vaccine-centre list before any public use
 - [ ] WhatsApp Cloud API: Meta business verification and number approval
 

@@ -48,6 +48,7 @@ export const TOOL_DEFS = [
   { name: "search_records", description: "Search animals, cases, programmes and places the user is allowed to read. Use for any question naming an animal, tag, case code, place or programme.", input_schema: { type: "object", properties: { query: { type: "string", description: "Words to search for: a name, StrayPaw tag, case code, locality or programme name." } }, required: ["query"], additionalProperties: false } },
   { name: "work_summary", description: "Summarise the organisation's current work: open cases, unassigned, critical, overdue follow-ups, historical imports awaiting review, and the most urgent open cases.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_missing_evidence", description: "Find the organisation's records that are missing evidence: animals with no photo, open cases with no linked animal or no place.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "find_by_identifier", description: "Find the organisation's animal carrying a microchip, RFID tag, QR code or printed tag number. Another organisation's identifier is reported only as registered elsewhere. Reads only.", input_schema: { type: "object", properties: { value: { type: "string", description: "The identifier as scanned or typed." } }, required: ["value"], additionalProperties: false } },
   { name: "find_duplicates", description: "Find possible duplicate animals in the organisation's register (same name and locality). Candidates only; a person decides.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "programme_report", description: "Recorded figures for programmes: the organisation's own drives when the user is a member, otherwise published programmes. Optional query filters by name or city.", input_schema: { type: "object", properties: { query: { type: "string" } }, additionalProperties: false } },
   { name: "extract_field_message", description: "Structure a pasted field update, WhatsApp message or register line into a draft (intervention, animal, place, date) and list what is missing. Does not save anything.", input_schema: { type: "object", properties: { text: { type: "string" } }, required: ["text"], additionalProperties: false } },
@@ -74,6 +75,7 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "search_records": return searchRecords(clean(input.query), ctx);
     case "work_summary": return workSummary(ctx);
     case "find_missing_evidence": return missingEvidence(ctx);
+    case "find_by_identifier": return byIdentifier(String(input.value ?? "").slice(0, 80), ctx);
     case "find_duplicates": return duplicates(ctx);
     case "programme_report": return programmeReport(clean(input.query ?? ""), ctx);
     case "extract_field_message": {
@@ -157,6 +159,18 @@ async function missingEvidence({ db, orgId }: ToolCtx): Promise<ToolOut> {
   if ([noPhoto, noAnimal, noPlace, list].some((r) => r.error) || [noPhoto,noAnimal,noPlace].some(r=>typeof r.count!=="number")) return READ_FAILED;
   const data = { animals_without_photo: noPhoto.count ?? 0, open_cases_without_animal: noAnimal.count ?? 0, open_cases_without_place: noPlace.count ?? 0, examples: (list.data ?? []).map((c) => ({ ...c, missing: [!c.dog_id && "linked animal", !c.zone && !c.h3_r8 && "place"].filter(Boolean) })) };
   return { data, summary: `${data.animals_without_photo} animals without a photo · ${data.open_cases_without_animal} open cases without an animal · ${data.open_cases_without_place} without a place`, citations: (list.data ?? []).map((c) => ({ id: c.id, label: caseLabel(c), href: `/ngo/cases/${c.id}`, kind: "case" as const })) };
+}
+
+async function byIdentifier(value: string, { db, orgId }: ToolCtx): Promise<ToolOut> {
+  if (!orgId) return NEEDS_ORG;
+  const v = value.replace(/\s+/g, "").toUpperCase();
+  if (v.length < 3) return { data: { error: "Give the identifier number." }, summary: "No identifier given", citations: [], ok: false };
+  const { data, error } = await db.rpc("lookup_animal_identifier", { p_value: v });
+  if (error) return { data: { error: "Identifiers are not available on this workspace yet." }, summary: "Identifier lookup unavailable", citations: [], ok: false };
+  const hit = (data ?? {}) as { found?: boolean; own?: boolean; dog_id?: string; straypaw_id?: string | null; name?: string | null; kind?: string };
+  if (!hit.found) return { data: { found: false, identifier: v }, summary: `No animal carries ${v}`, citations: [] };
+  if (!hit.own || !hit.dog_id) return { data: { found: true, registered_elsewhere: true, identifier: v }, summary: `${v} is registered with another organisation`, citations: [] };
+  return { data: { found: true, identifier: v, kind: hit.kind, animal: { id: hit.dog_id, straypaw_id: hit.straypaw_id, name: hit.name } }, summary: `${v} is on ${hit.name || hit.straypaw_id || "an animal"}`, citations: [{ id: hit.dog_id, label: animalLabel({ straypaw_id: hit.straypaw_id ?? null, name: hit.name ?? null }), href: `/ngo/animals/${hit.dog_id}`, kind: "animal" }] };
 }
 
 async function duplicates({ db, orgId }: ToolCtx): Promise<ToolOut> {
