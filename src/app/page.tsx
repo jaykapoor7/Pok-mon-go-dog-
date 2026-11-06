@@ -43,10 +43,8 @@ export const metadata = {
 const FAQ: [string, string][] = [
   ["What is Kaju?", "Kaju is StrayPaw's AI agent for animal welfare programmes. It works across capture, vet sign-off, evidence, reports and municipal review, using your organisation's own records."],
   ["How is Kaju different from ChatGPT or Claude?", "Kaju works inside StrayPaw, on your programme's records, with your permissions. Every answer names the records it used, and every change is prepared for a person to confirm."],
-  ["Which parts of StrayPaw does Kaju work across?", "Animals, cases, follow-ups, evidence, programmes and reports. Kaju reads only what the signed-in person is allowed to read."],
   ["Can Kaju approve a procedure or a bill?", "No. Kaju prepares; people decide. Vets authorise procedures, coordinators approve evidence and the municipal office accepts the package, each in their own name."],
   ["Does Kaju train on our data?", "No. Your records are not used to train models and are never shared with other organisations."],
-  ["Who is StrayPaw for?", "Municipal offices that fund ABC and anti-rabies programmes, and the NGOs and operators that run them."],
   ["How do we get started?", "With a scoped pilot on one programme. We import your current registers, set up your team and agree the scope in writing first."],
   ["Can we bring our existing registers?", "Yes. Excel and CSV registers import as they are. Imported rows stay labelled as historical until checked through the workflow."],
   ["How does pricing work?", "Pricing is agreed per programme before work begins. NGOs and small welfare groups can ask about an accessible plan."],

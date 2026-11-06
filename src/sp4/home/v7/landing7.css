@@ -1026,3 +1026,20 @@ details.s7-q-row[open] > summary svg { transform: rotate(90deg); background: var
   .s7-home .s4-proof .s4-wall .s6-pt-logo img { max-height: 48px !important; max-width: 82%; }
   .s7-home .s4-proof .s4-wall .s4-cs { z-index: 1; }
 }
+
+/* ── questions, as govdash: heading on the left, the list fills the right ── */
+.s7-q { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 64px; max-width: none; margin: 0; align-items: start; }
+.s7-q-head { position: sticky; top: 112px; }
+.s7-q-head .s4-h2 { margin: 0; text-align: left; }
+.s7-q-head .s7-q-more { margin-top: 16px; text-align: left; font-size: 16px; }
+.s7-q-list .s7-q-row:first-of-type { border-top: 0; }
+details.s7-q-row > summary { padding: 20px 2px; font-size: 18px; }
+details.s7-q-row > summary svg { width: 26px; height: 26px; padding: 5px; }
+.s7-q-a { padding: 0 64px 22px 2px; }
+.s7-q-a p { font-size: 16.5px; }
+@media (max-width: 960px) {
+  .s7-q { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .s7-q-head { position: static; }
+  .s7-q-a { padding-right: 0; }
+  details.s7-q-row > summary { padding: 16px 2px; font-size: 16px; }
+}

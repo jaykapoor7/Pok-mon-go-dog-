@@ -275,15 +275,17 @@ export function CloseAndQuestions({ faq }: { faq: [string, string][] }) {
     <section className="s7-close" aria-labelledby="close-title">
       <div className="s4-wrap">
         <div className="s7-q" role="region" aria-label="Common questions">
-          <div className="s7-q-list">
+          <div className="s7-q-head">
             <h2 className="s4-h2">Common questions</h2>
+            <p className="s7-q-more">Something else? <Link href="/contact">Ask us</Link></p>
+          </div>
+          <div className="s7-q-list">
             {faq.map(([q, a], i) => (
               <details key={q} className="s7-q-row" open={i === 0 || undefined}>
                 <summary>{q}<ChevronRight size={18} aria-hidden /></summary>
                 <div className="s7-q-a"><p>{a}</p></div>
               </details>
             ))}
-            <p className="s7-q-more">Something else? <Link href="/contact">Ask us</Link></p>
           </div>
         </div>
         <div className="s7-close-card s4-close s7-close4">
