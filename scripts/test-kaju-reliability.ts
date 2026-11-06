@@ -5,7 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { answer, privateModelApproved, withTools } from '../src/sp3/ai/engine';
 import { setInferenceLedger } from '../src/lib/ai/inference';
 /* Model paths are exercised against mocked fetch only, with the gate switched on explicitly. */
-const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50'} as const;
+const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50',STRAYPAW_AI_INR_PER_MTOK_IN:'420',STRAYPAW_AI_INR_PER_MTOK_OUT:'2100'} as const;
 const enable=()=>{Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0})})};
 const disable=()=>{for(const k of Object.keys(ON))delete process.env[k];setInferenceLedger(null)};
 import { runTool, type ToolCtx } from '../src/sp3/ai/tools';

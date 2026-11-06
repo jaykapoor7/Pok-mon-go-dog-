@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {answer,privateModelApproved} from '../src/sp3/ai/engine';
 import {setInferenceLedger} from '../src/lib/ai/inference';
-const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50'};
+const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50',STRAYPAW_AI_INR_PER_MTOK_IN:'420',STRAYPAW_AI_INR_PER_MTOK_OUT:'2100'};
 import {isAiReply,safeAiHref,auditReference} from '../src/sp3/ai/validation';
 import {buildReport} from '../src/lib/files/reports';
 import {readSnapshot} from '../src/sp3/ai/snapshots';

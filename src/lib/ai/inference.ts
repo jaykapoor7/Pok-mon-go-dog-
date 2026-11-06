@@ -16,9 +16,12 @@ import "server-only";
    or the OIDC helper. Deterministic Kaju tools never pass through here.
    ════════════════════════════════════════════════════════════════════ */
 
-export type InferenceScope = { purpose: "kaju_chat" | "photo_check"; userId: string | null; orgId: string | null };
+/** The caller's own database session: usage is read and written through
+    security-definer functions bound to auth.uid(), never a client-chosen id. */
+export type LedgerDb = { rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> };
+export type InferenceScope = { purpose: "kaju_chat" | "photo_check"; userId: string | null; orgId: string | null; db?: LedgerDb | null };
 export type InferenceDecision = { allowed: true; budget: Budget } | { allowed: false; reason: string };
-type Budget = { monthlyCeilingInr: number; perUserDaily: number; perOrgDaily: number; maxConcurrent: number; maxOutputTokens: number };
+type Budget = { monthlyCeilingInr: number; perUserDaily: number; perOrgDaily: number; maxConcurrent: number; maxOutputTokens: number; inrPerMTokIn: number; inrPerMTokOut: number };
 
 const num = (v: string | undefined) => { const n = Number(v?.trim()); return Number.isFinite(n) && n > 0 ? n : null; };
 
@@ -32,15 +35,51 @@ export function inferenceConfig(env: Record<string, string | undefined> = proces
   if (!auth || !/^[^:]{2,80}:\d{4}-\d{2}-\d{2}$/.test(auth)) return { allowed: false, reason: "Model inference has no recorded authorisation." };
   const monthlyCeilingInr = num(env.STRAYPAW_AI_MONTHLY_CEILING_INR), perUserDaily = num(env.STRAYPAW_AI_USER_DAILY_REQUESTS), perOrgDaily = num(env.STRAYPAW_AI_ORG_DAILY_REQUESTS);
   if (!monthlyCeilingInr || !perUserDaily || !perOrgDaily) return { allowed: false, reason: "Model inference has no spending ceiling or quotas configured." };
-  return { allowed: true, budget: { monthlyCeilingInr, perUserDaily, perOrgDaily, maxConcurrent: num(env.STRAYPAW_AI_MAX_CONCURRENT) ?? 4, maxOutputTokens: Math.min(num(env.STRAYPAW_AI_MAX_OUTPUT_TOKENS) ?? 2000, 4000) } };
+  /* Spend is measured, not guessed: without a price per million tokens the
+     ceiling cannot be enforced, so inference stays off. */
+  const inrPerMTokIn = num(env.STRAYPAW_AI_INR_PER_MTOK_IN), inrPerMTokOut = num(env.STRAYPAW_AI_INR_PER_MTOK_OUT);
+  if (!inrPerMTokIn || !inrPerMTokOut) return { allowed: false, reason: "Model inference has no token price configured, so spend cannot be measured." };
+  return { allowed: true, budget: { monthlyCeilingInr, perUserDaily, perOrgDaily, maxConcurrent: num(env.STRAYPAW_AI_MAX_CONCURRENT) ?? 4, maxOutputTokens: Math.min(num(env.STRAYPAW_AI_MAX_OUTPUT_TOKENS) ?? 2000, 4000), inrPerMTokIn, inrPerMTokOut } };
 }
 
 let running = 0;
 /* Usage counters and spend come from a ledger the deployment must provide;
    until it exists every check fails closed. */
-type Ledger = { usage(scope: InferenceScope): Promise<{ userToday: number; orgToday: number; monthInr: number } | null> };
-let ledger: Ledger | null = null;
+export type Usage = { inputTokens: number; outputTokens: number };
+type Ledger = {
+  usage(scope: InferenceScope): Promise<{ userToday: number; orgToday: number; monthInr: number } | null>;
+  record?(scope: InferenceScope, row: { model: string; inputTokens: number; outputTokens: number; costInr: number }): Promise<boolean>;
+};
+const finite = (v: unknown) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : null; };
+/** The database ledger: kaju_model_usage, read and written as the caller. */
+export const databaseLedger: Ledger = {
+  async usage(scope) {
+    if (!scope.db) return null;
+    const { data, error } = await scope.db.rpc("kaju_model_usage_now");
+    if (error || !data || typeof data !== "object") return null;
+    const d = data as Record<string, unknown>;
+    const userToday = finite(d.user_today), orgToday = finite(d.org_today), monthInr = finite(d.month_inr);
+    return userToday === null || orgToday === null || monthInr === null ? null : { userToday, orgToday, monthInr };
+  },
+  async record(scope, row) {
+    if (!scope.db) return false;
+    const { error } = await scope.db.rpc("record_kaju_model_usage", { p_purpose: scope.purpose, p_model: row.model.slice(0, 120), p_input_tokens: row.inputTokens, p_output_tokens: row.outputTokens, p_cost_inr: row.costInr });
+    return !error;
+  },
+};
+let ledger: Ledger | null = databaseLedger;
 export function setInferenceLedger(l: Ledger | null) { ledger = l; }
+
+/** Cost of one run at the configured token prices, in rupees. */
+export function usageCostInr(budget: Budget, u: Usage) {
+  return Math.round(((u.inputTokens * budget.inrPerMTokIn + u.outputTokens * budget.inrPerMTokOut) / 1e6) * 10000) / 10000;
+}
+/** Write one run's usage to the ledger. A failed write is reported, never hidden. */
+export async function recordInferenceUsage(scope: InferenceScope, model: string, u: Usage, env: Record<string, string | undefined> = process.env): Promise<boolean> {
+  const cfg = inferenceConfig(env);
+  if (!cfg.allowed || !ledger?.record || (!u.inputTokens && !u.outputTokens)) return false;
+  return ledger.record(scope, { model, inputTokens: Math.round(u.inputTokens), outputTokens: Math.round(u.outputTokens), costInr: usageCostInr(cfg.budget, u) }).catch(() => false);
+}
 
 /** Decide one request. Guests never reach a paid model. */
 export async function inferenceAllowed(scope: InferenceScope, env: Record<string, string | undefined> = process.env): Promise<InferenceDecision> {

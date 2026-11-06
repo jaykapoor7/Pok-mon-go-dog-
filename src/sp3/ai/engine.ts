@@ -1,6 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import { inferenceAllowed, modelCredentials, withInferenceSlot, type InferenceScope } from "@/lib/ai/inference";
+import { inferenceAllowed, modelCredentials, recordInferenceUsage, withInferenceSlot, type InferenceScope, type LedgerDb, type Usage } from "@/lib/ai/inference";
 import { extractFieldMessage } from "./extract";
 import { NAV, TOOL_DEFS, runTool, toolRun, type ToolCtx, type ToolOut } from "./tools";
 import { connectionToolDefs } from "./connectTools";
@@ -71,12 +71,19 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   }
   /* Guests never reach a paid model; signed-in people only when the
      central gate allows it AND the data route is approved. */
-  const scope: InferenceScope = { purpose: "kaju_chat", userId: ctx.userId ?? null, orgId: ctx.orgId };
+  const scope: InferenceScope = { purpose: "kaju_chat", userId: ctx.userId ?? null, orgId: ctx.orgId, db: ctx.db as unknown as LedgerDb };
   const access = ctx.userId ? await modelAccess(scope) : null;
   const approved = !!access && process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE === `${access.gateway ? "gateway" : "direct"}:${access.model}`;
   if (access && approved) {
-    try { return await withInferenceSlot(() => withModel(turns, ctx, context, access)); }
+    const used: Usage = { inputTokens: 0, outputTokens: 0 };
+    try {
+      const reply = await withInferenceSlot(() => withModel(turns, ctx, context, access, used));
+      /* Every model run is metered; if the ledger cannot record it the reply says so. */
+      const metered = await recordInferenceUsage(scope, access.model, used);
+      return metered ? reply : { ...reply, notice: [reply.notice, "Usage could not be recorded; further model replies are paused until it can."].filter(Boolean).join(" ") };
+    }
     catch {
+      await recordInferenceUsage(scope, access.model, used);
       if(context.signal?.aborted)throw Error("Kaju request cancelled");
       console.error("Kaju model request failed; using scoped record tools");
       const r = await withTools(toolQuestion, ctx);
@@ -88,7 +95,7 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
 }
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */
-async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string; signal?:AbortSignal }, access: ModelAccess): Promise<AiReply> {
+async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string; signal?:AbortSignal }, access: ModelAccess, used: Usage): Promise<AiReply> {
   const gateway = access.gateway;
   const client = new Anthropic({ maxRetries: 0, timeout: RUN_MS, ...(gateway ? { apiKey: null, authToken: access.token, baseURL: "https://ai-gateway.vercel.sh" } : { apiKey: access.token }) });
   const deadline = Date.now() + RUN_MS;
@@ -109,6 +116,8 @@ async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: stri
       tool_choice: { type: "auto" },
       messages: msgs,
     }, { timeout: Math.max(1, deadline - Date.now()), signal:context.signal });
+    used.inputTokens += (res.usage?.input_tokens ?? 0) + (res.usage?.cache_creation_input_tokens ?? 0) + (res.usage?.cache_read_input_tokens ?? 0) * 0.1;
+    used.outputTokens += res.usage?.output_tokens ?? 0;
     if (res.stop_reason === "refusal") return { text: "I can't help with that request.", ...acc, engine: "model" };
     text = res.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text").map((b) => b.text).join("\n").trim();
     const uses = res.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use");
