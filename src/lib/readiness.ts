@@ -40,7 +40,7 @@ export const MODULES: Module[] = [
   { id: "vet-signoff", name: "Clinical records and vet sign-off", area: "Veterinary", status: "STAGING", december: true, evidence: "Medical records inside the tenant boundary; veterinarian role; sign-off on procedures.", next: "Walk the OT workflow with a pilot veterinarian and adjust fields to their register." },
 
   // Government
-  { id: "gov-review", name: "Verification and review", area: "Government", status: "STAGING", december: true, evidence: "City review queue, programme and contract views, reviewer access to submitted packages.", next: "No municipal office uses it yet. Configure a BBMP pilot workspace once the pilot is agreed." },
+  { id: "gov-review", name: "Verification and review", area: "Government", status: "STAGING", december: true, evidence: "Government Overview as the office's command view: decisions waiting and oldest wait, packages with operators, claims claimed/accepted/payment evidence (accepted is not paid), operators with contracts in force, evidence completeness in waiting packages; animal-by-animal claim decisions with Kaju's source check. Walked end to end on the staging demo (Sample Bengaluru office).", next: "No municipal office uses it yet. Configure a BBMP pilot workspace once the pilot is agreed." },
   { id: "gov-reports", name: "Programme reporting", area: "Government", status: "STAGING", december: true, evidence: "Ward and programme reports from approved records; exports to Excel and PDF." },
 
   // Research

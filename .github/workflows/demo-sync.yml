@@ -1,0 +1,41 @@
+# Keeps demo.straypaw.org in step with main.
+#
+# The `demo` branch builds against the STAGING database (Vercel preview
+# environment), never production. It moves to main's commit only after the
+# Quality gate has passed on that commit, so the demo never runs a red build.
+# Uses the workflow's own token; no other secret is involved.
+name: Demo sync
+
+on:
+  workflow_run:
+    workflows: ["Quality gate"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: demo-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+      - name: Move demo to the passing main commit
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          # Only fast-forward: if demo has commits main lacks, stop and say so.
+          git fetch origin demo || true
+          if git rev-parse --verify -q origin/demo >/dev/null && ! git merge-base --is-ancestor origin/demo "$SHA"; then
+            echo "demo has commits that are not on main; not overwriting." >&2
+            exit 1
+          fi
+          git push origin "$SHA:refs/heads/demo"
