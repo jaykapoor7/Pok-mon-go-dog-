@@ -13,8 +13,9 @@
 
    Usage (accounts are created on staging beforehand):
      DEMO_PASSWORD=<password> node scripts/staging/seed-demo-workspace.mjs
-   Refuses to run against anything but the staging project, and refuses
-   to run twice on a workspace that already has animals.
+   Refuses to run against anything but the staging project. Safe to run
+   again: whatever already exists (matched by code or title) is kept and
+   the run carries on from there, so nothing is ever deleted.
    ════════════════════════════════════════════════════════════════════ */
 import { createClient } from "@supabase/supabase-js";
 import { chromium } from "playwright";
@@ -45,10 +46,11 @@ const must = async (label, p) => { const { data, error } = await p; if (error) t
 const soft = async (label, p) => { const { data, error } = await p; if (error) console.log(`  skipped ${label}: ${error.message}`); return error ? null : data; };
 
 const c = Object.fromEntries(await Promise.all(Object.keys(PEOPLE).map(async (k) => [k, await sign(k)])));
-{
-  const { count } = await c.coord.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", NGO);
-  if (count) { console.error(`The sample workspace already has ${count} animals. Not seeding twice.`); process.exit(3); }
-}
+/* What a previous run already made, so this run only adds what is missing. */
+const { data: haveDogs } = await c.coord.from("dogs").select("id,code").eq("ngo_id", NGO);
+const dogByCode = new Map((haveDogs ?? []).map((d) => [d.code, d.id]));
+const { data: haveCases } = await c.coord.from("cases").select("id,title").eq("ngo_id", NGO);
+const caseByTitle = new Map((haveCases ?? []).map((x) => [x.title, x.id]));
 
 // ── Places ────────────────────────────────────────────────────────────
 const PLACES = [
@@ -78,9 +80,10 @@ for (let i = 0; i < 32; i++) {
   const [zone, lat, lng] = PLACES[i % PLACES.length];
   const name = NAMES[i % NAMES.length];
   const code = `${zone.slice(0, 3).toUpperCase()}-${String(101 + i)}`;
-  const id = await must(`animal ${i}`, c.field.rpc("create_animal_with_location", {
+  const lt = jitter(lat), lg = jitter(lng);
+  const id = dogByCode.get(code) ?? await must(`animal ${i}`, c.field.rpc("create_animal_with_location", {
     p_city: "Bengaluru", p_name: name, p_species: "dog", p_code: code, p_zone: zone,
-    p_lat: jitter(lat), p_lng: jitter(lng), p_cover_photo: null, p_intake_notes: "Sample record for demonstration.", p_h3_r8: null,
+    p_lat: lt, p_lng: lg, p_cover_photo: null, p_intake_notes: "Sample record for demonstration.", p_h3_r8: null,
   }));
   animals.push({ id, zone, lat, lng, name: name ?? code });
 }
@@ -98,12 +101,20 @@ const coordName = PEOPLE.coord[2], coordId = PEOPLE.coord[1];
 const abcCases = [];
 for (const [ai, date, state] of ABC) {
   const a = animals[ai];
-  const caseId = await must("abc case", c.coord.rpc("create_case_with_location", {
-    p_city: "Bengaluru", p_title: `ABC · ${a.name}, ${a.zone}`, p_description: "Sample sterilisation under the ABC programme.",
+  const title = `ABC · ${a.name}, ${a.zone}`;
+  const existing = caseByTitle.get(title);
+  if (existing) {
+    const { count } = await c.coord.from("evidence_items").select("id", { count: "exact", head: true }).eq("case_id", existing);
+    if (count) { abcCases.push({ caseId: existing, state }); continue; }
+  }
+  const { data: doneEvents } = existing ? await c.coord.from("animal_operation_events").select("kind").eq("case_id", existing) : { data: [] };
+  const done = new Set((doneEvents ?? []).map((e) => e.kind));
+  const caseId = existing ?? await must("abc case", c.coord.rpc("create_case_with_location", {
+    p_city: "Bengaluru", p_title: title, p_description: "Sample sterilisation under the ABC programme.",
     p_dog_id: a.id, p_zone: a.zone, p_lat: null, p_lng: null, p_severity: "normal", p_category: "sterilisation", p_tags: [],
     p_actor_id: coordId, p_actor_name: coordName, p_species: "dog", p_informer_contact: null, p_hospital: "Sample ABC centre, Bengaluru", p_cost_estimate: null, p_cost_spent: null, p_h3_r8: null,
   }));
-  const ev = (kind, payload) => must(`${kind} event`, c.field.rpc("operations_record_event", { p_request: randomUUID(), p_case: caseId, p_kind: kind, p_payload: { template: "lifecycle-v1", ...payload }, p_policy: null }));
+  const ev = (kind, payload) => done.has(kind) ? null : must(`${kind} event`, c.field.rpc("operations_record_event", { p_request: randomUUID(), p_case: caseId, p_kind: kind, p_payload: { template: "lifecycle-v1", ...payload }, p_policy: null }));
   const d = new Date(`${date}T00:00:00+05:30`);
   const before = new Date(d.getTime() - 86400000).toISOString().slice(0, 10);
   const after = new Date(d.getTime() + 2 * 86400000).toISOString().slice(0, 10);
@@ -144,6 +155,7 @@ const RESCUE = [
 ];
 for (const [ai, title, category, severity, status, follow] of RESCUE) {
   const a = animals[ai];
+  if (caseByTitle.has(`${title} · ${a.name}`)) continue;
   const caseId = await must("case", c.coord.rpc("create_case_with_location", {
     p_city: "Bengaluru", p_title: `${title} · ${a.name}`, p_description: "Sample case reported by a resident.", p_dog_id: a.id, p_zone: a.zone,
     p_lat: null, p_lng: null, p_severity: severity, p_category: category, p_tags: [], p_actor_id: coordId, p_actor_name: coordName, p_species: "dog",
@@ -159,7 +171,8 @@ console.log(`rescue cases: ${RESCUE.length}`);
 
 // ── Illustrative contract, set by the municipal office ─────────────────
 const EVIDENCE = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"];
-const contractReceipt = await must("contract", c.reviewer.rpc("operations_create_contract", { p_request: randomUUID(), p_payload: {
+const { data: haveContracts } = await c.coord.from("operations_contracts").select("id").eq("ngo_id", NGO).eq("office_id", OFFICE);
+const contractReceipt = haveContracts?.length ? true : await must("contract", c.reviewer.rpc("operations_create_contract", { p_request: randomUUID(), p_payload: {
   name: "Sample ABC contract · Bengaluru", version: 1, reference: "Illustrative rates for demonstration; not a real agreement",
   office_id: OFFICE, ngo_id: NGO, starts_on: "2026-10-01", ends_on: "2027-03-31", illustrative: true,
   rates: [{ code: "sterilisation", label: "ABC sterilisation per animal (illustrative)", unit_rate: "1650", required_evidence: EVIDENCE, required_events: ["sterilisation", "recovery", "release"], vet_required: true }],
@@ -171,8 +184,18 @@ const rate = rates?.find((r) => r.code === "sterilisation")?.id;
 console.log(`contract ${contract && contractReceipt ? "set" : "missing"}`);
 
 // ── Packages: October accepted, November waiting for a decision ────────
+/* A coordinator confirms each release the field team recorded before anything is submitted. */
+for (const { caseId } of abcCases) {
+  const { data: evs } = await c.coord.from("animal_operation_events").select("id,kind").eq("case_id", caseId).in("kind", ["release", "transfer"]);
+  const { data: revs } = await c.coord.from("animal_operation_reviews").select("event_id").in("event_id", (evs ?? []).map((e) => e.id));
+  const reviewed = new Set((revs ?? []).map((r) => r.event_id));
+  for (const e of evs ?? []) if (!reviewed.has(e.id)) await soft("release review", c.coord.rpc("operations_review_event", { p_request: randomUUID(), p_event: e.id, p_decision: "confirmed", p_reason: "Release point checked against the capture location." }));
+}
+const { data: havePackages } = await c.coord.from("report_packages").select("id,title,status").eq("ngo_id", NGO);
 async function pack(title, start, end) {
-  const id = await must(`package ${title}`, c.coord.rpc("abc_create_package", { p_title: title, p_start: start, p_end: end, p_office: OFFICE }));
+  const had = havePackages?.find((x) => x.title === title);
+  if (had && had.status !== "draft") return had.id;
+  const id = had?.id ?? await must(`package ${title}`, c.coord.rpc("abc_create_package", { p_title: title, p_start: start, p_end: end, p_office: OFFICE }));
   const { data: rows } = await c.coord.rpc("abc_package_cases", { p_package: id });
   if (contract && rate) await soft("claims", c.coord.rpc("operations_configure_package", { p_request: randomUUID(), p_package: id, p_contract: contract, p_claims: (rows ?? []).map((r) => ({ case_id: r.case_id, rate_id: rate, units: 1 })) }));
   await must("submit", c.coord.rpc("abc_package_act", { p_package: id, p_kind: "submitted" }));
@@ -181,7 +204,12 @@ async function pack(title, start, end) {
 const oct = await pack("ABC claims · October 2026", "2026-10-01", "2026-10-31");
 await soft("query", c.reviewer.rpc("abc_package_act", { p_package: oct, p_kind: "query", p_body: "Please confirm the release points for the Whitefield animals." }));
 await soft("answer", c.coord.rpc("abc_package_act", { p_package: oct, p_kind: "answer", p_body: "Released where caught, near the market; locations are on each record." }));
-await soft("accept", c.reviewer.rpc("abc_package_act", { p_package: oct, p_kind: "accepted" }));
+/* The office decides animal by animal, then closes the review. */
+{
+  const { data: rec } = await c.reviewer.rpc("operations_reconciliation", { p_package: oct });
+  for (const item of rec?.items ?? []) if (item.decision === "pending") await soft("claim decision", c.reviewer.rpc("operations_decide_item", { p_request: randomUUID(), p_package: oct, p_case: item.case_id, p_claim: item.claim_id, p_decision: "accepted", p_note: "Evidence, sign-off and release checked.", p_units: item.claimed_units }));
+  await soft("close review", c.reviewer.rpc("operations_finalize_package", { p_request: randomUUID(), p_package: oct, p_note: "All October claims accepted at the contract rate. Accepted is not paid." }));
+}
 const nov = await pack("ABC claims · 1–4 November 2026", "2026-11-01", "2026-11-04");
 console.log(`packages: October ${oct}, November ${nov}`);
 console.log("Done. Every record is labelled as a sample.");
