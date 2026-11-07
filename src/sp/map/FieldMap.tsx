@@ -17,6 +17,7 @@ import { coreBounds, haversineKm, seedHead } from "../atlas/geo";
 import { KINDS, cityEvidence, kindOf } from "../atlas/evidence";
 import { LENSES, lensFigure, nationalMeasure, needingHelp, type LensId } from "../atlas/lenses";
 import { rememberHome, resolveHome } from "@/lib/home-city";
+import { myContext } from "@/lib/abc";
 import { GLYPHS, ORNAMENT, collapseAttribution, groundStyle, drawGround } from "./ground";
 import { MARK } from "./marks";
 import { Chrome, type Face, type Level } from "./Chrome";
@@ -412,10 +413,12 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
   useEffect(() => {
     if (homed.current || citiesState !== "ready" || !cities.length) return;
     let live = true;
-    const pick = scope === "org" ? Promise.resolve(cities[0]?.city ?? null) : resolveHome(cities);
+    /* A reviewing office opens on its own city when the record has reached it. */
+    const office = variant === "city" ? myContext().then((c) => { const want = c.offices.map((o) => o.city?.trim().toLowerCase()).filter(Boolean); return cities.find((x) => want.includes(x.city.trim().toLowerCase()))?.city ?? null; }).catch(() => null) : Promise.resolve(null);
+    const pick = scope === "org" ? Promise.resolve(cities[0]?.city ?? null) : office.then((o) => o ?? resolveHome(cities));
     pick.then((home) => { if (!live) return; homed.current = true; if (home && !cityNow.current) openCity(home); });
     return () => { live = false; };
-  }, [cities, citiesState, scope, openCity]);
+  }, [cities, citiesState, scope, openCity, variant]);
   /* A city opened is remembered; India only when the person goes there. */
   useEffect(() => { if (city && homed.current && !embedded && scope === "public") rememberHome(city); }, [city, embedded, scope]);
 

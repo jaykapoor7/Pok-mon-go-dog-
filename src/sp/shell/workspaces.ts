@@ -591,6 +591,24 @@ for (const d of DESTINATIONS) {
   if (h.primaryFor) d.primaryFor = [...new Set([...(d.primaryFor ?? []), ...h.primaryFor])];
   if (d.href === "/ngo/verification" && d.query === "stage=evidence") d.listed = true;
 }
+/* Government: what the office runs first (overview and map), then decisions on NGO
+   submissions, then reporting. Each place once. */
+const CITY_HUBS: Record<string, Hub> = {
+  "/city/insights": { section: "Overview", order: 0 },
+  "/city": { order: 1 },
+  "/city/review": { section: "Decisions", order: 10 },
+  "/city/contracts": { order: 11 },
+  "/city/programmes": { section: "Reporting", order: 20 },
+  "/city/report": { order: 21 },
+};
+for (const d of DESTINATIONS) {
+  if (d.workspace !== "city") continue;
+  const h = CITY_HUBS[d.href];
+  if (!h) continue;
+  if (d.section && !h.section) delete d.section;
+  d.order = h.order;
+  if (h.section) d.section = h.section;
+}
 const META={
   "community": {
     "id": "community",

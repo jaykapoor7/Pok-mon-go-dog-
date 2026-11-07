@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { rememberHome, resolveHome } from "@/lib/home-city";
+import { myContext } from "@/lib/abc";
 import { Printer } from "lucide-react";
 import { useSpatialDataset } from "../data/spatial";
 import { cityEvidence, KINDS } from "../atlas/evidence";
@@ -41,7 +42,8 @@ export function Insights() {
   useEffect(() => {
     if (homed.current || !cities.length) return;
     homed.current = true;
-    resolveHome(cities).then((home) => { if (home && home !== city && cities.some((c) => c.city === home)) router.replace(`/city/insights?city=${encodeURIComponent(home)}`, { scroll: false }); });
+    /* A reviewing office opens on its own city when the record has reached it. */
+    myContext().then((c) => { const want = c.offices.map((o) => o.city?.trim().toLowerCase()).filter(Boolean); return cities.find((x) => want.includes(x.city.trim().toLowerCase()))?.city ?? null; }).catch(() => null).then((o) => o ?? resolveHome(cities)).then((home) => { if (home && home !== city && cities.some((c) => c.city === home)) router.replace(`/city/insights?city=${encodeURIComponent(home)}`, { scroll: false }); });
   }, [cities, city, router]);
 
   return (
