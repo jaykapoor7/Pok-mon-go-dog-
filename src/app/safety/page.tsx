@@ -4,7 +4,7 @@ export const metadata = { title: "Safety, StrayPaw", description: "Staying safe 
 
 export default function SafetyPage() {
   return (
-    <InfoPage title="Safety">
+    <InfoPage title="Safety" eyebrow="Staying safe">
       <p>
         Helping street animals is wonderful, please stay safe while you do it,
         for your sake and theirs.

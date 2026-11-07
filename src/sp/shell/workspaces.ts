@@ -2,7 +2,7 @@
  * Visibility is fail-closed for restricted destinations; RLS remains authoritative. */
 export type WorkspaceId='community'|'ngo'|'city'|'learn';
 export type Role='admin'|'coordinator'|'veterinarian'|'member';
-import { flagOn, type Flag } from '@/lib/flags';
+import { publicFlagOn, type Flag } from '@/lib/flags';
 export type NavItem={href:string;label:string;icon:string;/** Shown only when this feature flag is on. */flag?:Flag;aliases?:string[];match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>;/** Position in the five-step NGO workflow. */step?:number;/** Query string that selects a view of the page (e.g. stage=vet). */query?:string;order?:number};
 export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:boolean;mobile?:boolean;primaryFor?:Role[];assistantKey?:string;note?:string;/** false: reached from its hub page and search, not listed in the sidebar. */listed?:boolean};
 export type Dest=NavItem & {short?:string};
@@ -601,7 +601,7 @@ const META={
   }
 } as const;
 export type Workspace={id:WorkspaceId;label:string;purpose:string;ink:string;home:string;action:{href:string;label:string;short:string}|null;members?:boolean;settings?:string;nav:NavItem[];dests:Dest[];index:IndexGroup[]};
-export function canDiscover(n:NavItem,role:Role|null,reviewer=false){return (!n.roles||!!role&&n.roles.includes(role))&&(!n.reviewer||reviewer)&&(!n.flag||flagOn(n.flag))}
+export function canDiscover(n:NavItem,role:Role|null,reviewer=false){return (!n.roles||!!role&&n.roles.includes(role))&&(!n.reviewer||reviewer)&&(!n.flag||publicFlagOn(n.flag))}
 export function destinations(ws:WorkspaceId,role:Role|null,reviewer=false){return DESTINATIONS.filter(n=>n.workspace===ws&&canDiscover(n,role,reviewer))}
 export function workspaceView(ws:WorkspaceId,role:Role|null,reviewer=false):Workspace{
  const all=destinations(ws,role,reviewer),rank=(n:Destination)=>n.order??(n.href===META[ws].home?-1:50),primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).sort((a,b)=>rank(a)-rank(b)).map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href&&!(x.primary||!!role&&x.primaryFor?.includes(role))).map(x=>x.href)]}));

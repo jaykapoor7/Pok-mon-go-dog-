@@ -45,7 +45,8 @@ export const MODULES: Module[] = [
 
   // Research
   { id: "research-public", name: "Public datasets and map", area: "Research", status: "LIVE", december: true, evidence: "Public map with H3 cells, programmes and published datasets with method notes." },
-  { id: "research-access", name: "Researcher access and controlled exports", area: "Research", status: "BLOCKED", december: true, waitsOn: "Data-sharing terms with the consortium and approved study protocols.", evidence: "City insights with method, limits and gaps; published datasets; a data-access request flow at /research/access. Record-level exports stay closed until terms are agreed." },
+  { id: "research-workbench", name: "Research workbench", area: "Research", status: "LIVE", december: true, evidence: "Monthly series of recorded interventions and requests for help from the public views, filters by period, intervention and city, response-time and follow-up figures, aggregate CSV downloads and a method panel stating denominators and limits. Checked against production's public data (22,528 care and 2,285 request records)." },
+  { id: "research-access", name: "Record-level researcher exports", area: "Research", status: "BLOCKED", december: true, waitsOn: "Data-sharing terms with the consortium and approved study protocols.", evidence: "Data-access request flow at /research/access. Record-level and partner exports stay closed until terms are agreed." },
 
   // Training
   { id: "training-lms", name: "Training courses and assignments", area: "Training", status: "LIVE", december: true, evidence: "Courses with reading, video, document and quiz lessons; quiz keys hidden from learners and scored in the database; assignment with due dates; team progress for coordinators. Verified on staging as a coordinator and a field member, in the database and in the screens; migration applied to production.", next: "Write the pilot's first courses with the BeST team: safe capture, recording a release, vaccination records.", flag: "training_lms" },
@@ -65,7 +66,7 @@ export const MODULES: Module[] = [
   { id: "int-sms", name: "SMS (MSG91)", area: "Integrations", status: "BLOCKED", december: false, waitsOn: "DLT template registration.", evidence: "Adapter built." },
 
   // Platform
-  { id: "platform-rls", name: "Tenant isolation and audit", area: "Platform", status: "LIVE", december: true, evidence: "Row-level security per organisation, security-definer review, operational audit log. Scripts: db:security:audit, db:security:matrix." },
+  { id: "platform-rls", name: "Tenant isolation and audit", area: "Platform", status: "LIVE", december: true, evidence: "Row-level security per organisation, operational audit log. 2026-11-07 hardening: search_path pinned on 20 functions, 17 organisation-only functions closed to signed-out callers; verified signed-out (169 e2e) and as members. Public views remain security-definer by design (docs/SECURITY-DEFINER-VIEWS.md).", next: "Turn on leaked-password protection in Supabase Auth settings (dashboard switch)." },
   { id: "platform-flags", name: "Feature flags and readiness", area: "Platform", status: "STAGING", december: true, evidence: "SP_FLAGS switches unverified modules on per deployment; this registry.", flag: "readiness_board" },
 ];
 

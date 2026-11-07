@@ -13,7 +13,7 @@
 
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, ArrowUp, CalendarClock, CircleAlert, ClipboardList, History, Inbox, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
@@ -128,7 +128,16 @@ export function Brief() {
         <h1 className="br-hello">{greeting()}, {first}.<span>Here is today, step by step.</span></h1>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
-          : <p className="br-since">Since yesterday: <b>{fresh.length}</b> new or updated · <b>{d.unavailable.includes("recent changes")?"not read":closedNew.length}</b> closed · <b>{d.unavailable.includes("follow-ups")?"not read":nOverdue}</b> overdue · <b>{d.unavailable.includes("counts")?"not read":nLive}</b> live in the queue</p>}
+          : <p className="br-since">{(() => {
+              const v = (k: string, x: number) => d.unavailable.includes(k) ? null : x;
+              const parts: ReactNode[] = [];
+              const add = (n: number | null, one: string, many: string) => { if (n !== null) parts.push(<b>{n} {n === 1 ? one : many}</b>); };
+              add(fresh.length, "record was new or updated", "records were new or updated");
+              add(v("recent changes", closedNew.length), "case closed", "cases closed");
+              add(v("follow-ups", nOverdue), "follow-up is overdue", "follow-ups are overdue");
+              add(v("counts", nLive), "case is live in the queue", "cases are live in the queue");
+              return <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? ", and " : ", ")}{p}</Fragment>)}.</>;
+            })()}</p>}
 
         {/* Ask Kaju sits at the top, in the page, never floating over content. */}
         <form className="br-ask br-ask-top" onSubmit={ask}>

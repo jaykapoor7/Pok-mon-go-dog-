@@ -32,3 +32,8 @@ export function enabledFlags(env: Record<string, string | undefined> = process.e
 }
 
 export const flagOn = (name: Flag, env: Record<string, string | undefined> = process.env) => enabledFlags(env).has(name);
+
+/** Flags as the browser sees them (NEXT_PUBLIC_SP_FLAGS only). Use this for
+    anything rendered on both server and client, such as navigation, so the
+    two always agree; pages themselves still check flagOn on the server. */
+export const publicFlagOn = (name: Flag) => enabledFlags({ NEXT_PUBLIC_SP_FLAGS: PUBLIC_FLAGS }).has(name);

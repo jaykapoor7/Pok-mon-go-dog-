@@ -66,6 +66,7 @@ export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
     { title: "Open to everyone", links: [
       { href: "/community", label: "National register", hint: "The public map of India's street animals" },
       { href: "/research", label: "Research", hint: "Open data, methods and studies" },
+      { href: "/research/workbench", label: "Research workbench", hint: "Monthly series, filters and downloads" },
       { href: "/learn", label: "Academy", hint: "Courses, school programmes and practicums" },
       { href: "/community/report", label: "Report an animal", hint: "No account needed" },
     ] },

@@ -180,3 +180,5 @@
 .sp .ci-index .ci-tab[aria-current="true"] { background: #e8eefb; color: #0b1e3d; font-weight: 500; }
 .sp .ci-index .ci-tab .mono { color: #2457ce; }
 .sp .ci-step { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0 8px; border-top: 1px solid #eceef2; margin-top: 8px; }
+/* The cover art is an accent, not the report: a small band beside the title on screen. */
+@media screen { .sp .cr-cover .art { max-width: 220px; max-height: 140px; overflow: hidden; border-radius: 10px; opacity: .92; } .sp .cr-cover .art img { width: 100%; height: 140px; object-fit: cover; } }

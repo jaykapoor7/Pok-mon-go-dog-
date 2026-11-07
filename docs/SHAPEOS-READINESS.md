@@ -6,8 +6,12 @@ The Bengaluru pilot is under discussion with the BeST Cluster at IISc. It is **n
 
 ## Done on 2026-11-07
 
-- Training migration applied to staging and production, verified as a coordinator and a field member, and `training_lms` switched on in production.
-- Bite help stays off until clinical review and a verified vaccine-centre list.
+- Training live on staging and production after verification as a coordinator and a field member.
+- Government: contracts show operator and office names instead of database IDs; the city report's cover art no longer dominates the page.
+- Today screen matches the product demo: stacked greeting and a one-sentence "since yesterday".
+- Research workbench at `/research/workbench`: monthly series, filters, aggregate downloads, method and limits.
+- Security: search_path pinned on 20 functions; organisation-only functions closed to signed-out callers (staging and production). Remaining linter items are accepted and documented: public views are security-definer by design, `spatial_ref_sys` and `postgis` belong to PostGIS.
+- Still to switch on in the Supabase dashboard: leaked-password protection (Auth settings).
 
 ## Status meanings
 
@@ -53,7 +57,8 @@ Every model run is written to `kaju_model_usage` with its tokens and rupee cost.
 - [ ] Veterinary sign-off walked through with a pilot veterinarian
 - [ ] Government review configured for a pilot ward (needs the pilot agreement)
 - [x] Public map and datasets with method notes
-- [ ] Researcher workspace with approved-study exports (needs data-sharing terms)
+- [x] Research workbench on public data (`/research/workbench`)
+- [ ] Record-level researcher exports (needs data-sharing terms)
 - [x] Training screens: courses, quizzes, assignments, team progress
 - [x] Training migration applied to staging and production and verified
 - [x] RFID, microchip and QR identifiers with scanner lookup (staging, flag `animal_identifiers`)

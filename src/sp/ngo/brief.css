@@ -230,3 +230,6 @@
 .br .br-fold[open] > summary { margin-bottom: 8px; }
 @media (min-width: 1200px) { .br .br-rail > :first-child { margin-top: 0; } }
 @media (max-width: 860px) { .br .br-main > .br-sec, .br .br-rail > :is(section, details) { padding: 14px; } .br-ask-top { order: -1; margin: 12px 0 2px; } }
+
+/* Match the product demo: the greeting and its second line, stacked, same size. */
+.br-hello span { display: block; margin: 0; font-size: inherit; letter-spacing: inherit; color: #6f7380; }
