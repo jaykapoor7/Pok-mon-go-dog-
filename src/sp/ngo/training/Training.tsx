@@ -267,7 +267,7 @@ function CourseEditor({ id, course, onClose }: { id: string | null; course: Cour
       {courseId && own && (
         <section className="tr-panel" aria-labelledby="tr-lessons-h">
           <div className="tr-row"><h2 id="tr-lessons-h" className="tr-h2">Lessons</h2>{!draft && <button className="btn" onClick={() => { setDraft(blankLesson()); setKeys([]); }}>Add lesson</button>}</div>
-          {lessons.length ? <ol className="tr-lesson-list">{lessons.map((l) => <li key={l.id}><span><b>{l.title}</b><small>{KIND[l.kind]}{l.kind === "quiz" ? ` · ${l.questions?.length ?? 0} questions · pass ${l.pass_mark}%` : ""}</small></span>
+          {lessons.length ? <ol className="tr-lesson-list">{lessons.map((l) => <li key={l.id}><span><b>{l.title}</b><small>{KIND[l.kind]}{l.kind === "quiz" ? ` · ${l.questions?.length ?? 0} ${(l.questions?.length ?? 0) === 1 ? "question" : "questions"} · pass ${l.pass_mark}%` : ""}</small></span>
             <span className="tr-row"><button className="btn is-s" onClick={() => { setDraft({ ...l, body: l.body ?? "", media_url: l.media_url ?? "" }); setKeys([]); }}>Edit</button><button className="btn is-s is-ghost" onClick={() => void removeLesson(l)}>Remove</button></span></li>)}</ol>
             : <p className="tr-empty">Add the first lesson: a short reading, a video link, a document or a quiz.</p>}
           {draft && <LessonForm lesson={draft} keys={keys} onChange={setDraft} onKeys={setKeys} onSave={() => void saveLesson()} onCancel={() => setDraft(null)} busy={busy} editingQuiz={!!draft.id && draft.kind === "quiz"} />}
@@ -331,7 +331,8 @@ function Assign({ courseId }: { courseId: string }) {
     const c = db(); if (!c || !pick.size) return;
     const r = await c.rpc("training_assign", { p_course: courseId, p_users: [...pick], p_due: due || null });
     if (r.error) { setResult({ ok: false, text: msg(r.error, "Not assigned.") }); return; }
-    setResult({ ok: true, text: `Assigned to ${pick.size} ${pick.size === 1 ? "person" : "people"}.` }); setPick(new Set()); await load();
+    const n = pick.size; await load(); setPick(new Set());
+    setResult({ ok: true, text: `Assigned to ${n} ${n === 1 ? "person" : "people"}.` });
   }
   async function unassign(id: string) {
     const c = db(); if (!c) return;

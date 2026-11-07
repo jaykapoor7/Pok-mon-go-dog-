@@ -48,7 +48,7 @@ export const MODULES: Module[] = [
   { id: "research-access", name: "Researcher access and controlled exports", area: "Research", status: "BLOCKED", december: true, waitsOn: "Data-sharing terms with the consortium and approved study protocols.", evidence: "City insights with method, limits and gaps; published datasets; a data-access request flow at /research/access. Record-level exports stay closed until terms are agreed." },
 
   // Training
-  { id: "training-lms", name: "Training courses and assignments", area: "Training", status: "STAGING", december: true, evidence: "Courses with reading, video, document and quiz lessons; quiz keys hidden from learners and scored in the database; assignment with due dates; team progress for coordinators. Screens at /ngo/training.", next: "Apply the training migration (waiting on approval), then verify as a coordinator and a field member.", flag: "training_lms" },
+  { id: "training-lms", name: "Training courses and assignments", area: "Training", status: "LIVE", december: true, evidence: "Courses with reading, video, document and quiz lessons; quiz keys hidden from learners and scored in the database; assignment with due dates; team progress for coordinators. Verified on staging as a coordinator and a field member, in the database and in the screens; migration applied to production.", next: "Write the pilot's first courses with the BeST team: safe capture, recording a release, vaccination records.", flag: "training_lms" },
 
   // Citizens
   { id: "citizen-report", name: "Animal reports", area: "Citizens", status: "LIVE", december: true, evidence: "Public sighting and needs-help reports with a received-not-accepted receipt; e2e: straypaw2 reporting." },

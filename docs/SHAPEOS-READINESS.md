@@ -4,13 +4,10 @@ StrayPaw becomes ShapeOS: one record of animals, interventions and programmes, w
 
 The Bengaluru pilot is under discussion with the BeST Cluster at IISc. It is **not signed or funded**. Nothing here should be presented as a deployment until it is.
 
-## Pending: do these next (agreed 2026-11-07)
+## Done on 2026-11-07
 
-1. Apply `supabase/migrations/20261107090000_training_lms.sql` to staging (`ucxfxiddufwqithtdtix`). The automated apply waits for a tool-approval prompt in the Claude app; approve it, or run the file in the Supabase SQL editor.
-2. Verify training on staging as a coordinator (build, publish, assign) and a field member (lessons, quiz scoring, progress).
-3. Apply the same file to production (`toujthlzjmhmoyykmayx`).
-4. Add `training_lms` to `SP_FLAGS` and `NEXT_PUBLIC_SP_FLAGS` on production, redeploy, and set the training row in `src/lib/readiness.ts` to LIVE.
-5. Bite help stays off until clinical review and a verified vaccine-centre list.
+- Training migration applied to staging and production, verified as a coordinator and a field member, and `training_lms` switched on in production.
+- Bite help stays off until clinical review and a verified vaccine-centre list.
 
 ## Status meanings
 
@@ -23,12 +20,12 @@ The Bengaluru pilot is under discussion with the BeST Cluster at IISc. It is **n
 
 ## Feature flags
 
-Unverified modules ship switched off. A flag is on only when its name is listed in the deployment's `SP_FLAGS` (server) and `NEXT_PUBLIC_SP_FLAGS` (navigation), comma separated. Production lists `animal_identifiers,readiness_board`.
+Unverified modules ship switched off. A flag is on only when its name is listed in the deployment's `SP_FLAGS` (server) and `NEXT_PUBLIC_SP_FLAGS` (navigation), comma separated. Production lists `animal_identifiers,readiness_board,training_lms`.
 
 | Flag | Module |
 |---|---|
 | `citizen_bite_assist` | Bite or scratch help at `/bite-help` (off: needs clinical review before any public use) |
-| `training_lms` | Training at `/ngo/training` (off until its migration is applied and verified) |
+| `training_lms` | Training at `/ngo/training` (on in production) |
 | `animal_identifiers` | RFID, microchip and QR identifiers; scan at `/ngo/animals/scan` (on in production) |
 | `readiness_board` | Readiness board in the workspace menu (on in production) |
 
@@ -58,7 +55,7 @@ Every model run is written to `kaju_model_usage` with its tokens and rupee cost.
 - [x] Public map and datasets with method notes
 - [ ] Researcher workspace with approved-study exports (needs data-sharing terms)
 - [x] Training screens: courses, quizzes, assignments, team progress
-- [ ] Training migration applied and verified (waiting on approval)
+- [x] Training migration applied to staging and production and verified
 - [x] RFID, microchip and QR identifiers with scanner lookup (staging, flag `animal_identifiers`)
 - [x] Identifier and usage-ledger migrations on production
 - [x] Bite or scratch help prototype (`/bite-help`, flag off)
