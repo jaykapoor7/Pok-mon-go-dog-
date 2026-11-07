@@ -63,24 +63,19 @@ export function FiveSteps() {
     tick(); window.addEventListener("scroll", onScroll, { passive: true }); window.addEventListener("resize", onScroll);
     return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(raf); };
   }, [pinned]);
-  // Phone: the five steps stack; the sticky tabs follow the step in view.
+  // Phone: one step at a time. Tabs or a sideways swipe change it; the page does not grow.
+  const tabs = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (pinned) return;
-    const cards = [...(swipe.current?.children ?? [])] as HTMLElement[];
-    if (!cards.length || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) setOn(cards.indexOf(e.target as HTMLElement)); }, { rootMargin: "-40% 0px -55% 0px" });
-    cards.forEach((c) => io.observe(c));
-    return () => io.disconnect();
-  }, [pinned]);
+    const b = tabs.current?.children[on] as HTMLElement | undefined;
+    const row = tabs.current;
+    if (b && row) row.scrollTo({ left: b.offsetLeft - 16, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }, [on, pinned]);
+  const touch = useRef<number | null>(null);
   const go = (i: number) => {
     const el = box.current;
     const smooth = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-    if (!pinned) {
-      setOn(i);
-      const card = swipe.current?.children[i] as HTMLElement | undefined;
-      if (card) window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 128, behavior: smooth });
-      return;
-    }
+    if (!pinned) { setOn(Math.max(0, Math.min(STEPS.length - 1, i))); return; }
     if (!el) return;
     const span = el.offsetHeight - window.innerHeight;
     const top = el.getBoundingClientRect().top + window.scrollY + span * ((i + 0.5) / STEPS.length);
@@ -106,7 +101,7 @@ export function FiveSteps() {
           <div className="s7-steps-head">
             <h2 id="steps-title" className="s4-h2">Use cases</h2>
           </div>
-          <div className="s7-steps-tabs" role="tablist" aria-label="The five steps">
+          <div className="s7-steps-tabs" role="tablist" aria-label="The five steps" ref={tabs}>
             {STEPS.map((x, i) => (
               <button key={x.key} type="button" role="tab" aria-selected={on === i} aria-controls="s7-step-panel" onClick={() => go(i)}>
                 {x.tab}
@@ -116,7 +111,15 @@ export function FiveSteps() {
           </div>
           {pinned
             ? <div id="s7-step-panel" role="tabpanel">{panel(s, s.key)}</div>
-            : <div id="s7-step-panel" role="tabpanel" className="s7-stack" ref={swipe}>{STEPS.map((x) => <div key={x.key} className="s7-stack-card">{panel(x)}</div>)}</div>}
+            : <div id="s7-step-panel" role="tabpanel" className="s7-one" ref={swipe}
+                onTouchStart={(e) => { touch.current = e.touches[0].clientX; }}
+                onTouchEnd={(e) => { const x0 = touch.current; touch.current = null; if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 48) go(on + (dx < 0 ? 1 : -1)); }}>
+                {panel(s, s.key)}
+                <div className="s7-one-nav">
+                  <span className="s7-one-dots" aria-hidden>{STEPS.map((x, i) => <i key={x.key} className={i === on ? "is-on" : undefined} />)}</span>
+                  {on < STEPS.length - 1 ? <button type="button" className="s7-one-next" onClick={() => go(on + 1)}>Next: {STEPS[on + 1].tab} <ArrowRight size={15} aria-hidden /></button> : <button type="button" className="s7-one-next" onClick={() => go(0)}>Start again</button>}
+                </div>
+              </div>}
         </div>
       </div>
     </section>

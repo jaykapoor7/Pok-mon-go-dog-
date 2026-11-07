@@ -15,12 +15,14 @@ const NOTICE = "straypaw.notice.storage.v1";
 export function Welcome() {
   const [show, setShow] = useState(false);
   const [video, setVideo] = useState(false);
+  const [slim, setSlim] = useState(false);
   const dlg = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     let off = false;
     try { off = localStorage.getItem(KEY) === "1"; } catch { /* storage blocked */ }
     if (off) return;
     const phone = window.matchMedia("(max-width: 640px)").matches;
+    setSlim(phone);
     let seen = true; try { seen = !!localStorage.getItem(NOTICE); } catch { /* blocked */ }
     let t = 0;
     const open = () => { t = window.setTimeout(() => setShow(true), 1200); };
@@ -33,7 +35,15 @@ export function Welcome() {
   const close = () => { setShow(false); try { localStorage.setItem(KEY, "1"); } catch { /* fine */ } };
   return (
     <>
-      {show && (
+      {show && slim && (
+        /* On a phone: one slim line that never covers the page. */
+        <aside className="s7-welcome is-slim" aria-label="Build your first Kaju workflow">
+          <span className="s7-welcome-kaju" aria-hidden><KajuFace size={26} /></span>
+          <Link href="/demo" onClick={close}><b>Build your first Kaju workflow</b><small>Live session · 30 minutes</small></Link>
+          <button type="button" className="s7-welcome-x" onClick={close} aria-label="Close"><X size={16} aria-hidden /></button>
+        </aside>
+      )}
+      {show && !slim && (
         <aside className="s7-welcome" aria-label="Build your first Kaju workflow">
           <button type="button" className="s7-welcome-x" onClick={close} aria-label="Close"><X size={16} aria-hidden /></button>
           <span className="s7-welcome-kaju" aria-hidden><KajuFace size={40} /></span>
