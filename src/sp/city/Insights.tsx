@@ -40,11 +40,13 @@ export function Insights() {
   /* With no city in the link, open the person's own city, not simply the largest. */
   const asked = useSearchParams().get("city");
   const homed = useRef(!!asked);
+  /* The office's own city when the public record has not reached it yet, said plainly. */
+  const [away, setAway] = useState<string | null>(null);
   useEffect(() => {
     if (homed.current || !cities.length) return;
     homed.current = true;
     /* A reviewing office opens on its own city when the record has reached it. */
-    myContext().then((c) => { const want = c.offices.map((o) => o.city?.trim().toLowerCase()).filter(Boolean); return cities.find((x) => want.includes(x.city.trim().toLowerCase()))?.city ?? null; }).catch(() => null).then((o) => o ?? resolveHome(cities)).then((home) => { if (home && home !== city && cities.some((c) => c.city === home)) router.replace(`/city/insights?city=${encodeURIComponent(home)}`, { scroll: false }); });
+    myContext().then((c) => { const want = c.offices.map((o) => o.city?.trim().toLowerCase()).filter(Boolean); const hit = cities.find((x) => want.includes(x.city.trim().toLowerCase()))?.city ?? null; if (!hit && c.offices[0]?.city) setAway(c.offices[0].city); return hit; }).catch(() => null).then((o) => o ?? resolveHome(cities)).then((home) => { if (home && home !== city && cities.some((c) => c.city === home)) router.replace(`/city/insights?city=${encodeURIComponent(home)}`, { scroll: false }); });
   }, [cities, city, router]);
 
   return (
@@ -62,6 +64,7 @@ export function Insights() {
           {city && <Link className="btn is-s" href={`/city/report?city=${encodeURIComponent(city)}`}><Printer size={14} aria-hidden /> City report</Link>}
         </div>}
         {ld?.capped && <p className="ci-loaded" role="note"><b>Partial record.</b> Showing {ld.animals.toLocaleString("en-IN")} of {ld.totals.animals.toLocaleString("en-IN")} animal profiles{ld.totals.cases ? <> and {ld.cases.toLocaleString("en-IN")} of {ld.totals.cases.toLocaleString("en-IN")} requests</> : null}. Older records are outside these findings.</p>}
+        {away && city !== away && <p className="ci-away" role="note">No public record for {away} yet. It fills in as your operators’ approved records are published. Showing {city ?? "another city"} meanwhile.</p>}
         {ev && <p className="ci-ev"><span className="ci-kind" style={{ ["--ink" as string]: KINDS[ev.kind].ink }}>{KINDS[ev.kind].label}</span> {ev.precision}. {ev.note}</p>}
       </header>
       {loading && <div className="ci-wrap"><div className="skel" style={{ height: 260 }} /><div className="skel" style={{ height: 260, marginTop: 20 }} /></div>}

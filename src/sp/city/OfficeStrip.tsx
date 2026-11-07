@@ -37,7 +37,7 @@ export function OfficeStrip() {
     <section className="os" aria-label={`${ctx.offices[0].name}: decisions`}>
       <p className="os-k">{ctx.offices[0].name}</p>
       <ul className="os-tiles">
-        <li className={waiting.length ? "is-due" : undefined}><Link href="/city/review"><span>Waiting for your decision</span><b>{waiting.length}</b><small>{oldest === null ? "Nothing waiting" : `Oldest waiting ${oldest} ${oldest === 1 ? "day" : "days"}`}</small><ArrowRight size={14} aria-hidden /></Link></li>
+        <li className={waiting.length ? "is-due" : undefined}><Link href="/city/review"><span>Waiting for your decision</span><b>{waiting.length}</b><small>{oldest === null ? "Nothing waiting" : oldest === 0 ? "Submitted today" : `Oldest waiting ${oldest} ${oldest === 1 ? "day" : "days"}`}</small><ArrowRight size={14} aria-hidden /></Link></li>
         <li><Link href="/city/review"><span>With the operator</span><b>{onOperator}</b><small>Queried or returned</small><ArrowRight size={14} aria-hidden /></Link></li>
         <li><Link href="/city/review"><span>Accepted in {year}</span><b>{accepted.length}</b><small>{records} {records === 1 ? "record" : "records"} · accepted is not paid</small><ArrowRight size={14} aria-hidden /></Link></li>
         <li><Link href="/city/contracts"><span>Operators submitting</span><b>{operators}</b><small>Contracts &amp; rates</small><ArrowRight size={14} aria-hidden /></Link></li>

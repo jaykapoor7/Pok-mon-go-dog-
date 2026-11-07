@@ -40,6 +40,13 @@ How StrayPaw is deployed, watched, backed up and restored. Keep this current wit
 - Vercel → Deployments → choose the last good production deployment → Promote. Or revert the commit on `main`.
 - Migrations in this programme are additive. To undo one, write a new migration that reverses it; do not edit or delete applied migration files.
 
+## Demo workspace
+
+- `demo.straypaw.org` serves the `demo` branch, which builds against **staging**, never production. Keep it in step with `main` (`git push origin main:demo`).
+- Sample organisation "Sample · Bengaluru Animal Care Trust" and office "Sample · Bengaluru municipal ABC cell", with five sign-ins: `demo-lead@`, `demo-coordinator@`, `demo-vet@`, `demo-field@` and `demo-municipal@straypaw.invalid`. The password is held by the account owner, not in the repository.
+- Records are made through the app's own functions by `scripts/staging/seed-demo-workspace.mjs` (`DEMO_PASSWORD=… node scripts/staging/seed-demo-workspace.mjs`). Re-running keeps what exists and adds what is missing; nothing is deleted. The contract is marked illustrative and every organisation name says "Sample".
+- DNS: `demo` is a CNAME to `cname.vercel-dns.com` at Cloudflare (DNS only, not proxied).
+
 ## Credentials
 
 - Secrets live only in Vercel environment variables and Supabase; never in the repository.

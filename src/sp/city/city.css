@@ -199,3 +199,4 @@
 @media (prefers-reduced-motion: reduce) { .sp .os-tiles a { transition: none; } .sp .os-tiles a:active { transform: none; } }
 @media (max-width: 900px) { .sp .os-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sp .os-tiles a { padding-right: 30px; } }
 @media (max-width: 760px) { .sp .os { margin-inline: -16px; padding-top: 12px; } }
+.sp .ci-away { grid-column: 1 / -1; margin: 0; padding: 8px 12px; border-radius: 10px; background: #fff7e6; color: #7a4d00; font-size: 13px; }
