@@ -27,7 +27,7 @@ export const MODULES: Module[] = [
   // Kaju
   { id: "kaju-tools", name: "Kaju record tools", area: "Kaju", status: "LIVE", december: true, evidence: "Answers from authorised records under the caller's own session, with citations, streaming each record check as it runs; changes are prepared as proposals a person confirms. Unit tests: kaju-reliability, kaju-prepare, kaju-intake, report-isolation." },
   { id: "kaju-model", name: "Kaju with a language model", area: "Kaju", status: "STAGING", december: true, evidence: "Tool-use loop, one inference gate, dated authorisation, monthly ceiling, per-user and per-organisation quotas, token prices, and a usage ledger (kaju_model_usage) metering every run. Ledger migration applied on staging; tests: inference-off.", next: "Ledger is on production. Add a model key and the authorisation, ceiling and price settings, then approve the data route." },
-  { id: "kaju-checks", name: "Kaju scheduled checks", area: "Kaju", status: "STAGING", december: true, evidence: "Recurring checks and daily calendar checks with run receipts (kaju_check_runs, kaju_check_settings).", next: "Confirm the schedule runs on production and add delivery receipts per recipient." },
+  { id: "kaju-checks", name: "Kaju scheduled checks", area: "Kaju", status: "STAGING", december: true, evidence: "Recurring checks and daily calendar checks with run receipts (kaju_check_runs, kaju_check_settings); a failed check is retried once; delivery receipts per member (kaju_check_receipts), shown to admins and coordinators on Today as Seen by N of M. Receipts migration applied to staging and production.", next: "Watch one week of scheduled runs on production with a pilot organisation." },
   { id: "kaju-actions", name: "Human-approved actions", area: "Kaju", status: "LIVE", december: true, evidence: "Open case, add note, schedule follow-up and record care commit only on confirmation, with an audit row and an idempotent receipt (kaju_confirm_action)." },
 
   // Field & NGO
@@ -67,6 +67,7 @@ export const MODULES: Module[] = [
 
   // Platform
   { id: "platform-rls", name: "Tenant isolation and audit", area: "Platform", status: "LIVE", december: true, evidence: "Row-level security per organisation, operational audit log. 2026-11-07 hardening: search_path pinned on 20 functions, 17 organisation-only functions closed to signed-out callers; verified signed-out (169 e2e) and as members. Public views remain security-definer by design (docs/SECURITY-DEFINER-VIEWS.md).", next: "Turn on leaked-password protection in Supabase Auth settings (dashboard switch)." },
+  { id: "platform-ops", name: "Operations, monitoring and restore", area: "Platform", status: "STAGING", december: true, evidence: "Runbook (docs/OPERATIONS-RUNBOOK.md): deep health check at /api/health?deep=1, backups, restore to a new project, rollback, credential rotation.", next: "Point an uptime monitor at /api/health?deep=1, record the backup retention, and decide whether pilot data must stay in India (production is in Seoul)." },
   { id: "platform-flags", name: "Feature flags and readiness", area: "Platform", status: "STAGING", december: true, evidence: "SP_FLAGS switches unverified modules on per deployment; this registry.", flag: "readiness_board" },
 ];
 

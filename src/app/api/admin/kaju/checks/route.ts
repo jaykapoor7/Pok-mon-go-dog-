@@ -10,6 +10,8 @@ export async function GET(req:Request){
  const due=await db.rpc('kaju_due_checks',{p_limit:10});
  if(due.error)return NextResponse.json({error:'Could not read due checks'},{status:503});
  let checked=0,failed=0;
- for(const {ngo_id} of due.data??[]){const r=await db.rpc('kaju_refresh_checks',{p_ngo:ngo_id});if(r.error)failed++;else checked++;}
- return NextResponse.json({checked,failed,limit:10},{status:failed?503:200,headers:{'Cache-Control':'no-store'}});
+ let retried=0;
+ /* One retry after a short pause; a check that still fails is reported, and kaju_due_checks offers it again next run. */
+ for(const {ngo_id} of due.data??[]){let r=await db.rpc('kaju_refresh_checks',{p_ngo:ngo_id});if(r.error){retried++;await new Promise(res=>setTimeout(res,1500));r=await db.rpc('kaju_refresh_checks',{p_ngo:ngo_id});}if(r.error){failed++;console.error('Kaju check failed after retry',{ngo:ngo_id})}else checked++;}
+ return NextResponse.json({checked,failed,retried,limit:10},{status:failed?503:200,headers:{'Cache-Control':'no-store'}});
 }

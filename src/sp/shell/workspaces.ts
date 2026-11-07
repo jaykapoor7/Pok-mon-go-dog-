@@ -556,6 +556,41 @@ export const DESTINATIONS:Destination[]=[
     "primary": false
   }
 ];
+
+/* ShapeOS hubs for the NGO workspace, replacing the five-step list:
+   Overview, Operations, Intelligence, Kaju, Training, Reports. Each entry keeps
+   its own role and flag rules; only grouping, order and visibility change. */
+type Hub = { section?: string; order: number; label?: string; primary?: boolean; primaryFor?: Role[] };
+const NGO_HUBS: Record<string, Hub> = {
+  "/ngo": { section: "Overview", order: 0 },
+  "/ngo/work": { section: "Operations", order: 10, label: "Work queue" },
+  "/ngo/inbox": { order: 11, label: "Intake" },
+  "/ngo/animals": { order: 12, label: "Animals" },
+  "/ngo/verification?stage=vet": { order: 13, label: "Treatment & sign-off" },
+  "/ngo/verification?stage=evidence": { order: 14, label: "Release evidence" },
+  "/ngo/field": { order: 15, primaryFor: ["member"] },
+  "/ngo/map": { section: "Intelligence", order: 20, label: "Map", primary: true },
+  "/ngo/programmes": { order: 21 },
+  "/ngo/quality": { order: 22, primaryFor: ["admin", "coordinator"] },
+  "/assistant": { section: "Kaju", order: 30, label: "Ask Kaju" },
+  "/ngo/training": { section: "Training", order: 40, primary: true },
+  "/ngo/packages": { section: "Reports", order: 50, label: "Report packages" },
+  "/ngo/contracts": { order: 51, primaryFor: ["admin", "coordinator"] },
+  "/ngo/proof": { order: 52, primaryFor: ["admin", "coordinator"] },
+};
+for (const d of DESTINATIONS) {
+  if (d.workspace !== "ngo" && d.href !== "/assistant") continue;
+  const h = NGO_HUBS[d.query ? `${d.href}?${d.query}` : d.href];
+  delete d.step;
+  if (d.section === "Five steps" || (d.workspace === "ngo" && d.section === "Organisation" && d.href === "/ngo/programmes")) delete d.section;
+  if (!h) continue;
+  d.order = h.order;
+  if (h.section) d.section = h.section;
+  if (h.label) d.label = h.label;
+  if (h.primary) d.primary = true;
+  if (h.primaryFor) d.primaryFor = [...new Set([...(d.primaryFor ?? []), ...h.primaryFor])];
+  if (d.href === "/ngo/verification" && d.query === "stage=evidence") d.listed = true;
+}
 const META={
   "community": {
     "id": "community",

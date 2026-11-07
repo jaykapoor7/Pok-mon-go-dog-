@@ -290,11 +290,11 @@ function SideNavLive(p: SideNavProps) {
   return <SideNav {...p} search={sp?.toString() ?? ""} />;
 }
 
-/** The sidebar: the workspace's places in order, the five steps numbered. Kaju has
-    his own button and corner, so he is not repeated here. Views of one page
+/** The sidebar: the workspace's places in order, grouped into hubs
+    (Overview, Operations, Intelligence, Kaju, Training, Reports). Views of one page
     (Treat and Release are two stages of verification) light up by their query. */
 function SideNav({ nav, path, search, collapsed, onAssistant, label }: SideNavProps & { search: string }) {
-  const rows = nav.filter(({ item }) => item.icon !== "kaju");
+  const rows = nav;
   const stage = new URLSearchParams(search).get("stage");
   const isOn = (n: NavItem) => {
     if (n.href === "/assistant") return onAssistant;
@@ -310,7 +310,7 @@ function SideNav({ nav, path, search, collapsed, onAssistant, label }: SideNavPr
         const Icon = ICON[n.icon] ?? Home;
         const href = n.query ? `${n.href}?${n.query}` : n.href;
         const key = href;
-        const lead = n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />;
+        const lead = n.icon === "kaju" ? <span className="sx-kaju-ic" aria-hidden><KajuFace size={16} /></span> : n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />;
         const link = <Link key={key} href={href} aria-current={isOn(n) ? "page" : undefined} title={collapsed ? n.label : (n as Destination).note}>{lead}<span>{n.label}</span></Link>;
         return sec ? <Fragment key={key}><p className="sx4-sec">{sec}</p>{link}</Fragment> : link;
       })}

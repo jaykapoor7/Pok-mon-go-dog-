@@ -1,7 +1,7 @@
 "use client";
 
-/* The five-step journey on Home, as live counts that open the exact queue:
-   arrived → identity → veterinary → recovery & release → submission.
+/* Operations today on Home, as live counts that open the exact queue:
+   intake, identity, treatment, release evidence and billing.
    Each count is read under the member's own session; a count that could
    not be read shows "not read", never zero. The person's own step is
    marked so a vet, a field worker and a coordinator each see where they
@@ -43,19 +43,19 @@ export function Journey({ orgId, role }: { orgId: string; role: string | null })
 
   const lead = role === "admin" || role === "coordinator";
   const steps: Step[] = [
-    { key: "arrived", n: "1", title: "Receive", hint: "New reports to prepare", href: "/ngo/inbox", mine: role === "member" || lead },
-    { key: "identity", n: "2", title: "Register", hint: "Animals to confirm", href: "/ngo/animals/identity", mine: lead },
-    { key: "vet", n: "3", title: "Treat", hint: "Waiting for the vet", href: "/ngo/verification?stage=vet", mine: role === "veterinarian" },
+    { key: "arrived", n: "1", title: "Intake", hint: "New reports to prepare", href: "/ngo/inbox", mine: role === "member" || lead },
+    { key: "identity", n: "2", title: "Identity", hint: "Animals to confirm", href: "/ngo/animals/identity", mine: lead },
+    { key: "vet", n: "3", title: "Treatment", hint: "Waiting for the vet", href: "/ngo/verification?stage=vet", mine: role === "veterinarian" },
     { key: "release", n: "4", title: "Release", hint: "Photo or place missing", href: "/ngo/verification?stage=evidence", mine: role === "member" || lead },
-    { key: "claimable", n: "5", title: "Submit", hint: "Approved, ready to bill", href: "/ngo/packages", mine: lead },
+    { key: "claimable", n: "5", title: "Billing", hint: "Approved, ready to bill", href: "/ngo/packages", mine: lead },
   ];
   return (
-    <nav className="jy" aria-label="Today across the five steps">
+    <nav className="jy" aria-label="Operations today">
       <ol>{steps.map((s) => {
         const v = c?.[s.key];
         const fromQueue = s.key === "vet" || s.key === "release" || s.key === "claimable";
         return <li key={s.key} className={s.mine ? "is-mine" : undefined}><Link href={s.href}>
-          <span className="jy-n" aria-hidden>{s.n}</span>
+          <span className={`jy-n${v ? " is-on" : ""}`} aria-hidden />
           <span className="jy-t"><b>{s.title}</b><small>{s.hint}</small></span>
           <span className={`jy-c${v ? " is-on" : ""}`}>{c === null ? "…" : v === null || v === undefined || typeof v === "boolean" ? "not read" : `${v}${fromQueue && c.capped ? "+" : ""}`}</span>
         </Link></li>;

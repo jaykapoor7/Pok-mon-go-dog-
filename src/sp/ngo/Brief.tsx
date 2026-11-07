@@ -25,7 +25,6 @@ import { Work } from "./Work";
 import { KajuActivity } from "./KajuActivity";
 import { KajuPrepared } from "./KajuPrepared";
 import { Journey } from "./Journey";
-import { MonthlySubmission } from "../abc/MonthlySubmission";
 import "../abc/abc.css";
 import "./brief.css";
 
@@ -106,6 +105,7 @@ export function Brief() {
     ...crit.slice(0, 2).map((c) => ({ key: `c${c.id}`, href: `/ngo/cases/${c.id}`, tone: "flame", icon: <CircleAlert size={10} strokeWidth={2.4} />, title: <><b>{label(c)}</b> is critical and unassigned</>, meta: [c.zone || c.city, ago(c.occurred_at)].filter(Boolean).join(" · ") })),
     ...overdue.slice(0, 2).map((f) => ({ key: `f${f.id}`, href: f.case_id ? `/ngo/cases/${f.case_id}` : "/ngo/work?focus=followup", tone: "amber", icon: <CalendarClock size={10} strokeWidth={2.4} />, title: <>Follow-up for <b>{f.case_title || f.animal_name || "a case"}</b> was due {ago(f.due_at)}</>, meta: f.kind || "Follow-up" })),
     ...(stale && reviews ? [{ key: "stale", href: "/ngo/work?cohort=decide", tone: "violet", icon: <TriangleAlert size={10} strokeWidth={2.4} />, title: <><b>{plural(stale, "case")}</b> {stale === 1 ? "is" : "are"} waiting on a decision</>, meta: "Open more than 90 days, nothing recorded for 30" }] : []),
+    ...(reviews ? [{ key: "pkg", href: "/ngo/packages", tone: "green", icon: <ClipboardList size={10} strokeWidth={2.4} />, title: <><b>{new Date().toLocaleDateString("en-GB", { month: "long" })}&apos;s report package</b> for the reviewing office</>, meta: "Report packages · Kaju prepares, you submit" }] : []),
     ...(history && reviews ? [{ key: "hist", href: "/ngo/review", tone: "slate", icon: <History size={10} strokeWidth={2.4} />, title: <><b>{plural(history, "imported record", "imported records")}</b> not yet confirmed</>, meta: "From registers you imported; not today's work" }] : []),
   ] : [];
 
@@ -125,7 +125,7 @@ export function Brief() {
   return (
     <div className={`br${role ? ` is-${role}` : ""}`}>
       <div className="br-in">
-        <h1 className="br-hello">{greeting()}, {first}.<span>Here is today, step by step.</span></h1>
+        <h1 className="br-hello">{greeting()}, {first}.<span>Here is your daily brief.</span></h1>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
           : <p className="br-since">{(() => {
@@ -139,46 +139,28 @@ export function Brief() {
               return <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? ", and " : ", ")}{p}</Fragment>)}.</>;
             })()}</p>}
 
-        {/* Ask Kaju sits at the top, in the page, never floating over content. */}
-        <form className="br-ask br-ask-top" onSubmit={ask}>
-          <Sparkles size={15} aria-hidden />
-          <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
-          <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju anything about your animals, cases or this month…" autoComplete="off" />
-          <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
-        </form>
         {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
-        {/* The few things this person does most, as large buttons: one row per role. */}
-        {mem.org && <nav className="br-quick" aria-label="Start here">
-          {isVet ? <>
-            <Link className="br-qb is-main" href="/ngo/verification?stage=vet"><ShieldCheck size={18} aria-hidden /><span><b>Sign off procedures</b><small>{d ? `${d.abc.filter((r) => stageOf(r) === "vet").length} waiting for you` : "Open your sign-off list"}</small></span></Link>
-            <Link className="br-qb" href="/ngo/care"><ClipboardList size={18} aria-hidden /><span><b>Care records</b><small>Every treatment, across animals</small></span></Link>
-          </> : role === "member" ? <>
-            <Link className="br-qb is-main" href="/ngo/cases/new"><CircleAlert size={18} aria-hidden /><span><b>Add a new case</b><small>An animal that needs help</small></span></Link>
-            <Link className="br-qb" href="/ngo/field"><ClipboardList size={18} aria-hidden /><span><b>Field mode</b><small>Your cases, on the phone</small></span></Link>
-            <Link className="br-qb" href="/ngo/inbox?paste=1"><Inbox size={18} aria-hidden /><span><b>Paste WhatsApp reports</b><small>Kaju prepares them</small></span></Link>
-          </> : <>
-            <Link className="br-qb is-main" href="/ngo/verification?stage=review"><ShieldCheck size={18} aria-hidden /><span><b>Review evidence</b><small>{d ? `${d.abc.filter((r) => stageOf(r) === "review").length} ready for you` : "Approve what the vet signed"}</small></span></Link>
-            <Link className="br-qb" href="/ngo/packages"><ClipboardList size={18} aria-hidden /><span><b>Prepare the monthly bill</b><small>Step 5 · Submit</small></span></Link>
-            <Link className="br-qb" href="/ngo/work"><Inbox size={18} aria-hidden /><span><b>Work queue</b><small>Assign and follow up</small></span></Link>
-            {role === "admin" && <Link className="br-qb" href="/ngo/team"><ClipboardList size={18} aria-hidden /><span><b>Team &amp; access</b><small>Members, roles, invitations</small></span></Link>}
-          </>}
-        </nav>}
         {d && (
           <div className="br-cols"><div className="br-main">
-            {d.unavailable.length>0&&<p role="status">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
+            {d.unavailable.length>0&&<p role="status" className="br-warn">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
             <section aria-labelledby="br-todo" className="br-sec">
-              <h2 id="br-todo" className="br-h">What needs to be done</h2>
-              {todo.length ? rows(todo, true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
-              {todo.length > 0 && <div className="br-chips"><button type="button" onClick={() => send("What should I do first today, and why?")}><Sparkles size={12} aria-hidden />What should I do first?</button></div>}
+              <h2 id="br-todo" className="br-h">Needs you</h2>
+              {todo.length ? rows(todo.slice(0, 5), true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
             </section>
-            </div><div className="br-rail">
-            {reviews && <MonthlySubmission canPrepare compact />}
-            {!isVet && <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
-            <details className="br-sec br-fold br-recent">
-              <summary><h2 id="br-out" className="br-h">Recent activity</h2><span className="br-fold-n">{out.length ? `${out.length} since yesterday` : "nothing new"}</span></summary>
+            <section aria-labelledby="br-out" className="br-sec">
+              <h2 id="br-out" className="br-h">Recent activity</h2>
               {out.length ? rows(out, false) : <p className="br-empty">{d.unavailable.includes("recent changes")?"Recent changes could not be read.":"Nothing new in the last day."}</p>}
-              {out.length > 1 && <div className="br-chips"><button type="button" onClick={() => send("Summarise the cases that came in, moved or closed since yesterday.")}><Sparkles size={12} aria-hidden />Summarise these</button></div>}
-            </details>
+            </section>
+            {/* As in the product demo, Kaju waits at the foot of the brief. */}
+            <form className="br-ask br-ask-foot" onSubmit={ask}>
+              <Sparkles size={15} aria-hidden />
+              <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
+              <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju anything about your programme…" autoComplete="off" />
+              <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
+            </form>
+            <div className="br-chips">{(todo.length ? ["What should I do first today, and why?"] : []).concat(out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3).map((t) => <button key={t} type="button" onClick={() => send(t)}><Sparkles size={12} aria-hidden />{t}</button>)}</div>
+            </div><div className="br-rail">
+            {!isVet && <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
             {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
             </div></div>
         )}

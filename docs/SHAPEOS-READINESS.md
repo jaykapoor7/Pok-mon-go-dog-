@@ -11,7 +11,12 @@ The Bengaluru pilot is under discussion with the BeST Cluster at IISc. It is **n
 - Today screen matches the product demo: stacked greeting and a one-sentence "since yesterday".
 - Research workbench at `/research/workbench`: monthly series, filters, aggregate downloads, method and limits.
 - Security: search_path pinned on 20 functions; organisation-only functions closed to signed-out callers (staging and production). Remaining linter items are accepted and documented: public views are security-definer by design, `spatial_ref_sys` and `postgis` belong to PostGIS.
-- Still to switch on in the Supabase dashboard: leaked-password protection (Auth settings).
+- Workspace navigation grouped into hubs (Overview, Operations, Intelligence, Kaju, Training, Reports) in place of the five-step list; each place appears once.
+- Today rebuilt in the shape of the hero demo: greeting, since-yesterday, status strip (Intake, Identity, Treatment, Release, Billing), Needs you, Recent activity, ask Kaju; Kaju's prepared work and checks in a right-hand rail. Fits one desktop screen; the strip scrolls sideways on a phone.
+- Kaju scheduled checks: one retry for a failed check, and delivery receipts (Seen by N of M) for admins and coordinators.
+- Operations runbook (`docs/OPERATIONS-RUNBOOK.md`) and a deep health check at `/api/health?deep=1`.
+- Still to switch on in the Supabase dashboard: leaked-password protection (Auth settings). Also outside the code: an uptime monitor, the backup retention record, and a decision on whether pilot data must stay in India (production is in Seoul).
+- Training courses and research datasets are not written by StrayPaw: the pilot partners provide them, and the screens are ready to hold them.
 
 ## Status meanings
 

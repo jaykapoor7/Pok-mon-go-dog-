@@ -233,3 +233,30 @@
 
 /* Match the product demo: the greeting and its second line, stacked, same size. */
 .br-hello span { display: block; margin: 0; font-size: inherit; letter-spacing: inherit; color: #6f7380; }
+/* Operations today: a status dot instead of a step number. */
+.jy-n { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #cfd6e2; font-size: 0; }
+.jy-n.is-on { background: #2457ce; }
+.jy li.is-mine .jy-n { background: #2457ce; box-shadow: 0 0 0 3px rgba(36, 87, 206, .18); }
+
+/* Today, shaped like the product demo: brief, counts, two short lists, Kaju at the foot. */
+.br-cols { grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); gap: 24px; align-items: start; }
+.br-main { display: grid; gap: 18px; }
+.br-main .br-sec { margin: 0; }
+.br-rail { display: grid; gap: 12px; }
+.br-ask-foot { margin: 4px 0 0; }
+.br-warn { margin: 0; font-size: 13.5px; color: #8a5a00; }
+@media (max-width: 1100px) { .br-cols { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) {
+  .jy ol { display: flex !important; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; }
+  .jy ol::-webkit-scrollbar { display: none; }
+  .jy li { flex: 0 0 auto; min-width: 116px; scroll-snap-align: start; }
+  .jy .jy-t small { display: none; }
+  .br-chips button { text-align: left; justify-content: flex-start; }
+}
+@media (max-width: 760px) {
+  .jy li a { display: grid !important; grid-template-columns: 8px minmax(0, 1fr) !important; grid-template-rows: auto auto !important; align-items: center; justify-items: start !important; text-align: left !important; gap: 4px 8px; padding: 10px 12px !important; }
+  .jy .jy-n { grid-row: 1; grid-column: 1; margin: 0; }
+  .jy .jy-t { grid-row: 1; grid-column: 2; text-align: left; }
+  .jy .jy-t b { font-size: 13px; }
+  .jy .jy-c { grid-row: 2; grid-column: 1 / -1; font-size: 22px; text-align: left; }
+}
