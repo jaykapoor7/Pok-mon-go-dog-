@@ -315,7 +315,7 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     const out = await call(acc, ctx, "find_duplicates");
     if (out.ok === false) return done(needsOrg);
     const d = out.data as { scanned: number; candidate_groups: unknown[] };
-    return done(d.candidate_groups.length ? `I found **${d.candidate_groups.length}** groups of animals with the same name in the same locality (from ${n(d.scanned)} named animals). They are candidates only: compare them and decide; nothing is merged automatically.` : `No candidate duplicates by name and locality among ${n(d.scanned)} named animals. Unnamed animals cannot be compared this way.`);
+    return done(d.candidate_groups.length ? `I found **${d.candidate_groups.length}** ${d.candidate_groups.length === 1 ? "group" : "groups"} of animals with the same name in the same locality (from ${n(d.scanned)} named animals). They are candidates only: compare them and decide; nothing is merged automatically.` : `No candidate duplicates by name and locality among ${n(d.scanned)} named animals. Unnamed animals cannot be compared this way.`);
   }
   if (has(t, /summar|queue|today|due|overdue|my work|workload|what should|next|unassigned|urgent|critical/)) {
     const out = await call(acc, ctx, "work_summary");

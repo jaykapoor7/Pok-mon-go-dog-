@@ -521,3 +521,15 @@
 .scan-out { max-width: 640px; margin-top: 16px; font-size: 15px; line-height: 1.5; }
 .idn-form input, .idn-form select { width: 100%; min-width: 0; box-sizing: border-box; }
 .idn-form label { min-width: 0; }
+
+/* Programme rows: name at list size, the count as a figure, not a headline. */
+.sp .pg-id .serif { font-family: var(--sans, inherit); font-size: 18px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; overflow-wrap: anywhere; }
+.sp .pg-fig { display: grid; gap: 2px; }
+.sp .pg-fig b { font-size: 26px; font-weight: 600; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .sp .pg-row { grid-template-columns: minmax(0, 1fr) auto; gap: 12px 16px; padding: 14px 0; }
+  .sp .pg-id .serif { font-size: 16px; }
+  .sp .pg-fig { justify-items: end; text-align: right; }
+  .sp .pg-fig b { font-size: 22px; }
+  .sp .pg-fig small { max-width: 120px; }
+}
