@@ -14,8 +14,11 @@ import { NgoGate, useOrgOpen } from "../ngo/Gate";
 import { KajuEmptyState } from "@/kaju/Presence";
 import { Reading } from "../ui/Reading";
 import { MonthlySubmission } from "./MonthlySubmission";
+import { Pager, pageOf } from "./Pager";
 import "../ngo/ngo.css";
 import "./abc.css";
+
+const PAGE = 10;
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 export const period = (p: Package) => `${new Date(p.period_start).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} to ${new Date(p.period_end).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`;
@@ -28,6 +31,7 @@ export function Packages() {
   const [off, setOff] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [page, setPage] = useState(0);
   const now = new Date();
   const [f, setF] = useState({ title: "", start: iso(new Date(now.getFullYear(), now.getMonth(), 1)), end: iso(now), office: "" });
 
@@ -59,26 +63,27 @@ export function Packages() {
         {off ? <div className="abc-empty"><b>Report packages are not switched on here yet.</b></div> : (
           <>
             {canPrepare && offs.length > 0 && (
+              <details className="abc-custom"><summary>Prepare a package for another period</summary>
               <form className="abc-new" onSubmit={submit} aria-label="Prepare a package">
                 <label>Title<input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g. Ward 14 ABC drive · October" /></label>
                 <label>From<input className="input" type="date" value={f.start} onChange={(e) => setF({ ...f, start: e.target.value })} /></label>
                 <label>To<input className="input" type="date" value={f.end} onChange={(e) => setF({ ...f, end: e.target.value })} /></label>
                 <label>Reviewing office<select aria-label="Reviewing office" className="select" value={f.office} onChange={(e) => setF({ ...f, office: e.target.value })}>{offs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
                 <button type="submit" className="btn is-ink is-s" disabled={busy || !f.office}>Prepare package</button>{f.title && <CancelButton label="Clear" disabled={busy} onCancel={() => setF((v) => ({ ...v, title: "" }))} />}
-              </form>
+              </form></details>
             )}
             {canPrepare && offs.length === 0 && list && <p className="abc-hint">No reviewing office yet. StrayPaw adds it when your pilot starts.</p>}
             {!canPrepare && ctx && <p className="abc-hint">Coordinators and admins prepare packages.</p>}
             {err && <p className="abc-err" role="alert">{err}</p>}
             {list && (list.length ? (
-              <ul className="abc-list">{list.map((p) => (
+              <><h2 className="abc-sub">Packages <small>{list.length}</small></h2><ul className="abc-list">{pageOf(list, page, PAGE).slice.map((p) => (
                 <li key={p.id}><Link href={`/ngo/packages/${p.id}`}>
                   <span className="abc-t"><b>{p.title}</b><small>{period(p)} · {offs.find((o) => o.id === p.office_id)?.name ?? "Reviewing office"}</small></span>
                   <span className="abc-dots"><span>{(() => { const n = p.summary.records ?? p.case_ids.length; return `${n} ${n === 1 ? "record" : "records"}`; })()}</span></span>
                   <span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span>
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>
-              ))}</ul>
+              ))}</ul><Pager {...pageOf(list, page, PAGE)} total={list.length} size={PAGE} onPage={setPage} /></>
             ) : <KajuEmptyState title="No packages yet.">Approve records in Verification first.</KajuEmptyState>)}
           </>
         )}

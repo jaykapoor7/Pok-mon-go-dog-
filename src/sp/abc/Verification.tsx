@@ -8,6 +8,7 @@
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Pager, pageOf } from "./Pager";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { NotEnabled, STAGE_LABEL, myContext, stageOf, verificationQueue, type AbcContext, type QueueRow, type Stage } from "@/lib/abc";
@@ -29,17 +30,20 @@ const EMPTY_STAGE: Record<Stage, string> = {
   returned: "Nothing has been returned.", ready: "Nothing is approved and waiting.", packaged: "Nothing is in a package.", accepted: "Nothing has been accepted yet.",
 };
 
+const PAGE = 12;
+
 export function Verification() {
   const [rows, setRows] = useState<QueueRow[] | null>(null);
   const [ctx, setCtx] = useState<AbcContext | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [off, setOff] = useState(false);
+  const [page, setPage] = useState(0);
   /* The stage lives in the address, so the sidebar's Treat (vet) and Release (evidence)
      steps, Kaju's links and the filter buttons always agree. */
   const params = useSearchParams(), router = useRouter(), here = usePathname();
   const q = params?.get("stage");
   const stage: Stage | "all" = q && q in STAGE_LABEL ? (q as Stage) : "all";
-  const setStage = (s: Stage | "all") => router.replace(s === "all" ? here : `${here}?stage=${s}`, { scroll: false });
+  const setStage = (s: Stage | "all") => { setPage(0); router.replace(s === "all" ? here : `${here}?stage=${s}`, { scroll: false }); };
 
   const open = useOrgOpen();
   useEffect(() => {
@@ -57,12 +61,14 @@ export function Verification() {
     return m;
   }, [rows]);
   const shown = (rows ?? []).filter((r) => stage === "all" || stageOf(r) === stage);
+  /* One screen of rows at a time, so the queue never becomes a long scroll. */
+  const { pg, pages, slice } = pageOf(shown, page, PAGE);
 
   return (
     <NgoGate title="Verification" lede="Every ABC procedure with its evidence, veterinary sign-off and review.">
       <div className="ngo-page abc">
         <header className="ngo-head">
-          <div>{stage === "vet" ? <><p className="ngo-step">Step 3 of 5</p><h1>Treat &amp; sign off</h1></> : stage === "evidence" ? <><p className="ngo-step">Step 4 of 5</p><h1>Release</h1></> : <h1>Verification</h1>}</div>
+          <div>{stage === "vet" ? <h1>Treatment &amp; sign-off</h1> : stage === "evidence" ? <h1>Release evidence</h1> : <h1>Verification</h1>}</div>
           <p className="ngo-sum">{off ? "Not switched on for this workspace yet." : rows === null && !err ? <Reading>Reading your ABC records</Reading> : err ? "The verification queue could not be read. Nothing is shown as zero." : <><b>{counts.review}</b> to review · Awaiting vet: <b>{counts.vet}</b> · <b>{counts.evidence + counts.returned}</b> {counts.evidence + counts.returned === 1 ? "case needs" : "cases need"} evidence</>}</p>
           {(ctx?.role === "admin" || ctx?.role === "coordinator") && <div className="row ngo-head-act"><Link className="btn is-s" href="/ngo/packages">Report packages</Link></div>}
         </header>
@@ -78,7 +84,7 @@ export function Verification() {
               ))}
             </div>
             {shown.length ? (
-              <ul className="abc-list">{shown.map((r) => { const s = stageOf(r); return (
+              <><ul className="abc-list">{slice.map((r) => { const s = stageOf(r); return (
                 <li key={r.case_id}><Link href={`/ngo/verification/${r.case_id}`}>
                   <span className="abc-t"><b>{r.title || shortCode(r.case_code, "ABC case")}</b><small>{[r.city, day(r.created_at), r.returned_note ? `Returned: ${r.returned_note}` : null].filter(Boolean).join(" · ")}</small></span>
                   <Dots total={r.evidence_count+r.missing.length} n={r.evidence_count} />
@@ -86,6 +92,7 @@ export function Verification() {
                   <ArrowRight size={14} aria-hidden className="abc-go" />
                 </Link></li>
               ); })}</ul>
+              <Pager pg={pg} pages={pages} total={shown.length} size={PAGE} onPage={setPage} /></>
             ) : (
               <KajuEmptyState title={stage === "all" ? "No ABC procedures yet." : EMPTY_STAGE[stage as Stage]}>{stage === "all" ? "Sterilisation cases appear here." : null}</KajuEmptyState>
             )}

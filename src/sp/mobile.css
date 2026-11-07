@@ -100,9 +100,9 @@
  .sp.sp-app .animal-filter-fold {width:100%;}
  .sp.sp-app .animal-filter-fold .mobile-details-content {display:grid;gap:10px;padding:8px 0;}
  .sp.sp-app .animal-filter-fold .select {width:100%;}
- .sp.sp-app .reg-row {grid-template-columns:minmax(0,1fr) auto;gap:10px;min-height:80px;padding:12px 16px;}
- .sp.sp-app .reg-id {grid-template-columns:48px minmax(0,1fr);gap:10px;}
- .sp.sp-app .reg-id .portrait.is-s {width:48px;height:48px;}
+ .sp.sp-app .reg-row {grid-template-columns:minmax(0,1fr) auto;gap:10px;min-height:56px;padding:6px 16px;}
+ .sp.sp-app .reg-id {grid-template-columns:40px minmax(0,1fr);gap:10px;}
+ .sp.sp-app .reg-id .portrait.is-s {width:40px;height:40px;}
  .sp.sp-app .reg-id small {overflow-wrap:anywhere;}
  .sp.sp-app :is(.cf-head,.cf-body,.cs-head,.cs-body,.nc,.im-grid,.st-grid,.tm-grid,.pg-read,.pg-all) {grid-template-columns:minmax(0,1fr);gap:20px;}
  .sp.sp-app :is(.cf-head,.cs-head) > .portrait {max-width:100%;max-height:240px;}

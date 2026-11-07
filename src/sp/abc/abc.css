@@ -92,7 +92,11 @@
 }
 @media (max-width: 640px) {
   .abc-list > li > a, .abc-list > li > .abc-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; }
-  .abc-list .abc-dots { grid-column: 1; grid-row: 2; }
+  .abc-list .abc-dots { grid-column: 2; grid-row: 2; justify-self: end; }
+  .abc-list .abc-t { grid-row: 1 / span 2; }
+  .abc-stages { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 12px 16px; }
+  .abc-stages::-webkit-scrollbar { display: none; }
+  .abc-stages button { flex: none; }
   .abc-list .abc-tag { grid-column: 2; grid-row: 1; }
   .abc-list .abc-go { display: none; }
   .abc-form .row2 { grid-template-columns: 1fr; }
@@ -246,3 +250,12 @@
 .sp .abc details > summary::-webkit-details-marker { display: none; }
 .sp .abc details > summary::before { content: "+ "; }
 .sp .abc details[open] > summary::before { content: "– "; }
+
+/* Packages: monthly submission leads; any other period folds away. */
+.abc-custom { margin: 4px 0 6px; border-top: 1px solid var(--line, #ebecef); }
+.abc-custom > summary { cursor: pointer; padding: 12px 0; font-size: 13px; color: var(--s3-blue, #2457ce); list-style: none; }
+.abc-custom > summary::-webkit-details-marker { display: none; }
+.abc-custom > summary::before { content: "+"; display: inline-block; width: 14px; }
+.abc-custom[open] > summary::before { content: "−"; }
+.abc-sub { margin: 14px 0 2px; font-size: 14px; font-weight: 600; }
+.abc-sub small { margin-left: 6px; font-weight: 400; color: var(--muted, #6b7280); }
