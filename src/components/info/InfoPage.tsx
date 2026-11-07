@@ -5,14 +5,16 @@ import "./info.css";
 export function InfoPage({
   title,
   updated,
+  eyebrow = "StrayPaw policy",
   children,
 }: {
   title: string;
   updated?: string;
+  eyebrow?: string;
   children: React.ReactNode;
 }) {
   return (
-    <MarketingShell eyebrow="StrayPaw policy" title={title} intro={updated ? `Last updated ${updated}` : undefined}>
+    <MarketingShell eyebrow={eyebrow} title={title} intro={updated ? `Last updated ${updated}` : undefined}>
       <div className="info-prose">
         {children}
       </div>

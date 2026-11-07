@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
-import { ORDER, PROFESSIONAL, WORKSPACES, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
+import { ORDER, PROFESSIONAL, WORKSPACES, canDiscover, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
 import { Notices } from "../ui/Notice";
 import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
@@ -340,7 +340,7 @@ function phoneTabs(ws: WorkspaceId, role: Role | null, dests: NavItem[]): NavIte
 function visibleNav(items: NavItem[], role: Role | null, reviewer: boolean) {
   let group: string | undefined;
   const tagged = items.map((n) => { if (n.section) group = n.section; return { item: n, group }; })
-    .filter(({ item }) => (!item.roles || !!role && item.roles.includes(role)) && (!item.reviewer || reviewer))
+    .filter(({ item }) => canDiscover(item, role, reviewer))
     .map(({ item, group: g }) => ({ item: role && item.hrefFor?.[role] ? { ...item, href: item.hrefFor[role]! } : item, group: g }));
   let last: string | undefined;
   return tagged.map(({ item, group: g }) => { const label = g && g !== last ? g : undefined; last = g; return { item, label }; });

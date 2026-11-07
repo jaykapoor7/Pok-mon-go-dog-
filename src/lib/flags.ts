@@ -16,9 +16,13 @@ export const FLAGS = {
 
 export type Flag = keyof typeof FLAGS;
 
+/* Read literally so Next.js inlines it into browser code: navigation in the
+   browser can then hide links to pages the server would refuse anyway. */
+const PUBLIC_FLAGS = process.env.NEXT_PUBLIC_SP_FLAGS ?? "";
+
 /** The flags switched on for this deployment. Unknown names are ignored. */
 export function enabledFlags(env: Record<string, string | undefined> = process.env): Set<Flag> {
-  const raw = `${env.SP_FLAGS ?? ""},${env.NEXT_PUBLIC_SP_FLAGS ?? ""}`;
+  const raw = `${env.SP_FLAGS ?? ""},${env === process.env ? PUBLIC_FLAGS : env.NEXT_PUBLIC_SP_FLAGS ?? ""}`;
   const on = new Set<Flag>();
   for (const part of raw.split(",")) {
     const name = part.trim() as Flag;

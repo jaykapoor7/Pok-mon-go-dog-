@@ -45,14 +45,14 @@ export const MODULES: Module[] = [
 
   // Research
   { id: "research-public", name: "Public datasets and map", area: "Research", status: "LIVE", december: true, evidence: "Public map with H3 cells, programmes and published datasets with method notes." },
-  { id: "research-access", name: "Researcher workspace and controlled exports", area: "Research", status: "PLANNED", december: true, evidence: "Not built: role, approved-study scope, export audit.", next: "Agree data-sharing terms with the consortium, then build approved-study exports." },
+  { id: "research-access", name: "Researcher access and controlled exports", area: "Research", status: "BLOCKED", december: true, waitsOn: "Data-sharing terms with the consortium and approved study protocols.", evidence: "City insights with method, limits and gaps; published datasets; a data-access request flow at /research/access. Record-level exports stay closed until terms are agreed." },
 
   // Training
-  { id: "training-lms", name: "Training courses and assignments", area: "Training", status: "PLANNED", december: true, evidence: "Public academy lessons exist; organisation courses, assignments and completion records are not built yet.", flag: "training_lms" },
+  { id: "training-lms", name: "Training courses and assignments", area: "Training", status: "STAGING", december: true, evidence: "Courses with reading, video, document and quiz lessons; quiz keys hidden from learners and scored in the database; assignment with due dates; team progress for coordinators. Screens at /ngo/training.", next: "Apply the training migration (waiting on approval), then verify as a coordinator and a field member.", flag: "training_lms" },
 
   // Citizens
   { id: "citizen-report", name: "Animal reports", area: "Citizens", status: "LIVE", december: true, evidence: "Public sighting and needs-help reports with a received-not-accepted receipt; e2e: straypaw2 reporting." },
-  { id: "citizen-bite", name: "Bite or scratch help", area: "Citizens", status: "BLOCKED", december: true, waitsOn: "Clinical review of the guidance, and a verified list of anti-rabies vaccine centres from the health department.", evidence: "Prototype guidance and triage behind a flag; nothing public.", flag: "citizen_bite_assist" },
+  { id: "citizen-bite", name: "Bite or scratch help", area: "Citizens", status: "BLOCKED", december: true, waitsOn: "Clinical review of the guidance, and a verified list of anti-rabies vaccine centres from the health department.", evidence: "First-aid and same-day-care page at /bite-help (WHO and National Rabies Control Programme steps, 108/112 escalation, no risk assessment or treatment advice), behind a flag; nothing public.", flag: "citizen_bite_assist" },
 
   // Identity
   { id: "identity-rfid", name: "RFID, microchip and QR identity", area: "Identity", status: "STAGING", december: true, evidence: "Identifier store with one active owner per identifier, organisation-scoped reads, audited add and retire, ISO microchip validation, keyboard-scanner and camera-QR input, scan-to-open lookup and a Kaju lookup tool. Verified on staging as two organisations.", next: "Apply the migration to production, choose a reader with the pilot team, and print QR tags.", flag: "animal_identifiers" },
