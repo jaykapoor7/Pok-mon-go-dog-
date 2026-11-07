@@ -15,14 +15,14 @@ The Bengaluru pilot is under discussion with the BeST Cluster at IISc. It is **n
 
 ## Feature flags
 
-Unverified modules ship switched off. A flag is on only when its name is listed in the deployment's `SP_FLAGS` (comma separated). Production lists none.
+Unverified modules ship switched off. A flag is on only when its name is listed in the deployment's `SP_FLAGS` (server) and `NEXT_PUBLIC_SP_FLAGS` (navigation), comma separated. Production lists `animal_identifiers,readiness_board`.
 
 | Flag | Module |
 |---|---|
-| `citizen_bite_assist` | Bite or scratch help (needs clinical review before any public use) |
-| `training_lms` | Training courses, assignments and completions |
-| `animal_identifiers` | RFID, microchip and QR identifiers |
-| `readiness_board` | Readiness board |
+| `citizen_bite_assist` | Bite or scratch help at `/bite-help` (off: needs clinical review before any public use) |
+| `training_lms` | Training at `/ngo/training` (off until its migration is applied and verified) |
+| `animal_identifiers` | RFID, microchip and QR identifiers; scan at `/ngo/animals/scan` (on in production) |
+| `readiness_board` | Readiness board in the workspace menu (on in production) |
 
 ## Kaju and model use
 
@@ -42,15 +42,17 @@ Every model run is written to `kaju_model_usage` with its tokens and rupee cost.
 - [x] Kaju answers from authorised records, with citations, under the caller's session
 - [x] Consequential changes are proposals a person confirms, with audit receipts
 - [x] Model usage ledger and cost limits (staging)
-- [ ] Ledger migration on production, model key and authorisation (needs approval)
+- [ ] Model key, authorisation, ceiling and prices for model mode (needs a decision)
 - [x] NGO intake, cases, follow-ups, animal register, imports with provenance
 - [ ] Veterinary sign-off walked through with a pilot veterinarian
 - [ ] Government review configured for a pilot ward (needs the pilot agreement)
 - [x] Public map and datasets with method notes
 - [ ] Researcher workspace with approved-study exports (needs data-sharing terms)
-- [ ] Training LMS: courses, assignments, completions
+- [x] Training screens: courses, quizzes, assignments, team progress
+- [ ] Training migration applied and verified (waiting on approval)
 - [x] RFID, microchip and QR identifiers with scanner lookup (staging, flag `animal_identifiers`)
-- [ ] Identifier migration on production (needs approval)
+- [x] Identifier and usage-ledger migrations on production
+- [x] Bite or scratch help prototype (`/bite-help`, flag off)
 - [ ] Bite or scratch help: clinical review and verified vaccine-centre list before any public use
 - [ ] WhatsApp Cloud API: Meta business verification and number approval
 
