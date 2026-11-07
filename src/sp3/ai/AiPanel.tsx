@@ -34,14 +34,14 @@ import { DemoFileViewer } from "@/sp/demo/FileViewer";
 import "./ai.css";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string; retry?:string; display?: string; fileName?: string };
-type Ctx = { open: boolean; toggle: () => void; setOpen: (v: boolean) => void; ask: (q: string, extra?: { display?: string; fileName?: string }) => void; msgs: Msg[]; busy: boolean; reset: () => void; stop:()=>void; model: boolean | null; scope:string|null; role:string|null; contextPath:string; scopeError:string|null; refreshScope:()=>void; revision:number };
+type Ctx = { open: boolean; toggle: () => void; setOpen: (v: boolean) => void; ask: (q: string, extra?: { display?: string; fileName?: string }) => void; msgs: Msg[]; busy: boolean; reset: () => void; stop:()=>void; model: boolean | null; scope:string|null; role:string|null; contextPath:string; scopeError:string|null; refreshScope:()=>void; revision:number; step:string|null };
 const AiCtx = createContext<Ctx | null>(null);
 const KEY = "sp3.ai.thread";
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 export function useAi(): Ctx {
   const c = useContext(AiCtx);
-  return c ?? { open: false, toggle: () => {}, setOpen: () => {}, ask: () => {}, msgs: [], busy: false, reset: () => {}, stop:()=>{}, model: null,scope:null,role:null,contextPath:'/',scopeError:null,refreshScope:()=>{}, revision:0 };
+  return c ?? { open: false, toggle: () => {}, setOpen: () => {}, ask: () => {}, msgs: [], busy: false, reset: () => {}, stop:()=>{}, model: null,scope:null,role:null,contextPath:'/',scopeError:null,refreshScope:()=>{}, revision:0, step:null };
 }
 
 /** Kaju's pose, from the agent's real state. Never from a pretend result. */
@@ -124,6 +124,7 @@ function ScopedAiProvider({children,identity,access,refreshScope}:{children:Reac
   const msgs=useMemo(()=>storageKey&&history.key===storageKey?history.msgs:[],[storageKey,history]);
   const setMsgs=useCallback((next:Msg[]|((previous:Msg[])=>Msg[]))=>setHistory(previous=>({key:storageKey,msgs:typeof next==='function'?next(previous.key===storageKey?previous.msgs:[]):next})),[storageKey]);
   const [busy,setBusy]=useState(false);
+  const [step,setStep]=useState<string|null>(null);
   const [model,setModel]=useState<boolean|null>(null);
   const request=useRef<AbortController|null>(null);
   const locked=useRef(false);
@@ -148,7 +149,7 @@ function ScopedAiProvider({children,identity,access,refreshScope}:{children:Reac
   const reset=useCallback(()=>{stop();setMsgs([]);setRevision(v=>v+1)},[stop,setMsgs]);
   const ask=useCallback(async(q:string,extra?:{display?:string;fileName?:string})=>{
     const text=q.trim();if(!text||!scope||locked.current)return;
-    const key=storageKey;const controller=new AbortController();request.current=controller;locked.current=true;setBusy(true);
+    const key=storageKey;const controller=new AbortController();request.current=controller;locked.current=true;setBusy(true);setStep(null);
     if(path!=='/assistant')setOpen(true);
     const next=[...msgsRef.current,{id:uid(),role:'user' as const,text,...(extra?.display!==undefined?{display:extra.display}:{}),...(extra?.fileName?{fileName:extra.fileName}:{})}];msgsRef.current=next;setMsgs(next);
     const current=()=>live.current&&currentKey.current===key&&request.current===controller&&!controller.signal.aborted;
@@ -161,22 +162,43 @@ function ScopedAiProvider({children,identity,access,refreshScope}:{children:Reac
       if((identity!=='guest'&&session?.user.id!==identity)||(identity==='guest'&&session))throw Error('Your session changed. Reopen Kaju before continuing.');
       if(!current())return;
       const ws=contextPath.startsWith('/ngo')?'ngo':contextPath.startsWith('/city')?'municipality':contextPath.startsWith('/learn')?'education':'community';
-      const response=await fetch('/api/ai',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json',...(session?{Authorization:`Bearer ${session.access_token}`}:{})},body:JSON.stringify({messages:next.slice(-12).map(m=>({role:m.role,text:m.reply?.text??m.text})),context:{path:contextPath,workspace:ws,scope}})});
-      const data=await response.json().catch(()=>null);if(!current())return;
+      const response=await fetch('/api/ai',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json',Accept:'application/x-ndjson, application/json',...(session?{Authorization:`Bearer ${session.access_token}`}:{})},body:JSON.stringify({messages:next.slice(-12).map(m=>({role:m.role,text:m.reply?.text??m.text})),context:{path:contextPath,workspace:ws,scope}})});
+      let data:any=null;
+      /* Streamed replies: show each record check as it finishes, then the answer. */
+      if(response.ok&&response.body&&response.headers.get('content-type')?.includes('application/x-ndjson')){
+        const reader=response.body.getReader();const dec=new TextDecoder();let buf='';
+        for(;;){const {done,value}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});let i:number;
+          while((i=buf.indexOf('\n'))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!line)continue;let ev:any;try{ev=JSON.parse(line)}catch{continue}
+            if(!current())return;
+            if(ev?.type==='progress'&&typeof ev.tool==='string')setStep(`${TOOL_STEP[ev.tool]??'Checking records'}${typeof ev.summary==='string'&&ev.summary?`: ${ev.summary}`:''}`);
+            else if(ev?.type==='reply')data=ev.reply;
+            else if(ev?.type==='error')throw Error(typeof ev.error==='string'?ev.error:'Kaju could not answer. Nothing was changed.');}}
+      }else data=await response.json().catch(()=>null);
+      if(!current())return;
       if(response.status===401||response.status===409){stop();setHistory({key:null,msgs:[]});refreshScope();return;}
       if(!response.ok)throw Error(typeof data?.error==='string'?data.error:'Kaju could not answer. Try again.');
       if(!isAiReply(data)||data.scope!==scope)throw Error('Kaju returned an incomplete response. No action was confirmed. Try again.');
       setModel(data.engine==='model');setMsgs(m=>[...m,{id:uid(),role:'assistant',text:data.text,reply:data}]);
       if(data.tools.some(t=>t.name==='operations_insights'&&t.ok))window.dispatchEvent(new Event('kaju-check-completed'));
     }catch(e){if(current()&&!timedOut)fail(e instanceof Error?e.message:'Could not reach StrayPaw. Try again.');}
-    finally{window.clearTimeout(timer);if(live.current&&request.current===controller){locked.current=false;setBusy(false);request.current=null}}
+    finally{window.clearTimeout(timer);if(live.current&&request.current===controller){locked.current=false;setBusy(false);setStep(null);request.current=null}}
   },[scope,storageKey,path,contextPath,identity,setMsgs,stop,refreshScope]);
   const cancel=useCallback(()=>{const pending=locked.current;stop();if(pending)setMsgs(m=>[...m,{id:uid(),role:'assistant',text:'Stopped waiting. No prepared action was confirmed.',reply:{text:'Stopped waiting. No prepared action was confirmed.',engine:'tools',tools:[],citations:[],proposals:[]}}])},[stop,setMsgs]);
-  const value=useMemo<Ctx>(()=>({open,setOpen,toggle:()=>setOpen(v=>!v),ask,msgs,busy,reset,stop:cancel,model,scope,role:access?.role??null,contextPath,scopeError:access?.error??null,refreshScope,revision}),[open,ask,msgs,busy,reset,cancel,model,scope,access?.role,access?.error,contextPath,refreshScope,revision]);
+  const value=useMemo<Ctx>(()=>({open,setOpen,toggle:()=>setOpen(v=>!v),ask,msgs,busy,reset,stop:cancel,model,scope,role:access?.role??null,contextPath,scopeError:access?.error??null,refreshScope,revision,step}),[open,ask,msgs,busy,reset,cancel,model,scope,access?.role,access?.error,contextPath,refreshScope,revision,step]);
   return <AiCtx.Provider value={value}>{children}{isRecordingDemo&&<DemoFileViewer/>}</AiCtx.Provider>;
 }
 
 const connectionsHref = (path: string) => (path.startsWith("/city") ? "/city/connections" : "/ngo/settings/connections");
+
+/* Plain words for each record check, shown while Kaju works. */
+const TOOL_STEP: Record<string, string> = {
+  search_records: "Searching records", work_summary: "Reading today's work", find_missing_evidence: "Checking evidence", find_duplicates: "Checking for duplicates",
+  find_by_identifier: "Looking up the identifier", programme_report: "Reading programme figures", prepared_work: "Finding work that needs a person",
+  prepare_intake: "Reading the field messages", check_package: "Checking the package", abc_verification_status: "Reading the verification queue",
+  abc_package_status: "Reading report packages", recent_confirmed_actions: "Verifying confirmed actions", operations_insights: "Running operational checks",
+  search_knowledge: "Searching the academy", extract_field_message: "Reading the message", propose_case: "Preparing a case", propose_note: "Preparing a note",
+  propose_followup: "Preparing a follow-up", propose_care: "Preparing a care record", navigate: "Finding the screen",
+};
 
 /* ── suggestions, by where the person is ─────────────────────────── */
 function suggestions(path: string): string[] {
@@ -330,7 +352,7 @@ function Thread({ full = false }: { full?: boolean }) {
         {ai.msgs.map((m) => m.role === "user"
           ? <div key={m.id} className="ai3-q">{m.fileName && <span className="ai3-q-file"><Paperclip size={13} aria-hidden />{m.fileName}</span>}{m.display ?? m.text}</div>
           : <Answer key={m.id} m={m} />)}
-        {ai.busy && <div className="ai3-thinking" role="status"><span className="ai3-thinking-kaju" aria-hidden><KajuMark size={44} state="thinking" /></span><Loader2 size={14} className="animate-spin" />Kaju is checking your request</div>}
+        {ai.busy && <div className="ai3-thinking" role="status"><span className="ai3-thinking-kaju" aria-hidden><KajuMark size={44} state="thinking" /></span><Loader2 size={14} className="animate-spin" />{ai.step ?? "Kaju is checking your request"}</div>}
         <div ref={end} />
       </div>
       <div className="ai3-compose">

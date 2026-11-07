@@ -4,6 +4,14 @@ StrayPaw becomes ShapeOS: one record of animals, interventions and programmes, w
 
 The Bengaluru pilot is under discussion with the BeST Cluster at IISc. It is **not signed or funded**. Nothing here should be presented as a deployment until it is.
 
+## Pending: do these next (agreed 2026-11-07)
+
+1. Apply `supabase/migrations/20261107090000_training_lms.sql` to staging (`ucxfxiddufwqithtdtix`). The automated apply waits for a tool-approval prompt in the Claude app; approve it, or run the file in the Supabase SQL editor.
+2. Verify training on staging as a coordinator (build, publish, assign) and a field member (lessons, quiz scoring, progress).
+3. Apply the same file to production (`toujthlzjmhmoyykmayx`).
+4. Add `training_lms` to `SP_FLAGS` and `NEXT_PUBLIC_SP_FLAGS` on production, redeploy, and set the training row in `src/lib/readiness.ts` to LIVE.
+5. Bite help stays off until clinical review and a verified vaccine-centre list.
+
 ## Status meanings
 
 | Status | Meaning |
@@ -41,7 +49,8 @@ Every model run is written to `kaju_model_usage` with its tokens and rupee cost.
 
 - [x] Kaju answers from authorised records, with citations, under the caller's session
 - [x] Consequential changes are proposals a person confirms, with audit receipts
-- [x] Model usage ledger and cost limits (staging)
+- [x] Model usage ledger and cost limits
+- [x] Kaju streams its record checks as it works (application/x-ndjson), so people see what it is reading
 - [ ] Model key, authorisation, ceiling and prices for model mode (needs a decision)
 - [x] NGO intake, cases, follow-ups, animal register, imports with provenance
 - [ ] Veterinary sign-off walked through with a pilot veterinarian

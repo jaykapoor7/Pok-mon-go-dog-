@@ -23,7 +23,8 @@ import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTool
    same server-authorised RPCs as the manual screens.
    ════════════════════════════════════════════════════════════════════ */
 
-export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; userId?: string; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null };
+export type ToolProgress = { tool: string; summary: string; ok: boolean };
+export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; userId?: string; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null; /** Called as each tool finishes, for streamed progress. Never carries record data. */ progress?: (e: ToolProgress) => void };
 export type ToolOut = { data: unknown; summary: string; citations: Citation[]; proposals?: Proposal[]; navigate?: { href: string; label: string }; ok?: boolean };
 
 const clean = (s: unknown, n = 80) => String(s ?? "").replace(/[%,()*\\]/g, " ").trim().slice(0, n);

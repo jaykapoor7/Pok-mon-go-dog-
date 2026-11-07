@@ -72,8 +72,29 @@ export async function POST(req: Request) {
   if (token && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try { const c = await connCaller(req); if (c) conn = { caller: c, caps: await capabilitiesFor(c) }; } catch { conn = null; }
   }
+  const turns = body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" as const : "user" as const, text: String(m.text ?? "") }));
+  const baseCtx = { db, orgId, userName, userId, actorRole, pagePath:body.context?.path?.split("?")[0].slice(0,200), conn };
+  /* Streaming: with Accept: application/x-ndjson the reply arrives as lines of
+     JSON: one {type:"progress"} per tool as it finishes (its name and a short
+     summary, never record data), then one {type:"reply"} or {type:"error"}. */
+  if (req.headers.get("accept")?.includes("application/x-ndjson")) {
+    const enc = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      async start(ctrl) {
+        const send = (o: unknown) => { try { ctrl.enqueue(enc.encode(JSON.stringify(o) + "\n")); } catch { /* client gone */ } };
+        send({ type: "start", scope });
+        try {
+          const reply = await answer(turns, { ...baseCtx, progress: (e) => send({ type: "progress", ...e }) }, { ...body.context, signal: req.signal });
+          send({ type: "reply", reply: { ...reply, scope } });
+        } catch {
+          if (!req.signal.aborted) { console.error("Kaju request failed"); send({ type: "error", error: "Kaju could not answer. Nothing was changed." }); }
+        } finally { try { ctrl.close(); } catch { /* closed */ } }
+      },
+    });
+    return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store", "X-Accel-Buffering": "no" } });
+  }
   try {
-    const reply = await answer(body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", text: String(m.text ?? "") })), { db, orgId, userName, userId, actorRole, pagePath:body.context?.path?.split("?")[0].slice(0,200), conn }, {...body.context,signal:req.signal});
+    const reply = await answer(turns, baseCtx, {...body.context,signal:req.signal});
     if(req.signal.aborted)return new Response(null,{status:499});
     return NextResponse.json({...reply,scope},{headers:{"Cache-Control":"no-store"}});
   } catch {

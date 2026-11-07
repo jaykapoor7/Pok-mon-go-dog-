@@ -46,8 +46,9 @@ How to work:
 - Be brief and concrete: short paragraphs or a few bullets. Indian English spelling.`;
 
 type Acc = { citations: Citation[]; tools: ToolRun[]; proposals: Proposal[]; navigate?: { href: string; label: string } };
-function absorb(acc: Acc, name: string, out: ToolOut) {
+function absorb(acc: Acc, name: string, out: ToolOut, ctx?: ToolCtx) {
   acc.tools.push(toolRun(name, out));
+  try { ctx?.progress?.({ tool: name, summary: out.summary.slice(0, 160), ok: out.ok !== false }); } catch { /* progress is best effort */ }
   for (const c of out.citations) if (!acc.citations.some((x) => x.id === c.id)) acc.citations.push(c);
   if (out.proposals) acc.proposals.push(...out.proposals);
   if (out.navigate) acc.navigate = out.navigate;
@@ -132,7 +133,7 @@ async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: stri
         const offered = [...TOOL_DEFS, ...connectionToolDefs(ctx.conn ?? null, !!ctx.orgId)].some((t) => t.name === u.name);
         out = offered ? await runTool(u.name, input, ctx) : { data: { error: "Tool unavailable in this session" }, summary: "Tool unavailable", citations: [], ok: false };
       } catch (e) { out = { data: { error: e instanceof Error ? e.message : "Tool failed" }, summary: "Tool failed", citations: [], ok: false }; }
-      absorb(acc, u.name, out);
+      absorb(acc, u.name, out, ctx);
       return { type: "tool_result" as const, tool_use_id: u.id, content: JSON.stringify(out.data).slice(0, 12000), ...(out.ok === false ? { is_error: true } : {}) };
     }));
     msgs.push({ role: "user", content: results });
@@ -144,7 +145,7 @@ async function withModel(turns: ChatTurn[], ctx: ToolCtx, context: { path?: stri
 const has = (t: string, re: RegExp) => re.test(t);
 async function call(acc: Acc, ctx: ToolCtx, name: string, input: Record<string, unknown> = {}) {
   const out = await runTool(name, input, ctx);
-  absorb(acc, name, out);
+  absorb(acc, name, out, ctx);
   return out;
 }
 const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v.toLocaleString("en-IN") : "unknown");
