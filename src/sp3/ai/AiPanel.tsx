@@ -202,6 +202,10 @@ const TOOL_STEP: Record<string, string> = {
 
 /* ── suggestions, by where the person is ─────────────────────────── */
 function suggestions(path: string): string[] {
+  if (/\/ngo\/animals\/[0-9a-f-]{36}$/.test(path)) return ["Summarise this animal's history", "Which records are missing evidence?", "Find possible duplicate animals"];
+  if (path === "/city/insights") return ["Which submissions have waited longest?", "Check the claims in the waiting packages", "What can only a municipal reviewer accept?"];
+  if (path.startsWith("/research")) return ["What programmes are published?", "Show published ABC programmes", "How do I request record-level data?"];
+  if (path.startsWith("/ngo/training")) return ["Search the academy for safe capture", "What training is available?", "Open the academy"];
   if (/\/ngo\/(cases|verification)\/[^/]+$/.test(path)) return ["Check this case and its evidence", "What needs attention on this case?", "What can only the veterinarian authorise?"];
   if (/\/(?:ngo\/packages|city\/review)\/[^/]+$/.test(path)) return ["Check this report package", "Show the municipal review queue", "What can only a municipal reviewer accept?"];
   if (path.startsWith("/ngo/packages") || path.startsWith("/ngo/contracts")) return ["Prepare this month's package", "Which records block this month's bill?", "Explain how the bill is calculated"];

@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { NotEnabled, PACKAGE_LABEL, myContext, orgNames, packageCases, packages, type AbcContext, type Package } from "@/lib/abc";
@@ -24,8 +25,11 @@ export function ReviewInbox() {
   const [names, setNames] = useState<Record<string, string>>({});
   const [off, setOff] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<"waiting" | "operator" | "all">("waiting");
-  const [op, setOp] = useState<string | null>(null);
+  /* The Overview links here already filtered: ?tab=operator|all and ?op=<operator>. */
+  const params = useSearchParams();
+  const askedTab = params?.get("tab");
+  const [tab, setTab] = useState<"waiting" | "operator" | "all">(askedTab === "operator" || askedTab === "all" ? askedTab : "waiting");
+  const [op, setOp] = useState<string | null>(params?.get("op") ?? null);
   const [checks, setChecks] = useState<Record<string, PackageCheck | "unavailable">>({});
 
   useEffect(() => {

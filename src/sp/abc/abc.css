@@ -308,3 +308,22 @@
 .sp .abc-withdraw > summary { cursor: pointer; font-size: 12.5px; color: var(--mute, #6f7380); list-style: none; }
 .sp .abc-withdraw > summary::-webkit-details-marker { display: none; }
 .sp .abc-withdraw[open] > summary { margin-bottom: 6px; }
+
+/* Package claims: one compact card per animal; the three disclosures sit in a row and open full width. */
+.sp .rc .fd-cards { gap: 6px; }
+.sp .rc .fd-card { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; padding: 12px 14px; }
+.sp .rc .fd-card > h3, .sp .rc .fd-card > p { flex: 1 1 100%; margin: 0; }
+.sp .rc .fd-card > p { font-size: 12.5px; color: var(--mute, #6f7380); }
+.sp .rc .fd-card > p b { color: #8a5a00; font-weight: 500; }
+.sp .rc .fd-card > details, .sp .rc .fd-card > form { flex: 0 0 auto; margin-top: 6px; }
+.sp .rc .fd-card > details > summary { cursor: pointer; font-size: 12.5px; color: var(--s3-blue, #2457ce); list-style: none; }
+.sp .rc .fd-card > details > summary::-webkit-details-marker { display: none; }
+.sp .rc .fd-card > details[open], .sp .rc .fd-card > form { flex: 1 1 100%; padding: 10px 12px; border-radius: 10px; background: #f6f7f9; }
+.sp .rc .fd-card > details[open] > summary { margin-bottom: 8px; font-weight: 600; }
+@media (max-width: 760px) {
+  .sp.sx3 .abc .ngo-head.abc-head { grid-template-columns: minmax(0, 1fr); }
+  .sp.sx3 .abc .ngo-head.abc-head > .ngo-head-act { grid-column: 1; grid-row: 3; justify-self: start; }
+  .sp.sx3 .abc .ngo-head.abc-head h1 { font-size: 26px; line-height: 1.15; }
+}
+.sp .rc .fd-card { display: flex !important; }
+.sp .rc .fd-card > details:not([open]) { margin-top: 4px; }

@@ -20,6 +20,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { chromium } from "playwright";
 import { randomUUID } from "node:crypto";
+import { latLngToCell } from "h3-js";
 
 const URL = "https://ucxfxiddufwqithtdtix.supabase.co";
 const ANON = "sb_publishable_Kj-dG0m0d8dv3npkEr-Z_A_VECXE74T";
@@ -83,7 +84,7 @@ for (let i = 0; i < 32; i++) {
   const lt = jitter(lat), lg = jitter(lng);
   const id = dogByCode.get(code) ?? await must(`animal ${i}`, c.field.rpc("create_animal_with_location", {
     p_city: "Bengaluru", p_name: name, p_species: "dog", p_code: code, p_zone: zone,
-    p_lat: lt, p_lng: lg, p_cover_photo: null, p_intake_notes: "Sample record for demonstration.", p_h3_r8: null,
+    p_lat: lt, p_lng: lg, p_cover_photo: null, p_intake_notes: "Sample record for demonstration.", p_h3_r8: latLngToCell(lt, lg, 8),
   }));
   animals.push({ id, zone, lat, lng, name: name ?? code });
 }
