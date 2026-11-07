@@ -18,6 +18,15 @@ The Bengaluru pilot is under discussion with the BeST Cluster at IISc. It is **n
 - Still to switch on in the Supabase dashboard: leaked-password protection (Auth settings). Also outside the code: an uptime monitor, the backup retention record, and a decision on whether pilot data must stay in India (production is in Seoul).
 - Training courses and research datasets are not written by StrayPaw: the pilot partners provide them, and the screens are ready to hold them.
 
+## Done on 2026-11-07 (evening)
+
+- Government reviewers land on Overview, which is now the office's command view: decisions waiting and oldest wait, packages with operators, claims claimed/accepted/payment evidence (accepted is not paid), operators with contracts in force, evidence completeness in waiting packages. Each figure opens the filtered review queue or the package.
+- Packages default to the reviewing office named by the one contract in force; otherwise the coordinator chooses (it used to pick the first office in the list).
+- Kaju answers every question it suggests (36 checked as coordinator, lead and reviewer on staging), within each person's permissions.
+- End-to-end walk on the staging demo in the real UI: vet authorises, coordinator confirms the release and approves evidence, coordinator prepares, configures and submits a package, municipal reviewer accepts each claim and closes the review; the Overview updates.
+- Demo: demo.straypaw.org serves the `demo` branch against staging; it follows main after a green quality gate. The staging map now opens on Bengaluru (staging lacked production's public map functions).
+- CI: the Solutions menu tests match the live 13-entry menu; the quality gate is green.
+
 ## Status meanings
 
 | Status | Meaning |
