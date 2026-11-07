@@ -13,7 +13,7 @@ import { NotEnabled, PACKAGE_LABEL, createPackage, myContext, offices, packages,
 import { NgoGate, useOrgOpen } from "../ngo/Gate";
 import { KajuEmptyState } from "@/kaju/Presence";
 import { Reading } from "../ui/Reading";
-import { MonthlySubmission } from "./MonthlySubmission";
+import { MonthlySubmission, contractOffice } from "./MonthlySubmission";
 import { Pager, pageOf } from "./Pager";
 import "../ngo/ngo.css";
 import "./abc.css";
@@ -39,8 +39,9 @@ export function Packages() {
   useEffect(() => {
     if (!open) return;
     let live = true;
-    Promise.all([packages(), offices(), myContext()])
-      .then(([p, o, c]) => { if (!live) return; setList(p.filter((x) => x.ngo_id === c.ngo_id)); setOffs(o); setCtx(c); setF((v) => ({ ...v, office: v.office || o[0]?.id || "" })); })
+    /* The office is only filled in for you when one contract in force names it; otherwise you choose. */
+    Promise.all([packages(), offices(), myContext(), contractOffice()])
+      .then(([p, o, c, k]) => { if (!live) return; setList(p.filter((x) => x.ngo_id === c.ngo_id)); setOffs(o); setCtx(c); setF((v) => ({ ...v, office: v.office || k || "" })); })
       .catch((e) => { if (!live) return; if (e instanceof NotEnabled) setOff(true); else setErr(e.message); });
     return () => { live = false; };
   }, [open]);
@@ -68,7 +69,7 @@ export function Packages() {
                 <label>Title<input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g. Ward 14 ABC drive · October" /></label>
                 <label>From<input className="input" type="date" value={f.start} onChange={(e) => setF({ ...f, start: e.target.value })} /></label>
                 <label>To<input className="input" type="date" value={f.end} onChange={(e) => setF({ ...f, end: e.target.value })} /></label>
-                <label>Reviewing office<select aria-label="Reviewing office" className="select" value={f.office} onChange={(e) => setF({ ...f, office: e.target.value })}>{offs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+                <label>Reviewing office<select aria-label="Reviewing office" className="select" value={f.office} onChange={(e) => setF({ ...f, office: e.target.value })}><option value="">Choose the office that funds this work</option>{offs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
                 <button type="submit" className="btn is-ink is-s" disabled={busy || !f.office}>Prepare package</button>{f.title && <CancelButton label="Clear" disabled={busy} onCancel={() => setF((v) => ({ ...v, title: "" }))} />}
               </form></details>
             )}

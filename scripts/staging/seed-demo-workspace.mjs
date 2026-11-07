@@ -140,6 +140,9 @@ for (const [ai, date, state] of ABC) {
   abcCases.push({ caseId, state });
 }
 console.log(`ABC cases: ${abcCases.length}`);
+/* The register status follows the recorded procedure (a released animal was sterilised and given its anti-rabies dose). */
+for (const [ai, , state] of ABC) if (state !== "needs-evidence") await soft("register status", c.coord.rpc("set_animal_programme_status", { p_dog_id: animals[ai].id, p_sterilisation_status: "sterilised", p_vaccination_status: "vaccinated" }));
+for (const ai of [27, 28, 29]) await soft("register status", c.coord.rpc("set_animal_programme_status", { p_dog_id: animals[ai].id, p_sterilisation_status: "not_sterilised", p_vaccination_status: "vaccinated" }));
 
 // ── Rescue and treatment cases, with follow-ups ────────────────────────
 const RESCUE = [

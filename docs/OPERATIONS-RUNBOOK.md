@@ -48,6 +48,10 @@ How StrayPaw is deployed, watched, backed up and restored. Keep this current wit
 - Records are made through the app's own functions by `scripts/staging/seed-demo-workspace.mjs` (`DEMO_PASSWORD=… node scripts/staging/seed-demo-workspace.mjs`). Re-running keeps what exists and adds what is missing; nothing is deleted. The contract is marked illustrative and every organisation name says "Sample".
 - DNS: `demo` is a CNAME to `cname.vercel-dns.com` at Cloudflare (DNS only, not proxied).
 
+## Staging schema drift
+
+Some public map functions were applied to production directly and never added to `supabase/migrations`, so staging lacked them and every city read on the staging map failed. `public_map_months` is now a migration (identical to production). `scripts/staging/public-map-parity.sql` adds `public_map_cells_v2`, `public_map_case_confidence` and `public_map_followups_live` to staging (identical to production) and a reduced `public_contributor_organisations` stand-in, because staging has no `atlas_area_metrics` or `data_sources` tables. Never apply the parity file to production. Before the pilot, compare `pg_proc` between the two projects and bring the rest of production's public-data functions into migrations.
+
 ## Credentials
 
 - Secrets live only in Vercel environment variables and Supabase; never in the repository.

@@ -16,7 +16,7 @@ import { ArrowRight, FileCheck2, Sparkles } from "lucide-react";
 import { createPackage, offices, packages, verificationQueue, type Office, type QueueRow } from "@/lib/abc";
 import { billLines, readBillingPreview, type PreviewResult } from "@/lib/billing";
 import { operationRpc, verifyOperationReceipt, type OperationReceipt } from "@/lib/operations";
-import { readReconciliation } from "@/lib/reconciliation";
+import { readContracts, readReconciliation } from "@/lib/reconciliation";
 import { getSupabase } from "@/lib/supabase";
 import { monthBounds, monthlyPlan } from "@/sp3/ai/monthly";
 
@@ -36,11 +36,11 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
 
   useEffect(() => {
     let live = true;
-    Promise.all([verificationQueue(500), offices(), packages()])
-      .then(([r, o, p]) => {
+    Promise.all([verificationQueue(500), offices(), packages(), contractOffice()])
+      .then(([r, o, p, k]) => {
         if (!live) return;
         setRows(r); setOffs(o); setExisting(new Set(p.filter((x) => x.status !== "returned").map((x) => `${x.period_start.slice(0, 10)}|${x.office_id}`)));
-        if (o.length === 1) setOffice(o[0].id);
+        if (k) setOffice(k); else if (o.length === 1) setOffice(o[0].id);
         setState("ok");
       })
       .catch((e: Error) => { if (live) setState(/not switched on/i.test(e.message) ? "off" : "error"); });
@@ -126,4 +126,15 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
       {err && <p role="alert" className="ms-err">{err}</p>}
     </section>
   );
+}
+
+/** The reviewing office named by the one contract in force for your organisation today,
+ *  or null when there is none or more than one: then the person chooses. */
+export async function contractOffice(): Promise<string | null> {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const { contracts } = await readContracts();
+    const ids = [...new Set(contracts.filter((c) => c.starts_on <= today && c.ends_on >= today).map((c) => c.office_id))];
+    return ids.length === 1 ? ids[0] : null;
+  } catch { return null; }
 }
