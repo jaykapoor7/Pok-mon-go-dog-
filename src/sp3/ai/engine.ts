@@ -223,11 +223,30 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     const passages = (out.data as { passages?: { title: string; text: string }[] }).passages ?? [];
     return done(passages.length ? passages.map(p => `**${p.title}**\n${p.text}`).join("\n\n") + "\n\nFrom StrayPaw Academy. Educational guidance; a qualified professional decides clinical or legal questions." : "I did not find a published Academy passage for that topic. Ask a more specific question.");
   }
-  if (/\b(packages?|municipal review|submission status)\b/.test(t)) {
-    const out = await call(acc, ctx, "abc_package_status");
-    return done(out.ok === false ? out.summary : `${out.summary}. Open a linked package to review its status and clarification history. No decision was made.`);
+  if (/\bbill\b/.test(t) && /\b(calculat|work|explain|how)/.test(t)) {
+    return done("A claim is one recorded procedure for one animal, at the rate in the contract version in force on the procedure date. A procedure is claimable only when its required evidence is present, a veterinarian has authorised it and a coordinator has reviewed it; it is claimed once. The package total is the sum of those lines. The municipal office decides each line: accepted, queried, returned or rejected. Accepted is not paid; StrayPaw does not process payments, and payment evidence is recorded separately by the office.");
   }
-  if (/\b(abc|verification|vet|procedures?)\b/.test(t) && /queue|status|missing|incomplete|evidence|authoris|authoriz|review/.test(t)) {
+  if (/record-level|record level|researcher access|raw data|request data/.test(t)) {
+    return done("Record-level data is not shared yet. Researchers can request access at /research/access; requests stay closed until a data-sharing agreement and an approved study protocol permit them. Aggregate figures, methods and downloads are open now in the research workbench at /research/workbench.");
+  }
+  if (/\b(academy|training|courses?|lessons?)\b/.test(t)) {
+    const out = await call(acc, ctx, "search_knowledge", { query: q.replace(/search the academy (for)?|what training is available\??/i, "").trim() || "training" });
+    const passages = (out.data as { passages?: { title: string; text: string }[] }).passages ?? [];
+    return done(passages.length ? passages.slice(0, 3).map((p) => `**${p.title}**\n${p.text}`).join("\n\n") + "\n\nFrom StrayPaw Academy. Your organisation's assigned courses are under Training." : "Your organisation's courses and assignments are under Training; I found no Academy passage for that. Courses for the pilot are added by your programme team.");
+  }
+  if (/\b(packages?|submissions?|waited|claims?|municipal review|review queue|submission status|operator outcomes?)\b/.test(t)) {
+    const out = await call(acc, ctx, "abc_package_status");
+    if (out.ok === false) return done(out.summary);
+    /* Say what the records show: what waits, for how long, and what is with the operator. */
+    const rows = ((out.data as { packages?: { title: string; status: string; submitted_at: string | null }[] }).packages ?? []);
+    const days = (iso: string | null) => (iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000)) : null);
+    const waiting = rows.filter((r) => r.status === "submitted").sort((x, y) => (x.submitted_at ?? "").localeCompare(y.submitted_at ?? ""));
+    const withOperator = rows.filter((r) => r.status === "queried" || r.status === "returned").length;
+    const decided = rows.filter((r) => r.status === "accepted" || r.status === "partially_accepted").length;
+    const lines = waiting.slice(0, 5).map((r) => { const d = days(r.submitted_at); return `- **${r.title}**: waiting ${d === null ? "since an unknown date" : d === 0 ? "since today" : `${d} ${d === 1 ? "day" : "days"}`}`; });
+    return done(`${waiting.length ? `${waiting.length} ${waiting.length === 1 ? "package waits" : "packages wait"} for a decision, oldest first:\n${lines.join("\n")}` : "No package is waiting for a decision."}\n\n${withOperator} with the operator (queried or returned) · ${decided} accepted or partly accepted, of the ${rows.length} packages you can see (up to 50 most recent). Accepted is not paid. No decision was made; open a package to review it.`);
+  }
+  if ((/\b(abc|verification|vet|veterinar\w*|procedures?)\b/.test(t) && /queue|status|missing|incomplete|evidence|authoris|authoriz|review|need/.test(t)) || (/\bblock\w*\b/.test(t) && /\b(bill|package|claim|month)/.test(t))) {
     const out = await call(acc, ctx, "abc_verification_status");
     return done(out.ok === false ? (ctx.orgId ? out.summary : needsOrg) : `${out.summary}. The linked records show missing evidence, veterinary authorisation and review status. This is a bounded sample, not a programme total.`);
   }
@@ -305,7 +324,7 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     const d = out.data as { files: { name: string; url: string | null }[] };
     return done(d.files.length ? `Found ${d.files.length}:\n${d.files.slice(0, 8).map((f) => `- **${f.name}**`).join("\n")}` : `No files matching “${fileQ[1].trim()}”.`);
   }
-  if (has(t, /missing|incomplete|without (a )?(photo|evidence|place)|can'?t be counted|cannot be counted|gaps?\b/)) {
+  if (has(t, /missing|incomplete|without (a )?(photo|evidence|place)|no photo|can'?t be counted|cannot be counted|gaps?\b/)) {
     const out = await call(acc, ctx, "find_missing_evidence");
     if (out.ok === false) return done(needsOrg);
     const d = out.data as { animals_without_photo: number; open_cases_without_animal: number; open_cases_without_place: number };
