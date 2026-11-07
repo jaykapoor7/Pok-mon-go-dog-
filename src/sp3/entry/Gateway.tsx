@@ -49,7 +49,7 @@ export function Gateway() {
       if (safe && fits(safe)) { setS({ phase: "routing", to: safe, org: org?.name ?? "your workspace" }); router.replace(safe); return; }
       if (member && reviewer) { setS({ phase: "both", org: org?.name ?? "your organisation" }); return; }
       if (member) { setS({ phase: "routing", to: "/ngo", org: org?.name ?? "your organisation" }); router.replace("/ngo"); return; }
-      if (reviewer) { setS({ phase: "routing", to: "/city/review", org: "your reviewing office" }); router.replace("/city/review"); return; }
+      if (reviewer) { setS({ phase: "routing", to: "/city/insights", org: "your reviewing office" }); router.replace("/city/insights"); return; }
       setS({ phase: "choose", signedIn: true });
     }).catch(() => { if (live) setS({ phase: "error" }); });
     return () => { live = false; };
@@ -67,7 +67,7 @@ export function Gateway() {
             <p className="s3-lede">Your account belongs to {s.org} and to a reviewing office. Each workspace shows only what that role may see.</p>
             <div className="s3g-grid">
               <Choice href="/ngo" icon={<Building2 size={18} />} t={`${s.org} operations`} d="Intake, animals, care, release and monthly submissions." primary />
-              <Choice href="/city/review" icon={<Landmark size={18} />} t="Government oversight" d="Packages, claims and decisions for your reviewing office." primary />
+              <Choice href="/city/insights" icon={<Landmark size={18} />} t="Government oversight" d="Decisions, operators and ward activity for your reviewing office." primary />
             </div>
           </>
         ) : s.phase !== "choose" ? (
