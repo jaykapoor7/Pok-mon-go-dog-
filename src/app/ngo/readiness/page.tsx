@@ -26,6 +26,7 @@ export default function ReadinessPage() {
             <li className="is-pilot"><b>{pilotLive}/{pilot.length}</b>December modules live</li>
           </ul>
         </header>
+        <div className="rd-areas">
         {AREAS.map((area) => {
           const mods = MODULES.filter((m) => m.area === area);
           if (!mods.length) return null;
@@ -34,22 +35,25 @@ export default function ReadinessPage() {
               <h2 id={`rd-${area}`}>{area}</h2>
               <ul>
                 {mods.map((m) => (
-                  <li key={m.id} className="rd-row">
+                  <li key={m.id} className="rd-row"><details><summary>
                     <div className="rd-name">
                       <b>{m.name}</b>
                       <span className={`rd-chip is-${m.status.toLowerCase()}`}>{LABEL[m.status]}</span>
                       {m.december && <span className="rd-chip is-dec">December pilot</span>}
                       {m.flag && <span className={`rd-chip is-flag${on.has(m.flag) ? " is-on" : ""}`} title={FLAGS[m.flag]}>{on.has(m.flag) ? "Flag on" : "Flag off"}</span>}
                     </div>
-                    <p>{m.evidence}</p>
                     {m.waitsOn && <p className="rd-wait"><b>Waits on:</b> {m.waitsOn}</p>}
-                    {m.next && <p className="rd-next"><b>Next:</b> {m.next}</p>}
-                  </li>
+                    {!m.waitsOn && m.next && <p className="rd-next"><b>Next:</b> {m.next}</p>}
+                    </summary>
+                    <p className="rd-ev">{m.evidence}</p>
+                    {m.waitsOn && m.next && <p className="rd-next"><b>Next:</b> {m.next}</p>}
+                  </details></li>
                 ))}
               </ul>
             </section>
           );
         })}
+        </div>
       </div>
     </NgoGate>
   );

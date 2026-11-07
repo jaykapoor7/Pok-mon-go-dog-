@@ -641,7 +641,7 @@ const META={
     "label": "Government",
     "purpose": "Municipal oversight: wards, evidence, claims and decisions",
     "ink": "#2457ce",
-    "home": "/city",
+    "home": "/city/insights",
     "action": null
   },
   "learn": {

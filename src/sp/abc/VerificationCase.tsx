@@ -149,10 +149,10 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
               </>
             )}
             {!locked && vet && (vet.actor_id === me || role === "admin") && (
-              <>
+              <details className="abc-withdraw"><summary>Withdraw authorisation…</summary>
                 <textarea className="textarea" placeholder="Why it is withdrawn" value={why} onChange={(e) => setWhy(e.target.value)} aria-label="Why the authorisation is withdrawn" />
                 <div className="acts"><button type="button" className="btn is-s" disabled={busy || !why.trim()} onClick={() => act(() => withdrawSignOff(vet.id, why), "Authorisation withdrawn. Any approval that relied on it was withdrawn too.").then(() => setWhy(""))}>Withdraw authorisation</button></div>
-              </>
+              </details>
             )}
           </div>
 
@@ -172,10 +172,10 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
               )
             )}
             {!locked && rev && (rev.actor_id === me || role === "admin") && (
-              <>
+              <details className="abc-withdraw"><summary>Withdraw approval…</summary>
                 <textarea className="textarea" placeholder="Why it is withdrawn" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Withdrawal reason" />
                 <div className="acts"><button type="button" className="btn is-s" disabled={busy || !reason.trim()} onClick={() => act(() => withdrawSignOff(rev.id, reason), "Approval withdrawn.").then(() => setReason(""))}>Withdraw approval</button></div>
-              </>
+              </details>
             )}
           </div>
 

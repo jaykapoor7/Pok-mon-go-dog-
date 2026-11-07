@@ -20,6 +20,7 @@ import { State } from "../ui";
 import { findings, loadedScope, type Period } from "./findings";
 import { FindingView, Hatch } from "./Findings";
 import { MobileDetails } from "../ui/MobileDetails";
+import { OfficeStrip } from "./OfficeStrip";
 import "./city.css";
 
 export function Insights() {
@@ -49,6 +50,7 @@ export function Insights() {
   return (
     <div className="ci">
       <Hatch />
+      <OfficeStrip />
       <header className="ci-head">
         <div className="ci-title">
           <p className="k">Municipality · insights</p>
