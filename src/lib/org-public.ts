@@ -112,10 +112,14 @@ export async function getPublicOrgDirectoryImpacts(): Promise<Map<string, OrgImp
   if (!admin) throw new Error("Organisation counts are unavailable.");
   const read = unstable_cache(async () => {
     const { data, error } = await admin.rpc("list_public_org_impacts");
-    if (error) throw new Error("Organisation counts could not be loaded.", { cause: error });
+    if (error) {
+      // Log only the PostgREST error code; messages/details can contain data.
+      console.error("Public organisation impact RPC failed", { code: String(error.code ?? "unknown") });
+      throw new Error("Organisation counts could not be loaded.", { cause: error });
+    }
     if (!Array.isArray(data)) throw new Error("Organisation counts returned an invalid response.");
     return data as any[];
-  }, ["public-org-directory-impacts-v2"], { revalidate: 60 });
+  }, ["public-org-directory-impacts-v2"], { revalidate: 300 });
   const rows = await read();
   return new Map(rows.map((row: any) => [String(row.ngo_id), {
     animalsRecorded: number(row.animals_recorded),

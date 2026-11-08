@@ -1,0 +1,27 @@
+name: Production health probe
+
+# Supplemental probe only. GitHub cron runs may be delayed or skipped.
+# Use an independent external monitor at 5-minute intervals for alerts.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: straypaw-production-health-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout reviewed code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check application and database health
+        run: node scripts/ops/probe-health.mjs
