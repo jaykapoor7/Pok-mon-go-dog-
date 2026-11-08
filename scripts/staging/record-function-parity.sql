@@ -1,0 +1,17 @@
+-- STAGING ONLY. Functions the application calls that production has (applied
+-- there outside git) and staging lacked, so the demo's case medical notes,
+-- costs, photos, documents and care flags failed. Bodies identical to
+-- production (read 2026-11-08); EXECUTE is granted to authenticated and
+-- service_role only, never anon. delete_org_record is not included: it
+-- depends on private.delete_org_record_impl, which staging does not have.
+-- Never apply to production. Safe to re-run.
+--
+-- Functions: add_case_photo, add_document, animal_documents, case_documents,
+-- link_document, ngo_set_dog_care, set_case_cost, set_case_medical,
+-- update_document. The exact SQL applied is recorded in the staging
+-- migration history as `staging_record_function_parity`; regenerate it from
+-- production with:
+--   select pg_get_functiondef(p.oid) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--   where n.nspname = 'public' and p.proname in ('add_case_photo','add_document','animal_documents',
+--     'case_documents','link_document','ngo_set_dog_care','set_case_cost','set_case_medical','update_document');
+-- then REVOKE ALL ... FROM PUBLIC, anon and GRANT EXECUTE ... TO authenticated, service_role for each.

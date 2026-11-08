@@ -49,7 +49,11 @@ import {fieldCache} from "@/lib/field/outbox";
 type Org = { id: string; name: string } | null;
 type Mem = { member: boolean; ready: boolean; org: Org; role: Role | null; reviewer: boolean; owner?:string };
 const Membership = createContext<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
+/* The staging database serves only the demonstration (demo.straypaw.org and previews). Say so on every signed-in screen. */
+const DEMO_DB = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").includes("ucxfxiddufwqithtdtix");
+
 /** Whether the signed-in person belongs to an organisation (display only: the server decides access). */
+
 export const useMembership = () => useContext(Membership);
 
 const ICON: Record<string, typeof MapIcon> = {
@@ -248,6 +252,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               <Search size={15} aria-hidden /><span>Search records</span><kbd>⌘K</kbd>
             </button>
             <div className="sp-bar-end">
+              {DEMO_DB && <span className="sx-demo" title="This site runs on the staging database. Every organisation, animal, contract and package here is illustrative.">Demonstration · illustrative records</span>}
               <button type="button" className="icon-btn sx5-menu-m" aria-label="Workspace sections" onClick={()=>setSheet(true)}><Menu size={18} aria-hidden /></button>
               {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuFace size={24} /></span><span>Ask Kaju</span></button>}
               {def.action && !reporting && (ws !== "ngo" || mem.member) && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}

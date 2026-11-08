@@ -200,8 +200,7 @@
   .br-in { display: flex; flex-direction: column; }
   .br-hello { order: -3; } .br-since { order: -2; } .br-quick { order: -1; margin: 14px 0 6px; }
   .br .ms, .br .br-kaju { display: none; }
-  .br.is-member .jy, .br.is-veterinarian .jy { display: none; }
-  .br.is-member .br-since, .br.is-veterinarian .br-since { display: none; }
+  /* Every role keeps the status strip and the one-line summary on a phone, as in the product demo. */
   .br-qb { min-height: 64px; border-radius: 14px; }
   .br-qb b { font-size: 15.5px; }
 }

@@ -49,3 +49,27 @@ This is an engineering risk inventory, not a claim that any partner pilot is app
 - Provider dashboards: Vercel runtime logs; Supabase Security/Performance advisors; Supabase Database Backups; Cloudflare DNS
 
 **Audit limitation:** Catalog hashes/rowcounts and Vercel logs are point-in-time observations. Initial and repeat timings varied. The audit did not inspect live credentials, execute destructive statements, alter privilege grants, or certify an external clinical/policy requirement.
+
+## Follow-up pass (same day)
+
+**Dashboard visibility.** Production serves the current application code. In production, two things stop people seeing the new dashboards:
+- **No reviewing office.** Production has no review office and no reviewer (0 rows in each), so nobody can open the office command Overview at `/city/insights`. It appears once an office and a reviewer membership exist.
+- **Field staff on phones.** Six of the seven NGO memberships are field `member` accounts. On phones, the redesigned Today hid its status strip and summary line from members and vets. That rule is removed, so every role now sees them.
+
+The service worker is not the cause: it caches only hashed static assets and the offline shell.
+
+**Public read errors.** `/community/organisations` and `/community/stories` time out for two reasons:
+- `list_public_org_impacts()` calls the non-inlinable `is_care_register_record()` once per case, about 23,200 calls. It took 1.4–10.5 s on the shared instance.
+- `public_case_stories` sorts every case before returning 25 rows, taking 2.6 s.
+
+`supabase/migrations/20261108100000_public_read_performance.sql` fixes both. It inlines the filter (same results: on production, 8 rows before and after, 0 differences by EXCEPT) and adds a matching index. It is applied to staging and **not to production, pending owner approval**. Until then, the 300 s cache from this PR absorbs most of the cost.
+
+**Function drift** (production versus staging, by name):
+- **Missing in production:** only `careos_enqueue`, which belongs to the blocked WhatsApp channel and stays unapplied.
+- **Missing in staging:** 32 functions the app calls. The nine needed for the demonstration's record, document, care and cost flows were copied from production, identical (`scripts/staging/record-function-parity.sql`).
+- **Staging-only:** `careos_*`, `sd_*` and `founder_*` are prototypes, not pilot-critical.
+- **Production-only and never in migrations:** documents, tasks, fundraisers, vet camps, stories, place search and similar. Bringing these into migrations is a separate, owner-approved task.
+
+**Advisors.** Every finding is either intentional (security-definer public readers with fixed `search_path`, public views by design) or already listed above. The exception is leaked-password protection, which is off and is an owner switch in the Supabase dashboard.
+
+**Demonstration label.** Any build that points at the staging database now shows "Demonstration · illustrative records" in the top bar of every signed-in screen ("Demo" on phones). Production never shows it.
