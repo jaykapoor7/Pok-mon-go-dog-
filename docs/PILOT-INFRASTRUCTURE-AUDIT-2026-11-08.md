@@ -20,7 +20,10 @@ This is an engineering risk inventory, not a claim that any partner pilot is app
 | Authentication | Supabase Auth leaked-password protection still requires verification in the dashboard. | Enable if available for the project, then test signup/password reset. |
 | Monitoring | Deep check exists at `/api/health?deep=1`; no independent, verified 5-minute alerting destination was available from these connections. | Provision external uptime alerts to at least two human contacts. The new GitHub check is supplementary only. |
 
-## Safe improvement delivered in this PR
+## Safe improvements delivered in this PR
+
+- `src/lib/org-public.ts`: raises the public, non-sensitive organisation aggregate cache revalidation interval from 60 to 300 seconds (as already documented in `docs/DATABASE.md`) to reduce recurring expensive RPC calls; logs only the PostgREST error **code** on a failure, without dumping response details. This mitigates load and improves diagnosis; it does **not** prove the timeout/root cause is solved.
+
 
 - `scripts/ops/probe-health.mjs`: probes HTTPS `/api/health?deep=1`, verifies **both** `status=ok` and `database=ok`, has a ten-second network timeout and retries once after thirty seconds. No secrets or payload data logged.
 - `.github/workflows/production-health-probe.yml`: hourly best-effort scheduled check plus manual dispatch, checkout pinned to a specific action SHA, no GitHub write permissions.
