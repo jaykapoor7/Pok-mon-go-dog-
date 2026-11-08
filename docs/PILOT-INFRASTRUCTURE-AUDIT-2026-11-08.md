@@ -1,6 +1,6 @@
 # Pilot infrastructure audit — 2026-11-08
 
-**Scope:** Read-only checks against the connected Supabase production and staging projects, Vercel project, and GitHub source. The only changes from this audit are the supplemental health-probe script/workflow on this branch. **No production database, production configuration, DNS, secrets, or live services were changed.**
+**Scope:** Read-only checks against the connected Supabase production and staging projects, Vercel project, and GitHub source. This PR adds a supplemental health-probe script/workflow, a targeted public-aggregate cache/logging mitigation, and this audit report. **No production database, production configuration, DNS, secrets, or live services were changed.**
 
 This is an engineering risk inventory, not a claim that any partner pilot is approved or deployed. The BeST / Bengaluru engagement is still subject to a written agreement and verified data governance.
 
