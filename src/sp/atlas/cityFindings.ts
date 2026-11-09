@@ -26,7 +26,7 @@ export function cityFindings(cells: MapCell[], now = Date.now()): CityFinding[] 
   const openNoCare = open.filter((c) => c.care_12m === 0);
   if (open.length) out.push({ id: "open-no-care", n: openNoCare.length, tone: "act",
     lead: `${f(openNoCare.length)} of ${f(open.length)} areas with a confirmed open request have no care recorded in the last 12 months.`,
-    detail: `${pl(sum(openNoCare, (c) => c.open_cases - (c.open_unconfirmed ?? 0)), "confirmed open request sits", "confirmed open requests sit")} in these areas. No care recorded is not the same as no care given: it may not have been entered.`,
+    detail: `${pl(sum(openNoCare, (c) => c.open_cases - (c.open_unconfirmed ?? 0)), "confirmed open request sits", "confirmed open requests sit")} in these areas.`,
     method: "Confirmed open requests (imported-and-unconfirmed excluded) · dated care events, 12 months · H3 areas ≈0.74 km²", cells: openNoCare.map((c) => c.h3) });
 
   const missed = pick((c) => (c.fu_missed_live ?? 0) > 0);

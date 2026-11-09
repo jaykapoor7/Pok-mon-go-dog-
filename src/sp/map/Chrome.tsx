@@ -457,17 +457,17 @@ function Key({ level, lens, zoom }: { level: Level; lens: LensId; zoom: number }
       ) : (
         <ul className="fm-keyl">
           {care ? <>
-            <li>{sw("#1f6f80")}{lens === "arv" ? "Recorded vaccinated" : "Recorded sterilised"}</li>
-            {lens !== "arv" && <li>{sw("#d0782a")}Recorded not sterilised</li>}
-            <li>{sw("#9aa6b6")}Not recorded, never counted as no</li>
+            <li>{sw("#1f6f80")}{lens === "arv" ? "Vaccinated" : "Sterilised"}</li>
+            {lens !== "arv" && <li>{sw("#d0782a")}Not sterilised</li>}
+            <li>{sw("#9aa6b6")}Not recorded</li>
           </> : <>
             <li>{sw(NEED_INK.help)}{NEED_LABEL.help}</li>
             <li>{sw(NEED_INK.open)}{NEED_LABEL.open}</li>
             <li>{sw(NEED_INK.rec)}{NEED_LABEL.rec}</li>
           </>}
           {filter && <li className="fm-keyn">Faded dots are outside this filter.</li>}
-          {lens !== "animals" && <li>{sw(L.ink)}Circles: {L.define.split(".")[0].toLowerCase()}, by area.</li>}
-          <li className="fm-keyn">One dot per animal, placed inside its area, not where it was seen.{zoom < LOAD_ZOOM ? " Zoom in to open each one." : ""}</li>
+          
+          {zoom < LOAD_ZOOM && <li className="fm-keyn">Zoom in to open each animal.</li>}
         </ul>
       )}
     </>

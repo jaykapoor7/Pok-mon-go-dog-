@@ -27,7 +27,6 @@ export function KajuPackageCheck({ check, side, canDecide, busy, onFill, onBatch
           {check.clean > 0 && <button type="button" className="btn is-ink" disabled={busy} onClick={() => onBatch("accepted")}>Accept {check.clean} clean claim{check.clean === 1 ? "" : "s"}…</button>}
           {check.exceptions > 0 && <button type="button" className="btn" disabled={busy} onClick={() => onBatch("query")}>Send {check.exceptions} quer{check.exceptions === 1 ? "y" : "ies"}…</button>}
         </div>}
-      <p className="kpc-note">Kaju compares records only. It does not accept, query or reject anything; each decision is yours and is recorded in your name with its note.</p>
     </section>
   );
 }

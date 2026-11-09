@@ -150,7 +150,7 @@ function CityView(p: Props) {
     <>
       <section className="insp-sec">
         <p className="method"><span>Unit <b>H3 area ≈0.74 km²</b></span><span>Areas <b>{f(p.cells.length)}</b></span><span>Precision <b>{p.evidence?.precision}</b></span><span>Period <b>{p.ctx.range ? "selected months" : "all recorded time"}</b></span></p>
-        {p.reading && <><p className="insp-lead">{p.reading.lead}</p><p className="small">{p.reading.qualify}</p></>}
+        {p.reading && <p className="insp-lead">{p.reading.lead}</p>}
       </section>
       {p.variant === "city" && <Findings {...p} />}
       {p.variant === "city" && p.city && <EvidenceDrawer lens={p.lens} city={p.city} data={p.data} cells={p.cells} evidence={p.evidence} ranged={!!p.ctx.range} />}
@@ -201,7 +201,7 @@ function Findings(p: Props) {
             <div>
               <p className="insp-fl">{x.lead}</p>
               <p className="small">{x.detail}</p>
-              <p className="insp-fm mono">{x.method}</p>
+              
               {p.spot === x.id && <SpotAreas ids={x.cells} {...p} />}
               {x.cells.length > 0 && <button type="button" className="btn is-s" aria-pressed={p.spot === x.id} onClick={() => p.onSpot(p.spot === x.id ? null : x.id, x.cells)}>{p.spot === x.id ? "Show every area" : x.cells.length === 1 ? "Show this area on the map" : `Show these ${f(x.cells.length)} areas on the map`}</button>}
             </div>

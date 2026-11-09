@@ -45,7 +45,7 @@ export function Programmes({ all, initialCity, now }: { all: PublicProgramme[]; 
             <button type="button" className="btn is-s" disabled={!rows.length} onClick={() => window.print()}><Printer size={15} aria-hidden /> Print</button>
           </div>
         </div>
-        <p className="ci-ev">Programmes organisations have chosen to publish, with the figure each is about in its honest unit. A programme&rsquo;s figure is what its organisation recorded, not coverage of a city&rsquo;s animals.</p>
+        
         <div className="row cp-cats" role="group" aria-label="Kind of work">
           <button type="button" className="chip" aria-pressed={!cat} onClick={() => setCat("")}>All kinds</button>
           {(Object.keys(CAT) as PublicProgrammeCategory[]).map((k) => <button key={k} type="button" className="chip" aria-pressed={cat === k} onClick={() => setCat(cat === k ? "" : k)}><i className="cp-sw" style={{ background: CAT[k].ink }} />{CAT[k].label}</button>)}

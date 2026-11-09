@@ -346,3 +346,9 @@
 .sp .ms-done { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 14px; color: #1a6a3c; }
 .sp .ms-done a { color: #2457ce; }
 @media (max-width: 760px) { .sp .ms { padding: 14px; } .sp .ms-stats b { font-size: 18px; } }
+
+/* Detail pages: the decision column stays beside you while the record scrolls. */
+@media (min-width: 961px) {
+  .sp .abc-side { position: sticky; top: calc(var(--bar, 48px) + 16px); align-self: start; max-height: calc(100dvh - var(--bar, 48px) - 32px); overflow: auto; }
+}
+.sp .rc-src { font-size: 13px; color: #5b6475; margin: 0; }

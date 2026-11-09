@@ -34,6 +34,9 @@ import { NgoGate } from "./Gate";
 import "./ngo.css";
 import { DeleteRecord } from "../ui/DeleteRecord";
 
+/** SPA-DOG-ACC70743182B… reads as SPA-DOG-ACC707: enough to tell animals apart on screen. */
+const shortId = (id: string | null | undefined) => (id ? id.replace(/^([A-Z]+-[A-Z]+)-([0-9A-F]{6})[0-9A-F]{6,}$/i, (_m, p: string, h: string) => `${p}-${h.toUpperCase()}`) : null);
+
 type OrgCase = { id: string; case_code: string | null; condition_class: string | null; status_class: string | null; occurred_at: string | null; assignee_name: string | null; provenance: string | null };
 type Fu = { id: string; due_at: string; status: string; kind: string | null; note: string | null; case_id: string | null };
 
@@ -76,15 +79,15 @@ export function Casefile({ id, identifiers = false }: { id: string; identifiers?
         : (
           <div className="cf">
             <header className="cf-head">
-              <Portrait src={dog.cover_photo || null} tag={dog.straypaw_id ?? dog.id.slice(0, 6)} sensitive={!!dog.needs_help} size="l" />
+              <Portrait src={dog.cover_photo || null} tag={shortId(dog.straypaw_id) ?? dog.id.slice(0, 6)} sensitive={!!dog.needs_help} size="l" />
               <div className="stack" style={{ ["--g" as string]: "12px" }}>
                 <p className="k">Casefile · private to {mem.org?.name ?? "your organisation"}</p>
                 <h1 className="display">{animalTitle({ name: dog.name,city:dog.city,zone:dog.zone, straypaw_id: dog.straypaw_id ?? null, id: dog.id })}</h1>
-                <p className="mono small">{dog.straypaw_id ?? "StrayPaw ID pending"}{dog.code ? ` · your code ${dog.code}` : ""}{dog.provenance === "imported_historical_record" ? " · imported" : ""}</p>
+                <p className="mono small">{shortId(dog.straypaw_id) ?? "StrayPaw ID pending"}{dog.code ? ` · your code ${dog.code}` : ""}{dog.provenance === "imported_historical_record" ? " · imported" : ""}</p>
                 <dl className="ledger">
                   <div><dt>Place</dt><dd>{[dog.zone, dog.city].filter(Boolean).join(", ") || "not recorded"} <small>· {dog.lat && dog.lng ? "exact point held privately" : "locality only"}</small></dd></div>
-                  <div><dt>Sterilisation</dt><dd>{dog.sterilisation_status === "sterilised" ? "Recorded sterilised" : dog.sterilisation_status === "not_sterilised" ? "Recorded not sterilised" : "Not recorded in the status register"}</dd></div>
-                  <div><dt>Vaccination</dt><dd>{dog.vaccination_status === "vaccinated" ? "Recorded vaccinated" : dog.vaccination_status === "not_vaccinated" ? "Recorded not vaccinated" : "Not recorded in the status register"}</dd></div>
+                  <div><dt>Sterilisation</dt><dd>{dog.sterilisation_status === "sterilised" ? "Sterilised" : dog.sterilisation_status === "not_sterilised" ? "Not sterilised" : "Not recorded"}</dd></div>
+                  <div><dt>Vaccination</dt><dd>{dog.vaccination_status === "vaccinated" ? "Vaccinated" : dog.vaccination_status === "not_vaccinated" ? "Not vaccinated" : "Not recorded"}</dd></div>
                   {dog.owner_name && <div><dt>Carer</dt><dd>{dog.owner_name} <small>· contact private</small></dd></div>}
                   {dog.intake_notes && <div><dt>Intake note</dt><dd>{dog.intake_notes}</dd></div>}
                 </dl>
@@ -112,7 +115,6 @@ export function Casefile({ id, identifiers = false }: { id: string; identifiers?
                 <section className="cf-card">
                   <h3 className="h3">Care on record <span className="mono small">{care?.length??"—"}</span></h3>
                   {sourceErrors.care?<p role="alert">{sourceErrors.care} <button className="btn" onClick={()=>void load()}>Read clinical records again</button></p>:care===null?<p role="status">Reading clinical records…</p>:care.length ? <ul className="cf-care">{care.slice(0, 12).map((m) => <li key={m.id} className="dr-row"><DeleteRecord kind="care" id={m.id} what="this care record" onDone={() => void load()} /><b>{MEDICAL_KINDS.find((k) => k.id === m.kind)?.label ?? m.kind}</b><small>{day(m.event_date)}{m.performed_by ? ` · ${m.performed_by}` : ""}</small>{m.notes && <><p style={{whiteSpace:"pre-line"}}>{clinicalNarrative(m.notes)}</p>{clinicalNarrative(m.notes)!==m.notes&&<details><summary>Read complete source note</summary><p style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{m.notes}</p></details>}</>}</li>)}</ul> : <p className="small">No care events recorded.</p>}
-                  <p className="small">Each is recorded by an organisation. A named vet in a note is not an authenticated sign-off.</p>
                 </section>
               </aside>
             </div>

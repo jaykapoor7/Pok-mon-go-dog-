@@ -219,7 +219,6 @@ function AddEvidence({ missing, busy, onAdd }: { missing: readonly EvidenceKind[
         <button type="submit" className="btn is-s" disabled={busy || !ready}>{busy ? "Saving" : "Add"}</button>
       </div>
 
-      {useFile && <p className="abc-hint">Kept private to your organisation and, once submitted, the reviewing office.</p>}
     </form>
   );
 }

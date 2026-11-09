@@ -94,7 +94,6 @@ export function Identifiers({ dogId }: { dogId: string }) {
           <button className="btn is-flame" type="submit" disabled={busy || !value.trim()}>{busy ? "Saving…" : "Add identifier"}</button>
           {canScan && <button className="btn" type="button" onClick={() => { setKind("qr"); setScanning(true); }}>Scan QR</button>}
         </div>
-        <p className="small idn-hint">A handheld microchip or RFID reader in keyboard mode fills the number and saves on Enter.</p>
       </form>
       <div aria-live="polite">{ack && <Ack state={ack.ok ? "saved" : "failed"}>{ack.text}</Ack>}</div>
       {scanning && <QrScan onClose={() => setScanning(false)} onRead={(text) => { setScanning(false); setValue(text.slice(0, 64)); }} />}
