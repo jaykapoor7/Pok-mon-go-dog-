@@ -85,7 +85,7 @@ export function DemoTour() {
           window.scrollBy({ top: by, behavior: calm ? "auto" : "smooth" });
         }
       }
-      if (tries > 24) clearInterval(tick);
+      if (tries > 40) clearInterval(tick); /* keep looking for 20 s: a cold staging load can take that long */
     }, 500);
     return () => { clearInterval(tick); el?.classList.remove("sp-tour-hl"); };
   }, [s, step, onScreen, pathname]);
