@@ -2,7 +2,7 @@
   "name": "straypaw-delhi",
   "version": "1.0.0",
   "private": true,
-  "description": "StrayPaw Delhi \u2014 a community-powered map for discovering and caring for Delhi's street dogs.",
+  "description": "StrayPaw Delhi — a community-powered map for discovering and caring for Delhi's street dogs.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -55,7 +55,8 @@
     "test:monthly": "node --import tsx scripts/test-monthly.ts",
     "test:inference-off": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-inference-off.ts",
     "test:package-check": "node --import tsx scripts/test-package-check.ts",
-    "test:kaju-intake": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-intake.ts"
+    "test:kaju-intake": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-intake.ts",
+    "test:state-machines": "node --import tsx scripts/test-state-machines.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

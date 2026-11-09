@@ -11,3 +11,7 @@ Before designing, editing, reviewing, or testing StrayPaw:
    - Videos: `remotion-best-practices` (only in Remotion projects).
 4. Existing StrayPaw requirements outrank general skill suggestions. Preserve real data, geographic continuity, attribution, privacy/RLS, visual identity, existing working flows, and locked copy.
 5. Do not make production changes merely because a skill recommends them. Run applicable checks and explain unverified findings.
+
+## State machines
+
+Package and case-stage moves are defined once in `src/lib/machines/` (see `docs/STATE-MACHINES.md`). Read those tables instead of re-deriving statuses; the database stays the authority.

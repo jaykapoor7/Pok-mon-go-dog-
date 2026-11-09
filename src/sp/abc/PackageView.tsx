@@ -20,6 +20,7 @@ import { isRecordingDemo } from "@/lib/recording-demo";
 import { DEMO_RATE, demoSanction, demoSanctionPayment } from "@/lib/demo/abc-demo";
 import "../ngo/ngo.css";
 import "./abc.css";
+import { actionsFor, type PackageAction } from "@/lib/machines/package";
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const KIND: Record<string, string> = { created: "Prepared", submitted: "Submitted", query: "Query", answer: "Answer", accepted: "Accepted", returned: "Returned", partial_review:"Partial package decision", sanctioned: "Payment sanctioned" };
@@ -48,7 +49,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
   }, [id]);
   useEffect(() => { void load(); }, [load]);
 
-  const act = async (kind: "submitted" | "answer" | "query" | "accepted" | "returned", done: string) => {
+  const act = async (kind: PackageAction, done: string) => {
     setBusy(true); setMsg(null);
     try { await packageAct(id, kind, body); setBody(""); setMsg({ ok: true, text: done }); await load(); }
     catch (x) { setMsg({ ok: false, text: (x as Error).message }); }
@@ -132,14 +133,15 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
   );
 }
 
-function Actions({ side, status, body, setBody, busy, act }: { side: "operator" | "reviewer"; status: Package["status"]; body: string; setBody: (v: string) => void; busy: boolean; act: (k: "submitted" | "answer" | "query" | "accepted" | "returned", done: string) => Promise<void> }) {
+function Actions({ side, status, body, setBody, busy, act }: { side: "operator" | "reviewer"; status: Package["status"]; body: string; setBody: (v: string) => void; busy: boolean; act: (k: PackageAction, done: string) => Promise<void> }) {
   if (side === "operator") {
-    if (status === "draft" || status === "returned") return (
+    const can = actionsFor("operator", status);
+    if (can.includes("submitted")) return (
       <section className="abc-sec"><h2>{status === "returned" ? "Returned" : "Ready to send"}</h2>
         <div className="abc-sign"><div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => act("submitted", "Submitted to the reviewing office.")}>Submit package</button></div></div>
       </section>
     );
-    if (status === "queried") return (
+    if (can.includes("answer")) return (
       <section className="abc-sec"><h2>Answer the query</h2>
         <textarea className="textarea" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Your answer to the office" aria-label="Answer" />
         <div className="abc-sign"><div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy || !body.trim()} onClick={() => act("answer", "Answer sent; the package is back with the office.")}>Send answer</button></div></div>
@@ -147,7 +149,7 @@ function Actions({ side, status, body, setBody, busy, act }: { side: "operator" 
     );
     return <section className="abc-sec"><p className="abc-note">{status === "accepted" ? "Accepted by the reviewing office." : "With the reviewing office."}</p></section>;
   }
-  if (status !== "submitted") return <section className="abc-sec"><p className="abc-note">{status === "queried" ? "Waiting for the operator's answer." : status === "accepted" ? "You accepted this package." : "Returned to the operator."}</p></section>;
+  if (!actionsFor("reviewer", status).length) return <section className="abc-sec"><p className="abc-note">{status === "queried" ? "Waiting for the operator's answer." : status === "accepted" ? "You accepted this package." : "Returned to the operator."}</p></section>;
   return (
     <section className="abc-sec"><h2>Your review</h2>
       <textarea className="textarea" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Comment (required to ask or return)" aria-label="Review comment" />

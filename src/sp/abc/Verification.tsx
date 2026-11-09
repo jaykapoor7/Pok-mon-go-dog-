@@ -17,8 +17,9 @@ import { KajuEmptyState } from "@/kaju/Presence";
 import { Reading } from "../ui/Reading";
 import "../ngo/ngo.css";
 import "./abc.css";
+import { STAGE_ORDER } from "@/lib/machines/abc-stage";
 
-const ORDER: Stage[] = ["evidence", "vet", "review", "returned", "ready", "packaged", "accepted"];
+const ORDER = STAGE_ORDER;
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
 export function Dots({ n,total=5 }: { n: number;total?:number }) {

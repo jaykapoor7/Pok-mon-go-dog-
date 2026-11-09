@@ -17,6 +17,7 @@ import { Reading } from "../ui/Reading";
 import { period } from "./Packages";
 import "../ngo/ngo.css";
 import "./abc.css";
+import { isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 
 export function ReviewInbox() {
   const { user, ready } = useAuth();
@@ -46,8 +47,8 @@ export function ReviewInbox() {
   }, [user]);
 
   /* Oldest submission first: the decision that has waited longest. */
-  const waiting = useMemo(() => (list ?? []).filter((p) => p.status === "submitted").sort((a, b) => (a.submitted_at ?? a.created_at).localeCompare(b.submitted_at ?? b.created_at)), [list]);
-  const onOperator = useMemo(() => (list ?? []).filter((p) => p.status === "queried" || p.status === "returned"), [list]);
+  const waiting = useMemo(() => (list ?? []).filter((p) => isWaitingOnOffice(p.status)).sort((a, b) => (a.submitted_at ?? a.created_at).localeCompare(b.submitted_at ?? b.created_at)), [list]);
+  const onOperator = useMemo(() => (list ?? []).filter((p) => isWithOperator(p.status)), [list]);
   const shown = (tab === "waiting" ? waiting : tab === "operator" ? onOperator : list ?? []).filter((p) => !op || p.ngo_id === op);
   /* Kaju checks the claims in each waiting package before it is opened. */
   useEffect(() => {
@@ -111,11 +112,11 @@ export function ReviewInbox() {
                   {shown.length ? (
                     <ul className="abc-list">{shown.map((p) => (
                       <li key={p.id}><Link href={`/city/review/${p.id}`}>
-                        <span className="abc-t"><b>{p.title}</b><small>{names[p.ngo_id] ?? "Operator"} · {period(p)}{p.status === "submitted" && days(p.submitted_at) !== null ? ` · waiting ${days(p.submitted_at)} ${days(p.submitted_at) === 1 ? "day" : "days"}` : ""}</small>
-                          {p.status === "submitted" && (() => { const c = checks[p.id]; return c === "unavailable" ? <small>Kaju could not read the claims; open the package to review.</small> : c ? <small className="abc-kaju">Kaju: {c.clean} clean · {c.exceptions} with exceptions{c.byIssue[0] ? ` (most: ${c.byIssue[0].issue.toLowerCase()})` : ""}</small> : p.item_review_enabled ? <small>Kaju is checking the claims…</small> : null; })()}</span>
+                        <span className="abc-t"><b>{p.title}</b><small>{names[p.ngo_id] ?? "Operator"} · {period(p)}{isWaitingOnOffice(p.status) && days(p.submitted_at) !== null ? ` · waiting ${days(p.submitted_at)} ${days(p.submitted_at) === 1 ? "day" : "days"}` : ""}</small>
+                          {isWaitingOnOffice(p.status) && (() => { const c = checks[p.id]; return c === "unavailable" ? <small>Kaju could not read the claims; open the package to review.</small> : c ? <small className="abc-kaju">Kaju: {c.clean} clean · {c.exceptions} with exceptions{c.byIssue[0] ? ` (most: ${c.byIssue[0].issue.toLowerCase()})` : ""}</small> : p.item_review_enabled ? <small>Kaju is checking the claims…</small> : null; })()}</span>
                         <span className="abc-dots"><span>{(() => { const n = p.summary.records ?? p.case_ids.length; return `${n} ${n === 1 ? "animal" : "animals"}`; })()}</span></span>
                         <span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span>
-                        <span className="gv-go">{p.status === "submitted" ? "Review" : "Open"}<ArrowRight size={14} aria-hidden /></span>
+                        <span className="gv-go">{isWaitingOnOffice(p.status) ? "Review" : "Open"}<ArrowRight size={14} aria-hidden /></span>
                       </Link></li>
                     ))}</ul>
                   ) : <div className="abc-empty"><b>{tab === "waiting" ? "Nothing is waiting for your decision." : tab === "operator" ? "No package is waiting on an operator." : "No submissions yet."}</b>{tab === "waiting" ? " New monthly packages appear here as soon as an operator submits them." : null}</div>}
@@ -125,7 +126,7 @@ export function ReviewInbox() {
                   <h2 id="gv-ops" className="gv-h">Operators</h2>
                   <p className="gv-note">Recorded package outcomes only. Select an operator to filter the queue.</p>
                   <table className="gv-table"><thead><tr><th scope="col">Operator</th><th scope="col">Waiting</th><th scope="col">Queried</th><th scope="col">Accepted</th></tr></thead>
-                    <tbody>{[...by].map(([id, ps]) => <tr key={id} className={op === id ? "is-on" : undefined}><th scope="row"><button type="button" className="gv-op" aria-pressed={op === id} onClick={() => setOp(op === id ? null : id)}>{names[id] ?? "Operator"}</button></th><td>{ps.filter((p) => p.status === "submitted").length}</td><td>{ps.filter((p) => p.status === "queried" || p.status === "returned").length}</td><td>{ps.filter((p) => p.status === "accepted").length}{ps.some((p) => p.status === "partially_accepted") ? <small> +{ps.filter((p) => p.status === "partially_accepted").length} partly</small> : null}</td></tr>)}</tbody></table>
+                    <tbody>{[...by].map(([id, ps]) => <tr key={id} className={op === id ? "is-on" : undefined}><th scope="row"><button type="button" className="gv-op" aria-pressed={op === id} onClick={() => setOp(op === id ? null : id)}>{names[id] ?? "Operator"}</button></th><td>{ps.filter((p) => isWaitingOnOffice(p.status)).length}</td><td>{ps.filter((p) => isWithOperator(p.status)).length}</td><td>{ps.filter((p) => p.status === "accepted").length}{ps.some((p) => p.status === "partially_accepted") ? <small> +{ps.filter((p) => p.status === "partially_accepted").length} partly</small> : null}</td></tr>)}</tbody></table>
                   <Link className="gv-card" href="/city/contracts"><b>Contract rates &amp; reconciliation</b><small>The rate each procedure is claimed at, and how each bill reconciles.</small><ArrowRight size={14} aria-hidden /></Link>
                 </aside>}
               </div>

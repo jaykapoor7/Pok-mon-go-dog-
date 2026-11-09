@@ -12,6 +12,7 @@ import { getSupabase } from "./supabase";
 import { compressForUpload } from "./photo/compress";
 import { isRecordingDemo } from "./recording-demo";
 import { demoRpc, demoTables } from "./demo/abc-demo";
+import type { PackageAction, PackageStatus } from "@/lib/machines/package";
 
 export const EVIDENCE_KINDS = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"] as const;
 export type EvidenceKind = (typeof EVIDENCE_KINDS)[number];
@@ -55,7 +56,7 @@ export type Evidence = { id: string; kind: string; url: string | null; title: st
 export type Package = {
   id: string; ngo_id: string; office_id: string; title: string; period_start: string; period_end: string; case_ids: string[];
   summary: { records?: number; vet_authorised?: number; evidence_items?: number; generated_at?: string };
-  status: "draft" | "submitted" | "queried" | "accepted" | "returned" | "partially_accepted"; item_review_enabled?:boolean; created_at: string; submitted_at: string | null; decided_by_name: string | null; decided_at: string | null;
+  status: PackageStatus; item_review_enabled?:boolean; created_at: string; submitted_at: string | null; decided_by_name: string | null; decided_at: string | null;
 };
 export type PackageEvent = { id: string; actor_name: string; side: "operator" | "reviewer"; kind: string; body: string | null; created_at: string };
 export type PackageCase = { case_id: string; case_code: string | null; title: string | null; city: string | null; created_at: string; evidence: { kind: string; url: string | null; location: string | null; at: string | null }[]; vet_name: string | null; reviewer_name: string | null };
@@ -170,7 +171,7 @@ export async function packageEvents(id: string): Promise<PackageEvent[]> {
 }
 export const packageCases = (id: string) => rpc<PackageCase[]>("abc_package_cases", { p_package: id });
 export const createPackage = (title: string, start: string, end: string, office: string) => rpc<string>("abc_create_package", { p_title: title, p_start: start, p_end: end, p_office: office });
-export const packageAct = (id: string, kind: "submitted" | "answer" | "query" | "accepted" | "returned", body?: string) =>
+export const packageAct = (id: string, kind: PackageAction, body?: string) =>
   rpc<string>("abc_package_act", { p_package: id, p_kind: kind, p_body: body ?? null });
 
 export async function orgNames(ids: string[]): Promise<Record<string, string>> {

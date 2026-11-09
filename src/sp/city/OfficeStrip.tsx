@@ -11,6 +11,7 @@ import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myContext, orgNames, packageCases, packages, type AbcContext, type Package, type PackageCase } from "@/lib/abc";
 import { readContracts, readReconciliation, money, type Contract, type ContractRate, type Reconciliation } from "@/lib/reconciliation";
+import { isDecided, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 
 const days = (iso: string) => Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000));
 const REQUIRED = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"];
@@ -39,7 +40,7 @@ export function OfficeStrip() {
         /* Claims: the twelve most recent submissions are enough for a year of monthly packages. */
         for (const x of mine.slice(0, 12)) readReconciliation(x.id).then((r) => live && setRecs((m) => ({ ...m, [x.id]: r }))).catch(() => live && setRecs((m) => ({ ...m, [x.id]: "unknown" })));
         /* Evidence: the records inside packages that wait on this office. */
-        const waiting = mine.filter((x) => x.status === "submitted").slice(0, 5);
+        const waiting = mine.filter((x) => isWaitingOnOffice(x.status)).slice(0, 5);
         Promise.all(waiting.map((x) => packageCases(x.id).catch(() => [] as PackageCase[]))).then((r) => live && setCases(r.flat())).catch(() => live && setCases([]));
       })
       .catch(() => { /* not a reviewing office, or review not switched on: the view stays away */ });
@@ -49,10 +50,10 @@ export function OfficeStrip() {
   const year = String(new Date().getFullYear());
   const v = useMemo(() => {
     if (!list) return null;
-    const waiting = list.filter((p) => p.status === "submitted").sort((a, b) => (a.submitted_at ?? a.created_at).localeCompare(b.submitted_at ?? b.created_at));
+    const waiting = list.filter((p) => isWaitingOnOffice(p.status)).sort((a, b) => (a.submitted_at ?? a.created_at).localeCompare(b.submitted_at ?? b.created_at));
     const oldest = waiting.length ? days(waiting[0].submitted_at ?? waiting[0].created_at) : null;
-    const withOperator = list.filter((p) => p.status === "queried" || p.status === "returned");
-    const decided = list.filter((p) => (p.status === "accepted" || p.status === "partially_accepted") && (p.decided_at ?? "").startsWith(year));
+    const withOperator = list.filter((p) => isWithOperator(p.status));
+    const decided = list.filter((p) => isDecided(p.status) && (p.decided_at ?? "").startsWith(year));
     const records = decided.reduce((n, p) => n + (p.summary.records ?? p.case_ids.length), 0);
     const ops = [...new Set(list.map((p) => p.ngo_id))];
     return { waiting, oldest, withOperator, decided, records, ops };
@@ -111,8 +112,8 @@ export function OfficeStrip() {
             <tbody>{v.ops.map((id) => { const ps = list.filter((p) => p.ngo_id === id); const k = contractOf(id); const rate = k ? terms?.rates.find((r) => r.contract_id === k.id) : null; return (
               <tr key={id}><th scope="row"><Link href={`/city/review?op=${id}`}>{names[id] ?? "Operator"}</Link></th>
                 <td>{terms === null ? "…" : k ? <>{rate ? `${money(rate.unit_rate)} ${rate.code}` : k.name}{k.illustrative ? <small> illustrative</small> : null}</> : <small>None in force</small>}</td>
-                <td>{ps.filter((p) => p.status === "submitted").length}</td>
-                <td>{ps.filter((p) => p.status === "accepted" || p.status === "partially_accepted").length}</td></tr>); })}</tbody>
+                <td>{ps.filter((p) => isWaitingOnOffice(p.status)).length}</td>
+                <td>{ps.filter((p) => isDecided(p.status)).length}</td></tr>); })}</tbody>
           </table>
           <h4>Evidence in waiting packages</h4>
           {v.waiting.length === 0 ? <p className="os-muted">No package is waiting.</p> : cases === null ? <p className="os-muted">Reading records…</p> : (

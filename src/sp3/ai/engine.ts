@@ -5,6 +5,7 @@ import { extractFieldMessage } from "./extract";
 import { NAV, TOOL_DEFS, runTool, toolRun, type ToolCtx, type ToolOut } from "./tools";
 import { connectionToolDefs } from "./connectTools";
 import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
+import { isDecided, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 
 /* ════════════════════════════════════════════════════════════════════
    Kaju engine.
@@ -240,9 +241,9 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     /* Say what the records show: what waits, for how long, and what is with the operator. */
     const rows = ((out.data as { packages?: { title: string; status: string; submitted_at: string | null }[] }).packages ?? []);
     const days = (iso: string | null) => (iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000)) : null);
-    const waiting = rows.filter((r) => r.status === "submitted").sort((x, y) => (x.submitted_at ?? "").localeCompare(y.submitted_at ?? ""));
-    const withOperator = rows.filter((r) => r.status === "queried" || r.status === "returned").length;
-    const decided = rows.filter((r) => r.status === "accepted" || r.status === "partially_accepted").length;
+    const waiting = rows.filter((r) => isWaitingOnOffice(r.status)).sort((x, y) => (x.submitted_at ?? "").localeCompare(y.submitted_at ?? ""));
+    const withOperator = rows.filter((r) => isWithOperator(r.status)).length;
+    const decided = rows.filter((r) => isDecided(r.status)).length;
     const lines = waiting.slice(0, 5).map((r) => { const d = days(r.submitted_at); return `- **${r.title}**: waiting ${d === null ? "since an unknown date" : d === 0 ? "since today" : `${d} ${d === 1 ? "day" : "days"}`}`; });
     return done(`${waiting.length ? `${waiting.length} ${waiting.length === 1 ? "package waits" : "packages wait"} for a decision, oldest first:\n${lines.join("\n")}` : "No package is waiting for a decision."}\n\n${withOperator} with the operator (queried or returned) · ${decided} accepted or partly accepted, of the ${rows.length} packages you can see (up to 50 most recent). Accepted is not paid. No decision was made; open a package to review it.`);
   }

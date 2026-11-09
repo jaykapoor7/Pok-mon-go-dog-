@@ -8,6 +8,7 @@
 
 import type { AbcContext, Attestation, Evidence, EvidenceKind, HistoryRow, Office, Package, PackageCase, PackageEvent, QueueRow } from "../abc";
 import { recordingDemoOrg } from "../recording-demo";
+import { PACKAGE_ACTIONS, nextStatus, type PackageAction } from "@/lib/machines/package";
 
 const KEY = "sp.demo.abc.v1";
 export const DEMO_OFFICE: Office = { id: "demo-office-adyar", name: "Zone 13 Veterinary Public Health Office", city: "Chennai" };
@@ -161,11 +162,12 @@ export async function demoRpc<T>(fn: string, a: Record<string, unknown> = {}): P
     case "abc_package_act": {
       const p = s.packages.find((x) => x.id === a.p_package); if (!p) throw new Error("Not found");
       const kind = String(a.p_kind); const reviewer = demoPersona() === "reviewer";
-      if (kind === "submitted") { p.status = "submitted"; p.submitted_at = nowIso(); }
-      if (kind === "accepted") { p.status = "accepted"; p.decided_by_name = DEMO_PEOPLE.reviewer.name; p.decided_at = nowIso(); }
-      if (kind === "returned") p.status = "returned";
-      if (kind === "query") p.status = "queried";
-      if (kind === "answer") p.status = "submitted";
+      /* Same moves the database allows (lib/machines/package); anything else is refused, as the server would. */
+      const next = kind in PACKAGE_ACTIONS ? nextStatus(p.status, kind as PackageAction) : null;
+      if (!next) throw new Error("That action is not available for this package now.");
+      p.status = next;
+      if (kind === "submitted") p.submitted_at = nowIso();
+      if (kind === "accepted") { p.decided_by_name = DEMO_PEOPLE.reviewer.name; p.decided_at = nowIso(); }
       s.events.push({ id: `ev-${Date.now()}`, package_id: p.id, actor_name: reviewer ? DEMO_PEOPLE.reviewer.name : DEMO_PEOPLE.operator.name, side: reviewer ? "reviewer" : "operator", kind, body: (a.p_body as string) || (kind === "accepted" ? "Records, evidence and sign-offs checked. Accepted for Zone 13." : kind === "submitted" ? `Submitted to ${DEMO_OFFICE.name}.` : null), created_at: nowIso() });
       save();
       return "ok" as T;
