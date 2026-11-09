@@ -352,3 +352,6 @@
   .sp .abc-side { position: sticky; top: calc(var(--bar, 48px) + 16px); align-self: start; max-height: calc(100dvh - var(--bar, 48px) - 32px); overflow: auto; }
 }
 .sp .rc-src { font-size: 13px; color: #5b6475; margin: 0; }
+/* Phone: three blockers, the rest on the queue. */
+@media (max-width: 760px) { .sp .ms .ms-list li:nth-child(n+4) { display: none; } }
+@media (max-width: 760px) { .sp .gv-wide { display: none; } }

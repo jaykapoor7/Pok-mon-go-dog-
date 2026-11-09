@@ -77,7 +77,7 @@ export function ReviewInbox() {
       <header className="ngo-head">
         <div><p className="ngo-step">{ctx?.offices[0]?.name ?? "Your reviewing office"}</p><h1>Review submissions</h1></div>
         <p className="ngo-sum">{off ? "Not switched on yet." : !ctx && !err ? <Reading>Reading your office&apos;s packages</Reading> : ctx && ctx.offices.length === 0 ? "Your account is not part of a reviewing office." : <><b>{waiting.length}</b> {waiting.length === 1 ? "package needs" : "packages need"} your decision</>}</p>
-        {ctx && ctx.offices.length > 0 && <div className="row ngo-head-act"><Link className="btn is-s" href="/city/contracts">Contracts &amp; rates</Link></div>}
+        {ctx && ctx.offices.length > 0 && <div className="row ngo-head-act gv-wide"><Link className="btn is-s" href="/city/contracts">Contracts &amp; rates</Link></div>}
       </header>
       {off ? <div className="abc-empty"><b>Package review is not switched on here yet.</b></div>
         : err ? <p className="abc-err" role="alert">{err}</p>

@@ -33,6 +33,7 @@ import { demoExecute, demoKajuReply } from "@/lib/demo/kaju-demo";
 import { DemoFileViewer } from "@/sp/demo/FileViewer";
 import "./ai.css";
 import { KajuHub } from "@/sp/ngo/KajuHub";
+import { shortCode } from "@/lib/caseCode";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string; retry?:string; display?: string; fileName?: string };
 type Ctx = { open: boolean; toggle: () => void; setOpen: (v: boolean) => void; ask: (q: string, extra?: { display?: string; fileName?: string }) => void; msgs: Msg[]; busy: boolean; reset: () => void; stop:()=>void; model: boolean | null; scope:string|null; role:string|null; contextPath:string; scopeError:string|null; refreshScope:()=>void; revision:number; step:string|null };
@@ -396,13 +397,15 @@ function Answer({ m }: { m: Msg }) {
 }
 
 const KIND_ICON = { animal: PawPrint, case: ClipboardList, programme: Layers, place: MapPin, page: FileText };
+/* Long imported codes read as SPC-47A86E; the full code stays in the tooltip. */
+const citeLabel = (l: string) => { const s = shortCode(l, l); return s.length > 28 ? `${s.slice(0, 26)}…` : s; };
 function Sources({ items }: { items: Citation[] }) {
   const [all, setAll] = useState(false);
   const shown = all ? items : items.slice(0, 6);
   return (
     <div className="ai3-src">
       <span>Sources</span>
-      <div>{shown.filter(c=>safeAiHref(c.href)).map((c) => { const I = KIND_ICON[c.kind]??FileText; return <Link key={c.id} href={c.href} title={c.label} className="ai3-cite" {...(c.href.startsWith('https:')?{target:'_blank',rel:'noopener noreferrer'}:{})}><I size={11} aria-hidden />{c.label}</Link>; })}
+      <div>{shown.filter(c=>safeAiHref(c.href)).map((c) => { const I = KIND_ICON[c.kind]??FileText; return <Link key={c.id} href={c.href} title={c.label} className="ai3-cite" {...(c.href.startsWith('https:')?{target:'_blank',rel:'noopener noreferrer'}:{})}><I size={11} aria-hidden />{citeLabel(c.label)}</Link>; })}
         {items.length > 6 && !all && <button type="button" className="ai3-cite is-more" onClick={() => setAll(true)}>+{items.length - 6} more</button>}</div>
     </div>
   );

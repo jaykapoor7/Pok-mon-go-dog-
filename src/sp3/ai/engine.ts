@@ -93,7 +93,7 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
     }
   }
   const r = await withTools(toolQuestion, ctx);
-  return { ...r, notice: access ? "Record check. Workspace text stays inside StrayPaw." : "Record tools. Kaju works from your records without a language model." };
+  return { ...r, notice: access ? "Record check. Workspace text stays inside StrayPaw." : "Answered from your records." };
 }
 
 /* ── Claude tool-use loop ─────────────────────────────────────────── */
@@ -217,7 +217,10 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
     const out = await call(acc, ctx, "operations_insights");
     if (out.ok === false) return done(out.summary);
     const data = out.data as {checked_at:string;findings:{rule:string;count:number|null;explanation:string;configured?:boolean}[]};
-    return done(`Checked at ${data.checked_at}.\n\n${data.findings.map(f => `- **${f.rule.replace(/_/g," ")}**: ${f.configured===false?"deadline not set":f.count??"unknown"}. ${f.explanation}`).join("\n")}\n\nCounts are samples of up to 100 per rule. Review the linked records and the report draft. Nothing was sent or changed.`);
+    { const label: Record<string, string> = { overdue_followup: "Overdue follow-ups", missing_evidence: "Missing evidence", awaiting_vet: "Waiting for a vet", open_clarification: "Open municipal queries", programme_activity: "Quiet programmes", reporting_deadline: "Reporting deadline" };
+      const due = data.findings.filter(f => f.count !== 0 || f.configured === false);
+      const at = new Date(data.checked_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+      return done(due.length ? `**${due.length} to look at** · checked ${at}\n\n${due.map(f => `- **${label[f.rule] ?? f.rule.replace(/_/g, " ")}**: ${f.configured === false ? "not set" : f.count ?? "unknown"}`).join("\n")}` : `**All clear** · checked ${at}. Nothing needs you right now.`); }
   }
   if (/^(what|why|how|explain)\b/.test(t) && /unknown|denominator|population|coverage|animal count|bite|street safety/.test(t)) {
     const out = await call(acc, ctx, "search_knowledge", { query: q });

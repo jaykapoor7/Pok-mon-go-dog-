@@ -36,8 +36,9 @@ export const TOUR: TourStep[] = [
   { role: "coordinator", path: "/ngo/packages", title: "Monthly claim",
     body: "Records with all five evidence items and a vet sign-off become the month's claim, priced from the contract.",
     point: ["Prepare a package for another period", "Prepare package", "Submit package"] },
-  { role: "lead", path: "/ngo", title: "Programme overview",
-    body: "What is waiting at each step, the team, the ward map and training, in one place." },
+  { role: "lead", path: "/assistant", title: "Kaju at work",
+    body: "Kaju checks the records every morning, builds the monthly claim and chases missing evidence. Every number is live.",
+    sel: ".kh-list .kh-go", hint: "Run the morning check." },
   { role: "municipal", path: "/city/insights", title: "Municipal command view",
     body: "Claims waiting for a decision, evidence completeness and spend this year.",
     point: ["Waiting for your decision"] },
@@ -47,6 +48,6 @@ export const TOUR: TourStep[] = [
 ];
 
 /* For the closing card: what the tour showed. */
-export const SHOWN = ["Field mode, online and offline", "Vet sign-off", "Evidence and claims", "Programme overview", "Municipal review", "Kaju"];
+export const SHOWN = ["Field mode, online and offline", "Vet sign-off", "Monthly claim", "Kaju automations", "Municipal command view", "Claim review"];
 
 export const TOUR_DONE = TOUR.length;

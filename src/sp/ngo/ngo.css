@@ -560,3 +560,10 @@
 .sp .tm-roles-fold[open] > summary { margin-bottom: 10px; }
 .sp .st-deadline { max-width: 420px; }
 .sp .st-deadline .btn { justify-self: start; }
+
+/* Phone: Intake sits on the same gutter as other pages and its picker row does not stretch. */
+@media (max-width: 760px) {
+  .sp.sx3 .ngo-page.ib { padding-left: 0; padding-right: 0; }
+  .sp .ib-grid { min-height: 0; align-content: start; }
+  .sp .ib-mobile-source { align-self: start; padding-bottom: 4px; }
+}
