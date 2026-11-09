@@ -24,6 +24,10 @@ import "@/sp4/sp4.css";
    ════════════════════════════════════════════════════════════════════ */
 
 import { MEGA, type MegaCol } from "@/sp3/site/nav-data";
+import { DEMO_SITE } from "@/lib/demo-site";
+
+/* On the demonstration site the header's main button starts the live demo. */
+const CTA = DEMO_SITE ? { href: "/try?go=1", label: "Start the live demo" } : { href: "/demo", label: "Book a demo" };
 export { AUDIENCES, PLATFORM, RESOURCES, SOLUTIONS } from "@/sp3/site/nav-data";
 
 type MenuId = "platform" | "solutions" | "resources";
@@ -115,7 +119,7 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
           {user
             ? <Link href="/app" className="s4-nav-signin">Open app</Link>
             : <Link href="/sign-in" className="s4-nav-signin">Sign in</Link>}
-          <Link href="/demo" className="s4-btn is-primary is-sm s4-hide-m">Book a demo</Link>
+          <Link href={CTA.href} className="s4-btn is-primary is-sm s4-hide-m">{CTA.label}</Link>
           <button type="button" className="s4-burger" aria-label={sheet ? "Close menu" : "Open menu"} aria-expanded={sheet} aria-controls="s4-sheet" onClick={() => setSheet((v) => !v)}>
             {sheet ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -129,7 +133,7 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
         <Link href="/security">Security</Link>
         <Link href="/pricing">Pricing</Link>
         <div className="s4-sheet-cta">
-          <Link href="/demo" className="s4-btn is-primary">Book a demo</Link>
+          <Link href={CTA.href} className="s4-btn is-primary">{CTA.label}</Link>
           <Link href={user ? "/app" : "/sign-in"} className="s4-btn is-line">{user ? "Open app" : "Sign in"}</Link>
         </div>
       </div>

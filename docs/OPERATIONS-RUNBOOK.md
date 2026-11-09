@@ -46,6 +46,12 @@ How StrayPaw is deployed, watched, backed up and restored. Keep this current wit
 - The sample records are visible to staging's public views (map, city record) so the demo map and government Overview open on Bengaluru. Production public views are unaffected.
 - Sample organisation "Sample · Bengaluru Animal Care Trust" and office "Sample · Bengaluru municipal ABC cell", with five sign-ins: `demo-lead@`, `demo-coordinator@`, `demo-vet@`, `demo-field@` and `demo-municipal@straypaw.invalid`. The password is held by the account owner, not in the repository; rotate it before sharing sign-ins outside the team (each account can change its own password).
 - Records are made through the app's own functions by `scripts/staging/seed-demo-workspace.mjs` (`DEMO_PASSWORD=… node scripts/staging/seed-demo-workspace.mjs`). Re-running keeps what exists and adds what is missing; nothing is deleted. The contract is marked illustrative and every organisation name says "Sample".
+- Guided live demo (demo.straypaw.org only):
+  - **Landing:** on a build pointed at the staging database, the landing page and header show "Start the live demo". It goes to `/try?go=1`.
+  - **Auto sign-in:** `/try` signs the visitor in to a sample account through `POST /api/demo/session`. That route needs `DEMO_ACCOUNT_PASSWORD`, which is set in Vercel for Preview on the `demo` branch only. It answers 404 on production and on any build without that variable, and an e2e test checks this.
+  - **The guide:** a card (`src/sp/demo/`) walks through 13 steps across the five roles: field, vet, coordinator, lead, then municipal. It highlights the control to look at, and the visitor can roam freely or switch role at any time.
+  - **Shared accounts:** visitors share the five sample accounts and can change sample records; re-run the seed script to top them up. `scripts/staging/demo-account-guard.sql` stops a visitor changing a sample account's password, email or phone, or removing its memberships. Apply it to staging only.
+  - **Password rotation:** rotate the sample password and update `DEMO_ACCOUNT_PASSWORD` together.
 - DNS: `demo` is a CNAME to `cname.vercel-dns.com` at Cloudflare (DNS only, not proxied).
 
 ## Staging schema drift

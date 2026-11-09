@@ -7,7 +7,8 @@ import { S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Blueprint } from "@/sp4/home/Blueprint";
 import { HeroRotator } from "@/sp4/home/HeroRotator";
-import { Announce } from "@/sp4/home/v7/Announce";
+import { Announce, DemoAnnounce } from "@/sp4/home/v7/Announce";
+import { DEMO_SITE } from "@/lib/demo-site";
 import { Welcome } from "@/sp4/home/v7/Welcome";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
 import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
@@ -55,9 +56,9 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page className="s6-home s7-home" announce={<Announce />} close={false}>
+    <S4Page className="s6-home s7-home" announce={DEMO_SITE ? <DemoAnnounce /> : <Announce />} close={false}>
       <PageView name="landing_view" />
-      <Welcome />
+      {!DEMO_SITE && <Welcome />}
       <Reveal />
 
       {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
@@ -65,7 +66,9 @@ export default function HomePage() {
         <div className="s4-wrap s6-center">
           <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
           <p className="s7-hero-sub">Every animal deserves a record. Kaju keeps it, from the first report to the monthly claim.</p>
-          <div className="s4-actions"><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link></div>
+          <div className="s4-actions">{DEMO_SITE
+            ? <><Link href="/try?go=1" className="s4-btn is-primary">Start the live demo</Link><Link href="/try" className="s4-btn is-line">Explore as a role</Link></>
+            : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link></>}</div>
           <HeroScroll />
           <div className="s6-canvas">
             <Blueprint tone="dark" />

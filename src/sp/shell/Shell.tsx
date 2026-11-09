@@ -45,12 +45,13 @@ import "./app3.css";
 import "./app4.css";
 
 import {fieldCache} from "@/lib/field/outbox";
+import { DEMO_SITE } from "@/lib/demo-site";
 
 type Org = { id: string; name: string } | null;
 type Mem = { member: boolean; ready: boolean; org: Org; role: Role | null; reviewer: boolean; owner?:string };
 const Membership = createContext<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
 /* The staging database serves only the demonstration (demo.straypaw.org and previews). Say so on every signed-in screen. */
-const DEMO_DB = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").includes("ucxfxiddufwqithtdtix");
+const DEMO_DB = DEMO_SITE;
 
 /** Whether the signed-in person belongs to an organisation (display only: the server decides access). */
 

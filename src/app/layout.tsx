@@ -16,6 +16,7 @@ import { sxSans } from "@/components/shell/fonts";
 import { inter } from "@/sp4/font";
 
 import { SITE_URL } from "@/lib/site-url";
+import { DemoTourMount } from "@/sp/demo/DemoTourMount";
 
 // Canonical site URL. Prefer the explicit env var; otherwise the production
 // domain (NOT the per-deployment Vercel URL, which is auth-walled and makes
@@ -120,6 +121,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <StructuredData siteUrl={siteUrl} />
         <RouteEnvironment>{children}</RouteEnvironment>
+        <DemoTourMount />
         <Analytics />
       </body>
     </html>
