@@ -11,6 +11,35 @@ out of scope for this system and are not to be redesigned.
 its principles, never its branding or code. StrayPaw's identity is the
 white-and-blue ground, Kaju, and an institutional, evidence-first voice.
 
+### 0. StrayPaw 5 amendments (9 November 2026)
+
+These replace the matching lines of 4.0 below. Evidence and reasoning:
+`docs/sp5/REDESIGN-2026-11-09.md`.
+
+- **Homepage is in scope.** It tells the platform story in this order:
+  what StrayPaw is, who works with it, the problem, the five steps, the
+  package from both sides, the audit trail, Kaju, results, the pilot.
+  StrayPaw is the platform; Kaju is its agent. No pop-over may cover the
+  product window.
+- **One frame.** Every workspace page shares one column: 32px gutter
+  (16px phone), up to 1240px, title on the same edge as its tabs and
+  table. Page wrappers never add a second gutter. Full-bleed pages (work
+  queue, maps) align their header to the same gutter.
+- **No glow.** The app ground is plain white. No drifting gradient and no
+  pointer light behind pages; depth is for things that float.
+- **One name per place.** The sidebar label, breadcrumb and page title of
+  a place are the same words (Work queue, Intake, Animals, Treatment &
+  sign-off, Release evidence, Data quality). Phone tabs use the same
+  names.
+- **Sidebar icons** are one family: 16px line icons at 1.75 stroke. No
+  coloured tiles. Section labels are quiet text without rules.
+- **Back** appears only on a record or form (a page below a named place).
+  Named places are reached from the sidebar, tabs and breadcrumb. Section
+  tabs do not appear on a record.
+- **Stat strips on a phone** are a list (label left, count right, 48px
+  rows), never five squeezed tiles. An unread count says "not read" at
+  text size, never at figure size.
+
 ### 1. The one test
 On any dashboard a person must see within five seconds: where they are (title
 and breadcrumb), what matters now (the few numbers that need a decision),

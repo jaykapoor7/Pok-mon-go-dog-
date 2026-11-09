@@ -245,7 +245,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
-              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? <Suspense fallback={here.label}><StageName nav={nav} here={here} /></Suspense> : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
+              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? <Suspense fallback="Verification"><StageName nav={nav} here={here} /></Suspense> : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
               {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
             </nav>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
@@ -260,7 +260,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           </header>
 
           <AmbientLight />
-          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
+          <main id="sp-main" className="sp-main" tabIndex={-1}>{/* A record or form is one thing to finish: its section tabs would be a way to lose it. */}{!deep && <SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} />}<Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
@@ -292,8 +292,9 @@ type NavRow = { item: NavItem; label?: string };
 function StageName({ nav, here }: { nav: NavRow[]; here: NavItem }) {
   const stage = useSearchParams()?.get("stage");
   const twins = nav.filter((r) => r.item.href === here.href && r.item.query);
-  const hit = twins.find((r) => new URLSearchParams(r.item.query).get("stage") === stage) ?? twins[0];
-  return <>{hit?.item.label ?? here.label}</>;
+  const hit = twins.find((r) => new URLSearchParams(r.item.query).get("stage") === stage);
+  /* With no stage chosen the page shows every stage and calls itself Verification. */
+  return <>{hit?.item.label ?? "Verification"}</>;
 }
 type SideNavProps = { nav: NavRow[]; path: string; collapsed: boolean; onAssistant: boolean; label: string };
 

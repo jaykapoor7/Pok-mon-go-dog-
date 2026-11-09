@@ -187,7 +187,7 @@ export default function HomePage() {
       />
 
       {/* 9 · why explore a pilot */}
-      <Pilot demoHref={DEMO_SITE ? "/try?go=1" : "/demo"} />
+      <Pilot />
 
       {/* 10 · common questions, then the close */}
       <CloseAndQuestions faq={FAQ} />

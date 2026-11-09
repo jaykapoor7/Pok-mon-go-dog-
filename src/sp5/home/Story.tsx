@@ -125,7 +125,7 @@ const PILOT: [string, string][] = [
 ];
 
 /** 8 · Why explore a pilot: three steps and one call to action. */
-export function Pilot({ demoHref = "/demo" }: { demoHref?: string }) {
+export function Pilot() {
   return (
     <section className="s4-sec s8-pilot" id="pilot" aria-labelledby="pilot-title">
       <div className="s4-wrap">
@@ -134,7 +134,8 @@ export function Pilot({ demoHref = "/demo" }: { demoHref?: string }) {
             <h2 id="pilot-title" className="s4-h2">Start with one programme.</h2>
             <p className="s4-lede">A pilot is small on purpose: one programme, one month, your own records.</p>
             <div className="s4-actions">
-              <Link href={demoHref} className="s4-btn is-primary">Book a demo</Link>
+              {/* The page keeps one "Book a demo" (in the hero); the pilot asks for a conversation. */}
+              <Link href="/contact" className="s4-btn is-primary">Talk to us about a pilot</Link>
               <Link href="/pricing" className="s4-btn is-line">How pricing works</Link>
             </div>
           </Rise>

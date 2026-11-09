@@ -293,7 +293,7 @@ export function CloseAndQuestions({ faq }: { faq: [string, string][] }) {
           <div className="s7-c4-copy">
             <h2 id="close-title">See it on your own records.</h2>
             <p>Bring last month&rsquo;s register. We&rsquo;ll show you what StrayPaw does with it.</p>
-            <div className="s7-row"><Link href="/demo" className="s7-btn is-white is-primary">Book a demo</Link><Link href="/platform" className="s7-btn is-ghost">Explore the platform</Link></div>
+            <div className="s7-row"><Link href="/platform" className="s7-btn is-white is-primary">Explore the platform</Link><Link href="/contact" className="s7-btn is-ghost">Talk to the team</Link></div>
           </div>
           <Link href="/our-story" className="s7-c4-art" aria-label="Our story: every animal deserves a record">
             <AliveLogo />

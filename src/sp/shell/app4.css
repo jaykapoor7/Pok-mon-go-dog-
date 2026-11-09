@@ -628,7 +628,7 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 
 /* 4 · Sidebar. One icon language (1.75 line icons), quieter section
       labels without a rule between every group, a clear selected row. */
-.sp.sx3 .sx4-sec { margin: 14px 0 2px; padding: 0 8px; border-top: 0; font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em; color: #8a8f9a; }
+.sp.sx3 .sx4-sec { margin: 14px 0 2px; padding: 0 8px; border-top: 0; font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em; color: #6b7486; }
 .sp.sx3 .sx3-nav > .sx4-sec:first-child { margin-top: 2px; }
 .sp.sx3 .sx3-nav a { height: 32px; color: #3a4354; }
 .sp.sx3 .sx3-nav a > svg { color: #7b8190; }
@@ -659,7 +659,7 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
       list on a phone (label left, count right, 48px rows) — five squeezed
       tiles could not hold their own labels at 390px. An unread count is
       said quietly, never set at figure size. */
-.sp.sx3 .br .jy .jy-c.is-na { font-size: 13px; font-weight: 400; letter-spacing: 0; color: #8a8f9a; align-self: end; padding-bottom: 5px; }
+.sp.sx3 .br .jy .jy-c.is-na { font-size: 13px; font-weight: 400; letter-spacing: 0; color: #6b7486; align-self: end; padding-bottom: 5px; }
 @media (min-width: 861px) {
   .sp.sx3 .br .jy ol { gap: 0; border: 1px solid #e4e8f0; border-radius: 12px; background: #fff; overflow: hidden; }
   .sp.sx3 .br .jy li + li { border-left: 1px solid #e4e8f0; }
@@ -675,4 +675,9 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
   .sp.sx3 .br .jy .jy-t small { display: block; font-size: 12.5px; color: #6b7486; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sp.sx3 .br .jy .jy-c { grid-row: 1; grid-column: 2; margin: 0; font-size: 17px; justify-self: end; font-variant-numeric: tabular-nums; }
   .sp.sx3 .br .jy .jy-c.is-na { padding: 0; align-self: center; }
+  .sp.sx3 .br .jy .jy-n { display: none; }
 }
+
+/* 8 · Kaju docked. The panel is 440px wide; the page reserved 400px, so the
+      panel covered the top bar's primary action. Reserve what it takes. */
+@media (min-width: 1240px) { .sp.sx3.has-ai { padding-right: 440px; } }
