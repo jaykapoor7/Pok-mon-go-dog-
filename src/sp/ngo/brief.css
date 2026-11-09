@@ -342,7 +342,9 @@
   .sp .br .jy-t { grid-row: 2; }
   .sp .br .jy-t b { font-size: 10.5px; font-weight: 500; color: #5b6475; letter-spacing: -0.01em; }
   .sp .br .jy-t small { display: none; }
-  .sp .br .jy-c { grid-column: 1; grid-row: 1; margin: 0; font-size: 20px; }
+  .sp .br .jy-c { grid-column: 1; grid-row: 1; margin: 0; font-size: 20px; text-align: center; justify-self: center; }
+  .sp .br .jy-t { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp .br .jy-t b { font-size: 10px !important; }
   .sp .br .br-card { padding: 14px; }
   .sp .br .br-list a { min-height: 0; }
 }

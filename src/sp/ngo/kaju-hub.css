@@ -26,5 +26,5 @@
 .kh-go:disabled { opacity: 0.55; cursor: default; }
 .kh-foot { margin: 0; font-size: 13px; }
 .kh-foot a { display: inline-flex; align-items: center; gap: 4px; color: #2457ce; text-decoration: none; }
-@media (max-width: 760px) { .kh { padding: 14px; border-radius: 16px; } .kh-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kh-tiles b { font-size: 19px; } }
+@media (max-width: 760px) { .kh { padding: 14px; border-radius: 16px; } .kh-tiles { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; } .kh-tiles a { padding: 10px 8px; gap: 0; text-align: center; } .kh-tiles b { order: -1; font-size: 19px; } .kh-tiles span { font-size: 11.5px; line-height: 1.25; } .kh-sub { margin: 0; } .kh-list li { padding: 9px 0; } }
 @media (prefers-reduced-motion: reduce) { .kh-dot, .kh-list li { animation: none; } .kh-tiles a, .kh-go { transition: none; } }

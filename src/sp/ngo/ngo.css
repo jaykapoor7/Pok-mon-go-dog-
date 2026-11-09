@@ -567,3 +567,6 @@
   .sp .ib-grid { min-height: 0; align-content: start; }
   .sp .ib-mobile-source { align-self: start; padding-bottom: 4px; }
 }
+/* Field mode: the day's count first, then one row of actions. */
+.sp .fd-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sp .fd-tools .btn { min-height: 40px; }

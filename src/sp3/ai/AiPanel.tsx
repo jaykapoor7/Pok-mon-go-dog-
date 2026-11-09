@@ -283,7 +283,13 @@ function Thread({ full = false }: { full?: boolean }) {
   const follow=useRef(true);
   const reduced=useReducedMotion();
   useEffect(()=>{if(ai.scope&&ai.open&&!full)input.current?.focus({preventScroll:true})},[ai.scope,ai.open,full]);
-  useEffect(() => {if(scroll.current&&(!ai.msgs.length&&!ai.busy||follow.current))scroll.current.scrollTo({top:ai.msgs.length||ai.busy?scroll.current.scrollHeight:0,behavior:!ai.msgs.length||reduced?'auto':'smooth'})},[ai.msgs.length,ai.busy,reduced]);
+  /* While Kaju works, follow the bottom; once an answer lands, show it from its question down, so a long reply opens at its start. */
+  useEffect(() => {const el=scroll.current;if(!el||!(!ai.msgs.length&&!ai.busy||follow.current))return;
+    const behavior=!ai.msgs.length||reduced?'auto':'smooth';
+    const q=!ai.busy&&ai.msgs.length?[...el.querySelectorAll<HTMLElement>('.ai3-q')].pop():null;
+    if(q&&el.scrollHeight<=el.clientHeight+1){q.scrollIntoView({block:'start',behavior});return;}
+    if(q){el.scrollTo({top:Math.max(0,Math.min(el.scrollHeight,el.scrollTop+q.getBoundingClientRect().top-el.getBoundingClientRect().top-8)),behavior});return;}
+    el.scrollTo({top:ai.msgs.length||ai.busy?el.scrollHeight:0,behavior})},[ai.msgs.length,ai.busy,reduced]);
   const [file, setFile] = useState<KajuFile | null>(null);
   const [progress, setProgress] = useState<{ name: string; size: number; pct: number; phase: "uploading" | "reading" } | null>(null);
   const [fileErr, setFileErr] = useState<string | null>(null);
