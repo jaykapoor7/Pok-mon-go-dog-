@@ -1,5 +1,5 @@
 "use client";
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {Fragment,useCallback,useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import {getSupabase} from '@/lib/supabase';
 import {useAi} from '@/sp3/ai/AiPanel';
@@ -32,20 +32,11 @@ export function KajuActivity({orgId}:{orgId:string}){
   if(marked.current!==run.id){marked.current=run.id;await db.rpc('kaju_mark_check_seen',{p_run:run.id});}
   if(lead){const r=await db.rpc('kaju_check_delivery',{p_run:run.id});if(!r.error)setDelivery((r.data??[]) as Delivery[]);}};
  const seen=delivery?.filter(d=>d.seen_at)??[];const unseen=delivery?.filter(d=>!d.seen_at)??[];
- return <details className="br-sec br-kaju br-fold" aria-labelledby="br-kaju-activity" onToggle={e=>{if((e.currentTarget as HTMLDetailsElement).open)void opened()}}>
-  <summary><h2 id="br-kaju-activity" className="br-h">Kaju&rsquo;s record checks</h2><span className="br-fold-n">{run?`${flagged.length} to look at`:''}</span></summary>
-  <div role="status"><p className="br-empty">{!current||current.loading?'Reading the latest record check…':current.failed?'The latest check could not be read. Findings are unknown.':run?<>Records checked <time dateTime={run.checked_at}>{time(run.checked_at)}</time>. {flagged.length} of {run.findings.length} rules need review.</>:'No operational check is recorded yet.'}</p></div>
-  {current?.failed&&<button type="button" className="ai3-inline" onClick={()=>void load()}>Read check again</button>}
-  {run&&<>
-   {stale&&<p className="br-empty">This check is older than 26 hours. Check the records again for current findings.</p>}
-   <p className="br-empty">At most 100 records per rule. These are record gaps, not clinical or government decisions.</p>
-   {flagged.length>0&&<ul className="br-findings">{flagged.map(f=><li key={f.rule}>
-    <b>{labels[f.rule]??f.rule.replaceAll('_',' ')}: {f.configured===false?'not set':f.count===null?'unknown':f.count}</b>
-    <p>{f.explanation}</p>{f.dueOn&&<p>Due <time dateTime={f.dueOn}>{new Date(f.dueOn+"T00:00:00Z").toLocaleDateString("en-IN",{dateStyle:"medium",timeZone:"UTC"})}</time>. Set by your organisation lead.</p>}<small>Checked <time dateTime={run.checked_at}>{time(run.checked_at)}</time></small>{f.rule==='reporting_deadline'&&f.dueOn&&<div className="br-chips"><Link href="/ngo/settings#kaju-deadline-title">Deadline settings</Link></div>}
-    {f.records.length>0?<div className="br-chips">{f.records.filter((r,i,all)=>all.findIndex(x=>x.id===r.id)===i).slice(0,3).map(r=><Link key={r.id} href={r.href}>{r.label}</Link>)}</div>:f.configured===false?<p>No deadline source is recorded. {ai.role==='admin'?<Link href="/ngo/settings">Set a reporting deadline</Link>:'Ask your organisation lead to set one.'}</p>:f.count===null?<p>The source could not establish a count.</p>:null}
-   </li>)}</ul>}
-  </>}
-  {lead&&delivery&&delivery.length>0&&<p className="br-empty br-delivery">Seen by {seen.length} of {delivery.length}{unseen.length?<>. Not yet: {unseen.slice(0,4).map(d=>d.name).join(', ')}{unseen.length>4?` and ${unseen.length-4} more`:''}</>:''}.</p>}
-  <div className="br-chips"><button type="button" disabled={ai.busy||!ai.scope} onClick={()=>ai.ask('Run operational checks on my organisation. Explain the recorded gaps and prepare a report for review. Do not change any case or send a message.')}>{ai.busy?'Checking records…':'Check records with Kaju'}</button></div>
+ const rows=flagged.map(f=>({rule:f.rule,label:labels[f.rule]??f.rule.replaceAll('_',' '),n:f.configured===false?'Not set':f.count===null?'Unknown':String(f.count),links:f.records.filter((r,i,all)=>all.findIndex(x=>x.id===r.id)===i).slice(0,2)}));
+ return <details className="kx-checks" onToggle={e=>{if((e.currentTarget as HTMLDetailsElement).open)void opened()}}>
+  <summary><span className="br-sq t-violet" aria-hidden>✓</span><span className="kx-t"><span>Record checks</span><small>{!current||current.loading?'Reading…':current.failed?'Could not be read':run?`${time(run.checked_at)}${stale?' · older than a day':''}`:'Not run yet'}</small></span><em className={flagged.length?'is-due':''}>{run?(flagged.length?`${flagged.length} to look at`:'All clear'):''}</em></summary>
+  {current?.failed&&<button type="button" className="kx-more" onClick={()=>void load()}>Read again</button>}
+  {rows.length>0&&<ul className="kx-list">{rows.map(r=><li key={r.rule}><span className="kx-n">{r.n}</span><span className="kx-t"><span>{r.label}</span>{r.links.length>0&&<small>{r.links.map((l,i)=><Fragment key={l.id}>{i>0&&' · '}<Link href={l.href}>{l.label.length>14?`${l.label.slice(0,12)}…`:l.label}</Link></Fragment>)}</small>}</span>{r.rule==='reporting_deadline'&&ai.role==='admin'?<Link className="kx-link" href="/ngo/settings">Set</Link>:<span/>}</li>)}</ul>}
+  <div className="kx-foot"><button type="button" className="kx-more" disabled={ai.busy||!ai.scope} onClick={()=>ai.ask('Run operational checks on my organisation. Explain the recorded gaps and prepare a report for review. Do not change any case or send a message.')}>{ai.busy?'Checking…':'Check again with Kaju'}</button>{lead&&delivery&&delivery.length>0&&<small className="kx-seen">Seen by {seen.length} of {delivery.length}</small>}</div>
  </details>;
 }

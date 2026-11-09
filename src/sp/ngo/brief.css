@@ -262,3 +262,87 @@
   .jy .jy-t b { font-size: 13px; }
   .jy .jy-c { grid-row: 2; grid-column: 1 / -1; font-size: 22px; text-align: left; }
 }
+
+/* ── Today, final layout ────────────────────────────────────────────
+   Greeting and one summary line, the pipeline, then two cards of equal
+   height (Needs you · From Kaju), then Ask Kaju across the width.
+   One type scale: 15px titles, 14px body, 12.5px meta. No italics. */
+.sp .br .br-in { max-width: 1120px; padding: 36px 32px 28px; gap: 0; }
+.sp.sx3 .sp-main .br h1.br-hello { font-size: 30px !important; line-height: 1.2 !important; letter-spacing: -0.025em !important; font-weight: 600; color: #0b1e3d; }
+.sp .br .br-since { margin: 8px 0 0; font-size: 15px; line-height: 1.6; color: #4a5263; }
+.sp .br .br-since b { color: #0b1e3d; font-weight: 600; }
+.sp .br .jy { margin: 22px 0 0; }
+.sp .br .jy ol { gap: 10px; border: 0; }
+.sp .br .jy li + li { border-left: 0; }
+.sp .br .jy a { min-height: 96px; padding: 14px 16px; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px #e3e6ec; }
+.sp .br .jy a:hover { box-shadow: inset 0 0 0 1px #c6d2ee; background: #fff; }
+.sp .br .jy-t b { font-size: 14px; font-weight: 600; }
+.sp .br .jy-t small { font-size: 12.5px; color: #5b6475; }
+.sp .br .jy-c { font-size: 26px; font-weight: 600; color: #b3b8c2; }
+.sp .br .jy-c.is-on { color: #0b1e3d; }
+.sp .br .br-warn { margin: 16px 0 0; }
+.sp .br .br-grid { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.sp .br .br-card { display: flex; flex-direction: column; min-width: 0; padding: 16px 18px; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 1px #e3e6ec; }
+.sp .br .br-card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.sp .br .br-card-h h2 { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: #0b1e3d; }
+.sp .br .br-card-h h2 svg { color: #6d4fd8; }
+.sp .br .br-card-h a { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: #2457ce; text-decoration: none; }
+.sp .br .br-card-h a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sp .br .br-card .br-list { margin: 0 -8px; }
+.sp .br .br-card .br-list a { min-height: 50px; padding: 8px; }
+.sp .br .br-t { font-size: 14px; }
+.sp .br .br-t small { font-size: 12.5px; color: #5b6475; }
+.sp .br .br-sub { margin: 12px 0 2px; font-size: 13px; font-weight: 600; color: #5b6475; }
+.sp .br .br-clear { margin: auto 0; padding: 20px 0; display: flex; align-items: center; gap: 8px; font-size: 14.5px; color: #1a6a3c; }
+.sp .br .br-ask { margin-top: 16px; }
+.sp .br .br-chips { margin-top: 10px; }
+/* From Kaju */
+.sp .br .kx-block { display: grid; gap: 4px; }
+.sp .br .kx-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.sp .br .kx-list li { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid #eef0f4; }
+.sp .br .kx-list li:first-child { border-top: 0; }
+.sp .br .kx-t { min-width: 0; display: grid; gap: 1px; font-size: 14px; line-height: 1.4; color: #0b1e3d; }
+.sp .br .kx-t > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp .br .kx-t a { color: inherit; font-weight: 600; text-decoration: none; }
+.sp .br .kx-t a:hover { color: #2457ce; }
+.sp .br .kx-t small { font-size: 12.5px; color: #5b6475; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp .br .kx-t small a { font-weight: 500; color: #2457ce; }
+.sp .br .kx-side { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.sp .br .kx-side .kp-act, .sp .br .kx-link, .sp .br .kx-more { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 0; border-radius: 8px; background: #eef2fb; color: #2457ce; font: inherit; font-size: 12.5px; font-weight: 500; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.sp .br .kx-more:hover, .sp .br .kx-link:hover, .sp .br .kx-side .kp-act:hover { background: #e2e9f8; }
+.sp .br .kx-more:disabled { opacity: 0.55; cursor: default; }
+.sp .br .kx-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.sp .br .kx-note { margin: 4px 0 0; font-size: 13px; color: #5b6475; }
+.sp .br .kx-calm { margin: 0; padding: 6px 0 10px; display: flex; gap: 8px; align-items: flex-start; font-size: 14px; line-height: 1.45; color: #1a6a3c; }
+.sp .br .kx-calm svg { flex: none; margin-top: 3px; }
+.sp .br .kx-checks .kx-list li { grid-template-columns: auto minmax(0, 1fr) auto; }
+.sp .br .kx-n { min-width: 28px; padding: 2px 8px; border-radius: 8px; background: #f2f4f8; font-size: 12.5px; font-weight: 600; color: #0b1e3d; text-align: center; white-space: nowrap; }
+.sp .br .kx-checks { margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef0f4; }
+.sp .br .kx-checks > summary { list-style: none; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 10px; align-items: center; cursor: pointer; }
+.sp .br .kx-checks > summary::-webkit-details-marker { display: none; }
+.sp .br .kx-checks > summary .br-sq { font-size: 10px; }
+.sp .br .kx-checks > summary em { font-style: normal; font-size: 12.5px; font-weight: 600; color: #1a6a3c; }
+.sp .br .kx-checks > summary em.is-due { color: #8a5a00; }
+.sp .br .kx-checks[open] > summary { margin-bottom: 4px; }
+.sp .br .kx-seen { color: #5b6475; font-size: 12.5px; }
+@media (max-width: 960px) {
+  .sp .br .br-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .sp .br .br-in { padding: 16px 0 16px; }
+  .sp.sx3 .sp-main .br h1.br-hello { font-size: 24px !important; }
+  /* Five counts in one row: number over a short label. */
+  .sp .br .jy { margin-top: 16px; }
+  .sp .br .jy ol { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; grid-auto-flow: row; gap: 6px; overflow: visible; }
+  .sp .br .jy ol { margin: 0 !important; padding: 0 !important; }
+  .sp .br .jy li { min-width: 0 !important; flex: none !important; width: auto !important; }
+  .sp .br .jy li + li { border-top: 0; }
+  .sp .br .jy a { display: grid; grid-template-columns: 1fr; grid-template-rows: auto auto; justify-items: center; gap: 2px; min-height: 0; padding: 10px 2px; border-radius: 12px; text-align: center; }
+  .sp .br .jy-n { display: none; }
+  .sp .br .jy-t { grid-row: 2; }
+  .sp .br .jy-t b { font-size: 10.5px; font-weight: 500; color: #5b6475; letter-spacing: -0.01em; }
+  .sp .br .jy-t small { display: none; }
+  .sp .br .jy-c { grid-column: 1; grid-row: 1; margin: 0; font-size: 20px; }
+  .sp .br .br-card { padding: 14px; }
+  .sp .br .br-list a { min-height: 0; }
+}

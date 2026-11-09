@@ -13,7 +13,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { CalendarCheck, CalendarClock, Check, CircleAlert, MapPin, Sparkles } from "lucide-react";
+import { CalendarCheck, Check, CircleAlert, MapPin, Sparkles } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { confirmMany, confirmVerified, type Saved as Result } from "@/sp3/ai/execute";
 import type { Proposal } from "@/sp3/ai/types";
@@ -75,53 +75,43 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
     </>;
   };
 
-  if (failed) return <section className="br-sec kp" aria-labelledby="kp-h"><h2 id="kp-h" className="br-h">Kaju prepared</h2><p className="br-empty" role="status">{failed} Nothing has changed. <button type="button" className="ai3-inline" onClick={() => void load()}>Try again</button></p></section>;
-  if (!d) return <section className="br-sec kp" aria-labelledby="kp-h" aria-busy="true"><h2 id="kp-h" className="br-h">Kaju prepared</h2><p className="br-empty">Kaju is reading cases, care notes and localities…</p></section>;
+  const [all, setAll] = useState(false);
+  if (failed) return <p className="kx-note" role="status">Prepared work could not be read. <button type="button" className="ai3-inline" onClick={() => void load()}>Try again</button></p>;
+  if (!d) return <p className="kx-note" aria-busy="true">Kaju is reading your cases…</p>;
 
-  const nothing = !d.stalled.length && !d.reviews.items.length && !d.localities.length;
-  /* Nothing to prepare: one calm line instead of a full card. */
-  if (nothing && !d.unavailable.length && !d.partial.length) return (
-    <section className="br-sec kp is-calm" aria-labelledby="kp-h">
-      <KajuPresence state="lying" size={36} />
-      <p><b id="kp-h">Kaju prepared</b> All quiet: no critical case has gone silent and no promised review is unscheduled.</p>
-    </section>
-  );
+  /* One list, most urgent first: quiet critical cases, promised reviews, then place spellings. */
+  type Item = { key: string; tone: string; icon: React.ReactNode; title: React.ReactNode; meta: string; side: React.ReactNode };
+  const items: Item[] = [
+    ...d.stalled.map((x) => ({ key: `s${x.caseId}`, tone: "flame", icon: <CircleAlert size={11} strokeWidth={2.4} />,
+      title: <><Link href={`/ngo/cases/${x.caseId}`}>{x.label}</Link> · no update for {x.quietDays} days</>,
+      meta: [x.zone, x.holder ? `with ${x.holder}` : "unassigned"].filter(Boolean).join(" · "),
+      side: action(proposalFor((p) => p.caseId === x.caseId && p.why.startsWith("Critical")), "Schedule check") })),
+    ...d.reviews.items.map((r) => ({ key: `r${r.eventId}${r.promisedFor}`, tone: r.state === "missed" ? "amber" : "blue", icon: <CalendarCheck size={11} strokeWidth={2.4} />,
+      title: <><Link href={`/ngo/animals/${r.dogId}`}>{r.dogLabel}</Link> · review {r.state === "missed" ? `was due ${fmt(r.promisedFor)}` : `due ${fmt(r.promisedFor)}`}</>,
+      meta: r.zone ?? "",
+      side: action(proposalFor((x) => x.dogId === r.dogId && x.why.includes(r.state === "missed" ? r.promisedFor : r.quote)), "Schedule") })),
+    ...(d.localities.length ? [{ key: "loc", tone: "slate", icon: <MapPin size={11} strokeWidth={2.4} />,
+      title: <>{d.localities[0].canonical} · spelled {d.localities[0].variants.length} ways</>,
+      meta: d.localities.length > 1 ? `${d.localities.length - 1} more places too` : "Place names",
+      side: <Link className="kx-link" href="/ngo/quality">Review</Link> }] : []),
+  ];
+  const shown = all ? items : items.slice(0, 3);
   return (
-    <section className="br-sec kp" aria-labelledby="kp-h">
-      <h2 id="kp-h" className="br-h"><Sparkles size={14} aria-hidden /> Kaju prepared</h2>
-      {d.unavailable.length > 0 && <p className="br-empty" role="status">Could not read: {d.unavailable.join(", ")}. Those checks are unknown, not clear.</p>}
-      {d.partial.length > 0 && <p className="br-empty" role="status">Checked only part of: {d.partial.join(", ")}. More may exist.</p>}
-      {nothing && !d.unavailable.length && <div className="kp-calm"><KajuPresence state="lying" size={64} /><p className="br-empty">All quiet: no critical case has gone silent and no promised review is unscheduled.</p></div>}
-
-      {d.stalled.length > 0 && <ul className="br-list kp-list">{d.stalled.map((s) => (
-        <li key={s.caseId}><div className="kp-row">
-          <span className="br-sq t-flame" aria-hidden><CircleAlert size={10} strokeWidth={2.4} /></span>
-          <span className="br-t"><span><Link href={`/ngo/cases/${s.caseId}`}><b>{s.label}</b></Link> is critical and has had no update for {s.quietDays} days</span>
-            <small>{[s.zone, s.holder ? `held by ${s.holder}` : "no one holds it", `last recorded ${fmt(s.lastActivity)}`].filter(Boolean).join(" · ")}</small></span>
-          <span className="kp-side">{action(proposalFor((p) => p.caseId === s.caseId && p.why.startsWith("Critical")), "Schedule a check tomorrow")}</span>
-        </div></li>))}</ul>}
-
-      {d.reviews.items.length > 0 && <>
-        <p className="kp-lede"><CalendarClock size={13} aria-hidden /> <b>{d.reviews.missed}</b> review{d.reviews.missed === 1 ? "" : "s"} promised in care notes passed with nothing recorded{d.reviews.upcoming ? <>; <b>{d.reviews.upcoming}</b> coming up are not scheduled</> : null}.</p>
-        <ul className="br-list kp-list">{d.reviews.items.slice(0, 6).map((r) => {
-          const p = proposalFor((x) => x.dogId === r.dogId && x.why.includes(r.state === "missed" ? r.promisedFor : r.quote));
-          return <li key={`${r.eventId}${r.promisedFor}`}><div className="kp-row">
-            <span className={`br-sq ${r.state === "missed" ? "t-amber" : "t-blue"}`} aria-hidden><CalendarCheck size={10} strokeWidth={2.4} /></span>
-            <span className="br-t"><span><Link href={`/ngo/animals/${r.dogId}`}><b>{r.dogLabel}</b></Link>: “{r.quote}”</span>
-              <small>{[r.zone, r.state === "missed" ? `was due ${fmt(r.promisedFor)}` : `due ${fmt(r.promisedFor)}`, r.caseId ? null : "no case linked, so it cannot be scheduled here"].filter(Boolean).join(" · ")}</small></span>
-            <span className="kp-side">{action(p, r.state === "missed" ? "Schedule for tomorrow" : "Schedule it")}</span>
-          </div></li>;
-        })}</ul>
-      </>}
-
-      {d.localities.length > 0 && <p className="kp-lede"><MapPin size={13} aria-hidden /> <span><b>{d.localities[0].canonical}</b> is spelled {d.localities[0].variants.length} ways{d.localities.length > 1 ? `, and ${d.localities.length - 1} more place${d.localities.length === 2 ? "" : "s"} too` : ""}. <Link href="/ngo/quality">Review spellings</Link></span></p>}
-
-      <div className="br-chips">
-        {pending.length > 1 && <button type="button" onClick={() => void confirmAll()} disabled={batch}><Check size={12} aria-hidden />{batch ? "Scheduling…" : `Schedule all ${pending.length} prepared follow-ups`}</button>}
+    <div className="kx-block">
+      {items.length === 0 ? <p className="kx-calm"><Check size={14} aria-hidden /> All quiet. No critical case has gone silent and no promised review is missed.</p> : (
+        <ul className="kx-list">{shown.map((it) => (
+          <li key={it.key}>
+            <span className={`br-sq t-${it.tone}`} aria-hidden>{it.icon}</span>
+            <span className="kx-t"><span>{it.title}</span>{it.meta && <small>{it.meta}</small>}</span>
+            <span className="kx-side">{it.side}</span>
+          </li>))}</ul>
+      )}
+      <div className="kx-foot">
+        {items.length > 3 && <button type="button" className="kx-more" onClick={() => setAll((v) => !v)}>{all ? "Show fewer" : `${items.length - 3} more`}</button>}
+        {pending.length > 1 && <button type="button" className="kx-more" onClick={() => void confirmAll()} disabled={batch}>{batch ? "Scheduling…" : `Schedule all ${pending.length}`}</button>}
       </div>
-      {stopped && <p className="kp-err" role="alert" style={{ textAlign: "left", maxWidth: "none" }}>{stopped}</p>}
-      <details className="kp-how"><summary>How Kaju found these</summary><ul>{Object.values(d.rules).map((r) => <li key={r}>{r}</li>)}</ul><p>Checked {new Date(d.checkedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}. Each follow-up is saved under your name with an audit entry, then read back before it shows as scheduled. Nothing is closed, merged or renamed automatically.</p></details>
-    </section>
+      {(d.unavailable.length > 0 || stopped) && <p className="kx-note" role="status">{stopped ?? `Could not read ${d.unavailable.join(", ")}.`}</p>}
+    </div>
   );
 }
 

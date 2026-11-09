@@ -14,7 +14,7 @@
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { Fragment, useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowRight, ArrowUp, CalendarClock, CircleAlert, ClipboardList, History, Inbox, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { ArrowRight, ArrowUp, Check, CalendarClock, CircleAlert, ClipboardList, History, Inbox, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
 import { DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
@@ -125,7 +125,7 @@ export function Brief() {
   return (
     <div className={`br${role ? ` is-${role}` : ""}`}>
       <div className="br-in">
-        <h1 className="br-hello">{greeting()}, {first}.<span>Here is your daily brief.</span></h1>
+        <h1 className="br-hello">{greeting()}, {first}.</h1>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
           : <p className="br-since">{(() => {
@@ -140,31 +140,28 @@ export function Brief() {
             })()}</p>}
 
         {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
-        {d && (
-          <div className="br-cols"><div className="br-main">
-            {d.unavailable.length>0&&<p role="status" className="br-warn">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
-            <section aria-labelledby="br-todo" className="br-sec">
-              <h2 id="br-todo" className="br-h">Needs you</h2>
-              {todo.length ? rows(todo.slice(0, 5), true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
+        {d && <>
+          {d.unavailable.length>0&&<p role="status" className="br-warn">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
+          <div className="br-grid">
+            <section aria-labelledby="br-todo" className="br-card">
+              <header className="br-card-h"><h2 id="br-todo">Needs you</h2><Link href="/ngo/work">Work queue <ArrowRight size={13} aria-hidden /></Link></header>
+              {todo.length ? rows(todo.slice(0, 5), true) : <p className="br-clear"><Check size={16} aria-hidden /> {d.unavailable.length>0?"Some priorities could not be read. Check the work queue.":isVet ? "Nothing is waiting for your sign-off." : "You're all caught up."}</p>}
+              {out.length > 0 && <><h3 className="br-sub">Recent activity</h3>{rows(out.slice(0, 3), false)}</>}
             </section>
-            {/* An empty card only repeats the "Since yesterday" line, so it is left out; a failed read is still said. */}
-            {(out.length > 0 || d.unavailable.includes("recent changes")) && <section aria-labelledby="br-out" className="br-sec">
-              <h2 id="br-out" className="br-h">Recent activity</h2>
-              {out.length ? rows(out, false) : <p className="br-empty">Recent changes could not be read.</p>}
-            </section>}
-            {/* As in the product demo, Kaju waits at the foot of the brief. */}
-            <form className="br-ask br-ask-foot" onSubmit={ask}>
-              <Sparkles size={15} aria-hidden />
-              <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
-              <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju anything about your programme…" autoComplete="off" />
-              <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
-            </form>
-            <div className="br-chips">{(todo.length ? ["What should I do first today, and why?"] : []).concat(out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3).map((t) => <button key={t} type="button" onClick={() => send(t)}><Sparkles size={12} aria-hidden />{t}</button>)}</div>
-            </div><div className="br-rail">
-            {!isVet && <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
-            {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
-            </div></div>
-        )}
+            <section aria-labelledby="br-kaju" className="br-card br-kx">
+              <header className="br-card-h"><h2 id="br-kaju"><Sparkles size={14} aria-hidden /> From Kaju</h2></header>
+              {!isVet && <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
+              {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
+            </section>
+          </div>
+          <form className="br-ask" onSubmit={ask}>
+            <Sparkles size={15} aria-hidden />
+            <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
+            <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju anything about your programme…" autoComplete="off" />
+            <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
+          </form>
+          <div className="br-chips">{(todo.length ? ["What should I do first today, and why?"] : []).concat(out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3).map((t) => <button key={t} type="button" onClick={() => send(t)}><Sparkles size={12} aria-hidden />{t}</button>)}</div>
+        </>}
       </div>
 
     </div>
