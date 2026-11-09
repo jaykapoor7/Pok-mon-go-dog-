@@ -6,9 +6,10 @@
    check); every row opens the screen or the Kaju answer that acts on it. */
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BadgeIndianRupee, CalendarClock, Camera, MapPin, ShieldCheck, Sparkles, Stethoscope } from "lucide-react";
+import { ArrowRight, BadgeIndianRupee, CalendarClock, Camera, Copy, FileText, Inbox, Map as MapIcon, MapPin, Newspaper, ShieldCheck, Sparkles, Stethoscope } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { stageOf, verificationQueue, type QueueRow } from "@/lib/abc";
+import { packages as readPackages, stageOf, verificationQueue, type Package, type QueueRow } from "@/lib/abc";
+import { isDecided, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 import { readBillingPreview, type PreviewResult } from "@/lib/billing";
 import { monthBounds, monthlyPlan } from "@/sp3/ai/monthly";
 import { useAi } from "@/sp3/ai/AiPanel";
@@ -68,7 +69,7 @@ export function KajuHub() {
   const places = prep?.localities.length ?? 0;
   const quiet = prep?.stalled.length ?? 0;
 
-  if (!mem.member) return null;
+  if (!mem.member) return mem.reviewer ? <OfficeHub /> : null;
   const loading = rows === null || prep === undefined || check === undefined;
 
   type Auto = { key: string; icon: React.ReactNode; name: string; status: React.ReactNode; due: boolean; act: React.ReactNode; show: boolean };
@@ -78,16 +79,25 @@ export function KajuHub() {
       due: !!check?.flagged, act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("Run operational checks on my organisation and explain what needs attention. Do not change anything.")}>Run now</button> },
     { key: "follow", icon: <CalendarClock size={16} />, name: "Follow-up scheduler", show: role !== "veterinarian",
       status: followups || quiet ? `${followups ? `${followups} promised review${followups === 1 ? "" : "s"} to schedule` : ""}${followups && quiet ? " · " : ""}${quiet ? `${quiet} critical case${quiet === 1 ? "" : "s"} gone quiet` : ""}` : "Every promised review is scheduled",
-      due: !!(followups || quiet), act: <Link className="kh-go" href="/ngo">Review</Link> },
+      due: !!(followups || quiet), act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("Prepare reschedules for overdue follow-ups")}>Prepare</button> },
+    { key: "digest", icon: <Newspaper size={16} />, name: "Weekly digest", show: true,
+      status: "What changed in seven days, and who acts next", due: false,
+      act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("What changed this week?")}>Read</button> },
     { key: "claim", icon: <BadgeIndianRupee size={16} />, name: "Claim builder", show: lead,
       status: preview ? `${preview.count ? `${rupees(preview.total) ?? `${preview.count} procedures`} ready to claim` : "Nothing ready to claim yet"}${blocked ? ` · ${blocked} blocked` : ""}` : bill ? "No contract linked" : "Reading…",
-      due: !!(preview?.count || blocked), act: <Link className="kh-go" href="/ngo/packages">Open claim</Link> },
+      due: !!(preview?.count || blocked), act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("Draft this month's claim")}>Draft</button> },
     { key: "vet", icon: <Stethoscope size={16} />, name: "Vet sign-off queue", show: true,
       status: counts.vet ? `${counts.vet} waiting for a vet` : "Nothing waiting", due: counts.vet > 0, act: <Link className="kh-go" href="/ngo/verification?stage=vet">Open</Link> },
     { key: "evidence", icon: <Camera size={16} />, name: "Evidence chaser", show: role !== "veterinarian",
       status: counts.evidence ? `${counts.evidence} record${counts.evidence === 1 ? "" : "s"} missing evidence` : "Every record has its evidence", due: counts.evidence > 0, act: <Link className="kh-go" href="/ngo/verification?stage=evidence">Open</Link> },
     { key: "places", icon: <MapPin size={16} />, name: "Place-name clean-up", show: lead,
       status: places ? `${places} place${places === 1 ? "" : "s"} spelled more than one way` : "Place names are consistent", due: places > 0, act: <Link className="kh-go" href="/ngo/quality">Fix</Link> },
+    { key: "dupes", icon: <Copy size={16} />, name: "Duplicate check", show: lead,
+      status: "Animals that may be on the register twice, for you to compare", due: false,
+      act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("Find possible duplicate animals")}>Check</button> },
+    { key: "wards", icon: <MapIcon size={16} />, name: "Ward watch", show: lead,
+      status: "Coverage by ward and sudden changes in new records", due: false,
+      act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("Show ward coverage and sudden changes")}>Run</button> },
   ];
   const shown = autos.filter((a) => a.show);
   const due = shown.filter((a) => a.due).length;
@@ -115,6 +125,55 @@ export function KajuHub() {
           {a.act}
         </li>))}</ul>
       <p className="kh-foot"><Link href="/ngo">Today <ArrowRight size={13} aria-hidden /></Link></p>
+    </section>
+  );
+}
+
+/* The municipal office's Kaju home: what waits for a decision, read live
+   from the packages this office may see, and the automations that brief,
+   pre-check and draft. Kaju decides nothing on the office's behalf. */
+function OfficeHub() {
+  const ai = useAi();
+  const [rows, setRows] = useState<Package[] | null | "failed">(null);
+  useEffect(() => { let live = true; readPackages().then((r) => live && setRows(r)).catch(() => live && setRows("failed")); return () => { live = false; }; }, []);
+  const list = Array.isArray(rows) ? rows : [];
+  const month = new Date().toISOString().slice(0, 7);
+  const waiting = list.filter((p) => isWaitingOnOffice(p.status));
+  const oldest = waiting.reduce<number | null>((m, p) => { const d = p.submitted_at ? Math.floor((Date.now() - Date.parse(p.submitted_at)) / 86_400_000) : null; return d === null ? m : Math.max(m ?? 0, d); }, null);
+  const known = Array.isArray(rows);
+  const v = (n: number) => (known ? String(n) : "—");
+  const tiles = [
+    { k: "Waiting for you", v: v(waiting.length), href: "/city/review" },
+    { k: "With the operator", v: v(list.filter((p) => isWithOperator(p.status)).length), href: "/city/review" },
+    { k: "Decided this month", v: v(list.filter((p) => isDecided(p.status) && (p.decided_at ?? "").slice(0, 7) === month).length), href: "/city/review" },
+  ];
+  const autos = [
+    { key: "brief", icon: <Inbox size={16} />, name: "Morning brief", due: waiting.length > 0,
+      status: !known ? (rows === "failed" ? "Packages could not be read" : "Reading…") : waiting.length ? `${waiting.length} waiting · oldest ${oldest ?? "?"} day${oldest === 1 ? "" : "s"}` : "Nothing waits for a decision",
+      act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("What is waiting for me today?")}>Run now</button> },
+    { key: "precheck", icon: <ShieldCheck size={16} />, name: "Claim pre-check", due: false,
+      status: "Every claim checked against evidence, sign-offs and rates", act: <Link className="kh-go" href="/city/review">Open</Link> },
+    { key: "wards", icon: <MapIcon size={16} />, name: "Ward watch", due: false,
+      status: "Coverage by ward and sudden changes in new records", act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("Show ward coverage and sudden changes")}>Run</button> },
+    { key: "memo", icon: <FileText size={16} />, name: "Monthly note", due: false,
+      status: "A draft programme note from this month's records", act: <button type="button" className="kh-go" disabled={ai.busy} onClick={() => ai.ask("Draft the monthly report")}>Draft</button> },
+  ];
+  return (
+    <section className="kh" aria-label="Kaju at work">
+      <header className="kh-head">
+        <span className="kh-dot" aria-hidden><Sparkles size={15} /></span>
+        <div><h2>{rows === null ? <Reading>Kaju is reading your office&apos;s packages</Reading> : rows === "failed" ? "Packages could not be read" : waiting.length ? `${waiting.length} package${waiting.length === 1 ? "" : "s"} wait${waiting.length === 1 ? "s" : ""} for you` : "Nothing waits for you"}</h2>
+          <p>Reviewing office</p></div>
+      </header>
+      <ul className="kh-tiles">{tiles.map((t) => <li key={t.k}><Link href={t.href}><span>{t.k}</span><b>{t.v}</b></Link></li>)}</ul>
+      <h3 className="kh-sub">Automations</h3>
+      <ul className="kh-list">{autos.map((a) => (
+        <li key={a.key} className={a.due ? "is-due" : undefined}>
+          <span className="kh-ic" aria-hidden>{a.icon}</span>
+          <span className="kh-t"><b>{a.name}</b><small>{a.status}</small></span>
+          {a.act}
+        </li>))}</ul>
+      <p className="kh-foot"><Link href="/city">Overview <ArrowRight size={13} aria-hidden /></Link></p>
     </section>
   );
 }

@@ -6,6 +6,7 @@ import { NAV, TOOL_DEFS, runTool, toolRun, type ToolCtx, type ToolOut } from "./
 import { connectionToolDefs } from "./connectTools";
 import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
 import { isDecided, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
+import { automationReply } from "./automationReplies";
 
 /* ════════════════════════════════════════════════════════════════════
    Kaju engine.
@@ -184,6 +185,7 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   }
   if (/what can only|who can.*authorise|can you.*(?:authorise|accept|certify)/i.test(q))return done("A veterinarian must authorise clinical procedures. An assigned municipal reviewer must decide package acceptance. I can check recorded evidence and prepare work for your review; I cannot sign or decide for them.");
   if (/help.*(?:field update|search.*register)|what can i search/i.test(q))return done("Paste the actual field update, or give a case code, animal tag or name. I will identify what is recorded and what is missing before preparing anything for confirmation.");
+  { const auto = await automationReply(t, ctx, (name) => call(acc, ctx, name)); if (auto !== null) return done(auto); }
   if (/what.*(completed|done|saved)|recent.*(actions|changes)|verify.*actions/.test(t)) {
     const out = await call(acc, ctx, "recent_confirmed_actions");
     if (out.ok === false) return done(out.summary);
@@ -373,6 +375,7 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   if (parts.length) return done(`For “${query}” I found ${parts.join(", ")}. They are linked below.`);
   /* Nothing matched: say so plainly and offer the commands Kaju can actually run. */
   return { ...done(`I could not match “${query}” to a record or a task. These are things I can do right now:`), suggestions: ctx.orgId
-    ? ["What should I do first?", "Which records are missing evidence?", "Find possible duplicate animals", "Open intake"]
+    ? ["What should I do first?", "What changed this week?", "Draft this month's claim", "Find possible duplicate animals"]
+    : ctx.actorRole === "municipal_reviewer" ? ["What is waiting for me today?", "Show ward coverage and sudden changes", "Draft the monthly report"]
     : ["Show published programmes", "Open the map", "What is unknown status?"] };
 }

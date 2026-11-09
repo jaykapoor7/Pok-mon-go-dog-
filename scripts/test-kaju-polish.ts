@@ -8,6 +8,7 @@ import {buildReport} from '../src/lib/files/reports';
 import {readSnapshot} from '../src/sp3/ai/snapshots';
 import {readAiScope} from '../src/sp3/ai/scope';
 import {runTool,type ToolCtx} from '../src/sp3/ai/tools';
+import {automationChecks} from './test-kaju-automations';
 let checks=0;const ok=(s:string)=>console.log(`PASS ${++checks} ${s}`);
 async function main(){
  const base={text:'Checked',engine:'tools',citations:[],tools:[],proposals:[]};assert.equal(isAiReply(base),true);
@@ -42,6 +43,7 @@ async function main(){
  }finally{globalThis.fetch=fetcher;for(const k of Object.keys(ON))delete process.env[k];setInferenceLedger(null);for(const [key,value] of Object.entries({ANTHROPIC_API_KEY:saved.key,STRAYPAW_AI_APPROVED_DATA_ROUTE:saved.approval,STRAYPAW_AI_MODEL:saved.model})){if(value===undefined)delete process.env[key];else process.env[key]=value}}
  const failed={from:()=>{const q=new Proxy({},{get:(_,k)=>k==='then'?(resolve:(r:unknown)=>unknown)=>Promise.resolve({count:null,data:[],error:null}).then(resolve):()=>q});return q;}} as unknown as SupabaseClient;
  assert.equal((await runTool('work_summary',{}, {...context,db:failed})).ok,false);ok('a successful transport with a missing count is unknown, never zero');
+ await automationChecks(ok);
  console.log(`${checks} Kaju polish contract checks passed`);
 }
 main().catch(e=>{console.error(e);process.exitCode=1});

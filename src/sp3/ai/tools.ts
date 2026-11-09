@@ -8,6 +8,7 @@ import { extractFieldMessage } from "./extract";
 import { planIntake, splitMessages } from "./intake";
 import { checkPackage } from "./packageCheck";
 import { preparedWork } from "./preparedWork";
+import { claimDraft, officeBrief, overdueFollowups, wardActivity, weeklyDigest } from "./automationTools";
 import { CARE_KINDS, type Citation, type Proposal, type ToolRun } from "./types";
 import { isResearchArchiveProgramme } from "@/lib/public-programmes";
 import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTools";
@@ -43,6 +44,11 @@ export const TOOL_DEFS = [
   {name:'current_record',description:'Read the selected case, animal, programme or review package after checking access. Use for “this record” questions. A page URL does not grant access. Does not change anything.',input_schema:{type:'object',properties:{},additionalProperties:false}},
   { name: "recent_confirmed_actions", description: "Independently verify up to five of this person’s recent confirmed Kaju actions by reading the saved records and audit rows. Use before claiming work was completed. Does not write.", input_schema: {type:"object",properties:{},additionalProperties:false} },
   { name: "operations_insights", description: "Run and store explainable operational checks for overdue follow-ups, missing ABC evidence, veterinary authorisation, municipal clarifications, programme activity and a lead-configured reporting deadline. Returns bounded findings, source links and a report proposal. Does not change cases or send notifications.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "weekly_digest", description: "What changed in the organisation over the last seven days (cases opened and closed, care recorded, vet sign-offs and evidence reviews, claims submitted and decided) and who needs to act now. Recorded counts only; an unreadable source is reported as unknown. Changes nothing.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "overdue_followups", description: "List follow-ups past their due date, grouped by who holds the case, and prepare reschedules (two days out) for the person to confirm. Changes nothing until confirmed.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "claim_draft", description: "Draft this month's ABC claim: the claimable count and amount from the database billing preview, and every record still blocked with the reason (missing evidence, waiting for a vet or coordinator, returned). Never submits.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "office_brief", description: "For a municipal reviewing office: packages waiting for a decision, oldest first, each pre-checked claim by claim for exceptions (missing evidence, sign-offs, rates, arithmetic, repeats). Never accepts, queries or returns.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "ward_activity", description: "Ward coverage (recorded animals with sterilisation and vaccination recorded; denominator is recorded animals, not population) and sudden drops or spikes in newly recorded animals per ward over eight weeks, for the organisation's or office's city.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "search_knowledge", description: "Search published StrayPaw Academy lessons about evidence, recorded counts, unknown status, coverage, population and field safety. Educational content, not current legislation or clinical advice. Returns cited passages; never invent policy.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
   { name: "abc_verification_status", description: "Read the organisation ABC verification queue: missing evidence, vet authorisation and review flags. Bounded sample, never certifies a procedure.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "abc_package_status", description: "Read report package statuses visible to this organisation member or municipal reviewer. Includes periods and recorded summaries; never accepts a package.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -70,6 +76,11 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "check_package": return packageTool(clean(input.package_id, 64), ctx);
     case "abc_verification_status": return abcVerification(ctx);
     case "abc_package_status": return abcPackages(ctx);
+    case "weekly_digest": return weeklyDigest(ctx);
+    case "overdue_followups": return overdueFollowups(ctx);
+    case "claim_draft": return claimDraft(ctx);
+    case "office_brief": return officeBrief(ctx);
+    case "ward_activity": return wardActivity(ctx);
     case "search_knowledge": return searchKnowledge(String(input.query ?? "").slice(0, 300));
     case "recent_confirmed_actions": return recentConfirmedActions(ctx);
     case "operations_insights": return operationsInsights(ctx);
