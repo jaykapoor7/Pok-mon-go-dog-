@@ -193,7 +193,7 @@ function Manage() {
             <span className={`tr-status is-${c.status}`}>{c.status === "published" ? "Published" : c.status === "draft" ? "Draft" : "Archived"}</span>
             <small>{c.ngo_id ? "Your organisation" : "StrayPaw"} · updated {day(c.updated_at)}</small>
           </button></li>))}</ul>
-      ) : <p className="tr-empty">No courses yet.</p>}
+      ) : <div className="tr-empty"><b>No courses yet</b><p>Write a short course for field capture, release evidence or vet sign-off, then assign it to your team.</p><button className="btn is-ink is-s" onClick={() => setEdit("new")}>Write the first course</button></div>}
     </div>
   );
 }

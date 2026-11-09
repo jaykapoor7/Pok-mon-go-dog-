@@ -16,11 +16,12 @@ import { supportsWebGL2 } from "@/components/map/basemap";
 import { GLYPHS, collapseAttribution, drawGround, groundStyle } from "../map/ground";
 import { reverseGeocode, nearestCity } from "@/lib/delhi";
 import { looksIndian } from "@/lib/exif";
+import { CITIES } from "@/lib/geo/cities";
 
 export type Picked = { lat: number; lng: number; zone: string };
 type Hit = { lat: number; lng: number; label: string };
 
-export function PlacePicker({ value, onChange }: { value: { lat: number; lng: number } | null; onChange: (p: Picked) => void }) {
+export function PlacePicker({ value, onChange, city }: { value: { lat: number; lng: number } | null; onChange: (p: Picked) => void; city?: string }) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
   const cb = useRef(onChange); cb.current = onChange;
@@ -57,6 +58,16 @@ export function PlacePicker({ value, onChange }: { value: { lat: number; lng: nu
     }).catch(() => setErr("The map could not start. Search for the place instead."));
     return () => { dead = true; window.clearTimeout(t); map?.remove(); mapRef.current = null; };
   }, []);
+  /* With no pin yet, open on the case's city instead of all of India (zoomed out
+     far enough that no place is picked until the person moves the map). */
+  useEffect(() => {
+    if (start.current || !city) return;
+    const c = CITIES.find((x) => x.name.toLowerCase() === city.trim().toLowerCase());
+    if (!c) return;
+    let tries = 0;
+    const go = () => { const m = mapRef.current; if (m) m.jumpTo({ center: [c.lng, c.lat], zoom: 11 }); else if (tries++ < 20) window.setTimeout(go, 150); };
+    go();
+  }, [city]);
 
   useEffect(() => {
     const t = q.trim();

@@ -18,7 +18,9 @@
 .tr-bar { display: block; height: 6px; border-radius: 6px; background: #eef1f6; overflow: hidden; }
 .tr-bar i { display: block; height: 100%; border-radius: 6px; background: #2457ce; transition: width 400ms ease; }
 .tr-bar.is-s { display: inline-block; width: 64px; height: 5px; margin-right: 8px; vertical-align: middle; }
-.tr-empty { margin: 0; padding: 16px; border-radius: 12px; background: var(--sunk, #f5f7fb); font-size: 14.5px; color: #4b5568; }
+.tr-empty { margin: 0; padding: 20px; border-radius: 12px; background: var(--sunk, #f5f7fb); font-size: 14.5px; color: #4b5568; display: grid; gap: 8px; justify-items: start; max-width: 560px; }
+.tr-empty b { color: #0b1e3d; font-weight: 500; font-size: 15px; }
+.tr-empty p { margin: 0; }
 .tr-skel { display: grid; gap: 10px; margin-top: 20px; } .tr-skel .skel { height: 90px; border-radius: 14px; }
 .tr-back { margin: 16px 0 8px; }
 .tr-player-grid { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: 28px; align-items: start; }

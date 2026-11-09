@@ -560,3 +560,26 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 @media (prefers-reduced-motion: reduce) {
   .sp.sx3 :is(.btn, .s4-btn, .kx-more, .kx-link, .kp-act, .fd-mode button, .ms-switch button, .ib-ch, .abc-stages button, .br .jy a, .os-tiles a, .gv-tiles a, .br-card, .ms, .kx-list li, .wi-msgs li, .sx3-tabs a::after, .sx3-nav a > svg) { transition: none !important; animation: none !important; transform: none !important; }
 }
+
+/* Import: the same page edge and title size as every other page */
+.sp.sx3 .imx { max-width: 824px; margin: 0; padding: 32px 32px 64px; }
+.sp.sx3 .imx-head { gap: 6px; margin-bottom: 24px; }
+.sp.sx3 .imx-head h1 { font-size: 30px; font-weight: 500; letter-spacing: -0.03em; }
+.sp.sx3 .imx-head > p:last-child { font-size: 14px; color: var(--mute); }
+@media (max-width: 860px) { .sp.sx3 .imx { padding: 20px 16px 48px; } }
+
+/* Field mode on a desktop: starts at the page edge under its tabs, not floating mid-screen */
+@media (min-width: 861px) { .sp.sx3 .fd { margin: 0; padding: 24px 0 32px; } }
+.sp.sx3 .idr-empty { margin-top: 20px; padding: 20px; border-radius: 12px; background: #f5f7fb; display: grid; gap: 8px; justify-items: start; max-width: 560px; font-size: 14px; color: var(--mute); }
+.sp.sx3 .idr-empty b { color: var(--ink); font-weight: 500; font-size: 15px; }
+.sp.sx3 .idr-empty p { margin: 0; }
+.sp.sx3 .idr-act { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* New case on a phone: request kinds as a compact two-column grid, urgency as four even pills */
+@media (max-width: 560px) {
+  .sp.sx3 .nc-cats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sp.sx3 .nc-cats small { display: none; }
+  .sp.sx3 .nc-cats label { padding: 10px 12px; min-height: 0; }
+  .sp.sx3 .nc-sev { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-radius: 12px; padding: 4px; }
+  .sp.sx3 .nc-sev button { border-radius: 8px; min-height: 38px; }
+}

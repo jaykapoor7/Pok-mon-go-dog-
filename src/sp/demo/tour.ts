@@ -35,7 +35,7 @@ export const TOUR: TourStep[] = [
     sel: ".abc-list a", point: ["Authorise procedure"], hint: "Open the waiting record." },
   { role: "coordinator", path: "/ngo/packages", title: "Monthly claim",
     body: "Records with all five evidence items and a vet sign-off become the month's claim, priced from the contract.",
-    point: ["Prepare package", "Submit package", "Prepare a package for another period"] },
+    point: ["Prepare a package for another period", "Prepare package", "Submit package"] },
   { role: "lead", path: "/assistant", title: "Kaju at work",
     body: "Kaju checks the records every morning, builds the monthly claim and chases missing evidence. Every number is live.",
     sel: ".kh-list .kh-go", hint: "Run the morning check." },

@@ -94,7 +94,7 @@ export function NewCase({ pre }: { pre: Prefill }) {
           <div className="nc-col">
             <div className="field"><span className="label">The animal</span>{animal ? <p className="nc-animal"><b>{animal.label}</b> <Link className="link" href={`/ngo/animals/${animal.id}`}>casefile</Link> <button type="button" className="link" onClick={() => setAnimal(null)}>unlink</button></p> : <p className="small">Not linked. Open a case from an animal&rsquo;s casefile to link it, or link it later once it is identified.</p>}</div>
             <div className="field"><label htmlFor="nc-c">City</label><input id="nc-c" className="input" value={city} onChange={(e) => setCity(e.target.value)} required /></div>
-            <div className="field"><span className="label">Where</span><PlacePicker value={where ? { lat: where.lat, lng: where.lng } : null} onChange={(p) => setWhere(p)} />
+            <div className="field"><span className="label">Where</span><PlacePicker city={city} value={where ? { lat: where.lat, lng: where.lng } : null} onChange={(p) => setWhere(p)} />
               <p className="small">{where ? <>Pinned{where.zone ? <> near <b>{where.zone}</b></> : null}. <button type="button" className="link" onClick={() => setWhere(null)}>Clear the pin</button></> : "No pin: the case keeps its city and stays in the queue, but is not drawn on the map."}</p></div>
             <div className="nc-send">
               <button type="submit" className="btn is-flame" disabled={!ready || state === "pending" || !user}>{state === "pending" ? "Sending…" : "Open the case"}</button>
