@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
-import { ArrowRight, ArrowUpRight, PawPrint, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History, KeyRound, Landmark, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, PawPrint, Camera, MessageSquareText, ClipboardList, FileText, Landmark, Mail, MapPin, ScanSearch, Smartphone, UserCheck } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
-import { S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
+import { Cards, S4Page, SecHead, TwoTone } from "@/sp4/site/kit";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Blueprint } from "@/sp4/home/Blueprint";
-import { HeroRotator } from "@/sp4/home/HeroRotator";
 import { Announce, DemoAnnounce } from "@/sp4/home/v7/Announce";
 import { DEMO_SITE, LIVE_DEMO_PUBLIC, LIVE_DEMO_URL } from "@/lib/demo-site";
-import { Welcome } from "@/sp4/home/v7/Welcome";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
-import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
+import { CloseAndQuestions, Results } from "@/sp4/home/v7/Sections";
+import { AskUi, OvernightUi, ProposeUi } from "@/sp4/home/ui";
+import { Pilot, Problem, Sides } from "@/sp5/home/Story";
 import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
 import "@/sp4/home/v7/landing7.css";
 import { KajuPresence } from "@/kaju/Presence";
@@ -19,30 +19,39 @@ import "@/sp4/home/home4.css";
 import "@/sp4/home/landing.css";
 
 /** Headline words that rise one after another (CSS only; static without motion). */
-function Words({ lines, mark }: { lines: string[]; mark?: string }) {
-  let i = 0;
+function Words({ lines, mark, start = 0 }: { lines: string[]; mark?: string; start?: number }) {
+  let i = start;
   return <>{lines.map((l, li) => <Fragment key={li}>{li > 0 && <br />}{l.split(" ").map((w) => <Fragment key={i}><span style={{ ["--i" as string]: i++ }} className={mark && w.replace(/[^\w]/g, "") === mark ? "s6-mark" : undefined}>{w}</span>{" "}</Fragment>)}</Fragment>)}</>;
 }
 
 export const metadata = {
-  title: "StrayPaw · Meet Kaju, the AI for animal welfare programmes",
-  description: "StrayPaw runs animal welfare programmes on one shared record: field capture, veterinary sign-off, evidence and municipal reporting. Kaju does the checking and drafting; your team approves.",
+  title: "StrayPaw · One verifiable record for animal welfare programmes",
+  description: "StrayPaw connects field teams, vets, NGOs and municipal offices on one shared record, from the first report to the accepted monthly claim. Kaju, its AI agent, prepares the work; people approve it.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   Homepage, in order:
-   1 hero (Meet Kaju) · 2 partner wall · 3 use cases · 4 Kaju as a
-   teammate · 5 recurring checks for Kaju (dark) · 6 customer results ·
-   7 integrations · 8 security · 9 FAQ · 10 closing call to action.
+   Homepage (StrayPaw 5), told in the order a new visitor needs it:
+
+   1 hero        what StrayPaw is, on the real product window
+   2 partners    who works with it
+   3 problem     the record lives in five places
+   4 workflow    one record, five steps (pinned scroller)
+   5 two sides   the operator prepares, the office decides
+   6 evidence    every change has a name and a time
+   7 intelligence  Kaju reads the record; integrations as they stand
+   8 results     recorded figures from imported registers
+   9 pilot       start with one programme
+   10 questions and close
+
    Buyer: the municipal office that funds ABC and anti-rabies work, and
-   the operators it funds. Kaju is the agent; StrayPaw is the platform.
+   the operators it funds. StrayPaw is the platform; Kaju is its agent.
+   Everything shown is the product's own interface with illustrative,
+   labelled records.
    ════════════════════════════════════════════════════════════════════ */
 
-/* The five-step journey, as it works today. Illustrative names and dates;
-   direct WhatsApp is labelled as not connected until Meta approval. */
-
 const FAQ: [string, string][] = [
-  ["What is Kaju?", "Kaju is StrayPaw's AI agent for animal welfare programmes. It works across capture, vet sign-off, evidence, reports and municipal review, using your organisation's own records."],
+  ["What is StrayPaw?", "One shared record for animal welfare programmes. Field teams capture, vets sign, coordinators approve evidence and the municipal office reviews the monthly package, all on the same animals."],
+  ["What is Kaju?", "Kaju is StrayPaw's AI agent. It works across capture, vet sign-off, evidence, reports and municipal review, using your organisation's own records."],
   ["How is Kaju different from ChatGPT or Claude?", "Kaju works inside StrayPaw, on your programme's records, with your permissions. Every answer names the records it used, and every change is prepared for a person to confirm."],
   ["Can Kaju approve a procedure or a bill?", "No. Kaju prepares; people decide. Vets authorise procedures, coordinators approve evidence and the municipal office accepts the package, each in their own name."],
   ["Does Kaju train on our data?", "No. Your records are not used to train models and are never shared with other organisations."],
@@ -56,19 +65,19 @@ export default function HomePage() {
   const story = STORIES[0];
   const kh = STORIES[1];
   return (
-    <S4Page className="s6-home s7-home" announce={DEMO_SITE ? <DemoAnnounce /> : <Announce />} close={false}>
+    <S4Page className="s6-home s7-home s8-home" announce={DEMO_SITE ? <DemoAnnounce /> : <Announce />} close={false}>
       <PageView name="landing_view" />
-      {!DEMO_SITE && <Welcome />}
       <Reveal />
 
-      {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
+      {/* 1 · hero: what it is in one sentence, then the product itself */}
       <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">
         <div className="s4-wrap s6-center">
-          <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
-          <p className="s7-hero-sub">Every animal deserves a record. Kaju keeps it, from the first report to the monthly claim.</p>
+          <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Every street animal on one record. Every step verified.</span><span aria-hidden><span className="s4-words"><Words lines={["Every street animal", "on one record."]} /></span><br /><span className="s4-words s8-h1-b"><Words lines={["Every step verified."]} start={6} /></span></span></h1>
+          <p className="s7-hero-sub">StrayPaw connects field teams, vets, NGOs and municipal offices on one shared record, from the first report to the accepted monthly claim. Kaju, its AI agent, prepares the work. People approve it.</p>
           <div className="s4-actions">{DEMO_SITE
             ? <><Link href="/try?go=1" className="s4-btn is-primary">Start the live demo</Link><Link href="/try" className="s4-btn is-line">Explore as a role</Link></>
-            : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link>{LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s4-btn is-line">Try the live demo</a> : <Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link>}</>}</div>
+            : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link>{LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s4-btn is-line">Try the live demo</a> : <Link href="#workflow" className="s4-btn is-line">See how it works</Link>}</>}</div>
+          <ul className="s8-roles" aria-label="Who works in StrayPaw"><li>Field teams</li><li>Veterinarians</li><li>NGO coordinators</li><li>Municipal reviewers</li></ul>
           <HeroScroll />
           <div className="s6-canvas">
             <Blueprint tone="dark" />
@@ -90,8 +99,8 @@ export default function HomePage() {
         <div className="s4-wall s6-wall">
           {partners.map((p) => {
             const s = STORIES.find((x) => x.name === p.name);
-            const tint = TINTS[[...p.name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % TINTS.length];
             const inner = <>{p.logo
+              // eslint-disable-next-line @next/next/no-img-element
               ? <span className="s6-pt-logo"><img src={p.logo} alt={`${p.name} logo`} loading="lazy" decoding="async" /></span>
               : <span className="s6-pt-logo s6-pt-word" aria-hidden><PawPrint size={22} /><b>{p.name}</b></span>}<span className="s6-pt-txt"><b>{p.name}</b><small><MapPin size={12} aria-hidden />{p.city}</small></span>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}</>;
             return s ? <Link key={p.name} href={`/customers/${s.slug}`} aria-label={`${p.name} case study`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
@@ -112,20 +121,39 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3 · use cases: the five steps, each a full product screen with what Kaju does in it */}
-      <FiveSteps />
+      {/* 3 · the problem */}
+      <Problem />
 
-      {/* 4 · Kaju as a teammate */}
-      <Teammate />
+      {/* 4 · how it works: the five steps, each a full product screen */}
+      <FiveSteps title="One record, five steps." />
 
-      {/* 5 · recurring work, with Kaju agents */}
-      <Recurring />
+      {/* 5 · connected workflows: operator and office on the same package */}
+      <Sides />
 
-      {/* 6 · integrations */}
+      {/* 6 · evidence and verification */}
+      <section className="s4-sec s6-security" id="security" aria-labelledby="sec-title">
+        <div className="s4-wrap">
+          <SecHead id="sec-title" title={<TwoTone a="Every change has a name" b="and a time." />} lede="Built for public money: nothing is deleted, nothing is approved by software, and every figure opens the records behind it." link={{ href: "/security", label: "Explore security" }} />
+          <AuditTrail />
+        </div>
+      </section>
+
+      {/* 7 · intelligence: Kaju on the record, then the tools it reaches */}
+      <section className="s4-sec s8-intel" id="kaju" aria-labelledby="intel-title">
+        <div className="s4-wrap">
+          <SecHead id="intel-title" title={<TwoTone blue a="Kaju reads the record," b="so your team can act on it." />} lede="Kaju is StrayPaw's AI agent. It answers from your own records, names the rows it used and prepares the next step for a person to confirm." link={{ href: "/kaju-agents", label: "See what Kaju does" }} />
+          <Cards idp="intel" items={[
+            { title: "Ask in plain words", body: "Which releases are missing a photo? Kaju answers with the records it read.", ui: <AskUi />, v: 0 },
+            { title: "Checks while you sleep", body: "Overnight checks find duplicates, gaps and late follow-ups before the morning brief.", ui: <OvernightUi />, v: 3 },
+            { title: "Prepares, never approves", body: "Every change is a card that says exactly what will be saved. A named person confirms it.", ui: <ProposeUi />, v: 1 },
+          ]} />
+        </div>
+      </section>
+
       <section className="s4-sec" aria-labelledby="int-title" id="integrations">
         <div className="s4-wrap s4-int-wrap">
           <div className="s4-int-head">
-            <h2 id="int-title" className="s4-h2"><TwoTone blue a="Kaju works with" b="the tools your team uses." /></h2>
+            <h2 id="int-title" className="s4-h2"><TwoTone blue a="Works with" b="the tools your team uses." /></h2>
             <Link href="/platform#integrations" className="s4-link is-ink">Every integration and its status <ArrowRight size={18} aria-hidden /></Link>
           </div>
           <div className="s4-int s6-int-color" aria-label="Integrations and their status">
@@ -139,10 +167,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6b · Kaju inside each tool: one open, the others expand on hover */}
-      <ToolsAccordion />
-
-      {/* 7 · customer results: recorded figures, no quotes until a partner approves one in writing */}
+      {/* 8 · results: recorded figures, no quotes until a partner approves one in writing */}
       <Results
         stats={[
           { n: story.results[0]?.n ?? 0, label: "rescue requests on one record, Coimbatore" },
@@ -161,15 +186,10 @@ export default function HomePage() {
         })}
       />
 
-      {/* 8 · security */}
-      <section className="s4-sec s6-security" id="security" aria-labelledby="sec-title">
-        <div className="s4-wrap">
-          <SecHead id="sec-title" title={<TwoTone a="Built for public money," b="with audit-ready controls" />} link={{ href: "/security", label: "Explore security" }} />
-          <AuditTrail />
-        </div>
-      </section>
+      {/* 9 · why explore a pilot */}
+      <Pilot demoHref={DEMO_SITE ? "/try?go=1" : "/demo"} />
 
-      {/* 9 · put Kaju to work, then common questions */}
+      {/* 10 · common questions, then the close */}
       <CloseAndQuestions faq={FAQ} />
 
     </S4Page>

@@ -37,7 +37,7 @@ const STEPS: Step[] = [
     link: { href: "/abc-operations#report", label: "How packages work" }, screen: <SubmitScreen /> },
 ];
 
-export function FiveSteps() {
+export function FiveSteps({ title = "Use cases", lede }: { title?: string; lede?: string } = {}) {
   const box = useRef<HTMLElement>(null);
   const swipe = useRef<HTMLDivElement>(null);
   const [on, setOn] = useState(0);
@@ -99,7 +99,7 @@ export function FiveSteps() {
       <div className="s7-steps-pin">
         <div className="s4-wrap">
           <div className="s7-steps-head">
-            <h2 id="steps-title" className="s4-h2">Use cases</h2>
+            <h2 id="steps-title" className="s4-h2">{title}</h2>{lede && <p className="s7-steps-lede">{lede}</p>}
           </div>
           <div className="s7-steps-tabs" role="tablist" aria-label="The five steps" ref={tabs}>
             {STEPS.map((x, i) => (

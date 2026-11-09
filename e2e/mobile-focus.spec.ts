@@ -44,7 +44,7 @@ test("the hero demo is labelled, plays its story with the phone, and can be paus
 });
 
 test("the AI jobs advance by themselves and stop when one is chosen", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/kaju-agents");
   const band = page.locator(".s7-rec");
   await band.scrollIntoViewIfNeeded();
   await page.mouse.move(0, 0);

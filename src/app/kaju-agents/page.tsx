@@ -4,7 +4,7 @@ import { S4Page } from "@/sp4/site/kit";
 import { AgentSetup, FeaturedAgents } from "@/sp4/home/v7/Agents";
 import { ROLES } from "@/sp4/home/v7/roles";
 import { RoleBot } from "@/sp4/home/v7/RoleFace";
-import { CloseAndQuestions } from "@/sp4/home/v7/Sections";
+import { CloseAndQuestions, Recurring, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
 import "@/sp4/home/home4.css";
 import "@/sp4/home/landing.css";
 import "@/sp4/home/v7/landing7.css";
@@ -62,6 +62,12 @@ export default function KajuAgentsPage() {
           </ul>
         </div>
       </section>
+
+      {/* how Kaju works alongside a team, the recurring jobs it takes, and Kaju inside each tool
+          (moved here from the homepage, which now tells the platform story) */}
+      <Teammate />
+      <Recurring />
+      <ToolsAccordion />
 
       {/* autopilot */}
       <section className="s4-sec s7a-split" aria-labelledby="ag-auto">

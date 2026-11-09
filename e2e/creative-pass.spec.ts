@@ -1,15 +1,15 @@
 import {test,expect} from "@playwright/test";
 import fieldPartners from "../src/data/field-partners.json";
 
-/* StrayPaw 4 landing (operator-first, 31 Oct 2026). These tests hold the
+/* StrayPaw 5 landing (platform story, 9 Nov 2026). These tests hold the
    page to the same standards as before: usable at every width, real tap
    targets, keyboard access, no-JS essentials. */
-const H1=/Meet Kaju, the AI agent for\s*animal welfare programmes/;
+const H1=/Every street animal\s*on one record\.\s*Every step verified\./;
 for(const width of [320,390,768,1440])test(`hero and section order remain usable at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.goto("/");await expect(page.locator("h1")).toHaveText(H1);
  for(const a of await page.locator(".s4-hero .s4-actions a").all()){await expect(a).toBeInViewport();const b=await a.boundingBox();expect(b!.height).toBeGreaterThanOrEqual(44);}
  const headings=(await page.locator("main h2:visible").allInnerTexts()).map(s=>s.replace(/\s+/g," ").trim());
- expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Use cases","Your team’s favourite teammate","Give recurring work to Kaju"]);
+ expect(headings.slice(0,4)).toEqual(["Animal-welfare teams working with StrayPaw","Today the record lives in five places.","One record, five steps.","The operator prepares. The office decides."]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await expect(page.locator(".s4-hero .s4-actions [class*=flame]")).toHaveCount(0);
 });
