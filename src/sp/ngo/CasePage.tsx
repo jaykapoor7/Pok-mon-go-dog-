@@ -27,6 +27,7 @@ import { FollowupList, NextStep } from "./NextStep";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
 import { DeleteRecord } from "../ui/DeleteRecord";
+import { careNote } from "@/lib/care-note";
 
 const realName = (s: string | null | undefined) => { const t = (s ?? "").trim(); return t && !/·/.test(t) ? t : null; };
 
@@ -54,7 +55,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
   const cohort = isHistoricalCase(facts) ? "history" : isStale(facts, Date.now()) ? "decide" : "live";
   const history = [
     ...updates.map((u) => ({ id: u.id, kind: "update" as const, at: u.created_at, k: u.type === "note" ? "note" : "update", t: u.note || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : u.type.replace(/_/g, " ")), who: u.actor_name })),
-    ...medical.map((m) => ({ id: m.id, kind: "care" as const, at: m.event_date, k: "care", t: `${m.kind.replace(/_/g, " ")}${m.notes ? `: ${m.notes}` : ""}`, who: m.performed_by })),
+    ...medical.map((m) => ({ id: m.id, kind: "care" as const, at: m.event_date, k: "care", t: `${m.kind.replace(/_/g, " ")}${careNote(m.notes) ? `: ${careNote(m.notes)}` : ""}`, who: m.performed_by })),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   const title = reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title;
 

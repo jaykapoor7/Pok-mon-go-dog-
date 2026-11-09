@@ -68,7 +68,7 @@ export function Settings() {
                 <li><Link className="link" href="/ngo/team">Team &amp; access</Link><small>Members, roles, codes</small></li>
                 <li><Link className="link" href="/ngo/import">Import a workbook</Link><small>Bring your existing register</small></li>
                 <li><Link className="link" href="/ngo/proof">Reports &amp; proof</Link><small>Documents from your records</small></li>
-                <li><span>WhatsApp intake</span><small>Not connected yet. Paste WhatsApp messages in Receive reports, and Kaju prepares them.</small></li>
+                <li><Link className="link" href="/ngo/settings/connections">WhatsApp &amp; connections</Link><small>WhatsApp Business, SMS and map exports</small></li>
               </ul>
             </section>
           </form>

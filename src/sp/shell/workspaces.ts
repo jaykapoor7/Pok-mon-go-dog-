@@ -8,9 +8,10 @@ export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:bo
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
 export const DESTINATIONS:Destination[]=[
+ {workspace:'ngo',href:'/ngo/offline',label:'Offline mode',icon:'phone',group:'Work',primary:false,note:'Records waiting on this phone, sync and PIN'},
  {workspace:'ngo',href:'/ngo/training',label:'Training',icon:'grad',group:'Organisation',primary:false,note:'Courses, assignments and progress',flag:'training_lms'},
  {workspace:'ngo',href:'/ngo/animals/scan',label:'Scan to find',icon:'paw',group:'Animals',primary:false,note:'Microchip, RFID or QR',flag:'animal_identifiers'},
- {workspace:'ngo',href:'/ngo/readiness',label:'Readiness',icon:'list',group:'Organisation',primary:false,roles:['admin','coordinator'],flag:'readiness_board'},
+ {workspace:'ngo',href:'/ngo/readiness',label:'Readiness',icon:'list',group:'Organisation',primary:false,roles:['admin','coordinator'],flag:'readiness_board',listed:false},
  {workspace:'ngo',href:'/ngo/animals/identity',label:'Identity & duplicate review',icon:'paw',group:'Animals',primary:false,roles:['admin','coordinator'],listed:false},
  {workspace:'ngo',href:'/ngo/settings/policies',label:'Workflow policies',icon:'settings',group:'Organisation',primary:false,roles:['admin','coordinator']},
  {workspace:"ngo",href:"/ngo/contracts",label:"Contracts & reconciliation",assistantKey:"contracts",icon:"file",group:"Reports",primary:false,roles:["admin","coordinator"]},
@@ -560,23 +561,43 @@ export const DESTINATIONS:Destination[]=[
 /* ShapeOS hubs for the NGO workspace, replacing the five-step list:
    Overview, Operations, Intelligence, Kaju, Training, Reports. Each entry keeps
    its own role and flag rules; only grouping, order and visibility change. */
-type Hub = { section?: string; order: number; label?: string; primary?: boolean; primaryFor?: Role[] };
+type Hub = { section?: string; order: number; label?: string; primary?: boolean; primaryFor?: Role[]; group?: string };
+/* NGO workspace areas. The sidebar shows each area once (its first page this
+   role may open); the area's other pages are tabs at the top of the page, so
+   every feature is one click away without a crowded sidebar. */
 const NGO_HUBS: Record<string, Hub> = {
-  "/ngo": { section: "Overview", order: 0 },
-  "/ngo/work": { section: "Operations", order: 10, label: "Work queue" },
-  "/ngo/inbox": { order: 11, label: "Intake" },
-  "/ngo/animals": { order: 12, label: "Animals" },
-  "/ngo/verification?stage=vet": { order: 13, label: "Treatment & sign-off" },
-  "/ngo/verification?stage=evidence": { order: 14, label: "Release evidence" },
-  "/ngo/field": { order: 15, primaryFor: ["member"] },
-  "/ngo/map": { section: "Intelligence", order: 20, label: "Map", primary: true },
-  "/ngo/programmes": { order: 21 },
-  "/ngo/quality": { order: 22, primaryFor: ["admin", "coordinator"] },
-  "/assistant": { section: "Kaju", order: 30, label: "Ask Kaju" },
-  "/ngo/training": { section: "Training", order: 40, primary: true },
-  "/ngo/packages": { section: "Reports", order: 50, label: "Report packages" },
-  "/ngo/contracts": { order: 51, primaryFor: ["admin", "coordinator"] },
-  "/ngo/proof": { order: 52, primaryFor: ["admin", "coordinator"] },
+  "/ngo": { section: "Overview", order: 0, primary: true },
+  "/ngo/work": { section: "Operations", order: 10, label: "Work queue", primary: true },
+  "/ngo/field": { section: "Operations", order: 11, primary: true },
+  "/ngo/offline": { section: "Operations", order: 11.5, primary: true },
+  "/ngo/inbox": { section: "Operations", order: 12, label: "Intake", primary: true },
+  "/ngo/verification?stage=vet": { section: "Operations", order: 13, label: "Treatment & sign-off", primary: true },
+  "/ngo/verification?stage=evidence": { section: "Operations", order: 14, label: "Release evidence", primary: true },
+  "/ngo/animals": { section: "Records", order: 20, primary: true },
+  "/ngo/map": { section: "Records", order: 21, label: "Map", primary: true },
+  "/ngo/animals/scan": { section: "Records", order: 22, primary: true },
+  "/ngo/care": { section: "Records", order: 23, primary: true },
+  "/ngo/animals/identity": { section: "Records", order: 24, label: "Identity review", primary: true },
+  "/ngo/quality": { section: "Records", order: 25, primary: true },
+  "/ngo/import": { section: "Records", order: 26, primary: true },
+  "/ngo/programmes": { section: "Records", order: 30, primary: true },
+  "/ngo/programmes/zones": { section: "Records", order: 31, label: "Working zones", primary: true },
+  "/ngo/surveys": { section: "Records", order: 32, primary: true },
+  "/ngo/feeding": { section: "Records", order: 33, primary: true },
+  "/ngo/projects": { section: "Records", order: 34, primary: true },
+  "/ngo/packages": { section: "Reporting", order: 40, label: "Report packages", primary: true },
+  "/ngo/contracts": { section: "Reporting", order: 41, primary: true },
+  "/ngo/proof": { section: "Reporting", order: 42, primary: true },
+  "/ngo/evidence": { section: "Reporting", order: 43, primary: true },
+  "/ngo/stories": { section: "Reporting", order: 50, label: "Case stories", primary: true },
+  "/ngo/fundraising": { section: "Reporting", order: 51, primary: true },
+  "/ngo/volunteers": { section: "Reporting", order: 52, label: "Volunteers", primary: true, group: "Outreach" },
+  "/ngo/training": { section: "Team", order: 60, primary: true, group: "Training" },
+  "/ngo/team": { section: "Team", order: 70, primary: true },
+  "/ngo/settings": { section: "Team", order: 71, primary: true },
+  "/ngo/settings/connections": { section: "Team", order: 72, primary: true },
+  "/ngo/settings/policies": { section: "Team", order: 73, primary: true },
+  "/assistant": { section: "Kaju", order: 90, label: "Ask Kaju", primary: true },
 };
 for (const d of DESTINATIONS) {
   if (d.workspace !== "ngo" && d.href !== "/assistant") continue;
@@ -589,7 +610,8 @@ for (const d of DESTINATIONS) {
   if (h.label) d.label = h.label;
   if (h.primary) d.primary = true;
   if (h.primaryFor) d.primaryFor = [...new Set([...(d.primaryFor ?? []), ...h.primaryFor])];
-  if (d.href === "/ngo/verification" && d.query === "stage=evidence") d.listed = true;
+  if (h.group && d.workspace === "ngo") d.group = h.group;
+  if (d.href !== "/ngo/readiness") d.listed = true;
 }
 /* Government: what the office runs first (overview and map), then decisions on NGO
    submissions, then reporting. Each place once. */
@@ -600,6 +622,7 @@ const CITY_HUBS: Record<string, Hub> = {
   "/city/contracts": { order: 11 },
   "/city/programmes": { section: "Reporting", order: 20 },
   "/city/report": { order: 21 },
+  "/city/connections": { section: "Organisation", order: 45 },
 };
 for (const d of DESTINATIONS) {
   if (d.workspace !== "city") continue;
@@ -608,7 +631,10 @@ for (const d of DESTINATIONS) {
   if (d.section && !h.section) delete d.section;
   d.order = h.order;
   if (h.section) d.section = h.section;
+  d.primary = true;
 }
+/* What the sidebar calls an area when it stands for several pages. */
+const AREA: Record<string, string> = { Animals: "Animals", Programmes: "Programmes", Reports: "Reports", Outreach: "Outreach", Organisation: "Organisation", Work: "Work" };
 const META={
   "community": {
     "id": "community",
@@ -657,7 +683,11 @@ export type Workspace={id:WorkspaceId;label:string;purpose:string;ink:string;hom
 export function canDiscover(n:NavItem,role:Role|null,reviewer=false){return (!n.roles||!!role&&n.roles.includes(role))&&(!n.reviewer||reviewer)&&(!n.flag||publicFlagOn(n.flag))}
 export function destinations(ws:WorkspaceId,role:Role|null,reviewer=false){return DESTINATIONS.filter(n=>n.workspace===ws&&canDiscover(n,role,reviewer))}
 export function workspaceView(ws:WorkspaceId,role:Role|null,reviewer=false):Workspace{
- const all=destinations(ws,role,reviewer),rank=(n:Destination)=>n.order??(n.href===META[ws].home?-1:50),primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).sort((a,b)=>rank(a)-rank(b)).map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href&&!(x.primary||!!role&&x.primaryFor?.includes(role))).map(x=>x.href)]}));
+ const all=destinations(ws,role,reviewer),rank=(n:Destination)=>n.order??(n.href===META[ws].home?-1:50);
+ let primary=all.filter(n=>n.primary||!!role&&n.primaryFor?.includes(role)).sort((a,b)=>rank(a)-rank(b));
+ /* One sidebar entry per area: its first page this role may open, named for the area. Clinical keeps its two stages. */
+ if(ws==="ngo"){const seen=new Set<string>();primary=primary.filter(n=>{if(n.group==="Clinical")return true;if(seen.has(n.group))return false;seen.add(n.group);return true}).map(n=>{const many=all.filter(x=>x.group===n.group).length>1;return many&&AREA[n.group]?{...n,label:AREA[n.group]}:n})}
+ primary=primary.map(n=>({...n,match:[...(n.match??[]),...all.filter(x=>x.group===n.group&&x.href!==n.href&&!primary.some(p=>p.href===x.href)).map(x=>x.href)]}));
  const listed=all.filter(n=>n.listed!==false),groups=[...new Set(listed.map(n=>n.group))].map(label=>({label,links:listed.filter(n=>n.group===label)}));
  return {...META[ws],home:META[ws].home,nav:primary,index:groups,dests:primary.filter(n=>n.mobile)};
 }
@@ -673,7 +703,7 @@ export function currentDestination(ws:WorkspaceId,path:string,role:Role|null,rev
 export function currentDest(ws:Workspace,path:string){const n=currentDestination(ws.id,path,null);return n?.href??null}
 export type Tab={href:string;label:string;roles?:Role[]};
 export function tabsFor(path:string,role:Role|null,reviewer=false){const ws=workspaceFor(path,null),current=currentDestination(ws,path,role,reviewer);if(!current)return null;
- const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant'&&(n.listed!==false||n.href===current.href)).sort((a,b)=>Number(b.primary)-Number(a.primary)).filter((n,i,all)=>all.findIndex(x=>x.href===n.href)===i);return tabs.length>1?{tabs,on:current.href}:null}
+ const tabs=destinations(ws,role,reviewer).filter(n=>n.group===current.group&&n.href!='/assistant'&&(n.listed!==false||n.href===current.href)).sort((a,b)=>(a.order??50)-(b.order??50)).filter((n,i,all)=>all.findIndex(x=>x.href===n.href)===i);return tabs.length>1?{tabs,on:current.href}:null}
 const KEY='sp2.workspace';
 export function rememberWorkspace(id:WorkspaceId){try{sessionStorage.setItem(KEY,id)}catch{}}
 export function lastWorkspace():WorkspaceId|null{try{const v=sessionStorage.getItem(KEY);return v&&v in META?v as WorkspaceId:null}catch{return null}}

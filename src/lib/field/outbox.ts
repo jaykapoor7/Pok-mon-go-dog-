@@ -19,7 +19,7 @@ export const offlineUnlocked=(scope:string)=>keys.has(scope);
 export const offlineVaultExists=async(scope:string)=>!!await tx('vault','readonly',s=>s.get(scope));
 export function lockOffline(){keys.clear();if(typeof window!=='undefined')window.dispatchEvent(new Event('straypaw-offline-locked'))}
 export async function unlockOffline(scope:string,passphrase:string){
- if(passphrase.length<10)throw Error('Use at least 10 characters. Keep this passphrase: it cannot be recovered.');
+ if(!/^\d{6,}$/.test(passphrase)&&passphrase.length<10)throw Error('Use a 6-digit PIN.');
  let saved=await tx<Vault|undefined>('vault','readonly',s=>s.get(scope));const salt=saved?bytes(saved.salt):crypto.getRandomValues(new Uint8Array(16));
  const material=await crypto.subtle.importKey('raw',encoder.encode(passphrase),'PBKDF2',false,['deriveKey']);const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
  if(saved){try{const check=await decrypt<string>(key,saved.check,scope);if(check!==`StrayPaw offline:${scope}`)throw Error('Mismatch')}catch{throw Error('The passphrase did not unlock these records. Nothing was removed.')}}

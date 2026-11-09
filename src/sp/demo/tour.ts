@@ -30,8 +30,8 @@ export const TOUR: TourStep[] = [
   { role: "field", path: "/ngo", title: "Daily work list",
     body: "What is due, late and new since yesterday, for each person." },
   { role: "field", path: "/ngo/field", title: "Field capture on a phone",
-    body: "Photos, location and the animal record in one place; works offline, encrypted.",
-    point: ["Work online instead"], hint: "Choose Work online instead for the demo." },
+    body: "Photos, location and the animal record in one place. Offline records are encrypted with a 6-digit PIN.",
+    point: ["Work online"], hint: "Choose Work online for the demo." },
   { role: "vet", path: "/ngo/verification?stage=vet", title: "Veterinary sign-off",
     body: "Every procedure is authorised by a named vet before it can be claimed.",
     sel: ".abc-list a", point: ["Authorise procedure"], hint: "Open the waiting record." },
@@ -62,8 +62,7 @@ export const TOUR: TourStep[] = [
     body: "Monthly figures from the same record, with method and limits stated." },
 ];
 
-/* For the closing card: what the tour showed, and what is not switched on yet (never presented as live). */
+/* For the closing card: what the tour showed. */
 export const SHOWN = ["Field capture", "Vet sign-off", "Evidence check", "Claim packages", "Municipal review", "Contracts", "Ward map", "Training", "Kaju assistant", "Research"];
-export const NOT_YET = ["WhatsApp reporting", "RFID / microchip scanners", "Bite-help line", "External integrations"];
 
 export const TOUR_DONE = TOUR.length;

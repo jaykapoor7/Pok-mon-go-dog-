@@ -51,11 +51,9 @@ test("phone menu opens and reaches sign in and demo", async ({ page, isMobile })
   await expect(sheet.getByRole("link", { name: "Sign in" })).toBeVisible();
 });
 
-test("sign in shows the authorised-users notice, then the email and code form", async ({ page }) => {
+test("sign in opens straight on the email and code form, with the authorised-use notice", async ({ page }) => {
   await page.goto("/sign-in");
-  await expect(page.getByRole("heading", { name: /Authorised users only/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "I do not accept" })).toHaveAttribute("href", "/");
-  await page.getByRole("button", { name: "I accept" }).click();
+  await expect(page.getByText(/Authorised users only; activity is recorded/)).toBeVisible();
   await expect(page.getByLabel("Work email")).toBeVisible();
   await expect(page.getByLabel("Access code")).toBeVisible();
   await page.getByLabel("Work email").fill("not-an-email");

@@ -1,14 +1,37 @@
 "use client";
-import {useEffect,useState} from 'react';
-import Link from 'next/link';
-import {offlineVaultExists,unlockOffline} from '@/lib/field/outbox';
-export function OfflineStorage({scope,onUnlock}:{scope:string;onUnlock:()=>void}){
- const [exists,setExists]=useState<boolean|null>(null),[pass,setPass]=useState(''),[confirm,setConfirm]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null);
- useEffect(()=>{let live=true;void offlineVaultExists(scope).then(v=>{if(live)setExists(v)}).catch(()=>{if(live)setError('This browser cannot open device storage. Use the online work queue.')});return()=>{live=false}},[scope]);
- return <div className="ngo-page fd-lock"><header className="ngo-head"><h1>{exists?'Unlock offline records':'Secure offline work'}</h1><p className="ngo-sum">Field records and photos stay encrypted on this device until you synchronise. Signing out locks them.</p></header>
- {exists===null&&!error?<p role="status">Checking device storage…</p>:<form className="stack" style={{maxWidth:460}} onSubmit={async e=>{e.preventDefault();if(!exists&&pass!==confirm){setError('The passphrases do not match.');return}setBusy(true);setError(null);try{await unlockOffline(scope,pass);setPass('');setConfirm('');onUnlock()}catch(x){setError(x instanceof Error?x.message:'Device records could not be unlocked.')}finally{setBusy(false)}}}>
- <div className="field"><label htmlFor="fd-pass">Offline passphrase</label><input id="fd-pass" className="input" type="password" autoComplete={exists?'current-password':'new-password'} minLength={10} required value={pass} onChange={e=>setPass(e.target.value)}/></div>
- {!exists&&<><div className="field"><label htmlFor="fd-pass2">Repeat offline passphrase</label><input id="fd-pass2" className="input" type="password" autoComplete="new-password" minLength={10} required value={confirm} onChange={e=>setConfirm(e.target.value)}/></div><p className="fd-hint">Use at least 10 characters. Keep this passphrase safe: StrayPaw cannot recover it. Unsynchronised records remain on this device.</p></>}
- <button className="btn is-ink" disabled={busy||exists===null}>{busy?'Unlocking…':exists?'Unlock offline records':'Enable secure offline work'}</button></form>}
- {error&&<p role="alert" className="fd-err">{error}</p>}<Link className="btn is-s fd-back" href="/ngo/work">Work online instead</Link></div>
+/* The offline PIN: set once per phone, entered when field mode opens.
+   Field records and photos stay encrypted on the phone until they sync;
+   signing out locks them. StrayPaw cannot recover a forgotten PIN, so the
+   records that have not synced stay on the phone. */
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Lock } from "lucide-react";
+import { offlineVaultExists, unlockOffline } from "@/lib/field/outbox";
+import "./offline.css";
+
+const digits = (v: string) => v.replace(/\D/g, "").slice(0, 6);
+
+export function OfflineStorage({ scope, onUnlock, onPage = false }: { scope: string; onUnlock: () => void; onPage?: boolean }) {
+  const [exists, setExists] = useState<boolean | null>(null);
+  const [pin, setPin] = useState(""), [again, setAgain] = useState("");
+  const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null);
+  useEffect(() => { let live = true; void offlineVaultExists(scope).then((v) => { if (live) setExists(v); }).catch(() => { if (live) setError("This browser cannot store records offline. Use the online work queue."); }); return () => { live = false; }; }, [scope]);
+  const ready = pin.length === 6 && (exists || again.length === 6);
+  return (
+    <div className="ofl-pin">
+      <span className="ofl-ic" aria-hidden><Lock size={18} /></span>
+      <h1>{exists ? "Enter your offline PIN" : "Set an offline PIN"}</h1>
+      <p>{exists ? "Unlocks the field records saved on this phone." : "Field records are saved encrypted on this phone and sync when there is signal. You'll enter this PIN when field mode opens."}</p>
+      {exists === null && !error ? <p role="status" className="ofl-quiet">Checking this phone…</p> : (
+        <form onSubmit={async (e) => { e.preventDefault(); if (!exists && pin !== again) { setError("The PINs do not match."); return; } setBusy(true); setError(null); try { await unlockOffline(scope, pin); setPin(""); setAgain(""); onUnlock(); } catch (x) { setError(x instanceof Error && /decrypt|operation/i.test(x.message) ? "That PIN is not right." : x instanceof Error ? x.message : "The PIN could not be checked."); } finally { setBusy(false); } }}>
+          <label className="ofl-l" htmlFor="ofl-pin">{exists ? "PIN" : "New PIN"}</label>
+          <input id="ofl-pin" className="ofl-in" type="password" inputMode="numeric" autoComplete={exists ? "current-password" : "new-password"} pattern="\d{6}" maxLength={6} value={pin} onChange={(e) => setPin(digits(e.target.value))} autoFocus required />
+          {!exists && <><label className="ofl-l" htmlFor="ofl-pin2">Repeat PIN</label><input id="ofl-pin2" className="ofl-in" type="password" inputMode="numeric" autoComplete="new-password" pattern="\d{6}" maxLength={6} value={again} onChange={(e) => setAgain(digits(e.target.value))} required /></>}
+          <button className="btn is-ink" disabled={busy || !ready}>{busy ? "Checking…" : exists ? "Unlock" : "Set PIN"}</button>
+        </form>
+      )}
+      {error && <p role="alert" className="ofl-err">{error}</p>}
+      <p className="ofl-links">{!onPage && <Link href="/ngo/offline">Offline mode</Link>}<Link href="/ngo/work">Work online</Link></p>
+    </div>
+  );
 }

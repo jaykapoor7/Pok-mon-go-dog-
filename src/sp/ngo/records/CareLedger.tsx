@@ -23,6 +23,7 @@ import { CARE_LIMIT, readCare } from "./read";
 import "../ngo.css";
 import "./records.css";
 import { friendlyError } from "@/lib/friendly-error";
+import { careNote } from "@/lib/care-note";
 
 const labelFor = (kind: string) => MEDICAL_KINDS.find((k) => k.id === kind)?.label ?? (kind.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()));
 const MEDICAL_CATEGORIES = new Set(["injury", "vaccination", "sterilisation"]);
@@ -98,7 +99,7 @@ function Events() {
                     <td className="mono rc-date"><time dateTime={e.event_date}>{formatDate(e.event_date)}</time></td>
                     <td><span className="pill is-care">{labelFor(e.kind)}</span></td>
                     <td className="rc-who"><b>{name}</b><small className="mono">{[e.animal.code, e.animal.zone].filter(Boolean).join(" · ") || "Animal record"}</small></td>
-                    <td className="rc-note">{e.notes || <i className="small">No notes</i>}</td>
+                    <td className="rc-note">{careNote(e.notes) || <i className="small">No notes</i>}</td>
                     <td className="rc-by">{e.performed_by || <span className="pill is-unknown">Not recorded</span>}</td>
                     <td className="rc-open"><Link className="btn is-ghost is-s" href={`/ngo/animals/${e.animal.id}`} aria-label={`Open ${name}'s record`}>Open</Link></td>
                   </tr>

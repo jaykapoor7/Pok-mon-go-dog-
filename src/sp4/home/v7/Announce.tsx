@@ -21,11 +21,11 @@ export function Announce() {
   );
 }
 
-/* On the demonstration site: say what this is and start the guided demo. Not dismissible. */
+/* On the demonstration site: start the guided demo. */
 export function DemoAnnounce() {
   return (
     <div className="s7-ann">
-      <Link href="/try?go=1"><b>Live demo</b><span>A sample Bengaluru ABC programme. Every record here is illustrative.</span><span className="s7-ann-go">Start the guided demo <ArrowRight size={14} aria-hidden /></span></Link>
+      <Link href="/try?go=1"><b>Live demo</b><span>See StrayPaw from the field to the municipal office.</span><span className="s7-ann-go">Start <ArrowRight size={14} aria-hidden /></span></Link>
     </div>
   );
 }

@@ -150,11 +150,10 @@ export const SERVICES = {
   maps: { id: "maps", name: "Map exports", line: "Export captures and releases as GeoJSON or KML for municipal GIS and Google Earth. No account needed." },
 } as const;
 
-/** On the roadmap. Shown as planned, never as connectable. */
+/** Integrations StrayPaw sets up with an organisation on request. */
 export const PLANNED = [
-  { name: "WhatsApp", line: "Field messages as draft records. Waiting for Meta verification." },
-  { name: "Government e-Office", line: "File movement with a municipal department, once it approves a connection." },
-  { name: "Other municipal systems", line: "Approved government systems, connected per department." },
+  { name: "Government e-Office", line: "File movement with a municipal department." },
+  { name: "Municipal systems", line: "Approved government systems, connected per department." },
 ] as const;
 
 /** The public shape of one person's connection (never includes tokens). */

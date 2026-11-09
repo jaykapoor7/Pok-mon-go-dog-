@@ -43,6 +43,7 @@ import { MobileDetails } from "../ui/MobileDetails";
 import { FollowupList, NextStep } from "./NextStep";
 import "./ngo.css";
 import "./work2.css";
+import { careNote } from "@/lib/care-note";
 
 const DAY = 86_400_000;
 const ageDays = (iso: string | null) => (iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / DAY)) : 0);
@@ -332,7 +333,7 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
   const imported = reg.provenance === "imported_historical_record";
   const history = [
     ...updates.map((u) => ({ at: u.created_at, k: "update", t: u.note || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : u.type.replace(/_/g, " ")), who: u.actor_name })),
-    ...medical.map((m) => ({ at: m.event_date, k: "medical", t: `${m.kind.replace(/_/g, " ")}${m.notes ? `: ${m.notes}` : ""}`, who: m.performed_by })),
+    ...medical.map((m) => ({ at: m.event_date, k: "medical", t: `${m.kind.replace(/_/g, " ")}${careNote(m.notes) ? `: ${careNote(m.notes)}` : ""}`, who: m.performed_by })),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   const reloadAll = async () => { await read(); await onChanged(); };
   return (

@@ -1,0 +1,21 @@
+/* Offline PIN and the Offline mode page. */
+.ofl-pin { max-width: 380px; margin: 40px auto; padding: 28px; display: grid; gap: 12px; justify-items: center; text-align: center; border-radius: 20px; background: #fff; box-shadow: inset 0 0 0 1px var(--line-2, #e1e3e8); }
+.ofl-pin h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
+.ofl-pin > p { margin: 0; color: #5b6475; font-size: 14.5px; line-height: 1.5; }
+.ofl-pin form { width: 100%; display: grid; gap: 8px; }
+.ofl-ic { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: #eef2fb; color: #2457ce; }
+.ofl-l { justify-self: start; font-size: 13px; color: #39445a; }
+.ofl-in { width: 100%; height: 52px; border-radius: 12px; border: 1px solid #cfd5df; text-align: center; font-size: 24px; letter-spacing: 0.6em; padding-left: 0.6em; font-variant-numeric: tabular-nums; }
+.ofl-in:focus { outline: 2px solid #2457ce; outline-offset: 1px; }
+.ofl-err { margin: 0; color: #a8321f; font-size: 14px; }
+.ofl-quiet { color: #5b6475; }
+.ofl-links { display: flex; gap: 18px; font-size: 14px; }
+.ofl-links a { color: #2457ce; }
+.ofl { max-width: 760px; display: grid; gap: 16px; }
+.ofl-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ofl-stats li { padding: 14px 16px; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px var(--line-2, #e1e3e8); display: grid; gap: 2px; }
+.ofl-stats span { font-size: 12.5px; color: #5b6475; }
+.ofl-stats b { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ofl-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.ofl-note { margin: 0; font-size: 13.5px; color: #5b6475; }
+@media (max-width: 760px) { .ofl-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ofl-pin { margin: 16px auto; } }

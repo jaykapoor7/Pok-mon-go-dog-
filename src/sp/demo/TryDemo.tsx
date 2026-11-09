@@ -52,15 +52,15 @@ export function TryDemo() {
 
   return (
     <div className="try">
-      <p className="try-k">Live demo · sample Bengaluru ABC programme</p>
-      <h1 className="s4-h1">See the whole programme, one role at a time</h1>
-      <p className="s4-lede">You will be signed in to a sample workspace. Every organisation, animal, contract and claim in it is illustrative, and nothing here touches real records.</p>
+      <p className="try-k">Live demo</p>
+      <h1 className="s4-h1">See StrayPaw, one role at a time</h1>
+      <p className="s4-lede">A short guided walkthrough of a Bengaluru ABC programme, from the field team to the municipal office.</p>
       <div className="try-go">
         <button type="button" className="s4-btn is-primary" disabled={!!busy} onClick={start}>{busy === "guide" ? "Signing you in…" : <>Start the guided demo <ArrowRight size={16} aria-hidden /></>}</button>
-        <span><Compass size={15} aria-hidden /> {TOUR.length} short steps, about five minutes. Leave the guide whenever you like.</span>
+        <span><Compass size={15} aria-hidden /> About five minutes.</span>
       </div>
       {err && <p className="try-err" role="alert">{err}</p>}
-      <h2 className="try-h">Or explore freely as</h2>
+      <h2 className="try-h">Or explore as</h2>
       <ul className="try-roles">
         {(Object.keys(DEMO_ROLES) as DemoRole[]).map((r) => (
           <li key={r}><button type="button" disabled={!!busy} onClick={() => roam(r)}><b>{DEMO_ROLES[r].label}</b><small>{busy === r ? "Signing you in…" : DEMO_ROLES[r].who}</small><ArrowRight size={15} aria-hidden /></button></li>

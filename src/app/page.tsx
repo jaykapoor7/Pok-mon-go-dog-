@@ -8,7 +8,7 @@ import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Blueprint } from "@/sp4/home/Blueprint";
 import { HeroRotator } from "@/sp4/home/HeroRotator";
 import { Announce, DemoAnnounce } from "@/sp4/home/v7/Announce";
-import { DEMO_SITE } from "@/lib/demo-site";
+import { DEMO_SITE, LIVE_DEMO_PUBLIC, LIVE_DEMO_URL } from "@/lib/demo-site";
 import { Welcome } from "@/sp4/home/v7/Welcome";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
 import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
@@ -68,7 +68,7 @@ export default function HomePage() {
           <p className="s7-hero-sub">Every animal deserves a record. Kaju keeps it, from the first report to the monthly claim.</p>
           <div className="s4-actions">{DEMO_SITE
             ? <><Link href="/try?go=1" className="s4-btn is-primary">Start the live demo</Link><Link href="/try" className="s4-btn is-line">Explore as a role</Link></>
-            : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link><Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link></>}</div>
+            : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link>{LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s4-btn is-line">Try the live demo</a> : <Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link>}</>}</div>
           <HeroScroll />
           <div className="s6-canvas">
             <Blueprint tone="dark" />

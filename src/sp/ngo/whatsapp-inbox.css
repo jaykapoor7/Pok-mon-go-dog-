@@ -1,0 +1,43 @@
+/* WhatsApp in Intake. */
+.wi { min-height: 420px; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 1px var(--line-2, #e1e3e8); }
+.wi-quiet { padding: 24px; color: #5b6475; font-size: 14px; }
+.wi.wi-empty { min-height: 0; justify-items: center; text-align: center; max-width: none; padding: 56px 24px; }
+.wi-link { display: grid; justify-items: start; align-content: center; gap: 12px; padding: 40px; max-width: 640px; }
+.wi-link h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
+.wi-link p { margin: 0; color: #39445a; font-size: 15px; line-height: 1.55; }
+.wi-logo { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: #e7f6ec; color: #1a8a46; }
+.wi-two { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); overflow: hidden; height: min(640px, calc(100dvh - 220px)); }
+.wi-list { list-style: none; margin: 0; padding: 6px; overflow-y: auto; border-right: 1px solid var(--line-2, #e1e3e8); }
+.wi-list button { width: 100%; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px; border: 0; border-radius: 12px; background: none; text-align: left; font: inherit; cursor: pointer; color: #0b1e3d; }
+.wi-list button:hover { background: #f4f6fb; }
+.wi-list button[aria-current="true"] { background: #eef2fb; }
+.wi-av { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #e7f6ec; color: #1a8a46; font-weight: 600; }
+.wi-who { display: grid; min-width: 0; }
+.wi-who b { font-size: 14px; font-weight: 600; }
+.wi-who small, .wi-meta small { font-size: 12.5px; color: #5b6475; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wi-meta { display: grid; justify-items: end; gap: 4px; }
+.wi-u { font-style: normal; font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 999px; }
+.wi-u.is-emergency { background: #fde4df; color: #a8321f; }
+.wi-u.is-urgent { background: #fff1d6; color: #7a5200; }
+.wi-thread { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; }
+.wi-thread > header { display: grid; padding: 14px 18px; border-bottom: 1px solid var(--line-2, #e1e3e8); }
+.wi-thread > header small { color: #5b6475; font-size: 12.5px; }
+.wi-msgs { list-style: none; margin: 0; padding: 18px; overflow-y: auto; display: grid; gap: 10px; align-content: start; background: #f7f8fa; }
+.wi-msgs li { justify-self: start; max-width: min(460px, 90%); display: grid; gap: 6px; padding: 10px 12px; border-radius: 4px 14px 14px 14px; background: #fff; box-shadow: 0 1px 0 rgba(11, 30, 61, 0.06); }
+.wi-msgs p { margin: 0; font-size: 14.5px; line-height: 1.45; }
+.wi-msgs .wi-tr { color: #5b6475; font-size: 13.5px; }
+.wi-msgs small { justify-self: end; color: #8a8f9a; font-size: 11.5px; }
+.wi-loc { display: flex; gap: 4px; align-items: center; color: #2457ce; }
+.wi-img { padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer; background: none; }
+.wi-img img { display: block; width: 100%; max-height: 260px; object-fit: cover; }
+.wi-img.is-veiled img { filter: blur(18px); }
+.wi-audio { width: 260px; max-width: 100%; }
+.wi-act { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 18px; border-top: 1px solid var(--line-2, #e1e3e8); }
+.wi-open { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; }
+.wi-open .input { flex: 1; min-width: 200px; }
+.wi-note { margin: 0; font-size: 13.5px; color: #1a6a3c; }
+@media (max-width: 760px) {
+  .wi-two { grid-template-columns: 1fr; height: auto; }
+  .wi-list { border-right: 0; border-bottom: 1px solid var(--line-2, #e1e3e8); max-height: 240px; }
+  .wi-link { padding: 24px; }
+}

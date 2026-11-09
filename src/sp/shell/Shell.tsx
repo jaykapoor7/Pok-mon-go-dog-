@@ -45,13 +45,10 @@ import "./app3.css";
 import "./app4.css";
 
 import {fieldCache} from "@/lib/field/outbox";
-import { DEMO_SITE } from "@/lib/demo-site";
 
 type Org = { id: string; name: string } | null;
 type Mem = { member: boolean; ready: boolean; org: Org; role: Role | null; reviewer: boolean; owner?:string };
 const Membership = createContext<Mem>({ member: false, ready: false, org: null, role: null, reviewer: false });
-/* The staging database serves only the demonstration (demo.straypaw.org and previews). Say so on every signed-in screen. */
-const DEMO_DB = DEMO_SITE;
 
 /** Whether the signed-in person belongs to an organisation (display only: the server decides access). */
 
@@ -143,7 +140,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const isMap = path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city";
   const isFlush = flush || isMap || path === "/ngo/work" || path === "/assistant";
   const here = currentDestination(ws,path,mem.role,mem.reviewer);
-  const section=def.index.find(g=>g.label===here?.group)?.links.find(l=>l.primary);
+  const section=def.index.find(g=>g.label===here?.group)?.links.filter(l=>l.primary).sort((a,b)=>(a.order??50)-(b.order??50))[0];
   const atHome = path === def.home;
   // Every link the sidebar shows (its places, and the short "Also" list), so page tabs never repeat them.
   const sideHrefs = (() => {
@@ -253,7 +250,6 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               <Search size={15} aria-hidden /><span>Search records</span><kbd>⌘K</kbd>
             </button>
             <div className="sp-bar-end">
-              {DEMO_DB && <span className="sx-demo" title="This site runs on the staging database. Every organisation, animal, contract and package here is illustrative.">Demonstration · illustrative records</span>}
               <button type="button" className="icon-btn sx5-menu-m" aria-label="Workspace sections" onClick={()=>setSheet(true)}><Menu size={18} aria-hidden /></button>
               {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuFace size={24} /></span><span>Ask Kaju</span></button>}
               {def.action && !reporting && (ws !== "ngo" || mem.member) && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}

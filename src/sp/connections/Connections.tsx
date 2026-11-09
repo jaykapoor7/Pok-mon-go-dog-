@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Check, FileText, Lock, MapPin, MessageSquare, Plug, TriangleAlert } from "lucide-react";
+import { Check, FileText, Lock, MapPin, MessageCircle, MessageSquare, Plug, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
 import { CAPABILITY, PROVIDERS, type Capability, type ConnectionView, type Provider, type ProviderId } from "@/lib/connections/providers";
@@ -126,8 +126,14 @@ export function Connections({ back }: { back: string }) {
               <p className="cx-line">{d.services.maps.line}</p>
             </li>
             <li className="cx-card">
+              <div className="cx-top"><div className="cx-id"><span className="cx-logo is-wa" aria-hidden><MessageCircle size={16} /></span><div><b>WhatsApp Business</b><small>For the whole organisation</small></div></div>
+                <span className="cx-state is-off">Not linked</span></div>
+              <p className="cx-line">Reports from your field team and residents arrive in Intake with photos, voice notes and location. Updates to reporters use approved templates.</p>
+              {d.me.admin ? <Link className="btn is-s" href="/contact">Link number</Link> : <p className="cx-acct">An administrator links the organisation&rsquo;s number.</p>}
+            </li>
+            <li className="cx-card">
               <div className="cx-top"><div className="cx-id"><span className="cx-logo is-files" aria-hidden><MessageSquare size={16} /></span><div><b>{d.services.sms.name}</b><small>For the whole organisation</small></div></div>
-                <span className={`cx-state is-${d.services.sms.status !== "configured" ? "off" : d.services.sms.policy?.allowed ? "ok" : "idle"}`}>{d.services.sms.status !== "configured" ? "Not available yet" : d.services.sms.policy?.allowed ? "On" : "Off"}</span></div>
+                <span className={`cx-state is-${d.services.sms.status !== "configured" ? "off" : d.services.sms.policy?.allowed ? "ok" : "idle"}`}>{d.services.sms.status !== "configured" ? "Not set up" : d.services.sms.policy?.allowed ? "On" : "Off"}</span></div>
               <p className="cx-line">{d.services.sms.line}</p>
               {d.services.sms.status !== "configured" ? <p className="cx-note"><Lock size={13} aria-hidden /> An administrator needs to add the organisation&rsquo;s SMS account and approved template.</p>
                 : d.me.admin ? <div className="cx-policy"><p>Organisation settings</p><label><input type="checkbox" checked={!!d.services.sms.policy?.allowed} disabled={!!busy} onChange={(e) => act("p:sms", () => api("/api/connections/policy", { method: "POST", body: JSON.stringify({ provider: "sms", allowed: e.target.checked, allow_org_sharing: false }) }))} /> Leads and coordinators may send SMS with Kaju</label></div>
@@ -135,8 +141,8 @@ export function Connections({ back }: { back: string }) {
             </li>
           </ul>
           <section className="cx-planned" aria-labelledby="cx-planned-h">
-            <h2 id="cx-planned-h"><Plug size={14} aria-hidden /> Coming later</h2>
-            <ul>{d.planned.map((x) => <li key={x.name}><b>{x.name}</b><span>{x.line}</span></li>)}</ul>
+            <h2 id="cx-planned-h"><Plug size={14} aria-hidden /> More integrations</h2>
+            <ul>{d.planned.map((x) => <li key={x.name}><b>{x.name}</b><span>{x.line}</span><Link className="link" href="/contact">Set up</Link></li>)}</ul>
           </section>
         </>
       )}
