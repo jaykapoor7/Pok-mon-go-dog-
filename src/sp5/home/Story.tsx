@@ -14,9 +14,9 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ArrowRight, Camera, Check, ClipboardList, FileSpreadsheet, MessageCircle, Receipt } from "lucide-react";
 import { Rise } from "@/sp4/site/Rise";
-import { Grain } from "@/sp4/site/Grain";
 import { Live } from "@/sp4/site/Live";
 import { GovUi, ReviewUi } from "@/sp4/home/ui";
 import "./home5.css";
@@ -40,7 +40,7 @@ const RECORD: [string, string, string][] = [
 /** 2 · The problem: five places that cannot check each other, set against one record that can. */
 export function Problem() {
   return (
-    <section className="s4-sec s8-problem" aria-labelledby="problem-title">
+    <section className="s4-sec s8-problem" id="problem" aria-labelledby="problem-title">
       <div className="s4-wrap">
         <Rise className="s8-head">
           <h2 id="problem-title" className="s4-h2">Today the record lives in five places.</h2>
@@ -79,42 +79,89 @@ export function Problem() {
   );
 }
 
-/** 4 · Connected workflows: the same package, opened from both sides. */
+/** 4 · Connected workflows: one package, one frame. The operator's screen and the office's screen sit on the
+    same ground, joined by the package that travels between them. */
 export function Sides() {
   return (
-    <section className="s4-sec s8-sides" aria-labelledby="sides-title">
+    <section className="s4-sec s8-sides" id="package" aria-labelledby="sides-title">
       <div className="s4-wrap">
         <Rise className="s8-head">
           <h2 id="sides-title" className="s4-h2">The operator prepares. The office decides.</h2>
           <p className="s4-lede">Both open the same monthly package: the same animals, the same evidence, the same history. Nothing is retyped between them.</p>
         </Rise>
-        <div className="s8-sd">
-          <Rise className="s8-sd-col">
-            <Grain v={0} id="sides-ngo"><Live><ReviewUi /></Live></Grain>
-            <p className="s8-sd-k">Implementing organisation</p>
-            <h3>Approve the evidence, then submit.</h3>
-            <ul>
-              <li>Each record shows what is present and what is missing</li>
-              <li>A vet signs each procedure in their own name</li>
-              <li>The package is built from approved records only</li>
-            </ul>
-            <Link href="/for-ngos" className="s4-link">StrayPaw for NGOs <ArrowRight size={16} aria-hidden /></Link>
-          </Rise>
-          <div className="s8-sd-mid" aria-hidden><span>Monthly package</span></div>
-          <Rise className="s8-sd-col" delay={90}>
-            <Grain v={2} id="sides-gov"><Live><GovUi /></Live></Grain>
-            <p className="s8-sd-k">Municipal office</p>
-            <h3>Check every line, then accept, query or return.</h3>
-            <ul>
-              <li>Reviewers see evidence only for packages sent to their office</li>
-              <li>A query goes back to the operator on the same record</li>
-              <li>Acceptance is recorded by name. Acceptance is not payment</li>
-            </ul>
-            <Link href="/for-governments" className="s4-link">StrayPaw for governments <ArrowRight size={16} aria-hidden /></Link>
-          </Rise>
-        </div>
+        <Rise className="s8-pkg">
+          <div className="s8-pkg-stage">
+            <div className="s8-pkg-ui"><Live><ReviewUi /></Live></div>
+            <div className="s8-pkg-track" aria-hidden><i /><span>Monthly package</span></div>
+            <div className="s8-pkg-ui"><Live><GovUi /></Live></div>
+          </div>
+          <div className="s8-pkg-notes">
+            <div>
+              <p className="s8-sd-k">Implementing organisation</p>
+              <h3>Approve the evidence, then submit.</h3>
+              <ul>
+                <li>Each record shows what is present and what is missing</li>
+                <li>A vet signs each procedure in their own name</li>
+                <li>The package is built from approved records only</li>
+              </ul>
+              <Link href="/for-ngos" className="s4-link">StrayPaw for NGOs <ArrowRight size={16} aria-hidden /></Link>
+            </div>
+            <div>
+              <p className="s8-sd-k">Municipal office</p>
+              <h3>Check every line, then accept, query or return.</h3>
+              <ul>
+                <li>Reviewers see evidence only for packages sent to their office</li>
+                <li>A query goes back to the operator on the same record</li>
+                <li>Acceptance is recorded by name. Acceptance is not payment</li>
+              </ul>
+              <Link href="/for-governments" className="s4-link">StrayPaw for governments <ArrowRight size={16} aria-hidden /></Link>
+            </div>
+          </div>
+        </Rise>
       </div>
     </section>
+  );
+}
+
+export type PartnerMark = { name: string; city: string; logo?: string | null; slug?: string };
+/** Partners as one ruled band of marks, not a wall of cards. A mark with a case study links to it. */
+export function Partners({ items }: { items: PartnerMark[] }) {
+  return (
+    <section className="s4-wrap s8-partners" aria-labelledby="proof-title">
+      <div className="s8-pt-head">
+        <h2 id="proof-title" className="s8-pt-h">Animal-welfare teams working with StrayPaw</h2>
+        <Link href="/customers" className="s4-link is-ink is-sm">Hear from our partners <ArrowRight size={16} aria-hidden /></Link>
+      </div>
+      <ul className="s8-pt-row">
+        {items.map((p) => {
+          // eslint-disable-next-line @next/next/no-img-element
+          const mark = p.logo ? <img src={p.logo} alt={p.name} loading="lazy" decoding="async" /> : <b>{p.name}</b>;
+          return <li key={p.name}>{p.slug
+            ? <Link href={`/customers/${p.slug}`} aria-label={`${p.name}, ${p.city}: case study`}>{mark}<small>{p.city} · case study</small></Link>
+            : <span title={`${p.name}, ${p.city}`}>{mark}<small>{p.city}</small></span>}</li>;
+        })}
+      </ul>
+    </section>
+  );
+}
+
+export type ToolStatus = { name: string; status: "Live" | "Setup pending" | "Not connected" | "Planned"; icon: ReactNode };
+/** Integrations as a status board: three honest columns in one frame. */
+export function StatusBoard({ tools }: { tools: ToolStatus[] }) {
+  const cols: [string, string, ToolStatus[]][] = [
+    ["Live today", "live", tools.filter((t) => t.status === "Live")],
+    ["Built, waiting for your administrator's keys", "setup", tools.filter((t) => t.status === "Setup pending")],
+    ["Not yet", "off", tools.filter((t) => t.status === "Not connected" || t.status === "Planned")],
+  ];
+  return (
+    <Rise className="s8-board" role="group" aria-label="Integrations and their status">
+      {cols.map(([label, tone, list]) => (
+        <div key={label} className={`s8-board-col is-${tone}`}>
+          <p><i aria-hidden />{label}<span>{list.length}</span></p>
+          <ul>{list.map((t) => <li key={t.name}><span className="s8-board-ic" aria-hidden>{t.icon}</span>{t.name}{t.status === "Not connected" || t.status === "Planned" ? <small>{t.status}</small> : null}</li>)}</ul>
+        </div>
+      ))}
+    </Rise>
   );
 }
 

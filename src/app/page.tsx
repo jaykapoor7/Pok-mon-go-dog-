@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
-import { ArrowRight, ArrowUpRight, PawPrint, Camera, MessageSquareText, ClipboardList, FileText, Landmark, Mail, MapPin, ScanSearch, Smartphone, UserCheck } from "lucide-react";
+import { ArrowRight, Camera, MessageSquareText, ClipboardList, FileText, Landmark, Mail, MapPin, ScanSearch, Smartphone, UserCheck } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
 import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
-import { Cards, S4Page, SecHead, TwoTone } from "@/sp4/site/kit";
+import { S4Page, SecHead, TwoTone } from "@/sp4/site/kit";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Blueprint } from "@/sp4/home/Blueprint";
 import { Announce, DemoAnnounce } from "@/sp4/home/v7/Announce";
@@ -11,7 +11,9 @@ import { DEMO_SITE, LIVE_DEMO_PUBLIC, LIVE_DEMO_URL } from "@/lib/demo-site";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
 import { CloseAndQuestions, Results } from "@/sp4/home/v7/Sections";
 import { AskUi, OvernightUi, ProposeUi } from "@/sp4/home/ui";
-import { Pilot, Problem, Sides } from "@/sp5/home/Story";
+import { Partners, Pilot, Problem, Sides, StatusBoard } from "@/sp5/home/Story";
+import { Spine } from "@/sp5/home/Spine";
+import { KajuConsole } from "@/sp5/home/KajuConsole";
 import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
 import "@/sp4/home/v7/landing7.css";
 import { KajuPresence } from "@/kaju/Presence";
@@ -68,6 +70,7 @@ export default function HomePage() {
     <S4Page className="s6-home s7-home s8-home" announce={DEMO_SITE ? <DemoAnnounce /> : <Announce />} close={false}>
       <PageView name="landing_view" />
       <Reveal />
+      <Spine />
 
       {/* 1 · hero: what it is in one sentence, then the product itself */}
       <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">
@@ -90,36 +93,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2 · field partners */}
-      <section className="s4-wrap s4-proof" aria-labelledby="proof-title">
-        <div className="s4-sechead" style={{ marginBottom: 40 }}>
-          <h2 id="proof-title" className="s4-h2">Animal-welfare teams working with StrayPaw</h2>
-          <Link href="/customers" className="s4-link is-ink">Hear from our partners <ArrowRight size={18} aria-hidden /></Link>
-        </div>
-        <div className="s4-wall s6-wall">
-          {partners.map((p) => {
-            const s = STORIES.find((x) => x.name === p.name);
-            const inner = <>{p.logo
-              // eslint-disable-next-line @next/next/no-img-element
-              ? <span className="s6-pt-logo"><img src={p.logo} alt={`${p.name} logo`} loading="lazy" decoding="async" /></span>
-              : <span className="s6-pt-logo s6-pt-word" aria-hidden><PawPrint size={22} /><b>{p.name}</b></span>}<span className="s6-pt-txt"><b>{p.name}</b><small><MapPin size={12} aria-hidden />{p.city}</small></span>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}</>;
-            return s ? <Link key={p.name} href={`/customers/${s.slug}`} aria-label={`${p.name} case study`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
-          })}
-        </div>
-        {/* Phones: one calm moving row of partner logos instead of a long wall of uneven cards. */}
-        <div className="s7-pmarq" aria-label="Partner organisations">
-          <div className="s7-pmarq-track">
-            {[0, 1].map((copy) => partners.map((p) => (
-              <span key={`${copy}-${p.name}`} className="s7-pmarq-t" aria-hidden={copy === 1 || undefined}>
-                {p.logo
-                  // eslint-disable-next-line @next/next/no-img-element
-                  ? <img src={p.logo} alt={copy === 0 ? p.name : ""} loading="lazy" decoding="async" />
-                  : <span className="s7-pmarq-word"><PawPrint size={16} aria-hidden />{p.name}</span>}
-              </span>
-            )))}
-          </div>
-        </div>
-      </section>
+      {/* 2 · field partners: one ruled band of marks */}
+      <Partners items={partners.map((p) => ({ name: p.name, city: p.city, logo: p.logo, slug: STORIES.find((x) => x.name === p.name)?.slug }))} />
 
       {/* 3 · the problem */}
       <Problem />
@@ -142,28 +117,18 @@ export default function HomePage() {
       <section className="s4-sec s8-intel" id="kaju" aria-labelledby="intel-title">
         <div className="s4-wrap">
           <SecHead id="intel-title" title={<TwoTone blue a="Kaju reads the record," b="so your team can act on it." />} lede="Kaju is StrayPaw's AI agent. It answers from your own records, names the rows it used and prepares the next step for a person to confirm." link={{ href: "/kaju-agents", label: "See what Kaju does" }} />
-          <Cards idp="intel" items={[
-            { title: "Ask in plain words", body: "Which releases are missing a photo? Kaju answers with the records it read.", ui: <AskUi />, v: 0 },
-            { title: "Checks while you sleep", body: "Overnight checks find duplicates, gaps and late follow-ups before the morning brief.", ui: <OvernightUi />, v: 3 },
-            { title: "Prepares, never approves", body: "Every change is a card that says exactly what will be saved. A named person confirms it.", ui: <ProposeUi />, v: 1 },
+          <KajuConsole items={[
+            { title: "Ask in plain words", body: "Which releases are missing a photo? Kaju answers with the records it read.", ui: <AskUi /> },
+            { title: "Checks while you sleep", body: "Overnight checks find duplicates, gaps and late follow-ups before the morning brief.", ui: <OvernightUi /> },
+            { title: "Prepares, never approves", body: "Every change is a card that says exactly what will be saved. A named person confirms it.", ui: <ProposeUi /> },
           ]} />
-        </div>
-      </section>
-
-      <section className="s4-sec" aria-labelledby="int-title" id="integrations">
-        <div className="s4-wrap s4-int-wrap">
-          <div className="s4-int-head">
-            <h2 id="int-title" className="s4-h2"><TwoTone blue a="Works with" b="the tools your team uses." /></h2>
-            <Link href="/platform#integrations" className="s4-link is-ink">Every integration and its status <ArrowRight size={18} aria-hidden /></Link>
+          <div className="s8-tools" id="integrations">
+            <div className="s8-tools-head">
+              <h3 id="int-title">Works with the tools your team already uses</h3>
+              <Link href="/platform#integrations" className="s4-link is-ink is-sm">Every integration and its status <ArrowRight size={16} aria-hidden /></Link>
+            </div>
+            <StatusBoard tools={INT_COLS.flat().map((t) => ({ name: t.n, status: t.s, icon: t.i }))} />
           </div>
-          <div className="s4-int s6-int-color" aria-label="Integrations and their status">
-            {INT_COLS.map((col, c) => (
-              <div key={c} className="s4-int-col">
-                {col.map((t) => <div key={t.n} className={`s4-int-t is-${t.s === "Live" ? "live" : t.s === "Setup pending" ? "setup" : "plan"}`} style={{ ["--ic" as string]: t.c }}><span className="s6-int-ic" aria-hidden>{t.i}</span><b>{t.n}</b><small><i className={t.s === "Live" ? "is-live" : t.s === "Not connected" ? "is-off" : t.s === "Setup pending" ? "is-setup" : ""} />{t.s}</small></div>)}
-              </div>
-            ))}
-          </div>
-          <p className="s7-int-key" aria-hidden><span><i className="is-live" />Live</span><span><i className="is-setup" />Setup pending</span></p>
         </div>
       </section>
 
