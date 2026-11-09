@@ -1,5 +1,4 @@
-import { OfflineMode } from "@/sp/ngo/OfflineMode";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-export const metadata = { title: "Offline mode, StrayPaw NGO", robots: { index: false, follow: false } };
-export default function NgoOfflinePage() { return <OfflineMode />; }
+/* Offline work lives in Field mode's Offline tab. */
+export default function NgoOfflinePage() { redirect("/ngo/field?mode=offline"); }

@@ -57,7 +57,7 @@ export function TryDemo() {
       <p className="s4-lede">A short guided walkthrough of a Bengaluru ABC programme, from the field team to the municipal office.</p>
       <div className="try-go">
         <button type="button" className="s4-btn is-primary" disabled={!!busy} onClick={start}>{busy === "guide" ? "Signing you in…" : <>Start the guided demo <ArrowRight size={16} aria-hidden /></>}</button>
-        <span><Compass size={15} aria-hidden /> About five minutes.</span>
+        <span><Compass size={15} aria-hidden /> Six steps, about three minutes.</span>
       </div>
       {err && <p className="try-err" role="alert">{err}</p>}
       <h2 className="try-h">Or explore as</h2>

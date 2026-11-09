@@ -8,7 +8,6 @@ export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:bo
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
 export const DESTINATIONS:Destination[]=[
- {workspace:'ngo',href:'/ngo/offline',label:'Offline mode',icon:'phone',group:'Work',primary:false,note:'Records waiting on this phone, sync and PIN'},
  {workspace:'ngo',href:'/ngo/training',label:'Training',icon:'grad',group:'Organisation',primary:false,note:'Courses, assignments and progress',flag:'training_lms'},
  {workspace:'ngo',href:'/ngo/animals/scan',label:'Scan to find',icon:'paw',group:'Animals',primary:false,note:'Microchip, RFID or QR',flag:'animal_identifiers'},
  {workspace:'ngo',href:'/ngo/readiness',label:'Readiness',icon:'list',group:'Organisation',primary:false,roles:['admin','coordinator'],flag:'readiness_board',listed:false},
@@ -569,7 +568,6 @@ const NGO_HUBS: Record<string, Hub> = {
   "/ngo": { section: "Overview", order: 0, primary: true },
   "/ngo/work": { section: "Operations", order: 10, label: "Work queue", primary: true },
   "/ngo/field": { section: "Operations", order: 11, primary: true },
-  "/ngo/offline": { section: "Operations", order: 11.5, primary: true },
   "/ngo/inbox": { section: "Operations", order: 12, label: "Intake", primary: true },
   "/ngo/verification?stage=vet": { section: "Operations", order: 13, label: "Treatment & sign-off", primary: true },
   "/ngo/verification?stage=evidence": { section: "Operations", order: 14, label: "Release evidence", primary: true },

@@ -24,11 +24,25 @@ export async function unlockOffline(scope:string,passphrase:string){
  const material=await crypto.subtle.importKey('raw',encoder.encode(passphrase),'PBKDF2',false,['deriveKey']);const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
  if(saved){try{const check=await decrypt<string>(key,saved.check,scope);if(check!==`StrayPaw offline:${scope}`)throw Error('Mismatch')}catch{throw Error('The passphrase did not unlock these records. Nothing was removed.')}}
  else{saved={scope,salt:b64(salt),check:await crypt(key,`StrayPaw offline:${scope}`,scope)};try{await tx('vault','readwrite',s=>s.add(saved!))}catch{if(await offlineVaultExists(scope))return unlockOffline(scope,passphrase);throw Error('The device could not create secure storage.')}}
- keys.clear();keys.set(scope,key);
+ for(const k of [...keys.keys()])if(!k.endsWith(':online'))keys.delete(k);keys.set(scope,key);
  // Upgrade only this authenticated scope's older drafts, preserving original blobs.
  const old=await tx<(FieldDraft|Stored)[]>('drafts','readonly',s=>s.index('scope').getAll(scope));for(const record of old)if(!('encrypted'in record))await putDraft(record);
  // Cached record snapshots were only a convenience; encrypt this scope's old snapshot in place.
  for(const cacheKey of [scope,`vaccination-settings:${scope}`]){const c=await tx<{scope:string;at:string;value?:unknown;encrypted?:Cipher}|undefined>('cache','readonly',s=>s.get(cacheKey));if(c&&!c.encrypted&&c.value!==undefined){const encrypted=await crypt(key,c.value,`cache:${cacheKey}`);await tx('cache','readwrite',s=>s.put({scope:cacheKey,at:c.at,encrypted}))}}
+}
+/* Online field work: a fresh key held only in memory, so work starts without a PIN.
+   Records sync as they are saved; the previous online session's storage cannot be
+   read without its key and is cleared. Offline work uses the PIN-protected scope. */
+export const onlineScope=(scope:string)=>`${scope}:online`;
+export async function startOnlineSession(scope:string){
+ const s=onlineScope(scope);if(keys.has(s))return s;
+ const key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+ const check=await crypt(key,`StrayPaw online:${s}`,s);
+ const db=await open();
+ await new Promise<void>((resolve,reject)=>{const t=db.transaction(['drafts','synced','vault'],'readwrite');
+  for(const store of ['drafts','synced']){const c=t.objectStore(store).index('scope').openCursor(IDBKeyRange.only(s));c.onsuccess=()=>{const cur=c.result;if(cur){cur.delete();cur.continue()}}}
+  t.objectStore('vault').put({scope:s,salt:'',check});t.oncomplete=()=>{db.close();resolve()};t.onabort=t.onerror=()=>{db.close();reject(t.error??Error('Device storage unavailable'))}});
+ keys.set(s,key);return s;
 }
 async function storedDraft(d:FieldDraft):Promise<Stored>{const {file,...data}=d;const packed={...data,...(file?{file:{type:file.type,body:b64(new Uint8Array(await file.arrayBuffer()))}}:{})};return{id:d.id,scope:d.scope,encrypted:await crypt(keyFor(d.scope),packed,`${d.scope}:drafts:${d.id}`)}}
 export async function readDrafts(scope:string):Promise<FieldDraft[]>{const key=keyFor(scope),rows=await tx<Stored[]>('drafts','readonly',s=>s.index('scope').getAll(scope));return Promise.all(rows.map(async r=>{if(!r.encrypted)throw Error('Older device records require the storage upgrade. Unlock again.');const d=await decrypt<Omit<FieldDraft,'file'>&{file?:{type:string;body:string}}>(key,r.encrypted,`${scope}:drafts:${r.id}`);if(d.scope!==scope||d.id!==r.id)throw Error('Offline record identity mismatch');return{...d,...(d.file?{file:new Blob([bytes(d.file.body)],{type:d.file.type})}:{})} as FieldDraft}))}

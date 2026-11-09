@@ -22,12 +22,13 @@ import { addNote, setFollowup, startWork, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
 import {OfflineStorage} from "./OfflineStorage";
+import {Wifi} from "lucide-react";
 import {IntakeDraft,type KnownAnimal} from "./IntakeDraft";
 import {LifecycleForm} from "./LifecycleForm";
 import type {IntakeData,LifecycleData,OperationKind,WorkflowPolicy} from "@/lib/operations";
 import {VaccinationDraft} from "./VaccinationDraft";
 import {useMembership} from "../shell/Shell";
-import {readDrafts,putDraft,deleteDraft,fieldCache,archiveDraft,readSynced,offlineUnlocked,lockOffline,clearOfflineDevice,type SyncedFieldRecord,type VaccinationData,type FieldDraft} from "@/lib/field/outbox";
+import {readDrafts,putDraft,deleteDraft,fieldCache,archiveDraft,readSynced,offlineUnlocked,lockOffline,startOnlineSession,clearOfflineDevice,type SyncedFieldRecord,type VaccinationData,type FieldDraft} from "@/lib/field/outbox";
 import {getSupabase} from "@/lib/supabase";
 import {submitFieldDraft} from "@/lib/field/sync";
 import {compressForUpload} from "@/lib/photo/compress";
@@ -36,15 +37,21 @@ import {EVIDENCE_LABEL,type EvidenceKind} from "@/lib/abc";
 export function Field() {
   const { user } = useAuth();
   const mem=useMembership();
-  const scope=user&&mem.org?`${user.id}:${mem.org.id}`:null;
+  const base=user&&mem.org?`${user.id}:${mem.org.id}`:null;
+  /* Online: work starts at once and every record syncs as it is saved. Offline: records wait on this phone, encrypted with the PIN. */
+  const [mode,setMode]=useState<'online'|'offline'>('online');
+  const [storageError,setStorageError]=useState<string|null>(null);
+  const [scope,setScope]=useState<string|null>(null);
   const [storageOpen,setStorageOpen]=useState(false),[addingIntake,setAddingIntake]=useState(false);
   const [known,setKnown]=useState<KnownAnimal[]>([]),[policies,setPolicies]=useState<WorkflowPolicy[]>([]),[synced,setSynced]=useState<SyncedFieldRecord[]>([]);
-  useEffect(()=>{setStorageOpen(!!scope&&offlineUnlocked(scope));const lock=()=>setStorageOpen(false);window.addEventListener("straypaw-offline-locked",lock);return()=>window.removeEventListener("straypaw-offline-locked",lock)},[scope]);
+  useEffect(()=>{const q=new URLSearchParams(window.location.search).get('mode');if(q==='offline'||!navigator.onLine)setMode('offline')},[]);
+  useEffect(()=>{let live=true;setStorageOpen(false);if(!base){setScope(null);return}
+    const begin=()=>{if(mode==='online')void startOnlineSession(base).then(sc=>{if(live){setScope(sc);setStorageOpen(true)}}).catch(()=>{if(live)setStorageError('This browser cannot save field records. Use the work queue.')});else{setScope(base);setStorageOpen(offlineUnlocked(base))}};
+    begin();const lock=()=>{if(live)begin()};window.addEventListener("straypaw-offline-locked",lock);return()=>{live=false;window.removeEventListener("straypaw-offline-locked",lock)}},[base,mode]);
   const [vaccinationDefaults,setVaccinationDefaults]=useState<Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>|undefined>();
   useEffect(()=>{let live=true;setVaccinationDefaults(undefined);if(scope)void fieldCache<Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>>(`vaccination-settings:${scope}`).then(c=>{if(live)setVaccinationDefaults(c?.value)}).catch(()=>{});return()=>{live=false}},[scope,storageOpen]);
   const [legacyDrafts,setLegacyDrafts]=useState(false);
   useEffect(()=>{try{setLegacyDrafts(localStorage.getItem("sp2.field.drafts")!==null)}catch{}},[]);
-  const [storageError,setStorageError]=useState<string|null>(null);
   const [syncing,setSyncing]=useState(false);
   const currentScope=useRef(scope);currentScope.current=scope;
   const syncLock=useRef(false);
@@ -119,12 +126,20 @@ export function Field() {
     }await load()}catch(e){setStorageError(e instanceof Error?e.message:'Sync interrupted. Drafts remain on this device.')}
     finally{syncLock.current=false;setSyncing(false);if(currentScope.current===scope)try{setDrafts(await readDrafts(scope));setSynced(await readSynced(scope))}catch{setStorageError("Device storage could not be read. Drafts were not discarded.")}}
   };
-  if(scope&&!storageOpen)return <NgoGate title="Field mode" lede="Your assigned fieldwork."><OfflineStorage scope={scope} onUnlock={()=>setStorageOpen(true)}/></NgoGate>;
+  /* Online: a saved record goes to the server straight away. */
+  useEffect(()=>{if(mode==='online'&&online&&storageOpen&&!syncing&&drafts.some(d=>d.status==='pending'))void sendDrafts()},[mode,online,storageOpen,syncing,drafts]); // eslint-disable-line react-hooks/exhaustive-deps
+  const modeTabs=<div className="fd-mode" role="tablist" aria-label="Field mode">
+    <button type="button" role="tab" aria-selected={mode==='online'} onClick={()=>setMode('online')}><Wifi size={15} aria-hidden/><span><b>Online</b><small>Saves straight to your records</small></span></button>
+    <button type="button" role="tab" aria-selected={mode==='offline'} onClick={()=>setMode('offline')}><WifiOff size={15} aria-hidden/><span><b>Offline</b><small>Saves on this phone, syncs later</small></span></button>
+  </div>;
+  if(base&&mode==='offline'&&!storageOpen)return <NgoGate title="Field mode" lede="Your assigned fieldwork."><div className="fd">{modeTabs}<OfflineStorage scope={base} onUnlock={()=>setStorageOpen(true)} onPage/></div></NgoGate>;
 
   return (
     <NgoGate title="Field mode" lede="Your cases and follow-ups for today, one hand, on the street.">
       <div className="fd">
-        <div className="row"><button type="button" className="btn is-ink" onClick={()=>setAddingIntake(v=>!v)}>Register animal intake</button><Link href="/ngo/programmes/zones">Working zones and assignments</Link><button type="button" className="btn" onClick={()=>lockOffline()}>Lock offline records</button><button type="button" className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove synchronised device data? Pending drafts must be synchronised or explicitly removed first.'))return;try{await clearOfflineDevice(scope);setStorageOpen(false)}catch(e){setStorageError(e instanceof Error?e.message:'Device data was not removed.')}}}>Clear synchronised device data</button></div>
+        {modeTabs}
+        {mode==='online'&&!online&&<p role="status" className="fd-off">No signal. <button type="button" className="link" onClick={()=>setMode('offline')}>Switch to Offline</button> to keep recording safely on this phone.</p>}
+        <div className="row"><button type="button" className="btn is-ink" onClick={()=>setAddingIntake(v=>!v)}>Register animal intake</button><Link href="/ngo/programmes/zones">Working zones and assignments</Link>{mode==='offline'&&<button type="button" className="btn" onClick={()=>lockOffline()}>Lock offline records</button>}{mode==='offline'&&<button type="button" className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove synchronised device data? Pending drafts must be synchronised or explicitly removed first.'))return;try{await clearOfflineDevice(scope);setStorageOpen(false)}catch(e){setStorageError(e instanceof Error?e.message:'Device data was not removed.')}}}>Clear synchronised device data</button>}</div>
         {addingIntake&&<IntakeDraft known={known} onSave={intake} onCancel={()=>setAddingIntake(false)}/>}
         {storageError&&<p role="alert">{storageError}</p>}
         {legacyDrafts&&<p role="status">Older field drafts remain on this device. They have no account identity, so they cannot be imported automatically. Ask your organisation administrator to arrange recovery with the person who recorded them.</p>}

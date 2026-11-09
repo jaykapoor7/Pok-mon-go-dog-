@@ -27,42 +27,26 @@ export type TourStep = {
 };
 
 export const TOUR: TourStep[] = [
-  { role: "field", path: "/ngo", title: "Daily work list",
-    body: "What is due, late and new since yesterday, for each person." },
-  { role: "field", path: "/ngo/field", title: "Field capture on a phone",
-    body: "Photos, location and the animal record in one place. Offline records are encrypted with a 6-digit PIN.",
-    point: ["Work online"], hint: "Choose Work online for the demo." },
+  { role: "field", path: "/ngo/field", title: "Field mode",
+    body: "Record an animal with photos and location. Online saves straight away; Offline keeps records on the phone until there is signal.",
+    sel: ".fd-mode" },
   { role: "vet", path: "/ngo/verification?stage=vet", title: "Veterinary sign-off",
     body: "Every procedure is authorised by a named vet before it can be claimed.",
     sel: ".abc-list a", point: ["Authorise procedure"], hint: "Open the waiting record." },
-  { role: "coordinator", path: "/ngo/verification?stage=review", title: "Evidence check",
-    body: "Five items per animal: capture, surgery, ear notch, release photo and place.",
-    sel: ".abc-list a", point: ["Review this field record", "Approve for reporting"], hint: "Open a record." },
-  { role: "coordinator", path: "/ngo/packages", title: "Monthly claim package",
-    body: "Approved records become a claim, priced from the contract in force.",
+  { role: "coordinator", path: "/ngo/packages", title: "Monthly claim",
+    body: "Records with all five evidence items and a vet sign-off become the month's claim, priced from the contract.",
     point: ["Prepare a package for another period", "Prepare package", "Submit package"] },
   { role: "lead", path: "/ngo", title: "Programme overview",
-    body: "Work waiting at each step, the team, and what needs a decision today." },
-  { role: "lead", path: "/ngo/map", title: "Ward map",
-    body: "Every record on a map, so gaps in coverage are visible." },
-  { role: "lead", path: "/ngo/training", title: "Training",
-    body: "Courses and quizzes for catchers, vets and coordinators, with progress." },
+    body: "What is waiting at each step, the team, the ward map and training, in one place." },
   { role: "municipal", path: "/city/insights", title: "Municipal command view",
-    body: "Decisions waiting, claims this year and evidence completeness.",
+    body: "Claims waiting for a decision, evidence completeness and spend this year.",
     point: ["Waiting for your decision"] },
-  { role: "municipal", path: "/city/review", title: "Kaju, the assistant",
-    body: "Answers questions and drafts review notes from the records; people decide.",
-    point: ["Ask Kaju", "Kaju"], hint: "Open Kaju from the top bar." },
   { role: "municipal", path: "/city/review", title: "Claim review",
-    body: "Every record, its evidence and sign-off; accept clean claims, query the rest.",
+    body: "Every record with its evidence and sign-off. Kaju drafts the review notes; the office decides.",
     sel: "main a[href^='/city/review/']", point: ["Fill review notes with Kaju"], hint: "Open the waiting package." },
-  { role: "municipal", path: "/city/contracts", title: "Contracts and rates",
-    body: "Claims are checked against the rate agreed per procedure." },
-  { role: "municipal", path: "/research/workbench", title: "Research and reporting",
-    body: "Monthly figures from the same record, with method and limits stated." },
 ];
 
 /* For the closing card: what the tour showed. */
-export const SHOWN = ["Field capture", "Vet sign-off", "Evidence check", "Claim packages", "Municipal review", "Contracts", "Ward map", "Training", "Kaju assistant", "Research"];
+export const SHOWN = ["Field mode, online and offline", "Vet sign-off", "Evidence and claims", "Programme overview", "Municipal review", "Kaju"];
 
 export const TOUR_DONE = TOUR.length;

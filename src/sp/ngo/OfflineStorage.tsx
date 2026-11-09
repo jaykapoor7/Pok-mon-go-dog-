@@ -21,7 +21,7 @@ export function OfflineStorage({ scope, onUnlock, onPage = false }: { scope: str
     <div className="ofl-pin">
       <span className="ofl-ic" aria-hidden><Lock size={18} /></span>
       <h1>{exists ? "Enter your offline PIN" : "Set an offline PIN"}</h1>
-      <p>{exists ? "Unlocks the field records saved on this phone." : "Field records are saved encrypted on this phone and sync when there is signal. You'll enter this PIN when field mode opens."}</p>
+      <p>{exists ? "Unlocks the field records saved on this phone." : "Records are saved encrypted on this phone and sync when there is signal. You'll use this PIN whenever you work offline."}</p>
       {exists === null && !error ? <p role="status" className="ofl-quiet">Checking this phone…</p> : (
         <form onSubmit={async (e) => { e.preventDefault(); if (!exists && pin !== again) { setError("The PINs do not match."); return; } setBusy(true); setError(null); try { await unlockOffline(scope, pin); setPin(""); setAgain(""); onUnlock(); } catch (x) { setError(x instanceof Error && /decrypt|operation/i.test(x.message) ? "That PIN is not right." : x instanceof Error ? x.message : "The PIN could not be checked."); } finally { setBusy(false); } }}>
           <label className="ofl-l" htmlFor="ofl-pin">{exists ? "PIN" : "New PIN"}</label>
@@ -31,7 +31,7 @@ export function OfflineStorage({ scope, onUnlock, onPage = false }: { scope: str
         </form>
       )}
       {error && <p role="alert" className="ofl-err">{error}</p>}
-      <p className="ofl-links">{!onPage && <Link href="/ngo/offline">Offline mode</Link>}<Link href="/ngo/work">Work online</Link></p>
+      {!onPage && <p className="ofl-links"><Link href="/ngo/field">Field mode</Link><Link href="/ngo/work">Work online</Link></p>}
     </div>
   );
 }

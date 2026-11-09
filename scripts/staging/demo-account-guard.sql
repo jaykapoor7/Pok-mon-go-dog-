@@ -35,7 +35,7 @@ BEGIN
         RAISE EXCEPTION 'Sample demo accounts keep their sign-in details.' USING ERRCODE = '42501';
       END IF;
     END IF;
-    RETURN NEW;
+    RETURN COALESCE(NEW, OLD);  -- NEW is NULL on DELETE; returning it would silently cancel every user deletion
   END IF;
 
   IF EXISTS (
