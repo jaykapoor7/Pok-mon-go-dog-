@@ -93,7 +93,7 @@ test("signed-out NGO page shows what the workspace includes at every width", asy
 test("desktop sidebar groups work into hubs, each place once", async ({page,isMobile})=>{
  test.skip(!!isMobile,'desktop sidebar');await page.goto('/ngo');const side=page.getByRole('complementary',{name:'Workspace'});
  await expect(side.getByRole('link',{name:'Today',exact:true})).toBeVisible();
- for (const place of ['Work','Intake','Animals','Treatment & sign-off','Release evidence','Programmes','Ask Kaju']) await expect(side.getByRole('link',{name:place,exact:true})).toHaveCount(1);
+ for (const place of ['Work queue','Intake','Animals','Treatment & sign-off','Release evidence','Programmes','Ask Kaju']) await expect(side.getByRole('link',{name:place,exact:true})).toHaveCount(1);
  for (const hub of ['Overview','Operations','Records','Kaju']) await expect(side.getByText(hub,{exact:true})).toHaveCount(1);
  /* Pages inside an area are tabs on the page, not more sidebar rows. */
  await expect(side.getByRole('link',{name:'Map',exact:true})).toHaveCount(0);

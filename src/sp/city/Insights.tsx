@@ -61,7 +61,7 @@ export function Insights() {
       <header className="ci-head">
         <div className="ci-title">
           <p className="k">Municipality · insights</p>
-          <h1 className="display">{city ?? "Insights"}</h1><p className="ci-sub">What the record supports</p>
+          {office ? <h2 className="display ci-h2">{city ?? "Insights"}</h2> : <h1 className="display">{city ?? "Insights"}</h1>}<p className="ci-sub">What the record supports</p>
         </div>
         {cities.length > 0 && <div className="ci-controls">
           <label className="field"><span className="label">City</span><select className="select" value={city ?? ""} onChange={(e) => pick(e.target.value)} disabled={!cities.length}>{cities.filter((c) => c.cases > 0 || c.animals > 0).map((c) => <option key={c.city} value={c.city}>{c.city}</option>)}</select></label>

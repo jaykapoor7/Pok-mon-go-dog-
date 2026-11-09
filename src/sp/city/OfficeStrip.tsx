@@ -81,7 +81,7 @@ export function OfficeStrip({ onOffice, publicOpen, onPublic }: { onOffice?: (on
 
   return (
     <section className="os" aria-label={`${office.name}: operations and decisions`}>
-      <div className="os-top"><p className="os-k">{office.name}</p><span className="os-scope">Your office&rsquo;s records{office.city ? ` · ${office.city}` : ""}</span></div>
+      <div className="os-top"><div><p className="os-k">{office.name}</p><h1 className="os-h">Overview</h1></div><span className="os-scope">Your office&rsquo;s records{office.city ? ` · ${office.city}` : ""}</span></div>
       <ul className="os-tiles">
         <li className={v.waiting.length ? "is-due" : undefined}><Link href="/city/review"><span>Waiting for your decision</span><b>{v.waiting.length}</b><small>{v.oldest === null ? "Nothing waiting" : v.oldest === 0 ? "Submitted today" : `Oldest waiting ${v.oldest} ${v.oldest === 1 ? "day" : "days"}`}</small><ArrowRight size={14} aria-hidden /></Link></li>
         <li><Link href="/city/review?tab=operator"><span>With the operator</span><b>{v.withOperator.length}</b><small>Queried or returned</small><ArrowRight size={14} aria-hidden /></Link></li>

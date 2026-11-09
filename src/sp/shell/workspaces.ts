@@ -222,7 +222,7 @@ export const DESTINATIONS:Destination[]=[
     "section": "Five steps",
     "order": 2,
     "step": 1,
-    "short": "Receive",
+    "short": "Intake",
     "assistantKey": "inbox",
     "label": "Receive reports",
     "note": "Reports and WhatsApp messages, prepared by Kaju",
@@ -571,7 +571,7 @@ const NGO_HUBS: Record<string, Hub> = {
   "/ngo/inbox": { section: "Operations", order: 12, label: "Intake", primary: true },
   "/ngo/verification?stage=vet": { section: "Operations", order: 13, label: "Treatment & sign-off", primary: true },
   "/ngo/verification?stage=evidence": { section: "Operations", order: 14, label: "Release evidence", primary: true },
-  "/ngo/animals": { section: "Records", order: 20, primary: true },
+  "/ngo/animals": { section: "Records", order: 20, label: "Animals", primary: true },
   "/ngo/map": { section: "Records", order: 21, label: "Map", primary: true },
   "/ngo/animals/scan": { section: "Records", order: 22, primary: true },
   "/ngo/care": { section: "Records", order: 23, primary: true },
@@ -632,7 +632,8 @@ for (const d of DESTINATIONS) {
   d.primary = true;
 }
 /* What the sidebar calls an area when it stands for several pages. */
-const AREA: Record<string, string> = { Animals: "Animals", Programmes: "Programmes", Reports: "Reports", Outreach: "Outreach", Organisation: "Organisation", Work: "Work" };
+/* Work keeps its page name ("Work queue") so the sidebar, breadcrumb and title say the same thing. */
+const AREA: Record<string, string> = { Animals: "Animals", Programmes: "Programmes", Reports: "Reports", Outreach: "Outreach", Organisation: "Organisation" };
 const META={
   "community": {
     "id": "community",

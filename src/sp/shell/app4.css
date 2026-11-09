@@ -583,3 +583,96 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
   .sp.sx3 .nc-sev { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-radius: 12px; padding: 4px; }
   .sp.sx3 .nc-sev button { border-radius: 8px; min-height: 38px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   StrayPaw 5 · one frame for every workspace page (9 November 2026).
+
+   Before this section each page family kept its own edge: 64px on pages
+   without tabs, 32px with tabs, 24px on the work queue, 0 in field mode
+   and a centred column on Today, Import and Kaju. Now the title of every
+   page starts on the same line as its tabs and its table: one gutter
+   (32px desktop, 16px phone), one column (up to 1240px), no decoration
+   behind the work.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* 1 · Ground. Plain white; no drifting glow, no pointer light. Depth is
+      reserved for things that float (menus, drawers, toasts). */
+.sp.sx3:not(.is-map) .sx3-col::before,
+.sp.sx3:not(.is-map) .sx3-col::after { content: none; animation: none; }
+:root[data-ambient="on"] .sp.sx3 .sp-main { background-image: none; }
+.sp.sx3 .sx3-top { background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* 2 · Frame. Every direct child of the page (tabs included) shares the
+      column; page wrappers no longer add a second gutter of their own. */
+.sp.sx3:not(.is-flush) .sp-main > *:not(.ai3-full) { width: min(var(--max), 100% - 2 * var(--gut)); margin-inline: auto; }
+.sp.sx3:not(.is-flush) .sp-main > :is(.ngo-page, .imx, .fd, .br, .ci, .cp, .cr) { padding-left: 0; padding-right: 0; max-width: var(--max); }
+.sp.sx3:not(.is-flush) .sp-main > .br > .br-in { max-width: none; padding-left: 0; padding-right: 0; }
+.sp.sx3:not(.is-flush) .sp-main > .sx3-tabs { padding-left: 0; padding-right: 0; }
+/* Reading-width pages keep a comfortable measure but start at the same edge. */
+.sp.sx3:not(.is-flush) .sp-main > .imx > * { max-width: 824px; }
+.sp.sx3:not(.is-flush) .sp-main > .fd { justify-items: start; }
+.sp.sx3:not(.is-flush) .sp-main > .fd > * { width: 100%; max-width: 640px; }
+/* Full-bleed pages (work queue, maps) align their header and tabs to the same gutter. */
+.sp.sx3.is-flush .sx3-tabs { padding-left: var(--gut); padding-right: var(--gut); }
+.sp.sx3 .wk2-day { padding-left: var(--gut); padding-right: var(--gut); }
+@media (min-width: 861px) { .sp.sx3 .wk2-start { margin-inline: var(--gut); } }
+
+/* 3 · Page head. Same top offset and title on every page. */
+.sp.sx3 .ngo-head, .sp.sx3 .ci-head { padding-top: 28px; }
+.sp.sx3 .sx3-tabs + :is(.ngo-page, .cp, .ci, .cr) :is(.ngo-head, .ci-head) { padding-top: 24px; }
+.sp.sx3 .br .br-in { padding-top: 28px; }
+.sp.sx3 .sp-main h1.br-hello { font-size: 28px !important; line-height: 1.15 !important; letter-spacing: -0.035em !important; }
+.sp .os-top { align-items: end; margin: 28px 0 16px; }
+.sp .os-h { margin: 2px 0 0; }
+.sp.sx3 .sp-main .ci-h2 { font-size: 20px; line-height: 1.2; letter-spacing: -0.02em; margin: 0; }
+
+/* 4 · Sidebar. One icon language (1.75 line icons), quieter section
+      labels without a rule between every group, a clear selected row. */
+.sp.sx3 .sx4-sec { margin: 14px 0 2px; padding: 0 8px; border-top: 0; font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em; color: #8a8f9a; }
+.sp.sx3 .sx3-nav > .sx4-sec:first-child { margin-top: 2px; }
+.sp.sx3 .sx3-nav a { height: 32px; color: #3a4354; }
+.sp.sx3 .sx3-nav a > svg { color: #7b8190; }
+.sp.sx3 .sx3-nav a[aria-current="page"] { background: #eef3fd; color: #173f9e; }
+.sp.sx3 .sx3-nav a[aria-current="page"] > svg { color: #2457ce; }
+.sp.sx3 .sx3-nav a:hover > svg { transform: none; }
+.sp.sx3 .sx3-kaju-nook { min-height: 0; padding: 0 6px 6px; }
+.sp.sx3 .sx3-kaju-nook .kaju-presence { transform: scale(.78); transform-origin: 0 100%; }
+@media (max-height: 860px) { .sp.sx3 .sx3-kaju-nook { display: none; } .sp.sx3 .sx3-kaju-nook + .sx3-side-foot { margin-top: auto; } }
+
+/* 5 · Top bar. The breadcrumb is the page's address; Back appears only on a record or form. */
+@media (min-width: 861px) {
+  .sp.sx3 .sp-bar.sx3-top { padding: 0 16px 0 var(--gut); }
+  .sp.sx3 .sx3-crumb a { color: #6b7486; }
+  .sp.sx3 .sx3-crumb a:hover { color: var(--s3-ink); }
+  .sp.sx3 .sx5-back { background: transparent; color: #3a4354; padding: 0 10px 0 6px; margin-left: -8px; }
+  .sp.sx3 .sx5-back:hover { background: var(--sx4-hover); }
+}
+
+/* 6 · Empty work queue: the import prompt is one quiet row, not a banner taller than the queue. */
+.sp.sx3 .wk2-start { min-height: 0; padding: 14px 16px; margin-top: 16px; margin-bottom: 4px; border-radius: 12px; background: #f5f7fb; border: 1px solid #e4e8f0; box-shadow: none; }
+.sp.sx3 .wk2-start b { font-size: 14.5px; font-weight: 500; }
+.sp.sx3 .wk2-start small { font-size: 13px; }
+.sp.sx3 .wk2-start > svg:first-child { width: 18px; height: 18px; }
+.sp .wk2:has(> .wk2-start) { grid-template-rows: auto auto minmax(0, 1fr); }
+
+/* 7 · Today. The five stages are one connected strip on a desk and one
+      list on a phone (label left, count right, 48px rows) — five squeezed
+      tiles could not hold their own labels at 390px. An unread count is
+      said quietly, never set at figure size. */
+.sp.sx3 .br .jy .jy-c.is-na { font-size: 13px; font-weight: 400; letter-spacing: 0; color: #8a8f9a; align-self: end; padding-bottom: 5px; }
+@media (min-width: 861px) {
+  .sp.sx3 .br .jy ol { gap: 0; border: 1px solid #e4e8f0; border-radius: 12px; background: #fff; overflow: hidden; }
+  .sp.sx3 .br .jy li + li { border-left: 1px solid #e4e8f0; }
+  .sp.sx3 .br .jy a { border-radius: 0; box-shadow: none; min-height: 92px; }
+  .sp.sx3 .br .jy a:hover { transform: none; box-shadow: none; background: #f7f9fd; }
+}
+@media (max-width: 860px) {
+  .sp.sx3 .br .jy ol { display: grid !important; grid-template-columns: 1fr !important; gap: 0 !important; border: 1px solid #e4e8f0; border-radius: 12px; background: #fff; overflow: hidden !important; }
+  .sp.sx3 .br .jy li + li { border-top: 1px solid #eef0f4; }
+  .sp.sx3 .br .jy a { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; grid-template-rows: auto !important; justify-items: start !important; align-items: center; text-align: left !important; gap: 12px; min-height: 48px; padding: 8px 14px !important; border-radius: 0; box-shadow: none; }
+  .sp.sx3 .br .jy .jy-t { grid-row: 1; grid-column: 1; display: flex; align-items: baseline; gap: 8px; overflow: hidden; }
+  .sp.sx3 .br .jy .jy-t b { font-size: 14.5px !important; font-weight: 500; color: #0b1e3d; }
+  .sp.sx3 .br .jy .jy-t small { display: block; font-size: 12.5px; color: #6b7486; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp.sx3 .br .jy .jy-c { grid-row: 1; grid-column: 2; margin: 0; font-size: 17px; justify-self: end; font-variant-numeric: tabular-nums; }
+  .sp.sx3 .br .jy .jy-c.is-na { padding: 0; align-self: center; }
+}

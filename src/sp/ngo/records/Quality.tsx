@@ -75,7 +75,7 @@ export function Quality() {
     <NgoGate title="Data quality" lede="Review queues for records that weaken matching, analysis or reporting.">
       <div className="ngo-page">
         <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">What needs cleaning</h1></div>
+          <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">Data quality</h1></div>
           <p className="ngo-sum">{d.state === "loading" ? <Reading>Reading your records</Reading> : d.state === "failed" ? "Didn’t load. No queue is shown as zero." : total === 0 ? "Nothing to review in the records read." : <><b>{n(total)}</b> record{total === 1 ? "" : "s"} to review{d.state === "read" && d.input.partial ? <>, from the {n(checked)} most recent animals</> : null}. The original source stays as it is.</>}</p>
         </header>
         {/* One place for record quality: the related review screens and Kaju's spelling check. */}

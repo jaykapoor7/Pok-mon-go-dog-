@@ -174,7 +174,7 @@ export function Work() {
       <header className="wk2-day">
         <div className="wk2-title">
           <p className="wk2-k">{org?.name ?? "Your organisation"} · {today}</p>
-          <h1 className="wk2-h">Today&rsquo;s work</h1>
+          <h1 className="wk2-h">Work queue</h1>
         </div>
         <MobileDetails label="Today at a glance" className="wk2-summary-fold"><p className="wk2-sum" aria-live="polite">
           {loading ? <Reading>Reading your organisation&rsquo;s open work</Reading> : failed ? <span className="is-err">The organisation&rsquo;s work could not be read. Nothing is shown as zero. <button type="button" className="link" onClick={() => void load()}>Retry</button></span> : (

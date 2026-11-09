@@ -70,6 +70,8 @@ export async function asMember(context) {
     if (m === "HEAD" || url.searchParams.get("select") === "id" && req.headers()["prefer"]?.includes("count")) {
       return route.fulfill({ status: 200, headers: { "content-range": `*/${table === "org_case_facts" ? 12 : 0}`, "access-control-expose-headers": "content-range" }, body: "" });
     }
+    if (table === "ngo_members") { const o = { role: process.env.HARNESS_ROLE ?? "admin", ngo_id: ORG.id, user_id: ME.id }; return json(route, single ? o : [o]); }
+    if (table === "review_office_members") { const rows = process.env.HARNESS_REVIEWER ? [{ office_id: "00000000-0000-4000-8000-0000000000f1" }] : []; return json(route, single ? rows[0] ?? null : rows); }
     if (table === "ngos") { const o = { ...ORG, verified: true, slug: "test", mission: "Street dogs in Coimbatore get care where they live (synthetic).", about: "A synthetic organisation for local QA.", areas_of_work: ["Rescue", "ABC"], state: "Tamil Nadu", website: "https://example.org" }; return json(route, single ? o : [o]); }
     if (table === "org_case_facts") { const did = url.searchParams.get("dog_id")?.replace(/^eq\./, ""); const rows = idEq ? cases.filter((c) => c.id === idEq) : did ? cases.filter((c) => c.dog_id === did) : cases; return json(route, single ? { ...rows[0], cover_photo: null, straypaw_id: "TEST01" } : rows); }
     if (table === "animal_followups") { const cid = url.searchParams.get("case_id")?.replace(/^eq\./, ""); return json(route, cid ? followups.filter((f) => f.case_id === cid).map((f) => ({ ...f, completed_at: null })) : followups); }

@@ -57,7 +57,7 @@ export const useMembership = () => useContext(Membership);
 const ICON: Record<string, typeof MapIcon> = {
   map: MapIcon, radio: Radio, activity: Activity, book: BookOpen, building: Building2, heart: HeartHandshake, sparkles: Sparkles,
   home: Home, inbox: Inbox, paw: PawPrint, layers: Layers, phone: Smartphone, shield: ShieldCheck, file: FileText, grad: GraduationCap,
-  users: Users, compass: Compass, landmark: Landmark, list: ListChecks, check: ClipboardCheck,
+  users: Users, compass: Compass, landmark: Landmark, list: ListChecks, check: ClipboardCheck, settings: Settings,
 };
 
 
@@ -142,6 +142,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const here = currentDestination(ws,path,mem.role,mem.reviewer);
   const section=def.index.find(g=>g.label===here?.group)?.links.filter(l=>l.primary).sort((a,b)=>(a.order??50)-(b.order??50))[0];
   const atHome = path === def.home;
+  /* Below a named place: a record, a form, a package. Named places are reached from the sidebar, tabs and breadcrumb. */
+  const deep = !atHome && !!here && here.href !== path && path !== "/assistant";
   // Every link the sidebar shows (its places, and the short "Also" list), so page tabs never repeat them.
   const sideHrefs = (() => {
     const own = new Set(nav.map((n) => (n.item as Destination).group));
@@ -239,11 +241,11 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               )}
             </div>
             ) : <span className="sp-ws sx3-ws-m sx3-ws-static"><i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span></span>}
-            {!atHome && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
+            {deep && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
-              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? (here as Destination).group : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
+              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? <Suspense fallback={here.label}><StageName nav={nav} here={here} /></Suspense> : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
               {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
             </nav>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
@@ -285,6 +287,14 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 }
 
 type NavRow = { item: NavItem; label?: string };
+
+/** A place with several views on one route (the verification stages) is named for the view that is open. */
+function StageName({ nav, here }: { nav: NavRow[]; here: NavItem }) {
+  const stage = useSearchParams()?.get("stage");
+  const twins = nav.filter((r) => r.item.href === here.href && r.item.query);
+  const hit = twins.find((r) => new URLSearchParams(r.item.query).get("stage") === stage) ?? twins[0];
+  return <>{hit?.item.label ?? here.label}</>;
+}
 type SideNavProps = { nav: NavRow[]; path: string; collapsed: boolean; onAssistant: boolean; label: string };
 
 function SideNavLive(p: SideNavProps) {
@@ -312,7 +322,7 @@ function SideNav({ nav, path, search, collapsed, onAssistant, label }: SideNavPr
         const Icon = ICON[n.icon] ?? Home;
         const href = n.query ? `${n.href}?${n.query}` : n.href;
         const key = href;
-        const lead = n.icon === "kaju" ? <span className="sx-kaju-ic" aria-hidden><KajuFace size={16} /></span> : n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />;
+        const lead = n.icon === "kaju" ? <span className="sx-kaju-ic" aria-hidden><KajuFace size={16} /></span> : n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : <Icon size={16} strokeWidth={1.75} aria-hidden />;
         const link = <Link key={key} href={href} aria-current={isOn(n) ? "page" : undefined} title={collapsed ? n.label : (n as Destination).note}>{lead}<span>{n.label}</span></Link>;
         return sec ? <Fragment key={key}><p className="sx4-sec">{sec}</p>{link}</Fragment> : link;
       })}
@@ -333,7 +343,7 @@ function phoneTabs(ws: WorkspaceId, role: Role | null, dests: NavItem[]): NavIte
     { href: "/ngo", label: "Today", short: "Today", icon: "home", exact: true },
     { href: "/ngo/field", label: "Field mode", short: "Field", icon: "phone" },
     { href: "/ngo/cases/new", label: "New case", short: "New case", icon: "radio" },
-    { href: "/ngo/inbox", label: "Receive reports", short: "Receive", icon: "inbox" },
+    { href: "/ngo/inbox", label: "Intake", short: "Intake", icon: "inbox" },
   ];
   return dests;
 }

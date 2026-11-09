@@ -57,7 +57,7 @@ export function Journey({ orgId, role }: { orgId: string; role: string | null })
         return <li key={s.key} className={s.mine ? "is-mine" : undefined}><Link href={s.href}>
           <span className={`jy-n${v ? " is-on" : ""}`} aria-hidden />
           <span className="jy-t"><b>{s.title}</b><small>{s.hint}</small></span>
-          <span className={`jy-c${v ? " is-on" : ""}`}>{c === null ? "…" : v === null || v === undefined || typeof v === "boolean" ? "not read" : `${v}${fromQueue && c.capped ? "+" : ""}`}</span>
+          <span className={`jy-c${v ? " is-on" : ""}${c !== null && (v === null || v === undefined || typeof v === "boolean") ? " is-na" : ""}`}>{c === null ? "…" : v === null || v === undefined || typeof v === "boolean" ? "not read" : `${v}${fromQueue && c.capped ? "+" : ""}`}</span>
         </Link></li>;
       })}</ol>
     </nav>
