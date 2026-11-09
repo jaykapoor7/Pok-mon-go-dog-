@@ -32,6 +32,7 @@ import { isRecordingDemo } from "@/lib/recording-demo";
 import { demoExecute, demoKajuReply } from "@/lib/demo/kaju-demo";
 import { DemoFileViewer } from "@/sp/demo/FileViewer";
 import "./ai.css";
+import { KajuHub } from "@/sp/ngo/KajuHub";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string; retry?:string; display?: string; fileName?: string };
 type Ctx = { open: boolean; toggle: () => void; setOpen: (v: boolean) => void; ask: (q: string, extra?: { display?: string; fileName?: string }) => void; msgs: Msg[]; busy: boolean; reset: () => void; stop:()=>void; model: boolean | null; scope:string|null; role:string|null; contextPath:string; scopeError:string|null; refreshScope:()=>void; revision:number; step:string|null };
@@ -262,6 +263,7 @@ export function AiWorkspace() {
           <div className="ai3-full-id"><span className="ai3-full-kaju"><KajuMark size={96} /></span><div><span className="s3-eyebrow">StrayPaw&rsquo;s AI agent</span><h1>Ask Kaju.</h1><p>Check your records. Prepare the next step. You confirm every change.</p></div></div>
           <span className="ai3-full-acts"><Link className="s3-btn is-line is-sm" href={connectionsHref(ai.contextPath)}><Plug size={14} />Manage connections</Link>{ai.msgs.length > 0 && <button type="button" className="s3-btn is-line is-sm" onClick={ai.reset}><RotateCcw size={14} />New conversation</button>}</span>
         </header>
+        {ai.msgs.length === 0 && <KajuHub />}
         <Thread key={`${ai.scope??'pending'}:${ai.revision}`} full />
       </div>
     </div>
