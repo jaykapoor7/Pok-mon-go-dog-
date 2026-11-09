@@ -71,7 +71,7 @@ const nextConfig = {
            evidence files) keep their 1.0 pages until they are redesigned. */
         ["/dashboard", "/ngo"], ["/partner", "/ngo"], ["/partner/operations", "/ngo"],
         ["/partner/followups", "/ngo?focus=followup"],
-        ["/partner/cases", "/ngo"], ["/cases", "/ngo"],
+        ["/partner/cases", "/ngo"], ["/cases", "/ngo"], ["/ngo/cases", "/ngo/work"],
         ["/partner/animals", "/ngo/animals"], ["/partner/records", "/ngo/animals"],
         ["/partner/animals/:id", "/ngo/animals/:id"],
         ["/partner/map", "/ngo/map"],

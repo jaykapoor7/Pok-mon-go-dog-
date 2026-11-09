@@ -56,7 +56,7 @@ export function FeedingSpots() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">Field work · feeding</p><h1 className="serif">Feeding spots</h1></div>
-          <p className="ngo-sum">{load.state === "read" ? <><b>{n(rows.length)}</b> spot{rows.length === 1 ? "" : "s"} · <b>{n(stale)}</b> not fed in the last 7 days, or never recorded as fed. They appear on the public map, where volunteers can sign up to help.</> : load.state === "failed" ? "Not read." : <Reading>Reading your organisation&rsquo;s feeding spots</Reading>}</p>
+          <p className="ngo-sum">{load.state === "read" ? rows.length === 0 ? "Places your team feeds, shown on the public map for volunteers." : <><b>{n(rows.length)}</b> spot{rows.length === 1 ? "" : "s"} · <b>{n(stale)}</b> not fed in 7 days</> : load.state === "failed" ? "Not read." : <Reading>Reading your organisation&rsquo;s feeding spots</Reading>}</p>
           <div className="row" style={{ ["--g" as string]: "8px" }}>
             <button type="button" className="btn is-ink" aria-expanded={adding} onClick={() => setAdding((v) => !v)}><Plus size={15} aria-hidden /> Add a feeding spot</button>
             <Link className="btn" href="/community/feeding">The public map</Link>

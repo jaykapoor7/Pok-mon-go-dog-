@@ -25,7 +25,9 @@ what they can do (one primary action, verbs on rows) and what happens next
   Amber `#d08a1d` only for waiting/overdue. No cream, no paper, no dark
   page grounds. A faint drifting blue glow sits behind app pages (off under
   reduced motion and on map pages).
-- **Type.** One family (DM Sans / Inter fallback), no serif, no italics.
+- **Type.** One family in the app: Inter, the face of the app shell and the
+  website's product window (`--s3-sans` in `src/sp/shell/app4.css`); DM Sans
+  remains on public pages. No serif, no italics.
   App page title 28-32px/500; section title 15-16px/500; body 14px;
   meta 12-12.5px. Numbers use tabular figures.
 - **Space.** 4px grid. Page gutter 32px desktop, 16px phone, identical for

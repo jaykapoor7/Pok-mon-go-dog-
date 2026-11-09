@@ -122,7 +122,7 @@ export function NextStep({ file, cohort, onChanged }: { file: CaseFile; cohort: 
               </div>
             </>
           )}
-          {!pool && mode !== "close" && <button type="button" className="btn is-ghost is-s next-link" onClick={() => setMode("close")}>Close without field action, or because another organisation took it…</button>}
+          {!pool && mode !== "close" && <button type="button" className="btn is-ghost is-s next-link" onClick={() => setMode("close")}>Close without field action…</button>}
         </div>
       )}
 

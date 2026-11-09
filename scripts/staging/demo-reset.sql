@@ -30,6 +30,7 @@ create or replace function demo_private.scope_sql(t text) returns text language 
     when 'operations_contract_rates' then 'contract_id in (select id from public.operations_contracts where ngo_id = ''d0000000-0000-4000-8000-0000000000a0'' or office_id = ''d0000000-0000-4000-8000-0000000000b0'')'
     when 'report_packages' then 'ngo_id = ''d0000000-0000-4000-8000-0000000000a0'' or office_id = ''d0000000-0000-4000-8000-0000000000b0'''
     when 'case_updates' then 'case_id in (select id from public.cases where ngo_id = ''d0000000-0000-4000-8000-0000000000a0'')'
+    when 'programme_zone_staff' then 'zone_id in (select id from public.programme_work_zones where ngo_id = ''d0000000-0000-4000-8000-0000000000a0'')'
     when 'medical_events' then 'dog_id in (select id from public.dogs where ngo_id = ''d0000000-0000-4000-8000-0000000000a0'') or case_id in (select id from public.cases where ngo_id = ''d0000000-0000-4000-8000-0000000000a0'')'
     else case when t in ('package_events','operations_package_configurations','operations_package_claims','operations_item_decisions','operations_payment_evidence','operations_package_snapshots')
       then 'package_id in (select id from public.report_packages where ngo_id = ''d0000000-0000-4000-8000-0000000000a0'' or office_id = ''d0000000-0000-4000-8000-0000000000b0'')'
@@ -43,7 +44,8 @@ create or replace function demo_private.tables() returns text[] language sql imm
     'operations_contracts','operations_contract_rates','operations_policies','report_packages','package_events',
     'operations_package_configurations','operations_package_claims','operations_item_decisions','operations_payment_evidence',
     'operations_package_snapshots','operations_receipts','case_stories','campaigns','surveys','feeding_zones','training_courses',
-    'training_assignments','programme_work_zones','org_invite_codes','org_email_invites','volunteers']
+    'training_assignments','programme_work_zones','org_invite_codes','org_email_invites','volunteers',
+    'field_vaccination_receipts','programme_zone_receipts','programme_zone_staff','operations_survey_assessments']
 $f$;
 
 create or replace function demo_private.pk_expr(t text, alias text) returns text language sql stable as $f$
@@ -86,7 +88,10 @@ begin
       t, demo_private.scope_sql(t), t, demo_private.pk_expr(t, 'x'));
     get diagnostics n = row_count; removed := removed + n;
   end loop;
-  -- 2. Put back what was deleted and undo what was changed, parents first.
+  -- 2. Put back what was deleted and undo what was changed, parents first. Triggers are paused for this
+  --    step only (this transaction), so restored rows come back exactly as recorded: no re-stamped codes,
+  --    no duplicate timeline or audit entries. Parents are restored before children, so references hold.
+  perform set_config('session_replication_role', 'replica', true);
   foreach t in array tabs loop
     select string_agg(format('%I', attname), ', ' order by attnum) into cols
       from pg_attribute where attrelid = format('public.%I', t)::regclass and attnum > 0 and not attisdropped and attgenerated = '' and attidentity <> 'a';
@@ -97,6 +102,7 @@ begin
       t, cols, (select string_agg('r.' || c, ', ') from unnest(string_to_array(cols, ', ')) c), t, t, demo_private.pk_expr(t, 'x'));
     get diagnostics n = row_count; restored := restored + n;
   end loop;
+  perform set_config('session_replication_role', 'origin', true);
   return format('removed %s, restored %s, put back %s', removed, restored, added);
 end $f$;
 

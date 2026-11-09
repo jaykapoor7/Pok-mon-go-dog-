@@ -95,7 +95,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
           <section className="cf-card">
             <h3 className="h3">The animal</h3>
             {c.dog_id ? (
-              <Link className="cs-animal" href={`/ngo/animals/${c.dog_id}`}><Portrait src={animal?.photo ?? null} tag={animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal"} sensitive size="s" /><span><b>{realName(animal?.name) ?? animal?.straypaw_id ?? "Animal record"}</b><small className="mono" title={animal?.straypaw_id ?? undefined}>{animal?.straypaw_id ? shortCode(animal.straypaw_id) : "ID pending"}</small></span><ArrowUpRight size={14} aria-hidden /></Link>
+              <Link className="cs-animal" href={`/ngo/animals/${c.dog_id}`}><Portrait src={animal?.photo ?? null} tag={animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal"} sensitive size="s" /><span><b>{realName(animal?.name) ?? "Unnamed animal"}</b><small className="mono" title={animal?.straypaw_id ?? undefined}>{animal?.straypaw_id ? shortCode(animal.straypaw_id) : "ID pending"}</small></span><ArrowUpRight size={14} aria-hidden /></Link>
             ) : <p className="small">Not linked to an animal yet.</p>}
           </section>
           <section className="cf-card">

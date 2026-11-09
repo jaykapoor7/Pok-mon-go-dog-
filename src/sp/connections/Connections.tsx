@@ -79,9 +79,8 @@ export function Connections({ back }: { back: string }) {
                   <p className="cx-line">{p.line}</p>
                   {on && v?.account_email && <p className="cx-acct">Connected as <b>{v.account_email}</b>{v.last_used_at ? ` · last used ${new Date(v.last_used_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : ""}</p>}
                   {stale && <p className="cx-note"><TriangleAlert size={13} aria-hidden /> {v?.last_error ?? "Access expired"}. Reconnect to keep using it.</p>}
-                  {v?.status === "unavailable" && <p className="cx-note"><Lock size={13} aria-hidden /> An administrator needs to finish setting this up before anyone can connect.</p>}
                   <details className="cx-perm">
-                    <summary>What Kaju can do</summary>
+                    <summary>{d.me.admin ? "What Kaju can do · settings" : "What Kaju can do"}</summary>
                     <ul>{p.capabilities.map((c: Capability) => {
                       const granted = !on || (v?.capabilities ?? []).includes(c);
                       const opt = (PROVIDERS[p.id].optional ?? {})[c];
@@ -91,7 +90,14 @@ export function Connections({ back }: { back: string }) {
                         {on && !granted && opt && <button type="button" className="ai3-inline" disabled={!!busy} onClick={() => connect(p.id, [c])}>Allow</button>}
                       </li>;
                     })}</ul>
-                    <p>Kaju uses your own access, so it sees only what you can see in {p.name}. Sending, creating and saving always wait for your confirmation.</p>
+                    <p>Kaju sees only what you can see in {p.name}. Sending and saving wait for your confirmation.</p>
+                    {d.me.admin && (
+                      <div className="cx-policy">
+                        <p>Organisation settings</p>
+                        <label><input type="checkbox" checked={p.policy.allowed} disabled={!!busy} onChange={(e) => act(`p:${p.id}`, () => api("/api/connections/policy", { method: "POST", body: JSON.stringify({ provider: p.id, allowed: e.target.checked, allow_org_sharing: e.target.checked && p.policy.allow_org_sharing }) }))} /> Members may connect {p.name}</label>
+                        <label><input type="checkbox" checked={p.policy.allow_org_sharing} disabled={!!busy || !p.policy.allowed} onChange={(e) => act(`p:${p.id}`, () => api("/api/connections/policy", { method: "POST", body: JSON.stringify({ provider: p.id, allowed: true, allow_org_sharing: e.target.checked }) }))} /> Members may make their connection visible to the organisation</label>
+                      </div>
+                    )}
                   </details>
                   <div className="cx-act">
                     {on ? (
@@ -105,15 +111,8 @@ export function Connections({ back }: { back: string }) {
                       <><button type="button" className="btn is-ink is-s" disabled={!!busy} onClick={() => connect(p.id)}>Reconnect</button><button type="button" className="btn is-s" disabled={!!busy} onClick={() => act(`d:${p.id}`, () => api(`/api/connections/${p.id}`, { method: "DELETE" }), `${p.name} disconnected.`)}>Disconnect</button></>
                     ) : v?.status === "available" ? (
                       <button type="button" className="btn is-ink is-s" disabled={!!busy} onClick={() => connect(p.id)}>{busy === `c:${p.id}` ? "Opening…" : "Connect"}</button>
-                    ) : <button type="button" className="btn is-s" disabled>Connect</button>}
+                    ) : <span className="cx-acct"><Lock size={12} aria-hidden /> Set up by an administrator</span>}
                   </div>
-                  {d.me.admin && (
-                    <div className="cx-policy">
-                      <p>Organisation settings</p>
-                      <label><input type="checkbox" checked={p.policy.allowed} disabled={!!busy} onChange={(e) => act(`p:${p.id}`, () => api("/api/connections/policy", { method: "POST", body: JSON.stringify({ provider: p.id, allowed: e.target.checked, allow_org_sharing: e.target.checked && p.policy.allow_org_sharing }) }))} /> Members may connect {p.name}</label>
-                      <label><input type="checkbox" checked={p.policy.allow_org_sharing} disabled={!!busy || !p.policy.allowed} onChange={(e) => act(`p:${p.id}`, () => api("/api/connections/policy", { method: "POST", body: JSON.stringify({ provider: p.id, allowed: true, allow_org_sharing: e.target.checked }) }))} /> Members may make their connection visible to the organisation</label>
-                    </div>
-                  )}
                 </li>
               );
             })}
@@ -129,13 +128,13 @@ export function Connections({ back }: { back: string }) {
               <div className="cx-top"><div className="cx-id"><span className="cx-logo is-wa" aria-hidden><MessageCircle size={16} /></span><div><b>WhatsApp Business</b><small>For the whole organisation</small></div></div>
                 <span className="cx-state is-off">Not linked</span></div>
               <p className="cx-line">Field and resident reports arrive in Intake with photos, voice notes and location.</p>
-              {d.me.admin ? <Link className="btn is-s" href="/contact">Link number</Link> : <p className="cx-acct">An administrator links the organisation&rsquo;s number.</p>}
+              <div className="cx-act">{d.me.admin ? <Link className="btn is-s" href="/contact">Link number</Link> : <span className="cx-acct">An administrator links the number.</span>}</div>
             </li>
             <li className="cx-card">
               <div className="cx-top"><div className="cx-id"><span className="cx-logo is-files" aria-hidden><MessageSquare size={16} /></span><div><b>{d.services.sms.name}</b><small>For the whole organisation</small></div></div>
                 <span className={`cx-state is-${d.services.sms.status !== "configured" ? "off" : d.services.sms.policy?.allowed ? "ok" : "idle"}`}>{d.services.sms.status !== "configured" ? "Not set up" : d.services.sms.policy?.allowed ? "On" : "Off"}</span></div>
               <p className="cx-line">{d.services.sms.line}</p>
-              {d.services.sms.status !== "configured" ? <p className="cx-note"><Lock size={13} aria-hidden /> An administrator needs to add the organisation&rsquo;s SMS account and approved template.</p>
+              {d.services.sms.status !== "configured" ? <div className="cx-act"><span className="cx-acct"><Lock size={12} aria-hidden /> Set up by an administrator</span></div>
                 : d.me.admin ? <div className="cx-policy"><p>Organisation settings</p><label><input type="checkbox" checked={!!d.services.sms.policy?.allowed} disabled={!!busy} onChange={(e) => act("p:sms", () => api("/api/connections/policy", { method: "POST", body: JSON.stringify({ provider: "sms", allowed: e.target.checked, allow_org_sharing: false }) }))} /> Leads and coordinators may send SMS with Kaju</label></div>
                   : <p className="cx-acct">Your organisation lead decides whether SMS is used.</p>}
             </li>
