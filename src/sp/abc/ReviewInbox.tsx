@@ -17,7 +17,7 @@ import { Reading } from "../ui/Reading";
 import { period } from "./Packages";
 import "../ngo/ngo.css";
 import "./abc.css";
-import { isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
+import { isVisibleToOffice, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 
 export function ReviewInbox() {
   const { user, ready } = useAuth();
@@ -38,7 +38,7 @@ export function ReviewInbox() {
     let live = true;
     Promise.all([myContext(), packages()])
       .then(async ([c, p]) => {
-        const mine = p.filter((x) => c.offices.some((o) => o.id === x.office_id) && x.status !== "draft");
+        const mine = p.filter((x) => c.offices.some((o) => o.id === x.office_id) && isVisibleToOffice(x.status));
         const n = await orgNames([...new Set(mine.map((x) => x.ngo_id))]);
         if (live) { setCtx(c); setList(mine); setNames(n); }
       })

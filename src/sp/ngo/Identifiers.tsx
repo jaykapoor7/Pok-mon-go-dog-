@@ -39,6 +39,7 @@ export function Identifiers({ dogId }: { dogId: string }) {
   const [retiring, setRetiring] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [adding, setAdding] = useState(false);
   const canScan = typeof window !== "undefined" && "BarcodeDetector" in window && !!navigator.mediaDevices?.getUserMedia;
 
   const load = useCallback(async () => {
@@ -58,7 +59,7 @@ export function Identifiers({ dogId }: { dogId: string }) {
     const r = await db.rpc("add_animal_identifier", { p_dog_id: dogId, p_kind: kind, p_value: value, p_note: note.trim() || null });
     setBusy(false);
     if (r.error) { setAck({ ok: false, text: r.error.message || "Not saved." }); return; }
-    setAck({ ok: true, text: `${ID_KINDS[kind]} ${norm(value)} added.` }); setValue(""); setNote("");
+    setAck({ ok: true, text: `${ID_KINDS[kind]} ${norm(value)} added.` }); setValue(""); setNote(""); setAdding(false);
     await load();
   }
   async function retire(id: string) {
@@ -85,16 +86,17 @@ export function Identifiers({ dogId }: { dogId: string }) {
               ? <span className="idn-retire"><input aria-label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why retire it?" maxLength={200} /><button className="btn is-s" disabled={busy} onClick={() => void retire(r.id)}>Retire</button><button className="btn is-s is-ghost" onClick={() => { setRetiring(null); setReason(""); }}>Cancel</button></span>
               : <button className="btn is-s is-ghost idn-x" onClick={() => { setRetiring(r.id); setReason(""); }}>Retire</button>)}
           </li>))}</ul>
-        : <p className="small">No microchip, tag or QR code on this animal yet.</p>}
-      <form className="idn-form" onSubmit={add}>
+        : <p className="small">No microchip, tag or QR code yet.</p>}
+      {!adding ? <button type="button" className="btn is-s idn-open" onClick={() => setAdding(true)}>Add identifier</button> : <form className="idn-form" onSubmit={add}>
         <label><span>Type</span><select value={kind} onChange={(e) => setKind(e.target.value as Kind)}>{Object.entries(ID_KINDS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
         <label><span>Number</span><input value={value} onChange={(e) => setValue(e.target.value)} placeholder={kind === "microchip" ? "985 141 000 123 456" : "Scan or type"} inputMode={kind === "microchip" ? "numeric" : "text"} autoComplete="off" spellCheck={false} maxLength={80} required /></label>
         <label className="idn-note"><span>Note <small>(optional)</small></span><input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Left shoulder, implanted at sterilisation" maxLength={200} /></label>
         <div className="idn-act">
           <button className="btn is-flame" type="submit" disabled={busy || !value.trim()}>{busy ? "Saving…" : "Add identifier"}</button>
           {canScan && <button className="btn" type="button" onClick={() => { setKind("qr"); setScanning(true); }}>Scan QR</button>}
+          <button className="btn is-ghost" type="button" onClick={() => setAdding(false)}>Cancel</button>
         </div>
-      </form>
+      </form>}
       <div aria-live="polite">{ack && <Ack state={ack.ok ? "saved" : "failed"}>{ack.text}</Ack>}</div>
       {scanning && <QrScan onClose={() => setScanning(false)} onRead={(text) => { setScanning(false); setValue(text.slice(0, 64)); }} />}
     </section>

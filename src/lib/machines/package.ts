@@ -62,3 +62,9 @@ export const isPackageStatus = (s: string): s is PackageStatus => (PACKAGE_STATU
 export const isWaitingOnOffice = (s: string) => s === "submitted";
 export const isWithOperator = (s: string) => isPackageStatus(s) && PACKAGE_STATE[s].holder === "operator" && s !== "draft";
 export const isDecided = (s: string) => isPackageStatus(s) && PACKAGE_STATE[s].final;
+/** Still being prepared by the operator; the office cannot see it yet. */
+export const isDraftPackage = (s: string) => s === "draft";
+/** Sent at least once, so the reviewing office can see it. */
+export const isVisibleToOffice = (s: string) => isPackageStatus(s) && s !== "draft";
+/** A package for this period already exists unless the office returned it for a fresh one. */
+export const holdsPeriod = (s: string) => s !== "returned";

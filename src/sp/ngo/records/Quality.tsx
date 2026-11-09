@@ -95,7 +95,7 @@ export function Quality() {
                 <State art="ngo-empty" title="Nothing to check yet" action={<Link className="btn is-ink" href="/ngo/import">Import your workbook</Link>}>Nothing to review yet.</State>
               ) : (
                 <ol className="rc-queues">
-                  {qs.map((q) => {
+                  {[...qs].sort((a, b) => Number(b.items.length > 0) - Number(a.items.length > 0)).map((q) => {
                     const id = `rc-q-${q.title.replace(/\W+/g, "-").toLowerCase()}`;
                     const on = open === q.title;
                     return (
@@ -123,7 +123,7 @@ export function Quality() {
                   })}
                 </ol>
               )}
-              <p className="small">Animal queues cover the {n(ANIMAL_LIMIT)} most recently seen animals, as before. Fix a record at its source; nothing here edits or merges.</p>
+              <p className="small">Checks the {n(ANIMAL_LIMIT)} most recently seen animals. Nothing here edits a record.</p>
             </div>
           )}
         </div>

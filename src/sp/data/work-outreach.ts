@@ -26,6 +26,7 @@ import { PROJECT_MARKER } from "@/lib/surveys";
 import { createOrgFeedingZone, type OrgFeedingZone } from "@/lib/feeding-zones";
 import type { Fundraiser } from "@/lib/types";
 import { run, type Receipt } from "./work";
+import { friendlyError } from "@/lib/friendly-error";
 
 export type { Receipt };
 type WithId = Receipt & { id?: string };
@@ -42,7 +43,7 @@ function db() {
 /** The organisation's filed documents (RLS scopes them), newest first, at most 300. */
 export async function readDocuments(): Promise<SourceDocument[]> {
   const { data, error } = await db().from("documents").select("*").order("created_at", { ascending: false }).limit(300);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error.message));
   return (data ?? []) as SourceDocument[];
 }
 
@@ -54,7 +55,7 @@ export async function readAnimalsForAttach(limit = 200): Promise<OrgAnimalLite[]
   if (e1) throw new Error(e1.message);
   if (!ngoId) return [];
   const { data, error } = await supa.from("dogs").select("id, straypaw_id, name, code, zone").eq("ngo_id", ngoId).order("last_seen", { ascending: false }).limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error.message));
   return ((data ?? []) as { id: string; straypaw_id: string | null; name: string | null; code: string | null; zone: string | null }[]).map((r) => ({ ...r, zone: r.zone ?? "" }));
 }
 
@@ -65,14 +66,14 @@ export async function readOrgFundraisers(): Promise<Fundraiser[]> {
   if (e1) throw new Error(e1.message);
   if (!ngoId) return [];
   const { data, error } = await supa.from("fundraisers").select("*").eq("ngo_id", ngoId).order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error.message));
   return (data ?? []).map(mapFundraiser);
 }
 
 /** The organisation's own feeding spots (my_org_feeding_zones). */
 export async function readOrgFeedingSpots(): Promise<OrgFeedingZone[]> {
   const { data, error } = await db().rpc("my_org_feeding_zones");
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error.message));
   return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
     id: String(r.id), name: String(r.name ?? ""), description: (r.description as string) ?? null, zone: (r.zone as string) ?? null,
     lat: Number(r.lat), lng: Number(r.lng), photo_url: (r.photo_url as string) ?? null,

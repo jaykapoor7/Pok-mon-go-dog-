@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { isVisibleToOffice } from "@/lib/machines/package";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export async function GET(req: Request) {
   const offices: OfficeRow[] = (o.data ?? []).map((x) => ({
     ...x,
     reviewers: (m.data ?? []).filter((r) => r.office_id === x.id).map((r) => ({ user_id: r.user_id, added_at: r.created_at, ...(people.get(r.user_id) ?? { email: null, name: null }) })),
-    packages: (p.data ?? []).filter((k) => k.office_id === x.id && k.status !== "draft").length,
+    packages: (p.data ?? []).filter((k) => k.office_id === x.id && isVisibleToOffice(k.status)).length,
   }));
   return NextResponse.json({ offices });
 }

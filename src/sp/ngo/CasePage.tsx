@@ -84,15 +84,10 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
         <div className="cs-main">
           <section className="cs-step"><NextStep file={file} cohort={cohort} onChanged={onChanged} /></section>
           <OperationsPanel caseId={c.id}/>
-          <section className="cf-sec">
-            <h2 className="h2">Chronology <span className="mono small">{history.length}</span></h2>
-            {history.length ? <ol className="chrono">{history.map((h, i) => <li key={`${h.kind}${h.id ?? i}`} className={`dr-row is-${h.k === "care" ? "care" : h.k === "note" ? "sight" : "report"}`}><time className="mono">{day(h.at)}</time><span><b>{h.t}</b></span><small>{h.k === "care" ? "Care, recorded by an organisation" : h.k === "note" ? "Note" : "Status"}{h.who ? ` · ${h.who}` : ""}</small>{h.id && <DeleteRecord kind={h.kind} id={h.id} what={h.k === "care" ? "this care record" : h.k === "note" ? "this note" : "this update"} onDone={() => void onChanged()} />}</li>)}</ol> : <p className="small">Nothing recorded on this case since it was opened.</p>}
-          </section>
           {(c.before_url || c.after_url || (c.photos ?? []).length > 0) && (
             <section className="cf-sec">
               <h2 className="h2">Photographs</h2>
               <div className="cs-photos">{[c.before_url, ...(c.photos ?? []), c.after_url].filter(Boolean).slice(0, 8).map((u, i) => <Portrait key={i} src={u as string} tag={`Photo ${i + 1}`} sensitive size="m" />)}</div>
-              <p className="small">Case photographs start covered; they may show injury.</p>
             </section>
           )}
         </div>
@@ -100,15 +95,16 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
           <section className="cf-card">
             <h3 className="h3">The animal</h3>
             {c.dog_id ? (
-              <Link className="cs-animal" href={`/ngo/animals/${c.dog_id}`}><Portrait src={animal?.photo ?? null} tag={animal?.straypaw_id ?? "Animal"} sensitive size="s" /><span><b>{realName(animal?.name) ?? animal?.straypaw_id ?? "Animal record"}</b><small className="mono">{animal?.straypaw_id ?? "ID pending"}</small></span><ArrowUpRight size={14} aria-hidden /></Link>
+              <Link className="cs-animal" href={`/ngo/animals/${c.dog_id}`}><Portrait src={animal?.photo ?? null} tag={animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal"} sensitive size="s" /><span><b>{realName(animal?.name) ?? animal?.straypaw_id ?? "Animal record"}</b><small className="mono" title={animal?.straypaw_id ?? undefined}>{animal?.straypaw_id ? shortCode(animal.straypaw_id) : "ID pending"}</small></span><ArrowUpRight size={14} aria-hidden /></Link>
             ) : <p className="small">Not linked to an animal yet.</p>}
           </section>
           <section className="cf-card">
             <h3 className="h3">Follow-ups <span className="mono small">{followups.length}</span></h3>
             <FollowupList file={file} onChanged={onChanged} />
           </section>
+          <Chronology history={history} onChanged={onChanged} />
           {sameAnimal.length > 0 && <Related title="Other cases on this animal" rows={sameAnimal} />}
-          {neighbours.length > 0 && <Related title="Other cases in this area" note="An area that keeps producing requests is itself something to act on." rows={neighbours} />}
+          {neighbours.length > 0 && <Related title="Other cases in this area" rows={neighbours} />}
           {reg.h3_r8 && <Link className="btn is-s" href={`/ngo/map?area=${reg.h3_r8}${reg.city ? `&city=${encodeURIComponent(reg.city)}` : ""}`}>See the area on the map</Link>}
         </aside>
       </div>
@@ -122,6 +118,20 @@ function Related({ title, note, rows }: { title: string; note?: string; rows: Ne
       <h3 className="h3">{title} <span className="mono small">{rows.length}</span></h3>
       {note && <p className="small">{note}</p>}
       <ul className="cs-rel">{rows.slice(0, 8).map((r) => <li key={r.id}><Link href={`/ngo/cases/${r.id}`}><span className="mono">{shortCode(r.case_code)}</span><b>{r.condition_class ?? r.title ?? "Request"}</b><small>{STATUS_META[(r.status_class ?? "unknown") as StatusClass]?.short ?? "—"} · {day(r.occurred_at)}</small></Link></li>)}</ul>
+    </section>
+  );
+}
+
+type HistoryRow = { id: string; kind: "update" | "care"; at: string; k: string; t: string; who: string | null | undefined };
+/* The case history beside the work: newest six, the rest one tap away. */
+function Chronology({ history, onChanged }: { history: HistoryRow[]; onChanged: () => Promise<void> }) {
+  const [all, setAll] = useState(false);
+  const rows = all ? history : history.slice(0, 6);
+  return (
+    <section className="cf-card cs-chrono">
+      <h3 className="h3">History <span className="mono small">{history.length}</span></h3>
+      {history.length ? <ol className="chrono">{rows.map((h, i) => <li key={`${h.kind}${h.id ?? i}`} className={`dr-row is-${h.k === "care" ? "care" : h.k === "note" ? "sight" : "report"}`}><time className="mono">{day(h.at)}</time><span><b>{h.t.charAt(0).toUpperCase() + h.t.slice(1)}</b></span><small>{h.k === "care" ? "Care" : h.k === "note" ? "Note" : "Status"}{h.who ? ` · ${h.who.includes("@") ? h.who.split("@")[0].replace(/^demo-/, "") : h.who}` : ""}</small>{h.id && <DeleteRecord kind={h.kind} id={h.id} what={h.k === "care" ? "this care record" : h.k === "note" ? "this note" : "this update"} onDone={() => void onChanged()} />}</li>)}</ol> : <p className="small">Nothing recorded yet.</p>}
+      {history.length > 6 && <button type="button" className="link cs-more" onClick={() => setAll((v) => !v)}>{all ? "Show fewer" : `Show all ${history.length}`}</button>}
     </section>
   );
 }

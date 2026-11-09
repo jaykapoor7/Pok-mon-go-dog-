@@ -11,7 +11,7 @@ import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myContext, orgNames, packageCases, packages, type AbcContext, type Package, type PackageCase } from "@/lib/abc";
 import { readContracts, readReconciliation, money, type Contract, type ContractRate, type Reconciliation } from "@/lib/reconciliation";
-import { isDecided, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
+import { isDecided, isVisibleToOffice, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 
 const days = (iso: string) => Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000));
 const REQUIRED = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"];
@@ -31,7 +31,7 @@ export function OfficeStrip({ onOffice, publicOpen, onPublic }: { onOffice?: (on
     let live = true;
     Promise.all([myContext(), packages()])
       .then(async ([c, p]) => {
-        const mine = p.filter((x) => c.offices.some((o) => o.id === x.office_id) && x.status !== "draft");
+        const mine = p.filter((x) => c.offices.some((o) => o.id === x.office_id) && isVisibleToOffice(x.status));
         if (!live) return;
         setCtx(c); setList(mine);
         if (!c.offices.length) return;

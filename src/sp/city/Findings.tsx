@@ -21,9 +21,9 @@ export function FindingView({ x, i, city, print }: { x: Finding; i: number; city
         <h2 id={`${x.id}-c`} className="fi-claim serif">{x.claim}</h2>
         <p className="fi-qual"><b>Limit</b> {x.qualify}</p>
         <FigureView fig={x.figure} />
-        {print ? <MethodLedger m={x.method} /> : (
-          <details className="fi-method"><summary>Method, unit and gaps</summary><MethodLedger m={x.method} /></details>
-        )}
+        {/* On screen the method folds away; on paper it is printed in full. */}
+        <details className="fi-method no-print"><summary>How this is counted</summary><MethodLedger m={x.method} /></details>
+        {print && <div className="print-only"><MethodLedger m={x.method} /></div>}
         {!print && (
           <p className="fi-links">
             {x.lens && <Link className="link" href={`/city?city=${encodeURIComponent(city)}&lens=${x.lens === "animals" ? "animals" : "requests"}`}>See it on the map</Link>}

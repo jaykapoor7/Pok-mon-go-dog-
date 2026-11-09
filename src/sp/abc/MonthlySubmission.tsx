@@ -19,6 +19,7 @@ import { operationRpc, verifyOperationReceipt, type OperationReceipt } from "@/l
 import { readContracts, readReconciliation } from "@/lib/reconciliation";
 import { getSupabase } from "@/lib/supabase";
 import { monthBounds, monthlyPlan } from "@/sp3/ai/monthly";
+import { holdsPeriod } from "@/lib/machines/package";
 
 const LABEL: Record<string, string> = { sterilisation: "Sterilisation (ABC)", vaccination: "Anti-rabies vaccination" };
 
@@ -39,7 +40,7 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
     Promise.all([verificationQueue(500), offices(), packages(), contractOffice()])
       .then(([r, o, p, k]) => {
         if (!live) return;
-        setRows(r); setOffs(o); setExisting(new Set(p.filter((x) => x.status !== "returned").map((x) => `${x.period_start.slice(0, 10)}|${x.office_id}`)));
+        setRows(r); setOffs(o); setExisting(new Set(p.filter((x) => holdsPeriod(x.status)).map((x) => `${x.period_start.slice(0, 10)}|${x.office_id}`)));
         if (k) setOffice(k); else if (o.length === 1) setOffice(o[0].id);
         setState("ok");
       })

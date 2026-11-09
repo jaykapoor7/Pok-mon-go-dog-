@@ -103,8 +103,12 @@
   .sp .cr-bar { padding: 10px 16px; }
 }
 
+/* Shown only on paper. */
+.sp .print-only { display: none; }
+
 @media print {
   @page { size: A4; margin: 16mm 14mm; }
+  .sp .print-only { display: block !important; }
   .sp-bar, .sp-tabs, .sp-skip, .no-print, nextjs-portal { display: none !important; }
   .sp .cr, .sp .sp-main { background: #fff !important; }
   body, .sp { background: #fff !important; }

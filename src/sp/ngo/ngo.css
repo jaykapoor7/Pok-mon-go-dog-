@@ -570,3 +570,15 @@
 /* Field mode: the day's count first, then one row of actions. */
 .sp .fd-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .sp .fd-tools .btn { min-height: 40px; }
+/* Case page: history sits beside the work, care entries read in two lines. */
+.sp .cs-chrono .chrono li { padding-right: 24px; }
+.sp .cs-chrono .chrono b { font-size: 13.5px; font-weight: 500; }
+.sp .cs-more { margin-top: 4px; font-size: 13px; }
+.sp .ops .ops-meta { color: #5b6475; font-size: 13px; }
+.sp .ops .ops-more { margin-top: 2px; }
+.sp .ops .ops-more summary { font-size: 13px; color: #2457ce; cursor: pointer; list-style: none; }
+.sp .ops .ops-more summary::-webkit-details-marker { display: none; }
+.sp .ops .ops-more[open] summary { margin-bottom: 4px; }
+/* Animal page: care notes read in three lines; the full note is one tap away. */
+.sp .cf-care li > p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sp .idn-open { justify-self: start; margin-top: 4px; }

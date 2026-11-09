@@ -17,6 +17,7 @@ import { getSupabase } from "@/lib/supabase";
 import { getMyAnimals, getPartnerMedicalEvents, type PartnerMedicalEvent } from "@/lib/animal-actions";
 import { getPartnerRecordRows, type PartnerRecordRow } from "@/lib/partner-record-explorer";
 import type { Volunteer } from "@/lib/team-actions";
+import { friendlyError } from "@/lib/friendly-error";
 
 const NOT_CONNECTED = "Not connected to the record.";
 const PARTIAL = "Only part of the record came back.";
@@ -30,7 +31,7 @@ async function org() {
   const supa = getSupabase();
   if (!supa) throw new Error(NOT_CONNECTED);
   const { data, error } = await supa.rpc("my_ngo");
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error.message));
   if (!data) throw new Error("Your organisation could not be found for this account.");
   return { supa, ngoId: data as string };
 }
@@ -104,7 +105,7 @@ export async function readVolunteers(): Promise<Volunteer[]> {
   const supa = getSupabase();
   if (!supa) throw new Error(NOT_CONNECTED);
   const { data, error } = await supa.rpc("org_volunteers");
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error.message));
   return (data ?? []) as Volunteer[];
 }
 
@@ -114,6 +115,6 @@ export type OwnStory = { id: string; case_id: string | null; title: string; loca
 export async function readOwnStories(): Promise<OwnStory[]> {
   const { supa, ngoId } = await org();
   const { data, error } = await supa.from("case_stories").select("id,case_id,title,location_label,published_at").eq("ngo_id", ngoId).order("published_at", { ascending: false, nullsFirst: false }).limit(50);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error.message));
   return (data ?? []) as OwnStory[];
 }
