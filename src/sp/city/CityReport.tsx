@@ -39,6 +39,7 @@ export function CityReport() {
       {error && <State kind="error" title="Didn't load">{error}</State>}
       {city && !loading && !error && (
         <article className="cr-doc">
+          <div className="print-only cr-brand" aria-hidden><b>StrayPaw</b><span>City report · {city} · printed {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</span></div>
           <section className="cr-cover">
             <p className="k">StrayPaw · city report</p>
             <h1 className="display">Street animals in {city}</h1>

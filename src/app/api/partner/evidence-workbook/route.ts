@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { partnerActor } from "@/lib/partner-actor";
 
 export const runtime = "nodejs";
 
-async function actor(request:Request){
-  const token=request.headers.get("authorization")?.replace(/^Bearer\s+/i,"");
-  const admin=getSupabaseAdmin();
-  if(!admin||!token)return null;
-  const {data:user}=await admin.auth.getUser(token);
-  if(!user.user)return null;
-  const {data:member}=await admin.from("ngo_members").select("ngo_id").eq("user_id",user.user.id).maybeSingle();
-  return member?.ngo_id?{admin,ngoId:member.ngo_id as string}:null;
-}
+const actor = partnerActor;
 async function paged(load:(from:number,to:number)=>any,max=25000){
   const rows:any[]=[];
   for(let from=0;from<max;from+=1000){
@@ -28,7 +20,20 @@ const careCategory=(kind:unknown)=>{const s=String(kind??"").toLowerCase();if(/v
 const within=(value:unknown,from:number|null,to:number|null)=>{if(!from&&!to)return true;const t=Date.parse(String(value??""));return Number.isFinite(t)&&(!from||t>=from)&&(!to||t<=to)};
 const contains=(value:unknown,q:string|null)=>!q||String(value??"").toLowerCase().includes(q.toLowerCase());
 
-function append(book:XLSX.WorkBook,name:string,rows:Record<string,unknown>[]){XLSX.utils.book_append_sheet(book,XLSX.utils.json_to_sheet(rows),name.slice(0,31));}
+function append(book:XLSX.WorkBook,name:string,rows:Record<string,unknown>[]){
+  const sheet=XLSX.utils.json_to_sheet(rows);const keys=Object.keys(rows[0]??{});
+  sheet["!cols"]=keys.map(k=>({wch:Math.min(48,Math.max(10,k.length+2,...rows.slice(0,200).map(r=>String(r[k]??"").length+2)))}));
+  if(rows.length&&keys.length)sheet["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length,c:keys.length-1}})};
+  XLSX.utils.book_append_sheet(book,sheet,name.slice(0,31));
+}
+/* The first sheet says what the workbook is, for whom, and how it was made. */
+function cover(book:XLSX.WorkBook,organisation:string,scope:string,period:string){
+  const sheets=book.SheetNames.filter(n=>n!=="About this workbook");
+  const about=XLSX.utils.aoa_to_sheet([["StrayPaw"],["Evidence workbook"],[],["Organisation",organisation],["Scope",scope],["Period",period],["Generated",new Date().toLocaleString("en-IN",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"})],[],["Sheets",sheets.join(", ")],[],["Method and limits"],["","Every row comes from the organisation's StrayPaw records, read with the account that downloaded this file."],["","Unknown or not recorded values are left as recorded; they are not negative results."],["","Private reporter contact fields are excluded."]]);
+  about["!cols"]=[{wch:16},{wch:96}];
+  XLSX.utils.book_append_sheet(book,about,"About this workbook");
+  book.SheetNames=["About this workbook",...sheets];
+}
 
 export async function GET(request:Request){
   const current=await actor(request);if(!current)return NextResponse.json({error:"Organisation access required."},{status:401});
@@ -65,6 +70,7 @@ export async function GET(request:Request){
     append(book,"Animals",animals.map((r:any)=>({"StrayPaw ID":r.straypaw_id??r.id,"Source / organisation ID":r.code??"",Name:r.name??"",Species:r.species??"animal",Sex:r.sex??"Unknown",Colour:r.color??"Unknown",Identifiers:r.identifiers??"",Locality:r.zone??"",Status:r.status??"",Sterilisation:r.sterilisation_status??"Unknown",Rabies:r.vaccination_status??"Unknown","First recorded":r.first_seen??r.created_at??"","Last seen":r.last_seen??"",Provenance:r.provenance??""})));
     append(book,"Care history",care.map((r:any)=>({"StrayPaw ID":r.dogs?.straypaw_id??r.dog_id,"Source / organisation ID":r.dogs?.code??"",Animal:r.dogs?.name??"","Case ID":r.case_id??"",Event:r.kind,Date:r.event_date,Locality:r.dogs?.zone??"","Performed by":r.performed_by??"",Notes:r.notes??""})));
   }
+  cover(book,ngo?.name??"Organisation",scope,fromText||toText?`${fromText??"Start"} to ${toText??"Present"}`:"All time");
   const date=new Date().toISOString().slice(0,10);
   return new Response(XLSX.write(book,{type:"buffer",bookType:"xlsx"}),{headers:{"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","Content-Disposition":`attachment; filename="straypaw-evidence-workbook-${date}.xlsx"`,"Cache-Control":"no-store"}});
 }

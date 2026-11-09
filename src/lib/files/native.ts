@@ -4,7 +4,7 @@ import mammoth from "mammoth";
 import JSZip from "jszip";
 import { Document, HeadingLevel, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
 import PptxGenJS from "pptxgenjs";
-import { buildPdf, type PdfBlock } from "@/lib/plain-pdf";
+import { buildBrandPdf } from "./brand-pdf";
 
 /* ════════════════════════════════════════════════════════════════════
    Native file handling for Kaju: no external account needed.
@@ -81,10 +81,12 @@ export function untrusted(source: string, text: string) {
 
 /* ── one report shape, five formats ───────────────────────────────── */
 export type Point = { name: string; lat: number; lng: number; props: Record<string, string> };
-export type Report = { title: string; subtitle?: string; columns: string[]; rows: (string | number)[][]; notes?: string[]; points?: Point[] };
+export type Report = { title: string; subtitle?: string; columns: string[]; rows: (string | number)[][]; notes?: string[]; points?: Point[]; organisation?: string; period?: string; eyebrow?: string };
+
+const generated = () => new Date().toLocaleString("en-IN", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
 
 export async function makeFile(kind: FileKind, r: Report): Promise<{ bytes: Buffer; mime: string; filename: string }> {
-  const base = r.title.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").slice(0, 60) || "StrayPaw-report";
+  const base = `StrayPaw-${r.title.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").slice(0, 60) || "report"}`;
   const filename = `${base}.${kind}`;
   if (kind === "geojson" || kind === "kml") {
     /* Map exports carry only records with real coordinates; the rest are counted, not guessed. */
@@ -99,22 +101,36 @@ export async function makeFile(kind: FileKind, r: Report): Promise<{ bytes: Buff
   }
   if (kind === "csv") {
     const esc = (v: unknown) => { const raw = String(v ?? ""); const s = /^[\s]*[=+@-]/.test(raw) ? `'${raw}` : raw; return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-    const csv = [r.columns, ...r.rows].map((row) => row.map(esc).join(",")).join("\n");
+    /* Two lines say what the file is and when it was made; the header row follows a blank line. */
+    const meta = [[`StrayPaw | ${r.title}${r.organisation ? ` | ${r.organisation}` : ""}`], [`Generated ${generated()} from StrayPaw records${r.period ? ` | ${r.period}` : ""}`], []];
+    const csv = [...meta, r.columns, ...r.rows].map((row) => row.map(esc).join(",")).join("\n");
     return { bytes: Buffer.from(`﻿${csv}`, "utf8"), mime: MIME.csv, filename };
   }
   if (kind === "xlsx") {
     const wb = XLSX.utils.book_new();
     /* Data starts at row 1 so filters, pivots and other tools read it directly; the title lives on its own sheet. */
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([r.columns, ...r.rows]), "Report");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[r.title], ...(r.subtitle ? [[r.subtitle]] : []), ...(r.notes ?? []).map((n) => [n])]), "About");
+    const data = XLSX.utils.aoa_to_sheet([r.columns, ...r.rows]);
+    data["!cols"] = r.columns.map((c, i) => ({ wch: Math.min(48, Math.max(10, c.length + 2, ...r.rows.slice(0, 200).map((row) => String(row[i] ?? "").length + 2))) }));
+    if (r.rows.length) data["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: r.rows.length, c: r.columns.length - 1 } }) };
+    XLSX.utils.book_append_sheet(wb, data, "Report");
+    const about = XLSX.utils.aoa_to_sheet([
+      ["StrayPaw"], [r.title], ...(r.subtitle ? [[r.subtitle]] : []), [],
+      ["Organisation", r.organisation ?? ""], ["Period", r.period ?? ""], ["Generated", generated()], ["Rows", r.rows.length], ["Source", "StrayPaw records, read with the account that downloaded this file"], [],
+      ...((r.notes ?? []).length ? [["Method and limits"], ...(r.notes ?? []).map((n) => ["", n])] : []),
+    ]);
+    about["!cols"] = [{ wch: 18 }, { wch: 100 }];
+    XLSX.utils.book_append_sheet(wb, about, "About this report");
     return { bytes: Buffer.from(XLSX.write(wb, { type: "buffer", bookType: "xlsx" })), mime: MIME.xlsx, filename };
   }
   if (kind === "docx") {
     const cell = (t: string, bold = false) => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: t, bold })] })] });
     const doc = new Document({ sections: [{ children: [
+      new Paragraph({ children: [new TextRun({ text: "StrayPaw", bold: true, color: "2457CE" })] }),
       new Paragraph({ text: r.title, heading: HeadingLevel.HEADING_1 }),
+      new Paragraph({ children: [new TextRun({ text: [r.organisation, r.period, `Generated ${generated()}`].filter(Boolean).join("  |  "), color: "6B7486", size: 18 })] }),
       ...(r.subtitle ? [new Paragraph({ text: r.subtitle })] : []),
       new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [new TableRow({ children: r.columns.map((c) => cell(c, true)) }), ...r.rows.map((row) => new TableRow({ children: row.map((v) => cell(String(v ?? ""))) }))] }),
+      ...((r.notes ?? []).length ? [new Paragraph({ text: "Method and limits", heading: HeadingLevel.HEADING_2 })] : []),
       ...(r.notes ?? []).map((n) => new Paragraph({ text: n })),
     ] }] });
     return { bytes: Buffer.from(await Packer.toBuffer(doc)), mime: MIME.docx, filename };
@@ -123,6 +139,9 @@ export async function makeFile(kind: FileKind, r: Report): Promise<{ bytes: Buff
     const p = new PptxGenJS();
     p.layout = "LAYOUT_WIDE";
     const t = p.addSlide();
+    t.addShape(p.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 0.9, fill: { color: "2457CE" } });
+    t.addText("StrayPaw", { x: 0.6, y: 0.15, w: 6, h: 0.6, fontSize: 20, bold: true, color: "FFFFFF" });
+    t.addText(`Generated ${generated()}`, { x: 0.6, y: 6.6, w: 12, h: 0.4, fontSize: 12, color: "6B7486" });
     t.addText(r.title, { x: 0.6, y: 2.2, w: 12, h: 1, fontSize: 36, bold: true, color: "0B1E3D" });
     if (r.subtitle) t.addText(r.subtitle, { x: 0.6, y: 3.2, w: 12, h: 0.6, fontSize: 18, color: "5F6B7E" });
     for (let i = 0; i < Math.max(1, r.rows.length); i += 12) {
@@ -134,12 +153,14 @@ export async function makeFile(kind: FileKind, r: Report): Promise<{ bytes: Buff
     const out = await p.write({ outputType: "nodebuffer" });
     return { bytes: Buffer.from(out as ArrayBuffer), mime: MIME.pptx, filename };
   }
-  const blocks: PdfBlock[] = [
-    { text: r.title, size: 18, bold: true, gapAfter: 4 },
-    ...(r.subtitle ? [{ text: r.subtitle, size: 10, gapAfter: 10 }] : [{ text: "", gapAfter: 6 }]),
-    { text: r.columns.join("  |  "), size: 9, bold: true, gapAfter: 2 },
-    ...r.rows.map((row) => ({ text: row.map((v) => String(v ?? "")).join("  |  "), size: 9 })),
-    ...(r.notes ?? []).map((n, i) => ({ text: n, size: 9, gapBefore: i === 0 ? 10 : 0 })),
-  ];
-  return { bytes: buildPdf(blocks), mime: MIME.pdf, filename };
+  /* Paper holds about a dozen readable columns: provenance fields (hashes, snapshot
+     times) stay in the spreadsheet and CSV exports of the same report. */
+  const keep = r.columns.length > 12 ? r.columns.map((c, i) => (/hash|snapshot|source id/i.test(c) ? -1 : i)).filter((i) => i >= 0) : r.columns.map((_, i) => i);
+  const dropped = r.columns.length - keep.length;
+  const bytes = buildBrandPdf({
+    title: r.title, eyebrow: r.eyebrow ?? "Report", organisation: r.organisation, period: r.period, facts: r.subtitle ? [r.subtitle] : [],
+    sections: [{ table: { columns: keep.map((i) => r.columns[i]), rows: r.rows.map((row) => keep.map((i) => row[i])) } }],
+    notes: [...(r.notes ?? []), ...(dropped ? [`${dropped} provenance column${dropped === 1 ? "" : "s"} (source hashes, snapshot times) are in the spreadsheet and CSV versions of this report.`] : [])],
+  });
+  return { bytes, mime: MIME.pdf, filename };
 }

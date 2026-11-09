@@ -245,3 +245,11 @@
 .sp button.os-divider:hover em { text-decoration: underline; }
 @media (max-width: 900px) { .sp .os-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 480px) { .sp .os-money { grid-template-columns: 1fr 1fr; } .sp .os-money div:last-child { grid-column: 1 / -1; } .sp .os-table th:nth-child(2), .sp .os-table td:nth-child(2) { display: none; } }
+
+/* Printed city report: the StrayPaw band on the first page, page numbers on every page. */
+@media print {
+  .sp .cr-brand { display: flex !important; justify-content: space-between; align-items: center; margin: 0 0 18px; padding: 12px 16px; border-radius: 8px; background: #2457ce !important; color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sp .cr-brand b { font-size: 16px; font-weight: 700; }
+  .sp .cr-brand span { font-size: 10px; }
+  @page { margin: 14mm 14mm 16mm; @bottom-left { content: "StrayPaw · city report"; font: 8pt sans-serif; color: #6b7486; } @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt sans-serif; color: #6b7486; } }
+}

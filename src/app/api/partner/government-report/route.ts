@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
-import { buildPdf, type PdfBlock } from "@/lib/plain-pdf";
+import { partnerActor } from "@/lib/partner-actor";
+import { buildBrandPdf, type BrandSection } from "@/lib/files/brand-pdf";
 
 export const runtime = "nodejs";
 
-async function actor(request: Request) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  const admin = getSupabaseAdmin();
-  if (!admin || !token) return null;
-  const { data: identity } = await admin.auth.getUser(token);
-  if (!identity.user) return null;
-  const { data: member } = await admin.from("ngo_members").select("ngo_id").eq("user_id", identity.user.id).maybeSingle();
-  return member?.ngo_id ? { admin, ngoId: member.ngo_id as string } : null;
-}
+const actor = partnerActor;
 
 async function paged(load: (from:number,to:number)=>any, max=25000) {
   const rows:any[]=[];
@@ -69,34 +61,25 @@ export async function GET(request:Request){
 
   const periodLabel=fromText||toText?`${fromText??"Start"} to ${toText??"Present"}`:"All time";
   const filters=[category!=="all"?category:null,status!=="all"?status:null,locality].filter(Boolean).join(" · ")||"All work";
-  const blocks:PdfBlock[]=[
-    {text:"STRAYPAW",size:11,bold:true,gapAfter:4},
-    {text:clean(ngo?.name??"Organisation"),size:20,bold:true,gapAfter:2},
-    {text:[ngo?.city,ngo?.state].filter(Boolean).join(", "),size:9,gapAfter:14},
-    {text:scope,size:22,bold:true,gapAfter:3},
-    {text:"Operational evidence report",size:11,bold:true,gapAfter:3},
-    {text:`Period: ${periodLabel} | Filters: ${filters} | Generated: ${new Date().toLocaleDateString("en-IN")}`,size:9,gapAfter:16},
-  ];
-
+  const sections:BrandSection[]=[];
   if(survey){
     const observations=responses.reduce((n:number,r:any)=>n+Number(r.count??1),0);
-    blocks.push({text:"Headline record",size:14,bold:true,gapAfter:6},{text:`Responses: ${responses.length.toLocaleString()} | Animals / observations: ${observations.toLocaleString()} | Areas: ${areas.length.toLocaleString()}`,size:10,gapAfter:12},{text:"Area coverage",size:13,bold:true,gapAfter:5});
     const counts=new Map<string,{responses:number;animals:number}>();for(const r of responses)if(r.area_id){const c=counts.get(r.area_id)??{responses:0,animals:0};c.responses++;c.animals+=Number(r.count??1);counts.set(r.area_id,c)}
-    for(const a of areas.slice(0,120)){const c=counts.get(a.id)??{responses:0,animals:0};blocks.push({text:`${clean(a.name)} - ${clean(a.status||"pending")} - ${c.responses} responses - ${c.animals} observations`,size:9,gapAfter:2});}
+    sections.push({heading:"Headline record",figures:[{label:"Responses",value:responses.length.toLocaleString("en-IN")},{label:"Animals / observations",value:observations.toLocaleString("en-IN")},{label:"Areas",value:areas.length.toLocaleString("en-IN")}]});
+    sections.push({heading:"Area coverage",table:{columns:["Area","Status","Responses","Observations"],rows:areas.slice(0,120).map((a:any)=>{const c=counts.get(a.id)??{responses:0,animals:0};return[clean(a.name),clean(a.status||"pending"),c.responses,c.animals]}),caption:areas.length>120?`First 120 of ${areas.length.toLocaleString("en-IN")} areas.`:undefined}});
   }else{
     const closed=cases.filter((r:any)=>isClosed(r.status)).length;
     const treatment=care.filter((r:any)=>careCategory(r.kind)==="treatment").length;
     const vaccination=care.filter((r:any)=>careCategory(r.kind)==="vaccination").length;
     const sterilisation=care.filter((r:any)=>careCategory(r.kind)==="sterilisation").length;
-    blocks.push({text:"Headline record",size:14,bold:true,gapAfter:6},{text:`Cases: ${cases.length.toLocaleString()} | Completion: ${cases.length?Math.round(closed/cases.length*100):0}% | Care events: ${care.length.toLocaleString()} | Animals in scope: ${animals.length.toLocaleString()}`,size:10,gapAfter:12},{text:"Care delivered",size:13,bold:true,gapAfter:5},{text:`Treatment / medical: ${treatment.toLocaleString()} | Rabies / vaccination: ${vaccination.toLocaleString()} | ABC / sterilisation: ${sterilisation.toLocaleString()}`,size:10,gapAfter:12});
+    sections.push({heading:"Headline record",figures:[{label:"Cases",value:cases.length.toLocaleString("en-IN")},{label:"Closed",value:`${cases.length?Math.round(closed/cases.length*100):0}%`},{label:"Care events",value:care.length.toLocaleString("en-IN")},{label:"Animals in scope",value:animals.length.toLocaleString("en-IN")}]});
+    sections.push({heading:"Care delivered",figures:[{label:"ABC / sterilisation",value:sterilisation.toLocaleString("en-IN")},{label:"Rabies / vaccination",value:vaccination.toLocaleString("en-IN")},{label:"Treatment / medical",value:treatment.toLocaleString("en-IN")}]});
     const places=new Map<string,number>();for(const r of [...cases,...care]){const p=clean(r.zone??r.dogs?.zone)||"Not recorded";places.set(p,(places.get(p)??0)+1)}
-    blocks.push({text:"Where work concentrated",size:13,bold:true,gapAfter:5});for(const [place,n] of [...places.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12))blocks.push({text:`${place}: ${n.toLocaleString()} recorded activities`,size:9,gapAfter:2});
-    blocks.push({text:"Case register excerpt",size:13,bold:true,gapBefore:10,gapAfter:5});
-    for(const r of cases.slice(0,120)){blocks.push({text:`${String(r.source_event_at??r.created_at??"").slice(0,10)} | ${clean(r.case_code??r.id)} | ${clean(r.dogs?.straypaw_id??r.dogs?.name)} | ${clean(r.zone??r.dogs?.zone)} | ${clean(r.status)} | ${clean(r.outcome_note??r.resolution)}`,size:8,gapAfter:2});}
-    if(cases.length>120)blocks.push({text:`Case excerpt shows 120 of ${cases.length.toLocaleString()} filtered cases. Use the evidence workbook for the complete row-level register.`,size:9,bold:true,gapBefore:5});
+    sections.push({heading:"Where work concentrated",table:{columns:["Locality","Recorded activities"],rows:[...places.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12).map(([place,n])=>[place,n.toLocaleString("en-IN")])}});
+    sections.push({heading:"Case register excerpt",table:{columns:["Date","Case","Animal","Locality","Status","Outcome"],rows:cases.slice(0,120).map((r:any)=>[String(r.source_event_at??r.created_at??"").slice(0,10),clean(r.case_code??r.id),clean(r.dogs?.straypaw_id??r.dogs?.name),clean(r.zone??r.dogs?.zone),clean(r.status),clean(r.outcome_note??r.resolution)]),caption:cases.length>120?`First 120 of ${cases.length.toLocaleString("en-IN")} filtered cases. The evidence workbook holds the complete register.`:undefined}});
   }
-  blocks.push({text:"Evidence note",size:13,bold:true,gapBefore:14,gapAfter:5},{text:"Prepared from the organisation's StrayPaw records. Aggregate programme totals and individually traceable animal records remain distinct. Private reporter contact fields are excluded by default. Source records remain available in the evidence workbook and provenance trail.",size:9});
-  const pdf=buildPdf(blocks);
+  const pdf=buildBrandPdf({title:scope,eyebrow:"Operational evidence report",organisation:[clean(ngo?.name??"Organisation"),[ngo?.city,ngo?.state].filter(Boolean).join(", ")].filter(Boolean).join(", "),period:periodLabel,facts:[`Filters: ${filters}`],sections,
+    notes:["Prepared from the organisation's StrayPaw records. Aggregate programme totals and individually traceable animal records remain distinct.","Private reporter contact fields are excluded by default.","Source records remain available in the evidence workbook and provenance trail."]});
   const body=Uint8Array.from(pdf);
   const date=new Date().toISOString().slice(0,10);
   return new Response(body,{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="straypaw-government-report-${date}.pdf"`,"Cache-Control":"no-store"}});
