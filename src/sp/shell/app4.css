@@ -655,28 +655,96 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp.sx3 .wk2-start > svg:first-child { width: 18px; height: 18px; }
 .sp .wk2:has(> .wk2-start) { grid-template-rows: auto auto minmax(0, 1fr); }
 
-/* 7 · Today. The five stages are one connected strip on a desk and one
-      list on a phone (label left, count right, 48px rows) — five squeezed
-      tiles could not hold their own labels at 390px. An unread count is
-      said quietly, never set at figure size. */
-.sp.sx3 .br .jy .jy-c.is-na { font-size: 13px; font-weight: 400; letter-spacing: 0; color: #6b7486; align-self: end; padding-bottom: 5px; }
-@media (min-width: 861px) {
-  .sp.sx3 .br .jy ol { gap: 0; border: 1px solid #e4e8f0; border-radius: 12px; background: #fff; overflow: hidden; }
-  .sp.sx3 .br .jy li + li { border-left: 1px solid #e4e8f0; }
-  .sp.sx3 .br .jy a { border-radius: 0; box-shadow: none; min-height: 92px; }
-  .sp.sx3 .br .jy a:hover { transform: none; box-shadow: none; background: #f7f9fd; }
+/* 7 · Today: one sheet. The five stages are a pipeline, a single line the
+      record travels with a node per stage (the same line the website
+      draws). Under it, in the same sheet, what needs you and what Kaju
+      prepared share a hairline, and the question box is the sheet's foot.
+      On a phone the line turns upright and each stage is one 52px row. */
+.sp.sx3 .br .br-sheet { margin-top: 22px; border: 1px solid #dfe5f1; border-radius: 16px; background: #fff; overflow: hidden; }
+.sp.sx3 .br .br-sheet .jy { margin: 0; border-bottom: 1px solid #e9edf5; }
+.sp.sx3 .br .br-sheet .jy ol { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 0 !important; margin: 0 !important; padding: 0 !important; border: 0; border-radius: 0; background: none; overflow: visible !important; }
+.sp.sx3 .br .jy li { position: relative; min-width: 0 !important; border: 0 !important; animation: none; }
+.sp.sx3 .br .jy li::before { content: ""; position: absolute; left: 0; right: 0; top: 81px; height: 2px; background: #dfe5f1; transform-origin: 0 50%; }
+.sp.sx3 .br .jy li:first-child::before { left: 30px; }
+.sp.sx3 .br .jy li:last-child::before { right: auto; width: 30px; }
+.sp.sx3 .br .jy a { position: relative; display: grid !important; grid-template-columns: 1fr !important; grid-template-rows: 44px 30px auto !important; justify-items: start !important; text-align: left !important; gap: 0 !important; min-height: 0; padding: 22px 24px 20px !important; border-radius: 0; background: none; box-shadow: none; transition: background-color 160ms ease; }
+.sp.sx3 .br .jy a:hover { transform: none; box-shadow: none; background: #f7f9fd; }
+.sp.sx3 .br .jy a:focus-visible { outline: 2px solid #2457ce; outline-offset: -2px; }
+.sp.sx3 .br .jy .jy-c { grid-row: 1; grid-column: 1; margin: 0; align-self: end; font-size: 34px; line-height: 44px; font-weight: 500; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; color: #b3b9c6; text-align: left; justify-self: start; }
+.sp.sx3 .br .jy .jy-c.is-on { color: #0b1e3d; }
+.sp.sx3 .br .jy .jy-c.is-na { font-size: 13px; line-height: 44px; font-weight: 400; letter-spacing: 0; color: #6b7486; padding: 0; }
+.sp.sx3 .br .jy .jy-n { display: block; grid-row: 2; grid-column: 1; align-self: center; margin: 0; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid #b9c6e4; box-shadow: 0 0 0 4px #fff; position: relative; z-index: 1; font-size: 0; }
+.sp.sx3 .br .jy .jy-n.is-on { background: #2457ce; border-color: #2457ce; }
+.sp.sx3 .br .jy li.is-mine .jy-n { box-shadow: 0 0 0 4px #fff, 0 0 0 6px rgba(36, 87, 206, .22); }
+.sp.sx3 .br .jy .jy-t { grid-row: 3; grid-column: 1; display: grid; gap: 1px; max-width: 100%; overflow: visible; white-space: normal; }
+.sp.sx3 .br .jy .jy-t b { font-size: 14px !important; font-weight: 500; color: #0b1e3d; letter-spacing: -0.01em; }
+.sp.sx3 .br .jy .jy-t small { display: block; font-size: 12.5px; line-height: 1.35; color: #6b7486; }
+@media (prefers-reduced-motion: no-preference) {
+  .sp.sx3 .br .jy li::before { animation: sp5-line 620ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--k, 0) * 90ms); }
+  .sp.sx3 .br .jy .jy-n { animation: sp5-node 380ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(120ms + var(--k, 0) * 90ms); }
+  .sp.sx3 .br .jy .jy-c { animation: sp5-rise 420ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(160ms + var(--k, 0) * 90ms); }
+  @keyframes sp5-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes sp5-line-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes sp5-node { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes sp5-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 }
+.sp.sx3 .br .jy li:nth-child(2) { --k: 1; } .sp.sx3 .br .jy li:nth-child(3) { --k: 2; } .sp.sx3 .br .jy li:nth-child(4) { --k: 3; } .sp.sx3 .br .jy li:nth-child(5) { --k: 4; }
+
+.sp.sx3 .br .br-sheet .br-warn { margin: 0; padding: 10px 24px; border-bottom: 1px solid #f1e3c2; background: #fffaf0; }
+.sp.sx3 .br .br-sheet .br-grid { margin: 0; gap: 0; }
+.sp.sx3 .br .br-sheet .br-card { padding: 20px 24px 22px; border-radius: 0; background: none; box-shadow: none; animation: none; }
+.sp.sx3 .br .br-sheet .br-card + .br-card { border-left: 1px solid #e9edf5; }
+.sp.sx3 .br .br-sheet .br-card-h h2 { font-size: 14px; font-weight: 500; }
+.sp.sx3 .br .br-sheet .br-ask { margin: 0; height: 56px; padding: 0 12px 0 24px; border-radius: 0; background: #fafbfe; box-shadow: none; border-top: 1px solid #e9edf5; }
+.sp.sx3 .br .br-sheet .br-ask:focus-within { box-shadow: inset 0 0 0 2px #2457ce; background: #fff; }
+.sp.sx3 .br .br-sheet .br-chips { margin: 0; padding: 0 24px 14px; background: #fafbfe; }
+.sp.sx3 .br .br-sheet .br-chips:empty { display: none; }
+.sp.sx3 .br .br-sheet .br-skel { margin: 20px 24px; }
+
 @media (max-width: 860px) {
-  .sp.sx3 .br .jy ol { display: grid !important; grid-template-columns: 1fr !important; gap: 0 !important; border: 1px solid #e4e8f0; border-radius: 12px; background: #fff; overflow: hidden !important; }
-  .sp.sx3 .br .jy li + li { border-top: 1px solid #eef0f4; }
-  .sp.sx3 .br .jy a { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; grid-template-rows: auto !important; justify-items: start !important; align-items: center; text-align: left !important; gap: 12px; min-height: 48px; padding: 8px 14px !important; border-radius: 0; box-shadow: none; }
-  .sp.sx3 .br .jy .jy-t { grid-row: 1; grid-column: 1; display: flex; align-items: baseline; gap: 8px; overflow: hidden; }
-  .sp.sx3 .br .jy .jy-t b { font-size: 14.5px !important; font-weight: 500; color: #0b1e3d; }
-  .sp.sx3 .br .jy .jy-t small { display: block; font-size: 12.5px; color: #6b7486; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sp.sx3 .br .jy .jy-c { grid-row: 1; grid-column: 2; margin: 0; font-size: 17px; justify-self: end; font-variant-numeric: tabular-nums; }
-  .sp.sx3 .br .jy .jy-c.is-na { padding: 0; align-self: center; }
-  .sp.sx3 .br .jy .jy-n { display: none; }
+  .sp.sx3 .br .br-sheet { margin-top: 16px; border-radius: 14px; }
+  .sp.sx3 .br .br-sheet .jy ol { grid-template-columns: 1fr !important; padding: 6px 0 !important; }
+  .sp.sx3 .br .jy li::before { left: 21px; right: auto; top: 0; bottom: 0; width: 2px; height: auto; transform-origin: 50% 0; animation-name: sp5-line-y; }
+  .sp.sx3 .br .jy li:first-child::before { left: 21px; top: 50%; }
+  .sp.sx3 .br .jy li:last-child::before { width: 2px; bottom: 50%; }
+  .sp.sx3 .br .jy a { grid-template-columns: 12px minmax(0, 1fr) auto !important; grid-template-rows: auto !important; align-items: center; column-gap: 14px !important; min-height: 52px; padding: 8px 16px !important; }
+  .sp.sx3 .br .jy .jy-n { grid-row: 1; grid-column: 1; }
+  .sp.sx3 .br .jy .jy-t { grid-row: 1; grid-column: 2; display: flex; align-items: baseline; gap: 8px; overflow: hidden; }
+  .sp.sx3 .br .jy .jy-t b { font-size: 14.5px !important; flex: none; }
+  .sp.sx3 .br .jy .jy-t small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp.sx3 .br .jy .jy-c { grid-row: 1; grid-column: 3; justify-self: end; font-size: 19px; line-height: 1.2; align-self: center; }
+  .sp.sx3 .br .jy .jy-c.is-na { line-height: 1.2; }
+  .sp.sx3 .br .br-sheet .br-card { padding: 16px; }
+  .sp.sx3 .br .br-sheet .br-card + .br-card { border-left: 0; border-top: 1px solid #e9edf5; }
+  .sp.sx3 .br .br-sheet .br-warn { padding: 10px 16px; }
+  .sp.sx3 .br .br-sheet .br-ask { height: 52px; padding: 0 8px 0 16px; }
+  .sp.sx3 .br .br-sheet .br-chips { padding: 0 16px 12px; }
 }
+
+/* 7b · Government overview: the same sheet. Decisions are a strip, claims
+       and operators share a hairline beneath it; nothing floats on its own. */
+.sp.sx3 .os .os-tiles { gap: 0; border: 1px solid #dfe5f1; border-radius: 16px 16px 0 0; background: #fff; overflow: hidden; }
+.sp.sx3 .os .os-tiles li + li { border-left: 1px solid #e9edf5; }
+.sp.sx3 .os .os-tiles a { padding: 20px 24px; border-radius: 0; box-shadow: none; gap: 4px; }
+.sp.sx3 .os .os-tiles a:hover { transform: none; box-shadow: none; background: #f7f9fd; }
+.sp.sx3 .os .os-tiles .is-due a { box-shadow: inset 0 -2px 0 #2457ce; }
+.sp.sx3 .os .os-tiles b { font-size: 34px; line-height: 1.1; font-weight: 500; letter-spacing: -0.035em; }
+.sp.sx3 .os .os-tiles svg { top: 20px; right: 20px; }
+.sp.sx3 .os .os-tiles span { padding-right: 24px; }
+.sp.sx3 .os .os-grid { gap: 0; margin-top: 0; border: 1px solid #dfe5f1; border-top: 0; border-radius: 0 0 16px 16px; background: #fff; overflow: hidden; }
+.sp.sx3 .os .os-card { padding: 20px 24px 22px; border-radius: 0; box-shadow: none; background: none; }
+.sp.sx3 .os .os-card + .os-card { border-left: 1px solid #e9edf5; }
+.sp.sx3 .os .os-card h3 { font-weight: 500; }
+@media (max-width: 900px) {
+  .sp.sx3 .os .os-tiles li:nth-child(odd) { border-left: 0; }
+  .sp.sx3 .os .os-tiles li:nth-child(n + 3) { border-top: 1px solid #e9edf5; }
+  .sp.sx3 .os .os-tiles a { padding: 16px; }
+  .sp.sx3 .os .os-tiles b { font-size: 28px; }
+  .sp.sx3 .os .os-grid { grid-template-columns: 1fr; }
+  .sp.sx3 .os .os-card { padding: 16px; }
+  .sp.sx3 .os .os-card + .os-card { border-left: 0; border-top: 1px solid #e9edf5; }
+}
+@media (max-width: 760px) { .sp.sx3 .os { padding-left: 0; padding-right: 0; } }
 
 /* 8 · Kaju docked. The panel is 440px wide; the page reserved 400px, so the
       panel covered the top bar's primary action. Reserve what it takes. */

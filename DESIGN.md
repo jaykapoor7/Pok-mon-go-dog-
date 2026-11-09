@@ -36,6 +36,13 @@ These replace the matching lines of 4.0 below. Evidence and reasoning:
 - **Back** appears only on a record or form (a page below a named place).
   Named places are reached from the sidebar, tabs and breadcrumb. Section
   tabs do not appear on a record.
+- **The record line** is StrayPaw's motif: one thin blue line with a node
+  per step. It is the homepage's chapter rail and reading bar and the
+  pipeline on NGO Today. Use it for sequence; do not decorate with it.
+- **One object per idea.** A section or dashboard is one framed surface
+  (hairline `#dfe5f1`, radius 16 in the app and 20 on the site, ground
+  `#f5f7fb` where a product screen sits) divided by hairlines. Do not set
+  related things as separate floating cards.
 - **Stat strips on a phone** are a list (label left, count right, 48px
   rows), never five squeezed tiles. An unread count says "not read" at
   text size, never at figure size.

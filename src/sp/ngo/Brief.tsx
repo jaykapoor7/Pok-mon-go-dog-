@@ -139,6 +139,8 @@ export function Brief() {
               return <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? ", and " : ", ")}{p}</Fragment>)}.</>;
             })()}</p>}
 
+        {/* One sheet: the pipeline, what needs you, what Kaju prepared and the question box are parts of one surface. */}
+        <div className="br-sheet">
         {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
         {d && <>
           {d.unavailable.length>0&&<p role="status" className="br-warn">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
@@ -162,6 +164,7 @@ export function Brief() {
           </form>
           <div className="br-chips">{(todo.length ? ["What should I do first today, and why?"] : []).concat(out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3).map((t) => <button key={t} type="button" onClick={() => send(t)}><Sparkles size={12} aria-hidden />{t}</button>)}</div>
         </>}
+        </div>
       </div>
 
     </div>
