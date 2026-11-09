@@ -45,15 +45,14 @@ export function Programmes() {
         {creating && leader && <NewDrive onDone={() => { setCreating(false); void load(); }} onCancel={() => setCreating(false)} />}
         {o && (
           <section className="pg-all">
-            <div><p className="k">Whole register · sterilisation</p><Partition yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" /></div>
-            <div><p className="k">Whole register · vaccination</p><Partition yes={o.vaccinated} no={o.not_vaccinated} unknown={o.vacc_unknown} yesLabel="vaccinated" /></div>
-            {bd && bd.unfiled.animals > 0 && <p className="small">{n(bd.unfiled.animals)} of these animals are not in any drive yet. Start a drive to read a camp’s own coverage.</p>}
+            <div><p className="k">Whole register · sterilisation</p><Partition yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" /></div>
+            <div><p className="k">Whole register · vaccination</p><Partition yes={o.vaccinated} no={o.not_vaccinated} unknown={o.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" /></div>
           </section>
         )}
         <div className="wk-tools"><button type="button" className="chip" aria-pressed={archived} onClick={() => setArchived((v) => !v)}>Include archived drives</button></div>
         {error&&<State kind="error" title="Programmes not read" action={<button className="btn" onClick={()=>void load()}>Try again</button>}>{error}</State>}
         {drives === null && !error && <div className="stack" style={{ padding: "0 28px" }}>{[0, 1, 2].map((i) => <div key={i} className="skel" style={{ height: 120 }} />)}</div>}
-        {drives && !drives.length && leader && <State art="ngo-empty" title="No drive yet" action={<button type="button" className="btn is-ink" onClick={() => setCreating(true)}>Start a drive</button>}>A drive groups the animals your team sees during a sterilisation, vaccination, census or treatment camp, so its coverage can be read honestly.</State>}
+        {drives && !drives.length && leader && <State art="ngo-empty" title="No drive yet" action={<button type="button" className="btn is-ink" onClick={() => setCreating(true)}>Start a drive</button>}>Group the animals from a sterilisation, vaccination or census camp to see its coverage.</State>}
         <ol className="pg-list">
           {drives?.map((d) => (
             <li key={d.id}>
@@ -61,8 +60,8 @@ export function Programmes() {
                 <div className="pg-id"><span className="pill is-plain">{KIND_LABEL[d.kind]}</span><b className="serif">{d.name}</b><small>{[d.zone, d.starts_on && `from ${day(d.starts_on)}`, d.ends_on && `to ${day(d.ends_on)}`].filter(Boolean).join(" · ") || "No dates recorded"}{d.archived ? " · archived" : ""}</small></div>
                 <div className="pg-fig"><b>{n(d.total)}</b><small>animals · {n(d.observations)} observations · {n(d.people)} people</small></div>
                 <div className="pg-parts">
-                  <div><span className="small">Sterilisation</span><Partition yes={d.sterilised} no={d.not_sterilised} unknown={d.ster_unknown} yesLabel="sterilised" compact /></div>
-                  <div><span className="small">Vaccination</span><Partition yes={d.vaccinated} no={d.not_vaccinated} unknown={d.vacc_unknown} yesLabel="vaccinated" compact /></div>
+                  <div><span className="small">Sterilisation</span><Partition yes={d.sterilised} no={d.not_sterilised} unknown={d.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" compact /></div>
+                  <div><span className="small">Vaccination</span><Partition yes={d.vaccinated} no={d.not_vaccinated} unknown={d.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" compact /></div>
                 </div>
                 <ArrowUpRight size={16} aria-hidden />
               </Link>

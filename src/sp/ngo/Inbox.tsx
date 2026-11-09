@@ -71,7 +71,7 @@ export function Inbox() {
       <div className="ngo-page ib">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · intake</p><h1 className="serif">Intake</h1></div>
-          <p className="ngo-sum">Reports from WhatsApp, the web and residents near you. Kaju prepares each one and checks it against your register; you decide what it becomes.</p>
+          <p className="ngo-sum">Reports from WhatsApp, the web and residents near you.</p>
         </header>
         <PageBrief items={[["For", "Reports waiting for a person: sent to you, and community reports near you."], ["Watch", "Injured or unwell first."], ["Next", "File into a drive, or open a case."], ["After", "It leaves the inbox; the reporter’s receipt still says received, not accepted."]]} />
         <div className="ib-grid">

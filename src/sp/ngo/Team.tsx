@@ -86,10 +86,10 @@ export function Team() {
           </section>
           <aside className="stack">
             {lead ? <Invite onDone={after} /> : <div className="cf-card"><h3 className="h3">Add someone</h3><p className="small">Ask a lead in your organisation. Leads add people and set roles; the database refuses it for anyone else.</p></div>}
-            <div className="cf-card">
-              <h3 className="h3">What each role can do</h3>
+            <details className="cf-card tm-roles-fold">
+              <summary className="h3">What each role can do</summary>
               <dl className="tm-roles">{CAN.map((c) => <div key={c.role}><dt>{c.role}</dt><dd><ul>{c.can.map((x) => <li key={x}>{x}</li>)}</ul></dd></div>)}</dl>
-            </div>
+            </details>
           </aside>
         </div>
       </div>

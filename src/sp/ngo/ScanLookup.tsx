@@ -38,7 +38,7 @@ export function ScanLookup() {
   return (
     <NgoGate title="Scan" lede="Find an animal by its microchip, RFID tag or QR code.">
       <div className="ngo-page scan">
-        <header className="ngo-head"><h1>Scan to find an animal</h1><p className="ngo-sum">Scan a microchip, RFID tag or StrayPaw QR code, or type the number. Your organisation&apos;s animals open straight away.</p></header>
+        <header className="ngo-head"><h1>Scan to find an animal</h1><p className="ngo-sum">Scan a microchip, RFID tag or QR code, or type the number.</p></header>
         <form className="scan-form" onSubmit={(e) => { e.preventDefault(); void find(value); }}>
           <input ref={input} autoFocus value={value} onChange={(e) => setValue(e.target.value)} placeholder="Scan or type an identifier" aria-label="Identifier" autoComplete="off" spellCheck={false} maxLength={80} />
           <button className="btn is-flame" type="submit" disabled={busy || value.trim().length < 3}>{busy ? "Finding…" : "Find"}</button>

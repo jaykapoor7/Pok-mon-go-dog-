@@ -11,6 +11,7 @@ import { ArrowRight, Check, MapPin, MessageCircle, Sparkles, X } from "lucide-re
 import { careInbox, careInboxAct } from "@/lib/careos/inbox";
 import type { CareInboxItem, CareUrgency } from "@/lib/careos/contract";
 import { useAi } from "@/sp3/ai/AiPanel";
+import { Reading } from "../ui/Reading";
 import "./whatsapp-inbox.css";
 
 type Load = { kind: "loading" } | { kind: "ok"; items: CareInboxItem[] } | { kind: "unlinked" } | { kind: "error" };
@@ -52,7 +53,7 @@ export function WhatsAppInbox({ admin }: { admin: boolean }) {
     else setNote("That did not go through. Try again.");
   };
 
-  if (st.kind === "loading") return <section className="wi" aria-busy="true" aria-label="WhatsApp"><p className="wi-quiet">Reading WhatsApp…</p></section>;
+  if (st.kind === "loading") return <section className="wi" aria-busy="true" aria-label="WhatsApp"><p className="wi-quiet"><Reading>Reading WhatsApp</Reading></p></section>;
   if (st.kind === "unlinked") return (
     <section className="wi wi-link" aria-label="WhatsApp">
       <span className="wi-logo" aria-hidden><MessageCircle size={22} /></span>

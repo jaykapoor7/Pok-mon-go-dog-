@@ -81,7 +81,6 @@ export function Surveys() {
           </div>
         )}
         {all >= 200 && <p className="small ngo-foot" style={{ paddingTop: 12 }}>Showing the 200 most recent surveys and projects.</p>}
-        <p className="small ngo-foot" style={{ paddingTop: 12 }}>Anyone in your organisation can create a survey and add counts.</p>
       </div>
     </NgoGate>
   );

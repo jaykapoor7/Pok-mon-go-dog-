@@ -97,7 +97,6 @@ export function ReviewInbox() {
                 <button type="button" className={`gv-stat${tab === "operator" ? " is-on" : ""}`} onClick={() => setTab("operator")}><span>Queried or returned</span><b>{onOperator.length}</b><small>Waiting on the operator</small></button>
                 <button type="button" className={`gv-stat${tab === "all" ? " is-on" : ""}`} onClick={() => setTab("all")}><span>Accepted</span><b>{accepted}</b><small>{partly ? `${partly} partly · ` : ""}accepted is not paid</small></button>
               </div>
-              <p className="gv-path" aria-label="How a review works"><span>Open a package</span><span>Check each animal&rsquo;s evidence</span><span>Accept, query or return each claim</span><span>Record the decision</span></p>
 
               <div className="gv-cols">
                 <section className="gv-main" aria-labelledby="gv-q">
@@ -124,10 +123,8 @@ export function ReviewInbox() {
 
                 {by.size > 0 && <aside className="gv-side" aria-labelledby="gv-ops">
                   <h2 id="gv-ops" className="gv-h">Operators</h2>
-                  <p className="gv-note">Recorded package outcomes only. Select an operator to filter the queue.</p>
                   <table className="gv-table"><thead><tr><th scope="col">Operator</th><th scope="col">Waiting</th><th scope="col">Queried</th><th scope="col">Accepted</th></tr></thead>
                     <tbody>{[...by].map(([id, ps]) => <tr key={id} className={op === id ? "is-on" : undefined}><th scope="row"><button type="button" className="gv-op" aria-pressed={op === id} onClick={() => setOp(op === id ? null : id)}>{names[id] ?? "Operator"}</button></th><td>{ps.filter((p) => isWaitingOnOffice(p.status)).length}</td><td>{ps.filter((p) => isWithOperator(p.status)).length}</td><td>{ps.filter((p) => p.status === "accepted").length}{ps.some((p) => p.status === "partially_accepted") ? <small> +{ps.filter((p) => p.status === "partially_accepted").length} partly</small> : null}</td></tr>)}</tbody></table>
-                  <Link className="gv-card" href="/city/contracts"><b>Contract rates &amp; reconciliation</b><small>The rate each procedure is claimed at, and how each bill reconciles.</small><ArrowRight size={14} aria-hidden /></Link>
                 </aside>}
               </div>
             </>;

@@ -89,7 +89,6 @@ export function Fundraising() {
             </table>
           </div>
         )}
-        <p className="small ngo-foot" style={{ paddingTop: 18 }}>Any member of a verified partner organisation can start a campaign; the database refuses everyone else. Updates, the amount raised and the outcome are kept on each campaign&rsquo;s own page.</p>
       </div>
     </NgoGate>
   );

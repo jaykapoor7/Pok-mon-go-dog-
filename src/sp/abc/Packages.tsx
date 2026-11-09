@@ -77,7 +77,7 @@ export function Packages() {
             {!canPrepare && ctx && <p className="abc-hint">Coordinators and admins prepare packages.</p>}
             {err && <p className="abc-err" role="alert">{err}</p>}
             {list && (list.length ? (
-              <><h2 className="abc-sub">Packages <small>{list.length}</small></h2><ul className="abc-list">{pageOf(list, page, PAGE).slice.map((p) => (
+              <><h2 className="abc-sub" id="ms-packages">Packages <small>{list.length}</small></h2><ul className="abc-list">{pageOf(list, page, PAGE).slice.map((p) => (
                 <li key={p.id}><Link href={`/ngo/packages/${p.id}`}>
                   <span className="abc-t"><b>{p.title}</b><small>{period(p)} · {offs.find((o) => o.id === p.office_id)?.name ?? "Reviewing office"}</small></span>
                   <span className="abc-dots"><span>{(() => { const n = p.summary.records ?? p.case_ids.length; return `${n} ${n === 1 ? "record" : "records"}`; })()}</span></span>

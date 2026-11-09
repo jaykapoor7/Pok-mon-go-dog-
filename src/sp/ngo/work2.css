@@ -133,3 +133,12 @@
 .sp .wk2-start small { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
 .sp .wk2-start:hover b { color: var(--blue); }
 @media (max-width: 760px) { .sp .wk2-start { margin: 0 16px 12px; grid-template-columns: 22px minmax(0, 1fr); } .sp .wk2-start > svg:last-child { display: none; } }
+
+/* Phone: each case is a compact two-line row, so the queue reads like a list, not a stack of cards. */
+@media (max-width: 760px) {
+  .sp .wk2-row { grid-template-areas: "t age" "s stamp"; gap: 2px 8px; padding: 10px 12px 10px 16px; border-radius: 12px; }
+  .sp .wk2-row::before { top: 10px; bottom: 10px; left: 6px; }
+  .sp .wk2-code, .sp .wk2-owner { display: none; }
+  .sp .wk2-t { font-size: 14.5px; }
+  .sp .wk2-stamp { margin-top: 0; align-self: center; justify-self: end; padding: 1px 8px; font-size: 11.5px; }
+}

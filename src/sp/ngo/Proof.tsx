@@ -84,7 +84,7 @@ export function Proof() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · evidence</p><h1 className="serif">Reports &amp; proof</h1></div>
-          <p className="ngo-sum">Built on demand from your records, under your sign-in. Nothing here is sent anywhere; you decide who receives it.</p>
+          <p className="ngo-sum">Reports and evidence for any period, built from your records.</p>
         </header>
         <section className="pf-scope" aria-label="Scope">
           <p className="pf-sentence serif">
@@ -105,13 +105,12 @@ export function Proof() {
           {OUT.map((o) => (
             <li key={o.key} className="pf-doc">
               <span className="pf-spine" aria-hidden><o.icon size={18} /></span>
-              <div className="pf-what"><b>{o.name}</b><small>{o.unit}</small>{o.not && <small className="pf-not">{o.not}</small>}</div>
+              <div className="pf-what"><b>{o.name}</b><small>{o.unit}</small></div>
               <span className="mono small">{o.fmt}</span>
               <button type="button" className="btn is-s" disabled={!!busy} onClick={() => void take(o)}>{busy === o.key ? "Building…" : o.open ? "Open" : <><Download size={14} aria-hidden /> Download</>}</button>
             </li>
           ))}
         </ol>
-        <p className="small ngo-foot">Method notes travel inside each document: the unit counted, where locations are approximate, and which statuses come from imported registers. Figures with no recorded value are reported as not recorded, never as zero.</p>
       </div>
     </NgoGate>
   );

@@ -76,7 +76,7 @@ export function NewCase({ pre }: { pre: Prefill }) {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">NGO · new case</p><h1 className="serif">Open a case</h1></div>
-          <p className="ngo-sum">It joins your queue the moment the record answers. The exact pin stays private to your organisation; public pages show only its area.</p>
+          <p className="ngo-sum">It joins your queue as soon as it is saved.</p>
           <div className="row"><Link className="btn is-ghost is-s" href="/ngo">Cancel</Link></div>
         </header>
         <form className="nc" onSubmit={(e) => { e.preventDefault(); void submit(); }}>

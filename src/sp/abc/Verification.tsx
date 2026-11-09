@@ -97,7 +97,6 @@ export function Verification() {
             ) : (
               <KajuEmptyState title={stage === "all" ? "No ABC procedures yet." : EMPTY_STAGE[stage as Stage]}>{stage === "all" ? "Sterilisation cases appear here." : null}</KajuEmptyState>
             )}
-            <p className="abc-foot">Historical imports and research datasets are not listed.</p>
           </>
         )}
       </div>

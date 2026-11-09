@@ -40,7 +40,7 @@ export function CareLedger() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">Care ledger</h1></div>
-          <p className="ngo-sum">Treatment, vaccination and field care in date order, each attached to the animal it was given to. Only your organisation&rsquo;s work appears. Care is added from an animal&rsquo;s record.</p>
+          <p className="ngo-sum">Treatment, vaccination and field care, newest first.</p>
         </header>
         <PageBrief items={[["For", "Every treatment, vaccination and sterilisation your organisation recorded, attached to its animal."], ["Watch", "Care with no clinician named, and medical cases still open."], ["Next", "Open the animal to add or correct care."], ["After", "The event appears here and on the animal’s record, dated."]]} />
         <div className="tabs rc-tabs" role="tablist" aria-label="Care ledger view">

@@ -33,7 +33,7 @@ export function WorkingZones(){
    await load();if(action==='create'){newZone.current='';setName('');setPlanned('');setGeometry(null);setGeometryName('')}
   }catch(e){setError(e instanceof Error?e.message:'Change failed. Retry the same change.')}finally{locked.current=false;setBusy(false)}
  }
- return <NgoGate title="Working zones" lede="Programme boundaries, assigned staff and supervisor review."><div className="ngo-page"><header className="ngo-head"><h1>Working zones</h1><p className="ngo-sum">Reported completion, supervisor review, survey coverage and municipal acceptance are separate checks. Up to 200 recent zones are shown.</p></header>
+ return <NgoGate title="Working zones" lede="Programme boundaries, assigned staff and supervisor review."><div className="ngo-page"><header className="ngo-head"><h1>Working zones</h1><p className="ngo-sum">Zones, who works them and progress.</p></header>
  {error&&<p role="alert">{error}</p>}
  {leader&&<details><summary>Create a working zone</summary><form className="stack" onSubmit={e=>{e.preventDefault();if(!newZone.current)newZone.current=crypto.randomUUID();void act(newZone.current,'create',{name,campaign_id:campaign,planned,geometry})}}>
  <label>Zone name<input className="input" required minLength={3} maxLength={120} value={name} onChange={e=>setName(e.target.value)}/></label>

@@ -41,7 +41,7 @@ export function Settings() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{org && org !== "error" ? org.name : "Your organisation"} · settings</p><h1 className="serif">Settings</h1></div>
-          <p className="ngo-sum">{org && org !== "error" ? <>{org.verified ? "Verified organisation." : "Not yet verified: your public page says so."} The public sees your name, mission, city, areas of work and website. Contact details are shown only if you fill them in.</> : <Reading>Reading your organisation</Reading>}</p>
+          <p className="ngo-sum">{org && org !== "error" ? (org.verified ? "Verified organisation · your public profile" : "Your public profile") : null}</p>
           <div className="row">{org && org !== "error" && org.slug && <Link className="btn is-s" href={`/community/organisations/${org.slug}`}>Your public page</Link>}<Link className="btn is-s" href="/ngo/settings/connections">Connections</Link></div>
         </header>
         {org === "error" && <p className="im-err"><Ack state="failed">Your organisation&rsquo;s profile could not be read.</Ack></p>}
@@ -61,15 +61,6 @@ export function Settings() {
               <div className="field"><label htmlFor="st-p">Public phone <span className="small">optional</span></label><input id="st-p" className="input" inputMode="tel" value={f.contact_phone} onChange={set("contact_phone")} /></div>
               <div className="st-two"><div className="field"><label htmlFor="st-r">Registration no.</label><input id="st-r" className="input" value={f.registration_no} onChange={set("registration_no")} /></div><div className="field"><label htmlFor="st-y">Founded</label><input id="st-y" className="input" inputMode="numeric" value={f.founded_year} onChange={set("founded_year")} pattern="\d{4}" /></div></div>
               <div className="st-save"><button type="submit" className="btn is-ink" disabled={busy}>{busy ? "Saving…" : "Save the profile"}</button><span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not saved: {r.error}</Ack>) : null}</span></div>
-            </section>
-            <section className="st-sec st-links">
-              <h2 className="h3">Elsewhere</h2>
-              <ul>
-                <li><Link className="link" href="/ngo/team">Team &amp; access</Link><small>Members, roles, codes</small></li>
-                <li><Link className="link" href="/ngo/import">Import a workbook</Link><small>Bring your existing register</small></li>
-                <li><Link className="link" href="/ngo/proof">Reports &amp; proof</Link><small>Documents from your records</small></li>
-                <li><Link className="link" href="/ngo/settings/connections">WhatsApp &amp; connections</Link><small>WhatsApp Business, SMS and map exports</small></li>
-              </ul>
             </section>
           </form>
         )}

@@ -12,7 +12,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowRight, FileCheck2, Sparkles } from "lucide-react";
+import { ArrowRight, Check, FileCheck2, Sparkles } from "lucide-react";
 import { createPackage, offices, packages, verificationQueue, type Office, type QueueRow } from "@/lib/abc";
 import { billLines, readBillingPreview, type PreviewResult } from "@/lib/billing";
 import { operationRpc, verifyOperationReceipt, type OperationReceipt } from "@/lib/operations";
@@ -103,25 +103,27 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
         : preview.state === "not_deployed" ? <p className="ms-p" role="status">The billing preview is not installed on this workspace yet, so no amount is shown and the package is prepared from Report packages.</p>
         : preview.state === "error" ? <p className="ms-p" role="status">The billing preview could not be read: {preview.message}. No amount is shown.</p>
         : pv && <div className="ms-bill">
-          <p className="ms-p"><b>{pv.count}</b> procedure{pv.count === 1 ? "" : "s"} can be claimed for {b.label}, by procedure date. Records already in a package, accepted or historical are excluded.</p>
+          <ul className="ms-stats">
+            <li><span>Ready to claim</span><b>{pv.count}</b></li>
+            <li><span>Blocked</span><b className={g.blockedBy.length ? "is-due" : undefined}>{g.blockedBy.reduce((t, x) => t + x.count, 0)}{g.partial ? "+" : ""}</b></li>
+            <li><span>Draft bill</span><b>{pv.count === 0 ? "₹0" : pv.contract && pv.total !== null ? `₹${pv.total}` : "—"}</b></li>
+          </ul>
           {pv.count > 0 && (pv.contract ? <>
-            <p><FileCheck2 size={14} aria-hidden /> Draft bill <small>{pv.contract.name} v{pv.contract.version} · source {pv.contract.reference}{pv.contract.illustrative ? " · illustrative contract" : ""}</small></p>
-            <ul>{billLines(pv).map((l) => <li key={l.procedure}>{LABEL[l.procedure] ?? l.procedure}: {l.units} × {l.rate ? `₹${l.rate} = ₹${l.amount}` : "rate not in contract"}</li>)}</ul>
-            {pv.total !== null ? <p>Total <b>₹{pv.total}</b></p> : <small>{pv.unpriced} procedure{pv.unpriced === 1 ? " has" : "s have"} no rate in this contract, so the total is unknown.</small>}
-          </> : <small>No contract version for {officeName} covers the whole of {b.label}, so the amount is unknown.</small>)}
-          {pv.too_many && <small role="status">More than 2,000 procedures: prepare shorter periods from Report packages.</small>}
-          <small>Draft only: the municipality decides what is accepted. StrayPaw does not process payments.</small>
+            <ul className="ms-lines">{billLines(pv).map((l) => <li key={l.procedure}><span>{LABEL[l.procedure] ?? l.procedure}</span><span>{l.units} × {l.rate ? `₹${l.rate}` : "no rate"}</span><b>{l.rate ? `₹${l.amount}` : "—"}</b></li>)}</ul>
+            <small className="ms-src"><FileCheck2 size={13} aria-hidden /> {pv.contract.name} v{pv.contract.version}{pv.unpriced ? ` · ${pv.unpriced} without a rate` : ""}</small>
+          </> : <small className="ms-src">No contract with {officeName} covers {b.label}.</small>)}
+          {pv.too_many && <small className="ms-src" role="status">Over 2,000 procedures: prepare shorter periods.</small>}
         </div>)}
 
       {(g.blockedBy.length > 0 || g.partial) && <>
-        <p className="ms-p">Still blocking records from {b.label}:</p>
+        <h3 className="ms-sub">Blocking</h3>
         {g.blockedBy.length > 0 && <ul className="ms-list">{g.blockedBy.slice(0, compact ? 3 : 6).map((x) => (
           <li key={x.reason}><Link href={x.href}><span>{x.reason}</span><b>{x.count}</b><ArrowRight size={13} aria-hidden /></Link></li>
         ))}</ul>}
-        {g.partial && <small className="ms-p" role="status">Only the 500 most recent ABC records were checked for blockers, and they did not reach the start of {b.label}; there may be more.</small>}
+
       </>}
 
-      {canPrepare && office && pv && already && <Link className="s4-link ms-p" href="/ngo/packages">A {b.label} package for this office already exists · open packages</Link>}
+      {canPrepare && office && pv && already && <p className="ms-done"><Check size={14} aria-hidden /> The {b.label} package is prepared. <a href="#ms-packages">See it below</a></p>}
       {canPrepare && office && ready && <button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => void prepare()}>{busy ? "Preparing and checking…" : `Prepare ${already ? "another" : "the"} ${b.label} package · ₹${pv?.total}`}</button>}
       {err && <p role="alert" className="ms-err">{err}</p>}
     </section>

@@ -18,7 +18,7 @@ import { getSupabase } from "@/lib/supabase";
 import { confirmMany, confirmVerified, type Saved as Result } from "@/sp3/ai/execute";
 import type { Proposal } from "@/sp3/ai/types";
 import type { LocalityGroup, PromisedReview, Stalled } from "@/sp3/ai/prepare";
-import { KajuPresence } from "@/kaju/Presence";
+import { Reading } from "../ui/Reading";
 
 type Prepared = {
   checkedAt: string; unavailable: string[]; partial: string[];
@@ -77,7 +77,7 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
 
   const [all, setAll] = useState(false);
   if (failed) return <p className="kx-note" role="status">Prepared work could not be read. <button type="button" className="ai3-inline" onClick={() => void load()}>Try again</button></p>;
-  if (!d) return <p className="kx-note" aria-busy="true">Kaju is reading your cases…</p>;
+  if (!d) return <p className="kx-note" aria-busy="true"><Reading>Kaju is reading your cases</Reading></p>;
 
   /* One list, most urgent first: quiet critical cases, promised reviews, then place spellings. */
   type Item = { key: string; tone: string; icon: React.ReactNode; title: React.ReactNode; meta: string; side: React.ReactNode };

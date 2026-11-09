@@ -70,7 +70,7 @@ export function Stories() {
       <div className="ngo-page">
         <header className="ngo-head">
           <div><p className="k">{mem.org?.name ?? "Your organisation"} · stories</p><h1 className="serif">Public case stories</h1></div>
-          <p className="ngo-sum">Turn a completed case into a short public story for your page, reports and posts. Only what you write below is public: never intake notes, contacts, staff details or import rows.</p>
+          <p className="ngo-sum">Short public stories from completed cases</p>
           <div className="row"><Link className="btn is-s" href="/community/stories">Public story feed</Link></div>
         </header>
         <PageBrief items={[["For", "Turning a closed case into a short public story."], ["Watch", "Only what you write below is public; never intake notes or contacts."], ["Next", "Pick a resolved case, check the preview, publish."], ["After", "It appears on Stories at once; it cannot be withdrawn from here yet."]]} />

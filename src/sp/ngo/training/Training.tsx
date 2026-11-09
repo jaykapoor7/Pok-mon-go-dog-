@@ -30,15 +30,18 @@ const msg = (e: unknown, fallback: string) => (e && typeof e === "object" && "me
 export function Training() {
   const mem = useMembership();
   const supervisor = ["admin", "coordinator"].includes(mem.role ?? "");
+  /* Leads and coordinators manage courses; everyone else sees what is assigned to them. */
   const [tab, setTab] = useState<"mine" | "manage">("mine");
+  const [picked, setPicked] = useState(false);
+  useEffect(() => { if (!picked && supervisor) setTab("manage"); }, [supervisor, picked]);
   return (
     <NgoGate title="Training" lede="Courses, assignments and completion records for your team.">
       <div className="ngo-page tr">
         <header className="ngo-head tr-top">
-          <div><h1>Training</h1><p className="ngo-sum">Short courses for field work, veterinary care and reporting. Completions and quiz scores are kept with each person&apos;s record.</p></div>
+          <div><h1>Training</h1><p className="ngo-sum">Courses for field work, veterinary care and reporting.</p></div>
           {supervisor && <div className="tr-tabs" role="tablist" aria-label="Training views">
-            <button role="tab" aria-selected={tab === "mine"} onClick={() => setTab("mine")}>My training</button>
-            <button role="tab" aria-selected={tab === "manage"} onClick={() => setTab("manage")}>Courses and team</button>
+            <button role="tab" aria-selected={tab === "mine"} onClick={() => { setPicked(true); setTab("mine"); }}>My training</button>
+            <button role="tab" aria-selected={tab === "manage"} onClick={() => { setPicked(true); setTab("manage"); }}>Courses and team</button>
           </div>}
         </header>
         {tab === "mine" || !supervisor ? <Mine /> : <Manage />}

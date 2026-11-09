@@ -5,7 +5,6 @@
 import type { ReactNode } from "react";
 import { ART_SLOTS, INTERIM } from "./slots";
 import { FOLK_CUTOUTS, FOLK_PANELS, WORKS, type CutoutKey } from "@/lib/art/sources";
-import { MobileDetails } from "./MobileDetails";
 
 /* ── art slots ───────────────────────────────────────────────────────
    A commissioned artwork belongs here. Until a named artist's licensed
@@ -70,9 +69,10 @@ export function State({ kind = "empty", title, children, action, art }: { kind?:
   );
 }
 
-/* ── page brief: what a working page is for, what to watch, what to do, what happens after ── */
-export function PageBrief({ items }: { items: [string, ReactNode][] }) {
-  return <MobileDetails label="About this page" className="brief-fold"><dl className="brief">{items.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl></MobileDetails>;
+/* ── page brief: kept for the call sites' own documentation; screens no
+   longer render it (a finished product does not explain itself in a fold). ── */
+export function PageBrief(_: { items: [string, ReactNode][] }) {
+  return null;
 }
 
 /* ── write acknowledgement (decision 043): draft, pending, saved, failed, offline ── */
@@ -81,9 +81,10 @@ export function Ack({ state, children }: { state: AckState; children: ReactNode 
   return <span className="ack" data-state={state} role="status" aria-live="polite">{children}</span>;
 }
 
-/* ── method line: scope, source, precision and period before any figure ── */
-export function Method({ items }: { items: [string, ReactNode][] }) {
-  return <p className="method">{items.map(([k, v]) => <span key={k}>{k} <b>{v}</b></span>)}</p>;
+/* ── method line: scope and period of a list. Not shown on screen; figures
+   still keep unknown apart from zero (Figure). ── */
+export function Method(_: { items: [string, ReactNode][] }) {
+  return null;
 }
 
 /* ── a figure that keeps unknown apart from zero ──────────────────── */

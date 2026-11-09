@@ -553,3 +553,10 @@
 .sp .cf-fold > .cf-card { box-shadow: none; padding-top: 0; }
 .sp .cf-head .ledger > div { grid-template-columns: 170px minmax(0, 1fr); }
 @media (max-width: 760px) { .sp .cf-head .ledger > div { grid-template-columns: 120px minmax(0, 1fr); } }
+.sp .tm-roles-fold > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; margin: 0; }
+.sp .tm-roles-fold > summary::-webkit-details-marker { display: none; }
+.sp .tm-roles-fold > summary::after { content: "+"; font-weight: 400; color: #5b6475; }
+.sp .tm-roles-fold[open] > summary::after { content: "−"; }
+.sp .tm-roles-fold[open] > summary { margin-bottom: 10px; }
+.sp .st-deadline { max-width: 420px; }
+.sp .st-deadline .btn { justify-self: start; }

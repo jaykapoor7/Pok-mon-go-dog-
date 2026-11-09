@@ -78,7 +78,6 @@ export function Projects() {
             {project && <Register key={project.id} project={project} />}
           </div>
         )}
-        <p className="small ngo-foot" style={{ paddingTop: 18 }}>Anyone in your organisation can create a project and add entries.</p>
       </div>
     </NgoGate>
   );

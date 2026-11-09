@@ -129,7 +129,6 @@ export function Evidence() {
             )}
           </>
         )}
-        <p className="small ngo-foot" style={{ paddingTop: 18 }}>Anyone in your organisation can file and attach scans. People outside it cannot.</p>
       </div>
     </NgoGate>
   );
