@@ -17,6 +17,65 @@ export type Post = {
 export type Cover = { tone: "navy" | "blue" | "split" | "tint"; label: string; word: string };
 
 export const POSTS: Post[] = [
+  { slug: "monthly-abc-claim", kind: "Field guides", date: "2026-11-09", minutes: 7,
+    title: "Preparing a monthly ABC claim the office can check",
+    dek: "From a vet-authorised record to a package a municipal reviewer can accept line by line, and what holds a record back.",
+    cover: { tone: "blue", label: "Field guide", word: "Claim" },
+    body: [
+      { p: "A monthly claim is a list of procedures, one line per animal, priced at the rate in the contract that was in force on the procedure date. The office pays for what it can check. A claim that is easy to check is decided quickly; a claim with gaps comes back as a query." },
+      { h: "What makes a record claimable", list: ["Five evidence items: capture photo, surgery record, ear-notch photo, release photo and release location", "A veterinarian's authorisation that names the procedure", "A coordinator's evidence review", "Not already claimed in another package"] },
+      { h: "Where records get stuck", list: ["Waiting for a vet: the procedure is recorded but not authorised", "Missing evidence: most often the release photo or release place", "Returned: the coordinator or the office sent it back with a note"] },
+      { h: "In StrayPaw", p: "Monthly claim shows what is ready at the contract rate and lists every blocked record with its reason. Ask Kaju to draft this month's claim and it returns the same list in plain words, oldest blocker first. Kaju never submits; the coordinator prepares the package and submits it." },
+      { h: "After submission", p: "The reviewing office accepts, queries or returns each line. A query arrives on the package with the reviewer's note; answer it on the record and resubmit. Accepted means the office agreed the claim; it does not mean the payment has been made." },
+    ] },
+  { slug: "recording-a-vaccination", kind: "Field guides", date: "2026-11-08", minutes: 5,
+    title: "Recording an anti-rabies vaccination a reviewer can trust",
+    dek: "The few fields that make a vaccination record checkable later, and how to record them without signal.",
+    cover: { tone: "tint", label: "Field guide", word: "ARV" },
+    body: [
+      { p: "A vaccination record is only as useful as the questions it can answer a year later: which animal, which vaccine batch, given by whom and when the next dose is due. This guide is about the record, not the clinical procedure, which stays with the veterinary team." },
+      { h: "Record these every time", list: ["The animal: its StrayPaw ID, or a new record with photos if it has none", "The date the dose was given", "The vaccine product and batch number from the vial", "Who gave it", "The place, from the phone's location or chosen on the map"] },
+      { h: "Leave blank what you do not know", p: "A field left empty reads as not recorded. It is never filled in with a guess and never counted as a no. A dose with an unknown batch is still a dose; the reviewer simply sees that the batch was not recorded." },
+      { h: "Without signal", p: "Field mode has an Offline tab. Records are saved on the phone, encrypted behind a six-digit PIN, and sent when the network returns. Each synced record carries an audit receipt, so a reviewer can see when it was captured and when it reached the record." },
+    ] },
+  { slug: "field-capture-offline", kind: "Field guides", date: "2026-11-07", minutes: 4,
+    title: "Field capture when there is no signal",
+    dek: "How the offline outbox keeps records safe on a shared phone, and what to check before handing the phone back.",
+    cover: { tone: "navy", label: "Field guide", word: "Offline" },
+    body: [
+      { p: "Most ABC field work happens where the signal drops: lanes, markets, the edge of the ward. Records should not wait for the network, and they should not sit unprotected on a phone that three people share." },
+      { h: "How it works", list: ["Open Field mode and choose Offline", "Set or enter a six-digit PIN; the records on this phone are encrypted with it", "Register intakes, vaccinations and survey observations as usual", "When the phone is back online, send the outbox; each record gets a receipt"] },
+      { h: "Before you hand the phone back", list: ["Check that nothing is left under On this device · not submitted", "If a record failed, retry it or note why", "Lock the outbox so the next person cannot read your records"] },
+      { h: "What never happens", p: "A record saved offline is not counted in any figure until it reaches the record. A failed send is shown as failed, never as sent." },
+    ] },
+  { slug: "reviewing-an-abc-package", kind: "Field guides", date: "2026-11-06", minutes: 6,
+    title: "For municipal reviewers: checking an ABC package",
+    dek: "What to look at on each animal, how exceptions are flagged, and why nothing is accepted in bulk.",
+    cover: { tone: "split", label: "Field guide", word: "Review" },
+    body: [
+      { p: "A package is an operator's claim for a period. Each line is one procedure on one animal. The office decides each line: accept, query or return." },
+      { h: "On each line, check", list: ["The five evidence items and that the release place matches the capture ward", "The veterinarian who authorised the procedure", "The coordinator who reviewed the evidence", "The rate against the contract version in force on the procedure date", "That the same animal and procedure are not claimed twice"] },
+      { h: "What Kaju prepares", p: "Before you open the package, Kaju compares every line with its source and lists the exceptions, each with a draft note. Lines with any exception are never offered for batch acceptance. The notes are drafts: edit them, then record your own decision." },
+      { h: "Your morning brief", p: "Ask Kaju what is waiting and it lists packages oldest first with their exceptions, so the longest-waiting operator is seen first." },
+    ] },
+  { slug: "unknown-is-not-zero", kind: "Research notes", date: "2026-11-05", minutes: 5,
+    title: "Unknown is not zero",
+    dek: "Why StrayPaw shows a missing value as unknown, and how that changes the numbers a programme reports.",
+    cover: { tone: "navy", label: "Research note", word: "Unknown" },
+    body: [
+      { p: "Most registers have gaps. A sterilisation column left blank might mean the animal is not sterilised, or that nobody checked. Treating every blank as no makes coverage look worse than it is; treating it as yes makes it look better. Both are guesses." },
+      { h: "How StrayPaw handles it", list: ["A blank stays not recorded and is counted separately", "Shares are given against animals with a recorded status, with the unknown count beside them", "A failed read is reported as unknown, never as zero", "Imported history stays labelled as imported until a person checks it"] },
+      { h: "What this means for a report", p: "A ward with 40 recorded animals, 22 recorded as sterilised and 11 not recorded reads as 22 of 29 with a known status, and 11 unknown, not as 55 per cent." },
+    ] },
+  { slug: "recorded-animals-not-population", kind: "Research notes", date: "2026-11-09", minutes: 6,
+    title: "Recorded animals are not a population",
+    dek: "How ward coverage and sudden changes are worked out in StrayPaw, and what they cannot tell you.",
+    cover: { tone: "split", label: "Research note", word: "Wards" },
+    body: [
+      { p: "Ward watch, on the Kaju home for NGO leads and municipal offices, shows each ward's recorded animals and how many have a sterilisation or vaccination recorded. The denominator is the animals on the record, not the dogs that live in the ward." },
+      { h: "How a sudden change is flagged", list: ["New records per ward are counted in seven-day windows over eight weeks", "The last two weeks are compared with the median of the six weeks before", "A drop is flagged only if the earlier weeks averaged at least two records a week and the recent level fell to 40 per cent or less", "A spike needs at least two and a half times the earlier level and three more records a week"] },
+      { h: "What it cannot say", p: "A drop in new records can mean fewer animals, a team on leave or a phone that has not synced. A spike can mean a survey walk. The flag tells you where to ask, not what happened." },
+    ] },
   { slug: "release-evidence-before-the-bill", kind: "Field guides", date: "2026-11-04", minutes: 6,
     title: "Release evidence that survives a municipal review",
     dek: "What a reviewing office checks on every released animal, and the three gaps that hold back most monthly claims.",
@@ -73,6 +132,11 @@ export const POSTS: Post[] = [
 export type Update = { date: string; area: string; title: string; body: string };
 /** Shipped, in the order they shipped (from the release history). */
 export const UPDATES: Update[] = [
+  { date: "2026-11-09", area: "Kaju", title: "Weekly digest and follow-up nudges", body: "What changed in seven days and who acts next; overdue follow-ups grouped by case holder, with reschedules prepared to confirm." },
+  { date: "2026-11-09", area: "Kaju", title: "Claim draft", body: "This month's claimable amount from the billing preview, and every blocked record with its reason." },
+  { date: "2026-11-09", area: "Government", title: "Office brief, ward watch and monthly note", body: "A Kaju home for reviewing offices: waiting packages pre-checked for exceptions, ward coverage and sudden changes, and a draft programme note." },
+  { date: "2026-11-09", area: "Platform", title: "Branded reports", body: "Every PDF, Excel and CSV download carries the StrayPaw template: title, organisation, period, method notes and page numbers." },
+  { date: "2026-11-09", area: "Platform", title: "Connections at a glance", body: "Every integration on one screen with its status, what Kaju may do with it and the organisation's settings." },
   { date: "2026-11-04", area: "Kaju", title: "Kaju agents", body: "Recurring jobs on a schedule or when something happens: release photos, vet paperwork, follow-ups and the monthly claim." },
   { date: "2026-11-04", area: "Workflow", title: "Undo for sign-offs and assignments", body: "A vet sign-off or an evidence approval can be withdrawn straight away, with the reason recorded on the case." },
   { date: "2026-11-03", area: "Platform", title: "Faster registers", body: "Permissions are checked once per screen instead of once per record. The care ledger on a 22,000-record register went from 17 seconds to about 1." },
@@ -90,13 +154,13 @@ export type RoadItem = { name: string; status: "shipped" | "upcoming"; note?: st
 export type RoadArea = { key: string; title: string; lede: string; href?: string; items: RoadItem[] };
 export const ROADMAP: RoadArea[] = [
   { key: "kaju", title: "Kaju & platform", lede: "The agent and the shared record underneath every workspace", href: "/kaju-agents", items: [
-    { name: "Kaju agents", status: "shipped" }, { name: "Kaju file upload and register import", status: "shipped" }, { name: "Undo for sign-offs", status: "shipped" },
+    { name: "Kaju agents", status: "shipped" }, { name: "Weekly digest, follow-up nudges and claim draft", status: "shipped" }, { name: "Kaju file upload and register import", status: "shipped" }, { name: "Undo for sign-offs", status: "shipped" }, { name: "Branded PDF, Excel and CSV reports", status: "shipped" },
     { name: "Direct WhatsApp connection", status: "upcoming", note: "waiting for Meta approval" }, { name: "Kaju in Hindi, Tamil and Marathi", status: "upcoming" }, { name: "Public API for partner systems", status: "upcoming" } ] },
   { key: "ops", title: "ABC operations", lede: "Receive, register, treat, release and submit", href: "/abc-operations", items: [
     { name: "Five-step workflow", status: "shipped" }, { name: "Encrypted offline intake", status: "shipped" }, { name: "Monthly claim at contract rates", status: "shipped" },
     { name: "Microchip and QR tag scanning", status: "upcoming" }, { name: "Shelter kennel board", status: "upcoming" } ] },
   { key: "gov", title: "Government", lede: "Review, reconciliation and oversight for municipal offices", href: "/for-governments", items: [
-    { name: "Government command centre", status: "shipped" }, { name: "Individual claim review", status: "shipped" },
+    { name: "Government command centre", status: "shipped" }, { name: "Individual claim review", status: "shipped" }, { name: "Kaju office brief and ward watch", status: "shipped" },
     { name: "Government e-Office file movement", status: "upcoming" }, { name: "State-level dashboards", status: "upcoming" } ] },
   { key: "national", title: "National register", lede: "One shared record of India's street animals, open to the public and to science", href: "/community", items: [
     { name: "Public map and community reports", status: "shipped" }, { name: "Organisation directory and stories", status: "shipped" },
