@@ -79,6 +79,13 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
   if (!d) return <section className="br-sec kp" aria-labelledby="kp-h" aria-busy="true"><h2 id="kp-h" className="br-h">Kaju prepared</h2><p className="br-empty">Kaju is reading cases, care notes and localities…</p></section>;
 
   const nothing = !d.stalled.length && !d.reviews.items.length && !d.localities.length;
+  /* Nothing to prepare: one calm line instead of a full card. */
+  if (nothing && !d.unavailable.length && !d.partial.length) return (
+    <section className="br-sec kp is-calm" aria-labelledby="kp-h">
+      <KajuPresence state="lying" size={36} />
+      <p><b id="kp-h">Kaju prepared</b> All quiet: no critical case has gone silent and no promised review is unscheduled.</p>
+    </section>
+  );
   return (
     <section className="br-sec kp" aria-labelledby="kp-h">
       <h2 id="kp-h" className="br-h"><Sparkles size={14} aria-hidden /> Kaju prepared</h2>

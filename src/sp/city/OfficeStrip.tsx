@@ -17,7 +17,7 @@ const days = (iso: string) => Math.max(0, Math.floor((Date.now() - Date.parse(is
 const REQUIRED = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"];
 const sum = (xs: (string | null)[]) => xs.reduce<number | null>((t, x) => (x === null || t === null ? t : t + Number(x)), 0);
 
-export function OfficeStrip() {
+export function OfficeStrip({ onOffice, publicOpen, onPublic }: { onOffice?: (on: boolean) => void; publicOpen?: boolean; onPublic?: () => void } = {}) {
   const { user } = useAuth();
   const [ctx, setCtx] = useState<AbcContext | null>(null);
   const [list, setList] = useState<Package[] | null>(null);
@@ -35,6 +35,7 @@ export function OfficeStrip() {
         if (!live) return;
         setCtx(c); setList(mine);
         if (!c.offices.length) return;
+        onOffice?.(true);
         orgNames([...new Set(mine.map((x) => x.ngo_id))]).then((n) => live && setNames(n)).catch(() => {});
         readContracts().then((t) => live && setTerms(t)).catch(() => {});
         /* Claims: the twelve most recent submissions are enough for a year of monthly packages. */
@@ -98,16 +99,16 @@ export function OfficeStrip() {
               <div><dt>Payment evidence</dt><dd>{paid === null || paid === 0 ? "None recorded" : money(String(paid))}</dd></div>
             </dl>
           )}
-          <p className="os-note">Accepted is not paid. Payment evidence is what your office records; StrayPaw does not process payments.{noAmount ? ` ${noAmount} ${noAmount === 1 ? "package has" : "packages have"} no contract amount.` : ""}</p>
+          <p className="os-note os-wide">Accepted is not paid. Payment evidence is what your office records; StrayPaw does not process payments.{noAmount ? ` ${noAmount} ${noAmount === 1 ? "package has" : "packages have"} no contract amount.` : ""}</p>
           {v.waiting.length > 0 && <>
-            <h4>Waiting longest</h4>
-            <ul className="os-list">{v.waiting.slice(0, 3).map((p) => <li key={p.id}><Link href={`/city/review/${p.id}`}><span><b>{p.title}</b><small>{names[p.ngo_id] ?? "Operator"} · {p.summary.records ?? p.case_ids.length} records · {days(p.submitted_at ?? p.created_at) || "today"}{days(p.submitted_at ?? p.created_at) ? " days" : ""}</small></span><em>Review</em></Link></li>)}</ul>
+            <h4 className="os-wide">Waiting longest</h4>
+            <ul className="os-list os-wide">{v.waiting.slice(0, 3).map((p) => <li key={p.id}><Link href={`/city/review/${p.id}`}><span><b>{p.title}</b><small>{names[p.ngo_id] ?? "Operator"} · {p.summary.records ?? p.case_ids.length} records · {days(p.submitted_at ?? p.created_at) || "today"}{days(p.submitted_at ?? p.created_at) ? " days" : ""}</small></span><em>Review</em></Link></li>)}</ul>
           </>}
         </div>
 
         <div className="os-card">
-          <h3>Operators</h3>
-          <table className="os-table">
+          <h3 className="os-wide">Operators</h3>
+          <table className="os-table os-wide">
             <thead><tr><th scope="col">Operator</th><th scope="col">Contract in force</th><th scope="col">Waiting</th><th scope="col">Decided</th></tr></thead>
             <tbody>{v.ops.map((id) => { const ps = list.filter((p) => p.ngo_id === id); const k = contractOf(id); const rate = k ? terms?.rates.find((r) => r.contract_id === k.id) : null; return (
               <tr key={id}><th scope="row"><Link href={`/city/review?op=${id}`}>{names[id] ?? "Operator"}</Link></th>
@@ -125,7 +126,8 @@ export function OfficeStrip() {
           )}
         </div>
       </div>
-      <p className="os-divider"><b>Public record</b> Published research data for the city, separate from your office&rsquo;s operational records.</p>
+      {onPublic ? <button type="button" className="os-divider" aria-expanded={!!publicOpen} onClick={onPublic}><b>Public record</b><span>Published research data for the city, separate from your office&rsquo;s records.</span><em>{publicOpen ? "Hide" : "Show"}</em></button>
+        : <p className="os-divider"><b>Public record</b> Published research data for the city, separate from your office&rsquo;s operational records.</p>}
     </section>
   );
 }

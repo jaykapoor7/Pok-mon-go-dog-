@@ -29,6 +29,10 @@ export function Insights() {
   const [period, setPeriod] = useState<Period>("all");
   /* One finding at a time: the numbered list is the menu, so the page never runs long. */
   const [on, setOn] = useState(0);
+  /* A reviewing office lands on its command view; the public findings fold under it so the home fits one screen. */
+  const [office, setOffice] = useState(false);
+  const [pub, setPub] = useState(false);
+  useEffect(() => { if (window.location.hash.length > 1) setPub(true); }, []);
   const row = cities.find((c) => c.city === city);
   const ld = useMemo(() => (ds && ix && city && row ? loadedScope(ds, ix, city, { cases: row.cases, animals: row.animals, open: row.open_cases ?? null }) : null), [ds, ix, city, row]);
   const list = useMemo(() => (ds && ix && city && ld ? findings(ds, ix, city, period, ld) : []), [ds, ix, city, period, ld]);
@@ -52,7 +56,8 @@ export function Insights() {
   return (
     <div className="ci">
       <Hatch />
-      <OfficeStrip />
+      <OfficeStrip onOffice={setOffice} publicOpen={pub} onPublic={() => setPub((v) => !v)} />
+      {(!office || pub) && <>
       <header className="ci-head">
         <div className="ci-title">
           <p className="k">Municipality · insights</p>
@@ -87,6 +92,7 @@ export function Insights() {
           </div>
         </div>
       )}
+      </>}
     </div>
   );
 }

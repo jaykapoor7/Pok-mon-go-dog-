@@ -132,6 +132,9 @@
 }
 @media (prefers-reduced-motion: reduce) { .jy a { transition: none; } }
 .kp-calm { display: flex; align-items: center; gap: 10px; }
+.br-sec.kp.is-calm { display: flex; align-items: center; gap: 10px; padding-block: 12px; }
+.br-sec.kp.is-calm p { margin: 0; font-size: 13.5px; line-height: 1.45; color: #5b6475; }
+.br-sec.kp.is-calm b { display: block; color: #0b1e3d; font-weight: 600; }
 
 /* 4.1: Today fits one screen on a desktop. The five steps run across the top;
    what to do now sits left, Kaju's prepared work and the month sit right. */

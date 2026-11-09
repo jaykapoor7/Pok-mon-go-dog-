@@ -147,10 +147,11 @@ export function Brief() {
               <h2 id="br-todo" className="br-h">Needs you</h2>
               {todo.length ? rows(todo.slice(0, 5), true) : <p className="br-empty">{d.unavailable.length>0?"Some priorities are unavailable. The queues may contain work requiring attention.":isVet ? "Nothing is waiting for your sign-off." : "Nothing is overdue or unassigned."}</p>}
             </section>
-            <section aria-labelledby="br-out" className="br-sec">
+            {/* An empty card only repeats the "Since yesterday" line, so it is left out; a failed read is still said. */}
+            {(out.length > 0 || d.unavailable.includes("recent changes")) && <section aria-labelledby="br-out" className="br-sec">
               <h2 id="br-out" className="br-h">Recent activity</h2>
-              {out.length ? rows(out, false) : <p className="br-empty">{d.unavailable.includes("recent changes")?"Recent changes could not be read.":"Nothing new in the last day."}</p>}
-            </section>
+              {out.length ? rows(out, false) : <p className="br-empty">Recent changes could not be read.</p>}
+            </section>}
             {/* As in the product demo, Kaju waits at the foot of the brief. */}
             <form className="br-ask br-ask-foot" onSubmit={ask}>
               <Sparkles size={15} aria-hidden />
