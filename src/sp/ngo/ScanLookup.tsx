@@ -47,7 +47,7 @@ export function ScanLookup() {
         <div aria-live="polite" className="scan-out">
           {error && <p role="alert">{error}</p>}
           {hit && !hit.found && <p>No animal carries this identifier. <Link href="/ngo/animals">Search the register</Link> and add it from the animal&apos;s page.</p>}
-          {hit?.found && !hit.own && <p>This identifier is registered with another organisation. Its record is theirs to share; contact them if the animal is in your care.</p>}
+          {hit?.found && !hit.own && <p>Registered with another organisation.</p>}
           {hit?.found && hit.own && <p>Opening {hit.name || hit.straypaw_id || "the animal"}…</p>}
         </div>
       </div>

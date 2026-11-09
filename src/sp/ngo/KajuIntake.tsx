@@ -70,7 +70,7 @@ export function KajuIntake({ actor }: { actor: { id: string; name: string } }) {
   return (
     <section className="ki" aria-labelledby="ki-h">
       <h2 id="ki-h" className="ki-h"><Sparkles size={15} aria-hidden /> Paste from WhatsApp</h2>
-      <p className="ki-lede">Paste messages or an exported chat. Kaju prepares each report, checks your register for the animal and for an open case, and you confirm. Sender names are dropped, and phone numbers and email addresses in the text are masked before anything is saved.</p>
+      <p className="ki-lede">Paste a message or an exported chat; Kaju prepares each report.</p>
       <label htmlFor="ki-text" className="ki-sr">Reports to prepare</label>
       <textarea id="ki-text" className="textarea ki-text" rows={5} maxLength={12000} value={text} onChange={(e) => setText(e.target.value)}
         placeholder={"Injured dog near Gandhipuram bus stand, bleeding from leg. Photo attached\n\nReleased after ABC at Saibaba Colony, female, ear notched"} />

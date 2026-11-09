@@ -92,7 +92,7 @@ export function Quality() {
             <div className="rc-stack">
               <Method items={[["Animals checked", checked < t.animals ? `${n(checked)} most recently seen of ${n(t.animals)}` : `all ${n(t.animals)}`], ["Records", `${n(t.cases)} cases, ${n(t.care)} care, ${n(t.followups)} follow-ups, ${n(t.outcomes)} outcomes`], ["Rules", "as in 1.0"]]} />
               {t.animals === 0 && t.cases === 0 ? (
-                <State art="ngo-empty" title="Nothing to check yet" action={<Link className="btn is-ink" href="/ngo/import">Import your workbook</Link>}>Queues fill once your organisation has animals or cases. Import an existing register, or record work from the queue.</State>
+                <State art="ngo-empty" title="Nothing to check yet" action={<Link className="btn is-ink" href="/ngo/import">Import your workbook</Link>}>Nothing to review yet.</State>
               ) : (
                 <ol className="rc-queues">
                   {qs.map((q) => {

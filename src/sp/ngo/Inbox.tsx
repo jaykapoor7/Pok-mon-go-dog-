@@ -95,7 +95,7 @@ export function Inbox() {
               {shown.length > 0 && <button type="button" className="chip" onClick={() => setPicked(picked.size === shown.length ? new Set() : new Set(shown.map((r) => r.id)))}>{picked.size === shown.length ? "Clear the selection" : `Select all ${shown.length}`}</button>}
             </div>
             {rows === null && <div className="stack" style={{ padding: 20 }}>{[0, 1, 2, 3].map((i) => <div key={i} className="skel" style={{ height: 96 }} />)}</div>}
-            {rows !== null && !shown.length && <State art="ngo-empty" title={helpOnly ? "No injured or unwell report" : src === "ours" ? "Nothing sent to you is waiting" : "No community report waiting near you"}>Reports appear here until a person files them into a drive or opens a case. An empty inbox means nothing is waiting, not that nothing was reported elsewhere.</State>}
+            {rows !== null && !shown.length && <State art="ngo-empty" title={helpOnly ? "No injured or unwell report" : src === "ours" ? "Nothing sent to you is waiting" : "No community report waiting near you"}>Nothing waiting.</State>}
             <ul className="ib-rows">
               {shown.map((r) => {
                 const help = (r.mood_tags ?? []).some((m) => m === "injured" || m === "sick");

@@ -41,7 +41,7 @@ export function CasePage({ id }: { id: string }) {
     <NgoGate title="Case file" lede="One case your organisation holds, with its history and its next step.">
       {file === "loading" ? <div className="ngo-page"><div className="skel" style={{ height: 320, margin: 28 }} /></div>
         : file === "error" ? <div className="ngo-page"><State kind="error" title="Didn't load" action={<button type="button" className="btn" onClick={() => void read()}>Try again</button>}>This case could not be read just now. Nothing was changed.</State></div>
-        : !file ? <div className="ngo-page"><State kind="forbidden" title="Not available" action={<Link className="btn" href="/ngo">Back to Work</Link>}>This case is not readable with your organisation&rsquo;s access. It may belong to another organisation; cross-organisation access needs an accepted grant.</State></div>
+        : !file ? <div className="ngo-page"><State kind="forbidden" title="Not available" action={<Link className="btn" href="/ngo">Back to Work</Link>}>This case belongs to another organisation.</State></div>
         : <Body file={file} onChanged={read} />}
     </NgoGate>
   );
@@ -101,7 +101,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
             <h3 className="h3">The animal</h3>
             {c.dog_id ? (
               <Link className="cs-animal" href={`/ngo/animals/${c.dog_id}`}><Portrait src={animal?.photo ?? null} tag={animal?.straypaw_id ?? "Animal"} sensitive size="s" /><span><b>{realName(animal?.name) ?? animal?.straypaw_id ?? "Animal record"}</b><small className="mono">{animal?.straypaw_id ?? "ID pending"}</small></span><ArrowUpRight size={14} aria-hidden /></Link>
-            ) : <p className="small">Not linked to an animal record. A person links it once the animal is identified; nothing is matched automatically.</p>}
+            ) : <p className="small">Not linked to an animal yet.</p>}
           </section>
           <section className="cf-card">
             <h3 className="h3">Follow-ups <span className="mono small">{followups.length}</span></h3>

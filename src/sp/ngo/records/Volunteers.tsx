@@ -45,7 +45,7 @@ export function Volunteers() {
         <div className="rc-body">
           {d.state === "loading" && <div className="rc-skel" aria-label="Reading sign-ups"><span className="skel" /><span className="skel" /><span className="skel" /></div>}
           {d.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Sign-ups could not be read. {friendlyError(d.error)} This is not the same as no sign-ups.</State>}
-          {d.state === "read" && !d.rows.length && <State art="ngo-empty" title="No sign-ups yet" action={<Link className="btn is-ink" href="/ngo/team">Add someone to your team</Link>}>People who offer to help on StrayPaw appear here with how to reach them. Someone you already know can be added to your team with a personal code instead.</State>}
+          {d.state === "read" && !d.rows.length && <State art="ngo-empty" title="No sign-ups yet" action={<Link className="btn is-ink" href="/ngo/team">Add someone to your team</Link>}>People who offer to help appear here.</State>}
           {d.state === "read" && d.rows.length > 0 && (
             <div className="rc-stack">
               <Method items={[["Source", "offers about your animals, and sign-ups shared with you"], ["Order", "newest first"], ["Shown", `up to 300, ${n(d.rows.length)} read`]]} />

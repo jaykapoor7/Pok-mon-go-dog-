@@ -80,7 +80,7 @@ export function Insights() {
           <MobileDetails label="Jump to a finding" className="ci-index-fold"><nav className="ci-index" aria-label="Findings">
             <p className="k">{list.length} findings</p>
             <ol>{list.map((x, i) => <li key={x.id}><button type="button" className="ci-tab" aria-current={i === on ? "true" : undefined} onClick={() => { setOn(i); history.replaceState(null, "", `#${x.id}`); }}><span className="mono">{String(i + 1).padStart(2, "0")}</span>{x.kicker}</button></li>)}</ol>
-            <p className="small">Each finding says what it counts and what it cannot say. Figures come from the live record when this page was opened.</p>
+
           </nav></MobileDetails>
           <div className="ci-list">
             {shown && <FindingView key={shown.id} x={shown} i={on} city={city!} />}

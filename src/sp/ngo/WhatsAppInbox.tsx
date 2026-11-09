@@ -58,7 +58,7 @@ export function WhatsAppInbox({ admin }: { admin: boolean }) {
     <section className="wi wi-link" aria-label="WhatsApp">
       <span className="wi-logo" aria-hidden><MessageCircle size={22} /></span>
       <h2>WhatsApp</h2>
-      <p>Link your WhatsApp Business number and reports from your field team and residents arrive here with photos, voice notes and location. Kaju prepares each one; your team decides.</p>
+      <p>Link your WhatsApp Business number to receive reports with photos, voice notes and location.</p>
       {admin ? <Link className="btn is-ink" href="/ngo/settings/connections">Link WhatsApp <ArrowRight size={15} aria-hidden /></Link> : <p className="wi-quiet">An admin in your organisation links the number in Organisation → Connections.</p>}
     </section>
   );

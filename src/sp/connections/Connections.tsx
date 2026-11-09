@@ -128,7 +128,7 @@ export function Connections({ back }: { back: string }) {
             <li className="cx-card">
               <div className="cx-top"><div className="cx-id"><span className="cx-logo is-wa" aria-hidden><MessageCircle size={16} /></span><div><b>WhatsApp Business</b><small>For the whole organisation</small></div></div>
                 <span className="cx-state is-off">Not linked</span></div>
-              <p className="cx-line">Reports from your field team and residents arrive in Intake with photos, voice notes and location. Updates to reporters use approved templates.</p>
+              <p className="cx-line">Field and resident reports arrive in Intake with photos, voice notes and location.</p>
               {d.me.admin ? <Link className="btn is-s" href="/contact">Link number</Link> : <p className="cx-acct">An administrator links the organisation&rsquo;s number.</p>}
             </li>
             <li className="cx-card">

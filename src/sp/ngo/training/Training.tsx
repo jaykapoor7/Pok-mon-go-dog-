@@ -193,7 +193,7 @@ function Manage() {
             <span className={`tr-status is-${c.status}`}>{c.status === "published" ? "Published" : c.status === "draft" ? "Draft" : "Archived"}</span>
             <small>{c.ngo_id ? "Your organisation" : "StrayPaw"} · updated {day(c.updated_at)}</small>
           </button></li>))}</ul>
-      ) : <p className="tr-empty">No courses yet. Start one for a task your team repeats: safe capture, recording a release, or the monthly report.</p>}
+      ) : <p className="tr-empty">No courses yet.</p>}
     </div>
   );
 }

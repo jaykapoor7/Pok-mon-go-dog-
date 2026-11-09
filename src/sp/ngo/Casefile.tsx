@@ -74,7 +74,7 @@ export function Casefile({ id, identifiers = false }: { id: string; identifiers?
   return (
     <NgoGate title="Casefile" lede="Your organisation's private record of one animal.">
       {dog === null ? <div className="ngo-page"><div className="skel" style={{ height: 320, margin: 28 }} /></div>
-        : dog === "missing" ? <div className="ngo-page"><State kind="forbidden" title="Not in your register" action={<Link className="btn" href={`/animal/${id}`}>Open the public record</Link>}>This animal is not held by your organisation. Its public record is open to everyone; cross-organisation access to private detail needs a granted request.</State></div>
+        : dog === "missing" ? <div className="ngo-page"><State kind="forbidden" title="Not in your register" action={<Link className="btn" href={`/animal/${id}`}>Open the public record</Link>}>This animal belongs to another organisation.</State></div>
         : dog === "error" ? <div className="ngo-page"><State kind="error" title="Didn't load" action={<button type="button" className="btn" onClick={() => void load()}>Try again</button>}>The casefile could not be read. Nothing was changed.</State></div>
         : (
           <div className="cf">

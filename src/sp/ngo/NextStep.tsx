@@ -103,7 +103,7 @@ export function NextStep({ file, cohort, onChanged }: { file: CaseFile; cohort: 
         <div className="next-block">
           {pool ? (
             <>
-              <p>No organisation holds this report yet. Claiming it makes your organisation accountable; it is not a promise of a rescue time.</p>
+              <p>No organisation holds this report yet.</p>
               <button type="button" className="btn is-flame" disabled={!!busy} onClick={() => go("claim", () => takeCase(c.id, actor))}>Claim for your organisation</button>
             </>
           ) : (

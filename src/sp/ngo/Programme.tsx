@@ -50,7 +50,7 @@ export function Programme({ id }: { id: string }) {
               <Partition yes={s.vaccinated} no={s.not_vaccinated} unknown={s.vacc_unknown} yesLabel="vaccinated" />
               <dl className="ledger"><div><dt>Of those recorded</dt><dd>{pct(s.vacc_pct_of_known)} vaccinated</dd></div><div><dt>Of all animals filed</dt><dd>{pct(s.vacc_pct_of_all)} recorded vaccinated</dd></div></dl>
             </div>
-            <p className="small pg-method">Method: each animal&rsquo;s latest status observed during the drive. An ear notch is a sign, not proof of surgery. Animals filed into a drive are those your team saw, not a census of the area; this is not coverage of a population.</p>
+            
           </section>
           <div className="wk-tools"><select className="select ngo-sel" value={ster} onChange={(e) => setSter(e.target.value)} aria-label="Sterilisation"><option value="">Every animal</option><option value="sterilised">Sterilised</option><option value="not_sterilised">Recorded not</option><option value="unknown">Not recorded</option></select>{s.needs_help > 0 && <span className="pill is-urgent">{n(s.needs_help)} need help</span>}</div>
           <div className="reg">

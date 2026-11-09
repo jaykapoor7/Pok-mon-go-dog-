@@ -111,7 +111,7 @@ export function Stories() {
               <button type="submit" className="btn is-ink" disabled={busy || !ready}>{busy ? "Publishing…" : "Publish story"}</button>
               <span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not published: {r.error}</Ack>) : !ready ? <Ack state="draft">Choose a case, add a title and a summary.</Ack> : null}</span>
             </div>
-            <p className="small">Any member of your organisation can publish. The server checks the case is yours and resolved. A published story cannot be withdrawn from here.</p>
+            <p className="small">Published stories appear on your public page.</p>
           </form>
 
           <aside className="rc-side">

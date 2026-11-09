@@ -135,7 +135,7 @@ export function ImportFlow() {
         <header className="imx-head">
           <p className="k">{mem.org?.name ?? "Your organisation"} · records</p>
           <h1>Import your register.</h1>
-          <p>The spreadsheet your team already keeps, as it is. Rescues, treatment, ABC and vaccination sheets are recognised on their own. Import it again whenever it grows: only new rows are added.</p>
+          <p>Your existing spreadsheet, as it is.</p>
         </header>
 
         {err && <p className="imx-err" role="alert"><AlertTriangle size={16} aria-hidden />{err}</p>}
@@ -193,7 +193,7 @@ export function ImportFlow() {
               {totals.already > 0 && <div><dt>Already imported</dt><dd>{n(totals.already)}</dd></div>}
             </dl>
             {held.length > 0 && <details className="imx-held"><summary>{plural(held.length, "row")} left out<ChevronDown size={16} aria-hidden /></summary><ul>{held.slice(0, 200).map((h, i) => <li key={i}><span className="mono">{h.sheet} · row {h.row}</span>{h.reason}</li>)}</ul></details>}
-            <p className="small">Cases that were still open in the register wait in Historical review for someone to confirm; they are not added to today&rsquo;s queue. Animals appear on your map as their areas refresh.</p>
+            <p className="small">Open cases from the register wait in Historical review.</p>
             <div className="imx-go"><Link className="btn is-ink" href="/ngo/animals">See your animals<ArrowRight size={16} aria-hidden /></Link><Link className="btn" href="/ngo/review?cohort=history">Historical review</Link><button type="button" className="btn is-ghost" onClick={reset}>Import another file</button></div>
           </section>
         )}

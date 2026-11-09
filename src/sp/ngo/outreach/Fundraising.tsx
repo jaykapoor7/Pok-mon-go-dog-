@@ -60,7 +60,7 @@ export function Fundraising() {
         ) : rows === null ? (
           <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 160 }} /></div>
         ) : rows.length === 0 ? (
-          <State art="ngo-empty" title="No campaigns yet" action={<Link className="btn is-ink" href="/ngo/fundraising/new">Start a campaign</Link>}>Pick a need above or start your own. You need a donation link (UPI, Razorpay, Milaap, Ketto or your own page); donors are sent there.</State>
+          <State art="ngo-empty" title="No campaigns yet" action={<Link className="btn is-ink" href="/ngo/fundraising/new">Start a campaign</Link>}>Pick a need or start your own. You&apos;ll need a donation link.</State>
         ) : (
           <div className="or-scroll" role="region" aria-label="Your campaigns" tabIndex={0}>
             <table className="or-table" style={{ minWidth: 900 }}>

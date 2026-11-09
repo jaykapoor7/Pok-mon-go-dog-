@@ -192,7 +192,7 @@ export function Work() {
       {!loading && !failed && co.live.length + co.decide.length + co.history.length === 0 && (
         <Link href="/ngo/import" className="wk2-start">
           <Upload size={22} aria-hidden />
-          <span><b>Start with the register you already keep.</b><small>Drop in your rescue, treatment or ABC spreadsheet. Every animal and case lands here in one step, and importing it again later adds only new rows.</small></span>
+          <span><b>Start with the register you already keep.</b><small>Drop in your rescue, treatment or ABC spreadsheet.</small></span>
           <ArrowUpRight size={20} aria-hidden />
         </Link>
       )}
@@ -246,7 +246,7 @@ export function Work() {
             </aside>
           ) : (
             <div className="wk2-hint">
-              <p><b>Choose a case</b> in the stream or an area on the map. The case opens here with its animal, place, owner, history and the next step your role allows.</p>
+              <p><b>Choose a case</b> to open it here.</p>
               <dl className="wk-keys">{[["j  k", "move"], ["Enter", "open"], ["o", "case file"], ["m", "map"], ["/", "search"], ["Esc", "close"]].map(([k, v]) => <div key={k}><dt><kbd>{k}</kbd></dt><dd>{v}</dd></div>)}</dl>
             </div>
           )}
@@ -327,7 +327,7 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
   }
   if (file === "loading") return <div className="wk-insp" aria-busy="true"><div className="skel" style={{ height: 14, width: "40%" }} /><div className="skel" style={{ height: 40, width: "80%", marginTop: 12 }} /><div className="skel" style={{ height: 180, marginTop: 18 }} /></div>;
   if (file === "error") return <div className="wk-insp"><State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={() => void read()}>Try again</button>}>This case could not be read just now. Nothing was changed.</State></div>;
-  if (!file) return <div className="wk-insp"><State kind="forbidden" title="Not available">This case is not readable with your organisation&rsquo;s access. It may belong to another organisation; cross-organisation access needs an accepted grant.</State></div>;
+  if (!file) return <div className="wk-insp"><State kind="forbidden" title="Not available">This case belongs to another organisation.</State></div>;
 
   const { c, reg, animal, updates, followups, medical, neighbours, sameAnimal } = file;
   const imported = reg.provenance === "imported_historical_record";
@@ -395,7 +395,7 @@ function SignedOut({ signedIn }: { signedIn: boolean }) {
       <section className="ngo-door-inc" aria-labelledby="ngo-door-inc">
         <h2 id="ngo-door-inc">What your workspace includes</h2>
         <ol>
-          <li><span aria-hidden>1</span><div><h3>One work queue</h3><p>Review incoming requests, open cases and due follow-ups. Historical records stay separate from today&rsquo;s work.</p></div></li>
+          <li><span aria-hidden>1</span><div><h3>One work queue</h3><p>Requests, cases and follow-ups in one queue.</p></div></li>
           <li><span aria-hidden>2</span><div><h3>Each animal&rsquo;s history</h3><p>Read sightings, cases and recorded care together, with the available location and source.</p></div></li>
           <li><span aria-hidden>3</span><div><h3>Your team&rsquo;s next step</h3><p>Accept and assign cases, record treatment, schedule follow-ups and close cases with an outcome.</p></div></li>
         </ol>

@@ -139,7 +139,7 @@ export function LocalitySpellings() {
   return (
     <section className="rq-sp" aria-labelledby="rq-sp-h">
       <h2 id="rq-sp-h"><MapPin size={14} aria-hidden /> One place, several spellings</h2>
-      <p>Ward and locality reports count these separately. Pick the correct spelling and fix the others at their source; Kaju never merges places or animals on its own.</p>
+      <p>Fix the spelling at its source to merge these.</p>
       <ul>{g.map((x) => <li key={x.canonical}><b>{x.canonical}</b> <small>{x.total} animals · {x.variants.map((v) => `${v.zone} (${v.count})`).join(", ")}</small></li>)}</ul>
     </section>
   );

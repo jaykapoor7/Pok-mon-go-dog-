@@ -100,7 +100,7 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
       {canPrepare && offs.length === 0 && <p className="ms-p"><small>No reviewing office is linked yet, so nothing can be claimed.</small></p>}
 
       {canPrepare && office && (!preview ? <p className="ms-p">Kaju is checking which procedures can be claimed…</p>
-        : preview.state === "not_deployed" ? <p className="ms-p" role="status">The billing preview is not installed on this workspace yet, so no amount is shown and the package is prepared from Report packages.</p>
+        : preview.state === "not_deployed" ? <p className="ms-p" role="status">No amount is available for this period.</p>
         : preview.state === "error" ? <p className="ms-p" role="status">The billing preview could not be read: {preview.message}. No amount is shown.</p>
         : pv && <div className="ms-bill">
           <ul className="ms-stats">

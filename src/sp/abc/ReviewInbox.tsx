@@ -67,7 +67,7 @@ export function ReviewInbox() {
   if (ready && !user) return (
     <div className="ngo-door"><header className="ngo-door-head">
       <h1>Package review, for reviewing offices.</h1>
-      <p className="ngo-door-sum">Report packages that operators submit to your office appear here. Sign in with your work account to open them.</p>
+      <p className="ngo-door-sum">Submitted packages appear here.</p>
       <div className="ngo-door-act"><Link className="btn is-ink" href={`/sign-in?next=${encodeURIComponent("/city/review")}`}>Sign in</Link></div>
     </header></div>
   );

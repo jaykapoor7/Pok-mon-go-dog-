@@ -81,7 +81,7 @@ export function Evidence() {
         </header>
 
         <FileBand onDone={after} />
-        <p className="or-note"><ShieldCheck size={16} aria-hidden /><span>These stay inside your organisation. A register page carries other people&rsquo;s handwriting and contact details, so it is never shown on a public animal page.</span></p>
+        <p className="or-note"><ShieldCheck size={16} aria-hidden /><span>Private to your organisation.</span></p>
         <div aria-live="polite" className="or-receipt">{receipts.map((r, i) => <div key={i}>{r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not saved: {r.error}</Ack>}</div>)}</div>
 
         {failed ? (
@@ -89,7 +89,7 @@ export function Evidence() {
         ) : docs === null ? (
           <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 180 }} /></div>
         ) : docs.length === 0 ? (
-          <State art="ngo-empty" title="No scans filed yet" action={<Link className="btn" href="/ngo/import">Import a workbook</Link>}>Choose the type above, then pick the profiles, ledgers and medical notes your team keeps on paper. Each one can then be attached to the animal it describes.</State>
+          <State art="ngo-empty" title="No scans filed yet" action={<Link className="btn" href="/ngo/import">Import a workbook</Link>}>Choose a type, then pick the files.</State>
         ) : (
           <>
             <div className="wk-tools">
@@ -150,7 +150,7 @@ function FileBand({ onDone }: { onDone: (r: Receipt[]) => Promise<void> }) {
   return (
     <section className="or-band" aria-labelledby="ev-file">
       <h2 id="ev-file">File a scan</h2>
-      <p className="small">A dog profile sheet, an ABC ledger page, a medical note, a screenshot of a thread. Add its context and attach it afterwards.</p>
+      <p className="small">Profiles, ledgers, medical notes or screenshots.</p>
       <div className="or-band-row">
         <select className="select" value={kind} onChange={(e) => setKind(e.target.value as DocumentKind)} disabled={!!busy} aria-label="Document type">{DOCUMENT_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
         <input ref={ref} type="file" accept="image/*" multiple hidden aria-label="Choose scans to file" onChange={(e) => { void pick(e.target.files); e.target.value = ""; }} />

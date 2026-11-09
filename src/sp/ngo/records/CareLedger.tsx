@@ -76,7 +76,7 @@ function Events() {
 
   if (d.state === "loading") return <div className="rc-skel" aria-label="Reading care history"><span className="skel" /><span className="skel" /><span className="skel" /></div>;
   if (d.state === "failed") return <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>The care history did not load. {friendlyError(d.error)} Nothing is shown as empty.</State>;
-  if (!d.rows.length) return <State art="ngo-empty" title="No care recorded yet" action={<Link className="btn is-ink" href="/ngo/animals">Open the animal register</Link>}>Open an animal and add treatment, vaccination or sterilisation to its history. It appears here, dated and attached to that animal.</State>;
+  if (!d.rows.length) return <State art="ngo-empty" title="No care recorded yet" action={<Link className="btn is-ink" href="/ngo/animals">Open the animal register</Link>}>Care added on an animal&apos;s record appears here.</State>;
 
   return (
     <div className="rc-stack">
@@ -126,7 +126,7 @@ function MedicalCases() {
 
   if (d.state === "loading") return <div className="rc-skel" aria-label="Reading medical cases"><span className="skel" /><span className="skel" /><span className="skel" /></div>;
   if (d.state === "failed") return <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Medical cases could not be read. {friendlyError(d.error)} Nothing is shown as empty.</State>;
-  if (!medical.length) return <State art="ngo-empty" title="No medical cases yet" action={<Link className="btn is-ink" href="/ngo">Open the work queue</Link>}>Cases about injury, vaccination or sterilisation, or with medical notes, appear here. Cases from other organisations never do.</State>;
+  if (!medical.length) return <State art="ngo-empty" title="No medical cases yet" action={<Link className="btn is-ink" href="/ngo">Open the work queue</Link>}>Medical cases appear here.</State>;
 
   return (
     <div className="rc-stack">
