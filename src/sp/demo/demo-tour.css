@@ -26,6 +26,8 @@
 .dt-btn:disabled { opacity: 0.5; cursor: default; }
 .dt-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13.5px; }
 .dt-link { border: 0; background: none; padding: 6px 0; font: inherit; color: var(--dt-blue); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.dt .dt-list { font-size: 13.5px; }
+.dt .dt-list b { display: block; font-size: 12px; font-weight: 600; color: #0b1e3d; }
 .dt-note { color: #5b6475; font-size: 12.5px; }
 .dt-err { margin: 0; font-size: 13.5px; color: #a8321f; }
 

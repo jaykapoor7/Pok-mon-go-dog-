@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Compass, Minus, Sparkles, UserRound } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { DEMO_ROLES, TOUR, TOUR_DONE, type DemoRole } from "./tour";
+import { DEMO_ROLES, NOT_YET, SHOWN, TOUR, TOUR_DONE, type DemoRole } from "./tour";
 import { enterAs, readTour, writeTour, TOUR_EVENT, type TourState } from "./state";
 import "./demo-tour.css";
 
@@ -157,8 +157,9 @@ export function DemoTour() {
       <aside className={`dt${place}`} aria-label="Guided demo">
         <div className="dt-top"><span className="dt-k">Guided demo · complete</span><button type="button" className="dt-min" onClick={() => writeTour({ ...s, mode: "roam" })}>Roam freely <Minus size={14} aria-hidden /></button></div>
         <div className="dt-bar"><i style={{ width: "100%" }} /></div>
-        <h2>That is the whole loop</h2>
-        <p>A record made in the street, signed off by a vet, checked by the coordinator, claimed from the city and decided by the office, with research reading the same record. Roam freely as any role, or talk to us about a pilot.</p>
+        <h2>That is the full platform</h2>
+        <p className="dt-list"><b>Shown</b> {SHOWN.join(" · ")}</p>
+        <p className="dt-list"><b>Not yet switched on</b> {NOT_YET.join(" · ")}</p>
         <div className="dt-act">
           <button type="button" className="dt-btn" disabled={busy} onClick={() => go(0)}>Start again</button>
           <button type="button" className="dt-btn is-go" onClick={() => writeTour({ ...s, mode: "roam" })}>Roam freely</button>
