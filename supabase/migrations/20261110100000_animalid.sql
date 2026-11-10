@@ -149,11 +149,17 @@ REVOKE ALL ON public.animalid_model_versions, public.animalid_evaluations, publi
 GRANT SELECT ON public.animalid_model_versions, public.animalid_evaluations TO authenticated;
 GRANT SELECT ON public.animalid_jobs, public.animalid_candidates, public.animalid_decisions, public.animalid_training_consent TO authenticated;
 -- Embedding vectors are never readable by the browser.
+DROP POLICY IF EXISTS animalid_models_read ON public.animalid_model_versions;
 CREATE POLICY animalid_models_read ON public.animalid_model_versions FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS animalid_evals_read ON public.animalid_evaluations;
 CREATE POLICY animalid_evals_read ON public.animalid_evaluations FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS animalid_jobs_read ON public.animalid_jobs;
 CREATE POLICY animalid_jobs_read ON public.animalid_jobs FOR SELECT TO authenticated USING (ngo_id = (SELECT public.my_ngo()));
+DROP POLICY IF EXISTS animalid_candidates_read ON public.animalid_candidates;
 CREATE POLICY animalid_candidates_read ON public.animalid_candidates FOR SELECT TO authenticated USING (ngo_id = (SELECT public.my_ngo()));
+DROP POLICY IF EXISTS animalid_decisions_read ON public.animalid_decisions;
 CREATE POLICY animalid_decisions_read ON public.animalid_decisions FOR SELECT TO authenticated USING (ngo_id = (SELECT public.my_ngo()));
+DROP POLICY IF EXISTS animalid_consent_read ON public.animalid_training_consent;
 CREATE POLICY animalid_consent_read ON public.animalid_training_consent FOR SELECT TO authenticated USING (ngo_id = (SELECT public.my_ngo()));
 
 -- ── private bucket for search photos: <ngo>/<file>, own organisation only ────
