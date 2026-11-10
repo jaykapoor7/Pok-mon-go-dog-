@@ -1,0 +1,53 @@
+/* First-run welcome: one sheet, the record line, three steps. A centred
+   dialog on a desk, a bottom sheet on a phone. */
+.fr { width: min(520px, calc(100vw - 32px)); max-height: min(92dvh, 760px); padding: 0; border: 0; border-radius: 20px; background: #fff; color: #0b1e3d; box-shadow: 0 40px 100px -40px rgba(11, 30, 61, .55), 0 0 0 1px rgba(11, 30, 61, .06); overflow: auto; font-family: var(--s3-sans, var(--s4-inter), Inter, system-ui, sans-serif); letter-spacing: -0.01em; }
+.fr::backdrop { background: rgba(11, 30, 61, .38); }
+.fr-in { position: relative; display: grid; padding: 32px 32px 26px; }
+.fr-x { position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 12px; background: none; color: #6b7486; cursor: pointer; }
+.fr-x:hover { background: #f3f4f6; color: #0b1e3d; }
+.fr-kaju { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 16px; background: #f5f7fb; }
+.fr h2 { margin: 18px 0 0; font-size: 30px; line-height: 1.1; font-weight: 500; letter-spacing: -0.035em; }
+.fr-sub { margin: 8px 0 0; font-size: 15.5px; line-height: 1.5; color: #4a5568; }
+.fr-sub b { color: #0b1e3d; font-weight: 500; }
+.fr-steps { list-style: none; margin: 22px 0 0; padding: 0; display: grid; }
+.fr-steps li { position: relative; }
+.fr-steps li::before { content: ""; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: #dfe5f1; transform-origin: 50% 0; }
+.fr-steps li:first-child::before { top: 50%; }
+.fr-steps li:last-child::before { bottom: 50%; }
+.fr-steps a { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr) 16px; gap: 16px; align-items: center; min-height: 72px; padding: 10px 12px 10px 0; border-radius: 14px; color: inherit; text-decoration: none; transition: background-color 160ms ease; }
+.fr-steps a:hover { background: #f7f9fd; }
+.fr-steps a > svg { color: #9aa3b5; transition: transform 200ms cubic-bezier(.2, .7, .2, 1), color 160ms ease; }
+.fr-steps a:hover > svg { transform: translateX(3px); color: #2457ce; }
+.fr-n { position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #fff; border: 2px solid #b9c6e4; font-size: 14px; font-weight: 500; color: #2457ce; font-variant-numeric: tabular-nums; }
+.fr-steps li:first-child .fr-n { background: #2457ce; border-color: #2457ce; color: #fff; }
+.fr-t b { display: block; font-size: 16px; font-weight: 500; letter-spacing: -0.015em; }
+.fr-t small { display: block; margin-top: 2px; font-size: 14px; line-height: 1.45; color: #6b7486; }
+.fr-note { display: flex; align-items: center; gap: 8px; margin: 18px 0 0; padding: 12px 14px; border-radius: 12px; background: #f5f7fb; font-size: 14px; color: #4a5568; }
+.fr-act { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.fr-go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 99px; background: #2457ce; color: #fff; font-size: 15.5px; font-weight: 500; text-decoration: none; transition: background-color 160ms ease; }
+.fr-go:hover { background: #1c47ad; }
+.fr-go svg { transition: transform 200ms cubic-bezier(.2, .7, .2, 1); }
+.fr-go:hover svg { transform: translateX(3px); }
+.fr-skip { min-height: 48px; padding: 0 18px; border: 0; border-radius: 99px; background: none; font: inherit; font-size: 15px; font-weight: 500; color: #4a5568; cursor: pointer; }
+.fr-skip:hover { background: #f3f4f6; color: #0b1e3d; }
+.fr :is(a, button):focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .fr[open] { animation: fr-in 360ms cubic-bezier(.2, .7, .2, 1) both; }
+  .fr[open]::backdrop { animation: fr-fade 300ms ease both; }
+  .fr-steps li::before { animation: fr-draw 480ms cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(240ms + var(--i) * 140ms); }
+  .fr-n { animation: fr-pop 380ms cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(280ms + var(--i) * 140ms); }
+  .fr-t { animation: fr-up 460ms cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(320ms + var(--i) * 140ms); }
+  @keyframes fr-in { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+  @keyframes fr-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fr-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes fr-pop { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes fr-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}
+@media (max-width: 640px) {
+  .fr { width: 100vw; max-width: 100vw; margin: auto 0 0; max-height: 92dvh; border-radius: 22px 22px 0 0; }
+  .fr-in { padding: 26px 20px calc(20px + env(safe-area-inset-bottom)); }
+  .fr h2 { font-size: 26px; }
+  .fr-act { display: grid; }
+  .fr-go, .fr-skip { width: 100%; }
+  @media (prefers-reduced-motion: no-preference) { .fr[open] { animation-name: fr-rise; } @keyframes fr-rise { from { transform: translateY(100%); } to { transform: none; } } }
+}

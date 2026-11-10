@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { Building2, KeyRound, Loader2, Mail } from "lucide-react";
+import { ArrowRight, Building2, KeyRound, Loader2, Mail } from "lucide-react";
 import { cleanCode, signInWithCode, useAuth } from "@/components/auth/AuthProvider";
 import { StrayPawMark } from "@/components/site/SiteHeader";
-import { WhatsNew } from "@/sp3/entry/WhatsNew";
+import { EntryAside } from "@/sp5/entry/EntryAside";
 import "@/sp3/sp3.css";
 import "@/sp4/sp4.css";
 import "@/sp4/entry4.css";
@@ -49,31 +49,34 @@ export function SignIn() {
   }
 
   return (
-    <div className="s4 s4l">
+    <div className="s4 s4l s9">
       <section className="s4l-left">
-        <Link href="/" className="s4l-logo is-big" aria-label="StrayPaw home"><StrayPawMark size={44} /><span>StrayPaw</span></Link>
-        <h1 className="s4l-sr">Sign in to StrayPaw</h1>
-        <form onSubmit={submit} className="s4l-panel" noValidate>
-          <p className="s4l-panel-h">Sign in with email and access code</p>
-          <label htmlFor="si-email">Work email</label>
-          <input id="si-email" className="s4l-input" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@organisation.org" />
-          <label htmlFor="si-code">Access code</label>
-          <input id="si-code" className="s4l-input is-code" value={code} onChange={(e) => setCode(cleanCode(e.target.value))} placeholder="XXXXXX" autoCapitalize="characters" autoComplete="one-time-code" maxLength={6} />
-          {error && <p className="s4l-err s3-err" role="alert">{error}</p>}
-          <button type="submit" className="s4l-go" disabled={busy}>{busy ? <><Loader2 size={15} className="animate-spin" />{step ?? "Working"}</> : "Sign in"}</button>
-          <p className="s4l-hint">No password. Your organisation gives you the email and six-character code.</p>
-          <p className="s4l-hint">Authorised users only; activity is recorded. By signing in you accept the <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>
-        </form>
-        <div className="s4l-panel">
-          <p className="s4l-panel-h">Other ways in</p>
-          <Link href="/join" className="s4l-alt"><KeyRound size={15} aria-hidden />Join with an invitation code</Link>
-          <Link href="/access" className="s4l-alt"><Mail size={15} aria-hidden />Email me my access code</Link>
-          <Link href="/partner-apply" className="s4l-alt"><Building2 size={15} aria-hidden />Request organisation access</Link>
+        <Link href="/" className="s4l-logo" aria-label="StrayPaw home"><StrayPawMark size={32} /><span>StrayPaw</span></Link>
+        <div className="s9-col">
+          <h1 className="s9-h">Welcome back.</h1>
+          <p className="s9-sub">Sign in with the email and six-character code your organisation gave you. There is no password to remember.</p>
+          <form onSubmit={submit} className="s9-form" noValidate>
+            <label htmlFor="si-email">Work email</label>
+            <input id="si-email" className="s4l-input" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@organisation.org" />
+            <label htmlFor="si-code">Access code</label>
+            {/* One real input; the six cells behind it show how much is left to type. */}
+            <div className="s9-code">
+              <div className="s9-cells" aria-hidden>{Array.from({ length: 6 }, (_, i) => <span key={i} className={i < code.length ? "is-full" : i === code.length ? "is-next" : undefined} />)}</div>
+              <input id="si-code" className="s4l-input is-code" value={code} onChange={(e) => setCode(cleanCode(e.target.value))} autoCapitalize="characters" autoComplete="one-time-code" spellCheck={false} maxLength={6} aria-describedby="si-code-hint" />
+            </div>
+            <p id="si-code-hint" className="s4l-hint">Six letters and numbers. Capitals do not matter.</p>
+            {error && <p className="s4l-err s3-err" role="alert">{error}</p>}
+            <button type="submit" className="s4l-go" disabled={busy}>{busy ? <><Loader2 size={16} className="animate-spin" />{step ?? "Working"}</> : <>Sign in<ArrowRight size={16} aria-hidden /></>}</button>
+          </form>
+          <nav className="s9-doors" aria-label="Other ways in">
+            <Link href="/join"><KeyRound size={16} aria-hidden /><span><b>First time here?</b><small>Join with the invitation code your admin sent</small></span><ArrowRight size={15} aria-hidden /></Link>
+            <Link href="/access"><Mail size={16} aria-hidden /><span><b>Lost your code?</b><small>We email it to your work address</small></span><ArrowRight size={15} aria-hidden /></Link>
+            <Link href="/partner-apply"><Building2 size={16} aria-hidden /><span><b>New organisation?</b><small>Request access for your NGO or office</small></span><ArrowRight size={15} aria-hidden /></Link>
+          </nav>
+          <p className="s9-legal">Authorised users only; activity is recorded. By signing in you accept the <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>. Need help? <Link href="/contact">Contact support</Link>.</p>
         </div>
-        <p className="s4l-help">Need help? <Link href="/contact">Contact support</Link></p>
-        <p className="s4l-legal is-faint"><Link href="/privacy">Privacy Policy</Link> · <Link href="/terms">Terms of Service</Link></p>
       </section>
-      <WhatsNew />
+      <EntryAside />
     </div>
   );
 }

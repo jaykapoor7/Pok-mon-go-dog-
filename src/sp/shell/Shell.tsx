@@ -22,13 +22,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity, BookOpen, Building2, ChevronDown, ChevronsUpDown, Compass, FileText, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers,
-  LifeBuoy, LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
+  LifeBuoy, LogOut, Map as MapIcon, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
   ListChecks, MoreHorizontal, Settings, ClipboardCheck, ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
 import { ORDER, PROFESSIONAL, WORKSPACES, canDiscover, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
+import { FirstRun, WELCOME_EVENT } from "@/sp5/app/FirstRun";
 import { Notices } from "../ui/Notice";
 import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
@@ -150,6 +151,9 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
     const extra = def.index.filter((g) => !own.has(g.label)).flatMap((g) => g.links).filter((l) => l.href !== def.settings && l.href !== "/assistant");
     return new Set([...nav.map((r) => r.item.href), ...(extra.length <= 4 ? extra.map((l) => l.href) : [])]);
   })();
+  const thumb = phoneTabs(ws, mem.role, def.dests).filter((d) => d.href !== def.action?.href).slice(0, 3);
+  /* The thumb bar's centre action: New case for people who open cases, Report for the public map. Vets sign off instead. */
+  const thumbAction = def.action && (ws !== "ngo" || (mem.member && mem.role !== "veterinarian")) ? def.action : null;
   const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
 
@@ -241,6 +245,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               )}
             </div>
             ) : <span className="sp-ws sx3-ws-m sx3-ws-static"><i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span></span>}
+            {/* Phone: the bar says whose workspace this is; the page says where you are. */}
+            <span className="sx6-where">{ws === "ngo" && mem.org ? mem.org.name : def.label}</span>
             {deep && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
@@ -252,7 +258,6 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               <Search size={15} aria-hidden /><span>Search records</span><kbd>⌘K</kbd>
             </button>
             <div className="sp-bar-end">
-              <button type="button" className="icon-btn sx5-menu-m" aria-label="Workspace sections" onClick={()=>setSheet(true)}><Menu size={18} aria-hidden /></button>
               {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuFace size={24} /></span><span>Ask Kaju</span></button>}
               {def.action && !reporting && (ws !== "ngo" || mem.member) && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}
               <span className={`sx3-acct-m${user ? "" : " is-out"}`}><Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} /></span>
@@ -264,21 +269,22 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
-        <nav className="sp-tabs" aria-label={`${def.label} navigation`}>
-          {phoneTabs(ws, mem.role, def.dests).filter((d) => d.href !== def.action?.href).map((d, i, arr) => {
-            const Icon = ICON[d.icon] ?? MapIcon;
-            const node = <Link key={d.href + (d.query ?? "")} href={d.query ? `${d.href}?${d.query}` : d.href} aria-current={navOn(d,path) ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>;
-            if (ws !== "ngo" && def.action && i === Math.ceil(arr.length / 2) - 1) return [node, reporting
-              ? <Link key="act" href={def.action.href} aria-current="page"><Radio size={21} strokeWidth={1.8} aria-hidden /><span>{def.action.short}</span></Link>
-              : <Link key="act" href={def.action.href} className="sp-tabs-act" aria-label={def.action.label}><b>{def.action.href.includes("report") ? <Radio size={21} aria-hidden /> : <Plus size={21} aria-hidden />}</b><span>{def.action.short}</span></Link>];
-            return node;
-          })}
+        <nav className="sp-tabs sx6-tabs" aria-label={`${def.label} navigation`}>
+          {(() => {
+            /* Three places a person uses on the move, the one thing they add, Kaju, and everything else behind More. */
+            const places = thumb.map((d) => { const Icon = ICON[d.icon] ?? MapIcon; return <Link key={d.href + (d.query ?? "")} href={d.query ? `${d.href}?${d.query}` : d.href} aria-current={navOn(d, path) ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>; });
+            const act = thumbAction && !reporting ? <Link key="act" href={thumbAction.href} className="sp-tabs-act" aria-label={thumbAction.label} aria-current={path === thumbAction.href ? "page" : undefined}><b>{thumbAction.href.includes("report") ? <Radio size={21} aria-hidden /> : <Plus size={22} aria-hidden />}</b><span>{thumbAction.short}</span></Link>
+              : thumbAction ? <Link key="act" href={thumbAction.href} aria-current="page"><Radio size={21} strokeWidth={1.8} aria-hidden /><span>{thumbAction.short}</span></Link> : null;
+            const split = act ? Math.min(2, places.length) : places.length;
+            return [...places.slice(0, split), act, ...places.slice(split)];
+          })()}
           <button type="button" onClick={() => ai.toggle()} aria-pressed={ai.open} className={ai.open ? "is-on" : undefined}><span className="sx3-tab-kaju" aria-hidden><KajuFace size={24} /></span><span>Kaju</span></button>
-
+          <button type="button" onClick={() => setSheet(true)} aria-label="Workspace sections" aria-haspopup="dialog" className={sheet ? "is-on" : undefined}><MoreHorizontal size={21} strokeWidth={1.8} aria-hidden /><span aria-hidden>More</span></button>
         </nav>
 
         <Notices />
-        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} dual={!!dual} />
+        {user && mem.ready && (mem.member || mem.reviewer) && <FirstRun user={{ id: user.id, name: user.name ?? "" }} org={mem.org?.name ?? null} role={mem.role} reviewer={mem.reviewer} ws={ws} />}
+        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} dual={!!dual} shown={thumb.map((d) => d.href)} />
         <Finder open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
@@ -338,16 +344,15 @@ function phoneTabs(ws: WorkspaceId, role: Role | null, dests: NavItem[]): NavIte
     { href: "/ngo", label: "Today", short: "Today", icon: "home", exact: true },
     { href: "/ngo/verification", query: "stage=vet", label: "Sign off", short: "Sign off", icon: "shield" },
     { href: "/ngo/animals", label: "Animals", short: "Animals", icon: "paw" },
-    { href: "/ngo/care", label: "Care records", short: "Care", icon: "file" },
   ];
   if (role === "member") return [
     { href: "/ngo", label: "Today", short: "Today", icon: "home", exact: true },
     { href: "/ngo/field", label: "Field mode", short: "Field", icon: "phone" },
-    { href: "/ngo/cases/new", label: "New case", short: "New case", icon: "radio" },
-    { href: "/ngo/inbox", label: "Intake", short: "Intake", icon: "inbox" },
   ];
-  return dests;
+  /* Coordinators and admins: the brief and the queue; intake, animals and the rest sit one tap away in More. */
+  return dests.slice(0, 2);
 }
+
 
 /** Items this person sees, in order, with a group label where a group starts. */
 function visibleNav(items: NavItem[], role: Role | null, reviewer: boolean) {
@@ -391,6 +396,7 @@ function Account({ user, org, onSignIn, onSignOut, side = false }: { user: { nam
           {org && mem.role === "admin" && <Link href="/ngo/settings" onClick={() => setOpen(false)}>Organisation settings</Link>}
           <Link href="/community/activity" onClick={() => setOpen(false)}>My activity</Link>
           <Link href="/docs" onClick={() => setOpen(false)}>Help</Link>
+          {(mem.member || mem.reviewer) && <button type="button" onClick={() => { setOpen(false); window.dispatchEvent(new Event(WELCOME_EVENT)); }}>Welcome guide</button>}
           <button type="button" onClick={() => { setOpen(false); onSignOut(); }}><LogOut size={14} aria-hidden style={{ marginRight: 8 }} />Sign out</button>
         </Popover>
       )}
@@ -399,7 +405,7 @@ function Account({ user, org, onSignIn, onSignOut, side = false }: { user: { nam
 }
 
 /** "More" on a phone: every page of the workspace, in named groups. */
-function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string; dual: boolean }) {
+function IndexSheet({ open, onClose, ws, path, dual, shown }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string; dual: boolean; shown: string[] }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); else if (!open && d.open) d.close(); }, [open]);
   const mem=useMembership();
@@ -407,7 +413,8 @@ function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose:
   const def = workspaceView(ws,mem.role,mem.reviewer);
   const utilityGroups=def.index.filter(g=>!def.nav.some(n=>g.links.some(l=>l.href===n.href)));
   const here = utilityGroups.findIndex((g) => g.links.some((l) => path === l.href));
-  const primary = def.nav.filter((n) => !def.dests.some((d) => d.href === n.href));
+  /* Every place of the workspace that is not already on the thumb bar, first. */
+  const primary = visibleNav(def.nav, mem.role, mem.reviewer).map((r) => r.item).filter((n) => !shown.includes(n.href) && n.href !== "/assistant");
   return (
     <dialog ref={ref} className="sp-index" aria-label={`Sections in ${def.label}`} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
       <div className="sp-more">
