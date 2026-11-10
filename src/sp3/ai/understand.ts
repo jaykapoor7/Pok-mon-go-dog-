@@ -43,7 +43,8 @@ function near(a: string, b: string) {
 const hasWord = (words: string[], w: string) => words.some((x) => near(x, w));
 const hasPhrase = (text: string, words: string[], phrase: string) => (phrase.includes(" ") ? text.includes(phrase) : hasWord(words, phrase));
 
-type Intent = { say: string; all?: string[][]; any?: string[]; not?: string[]; org?: boolean };
+/** needAny: the request must also carry one of `any` (e.g. a verb) before a file is prepared; a bare "programme report" is a question, not an order. */
+type Intent = { say: string; all?: string[][]; any?: string[]; not?: string[]; org?: boolean; needAny?: boolean };
 /* `all`: every group needs one of its words. `any`: each hit adds weight. `say`: the wording the router acts on. */
 const INTENTS: Intent[] = [
   { say: "what should i do first", all: [["pending", "first", "priority", "priorities", "urgent", "attention", "waiting", "next", "focus", "start"]], any: ["me", "today", "now", "anything", "what", "should", "need", "needs"], not: ["how many", "powerpoint", "report", "package", "claim", "week", "vet"] },
@@ -57,7 +58,7 @@ const INTENTS: Intent[] = [
   { say: "find possible duplicate animals", all: [["duplicates", "duplicate", "twice", "double", "repeated", "same"]], any: ["dogs", "animal", "animals", "entered", "register", "registered", "find", "any", "check"] },
   { say: "programme figures", all: [["how many", "count", "total", "number", "numbers", "figures", "stats", "statistics", "coverage", "percentage", "percent"]], any: ["dogs", "animals", "sterilised", "vaccinated", "register", "registered", "recorded", "ward", "wards", "we", "our", "have"], not: ["case", "cases", "package", "packages", "claim", "follow"], org: true },
   { say: "create a powerpoint programme summary", all: [["powerpoint"]], any: ["municipal office", "funder", "summary", "programme", "program", "overview", "make", "create", "prepare", "need", "meeting", "update"], not: ["open cases", "register export", "verification"] },
-  { say: "create a pdf programme summary", all: [["report", "summary", "overview", "update", "brief"], ["funder", "municipal office", "programme", "program", "monthly", "quarterly", "annual"]], any: ["make", "create", "prepare", "write", "need", "send", "pdf", "for"], not: ["powerpoint", "excel", "csv", "word", "claim", "package", "note", "week"], org: true },
+  { say: "create a pdf programme summary", all: [["report", "summary", "overview", "update", "brief"], ["funder", "municipal office", "programme", "program", "monthly", "quarterly", "annual"]], any: ["make", "create", "prepare", "write", "need", "send", "pdf", "for"], not: ["powerpoint", "excel", "csv", "word", "claim", "package", "note", "week"], org: true, needAny: true },
   { say: "show package status", all: [["package", "packages", "submission", "submissions"]], any: ["status", "waiting", "where", "accepted", "decided", "returned", "queried", "sent", "what", "happened"] },
   { say: "run operational checks", all: [["check", "checks", "audit", "health", "scan"]], any: ["run", "records", "everything", "operational", "morning", "data", "quality", "now"], not: ["package", "duplicates", "how do"] },
 ];
@@ -73,6 +74,7 @@ export function canonical(q: string, org: boolean, office = false): string | nul
     if (it.org && !org) continue;
     if (it.not?.some((p) => hasPhrase(text, words, p))) continue;
     if (it.all && !it.all.every((group) => group.some((p) => hasPhrase(text, words, p)))) continue;
+    if (it.needAny && !it.any?.some((p) => hasPhrase(text, words, p))) continue;
     const score = (it.all?.length ?? 0) * 2 + (it.any?.filter((p) => hasPhrase(text, words, p)).length ?? 0);
     if (score >= 3 && (!best || score > best.score)) best = { say: it.say, score };
   }
