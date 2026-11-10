@@ -9,8 +9,8 @@
    That is the path organisations use, so it is the path that decides the
    bill. A 4 MB original costs 4 MB of storage and 4 MB of transfer every
    time somebody who has not cached it opens the page. The same photograph
-   at 1600px and quality 0.86 is around 350 KB and looks identical at any
-   size this product draws it.
+   at 1440px and quality 0.80 typically transfers substantially less data
+   while preserving sufficient detail for profiles and case photographs.
 
    HEIC is left alone: Safari can decode it to a canvas but most browsers
    cannot, and a failed decode must not lose somebody's photograph. The
@@ -18,10 +18,10 @@
    only ever make an upload smaller, never fail one.
    ════════════════════════════════════════════════════════════════════ */
 
-const MAX_W = 1600;
-const QUALITY = 0.86;
+const MAX_W = 1440;
+const QUALITY = 0.80;
 /** Below this, re-encoding costs more than it saves. */
-const SKIP_UNDER = 400 * 1024;
+const SKIP_UNDER = 250 * 1024;
 
 export async function compressForUpload(file: File): Promise<File> {
   try {
