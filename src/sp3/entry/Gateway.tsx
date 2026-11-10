@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowRight, Building2, GraduationCap, KeyRound, Landmark, Loader2, LogIn, Map as MapIcon, Radio } from "lucide-react";
+import { ArrowRight, Building2, Landmark, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
@@ -11,6 +11,8 @@ import "@/sp3/sp3.css";
 import "./entry.css";
 import "@/sp4/sp4.css";
 import "@/sp4/entry4.css";
+import { Onboarding } from "@/sp/onboard/Onboarding";
+import { flowHoldsWelcome } from "@/sp/onboard/flow";
 
 /* ════════════════════════════════════════════════════════════════════
    Open App. The product gateway.
@@ -44,6 +46,8 @@ export function Gateway() {
       if (!live) return;
       const safe = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
       const reviewer = role.reviewer;
+      /* The onboarding flow just signed this person in and is showing their welcome: stay on it. */
+      if (flowHoldsWelcome()) { setS({ phase: "choose", signedIn: true }); return; }
       const fits = (to: string) => (to.startsWith("/ngo") ? member : to.startsWith("/city/review") || to.startsWith("/city/contracts") ? reviewer : true);
       if (choose && (member || reviewer)) { setS(member && reviewer ? { phase: "both", org: org?.name ?? "your organisation" } : { phase: "choose", signedIn: true }); return; }
       if (safe && fits(safe)) { setS({ phase: "routing", to: safe, org: org?.name ?? "your workspace" }); router.replace(safe); return; }
@@ -54,6 +58,9 @@ export function Gateway() {
     }).catch(() => { if (live) setS({ phase: "error" }); });
     return () => { live = false; };
   }, [ready, user, choose, next, router]);
+
+  /* Everyone who is not routed straight to a workspace gets the onboarding scene. */
+  if (s.phase === "choose") return <Onboarding signedIn={s.signedIn} startAt={choose ? "intro" : undefined} />;
 
   return (
     <div className="s3 s3g s4 s4e">
@@ -70,25 +77,8 @@ export function Gateway() {
               <Choice href="/city/insights" icon={<Landmark size={18} />} t="Government oversight" d="Decisions, operators and ward activity for your reviewing office." primary />
             </div>
           </>
-        ) : s.phase !== "choose" ? (
-          <div className="s3g-wait" role="status"><Loader2 size={22} className="animate-spin" /><p>{s.phase === "routing" ? <>Opening {s.org}&apos;s workspace</> : "Checking your access"}</p></div>
         ) : (
-          <>
-            <h1 className="s3-h2">{s.signedIn ? `Welcome, ${user?.name ?? ""}.` : "Open StrayPaw"}</h1>
-            <p className="s3-lede">{s.signedIn ? "Your account is not part of an organisation yet. Join yours with the code your admin gave you, or use the public tools." : "Sign in to your organisation's workspace, or use the public tools. No account is needed to report an animal."}</p>
-            <div className="s3g-grid">
-              {!s.signedIn && <Choice href="/sign-in?next=/app" icon={<LogIn size={18} />} t="Sign in to your workspace" d="NGO and municipal teams, with your email and access code." primary />}
-              <Choice href="/join" icon={<KeyRound size={18} />} t="Join with an invitation code" d="First time? Your organisation's admin sent you a code." primary={s.signedIn} />
-              <Choice href="/partner-apply" icon={<Building2 size={18} />} t="Request organisation access" d="For ABC operators, NGOs and reviewing offices, after verification." />
-            </div>
-            <h2 className="s3g-h">Public tools</h2>
-            <div className="s3g-grid is-3">
-              <Choice href="/community/report" icon={<Radio size={18} />} t="Report an animal" d="Photo, place and what you saw." tone="flame" />
-              <Choice href="/community" icon={<MapIcon size={18} />} t="Community map" d="Recorded animals and care near you." />
-              <Choice href="/city" icon={<Landmark size={18} />} t="Municipal evidence" d="Programmes, coverage and city reports." />
-              <Choice href="/learn" icon={<GraduationCap size={18} />} t="Academy" d="Courses, workshops and resources." />
-            </div>
-          </>
+          <div className="s3g-wait" role="status"><Loader2 size={22} className="animate-spin" /><p>{s.phase === "routing" ? <>Opening {s.org}&apos;s workspace</> : "Checking your access"}</p></div>
         )}
       </main>
     </div>

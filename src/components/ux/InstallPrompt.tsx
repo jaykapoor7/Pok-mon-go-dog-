@@ -23,6 +23,13 @@ export function InstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
   const [iosHint, setIosHint] = useState(false);
+  /* The onboarding scene at /app asks one thing at a time; the install offer waits for its last screen. */
+  const [onboarding, setOnboarding] = useState(false);
+  useEffect(() => {
+    const read = () => setOnboarding(document.documentElement.dataset.onboarding === "busy");
+    read(); window.addEventListener("sp:onboarding", read);
+    return () => window.removeEventListener("sp:onboarding", read);
+  }, []);
   useEffect(() => {
     const update = () => { try { setNoticeSeen(localStorage.getItem("straypaw.notice.storage.v1") === "1"); } catch { setNoticeSeen(false); } };
     update(); window.addEventListener("straypaw:storage-notice-dismissed", update);
@@ -82,7 +89,7 @@ export function InstallPrompt() {
     dismiss();
   }
 
-  if (!show || !noticeSeen || !["/app", "/feeder", "/following", "/learn"].includes(pathname)) return null;
+  if (!show || !noticeSeen || onboarding || !["/app", "/feeder", "/following", "/learn"].includes(pathname)) return null;
 
   return (
     <div className="sp-install-prompt fixed inset-x-3 bottom-[5.5rem] z-[55] mx-auto max-w-md lg:bottom-6 lg:left-64 lg:right-auto lg:mx-0">
