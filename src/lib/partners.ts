@@ -107,7 +107,8 @@ export async function getListedOrganisations(): Promise<{ members: OrgListing[];
   const partner = (s: string) => s === "operational_partner" || s === "pilot_partner";
   const source = (s: string) => s === "data_source" || s === "record_contributor";
   return {
-    members: rows.filter((r) => !source(r.partner_status) && !partner(r.partner_status) && (!invited || invited.has(r.id))).map(toListing),
+    /* An organisation that registered itself is not listed until StrayPaw has verified it. */
+    members: rows.filter((r) => r.partner_status !== "self_registered" && !source(r.partner_status) && !partner(r.partner_status) && (!invited || invited.has(r.id))).map(toListing),
     sources: rows.filter((r) => source(r.partner_status)).map(toListing),
   };
 }

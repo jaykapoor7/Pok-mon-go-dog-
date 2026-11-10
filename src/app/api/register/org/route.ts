@@ -23,7 +23,8 @@ export const dynamic = "force-dynamic";
         it is deliberately not used here.)
      2. The code is emailed, never returned: the workspace opens only for
         whoever reads that inbox.
-     3. The organisation starts unverified. Its own workspace works at
+     3. The organisation starts unverified and unlisted (partner_status
+        "self_registered" keeps it out of the public directory). Its own workspace works at
         once; claiming public cases, fundraising and a verified listing
         wait until StrayPaw has checked who they are.
 
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
   const taken = [...(bySlug.data ?? []), ...(byName.data ?? [])];
   if (taken?.length) return NextResponse.json({ error: "An organisation with this name is already on StrayPaw. Ask its admin to add you, or write to us if that is wrong.", code: "name_taken" }, { status: 409 });
 
-  const { data: org, error: orgError } = await admin.from("ngos").insert({ name: orgName, slug, city, verified: false }).select("id").single();
+  const { data: org, error: orgError } = await admin.from("ngos").insert({ name: orgName, slug, city, verified: false, partner_status: "self_registered" }).select("id").single();
   if (orgError || !org) return NextResponse.json({ error: "Could not create the organisation. Nothing was saved; try again shortly." }, { status: 500 });
 
   const { data: minted, error: mintError } = await admin.rpc("admin_mint_access_code", { p_ngo_id: org.id, p_email: email, p_name: name, p_role: "lead" });
