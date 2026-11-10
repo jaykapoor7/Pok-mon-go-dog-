@@ -14,7 +14,8 @@
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { Fragment, useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowRight, ArrowUp, Check, CalendarClock, CircleAlert, ClipboardList, History, Inbox, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { ArrowRight, ArrowUp, Check, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, Inbox, PawPrint, ShieldCheck, Sparkles, TriangleAlert, UserPlus, X } from "lucide-react";
+import { KajuFace } from "@/kaju/Kaju";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
 import { DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
@@ -51,6 +52,8 @@ export function Brief() {
   const [failed, setFailed] = useState(false);
   const ai = useAi();
   const [q, setQ] = useState("");
+  const [setupHidden, setSetupHidden] = useState(false);
+  useEffect(() => { try { setSetupHidden(localStorage.getItem("sp.setup.hidden") === "1"); } catch { /* fine */ } }, []);
 
   useEffect(() => {
     if (!member) return;
@@ -88,7 +91,7 @@ export function Brief() {
   const nWeek = d?.counts?.dueWeekScheduled ?? (d ? d.due.filter((f) => f.source === "scheduled" && f.due_at && Date.parse(f.due_at) >= Date.now()).length : 0);
   const nLive = d?.counts?.liveWork ?? (d ? d.open.filter((c) => !isHistoricalCase(c)).length - stale : 0);
 
-  type Row = { key: string; href: string; tone: string; icon: ReactNode; title: ReactNode; meta: string; tag?: string };
+  type Row = { key: string; href: string; tone: string; icon: ReactNode; title: ReactNode; meta: string; tag?: string; verb?: string };
   const outAll: Row[] = d ? [
     ...fresh.slice(0, 3).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: critical(c) ? "flame" : "blue", icon: <Inbox size={10} strokeWidth={2.4} />, title: label(c), meta: [c.zone || c.city, c.assignee_name ? `with ${person(c.assignee_name)}` : "not yet assigned", ago(c.last_activity_at ?? c.occurred_at)].filter(Boolean).join(" · "), tag: critical(c) ? "Critical" : undefined })),
     ...closedNew.slice(0, 2).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: "green", icon: <ClipboardList size={10} strokeWidth={2.4} />, title: c.title || c.animal_name || "Case", meta: [c.zone, c.closure_reason || "closed", ago(c.last_activity_at)].filter(Boolean).join(" · "), tag: "Closed" })),
@@ -97,19 +100,26 @@ export function Brief() {
   /* Each role's own next steps first: a vet's procedures to authorise, a
      coordinator's records to review (when verification is switched on). */
   const abcTodo: Row[] = d ? (isVet
-    ? d.abc.filter((r) => stageOf(r) === "vet").slice(0, 3).map((r) => ({ key: `v${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || shortCode(r.case_code)}</b> needs your authorisation</>, meta: r.city ?? "ABC procedure" }))
-    : reviews ? d.abc.filter((r) => stageOf(r) === "review").slice(0, 2).map((r) => ({ key: `r${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || shortCode(r.case_code)}</b> is ready for your review</>, meta: `Authorised by ${r.vet_name ?? "a veterinarian"}` }))
+    ? d.abc.filter((r) => stageOf(r) === "vet").slice(0, 3).map((r) => ({ key: `v${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || shortCode(r.case_code)}</b> needs your authorisation</>, meta: r.city ?? "ABC procedure", verb: "Sign off" }))
+    : reviews ? d.abc.filter((r) => stageOf(r) === "review").slice(0, 2).map((r) => ({ key: `r${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || shortCode(r.case_code)}</b> is ready for your review</>, verb: "Review it", meta: `Authorised by ${r.vet_name ?? "a veterinarian"}` }))
     : []) : [];
   const todo: Row[] = isVet ? abcTodo : d ? [
     ...abcTodo,
-    ...crit.slice(0, 2).map((c) => ({ key: `c${c.id}`, href: `/ngo/cases/${c.id}`, tone: "flame", icon: <CircleAlert size={10} strokeWidth={2.4} />, title: <><b>{label(c)}</b> is critical and unassigned</>, meta: [c.zone || c.city, ago(c.occurred_at)].filter(Boolean).join(" · ") })),
-    ...overdue.slice(0, 2).map((f) => ({ key: `f${f.id}`, href: f.case_id ? `/ngo/cases/${f.case_id}` : "/ngo/work?focus=followup", tone: "amber", icon: <CalendarClock size={10} strokeWidth={2.4} />, title: <>Follow-up for <b>{f.case_title || f.animal_name || "a case"}</b> was due {ago(f.due_at)}</>, meta: f.kind || "Follow-up" })),
-    ...(stale && reviews ? [{ key: "stale", href: "/ngo/work?cohort=decide", tone: "violet", icon: <TriangleAlert size={10} strokeWidth={2.4} />, title: <><b>{plural(stale, "case")}</b> {stale === 1 ? "is" : "are"} waiting on a decision</>, meta: "Open more than 90 days, nothing recorded for 30" }] : []),
-    ...(reviews ? [{ key: "pkg", href: "/ngo/packages", tone: "green", icon: <ClipboardList size={10} strokeWidth={2.4} />, title: <><b>{new Date().toLocaleDateString("en-GB", { month: "long" })}&apos;s report package</b> for the reviewing office</>, meta: "Report packages · Kaju prepares, you submit" }] : []),
-    ...(history && reviews ? [{ key: "hist", href: "/ngo/review", tone: "slate", icon: <History size={10} strokeWidth={2.4} />, title: <><b>{plural(history, "imported record", "imported records")}</b> not yet confirmed</>, meta: "From registers you imported; not today's work" }] : []),
+    ...crit.slice(0, 2).map((c) => ({ key: `c${c.id}`, href: `/ngo/cases/${c.id}`, tone: "flame", icon: <CircleAlert size={10} strokeWidth={2.4} />, verb: "Assign it", title: <><b>{label(c)}</b> is critical and unassigned</>, meta: [c.zone || c.city, ago(c.occurred_at)].filter(Boolean).join(" · ") })),
+    ...overdue.slice(0, 2).map((f) => ({ key: `f${f.id}`, href: f.case_id ? `/ngo/cases/${f.case_id}` : "/ngo/work?focus=followup", tone: "amber", verb: "Open the case", icon: <CalendarClock size={10} strokeWidth={2.4} />, title: <>Follow-up for <b>{f.case_title || f.animal_name || "a case"}</b> was due {ago(f.due_at)}</>, meta: f.kind || "Follow-up" })),
+    ...(stale && reviews ? [{ key: "stale", href: "/ngo/work?cohort=decide", tone: "violet", verb: "Decide", icon: <TriangleAlert size={10} strokeWidth={2.4} />, title: <><b>{plural(stale, "case")}</b> {stale === 1 ? "is" : "are"} waiting on a decision</>, meta: "Open more than 90 days, nothing recorded for 30" }] : []),
+    ...(reviews ? [{ key: "pkg", href: "/ngo/packages", tone: "green", verb: "Prepare it", icon: <ClipboardList size={10} strokeWidth={2.4} />, title: <><b>{new Date().toLocaleDateString("en-GB", { month: "long" })}&apos;s report package</b> for the reviewing office</>, meta: "Report packages · Kaju prepares, you submit" }] : []),
+    ...(history && reviews ? [{ key: "hist", href: "/ngo/review", tone: "slate", verb: "Review imports", icon: <History size={10} strokeWidth={2.4} />, title: <><b>{plural(history, "imported record", "imported records")}</b> not yet confirmed</>, meta: "From registers you imported; not today's work" }] : []),
   ] : [];
 
   const send = (t: string) => { ai.setOpen(true); ai.ask(t); };
+  /* With nothing waiting, a field worker's next step is still their main job: registering an animal. */
+  const fieldStart: Row | null = d && role === "member" ? { key: "field", href: "/ngo/field", tone: "blue", icon: null, title: <><b>Register an animal</b> in field mode</>, meta: "Works on your phone, with or without signal", verb: "Start" } : null;
+  const next = todo[0] ?? fieldStart, rest = todo.slice(1);
+  const chips = (todo.length ? ["What should I do first today, and why?"] : []).concat(out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3);
+  /* A workspace with nothing on it yet (a newly registered organisation) is shown how to begin. */
+  const setup = !!d && reviews && !setupHidden && d.open.length === 0 && d.abc.length === 0 && d.closed.length === 0;
+  const hideSetup = () => { setSetupHidden(true); try { localStorage.setItem("sp.setup.hidden", "1"); } catch { /* fine */ } };
   const ask = (e: FormEvent) => { e.preventDefault(); const t = q.trim(); if (!t) return; send(t); setQ(""); };
   const rows = (list: Row[], go: boolean) => (
     <ul className="br-list">{list.map((r) => (
@@ -125,7 +135,10 @@ export function Brief() {
   return (
     <div className={`br${role ? ` is-${role}` : ""}`}>
       <div className="br-in">
-        <h1 className="br-hello">{greeting()}, {first}.</h1>
+        <div className="br-top">
+          <span className="br-kaju-chip" aria-hidden><KajuFace size={34} /></span>
+          <h1 className="br-hello">{greeting()}, {first}.</h1>
+        </div>
         {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
           : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
           : <p className="br-since">{(() => {
@@ -139,13 +152,37 @@ export function Brief() {
               return <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? ", and " : ", ")}{p}</Fragment>)}.</>;
             })()}</p>}
 
+        {d && <>
+          <form className="br-ask" onSubmit={ask}>
+            <Sparkles size={15} aria-hidden />
+            <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
+            <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju, or tell it what to prepare…" autoComplete="off" />
+            <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
+          </form>
+          <div className="br-chips">{chips.map((t) => <button key={t} type="button" onClick={() => send(t)}><Sparkles size={12} aria-hidden />{t}</button>)}</div>
+          {next && <Link href={next.href} className={`br-next t-${next.tone}`} aria-label={`Next up: ${typeof next.title === "string" ? next.title : "open"}`}>
+            <span className="br-next-k">{todo.length ? "Next up" : "Ready when you are"}</span>
+            <span className="br-next-t">{typeof next.title === "string" ? <b>{next.title}</b> : next.title}</span>
+            <small>{next.meta}</small>
+            <span className="br-next-go">{next.verb ?? "Open"} <ArrowRight size={15} aria-hidden /></span>
+          </Link>}
+          {setup && <section className="br-setup" aria-labelledby="br-setup-h">
+            <header><h2 id="br-setup-h">Set up {mem.org?.name ?? "your workspace"}</h2><button type="button" aria-label="Hide setup" onClick={hideSetup}><X size={15} aria-hidden /></button></header>
+            <p>Three steps and your records start here. Kaju can help with each one.</p>
+            <ol>
+              <li><Link href="/ngo/import"><span className="br-setup-i"><FileSpreadsheet size={17} aria-hidden /></span><span><b>Bring your register</b><small>Excel or CSV, as it is. Imported rows stay labelled.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
+              <li><Link href="/ngo/team"><span className="br-setup-i"><UserPlus size={17} aria-hidden /></span><span><b>Add your team</b><small>Field staff, vets and coordinators each get their own code.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
+              <li><Link href="/ngo/field"><span className="br-setup-i"><PawPrint size={17} aria-hidden /></span><span><b>Register your first animal</b><small>Field mode works on a phone, with or without signal.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
+            </ol>
+          </section>}
+        </>}
         {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
         {d && <>
           {d.unavailable.length>0&&<p role="status" className="br-warn">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
           <div className="br-grid">
             <section aria-labelledby="br-todo" className="br-card">
               <header className="br-card-h"><h2 id="br-todo">Needs you</h2><Link href="/ngo/work">Work queue <ArrowRight size={13} aria-hidden /></Link></header>
-              {todo.length ? rows(todo.slice(0, 5), true) : <p className="br-clear"><Check size={16} aria-hidden /> {d.unavailable.length>0?"Some priorities could not be read. Check the work queue.":isVet ? "Nothing is waiting for your sign-off." : "You're all caught up."}</p>}
+              {rest.length ? rows(rest.slice(0, 5), true) : next ? <p className="br-clear"><Check size={16} aria-hidden /> That is the only thing waiting.</p> : <p className="br-clear"><Check size={16} aria-hidden /> {d.unavailable.length>0?"Some priorities could not be read. Check the work queue.":isVet ? "Nothing is waiting for your sign-off." : "You're all caught up."}</p>}
               {out.length > 0 && <><h3 className="br-sub">Recent activity</h3>{rows(out.slice(0, 3), false)}</>}
             </section>
             <section aria-labelledby="br-kaju" className="br-card br-kx">
@@ -154,13 +191,6 @@ export function Brief() {
               {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
             </section>
           </div>
-          <form className="br-ask" onSubmit={ask}>
-            <Sparkles size={15} aria-hidden />
-            <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
-            <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju anything about your programme…" autoComplete="off" />
-            <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
-          </form>
-          <div className="br-chips">{(todo.length ? ["What should I do first today, and why?"] : []).concat(out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3).map((t) => <button key={t} type="button" onClick={() => send(t)}><Sparkles size={12} aria-hidden />{t}</button>)}</div>
         </>}
       </div>
 
