@@ -198,3 +198,40 @@
 .ai3-q:has(.ai3-q-file) { display: grid; }
 /* A new answer opens at its question, clear of the top bar. */
 .ai3-q { scroll-margin-top: 72px; }
+
+/* ── Conversation 5: Kaju speaks first, evidence sits quietly beneath ─────── */
+.ai3-a.is-kaju { grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; font-size: 15px; line-height: 1.6; }
+.ai3-who { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #fff; box-shadow: 0 0 0 1px var(--s3-line, #e4e8f0), 0 4px 10px -6px rgba(11, 30, 61, .3); }
+.ai3-body { display: grid; gap: 10px; min-width: 0; }
+.ai3-name { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--s3-ink, #0b1e3d); line-height: 34px; height: 22px; margin-top: 6px; }
+.ai3-name i { font-style: normal; font-weight: 500; font-size: 11.5px; padding: 1px 7px; border-radius: 99px; background: var(--s3-sunk, #f1f3f7); color: var(--s3-mute, #6b7486); line-height: 1.5; }
+.ai3-a.is-kaju .ai3-text { font-size: 15px; color: #26324a; }
+.ai3-a.is-kaju .ai3-text p { margin: 0 0 10px; }
+.ai3-a.is-kaju .ai3-text p.is-h { margin-bottom: 6px; font-size: 15.5px; }
+.ai3-a.is-kaju .ai3-text ul, .ai3-a.is-kaju .ai3-text ol { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 6px; }
+.ai3-a.is-kaju .ai3-text ol { list-style: none; counter-reset: step; padding-left: 0; }
+.ai3-a.is-kaju .ai3-text ol li { counter-increment: step; position: relative; padding-left: 32px; }
+.ai3-a.is-kaju .ai3-text ol li::before { content: counter(step); position: absolute; left: 0; top: 1px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--s3-blue-soft, #e8eefb); color: var(--s3-blue, #2457ce); font-size: 12px; font-weight: 700; }
+.ai3-a.is-kaju .ai3-text ul li::marker { color: var(--s3-blue, #2457ce); }
+.ai3-a.is-kaju .ai3-text > :last-child { margin-bottom: 0; }
+/* The answer arrives line by line, like someone telling you. */
+.ai3-a.is-kaju .ai3-text > *, .ai3-a.is-kaju .ai3-text li { animation: ai3-say 380ms cubic-bezier(.2, .7, .2, 1) both; }
+.ai3-a.is-kaju .ai3-text > :nth-child(2), .ai3-a.is-kaju .ai3-text li:nth-child(2) { animation-delay: 70ms; }
+.ai3-a.is-kaju .ai3-text > :nth-child(3), .ai3-a.is-kaju .ai3-text li:nth-child(3) { animation-delay: 140ms; }
+.ai3-a.is-kaju .ai3-text > :nth-child(4), .ai3-a.is-kaju .ai3-text li:nth-child(4) { animation-delay: 210ms; }
+.ai3-a.is-kaju .ai3-text > :nth-child(n+5), .ai3-a.is-kaju .ai3-text li:nth-child(n+5) { animation-delay: 280ms; }
+@keyframes ai3-say { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.ai3-meta { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.ai3-meta .ai3-checks { flex: 1; min-width: 180px; }
+.ai3-meta .ai3-checks summary { padding: 3px 0; }
+.ai3-copy { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; font: 500 12px var(--s3-sans, Inter, sans-serif); color: var(--s3-mute, #6b7486); cursor: pointer; transition: background-color 140ms ease, color 140ms ease; }
+.ai3-copy:hover { background: var(--s3-sunk, #f1f3f7); color: var(--s3-ink, #0b1e3d); }
+.ai3-copy:focus-visible { outline: 2px solid var(--s3-blue, #2457ce); outline-offset: 1px; }
+.ai3-sugg.is-next { display: flex; flex-wrap: wrap; gap: 8px; grid-template-columns: none !important; }
+.ai3-sugg.is-next button { padding: 8px 14px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--s3-line, #e1e5ee); font-size: 13.5px; color: var(--s3-ink, #0b1e3d); transition: box-shadow 140ms ease, color 140ms ease, transform 120ms ease; animation: ai3-say 380ms cubic-bezier(.2, .7, .2, 1) 320ms both; }
+.ai3-sugg.is-next button:hover { background: #fff; box-shadow: inset 0 0 0 1.5px var(--s3-blue, #2457ce); color: var(--s3-blue, #2457ce); }
+.ai3-sugg.is-next button:active { transform: scale(.97); }
+.ai3-q { font-size: 15px; padding: 10px 15px; border-radius: 18px 18px 6px 18px; animation: ai3-say 260ms cubic-bezier(.2, .7, .2, 1) both; }
+@media (max-width: 720px) { .ai3-a.is-kaju { grid-template-columns: 28px minmax(0, 1fr); gap: 9px; } .ai3-who { width: 28px; height: 28px; } .ai3-name { margin-top: 3px; } }
+@media (prefers-reduced-motion: reduce) { .ai3-a.is-kaju .ai3-text > *, .ai3-a.is-kaju .ai3-text li, .ai3-sugg.is-next button, .ai3-q { animation: none; } }
+.ai3-a.is-kaju .ai3-text ul { list-style: disc; }

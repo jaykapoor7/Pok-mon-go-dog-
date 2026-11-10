@@ -7,6 +7,8 @@ import { connectionToolDefs } from "./connectTools";
 import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
 import { isDecided, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 import { automationReply } from "./automationReplies";
+import { canonical, followUps, howTo, smallTalk } from "./understand";
+import type { Figures } from "./figures";
 
 /* ════════════════════════════════════════════════════════════════════
    Kaju engine.
@@ -158,14 +160,22 @@ const STOP = /\b(find|search|show|me|the|a|an|for|any|all|records?|about|look|up
 export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, "notice">> {
   const selected=ctx.pagePath?.match(/^\/ngo\/(?:cases|verification)\/([0-9a-f-]{36})$/i)?.[1];
   if(selected&&/\b(?:note|follow[- ]?up)\b/i.test(q))q=q.replace(/\b(?:this|current|selected) case\b/gi,selected);
-  const t = q.toLowerCase();
+  const asked = q;
+  const office = ctx.actorRole === "municipal_reviewer";
   const acc: Acc = { citations: [], tools: [], proposals: [] };
-  const done = (text: string): Omit<AiReply, "notice"> => ({ text, ...acc, engine: "tools" });
+  /* Every answer offers a next step, so a conversation never dead-ends. */
+  const done = (text: string): Omit<AiReply, "notice"> => ({ text, ...acc, engine: "tools", suggestions: acc.proposals.length ? undefined : followUps(asked, !!ctx.orgId, office) });
+  const firstName = (ctx.userName ?? "").trim().split(/\s+/).find((w) => !/^(dr|mr|mrs|ms|prof)\.?$/i.test(w)) ?? null;
+  { const chat = smallTalk(q, firstName && !firstName.includes("@") ? firstName : null); if (chat) return done(chat); }
+  { const how = howTo(q); if (how) { if (how.go) acc.citations.push({ id: `page:${how.go.href}`, label: how.go.label, href: how.go.href, kind: "page" }); return done(how.text); } }
+  /* Loosely worded requests are restated in the router's own words; commands that name a record or carry text are left exactly as typed. */
+  if (!/:|\bnote\b|\bfollow[- ]?up (?:on|for)\b|\b[A-Za-z]{2,5}-[0-9A-Za-z]{3,}\b|^(?:please\s+)?(?:open|go to|take me to)\b/i.test(q)) { const c = canonical(q, !!ctx.orgId); if (c) q = c; }
+  const t = q.toLowerCase();
   const needsOrg = ctx.orgId ? "I could not read your records. Counts are unknown. Try again." : "That needs an organisation workspace. Join your organisation with its code, or ask me about published programmes and the public map.";
 
   if (/^(?:(?:hi|hello|hey)(?:\s+(?:kaju|there))?|good (?:morning|afternoon|evening)(?:\s+kaju)?|help|what can you do|how can you help(?: me)?|who are you|what is kaju)[?,.!\s]*$/i.test(q.trim())) {
     return done(ctx.orgId
-      ? "Hello, I’m Kaju. I can summarise your current work, find missing evidence, check ABC records and prepare reports. I can also draft cases, notes and follow-ups for you to confirm. Try ‘What needs attention?’ or ‘Show my ABC verification queue’."
+      ? `Hello${firstName && !firstName.includes("@") ? `, ${firstName}` : ""}! I’m Kaju. I read your organisation’s records and do the checking and drafting, so you only have to decide.\n\n- **Ask** what needs attention, what changed, or how many animals are sterilised\n- **Prepare** the monthly claim, follow-ups, cases from a WhatsApp message\n- **Make** a PowerPoint, PDF or Excel from your records\n- **Learn** how to do anything here: just ask “how do I…”\n\nNothing is saved until you press Confirm.`
       : "Hello, I’m Kaju. I can explain published programmes and help you find public records. Sign in to work with your organisation’s cases, evidence, follow-ups and reports.");
   }
 
@@ -186,6 +196,21 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   if (/what can only|who can.*authorise|can you.*(?:authorise|accept|certify)/i.test(q))return done("A veterinarian must authorise clinical procedures. An assigned municipal reviewer must decide package acceptance. I can check recorded evidence and prepare work for your review; I cannot sign or decide for them.");
   if (/help.*(?:field update|search.*register)|what can i search/i.test(q))return done("Paste the actual field update, or give a case code, animal tag or name. I will identify what is recorded and what is missing before preparing anything for confirmation.");
   { const auto = await automationReply(t, ctx, (name) => call(acc, ctx, name)); if (auto !== null) return done(auto); }
+  if (t === "programme figures" || (/\bhow many|count of|number of|total\b/.test(t) && /\b(animals?|dogs?|sterili[sz]ed|vaccinated|register(?:ed)?|wards?)\b/.test(t) && !/\bcases?|packages?|follow/.test(t))) {
+    const out = await call(acc, ctx, "register_stats");
+    if (out.ok === false) return done(ctx.orgId ? out.summary : needsOrg);
+    const f = out.data as Figures;
+    const share = (x: number) => { const base = f.capped ? 5000 : f.animals; return base ? ` (${Math.round((x / base) * 100)}%)` : ""; };
+    const lines = [
+      `- **${n(f.animals)}** animals on your register · ${n(f.added30)} added in the last 30 days`,
+      `- **${n(f.sterilised)}** with a sterilisation recorded${share(f.sterilised)} · ${n(f.sterilisationUnknown)} unknown`,
+      `- **${n(f.vaccinated)}** with a vaccination recorded${share(f.vaccinated)} · ${n(f.vaccinationUnknown)} unknown`,
+      f.openCases === null ? "" : `- **${n(f.openCases)}** open cases in current work`,
+      f.abc ? `- ABC pipeline: ${n(f.abc.awaitingVet)} waiting for a vet · ${n(f.abc.awaitingReview)} waiting for review · ${n(f.abc.accepted)} accepted` : "",
+      f.wards.length ? `- Most recorded: ${f.wards.slice(0, 3).map((w) => `${w.zone} (${n(w.recorded)})`).join(", ")}` : "",
+    ].filter(Boolean);
+    return done(`Here is your register as it stands:\n${lines.join("\n")}\n\nThese are recorded counts, not street-population estimates; unknown is not “no”.`);
+  }
   if (/what.*(completed|done|saved)|recent.*(actions|changes)|verify.*actions/.test(t)) {
     const out = await call(acc, ctx, "recent_confirmed_actions");
     if (out.ok === false) return done(out.summary);
@@ -286,10 +311,10 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   const fmt = t.match(/\b(pdf|word|docx|excel|xlsx|csv|powerpoint|pptx|ppt|slides?)\b/);
   if (fmt && has(t, /\b(report|export|download|make|create|prepare)\b/)) {
     const format = ({ word: "docx", excel: "xlsx", powerpoint: "pptx", ppt: "pptx", slide: "pptx", slides: "pptx" } as Record<string, string>)[fmt[1]] ?? fmt[1];
-    const source = has(t, /animal|register|dogs?\b/) ? "animals" : has(t, /verif|abc|evidence|sign/) ? "verification" : "open_cases";
+    const source = has(t, /programme summary|program summary|municipal office|funder|\bsummary\b|\boverview\b/) ? "programme_summary" : has(t, /animal|register|dogs?\b/) ? "animals" : has(t, /verif|abc|evidence|sign/) ? "verification" : "open_cases";
     const out = await call(acc, ctx, "prepare_report", { format, source });
     if (out.ok === false) return done(needsOrg);
-    return done(`I prepared a **${format.toUpperCase()}** report of ${source === "animals" ? "your animal register" : source === "verification" ? "ABC verification status" : "open cases"}. Press Confirm to download it.`);
+    return done(`I prepared a **${format.toUpperCase()}** ${source === "programme_summary" ? "summary" : "report"} of ${source === "programme_summary" ? "your programme’s recorded figures" : source === "animals" ? "your animal register" : source === "verification" ? "ABC verification status" : "open cases"}. Press Confirm to download it.`);
   }
   /* Connected apps, deterministically: each needs the matching connection
      and every write is a proposal the person confirms. */

@@ -3,10 +3,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Report } from "./native";
 import type { ReportSource } from "@/sp3/ai/types";
 import {readSnapshot} from "@/sp3/ai/snapshots";
+import { figureRows, programmeFigures } from "@/sp3/ai/figures";
 
 /* Report tables built from the organisation's records, read with the
    person's own session (row-level security decides what is included). */
-export const SOURCE_LABEL: Record<ReportSource, string> = { open_cases: "Open cases", animals: "Animal register", verification: "ABC verification status", operations_checks: "Operations check report" };
+export const SOURCE_LABEL: Record<ReportSource, string> = { open_cases: "Open cases", animals: "Animal register", verification: "ABC verification status", operations_checks: "Operations check report", programme_summary: "Programme summary" };
 
 export async function buildReport(source: ReportSource, db: SupabaseClient, title?: string): Promise<Report> {
   const { data: ngoId, error: membershipError } = await db.rpc("my_ngo");
@@ -22,6 +23,10 @@ export async function buildReport(source: ReportSource, db: SupabaseClient, titl
       const count=f.configured===false?"Not set":f.count??"Unknown";
       return f.records.length ? f.records.map(r => [f.rule, f.explanation, count, r.label, Array.isArray(r.missing)?r.missing.filter(v=>typeof v==='string').join(", "):typeof r.due_at==='string'?r.due_at:"", r.href]) : [[f.rule, f.explanation, count, "", f.dueOn ?? "", f.rule==='reporting_deadline'&&f.dueOn?"/ngo/settings#kaju-deadline-title":""]];
     }).map(row=>[...row,snapshot.id,snapshot.checked_at,snapshot.rules_version]), notes: [`Snapshot: ${snapshot.id}`, `Checked at: ${snapshot.checked_at}`, `Rules: ${snapshot.rules_version}`, "Counts are bounded samples of at most 100 records per rule. Findings describe recorded gaps; they do not certify fieldwork. No notification was sent."] };
+  }
+  if (source === "programme_summary") {
+    const f = await programmeFigures(db, ngoId);
+    return { ...head, eyebrow: "Programme summary", columns: ["Measure", "Recorded", "What it means"], rows: figureRows(f), notes: ["Recorded counts from your organisation's own register. They are not street-population estimates, and an unknown status is not a negative result.", "Acceptance by the reviewing office is not payment."] };
   }
   if (source === "open_cases") {
     const { data, error } = await db.from("org_case_facts").select("case_code,title,zone,city,status_class,occurred_at,assignee_name").neq("status_class", "closed").or("provenance.is.null,provenance.neq.imported_historical_record,reviewed_at.not.is.null").order("occurred_at", { ascending: false }).limit(1000);

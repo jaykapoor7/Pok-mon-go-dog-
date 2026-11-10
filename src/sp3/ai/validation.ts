@@ -19,7 +19,7 @@ function proposal(p:unknown):p is Proposal {
   case 'add_note':return has('caseId','caseLabel','note');
   case 'schedule_followup':return has('caseId','caseLabel','dueAt','note')&&Number.isFinite(Date.parse(String(p.dueAt)))&&nullable(p.dogId);
   case 'record_care':return has('dogId','dogLabel','careKind','notes')&&nullable(p.date);
-  case 'report_file':return has('title')&&['pdf','docx','xlsx','csv','pptx','geojson','kml'].includes(String(p.format))&&['open_cases','animals','verification','operations_checks'].includes(String(p.source))&&(p.saveTo===null||['google','microsoft','slack','zoho'].includes(String(p.saveTo)))&&nullable(p.saveToName);
+  case 'report_file':return has('title')&&['pdf','docx','xlsx','csv','pptx','geojson','kml'].includes(String(p.format))&&['open_cases','animals','verification','operations_checks','programme_summary'].includes(String(p.source))&&(p.saveTo===null||['google','microsoft','slack','zoho'].includes(String(p.saveTo)))&&nullable(p.saveToName);
   case 'email':return provider()&&has('providerName','subject','body')&&strings(p.to)&&strings(p.cc)&&typeof p.send==='boolean';
   case 'calendar_event':return provider()&&has('providerName','title','start','end')&&strings(p.attendees)&&nullable(p.location);
   case 'chat_post':return provider()&&has('providerName','channel','channelName','text');

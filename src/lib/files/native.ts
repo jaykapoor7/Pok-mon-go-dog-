@@ -144,6 +144,19 @@ export async function makeFile(kind: FileKind, r: Report): Promise<{ bytes: Buff
     t.addText(`Generated ${generated()}`, { x: 0.6, y: 6.6, w: 12, h: 0.4, fontSize: 12, color: "6B7486" });
     t.addText(r.title, { x: 0.6, y: 2.2, w: 12, h: 1, fontSize: 36, bold: true, color: "0B1E3D" });
     if (r.subtitle) t.addText(r.subtitle, { x: 0.6, y: 3.2, w: 12, h: 0.6, fontSize: 18, color: "5F6B7E" });
+    /* A summary deck opens on its headline figures as large tiles; the full table follows. */
+    if (r.eyebrow === "Programme summary" && r.rows.length >= 4) {
+      const k = p.addSlide();
+      k.addText("Key figures", { x: 0.5, y: 0.3, w: 12, h: 0.6, fontSize: 24, bold: true, color: "0B1E3D" });
+      if (r.organisation) k.addText(r.organisation, { x: 0.5, y: 0.85, w: 12, h: 0.4, fontSize: 13, color: "5F6B7E" });
+      r.rows.slice(0, 6).forEach((row, i) => {
+        const x = 0.5 + (i % 3) * 4.15, y = 1.6 + Math.floor(i / 3) * 2.6;
+        k.addShape(p.ShapeType.roundRect, { x, y, w: 3.95, h: 2.3, fill: { color: "F5F7FB" }, line: { color: "E4E8F0", width: 0.75 }, rectRadius: 0.12 });
+        k.addText(typeof row[1] === "number" ? row[1].toLocaleString("en-IN") : String(row[1] ?? ""), { x: x + 0.25, y: y + 0.2, w: 3.45, h: 0.9, fontSize: 38, bold: true, color: "2457CE" });
+        k.addText(String(row[0] ?? ""), { x: x + 0.25, y: y + 1.1, w: 3.45, h: 0.4, fontSize: 14, bold: true, color: "0B1E3D" });
+        k.addText(String(row[2] ?? ""), { x: x + 0.25, y: y + 1.5, w: 3.45, h: 0.6, fontSize: 10.5, color: "5F6B7E" });
+      });
+    }
     for (let i = 0; i < Math.max(1, r.rows.length); i += 12) {
       const s = p.addSlide();
       s.addText(r.title, { x: 0.5, y: 0.3, w: 12, h: 0.5, fontSize: 18, bold: true, color: "0B1E3D" });

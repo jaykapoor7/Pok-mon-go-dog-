@@ -16,14 +16,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Paperclip, Plug } from "lucide-react";
+import { Copy, Paperclip, Plug } from "lucide-react";
 import { ArrowRight, ArrowUp, Check, CheckCircle2, ClipboardList, ExternalLink, Info, Loader2, Maximize2, PawPrint, RotateCcw, Sparkles, TriangleAlert, X, Layers, MapPin, FileText } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
 import { executeProposal, type Saved } from "./execute";
 import type { AiReply, Citation, Proposal } from "./types";
 import { isAiReply, safeAiHref, auditReference } from "./validation";
-import { Kaju } from "@/kaju/Kaju";
+import { Kaju, KajuFace } from "@/kaju/Kaju";
 import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT_MESSAGE } from "@/lib/files/limits";
 import { useKajuAmbient } from "@/kaju/ambient";
 import { useReducedMotion } from "@/kaju/controller";
@@ -389,17 +389,28 @@ function Answer({ m }: { m: Msg }) {
   const r = m.reply;
   if(!r)return null;
   return (
-    <div className="ai3-a">
-      <span className="ai3-engine">{r.engine==='model'?'Model-backed answer':'Record tools'}{isRecordingDemo?' · illustrative demo':''}</span>
-      {r.tools.length > 0 && <details className="ai3-checks"><summary>{r.tools.length} {r.tools.length===1?'check':'checks'}{r.tools.some(t=>!t.ok)?' · needs attention':''}</summary><ul className="ai3-tools">{r.tools.map((t, i) => <li key={i} className={t.ok ? "" : "is-off"}>{t.ok ? <CheckCircle2 size={12} /> : <Info size={12} />}<span>{t.summary}</span></li>)}</ul></details>}
-      <div className="ai3-text"><Rich text={r.text} /></div>
-      {r.citations.length > 0 && <Sources items={r.citations} />}
-      {r.proposals.map((p) => <ProposalCard key={p.id} p={p} />)}
-      {r.navigate && safeAiHref(r.navigate.href) && <button type="button" className="s3-btn is-sm is-line ai3-go" onClick={() => router.push(r.navigate!.href)}>Open {r.navigate.label}<ArrowRight size={14} /></button>}
-      {r.suggestions && r.suggestions.length > 0 && <div className="ai3-sugg" role="group" aria-label="Next steps">{r.suggestions.slice(0, 4).map((s) => <button key={s} type="button" disabled={ai.busy || !ai.scope} onClick={() => ai.ask(s)}>{s}</button>)}</div>}
-      {r.notice && <p className="ai3-notice"><Info size={12} aria-hidden />{r.notice}</p>}
+    <div className="ai3-a is-kaju">
+      <span className="ai3-who" aria-hidden><KajuFace size={26} /></span>
+      <div className="ai3-body">
+        <span className="ai3-name">Kaju{r.engine === "model" ? <i>Model-backed answer</i> : null}{isRecordingDemo ? <i>illustrative demo</i> : null}</span>
+        <div className="ai3-text"><Rich text={r.text} /></div>
+        {r.proposals.map((p) => <ProposalCard key={p.id} p={p} />)}
+        {r.navigate && safeAiHref(r.navigate.href) && <button type="button" className="s3-btn is-sm is-line ai3-go" onClick={() => router.push(r.navigate!.href)}>Open {r.navigate.label}<ArrowRight size={14} /></button>}
+        {r.citations.length > 0 && <Sources items={r.citations} />}
+        <div className="ai3-meta">
+          {r.tools.length > 0 && <details className="ai3-checks"><summary>{r.tools.some(t=>!t.ok) ? "Some checks need attention" : `Checked ${r.tools.length} ${r.tools.length===1?'source':'sources'} in your records`}</summary><ul className="ai3-tools">{r.tools.map((t, i) => <li key={i} className={t.ok ? "" : "is-off"}>{t.ok ? <CheckCircle2 size={12} /> : <Info size={12} />}<span>{t.summary}</span></li>)}</ul></details>}
+          <CopyAnswer text={r.text} />
+        </div>
+        {r.suggestions && r.suggestions.length > 0 && <div className="ai3-sugg is-next" role="group" aria-label="Next steps">{r.suggestions.slice(0, 4).map((s) => <button key={s} type="button" disabled={ai.busy || !ai.scope} onClick={() => ai.ask(s)}>{s}</button>)}</div>}
+        {r.notice && r.engine === "model" && <p className="ai3-notice"><Info size={12} aria-hidden />{r.notice}</p>}
+      </div>
     </div>
   );
+}
+
+function CopyAnswer({ text }: { text: string }) {
+  const [done, setDone] = useState(false);
+  return <button type="button" className="ai3-copy" aria-label="Copy answer" onClick={() => { void navigator.clipboard?.writeText(text.replace(/\*\*/g, "")).then(() => { setDone(true); window.setTimeout(() => setDone(false), 1600); }).catch(() => {}); }}>{done ? <><Check size={13} aria-hidden />Copied</> : <><Copy size={13} aria-hidden />Copy</>}</button>;
 }
 
 const KIND_ICON = { animal: PawPrint, case: ClipboardList, programme: Layers, place: MapPin, page: FileText };
@@ -469,13 +480,19 @@ function ProposalCard({ p }: { p: Proposal }) {
 
 /** Minimal, safe rendering: **bold**, bullet lines and paragraphs. No HTML. */
 function Rich({ text }: { text: string }) {
-  const blocks = text.split(/\n{2,}/);
   const inline = (s: string) => s.split(/(\*\*[^*]+\*\*)/g).map((part, i) => part.startsWith("**") && part.endsWith("**") ? <b key={i}>{part.slice(2, -2)}</b> : <span key={i}>{part}</span>);
-  return <>{blocks.map((b, i) => {
-    const lines = b.split("\n");
-    if (lines.every((l) => /^\s*[-•*]\s+/.test(l))) return <ul key={i}>{lines.map((l, j) => <li key={j}>{inline(l.replace(/^\s*[-•*]\s+/, ""))}</li>)}</ul>;
-    return <p key={i}>{lines.map((l, j) => <span key={j}>{j > 0 && <br />}{inline(l)}</span>)}</p>;
-  })}</>;
+  const BUL = /^\s*[-•*]\s+/, NUM = /^\s*\d+[.)]\s+/;
+  /* Lines are grouped as they read: runs of bullets, runs of numbered steps, and paragraphs between them. */
+  const groups: { kind: "ul" | "ol" | "p"; lines: string[] }[] = [];
+  for (const block of text.split(/\n{2,}/)) for (const line of block.split("\n")) {
+    if (!line.trim()) continue;
+    const kind = BUL.test(line) ? "ul" : NUM.test(line) ? "ol" : "p";
+    const last = groups[groups.length - 1];
+    if (last && last.kind === kind && kind !== "p") last.lines.push(line); else groups.push({ kind, lines: [line] });
+  }
+  return <>{groups.map((g, i) => g.kind === "ul" ? <ul key={i}>{g.lines.map((l, j) => <li key={j}>{inline(l.replace(BUL, ""))}</li>)}</ul>
+    : g.kind === "ol" ? <ol key={i}>{g.lines.map((l, j) => <li key={j}>{inline(l.replace(NUM, ""))}</li>)}</ol>
+    : <p key={i} className={/^\*\*[^*]+\*\*$/.test(g.lines[0].trim()) ? "is-h" : undefined}>{inline(g.lines[0])}</p>)}</>;
 }
 
 

@@ -1,4 +1,5 @@
 import "server-only";
+import { programmeFigures } from "./figures";
 import {DESTINATIONS,canDiscover,type Role} from "@/sp/shell/workspaces";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { verifyAction } from "./verify";
@@ -56,6 +57,7 @@ export const TOOL_DEFS = [
   { name: "work_summary", description: "Summarise the organisation's current work: open cases, unassigned, critical, overdue follow-ups, historical imports awaiting review, and the most urgent open cases.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_missing_evidence", description: "Find the organisation's records that are missing evidence: animals with no photo, open cases with no linked animal or no place.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_by_identifier", description: "Find the organisation's animal carrying a microchip, RFID tag, QR code or printed tag number. Another organisation's identifier is reported only as registered elsewhere. Reads only.", input_schema: { type: "object", properties: { value: { type: "string", description: "The identifier as scanned or typed." } }, required: ["value"], additionalProperties: false } },
+  { name: "register_stats", description: "Count the organisation's own register: animals recorded, sterilisation and vaccination recorded (with unknowns), animals added in the last 7 and 30 days, open cases, the ABC pipeline, and recorded animals by ward. Recorded counts only, never population estimates.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_duplicates", description: "Find possible duplicate animals in the organisation's register (same name and locality). Candidates only; a person decides.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "programme_report", description: "Recorded figures for programmes: the organisation's own drives when the user is a member, otherwise published programmes. Optional query filters by name or city.", input_schema: { type: "object", properties: { query: { type: "string" } }, additionalProperties: false } },
   { name: "extract_field_message", description: "Structure a pasted field update, WhatsApp message or register line into a draft (intervention, animal, place, date) and list what is missing. Does not save anything.", input_schema: { type: "object", properties: { text: { type: "string" } }, required: ["text"], additionalProperties: false } },
@@ -89,6 +91,11 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "find_missing_evidence": return missingEvidence(ctx);
     case "find_by_identifier": return byIdentifier(String(input.value ?? "").slice(0, 80), ctx);
     case "find_duplicates": return duplicates(ctx);
+    case "register_stats": {
+      if (!ctx.orgId) return NEEDS_ORG;
+      try { const f = await programmeFigures(ctx.db, ctx.orgId); return { data: f, summary: `${f.animals.toLocaleString("en-IN")} animals on the register`, citations: [{ id: "page:animals", label: "Animal register", href: "/ngo/animals", kind: "page" }] }; }
+      catch { return READ_FAILED; }
+    }
     case "programme_report": return programmeReport(clean(input.query ?? ""), ctx);
     case "extract_field_message": {
       const x = extractFieldMessage(String(input.text ?? "").slice(0, 4000));
