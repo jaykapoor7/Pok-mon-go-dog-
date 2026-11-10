@@ -56,7 +56,7 @@ export function Enter() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [note, setNote] = useState<"sent" | "unsent" | "new" | "have">("sent");
+  const [note, setNote] = useState<"sent" | "unsent" | "new" | "have" | "maybe">("sent");
   const [shake, setShake] = useState(0);
   const signing = useRef(false);
 
@@ -81,10 +81,11 @@ export function Enter() {
     if (!EMAIL.test(e)) { setError("Enter your email address."); setShake((n) => n + 1); return; }
     setError(null); setBusy("Looking you up");
     try {
-      const r = await post<{ known?: boolean; emailed?: boolean; limited?: boolean }>("/api/access/start", { email: e });
-      if (!r.ok) { setError(r.data.error ?? "Could not check that address. Try again."); return; }
-      if (r.data.known) { setNote(r.data.emailed ? "sent" : "unsent"); go("code"); }
-      else go(as === "org" ? "org" : as === "feeder" || as === "individual" ? "me" : "who");
+      const r = await post<{ ok?: boolean }>("/api/access/start", { email: e });
+      if (!r.ok) { setError(r.data.error ?? "Could not continue. Try again."); return; }
+      /* The server never says whether an address has an account. Someone who came to register goes on to
+         register; everyone else is shown the code screen, with a way to create an account from there. */
+      if (as === "org") go("org"); else if (as === "feeder" || as === "individual") go("me"); else { setNote("maybe"); go("code"); }
     } catch { setError("Could not reach StrayPaw. Check your connection and try again."); }
     finally { setBusy(null); }
   };
@@ -129,16 +130,17 @@ export function Enter() {
   const resend = async () => {
     if (busy) return;
     setBusy("Sending"); setError(null);
-    try { const r = await post<{ known?: boolean; emailed?: boolean }>("/api/access/start", { email: email.trim().toLowerCase() }); setNote(r.ok && r.data.emailed ? "sent" : "unsent"); }
+    try { const r = await post<{ ok?: boolean }>("/api/access/start", { email: email.trim().toLowerCase() }); setNote(r.ok ? "maybe" : "unsent"); }
     catch { setNote("unsent"); }
     finally { setBusy(null); }
   };
 
   const bubble =
     step === "email" ? "Welcome! What's your email?"
-    : step === "who" ? "You're new here. What should I set up?"
+    : step === "who" ? "Welcome! What should I set up?"
     : step === "me" ? "Lovely. What should I call you?"
     : step === "org" ? "Let's set up your organisation. It takes a minute."
+    : note === "maybe" ? "If you have an account, your code is in your inbox now."
     : note === "sent" ? "I've emailed your code. It's the same one every time."
     : note === "new" ? `Done${name ? `, ${firstName(name)}` : ""}! Your code is in your inbox.`
     : note === "have" ? "Enter the code from your StrayPaw email."
@@ -185,7 +187,7 @@ export function Enter() {
                 )}
                 {step === "who" && (
                   <>
-                    {H("What are you here for?", <>No account for <b>{maskEmail(email)}</b> yet. Pick one and you can start today.</>)}
+                    {H("What are you here for?", <>Pick one and you can start today with <b>{maskEmail(email)}</b>.</>)}
                     <ul className="ob-week" style={{ marginTop: 20 }}>
                       <li><button type="button" className="ob-row is-pick" data-en-focus="who" onClick={() => go("org")}><span className="ob-pick-ico is-blue"><Building2 size={19} aria-hidden /></span><span className="ob-row-t"><b>My organisation</b><small>An NGO, rescue or ABC team. Free to start, no call needed.</small></span></button></li>
                       <li><button type="button" className="ob-row is-pick" onClick={() => { setKind("feeder"); go("me"); }}><span className="ob-pick-ico is-amber"><Soup size={19} aria-hidden /></span><span className="ob-row-t"><b>I feed animals</b><small>Keep your route and the animals on it.</small></span></button></li>
@@ -222,11 +224,12 @@ export function Enter() {
                 )}
                 {step === "code" && (
                   <form onSubmit={(e) => { e.preventDefault(); void signIn(); }} noValidate>
-                    {H("Enter your code", <>{note === "unsent" || note === "have" ? "Six characters, from your StrayPaw email for" : "Six characters, sent to"} <b>{maskEmail(email)}</b>.</>)}
+                    {H("Enter your code", <>{note === "unsent" || note === "have" || note === "maybe" ? "Six characters, from your StrayPaw email for" : "Six characters, sent to"} <b>{maskEmail(email)}</b>.</>)}
                     <CodeBoxes value={code} onChange={(v) => { setCode(v); if (cleanCode(v).length === 6) void signIn(v); }} shake={shake} invalid={!!error} disabled={!!busy} />
                     <Err />
                     {note === "unsent" && !error && <p className="ob-note is-box">The email did not go just now. If you have an earlier StrayPaw email, that code still works.</p>}
                     <p className="ob-note">Nothing yet? Check spam, or <button type="button" className="ob-link" onClick={() => void resend()} disabled={!!busy}>send it again</button>.</p>
+                    {note === "maybe" && <p className="ob-note is-box">New to StrayPaw? <button type="button" className="ob-link" data-en-new onClick={() => go("who")}>Create your account</button>. It is free and takes a minute.</p>}
                     <button type="submit" hidden />
                   </form>
                 )}

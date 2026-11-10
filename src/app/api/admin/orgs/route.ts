@@ -93,6 +93,10 @@ export async function POST(req: Request) {
       p_slug: null,
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    /* Creating an organisation that already exists verifies it. One that registered itself
+       becomes a listed organisation at that moment: verification is what publishes it. */
+    const id = (data as { id?: string } | null)?.id;
+    if (id) await supa.from("ngos").update({ partner_status: "directory", verified_at: new Date().toISOString() }).eq("id", id).eq("partner_status", "self_registered");
     return NextResponse.json(data);
   }
 

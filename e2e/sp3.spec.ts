@@ -52,7 +52,7 @@ test("phone menu opens and reaches sign in and demo", async ({ page, isMobile })
 });
 
 test("sign in is one email step, with the authorised-use notice, then the emailed code", async ({ page }) => {
-  await page.route("**/api/access/start", (r) => r.fulfill({ json: { known: true, emailed: true } }));
+  await page.route("**/api/access/start", (r) => r.fulfill({ json: { ok: true } }));
   await page.goto("/sign-in");
   await expect(page.getByText(/Authorised users only; activity is recorded/)).toBeVisible();
   const email = page.getByLabel("Email", { exact: true });
@@ -64,15 +64,26 @@ test("sign in is one email step, with the authorised-use notice, then the emaile
   await expect(page.getByLabel("Six-character code")).toBeVisible();
 });
 
-test("a new address is offered an organisation, feeder or personal start", async ({ page }) => {
-  await page.route("**/api/access/start", (r) => r.fulfill({ json: { known: false } }));
+test("sign-in never says whether an address has an account, and offers a new account from the code screen", async ({ page }) => {
+  let body = "";
+  await page.route("**/api/access/start", async (r) => { const res = await r.fetch().catch(() => null); body = res ? await res.text() : ""; await r.fulfill({ json: { ok: true } }); });
   await page.goto("/sign-in");
   await page.getByLabel("Email", { exact: true }).fill("new@example.org");
   await page.getByRole("button", { name: /Continue/ }).click();
-  await expect(page.getByRole("button", { name: /My organisation/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Enter your code" })).toBeVisible();
+  expect(body).not.toMatch(/known|exists|no account/i);
+  await page.getByRole("button", { name: "Create your account" }).click();
   await page.getByRole("button", { name: /My organisation/ }).click();
   await expect(page.getByLabel("Organisation name")).toBeVisible();
   await expect(page.getByRole("button", { name: /Create our workspace/ })).toBeDisabled();
+});
+
+test("a person who came to register an organisation goes straight to registering", async ({ page }) => {
+  await page.route("**/api/access/start", (r) => r.fulfill({ json: { ok: true } }));
+  await page.goto("/sign-in?as=org");
+  await page.getByLabel("Email", { exact: true }).fill("new@example.org");
+  await page.getByRole("button", { name: /Continue/ }).click();
+  await expect(page.getByLabel("Organisation name")).toBeVisible();
 });
 
 test("Open App offers ways in to a signed-out visitor", async ({ page }) => {

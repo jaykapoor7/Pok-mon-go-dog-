@@ -10,14 +10,16 @@ export const dynamic = "force-dynamic";
 /* ════════════════════════════════════════════════════════════════════
    The first step of the one sign-in: an email address.
 
-     POST { email } → { known: true, emailed }   an account exists; its
-                                                  code was emailed again
-                    → { known: false }            nobody yet: offer sign-up
+     POST { email } → { ok: true }     always, for any well-formed address
+
+   The answer never says whether the address has an account, so this
+   route cannot be used to find out who is on StrayPaw. If the address
+   does have one, its existing code is emailed again; if not, nothing is
+   sent. Either way the person is shown the same next screen.
 
    A StrayPaw code is a standing credential bound to one address. This
    route never returns a code and never changes one: it only re-sends the
-   existing code to the inbox it already belongs to, so asking for
-   somebody else's address gives the asker nothing. Organisation codes
+   existing code to the inbox it already belongs to. Organisation codes
    are preferred over personal ones when an address holds both.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -40,16 +42,16 @@ export async function POST(req: Request) {
     admin.from("org_email_invites").select("email,code,person_name,ngo_id,expires_at,revoked_at").ilike("email", likeExact(email)).is("revoked_at", null).not("code", "is", null).order("created_at", { ascending: false }).limit(5),
     admin.from("personal_access_codes").select("code,name,active").eq("email", email).maybeSingle(),
   ]);
-  if (staff.error && personal.error) return NextResponse.json({ error: "Could not look up that address just now. Try again shortly." }, { status: 500 });
+  if (staff.error && personal.error) return NextResponse.json({ error: "Could not reach the account service just now. Try again shortly." }, { status: 500 });
 
   const now = Date.now();
   /* The stored address must BE the typed address: a code only ever goes to the inbox it was issued to. */
   const invite = (staff.data ?? []).find((i) => String(i.email ?? "").trim().toLowerCase() === email && i.code && (!i.expires_at || Date.parse(i.expires_at) >= now));
   const own = personal.data && personal.data.active ? personal.data : null;
-  if (!invite && !own) return NextResponse.json({ known: false });
+  if (!invite && !own) return NextResponse.json({ ok: true });
 
   /* Re-sending is bounded per address: the code has not changed, so the last email still works. */
-  if (!(await allowRequest(`email:${email}`, "access-start", 6, 3600))) return NextResponse.json({ known: true, emailed: false, limited: true });
+  if (!(await allowRequest(`email:${email}`, "access-start", 6, 3600))) return NextResponse.json({ ok: true });
 
   let orgName: string | null = null;
   if (invite) { const { data } = await admin.from("ngos").select("name").eq("id", invite.ngo_id).maybeSingle(); orgName = data?.name ?? null; }
@@ -62,5 +64,6 @@ export async function POST(req: Request) {
     html: `<p>Hello ${first},</p><p>Your code for ${where} is:</p><p style="font:700 30px ui-monospace,monospace;letter-spacing:.18em">${esc(code)}</p><p>Enter it on the sign-in screen, or <a href="${SITE_URL}/sign-in">open StrayPaw</a> and enter this email address and the code.</p><p>The same email and code work every time. If you did not ask for this, you can ignore it: nothing has changed.</p>`,
     text: `Hello ${first},\n\nYour code for ${orgName ? `${orgName} on StrayPaw` : "StrayPaw"}: ${code}\n\nEnter it on the sign-in screen, or open ${SITE_URL}/sign-in and enter this email address and the code. The same email and code work every time.\n\nIf you did not ask for this, ignore it: nothing has changed.`,
   });
-  return NextResponse.json({ known: true, emailed });
+  void emailed;
+  return NextResponse.json({ ok: true });
 }

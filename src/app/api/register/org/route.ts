@@ -57,7 +57,8 @@ export async function POST(req: Request) {
   /* An address that already opens an organisation signs in instead. */
   const { data: held, error: heldError } = await admin.from("org_email_invites").select("id").ilike("email", likeExact(email)).is("revoked_at", null).limit(1);
   if (heldError) return NextResponse.json({ error: "Could not check that address just now. Try again shortly." }, { status: 500 });
-  if (held?.length) return NextResponse.json({ error: "This email already belongs to an organisation on StrayPaw. Sign in with it instead.", code: "has_account" }, { status: 409 });
+  /* Answered exactly like a new registration, so this cannot be used to learn who has an account; their existing code is on its way from the sign-in step. */
+  if (held?.length) return NextResponse.json({ ok: true, emailed: true });
 
   const [bySlug, byName] = await Promise.all([
     admin.from("ngos").select("id").eq("slug", slug).limit(1),

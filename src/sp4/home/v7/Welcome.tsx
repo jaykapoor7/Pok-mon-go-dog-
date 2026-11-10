@@ -48,7 +48,7 @@ export function Welcome() {
           <button type="button" className="s7-welcome-x" onClick={close} aria-label="Close"><X size={16} aria-hidden /></button>
           <span className="s7-welcome-kaju" aria-hidden><KajuFace size={40} /></span>
           <p className="s7-welcome-k">Live session · 30 minutes · online</p>
-          <h2>Build your first Kaju workflow</h2>
+          <p className="s7-welcome-h" role="heading" aria-level={3}>Build your first Kaju workflow</p>
           <p>Bring one weekly job, like chasing missing release photos before the monthly bill. We set Kaju to run it on your own records, and you leave with it working.</p>
           <div className="s7-welcome-act">
             <Link href="/demo" className="s7-btn is-blue" onClick={close}>Save your spot <ArrowRight size={15} aria-hidden /></Link>

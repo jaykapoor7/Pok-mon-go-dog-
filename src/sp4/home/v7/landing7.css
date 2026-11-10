@@ -50,13 +50,13 @@
 .s7-welcome-x:hover { background: rgba(11, 30, 61, .06); }
 .s7-welcome-kaju { width: 46px; height: 46px; display: grid; place-items: center; }
 .s7-welcome-k { margin: 6px 0 0; font-size: 12.5px; color: var(--s7-blue); }
-.s7-welcome h2 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; color: var(--s4-ink); }
+.s7-welcome :is(h2, .s7-welcome-h) { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; color: var(--s4-ink); }
 .s7-welcome > p:not(.s7-welcome-k) { margin: 0; font-size: 14.5px; line-height: 1.5; color: #3b4558; }
 .s7-welcome-act { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
 .s7-welcome-act .s7-btn { height: 40px; padding: 0 16px; font-size: 14.5px; }
 .s7-welcome-play { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 0; color: var(--s7-blue); font: inherit; font-size: 13.5px; cursor: pointer; }
 .s7-welcome-play:hover { text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 640px) { .s7-welcome { left: 12px; right: 12px; bottom: 12px; width: auto; padding: 18px 16px 16px; } .s7-welcome h2 { font-size: 18px; } .s7-welcome > p:not(.s7-welcome-k) { font-size: 13.5px; } }
+@media (max-width: 640px) { .s7-welcome { left: 12px; right: 12px; bottom: 12px; width: auto; padding: 18px 16px 16px; } .s7-welcome :is(h2, .s7-welcome-h) { font-size: 18px; } .s7-welcome > p:not(.s7-welcome-k) { font-size: 13.5px; } }
 
 /* ── 3 · use cases: the five steps ── */
 .s7-steps { position: relative; }
