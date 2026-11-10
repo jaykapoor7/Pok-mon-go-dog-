@@ -1,4 +1,6 @@
 import "server-only";
+import { queryCases } from "./caseQuery";
+import type { CaseQuery } from "./understand";
 import {DESTINATIONS,canDiscover,type Role} from "@/sp/shell/workspaces";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { verifyAction } from "./verify";
@@ -53,6 +55,7 @@ export const TOOL_DEFS = [
   { name: "abc_verification_status", description: "Read the organisation ABC verification queue: missing evidence, vet authorisation and review flags. Bounded sample, never certifies a procedure.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "abc_package_status", description: "Read report package statuses visible to this organisation member or municipal reviewer. Includes periods and recorded summaries; never accepts a package.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "search_records", description: "Search animals, cases, programmes and places the user is allowed to read. Use for any question naming an animal, tag, case code, place or programme.", input_schema: { type: "object", properties: { query: { type: "string", description: "Words to search for: a name, StrayPaw tag, case code, locality or programme name." } }, required: ["query"], additionalProperties: false } },
+  { name: "query_cases", description: "Count, list or group the organisation's cases with filters: state (open, closed, all), unassigned, mine, critical, overdue follow-up, opened within a date window, older or quiet for N days, and rough terms naming a zone, a person or a condition (matched against the records). Group by zone, assignee, condition, status or month. One bounded read; reads only.", input_schema: { type: "object", properties: { measure: { type: "string", enum: ["count", "list", "breakdown", "top"] }, by: { type: "string", enum: ["zone", "assignee", "condition", "status", "month"] }, order: { type: "string", enum: ["most", "least"] }, state: { type: "string", enum: ["open", "closed", "all"] }, unassigned: { type: "boolean" }, mine: { type: "boolean" }, critical: { type: "boolean" }, overdue: { type: "boolean" }, quietDays: { type: "number" }, olderDays: { type: "number" }, since: { type: "string" }, until: { type: "string" }, window: { type: "string" }, historical: { type: "boolean" }, terms: { type: "array", items: { type: "string" } } }, additionalProperties: false } },
   { name: "work_summary", description: "Summarise the organisation's current work: open cases, unassigned, critical, overdue follow-ups, historical imports awaiting review, and the most urgent open cases.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_missing_evidence", description: "Find the organisation's records that are missing evidence: animals with no photo, open cases with no linked animal or no place.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_by_identifier", description: "Find the organisation's animal carrying a microchip, RFID tag, QR code or printed tag number. Another organisation's identifier is reported only as registered elsewhere. Reads only.", input_schema: { type: "object", properties: { value: { type: "string", description: "The identifier as scanned or typed." } }, required: ["value"], additionalProperties: false } },
@@ -67,6 +70,17 @@ export const TOOL_DEFS = [
 ] as const;
 
 export type ToolName = (typeof TOOL_DEFS)[number]["name"];
+
+/** Tool input → a well-formed case query (the model may send anything). */
+function toCaseQuery(i: Record<string, unknown>): CaseQuery {
+  const pick = <T extends string>(v: unknown, of: readonly T[], fb: T) => (of.includes(v as T) ? (v as T) : fb);
+  const num = (v: unknown) => (typeof v === "number" && v > 0 && v < 3650 ? Math.floor(v) : undefined);
+  const date = (v: unknown) => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
+  const by = pick(i.by, ["zone", "assignee", "condition", "status", "month", ""] as const, "");
+  return { measure: pick(i.measure, ["count", "list", "breakdown", "top"] as const, "count"), by: by || undefined, order: i.order === "least" ? "least" : i.order === "most" ? "most" : undefined, state: pick(i.state, ["open", "closed", "all"] as const, "open"),
+    unassigned: i.unassigned === true || undefined, mine: i.mine === true || undefined, critical: i.critical === true || undefined, overdue: i.overdue === true || undefined, quietDays: num(i.quietDays), olderDays: num(i.olderDays), since: date(i.since), until: date(i.until), window: typeof i.window === "string" ? clean(i.window, 40) : undefined, historical: i.historical === true || undefined,
+    terms: (Array.isArray(i.terms) ? i.terms : []).map((x) => clean(x, 30).toLowerCase()).filter(Boolean).slice(0, 4) };
+}
 
 export async function runTool(name: string, input: Record<string, unknown>, ctx: ToolCtx): Promise<ToolOut> {
   if(name==='current_record')return currentRecord(ctx);
@@ -85,6 +99,7 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "recent_confirmed_actions": return recentConfirmedActions(ctx);
     case "operations_insights": return operationsInsights(ctx);
     case "search_records": return searchRecords(clean(input.query), ctx);
+    case "query_cases": return queryCases(toCaseQuery(input), ctx);
     case "work_summary": return workSummary(ctx);
     case "find_missing_evidence": return missingEvidence(ctx);
     case "find_by_identifier": return byIdentifier(String(input.value ?? "").slice(0, 80), ctx);

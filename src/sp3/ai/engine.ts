@@ -7,6 +7,9 @@ import { connectionToolDefs } from "./connectTools";
 import type { AiReply, ChatTurn, Citation, Proposal, ToolRun } from "./types";
 import { isDecided, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 import { automationReply } from "./automationReplies";
+import { glossaryAnswer, nearestSkills, nextQuestions, normalise, parseCaseQuery, smallTalk, type CaseQuery } from "./understand";
+import { sayCases, type CaseAnswer } from "./caseQuery";
+import { compose } from "./compose";
 
 /* ════════════════════════════════════════════════════════════════════
    Kaju engine.
@@ -67,6 +70,8 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   const turns = messages.filter((m) => m.text?.trim()).slice(-12).map((m) => ({ role: m.role, text: m.text.slice(0, 6000) }));
   if (!turns.length || turns[turns.length - 1].role !== "user") return { text: "Ask me something about your records.", citations: [], tools: [], proposals: [], engine: "tools" };
   let toolQuestion = turns[turns.length - 1].text;
+  /* What the person asked before, oldest first: lets a short follow-up ("only unassigned", "and last month?") change the previous question. */
+  const earlier = turns.slice(0, -1).filter((m) => m.role === "user").map((m) => m.text);
   const previous = turns[turns.length - 2];
   const report = turns[turns.length - 3];
   if (previous?.role === "assistant" && previous.text.includes("Tell me the city and I will prepare the case.") && report?.role === "user" && toolQuestion.length <= 80 && extractFieldMessage(toolQuestion).city) {
@@ -89,11 +94,11 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
       await recordInferenceUsage(scope, access.model, used);
       if(context.signal?.aborted)throw Error("Kaju request cancelled");
       console.error("Kaju model request failed; using scoped record tools");
-      const r = await withTools(toolQuestion, ctx);
+      const r = await withTools(toolQuestion, ctx, earlier);
       return { ...r, notice: "Conversation is temporarily limited. This reply uses record tools." };
     }
   }
-  const r = await withTools(toolQuestion, ctx);
+  const r = await withTools(toolQuestion, ctx, earlier);
   return { ...r, notice: access ? "Record check. Workspace text stays inside StrayPaw." : "Answered from your records." };
 }
 
@@ -155,10 +160,11 @@ const pl = (v: unknown, one: string, many: string) => `${n(v)} ${v === 1 ? one :
 const clean = (s: string) => s.replace(/[%,()*\\]/g, " ").trim().slice(0, 60);
 const STOP = /\b(find|search|show|me|the|a|an|for|any|all|records?|about|look|up|please|can|you|what|is|are|where|which|of|on|in|with|my|our|dog|dogs|animal|animals|case|cases)\b/gi;
 
-export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, "notice">> {
+export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = []): Promise<Omit<AiReply, "notice">> {
   const selected=ctx.pagePath?.match(/^\/ngo\/(?:cases|verification)\/([0-9a-f-]{36})$/i)?.[1];
   if(selected&&/\b(?:note|follow[- ]?up)\b/i.test(q))q=q.replace(/\b(?:this|current|selected) case\b/gi,selected);
-  const t = q.toLowerCase();
+  /* Spelling slips, Hinglish and shorthand become the words the rules below know. Long pasted text is left as typed. */
+  const t = normalise(q);
   const acc: Acc = { citations: [], tools: [], proposals: [] };
   const done = (text: string): Omit<AiReply, "notice"> => ({ text, ...acc, engine: "tools" });
   const needsOrg = ctx.orgId ? "I could not read your records. Counts are unknown. Try again." : "That needs an organisation workspace. Join your organisation with its code, or ask me about published programmes and the public map.";
@@ -168,6 +174,9 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
       ? "Hello, I’m Kaju. I can summarise your current work, find missing evidence, check ABC records and prepare reports. I can also draft cases, notes and follow-ups for you to confirm. Try ‘What needs attention?’ or ‘Show my ABC verification queue’."
       : "Hello, I’m Kaju. I can explain published programmes and help you find public records. Sign in to work with your organisation’s cases, evidence, follow-ups and reports.");
   }
+
+  { const talk = smallTalk(q, ctx.userName); if (talk) return done(talk); }
+  { const def = glossaryAnswer(q); if (def) return { ...done(def), suggestions: nearestSkills(q, { org: !!ctx.orgId, office: ctx.actorRole === "municipal_reviewer" }).slice(0, 3) }; }
 
   /* "open intake", "go to verification", "show me the field map": a screen, not a search. */
   const go = t.match(/^(?:please\s+)?(?:open|go to|take me to|show me|show)\s+(?:the\s+|my\s+)?(.{3,40}?)(?:\s+page|\s+screen)?[.!?\s]*$/);
@@ -185,6 +194,20 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   }
   if (/what can only|who can.*authorise|can you.*(?:authorise|accept|certify)/i.test(q))return done("A veterinarian must authorise clinical procedures. An assigned municipal reviewer must decide package acceptance. I can check recorded evidence and prepare work for your review; I cannot sign or decide for them.");
   if (/help.*(?:field update|search.*register)|what can i search/i.test(q))return done("Paste the actual field update, or give a case code, animal tag or name. I will identify what is recorded and what is missing before preparing anything for confirmation.");
+  /* Things Kaju writes: a brief, a reminder, the vet's list, a standard notice. */
+  { const piece = await compose(t, q, ctx, (name, input) => call(acc, ctx, name, input)); if (piece) return { ...done(piece.text), suggestions: piece.suggestions }; }
+  /* Counted, listed and grouped questions about cases, and short follow-ups to the last one. */
+  {
+    let carry: CaseQuery | null = null;
+    for (const prev of earlier.slice(-4)) carry = parseCaseQuery(prev, { carry }) ?? carry;
+    const cq = parseCaseQuery(q, { carry });
+    if (cq) {
+      if (!ctx.orgId) return done(needsOrg);
+      const out = await call(acc, ctx, "query_cases", cq as unknown as Record<string, unknown>);
+      if (out.ok === false) return done(out.summary);
+      return { ...done(sayCases(out.data as CaseAnswer, cq)), suggestions: nextQuestions(cq) };
+    }
+  }
   { const auto = await automationReply(t, ctx, (name) => call(acc, ctx, name)); if (auto !== null) return done(auto); }
   if (/what.*(completed|done|saved)|recent.*(actions|changes)|verify.*actions/.test(t)) {
     const out = await call(acc, ctx, "recent_confirmed_actions");
@@ -374,8 +397,8 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   const parts = [d.your_cases?.length && `${d.your_cases.length} of your cases`, d.your_animals?.length && `${d.your_animals.length} of your animals`, d.public_animals?.length && `${d.public_animals.length} public animal records`, d.programmes?.length && `${d.programmes.length} programmes`].filter(Boolean);
   if (parts.length) return done(`For “${query}” I found ${parts.join(", ")}. They are linked below.`);
   /* Nothing matched: say so plainly and offer the commands Kaju can actually run. */
-  return { ...done(`I could not match “${query}” to a record or a task. These are things I can do right now:`), suggestions: ctx.orgId
-    ? ["What should I do first?", "What changed this week?", "Draft this month's claim", "Find possible duplicate animals"]
-    : ctx.actorRole === "municipal_reviewer" ? ["What is waiting for me today?", "Show ward coverage and sudden changes", "Draft the monthly report"]
-    : ["Show published programmes", "Open the map", "What is unknown status?"] };
+  return { ...done(`I could not match “${query}” to a record or a task. The closest things I can do:`), suggestions: ctx.orgId
+    ? nearestSkills(q, { org: true, office: false })
+    : ctx.actorRole === "municipal_reviewer" ? nearestSkills(q, { org: false, office: true })
+    : ["Show published programmes", "Open the map", "What is ABC?", "Write a dog-bite first aid notice"] };
 }

@@ -53,6 +53,7 @@
     "test:kaju-polish": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-polish.ts",
     "test:kaju-automations": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-automations.ts",
     "test:kaju-prepare": "node --import tsx scripts/test-kaju-prepare.ts",
+    "test:kaju-understand": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-understand.ts",
     "test:monthly": "node --import tsx scripts/test-monthly.ts",
     "test:inference-off": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-inference-off.ts",
     "test:package-check": "node --import tsx scripts/test-package-check.ts",
