@@ -1,0 +1,98 @@
+/* ════════════════════════════════════════════════════════════════════
+   StrayPaw app, system 5: one look for every workspace page.
+
+   Loaded last. It restyles the building blocks every page already shares
+   (page head, buttons, chips, fields, cards, rows, tabs, the phone bar) so
+   the whole app reads like Home and the welcome: bold tight titles, soft
+   rounded white cards on a quiet sky, pill actions that answer the hand.
+   No page's structure, data or behaviour changes here.
+   ════════════════════════════════════════════════════════════════════ */
+.sp.sx3 { --s5-ink: #0b1e3d; --s5-body: #3d4759; --s5-mute: #667085; --s5-line: #e4e8f0; --s5-blue: #2457ce; --s5-blue-2: #1d49b3;
+  --s5-card: 0 0 0 1px var(--s5-line), 0 14px 30px -22px rgba(11, 30, 61, .3); --s5-ease: cubic-bezier(.2, .7, .2, 1); }
+
+/* the ground: a quiet sky, the same light as the welcome and the landing hero */
+.sp.sx3 .sp-main { background:
+  radial-gradient(900px 520px at 100% 0%, rgba(207, 220, 255, .42), transparent 62%),
+  radial-gradient(760px 480px at 0% 100%, rgba(255, 226, 211, .30), transparent 60%),
+  var(--s3-ground, #fbfbfd) !important; }
+.sp.sx3 .sp-main:has(.maplibregl-map) { background: var(--s3-ground, #fbfbfd) !important; }
+
+/* page head */
+.sp.sx3 .sp-main :is(.ngo-head, .mo-head, .wk2-day, .cr-head, .st-head) h1,
+.sp.sx3 .sp-main h1:is(.serif, .display, .wk2-h) { font-family: var(--s3-sans, Inter, system-ui, sans-serif) !important; font-size: 30px !important; line-height: 1.15 !important; font-weight: 700 !important; letter-spacing: -0.03em !important; color: var(--s5-ink); }
+.sp.sx3 .sp-main :is(.ngo-head, .mo-head) { border-bottom: 0 !important; background: none !important; }
+.sp.sx3 .sp-main :is(.ngo-head, .mo-head) p { color: var(--s5-mute); font-size: 14.5px; line-height: 1.5; }
+.sp.sx3 .sp-main h2 { letter-spacing: -0.02em; }
+
+/* tabs */
+.sp.sx3 .sx3-tabs { gap: 6px; padding: 12px 0 10px; border-bottom: 0; }
+.sp.sx3 .sx3-tabs a { padding: 8px 14px; border: 0 !important; margin: 0; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--s5-mute); transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease; }
+.sp.sx3 .sx3-tabs a:hover { background: rgba(11, 30, 61, .05); color: var(--s5-ink); }
+.sp.sx3 .sx3-tabs a[aria-current="page"] { background: #fff; color: var(--s5-ink); font-weight: 600; box-shadow: var(--s5-card); border-bottom-color: transparent; }
+
+/* actions */
+.sp.sx3 .sp-main .btn { min-height: 38px; padding: 0 16px; border-radius: 999px; border: 0; background: #fff; box-shadow: inset 0 0 0 1px #d6dbe6; font-weight: 600; font-size: 14px; color: var(--s5-ink); transition: background-color 160ms ease, box-shadow 160ms ease, transform 140ms var(--s5-ease), color 160ms ease; }
+.sp.sx3 .sp-main .btn:hover { background: #fff; box-shadow: inset 0 0 0 1px #b9c2d4, 0 6px 14px -10px rgba(11, 30, 61, .45); }
+.sp.sx3 .sp-main .btn:active { transform: scale(.97); }
+.sp.sx3 .sp-main .btn:is(.is-ink, .is-blue, .is-primary) { background: var(--s5-blue); color: #fff; box-shadow: 0 8px 18px -12px rgba(36, 87, 206, .8); }
+.sp.sx3 .sp-main .btn:is(.is-ink, .is-blue, .is-primary):hover { background: var(--s5-blue-2); box-shadow: 0 10px 22px -12px rgba(36, 87, 206, .9); }
+.sp.sx3 .sp-main .btn.is-flame { background: #f05b40; color: #fff; box-shadow: 0 8px 18px -12px rgba(240, 91, 64, .8); }
+.sp.sx3 .sp-main .btn.is-ghost { background: transparent; box-shadow: none; color: var(--s5-blue); }
+.sp.sx3 .sp-main .btn.is-ghost:hover { background: rgba(36, 87, 206, .08); box-shadow: none; }
+.sp.sx3 .sp-main .btn:disabled, .sp.sx3 .sp-main .btn[aria-disabled="true"] { background: #eef0f5; color: #8a90a0; box-shadow: none; transform: none; }
+.sp.sx3 .sp-main :is(.btn, .chip, a, button, input, select, textarea):focus-visible { outline: 2px solid var(--s5-blue); outline-offset: 2px; }
+.sp.sx3 .sp-action { border-radius: 999px; transition: transform 140ms var(--s5-ease), box-shadow 160ms ease, background-color 160ms ease; }
+.sp.sx3 .sp-action:active { transform: scale(.97); }
+
+/* chips: filters and status */
+.sp.sx3 .sp-main .chip { border-radius: 999px; border: 0; box-shadow: inset 0 0 0 1px #d9deea; background: #fff; font-weight: 500; transition: background-color 150ms ease, box-shadow 150ms ease, color 150ms ease, transform 120ms ease; }
+.sp.sx3 .sp-main button.chip:hover { box-shadow: inset 0 0 0 1px var(--s5-blue); color: var(--s5-blue); }
+.sp.sx3 .sp-main button.chip:active { transform: scale(.97); }
+.sp.sx3 .sp-main .chip:is(.is-on, [aria-pressed="true"], [aria-selected="true"]) { background: var(--s5-ink); color: #fff; box-shadow: none; }
+
+/* fields */
+.sp.sx3 .sp-main :is(.input, .select, .textarea) { border-radius: 12px; border: 0; background: #fff; box-shadow: inset 0 0 0 1px #d6dbe6; min-height: 42px; transition: box-shadow 150ms ease; }
+.sp.sx3 .sp-main :is(.input, .select, .textarea):hover { box-shadow: inset 0 0 0 1px #b9c2d4; }
+.sp.sx3 .sp-main :is(.input, .select, .textarea):focus { outline: none; box-shadow: inset 0 0 0 2px var(--s5-blue), 0 0 0 4px rgba(36, 87, 206, .12); }
+
+/* cards: every boxed region is the same white rounded sheet */
+.sp.sx3 .sp-main :is(.state, section.ms, .st-sec, .pf-scope, .pg-all, .ib-list, .tm-card, .tr-card, .card, .panel, .og-card, .abc-card, .cr-card, .wk2-card, .jy a, .br-card) { border-radius: 16px; border-color: transparent; box-shadow: var(--s5-card); background-color: #fff; }
+.sp.sx3 .sp-main :is(a.og-card, .wk2-card, a.reg-row, .pf-doc, .tm-row) { transition: transform 180ms var(--s5-ease), box-shadow 180ms ease, background-color 160ms ease; }
+.sp.sx3 .sp-main a.og-card:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px #cfd6e3, 0 20px 36px -22px rgba(11, 30, 61, .45); }
+
+/* rows: one record per row, the whole row answers */
+.sp.sx3 .sp-main :is(a.reg-row, .tm-row, .pf-doc) { border-radius: 12px; }
+.sp.sx3 .sp-main a.reg-row:hover { background: rgba(36, 87, 206, .05); }
+.sp.sx3 .sp-main table th { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--s5-mute); }
+
+/* pages arrive: the head, then the content */
+@media (prefers-reduced-motion: no-preference) {
+  .sp.sx3 .sp-main :is(.ngo-page, .mo, .wk2) > * { animation: s5-in 420ms var(--s5-ease) both; }
+  .sp.sx3 .sp-main :is(.ngo-page, .mo, .wk2) > :nth-child(2) { animation-delay: 60ms; }
+  .sp.sx3 .sp-main :is(.ngo-page, .mo, .wk2) > :nth-child(3) { animation-delay: 110ms; }
+  .sp.sx3 .sp-main :is(.ngo-page, .mo, .wk2) > :nth-child(n+4) { animation-delay: 150ms; }
+  .sp.sx3 .sp-main :is(.ngo-page, .mo, .wk2):has(.maplibregl-map) > * { animation: none; }
+}
+@keyframes s5-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* sidebar: the current place is a soft pill */
+.sp.sx3 .sx3-nav a { border-radius: 10px; transition: background-color 150ms ease, color 150ms ease; }
+
+/* ── phone ───────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .sp.sx3 .sp-main :is(.ngo-head, .mo-head, .wk2-day, .cr-head, .st-head) h1,
+  .sp.sx3 .sp-main h1:is(.serif, .display, .wk2-h) { font-size: 25px !important; }
+  .sp.sx3 .sp-main .btn { min-height: 46px; padding: 0 18px; font-size: 15px; }
+  .sp.sx3 .sp-main :is(.input, .select, .textarea) { min-height: 48px; font-size: 16px; }
+  .sp.sx3 .sp-main .chip { min-height: 38px; padding-inline: 14px; }
+  .sp.sx3 .sx3-tabs { padding-inline: 2px; }
+  .sp.sx3 .sx3-tabs a { padding: 9px 14px; }
+  /* the thumb bar: a floating rounded dock; the current place is a filled pill */
+  .sp.sx3 .sp-tabs { left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); width: auto; border: 0 !important; border-radius: 24px; background: rgba(255, 255, 255, .94) !important; backdrop-filter: saturate(1.4) blur(14px); box-shadow: 0 0 0 1px rgba(11, 30, 61, .08), 0 18px 36px -16px rgba(11, 30, 61, .4); padding: 6px !important; }
+  .sp.sx3 .sp-tabs :is(a, button) { border-radius: 18px; min-height: 52px; transition: background-color 160ms ease, color 160ms ease, transform 120ms ease; }
+  .sp.sx3 .sp-tabs :is(a, button):active { transform: scale(.94); }
+  .sp.sx3 .sp-tabs a:not(.sp-tabs-act)[aria-current="page"] { background: rgba(36, 87, 206, .1); color: var(--s5-blue); }
+  .sp.sx3 .sp-tabs a:not(.sp-tabs-act)[aria-current="page"] span { font-weight: 700; }
+  .sp.sx3 .sp-main { padding-bottom: calc(var(--tabs, 64px) + 28px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) { .sp.sx3 .sp-main .btn, .sp.sx3 .sp-main .chip, .sp.sx3 .sp-tabs :is(a, button) { transition: none; } .sp.sx3 .sp-main .btn:active { transform: none; } }
