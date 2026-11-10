@@ -15,7 +15,7 @@
 -- table, column or row is dropped or rewritten, and running it twice
 -- changes nothing the second time.
 --
--- Applied to staging 2026-11-11 and verified there: an unverified
+-- Applied to staging and production on 2026-11-11 after a rolled-back dry run on production. Verified: an unverified
 -- organisation's animal was absent from dogs, public_spatial_animals,
 -- operational_animals and ngos for the anon role, and present after
 -- verification.
@@ -65,9 +65,10 @@ begin
       end if;
     end if;
     -- care events reach an organisation through their animal
-    if def ~ 'medical_events m\M' and def !~ 'ud\.ngo_id' then
-      patched := regexp_replace(patched, 'NOT COALESCE\(m\.is_demo, false\)',
-        'NOT COALESCE(m.is_demo, false) AND NOT (EXISTS ( SELECT 1 FROM dogs ud WHERE ud.id = m.dog_id AND org_is_unlisted(ud.ngo_id)))', 'g');
+    -- (the demo clause is written m.is_demo in some databases and bare is_demo in others)
+    if def ~ 'FROM medical_events m\M' and def !~ 'ud\.ngo_id' then
+      patched := regexp_replace(patched, 'NOT COALESCE\((m\.)?is_demo, false\)',
+        'NOT COALESCE(m.is_demo, false) AND NOT (EXISTS ( SELECT 1 FROM dogs ud WHERE ud.id = m.dog_id AND org_is_unlisted(ud.ngo_id)))');
     end if;
     -- programme cards where no demo clause exists to extend
     if v.relname = 'public_programme_cards' and patched !~ 'org_is_unlisted\(c\.ngo_id\)' then
