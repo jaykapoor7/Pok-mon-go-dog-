@@ -11,7 +11,8 @@
 import type { Role } from "@/lib/roles";
 
 export type Path = "org" | "office" | "feeder" | "community" | "educator";
-export type Step = "intro" | "name" | "role" | "email" | "code" | "week" | "crew" | "task" | "device" | "keep" | "signup" | "sent" | "done";
+export type Step = "intro" | "name" | "role" | "week" | "crew" | "task" | "device" | "keep" | "done";
+const STEPS: Step[] = ["intro", "name", "role", "week", "crew", "task", "device", "keep", "done"];
 
 export type Outcome =
   | { kind: "member"; role: string | null; org: string | null; reviewer: boolean }
@@ -28,7 +29,7 @@ export const START: Flow = { path: null, step: "intro", trail: [], name: "", ema
 
 const KEY = "sp.onboard.v2", HOLD = "sp.onboard.hold";
 export function readFlow(): Flow | null {
-  try { const v = JSON.parse(sessionStorage.getItem(KEY) ?? "null") as Flow | null; return v && typeof v.step === "string" && Array.isArray(v.trail) ? { ...START, ...v } : null; } catch { return null; }
+  try { const v = JSON.parse(sessionStorage.getItem(KEY) ?? "null") as Flow | null; return v && STEPS.includes(v.step) && Array.isArray(v.trail) ? { ...START, ...v, trail: v.trail.filter((t) => STEPS.includes(t)) } : null; } catch { return null; }
 }
 export function saveFlow(f: Flow) { try { sessionStorage.setItem(KEY, JSON.stringify(f)); } catch { /* storage blocked */ } }
 export function clearFlow() { try { sessionStorage.removeItem(KEY); sessionStorage.removeItem(HOLD); } catch { /* fine */ } }

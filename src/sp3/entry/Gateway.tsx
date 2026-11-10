@@ -12,7 +12,11 @@ import "./entry.css";
 import "@/sp4/sp4.css";
 import "@/sp4/entry4.css";
 import { Onboarding } from "@/sp/onboard/Onboarding";
-import { flowHoldsWelcome } from "@/sp/onboard/flow";
+import { flowHoldsWelcome, readFlow, type Outcome } from "@/sp/onboard/flow";
+import { DEMO_SITE } from "@/lib/demo-site";
+
+/** Whether this browser has been through the welcome. The demo site never interrupts its guided tour with it. */
+function welcomed() { try { return DEMO_SITE || localStorage.getItem("sp.onboard.done") === "1"; } catch { return true; } }
 
 /* ════════════════════════════════════════════════════════════════════
    Open App. The product gateway.
@@ -25,7 +29,7 @@ import { flowHoldsWelcome } from "@/sp/onboard/flow";
    `?choose=1` shows the choices without redirecting.
    ════════════════════════════════════════════════════════════════════ */
 
-type State = { phase: "checking" } | { phase: "routing"; to: string; org: string } | { phase: "choose"; signedIn: boolean } | { phase: "both"; org: string } | { phase: "error" };
+type State = { phase: "checking" } | { phase: "routing"; to: string; org: string } | { phase: "choose"; signedIn: boolean; known?: Outcome } | { phase: "both"; org: string } | { phase: "error" };
 
 export function Gateway() {
   const { user, ready } = useAuth();
@@ -47,7 +51,10 @@ export function Gateway() {
       const safe = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
       const reviewer = role.reviewer;
       /* The onboarding flow just signed this person in and is showing their welcome: stay on it. */
-      if (flowHoldsWelcome()) { setS({ phase: "choose", signedIn: true }); return; }
+      const known: Outcome | undefined = member ? { kind: "member", role: role.role, org: org?.name ?? null, reviewer } : reviewer ? { kind: "reviewer" } : undefined;
+      if (flowHoldsWelcome()) { setS({ phase: "choose", signedIn: true, known }); return; }
+      /* A member's first time here on this device (or returning from sign-in mid-welcome): Kaju shows them round once, then never again. */
+      if (known && !choose && !safe && (!welcomed() || readFlow())) { setS({ phase: "choose", signedIn: true, known }); return; }
       const fits = (to: string) => (to.startsWith("/ngo") ? member : to.startsWith("/city/review") || to.startsWith("/city/contracts") ? reviewer : true);
       if (choose && (member || reviewer)) { setS(member && reviewer ? { phase: "both", org: org?.name ?? "your organisation" } : { phase: "choose", signedIn: true }); return; }
       if (safe && fits(safe)) { setS({ phase: "routing", to: safe, org: org?.name ?? "your workspace" }); router.replace(safe); return; }
@@ -60,7 +67,7 @@ export function Gateway() {
   }, [ready, user, choose, next, router]);
 
   /* Everyone who is not routed straight to a workspace gets the onboarding scene. */
-  if (s.phase === "choose") return <Onboarding signedIn={s.signedIn} startAt={choose ? "intro" : undefined} />;
+  if (s.phase === "choose") return <Onboarding signedIn={s.signedIn} startAt={choose ? "intro" : undefined} known={s.known} />;
 
   return (
     <div className="s3 s3g s4 s4e">

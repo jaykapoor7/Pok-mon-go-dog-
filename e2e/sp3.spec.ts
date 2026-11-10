@@ -51,15 +51,28 @@ test("phone menu opens and reaches sign in and demo", async ({ page, isMobile })
   await expect(sheet.getByRole("link", { name: "Sign in" })).toBeVisible();
 });
 
-test("sign in opens straight on the email and code form, with the authorised-use notice", async ({ page }) => {
+test("sign in is one email step, with the authorised-use notice, then the emailed code", async ({ page }) => {
+  await page.route("**/api/access/start", (r) => r.fulfill({ json: { known: true, emailed: true } }));
   await page.goto("/sign-in");
   await expect(page.getByText(/Authorised users only; activity is recorded/)).toBeVisible();
-  await expect(page.getByLabel("Work email")).toBeVisible();
-  await expect(page.getByLabel("Access code")).toBeVisible();
-  await page.getByLabel("Work email").fill("not-an-email");
-  await page.getByLabel("Access code").fill("ABC123");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.locator(".s3-err")).toContainText("email");
+  const email = page.getByLabel("Email", { exact: true });
+  await expect(email).toBeVisible();
+  await expect(page.getByRole("button", { name: /Continue/ })).toBeDisabled();
+  await email.fill("someone@example.org");
+  await page.getByRole("button", { name: /Continue/ }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Enter your code" })).toBeVisible();
+  await expect(page.getByLabel("Six-character code")).toBeVisible();
+});
+
+test("a new address is offered an organisation, feeder or personal start", async ({ page }) => {
+  await page.route("**/api/access/start", (r) => r.fulfill({ json: { known: false } }));
+  await page.goto("/sign-in");
+  await page.getByLabel("Email", { exact: true }).fill("new@example.org");
+  await page.getByRole("button", { name: /Continue/ }).click();
+  await expect(page.getByRole("button", { name: /My organisation/ })).toBeVisible();
+  await page.getByRole("button", { name: /My organisation/ }).click();
+  await expect(page.getByLabel("Organisation name")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Create our workspace/ })).toBeDisabled();
 });
 
 test("Open App offers ways in to a signed-out visitor", async ({ page }) => {

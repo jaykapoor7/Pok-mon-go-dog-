@@ -36,9 +36,8 @@ for(const theme of ['light','dark'] as const){
     await page.addInitScript(t=>{localStorage.setItem('straypaw.theme',t);localStorage.setItem('straypaw.notice.storage.v1','1')},theme);
     await page.goto('/sign-in');
     await expect(page.locator('html')).toHaveClass(theme==='dark'?/dark/:/^(?!.*dark)/);
-    await readable(page.getByLabel('Work email',{exact:true}),'contrast@straypaw.invalid');
-    await readable(page.getByLabel('Access code',{exact:true}),'123456');
-    await autofilled(page,'#si-code');
+    await readable(page.getByLabel('Email',{exact:true}),'contrast@straypaw.invalid');
+    await autofilled(page,'#en-email');
   });
 
   test(`sign-in pop-up text stays readable with a saved ${theme} theme`,async({page,isMobile})=>{

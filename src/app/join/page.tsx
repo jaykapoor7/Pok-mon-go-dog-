@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { JoinClient } from "@/components/join/JoinClient";
 import "./join.css";
 import { EntryFrame } from "@/sp3/entry/EntryFrame";
@@ -16,6 +17,8 @@ export default async function JoinPage({
   searchParams: Promise<{ code?: string }>;
 }) {
   const { code } = await searchParams;
+  /* Without a code in the link this is the ordinary sign-in; a link that carries one (a volunteer's) is redeemed here. */
+  if (!code?.trim()) redirect("/sign-in");
   /* This is a code-entry screen somebody lands on from a link or a
      button. It had no way back at all — and a person who opened it
      by mistake, or who does not have a code yet, was stuck. */

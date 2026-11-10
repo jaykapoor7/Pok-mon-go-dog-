@@ -19,5 +19,5 @@ test('a stale or missing page offers a direct workspace sign-in recovery',async(
   await page.goto('/old-workspace-link-that-does-not-exist');
   const link=page.getByRole('link',{name:'Sign in with your email and access code.'});await expect(link).toBeVisible();
   await link.click();await expect(page).toHaveURL(/\/sign-in\?next=\/app/);
-  await expect(page.getByLabel('Work email',{exact:true})).toBeVisible();await expect(page.getByLabel('Access code',{exact:true})).toBeVisible();
+  await expect(page.getByLabel('Email',{exact:true})).toBeVisible();await expect(page.getByRole('heading',{level:1,name:'Sign in or get started'})).toBeVisible();
 });

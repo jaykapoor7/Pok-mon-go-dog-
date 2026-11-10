@@ -20,17 +20,16 @@ import { useRouter } from "next/navigation";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent, type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, MotionConfig, animate, motion, useIsPresent, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { ArrowRight, BookOpen, Check, ChevronLeft, Download, Landmark, Loader2, MapPin, PawPrint, Soup, X } from "lucide-react";
-import { cleanCode, signInWithCode, useAuth } from "@/components/auth/AuthProvider";
+import { cleanCode, useAuth } from "@/components/auth/AuthProvider";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { Kaju, KajuFace } from "@/kaju/Kaju";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
 import { getSupabase } from "@/lib/supabase";
 import { readStoredRole, storeRole } from "@/lib/roles";
-import { DOG_ART, ROLES, ROLE_LABEL, START, clearFlow, firstName, firstTask, holdWelcome, maskEmail, needsCode, orderFor, jobsFor, readFlow, saveFlow, type Dog, type Flow, type Job, type Outcome, type Path, type Step } from "./flow";
+import { DOG_ART, ROLES, ROLE_LABEL, START, clearFlow, firstName, firstTask, holdWelcome, needsCode, orderFor, jobsFor, readFlow, saveFlow, type Dog, type Flow, type Job, type Outcome, type Path, type Step } from "./flow";
 import "./onboarding.css";
 
 const SPRING = { type: "spring" as const, stiffness: 360, damping: 32, mass: 0.9 };
-const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const OUT = { duration: 0.16, ease: [0.4, 0, 1, 1] as const };
 const IN = { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] as const };
 const TILE = ["#f6a37f", "#f3c75b", "#ec8fb0", "#7fc8b8", "#8fb0f0", "#b9a3ec"];
@@ -46,7 +45,8 @@ type BIP = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome:
 let deferredInstall: BIP | null = null;
 if (typeof window !== "undefined") window.addEventListener("beforeinstallprompt", (e) => { deferredInstall = e as BIP; });
 
-export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?: "intro" }) {
+/** `known`: the signed-in person's server-checked membership, when /app is showing them their first-time welcome. */
+export function Onboarding({ signedIn, startAt, known }: { signedIn: boolean; startAt?: "intro"; known?: Outcome | null }) {
   const router = useRouter();
   const { user } = useAuth();
   const reduce = !!useReducedMotion();
@@ -54,8 +54,6 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [code, setCode] = useState("");
-  const [shake, setShake] = useState(0);
   const [wheel, setWheel] = useState(0);
   const [loc, setLoc] = useState<Loc>("unknown");
   const [install, setInstall] = useState<Install>("unknown");
@@ -68,7 +66,14 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
     if (booted.current) return;
     booted.current = true;
     const saved = startAt === "intro" ? null : readFlow();
-    if (saved) { setF(saved); const i = ROLES.findIndex((r) => r.id === saved.path); if (i >= 0) setWheel(i); }
+    const staffPath: Path | null = known?.kind === "member" ? "org" : known?.kind === "reviewer" ? "office" : null;
+    if (staffPath && known) {
+      /* A member's first visit: their space is already known, so the wheel is skipped. Progress made before signing in is kept. */
+      const after = saved && ["week", "crew", "task", "device", "done"].includes(saved.step);
+      setF({ ...START, ...(saved ?? {}), path: staffPath, outcome: known, name: saved?.name || firstName(user?.name), picks: saved?.path === staffPath ? saved.picks : [],
+        step: after ? saved!.step : saved ? "week" : "intro", trail: after ? saved!.trail : saved ? ["intro", "name"] : [] });
+    }
+    else if (saved) { setF(saved); const i = ROLES.findIndex((r) => r.id === saved.path); if (i >= 0) setWheel(i); }
     else {
       const r = readStoredRole();
       const i = ROLES.findIndex((x) => x.role === r);
@@ -85,7 +90,7 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
     const onBip = (e: Event) => { deferredInstall = e as BIP; setInstall("ready"); };
     window.addEventListener("beforeinstallprompt", onBip);
     return () => window.removeEventListener("beforeinstallprompt", onBip);
-  }, [signedIn, startAt, user?.name]);
+  }, [signedIn, startAt, user?.name, known]);
 
   useEffect(() => { if (ready) saveFlow(f); }, [f, ready]);
   /* Page-level offers (the install banner) stay away: the device step makes the same offer in place. */
@@ -132,7 +137,6 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
     const [member, org, role] = await Promise.all([isNgoMember(), getMyNgo().catch(() => null), getMyRole()]);
     return member ? { kind: "member", role: role.role, org: org?.name ?? null, reviewer: role.reviewer } : role.reviewer ? { kind: "reviewer" } : { kind: "personal" };
   };
-  const isPublic = f.path === "feeder" || f.path === "community" || f.path === "educator";
   const deviceWorth = loc === "prompt" || loc === "unknown" || install === "ready" || install === "ios";
   /* Guests who could keep their work get the free sign-up offer; signed-in people and educators finish. */
   const wantsKeep = (f.path === "feeder" || f.path === "community") && !signedIn && f.outcome?.kind !== "personal";
@@ -147,42 +151,14 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
     storeRole(r.role);
     const picks = f.path === r.id ? f.picks : [];
     if (!needsCode(r.id)) return go("week", { path: r.id, outcome: signedIn ? { kind: "personal" } : { kind: "guest" }, picks });
-    if (!signedIn) return go("email", { path: r.id, picks });
+    /* Organisations and offices sign in (or register) on the one sign-in screen, then come back here. */
+    if (!signedIn) { saveFlow({ ...f, path: r.id, picks }); router.push(`/sign-in?next=/app${r.id === "org" ? "&as=org" : ""}${f.name.trim() ? `&name=${encodeURIComponent(f.name.trim())}` : ""}`); return; }
     setBusy("Checking your access"); holdWelcome(true);
     try {
       const o = await readOutcome();
-      if (o.kind === "personal") { holdWelcome(false); go("email", { path: r.id, email: f.email || user?.email || "", picks }); }
+      if (o.kind === "personal") { holdWelcome(false); go("done", { path: r.id, outcome: o, picks }); }
       else go("week", { path: r.id, outcome: o, picks });
     } catch { holdWelcome(false); setError("Your access could not be read just now. Try again."); }
-    finally { setBusy(null); }
-  };
-
-  const signIn = async () => {
-    if (busy) return;
-    setError(null); setBusy("Checking your code"); holdWelcome(true);
-    const r = await signInWithCode(f.email, code, (s) => setBusy(s));
-    if (!r.ok) { holdWelcome(false); setBusy(null); setError(r.error); setShake((n) => n + 1); return; }
-    setBusy("Opening your space");
-    try {
-      const o = await readOutcome();
-      setCode("");
-      /* A personal code (feeder or community) finishes; an organisation code meets the crew. */
-      if (isPublic) go("done", { outcome: o });
-      else go("week", { outcome: o });
-    } catch { holdWelcome(false); setError("You are signed in, but your access could not be read just now. Open StrayPaw again in a moment."); }
-    finally { setBusy(null); }
-  };
-
-  const requestCode = async () => {
-    if (busy) return;
-    setError(null); setBusy("Sending your code");
-    try {
-      const res = await fetch("/api/access/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: f.name.trim(), email: f.email.trim(), role: f.path === "feeder" ? "feeder" : "individual" }) });
-      const data = (await res.json().catch(() => ({}))) as { emailed?: boolean; error?: string };
-      if (!res.ok) { setError(data.error ?? "Could not send a code."); return; }
-      if (data.emailed === false) { setError(`Your code is ready, but the email to ${maskEmail(f.email)} did not go just now. Ask again in a moment: it resends the same code.`); return; }
-      if (f.step !== "sent") go("sent");
-    } catch { setError("Could not reach StrayPaw. Check your connection and try again."); }
     finally { setBusy(null); }
   };
 
@@ -217,8 +193,11 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
     finally { deferredInstall = null; setBusy(null); }
   };
 
+  const afterName = () => (known && (f.path === "org" || f.path === "office") ? go("week") : go("role"));
+  /* Guests keep their work by signing up on the one sign-in screen; their place here is saved for when they return. */
+  const toSignIn = (fresh: boolean) => { saveFlow({ ...f, step: "done", trail: [...f.trail, f.step] }); router.push(`/sign-in?next=/app${fresh ? `&as=${f.path === "feeder" ? "feeder" : "individual"}${f.name.trim() ? `&name=${encodeURIComponent(f.name.trim())}` : ""}` : ""}`); };
   const finish = (href: string) => { clearFlow(); try { localStorage.setItem("sp.onboard.done", "1"); } catch { /* fine */ } router.push(href); };
-  const restart = () => { clearFlow(); setCode(""); setError(null); setTask({ state: "idle", text: "" }); setF(START); try { window.history.pushState({ ob: "intro" }, ""); } catch { /* fine */ } };
+  const restart = () => { clearFlow(); setError(null); setTask({ state: "idle", text: "" }); setF(START); try { window.history.pushState({ ob: "intro" }, ""); } catch { /* fine */ } };
 
   /* ── derived ──────────────────────────────────────────────────────── */
   const name = firstName(f.name) || (f.outcome && f.outcome.kind !== "guest" ? firstName(user?.name) : "");
@@ -229,13 +208,13 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
     const o = f.outcome;
     if (o?.kind === "member") return o.role === "veterinarian" ? "/ngo/verification?stage=vet" : o.role === "member" ? "/ngo/field" : "/ngo";
     if (o?.kind === "reviewer") return "/city/review";
-    if (f.path === "org" || f.path === "office") return "/join";
+    if (f.path === "org" || f.path === "office") return "/sign-in?as=org&switch=1&next=/app";
     return crew[0]?.href ?? "/app";
   };
   const bubble = bubbleFor(f, name, crew, task.state, jobs);
   const skip = (): (() => void) | null => {
     switch (f.step) {
-      case "name": return () => go("role", { name: "" });
+      case "name": return () => (known && (f.path === "org" || f.path === "office") ? go("week") : go("role", { name: "" }));
       case "week": return () => go("crew");
       case "crew": return () => go(afterCrew());
       case "task": return () => go(afterTask());
@@ -251,17 +230,13 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
   const cta = (): { label: string; onClick?: () => void; disabled?: boolean } => {
     switch (f.step) {
       case "intro": return { label: "Meet Kaju", onClick: () => go("name", { name: f.name || firstName(user?.name) }) };
-      case "name": return f.name.trim() ? { label: "Continue", onClick: () => go("role") } : { label: "Type your name", disabled: true };
+      case "name": return f.name.trim() ? { label: "Continue", onClick: afterName } : { label: "Type your name", disabled: true };
       case "role": return { label: busy ?? "Continue", onClick: () => void pickRole(), disabled: !!busy };
-      case "email": return { label: "Continue", disabled: !EMAIL.test(f.email.trim()), onClick: () => go("code") };
-      case "code": return { label: busy ?? "Sign in", disabled: cleanCode(code).length < 6 || !!busy, onClick: () => void signIn() };
       case "week": return f.picks.length ? { label: `Wake ${f.picks.length === 1 ? "my helper" : `all ${f.picks.length}`}`, onClick: () => go("crew") } : { label: "Pick at least one", disabled: true };
       case "crew": return { label: firstTask(f.outcome) ? "See Kaju in action" : "Continue", onClick: () => go(afterCrew()) };
       case "task": return task.state === "asking" || task.state === "idle" ? { label: "Kaju is reading", disabled: true } : { label: "Continue", onClick: () => go(afterTask()) };
       case "device": return { label: "Continue", onClick: () => go(afterDevice()) };
-      case "keep": return { label: "Email me a free code", onClick: () => go("signup") };
-      case "signup": return { label: busy ?? "Send my code", disabled: !EMAIL.test(f.email.trim()) || f.name.trim().length < 1 || !!busy, onClick: () => void requestCode() };
-      case "sent": return { label: "I have my code", onClick: () => go("code") };
+      case "keep": return { label: "Email me a free code", onClick: () => toSignIn(true) };
       case "done": return { label: "Start working", onClick: () => finish(primaryHref()) };
     }
   };
@@ -279,7 +254,8 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
               {mode === "intro" ? (
                 <>
                   <Link href="/" className="ob-brand" aria-label="StrayPaw home"><StrayPawMark size={24} /><span>StrayPaw</span></Link>
-                  {!signedIn ? <Link className="ob-login" href="/sign-in?next=/app" aria-label="Sign in to your workspace">Log in</Link> : <span />}
+                  {!signedIn ? <Link className="ob-login" href="/sign-in?next=/app" aria-label="Sign in to your workspace">Log in</Link>
+                    : known ? <button type="button" className="ob-login" onClick={() => finish(primaryHref())}>Skip</button> : <span />}
                 </>
               ) : (
                 <>
@@ -306,8 +282,8 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
             <footer className="ob-foot">
               {f.step === "name" && <p className="ob-fine">{signedIn ? "Only used to greet you here." : "Only used to greet you. Nothing is saved until you sign in."}</p>}
               {f.step === "device" && <p className="ob-fine"><Check size={12} aria-hidden /> Used only when you act. Nothing is shared publicly.</p>}
-              <Cta label={c.label} disabled={c.disabled} busy={!!busy && ["code", "signup", "role", "sent"].includes(f.step)} onClick={c.onClick} />
-              {f.step === "keep" && <div className="ob-alts"><button type="button" className="ob-later" onClick={() => go("email")}>I already have a code</button><button type="button" className="ob-later" onClick={() => go("done")}>Not now</button></div>}
+              <Cta label={c.label} disabled={c.disabled} busy={!!busy && f.step === "role"} onClick={c.onClick} />
+              {f.step === "keep" && <div className="ob-alts"><button type="button" className="ob-later" onClick={() => toSignIn(false)}>I already have a code</button><button type="button" className="ob-later" onClick={() => go("done")}>Not now</button></div>}
               {f.step === "intro" && (
                 <p className="ob-fine is-links"><Link href="/community/report">Report an animal</Link> without an account{!signedIn && <> · <Link href="/join">Join with an invitation code</Link></>}</p>
               )}
@@ -348,7 +324,7 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
       case "name": {
         const letters = (f.name.trim().split(/\s+/)[0] ?? "").slice(0, 10).split("").filter(Boolean);
         return (
-          <form onSubmit={(e) => { e.preventDefault(); if (f.name.trim()) go("role"); }}>
+          <form onSubmit={(e) => { e.preventDefault(); if (f.name.trim()) afterName(); }}>
             {H("What's your name?")}
             <label className="sr-only" htmlFor="ob-name">Your first name</label>
             <input id="ob-name" data-ob-focus="name" className="ob-input" autoComplete="given-name" placeholder="Your name" value={f.name} maxLength={40}
@@ -375,29 +351,6 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
             <Wheel index={wheel} onChange={setWheel} onPick={() => void pickRole()} />
             <Err />
           </>
-        );
-      case "email":
-        return (
-          <form onSubmit={(e) => { e.preventDefault(); if (EMAIL.test(f.email.trim())) go("code"); else { setError("Enter the email address that received your code."); setShake((n) => n + 1); } }}>
-            {H(f.path === "office" ? "Your office email" : f.path === "org" ? "Your work email" : "Your email", f.path === "org" || f.path === "office" ? "The address your invitation was sent to." : "The address your code was sent to.")}
-            <label className="sr-only" htmlFor="ob-email">Email</label>
-            <motion.input key={`e${shake}`} animate={shake && error ? { x: [0, -6, 6, -3, 0] } : undefined} transition={{ duration: 0.28 }}
-              id="ob-email" data-ob-focus="email" className="ob-input" type="email" inputMode="email" autoComplete="email" placeholder="you@organisation.org"
-              value={f.email} onChange={(e) => setF((cur) => ({ ...cur, email: e.target.value }))} />
-            <Err />
-            {(f.path === "org" || f.path === "office") && <p className="ob-note">No code yet? <Link href="/partner-apply">Request organisation access</Link></p>}
-            <button type="submit" hidden />
-          </form>
-        );
-      case "code":
-        return (
-          <form onSubmit={(e) => { e.preventDefault(); if (cleanCode(code).length >= 6) void signIn(); }}>
-            {H("Enter your code", <>Six characters, sent to <b>{maskEmail(f.email)}</b>. <button type="button" className="ob-link" onClick={back}>Change</button></>)}
-            <CodeBoxes value={code} onChange={setCode} shake={shake} invalid={!!error} disabled={!!busy} />
-            <Err />
-            <p className="ob-note">The same email and code work every time.</p>
-            <button type="submit" hidden />
-          </form>
         );
       case "week": {
         const awake = f.picks.length;
@@ -476,39 +429,17 @@ export function Onboarding({ signedIn, startAt }: { signedIn: boolean; startAt?:
             </ol>
           </>
         );
-      case "signup":
-        return (
-          <form onSubmit={(e) => { e.preventDefault(); void requestCode(); }}>
-            {H(name ? `Where should we send it, ${name}?` : "Where should we send your code?", "One email with six characters. Keep the email and code together.")}
-            {!f.name.trim() && <><label className="ob-label" htmlFor="ob-sname">Your name</label><input id="ob-sname" className="ob-input" autoComplete="name" value={f.name} onChange={(e) => setF((cur) => ({ ...cur, name: e.target.value }))} /></>}
-            <label className="sr-only" htmlFor="ob-semail">Email</label>
-            <input id="ob-semail" data-ob-focus="signup" className="ob-input" type="email" inputMode="email" autoComplete="email" placeholder="you@email.com" value={f.email} onChange={(e) => setF((cur) => ({ ...cur, email: e.target.value }))} />
-            <Err />
-            <button type="submit" hidden />
-          </form>
-        );
-      case "sent":
-        return (
-          <>
-            <motion.div className="ob-letter" initial={{ y: 40, rotate: -10, opacity: 0 }} animate={{ y: 0, rotate: -3, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 16 }} aria-hidden>
-              <span className="ob-letter-stamp"><PawPrint size={18} /></span><b>To {name || "you"}</b><small>{maskEmail(f.email)}</small>
-            </motion.div>
-            {H("Check your email", <>Your code is on its way to <b>{maskEmail(f.email)}</b>. It can take a minute.</>)}
-            <p className="ob-note">Nothing yet? <button type="button" className="ob-link" onClick={() => void requestCode()} disabled={!!busy}>Send it again</button></p>
-            <Err />
-          </>
-        );
       case "done": {
         const o = f.outcome;
         const noOrg = (f.path === "org" || f.path === "office") && !staff;
         const lede = o?.kind === "member" ? <>You&apos;re in <b>{o.org ?? "your organisation"}</b>{o.role && ROLE_LABEL[o.role] ? <> as {ROLE_LABEL[o.role]}</> : null}. Kaju prepares, you confirm.</>
           : o?.kind === "reviewer" ? <>Your reviewing office is ready. Kaju prepares, you decide.</>
-          : noOrg ? <>Your account isn&apos;t part of an organisation yet. Ask your admin for an invitation code.</>
+          : noOrg ? <>This account isn&apos;t part of an organisation yet. Register yours, or sign in with the email your team invited.</>
           : o?.kind === "personal" ? <>Your crew is awake, and your work follows you to any phone.</>
           : <>Your crew is awake. No account needed to start.</>;
         const lineup = crew.slice(0, 4);
         const starts = noOrg
-          ? [{ id: "join", dog: "rani" as Dog, action: "Join with an invitation code", href: "/join" }, { id: "apply", dog: "sikari" as Dog, action: "Request organisation access", href: "/partner-apply" }]
+          ? [{ id: "register", dog: "rani" as Dog, action: "Register your organisation", href: "/sign-in?as=org&switch=1&next=/app" }, { id: "invited", dog: "sikari" as Dog, action: "Sign in with the email your team invited", href: "/sign-in?switch=1&next=/app" }]
           : crew.slice(0, 3).map((j) => ({ id: j.id, dog: j.dog, action: j.action, href: j.href }));
         return (
           <>
@@ -579,21 +510,17 @@ function bubbleFor(f: Flow, name: string, crew: Job[], taskState: string, jobs: 
   switch (f.step) {
     case "name": return "Hi! First things first, what should I call you?";
     case "role": return name ? `Lovely to meet you, ${name}! What brings you here?` : "Tell me what brings you here.";
-    case "email": return f.path === "office" ? "Let's find your reviewing office." : "Let's find your organisation.";
-    case "code": return "Six characters, from your email.";
     case "week": { const last = [...f.picks].reverse().map((id) => jobs.find((j) => j.id === id)).find(Boolean); return last ? `${DOG_ART[last.dog].name} is up!` : "Tick what takes your time. I'll wake the right helpers."; }
     case "crew": return crew.length > 1 ? "Here's your crew. Swipe to meet everyone." : "Here's your crew.";
     case "task": return taskState === "done" ? "Done! Every line came from your own records." : taskState === "failed" ? "Your records didn't load just now." : "Watch this. I only read, I never change anything.";
     case "device": return "Two optional things that help in the field.";
     case "keep": return crew[0] ? `Want ${DOG_ART[crew[0].dog].name} on every phone?` : "Want this on every phone?";
-    case "signup": return "Nearly there.";
-    case "sent": return "It's on its way!";
     default: return "";
   }
 }
 
 /* Kaju's speech: three dots, then the words, and the bubble grows to fit them. */
-function Bubble({ text, k, reduce }: { text: string; k: string; reduce: boolean }) {
+export function Bubble({ text, k, reduce }: { text: string; k: string; reduce: boolean }) {
   const [typing, setTyping] = useState(!reduce);
   useEffect(() => { if (reduce) { setTyping(false); return; } setTyping(true); const t = window.setTimeout(() => setTyping(false), 480); return () => window.clearTimeout(t); }, [k, reduce]);
   if (!text) return null;
@@ -618,7 +545,7 @@ function IntroBubble({ reduce }: { reduce: boolean }) {
 }
 
 /* The one button. It stays put; its label changes, and a press ripples from the finger. */
-function Cta({ label, disabled, busy, onClick, autoFocus }: { label: string; disabled?: boolean; busy?: boolean; onClick?: () => void; autoFocus?: boolean }) {
+export function Cta({ label, disabled, busy, onClick, autoFocus }: { label: string; disabled?: boolean; busy?: boolean; onClick?: () => void; autoFocus?: boolean }) {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
   const press = (e: RPointerEvent<HTMLButtonElement>) => {
     if (disabled) return;
@@ -640,7 +567,7 @@ function Cta({ label, disabled, busy, onClick, autoFocus }: { label: string; dis
 }
 
 /* A step on screen. Leaving, it is hidden from assistive technology and takes no input. */
-const Frame = forwardRef<HTMLElement, { step: Step; reduce: boolean; children: ReactNode }>(function Frame({ step, reduce, children }, ref) {
+export const Frame = forwardRef<HTMLElement, { step: string; reduce: boolean; children: ReactNode }>(function Frame({ step, reduce, children }, ref) {
   const present = useIsPresent();
   return (
     <motion.section ref={ref} className={`ob-step is-${step}`} aria-labelledby={`ob-h-${step}`} aria-hidden={!present || undefined} inert={!present || undefined}
@@ -694,7 +621,7 @@ function WheelItem({ i, y, on, label, icon, id, onClick }: { i: number; y: Motio
 }
 
 /* Six boxes over one real input: paste works, and screen readers hear one field. */
-function CodeBoxes({ value, onChange, shake, invalid, disabled }: { value: string; onChange: (v: string) => void; shake: number; invalid: boolean; disabled: boolean }) {
+export function CodeBoxes({ value, onChange, shake, invalid, disabled }: { value: string; onChange: (v: string) => void; shake: number; invalid: boolean; disabled: boolean }) {
   const chars = cleanCode(value).slice(0, 6).split("");
   const input = useRef<HTMLInputElement>(null);
   return (

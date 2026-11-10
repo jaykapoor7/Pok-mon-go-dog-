@@ -1,24 +1,9 @@
-import { AccessCodeRequest } from "@/components/join/AccessCodeRequest";
-import "../join/join.css";
-import { EntryFrame } from "@/sp3/entry/EntryFrame";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Sign up for StrayPaw",
-  description: "Request a six-character code by email to sign in to the community or feeder workspace. No password.",
-  alternates: { canonical: "/access" },
-  robots: { index: false, follow: false },
-};
+export const metadata = { title: "Get started · StrayPaw", robots: { index: false, follow: false } };
 
+/* Asking for a code is the first step of the one sign-in. */
 export default async function AccessPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
   const { role } = await searchParams;
-  /* This is a code-entry screen somebody lands on from a link or a
-     button. It had no way back at all — and a person who opened it
-     by mistake, or who does not have a code yet, was stuck. */
-  return (
-    <EntryFrame>
-      <main className="sp join-page">
-        <AccessCodeRequest role={role === "feeder" ? "feeder" : "individual"} />
-      </main>
-    </EntryFrame>
-  );
+  redirect(role === "feeder" ? "/sign-in?as=feeder" : "/sign-in");
 }

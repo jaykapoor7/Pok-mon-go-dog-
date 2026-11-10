@@ -258,7 +258,7 @@ function SignInSheet({ onClose }: { onClose: () => void }) {
           </button>
         </form>
         {error && <p role="alert" className="s3-err" style={{ marginTop: 12 }}>{error}</p>}
-        <p className="s3-signin-foot">No code? <a href="/access" onClick={onClose}>Have one emailed to you</a> · <a href="/partner-apply" onClick={onClose}>Apply for a workspace</a></p>
+        <p className="s3-signin-foot">No code, or new here? <a href="/sign-in" onClick={onClose}>Have it emailed, or get started</a></p>
         <p className="s3-signin-foot is-quiet">Reporting a street animal never needs a sign-in.</p>
       </motion.div>
     </motion.div>
