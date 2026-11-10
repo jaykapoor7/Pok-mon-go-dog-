@@ -72,6 +72,7 @@
 .oh-top-end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .oh-demo { display: flex; align-items: center; gap: 8px; padding: 8px 32px; background: var(--amber-fill); color: #6d4608; font-size: 12.5px; border-bottom: 1px solid #f3dfb6; }
 .oh-demo b { font-weight: 600; }
+.oh-demo-short { display: none; }
 .oh-page { width: 100%; max-width: 1160px; padding: 28px 32px 96px; animation: oh-rise .26s var(--ease) backwards; }
 .oh-page.wide { max-width: 1320px; }
 @keyframes oh-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -286,6 +287,7 @@ a.oh-row:hover, .oh-row.link:hover { background: var(--fill); }
   .oh-phone-top span { display: block; color: var(--muted); font-size: 11.5px; }
   .oh-phone-top > div { min-width: 0; }
   .oh-demo { padding: 7px 16px; font-size: 12px; }
+  .oh-demo-long { display: none; } .oh-demo-short { display: inline; }
   .oh-page { padding: 20px 16px calc(96px + env(safe-area-inset-bottom)); }
   .oh-title { font-size: 24px; }
   .oh-head { margin-bottom: 18px; }

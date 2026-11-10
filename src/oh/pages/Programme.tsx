@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState, type ReactNode } from "react";
 import { AlertTriangle, ArrowRight, Plus, Printer } from "lucide-react";
-import { OhShell, Glyph, useOh } from "../Shell";
+import { OhShell, Glyph, oversees, useOh } from "../Shell";
 import { call, fmtDate, relDay, select, showCount, useRead, AUDIENCE, HANDOFF, HANDOFF_KIND, KIND_LABEL, SERVICE_LABEL, SERVICE_STATUS, type Count, type Handoff, type Institution, type Overview, type Programme as Prog } from "../data";
 import { Bars, Chip, Empty, Failed, Head, Loading, Section, Seg, Sheet, Stat, useToast } from "../ui";
 
@@ -21,6 +21,9 @@ function useProgramme() {
 function Frame({ children, actions, title, lede }: { children: (p: Prog) => ReactNode; actions?: (p: Prog) => ReactNode; title?: string; lede?: string }) {
   const { slug, prog, loading, error, reload } = useProgramme();
   const path = usePathname();
+  /* Coordinators already have these pages in the sidebar and tab bar; partners visiting from their own place get them here. */
+  const { place } = useOh();
+  const showTabs = !place || !oversees(place.kind);
   const tabs: [string, string][] = [["", "Overview"], ["/follow-ups", "Follow-ups"], ["/services", "Services"], ["/report", "Report"]];
   if (loading && !prog) return <main className="oh-page"><Loading rows={5} /></main>;
   if (error) return <main className="oh-page"><Failed error={error} retry={reload} /></main>;
@@ -28,7 +31,7 @@ function Frame({ children, actions, title, lede }: { children: (p: Prog) => Reac
   return (
     <main className="oh-page wide" id="main-content">
       <Head eyebrow={<>{prog.city}<span aria-hidden>·</span><Chip tone="blue">{prog.status === "pilot" ? "Pilot" : prog.status}</Chip></>} title={title ?? prog.name} lede={lede ?? prog.summary ?? undefined} actions={actions?.(prog)} />
-      <nav className="oh-tabs" aria-label="Programme">{tabs.map(([s, l]) => <Link key={s} href={`/programme/${slug}${s}`} aria-current={path === `/programme/${slug}${s}` ? "page" : undefined}>{l}</Link>)}</nav>
+      {showTabs ? <nav className="oh-tabs" aria-label="Programme">{tabs.map(([s, l]) => <Link key={s} href={`/programme/${slug}${s}`} aria-current={path === `/programme/${slug}${s}` ? "page" : undefined}>{l}</Link>)}</nav> : null}
       {children(prog)}
     </main>
   );

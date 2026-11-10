@@ -114,7 +114,7 @@ function Frame({ places, reload, children, crumb }: { places: Place[]; reload: (
               </div>
             </aside>
             <div className="oh-main">
-              {illustrative ? <p className="oh-demo" role="note"><b>Illustrative demonstration.</b> Every record here is invented for the demo; no figure is a real programme figure.</p> : null}
+              {illustrative ? <p className="oh-demo" role="note"><b>Illustrative demonstration.</b> <span className="oh-demo-long">Every record here is invented for the demo; no figure is a real programme figure.</span><span className="oh-demo-short">Invented records, not real figures.</span></p> : null}
               <header className="oh-top">
                 <Link href="/today" className="oh-phone-top" aria-label="Your places">
                   {place ? <Glyph kind={place.kind} size={15} /> : <Mark />}

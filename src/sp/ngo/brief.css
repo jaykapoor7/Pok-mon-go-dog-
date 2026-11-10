@@ -413,3 +413,12 @@
   .br-in > .br-since { order: -1; margin-top: 16px; font-size: 14.5px; }
   .br .br-chips > :nth-child(n+2) { display: none; }
 }
+
+/* Phone: the five counts in one row need labels that fit a 66px column.
+   Long labels give way to short ones ("Treatment" becomes "Vet"); the
+   screen-reader text keeps the full label. */
+.jy-short { display: none; }
+@media (max-width: 760px) {
+  .sp .br .jy-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .sp .br .jy-short { display: inline; }
+}

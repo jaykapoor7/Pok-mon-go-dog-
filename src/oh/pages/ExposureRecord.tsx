@@ -37,7 +37,7 @@ export function ExposureRecord({ id }: { id: string }) {
         <div>
           <Section title="Course">
             {!e.course ? (
-              clinician ? (e.category === "not_recorded" ? <p className="oh-note">Record the category first.</p> : <Prescribe exposureId={e.id} exposureOn={e.exposure_on} onDone={() => { toast("Course saved. The doses now appear on Today when due."); refresh(); }} />)
+              clinician ? (e.category === "not_recorded" ? <p className="oh-note">Record the category first.</p> : <Prescribe exposureId={e.id} exposureOn={e.exposure_on} startOpen={e.category !== "I"} onDone={() => { toast("Course saved. The doses now appear on Today when due."); refresh(); }} />)
                 : <p className="oh-note">No course prescribed. A clinician prescribes from this page.</p>
             ) : (
               <div className="oh-card pad">
@@ -108,7 +108,8 @@ export function ExposureRecord({ id }: { id: string }) {
   );
 }
 
-function Prescribe({ exposureId, exposureOn, onDone }: { exposureId: string; exposureOn: string; onDone: () => void }) {
+function Prescribe({ exposureId, exposureOn, onDone, startOpen }: { exposureId: string; exposureOn: string; onDone: () => void; startOpen: boolean }) {
+  const [open, setOpen] = useState(startOpen);
   const [regimen, setRegimen] = useState(""), [rig, setRig] = useState(false), [dates, setDates] = useState<string[]>([today()]);
   const [busy, setBusy] = useState(false), [err, setErr] = useState<string | null>(null);
   const save = async () => {
@@ -116,6 +117,7 @@ function Prescribe({ exposureId, exposureOn, onDone }: { exposureId: string; exp
     const r = await call("oh_prescribe", { p_exposure: exposureId, p_regimen: regimen, p_rig_given: rig, p_due_dates: dates.filter(Boolean) });
     setBusy(false); if (r.error) setErr(r.error); else onDone();
   };
+  if (!open) return <div className="oh-card pad" style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between", flexWrap: "wrap" }}><p>No course prescribed.</p><button type="button" className="oh-btn" onClick={() => setOpen(true)}>Prescribe a course</button></div>;
   return (
     <div className="oh-card pad" style={{ display: "grid", gap: 16 }}>
       <p className="oh-note blue"><b>StrayPaw does not calculate a schedule.</b> Write the regimen as in your facility&apos;s protocol and enter the date you set for each dose.</p>

@@ -42,6 +42,8 @@ INSERT INTO public.oh_members (institution_id, user_id, role, display_name) VALU
  ('f1000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000002', 'coordinator', 'Dr. Prakash Gowda'),
  ('f1000000-0000-4000-8000-000000000003', 'e0000000-0000-4000-8000-000000000003', 'clinician', 'Dr. Arjun Rao'),
  ('f1000000-0000-4000-8000-000000000003', 'e0000000-0000-4000-8000-000000000004', 'nurse', 'Sister Kavya N.'),
+ -- The hospital clinician also runs a weekly session at a health centre: two places on one Today.
+ ('f1000000-0000-4000-8000-000000000005', 'e0000000-0000-4000-8000-000000000003', 'clinician', 'Dr. Arjun Rao'),
  ('f1000000-0000-4000-8000-000000000004', 'e0000000-0000-4000-8000-000000000005', 'clinician', 'Dr. Farah Khan'),
  ('f1000000-0000-4000-8000-000000000006', 'e0000000-0000-4000-8000-000000000006', 'lab_scientist', 'Dr. Suma Hegde'),
  ('f1000000-0000-4000-8000-000000000009', 'e0000000-0000-4000-8000-000000000009', 'analyst', 'Dr. Nikhil Bhat');
