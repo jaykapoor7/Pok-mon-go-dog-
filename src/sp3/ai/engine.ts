@@ -169,7 +169,7 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   { const chat = smallTalk(q, firstName && !firstName.includes("@") ? firstName : null); if (chat) return done(chat); }
   { const how = howTo(q); if (how) { if (how.go) acc.citations.push({ id: `page:${how.go.href}`, label: how.go.label, href: how.go.href, kind: "page" }); return done(how.text); } }
   /* Loosely worded requests are restated in the router's own words; commands that name a record or carry text are left exactly as typed. */
-  if (!/:|\bnote\b|\bfollow[- ]?up (?:on|for)\b|\b[A-Za-z]{2,5}-[0-9A-Za-z]{3,}\b|^(?:please\s+)?(?:open|go to|take me to)\b/i.test(q)) { const c = canonical(q, !!ctx.orgId); if (c) q = c; }
+  if (!/:|\bnote\b|\bfollow[- ]?up (?:on|for)\b|\b[A-Za-z]{2,5}-[0-9A-Za-z]{3,}\b|^(?:please\s+)?(?:open|go to|take me to)\b/i.test(q)) { const c = canonical(q, !!ctx.orgId, office); if (c) q = c; }
   const t = q.toLowerCase();
   const needsOrg = ctx.orgId ? "I could not read your records. Counts are unknown. Try again." : "That needs an organisation workspace. Join your organisation with its code, or ask me about published programmes and the public map.";
 

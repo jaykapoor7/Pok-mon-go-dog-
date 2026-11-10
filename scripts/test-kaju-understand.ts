@@ -30,6 +30,7 @@ const C: [string, string | null][] = [
 ];
 for (const [q, want] of C) eq(`canonical: ${q}`, canonical(q, true), want);
 eq("guests get no register figures", canonical("how many animals do we have", false), null);
+eq("a reviewing office keeps its own wording", canonical("What is waiting for me today?", false, true), null);
 eq("pasted text is not a command", canonical("Brown female dog limping near the temple gate since morning, two pups with her.\nPlease send someone", true), null);
 
 const H: [string, string | null][] = [

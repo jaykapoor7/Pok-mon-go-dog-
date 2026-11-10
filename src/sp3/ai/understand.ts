@@ -63,7 +63,9 @@ const INTENTS: Intent[] = [
 ];
 
 /** The router's wording for a loosely phrased request, or null when unsure (the original then stands). */
-export function canonical(q: string, org: boolean): string | null {
+export function canonical(q: string, org: boolean, office = false): string | null {
+  /* A reviewing office has its own queue and wording; its questions are left to the office routes. */
+  if (office && !org) return null;
   if (q.length > 140 || /\n/.test(q)) return null; // pasted material is not a command
   const text = tidy(q), words = text.split(" ");
   let best: { say: string; score: number } | null = null;
