@@ -2,6 +2,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { getSupabase, getSupabaseAdmin } from "@/lib/supabase";
 import { getOrgBySlug, mapOrg } from "@/lib/data";
+import { isExcludedPublicOrg } from "@/lib/partners";
 import type { Dog, NGO } from "@/lib/types";
 
 export type OrgImpact = {
@@ -279,6 +280,7 @@ export async function getPublicOrgProgrammes(slug: string, limit = 6): Promise<P
 }
 
 export async function getPublicOrgBySlug(slug: string): Promise<NGO | null> {
+  if (isExcludedPublicOrg({ slug })) return null;
   /* Organisation profiles are public records rendered on the server. Directory
      entries do not all have anonymous access to the operational ngos table,
      so use the server credential when it exists, returning only the mapped
@@ -286,9 +288,10 @@ export async function getPublicOrgBySlug(slug: string): Promise<NGO | null> {
   const admin = getSupabaseAdmin();
   if (admin) {
     const { data } = await admin.from("ngos").select("*").eq("slug", slug).eq("demo_mode", false).maybeSingle();
-    if (data) return mapOrg(data);
+    if (data) return isExcludedPublicOrg(data) ? null : mapOrg(data);
   }
-  return getOrgBySlug(slug);
+  const org = await getOrgBySlug(slug);
+  return org && !isExcludedPublicOrg({ slug: org.slug, name: org.name }) ? org : null;
 }
 
 export function publicOrgSummary(org: NGO) {
