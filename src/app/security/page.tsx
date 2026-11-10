@@ -19,7 +19,7 @@ export default function SecurityPage() {
       items: [
         { icon: <Database size={20} />, title: "Permissions in the database", body: "Row-level security decides every read and write by organisation and role. Hiding a button is never the guard." },
         { icon: <ShieldCheck size={20} />, title: "Organisation isolation", body: "Each organisation's records are readable only by its own members. In pilots, a reviewer sees only the packages submitted to their office." },
-        { icon: <KeyRound size={20} />, title: "Invitation-only access", body: "No self-chosen roles. An admin invites each member with their email and a one-time code." },
+        { icon: <KeyRound size={20} />, title: "Roles are assigned, not chosen", body: "An admin adds each member with their email and role. Sign-in is an emailed code; no passwords are stored, and the sign-in screen does not reveal who has an account." },
         { icon: <History size={20} />, title: "Audit history", body: "Status changes, notes, follow-ups and reviews are kept on the record with who did them and when." },
         { icon: <Fingerprint size={20} />, title: "Provenance", body: "Imported, community-reported and operator-created records are labelled and never mixed up." },
         { icon: <Sparkles size={20} />, title: "AI with your permissions", body: "Kaju reads with the signed-in person's session and cannot save anything without their confirmation." },
@@ -37,7 +37,7 @@ export default function SecurityPage() {
         { t: "No external audit yet", d: "Controls are reviewed by the team that builds them. An independent review will be published when done." },
       ],
     },
-    note: <><b>Report a vulnerability.</b> Write to us through the <a className="s4-blue" href="/contact">contact page</a> with the details. We reply, fix and credit you if you wish.</>,
+    note: <><b>Report a vulnerability.</b> Write to us through the <a className="s4-blue" href="/contact">contact page</a> with the details. We reply, fix and credit you if you wish. For a review: <a className="s4-blue" href="/security/summary">Security summary</a> · <a className="s4-blue" href="/data-processing">Data processing</a> · <a className="s4-blue" href="/status">Live status</a>.</>,
     close: { a: "Ask us anything", b: "about how records are kept.", primary: { href: "/demo", label: "Book a demo" }, secondary: { href: "/data-governance", label: "Data governance" } },
   }} />;
 }
