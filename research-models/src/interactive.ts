@@ -100,7 +100,12 @@ const gridPoints = Array.from({ length: DOGS }, (_, i) => {
   return [x, y];
 });
 function dogGrid() {
-  return `<svg class="dog-grid" viewBox="0 0 225 225" aria-hidden="true"><path d="M1 14V1h13m197 0h13v13m0 197v13h-13m-197 0H1v-13" class="grid-brackets"/>${gridPoints.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2"/>`).join("")}</svg>`;
+  const cuts = [57.5, 112.5, 167.5];
+  return `<div class="map-frame"><svg class="dog-grid" viewBox="0 0 225 225" aria-hidden="true">
+    <rect x="2.5" y="2.5" width="220" height="220" class="map-blocks"/>
+    <path d="${cuts.map(value => `M${value} 2.5v220M2.5 ${value}h220`).join("")}" class="map-roads"/>
+    <path d="M1 14V1h13m197 0h13v13m0 197v13h-13m-197 0H1v-13" class="grid-brackets"/>
+    ${gridPoints.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2"/>`).join("")}</svg></div>`;
 }
 
 function spatial() {
@@ -109,8 +114,8 @@ function spatial() {
     `<div class="city"><div class="city-label"><div><span class="eyebrow">${name}</span><h2>${label}</h2></div><strong>70%</strong></div>
       ${dogGrid()}<div class="city-count" id="${id}-count"></div><div class="distribution" id="${id}-distribution"></div></div>`;
   root.innerHTML = `${range("Cluster vaccinations in City B", 0, 100, 1, grouping, "Spread across the city", "Concentrate on one side")}
-    <div class="spatial-content"><div class="city-pair">${city("a", "City A · fixed", "Dispersed")}${city("b", "City B · adjustable", "Redistributed")}</div>
-    ${legend([["blue", "Vaccinated"], ["gray", "Susceptible"], ["orange", "Infected in this run"]])}</div>
+    <div class="spatial-content"><div class="city-pair">${city("a", "City A", "Dispersed")}${city("b", "City B", "Redistributed")}</div>
+    <div class="map-caption">${legend([["blue", "Vaccinated"], ["gray", "Susceptible"], ["orange", "Infected in this run"]])}<span id="spatial-step" class="eyebrow"></span></div></div>
     ${tools(button("replay", "Replay outbreak", true) + button("zoom", "Look closer", false, false) + button("new", "New seed"))}`;
   const dots = [...root.querySelectorAll(".dog-grid")].map(grid => [...grid.querySelectorAll("circle")]);
   const names = ["a", "b"];
@@ -173,6 +178,7 @@ function spatial() {
       const step = Math.floor(progress * generations);
       if (step === last) return;
       last = step;
+      element("spatial-step").textContent = `Generation ${step} / ${generations}`;
       results.forEach(({ sample }, cityIndex) => {
         sample.hit.forEach((hit, i) => {
           if (hit > 0 && hit <= step) dots[cityIndex][i].setAttribute("class", "case");
@@ -191,22 +197,29 @@ function spatial() {
 }
 
 const plot = { left: 66, top: 25, right: 728, bottom: 246 };
-type Line = { values: number[]; className: string; points?: boolean };
+type Line = { values: number[]; className: string; bars?: boolean };
 type Axis = { min: number; max: number; ticks: number[]; label?: (n: number) => string };
-function chart(lines: Line[], xLabels: [number, string][], axis: Axis, description: string, progress = 1) {
+function chart(lines: Line[], xLabels: [number, string][], axis: Axis, description: string, shadeGap = false) {
   const count = lines[0]?.values.length ?? xLabels.at(-1)![0] + 1;
   const x = (i: number) => plot.left + (plot.right - plot.left) * i / (count - 1);
   const y = (n: number) => plot.bottom - (plot.bottom - plot.top) * (n - axis.min) / (axis.max - axis.min);
   const display = axis.label || number;
   const xTicks = xLabels.map(([i, label]) => `<text x="${x(i)}" y="274" text-anchor="${i === 0 ? "start" : i === count - 1 ? "end" : "middle"}">${label}</text>`).join("");
   const yTicks = axis.ticks.map(tick => `<path d="M${plot.left} ${y(tick)}H${plot.right}" class="plot-grid"/><text x="56" y="${y(tick) + 4}" text-anchor="end">${display(tick)}</text>`).join("");
+  const coords = (values: number[]) => values.map((value, i) => x(i).toFixed(1) + "," + y(value).toFixed(1));
+  const gap = shadeGap && lines.length === 2
+    ? `<polygon class="trace-area" points="${[...coords(lines[0].values), ...coords(lines[1].values).reverse()].join(" ")}"/>`
+    : "";
+  const traces = lines.map(({ values, className, bars }) => bars
+    ? values.map((value, i) => `<rect class="trace-bar ${className}" x="${x(i) - 16}" y="${y(value)}" width="32" height="${plot.bottom - y(value)}"/>`).join("")
+    : `<polyline class="trace ${className}" points="${coords(values).join(" ")}"/>`).join("");
   return `<svg class="chart" viewBox="0 0 750 290" role="img" aria-label="${description}">
-    <defs><clipPath id="chart-reveal"><rect x="${plot.left - 4}" width="${(plot.right - plot.left) * progress + 8}" y="0" height="280"/></clipPath></defs>
-    ${xTicks}${yTicks}<g clip-path="url(#chart-reveal)">${lines.map(({ values, className, points }) => `<g><polyline class="trace ${className}" points="${values.map((value, i) => x(i).toFixed(1) + "," + y(value).toFixed(1)).join(" ")}"/>${points ? values.map((value, i) => `<circle class="trace-point ${className}" cx="${x(i)}" cy="${y(value)}" r="3.4"/>`).join("") : ""}</g>`).join("")}</g></svg>`;
+    <defs><clipPath id="chart-reveal"><rect x="${plot.left - 17}" width="${plot.right - plot.left + 34}" y="0" height="280"/></clipPath></defs>
+    ${xTicks}${yTicks}<g clip-path="url(#chart-reveal)">${gap}${traces}</g></svg>`;
 }
 
 function revealChart(progress: number) {
-  root.querySelector("#chart-reveal rect")?.setAttribute("width", String((plot.right - plot.left) * progress + 8));
+  root.querySelector("#chart-reveal rect")?.setAttribute("width", String((plot.right - plot.left) * progress + 34));
 }
 
 function bites() {
@@ -221,7 +234,7 @@ function bites() {
     setRange(reporting + "% recorded", reporting);
     shareable({ reporting, actual: Number(revealed), seed });
     const data = surveillance(reporting / 100, seed);
-    const lines: Line[] = [{ values: data.map(month => month.reported), className: "orange", points: true }];
+    const lines: Line[] = [{ values: data.map(month => month.reported), className: "orange", bars: true }];
     if (revealed) lines.unshift({ values: data.map(month => month.actual), className: "blue dashed" });
     element("chart").innerHTML = chart(lines, [[0, "JAN"], [3, "APR"], [6, "JUL"], [9, "OCT"], [11, "DEC"]],
       { min: 0, max: MONTHLY_BITES * 1.12, ticks: [...new Set([0, 0.25, 0.5, 0.75, 1].map(part => Math.round(part * MONTHLY_BITES)))] },
@@ -246,7 +259,7 @@ function bites() {
 function simpson() {
   let separated = query.get("split") === "1";
   const data = caseMixRates();
-  const row = (period: { followed: number; total: number }, label: string) => `<div class="ward-period"><span class="eyebrow">${label}</span><strong>${percent(period.followed / period.total)}</strong><span>${period.followed} of ${period.total} followed up</span></div>`;
+  const row = (period: { followed: number; total: number }, label: string) => `<div class="ward-period"><span class="eyebrow">${label}</span><strong>${percent(period.followed / period.total)}</strong><span class="ward-meter" style="--rate:${percent(period.followed / period.total)}" aria-hidden="true"></span><span>${period.followed} of ${period.total} followed up</span></div>`;
   root.innerHTML = `<div class="ward-content"><div class="ward-title eyebrow">Overall follow-up completion · illustrative</div>
     <div class="city-total">${row(data.aggregate[0], "2024")}<span aria-hidden="true" class="ward-arrow">→</span>${row(data.aggregate[1], "2025")}</div>
     <div class="ward-detail" id="ward-detail" hidden>
@@ -353,7 +366,7 @@ function prevention() {
       { values: points[0], className: "orange" }, { values: points[1], className: "blue dashed" },
     ] : [], [[0, "START"], [4, "WK 4"], [8, "WK 8"], [12, "WK 12"], [18, "WK 18"]],
       { min: 0, max: COMMUNITY, ticks: [0, 100, 200, 300, 400] },
-      played ? `After 18 weeks, ${final[0]} infections with no campaign and ${final[1]} with a campaign.` : "Two simulated futures awaiting an outbreak run.");
+      played ? `After 18 weeks, ${final[0]} infections with no campaign and ${final[1]} with a campaign.` : "Two simulated futures awaiting an outbreak run.", true);
     element("run").textContent = played ? "Run a new pair" : "Run both futures";
     element<HTMLButtonElement>("replay").hidden = !played;
     const pairedRange = element("paired-range");
