@@ -51,7 +51,8 @@ h1,h2,.list-arrow,.note-index strong,.experiment-list strong { font-family:var(-
 .plate-top,.plate-bottom { display:flex;justify-content:space-between;align-items:center;gap:5px;font-size:.65rem }
 .plate-top i { color:var(--signal);width:6px;height:6px }
 .plate-bottom b { color:var(--signal);font-weight:400 }
-.plate-bottom span:last-child { color:var(--signal);font:1.25rem/1 var(--sans) }
+.plate-bottom .arrow-glyph { color:var(--signal);width:18px;height:18px }
+.arrow-glyph { display:inline-block;flex:none;vertical-align:-.13em }
 .field { display:block;width:100%;height:auto;margin-block:8px 5px;overflow:visible }
 .field-lines { fill:none;stroke:#293750;stroke-width:.9 }
 .field-cross { fill:none;stroke:#8aa0c6;stroke-width:.9 }

@@ -8,8 +8,8 @@ import { snapshot } from "./src/snapshot.ts";
 const site = new URL(process.env.SITE_URL || "https://straypaw-research-models.vercel.app");
 const base = site.pathname.replace(/\/$/, "");
 const origin = site.origin + base;
-const htmlPaths = process.env.SITE_STATIC_HTML === "1";
-const publishedPath = path => htmlPaths ? (path === "/" ? "/index.html" : path + ".html") : path;
+const trailingSlash = process.env.SITE_TRAILING_SLASH === "1";
+const publishedPath = path => trailingSlash && path !== "/" ? path + "/" : path;
 
 function localLinks(html) {
   return html.replace(/(href|src)="(\/(?!\/)[^"#]*)(#[^"]*)?"/g, (_, attr, path, fragment = "") => {
@@ -21,7 +21,7 @@ const description = "Five interactive experiments in public health, from the geo
 const escape = value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const modelPath = model => "/models/" + model.slug;
 const notePath = model => "/notes/" + model.slug;
-const arrow = '<span aria-hidden="true">↗&#xfe0e;</span>';
+const arrow = '<svg class="arrow-glyph" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12 12 4M5 4h7v7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const mark = '<svg class="mark" width="25" height="25" viewBox="0 0 25 25" aria-hidden="true"><path d="M3 19 11 5m3 15 8-14M4 12h17" fill="none" stroke="currentColor" stroke-width="1.35"/><circle cx="11" cy="5" r="2.3" fill="currentColor"/><circle cx="14" cy="20" r="2.3" fill="currentColor"/></svg>';
 
 function layout(path, title, subtitle, body, page, script = "") {
@@ -89,17 +89,17 @@ function home() {
     <div class="hero-copy"><div class="eyebrow"><i></i> An interactive field notebook</div>
     <h1>What if the<br class="wide"> numbers are right,<br class="wide"> but the conclusion<br class="wide"> is <em>wrong?</em></h1>
     <p>Five interactive experiments in public health, grounded in the StrayPaw register.</p>
-    <a class="button primary" href="${modelPath(models[0])}">Start with experiment 01 <span aria-hidden="true">↗&#xfe0e;</span></a></div>
+    <a class="button primary" href="${modelPath(models[0])}">Start with experiment 01 ${arrow}</a></div>
     <a class="hero-field" href="${modelPath(models[0])}" aria-label="Open experiment 01, The 70% Paradox">
       <div class="plate-top"><span><i></i> FIELD STUDY 01</span><span>SPATIAL TRANSMISSION</span></div>
       ${field()}
-      <div class="plate-bottom"><span>FIG 01 <b>·</b> CONTACT NETWORK</span><span aria-hidden="true">↗&#xfe0e;</span></div>
+      <div class="plate-bottom"><span>FIG 01 <b>·</b> CONTACT NETWORK</span>${arrow}</div>
     </a>
   </section>
   <section class="index wrap" id="experiments">
     <div class="section-heading"><div><div class="eyebrow">The field notebook</div><h2>Five experiments.</h2></div><span class="eyebrow index-count">01 — 05</span></div>
-    <ol class="experiment-list">${models.map((model, index) => `<li><a href="${modelPath(model)}"><span class="list-no">${model.number}</span>${motif(index)}<div><span class="eyebrow list-field">${model.field}</span><strong>${model.title}</strong><span class="list-question">${model.question}</span></div><span class="list-arrow" aria-hidden="true">↗&#xfe0e;</span></a></li>`).join("")}</ol>
-    <p class="below-index">Curious how it’s calculated? <a href="/notes">Read the research notes <span aria-hidden="true">↗&#xfe0e;</span></a></p>
+    <ol class="experiment-list">${models.map((model, index) => `<li><a href="${modelPath(model)}"><span class="list-no">${model.number}</span>${motif(index)}<div><span class="eyebrow list-field">${model.field}</span><strong>${model.title}</strong><span class="list-question">${model.question}</span></div><span class="list-arrow" aria-hidden="true">${arrow}</span></a></li>`).join("")}</ol>
+    <p class="below-index">Curious how it’s calculated? <a href="/notes">Read the research notes ${arrow}</a></p>
   </section>`;
 }
 
@@ -139,7 +139,7 @@ function experiment(model, index) {
 
 function notebook() {
   return `<section class="notebook wrap"><header class="article-head"><div class="eyebrow"><i></i> The methods behind the models</div><h1>Research notes.</h1><p>Five short accounts of what each experiment calculates, where its assumptions come from, and how far its conclusions go.</p></header>
-    <ol class="note-index">${models.map((model, index) => `<li><a href="${notePath(model)}"><span class="list-no">${model.number}</span>${motif(index)}<div><span class="eyebrow">${model.field}</span><strong>${model.title}</strong></div><span class="list-arrow" aria-hidden="true">↗&#xfe0e;</span></a></li>`).join("")}</ol>
+    <ol class="note-index">${models.map((model, index) => `<li><a href="${notePath(model)}"><span class="list-no">${model.number}</span>${motif(index)}<div><span class="eyebrow">${model.field}</span><strong>${model.title}</strong></div><span class="list-arrow" aria-hidden="true">${arrow}</span></a></li>`).join("")}</ol>
     <section class="bibliography" id="bibliography"><h2>Bibliography</h2>${sourceList(Object.keys(references))}</section>
   </section>`;
 }
