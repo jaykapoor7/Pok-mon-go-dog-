@@ -1,6 +1,11 @@
 import { getSupabase, getSupabaseAdmin } from "@/lib/supabase";
 import fieldPartners from "@/data/field-partners.json";
 
+// Exclude unconfirmed organisations from public listings without deleting records.
+export function isExcludedPublicOrg(org: { slug?: string | null; name?: string | null }): boolean {
+  return org.slug === "jh-creindia-foundation" || /cre\s*india/i.test(org.name ?? "");
+}
+
 export type Partner = {
   id: string;
   name: string;
@@ -39,7 +44,7 @@ export async function getOperationalPartners(): Promise<Partner[]> {
     .in("partner_status", ["operational_partner", "pilot_partner"])
     .order("partnered_at", { ascending: true });
   if (error || !data?.length) return FOUNDING_PARTNERS;
-  return data.map((row: any) => ({
+  return data.filter((row: any) => !isExcludedPublicOrg(row)).map((row: any) => ({
     id: row.id, name: row.name, slug: row.slug, city: row.city ?? null,
     state: row.state ?? null, mission: row.mission ?? null,
     areas: row.areas_of_work ?? [], logoUrl: row.logo_url ?? null,
@@ -63,7 +68,7 @@ export type OrgListing = {
  * This public snapshot keeps the full list readable during a service outage.
  * It does not grant workspace access or change operational partner permissions. */
 export async function getFieldPartners(): Promise<OrgListing[]> {
-  const published = new Map<string, OrgListing>(fieldPartners.organisations.map(o => [o.id, o]));
+  const published = new Map<string, OrgListing>(fieldPartners.organisations.filter(o => !isExcludedPublicOrg(o)).map(o => [o.id, o]));
   const supa = getSupabaseAdmin() ?? getSupabase();
   if (!supa) return [...published.values()];
   const { data, error } = await supa.from("ngos")
@@ -72,7 +77,7 @@ export async function getFieldPartners(): Promise<OrgListing[]> {
     .in("partner_status", ["directory", "operational_partner", "pilot_partner"])
     .order("name", { ascending: true }).limit(200);
   if (!error) for (const row of data ?? []) {
-    if (/HSI|Humane Society International|Humane World for Animals/i.test(row.name)) continue;
+    if (isExcludedPublicOrg(row) || /HSI|Humane Society International|Humane World for Animals/i.test(row.name)) continue;
     published.set(row.id, {id:row.id,name:row.name,slug:row.slug,city:row.city,state:row.state,mission:row.mission,website:row.website,logoUrl:row.logo_url});
   }
   return [...published.values()].sort((a,b) => a.name.localeCompare(b.name));
@@ -87,7 +92,7 @@ export async function getListedOrganisations(): Promise<{ members: OrgListing[];
     .eq("demo_mode", false)
     .order("name", { ascending: true });
   if (error || !data) return { members: [], sources: [] };
-  const rows = data as any[];
+  const rows = (data as any[]).filter(row => !isExcludedPublicOrg(row));
   const toListing = (r: any): OrgListing => ({
     id: r.id, name: r.name, slug: r.slug, city: r.city ?? null, state: r.state ?? null,
     mission: r.mission ?? null, website: r.website ?? null, logoUrl: r.logo_url ?? null,
