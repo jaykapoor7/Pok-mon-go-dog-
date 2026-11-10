@@ -13,6 +13,7 @@ import { CloseAndQuestions, Results } from "@/sp4/home/v7/Sections";
 import { AskUi, OvernightUi, ProposeUi } from "@/sp4/home/ui";
 import { Partners, Pilot, Problem, Sides, StatusBoard } from "@/sp5/home/Story";
 import { Spine } from "@/sp5/home/Spine";
+import { HeroTilt } from "@/sp5/home/HeroTilt";
 import { KajuConsole } from "@/sp5/home/KajuConsole";
 import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
 import "@/sp4/home/v7/landing7.css";
@@ -82,6 +83,7 @@ export default function HomePage() {
             : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link>{LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s4-btn is-line">Try the live demo</a> : <Link href="#workflow" className="s4-btn is-line">See how it works</Link>}</>}</div>
           <ul className="s8-roles" aria-label="Who works in StrayPaw"><li>Field teams</li><li>Veterinarians</li><li>NGO coordinators</li><li>Municipal reviewers</li></ul>
           <HeroScroll />
+          <HeroTilt />
           <div className="s6-canvas">
             <Blueprint tone="dark" />
             <div className="s4-hero-stage s6-stage">

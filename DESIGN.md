@@ -43,6 +43,12 @@ These replace the matching lines of 4.0 below. Evidence and reasoning:
   (hairline `#dfe5f1`, radius 16 in the app and 20 on the site, ground
   `#f5f7fb` where a product screen sits) divided by hairlines. Do not set
   related things as separate floating cards.
+- **Phone shell.** Top bar: workspace name, search, account. Thumb bar: at
+  most three places, one action, Kaju, More. Never a second menu button.
+- **Entry.** Sign-in is one column with three plain doors; the side panel
+  shows the record line and the four roles, never product news.
+- **First run.** One sheet per role with three jobs in order; once per
+  person, workspace and device; reopen from the account menu.
 - **Stat strips on a phone** are a list (label left, count right, 48px
   rows), never five squeezed tiles. An unread count says "not read" at
   text size, never at figure size.

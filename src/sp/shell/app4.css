@@ -843,3 +843,32 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
   .sp.sx3 .sx3-tabs { padding-top: 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .sp.sx3 .sx6-tabs *, .sp.sx3 .sx6-tabs *::before { transition: none !important; } }
+
+/* 7d · Intake, report packages and reports & proof in the same sheet:
+       one hairline frame, parts split by hairlines, nothing boxed twice. */
+@media (min-width: 861px) {
+  .sp.sx3 .ib .ib-grid { margin-top: 20px; border: 1px solid #dfe5f1; border-radius: 16px; background: #fff; overflow: hidden; min-height: calc(100dvh - var(--bar) - 190px); }
+  .sp.sx3 .ib .ib-grid > :first-child { padding: 16px 12px; border-right: 1px solid #e9edf5; background: #fafbfe; }
+  .sp.sx3 .ib .ib-grid > :nth-child(n + 2) { padding: 20px; }
+  .sp.sx3 .ib .ib-grid > :nth-child(3) { border-left: 1px solid #e9edf5; }
+  .sp.sx3 .ib .ib-ch.is-on { background: #eef3fd; }
+}
+.sp.sx3 .ib .wi { box-shadow: none; border: 1px solid #e4e8f0; border-radius: 14px; overflow: hidden; }
+.sp.sx3 .ngo-page.abc > .ms { margin-top: 20px; padding: 20px 24px; border: 1px solid #dfe5f1; border-radius: 16px; background: #fff; animation: none; }
+.sp.sx3 .ngo-page.abc > .abc-empty, .sp.sx3 .ngo-page.abc > .state { margin-top: 16px; border: 1px dashed #d3dbec; border-radius: 16px; background: #fff; }
+.sp.sx3 .ngo-page.abc > .abc-list:not(.abc-stages + .abc-list) { border: 1px solid #dfe5f1; border-radius: 16px; background: #fff; overflow: hidden; }
+.sp.sx3 .ngo-page.abc > .abc-list:not(.abc-stages + .abc-list) > li > a { padding: 14px 20px; }
+.sp.sx3 .ngo-page.abc > .abc-list:not(.abc-stages + .abc-list) > li:last-child > a { border-bottom: 0; }
+.sp.sx3 .pf-scope { margin-top: 20px; border: 1px solid #dfe5f1; border-radius: 16px 16px 0 0; background: #fafbfe; }
+.sp.sx3 .pf-shelf { border: 1px solid #dfe5f1; border-top: 0; border-radius: 0 0 16px 16px; background: #fff; overflow: hidden; }
+@media (max-width: 860px) {
+  .sp.sx3 .ngo-page.abc > .ms { padding: 16px; border-radius: 14px; }
+  .sp.sx3 .pf-scope { border-radius: 14px 14px 0 0; } .sp.sx3 .pf-shelf { border-radius: 0 0 14px 14px; }
+}
+@media (max-width: 860px) {
+  .sp.sx3 .ib :is(select, .select) { width: 100%; max-width: 100%; box-sizing: border-box; }
+  .sp.sx3 .ib .field { min-width: 0; max-width: 100%; }
+  .sp.sx3 .pf-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+  .sp.sx3 .pf-controls > :first-child { grid-column: 1 / -1; }
+  .sp.sx3 .pf-scope { gap: 12px; padding-top: 18px; padding-bottom: 18px; }
+}

@@ -136,7 +136,7 @@
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   /* The window leans back as the page opens and comes upright as it takes the screen. */
   .s8-home .s6-hero .s6-canvas { perspective: 1800px; }
-  .s8-home .s6-hero .s6-stage { transform: rotateX(calc(9deg * (1 - var(--hp, 0)))) translateY(calc(-10px * var(--hp, 0))); transform-origin: 50% 100%; transition: transform 80ms linear; will-change: transform; }
+  .s8-home .s6-hero .s6-stage { transform: rotateX(calc(9deg * (1 - var(--hp, 0)) + var(--ry, 0deg))) rotateY(var(--rx, 0deg)) translateY(calc(-10px * var(--hp, 0))); transform-origin: 50% 100%; transition: transform 260ms cubic-bezier(.2, .7, .2, 1); will-change: transform; }
 }
 .s8-roles li:nth-child(2) { --i: 1; } .s8-roles li:nth-child(3) { --i: 2; } .s8-roles li:nth-child(4) { --i: 3; }
 
@@ -261,3 +261,38 @@
 /* The same frame for the problem and the pilot, so every chapter is the same kind of object. */
 .s8-pb-from li { border-color: var(--s8-frame); }
 .s8-pl { border: 1px solid var(--s8-frame); border-radius: var(--s8-r); background: var(--s8-ground); }
+
+/* ════════════════════════════════════════════════════════════════════
+   Motion pass (10 Nov). Three kinds, each with a job:
+   · arrival   the headline's last line is underlined by the record line
+   · reading   every framed chapter settles into place as it enters the
+               screen, tied to the scroll itself (CSS view timelines where
+               the browser has them; the existing one-shot rise elsewhere)
+   · touch     the hero window leans toward the pointer (HeroTilt)
+   Nothing here runs under prefers-reduced-motion.
+   ════════════════════════════════════════════════════════════════════ */
+.s8-home .s6-hero .s8-h1-b { position: relative; display: inline-block; }
+.s8-home .s6-hero .s8-h1-b::after { content: ""; position: absolute; left: 0; right: 0; bottom: -0.08em; height: 0.055em; min-height: 3px; border-radius: 3px; background: currentColor; opacity: .28; transform-origin: 0 50%; }
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.s8-home) { scroll-behavior: smooth; }
+  .s8-home .s6-hero .s8-h1-b::after { animation: s8-underline 900ms var(--s4-ease) 1100ms both; }
+  @keyframes s8-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  /* Kaju lands on the window a beat after it arrives. */
+  .s8-home .s6-hero .s4-hero-perch { animation: s8-land 700ms cubic-bezier(.3, 1.4, .5, 1) 1300ms both; }
+  @keyframes s8-land { from { opacity: 0; translate: 0 -26px; } to { opacity: 1; translate: 0 0; } }
+  .s8-home .s4-btn { transition: background-color 160ms ease, box-shadow 200ms ease, transform 200ms var(--s4-ease); }
+  .s8-home .s4-btn.is-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -12px rgba(36, 87, 206, .8); }
+  .s8-home .s4-btn:active { transform: scale(.98); }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .s8-home :is(.s8-pt-row, .s8-pb, .s8-pkg, .s8-con, .s8-board, .s8-pl, .s7-audit-win, .s7-res-row) { animation: s8-settle linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+    @keyframes s8-settle { from { opacity: 0; scale: .945; translate: 0 48px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+    .s8-home main > section:not(.s6-hero):not(.s7-steps) :is(.s4-h2, .s8-tools-head h3) { animation: s8-title linear both; animation-timeline: view(); animation-range: entry 0% cover 28%; }
+    @keyframes s8-title { from { opacity: 0; translate: 0 28px; } to { opacity: 1; translate: 0 0; } }
+    .s8-home main > section:not(.s6-hero):not(.s7-steps) .s4-lede { animation: s8-title linear both; animation-timeline: view(); animation-range: entry 10% cover 32%; }
+    /* The hero's canvas slides away a little slower than the page: depth without a second layer. */
+    .s8-home .s6-hero .s6-canvas { animation: s8-canvas 1100ms var(--s4-ease) 380ms both, s8-leave linear both; animation-timeline: auto, view(); animation-range: normal, exit 0% exit 100%; }
+    @keyframes s8-leave { to { translate: 0 60px; opacity: .55; } }
+  }
+}

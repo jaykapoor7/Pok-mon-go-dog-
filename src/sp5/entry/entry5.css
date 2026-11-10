@@ -19,8 +19,9 @@
 .s9-cells span { border: 1px solid #d3dbec; border-radius: 12px; background: #fff; transition: border-color 160ms ease, box-shadow 200ms ease, background-color 160ms ease; }
 .s9-cells span.is-full { border-color: #9fb3e2; background: #f5f8fe; }
 .s9-code:focus-within .s9-cells span.is-next { border-color: var(--s4-blue); box-shadow: 0 0 0 3px rgba(36, 87, 206, .15); }
-/* The input sits over the cells: monospaced so each character lands in its own cell. */
-.s4l.s9 .s9-code .s4l-input.is-code { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 12px; background: transparent; box-shadow: none; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 22px; font-weight: 500; text-transform: uppercase;
+/* The input sits over the cells: monospaced so each character lands in its own cell. Its ground is white and
+   multiplied onto the cells, so the cells show through while the field keeps a real, readable background. */
+.s4l.s9 .s9-code .s4l-input.is-code { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 12px; background: #fff; mix-blend-mode: multiply; box-shadow: none; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 22px; font-weight: 500; text-transform: uppercase;
   --cell: calc((100% - 40px) / 6); letter-spacing: calc((min(420px, 100vw - 40px) - 40px) / 6 + 8px - 1ch); padding-left: calc(((min(420px, 100vw - 40px) - 40px) / 6 - 1ch) / 2); caret-color: var(--s4-blue); overflow: hidden; }
 .s4l.s9 .s9-code .s4l-input.is-code:focus { box-shadow: none; }
 .s4l.s9 .s4l-hint { margin: 0; font-size: 13px; color: var(--s4-mute); }
