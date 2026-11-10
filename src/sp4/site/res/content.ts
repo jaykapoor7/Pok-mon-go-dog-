@@ -182,22 +182,62 @@ export const SESSIONS: Session[] = [
   { title: "Street animals in the classroom", who: "Schools and teachers", kind: "On request", length: "A school period", body: "An Academy session with The Kind Hour Foundation's classroom documents: safety, care and reporting well.", cta: { href: "/learn/workshops", label: "See the workshop" } },
 ];
 
-export type Team = { key: string; label: string; title: string; lede: string; points: { h: string; p: string }[]; kaju: string[] };
+export type Team = { key: string; label: string; title: string; lede: string; points: { h: string; p: string }[]; kaju: string[]; day: { t: string; h: string; p: string }[]; where: { label: string; what: string }[]; faq: [string, string][] };
 export const TEAMS: Team[] = [
   { key: "coordinators", label: "Coordinators", title: "Run the programme, not the paperwork.", lede: "Assign the day's work, see every gap before month end, and submit a claim you can defend.",
     points: [{ h: "The day, in one queue", p: "New reports, unassigned cases and follow-ups due, ordered by what is urgent." }, { h: "Gaps before they cost you", p: "Missing release photos, unsigned procedures and duplicates, found the same day." }, { h: "A claim that survives review", p: "Every line linked to its animal, every exception explained before the office asks." }],
+    day: [
+      { t: "Morning", h: "Read the brief", p: "Home shows what changed overnight and the one thing to do first: a record to review, a critical case with nobody on it, a follow-up that slipped." },
+      { t: "Through the day", h: "Assign and unblock", p: "The work queue orders cases by urgency. Assign a case, add a note or ask Kaju to turn a WhatsApp message into a draft case you confirm." },
+      { t: "Evening", h: "Review the evidence", p: "Records the vet has signed arrive for your review with the capture photo, ear-notch photo and release place side by side. Anything missing is named on the record." },
+      { t: "Month end", h: "Submit the package", p: "Kaju drafts the claim from records that are signed, reviewed and complete, at the contract rate in force on each date, and lists every blocked record with its reason. You check and submit." },
+    ],
+    where: [{ label: "Today", what: "The daily brief and the next action" }, { label: "Work queue", what: "Live cases by priority, with the map" }, { label: "Release evidence", what: "What each record still needs" }, { label: "Report packages", what: "The monthly claim and the office's decisions" }, { label: "Team", what: "Who has access, in which role" }],
+    faq: [["Can I see what each person did?", "Yes. Every change records who made it and when, and nothing is deleted without a trace."], ["What if our register is in Excel?", "Import it as it is. Imported rows stay labelled as historical until someone confirms them, so old data never passes as verified work."], ["Does Kaju submit anything on its own?", "No. Kaju prepares the claim and the follow-ups; you confirm each one."]],
     kaju: ["Morning brief of what changed overnight", "Release Photo Chaser every evening", "Monthly Claim Builder on the 1st"] },
   { key: "field-staff", label: "Field staff", title: "Record it once, on the street.", lede: "Capture, release and follow-ups on a low-end phone, with or without signal.",
     points: [{ h: "Works offline", p: "Records are encrypted on the phone and sent when the network returns." }, { h: "Photo, place, done", p: "The camera and GPS fill the record; you add what you saw." }, { h: "Ask @kaju", p: "Which dogs are due a second dose, where the next release is, what is missing." }],
+    day: [
+      { t: "Before you leave", h: "Open field mode", p: "Your cases and today's follow-ups load onto the phone. From here it works with or without signal." },
+      { t: "At capture", h: "Photo, place, save", p: "Take the photo, confirm the place the phone suggests and add what you saw. The animal gets its StrayPaw tag there and then." },
+      { t: "At release", h: "Prove where it went back", p: "A release photo and the release place, checked against the capture point, complete the record." },
+      { t: "Back in range", h: "It syncs itself", p: "Records saved offline were kept encrypted on the phone and are sent when the network returns. Nothing is typed twice." },
+    ],
+    where: [{ label: "Field mode", what: "Register an intake, online or offline" }, { label: "Today", what: "Your next action and your follow-ups" }, { label: "New case", what: "Open a case for an animal that needs help" }, { label: "Receive", what: "Reports sent in by the public" }],
+    faq: [["Does it work on an old phone?", "Yes. It runs in the phone's browser and can be added to the home screen; there is nothing to install from a store."], ["What happens with no signal?", "Field mode keeps working. Records are stored encrypted on the phone and sent when you are back online."], ["Do I have to type a lot?", "No. The camera and GPS fill most of the record; you choose from short lists and add a note only if needed."]],
     kaju: ["Turns your WhatsApp messages into draft cases", "Reminds you of follow-ups, nearest first"] },
   { key: "veterinarians", label: "Veterinarians", title: "Check and sign. Kaju drafts the rest.", lede: "Your sign-off list for the day, with surgical notes drafted from the OT register.",
     points: [{ h: "One sign-off list", p: "Every procedure waiting for you, with its photos and capture record." }, { h: "Drafted notes", p: "Kaju drafts each note from the OT register and checks the dose against weight." }, { h: "Only you can sign", p: "Kaju never authorises. Your name is on what you approved, and nothing else." }],
+    day: [
+      { t: "Start", h: "Open your sign-off list", p: "Every procedure waiting for you, oldest first, with the capture record and photos beside it." },
+      { t: "Each record", h: "Check the details", p: "Weight, procedure, anaesthesia and after-care are laid out as you would write them. Kaju drafts the note from the OT register and flags a dose that does not fit the weight." },
+      { t: "Decide", h: "Authorise or return", p: "Authorise in your own name, or return the record with a reason. Returned records go back to the team with your note." },
+      { t: "After", h: "Follow-ups keep time", p: "Post-operative checks and second doses are scheduled from what you recorded, and the field team is reminded." },
+    ],
+    where: [{ label: "Sign off", what: "Procedures waiting for you" }, { label: "Care records", what: "Treatment and vaccination history" }, { label: "Animals", what: "Each animal's full record" }],
+    faq: [["Can anyone else sign for me?", "No. Only a veterinarian's own account can authorise a procedure, and the record carries your name and the time."], ["Does Kaju make clinical decisions?", "Never. Kaju drafts notes and checks arithmetic. Every clinical decision is yours."], ["Can I correct something I signed?", "A signed record is not edited silently. It is returned, corrected and authorised again, and the history shows each step."]],
     kaju: ["Vet Sign-off Assistant every evening", "Dose and weight checks on every draft"] },
   { key: "municipal-reviewers", label: "Municipal reviewers", title: "Check every claim, animal by animal.", lede: "Open a package, see each animal's evidence, and accept, query or return each line.",
     points: [{ h: "Evidence, not totals", p: "Every number opens to the animals behind it, with photos, places and the vet's name." }, { h: "Exceptions explained", p: "The operator's reasons are attached before you start." }, { h: "Decisions on record", p: "Every acceptance, query and return is recorded with who and when." }],
+    day: [
+      { t: "When a package arrives", h: "Start from the pre-check", p: "Kaju has already compared every claim with its evidence, sign-offs, contract rate and arithmetic, and lists the exceptions it found." },
+      { t: "Reviewing", h: "Open any line to its animal", p: "Each claimed procedure opens to the animal behind it: capture photo, ear notch, release place and the veterinarian who authorised it." },
+      { t: "Deciding", h: "Accept, query or return", p: "Decide line by line or for the package. A query goes back to the operator with your note; their answer is attached to the same record." },
+      { t: "Reporting", h: "Wards and the monthly note", p: "Recorded animals and procedures by ward, with sudden drops or spikes flagged, and a draft programme note built from decided packages." },
+    ],
+    where: [{ label: "Review submissions", what: "Packages waiting for your decision" }, { label: "Contracts & rates", what: "The rate in force on each date" }, { label: "Wards & map", what: "Recorded activity by ward" }, { label: "Reports", what: "The monthly programme note" }],
+    faq: [["Can we see an operator's other records?", "No. A reviewing office sees only the packages submitted to it and the evidence inside them."], ["Is an accepted claim a paid claim?", "No. Acceptance is the office's decision on the evidence. Payment happens in your own finance system."], ["Are the ward figures population estimates?", "No. They are recorded counts from operators' registers. A ward with thin records is shown as a gap, not as zero."]],
     kaju: ["Package checks before you open it", "Municipal Review Prep for the monthly meeting"] },
   { key: "leadership", label: "Leadership", title: "Know what your programme achieved.", lede: "Sterilisations, vaccinations and outcomes you can show a funder or a council, with the method attached.",
     points: [{ h: "One verified number", p: "Figures from verified records, with what they can and cannot say." }, { h: "Every ward, one view", p: "Progress, gaps and exceptions by ward and by month." }, { h: "Reports in your format", p: "PDF, Excel and slides, built from the records." }],
+    day: [
+      { t: "Any time", h: "Ask in plain words", p: "How many animals are sterilised, what changed this week, what is blocking the claim. Kaju answers from your own register and shows the records it used." },
+      { t: "Weekly", h: "Read the digest", p: "Cases opened and closed, care recorded, sign-offs, claims submitted and decided, and who needs to act." },
+      { t: "Monthly", h: "Take it to the meeting", p: "A programme summary as PowerPoint, PDF or Excel, built from the same figures the team works from, with what they can and cannot say." },
+      { t: "Always", h: "Know the limits of the number", p: "Recorded counts are never presented as street-population estimates, and unknown is never counted as no." },
+    ],
+    where: [{ label: "Today", what: "The brief and what needs a decision" }, { label: "Ask Kaju", what: "Figures, digests and documents on request" }, { label: "Reports", what: "Proof packs and exports" }, { label: "Programmes", what: "Each programme's records and progress" }],
+    faq: [["Can I trust the figures in front of a funder?", "Each figure comes from records you can open, and the report says how it was counted. Imported historical data is labelled as such."], ["Who owns the data?", "Your organisation. It exports to Excel, CSV and PDF at any time, and is never shared with another organisation."], ["Does this replace our team's judgement?", "No. Kaju does the checking and drafting; named people approve every clinical, evidence and financial decision."]],
     kaju: ["Monthly review slides", "Data Quality Watch every Monday"] },
 ];
 

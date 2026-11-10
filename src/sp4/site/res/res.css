@@ -153,3 +153,25 @@
 .r7-art-bars i:last-child { background: #7aa2ff; }
 .r7-card a:hover .r7-art-list i, .r7-card a:hover .r7-art-cards i:last-child { transform: translateX(-3px); }
 .r7-art-list i, .r7-art-cards i { transition: transform 300ms cubic-bezier(.2, .8, .2, 1); }
+
+/* role pages: a day, the places, the questions */
+.r7-day { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; counter-reset: none; }
+.r7-day li { position: relative; padding: 24px; border-radius: 12px; background: #fff; border: 1px solid var(--r7-line); display: grid; gap: 14px; align-content: start; }
+.r7-day-n { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #2457ce; color: #fff; font-size: 15px; font-weight: 600; }
+.r7-day small { font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #6b7486; }
+.r7-day h3 { margin: 4px 0 8px; font-size: 19px; font-weight: 500; letter-spacing: -0.02em; color: var(--s4-ink); }
+.r7-day p { margin: 0; font-size: 15px; line-height: 1.55; color: #5b6170; }
+.r7-where { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; border-top: 1px solid var(--r7-line); }
+.r7-where > div { padding: 18px 16px 18px 0; border-bottom: 1px solid var(--r7-line); }
+.r7-where dt { font-size: 16px; font-weight: 600; color: var(--s4-ink); }
+.r7-where dd { margin: 4px 0 0; font-size: 14.5px; line-height: 1.45; color: #5b6170; }
+.r7-qa { display: grid; gap: 0; border-top: 1px solid var(--r7-line); max-width: 860px; }
+.r7-qa details { border-bottom: 1px solid var(--r7-line); }
+.r7-qa summary { cursor: pointer; padding: 18px 0; font-size: 17px; font-weight: 500; color: var(--s4-ink); list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+.r7-qa summary::after { content: "+"; font-size: 22px; line-height: 1; color: #6b7486; transition: transform 200ms ease; }
+.r7-qa details[open] summary::after { transform: rotate(45deg); }
+.r7-qa summary::-webkit-details-marker { display: none; }
+.r7-qa summary:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
+.r7-qa p { margin: 0 0 18px; max-width: 720px; font-size: 15.5px; line-height: 1.6; color: #5b6170; }
+@media (max-width: 900px) { .r7-day { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .r7-day { grid-template-columns: 1fr; } }

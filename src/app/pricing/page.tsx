@@ -4,10 +4,10 @@ import { Faq, PageHead, S4Page } from "@/sp4/site/kit";
 import { Rise } from "@/sp4/site/Rise";
 import "@/sp4/home/home4.css";
 
-export const metadata = { title: "Pricing · StrayPaw", description: "How StrayPaw is priced: scoped per programme, with an accessible plan for small community and welfare groups. No published price list yet." };
+export const metadata = { title: "Pricing · StrayPaw", description: "StrayPaw is free to start for rescue and welfare groups. Funded ABC and anti-rabies programmes are priced per programme, agreed in writing." };
 
 const PLANS: { name: string; who: string; price: string; cta: { href: string; label: string }; primary?: boolean; items: string[] }[] = [
-  { name: "Community", who: "Small rescue, feeding and welfare groups", price: "Accessible plan", cta: { href: "/demo?type=ngo", label: "Ask about access" },
+  { name: "Community", who: "Small rescue, feeding and welfare groups", price: "Free to start", cta: { href: "/sign-in?as=org", label: "Get started" },
     items: ["Cases, follow-ups and the animal register", "Community reports in one inbox", "Phone field mode", "Register import from Excel or CSV"] },
   { name: "Operator", who: "Funded ABC operators and NGOs", price: "Scoped per programme", cta: { href: "/demo", label: "Book a demo" }, primary: true,
     items: ["Everything in Community", "ABC capture, treatment and release on one record", "Evidence checks and duplicate review", "Report packages in PDF and XLSX", "Kaju with confirmed writes", "Onboarding, import and team training"] },
@@ -18,7 +18,7 @@ const PLANS: { name: string; who: string; price: string; cta: { href: string; la
 export default function PricingPage() {
   return (
     <S4Page>
-      <PageHead title="Pricing that fits the programme" lede="Priced per programme and agreed in writing before work begins. Small welfare groups can ask about an accessible plan." />
+      <PageHead title="Pricing that fits the programme" lede="Register your organisation and start today, free. Funded programmes are priced per programme and agreed in writing before work begins." />
       <section className="s4-wrap s4-sec" style={{ paddingTop: 72 }} aria-label="Plans">
         <div className="s4-plans">
           {PLANS.map((p, i) => (
@@ -35,7 +35,8 @@ export default function PricingPage() {
       </section>
       <Faq title="FAQs" items={[
         ["Why is there no price list?", "Every programme differs in wards, team size, registers to import and reporting. We scope a programme with you and agree the price in writing before any work begins."],
-        ["Is there a free plan?", "Reporting an animal and the public map are free for everyone, with no account. Small community and welfare groups can ask about an accessible plan."],
+        ["Is there a free plan?", "Yes. Any rescue, feeding or welfare group can register online and start at once: cases, follow-ups, the animal register, field mode and register import. Reporting an animal and the public map are free for everyone, with no account."],
+        ["Do we need to talk to you first?", "No. Enter your email, register your organisation and your workspace opens. We verify your organisation's details before public cases and fundraising switch on. Talk to us when you run a funded programme."],
         ["How does a municipal office buy it?", "Usually as a pilot alongside an operator it already funds, on the department's own procurement terms. We do not claim compliance with a tender we have not read."],
         ["Can we leave?", "Yes. Registers, evidence and reports export to XLSX, CSV and PDF at any time."],
       ]} />
