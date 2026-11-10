@@ -746,6 +746,52 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 }
 @media (max-width: 760px) { .sp.sx3 .os { padding-left: 0; padding-right: 0; } }
 
+/* 7c · Verification and government review: the stage filter is a strip
+       joined to its list, in the same sheet language. Counts read as
+       figures; the open stage carries a blue foot. */
+.sp.sx3 .ngo-page.abc > .abc-stages { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; margin-top: 20px; padding: 0; border: 1px solid #dfe5f1; border-radius: 16px 16px 0 0; background: #fff; overflow: hidden; }
+.sp.sx3 .ngo-page.abc > .abc-stages button { position: relative; display: flex; flex-direction: column-reverse; align-items: flex-start; justify-content: flex-end; gap: 2px; height: auto; min-height: 84px; padding: 16px 20px 14px; border: 0; border-radius: 0; background: none; font-size: 13px; font-weight: 400; color: #6b7486; text-align: left; transition: background-color 160ms ease, color 160ms ease; }
+.sp.sx3 .ngo-page.abc > .abc-stages button + button { border-left: 1px solid #e9edf5; }
+.sp.sx3 .ngo-page.abc > .abc-stages button b { font-size: 28px; line-height: 1.1; font-weight: 500; letter-spacing: -0.03em; color: #0b1e3d; }
+.sp.sx3 .ngo-page.abc > .abc-stages button:hover { background: #f7f9fd; }
+.sp.sx3 .ngo-page.abc > .abc-stages button::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #2457ce; transform: scaleX(0); transform-origin: 0 50%; transition: transform 260ms cubic-bezier(.2,.7,.2,1); }
+.sp.sx3 .ngo-page.abc > .abc-stages button[aria-pressed="true"] { background: #f5f8fe; color: #173f9e; border-color: #e9edf5; }
+.sp.sx3 .ngo-page.abc > .abc-stages button[aria-pressed="true"] b { color: #173f9e; }
+.sp.sx3 .ngo-page.abc > .abc-stages button[aria-pressed="true"]::after { transform: scaleX(1); }
+.sp.sx3 .ngo-page.abc > .abc-stages button:focus-visible { outline: 2px solid #2457ce; outline-offset: -2px; }
+.sp.sx3 .ngo-page.abc > .abc-stages + .abc-list { border: 1px solid #dfe5f1; border-top: 0; border-radius: 0 0 16px 16px; background: #fff; overflow: hidden; }
+.sp.sx3 .ngo-page.abc > .abc-stages + .abc-list > li > a { padding: 13px 20px; }
+.sp.sx3 .ngo-page.abc > .abc-stages + .abc-list > li:last-child > a { border-bottom: 0; }
+.sp.sx3 .ngo-page.abc > .abc-stages + .abc-empty { margin-top: 0; border: 1px solid #dfe5f1; border-top: 0; border-radius: 0 0 16px 16px; padding: 28px 20px; background: #fff; }
+.sp.sx3 .gv-stats { gap: 0; margin: 20px 0 20px; border: 1px solid #dfe5f1; border-radius: 16px; background: #fff; overflow: hidden; }
+.sp.sx3 .gv-stat { position: relative; padding: 18px 22px 16px; border-radius: 0; box-shadow: none; gap: 3px; transition: background-color 160ms ease; }
+.sp.sx3 .gv-stat + .gv-stat { border-left: 1px solid #e9edf5; }
+.sp.sx3 .gv-stat:hover { transform: none; box-shadow: none; background: #f7f9fd; }
+.sp.sx3 .gv-stat b { font-size: 32px; line-height: 1.1; font-weight: 500; letter-spacing: -0.035em; }
+.sp.sx3 .gv-stat::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #2457ce; transform: scaleX(0); transform-origin: 0 50%; transition: transform 260ms cubic-bezier(.2,.7,.2,1); }
+.sp.sx3 .gv-stat.is-on { box-shadow: none; background: #f5f8fe; }
+.sp.sx3 .gv-stat.is-on::after { transform: scaleX(1); }
+.sp.sx3 .gv-stat:focus-visible { outline: 2px solid #2457ce; outline-offset: -2px; }
+.sp.sx3 .gv-main .abc-list { border: 1px solid #dfe5f1; border-radius: 16px; background: #fff; overflow: hidden; }
+.sp.sx3 .gv-main .abc-list > li > a { padding: 14px 20px; }
+.sp.sx3 .gv-main .abc-list > li:last-child > a { border-bottom: 0; }
+.sp.sx3 .gv-main .abc-empty { border: 1px dashed #d3dbec; border-radius: 16px; padding: 28px 20px; background: #fff; }
+@media (max-width: 860px) {
+  .sp.sx3 .ngo-page.abc > .abc-stages { grid-auto-columns: minmax(118px, 1fr); overflow-x: auto; scrollbar-width: none; margin: 14px 0 0; border-radius: 14px 14px 0 0; }
+  .sp.sx3 .ngo-page.abc > .abc-stages::-webkit-scrollbar { display: none; }
+  .sp.sx3 .ngo-page.abc > .abc-stages button { min-height: 72px; padding: 12px 14px; }
+  .sp.sx3 .ngo-page.abc > .abc-stages button b { font-size: 22px; }
+  .sp.sx3 .ngo-page.abc > .abc-stages + .abc-list { border-radius: 0 0 14px 14px; }
+  .sp.sx3 .ngo-page.abc > .abc-stages + .abc-list > li > a { padding: 12px 14px; }
+  .sp.sx3 .gv-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 14px 0; border-radius: 14px; }
+  .sp.sx3 .gv-stat { padding: 14px 16px; }
+  .sp.sx3 .gv-stat:nth-child(odd) { border-left: 0; }
+  .sp.sx3 .gv-stat:nth-child(n + 3) { border-top: 1px solid #e9edf5; }
+  .sp.sx3 .gv-stat b { font-size: 26px; }
+  .sp.sx3 .gv-main .abc-list > li > a { padding: 12px 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .sp.sx3 .ngo-page.abc > .abc-stages button::after, .sp.sx3 .gv-stat::after { transition: none; } }
+
 /* 8 · Kaju docked. The panel is 440px wide; the page reserved 400px, so the
       panel covered the top bar's primary action. Reserve what it takes. */
 @media (min-width: 1240px) { .sp.sx3.has-ai { padding-right: 440px; } }

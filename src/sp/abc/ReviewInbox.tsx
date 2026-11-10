@@ -102,11 +102,7 @@ export function ReviewInbox() {
                 <section className="gv-main" aria-labelledby="gv-q">
                   <div className="gv-bar">
                     <h2 id="gv-q" className="gv-h">{tab === "waiting" ? "Decision queue" : tab === "operator" ? "With the operator" : "All submissions"}{op ? <> · {names[op] ?? "Operator"} <button type="button" className="link" onClick={() => setOp(null)}>clear</button></> : null}</h2>
-                    <div className="abc-stages" role="group" aria-label="Show">
-                      <button type="button" aria-pressed={tab === "waiting"} onClick={() => setTab("waiting")}>Waiting <b>{waiting.length}</b></button>
-                      <button type="button" aria-pressed={tab === "operator"} onClick={() => setTab("operator")}>With operator <b>{onOperator.length}</b></button>
-                      <button type="button" aria-pressed={tab === "all"} onClick={() => setTab("all")}>All <b>{list.length}</b></button>
-                    </div>
+                    {/* The strip above already filters this list (waiting, with the operator, all); a second row of the same three filters is gone. */}
                   </div>
                   {shown.length ? (
                     <ul className="abc-list">{shown.map((p) => (
