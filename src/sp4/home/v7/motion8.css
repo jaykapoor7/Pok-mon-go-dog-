@@ -1,0 +1,71 @@
+/* Landing motion, second layer (see Motion.tsx). Layout and copy are untouched:
+   this file only changes how things arrive, respond and leave. */
+.s8-progress { position: fixed; left: 0; right: 0; top: 0; height: 3px; z-index: 80; pointer-events: none; opacity: 0; transition: opacity 240ms ease; }
+.s8-scrolled .s8-progress { opacity: 1; }
+.s8-progress > span { display: block; height: 100%; transform: scaleX(0); transform-origin: 0 50%; background: linear-gradient(90deg, #2457ce, #6d8ff0 60%, #f05b40); border-radius: 0 3px 3px 0; }
+
+/* A soft sky behind the hero copy, the same light as the welcome inside the app. */
+.s7-home .s6-hero { position: relative; isolation: isolate; }
+.s7-home .s6-hero::before, .s7-home .s6-hero::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; filter: blur(80px); pointer-events: none; opacity: 0; animation: s8-sky 1400ms ease 200ms forwards; }
+.s7-home .s6-hero::before { width: 520px; height: 520px; left: max(-140px, calc(50% - 780px)); top: -160px; background: #cfdcff; }
+.s7-home .s6-hero::after { width: 460px; height: 460px; right: max(-140px, calc(50% - 760px)); top: -60px; background: #ffe2d3; animation-delay: 380ms; }
+@keyframes s8-sky { to { opacity: .7; } }
+@media (prefers-reduced-motion: no-preference) {
+  .s7-home .s6-hero::before { animation: s8-sky 1400ms ease 200ms forwards, s8-drift 16s ease-in-out 1.6s infinite alternate; }
+  .s7-home .s6-hero::after { animation: s8-sky 1400ms ease 380ms forwards, s8-drift 20s ease-in-out 1.8s infinite alternate-reverse; }
+}
+@keyframes s8-drift { to { transform: translate3d(40px, 26px, 0) scale(1.08); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* hero: words come into focus, the product rises out of a blur, Kaju hops onto the window last */
+  .s7-home .s4-words > span { animation-name: s8-word; }
+  @keyframes s8-word { from { opacity: 0; transform: translateY(.5em) rotate(2deg); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+  .s7-home .s6-hero .s6-canvas { animation-name: s8-canvas; animation-duration: 1100ms; }
+  /* No end frame: it settles on the canvas's own transform, which the scroll then grows. */
+  @keyframes s8-canvas { from { opacity: 0; transform: translateY(46px) scale(.93); filter: blur(10px); } }
+  .s7-home .s4-hero-perch { animation: s8-hop 900ms cubic-bezier(.3, 1.5, .5, 1) 1500ms both; transform-origin: 50% 100%; }
+  @keyframes s8-hop { 0% { opacity: 0; transform: translateY(-70px) scale(.7); } 55% { opacity: 1; transform: translateY(6px) scale(1.06, .94); } 100% { opacity: 1; transform: none; } }
+
+  /* the product window leans toward the pointer */
+  .s8-on .s6-hero .s6-stage { perspective: 1400px; }
+  .s8-on .s6-hero .s6-stage > :not(.s4-hero-perch) { transform: rotateY(calc(var(--tx, 0) * 3.2deg)) rotateX(calc(var(--ty, 0) * -2.4deg)); transition: transform 260ms cubic-bezier(.2, .7, .2, 1); will-change: transform; }
+
+  /* reveals by kind (the scroll-driven form where supported, a transition elsewhere) */
+  .s7-rv-on [data-rvk="blur"]:not(.is-in) { filter: blur(8px); }
+  .s7-rv-on [data-rvk="blur"] { transition: opacity 700ms var(--gd-ease), transform 700ms var(--gd-ease), filter 700ms var(--gd-ease); }
+  .s7-rv-on [data-rvk="pop"]:not(.is-in) { transform: translateY(22px) scale(.94); }
+  .s7-rv-on [data-rvk="left"]:not(.is-in) { transform: translateX(-34px); }
+  .s7-rv-on [data-rvk="right"]:not(.is-in) { transform: translateX(34px); }
+  @supports (animation-timeline: view()) {
+    .s7-rv-on [data-rvk="blur"], .s7-rv-on [data-rvk="blur"].is-in { animation-name: s8-blur; filter: none; }
+    .s7-rv-on [data-rvk="pop"], .s7-rv-on [data-rvk="pop"].is-in { animation-name: s8-pop; animation-range: entry 0% entry 75%; }
+    .s7-rv-on [data-rvk="left"], .s7-rv-on [data-rvk="left"].is-in { animation-name: s8-left; }
+    .s7-rv-on [data-rvk="right"], .s7-rv-on [data-rvk="right"].is-in { animation-name: s8-right; }
+    /* the dark band opens like a shutter as it comes into view */
+    .s7-home .s7-rec { animation: s8-shutter linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+    /* the closing card grows to meet you */
+    .s7-home .s7-close-card { animation: s8-grow linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+  }
+  @keyframes s8-blur { from { opacity: 0; transform: translateY(22px); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+  @keyframes s8-pop { from { opacity: 0; transform: translateY(28px) scale(.9); } to { opacity: 1; transform: none; } }
+  @keyframes s8-left { from { opacity: 0; transform: translateX(-44px); } to { opacity: 1; transform: none; } }
+  @keyframes s8-right { from { opacity: 0; transform: translateX(44px); } to { opacity: 1; transform: none; } }
+  @keyframes s8-shutter { from { clip-path: inset(0 6% round 44px); } to { clip-path: inset(0 0 round 0); } }
+  @keyframes s8-grow { from { transform: scale(.94); opacity: .6; } to { transform: none; opacity: 1; } }
+
+  /* small things that answer the hand */
+  .s4-btn { transition: background 160ms var(--s4-ease), box-shadow 160ms var(--s4-ease), color 160ms var(--s4-ease), transform 140ms cubic-bezier(.2, .7, .2, 1); }
+  .s4-btn:active { transform: scale(.97); }
+  .s4-btn.is-primary { position: relative; overflow: hidden; }
+  .s4-btn.is-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 50%, transparent 65%); transform: translateX(-120%); transition: transform 700ms cubic-bezier(.2, .7, .2, 1); pointer-events: none; }
+  .s4-btn.is-primary:hover::after { transform: translateX(120%); }
+  .s4-btn.is-primary:hover { box-shadow: 0 10px 24px -12px rgba(36, 87, 206, .7); transform: translateY(-1px); }
+  .s4-btn.is-primary:active { transform: scale(.97); }
+  .s4-link svg, .s7-link svg { transition: transform 200ms cubic-bezier(.2, .7, .2, 1); }
+  .s4-link:hover svg, .s7-link:hover svg { transform: translateX(4px); }
+  .s7-home .s4-wall > * { transition: transform 220ms cubic-bezier(.2, .7, .2, 1), box-shadow 220ms ease; }
+  .s7-home .s4-wall > a:hover { transform: translateY(-3px); box-shadow: 0 14px 28px -18px rgba(11, 30, 61, .45); }
+  .s7-home .s4-int-t { transition: transform 220ms cubic-bezier(.2, .7, .2, 1), box-shadow 220ms ease; }
+  .s7-home .s4-int-t:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 24px -16px var(--ic, rgba(11, 30, 61, .5)); }
+}
+@media (max-width: 760px) { .s7-home .s6-hero::before, .s7-home .s6-hero::after { width: 300px; height: 300px; filter: blur(60px); } }

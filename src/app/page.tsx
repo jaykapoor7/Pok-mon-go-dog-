@@ -14,6 +14,8 @@ import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
 import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
 import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
 import "@/sp4/home/v7/landing7.css";
+import "@/sp4/home/v7/motion8.css";
+import { LandingMotion } from "@/sp4/home/v7/Motion";
 import { KajuPresence } from "@/kaju/Presence";
 import "@/sp4/home/home4.css";
 import "@/sp4/home/landing.css";
@@ -60,6 +62,7 @@ export default function HomePage() {
       <PageView name="landing_view" />
       {!DEMO_SITE && <Welcome />}
       <Reveal />
+      <LandingMotion />
 
       {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
       <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">
