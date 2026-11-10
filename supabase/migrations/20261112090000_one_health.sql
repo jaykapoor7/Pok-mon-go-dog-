@@ -51,9 +51,13 @@ CREATE TABLE IF NOT EXISTS public.oh_programmes (
   -- The programme's stated dog vaccination coverage target (BeST: at least 70%).
   vaccination_target numeric NOT NULL DEFAULT 0.70 CHECK (vaccination_target > 0 AND vaccination_target <= 1),
   wards text[] NOT NULL DEFAULT '{}',
+  -- Dates ("today", "due", "overdue") are the programme's local dates, never the server's.
+  time_zone text NOT NULL DEFAULT 'Asia/Kolkata',
   illustrative boolean NOT NULL DEFAULT false,   -- demonstration data, always labelled in the app
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.oh_programmes ADD COLUMN IF NOT EXISTS time_zone text NOT NULL DEFAULT 'Asia/Kolkata';
 
 CREATE TABLE IF NOT EXISTS public.oh_institutions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -124,6 +128,12 @@ $$;
 CREATE OR REPLACE FUNCTION public.oh_in_programme(p_programme uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public AS $$
   SELECT EXISTS (SELECT 1 FROM public.oh_my_memberships() WHERE programme_id = p_programme)
+$$;
+
+-- The programme's local date. Bengaluru is UTC+05:30, so the server's date is wrong for five and a half hours every night.
+CREATE OR REPLACE FUNCTION public.oh_today(p_programme uuid)
+RETURNS date LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+  SELECT (now() AT TIME ZONE coalesce((SELECT time_zone FROM public.oh_programmes WHERE id = p_programme), 'Asia/Kolkata'))::date
 $$;
 
 -- ── Service availability (verified, expiring, append-only) ─────────────
@@ -297,7 +307,7 @@ CREATE TABLE IF NOT EXISTS health.exposures (
   sex text NOT NULL DEFAULT 'not_recorded' CHECK (sex IN ('female', 'male', 'other', 'not_recorded')),
   ward text,
   exposure_on date NOT NULL,
-  presented_on date NOT NULL DEFAULT current_date,
+  presented_on date NOT NULL,
   exposure_kind text NOT NULL CHECK (exposure_kind IN ('bite', 'scratch', 'lick_broken_skin', 'other')),
   -- The category the treating clinician assessed (WHO categories). Recorded, never derived.
   category text NOT NULL DEFAULT 'not_recorded' CHECK (category IN ('I', 'II', 'III', 'not_recorded')),
@@ -414,8 +424,8 @@ BEGIN
       'programme', jsonb_build_object('id', p.id, 'slug', p.slug, 'name', p.name, 'illustrative', p.illustrative),
       'order', CASE i.kind WHEN 'coordinator' THEN 0 WHEN 'municipal' THEN 1 WHEN 'hospital' THEN 2 WHEN 'clinic' THEN 2 WHEN 'laboratory' THEN 3 ELSE 4 END,
       'handoffs_open', (SELECT count(*) FROM public.oh_handoffs h WHERE h.to_institution = i.id AND h.status IN ('open', 'accepted')),
-      'handoffs_overdue', (SELECT count(*) FROM public.oh_handoffs h WHERE h.to_institution = i.id AND h.status IN ('open', 'accepted') AND h.due_on < current_date),
-      'doses_due', CASE WHEN i.kind IN ('hospital', 'clinic') THEN (SELECT count(*) FROM health.pep_doses d JOIN health.pep_courses c ON c.id = d.course_id JOIN health.exposures e ON e.id = c.exposure_id WHERE e.facility_id = i.id AND d.status = 'due' AND d.due_on <= current_date AND c.status = 'active') END,
+      'handoffs_overdue', (SELECT count(*) FROM public.oh_handoffs h WHERE h.to_institution = i.id AND h.status IN ('open', 'accepted') AND h.due_on < public.oh_today(p.id)),
+      'doses_due', CASE WHEN i.kind IN ('hospital', 'clinic') THEN (SELECT count(*) FROM health.pep_doses d JOIN health.pep_courses c ON c.id = d.course_id JOIN health.exposures e ON e.id = c.exposure_id WHERE e.facility_id = i.id AND d.status = 'due' AND d.due_on <= public.oh_today(p.id) AND c.status = 'active') END,
       'notices_new', CASE WHEN i.kind IN ('hospital', 'clinic') THEN (SELECT count(*) FROM health.citizen_notices n WHERE n.facility_id = i.id AND n.status = 'new') END,
       'samples_waiting', CASE WHEN i.kind = 'laboratory' THEN (SELECT count(*) FROM public.oh_samples s WHERE s.laboratory_id = i.id AND s.status IN ('dispatched', 'received', 'testing')) END,
       'services_stale', CASE WHEN i.kind IN ('hospital', 'clinic') THEN (SELECT count(*) FROM (SELECT DISTINCT ON (service) valid_until FROM public.oh_service_status s WHERE s.institution_id = i.id ORDER BY service, verified_at DESC) x WHERE x.valid_until < now()) END
@@ -437,10 +447,12 @@ BEGIN
   PERFORM public.oh_need(public.oh_is_facility(p_facility) AND r IN ('clinician', 'nurse', 'records', 'lead'), 'Only staff of this facility can record a bite');
   PERFORM public.oh_need(p_category = 'not_recorded' OR r = 'clinician', 'Only a clinician can record the exposure category');
   SELECT programme_id INTO prog FROM public.oh_institutions WHERE id = p_facility;
-  c := 'BX-' || to_char(current_date, 'YYMM') || '-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 5));
-  INSERT INTO health.exposures (programme_id, facility_id, code, patient_ref, age_band, sex, ward, exposure_on, exposure_kind, category, category_by, category_by_name,
+  PERFORM public.oh_need(p_exposure_on <= public.oh_today(prog), 'The date it happened cannot be in the future');
+  PERFORM public.oh_need(p_exposure_on >= public.oh_today(prog) - 365, 'The date it happened is more than a year ago');
+  c := 'BX-' || to_char(public.oh_today(prog), 'YYMM') || '-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 5));
+  INSERT INTO health.exposures (programme_id, facility_id, code, patient_ref, age_band, sex, ward, exposure_on, presented_on, exposure_kind, category, category_by, category_by_name,
     animal_species, animal_ownership, animal_description, animal_place, source, notice_id, contact_phone, reminder_consent, created_by)
-  VALUES (prog, p_facility, c, nullif(btrim(p_patient_ref), ''), p_age_band, p_sex, wardv, p_exposure_on, p_kind, p_category,
+  VALUES (prog, p_facility, c, nullif(btrim(p_patient_ref), ''), p_age_band, p_sex, wardv, p_exposure_on, public.oh_today(prog), p_kind, p_category,
     CASE WHEN p_category <> 'not_recorded' THEN auth.uid() END, CASE WHEN p_category <> 'not_recorded' THEN public.oh_actor_name() END,
     p_species, p_ownership, nullif(btrim(p_animal_description), ''), nullif(btrim(p_animal_place), ''), p_source, p_notice,
     CASE WHEN p_reminder_consent THEN nullif(btrim(p_contact_phone), '') END, p_reminder_consent AND nullif(btrim(p_contact_phone), '') IS NOT NULL, auth.uid())
@@ -452,7 +464,7 @@ BEGIN
     IF ngo IS NOT NULL THEN
       INSERT INTO public.oh_handoffs (programme_id, kind, from_institution, to_institution, title, detail, ward, place, status, due_on, created_by)
       VALUES (prog, 'animal_followup', p_facility, ngo,
-        'Find and observe the ' || CASE p_species WHEN 'unknown' THEN 'animal' ELSE p_species END || ' involved in a ' || replace(p_kind, '_', ' ') || ' on ' || to_char(p_exposure_on, 'DD Mon'),
+        'Find and observe the ' || CASE p_species WHEN 'unknown' THEN 'animal' ELSE p_species END || ' involved in ' || CASE p_kind WHEN 'bite' THEN 'a bite' WHEN 'scratch' THEN 'a scratch' WHEN 'lick_broken_skin' THEN 'a lick on broken skin' ELSE 'contact' END || ' on ' || to_char(p_exposure_on, 'DD Mon'),
         concat_ws(E'\n', CASE WHEN p_animal_description IS NOT NULL THEN 'Animal: ' || p_animal_description END,
           'The facility asked for the animal to be located and its health recorded. Record what you find; if it is sick or dies, arrange a sample for the laboratory.',
           'No patient details are shared with this request.'),
@@ -499,14 +511,15 @@ BEGIN
 END $$;
 
 -- Nurse or clinician records a dose given (or missed).
-CREATE OR REPLACE FUNCTION public.oh_record_dose(p_dose uuid, p_status text, p_given_on date DEFAULT current_date, p_batch text DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.oh_record_dose(p_dose uuid, p_status text, p_given_on date DEFAULT NULL, p_batch text DEFAULT NULL)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
-DECLARE f uuid; cid uuid; remaining int;
+DECLARE f uuid; cid uuid; remaining int; prog uuid;
 BEGIN
-  SELECT e.facility_id, c.id INTO f, cid FROM health.pep_doses d JOIN health.pep_courses c ON c.id = d.course_id JOIN health.exposures e ON e.id = c.exposure_id WHERE d.id = p_dose;
+  SELECT e.facility_id, c.id, e.programme_id INTO f, cid, prog FROM health.pep_doses d JOIN health.pep_courses c ON c.id = d.course_id JOIN health.exposures e ON e.id = c.exposure_id WHERE d.id = p_dose;
   PERFORM public.oh_need(f IS NOT NULL AND public.oh_role_in(f) IN ('clinician', 'nurse'), 'Only a nurse or clinician of this facility can record a dose');
   PERFORM public.oh_need(p_status IN ('given', 'missed'), 'Record the dose as given or missed');
-  PERFORM public.oh_need(p_status <> 'given' OR p_given_on <= current_date, 'A dose cannot be given in the future');
+  p_given_on := coalesce(p_given_on, public.oh_today(prog));
+  PERFORM public.oh_need(p_status <> 'given' OR p_given_on <= public.oh_today(prog), 'A dose cannot be given in the future');
   UPDATE health.pep_doses SET status = p_status, given_on = CASE WHEN p_status = 'given' THEN p_given_on END,
     given_by_name = CASE WHEN p_status = 'given' THEN public.oh_actor_name() END, batch = CASE WHEN p_status = 'given' THEN nullif(btrim(p_batch), '') END
    WHERE id = p_dose;
@@ -577,7 +590,7 @@ BEGIN
       'phone', CASE WHEN e.reminder_consent THEN e.contact_phone END,
       'last_reminder', (SELECT jsonb_build_object('at', r.at, 'outcome', r.outcome) FROM health.reminder_log r WHERE r.dose_id = d.id ORDER BY r.at DESC LIMIT 1)) AS x
     FROM health.pep_doses d JOIN health.pep_courses c ON c.id = d.course_id JOIN health.exposures e ON e.id = c.exposure_id
-    WHERE e.facility_id = p_facility AND c.status = 'active' AND d.status = 'due' AND d.due_on <= current_date + 1
+    WHERE e.facility_id = p_facility AND c.status = 'active' AND d.status = 'due' AND d.due_on <= public.oh_today(e.programme_id) + 1
   ) s;
   RETURN out;
 END $$;
@@ -606,7 +619,7 @@ DECLARE prog uuid; fac uuid; nid uuid;
 BEGIN
   SELECT id INTO prog FROM public.oh_programmes WHERE slug = p_programme_slug AND status IN ('pilot', 'active');
   PERFORM public.oh_need(prog IS NOT NULL, 'This programme is not accepting notices');
-  PERFORM public.oh_need(p_happened_on BETWEEN current_date - 30 AND current_date, 'Give a date in the last 30 days');
+  PERFORM public.oh_need(p_happened_on BETWEEN public.oh_today(prog) - 30 AND public.oh_today(prog), 'Give a date in the last 30 days');
   SELECT id INTO fac FROM public.oh_institutions WHERE programme_id = prog AND kind IN ('hospital', 'clinic') AND listed_publicly
    ORDER BY (ward = nullif(btrim(p_ward), '')) DESC NULLS LAST, kind = 'hospital' DESC, name LIMIT 1;
   INSERT INTO health.citizen_notices (programme_id, facility_id, happened_on, ward, place, animal_species, animal_description, callback_phone, callback_consent)
@@ -698,13 +711,13 @@ BEGIN
   PERFORM public.oh_need(public.oh_role_in(p_from) IS NOT NULL, 'Only members of the submitting team can send a sample');
   SELECT programme_id INTO prog FROM public.oh_institutions WHERE id = p_from;
   PERFORM public.oh_need(EXISTS (SELECT 1 FROM public.oh_institutions WHERE id = p_lab AND kind = 'laboratory' AND programme_id = prog), 'Choose a programme laboratory');
-  PERFORM public.oh_need(p_collected_on <= current_date, 'Collection date cannot be in the future');
-  c := 'S-' || to_char(current_date, 'YYMM') || '-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 5));
+  PERFORM public.oh_need(p_collected_on <= public.oh_today(prog), 'Collection date cannot be in the future');
+  c := 'S-' || to_char(public.oh_today(prog), 'YYMM') || '-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 5));
   INSERT INTO public.oh_samples (programme_id, code, submitted_by, laboratory_id, animal_id, species, sample_type, reason, collected_on, collected_by_name, ward, place, status)
   VALUES (prog, c, p_from, p_lab, p_animal, p_species, p_type, nullif(btrim(p_reason), ''), p_collected_on, public.oh_actor_name(), nullif(btrim(p_ward), ''), nullif(btrim(p_place), ''), 'dispatched')
   RETURNING id INTO sid;
   INSERT INTO public.oh_sample_events (sample_id, actor, actor_name, institution_id, action, note) VALUES
-    (sid, auth.uid(), public.oh_actor_name(), p_from, 'collected', NULL), (sid, auth.uid(), public.oh_actor_name(), p_from, 'dispatched', 'Sent to the laboratory');
+    (sid, auth.uid(), public.oh_actor_name(), p_from, 'collected', NULL), (sid, auth.uid(), public.oh_actor_name(), p_from, 'dispatched', NULL);
   IF p_handoff IS NOT NULL THEN UPDATE public.oh_handoffs SET sample_id = sid, updated_at = now() WHERE id = p_handoff AND public.oh_role_in(to_institution) IS NOT NULL; END IF;
   RETURN jsonb_build_object('id', sid, 'code', c);
 END $$;
@@ -747,7 +760,7 @@ END $$;
 -- ── Programme overview (aggregates only, small counts suppressed) ──────
 CREATE OR REPLACE FUNCTION public.oh_programme_overview(p_programme uuid, p_days int DEFAULT 90)
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = pg_catalog, public AS $$
-DECLARE since date := current_date - least(greatest(p_days, 7), 730); p public.oh_programmes; out jsonb;
+DECLARE since date := public.oh_today(p_programme) - least(greatest(p_days, 7), 730); p public.oh_programmes; out jsonb; td date := public.oh_today(p_programme);
 BEGIN
   PERFORM public.oh_need(public.oh_in_programme(p_programme), 'Only programme partners can see the overview');
   SELECT * INTO p FROM public.oh_programmes WHERE id = p_programme;
@@ -757,7 +770,7 @@ BEGIN
     'can_oversee', public.oh_can_oversee(p_programme),
     'partners', (SELECT coalesce(jsonb_agg(jsonb_build_object('id', i.id, 'name', i.name, 'short_name', i.short_name, 'kind', i.kind, 'responsibilities', i.responsibilities,
         'open', (SELECT count(*) FROM public.oh_handoffs h WHERE h.to_institution = i.id AND h.status IN ('open', 'accepted')),
-        'overdue', (SELECT count(*) FROM public.oh_handoffs h WHERE h.to_institution = i.id AND h.status IN ('open', 'accepted') AND h.due_on < current_date)) ORDER BY i.kind, i.name), '[]') FROM public.oh_institutions i WHERE i.programme_id = p_programme),
+        'overdue', (SELECT count(*) FROM public.oh_handoffs h WHERE h.to_institution = i.id AND h.status IN ('open', 'accepted') AND h.due_on < td)) ORDER BY i.kind, i.name), '[]') FROM public.oh_institutions i WHERE i.programme_id = p_programme),
     'exposures', jsonb_build_object(
       'total', public.oh_suppress((SELECT count(*) FROM health.exposures WHERE programme_id = p_programme AND exposure_on >= since)),
       'category_iii', public.oh_suppress((SELECT count(*) FROM health.exposures WHERE programme_id = p_programme AND exposure_on >= since AND category = 'III')),
@@ -775,7 +788,7 @@ BEGIN
         'median_days_to_result', percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM resulted_at - created_at) / 86400) FILTER (WHERE resulted_at IS NOT NULL),
         'positive_wards', (SELECT coalesce(jsonb_agg(DISTINCT coalesce(ward, 'Not recorded')), '[]') FROM public.oh_samples z WHERE z.programme_id = p_programme AND z.result = 'positive' AND z.collected_on >= since))
       FROM public.oh_samples WHERE programme_id = p_programme AND collected_on >= since),
-    'handoffs', (SELECT jsonb_build_object('open', count(*) FILTER (WHERE status IN ('open', 'accepted')), 'overdue', count(*) FILTER (WHERE status IN ('open', 'accepted') AND due_on < current_date),
+    'handoffs', (SELECT jsonb_build_object('open', count(*) FILTER (WHERE status IN ('open', 'accepted')), 'overdue', count(*) FILTER (WHERE status IN ('open', 'accepted') AND due_on < td),
         'done', count(*) FILTER (WHERE status = 'done'),
         'median_days_to_close', percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM closed_at - created_at) / 86400) FILTER (WHERE closed_at IS NOT NULL))
       FROM public.oh_handoffs WHERE programme_id = p_programme AND created_at >= since),

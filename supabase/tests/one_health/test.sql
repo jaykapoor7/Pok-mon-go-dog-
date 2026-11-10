@@ -124,4 +124,11 @@ SET ROLE authenticated;
 SELECT t_as('00000000-0000-0000-0000-0000000000c2');
 SELECT CASE WHEN jsonb_array_length(public.oh_clinic_notices('40000000-0000-0000-0000-00000000000b')) = 2 THEN 'ok 30 - the ward facility receives both notices' ELSE 'not ok 30' END;
 SELECT CASE WHEN (SELECT count(*) FROM jsonb_array_elements(public.oh_my_today())) = 1 THEN 'ok 31 - Today lists only the person''s own institution' ELSE 'not ok 31' END;
+-- 32. "Today" is the programme's local date: a bite recorded on the local date always saves, whatever the server's date.
+RESET ROLE;
+UPDATE public.oh_programmes SET time_zone = 'Pacific/Kiritimati' WHERE id = '30000000-0000-0000-0000-000000000001';
+SET ROLE authenticated;
+SELECT t_as('00000000-0000-0000-0000-0000000000c1');
+SELECT CASE WHEN t_fails($$SELECT public.oh_record_exposure('40000000-0000-0000-0000-00000000000a', (now() AT TIME ZONE 'Pacific/Kiritimati')::date, 'bite', NULL)$$) = 'succeeded'
+  AND t_fails($$SELECT public.oh_record_exposure('40000000-0000-0000-0000-00000000000a', (now() AT TIME ZONE 'Pacific/Kiritimati')::date + 1, 'bite', NULL)$$) = '42501' THEN 'ok 32 - dates follow the programme''s time zone, and future dates are refused plainly' ELSE 'not ok 32' END;
 RESET ROLE;
