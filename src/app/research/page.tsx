@@ -21,7 +21,7 @@ export default function ResearchPage() {
             <p className="rs-eyebrow">StrayPaw Research</p>
             <h1 className="rs-h1"><TwoTone a="Records you can check," b="data you can cite" /></h1>
             <p className="rs-lede">For researchers working on dog populations and rabies in India. Every dataset states its source, licence and limits.</p>
-            <div className="rs-actions"><Link href="/research/datasets" className="s4-btn is-primary">Browse datasets</Link><Link href="/research/workbench" className="s4-btn is-line">Open the workbench</Link><Link href="/research/access" className="s4-btn is-line">Request data access</Link></div>
+            <div className="rs-actions"><Link href="/research/datasets" className="s4-btn is-primary">Browse datasets</Link><Link href="/research/workbench" className="s4-btn is-line">Open the workbench</Link><Link href="/research/access" className="s4-btn is-line">Request data access</Link><a href="https://kapoorjay.com/research-models/index.html" className="s4-btn is-line">Try the research models</a></div>
           </div>
           <aside className="rs-glance" aria-label="Catalogue at a glance">
             <p className="rs-glance-h">Catalogue at a glance</p>
