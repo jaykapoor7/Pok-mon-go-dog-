@@ -1,0 +1,9 @@
+# AnimalID service and worker. CPU wheels: pip install --index-url https://download.pytorch.org/whl/cpu torch
+torch>=2.3
+transformers>=4.44
+pillow>=10
+numpy>=1.26
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+httpx>=0.27

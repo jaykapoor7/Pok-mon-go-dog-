@@ -1,0 +1,1 @@
+{ "out_dim": 256, "temperature": 0.1, "lr": 0.001, "epochs": 30, "batch": 128, "seed": 13, "weight_decay": 0.0001 }
