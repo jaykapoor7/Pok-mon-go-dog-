@@ -49,3 +49,13 @@ test("essential public information and actions survive without JavaScript",async
  await expect(page.locator(".s4-hero a").filter({hasText:"Book a demo"})).toHaveAttribute("href","/demo");
  await page.getByText("How does pricing work?",{exact:true}).click();await expect(page.locator("details").filter({hasText:"How does pricing work?"})).toContainText("Pricing is agreed per programme");await context.close();
 });
+
+test("unconfirmed CreIndia collaboration is not published on StrayPaw", async ({request}) => {
+ for (const url of ["/", "/customers", "/our-story", "/community/organisations", "/search?q=CreIndia"]) {
+  const response = await request.get(url);
+  expect(response.ok(), `${url} should load`).toBeTruthy();
+  expect(await response.text(), `${url} should not advertise CreIndia`).not.toMatch(/Cre\s*India/i);
+ }
+ expect((await request.get("/community/organisations/jh-creindia-foundation")).status()).toBe(404);
+ expect((await request.get("/embed/jh-creindia-foundation")).status()).toBe(404);
+});
