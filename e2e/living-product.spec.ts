@@ -49,3 +49,17 @@ test("use cases tell a second story in the same frame: a city rabies programme",
   await section.getByRole("button", { name: "ABC programme" }).click();
   await expect(section.getByRole("tab")).toHaveText(["Receive", "Register", "Treat", "Release", "Submit & bill"]);
 });
+
+test("menus carry a drawing, a pill follows the pointer, and pages announce their loading", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.goto("/");
+  const solutions = page.getByRole("button", { name: "Solutions", exact: true });
+  await expect(async () => { await solutions.hover(); await expect(solutions).toHaveAttribute("aria-expanded", "true", { timeout: 1000 }); }).toPass({ timeout: 15_000 });
+  await expect(page.locator('#s4-dd-solutions a.s4-mega-art[href="/platform#one-health"]')).toBeVisible();
+  await expect(page.locator(".s4-nav-links")).toHaveAttribute("data-glide", "true");
+  await page.keyboard.press("Escape");
+  /* The route line is decorative and idle until a link to another page is pressed. */
+  const line = page.locator(".rp"); await expect(line).toHaveAttribute("aria-hidden", "true"); await expect(line).toHaveAttribute("data-state", "idle");
+  await page.goto("/platform");
+  await expect(page.locator(".pm-progress")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+});

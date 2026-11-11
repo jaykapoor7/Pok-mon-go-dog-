@@ -131,3 +131,13 @@
 .sp.sx3.os.rl .sx3-kaju-nook::before { background: radial-gradient(circle, rgba(59, 116, 242, .34), transparent 68%); }
 .sp-finder-list .sp-finder-group { display: block; min-height: 0; padding: 14px 12px 4px; white-space: nowrap; cursor: default; }
 .sp-finder-list .sp-finder-group:hover { background: none; }
+
+/* The page takes its light from where you are: blue for today, indigo for the work, teal for the programme, violet for managing it. */
+@property --amb { syntax: "<color>"; inherits: true; initial-value: rgba(36, 87, 206, .14); }
+@property --amb2 { syntax: "<color>"; inherits: true; initial-value: rgba(91, 140, 240, .11); }
+.sp.sx3.os.rl { --amb: rgba(36, 87, 206, .14); --amb2: rgba(91, 140, 240, .11); transition: --amb 900ms ease, --amb2 900ms ease, grid-template-columns 320ms var(--rl-ease); }
+.sp.sx3.os.rl[data-tone="work"] { --amb: rgba(79, 70, 229, .15); --amb2: rgba(124, 108, 240, .1); }
+.sp.sx3.os.rl[data-tone="programme"] { --amb: rgba(13, 148, 136, .15); --amb2: rgba(45, 160, 190, .1); }
+.sp.sx3.os.rl[data-tone="manage"] { --amb: rgba(124, 58, 237, .13); --amb2: rgba(160, 110, 240, .09); }
+.sp.sx3.os.rl:not(.is-map) .sx3-col::before { background: radial-gradient(closest-side, var(--amb), transparent); }
+.sp.sx3.os.rl:not(.is-map) .sx3-col::after { background: radial-gradient(closest-side, var(--amb2), transparent); }

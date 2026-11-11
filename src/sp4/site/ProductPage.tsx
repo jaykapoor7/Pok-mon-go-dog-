@@ -4,6 +4,7 @@ import { ArrowRight, Check, Info } from "lucide-react";
 import { Close, Faq, S4Page, SecHead, Tiles, TwoTone, type TileSpec } from "@/sp4/site/kit";
 import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
+import { PageMotion } from "@/sp4/site/PageMotion";
 import { SplitTabs } from "@/sp4/site/SplitTabs";
 import "@/sp4/home/home4.css";
 
@@ -42,6 +43,7 @@ export type ProductSpec = {
 export function ProductPage({ s }: { s: ProductSpec }) {
   return (
     <S4Page close={false}>
+      <PageMotion />
       <section className={`s4-pp-hero${s.dark ? " is-dark" : ""}`} aria-labelledby={`${s.id}-title`}>
         <div className="s4-wrap">
           {s.eyebrow && <span className="s4-eyebrow">{s.eyebrow}</span>}

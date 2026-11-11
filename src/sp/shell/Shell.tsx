@@ -176,6 +176,13 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const wsKind = ws === "ngo" ? "ngo" : ws === "city" ? "municipal" : ws === "health" ? (place?.kind ?? "today") : "today";
   const initials = wsTitle.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !/^(of|the|and|for|sample|demo)$/i.test(w)).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "SP";
 
+  /* The page takes its light from the part of the workspace you are in: today, the work, the programme, managing it. */
+  const tone = (() => {
+    let sec: string | undefined, hit: { len: number; sec?: string } | null = null;
+    for (const r of nav) { if (r.label) sec = r.label; if (navOn(r.item, path) && (!hit || r.item.href.length > hit.len)) hit = { len: r.item.href.length, sec }; }
+    const s = hit?.sec;
+    return !hit || !s ? "today" : /programme/i.test(s) ? "programme" : /manage|settings|organisation/i.test(s) ? "manage" : "work";
+  })();
   const [find, setFind] = useState(false);
   const [sheet, setSheet] = useState(false);
   /* Server-verified memberships only: both an organisation and a reviewing office. */
@@ -222,7 +229,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
   return (
     <Membership.Provider value={mem}>
-      <div className={`sp sp-app s3-root sx3 os ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-tucked" : ""} rl${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
+      <div className={`sp sp-app s3-root sx3 os ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-tucked" : ""} rl${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} data-tone={tone} style={{ ["--ws" as string]: def.ink }}>
         <a href="#sp-main" className="sp-skip">Skip to content</a>
 
         {/* ── Desktop sidebar ─────────────────────────────────────── */}
