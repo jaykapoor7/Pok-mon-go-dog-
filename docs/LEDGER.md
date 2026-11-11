@@ -16,6 +16,21 @@ Persistent record of the product rebuild. Update at every milestone. Latest firs
 2. **AnimalID worker secrets**: `ANIMALID_SUPABASE_URL`, `ANIMALID_SUPABASE_SERVICE_KEY` (repository secrets), then add `animal_id` to `SP_FLAGS`.
 3. **Production role accounts** (after 1): created by invitation from Programme setup; sign-in is by emailed code, so each needs a real mailbox the owner controls (for example plus-addresses).
 
+## Owner decision, 11 Nov (after #60 to #63): the new landing was wrong; go back to the old blueprint
+
+The owner judged the rebuilt landing, hero, navigation and pages (PRs #60, #61) poor and generic, and the earlier site much better. The earlier site is the blueprint: its hero with the product demo, use cases, teammate, recurring work, integrations and security sections, its three-menu navigation and its page kit (`ProductPage`). Improvements are made to that, in its own visual language.
+
+| Step | Status |
+|---|---|
+| A. Restore the old landing, navigation, footer, Platform, Pricing, For governments, For NGOs and Meet Kaju pages and their tests; remove the `src/site6` code | Done (this PR) |
+| A. Keep what was added since, inside the old structure: `/for-hospitals` rebuilt on the old page kit and linked under Solutions; a programme section on Platform, For governments and For NGOs; clinic, laboratory and programme-cell windows have their own sidebar | Done (this PR) |
+| A. Fix found on the way: `/for-hospitals` was rendering inside the app shell on production; it is now registered as a public page | Done (this PR) |
+| A. Fix kept from before: the Platform partner strip lists only organisations in the field-partner data (an unverified name is no longer shown) | Done (this PR) |
+| B. Improve the old blueprint: motion, transitions and the connected-programme story as use cases, in the old visual language | Next |
+| Not reverted: the sign-in split layout, demo request types, the guided demo, Kaju's partner-requests tool, alert clustering | Kept |
+
+The sections below about "Batch 1" and the "Site visual pass" describe work that this decision supersedes on the public site.
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.

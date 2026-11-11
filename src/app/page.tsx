@@ -1,197 +1,198 @@
 import Link from "next/link";
-import { Fragment } from "react";
-import { ArrowRight, Plus, Sparkles } from "lucide-react";
+import { Fragment, type ReactNode } from "react";
+import { ArrowRight, ArrowUpRight, PawPrint, Camera, MessageSquareText, ClipboardList, Download, FileSpreadsheet, FileText, Fingerprint, History, KeyRound, Landmark, Mail, MapPin, MessageCircle, ScanSearch, ShieldCheck, Smartphone, Sparkles, UserCheck } from "lucide-react";
 import { PageView } from "@/components/analytics/PageView";
-import { SiteHeader } from "@/components/site/SiteHeader";
-import { SiteFooter } from "@/components/site/SiteFooter";
-import { STORIES, RELATIONSHIP_LABEL, fieldPartnerStrip } from "@/sp3/customers";
-import { DEMO_SITE, LIVE_DEMO_PUBLIC, LIVE_DEMO_URL } from "@/lib/demo-site";
-import { Relay } from "@/site6/Relay";
-import { Roles } from "@/site6/Roles";
-import { Switchboard } from "@/site6/Switchboard";
-import { KajuScene } from "@/site6/KajuScene";
-import { SiteMotion } from "@/site6/Motion";
-import { CloseThread, HeroBand, HeroThread } from "@/site6/Thread";
+import { STORIES, fieldPartnerStrip } from "@/sp3/customers";
+import { S4Page, SecHead, Tiles, TwoTone } from "@/sp4/site/kit";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Blueprint } from "@/sp4/home/Blueprint";
+import { HeroRotator } from "@/sp4/home/HeroRotator";
+import { Announce, DemoAnnounce } from "@/sp4/home/v7/Announce";
+import { DEMO_SITE, LIVE_DEMO_PUBLIC, LIVE_DEMO_URL } from "@/lib/demo-site";
+import { Welcome } from "@/sp4/home/v7/Welcome";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
-import { Recurring } from "@/sp4/home/v7/Sections";
-import { Reveal } from "@/sp4/home/v7/Extras";
-import { LandingMotion } from "@/sp4/home/v7/Motion";
-import { KajuPresence } from "@/kaju/Presence";
-import "@/sp4/sp4.css";
+import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
+import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
 import "@/sp4/home/v7/landing7.css";
 import "@/sp4/home/v7/motion8.css";
+import { LandingMotion } from "@/sp4/home/v7/Motion";
+import { KajuPresence } from "@/kaju/Presence";
 import "@/sp4/home/home4.css";
 import "@/sp4/home/landing.css";
-import "@/site6/site6.css";
+
+/** Headline words that rise one after another (CSS only; static without motion). */
+function Words({ lines, mark }: { lines: string[]; mark?: string }) {
+  let i = 0;
+  return <>{lines.map((l, li) => <Fragment key={li}>{li > 0 && <br />}{l.split(" ").map((w) => <Fragment key={i}><span style={{ ["--i" as string]: i++ }} className={mark && w.replace(/[^\w]/g, "") === mark ? "s6-mark" : undefined}>{w}</span>{" "}</Fragment>)}</Fragment>)}</>;
+}
 
 export const metadata = {
-  title: "StrayPaw · One record for animal health and One Health programmes",
-  description: "StrayPaw connects municipalities, NGOs, hospitals and laboratories on one record: ABC and vaccination, bite care and PEP tracking, laboratory results and programme coordination.",
+  title: "StrayPaw · Meet Kaju, the AI for animal welfare programmes",
+  description: "StrayPaw runs animal welfare programmes on one shared record: field capture, veterinary sign-off, evidence and municipal reporting. Kaju does the checking and drafting; your team approves.",
 };
 
 /* ════════════════════════════════════════════════════════════════════
-   Homepage (StrayPaw 6, visual pass). Few words; each scene shows the
-   product doing one thing:
-   1 the idea (one record travels through four institutions) ·
-   2 who works with it · 3 the product at work (demo, use cases) ·
-   4 what we offer (the switchboard) · 5 meet Kaju · 6 who it is for ·
-   7 proof and what is not connected · 8 questions · 9 next step.
+   Homepage, in order:
+   1 hero (Meet Kaju) · 2 partner wall · 3 use cases · 4 Kaju as a
+   teammate · 5 recurring checks for Kaju (dark) · 6 customer results ·
+   7 integrations · 8 security · 9 FAQ · 10 closing call to action.
+   Buyer: the municipal office that funds ABC and anti-rabies work, and
+   the operators it funds. Kaju is the agent; StrayPaw is the platform.
    ════════════════════════════════════════════════════════════════════ */
 
-function Words({ text }: { text: string }) {
-  return <span className="s6-words">{text.split(" ").map((w, i) => <Fragment key={i}><span style={{ ["--i" as string]: i }}>{w}</span>{" "}</Fragment>)}</span>;
-}
-
-const STATUS: [string, string, string, "green" | "amber" | "blue" | undefined][] = [
-  ["NGO and municipal workflows", "ABC, vaccination, evidence, review, field mode", "Live", "green"],
-  ["Programme layer", "Hospitals, laboratories, coordination; tested on staging", "In rollout", "blue"],
-  ["AnimalID", "Photo suggestions; accuracy not yet validated", "In rollout", "blue"],
-  ["Reminders", "Logged phone calls. SMS and WhatsApp not connected", "Calls only", "amber"],
-  ["Vaccine availability", "What each facility confirms. No stock system connected", "Confirmed by people", "amber"],
-  ["Ward maps", "Official ward boundaries loaded when a city supplies them", "Per city", "amber"],
-];
+/* The five-step journey, as it works today. Illustrative names and dates;
+   direct WhatsApp is labelled as not connected until Meta approval. */
 
 const FAQ: [string, string][] = [
-  ["Is this only for Bengaluru, or only for rabies?", "No. A programme is configured, not coded: its partners, areas, modules, vaccination target and settings are chosen at setup. A municipality running ABC alone and a state coordinating several cities use the same product."],
-  ["Who can see patient information?", "Only staff at the facility that treats the person. A patient is identified by that facility's own register number; no name is stored. Other partners see counts, and counts below a threshold are hidden."],
-  ["Does StrayPaw decide treatment?", "Never. A clinician records the exposure category they assessed, writes the regimen and sets each dose date. StrayPaw keeps the record, shows what is due and logs who did what."],
-  ["Can an NGO start without a programme?", "Yes. An NGO registers itself, imports its register and runs its own work. If its city starts a programme later, the NGO joins it with its existing records and people."],
-  ["What does Kaju do, exactly?", "Kaju reads the records you are allowed to see, finds gaps, and prepares work: a draft case from a field message, a missing-evidence list, the monthly package. It cites its sources and changes nothing until a person confirms. It has no access to human-health records."],
-  ["How do we start?", "Book a demo, or try the guided demonstration with illustrative records. A pilot starts with one programme, its partners and a few areas."],
+  ["What is Kaju?", "Kaju is StrayPaw's AI agent for animal welfare programmes. It works across capture, vet sign-off, evidence, reports and municipal review, using your organisation's own records."],
+  ["How is Kaju different from ChatGPT or Claude?", "Kaju works inside StrayPaw, on your programme's records, with your permissions. Every answer names the records it used, and every change is prepared for a person to confirm."],
+  ["Can Kaju approve a procedure or a bill?", "No. Kaju prepares; people decide. Vets authorise procedures, coordinators approve evidence and the municipal office accepts the package, each in their own name."],
+  ["Does Kaju train on our data?", "No. Your records are not used to train models and are never shared with other organisations."],
+  ["How do we get started?", "With a scoped pilot on one programme. We import your current registers, set up your team and agree the scope in writing first."],
+  ["Can we bring our existing registers?", "Yes. Excel and CSV registers import as they are. Imported rows stay labelled as historical until checked through the workflow."],
+  ["How does pricing work?", "Pricing is agreed per programme before work begins. NGOs and small welfare groups can ask about an accessible plan."],
 ];
 
-export default function Home() {
+export default function HomePage() {
   const partners = fieldPartnerStrip();
-  const results = STORIES.flatMap((s) => s.results.slice(0, 1).map((r) => ({ ...r, org: s.name, city: s.city, rel: RELATIONSHIP_LABEL[s.relationship], slug: s.slug }))).filter((r) => r.n > 0).slice(0, 2);
-  const primary = DEMO_SITE ? { href: "/try?go=1", label: "Start the live demo" } : { href: "/demo", label: "Book a demo" };
+  const story = STORIES[0];
+  const kh = STORIES[1];
   return (
-    <div className="s6 s6-home">
+    <S4Page className="s6-home s7-home" announce={DEMO_SITE ? <DemoAnnounce /> : <Announce />} close={false}>
       <PageView name="landing_view" />
-      <SiteMotion />
-      <SiteHeader />
-      <main id="main">
-        {/* 1 · hero */}
-        <section className="s6-hero" aria-labelledby="s6-h1" data-spot>
-          <HeroThread />
-          <div className="s6-wrap">
-            <div className="s6-hero-copy">
-              <Link href={DEMO_SITE ? "/today" : "/platform"} className="s6-announce"><b>New</b><span>{DEMO_SITE ? "You are on the demonstration: every record is illustrative" : "Hospitals, laboratories and programme cells now work in StrayPaw"}</span><i aria-hidden><ArrowRight size={13} /></i></Link>
-              <h1 id="s6-h1" className="s6-display"><Words text="One record for every animal," /><br /><span className="s6-grey"><Words text="bite, dose and sample." /></span></h1>
-              <p className="s6-lede">The operating platform for animal health and One Health programmes.</p>
-              <div className="s6-hero-cta">
-                <Link href={primary.href} className="s6-btn is-primary">{primary.label}<ArrowRight size={16} className="go" aria-hidden /></Link>
-                {DEMO_SITE ? <Link href="/today" className="s6-btn is-line">Choose a role</Link> : LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s6-btn is-line">Try the live demo</a> : <Link href="#product" className="s6-btn is-line">See the product at work</Link>}
-              </div>
-              <p className="s6-hero-note">Built with field teams in Coimbatore and Chennai.</p>
-            </div>
-            <HeroBand />
-            <div data-tilt><Relay /></div>
-          </div>
-        </section>
+      {!DEMO_SITE && <Welcome />}
+      <Reveal />
+      <LandingMotion />
 
-        {/* 2 · who already works with it */}
-        <section className="s6-partners" aria-label="Field partners">
-          <div className="s6-wrap s6-partners-in">
-            <span>Working with</span>
-            <ul>{partners.slice(0, 6).map((p) => <li key={p.name}>{p.name}<small>{p.city}</small></li>)}</ul>
-            <Link href="/customers" className="s6-textlink" style={{ marginLeft: "auto", fontSize: 14 }}>How each one works with us<ArrowRight size={14} aria-hidden /></Link>
-          </div>
-        </section>
-
-        {/* The product at work: the animated workspace, then the five use cases, each a full product screen. */}
-        <section className="s6-sec" aria-labelledby="s6-product-h" id="product">
-          <div className="s6-wrap">
-            <div className="s6-head" data-reveal style={{ marginInline: "auto", textAlign: "center", justifyItems: "center" }}><span className="s6-kicker">The product at work</span><h2 id="s6-product-h" className="s6-h2">A coordinator&apos;s morning, <span className="s6-grey">start to finish.</span></h2></div>
-          </div>
-          <div className="s4 s4-page s6-home s7-home s6-legacy">
-            <Reveal />
-            <LandingMotion />
-            <div className="s4-wrap s6-center">
-              <div className="s6-canvas">
-                <Blueprint tone="dark" />
-                <div className="s4-hero-stage s6-stage">
-                  <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" loop size={112} /></span>
-                  <HeroDemo />
-                </div>
-              </div>
-            </div>
-            <FiveSteps />
-            <Recurring />
-          </div>
-        </section>
-
-        {/* 4 · what we offer: the switchboard */}
-        <section className="s6-sec is-fill" id="offer" aria-labelledby="s6-offer-h">
-          <div className="s6-wrap">
-            <div className="s6-head" data-reveal><span className="s6-kicker">What we offer</span><h2 id="s6-offer-h" className="s6-h2">Switch on what your programme does. <span className="s6-grey">Leave the rest off.</span></h2></div>
-            <div data-reveal><Switchboard /></div>
-          </div>
-        </section>
-
-        {/* 5 · meet Kaju */}
-        <section className="s6-sec" id="kaju" aria-labelledby="s6-kaju-h">
-          <div className="s6-wrap s6-kaju">
-            <div data-reveal>
-              <span className="s6-kicker"><Sparkles size={14} aria-hidden style={{ marginLeft: -6 }} />Meet Kaju</span>
-              <h2 id="s6-kaju-h" className="s6-h2" style={{ margin: "16px 0" }}>Kaju prepares. <span className="s6-grey">People approve.</span></h2>
-              <p className="s6-lede">He finds what is missing and drafts the next piece of work. Nothing changes without a yes.</p>
-              <div className="s6-traits"><span className="s6-chip" data-tone="blue">Cites every source</span><span className="s6-chip">Works inside your permissions</span><span className="s6-chip">No access to patient records</span></div>
-              <Link href="/ai" className="s6-textlink" style={{ marginTop: 22 }}>Meet Kaju<ArrowRight size={15} aria-hidden /></Link>
-            </div>
-            <div data-reveal><KajuScene /></div>
-          </div>
-        </section>
-
-        {/* 6 · who it is for */}
-        <section className="s6-sec is-fill" id="roles" aria-labelledby="s6-roles-h">
-          <div className="s6-wrap">
-            <div className="s6-head" data-reveal><span className="s6-kicker">Who it&rsquo;s for</span><h2 id="s6-roles-h" className="s6-h2">One place. <span className="s6-grey">Every role sees its own work.</span></h2></div>
-            <div data-reveal><Roles /></div>
-          </div>
-        </section>
-
-        {/* 7 · proof, and what is not connected */}
-        <section className="s6-sec" id="trust" aria-labelledby="s6-trust-h">
-          <div className="s6-wrap">
-            <div className="s6-head" data-reveal><span className="s6-kicker">Proof</span><h2 id="s6-trust-h" className="s6-h2">Honest about what is live.</h2></div>
-            <div className="s6-proof">
-              <div className="s6-proof-nums">
-                {results.map((r) => <Link href={`/customers/${r.slug}`} key={r.org} data-reveal><span className="n"><span data-count={r.n}>{r.n.toLocaleString("en-IN")}</span></span><b style={{ color: "var(--ink)" }}>{r.label}</b><small>{r.org} · {r.city} · {r.rel}</small></Link>)}
-                <p data-reveal><Link href="/security" className="s6-textlink">Security and data governance<ArrowRight size={15} aria-hidden /></Link></p>
-              </div>
-              <div className="s6-status" data-reveal aria-label="What is live and what is not connected">
-                {STATUS.map(([a, b, c, tone]) => <div className="s6-status-row" key={a}><b>{a}</b><span>{b}</span><span className="s6-chip" data-tone={tone}>{c}</span></div>)}
-              </div>
+      {/* 1 · hero: the copy on clean paper, the product on a blueprint of a ward */}
+      <section className="s4-hero s6-hero s6-hero-tight" aria-labelledby="hero-title">
+        <div className="s4-wrap s6-center">
+          <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
+          <p className="s7-hero-sub">Every animal deserves a record. Kaju keeps it, from the first report to the monthly claim.</p>
+          <div className="s4-actions">{DEMO_SITE
+            ? <><Link href="/try?go=1" className="s4-btn is-primary">Start the live demo</Link><Link href="/try" className="s4-btn is-line">Explore as a role</Link></>
+            : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link>{LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s4-btn is-line">Try the live demo</a> : <Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link>}</>}</div>
+          <HeroScroll />
+          <div className="s6-canvas">
+            <Blueprint tone="dark" />
+            <div className="s4-hero-stage s6-stage">
+              {/* Kaju rests on the product window: the agent lives inside the work. */}
+              <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" loop size={112} /></span>
+              <HeroDemo />
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 9 · questions */}
-        <section className="s6-sec" id="questions" aria-labelledby="s6-faq-h">
-          <div className="s6-wrap s6-split">
-            <div className="s6-head" data-reveal><h2 id="s6-faq-h" className="s6-h2">Questions</h2><p className="s6-lede"><Link href="/contact" className="s6-textlink">Ask us anything else</Link></p></div>
-            <div className="s6-faq">{FAQ.map(([q, a]) => <details key={q}><summary>{q}<Plus size={20} aria-hidden /></summary><p>{a}</p></details>)}</div>
+      {/* 2 · field partners */}
+      <section className="s4-wrap s4-proof" aria-labelledby="proof-title">
+        <div className="s4-sechead" style={{ marginBottom: 40 }}>
+          <h2 id="proof-title" className="s4-h2">Animal-welfare teams working with StrayPaw</h2>
+          <Link href="/customers" className="s4-link is-ink">Hear from our partners <ArrowRight size={18} aria-hidden /></Link>
+        </div>
+        <div className="s4-wall s6-wall">
+          {partners.map((p) => {
+            const s = STORIES.find((x) => x.name === p.name);
+            const tint = TINTS[[...p.name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % TINTS.length];
+            const inner = <>{p.logo
+              ? <span className="s6-pt-logo"><img src={p.logo} alt={`${p.name} logo`} loading="lazy" decoding="async" /></span>
+              : <span className="s6-pt-logo s6-pt-word" aria-hidden><PawPrint size={22} /><b>{p.name}</b></span>}<span className="s6-pt-txt"><b>{p.name}</b><small><MapPin size={12} aria-hidden />{p.city}</small></span>{s && <span className="s4-cs">Case study <ArrowUpRight size={11} /></span>}</>;
+            return s ? <Link key={p.name} href={`/customers/${s.slug}`} aria-label={`${p.name} case study`}>{inner}</Link> : <div key={p.name}>{inner}</div>;
+          })}
+        </div>
+        {/* Phones: one calm moving row of partner logos instead of a long wall of uneven cards. */}
+        <div className="s7-pmarq" aria-label="Partner organisations">
+          <div className="s7-pmarq-track">
+            {[0, 1].map((copy) => partners.map((p) => (
+              <span key={`${copy}-${p.name}`} className="s7-pmarq-t" aria-hidden={copy === 1 || undefined}>
+                {p.logo
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={p.logo} alt={copy === 0 ? p.name : ""} loading="lazy" decoding="async" />
+                  : <span className="s7-pmarq-word"><PawPrint size={16} aria-hidden />{p.name}</span>}
+              </span>
+            )))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 10 · next step */}
-        <section className="s6-sec is-tight" aria-label="Get started">
-          <div className="s6-wrap">
-            <div className="s6-close" data-reveal>
-              <CloseThread />
-              <h2 className="s6-h2">Start with one programme.</h2>
-              <p className="s6-lede" style={{ color: "#b9c4d8" }}>We set it up with you. Your registers come with you.</p>
-              <div className="s6-hero-cta" style={{ justifyContent: "flex-start" }}>
-                <Link href={primary.href} className="s6-btn is-primary">{primary.label}<ArrowRight size={16} className="go" aria-hidden /></Link>
-                <Link href="/pricing" className="s6-btn is-line">See pricing</Link>
+      {/* 3 · use cases: the five steps, each a full product screen with what Kaju does in it */}
+      <FiveSteps />
+
+      {/* 4 · Kaju as a teammate */}
+      <Teammate />
+
+      {/* 5 · recurring work, with Kaju agents */}
+      <Recurring />
+
+      {/* 6 · integrations */}
+      <section className="s4-sec" aria-labelledby="int-title" id="integrations">
+        <div className="s4-wrap s4-int-wrap">
+          <div className="s4-int-head">
+            <h2 id="int-title" className="s4-h2"><TwoTone blue a="Kaju works with" b="the tools your team uses." /></h2>
+            <Link href="/platform#integrations" className="s4-link is-ink">Every integration and its status <ArrowRight size={18} aria-hidden /></Link>
+          </div>
+          <div className="s4-int s6-int-color" aria-label="Integrations and their status">
+            {INT_COLS.map((col, c) => (
+              <div key={c} className="s4-int-col">
+                {col.map((t) => <div key={t.n} className={`s4-int-t is-${t.s === "Live" ? "live" : t.s === "Setup pending" ? "setup" : "plan"}`} style={{ ["--ic" as string]: t.c }}><span className="s6-int-ic" aria-hidden>{t.i}</span><b>{t.n}</b><small><i className={t.s === "Live" ? "is-live" : t.s === "Not connected" ? "is-off" : t.s === "Setup pending" ? "is-setup" : ""} />{t.s}</small></div>)}
               </div>
-            </div>
+            ))}
           </div>
-        </section>
-      </main>
-      <SiteFooter />
-    </div>
+          <p className="s7-int-key" aria-hidden><span><i className="is-live" />Live</span><span><i className="is-setup" />Setup pending</span></p>
+        </div>
+      </section>
+
+      {/* 6b · Kaju inside each tool: one open, the others expand on hover */}
+      <ToolsAccordion />
+
+      {/* 7 · customer results: recorded figures, no quotes until a partner approves one in writing */}
+      <Results
+        stats={[
+          { n: story.results[0]?.n ?? 0, label: "rescue requests on one record, Coimbatore" },
+          { n: story.results[1]?.n ?? 0, label: "sterilisations in one drive register, Coimbatore" },
+          { n: kh.results[0]?.n ?? 0, label: "rescue and treatment requests, Lucknow" },
+        ]}
+        cards={partners.slice(0, 6).map((p, i) => {
+          // Partners with a case study first; quotes appear only once a partner approves one in writing.
+          const s = STORIES.find((x) => x.name === p.name);
+          return {
+            slug: s?.slug, name: p.name, city: p.city, logo: p.logo, color: TINTS[i % TINTS.length],
+            figure: s ? (s.results[0]?.n ?? 0).toLocaleString("en-IN") : undefined, figureLabel: s ? ` ${s.results[0]?.label}` : undefined,
+            line: s ? s.summary : `${p.name} works with StrayPaw in ${p.city}.`,
+            note: s ? "From imported historical registers, not work entered live in StrayPaw." : undefined,
+          };
+        })}
+      />
+
+      {/* 8 · security */}
+      <section className="s4-sec s6-security" id="security" aria-labelledby="sec-title">
+        <div className="s4-wrap">
+          <SecHead id="sec-title" title={<TwoTone a="Built for public money," b="with audit-ready controls" />} link={{ href: "/security", label: "Explore security" }} />
+          <AuditTrail />
+        </div>
+      </section>
+
+      {/* 9 · put Kaju to work, then common questions */}
+      <CloseAndQuestions faq={FAQ} />
+
+    </S4Page>
   );
 }
+
+/* Integrations as they really stand (docs/CONNECTIONS.md). Providers use plain letter marks in their own colour, not
+   their logos. "Setup pending": built and tested, waiting for the administrator's OAuth keys. "Planned": not built yet.
+   Nothing here is shown as live before it is. */
+const TINTS = ["#1e3a6e", "#2f4a63", "#2c4f8f", "#3b4a5e", "#25507a", "#344868"];
+type IntTile = { n: string; s: "Live" | "Setup pending" | "Not connected" | "Planned"; c: string; i: ReactNode };
+/* Real brand marks for the tools Kaju connects to (gilbarbara/logos, CC0); generic tools keep an icon. */
+// eslint-disable-next-line @next/next/no-img-element
+const Logo = ({ src }: { src: string }) => <img className="s4-int-logo" src={`/brand/tools/${src}.svg`} alt="" width={34} height={34} />;
+const INT_COLS: IntTile[][] = [
+  [{ n: "Google Workspace", s: "Setup pending", c: "#1a73e8", i: <Logo src="google-icon" /> }, { n: "Excel & CSV", s: "Live", c: "#1f8a52", i: <Logo src="excel" /> }, { n: "Email", s: "Live", c: "#2457ce", i: <Logo src="google-gmail" /> }],
+  [{ n: "Microsoft 365", s: "Setup pending", c: "#0f6cbd", i: <Logo src="microsoft-icon" /> }, { n: "Slack", s: "Setup pending", c: "#4a154b", i: <Logo src="slack-icon" /> }, { n: "Phone field mode", s: "Live", c: "#2457ce", i: <Smartphone /> }],
+  [{ n: "Zoho Mail", s: "Setup pending", c: "#c8202f", i: <Logo src="zoho" /> }, { n: "Photos & GPS", s: "Live", c: "#6b4fd8", i: <Camera /> }],
+  [{ n: "SMS (MSG91)", s: "Setup pending", c: "#b4590f", i: <MessageSquareText /> }, { n: "Government e-Office", s: "Planned", c: "#5b6b8c", i: <Landmark /> }],
+  [{ n: "WhatsApp (direct)", s: "Not connected", c: "#1f9d55", i: <Logo src="whatsapp-icon" /> }, { n: "WhatsApp paste intake", s: "Live", c: "#1f9d55", i: <Logo src="whatsapp-icon" /> }, { n: "Map exports", s: "Live", c: "#0f7b8a", i: <MapPin /> }],
+  [{ n: "PDF · Word · PowerPoint", s: "Live", c: "#c2532d", i: <FileText /> }, { n: "Reviewer access", s: "Live", c: "#0f7b8a", i: <UserCheck /> }],
+  [{ n: "Record search", s: "Live", c: "#2457ce", i: <ScanSearch /> }, { n: "Report packages", s: "Live", c: "#6b4fd8", i: <ClipboardList /> }],
+];

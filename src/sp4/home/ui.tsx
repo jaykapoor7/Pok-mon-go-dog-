@@ -339,14 +339,21 @@ export function AiToolsUi({ active, org = "Kaju · Ward 14 ABC Unit" }: { active
 }
 
 /* ── a compact app window for inner-page heroes ──────────────────── */
-export function MiniWindow({ title, active = 0, children, label }: { title: string; active?: number; children: ReactNode; label: string }) {
-  const mods: [string, string][] = [["Intake", "flame"], ["Animals", "blue"], ["Treatment", "teal"], ["Evidence", "amber"], ["Review", "violet"], ["Reports", "green"]];
+const MINI_MODS: [string, string][] = [["Intake", "flame"], ["Animals", "blue"], ["Treatment", "teal"], ["Evidence", "amber"], ["Review", "violet"], ["Reports", "green"]];
+/** Other places in a programme have their own short sidebar: a clinic, a laboratory, a programme cell. */
+export const PLACE_NAV = {
+  clinic: { org: "Anti-rabies clinic", mark: "A", mods: [["Today", "blue"], ["Bite register", "flame"], ["Record a bite", "teal"], ["Services", "green"]] as [string, string][] },
+  lab: { org: "Reference laboratory", mark: "R", mods: [["Samples", "violet"], ["Results", "flame"], ["Requests", "blue"]] as [string, string][] },
+  cell: { org: "Programme cell", mark: "P", mods: [["Overview", "blue"], ["Care network", "green"], ["Requests", "amber"], ["Coverage", "teal"], ["Report", "violet"]] as [string, string][] },
+};
+export function MiniWindow({ title, active = 0, children, label, place }: { title: string; active?: number; children: ReactNode; label: string; place?: keyof typeof PLACE_NAV }) {
+  const mods = place ? PLACE_NAV[place].mods : MINI_MODS, org = place ? PLACE_NAV[place].org : "Ward 14 ABC Unit", mark = place ? PLACE_NAV[place].mark : "W";
   return (
     <div className="s4u-mini" role="group" aria-label={`Product demo: ${label}`}>
       <div className="s4u-mini-bar" aria-hidden><i /><i /><i /><span>{title}</span></div>
       <div className="s4u-mini-body">
         <aside aria-hidden>
-          <div className="s4u-org"><span className="s4u-orgmark">W</span><b>Ward 14 ABC Unit</b></div>
+          <div className="s4u-org"><span className="s4u-orgmark">{mark}</span><b>{org}</b></div>
           <ul className="s4u-nav">{mods.map(([l, c], n) => <li key={l} className={n === active ? "is-on" : ""}><span className={`s4u-sq c-${c}`} />{l}</li>)}</ul>
         </aside>
         <div className="s4u-mini-main">{children}</div>
@@ -381,6 +388,16 @@ export function QueueUi({ v = 0 }: { v?: number }) {
   return (
     <div className="s4u-pg">
       <div className="s4u-pg-head"><div><b>Today</b><small>{rows.length} things need someone</small></div><span className="s4u-btn is-line">Assign</span></div>
+      <ul className="s4u-q-list">{rows.map(([a, b, c, t]) => <li key={a}><span><b>{a}</b><small>{b}</small></span><span className={`s4-tag is-${t}`}>{c}</span></li>)}</ul>
+    </div>
+  );
+}
+
+/** A titled list in the product's own page chrome, for screens the fixed variants do not cover. Illustrative rows. */
+export function ListUi({ title, sub, action, rows }: { title: string; sub: string; action?: string; rows: [string, string, string, string][] }) {
+  return (
+    <div className="s4u-pg">
+      <div className="s4u-pg-head"><div><b>{title}</b><small>{sub}</small></div>{action ? <span className="s4u-btn is-line">{action}</span> : null}</div>
       <ul className="s4u-q-list">{rows.map(([a, b, c, t]) => <li key={a}><span><b>{a}</b><small>{b}</small></span><span className={`s4-tag is-${t}`}>{c}</span></li>)}</ul>
     </div>
   );

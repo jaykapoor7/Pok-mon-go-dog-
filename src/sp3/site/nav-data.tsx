@@ -75,6 +75,7 @@ export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
     { title: "By organisation", links: [
       { href: "/for-ngos", label: "NGOs & ABC operators", hint: "Run funded programmes and prove the work" },
       { href: "/for-governments", label: "Municipal corporations", hint: "Review claims animal by animal" },
+      { href: "/for-hospitals", label: "Hospitals & laboratories", hint: "Bite register, doses and results" },
       { href: "/for-funders", label: "Funders & CSR", hint: "See what your grant achieved" },
       { href: "/solutions/rescue-care", label: "Rescue & community groups", hint: "Requests, treatment and outcomes" },
     ] },

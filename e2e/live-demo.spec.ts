@@ -15,7 +15,7 @@ test("a non-demo build points /try at the demo site and keeps Book a demo", asyn
   await expect(page.getByRole("heading", { name: "The live demo runs on its own site" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Open the live demo" })).toHaveAttribute("href", "https://demo.straypaw.org/try?go=1");
   await page.goto("/");
-  await expect(page.locator(".s6-hero").getByRole("link", { name: "Book a demo" })).toBeVisible();
-  await expect(page.locator(".s6-hero").getByRole("link", { name: "Start the live demo" })).toHaveCount(0);
+  await expect(page.locator(".s4-hero").getByRole("link", { name: "Book a demo" })).toBeVisible();
+  await expect(page.locator(".s4-hero").getByRole("link", { name: "Start the live demo" })).toHaveCount(0);
   await expect(page.locator(".dt, .dt-pill")).toHaveCount(0);
 });

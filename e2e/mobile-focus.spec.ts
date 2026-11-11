@@ -14,10 +14,20 @@ async function scrollThrough(page: Page, selector: string, f: number) {
   await page.waitForTimeout(250);
 }
 
+test("landing closes with one primary action, one demo link in the page, and the site index", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("main .s4-close")).toHaveCount(1);
+  await expect(page.locator("main .s4-close .is-primary")).toHaveCount(1);
+  await expect(page.locator("main .s4-close .is-primary")).toHaveText("Explore the platform");
+  await expect(page.locator("main a").filter({ hasText: /^Book a demo$/ })).toHaveCount(1);
+  const end = page.getByRole("contentinfo");
+  for (const col of ["Product", "Solutions", "Resources", "Company"]) await expect(end.getByRole("heading", { name: col, exact: true })).toHaveCount(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+});
+
 test("the hero demo is labelled, plays its story with the phone, and can be paused", async ({ page }) => {
   await page.goto("/");
   const demo = page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ });
-  await demo.scrollIntoViewIfNeeded(); /* the demo plays once it is on screen */
   await expect(demo).toBeVisible();
   await expect(demo).toContainText("Product demo · illustrative records");
   await expect(demo).toContainText("WhatsApp not connected");
@@ -52,6 +62,18 @@ test("only a verified dual-role member gets a workspace switcher", async ({ page
     await page.goto(path);
     await expect(page.locator(".sx3-ws-btn:visible, .sp-ws-btn:visible")).toHaveCount(0);
   }
+});
+
+test("phone menu: grouped places, one demo action, one sign in", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open menu", exact: true }).click();
+  const sheet = page.locator("#s4-sheet");
+  await expect(sheet.getByRole("link", { name: "Book a demo" })).toHaveCount(1);
+  await expect(sheet.getByRole("link", { name: "Sign in" })).toHaveCount(1);
+  await expect(sheet.locator("details > summary")).toHaveCount(3);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Open menu", exact: true })).toHaveAttribute("aria-expanded", "false");
 });
 
 test("signed-out NGO page shows what the workspace includes at every width", async ({ page }) => {
