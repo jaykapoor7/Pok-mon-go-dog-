@@ -7,6 +7,8 @@ import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 const TYPES: Record<string, string> = {
   demo: "Product demo for an ABC operator or NGO",
   pilot: "Pilot on one programme (operator or government)",
+  programme: "City or state programme with several institutions",
+  research: "Research or evaluation access",
   ngo: "Workspace for a rescue or welfare group",
   careos: "WhatsApp field intake pilot list",
   funder: "Something else",

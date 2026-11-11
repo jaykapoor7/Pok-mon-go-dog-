@@ -65,9 +65,9 @@ test("the field-intake story is labelled and points to working web reporting", a
   await expect(main.getByText("Not connected", { exact: true }).first()).toBeVisible();
   await expect(main.getByRole("link", { name: "web report form" })).toHaveAttribute("href", "/community/report");
   await page.goto("/");
-  const workflow=page.getByRole("link", { name: /Watch Kaju build a claim/ }).first();
-  await expect(workflow).toHaveAttribute("href", "#workflow");
-  await workflow.click();await expect(page.locator("#workflow")).toBeInViewport();
+  const workflow=page.getByRole("link", { name: /See the product at work/ }).first();
+  await expect(workflow).toHaveAttribute("href", "#product");
+  await workflow.click();await expect(page.locator("#product")).toBeInViewport();
 });
 
 test("solutions: every solution has its own page", async ({ page }) => {

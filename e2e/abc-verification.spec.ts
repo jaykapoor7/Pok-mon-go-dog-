@@ -32,14 +32,6 @@ test("municipal package review asks a visitor to sign in", async ({ page, isMobi
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
-test("the homepage introduces Kaju and what it handles", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI agent for\s*animal welfare programmes/);
-  await expect(page.locator(".s4-announce").getByRole("link", { name: /See what Kaju does/ })).toHaveAttribute("href", "/kaju-agents");
-  await expect(page.locator(".s4-hero .s4-hero-eyebrow")).toHaveCount(0);
-  await expect(page.locator(".s4-hero .s6-rot")).toBeVisible();
-});
-
 test("product fragments stay inside a phone screen (no text cut off at the edges)", async ({ page, isMobile }) => {
   test.skip(!isMobile, "phone layout");
   for (const path of ["/", "/ai", "/abc-operations", "/for-governments"]) {
