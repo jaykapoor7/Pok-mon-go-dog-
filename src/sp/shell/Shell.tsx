@@ -25,7 +25,7 @@ import {
   LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
   ListChecks, LayoutGrid, Settings, ClipboardCheck, ArrowLeft, Stethoscope, FlaskConical, Gauge, ArrowRightLeft, Syringe, PlusCircle,
 } from "lucide-react";
-import { PlacesProvider, usePlaces, placeFor, placeNav, placeAction, placeHome, lastPlace, rememberPlace, type PlaceLink } from "@/oh/places";
+import { PlacesProvider, usePlaces, placeFor, placeNav, placeAction, placeHome, placeLines, lastPlace, rememberPlace, type PlaceLink } from "@/oh/places";
 import { KIND_LABEL, ROLE_LABEL } from "@/oh/data";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
@@ -139,16 +139,21 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const ngoPlace = mem.org ? pl.places.find((p) => p.kind === "ngo" && p.ngo_id === mem.org!.id) : undefined;
   const cityPlace = mem.reviewer ? pl.places.find((p) => p.kind === "municipal") : undefined;
   let def = base;
+  /* The member's own NGO, seen through its programme pages: the same workspace, so the same menu and index. */
+  const ownNgoPlace = ws === "health" && place?.kind === "ngo" && !!mem.org && place.ngo_id === mem.org.id;
   const designed = designedNav(ws, mem.role, mem.reviewer);
   let nav: NavRow[] = visibleNav(designed ?? base.nav, mem.role, mem.reviewer);
   if (ws === "health") {
-    const links: PlaceLink[] = place ? placeNav(place, progSlug) : [{ href: "/today", label: "Today", short: "Today", icon: "home", exact: true, mobile: true }];
+    /* On Today across every place, the menu is the places themselves, each with what is waiting there. */
+    const KIND_ICON: Record<string, string> = { hospital: "stethoscope", clinic: "stethoscope", laboratory: "flask", ngo: "paw", municipal: "landmark", state: "landmark", coordinator: "gauge", research: "activity" };
+    const links: PlaceLink[] = place ? placeNav(place, progSlug) : [{ href: "/today", label: "Today", short: "Today", icon: "home", exact: true, mobile: true },
+      ...pl.places.map((p): PlaceLink => { const lines = placeLines(p), waiting = lines.reduce((n, l) => n + l.n, 0); return { href: placeHome(p), label: p.short_name ?? p.name, icon: KIND_ICON[p.kind] ?? "building", section: "Your places", count: waiting || null, tone: lines.some((l) => l.tone === "flame") ? "flame" : "blue" }; })];
     const items = placeRows(links).map((r) => r.item);
     def = { ...base, label: place ? (place.short_name ?? place.name) : "Today", home: place ? placeHome(place) : "/today", action: place ? placeAction(place) : null,
       nav: items, dests: links.filter((l) => l.mobile).slice(0, 4).map((l) => ({ href: l.href, label: l.label, short: l.short, icon: l.icon, exact: l.exact })) };
     nav = placeRows(links);
     /* The organisation's own menu does not change when you step into its programme pages. */
-    const own = place?.kind === "ngo" && mem.org && place.ngo_id === mem.org.id ? designedNav("ngo", mem.role, mem.reviewer) : null;
+    const own = ownNgoPlace ? designedNav("ngo", mem.role, mem.reviewer) : null;
     if (own) nav = [...visibleNav(own, mem.role, mem.reviewer), ...placeRows(links.filter((l) => l.section === "Programme"))];
   } else if (ws === "ngo" && ngoPlace) {
     nav = [...nav, ...placeRows(placeNav(ngoPlace).filter((l) => l.section === "Programme"))];
@@ -229,6 +234,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const sideHrefs = new Set(nav.map((r) => r.item.href));
   const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
+  /* The Pipeline's views share one breadcrumb: NGO / Pipeline / the view. */
+  const pipeView = ws === "ngo" ? PIPELINE_VIEWS.find((v) => v.href === path) : undefined;
 
   return (
     <Membership.Provider value={mem}>
@@ -248,7 +255,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </Suspense>
             <div className="dk-foot">
               {/* Everything else in this workspace is one organised index, not a list of features under "More". */}
-              {ws !== "health" ? <button type="button" className="rl-all" onClick={() => { setBrowse(true); setFind(true); }}><LayoutGrid size={15} aria-hidden /><span>All sections</span></button> : <span className="rl-all is-empty" aria-hidden />}
+              {ws !== "health" || ownNgoPlace ? <button type="button" className="rl-all" onClick={() => { setBrowse(true); setFind(true); }}><LayoutGrid size={15} aria-hidden /><span>All sections</span></button> : <span className="rl-all is-empty" aria-hidden />}
               <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Keep the menu open" : "Tuck the menu away"}>{collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}</button>
             </div>
           </div>
@@ -299,8 +306,10 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             {!atHome && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
+              {pipeView ? <>{pipeView.href !== "/ngo/pipeline" && <><span aria-hidden>/</span><Link href="/ngo/pipeline">Pipeline</Link></>}<span aria-hidden>/</span><span aria-current="page">{pipeView.href === "/ngo/pipeline" ? "Pipeline" : pipeView.label}</span></> : <>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
               {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? (here as Destination).group : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
+              </>}
               {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
             </nav>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
@@ -334,7 +343,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         <Notices />
         <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} entries={entries} nav={ws === "health" ? def.nav : undefined} label={def.label} />
-        <Finder pages={findPages} browse={browse} open={find} onClose={() => { setBrowse(false); closeFind(); }} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
+        <Finder pages={findPages} browse={browse} open={find} onClose={() => { setBrowse(false); closeFind(); }} ws={ownNgoPlace ? "ngo" : ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
     </Membership.Provider>

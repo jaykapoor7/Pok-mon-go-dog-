@@ -1,6 +1,7 @@
 /* NGO · Pipeline: one board, five stages, left to right. */
 .pl { --pl-ink: #0f1524; --pl-mute: #6b7486; --pl-line: #e6e9ef; width: min(var(--max, 1280px), 100% - 2 * var(--gut, 24px)); margin-inline: auto; padding: 22px 0 40px; }
 .pl-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.pl-head .btn { flex: none; white-space: nowrap; }
 .sp.sx3 .sp-main h1.pl-title { margin: 0; font-size: 24px !important; font-weight: 600 !important; letter-spacing: -.025em !important; color: var(--pl-ink); }
 .pl-sum { margin: 4px 0 0; color: var(--pl-mute); font-size: 14px; }
 .pl-sum b { color: var(--pl-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -59,6 +60,7 @@
 }
 @media (max-width: 860px) {
   .pl { padding-top: 16px; }
+  .pl-head .btn { display: none; }
   .pl-board { grid-template-columns: repeat(5, 78vw); }
 }
 @media (prefers-reduced-motion: reduce) { .pl-col, .pl-card, .pl-skel { animation: none; } .pl-card, .pl-all svg { transition: none; } }

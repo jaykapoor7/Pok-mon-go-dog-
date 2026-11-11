@@ -160,6 +160,18 @@
 /* a calm sheet: no light that follows the pointer, no drifting washes */
 @media (min-width: 861px) { .sp.sx3.os.dk .sp-main { background-image: none !important; } }
 
+/* one page title everywhere: the same size and weight on every screen behind the menu (Today keeps its greeting) */
+.sp.sx3.os.dk .sp-main h1:not(.br-hello) { font-size: 24px !important; line-height: 1.2 !important; font-weight: 600 !important; letter-spacing: -.025em !important; }
+@media (max-width: 860px) { .sp.sx3.os.dk .sp-main h1:not(.br-hello) { font-size: 22px !important; } }
+
+/* the bar draws a line under itself once the sheet has scrolled beneath it */
+@media (min-width: 861px) {
+  @supports (animation-timeline: scroll()) {
+    .sp.sx3.os.dk .sp-bar.sx3-top { animation: dk-bar linear both; animation-timeline: scroll(root); animation-range: 0 48px; }
+  }
+}
+@keyframes dk-bar { to { box-shadow: 0 1px 0 #dde1e8, 0 10px 18px -14px rgba(15, 21, 36, .22); } }
+
 /* views of a page: plain words, one ink underline that slides in */
 @media (min-width: 861px) {
   .sp.sx3.os.dk .sx3-tabs { gap: 2px; padding: 10px 0 0; border-bottom: 1px solid #eceef3; }
