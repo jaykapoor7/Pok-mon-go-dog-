@@ -28,7 +28,10 @@ Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, mot
 | Landing: new positioning, relay hero, roles, the loop (scroll-linked), capabilities, Kaju, trust + honest status table, results, questions, close | Done |
 | Kept by request: animated product demo window, Use cases (pinned five steps), recurring work with Kaju | Done |
 | Sign-in: split layout, thread panel (`enter6.css`) | Done |
-| Linked pages (21 on the earlier kit) share column, buttons, type | Harmonised; page-by-page rewrite pending |
+| Rewritten on the new kit (`src/site6/kit.tsx`): Platform, Pricing, For governments, For NGOs | Done |
+| Hero art: city plan behind the words; the thread sits between the copy and the relay, one node over each lane | Done |
+| Demo request page and form: One Health programme and research request types | Done |
+| Other linked pages (earlier kit) share column, buttons, type | Harmonised; rewrite page by page continues in Batch 2 |
 | Tests updated, full suite, CI, merge, production verified | Pending |
 
 Decisions: positioning moved from "AI agent for animal welfare" to "one record for animal health and One Health programmes"; status table on the homepage states what is live, in rollout and not connected; no invented metrics.

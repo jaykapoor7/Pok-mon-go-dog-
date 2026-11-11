@@ -9,6 +9,7 @@ import { DEMO_SITE, LIVE_DEMO_PUBLIC, LIVE_DEMO_URL } from "@/lib/demo-site";
 import { Relay } from "@/site6/Relay";
 import { Roles } from "@/site6/Roles";
 import { SiteMotion } from "@/site6/Motion";
+import { CloseThread, HeroBand, HeroThread } from "@/site6/Thread";
 import { HeroDemo } from "@/sp4/home/HeroDemo";
 import { Blueprint } from "@/sp4/home/Blueprint";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
@@ -88,7 +89,8 @@ export default function Home() {
       <SiteHeader />
       <main id="main">
         {/* 1 · hero */}
-        <section className="s6-hero" aria-labelledby="s6-h1">
+        <section className="s6-hero" aria-labelledby="s6-h1" data-spot>
+          <HeroThread />
           <div className="s6-wrap">
             <div className="s6-hero-copy">
               <Link href={DEMO_SITE ? "/today" : "/platform"} className="s6-announce"><b>New</b><span>{DEMO_SITE ? "You are on the demonstration: every record is illustrative" : "Hospitals, laboratories and programme cells now work in StrayPaw"}</span><i aria-hidden><ArrowRight size={13} /></i></Link>
@@ -96,11 +98,12 @@ export default function Home() {
               <p className="s6-lede">StrayPaw is the operating platform for animal health and One Health programmes. Municipalities, NGOs, hospitals and laboratories each do their own work; the record connects it.</p>
               <div className="s6-hero-cta">
                 <Link href={primary.href} className="s6-btn is-primary">{primary.label}<ArrowRight size={16} className="go" aria-hidden /></Link>
-                {DEMO_SITE ? <Link href="/today" className="s6-btn is-line">Choose a role</Link> : LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s6-btn is-line">Try the live demo</a> : <Link href="#loop" className="s6-btn is-line">See how it connects</Link>}
+                {DEMO_SITE ? <Link href="/today" className="s6-btn is-line">Choose a role</Link> : LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s6-btn is-line">Try the live demo</a> : <Link href="#product" className="s6-btn is-line">See the product at work</Link>}
               </div>
               <p className="s6-hero-note">Built with field teams in Coimbatore and Chennai. Designed around a city-wide rabies elimination programme.</p>
             </div>
-            <Relay />
+            <HeroBand />
+            <div data-tilt><Relay /></div>
           </div>
         </section>
 
@@ -114,7 +117,7 @@ export default function Home() {
         </section>
 
         {/* The product at work: the animated workspace, then the five use cases, each a full product screen. */}
-        <section className="s6-sec" aria-labelledby="s6-product-h" id="workflow">
+        <section className="s6-sec" aria-labelledby="s6-product-h" id="product">
           <div className="s6-wrap">
             <div className="s6-head" data-reveal style={{ marginInline: "auto", textAlign: "center", justifyItems: "center" }}><span className="s6-kicker">The product at work</span><h2 id="s6-product-h" className="s6-h2">A coordinator&apos;s morning, <span className="s6-grey">start to finish.</span></h2></div>
           </div>
@@ -188,7 +191,7 @@ export default function Home() {
         </section>
 
         {/* 7 · trust */}
-        <section className="s6-sec" aria-labelledby="s6-trust-h">
+        <section className="s6-sec" id="trust" aria-labelledby="s6-trust-h">
           <div className="s6-wrap">
             <div className="s6-head" data-reveal><span className="s6-kicker">Trust</span><h2 id="s6-trust-h" className="s6-h2">Built for institutions that answer for their records.</h2></div>
             <div className="s6-trust m-stagger">
@@ -209,14 +212,14 @@ export default function Home() {
             <div className="s6-wrap">
               <div className="s6-head" data-reveal><span className="s6-kicker">On the record</span><h2 id="s6-res-h" className="s6-h2">Figures from partner registers, with their source.</h2></div>
               <div className="s6-results m-stagger">
-                {results.map((r) => <Link href={`/customers/${r.slug}`} className="s6-result" key={r.org} data-reveal><span className="s6-chip">{r.rel}</span><p className="big s6-num">{r.n.toLocaleString("en-IN")}<small>{r.label}. {r.note}.</small></p><b style={{ color: "var(--ink)" }}>{r.org} · {r.city}</b></Link>)}
+                {results.map((r) => <Link href={`/customers/${r.slug}`} className="s6-result" key={r.org} data-reveal><span className="s6-chip">{r.rel}</span><p className="big s6-num"><span data-count={r.n}>{r.n.toLocaleString("en-IN")}</span><small>{r.label}. {r.note}.</small></p><b style={{ color: "var(--ink)" }}>{r.org} · {r.city}</b></Link>)}
               </div>
             </div>
           </section>
         ) : null}
 
         {/* 9 · questions */}
-        <section className="s6-sec" aria-labelledby="s6-faq-h">
+        <section className="s6-sec" id="questions" aria-labelledby="s6-faq-h">
           <div className="s6-wrap s6-split">
             <div className="s6-head" data-reveal><h2 id="s6-faq-h" className="s6-h2">Questions</h2><p className="s6-lede">Short, direct answers. <Link href="/contact" className="s6-textlink">Ask us anything else</Link></p></div>
             <div className="s6-faq">{FAQ.map(([q, a]) => <details key={q}><summary>{q}<Plus size={20} aria-hidden /></summary><p>{a}</p></details>)}</div>
@@ -227,6 +230,7 @@ export default function Home() {
         <section className="s6-sec is-tight" aria-label="Get started">
           <div className="s6-wrap">
             <div className="s6-close" data-reveal>
+              <CloseThread />
               <h2 className="s6-h2">Start with one programme and a few areas.</h2>
               <p className="s6-lede" style={{ color: "#b9c4d8" }}>We set it up with you: partners, areas, roles and the modules you need. Your existing registers come with you.</p>
               <div className="s6-hero-cta" style={{ justifyContent: "flex-start" }}>

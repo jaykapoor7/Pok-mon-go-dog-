@@ -1,45 +1,51 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
-import { Faq, PageHead, S4Page } from "@/sp4/site/kit";
-import { Rise } from "@/sp4/site/Rise";
-import "@/sp4/home/home4.css";
+import { Check, Plus } from "lucide-react";
+import { Hero6, Page6 } from "@/site6/kit";
 
-export const metadata = { title: "Pricing · StrayPaw", description: "StrayPaw is free to start for rescue and welfare groups. Funded ABC and anti-rabies programmes are priced per programme, agreed in writing." };
+export const metadata = { title: "Pricing · StrayPaw", description: "StrayPaw is free to start for rescue and welfare groups. Funded programmes, municipal offices and multi-institution One Health programmes are priced per programme, agreed in writing." };
 
-const PLANS: { name: string; who: string; price: string; cta: { href: string; label: string }; primary?: boolean; items: string[] }[] = [
+const PLANS: { name: string; who: string; price: string; cta: { href: string; label: string }; on?: boolean; items: string[] }[] = [
   { name: "Community", who: "Small rescue, feeding and welfare groups", price: "Free to start", cta: { href: "/sign-in?as=org", label: "Get started" },
     items: ["Cases, follow-ups and the animal register", "Community reports in one inbox", "Phone field mode", "Register import from Excel or CSV"] },
-  { name: "Operator", who: "Funded ABC operators and NGOs", price: "Scoped per programme", cta: { href: "/demo", label: "Book a demo" }, primary: true,
+  { name: "Operator", who: "Funded ABC operators and NGOs", price: "Per programme", cta: { href: "/demo", label: "Book a demo" }, on: true,
     items: ["Everything in Community", "ABC capture, treatment and release on one record", "Evidence checks and duplicate review", "Report packages in PDF and XLSX", "Kaju with confirmed writes", "Onboarding, import and team training"] },
-  { name: "Government", who: "Municipal offices that fund ABC programmes", price: "Pilot with an operator you fund", cta: { href: "/demo?type=pilot", label: "Request a government demo" },
+  { name: "Government", who: "Municipal offices that fund ABC and vaccination", price: "Pilot with an operator you fund", cta: { href: "/demo?type=pilot", label: "Request a government demo" },
     items: ["Read-only review of submitted packages", "Queries and acceptance on the record", "Programme and ward reporting", "Procurement on your department's terms"] },
+  { name: "Programme", who: "City and state One Health programmes with several institutions", price: "Scoped with the programme", cta: { href: "/demo?type=programme", label: "Talk to us" },
+    items: ["Everything in Government", "Hospitals, health centres and laboratories as partners", "Bite care and PEP tracking, care network, alerts", "Coverage, programme report and research extract", "State oversight across city programmes"] },
+];
+const FAQ: [string, string][] = [
+  ["Why is there no price list?", "Pricing is agreed per programme. Every programme differs in areas, partners, team size, registers to import and reporting. We scope it with you and agree the price in writing before any work begins."],
+  ["Is there a free plan?", "Yes. Any rescue, feeding or welfare group can register online and start at once. Reporting an animal and the public map are free for everyone, with no account."],
+  ["Do hospitals and laboratories pay separately?", "No. Institutions join a programme as partners; the programme is what is priced. A hospital that works in two programmes is not charged twice."],
+  ["How does a municipal office buy it?", "Usually as a pilot alongside an operator it already funds, on the department's own procurement terms. We do not claim compliance with a tender we have not read."],
+  ["Can we leave?", "Yes. Registers, evidence and reports export to XLSX, CSV and PDF at any time."],
 ];
 
 export default function PricingPage() {
   return (
-    <S4Page>
-      <PageHead title="Pricing that fits the programme" lede="Register your organisation and start today, free. Funded programmes are priced per programme and agreed in writing before work begins." />
-      <section className="s4-wrap s4-sec" style={{ paddingTop: 72 }} aria-label="Plans">
-        <div className="s4-plans">
-          {PLANS.map((p, i) => (
-            <Rise key={p.name} className={`s4-plan${p.primary ? " is-primary" : ""}`} delay={i * 60}>
-              <p className="s4-plan-name">{p.name}</p>
-              <p className="s4-plan-who">{p.who}</p>
-              <p className="s4-plan-price">{p.price}</p>
-              <Link href={p.cta.href} className={`s4-btn ${p.primary ? "is-primary" : "is-line"}`}>{p.cta.label}</Link>
-              <ul>{p.items.map((x) => <li key={x}><Check size={16} aria-hidden />{x}</li>)}</ul>
-            </Rise>
-          ))}
+    <Page6>
+      <Hero6 kicker="Pricing" title="Pricing that fits the programme." lede="Register your organisation and start today, free. Funded programmes are priced per programme and agreed in writing before work begins." actions={<></>} />
+      <section className="s6-sec is-tight" aria-label="Plans" style={{ paddingTop: 0 }}>
+        <div className="s6-wrap">
+          <div className="s6-plans m-stagger">
+            {PLANS.map((p) => (
+              <div key={p.name} className={`s6-plan${p.on ? " is-on" : ""}`} data-reveal>
+                <h3>{p.name}</h3><p className="who">{p.who}</p><p className="price">{p.price}</p>
+                <Link href={p.cta.href} className={`s6-btn ${p.on ? "is-primary" : "is-line"}`}>{p.cta.label}</Link>
+                <ul>{p.items.map((x) => <li key={x}><Check size={15} aria-hidden /><span>{x}</span></li>)}</ul>
+              </div>
+            ))}
+          </div>
+          <p style={{ marginTop: 22, color: "var(--mute)", fontSize: 14.5 }}>WhatsApp and SMS are not connected yet and are not part of any plan until they are. Prices are agreed per programme, so none are listed here.</p>
         </div>
-        <p className="s4-small" style={{ marginTop: 24 }}>WhatsApp field intake is not connected yet and is not part of any plan until it is. Prices are agreed per programme, so none are listed here.</p>
       </section>
-      <Faq title="FAQs" items={[
-        ["Why is there no price list?", "Every programme differs in wards, team size, registers to import and reporting. We scope a programme with you and agree the price in writing before any work begins."],
-        ["Is there a free plan?", "Yes. Any rescue, feeding or welfare group can register online and start at once: cases, follow-ups, the animal register, field mode and register import. Reporting an animal and the public map are free for everyone, with no account."],
-        ["Do we need to talk to you first?", "No. Enter your email, register your organisation and your workspace opens. We verify your organisation's details before public cases and fundraising switch on. Talk to us when you run a funded programme."],
-        ["How does a municipal office buy it?", "Usually as a pilot alongside an operator it already funds, on the department's own procurement terms. We do not claim compliance with a tender we have not read."],
-        ["Can we leave?", "Yes. Registers, evidence and reports export to XLSX, CSV and PDF at any time."],
-      ]} />
-    </S4Page>
+      <section className="s6-sec" id="questions" aria-labelledby="pq-h">
+        <div className="s6-wrap s6-split">
+          <div className="s6-head" data-reveal><h2 id="pq-h" className="s6-h2">Questions</h2></div>
+          <div className="s6-faq">{FAQ.map(([q, a]) => <details key={q}><summary>{q}<Plus size={20} aria-hidden /></summary><p>{a}</p></details>)}</div>
+        </div>
+      </section>
+    </Page6>
   );
 }

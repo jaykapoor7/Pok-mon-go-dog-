@@ -22,6 +22,13 @@ export function SiteMotion() {
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
+        /* Page progress for the thread under the navigation; tilt for the relay. */
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        root.style.setProperty("--s6-scroll", (max > 0 ? window.scrollY / max : 0).toFixed(4));
+        for (const el of document.querySelectorAll<HTMLElement>(".s6 [data-tilt]")) {
+          const r = el.getBoundingClientRect();
+          el.style.setProperty("--t", Math.min(1, Math.max(0, (window.innerHeight - r.top) / (window.innerHeight * 0.75))).toFixed(3));
+        }
         for (const t of tracks) {
           const r = t.getBoundingClientRect();
           const p = Math.min(1, Math.max(0, (window.innerHeight * 0.62 - r.top) / Math.max(1, r.height)));
@@ -31,10 +38,25 @@ export function SiteMotion() {
         }
       });
     };
+    /* Figures travel to their value when first revealed. */
+    const counts = [...document.querySelectorAll<HTMLElement>(".s6 [data-count]")];
+    const cio = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) {
+        const el = e.target as HTMLElement, to = Number(el.dataset.count), t0 = performance.now();
+        cio.unobserve(el);
+        const tick = (t: number) => { const k = Math.min(1, (t - t0) / 1100), v = Math.round(to * (1 - Math.pow(1 - k, 4))); el.textContent = v.toLocaleString("en-IN"); if (k < 1) requestAnimationFrame(tick); };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.6 });
+    counts.forEach((c) => cio.observe(c));
+    /* A soft light follows the pointer across the hero. */
+    const spot = document.querySelector<HTMLElement>(".s6 [data-spot]");
+    const onMove = (e: PointerEvent) => { if (!spot || e.pointerType !== "mouse") return; const r = spot.getBoundingClientRect(); spot.style.setProperty("--mx", `${e.clientX - r.left}px`); spot.style.setProperty("--my", `${e.clientY - r.top}px`); spot.dataset.lit = "true"; };
+    spot?.addEventListener("pointermove", onMove);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
-    return () => { io.disconnect(); window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(raf); delete root.dataset.m; };
+    return () => { io.disconnect(); cio.disconnect(); spot?.removeEventListener("pointermove", onMove); window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(raf); delete root.dataset.m; };
   }, []);
   return null;
 }

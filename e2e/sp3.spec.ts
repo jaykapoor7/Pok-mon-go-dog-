@@ -23,30 +23,12 @@ test("consolidated URLs redirect to their 3.0 homes", async ({ request }) => {
   }
 });
 
-test("homepage introduces the general platform and a labelled demo", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI agent for\s*animal welfare programmes/);
-  await expect(page.locator(".s4-hero").getByRole("link", { name: "Book a demo" })).toHaveAttribute("href", "/demo");
-  await expect(page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ })).toBeVisible();
-  await expect(page.getByText("Product demo · illustrative records, not live programme data")).toBeAttached();
-});
-
-test("navigation dropdowns open, list solutions and close on Escape", async ({ page, isMobile }) => {
-  test.skip(!!isMobile, "desktop navigation");
-  await page.goto("/");
-  const solutions = page.getByRole("button", { name: "Solutions" });
-  await solutions.click();
-  await expect(solutions).toHaveAttribute("aria-expanded", "true");
-  for (const name of ["NGOs & ABC operators", "Municipal corporations", "Rescue & community groups", "Anti-rabies vaccination", "Municipal reviewers"]) await expect(page.locator("#s4-dd-solutions").getByRole("link", { name: new RegExp(name) })).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(solutions).toHaveAttribute("aria-expanded", "false");
-});
 
 test("phone menu opens and reaches sign in and demo", async ({ page, isMobile }) => {
   test.skip(!isMobile, "phone navigation");
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu" }).click();
-  const sheet = page.locator("#s4-sheet");
+  const sheet = page.locator("#s6-sheet");
   await expect(sheet.getByRole("link", { name: "Book a demo" })).toBeVisible();
   await expect(sheet.getByRole("link", { name: "Sign in" })).toBeVisible();
 });

@@ -41,7 +41,7 @@ export function Relay() {
         <span><b>Product demo</b> · illustrative records</span>
         <div className="dots">
           {STEPS.map((_, i) => <button key={i} type="button" aria-label={`Step ${i + 1} of ${STEPS.length}`} aria-current={i === step ? "step" : undefined} data-done={i < step} onClick={() => setStep(i)} />)}
-          {!still ? <button type="button" className="s6-relay-pause" style={{ width: 28, height: 28, background: "none" }} aria-label={paused ? "Play the demo" : "Pause the demo"} onClick={() => setPaused((p) => !p)}>{paused ? <Play size={14} /> : <Pause size={14} />}</button> : null}
+          {!still ? <button type="button" className="s6-relay-pause" style={{ width: 28, height: 28, background: "none" }} aria-label={paused ? "Play the relay" : "Pause the relay"} onClick={() => setPaused((p) => !p)}>{paused ? <Play size={14} /> : <Pause size={14} />}</button> : null}
         </div>
       </div>
       <div className="s6-lanes">
