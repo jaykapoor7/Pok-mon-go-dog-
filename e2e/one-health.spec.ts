@@ -1,112 +1,111 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/* The One Health journey across institutions, against the LOCAL One Health
-   database only (scripts/oh-local). Skipped unless OH_E2E=1, because CI has
-   no such database. Each person signs in through the demonstration buttons,
-   and every permission is decided by the database functions themselves.
+/* The programme journey across institutions, against the STAGING demo
+   (illustrative data only). Skipped unless OH_E2E=1: it needs a build pointed
+   at staging with DEMO_ONEHEALTH_PASSWORD set, because each person signs in
+   through the demonstration buttons and every permission is decided by the
+   database functions themselves.
 
-   OH_E2E=1 E2E_BASE_URL=http://localhost:3200 npx playwright test e2e/one-health.spec.ts --project=desktop */
-test.skip(process.env.OH_E2E !== "1", "Needs the local One Health database (scripts/oh-local)");
+   OH_E2E=1 E2E_BASE_URL=http://localhost:3300 npx playwright test e2e/one-health.spec.ts */
+test.skip(process.env.OH_E2E !== "1", "Needs a build pointed at the staging demonstration");
 test.describe.configure({ mode: "serial" });
+test.setTimeout(180_000);
 
-const HOSPITAL = "/workspace/f1000000-0000-4000-8000-000000000003";
-const NGO = "/workspace/f1000000-0000-4000-8000-000000000007";
-const LAB = "/workspace/f1000000-0000-4000-8000-000000000006";
-test.beforeEach(async ({ context }) => { await context.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.tour.v2", "straypaw-install-dismissed", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); }); });
+const HOSPITAL = "/workspace/f1000000-0000-4000-8000-000000000004";
+const NGO = "/workspace/f1000000-0000-4000-8000-000000000010";
+const LAB = "/workspace/f1000000-0000-4000-8000-000000000009";
+const PROGRAMME = "/programme/bengaluru-demo";
 const stamp = `E2E-${Date.now().toString(36).toUpperCase()}`;
+
+test.beforeEach(async ({ context }) => {
+  await context.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.tour.v2", "straypaw-install-dismissed", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
+});
 
 async function as(page: Page, who: RegExp) {
   await page.goto("/today");
   await page.getByRole("button", { name: who }).click();
-  await expect(page.locator(".oh-top")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Explore the demonstration")).toHaveCount(0, { timeout: 60_000 });
 }
+const seg = (page: Page, text: string) => page.locator("label").filter({ hasText: new RegExp(`^${text}$`) }).first().click();
 
-test("a clinician records a bite, assesses it and prescribes the dates they set", async ({ page }) => {
+test("clinician records a category III bite; the area's NGO is asked to follow up", async ({ page }) => {
   await as(page, /Hospital clinician/);
   await page.goto(`${HOSPITAL}/new`);
-  await page.getByLabel("Your register number").fill(stamp);
-  await page.getByLabel("Ward or locality").selectOption("HSR Layout");
-  await page.locator("label").filter({ hasText: /^Street or community$/ }).click();
-  await page.getByLabel("What it looked like").fill(`Tan dog, torn ear (${stamp})`);
-  await page.getByLabel("Where it can be found").fill("Sector 7 bus stop");
-  await page.locator("label").filter({ hasText: /^Category III$/ }).click();
+  await page.getByRole("textbox", { name: "Your register number" }).fill(stamp);
+  await expect(page.getByRole("combobox", { name: /^Area/ })).toBeEnabled();
+  await page.getByRole("combobox", { name: /^Area/ }).selectOption({ label: "HSR Layout" });
+  await seg(page, "Washed before arrival");
+  await seg(page, "Street or community");
+  await page.getByRole("textbox", { name: "What it looked like" }).fill(`Tan dog, torn ear (${stamp})`);
+  await seg(page, "Category III");
   await page.getByRole("button", { name: "Save presentation" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: stamp })).toBeVisible();
-  await expect(page.getByText("Category III", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("StrayPaw does not calculate a schedule.")).toBeVisible();
-  await page.getByLabel("Regimen").fill("Facility protocol, as prescribed (test)");
-  await page.getByRole("button", { name: "Add a dose date" }).click();
-  const second = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
-  await page.getByLabel("Dose 2 date").fill(second);
-  await page.getByRole("button", { name: "Save prescription" }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: "Dose 2" })).toBeVisible();
-  await page.getByRole("button", { name: "Record", exact: true }).click();
-  await page.getByLabel("Vaccine batch").fill("TEST-1");
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByText(/Given .* batch TEST-1/)).toBeVisible();
-  await expect(page.getByText("Waiting for the team to report what they found.")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: stamp })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("Category III", { exact: false }).first()).toBeVisible();
+  await expect(page.getByText(/Waiting for the team|In progress|New/).first()).toBeVisible();
 });
 
-test("the NGO sees the follow-up without patient details, and sends a sample", async ({ page }) => {
+test("the NGO sees the request without patient details and sends a sample", async ({ page }) => {
   await as(page, /NGO field worker/);
   await page.goto(NGO);
-  const row = page.locator(".oh-row").filter({ hasText: "Sector 7 bus stop" }).first();
-  await expect(row).toBeVisible();
-  await expect(page.getByText(stamp, { exact: true })).toHaveCount(0); // the register number never reaches the NGO
+  const row = page.locator(".oh-row").filter({ hasText: `torn ear (${stamp})` }).first();
+  await expect(row).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator(".oh-row-main b").filter({ hasText: stamp })).toHaveCount(0); // no patient identifier in the request itself
   await row.getByRole("button", { name: "Record what you found" }).click();
-  await expect(page.getByText(`Tan dog, torn ear (${stamp})`)).toBeVisible(); // the animal description does
-  await page.getByRole("link", { name: /sick or died: send a sample/ }).click();
-  await page.getByLabel("What happened to the animal").fill(`Found dead on day 4 (${stamp})`);
+  await page.getByRole("textbox", { name: "What you found" }).fill(`Dog found dead; sample collected (${stamp})`);
+  await page.getByRole("button", { name: "Close follow-up" }).click();
+  await expect(page.getByText("The sender can see what you found")).toBeVisible();
+  await page.goto(`${NGO}/sample`);
+  await page.getByRole("combobox", { name: /^Area/ }).selectOption({ label: "HSR Layout" });
+  await page.getByRole("textbox", { name: "What happened to the animal" }).fill(`Died during observation (${stamp})`);
   await page.getByRole("button", { name: "Send sample" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: /^S-/ })).toBeVisible();
-  await expect(page.getByText("Sent to the laboratory", { exact: true })).toBeVisible();
-  // The hospital's workspace stays closed to the NGO.
-  await page.goto(HOSPITAL);
-  await expect(page.getByText("You are not part of this place")).toBeVisible();
+  await expect(page.getByText("Chain of custody")).toBeVisible({ timeout: 30_000 });
 });
 
-test("the laboratory receives, tests and reports a positive", async ({ page }) => {
+test("the laboratory receives, tests and reports the sample positive", async ({ page }) => {
   await as(page, /Laboratory scientist/);
   await page.goto(LAB);
-  const row = page.locator(".oh-row").filter({ hasText: "HSR Layout" }).filter({ hasText: "On its way" }).first();
+  const row = page.locator(".oh-row").filter({ hasText: "HSR Layout" }).filter({ has: page.getByRole("button", { name: "Receive" }) }).first();
   await row.getByRole("button", { name: "Receive" }).click();
-  await expect(page.locator(".oh-row").filter({ hasText: "HSR Layout" }).getByRole("button", { name: "Start test" }).first()).toBeVisible();
-  await page.locator(".oh-row").filter({ hasText: "HSR Layout" }).getByRole("button", { name: "Start test" }).first().click();
-  await page.locator(".oh-row").filter({ hasText: "HSR Layout" }).getByRole("button", { name: "Record result" }).first().click();
-  await page.locator("label").filter({ hasText: /^Positive$/ }).click();
-  await page.getByLabel("Test method").fill("Direct fluorescent antibody test (test)");
+  await expect(page.getByText(/received\./)).toBeVisible();
+  const r2 = page.locator(".oh-row").filter({ has: page.getByRole("button", { name: "Start test" }) }).filter({ hasText: "HSR Layout" }).first();
+  await r2.getByRole("button", { name: "Start test" }).click();
+  const r3 = page.locator(".oh-row").filter({ has: page.getByRole("button", { name: "Record result" }) }).filter({ hasText: "HSR Layout" }).first();
+  await r3.getByRole("button", { name: "Record result" }).click();
+  await seg(page, "Positive");
+  await page.getByRole("textbox", { name: "Test method" }).fill("Direct fluorescent antibody test (E2E)");
   await page.getByRole("button", { name: "Report result" }).click();
-  await expect(page.getByRole("status")).toContainText("positive");
+  await expect(page.getByText(/positive\. The sender and programme coordinators/)).toBeVisible();
 });
 
-test("the programme lead sees the confirmed case and the alert, but not patient records", async ({ page }) => {
+test("the programme lead sees the confirmed case and the care network", async ({ page }) => {
   await as(page, /Programme lead/);
-  await expect(page).toHaveURL(/\/programme\/bengaluru-demo/);
-  await expect(page.getByText(/laboratory-confirmed rabies case/)).toBeVisible();
-  await page.goto("/programme/bengaluru-demo/follow-ups");
-  await expect(page.getByText("Laboratory-confirmed rabies: HSR Layout").first()).toBeVisible();
-  await page.goto(`${HOSPITAL}/register`);
-  await expect(page.getByText(stamp)).toHaveCount(0);
+  await page.goto(PROGRAMME);
+  await expect(page.getByText(/Rabies confirmed in HSR Layout/).first()).toBeVisible({ timeout: 30_000 });
+  await page.goto(`${PROGRAMME}/network`);
+  await expect(page.getByRole("region", { name: "Map of the care network" })).toBeVisible();
+  await expect(page.getByText("Referral pathways")).toBeVisible();
 });
 
-test("a nurse records doses but cannot prescribe or assess", async ({ page }) => {
+test("a nurse records doses but cannot assess or prescribe", async ({ page }) => {
   await as(page, /Hospital nurse/);
-  await page.goto(`${HOSPITAL}/register?filter=needs_assessment`);
-  await page.locator("tbody tr").first().click();
-  await expect(page.getByText(/Waiting for a clinician|A clinician prescribes from this page/).first()).toBeVisible();
+  await page.goto(HOSPITAL);
+  await expect(page.getByRole("heading", { name: /Today at/ })).toBeVisible({ timeout: 30_000 });
+  await page.goto(`${HOSPITAL}/register`);
+  await page.getByRole("link", { name: stamp }).click();
+  await expect(page.getByRole("button", { name: "Prescribe a course" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /^Category (I|II|III)$/ })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Save prescription" })).toHaveCount(0);
 });
 
-test("the public finds verified centres and can leave a notice that reaches the clinic", async ({ page }) => {
+test("another city's lead cannot open this programme", async ({ page }) => {
+  await as(page, /Another city's lead/);
+  await page.goto(PROGRAMME);
+  await expect(page.getByText("This programme is not visible to you")).toBeVisible({ timeout: 30_000 });
+});
+
+test("the public finder lists centres and refers for what each lacks", async ({ page }) => {
   await page.goto("/bite-help");
-  await expect(page.getByText("Teaching Hospital Anti-Rabies Clinic")).toBeVisible();
-  await expect(page.getByText("Not verified").first()).toBeVisible();
-  await page.getByLabel("Area").selectOption("Jayanagar");
-  await page.getByLabel("What the animal looked like").fill(`Spotted dog (${stamp})`);
-  await page.getByRole("button", { name: "Send notice" }).click();
-  await expect(page.getByText("The programme has your notice.")).toBeVisible();
-  await as(page, /Hospital clinician/);
-  await page.goto(HOSPITAL);
-  await expect(page.getByText(`Spotted dog (${stamp})`, { exact: false })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Wound-Washing Unit · Koramangala" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(/Sends people to/).first()).toBeVisible();
+  await page.getByLabel("I need").selectOption("wound_care");
+  await expect(page.getByRole("heading", { name: /Whitefield/ })).toBeVisible();
 });

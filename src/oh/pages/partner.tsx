@@ -52,7 +52,7 @@ export function PartnerRequests({ place }: { place: Place }) {
                   <span className="oh-row-mark" data-tone={late ? "flame" : h.kind === "result_notice" ? "amber" : HANDOFF[h.status].tone || undefined} aria-hidden />
                   <div className="oh-row-main">
                     <b>{h.title}</b>
-                    <span className="wrap">{HANDOFF_KIND[h.kind]} from {h.from_org ? names.org(h.from_org) ?? "a partner" : "the programme"} · {names.area(h.area_id) ?? "Area not recorded"}{h.place ? ` · ${h.place}` : ""}{h.outcome && tab === "closed" ? ` · ${h.outcome}` : ""}</span>
+                    <span className="wrap">{h.detail?.startsWith("Animal: ") ? `${h.detail.split("\n")[0].slice(8)} · ` : ""}{HANDOFF_KIND[h.kind]} from {h.from_org ? names.org(h.from_org) ?? "a partner" : "the programme"} · {names.area(h.area_id) ?? "Area not recorded"}{h.place ? ` · ${h.place}` : ""}{h.outcome && tab === "closed" ? ` · ${h.outcome}` : ""}</span>
                   </div>
                   <div className="oh-row-meta">
                     {h.due_on && tab === "open" ? <span style={{ color: late ? "var(--flame)" : undefined }}>{late ? `${-daysFrom(h.due_on)} day${daysFrom(h.due_on) === -1 ? "" : "s"} overdue` : `Due ${fmtDate(h.due_on)}`}</span> : null}

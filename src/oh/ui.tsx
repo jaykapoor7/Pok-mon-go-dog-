@@ -3,7 +3,7 @@
 /* The few components every programme screen is built from. */
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { Activity, Building2, Gauge, GraduationCap, HeartPulse, Home, Landmark, Microscope, PawPrint, Stethoscope, X } from "lucide-react";
+import { Activity, Building2, Check, Gauge, GraduationCap, HeartPulse, Home, Landmark, Microscope, PawPrint, Stethoscope, X } from "lucide-react";
 import { call, fmtTime, showCount, ALERT_KIND, type Alert, type Count, type Kind } from "./data";
 import "./oh.css";
 
@@ -12,12 +12,10 @@ import "./oh.css";
 export function Page({ children, illustrative, wide }: { children: ReactNode; illustrative?: boolean; wide?: boolean }) {
   return (
     <div className="oh">
-      <ToastHost>
-        <div className={`oh-page${wide ? " wide" : ""}`}>
-          {illustrative ? <p className="oh-demo" role="note"><b>Illustrative demonstration.</b> Every record here is invented; no figure is a real programme figure.</p> : null}
-          {children}
-        </div>
-      </ToastHost>
+      <div className={`oh-page${wide ? " wide" : ""}`}>
+        {illustrative ? <p className="oh-demo" role="note"><b>Illustrative demonstration.</b> Every record here is invented; no figure is a real programme figure.</p> : null}
+        {children}
+      </div>
     </div>
   );
 }
@@ -130,7 +128,7 @@ export function ToastHost({ children }: { children: ReactNode }) {
   const [t, setT] = useState<{ text: string; tone?: string } | null>(null);
   const timer = useRef<number>(0);
   const show = useCallback((text: string, tone?: "flame") => { setT({ text, tone }); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => setT(null), 3600); }, []);
-  return <ToastCtx.Provider value={show}>{children}{t ? <div className="oh-toast" role="status" data-tone={t.tone}>{t.text}</div> : null}</ToastCtx.Provider>;
+  return <ToastCtx.Provider value={show}>{children}<div className="oh" aria-live="polite">{t ? <div className="oh-toast" role="status" data-tone={t.tone} key={t.text}>{t.tone ? null : <Check size={15} aria-hidden />}{t.text}</div> : null}</div></ToastCtx.Provider>;
 }
 export const useToast = () => useContext(ToastCtx);
 
