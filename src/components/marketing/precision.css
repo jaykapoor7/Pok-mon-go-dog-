@@ -6,7 +6,8 @@
 .precision :is(a,button):focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
 .precision .sw-btn { box-shadow: none; transition: background 160ms, border-color 160ms; }
 .precision .sw-btn:hover, .precision .sw-btn:active { transform: none; box-shadow: none; }
-.precision .sw-btn.is-flame, .co3 .co3-btn.is-flame { color: #0b1e3d; }
+/* The filled button is blue: white text (navy on it measured 2.6:1). */
+.precision .sw-btn.is-flame, .co3 .co3-btn.is-flame { color: #fff; }
 .pr-hero { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); max-width: 1440px; margin: auto; }
 .pr-hero-copy { padding: clamp(32px,5vw,72px); align-self: center; }
 .pr-place { margin: 0 0 16px; font-size: 14px; color: var(--ink-2); }

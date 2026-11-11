@@ -45,7 +45,7 @@ export default function DonatePage() {
         <HeartHandshake className="h-5 w-5" /> See NGO fundraisers
       </Link>
       <Link
-        href="/partner"
+        href="/community/organisations"
         className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"
       >
         See partner NGOs <ArrowRight className="h-4 w-4" />
@@ -57,7 +57,7 @@ export default function DonatePage() {
         rescue, is just as valuable.
       </p>
       <Link
-        href="/help"
+        href="/get-involved"
         className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"
       >
         <HandHelping className="h-4 w-4" /> Volunteer or register an NGO

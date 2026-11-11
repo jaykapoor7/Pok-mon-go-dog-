@@ -397,3 +397,6 @@ select.s4-input { appearance: none; background-image: url("data:image/svg+xml,%3
   .pm-on .s4-tile svg { transition: transform 420ms cubic-bezier(.3, 1.4, .5, 1); }
   .pm-on .s4-tile:hover svg { transform: scale(1.12) rotate(-4deg); }
 }
+
+/* Footer legal links are comfortable to tap on a phone (they measured under 20px tall). */
+@media (max-width: 760px) { .s4-foot-base nav :is(a, button) { display: inline-flex; align-items: center; min-height: 32px; } }

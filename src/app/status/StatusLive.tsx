@@ -24,7 +24,7 @@ export function StatusLive() {
   const label = (s: Row["state"]) => (s === "ok" ? "Working" : s === "down" ? "Not responding" : s === "checking" ? "Checking" : "Not known");
   return (
     <div className="st-live">
-      <p className={`st-banner is-${any ? "down" : all ? "ok" : "wait"}`} role="status">{any ? "Something is not responding right now." : all ? "All systems are working." : "Checking now…"}</p>
+      <p className={`st-banner is-${any ? "down" : all ? "ok" : "wait"}`} role="status">{any ? "Something is not responding right now." : all ? "All systems are working." : rows.some((r) => r.state === "checking") ? "Checking now…" : "Not every system could be confirmed from here."}</p>
       <ul className="st-rows">{rows.map((r) => <li key={r.name}><span className={`st-dot is-${r.state}`} aria-hidden /><span><b>{r.name}</b><small>{r.what}{r.note ? ` · ${r.note}` : ""}</small></span><em className={`is-${r.state}`}>{label(r.state)}</em></li>)}</ul>
       <p className="st-meta">{at ? `Checked from your browser at ${at.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}.` : "Checking…"} <button type="button" onClick={check}>Check again</button>{h?.sha ? <> · Release <code>{h.sha.slice(0, 7)}</code></> : null}</p>
     </div>

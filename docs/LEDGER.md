@@ -35,7 +35,8 @@ The owner judged the rebuilt landing, hero, navigation and pages (PRs #60, #61) 
 | B3. Inner pages (page kit): reading-progress line, a hero that comes into focus and leans to the pointer, product-window rows that arrive as they scroll into view (`PageMotion`) | Done |
 | B3. App: the page's ambient light follows the section you are in (today, work, programme, manage) | Done |
 | B4. App screens rebuilt one by one (Today, work queue, register, verification, reports, programme pages) | Next |
-| CI note: the quality gate failed twice on 11 Nov while installing browsers (the runner could not resolve the Ubuntu mirror); no test ran. Not a code failure; re-run from the Actions page if it persists | Open |
+| Site audit (55 public pages, phone and desktop, 151 links): no broken pages, images or dead links. Fixed from it: `/status`, `/data-processing` and `/try` rendered inside the app shell; three dead anchors on ABC operations; two wrong links on Donate; the status banner stuck on "Checking"; primary buttons unreadable on five pages (1.2:1 and 2.6:1); footer legal links under 20px tall on phones. Left for a decision: 25 pages still on four older page kits with different type sizes; `/report-content` has no site header; title format differs between pages; legacy links that redirect | Done / open |
+| CI note: the quality gate failed five times on 11 Nov while installing browsers (the runner could not resolve the Ubuntu mirror); no test ran. Not a code failure; re-run from the Actions page if it persists | Open |
 | Not reverted: the sign-in split layout, demo request types, the guided demo, Kaju's partner-requests tool, alert clustering | Kept |
 
 The sections below about "Batch 1" and the "Site visual pass" describe work that this decision supersedes on the public site.
