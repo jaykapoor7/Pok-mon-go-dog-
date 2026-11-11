@@ -154,6 +154,13 @@
   .sp.sx3.os.dk .dk-place { max-width: 220px; }
 }
 
+/* with Kaju's panel open beside the page, the bar ends where the panel begins and search folds to its icon */
+@media (min-width: 1240px) {
+  .sp.sx3.os.dk.has-ai { padding-right: 440px; }
+  .sp.sx3.os.dk.has-ai .sp-find.sx3-find { flex: none; width: 34px; max-width: 34px; padding: 0; justify-content: center; }
+  .sp.sx3.os.dk.has-ai .sp-find.sx3-find span, .sp.sx3.os.dk.has-ai .sp-find.sx3-find kbd { display: none; }
+}
+
 /* the index behind "All sections" */
 .sp-finder-list .sp-finder-group { display: block; min-height: 0; padding: 14px 12px 4px; color: #7a8394; font: 600 11.5px/1.4 var(--s3-sans, system-ui); letter-spacing: .01em; white-space: nowrap; cursor: default; }
 .sp-finder-list .sp-finder-group:first-child { padding-top: 6px; }
