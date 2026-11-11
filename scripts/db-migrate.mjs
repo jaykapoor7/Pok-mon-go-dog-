@@ -26,6 +26,20 @@ const SETS = {
   wards: ["ward-density.sql", ...districts(), "wards-chennai.sql", "map-search.sql"],
   personal: ["personal-access-codes.sql"],
   delhi: ["seed-delhi-photographs.sql"],
+  /* Production catch-up, November 2026: the public-read fix, AnimalID's
+     tables and private bucket (the app keeps it behind the animal_id flag
+     until its worker runs), and the One Health programme layer v2.1 to v2.5.
+     Additive and safe to run again; no existing row or policy is changed.
+     Never includes the illustrative demo seed. */
+  "one-health": [
+    "migrations/20261108100000_public_read_performance.sql",
+    "migrations/20261110100000_animalid.sql",
+    "migrations/20261110230441_one_health_v2_1_core.sql",
+    "migrations/20261110230655_one_health_v2_2_workflows.sql",
+    "migrations/20261110230829_one_health_v2_3_programme_setup_grants.sql",
+    "migrations/20261111100000_one_health_v2_4_network_alerts.sql",
+    "migrations/20261111120000_one_health_v2_5_record_audit_fix.sql",
+  ],
 };
 
 function districts() {
