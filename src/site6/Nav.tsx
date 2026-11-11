@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { DEMO_SITE } from "@/lib/demo-site";
+import { NavArt } from "./NavArt";
 import { MENUS } from "./nav";
 import "./site6.css";
 
@@ -88,7 +89,7 @@ export function Nav() {
             {menu.cols.map((c) => (
               <div key={c.title}><h4>{c.title}</h4><ul>{c.links.map((l) => <li key={l.href + l.label}><Link href={l.href}><b>{l.label}</b>{l.hint ? <span>{l.hint}</span> : null}</Link></li>)}</ul></div>
             ))}
-            <div className="s6-panel-note"><b>{menu.note.title}</b><p>{menu.note.body}</p><Link href={menu.note.href} className="s6-textlink">{menu.note.cta}<ArrowRight size={15} aria-hidden /></Link></div>
+            <div className="s6-panel-note"><NavArt id={menu.id} /><b>{menu.note.title}</b><Link href={menu.note.href} className="s6-textlink">{menu.note.cta}<ArrowRight size={15} aria-hidden /></Link></div>
           </div>
         </div>
       ) : null}

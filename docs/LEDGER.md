@@ -2,12 +2,12 @@
 
 Persistent record of the product rebuild. Update at every milestone. Latest first.
 
-## State on 11 Nov 2026 (session 2)
+## State on 11 Nov 2026 (session 3)
 
 | Thing | State | Evidence |
 |---|---|---|
-| straypaw.org | Serves `main` @ `45fd85ae` (PR #59) | `/api/health` sha |
-| demo.straypaw.org | Serves the same commit; demo env vars set for the `demo` branch (`DEMO_ONEHEALTH_PASSWORD`, `NEXT_PUBLIC_OH_DEMO`, `NEXT_PUBLIC_OH_PUBLIC_PROGRAMME`, bite-help flag) | `/api/health`, Vercel env list |
+| straypaw.org | Serves `main` @ `721968fa` (PR #60, Batch 1 site) | `/api/health` → `sha 721968fa…, environment production` |
+| demo.straypaw.org | Serves the same commit (`721968fa`, checked); demo env vars set for the `demo` branch (`DEMO_ONEHEALTH_PASSWORD`, `NEXT_PUBLIC_OH_DEMO`, `NEXT_PUBLIC_OH_PUBLIC_PROGRAMME`, bite-help flag) | `/api/health`, Vercel env list |
 | Staging database | One Health v2.1–v2.5 applied; illustrative demo seeded; 11 demo accounts | 19/19 permission checks, 14/14 journey |
 | **Production database** | **No programme or AnimalID tables.** | `oh_tables = 0` |
 
@@ -16,7 +16,7 @@ Persistent record of the product rebuild. Update at every milestone. Latest firs
 2. **AnimalID worker secrets**: `ANIMALID_SUPABASE_URL`, `ANIMALID_SUPABASE_SERVICE_KEY` (repository secrets), then add `animal_id` to `SP_FLAGS`.
 3. **Production role accounts** (after 1): created by invitation from Programme setup; sign-in is by emailed code, so each needs a real mailbox the owner controls (for example plus-addresses).
 
-## Batch 1: website, experience, design system (in progress, branch `claude/brave-hawking-0ohpo5`)
+## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.
 
@@ -32,13 +32,29 @@ Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, mot
 | Hero art: city plan behind the words; the thread sits between the copy and the relay, one node over each lane | Done |
 | Demo request page and form: One Health programme and research request types | Done |
 | Other linked pages (earlier kit) share column, buttons, type | Harmonised; rewrite page by page continues in Batch 2 |
-| Tests updated, full suite, CI, merge, production verified | Pending |
+| Tests updated, full suite (232 passed), quality gate green, merged, production verified | Done |
 
 Decisions: positioning moved from "AI agent for animal welfare" to "one record for animal health and One Health programmes"; status table on the homepage states what is live, in rollout and not connected; no invented metrics.
 
+## Site visual pass (owner feedback after Batch 1: fewer words, visuals do the talking)
+
+Benchmarks read: Linear and GovDash landings use about 20 words of body copy per section, one product visual per section, a lifecycle order, a short "meet the assistant" section and questions last. The landing now follows that.
+
+| Item | Status |
+|---|---|
+| Landing cut from 11 sections to 9 scenes; hero lede is one line; loop, capability list and trust prose removed | Done |
+| What we offer: the module switchboard (`Switchboard.tsx`). Six switches, each plays a product scene; switching one off removes it from the mock workspace, as Programme setup does | Done |
+| Meet Kaju: a playing scene (`KajuScene.tsx`): question, records read, cited answer, prepared action, a person approves. Kaju's character reacts to each step. Also the hero of `/ai` ("Meet Kaju") | Done |
+| Hero: the node of the institution holding the record lights up in step with the relay | Done |
+| Proof: partner register figures (count up) beside the live / in rollout / not connected board | Done |
+| Navigation: 36 links down to 22, no destination listed twice (tested); each panel has a drawing instead of a paragraph | Done |
+| New page `/for-hospitals` (hospitals and laboratories), stating what StrayPaw never does clinically and that none is connected yet | Done |
+| Kept by request: animated product demo, use cases, recurring work | Done |
+| Tests: switchboard, Kaju scene, unique menu destinations, no-script; full suite 238 passed | Done |
+
 ## Batch 2: application and intelligence (not started this session)
 Done earlier (PR #59): one shell with places, one sidebar pattern, programme layer (clinic, register, PEP tracking, lab, requests, care-network map, alerts, coverage, report, research extract, setup, invites, start a programme), AnimalID scheduled worker.
-Next: redesign inner NGO/municipal pages (cases, verification, animals, reports) on the same system; Kaju programme tools (never human-health); demo walkthrough update at `/try`; production role accounts.
+Next: redesign inner NGO/municipal pages (cases, verification, animals, reports) on the same system; Kaju programme tools (never human-health); production role accounts. The guided walkthrough update (five connected-programme steps, verified on staging) is written and parked in `git stash` until the application work is done, by owner instruction.
 
 ## Next steps after an interruption
 1. `git log --oneline -5` on the branch; run `npm run build && E2E_BASE_URL=… npx playwright test`.

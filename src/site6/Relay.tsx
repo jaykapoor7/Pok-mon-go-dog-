@@ -17,10 +17,10 @@ const LANES = [
 ] as const;
 
 const STEPS = [
-  { lane: 0, caption: "A clinician records a category III bite. The patient is a register number; no name is stored." },
-  { lane: 1, caption: "The area's field team is asked to find the dog. They see the animal and the place, never the patient." },
-  { lane: 2, caption: "The dog died under observation. The laboratory receives the sample and reports the result with its method." },
-  { lane: 3, caption: "The programme sees a confirmed case, the facilities affected and where vaccine is short. People decide what happens next." },
+  { lane: 0, caption: "A clinician records a bite. No name is stored." },
+  { lane: 1, caption: "The field team is asked to find the dog. They never see the patient." },
+  { lane: 2, caption: "The laboratory reports the result, with its method." },
+  { lane: 3, caption: "The programme sees what needs a decision." },
 ];
 const DUR = 3800;
 

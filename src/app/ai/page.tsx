@@ -2,18 +2,21 @@ import { ClipboardPen, FileSearch, History, Lock, ScanText, ShieldAlert } from "
 import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { AskUi, ExtractUi, OvernightUi, ProposeUi } from "@/sp4/home/ui";
 import { AiBand } from "@/sp4/home/Interactive";
+import { KajuScene } from "@/site6/KajuScene";
+import { SiteMotion } from "@/site6/Motion";
+import "@/site6/site6.css";
 
-export const metadata = { title: "Kaju · StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: searches the records you can read, answers with citations, finds gaps and prepares changes a person confirms." };
+export const metadata = { title: "Meet Kaju · StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: searches the records you can read, answers with citations, finds gaps and prepares changes a person confirms." };
 
 export default function AiPage() {
   return <ProductPage s={{
     id: "ai",
     eyebrow: "Kaju",
-    title: ["Answers, checks and paperwork,", "done by Kaju"],
-    lede: "Kaju answers from your records, finds what is missing and prepares changes for your team to confirm.",
+    title: ["Meet Kaju.", "He prepares. People approve."],
+    lede: "Kaju answers from your records, finds what is missing and prepares the next piece of work. Nothing changes without a yes.",
     primary: { href: "/assistant", label: "Open Kaju" },
     secondary: { href: "/demo", label: "Book a demo" },
-    hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><AskUi v={3} /><ProposeUi v={1} /></div>,
+    hero: <div className="s6 s6-embed" style={{ width: "100%", maxWidth: 560, paddingTop: 76, textAlign: "left" }}><SiteMotion /><KajuScene /></div>,
     heroV: 2,
     pillars: {
       title: ["An assistant with", "the same rules as your team"],
