@@ -113,6 +113,19 @@ Looked at and left as they are, with the reason: `/report-content` has no site h
 
 Still to rethink in the same way (next passes): the municipal review flow, the hospital desk (bite register to course), the laboratory bench, the programme cell's decisions, Animals (register to an animal's life), Reports (blocking reasons to the records that cause them), Intake (report to case).
 
+## 11 Nov, late: the rail on every record that moves (after #68)
+
+PR #68 (the operating path) merged as `187b433b`. The deployed demo was walked as six sample roles on `be4b57a1` (field worker, vet, coordinator, NGO coordinator, laboratory scientist, municipal reviewer): each signs in, gets the menu for its role, the board marks its own step, no page errors.
+
+| Item | Status | Evidence |
+|---|---|---|
+| `src/sp/ui/Rail.tsx` + `rail.css`: one rail component for any record that moves through stages; `StageRail` is the line-of-work rail built on it | Done | |
+| Report package (operator and reviewing office see the same): Prepared, With the reviewing office, Accepted; "Returned to prepare" and "Queried by the office" when that is the state | Done | Staging: an accepted package |
+| Laboratory sample: Collected, On its way, Received, Testing, then the result in its own tone (positive in flame), or Rejected | Done | Staging as the laboratory scientist |
+| Bite record: Recorded, Category, Course, then how the course ended. It states what is recorded and gives no clinical advice | Done | Staging as the hospital clinician |
+
+Noticed, not changed: the staging bite register still holds records named `E2E-…` from earlier end-to-end runs. They show in the demo. Removing them is a delete on staging and needs the owner's word (the earlier approval covered the duplicate sample and notice records).
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.

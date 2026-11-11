@@ -8,6 +8,7 @@ import { Check } from "lucide-react";
 import { usePlaces, primaryProgramme } from "../places";
 import { call, fmtDate, fmtTime, relDay, select, useNames, useRead, RESULT, SAMPLE, SAMPLE_TYPE, SPECIES, type Place, type Sample, type SampleEvent } from "../data";
 import { Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
+import { Rail } from "@/sp/ui/Rail";
 
 export function LabQueue({ place }: { place: Place }) {
   const { reload: reloadPlaces } = usePlaces();
@@ -98,6 +99,10 @@ export function SampleRecord({ id, place }: { id: string; place: Place }) {
   const ev = (events.data ?? []).slice().sort((a, b) => a.at.localeCompare(b.at));
   return (
     <Page illustrative={place.illustrative}>
+      {/* Where the sample is, from its own status. The end is the result (or the rejection), in the tone of what it means. */}
+      <Rail label="Where this sample is" steps={[{ title: "Collected" }, { title: "On its way" }, { title: "Received" }, { title: "Testing" }]}
+        at={["collected", "dispatched", "received", "testing"].indexOf(s.status)} ended={s.status === "resulted" || s.status === "rejected"}
+        end={s.status === "rejected" ? "Rejected" : s.result ? RESULT[s.result].label : "Result"} tone={s.status === "rejected" ? "plain" : s.result === "positive" ? "flame" : s.result === "inconclusive" ? "plain" : "green"} />
       <Head eyebrow={<Link href={`/workspace/${place.organisation_id}`}>{place.kind === "laboratory" ? "Samples" : "Partner requests"}</Link>} title={s.code}
         lede={`${SPECIES[s.species]} ${SAMPLE_TYPE[s.sample_type].toLowerCase()} from ${names.area(s.area_id) ?? "an area not recorded"}${s.place ? `, ${s.place}` : ""}.`}
         actions={<>{s.result ? <Chip tone={RESULT[s.result].tone}>{RESULT[s.result].label}</Chip> : <Chip tone={SAMPLE[s.status].tone}>{SAMPLE[s.status].label}</Chip>}

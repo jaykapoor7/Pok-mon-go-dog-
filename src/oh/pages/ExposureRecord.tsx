@@ -8,6 +8,7 @@ import { Check, Minus, Plus, X } from "lucide-react";
 import { usePlaces } from "../places";
 import { call, fmtDate, fmtTime, today, useRead, AGE, AUDIT, COURSE, EXPOSURE_KIND, HANDOFF, SEX, SPECIES, WASHED, type Exposure, type Place } from "../data";
 import { Chip, Failed, Head, Loading, Page, Section, Seg, Sheet, useToast } from "../ui";
+import { Rail } from "@/sp/ui/Rail";
 import { DoseSheet } from "./facility";
 
 export function ExposureRecord({ id, place }: { id: string; place: Place }) {
@@ -27,6 +28,10 @@ export function ExposureRecord({ id, place }: { id: string; place: Place }) {
 
   return (
     <Page illustrative={place.illustrative}>
+      {/* Where the record is, from what has been recorded on it. It states; it does not advise. */}
+      <Rail label="Where this record is" steps={[{ title: "Recorded", href: `/workspace/${place.organisation_id}/register`, hint: "The bite register" }, { title: "Category" }, { title: "Course" }]}
+        at={e.category === "not_recorded" ? 1 : 2} ended={!!e.course && e.course.status !== "active"}
+        end={e.course && e.course.status !== "active" ? COURSE[e.course.status].label : "Course closed"} tone={e.course?.status === "completed" ? "green" : "plain"} />
       <Head eyebrow={<><Link href={`/workspace/${place.organisation_id}/register`}>Bite register</Link><span aria-hidden>/</span><span>{e.code}</span></>}
         title={e.patient_ref ?? e.code}
         lede={`${SPECIES[e.animal_species]} ${(EXPOSURE_KIND[e.exposure_kind] ?? e.exposure_kind).toLowerCase()} on ${fmtDate(e.exposure_on, { day: "numeric", month: "long" })}${e.area ? ` in ${e.area}` : ""}.`}

@@ -5,6 +5,7 @@
    records, figures and thread on both sides; the database decides which
    actions each person may take and refuses the rest. */
 
+import { Rail } from "@/sp/ui/Rail";
 import { shortCode } from "@/lib/caseCode";
 import {useMembership} from '../shell/Shell';
 import {Reconciliation} from "./Reconciliation";
@@ -80,6 +81,8 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
       {state === "error" && <p className="abc-err" role="alert">{err}</p>}
       {state === "ok" && p && (
         <>
+          {/* Where the package is on its way to the reviewing office: the same rail as a record, for both sides. */}
+          <Rail label="Where this package is" steps={[{ title: p.status === "returned" ? "Returned to prepare" : "Prepared", href: side === "operator" ? "/ngo/packages" : undefined, hint: "All report packages" }, { title: p.status === "queried" ? "Queried by the office" : "With the reviewing office" }]} at={["draft", "returned"].includes(p.status) ? 0 : 1} end="Accepted" ended={p.status === "accepted"} />
           <header className="ngo-head abc-head">
             <div><h1>{p.title}</h1></div>
             <p className="ngo-sum">{org} · {period(p)}{p.submitted_at ? ` · submitted ${when(p.submitted_at)}` : ""}{p.decided_by_name ? ` · ${PACKAGE_LABEL[p.status].toLowerCase()} by ${p.decided_by_name}` : ""}</p>
