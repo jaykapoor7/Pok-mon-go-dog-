@@ -14,6 +14,7 @@ on:
           - register
           - personal
           - wards
+          - one-health
           - security-audit
 
 permissions:

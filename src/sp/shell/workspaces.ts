@@ -1,9 +1,9 @@
 /** Canonical destinations. Every navigation surface is derived from this registry.
  * Visibility is fail-closed for restricted destinations; RLS remains authoritative. */
-export type WorkspaceId='community'|'ngo'|'city'|'learn';
+export type WorkspaceId='community'|'ngo'|'city'|'learn'|'health';
 export type Role='admin'|'coordinator'|'veterinarian'|'member';
 import { publicFlagOn, type Flag } from '@/lib/flags';
-export type NavItem={href:string;label:string;icon:string;/** Shown only when this feature flag is on. */flag?:Flag;aliases?:string[];match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>;/** Position in the five-step NGO workflow. */step?:number;/** Query string that selects a view of the page (e.g. stage=vet). */query?:string;order?:number};
+export type NavItem={href:string;label:string;icon:string;/** Shown only when this feature flag is on. */flag?:Flag;aliases?:string[];match?:string[];exact?:boolean;short?:string;tone?:string;section?:string;roles?:Role[];reviewer?:boolean;hrefFor?:Partial<Record<Role,string>>;/** Position in the five-step NGO workflow. */step?:number;/** A live count shown beside the link (open work), and its tone. */count?:number|null;countTone?:'flame'|'amber'|'blue';/** Folded under More rather than listed. */more?:boolean;/** Query string that selects a view of the page (e.g. stage=vet). */query?:string;order?:number};
 export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:boolean;mobile?:boolean;primaryFor?:Role[];assistantKey?:string;note?:string;/** false: reached from its hub page and search, not listed in the sidebar. */listed?:boolean};
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
@@ -668,6 +668,14 @@ const META={
     "home": "/city/insights",
     "action": null
   },
+  "health": {
+    "id": "health",
+    "label": "Today",
+    "purpose": "Programmes, hospitals, laboratories and the work between them",
+    "ink": "#2457ce",
+    "home": "/today",
+    "action": null
+  },
   "learn": {
     "id": "learn",
     "label": "Education",
@@ -695,7 +703,9 @@ export const ORDER:WorkspaceId[]=['city','ngo','community','learn'];
 /** Signed-in professional workspaces; Community and Education are public products, open to anyone. */
 export const PROFESSIONAL:WorkspaceId[]=['ngo','city'];
 export const PUBLIC_PRODUCTS:WorkspaceId[]=['community','learn'];
-export function workspaceFor(path:string,last:WorkspaceId|null):WorkspaceId{return ORDER.find(w=>path===`/${w}`||path.startsWith(`/${w}/`))??last??'community'}
+/** Pages that belong to a person's places (One Health organisations and programmes). */
+export const PLACE_PATH=/^\/(today|workspace|programme)(\/|$)/;
+export function workspaceFor(path:string,last:WorkspaceId|null):WorkspaceId{if(PLACE_PATH.test(path))return 'health';return ORDER.find(w=>path===`/${w}`||path.startsWith(`/${w}/`))??last??'community'}
 export function navOn(n:NavItem,path:string){return path===n.href||!n.exact&&path.startsWith(n.href+'/')||(n.match??[]).some(p=>path===p||path.startsWith(p+'/'))}
 export function currentDestination(ws:WorkspaceId,path:string,role:Role|null,reviewer=false){return destinations(ws,role,reviewer).filter(n=>navOn(n,path)).sort((a,b)=>b.href.length-a.href.length)[0]??null}
 export function currentDest(ws:Workspace,path:string){const n=currentDestination(ws.id,path,null);return n?.href??null}
@@ -705,3 +715,35 @@ export function tabsFor(path:string,role:Role|null,reviewer=false){const ws=work
 const KEY='sp2.workspace';
 export function rememberWorkspace(id:WorkspaceId){try{sessionStorage.setItem(KEY,id)}catch{}}
 export function lastWorkspace():WorkspaceId|null{try{const v=sessionStorage.getItem(KEY);return v&&v in META?v as WorkspaceId:null}catch{return null}}
+
+/* ── The designed sidebar ──────────────────────────────────────────────
+   The same pattern for every place (see placeNav in src/oh/places.tsx):
+   Today first; then Work, at most four things this person does every day,
+   chosen by role; then Programme when the organisation takes part in one;
+   everything else under More. Nothing is deleted, only placed where it is
+   used: secondary pages stay one tap away in More, section tabs and ⌘K. */
+const N=(href:string,label:string,icon:string,extra:Partial<NavItem>={}):NavItem=>({href,label,icon,...extra});
+export function designedNav(ws:WorkspaceId,role:Role|null,reviewer=false):NavItem[]|null{
+ const on=(n:NavItem)=>canDiscover(n,role,reviewer);
+ const W='Work';
+ if(ws==='ngo'){
+  const animals=N('/ngo/animals','Animals','paw',{section:W,short:'Animals',match:['/ngo/map','/ngo/care','/ngo/quality','/ngo/import','/ngo/review']});
+  const treat=N('/ngo/verification','Treatment & release','shield',{section:W,short:'Treat',match:[]});
+  const field=N('/ngo/field','Field mode','phone',{section:W,short:'Field'});
+  const queue=N('/ngo/work','Work queue','list',{section:W,short:'Queue',match:['/ngo/cases']});
+  const intake=N('/ngo/inbox','Intake','inbox',{section:W,short:'Intake'});
+  const reports=N('/ngo/packages','Reports','file',{section:W,short:'Reports',match:['/ngo/proof','/ngo/evidence','/ngo/contracts']});
+  const work=role==='member'?[field,queue,animals]:role==='veterinarian'?[treat,animals,queue]:[queue,intake,treat,role==='admin'||role==='coordinator'?reports:animals];
+  return [N('/ngo','Today','home',{exact:true,short:'Today'}),...work].filter(on);
+ }
+ if(ws==='city'){
+  return [
+   N('/city/insights','Today','home',{short:'Today'}),
+   N('/city','Wards & map','map',{exact:true,section:W,short:'Map'}),
+   N('/city/review','Review submissions','check',{section:W,short:'Review',reviewer:true}),
+   N('/city/contracts','Contracts & rates','file',{section:W,short:'Contracts',reviewer:true}),
+   N('/city/programmes','Programmes','layers',{section:W,short:'Programmes'}),
+  ].filter(on);
+ }
+ return null;
+}

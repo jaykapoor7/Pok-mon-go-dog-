@@ -10,3 +10,35 @@
 .bh-steps { list-style: decimal; }
 .bh-steps li::marker { font-weight: 600; color: #0b1e3d; }
 .bh-dont, .bh-urgent ul { list-style: disc; }
+
+/* Verified centres and the optional notice (src/oh/BiteFinder.tsx). */
+.bf { display: grid; gap: 16px; }
+.bf-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.bf-item { padding: 16px 18px; border: 1px solid #e4e8f0; border-radius: 14px; }
+.bf-item h3, .bf-form h3, .bf-done h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; color: #0b1e3d; }
+.bf-meta { margin: 0 0 10px; color: #6b7486; font-size: 13.5px; }
+.bf-svc { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.bf-svc li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 14px; }
+.bf-svc li span { min-width: 210px; color: #3d4a5c; }
+.bf-svc li small { color: #98a1b2; font-size: 12px; }
+.bf-form, .bf-done { margin-top: 12px; padding: 20px; border-radius: 14px; background: #f5f7fb; display: grid; gap: 12px; }
+.bf-form p, .bf-done p { margin: 0; font-size: 14px; color: #3d4a5c; }
+.bf-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.bf-grid .wide { grid-column: 1 / -1; }
+.bf-form label { display: grid; gap: 4px; font-size: 13px; color: #0b1e3d; font-weight: 500; }
+.bf-form input, .bf-form select { min-height: 42px; padding: 8px 12px; border: 1px solid #d5dbe6; border-radius: 8px; background: #fff; font: inherit; color: #0b1e3d; }
+.bf-form .bf-check { display: flex; gap: 10px; align-items: center; font-weight: 400; color: #3d4a5c; }
+.bf-form .bf-check input { min-height: 0; width: 18px; height: 18px; accent-color: #2457ce; }
+.bf-phone { max-width: 260px; }
+.bf-form button { justify-self: start; min-height: 44px; padding: 0 18px; border: 0; border-radius: 8px; background: #2457ce; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.bf-form button[disabled] { opacity: .6; }
+.bf-err { color: #8f2a18 !important; }
+.bf-small { font-size: 12.5px !important; color: #6b7486 !important; }
+
+.bf-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 14px 0 6px; }
+.bf-locate { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #2457ce; background: #2457ce; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.bf-locate:disabled { opacity: .6; }
+.bf-need { display: inline-flex; align-items: center; gap: 8px; }
+.bf-need select { min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid #d5dbe6; font: inherit; background: #fff; }
+.bf-tools small { color: #6b7486; }
+.bf-km { margin-left: 10px; font-size: 13px; font-weight: 500; color: #2457ce; }

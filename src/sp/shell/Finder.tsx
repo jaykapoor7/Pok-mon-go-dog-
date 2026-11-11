@@ -24,7 +24,7 @@ type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to" |
 let cityList: Promise<string[]> | null = null;
 const cities = () => (cityList ??= fetch("/api/livingmap?kind=cities").then((r) => (r.ok ? r.json() : { cities: [] })).then((j) => ((j.cities ?? []) as { city: string }[]).map((c) => c.city)).catch(() => { cityList = null; return []; }));
 
-export function Finder({ open, onClose, ws, member, role, reviewer, onAsk }: { open: boolean; onClose: () => void; ws: WorkspaceId; member: boolean; role:Role|null; reviewer:boolean; onAsk?: (q: string) => void }) {
+export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages = [] }: { open: boolean; onClose: () => void; ws: WorkspaceId; member: boolean; role:Role|null; reviewer:boolean; onAsk?: (q: string) => void; pages?: { href: string; label: string; detail: string }[] }) {
   const router = useRouter();
   const ref = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -63,6 +63,8 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk }: { o
     const def = workspaceView(ws,role,reviewer);
     if (t && onAsk) out.push({ key: "ask", kind: "Ask Kaju", title: `Ask Kaju: “${q.trim()}”`, detail: "Searches your authorised records and answers with citations", href: "#ask" });
     for (const d of def.nav) if (!t || d.label.toLowerCase().includes(t)) { const href = d.query ? `${d.href}?${d.query}` : d.href; out.push({ key: `go:${href}`, kind: "Go to", title: d.step ? `Step ${d.step} · ${d.label}` : d.label, detail: def.label, href }); }
+    /* The pages of the person's places (hospital, laboratory, programme): findable by name like any other. */
+    for (const pg of pages) if ((!t || pg.label.toLowerCase().includes(t) || pg.detail.toLowerCase().includes(t)) && !out.some((h) => h.href === pg.href)) out.push({ key: `go:${pg.href}`, kind: "Go to", title: pg.label, detail: pg.detail, href: pg.href });
     for (const g of def.index) for (const l of g.links) if (t && l.label.toLowerCase().includes(t) && !def.nav.some((n) => n.href === l.href)) out.push({ key: `go:${l.href}`, kind: "Go to", title: l.label, detail: `${def.label} · ${g.label}`, href: l.href });
     if (t) {
       for (const c of allCities.filter((c) => c.toLowerCase().includes(t)).slice(0, 4)) out.push({ key: `c:${c}`, kind: "City", title: c, detail: "City register on the map", href: `/community?city=${encodeURIComponent(c)}` });
@@ -71,7 +73,7 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk }: { o
       for (const c of cases) out.push({ key: `k:${c.id}`, kind: "Case", title: `${shortCode(c.case_code)} · ${c.condition_class ?? c.title ?? "Open case"}`, detail: [c.animal_name && !/·/.test(c.animal_name) ? c.animal_name : c.straypaw_id, c.zone, c.status_class?.replace(/_/g, " ")].filter(Boolean).join(" · "), href: `/ngo/cases/${c.id}` });
     }
     return out;
-  }, [q, ws, role, reviewer, allCities, places, animals, cases, onAsk]);
+  }, [q, ws, role, reviewer, allCities, places, animals, cases, onAsk, pages]);
 
   useEffect(() => { setAt(0); }, [hits.length]);
   const go = (h: Hit | undefined) => { if (!h) return; if (h.kind === "Ask Kaju") { onAsk?.(q.trim()); return; } onClose(); router.push(h.href); };

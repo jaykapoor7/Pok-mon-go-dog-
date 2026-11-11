@@ -14,7 +14,7 @@ import { orgIncoming } from "@/lib/campaigns";
 import { stageOf, verificationQueue } from "@/lib/abc";
 
 type Counts = { arrived: number | null; identity: number | null; vet: number | null; release: number | null; claimable: number | null; capped?: boolean };
-type Step = { key: keyof Counts; n: string; title: string; hint: string; href: string; mine: boolean };
+type Step = { short?: string; key: keyof Counts; n: string; title: string; hint: string; href: string; mine: boolean };
 
 export function Journey({ orgId, role }: { orgId: string; role: string | null }) {
   const [c, setC] = useState<Counts | null>(null);
@@ -45,7 +45,7 @@ export function Journey({ orgId, role }: { orgId: string; role: string | null })
   const steps: Step[] = [
     { key: "arrived", n: "1", title: "Intake", hint: "New reports to prepare", href: "/ngo/inbox", mine: role === "member" || lead },
     { key: "identity", n: "2", title: "Identity", hint: "Animals to confirm", href: "/ngo/animals/identity", mine: lead },
-    { key: "vet", n: "3", title: "Treatment", hint: "Waiting for the vet", href: "/ngo/verification?stage=vet", mine: role === "veterinarian" },
+    { key: "vet", n: "3", title: "Treatment", short: "Vet", hint: "Waiting for the vet", href: "/ngo/verification?stage=vet", mine: role === "veterinarian" },
     { key: "release", n: "4", title: "Release", hint: "Photo or place missing", href: "/ngo/verification?stage=evidence", mine: role === "member" || lead },
     { key: "claimable", n: "5", title: "Billing", hint: "Approved, ready to bill", href: "/ngo/packages", mine: lead },
   ];
@@ -56,7 +56,7 @@ export function Journey({ orgId, role }: { orgId: string; role: string | null })
         const fromQueue = s.key === "vet" || s.key === "release" || s.key === "claimable";
         return <li key={s.key} className={s.mine ? "is-mine" : undefined}><Link href={s.href}>
           <span className={`jy-n${v ? " is-on" : ""}`} aria-hidden />
-          <span className="jy-t"><b>{s.title}</b><small>{s.hint}</small></span>
+          <span className="jy-t"><b><span className="jy-long">{s.title}</span><span className="jy-short" aria-hidden>{s.short ?? s.title}</span></b><small>{s.hint}</small></span>
           <span className={`jy-c${v ? " is-on" : ""}`}>{c === null ? "…" : v === null || v === undefined || typeof v === "boolean" ? "not read" : `${v}${fromQueue && c.capped ? "+" : ""}`}</span>
         </Link></li>;
       })}</ol>

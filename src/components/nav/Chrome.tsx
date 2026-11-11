@@ -86,7 +86,7 @@ const SELF_SHELLED = new Set<string>([
 const S3_PUBLIC = /^\/(pricing|abc-operations|security|research|for-governments|for-ngos|for-funders|platform|ai|kaju-agents|blog|product-updates|roadmap|events|teams|whatsapp|customers|demo|docs|solutions|sign-in|app|partners|faq|donate|safety|bite-help|privacy|terms|cookies)(\/|$)/;
 
 /** StrayPaw 2.0 routes mount their own shell (src/sp/shell/Shell). */
-const SP2 = /^\/(community|ngo|city|learn|animal|search|trust|assistant)(\/|$)/;
+const SP2 = /^\/(community|ngo|city|learn|animal|search|trust|assistant|today|workspace|programme)(\/|$)/;
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

@@ -88,6 +88,45 @@ Acceptance is not payment; never imply a claim was paid.
 
 ---
 
+### 8. Places and the programme (11 November 2026)
+This section supersedes "4. Navigation" for NGO and municipal sidebars.
+
+- **A person works in places.** The switcher at the top of the sidebar lists
+  every place: the NGO workspace, the municipal review office, and each
+  hospital, health centre, laboratory, coordination or state cell. Its card
+  shows initials, name and role. `/today` is the home across places.
+- **One sidebar pattern for every place.** Nobody learns a second layout:
+  1. **Today**: always first, always the place's home (what needs you here).
+  2. **Work**: at most four things this person does every day, by role. NGO
+     field team: Field mode, Work queue, Animals. Vet: Treatment & release,
+     Animals, Work queue. Coordinator: Work queue, Intake, Treatment &
+     release, Reports. Hospital: Bite register, Services. Laboratory:
+     Services. Municipal: Wards & map, Review, Contracts, Programmes. Programme cell:
+     Coverage, Report.
+  3. **Programme**: the same links for everyone taking part: Programme,
+     Care network, Requests (where the place receives requests).
+  4. **More**: one fold with one link per area (Animals, Drives and projects,
+     Your organisation…). Each area's page shows its other pages as tabs.
+  **Nothing is more than two clicks away** (More → area → tab), and **Find a
+  page or record** sits under the place card: one click, type, go. It finds
+  every page of every place the person works in, as well as records.
+  The top bar carries the one primary action (Record a bite, New case, Send
+  a sample); pages never repeat it. Defined once in `designedNav` and `placeNav`.
+- **Live counts** sit on the link that opens the work (flame = overdue,
+  amber = waiting, blue = new). Kaju is the top-bar button and his corner,
+  never a sidebar row.
+- **Chrome** is `src/sp/shell/os.css`, loaded last; programme pages use
+  `src/oh/oh.css`. Motion: the selection glides (spring 380ms), counts pop,
+  pages arrive (340ms, none on map and report pages), menus spring, urgent
+  alerts pulse; all off under reduced motion.
+- **Rules.** Every page reads through role-checked database functions;
+  unknown is "Not read", never zero; human counts below the programme's
+  threshold are hidden outside the treating facility; StrayPaw records
+  clinical decisions and never makes them; availability is what a person
+  confirmed, with its date, never stock. See `docs/one-health/README.md`.
+
+---
+
 ## History (superseded where it conflicts with 4.0)
 
 

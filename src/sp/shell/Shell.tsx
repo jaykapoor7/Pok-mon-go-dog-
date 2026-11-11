@@ -19,15 +19,17 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity, BookOpen, Building2, ChevronDown, ChevronsUpDown, Compass, FileText, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers,
   LifeBuoy, LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
-  ListChecks, MoreHorizontal, Settings, ClipboardCheck, ArrowLeft,
+  ListChecks, MoreHorizontal, Settings, ClipboardCheck, ArrowLeft, Stethoscope, FlaskConical, Gauge, ArrowRightLeft, Syringe, PlusCircle,
 } from "lucide-react";
+import { PlacesProvider, usePlaces, placeFor, placeNav, placeAction, placeHome, lastPlace, rememberPlace, type PlaceLink } from "@/oh/places";
+import { KIND_LABEL, ROLE_LABEL } from "@/oh/data";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
-import { ORDER, PROFESSIONAL, WORKSPACES, canDiscover, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
+import { designedNav, ORDER, PROFESSIONAL, WORKSPACES, canDiscover, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
 import { Notices } from "../ui/Notice";
 import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
@@ -44,6 +46,7 @@ import "./shell3.css";
 import "./app3.css";
 import "./app4.css";
 import "./system5.css";
+import "./os.css";
 
 import {fieldCache} from "@/lib/field/outbox";
 
@@ -59,7 +62,24 @@ const ICON: Record<string, typeof MapIcon> = {
   map: MapIcon, radio: Radio, activity: Activity, book: BookOpen, building: Building2, heart: HeartHandshake, sparkles: Sparkles,
   home: Home, inbox: Inbox, paw: PawPrint, layers: Layers, phone: Smartphone, shield: ShieldCheck, file: FileText, grad: GraduationCap,
   users: Users, compass: Compass, landmark: Landmark, list: ListChecks, check: ClipboardCheck,
+  stethoscope: Stethoscope, flask: FlaskConical, gauge: Gauge, arrows: ArrowRightLeft, syringe: Syringe, plus: PlusCircle, settings: Settings,
 };
+
+/** Plain names for the folded groups, so "More" never echoes the Programme section. */
+const MORE_LABEL: Record<string, string> = { Programmes: "Drives and projects", Clinical: "Treatment and release", Reports: "Reporting", Organisation: "Your organisation", Outreach: "Outreach", Animals: "Animals", Intake: "Intake", Work: "Other work", Overview: "Governance and reports", Verification: "Review", Wards: "Wards", Contracts: "Contracts" };
+
+type SwitchEntry = { key: string; href: string; title: string; sub: string; on: boolean };
+
+/** Links from a place, as sidebar rows; a section label is shown where a section starts. */
+function placeRows(links: PlaceLink[], fallbackSection?: string): NavRow[] {
+  let last: string | undefined;
+  return links.map((l) => {
+    const sec = l.section ?? fallbackSection;
+    const row: NavRow = { item: { href: l.href, label: l.label, icon: l.icon, exact: l.exact, count: l.count, countTone: l.tone, short: l.short, more: l.more }, label: sec && sec !== last ? sec : undefined };
+    last = sec;
+    return row;
+  });
+}
 
 
 const Nested = createContext(false);
@@ -67,7 +87,7 @@ const Nested = createContext(false);
 export function Shell({ children, flush = false }: { children: ReactNode; flush?: boolean }) {
   /* A page that mounts a shell inside a route Chrome already shelled renders once. */
   if (useContext(Nested)) return <>{children}</>;
-  return <Nested.Provider value={true}><AiProvider><ShellInner flush={flush}>{children}</ShellInner></AiProvider></Nested.Provider>;
+  return <Nested.Provider value={true}><AiProvider><PlacesProvider><ShellInner flush={flush}>{children}</ShellInner></PlacesProvider></AiProvider></Nested.Provider>;
 }
 
 function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }) {
@@ -108,13 +128,61 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
     const home: WorkspaceId | null = mem.member ? "ngo" : mem.reviewer ? "city" : null;
     if (home) { setWs(home); rememberWorkspace(home); }
   }, [mem.ready, mem.member, mem.reviewer, path]);
-  const def = workspaceView(aiWorkspace, mem.role, mem.reviewer);
-  const nav = visibleNav(def.nav, mem.role, mem.reviewer);
+  /* Places: every organisation this person works in (One Health programmes,
+     hospitals, laboratories, offices). An NGO or municipal workspace gains its
+     programme pages; /today, /workspace and /programme pages take their
+     navigation from the place they belong to. */
+  const pl = usePlaces();
+  const place = ws === "health" ? placeFor(path, pl.places, lastPlace()) : null;
+  const placeId = place?.organisation_id;
+  useEffect(() => { if (placeId) rememberPlace(placeId); }, [placeId]);
+  const progSlug = path.match(/^\/programme\/([a-z0-9-]+)/)?.[1];
+  const base = workspaceView(aiWorkspace, mem.role, mem.reviewer);
+  const ngoPlace = mem.org ? pl.places.find((p) => p.kind === "ngo" && p.ngo_id === mem.org!.id) : undefined;
+  const cityPlace = mem.reviewer ? pl.places.find((p) => p.kind === "municipal") : undefined;
+  let def = base;
+  const designed = designedNav(ws, mem.role, mem.reviewer);
+  let nav: NavRow[] = visibleNav(designed ?? base.nav, mem.role, mem.reviewer);
+  if (ws === "health") {
+    const links: PlaceLink[] = place ? placeNav(place, progSlug) : [{ href: "/today", label: "Today", short: "Today", icon: "home", exact: true, mobile: true }];
+    const items = placeRows(links).map((r) => r.item);
+    def = { ...base, label: place ? (place.short_name ?? place.name) : "Today", home: place ? placeHome(place) : "/today", action: place ? placeAction(place) : null,
+      nav: items, dests: links.filter((l) => l.mobile).slice(0, 4).map((l) => ({ href: l.href, label: l.label, short: l.short, icon: l.icon, exact: l.exact })) };
+    nav = placeRows(links);
+  } else if (ws === "ngo" && ngoPlace) {
+    nav = [...nav, ...placeRows(placeNav(ngoPlace).filter((l) => l.section === "Programme"))];
+  } else if (ws === "city" && cityPlace) {
+    const pr = cityPlace.programmes[0]?.slug;
+    if (pr) nav = [...nav, ...placeRows([
+      { href: `/programme/${pr}`, label: "Programme", icon: "gauge", exact: true, section: "Programme" },
+      ...placeNav(cityPlace).filter((l) => l.section === "Programme"),
+    ])];
+  }
+  /* The switcher lists places, not products: Today across all of them, the NGO
+     workspace, the municipal review office and each One Health organisation. */
+  const entries: SwitchEntry[] = [];
+  if (pl.places.length) entries.push({ key: "today", href: "/today", title: "Today", sub: "Everything waiting for you, in every place", on: path === "/today" });
+  if (mem.member && mem.org) entries.push({ key: "ngo", href: "/ngo", title: mem.org.name, sub: "NGO workspace", on: ws === "ngo" });
+  if (mem.reviewer) entries.push({ key: "city", href: "/city/insights", title: "Municipal review", sub: "Submissions, contracts and wards", on: ws === "city" });
+  for (const p of pl.places) {
+    if (p.kind === "ngo" && mem.org && p.ngo_id === mem.org.id) continue;
+    entries.push({ key: p.organisation_id, href: placeHome(p), title: p.name, sub: `${ROLE_LABEL[p.role]} · ${KIND_LABEL[p.kind]}`, on: placeId === p.organisation_id });
+  }
+  const folded = nav.filter((r) => r.item.more).map((r) => r.item);
+  /* Every page of every place this person works in, for the finder. */
+  const findPages = pl.places.flatMap((p) => placeNav(p).map((l) => ({ href: l.href, label: l.label === "Today" ? `Today at ${p.short_name ?? p.name}` : l.label, detail: p.short_name ?? p.name })))
+    .concat(pl.places.some((p) => p.capabilities.includes("record_exposure")) ? pl.places.filter((p) => p.capabilities.includes("record_exposure")).map((p) => ({ href: `/workspace/${p.organisation_id}/new`, label: "Record a bite", detail: p.short_name ?? p.name })) : []);
+  nav = nav.filter((r) => !r.item.more);
+  const switchable = entries.length > 1;
+  const wsTitle = ws === "ngo" && mem.org ? mem.org.name : ws === "health" ? (place?.name ?? "Today") : ws === "city" ? "Municipal review" : `StrayPaw ${def.label}`;
+  const NGO_ROLE: Record<string, string> = { admin: "Lead", coordinator: "Coordinator", veterinarian: "Veterinarian", member: "Field team" };
+  const wsSub = ws === "ngo" ? `${mem.role ? NGO_ROLE[mem.role] : "Member"} · NGO` : ws === "health" ? (place ? `${ROLE_LABEL[place.role]} · ${KIND_LABEL[place.kind]}` : `${pl.places.length} place${pl.places.length === 1 ? "" : "s"}`) : ws === "city" ? "Reviewer · Municipal" : def.purpose.split(":")[0];
+  const wsKind = ws === "ngo" ? "ngo" : ws === "city" ? "municipal" : ws === "health" ? (place?.kind ?? "today") : "today";
+  const initials = wsTitle.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !/^(of|the|and|for|sample|demo)$/i.test(w)).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "SP";
 
   const [find, setFind] = useState(false);
   const [sheet, setSheet] = useState(false);
   /* Server-verified memberships only: both an organisation and a reviewing office. */
-  const dual = mem.ready && mem.member && mem.reviewer;
   const [switcher, setSwitcher] = useState(false);
   const [switcherM, setSwitcherM] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -140,70 +208,69 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const reporting = path.startsWith("/community/report");
   const isMap = path === "/community" || path === "/community/report" || path === "/ngo/map" || path === "/city";
   const isFlush = flush || isMap || path === "/ngo/work" || path === "/assistant";
-  const here = currentDestination(ws,path,mem.role,mem.reviewer);
+  const here = ws === "health"
+    ? (nav.map((r) => r.item).filter((n) => navOn(n, path)).sort((a, b) => b.href.length - a.href.length)[0] as Destination | undefined) ?? null
+    : currentDestination(ws,path,mem.role,mem.reviewer);
   const section=def.index.find(g=>g.label===here?.group)?.links.filter(l=>l.primary).sort((a,b)=>(a.order??50)-(b.order??50))[0];
   const atHome = path === def.home;
   // Every link the sidebar shows (its places, and the short "Also" list), so page tabs never repeat them.
-  const sideHrefs = (() => {
-    const own = new Set(nav.map((n) => (n.item as Destination).group));
-    const extra = def.index.filter((g) => !own.has(g.label)).flatMap((g) => g.links).filter((l) => l.href !== def.settings && l.href !== "/assistant");
-    return new Set([...nav.map((r) => r.item.href), ...(extra.length <= 4 ? extra.map((l) => l.href) : [])]);
-  })();
+  const sideHrefs = new Set(nav.map((r) => r.item.href));
   const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
 
   return (
     <Membership.Provider value={mem}>
-      <div className={`sp sp-app s3-root sx3 ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-collapsed" : ""}${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
+      <div className={`sp sp-app s3-root sx3 os ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-collapsed" : ""}${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} style={{ ["--ws" as string]: def.ink }}>
         <a href="#sp-main" className="sp-skip">Skip to content</a>
 
         {/* ── Desktop sidebar ─────────────────────────────────────── */}
         <aside className="sx3-side" aria-label="Workspace">
           <div className="sx3-side-top">
-            {/* Only a verified dual-role member gets a chooser; everyone else sees their one workspace. */}
-            {dual ? (
+            {/* A person with more than one place gets a chooser; everyone else sees their one place. */}
+            {switchable ? (
             <div className="sx3-ws">
               <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-<img src="/straypaw-mark.png" alt="" width={26} height={26} />
-                <span><b>{ws === "ngo" && mem.org ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
+                <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
+                <span><b>{wsTitle}</b><small>{wsSub}</small></span>
                 <ChevronsUpDown size={15} aria-hidden />
               </button>
               {switcher && (
-                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Your workspaces">
-                  {PROFESSIONAL.map((id) => { const w = WORKSPACES[id]; return (
-                    <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcher(false)} className={id === ws ? "is-on" : undefined}>
-                      <i aria-hidden style={{ background: w.ink }} /><span><b>{id === "ngo" && mem.org ? mem.org.name : w.label}</b><small>{w.purpose}</small></span>
-                    </Link>); })}
+                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Your places">
+                  {entries.map((e) => (
+                    <Link key={e.key} href={e.href} role="menuitemradio" aria-checked={e.on} onClick={() => setSwitcher(false)} className={e.on ? "is-on" : undefined}>
+                      <i aria-hidden style={{ background: e.on ? "var(--s3-blue, #2457ce)" : "#c7cfdc" }} /><span><b>{e.title}</b><small>{e.sub}</small></span>
+                    </Link>))}
                 </Popover>
               )}
             </div>
             ) : (
             <Link href={def.home} className="sx3-ws sx3-ws-static">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-<img src="/straypaw-mark.png" alt="" width={26} height={26} />
-              <span><b>{ws === "ngo" && mem.org ? mem.org.name : `StrayPaw ${def.label}`}</b></span>
+              <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
+              <span><b>{wsTitle}</b><small>{wsSub}</small></span>
             </Link>
             )}
             <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button>
           </div>
 
+          <button type="button" className="os-find" onClick={() => setFind(true)} aria-keyshortcuts="Control+K Meta+K /"><Search size={15} aria-hidden /><span>Find a page or record</span><kbd>⌘K</kbd></button>
           <Suspense fallback={<SideNav nav={nav} path={path} search="" collapsed={collapsed} onAssistant={onAssistant} label={def.label} />}>
             <SideNavLive nav={nav} path={path} collapsed={collapsed} onAssistant={onAssistant} label={def.label} />
           </Suspense>
 
           {(() => {
             /* Pages whose section has no place of its own in the sidebar (team, outreach…), folded once under "More". */
-            const own = new Set(nav.map((n) => (n.item as Destination).group));
-            const groups = def.index.filter((g) => !own.has(g.label)).map((g) => ({ ...g, links: g.links.filter((l) => l.href !== def.settings && l.href !== "/assistant") })).filter((g) => g.links.length);
+            const own = new Set(nav.map((n) => (n.item as Destination).group).filter(Boolean));
+            const inNav = (h: string) => nav.some((n) => n.item.href === h || (n.item.href !== "/ngo" && n.item.href !== "/city" && h.startsWith(n.item.href + "/")) || (n.item.match ?? []).some((m) => h === m || h.startsWith(m + "/")));
+            const groups = (ws === "health" ? [] : def.index.filter((g) => !own.has(g.label)).map((g) => ({ ...g, links: g.links.filter((l) => l.href !== def.settings && l.href !== "/assistant" && !inNav(l.href)) })).filter((g) => g.links.length))
+              .concat(folded.length ? [{ label: "This place", links: folded as Destination[] }] : []);
             if (!groups.length) return null;
-            const inside = groups.some((g) => g.links.some((l) => path === l.href || path.startsWith(l.href + "/")));
-            /* A short list is shown as is; only a long one folds under "More". */
-            const all = groups.flatMap((g) => g.links);
-            if (all.length <= 4) return <nav className="sx3-nav sx5-flat" aria-label="Other pages"><p className="sx4-sec">Also</p>{all.map((l) => <Link key={l.href} href={l.href} aria-current={path === l.href ? "page" : undefined}><FileText size={16} aria-hidden /><span>{l.label}</span></Link>)}</nav>;
-            return <details className="sx3-more sx5-more" open={inside || undefined}>
-              <summary><span>More</span><ChevronDown size={13} aria-hidden /></summary>
-              {groups.map((g) => <div key={g.label}><p className="sx5-more-h">{g.label}</p><ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul></div>)}
+            /* One link per area, to the area's first page; that page lists the rest as tabs. Never a long list. */
+            const hubs = groups.flatMap((g) => g.label === "This place" ? g.links.map((l) => ({ key: l.href, href: l.href, label: l.label, on: path === l.href }))
+              : (() => { const first = [...g.links].sort((a, b) => (a.primary === b.primary ? 0 : a.primary ? -1 : 1) || (a.order ?? 50) - (b.order ?? 50))[0]; return [{ key: g.label, href: first.query ? `${first.href}?${first.query}` : first.href, label: g.links.length === 1 ? first.label : MORE_LABEL[g.label] ?? g.label, on: g.links.some((l) => path === l.href || path.startsWith(l.href + "/")) }]; })());
+            const inside = hubs.some((h) => h.on);
+            return <details className="sx3-more sx5-more os-more" open={inside || undefined}>
+              <summary><MoreHorizontal size={16} aria-hidden /><span>More</span><ChevronDown size={13} aria-hidden /></summary>
+              <nav aria-label="More places">{hubs.map((h) => <Link key={h.key} href={h.href} aria-current={h.on ? "page" : undefined}>{h.label}</Link>)}</nav>
             </details>;
           })()}
 
@@ -226,16 +293,14 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               {/* eslint-disable-next-line @next/next/no-img-element */}
 <img src="/straypaw-mark.png" alt="" width={28} height={28} />
             </Link>
-            {dual ? (
+            {switchable ? (
             <div className="sp-ws sx3-ws-m">
               <button type="button" className="sp-ws-btn" aria-expanded={switcherM} aria-haspopup="menu" onClick={() => setSwitcherM((v) => !v)}>
                 <i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span><ChevronDown size={14} aria-hidden />
               </button>
               {switcherM && (
-                <Popover onClose={() => setSwitcherM(false)} className="sp-ws-menu" label="Your workspaces">
-                  {PROFESSIONAL.map((id) => { const w = WORKSPACES[id]; return (
-                    <Link key={id} href={w.home} role="menuitemradio" aria-checked={id === ws} onClick={() => setSwitcherM(false)} className={id === ws ? "is-on" : undefined}><i aria-hidden style={{ background: w.ink }} /><span><b>{w.label}</b><small>{w.purpose}</small></span></Link>
-                  ); })}
+                <Popover onClose={() => setSwitcherM(false)} className="sp-ws-menu" label="Your places">
+                  {entries.map((e) => <Link key={e.key} href={e.href} role="menuitemradio" aria-checked={e.on} onClick={() => setSwitcherM(false)} className={e.on ? "is-on" : undefined}><i aria-hidden style={{ background: e.on ? "#2457ce" : "#c7cfdc" }} /><span><b>{e.title}</b><small>{e.sub}</small></span></Link>)}
                 </Popover>
               )}
             </div>
@@ -259,12 +324,12 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           </header>
 
           <AmbientLight />
-          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{children}</Fragment></main>
+          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{isFlush ? children : <div className="os-page" key={path}>{children}</div>}</Fragment></main>
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
         <nav className="sp-tabs" aria-label={`${def.label} navigation`}>
-          {phoneTabs(ws, mem.role, def.dests).filter((d) => d.href !== def.action?.href).map((d, i, arr) => {
+          {phoneTabs(ws, mem.role, def.dests as NavItem[]).filter((d) => d.href !== def.action?.href).map((d, i, arr) => {
             const Icon = ICON[d.icon] ?? MapIcon;
             const node = <Link key={d.href + (d.query ?? "")} href={d.query ? `${d.href}?${d.query}` : d.href} aria-current={navOn(d,path) ? "page" : undefined}><Icon size={21} strokeWidth={1.8} aria-hidden /><span>{d.short ?? d.label}</span></Link>;
             if (ws !== "ngo" && def.action && i === Math.ceil(arr.length / 2) - 1) return [node, reporting
@@ -277,8 +342,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         </nav>
 
         <Notices />
-        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} dual={!!dual} />
-        <Finder open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
+        <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} entries={entries} nav={ws === "health" ? def.nav : undefined} label={def.label} />
+        <Finder pages={findPages} open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
     </Membership.Provider>
@@ -307,14 +372,22 @@ function SideNav({ nav, path, search, collapsed, onAssistant, label }: SideNavPr
     const exact = twins.find((r) => r.item.query && new URLSearchParams(r.item.query).get("stage") === stage);
     return (exact ?? twins[0]).item === n;
   };
+  /* The selection glides between pages: one highlight, measured to the current link. */
+  const ref = useRef<HTMLElement>(null);
+  const [ind, setInd] = useState<{ y: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = ref.current?.querySelector<HTMLElement>('a[aria-current="page"]');
+    setInd(el ? { y: el.offsetTop, h: el.offsetHeight } : null);
+  }, [path, search, rows.length, collapsed]);
   return (
-    <nav className="sx3-nav" aria-label={`${label} navigation`}>
+    <nav ref={ref} className={`sx3-nav${ind ? " has-ind" : ""}`} aria-label={`${label} navigation`}>
+      {ind ? <span className="os-ind" aria-hidden style={{ transform: `translateY(${ind.y}px)`, height: ind.h }} /> : null}
       {rows.map(({ item: n, label: sec }) => {
         const Icon = ICON[n.icon] ?? Home;
         const href = n.query ? `${n.href}?${n.query}` : n.href;
         const key = href;
         const lead = n.icon === "kaju" ? <span className="sx-kaju-ic" aria-hidden><KajuFace size={16} /></span> : n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />;
-        const link = <Link key={key} href={href} aria-current={isOn(n) ? "page" : undefined} title={collapsed ? n.label : (n as Destination).note}>{lead}<span>{n.label}</span></Link>;
+        const link = <Link key={key} href={href} aria-current={isOn(n) ? "page" : undefined} title={collapsed ? n.label : (n as Destination).note}>{lead}<span>{n.label}</span>{n.count ? <b className="sx-count" data-tone={n.countTone} aria-label={`${n.count} waiting`}>{n.count > 99 ? "99+" : n.count}</b> : null}</Link>;
         return sec ? <Fragment key={key}><p className="sx4-sec">{sec}</p>{link}</Fragment> : link;
       })}
     </nav>
@@ -389,12 +462,13 @@ function Account({ user, org, onSignIn, onSignOut, side = false }: { user: { nam
 }
 
 /** "More" on a phone: every page of the workspace, in named groups. */
-function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string; dual: boolean }) {
+function IndexSheet({ open, onClose, ws, path, entries, nav, label }: { open: boolean; onClose: () => void; ws: WorkspaceId; path: string; entries: SwitchEntry[]; nav?: NavItem[]; label: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) d.showModal(); else if (!open && d.open) d.close(); }, [open]);
   const mem=useMembership();
   const { user, openSignIn } = useAuth();
-  const def = workspaceView(ws,mem.role,mem.reviewer);
+  const base = workspaceView(ws,mem.role,mem.reviewer);
+  const def = nav ? { ...base, label, nav, dests: [] as NavItem[] } : { ...base, label: ws === "ngo" || ws === "city" ? base.label : label };
   const utilityGroups=def.index.filter(g=>!def.nav.some(n=>g.links.some(l=>l.href===n.href)));
   const here = utilityGroups.findIndex((g) => g.links.some((l) => path === l.href));
   const primary = def.nav.filter((n) => !def.dests.some((d) => d.href === n.href));
@@ -411,7 +485,7 @@ function IndexSheet({ open, onClose, ws, path, dual }: { open: boolean; onClose:
             <ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} onClick={onClose} aria-current={path === l.href ? "page" : undefined}><b>{l.label}</b>{l.note && <small>{l.note}</small>}</Link></li>)}</ul>
           </details>
         ))}
-        <div className="sx3-more-ws">{/* Another professional workspace only for verified dual-role members; public products for everyone. */}{ORDER.filter((id) => id !== ws && (id === "community" || id === "learn" || dual)).map((id) => <Link key={id} href={WORKSPACES[id].home} onClick={onClose}><i aria-hidden style={{ background: WORKSPACES[id].ink }} />{WORKSPACES[id].label}</Link>)}</div>
+        <div className="sx3-more-ws">{/* The person's other places, then the public products for everyone. */}{entries.filter((e) => !e.on).map((e) => <Link key={e.key} href={e.href} onClick={onClose}><i aria-hidden style={{ background: "#2457ce" }} />{e.title}</Link>)}{(["community", "learn"] as WorkspaceId[]).filter((id) => id !== ws).map((id) => <Link key={id} href={WORKSPACES[id].home} onClick={onClose}><i aria-hidden style={{ background: WORKSPACES[id].ink }} />{WORKSPACES[id].label}</Link>)}</div>
         {!user && <button type="button" className="sp-action sx5-sheet-signin" onClick={() => { onClose(); openSignIn(); }}>Sign in</button>}
         <footer className="sp-more-foot"><Link href="/" onClick={onClose}>Main site</Link><Link href="/docs" onClick={onClose}>Help</Link><Link href="/contact" onClick={onClose}>Contact</Link><Link href="/privacy" onClick={onClose}>Privacy</Link></footer>
       </div>
