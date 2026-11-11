@@ -50,6 +50,7 @@ export const TOOL_DEFS = [
   { name: "claim_draft", description: "Draft this month's ABC claim: the claimable count and amount from the database billing preview, and every record still blocked with the reason (missing evidence, waiting for a vet or coordinator, returned). Never submits.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "office_brief", description: "For a municipal reviewing office: packages waiting for a decision, oldest first, each pre-checked claim by claim for exceptions (missing evidence, sign-offs, rates, arithmetic, repeats). Never accepts, queries or returns.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "ward_activity", description: "Ward coverage (recorded animals with sterilisation and vaccination recorded; denominator is recorded animals, not population) and sudden drops or spikes in newly recorded animals per ward over eight weeks, for the organisation's or office's city.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "partner_requests", description: "Work between programme partners, animal side only: open requests sent to this person's organisations by hospitals, laboratories or the programme cell (find and observe an animal, send a sample, vaccinate an area), with place and due date. Reads the request, never a patient record, dose or clinical count.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "search_knowledge", description: "Search published StrayPaw Academy lessons about evidence, recorded counts, unknown status, coverage, population and field safety. Educational content, not current legislation or clinical advice. Returns cited passages; never invent policy.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
   { name: "abc_verification_status", description: "Read the organisation ABC verification queue: missing evidence, vet authorisation and review flags. Bounded sample, never certifies a procedure.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "abc_package_status", description: "Read report package statuses visible to this organisation member or municipal reviewer. Includes periods and recorded summaries; never accepts a package.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -82,6 +83,7 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "overdue_followups": return overdueFollowups(ctx);
     case "claim_draft": return claimDraft(ctx);
     case "office_brief": return officeBrief(ctx);
+    case "partner_requests": return partnerRequests(ctx);
     case "ward_activity": return wardActivity(ctx);
     case "search_knowledge": return searchKnowledge(String(input.query ?? "").slice(0, 300));
     case "recent_confirmed_actions": return recentConfirmedActions(ctx);
@@ -144,6 +146,33 @@ async function searchRecords(q: string, { db, orgId }: ToolCtx): Promise<ToolOut
   for (const p of out.programmes as { id: string; name: string }[]) citations.push({ id: p.id, label: p.name, href: `/city/programmes/${p.id}`, kind: "programme" });
   const n = Object.values(out).reduce((s, v) => s + v.length, 0);
   return { data: out, summary: `${n} result${n === 1 ? "" : "s"} for “${q}”`, citations };
+}
+
+/* Programme partners' requests to this person's organisations. Kaju stays on
+   the animal side of a programme: it reads who is waiting and for what (the
+   request's title, place and due date) and nothing else. It never selects a
+   request's free text, and never reads exposures, courses, doses, reminders
+   or the clinical counts a place carries. */
+type PlaceLite = { organisation_id: string; name: string; short_name: string | null; handoffs_open: number | null; handoffs_overdue: number | null };
+async function partnerRequests({ db }: ToolCtx): Promise<ToolOut> {
+  const today = await db.rpc("oh_my_today");
+  /* A database without programmes, or a person in none: not an error, just nothing to read. */
+  const places = (Array.isArray(today.data) ? (today.data as PlaceLite[]) : []).map((p) => ({ id: p.organisation_id, name: p.short_name ?? p.name, open: p.handoffs_open ?? 0, overdue: p.handoffs_overdue ?? 0 }));
+  if (!places.length) return { data: { in_programme: false, places: [], requests: [] }, summary: "Not part of a programme", citations: [] };
+  const waiting = places.filter((p) => p.open > 0).slice(0, 6);
+  let requests: { title: string; kind: string; place: string | null; due_on: string | null; status: string; to: string; overdue: boolean }[] = [];
+  if (waiting.length) {
+    const rows = await db.from("oh_handoffs").select("id,to_org,kind,title,place,status,due_on").in("to_org", waiting.map((p) => p.id)).in("status", ["open", "accepted"]).order("due_on", { ascending: true, nullsFirst: false }).limit(12);
+    if (rows.error) return READ_FAILED;
+    const day = new Date().toISOString().slice(0, 10);
+    requests = (rows.data ?? []).map((r) => ({ title: String(r.title ?? "Request"), kind: String(r.kind ?? ""), place: (r.place as string | null) ?? null, due_on: (r.due_on as string | null) ?? null, status: String(r.status ?? ""), to: waiting.find((p) => p.id === r.to_org)?.name ?? "", overdue: !!r.due_on && String(r.due_on) < day }));
+  }
+  const open = places.reduce((a, p) => a + p.open, 0), overdue = places.reduce((a, p) => a + p.overdue, 0);
+  return {
+    data: { in_programme: true, open, overdue, places, requests },
+    summary: open ? `${open} from partners · ${overdue} overdue` : "No open requests from partners",
+    citations: waiting.map((p) => ({ id: `place:${p.id}`, label: `Requests · ${p.name}`, href: `/workspace/${p.id}`, kind: "page" as const })),
+  };
 }
 
 async function workSummary({ db, orgId }: ToolCtx): Promise<ToolOut> {

@@ -18,11 +18,13 @@ export function TryDemo() {
 
   const start = useCallback(async () => {
     setErr(null); setBusy("guide");
-    const first = TOUR[0];
-    const e = await enterAs(first.role);
+    /* Start with the connected programme; where its sample accounts are not
+       set up, start at the first step whose account signs in. */
+    let i = 0, e = await enterAs(TOUR[0].role);
+    if (e) { const alt = TOUR.findIndex((t) => !t.role.startsWith("oh-")); if (alt > 0) { const e2 = await enterAs(TOUR[alt].role); if (!e2) { i = alt; e = null; } } }
     if (e) { setErr(e); setBusy(null); return; }
-    writeTour({ mode: "guided", step: 0, role: first.role });
-    window.location.replace(first.path);
+    writeTour({ mode: "guided", step: i, role: TOUR[i].role });
+    window.location.replace(TOUR[i].path);
   }, []);
 
   const roam = useCallback(async (r: DemoRole) => {
@@ -54,10 +56,10 @@ export function TryDemo() {
     <div className="try">
       <p className="try-k">Live demo</p>
       <h1 className="s4-h1">See StrayPaw, one role at a time</h1>
-      <p className="s4-lede">A short guided walkthrough of a Bengaluru ABC programme, from the field team to the municipal office.</p>
+      <p className="s4-lede">A guided walkthrough of an illustrative Bengaluru programme: the coordination cell, a hospital, the field team and the laboratory on one record, then the ABC work the municipal office reviews.</p>
       <div className="try-go">
         <button type="button" className="s4-btn is-primary" disabled={!!busy} onClick={start}>{busy === "guide" ? "Signing you in…" : <>Start the guided demo <ArrowRight size={16} aria-hidden /></>}</button>
-        <span><Compass size={15} aria-hidden /> Six steps, about three minutes.</span>
+        <span><Compass size={15} aria-hidden /> {TOUR.length} steps, about five minutes. Every record is illustrative.</span>
       </div>
       {err && <p className="try-err" role="alert">{err}</p>}
       <h2 className="try-h">Or explore as</h2>

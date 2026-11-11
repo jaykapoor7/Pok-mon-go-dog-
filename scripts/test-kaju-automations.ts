@@ -102,6 +102,30 @@ export async function automationChecks(ok: (s: string) => void) {
   assert.ok(brief.citations.some((c) => c.href === '/city/review/p1'));
   assert.doesNotMatch(brief.text, /accepted on your behalf|I accepted|I approved/i);
   ok('the office brief pre-checks waiting packages and links each one; it decides nothing');
+
+  /* Programme partners' requests: Kaju stays on the animal side. The place carries clinical counts; none may be read or repeated. */
+  const reads: { table: string; cols: string }[] = [];
+  const programme = (places: unknown[]) => ({
+    from: (table: string) => { const q: Record<string, unknown> = {}; const chain = () => q;
+      Object.assign(q, { select: (cols: string) => { reads.push({ table, cols }); return q; }, in: chain, order: chain, limit: chain,
+        then: (res: (r: unknown) => unknown) => Promise.resolve({ data: [{ id: 'h1', to_org: 'p1', kind: 'animal_followup', title: 'Find and observe the dog', place: 'Market gate', status: 'open', due_on: '2020-01-01' }], error: null }).then(res) });
+      return q; },
+    rpc: async (name: string) => name === 'oh_my_today' ? { data: places, error: null } : { data: null, error: { message: 'not allowed in this test' } },
+  }) as unknown as SupabaseClient;
+  const place = { organisation_id: 'p1', name: 'Sample NGO', short_name: null, handoffs_open: 2, handoffs_overdue: 1, doses_due: 97, notices_new: 43, samples_waiting: 5 };
+  const asked = await withTools('What are programme partners waiting for?', { db: programme([place]), orgId: 'o', userName: 'F', userId: 'u', actorRole: 'coordinator' });
+  assert.match(asked.text, /2 requests from programme partners/); assert.match(asked.text, /1 overdue/); assert.match(asked.text, /Find and observe the dog/); assert.match(asked.text, /Market gate/);
+  assert.match(asked.text, /patient records never reach me/);
+  assert.ok(asked.tools.some((t) => t.name === 'partner_requests')); assert.ok(asked.citations.some((c) => c.href === '/workspace/p1'));
+  assert.deepEqual(reads.map((r) => r.table), ['oh_handoffs']);
+  assert.doesNotMatch(reads[0].cols, /detail|patient|phone|outcome/);
+  assert.doesNotMatch(JSON.stringify(asked), /97|43|doses_due|notices_new/);
+  const outside = await withTools('Any requests from the hospital?', { db: programme([]), orgId: 'o', userName: 'F', userId: 'u', actorRole: 'coordinator' });
+  assert.match(outside.text, /not part of a programme/);
+  const src = (await import('node:fs')).readFileSync(new URL('../src/sp3/ai/tools.ts', import.meta.url), 'utf8');
+  const body = src.slice(src.indexOf('async function partnerRequests'), src.indexOf('async function workSummary'));
+  assert.doesNotMatch(body, /oh_clinic|oh_record|health\.|exposure|doses_due|notices_new/);
+  ok('partner requests: reads the request only (title, place, due date), never a clinical count or a patient record');
 }
 
 if (process.argv[1]?.endsWith('test-kaju-automations.ts')) {

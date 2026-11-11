@@ -12,6 +12,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { ProgrammeStrip } from "@/oh/ProgrammeStrip";
+import { usePlaces } from "@/oh/places";
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { Fragment, useEffect, useState, type FormEvent, type ReactNode } from "react";
@@ -52,6 +53,9 @@ export function Brief() {
   const [d, setD] = useState<Data | null>(null);
   const [failed, setFailed] = useState(false);
   const ai = useAi();
+  /* In a programme, partners may be waiting on this organisation: offer the question. */
+  const { places } = usePlaces();
+  const partnerWaiting = places.some((p) => p.kind === "ngo" && p.handoffs_open > 0);
   const [q, setQ] = useState("");
   const [setupHidden, setSetupHidden] = useState(false);
   useEffect(() => { try { setSetupHidden(localStorage.getItem("sp.setup.hidden") === "1"); } catch { /* fine */ } }, []);
@@ -117,7 +121,7 @@ export function Brief() {
   /* With nothing waiting, a field worker's next step is still their main job: registering an animal. */
   const fieldStart: Row | null = d && role === "member" ? { key: "field", href: "/ngo/field", tone: "blue", icon: null, title: <><b>Register an animal</b> in field mode</>, meta: "Works on your phone, with or without signal", verb: "Start" } : null;
   const next = todo[0] ?? fieldStart, rest = todo.slice(1);
-  const chips = (todo.length ? ["What should I do first today, and why?"] : []).concat(out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3);
+  const chips = (partnerWaiting ? ["What are programme partners waiting for?"] : []).concat(todo.length ? ["What should I do first today, and why?"] : [], out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3);
   /* A workspace with nothing on it yet (a newly registered organisation) is shown how to begin. */
   const setup = !!d && reviews && !setupHidden && d.open.length === 0 && d.abc.length === 0 && d.closed.length === 0;
   const hideSetup = () => { setSetupHidden(true); try { localStorage.setItem("sp.setup.hidden", "1"); } catch { /* fine */ } };

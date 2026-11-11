@@ -90,3 +90,12 @@
 .try-roles small { grid-column: 1; font-size: 13px; color: #5b6475; }
 .try-roles svg { grid-column: 2; grid-row: 1 / span 2; color: #2457ce; }
 @media (prefers-reduced-motion: reduce) { .try-roles button { transition: none; } }
+
+/* A long "Next: sign in as …" label wraps inside the card instead of pushing past it. */
+.dt-act .dt-btn { min-width: 0; }
+.dt-act .dt-btn.is-go { flex: 1 1 0; text-align: center; line-height: 1.25; padding-block: 8px; }
+/* The card never grows past its own width: longer role names shrink the header, not the card. */
+.dt { grid-template-columns: minmax(0, 1fr); }
+.dt-top { min-width: 0; }
+.dt-role { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.dt-min { flex: none; }

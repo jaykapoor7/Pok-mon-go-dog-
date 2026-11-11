@@ -122,7 +122,7 @@ duties are rows; a state programme sees its cities' shared counts.
 | Retained | ABC workflow, register, field mode, AnimalID, evidence and packages, contracts and billing, Kaju, research, connections, fundraising | Working and used; ABC billing is part of municipal operations even though BeST does not mention it |
 | Not connected | SMS, WhatsApp, stock systems, ward boundaries, IHIP export | Said on the screens that would use them |
 
-Kaju has no route to human-health data; its tools do not touch `oh_*` or `health`.
+Kaju stays on the animal side of a programme. Its one programme tool (`partner_requests`) reads which partners are waiting on the person's organisations and each request's title, place and due date. It never reads a request's free text, an exposure, a course, a dose, a reminder or the clinical counts a place carries; `scripts/test-kaju-automations.ts` fails if it does.
 
 ---
 
