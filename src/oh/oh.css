@@ -362,3 +362,6 @@ a.oh-stat:hover dd { color: var(--blue-ink); }
 .oh-invite-body .oh-input { max-width: 220px; text-transform: uppercase; letter-spacing: .08em; }
 .oh-invite-body p { width: 100%; font-size: 13px; }
 @media (max-width: 760px) { .oh-lede { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; } }
+/* cluster rows: the sample on the left, its actions together on the right */
+.oh-alert-more li { align-items: center; }
+.oh-alert-more li > span:first-child { flex: 1; min-width: 0; }
