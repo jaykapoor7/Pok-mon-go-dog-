@@ -1,0 +1,12 @@
+/* Route progress: see RouteProgress.tsx. */
+.rp { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 200; pointer-events: none; opacity: 0; transition: opacity 240ms ease 120ms; }
+.rp > i { display: block; height: 100%; width: 100%; transform: scaleX(0); transform-origin: 0 50%; border-radius: 0 3px 3px 0; background: linear-gradient(90deg, #2457ce, #6d8ff0 60%, #f05b40); box-shadow: 0 0 10px rgba(36, 87, 206, .55); }
+.rp[data-state="going"] { opacity: 1; transition: none; }
+.rp[data-state="going"] > i { animation: rp-go 8s cubic-bezier(.1, .7, .1, 1) forwards; }
+.rp[data-state="done"] { opacity: 0; }
+.rp[data-state="done"] > i { transform: scaleX(1); transition: transform 200ms ease-out; }
+@keyframes rp-go { 0% { transform: scaleX(0); } 12% { transform: scaleX(.38); } 40% { transform: scaleX(.7); } 100% { transform: scaleX(.92); } }
+@media (prefers-reduced-motion: reduce) {
+  .rp[data-state="going"] > i { animation: none; transform: scaleX(1); opacity: .6; }
+  .rp[data-state="done"] > i { transition: none; }
+}

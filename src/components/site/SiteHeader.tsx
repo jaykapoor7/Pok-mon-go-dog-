@@ -24,6 +24,7 @@ import "@/sp4/sp4.css";
    ════════════════════════════════════════════════════════════════════ */
 
 import { MEGA, type MegaCol } from "@/sp3/site/nav-data";
+import { MegaArt } from "./MegaArt";
 import { DEMO_SITE } from "@/lib/demo-site";
 
 /* On the demonstration site the header's main button starts the live demo. */
@@ -101,16 +102,25 @@ export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean;
     else { hoverOpened.current = null; closeTimer.current = window.setTimeout(() => setMenu(null), 140); }
   };
 
+  /* A soft pill follows the pointer from one item to the next. */
+  const glide = (e: React.PointerEvent<HTMLElement>) => {
+    if (e.pointerType !== "mouse") return;
+    const item = (e.target as HTMLElement).closest<HTMLElement>(".s4-dd > button, .s4-nav-links > a");
+    if (!item) return;
+    const nav = e.currentTarget, r = item.getBoundingClientRect(), n = nav.getBoundingClientRect();
+    nav.style.setProperty("--gx", `${r.left - n.left}px`); nav.style.setProperty("--gw", `${r.width}px`); nav.dataset.glide = "true";
+  };
+
   return (
     <header ref={bar} className={`s4 s4-nav${scrolled ? " is-scrolled" : ""}`}>
       <div className="s4-wrap s4-nav-in">
         <Link href="/" className="s4-brand" aria-label="StrayPaw home"><StrayPawMark size={28} /><span>StrayPaw</span></Link>
 
-        <nav className="s4-nav-links" aria-label="Site" onPointerLeave={(e) => { if (e.pointerType === "mouse") hover(null); }}>
+        <nav className="s4-nav-links" aria-label="Site" onPointerOver={glide} onPointerLeave={(e) => { if (e.pointerType === "mouse") { hover(null); delete e.currentTarget.dataset.glide; } }}>
           <Mega id="platform" label="Platform" open={menu === "platform"} onToggle={toggle} onHover={hover} cols={MEGA.platform}
             feature={<><Link href="/kaju-agents" className="s4-mega-agents" aria-label="Kaju agents"><span className="s4-mega-agents-h">Your agents</span>{[["Release Photo Chaser", "Every day · 6 PM", "#d97706"], ["Monthly Claim Builder", "1st of the month", "#c2532d"], ["Field Intake Agent", "On new messages", "#1f9d55"]].map(([n, w, c]) => <span key={n} className="s4-mega-agent"><i style={{ background: c }} /><b>{n}</b><small>{w}</small></span>)}</Link><p>Kaju agents run the work your team repeats every week, on your own records. <Link href="/kaju-agents">Learn more</Link></p></>} />
-          <Mega id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} onHover={hover} cols={MEGA.solutions} />
-          <Mega id="resources" label="Resources" open={menu === "resources"} onToggle={toggle} onHover={hover} cols={MEGA.resources} />
+          <Mega id="solutions" label="Solutions" open={menu === "solutions"} onToggle={toggle} onHover={hover} cols={MEGA.solutions} feature={<MegaArt kind="roles" />} />
+          <Mega id="resources" label="Resources" open={menu === "resources"} onToggle={toggle} onHover={hover} cols={MEGA.resources} feature={<MegaArt kind="map" />} />
           <Link href="/security" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/security") ? "page" : undefined}>Security</Link>
           <Link href="/pricing" onPointerEnter={(e) => { if (e.pointerType === "mouse") hover(null); }} aria-current={here("/pricing") ? "page" : undefined}>Pricing</Link>
         </nav>

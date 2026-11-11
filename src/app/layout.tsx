@@ -17,6 +17,8 @@ import { inter } from "@/sp4/font";
 
 import { SITE_URL } from "@/lib/site-url";
 import { DemoTourMount } from "@/sp/demo/DemoTourMount";
+import { RouteProgress } from "@/components/motion/RouteProgress";
+import { Suspense } from "react";
 
 // Canonical site URL. Prefer the explicit env var; otherwise the production
 // domain (NOT the per-deployment Vercel URL, which is auth-walled and makes
@@ -120,6 +122,8 @@ export default function RootLayout({
       <body className={`min-h-dvh font-sans ${sxSans.variable} ${inter.variable}`}>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <StructuredData siteUrl={siteUrl} />
+        {/* A line across the top while the next page is on its way. */}
+        <Suspense fallback={null}><RouteProgress /></Suspense>
         <RouteEnvironment>{children}</RouteEnvironment>
         <DemoTourMount />
         <Analytics />

@@ -345,3 +345,58 @@ select.s4-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .s4-mega-agent b { font-size: 12.5px; font-weight: 600; color: var(--s4-ink); }
 .s4-mega-agent small { font-size: 11px; color: var(--s4-grey); }
 .s4-mega-agents:hover .s4-mega-agent { box-shadow: 0 0 0 1px rgba(36, 87, 206, .25); }
+
+/* ── header: a pill that follows the pointer between items, and a drawing in each menu ── */
+.s4-nav-links::before { content: ""; position: absolute; left: 0; top: 50%; z-index: -1; width: var(--gw, 0); height: 36px; margin-top: -18px; border-radius: 99px; background: rgba(36, 87, 206, .08); opacity: 0; transform: translateX(var(--gx, 0)); transition: transform 340ms cubic-bezier(.3, 1.25, .5, 1), width 280ms cubic-bezier(.2, .7, .2, 1), opacity 180ms ease; pointer-events: none; }
+.s4-nav-links[data-glide="true"]::before { opacity: 1; }
+.s4-nav-links[data-glide="true"] > a:hover, .s4-nav-links[data-glide="true"] .s4-dd > button:hover, .s4-nav-links[data-glide="true"] .s4-dd > button[aria-expanded="true"] { color: var(--s4-blue); }
+.s4-mega-art { display: grid; gap: 10px; padding: 16px; border-radius: 8px; background: radial-gradient(180px 120px at 100% 0%, rgba(109, 143, 240, .5), transparent 70%), linear-gradient(160deg, #0b1530, #173c98); color: #fff; text-decoration: none; transition: transform 220ms cubic-bezier(.2, .7, .2, 1), box-shadow 220ms ease; }
+.s4-mega-art:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -18px rgba(11, 30, 61, .7); }
+.s4-mega-art svg { display: block; width: 100%; height: auto; }
+.s4-mega-art-go { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: #cfdcff; }
+.s4-mega-art-go svg { width: 14px; transition: transform 200ms cubic-bezier(.2, .7, .2, 1); }
+.s4-mega-art:hover .s4-mega-art-go svg { transform: translateX(4px); }
+.s4-art-line { fill: none; stroke: #8fb1ff; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.s4-art-line.is-river { stroke: rgba(143, 177, 255, .35); stroke-width: 12; }
+.s4-art-node { transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .s4-mega:not([hidden]) .s4-art-line { animation: s4-art-draw 800ms cubic-bezier(.3, 0, .1, 1) both; animation-delay: calc(80ms + var(--i, 0) * 70ms); }
+  .s4-mega:not([hidden]) .s4-art-node { animation: s4-art-pop 520ms cubic-bezier(.3, 1.4, .5, 1) both; animation-delay: calc(260ms + var(--i, 0) * 80ms); }
+  @keyframes s4-art-draw { from { stroke-dashoffset: 1; } }
+  @keyframes s4-art-pop { from { opacity: 0; transform: scale(.3); } }
+}
+
+/* ── inner pages: motion in the landing's language (see PageMotion.tsx) ── */
+.pm-progress { position: fixed; left: 0; right: 0; top: 0; height: 3px; z-index: 80; pointer-events: none; opacity: 0; transition: opacity 240ms ease; }
+.pm-scrolled .pm-progress { opacity: 1; }
+.pm-progress > span { display: block; height: 100%; transform: scaleX(0); transform-origin: 0 50%; border-radius: 0 3px 3px 0; background: linear-gradient(90deg, #2457ce, #6d8ff0 60%, #f05b40); }
+@media (prefers-reduced-motion: no-preference) {
+  /* hero: the two lines of the title come into focus, then the lede, the actions and the product tile */
+  .pm-on .s4-pp-hero .s4-eyebrow { animation: pm-rise 600ms var(--s4-ease) both; }
+  .pm-on .s4-pp-hero .s4-tt > span { display: inline-block; animation: pm-word 760ms var(--s4-ease) both; }
+  .pm-on .s4-pp-hero .s4-tt > span:nth-child(2) { animation-delay: 120ms; }
+  .pm-on .s4-pp-hero .s4-lede { animation: pm-rise 700ms var(--s4-ease) 220ms both; }
+  .pm-on .s4-pp-hero .s4-actions { animation: pm-rise 700ms var(--s4-ease) 320ms both; }
+  .pm-on .s4-pp-hero .s4-pp-art { animation: pm-art 1000ms var(--s4-ease) 380ms both; perspective: 1400px; }
+  .pm-on .s4-pp-hero .s4-pp-art > * { transform: rotateY(calc(var(--tx, 0) * 2.6deg)) rotateX(calc(var(--ty, 0) * -2deg)); transition: transform 260ms cubic-bezier(.2, .7, .2, 1); will-change: transform; }
+  @keyframes pm-word { from { opacity: 0; transform: translateY(.45em); filter: blur(8px); } }
+  @keyframes pm-rise { from { opacity: 0; transform: translateY(14px); } }
+  @keyframes pm-art { from { opacity: 0; transform: translateY(40px) scale(.96); filter: blur(8px); } }
+  /* product windows: the rows of a list arrive one after another once the window is seen */
+  .pm-on .s4u-q-list li, .pm-on .s4u-kpis > div, .pm-on .s4u-table tbody tr { opacity: 0; transform: translateY(8px); transition: opacity 420ms var(--s4-ease), transform 420ms var(--s4-ease); }
+  .pm-on [data-seen] .s4u-q-list li, .pm-on [data-seen] .s4u-kpis > div, .pm-on [data-seen] .s4u-table tbody tr, .pm-on [data-seen].s4u-pg .s4u-q-list li { opacity: 1; transform: none; }
+  .pm-on [data-seen] :is(.s4u-q-list li, .s4u-kpis > div, .s4u-table tbody tr):nth-child(2) { transition-delay: 90ms; }
+  .pm-on [data-seen] :is(.s4u-q-list li, .s4u-kpis > div, .s4u-table tbody tr):nth-child(3) { transition-delay: 180ms; }
+  .pm-on [data-seen] :is(.s4u-q-list li, .s4u-kpis > div, .s4u-table tbody tr):nth-child(4) { transition-delay: 270ms; }
+  .pm-on [data-seen] :is(.s4u-q-list li, .s4u-kpis > div, .s4u-table tbody tr):nth-child(n+5) { transition-delay: 360ms; }
+  .pm-on .s4u-q-list li .s4-tag { transition: transform 420ms cubic-bezier(.3, 1.4, .5, 1) 200ms; transform: scale(.6); }
+  .pm-on [data-seen] .s4u-q-list li .s4-tag { transform: none; }
+  /* tiles and modules answer the hand */
+  .pm-on .s4-tile, .pm-on .s4-module { transition: transform 240ms cubic-bezier(.2, .7, .2, 1), box-shadow 240ms ease, border-color 200ms ease; }
+  .pm-on .s4-tile:hover, .pm-on .s4-module:hover { transform: translateY(-3px); box-shadow: 0 18px 34px -22px rgba(11, 30, 61, .45); }
+  .pm-on .s4-tile svg { transition: transform 420ms cubic-bezier(.3, 1.4, .5, 1); }
+  .pm-on .s4-tile:hover svg { transform: scale(1.12) rotate(-4deg); }
+}
+
+/* Footer legal links are comfortable to tap on a phone (they measured under 20px tall). */
+@media (max-width: 760px) { .s4-foot-base nav :is(a, button) { display: inline-flex; align-items: center; min-height: 32px; } }

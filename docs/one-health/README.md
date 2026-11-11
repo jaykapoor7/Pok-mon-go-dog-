@@ -79,8 +79,10 @@ text; revaccination interval as a programme setting.
 * **One sidebar pattern everywhere** (`designedNav`, `placeNav`): **Today** first;
   **Work**, at most four everyday things chosen by role; **Programme**, the same
   links for everyone in a programme (Programme, Care network, Requests with a live
-  count); **More**, one link per area whose page lists the rest as tabs, so nothing is
-  more than two clicks away; and **Find a page or record** under the place card. The top bar holds the single
+  count); no "More" list: everything else is one organised index, **All sections**, inside
+  **Find a page or record** under the place card, so nothing is more than two clicks away.
+  The sidebar itself is a navy panel that grows from a rail and tucks into a Menu handle
+  (`src/sp/shell/rail.css`). The top bar holds the single
   primary action and pages do not repeat it. See `screens/sidebars-same-pattern.png`.
 * **The NGO's own Today** carries a line from the programme ("2 requests from programme
   partners · 1 overdue"), so a hospital's request reaches the field team where they look.

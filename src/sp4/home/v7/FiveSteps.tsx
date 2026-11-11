@@ -9,7 +9,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, Camera, Check, ChevronRight, FileSpreadsheet, FileText, MapPin, MessageCircle, Search, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { ArrowRight, ArrowRightLeft, Camera, Check, ChevronRight, FileSpreadsheet, FileText, FlaskConical, MapPin, MessageCircle, Search, ShieldCheck, Sparkles, Stethoscope, TriangleAlert } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 
 type Step = { key: string; n: string; tab: string; title: string; lede: string; kaju: string[]; link: { href: string; label: string }; screen: ReactNode };
@@ -37,10 +37,37 @@ const STEPS: Step[] = [
     link: { href: "/abc-operations#report", label: "How packages work" }, screen: <SubmitScreen /> },
 ];
 
+/* The same frame tells a second story: a city rabies programme, where the work
+   passes between a clinic, a field team, a laboratory and the programme cell. */
+const CITY: Step[] = [
+  { key: "record", n: "01", tab: "Record", title: "A bite is recorded once.",
+    lede: "At the clinic desk, in a minute. The clinician decides; StrayPaw keeps the record.", kaju: [],
+    link: { href: "/for-hospitals", label: "How bite care works" }, screen: <BiteScreen /> },
+  { key: "followup", n: "02", tab: "Follow up", title: "The field team finds the animal.",
+    lede: "The request carries the place and the animal, never the patient.", kaju: [],
+    link: { href: "/for-ngos", label: "How requests work" }, screen: <FollowScreen /> },
+  { key: "test", n: "03", tab: "Test", title: "A sample arrives with its history.",
+    lede: "Every hand is recorded. The result carries its method.", kaju: [],
+    link: { href: "/for-hospitals", label: "How the laboratory works" }, screen: <LabScreen /> },
+  { key: "decide", n: "04", tab: "Decide", title: "The programme sees what to decide.",
+    lede: "A confirmed case, a centre short of vaccine, coverage below target.", kaju: [],
+    link: { href: "/for-governments", label: "How programme cells work" }, screen: <CellScreen /> },
+  { key: "report", n: "05", tab: "Report", title: "One report, for everyone.",
+    lede: "Partners see counts, never people. Small counts stay hidden.", kaju: [],
+    link: { href: "/research", label: "How research data works" }, screen: <ProgrammeReportScreen /> },
+];
+const TRACKS: { key: string; label: string; steps: Step[] }[] = [{ key: "abc", label: "ABC programme", steps: STEPS }, { key: "city", label: "City rabies programme", steps: CITY }];
+
 export function FiveSteps() {
   const box = useRef<HTMLElement>(null);
   const swipe = useRef<HTMLDivElement>(null);
+  const [track, setTrack] = useState(0);
+  const steps = TRACKS[track].steps;
   const [on, setOn] = useState(0);
+  /* The screen arrives from the side you are moving toward. */
+  const last = useRef(0);
+  const dir = on >= last.current ? "fwd" : "back";
+  useEffect(() => { last.current = on; }, [on]);
   const [prog, setProg] = useState(0);
   const [pinned, setPinned] = useState(false);
   useEffect(() => {
@@ -57,7 +84,7 @@ export function FiveSteps() {
       raf = 0; const el = box.current; if (!el) return;
       const r = el.getBoundingClientRect(); const span = el.offsetHeight - window.innerHeight;
       const p = Math.min(0.999, Math.max(0, -r.top / Math.max(1, span)));
-      setProg(p); setOn(Math.floor(p * STEPS.length));
+      setProg(p); setOn(Math.floor(p * steps.length));
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(tick); };
     tick(); window.addEventListener("scroll", onScroll, { passive: true }); window.addEventListener("resize", onScroll);
@@ -75,14 +102,14 @@ export function FiveSteps() {
   const go = (i: number) => {
     const el = box.current;
     const smooth = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-    if (!pinned) { setOn(Math.max(0, Math.min(STEPS.length - 1, i))); return; }
+    if (!pinned) { setOn(Math.max(0, Math.min(steps.length - 1, i))); return; }
     if (!el) return;
     const span = el.offsetHeight - window.innerHeight;
-    const top = el.getBoundingClientRect().top + window.scrollY + span * ((i + 0.5) / STEPS.length);
+    const top = el.getBoundingClientRect().top + window.scrollY + span * ((i + 0.5) / steps.length);
     window.scrollTo({ top, behavior: smooth });
   };
   const panel = (s: Step, key?: string) => (
-    <div className="s7-step" key={key}>
+    <div className="s7-step" key={key} data-dir={dir}>
       <div className="s7-step-copy">
         <h3>{s.title}</h3>
         <p>{s.lede}</p>
@@ -93,16 +120,21 @@ export function FiveSteps() {
       </div>
     </div>
   );
-  const s = STEPS[on];
+  const s = steps[Math.min(on, steps.length - 1)];
+  const pick = (i: number) => { if (i === track) return; setTrack(i); last.current = 0; if (pinned) go(0); else setOn(0); };
   return (
-    <section ref={box} id="workflow" className={`s7-steps${pinned ? " is-pinned" : ""}`} aria-labelledby="steps-title" style={pinned ? { height: `${STEPS.length * 85 + 40}vh` } : undefined}>
+    <section ref={box} id="workflow" className={`s7-steps${pinned ? " is-pinned" : ""}`} aria-labelledby="steps-title" style={pinned ? { height: `${steps.length * 85 + 40}vh` } : undefined}>
       <div className="s7-steps-pin">
         <div className="s4-wrap">
           <div className="s7-steps-head">
             <h2 id="steps-title" className="s4-h2">Use cases</h2>
+            <div className="s7-track" role="group" aria-label="Which programme" data-on={track}>
+              {TRACKS.map((t, i) => <button key={t.key} type="button" aria-pressed={track === i} onClick={() => pick(i)}>{t.label}</button>)}
+              <i aria-hidden />
+            </div>
           </div>
           <div className="s7-steps-tabs" role="tablist" aria-label="The five steps" ref={tabs}>
-            {STEPS.map((x, i) => (
+            {steps.map((x, i) => (
               <button key={x.key} type="button" role="tab" aria-selected={on === i} aria-controls="s7-step-panel" onClick={() => go(i)}>
                 {x.tab}
                 {on === i && <i className="s7-steps-bar" aria-hidden />}
@@ -110,14 +142,14 @@ export function FiveSteps() {
             ))}
           </div>
           {pinned
-            ? <div id="s7-step-panel" role="tabpanel">{panel(s, s.key)}</div>
+            ? <div id="s7-step-panel" role="tabpanel">{panel(s, `${track}-${s.key}`)}</div>
             : <div id="s7-step-panel" role="tabpanel" className="s7-one" ref={swipe}
                 onTouchStart={(e) => { touch.current = e.touches[0].clientX; }}
                 onTouchEnd={(e) => { const x0 = touch.current; touch.current = null; if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 48) go(on + (dx < 0 ? 1 : -1)); }}>
-                {panel(s, s.key)}
+                {panel(s, `${track}-${s.key}`)}
                 <div className="s7-one-nav">
-                  <span className="s7-one-dots" aria-hidden>{STEPS.map((x, i) => <i key={x.key} className={i === on ? "is-on" : undefined} />)}</span>
-                  {on < STEPS.length - 1 ? <button type="button" className="s7-one-next" onClick={() => go(on + 1)}>Next: {STEPS[on + 1].tab} <ArrowRight size={15} aria-hidden /></button> : <button type="button" className="s7-one-next" onClick={() => go(0)}>Start again</button>}
+                  <span className="s7-one-dots" aria-hidden>{steps.map((x, i) => <i key={x.key} className={i === on ? "is-on" : undefined} />)}</span>
+                  {on < steps.length - 1 ? <button type="button" className="s7-one-next" onClick={() => go(on + 1)}>Next: {steps[on + 1].tab} <ArrowRight size={15} aria-hidden /></button> : <button type="button" className="s7-one-next" onClick={() => go(0)}>Start again</button>}
                 </div>
               </div>}
         </div>
@@ -284,6 +316,128 @@ function SubmitScreen() {
           {[["PDF", "Summary and evidence index", "is-red"], ["XLSX", "Claim at contract rates", "is-green"], ["PPTX", "Monday review · 6 slides", "is-orange"]].map(([k, t, c]) => <div key={k} className="s7-file"><span className={`s7-ft ${c}`}>{k}</span><span>{t}</span></div>)}
           <KajuNote><b>4 exceptions, each explained.</b></KajuNote>
           <span className="s7-btn is-blue is-full">Review and submit <ArrowRight size={14} /></span>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+/* ════ City rabies programme: the same frame, five more screens. Illustrative
+   records. Kaju appears only where he is allowed to read: requests between
+   partners, never a clinic's register. ════ */
+
+/* ── 01 · Record: the clinic's own register ───────────────────────── */
+function BiteScreen() {
+  const rows: [string, string, string][] = [["4471", "09:12", "Category III · dog, street"], ["4466", "08:40", "Category II · cat, owned"], ["4460", "Yesterday", "Category III · dog, street"]];
+  return (
+    <Win title="Clinic" tabs={["Register", "Due today"]} badge={<span className="s7-pill is-blue">3 this week</span>}>
+      <div className="s7-rx">
+        <ul className="s7-rx-list">
+          <li className="s7-rx-src"><Stethoscope size={13} /> Bite register · this facility only</li>
+          {rows.map(([n, t, x], i) => <li key={n} className={i === 0 ? "is-on" : ""}><span className="s7-av">{i + 1}</span><span><b>OPD {n}</b><small>{x}</small></span><time>{t}</time></li>)}
+        </ul>
+        <div className="s7-rx-draft">
+          <p className="s7-cap">OPD 4471 · no name stored</p>
+          <dl>
+            <div><dt>Category</dt><dd>III · set by the clinician</dd></div>
+            <div><dt>Animal</dt><dd><MapPin size={12} /> Dog, market gate</dd></div>
+          </dl>
+          <div className="s7-doses">{[1, 2, 3, 4, 5].map((n) => <i key={n} className={n === 1 ? "is-done" : n === 2 ? "is-due" : undefined}>{n === 1 ? <Check size={12} /> : n}</i>)}</div>
+          <p className="s7-note"><b>Field team asked</b> to find the dog. No patient details shared.</p>
+          <div className="s7-row"><span className="s7-btn is-blue">Record dose</span></div>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+/* ── 02 · Follow up: the request reaches the area's field team ────── */
+function FollowScreen() {
+  const rows: [string, string, string, string][] = [["T", "Teaching hospital", "Find and observe a dog · market gate", "Fri"], ["H", "Health centre", "Find a puppy near the school", "Overdue"], ["P", "Programme cell", "Vaccinate around a confirmed case", "Mon"]];
+  return (
+    <Win title="Requests" tabs={["Partners", "Samples"]} badge={<span className="s7-pill is-amber">1 overdue</span>}>
+      <div className="s7-rx">
+        <ul className="s7-rx-list">
+          <li className="s7-rx-src"><ArrowRightLeft size={13} /> Requests from partners · your areas</li>
+          {rows.map(([a, w, x, t], i) => <li key={w} className={i === 0 ? "is-on" : ""}><span className="s7-av">{a}</span><span><b>{w}</b><small>{x}</small></span><time>{t}</time></li>)}
+        </ul>
+        <div className="s7-rx-draft">
+          <p className="s7-cap">Request · no patient details</p>
+          <dl>
+            <div><dt>Animal</dt><dd>Tan, torn left ear</dd></div>
+            <div><dt>Place</dt><dd><MapPin size={12} /> Market gate</dd></div>
+          </dl>
+          <KajuNote><b>1 request is overdue.</b> Ravi is nearest.</KajuNote>
+          <div className="s7-row"><span className="s7-btn is-blue">Accept</span></div>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+/* ── 03 · Test: chain of custody, then a result with its method ───── */
+function LabScreen() {
+  const hands: [string, string, string][] = [["Collected", "Field team · Ravi", "Mon 10:20"], ["Handed to courier", "Sealed, cold chain", "Mon 11:05"], ["Received", "Laboratory desk", "Mon 15:40"], ["Tested", "Fluorescent antibody test", "Tue 09:30"]];
+  return (
+    <Win title="Laboratory" tabs={["Samples", "Results"]} badge={<span className="s7-pill is-blue">Chain of custody</span>}>
+      <div className="s7-rx">
+        <ul className="s7-rx-list s7-hands">
+          <li className="s7-rx-src"><FlaskConical size={13} /> Sample S-2611 · brain tissue</li>
+          {hands.map(([a, w, t], i) => <li key={a} style={{ ["--i" as string]: i }}><span className="s7-av"><Check size={12} /></span><span><b>{a}</b><small>{w}</small></span><time>{t}</time></li>)}
+        </ul>
+        <div className="s7-rx-draft">
+          <p className="s7-cap">Result · signed</p>
+          <p className="s7-big">Positive</p>
+          <dl>
+            <div><dt>Method</dt><dd>Fluorescent antibody test</dd></div>
+            <div><dt>Told</dt><dd>Sender · programme cell</dd></div>
+          </dl>
+          <div className="s7-row"><span className="s7-btn is-blue">Report result</span></div>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+/* ── 04 · Decide: the programme cell's open decisions and coverage ── */
+function CellScreen() {
+  const rows: [string, string, string][] = [["Rabies confirmed · HSR Layout", "Laboratory result, with its method", "Today"], ["Centre short of immunoglobulin", "3 people mid-course · referral set", "Today"], ["Follow-up unassigned", "Asked by a hospital", "2 days"]];
+  const wards: [string, number][] = [["Ward 12", 78], ["Ward 13", 71], ["Ward 14", 64]];
+  return (
+    <Win title="Programme" tabs={["Overview", "Care network"]} badge={<span className="s7-pill is-blue">3 to decide</span>}>
+      <div className="s7-rx">
+        <ul className="s7-rx-list">
+          <li className="s7-rx-src"><TriangleAlert size={13} /> Needs a decision</li>
+          {rows.map(([a, x, t], i) => <li key={a} className={i === 0 ? "is-on" : ""}><span className="s7-av">{i + 1}</span><span><b>{a}</b><small>{x}</small></span><time>{t}</time></li>)}
+        </ul>
+        <div className="s7-rx-draft">
+          <p className="s7-cap">Dogs vaccinated · against the estimate</p>
+          <div className="s7-cov"><span>Target 70%</span>{wards.map(([w, v], i) => <div key={w} style={{ ["--v" as string]: `${v}%`, ["--i" as string]: i }}><small>{w}</small><i className={v >= 70 ? "is-ok" : undefined} /><b>{v}%</b></div>)}</div>
+          <p className="s7-note">Counts only. <b>Fewer than 5</b> is shown as &lt;5.</p>
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+/* ── 05 · Report: one record, read three ways ─────────────────────── */
+function ProgrammeReportScreen() {
+  const lines: [string, string, string][] = [["Bites recorded", "75", "3 facilities"], ["Courses completed", "53", "Facility registers"], ["Dogs vaccinated", "1,204", "Partner registers"], ["Samples tested", "13", "Laboratory"]];
+  return (
+    <Win title={<><span className="s7-xl">X</span> Programme report · October.xlsx</>} badge={<span className="s7-pill is-green">Ready</span>}>
+      <div className="s7-claim">
+        <table className="s7-sheet">
+          <thead><tr><th /><th>A · Measure</th><th>B · Count</th><th>C · Source</th></tr></thead>
+          <tbody>
+            {lines.map(([a, b, c], i) => <tr key={a}><th>{i + 2}</th><td>{a}</td><td>{b}</td><td>{c}</td></tr>)}
+            <tr className="is-total"><th>6</th><td>Confirmed cases</td><td>&lt;5</td><td>Hidden below 5</td></tr>
+          </tbody>
+        </table>
+        <div className="s7-pack">
+          <p className="s7-cap">One record, three readers</p>
+          {[["PDF", "Programme report", "is-red"], ["XLSX", "Municipal review", "is-green"], ["CSV", "Research extract", "is-orange"]].map(([k, t, c]) => <div key={k} className="s7-file"><span className={`s7-ft ${c}`}>{k}</span><span>{t}</span></div>)}
+          <p className="s7-note"><b>No name leaves a facility.</b></p>
+          <span className="s7-btn is-blue is-full">Share with partners <ArrowRight size={14} /></span>
         </div>
       </div>
     </Win>

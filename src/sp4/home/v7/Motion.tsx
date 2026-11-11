@@ -37,7 +37,15 @@ export function LandingMotion() {
     const rest = () => { tx = 0; ty = 0; if (!tr) tr = requestAnimationFrame(lean); };
     if (stage && fine) { stage.addEventListener("pointermove", move); stage.addEventListener("pointerleave", rest); }
 
-    return () => { window.clearTimeout(tag); window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); cancelAnimationFrame(tr); stage?.removeEventListener("pointermove", move); stage?.removeEventListener("pointerleave", rest); root.classList.remove("s8-on", "s8-scrolled"); };
+    /* a soft light follows the pointer across the blueprint */
+    const canvas = document.querySelector<HTMLElement>(".s6-hero .s6-canvas");
+    let lr = 0, lx = 0, ly = 0;
+    const paintLight = () => { lr = 0; canvas?.style.setProperty("--lx", `${lx}px`); canvas?.style.setProperty("--ly", `${ly}px`); };
+    const light = (e: PointerEvent) => { if (!canvas) return; const r = canvas.getBoundingClientRect(); lx = e.clientX - r.left; ly = e.clientY - r.top; canvas.dataset.lit = "true"; if (!lr) lr = requestAnimationFrame(paintLight); };
+    const dark = () => { if (canvas) canvas.dataset.lit = "false"; };
+    if (canvas && fine) { canvas.addEventListener("pointermove", light); canvas.addEventListener("pointerleave", dark); }
+
+    return () => { window.clearTimeout(tag); window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); cancelAnimationFrame(tr); stage?.removeEventListener("pointermove", move); stage?.removeEventListener("pointerleave", rest); cancelAnimationFrame(lr); canvas?.removeEventListener("pointermove", light); canvas?.removeEventListener("pointerleave", dark); root.classList.remove("s8-on", "s8-scrolled"); };
   }, []);
   return <span className="s8-progress" aria-hidden><span ref={bar} /></span>;
 }

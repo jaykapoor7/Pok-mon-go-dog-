@@ -13,18 +13,20 @@
 
 import { shortCode } from "@/lib/caseCode";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ClipboardList, MapPin, PawPrint, Search, Sparkles, X } from "lucide-react";
 import { searchRegister, type RegisterRow } from "@/lib/case-register";
 import type { FoundAnimal, FoundPlace } from "@/lib/livingmap/server";
 import { WORKSPACES, workspaceView, type Role, type WorkspaceId } from "./workspaces";
 
-type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to" | "Ask Kaju"; title: string; detail: string; href: string };
+type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to" | "Ask Kaju"; title: string; detail: string; href: string; group?: string };
+/* Plain names for the areas of a workspace, as the index shows them. */
+const AREA: Record<string, string> = { Programmes: "Drives and projects", Clinical: "Treatment and release", Organisation: "Your organisation", Work: "Daily work", Overview: "Governance and reports", Verification: "Review" };
 
 let cityList: Promise<string[]> | null = null;
 const cities = () => (cityList ??= fetch("/api/livingmap?kind=cities").then((r) => (r.ok ? r.json() : { cities: [] })).then((j) => ((j.cities ?? []) as { city: string }[]).map((c) => c.city)).catch(() => { cityList = null; return []; }));
 
-export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages = [] }: { open: boolean; onClose: () => void; ws: WorkspaceId; member: boolean; role:Role|null; reviewer:boolean; onAsk?: (q: string) => void; pages?: { href: string; label: string; detail: string }[] }) {
+export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages = [], browse = false }: { open: boolean; onClose: () => void; /** Opened from "All sections": show the whole workspace, grouped, before anything is typed. */ browse?: boolean; ws: WorkspaceId; member: boolean; role:Role|null; reviewer:boolean; onAsk?: (q: string) => void; pages?: { href: string; label: string; detail: string }[] }) {
   const router = useRouter();
   const ref = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -61,6 +63,13 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
     const t = q.trim().toLowerCase();
     const out: Hit[] = [];
     const def = workspaceView(ws,role,reviewer);
+    /* "All sections": the whole workspace as one organised index, each area named, each page with what it is for. */
+    if (browse && !t) {
+      const seen = new Set<string>();
+      for (const g of def.index) for (const l of g.links) { const href = l.query ? `${l.href}?${l.query}` : l.href; if (seen.has(href) || l.href === "/assistant") continue; seen.add(href); out.push({ key: `all:${href}`, kind: "Go to", title: l.label, detail: l.note ?? `In ${(AREA[g.label] ?? g.label).toLowerCase()}`, href, group: AREA[g.label] ?? g.label }); }
+      for (const pg of pages) if (!seen.has(pg.href)) { seen.add(pg.href); out.push({ key: `all:${pg.href}`, kind: "Go to", title: pg.label, detail: pg.detail, href: pg.href, group: "Your programme places" }); }
+      return out;
+    }
     if (t && onAsk) out.push({ key: "ask", kind: "Ask Kaju", title: `Ask Kaju: “${q.trim()}”`, detail: "Searches your authorised records and answers with citations", href: "#ask" });
     for (const d of def.nav) if (!t || d.label.toLowerCase().includes(t)) { const href = d.query ? `${d.href}?${d.query}` : d.href; out.push({ key: `go:${href}`, kind: "Go to", title: d.step ? `Step ${d.step} · ${d.label}` : d.label, detail: def.label, href }); }
     /* The pages of the person's places (hospital, laboratory, programme): findable by name like any other. */
@@ -73,17 +82,17 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
       for (const c of cases) out.push({ key: `k:${c.id}`, kind: "Case", title: `${shortCode(c.case_code)} · ${c.condition_class ?? c.title ?? "Open case"}`, detail: [c.animal_name && !/·/.test(c.animal_name) ? c.animal_name : c.straypaw_id, c.zone, c.status_class?.replace(/_/g, " ")].filter(Boolean).join(" · "), href: `/ngo/cases/${c.id}` });
     }
     return out;
-  }, [q, ws, role, reviewer, allCities, places, animals, cases, onAsk, pages]);
+  }, [q, ws, role, reviewer, allCities, places, animals, cases, onAsk, pages, browse]);
 
   useEffect(() => { setAt(0); }, [hits.length]);
   const go = (h: Hit | undefined) => { if (!h) return; if (h.kind === "Ask Kaju") { onAsk?.(q.trim()); return; } onClose(); router.push(h.href); };
 
   return (
-    <dialog ref={ref} className="sp-finder" aria-label="Search" onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
+    <dialog ref={ref} className={`sp-finder${browse ? " is-browse" : ""}`} aria-label={browse ? "All sections" : "Search"} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
       <div className="sp-finder-in">
         <label className="sp-finder-field">
           <Search size={18} aria-hidden />
-          <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Animal ID or name, a city or locality, a case code"
+          <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} placeholder={browse ? "Every section of this workspace. Type to search records too" : "Animal ID or name, a city or locality, a case code"}
             role="combobox" aria-expanded={hits.length > 0} aria-controls="sp-finder-list" aria-activedescendant={hits[at] ? `sp-hit-${at}` : undefined}
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") { e.preventDefault(); setAt((i) => Math.min(hits.length - 1, i + 1)); }
@@ -95,10 +104,14 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
         <ul id="sp-finder-list" role="listbox" aria-label="Results" className="sp-finder-list">
           {hits.map((h, i) => {
             const Icon = h.kind === "Ask Kaju" ? Sparkles : h.kind === "Animal" ? PawPrint : h.kind === "Case" ? ClipboardList : h.kind === "Go to" ? ArrowRight : MapPin;
+            const head = h.group && h.group !== hits[i - 1]?.group ? <li key={`g:${h.group}`} role="presentation" className="sp-finder-group">{h.group}</li> : null;
             return (
-              <li key={h.key} id={`sp-hit-${i}`} role="option" aria-selected={i === at} onMouseEnter={() => setAt(i)} onClick={() => go(h)}>
-                <Icon size={17} aria-hidden /><span><b>{h.title}</b><small>{h.detail}</small></span><em className="k">{h.kind}</em>
-              </li>
+              <Fragment key={h.key}>
+                {head}
+                <li id={`sp-hit-${i}`} role="option" aria-selected={i === at} onMouseEnter={() => setAt(i)} onClick={() => go(h)}>
+                  <Icon size={17} aria-hidden /><span><b>{h.title}</b><small>{h.detail}</small></span>{h.group ? null : <em className="k">{h.kind}</em>}
+                </li>
+              </Fragment>
             );
           })}
         </ul>

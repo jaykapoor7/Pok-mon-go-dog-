@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, X } from "lucide-react";
 
-const KEY = "sp.announce.kaju-everywhere";
+const KEY = "sp.announce.city-programmes";
 
 export function Announce() {
   const [show, setShow] = useState(true);
@@ -15,7 +15,7 @@ export function Announce() {
   if (!show) return null;
   return (
     <div className="s7-ann">
-      <Link href="/kaju-agents"><b>New</b><span>Kaju in every workspace: NGO, government, community and field.</span><span className="s7-ann-go">See what Kaju does <ArrowRight size={14} aria-hidden /></span></Link>
+      <Link href="/platform#one-health"><b>New</b><span>City programmes: hospitals, field teams and the laboratory on one record.</span><span className="s7-ann-go">See how it connects <ArrowRight size={14} aria-hidden /></span></Link>
       <button type="button" aria-label="Dismiss this announcement" onClick={() => { setShow(false); try { localStorage.setItem(KEY, "1"); } catch { /* fine */ } }}><X size={16} aria-hidden /></button>
     </div>
   );

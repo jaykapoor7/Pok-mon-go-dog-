@@ -26,7 +26,17 @@ The owner judged the rebuilt landing, hero, navigation and pages (PRs #60, #61) 
 | A. Keep what was added since, inside the old structure: `/for-hospitals` rebuilt on the old page kit and linked under Solutions; a programme section on Platform, For governments and For NGOs; clinic, laboratory and programme-cell windows have their own sidebar | Done (this PR) |
 | A. Fix found on the way: `/for-hospitals` was rendering inside the app shell on production; it is now registered as a public page | Done (this PR) |
 | A. Fix kept from before: the Platform partner strip lists only organisations in the field-partner data (an unverified name is no longer shown) | Done (this PR) |
-| B. Improve the old blueprint: motion, transitions and the connected-programme story as use cases, in the old visual language | Next |
+| B1. Use cases: a second track in the same frame (ABC programme / City rabies programme): record, follow up, test, decide, report, with screens in the old window style; screens arrive from the side you move toward | Done |
+| B1. Hero: Kaju wags or tilts his head when the pointer or focus reaches the hero buttons; a soft light follows the pointer across the blueprint; the rotating line includes rabies elimination programmes; the announcement bar carries city programmes | Done |
+| B2. Dashboard sidebar rebuilt on the owner's reference recording (`src/sp/shell/rail.css`): a navy glass panel that grows from a rail with concave joins, numbered items, a lit pill that glides and runs to the panel edge; it tucks into a Menu handle, grows back on hover or focus, and pins on press. Kaju keeps his corner | Done |
+| B2. No More list. The two programme links that were folded are in the nav under Manage; everything else is one organised index (All sections) grouped by area, in the Finder | Done |
+| B3. Header: a pill follows the pointer between items; the Solutions and Resources menus carry a vector drawing that draws itself when the menu opens | Done |
+| B3. A route line across the top while the next page is on its way, everywhere (`RouteProgress`) | Done |
+| B3. Inner pages (page kit): reading-progress line, a hero that comes into focus and leans to the pointer, product-window rows that arrive as they scroll into view (`PageMotion`) | Done |
+| B3. App: the page's ambient light follows the section you are in (today, work, programme, manage) | Done |
+| B4. App screens rebuilt one by one (Today, work queue, register, verification, reports, programme pages) | Next |
+| Site audit (55 public pages, phone and desktop, 151 links): no broken pages, images or dead links. Fixed from it: `/status`, `/data-processing` and `/try` rendered inside the app shell; three dead anchors on ABC operations; two wrong links on Donate; the status banner stuck on "Checking"; primary buttons unreadable on five pages (1.2:1 and 2.6:1); footer legal links under 20px tall on phones. Left for a decision: 25 pages still on four older page kits with different type sizes; `/report-content` has no site header; title format differs between pages; legacy links that redirect | Done / open |
+| CI note: the quality gate failed five times on 11 Nov while installing browsers (the runner could not resolve the Ubuntu mirror); no test ran. Not a code failure; re-run from the Actions page if it persists | Open |
 | Not reverted: the sign-in split layout, demo request types, the guided demo, Kaju's partner-requests tool, alert clustering | Kept |
 
 The sections below about "Batch 1" and the "Site visual pass" describe work that this decision supersedes on the public site.
