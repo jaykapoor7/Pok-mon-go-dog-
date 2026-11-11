@@ -11,6 +11,7 @@
    invented, and empty sections say so plainly.
    ════════════════════════════════════════════════════════════════════ */
 
+import { ProgrammeStrip } from "@/oh/ProgrammeStrip";
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { Fragment, useEffect, useState, type FormEvent, type ReactNode } from "react";
@@ -176,6 +177,7 @@ export function Brief() {
             </ol>
           </section>}
         </>}
+        <ProgrammeStrip />
         {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
         {d && <>
           {d.unavailable.length>0&&<p role="status" className="br-warn">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}

@@ -14,7 +14,7 @@ const ROLES = new Set(["field", "vet", "coordinator", "lead", "municipal"]);
 /* One Health demonstration people (docs/one-health/DEMO.md). Their accounts
    exist only where the One Health demo has been set up; elsewhere sign-in
    simply fails and the page says so. */
-const OH_ROLES = new Set(["oh-programme", "oh-municipal", "oh-clinician", "oh-nurse", "oh-phc", "oh-lab", "oh-field", "oh-ngo", "oh-analyst"]);
+const OH_ROLES = new Set(["oh-programme", "oh-municipal", "oh-clinician", "oh-nurse", "oh-phc", "oh-lab", "oh-field", "oh-ngo", "oh-analyst", "oh-state", "oh-coimbatore"]);
 const NO_STORE = { "Cache-Control": "no-store" };
 
 export async function POST(req: Request) {

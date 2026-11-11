@@ -1,4 +1,4 @@
 import type { Metadata } from "next";
-import { SendSample } from "@/oh/pages/SendSample";
-export const metadata: Metadata = { title: "StrayPaw One Health", robots: { index: false } };
-export default function Page() { return <SendSample />; }
+import { WorkspaceSample } from "@/oh/pages/workspace";
+export const metadata: Metadata = { title: "Send a sample · StrayPaw", robots: { index: false } };
+export default function Page() { return <WorkspaceSample />; }
