@@ -88,6 +88,18 @@ Acceptance is not payment; never imply a claim was paid.
 
 ---
 
+### 8. One Health workspaces (November 2026)
+The programme workspaces (`/today`, `/workspace/[id]`, `/programme/[slug]`) use
+`src/oh/oh.css`: one stylesheet scoped under `.oh`, built on the foundations
+above, with no dependency on the older layers. It is the target for moving the
+NGO and municipal screens over, one route at a time, and retiring the older
+stylesheets as they empty. Rules: a person works in places; every page reads
+through role-checked database functions; unknown is "Not read", never zero;
+human counts below five are hidden; StrayPaw records clinical decisions and
+never makes them. See `docs/one-health/README.md`.
+
+---
+
 ## History (superseded where it conflicts with 4.0)
 
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { flagOn } from "@/lib/flags";
 import { InfoPage, H2 } from "@/components/info/InfoPage";
+import { BiteFinder } from "@/oh/BiteFinder";
 import "./bite-help.css";
 
 /* Bite or scratch help: a prototype for the Bengaluru pilot.
@@ -52,7 +53,9 @@ export default function BiteHelpPage() {
       </ul>
 
       <H2>Where to go</H2>
-      <p>Verified anti-rabies vaccine centres for Bengaluru will be listed here once the health department confirms them. Until then, go to the nearest government hospital.</p>
+      {process.env.NEXT_PUBLIC_OH_PUBLIC_PROGRAMME
+        ? <BiteFinder slug={process.env.NEXT_PUBLIC_OH_PUBLIC_PROGRAMME} />
+        : <p>Verified anti-rabies vaccine centres for Bengaluru will be listed here once the health department confirms them. Until then, go to the nearest government hospital.</p>}
 
       <H2>About the animal</H2>
       <p>If you know where the animal is, <Link href="/community/report">report it</Link> with the place and a description so a local team can check on it. Do not approach it.</p>

@@ -108,6 +108,15 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
     const home: WorkspaceId | null = mem.member ? "ngo" : mem.reviewer ? "city" : null;
     if (home) { setWs(home); rememberWorkspace(home); }
   }, [mem.ready, mem.member, mem.reviewer, path]);
+  /* Programmes this person takes part in (One Health). A database without the
+     programme functions simply answers "none", and the link stays hidden. */
+  const [oneHealth, setOneHealth] = useState(false);
+  useEffect(() => {
+    if (!user) { setOneHealth(false); return; }
+    let live = true;
+    void import("@/oh/data").then(({ call }) => call<unknown[]>("oh_my_today")).then((r) => { if (live) setOneHealth(Array.isArray(r.data) && r.data.length > 0); });
+    return () => { live = false; };
+  }, [user]);
   const def = workspaceView(aiWorkspace, mem.role, mem.reviewer);
   const nav = visibleNav(def.nav, mem.role, mem.reviewer);
 
@@ -214,6 +223,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
           <div className="sx3-side-foot">
             {def.settings && mem.role === "admin" && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}
+            {oneHealth ? <Link href="/today" className="sx3-foot-link"><Activity size={15} aria-hidden /><span>One Health programme</span></Link> : null}
             <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help</span></Link>
             <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
           </div>
