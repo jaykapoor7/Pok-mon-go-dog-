@@ -85,7 +85,7 @@ function TodayBody({ name }: { name: string }) {
         </Section>
       ) : null}
       {!count ? (
-        <><Empty title="You are not part of an organisation yet">Enter the invite code your coordinator gave you below. An NGO can also <Link className="oh-btn quiet small" href="/partner-apply">register itself</Link>.</Empty><InviteCode open /></>
+        <><Empty title="You are not part of an organisation yet">Enter the invite code your coordinator gave you, or start a programme. An NGO can also <Link className="oh-btn quiet small" href="/partner-apply">register itself</Link>.</Empty><InviteCode open /><StartProgramme /></>
       ) : (
         <Section title="Your places">
           <div className="oh-places">
@@ -118,6 +118,7 @@ function TodayBody({ name }: { name: string }) {
             })}
           </div>
           <InviteCode />
+          <StartProgramme />
         </Section>
       )}
     </Page>
@@ -144,6 +145,41 @@ function InviteCode({ open: startOpen = false }: { open?: boolean }) {
         <input className="oh-input" value={code} maxLength={12} onChange={(e) => setCode(e.target.value)} placeholder="8-character code" aria-label="Invite code" autoCapitalize="characters" />
         <button type="button" className="oh-btn primary" disabled={busy || code.trim().length < 6} onClick={() => void accept()}>{busy ? "Checking…" : "Join"}</button>
         {msg ? <p role="status" style={{ color: msg.ok ? "var(--green)" : "var(--flame)" }}>{msg.text}</p> : null}
+      </div>
+    </details>
+  );
+}
+
+/** A new deployment without engineering: name the programme, its city and
+    areas; the person becomes its lead and continues in Programme setup to add
+    partners, modules and people. */
+function StartProgramme() {
+  const router = useRouter();
+  const { reload } = usePlaces();
+  const [f, setF] = useState({ name: "", city: "", areas: "", me: "" });
+  const [busy, setBusy] = useState(false), [err, setErr] = useState<string | null>(null);
+  const slug = f.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+  const go = async () => {
+    setBusy(true); setErr(null);
+    const areas = f.areas.split(/[,\n]/).map((a) => a.trim()).filter((a) => a.length >= 2).slice(0, 200);
+    const r = await call<{ id: string; slug: string }>("oh_create_programme", { p_name: f.name.trim(), p_slug: slug, p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata", p_area_names: areas, p_parent: null, p_city: f.city.trim() || null, p_display_name: f.me.trim() || null });
+    setBusy(false);
+    if (r.error || !r.data) { setErr(r.error ?? "Could not create the programme."); return; }
+    reload(); router.push(`/programme/${r.data.slug}/setup`);
+  };
+  return (
+    <details className="oh-invite">
+      <summary>Start a programme</summary>
+      <div className="oh-card pad" style={{ marginTop: 10, display: "grid", gap: 14, maxWidth: 620 }}>
+        <p style={{ color: "var(--muted)", fontSize: 13 }}>For a municipality, a hospital network or a state. You become its lead; next you add partners, areas and people. Nothing is shared until you invite someone.</p>
+        <div className="oh-fields">
+          <label className="oh-field"><span>Programme name</span><input value={f.name} maxLength={140} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="For example: Pune rabies elimination" /></label>
+          <label className="oh-field"><span>City or state</span><input value={f.city} maxLength={80} onChange={(e) => setF({ ...f, city: e.target.value })} /></label>
+          <label className="oh-field full"><span>Wards or localities</span><textarea value={f.areas} onChange={(e) => setF({ ...f, areas: e.target.value })} placeholder="One per line, or separated by commas. You can add more later." /></label>
+          <label className="oh-field"><span>Your name, as partners will see it</span><input value={f.me} maxLength={80} onChange={(e) => setF({ ...f, me: e.target.value })} /></label>
+        </div>
+        {err ? <Failed error={err} /> : null}
+        <div className="oh-submit"><button type="button" className="oh-btn primary" disabled={busy || f.name.trim().length < 3 || slug.length < 3} onClick={() => void go()}>{busy ? "Creating…" : "Create programme"}</button>{slug.length >= 3 ? <p>Address: /programme/{slug}</p> : null}</div>
       </div>
     </details>
   );
