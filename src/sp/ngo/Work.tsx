@@ -173,8 +173,8 @@ export function Work() {
     <div className={`wk2${sheet ? " is-sheet" : ""}${pane === "map" ? " show-map" : ""}`}>
       <header className="wk2-day">
         <div className="wk2-title">
-          <p className="wk2-k">{org?.name ?? "Your organisation"} · {today}</p>
-          <h1 className="wk2-h">Today&rsquo;s work</h1>
+          <h1 className="wk2-h">Queue</h1>
+          <p className="wk2-k">Live cases by priority, beside the map · {today}</p>
         </div>
         <MobileDetails label="Today at a glance" className="wk2-summary-fold"><p className="wk2-sum" aria-live="polite">
           {loading ? <Reading>Reading your organisation&rsquo;s open work</Reading> : failed ? <span className="is-err">The organisation&rsquo;s work could not be read. Nothing is shown as zero. <button type="button" className="link" onClick={() => void load()}>Retry</button></span> : (
@@ -183,10 +183,7 @@ export function Work() {
         </p>
         {!loading && !failed && cohort === "live" && <Ribbon rows={co.live} focus={focus} onFocus={(f) => { setFocus(f); setSel(null); }} />}
         </MobileDetails>
-        <nav className="wk2-go" aria-label="Work tools">
-          {/* New case lives in the top bar and Field mode in the tabs above; only the import is unique to this page. */}
-          <Link href="/ngo/import" className="wk2-btn"><Upload size={15} aria-hidden />Import register</Link>
-        </nav>
+        {/* New case lives in the top bar; Field mode and the board are views above; the register import is on the board. */}
       </header>
 
       {!loading && !failed && co.live.length + co.decide.length + co.history.length === 0 && (
