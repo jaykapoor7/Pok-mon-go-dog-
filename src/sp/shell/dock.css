@@ -196,7 +196,8 @@
   .sp.sx3.os.dk .sx3-tabs a:first-child { padding-left: 0; }
   .sp.sx3.os.dk .sx3-tabs a:first-child::after { left: 0; }
   .sp.sx3.os.dk .sx3-tabs a:hover { color: var(--dk-ink); }
-  .sp.sx3.os.dk .sx3-tabs a[aria-current="page"] { color: var(--dk-ink); font-weight: 600; background: none; box-shadow: none; }
+  .sp.sx3.os.dk .sx3-tabs a[aria-current] { color: var(--dk-ink); font-weight: 600; background: none; box-shadow: none; }
+  .sp.sx3.os.dk .sx3-tabs a[aria-current="true"]::after { transform: scaleX(1); }
   .sp.sx3.os.dk .sx3-tabs a::after { left: 11px; right: 11px; background: var(--dk-ink); }
   /* field mode keeps a margin inside the sheet */
   .sp.sx3.os.dk .fd { max-width: 760px; margin-inline: 0; padding: 14px var(--gut, 24px) 40px; }

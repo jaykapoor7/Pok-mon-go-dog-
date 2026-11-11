@@ -235,7 +235,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
   /* The Pipeline's views share one breadcrumb: NGO / Pipeline / the view. */
-  const pipeView = ws === "ngo" ? PIPELINE_VIEWS.find((v) => v.href === path) : undefined;
+  const pipeView = ws === "ngo" ? pipelineView(path) : undefined;
 
   return (
     <Membership.Provider value={mem}>
@@ -306,7 +306,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             {!atHome && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
-              {pipeView ? <>{pipeView.href !== "/ngo/pipeline" && <><span aria-hidden>/</span><Link href="/ngo/pipeline">Pipeline</Link></>}<span aria-hidden>/</span><span aria-current="page">{pipeView.href === "/ngo/pipeline" ? "Pipeline" : pipeView.label}</span></> : <>
+              {pipeView ? <>{pipeView.href !== "/ngo/pipeline" && <><span aria-hidden>/</span><Link href="/ngo/pipeline">Pipeline</Link></>}<span aria-hidden>/</span>{pipeView.href === path ? <span aria-current="page">{pipeView.href === "/ngo/pipeline" ? "Pipeline" : pipeView.label}</span> : <><Link href={pipeView.href}>{pipeView.label}</Link><span aria-hidden>/</span><span aria-current="page">{path === "/ngo/cases/new" ? "New case" : "Record"}</span></>}</> : <>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
               {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? (here as Destination).group : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
               </>}
@@ -502,12 +502,19 @@ const PIPELINE_VIEWS: { href: string; label: string; roles?: Role[] }[] = [
   { href: "/ngo/field", label: "Field mode" },
 ];
 
+/** The Pipeline view a path belongs to: the view itself, or the view that lists the record being read. */
+function pipelineView(path: string) {
+  return PIPELINE_VIEWS.find((v) => v.href === path)
+    ?? (path.startsWith("/ngo/cases/") ? PIPELINE_VIEWS.find((v) => v.href === "/ngo/work") : path.startsWith("/ngo/verification/") ? PIPELINE_VIEWS.find((v) => v.href === "/ngo/verification") : undefined);
+}
+
 /** The screens inside the current sidebar place, as tabs above the page. */
 function SectionTabs({ path, role, reviewer, listed }: { path: string; role: Role | null; reviewer:boolean; listed: Set<string> }) {
   /* The Pipeline's working views sit under it as tabs, whichever of them you are on. */
-  if (PIPELINE_VIEWS.some((v) => v.href === path) && !(path === "/ngo/field" && role === "member")) return (
+  const view = pipelineView(path);
+  if (view && !(path === "/ngo/field" && role === "member")) return (
     <nav className="sx3-tabs" aria-label="Pipeline views">
-      {PIPELINE_VIEWS.filter((v) => !v.roles || (role && v.roles.includes(role))).map((x) => <Link key={x.href} href={x.href} aria-current={x.href === path ? "page" : undefined}>{x.label}</Link>)}
+      {PIPELINE_VIEWS.filter((v) => !v.roles || (role && v.roles.includes(role))).map((x) => <Link key={x.href} href={x.href} aria-current={x.href === view.href ? (x.href === path ? "page" : "true") : undefined}>{x.label}</Link>)}
     </nav>
   );
   const t = tabsFor(path, role, reviewer);
