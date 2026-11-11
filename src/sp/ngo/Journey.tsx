@@ -1,65 +1,43 @@
 "use client";
 
-/* Operations today on Home, as live counts that open the exact queue:
-   intake, identity, treatment, release evidence and billing.
-   Each count is read under the member's own session; a count that could
-   not be read shows "not read", never zero. The person's own step is
-   marked so a vet, a field worker and a coordinator each see where they
-   start. */
+/* The line of work on Today: the same five stages as the Pipeline board, with
+   the same names and the same counts (./pipeline.ts). Each stage opens the
+   board at that stage. A count that could not be read shows "not read", never
+   zero. The person's own step is marked. Animals whose identity still needs a
+   person are not a stage of the line: they are named underneath. */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { orgIncoming } from "@/lib/campaigns";
-import { stageOf, verificationQueue } from "@/lib/abc";
-
-type Counts = { arrived: number | null; identity: number | null; vet: number | null; release: number | null; claimable: number | null; capped?: boolean };
-type Step = { short?: string; key: keyof Counts; n: string; title: string; hint: string; href: string; mine: boolean };
+import type { Role } from "../shell/workspaces";
+import { stageHref, usePipeline } from "./pipeline";
+import "./pipeline.css";
 
 export function Journey({ orgId, role }: { orgId: string; role: string | null }) {
-  const [c, setC] = useState<Counts | null>(null);
+  const { cols, capped } = usePipeline(true, role as Role | null);
+  const [identity, setIdentity] = useState<number | null>(null);
   useEffect(() => {
     let live = true;
     const db = getSupabase();
-    const identity = db ? db.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", orgId).in("identity_state", ["provisional", "possible_duplicate"]) : null;
-    Promise.allSettled([orgIncoming("ours"), orgIncoming("community"), identity, verificationQueue(500)]).then(([ours, community, ident, queue]) => {
-      if (!live) return;
-      const total = (r: PromiseSettledResult<{ total_count?: number }[]>) => r.status === "fulfilled" ? (r.value[0]?.total_count ?? r.value.length) : null;
-      const a = total(ours as PromiseSettledResult<{ total_count?: number }[]>), b = total(community as PromiseSettledResult<{ total_count?: number }[]>);
-      const idr = ident.status === "fulfilled" && ident.value && !ident.value.error ? ident.value.count ?? 0 : null;
-      const rows = queue.status === "fulfilled" ? queue.value.filter((r) => r.provenance !== "imported_historical_record") : null;
-      setC({
-        arrived: a === null || b === null ? null : a + b,
-        identity: idr,
-        vet: rows ? rows.filter((r) => stageOf(r) === "vet").length : null,
-        release: rows ? rows.filter((r) => ["evidence", "returned"].includes(stageOf(r)) && r.missing.some((k) => k === "release_photo" || k === "release_location")).length : null,
-        claimable: rows ? rows.filter((r) => stageOf(r) === "ready").length : null,
-        /* The queue returns at most 500 records; counts from a full read are lower bounds. */
-        capped: queue.status === "fulfilled" && queue.value.length >= 500,
-      });
-    });
+    if (!db) return;
+    void db.from("dogs").select("id", { count: "exact", head: true }).eq("ngo_id", orgId).in("identity_state", ["provisional", "possible_duplicate"]).then((r) => { if (live && !r.error) setIdentity(r.count ?? 0); });
     return () => { live = false; };
   }, [orgId]);
-
   const lead = role === "admin" || role === "coordinator";
-  const steps: Step[] = [
-    { key: "arrived", n: "1", title: "Intake", hint: "New reports to prepare", href: "/ngo/inbox", mine: role === "member" || lead },
-    { key: "identity", n: "2", title: "Identity", hint: "Animals to confirm", href: "/ngo/animals/identity", mine: lead },
-    { key: "vet", n: "3", title: "Treatment", short: "Vet", hint: "Waiting for the vet", href: "/ngo/verification?stage=vet", mine: role === "veterinarian" },
-    { key: "release", n: "4", title: "Release", hint: "Photo or place missing", href: "/ngo/verification?stage=evidence", mine: role === "member" || lead },
-    { key: "claimable", n: "5", title: "Billing", hint: "Approved, ready to bill", href: "/ngo/packages", mine: lead },
-  ];
+
   return (
-    <nav className="jy" aria-label="Operations today">
-      <ol>{steps.map((s) => {
-        const v = c?.[s.key];
-        const fromQueue = s.key === "vet" || s.key === "release" || s.key === "claimable";
-        return <li key={s.key} className={s.mine ? "is-mine" : undefined}><Link href={s.href}>
-          <span className={`jy-n${v ? " is-on" : ""}`} aria-hidden />
-          <span className="jy-t"><b><span className="jy-long">{s.title}</span><span className="jy-short" aria-hidden>{s.short ?? s.title}</span></b><small>{s.hint}</small></span>
-          <span className={`jy-c${v ? " is-on" : ""}`}>{c === null ? "…" : v === null || v === undefined || typeof v === "boolean" ? "not read" : `${v}${fromQueue && c.capped ? "+" : ""}`}</span>
+    <nav className="jy" aria-label="The line of work today">
+      <ol>{cols.map((s) => {
+        const v = s.cards?.length ?? 0, on = s.state === "ready" && v > 0;
+        const fromQueue = s.id === "vet" || s.id === "evidence" || s.id === "report";
+        return <li key={s.id} className={s.mine ? "is-mine" : undefined}><Link href={stageHref(s.id)}>
+          <span className={`jy-n${on ? " is-on" : ""}`} aria-hidden />
+          <span className="jy-t"><b>{s.title}</b><small>{s.hint}</small></span>
+          <span className={`jy-c${on ? " is-on" : ""}`}>{s.state === "loading" ? "…" : s.state === "failed" ? "not read" : `${v}${fromQueue && capped ? "+" : ""}`}</span>
         </Link></li>;
       })}</ol>
+      {lead && identity ? <p className="jy-note"><Link href="/ngo/animals/identity"><b>{identity}</b> {identity === 1 ? "animal needs" : "animals need"} their identity confirmed <ArrowRight size={13} aria-hidden /></Link></p> : null}
     </nav>
   );
 }

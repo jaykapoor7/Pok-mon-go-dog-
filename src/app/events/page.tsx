@@ -5,7 +5,7 @@ import { SESSIONS } from "@/sp4/site/res/content";
 import { CoverArt, DemoBand, ResHero } from "@/sp4/site/res/ResKit";
 import "@/sp4/site/res/res.css";
 
-export const metadata = { title: "Events & webinars · StrayPaw", description: "Live sessions and workshops for programme leads, coordinators, municipal reviewers and schools." };
+export const metadata = { title: "Events & webinars, StrayPaw", description: "Live sessions and workshops for programme leads, coordinators, municipal reviewers and schools." };
 
 const TONES = ["split", "blue", "navy", "tint"] as const;
 

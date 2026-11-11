@@ -3,7 +3,7 @@ import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { AskUi, ExtractUi, OvernightUi, ProposeUi } from "@/sp4/home/ui";
 import { AiBand } from "@/sp4/home/Interactive";
 
-export const metadata = { title: "Kaju · StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: searches the records you can read, answers with citations, finds gaps and prepares changes a person confirms." };
+export const metadata = { title: "Kaju, StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: searches the records you can read, answers with citations, finds gaps and prepares changes a person confirms." };
 
 export default function AiPage() {
   return <ProductPage s={{

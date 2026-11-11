@@ -3,7 +3,7 @@ import { DemoWindow } from "@/sp3/home/Demos";
 import { SolutionPage } from "@/sp3/site/Solution";
 
 export const metadata = {
-  title: "For funders · StrayPaw",
+  title: "For funders, StrayPaw",
   description: "Scoped monitoring of the animal-welfare programmes you fund: recorded interventions, evidence and reports from the operating record.",
 };
 

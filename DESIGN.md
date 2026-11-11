@@ -131,6 +131,21 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
   pages never repeat it) and the account (Help, settings, sign out). Every
   page title behind the menu is the same size and weight; Today keeps its
   greeting. Defined once in `designedNav` and `placeNav`.
+- **One operating path** (`src/sp/ngo/pipeline.ts`, the single definition of
+  the line of work). The five stages have one name each and count the same
+  records wherever they appear:
+  1. **Today** says what needs you. Its strip is the five stages; a stage opens
+     the board **at that stage** (`/ngo/pipeline?stage=…`).
+  2. **Pipeline** shows where everything is. The stage a click pointed at is
+     brought into view and marked. A card opens its record.
+  3. **A record** says where it is in the line (the **stage rail**, same names
+     and order; a case that needs no procedure has the shorter line New, In
+     care, Closed) and gives **one next step** with one action that takes the
+     person to the control that does it. A stage on the rail goes back to the
+     board at that stage.
+  Every click lands where it points: no link opens a page at its top when it
+  meant one part of it. New screens join this path; they do not add a parallel
+  one.
 - **Live counts** sit on the link that opens the work (flame = overdue,
   amber = waiting, blue = new). Kaju is the top-bar button and his seat on the
   menu, never a menu row.

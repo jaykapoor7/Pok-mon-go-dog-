@@ -3,7 +3,7 @@ import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { AskUi, AuditUi, HeroWindow, ListUi, QueueUi, MiniWindow, ReportUi } from "@/sp4/home/ui";
 import { fieldPartnerStrip } from "@/sp3/customers";
 
-export const metadata = { title: "Platform · StrayPaw", description: "One operating record for street-animal programmes: operations, Kaju and field intake, on the same data." };
+export const metadata = { title: "Platform, StrayPaw", description: "One operating record for street-animal programmes: operations, Kaju and field intake, on the same data." };
 
 export default function PlatformPage() {
   return <ProductPage s={{

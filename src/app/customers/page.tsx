@@ -6,7 +6,7 @@ import { Grain } from "@/sp4/site/Grain";
 import { Rise } from "@/sp4/site/Rise";
 import "@/sp4/home/home4.css";
 
-export const metadata = { title: "Customers · StrayPaw", description: "The animal-welfare organisations working with StrayPaw, and what they use it for." };
+export const metadata = { title: "Customers, StrayPaw", description: "The animal-welfare organisations working with StrayPaw, and what they use it for." };
 
 export default function CustomersPage() {
   const all = fieldPartnerStrip();

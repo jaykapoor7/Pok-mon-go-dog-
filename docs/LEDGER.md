@@ -89,6 +89,30 @@ The owner then asked for a proper redesign. My question about direction went una
 
 Not done in this pass: the Queue's own header and the Reports page keep their earlier layout inside the new shell; the vet and field-worker sample accounts cannot sign in locally (their password is only on the deployed demo), so those two roles are checked after deploy.
 
+## 11 Nov, late: the operating path (owner: "all pages, sidebar options, workflows within, screens after clicking, all need to be rethought"; "one cohesive operational system with intentional clicks, placement, transitions, animations; following clicks leading to other pages also intentional")
+
+PR #67 (dashboard pass 2) merged as `be4b57a1` after GitHub Actions recovered from an outage (their incident, 20:48 to about 21:10 UTC; no run of ours failed). Production verified in a browser on that sha: dock shell, menu Today / Pipeline / Animals, Pipeline views, place in the bar, no page errors.
+
+This pass makes the workspace one path instead of a set of pages:
+
+| Item | Status | Evidence |
+|---|---|---|
+| `src/sp/ngo/pipeline.ts`: the five stages defined once (names, order, reads). Today's strip, the board and the record rail all use it, so a stage has one name and one count everywhere | Done | |
+| Today's strip is the same five stages and opens the board at that stage (`?stage=`); the old strip had different names (Intake, Identity, Treatment, Release, Billing) and opened five different pages | Done | `e2e/operating-path.spec.ts` |
+| Board: the stage a click pointed at is scrolled into view and marked | Done | same test |
+| Stage rail on the case record and the sign-off record: where the record is in the line; each stage opens the board at that stage. A case with no procedure has the shorter line New, In care, Closed | Done | same test |
+| Sign-off record: one "Next step" callout with one action, "Take me there", that scrolls to the control that does the step, focuses it and marks it. When done: "Open reports". When someone else must act: "Back to the board" at that stage | Done | same test; staging screenshots |
+| A returned record's note no longer ends in a double full stop | Done | |
+| Animals whose identity needs a person are named under the strip (not a stage of the line) | Done | |
+| Keyboard focus is visible on the dark menu (white ring) | Done | |
+| Stage names stay available to screen readers on a phone, where only the current stage is written out | Done | found by the phone run of the test |
+| Page titles: one format, "Page, StrayPaw" (45 pages used a middle dot) | Done | |
+| `e2e/operating-path.spec.ts`: the whole path, read-only, phone and desktop, against staging | 2 passed | runs with `OH_E2E=1` |
+
+Looked at and left as they are, with the reason: `/report-content` has no site header because it is a Community page inside the app; `/mission` has no footer by design ("one wall, nothing else on the page").
+
+Still to rethink in the same way (next passes): the municipal review flow, the hospital desk (bite register to course), the laboratory bench, the programme cell's decisions, Animals (register to an animal's life), Reports (blocking reasons to the records that cause them), Intake (report to case).
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.

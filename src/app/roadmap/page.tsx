@@ -5,7 +5,7 @@ import { ROADMAP } from "@/sp4/site/res/content";
 import { DemoBand, ResHero } from "@/sp4/site/res/ResKit";
 import "@/sp4/site/res/res.css";
 
-export const metadata = { title: "Roadmap · StrayPaw", description: "What StrayPaw has shipped and what comes next: Kaju, ABC operations, government, a national register, research and education." };
+export const metadata = { title: "Roadmap, StrayPaw", description: "What StrayPaw has shipped and what comes next: Kaju, ABC operations, government, a national register, research and education." };
 
 export default function RoadmapPage() {
   return (

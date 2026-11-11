@@ -3,7 +3,7 @@ import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { CaptureUi, DuplicateUi, EvidenceUi, GovUi, MiniWindow, ProgrammeUi, ReportUi, ReviewUi, VetUi } from "@/sp4/home/ui";
 
 export const metadata = {
-  title: "ABC Operations & Verification · StrayPaw",
+  title: "ABC Operations & Verification, StrayPaw",
   description: "For funded ABC operators: capture, vet-authorised treatment, evidence checks, operator review and report packages a municipal office can verify.",
 };
 

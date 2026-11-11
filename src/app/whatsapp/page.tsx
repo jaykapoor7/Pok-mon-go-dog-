@@ -5,7 +5,7 @@ import { ExtractUi, HeroPhone, MiniWindow, QueueUi } from "@/sp4/home/ui";
 import { Rise } from "@/sp4/site/Rise";
 import { TwoTone } from "@/sp4/site/kit";
 
-export const metadata = { title: "WhatsApp field intake · StrayPaw", description: "Field messages become draft records for operator review. Status: built and tested in staging; not yet connected to WhatsApp in production." };
+export const metadata = { title: "WhatsApp field intake, StrayPaw", description: "Field messages become draft records for operator review. Status: built and tested in staging; not yet connected to WhatsApp in production." };
 
 const STATUS: [string, "done" | "wait" | "todo", string][] = [
   ["Intake contract: text, photo, location, procedure updates", "done", "Defined in the app and the database contract."],

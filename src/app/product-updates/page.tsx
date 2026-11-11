@@ -5,7 +5,7 @@ import { UPDATES, dateLabel } from "@/sp4/site/res/content";
 import { DemoBand, ResHero } from "@/sp4/site/res/ResKit";
 import "@/sp4/site/res/res.css";
 
-export const metadata = { title: "Product updates · StrayPaw", description: "Every StrayPaw release in one place: what shipped, when, and what it changes for your team." };
+export const metadata = { title: "Product updates, StrayPaw", description: "Every StrayPaw release in one place: what shipped, when, and what it changes for your team." };
 
 export default function UpdatesPage() {
   return (

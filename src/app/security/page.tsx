@@ -2,7 +2,7 @@ import { Database, Download, Eye, Fingerprint, History, KeyRound, Server, Shield
 import { ProductPage } from "@/sp4/site/ProductPage";
 import { AuditUi, MiniWindow } from "@/sp4/home/ui";
 
-export const metadata = { title: "Security · StrayPaw", description: "How StrayPaw protects programme records: database permissions, organisation isolation, provenance, audit history and an AI that cannot approve." };
+export const metadata = { title: "Security, StrayPaw", description: "How StrayPaw protects programme records: database permissions, organisation isolation, provenance, audit history and an AI that cannot approve." };
 
 export default function SecurityPage() {
   return <ProductPage s={{

@@ -355,3 +355,34 @@
 /* Phone: three blockers, the rest on the queue. */
 @media (max-width: 760px) { .sp .ms .ms-list li:nth-child(n+4) { display: none; } }
 @media (max-width: 760px) { .sp .gv-wide { display: none; } }
+
+/* ════ The next step on a record: one statement, one deliberate action. ════ */
+.sp.sx3 .abc .abc-next { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px 14px; max-width: none; margin: 2px 0 22px; padding: 12px 12px 12px 16px; border: 1px solid #dfe3ea; border-left: 0; border-radius: 12px; background: #fff; box-shadow: inset 3px 0 0 #0f1524; font-size: 14.5px; line-height: 1.5; color: #0f1524; animation: abc-next-in .45s cubic-bezier(.2, .7, .2, 1) .25s both; }
+.sp.sx3 .abc .abc-next.is-done { box-shadow: inset 3px 0 0 #1f7a4d; background: #f4faf6; border-color: #cfe6d9; }
+.sp.sx3 .abc .abc-next.is-back { box-shadow: inset 3px 0 0 #e04a2f; background: #fef7f5; border-color: #f4d3cb; }
+.abc-next-k { padding: 3px 8px; border-radius: 6px; background: #0f1524; color: #fff; font-size: 11.5px; font-weight: 600; line-height: 16px; white-space: nowrap; }
+.abc-next.is-done .abc-next-k { background: #1f7a4d; }
+.abc-next.is-back .abc-next-k { background: #e04a2f; }
+.abc-next p { margin: 0; min-width: 0; }
+.abc-next-go { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 13px; border: 0; border-radius: 9px; background: #2457ce; color: #fff; font: 600 13px/1 var(--s3-sans, system-ui); text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .16s ease, transform .14s cubic-bezier(.2, .7, .2, 1); }
+.abc-next-go:hover { background: #1c47b0; }
+.abc-next-go:active { transform: scale(.97); }
+.abc-next-go:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
+.abc-next-go svg { transition: transform .25s cubic-bezier(.3, 1.25, .5, 1); }
+button.abc-next-go:hover svg { transform: translateY(2px); }
+a.abc-next-go:hover svg { transform: translateX(3px); }
+.abc-next-go.is-quiet { background: none; color: #4b5568; box-shadow: inset 0 0 0 1px #dfe3ea; }
+.abc-next-go.is-quiet:hover { background: #f3f5f8; color: #0f1524; }
+/* the place the step is done answers when it is pointed at */
+.abc-anchor { border-radius: 12px; scroll-margin: 96px; }
+.abc-anchor.is-pointed { animation: abc-pointed 1.4s ease-out 1; }
+@keyframes abc-pointed { 0% { box-shadow: 0 0 0 0 rgba(36, 87, 206, .45), 0 0 0 0 rgba(36, 87, 206, .12); background-color: rgba(36, 87, 206, .07); } 60% { box-shadow: 0 0 0 6px rgba(36, 87, 206, .18), 0 0 0 14px rgba(36, 87, 206, 0); background-color: rgba(36, 87, 206, .04); } 100% { box-shadow: 0 0 0 6px rgba(36, 87, 206, 0), 0 0 0 14px rgba(36, 87, 206, 0); background-color: transparent; } }
+@keyframes abc-next-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* the rail sits above the record's name */
+.sp.sx3 .abc .rail { margin: 16px 0 0; }
+.sp.sx3 .abc .rail + .ngo-head.abc-head { padding-top: 14px; }
+@media (max-width: 720px) {
+  .sp.sx3 .abc .abc-next { grid-template-columns: auto minmax(0, 1fr); }
+  .abc-next-go { grid-column: 1 / -1; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .sp.sx3 .abc .abc-next, .abc-anchor.is-pointed { animation: none; } .abc-next-go, .abc-next-go svg { transition: none; } }

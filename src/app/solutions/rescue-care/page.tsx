@@ -3,7 +3,7 @@ import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { AuditUi, MiniWindow, ProposeUi, RescueUi } from "@/sp4/home/ui";
 
 export const metadata = {
-  title: "Rescue & care · StrayPaw",
+  title: "Rescue & care, StrayPaw",
   description: "From a request to a recorded outcome: inbox, cases, treatment and follow-ups on one animal history.",
 };
 

@@ -3,7 +3,7 @@ import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { GovUi, ListUi, MiniWindow, PackageListUi, ReportUi } from "@/sp4/home/ui";
 
 export const metadata = {
-  title: "Government oversight · StrayPaw",
+  title: "Government oversight, StrayPaw",
   description: "For municipal offices that fund ABC and anti-rabies programmes: review operator report packages on the same record, query exceptions and record acceptance.",
 };
 
