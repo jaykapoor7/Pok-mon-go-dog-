@@ -168,6 +168,16 @@ export async function withTools(q: string, ctx: ToolCtx): Promise<Omit<AiReply, 
   const firstName = (ctx.userName ?? "").trim().split(/\s+/).find((w) => !/^(dr|mr|mrs|ms|prof)\.?$/i.test(w)) ?? null;
   { const chat = smallTalk(q, firstName && !firstName.includes("@") ? firstName : null); if (chat) return done(chat); }
   { const how = howTo(q); if (how) { if (how.go) acc.citations.push({ id: `page:${how.go.href}`, label: how.go.label, href: how.go.href, kind: "page" }); return done(how.text); } }
+  /* Work between programme partners (animal side only). Asked before the wording is restated, so "waiting" is not read as the case queue. */
+  if (/\b(partners?|hospitals?|laborator\w*|coordination cell|programme cell)\b[^.?!]*\b(requests?|waiting|ask(?:ed|ing)?|needs?|wants?)\b|\brequests? from (?:the |a |our |programme )*(?:partners?|hospitals?|programme|laborator\w*)/i.test(asked)) {
+    const out = await call(acc, ctx, "partner_requests");
+    if (out.ok === false) return done("I could not read the requests just now. Counts are unknown. Try again.");
+    const d = out.data as { in_programme: boolean; open?: number; overdue?: number; requests: { title: string; place: string | null; due_on: string | null; to: string; overdue: boolean }[] };
+    if (!d.in_programme) return done("Your organisation is not part of a programme yet, so no partner can send requests here. A programme lead adds an organisation from Programme setup.");
+    if (!d.open) return done("No programme partner is waiting on you. I only read requests (the animal and the place); patient records never reach me.");
+    const lines = d.requests.slice(0, 5).map((r) => `- **${r.title}**${r.place ? ` · ${r.place}` : ""}${r.due_on ? ` · due ${r.due_on}${r.overdue ? " (overdue)" : ""}` : ""}`).join("\n");
+    return done(`**${pl(d.open, "request", "requests")} from programme partners** ${d.open === 1 ? "is" : "are"} open${d.overdue ? `, ${n(d.overdue)} overdue` : ""}.\n\n${lines}\n\nOpen Requests to accept or close them. I only read the request (the animal and the place); patient records never reach me.`);
+  }
   /* Loosely worded requests are restated in the router's own words; commands that name a record or carry text are left exactly as typed. */
   if (!/:|\bnote\b|\bfollow[- ]?up (?:on|for)\b|\b[A-Za-z]{2,5}-[0-9A-Za-z]{3,}\b|^(?:please\s+)?(?:open|go to|take me to)\b/i.test(q)) { const c = canonical(q, !!ctx.orgId, office); if (c) q = c; }
   const t = q.toLowerCase();

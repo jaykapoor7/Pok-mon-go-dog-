@@ -40,6 +40,15 @@ numbers are all zeros. Nothing claims a live integration.
 8. **The public** (`/bite-help`): nearest first, "I need wound washing now", what each
    centre confirmed and where it refers.
 
+## The guided walkthrough (`/try` on the demo site)
+
+Twelve steps, signed in step by step through the existing demo sign-in (`/api/demo/session`):
+programme lead (overview, care network) → hospital clinician (two places) → NGO coordinator
+(the hospital's request on the NGO's Today; Kaju on who is waiting) → laboratory scientist →
+then the ABC chain the same NGO runs for the municipal office (field mode, vet sign-off,
+monthly claim, Kaju's morning check, municipal command view, claim review). If the
+programme accounts are not set up on a deployment, the guide starts at the ABC chain.
+
 ## Set-up on staging (done 11 Nov 2026)
 
 * Migrations v2.1–v2.5 applied to staging.

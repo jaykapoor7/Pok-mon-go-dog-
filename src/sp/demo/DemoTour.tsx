@@ -58,7 +58,7 @@ export function DemoTour() {
   const step = s && s.step < TOUR_DONE ? TOUR[s.step] : null;
   /* A step's screen includes the records opened from it (/ngo/verification/…), but /ngo itself does not swallow the whole workspace. */
   const base = step ? pathOf(step.path) : "";
-  const onScreen = !!step && (pathname === base || (base.split("/").length > 2 && pathname.startsWith(`${base}/`)));
+  const onScreen = !!step && (pathname === base || (base.split("/").length > 2 && pathname.startsWith(`${base}/`)) || !!step.within?.some((w) => pathname.startsWith(w)));
 
   /* Point at the control this step is about, once the screen has its data. */
   useEffect(() => {

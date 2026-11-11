@@ -6,8 +6,8 @@ Persistent record of the product rebuild. Update at every milestone. Latest firs
 
 | Thing | State | Evidence |
 |---|---|---|
-| straypaw.org | Serves `main` @ `721968fa` (PR #60, Batch 1 site) | `/api/health` → `sha 721968fa…, environment production` |
-| demo.straypaw.org | Serves the same commit (`721968fa`, checked); demo env vars set for the `demo` branch (`DEMO_ONEHEALTH_PASSWORD`, `NEXT_PUBLIC_OH_DEMO`, `NEXT_PUBLIC_OH_PUBLIC_PROGRAMME`, bite-help flag) | `/api/health`, Vercel env list |
+| straypaw.org | Serves `main` @ `ffd86879` (PR #61, visual pass; #60 before it) | `/api/health` → `sha ffd86879…, environment production`; landing contains the switchboard and Kaju scene; `/for-hospitals` 200 |
+| demo.straypaw.org | Serves the same commit (`ffd86879`, checked); demo env vars set for the `demo` branch (`DEMO_ONEHEALTH_PASSWORD`, `NEXT_PUBLIC_OH_DEMO`, `NEXT_PUBLIC_OH_PUBLIC_PROGRAMME`, bite-help flag) | `/api/health`, Vercel env list |
 | Staging database | One Health v2.1–v2.5 applied; illustrative demo seeded; 11 demo accounts | 19/19 permission checks, 14/14 journey |
 | **Production database** | **No programme or AnimalID tables.** | `oh_tables = 0` |
 
@@ -36,7 +36,9 @@ Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, mot
 
 Decisions: positioning moved from "AI agent for animal welfare" to "one record for animal health and One Health programmes"; status table on the homepage states what is live, in rollout and not connected; no invented metrics.
 
-## Site visual pass (owner feedback after Batch 1: fewer words, visuals do the talking)
+## Site visual pass (merged as PR #61; production verified)
+
+Owner feedback after Batch 1: fewer words, visuals do the talking.
 
 Benchmarks read: Linear and GovDash landings use about 20 words of body copy per section, one product visual per section, a lifecycle order, a short "meet the assistant" section and questions last. The landing now follows that.
 
@@ -52,11 +54,23 @@ Benchmarks read: Linear and GovDash landings use about 20 words of body copy per
 | Kept by request: animated product demo, use cases, recurring work | Done |
 | Tests: switchboard, Kaju scene, unique menu destinations, no-script; full suite 238 passed | Done |
 
-## Batch 2: application and intelligence (not started this session)
-Done earlier (PR #59): one shell with places, one sidebar pattern, programme layer (clinic, register, PEP tracking, lab, requests, care-network map, alerts, coverage, report, research extract, setup, invites, start a programme), AnimalID scheduled worker.
-Next: redesign inner NGO/municipal pages (cases, verification, animals, reports) on the same system; Kaju programme tools (never human-health); production role accounts. The guided walkthrough update (five connected-programme steps, verified on staging) is written and parked in `git stash` until the application work is done, by owner instruction.
+## Batch 2: application and intelligence
+
+Done earlier (PR #59): one shell with places, one sidebar pattern, the programme layer (clinic desk, register, PEP tracking, laboratory, requests between partners, care-network map, alerts, coverage, report, research extract, setup, invites, start a programme), AnimalID worker.
+
+This session (branch `claude/brave-hawking-0ohpo5`, PR to follow):
+
+| Item | Status | Evidence |
+|---|---|---|
+| Inner NGO pages audited on staging (work queue, register, verification, report packages, intake, map, team) | Consistent with the shell; no rewrite needed. The blank small portrait plate is a documented decision (no stand-in for an animal) | Screens in the session scratchpad |
+| Kaju in a programme: `partner_requests` tool. Says which partners are waiting and what is overdue, from the request only (title, place, due date) | Done | Asked on staging as the NGO coordinator: "9 requests from programme partners are open, 1 overdue", cites the Requests page. Contract check 27 in `test:kaju-polish` fails if a clinical column or count is read |
+| Kaju suggestions: the partner question is offered on an NGO's Today when a partner is waiting, and in programme places | Done | |
+| Guided walkthrough on the existing demo (`/try`): six connected-programme steps before the ABC chain, existing demo sign-in, fallback to the ABC chain where programme accounts are absent | Done | Steps 1 to 6 walked on staging with the right control highlighted; ABC steps unchanged (their sample password is not available outside the demo deployment) |
+| Guide card no longer overflows with long role names | Done | |
+
+Not done, and why: production role accounts and programme data on straypaw.org wait for the owner to run the migration workflow (see "Blocked on the owner"). Other linked public pages on the earlier kit are harmonised, not rewritten.
 
 ## Next steps after an interruption
 1. `git log --oneline -5` on the branch; run `npm run build && E2E_BASE_URL=… npx playwright test`.
-2. Fix landing tests that assert the old page; open PR; merge when the quality gate is green; verify `/api/health` sha on both sites.
-3. Start Batch 2 with `/ngo` inner pages and `/try`.
+2. If a Batch 2 PR is open: wait for the quality gate, merge, verify `/api/health` sha on both sites, then walk `/try` on demo.straypaw.org.
+3. After the owner runs the production migration: create role accounts by invitation from Programme setup and record them here.
