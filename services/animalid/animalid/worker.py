@@ -141,5 +141,21 @@ def main(sleep: Callable[[float], None] = time.sleep) -> None:  # pragma: no cov
             sleep(idle)
 
 
+def drain(max_jobs: int = 200) -> int:  # pragma: no cover - needs a database
+    """Process every queued job, then exit. For a scheduled runner (GitHub Actions)
+    when no always-on host exists. Returns the number of jobs handled."""
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    db, model = Db.from_env(), backbones.load(os.environ.get("ANIMALID_BACKBONE", "dinov2_vitb14"))
+    handled = 0
+    while handled < max_jobs and process_one(db, model) is not None:
+        handled += 1
+    log.info(json.dumps({"event": "drain", "handled": handled}))
+    return handled
+
+
 if __name__ == "__main__":  # pragma: no cover
-    main()
+    import sys
+    if "--drain" in sys.argv:
+        drain()
+    else:
+        main()
