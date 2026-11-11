@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
-import { Phone, Plus } from "lucide-react";
+import { Phone } from "lucide-react";
 import { usePlaces, primaryProgramme, isFacility } from "../places";
 import { call, daysFrom, fmtDate, relDay, today, useRead, AGE, COURSE, EXPOSURE_KIND, REMINDER, SEX, SPECIES, WASHED, type Alert, type Area, type ClinicDue, type DueDose, type Notice, type Place, type RegisterRow } from "../data";
 import { AlertList, Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
@@ -52,8 +52,7 @@ export function ClinicToday({ place }: { place: Place }) {
 
   return (
     <Page illustrative={place.illustrative}>
-      <Head eyebrow={prog?.name} title={`Today at ${place.short_name ?? place.name}`} lede="Doses due, people who finished their course, notices from the public, and presentations waiting for a clinician."
-        actions={place.capabilities.includes("record_exposure") ? <Link className="oh-btn primary" href={`/workspace/${id}/new`}><Plus size={16} aria-hidden />Record a bite</Link> : null} />
+      <Head eyebrow={prog?.name} title={`Today at ${place.short_name ?? place.name}`} lede="Who is due a dose, who finished, and what the public told you." />
       <dl className="oh-stats">
         <Stat label="Due today" value={due.error ? null : dueToday} href="#due" />
         <Stat label="Overdue" value={due.error ? null : overdue} tone={overdue ? "flame" : undefined} href="#due" note="Date passed, not yet given" />
@@ -187,8 +186,7 @@ export function Register({ place }: { place: Place }) {
   const rows = useRead<RegisterRow[]>(() => call("oh_clinic_register", { p_facility: id, p_filter: filter, p_limit: 200 }), `reg:${id}:${filter}`);
   return (
     <Page illustrative={place.illustrative} wide>
-      <Head eyebrow={place.short_name ?? place.name} title="Bite register" lede="Every presentation at this facility. Opening a record is logged."
-        actions={place.capabilities.includes("record_exposure") ? <Link className="oh-btn primary" href={`/workspace/${id}/new`}><Plus size={16} aria-hidden />Record a bite</Link> : null} />
+      <Head eyebrow={place.short_name ?? place.name} title="Bite register" lede="Every presentation at this facility. Opening a record is logged." />
       <div style={{ marginBottom: 16 }}><Seg name="filter" label="Show" value={filter} onChange={setFilter} options={FILTERS} /></div>
       {rows.loading && !rows.data ? <Loading rows={6} /> : rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !rows.data?.length ? <Empty title="No presentations here yet" /> : (
         <div className="oh-table-wrap">

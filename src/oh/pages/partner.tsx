@@ -30,15 +30,14 @@ export function PartnerRequests({ place }: { place: Place }) {
 
   return (
     <Page illustrative={place.illustrative}>
-      <Head eyebrow={prog?.name} title="Requests from partners" lede="Animals to find and observe after a bite, vaccination requests and laboratory results sent to your team. Patient details are never shared."
-        actions={place.capabilities.includes("send_sample") ? <Link className="oh-btn primary" href={`/workspace/${id}/sample`}><FlaskConical size={16} aria-hidden />Send a sample</Link> : null} />
+      <Head eyebrow={prog?.name} title="Requests" lede="Animals to find and observe after a bite, vaccination requests and laboratory results sent to your team. Patient details are never shared." />
       <dl className="oh-stats">
         <Stat label="Open" value={hand.error ? null : open.length} href="#work" />
         <Stat label="Overdue" value={hand.error ? null : overdue.length} tone={overdue.length ? "flame" : undefined} href="#work" />
         <Stat label="Samples at the laboratory" value={samples.error ? null : samples.data?.filter((s) => !["resulted", "rejected"].includes(s.status)).length} href="#samples" />
         <Stat label="Closed" value={hand.error ? null : closed.length} tone="green" />
       </dl>
-      <Section title="Requests" id="work">
+      <Section title="Waiting for your team" id="work">
         <nav className="oh-tabs" aria-label="Show" style={{ marginTop: 0 }}>
           <a href="#work" aria-current={tab === "open" ? "page" : undefined} onClick={(e) => { e.preventDefault(); setTab("open"); }}>Open ({open.length})</a>
           <a href="#work" aria-current={tab === "closed" ? "page" : undefined} onClick={(e) => { e.preventDefault(); setTab("closed"); }}>Closed ({closed.length})</a>

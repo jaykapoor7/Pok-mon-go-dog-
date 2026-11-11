@@ -95,13 +95,19 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
   every place: the NGO workspace, the municipal review office, and each
   hospital, health centre, laboratory, coordination or state cell. Its card
   shows initials, name and role. `/today` is the home across places.
-- **The sidebar is organised by the work.** NGO: Today · Field (Field mode,
-  Intake, Work queue) · Animals · Vaccination & ABC (Treat & sign off, Release
-  evidence, Drives & zones) · Reporting · Programme. Municipal: Overview,
-  Wards & map · Decisions · Reporting · Programme. A hospital: Today, Bite
-  register, Record a bite, Services. A laboratory: Samples, Services. A
-  coordination cell: Overview, Care network, Work between partners, Coverage,
-  Report, Research data, Setup. Defined once in `designedNav` and `placeNav`.
+- **One sidebar pattern for every place.** Nobody learns a second layout:
+  1. **Today**: always first, always the place's home (what needs you here).
+  2. **Work**: at most four things this person does every day, by role. NGO
+     field team: Field mode, Work queue, Animals. Vet: Treatment & release,
+     Animals, Work queue. Coordinator: Work queue, Intake, Treatment &
+     release, Reports. Hospital: Bite register, Services. Laboratory:
+     Services. Municipal: Wards & map, Review, Contracts. Programme cell:
+     Coverage, Report.
+  3. **Programme**: the same links for everyone taking part: Programme,
+     Care network, Requests (where the place receives requests).
+  4. **More**: one fold for everything else, grouped, never a second list.
+  The top bar carries the one primary action (Record a bite, New case, Send
+  a sample); pages never repeat it. Defined once in `designedNav` and `placeNav`.
 - **Live counts** sit on the link that opens the work (flame = overdue,
   amber = waiting, blue = new). Kaju is the top-bar button and his corner,
   never a sidebar row.

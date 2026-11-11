@@ -16,6 +16,8 @@ const NGO = "/workspace/f1000000-0000-4000-8000-000000000010";
 const LAB = "/workspace/f1000000-0000-4000-8000-000000000009";
 const PROGRAMME = "/programme/bengaluru-demo";
 const stamp = `E2E-${Date.now().toString(36).toUpperCase()}`;
+/* Phone and desktop runs share staging, so each follows its own sample by code. */
+let sampleCode = "";
 
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.tour.v2", "straypaw-install-dismissed", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
@@ -59,17 +61,20 @@ test("the NGO sees the request without patient details and sends a sample", asyn
   await page.getByRole("textbox", { name: "What happened to the animal" }).fill(`Died during observation (${stamp})`);
   await page.getByRole("button", { name: "Send sample" }).click();
   await expect(page.getByText("Chain of custody")).toBeVisible({ timeout: 30_000 });
+  sampleCode = (await page.getByRole("heading", { level: 1 }).textContent())?.trim() ?? "";
+  expect(sampleCode).toMatch(/^S/);
 });
 
 test("the laboratory receives, tests and reports the sample positive", async ({ page }) => {
   await as(page, /Laboratory scientist/);
   await page.goto(LAB);
-  const row = page.locator(".oh-row").filter({ hasText: "HSR Layout" }).filter({ has: page.getByRole("button", { name: "Receive" }) }).first();
+  const mine = () => page.locator(".oh-row").filter({ hasText: sampleCode });
+  const row = mine().filter({ has: page.getByRole("button", { name: "Receive" }) }).first();
   await row.getByRole("button", { name: "Receive" }).click();
   await expect(page.getByText(/received\./)).toBeVisible();
-  const r2 = page.locator(".oh-row").filter({ has: page.getByRole("button", { name: "Start test" }) }).filter({ hasText: "HSR Layout" }).first();
+  const r2 = mine().filter({ has: page.getByRole("button", { name: "Start test" }) }).first();
   await r2.getByRole("button", { name: "Start test" }).click();
-  const r3 = page.locator(".oh-row").filter({ has: page.getByRole("button", { name: "Record result" }) }).filter({ hasText: "HSR Layout" }).first();
+  const r3 = mine().filter({ has: page.getByRole("button", { name: "Record result" }) }).first();
   await r3.getByRole("button", { name: "Record result" }).click();
   await seg(page, "Positive");
   await page.getByRole("textbox", { name: "Test method" }).fill("Direct fluorescent antibody test (E2E)");

@@ -76,11 +76,11 @@ text; revaccination interval as a programme setting.
 * **Navigation follows the place** (`placeNav`): a hospital has Today, Bite register,
   Record a bite, Services; a laboratory has Samples; a coordination cell has Overview,
   Care network, Work between partners, Coverage, Report, Research data, Setup.
-* **NGO and municipal workspaces regrouped by the work** (`designedNav`): Today ·
-  Field (Field mode, Intake, Work queue) · Animals · Vaccination & ABC (Treat & sign
-  off, Release evidence, Drives & zones) · Reporting · **Programme** (Partner requests
-  with a live count, Send a sample, Programme overview, Care network). Every existing
-  route is kept; secondary pages live under "More", section tabs and search.
+* **One sidebar pattern everywhere** (`designedNav`, `placeNav`): **Today** first;
+  **Work**, at most four everyday things chosen by role; **Programme**, the same
+  links for everyone in a programme (Programme, Care network, Requests with a live
+  count); **More**, one fold for everything else. The top bar holds the single
+  primary action and pages do not repeat it. See `screens/sidebars-same-pattern.png`.
 * **The NGO's own Today** carries a line from the programme ("2 requests from programme
   partners · 1 overdue"), so a hospital's request reaches the field team where they look.
 
@@ -131,9 +131,9 @@ Kaju has no route to human-health data; its tools do not touch `oh_*` or `health
 |---|---|
 | Typecheck, lint | Pass (one pre-existing warning in `src/sp/city/OfficeStrip.tsx`) |
 | Production build without database (as CI) | Pass |
-| Full browser suite on the production build | **239 passed, 0 failed**, 29 skipped by design |
+| Full browser suite on the production build | **239 passed, 0 failed**, 29 skipped by design (re-run after the sidebar simplification) |
 | CI regression scripts (16) and workspace registry (12) | All pass |
-| Cross-institution journey on staging, `e2e/one-health.spec.ts` | **7/7 desktop, 7/7 phone**: clinician records a category III bite → NGO receives the request without patient details, closes it, sends a sample → laboratory reports positive → programme lead sees the confirmed case and the care network; nurse cannot assess or prescribe; another city's lead is refused; public finder refers |
+| Cross-institution journey on staging, `e2e/one-health.spec.ts` | **14/14** (desktop and phone together, each following its own sample): clinician records a category III bite → NGO receives the request without patient details, closes it, sends a sample → laboratory reports positive → programme lead sees the confirmed case and the care network; nurse cannot assess or prescribe; another city's lead is refused; public finder refers |
 | Permissions at the database, `scripts/test-one-health-permissions.ts` | **19/19** against staging |
 
 Of the ten failures in the first full run, two came from the new navigation (tests

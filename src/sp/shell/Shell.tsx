@@ -65,6 +65,9 @@ const ICON: Record<string, typeof MapIcon> = {
   stethoscope: Stethoscope, flask: FlaskConical, gauge: Gauge, arrows: ArrowRightLeft, syringe: Syringe, plus: PlusCircle, settings: Settings,
 };
 
+/** Plain names for the folded groups, so "More" never echoes the Programme section. */
+const MORE_LABEL: Record<string, string> = { Programmes: "Drives and projects", Clinical: "Treatment and release", Reports: "Reporting", Organisation: "Your organisation", Outreach: "Outreach", Animals: "Animals", Intake: "Intake", Work: "Other work" };
+
 type SwitchEntry = { key: string; href: string; title: string; sub: string; on: boolean };
 
 /** Links from a place, as sidebar rows; a section label is shown where a section starts. */
@@ -72,7 +75,7 @@ function placeRows(links: PlaceLink[], fallbackSection?: string): NavRow[] {
   let last: string | undefined;
   return links.map((l) => {
     const sec = l.section ?? fallbackSection;
-    const row: NavRow = { item: { href: l.href, label: l.label, icon: l.icon, exact: l.exact, count: l.count, countTone: l.tone, short: l.short }, label: sec && sec !== last ? sec : undefined };
+    const row: NavRow = { item: { href: l.href, label: l.label, icon: l.icon, exact: l.exact, count: l.count, countTone: l.tone, short: l.short, more: l.more }, label: sec && sec !== last ? sec : undefined };
     last = sec;
     return row;
   });
@@ -147,9 +150,13 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
       nav: items, dests: links.filter((l) => l.mobile).slice(0, 4).map((l) => ({ href: l.href, label: l.label, short: l.short, icon: l.icon, exact: l.exact })) };
     nav = placeRows(links);
   } else if (ws === "ngo" && ngoPlace) {
-    nav = [...nav, ...placeRows(placeNav(ngoPlace), "Programme")];
+    nav = [...nav, ...placeRows(placeNav(ngoPlace).filter((l) => l.section === "Programme"))];
   } else if (ws === "city" && cityPlace) {
-    nav = [...nav, ...placeRows(placeNav(cityPlace).filter((l) => l.href.startsWith("/programme/")), "Programme")];
+    const pr = cityPlace.programmes[0]?.slug;
+    if (pr) nav = [...nav, ...placeRows([
+      { href: `/programme/${pr}`, label: "Programme", icon: "gauge", exact: true, section: "Programme" },
+      ...placeNav(cityPlace).filter((l) => l.section === "Programme"),
+    ])];
   }
   /* The switcher lists places, not products: Today across all of them, the NGO
      workspace, the municipal review office and each One Health organisation. */
@@ -161,6 +168,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
     if (p.kind === "ngo" && mem.org && p.ngo_id === mem.org.id) continue;
     entries.push({ key: p.organisation_id, href: placeHome(p), title: p.name, sub: `${ROLE_LABEL[p.role]} · ${KIND_LABEL[p.kind]}`, on: placeId === p.organisation_id });
   }
+  const folded = nav.filter((r) => r.item.more).map((r) => r.item);
+  nav = nav.filter((r) => !r.item.more);
   const switchable = entries.length > 1;
   const wsTitle = ws === "ngo" && mem.org ? mem.org.name : ws === "health" ? (place?.name ?? "Today") : ws === "city" ? "Municipal review" : `StrayPaw ${def.label}`;
   const NGO_ROLE: Record<string, string> = { admin: "Lead", coordinator: "Coordinator", veterinarian: "Veterinarian", member: "Field team" };
@@ -252,15 +261,14 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             /* Pages whose section has no place of its own in the sidebar (team, outreach…), folded once under "More". */
             const own = new Set(nav.map((n) => (n.item as Destination).group).filter(Boolean));
             const inNav = (h: string) => nav.some((n) => n.item.href === h || (n.item.href !== "/ngo" && n.item.href !== "/city" && h.startsWith(n.item.href + "/")) || (n.item.match ?? []).some((m) => h === m || h.startsWith(m + "/")));
-            const groups = ws === "health" ? [] : def.index.filter((g) => !own.has(g.label)).map((g) => ({ ...g, links: g.links.filter((l) => l.href !== def.settings && l.href !== "/assistant" && !inNav(l.href)) })).filter((g) => g.links.length);
+            const groups = (ws === "health" ? [] : def.index.filter((g) => !own.has(g.label)).map((g) => ({ ...g, links: g.links.filter((l) => l.href !== def.settings && l.href !== "/assistant" && !inNav(l.href)) })).filter((g) => g.links.length))
+              .concat(folded.length ? [{ label: "This place", links: folded as Destination[] }] : []);
             if (!groups.length) return null;
             const inside = groups.some((g) => g.links.some((l) => path === l.href || path.startsWith(l.href + "/")));
-            /* A short list is shown as is; only a long one folds under "More". */
-            const all = groups.flatMap((g) => g.links);
-            if (all.length <= 4) return <nav className="sx3-nav sx5-flat" aria-label="Other pages"><p className="sx4-sec">Also</p>{all.map((l) => <Link key={l.href} href={l.href} aria-current={path === l.href ? "page" : undefined}><FileText size={16} aria-hidden /><span>{l.label}</span></Link>)}</nav>;
+            /* One fold for everything secondary: the sidebar stays short and the same everywhere. */
             return <details className="sx3-more sx5-more" open={inside || undefined}>
-              <summary><span>More</span><ChevronDown size={13} aria-hidden /></summary>
-              {groups.map((g) => <div key={g.label}><p className="sx5-more-h">{g.label}</p><ul>{g.links.map((l) => <li key={l.href}><Link href={l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul></div>)}
+              <summary><MoreHorizontal size={16} aria-hidden /><span>More</span><ChevronDown size={13} aria-hidden /></summary>
+              {groups.map((g) => <div key={g.label}><p className="sx5-more-h">{MORE_LABEL[g.label] ?? g.label}</p><ul>{g.links.map((l) => <li key={l.href + (l.query ?? "")}><Link href={l.query ? `${l.href}?${l.query}` : l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul></div>)}
             </details>;
           })()}
 
