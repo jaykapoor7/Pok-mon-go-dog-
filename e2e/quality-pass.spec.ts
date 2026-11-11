@@ -6,6 +6,39 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/contact", route => route.abort("failed"));
 });
 
+test("the homepage remains readable in both scroll directions", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto("/");
+  for (const id of ["workflow", "integrations", "security", "integrations", "workflow"]) {
+    const section=page.locator(`#${id}`);await section.scrollIntoViewIfNeeded();await expect(section.locator("h2:visible,h3:visible").first()).toBeVisible();
+  }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+});
+test("audience destinations remain reachable by keyboard in the header",async({page})=>{
+ await page.setViewportSize({width:1440,height:900});await page.goto("/");
+ const toggle=page.getByRole("button",{name:"Solutions",exact:true});
+ /* Keyboard handlers attach on hydration; retry the keypress until they have. */
+ await expect(async()=>{await toggle.focus();await page.keyboard.press("ArrowDown");await expect(toggle).toHaveAttribute("aria-expanded","true",{timeout:1000});}).toPass({timeout:15_000});
+ const links=page.locator("#s4-dd-solutions .s4-dd-item");const n=await links.count();expect(n).toBe(14);
+ for(let i=0;i<n;i++){await expect(links.nth(i)).toBeFocused();if(i<n-1)await page.keyboard.press("ArrowDown");}
+ await expect(links.last()).toContainText("Leadership");
+});
+
+test("mobile navigation contains focus and restores the menu button", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open menu", exact: true }).click();
+  await expect(page.locator("#s4-sheet summary").first()).toBeFocused();
+  await page.locator("#s4-sheet a").last().focus();
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".s4-burger")).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.locator("#s4-sheet a").last()).toBeFocused();
+  await page.keyboard.press("Escape");
+  const menu = page.getByRole("button", { name: "Open menu", exact: true });
+  await expect(menu).toBeFocused();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+});
+
 test("contact validation focuses each invalid field; transport failure keeps the message", async ({ page }) => {
   await page.goto("/contact?subject=Feedback");
   await expect(page.getByLabel("Subject optional")).toHaveValue("Feedback");
