@@ -65,8 +65,14 @@ jobs:
           npm run test:kaju-reliability
           npm run test:report-isolation
           npm run test:connections
+      # --with-deps fetches extra system fonts from Ubuntu's mirror. When the
+      # runner cannot reach that mirror (11 Nov 2026: six runs lost, the suite
+      # never started), the browser still runs on the libraries already in the
+      # runner image. So: try with the fonts for five minutes, then install the
+      # browser alone. An outage costs the extra fonts, never the gate; a
+      # browser that cannot be downloaded still fails the step.
       - name: Install browser
-        run: npx playwright install --with-deps chromium
+        run: timeout 300 npx playwright install --with-deps chromium || npx playwright install chromium
       - name: Browser regression suite
         run: npm run test:e2e
       - name: Audit production dependencies
