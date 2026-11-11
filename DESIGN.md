@@ -105,11 +105,22 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
      Coverage, Report.
   3. **Programme**: the same links for everyone taking part: Programme,
      Care network, Requests (where the place receives requests).
-  4. **More**: one fold with one link per area (Animals, Drives and projects,
-     Your organisation…). Each area's page shows its other pages as tabs.
-  **Nothing is more than two clicks away** (More → area → tab), and **Find a
-  page or record** sits under the place card: one click, type, go. It finds
-  every page of every place the person works in, as well as records.
+  4. **Manage** (programme cells only): Research data, Programme setup.
+  There is **no "More" list**. Everything else in a workspace is one organised
+  index, **All sections**: every area by name, each page with what it is for.
+  It opens inside **Find a page or record** (under the place card; ⌘K), which
+  also finds every page of every place the person works in, and records.
+  **Nothing is more than two clicks away** (All sections → page; or area → tab).
+- **The sidebar is a tab of the rail** (`src/sp/shell/rail.css`, loaded last;
+  built on the owner's reference recording, 11 Nov 2026). A slim navy rail runs
+  down the left edge; the menu is a glass panel that grows out of it, joined by
+  concave corners. Items are numbered in small mono figures; the current page
+  sits on a lit pill that glides between pages and runs to the panel's edge.
+  Tucked away, the panel narrows into a **Menu** handle on the rail; pointing
+  at the handle or focusing it lets the panel grow back out over the page, and
+  pressing it pins the panel open. The tucked panel is inert. The page's
+  ambient light follows the section (today blue, work indigo, programme teal,
+  manage violet). Reduced motion: no morph, no glide.
   The top bar carries the one primary action (Record a bite, New case, Send
   a sample); pages never repeat it. Defined once in `designedNav` and `placeNav`.
 - **Live counts** sit on the link that opens the work (flame = overdue,
