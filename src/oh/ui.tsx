@@ -171,27 +171,30 @@ export function AlertList({ alerts, programmeId, onChange, canAck, hrefFor, limi
     courses_completed: (n) => `Courses completed at ${n} facilities`,
     revaccination_due: (n) => `Dogs due for revaccination at ${n} partners`,
   };
-  const rows: (Alert | { group: string; items: Alert[] })[] = [];
+  /* Several confirmed samples from one area are one decision too: a cluster, with each sample inside. */
+  const keyOf = (a: Alert) => (a.kind === "positive_result" ? `positive_result|${a.title}` : a.kind);
+  const rows: (Alert | { group: string; kind: string; items: Alert[] })[] = [];
   for (const a of shown) {
-    if (GROUP[a.kind] && shown.filter((x) => x.kind === a.kind).length > 1) {
-      const g = rows.find((r) => "group" in r && r.group === a.kind) as { group: string; items: Alert[] } | undefined;
-      if (g) g.items.push(a); else rows.push({ group: a.kind, items: [a] });
+    if ((a.kind === "positive_result" || GROUP[a.kind]) && shown.filter((x) => keyOf(x) === keyOf(a)).length > 1) {
+      const g = rows.find((r) => "group" in r && r.group === keyOf(a)) as { group: string; kind: string; items: Alert[] } | undefined;
+      if (g) g.items.push(a); else rows.push({ group: keyOf(a), kind: a.kind, items: [a] });
     } else rows.push(a);
   }
   return (
     <div className="oh-alerts" role="list">
       {rows.map((r) => {
         if ("group" in r) {
-          const sev = r.items[0].severity, acked = r.items.every((x) => x.ack);
+          const sev = r.items[0].severity, acked = r.items.every((x) => x.ack), cluster = r.kind === "positive_result";
+          const first = r.items[0].detail, rest = first.split(". ").slice(1).join(". ");
           return (
             <details key={r.group} className="oh-alert-group" role="listitem">
               <summary className="oh-alert" data-sev={sev} data-acked={acked ? "true" : undefined}>
                 <i aria-hidden />
-                <div><b>{GROUP[r.group](r.items.length)}</b><p>{r.items[0].detail}</p><small>{ALERT_KIND[r.group] ?? r.group} · show places</small></div>
+                <div><b>{cluster ? `${r.items[0].title} · ${r.items.length} samples` : GROUP[r.kind](r.items.length)}</b><p>{cluster ? rest || first : first}</p><small>{ALERT_KIND[r.kind] ?? r.kind} · show {cluster ? "samples" : "places"}</small></div>
                 <div className="oh-alert-act">{hrefFor?.(r.items[0]) ? <Link className="oh-btn small" href={hrefFor(r.items[0])!}>Open</Link> : null}</div>
               </summary>
               <ul className="oh-alert-more">
-                {r.items.map((x) => <li key={x.key}><span>{x.title}</span>{canAck && !x.ack ? <button type="button" className="oh-btn quiet small" disabled={busy === x.key} onClick={() => void ack(x)}>Mark as seen</button> : x.ack ? <span style={{ color: "var(--muted)" }}>Seen by {x.ack.by}</span> : null}</li>)}
+                {r.items.map((x) => <li key={x.key}><span>{cluster ? x.detail.split(". ")[0] : x.title}</span>{cluster && hrefFor?.(x) ? <Link className="oh-btn quiet small" href={hrefFor(x)!}>Open</Link> : null}{canAck && !x.ack ? <button type="button" className="oh-btn quiet small" disabled={busy === x.key} onClick={() => void ack(x)}>Mark as seen</button> : x.ack ? <span style={{ color: "var(--muted)" }}>Seen by {x.ack.by}</span> : null}</li>)}
               </ul>
             </details>
           );

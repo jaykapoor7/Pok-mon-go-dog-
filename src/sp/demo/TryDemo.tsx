@@ -58,7 +58,8 @@ export function TryDemo() {
       <h1 className="s4-h1">See StrayPaw, one role at a time</h1>
       <p className="s4-lede">A guided walkthrough of an illustrative Bengaluru programme: the coordination cell, a hospital, the field team and the laboratory on one record, then the ABC work the municipal office reviews.</p>
       <div className="try-go">
-        <button type="button" className="s4-btn is-primary" disabled={!!busy} onClick={start}>{busy === "guide" ? "Signing you in…" : <>Start the guided demo <ArrowRight size={16} aria-hidden /></>}</button>
+        {/* A link, so it still starts the guide if pressed before the page is interactive (/try?go=1 starts on load). */}
+        <a href="/try?go=1" role="button" className="s4-btn is-primary" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Signing you in…" : <>Start the guided demo <ArrowRight size={16} aria-hidden /></>}</a>
         <span><Compass size={15} aria-hidden /> {TOUR.length} steps, about five minutes. Every record is illustrative.</span>
       </div>
       {err && <p className="try-err" role="alert">{err}</p>}

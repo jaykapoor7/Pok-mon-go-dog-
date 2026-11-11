@@ -6,8 +6,8 @@ Persistent record of the product rebuild. Update at every milestone. Latest firs
 
 | Thing | State | Evidence |
 |---|---|---|
-| straypaw.org | Serves `main` @ `ffd86879` (PR #61, visual pass; #60 before it) | `/api/health` → `sha ffd86879…, environment production`; landing contains the switchboard and Kaju scene; `/for-hospitals` 200 |
-| demo.straypaw.org | Serves the same commit (`ffd86879`, checked); demo env vars set for the `demo` branch (`DEMO_ONEHEALTH_PASSWORD`, `NEXT_PUBLIC_OH_DEMO`, `NEXT_PUBLIC_OH_PUBLIC_PROGRAMME`, bite-help flag) | `/api/health`, Vercel env list |
+| straypaw.org | Serves `main` @ `03cbba68` (PR #62, Batch 2; #61 and #60 before it) | `/api/health` → `sha 03cbba68…, environment production`; landing contains the switchboard and Kaju scene; `/for-hospitals` 200 |
+| demo.straypaw.org | Serves the same commit (`03cbba68`, checked); guided demo walked there end to end, 12 of 12 steps; demo env vars set for the `demo` branch (`DEMO_ONEHEALTH_PASSWORD`, `NEXT_PUBLIC_OH_DEMO`, `NEXT_PUBLIC_OH_PUBLIC_PROGRAMME`, bite-help flag) | `/api/health`, Vercel env list |
 | Staging database | One Health v2.1–v2.5 applied; illustrative demo seeded; 11 demo accounts | 19/19 permission checks, 14/14 journey |
 | **Production database** | **No programme or AnimalID tables.** | `oh_tables = 0` |
 
@@ -58,7 +58,7 @@ Benchmarks read: Linear and GovDash landings use about 20 words of body copy per
 
 Done earlier (PR #59): one shell with places, one sidebar pattern, the programme layer (clinic desk, register, PEP tracking, laboratory, requests between partners, care-network map, alerts, coverage, report, research extract, setup, invites, start a programme), AnimalID worker.
 
-This session (branch `claude/brave-hawking-0ohpo5`, PR to follow):
+This session (merged as PR #62; production and demo verified):
 
 | Item | Status | Evidence |
 |---|---|---|
@@ -67,6 +67,8 @@ This session (branch `claude/brave-hawking-0ohpo5`, PR to follow):
 | Kaju suggestions: the partner question is offered on an NGO's Today when a partner is waiting, and in programme places | Done | |
 | Guided walkthrough on the existing demo (`/try`): six connected-programme steps before the ABC chain, existing demo sign-in, fallback to the ABC chain where programme accounts are absent | Done | Steps 1 to 6 walked on staging with the right control highlighted; ABC steps unchanged (their sample password is not available outside the demo deployment) |
 | Guide card no longer overflows with long role names | Done | |
+| Guided demo on demo.straypaw.org after deploy | Verified | All 12 steps: each sample role signs in, the right screen opens, the right control is highlighted, no page errors, closing card shown |
+| Follow-up polish (next PR): several confirmed samples from one area show as one cluster alert with each sample inside; the guide's start button works before the page is interactive | Done | Staging: "Rabies confirmed in HSR Layout · 7 samples"; staging journey test passes |
 
 Not done, and why: production role accounts and programme data on straypaw.org wait for the owner to run the migration workflow (see "Blocked on the owner"). Other linked public pages on the earlier kit are harmonised, not rewritten.
 
