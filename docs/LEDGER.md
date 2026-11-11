@@ -64,6 +64,31 @@ This PR (dashboard pass 1):
 | Removed: the per-section loading files added in #65. They made the server stream pages in two pieces, which duplicated text for a moment and made one test flaky. The route line remains the loading signal | Done |
 | Next: each sidebar page reworked in concept and workflow, after the owner chooses a direction | Open |
 
+## 11 Nov, night: dashboard pass 2 (owner: "nav bar looks way too AI, top has glitches, dashboard still looks the same"; "each sidebar page reworked, I don't like the current concepts and workflows")
+
+PR #66 (the frame, Today's deck, Field mode status line) merged as `8584ca87`; production and demo verified on that sha.
+
+The owner then asked for a proper redesign. My question about direction went unanswered, so I took the option I had recommended and say so here: **one Pipeline instead of three work pages**, and the menu **copied from the recording as a floating tab, not a column**.
+
+| Item | Status | Evidence |
+|---|---|---|
+| Shell: `rail.css` deleted, `dock.css` in its place. Compact dark menu floating on the left edge, vertically centred; white pill glides between pages; hairlines between groups; no numbers, mono labels, glows or washes | Done | Staging, 1440×900, 1024×700, 1280×620, 1920×1080: pinned, hover, tucked, peek |
+| Tucked: a short handle on the edge; hover or focus grows the menu over the page; press keeps it open; the tucked menu is inert | Done | e2e `the sidebar tucks into a Menu handle…` |
+| Top bar: place switcher (left), breadcrumb, search, Ask Kaju, the one primary action, account menu (Help, settings, sign out). The navy frame and the concave corner are gone (source of the "glitches at the top") | Done | |
+| One white sheet on a quiet canvas; the pointer light and drifting blue washes are off on desktop | Done | |
+| Kaju sits on the menu (was a corner of the sidebar) | Done | |
+| Concept: **Pipeline** `/ngo/pipeline`, a board of five stages (New, In care, With the vet, Evidence, To report) from the existing reads (`org_incoming`, open cases, verification queue `stageOf`). No new tables, no new writes | Done | Staging as the NGO coordinator: 13 records, 2 need attention first |
+| Queue, Intake, Sign-off & evidence, Decisions, Field mode are **views of the Pipeline** (tabs), with one breadcrumb `NGO / Pipeline / view` | Done | e2e `the Pipeline is one board…` |
+| Menu by role: coordinator Today, Pipeline, Animals, Reports; vet Today, Pipeline, Animals; field team Today, Field mode, Pipeline, Animals; plus Programme, Care network, Requests | Done | |
+| The NGO's menu stays the same on its programme pages (Requests, Care network); All sections stays too | Done | |
+| Cross-place Today (clinician with two facilities): the menu lists the places with what is waiting at each | Done | Staging as the hospital clinician |
+| Today: on the sheet, lighter greeting, the line of work as one joined strip | Done | |
+| One page title size and weight on every screen behind the menu | Done | |
+| Guided demo: a Pipeline step for the NGO coordinator | Done | |
+| Phone: unchanged bar and thumb tabs; Pipeline replaces Queue in the tabs; the board scrolls a column at a time | Checked at 390×844 | |
+
+Not done in this pass: the Queue's own header and the Reports page keep their earlier layout inside the new shell; the vet and field-worker sample accounts cannot sign in locally (their password is only on the deployed demo), so those two roles are checked after deploy.
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.

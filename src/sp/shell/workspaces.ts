@@ -8,6 +8,7 @@ export type Destination=NavItem & {workspace:WorkspaceId;group:string;primary:bo
 export type Dest=NavItem & {short?:string};
 export type IndexGroup={label:string;links:Destination[]};
 export const DESTINATIONS:Destination[]=[
+ {workspace:'ngo',href:'/ngo/pipeline',label:'Pipeline',short:'Pipeline',icon:'list',group:'Work',primary:true,mobile:true,order:0.5,note:'The whole line of work on one board'},
  {workspace:'ngo',href:'/ngo/training',label:'Training',icon:'grad',group:'Organisation',primary:false,note:'Courses, assignments and progress',flag:'training_lms'},
  {workspace:'ngo',href:'/ngo/animals/scan',label:'Scan to find',icon:'paw',group:'Animals',primary:false,note:'Microchip, RFID or QR',flag:'animal_identifiers'},
  {workspace:'ngo',href:'/ngo/readiness',label:'Readiness',icon:'list',group:'Organisation',primary:false,roles:['admin','coordinator'],flag:'readiness_board',listed:false},
@@ -718,22 +719,22 @@ export function lastWorkspace():WorkspaceId|null{try{const v=sessionStorage.getI
 
 /* ── The designed sidebar ──────────────────────────────────────────────
    The same pattern for every place (see placeNav in src/oh/places.tsx):
-   Today first; then Work, at most four things this person does every day,
-   chosen by role; then Programme when the organisation takes part in one;
-   everything else under More. Nothing is deleted, only placed where it is
-   used: secondary pages stay one tap away in More, section tabs and ⌘K. */
+   Today first; then the work: one Pipeline (the whole line of work on a
+   board, with Cases, Intake and Sign-off & evidence as its views), Animals
+   and Reports, chosen by role; then Programme when the organisation takes
+   part in one. Nothing is deleted, only placed where it is used: every
+   other page is one step away in All sections, section tabs and ⌘K. */
 const N=(href:string,label:string,icon:string,extra:Partial<NavItem>={}):NavItem=>({href,label,icon,...extra});
 export function designedNav(ws:WorkspaceId,role:Role|null,reviewer=false):NavItem[]|null{
  const on=(n:NavItem)=>canDiscover(n,role,reviewer);
  const W='Work';
  if(ws==='ngo'){
-  const animals=N('/ngo/animals','Animals','paw',{section:W,short:'Animals',match:['/ngo/map','/ngo/care','/ngo/quality','/ngo/import','/ngo/review']});
-  const treat=N('/ngo/verification','Treatment & release','shield',{section:W,short:'Treat',match:[]});
+  /* One line of work: the board, and its working views (cases, intake, sign-off and evidence, decisions). */
+  const pipeline=N('/ngo/pipeline','Pipeline','list',{section:W,short:'Pipeline',match:['/ngo/work','/ngo/cases','/ngo/inbox','/ngo/verification','/ngo/review']});
+  const animals=N('/ngo/animals','Animals','paw',{section:W,short:'Animals',match:['/ngo/map','/ngo/care','/ngo/quality','/ngo/import']});
   const field=N('/ngo/field','Field mode','phone',{section:W,short:'Field'});
-  const queue=N('/ngo/work','Work queue','list',{section:W,short:'Queue',match:['/ngo/cases']});
-  const intake=N('/ngo/inbox','Intake','inbox',{section:W,short:'Intake'});
   const reports=N('/ngo/packages','Reports','file',{section:W,short:'Reports',match:['/ngo/proof','/ngo/evidence','/ngo/contracts']});
-  const work=role==='member'?[field,queue,animals]:role==='veterinarian'?[treat,animals,queue]:[queue,intake,treat,role==='admin'||role==='coordinator'?reports:animals];
+  const work=role==='member'?[field,pipeline,animals]:role==='admin'||role==='coordinator'?[pipeline,animals,reports]:[pipeline,animals];
   return [N('/ngo','Today','home',{exact:true,short:'Today'}),...work].filter(on);
  }
  if(ws==='city'){

@@ -22,10 +22,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity, BookOpen, Building2, ChevronDown, ChevronsUpDown, Compass, FileText, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers,
-  LifeBuoy, LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
-  ListChecks, LayoutGrid, GripVertical, Settings, ClipboardCheck, ArrowLeft, Stethoscope, FlaskConical, Gauge, ArrowRightLeft, Syringe, PlusCircle,
+  LogOut, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, Plus, Radio, Search, ShieldCheck, Smartphone, Sparkles, Users, X,
+  ListChecks, LayoutGrid, Settings, ClipboardCheck, ArrowLeft, Stethoscope, FlaskConical, Gauge, ArrowRightLeft, Syringe, PlusCircle,
 } from "lucide-react";
-import { PlacesProvider, usePlaces, placeFor, placeNav, placeAction, placeHome, lastPlace, rememberPlace, type PlaceLink } from "@/oh/places";
+import { PlacesProvider, usePlaces, placeFor, placeNav, placeAction, placeHome, placeLines, lastPlace, rememberPlace, type PlaceLink } from "@/oh/places";
 import { KIND_LABEL, ROLE_LABEL } from "@/oh/data";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
@@ -47,7 +47,7 @@ import "./app3.css";
 import "./app4.css";
 import "./system5.css";
 import "./os.css";
-import "./rail.css";
+import "./dock.css";
 
 import {fieldCache} from "@/lib/field/outbox";
 
@@ -139,14 +139,22 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const ngoPlace = mem.org ? pl.places.find((p) => p.kind === "ngo" && p.ngo_id === mem.org!.id) : undefined;
   const cityPlace = mem.reviewer ? pl.places.find((p) => p.kind === "municipal") : undefined;
   let def = base;
+  /* The member's own NGO, seen through its programme pages: the same workspace, so the same menu and index. */
+  const ownNgoPlace = ws === "health" && place?.kind === "ngo" && !!mem.org && place.ngo_id === mem.org.id;
   const designed = designedNav(ws, mem.role, mem.reviewer);
   let nav: NavRow[] = visibleNav(designed ?? base.nav, mem.role, mem.reviewer);
   if (ws === "health") {
-    const links: PlaceLink[] = place ? placeNav(place, progSlug) : [{ href: "/today", label: "Today", short: "Today", icon: "home", exact: true, mobile: true }];
+    /* On Today across every place, the menu is the places themselves, each with what is waiting there. */
+    const KIND_ICON: Record<string, string> = { hospital: "stethoscope", clinic: "stethoscope", laboratory: "flask", ngo: "paw", municipal: "landmark", state: "landmark", coordinator: "gauge", research: "activity" };
+    const links: PlaceLink[] = place ? placeNav(place, progSlug) : [{ href: "/today", label: "Today", short: "Today", icon: "home", exact: true, mobile: true },
+      ...pl.places.map((p): PlaceLink => { const lines = placeLines(p), waiting = lines.reduce((n, l) => n + l.n, 0); return { href: placeHome(p), label: p.short_name ?? p.name, icon: KIND_ICON[p.kind] ?? "building", section: "Your places", count: waiting || null, tone: lines.some((l) => l.tone === "flame") ? "flame" : "blue" }; })];
     const items = placeRows(links).map((r) => r.item);
     def = { ...base, label: place ? (place.short_name ?? place.name) : "Today", home: place ? placeHome(place) : "/today", action: place ? placeAction(place) : null,
       nav: items, dests: links.filter((l) => l.mobile).slice(0, 4).map((l) => ({ href: l.href, label: l.label, short: l.short, icon: l.icon, exact: l.exact })) };
     nav = placeRows(links);
+    /* The organisation's own menu does not change when you step into its programme pages. */
+    const own = ownNgoPlace ? designedNav("ngo", mem.role, mem.reviewer) : null;
+    if (own) nav = [...visibleNav(own, mem.role, mem.reviewer), ...placeRows(links.filter((l) => l.section === "Programme"))];
   } else if (ws === "ngo" && ngoPlace) {
     nav = [...nav, ...placeRows(placeNav(ngoPlace).filter((l) => l.section === "Programme"))];
   } else if (ws === "city" && cityPlace) {
@@ -198,7 +206,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   /* Kaju looks pleased for a moment when prepared work is saved and verified. */
   const [cheer, setCheer] = useState(false);
   useEffect(() => { let t = 0; const on = () => { setCheer(true); window.clearTimeout(t); t = window.setTimeout(() => setCheer(false), 2600); }; window.addEventListener(KAJU_VERIFIED, on); return () => { window.removeEventListener(KAJU_VERIFIED, on); window.clearTimeout(t); }; }, []);
-  useEffect(() => { try { setCollapsed(localStorage.getItem("sp3.side") === "0"); } catch { /* storage blocked */ } }, []);
+  useEffect(() => { try { const v = localStorage.getItem("sp3.side"); setCollapsed(v ? v === "0" : window.innerWidth < 1100); } catch { /* storage blocked */ } }, []);
   const toggleSide = () => setCollapsed((v) => { try { localStorage.setItem("sp3.side", v ? "1" : "0"); } catch { /* fine */ } return !v; });
   useEffect(() => { setSheet(false); setSwitcher(false); setSwitcherM(false); setPeek(false); }, [path]);
   useEffect(() => {
@@ -226,62 +234,30 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const sideHrefs = new Set(nav.map((r) => r.item.href));
   const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
+  /* The Pipeline's views share one breadcrumb: NGO / Pipeline / the view. */
+  const pipeView = ws === "ngo" ? pipelineView(path) : undefined;
 
   return (
     <Membership.Provider value={mem}>
-      <div className={`sp sp-app s3-root sx3 os ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-tucked" : ""} rl${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} data-tone={tone} style={{ ["--ws" as string]: def.ink }}>
+      <div className={`sp sp-app s3-root sx3 os ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-tucked" : ""} dk${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} data-tone={tone} style={{ ["--ws" as string]: def.ink }}>
         <a href="#sp-main" className="sp-skip">Skip to content</a>
 
         {/* ── Desktop sidebar ─────────────────────────────────────── */}
         <aside className="sx3-side" aria-label="Workspace" data-peek={collapsed && peek ? "true" : undefined} onPointerEnter={peekIn} onPointerLeave={peekOut} onFocusCapture={peekIn} onBlurCapture={peekOut}>
-          <span className="rl-rail" aria-hidden />
-          <button type="button" className="rl-handle" aria-label="Open the menu" aria-expanded={!collapsed || peek} tabIndex={collapsed ? 0 : -1} onClick={toggleSide}><GripVertical size={12} aria-hidden /><span aria-hidden>Menu</span></button>
-          <div className="rl-panel" inert={collapsed && !peek ? true : undefined}>
-          <div className="sx3-side-top">
-            {/* A person with more than one place gets a chooser; everyone else sees their one place. */}
-            {switchable ? (
-            <div className="sx3-ws">
-              <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
-                <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
-                <span><b>{wsTitle}</b><small>{wsSub}</small></span>
-                <ChevronsUpDown size={15} aria-hidden />
-              </button>
-              {switcher && (
-                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Your places">
-                  {entries.map((e) => (
-                    <Link key={e.key} href={e.href} role="menuitemradio" aria-checked={e.on} onClick={() => setSwitcher(false)} className={e.on ? "is-on" : undefined}>
-                      <i aria-hidden style={{ background: e.on ? "var(--s3-blue, #2457ce)" : "#c7cfdc" }} /><span><b>{e.title}</b><small>{e.sub}</small></span>
-                    </Link>))}
-                </Popover>
-              )}
-            </div>
-            ) : (
-            <Link href={def.home} className="sx3-ws sx3-ws-static">
-              <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
-              <span><b>{wsTitle}</b><small>{wsSub}</small></span>
-            </Link>
-            )}
-            <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button>
-          </div>
-
-          <button type="button" className="os-find" onClick={() => setFind(true)} aria-keyshortcuts="Control+K Meta+K /"><Search size={15} aria-hidden /><span>Find a page or record</span><kbd>⌘K</kbd></button>
-          <Suspense fallback={<SideNav nav={nav} path={path} search="" collapsed={collapsed} onAssistant={onAssistant} label={def.label} />}>
-            <SideNavLive nav={nav} path={path} collapsed={collapsed} onAssistant={onAssistant} label={def.label} />
-          </Suspense>
-
-          {/* Everything else in this workspace is one organised index, not a list of features under "More". */}
-          {ws !== "health" ? <button type="button" className="rl-all" onClick={() => { setBrowse(true); setFind(true); }}><LayoutGrid size={15} aria-hidden /><span>All sections</span></button> : null}
-
-          {/* Kaju rests here while the agent is closed; he moves into the panel when it opens. */}
+          <button type="button" className="rl-handle" aria-label="Open the menu" aria-expanded={!collapsed || peek} tabIndex={collapsed ? 0 : -1} onClick={toggleSide}><span className="dk-grip" aria-hidden><i /><i /><i /></span></button>
+          {/* Kaju sits on the menu while the agent is closed; he moves into the panel when it opens. */}
           <div className={`sx3-kaju-nook${cheer ? " is-cheer" : ""}`}>
-            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju">{cheer ? <KajuPresence state="success" size={92} /> : <KajuPresence sequence="arrive" enter size={92} className="sx5-kaju-walk" />}</button>}
+            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju">{cheer ? <KajuPresence state="success" size={64} /> : <KajuPresence sequence="arrive" enter size={64} className="sx5-kaju-walk" />}</button>}
           </div>
-
-          <div className="sx3-side-foot">
-            {def.settings && mem.role === "admin" && <Link href={def.settings} className="sx3-foot-link" aria-current={path === def.settings ? "page" : undefined}><Settings size={15} aria-hidden /><span>Settings</span></Link>}
-            <Link href="/docs" className="sx3-foot-link"><LifeBuoy size={15} aria-hidden /><span>Help</span></Link>
-            <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
-          </div>
+          <div className="rl-panel" inert={collapsed && !peek ? true : undefined}>
+            <Suspense fallback={<SideNav nav={nav} path={path} search="" collapsed={collapsed} onAssistant={onAssistant} label={def.label} />}>
+              <SideNavLive nav={nav} path={path} collapsed={collapsed} onAssistant={onAssistant} label={def.label} />
+            </Suspense>
+            <div className="dk-foot">
+              {/* Everything else in this workspace is one organised index, not a list of features under "More". */}
+              {ws !== "health" || ownNgoPlace ? <button type="button" className="rl-all" onClick={() => { setBrowse(true); setFind(true); }}><LayoutGrid size={15} aria-hidden /><span>All sections</span></button> : <span className="rl-all is-empty" aria-hidden />}
+              <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Keep the menu open" : "Tuck the menu away"}>{collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}</button>
+            </div>
           </div>
         </aside>
 
@@ -304,11 +280,36 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               )}
             </div>
             ) : <span className="sp-ws sx3-ws-m sx3-ws-static"><i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span></span>}
+            {/* Desktop: the place you are working in, and a chooser when there is more than one. */}
+            {switchable ? (
+            <div className="sx3-ws dk-place">
+              <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
+                <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
+                <span><b>{wsTitle}</b><small>{wsSub}</small></span>
+                <ChevronsUpDown size={14} aria-hidden />
+              </button>
+              {switcher && (
+                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Your places">
+                  {entries.map((e) => (
+                    <Link key={e.key} href={e.href} role="menuitemradio" aria-checked={e.on} onClick={() => setSwitcher(false)} className={e.on ? "is-on" : undefined}>
+                      <i aria-hidden style={{ background: e.on ? "var(--s3-blue, #2457ce)" : "#c7cfdc" }} /><span><b>{e.title}</b><small>{e.sub}</small></span>
+                    </Link>))}
+                </Popover>
+              )}
+            </div>
+            ) : (
+            <Link href={def.home} className="sx3-ws sx3-ws-static dk-place">
+              <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
+              <span><b>{wsTitle}</b><small>{wsSub}</small></span>
+            </Link>
+            )}
             {!atHome && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
+              {pipeView ? <>{pipeView.href !== "/ngo/pipeline" && <><span aria-hidden>/</span><Link href="/ngo/pipeline">Pipeline</Link></>}<span aria-hidden>/</span>{pipeView.href === path ? <span aria-current="page">{pipeView.href === "/ngo/pipeline" ? "Pipeline" : pipeView.label}</span> : <><Link href={pipeView.href}>{pipeView.label}</Link><span aria-hidden>/</span><span aria-current="page">{path === "/ngo/cases/new" ? "New case" : "Record"}</span></>}</> : <>
               {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
               {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? (here as Destination).group : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
+              </>}
               {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
             </nav>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
@@ -342,7 +343,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         <Notices />
         <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} entries={entries} nav={ws === "health" ? def.nav : undefined} label={def.label} />
-        <Finder pages={findPages} browse={browse} open={find} onClose={() => { setBrowse(false); closeFind(); }} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
+        <Finder pages={findPages} browse={browse} open={find} onClose={() => { setBrowse(false); closeFind(); }} ws={ownNgoPlace ? "ngo" : ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
     </Membership.Provider>
@@ -492,8 +493,30 @@ function IndexSheet({ open, onClose, ws, path, entries, nav, label }: { open: bo
   );
 }
 
+const PIPELINE_VIEWS: { href: string; label: string; roles?: Role[] }[] = [
+  { href: "/ngo/pipeline", label: "Board" },
+  { href: "/ngo/work", label: "Queue" },
+  { href: "/ngo/inbox", label: "Intake" },
+  { href: "/ngo/verification", label: "Sign-off & evidence" },
+  { href: "/ngo/review", label: "Decisions", roles: ["admin", "coordinator"] },
+  { href: "/ngo/field", label: "Field mode" },
+];
+
+/** The Pipeline view a path belongs to: the view itself, or the view that lists the record being read. */
+function pipelineView(path: string) {
+  return PIPELINE_VIEWS.find((v) => v.href === path)
+    ?? (path.startsWith("/ngo/cases/") ? PIPELINE_VIEWS.find((v) => v.href === "/ngo/work") : path.startsWith("/ngo/verification/") ? PIPELINE_VIEWS.find((v) => v.href === "/ngo/verification") : undefined);
+}
+
 /** The screens inside the current sidebar place, as tabs above the page. */
 function SectionTabs({ path, role, reviewer, listed }: { path: string; role: Role | null; reviewer:boolean; listed: Set<string> }) {
+  /* The Pipeline's working views sit under it as tabs, whichever of them you are on. */
+  const view = pipelineView(path);
+  if (view && !(path === "/ngo/field" && role === "member")) return (
+    <nav className="sx3-tabs" aria-label="Pipeline views">
+      {PIPELINE_VIEWS.filter((v) => !v.roles || (role && v.roles.includes(role))).map((x) => <Link key={x.href} href={x.href} aria-current={x.href === view.href ? (x.href === path ? "page" : "true") : undefined}>{x.label}</Link>)}
+    </nav>
+  );
   const t = tabsFor(path, role, reviewer);
   // Tabs only for screens the sidebar does not already list; never the same links twice.
   if (!t || t.tabs.filter((x) => listed.has(x.href)).length > 1) return null;

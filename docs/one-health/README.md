@@ -80,9 +80,10 @@ text; revaccination interval as a programme setting.
   **Work**, at most four everyday things chosen by role; **Programme**, the same
   links for everyone in a programme (Programme, Care network, Requests with a live
   count); no "More" list: everything else is one organised index, **All sections**, inside
-  **Find a page or record** under the place card, so nothing is more than two clicks away.
-  The sidebar itself is a navy panel that grows from a rail and tucks into a Menu handle
-  (`src/sp/shell/rail.css`). The top bar holds the single
+  search (⌘K, in the top bar), so nothing is more than two clicks away. An NGO's work is
+  one **Pipeline** board; its queue, intake and sign-off are views of it.
+  The menu itself is a compact dark panel that floats on the left edge and tucks into a
+  handle (`src/sp/shell/dock.css`). The top bar holds the place, search, the account and the single
   primary action and pages do not repeat it. See `screens/sidebars-same-pattern.png`.
 * **The NGO's own Today** carries a line from the programme ("2 requests from programme
   partners · 1 overdue"), so a hospital's request reaches the field team where they look.
