@@ -9,8 +9,8 @@ test("verification is a module of the NGO workspace and asks a visitor to sign i
   await page.goto("/ngo/verification");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Verification");
   await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
-  /* Verification is one place in the sidebar, Treatment & release; the page switches between its stages. */
-  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Treatment & release',exact:true})).toHaveAttribute('aria-current','page');await expect(side.getByRole('link',{name:'Team & access',exact:true})).toHaveCount(0)}
+  /* Verification is a view of the Pipeline: the menu keeps Pipeline lit, and the views sit above the page as tabs. */
+  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Pipeline',exact:true})).toHaveAttribute('aria-current','page');await expect(page.getByRole('navigation',{name:'Pipeline views'}).getByRole('link',{name:'Sign-off & evidence',exact:true})).toHaveAttribute('aria-current','page');await expect(side.getByRole('link',{name:'Team & access',exact:true})).toHaveCount(0)}
 
 });
 

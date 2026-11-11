@@ -189,7 +189,7 @@ export function Field() {
           {mine.map((c) => <CaseCard key={c.id} c={c} online={online} receipt={r[`n${c.id}`]} startR={r[`s${c.id}`]} drafted={visibleDrafts.filter((d) => d.caseId === c.id).length} onStart={async () => actor && done(`s${c.id}`, await startWork(c.id, actor))} onNote={(t) => note(c, t)} onEvidence={(kind,file,location)=>evidence(c,kind,file,location)} onVaccination={v=>vaccination(c,v)} vaccinationDefaults={vaccinationDefaults} policies={policies} onOperation={(kind,data,policyId,requestId)=>operation(c.id,c.case_code,kind,data,policyId,requestId)} />)}
         </ul>
         {cases !== null && !failed && !mine.length && !myFus.length && (
-          <State art="ngo-empty" title="Nothing held by you" action={<Link className="btn is-ink" href={unowned ? "/ngo/work?focus=unowned" : "/ngo/work"}>{unowned ? `See ${unowned} unowned case${unowned === 1 ? "" : "s"}` : "Open the work queue"}</Link>}>Take a case from Work and it shows here.</State>
+          <State art="ngo-empty" title="Nothing held by you" action={<Link className="btn is-ink" href={unowned ? "/ngo/work?focus=unowned" : "/ngo/work"}>{unowned ? `See ${unowned} unowned case${unowned === 1 ? "" : "s"}` : "Open the queue"}</Link>}>Take a case from Work and it shows here.</State>
         )}
       </div>
     </NgoGate>

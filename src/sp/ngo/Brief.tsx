@@ -192,7 +192,7 @@ export function Brief() {
           {d.unavailable.length>0&&<p role="status" className="br-warn">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
           <div className="br-grid">
             <section aria-labelledby="br-todo" className="br-card">
-              <header className="br-card-h"><h2 id="br-todo">Needs you</h2><Link href="/ngo/work">Work queue <ArrowRight size={13} aria-hidden /></Link></header>
+              <header className="br-card-h"><h2 id="br-todo">Needs you</h2><Link href="/ngo/pipeline">Pipeline <ArrowRight size={13} aria-hidden /></Link></header>
               {rest.length ? rows(rest.slice(0, 5), true) : next ? <p className="br-clear"><Check size={16} aria-hidden /> That is the only thing waiting.</p> : <p className="br-clear"><Check size={16} aria-hidden /> {d.unavailable.length>0?"Some priorities could not be read. Check the work queue.":isVet ? "Nothing is waiting for your sign-off." : "You're all caught up."}</p>}
               {out.length > 0 && <><h3 className="br-sub">Recent activity</h3>{rows(out.slice(0, 3), false)}</>}
             </section>

@@ -93,10 +93,15 @@ test("signed-out NGO page shows what the workspace includes at every width", asy
 test("desktop sidebar is organised by the work, each place once", async ({page,isMobile})=>{
  test.skip(!!isMobile,'desktop sidebar');await page.goto('/ngo');const side=page.getByRole('complementary',{name:'Workspace'});
  await expect(side.getByRole('link',{name:'Today',exact:true})).toBeVisible();
- /* The same pattern as every place: Today, then at most four things under Work, everything else under More. */
- for (const place of ['Work queue','Intake','Treatment & release','Animals']) await expect(side.getByRole('link',{name:place,exact:true})).toHaveCount(1);
- await expect(side.getByText('Work',{exact:true})).toHaveCount(1);
- await expect(side.locator('nav[aria-label$="navigation"] a')).toHaveCount(5);
+ /* The same pattern as every place: Today, then the work. The whole line of work is one place, Pipeline; its queue, intake and sign-off are views of it, not menu items. */
+ for (const place of ['Pipeline','Animals']) await expect(side.getByRole('link',{name:place,exact:true})).toHaveCount(1);
+ for (const gone of ['Work queue','Intake','Treatment & release']) await expect(side.getByRole('link',{name:gone,exact:true})).toHaveCount(0);
+ await expect(side.locator('nav[aria-label$="navigation"] a')).toHaveCount(3);
+ /* The place, search and the account are in the bar above the sheet, not in the menu. */
+ const bar=page.locator('header.sx3-top');
+ await expect(bar.locator('.dk-place')).toBeVisible();
+ await expect(bar.getByRole('button',{name:/Search animals, places, cases/})).toBeVisible();
+ await expect(side.getByRole('button',{name:/Find a page or record/})).toHaveCount(0);
  /* Kaju is one button in the top bar and his corner, not a sidebar row. */
  await expect(side.getByRole('link',{name:'Ask Kaju',exact:true})).toHaveCount(0);
  /* Pages inside an area are tabs on the page, not more sidebar rows. */
@@ -166,7 +171,7 @@ test("the sidebar tucks into a Menu handle, grows back on hover, and has no More
   await expect(side.locator(".rl-panel")).toHaveAttribute("inert", "");
   /* Pointing at the handle lets the panel grow back out over the page; its links work. */
   await handle.hover();
-  await expect(side.getByRole("link", { name: "Work queue", exact: true })).toBeVisible();
+  await expect(side.getByRole("link", { name: "Pipeline", exact: true })).toBeVisible();
   await expect(side.locator(".rl-panel")).not.toHaveAttribute("inert", "");
   /* Leaving puts it away again; pressing the handle pins it open. */
   await page.mouse.move(900, 500);
@@ -174,6 +179,23 @@ test("the sidebar tucks into a Menu handle, grows back on hover, and has no More
   await handle.focus(); await page.keyboard.press("Enter");
   await expect(page.locator(".sp.sx3")).not.toHaveClass(/is-tucked/);
   await expect(side.getByRole("link", { name: "Today", exact: true })).toBeVisible();
+});
+
+test("the Pipeline is one board, and the queue, intake and sign-off are its views", async ({ page, isMobile }) => {
+  await page.goto("/ngo/pipeline");
+  /* Signed out, the board is the same door as every NGO page: it reads nothing private. */
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Pipeline");
+  await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
+  const views = page.getByRole("navigation", { name: "Pipeline views" });
+  for (const v of ["Board", "Queue", "Intake", "Sign-off & evidence", "Field mode"]) await expect(views.getByRole("link", { name: v, exact: true })).toHaveCount(1);
+  await expect(views.getByRole("link", { name: "Board", exact: true })).toHaveAttribute("aria-current", "page");
+  /* Decisions are a coordinator's view: a visitor is not offered it. */
+  await expect(views.getByRole("link", { name: "Decisions", exact: true })).toHaveCount(0);
+  await views.getByRole("link", { name: "Intake", exact: true }).click();
+  await expect(page).toHaveURL(/\/ngo\/inbox$/);
+  await expect(page.getByRole("navigation", { name: "Pipeline views" }).getByRole("link", { name: "Intake", exact: true })).toHaveAttribute("aria-current", "page");
+  if (!isMobile) await expect(page.getByRole("complementary", { name: "Workspace" }).getByRole("link", { name: "Pipeline", exact: true })).toHaveAttribute("aria-current", "page");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 });
 
 test("All sections is an organised index of the workspace, by area", async ({ page, isMobile }) => {
