@@ -69,3 +69,8 @@
   .s7-home .s4-int-t:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 24px -16px var(--ic, rgba(11, 30, 61, .5)); }
 }
 @media (max-width: 760px) { .s7-home .s6-hero::before, .s7-home .s6-hero::after { width: 300px; height: 300px; filter: blur(60px); } }
+
+/* a soft light follows the pointer across the hero blueprint */
+.s8-light { position: absolute; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 500ms ease; background: radial-gradient(420px circle at var(--lx, 50%) var(--ly, 0%), rgba(255, 255, 255, .13), transparent 70%); }
+.s8-on .s6-canvas[data-lit="true"] .s8-light { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .s8-light { display: none; } }

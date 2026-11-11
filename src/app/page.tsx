@@ -16,7 +16,7 @@ import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
 import "@/sp4/home/v7/landing7.css";
 import "@/sp4/home/v7/motion8.css";
 import { LandingMotion } from "@/sp4/home/v7/Motion";
-import { KajuPresence } from "@/kaju/Presence";
+import { HeroPerch } from "@/sp4/home/HeroPerch";
 import "@/sp4/home/home4.css";
 import "@/sp4/home/landing.css";
 
@@ -75,9 +75,11 @@ export default function HomePage() {
           <HeroScroll />
           <div className="s6-canvas">
             <Blueprint tone="dark" />
+            {/* a soft light follows the pointer across the blueprint */}
+            <span className="s8-light" aria-hidden />
             <div className="s4-hero-stage s6-stage">
               {/* Kaju rests on the product window: the agent lives inside the work. */}
-              <span className="s4-hero-perch" aria-hidden><KajuPresence sequence="perch" loop size={112} /></span>
+              <span className="s4-hero-perch" aria-hidden><HeroPerch /></span>
               <HeroDemo />
             </div>
           </div>

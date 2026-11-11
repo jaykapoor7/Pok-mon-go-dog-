@@ -33,3 +33,19 @@ test("Explore remains the public map and does not open an app chooser",async({pa
  await page.getByRole("button",{name:"Needs help",exact:true}).click();await expect(page).toHaveURL(/lens=help/);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
 });
+
+test("use cases tell a second story in the same frame: a city rabies programme", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.goto("/");
+  const section = page.locator("#workflow"); await section.scrollIntoViewIfNeeded();
+  const city = section.getByRole("button", { name: "City rabies programme" });
+  await expect(section.getByRole("button", { name: "ABC programme" })).toHaveAttribute("aria-pressed", "true");
+  await city.click(); await expect(city).toHaveAttribute("aria-pressed", "true");
+  await expect(section.getByRole("tab")).toHaveText(["Record", "Follow up", "Test", "Decide", "Report"]);
+  await expect(section.getByRole("heading", { level: 3 })).toHaveText("A bite is recorded once.");
+  await expect(section).toContainText("no name stored", { ignoreCase: true });
+  await section.getByRole("tab", { name: "Follow up" }).click();
+  await expect(section.getByRole("heading", { level: 3 })).toHaveText("The field team finds the animal.");
+  await expect(section).toContainText("never the patient");
+  await section.getByRole("button", { name: "ABC programme" }).click();
+  await expect(section.getByRole("tab")).toHaveText(["Receive", "Register", "Treat", "Release", "Submit & bill"]);
+});

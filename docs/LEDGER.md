@@ -26,7 +26,10 @@ The owner judged the rebuilt landing, hero, navigation and pages (PRs #60, #61) 
 | A. Keep what was added since, inside the old structure: `/for-hospitals` rebuilt on the old page kit and linked under Solutions; a programme section on Platform, For governments and For NGOs; clinic, laboratory and programme-cell windows have their own sidebar | Done (this PR) |
 | A. Fix found on the way: `/for-hospitals` was rendering inside the app shell on production; it is now registered as a public page | Done (this PR) |
 | A. Fix kept from before: the Platform partner strip lists only organisations in the field-partner data (an unverified name is no longer shown) | Done (this PR) |
-| B. Improve the old blueprint: motion, transitions and the connected-programme story as use cases, in the old visual language | Next |
+| B1. Use cases: a second track in the same frame (ABC programme / City rabies programme): record, follow up, test, decide, report, with screens in the old window style; screens arrive from the side you move toward | Done |
+| B1. Hero: Kaju wags or tilts his head when the pointer or focus reaches the hero buttons; a soft light follows the pointer across the blueprint; the rotating line includes rabies elimination programmes; the announcement bar carries city programmes | Done |
+| B2. Dashboard sidebar rebuilt on the owner's reference recording (a glass tab that grows from the left rail, numbered items, a gliding glow pill, retracts to a Menu handle); no More list | Next |
+| B3. App screens, loading states and button interactions to the same standard | Next |
 | Not reverted: the sign-in split layout, demo request types, the guided demo, Kaju's partner-requests tool, alert clustering | Kept |
 
 The sections below about "Batch 1" and the "Site visual pass" describe work that this decision supersedes on the public site.

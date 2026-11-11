@@ -13,6 +13,7 @@ export const HERO_PHRASES = [
   "animal welfare programmes",
   "ABC sterilisation programmes",
   "rabies vaccination drives",
+  "rabies elimination programmes",
   "street-animal rescue",
   "municipal ABC claims",
 ];
