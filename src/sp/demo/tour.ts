@@ -53,7 +53,7 @@ export const TOUR: TourStep[] = [
     body: "Samples arrive with their chain of custody. The scientist receives, tests and reports with the method; a positive result alerts the coordination cell.",
     sel: ".oh-placecard", within: ["/workspace/"], hint: "Open the laboratory." },
   { role: "field", path: "/ngo/field", title: "Field mode",
-    body: "Record an animal with photos and location. Online saves straight away; Offline keeps records on the phone until there is signal.",
+    body: "Record an animal with photos and location. With signal, records save straight to the register; without it they wait on the phone, and one switch lets a team work offline on purpose.",
     sel: ".fd-mode" },
   { role: "vet", path: "/ngo/verification?stage=vet", title: "Veterinary sign-off",
     body: "Every procedure is authorised by a named vet before it can be claimed.",

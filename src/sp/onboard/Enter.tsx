@@ -23,7 +23,6 @@ import { KajuFace } from "@/kaju/Kaju";
 import { Bubble, CodeBoxes, Cta, Frame } from "./Onboarding";
 import { firstName, maskEmail } from "./flow";
 import "./onboarding.css";
-import "./enter6.css";
 
 type Step = "email" | "who" | "me" | "org" | "code";
 type Kind = "individual" | "feeder";
@@ -160,17 +159,6 @@ export function Enter() {
     <MotionConfig reducedMotion="user" transition={SPRING}>
       <div className={`ob is-step at-${step} is-enter`}>
         <div className="ob-glow" aria-hidden><i /><i /><i /></div>
-        <aside className="en-side" aria-hidden>
-          <p className="en-side-k">StrayPaw</p>
-          <p className="en-side-h">One record for every animal, bite, dose and sample.</p>
-          <ol className="en-side-thread">
-            <li><b>Hospital</b><span>records the bite</span></li>
-            <li><b>Field team</b><span>finds the animal</span></li>
-            <li><b>Laboratory</b><span>reports the result</span></li>
-            <li><b>Programme</b><span>decides what happens next</span></li>
-          </ol>
-          <p className="en-side-f">Each role sees only what it is allowed to. Every action is recorded.</p>
-        </aside>
         <div className="ob-app">
           <header className="ob-top">
             {trail.length ? <button type="button" className="ob-back" onClick={back} aria-label="Back"><ChevronLeft size={20} aria-hidden /></button>

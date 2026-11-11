@@ -139,7 +139,8 @@ export function Brief() {
 
   return (
     <div className={`br${role ? ` is-${role}` : ""}`}>
-      <div className="br-in">
+      {/* The deck: the frame comes down to hold the greeting and the one place to ask for anything. */}
+      <header className="br-deck"><div className="br-in br-deck-in">
         <div className="br-top">
           <span className="br-kaju-chip" aria-hidden><KajuFace size={34} /></span>
           <h1 className="br-hello">{greeting()}, {first}.</h1>
@@ -165,6 +166,10 @@ export function Brief() {
             <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
           </form>
           <div className="br-chips">{chips.map((t) => <button key={t} type="button" onClick={() => send(t)}><Sparkles size={12} aria-hidden />{t}</button>)}</div>
+        </>}
+      </div></header>
+      <div className="br-in">
+        {d && <>
           {next && <Link href={next.href} className={`br-next t-${next.tone}`} aria-label={`Next up: ${typeof next.title === "string" ? next.title : "open"}`}>
             <span className="br-next-k">{todo.length ? "Next up" : "Ready when you are"}</span>
             <span className="br-next-t">{typeof next.title === "string" ? <b>{next.title}</b> : next.title}</span>
