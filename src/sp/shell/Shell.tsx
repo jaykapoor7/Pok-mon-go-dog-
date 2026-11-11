@@ -66,7 +66,7 @@ const ICON: Record<string, typeof MapIcon> = {
 };
 
 /** Plain names for the folded groups, so "More" never echoes the Programme section. */
-const MORE_LABEL: Record<string, string> = { Programmes: "Drives and projects", Clinical: "Treatment and release", Reports: "Reporting", Organisation: "Your organisation", Outreach: "Outreach", Animals: "Animals", Intake: "Intake", Work: "Other work" };
+const MORE_LABEL: Record<string, string> = { Programmes: "Drives and projects", Clinical: "Treatment and release", Reports: "Reporting", Organisation: "Your organisation", Outreach: "Outreach", Animals: "Animals", Intake: "Intake", Work: "Other work", Overview: "Governance and reports", Verification: "Review", Wards: "Wards", Contracts: "Contracts" };
 
 type SwitchEntry = { key: string; href: string; title: string; sub: string; on: boolean };
 
@@ -169,6 +169,9 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
     entries.push({ key: p.organisation_id, href: placeHome(p), title: p.name, sub: `${ROLE_LABEL[p.role]} · ${KIND_LABEL[p.kind]}`, on: placeId === p.organisation_id });
   }
   const folded = nav.filter((r) => r.item.more).map((r) => r.item);
+  /* Every page of every place this person works in, for the finder. */
+  const findPages = pl.places.flatMap((p) => placeNav(p).map((l) => ({ href: l.href, label: l.label === "Today" ? `Today at ${p.short_name ?? p.name}` : l.label, detail: p.short_name ?? p.name })))
+    .concat(pl.places.some((p) => p.capabilities.includes("record_exposure")) ? pl.places.filter((p) => p.capabilities.includes("record_exposure")).map((p) => ({ href: `/workspace/${p.organisation_id}/new`, label: "Record a bite", detail: p.short_name ?? p.name })) : []);
   nav = nav.filter((r) => !r.item.more);
   const switchable = entries.length > 1;
   const wsTitle = ws === "ngo" && mem.org ? mem.org.name : ws === "health" ? (place?.name ?? "Today") : ws === "city" ? "Municipal review" : `StrayPaw ${def.label}`;
@@ -211,11 +214,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const section=def.index.find(g=>g.label===here?.group)?.links.filter(l=>l.primary).sort((a,b)=>(a.order??50)-(b.order??50))[0];
   const atHome = path === def.home;
   // Every link the sidebar shows (its places, and the short "Also" list), so page tabs never repeat them.
-  const sideHrefs = (() => {
-    const own = new Set(nav.map((n) => (n.item as Destination).group));
-    const extra = def.index.filter((g) => !own.has(g.label)).flatMap((g) => g.links).filter((l) => l.href !== def.settings && l.href !== "/assistant");
-    return new Set([...nav.map((r) => r.item.href), ...(extra.length <= 4 ? extra.map((l) => l.href) : [])]);
-  })();
+  const sideHrefs = new Set(nav.map((r) => r.item.href));
   const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
 
@@ -253,6 +252,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button>
           </div>
 
+          <button type="button" className="os-find" onClick={() => setFind(true)} aria-keyshortcuts="Control+K Meta+K /"><Search size={15} aria-hidden /><span>Find a page or record</span><kbd>⌘K</kbd></button>
           <Suspense fallback={<SideNav nav={nav} path={path} search="" collapsed={collapsed} onAssistant={onAssistant} label={def.label} />}>
             <SideNavLive nav={nav} path={path} collapsed={collapsed} onAssistant={onAssistant} label={def.label} />
           </Suspense>
@@ -264,11 +264,13 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             const groups = (ws === "health" ? [] : def.index.filter((g) => !own.has(g.label)).map((g) => ({ ...g, links: g.links.filter((l) => l.href !== def.settings && l.href !== "/assistant" && !inNav(l.href)) })).filter((g) => g.links.length))
               .concat(folded.length ? [{ label: "This place", links: folded as Destination[] }] : []);
             if (!groups.length) return null;
-            const inside = groups.some((g) => g.links.some((l) => path === l.href || path.startsWith(l.href + "/")));
-            /* One fold for everything secondary: the sidebar stays short and the same everywhere. */
-            return <details className="sx3-more sx5-more" open={inside || undefined}>
+            /* One link per area, to the area's first page; that page lists the rest as tabs. Never a long list. */
+            const hubs = groups.flatMap((g) => g.label === "This place" ? g.links.map((l) => ({ key: l.href, href: l.href, label: l.label, on: path === l.href }))
+              : (() => { const first = [...g.links].sort((a, b) => (a.primary === b.primary ? 0 : a.primary ? -1 : 1) || (a.order ?? 50) - (b.order ?? 50))[0]; return [{ key: g.label, href: first.query ? `${first.href}?${first.query}` : first.href, label: g.links.length === 1 ? first.label : MORE_LABEL[g.label] ?? g.label, on: g.links.some((l) => path === l.href || path.startsWith(l.href + "/")) }]; })());
+            const inside = hubs.some((h) => h.on);
+            return <details className="sx3-more sx5-more os-more" open={inside || undefined}>
               <summary><MoreHorizontal size={16} aria-hidden /><span>More</span><ChevronDown size={13} aria-hidden /></summary>
-              {groups.map((g) => <div key={g.label}><p className="sx5-more-h">{MORE_LABEL[g.label] ?? g.label}</p><ul>{g.links.map((l) => <li key={l.href + (l.query ?? "")}><Link href={l.query ? `${l.href}?${l.query}` : l.href} aria-current={path === l.href ? "page" : undefined}>{l.label}</Link></li>)}</ul></div>)}
+              <nav aria-label="More places">{hubs.map((h) => <Link key={h.key} href={h.href} aria-current={h.on ? "page" : undefined}>{h.label}</Link>)}</nav>
             </details>;
           })()}
 
@@ -341,7 +343,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         <Notices />
         <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} entries={entries} nav={ws === "health" ? def.nav : undefined} label={def.label} />
-        <Finder open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
+        <Finder pages={findPages} open={find} onClose={closeFind} ws={ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
     </Membership.Provider>

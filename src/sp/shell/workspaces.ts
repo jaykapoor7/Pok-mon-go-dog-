@@ -742,6 +742,7 @@ export function designedNav(ws:WorkspaceId,role:Role|null,reviewer=false):NavIte
    N('/city','Wards & map','map',{exact:true,section:W,short:'Map'}),
    N('/city/review','Review submissions','check',{section:W,short:'Review',reviewer:true}),
    N('/city/contracts','Contracts & rates','file',{section:W,short:'Contracts',reviewer:true}),
+   N('/city/programmes','Programmes','layers',{section:W,short:'Programmes'}),
   ].filter(on);
  }
  return null;

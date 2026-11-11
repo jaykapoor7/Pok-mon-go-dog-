@@ -122,3 +122,16 @@
 @media (prefers-reduced-motion: reduce) { .os-strip { animation: none; transition: none; } }
 /* The arrival never leaves a transform behind: fixed sheets and map controls inside a page keep the viewport as their frame. */
 .sp.sx3.os .os-page { animation-fill-mode: backwards; }
+
+/* Find anything: one click, then type. */
+.sp.sx3.os .os-find { display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; margin: 0 0 12px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--os-line); background: var(--os-fill); color: var(--os-mute); font: 400 13px var(--s3-sans); cursor: pointer; transition: background .16s, border-color .16s, box-shadow .2s; }
+.sp.sx3.os .os-find:hover { background: #fff; border-color: #d6dce7; box-shadow: 0 4px 14px -8px rgba(11, 30, 61, .3); color: var(--os-body); }
+.sp.sx3.os .os-find span { flex: 1; text-align: left; }
+.sp.sx3.os .os-find kbd { font: 500 10.5px var(--s3-sans); padding: 1px 5px; border-radius: 4px; background: #e9edf3; color: var(--os-mute); }
+.sp.sx3.os.is-collapsed .os-find span, .sp.sx3.os.is-collapsed .os-find kbd { display: none; }
+/* More: a short flat list of areas. */
+.sp.sx3.os .os-more nav { display: grid; gap: 1px; padding: 2px 0 4px 26px; }
+.sp.sx3.os .os-more nav a { display: flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 8px; color: var(--os-body); font-size: 13px; text-decoration: none; transition: background .14s, color .14s; animation: os-rise .24s var(--os-ease) both; }
+.sp.sx3.os .os-more nav a:hover { background: var(--os-hover); color: var(--os-ink); }
+.sp.sx3.os .os-more nav a[aria-current="page"] { color: var(--os-blue-ink); font-weight: 600; }
+@media (max-width: 760px) { .sp.sx3.os .os-find { display: none; } }

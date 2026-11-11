@@ -101,11 +101,15 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
      field team: Field mode, Work queue, Animals. Vet: Treatment & release,
      Animals, Work queue. Coordinator: Work queue, Intake, Treatment &
      release, Reports. Hospital: Bite register, Services. Laboratory:
-     Services. Municipal: Wards & map, Review, Contracts. Programme cell:
+     Services. Municipal: Wards & map, Review, Contracts, Programmes. Programme cell:
      Coverage, Report.
   3. **Programme**: the same links for everyone taking part: Programme,
      Care network, Requests (where the place receives requests).
-  4. **More**: one fold for everything else, grouped, never a second list.
+  4. **More**: one fold with one link per area (Animals, Drives and projects,
+     Your organisation…). Each area's page shows its other pages as tabs.
+  **Nothing is more than two clicks away** (More → area → tab), and **Find a
+  page or record** sits under the place card: one click, type, go. It finds
+  every page of every place the person works in, as well as records.
   The top bar carries the one primary action (Record a bite, New case, Send
   a sample); pages never repeat it. Defined once in `designedNav` and `placeNav`.
 - **Live counts** sit on the link that opens the work (flame = overdue,
