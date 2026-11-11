@@ -28,6 +28,7 @@ import { NgoGate } from "./Gate";
 import "./ngo.css";
 import { DeleteRecord } from "../ui/DeleteRecord";
 import { careNote } from "@/lib/care-note";
+import { StageRail } from "./StageRail";
 
 const realName = (s: string | null | undefined) => { const t = (s ?? "").trim(); return t && !/·/.test(t) ? t : null; };
 
@@ -61,6 +62,8 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
 
   return (
     <article className="cs">
+      {/* Where this case is in the line. A case that needs no procedure ends when it is closed. */}
+      {cohort !== "history" && <div className="cs-rail"><StageRail stages={["new", "care"]} at="care" end="Closed" ended={!["open", "in_progress"].includes(reg.status_class ?? "open")} /></div>}
       <header className="cs-head">
         <div className="cs-crumb"><span className="mono small">{shortCode(reg.case_code)}</span><span className="cs-crumb-end"><DeleteRecord kind="case" id={c.id} what="this case" compact={false} onDone={() => router.push("/ngo/work")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></span></div>
         <div className="cs-title">

@@ -4,7 +4,7 @@ import { Faq, PageHead, S4Page } from "@/sp4/site/kit";
 import { Rise } from "@/sp4/site/Rise";
 import "@/sp4/home/home4.css";
 
-export const metadata = { title: "Pricing · StrayPaw", description: "StrayPaw is free to start for rescue and welfare groups. Funded ABC and anti-rabies programmes are priced per programme, agreed in writing." };
+export const metadata = { title: "Pricing, StrayPaw", description: "StrayPaw is free to start for rescue and welfare groups. Funded ABC and anti-rabies programmes are priced per programme, agreed in writing." };
 
 const PLANS: { name: string; who: string; price: string; cta: { href: string; label: string }; primary?: boolean; items: string[] }[] = [
   { name: "Community", who: "Small rescue, feeding and welfare groups", price: "Free to start", cta: { href: "/sign-in?as=org", label: "Get started" },

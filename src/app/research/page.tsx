@@ -6,7 +6,7 @@ import "@/sp4/home/home4.css";
 import "@/sp4/research/research.css";
 
 export const metadata = {
-  title: "Research · StrayPaw",
+  title: "Research, StrayPaw",
   description: "StrayPaw Research: a dataset catalogue with provenance and limits, methods for animal-level programme records, research in progress and controlled access to partner data.",
 };
 

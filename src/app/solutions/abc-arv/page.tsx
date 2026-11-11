@@ -3,7 +3,7 @@ import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { MiniWindow, ProgrammeUi, ReportUi, VetUi } from "@/sp4/home/ui";
 
 export const metadata = {
-  title: "ABC / ARV programmes · StrayPaw",
+  title: "ABC / ARV programmes, StrayPaw",
   description: "Sterilisation and anti-rabies vaccination programmes recorded animal by animal, with vet authorisation, evidence and reports.",
 };
 

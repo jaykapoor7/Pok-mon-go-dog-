@@ -3,7 +3,7 @@ import { CalendarCheck, FileSearch, Users } from "lucide-react";
 import { DemoForm } from "@/sp3/site/DemoForm";
 import { S4Page } from "@/sp4/site/kit";
 
-export const metadata = { title: "Book a demo · StrayPaw", description: "See StrayPaw on a programme like yours: ABC and vaccination, municipal review, or a city-wide One Health programme with hospitals and a laboratory." };
+export const metadata = { title: "Book a demo, StrayPaw", description: "See StrayPaw on a programme like yours: ABC and vaccination, municipal review, or a city-wide One Health programme with hospitals and a laboratory." };
 
 const POINTS: [ReactNode, string, string][] = [
   [<FileSearch key="a" size={18} />, "Your workflow, not a script", "We walk through the work your institution does, from capture or a bite at the desk to the report, using a programme like yours."],

@@ -4,7 +4,7 @@ import { KINDS, POSTS, type Kind } from "@/sp4/site/res/content";
 import { DemoBand, PostCard, ResHero } from "@/sp4/site/res/ResKit";
 import "@/sp4/site/res/res.css";
 
-export const metadata = { title: "Blog · StrayPaw", description: "Field guides, case studies, research notes, product updates and news from StrayPaw and the teams running animal-welfare programmes." };
+export const metadata = { title: "Blog, StrayPaw", description: "Field guides, case studies, research notes, product updates and news from StrayPaw and the teams running animal-welfare programmes." };
 
 export default async function BlogPage({ searchParams }: { searchParams: Promise<{ kind?: string }> }) {
   const q = await searchParams;

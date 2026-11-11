@@ -3,7 +3,7 @@ import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { CaptureUi, EvidenceUi, ListUi, MiniWindow, QueueUi, ReportUi } from "@/sp4/home/ui";
 
 export const metadata = {
-  title: "ABC operators & NGOs · StrayPaw",
+  title: "ABC operators & NGOs, StrayPaw",
   description: "For NGOs and contractors running funded ABC and vaccination programmes: record the work once, check the evidence, and report it to the office that funds you.",
 };
 

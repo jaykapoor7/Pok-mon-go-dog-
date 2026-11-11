@@ -3,7 +3,7 @@ import { ProductPage, Status } from "@/sp4/site/ProductPage";
 import { ListUi, MiniWindow } from "@/sp4/home/ui";
 
 export const metadata = {
-  title: "Hospitals & laboratories · StrayPaw",
+  title: "Hospitals & laboratories, StrayPaw",
   description: "For anti-rabies clinics, health centres and diagnostic laboratories in a city programme: a bite register, dose tracking under clinical control, service confirmations, and samples with their chain of custody.",
 };
 

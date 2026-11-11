@@ -5,7 +5,7 @@ import { PageHead, S4Page, SecHead, TwoTone } from "@/sp4/site/kit";
 import { Rise } from "@/sp4/site/Rise";
 import "@/sp4/home/home4.css";
 
-export const metadata = { title: "Solutions · StrayPaw", description: "StrayPaw for ABC operators and NGOs, ABC/ARV programmes, rescue and care, government oversight and community groups." };
+export const metadata = { title: "Solutions, StrayPaw", description: "StrayPaw for ABC operators and NGOs, ABC/ARV programmes, rescue and care, government oversight and community groups." };
 
 export default function SolutionsPage() {
   return (

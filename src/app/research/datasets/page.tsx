@@ -7,7 +7,7 @@ import "@/sp4/home/home4.css";
 import "@/sp4/research/research.css";
 
 export const revalidate = 3600;
-export const metadata = { title: "Datasets · StrayPaw Research", description: "Datasets with provenance, geography, time span, licence, access level and stated limitations." };
+export const metadata = { title: "Datasets, StrayPaw Research", description: "Datasets with provenance, geography, time span, licence, access level and stated limitations." };
 
 const when = (d: string | null) => (d ? new Date(d).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : "not recorded");
 

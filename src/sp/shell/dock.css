@@ -124,6 +124,11 @@
   .sp.sx3.os.dk .sx-count[data-tone="blue"] { background: rgba(120, 160, 255, .26); color: #dbe6ff; }
   .sp.sx3.os.dk .sx3-nav a[aria-current="page"] .sx-count:not([data-tone="flame"]) { background: var(--dk-ink); color: #fff; }
 
+  /* keyboard focus is a white ring on the dark menu (the blue ring would not show against it) */
+  .sp.sx3.os.dk .sx3-nav a:focus-visible, .sp.sx3.os.dk button.rl-all:focus-visible, .sp.sx3.os.dk .dk-foot .sx3-icon:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+  .sp.sx3.os.dk .sx3-nav a[aria-current="page"]:focus-visible { outline-color: #2457ce; outline-offset: 2px; }
+  .sp.sx3.os.dk .sx3-kaju-nook button:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; border-radius: 12px; }
+
   /* the foot: the index of everything else, and the tuck */
   .sp.sx3.os.dk .dk-foot { display: flex; align-items: center; gap: 2px; margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--dk-line); }
   .sp.sx3.os.dk .rl-all { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 34px; margin: 0; padding: 0 10px; border: 0; border-radius: 11px; background: none; color: rgba(255, 255, 255, .6); font: 500 13px/1 var(--s3-sans); cursor: pointer; transition: color .16s, background .16s; }

@@ -6,11 +6,13 @@
    coordinator or admin approves or returns, nobody reviews their own
    sign-off, and a record in a submitted package is locked here. */
 
+import { StageRail } from "@/sp/ngo/StageRail";
+import { stageHref } from "@/sp/ngo/pipeline";
 import { notify } from "../ui/Notice";
 import {OperationsPanel} from "../ngo/OperationsPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Check } from "lucide-react";
+import { ArrowDown, ArrowRight, Check } from "lucide-react";
 import {
   EVIDENCE_KINDS, EVIDENCE_LABEL, HISTORY_LABEL, NotEnabled, addEvidence, caseAttestations, caseChecklist, caseEvidence, caseHead, caseHistory,
   myContext, returnEvidence, reviewEvidence, uploadEvidenceFile, vetAuthorise, withdrawSignOff,
@@ -92,23 +94,37 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
 
   return (
     <>
+      {/* Where this record is in the line: the same stages as the board. It ends when the record is in a submitted or accepted package. */}
+      <StageRail stages={["new", "care", "vet", "evidence", "report"]} at={ret ? "evidence" : !clinicalReady || !vet ? "vet" : d.chk.missing.length ? "evidence" : "report"} end="Reported" ended={locked} />
       <header className="ngo-head abc-head">
         <div><h1>{d.head?.title || d.head?.case_code || "ABC procedure"}</h1></div>
         <p className="ngo-sum">{[d.head?.zone || d.head?.city, d.head ? `opened ${when(d.head.created_at)}` : null].filter(Boolean).join(" · ")}{d.head?.case_code && <span className="abc-code" title={d.head.case_code}>{shortCode(d.head.case_code)}</span>}</p>
       </header>
       {msg && <p className={msg.ok ? "abc-ok" : "abc-err"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
       {(() => {
-        /* The one next step on this record, for whoever is looking. */
+        /* The one next step on this record, for whoever is looking, and the control that does it. */
         const missing = d.chk.missing.map((k) => EVIDENCE_LABEL[k].toLowerCase());
         const release = d.chk.missing.filter((k) => k === "release_photo" || k === "release_location").length > 0;
+        const done = !locked && !ret && !!vet && !!rev && !missing.length;
         const next = locked ? "This record is in a submitted or accepted package. It can no longer change here."
-          : ret ? `Returned: ${ret.note ?? "see the note below"}. Fix it, then the vet and coordinator sign again.`
-          : !clinicalReady ? `Next: the surgery record. ${canSign ? "Add it below, then authorise." : "The vet adds it and authorises."}`
-          : !vet ? (canSign ? "Next: your veterinary authorisation, below." : "Next: veterinary authorisation by the vet.")
-          : missing.length ? `Next: ${missing.join(", ")}.${release ? " Take the release photo at the release spot so its place is recorded." : ""}`
-          : !rev ? (canReview ? "Next: your evidence review, below. Everything required is present." : "Next: a coordinator reviews the evidence.")
+          : ret ? `Returned: ${(ret.note ?? "see the note below").replace(/[.\s]+$/, "")}. Fix it, then the vet and coordinator sign again.`
+          : !clinicalReady ? `The surgery record. ${canSign ? "Add it below, then authorise." : "The vet adds it and authorises."}`
+          : !vet ? (canSign ? "Your veterinary authorisation." : "Veterinary authorisation by the vet.")
+          : missing.length ? `${missing.join(", ").replace(/^./, (c) => c.toUpperCase())}.${release ? " Take the release photo at the release spot so its place is recorded." : ""}`
+          : !rev ? (canReview ? "Your evidence review. Everything required is present." : "A coordinator reviews the evidence.")
           : "Complete. Kaju includes it in this month’s submission.";
-        return <p className={`abc-next${!locked && !ret && vet && rev && !missing.length ? " is-done" : ""}`} role="status">{next}</p>;
+        /* Where the step is done on this page, if this person can do it. */
+        const target = locked || done ? null : ret || !clinicalReady || (vet && missing.length) ? "abc-add" : !vet ? (canSign ? "abc-vet" : null) : !rev && canReview && !selfSigned ? "abc-review" : null;
+        const go = () => { const el = target ? document.getElementById(target) : null; if (!el) return; el.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); el.classList.remove("is-pointed"); void el.offsetWidth; el.classList.add("is-pointed"); el.querySelector<HTMLElement>("select, textarea, input, button")?.focus({ preventScroll: true }); };
+        return (
+          <div className={`abc-next${done ? " is-done" : ""}${ret ? " is-back" : ""}`} role="status">
+            <span className="abc-next-k">{locked ? "Locked" : done ? "Done" : ret ? "Returned" : "Next step"}</span>
+            <p>{next}</p>
+            {target ? <button type="button" className="abc-next-go" onClick={go}>Take me there <ArrowDown size={14} aria-hidden /></button>
+              : done && canReview ? <Link className="abc-next-go" href="/ngo/packages">Open reports <ArrowRight size={14} aria-hidden /></Link>
+              : <Link className="abc-next-go is-quiet" href={stageHref(ret || !clinicalReady || !vet ? "vet" : missing.length ? "evidence" : "report")}>Back to the board <ArrowRight size={14} aria-hidden /></Link>}
+          </div>
+        );
       })()}
       <div className="abc-grid">
         <div>
@@ -122,10 +138,10 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
                 {e && !locked && <DeleteRecord kind="evidence" id={e.id} what={`this ${EVIDENCE_LABEL[k].toLowerCase()}`} onDone={() => void act(async () => null, "Evidence deleted.")} />}
               </li>
             ); })}</ul>
-            {!locked && <AddEvidence missing={d.chk.missing.length ? d.chk.missing : d.chk.required??EVIDENCE_KINDS} busy={busy} onAdd={(k, v) => act(async () => {
+            {!locked && <div id="abc-add" className="abc-anchor"><AddEvidence missing={d.chk.missing.length ? d.chk.missing : d.chk.required??EVIDENCE_KINDS} busy={busy} onAdd={(k, v) => act(async () => {
               const url = v.file ? await uploadEvidenceFile(d.ctx.ngo_id ?? "", id, k, v.file) : v.url;
               return addEvidence(id, k, { url, location: v.location });
-            }, `${EVIDENCE_LABEL[k]} added.`)} />}
+            }, `${EVIDENCE_LABEL[k]} added.`)} /></div>}
           </section>
 
           <OperationsPanel caseId={id}/>
@@ -139,7 +155,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
         </div>
 
         <aside className="abc-side" aria-label="Sign-offs">
-          <div className="abc-sign">
+          <div className="abc-sign abc-anchor" id="abc-vet">
             <b>Veterinary authorisation</b>
             <p>{vet ? `${vet.actor_name} · ${when(vet.created_at)}` : clinicalReady ? "Waiting for a veterinarian" : "Needs the procedure record"}</p>
             {!locked && !vet && canSign && clinicalReady && (
@@ -156,7 +172,7 @@ function Body({ d, busy, msg, act, id }: { d: Data; busy: boolean; msg: { ok: bo
             )}
           </div>
 
-          <div className="abc-sign">
+          <div className="abc-sign abc-anchor" id="abc-review">
             <b>Evidence review</b>
             <p>{rev ? `Approved · ${rev.actor_name} · ${when(rev.created_at)}` : ret ? `Returned · ${ret.actor_name}: ${ret.note}` : "Not reviewed yet"}</p>
             {!locked && canReview && !rev && (

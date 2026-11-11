@@ -6,7 +6,7 @@ import "@/sp4/research/research.css";
 import "@/sp4/research/workbench.css";
 
 export const revalidate = 3600;
-export const metadata = { title: "Research workbench · StrayPaw", description: "Monthly series of recorded interventions and requests for help from StrayPaw's public records, with filters, method notes and aggregate downloads." };
+export const metadata = { title: "Research workbench, StrayPaw", description: "Monthly series of recorded interventions and requests for help from StrayPaw's public records, with filters, method notes and aggregate downloads." };
 
 export default async function WorkbenchPage() {
   const data = await workbench();

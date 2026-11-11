@@ -5,7 +5,7 @@ import { PROJECTS, STATUS_LABEL, type Status } from "@/sp4/research/catalogue";
 import "@/sp4/home/home4.css";
 import "@/sp4/research/research.css";
 
-export const metadata = { title: "Projects · StrayPaw Research", description: "StrayPaw research by status: published, in progress and proposed." };
+export const metadata = { title: "Projects, StrayPaw Research", description: "StrayPaw research by status: published, in progress and proposed." };
 
 export default function ProjectsPage() {
   return (

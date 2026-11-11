@@ -11,7 +11,7 @@ import "@/sp4/home/v7/landing7.css";
 import "@/sp4/home/v7/agents.css";
 
 export const metadata = {
-  title: "Kaju agents · StrayPaw",
+  title: "Kaju agents, StrayPaw",
   description: "Kaju agents run the recurring work of an animal-welfare programme: field intake, register checks, vet paperwork, release evidence, follow-ups and the monthly claim. They prepare; your team approves.",
 };
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHead, S4Page } from "@/sp4/site/kit";
 
-export const metadata = { title: "Documentation · StrayPaw", description: "How StrayPaw works: access, workspaces, imports, programmes, evidence review, reports, Kaju and CareOS." };
+export const metadata = { title: "Documentation, StrayPaw", description: "How StrayPaw works: access, workspaces, imports, programmes, evidence review, reports, Kaju and CareOS." };
 
 const DOCS: { id: string; t: string; body: React.ReactNode; links: [string, string][] }[] = [
   { id: "access", t: "Getting access", body: <>StrayPaw has no self-chosen roles. An organisation admin invites you with your email and a six-character code; you sign in with that pair on any device. Signing in joins you to the organisation the code belongs to. Residents need no account to report an animal or use the map. No code yet? Request one from <Link className="s4-blue" href="/access">Access</Link>, or apply for an organisation workspace.</>, links: [["Sign in", "/sign-in"], ["Join with a code", "/join"], ["Apply to partner", "/partner-apply"]] },

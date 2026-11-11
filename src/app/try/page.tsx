@@ -2,7 +2,7 @@ import { S4Page } from "@/sp4/site/kit";
 import { TryDemo } from "@/sp/demo/TryDemo";
 
 export const metadata = {
-  title: "Live demo · StrayPaw",
+  title: "Live demo, StrayPaw",
   description: "Walk through a sample Bengaluru ABC programme as a field worker, vet, coordinator, programme lead and municipal reviewer.",
   robots: { index: false, follow: false },
 };
