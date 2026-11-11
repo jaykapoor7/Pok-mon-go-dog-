@@ -100,7 +100,8 @@
   .sp.sx3.os.dk.is-tucked .rl-handle { opacity: 1; pointer-events: auto; transform: none; transition-delay: .24s, .24s, 0s, 0s; }
   .sp.sx3.os.dk.is-tucked .rl-handle:hover, .sp.sx3.os.dk.is-tucked .rl-handle:focus-visible { width: 20px; }
   .sp.sx3.os.dk .rl-handle:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
-  .sp.sx3.os.dk.is-tucked .sx3-side[data-peek] .rl-handle { opacity: 0; pointer-events: none; transform: scaleX(.3); transition-delay: 0s; }
+  /* while the menu is out over the page, the handle's place still takes the press that keeps it open */
+  .sp.sx3.os.dk.is-tucked .sx3-side[data-peek] .rl-handle { opacity: 0; transition-delay: 0s; }
 
   /* the items and the gliding pill */
   .sp.sx3.os.dk .sx3-nav { position: relative; display: flex; flex-direction: column; gap: 2px; margin: 0; overflow: visible; }
@@ -137,7 +138,8 @@
   .sp.sx3.os.dk .sx3-kaju-nook { position: absolute; left: 24px; bottom: calc(100% - 20px); z-index: 2; display: block; width: 64px; height: 64px; margin: 0; transition: opacity .2s var(--dk-ease), transform .4s var(--dk-spring); transform-origin: 50% 100%; }
   .sp.sx3.os.dk .sx3-kaju-nook::before { display: none; }
   .sp.sx3.os.dk .sx3-kaju-nook button { display: block; padding: 0; border: 0; background: none; cursor: pointer; }
-  .sp.sx3.os.dk.is-tucked .sx3-side:not([data-peek]) .sx3-kaju-nook { opacity: 0; transform: scale(.6); pointer-events: none; }
+  /* tucked, Kaju steps down: a menu that is only passing over the page should not cover its words */
+  .sp.sx3.os.dk.is-tucked .sx3-kaju-nook { opacity: 0; transform: scale(.6); pointer-events: none; }
 }
 @media (min-width: 861px) and (max-height: 640px) { .sp.sx3.os.dk .sx3-kaju-nook { display: none; } }
 /* a little less bar on narrow desktops */
