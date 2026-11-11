@@ -128,9 +128,15 @@ export function Field() {
   };
   /* Online: a saved record goes to the server straight away. */
   useEffect(()=>{if(mode==='online'&&online&&storageOpen&&!syncing&&drafts.some(d=>d.status==='pending'))void sendDrafts()},[mode,online,storageOpen,syncing,drafts]); // eslint-disable-line react-hooks/exhaustive-deps
-  const modeTabs=<div className="fd-mode" role="tablist" aria-label="Field mode">
-    <button type="button" role="tab" aria-selected={mode==='online'} onClick={()=>setMode('online')}><Wifi size={15} aria-hidden/><span><b>Online</b><small>Saves straight to your records</small></span></button>
-    <button type="button" role="tab" aria-selected={mode==='offline'} onClick={()=>setMode('offline')}><WifiOff size={15} aria-hidden/><span><b>Offline</b><small>Saves on this phone, syncs later</small></span></button>
+  /* One line says where a record goes right now; one switch changes it. Nobody chooses a "mode" before they can work. */
+  const signal=mode==='offline'?'offline':online?'online':'nosignal';
+  const waitingN=visibleDrafts.length;
+  const modeTabs=<div className="fd-mode fd-signal" data-signal={signal} role="group" aria-label="Connection">
+    <span className="fd-sig-mark" aria-hidden><i/><i/><i/></span>
+    <span className="fd-sig-text" role="status"><b>{signal==='online'?'Online':signal==='offline'?'Working offline':'No signal'}</b><small>{signal==='online'?'Records save straight to your register':signal==='offline'?(waitingN?`${waitingN} waiting on this phone to send`:'Records stay on this phone until you are back in signal'):'Nothing can be sent right now'}</small></span>
+    {signal==='nosignal'
+      ?<button type="button" className="fd-sig-act" onClick={()=>setMode('offline')}>Keep working offline</button>
+      :<button type="button" role="switch" aria-checked={mode==='offline'} className="fd-sig-switch" onClick={()=>setMode(mode==='offline'?'online':'offline')}><span>Work offline</span><i aria-hidden/></button>}
   </div>;
   if(base&&mode==='offline'&&!storageOpen)return <NgoGate title="Field mode" lede="Your assigned fieldwork."><div className="fd">{modeTabs}<OfflineStorage scope={base} onUnlock={()=>setStorageOpen(true)} onPage/></div></NgoGate>;
 
@@ -138,7 +144,6 @@ export function Field() {
     <NgoGate title="Field mode" lede="Your cases and follow-ups for today, one hand, on the street.">
       <div className="fd">
         {modeTabs}
-        {mode==='online'&&!online&&<p role="status" className="fd-off">No signal. <button type="button" className="link" onClick={()=>setMode('offline')}>Switch to Offline</button> to keep recording safely on this phone.</p>}
         {addingIntake&&<IntakeDraft known={known} onSave={intake} onCancel={()=>setAddingIntake(false)}/>}
         {storageError&&<p role="alert">{storageError}</p>}
         {legacyDrafts&&<p role="status">Older drafts on this phone can&apos;t be imported. Ask your admin.</p>}
@@ -148,7 +153,6 @@ export function Field() {
         <header className="fd-head">
           <p className="k">Field · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" })}{offlineReady && <span className="fd-ready" title="Field page available offline on this device."> · Ready offline</span>}</p>
           <h1 className="serif">{cases === null ? failed?"Assignments unavailable":<Reading>Reading your day</Reading> : `${mine.length} case${mine.length === 1 ? "" : "s"}, ${myFus.length} follow-up${myFus.length === 1 ? "" : "s"}`}</h1>
-          {!online && <p className="fd-off" role="status"><WifiOff size={15} aria-hidden /> No connection. Field records stay on this device as drafts until you synchronise.</p>}
           {visibleDrafts.length > 0 && (
             <div className="fd-drafts">
               <Ack state="draft">{visibleDrafts.length} field record{visibleDrafts.length === 1 ? "" : "s"} not sent</Ack>

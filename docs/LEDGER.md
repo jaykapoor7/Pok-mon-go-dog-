@@ -41,6 +41,29 @@ The owner judged the rebuilt landing, hero, navigation and pages (PRs #60, #61) 
 
 The sections below about "Batch 1" and the "Site visual pass" describe work that this decision supersedes on the public site.
 
+## 11 Nov, evening: live state and the dashboard pass
+
+| Thing | State | Evidence |
+|---|---|---|
+| PR #65 (landing improvements, header, inner pages, the rail sidebar, All sections, audit fixes, sturdier gate) | Merged as `c26d1d7c`; live on straypaw.org | `/api/health` sha; live `/ngo` has the panel and handle and no More list; `/status` no longer inside the app shell |
+| Quality gate | The Install browser step now survives a Ubuntu mirror outage (owner approved): it tries with the extra fonts for five minutes, then installs the browser alone | Run on #65 green after six infrastructure failures |
+| Staging test records | Removed with the owner's approval: 6 samples my journey test created (method marked E2E), their custody events and the 24 result notices they generated. Seed records untouched | Programme overview on staging: 1 confirmed case, 2 open decisions |
+
+Owner feedback after #65 went live: the sidebar "looks way too AI", its top has a glitch, the dashboard pages look the same, Field mode's online/offline control is disliked, and every page behind the sidebar should be reworked in concept and workflow.
+
+This PR (dashboard pass 1):
+
+| Item | Status |
+|---|---|
+| The frame: on desktop the sidebar and top bar are one deep-ink piece and the work sits on a sheet inside it, with a rounded corner where they meet. The corner artefact at the top of the sidebar is gone | Done |
+| Restraint: no glows, gradient sheens or neon. Flat ink, one solid pill, hairlines. The mechanism from the recording stays | Done |
+| Today: a deck. The frame comes down to hold the greeting and the Ask Kaju bar; the day's pipeline reads as one line of work | Done |
+| Programme, clinic and laboratory pages open on the same deck (page name, purpose, range) | Done |
+| Field mode: the two Online / Offline tabs are replaced by one status line (where a record goes right now) and one switch, Work offline | Done |
+| Sign-in: the earlier page is back (the split layout came from the rejected redesign) | Done |
+| Removed: the per-section loading files added in #65. They made the server stream pages in two pieces, which duplicated text for a moment and made one test flaky. The route line remains the loading signal | Done |
+| Next: each sidebar page reworked in concept and workflow, after the owner chooses a direction | Open |
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.

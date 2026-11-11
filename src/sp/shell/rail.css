@@ -156,3 +156,125 @@
 .sp.sx3.os.rl :is(.btn, .oh-btn, button.sx-btn) { transition: transform .14s var(--rl-ease), background .16s, box-shadow .2s, border-color .16s, color .16s; }
 .sp.sx3.os.rl :is(.btn, .oh-btn, button.sx-btn):active:not(:disabled) { transform: scale(.97); }
 @media (prefers-reduced-motion: reduce) { .sp.sx3.os.rl .sp-action.sx3-action::after { display: none; } }
+
+/* ════ The frame (desktop). The rail and the top bar are one navy piece, like a bezel; the work sits on a
+   sheet inside it, with a rounded corner where the two meet. Phones keep their own light bar and thumb tabs. ════ */
+@media (min-width: 861px) {
+  .sp.sx3.os.rl { background: var(--rl-navy); }
+  .sp.sx3.os.rl .sp-bar.sx3-top { background: var(--rl-navy); border-bottom: 0; color: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; padding-left: 26px; }
+  /* the sheet's corner: a concave join that stays put while the page scrolls under the bar */
+  .sp.sx3.os.rl .sp-bar.sx3-top::after { content: ""; position: absolute; left: 0; top: 100%; width: 22px; height: 22px; pointer-events: none; background: radial-gradient(circle at 100% 100%, transparent 21.4px, var(--rl-navy) 22px); }
+  .sp.sx3.os.rl .sp-main { background: var(--s3-ground, #fbfcfe); }
+  .sp.sx3.os.rl .sx3-crumb { color: rgba(255, 255, 255, .56); }
+  .sp.sx3.os.rl .sx3-crumb a { color: inherit; transition: color .16s; }
+  .sp.sx3.os.rl .sx3-crumb a:hover { color: #fff; }
+  .sp.sx3.os.rl .sx3-crumb [aria-current] { color: #fff; }
+  .sp.sx3.os.rl .sx5-back { border-color: transparent; background: rgba(255, 255, 255, .08); color: #fff; }
+  .sp.sx3.os.rl .sx5-back:hover { background: rgba(255, 255, 255, .15); }
+  .sp.sx3.os.rl .sx3-top .sx3-find { border-color: var(--rl-line); background: rgba(255, 255, 255, .06); color: var(--rl-mute); box-shadow: none; }
+  .sp.sx3.os.rl .sx3-top .sx3-find:hover { border-color: rgba(255, 255, 255, .22); background: rgba(255, 255, 255, .1); color: #fff; box-shadow: none; }
+  .sp.sx3.os.rl .sx3-top .sx3-find kbd { border-color: var(--rl-line); background: rgba(255, 255, 255, .08); color: var(--rl-mute); }
+  .sp.sx3.os.rl .sx3-ai-btn { border-color: var(--rl-line); background: rgba(255, 255, 255, .06); color: #fff; }
+  .sp.sx3.os.rl .sx3-ai-btn:hover { border-color: rgba(255, 255, 255, .24); background: rgba(255, 255, 255, .12); }
+  .sp.sx3.os.rl .sx3-ai-btn.is-on { border-color: var(--rl-glow); background: rgba(59, 116, 242, .28); }
+  .sp.sx3.os.rl .sx3-top .icon-btn, .sp.sx3.os.rl .sx3-top .sp-acct { color: #fff; }
+  .sp.sx3.os.rl .sx3-top .sp-acct.is-out { border-color: var(--rl-line); background: rgba(255, 255, 255, .06); color: #fff; }
+  /* on the frame the panel is a raised glass card, and the handle a lighter tab */
+  .sp.sx3.os.rl .sx3-side::before, .sp.sx3.os.rl .sx3-side::after { display: none; }
+  .sp.sx3.os.rl .rl-rail { display: none; }
+  .sp.sx3.os.rl .rl-panel { left: 8px; width: calc(var(--rl-w) - 6px); padding-left: 12px; border-left: 1px solid var(--rl-line); border-radius: 20px; clip-path: inset(0 0 0 0 round 20px); background: radial-gradient(260px 200px at 0% 0%, rgba(59, 116, 242, .34), transparent 70%), linear-gradient(180deg, #14234f 0%, #0f1b3d 50%, #0c1632 100%); }
+  .sp.sx3.os.rl.is-tucked .rl-panel { clip-path: inset(38% 100% 38% 0 round 14px); }
+  .sp.sx3.os.rl.is-tucked .sx3-side[data-peek] .rl-panel { clip-path: inset(0 0 0 0 round 20px); }
+  .sp.sx3.os.rl .rl-handle { left: 5px; border-radius: 12px; background: #16244f; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+  .sp.sx3.os.rl .rl-handle::before, .sp.sx3.os.rl .rl-handle::after { display: none; }
+  .sp.sx3.os.rl .rl-handle:hover { background: #1d2f66; }
+  .sp.sx3.os.rl .os-ind { right: -13px; }
+}
+
+/* ════ Today: the deck. The frame comes down to hold the greeting and the one place to ask for anything;
+   the day's work starts on the sheet below. ════ */
+.sp.sx3.os.rl .br { background: transparent; }
+.sp.sx3.os.rl .br-deck { position: relative; isolation: isolate; overflow: hidden; color: #fff; border-radius: 0 0 30px 30px; background: radial-gradient(560px 320px at 92% -20%, rgba(59, 116, 242, .55), transparent 70%), radial-gradient(420px 260px at 0% 120%, rgba(240, 91, 64, .16), transparent 70%), linear-gradient(180deg, var(--rl-navy) 0%, #101d42 100%); }
+.sp.sx3.os.rl .br-deck::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: linear-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .055) 1px, transparent 1px); background-size: 38px 38px; -webkit-mask-image: radial-gradient(720px 340px at 85% 0, #000, transparent 78%); mask-image: radial-gradient(720px 340px at 85% 0, #000, transparent 78%); }
+.sp.sx3.os.rl .br-deck-in { flex: none; padding-top: 26px; padding-bottom: 30px; }
+.sp.sx3.os.rl .br-deck + .br-in { padding-top: 22px; }
+.sp.sx3.os.rl .br-deck .br-hello { color: #fff; }
+.sp.sx3.os.rl .br-deck .br-hello span { color: rgba(255, 255, 255, .6); }
+.sp.sx3.os.rl .br-deck .br-since { color: rgba(255, 255, 255, .68); }
+.sp.sx3.os.rl .br-deck .br-since :is(b, a) { color: #fff; }
+.sp.sx3.os.rl .br-deck .br-kaju-chip { background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 10px 24px -12px rgba(0, 0, 0, .6); }
+.sp.sx3.os.rl .br-deck .br-skel i { background: rgba(255, 255, 255, .12); }
+.sp.sx3.os.rl .br-deck .br-ask { margin-top: 20px; background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 20px 40px -24px rgba(0, 0, 0, .7); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fff; transition: box-shadow .2s ease, background .2s ease; }
+.sp.sx3.os.rl .br-deck .br-ask:focus-within { background: rgba(255, 255, 255, .12); box-shadow: inset 0 0 0 1px rgba(143, 177, 255, .9), 0 0 0 4px rgba(59, 116, 242, .28), 0 20px 40px -24px rgba(0, 0, 0, .7); }
+.sp.sx3.os.rl .br-deck .br-ask > svg { color: #a9c1ff; }
+.sp.sx3.os.rl .br-deck .br-ask input { color: #fff; background: none; }
+.sp.sx3.os.rl .br-deck .br-ask input::placeholder { color: rgba(255, 255, 255, .5); }
+.sp.sx3.os.rl .br-deck .br-ask button { background: rgba(255, 255, 255, .14); color: #fff; }
+.sp.sx3.os.rl .br-deck .br-ask button:not(:disabled) { background: #fff; color: var(--rl-navy); }
+.sp.sx3.os.rl .br-deck .br-chips button { border-color: rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .07); color: rgba(255, 255, 255, .9); box-shadow: none; }
+.sp.sx3.os.rl .br-deck .br-chips button:hover { border-color: rgba(255, 255, 255, .34); background: rgba(255, 255, 255, .14); color: #fff; transform: translateY(-1px); }
+.sp.sx3.os.rl .br-deck .br-chips button svg { color: #a9c1ff; }
+
+/* the day's pipeline reads as one line of work: each stage hands to the next */
+.sp.sx3.os.rl .jy li { position: relative; }
+.sp.sx3.os.rl .jy li + li::before { content: ""; position: absolute; left: -9px; top: 50%; width: 10px; height: 2px; border-radius: 2px; background: #c9d6f3; }
+.sp.sx3.os.rl .jy a { transition: transform .24s var(--rl-ease), box-shadow .24s ease, border-color .2s ease; }
+.sp.sx3.os.rl .jy a:hover { transform: translateY(-3px); box-shadow: 0 18px 34px -22px rgba(11, 30, 61, .5); border-color: #c9d6f3; }
+.sp.sx3.os.rl .jy .jy-c.is-on { color: var(--os-blue); }
+
+/* breadcrumbs on the frame, and field mode's page keeps a margin inside the sheet */
+@media (min-width: 861px) {
+  .sp.sx3.os.rl .sx3-crumb > span[aria-hidden] { color: rgba(255, 255, 255, .28); }
+  .sp.sx3.os.rl .fd { padding-inline: clamp(20px, 4vw, 56px); padding-top: 8px; max-width: 760px; }
+}
+
+/* ════ Every programme, clinic and laboratory page opens on the same deck as Today: the page's name and what
+   it is for sit on the frame's colour; the figures and the work start on the sheet below. ════ */
+.sp.sx3.os.rl .oh-head { position: relative; isolation: isolate; overflow: hidden; align-items: flex-end; margin-bottom: 20px; padding: 22px 24px 24px; border-radius: 24px; color: #fff; background: radial-gradient(520px 300px at 96% -30%, rgba(59, 116, 242, .55), transparent 70%), linear-gradient(180deg, #0f1b3d 0%, #101d42 100%); box-shadow: 0 24px 48px -30px rgba(11, 21, 48, .7); }
+.sp.sx3.os.rl .oh-head::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: linear-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .055) 1px, transparent 1px); background-size: 38px 38px; -webkit-mask-image: radial-gradient(640px 300px at 90% 0, #000, transparent 78%); mask-image: radial-gradient(640px 300px at 90% 0, #000, transparent 78%); }
+.sp.sx3.os.rl .oh-head .oh-eyebrow { color: rgba(255, 255, 255, .62); font: 600 10.5px/1.4 var(--s3-mono, ui-monospace, SFMono-Regular, Menlo, monospace); letter-spacing: .12em; text-transform: uppercase; }
+.sp.sx3.os.rl .oh-head .oh-eyebrow a { color: #cfdcff; }
+.sp.sx3.os.rl .oh-head .oh-eyebrow :is(.oh-chip, .chip) { border-color: rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .1); color: #fff; font-family: var(--s3-sans); letter-spacing: 0; text-transform: none; }
+.sp.sx3.os.rl .oh-head .oh-title { color: #fff !important; }
+.sp.sx3.os.rl .oh-head .oh-lede { color: rgba(255, 255, 255, .74); }
+.sp.sx3.os.rl .oh-head .oh-lede :is(b, a) { color: #fff; }
+.sp.sx3.os.rl .oh-head .oh-seg span { border-color: rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .07); color: rgba(255, 255, 255, .86); }
+.sp.sx3.os.rl .oh-head .oh-seg label:hover span { border-color: rgba(255, 255, 255, .36); background: rgba(255, 255, 255, .14); }
+.sp.sx3.os.rl .oh-head .oh-seg input:checked + span { border-color: #fff; background: #fff; color: var(--rl-navy); }
+.sp.sx3.os.rl .oh-head .oh-btn:not(.primary) { border-color: rgba(255, 255, 255, .2); background: rgba(255, 255, 255, .08); color: #fff; }
+.sp.sx3.os.rl .oh-head .oh-btn:not(.primary):hover { background: rgba(255, 255, 255, .16); }
+/* the figures: one row, each number in the page's own weight, answering the hand */
+.sp.sx3.os.rl .oh-stats { border-radius: 18px; border-color: #e3e8f2; background: #fff; box-shadow: 0 16px 34px -28px rgba(11, 30, 61, .5); }
+.sp.sx3.os.rl .oh-stat dt { font: 600 10.5px/1.4 var(--s3-mono, ui-monospace, SFMono-Regular, Menlo, monospace); letter-spacing: .1em; text-transform: uppercase; }
+.sp.sx3.os.rl .oh-stat dd { font-size: 30px; letter-spacing: -.03em; }
+.sp.sx3.os.rl a.oh-stat:hover { background: #f5f8fe; }
+
+/* ════ Restraint (owner: "looks way too AI"). No glows, no gradient sheens, no neon: flat deep ink, one solid
+   pill, hairlines. The mechanism stays (panel, numbered items, gliding pill, Menu handle); the shine goes. ════ */
+.sp.sx3.os.rl { --rl-navy: #0d1322; --rl-glow: #2457ce; }
+.sp.sx3.os.rl .rl-panel { background: #121a2c; box-shadow: none; border-color: rgba(255, 255, 255, .07); }
+@media (min-width: 861px) { .sp.sx3.os.rl .rl-panel { background: #121a2c; border-left-color: rgba(255, 255, 255, .07); } }
+.sp.sx3.os.rl.is-tucked .sx3-side[data-peek] .rl-panel { box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .6); }
+.sp.sx3.os.rl .os-ind { border-radius: 10px 0 0 10px; background: #2457ce; box-shadow: none; }
+.sp.sx3.os.rl .os-ind::after { display: none; }
+.sp.sx3.os.rl .sx3-nav a { border-radius: 10px; }
+.sp.sx3.os.rl .sx3-nav:not(.has-ind) a[aria-current="page"] { background: #2457ce; }
+.sp.sx3.os.rl .sx3-ws-btn[aria-expanded="true"] { box-shadow: 0 0 0 2px rgba(36, 87, 206, .5); }
+.sp.sx3.os.rl .rl-all { border-style: solid; border-color: rgba(255, 255, 255, .1); border-radius: 10px; }
+.sp.sx3.os.rl .sx3-kaju-nook::before { display: none; }
+.sp.sx3.os.rl .sp-action.sx3-action { border-radius: 10px; background: #2457ce; box-shadow: none; }
+.sp.sx3.os.rl .sp-action.sx3-action::after { display: none; }
+.sp.sx3.os.rl .sp-action.sx3-action:hover { background: #1f4dbb; box-shadow: none; transform: none; }
+.sp.sx3.os.rl .br-deck { background: var(--rl-navy); }
+.sp.sx3.os.rl .br-deck::before { -webkit-mask-image: linear-gradient(180deg, #000, transparent 85%); mask-image: linear-gradient(180deg, #000, transparent 85%); background-image: linear-gradient(rgba(255, 255, 255, .04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px); }
+.sp.sx3.os.rl .br-deck .br-ask { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
+.sp.sx3.os.rl .br-deck .br-ask:focus-within { background: rgba(255, 255, 255, .09); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
+.sp.sx3.os.rl .br-deck .br-ask > svg, .sp.sx3.os.rl .br-deck .br-chips button svg { color: rgba(255, 255, 255, .6); }
+.sp.sx3.os.rl .oh-head { background: var(--rl-navy); box-shadow: none; }
+.sp.sx3.os.rl .oh-head::before { -webkit-mask-image: linear-gradient(180deg, #000, transparent 90%); mask-image: linear-gradient(180deg, #000, transparent 90%); background-image: linear-gradient(rgba(255, 255, 255, .04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px); }
+/* the ambient washes go too: a calm sheet */
+.sp.sx3.os.rl:not(.is-map) .sx3-col::before, .sp.sx3.os.rl:not(.is-map) .sx3-col::after { display: none; }
+@media (min-width: 861px) {
+  .sp.sx3.os.rl .rl-handle { background: #1a2238; }
+  .sp.sx3.os.rl .rl-handle:hover { background: #222c47; }
+}
