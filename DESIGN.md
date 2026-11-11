@@ -88,15 +88,32 @@ Acceptance is not payment; never imply a claim was paid.
 
 ---
 
-### 8. One Health workspaces (November 2026)
-The programme workspaces (`/today`, `/workspace/[id]`, `/programme/[slug]`) use
-`src/oh/oh.css`: one stylesheet scoped under `.oh`, built on the foundations
-above, with no dependency on the older layers. It is the target for moving the
-NGO and municipal screens over, one route at a time, and retiring the older
-stylesheets as they empty. Rules: a person works in places; every page reads
-through role-checked database functions; unknown is "Not read", never zero;
-human counts below five are hidden; StrayPaw records clinical decisions and
-never makes them. See `docs/one-health/README.md`.
+### 8. Places and the programme (11 November 2026)
+This section supersedes "4. Navigation" for NGO and municipal sidebars.
+
+- **A person works in places.** The switcher at the top of the sidebar lists
+  every place: the NGO workspace, the municipal review office, and each
+  hospital, health centre, laboratory, coordination or state cell. Its card
+  shows initials, name and role. `/today` is the home across places.
+- **The sidebar is organised by the work.** NGO: Today · Field (Field mode,
+  Intake, Work queue) · Animals · Vaccination & ABC (Treat & sign off, Release
+  evidence, Drives & zones) · Reporting · Programme. Municipal: Overview,
+  Wards & map · Decisions · Reporting · Programme. A hospital: Today, Bite
+  register, Record a bite, Services. A laboratory: Samples, Services. A
+  coordination cell: Overview, Care network, Work between partners, Coverage,
+  Report, Research data, Setup. Defined once in `designedNav` and `placeNav`.
+- **Live counts** sit on the link that opens the work (flame = overdue,
+  amber = waiting, blue = new). Kaju is the top-bar button and his corner,
+  never a sidebar row.
+- **Chrome** is `src/sp/shell/os.css`, loaded last; programme pages use
+  `src/oh/oh.css`. Motion: the selection glides (spring 380ms), counts pop,
+  pages arrive (340ms, none on map and report pages), menus spring, urgent
+  alerts pulse; all off under reduced motion.
+- **Rules.** Every page reads through role-checked database functions;
+  unknown is "Not read", never zero; human counts below the programme's
+  threshold are hidden outside the treating facility; StrayPaw records
+  clinical decisions and never makes them; availability is what a person
+  confirmed, with its date, never stock. See `docs/one-health/README.md`.
 
 ---
 
