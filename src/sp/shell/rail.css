@@ -141,3 +141,18 @@
 .sp.sx3.os.rl[data-tone="manage"] { --amb: rgba(124, 58, 237, .13); --amb2: rgba(160, 110, 240, .09); }
 .sp.sx3.os.rl:not(.is-map) .sx3-col::before { background: radial-gradient(closest-side, var(--amb), transparent); }
 .sp.sx3.os.rl:not(.is-map) .sx3-col::after { background: radial-gradient(closest-side, var(--amb2), transparent); }
+
+/* The one primary action in the top bar is lit like the current page in the menu. */
+.sp.sx3.os.rl .sp-action.sx3-action { position: relative; overflow: hidden; padding-inline: 14px; border-radius: 999px; background: linear-gradient(90deg, #3b74f2, #2457ce); box-shadow: 0 8px 20px -10px rgba(59, 116, 242, .9), inset 0 1px 0 rgba(255, 255, 255, .25); }
+.sp.sx3.os.rl .sp-action.sx3-action::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .3) 50%, transparent 65%); transform: translateX(-120%); transition: transform 700ms cubic-bezier(.2, .7, .2, 1); pointer-events: none; }
+.sp.sx3.os.rl .sp-action.sx3-action:hover { background: linear-gradient(90deg, #4a82ff, #2f66e6); box-shadow: 0 0 22px rgba(59, 116, 242, .5), 0 10px 22px -10px rgba(59, 116, 242, .95), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.sp.sx3.os.rl .sp-action.sx3-action:hover::after { transform: translateX(120%); }
+
+/* Rows and buttons answer the hand. */
+.sp.sx3.os.rl a.reg-row { transition: background .16s var(--rl-ease), box-shadow .2s var(--rl-ease); }
+.sp.sx3.os.rl a.reg-row:hover { background: #f5f8fe; box-shadow: inset 3px 0 0 var(--os-blue); }
+.sp.sx3.os.rl a.reg-row .portrait { transition: transform .3s var(--rl-spring); }
+.sp.sx3.os.rl a.reg-row:hover .portrait { transform: scale(1.06); }
+.sp.sx3.os.rl :is(.btn, .oh-btn, button.sx-btn) { transition: transform .14s var(--rl-ease), background .16s, box-shadow .2s, border-color .16s, color .16s; }
+.sp.sx3.os.rl :is(.btn, .oh-btn, button.sx-btn):active:not(:disabled) { transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) { .sp.sx3.os.rl .sp-action.sx3-action::after { display: none; } }
