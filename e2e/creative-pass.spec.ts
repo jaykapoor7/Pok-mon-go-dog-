@@ -54,7 +54,10 @@ test("unconfirmed CreIndia collaboration is not published on StrayPaw", async ({
  for (const url of ["/", "/customers", "/our-story", "/community/organisations", "/search?q=CreIndia"]) {
   const response = await request.get(url);
   expect(response.ok(), `${url} should load`).toBeTruthy();
-  expect(await response.text(), `${url} should not advertise CreIndia`).not.toMatch(/Cre\s*India/i);
+  const body = await response.text();
+  /* A search page repeats what was typed; there, what matters is that nothing is found or linked. */
+  if (url.startsWith("/search")) { expect(body, "search finds nothing").toContain("Nothing on the public record matches"); expect(body).not.toMatch(/href="[^"]*creindia/i); continue; }
+  expect(body, `${url} should not advertise CreIndia`).not.toMatch(/Cre\s*India/i);
  }
  expect((await request.get("/community/organisations/jh-creindia-foundation")).status()).toBe(404);
  expect((await request.get("/embed/jh-creindia-foundation")).status()).toBe(404);

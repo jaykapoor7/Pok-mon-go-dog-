@@ -90,11 +90,13 @@ test("signed-out NGO page shows what the workspace includes at every width", asy
   }
 });
 
-test("desktop sidebar groups work into hubs, each place once", async ({page,isMobile})=>{
+test("desktop sidebar is organised by the work, each place once", async ({page,isMobile})=>{
  test.skip(!!isMobile,'desktop sidebar');await page.goto('/ngo');const side=page.getByRole('complementary',{name:'Workspace'});
  await expect(side.getByRole('link',{name:'Today',exact:true})).toBeVisible();
- for (const place of ['Work','Intake','Animals','Treatment & sign-off','Release evidence','Programmes','Ask Kaju']) await expect(side.getByRole('link',{name:place,exact:true})).toHaveCount(1);
- for (const hub of ['Overview','Operations','Records','Kaju']) await expect(side.getByText(hub,{exact:true})).toHaveCount(1);
+ for (const place of ['Field mode','Intake','Work queue','Animal register','Treat & sign off','Release evidence','Drives & zones']) await expect(side.getByRole('link',{name:place,exact:true})).toHaveCount(1);
+ for (const section of ['Field','Animals','Vaccination & ABC']) await expect(side.getByText(section,{exact:true})).toHaveCount(1);
+ /* Kaju is one button in the top bar and his corner, not a sidebar row. */
+ await expect(side.getByRole('link',{name:'Ask Kaju',exact:true})).toHaveCount(0);
  /* Pages inside an area are tabs on the page, not more sidebar rows. */
  await expect(side.getByRole('link',{name:'Map',exact:true})).toHaveCount(0);
  await expect(side.getByRole('link',{name:'Team & settings',exact:true})).toHaveCount(0);

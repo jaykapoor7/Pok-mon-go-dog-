@@ -120,3 +120,5 @@
 .os-strip-go { color: #2457ce; transition: transform .3s cubic-bezier(.32, 1.4, .5, 1); }
 .os-strip:hover .os-strip-go { transform: translateX(4px); }
 @media (prefers-reduced-motion: reduce) { .os-strip { animation: none; transition: none; } }
+/* The arrival never leaves a transform behind: fixed sheets and map controls inside a page keep the viewport as their frame. */
+.sp.sx3.os .os-page { animation-fill-mode: backwards; }

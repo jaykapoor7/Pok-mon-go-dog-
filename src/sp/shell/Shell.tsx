@@ -314,7 +314,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           </header>
 
           <AmbientLight />
-          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}><div className="os-page" key={path}>{children}</div></Fragment></main>
+          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{isFlush ? children : <div className="os-page" key={path}>{children}</div>}</Fragment></main>
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}

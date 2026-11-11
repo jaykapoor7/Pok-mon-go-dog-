@@ -85,7 +85,7 @@ function TodayBody({ name }: { name: string }) {
         </Section>
       ) : null}
       {!count ? (
-        <Empty title="You are not part of an organisation yet">If someone gave you an invite code, <Link className="oh-btn quiet small" href="/join">enter it here</Link>. An NGO can also <Link className="oh-btn quiet small" href="/partner-apply">register itself</Link>.</Empty>
+        <><Empty title="You are not part of an organisation yet">Enter the invite code your coordinator gave you below. An NGO can also <Link className="oh-btn quiet small" href="/partner-apply">register itself</Link>.</Empty><InviteCode open /></>
       ) : (
         <Section title="Your places">
           <div className="oh-places">
@@ -117,9 +117,35 @@ function TodayBody({ name }: { name: string }) {
               );
             })}
           </div>
+          <InviteCode />
         </Section>
       )}
     </Page>
+  );
+}
+
+/** An invitation from a hospital, laboratory or programme: the code their
+    coordinator created in Programme setup. Accepting adds this person to
+    that organisation with the role the code carries. */
+function InviteCode({ open: startOpen = false }: { open?: boolean }) {
+  const { reload } = usePlaces();
+  const [code, setCode] = useState(""), [busy, setBusy] = useState(false), [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const accept = async () => {
+    setBusy(true); setMsg(null);
+    const r = await call<{ organisation_id: string; role: string }>("oh_accept_invite", { p_code: code.trim().toUpperCase() });
+    setBusy(false);
+    if (r.error || !r.data) setMsg({ ok: false, text: r.error ?? "That code did not work." });
+    else { setMsg({ ok: true, text: `You are in, as ${ROLE_LABEL[r.data.role as keyof typeof ROLE_LABEL] ?? r.data.role}.` }); setCode(""); reload(); }
+  };
+  return (
+    <details className="oh-invite" open={startOpen || undefined}>
+      <summary>Have an invite code?</summary>
+      <div className="oh-invite-body">
+        <input className="oh-input" value={code} maxLength={12} onChange={(e) => setCode(e.target.value)} placeholder="8-character code" aria-label="Invite code" autoCapitalize="characters" />
+        <button type="button" className="oh-btn primary" disabled={busy || code.trim().length < 6} onClick={() => void accept()}>{busy ? "Checking…" : "Join"}</button>
+        {msg ? <p role="status" style={{ color: msg.ok ? "var(--green)" : "var(--flame)" }}>{msg.text}</p> : null}
+      </div>
+    </details>
   );
 }
 

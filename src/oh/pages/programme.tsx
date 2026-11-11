@@ -263,6 +263,7 @@ function NetworkMap({ facilities, referrals, selected, onSelect }: { facilities:
   useEffect(() => {
     if (!el.current || !placed.length) return;
     let map: import("maplibre-gl").Map | null = null, gone = false;
+    const pins = markers.current;
     void Promise.all([import("maplibre-gl"), import("@/sp/map/ground")]).then(([ml, g]) => {
       if (gone || !el.current) return;
       const lng = placed.map((f) => f.lng!), lat = placed.map((f) => f.lat!);
@@ -279,12 +280,12 @@ function NetworkMap({ facilities, referrals, selected, onSelect }: { facilities:
         b.type = "button"; b.className = "oh-pin"; b.dataset.kind = f.kind; b.style.background = tone(f);
         b.setAttribute("aria-label", `${f.name}: ${f.services.map((s) => `${SERVICE_LABEL[s.service]} ${SERVICE_STATUS[s.status]?.label ?? s.status}`).join(", ") || "no service confirmed"}`);
         b.addEventListener("click", () => onSelect(f.id));
-        markers.current.set(f.id, b);
+        pins.set(f.id, b);
         const pop = new ml.Popup({ offset: 14, closeButton: false }).setHTML(`<div class="oh-pop"><b>${esc(f.name)}</b>${f.services.map((s) => `${esc(SERVICE_LABEL[s.service] ?? s.service)}: ${esc(SERVICE_STATUS[s.status]?.label ?? s.status)}`).join("<br/>") || "No service confirmed"}</div>`);
         new ml.Marker({ element: b }).setLngLat([f.lng!, f.lat!]).setPopup(pop).addTo(map);
       }
     });
-    return () => { gone = true; markers.current.clear(); map?.remove(); };
+    return () => { gone = true; pins.clear(); map?.remove(); };
   }, [placed, referrals, onSelect]);
   useEffect(() => { markers.current.forEach((b, id) => { b.style.transform = id === selected ? "scale(1.35)" : ""; b.style.zIndex = id === selected ? "2" : ""; }); }, [selected]);
   if (!placed.length) return <div className="oh-map" style={{ display: "grid", placeItems: "center" }}><Empty title="No place has a location yet">Add coordinates in programme setup to see them on the map.</Empty></div>;
@@ -585,7 +586,7 @@ function Invites({ orgs }: { orgs: { id: string; name: string; kind: Kind }[] })
         <label className="oh-field"><span>Email (optional)</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
       </div>
       {err ? <Failed error={err} /> : null}
-      <div className="oh-submit" style={{ marginTop: 12 }}><button type="button" className="oh-btn primary" disabled={busy} onClick={() => void create()}>Create invite code</button>{code ? <p>Give them this code: <span className="oh-code">{code}</span> · they open StrayPaw, sign in, and enter it at <b>/join</b>.</p> : null}</div>
+      <div className="oh-submit" style={{ marginTop: 12 }}><button type="button" className="oh-btn primary" disabled={busy} onClick={() => void create()}>Create invite code</button>{code ? <p>Give them this code: <span className="oh-code">{code}</span> · they sign in to StrayPaw and enter it under <b>Have an invite code?</b> on Today.</p> : null}</div>
       {list.data ? <div className="oh-rows" style={{ marginTop: 16 }}>
         {list.data.members.map((m, i) => <div className="oh-row" key={`m${i}`} style={{ minHeight: 48 }}><div className="oh-row-main"><b>{m.name ?? "Member"}</b><span>{ROLE_LABEL[m.role]} · since {fmtDate(m.since)}</span></div></div>)}
         {list.data.invites.map((v) => <div className="oh-row" key={v.code} style={{ minHeight: 48 }}><div className="oh-row-main"><b>{v.name ?? v.email ?? "Invited"}</b><span>{ROLE_LABEL[v.role]} · code {v.code} · expires {relDay(v.expires_at).toLowerCase()}</span></div><div className="oh-row-meta"><Chip tone="amber">Not yet accepted</Chip></div></div>)}
