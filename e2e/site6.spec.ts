@@ -14,16 +14,16 @@ for (const width of [320, 390, 768, 1440]) test(`landing is usable at ${width}px
   await expect(page.locator(".s6-hero .s6-hero-cta a").first()).toBeInViewport();
   const headings = (await page.locator("main h2:visible").allInnerTexts()).map((s) => s.replace(/\s+/g, " ").trim());
   expect(headings.slice(0, 2)).toEqual(["A coordinator's morning, start to finish.", "Use cases"]);
-  for (const h of ["Everyone opens the same place. Each sees their own work.", "Built for institutions that answer for their records.", "Questions"]) expect(headings).toContain(h);
+  for (const h of ["Switch on what your programme does. Leave the rest off.", "Kaju prepares. People approve.", "One place. Every role sees its own work.", "Honest about what is live.", "Questions"]) expect(headings).toContain(h);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
 test("the landing says what is live and what is not connected", async ({ page }) => {
   await page.goto("/");
   const status = page.getByLabel("What is live and what is not connected");
-  await expect(status).toContainText("SMS and WhatsApp are not connected");
-  await expect(status).toContainText("No stock system is connected");
-  await expect(status).toContainText("accuracy is not yet validated");
+  await expect(status).toContainText("SMS and WhatsApp not connected");
+  await expect(status).toContainText("No stock system connected");
+  await expect(status).toContainText("accuracy not yet validated");
   await expect(page.getByRole("group", { name: "Product demo: one bite, four institutions" })).toContainText("Product demo · illustrative records");
   await expect(page.getByRole("group", { name: /Product demo: a coordinator's day in StrayPaw/ })).toBeVisible();
 });
@@ -40,8 +40,47 @@ test("the relay advances on its own and can be paused", async ({ page }) => {
 test("under reduced motion nothing is hidden and the relay stands still", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto("/");
   await expect(page.getByRole("group", { name: "Product demo: one bite, four institutions" })).toContainText("Rabies confirmed · HSR Layout");
-  for (const id of ["product", "loop", "trust", "questions", "loop", "product"]) { const sec = page.locator(`#${id}`); await sec.scrollIntoViewIfNeeded(); await expect(sec.locator("h2:visible").first()).toBeVisible(); }
+  for (const id of ["product", "offer", "kaju", "trust", "questions", "offer", "product"]) { const sec = page.locator(`#${id}`); await sec.scrollIntoViewIfNeeded(); await expect(sec.locator("h2:visible").first()).toBeVisible(); }
   expect(await page.evaluate(() => [...document.querySelectorAll(".s6 [data-reveal]")].every((el) => getComputedStyle(el).opacity === "1"))).toBe(true);
+});
+
+test("what we offer: picking a module plays its scene and a switch turns it off", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.goto("/");
+  const offer = page.locator("#offer"); await offer.scrollIntoViewIfNeeded();
+  await offer.getByRole("button", { name: /^Laboratory/ }).click();
+  await expect(offer.getByRole("img", { name: "Illustration: Laboratory" })).toContainText("Sample S-2611");
+  const sw = offer.getByRole("switch", { name: "Laboratory module" });
+  await expect(sw).toHaveAttribute("aria-checked", "true"); await sw.click();
+  await expect(sw).toHaveAttribute("aria-checked", "false");
+  await expect(offer.getByRole("img", { name: "Illustration: Laboratory, switched off" })).toBeVisible();
+  await expect(offer).toContainText("Off for this programme");
+  for (const s of await offer.getByRole("switch").all()) { const b = await s.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(40); }
+});
+
+test("meet Kaju: the scene reaches a person's approval, and stands finished under reduced motion", async ({ page }) => {
+  await page.goto("/");
+  const scene = page.getByRole("group", { name: "Product demo: Kaju prepares, a person approves" });
+  await scene.scrollIntoViewIfNeeded();
+  await expect(scene).toContainText("Which animals block this month");
+  await expect(scene.locator('.s6-ks-ok[data-pressed="true"]')).toBeVisible({ timeout: 20_000 });
+  await page.emulateMedia({ reducedMotion: "reduce" }); await page.reload();
+  const still = page.getByRole("group", { name: "Product demo: Kaju prepares, a person approves" });
+  await still.scrollIntoViewIfNeeded();
+  await expect(still.locator('.s6-ks-ok[data-pressed="true"]')).toBeVisible();
+  await expect(still.getByRole("button", { name: /Kaju demo/ })).toHaveCount(0);
+});
+
+test("no menu lists the same destination twice", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.goto("/");
+  const seen: string[] = [];
+  for (const m of ["Platform", "Who it's for", "Trust", "Resources"]) {
+    const toggle = page.getByRole("button", { name: m, exact: true });
+    await expect(async () => { await toggle.click(); await expect(toggle).toHaveAttribute("aria-expanded", "true", { timeout: 1000 }); }).toPass({ timeout: 15_000 });
+    seen.push(...await page.locator(".s6-panel ul a").evaluateAll((as) => as.map((a) => a.getAttribute("href") ?? "")));
+    await page.keyboard.press("Escape");
+  }
+  expect(seen.length).toBeGreaterThan(15);
+  expect(new Set(seen).size).toBe(seen.length);
 });
 
 test("menus open from the keyboard, move with arrows and close on Escape", async ({ page }) => {
@@ -51,7 +90,7 @@ test("menus open from the keyboard, move with arrows and close on Escape", async
   const links = page.locator("#s6-panel-solutions a");
   await expect(links.first()).toBeFocused();
   await page.keyboard.press("ArrowDown"); await expect(links.nth(1)).toBeFocused();
-  for (const href of ["/for-governments", "/for-ngos", "/solutions/rescue-care", "/research", "/for-funders"]) await expect(page.locator(`#s6-panel-solutions a[href="${href}"]`).first()).toBeVisible();
+  for (const href of ["/for-governments", "/for-ngos", "/for-hospitals", "/research", "/for-funders"]) await expect(page.locator(`#s6-panel-solutions a[href="${href}"]`).first()).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(toggle).toHaveAttribute("aria-expanded", "false"); await expect(toggle).toBeFocused();
   await toggle.click(); await page.locator('#s6-panel-solutions a[href="/for-governments"]').click();
@@ -87,7 +126,9 @@ test("essentials survive without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false }); const page = await context.newPage(); await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(H1);
   await expect(page.locator(".s6-hero a").filter({ hasText: "Book a demo" })).toHaveAttribute("href", "/demo");
-  await expect(page.getByText("Patient records stay at the facility")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Honest about what is live." })).toBeVisible();
+  await expect(page.locator("#offer").getByRole("img", { name: "Illustration: ABC and vaccination" })).toContainText("Released where caught");
+  await expect(page.getByRole("group", { name: "Product demo: Kaju prepares, a person approves" }).getByText("Approved by Farah")).toBeVisible();
   await page.getByText("Who can see patient information?", { exact: true }).click();
   await expect(page.locator("details").filter({ hasText: "Who can see patient information?" })).toContainText("no name is stored");
   await context.close();
