@@ -28,7 +28,8 @@ The owner judged the rebuilt landing, hero, navigation and pages (PRs #60, #61) 
 | A. Fix kept from before: the Platform partner strip lists only organisations in the field-partner data (an unverified name is no longer shown) | Done (this PR) |
 | B1. Use cases: a second track in the same frame (ABC programme / City rabies programme): record, follow up, test, decide, report, with screens in the old window style; screens arrive from the side you move toward | Done |
 | B1. Hero: Kaju wags or tilts his head when the pointer or focus reaches the hero buttons; a soft light follows the pointer across the blueprint; the rotating line includes rabies elimination programmes; the announcement bar carries city programmes | Done |
-| B2. Dashboard sidebar rebuilt on the owner's reference recording (a glass tab that grows from the left rail, numbered items, a gliding glow pill, retracts to a Menu handle); no More list | Next |
+| B2. Dashboard sidebar rebuilt on the owner's reference recording (`src/sp/shell/rail.css`): a navy glass panel that grows from a rail with concave joins, numbered items, a lit pill that glides and runs to the panel edge; it tucks into a Menu handle, grows back on hover or focus, and pins on press. Kaju keeps his corner | Done |
+| B2. No More list. The two programme links that were folded are in the nav under Manage; everything else is one organised index (All sections) grouped by area, in the Finder | Done |
 | B3. App screens, loading states and button interactions to the same standard | Next |
 | Not reverted: the sign-in split layout, demo request types, the guided demo, Kaju's partner-requests tool, alert clustering | Kept |
 

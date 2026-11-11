@@ -152,3 +152,37 @@ test("practice gives feedback; there are no printable cards", async ({ page }) =
   await page.getByRole("button", { name: "Check my practice report", exact: true }).click();
   await expect(page.getByText(/Practice complete/)).toBeVisible();
 });
+
+test("the sidebar tucks into a Menu handle, grows back on hover, and has no More list", async ({ page, isMobile }) => {
+  test.skip(!!isMobile, "desktop sidebar");
+  await page.goto("/ngo"); const side = page.getByRole("complementary", { name: "Workspace" });
+  const handle = side.getByRole("button", { name: "Open the menu" });
+  /* No folded list of features: everything else is one organised index. */
+  await expect(side.getByText("More", { exact: true })).toHaveCount(0);
+  await expect(side.locator("details")).toHaveCount(0);
+  await expect(async () => { await side.getByRole("button", { name: "Collapse sidebar" }).click({ timeout: 1000 }); await expect(page.locator(".sp.sx3")).toHaveClass(/is-tucked/, { timeout: 1000 }); }).toPass({ timeout: 15_000 });
+  await page.mouse.move(900, 500);
+  await expect(handle).toBeVisible(); await expect(handle).toHaveAttribute("aria-expanded", "false");
+  await expect(side.locator(".rl-panel")).toHaveAttribute("inert", "");
+  /* Pointing at the handle lets the panel grow back out over the page; its links work. */
+  await handle.hover();
+  await expect(side.getByRole("link", { name: "Work queue", exact: true })).toBeVisible();
+  await expect(side.locator(".rl-panel")).not.toHaveAttribute("inert", "");
+  /* Leaving puts it away again; pressing the handle pins it open. */
+  await page.mouse.move(900, 500);
+  await expect(handle).toHaveAttribute("aria-expanded", "false", { timeout: 4000 });
+  await handle.focus(); await page.keyboard.press("Enter");
+  await expect(page.locator(".sp.sx3")).not.toHaveClass(/is-tucked/);
+  await expect(side.getByRole("link", { name: "Today", exact: true })).toBeVisible();
+});
+
+test("All sections is an organised index of the workspace, by area", async ({ page, isMobile }) => {
+  test.skip(!!isMobile, "desktop sidebar");
+  await page.goto("/ngo"); const side = page.getByRole("complementary", { name: "Workspace" });
+  await expect(async () => { await side.getByRole("button", { name: "All sections" }).click({ timeout: 1000 }); await expect(page.getByRole("dialog", { name: "All sections" })).toBeVisible({ timeout: 1000 }); }).toPass({ timeout: 15_000 });
+  const index = page.getByRole("dialog", { name: "All sections" });
+  await expect(index.locator(".sp-finder-group").first()).toBeVisible();
+  expect(await index.locator(".sp-finder-group").count()).toBeGreaterThan(1);
+  await expect(index.getByRole("option").first()).toBeVisible();
+  await page.keyboard.press("Escape"); await expect(index).toBeHidden();
+});

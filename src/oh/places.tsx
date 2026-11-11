@@ -98,8 +98,8 @@ export function placeNav(p: Place, programmeSlug?: string): PlaceLink[] {
     if (oversees(p.kind)) links.push({ href: `${pr}/work`, label: "Requests", short: "Requests", icon: "arrows", section: P, count: p.handoffs_open || null, tone: p.handoffs_overdue ? "flame" : "blue", mobile: true });
     else if (p.kind === "ngo") links.push({ href: w, label: "Requests", short: "Requests", icon: "arrows", exact: true, section: P, count: p.handoffs_open || null, tone: p.handoffs_overdue ? "flame" : "blue", mobile: true });
     if (oversees(p.kind)) {
-      if (p.kind === "research" || can("oversee")) links.push({ href: `${pr}/data`, label: "Research data", icon: "activity", more: true });
-      if (can("manage") || can("invite")) links.push({ href: `${pr}/setup`, label: "Programme setup", icon: "settings", more: true });
+      if (p.kind === "research" || can("oversee")) links.push({ href: `${pr}/data`, label: "Research data", icon: "activity", section: "Manage" });
+      if (can("manage") || can("invite")) links.push({ href: `${pr}/setup`, label: "Programme setup", icon: "settings", section: "Manage" });
     }
   }
   return links;
