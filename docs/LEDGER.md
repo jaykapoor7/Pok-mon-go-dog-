@@ -193,6 +193,16 @@ PR #72 (the first day) merged as `cc0924de`. Production and the demo were verifi
 | The lanes carry their own colours, so they work on a page that is not built on the pattern's container (the count on the chosen lane was invisible on the Queue until then) | Done |
 | Unchanged: the map, the inspector, keyboard moves, every read and action | |
 
+## 12 Nov: Decisions on the page pattern; where the dashboard rebuild stands
+
+PR #73 (the Queue) merged as `4334cfcb`. Production verified on `cc0924de` (#72, the first day).
+
+Decisions (`/ngo/review`) now uses the page pattern: a head that says how many records need a person, three lanes with counts (Waiting on a decision, Imported never confirmed, Closed without a reason), and the same decision cards. Every decision goes through the same call as before.
+
+**Rebuilt since the owner's brief of 11 Nov (all live or in the gate):** the frame (sidebar, bar, status footer, one sheet), Home, the Pipeline board, Queue, Intake, Sign-off & evidence, Decisions, Animals, Reports, the rail on case, sign-off, package, sample and bite records, the next-step callout, the first-day guide, the NGO's programme menu from the proposal.
+
+**Not rebuilt yet (still their earlier layouts inside the new frame):** Field mode's capture flow; the animal record and the case record bodies below their rails; the programme places (hospital desk and bite register, laboratory bench, programme cell overview, coverage, care network, requests); the municipal workspace (Today, review queue, contracts, wards map); Community and the Academy; the All sections index.
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.
