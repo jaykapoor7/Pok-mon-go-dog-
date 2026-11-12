@@ -1,0 +1,7 @@
+/* The arrow and its label on one line, wherever the control is drawn.
+   Public pages do not load app.css, where the full control is styled;
+   there the button fell back to inline-block and the arrow (a block SVG)
+   took a line of its own above "Back". :where() keeps this at zero
+   specificity, so app.css still decides everything inside the product. */
+:where(.backbtn) { display: inline-flex; align-items: center; gap: 8px; }
+:where(.backbtn) > svg { flex: none; }

@@ -226,6 +226,8 @@ first), and a rebuilt live demo. See `docs/BEST-AUDIT.md`.
 | Journey on staging | 14/14 | `e2e/one-health.spec.ts` |
 | Permissions on staging | 19/19 | `scripts/test-one-health-permissions.ts` |
 | Kaju isolation | 12/12 | `scripts/test-kaju-automations.ts` |
+| After release, the story on demo.straypaw.org: all seven chapters played on phone and desktop; the end card offered "Explore freely" twice | Fixed (one button) | `e2e/demo-story.spec.ts` against the live demo |
+| Public pages (privacy, terms, donate, the bite finder): the Back arrow sat on a line of its own, touching the eyebrow; `/try` role cards still outlined | Fixed | Screenshots before and after |
 
 ## 12 Nov: the cinematic public site, behind one switch
 
