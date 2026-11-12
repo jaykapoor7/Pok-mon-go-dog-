@@ -60,7 +60,7 @@ export const TOUR: TourStep[] = [
     sel: ".fd-mode" },
   { role: "vet", path: "/ngo/verification?stage=vet", title: "Veterinary sign-off",
     body: "Every procedure is authorised by a named vet before it can be claimed.",
-    sel: ".abc-list a", point: ["Authorise procedure"], hint: "Open the waiting record." },
+    sel: ".vw-list a", point: ["Authorise procedure"], hint: "Open the waiting record." },
   { role: "coordinator", path: "/ngo/packages", title: "Monthly claim",
     body: "Records with all five evidence items and a vet sign-off become the month's claim, priced from the contract.",
     point: ["Prepare a package for another period", "Prepare package", "Submit package"] },
