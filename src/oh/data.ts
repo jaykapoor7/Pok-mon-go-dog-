@@ -163,7 +163,13 @@ const TZ = "Asia/Kolkata";
 export const today = () => new Date().toLocaleDateString("en-CA", { timeZone: TZ });
 export const fmtDate = (d: string | null | undefined, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" }) => d ? new Date(d.length === 10 ? `${d}T00:00:00+05:30` : d).toLocaleDateString("en-IN", { timeZone: TZ, ...opts }) : "Not recorded";
 export const fmtTime = (d: string) => new Date(d).toLocaleString("en-IN", { timeZone: TZ, day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
-export function daysFrom(d: string): number { const a = new Date(`${today()}T00:00:00Z`).getTime(), b = new Date(`${d.slice(0, 10)}T00:00:00Z`).getTime(); return Math.round((b - a) / 86_400_000); }
+/** Whole days from today (India time) to a date or a timestamp. A timestamp is first turned into its date in India:
+    cutting it to its UTC date made anything between midnight and 05:30 IST read as "yesterday". */
+export function daysFrom(d: string): number {
+  const day = d.length > 10 ? new Date(d).toLocaleDateString("en-CA", { timeZone: TZ }) : d.slice(0, 10);
+  const a = new Date(`${today()}T00:00:00Z`).getTime(), b = new Date(`${day}T00:00:00Z`).getTime();
+  return Math.round((b - a) / 86_400_000);
+}
 export function relDay(d: string): string { const n = daysFrom(d); return n === 0 ? "Today" : n === -1 ? "Yesterday" : n === 1 ? "Tomorrow" : n < 0 ? `${-n} days ago` : `In ${n} days`; }
 export const showCount = (c: Count | undefined) => (c === null || c === undefined ? "Not read" : c === "<5" ? "Fewer than 5" : c.toLocaleString("en-IN"));
 export const num = (c: Count | undefined) => (typeof c === "number" ? c : 0);

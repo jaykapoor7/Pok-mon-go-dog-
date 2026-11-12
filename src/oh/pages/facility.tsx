@@ -172,7 +172,7 @@ export function ClinicToday({ place }: { place: Place }) {
                   {xIn.map((r, i) => (
                     <li key={r.id} style={{ ["--j" as string]: i }}>
                       <span className="dy-sq" data-c={r.status === "sent" ? "blue" : r.status === "arrived" ? "green" : "slate"} aria-hidden><ArrowLeftRight size={10} strokeWidth={2.4} /></span>
-                      <div className="dy-work-t"><b>{SERVICE_LABEL[r.service] ?? r.service} · <span className="dy-code">{r.code}</span></b><small>From {r.from_short ?? r.from} · {r.category === "not_recorded" ? "category not recorded" : `category ${r.category}`} · {SPECIES[r.animal_species]?.toLowerCase() ?? r.animal_species} {fmtDate(r.exposure_on)} · referred {relDay(r.sent_at).toLowerCase()}{r.note ? ` · ${r.note}` : ""}</small></div>
+                      <div className="dy-work-t"><b>{SERVICE_LABEL[r.service] ?? r.service} · <span className="dy-code">{r.code}</span></b><small>From {r.from_short ?? r.from} · {r.category === "not_recorded" ? "category not recorded" : `category ${r.category}`} · {SPECIES[r.animal_species] ?? r.animal_species}, {fmtDate(r.exposure_on)} · referred {relDay(r.sent_at).toLowerCase()}{r.note ? ` · ${r.note}` : ""}</small></div>
                       <div className="dy-work-acts">
                         {r.status === "sent" ? <>
                           <button type="button" className="oh-btn small" onClick={() => void markTransfer(r, "not_arrived")}>Did not arrive</button>
