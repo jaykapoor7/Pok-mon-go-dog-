@@ -275,11 +275,11 @@
 .s4-foot { background: var(--s4-night); color: #fff; font-family: var(--s4-sans); padding: 80px 0 0; }
 .s4-foot-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(0, 1fr)); gap: 40px; padding-bottom: 72px; }
 .s4-foot .s4-brand { color: #fff; }
-.s4-foot-brand p { margin-top: 16px; font-size: 16px; line-height: 1.5; color: rgba(255, 255, 255, 0.72); max-width: 300px; }
-.s4-foot-brand .s4-link { color: #fff; font-size: 16px; margin-top: 24px; }
+.s4-foot-brand p { margin-top: 16px; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.72); max-width: 300px; }
+.s4-foot-brand .s4-link { color: #fff; font-size: 14px; margin-top: 24px; }
 .s4-foot h4 { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); margin-bottom: 24px; }
 .s4-foot ul { display: grid; gap: 12px; }
-.s4-foot ul a { font-size: 16px; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.92); }
+.s4-foot ul a { font-size: 14px; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.92); }
 .s4-foot ul a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 .s4-foot-base { border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 0 32px; font-size: 14px; color: rgba(255, 255, 255, 0.6); }
 .s4-foot-base nav { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; }
