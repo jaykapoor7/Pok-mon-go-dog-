@@ -9,7 +9,7 @@ import "@/sp4/site/res/res.css";
 export function generateStaticParams() { return TEAMS.map((t) => ({ role: t.key })); }
 export async function generateMetadata({ params }: { params: Promise<{ role: string }> }) {
   const { role } = await params; const t = TEAMS.find((x) => x.key === role);
-  return t ? { title: `StrayPaw for ${t.label.toLowerCase()}`, description: t.lede } : {};
+  return t ? { title: `For ${t.label.toLowerCase()}, StrayPaw`, description: t.lede } : {};
 }
 
 export default async function TeamPage({ params }: { params: Promise<{ role: string }> }) {

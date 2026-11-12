@@ -5,7 +5,7 @@ import { AccessRequest } from "@/sp4/research/AccessRequest";
 import "@/sp4/home/home4.css";
 import "@/sp4/research/research.css";
 
-export const metadata = { title: "Request data access, StrayPaw Research", description: "Request de-identified partner data or propose a research collaboration with StrayPaw." };
+export const metadata = { title: "Request data access, StrayPaw", description: "Request de-identified partner data or propose a research collaboration with StrayPaw." };
 
 export default function AccessPage() {
   return (

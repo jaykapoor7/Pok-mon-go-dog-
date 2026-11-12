@@ -88,7 +88,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         });
         setWelcome(`You are reporting for ${data.orgName}.`);
         setStep("Opening the reporting page");
-        router.push("/report");
+        router.push("/community/report");
         return;
       }
 
@@ -210,8 +210,8 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         {welcome && <p role="status" className="join-welcome">{welcome}</p>}
 
         <p className="join-foot">
-          New here? <a href="/access">Sign up</a> and we email you a code. If your organisation already uses StrayPaw, ask your team lead for one. Anyone can report a street animal without a code at{" "}
-          <a href="/report">the reporting page</a>.
+          New here? <a href="/sign-in">Sign up</a> and we email you a code. If your organisation already uses StrayPaw, ask your team lead for one. Anyone can report a street animal without a code at{" "}
+          <a href="/community/report">the reporting page</a>.
         </p>
       </div>
     </div>

@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const f = await getFundraiserById(id);
   if (!f) return { title: "Fundraiser not found, StrayPaw" };
   return {
-    title: `${f.title}, Fundraiser | StrayPaw`,
+    title: `${f.title}, StrayPaw`,
     description: f.story?.slice(0, 150) ?? `Support ${f.created_by_name ?? "a rescue"} on StrayPaw.`,
     ...(f.cover_photo ? { openGraph: { images: [f.cover_photo] } } : {}),
   };
@@ -72,7 +72,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       {/* Who's running this, the credibility link */}
       {org && (
         <Link
-          href={`/org/${org.slug ?? org.id}`}
+          href={`/community/organisations/${org.slug ?? org.id}`}
           className="mt-3 flex items-center gap-3 rounded border border-black/[0.06] bg-white p-3 dark:border-white/10 dark:bg-bark-900"
         >
           <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded border border-black/[0.06] bg-white dark:border-white/10 dark:bg-bark-900">
@@ -98,7 +98,7 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
       )}
 
       {f.case_id && (
-        <Link href={`/partner/cases/${f.case_id}`} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-paw-600 hover:underline">
+        <Link href={`/ngo/cases/${f.case_id}`} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-paw-600 hover:underline">
           <ClipboardList className="h-4 w-4" /> View the case this funds
         </Link>
       )}

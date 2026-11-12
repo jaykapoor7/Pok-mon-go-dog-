@@ -31,7 +31,7 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
           <>
             No. A location is the whole thing; a photo helps the right animal
             be recognised, but a report without one still counts. Go to{" "}
-            <Link href="/report">the reporting page</Link> and send it.
+            <Link href="/community/report">the reporting page</Link> and send it.
           </>
         ),
       },
@@ -40,7 +40,7 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
         a: (
           <>
             Following. With one, the animals you report stay on your{" "}
-            <Link href="/following">Following page</Link> so you find out what
+            <Link href="/community/activity">Following page</Link> so you find out what
             happened to them. That is the only thing it changes.
           </>
         ),
@@ -87,7 +87,7 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
         a: (
           <>
             Six letters and numbers that arrive by email &mdash; either because
-            you <Link href="/access">asked for one yourself</Link> to follow
+            you <Link href="/sign-in">asked for one yourself</Link> to follow
             your reports, or because a team lead added you to an organisation.
             It is your sign-in. Go to{" "}
             <Link href="/join">straypaw.org/join</Link>, type it, and you are
@@ -108,7 +108,7 @@ const SECTIONS: { title: string; note: string; items: QA[] }[] = [
         q: "I have lost my code.",
         a: (
           <>
-            Request a new one at <Link href="/access">straypaw.org/access</Link> with the same
+            Request a new one at <Link href="/sign-in">straypaw.org/access</Link> with the same
             email if it was your own, or ask your team lead to add you again. That issues a new one and
             stops the old one working.
           </>

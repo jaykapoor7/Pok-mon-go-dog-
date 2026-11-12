@@ -9,7 +9,7 @@ import "@/sp4/site/res/res.css";
 export function generateStaticParams() { return POSTS.map((p) => ({ slug: p.slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params; const p = POSTS.find((x) => x.slug === slug);
-  return p ? { title: `${p.title} · StrayPaw`, description: p.dek } : {};
+  return p ? { title: `${p.title}, StrayPaw`, description: p.dek } : {};
 }
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {

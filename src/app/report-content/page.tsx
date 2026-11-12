@@ -50,7 +50,7 @@ export default function ReportContentPage() {
   if (sent) {
     return (
       <div className="dk-form-page">
-        <DeskHeader ground={false} kicker="Community · moderation" title="Report received" lede="Thank you. Our team will review it and act if it breaks the Community Guidelines." actions={<Link href="/map" className="dk-btn is-tint">Back to the map</Link>} />
+        <DeskHeader ground={false} kicker="Community · moderation" title="Report received" lede="Thank you. Our team will review it and act if it breaks the Community Guidelines." actions={<Link href="/community" className="dk-btn is-tint">Back to the map</Link>} />
       </div>
     );
   }
