@@ -249,7 +249,7 @@ export function Register({ place }: { place: Place }) {
       <Head eyebrow={place.short_name ?? place.name} title="Bite register" lede="Every presentation at this facility. Opening a record is logged." />
       <div style={{ marginBottom: 16 }}><Seg name="filter" label="Show" value={filter} onChange={setFilter} options={FILTERS} /></div>
       {rows.loading && !rows.data ? <Loading rows={6} /> : rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !rows.data?.length ? <Empty title="No presentations here yet" /> : (
-        <div className="oh-table-wrap">
+        <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table">
           <table className="oh-table">
             <thead><tr><th>Patient</th><th>Exposure</th><th>Area</th><th>Category</th><th>Course</th><th className="r">Doses</th><th>Next due</th></tr></thead>
             <tbody>

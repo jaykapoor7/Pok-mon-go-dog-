@@ -54,7 +54,7 @@ html .sp.sx3.os.cn .sp-main :is(.input, .select, .textarea):focus { outline: 0; 
 
 /* ── tags, in the demo's palette ── */
 .sp.sx3.os.cn :is(.vw-tag, .pl-tag) { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 4px; background: #fff; box-shadow: inset 0 0 0 1px var(--sk-line-2); color: var(--sk-ink-2); font-size: 12px; font-weight: 500; line-height: 1; }
-.sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="flame"] { background: #fdece8; color: #c2412a; box-shadow: none; }
+.sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="flame"] { background: #fdece8; color: #b4301a; box-shadow: none; }
 .sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="amber"] { background: #fbf1df; color: #94600f; box-shadow: none; }
 .sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="green"] { background: #e6f3ec; color: #1f7a4d; box-shadow: none; }
 .sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="blue"] { background: #e8eefb; color: var(--sk-blue); box-shadow: none; }

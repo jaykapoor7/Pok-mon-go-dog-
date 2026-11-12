@@ -3,7 +3,7 @@
 /* The few components every programme screen is built from. */
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { Activity, Building2, Check, Gauge, GraduationCap, HeartPulse, Home, Landmark, Microscope, PawPrint, Stethoscope, X } from "lucide-react";
+import { Activity, Building2, Check, ChevronDown, Gauge, GraduationCap, HeartPulse, Home, Landmark, Microscope, PawPrint, Stethoscope, X } from "lucide-react";
 import { call, fmtTime, showCount, ALERT_KIND, type Alert, type Count, type Kind } from "./data";
 import "./oh.css";
 
@@ -61,8 +61,8 @@ export function Stat({ label, value, note, href, tone, suffix }: { label: string
   const shown = typeof value === "string" && value !== "<5" ? value : showCount(value as Count);
   const body = (
     <>
-      <dt>{label}</dt>
-      <dd className={unknown || value === "<5" ? "oh-unknown" : undefined}>{typeof value === "number" ? <Num v={value} /> : shown}{!unknown && suffix ? <small>{suffix}</small> : null}</dd>
+      <span className="oh-stat-l">{label}</span>
+      <span className={`oh-stat-v${unknown || value === "<5" ? " oh-unknown" : ""}`}>{typeof value === "number" ? <Num v={value} /> : shown}{!unknown && suffix ? <small>{suffix}</small> : null}</span>
       {note ? <p>{note}</p> : null}
     </>
   );
@@ -88,7 +88,7 @@ export function Failed({ error, retry }: { error: string; retry?: () => void }) 
 }
 
 export function Loading({ rows = 3 }: { rows?: number }) {
-  return <div aria-busy="true" aria-label="Loading">{Array.from({ length: rows }, (_, i) => <div key={i} className="oh-skel" />)}</div>;
+  return <div role="status" aria-busy="true" aria-label="Loading">{Array.from({ length: rows }, (_, i) => <div key={i} className="oh-skel" />)}</div>;
 }
 
 export function Seg<T extends string>({ name, value, options, onChange, disabled, label }: { name: string; value: T; options: [T, string][]; onChange: (v: T) => void; disabled?: boolean; label?: string }) {
@@ -191,9 +191,11 @@ export function AlertList({ alerts, programmeId, onChange, canAck, hrefFor, limi
               <summary className="oh-alert" data-sev={sev} data-acked={acked ? "true" : undefined}>
                 <i aria-hidden />
                 <div><b>{cluster ? `${r.items[0].title} · ${r.items.length} samples` : GROUP[r.kind](r.items.length)}</b><p>{cluster ? rest || first : first}</p><small>{ALERT_KIND[r.kind] ?? r.kind} · show {cluster ? "samples" : "places"}</small></div>
-                <div className="oh-alert-act">{hrefFor?.(r.items[0]) ? <Link className="oh-btn small" href={hrefFor(r.items[0])!}>Open</Link> : null}</div>
+                {/* The summary only opens and closes the group; a link inside it would be a control inside a control. */}
+                <span className="oh-alert-act oh-alert-fold" aria-hidden><ChevronDown size={16} /></span>
               </summary>
               <ul className="oh-alert-more">
+                {!cluster && hrefFor?.(r.items[0]) ? <li className="oh-alert-open"><Link className="oh-btn small" href={hrefFor(r.items[0])!}>Open</Link></li> : null}
                 {r.items.map((x) => <li key={x.key}><span>{cluster ? x.detail.split(". ")[0] : x.title}</span>{cluster && hrefFor?.(x) ? <Link className="oh-btn quiet small" href={hrefFor(x)!}>Open</Link> : null}{canAck && !x.ack ? <button type="button" className="oh-btn quiet small" disabled={busy === x.key} onClick={() => void ack(x)}>Mark as seen</button> : x.ack ? <span style={{ color: "var(--muted)" }}>Seen by {x.ack.by}</span> : null}</li>)}
               </ul>
             </details>

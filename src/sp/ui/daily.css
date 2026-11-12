@@ -47,7 +47,7 @@
 .dy-t small { overflow: hidden; color: var(--dy-grey); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .dy-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 4px; background: #fff; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .16); color: var(--dy-ink-2); font-size: 12px; font-style: normal; font-weight: 500; white-space: nowrap; transition: opacity .16s, transform .2s var(--dy-ease); }
 .dy-tag[data-c="violet"] { background: #efebfc; color: #6d4fd8; box-shadow: none; }
-.dy-tag[data-c="flame"] { background: #fdece8; color: #c2412a; box-shadow: none; }
+.dy-tag[data-c="flame"] { background: #fdece8; color: #b4301a; box-shadow: none; }
 .dy-tag[data-c="amber"] { background: #fbf1df; color: #94600f; box-shadow: none; }
 .dy-tag[data-c="green"] { background: #e6f3ec; color: #1f7a4d; box-shadow: none; }
 .dy-tag[data-c="blue"] { background: #e8eefb; color: var(--dy-blue); box-shadow: none; }
@@ -72,7 +72,7 @@
 .dy-ask.is-typing { box-shadow: 0 0 0 1.5px var(--dy-blue), 0 8px 24px -12px rgba(36, 87, 206, .45); }
 .dy-ask > svg { flex: none; color: #6d4fd8; }
 .dy-ask input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; color: var(--dy-ink); font: 400 14px/1 var(--s3-sans, Inter, system-ui); outline: 0; }
-.dy-ask input::placeholder { color: #8a90a0; opacity: 1; }
+.dy-ask input::placeholder { color: #626a7a; opacity: 1; }
 .dy-send { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: #d9dee8; color: #fff; cursor: pointer; transition: background .2s var(--dy-ease), transform .2s var(--dy-ease); }
 .dy-send.is-ready { background: var(--dy-blue); }
 .dy-send.is-ready:hover { background: #1c47ad; }

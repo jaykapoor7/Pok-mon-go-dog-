@@ -502,9 +502,9 @@
 /* identifiers: microchip, RFID, QR */
 .idn-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
 .idn-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 8px 12px; border-radius: 8px; background: var(--sunk, #f5f7fb); }
-.idn-kind { font-size: 12px; color: #6b7486; }
+.idn-kind { font-size: 12px; color: #5b6474; }
 .idn-val { font-size: 14px; letter-spacing: .02em; color: var(--ink, #0b1e3d); }
-.idn-list small { flex-basis: 100%; color: #6b7486; font-size: 12px; }
+.idn-list small { flex-basis: 100%; color: #5b6474; font-size: 12px; }
 .idn-x { margin-left: auto; }
 .idn-retire { display: flex; gap: 4px; flex-basis: 100%; }
 .idn-retire input { flex: 1; min-width: 0; }

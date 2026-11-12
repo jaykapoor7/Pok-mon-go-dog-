@@ -345,7 +345,7 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp .fd-lock .ngo-sum { font-size: 14px; color: #5b6475; margin: 0; }
 .sp .fd-lock form { max-width: none !important; gap: 12px; }
 .sp .fd-lock .fd-hint { margin: 0; font-size: 14px; color: #5b6475; line-height: 1.5; }
-.sp .fd-lock .fd-err { margin: 12px 0 0; color: #c2412a; font-size: 14px; }
+.sp .fd-lock .fd-err { margin: 12px 0 0; color: #b4301a; font-size: 14px; }
 .sp .fd-lock .fd-back { margin-top: 16px; }
 
 /* Every NGO page lines up with its tabs: one 32px gutter (16px on a phone),
@@ -398,8 +398,8 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp .ops { margin-top: 16px; }
 .sp .ops-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
 .sp .ops-head h2 { margin: 0 0 4px; font-size: 16px; font-weight: 500; }
-.sp .ops-head p { margin: 0; font-size: 14px; color: #6b7486; max-width: 52ch; }
-.sp .ops-empty { margin: 8px 0 0; font-size: 14px; color: #6b7486; }
+.sp .ops-head p { margin: 0; font-size: 14px; color: #5b6474; max-width: 52ch; }
+.sp .ops-empty { margin: 8px 0 0; font-size: 14px; color: #5b6474; }
 .sp .ops-pager { justify-content: flex-end; gap: 8px; margin-top: 8px; }
 .sp .cs-crumb { display: flex; align-items: center; gap: 12px; }
 .sp .cs-crumb .link { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; text-decoration: none; color: #2457ce; }
@@ -460,7 +460,7 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp.sx3 .sx5-flat { margin-top: 4px; }
 
 /* ── Delete: a quiet bin icon, a centred dialog ───────────────────────── */
-.sp .dr-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #6b7486; font: inherit; font-size: 14px; cursor: pointer; transition: background 140ms, color 140ms, transform 120ms; flex: none; }
+.sp .dr-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #5b6474; font: inherit; font-size: 14px; cursor: pointer; transition: background 140ms, color 140ms, transform 120ms; flex: none; }
 .sp .dr-btn.is-compact { width: 32px; padding: 0; }
 .sp .dr-btn:hover { background: #fdecea; color: #b2401f; }
 .sp .dr-btn:active { transform: scale(.94); }
@@ -469,15 +469,15 @@ html .sp.sx3 .sp-main :is(.chip[aria-pressed="true"], .chip[aria-checked="true"]
 .sp .dr-dlg::backdrop { background: rgba(11, 30, 61, .32); backdrop-filter: blur(2px); }
 .sp .dr-dlg[open] { animation: dr-pop 180ms cubic-bezier(.2,.7,.2,1); }
 .sp .dr-card { display: grid; gap: 8px; padding: 24px; }
-.sp .dr-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #fdecea; color: #c2412a; }
+.sp .dr-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #fdecea; color: #b4301a; }
 .sp .dr-card h2 { margin: 4px 0 0; font-size: 20px; font-weight: 600; color: #0b1e3d; }
 .sp .dr-card > p { margin: 0; font-size: 14px; line-height: 1.5; color: #4a5568; }
 .sp .dr-reason { display: grid; gap: 4px; font-size: 14px; font-weight: 500; color: #0b1e3d; }
-.sp .dr-reason small { font-weight: 400; color: #6b7486; }
+.sp .dr-reason small { font-weight: 400; color: #5b6474; }
 .sp .dr-reason textarea { min-height: 0; font-size: 16px; padding: 8px 12px; }
 .sp .dr-err { margin: 0; font-size: 14px; color: #b2401f !important; }
 .sp .dr-act { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
-.sp .dr-danger { background: #c2412a !important; color: #fff !important; border-color: #c2412a !important; display: inline-flex; align-items: center; gap: 4px; }
+.sp .dr-danger { background: #c2412a !important; color: #fff !important; border-color: #b4301a !important; display: inline-flex; align-items: center; gap: 4px; }
 .sp .dr-danger:hover:not(:disabled) { background: #a63521 !important; }
 .sp .dr-spin, .sp .nt-spin { animation: sx5-spin .8s linear infinite; }
 @keyframes sx5-spin { to { transform: rotate(360deg); } }

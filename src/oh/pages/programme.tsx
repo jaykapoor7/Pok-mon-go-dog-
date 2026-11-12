@@ -74,13 +74,13 @@ function OverviewBody({ p }: { p: Prog }) {
   const open = (alerts.data ?? []).filter((a) => !a.ack);
   const alertHref = (a: Alert) => a.kind === "positive_result" ? `/programme/${p.slug}/work` : a.kind === "pep_readiness" ? `/programme/${p.slug}/network` : a.kind === "coverage_below_target" ? `/programme/${p.slug}/coverage` : a.kind === "followups_overdue" ? `/programme/${p.slug}/work?show=overdue` : null;
   const stats = (
-    <dl className="oh-stats">
+    <div className="oh-stats">
       {mods.includes("bite_care") && d.exposures ? <Stat label="Bite exposures" value={d.exposures.total} note={<>Category III: {showCount(d.exposures.category_iii)}</>} /> : null}
       {mods.includes("bite_care") && d.pep ? <Stat label="Courses completed" value={d.pep.completion_rate === null ? null : pct(d.pep.completion_rate)} note={d.pep.completion_rate === null ? "Too few closed courses to show" : `Did not return: ${showCount(d.pep.lost)}`} tone={d.pep.completion_rate !== null && d.pep.completion_rate < 0.8 ? "amber" : "green"} /> : null}
       {mods.includes("bite_care") && d.exposures ? <Stat label="Wounds washed" value={num(d.exposures.washed_known) ? pct(num(d.exposures.washed) / num(d.exposures.washed_known)) : null} note="Where it was recorded" /> : null}
       {mods.includes("laboratory") ? <Stat label="Laboratory-confirmed" value={d.samples.positive} note={`${d.samples.total} samples · ${d.samples.waiting} waiting${d.samples.median_days_to_result === null ? "" : ` · ${Math.round(d.samples.median_days_to_result * 10) / 10} days to a result`}`} tone={d.samples.positive ? "flame" : undefined} href={`/programme/${p.slug}/work`} /> : null}
       {mods.includes("services") ? <Stat label="Care facilities" value={d.services.facilities} note={`${d.services.arv_unavailable} without vaccine · ${d.services.stale} confirmations expired`} href={`/programme/${p.slug}/network`} tone={d.services.arv_unavailable ? "flame" : d.services.stale ? "amber" : undefined} /> : null}
-    </dl>
+    </div>
   );
   return (
     <>
@@ -210,7 +210,7 @@ function NetworkBody({ p }: { p: Prog }) {
     <>
       <div className="oh-split">
         <NetworkMap facilities={n.facilities} referrals={n.referrals} selected={sel} onSelect={setSel} />
-        <div className="oh-rows" style={{ maxHeight: 460, overflowY: "auto" }}>
+        <div className="oh-rows" style={{ maxHeight: 460, overflowY: "auto" }} tabIndex={0} role="region" aria-label="Facilities">
           {n.facilities.map((f) => {
             const refers = n.referrals.filter((r) => r.from === f.id);
             return (
@@ -229,7 +229,7 @@ function NetworkBody({ p }: { p: Prog }) {
 
       <Section title="Referral pathways" note="Where a place sends people for a service it does not offer" action={n.can_configure ? <button type="button" className="oh-btn small" onClick={() => setAdding(true)}><Plus size={14} aria-hidden />Add a pathway</button> : undefined}>
         {n.referrals.length ? (
-          <div className="oh-table-wrap"><table className="oh-table">
+          <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table"><table className="oh-table">
             <thead><tr><th>From</th><th>For</th><th>To</th><th>Note</th>{n.can_configure ? <th /> : null}</tr></thead>
             <tbody>{n.referrals.map((r) => (
               <tr key={`${r.from}${r.to}${r.service}`}>
@@ -339,7 +339,7 @@ function WorkBody({ p }: { p: Prog }) {
         {raiser ? <button type="button" className="oh-btn primary" style={{ marginLeft: "auto" }} onClick={() => setAsking(true)}><Plus size={16} aria-hidden />Ask a partner</button> : null}
       </div>
       {hand.loading && !hand.data ? <Loading rows={5} /> : hand.error ? <Failed error={hand.error} retry={hand.reload} /> : !list.length ? <Empty title={show === "closed" ? "Nothing closed yet" : "Nothing open"} /> : (
-        <div className="oh-table-wrap"><table className="oh-table">
+        <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table"><table className="oh-table">
           <thead><tr><th>Request</th><th>From</th><th>To</th><th>Area</th><th>Due</th><th>Status</th></tr></thead>
           <tbody>{list.map((h) => {
             const late = ["open", "accepted"].includes(h.status) && h.due_on && h.due_on < t;
@@ -399,13 +399,13 @@ function CoverageBody({ p }: { p: Prog }) {
   const totVac = withEst.reduce((s, v) => s + v.vaccinated, 0), totEst = withEst.reduce((s, v) => s + (v.estimate?.dogs ?? 0), 0);
   return (
     <>
-      <dl className="oh-stats">
+      <div className="oh-stats">
         <Stat label="Target" value={pct(target)} note="Of the dog population" />
         <Stat label="Coverage where estimated" value={totEst ? pct(totVac / totEst) : null} note={totEst ? `${totVac} of an estimated ${totEst} dogs` : "No estimate recorded"} tone={totEst && totVac / totEst < target ? "amber" : "green"} />
         <Stat label="Areas with an estimate" value={`${withEst.length} of ${d.vaccination.length}`} note="Coverage is shown only where there is one" />
         <Stat label="Dogs on registers" value={d.vaccination.reduce((s, v) => s + v.registered, 0)} note={`${d.vaccination.reduce((s, v) => s + v.vaccinated, 0)} recorded vaccinated`} />
-      </dl>
-      <div className="oh-table-wrap"><table className="oh-table">
+      </div>
+      <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table"><table className="oh-table">
         <thead><tr><th>Area</th><th className="r">On registers</th><th className="r">Vaccinated</th><th>Population estimate</th><th>Coverage against target</th>{canEst ? <th /> : null}</tr></thead>
         <tbody>{d.vaccination.map((v) => {
           const cov = v.estimate ? v.vaccinated / v.estimate.dogs : null;
@@ -474,7 +474,7 @@ function ReportBody({ p }: { p: Prog }) {
         <div><dt>Median days to close</dt><dd>{d.handoffs.median_days_to_close === null ? "None" : Math.round(d.handoffs.median_days_to_close * 10) / 10}</dd></div>
         <div><dt>Facilities confirming services</dt><dd>{d.services.confirmed} of {d.services.facilities}</dd></div>
       </dl></Section>
-      <Section title="Dog vaccination" note={`Target ${pct(d.programme.target)}`}><div className="oh-table-wrap"><table className="oh-table"><thead><tr><th>Area</th><th className="r">Vaccinated</th><th className="r">Estimate</th><th className="r">Coverage</th></tr></thead><tbody>{d.vaccination.map((v) => <tr key={v.area_id}><td>{v.area}</td><td className="r">{v.vaccinated}</td><td className="r">{v.estimate?.dogs ?? "None"}</td><td className="r">{v.estimate ? pct(v.vaccinated / v.estimate.dogs) : "Needs an estimate"}</td></tr>)}</tbody></table></div></Section>
+      <Section title="Dog vaccination" note={`Target ${pct(d.programme.target)}`}><div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table"><table className="oh-table"><thead><tr><th>Area</th><th className="r">Vaccinated</th><th className="r">Estimate</th><th className="r">Coverage</th></tr></thead><tbody>{d.vaccination.map((v) => <tr key={v.area_id}><td>{v.area}</td><td className="r">{v.vaccinated}</td><td className="r">{v.estimate?.dogs ?? "None"}</td><td className="r">{v.estimate ? pct(v.vaccinated / v.estimate.dogs) : "Needs an estimate"}</td></tr>)}</tbody></table></div></Section>
       <Section title="Training"><p>{d.training.sessions} sessions, {d.training.participants} people: {Object.entries(d.training.by_audience).map(([k, v]) => `${AUDIENCE[k] ?? k} ${v}`).join(", ") || "none recorded"}.</p></Section>
       <p className="oh-note">{p.illustrative ? "Illustrative demonstration: every figure is invented. " : ""}Human counts below {d.programme.suppress_below} are shown as “fewer than {d.programme.suppress_below}”. Vaccination coverage appears only where a population estimate exists.</p>
     </article>
@@ -498,7 +498,7 @@ function DataBody({ p }: { p: Prog }) {
   return (
     <>
       <div className="oh-actions" style={{ marginBottom: 16 }}><button type="button" className="oh-btn primary" onClick={csv} disabled={!rows.length}><Download size={16} aria-hidden />Download CSV</button><span style={{ color: "var(--muted)", fontSize: 12, alignSelf: "center" }}>{rows.length} rows since {fmtDate(x.data.since, { day: "numeric", month: "short", year: "numeric" })}{p.illustrative ? " · illustrative" : ""}</span></div>
-      {rows.length ? <div className="oh-table-wrap" style={{ maxHeight: 560 }}><table className="oh-table"><thead><tr><th>Week</th><th>Area</th><th>Animal</th><th>Category</th><th className="r">Exposures</th></tr></thead><tbody>{rows.slice(0, 300).map((r, i) => <tr key={i}><td>{fmtDate(r.week)}</td><td>{r.area}</td><td>{r.species}</td><td>{r.category}</td><td className="r">{showCount(r.exposures)}</td></tr>)}</tbody></table></div> : <Empty title="No exposures in the last year" />}
+      {rows.length ? <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table" style={{ maxHeight: 560 }}><table className="oh-table"><thead><tr><th>Week</th><th>Area</th><th>Animal</th><th>Category</th><th className="r">Exposures</th></tr></thead><tbody>{rows.slice(0, 300).map((r, i) => <tr key={i}><td>{fmtDate(r.week)}</td><td>{r.area}</td><td>{r.species}</td><td>{r.category}</td><td className="r">{showCount(r.exposures)}</td></tr>)}</tbody></table></div> : <Empty title="No exposures in the last year" />}
     </>
   );
 }

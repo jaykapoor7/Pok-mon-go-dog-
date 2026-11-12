@@ -22,7 +22,7 @@ export function Teammate() {
     <section className="s4-sec s7-mate" aria-labelledby="mate-title">
       <div className="s4-wrap">
         <h2 id="mate-title" className="s4-h2">Your team&rsquo;s favourite teammate</h2>
-        <div className="s7-mate-rail">
+        <div className="s7-mate-rail" tabIndex={0} role="region" aria-label="What Kaju does, card by card">
         <div className="s7-mate-big">
           <article className="s7-mcard">
             <div className="s7-mstage"><KnowsArt /></div>
