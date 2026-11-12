@@ -179,3 +179,10 @@
 .kr-ask:disabled { opacity: .55; cursor: default; }
 .ka-k .kr-ask { margin-left: auto; }
 .ka-k { justify-content: flex-start; }
+
+/* The story: a delete control on every line was noise. It appears on the line under the pointer or the keyboard, and always on touch screens. */
+@media (hover: hover) {
+  .kr-line > li .dr-btn { opacity: 0; transition: opacity .15s; }
+  .kr-line > li:hover .dr-btn, .kr-line > li:focus-within .dr-btn { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .kr-line > li .dr-btn { transition: none; } }

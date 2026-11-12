@@ -603,7 +603,7 @@ function Invites({ orgs }: { orgs: { id: string; name: string; kind: Kind }[] })
         <label className="oh-field"><span>Email (optional)</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
       </div>
       {err ? <Failed error={err} /> : null}
-      <div className="oh-submit" style={{ marginTop: 12 }}><button type="button" className="oh-btn primary" disabled={busy} onClick={() => void create()}>Create invite code</button>{code ? <p>Give them this code: <span className="oh-code">{code}</span> · they sign in to StrayPaw and enter it under <b>Have an invite code?</b> on Today.</p> : null}</div>
+      <div className="oh-submit" style={{ marginTop: 12 }}><button type="button" className="oh-btn primary" disabled={busy} onClick={() => void create()}>Create invite code</button>{code ? <InviteLink code={code} /> : null}</div>
       {list.data ? <div className="oh-rows" style={{ marginTop: 16 }}>
         {list.data.members.map((m, i) => <div className="oh-row" key={`m${i}`} style={{ minHeight: 48 }}><div className="oh-row-main"><b>{m.name ?? "Member"}</b><span>{ROLE_LABEL[m.role]} · since {fmtDate(m.since)}</span></div></div>)}
         {list.data.invites.map((v) => <div className="oh-row" key={v.code} style={{ minHeight: 48 }}><div className="oh-row-main"><b>{v.name ?? v.email ?? "Invited"}</b><span>{ROLE_LABEL[v.role]} · code {v.code} · expires {relDay(v.expires_at).toLowerCase()}</span></div><div className="oh-row-meta"><Chip tone="amber">Not yet accepted</Chip></div></div>)}
@@ -655,5 +655,19 @@ function LogoButton({ org, name, has, onDone }: { org: string; name: string; has
       <button type="button" className="oh-btn small quiet" disabled={busy} onClick={() => input.current?.click()} aria-label={`${has ? "Change" : "Add"} the logo of ${name}`}>{busy ? "Saving…" : has ? "Change logo" : "Add logo"}</button>
       {has ? <button type="button" className="oh-btn small quiet" disabled={busy} onClick={() => void remove()} aria-label={`Remove the logo of ${name}`}>Remove</button> : null}
     </>
+  );
+}
+
+/** The invite as a link that opens Today with the code filled in (after sign-in), and the code itself for reading out. */
+function InviteLink({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const link = typeof window === "undefined" ? `/today?invite=${code}` : `${window.location.origin}/today?invite=${code}`;
+  const copy = async () => { try { await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 2000); } catch { setCopied(false); } };
+  return (
+    <div className="oh-invite-out" role="status">
+      <p>Send them this link. It opens StrayPaw with the code filled in; they sign in and press Join.</p>
+      <div className="oh-invite-link"><code>{link}</code><button type="button" className="oh-btn small" onClick={() => void copy()}>{copied ? "Copied" : "Copy link"}</button></div>
+      <p className="oh-note">Or read out the code <span className="oh-code">{code}</span>. It works once and expires in 14 days.</p>
+    </div>
   );
 }

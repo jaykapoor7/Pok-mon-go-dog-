@@ -70,7 +70,7 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
     /* "All sections": the whole workspace as one organised index, each area named, each page with what it is for. */
     if (browse && !t) {
       const seen = new Set<string>();
-      for (const g of def.index) for (const l of g.links) { const href = l.query ? `${l.href}?${l.query}` : l.href; if (seen.has(href) || l.href === "/assistant") continue; seen.add(href); out.push({ key: `all:${href}`, kind: "Go to", title: l.label, detail: l.note ?? `In ${(AREA[g.label] ?? g.label).toLowerCase()}`, href, group: AREA[g.label] ?? g.label }); }
+      for (const g of def.index) for (const l of g.links) { const href = l.query ? `${l.href}?${l.query}` : l.href; if (seen.has(href) || l.href === "/assistant") continue; seen.add(href); out.push({ key: `all:${href}`, kind: "Go to", title: l.label, detail: l.note ?? "", href, group: AREA[g.label] ?? g.label }); /* shown under its group heading, so no "In <group>" line */ }
       for (const pg of pages) if (!seen.has(pg.href)) { seen.add(pg.href); out.push({ key: `all:${pg.href}`, kind: "Go to", title: pg.label, detail: pg.detail, href: pg.href, group: "Your programme places" }); }
       return out;
     }
@@ -121,7 +121,7 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
               <Fragment key={h.key}>
                 {head}
                 <li id={`sp-hit-${i}`} role="option" aria-selected={i === at} onMouseEnter={() => setAt(i)} onClick={() => go(h)}>
-                  <Icon size={17} aria-hidden /><span><b>{h.title}</b><small>{h.detail}</small></span>{h.group ? null : <em className="k">{h.kind}</em>}
+                  <Icon size={17} aria-hidden /><span><b>{h.title}</b>{h.detail ? <small>{h.detail}</small> : null}</span>{h.group ? null : <em className="k">{h.kind}</em>}
                 </li>
               </Fragment>
             );
