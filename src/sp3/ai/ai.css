@@ -235,3 +235,32 @@
 @media (max-width: 720px) { .ai3-a.is-kaju { grid-template-columns: 28px minmax(0, 1fr); gap: 9px; } .ai3-who { width: 28px; height: 28px; } .ai3-name { margin-top: 3px; } }
 @media (prefers-reduced-motion: reduce) { .ai3-a.is-kaju .ai3-text > *, .ai3-a.is-kaju .ai3-text li, .ai3-sugg.is-next button, .ai3-q { animation: none; } }
 .ai3-a.is-kaju .ai3-text ul { list-style: disc; }
+
+/* ── Kaju's run, drawn as the landing demo draws it (src/sp4/home/HeroDemo.tsx, scene "Kaju") ── */
+@keyframes ai3-pop { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes ai3-spin { to { transform: rotate(360deg); } }
+.ai3-run { display: grid; gap: 10px; padding: 14px; border-radius: 10px; background: linear-gradient(180deg, #f3f5f9, #f8f9fb); box-shadow: 0 0 0 1px rgba(11, 30, 61, .06); animation: ai3-pop .42s cubic-bezier(.2, .7, .2, 1) both; }
+.ai3-run-h { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.ai3-run-h b { display: block; color: #0b1e3d; font-size: 14px; font-weight: 500; letter-spacing: -.015em; }
+.ai3-run-h small { display: block; color: #626775; font-size: 11.5px; }
+.ai3-run-tag { height: 22px; padding: 0 8px; border-radius: 6px; background: #e8eefb; color: #2457ce; font-size: 11.5px; font-style: normal; font-weight: 500; line-height: 22px; }
+.ai3-run-steps { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ai3-run-steps li { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 8px 11px; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .06); color: #23304a; font-size: 12.5px; animation: ai3-pop .5s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--j, 0) * 70ms); }
+.ai3-run-steps li > span:not(.ai3-ok):not(.ai3-warn):not(.ai3-spin) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai3-run-steps time { margin-left: auto; color: #626775; font-size: 11px; font-variant-numeric: tabular-nums; }
+.ai3-run-steps li.is-more { padding: 2px 11px; background: none; box-shadow: none; color: #626775; font-size: 12px; }
+.ai3-run-steps.is-done { margin-top: 10px; }
+.ai3-run-steps.is-done li { padding: 6px 10px; background: #fafbfc; }
+.ai3-ok, .ai3-warn { flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #1f7a4d; color: #fff; }
+.ai3-warn { background: #d08a1d; }
+.ai3-spin { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #dfe3ea; border-top-color: #2457ce; animation: ai3-spin .7s linear infinite; }
+/* the person's message, as the demo's phone draws it */
+.ai3-q { background: #2457ce; border-radius: 14px 14px 4px 14px; }
+/* sources read as record codes, in blue */
+.ai3-cite { border-radius: 6px; background: #fff; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .12); color: #2457ce; font-weight: 500; }
+.ai3-cite:hover { background: #e8eefb; box-shadow: none; }
+/* suggestions: the demo's hairline rows */
+.ai3-sugg button { border: 0; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .1); transition: box-shadow .2s, transform .16s; }
+.ai3-sugg button:hover:not(:disabled) { box-shadow: 0 0 0 1px rgba(36, 87, 206, .35), 0 8px 18px -12px rgba(11, 30, 61, .4); }
+.ai3-sugg button svg { color: #6d4fd8; }
+@media (prefers-reduced-motion: reduce) { .ai3-run, .ai3-run-steps li { animation: none; } .ai3-spin { animation-duration: 2s; } }

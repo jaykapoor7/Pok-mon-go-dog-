@@ -366,7 +366,7 @@ function Thread({ full = false }: { full?: boolean }) {
         {ai.msgs.map((m) => m.role === "user"
           ? <div key={m.id} className="ai3-q">{m.fileName && <span className="ai3-q-file"><Paperclip size={13} aria-hidden />{m.fileName}</span>}{m.display ?? m.text}</div>
           : <Answer key={m.id} m={m} />)}
-        {ai.busy && <div className="ai3-thinking" role="status"><span className="ai3-thinking-kaju" aria-hidden><KajuMark size={44} state="thinking" /></span><Loader2 size={14} className="animate-spin" />{ai.step ?? "Kaju is checking your request"}</div>}
+        {ai.busy && <RunCard step={ai.step} />}
         <div ref={end} />
       </div>
       <div className="ai3-compose">
@@ -399,12 +399,28 @@ function Answer({ m }: { m: Msg }) {
         {r.navigate && safeAiHref(r.navigate.href) && <button type="button" className="s3-btn is-sm is-line ai3-go" onClick={() => router.push(r.navigate!.href)}>Open {r.navigate.label}<ArrowRight size={14} /></button>}
         {r.citations.length > 0 && <Sources items={r.citations} />}
         <div className="ai3-meta">
-          {r.tools.length > 0 && <details className="ai3-checks"><summary>{r.tools.some(t=>!t.ok) ? "Some checks need attention" : `Checked ${r.tools.length} ${r.tools.length===1?'source':'sources'} in your records`}</summary><ul className="ai3-tools">{r.tools.map((t, i) => <li key={i} className={t.ok ? "" : "is-off"}>{t.ok ? <CheckCircle2 size={12} /> : <Info size={12} />}<span>{t.summary}</span></li>)}</ul></details>}
+          {r.tools.length > 0 && <ul className="ai3-run-steps is-done" aria-label={`Kaju checked ${r.tools.length} ${r.tools.length === 1 ? "source" : "sources"} in your records`}>{r.tools.slice(0, 5).map((t, i) => <li key={i} className={t.ok ? undefined : "is-off"} style={{ ["--j" as string]: i }}>{t.ok ? <span className="ai3-ok" aria-hidden><Check size={10} strokeWidth={3} /></span> : <span className="ai3-warn" aria-hidden><Info size={10} strokeWidth={3} /></span>}<span>{t.summary}</span></li>)}{r.tools.length > 5 ? <li className="is-more">and {r.tools.length - 5} more</li> : null}</ul>}
           <CopyAnswer text={r.text} />
         </div>
         {r.suggestions && r.suggestions.length > 0 && <div className="ai3-sugg is-next" role="group" aria-label="Next steps">{r.suggestions.slice(0, 4).map((s) => <button key={s} type="button" disabled={ai.busy || !ai.scope} onClick={() => ai.ask(s)}>{s}</button>)}</div>}
         {r.notice && r.engine === "model" && <p className="ai3-notice"><Info size={12} aria-hidden />{r.notice}</p>}
       </div>
+    </div>
+  );
+}
+
+/* Kaju at work, as the landing demo shows it: a run with its steps, each ticked when the next begins, with the time. */
+function RunCard({ step }: { step: string | null }) {
+  const [steps, setSteps] = useState<{ text: string; at: string }[]>([]);
+  const stamp = () => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  useEffect(() => { setSteps([{ text: "Read your request", at: stamp() }]); }, []);
+  useEffect(() => { if (step) setSteps((v) => (v.some((x) => x.text === step) ? v : [...v, { text: step, at: stamp() }])); }, [step]);
+  return (
+    <div className="ai3-run" role="status" aria-live="polite">
+      <div className="ai3-run-h"><span className="ai3-run-who" aria-hidden><KajuMark size={30} state="thinking" /></span><span><b>Kaju is working</b><small>With your access · nothing is saved without you</small></span><em className="ai3-run-tag">Running</em></div>
+      <ul className="ai3-run-steps">{steps.map((x, i) => (
+        <li key={x.text} style={{ ["--j" as string]: i }}>{i < steps.length - 1 ? <span className="ai3-ok" aria-hidden><Check size={10} strokeWidth={3} /></span> : <span className="ai3-spin" aria-hidden />}<span>{x.text}</span><time>{x.at}</time></li>
+      ))}</ul>
     </div>
   );
 }

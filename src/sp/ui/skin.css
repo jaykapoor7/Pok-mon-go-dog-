@@ -108,3 +108,21 @@ html .sp.sx3.os.cn .sp-main :is(.input, .select, .textarea):focus { outline: 0; 
 .sp.sx3.os.cn .sp-main:has(> .cn-sample) .oh-demo { display: none; }
 .sp.sx3.os.cn .oh-demo { display: block; width: auto; max-width: none; margin: 0 0 16px; padding: 7px 12px; border: 0; border-radius: 6px; background: #fdf5e6; box-shadow: inset 3px 0 0 #e0a43a; color: #8a5a0c; font-size: 12.5px; }
 .sp.sx3.os.cn .oh-demo b { font-weight: 500; }
+
+/* ── programme places: the same buttons and fields as everywhere else ── */
+html .sp.sx3.os.cn .oh .oh-btn { min-height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: #fff; box-shadow: inset 0 0 0 1px var(--sk-line-2); color: var(--sk-ink-2); font: 500 13px/1 var(--s3-sans, Inter, system-ui); }
+html .sp.sx3.os.cn .oh .oh-btn.small { min-height: 28px; padding: 0 10px; font-size: 12.5px; }
+html .sp.sx3.os.cn .oh .oh-btn:hover:not(:disabled) { background: #f7f8fa; color: var(--sk-ink); }
+html .sp.sx3.os.cn .oh .oh-btn.primary { background: var(--sk-blue); box-shadow: 0 1px 2px rgba(36, 87, 206, .3); color: #fff; }
+html .sp.sx3.os.cn .oh .oh-btn.primary:hover:not(:disabled) { background: var(--sk-blue-2); color: #fff; box-shadow: 0 8px 20px -10px rgba(36, 87, 206, .7); }
+html .sp.sx3.os.cn .oh .oh-btn.urgent { background: #c2412a; box-shadow: none; color: #fff; }
+html .sp.sx3.os.cn .oh .oh-btn.quiet { background: none; box-shadow: none; color: var(--sk-blue); }
+html .sp.sx3.os.cn .oh :is(select, input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea) { border: 0; border-radius: 7px; box-shadow: inset 0 0 0 1px var(--sk-line-2); }
+html .sp.sx3.os.cn .oh :is(select, input, textarea):focus { outline: 0; box-shadow: inset 0 0 0 1.5px var(--sk-blue), 0 0 0 3px rgba(36, 87, 206, .12); }
+html .sp.sx3.os.cn .oh .dy-work-acts select { height: 28px; min-height: 28px; padding: 0 26px 0 10px; font-size: 12.5px; }
+html .sp.sx3.os.cn .oh .dy-ask input { box-shadow: none !important; border: 0; background: none; }
+
+/* ── 10/20/30: a programme's description is two lines at most ── */
+.sp.sx3.os.cn .oh-head p:not(.oh-eyebrow) { display: -webkit-box; max-width: 70ch; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #626775; font-size: 13.5px; }
+.sp.sx3.os.cn .oh-stats { border: 0; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px var(--sk-line); }
+.sp.sx3.os.cn :is(.oh-card, .oh-rows, .oh-table-wrap) { border: 0; border-radius: 10px; box-shadow: 0 0 0 1px var(--sk-line); }

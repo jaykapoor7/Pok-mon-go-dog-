@@ -8,13 +8,14 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Building2, PawPrint } from "lucide-react";
+import { ArrowRight, Building2, FlaskConical, Gauge, PawPrint, Siren, Stethoscope } from "lucide-react";
+import { AskKaju, DailyHead, NeedsYou, type DailyRow } from "@/sp/ui/Daily";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
 import { useMembership } from "@/sp/shell/Shell";
 import { usePlaces, placeHome, placeLines, oversees } from "../places";
 import { call, KIND_LABEL, ROLE_LABEL, type Alert, type Kind } from "../data";
-import { AlertList, Empty, Failed, Glyph, Head, Loading, Page, Section } from "../ui";
+import { Empty, Failed, Glyph, Head, Loading, Page, Section } from "../ui";
 
 const DEMO = process.env.NEXT_PUBLIC_OH_DEMO === "1";
 export const DEMO_PEOPLE: { role: string; who: string; does: string; kind: Kind }[] = [
@@ -51,9 +52,7 @@ function TodayBody({ name }: { name: string }) {
   const { places, ready, error, reload } = usePlaces();
   const mem = useMembership();
   const router = useRouter();
-  const first = name.split(" ").filter((w) => !/^(dr|sister|mr|ms|mrs)\.?$/i.test(w))[0] ?? "";
-  const hour = Number(new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", hour12: false }));
-  const hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const name0 = name;
   /* Programmes this person oversees: their urgent alerts lead the page. */
   const progs = useMemo(() => [...new Map(places.filter((p) => oversees(p.kind)).flatMap((p) => p.programmes).map((x) => [x.id, x])).values()], [places]);
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
@@ -75,54 +74,58 @@ function TodayBody({ name }: { name: string }) {
   if (!ready || !mem.ready) return <Page><Loading rows={4} /></Page>;
   const illustrative = places.some((p) => p.illustrative);
   const waiting = cards.reduce((s, p) => s + placeLines(p).reduce((a, l) => a + l.n, 0), 0) + (ngoPlace ? placeLines(ngoPlace).reduce((a, l) => a + l.n, 0) : 0);
+  /* The daily brief, as the landing demo draws it: what needs this person
+     across every place they work, each row opening the place where it waits. */
+  const short = (p: { short_name?: string | null; name: string }) => p.short_name ?? p.name;
+  const rows: DailyRow[] = [
+    ...(alerts ?? []).slice(0, 3).map((a) => ({ key: `a${a.key}`, href: `/programme/${(a as Alert & { programme: { slug: string } }).programme.slug}`, tone: "flame", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}</b>, meta: [a.area, (a as Alert & { programme: { name: string } }).programme.name].filter(Boolean).join(" · "), tag: "Urgent", verb: "Open" })),
+    ...(ngoPlace ? placeLines(ngoPlace).map((l) => ({ key: `n${l.text}`, href: "/ngo", tone: l.tone, icon: <PawPrint size={10} strokeWidth={2.4} />, title: <><b>{l.n}</b> {l.text}</>, meta: mem.org?.name ?? "Your NGO", verb: "Open" })) : []),
+    ...cards.flatMap((p) => placeLines(p).map((l) => ({ key: `${p.organisation_id}${l.text}`, href: placeHome(p), tone: l.tone, icon: <PlaceIcon kind={p.kind} />, title: <><b>{l.n}</b> {l.text}</>, meta: `${short(p)} · ${KIND_LABEL[p.kind]}`, tag: short(p).length <= 18 ? short(p) : undefined, verb: "Open" }))),
+  ].slice(0, 8);
+  const kinds = new Set(cards.map((p) => p.kind));
+  const questions = kinds.has("hospital") || kinds.has("clinic") ? ["Which doses are due today across my places?", "Who has not returned for a scheduled dose?", "Is vaccine confirmed at our referral hospital?", "What are partners waiting for from me?"]
+    : kinds.has("laboratory") ? ["Which samples have been on the way longest?", "How many positives this month, by area?", "Which samples are still testing?", "What are partners waiting for from me?"]
+    : ["What needs a decision in my programmes?", "Which facilities have not confirmed vaccine this week?", "Where were rabies cases confirmed this month?", "What are partners waiting for from me?"];
+
   return (
     <Page illustrative={illustrative}>
-      <Head title={`${hello}${first ? `, ${first}` : ""}.`} lede={count ? (waiting ? `${waiting} thing${waiting === 1 ? "" : "s"} across your places need you.` : "Nothing is waiting for you in your places right now.") : undefined} />
-      {error ? <Failed error={error} retry={reload} /> : null}
-      {alerts?.length ? (
-        <Section title="Urgent" note="From the programmes you oversee">
-          <AlertList alerts={alerts} programmeId={progs[0].id} onChange={() => setAlerts(null)} canAck={false} hrefFor={(a) => `/programme/${(a as Alert & { programme: { slug: string } }).programme.slug}`} />
-        </Section>
-      ) : null}
-      {!count ? (
-        <><Empty title="You are not part of an organisation yet">Enter the invite code your coordinator gave you, or start a programme. An NGO can also <Link className="oh-btn quiet small" href="/partner-apply">register itself</Link>.</Empty><InviteCode open /><StartProgramme /></>
-      ) : (
-        <Section title="Your places">
-          <div className="oh-places">
-            {mem.member && mem.org ? (
-              <Link href="/ngo" className="oh-placecard">
-                <header><span className="oh-glyph" data-kind="ngo"><PawPrint size={16} aria-hidden /></span><div><b>{mem.org.name}</b><span>{mem.role ? ROLE_LABEL[{ admin: "lead", coordinator: "coordinator", veterinarian: "clinician", member: "field" }[mem.role] as keyof typeof ROLE_LABEL] : "Member"} · NGO</span></div></header>
-                <ul>
-                  <li><span className="oh-row-mark" data-tone="blue" aria-hidden /><span>Animal register, cases, treatment and release</span></li>
-                  {ngoPlace ? placeLines(ngoPlace).map((l) => <li key={l.text}><span className="oh-row-mark" data-tone={l.tone} aria-hidden /><span><b>{l.n}</b> {l.text}</span></li>) : null}
-                </ul>
-                <footer><span>{ngoPlace?.programmes.map((x) => x.name).join(", ") || "NGO workspace"}</span><ArrowRight size={16} aria-hidden /></footer>
-              </Link>
-            ) : null}
-            {mem.reviewer ? (
-              <Link href="/city/insights" className="oh-placecard">
-                <header><span className="oh-glyph" data-kind="municipal"><Building2 size={16} aria-hidden /></span><div><b>Municipal review office</b><span>Reviewer</span></div></header>
-                <ul><li><span className="oh-row-mark" data-tone="blue" aria-hidden /><span>NGO submissions, contracts and wards</span></li></ul>
-                <footer><span>Review submissions</span><ArrowRight size={16} aria-hidden /></footer>
-              </Link>
-            ) : null}
-            {cards.map((p) => {
-              const ls = placeLines(p);
-              return (
-                <Link key={p.organisation_id} href={placeHome(p)} className="oh-placecard">
-                  <header><Glyph kind={p.kind} /><div><b>{p.name}</b><span>{ROLE_LABEL[p.role]} · {KIND_LABEL[p.kind]}</span></div></header>
-                  {ls.length ? <ul>{ls.map((l) => <li key={l.text}><span className="oh-row-mark" data-tone={l.tone} aria-hidden /><span><b>{l.n}</b> {l.text}</span></li>)}</ul> : <p style={{ color: "var(--muted)", fontSize: 13.5 }}>Nothing waiting.</p>}
-                  <footer><span>{p.programmes.map((x) => x.name).join(", ")}</span><ArrowRight size={16} aria-hidden /></footer>
-                </Link>
-              );
-            })}
-          </div>
-          <InviteCode />
-          <StartProgramme />
-        </Section>
-      )}
+      <div className="dy">
+        <DailyHead name={name0} since={count ? (waiting ? <><b>{waiting} {waiting === 1 ? "thing" : "things"}</b> across your {count === 1 ? "place need" : `${count} places need`} you.</> : "Nothing is waiting for you in your places right now.") : undefined} />
+        {error ? <Failed error={error} retry={reload} /> : null}
+        {!count ? (
+          <><Empty title="You are not part of an organisation yet">Enter the invite code your coordinator gave you, or start a programme. An NGO can also <Link className="oh-btn quiet small" href="/partner-apply">register itself</Link>.</Empty><InviteCode open /><StartProgramme /></>
+        ) : (
+          <>
+            <NeedsYou rows={rows} />
+            <AskKaju questions={questions} />
+            <section className="dy-sec" aria-labelledby="dy-places-h">
+              <h2 id="dy-places-h" className="dy-h">Your places</h2>
+              <ul className="dy-list">
+                {mem.member && mem.org ? <li style={{ ["--j" as string]: 0 }}><Link href="/ngo"><span className="dy-sq" data-c="blue" aria-hidden><PawPrint size={10} strokeWidth={2.4} /></span><span className="dy-t"><span><b>{mem.org.name}</b></span><small>{mem.role ? ROLE_LABEL[{ admin: "lead", coordinator: "coordinator", veterinarian: "clinician", member: "field" }[mem.role] as keyof typeof ROLE_LABEL] : "Member"} · NGO</small></span><em className="dy-tag">NGO</em><span className="dy-go">Open<ArrowRight size={13} aria-hidden /></span></Link></li> : null}
+                {mem.reviewer ? <li style={{ ["--j" as string]: 1 }}><Link href="/city/insights"><span className="dy-sq" data-c="slate" aria-hidden><Building2 size={10} strokeWidth={2.4} /></span><span className="dy-t"><span><b>Municipal review office</b></span><small>Reviewer</small></span><em className="dy-tag">Review</em><span className="dy-go">Open<ArrowRight size={13} aria-hidden /></span></Link></li> : null}
+                {cards.map((p, i) => (
+                  <li key={p.organisation_id} style={{ ["--j" as string]: i + 2 }}><Link href={placeHome(p)}>
+                    <span className="dy-sq" data-c={SQ[p.kind] ?? "slate"} aria-hidden><PlaceIcon kind={p.kind} /></span>
+                    <span className="dy-t"><span><b>{p.name}</b></span><small>{ROLE_LABEL[p.role]} · {KIND_LABEL[p.kind]} · {p.programmes.map((x) => x.name).join(", ")}</small></span>
+                    <em className="dy-tag">{KIND_LABEL[p.kind]}</em>
+                    <span className="dy-go">Open<ArrowRight size={13} aria-hidden /></span>
+                  </Link></li>
+                ))}
+              </ul>
+              <InviteCode />
+              <StartProgramme />
+            </section>
+          </>
+        )}
+      </div>
     </Page>
   );
+}
+
+const SQ: Partial<Record<Kind, string>> = { hospital: "teal", clinic: "teal", laboratory: "violet", ngo: "blue", municipal: "slate", state: "slate", coordinator: "ink", research: "green", training: "amber" };
+function PlaceIcon({ kind }: { kind: Kind }) {
+  const I = kind === "hospital" || kind === "clinic" ? Stethoscope : kind === "laboratory" ? FlaskConical : kind === "ngo" ? PawPrint : kind === "coordinator" ? Gauge : Building2;
+  return <I size={10} strokeWidth={2.4} />;
 }
 
 /** An invitation from a hospital, laboratory or programme: the code their
