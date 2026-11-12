@@ -71,6 +71,27 @@
 
 .ct-field-error { color: #a8300f; margin: 0; font-size: 14px; }
 .ct-field [aria-invalid=true] { border-color: #a8300f; }
-.co3.precision .ct-field input, .co3.precision .ct-field textarea { font-size: 16px; }
-.co3.precision .ct-field label { font-size: 14px; }
-.co3.precision .ct-form { box-shadow: none; border-color: #c4ccd6; }
+/* The contact page on the site's page kit (src/sp4/site/kit.tsx): the form on a
+   pale tile, related routes beside it. */
+.s4-contact { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 64px; align-items: start; }
+.s4-contact-form { display: grid; gap: 16px; }
+.s4-contact .ct-form { padding: 32px; border: 0; border-radius: 16px; background: var(--s4-tile); box-shadow: none; gap: 16px; }
+.s4-contact .ct-form-head { padding-bottom: 0; border-bottom: 0; }
+.s4-contact .ct-form-head .ct-label { display: none; }
+.s4-contact .ct-form-head p:last-child { font-size: 14px; color: var(--s4-grey); }
+.s4-contact .ct-field label { font-size: 14px; font-weight: 500; color: var(--s4-ink); }
+.s4-contact .ct-field label span { color: var(--s4-mute); }
+.s4-contact .ct-field input, .s4-contact .ct-field textarea { min-height: 48px; padding: 12px 16px; border: 0; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 1px var(--s4-line-2); font: inherit; font-size: 16px; color: var(--s4-ink); }
+.s4-contact .ct-field input:focus, .s4-contact .ct-field textarea:focus { box-shadow: inset 0 0 0 2px var(--s4-blue); }
+.s4-contact .ct-field [aria-invalid=true] { box-shadow: inset 0 0 0 2px #a8300f; }
+.s4-contact .ct-actions button { height: 48px; min-height: 48px; padding: 0 24px; border-radius: 99px; background: var(--s4-blue); color: #fff; font: inherit; font-size: 16px; font-weight: 500; }
+.s4-contact .ct-actions button:hover { background: var(--s4-blue-2); }
+.s4-contact .ct-error { border-left: 0; border-radius: 12px; padding: 12px 16px; font-size: 14px; }
+.s4-contact .ct-success { border: 0; border-radius: 16px; background: var(--s4-tile); }
+.s4-contact .s4-small { font-size: 14px; color: var(--s4-mute); }
+.s4-contact .s4-small a { color: var(--s4-blue); text-decoration: underline; text-underline-offset: 3px; }
+.s4-contact-aside { display: grid; border-top: 1px solid var(--s4-line); }
+.s4-contact-aside p { border-bottom: 1px solid var(--s4-line); }
+.s4-contact-aside a { display: flex; align-items: center; min-height: 56px; font-size: 16px; color: var(--s4-ink); }
+.s4-contact-aside a:hover { color: var(--s4-blue); }
+@media (max-width: 860px) { .s4-contact { grid-template-columns: minmax(0, 1fr); gap: 40px; } .s4-contact .ct-form { padding: 16px; } }

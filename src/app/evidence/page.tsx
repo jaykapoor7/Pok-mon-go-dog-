@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { SitePage } from "@/components/site/SitePage";
+import { PageHead, S4Page, TwoTone } from "@/sp4/site/kit";
 import { StateExplorer, type StateRow } from "@/components/app/StateExplorer";
 import { ShareBand } from "@/components/system/ShareBand";
 import { buildStateRows } from "@/lib/platform/stateRows";
@@ -36,13 +36,15 @@ export default function EvidencePage() {
   })).filter((x) => x.items.length);
 
   return (
-    <SitePage
-      kicker="Evidence"
-      title={<>Why this exists: <em>the data doesn&rsquo;t.</em></>}
-      lede="India publishes a street-dog population for most states and almost nothing else. The numbers a programme is judged by are missing, and a missing number looks the same as a zero."
-      actions={<Link href="/map" className="product-primary">See what the record holds <ArrowUpRight size={16} /></Link>}
-    >
-      <div className="ev">
+    <S4Page close={false} className="s4-docpage">
+      <PageHead back
+        eyebrow="Evidence"
+        title={<TwoTone a="Why this exists:" b={<>the data doesn&rsquo;t.</>} />}
+        lede="India publishes a street-dog population for most states and almost nothing else. The numbers a programme is judged by are missing, and a missing number looks the same as a zero."
+        actions={<Link href="/community" className="s4-btn is-primary">See what the record holds <ArrowUpRight size={16} aria-hidden /></Link>}
+      />
+      <div className="s4-wrap s4-doc">
+      <div className="ev-body">
         <section className="ev-pair" aria-label="What is published">
           <div>
             <ShareBand height={14} total={total} legend={false} parts={[
@@ -103,6 +105,7 @@ export default function EvidencePage() {
           </ol>
         </details>
       </div>
-    </SitePage>
+      </div>
+    </S4Page>
   );
 }

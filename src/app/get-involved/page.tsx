@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { SitePage } from "@/components/site/SitePage";
+import { PageHead, S4Page, TwoTone } from "@/sp4/site/kit";
 import { ORGS, orgsForFocus, statesWithOrgs } from "@/lib/platform/orgs";
 import { STATE_BY_CODE } from "@/lib/platform/geography";
 import {
   VolunteerClient,
   type VolRoute,
 } from "@/components/app/VolunteerClient";
+import "./get-involved.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -93,37 +94,42 @@ export default function GetInvolvedPage() {
   })).filter((r) => r.orgs.length > 0);
 
   return (
-    <SitePage
-      kicker="Network / volunteer"
-      title={<>Pick the work. We&apos;ll name <em>who needs it.</em></>}
-      lede={
-        <>
-          Every route below lists organisations that do that specific work, with
-          a link to reach them directly. {ORGS.length} organisations across{" "}
-          {states.length} states and union territories. StrayPaw does not place
-          volunteers. You
-          contact the organisation, they decide.
-        </>
-      }
-      actions={
-        <Link href="/report" className="spa-cta">
-          + Report an animal
-        </Link>
-      }
-    >
-      <VolunteerClient routes={routes} states={states} />
+    <S4Page close={false} className="s4-docpage">
+      <PageHead back
+        eyebrow="Network / volunteer"
+        title={<TwoTone a={<>Pick the work. We&apos;ll name</>} b="who needs it." />}
+        lede={
+          <>
+            Every route below lists organisations that do that specific work, with
+            a link to reach them directly. {ORGS.length} organisations across{" "}
+            {states.length} states and union territories. StrayPaw does not place
+            volunteers. You
+            contact the organisation, they decide.
+          </>
+        }
+        actions={
+          <Link href="/community/report" className="s4-btn is-primary">
+            + Report an animal
+          </Link>
+        }
+      />
+      <div className="s4-wrap s4-doc">
+        <div className="vol">
+          <VolunteerClient routes={routes} states={states} />
 
-      <aside className="spa-note">
-        <div>
-          <b>If nothing here is near you.</b> The directory is not exhaustive. It lists organisations we could verify from published sources. Absence
-          from it means we have not listed them, not that nothing exists where
-          you are.{" "}
-          <Link href="/orgs" className="tlink">
-            Browse the full directory
-          </Link>{" "}
-          or report an animal to put your area on the map.
+          <aside className="vol-note">
+            <div>
+              <b>If nothing here is near you.</b> The directory is not exhaustive. It lists organisations we could verify from published sources. Absence
+              from it means we have not listed them, not that nothing exists where
+              you are.{" "}
+              <Link href="/community/organisations">
+                Browse the full directory
+              </Link>{" "}
+              or report an animal to put your area on the map.
+            </div>
+          </aside>
         </div>
-      </aside>
-    </SitePage>
+      </div>
+    </S4Page>
   );
 }

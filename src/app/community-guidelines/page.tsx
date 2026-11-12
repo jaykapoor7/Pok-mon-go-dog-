@@ -1,23 +1,23 @@
-import { InfoPage, H2 } from "@/components/info/InfoPage";
+import { DocPage } from "@/sp4/site/kit";
 
 export const metadata = { title: "Community Guidelines, StrayPaw", description: "What to report, how to describe an animal and its location, and what StrayPaw removes from the public record." };
 
 export default function GuidelinesPage() {
   return (
-    <InfoPage title="Community Guidelines">
+    <DocPage title="Community Guidelines">
       <p>
         StrayPaw works because of kind, careful contributors. A few simple
         guidelines keep the map useful and humane.
       </p>
-      <H2>Do</H2>
-      <ul className="list-disc space-y-1 pl-5">
+      <h2>Do</h2>
+      <ul>
         <li>Post clear photos of street animals and their location.</li>
         <li>Add honest notes, health, temperament, feeding routine.</li>
         <li>Flag dogs that genuinely need help so NGOs can act.</li>
         <li>Be gentle and patient with the dogs you photograph.</li>
       </ul>
-      <H2>Don&apos;t</H2>
-      <ul className="list-disc space-y-1 pl-5">
+      <h2>Don&apos;t</h2>
+      <ul>
         <li>Upload photos of people without consent.</li>
         <li>Pin exact private homes or share personal addresses.</li>
         <li>Post distressing imagery beyond what&apos;s needed to get help.</li>
@@ -27,6 +27,6 @@ export default function GuidelinesPage() {
         Content that breaks these guidelines may be removed. Use Report Content
         to flag anything that needs a look.
       </p>
-    </InfoPage>
+    </DocPage>
   );
 }

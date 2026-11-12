@@ -1,15 +1,16 @@
-.bh-proto { margin: 0 0 20px; padding: 12px 14px; border-radius: 10px; background: #fff7e6; color: #8a5a00; font-size: 14.5px; line-height: 1.5; }
-.bh-urgent { margin: 0 0 28px; padding: 18px 20px; border-radius: 14px; background: #fdecec; border: 1px solid #f3c4c4; }
-.bh-urgent h2 { margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #8f1d1d; }
-.bh-urgent ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; color: #4a1a1a; }
-.bh-call { margin: 12px 0 0; font-size: 16px; font-weight: 600; color: #8f1d1d; }
+/* Bite help, on the site's document column (DocPage in src/sp4/site/kit.tsx). */
+.bh-proto { padding: 12px 16px; border-radius: 8px; background: #fff7e6; color: #8a5a00; font-size: 14px; line-height: 1.5; }
+.bh-urgent { padding: 16px 24px; border-radius: 12px; background: #fdecec; }
+.s4-prose .bh-urgent h2 { margin: 0 0 8px; padding: 0; border: 0; font-size: 20px; font-weight: 600; color: #8f1d1d; }
+.s4-prose .bh-urgent ul { padding-left: 24px; display: grid; gap: 4px; color: #4a1a1a; }
+.s4-prose .bh-call { margin: 12px 0 0; font-size: 16px; font-weight: 600; color: #8f1d1d; }
 .bh-call a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.bh-steps { margin: 0 0 8px; padding-left: 22px; display: grid; gap: 10px; line-height: 1.6; }
-.bh-dont { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
-.bh-src { margin-top: 28px; font-size: 13px; color: #6b7486; }
-.bh-steps { list-style: decimal; }
+.s4-prose .bh-steps { padding-left: 24px; display: grid; gap: 12px; line-height: 1.6; }
+.s4-prose .bh-dont { padding-left: 24px; display: grid; gap: 4px; }
+.s4-prose .bh-src { margin-top: 24px; font-size: 14px; color: #6b7486; }
+.s4-prose .bh-steps { list-style: decimal; }
 .bh-steps li::marker { font-weight: 600; color: #0b1e3d; }
-.bh-dont, .bh-urgent ul { list-style: disc; }
+.s4-prose .bh-dont, .s4-prose .bh-urgent ul { list-style: disc; }
 
 /* Verified centres and the optional notice (src/oh/BiteFinder.tsx). */
 .bf { display: grid; gap: 16px; }

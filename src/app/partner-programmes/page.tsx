@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { CoShell, CoSec } from "@/components/co3/CoShell";
+import { Block, CloseInvite, PageHead, S4Page } from "@/sp4/site/kit";
 import { getPublicProgrammes, programmeCategory, programmeCompletedTotal, type PublicProgramme } from "@/lib/public-programmes";
 import archive from "@/data/partner-programmes-archive.json";
+import "./programmes.css";
 
 export const revalidate = 300;
 export const metadata = {
@@ -37,17 +38,18 @@ export default async function ProgrammesPage() {
   const ngos = [...new Map(rows.map((p) => [p.ngo_slug, { name: p.ngo_name, slug: p.ngo_slug, city: p.city }])).values()];
 
   return (
-    <CoShell seed={6} kicker="Programmes" title="Programmes with our partner NGOs."
-      lede={<>Sterilisation drives, vaccination and rescue care by {ngos.map((n, i) => <span key={n.slug}>{i ? " and " : ""}{n.name}{n.city ? ` in ${n.city}` : ""}</span>)}, recorded on StrayPaw.</>}>
-      <CoSec title="In numbers.">
-        <dl className="co3-figs">
+    <S4Page close={<CloseInvite />}>
+      <PageHead title="Programmes with our partner NGOs."
+        lede={<>Sterilisation drives, vaccination and rescue care by {ngos.map((n, i) => <span key={n.slug}>{i ? " and " : ""}{n.name}{n.city ? ` in ${n.city}` : ""}</span>)}, recorded on StrayPaw.</>} />
+      <Block title="In numbers.">
+        <dl className="s4-figs">
           <div><dt>Dogs sterilised</dt><dd>{fmt(sum("sterilisation"))}</dd></div>
           <div><dt>Dogs vaccinated</dt><dd>{fmt(sum("vaccination"))}</dd></div>
           <div><dt>Rescue requests</dt><dd>{fmt(sum("rescue"))}</dd></div>
         </dl>
-      </CoSec>
+      </Block>
       {ngos.map((n) => (
-        <CoSec key={n.slug} title={<>{n.name}{n.city && <small className="pg-city">{n.city}</small>}</>}>
+        <Block key={n.slug} title={<>{n.name}{n.city && <small>{n.city}</small>}</>}>
           <ul className="pg-list">
             {sorted.filter((p) => p.ngo_slug === n.slug).map((p) => {
               const f = figure(p), closed = programmeCompletedTotal(p);
@@ -63,12 +65,12 @@ export default async function ProgrammesPage() {
             })}
           </ul>
           {n.slug && <p><Link href={`/community/organisations/${n.slug}`}>{n.name} on StrayPaw</Link></p>}
-        </CoSec>
+        </Block>
       ))}
-      <CoSec title="Where the figures come from.">
+      <Block title="Where the figures come from.">
         <p>Each figure is counted from the organisation’s own field records on StrayPaw: one animal is counted once per programme, and a request is counted whether or not the animal was later identified. Open any programme for its dates, method and limits.{!live.length && <> Figures as captured on {archive.captured}.</>}</p>
         <p><Link href="/partner-apply">Bring your NGO’s programmes onto StrayPaw</Link></p>
-      </CoSec>
-    </CoShell>
+      </Block>
+    </S4Page>
   );
 }

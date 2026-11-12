@@ -1,33 +1,33 @@
-import { InfoPage, H2 } from "@/components/info/InfoPage";
+import { DocPage } from "@/sp4/site/kit";
 
 export const metadata = { title: "Safety, StrayPaw", description: "Staying safe around street animals, and when to call a local organisation or helpline instead of approaching." };
 
 export default function SafetyPage() {
   return (
-    <InfoPage title="Safety" eyebrow="Staying safe">
+    <DocPage title="Safety" eyebrow="Staying safe">
       <p>
         Helping street animals is wonderful, please stay safe while you do it,
         for your sake and theirs.
       </p>
-      <H2>Approaching dogs</H2>
-      <ul className="list-disc space-y-1 pl-5">
+      <h2>Approaching dogs</h2>
+      <ul>
         <li>Move slowly and let the dog approach you first.</li>
         <li>Never corner, chase, or wake a sleeping dog suddenly.</li>
         <li>Be extra cautious around mothers with puppies.</li>
         <li>Photograph from a comfortable distance, zoom rather than crowd.</li>
       </ul>
-      <H2>Injured or aggressive dogs</H2>
+      <h2>Injured or aggressive dogs</h2>
       <p>
         Do not attempt to handle a badly injured or frightened dog yourself.
         Mark it as &ldquo;Needs Help&rdquo; on the map and contact a trained
         rescue or an NGO. If you are bitten or scratched, wash the wound and
         seek medical advice about anti-rabies care promptly.
       </p>
-      <H2>Personal safety</H2>
+      <h2>Personal safety</h2>
       <p>
         Be aware of traffic and your surroundings while reporting, especially at
         night, and avoid sharing your own precise home location.
       </p>
-    </InfoPage>
+    </DocPage>
   );
 }
