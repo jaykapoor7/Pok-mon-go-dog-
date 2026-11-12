@@ -19,7 +19,8 @@ import {OperationsPanel} from "./OperationsPanel";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { ArrowUpRight, CalendarClock, CalendarDays, ChevronDown, MapPin } from "lucide-react";
+import { ArrowUpRight, CalendarClock, CalendarDays, ChevronDown, MapPin, Sparkles } from "lucide-react";
+import { useAi } from "@/sp3/ai/AiPanel";
 import { loadCaseFile, type CaseFile, type Neighbour } from "@/lib/case-file";
 import { isHistoricalCase, isStale } from "@/lib/ops";
 import { STATUS_META, type StatusClass } from "@/lib/register/taxonomy";
@@ -88,7 +89,7 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
           <span className="kr-chip" data-tone={TONE[status] ?? "plain"}><i aria-hidden />{STATUS_META[status]?.label ?? "Status not recorded"}</span>
           {imported ? <span className="kr-chip" data-tone="plain">Imported historical record</span> : null}
           {cohort === "decide" ? <span className="kr-chip" data-tone="amber">Waiting on a decision</span> : null}
-          <span className="kr-tools"><DeleteRecord kind="case" id={c.id} what="this case" compact={false} onDone={() => router.push("/ngo/work")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></span>
+          <span className="kr-tools"><AskAbout draft={`Add a note to ${reg.case_code ? shortCode(reg.case_code) : c.title ?? ""}: `} /><DeleteRecord kind="case" id={c.id} what="this case" compact={false} onDone={() => router.push("/ngo/work")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></span>
         </div>
         <h1 className="kr-title">{title}</h1>
         {reg.condition_text ? <p className="kr-lede">{reg.condition_text}</p> : null}
@@ -145,6 +146,13 @@ function Body({ file, onChanged }: { file: CaseFile; onChanged: () => Promise<vo
       </div>
     </article>
   );
+}
+
+/* Kaju on this record: the words already started in Kaju's line ("Add a note to SPC-…: "); the person finishes
+   them, Kaju prepares the note, and the person confirms it. Three steps, nothing saved without them. */
+function AskAbout({ draft }: { draft: string }) {
+  const ai = useAi();
+  return <button type="button" className="kr-ask" onClick={() => ai.prefill(draft)} disabled={ai.busy}><Sparkles size={13} aria-hidden />Note with Kaju</button>;
 }
 
 function Related({ title, rows }: { title: string; rows: Neighbour[] }) {

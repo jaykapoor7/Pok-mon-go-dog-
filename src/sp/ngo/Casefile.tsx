@@ -19,7 +19,8 @@ import {OperationsPanel} from './OperationsPanel';
 import { Identifiers } from "./Identifiers";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowUpRight, ChevronDown, Eye, HeartPulse, Lock, MapPin, Plus, Scissors, Syringe, UserRound } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Eye, HeartPulse, Lock, MapPin, Plus, Scissors, Sparkles, Syringe, UserRound } from "lucide-react";
+import { useAi } from "@/sp3/ai/AiPanel";
 import { getSupabase } from "@/lib/supabase";
 import { mapDog } from "@/lib/data";
 import { getAnimalTimeline, getMedicalEvents, type AnimalTimelineEvent } from "@/lib/animal-actions";
@@ -44,6 +45,7 @@ type Fu = { id: string; due_at: string; status: string; kind: string | null; not
 
 export function Casefile({ id, identifiers = false }: { id: string; identifiers?: boolean }) {
   const mem = useMembership();
+  const ai = useAi();
   const [dog, setDog] = useState<Dog | null | "missing" | "error">(null);
   const [cases, setCases] = useState<OrgCase[]>([]);
   const [care, setCare] = useState<MedicalEvent[]|null>(null);
@@ -89,7 +91,7 @@ export function Casefile({ id, identifiers = false }: { id: string; identifiers?
             <header className="ka-head">
               <div className="ka-photo"><Portrait src={dog.cover_photo || null} tag={shortId(dog.straypaw_id) ?? dog.id.slice(0, 6)} sensitive={!!dog.needs_help} size="l" /></div>
               <div className="ka-who">
-                <p className="ka-k"><Lock size={12} aria-hidden />Private to {mem.org?.name ?? "your organisation"}</p>
+                <p className="ka-k"><Lock size={12} aria-hidden />Private to {mem.org?.name ?? "your organisation"}{live?.case_code ? <button type="button" className="kr-ask" onClick={() => ai.prefill(`Follow up on ${shortCode(live.case_code)} tomorrow: `)} disabled={ai.busy}><Sparkles size={13} aria-hidden />Follow-up with Kaju</button> : null}</p>
                 <h1 className="kr-title">{animalTitle({ name: dog.name,city:dog.city,zone:dog.zone, straypaw_id: dog.straypaw_id ?? null, id: dog.id })}</h1>
                 <div className="kr-id">
                   <span className="kr-code" title={dog.straypaw_id ?? undefined}>{shortId(dog.straypaw_id) ?? "StrayPaw ID pending"}</span>

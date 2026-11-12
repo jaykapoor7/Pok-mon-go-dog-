@@ -36,14 +36,14 @@ import { KajuHub } from "@/sp/ngo/KajuHub";
 import { shortCode } from "@/lib/caseCode";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string; retry?:string; display?: string; fileName?: string };
-type Ctx = { open: boolean; toggle: () => void; setOpen: (v: boolean) => void; ask: (q: string, extra?: { display?: string; fileName?: string }) => void; msgs: Msg[]; busy: boolean; reset: () => void; stop:()=>void; model: boolean | null; scope:string|null; role:string|null; contextPath:string; scopeError:string|null; refreshScope:()=>void; revision:number; step:string|null };
+type Ctx = { open: boolean; toggle: () => void; setOpen: (v: boolean) => void; ask: (q: string, extra?: { display?: string; fileName?: string }) => void; msgs: Msg[]; busy: boolean; reset: () => void; stop:()=>void; model: boolean | null; scope:string|null; role:string|null; contextPath:string; scopeError:string|null; refreshScope:()=>void; revision:number; step:string|null; /** Words placed in the composer for the person to finish (from a record's Kaju button). */ draft:string|null; prefill:(t:string)=>void };
 const AiCtx = createContext<Ctx | null>(null);
 const KEY = "sp3.ai.thread";
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 export function useAi(): Ctx {
   const c = useContext(AiCtx);
-  return c ?? { open: false, toggle: () => {}, setOpen: () => {}, ask: () => {}, msgs: [], busy: false, reset: () => {}, stop:()=>{}, model: null,scope:null,role:null,contextPath:'/',scopeError:null,refreshScope:()=>{}, revision:0, step:null };
+  return c ?? { open: false, toggle: () => {}, setOpen: () => {}, ask: () => {}, msgs: [], busy: false, reset: () => {}, stop:()=>{}, model: null,scope:null,role:null,contextPath:'/',scopeError:null,refreshScope:()=>{}, revision:0, step:null, draft:null, prefill:()=>{} };
 }
 
 /** Kaju's pose, from the agent's real state. Never from a pretend result. */
@@ -186,7 +186,9 @@ function ScopedAiProvider({children,identity,access,refreshScope}:{children:Reac
     finally{window.clearTimeout(timer);if(live.current&&request.current===controller){locked.current=false;setBusy(false);setStep(null);request.current=null}}
   },[scope,storageKey,path,contextPath,identity,setMsgs,stop,refreshScope]);
   const cancel=useCallback(()=>{const pending=locked.current;stop();if(pending)setMsgs(m=>[...m,{id:uid(),role:'assistant',text:'Stopped waiting. No prepared action was confirmed.',reply:{text:'Stopped waiting. No prepared action was confirmed.',engine:'tools',tools:[],citations:[],proposals:[]}}])},[stop,setMsgs]);
-  const value=useMemo<Ctx>(()=>({open,setOpen,toggle:()=>setOpen(v=>!v),ask,msgs,busy,reset,stop:cancel,model,scope,role:access?.role??null,contextPath,scopeError:access?.error??null,refreshScope,revision,step}),[open,ask,msgs,busy,reset,cancel,model,scope,access?.role,access?.error,contextPath,refreshScope,revision,step]);
+  const [draft,setDraft]=useState<string|null>(null);
+  const prefill=useCallback((t:string)=>{setDraft(t);setOpen(true)},[]);
+  const value=useMemo<Ctx>(()=>({open,setOpen,toggle:()=>setOpen(v=>!v),ask,msgs,busy,reset,stop:cancel,model,scope,role:access?.role??null,contextPath,scopeError:access?.error??null,refreshScope,revision,step,draft,prefill}),[draft,prefill,open,ask,msgs,busy,reset,cancel,model,scope,access?.role,access?.error,contextPath,refreshScope,revision,step]);
   return <AiCtx.Provider value={value}>{children}{isRecordingDemo&&<DemoFileViewer/>}</AiCtx.Provider>;
 }
 
@@ -278,6 +280,8 @@ function Thread({ full = false }: { full?: boolean }) {
   const path = usePathname() ?? "/";
   const { user } = useAuth();
   const [q, setQ] = useState("");
+  /* A record's Kaju button places its words here; the person finishes them and sends. */
+  useEffect(() => { if (!ai.draft) return; setQ(ai.draft); window.setTimeout(() => { const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 60); }, [ai.draft]);
   const end = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const scroll = useRef<HTMLDivElement>(null);
