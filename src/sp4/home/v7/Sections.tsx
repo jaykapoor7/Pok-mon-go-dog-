@@ -168,12 +168,25 @@ export function Recurring() {
 }
 
 /* ── Integrated tools: one card open, the others expand on hover ──── */
+/* An email address inside an illustrative screen. www.straypaw.org is served
+   through Cloudflare, whose email obfuscation rewrites any address in the
+   server HTML into a protected link plus a decoding script, so the text the
+   browser holds no longer matches what React rendered: hydration fails (React
+   error 418) and the page is rebuilt on the client. The address is left out
+   of the server HTML and written in once the page has hydrated; what a
+   visitor sees is unchanged. */
+function MailAddress({ children }: { children: string }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+  return ready ? children : null;
+}
+
 type Tool = { key: string; name: string; logos: [string, string][]; /* [logo file or glyph, colour] */ line: string; demo: ReactNode; status: string };
 const TOOLS: Tool[] = [
   { key: "wa", name: "WhatsApp", logos: [["whatsapp-icon", "#1f9d55"]], line: "Paste or forward the group's messages and ask @kaju. It reads the thread, checks the register and prepares the records.", status: "Paste intake works today · direct connection awaits Meta approval",
     demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> what did the field team report today?</p><div className="s7-tans"><p><Check size={12} /> Read 38 messages from 5 people</p><table><thead><tr><th>Case</th><th>Ward</th><th>Status</th></tr></thead><tbody><tr><td>Brown female, limping</td><td>14</td><td>Draft</td></tr><tr><td>Pup with mange</td><td>9</td><td>Draft</td></tr><tr><td>Hit by auto, bleeding</td><td>12</td><td>Urgent</td></tr></tbody></table><p><b>Bottom line:</b> one urgent case on Canal Road. I drafted it and assigned Ravi, nearest.</p></div></div> },
   { key: "gw", name: "Google Workspace", logos: [["google-icon", "#1a73e8"], ["google-gmail", "#1a73e8"], ["google-drive", "#1a73e8"]], line: "Kaju reads registers in Sheets and Drive, drafts the Gmail to the municipal office and saves reports to Drive.", status: "Built · needs your administrator to connect it",
-    demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> email the October package to the municipal office</p><div className="s7-tans"><p><Check size={12} /> Drafted from the approved package</p><div className="s7-mail"><b>To:</b> abc.cell@municipal.gov.in<br /><b>Subject:</b> Ward 14 ABC claim · October 2026<br /><span>Attached: package.pdf, claim.xlsx</span></div><p><b>Waiting for you:</b> nothing is sent until you press Send.</p></div></div> },
+    demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> email the October package to the municipal office</p><div className="s7-tans"><p><Check size={12} /> Drafted from the approved package</p><div className="s7-mail"><b>To:</b> <MailAddress>abc.cell@municipal.gov.in</MailAddress><br /><b>Subject:</b> Ward 14 ABC claim · October 2026<br /><span>Attached: package.pdf, claim.xlsx</span></div><p><b>Waiting for you:</b> nothing is sent until you press Send.</p></div></div> },
   { key: "ms", name: "Microsoft 365", logos: [["microsoft-icon", "#0f6cbd"], ["microsoft-onedrive", "#0f6cbd"], ["excel", "#0f6cbd"]], line: "Excel registers, Word reports and PowerPoint reviews, read and written by Kaju in OneDrive.", status: "Built · needs your administrator to connect it",
     demo: <div className="s7-tchat"><p className="is-me"><u>@kaju</u> import last month&apos;s register from OneDrive and make the review slides</p><div className="s7-tans"><p><Check size={12} /> Read October_register.xlsx · 412 rows</p><table><thead><tr><th>Result</th><th>Rows</th><th>Next</th></tr></thead><tbody><tr><td>Matched to animals</td><td>398</td><td>Done</td></tr><tr><td>New animals</td><td>11</td><td>Draft</td></tr><tr><td>Possible duplicates</td><td>3</td><td>You decide</td></tr></tbody></table><p><Check size={12} /> Saved October review.pptx to OneDrive /StrayPaw</p></div></div> },
   { key: "xl", name: "Excel & CSV", logos: [["excel", "#1f7a45"]], line: "Bring the registers you already keep. Kaju imports them as they are and labels them until checked.", status: "Works today",
