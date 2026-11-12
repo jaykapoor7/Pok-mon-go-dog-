@@ -265,15 +265,21 @@ function NetworkMap({ facilities, referrals, selected, onSelect }: { facilities:
     const pins = markers.current;
     void Promise.all([import("maplibre-gl"), import("@/sp/map/ground")]).then(([ml, g]) => {
       if (gone || !el.current) return;
+      ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs"); /* without it the referral lines (GeoJSON) never load */
       const lng = placed.map((f) => f.lng!), lat = placed.map((f) => f.lat!);
       map = new ml.Map({ container: el.current, style: { ...g.groundStyle(), glyphs: g.GLYPHS }, bounds: [[Math.min(...lng) - 0.03, Math.min(...lat) - 0.03], [Math.max(...lng) + 0.03, Math.max(...lat) + 0.03]], fitBoundsOptions: { padding: 40 }, attributionControl: { compact: true }, cooperativeGestures: true });
       map.addControl(new ml.NavigationControl({ showCompass: false }), "top-right");
-      map.on("load", () => {
-        if (!map) return;
+      /* Referral lines need the style, not the base map's tiles: draw them as soon as the style is parsed. */
+      const lines = () => {
+        if (!map || map.getSource("ref")) return;
         const at = new Map(placed.map((f) => [f.id, [f.lng!, f.lat!] as [number, number]]));
         map.addSource("ref", { type: "geojson", data: { type: "FeatureCollection", features: referrals.filter((r) => at.has(r.from) && at.has(r.to)).map((r) => ({ type: "Feature", properties: { s: r.service }, geometry: { type: "LineString", coordinates: [at.get(r.from)!, at.get(r.to)!] } })) } });
         map.addLayer({ id: "ref", type: "line", source: "ref", paint: { "line-color": "#2457ce", "line-width": 1.6, "line-opacity": 0.55, "line-dasharray": [2, 2] } });
-      });
+      };
+      const tryLines = () => { try { lines(); } catch { /* not parsed yet */ } };
+      map.on("styledata", tryLines); map.once("load", tryLines);
+      /* the streets and water beneath the facilities, as on every map in the product */
+      map.on("styledata", () => { if (map && map.getLayer("ref") && !map.getLayer("g-land")) void g.drawGround(map, "ref"); });
       for (const f of placed) {
         const b = document.createElement("button");
         b.type = "button"; b.className = "oh-pin"; b.dataset.kind = f.kind; b.style.background = tone(f);

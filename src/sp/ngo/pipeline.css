@@ -61,7 +61,8 @@
 @media (max-width: 860px) {
   .pl { padding-top: 16px; }
   .pl-head .btn { display: none; }
-  .pl-board { grid-template-columns: repeat(5, 78vw); }
+  .pl-board { grid-template-columns: repeat(5, 84vw); scroll-snap-type: x mandatory; scroll-padding-inline: 16px; }
+  .pl-col { scroll-snap-align: start; }
 }
 
 

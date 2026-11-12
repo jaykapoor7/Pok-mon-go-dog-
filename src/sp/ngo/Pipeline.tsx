@@ -42,6 +42,15 @@ export function Pipeline() {
     const el = board.current?.querySelector<HTMLElement>(`[data-stage="${focus}"]`);
     el?.scrollIntoView({ block: "nearest", inline: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }, [focus, ready]);
+  /* On a phone the board shows one stage at a time: open it on the first stage that has work, not on an empty one. */
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || focus || !ready || !board.current || window.innerWidth > 860) return;
+    opened.current = true;
+    const first = cols.find((c) => (c.cards?.length ?? 0) > 0);
+    const el = first ? board.current.querySelector<HTMLElement>(`[data-stage="${first.id}"]`) : null;
+    if (el && el !== board.current.firstElementChild) board.current.scrollTo({ left: el.offsetLeft - board.current.offsetLeft - 16, behavior: "auto" });
+  }, [focus, ready, cols]);
 
   return (
     <NgoGate title="Pipeline" lede="Every record your team is working on, from the first report to the report you send.">

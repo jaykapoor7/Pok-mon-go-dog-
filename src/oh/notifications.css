@@ -3,7 +3,7 @@
 .sp-bell-btn { position: relative; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: #39445a; cursor: pointer; transition: background .15s ease, color .15s ease; }
 .sp-bell-btn:hover, .sp-bell-btn.is-on { background: #eef1f6; color: #0b1e3d; }
 .sp-bell-btn:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
-.sp-bell-badge { position: absolute; top: 3px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #d9481c; color: #fff; font: 600 12px/16px inherit; text-align: center; box-shadow: 0 0 0 2px #fff; animation: sp-bell-pop .4s cubic-bezier(.3, 1.4, .5, 1) both; }
+.sp-bell-badge { position: absolute; top: 3px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #d9481c; color: #fff; font-family: inherit; font-size: 12px; font-weight: 600; line-height: 16px; text-align: center; box-shadow: 0 0 0 2px #fff; animation: sp-bell-pop .4s cubic-bezier(.3, 1.4, .5, 1) both; }
 @keyframes sp-bell-pop { from { transform: scale(.4); opacity: 0; } }
 
 .sp-bell-panel { position: fixed; z-index: 90; top: 64px; right: 12px; width: min(400px, calc(100vw - 24px)); max-height: min(560px, calc(100dvh - 96px)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .08), 0 24px 56px -18px rgba(11, 30, 61, .38); overflow: hidden; transform-origin: top right; animation: sp-bell-in .22s cubic-bezier(.2, .8, .2, 1) both; }
@@ -30,7 +30,7 @@
 .sp-bell-dot[data-tone="flame"] { background: #d9481c; box-shadow: 0 0 0 3px rgba(217, 72, 28, .14); }
 .sp-bell-dot[data-tone="amber"] { background: #c98a12; }
 .sp-bell-dot[data-tone="green"] { background: #1f8a4c; }
-.sp-bell-ack { flex: none; height: 28px; margin-right: 8px; padding: 0 12px; border: 0; border-radius: 8px; background: #f2f4f8; color: #23304a; font: 500 12px/1 inherit; cursor: pointer; }
+.sp-bell-ack { flex: none; height: 28px; margin-right: 8px; padding: 0 12px; border: 0; border-radius: 8px; background: #f2f4f8; color: #23304a; font-family: inherit; font-size: 12px; font-weight: 500; line-height: 1; cursor: pointer; }
 .sp-bell-ack:hover:not(:disabled) { background: #e7ebf2; }
 .sp-bell-ack:disabled { opacity: .6; }
 .sp-bell-empty { display: grid; justify-items: center; gap: 4px; padding: 32px 24px 32px; text-align: center; }

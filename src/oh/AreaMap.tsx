@@ -105,6 +105,7 @@ function AreaMap({ areas, focus, onFocus, target }: { areas: Area[]; focus: stri
     let gone = false;
     void Promise.all([import("maplibre-gl"), import("@/sp/map/ground")]).then(([ml, g]) => {
       if (gone || !el.current) return;
+      ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs"); /* as every map in the app: the bundled worker URL does not resolve */
       const xs = drawn.flatMap((a) => a.ring!.map((p) => p[0])), ys = drawn.flatMap((a) => a.ring!.map((p) => p[1]));
       const map = new ml.Map({ container: el.current, style: { ...g.groundStyle(), glyphs: g.GLYPHS }, bounds: [[Math.min(...xs), Math.min(...ys)], [Math.max(...xs), Math.max(...ys)]], fitBoundsOptions: { padding: 48 }, attributionControl: { compact: true }, cooperativeGestures: true });
       mapRef.current = map;
@@ -126,7 +127,12 @@ function AreaMap({ areas, focus, onFocus, target }: { areas: Area[]; focus: stri
         map.on("mouseenter", "fill", () => { map.getCanvas().style.cursor = "pointer"; });
         map.on("mouseleave", "fill", () => { map.getCanvas().style.cursor = ""; });
       };
-      if (map.isStyleLoaded()) draw(); else { map.once("style.load", draw); map.once("load", draw); }
+      /* MapLibre calls the style "loaded" only once every tile source has answered; the layers only need the style itself. */
+      const tryDraw = () => { try { draw(); } catch { /* the style is not parsed yet: the next styledata event tries again */ } };
+      map.on("styledata", tryDraw); map.once("load", tryDraw); tryDraw();
+      /* the streets and water beneath, as on every map in the product; the data never waits for them */
+      const ground = () => { if (map.getLayer("fill") && !map.getLayer("g-land")) void g.drawGround(map, "fill"); };
+      map.on("styledata", ground);
     });
     return () => { gone = true; mapRef.current?.remove(); mapRef.current = null; };
   }, [drawn, target, onFocus]);

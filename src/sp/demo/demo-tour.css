@@ -32,9 +32,9 @@
 .dt-kaju:active:not(:disabled) { transform: scale(.98); }
 .dt-kaju:disabled { opacity: .7; cursor: default; }
 .dt-act { display: flex; gap: 8px; margin-top: 4px; }
-.dt-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px;
+.dt-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; min-height: 40px; padding: 0 16px; border: 0; border-radius: 12px;
   background: #f2f5fc; color: var(--dt-ink); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: transform .12s ease, background .15s ease; }
-.dt-btn.is-back { flex: none; width: 44px; padding: 0; }
+.dt-btn.is-back { flex: none; width: 40px; padding: 0; }
 .dt-btn.is-go { flex: 1 1 0; padding-block: 8px; background: var(--dt-blue); color: #fff; line-height: 1.25; text-align: center; box-shadow: 0 10px 22px -12px rgba(36, 87, 206, .8); }
 .dt-btn:hover:not(:disabled) { background: #e5ebf8; }
 .dt-btn.is-go:hover:not(:disabled) { background: #1d49b0; }
@@ -97,11 +97,17 @@
   .dt-foot { justify-content: flex-end; margin-top: -4px; }
   .dt-roles summary { min-height: 32px; }
   .dt .dt-hint { padding: 8px 12px; font-size: 14px; }
-  .dt-btn { min-height: 42px; }
+  .dt-btn { min-height: 48px; }
+  .dt-btn.is-back { width: 48px; }
   .dt { left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); width: auto; max-height: 52dvh; padding: 12px 16px; gap: 8px; border-radius: 16px; }
   .dt.has-tabs, .dt-pill.has-tabs { bottom: calc(72px + env(safe-area-inset-bottom)); }
   .dt h2 { font-size: 16px; }
   .dt p { font-size: 14px; }
+  /* On a phone the card keeps the title, the one thing to do and the buttons; the explanation is three lines at most. */
+  .dt > p:not(.dt-who) { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+  .dt-who { display: none; }
+  /* Kaju opens as a sheet from the bottom: the card waits behind it and comes back when Kaju closes. */
+  html:has(.ai3-panel) .dt, html:has(.ai3-panel) .dt-pill { display: none; }
   .dt-pill { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
   .dt-resume span { display: none; }
 }
