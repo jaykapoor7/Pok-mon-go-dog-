@@ -146,6 +146,25 @@ The floating menu from #67 left a mostly empty gutter and a sheet with margins o
 
 Next in this brief, not yet done: inner pages rebuilt (Queue, Intake, Sign-off list, Animals, Reports), onboarding.
 
+## 12 Nov: inner pages rebuilt on one page pattern (after #70)
+
+PR #70 (the console and Home) merged as `21f16b75`.
+
+Owner: "the inner pages once you click on side bar need to be reworked... all workflows and how a page works and what's on it needs to be rethought too, don't reuse old ones".
+
+`src/sp/ui/Page.tsx` + `page.css` is one pattern for every screen behind the menu: a head (what the page is, what is on it now, its actions), lanes whose marker glides to the chosen one, rows that state what each record needs next, and an evidence meter.
+
+| Page | How it works now | Status |
+|---|---|---|
+| Sign-off & evidence | Three lanes by who a record is waiting on: **Waiting on you**, **With others**, **Reported** (it opens on yours). Each row says the next step and who does it ("Next: add release place · Field team"). A stage in the address still narrows the list, with one "Show everything" | Done, staging |
+| Animals | Lenses the programme asks about first (All, Needs help, Not sterilised, Not vaccinated); three-state marks that never blur (done, recorded as not done, not recorded); the animal under the pointer or keyboard is shown beside the list before it is opened | Done, staging |
+| Reports | Left: the month in hand (what can be claimed, what blocks the rest, the one button). Right: every package with its three steps (prepared, with the reviewing office, accepted) | Done, staging |
+| Intake | Channels as lanes with counts; a report is ticked, not opened; the panel names the two things a report can become (a case for the team, an entry in a drive) and enables the one that fits | Done, staging |
+
+Found while building: three of my new class names collided with existing ones (`.sr` earlier, then `.pg-*` with the programmes pages and `.rp` with the route line, which made Reports invisible). Renamed to `.vw-*` and `.rpt-*`; every new class name is now checked against the codebase before use.
+
+Still to rebuild: the Queue (list, map and inspector), Decisions, Field mode's capture flow, the programme places, onboarding.
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.

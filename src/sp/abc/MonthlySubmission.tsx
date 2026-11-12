@@ -124,7 +124,7 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
 
       </>}
 
-      {canPrepare && office && pv && already && <p className="ms-done"><Check size={14} aria-hidden /> The {b.label} package is prepared. <a href="#ms-packages">See it below</a></p>}
+      {canPrepare && office && pv && already && <p className="ms-done"><Check size={14} aria-hidden /> The {b.label} package is prepared. <a href="#ms-packages">See it in Packages</a></p>}
       {canPrepare && office && ready && <button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => void prepare()}>{busy ? "Preparing and checking…" : `Prepare ${already ? "another" : "the"} ${b.label} package · ₹${pv?.total}`}</button>}
       {err && <p role="alert" className="ms-err">{err}</p>}
     </section>

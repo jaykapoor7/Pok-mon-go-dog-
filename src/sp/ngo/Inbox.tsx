@@ -15,11 +15,12 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ClipboardPaste, MessageCircle } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { orgCampaigns, orgIncoming, KIND_LABEL, type CampaignStats, type Incoming } from "@/lib/campaigns";
 import { useMembership } from "../shell/Shell";
 import { Portrait } from "../ui/Portrait";
-import { Ack, State, n, since, PageBrief } from "../ui";
+import { Ack, n, since } from "../ui";
+import { Empty, PageHead, Seg } from "../ui/Page";
 import { fileReports, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import { isRecordingDemo } from "@/lib/recording-demo";
@@ -28,6 +29,7 @@ import { WhatsAppInbox } from "./WhatsAppInbox";
 import { useAuth } from "@/components/auth/AuthProvider";
 import "./ngo.css";
 import "./whatsapp.css";
+import "./intake2.css";
 
 type Source = "ours" | "community";
 const MOOD: Record<string, string> = { injured: "Injured", sick: "Unwell", scared: "Scared", aggressive: "Defensive", friendly: "Friendly", hungry: "Hungry", puppy: "Puppy" };
@@ -66,77 +68,81 @@ export function Inbox() {
     if (r.ok) { await load(src); orgCampaigns().then(setDrives).catch(() => {}); }
   };
 
+  type Channel = Source | "whatsapp";
+  const channel: Channel = wa ? "whatsapp" : src;
+  const setChannel = (c: Channel) => { setReceipt(null); if (c === "whatsapp") setWa(true); else { setWa(false); setSrc(c); } };
+  const waiting = (counts.ours ?? 0) + (counts.community ?? 0);
+
   return (
     <NgoGate title="Intake" lede="Reports that have arrived, prepared by Kaju, waiting for a person to decide what they become.">
-      <div className="ngo-page ib">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · intake</p><h1 className="serif">Intake</h1></div>
-          <p className="ngo-sum">Reports from WhatsApp, the web and residents near you.</p>
-        </header>
-        <PageBrief items={[["For", "Reports waiting for a person: sent to you, and community reports near you."], ["Watch", "Injured or unwell first."], ["Next", "File into a drive, or open a case."], ["After", "It leaves the inbox; the reporter’s receipt still says received, not accepted."]]} />
-        <div className="ib-grid">
-          <label className="ib-mobile-source"><span className="label">Show</span><select className="select" value={wa ? "whatsapp" : src} onChange={e => { const v = e.target.value; setReceipt(null); if (v === "whatsapp") setWa(true); else { setWa(false); setSrc(v as Source); } }}><option value="whatsapp">WhatsApp</option><option value="ours">Sent to you ({counts.ours ?? "…"})</option><option value="community">Community in your areas ({counts.community ?? "…"})</option></select></label>
-          <nav className="ib-channels" aria-label="Channels">
-            <p className="k">Channels</p>
-            {(["ours", "community"] as Source[]).map((s) => (
-              <button key={s} type="button" className={`ib-ch${src === s && !wa ? " is-on" : ""}`} aria-pressed={src === s && !wa} onClick={() => { setWa(false); setSrc(s); setReceipt(null); }}>
-                <span className="ib-dot is-live" aria-hidden /><span><b>{s === "ours" ? "Sent to you" : "Community, in your places"}</b><small>{s === "ours" ? "Web and app reports your team or volunteers sent" : "Residents' reports near your areas"}</small></span><em className="mono">{counts[s] === null ? "…" : n(counts[s]!)}</em>
-              </button>
-            ))}
-            <button type="button" className={`ib-ch${wa ? " is-on" : ""}`} aria-pressed={wa} onClick={() => { setWa(true); setReceipt(null); }}>
-              <span className="ib-dot is-live" aria-hidden /><span><b><MessageCircle size={13} aria-hidden /> WhatsApp</b><small>Photos, voice notes and locations from your team and residents</small></span>
-            </button>
-          </nav>
+      <div className="vw ik">
+        <PageHead title="Intake"
+          sum={counts.ours === null || counts.community === null ? "Reports from the web, the app, WhatsApp and residents near you." : waiting === 0 ? "No report is waiting for a person." : <><b>{n(waiting)}</b> {waiting === 1 ? "report is" : "reports are"} waiting for a person to decide what {waiting === 1 ? "it becomes" : "they become"}.</>} />
 
-          {wa ? <div className="wa-span">{isRecordingDemo ? <WhatsAppIntake /> : <WhatsAppInbox admin={mem.role === "admin"} />}</div> : <>
-          <section className="ib-list" aria-label="Reports">
-            <div className="wk-tools">
-              <button type="button" className="chip" aria-pressed={helpOnly} onClick={() => setHelpOnly((v) => !v)}>Injured or unwell only</button>
-              {shown.length > 0 && <button type="button" className="chip" onClick={() => setPicked(picked.size === shown.length ? new Set() : new Set(shown.map((r) => r.id)))}>{picked.size === shown.length ? "Clear the selection" : `Select all ${shown.length}`}</button>}
-            </div>
-            {rows === null && <div className="stack" style={{ padding: 20 }}>{[0, 1, 2, 3].map((i) => <div key={i} className="skel" style={{ height: 96 }} />)}</div>}
-            {rows !== null && !shown.length && <State art="ngo-empty" title={helpOnly ? "No injured or unwell report" : src === "ours" ? "Nothing sent to you is waiting" : "No community report waiting near you"}>{null}</State>}
-            <ul className="ib-rows">
-              {shown.map((r) => {
-                const help = (r.mood_tags ?? []).some((m) => m === "injured" || m === "sick");
-                return (
-                  <li key={r.id} className={`ib-row${picked.has(r.id) ? " is-on" : ""}${help ? " is-help" : ""}`}>
-                    <label className="ib-pick"><input type="checkbox" checked={picked.has(r.id)} onChange={() => toggle(r.id)} aria-label={`Select the report from ${r.zone ?? "an unknown place"}`} /></label>
-                    <Portrait src={r.photo_url} tag={r.nickname ?? "Report"} sensitive size="s" />
-                    <div className="ib-main">
-                      <p><b>{r.nickname ? `“${r.nickname}”` : help ? "An animal needing help" : "A sighting"}</b>{r.zone ? <> · {r.zone}</> : <> · <i>place not given</i></>}</p>
-                      {r.notes && <p className="small ib-note">{r.notes}</p>}
-                      <div className="row" style={{ ["--g" as string]: "6px" }}>
-                        {(r.mood_tags ?? []).map((m) => <span key={m} className={`pill ${m === "injured" || m === "sick" ? "is-urgent" : "is-plain"}`}>{MOOD[m] ?? m}</span>)}
-                        {r.sterilisation_status && r.sterilisation_status !== "unknown" && <span className="pill">{r.sterilisation_status === "sterilised" ? "Ear notch seen" : "No notch seen"}</span>}
-                      </div>
-                    </div>
-                    <p className="ib-meta small">{since(r.created_at)}<br />{r.reported_by}{r.lat && r.lng ? <><br />pinned</> : null}</p>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-
-          <aside className={`ib-act${picked.size ? "" : " is-empty"}`} aria-label="Decide">
-            <p className="k">Decide</p>
-            <h2 className="h3">{picked.size ? `${picked.size} report${picked.size === 1 ? "" : "s"} chosen` : "Choose reports"}</h2>
-            {one ? (
-              <Link className="btn is-flame" href={`/ngo/cases/new?${new URLSearchParams({ ...(one.lat && one.lng ? { lat: String(one.lat), lng: String(one.lng) } : {}), ...(one.zone ? { zone: one.zone } : {}), title: (one.mood_tags ?? []).includes("injured") ? "Injured animal reported" : "Reported animal", note: one.notes ?? "" }).toString()}`}>Open a case from it</Link>
-            ) : <p className="small">Choose one report to open a case from it. Its place and words carry over; you confirm them.</p>}
-            <div className="ib-file">
-              <label className="field"><span className="label">Or file into a drive</span>
-                <select className="select" value={drive} onChange={(e) => setDrive(e.target.value)}><option value="">Choose a drive…</option>{drives.map((d) => <option key={d.id} value={d.id}>{d.name} · {KIND_LABEL[d.kind]}</option>)}</select>
-              </label>
-              <label className="row small" style={{ ["--g" as string]: "8px" }}><input type="checkbox" checked={claim} onChange={(e) => setClaim(e.target.checked)} /> Register the animals as ours</label>
-              <button type="button" className="btn is-ink" disabled={!picked.size || !drive || busy} onClick={() => void file()}>{busy ? "Filing…" : `File ${picked.size || ""} into the drive`}</button>
-              {!drives.length && <p className="small">No drive yet. <Link className="link" href="/ngo/programmes">Start one in Programmes</Link>.</p>}
-            </div>
-            <div aria-live="polite">{busy ? <Ack state="pending">Sending to the record…</Ack> : receipt ? (receipt.ok ? <Ack state="saved">{receipt.what}</Ack> : <Ack state="failed">Not filed: {receipt.error}</Ack>) : null}</div>
-            <p className="small">Filing records each animal&rsquo;s observed status in the drive. It does not say the animal was treated.</p>
-          </aside>
-          </>}
+        <div className="vw-bar">
+          <Seg<Channel> label="Where reports came from" value={channel} onChange={setChannel} options={[
+            { id: "ours", label: "Sent to you", count: counts.ours },
+            { id: "community", label: "Community near you", count: counts.community },
+            { id: "whatsapp", label: "WhatsApp" },
+          ]} />
+          {!wa && <div className="ik-tools">
+            <button type="button" className="ik-chip" aria-pressed={helpOnly} onClick={() => setHelpOnly((v) => !v)}>Injured or unwell only</button>
+            {shown.length > 0 && <button type="button" className="ik-chip" onClick={() => setPicked(picked.size === shown.length ? new Set() : new Set(shown.map((r) => r.id)))}>{picked.size === shown.length ? "Clear the selection" : `Select all ${shown.length}`}</button>}
+          </div>}
         </div>
+
+        {wa ? <div className="ik-wa">{isRecordingDemo ? <WhatsAppIntake /> : <WhatsAppInbox admin={mem.role === "admin"} />}</div> : (
+          <div className="ik-split">
+            <section aria-label="Reports">
+              {rows === null && <div className="ik-skel" aria-hidden>{[0, 1, 2].map((i) => <i key={i} className="skel" />)}</div>}
+              {rows !== null && !shown.length && <Empty title={helpOnly ? "No injured or unwell report" : src === "ours" ? "Nothing sent to you is waiting" : "No community report is waiting near you"}>{helpOnly ? "Turn the filter off to see every report." : "When a report arrives it appears here, and on the board under New."}</Empty>}
+              <ul className="ik-list">
+                {shown.map((r, j) => {
+                  const help = (r.mood_tags ?? []).some((m) => m === "injured" || m === "sick");
+                  return (
+                    <li key={r.id} style={{ ["--j" as string]: j }}>
+                      <label className={`ik-row${picked.has(r.id) ? " is-on" : ""}${help ? " is-help" : ""}`}>
+                        <input type="checkbox" checked={picked.has(r.id)} onChange={() => toggle(r.id)} aria-label={`Choose the report from ${r.zone ?? "an unknown place"}`} />
+                        <span className="ik-check" aria-hidden><Check size={12} strokeWidth={3} /></span>
+                        <Portrait src={r.photo_url} tag={r.nickname ?? "Report"} sensitive size="s" />
+                        <span className="ik-main">
+                          <b>{r.nickname ? `“${r.nickname}”` : help ? "An animal needing help" : "A sighting"}</b>
+                          <small>{r.zone ?? "Place not given"} · {since(r.created_at)} · {r.reported_by}{r.lat && r.lng ? " · pinned on the map" : ""}</small>
+                          {r.notes && <span className="ik-note">{r.notes}</span>}
+                          {((r.mood_tags ?? []).length > 0 || (r.sterilisation_status && r.sterilisation_status !== "unknown")) && <span className="ik-tags">
+                            {(r.mood_tags ?? []).map((m) => <span key={m} className="vw-tag" data-tone={m === "injured" || m === "sick" ? "flame" : undefined}>{MOOD[m] ?? m}</span>)}
+                            {r.sterilisation_status && r.sterilisation_status !== "unknown" && <span className="vw-tag">{r.sterilisation_status === "sterilised" ? "Ear notch seen" : "No notch seen"}</span>}
+                          </span>}
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+
+            {/* What a chosen report becomes: a case for the team, or an entry in a drive. Nothing else. */}
+            <aside className="ik-decide" aria-label="Decide">
+              <h2>{picked.size ? `${picked.size} ${picked.size === 1 ? "report" : "reports"} chosen` : "Choose a report"}</h2>
+              <p className="ik-lede">{picked.size ? "A report becomes one of two things." : "Tick one or more on the left. Each becomes one of two things."}</p>
+              <div className={`ik-way${one ? " is-ready" : ""}`}>
+                <b>A case for your team</b>
+                <p>For an animal that needs someone to go. Its place and words carry over; you confirm them.</p>
+                {one ? <Link className="ik-go" href={`/ngo/cases/new?${new URLSearchParams({ ...(one.lat && one.lng ? { lat: String(one.lat), lng: String(one.lng) } : {}), ...(one.zone ? { zone: one.zone } : {}), title: (one.mood_tags ?? []).includes("injured") ? "Injured animal reported" : "Reported animal", note: one.notes ?? "" }).toString()}`}>Open a case from it <ArrowRight size={14} aria-hidden /></Link>
+                  : <span className="ik-hint">{picked.size > 1 ? "Choose exactly one report to open a case." : "Choose one report."}</span>}
+              </div>
+              <div className={`ik-way${picked.size && drive ? " is-ready" : ""}`}>
+                <b>An entry in a drive</b>
+                <p>For sightings that belong to a vaccination or sterilisation drive. Filing records what was seen, not that the animal was treated.</p>
+                <select className="ik-sel" value={drive} onChange={(e) => setDrive(e.target.value)} aria-label="Drive"><option value="">Choose a drive…</option>{drives.map((d) => <option key={d.id} value={d.id}>{d.name} · {KIND_LABEL[d.kind]}</option>)}</select>
+                <label className="ik-claim"><input type="checkbox" checked={claim} onChange={(e) => setClaim(e.target.checked)} /> Register the animals as ours</label>
+                <button type="button" className="ik-go is-quiet" disabled={!picked.size || !drive || busy} onClick={() => void file()}>{busy ? "Filing…" : `File ${picked.size || ""} into the drive`}</button>
+                {!drives.length && <span className="ik-hint">No drive yet. <Link href="/ngo/programmes">Start one</Link>.</span>}
+              </div>
+              <div aria-live="polite">{busy ? <Ack state="pending">Sending to the record…</Ack> : receipt ? (receipt.ok ? <Ack state="saved">{receipt.what}</Ack> : <Ack state="failed">Not filed: {receipt.error}</Ack>) : null}</div>
+            </aside>
+          </div>
+        )}
       </div>
     </NgoGate>
   );
