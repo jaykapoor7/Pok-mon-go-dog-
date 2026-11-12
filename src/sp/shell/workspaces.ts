@@ -727,7 +727,7 @@ export function lastWorkspace():WorkspaceId|null{try{const v=sessionStorage.getI
 const N=(href:string,label:string,icon:string,extra:Partial<NavItem>={}):NavItem=>({href,label,icon,...extra});
 export function designedNav(ws:WorkspaceId,role:Role|null,reviewer=false):NavItem[]|null{
  const on=(n:NavItem)=>canDiscover(n,role,reviewer);
- const W='Work';
+ const W='Modules';
  if(ws==='ngo'){
   /* One line of work: the board, and its working views (cases, intake, sign-off and evidence, decisions). */
   const pipeline=N('/ngo/pipeline','Pipeline','list',{section:W,short:'Pipeline',match:['/ngo/work','/ngo/cases','/ngo/inbox','/ngo/verification','/ngo/review']});

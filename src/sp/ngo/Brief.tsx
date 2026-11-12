@@ -11,12 +11,12 @@
    invented, and empty sections say so plainly.
    ════════════════════════════════════════════════════════════════════ */
 
-import { ProgrammeStrip } from "@/oh/ProgrammeStrip";
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { Fragment, useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, Check, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, PawPrint, ShieldCheck, TriangleAlert, UserPlus, X } from "lucide-react";
-import { KajuFace } from "@/kaju/Kaju";
+import { ArrowRight, ArrowRightLeft, ArrowUp, Check, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, PawPrint, ShieldCheck, Sparkles, TriangleAlert, UserPlus, X } from "lucide-react";
+import { useAi } from "@/sp3/ai/AiPanel";
+import { placeHome, usePlaces } from "@/oh/places";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
 import { DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
@@ -28,6 +28,7 @@ import { KajuPrepared } from "./KajuPrepared";
 import { Journey } from "./Journey";
 import "../abc/abc.css";
 import "./brief.css";
+import "./daily.css";
 
 const H = 3_600_000, DAY = 24 * H;
 const ago = (iso: string | null) => {
@@ -47,6 +48,8 @@ type Data = { open: OpenCase[]; due: DueFollowup[]; counts: OpsCounts | null; cl
 export function Brief() {
   const { user, ready } = useAuth();
   const mem = useMembership();
+  const { places } = usePlaces();
+  const ngoPlace = mem.org ? places.find((x) => x.kind === "ngo" && x.ngo_id === mem.org!.id) ?? null : null;
   const member = !!user && mem.member;
   const [d, setD] = useState<Data | null>(null);
   const [failed, setFailed] = useState(false);
@@ -113,89 +116,105 @@ export function Brief() {
   const hideSetup = () => { setSetupHidden(true); try { localStorage.setItem("sp.setup.hidden", "1"); } catch { /* fine */ } };
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Kolkata" });
 
-  /* Home is three things, in this order, and nothing else above the fold:
-       1. the one thing to do first, with its one action;
-       2. the line of work, as it stands (each stage opens the board there);
-       3. at most three other things that are waiting.
-     What changed since yesterday is one sentence; Kaju's prepared work is one fold. */
+  /* Home, as the product demo shows it: the greeting and one sentence on
+     what changed; what needs a person today, each row with its colour and
+     tag; a line to ask Kaju; the line of work as it stands; Kaju's prepared
+     work folded away. */
+  const partner = ngoPlace ? { key: "partners", href: placeHome(ngoPlace), tone: ngoPlace.handoffs_overdue ? "flame" : "blue", icon: <ArrowRightLeft size={10} strokeWidth={2.4} />, title: <><b>{ngoPlace.handoffs_open ? plural(ngoPlace.handoffs_open, "request") : "No requests"}</b> from programme partners</>, meta: ngoPlace.programmes.map((x) => x.name).join(", "), tag: ngoPlace.handoffs_overdue ? `${ngoPlace.handoffs_overdue} overdue` : ngoPlace.handoffs_open ? "Waiting" : "Clear", verb: "Answer" } as Row : null;
+  const list: Row[] = [...(next ? [next] : []), ...(partner && ngoPlace?.handoffs_open ? [partner] : []), ...rest].slice(0, 6);
+  const more = Math.max(0, todo.length + (partner && ngoPlace?.handoffs_open ? 1 : 0) - list.length);
+
   return (
-    <div className={`hm${role ? ` is-${role}` : ""}`}>
-      <header className="hm-head">
-        <p className="hm-date">{today}</p>
-        <h1 className="br-hello hm-hello">{greeting()}, {first}.</h1>
-        {failed ? <p className="hm-since">Home could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/pipeline">pipeline</Link>.</p>
-          : !d ? <div className="br-skel" aria-hidden><i /><i /></div>
-          : <p className="hm-since">{(() => {
+    <div className={`dy hm${role ? ` is-${role}` : ""}`}>
+      <header className="dy-head hm-head">
+        <h1 className="br-hello dy-hello">{greeting()}, {first}.<span>Here is your daily brief.</span></h1>
+        {failed ? <p className="dy-since">Home could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/pipeline">pipeline</Link>.</p>
+          : !d ? <div className="dy-skel" aria-hidden><i /><i /></div>
+          : <p className="dy-since"><span className="dy-date">{today}.</span> {(() => {
               const v = (k: string, x: number) => d.unavailable.includes(k) ? null : x;
               const parts: ReactNode[] = [];
               const add = (n: number | null, one: string, many: string) => { if (n) parts.push(<b>{n} {n === 1 ? one : many}</b>); };
-              add(fresh.length, "record new or updated", "records new or updated");
-              add(v("recent changes", closedNew.length), "case closed", "cases closed");
-              add(v("follow-ups", nOverdue), "follow-up overdue", "follow-ups overdue");
+              add(fresh.length, "record was new or updated", "records were new or updated");
+              add(v("recent changes", closedNew.length), "case was closed", "cases were closed");
+              add(v("follow-ups", nOverdue), "follow-up is overdue", "follow-ups are overdue");
               const live = v("counts", nLive);
-              return parts.length ? <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? " and " : ", ")}{p}</Fragment>)}.{live !== null ? <> {live} {live === 1 ? "case is" : "cases are"} live.</> : null}</>
-                : <>Nothing changed since yesterday.{live !== null ? <> {live} {live === 1 ? "case is" : "cases are"} live.</> : null}</>;
+              return parts.length ? <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? " and " : ", ")}{p}</Fragment>)}.{live !== null ? <> <b>{live} {live === 1 ? "case is" : "cases are"} live.</b></> : null}</>
+                : <>Nothing changed since yesterday.{live !== null ? <> <b>{live} {live === 1 ? "case is" : "cases are"} live.</b></> : null}</>;
             })()}</p>}
       </header>
 
-      {d && <>
-        {d.unavailable.length > 0 && <p role="status" className="br-warn">Some parts could not be read: {d.unavailable.join(", ")}. Open the pipeline to retry.</p>}
+      {d && d.unavailable.length > 0 && <p role="status" className="dy-warn">Some parts could not be read: {d.unavailable.join(", ")}. Open the pipeline to retry.</p>}
 
-        <section className="hm-first" aria-labelledby="hm-first-k">
-          <p id="hm-first-k" className="hm-k">{todo.length ? "First" : next ? "Ready when you are" : "Nothing is waiting"}</p>
-          {next ? (
-            <Link href={next.href} className={`hm-card t-${next.tone}`}>
-              <span className="hm-card-t">{typeof next.title === "string" ? <b>{next.title}</b> : next.title}</span>
-              <small>{next.meta}</small>
-              <span className="hm-card-go">{next.verb ?? "Open"} <ArrowRight size={15} aria-hidden /></span>
-            </Link>
-          ) : <p className="hm-clear"><Check size={16} aria-hidden /> {isVet ? "Nothing is waiting for your sign-off." : "You are all caught up."}</p>}
-        </section>
+      {d && <section className="dy-sec hm-first" aria-labelledby="dy-now-h">
+        <h2 id="dy-now-h" className="dy-h">{list.length ? "Needs you today" : "Today"}</h2>
+        {list.length ? (
+          <ul className="dy-list">{list.map((r, i) => (
+            <li key={r.key} style={{ ["--j" as string]: i }} className={i === 0 ? "is-first" : undefined}><Link href={r.href}>
+              <span className="dy-sq" data-c={r.tone} aria-hidden>{r.icon}</span>
+              <span className="dy-t"><span>{r.title}</span><small>{r.meta}</small></span>
+              <em className="dy-tag" data-c={r.tone}>{r.tag ?? TAG[r.tone] ?? "Open"}</em>
+              <span className="dy-go">{r.verb ?? "Open"}<ArrowRight size={13} aria-hidden /></span>
+            </Link></li>
+          ))}</ul>
+        ) : <p className="dy-clear"><span className="dy-check" aria-hidden><Check size={11} strokeWidth={3} /></span>{isVet ? "Nothing is waiting for your sign-off." : "You are all caught up. Nothing needs you today."}</p>}
+        {more > 0 ? <p className="dy-more"><Link href="/ngo/pipeline">{more} more on the board <ArrowRight size={13} aria-hidden /></Link></p> : null}
+      </section>}
 
-        {setup && <section className="br-setup hm-setup" aria-labelledby="br-setup-h">
-          <header><h2 id="br-setup-h">Set up {mem.org?.name ?? "your workspace"}</h2><button type="button" aria-label="Hide setup" onClick={hideSetup}><X size={15} aria-hidden /></button></header>
-          <p>Three steps and your records start here. Kaju can help with each one.</p>
-          <ol>
-            <li><Link href="/ngo/import"><span className="br-setup-i"><FileSpreadsheet size={17} aria-hidden /></span><span><b>Bring your register</b><small>Excel or CSV, as it is. Imported rows stay labelled.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
-            <li><Link href="/ngo/team"><span className="br-setup-i"><UserPlus size={17} aria-hidden /></span><span><b>Add your team</b><small>Field staff, vets and coordinators each get their own code.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
-            <li><Link href="/ngo/field"><span className="br-setup-i"><PawPrint size={17} aria-hidden /></span><span><b>Register your first animal</b><small>Field mode works on a phone, with or without signal.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
-          </ol>
-        </section>}
-      </>}
+      <AskKaju />
 
-      {mem.org && <section className="hm-line" aria-labelledby="hm-line-h">
-        <header className="hm-sec"><h2 id="hm-line-h">The line today</h2><Link href="/ngo/pipeline">Open the board <ArrowRight size={13} aria-hidden /></Link></header>
+      {setup && <section className="dy-setup" aria-labelledby="dy-setup-h">
+        <header><h2 id="dy-setup-h">Set up {mem.org?.name ?? "your workspace"}</h2><button type="button" aria-label="Hide setup" onClick={hideSetup}><X size={15} aria-hidden /></button></header>
+        <p>Three steps and your records start here. Kaju can help with each one.</p>
+        <ol>
+          <li><Link href="/ngo/import"><span className="dy-sq" data-c="green" aria-hidden><FileSpreadsheet size={11} /></span><span><b>Bring your register</b><small>Excel or CSV, as it is. Imported rows stay labelled.</small></span><ArrowRight size={14} aria-hidden /></Link></li>
+          <li><Link href="/ngo/team"><span className="dy-sq" data-c="slate" aria-hidden><UserPlus size={11} /></span><span><b>Add your team</b><small>Field staff, vets and coordinators each get their own code.</small></span><ArrowRight size={14} aria-hidden /></Link></li>
+          <li><Link href="/ngo/field"><span className="dy-sq" data-c="amber" aria-hidden><PawPrint size={11} /></span><span><b>Register your first animal</b><small>Field mode works on a phone, with or without signal.</small></span><ArrowRight size={14} aria-hidden /></Link></li>
+        </ol>
+      </section>}
+
+      {mem.org && <section className="dy-sec hm-line" aria-labelledby="dy-line-h">
+        <header className="dy-sec-head"><h2 id="dy-line-h" className="dy-h">The line today</h2><Link href="/ngo/pipeline">Open the board <ArrowRight size={13} aria-hidden /></Link></header>
         <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />
       </section>}
 
-      {d && <section className="hm-also" aria-labelledby="hm-also-h">
-        <header className="hm-sec"><h2 id="hm-also-h">Also waiting</h2></header>
-        <ProgrammeStrip />
-        {rest.length ? rows(rest.slice(0, 3), true) : null}
-        {rest.length > 3 ? <p className="hm-more"><Link href="/ngo/pipeline">{rest.length - 3} more in the pipeline <ArrowRight size={13} aria-hidden /></Link></p> : null}
-        <p className="hm-none"><Check size={14} aria-hidden /> Nothing else needs you today.</p>
-      </section>}
-
-      {d && !isVet && <details className="hm-kaju">
-        <summary><KajuFace size={20} /> <span>From Kaju</span><small>Work prepared for you to confirm, and what Kaju checked</small><ArrowRight size={14} aria-hidden className="hm-kaju-go" /></summary>
-        <div className="hm-kaju-in">
+      {d && !isVet && <details className="dy-kaju">
+        <summary><span className="dy-sq" data-c="ink" aria-hidden><Sparkles size={11} strokeWidth={2.4} /></span><span><b>From Kaju</b><small>Work prepared for you to confirm, and what Kaju checked</small></span><ArrowRight size={14} aria-hidden className="dy-kaju-go" /></summary>
+        <div className="dy-kaju-in">
           <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />
           {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
         </div>
       </details>}
     </div>
   );
+}
 
-  function rows(list: Row[], go: boolean) {
-    return (
-      <ul className="br-list hm-list">{list.map((r) => (
-        <li key={r.key}><Link href={r.href}>
-          <span className={`br-sq t-${r.tone}`} aria-hidden>{r.icon}</span>
-          <span className="br-t"><span>{typeof r.title === "string" ? <b>{r.title}</b> : r.title}</span><small>{r.meta}</small></span>
-          {r.tag ? <em className={`br-tag t-${r.tag ? r.tone : ""}`}>{r.tag}</em> : <span className="hm-verb">{r.verb ?? "Open"}</span>}
-          {go && <ArrowRight size={14} aria-hidden className="br-go" />}
-        </Link></li>
-      ))}</ul>
-    );
-  }
+const TAG: Record<string, string> = { violet: "Review", flame: "Urgent", amber: "Overdue", green: "Draft", slate: "Check", blue: "Start" };
+
+/* Ask Kaju, as on the landing page: a line that types real questions while it waits, and sends yours to Kaju. */
+const QUESTIONS = ["Which releases this month are missing a photo?", "Draft this month's report package", "What are programme partners waiting for?", "Which cases have had no update for a week?"];
+function AskKaju() {
+  const ai = useAi();
+  const [q, setQ] = useState("");
+  const [hint, setHint] = useState(QUESTIONS[0]);
+  const [focus, setFocus] = useState(false);
+  useEffect(() => {
+    if (focus || q || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let k = 0, n = 0, dir = 1, wait = 0;
+    const id = window.setInterval(() => {
+      if (wait > 0) { wait--; return; }
+      const full = QUESTIONS[k];
+      n += dir; setHint(full.slice(0, Math.max(0, n)));
+      if (dir > 0 && n >= full.length) { dir = -1; wait = 60; }
+      else if (dir < 0 && n <= 0) { dir = 1; k = (k + 1) % QUESTIONS.length; wait = 8; }
+    }, 38);
+    return () => window.clearInterval(id);
+  }, [focus, q]);
+  const send = (text: string) => { const t = text.trim(); if (!t) return; ai.ask(t); setQ(""); };
+  return (
+    <form className={`dy-ask${q || focus ? " is-typing" : ""}`} onSubmit={(e) => { e.preventDefault(); send(q || (focus ? "" : hint)); }} role="search" aria-label="Ask Kaju">
+      <Sparkles size={15} aria-hidden />
+      <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} placeholder={focus ? "Ask Kaju anything about your programme…" : hint || "Ask Kaju anything about your programme…"} aria-label="Ask Kaju anything about your programme" />
+      <button type="submit" className={`dy-send${q ? " is-ready" : ""}`} aria-label="Send to Kaju" disabled={!q.trim()}><ArrowUp size={14} aria-hidden /></button>
+    </form>
+  );
 }
