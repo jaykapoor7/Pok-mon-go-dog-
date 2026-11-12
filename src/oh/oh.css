@@ -365,3 +365,25 @@ a.oh-stat:hover dd { color: var(--blue-ink); }
 /* cluster rows: the sample on the left, its actions together on the right */
 .oh-alert-more li { align-items: center; }
 .oh-alert-more li > span:first-child { flex: 1; min-width: 0; }
+
+/* A choice among a few places (a referral's destination): rows on a soft
+   fill, the chosen one tinted, no outlines. 8-point. */
+.oh-picks { display: grid; gap: 8px; padding: 0; margin: 0; border: 0; min-width: 0; }
+.oh-picks legend { padding: 0; margin-bottom: 8px; color: var(--ink); font-size: 14px; font-weight: 500; }
+.oh-pick { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 16px; border-radius: 12px; background: #f5f6f8; cursor: pointer; transition: background-color .15s; }
+.oh-pick:hover { background: #eef0f4; }
+.oh-pick.is-on { background: #eaf0fd; }
+.oh-pick input { width: 16px; height: 16px; margin: 0; accent-color: #2457ce; }
+.oh-pick-main { display: grid; gap: 4px; min-width: 0; }
+.oh-pick-main b { color: var(--ink); font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oh-pick-main small, .oh-pick-meta small { color: var(--muted); font-size: 12px; }
+.oh-pick-meta { display: grid; justify-items: end; gap: 4px; }
+.oh-pick:focus-within { outline: 2px solid #2457ce; outline-offset: 2px; }
+@media (max-width: 560px) { .oh-pick { grid-template-columns: auto minmax(0, 1fr); } .oh-pick-meta { grid-column: 2; justify-items: start; grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; } }
+@media (prefers-reduced-motion: reduce) { .oh-pick { transition: none; } }
+
+/* Partner logos on the report: one row, one size each, in programme order. */
+.oh-marks { display: flex; flex-wrap: wrap; gap: 16px 24px; margin: 0; padding: 0; list-style: none; }
+.oh-marks li { display: grid; justify-items: center; gap: 8px; width: 96px; text-align: center; }
+.oh-marks span:not(.om) { color: var(--muted); font-size: 12px; line-height: 1.3; }
+@media print { .oh-marks { gap: 12px 16px; } }

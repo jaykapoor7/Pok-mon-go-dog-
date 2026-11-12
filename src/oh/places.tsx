@@ -76,7 +76,7 @@ export function placeNav(p: Place, programmeSlug?: string): PlaceLink[] {
   const W = "Modules", P = "Programme";
   const links: PlaceLink[] = [];
   if (isFacility(p.kind)) {
-    const due = (p.doses_due ?? 0) + (p.notices_new ?? 0);
+    const due = (p.doses_due ?? 0) + (p.notices_new ?? 0) + (p.transfers_in ?? 0);
     links.push({ href: w, label: "Today", short: "Today", icon: "home", exact: true, count: due || null, tone: "flame", mobile: true });
     links.push({ href: `${w}/register`, label: "Bite register", short: "Register", icon: "list", section: W, mobile: true });
     links.push({ href: `${w}/services`, label: "Services we offer", short: "Services", icon: "shield", section: W, count: p.services_stale || null, tone: "amber" });
@@ -132,6 +132,7 @@ export function placeLines(p: Place): { n: number; text: string; tone: "flame" |
   const out: { n: number; text: string; tone: "flame" | "amber" | "blue" }[] = [];
   if (p.doses_due) out.push({ n: p.doses_due, text: p.doses_due === 1 ? "dose due today or overdue" : "doses due today or overdue", tone: "flame" });
   if (p.notices_new) out.push({ n: p.notices_new, text: p.notices_new === 1 ? "notice from the public" : "notices from the public", tone: "flame" });
+  if (p.transfers_in) out.push({ n: p.transfers_in, text: p.transfers_in === 1 ? "person referred here" : "people referred here", tone: "blue" });
   if (p.samples_waiting) out.push({ n: p.samples_waiting, text: p.samples_waiting === 1 ? "sample in the laboratory" : "samples in the laboratory", tone: "blue" });
   if (p.handoffs_overdue) out.push({ n: p.handoffs_overdue, text: p.handoffs_overdue === 1 ? "request overdue" : "requests overdue", tone: "flame" });
   const fresh = p.handoffs_open - p.handoffs_overdue;

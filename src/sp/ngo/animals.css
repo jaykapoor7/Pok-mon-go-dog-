@@ -58,3 +58,10 @@
   .an-seen { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .an-peek, .an-more > div { animation: none; } .an-row .portrait, .an-peek-go { transition: none; } }
+
+/* Due for revaccination: one sentence with the counts and the rule, then the list. */
+.an-revac { display: grid; gap: 16px; }
+.an-revac-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; color: var(--muted, #5b6474); font-size: 14px; line-height: 1.5; }
+.an-revac-sum b { color: var(--ink, #0b1e3d); font-weight: 600; }
+.an-revac-sum .oh-more { margin: 0 0 0 auto; }
+.an-revac .vw-tag { white-space: nowrap; }

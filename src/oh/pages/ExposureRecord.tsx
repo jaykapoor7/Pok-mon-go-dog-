@@ -10,6 +10,7 @@ import { call, fmtDate, fmtTime, today, useRead, AGE, AUDIT, COURSE, EXPOSURE_KI
 import { Chip, Failed, Head, Loading, Page, Section, Seg, Sheet, useToast } from "../ui";
 import { Rail } from "@/sp/ui/Rail";
 import { DoseSheet } from "./facility";
+import { Referral } from "./Referral";
 
 export function ExposureRecord({ id, place }: { id: string; place: Place }) {
   const { reload: reloadPlaces } = usePlaces();
@@ -70,6 +71,8 @@ export function ExposureRecord({ id, place }: { id: string; place: Place }) {
               </div>
             )}
           </Section>
+
+          <Referral exposureId={e.id} canRefer={e.can.assess} onChange={refresh} />
 
           <Section title="Animal follow-up" note="Shared with the animal team without patient details">
             {e.handoff ? (

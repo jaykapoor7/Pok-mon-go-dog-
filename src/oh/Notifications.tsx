@@ -47,6 +47,7 @@ function placeNotes(p: Place): Note[] {
   };
   add("doses", p.doses_due, "flame", "dose due today or overdue", "doses due today or overdue", w, "now");
   add("notices", p.notices_new, "flame", "notice from the public", "notices from the public", w, "now");
+  add("referrals", p.transfers_in, "blue", "person referred here, not yet marked", "people referred here, not yet marked", w, "now");
   add("overdue", p.handoffs_overdue, "flame", "request from a partner is overdue", "requests from partners are overdue", oversees(p.kind) && prog ? `/programme/${prog.slug}/work` : w, "now");
   const fresh = p.handoffs_open - p.handoffs_overdue;
   add("requests", fresh > 0 ? fresh : 0, "blue", "open request from a partner", "open requests from partners", oversees(p.kind) && prog ? `/programme/${prog.slug}/work` : p.kind === "ngo" ? w : w, "today");

@@ -17,6 +17,8 @@ export type Place = {
   organisation_id: string; name: string; short_name: string | null; kind: Kind; role: Role; ngo_id: string | null; illustrative: boolean;
   capabilities: string[]; programmes: ProgrammeRef[];
   handoffs_open: number; handoffs_overdue: number; doses_due: number | null; notices_new: number | null; samples_waiting: number | null; services_stale: number | null;
+  /** People referred to this facility and not yet marked (v2.6; absent before it). */
+  transfers_in?: number | null;
 };
 
 export type RegisterRow = { id: string; code: string; patient_ref: string | null; age_band: string; sex: string; area: string | null; exposure_on: string; presented_on: string; kind: string; category: string; species: string; course_status: string | null; regimen: string | null; doses_given: number; doses_total: number; next_due: string | null; handoff_status: string | null };
@@ -35,6 +37,12 @@ export type Exposure = {
 export type Handoff = { id: string; programme_id: string | null; kind: string; from_org: string | null; to_org: string; title: string; detail: string | null; area_id: string | null; place: string | null; animal_id: string | null; sample_id: string | null; status: string; due_on: string | null; outcome: string | null; created_at: string; closed_at: string | null; closed_by_name: string | null };
 export type Sample = { id: string; code: string; submitted_by: string; laboratory_id: string; animal_id: string | null; species: string; sample_type: string; reason: string | null; collected_on: string; collected_by_name: string | null; area_id: string | null; place: string | null; status: string; result: string | null; method: string | null; result_note: string | null; resulted_at: string | null; resulted_by_name: string | null; created_at: string };
 export type SampleEvent = { id: number; sample_id: string; at: string; actor_name: string | null; organisation_id: string | null; action: string; note: string | null };
+/** A person referred from one facility to another (health.transfers). The receiving side never sees patient details. */
+export type TransferIn = { id: string; code: string; category: string; exposure_on: string; animal_species: string; service: string; note: string | null; status: string; from: string; from_short: string | null; sent_at: string; sent_by: string | null; closed_at: string | null; closed_by: string | null };
+export type TransferOut = { id: string; exposure_id?: string; code?: string; service: string; note?: string | null; status: string; to: string; to_short: string | null; sent_at: string; sent_by: string | null; closed_at: string | null; closed_by: string | null };
+export type ClinicTransfers = { incoming: TransferIn[]; outgoing: TransferOut[] };
+export type ReferralOption = { id: string; name: string; short_name: string | null; kind: Kind; area: string | null; pathways: string[]; services: { service: string; status: string; verified_at: string }[] };
+export const TRANSFER: Record<string, { label: string; tone: string }> = { sent: { label: "Referred", tone: "blue" }, arrived: { label: "Arrived", tone: "green" }, not_arrived: { label: "Did not arrive", tone: "flame" }, withdrawn: { label: "Withdrawn", tone: "" } };
 export type ServiceNow = { service: string; status: string; note: string | null; verified_at: string; valid_until: string; by?: string | null };
 export type Area = { id: string; name: string; level?: string; parent_id?: string | null };
 
@@ -139,7 +147,7 @@ export const RESULT: Record<string, { label: string; tone: string }> = { positiv
 export const SAMPLE_TYPE: Record<string, string> = { brain_tissue: "Brain tissue", saliva: "Saliva", csf: "Cerebrospinal fluid", serum: "Serum", other: "Other" };
 export const AUDIENCE: Record<string, string> = { veterinarians: "Veterinarians", para_veterinarians: "Para-veterinarians", animal_handlers: "Animal handlers", laboratory: "Laboratory staff", healthcare: "Healthcare workers", community: "Community", mixed: "Mixed" };
 export const REMINDER: Record<string, string> = { called_reached: "Called, reached", called_no_answer: "Called, no answer", message_sent_manually: "Message sent from a phone", patient_will_attend: "Will attend", wrong_number: "Wrong number" };
-export const AUDIT: Record<string, string> = { record_exposure: "Bite recorded", set_category: "Category recorded", set_wound_washed: "Wound washing recorded", prescribe: "Course prescribed", add_dose: "Dose date added", record_dose_given: "Dose given", record_dose_missed: "Dose missed", reminder: "Reminder logged", read: "Record opened", course_completed: "Course completed", course_discontinued: "Course stopped", course_lost_to_follow_up: "Marked did not return", course_active: "Course reopened" };
+export const AUDIT: Record<string, string> = { refer: "Referred to another facility", transfer_arrived: "Referral: arrived", transfer_not_arrived: "Referral: did not arrive", transfer_withdrawn: "Referral withdrawn", record_exposure: "Bite recorded", set_category: "Category recorded", set_wound_washed: "Wound washing recorded", prescribe: "Course prescribed", add_dose: "Dose date added", record_dose_given: "Dose given", record_dose_missed: "Dose missed", reminder: "Reminder logged", read: "Record opened", course_completed: "Course completed", course_discontinued: "Course stopped", course_lost_to_follow_up: "Marked did not return", course_active: "Course reopened" };
 export const MODULES: Record<string, { label: string; note: string }> = {
   bite_care: { label: "Bite care and PEP", note: "Hospitals and health centres record bites, clinicians prescribe, nurses record doses" },
   laboratory: { label: "Laboratory surveillance", note: "Samples, chain of custody and results with automatic notices" },

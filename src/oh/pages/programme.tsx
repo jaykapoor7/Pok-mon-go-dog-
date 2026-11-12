@@ -13,6 +13,8 @@ import { usePlaces, oversees } from "../places";
 import { call, fmtDate, fmtTime, num, relDay, select, showCount, useNames, useRead, AUDIENCE, HANDOFF, HANDOFF_KIND, KIND_LABEL, MODULES, ROLE_LABEL, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, type Alert, type Area, type Count, type Handoff, type Kind, type Network, type NetworkFacility, type Overview, type Role } from "../data";
 import { AlertList, Bars, Chip, Empty, Failed, Glyph, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
 import { AreaIntel } from "../AreaMap";
+import { OrgMark } from "@/components/orgs/OrgMark";
+import { getSupabase } from "@/lib/supabase";
 
 type Prog = { id: string; slug: string; name: string; parent_id: string | null; summary: string | null; status: string; vaccination_target: number; config: { modules?: string[]; suppress_below?: number; followup_due_days?: number; dog_revaccination_days?: number; alert_window_days?: number }; plan: string; illustrative: boolean; time_zone: string };
 const ALL_MODULES = ["bite_care", "laboratory", "followups", "vaccination", "services", "training"];
@@ -64,6 +66,7 @@ function OverviewBody({ p }: { p: Prog }) {
   const { places } = usePlaces();
   const canAck = places.some((x) => x.programmes.some((y) => y.id === p.id) && x.capabilities.includes("ack_alert"));
   const mods = modulesOf(p);
+  const marks = useMarks(p.id);
   if (o.loading && !o.data) return <Loading rows={6} />;
   if (o.error || !o.data) return <Failed error={o.error ?? "Could not read the programme."} retry={o.reload} />;
   const d = o.data;
@@ -108,7 +111,7 @@ function OverviewBody({ p }: { p: Prog }) {
       ) : null}
 
       <Section title="Partners" note={`${d.partners.length} in the programme`}>
-        <PartnerWork partners={d.partners} />
+        <PartnerWork partners={d.partners} marks={marks} />
       </Section>
       {mods.includes("training") ? <Training p={p} d={d} reload={o.reload} /> : null}
     </>
@@ -116,7 +119,7 @@ function OverviewBody({ p }: { p: Prog }) {
 }
 
 /* Partners: the ones with open work, most overdue first; the rest in one line that opens the full list. */
-function PartnerWork({ partners }: { partners: Overview["partners"] }) {
+function PartnerWork({ partners, marks }: { partners: Overview["partners"]; marks: Record<string, string> }) {
   const [all, setAll] = useState(false);
   const busy = partners.filter((x) => x.open || x.overdue).sort((a, b) => b.overdue - a.overdue || b.open - a.open);
   const clear = partners.filter((x) => !x.open && !x.overdue);
@@ -127,7 +130,7 @@ function PartnerWork({ partners }: { partners: Overview["partners"] }) {
         <div className="oh-rows">
           {shown.map((x) => (
             <div className="oh-row" key={x.id}>
-              <Glyph kind={x.kind} />
+              <Mark kind={x.kind} name={x.name} url={marks[x.id]} />
               <div className="oh-row-main"><b>{x.name}</b><span>{x.responsibilities ?? KIND_LABEL[x.kind]}</span></div>
               <div className="oh-row-meta">{x.overdue ? <Chip tone="flame">{x.overdue} overdue</Chip> : null}{x.open ? <Chip plain>{x.open} open</Chip> : <Chip plain tone="green">Clear</Chip>}</div>
             </div>
@@ -446,12 +449,15 @@ function ReportBody({ p }: { p: Prog }) {
   const sp = useSearchParams();
   const days = Number(sp.get("days") ?? 90);
   const o = useRead<Overview>(() => call("oh_programme_overview", { p_programme: p.id, p_days: days }), `rep:${p.id}:${days}`);
+  const marks = useMarks(p.id);
   if (o.loading && !o.data) return <Loading rows={6} />;
   if (o.error || !o.data) return <Failed error={o.error ?? "Could not read the programme."} retry={o.reload} />;
   const d = o.data;
   return (
     <article className="oh-card pad" style={{ display: "grid", gap: 24 }}>
       <p style={{ color: "var(--muted)" }}>Period {fmtDate(d.since, { day: "numeric", month: "long", year: "numeric" })} to {fmtDate(d.today, { day: "numeric", month: "long", year: "numeric" })} · prepared {fmtTime(new Date().toISOString())}</p>
+      {/* Co-branding: every partner that has given a logo, at one size, in programme order. Nothing is drawn for a partner without one. */}
+      {Object.keys(marks).length ? <ul className="oh-marks" aria-label="Partners">{d.partners.filter((x) => marks[x.id]).map((x) => <li key={x.id}><OrgMark name={x.name} logoUrl={marks[x.id]} size={48} /><span>{x.short_name ?? x.name}</span></li>)}</ul> : null}
       <Section title="Partners and responsibilities"><ul style={{ display: "grid", gap: 4 }}>{d.partners.map((x) => <li key={x.id}><b style={{ color: "var(--ink)" }}>{x.name}</b> · {KIND_LABEL[x.kind]}{x.responsibilities ? `: ${x.responsibilities}` : ""}</li>)}</ul></Section>
       {d.exposures && d.pep ? <Section title="Human bite care"><dl className="oh-facts">
         <div><dt>Bite exposures</dt><dd>{showCount(d.exposures.total)}</dd></div><div><dt>Category III</dt><dd>{showCount(d.exposures.category_iii)}</dd></div>
@@ -543,13 +549,14 @@ function SetupBody({ p, reload }: { p: Prog; reload: () => void }) {
 
 function Partners({ p, onChange }: { p: Prog; onChange: () => void }) {
   const o = useRead<Overview>(() => call("oh_programme_overview", { p_programme: p.id, p_days: 30 }), `setup-ov:${p.id}`);
+  const marks = useMarksRead(p.id);
   const [adding, setAdding] = useState(false), [area, setArea] = useState(""), [busy, setBusy] = useState(false);
   const toast = useToast();
   const addArea = async () => { setBusy(true); const r = await call("oh_add_area", { p_programme: p.id, p_name: area, p_level: "ward", p_code: null }); setBusy(false); if (r.error) toast(r.error, "flame"); else { setArea(""); toast("Area added."); o.reload(); } };
   return (
     <>
       <Section title="Partners" action={<button type="button" className="oh-btn small" onClick={() => setAdding(true)}><Plus size={14} aria-hidden />Add a partner</button>}>
-        {o.data ? <div className="oh-rows">{o.data.partners.map((x) => <div className="oh-row" key={x.id}><Glyph kind={x.kind} /><div className="oh-row-main"><b>{x.name}</b><span className="wrap">{KIND_LABEL[x.kind]}{x.responsibilities ? ` · ${x.responsibilities}` : ""}</span></div><div className="oh-row-meta">{showCount(x.members)} people</div></div>)}</div> : <Loading rows={3} />}
+        {o.data ? <div className="oh-rows">{o.data.partners.map((x) => <div className="oh-row" key={x.id}><Mark kind={x.kind} name={x.name} url={marks.data?.[x.id]} /><div className="oh-row-main"><b>{x.name}</b><span className="wrap">{KIND_LABEL[x.kind]}{x.responsibilities ? ` · ${x.responsibilities}` : ""}</span></div><div className="oh-row-meta">{showCount(x.members)} people{marks.ready ? <LogoButton org={x.id} name={x.name} has={!!marks.data?.[x.id]} onDone={(m) => { toast(m); marks.reload(); }} /> : null}</div></div>)}</div> : <Loading rows={3} />}
       </Section>
       <Section title="Areas" note="Wards or localities this programme covers">
         {o.data ? <p style={{ marginBottom: 10 }}>{o.data.vaccination.map((v) => v.area).join(", ") || "None yet"}</p> : null}
@@ -606,3 +613,47 @@ function Invites({ orgs }: { orgs: { id: string; name: string; kind: Kind }[] })
 }
 
 export { ProgrammeOverview as default };
+
+/* ── Partner logos (v2.6) ─────────────────────────────────────────────
+   Read from oh_partner_marks; a partner without a logo keeps its glyph.
+   Before v2.6 the function does not exist: no logo is shown and no upload
+   is offered. */
+const noFn = (e: string | null) => !!e && /could not find the function|does not exist|schema cache/i.test(e);
+function useMarksRead(pid: string) {
+  const r = useRead<Record<string, string>>(() => call("oh_partner_marks", { p_programme: pid }), `marks:${pid}`);
+  return { data: r.data ?? {}, ready: !!r.data && !noFn(r.error), reload: r.reload };
+}
+function useMarks(pid: string): Record<string, string> { return useMarksRead(pid).data; }
+
+function Mark({ kind, name, url }: { kind: Kind; name: string; url?: string | null }) {
+  return url ? <OrgMark name={name} logoUrl={url} size={32} /> : <Glyph kind={kind} />;
+}
+
+/** Upload or remove a partner's logo. The database decides who may: a lead of the partner or of the programme. */
+function LogoButton({ org, name, has, onDone }: { org: string; name: string; has: boolean; onDone: (m: string) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const toast = useToast();
+  const upload = async (file: File) => {
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { toast("Use a PNG, JPEG or WebP image.", "flame"); return; }
+    if (file.size > 512 * 1024) { toast("Keep the logo under 512 KB.", "flame"); return; }
+    const supa = getSupabase();
+    if (!supa) return;
+    setBusy(true);
+    const path = `${org}/logo-${Date.now()}.${file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg"}`;
+    const up = await supa.storage.from("oh-logos").upload(path, file, { contentType: file.type, upsert: false });
+    if (up.error) { setBusy(false); toast(/row-level security|not authori[sz]ed|403/i.test(up.error.message) ? "Only a lead of this partner or of the programme can set its logo." : up.error.message, "flame"); return; }
+    const url = supa.storage.from("oh-logos").getPublicUrl(path).data.publicUrl;
+    const r = await call("oh_set_logo", { p_org: org, p_url: url });
+    setBusy(false);
+    if (r.error) toast(r.error, "flame"); else onDone(`Logo saved for ${name}.`);
+  };
+  const remove = async () => { setBusy(true); const r = await call("oh_set_logo", { p_org: org, p_url: null }); setBusy(false); if (r.error) toast(r.error, "flame"); else onDone(`Logo removed for ${name}.`); };
+  return (
+    <>
+      <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f); }} />
+      <button type="button" className="oh-btn small quiet" disabled={busy} onClick={() => input.current?.click()} aria-label={`${has ? "Change" : "Add"} the logo of ${name}`}>{busy ? "Saving…" : has ? "Change logo" : "Add logo"}</button>
+      {has ? <button type="button" className="oh-btn small quiet" disabled={busy} onClick={() => void remove()} aria-label={`Remove the logo of ${name}`}>Remove</button> : null}
+    </>
+  );
+}

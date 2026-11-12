@@ -106,6 +106,28 @@ export async function orgAnimals(f: AnimalFilters = {}): Promise<OrgAnimal[]> {
   return data as OrgAnimal[];
 }
 
+/** The organisation's revaccination setting (the shortest interval among its
+ *  programmes) and its counts, or null when no programme sets one or the
+ *  database has no such function yet. */
+export type RevaccinationSetting = { days: number | null; programme: string | null; overdue: number; soon: number; dated: number; undated: number };
+export async function orgRevaccinationSetting(): Promise<RevaccinationSetting | null> {
+  const supa = getSupabase();
+  if (!supa) return null;
+  const { data, error } = await supa.rpc("org_revaccination_setting");
+  if (error || !data || typeof data !== "object") return null;
+  return data as RevaccinationSetting;
+}
+
+export type RevaccinationDue = { id: string; straypaw_id: string | null; name: string | null; code: string | null; zone: string | null; cover_photo: string | null; last_vaccinated: string; due_on: string; days_overdue: number; interval_days: number; total_count: number };
+/** The organisation's animals past, or within 14 days of, their revaccination date; most overdue first. */
+export async function orgRevaccinationDue(limit = 20, offset = 0): Promise<RevaccinationDue[]> {
+  const supa = getSupabase();
+  if (!supa) return [];
+  const { data, error } = await supa.rpc("org_revaccination_due", { p_limit: limit, p_offset: offset });
+  if (error) throw new Error(error.message);
+  return Array.isArray(data) ? (data as RevaccinationDue[]) : [];
+}
+
 export async function orgZones(): Promise<{ zone: string; n: number }[]> {
   const supa = getSupabase();
   if (!supa) return [];
