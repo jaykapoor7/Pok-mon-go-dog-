@@ -206,7 +206,7 @@ export function DemoTour() {
       <>
         {cover}
         <aside className={`dt is-end${place}`} aria-label="Guided demo">
-          <div className="dt-top"><span className="dt-k">The story · complete</span><button type="button" className="dt-min" onClick={() => writeTour({ ...s, mode: "roam" })}>Explore freely <Minus size={14} aria-hidden /></button></div>
+          <div className="dt-top"><span className="dt-k">The story · complete</span></div>
           {bar(n)}
           <h2>One bite, followed across six institutions</h2>
           <p>Each person did their own work in their own place, on one shared record, and saw only what their role allows.</p>
