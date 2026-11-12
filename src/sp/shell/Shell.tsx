@@ -397,7 +397,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         {guided && user ? <FirstDay userId={user.id} name={user.name ?? ""} place={wsTitle} home={def.home} path={path} actions={firstActions} quiet={/@straypaw\.invalid$/.test(user.email ?? "")} /> : null}
         <Notices />
         <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} entries={entries} nav={ws === "health" ? def.nav : undefined} label={def.label} />
-        <Finder pages={findPages} browse={browse} open={find} onClose={() => { setBrowse(false); closeFind(); }} ws={ownNgoPlace ? "ngo" : ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
+        <Finder pages={findPages} actions={[...(def.action && (ws !== "ngo" || mem.member) ? [{ href: def.action.href, label: def.action.label, note: "The everyday action here" }] : []), ...firstActions.filter((a) => a.href !== def.action?.href)].slice(0, 4)} menu={nav.map((r) => ({ href: r.item.query ? `${r.item.href}?${r.item.query}` : r.item.href, label: r.item.label }))} browse={browse} open={find} onClose={() => { setBrowse(false); closeFind(); }} ws={ownNgoPlace ? "ngo" : ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
         {!onAssistant && <AiPanel />}
       </div>
     </Membership.Provider>
