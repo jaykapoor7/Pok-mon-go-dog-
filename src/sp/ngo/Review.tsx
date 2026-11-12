@@ -19,7 +19,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { historicalReviewCases, reasonlessCases, staleCases, REVIEW_REASONS, type ReviewCase, type ReviewDecision, type ReviewReason } from "@/lib/review";
 import { useMembership } from "../shell/Shell";
-import { Ack, State, day, n } from "../ui";
+import { Ack, day, n } from "../ui";
+import { Empty, PageHead, Seg } from "../ui/Page";
 import { decideCase, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
@@ -57,21 +58,21 @@ export function Review({ initial }: { initial: Cohort }) {
   };
   const meta = COHORTS.find((c) => c.id === cohort)!;
 
+  const total = (counts.decide ?? 0) + (counts.history ?? 0) + (counts.reason ?? 0);
+  const counted = counts.decide !== undefined && counts.history !== undefined && counts.reason !== undefined;
+
   return (
     <NgoGate title="Review" lede="Records that need a person's decision, kept apart from today's work.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · review</p><h1 className="serif">Review</h1></div>
-          <p className="ngo-sum">Decisions waiting on cases.</p>
-          <div className="row"><Link className="btn is-s" href="/ngo/work">Back to the work queue</Link></div>
-        </header>
-        <div className="tabs rv-tabs" role="tablist" aria-label="Cohort">
-          {COHORTS.map((c) => <button key={c.id} type="button" role="tab" aria-selected={cohort === c.id} onClick={() => setCohort(c.id)}>{c.label}<span className="n">{counts[c.id] === undefined ? "…" : n(counts[c.id]!)}</span></button>)}
+      <div className="vw rv2">
+        <PageHead title="Decisions"
+          sum={!counted ? "Records that need a person to decide, kept apart from today's work." : total === 0 ? "Nothing is waiting on a decision. Nothing closes on a timer." : <><b>{n(total)}</b> {total === 1 ? "record needs" : "records need"} a person to decide. Nothing closes on a timer.</>} />
+        <div className="vw-bar">
+          <Seg<Cohort> label="What kind of decision" value={cohort} onChange={setCohort} options={COHORTS.map((c) => ({ id: c.id, label: c.label, count: counts[c.id] ?? null }))} />
         </div>
-        <p className="rv-lede body">{meta.lede}</p>
-        {rows === null && <div className="stack" style={{ padding: "0 28px" }}>{[0, 1, 2].map((i) => <div key={i} className="skel" style={{ height: 110 }} />)}</div>}
-        {rows !== null && !rows.length && <State art="ngo-empty" title={failed ? "Not read" : "Nothing waiting here"}>{failed ? "This cohort could not be read. A failed read is never shown as an empty cohort." : "When a record needs a decision of this kind, it waits here for a person."}</State>}
-        <ol className="rv-list">
+        <p className="rv2-lede">{meta.lede}</p>
+        {rows === null && <div className="rv2-skel" aria-hidden>{[0, 1, 2].map((i) => <i key={i} className="skel" />)}</div>}
+        {rows !== null && !rows.length && <Empty title={failed ? "Not read" : "Nothing waiting here"}>{failed ? "This could not be read. A failed read is never shown as empty." : "When a record needs a decision of this kind, it waits here for a person."}</Empty>}
+        <ol className="rv-list rv2-list">
           {rows?.slice(0, limit).map((c) => <Item key={c.id} c={c} cohort={cohort} receipt={done[c.id]} onAct={act} />)}
         </ol>
         {rows && rows.length > limit && <div className="row ngo-pager"><button type="button" className="btn is-s" onClick={() => setLimit((l) => l + 60)}>Show {Math.min(60, rows.length - limit)} more of {n(rows.length - limit)}</button></div>}
