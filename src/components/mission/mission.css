@@ -38,7 +38,7 @@
   55%, 75% { transform: translateY(-4%) rotate(12deg); } 65%, 85% { transform: translateY(4%) rotate(-12deg); } 100% { transform: none; } }
 
 .mw-again, .mw-sound { position: absolute; z-index: 5; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid rgba(255, 253, 249, .35); border-radius: 999px; background: rgba(12, 10, 16, .55); color: #ffffff; cursor: pointer; backdrop-filter: blur(6px); }
-.mw-again { left: 0; right: 0; bottom: 28px; width: max-content; margin: 0 auto; min-height: 46px; padding: 0 22px; font: 700 15px var(--font-sans, sans-serif); animation: mw-rise .6s ease both; }
+.mw-again { left: 0; right: 0; bottom: 28px; width: max-content; margin: 0 auto; min-height: 46px; padding: 0 24px; font: 700 16px var(--font-sans, sans-serif); animation: mw-rise .6s ease both; }
 .mw-sound { left: 20px; bottom: 28px; width: 44px; height: 44px; }
 .mw-again:hover, .mw-sound:hover { border-color: #ffffff; }
 .mw-again:focus-visible, .mw-sound:focus-visible { outline: 3px solid #8fb7ff; outline-offset: 3px; }

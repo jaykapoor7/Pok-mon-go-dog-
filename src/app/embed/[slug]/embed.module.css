@@ -23,10 +23,10 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   height: 100%;
-  padding: 14px;
+  padding: 16px;
   color: inherit;
   text-decoration: none;
   background: #fff;
@@ -35,45 +35,45 @@
 }
 .card:focus-visible { box-shadow: inset 0 0 0 3px var(--blue); }
 
-.identity { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
-.logo, .logoFallback { width: 34px; height: 34px; border-radius: 9px; object-fit: contain; background: var(--tint); box-shadow: 0 0 0 1px var(--line); }
+.identity { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.logo, .logoFallback { width: 34px; height: 34px; border-radius: 8px; object-fit: contain; background: var(--tint); box-shadow: 0 0 0 1px var(--line); }
 .logoFallback { display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--blue); }
 .identityCopy { display: grid; min-width: 0; gap: 1px; }
-.name { font-size: 14.5px; font-weight: 650; line-height: 1.2; letter-spacing: -0.01em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.name { font-size: 14px; font-weight: 650; line-height: 1.2; letter-spacing: -0.01em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .place { font-size: 12px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.live { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 99px; background: #e9f7ef; color: #17734a; font-size: 11.5px; font-weight: 600; }
+.live { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 99px; background: #e9f7ef; color: #17734a; font-size: 12px; font-weight: 600; }
 .live i { width: 7px; height: 7px; border-radius: 50%; background: #1fa463; box-shadow: 0 0 0 0 rgba(31, 164, 99, .5); animation: pulse 2s ease-out infinite; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(31, 164, 99, .45); } 80%, 100% { box-shadow: 0 0 0 7px rgba(31, 164, 99, 0); } }
 
 .primary { display: grid; gap: 0; }
-.primaryNumber { font-size: 34px; line-height: 1; font-weight: 700; letter-spacing: -0.035em; color: var(--blue); font-variant-numeric: tabular-nums; }
-.primaryLabel { margin-top: 3px; font-size: 13px; color: var(--body); }
-.countsUnavailable { margin: 0; font-size: 13px; color: var(--body); }
+.primaryNumber { font-size: 32px; line-height: 1; font-weight: 700; letter-spacing: -0.035em; color: var(--blue); font-variant-numeric: tabular-nums; }
+.primaryLabel { margin-top: 4px; font-size: 14px; color: var(--body); }
+.countsUnavailable { margin: 0; font-size: 14px; color: var(--body); }
 
-.miniMap { position: relative; flex: 1 1 0; min-height: 48px; border-radius: 10px; background: linear-gradient(180deg, #f6f8fe, #eef3fd); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+.miniMap { position: relative; flex: 1 1 0; min-height: 48px; border-radius: 8px; background: linear-gradient(180deg, #f6f8fe, #eef3fd); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
 .miniMapPlot { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .mapEdge { fill: none; stroke: rgba(36, 87, 206, .1); stroke-width: .7; }
 .mapCell { stroke: #fff; stroke-width: .6; }
 .density1 { fill: #c9d8f8; } .density2 { fill: #a3bdf2; } .density3 { fill: #6f97e8; } .density4 { fill: #3f72dc; } .density5 { fill: #2457ce; }
 .mapHotspot { fill: none; stroke: var(--blue); stroke-width: 1.4; opacity: .55; }
-.mapTag { position: absolute; left: 8px; bottom: 6px; padding: 2px 7px; border-radius: 99px; background: rgba(255, 255, 255, .92); font-size: 10.5px; color: var(--mute); box-shadow: 0 0 0 1px var(--line); }
+.mapTag { position: absolute; left: 8px; bottom: 6px; padding: 4px 8px; border-radius: 99px; background: rgba(255, 255, 255, .92); font-size: 12px; color: var(--mute); box-shadow: 0 0 0 1px var(--line); }
 
-.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.metric { display: grid; gap: 1px; padding: 7px 10px; border-radius: 9px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.metric { display: grid; gap: 1px; padding: 8px 12px; border-radius: 8px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
 .metricValue { font-size: 16px; font-weight: 650; line-height: 1.15; color: var(--ink); font-variant-numeric: tabular-nums; }
-.metricLabel { font-size: 11px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.metricLabel { font-size: 12px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.cta { margin-top: auto; flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; border-radius: 10px; background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; transition: background-color 160ms ease, transform 160ms ease; }
+.cta { margin-top: auto; flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; border-radius: 8px; background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; transition: background-color 160ms ease, transform 160ms ease; }
 .card:hover .cta { background: var(--blue-2); }
 .card:active .cta { transform: scale(.985); }
-.attribution { text-align: center; font-size: 10.5px; color: var(--mute); }
+.attribution { text-align: center; font-size: 12px; color: var(--mute); }
 .attribution b { color: var(--blue); font-weight: 600; }
 
 @media (min-height: 520px) and (min-width: 360px) {
-  .card { padding: 18px; gap: 12px; }
-  .primaryNumber { font-size: 42px; }
-  .metric { padding: 9px 12px; }
-  .metricValue { font-size: 18px; }
+  .card { padding: 16px; gap: 12px; }
+  .primaryNumber { font-size: 40px; }
+  .metric { padding: 8px 12px; }
+  .metricValue { font-size: 20px; }
 }
 @media (max-height: 380px) { .miniMap { display: none; } }
 @media (prefers-reduced-motion: reduce) { .live i { animation: none; } .cta { transition: none; } }
@@ -81,5 +81,5 @@
 /* No map (too few mapped areas): keep the card balanced instead of leaving a hole. */
 .card:not(:has(.miniMap)) { justify-content: center; }
 .card:not(:has(.miniMap)) .cta { margin-top: 4px; }
-.card:not(:has(.miniMap)) .attribution { margin-top: 2px; }
+.card:not(:has(.miniMap)) .attribution { margin-top: 4px; }
 .metrics, .identity, .primary, .cta, .attribution { flex-shrink: 0; }

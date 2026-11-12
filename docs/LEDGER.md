@@ -41,6 +41,17 @@ The owner judged the rebuilt landing, hero, navigation and pages (PRs #60, #61) 
 
 The sections below about "Batch 1" and the "Site visual pass" describe work that this decision supersedes on the public site.
 
+## 12 Nov: the public site on one page kit (from the site audit's open items)
+
+| Item | Status | Evidence |
+|---|---|---|
+| 26 public pages on older kits (InfoPage/MarketingShell, MarketingPage, SitePage, CoShell/AudiencePage, the sp3 SolutionPage) moved onto the blueprint's kit (`src/sp4/site/kit.tsx`, `ProductPage`); words, links and URLs kept. The kit gained what they needed: Back (`PageHead back`), `DocPage`/`Prose`, `Block`, `Band`, `Steps`, `Rows`, `NextLinks`, `Figure`, and `ProductPage` `problem`, section eyebrows and `close.sub` (For funders). Older kits deleted | Done | Before/after screenshots of every changed page, 1440×900 and Pixel 7 |
+| Evidence's state explorer and Volunteer's routes were unstyled on a fresh load (their styles are in the console's app.css); now styled in the site's type | Fixed | Screenshots |
+| One title format, "Page, StrayPaw" (blog posts, customer stories, team pages, research sub-pages, fundraisers, Donate, Research standards, The network) | Done | |
+| Internal links that hit a redirect point at the final URL (/access, /report, /map, /following, /orgs, /product, /art-credits, /org/:slug, /partner/cases/:id) on public pages | Done | Shell menus and `src/lib` search/role links (signed-in product) not changed |
+| Public stylesheets on the 8-point scale (`scripts/grid8.py --write`); the homepage's landing sections left as DESIGN.md says | Done | `grid8.py` reports none off scale on the 21 public sheets and the inner-page sections of `home4.css`; home before/after identical in structure |
+| `/report-content` still renders in the app shell, with no site header | Open | Left for a decision |
+
 ## 11 Nov, evening: live state and the dashboard pass
 
 | Thing | State | Evidence |

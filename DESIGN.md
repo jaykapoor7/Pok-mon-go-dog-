@@ -51,7 +51,18 @@ what they can do (one primary action, verbs on rows) and what happens next
   status, never as decoration. Measured on the NGO screens on 12 Nov 2026:
   accent 1-3.4% of pixels, status colours under 1%.
 - **Checking it.** `python3 scripts/grid8.py <css files>` reports any value off
-  the scale; run it on new stylesheets before merging.
+  the scale; run it on new stylesheets before merging. The public site's
+  stylesheets were normalised on 12 Nov 2026 (the kit `src/sp4/sp4.css`, the
+  inner-page parts of `home4.css`, resources, research, entry and the public
+  pages' own sheets). The homepage's landing sections, hero and scripted demo
+  (`home4.css` hero to results, `landing.css`, `v7/landing7.css`,
+  `v7/motion8.css`) are left as they are, as this section says.
+- **One page kit for the public site** (`src/sp4/site/kit.tsx` and
+  `ProductPage`, the earlier site's kit the owner chose as the blueprint).
+  Policies use `DocPage`; company and audience pages `PageHead` + `Block`;
+  explainers `Band`, `Steps`, `Rows`, `NextLinks`; product and solution pages
+  `ProductPage`. Pages a visitor is pushed into carry the Back control
+  (`PageHead back`). Every public `<title>` reads "Page, StrayPaw".
 - **No lines around things** (`src/sp/ui/calm.css`, the last stylesheet). No
   outline around a card, a tile or a row. A soft fill (`#f5f6f8`) marks a
   surface; one hairline divides rows in a list; space separates sections.
