@@ -201,7 +201,13 @@ Decisions (`/ngo/review`) now uses the page pattern: a head that says how many r
 
 **Rebuilt since the owner's brief of 11 Nov (all live or in the gate):** the frame (sidebar, bar, status footer, one sheet), Home, the Pipeline board, Queue, Intake, Sign-off & evidence, Decisions, Animals, Reports, the rail on case, sign-off, package, sample and bite records, the next-step callout, the first-day guide, the NGO's programme menu from the proposal.
 
-**Not rebuilt yet (still their earlier layouts inside the new frame):** Field mode's capture flow; the animal record and the case record bodies below their rails; the programme places (hospital desk and bite register, laboratory bench, programme cell overview, coverage, care network, requests); the municipal workspace (Today, review queue, contracts, wards map); Community and the Academy; the All sections index.
+**Not rebuilt yet (still their earlier layouts inside the new frame):** the animal record and the case record bodies below their rails; the programme places (hospital desk and bite register, laboratory bench, programme cell overview, coverage, care network, requests); the municipal workspace (Today, review queue, contracts, wards map); Community and the Academy; the All sections index.
+
+## 12 Nov: Field mode as a round
+
+PR #74 (Decisions) merged as `22ff2e5f`.
+
+Field mode (`/ngo/field`) is rebuilt as the person's round for the day. The head gives the date and the number of stops (late ones counted in red) and a connection chip: online, offline or no signal, with how many records wait on the phone. Opening the chip explains where a record goes and holds the one switch; with no signal it offers "Keep working offline". One large control records an animal in front of you (the same intake form, the same checks). Follow-ups due come first, then the cases in the person's hands; each stop has its thumb action (Done / Missed, or Start) and "Record", which opens four tools (note, evidence, vaccination, care or movement) and one form at a time. "This phone" lists what is waiting with "Send all", each waiting record with send, download and remove, and what was sent with its receipt. The offline PIN opens inside the same page. Sync, encryption, scopes and every save call are unchanged; the outbox test still covers them.
 
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
