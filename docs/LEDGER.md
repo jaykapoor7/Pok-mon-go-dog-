@@ -203,6 +203,21 @@ Decisions (`/ngo/review`) now uses the page pattern: a head that says how many r
 
 **Not rebuilt yet (still their earlier layouts inside the new frame):** the animal record and the case record bodies below their rails; the programme places (hospital desk and bite register, laboratory bench, programme cell overview, coverage, care network, requests); the municipal workspace (Today, review queue, contracts, wards map); Community and the Academy; the All sections index.
 
+## 12 Nov: the cinematic public site, behind one switch
+
+The owner asked for the public site as a cinematic experience, "The whole world,
+connected.", built behind one switch with the existing site kept intact and one
+value to roll back. See `docs/CINEMATIC.md`.
+
+| Item | Status | Evidence |
+|---|---|---|
+| Switch: `MARKETING_EXPERIENCE=cinematic\|legacy`, read once in `next.config.mjs`, legacy when unset | Done | Legacy build carries no `cn8-` code or CSS; `/kaju` → `/ai` |
+| Legacy homepage kept byte for byte (`src/app/_home/legacy.tsx`) | Done | Diffed against `origin/main` |
+| Homepage: world → map → chain → Kaju → platform → ecosystem → proof → close | Done | Desktop and phone screenshots at each chapter |
+| `/kaju`: Meet Kaju, four capabilities with demonstrations, rules | Done | Desktop and phone screenshots |
+| Nav and footer on every public page in cinematic mode; white bar in flow on ordinary pages | Done | `/platform`, `/pricing`, `/for-hospitals`, `/our-story` checked |
+| Preview of this branch set to cinematic (Preview, branch-scoped); production and the demo unchanged | Done | Vercel env `MARKETING_EXPERIENCE` (preview, `claude/brave-hawking-0ohpo5`) |
+
 ## 12 Nov: Field mode as a round
 
 PR #74 (Decisions) merged as `22ff2e5f`.

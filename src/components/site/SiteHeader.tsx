@@ -27,6 +27,9 @@ import { MEGA, type MegaCol } from "@/sp3/site/nav-data";
 import { MegaArt } from "./MegaArt";
 import { DEMO_SITE } from "@/lib/demo-site";
 
+/* The cinematic site's navigation, in its build only (next.config.mjs): elsewhere this is null and the module is not bundled. */
+const CineNav: typeof import("@/cine/CineNav").CineNav | null = process.env.MARKETING_EXPERIENCE === "cinematic" ? require("@/cine/CineNav").CineNav : null;
+
 /* On the demonstration site the header's main button starts the live demo. */
 const CTA = DEMO_SITE ? { href: "/try?go=1", label: "Start the live demo" } : { href: "/demo", label: "Book a demo" };
 export { AUDIENCES, PLATFORM, RESOURCES, SOLUTIONS } from "@/sp3/site/nav-data";
@@ -35,7 +38,12 @@ type MenuId = "platform" | "solutions" | "resources";
 
 
 
+/** The public site's navigation: the cinematic one or the earlier one, by the one marketing switch (next.config.mjs). */
 export function SiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean; float?: boolean } = {}) {
+  return CineNav ? <CineNav /> : <LegacySiteHeader {...props} />;
+}
+
+function LegacySiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean; float?: boolean } = {}) {
   void props;
   const path = usePathname() ?? "";
   const { user } = useAuth();
