@@ -1,7 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname, useSelectedLayoutSegments } from "next/navigation";
-import { Shell } from "@/sp/shell/Shell";
+
+/* The application frame is its own chunk: public pages (the site, documents,
+   the bite finder) never load the sidebar, search, Kaju's panel or the
+   workspace menus. It still renders on the server for app routes. */
+const Shell = dynamic(() => import("@/sp/shell/Shell").then((m) => m.Shell));
 
 /**
  * Marketing and auth pages render their own full-bleed chrome.

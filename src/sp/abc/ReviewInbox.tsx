@@ -105,7 +105,7 @@ export function ReviewInbox() {
               ]} />
               {op ? <p className="vw-note" style={{ margin: 0 }}>Only {names[op] ?? "one operator"}<button type="button" onClick={() => setOp(null)}>Show every operator</button></p> : null}
             </div>
-            <div className="gv-cols">
+            <div className={`gv-cols${by.size > 1 || op ? " has-side" : ""}`}>
               <section className="gv-main" aria-label={tab === "waiting" ? "Waiting for your decision" : tab === "operator" ? "With the operator" : tab === "accepted" ? "Accepted" : "All submissions"}>
                 {shownTab.length ? (
                   <ul className="vw-list">{shownTab.map((p, j) => {

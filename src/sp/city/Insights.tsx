@@ -17,6 +17,7 @@ import { Printer } from "lucide-react";
 import { useSpatialDataset } from "../data/spatial";
 import { cityEvidence, KINDS } from "../atlas/evidence";
 import { State } from "../ui";
+import { PageHead, Seg } from "../ui/Page";
 import { findings, loadedScope, type Period } from "./findings";
 import { FindingView, Hatch } from "./Findings";
 import { MobileDetails } from "../ui/MobileDetails";
@@ -57,21 +58,16 @@ export function Insights() {
     <div className="ci">
       <Hatch />
       <OfficeStrip onOffice={setOffice} publicOpen={pub} onPublic={() => setPub((v) => !v)} />
-      {(!office || pub) && <>
-      <header className="ci-head">
-        <div className="ci-title">
-          <p className="k">Municipality · insights</p>
-          <h1 className="display">{city ?? "Insights"}</h1><p className="ci-sub">What the record supports</p>
-        </div>
-        {cities.length > 0 && <div className="ci-controls">
-          <label className="field"><span className="label">City</span><select className="select" value={city ?? ""} onChange={(e) => pick(e.target.value)} disabled={!cities.length}>{cities.filter((c) => c.cases > 0 || c.animals > 0).map((c) => <option key={c.city} value={c.city}>{c.city}</option>)}</select></label>
-          <div className="seg" role="group" aria-label="Period"><button type="button" aria-pressed={period === "all"} onClick={() => setPeriod("all")}>{ld?.capped ? "Loaded record" : "Whole record"}</button><button type="button" aria-pressed={period === "12m"} onClick={() => setPeriod("12m")}>Last 12 months</button></div>
+      {(!office || pub) && <div className="vw ci-v">
+      <PageHead title={city ?? "Insights"}
+        sum={<>What the record supports{ev ? <>, from <span className="ci-kind2" style={{ ["--ink" as string]: KINDS[ev.kind].ink }}>{KINDS[ev.kind].label.toLowerCase()}</span> ({ev.precision.toLowerCase()}). {ev.note}</> : "."}</>}
+        actions={cities.length > 0 ? <>
+          <label className="cpv-city-pick"><span className="sr-only">City</span><select value={city ?? ""} onChange={(e) => pick(e.target.value)} disabled={!cities.length}>{cities.filter((c) => c.cases > 0 || c.animals > 0).map((c) => <option key={c.city} value={c.city}>{c.city}</option>)}</select></label>
           {city && <Link className="btn is-s" href={`/city/report?city=${encodeURIComponent(city)}`}><Printer size={14} aria-hidden /> City report</Link>}
-        </div>}
-        {ld?.capped && <p className="ci-loaded" role="note"><b>Partial record.</b> Showing {ld.animals.toLocaleString("en-IN")} of {ld.totals.animals.toLocaleString("en-IN")} animal profiles{ld.totals.cases ? <> and {ld.cases.toLocaleString("en-IN")} of {ld.totals.cases.toLocaleString("en-IN")} requests</> : null}. Older records are outside these findings.</p>}
-        {away && city !== away && <p className="ci-away" role="note">No public record for {away} yet. It fills in as your operators’ approved records are published. Showing {city ?? "another city"} meanwhile.</p>}
-        {ev && <p className="ci-ev"><span className="ci-kind" style={{ ["--ink" as string]: KINDS[ev.kind].ink }}>{KINDS[ev.kind].label}</span> {ev.precision}. {ev.note}</p>}
-      </header>
+        </> : undefined} />
+      {cities.length > 0 && <div className="vw-bar"><Seg<Period> label="Period" value={period} onChange={setPeriod} options={[{ id: "all", label: ld?.capped ? "Loaded record" : "Whole record" }, { id: "12m", label: "Last 12 months" }]} /></div>}
+      {ld?.capped && <p className="vw-note" role="note"><span><b>Partial record.</b> Showing {ld.animals.toLocaleString("en-IN")} of {ld.totals.animals.toLocaleString("en-IN")} animal profiles{ld.totals.cases ? <> and {ld.cases.toLocaleString("en-IN")} of {ld.totals.cases.toLocaleString("en-IN")} requests</> : null}. Older records are outside these findings.</span></p>}
+      {away && city !== away && <p className="vw-note" role="note"><span>No public record for {away} yet. It fills in as your operators’ approved records are published. Showing {city ?? "another city"} meanwhile.</span></p>}
       {loading && <div className="ci-wrap"><div className="skel" style={{ height: 260 }} /><div className="skel" style={{ height: 260, marginTop: 20 }} /></div>}
       {error && <State kind="error" title="Didn't load" action={<button type="button" className="btn" onClick={() => window.location.reload()}>Try again</button>}>{error} Nothing is shown as zero.</State>}
       {!loading && !error && city && !list.length && <State title="Too little to say">The record for {city} in this period is too thin to support a finding. That is a statement about the record, not about the animals.</State>}
@@ -92,7 +88,7 @@ export function Insights() {
           </div>
         </div>
       )}
-      </>}
+      </div>}
     </div>
   );
 }

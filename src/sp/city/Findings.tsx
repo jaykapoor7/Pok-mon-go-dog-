@@ -59,9 +59,8 @@ function FigureView({ fig }: { fig: Figure }) {
     let x = 0;
     return (
       <figure className="fi-fig">
-        <svg viewBox="0 0 1000 44" className="fi-strip" role="img" aria-label={fig.parts.map((p) => `${p.n} ${p.label}`).join(", ") + ` of ${all} ${fig.of}`} preserveAspectRatio="none">
-          {fig.parts.filter((p) => p.n).map((p) => { const w = (p.n / all) * 1000, r = <rect key={p.label} x={x} y={4} width={Math.max(1, w)} height={36} fill={TONE[p.tone]} stroke="#0b1e3d" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />; x += w; return r; })}
-          <rect x={0} y={4} width={1000} height={36} fill="none" stroke="#0b1e3d" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+        <svg viewBox="0 0 1000 16" className="fi-strip" role="img" aria-label={fig.parts.map((p) => `${p.n} ${p.label}`).join(", ") + ` of ${all} ${fig.of}`} preserveAspectRatio="none">
+          {fig.parts.filter((p) => p.n).map((p) => { const w = (p.n / all) * 1000, r = <rect key={p.label} x={x} y={0} width={Math.max(1, w)} height={16} fill={TONE[p.tone]} stroke="#fff" strokeWidth="2" vectorEffect="non-scaling-stroke" />; x += w; return r; })}
         </svg>
         <figcaption className="fi-key">{fig.parts.filter((p) => p.n).map((p) => <span key={p.label}><i style={{ background: p.tone === "unknown" ? "repeating-linear-gradient(135deg,#7d8db4 0 2px,transparent 2px 5px)" : TONE[p.tone] }} />{f(p.n)} {p.label.toLowerCase()}</span>)}</figcaption>
       </figure>
