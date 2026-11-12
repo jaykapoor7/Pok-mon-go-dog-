@@ -256,7 +256,9 @@ first), and a rebuilt live demo. See `docs/BEST-AUDIT.md`.
 | Case story, All sections, community map plural | Done | |
 | 26 public pages onto the blueprint kit; one title format; links at final URLs; public CSS on the 8-point scale | Done (by a worktree agent, reviewed) | Typecheck, build, browser suite 249/0 |
 | Changelog current; How do I… from Kaju's own steps; security evidence | Done | |
-| Page speed and accessibility checks | Next | |
+| Accessibility (axe, WCAG 2.1 A/AA) on 6 public pages and 15 product screens across 6 roles, desktop and phone | Done: every checked screen passes | Contrast tokens for soft fills, valid stat markup, alert headers without nested controls, focusable scroll regions |
+| Page speed (browser-measured on a phone profile via the session proxy) | LCP 0.95–1.9 s, CLS 0 on home, /try, security summary, for-ngos | Lighthouse itself was not permitted in this session |
+| Every page loads about 430 KB of JavaScript, documents included (the root layout carries the app shell) | Open: split the public pages from the app shell's bundle | |
 
 ## 12 Nov: the cinematic public site, behind one switch
 
