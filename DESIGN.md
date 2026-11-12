@@ -142,6 +142,15 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
   things waiting. What changed since yesterday is one sentence. Kaju's
   prepared work is one fold, closed until wanted. Nothing else goes above the
   fold.
+- **The first day** (`src/sp/shell/FirstDay.tsx`). A person is introduced to
+  the workspace once, on their place's home, and again whenever they press
+  **Guide** in the status line. It points at the real controls: the place, the
+  menu, the one thing first, the line of work, Kaju and the status line are
+  lit in turn while the rest dims, and the light glides between them. A
+  control that is not on the screen is passed over (a phone has no sidebar).
+  It ends on real first actions for the person's role, never on a slogan. It
+  writes nothing to a record; progress is kept on the device. A sample
+  session has its own guided demo, so this one waits there to be asked for.
 - **One operating path** (`src/sp/ngo/pipeline.ts`, the single definition of
   the line of work). The five stages have one name each and count the same
   records wherever they appear:

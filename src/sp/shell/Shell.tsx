@@ -31,6 +31,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
 import { designedNav, ORDER, PROFESSIONAL, WORKSPACES, canDiscover, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
+import { FirstDay, FIRSTDAY_EVENT, type FirstAction } from "./FirstDay";
 import { Notices } from "../ui/Notice";
 import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
 import { KajuFace } from "@/kaju/Kaju";
@@ -238,6 +239,17 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   /* The Pipeline's views share one breadcrumb: NGO / Pipeline / the view. */
   const pipeView = ws === "ngo" ? pipelineView(path) : undefined;
 
+  /* The first day: who gets the introduction, and the real actions it ends on, by role. */
+  const guided = !!user && ((ws === "ngo" && mem.member) || (ws === "city" && mem.reviewer) || (ws === "health" && pl.places.length > 0));
+  const firstActions: FirstAction[] = ws === "ngo" ? (
+    mem.role === "admin" ? [{ href: "/ngo/import", label: "Bring your register", note: "Excel or CSV, as it is" }, { href: "/ngo/team", label: "Add your team", note: "Each person gets their own code" }, { href: "/ngo/pipeline", label: "Open the board", note: "The whole line of work" }]
+    : mem.role === "veterinarian" ? [{ href: "/ngo/verification?stage=vet", label: "Open what waits for your sign-off", note: "Procedures only a vet can authorise" }, { href: "/ngo/pipeline?stage=vet", label: "See your stage on the board", note: "With the vet" }]
+    : mem.role === "member" ? [{ href: "/ngo/field", label: "Register an animal in field mode", note: "Works with or without signal" }, { href: "/ngo/pipeline", label: "Open the board", note: "What your team is working on" }]
+    : [{ href: "/ngo/pipeline", label: "Open the board", note: "The whole line of work" }, { href: "/ngo/packages", label: "See this month's report", note: "What can be claimed, and what blocks the rest" }, ...(ngoPlace ? [{ href: `/workspace/${ngoPlace.organisation_id}`, label: "Answer programme partners", note: "Requests from hospitals and the laboratory" }] : [])]
+  ) : ws === "city" ? [{ href: "/city/review", label: "Open the decision queue", note: "Packages waiting for your office" }, { href: "/city/contracts", label: "Check contracts and rates", note: "What each operator is paid for" }]
+    : place ? [{ href: placeHome(place), label: `Open ${place.short_name ?? place.name}`, note: "What needs you here today" }, ...(placeAction(place) ? [{ href: placeAction(place)!.href, label: placeAction(place)!.label, note: "The action this place starts with" }] : [])]
+    : pl.places.slice(0, 3).map((p) => ({ href: placeHome(p), label: `Open ${p.short_name ?? p.name}`, note: "What needs you there today" }));
+
   return (
     <Membership.Provider value={mem}>
       <div className={`sp sp-app s3-root sx3 os ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-tucked" : ""} cn${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} data-tone={tone} style={{ ["--ws" as string]: def.ink }}>
@@ -330,7 +342,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
           <AmbientLight />
           <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{isFlush ? children : <div className="os-page" key={path}>{children}</div>}</Fragment></main>
-          <StatusFoot place={ws === "health" ? (place?.short_name ?? place?.name ?? null) : ws === "ngo" ? (mem.org?.name ?? null) : ws === "city" ? "Municipal review" : null} programme={(ws === "health" ? place : ngoPlace ?? cityPlace)?.programmes[0]?.name ?? null} illustrative={!!(ws === "health" ? place : ngoPlace ?? cityPlace)?.illustrative} onFind={() => setFind(true)} onKaju={() => ai.toggle()} />
+          <StatusFoot place={ws === "health" ? (place?.short_name ?? place?.name ?? null) : ws === "ngo" ? (mem.org?.name ?? null) : ws === "city" ? "Municipal review" : null} programme={(ws === "health" ? place : ngoPlace ?? cityPlace)?.programmes[0]?.name ?? null} illustrative={!!(ws === "health" ? place : ngoPlace ?? cityPlace)?.illustrative} onFind={() => setFind(true)} onKaju={() => ai.toggle()} onGuide={guided ? () => window.dispatchEvent(new Event(FIRSTDAY_EVENT)) : undefined} />
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
@@ -347,6 +359,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
         </nav>
 
+        {guided && user ? <FirstDay userId={user.id} name={user.name ?? ""} place={wsTitle} home={def.home} path={path} actions={firstActions} quiet={/@straypaw\.invalid$/.test(user.email ?? "")} /> : null}
         <Notices />
         <IndexSheet open={sheet} onClose={() => setSheet(false)} ws={ws} path={path} entries={entries} nav={ws === "health" ? def.nav : undefined} label={def.label} />
         <Finder pages={findPages} browse={browse} open={find} onClose={() => { setBrowse(false); closeFind(); }} ws={ownNgoPlace ? "ngo" : ws} role={mem.role} reviewer={mem.reviewer} member={mem.member} onAsk={(q) => { setFind(false); ai.ask(q); }} />
@@ -357,7 +370,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 }
 
 /** The frame's lower edge: whether records are reaching the register, where you are, and the two keys worth knowing. */
-function StatusFoot({ place, programme, illustrative, onFind, onKaju }: { place: string | null; programme: string | null; illustrative: boolean; onFind: () => void; onKaju: () => void }) {
+function StatusFoot({ place, programme, illustrative, onFind, onKaju, onGuide }: { place: string | null; programme: string | null; illustrative: boolean; onFind: () => void; onKaju: () => void; onGuide?: () => void }) {
   const [online, setOnline] = useState(true);
   const [now, setNow] = useState<string>("");
   useEffect(() => {
@@ -376,6 +389,7 @@ function StatusFoot({ place, programme, illustrative, onFind, onKaju }: { place:
       <span className="cn-foot-fill" aria-hidden />
       <button type="button" onClick={onFind}><kbd>⌘K</kbd> Search</button>
       <button type="button" onClick={onKaju}><kbd>⌘J</kbd> Kaju</button>
+      {onGuide ? <button type="button" onClick={onGuide}>Guide</button> : null}
       <Link href="/docs">Help</Link>
       {now ? <time className="cn-foot-time">{now}</time> : null}
     </footer>
