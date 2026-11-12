@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHead, S4Page } from "@/sp4/site/kit";
+import { HOW } from "@/sp3/ai/understand";
 
 export const metadata = { title: "Documentation, StrayPaw", description: "How StrayPaw works: access, workspaces, imports, programmes, evidence review, reports, Kaju and CareOS." };
 
@@ -14,6 +15,8 @@ const DOCS: { id: string; t: string; body: React.ReactNode; links: [string, stri
   { id: "automations", t: "Kaju automations", body: <>The Kaju home lists what Kaju is doing for your role. For organisations: the morning record check, a weekly digest of what changed and who acts next, overdue follow-ups prepared for rescheduling, a draft of this month&apos;s claim with every blocked record, a duplicate check and ward watch. For reviewing offices: a morning brief that pre-checks every waiting package, ward watch and a draft monthly note. Every figure is read from the record; an unreadable source says unknown. Kaju prepares and a person confirms.</>, links: [["Open Kaju", "/assistant"], ["Kaju agents", "/kaju-agents"]] },
   { id: "ai", t: "Kaju", body: <>Open it from any workspace with the sparkle button or ⌘J, or full screen at <Link className="s4-blue" href="/assistant">/assistant</Link>. It reads with your own session, so database permissions apply. It answers with links to the records it used. Any change it prepares (a case, a note, a follow-up, a care event) is shown first and saved only when you press Confirm, through the same actions as the manual screens, and is marked in the history as prepared with Kaju. Without a language model configured on the deployment, the record tools still work and the assistant says free-form answers are off.</>, links: [["Kaju", "/ai"], ["Open assistant", "/assistant"]] },
   { id: "careos", t: "CareOS and WhatsApp", body: <>CareOS is the field channel: authorised members send text, photos and locations that become drafts for review. It is <b>not connected to WhatsApp in production</b>; the webhook refuses all traffic until Meta credentials are configured. Use field mode on a phone, or paste a forwarded message into Kaju.</>, links: [["CareOS status", "/whatsapp"], ["Field mode", "/ngo/field"]] },
+  { id: "one-health", t: "Programmes across institutions", body: <>A One Health programme joins hospitals and health centres, laboratories, NGOs, the municipal office and a coordination cell. Each works in its own place: a facility records bites and courses against its own register number and never stores a name; a laboratory receives samples and records results with their method; an NGO answers requests to find, observe or vaccinate animals. Requests, results and referrals move between them; patient details never do. A bell lists what needs each person across their places.</>, links: [["See it in the live demo", "/try"], ["For hospitals", "/for-hospitals"]] },
+  { id: "setup", t: "Setting up a programme, step by step", body: <>In the order the screens ask for it: <b>1.</b> On Today, <b>Start a programme</b> with its name, city and areas; you become its lead. <b>2.</b> In <b>Programme setup</b>, choose the modules (bite care, laboratory, follow-ups, vaccination, services, training). <b>3.</b> Add the partners and what each is responsible for. <b>4.</b> Invite their people: each invite is a link or a code, for one role in one organisation, valid for 14 days. <b>5.</b> Each facility confirms the services it offers today (vaccine, immunoglobulin, wound washing); confirmations lapse unless renewed. <b>6.</b> In <b>Care network</b>, set where each facility refers people for each service. <b>7.</b> Add dog population estimates by area, with their method and source, so coverage can be shown against them. Nothing here needs engineering.</>, links: [["Talk to us about a pilot", "/demo"]] },
   { id: "data", t: "Data, privacy and permissions", body: <>Row-level security in the database decides every read and write. Public views show round area cells, never exact locations. Reporter identity and veterinary notes are private to authorised members.</>, links: [["Data governance", "/data-governance"], ["Research standards", "/research-standards"], ["Privacy", "/privacy"]] },
 ];
 
@@ -35,6 +38,23 @@ export default function DocsPage() {
           ))}
         </div>
       </section>
+      {/* The same steps Kaju gives when asked "how do I…", from one list, so the two never disagree. */}
+      <section className="s4-wrap s4-howto" aria-labelledby="howto-h">
+        <h2 id="howto-h" className="s4-h3">How do I…</h2>
+        <p className="s4-body">The steps Kaju gives when you ask it, on the screens you will see.</p>
+        <div className="s4-howto-grid">
+          {HOW.map((h) => (
+            <details key={h.title} className="s4-howto-item">
+              <summary>{h.title}</summary>
+              <ol>{h.steps.map((s, i) => <li key={i}>{bold(s)}</li>)}</ol>
+              {h.note ? <p>{bold(h.note)}</p> : null}
+            </details>
+          ))}
+        </div>
+      </section>
     </S4Page>
   );
 }
+
+/** Kaju writes screen names in **bold**; the page shows them the same way. */
+function bold(s: string) { return s.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? <b key={i}>{part}</b> : part)); }

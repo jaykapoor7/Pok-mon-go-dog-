@@ -132,6 +132,16 @@ export const POSTS: Post[] = [
 export type Update = { date: string; area: string; title: string; body: string };
 /** Shipped, in the order they shipped (from the release history). */
 export const UPDATES: Update[] = [
+  { date: "2026-11-12", area: "Programmes", title: "Referral of one person between facilities", body: "For hospitals and health centres in a One Health programme: refer a person for vaccine, immunoglobulin or wound washing, see whether they arrived, never sharing who they are." },
+  { date: "2026-11-12", area: "Field", title: "Dogs due for revaccination", body: "When your programme sets an interval, Animals lists the dogs overdue or due within 14 days, from the last vaccination recorded on each." },
+  { date: "2026-11-12", area: "Kaju", title: "Case questions and a case summary", body: "Ask how many open cases by locality, narrow it with a follow-up, or have Kaju summarise the case you are on, from your own records." },
+  { date: "2026-11-12", area: "Platform", title: "Invitations by link", body: "Programme setup gives a link as well as a code; it opens StrayPaw with the code filled in." },
+  { date: "2026-11-12", area: "Government", title: "Review submissions, simpler", body: "One sentence says what waits and whether any of it is late; the lists are the lanes, with what Kaju found on each package." },
+  { date: "2026-11-12", area: "Programmes", title: "Notifications and the Where to act map", body: "For people in a One Health programme: one bell for what needs them across their places, and a map of bites, confirmed cases and vaccination by area, with reasons." },
+  { date: "2026-11-12", area: "Kaju", title: "Every role's Today as a daily brief", body: "What needs you first, then your working lists; Quick actions open on what you do most." },
+  { date: "2026-11-11", area: "Field", title: "Field mode as a round", body: "Today's stops, one capture control and a connection chip that says whether records are waiting to send." },
+  { date: "2026-11-11", area: "Workflow", title: "One Pipeline", body: "The same five stages on Today, the board and every record; the Queue, Decisions, Sign-off, Animals and Reports follow one page pattern." },
+  { date: "2026-11-11", area: "Platform", title: "A first-day introduction", body: "New members get a short tour that points at the real controls of their own workspace." },
   { date: "2026-11-09", area: "Kaju", title: "Weekly digest and follow-up nudges", body: "What changed in seven days and who acts next; overdue follow-ups grouped by case holder, with reschedules prepared to confirm." },
   { date: "2026-11-09", area: "Kaju", title: "Claim draft", body: "This month's claimable amount from the billing preview, and every blocked record with its reason." },
   { date: "2026-11-09", area: "Government", title: "Office brief, ward watch and monthly note", body: "A Kaju home for reviewing offices: waiting packages pre-checked for exceptions, ward coverage and sudden changes, and a draft programme note." },

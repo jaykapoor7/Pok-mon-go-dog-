@@ -46,6 +46,21 @@ export default function SecuritySummaryPage() {
         <li>Usage counting is first-party only, with an opt-out; there is no advertising or cross-site tracking.</li>
       </ul>
 
+      <h2>Patient data in One Health programmes</h2>
+      <ul>
+        <li>Bite exposures, treatment courses, doses and reminder calls live in a separate <code>health</code> schema that the web API cannot reach. They are read and written only through functions that check the person&apos;s facility and role.</li>
+        <li>A person is identified by the facility&apos;s own register number. There is no field for a name. A phone number is kept only when the person agreed to reminder calls.</li>
+        <li>NGOs, the programme lead and Kaju never open an individual bite record. When a facility refers someone, the receiving facility sees the bite code, its category and what is needed, never who the person is.</li>
+        <li>Programme figures under five are shown as &quot;fewer than 5&quot;, never exactly.</li>
+        <li>Opening a bite record, and every change to it, is written to an audit trail that the database refuses to edit or delete.</li>
+      </ul>
+      <h2>How these statements are checked</h2>
+      <ul>
+        <li>Every change runs the same automated gate before it can be merged: type checks, the production build, regression scripts and about 250 browser tests.</li>
+        <li>A permission suite signs in as each kind of person on the staging demonstration and confirms who can and cannot read or change what: today 25 checks, covering patient records, other cities&apos; programmes, referrals and small counts.</li>
+        <li>A separate suite confirms that Kaju&apos;s tools read only what the person may read and never touch patient records.</li>
+        <li>These are our own tests, not an independent audit; see below.</li>
+      </ul>
       <h2>Data ownership and exit</h2>
       <p>An organisation owns its records. Registers, evidence and reports export to Excel, CSV and PDF at any time, and a workspace can be deleted on request. See <Link href="/data-processing">Data processing</Link> for sub-processors, retention and incident notice.</p>
 
