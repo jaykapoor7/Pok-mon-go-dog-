@@ -203,6 +203,29 @@ Decisions (`/ngo/review`) now uses the page pattern: a head that says how many r
 
 **Not rebuilt yet (still their earlier layouts inside the new frame):** the animal record and the case record bodies below their rails; the programme places (hospital desk and bite register, laboratory bench, programme cell overview, coverage, care network, requests); the municipal workspace (Today, review queue, contracts, wards map); Community and the Academy; the All sections index.
 
+## 12 Nov: BeST audit, notifications, maps, the one-story demo, the 8-point system
+
+The owner asked for a requirement-by-requirement audit against the BeST
+proposal and Dr. Suresh's email, an exceptional product (the NGO product
+first), and a rebuilt live demo. See `docs/BEST-AUDIT.md`.
+
+| Item | Status | Evidence |
+|---|---|---|
+| Audit of every requirement: done, partial or blocked, with who unblocks | Done | `docs/BEST-AUDIT.md` |
+| Notifications centre: what needs the person across their places; acknowledge alerts | Done | Programme lead, nurse on staging |
+| "Where to act" map: bites, confirmed cases and coverage by area, with reasons | Done | Programme overview on staging (WebGL) |
+| Programme maps never loaded GeoJSON (worker URL unset): referral lines invisible | Fixed | Care network shows pathways |
+| Guided demo rebuilt: seven chapters, one story, chapter cards, Kaju asked on screen | Done | Chapters 1–5 played on staging, desktop and phone; 6–7 targets checked on the live demo |
+| Kaju offered on hospital and laboratory screens where it cannot answer | Removed | |
+| Hydration error on every reload after browsing (search dialog read storage in render) | Fixed | No error in a full story run |
+| Demonstration accounts greeted as "demo" | Fixed | Names from display_name, full_name or name |
+| Product CSS on one 8-point system (spacing, radius, type); 60-30-10 colour measured | Done | `scripts/grid8.py` reports nothing off scale; DESIGN.md |
+| NGO phone: Today rows wrap, Pipeline opens on work, guide card compact | Done | Phone screenshots |
+| Report period picker; a programme can be created inside one the person leads | Done | |
+| Journey on staging | 14/14 | `e2e/one-health.spec.ts` |
+| Permissions on staging | 19/19 | `scripts/test-one-health-permissions.ts` |
+| Kaju isolation | 12/12 | `scripts/test-kaju-automations.ts` |
+
 ## 12 Nov: the cinematic public site, behind one switch
 
 The owner asked for the public site as a cinematic experience, "The whole world,

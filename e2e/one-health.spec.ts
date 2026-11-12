@@ -95,7 +95,7 @@ test("a nurse records doses but cannot assess or prescribe", async ({ page }) =>
   await as(page, /Hospital nurse/);
   await page.goto(HOSPITAL);
   await expect(page.getByRole("heading", { name: /daily brief/ })).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByText("Teaching hospital", { exact: true }).first()).toBeVisible();
+  await expect(page.locator(".dy-place", { hasText: "Teaching hospital" })).toBeVisible();
   await page.goto(`${HOSPITAL}/register`);
   await page.getByRole("link", { name: stamp }).click();
   await expect(page.getByRole("button", { name: "Prescribe a course" })).toHaveCount(0);

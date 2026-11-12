@@ -160,14 +160,16 @@ function InviteCode({ open: startOpen = false }: { open?: boolean }) {
     partners, modules and people. */
 function StartProgramme() {
   const router = useRouter();
-  const { reload } = usePlaces();
-  const [f, setF] = useState({ name: "", city: "", areas: "", me: "" });
+  const { reload, places } = usePlaces();
+  const [f, setF] = useState({ name: "", city: "", areas: "", me: "", parent: "" });
+  /* A programme can sit inside one the person leads (a city inside a state); the database checks it too. */
+  const parents = [...new Map(places.filter((x) => x.role === "lead" || x.capabilities.includes("manage")).flatMap((x) => x.programmes).map((x) => [x.id, x])).values()];
   const [busy, setBusy] = useState(false), [err, setErr] = useState<string | null>(null);
   const slug = f.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
   const go = async () => {
     setBusy(true); setErr(null);
     const areas = f.areas.split(/[,\n]/).map((a) => a.trim()).filter((a) => a.length >= 2).slice(0, 200);
-    const r = await call<{ id: string; slug: string }>("oh_create_programme", { p_name: f.name.trim(), p_slug: slug, p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata", p_area_names: areas, p_parent: null, p_city: f.city.trim() || null, p_display_name: f.me.trim() || null });
+    const r = await call<{ id: string; slug: string }>("oh_create_programme", { p_name: f.name.trim(), p_slug: slug, p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata", p_area_names: areas, p_parent: f.parent || null, p_city: f.city.trim() || null, p_display_name: f.me.trim() || null });
     setBusy(false);
     if (r.error || !r.data) { setErr(r.error ?? "Could not create the programme."); return; }
     reload(); router.push(`/programme/${r.data.slug}/setup`);
@@ -182,6 +184,7 @@ function StartProgramme() {
           <label className="oh-field"><span>City or state</span><input value={f.city} maxLength={80} onChange={(e) => setF({ ...f, city: e.target.value })} /></label>
           <label className="oh-field full"><span>Wards or localities</span><textarea value={f.areas} onChange={(e) => setF({ ...f, areas: e.target.value })} placeholder="One per line, or separated by commas. You can add more later." /></label>
           <label className="oh-field"><span>Your name, as partners will see it</span><input value={f.me} maxLength={80} onChange={(e) => setF({ ...f, me: e.target.value })} /></label>
+          {parents.length ? <label className="oh-field"><span>Inside</span><select value={f.parent} onChange={(e) => setF({ ...f, parent: e.target.value })}><option value="">No: a programme of its own</option>{parents.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label> : null}
         </div>
         {err ? <Failed error={err} /> : null}
         <div className="oh-submit"><button type="button" className="oh-btn primary" disabled={busy || f.name.trim().length < 3 || slug.length < 3} onClick={() => void go()}>{busy ? "Creating…" : "Create programme"}</button>{slug.length >= 3 ? <p>Address: /programme/{slug}</p> : null}</div>

@@ -435,7 +435,7 @@ function EstimateSheet({ p, area, onClose, onDone }: { p: Prog; area: { id: stri
 }
 
 /* ── Report ────────────────────────────────────────────────────────── */
-export function ProgrammeReport() { return <Suspense><Frame title="Programme report" lede="A printable summary. Every figure comes from the shared record." actions={() => <button type="button" className="oh-btn primary" onClick={() => window.print()}><Printer size={16} aria-hidden />Print or save as PDF</button>}>{(p) => <ReportBody p={p} />}</Frame></Suspense>; }
+export function ProgrammeReport() { return <Suspense><Frame title="Programme report" lede="A printable summary. Every figure comes from the shared record." actions={() => <><PeriodPicker /><button type="button" className="oh-btn primary" onClick={() => window.print()}><Printer size={16} aria-hidden />Print or save as PDF</button></>}>{(p) => <ReportBody p={p} />}</Frame></Suspense>; }
 
 function ReportBody({ p }: { p: Prog }) {
   const sp = useSearchParams();
