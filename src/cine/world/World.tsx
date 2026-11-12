@@ -30,8 +30,8 @@ const SHOTS: Record<View, [Shot, Shot]> = {
   ],
   /* The same world from its western ridge, with the map's lines showing through the grass. */
   kaju: [
-    { eye: [-26, 13, 2], at: [4, 5.5, -16], map: 0.32, fog: 0.012, drift: 0.7 },
-    { eye: [-20, 22, 0], at: [3, 2, -16], map: 0.6, fog: 0.008, drift: 0.4 },
+    { eye: [-26, 13, 2], at: [4, 10.5, -16], map: 0.32, fog: 0.012, drift: 0.7 },
+    { eye: [-20, 22, 0], at: [3, 6, -16], map: 0.6, fog: 0.008, drift: 0.4 },
   ],
 };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;

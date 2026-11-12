@@ -52,8 +52,17 @@ test.describe("cinematic experience", () => {
       await page.getByRole("button", { name: "Open menu" }).click();
       const sheet = page.getByRole("navigation", { name: "Site, on a phone" });
       await expect(sheet.getByRole("link", { name: "Kaju" })).toBeVisible();
+      await expect(sheet.getByRole("link", { name: "Platform" })).toBeFocused();
+      await page.keyboard.press("Shift+Tab");
+      await expect(page.getByRole("button", { name: "Close menu" })).toBeFocused();
+      await page.keyboard.press("Shift+Tab");
+      await expect(page.getByRole("link", { name: "StrayPaw home" })).toBeFocused();
+      await page.keyboard.press("Shift+Tab");
+      await expect(page.locator("#cn8-sheet").getByRole("link", { name: /Sign in|Open app/ })).toBeFocused();
       await page.keyboard.press("Escape");
-      await expect(page.getByRole("button", { name: "Open menu" })).toBeVisible();
+      const menu = page.getByRole("button", { name: "Open menu" });
+      await expect(menu).toBeFocused();
+      await expect(menu).toHaveAttribute("aria-expanded", "false");
     }
     const demo = page.locator("main").getByRole("link", { name: "Explore live demo" }).first();
     await expect(demo).toHaveAttribute("href", /demo\.straypaw\.org/);

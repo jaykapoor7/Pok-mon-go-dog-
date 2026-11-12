@@ -51,8 +51,11 @@ export function CineNav() {
   useEffect(() => {
     if (!open) return;
     /* Escape closes; Tab stays inside the bar and its sheet while the sheet is open */
+    const burger = bar.current?.querySelector<HTMLElement>(".cn8-burger");
+    /* opening moves focus to the first link; closing with Escape gives it back to the menu button */
+    const first = window.requestAnimationFrame(() => bar.current?.querySelector<HTMLElement>("#cn8-sheet a")?.focus());
     const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { setOpen(false); return; }
+      if (e.key === "Escape") { setOpen(false); burger?.focus(); return; }
       if (e.key !== "Tab" || !bar.current) return;
       const f = [...bar.current.querySelectorAll<HTMLElement>("a[href], button")].filter((x) => x.offsetParent !== null);
       if (!f.length) return;
@@ -61,7 +64,7 @@ export function CineNav() {
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", esc); document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", esc); document.body.style.overflow = ""; };
+    return () => { window.cancelAnimationFrame(first); document.removeEventListener("keydown", esc); document.body.style.overflow = ""; };
   }, [open]);
   const here = (href: string) => path === href || path.startsWith(`${href}/`);
 
