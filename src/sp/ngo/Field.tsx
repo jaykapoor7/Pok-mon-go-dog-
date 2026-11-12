@@ -1,28 +1,34 @@
 "use client";
 
 /* ════════════════════════════════════════════════════════════════════
-   NGO · Field mode (decisions 021, 033, 043).
+   NGO · Field mode: the round (decisions 021, 033, 043).
 
-   The phone in one hand, on the street. Only what is yours today: the
-   cases you hold and the follow-ups due on them, nearest deadline first,
-   each with the one action that fits a thumb. A note typed with no signal
-   is kept on this device as a draft, labelled "not sent", and sent only
-   when you choose to once the connection is back. Pending is never saved.
+   The phone in one hand, on the street. The page is a round of stops:
+   the follow-ups due on the cases you hold, then the cases themselves.
+   One large control records an animal that is in front of you. Each stop
+   carries its one thumb action; "Record" opens four tools (note, evidence,
+   vaccination, care or movement) and one form at a time.
+
+   Where a record goes is a chip in the head, not a mode to choose first:
+   online it saves straight to the register; offline it is kept on this
+   phone, locked with the PIN, and sent when the person chooses. "This
+   phone" lists what is waiting and what was sent. Waiting is never shown
+   as saved.
    ════════════════════════════════════════════════════════════════════ */
 
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { WifiOff } from "lucide-react";
+import { ArrowUpRight, Camera, Check, ChevronDown, Lock, MapPin, PenLine, Play, Plus, Route, ScanLine, Smartphone, Syringe, Trash2, WifiOff } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, openCases, type DueFollowup, type OpenCase } from "@/lib/ops";
-import { Ack, State, day, since, PageBrief } from "../ui";
-import { Reading } from "../ui/Reading";
+import { Ack, day, since } from "../ui";
+import { Empty } from "../ui/Page";
 import { addNote, setFollowup, startWork, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
+import "./round.css";
 import {OfflineStorage} from "./OfflineStorage";
-import {Wifi} from "lucide-react";
 import {IntakeDraft,type KnownAnimal} from "./IntakeDraft";
 import {LifecycleForm} from "./LifecycleForm";
 import type {IntakeData,LifecycleData,OperationKind,WorkflowPolicy} from "@/lib/operations";
@@ -128,117 +134,200 @@ export function Field() {
   };
   /* Online: a saved record goes to the server straight away. */
   useEffect(()=>{if(mode==='online'&&online&&storageOpen&&!syncing&&drafts.some(d=>d.status==='pending'))void sendDrafts()},[mode,online,storageOpen,syncing,drafts]); // eslint-disable-line react-hooks/exhaustive-deps
-  /* One line says where a record goes right now; one switch changes it. Nobody chooses a "mode" before they can work. */
+
+  /* Where a record goes right now. A chip in the head says it; opening the chip changes it. Nobody chooses a "mode" before they can work. */
   const signal=mode==='offline'?'offline':online?'online':'nosignal';
   const waitingN=visibleDrafts.length;
-  const modeTabs=<div className="fd-mode fd-signal" data-signal={signal} role="group" aria-label="Connection">
-    <span className="fd-sig-mark" aria-hidden><i/><i/><i/></span>
-    <span className="fd-sig-text" role="status"><b>{signal==='online'?'Online':signal==='offline'?'Working offline':'No signal'}</b><small>{signal==='online'?'Records save straight to your register':signal==='offline'?(waitingN?`${waitingN} waiting on this phone to send`:'Records stay on this phone until you are back in signal'):'Nothing can be sent right now'}</small></span>
-    {signal==='nosignal'
-      ?<button type="button" className="fd-sig-act" onClick={()=>setMode('offline')}>Keep working offline</button>
-      :<button type="button" role="switch" aria-checked={mode==='offline'} className="fd-sig-switch" onClick={()=>setMode(mode==='offline'?'online':'offline')}><span>Work offline</span><i aria-hidden/></button>}
-  </div>;
-  if(base&&mode==='offline'&&!storageOpen)return <NgoGate title="Field mode" lede="Your assigned fieldwork."><div className="fd">{modeTabs}<OfflineStorage scope={base} onUnlock={()=>setStorageOpen(true)} onPage/></div></NgoGate>;
+  const [netOpen,setNetOpen]=useState(false);
+  const netShown=netOpen||signal==='nosignal';
+  const lateN=myFus.filter(f=>Date.parse(f.due_at)<Date.now()).length;
+  const stops=mine.length+myFus.length;
+  const today=new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});
+
+  const head=(
+    <header className="rn-head">
+      <div>
+        <p className="rn-date">{today}</p>
+        <h1 className="rn-title">Your round</h1>
+        <p className="rn-sum" aria-live="polite">{mode==='offline'&&!storageOpen?"Unlock this phone's records to carry on offline.":cases===null?(failed?"Your stops could not be read.":"Reading your stops…"):stops===0?"Nothing is held by you right now.":<><b>{stops}</b> {stops===1?"stop":"stops"}{lateN?<> · <b className="is-hot">{lateN}</b> late</>:null}</>}</p>
+      </div>
+      <button type="button" className="rn-net" data-signal={signal} aria-expanded={netShown} aria-controls="rn-netp" onClick={()=>setNetOpen(v=>!v)}>
+        <span className="rn-bars" aria-hidden><i/><i/><i/></span>
+        <span className="rn-net-t" role="status"><b>{signal==='online'?'Online':signal==='offline'?'Offline':'No signal'}</b>{waitingN?<small>{waitingN} waiting</small>:null}</span>
+        <ChevronDown size={14} aria-hidden/>
+      </button>
+    </header>
+  );
+  const netPanel=(
+    <div id="rn-netp" className="rn-netp" data-open={netShown} data-signal={signal} inert={netShown?undefined:true}>
+      <div className="rn-netp-in" role="group" aria-label="Connection">
+        <p>{signal==='online'?'Every record saves straight to your register as you make it.':signal==='offline'?(waitingN?`${waitingN} ${waitingN===1?'record is':'records are'} waiting on this phone. They are sent when you choose, once there is signal.`:'Records stay on this phone, locked with your PIN, until you are back in signal.'):'Nothing can be sent right now. Carry on offline and send when the signal is back.'}</p>
+        {signal==='nosignal'
+          ?<button type="button" className="btn is-ink rn-go" onClick={()=>setMode('offline')}><WifiOff size={15} aria-hidden/>Keep working offline</button>
+          :<button type="button" role="switch" aria-checked={mode==='offline'} className="rn-switch" onClick={()=>setMode(mode==='offline'?'online':'offline')}><span>Work offline</span><i aria-hidden/></button>}
+      </div>
+    </div>
+  );
+  if(base&&mode==='offline'&&!storageOpen)return <NgoGate title="Field mode" lede="Your assigned fieldwork."><div className="rn">{head}{netPanel}<div className="rn-lock"><OfflineStorage scope={base} onUnlock={()=>setStorageOpen(true)} onPage/></div></div></NgoGate>;
 
   return (
     <NgoGate title="Field mode" lede="Your cases and follow-ups for today, one hand, on the street.">
-      <div className="fd">
-        {modeTabs}
-        {addingIntake&&<IntakeDraft known={known} onSave={intake} onCancel={()=>setAddingIntake(false)}/>}
-        {storageError&&<p role="alert">{storageError}</p>}
-        {legacyDrafts&&<p role="status">Older drafts on this phone can&apos;t be imported. Ask your admin.</p>}
-        {cachedAt&&<p role="status">Offline assignment snapshot from {new Date(cachedAt).toLocaleString()}. Assignments may have changed; synchronisation checks current access.</p>}
-        {visibleDrafts.length>0&&<section aria-label="Unsent field records"><h2>On this device · not submitted</h2>{visibleDrafts.map(d=><details key={d.id}><summary>{d.survey?'Survey observation':d.intake?'Unregistered animal intake':d.code??'Field record'} · {new Date(d.at).toLocaleString()} · {d.status==='failed'?'Needs retry':'Pending'}</summary><p style={{whiteSpace:'pre-wrap'}}>{d.note}</p>{d.location&&<p>{d.location}</p>}{d.vaccination&&<p>{d.vaccination.eventDate} · reported vaccinator {d.vaccination.performedBy} · {d.vaccination.dose||"dose not recorded"} · {d.vaccination.route||"route not recorded"} · {d.vaccination.location} · {d.vaccination.notes}</p>}{d.file&&<button className="btn" type="button" onClick={()=>{const url=URL.createObjectURL(d.file!);const a=document.createElement('a');a.href=url;a.download=`field-evidence-${d.id}.${d.file!.type==='application/pdf'?'pdf':d.file!.type==='image/png'?'png':d.file!.type==='image/webp'?'webp':'jpg'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}>Download device file</button>}<button className="btn" disabled={!online||syncing} onClick={()=>void sendDrafts([d.id])}>Synchronise this record</button><button className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove this device copy? An already synchronised record will remain on the server.'))return;try{await deleteDraft(d.id);setDrafts(await readDrafts(scope))}catch{setStorageError('The device copy could not be removed.')}}}>Remove device copy</button>{d.survey&&<Link href={`/surveys/${d.survey.surveyId}`}>Open source survey</Link>}{!d.survey&&!d.intake&&!d.intakeRequest&&<Link href={`/ngo/cases/${d.caseId}`}>Open case</Link>}{d.intake&&<PendingIntakeOperation policies={policies} onSave={(kind,data,policyId,requestId)=>operation(d.caseId,d.code,kind,data,policyId,requestId,d.id)}/>}</details>)}</section>}
-        {visibleDrafts.map(d=>d.error&&<p key={d.id} role="status">{d.code??"Case"}: {d.error}</p>)}
-        <header className="fd-head">
-          <p className="k">Field · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" })}{offlineReady && <span className="fd-ready" title="Field page available offline on this device."> · Ready offline</span>}</p>
-          <h1 className="serif">{cases === null ? failed?"Assignments unavailable":<Reading>Reading your day</Reading> : `${mine.length} case${mine.length === 1 ? "" : "s"}, ${myFus.length} follow-up${myFus.length === 1 ? "" : "s"}`}</h1>
-          {visibleDrafts.length > 0 && (
-            <div className="fd-drafts">
-              <Ack state="draft">{visibleDrafts.length} field record{visibleDrafts.length === 1 ? "" : "s"} not sent</Ack>
-              <button type="button" className="btn is-ink is-s" disabled={!online||syncing} onClick={() => void sendDrafts()}>{syncing ? "Synchronising…" : online ? "Review and synchronise" : "Waiting for a connection"}</button>
+      <div className="rn">
+        {head}
+        {netPanel}
+        <div className="rn-grid">
+          <div className="rn-main">
+            <button type="button" className={`rn-capture${addingIntake?" is-open":""}`} aria-label="Register animal intake" aria-expanded={addingIntake} onClick={()=>setAddingIntake(v=>!v)}>
+              <span className="rn-capture-ic" aria-hidden><Camera size={20}/></span>
+              <span className="rn-capture-t"><b>Record an animal</b><small>A photo, the place and why it is here. About a minute.</small></span>
+              <span className="rn-capture-x" aria-hidden><Plus size={18}/></span>
+            </button>
+            {addingIntake&&<div className="rn-sheet"><IntakeDraft known={known} onSave={intake} onCancel={()=>setAddingIntake(false)}/></div>}
+            {storageError&&<p className="rn-alert" role="alert">{storageError}</p>}
+            {legacyDrafts&&<p className="rn-note" role="status">Older drafts on this phone can&apos;t be imported. Ask your admin.</p>}
+            {cachedAt&&<p className="rn-note" role="status">Showing the stops saved on this phone at {new Date(cachedAt).toLocaleString()}. They may have changed since; sending checks your current access.</p>}
+            {visibleDrafts.map(d=>d.error&&<p key={d.id} className="rn-alert" role="status">{d.code??"Record"}: {d.error}</p>)}
+            {failed&&<div className="rn-alert" role="alert"><span>Your stops could not be read. If you are offline, records you make are still kept on this phone.</span><button type="button" className="btn is-s" onClick={()=>void load()}>Try again</button></div>}
+
+            {cases===null&&!failed?<ol className="rn-stops" aria-hidden><li className="rn-skel"/><li className="rn-skel"/><li className="rn-skel"/></ol>:null}
+
+            {myFus.length>0&&<section aria-labelledby="rn-due">
+              <h2 className="rn-h" id="rn-due">Due<b>{myFus.length}</b></h2>
+              <ol className="rn-stops">
+                {myFus.map((f,j)=>{
+                  const late=Date.parse(f.due_at)<Date.now(),rc=r[`f${f.id}`];
+                  return (
+                    <li key={f.id} className={`rn-stop${late?" is-late":""}${rc?.ok?" is-done":""}`} style={{["--j" as string]:j}}>
+                      <span className="rn-when"><b>{late?"Late":"Due"}</b><small>{day(f.due_at)}</small></span>
+                      <div className="rn-body">
+                        <h3>{(f.kind??"Recheck").replace(/_/g," ")}{f.animal_name?` · ${f.animal_name}`:""}</h3>
+                        <p>{[shortCode(f.case_code,"follow-up"),f.zone,f.note].filter(Boolean).join(" · ")}</p>
+                      </div>
+                      {rc?.ok?<p className="rn-ok"><Check size={15} aria-hidden/>{(rc as {what:string}).what}</p>:(
+                        <div className="rn-acts">
+                          <button type="button" className="rn-btn is-yes" disabled={!online} onClick={async()=>done(`f${f.id}`,await setFollowup(f.id,"done"))}><Check size={16} aria-hidden/>Done</button>
+                          <button type="button" className="rn-btn" disabled={!online} onClick={async()=>done(`f${f.id}`,await setFollowup(f.id,"missed"))}>Missed</button>
+                        </div>
+                      )}
+                      {!online&&!rc?.ok?<p className="rn-hint">Marking a follow-up needs signal.</p>:null}
+                      {rc&&!rc.ok&&<Ack state="failed">Not saved: {(rc as {error:string}).error}</Ack>}
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>}
+
+            {mine.length>0&&<section aria-labelledby="rn-yours">
+              <h2 className="rn-h" id="rn-yours">In your hands<b>{mine.length}</b></h2>
+              <ol className="rn-stops">
+                {mine.map((c,j)=><CaseStop key={c.id} j={j} c={c} online={online} receipt={r[`n${c.id}`]} startR={r[`s${c.id}`]} drafted={visibleDrafts.filter((d)=>d.caseId===c.id).length} onStart={async()=>actor&&done(`s${c.id}`,await startWork(c.id,actor))} onNote={(t)=>note(c,t)} onEvidence={(kind,file,location)=>evidence(c,kind,file,location)} onVaccination={v=>vaccination(c,v)} vaccinationDefaults={vaccinationDefaults} policies={policies} onOperation={(kind,data,policyId,requestId)=>operation(c.id,c.case_code,kind,data,policyId,requestId)}/>)}
+              </ol>
+            </section>}
+
+            {cases!==null&&!failed&&!stops&&(
+              <Empty title="Nothing is held by you" action={<Link className="btn is-ink" href={unowned?"/ngo/work?focus=unowned":"/ngo/work"}>{unowned?`See ${unowned} unowned case${unowned===1?"":"s"}`:"Open the queue"}</Link>}>Take a case from the queue and it becomes a stop here.</Empty>
+            )}
+          </div>
+
+          <aside className={`rn-side${waitingN?" has-waiting":""}`} aria-label="This phone">
+            <div className="rn-phone">
+              <span className="rn-phone-ic" aria-hidden><Smartphone size={16}/></span>
+              <div><b>This phone</b><small>{waitingN?`${waitingN} ${waitingN===1?"record":"records"} not sent yet`:offlineReady?"Ready to work without signal":"Nothing waiting to be sent"}</small></div>
             </div>
-          )}
-        </header>
-        <div className="row fd-tools"><button type="button" className="btn is-ink" aria-label="Register animal intake" onClick={()=>setAddingIntake(v=>!v)}>Register intake</button><Link className="btn" href="/ngo/programmes/zones">Zones</Link>{mode==='offline'&&<button type="button" className="btn" onClick={()=>lockOffline()}>Lock offline records</button>}{mode==='offline'&&<button type="button" className="btn" onClick={async()=>{if(!scope||!window.confirm('Remove synchronised device data? Pending drafts must be synchronised or explicitly removed first.'))return;try{await clearOfflineDevice(scope);setStorageOpen(false)}catch(e){setStorageError(e instanceof Error?e.message:'Device data was not removed.')}}}>Clear synchronised device data</button>}</div>
-        {synced.length>0&&<details><summary>Synchronised on this device · source and audit checked</summary><ul>{[...synced].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).slice(0,30).map(r=><li key={r.id}><Link href={`/ngo/cases/${r.caseId}`}>{r.label}</Link> · synced {new Date(r.at).toLocaleString()} · audit {r.auditId}</li>)}</ul></details>}
-        <PageBrief items={[["For", "The cases you hold, on your phone, one hand."], ["Watch", "Late follow-ups first."], ["Next", "Done, Missed, Start or a note: one tap each."], ["After", "Saved means the database answered; drafts stay on this device until you choose to synchronise."]]} />
-        {failed && <State kind="error" title="Didn't load" action={<button type="button" className="btn" onClick={() => void load()}>Try again</button>}>Your cases could not be read. If you are offline, drafts still work.</State>}
-        {myFus.length > 0 && <h2 className="fd-h">Due</h2>}
-        <ul className="fd-cards">
-          {myFus.map((f) => {
-            const late = Date.parse(f.due_at) < Date.now();
-            return (
-              <li key={f.id} className={`fd-card${late ? " is-late" : ""}`}>
-                <p className="k">{late ? `Late · due ${day(f.due_at)}` : `Due ${day(f.due_at)}`} · {shortCode(f.case_code, "follow-up")}</p>
-                <h3>{(f.kind ?? "Recheck").replace(/_/g, " ")}{f.animal_name ? ` · ${f.animal_name}` : ""}</h3>
-                <p className="small">{[f.zone, f.note].filter(Boolean).join(" · ") || "No note"}</p>
-                {r[`f${f.id}`]?.ok ? <Ack state="saved">{(r[`f${f.id}`] as { what: string }).what}</Ack> : (
-                  <div className="fd-act">
-                    <button type="button" className="btn is-ink" disabled={!online} onClick={async () => done(`f${f.id}`, await setFollowup(f.id, "done"))}>Done</button>
-                    <button type="button" className="btn" disabled={!online} onClick={async () => done(`f${f.id}`, await setFollowup(f.id, "missed"))}>Missed</button>
+
+            {waitingN>0&&<section className="rn-tray" aria-label="Unsent field records">
+              <div className="rn-tray-head">
+                <h2>Not sent</h2>
+                <button type="button" className="btn is-ink is-s" disabled={!online||syncing} onClick={()=>void sendDrafts()}>{syncing?"Sending…":online?(waitingN===1?"Send it":`Send all ${waitingN}`):"Waiting for signal"}</button>
+              </div>
+              <ul>
+                {visibleDrafts.map(d=><li key={d.id}><details>
+                  <summary><i className="rn-dot" data-state={d.status==='failed'?'failed':'pending'} aria-hidden/><span><b>{d.survey?'Survey observation':d.intake?'Animal intake':d.code?shortCode(d.code):'Field record'}</b><small>{new Date(d.at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · {d.status==='failed'?'Needs another try':'Waiting'}</small></span><ChevronDown size={14} aria-hidden/></summary>
+                  <div className="rn-draft">
+                    <p style={{whiteSpace:'pre-wrap'}}>{d.note}</p>
+                    {d.location&&<p>{d.location}</p>}
+                    {d.vaccination&&<p>{d.vaccination.eventDate} · reported vaccinator {d.vaccination.performedBy} · {d.vaccination.dose||"dose not recorded"} · {d.vaccination.route||"route not recorded"} · {d.vaccination.location} · {d.vaccination.notes}</p>}
+                    <div className="rn-draft-acts">
+                      <button className="btn is-s" type="button" disabled={!online||syncing} onClick={()=>void sendDrafts([d.id])}>Send this one</button>
+                      {d.file&&<button className="btn is-s" type="button" onClick={()=>{const url=URL.createObjectURL(d.file!);const a=document.createElement('a');a.href=url;a.download=`field-evidence-${d.id}.${d.file!.type==='application/pdf'?'pdf':d.file!.type==='image/png'?'png':d.file!.type==='image/webp'?'webp':'jpg'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}>Download the file</button>}
+                      <button className="btn is-s is-ghost" type="button" onClick={async()=>{if(!scope||!window.confirm('Remove this copy from the phone? A record that was already sent stays on the server.'))return;try{await deleteDraft(d.id);setDrafts(await readDrafts(scope))}catch{setStorageError('The copy on this phone could not be removed.')}}}>Remove from phone</button>
+                      {d.survey&&<Link className="rn-link" href={`/surveys/${d.survey.surveyId}`}>Open the survey</Link>}
+                      {!d.survey&&!d.intake&&!d.intakeRequest&&<Link className="rn-link" href={`/ngo/cases/${d.caseId}`}>Open the case</Link>}
+                    </div>
+                    {d.intake&&<PendingIntakeOperation policies={policies} onSave={(kind,data,policyId,requestId)=>operation(d.caseId,d.code,kind,data,policyId,requestId,d.id)}/>}
                   </div>
-                )}
-                {r[`f${f.id}`] && !r[`f${f.id}`].ok && <Ack state="failed">Not saved: {(r[`f${f.id}`] as { error: string }).error}</Ack>}
-              </li>
-            );
-          })}
-        </ul>
-        {mine.length > 0 && <h2 className="fd-h">Yours</h2>}
-        <ul className="fd-cards">
-          {mine.map((c) => <CaseCard key={c.id} c={c} online={online} receipt={r[`n${c.id}`]} startR={r[`s${c.id}`]} drafted={visibleDrafts.filter((d) => d.caseId === c.id).length} onStart={async () => actor && done(`s${c.id}`, await startWork(c.id, actor))} onNote={(t) => note(c, t)} onEvidence={(kind,file,location)=>evidence(c,kind,file,location)} onVaccination={v=>vaccination(c,v)} vaccinationDefaults={vaccinationDefaults} policies={policies} onOperation={(kind,data,policyId,requestId)=>operation(c.id,c.case_code,kind,data,policyId,requestId)} />)}
-        </ul>
-        {cases !== null && !failed && !mine.length && !myFus.length && (
-          <State art="ngo-empty" title="Nothing held by you" action={<Link className="btn is-ink" href={unowned ? "/ngo/work?focus=unowned" : "/ngo/work"}>{unowned ? `See ${unowned} unowned case${unowned === 1 ? "" : "s"}` : "Open the queue"}</Link>}>Take a case from Work and it shows here.</State>
-        )}
+                </details></li>)}
+              </ul>
+            </section>}
+
+            {synced.length>0&&<details className="rn-sent">
+              <summary><Check size={14} aria-hidden/><span>Sent from this phone<b>{synced.length}</b></span><ChevronDown size={14} aria-hidden/></summary>
+              <ul>{[...synced].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).slice(0,30).map(x=><li key={x.id}><Link href={`/ngo/cases/${x.caseId}`}>{x.label}</Link><small>Sent {new Date(x.at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · receipt {x.auditId}</small></li>)}</ul>
+            </details>}
+
+            <nav className="rn-more" aria-label="Also in the field">
+              <Link href="/ngo/animals/scan"><ScanLine size={15} aria-hidden/>Scan a tag</Link>
+              <Link href="/ngo/programmes/zones"><MapPin size={15} aria-hidden/>Zones</Link>
+              {mode==='offline'&&<button type="button" onClick={()=>lockOffline()}><Lock size={15} aria-hidden/>Lock offline records</button>}
+              {mode==='offline'&&<button type="button" onClick={async()=>{if(!scope||!window.confirm('Remove the sent records kept on this phone? Records still waiting must be sent or removed first.'))return;try{await clearOfflineDevice(scope);setStorageOpen(false)}catch(e){setStorageError(e instanceof Error?e.message:'The records on this phone were not removed.')}}}><Trash2 size={15} aria-hidden/>Clear sent records from this phone</button>}
+            </nav>
+          </aside>
+        </div>
       </div>
     </NgoGate>
   );
 }
 
-function CaseCard({ c, online, receipt, startR, drafted, onStart, onNote, onEvidence, onVaccination, vaccinationDefaults,policies,onOperation }: { c: OpenCase; online: boolean; receipt?: Receipt; startR?: Receipt; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>;onEvidence:(kind:EvidenceKind,file:File|null,location:string)=>Promise<void>;onVaccination:(v:VaccinationData)=>Promise<void>;vaccinationDefaults?:Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>;policies:WorkflowPolicy[];onOperation:(kind:OperationKind,data:LifecycleData,policyId:string|null,requestId:string)=>Promise<void> }) {
-  const [open, setOpen] = useState(false);
-  const [addingOperation,setAddingOperation]=useState(false);
-  const [addingVaccination,setAddingVaccination]=useState(false);
-  const [addingEvidence,setAddingEvidence]=useState(false),[kind,setKind]=useState<EvidenceKind>('capture_photo'),[file,setFile]=useState<File|null>(null),[location,setLocation]=useState(''),[error,setError]=useState<string|null>(null);
-  const [t, setT] = useState("");
-  const [busy, setBusy] = useState(false);
+type Tool='note'|'evidence'|'vacc'|'care';
+
+function CaseStop({ j, c, online, receipt, startR, drafted, onStart, onNote, onEvidence, onVaccination, vaccinationDefaults,policies,onOperation }: { j:number; c: OpenCase; online: boolean; receipt?: Receipt; startR?: Receipt; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>;onEvidence:(kind:EvidenceKind,file:File|null,location:string)=>Promise<void>;onVaccination:(v:VaccinationData)=>Promise<void>;vaccinationDefaults?:Pick<VaccinationData,'vaccine'|'batch'|'performedBy'>;policies:WorkflowPolicy[];onOperation:(kind:OperationKind,data:LifecycleData,policyId:string|null,requestId:string)=>Promise<void> }) {
+  /* One card, one thing open at a time: the tools, then the one form the person chose. */
+  const [open,setOpen]=useState(false),[tool,setTool]=useState<Tool|null>(null);
+  const [kind,setKind]=useState<EvidenceKind>('capture_photo'),[file,setFile]=useState<File|null>(null),[location,setLocation]=useState(''),[error,setError]=useState<string|null>(null);
+  const [t,setT]=useState("");
+  const [busy,setBusy]=useState(false);
+  const started=c.status_class==="in_progress"||!!startR?.ok;
+  const pick=(x:Tool)=>{setTool(v=>v===x?null:x);setError(null)};
+  const shut=()=>setTool(null);
+  const tools:[Tool,string,typeof PenLine,boolean][]=[['note','Note',PenLine,true],['evidence','Evidence',Camera,true],['vacc','Vaccination',Syringe,!!c.dog_id],['care','Care or movement',Route,!!c.dog_id]];
   return (
-    <li className="fd-card">
-      <p className="k">{shortCode(c.case_code)} · {c.status_class === "in_progress" ? "in progress" : "open"} · {since(c.occurred_at)}</p>
-      <h3><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></h3>
-      <p className="small">{[c.animal_name, c.zone].filter(Boolean).join(" · ") || "Animal and place not recorded"}</p>
-      {addingOperation&&<LifecycleForm policies={policies} onSave={onOperation} onCancel={()=>setAddingOperation(false)}/>}
-      {addingVaccination&&c.dog_id&&<VaccinationDraft dogId={c.dog_id} defaults={vaccinationDefaults} onSave={onVaccination} onCancel={()=>setAddingVaccination(false)}/>}
-      {error&&<p role="alert">{error}</p>}
-      {addingEvidence&&<form className="stack" onSubmit={async e=>{e.preventDefault();setBusy(true);try{await onEvidence(kind,file,location);setAddingEvidence(false);setFile(null);setLocation('');setError(null)}catch(x){setError(x instanceof Error?x.message:'Evidence could not be stored. Keep the file on this device.')}finally{setBusy(false)}}}>
+    <li className={`rn-stop${open?" is-open":""}`} style={{["--j" as string]:j}}>
+      <span className="rn-when" data-on={started||undefined}><b>{started?"Started":"Open"}</b><small>{since(c.occurred_at)}</small></span>
+      <div className="rn-body">
+        <h3><Link href={`/ngo/cases/${c.id}`}>{c.condition_class&&c.condition_class!=="Not recorded"?c.condition_class:c.title??"Case"}</Link></h3>
+        <p>{[shortCode(c.case_code),c.animal_name,c.zone].filter(Boolean).join(" · ")||"Animal and place not recorded"}</p>
+      </div>
+      <div className="rn-acts">
+        {!started&&<button type="button" className="rn-btn is-yes" disabled={!online} onClick={onStart}><Play size={15} aria-hidden/>Start</button>}
+        <button type="button" className={`rn-btn${started?" is-yes":""}`} aria-expanded={open} onClick={()=>{setOpen(v=>!v);if(open)shut()}}><Plus size={16} aria-hidden className="rn-plus"/>Record</button>
+      </div>
+      {open&&<div className="rn-tools" role="group" aria-label="What to record on this case">
+        {tools.filter(x=>x[3]).map(([id,label,Icon])=><button key={id} type="button" aria-pressed={tool===id} onClick={()=>pick(id)}><Icon size={18} aria-hidden/><span>{label}</span></button>)}
+        <Link href={`/ngo/cases/${c.id}`}><ArrowUpRight size={18} aria-hidden/><span>Open the case</span></Link>
+      </div>}
+      {error&&<p className="rn-alert" role="alert">{error}</p>}
+      {open&&tool==='note'&&(
+        <form className="rn-form" onSubmit={async(e)=>{e.preventDefault();if(!t.trim())return;setBusy(true);try{await onNote(t.trim());setT("");shut()}catch{/* Keep unsaved text visible. */}finally{setBusy(false)}}}>
+          <textarea className="textarea" value={t} onChange={(e)=>setT(e.target.value)} placeholder="What you saw or did" maxLength={1500} autoFocus aria-label="Note"/>
+          <div className="rn-form-acts"><button type="submit" className="btn is-ink" disabled={busy||!t.trim()}>{busy?"Saving…":online?"Save the note":"Keep on this phone"}</button><button type="button" className="btn is-ghost" onClick={shut}>Cancel</button></div>
+        </form>
+      )}
+      {open&&tool==='evidence'&&<form className="rn-form stack" onSubmit={async e=>{e.preventDefault();setBusy(true);try{await onEvidence(kind,file,location);shut();setFile(null);setLocation('');setError(null)}catch(x){setError(x instanceof Error?x.message:'The evidence could not be kept. Keep the file on this phone.')}finally{setBusy(false)}}}>
         <label>Evidence type<select aria-label="Evidence type" className="input" value={kind} onChange={e=>setKind(e.target.value as EvidenceKind)}>{Object.entries(EVIDENCE_LABEL).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
         {kind!=='release_location'&&<label>Evidence file<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required onChange={e=>setFile(e.target.files?.[0]??null)}/></label>}
         <label>Location observation<textarea className="textarea" maxLength={1500} required={kind==='release_location'} value={location} onChange={e=>setLocation(e.target.value)}/></label>
-        <button type="button" className="btn" onClick={()=>navigator.geolocation.getCurrentPosition(p=>setLocation(`Observed GPS: ${p.coords.latitude}, ${p.coords.longitude}; accuracy ${Math.round(p.coords.accuracy)} m; ${new Date(p.timestamp).toISOString()}`),()=>setError('Location unavailable. You can record the location in words.'))}>Use current location</button>
-        <button className="btn is-ink" disabled={busy}>Keep evidence as draft</button><button className="btn" type="button" onClick={()=>setAddingEvidence(false)}>Cancel</button>
+        <button type="button" className="btn" onClick={()=>navigator.geolocation.getCurrentPosition(p=>setLocation(`Observed GPS: ${p.coords.latitude}, ${p.coords.longitude}; accuracy ${Math.round(p.coords.accuracy)} m; ${new Date(p.timestamp).toISOString()}`),()=>setError('Location unavailable. You can record the location in words.'))}><MapPin size={15} aria-hidden/>Use current location</button>
+        <div className="rn-form-acts"><button className="btn is-ink" disabled={busy}>{online?"Save the evidence":"Keep on this phone"}</button><button className="btn is-ghost" type="button" onClick={shut}>Cancel</button></div>
       </form>}
-      {open ? (
-        <form className="fd-note" onSubmit={async (e) => { e.preventDefault(); if (!t.trim()) return; setBusy(true); try{await onNote(t.trim());setT("");setOpen(false)}catch{/* Keep unsaved text visible. */}finally{setBusy(false)} }}>
-          <textarea className="textarea" value={t} onChange={(e) => setT(e.target.value)} placeholder="What you saw or did" maxLength={1500} autoFocus aria-label="Note" />
-          <div className="fd-act"><button type="submit" className="btn is-ink" disabled={busy || !t.trim()}>{online ? (busy ? "Saving…" : "Keep as draft") : "Keep as draft"}</button><button type="button" className="btn is-ghost" onClick={() => setOpen(false)}>Cancel</button></div>
-        </form>
-      ) : (
-        <div className="fd-act">
-          {c.status_class !== "in_progress" && !startR?.ok && <button type="button" className="btn is-ink" disabled={!online} onClick={onStart}>Start</button>}
-          <button type="button" className="btn" onClick={() => setOpen(true)}>Add a note</button>
-          <button type="button" className="btn" onClick={()=>setAddingEvidence(true)}>Add evidence</button>
-          {c.dog_id&&<><button type="button" className="btn" onClick={()=>setAddingVaccination(true)}>Record ARV vaccination</button><button type="button" className="btn" onClick={()=>setAddingOperation(true)}>Record care or movement</button></>}
-          <Link className="btn is-ghost" href={`/ngo/cases/${c.id}`}>Close or more</Link>
-        </div>
-      )}
-      <div aria-live="polite">
-        {startR && (startR.ok ? <Ack state="saved">{startR.what}</Ack> : <Ack state="failed">Not saved: {startR.error}</Ack>)}
-        {receipt && (receipt.ok ? <Ack state="saved">{receipt.what}</Ack> : <Ack state="failed">Not sent: {receipt.error}</Ack>)}
-        {drafted > 0 && <Ack state="draft">{drafted} draft record{drafted === 1 ? "" : "s"} on this phone, not sent</Ack>}
+      {open&&tool==='vacc'&&c.dog_id&&<div className="rn-form"><VaccinationDraft dogId={c.dog_id} defaults={vaccinationDefaults} onSave={onVaccination} onCancel={shut}/></div>}
+      {open&&tool==='care'&&<div className="rn-form"><LifecycleForm policies={policies} onSave={onOperation} onCancel={shut}/></div>}
+      <div className="rn-said" aria-live="polite">
+        {startR&&(startR.ok?<p className="rn-ok"><Check size={15} aria-hidden/>{startR.what}</p>:<Ack state="failed">Not saved: {startR.error}</Ack>)}
+        {receipt&&(receipt.ok?<p className="rn-ok"><Check size={15} aria-hidden/>{receipt.what}</p>:<Ack state="failed">Not sent: {receipt.error}</Ack>)}
+        {drafted>0&&<p className="rn-wait"><i className="rn-dot" data-state="pending" aria-hidden/>{drafted} {drafted===1?"record":"records"} on this phone, not sent</p>}
       </div>
     </li>
   );
 }
 
-function PendingIntakeOperation({policies,onSave}:{policies:WorkflowPolicy[];onSave:(kind:OperationKind,data:LifecycleData,policyId:string|null,requestId:string)=>Promise<void>}){const [open,setOpen]=useState(false);return open?<LifecycleForm policies={policies} onSave={onSave} onCancel={()=>setOpen(false)}/>:<button className="btn" onClick={()=>setOpen(true)}>Add intervention to this intake</button>}
+function PendingIntakeOperation({policies,onSave}:{policies:WorkflowPolicy[];onSave:(kind:OperationKind,data:LifecycleData,policyId:string|null,requestId:string)=>Promise<void>}){const [open,setOpen]=useState(false);return open?<div className="rn-form"><LifecycleForm policies={policies} onSave={onSave} onCancel={()=>setOpen(false)}/></div>:<button className="btn is-s" onClick={()=>setOpen(true)}>Add what was done to this animal</button>}
