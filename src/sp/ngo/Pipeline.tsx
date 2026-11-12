@@ -24,7 +24,8 @@ import { STAGES, usePipeline, type StageId } from "./pipeline";
 import "./pipeline.css";
 
 const ICON: Record<StageId, typeof Inbox> = { new: Inbox, care: HeartPulse, vet: Stethoscope, evidence: Camera, report: FileCheck2 };
-const SHOW = 6;
+/* At most four cards per stage; the rest are one click away ("All 9"), so no column runs long. */
+const SHOW = 4;
 const ago = (d: number | null) => (d === null ? "" : d === 0 ? "today" : `${d}d`);
 
 export function Pipeline() {

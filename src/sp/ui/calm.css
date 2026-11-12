@@ -1,0 +1,72 @@
+/* ════════════════════════════════════════════════════════════════════
+   Calm surfaces: the last layer of the product's stylesheets.
+
+   No outline around a card, a tile or a row. Space separates sections;
+   a soft fill (never a line around it) marks a surface; rows in a list
+   are divided by one hairline and fill gently on hover. Only things that
+   float (menus, dialogs, the notification panel, toasts) keep a shadow,
+   and only controls (inputs, buttons) keep a line. See DESIGN.md.
+   ════════════════════════════════════════════════════════════════════ */
+.sp.sx3.os.cn { --calm-fill: #f5f6f8; --calm-fill-hover: #eef0f4; --calm-div: rgba(11, 30, 61, .07); }
+
+/* ── surfaces: a fill, no line ── */
+.sp.sx3.os.cn :is(.oh-card, .oh-table-wrap, .oh-alerts, .wta-side, .kr-story, .kr-photos, .kr-card, .kr-ops > section, .kr-fold, .kr-map, .dy-setup, .dy-kaju, .dy-clear, .vw-empty, .ik-decide, .ik-way, .rpt-now > :is(section, div):first-child, .ms, .wk2 :is(.wk2-card, .wk-card), .an-peek) {
+  border: 0 !important; box-shadow: none !important; background: var(--calm-fill) !important; border-radius: 12px;
+}
+.sp.sx3.os.cn .oh-map { border: 0 !important; }
+.sp.sx3.os.cn .kr-map:hover { box-shadow: none !important; background: var(--calm-fill-hover) !important; }
+
+/* ── figures: tiles on a fill, side by side, no frame around the row of them ── */
+.sp.sx3.os.cn .oh-stats { gap: 8px !important; border: 0 !important; box-shadow: none !important; background: none !important; border-radius: 0; overflow: visible; }
+.sp.sx3.os.cn .oh-stat { border: 0 !important; margin: 0; border-radius: 12px; background: var(--calm-fill) !important; }
+.sp.sx3.os.cn a.oh-stat:hover, .sp.sx3.os.cn .oh-stat:hover { background: var(--calm-fill-hover) !important; }
+
+/* ── lists: rows divided by one hairline, never a box around each ── */
+.sp.sx3.os.cn .oh-rows { border: 0 !important; box-shadow: none !important; background: none !important; border-radius: 0; overflow: visible; }
+.sp.sx3.os.cn .oh-rows > .oh-row { border-top: 0 !important; border-radius: 8px; background: none !important; box-shadow: inset 0 1px 0 var(--calm-div) !important; }
+.sp.sx3.os.cn .oh-rows > .oh-row:first-child { box-shadow: none !important; }
+.sp.sx3.os.cn .oh-rows > .oh-row:hover { background: var(--calm-fill) !important; box-shadow: none !important; }
+.sp.sx3.os.cn .oh-rows > .oh-row:hover + .oh-row { box-shadow: none !important; }
+
+.sp.sx3.os.cn .vw-row { border-radius: 8px; background: none !important; box-shadow: inset 0 1px 0 var(--calm-div) !important; }
+.sp.sx3.os.cn .vw-row:first-child, .sp.sx3.os.cn :is(li, a):first-child > .vw-row { box-shadow: none !important; }
+.sp.sx3.os.cn .vw-row:hover { background: var(--calm-fill) !important; box-shadow: none !important; }
+
+.sp.sx3.os.cn .ik-row { border-radius: 8px; background: none !important; box-shadow: inset 0 1px 0 var(--calm-div) !important; }
+.sp.sx3.os.cn .ik-row:hover { background: var(--calm-fill) !important; box-shadow: none !important; }
+
+.sp.sx3.os.cn .dy-list { gap: 0 !important; }
+.sp.sx3.os.cn .dy-list li + li a { box-shadow: inset 0 1px 0 var(--calm-div) !important; }
+.sp.sx3.os.cn .dy-list a { background: none !important; box-shadow: none !important; }
+.sp.sx3.os.cn .dy-list a:hover , .sp.sx3.os.cn .dy-list li:hover + li a { box-shadow: none !important; }
+.sp.sx3.os.cn .dy-list a:hover { background: var(--calm-fill, #f5f6f8) !important; }
+.sp.sx3.os.cn .dy-work > li { box-shadow: none !important; border: 0 !important; background: none !important; border-radius: 8px; }
+.sp.sx3.os.cn .dy-work > li + li { box-shadow: inset 0 1px 0 rgba(11, 30, 61, .07) !important; }
+.sp.sx3.os.cn .dy-work > li:hover { background: #f5f6f8 !important; box-shadow: none !important; }
+.sp.sx3.os.cn .dy-ask { box-shadow: none !important; background: #f5f6f8 !important; }
+
+/* the line of work on Today: five tiles on a fill */
+.sp.sx3.os.cn .dy .jy a { box-shadow: none !important; background: var(--calm-fill) !important; }
+.sp.sx3.os.cn .dy .jy a:hover { box-shadow: none !important; background: var(--calm-fill-hover) !important; transform: none; }
+
+/* ── the board: white cards on the grey column, no line; a soft lift on hover ── */
+.sp.sx3.os.cn .pl-card { box-shadow: none !important; border: 0 !important; }
+.sp.sx3.os.cn .pl-card:hover { box-shadow: 0 8px 20px -14px rgba(11, 30, 61, .4) !important; }
+
+/* ── records ── */
+.sp.sx3.os.cn .kr-rel a { box-shadow: none !important; border: 0 !important; background: var(--calm-fill) !important; }
+.sp.sx3.os.cn .kr-rel a:hover { background: var(--calm-fill-hover) !important; }
+.sp.sx3.os.cn .kr-now .next { box-shadow: none !important; border: 0 !important; }
+.sp.sx3.os.cn .ka-state li { box-shadow: none !important; border: 0 !important; background: var(--calm-fill) !important; }
+
+/* ── field round ── */
+.sp.sx3.os.cn .rn-stop { box-shadow: inset 0 1px 0 var(--calm-div) !important; background: none !important; }
+
+/* ── Kaju's runs inside its panel ── */
+.ai3-run, .ai3-prop, .ai3-fc { box-shadow: none !important; border: 0 !important; background: #f5f6f8 !important; }
+.ai3-run-steps li { box-shadow: none !important; border: 0 !important; }
+
+/* "Show all": a quiet text button under a shortened list, never a long column by default */
+.sp.sx3.os.cn .oh-more { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; padding: 8px 12px; border: 0; border-radius: 8px; background: none; color: #2457ce; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+.sp.sx3.os.cn .oh-more:hover { background: var(--calm-fill); }
+.sp.sx3.os.cn .oh-more:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }

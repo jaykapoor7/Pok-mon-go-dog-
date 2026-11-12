@@ -4,9 +4,9 @@
    testing, then results. Each step is one press; a result needs a method. */
 import Link from "next/link";
 import { useState } from "react";
-import { Check, FlaskConical, Microscope, Truck } from "lucide-react";
+import { Check } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { DailyHead, NeedsYou } from "@/sp/ui/Daily";
+import { DailyHead } from "@/sp/ui/Daily";
 import { usePlaces, primaryProgramme } from "../places";
 import { call, fmtDate, fmtTime, relDay, select, useNames, useRead, RESULT, SAMPLE, SAMPLE_TYPE, SPECIES, type Place, type Sample, type SampleEvent } from "../data";
 import { Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
@@ -19,6 +19,7 @@ export function LabQueue({ place }: { place: Place }) {
   const samples = useRead<Sample[]>(() => select<Sample>("oh_samples", { laboratory_id: id }), `lab:${id}`);
   const names = useNames();
   const [act, setAct] = useState<{ s: Sample; step: "resulted" | "rejected" } | null>(null);
+  const [allResults, setAllResults] = useState(false);
   const toast = useToast();
   const list = (samples.data ?? []).slice().sort((a, b) => b.created_at.localeCompare(a.created_at));
   const by = (st: string[]) => list.filter((s) => st.includes(s.status));
@@ -42,19 +43,14 @@ export function LabQueue({ place }: { place: Place }) {
   return (
     <Page illustrative={place.illustrative}>
       <div className="dy">
-        <DailyHead place={place.short_name ?? place.name} name={user?.name} since={<><b>{arriving.length} arriving</b>, <b>{received.length} received</b> and <b>{testing.length} testing</b>. Results go back to the team that sent each sample; a positive also alerts coordination.</>} />
-        <NeedsYou rows={[
-          ...(arriving.length ? [{ key: "arr", href: "#arriving", tone: "amber", icon: <Truck size={10} strokeWidth={2.4} />, title: <><b>{arriving.length} {arriving.length === 1 ? "sample" : "samples"}</b> on the way to you</>, meta: "Receive each one as it arrives, or reject it with a reason", tag: "Receive", verb: "Open" }] : []),
-          ...(received.length ? [{ key: "rec", href: "#received", tone: "blue", icon: <FlaskConical size={10} strokeWidth={2.4} />, title: <><b>{received.length} received</b>, not yet testing</>, meta: "Start the test when it begins", tag: "Start", verb: "Open" }] : []),
-          ...(testing.length ? [{ key: "tst", href: "#received", tone: "violet", icon: <Microscope size={10} strokeWidth={2.4} />, title: <><b>{testing.length} testing</b>, result not recorded</>, meta: "A result needs its method", tag: "Result", verb: "Open" }] : []),
-        ]} clear="No sample is waiting for you." />
+        <DailyHead place={place.short_name ?? place.name} name={user?.name} />
         {/* No Kaju box here: Kaju does not read laboratory samples or results. */}
       </div>
       <div className="oh-grid halves">
-        <Section title="Arriving" id="arriving">{arriving.length ? <div className="oh-rows">{arriving.map((s) => row(s, <><button type="button" className="oh-btn small primary" onClick={() => void step(s, "received")}>Receive</button><button type="button" className="oh-btn small" onClick={() => setAct({ s, step: "rejected" })}>Reject</button></>))}</div> : <Empty title="Nothing on its way" />}</Section>
-        <Section title="Received and testing" id="received">{received.length + testing.length ? <div className="oh-rows">{received.map((s) => row(s, <button type="button" className="oh-btn small primary" onClick={() => void step(s, "testing")}>Start test</button>))}{testing.map((s) => row(s, <button type="button" className="oh-btn small primary" onClick={() => setAct({ s, step: "resulted" })}>Record result</button>))}</div> : <Empty title="Nothing in the laboratory" />}</Section>
+        <Section title="Arriving" note={arriving.length ? String(arriving.length) : undefined} id="arriving">{arriving.length ? <div className="oh-rows">{arriving.map((s) => row(s, <><button type="button" className="oh-btn small primary" onClick={() => void step(s, "received")}>Receive</button><button type="button" className="oh-btn small" onClick={() => setAct({ s, step: "rejected" })}>Reject</button></>))}</div> : <Empty title="Nothing on its way" />}</Section>
+        <Section title="Received and testing" note={received.length + testing.length ? String(received.length + testing.length) : undefined} id="received">{received.length + testing.length ? <div className="oh-rows">{received.map((s) => row(s, <button type="button" className="oh-btn small primary" onClick={() => void step(s, "testing")}>Start test</button>))}{testing.map((s) => row(s, <button type="button" className="oh-btn small primary" onClick={() => setAct({ s, step: "resulted" })}>Record result</button>))}</div> : <Empty title="Nothing in the laboratory" />}</Section>
       </div>
-      <Section title="Results" note="Most recent first" id="results">{done.length ? <div className="oh-rows">{done.map((s) => row(s, s.resulted_at ? <span>{fmtDate(s.resulted_at)}</span> : null))}</div> : <Empty title="No results yet" />}</Section>
+      <Section title="Results" note="Most recent first" id="results">{done.length ? <><div className="oh-rows">{(allResults ? done : done.slice(0, 6)).map((s) => row(s, s.resulted_at ? <span>{fmtDate(s.resulted_at)}</span> : null))}</div>{done.length > 6 ? <button type="button" className="oh-more" aria-expanded={allResults} onClick={() => setAllResults((v) => !v)}>{allResults ? "Show the most recent" : `Show all ${done.length}`}</button> : null}</> : <Empty title="No results yet" />}</Section>
       {act ? <StepSheet sample={act.s} area={names.area(act.s.area_id)} step={act.step} onClose={() => setAct(null)} onDone={(m) => { setAct(null); toast(m); samples.reload(); reloadPlaces(); }} /> : null}
     </Page>
   );

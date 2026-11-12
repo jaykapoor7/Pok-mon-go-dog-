@@ -68,7 +68,6 @@ function OverviewBody({ p }: { p: Prog }) {
   if (o.error || !o.data) return <Failed error={o.error ?? "Could not read the programme."} retry={o.reload} />;
   const d = o.data;
   const weeks = (d.exposures?.by_week ?? []).map((w) => ({ x: fmtDate(w.week, { day: "numeric", month: "short" }), n: w.n }));
-  const maxArea = Math.max(1, ...(d.exposures?.by_area ?? []).map((w) => (typeof w.n === "number" ? w.n : 4)));
   const open = (alerts.data ?? []).filter((a) => !a.ack);
   const alertHref = (a: Alert) => a.kind === "positive_result" ? `/programme/${p.slug}/work` : a.kind === "pep_readiness" ? `/programme/${p.slug}/network` : a.kind === "coverage_below_target" ? `/programme/${p.slug}/coverage` : a.kind === "followups_overdue" ? `/programme/${p.slug}/work?show=overdue` : null;
   const stats = (
@@ -76,7 +75,7 @@ function OverviewBody({ p }: { p: Prog }) {
       {mods.includes("bite_care") && d.exposures ? <Stat label="Bite exposures" value={d.exposures.total} note={<>Category III: {showCount(d.exposures.category_iii)}</>} /> : null}
       {mods.includes("bite_care") && d.pep ? <Stat label="Courses completed" value={d.pep.completion_rate === null ? null : pct(d.pep.completion_rate)} note={d.pep.completion_rate === null ? "Too few closed courses to show" : `Did not return: ${showCount(d.pep.lost)}`} tone={d.pep.completion_rate !== null && d.pep.completion_rate < 0.8 ? "amber" : "green"} /> : null}
       {mods.includes("bite_care") && d.exposures ? <Stat label="Wounds washed" value={num(d.exposures.washed_known) ? pct(num(d.exposures.washed) / num(d.exposures.washed_known)) : null} note="Where it was recorded" /> : null}
-      {mods.includes("laboratory") ? <Stat label="Laboratory-confirmed" value={d.samples.positive} note={`${d.samples.total} samples · ${d.samples.waiting} waiting`} tone={d.samples.positive ? "flame" : undefined} href={`/programme/${p.slug}/work`} /> : null}
+      {mods.includes("laboratory") ? <Stat label="Laboratory-confirmed" value={d.samples.positive} note={`${d.samples.total} samples · ${d.samples.waiting} waiting${d.samples.median_days_to_result === null ? "" : ` · ${Math.round(d.samples.median_days_to_result * 10) / 10} days to a result`}`} tone={d.samples.positive ? "flame" : undefined} href={`/programme/${p.slug}/work`} /> : null}
       {mods.includes("services") ? <Stat label="Care facilities" value={d.services.facilities} note={`${d.services.arv_unavailable} without vaccine · ${d.services.stale} confirmations expired`} href={`/programme/${p.slug}/network`} tone={d.services.arv_unavailable ? "flame" : d.services.stale ? "amber" : undefined} /> : null}
     </dl>
   );
@@ -89,16 +88,6 @@ function OverviewBody({ p }: { p: Prog }) {
         </Section>
         <div>
           {mods.includes("bite_care") && d.exposures ? <Section title="Bites by week" note="Hatched: fewer than the threshold"><div className="oh-card pad"><Bars points={weeks} label="Bite exposures by week" /></div></Section> : null}
-          {mods.includes("laboratory") ? (
-            <Section title="Laboratory">
-              <dl className="oh-facts oh-card pad">
-                <div><dt>Positive · negative</dt><dd>{d.samples.positive} · {d.samples.negative}</dd></div>
-                <div><dt>Waiting</dt><dd>{d.samples.waiting}</dd></div>
-                <div><dt>Median days to result</dt><dd>{d.samples.median_days_to_result === null ? "None resulted" : Math.round(d.samples.median_days_to_result * 10) / 10}</dd></div>
-                <div><dt>Confirmed in</dt><dd>{d.samples.positive_areas.join(", ") || "None"}</dd></div>
-              </dl>
-            </Section>
-          ) : null}
         </div>
       </div>
 
@@ -118,18 +107,34 @@ function OverviewBody({ p }: { p: Prog }) {
         </Section>
       ) : null}
 
-      <Section title="Partners" note="Who is responsible for what, and their open work">
-        <div className="oh-partners">
-          {d.partners.map((x) => (
-            <div className="oh-partner" key={x.id}>
+      <Section title="Partners" note={`${d.partners.length} in the programme`}>
+        <PartnerWork partners={d.partners} />
+      </Section>
+      {mods.includes("training") ? <Training p={p} d={d} reload={o.reload} /> : null}
+    </>
+  );
+}
+
+/* Partners: the ones with open work, most overdue first; the rest in one line that opens the full list. */
+function PartnerWork({ partners }: { partners: Overview["partners"] }) {
+  const [all, setAll] = useState(false);
+  const busy = partners.filter((x) => x.open || x.overdue).sort((a, b) => b.overdue - a.overdue || b.open - a.open);
+  const clear = partners.filter((x) => !x.open && !x.overdue);
+  const shown = all ? [...busy, ...clear] : busy;
+  return (
+    <>
+      {shown.length ? (
+        <div className="oh-rows">
+          {shown.map((x) => (
+            <div className="oh-row" key={x.id}>
               <Glyph kind={x.kind} />
-              <div><b>{x.name}</b><span>{x.responsibilities ?? KIND_LABEL[x.kind]}</span></div>
-              <div className="oh-svc">{x.overdue ? <Chip tone="flame">{x.overdue} overdue</Chip> : null}{x.open ? <Chip plain>{x.open} open</Chip> : <Chip plain tone="green">Clear</Chip>}</div>
+              <div className="oh-row-main"><b>{x.name}</b><span>{x.responsibilities ?? KIND_LABEL[x.kind]}</span></div>
+              <div className="oh-row-meta">{x.overdue ? <Chip tone="flame">{x.overdue} overdue</Chip> : null}{x.open ? <Chip plain>{x.open} open</Chip> : <Chip plain tone="green">Clear</Chip>}</div>
             </div>
           ))}
         </div>
-      </Section>
-      {mods.includes("training") ? <Training p={p} d={d} reload={o.reload} /> : null}
+      ) : null}
+      {clear.length ? <button type="button" className="oh-more" aria-expanded={all} onClick={() => setAll((v) => !v)}>{all ? "Show only partners with open work" : busy.length ? `${clear.length} more ${clear.length === 1 ? "partner has" : "partners have"} nothing open` : `All ${clear.length} partners: nothing open`}</button> : null}
     </>
   );
 }
