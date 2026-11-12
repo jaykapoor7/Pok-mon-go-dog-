@@ -40,6 +40,7 @@ import { AreaMap } from "../atlas/AreaMap";
 import { State, day, n } from "../ui";
 import { Reading } from "../ui/Reading";
 import { MobileDetails } from "../ui/MobileDetails";
+import { Seg } from "../ui/Page";
 import { FollowupList, NextStep } from "./NextStep";
 import "./ngo.css";
 import "./work2.css";
@@ -171,19 +172,16 @@ export function Work() {
   const live = co.live.filter((r) => r.kind === "case");
   return (
     <div className={`wk2${sheet ? " is-sheet" : ""}${pane === "map" ? " show-map" : ""}`}>
-      <header className="wk2-day">
+      <header className="wk2-day wq-head">
         <div className="wk2-title">
           <h1 className="wk2-h">Queue</h1>
-          <p className="wk2-k">Live cases by priority, beside the map · {today}</p>
+          <p className="wq-sum" aria-live="polite">
+            {loading ? <Reading>Reading your organisation&rsquo;s open work</Reading> : failed ? <span className="is-err">The organisation&rsquo;s work could not be read. Nothing is shown as zero. <button type="button" className="link" onClick={() => void load()}>Retry</button></span> : (
+              <><b>{n(live.length)}</b> live · <b className={live.some((r) => r.crit) ? "is-hot" : undefined}>{n(live.filter((r) => r.crit).length)}</b> critical · <b>{n(co.overdue.length)}</b> follow-ups overdue · <b>{n(live.filter((r) => !r.c?.assignee_name).length)}</b> held by nobody</>
+            )}
+          </p>
         </div>
-        <MobileDetails label="Today at a glance" className="wk2-summary-fold"><p className="wk2-sum" aria-live="polite">
-          {loading ? <Reading>Reading your organisation&rsquo;s open work</Reading> : failed ? <span className="is-err">The organisation&rsquo;s work could not be read. Nothing is shown as zero. <button type="button" className="link" onClick={() => void load()}>Retry</button></span> : (
-            <><b>{n(live.filter((r) => r.crit).length)}</b> critical · <b>{n(co.overdue.length)}</b> follow-ups overdue · <b>{n(live.filter((r) => !r.c?.assignee_name).length)}</b> unassigned · <b>{n(live.length)}</b> live</>
-          )}
-        </p>
-        {!loading && !failed && cohort === "live" && <Ribbon rows={co.live} focus={focus} onFocus={(f) => { setFocus(f); setSel(null); }} />}
-        </MobileDetails>
-        {/* New case lives in the top bar; Field mode and the board are views above; the register import is on the board. */}
+        <p className="wq-day">{today}</p>
       </header>
 
       {!loading && !failed && co.live.length + co.decide.length + co.history.length === 0 && (
@@ -196,12 +194,12 @@ export function Work() {
 
       <div className="wk2-body">
         <section className="wk2-stream" aria-label="Work queue">
-          <div className="wk2-tabs" role="tablist" aria-label="Cohort">
-            {(["live", "decide", "history"] as Cohort[]).map((k) => (
-              <button key={k} type="button" role="tab" aria-selected={cohort === k} onClick={() => { setCohort(k); setSel(null); setLimit(80); }}>
-                {k === "live" ? "Live" : k === "decide" ? "Needs a decision" : "Historical review"}<span className="n">{loading ? "…" : n(cohortN(k))}</span>
-              </button>
-            ))}
+          <div className="wq-lanes">
+            <Seg<Cohort> label="Which cases" value={cohort} onChange={(k) => { setCohort(k); setSel(null); setLimit(80); }} options={[
+              { id: "live", label: "Live", count: loading ? null : cohortN("live") },
+              { id: "decide", label: "Needs a decision", count: loading ? null : cohortN("decide") },
+              { id: "history", label: "Imported", count: loading ? null : cohortN("history") },
+            ]} />
           </div>
           <div className="wk2-tools">
             <label className="wk2-search"><Search size={15} aria-hidden /><input ref={searchRef} value={text} onChange={(e) => setText(e.target.value)} placeholder="Code, animal, place, person" aria-label="Filter the queue" /></label>
