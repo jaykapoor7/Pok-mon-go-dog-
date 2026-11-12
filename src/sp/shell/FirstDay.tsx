@@ -41,6 +41,8 @@ const find = (sel: string) => { for (const part of sel.split(",")) { const el = 
 
 export function FirstDay({ userId, name, place, home, path, actions, quiet }: { userId: string; name: string; place: string; /** The home of this workspace: the guide opens by itself only there. */ home: string; path: string; actions: FirstAction[]; /** A sample session has its own guide; this one then opens only when asked for. */ quiet: boolean }) {
   const [open, setOpen] = useState(false);
+  /* Offered, never forced: on the first visit a small card asks; the tour starts only when the person chooses it. */
+  const [offer, setOffer] = useState(false);
   const [i, setI] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const card = useRef<HTMLDivElement>(null);
@@ -55,10 +57,10 @@ export function FirstDay({ userId, name, place, home, path, actions, quiet }: { 
   const shown = STEPS.filter((_, k) => have[k] || k === i);
   const at = shown.indexOf(STEPS[i]);
 
-  const start = useCallback(() => { let n = 0; while (n < STEPS.length && !find(STEPS[n].sel)) n++; setI(n); setOpen(true); }, []);
+  const start = useCallback(() => { setOffer(false); let n = 0; while (n < STEPS.length && !find(STEPS[n].sel)) n++; setI(n); setOpen(true); }, []);
   const close = useCallback(() => { setOpen(false); try { localStorage.setItem(KEY(userId), "done"); } catch { /* fine */ } }, [userId]);
 
-  /* By itself once, on the place's home; any time from the status line. */
+  /* Offered once, on the place's home; any time from the status line. */
   useEffect(() => {
     const ask = () => start();
     window.addEventListener(FIRSTDAY_EVENT, ask);
@@ -69,9 +71,10 @@ export function FirstDay({ userId, name, place, home, path, actions, quiet }: { 
     let seen = true;
     try { seen = localStorage.getItem(KEY(userId)) === "done"; } catch { /* storage blocked: do not interrupt */ }
     if (seen) return;
-    const t = window.setTimeout(start, 900);
+    const t = window.setTimeout(() => setOffer(true), 900);
     return () => window.clearTimeout(t);
-  }, [quiet, path, home, userId, start]);
+  }, [quiet, path, home, userId]);
+  const later = () => { setOffer(false); try { localStorage.setItem(KEY(userId), "done"); } catch { /* fine */ } };
 
   /* The light follows the control as the page settles, scrolls or resizes. */
   useLayoutEffect(() => {
@@ -99,7 +102,13 @@ export function FirstDay({ userId, name, place, home, path, actions, quiet }: { 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- next and back only read the page as it is now
   }, [open, i, last, close]);
 
-  if (!open) return null;
+  if (!open) return offer ? (
+    <aside className="fd1-offer" aria-label="Introduction">
+      <span className="fd1-offer-k" aria-hidden><KajuFace size={34} /></span>
+      <div><b>Welcome to {place}.</b><small>A one-minute tour of the controls you will use every day.</small></div>
+      <div className="fd1-offer-acts"><button type="button" className="fd1-next" onClick={start}>Take the tour</button><button type="button" className="fd1-back" onClick={later}>Not now</button></div>
+    </aside>
+  ) : null;
 
   /* The card sits beside what it is describing: to the right if there is room, else below, else above. */
   const W = 340, vw = typeof window === "undefined" ? 1280 : window.innerWidth, vh = typeof window === "undefined" ? 800 : window.innerHeight;

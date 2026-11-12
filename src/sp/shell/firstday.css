@@ -44,3 +44,12 @@
   .fd1-card.is-last { width: calc(100vw - 32px); }
 }
 @media (prefers-reduced-motion: reduce) { .fd1-light, .fd1-card { transition: none; animation: none; } .fd1-card.is-last { transform: translate(-50%, -50%); } }
+
+/* the offer: a small card, bottom right, that asks once */
+.fd1-offer { position: fixed; right: 20px; bottom: 44px; z-index: 80; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px 12px; width: min(360px, calc(100vw - 32px)); padding: 14px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .1), 0 24px 50px -24px rgba(11, 30, 61, .45); font-family: var(--s3-sans, Inter, system-ui, sans-serif); animation: fd1-offer .5s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes fd1-offer { from { opacity: 0; transform: translateY(12px) scale(.98); } }
+.fd1-offer b { display: block; color: #0b1e3d; font-size: 14px; font-weight: 500; }
+.fd1-offer small { display: block; margin-top: 2px; color: #626775; font-size: 12.5px; line-height: 1.45; }
+.fd1-offer-acts { grid-column: 2; display: flex; gap: 8px; }
+@media (max-width: 860px) { .fd1-offer { bottom: calc(84px + env(safe-area-inset-bottom)); right: 16px; } }
+@media (prefers-reduced-motion: reduce) { .fd1-offer { animation: none; } }

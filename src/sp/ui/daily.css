@@ -76,23 +76,23 @@
 .dy-send:disabled { cursor: default; }
 
 /* the line today: five white cards, as the demo's run cards */
-.dy .jy { animation: dy-pop .52s var(--dy-ease) .6s both; }
-.dy .jy ol { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; list-style: none; overflow: visible; }
-.dy .jy li { border: 0; }
-.dy .jy li + li::before { display: none; }
-.dy .jy a { display: grid; grid-template-rows: auto 1fr auto; gap: 6px; height: 100%; min-height: 0; padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .07); color: inherit; text-decoration: none; transition: box-shadow .2s var(--dy-ease), transform .16s var(--dy-ease); }
-.dy .jy a:hover { box-shadow: 0 0 0 1px rgba(36, 87, 206, .35), 0 10px 22px -16px rgba(11, 30, 61, .45); transform: translateY(-1px); }
-.dy .jy .jy-n { width: 8px; height: 8px; border-radius: 50%; background: #d3d8e1; box-shadow: none; }
-.dy .jy .jy-n.is-on { background: var(--dy-blue); box-shadow: 0 0 0 3px #e8eefb; }
-.dy .jy li.is-mine .jy-n.is-on { background: #f05b40; box-shadow: 0 0 0 3px #fdece8; }
-.dy .jy .jy-t b { display: block; color: var(--dy-ink); font-size: 13px; font-weight: 500; }
-.dy .jy .jy-t small { display: block; margin-top: 2px; color: var(--dy-grey); font-size: 11.5px; line-height: 1.35; }
-.dy .jy .jy-c { color: #b5bac5; font-size: 22px; font-weight: 500; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.dy .jy .jy-c.is-on { color: var(--dy-ink); }
-.dy .jy-note { margin: 8px 0 0; font-size: 13px; }
-.dy .jy-note a { color: var(--dy-grey); text-decoration: none; }
-.dy .jy-note a:hover { color: var(--dy-blue); }
-@media (max-width: 760px) { .dy .jy ol { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dy .jy li:last-child { grid-column: 1 / -1; } }
+.sp.sx3.os.cn .dy .jy { animation: dy-pop .52s var(--dy-ease) .6s both; }
+.sp.sx3.os.cn .dy .jy ol { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; list-style: none; overflow: visible; }
+.sp.sx3.os.cn .dy .jy li { border: 0; }
+.sp.sx3.os.cn .dy .jy li + li::before { display: none; }
+.sp.sx3.os.cn .dy .jy a { display: grid; grid-template-rows: auto 1fr auto; gap: 6px; height: 100%; min-height: 0; padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .07); color: inherit; text-decoration: none; transition: box-shadow .2s var(--dy-ease), transform .16s var(--dy-ease); }
+.sp.sx3.os.cn .dy .jy a:hover { box-shadow: 0 0 0 1px rgba(36, 87, 206, .35), 0 10px 22px -16px rgba(11, 30, 61, .45); transform: translateY(-1px); }
+.sp.sx3.os.cn .dy .jy .jy-n { width: 8px; height: 8px; border-radius: 50%; background: #d3d8e1; box-shadow: none; }
+.sp.sx3.os.cn .dy .jy .jy-n.is-on { background: var(--dy-blue); box-shadow: 0 0 0 3px #e8eefb; }
+.sp.sx3.os.cn .dy .jy li.is-mine .jy-n.is-on { background: #f05b40; box-shadow: 0 0 0 3px #fdece8; }
+.sp.sx3.os.cn .dy .jy .jy-t b { display: block; color: var(--dy-ink); font-size: 13px; font-weight: 500; }
+.sp.sx3.os.cn .dy .jy .jy-t small { display: block; margin-top: 2px; color: var(--dy-grey); font-size: 11.5px; line-height: 1.35; }
+.sp.sx3.os.cn .dy .jy .jy-c { color: #b5bac5; font-size: 22px; font-weight: 500; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.sp.sx3.os.cn .dy .jy .jy-c.is-on { color: var(--dy-ink); }
+.sp.sx3.os.cn .dy .jy-note { margin: 8px 0 0; font-size: 13px; }
+.sp.sx3.os.cn .dy .jy-note a { color: var(--dy-grey); text-decoration: none; }
+.sp.sx3.os.cn .dy .jy-note a:hover { color: var(--dy-blue); }
+@media (max-width: 760px) { .sp.sx3.os.cn .dy .jy ol { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sp.sx3.os.cn .dy .jy li:last-child { grid-column: 1 / -1; } }
 
 /* setup and Kaju's prepared work */
 .dy-setup, .dy-kaju { margin-top: 22px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .07); animation: dy-pop .52s var(--dy-ease) .7s both; }
@@ -140,3 +140,5 @@ a.dy-work-t:hover b { color: var(--dy-blue); }
 @media (max-width: 700px) { .dy-work > li { grid-template-columns: 18px minmax(0, 1fr); } .dy-work-acts { grid-column: 1 / -1; justify-content: flex-start; } }
 /* inside a programme place the brief keeps the place's own width */
 .oh .dy { width: 100%; max-width: 880px; padding-top: 18px; }
+/* the municipal office's brief sits in the findings page's column */
+.ci .dy.os-brief { width: 100%; max-width: 880px; padding: 24px 0 8px; margin: 0; }

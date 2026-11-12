@@ -209,6 +209,30 @@ PR #74 (Decisions) merged as `22ff2e5f`.
 
 Field mode (`/ngo/field`) is rebuilt as the person's round for the day. The head gives the date and the number of stops (late ones counted in red) and a connection chip: online, offline or no signal, with how many records wait on the phone. Opening the chip explains where a record goes and holds the one switch; with no signal it offers "Keep working offline". One large control records an animal in front of you (the same intake form, the same checks). Follow-ups due come first, then the cases in the person's hands; each stop has its thumb action (Done / Missed, or Start) and "Record", which opens four tools (note, evidence, vaccination, care or movement) and one form at a time. "This phone" lists what is waiting with "Send all", each waiting record with send, download and remove, and what was sent with its receipt. The offline PIN opens inside the same page. Sync, encryption, scopes and every save call are unchanged; the outbox test still covers them.
 
+## 12 Nov: the product drawn like the landing demo (#76, #78, and the next PR)
+
+The owner asked for the dashboard and every workspace to look and move exactly like
+the product demo on the landing page, then set the brief for the whole platform
+(references, role-aware homes, Kaju in context, 3 interactions, 10/20/30 on every
+screen, not everything a dashboard, journeys that work end to end, visual QA).
+
+| Item | Status | Evidence |
+|---|---|---|
+| Structure: principles, roles, homes, menus, merged screens, records' lines, reference per screen | Done | `docs/PRODUCT-STRUCTURE.md`, `docs/REFERENCES.md` (13 products, sourced) |
+| Frame: light sidebar, Quick actions ⌘K, coloured module squares, Platform group, open-page tabs, grey stage, demo banner for sample programmes | Live (#76) | Desktop and phone screenshots, sidebar test updated to the demo's design |
+| Page skin: cards, squares, tags, blue codes, blue primary, fields, rail | Live (#76) | Pipeline views, Animals, Reports, Field, records |
+| Home as the daily brief, with Ask Kaju | Live (#76) | NGO coordinator |
+| Case and animal records: next step card, story line, side facts | Live (#76) | Staging |
+| Kaju runs as the demo's (live steps, ticks, times; checks listed; blue codes) | #78 | Staging, asked "Run operational checks" |
+| Every role's Today as the brief: several places, hospital (one working list at a time), laboratory | #78 | Clinician and laboratory scientist on staging |
+| Programme pages: one-line introductions, same cards and buttons | #78 | Programme lead on staging |
+| Sign-in: form on white, button under the field, the product preview beside it | Next PR | Desktop and phone screenshots |
+| First-day tour offered (Take the tour / Not now), never forced | Next PR | Guide still opens from the status line |
+
+Not yet rebuilt in this language: the municipal workspace (only sample-signable on
+demo.straypaw.org), Community and the Academy inside the app, the All sections index.
+The public page kit is being moved onto one kit separately.
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.
