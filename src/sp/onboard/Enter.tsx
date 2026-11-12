@@ -16,13 +16,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
-import { Building2, ChevronLeft, PawPrint, Soup } from "lucide-react";
+import { Building2, ChevronLeft, Home, PawPrint, Soup, Sparkles } from "lucide-react";
 import { cleanCode, signInWithCode, useAuth } from "@/components/auth/AuthProvider";
 import { StrayPawMark } from "@/components/site/SiteHeader";
 import { KajuFace } from "@/kaju/Kaju";
 import { Bubble, CodeBoxes, Cta, Frame } from "./Onboarding";
 import { firstName, maskEmail } from "./flow";
 import "./onboarding.css";
+import "./enter.css";
 
 type Step = "email" | "who" | "me" | "org" | "code";
 type Kind = "individual" | "feeder";
@@ -244,7 +245,38 @@ export function Enter() {
             </footer>
           )}
         </div>
+        <EnterShow />
       </div>
     </MotionConfig>
+  );
+}
+
+/* Beside the form on wide screens: the product the person is about to enter,
+   drawn as the landing demo draws it. Illustrative, and labelled so. */
+function EnterShow() {
+  return (
+    <aside className="en-show" aria-hidden>
+      <div className="en-win">
+        <div className="en-side">
+          <p className="en-org"><i>W</i>Ward 14 ABC Unit</p>
+          <span className="en-quick">Quick actions <kbd>⌘K</kbd></span>
+          <ul><li className="is-on"><Home size={13} />Today</li></ul>
+          <small>Modules</small>
+          <ul><li><span className="en-sq c-flame" />Pipeline</li><li><span className="en-sq c-blue" />Animals</li><li><span className="en-sq c-green" />Reports</li></ul>
+          <small>Platform</small>
+          <ul><li><span className="en-sq c-ink" />Kaju</li></ul>
+        </div>
+        <div className="en-main">
+          <p className="en-hello">Good morning, Anita.<span>Here is your daily brief.</span></p>
+          <ul className="en-rows">
+            <li><span className="en-sq c-violet" /><span><b>ABC · Laila</b> is ready for your review</span><em className="t-violet">Review</em></li>
+            <li><span className="en-sq c-flame" /><span><b>3 requests</b> from programme partners</span><em className="t-flame">1 overdue</em></li>
+            <li><span className="en-sq c-green" /><span><b>October&apos;s package</b> for the reviewing office</span><em className="t-green">Draft</em></li>
+          </ul>
+          <div className="en-ask"><Sparkles size={13} />Ask Kaju anything about your programme…</div>
+        </div>
+      </div>
+      <p className="en-cap">What you see after signing in · illustrative</p>
+    </aside>
   );
 }

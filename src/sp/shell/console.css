@@ -254,3 +254,4 @@
 @media (prefers-reduced-motion: reduce) {
   .sp.sx3.os.cn, .sp.sx3.os.cn .rl-panel, .sp.sx3.os.cn .rl-handle, .sp.sx3.os.cn .os-ind, .sp.sx3.os.cn .sx3-nav a, .sp.sx3.os.cn .sx3-nav a > svg, .sp.sx3.os.cn .cn-sq, .sp.sx3.os.cn .rl-all svg, .cn-tab, .cn-tab-new svg { transition: none !important; animation: none !important; }
 }
+@media (max-width: 860px) { .cn-sample { display: block; margin: 10px 16px 0; } }

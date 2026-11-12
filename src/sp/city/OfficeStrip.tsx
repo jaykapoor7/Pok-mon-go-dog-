@@ -7,7 +7,8 @@
    record cannot support is shown as unknown, and accepted is never paid. */
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ClipboardCheck, FileText, Undo2 } from "lucide-react";
+import { AskKaju, DailyHead, NeedsYou } from "../ui/Daily";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myContext, orgNames, packageCases, packages, type AbcContext, type Package, type PackageCase } from "@/lib/abc";
 import { readContracts, readReconciliation, money, type Contract, type ContractRate, type Reconciliation } from "@/lib/reconciliation";
@@ -81,14 +82,15 @@ export function OfficeStrip({ onOffice, publicOpen, onPublic }: { onOffice?: (on
 
   return (
     <section className="os" aria-label={`${office.name}: operations and decisions`}>
-      <div className="os-top"><p className="os-k">{office.name}</p><span className="os-scope">Your office&rsquo;s records{office.city ? ` · ${office.city}` : ""}</span></div>
-      <ul className="os-tiles">
-        <li className={v.waiting.length ? "is-due" : undefined}><Link href="/city/review"><span>Waiting for your decision</span><b>{v.waiting.length}</b><small>{v.oldest === null ? "Nothing waiting" : v.oldest === 0 ? "Submitted today" : `Oldest waiting ${v.oldest} ${v.oldest === 1 ? "day" : "days"}`}</small><ArrowRight size={14} aria-hidden /></Link></li>
-        <li><Link href="/city/review?tab=operator"><span>With the operator</span><b>{v.withOperator.length}</b><small>Queried or returned</small><ArrowRight size={14} aria-hidden /></Link></li>
-        <li><Link href="/city/review?tab=all"><span>Decided in {year}</span><b>{v.decided.length}</b><small>{v.records} {v.records === 1 ? "record" : "records"} · accepted is not paid</small><ArrowRight size={14} aria-hidden /></Link></li>
-        <li><Link href="/city/contracts"><span>Operators submitting</span><b>{v.ops.length}</b><small>Contracts &amp; rates</small><ArrowRight size={14} aria-hidden /></Link></li>
-      </ul>
-
+      <div className="dy os-brief">
+        <DailyHead name={user?.name} since={<>{office.name}{office.city ? `, ${office.city}` : ""}: <b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"} waiting for your decision</b>{v.oldest !== null && v.waiting.length ? ` (oldest ${v.oldest === 0 ? "today" : `${v.oldest} ${v.oldest === 1 ? "day" : "days"}`})` : ""}, {v.withOperator.length} with the operator, {v.decided.length} decided in {year}.</>} />
+        <NeedsYou rows={[
+          ...(v.waiting.length ? [{ key: "wait", href: "/city/review", tone: "violet", icon: <ClipboardCheck size={10} strokeWidth={2.4} />, title: <><b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"}</b> waiting for your decision</>, meta: v.oldest === null ? undefined : v.oldest === 0 ? "Submitted today" : `Oldest waiting ${v.oldest} ${v.oldest === 1 ? "day" : "days"}`, tag: "Decide", verb: "Review" }] : []),
+          ...(v.withOperator.length ? [{ key: "op", href: "/city/review?tab=operator", tone: "amber", icon: <Undo2 size={10} strokeWidth={2.4} />, title: <><b>{v.withOperator.length}</b> queried or returned to the operator</>, meta: "Waiting on their answer", tag: "With operator", verb: "Open" }] : []),
+          { key: "ops", href: "/city/contracts", tone: "slate", icon: <FileText size={10} strokeWidth={2.4} />, title: <><b>{v.ops.length} {v.ops.length === 1 ? "operator" : "operators"}</b> submitting to your office</>, meta: "Contracts and rates", tag: "Contracts", verb: "Open" },
+        ]} clear="No package is waiting for your office." />
+        <AskKaju questions={["Which packages have waited longest?", "What did we query last month, and why?", "How many sterilisations were accepted this year?", "Which wards have no operator?"]} />
+      </div>
       <div className="os-grid">
         <div className="os-card">
           <h3>Claims in {year}</h3>
