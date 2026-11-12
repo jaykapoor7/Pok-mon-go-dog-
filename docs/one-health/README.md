@@ -82,8 +82,8 @@ text; revaccination interval as a programme setting.
   count); no "More" list: everything else is one organised index, **All sections**, inside
   search (⌘K, in the top bar), so nothing is more than two clicks away. An NGO's work is
   one **Pipeline** board; its queue, intake and sign-off are views of it.
-  The menu itself is a compact dark panel that floats on the left edge and tucks into a
-  handle (`src/sp/shell/dock.css`). The top bar holds the place, search, the account and the single
+  The frame is one piece (`src/sp/shell/console.css`): sidebar, top bar and a status line
+  around one sheet; the sidebar tucks into a handle. The top bar holds search and the single
   primary action and pages do not repeat it. See `screens/sidebars-same-pattern.png`.
 * **The NGO's own Today** carries a line from the programme ("2 requests from programme
   partners · 1 overdue"), so a hospital's request reaches the field team where they look.

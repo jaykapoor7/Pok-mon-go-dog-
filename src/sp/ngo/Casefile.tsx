@@ -32,6 +32,7 @@ import { Ack, State, day } from "../ui";
 import { recordCare, setNeedsHelp, type Receipt } from "../data/work";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
+import "./pipeline.css";
 import { DeleteRecord } from "../ui/DeleteRecord";
 
 /** SPA-DOG-ACC70743182B… reads as SPA-DOG-ACC707: enough to tell animals apart on screen. */
@@ -70,6 +71,8 @@ export function Casefile({ id, identifiers = false }: { id: string; identifiers?
     } catch { setDog("error"); }
   }, [id]);
   useEffect(() => { if (mem.member) void load(); }, [mem.member, load]);
+  /* The case this animal is in the line with, if any: the newest one still open in this organisation. */
+  const live = cases.find((c) => ["open", "in_progress"].includes(c.status_class ?? "") && c.provenance !== "imported_historical_record") ?? null;
 
   return (
     <NgoGate title="Casefile" lede="Your organisation's private record of one animal.">
@@ -91,8 +94,11 @@ export function Casefile({ id, identifiers = false }: { id: string; identifiers?
                   {dog.owner_name && <div><dt>Carer</dt><dd>{dog.owner_name} <small>· contact private</small></dd></div>}
                   {dog.intake_notes && <div><dt>Intake note</dt><dd>{dog.intake_notes}</dd></div>}
                 </dl>
+                {/* An animal already in the line says so, and its one action is to open that case, not to start a second one. */}
+                {live ? <p className="cf-inline"><span className="cf-inline-dot" aria-hidden />In the line now: <b>{live.condition_class && live.condition_class !== "Not recorded" ? live.condition_class : "an open case"}</b>, {STATUS_META[(live.status_class ?? "unknown") as StatusClass]?.label?.toLowerCase() ?? "open"}{live.assignee_name ? `, held by ${live.assignee_name}` : ""}.</p> : null}
                 <div className="row">
-                  <Link className="btn is-ink is-s" href={`/ngo/cases/new?dog=${dog.id}`}>Open a case for this animal</Link>
+                  {live ? <Link className="btn is-ink is-s" href={`/ngo/cases/${live.id}`}>Open its case <ArrowUpRight size={14} aria-hidden /></Link> : null}
+                  <Link className={live ? "btn is-s" : "btn is-ink is-s"} href={`/ngo/cases/new?dog=${dog.id}`}>{live ? "Open another case" : "Open a case for this animal"}</Link>
                   <button type="button" className="btn is-s" disabled={busy} onClick={async () => { setBusy(true); setReceipt(null); const r = await setNeedsHelp(dog.id, !dog.needs_help); setReceipt(r); setBusy(false); if (r.ok) void load(); }}>{dog.needs_help ? "Clear the needs-help flag" : "Flag as needing help"}</button>
                   <Link className="btn is-ghost is-s" href={`/animal/${dog.id}`}><Eye size={14} aria-hidden /> Public record</Link>
                 </div>

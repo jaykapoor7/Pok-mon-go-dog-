@@ -7,7 +7,7 @@ test("Kaju greets when the agent opens and listens after", async ({ page, isMobi
   await page.goto("/community");
   const open = isMobile
     ? page.getByRole("navigation", { name: /navigation/ }).getByRole("button", { name: "Kaju" })
-    : page.getByRole("banner").getByRole("button", { name: "Kaju" });
+    : page.getByRole("complementary", { name: "Workspace" }).getByRole("button", { name: "Open Kaju" });
   await open.click();
   const panel = page.getByRole("complementary", { name: "Kaju" });
   await expect(panel).toBeVisible();
