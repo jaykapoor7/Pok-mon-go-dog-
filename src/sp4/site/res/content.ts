@@ -132,6 +132,7 @@ export const POSTS: Post[] = [
 export type Update = { date: string; area: string; title: string; body: string };
 /** Shipped, in the order they shipped (from the release history). */
 export const UPDATES: Update[] = [
+  { date: "2026-11-13", area: "Platform", title: "Lighter public pages", body: "Documents and the site no longer load the application frame, about a sixth less JavaScript per page; the frame loads when you open a workspace." },
   { date: "2026-11-13", area: "Government", title: "The municipal home, in one column", body: "What waits for your decision first, then what the waiting packages hold, the year's claims and each operator with its contract. Each fact once." },
   { date: "2026-11-13", area: "Government", title: "Programmes and the public record, on the same page pattern", body: "Programmes by kind of work, each on one time scale; the city's findings under the same heading and controls as every other page." },
   { date: "2026-11-12", area: "Programmes", title: "Referral of one person between facilities", body: "For hospitals and health centres in a One Health programme: refer a person for vaccine, immunoglobulin or wound washing, see whether they arrived, never sharing who they are." },

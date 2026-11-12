@@ -287,6 +287,9 @@
 .sp .portrait.is-s .portrait-plate { padding: 8px; }
 .sp .portrait.is-s .portrait-plate .mono { font-size: 12px; }
 .sp .portrait.is-s .portrait-plate em { display: none; }
+/* A small portrait with no photograph: a paw on the plate; the ID sits beside it in every list, never twice. */
+.sp .portrait-plate.is-glyph { place-items: center; align-content: center; padding: 0; color: rgba(11, 30, 61, .45); }
+.sp .portrait-plate.is-glyph svg { position: static; width: 20px; height: 20px; opacity: 1; }
 .sp .portrait.is-l .portrait-plate .mono { font-size: 32px; }
 .sp .portrait.is-l .portrait-plate em { font-size: 14px; }
 
