@@ -65,6 +65,8 @@ Everything with a record in it on the cinematic pages is illustrative and carrie
 - legacy: the homepage is the earlier one; `/kaju` goes to `/ai`;
 - cinematic: the headline, the five nav links and the demo link, plus the phone sheet; the chain's records; Kaju's steps, evidence and prepared note; the platform roles; proof's three groups; `/kaju`'s four capabilities; reduced motion; existing pages under the new bar; every nav and footer link resolves.
 
+The rest of the suite is written for the legacy site and runs in CI against the default (legacy) build. If you run the whole suite against a cinematic build, the tests of the legacy homepage, its dropdown header and its phone sheet fail by design, because they look for markup that only the legacy site has (`.s4-hero`, `.s4-nav`, `#s4-sheet`, the old homepage's sections). They are in `creative-pass`, `living-product`, `mobile-focus`, `quality-pass`, `sp3`, `abc-verification`, `live-demo` and `straypaw2` (one each). The application's tests pass in both.
+
 ```
 npm run build && npx next start -p 3100                                   # legacy
 MARKETING_EXPERIENCE=cinematic npm run build && npx next start -p 3100    # cinematic

@@ -94,6 +94,11 @@ export function World({ progress, markers = [], onProject, onReady, view = "home
     function frame(now: number) {
       raf = 0;
       if (!visible || document.hidden) return;
+      /* slow first frames: lower the resolution once, here, before drawing, so the cleared canvas is never shown */
+      if (!still && probe < 40) {
+        if (probe === 10) probeT = now;
+        if (++probe === 40 && (now - probeT) / 30 > 34 && scale > 0.8) { scale = Math.max(0.8, scale * 0.66); size(); }
+      }
       const target = progress?.current ?? 0;
       smooth += (target - smooth) * (still ? 1 : 0.075);
       const p = ease(Math.min(1, Math.max(0, smooth)));
@@ -114,10 +119,6 @@ export function World({ progress, markers = [], onProject, onReady, view = "home
       gl.drawElements(gl.TRIANGLES, mesh.idx.length, gl.UNSIGNED_INT, 0);
       if (cb.current) cb.current(list.current.map((m) => ({ id: m.id, ...project(vp, [m.x, heightAt(m.x, m.z) + (m.lift ?? 0.3), m.z], w, h) })), w, h);
       if (!shown) { shown = true; ready.current?.(true); }
-      if (!still && probe < 40) {
-        if (probe === 10) probeT = now;
-        if (++probe === 40 && (now - probeT) / 30 > 34 && scale > 0.8) { scale = Math.max(0.8, scale * 0.66); size(); }
-      }
       if (!still || Math.abs(target - smooth) > 0.001) raf = requestAnimationFrame(frame);
     }
     const wake = () => { if (!raf) raf = requestAnimationFrame(frame); };
