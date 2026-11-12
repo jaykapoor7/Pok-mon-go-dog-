@@ -241,6 +241,23 @@ first), and a rebuilt live demo. See `docs/BEST-AUDIT.md`.
 | Public pages (privacy, terms, donate, the bite finder): the Back arrow sat on a line of its own, touching the eyebrow; `/try` role cards still outlined | Fixed | Screenshots before and after |
 | The whole story on demo.straypaw.org, phone and desktop (after #82) | 2/2 | `e2e/demo-story.spec.ts` against the live demo, version `850f7ccb` |
 
+## 12 Nov, late: "everything left" (owner: "Reseed" and "EVERYTHING left not done")
+
+| Item | Status | Evidence |
+|---|---|---|
+| Staging reseed | Waiting for the owner to accept the database tool's confirmation (it times out after 60 s) | |
+| Production One Health migration | Owner approved; this session cannot start workflows (403). Owner runs Actions → Apply Supabase migration → one-health | |
+| Referral of one person between facilities (health.transfers, v2.6) | Built; waits for v2.6 on staging to be checked | PR #84 |
+| Dogs due for revaccination (NGO Animals) | Built; same wait | PR #84 |
+| Partner logos (upload in setup, overview, report row) | Built; same wait | PR #84 |
+| Kaju: case questions with follow-ups, glossary, case summary (no model) | Done | Contract scripts pass; asked in a browser on staging as the NGO coordinator |
+| Municipal review and contracts on the page pattern | Done | Checked on demo.straypaw.org after release (ABC accounts sign in only there) |
+| Invitations by link; sign-in on signed-out Today | Done | |
+| Case story, All sections, community map plural | Done | |
+| 26 public pages onto the blueprint kit; one title format; links at final URLs; public CSS on the 8-point scale | Done (by a worktree agent, reviewed) | Typecheck, build, browser suite 249/0 |
+| Changelog current; How do I… from Kaju's own steps; security evidence | Done | |
+| Page speed and accessibility checks | Next | |
+
 ## 12 Nov: the cinematic public site, behind one switch
 
 The owner asked for the public site as a cinematic experience, "The whole world,
