@@ -181,6 +181,18 @@ What existed: a pre-sign-in scene at `/app` (meet Kaju and the crew) and the gui
 | A sample session keeps its own guided demo: this guide does not open by itself there | Done | test asserts it |
 | `e2e/operating-path.spec.ts`: second test walks the guide on staging and checks the lit control is the one described | 3 passed, 1 skipped (phone has no status line) | runs with `OH_E2E=1` |
 
+## 12 Nov: the Queue, as a view of the Pipeline (after #72)
+
+PR #72 (the first day) merged as `cc0924de`. Production and the demo were verified on `a75f1d40` (#71): Home and the four rebuilt pages checked on the deployed demo as the coordinator, new layouts present, no overflow, no page errors.
+
+| Item | Status |
+|---|---|
+| Queue head: a title and what is in it (live, critical, follow-ups overdue, held by nobody). The priority ribbon is gone: it repeated the filters under it | Done |
+| Cohorts are three lanes with a gliding marker: Live, Needs a decision, Imported | Done |
+| Rows match the board's cards (quiet border, one accent for critical or overdue); search and filter chips in the page pattern's language | Done |
+| The lanes carry their own colours, so they work on a page that is not built on the pattern's container (the count on the chosen lane was invisible on the Queue until then) | Done |
+| Unchanged: the map, the inspector, keyboard moves, every read and action | |
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.
