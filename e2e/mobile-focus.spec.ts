@@ -97,11 +97,20 @@ test("desktop sidebar is organised by the work, each place once", async ({page,i
  for (const place of ['Pipeline','Animals']) await expect(side.getByRole('link',{name:place,exact:true})).toHaveCount(1);
  for (const gone of ['Work queue','Intake','Treatment & release']) await expect(side.getByRole('link',{name:gone,exact:true})).toHaveCount(0);
  await expect(side.locator('nav[aria-label$="navigation"] a')).toHaveCount(3);
- /* The place, search and the account are in the bar above the sheet, not in the menu. */
+ /* One frame: the sidebar holds the place, the menu, Kaju and the person; the bar above holds search; the line below holds status. */
  const bar=page.locator('header.sx3-top');
- await expect(bar.locator('.dk-place')).toBeVisible();
+ await expect(side.locator('.cn-place')).toBeVisible();
+ await expect(side.getByRole('button',{name:'Open Kaju'})).toBeVisible();
  await expect(bar.getByRole('button',{name:/Search animals, places, cases/})).toBeVisible();
  await expect(side.getByRole('button',{name:/Find a page or record/})).toHaveCount(0);
+ const foot=page.getByRole('contentinfo',{name:'Status'});
+ await expect(foot).toBeVisible();
+ await expect(foot.getByRole('status')).toHaveText(/Online|Offline/);
+ await expect(foot.getByRole('link',{name:'Help'})).toHaveAttribute('href','/docs');
+ /* Nothing floats and nothing is left empty: the sidebar runs the full height and the sheet meets it. */
+ const [sb,sheet,vh]=await Promise.all([side.locator('.rl-panel').boundingBox(),page.locator('#sp-main').boundingBox(),page.evaluate(()=>window.innerHeight)]);
+ expect(sb!.y).toBe(0); expect(Math.round(sb!.height)).toBe(vh);
+ expect(Math.abs(sheet!.x-(sb!.x+sb!.width))).toBeLessThanOrEqual(1);
  /* Kaju is one button in the top bar and his corner, not a sidebar row. */
  await expect(side.getByRole('link',{name:'Ask Kaju',exact:true})).toHaveCount(0);
  /* Pages inside an area are tabs on the page, not more sidebar rows. */

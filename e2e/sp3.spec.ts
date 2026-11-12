@@ -98,9 +98,10 @@ test("the app shell carries workspace navigation, search and Kaju", async ({ pag
   if (!isMobile) {
     const side = page.getByRole("complementary", { name: "Workspace" });
     await expect(side.getByRole("link", { name: "Programmes" })).toHaveAttribute("aria-current", "page");
-    /* Kaju has one button in the top bar and his corner in the sidebar, not a third link. */
+    /* Kaju has one place of his own in the sidebar and a key in the status line; he is not a menu link. */
     await expect(side.getByRole("link", { name: "Kaju", exact: true })).toHaveCount(0);
-    await page.getByRole("banner").getByRole("button", { name: "Kaju" }).click();
+    await expect(page.getByRole("contentinfo", { name: "Status" }).getByRole("button", { name: /Kaju/ })).toBeVisible();
+    await side.getByRole("button", { name: "Open Kaju" }).click();
   } else {
     await page.getByRole("navigation", { name: /navigation/ }).getByRole("button", { name: "Kaju" }).click();
   }

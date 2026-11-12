@@ -218,7 +218,7 @@ function suggestions(path: string): string[] {
   if (path.startsWith("/ngo/animals")) return ["Find possible duplicate animals", "Which animals have no photo?", "What can I search in the register?"];
   if (path.startsWith("/ngo/programmes")) return ["Summarise our programmes", "Which records are missing evidence?", "Show published ABC programmes"];
   if (path.startsWith("/ngo/inbox") || path.startsWith("/ngo/field")) return ["Summarise today's work", "Help me prepare a field update", "What follow-ups are overdue?"];
-  if (path.startsWith("/ngo")) return ["Run operational checks", "Summarise today's work", "Which records are missing evidence?", "Find possible duplicate animals", "Open the import screen"];
+  if (path.startsWith("/ngo")) return ["Run operational checks", "Summarise today's work", "What are programme partners waiting for?", "Which records are missing evidence?", "Find possible duplicate animals", "Open the import screen"];
   if (path.startsWith("/city")) return ["Show the municipal review queue", "What can only a municipal reviewer accept?", "Open the city report"];
   if (path.startsWith("/learn")) return ["Open the academy", "What programmes are published?"];
   return ["What programmes are published?", "Search for animals in Coimbatore", "How do I report an animal?"];

@@ -84,3 +84,8 @@
 .jy-note a:hover svg { transform: translateX(3px); }
 
 @media (prefers-reduced-motion: reduce) { .pl-col, .pl-col.is-focus, .pl-card, .pl-skel { animation: none !important; } .pl-card, .pl-all svg, .jy-note svg { transition: none; } }
+
+/* An animal that is in the line says so on its own record. */
+.cf-inline { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 0; padding: 9px 12px; border-radius: 10px; background: #f3f5f8; color: #3d4a5c; font-size: 13.5px; line-height: 1.45; }
+.cf-inline b { color: #0f1524; font-weight: 600; }
+.cf-inline-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #2457ce; transform: translateY(-1px); box-shadow: 0 0 0 3px rgba(36, 87, 206, .16); }

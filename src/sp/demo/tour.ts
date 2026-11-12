@@ -48,7 +48,7 @@ export const TOUR: TourStep[] = [
     sel: ".os-strip", point: ["from programme partners"], within: ["/workspace/"], hint: "Open the requests from partners." },
   { role: "oh-ngo", path: "/ngo", title: "Ask Kaju who is waiting",
     body: "Kaju reads the requests, never a patient record, and says what each partner is waiting for and what is overdue.",
-    point: ["What are programme partners waiting for?"], hint: "Ask Kaju." },
+    sel: ".cn-kaju", point: ["Kaju"], hint: "Open Kaju and choose “What are programme partners waiting for?”" },
   { role: "oh-ngo", path: "/ngo/pipeline", title: "One line of work",
     body: "Every record the team is working on, left to right: a report arrives, a case is in care, the vet signs, the release evidence is completed, and it goes into the report. Each card opens its record.",
     sel: ".pl-col[data-stage='care'] .pl-card", within: ["/ngo/cases/"], hint: "The most urgent case is first." },

@@ -91,7 +91,7 @@ Acceptance is not payment; never imply a claim was paid.
 ### 8. Places and the programme (11 November 2026)
 This section supersedes "4. Navigation" for NGO and municipal sidebars.
 
-- **A person works in places.** The switcher at the left of the top bar lists
+- **A person works in places.** The switcher at the top of the sidebar lists
   every place: the NGO workspace, the municipal review office, and each
   hospital, health centre, laboratory, coordination or state cell. Its card
   shows initials, name and role. `/today` is the home across places, and there
@@ -106,31 +106,42 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
      Field team: Field mode, Pipeline, Animals. Hospital: Bite register,
      Services. Laboratory: Services. Municipal: Wards & map, Review,
      Contracts, Programmes. Programme cell: Coverage, Report.
-  3. **Programme**: the same links for everyone taking part: Programme,
-     Care network, Requests (where the place receives requests). An NGO's menu
-     does not change when it steps into its programme pages.
+  3. **Programme**, from the Bengaluru proposal. A field partner (NGO), in
+     the order it is used: **Requests** (the animal side of a bite: find,
+     observe, sample), **Vaccination coverage** (dog vaccination against the
+     70% target, area by area), Care network, Overview. Hospitals and
+     laboratories: Care network, Overview. An NGO's menu does not change when
+     it steps into its programme pages.
   4. **Manage** (programme cells only): Research data, Programme setup.
   There is **no "More" list**. Everything else in a workspace is one organised
   index, **All sections** (foot of the menu): every area by name, each page
   with what it is for. It opens inside search (⌘K, in the top bar), which also
   finds every page of every place the person works in, and records.
   **Nothing is more than two clicks away** (All sections → page; or area → tab).
-- **The menu floats; it is not a column** (`src/sp/shell/dock.css`, loaded
-  last; built on the owner's reference recording, 11 Nov 2026). A compact dark
-  menu sits on the left edge, vertically centred, over a quiet canvas. The
-  current page is a **white pill that glides** between pages; groups are
-  separated by a hairline, not headings. No numbers, no mono labels, no glows,
-  no gradient washes. Tucked away it becomes a short **handle** on the edge;
-  pointing at the handle or focusing it lets the menu grow back out over the
-  page, and pressing it keeps the menu open. The tucked menu is inert. Kaju
-  sits on top of the menu while the agent is closed. Reduced motion: no
-  growing, no gliding.
-- **One sheet.** The work sits on a single white sheet with a hairline border
-  on the canvas. The bar above it carries the place, the breadcrumb, search,
-  Ask Kaju, the one primary action (Record a bite, New case, Send a sample;
-  pages never repeat it) and the account (Help, settings, sign out). Every
-  page title behind the menu is the same size and weight; Today keeps its
-  greeting. Defined once in `designedNav` and `placeNav`.
+- **One frame, nothing floating** (`src/sp/shell/console.css`, loaded last;
+  12 Nov 2026, after the owner found the floating menu left dead space and odd
+  edges). The sidebar, the bar above and the status line below are the same
+  deep ink; the work sits on one sheet inside them and keeps its four rounded
+  corners while the page scrolls. Each side of the frame carries something:
+  - **Left**: the place (and its chooser), the menu, **All sections**, Kaju's
+    card, and the person (account, sign in, tuck).
+  - **Top**: where you are (Back, breadcrumb), search, the one primary action
+    (Record a bite, New case, Send a sample; pages never repeat it).
+  - **Bottom**: whether records are reaching the register (Online / Offline),
+    the place and its programme, the two keys worth knowing (⌘K, ⌘J), Help,
+    the time.
+  The current page sits on a **white pill that glides** between pages. No
+  numbers, no mono labels, no glows, no gradient washes. Tucked away, the
+  sidebar slides out and leaves a short **handle** on the edge; pointing at it
+  or focusing it brings the sidebar back over the page, and pressing it keeps
+  it. The tucked sidebar is inert. Kaju is never a menu row. Reduced motion:
+  no sliding, no gliding. Every page title behind the menu is the same size
+  and weight. Defined once in `designedNav` and `placeNav`.
+- **Home is three things** (`src/sp/ngo/Brief.tsx`): the one thing to do first
+  with its one action, the line of work as it stands, and at most three other
+  things waiting. What changed since yesterday is one sentence. Kaju's
+  prepared work is one fold, closed until wanted. Nothing else goes above the
+  fold.
 - **One operating path** (`src/sp/ngo/pipeline.ts`, the single definition of
   the line of work). The five stages have one name each and count the same
   records wherever they appear:
@@ -149,7 +160,7 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
 - **Live counts** sit on the link that opens the work (flame = overdue,
   amber = waiting, blue = new). Kaju is the top-bar button and his seat on the
   menu, never a menu row.
-- **Chrome** is `src/sp/shell/os.css` with `dock.css` over it; programme pages use
+- **Chrome** is `src/sp/shell/os.css` with `console.css` over it; programme pages use
   `src/oh/oh.css`. Motion: the selection glides (spring 380ms), counts pop,
   pages arrive (340ms, none on map and report pages), menus spring, urgent
   alerts pulse; all off under reduced motion.

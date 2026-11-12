@@ -1,0 +1,238 @@
+/* ════════════════════════════════════════════════════════════════════
+   The console (loaded last).
+
+   One frame around the work. The sidebar, the bar above and the status line
+   below are the same deep ink; the work sits on one sheet inside them, and
+   the sheet keeps its four rounded corners while the page scrolls. Nothing
+   floats and nothing is left empty: each side of the frame carries something.
+
+     left    the place, the menu (the current page on a white pill that
+             glides), the index of everything else, Kaju, and you
+     top     where you are, search, the one primary action
+     bottom  whether records are reaching the register, the place and its
+             programme, the two keys worth knowing, help, the time
+
+   Tucked away, the sidebar slides out and leaves a short handle on the edge;
+   pointing at the handle (or focusing it) lets the sidebar come back over the
+   page, and pressing it keeps it. Phones keep their own bar and thumb tabs.
+   Nothing here changes what a link does. Reduced motion: no sliding, no glide.
+   ════════════════════════════════════════════════════════════════════ */
+.sp.sx3.os.cn {
+  --cn-side: 248px; --bar: 52px; --cn-foot: 30px; --cn-gap: 10px; --cn-r: 18px;
+  --cn-frame: #0c111d; --cn-ink: #0f1524; --cn-line: rgba(255, 255, 255, .09); --cn-text: rgba(255, 255, 255, .78); --cn-mute: rgba(255, 255, 255, .48);
+  --cn-tone: #f08a3c;
+  --cn-spring: cubic-bezier(.3, 1.25, .5, 1); --cn-ease: cubic-bezier(.2, .7, .2, 1);
+}
+.sp.sx3.os.cn[data-tone="work"] { --cn-tone: #2457ce; }
+.sp.sx3.os.cn[data-tone="programme"] { --cn-tone: #12907d; }
+.sp.sx3.os.cn[data-tone="manage"] { --cn-tone: #6d55d8; }
+.cn-foot, .cn-place, .cn-kaju, .cn-me, .cn-fill { display: none; }
+
+@media (min-width: 861px) {
+  /* ── the frame ── */
+  .sp.sx3.os.cn { --side: var(--cn-side); display: grid; grid-template-columns: var(--side) minmax(0, 1fr); background: var(--cn-frame); transition: grid-template-columns .4s var(--cn-ease); }
+  .sp.sx3.os.cn.is-tucked { --side: 14px; }
+  .sp.sx3.os.cn .sx3-col { min-height: 100dvh; background: none; overflow: visible; }
+  .sp.sx3.os.cn .sx3-col::before, .sp.sx3.os.cn .sx3-col::after { display: none; }
+
+  /* top */
+  .sp.sx3.os.cn .sp-bar.sx3-top { position: sticky; top: 0; z-index: 30; height: var(--bar); padding: 0 var(--cn-gap) 0 6px; gap: 6px; border-bottom: 0; background: var(--cn-frame); color: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* the sheet's two upper corners stay put while the page scrolls under the bar */
+  .sp.sx3.os.cn .sp-bar.sx3-top::before, .sp.sx3.os.cn .sp-bar.sx3-top::after { content: ""; position: absolute; top: 100%; width: var(--cn-r); height: var(--cn-r); pointer-events: none; }
+  .sp.sx3.os.cn .sp-bar.sx3-top::before { left: 0; background: radial-gradient(circle at 100% 100%, transparent calc(var(--cn-r) - .5px), var(--cn-frame) var(--cn-r)); }
+  .sp.sx3.os.cn .sp-bar.sx3-top::after { right: var(--cn-gap); background: radial-gradient(circle at 0 100%, transparent calc(var(--cn-r) - .5px), var(--cn-frame) var(--cn-r)); }
+  .sp.sx3.os.cn .sx5-back { height: 30px; padding: 0 10px 0 8px; border: 0; border-radius: 8px; background: none; color: var(--cn-text); font-size: 13px; transition: background .16s, color .16s; }
+  .sp.sx3.os.cn .sx5-back:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+  .sp.sx3.os.cn .sx3-crumb { padding-left: 8px; font-size: 13px; color: var(--cn-mute); }
+  .sp.sx3.os.cn .sx5-back + .sx3-crumb { padding-left: 10px; border-left: 1px solid var(--cn-line); }
+  .sp.sx3.os.cn .sx3-crumb a { color: inherit; transition: color .16s; }
+  .sp.sx3.os.cn .sx3-crumb a:hover { color: #fff; }
+  .sp.sx3.os.cn .sx3-crumb [aria-current] { color: #fff; font-weight: 500; }
+  .sp.sx3.os.cn .sx3-crumb > span[aria-hidden] { color: rgba(255, 255, 255, .26); }
+  .sp.sx3.os.cn .sp-find.sx3-find { display: inline-flex; flex: 0 1 300px; max-width: 300px; min-height: 32px; height: 32px; margin-left: auto; padding: 0 8px 0 11px; border: 1px solid var(--cn-line); border-radius: 9px; background: rgba(255, 255, 255, .06); color: var(--cn-mute); font-size: 13px; box-shadow: none; transition: border-color .16s, background .16s, color .16s; }
+  .sp.sx3.os.cn .sp-find.sx3-find:hover { border-color: rgba(255, 255, 255, .22); background: rgba(255, 255, 255, .1); color: #fff; box-shadow: none; }
+  .sp.sx3.os.cn .sp-find.sx3-find span { display: inline; flex: 1; text-align: left; }
+  .sp.sx3.os.cn .sp-find.sx3-find kbd { display: inline-block; border: 0; background: rgba(255, 255, 255, .1); color: var(--cn-mute); font: 500 10.5px var(--s3-sans); padding: 2px 6px; border-radius: 5px; }
+  .sp.sx3.os.cn .sp-bar-end { margin-left: 0; gap: 6px; }
+  .sp.sx3.os.cn .sx3-ai-btn { display: none; }
+  .sp.sx3.os.cn .sp-action.sx3-action { height: 32px; padding-inline: 13px; border-radius: 9px; background: #2f66e6; box-shadow: none; transition: background .16s, transform .14s var(--cn-ease); }
+  .sp.sx3.os.cn .sp-action.sx3-action:hover { background: #4279f2; box-shadow: none; transform: none; }
+  .sp.sx3.os.cn .sp-action.sx3-action:active { transform: scale(.97); }
+  /* signed out, the one sign-in is in the sidebar, where the account always is */
+
+  /* the sheet */
+  .sp.sx3.os.cn .sp-main { flex: 1; margin: 0 var(--cn-gap) 0 0; border: 0; border-radius: var(--cn-r); background: #fff; background-image: none !important; box-shadow: none; }
+  .sp.sx3.os.cn.is-flush .sp-main { flex: none; height: calc(100dvh - var(--bar) - var(--cn-foot)); overflow: hidden; }
+
+  /* bottom */
+  .sp.sx3.os.cn .cn-foot { position: sticky; bottom: 0; z-index: 29; display: flex; align-items: center; gap: 14px; height: var(--cn-foot); padding: 0 calc(var(--cn-gap) + 8px) 0 14px; background: var(--cn-frame); color: var(--cn-mute); font-size: 12px; line-height: 1; white-space: nowrap; }
+  .sp.sx3.os.cn .cn-foot::before, .sp.sx3.os.cn .cn-foot::after { content: ""; position: absolute; bottom: 100%; width: var(--cn-r); height: var(--cn-r); pointer-events: none; }
+  .sp.sx3.os.cn .cn-foot::before { left: 0; background: radial-gradient(circle at 100% 0, transparent calc(var(--cn-r) - .5px), var(--cn-frame) var(--cn-r)); }
+  .sp.sx3.os.cn .cn-foot::after { right: var(--cn-gap); background: radial-gradient(circle at 0 0, transparent calc(var(--cn-r) - .5px), var(--cn-frame) var(--cn-r)); }
+  .cn-foot-net { display: inline-flex; align-items: center; gap: 7px; color: var(--cn-text); }
+  .cn-foot-net i { width: 7px; height: 7px; border-radius: 50%; background: #3ecf8e; box-shadow: 0 0 0 3px rgba(62, 207, 142, .18); }
+  .cn-foot-net[data-on="false"] { color: #ffd08a; }
+  .cn-foot-net[data-on="false"] i { background: #f0a23c; box-shadow: 0 0 0 3px rgba(240, 162, 60, .2); }
+  .cn-foot-where { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .cn-foot-where span { opacity: .5; }
+  .cn-foot-tag { padding: 3px 7px; border-radius: 5px; background: rgba(240, 162, 60, .16); color: #ffd08a; font-size: 11px; }
+  .cn-foot-fill { flex: 1; }
+  .cn-foot :is(button, a) { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 6px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; text-decoration: none; cursor: pointer; transition: color .16s, background .16s; }
+  .cn-foot :is(button, a):hover { background: rgba(255, 255, 255, .08); color: #fff; }
+  .cn-foot :is(button, a):focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+  .cn-foot kbd { padding: 1px 5px; border-radius: 4px; background: rgba(255, 255, 255, .1); color: var(--cn-text); font: 500 10.5px var(--s3-sans, system-ui); }
+  .cn-foot-time { color: var(--cn-mute); font-variant-numeric: tabular-nums; }
+
+  /* ── the sidebar ── */
+  .sp.sx3.os.cn .sx3-side { position: sticky; top: 0; z-index: 40; display: block; height: 100dvh; padding: 0; overflow: visible; border: 0; background: none; }
+  .sp.sx3.os.cn .rl-panel { position: absolute; inset: 0 auto 0 0; width: var(--cn-side); display: flex; flex-direction: column; gap: 2px; padding: 12px 8px 10px 12px; color: #fff; background: var(--cn-frame); overflow: hidden auto; scrollbar-width: none; transition: transform .44s var(--cn-ease), opacity .2s var(--cn-ease), box-shadow .3s ease; }
+  .sp.sx3.os.cn .rl-panel::-webkit-scrollbar { display: none; }
+  .sp.sx3.os.cn .rl-panel:has(.sx3-acct-menu, .sx3-ws-menu) { overflow: visible; }
+  /* tucked: the sidebar slides out behind the edge; pointing at the handle brings it back over the page */
+  .sp.sx3.os.cn.is-tucked .rl-panel { transform: translateX(-104%); opacity: 0; pointer-events: none; transition: transform .36s var(--cn-ease), opacity .16s var(--cn-ease) .18s; }
+  .sp.sx3.os.cn.is-tucked .sx3-side[data-peek] .rl-panel { transform: none; opacity: 1; pointer-events: auto; border-radius: 0 var(--cn-r) var(--cn-r) 0; box-shadow: 30px 0 60px -30px rgba(0, 0, 0, .55), 1px 0 0 var(--cn-line); transition: transform .46s var(--cn-spring), opacity .14s var(--cn-ease); }
+  .sp.sx3.os.cn .rl-handle { position: absolute; left: 0; top: 50%; z-index: 1; width: 14px; height: 60px; margin-top: -30px; padding: 0; border: 0; border-radius: 0 8px 8px 0; display: grid; place-items: center; background: rgba(255, 255, 255, .1); color: #fff; cursor: pointer; pointer-events: none; opacity: 0; transition: opacity .18s var(--cn-ease), background .16s, width .2s var(--cn-ease); }
+  .cn-grip { display: grid; gap: 4px; }
+  .cn-grip i { width: 3px; height: 3px; border-radius: 50%; background: rgba(255, 255, 255, .7); }
+  .cn-grip i:nth-child(2) { background: var(--cn-tone); }
+  .sp.sx3.os.cn.is-tucked .rl-handle { opacity: 1; pointer-events: auto; transition-delay: .26s, 0s, 0s; }
+  .sp.sx3.os.cn.is-tucked .rl-handle:hover, .sp.sx3.os.cn.is-tucked .rl-handle:focus-visible { background: rgba(255, 255, 255, .2); width: 16px; }
+  .sp.sx3.os.cn .rl-handle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .sp.sx3.os.cn.is-tucked .sx3-side[data-peek] .rl-handle { opacity: 0; transition-delay: 0s; }
+  .sp.sx3.os.cn.is-tucked .sx3-side:not([data-peek]) { pointer-events: none; }
+
+  /* the place */
+  .sp.sx3.os.cn .cn-place { display: block; position: relative; flex: none; margin: 0 4px 12px 0; }
+  .sp.sx3.os.cn a.cn-place { display: grid; }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn, .sp.sx3.os.cn a.cn-place { grid-template-columns: 32px minmax(0, 1fr) 14px; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border: 0; border-radius: 12px; background: rgba(255, 255, 255, .06); box-shadow: none; text-align: left; text-decoration: none; transition: background .16s var(--cn-ease), transform .16s var(--cn-ease); }
+  .sp.sx3.os.cn a.cn-place { grid-template-columns: 32px minmax(0, 1fr); }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn:hover, .sp.sx3.os.cn a.cn-place:hover { background: rgba(255, 255, 255, .1); box-shadow: none; }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn:active { transform: scale(.985); }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn[aria-expanded="true"] { background: rgba(255, 255, 255, .12); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); }
+  .sp.sx3.os.cn .cn-place .os-avatar { width: 32px; height: 32px; border-radius: 9px; font-size: 12px; box-shadow: none; }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn > span, .sp.sx3.os.cn a.cn-place > span:last-child { display: grid; gap: 1px; min-width: 0; }
+  .sp.sx3.os.cn .cn-place b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; font: 600 13.5px/1.25 var(--s3-sans); letter-spacing: -.01em; }
+  .sp.sx3.os.cn .cn-place small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-mute); font-size: 11.5px; line-height: 1.3; }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn > svg { display: block; color: var(--cn-mute); }
+  .sp.sx3.os.cn .cn-place .sx3-ws-menu { top: calc(100% + 6px); left: 0; }
+
+  /* the menu: the current page sits on a white pill that glides */
+  .sp.sx3.os.cn .sx3-nav { position: relative; flex: none; display: flex; flex-direction: column; gap: 2px; margin: 0 4px 0 0; overflow: visible; }
+  .sp.sx3.os.cn .sx3-nav a { position: relative; z-index: 1; display: flex; align-items: center; justify-content: flex-start; height: 36px; gap: 11px; padding: 0 10px; border-radius: 10px; background: none; color: var(--cn-text); font: 500 13.5px/1 var(--s3-sans); letter-spacing: -.005em; text-decoration: none; transition: color .18s var(--cn-ease), background .16s var(--cn-ease); }
+  .sp.sx3.os.cn .sx3-nav a > svg { flex: none; width: 16px; height: 16px; color: var(--cn-mute); transition: color .18s var(--cn-ease), transform .3s var(--cn-spring); }
+  .sp.sx3.os.cn .sx3-nav a > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp.sx3.os.cn .sx3-nav a:hover { background: rgba(255, 255, 255, .07); color: #fff; }
+  .sp.sx3.os.cn .sx3-nav a:hover > svg { color: #fff; transform: translateX(1px); }
+  .sp.sx3.os.cn .sx3-nav a[aria-current="page"] { background: none; color: var(--cn-ink); font-weight: 600; box-shadow: none; }
+  .sp.sx3.os.cn .sx3-nav a[aria-current="page"] > svg { color: var(--cn-tone); transform: none; transition-delay: .08s; }
+  .sp.sx3.os.cn .sx3-nav:not(.has-ind) a[aria-current="page"] { background: #fff; }
+  .sp.sx3.os.cn .os-ind { left: 0; right: 0; top: 0; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .35); transition: transform .46s var(--cn-spring), height .3s var(--cn-ease), opacity .2s; }
+  .sp.sx3.os.cn .os-ind::before { display: none; }
+  .sp.sx3.os.cn .sx4-sec { margin: 16px 0 5px; padding: 0 10px; border: 0; background: none; color: var(--cn-mute); font: 500 11.5px/1.4 var(--s3-sans); letter-spacing: .01em; }
+  .sp.sx3.os.cn .sx-count { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, .13); color: #fff; font: 600 11px/20px var(--s3-sans); box-shadow: none; }
+  .sp.sx3.os.cn .sx-count[data-tone="flame"] { background: #e04a2f; color: #fff; }
+  .sp.sx3.os.cn .sx-count[data-tone="amber"] { background: rgba(232, 164, 60, .28); color: #ffe2ad; }
+  .sp.sx3.os.cn .sx-count[data-tone="blue"] { background: rgba(120, 160, 255, .26); color: #dbe6ff; }
+  .sp.sx3.os.cn .sx3-nav a[aria-current="page"] .sx-count:not([data-tone="flame"]) { background: var(--cn-ink); color: #fff; }
+  .sp.sx3.os.cn .sx3-nav a:focus-visible, .sp.sx3.os.cn button.rl-all:focus-visible, .sp.sx3.os.cn .cn-me .sx3-icon:focus-visible, .sp.sx3.os.cn .cn-kaju:focus-visible, .sp.sx3.os.cn .cn-place :is(a, button):focus-visible, .sp.sx3.os.cn .sx3-acct-btn:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+  .sp.sx3.os.cn .sx3-nav a[aria-current="page"]:focus-visible { outline-color: #2457ce; outline-offset: 2px; }
+
+  /* the index of everything else */
+  .sp.sx3.os.cn .rl-all { flex: none; display: flex; align-items: center; gap: 11px; height: 34px; margin: 8px 4px 0 0; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--cn-mute); font: 500 13px/1 var(--s3-sans); cursor: pointer; transition: color .16s, background .16s; }
+  .sp.sx3.os.cn .rl-all:hover { background: rgba(255, 255, 255, .07); color: #fff; }
+  .sp.sx3.os.cn .rl-all svg { color: inherit; transition: transform .4s var(--cn-spring); }
+  .sp.sx3.os.cn .rl-all:hover svg { transform: rotate(90deg); }
+  .sp.sx3.os.cn .cn-fill { display: block; flex: 1; min-height: 12px; }
+
+  /* Kaju's place in the frame */
+  .sp.sx3.os.cn .cn-kaju { position: relative; flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; margin: 26px 4px 8px 0; padding: 10px 10px 10px 68px; min-height: 54px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, .06); color: #fff; text-align: left; cursor: pointer; transition: background .18s var(--cn-ease), transform .18s var(--cn-ease); }
+  .sp.sx3.os.cn .cn-kaju:hover { background: rgba(255, 255, 255, .1); }
+  .sp.sx3.os.cn .cn-kaju:active { transform: scale(.985); }
+  .sp.sx3.os.cn .cn-kaju.is-open { background: rgba(255, 255, 255, .12); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); }
+  .cn-kaju-fig { position: absolute; left: 6px; bottom: 2px; width: 58px; height: 58px; display: grid; place-items: end center; pointer-events: none; transition: transform .4s var(--cn-spring); transform-origin: 50% 100%; }
+  .cn-kaju:hover .cn-kaju-fig { transform: translateY(-2px) rotate(-3deg); }
+  .cn-kaju.is-open .cn-kaju-fig { bottom: 10px; }
+  .cn-kaju-t { display: grid; gap: 2px; min-width: 0; }
+  .cn-kaju-t b { font: 600 13px/1.2 var(--s3-sans); }
+  .cn-kaju-t small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-mute); font-size: 11.5px; line-height: 1.3; }
+  .cn-kaju kbd { padding: 2px 5px; border-radius: 5px; background: rgba(255, 255, 255, .1); color: var(--cn-mute); font: 500 10.5px var(--s3-sans); }
+
+  /* you */
+  .sp.sx3.os.cn .cn-me { flex: none; display: flex; align-items: center; gap: 2px; margin-right: 4px; padding-top: 8px; border-top: 1px solid var(--cn-line); }
+  .sp.sx3.os.cn .cn-me .sp-acct-wrap { flex: 1; min-width: 0; position: relative; }
+  .sp.sx3.os.cn .cn-me .sx3-acct-btn { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: center; gap: 10px; width: 100%; margin: 0; padding: 6px 8px; border: 0; border-radius: 10px; background: none; color: #fff; text-align: left; cursor: pointer; transition: background .16s; }
+  .sp.sx3.os.cn .cn-me .sx3-acct-btn:hover, .sp.sx3.os.cn .cn-me .sx3-acct-btn[aria-expanded="true"] { background: rgba(255, 255, 255, .08); }
+  .sp.sx3.os.cn .cn-me .sx3-avatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #fff; color: var(--cn-ink); font: 600 12px/1 var(--s3-sans); }
+  .sp.sx3.os.cn .cn-me .sx3-acct-txt { display: grid; gap: 1px; min-width: 0; }
+  .sp.sx3.os.cn .cn-me .sx3-acct-txt b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; font: 500 13px/1.25 var(--s3-sans); }
+  .sp.sx3.os.cn .cn-me .sx3-acct-txt small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-mute); font: 400 11.5px/1.3 var(--s3-sans); letter-spacing: 0; }
+  .sp.sx3.os.cn .cn-me .sx3-signin { flex: 1; display: flex; align-items: center; justify-content: center; height: 36px; margin: 0; padding: 0 12px; border: 0; border-radius: 10px; background: #fff; color: var(--cn-ink); font-size: 13.5px; font-weight: 600; text-decoration: none; transition: transform .14s var(--cn-ease), background .16s; }
+  .sp.sx3.os.cn .cn-me .sx3-signin:hover { background: #e9edf5; }
+  .sp.sx3.os.cn .cn-me .sx3-signin:active { transform: scale(.98); }
+  .sp.sx3.os.cn .cn-me .sx3-icon { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 9px; background: none; color: var(--cn-mute); cursor: pointer; transition: color .16s, background .16s; }
+  .sp.sx3.os.cn .cn-me .sx3-icon:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+}
+/* short screens: Kaju keeps his button, not his figure */
+@media (min-width: 861px) and (max-height: 640px) { .sp.sx3.os.cn .cn-kaju { margin-top: 8px; padding-left: 12px; } .cn-kaju-fig { display: none; } }
+/* narrow desktops: the older chrome folded a sidebar to icons here; this one keeps its words */
+@media (min-width: 861px) and (max-width: 1180px) {
+  .sp.sx3.os.cn .sp-find.sx3-find { flex: none; width: 32px; max-width: 32px; padding: 0; justify-content: center; }
+  .sp.sx3.os.cn .sp-find.sx3-find span, .sp.sx3.os.cn .sp-find.sx3-find kbd { display: none; }
+  .sp.sx3.os.cn .sx3-nav a { justify-content: flex-start; padding: 0 10px; }
+  .sp.sx3.os.cn .sx3-nav a span, .sp.sx3.os.cn .cn-place .sx3-ws-btn span, .sp.sx3.os.cn .cn-place .sx3-ws-btn > svg, .sp.sx3.os.cn .cn-me .sx3-acct-txt, .sp.sx3.os.cn .cn-kaju kbd { display: block; }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn > span, .sp.sx3.os.cn .cn-me .sx3-acct-txt { display: grid; }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn { grid-template-columns: 32px minmax(0, 1fr) 14px; padding: 7px 8px; }
+  .sp.sx3.os.cn .cn-me .sx3-acct-btn { grid-template-columns: 28px minmax(0, 1fr); }
+  .sp.sx3.os.cn .sx4-sec { margin: 16px 0 5px; padding: 0 10px; font-size: 11.5px; }
+  .sp.sx3.os.cn .cn-foot-where { display: none; }
+}
+/* with Kaju's panel open beside the page, the frame ends where the panel begins */
+@media (min-width: 1240px) {
+  .sp.sx3.os.cn.has-ai { padding-right: 440px; }
+  .sp.sx3.os.cn.has-ai .sp-find.sx3-find { flex: none; width: 32px; max-width: 32px; padding: 0; justify-content: center; }
+  .sp.sx3.os.cn.has-ai .sp-find.sx3-find span, .sp.sx3.os.cn.has-ai .sp-find.sx3-find kbd, .sp.sx3.os.cn.has-ai .cn-foot-where { display: none; }
+}
+
+/* the index behind "All sections" */
+.sp-finder-list .sp-finder-group { display: block; min-height: 0; padding: 14px 12px 4px; color: #7a8394; font: 600 11.5px/1.4 var(--s3-sans, system-ui); letter-spacing: .01em; white-space: nowrap; cursor: default; }
+.sp-finder-list .sp-finder-group:first-child { padding-top: 6px; }
+.sp-finder-list .sp-finder-group:hover { background: none; }
+
+/* a calm sheet: no light that follows the pointer, no drifting washes */
+@media (min-width: 861px) { .sp.sx3.os.cn .sp-main { background-image: none !important; } }
+
+/* one page title everywhere: the same size and weight on every screen behind the menu (Today keeps its greeting) */
+.sp.sx3.os.cn .sp-main h1:not(.br-hello) { font-size: 24px !important; line-height: 1.2 !important; font-weight: 600 !important; letter-spacing: -.025em !important; }
+@media (max-width: 860px) { .sp.sx3.os.cn .sp-main h1:not(.br-hello) { font-size: 22px !important; } }
+
+/* the queue's header, as a view of the Pipeline: a title, one line, and a slim ribbon */
+.sp.sx3.os.cn .wk2-k { margin-top: 3px; }
+.sp.sx3.os.cn .wk2-ribbon { min-height: 38px; gap: 6px; }
+.sp.sx3.os.cn .wk2-ribbon button { padding: 4px 12px; border-radius: 10px; }
+.sp.sx3.os.cn .wk2-ribbon b { font-size: 17px; font-weight: 600; }
+.sp.sx3.os.cn .wk2-ribbon span { font-size: 12.5px; font-weight: 500; }
+
+/* views of a page: plain words, one ink underline that slides in */
+@media (min-width: 861px) {
+  .sp.sx3.os.cn .sx3-tabs { gap: 2px; padding: 10px 0 0; border-bottom: 1px solid #eceef3; }
+  .sp.sx3.os.cn.is-flush .sx3-tabs { padding-inline: 24px; }
+  .sp.sx3.os.cn .sx3-tabs a { padding: 9px 11px 11px; border: 0; border-radius: 0; background: none; box-shadow: none; color: #6b7486; font-size: 13.5px; font-weight: 500; }
+  .sp.sx3.os.cn .sx3-tabs a:first-child { padding-left: 0; }
+  .sp.sx3.os.cn .sx3-tabs a:first-child::after { left: 0; }
+  .sp.sx3.os.cn .sx3-tabs a:hover { color: var(--cn-ink); }
+  .sp.sx3.os.cn .sx3-tabs a[aria-current] { color: var(--cn-ink); font-weight: 600; background: none; box-shadow: none; }
+  .sp.sx3.os.cn .sx3-tabs a[aria-current="true"]::after { transform: scaleX(1); }
+  .sp.sx3.os.cn .sx3-tabs a::after { left: 11px; right: 11px; background: var(--cn-ink); }
+  /* field mode keeps a margin inside the sheet */
+  .sp.sx3.os.cn .fd { max-width: 760px; margin-inline: 0; padding: 14px var(--gut, 24px) 40px; }
+}
+
+/* rows and buttons answer the hand */
+.sp.sx3.os.cn a.reg-row { transition: background .16s var(--cn-ease); }
+.sp.sx3.os.cn a.reg-row:hover { background: #f6f8fc; }
+.sp.sx3.os.cn :is(.btn, .oh-btn, button.sx-btn) { transition: transform .14s var(--cn-ease), background .16s, box-shadow .2s, border-color .16s, color .16s; }
+.sp.sx3.os.cn :is(.btn, .oh-btn, button.sx-btn):active:not(:disabled) { transform: scale(.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sp.sx3.os.cn, .sp.sx3.os.cn .rl-panel, .sp.sx3.os.cn .rl-handle, .sp.sx3.os.cn .os-ind, .sp.sx3.os.cn .sx3-nav a, .sp.sx3.os.cn .sx3-nav a > svg, .sp.sx3.os.cn .cn-kaju, .cn-kaju-fig, .sp.sx3.os.cn .rl-all svg { transition: none !important; }
+}

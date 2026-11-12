@@ -47,7 +47,7 @@ import "./app3.css";
 import "./app4.css";
 import "./system5.css";
 import "./os.css";
-import "./dock.css";
+import "./console.css";
 
 import {fieldCache} from "@/lib/field/outbox";
 
@@ -142,7 +142,8 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   /* The member's own NGO, seen through its programme pages: the same workspace, so the same menu and index. */
   const ownNgoPlace = ws === "health" && place?.kind === "ngo" && !!mem.org && place.ngo_id === mem.org.id;
   const designed = designedNav(ws, mem.role, mem.reviewer);
-  let nav: NavRow[] = visibleNav(designed ?? base.nav, mem.role, mem.reviewer);
+  /* Kaju has his own place in the frame, so he is not also a row of the menu. */
+  let nav: NavRow[] = visibleNav((designed ?? base.nav).filter((n) => n.href !== "/assistant"), mem.role, mem.reviewer);
   if (ws === "health") {
     /* On Today across every place, the menu is the places themselves, each with what is waiting there. */
     const KIND_ICON: Record<string, string> = { hospital: "stethoscope", clinic: "stethoscope", laboratory: "flask", ngo: "paw", municipal: "landmark", state: "landmark", coordinator: "gauge", research: "activity" };
@@ -239,23 +240,50 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
   return (
     <Membership.Provider value={mem}>
-      <div className={`sp sp-app s3-root sx3 os ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-tucked" : ""} dk${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} data-tone={tone} style={{ ["--ws" as string]: def.ink }}>
+      <div className={`sp sp-app s3-root sx3 os ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${collapsed ? " is-tucked" : ""} cn${ai.open && !onAssistant ? " has-ai" : ""}`} data-ws={ws} data-tone={tone} style={{ ["--ws" as string]: def.ink }}>
         <a href="#sp-main" className="sp-skip">Skip to content</a>
 
         {/* ── Desktop sidebar ─────────────────────────────────────── */}
         <aside className="sx3-side" aria-label="Workspace" data-peek={collapsed && peek ? "true" : undefined} onPointerEnter={peekIn} onPointerLeave={peekOut} onFocusCapture={peekIn} onBlurCapture={peekOut}>
-          <button type="button" className="rl-handle" aria-label="Open the menu" aria-expanded={!collapsed || peek} tabIndex={collapsed ? 0 : -1} onClick={toggleSide}><span className="dk-grip" aria-hidden><i /><i /><i /></span></button>
-          {/* Kaju sits on the menu while the agent is closed; he moves into the panel when it opens. */}
-          <div className={`sx3-kaju-nook${cheer ? " is-cheer" : ""}`}>
-            {!ai.open && !onAssistant && <button type="button" onClick={() => ai.setOpen(true)} aria-label="Open Kaju" title="Ask Kaju">{cheer ? <KajuPresence state="success" size={64} /> : <KajuPresence sequence="arrive" enter size={64} className="sx5-kaju-walk" />}</button>}
-          </div>
+          <button type="button" className="rl-handle" aria-label="Open the menu" aria-expanded={!collapsed || peek} tabIndex={collapsed ? 0 : -1} onClick={toggleSide}><span className="cn-grip" aria-hidden><i /><i /><i /></span></button>
           <div className="rl-panel" inert={collapsed && !peek ? true : undefined}>
+            {/* The place you are working in; a chooser when there is more than one. */}
+            {switchable ? (
+            <div className="sx3-ws cn-place">
+              <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
+                <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
+                <span><b>{wsTitle}</b><small>{wsSub}</small></span>
+                <ChevronsUpDown size={14} aria-hidden />
+              </button>
+              {switcher && (
+                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Your places">
+                  {entries.map((e) => (
+                    <Link key={e.key} href={e.href} role="menuitemradio" aria-checked={e.on} onClick={() => setSwitcher(false)} className={e.on ? "is-on" : undefined}>
+                      <i aria-hidden style={{ background: e.on ? "var(--s3-blue, #2457ce)" : "#c7cfdc" }} /><span><b>{e.title}</b><small>{e.sub}</small></span>
+                    </Link>))}
+                </Popover>
+              )}
+            </div>
+            ) : (
+            <Link href={def.home} className="sx3-ws sx3-ws-static cn-place">
+              <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
+              <span><b>{wsTitle}</b><small>{wsSub}</small></span>
+            </Link>
+            )}
             <Suspense fallback={<SideNav nav={nav} path={path} search="" collapsed={collapsed} onAssistant={onAssistant} label={def.label} />}>
               <SideNavLive nav={nav} path={path} collapsed={collapsed} onAssistant={onAssistant} label={def.label} />
             </Suspense>
-            <div className="dk-foot">
-              {/* Everything else in this workspace is one organised index, not a list of features under "More". */}
-              {ws !== "health" || ownNgoPlace ? <button type="button" className="rl-all" onClick={() => { setBrowse(true); setFind(true); }}><LayoutGrid size={15} aria-hidden /><span>All sections</span></button> : <span className="rl-all is-empty" aria-hidden />}
+            {/* Everything else in this workspace is one organised index, not a list of features under "More". */}
+            {ws !== "health" || ownNgoPlace ? <button type="button" className="rl-all" onClick={() => { setBrowse(true); setFind(true); }}><LayoutGrid size={15} aria-hidden /><span>All sections</span></button> : null}
+            <span className="cn-fill" aria-hidden />
+            {/* Kaju has a place of his own in the frame; he moves into the panel when it opens. */}
+            {!onAssistant && <button type="button" className={`cn-kaju${cheer ? " is-cheer" : ""}${ai.open ? " is-open" : ""}`} onClick={() => ai.toggle()} aria-label="Open Kaju" aria-pressed={ai.open} aria-keyshortcuts="Control+J Meta+J">
+              <span className="cn-kaju-fig" aria-hidden>{ai.open ? <KajuFace size={34} /> : cheer ? <KajuPresence state="success" size={58} /> : <KajuPresence sequence="arrive" size={58} />}</span>
+              <span className="cn-kaju-t"><b>Ask Kaju</b><small>{ai.open ? "Open beside the page" : "Finds, checks and prepares"}</small></span>
+              <kbd aria-hidden>⌘J</kbd>
+            </button>}
+            <div className="cn-me">
+              <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
               <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Keep the menu open" : "Tuck the menu away"}>{collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}</button>
             </div>
           </div>
@@ -280,29 +308,6 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               )}
             </div>
             ) : <span className="sp-ws sx3-ws-m sx3-ws-static"><i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span></span>}
-            {/* Desktop: the place you are working in, and a chooser when there is more than one. */}
-            {switchable ? (
-            <div className="sx3-ws dk-place">
-              <button type="button" className="sx3-ws-btn" aria-expanded={switcher} aria-haspopup="menu" onClick={() => setSwitcher((v) => !v)}>
-                <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
-                <span><b>{wsTitle}</b><small>{wsSub}</small></span>
-                <ChevronsUpDown size={14} aria-hidden />
-              </button>
-              {switcher && (
-                <Popover onClose={() => setSwitcher(false)} className="sp-ws-menu sx3-ws-menu" label="Your places">
-                  {entries.map((e) => (
-                    <Link key={e.key} href={e.href} role="menuitemradio" aria-checked={e.on} onClick={() => setSwitcher(false)} className={e.on ? "is-on" : undefined}>
-                      <i aria-hidden style={{ background: e.on ? "var(--s3-blue, #2457ce)" : "#c7cfdc" }} /><span><b>{e.title}</b><small>{e.sub}</small></span>
-                    </Link>))}
-                </Popover>
-              )}
-            </div>
-            ) : (
-            <Link href={def.home} className="sx3-ws sx3-ws-static dk-place">
-              <span className="os-avatar" data-kind={wsKind} aria-hidden>{initials}</span>
-              <span><b>{wsTitle}</b><small>{wsSub}</small></span>
-            </Link>
-            )}
             {!atHome && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
             <nav className="sx3-crumb" aria-label="Breadcrumb">
               <Link href={def.home}>{def.label}</Link>
@@ -325,6 +330,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
 
           <AmbientLight />
           <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{isFlush ? children : <div className="os-page" key={path}>{children}</div>}</Fragment></main>
+          <StatusFoot place={ws === "health" ? (place?.short_name ?? place?.name ?? null) : ws === "ngo" ? (mem.org?.name ?? null) : ws === "city" ? "Municipal review" : null} programme={(ws === "health" ? place : ngoPlace ?? cityPlace)?.programmes[0]?.name ?? null} illustrative={!!(ws === "health" ? place : ngoPlace ?? cityPlace)?.illustrative} onFind={() => setFind(true)} onKaju={() => ai.toggle()} />
         </div>
 
         {/* ── Phone thumb bar ─────────────────────────────────────── */}
@@ -347,6 +353,32 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
         {!onAssistant && <AiPanel />}
       </div>
     </Membership.Provider>
+  );
+}
+
+/** The frame's lower edge: whether records are reaching the register, where you are, and the two keys worth knowing. */
+function StatusFoot({ place, programme, illustrative, onFind, onKaju }: { place: string | null; programme: string | null; illustrative: boolean; onFind: () => void; onKaju: () => void }) {
+  const [online, setOnline] = useState(true);
+  const [now, setNow] = useState<string>("");
+  useEffect(() => {
+    const sync = () => setOnline(navigator.onLine);
+    const tick = () => setNow(new Date().toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }));
+    sync(); tick();
+    window.addEventListener("online", sync); window.addEventListener("offline", sync);
+    const t = window.setInterval(tick, 30_000);
+    return () => { window.removeEventListener("online", sync); window.removeEventListener("offline", sync); window.clearInterval(t); };
+  }, []);
+  return (
+    <footer className="cn-foot" aria-label="Status">
+      <span className="cn-foot-net" data-on={online ? "true" : "false"} role="status"><i aria-hidden />{online ? "Online" : "Offline. Records wait on this device"}</span>
+      {place ? <span className="cn-foot-where">{place}{programme ? <> <span aria-hidden>·</span> {programme}</> : null}</span> : null}
+      {illustrative && !/illustrative/i.test(programme ?? "") ? <span className="cn-foot-tag">Illustrative data</span> : null}
+      <span className="cn-foot-fill" aria-hidden />
+      <button type="button" onClick={onFind}><kbd>⌘K</kbd> Search</button>
+      <button type="button" onClick={onKaju}><kbd>⌘J</kbd> Kaju</button>
+      <Link href="/docs">Help</Link>
+      {now ? <time className="cn-foot-time">{now}</time> : null}
+    </footer>
   );
 }
 

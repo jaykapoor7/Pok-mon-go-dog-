@@ -12,16 +12,14 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { ProgrammeStrip } from "@/oh/ProgrammeStrip";
-import { usePlaces } from "@/oh/places";
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
-import { Fragment, useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowRight, ArrowUp, Check, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, Inbox, PawPrint, ShieldCheck, Sparkles, TriangleAlert, UserPlus, X } from "lucide-react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
+import { ArrowRight, Check, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, PawPrint, ShieldCheck, TriangleAlert, UserPlus, X } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
 import { DEFAULT_TRIAGE, type Condition } from "@/lib/register/taxonomy";
-import { useAi } from "@/sp3/ai/AiPanel";
 import { stageOf, verificationQueue, type QueueRow } from "@/lib/abc";
 import { useMembership } from "../shell/Shell";
 import { Work } from "./Work";
@@ -52,11 +50,6 @@ export function Brief() {
   const member = !!user && mem.member;
   const [d, setD] = useState<Data | null>(null);
   const [failed, setFailed] = useState(false);
-  const ai = useAi();
-  /* In a programme, partners may be waiting on this organisation: offer the question. */
-  const { places } = usePlaces();
-  const partnerWaiting = places.some((p) => p.kind === "ngo" && p.handoffs_open > 0);
-  const [q, setQ] = useState("");
   const [setupHidden, setSetupHidden] = useState(false);
   useEffect(() => { try { setSetupHidden(localStorage.getItem("sp.setup.hidden") === "1"); } catch { /* fine */ } }, []);
 
@@ -97,11 +90,6 @@ export function Brief() {
   const nLive = d?.counts?.liveWork ?? (d ? d.open.filter((c) => !isHistoricalCase(c)).length - stale : 0);
 
   type Row = { key: string; href: string; tone: string; icon: ReactNode; title: ReactNode; meta: string; tag?: string; verb?: string };
-  const outAll: Row[] = d ? [
-    ...fresh.slice(0, 3).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: critical(c) ? "flame" : "blue", icon: <Inbox size={10} strokeWidth={2.4} />, title: label(c), meta: [c.zone || c.city, c.assignee_name ? `with ${person(c.assignee_name)}` : "not yet assigned", ago(c.last_activity_at ?? c.occurred_at)].filter(Boolean).join(" · "), tag: critical(c) ? "Critical" : undefined })),
-    ...closedNew.slice(0, 2).map((c) => ({ key: c.id, href: `/ngo/cases/${c.id}`, tone: "green", icon: <ClipboardList size={10} strokeWidth={2.4} />, title: c.title || c.animal_name || "Case", meta: [c.zone, c.closure_reason || "closed", ago(c.last_activity_at)].filter(Boolean).join(" · "), tag: "Closed" })),
-  ] : [];
-  const out = outAll.slice(0, isVet ? 2 : 4);
   /* Each role's own next steps first: a vet's procedures to authorise, a
      coordinator's records to review (when verification is switched on). */
   const abcTodo: Row[] = d ? (isVet
@@ -117,94 +105,97 @@ export function Brief() {
     ...(history && reviews ? [{ key: "hist", href: "/ngo/review", tone: "slate", verb: "Review imports", icon: <History size={10} strokeWidth={2.4} />, title: <><b>{plural(history, "imported record", "imported records")}</b> not yet confirmed</>, meta: "From registers you imported; not today's work" }] : []),
   ] : [];
 
-  const send = (t: string) => { ai.setOpen(true); ai.ask(t); };
   /* With nothing waiting, a field worker's next step is still their main job: registering an animal. */
   const fieldStart: Row | null = d && role === "member" ? { key: "field", href: "/ngo/field", tone: "blue", icon: null, title: <><b>Register an animal</b> in field mode</>, meta: "Works on your phone, with or without signal", verb: "Start" } : null;
   const next = todo[0] ?? fieldStart, rest = todo.slice(1);
-  const chips = (partnerWaiting ? ["What are programme partners waiting for?"] : []).concat(todo.length ? ["What should I do first today, and why?"] : [], out.length > 1 ? ["Summarise what changed since yesterday."] : [], reviews ? ["Which records block this month's report package?"] : isVet ? ["What can only the veterinarian authorise?"] : ["Help me prepare a field update."]).slice(0, 3);
   /* A workspace with nothing on it yet (a newly registered organisation) is shown how to begin. */
   const setup = !!d && reviews && !setupHidden && d.open.length === 0 && d.abc.length === 0 && d.closed.length === 0;
   const hideSetup = () => { setSetupHidden(true); try { localStorage.setItem("sp.setup.hidden", "1"); } catch { /* fine */ } };
-  const ask = (e: FormEvent) => { e.preventDefault(); const t = q.trim(); if (!t) return; send(t); setQ(""); };
-  const rows = (list: Row[], go: boolean) => (
-    <ul className="br-list">{list.map((r) => (
-      <li key={r.key}><Link href={r.href}>
-        <span className={`br-sq t-${r.tone}`} aria-hidden>{r.icon}</span>
-        <span className="br-t"><span>{typeof r.title === "string" ? <b>{r.title}</b> : r.title}</span><small>{r.meta}</small></span>
-        {r.tag ? <em className={`br-tag t-${r.tone}`}>{r.tag}</em> : <span />}
-        {go && <ArrowRight size={14} aria-hidden className="br-go" />}
-      </Link></li>
-    ))}</ul>
-  );
+  const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Kolkata" });
 
+  /* Home is three things, in this order, and nothing else above the fold:
+       1. the one thing to do first, with its one action;
+       2. the line of work, as it stands (each stage opens the board there);
+       3. at most three other things that are waiting.
+     What changed since yesterday is one sentence; Kaju's prepared work is one fold. */
   return (
-    <div className={`br${role ? ` is-${role}` : ""}`}>
-      {/* The deck: the frame comes down to hold the greeting and the one place to ask for anything. */}
-      <header className="br-deck"><div className="br-in br-deck-in">
-        <div className="br-top">
-          <span className="br-kaju-chip" aria-hidden><KajuFace size={34} /></span>
-          <h1 className="br-hello">{greeting()}, {first}.</h1>
-        </div>
-        {failed ? <p className="br-since">The brief could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/work">work queue</Link>.</p>
-          : !d ? <div className="br-skel" aria-hidden><i /><i /><i /></div>
-          : <p className="br-since">{(() => {
+    <div className={`hm${role ? ` is-${role}` : ""}`}>
+      <header className="hm-head">
+        <p className="hm-date">{today}</p>
+        <h1 className="br-hello hm-hello">{greeting()}, {first}.</h1>
+        {failed ? <p className="hm-since">Home could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/pipeline">pipeline</Link>.</p>
+          : !d ? <div className="br-skel" aria-hidden><i /><i /></div>
+          : <p className="hm-since">{(() => {
               const v = (k: string, x: number) => d.unavailable.includes(k) ? null : x;
               const parts: ReactNode[] = [];
-              const add = (n: number | null, one: string, many: string) => { if (n !== null) parts.push(<b>{n} {n === 1 ? one : many}</b>); };
-              add(fresh.length, "record was new or updated", "records were new or updated");
+              const add = (n: number | null, one: string, many: string) => { if (n) parts.push(<b>{n} {n === 1 ? one : many}</b>); };
+              add(fresh.length, "record new or updated", "records new or updated");
               add(v("recent changes", closedNew.length), "case closed", "cases closed");
-              add(v("follow-ups", nOverdue), "follow-up is overdue", "follow-ups are overdue");
-              add(v("counts", nLive), "case is live in the queue", "cases are live in the queue");
-              return <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? ", and " : ", ")}{p}</Fragment>)}.</>;
+              add(v("follow-ups", nOverdue), "follow-up overdue", "follow-ups overdue");
+              const live = v("counts", nLive);
+              return parts.length ? <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? " and " : ", ")}{p}</Fragment>)}.{live !== null ? <> {live} {live === 1 ? "case is" : "cases are"} live.</> : null}</>
+                : <>Nothing changed since yesterday.{live !== null ? <> {live} {live === 1 ? "case is" : "cases are"} live.</> : null}</>;
             })()}</p>}
+      </header>
 
-        {d && <>
-          <form className="br-ask" onSubmit={ask}>
-            <Sparkles size={15} aria-hidden />
-            <label htmlFor="br-q" className="br-sr">Ask Kaju</label>
-            <input id="br-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask Kaju, or tell it what to prepare…" autoComplete="off" />
-            <button type="submit" aria-label="Ask Kaju" disabled={!q.trim()}><ArrowUp size={14} /></button>
-          </form>
-          <div className="br-chips">{chips.map((t) => <button key={t} type="button" onClick={() => send(t)}><Sparkles size={12} aria-hidden />{t}</button>)}</div>
-        </>}
-      </div></header>
-      <div className="br-in">
-        {d && <>
-          {next && <Link href={next.href} className={`br-next t-${next.tone}`} aria-label={`Next up: ${typeof next.title === "string" ? next.title : "open"}`}>
-            <span className="br-next-k">{todo.length ? "Next up" : "Ready when you are"}</span>
-            <span className="br-next-t">{typeof next.title === "string" ? <b>{next.title}</b> : next.title}</span>
-            <small>{next.meta}</small>
-            <span className="br-next-go">{next.verb ?? "Open"} <ArrowRight size={15} aria-hidden /></span>
-          </Link>}
-          {setup && <section className="br-setup" aria-labelledby="br-setup-h">
-            <header><h2 id="br-setup-h">Set up {mem.org?.name ?? "your workspace"}</h2><button type="button" aria-label="Hide setup" onClick={hideSetup}><X size={15} aria-hidden /></button></header>
-            <p>Three steps and your records start here. Kaju can help with each one.</p>
-            <ol>
-              <li><Link href="/ngo/import"><span className="br-setup-i"><FileSpreadsheet size={17} aria-hidden /></span><span><b>Bring your register</b><small>Excel or CSV, as it is. Imported rows stay labelled.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
-              <li><Link href="/ngo/team"><span className="br-setup-i"><UserPlus size={17} aria-hidden /></span><span><b>Add your team</b><small>Field staff, vets and coordinators each get their own code.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
-              <li><Link href="/ngo/field"><span className="br-setup-i"><PawPrint size={17} aria-hidden /></span><span><b>Register your first animal</b><small>Field mode works on a phone, with or without signal.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
-            </ol>
-          </section>}
-        </>}
+      {d && <>
+        {d.unavailable.length > 0 && <p role="status" className="br-warn">Some parts could not be read: {d.unavailable.join(", ")}. Open the pipeline to retry.</p>}
+
+        <section className="hm-first" aria-labelledby="hm-first-k">
+          <p id="hm-first-k" className="hm-k">{todo.length ? "First" : next ? "Ready when you are" : "Nothing is waiting"}</p>
+          {next ? (
+            <Link href={next.href} className={`hm-card t-${next.tone}`}>
+              <span className="hm-card-t">{typeof next.title === "string" ? <b>{next.title}</b> : next.title}</span>
+              <small>{next.meta}</small>
+              <span className="hm-card-go">{next.verb ?? "Open"} <ArrowRight size={15} aria-hidden /></span>
+            </Link>
+          ) : <p className="hm-clear"><Check size={16} aria-hidden /> {isVet ? "Nothing is waiting for your sign-off." : "You are all caught up."}</p>}
+        </section>
+
+        {setup && <section className="br-setup hm-setup" aria-labelledby="br-setup-h">
+          <header><h2 id="br-setup-h">Set up {mem.org?.name ?? "your workspace"}</h2><button type="button" aria-label="Hide setup" onClick={hideSetup}><X size={15} aria-hidden /></button></header>
+          <p>Three steps and your records start here. Kaju can help with each one.</p>
+          <ol>
+            <li><Link href="/ngo/import"><span className="br-setup-i"><FileSpreadsheet size={17} aria-hidden /></span><span><b>Bring your register</b><small>Excel or CSV, as it is. Imported rows stay labelled.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
+            <li><Link href="/ngo/team"><span className="br-setup-i"><UserPlus size={17} aria-hidden /></span><span><b>Add your team</b><small>Field staff, vets and coordinators each get their own code.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
+            <li><Link href="/ngo/field"><span className="br-setup-i"><PawPrint size={17} aria-hidden /></span><span><b>Register your first animal</b><small>Field mode works on a phone, with or without signal.</small></span><ArrowRight size={15} aria-hidden /></Link></li>
+          </ol>
+        </section>}
+      </>}
+
+      {mem.org && <section className="hm-line" aria-labelledby="hm-line-h">
+        <header className="hm-sec"><h2 id="hm-line-h">The line today</h2><Link href="/ngo/pipeline">Open the board <ArrowRight size={13} aria-hidden /></Link></header>
+        <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />
+      </section>}
+
+      {d && <section className="hm-also" aria-labelledby="hm-also-h">
+        <header className="hm-sec"><h2 id="hm-also-h">Also waiting</h2></header>
         <ProgrammeStrip />
-        {mem.org && <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />}
-        {d && <>
-          {d.unavailable.length>0&&<p role="status" className="br-warn">Some sections could not be read: {d.unavailable.join(", ")}. Open the relevant queue to retry.</p>}
-          <div className="br-grid">
-            <section aria-labelledby="br-todo" className="br-card">
-              <header className="br-card-h"><h2 id="br-todo">Needs you</h2><Link href="/ngo/pipeline">Pipeline <ArrowRight size={13} aria-hidden /></Link></header>
-              {rest.length ? rows(rest.slice(0, 5), true) : next ? <p className="br-clear"><Check size={16} aria-hidden /> That is the only thing waiting.</p> : <p className="br-clear"><Check size={16} aria-hidden /> {d.unavailable.length>0?"Some priorities could not be read. Check the work queue.":isVet ? "Nothing is waiting for your sign-off." : "You're all caught up."}</p>}
-              {out.length > 0 && <><h3 className="br-sub">Recent activity</h3>{rows(out.slice(0, 3), false)}</>}
-            </section>
-            <section aria-labelledby="br-kaju" className="br-card br-kx">
-              <header className="br-card-h"><h2 id="br-kaju"><Sparkles size={14} aria-hidden /> From Kaju</h2></header>
-              {!isVet && <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />}
-              {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
-            </section>
-          </div>
-        </>}
-      </div>
+        {rest.length ? rows(rest.slice(0, 3), true) : null}
+        {rest.length > 3 ? <p className="hm-more"><Link href="/ngo/pipeline">{rest.length - 3} more in the pipeline <ArrowRight size={13} aria-hidden /></Link></p> : null}
+        <p className="hm-none"><Check size={14} aria-hidden /> Nothing else needs you today.</p>
+      </section>}
 
+      {d && !isVet && <details className="hm-kaju">
+        <summary><KajuFace size={20} /> <span>From Kaju</span><small>Work prepared for you to confirm, and what Kaju checked</small><ArrowRight size={14} aria-hidden className="hm-kaju-go" /></summary>
+        <div className="hm-kaju-in">
+          <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />
+          {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
+        </div>
+      </details>}
     </div>
   );
+
+  function rows(list: Row[], go: boolean) {
+    return (
+      <ul className="br-list hm-list">{list.map((r) => (
+        <li key={r.key}><Link href={r.href}>
+          <span className={`br-sq t-${r.tone}`} aria-hidden>{r.icon}</span>
+          <span className="br-t"><span>{typeof r.title === "string" ? <b>{r.title}</b> : r.title}</span><small>{r.meta}</small></span>
+          {r.tag ? <em className={`br-tag t-${r.tag ? r.tone : ""}`}>{r.tag}</em> : <span className="hm-verb">{r.verb ?? "Open"}</span>}
+          {go && <ArrowRight size={14} aria-hidden className="br-go" />}
+        </Link></li>
+      ))}</ul>
+    );
+  }
 }

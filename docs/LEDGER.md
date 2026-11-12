@@ -126,6 +126,26 @@ PR #68 (the operating path) merged as `187b433b`. The deployed demo was walked a
 
 Noticed, not changed: the staging bite register still holds records named `E2E-…` from earlier end-to-end runs. They show in the demo. Removing them is a delete on staging and needs the owner's word (the earlier approval covered the duplicate sample and notice records).
 
+## 12 Nov: the console (owner: "empty space around side bar and weirdness around edges... classy premium cohesive dashboard with cool side bar nav and top, all weaved in with each other"; "footer header sides smoothly integrated"; "not cluttered home page"; "features according to the Bengaluru proposal"; "inner pages reworked, don't reuse old ones"; "onboarding better and self sufficient")
+
+PR #69 (the rail on package, sample and bite record) merged as `f650b8f2`.
+
+The floating menu from #67 left a mostly empty gutter and a sheet with margins on three sides. It is replaced.
+
+| Item | Status | Evidence |
+|---|---|---|
+| `dock.css` deleted, `console.css` in its place: sidebar, top bar and a new status footer are one ink frame around one sheet; the sheet keeps four rounded corners while the page scrolls | Done | Staging at 1440×900, scrolled; e2e asserts the sidebar is full height and the sheet meets it |
+| Sidebar, top to bottom: place (chooser), menu with the gliding white pill, All sections, Kaju's card, the person and the tuck button | Done | |
+| Status footer: Online/Offline, place and programme, ⌘K, ⌘J, Help, time | Done | e2e |
+| Tuck: the sidebar slides out, a handle stays; hover or focus brings it back over the page; press keeps it | Done | e2e (unchanged test passes) |
+| Kaju: one place in the sidebar (was also a top-bar button and, in Community, a menu row) | Done | launcher tests updated; focus still returns to the launcher |
+| Signed out: one Sign in, in the sidebar | Done | |
+| Home rebuilt: date, greeting, one sentence; **First** (one dark card, one action); **The line today**; **Also waiting** (at most three); **From Kaju** as one closed fold. The ask bar, chips, recent activity and the two-card grid are gone from the page | Done | Staging as the NGO coordinator |
+| NGO programme menu from the proposal, ordered by use: Requests, Vaccination coverage (70% target), Care network, Overview | Done | Coverage page opens for the NGO coordinator on staging |
+| Guided demo: the Kaju step points at Kaju's card | Done | |
+
+Next in this brief, not yet done: inner pages rebuilt (Queue, Intake, Sign-off list, Animals, Reports), onboarding.
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.

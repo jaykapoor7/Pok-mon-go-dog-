@@ -91,12 +91,15 @@ export function placeNav(p: Place, programmeSlug?: string): PlaceLink[] {
       links.push({ href: pr, label: "Today", short: "Today", icon: "home", exact: true, mobile: true });
       links.push({ href: `${pr}/coverage`, label: "Vaccination coverage", short: "Coverage", icon: "syringe", section: W, mobile: true });
       links.push({ href: `${pr}/report`, label: "Report", short: "Report", icon: "file", section: W, mobile: true });
-    } else {
-      links.push({ href: pr, label: "Programme", short: "Programme", icon: "gauge", exact: true, section: P });
+    } else if (p.kind === "ngo") {
+      /* A field partner's part in the programme, in the order it is used: what partners are asking for (the
+         animal side of a bite), how far dog vaccination has come against the target, where care is, the whole picture. */
+      links.push({ href: w, label: "Requests", short: "Requests", icon: "arrows", exact: true, section: P, count: p.handoffs_open || null, tone: p.handoffs_overdue ? "flame" : "blue", mobile: true });
+      links.push({ href: `${pr}/coverage`, label: "Vaccination coverage", short: "Coverage", icon: "syringe", section: P });
     }
     links.push({ href: `${pr}/network`, label: "Care network", short: "Network", icon: "map", section: P, mobile: oversees(p.kind) });
     if (oversees(p.kind)) links.push({ href: `${pr}/work`, label: "Requests", short: "Requests", icon: "arrows", section: P, count: p.handoffs_open || null, tone: p.handoffs_overdue ? "flame" : "blue", mobile: true });
-    else if (p.kind === "ngo") links.push({ href: w, label: "Requests", short: "Requests", icon: "arrows", exact: true, section: P, count: p.handoffs_open || null, tone: p.handoffs_overdue ? "flame" : "blue", mobile: true });
+    else links.push({ href: pr, label: "Overview", short: "Programme", icon: "gauge", exact: true, section: P });
     if (oversees(p.kind)) {
       if (p.kind === "research" || can("oversee")) links.push({ href: `${pr}/data`, label: "Research data", icon: "activity", section: "Manage" });
       if (can("manage") || can("invite")) links.push({ href: `${pr}/setup`, label: "Programme setup", icon: "settings", section: "Manage" });
