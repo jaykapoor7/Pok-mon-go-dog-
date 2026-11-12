@@ -260,6 +260,22 @@ first), and a rebuilt live demo. See `docs/BEST-AUDIT.md`.
 | Page speed (browser-measured on a phone profile via the session proxy) | LCP 0.95–1.9 s, CLS 0 on home, /try, security summary, for-ngos | Lighthouse itself was not permitted in this session |
 | Every page loads about 430 KB of JavaScript, documents included (the root layout carries the app shell) | Open: split the public pages from the app shell's bundle | |
 
+## 13 Nov: after #84 (the municipal workspace, report content, lighter public pages)
+
+#84 merged as `e54acf66`; production and demo.straypaw.org both serve it; the story on the live demo passed on phone and desktop (2/2). Review submissions and Contracts were checked there as the municipal reviewer (the only place those accounts sign in).
+
+| Item | Status | Evidence |
+|---|---|---|
+| Review submissions: with one operator, the list sat in a column 1.7/2.7 wide, cutting the operator's name | Fixed: two columns only when the Operators panel shows | Seen on the live demo after #84 |
+| Municipal Today: claims and operators in outlined cards wider than the brief, a table in capitals, "Waiting longest" repeating the first row, "1 operator submitting" listed as a need | Rebuilt in the brief's column: what waits (one package opens straight to it), what the waiting packages hold, the year's claims as three figures, operators as rows with their contract | To check on the live demo after release |
+| Programmes (`/city/programmes`): old display header, outlined chips, an empty axis bar | On the page pattern: a sentence of how much is published and where, kind lanes with counts, one row per programme on one time scale | Desktop and phone screenshots |
+| The city's public record (`/city/insights`): header out of line with the findings, a field label over the city picker, heavy outlined bars | Same head and controls as every page; the period as lanes; bars without outlines | Desktop and phone screenshots |
+| Tabs: a place's home was "City insights" in the tab and "Today" in the sidebar; the `/today` hop left a second "Today" tab | Home is "Today"; a tab replaces one of the same name | |
+| `/report-content` rendered inside the app frame with no site header | On the site's page kit like Contact; same call to `/api/report-content` | Desktop and phone screenshots |
+| Every public page loaded the application frame (about 415 KB compressed on production, measured in a browser) | The frame now loads as its own chunk, only on app routes; the saving is being measured on a production build | |
+| Staging reseed | Still waiting: the database tool's confirmation timed out again after "Do" | |
+| Production One Health migration | Still the owner's: Actions → Apply Supabase migration → one-health | |
+
 ## 12 Nov: the cinematic public site, behind one switch
 
 The owner asked for the public site as a cinematic experience, "The whole world,

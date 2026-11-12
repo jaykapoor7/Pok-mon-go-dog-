@@ -132,6 +132,8 @@ export const POSTS: Post[] = [
 export type Update = { date: string; area: string; title: string; body: string };
 /** Shipped, in the order they shipped (from the release history). */
 export const UPDATES: Update[] = [
+  { date: "2026-11-13", area: "Government", title: "The municipal home, in one column", body: "What waits for your decision first, then what the waiting packages hold, the year's claims and each operator with its contract. Each fact once." },
+  { date: "2026-11-13", area: "Government", title: "Programmes and the public record, on the same page pattern", body: "Programmes by kind of work, each on one time scale; the city's findings under the same heading and controls as every other page." },
   { date: "2026-11-12", area: "Programmes", title: "Referral of one person between facilities", body: "For hospitals and health centres in a One Health programme: refer a person for vaccine, immunoglobulin or wound washing, see whether they arrived, never sharing who they are." },
   { date: "2026-11-12", area: "Field", title: "Dogs due for revaccination", body: "When your programme sets an interval, Animals lists the dogs overdue or due within 14 days, from the last vaccination recorded on each." },
   { date: "2026-11-12", area: "Kaju", title: "Case questions and a case summary", body: "Ask how many open cases by locality, narrow it with a follow-up, or have Kaju summarise the case you are on, from your own records." },
