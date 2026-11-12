@@ -75,3 +75,34 @@ test("Today, the board and a record share one line of work, and each click lands
   await expect(caseRail.getByRole("listitem")).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 });
+
+test("the first-day guide points at the real controls and ends on real actions", async ({ page, isMobile }) => {
+  await page.goto("/try", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: /NGO coordinator/ }).first().click();
+  await page.waitForURL((u) => !u.pathname.startsWith("/try"), { timeout: 120_000 });
+  await page.evaluate(() => localStorage.setItem("sp.demo.tour.v1", JSON.stringify({ mode: "off", step: 0, role: null })));
+  await page.goto("/ngo");
+  await expect(page.getByRole("navigation", { name: "The line of work today" }).getByRole("link")).toHaveCount(5, { timeout: 60_000 });
+  /* A sample session has its own guide, so this one waits to be asked for. */
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  test.skip(!!isMobile, "The status line, where the guide is asked for, is part of the desktop frame");
+  await page.getByRole("contentinfo", { name: "Status" }).getByRole("button", { name: "Guide" }).click();
+  const guide = page.getByRole("dialog");
+  await expect(guide.getByRole("heading")).toHaveText("This is your place");
+  /* The lit control is the one being described. */
+  const lit = async (sel: string) => { const [a, b] = await Promise.all([page.locator(".fd1-light").boundingBox(), page.locator(sel).first().boundingBox()]); expect(Math.abs(a!.x + 6 - b!.x)).toBeLessThanOrEqual(2); expect(Math.abs(a!.y + 6 - b!.y)).toBeLessThanOrEqual(2); };
+  await expect.poll(async () => (await page.locator(".fd1-light").boundingBox())?.width ?? 0).toBeGreaterThan(100);
+  await page.waitForTimeout(700); await lit(".cn-place");
+  for (const title of ["The menu is short on purpose", "One thing first", "The line of work", "Kaju", "The status line"]) {
+    await guide.getByRole("button", { name: /^(Next|Finish)/ }).click();
+    await expect(guide.getByRole("heading")).toHaveText(title);
+  }
+  await page.waitForTimeout(700); await lit(".cn-foot");
+  await guide.getByRole("button", { name: "Finish" }).click();
+  await expect(guide.getByRole("heading")).toContainText("That is the whole of it");
+  /* It ends on things to do, each a real page of this workspace. */
+  await expect(guide.locator(".fd1-acts a")).toHaveCount(3);
+  await expect(guide.locator(".fd1-acts a").first()).toHaveAttribute("href", "/ngo/pipeline");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});

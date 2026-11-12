@@ -165,6 +165,22 @@ Found while building: three of my new class names collided with existing ones (`
 
 Still to rebuild: the Queue (list, map and inspector), Decisions, Field mode's capture flow, the programme places, onboarding.
 
+## 12 Nov: the first day (owner: "onboarding needs to be better and self sufficient too and creatively well")
+
+PR #71 (Sign-off, Animals, Reports, Intake rebuilt) merged as `a75f1d40`. Production and the demo were verified in a browser on `21f16b75` (#70): console frame, status footer, Kaju's card, full-height sidebar meeting the sheet, no page errors.
+
+What existed: a pre-sign-in scene at `/app` (meet Kaju and the crew) and the guided demo at `/try`. Nothing inside the workspace taught the frame or the path, so a new member depended on someone showing them.
+
+| Item | Status | Evidence |
+|---|---|---|
+| `FirstDay`: six steps that light the real control while the rest dims (place, menu, one thing first, the line, Kaju, status line); the light glides from one to the next | Done | Staging screenshots at each step |
+| Opens once by itself on the place's home for a new member; **Guide** in the status line opens it again | Done | |
+| A control that is not on the screen is passed over at the moment the guide moves; a step can name a fallback, so a page still loading does not lose its step | Done | found by the test (Home's data had not arrived); fixed |
+| Ends on real actions by role: lead (bring register, add team, board), coordinator (board, this month's report, partner requests), vet (sign-off, own stage), field (field mode, board), reviewer (decision queue, contracts), programme places (the place, its primary action) | Done | |
+| Keyboard: Esc closes, arrows move, focus goes to the primary button; reduced motion: no glide | Done | |
+| A sample session keeps its own guided demo: this guide does not open by itself there | Done | test asserts it |
+| `e2e/operating-path.spec.ts`: second test walks the guide on staging and checks the lit control is the one described | 3 passed, 1 skipped (phone has no status line) | runs with `OH_E2E=1` |
+
 ## Batch 1: website, experience, design system (merged as PR #60; production verified)
 
 Design system "StrayPaw 6" (`src/site6/`): one stylesheet, the thread motif, motion primitives (`data-reveal`, `data-progress`, word rise), content visible without script.
