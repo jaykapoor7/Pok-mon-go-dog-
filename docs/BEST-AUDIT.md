@@ -68,7 +68,9 @@ The demo is one story in seven chapters, signed in as each person in turn:
 6. **Vaccination.** The field team records each dog, with or without signal.
 7. **Verification.** The municipal office reviews the evidence. Kaju drafts the notes; the office decides.
 
-It takes about three minutes and 8 clicks: Start, six Next, one optional "Ask Kaju". A chapter card covers each change of person, and the visitor can leave the story and explore at any point. On staging, chapters 1 to 5 were played in a browser on desktop and phone with every highlight found. Chapters 6 and 7 use the ABC sample accounts; their screens and targets were checked on demo.straypaw.org, and the whole story is checked there after release.
+It takes about three minutes and 8 clicks: Start, then the card's main button once per chapter (six "Next" and "Finish the story"). Asking Kaju in chapter 3 is one more, optional. A chapter card covers each change of person, and the visitor can leave the story and explore at any point.
+
+**Checked on demo.straypaw.org after release** (`e2e/demo-story.spec.ts`, 12 Nov, version `850f7ccb`): the whole story, phone and desktop, **2/2 passed**. Every chapter signed in as its person, its subject was highlighted on screen, Kaju answered in chapter 3, and the end card handed over to free exploration.
 
 ## 4. What remains blocked, and who unblocks it
 
