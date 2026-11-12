@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, type FormEvent } from "react";
 import { usePlaces, primaryProgramme } from "../places";
 import { call, daysFrom, fmtDate, select, today, useNames, useRead, HANDOFF, HANDOFF_KIND, RESULT, SAMPLE, SAMPLE_TYPE, SPECIES, type Area, type Handoff, type Place, type Sample } from "../data";
-import { Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
+import { Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, useToast } from "../ui";
 
 type Dog = { id: string; name: string | null; code: string | null; zone: string | null; vaccination_status: string | null };
 
@@ -21,6 +21,7 @@ export function PartnerRequests({ place }: { place: Place }) {
   const names = useNames();
   const [closing, setClosing] = useState<Handoff | null>(null);
   const [tab, setTab] = useState<"open" | "closed">("open");
+  const [allSamples, setAllSamples] = useState(false);
   const toast = useToast();
   const list = (hand.data ?? []).slice().sort((a, b) => (a.due_on ?? "9").localeCompare(b.due_on ?? "9") || b.created_at.localeCompare(a.created_at));
   const open = list.filter((h) => h.status === "open" || h.status === "accepted"), closed = list.filter((h) => h.status === "done" || h.status === "declined").reverse();
@@ -31,15 +32,9 @@ export function PartnerRequests({ place }: { place: Place }) {
   return (
     <Page illustrative={place.illustrative}>
       <Head eyebrow={prog?.name} title="Requests" lede="Animals to find and observe after a bite, vaccination requests and laboratory results sent to your team. Patient details are never shared." />
-      <dl className="oh-stats">
-        <Stat label="Open" value={hand.error ? null : open.length} href="#work" />
-        <Stat label="Overdue" value={hand.error ? null : overdue.length} tone={overdue.length ? "flame" : undefined} href="#work" />
-        <Stat label="Samples at the laboratory" value={samples.error ? null : samples.data?.filter((s) => !["resulted", "rejected"].includes(s.status)).length} href="#samples" />
-        <Stat label="Closed" value={hand.error ? null : closed.length} tone="green" />
-      </dl>
       <Section title="Waiting for your team" id="work">
         <nav className="oh-tabs" aria-label="Show" style={{ marginTop: 0 }}>
-          <a href="#work" aria-current={tab === "open" ? "page" : undefined} onClick={(e) => { e.preventDefault(); setTab("open"); }}>Open ({open.length})</a>
+          <a href="#work" aria-current={tab === "open" ? "page" : undefined} onClick={(e) => { e.preventDefault(); setTab("open"); }}>Open ({open.length}){overdue.length ? <span style={{ color: "var(--flame)" }}> · {overdue.length} overdue</span> : null}</a>
           <a href="#work" aria-current={tab === "closed" ? "page" : undefined} onClick={(e) => { e.preventDefault(); setTab("closed"); }}>Closed ({closed.length})</a>
         </nav>
         {hand.loading && !hand.data ? <Loading rows={4} /> : hand.error ? <Failed error={hand.error} retry={hand.reload} /> : !(tab === "open" ? open : closed).length ? <Empty title={tab === "open" ? "Nothing open" : "Nothing closed yet"} /> : (
@@ -65,10 +60,10 @@ export function PartnerRequests({ place }: { place: Place }) {
           </div>
         )}
       </Section>
-      <Section title="Samples you sent" id="samples">
+      <Section title="Samples you sent" note="Most recent first" id="samples">
         {samples.loading && !samples.data ? <Loading rows={2} /> : samples.error ? <Failed error={samples.error} retry={samples.reload} /> : !samples.data?.length ? <Empty title="No samples sent">When an observed animal is sick or dies, send a sample from here.</Empty> : (
           <div className="oh-rows">
-            {samples.data.slice().sort((a, b) => b.created_at.localeCompare(a.created_at)).map((s) => (
+            {samples.data.slice().sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, allSamples ? undefined : 5).map((s) => (
               <Link className="oh-row" key={s.id} href={`/workspace/${id}/record/${s.id}`}>
                 <div className="oh-row-main"><b>{s.code} · {SPECIES[s.species]}</b><span>{names.area(s.area_id) ?? "Area not recorded"} · collected {fmtDate(s.collected_on)}</span></div>
                 <div className="oh-row-meta">{s.result ? <Chip tone={RESULT[s.result].tone}>{RESULT[s.result].label}</Chip> : <Chip tone={SAMPLE[s.status].tone}>{SAMPLE[s.status].label}</Chip>}</div>
@@ -76,6 +71,7 @@ export function PartnerRequests({ place }: { place: Place }) {
             ))}
           </div>
         )}
+        {(samples.data?.length ?? 0) > 5 ? <button type="button" className="oh-more" aria-expanded={allSamples} onClick={() => setAllSamples((v) => !v)}>{allSamples ? "Show the most recent" : `Show all ${samples.data!.length}`}</button> : null}
       </Section>
       {closing ? <Outcome h={closing} area={names.area(closing.area_id)} ngoId={ngoId} institution={id} onClose={() => setClosing(null)} onDone={(m) => { setClosing(null); toast(m); hand.reload(); reloadPlaces(); }} /> : null}
     </Page>

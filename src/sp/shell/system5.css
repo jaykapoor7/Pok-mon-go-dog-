@@ -19,14 +19,14 @@
 
 /* page head */
 .sp.sx3 .sp-main :is(.ngo-head, .mo-head, .wk2-day, .cr-head, .st-head) h1,
-.sp.sx3 .sp-main h1:is(.serif, .display, .wk2-h) { font-family: var(--s3-sans, Inter, system-ui, sans-serif) !important; font-size: 30px !important; line-height: 1.15 !important; font-weight: 700 !important; letter-spacing: -0.03em !important; color: var(--s5-ink); }
+.sp.sx3 .sp-main h1:is(.serif, .display, .wk2-h) { font-family: var(--s3-sans, Inter, system-ui, sans-serif) !important; font-size: 32px !important; line-height: 1.15 !important; font-weight: 700 !important; letter-spacing: -0.03em !important; color: var(--s5-ink); }
 .sp.sx3 .sp-main :is(.ngo-head, .mo-head) { border-bottom: 0 !important; background: none !important; }
-.sp.sx3 .sp-main :is(.ngo-head, .mo-head) p { color: var(--s5-mute); font-size: 14.5px; line-height: 1.5; }
+.sp.sx3 .sp-main :is(.ngo-head, .mo-head) p { color: var(--s5-mute); font-size: 14px; line-height: 1.5; }
 .sp.sx3 .sp-main h2 { letter-spacing: -0.02em; }
 
 /* tabs */
-.sp.sx3 .sx3-tabs { gap: 6px; padding: 12px 0 10px; border-bottom: 0; }
-.sp.sx3 .sx3-tabs a { padding: 8px 14px; border: 0 !important; margin: 0; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--s5-mute); transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease; }
+.sp.sx3 .sx3-tabs { gap: 4px; padding: 12px 0 12px; border-bottom: 0; }
+.sp.sx3 .sx3-tabs a { padding: 8px 16px; border: 0 !important; margin: 0; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--s5-mute); transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease; }
 .sp.sx3 .sx3-tabs a:hover { background: rgba(11, 30, 61, .05); color: var(--s5-ink); }
 .sp.sx3 .sx3-tabs a[aria-current="page"] { background: #fff; color: var(--s5-ink); font-weight: 600; box-shadow: var(--s5-card); border-bottom-color: transparent; }
 
@@ -76,23 +76,23 @@
 @keyframes s5-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* sidebar: the current place is a soft pill */
-.sp.sx3 .sx3-nav a { border-radius: 10px; transition: background-color 150ms ease, color 150ms ease; }
+.sp.sx3 .sx3-nav a { border-radius: 8px; transition: background-color 150ms ease, color 150ms ease; }
 
 /* ── phone ───────────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
   .sp.sx3 .sp-main :is(.ngo-head, .mo-head, .wk2-day, .cr-head, .st-head) h1,
-  .sp.sx3 .sp-main h1:is(.serif, .display, .wk2-h) { font-size: 25px !important; }
-  .sp.sx3 .sp-main .btn { min-height: 46px; padding: 0 18px; font-size: 15px; }
+  .sp.sx3 .sp-main h1:is(.serif, .display, .wk2-h) { font-size: 24px !important; }
+  .sp.sx3 .sp-main .btn { min-height: 46px; padding: 0 16px; font-size: 16px; }
   .sp.sx3 .sp-main :is(.input, .select, .textarea) { min-height: 48px; font-size: 16px; }
-  .sp.sx3 .sp-main .chip { min-height: 38px; padding-inline: 14px; }
-  .sp.sx3 .sx3-tabs { padding-inline: 2px; }
-  .sp.sx3 .sx3-tabs a { padding: 9px 14px; }
+  .sp.sx3 .sp-main .chip { min-height: 38px; padding-inline: 16px; }
+  .sp.sx3 .sx3-tabs { padding-inline: 4px; }
+  .sp.sx3 .sx3-tabs a { padding: 8px 16px; }
   /* the thumb bar: a floating rounded dock; the current place is a filled pill */
-  .sp.sx3 .sp-tabs { left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); width: auto; border: 0 !important; border-radius: 24px; background: rgba(255, 255, 255, .94) !important; backdrop-filter: saturate(1.4) blur(14px); box-shadow: 0 0 0 1px rgba(11, 30, 61, .08), 0 18px 36px -16px rgba(11, 30, 61, .4); padding: 6px !important; }
-  .sp.sx3 .sp-tabs :is(a, button) { border-radius: 18px; min-height: 52px; transition: background-color 160ms ease, color 160ms ease, transform 120ms ease; }
+  .sp.sx3 .sp-tabs { left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); width: auto; border: 0 !important; border-radius: 24px; background: rgba(255, 255, 255, .94) !important; backdrop-filter: saturate(1.4) blur(14px); box-shadow: 0 0 0 1px rgba(11, 30, 61, .08), 0 18px 36px -16px rgba(11, 30, 61, .4); padding: 8px !important; }
+  .sp.sx3 .sp-tabs :is(a, button) { border-radius: 16px; min-height: 52px; transition: background-color 160ms ease, color 160ms ease, transform 120ms ease; }
   .sp.sx3 .sp-tabs :is(a, button):active { transform: scale(.94); }
   .sp.sx3 .sp-tabs a:not(.sp-tabs-act)[aria-current="page"] { background: rgba(36, 87, 206, .1); color: var(--s5-blue); }
   .sp.sx3 .sp-tabs a:not(.sp-tabs-act)[aria-current="page"] span { font-weight: 700; }
-  .sp.sx3 .sp-main { padding-bottom: calc(var(--tabs, 64px) + 28px + env(safe-area-inset-bottom)); }
+  .sp.sx3 .sp-main { padding-bottom: calc(var(--tabs, 64px) + 32px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) { .sp.sx3 .sp-main .btn, .sp.sx3 .sp-main .chip, .sp.sx3 .sp-tabs :is(a, button) { transition: none; } .sp.sx3 .sp-main .btn:active { transform: none; } }

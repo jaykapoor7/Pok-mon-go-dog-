@@ -35,7 +35,7 @@ export function CityReport() {
         <div className="seg" role="group" aria-label="Period"><button type="button" aria-pressed={period === "all"} onClick={() => setPeriod("all")}>{ld?.capped ? "Loaded record" : "Whole record"}</button><button type="button" aria-pressed={period === "12m"} onClick={() => setPeriod("12m")}>Last 12 months</button></div>
         <button type="button" className="btn is-ink is-s" onClick={() => window.print()} disabled={!city || loading || !!error}><Printer size={14} aria-hidden /> Print or save as PDF</button>
       </div>
-      {loading && <div className="skel" style={{ height: 600, margin: 28 }} />}
+      {loading && <div className="skel" style={{ height: 600, margin: 32 }} />}
       {error && <State kind="error" title="Didn't load">{error}</State>}
       {city && !loading && !error && (
         <article className="cr-doc">

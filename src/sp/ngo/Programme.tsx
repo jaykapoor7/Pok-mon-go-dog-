@@ -28,7 +28,7 @@ export function Programme({ id }: { id: string }) {
 
   return (
     <NgoGate title="Programme" lede="One drive and the animals filed into it.">
-      {s === null ? <div className="ngo-page"><div className="skel" style={{ height: 300, margin: 28 }} /></div> : s === "missing" ? <div className="ngo-page"><State kind="forbidden" title="Not available" action={<Link className="btn" href="/ngo/programmes">All programmes</Link>}>This drive is not readable with your organisation&rsquo;s access, or it does not exist.</State></div> : (
+      {s === null ? <div className="ngo-page"><div className="skel" style={{ height: 300, margin: 32 }} /></div> : s === "missing" ? <div className="ngo-page"><State kind="forbidden" title="Not available" action={<Link className="btn" href="/ngo/programmes">All programmes</Link>}>This drive is not readable with your organisation&rsquo;s access, or it does not exist.</State></div> : (
         <div className="ngo-page">
           <header className="ngo-head pg-head">
             <div><Link className="link small" href="/ngo/programmes"><ArrowLeft size={13} aria-hidden /> Programmes</Link><p className="k">{KIND_LABEL[s.kind]}{s.archived ? " · archived" : ""}</p><h1 className="serif">{s.name}</h1></div>
@@ -54,7 +54,7 @@ export function Programme({ id }: { id: string }) {
           </section>
           <div className="wk-tools"><select className="select ngo-sel" value={ster} onChange={(e) => setSter(e.target.value)} aria-label="Sterilisation"><option value="">Every animal</option><option value="sterilised">Sterilised</option><option value="not_sterilised">Recorded not</option><option value="unknown">Not recorded</option></select>{s.needs_help > 0 && <span className="pill is-urgent">{n(s.needs_help)} need help</span>}</div>
           <div className="reg">
-            {animals === null && <div className="skel" style={{ height: 200, margin: 28 }} />}
+            {animals === null && <div className="skel" style={{ height: 200, margin: 32 }} />}
             {animals && !animals.length && <p className="small" style={{ padding: "8px 28px" }}>No animal filed into this drive{ster ? " with that status" : ""} yet. File reports from the <Link className="link" href="/ngo/inbox">Inbox</Link>.</p>}
             {animals?.map((a) => (
               <Link key={a.id} href={`/ngo/animals/${a.id}`} className={`reg-row pg-arow${a.needs_help ? " is-help" : ""}`}>

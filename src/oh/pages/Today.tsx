@@ -77,15 +77,17 @@ function TodayBody({ name }: { name: string }) {
   /* The daily brief, as the landing demo draws it: what needs this person
      across every place they work, each row opening the place where it waits. */
   const short = (p: { short_name?: string | null; name: string }) => p.short_name ?? p.name;
+  /* One row per kind of alert and area: two confirmed cases in one locality are one decision. */
+  type Grouped = Alert & { n: number; programme: { id: string; slug: string; name: string } };
+  const grouped = [...(alerts ?? []).reduce((m, a0) => { const a = a0 as Grouped; const k = `${a.kind}|${a.area ?? ""}|${a.programme.id}`; const g = m.get(k); if (g) g.n++; else m.set(k, { ...a, n: 1 }); return m; }, new Map<string, Grouped>()).values()];
   const rows: DailyRow[] = [
-    ...(alerts ?? []).slice(0, 3).map((a) => ({ key: `a${a.key}`, href: `/programme/${(a as Alert & { programme: { slug: string } }).programme.slug}`, tone: "flame", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}</b>, meta: [a.area, (a as Alert & { programme: { name: string } }).programme.name].filter(Boolean).join(" · "), tag: "Urgent", verb: "Open" })),
+    ...grouped.slice(0, 3).map((a) => ({ key: `a${a.key}`, href: `/programme/${(a as Alert & { programme: { slug: string } }).programme.slug}`, tone: "flame", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}{a.n > 1 ? ` (${a.n})` : ""}</b>, meta: [a.area, (a as Alert & { programme: { name: string } }).programme.name].filter(Boolean).join(" · "), tag: "Urgent", verb: "Open" })),
     ...(ngoPlace ? placeLines(ngoPlace).map((l) => ({ key: `n${l.text}`, href: "/ngo", tone: l.tone, icon: <PawPrint size={10} strokeWidth={2.4} />, title: <><b>{l.n}</b> {l.text}</>, meta: mem.org?.name ?? "Your NGO", verb: "Open" })) : []),
     ...cards.flatMap((p) => placeLines(p).map((l) => ({ key: `${p.organisation_id}${l.text}`, href: placeHome(p), tone: l.tone, icon: <PlaceIcon kind={p.kind} />, title: <><b>{l.n}</b> {l.text}</>, meta: `${short(p)} · ${KIND_LABEL[p.kind]}`, tag: short(p).length <= 18 ? short(p) : undefined, verb: "Open" }))),
   ].slice(0, 8);
-  const kinds = new Set(cards.map((p) => p.kind));
-  const questions = kinds.has("hospital") || kinds.has("clinic") ? ["Which doses are due today across my places?", "Who has not returned for a scheduled dose?", "Is vaccine confirmed at our referral hospital?", "What are partners waiting for from me?"]
-    : kinds.has("laboratory") ? ["Which samples have been on the way longest?", "How many positives this month, by area?", "Which samples are still testing?", "What are partners waiting for from me?"]
-    : ["What needs a decision in my programmes?", "Which facilities have not confirmed vaccine this week?", "Where were rabies cases confirmed this month?", "What are partners waiting for from me?"];
+  /* Kaju reads requests between partners, never a patient record, dose or sample, so it is offered only where those requests arrive. */
+  const asks = ngoPlace || cards.some((p) => oversees(p.kind) || p.kind === "ngo");
+  const questions = ["What are programme partners waiting for?", "Which partner requests are overdue?"];
 
   return (
     <Page illustrative={illustrative}>
@@ -97,7 +99,7 @@ function TodayBody({ name }: { name: string }) {
         ) : (
           <>
             <NeedsYou rows={rows} />
-            <AskKaju questions={questions} />
+            {asks ? <AskKaju questions={questions} /> : null}
             <section className="dy-sec" aria-labelledby="dy-places-h">
               <h2 id="dy-places-h" className="dy-h">Your places</h2>
               <ul className="dy-list">
@@ -158,14 +160,16 @@ function InviteCode({ open: startOpen = false }: { open?: boolean }) {
     partners, modules and people. */
 function StartProgramme() {
   const router = useRouter();
-  const { reload } = usePlaces();
-  const [f, setF] = useState({ name: "", city: "", areas: "", me: "" });
+  const { reload, places } = usePlaces();
+  const [f, setF] = useState({ name: "", city: "", areas: "", me: "", parent: "" });
+  /* A programme can sit inside one the person leads (a city inside a state); the database checks it too. */
+  const parents = [...new Map(places.filter((x) => x.role === "lead" || x.capabilities.includes("manage")).flatMap((x) => x.programmes).map((x) => [x.id, x])).values()];
   const [busy, setBusy] = useState(false), [err, setErr] = useState<string | null>(null);
   const slug = f.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
   const go = async () => {
     setBusy(true); setErr(null);
     const areas = f.areas.split(/[,\n]/).map((a) => a.trim()).filter((a) => a.length >= 2).slice(0, 200);
-    const r = await call<{ id: string; slug: string }>("oh_create_programme", { p_name: f.name.trim(), p_slug: slug, p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata", p_area_names: areas, p_parent: null, p_city: f.city.trim() || null, p_display_name: f.me.trim() || null });
+    const r = await call<{ id: string; slug: string }>("oh_create_programme", { p_name: f.name.trim(), p_slug: slug, p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata", p_area_names: areas, p_parent: f.parent || null, p_city: f.city.trim() || null, p_display_name: f.me.trim() || null });
     setBusy(false);
     if (r.error || !r.data) { setErr(r.error ?? "Could not create the programme."); return; }
     reload(); router.push(`/programme/${r.data.slug}/setup`);
@@ -173,13 +177,14 @@ function StartProgramme() {
   return (
     <details className="oh-invite">
       <summary>Start a programme</summary>
-      <div className="oh-card pad" style={{ marginTop: 10, display: "grid", gap: 14, maxWidth: 620 }}>
-        <p style={{ color: "var(--muted)", fontSize: 13 }}>For a municipality, a hospital network or a state. You become its lead; next you add partners, areas and people. Nothing is shared until you invite someone.</p>
+      <div className="oh-card pad" style={{ marginTop: 10, display: "grid", gap: 12, maxWidth: 620 }}>
+        <p style={{ color: "var(--muted)", fontSize: 14 }}>For a municipality, a hospital network or a state. You become its lead; next you add partners, areas and people. Nothing is shared until you invite someone.</p>
         <div className="oh-fields">
           <label className="oh-field"><span>Programme name</span><input value={f.name} maxLength={140} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="For example: Pune rabies elimination" /></label>
           <label className="oh-field"><span>City or state</span><input value={f.city} maxLength={80} onChange={(e) => setF({ ...f, city: e.target.value })} /></label>
           <label className="oh-field full"><span>Wards or localities</span><textarea value={f.areas} onChange={(e) => setF({ ...f, areas: e.target.value })} placeholder="One per line, or separated by commas. You can add more later." /></label>
           <label className="oh-field"><span>Your name, as partners will see it</span><input value={f.me} maxLength={80} onChange={(e) => setF({ ...f, me: e.target.value })} /></label>
+          {parents.length ? <label className="oh-field"><span>Inside</span><select value={f.parent} onChange={(e) => setF({ ...f, parent: e.target.value })}><option value="">No: a programme of its own</option>{parents.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label> : null}
         </div>
         {err ? <Failed error={err} /> : null}
         <div className="oh-submit"><button type="button" className="oh-btn primary" disabled={busy || f.name.trim().length < 3 || slug.length < 3} onClick={() => void go()}>{busy ? "Creating…" : "Create programme"}</button>{slug.length >= 3 ? <p>Address: /programme/{slug}</p> : null}</div>

@@ -74,7 +74,7 @@ export function ExposureRecord({ id, place }: { id: string; place: Place }) {
           <Section title="Animal follow-up" note="Shared with the animal team without patient details">
             {e.handoff ? (
               <div className="oh-card pad">
-                <p style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}><Chip tone={HANDOFF[e.handoff.status].tone}>{HANDOFF[e.handoff.status].label}</Chip><span style={{ color: "var(--muted)", fontSize: 12.5 }}>{e.handoff.to}</span></p>
+                <p style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}><Chip tone={HANDOFF[e.handoff.status].tone}>{HANDOFF[e.handoff.status].label}</Chip><span style={{ color: "var(--muted)", fontSize: 12 }}>{e.handoff.to}</span></p>
                 <p style={{ color: "var(--ink)" }}>{e.handoff.outcome ?? "Waiting for the team to report what they found."}</p>
               </div>
             ) : <p className="oh-note">{e.animal_ownership === "owned" ? "The animal is someone's pet; no field follow-up was requested." : e.area ? "No animal team is assigned to this area, or no follow-up was requested." : "No area was recorded, so no follow-up was sent."}</p>}
@@ -148,7 +148,7 @@ function Prescribe({ exposureId, exposureOn, onDone, startOpen }: { exposureId: 
         <div style={{ display: "grid", gap: 8 }}>
           {dates.map((d, i) => (
             <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <span style={{ width: 64, color: "var(--muted)", fontSize: 12.5 }}>Dose {i + 1}</span>
+              <span style={{ width: 64, color: "var(--muted)", fontSize: 12 }}>Dose {i + 1}</span>
               <input type="date" className="oh-input" value={d} min={exposureOn} onChange={(e) => setDates(dates.map((x, j) => (j === i ? e.target.value : x)))} aria-label={`Dose ${i + 1} date`} />
               {dates.length > 1 ? <button type="button" className="oh-btn small" aria-label={`Remove dose ${i + 1}`} onClick={() => setDates(dates.filter((_, j) => j !== i))}><X size={14} /></button> : null}
             </div>

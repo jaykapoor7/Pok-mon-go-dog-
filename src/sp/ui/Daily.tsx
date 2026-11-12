@@ -14,10 +14,11 @@ export const greeting = () => { const h = Number(new Date().toLocaleString("en-I
 /** First name, skipping a title ("Dr Meena" becomes "Meena"). */
 export const firstName = (n?: string | null) => (n ?? "").trim().split(/\s+/).find((w) => !/^(dr|sister|mr|mrs|ms|prof)\.?$/i.test(w)) ?? "";
 
-export function DailyHead({ name, since, loading }: { name?: string | null; since?: ReactNode; loading?: boolean }) {
+export function DailyHead({ name, since, loading, place }: { name?: string | null; since?: ReactNode; loading?: boolean; place?: string | null }) {
   const first = firstName(name);
   return (
     <header className="dy-head hm-head">
+      {place ? <p className="dy-place">{place}</p> : null}
       <h1 className="br-hello dy-hello">{greeting()}{first ? `, ${first}` : ""}.<span>Here is your daily brief.</span></h1>
       {loading ? <div className="dy-skel" aria-hidden><i /><i /></div> : since ? <p className="dy-since">{since}</p> : null}
     </header>

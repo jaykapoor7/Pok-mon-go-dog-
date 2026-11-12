@@ -1,6 +1,25 @@
+/* ── Which public website StrayPaw shows: one value ─────────────────────
+
+     MARKETING_EXPERIENCE=cinematic   "The whole world, connected" (src/cine):
+                                      the landscape homepage, Meet Kaju at
+                                      /kaju, the new navigation and footer
+     MARKETING_EXPERIENCE=legacy      the public website exactly as it was
+                                      (also when unset or unrecognised)
+
+   To switch, or to roll back, set the value in the deployment's
+   environment and redeploy the same commit. Nothing else changes.
+
+   It is read here once and written into the build. The four places that
+   choose (src/app/page.tsx, src/app/kaju/page.tsx, and the header and
+   footer in src/components/site) compare this same value, which the build
+   turns into a constant, so the experience not shown, with its scripts
+   and styles, is left out of the bundles. ─────────────────────────────── */
+const MARKETING_EXPERIENCE = process.env.MARKETING_EXPERIENCE === "cinematic" ? "cinematic" : "legacy";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  env: { MARKETING_EXPERIENCE },
   /* Most pages are rendered per request, and with no client cache every
      Back and every return to a page waited on the server again. Thirty
      seconds is long enough for back-and-forth between screens and short

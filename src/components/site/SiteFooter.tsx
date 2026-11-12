@@ -6,6 +6,9 @@ import { StrayPawMark } from "@/components/site/SiteHeader";
 import "@/sp3/sp3.css";
 import "@/sp4/sp4.css";
 
+/* The cinematic site's footer, in its build only (next.config.mjs): elsewhere this is null and the module is not bundled. */
+const CineFooter: typeof import("@/cine/CineFooter").CineFooter | null = process.env.MARKETING_EXPERIENCE === "cinematic" ? require("@/cine/CineFooter").CineFooter : null;
+
 /* What closes every public page (StrayPaw 4): the dark site index and the
    legal strip. The closing call to action belongs to each page, above the
    footer, so `cta` is accepted for old callers and ignored. */
@@ -16,7 +19,12 @@ const COLS: [string, [string, string][]][] = [
   ["Company", [["Our story", "/our-story"], ["Contact", "/contact"], ["Partner with us", "/partner-apply"], ["Data governance", "/data-governance"], ["Licences", "/licences"]]],
 ];
 
-export function SiteFooter({ className = "", cta = true }: { className?: string; cta?: boolean }) {
+/** The public site's footer, by the one marketing switch (next.config.mjs). */
+export function SiteFooter(props: { className?: string; cta?: boolean }) {
+  return CineFooter ? <CineFooter /> : <LegacySiteFooter {...props} />;
+}
+
+function LegacySiteFooter({ className = "", cta = true }: { className?: string; cta?: boolean }) {
   void cta;
   return (
     <footer className={`s4 s4-foot ${className}`.trim()}>

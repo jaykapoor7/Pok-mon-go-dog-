@@ -140,9 +140,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       return;
     }
-    const display =
-      (u.user_metadata?.display_name as string | undefined)?.trim() ||
-      nameFromEmail(u.email);
+    /* display_name is what StrayPaw's own sign-up stores; name and full_name are what
+       other providers (and the One Health demonstration accounts) carry. */
+    const meta = u.user_metadata ?? {};
+    const given = [meta.display_name, meta.full_name, meta.name].find((v): v is string => typeof v === "string" && v.trim().length > 0);
+    const display = given?.trim() || nameFromEmail(u.email);
     setUser({ id: u.id, name: display, email: u.email ?? null });
   }
 

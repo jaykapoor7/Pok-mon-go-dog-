@@ -1,14 +1,14 @@
 /* The rail: where one record is in its line. One drawing for a case, a procedure record, a report package,
    a bite record and a laboratory sample. */
-.rail { --rail-ink: #0f1524; margin: 0 0 18px; overflow-x: auto; scrollbar-width: none; }
+.rail { --rail-ink: #0f1524; margin: 0 0 16px; overflow-x: auto; scrollbar-width: none; }
 .rail::-webkit-scrollbar { display: none; }
-.rail ol { list-style: none; margin: 0; padding: 2px; display: flex; align-items: center; width: max-content; }
+.rail ol { list-style: none; margin: 0; padding: 4px; display: flex; align-items: center; width: max-content; }
 .rail li { display: flex; align-items: center; animation: rail-in .4s cubic-bezier(.2, .7, .2, 1) both; }
 .rail li:nth-child(2) { animation-delay: 70ms; } .rail li:nth-child(3) { animation-delay: 140ms; } .rail li:nth-child(4) { animation-delay: 210ms; } .rail li:nth-child(5) { animation-delay: 280ms; } .rail li:nth-child(6) { animation-delay: 350ms; }
 /* the line between two stages: ink once the record has passed it */
-.rail li + li::before { content: ""; flex: none; width: 26px; height: 2px; margin: 0 4px; border-radius: 2px; background: #dfe3ea; transform-origin: 0 50%; }
+.rail li + li::before { content: ""; flex: none; width: 26px; height: 2px; margin: 0 4px; border-radius: 4px; background: #dfe3ea; transform-origin: 0 50%; }
 .rail li.is-done + li::before { background: var(--rail-ink); animation: rail-draw .45s cubic-bezier(.2, .7, .2, 1) both; animation-delay: inherit; }
-.rail li > :is(a, span) { display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px 0 6px; border-radius: 999px; color: #8a93a5; font-size: 13px; font-weight: 500; line-height: 1; text-decoration: none; white-space: nowrap; transition: background .16s ease, color .16s ease; }
+.rail li > :is(a, span) { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 8px; border-radius: 999px; color: #8a93a5; font-size: 14px; font-weight: 500; line-height: 1; text-decoration: none; white-space: nowrap; transition: background .16s ease, color .16s ease; }
 .rail li > a:hover { background: #eef0f4; color: var(--rail-ink); }
 .rail li > a:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
 .rail-dot { flex: none; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #c9d0dc; color: #fff; }
@@ -16,7 +16,7 @@
 .rail li.is-done .rail-dot { background: var(--rail-ink); box-shadow: none; }
 .rail li.is-now > :is(a, span) { background: var(--rail-ink); color: #fff; font-weight: 600; padding-right: 12px; }
 .rail li.is-now > a:hover { background: #1c2740; color: #fff; }
-.rail li.is-now .rail-dot { background: #fff; box-shadow: none; width: 8px; height: 8px; margin: 0 5px; animation: rail-now 2.4s ease-in-out .6s infinite; }
+.rail li.is-now .rail-dot { background: #fff; box-shadow: none; width: 8px; height: 8px; margin: 0 4px; animation: rail-now 2.4s ease-in-out .6s infinite; }
 .rail li.is-now.is-end > span { background: #17603c; }
 .rail li.is-now.is-end[data-tone="flame"] > span { background: #c8371d; }
 .rail li.is-now.is-end[data-tone="plain"] > span { background: #4b5568; }
@@ -30,6 +30,6 @@
   /* on a phone only the current stage is named; the others are their dots */
   .rail li:not(.is-now) .rail-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .rail li:not(.is-now) > :is(a, span) { padding: 0 4px; }
-  .rail li + li::before { width: 14px; margin: 0 2px; }
+  .rail li + li::before { width: 14px; margin: 0 4px; }
 }
 @media (prefers-reduced-motion: reduce) { .rail li, .rail li + li::before, .rail li.is-now .rail-dot { animation: none !important; } }

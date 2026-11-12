@@ -66,6 +66,8 @@ const OWN_CHROME = new Set<string>([
   "/partner-programmes",
   "/mission",
   "/licences",
+  // Meet Kaju, a page of the cinematic site (src/cine); in the legacy site it redirects to /ai.
+  "/kaju",
 ]);
 
 /**

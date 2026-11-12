@@ -12,6 +12,7 @@ import { ArrowRight, Download, MapPin, Plus, Printer } from "lucide-react";
 import { usePlaces, oversees } from "../places";
 import { call, fmtDate, fmtTime, num, relDay, select, showCount, useNames, useRead, AUDIENCE, HANDOFF, HANDOFF_KIND, KIND_LABEL, MODULES, ROLE_LABEL, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, type Alert, type Area, type Count, type Handoff, type Kind, type Network, type NetworkFacility, type Overview, type Role } from "../data";
 import { AlertList, Bars, Chip, Empty, Failed, Glyph, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
+import { AreaIntel } from "../AreaMap";
 
 type Prog = { id: string; slug: string; name: string; parent_id: string | null; summary: string | null; status: string; vaccination_target: number; config: { modules?: string[]; suppress_below?: number; followup_due_days?: number; dog_revaccination_days?: number; alert_window_days?: number }; plan: string; illustrative: boolean; time_zone: string };
 const ALL_MODULES = ["bite_care", "laboratory", "followups", "vaccination", "services", "training"];
@@ -67,7 +68,6 @@ function OverviewBody({ p }: { p: Prog }) {
   if (o.error || !o.data) return <Failed error={o.error ?? "Could not read the programme."} retry={o.reload} />;
   const d = o.data;
   const weeks = (d.exposures?.by_week ?? []).map((w) => ({ x: fmtDate(w.week, { day: "numeric", month: "short" }), n: w.n }));
-  const maxArea = Math.max(1, ...(d.exposures?.by_area ?? []).map((w) => (typeof w.n === "number" ? w.n : 4)));
   const open = (alerts.data ?? []).filter((a) => !a.ack);
   const alertHref = (a: Alert) => a.kind === "positive_result" ? `/programme/${p.slug}/work` : a.kind === "pep_readiness" ? `/programme/${p.slug}/network` : a.kind === "coverage_below_target" ? `/programme/${p.slug}/coverage` : a.kind === "followups_overdue" ? `/programme/${p.slug}/work?show=overdue` : null;
   const stats = (
@@ -75,7 +75,7 @@ function OverviewBody({ p }: { p: Prog }) {
       {mods.includes("bite_care") && d.exposures ? <Stat label="Bite exposures" value={d.exposures.total} note={<>Category III: {showCount(d.exposures.category_iii)}</>} /> : null}
       {mods.includes("bite_care") && d.pep ? <Stat label="Courses completed" value={d.pep.completion_rate === null ? null : pct(d.pep.completion_rate)} note={d.pep.completion_rate === null ? "Too few closed courses to show" : `Did not return: ${showCount(d.pep.lost)}`} tone={d.pep.completion_rate !== null && d.pep.completion_rate < 0.8 ? "amber" : "green"} /> : null}
       {mods.includes("bite_care") && d.exposures ? <Stat label="Wounds washed" value={num(d.exposures.washed_known) ? pct(num(d.exposures.washed) / num(d.exposures.washed_known)) : null} note="Where it was recorded" /> : null}
-      {mods.includes("laboratory") ? <Stat label="Laboratory-confirmed" value={d.samples.positive} note={`${d.samples.total} samples · ${d.samples.waiting} waiting`} tone={d.samples.positive ? "flame" : undefined} href={`/programme/${p.slug}/work`} /> : null}
+      {mods.includes("laboratory") ? <Stat label="Laboratory-confirmed" value={d.samples.positive} note={`${d.samples.total} samples · ${d.samples.waiting} waiting${d.samples.median_days_to_result === null ? "" : ` · ${Math.round(d.samples.median_days_to_result * 10) / 10} days to a result`}`} tone={d.samples.positive ? "flame" : undefined} href={`/programme/${p.slug}/work`} /> : null}
       {mods.includes("services") ? <Stat label="Care facilities" value={d.services.facilities} note={`${d.services.arv_unavailable} without vaccine · ${d.services.stale} confirmations expired`} href={`/programme/${p.slug}/network`} tone={d.services.arv_unavailable ? "flame" : d.services.stale ? "amber" : undefined} /> : null}
     </dl>
   );
@@ -88,16 +88,6 @@ function OverviewBody({ p }: { p: Prog }) {
         </Section>
         <div>
           {mods.includes("bite_care") && d.exposures ? <Section title="Bites by week" note="Hatched: fewer than the threshold"><div className="oh-card pad"><Bars points={weeks} label="Bite exposures by week" /></div></Section> : null}
-          {mods.includes("laboratory") ? (
-            <Section title="Laboratory">
-              <dl className="oh-facts oh-card pad">
-                <div><dt>Positive · negative</dt><dd>{d.samples.positive} · {d.samples.negative}</dd></div>
-                <div><dt>Waiting</dt><dd>{d.samples.waiting}</dd></div>
-                <div><dt>Median days to result</dt><dd>{d.samples.median_days_to_result === null ? "None resulted" : Math.round(d.samples.median_days_to_result * 10) / 10}</dd></div>
-                <div><dt>Confirmed in</dt><dd>{d.samples.positive_areas.join(", ") || "None"}</dd></div>
-              </dl>
-            </Section>
-          ) : null}
         </div>
       </div>
 
@@ -111,26 +101,40 @@ function OverviewBody({ p }: { p: Prog }) {
         </Section>
       ) : null}
 
-      {mods.includes("bite_care") && d.exposures?.by_area.length ? (
-        <Section title="Where bites happened" note="By area of exposure">
-          <div className="oh-table-wrap"><table className="oh-table"><tbody>
-            {d.exposures.by_area.map((w) => <tr key={w.area}><td className="strong" style={{ width: 200 }}>{w.area}</td><td><div className="oh-bar"><i style={{ width: `${((typeof w.n === "number" ? w.n : 4) / maxArea) * 100}%`, opacity: w.n === "<5" ? 0.35 : 1 }} /></div></td><td className="r" style={{ width: 120 }}>{showCount(w.n)}</td></tr>)}
-          </tbody></table></div>
+      {mods.includes("bite_care") || mods.includes("laboratory") ? (
+        <Section title="Where to act" note="Bites, confirmed cases and dog vaccination, by area">
+          <AreaIntel programme={p.id} slug={p.slug} d={d} />
         </Section>
       ) : null}
 
-      <Section title="Partners" note="Who is responsible for what, and their open work">
-        <div className="oh-partners">
-          {d.partners.map((x) => (
-            <div className="oh-partner" key={x.id}>
+      <Section title="Partners" note={`${d.partners.length} in the programme`}>
+        <PartnerWork partners={d.partners} />
+      </Section>
+      {mods.includes("training") ? <Training p={p} d={d} reload={o.reload} /> : null}
+    </>
+  );
+}
+
+/* Partners: the ones with open work, most overdue first; the rest in one line that opens the full list. */
+function PartnerWork({ partners }: { partners: Overview["partners"] }) {
+  const [all, setAll] = useState(false);
+  const busy = partners.filter((x) => x.open || x.overdue).sort((a, b) => b.overdue - a.overdue || b.open - a.open);
+  const clear = partners.filter((x) => !x.open && !x.overdue);
+  const shown = all ? [...busy, ...clear] : busy;
+  return (
+    <>
+      {shown.length ? (
+        <div className="oh-rows">
+          {shown.map((x) => (
+            <div className="oh-row" key={x.id}>
               <Glyph kind={x.kind} />
-              <div><b>{x.name}</b><span>{x.responsibilities ?? KIND_LABEL[x.kind]}</span></div>
-              <div className="oh-svc">{x.overdue ? <Chip tone="flame">{x.overdue} overdue</Chip> : null}{x.open ? <Chip plain>{x.open} open</Chip> : <Chip plain tone="green">Clear</Chip>}</div>
+              <div className="oh-row-main"><b>{x.name}</b><span>{x.responsibilities ?? KIND_LABEL[x.kind]}</span></div>
+              <div className="oh-row-meta">{x.overdue ? <Chip tone="flame">{x.overdue} overdue</Chip> : null}{x.open ? <Chip plain>{x.open} open</Chip> : <Chip plain tone="green">Clear</Chip>}</div>
             </div>
           ))}
         </div>
-      </Section>
-      {mods.includes("training") ? <Training p={p} d={d} reload={o.reload} /> : null}
+      ) : null}
+      {clear.length ? <button type="button" className="oh-more" aria-expanded={all} onClick={() => setAll((v) => !v)}>{all ? "Show only partners with open work" : busy.length ? `${clear.length} more ${clear.length === 1 ? "partner has" : "partners have"} nothing open` : `All ${clear.length} partners: nothing open`}</button> : null}
     </>
   );
 }
@@ -266,15 +270,21 @@ function NetworkMap({ facilities, referrals, selected, onSelect }: { facilities:
     const pins = markers.current;
     void Promise.all([import("maplibre-gl"), import("@/sp/map/ground")]).then(([ml, g]) => {
       if (gone || !el.current) return;
+      ml.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs"); /* without it the referral lines (GeoJSON) never load */
       const lng = placed.map((f) => f.lng!), lat = placed.map((f) => f.lat!);
       map = new ml.Map({ container: el.current, style: { ...g.groundStyle(), glyphs: g.GLYPHS }, bounds: [[Math.min(...lng) - 0.03, Math.min(...lat) - 0.03], [Math.max(...lng) + 0.03, Math.max(...lat) + 0.03]], fitBoundsOptions: { padding: 40 }, attributionControl: { compact: true }, cooperativeGestures: true });
       map.addControl(new ml.NavigationControl({ showCompass: false }), "top-right");
-      map.on("load", () => {
-        if (!map) return;
+      /* Referral lines need the style, not the base map's tiles: draw them as soon as the style is parsed. */
+      const lines = () => {
+        if (!map || map.getSource("ref")) return;
         const at = new Map(placed.map((f) => [f.id, [f.lng!, f.lat!] as [number, number]]));
         map.addSource("ref", { type: "geojson", data: { type: "FeatureCollection", features: referrals.filter((r) => at.has(r.from) && at.has(r.to)).map((r) => ({ type: "Feature", properties: { s: r.service }, geometry: { type: "LineString", coordinates: [at.get(r.from)!, at.get(r.to)!] } })) } });
         map.addLayer({ id: "ref", type: "line", source: "ref", paint: { "line-color": "#2457ce", "line-width": 1.6, "line-opacity": 0.55, "line-dasharray": [2, 2] } });
-      });
+      };
+      const tryLines = () => { try { lines(); } catch { /* not parsed yet */ } };
+      map.on("styledata", tryLines); map.once("load", tryLines);
+      /* the streets and water beneath the facilities, as on every map in the product */
+      map.on("styledata", () => { if (map && map.getLayer("ref") && !map.getLayer("g-land")) void g.drawGround(map, "ref"); });
       for (const f of placed) {
         const b = document.createElement("button");
         b.type = "button"; b.className = "oh-pin"; b.dataset.kind = f.kind; b.style.background = tone(f);
@@ -297,7 +307,7 @@ function NetworkMap({ facilities, referrals, selected, onSelect }: { facilities:
         <span><i style={{ background: "#e0a530" }} />Limited or not confirmed</span>
         <span><i style={{ background: "#d9452b" }} />Vaccine not available</span>
         <span><i style={{ background: "#2457ce" }} />Wound washing only</span>
-        <span><i style={{ background: "#5b4bc4", borderRadius: 3 }} />Laboratory</span>
+        <span><i style={{ background: "#5b4bc4", borderRadius: 4 }} />Laboratory</span>
       </div>
     </div>
   );
@@ -430,7 +440,7 @@ function EstimateSheet({ p, area, onClose, onDone }: { p: Prog; area: { id: stri
 }
 
 /* ── Report ────────────────────────────────────────────────────────── */
-export function ProgrammeReport() { return <Suspense><Frame title="Programme report" lede="A printable summary. Every figure comes from the shared record." actions={() => <button type="button" className="oh-btn primary" onClick={() => window.print()}><Printer size={16} aria-hidden />Print or save as PDF</button>}>{(p) => <ReportBody p={p} />}</Frame></Suspense>; }
+export function ProgrammeReport() { return <Suspense><Frame title="Programme report" lede="A printable summary. Every figure comes from the shared record." actions={() => <><PeriodPicker /><button type="button" className="oh-btn primary" onClick={() => window.print()}><Printer size={16} aria-hidden />Print or save as PDF</button></>}>{(p) => <ReportBody p={p} />}</Frame></Suspense>; }
 
 function ReportBody({ p }: { p: Prog }) {
   const sp = useSearchParams();
@@ -440,9 +450,9 @@ function ReportBody({ p }: { p: Prog }) {
   if (o.error || !o.data) return <Failed error={o.error ?? "Could not read the programme."} retry={o.reload} />;
   const d = o.data;
   return (
-    <article className="oh-card pad" style={{ display: "grid", gap: 22 }}>
+    <article className="oh-card pad" style={{ display: "grid", gap: 24 }}>
       <p style={{ color: "var(--muted)" }}>Period {fmtDate(d.since, { day: "numeric", month: "long", year: "numeric" })} to {fmtDate(d.today, { day: "numeric", month: "long", year: "numeric" })} · prepared {fmtTime(new Date().toISOString())}</p>
-      <Section title="Partners and responsibilities"><ul style={{ display: "grid", gap: 6 }}>{d.partners.map((x) => <li key={x.id}><b style={{ color: "var(--ink)" }}>{x.name}</b> · {KIND_LABEL[x.kind]}{x.responsibilities ? `: ${x.responsibilities}` : ""}</li>)}</ul></Section>
+      <Section title="Partners and responsibilities"><ul style={{ display: "grid", gap: 4 }}>{d.partners.map((x) => <li key={x.id}><b style={{ color: "var(--ink)" }}>{x.name}</b> · {KIND_LABEL[x.kind]}{x.responsibilities ? `: ${x.responsibilities}` : ""}</li>)}</ul></Section>
       {d.exposures && d.pep ? <Section title="Human bite care"><dl className="oh-facts">
         <div><dt>Bite exposures</dt><dd>{showCount(d.exposures.total)}</dd></div><div><dt>Category III</dt><dd>{showCount(d.exposures.category_iii)}</dd></div>
         <div><dt>Courses prescribed</dt><dd>{showCount(d.pep.courses)}</dd></div><div><dt>Completion</dt><dd>{d.pep.completion_rate === null ? "Too few to show" : pct(d.pep.completion_rate)}</dd></div>
@@ -481,7 +491,7 @@ function DataBody({ p }: { p: Prog }) {
   };
   return (
     <>
-      <div className="oh-actions" style={{ marginBottom: 16 }}><button type="button" className="oh-btn primary" onClick={csv} disabled={!rows.length}><Download size={16} aria-hidden />Download CSV</button><span style={{ color: "var(--muted)", fontSize: 12.5, alignSelf: "center" }}>{rows.length} rows since {fmtDate(x.data.since, { day: "numeric", month: "short", year: "numeric" })}{p.illustrative ? " · illustrative" : ""}</span></div>
+      <div className="oh-actions" style={{ marginBottom: 16 }}><button type="button" className="oh-btn primary" onClick={csv} disabled={!rows.length}><Download size={16} aria-hidden />Download CSV</button><span style={{ color: "var(--muted)", fontSize: 12, alignSelf: "center" }}>{rows.length} rows since {fmtDate(x.data.since, { day: "numeric", month: "short", year: "numeric" })}{p.illustrative ? " · illustrative" : ""}</span></div>
       {rows.length ? <div className="oh-table-wrap" style={{ maxHeight: 560 }}><table className="oh-table"><thead><tr><th>Week</th><th>Area</th><th>Animal</th><th>Category</th><th className="r">Exposures</th></tr></thead><tbody>{rows.slice(0, 300).map((r, i) => <tr key={i}><td>{fmtDate(r.week)}</td><td>{r.area}</td><td>{r.species}</td><td>{r.category}</td><td className="r">{showCount(r.exposures)}</td></tr>)}</tbody></table></div> : <Empty title="No exposures in the last year" />}
     </>
   );

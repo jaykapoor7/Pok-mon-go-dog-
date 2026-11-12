@@ -139,7 +139,7 @@ export function FieldMap({ variant = "community", scope = "public", lenses = MAP
       const collection:GeoJSON.FeatureCollection={type:'FeatureCollection',features:zones.map(z=>({type:'Feature',properties:{id:z.id,name:z.name,status:z.status},geometry:z.geometry}))};
       if(map.getSource('working-zones'))(map.getSource('working-zones') as GeoJSONSource).setData(collection);
       else{map.addSource('working-zones',{type:'geojson',data:collection});map.addLayer({id:'working-zones-fill',type:'fill',source:'working-zones',paint:{'fill-color':'#2457ce','fill-opacity':0.08}});map.addLayer({id:'working-zones-line',type:'line',source:'working-zones',paint:{'line-color':'#2457ce','line-width':2}})}
-      const selected=zones.find(z=>z.id===params.get('zone'));if(selected){const points=selected.geometry.coordinates.flat(2);map.fitBounds([[Math.min(...points.map(p=>p[0])),Math.min(...points.map(p=>p[1]))],[Math.max(...points.map(p=>p[0])),Math.max(...points.map(p=>p[1]))]],{padding:50,maxZoom:15,duration:0})}
+      const selected=zones.find(z=>z.id===params.get('zone'));if(selected){const points=selected.geometry.coordinates.flat(2);map.fitBounds([[Math.min(...points.map(p=>p[0])),Math.min(...points.map(p=>p[1]))],[Math.max(...points.map(p=>p[0])),Math.max(...points.map(p=>p[1]))]],{padding:48,maxZoom:15,duration:0})}
     })();return()=>{live=false};
   },[ready,scope,params,zoneUser]);
 

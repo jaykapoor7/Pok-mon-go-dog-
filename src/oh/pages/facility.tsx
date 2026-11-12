@@ -9,7 +9,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
 import { Check, Megaphone, Phone, Siren, Stethoscope, Syringe } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { AskKaju, DailyHead, NeedsYou, type DailyRow } from "@/sp/ui/Daily";
+import { DailyHead, NeedsYou, type DailyRow } from "@/sp/ui/Daily";
 import { Seg as Seg2 } from "@/sp/ui/Page";
 import { usePlaces, primaryProgramme, isFacility } from "../places";
 import { call, daysFrom, fmtDate, relDay, today, useRead, AGE, COURSE, EXPOSURE_KIND, REMINDER, SEX, SPECIES, WASHED, type Alert, type Area, type ClinicDue, type DueDose, type Notice, type Place, type RegisterRow } from "../data";
@@ -39,10 +39,12 @@ export function ClinicToday({ place }: { place: Place }) {
   const toast = useToast();
   const t = due.data?.today ?? today();
   const list = due.data?.due ?? [];
-  const dueToday = due.data ? list.filter((d) => d.due_on === t).length : undefined;
   const overdue = due.data ? list.filter((d) => d.due_on < t).length : undefined;
   const canDose = place.capabilities.includes("record_dose");
-  const mine = (alerts.data ?? []).filter((a) => a.organisation_id === id || a.kind === "positive_result");
+  const canAssess = place.capabilities.includes("assess");
+  /* This facility's own alerts, and confirmed cases anywhere in the programme; one row per kind and area. */
+  const mine = [...(alerts.data ?? []).filter((a) => a.organisation_id === id || a.kind === "positive_result")
+    .reduce((m, a) => { const k = `${a.kind}|${a.area ?? ""}`; const g = m.get(k); if (g) g.n++; else m.set(k, { ...a, n: 1 }); return m; }, new Map<string, Alert & { n: number }>()).values()];
   const refresh = () => { due.reload(); notices.reload(); waiting.reload(); alerts.reload(); reloadPlaces(); };
 
   const logCall = async (args: { p_dose?: string; p_course?: string }, outcome: string) => {
@@ -58,24 +60,20 @@ export function ClinicToday({ place }: { place: Place }) {
      a person today, a line to Kaju, then one working list at a time. */
   const nNotices = notices.data?.filter((n) => n.status === "new").length ?? 0;
   const nWaiting = waiting.data?.length ?? 0;
-  const nDone = due.data?.completed?.filter((c) => !c.told).length ?? 0;
   const [lane, setLane] = useState<"due" | "done" | "notices" | "waiting">("due");
+  /* Needs you: what the lists below do not already show (a confirmed case, vaccine readiness, a lapsed confirmation). Doses, notices,
+     completions and bites waiting are the lists themselves, each once, with its count. */
   const rows: DailyRow[] = [
-    ...mine.slice(0, 2).map((a) => ({ key: a.key, href: a.kind === "pep_readiness" ? `/workspace/${id}/services` : "#oh-work", tone: a.severity === "urgent" ? "flame" : "amber", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}</b>, meta: a.area ?? undefined, tag: a.severity === "urgent" ? "Urgent" : "Attention", verb: "Open" })),
-    ...(overdue ? [{ key: "overdue", href: "#oh-work", tone: "flame", icon: <Syringe size={10} strokeWidth={2.4} />, title: <><b>{overdue} {overdue === 1 ? "dose" : "doses"}</b> past the date set</>, meta: "Call, or record the dose when it is given", tag: "Overdue", verb: "Open the list" }] : []),
-    ...(nWaiting ? [{ key: "waiting", href: `/workspace/${id}/register?filter=needs_assessment`, tone: "violet", icon: <Stethoscope size={10} strokeWidth={2.4} />, title: <><b>{nWaiting} {nWaiting === 1 ? "bite" : "bites"}</b> waiting for a clinician</>, meta: "Category or course not recorded", tag: "Assess", verb: "Open the register" }] : []),
-    ...(nNotices ? [{ key: "notices", href: "#oh-work", tone: "amber", icon: <Megaphone size={10} strokeWidth={2.4} />, title: <><b>{nNotices} {nNotices === 1 ? "notice" : "notices"}</b> from the public</>, meta: "Not medical records", tag: "New", verb: "Answer" }] : []),
-    ...(nDone ? [{ key: "done", href: "#oh-work", tone: "green", icon: <Check size={10} strokeWidth={2.4} />, title: <><b>{nDone} {nDone === 1 ? "course" : "courses"}</b> completed, not yet told</>, meta: "A completion call closes the loop", tag: "Call", verb: "Open" }] : []),
+    ...mine.filter((a) => a.kind !== "doses_overdue" && a.kind !== "courses_completed").slice(0, 3).map((a) => ({ key: a.key, href: a.kind === "pep_readiness" ? `/workspace/${id}/services` : a.kind === "positive_result" ? `/workspace/${id}/register` : "#oh-work", tone: a.severity === "urgent" ? "flame" : "amber", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}{a.n > 1 ? ` (${a.n})` : ""}</b>, meta: a.kind === "positive_result" ? `${a.area ?? "In the programme"} · check bites recorded from this locality` : a.area ?? undefined, tag: a.severity === "urgent" ? "Urgent" : "Attention", verb: a.kind === "positive_result" ? "Open the register" : "Open" })),
   ];
-  const since = due.data ? <><b>{dueToday} due today</b>{overdue ? <>, <b>{overdue} overdue</b></> : null}{nWaiting ? <>, <b>{nWaiting} waiting for a clinician</b></> : null}{nNotices ? <> and <b>{nNotices} {nNotices === 1 ? "notice" : "notices"} from the public</b></> : null}.</> : null;
 
   return (
     <Page illustrative={place.illustrative}>
       <div className="dy">
-        <DailyHead name={user?.name} since={since} loading={!due.data && !due.error} />
+        <DailyHead place={place.short_name ?? place.name} name={user?.name} loading={!due.data && !due.error} />
         {due.error ? <Failed error={due.error} retry={due.reload} /> : null}
-        <NeedsYou rows={rows} clear="Nothing needs you here today." />
-        <AskKaju questions={["Who is overdue for a dose today?", "Which courses finished this week?", "Is vaccine confirmed at our referral hospital?", "Which bites still need a category?"]} />
+        {rows.length ? <NeedsYou rows={rows} /> : null}
+        {/* No Kaju box here: Kaju never reads patient records, doses or courses, so it cannot answer questions about them. */}
 
         <section className="dy-sec" id="oh-work" aria-label="The day's lists">
           <div className="vw-bar">
@@ -83,7 +81,7 @@ export function ClinicToday({ place }: { place: Place }) {
               { id: "due", label: "Doses due", count: list.length, tone: overdue ? "flame" : undefined },
               { id: "done", label: "Completed", count: due.data?.completed?.length ?? 0 },
               { id: "notices", label: "From the public", count: nNotices },
-              { id: "waiting", label: "Waiting", count: nWaiting },
+              ...(canAssess ? [{ id: "waiting" as const, label: "Waiting for a clinician", count: nWaiting }] : []),
             ]} />
           </div>
 
