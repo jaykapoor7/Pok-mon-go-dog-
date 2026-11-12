@@ -49,6 +49,7 @@ import "./app4.css";
 import "./system5.css";
 import "./os.css";
 import "./console.css";
+import "../ui/skin.css";
 
 import {fieldCache} from "@/lib/field/outbox";
 

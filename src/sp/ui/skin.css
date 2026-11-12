@@ -1,0 +1,110 @@
+/* ════════════════════════════════════════════════════════════════════
+   The page skin (loaded after the console): every workflow page drawn in
+   the landing demo's language. White hairline cards on the grey stage,
+   6px apart; blue for the one primary action; small tags; coloured
+   squares; weight 500 for emphasis; rows that pop in one after another.
+   Only looks change here: no layout a page relies on is removed.
+   ════════════════════════════════════════════════════════════════════ */
+.sp.sx3.os.cn {
+  --sk-ink: #0b1e3d; --sk-ink-2: #23304a; --sk-grey: #626775; --sk-line: rgba(11, 30, 61, .06); --sk-line-2: rgba(11, 30, 61, .16);
+  --sk-blue: #2457ce; --sk-blue-2: #1c47ad; --sk-ease: cubic-bezier(.2, .7, .2, 1);
+  --vw-ink: #0b1e3d; --vw-mute: #626775; --vw-line: rgba(11, 30, 61, .08);
+}
+@keyframes sk-pop { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+
+/* ── buttons: blue for the one action, white hairline for the rest ── */
+html .sp.sx3.os.cn .sp-main .btn { min-height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: #fff; box-shadow: inset 0 0 0 1px var(--sk-line-2); color: var(--sk-ink-2); font: 500 13px/1 var(--s3-sans, Inter, system-ui); letter-spacing: -.005em; transition: background .16s, box-shadow .2s, color .16s, transform .14s var(--sk-ease); }
+html .sp.sx3.os.cn .sp-main .btn:hover:not(:disabled) { background: #f7f8fa; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .24); color: var(--sk-ink); }
+html .sp.sx3.os.cn .sp-main .btn.is-s { min-height: 28px; padding: 0 10px; font-size: 12.5px; }
+html .sp.sx3.os.cn .sp-main :is(.btn.is-ink, .btn.is-blue) { background: var(--sk-blue); box-shadow: 0 1px 2px rgba(36, 87, 206, .3); color: #fff; }
+html .sp.sx3.os.cn .sp-main :is(.btn.is-ink, .btn.is-blue):hover:not(:disabled) { background: var(--sk-blue-2); box-shadow: 0 8px 20px -10px rgba(36, 87, 206, .7); color: #fff; }
+html .sp.sx3.os.cn .sp-main .btn.is-flame { background: #c2412a; box-shadow: none; color: #fff; }
+html .sp.sx3.os.cn .sp-main .btn.is-ghost { background: none; box-shadow: none; color: var(--sk-blue); }
+html .sp.sx3.os.cn .sp-main .btn.is-ghost:hover:not(:disabled) { background: #e8eefb; box-shadow: none; }
+html .sp.sx3.os.cn .sp-main .btn:disabled { opacity: .5; }
+html .sp.sx3.os.cn .sp-main .btn:focus-visible { outline: 2px solid var(--sk-blue); outline-offset: 2px; }
+
+/* ── fields ── */
+html .sp.sx3.os.cn .sp-main :is(.input, .select, .textarea, select.input) { min-height: 34px; border: 0; border-radius: 7px; background: #fff; box-shadow: inset 0 0 0 1px var(--sk-line-2); color: var(--sk-ink); font: 400 13.5px/1.4 var(--s3-sans, Inter, system-ui); transition: box-shadow .16s; }
+html .sp.sx3.os.cn .sp-main :is(.input, .select, .textarea):focus { outline: 0; box-shadow: inset 0 0 0 1.5px var(--sk-blue), 0 0 0 3px rgba(36, 87, 206, .12); }
+
+/* ── the page pattern: heads, lanes, rows ── */
+.sp.sx3.os.cn .vw { padding-top: 22px; }
+.sp.sx3.os.cn .vw-sum, .sp.sx3.os.cn .pl-sum, .sp.sx3.os.cn .wq-sum { color: var(--sk-grey); font-size: 13px; }
+.sp.sx3.os.cn :is(.vw-sum, .pl-sum, .wq-sum) b { color: var(--sk-ink); font-weight: 500; }
+.sp.sx3.os.cn .vw-seg { background: #e9ecf1; }
+.sp.sx3.os.cn .vw-seg button[aria-pressed="true"] { font-weight: 500; }
+.sp.sx3.os.cn .vw-seg button[aria-pressed="true"] b { background: var(--sk-blue); }
+.sp.sx3.os.cn .vw-list { display: grid; gap: 6px; border-top: 0; }
+.sp.sx3.os.cn .vw-list > li { border-bottom: 0; animation: sk-pop .52s var(--sk-ease) both; animation-delay: calc(var(--j, 0) * 50ms + 80ms); }
+.sp.sx3.os.cn .vw-row { margin: 0; min-height: 56px; padding: 10px 12px; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px var(--sk-line); transition: box-shadow .2s var(--sk-ease), transform .16s var(--sk-ease); }
+.sp.sx3.os.cn .vw-row:hover { background: #fff; box-shadow: 0 0 0 1px rgba(36, 87, 206, .3), 0 10px 22px -16px rgba(11, 30, 61, .45); }
+.sp.sx3.os.cn .vw-row:active { transform: scale(.995); }
+.sp.sx3.os.cn .vw-row-t b, .sp.sx3.os.cn .vw-row-t > :first-child { color: var(--sk-ink); font-weight: 500; }
+.sp.sx3.os.cn .vw-glyph { width: 20px; height: 20px; border-radius: 5px; background: #64748b; color: #fff; }
+.sp.sx3.os.cn .vw-glyph svg { width: 11px; height: 11px; }
+.sp.sx3.os.cn .vw-glyph[data-tone="flame"] { background: #f05b40; color: #fff; }
+.sp.sx3.os.cn .vw-glyph[data-tone="amber"] { background: #d08a1d; color: #fff; }
+.sp.sx3.os.cn .vw-glyph[data-tone="blue"] { background: #2457ce; color: #fff; }
+.sp.sx3.os.cn .vw-glyph[data-tone="green"] { background: #1f7a4d; color: #fff; }
+.sp.sx3.os.cn .vw-glyph[data-tone="violet"] { background: #6d4fd8; color: #fff; }
+.sp.sx3.os.cn .vw-row:has(> .vw-glyph):not(.rpt-row) { grid-template-columns: 20px minmax(0, 1fr) auto auto 16px; }
+.sp.sx3.os.cn .rpt-row { grid-template-columns: 20px minmax(0, 1fr) auto auto 16px; }
+.sp.sx3.os.cn .vw-empty { border: 0; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px var(--sk-line); }
+
+/* ── tags, in the demo's palette ── */
+.sp.sx3.os.cn :is(.vw-tag, .pl-tag) { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; background: #fff; box-shadow: inset 0 0 0 1px var(--sk-line-2); color: var(--sk-ink-2); font-size: 11.5px; font-weight: 500; line-height: 1; }
+.sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="flame"] { background: #fdece8; color: #c2412a; box-shadow: none; }
+.sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="amber"] { background: #fbf1df; color: #94600f; box-shadow: none; }
+.sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="green"] { background: #e6f3ec; color: #1f7a4d; box-shadow: none; }
+.sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="blue"] { background: #e8eefb; color: var(--sk-blue); box-shadow: none; }
+.sp.sx3.os.cn :is(.vw-tag, .pl-tag)[data-tone="violet"] { background: #efebfc; color: #6d4fd8; box-shadow: none; }
+
+/* ── record codes read in blue, as in the demo's results ── */
+.sp.sx3.os.cn :is(.pl-code, .vw-code) { color: var(--sk-blue); font-family: var(--s3-sans, Inter, system-ui); font-weight: 500; letter-spacing: 0; }
+
+/* ── the board ── */
+.sp.sx3.os.cn .pl-col { border-radius: 10px; }
+.sp.sx3.os.cn .pl-card { border: 0; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px var(--sk-line); }
+.sp.sx3.os.cn .pl-card:hover { box-shadow: 0 0 0 1px rgba(36, 87, 206, .3), 0 10px 22px -16px rgba(11, 30, 61, .45); }
+.sp.sx3.os.cn .pl-card b { font-weight: 500; }
+.sp.sx3.os.cn .pl-col-head h2 { font-weight: 500; }
+
+/* ── the rail: the current stage in blue ── */
+.sp.sx3.os.cn .rail { --rail-ink: #2457ce; }
+.sp.sx3.os.cn .rail li.is-now > a:hover { background: var(--sk-blue-2); }
+
+/* ── animals ── */
+.sp.sx3.os.cn .an-peek-go { border-radius: 7px; background: var(--sk-blue); font-weight: 500; }
+.sp.sx3.os.cn .an-peek-go:hover { background: var(--sk-blue-2); }
+.sp.sx3.os.cn .an-peek { border: 0; border-radius: 10px; box-shadow: 0 0 0 1px var(--sk-line), 0 18px 40px -30px rgba(11, 30, 61, .5); }
+
+/* ── intake ── */
+.sp.sx3.os.cn .ik-row { border: 0; border-radius: 8px; box-shadow: 0 0 0 1px var(--sk-line); }
+.sp.sx3.os.cn .ik-row:hover { box-shadow: 0 0 0 1px rgba(36, 87, 206, .3), 0 10px 22px -16px rgba(11, 30, 61, .45); }
+.sp.sx3.os.cn .ik-row.is-on { box-shadow: inset 0 0 0 1.5px var(--sk-blue); }
+.sp.sx3.os.cn .ik-row.is-on .ik-check { background: var(--sk-blue); }
+.sp.sx3.os.cn .ik-decide, .sp.sx3.os.cn .ik-way { border: 0; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px var(--sk-line); }
+
+/* ── reports ── */
+.sp.sx3.os.cn .rpt-steps i.is-on { background: var(--sk-blue); }
+.sp.sx3.os.cn .rpt-now > :is(section, div):first-child, .sp.sx3.os.cn .ms { border: 0; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px var(--sk-line); }
+
+/* ── the field round: the capture control is the blue one ── */
+.sp.sx3.os.cn .rn-capture { background: linear-gradient(180deg, #2a5fd8, #2457ce); box-shadow: 0 14px 30px -18px rgba(36, 87, 206, .8); }
+.sp.sx3.os.cn .rn-capture:hover { background: linear-gradient(180deg, #2457ce, #1c47ad); }
+.sp.sx3.os.cn .rn-capture-x { color: var(--sk-blue); }
+.sp.sx3.os.cn .rn-btn.is-yes { background: var(--sk-blue); }
+.sp.sx3.os.cn .rn-btn.is-yes:hover:not(:disabled) { background: var(--sk-blue-2); }
+.sp.sx3.os.cn .rn-stop, .sp.sx3.os.cn .rn-phone { border-radius: 10px; }
+.sp.sx3.os.cn .rn-stop { box-shadow: 0 0 0 1px var(--sk-line); }
+
+/* ── queue ── */
+.sp.sx3.os.cn .wk2 :is(.wk2-card, .wk-card) { border-radius: 8px; box-shadow: 0 0 0 1px var(--sk-line); border: 0; }
+
+@media (prefers-reduced-motion: reduce) { .sp.sx3.os.cn .vw-list > li { animation: none; } }
+
+/* ── programme places: one "illustrative" line, the demo's ── */
+.sp.sx3.os.cn .sp-main:has(> .cn-sample) .oh-demo { display: none; }
+.sp.sx3.os.cn .oh-demo { display: block; width: auto; max-width: none; margin: 0 0 16px; padding: 7px 12px; border: 0; border-radius: 6px; background: #fdf5e6; box-shadow: inset 3px 0 0 #e0a43a; color: #8a5a0c; font-size: 12.5px; }
+.sp.sx3.os.cn .oh-demo b { font-weight: 500; }
