@@ -107,16 +107,20 @@ test("desktop sidebar is organised by the work, each place once", async ({page,i
  await expect(foot).toBeVisible();
  await expect(foot.getByRole('status')).toHaveText(/Online|Offline/);
  await expect(foot.getByRole('link',{name:'Help'})).toHaveAttribute('href','/docs');
- /* Nothing floats and nothing is left empty: the sidebar runs the full height and the sheet meets it. */
+ /* As the landing demo draws it: the sidebar runs the full height, and the stage sits just inside it (the demo's 10px inset), never floating away. */
  const [sb,sheet,vh]=await Promise.all([side.locator('.rl-panel').boundingBox(),page.locator('#sp-main').boundingBox(),page.evaluate(()=>window.innerHeight)]);
  expect(sb!.y).toBe(0); expect(Math.round(sb!.height)).toBe(vh);
- expect(Math.abs(sheet!.x-(sb!.x+sb!.width))).toBeLessThanOrEqual(1);
+ const inset=sheet!.x-(sb!.x+sb!.width); expect(inset).toBeGreaterThanOrEqual(0); expect(inset).toBeLessThanOrEqual(12);
  /* Kaju is one button in the top bar and his corner, not a sidebar row. */
  await expect(side.getByRole('link',{name:'Ask Kaju',exact:true})).toHaveCount(0);
  /* Pages inside an area are tabs on the page, not more sidebar rows. */
  await expect(side.getByRole('link',{name:'Map',exact:true})).toHaveCount(0);
  await expect(side.getByRole('link',{name:'Team & settings',exact:true})).toHaveCount(0);
- await expect(side.getByRole('button',{name:'Quick actions'})).toHaveCount(0);
+ /* One Quick actions button, as in the landing demo; it opens the same index as search. */
+ await expect(side.getByRole('button',{name:'Quick actions'})).toHaveCount(1);
+ await side.getByRole('button',{name:'Quick actions'}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();
+ await page.keyboard.press('Escape');
 });
 test("mobile sections close without losing workspace and hide admin tools",async({page,isMobile})=>{
  test.skip(!isMobile,'mobile sections');await page.goto('/ngo');await page.getByRole('button',{name:'Workspace sections',exact:true}).click();

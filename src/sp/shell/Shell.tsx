@@ -49,6 +49,7 @@ import "./app4.css";
 import "./system5.css";
 import "./os.css";
 import "./console.css";
+import "../ui/skin.css";
 
 import {fieldCache} from "@/lib/field/outbox";
 
@@ -74,7 +75,7 @@ function placeRows(links: PlaceLink[], fallbackSection?: string): NavRow[] {
   let last: string | undefined;
   return links.map((l) => {
     const sec = l.section ?? fallbackSection;
-    const row: NavRow = { item: { href: l.href, label: l.label, icon: l.icon, exact: l.exact, count: l.count, countTone: l.tone, short: l.short, more: l.more }, label: sec && sec !== last ? sec : undefined };
+    const row: NavRow = { item: { href: l.href, label: l.label, icon: l.icon, section: sec, exact: l.exact, count: l.count, countTone: l.tone, short: l.short, more: l.more }, label: sec && sec !== last ? sec : undefined };
     last = sec;
     return row;
   });
@@ -236,6 +237,24 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   const sideHrefs = new Set(nav.map((r) => r.item.href));
   const goBack = () => { if (visits.current > 1) router.back(); else router.push(here && here.href !== path ? here.href : section && section.href !== path ? section.href : def.home); };
   const onAssistant = path === "/assistant";
+  const sample = !!(ws === "health" ? place : ngoPlace ?? cityPlace)?.illustrative;
+  /* Open pages, as tabs: the pages visited this session, in the order they were opened, at most five. */
+  const [tabs, setTabs] = useState<{ href: string; label: string }[]>([]);
+  useEffect(() => { try { const v = JSON.parse(sessionStorage.getItem("sp.tabs.v1") ?? "[]"); if (Array.isArray(v)) setTabs(v.filter((x) => x && typeof x.href === "string" && typeof x.label === "string")); } catch { /* storage unavailable: tabs start empty */ } }, []);
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const label = (document.title.split(/,| · | \| /)[0] ?? "").trim() || def.label;
+      setTabs((prev) => {
+        const i = prev.findIndex((x) => x.href === path);
+        const next = i >= 0 ? prev.map((x, k) => (k === i ? { ...x, label } : x)) : [...prev, { href: path, label }].slice(-5);
+        try { sessionStorage.setItem("sp.tabs.v1", JSON.stringify(next)); } catch { /* not kept */ }
+        return next;
+      });
+    }, 350);
+    return () => window.clearTimeout(t);
+  }, [path, def.label]);
+  const closeTab = (href: string) => setTabs((prev) => { const next = prev.filter((x) => x.href !== href); try { sessionStorage.setItem("sp.tabs.v1", JSON.stringify(next)); } catch { /* not kept */ } return next; });
+  const tabList = tabs.some((x) => x.href === path) ? tabs : [...tabs, { href: path, label: "" }];
   /* The Pipeline's views share one breadcrumb: NGO / Pipeline / the view. */
   const pipeView = ws === "ngo" ? pipelineView(path) : undefined;
 
@@ -282,18 +301,21 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
               <span><b>{wsTitle}</b><small>{wsSub}</small></span>
             </Link>
             )}
+            {/* Quick actions: search, jump anywhere, start anything (⌘K). */}
+            <button type="button" className="cn-quick" onClick={() => setFind(true)} aria-keyshortcuts="Control+K Meta+K"><span>Quick actions</span><kbd aria-hidden>⌘K</kbd></button>
             <Suspense fallback={<SideNav nav={nav} path={path} search="" collapsed={collapsed} onAssistant={onAssistant} label={def.label} />}>
               <SideNavLive nav={nav} path={path} collapsed={collapsed} onAssistant={onAssistant} label={def.label} />
             </Suspense>
-            {/* Everything else in this workspace is one organised index, not a list of features under "More". */}
-            {ws !== "health" || ownNgoPlace ? <button type="button" className="rl-all" onClick={() => { setBrowse(true); setFind(true); }}><LayoutGrid size={15} aria-hidden /><span>All sections</span></button> : null}
+            {/* Platform: Kaju, the team, and the index of everything else. */}
+            <div className="cn-plat">
+              <p>Platform</p>
+              {!onAssistant && <button type="button" className={`cn-kaju${cheer ? " is-cheer" : ""}${ai.open ? " is-open" : ""}`} onClick={() => ai.toggle()} aria-label="Open Kaju" aria-pressed={ai.open} aria-keyshortcuts="Control+J Meta+J">
+                <span className="cn-sq" data-c="ink" aria-hidden><Sparkles strokeWidth={2.2} /></span><span>Kaju</span><kbd aria-hidden>⌘J</kbd>
+              </button>}
+              {ws === "ngo" && mem.role === "admin" ? <Link href="/ngo/team" aria-current={path.startsWith("/ngo/team") ? "page" : undefined}><span className="cn-sq" data-c="slate" aria-hidden><Users strokeWidth={2.2} /></span><span>Team</span></Link> : null}
+              {ws !== "health" || ownNgoPlace ? <button type="button" className="rl-all" onClick={() => { setBrowse(true); setFind(true); }}><LayoutGrid size={16} aria-hidden /><span>All sections</span></button> : null}
+            </div>
             <span className="cn-fill" aria-hidden />
-            {/* Kaju has a place of his own in the frame; he moves into the panel when it opens. */}
-            {!onAssistant && <button type="button" className={`cn-kaju${cheer ? " is-cheer" : ""}${ai.open ? " is-open" : ""}`} onClick={() => ai.toggle()} aria-label="Open Kaju" aria-pressed={ai.open} aria-keyshortcuts="Control+J Meta+J">
-              <span className="cn-kaju-fig" aria-hidden>{ai.open ? <KajuFace size={34} /> : cheer ? <KajuPresence state="success" size={58} /> : <KajuPresence sequence="arrive" size={58} />}</span>
-              <span className="cn-kaju-t"><b>Ask Kaju</b><small>{ai.open ? "Open beside the page" : "Finds, checks and prepares"}</small></span>
-              <kbd aria-hidden>⌘J</kbd>
-            </button>}
             <div className="cn-me">
               <Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} side />
               <button type="button" className="sx3-icon" onClick={toggleSide} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Keep the menu open" : "Tuck the menu away"}>{collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}</button>
@@ -321,14 +343,27 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </div>
             ) : <span className="sp-ws sx3-ws-m sx3-ws-static"><i aria-hidden style={{ background: def.ink }} /><span>{def.label}</span></span>}
             {!atHome && <button type="button" className="sx5-back" onClick={goBack} aria-label="Back to the previous page"><ArrowLeft size={16} aria-hidden /><span>Back</span></button>}
-            <nav className="sx3-crumb" aria-label="Breadcrumb">
-              <Link href={def.home}>{def.label}</Link>
-              {pipeView ? <>{pipeView.href !== "/ngo/pipeline" && <><span aria-hidden>/</span><Link href="/ngo/pipeline">Pipeline</Link></>}<span aria-hidden>/</span>{pipeView.href === path ? <span aria-current="page">{pipeView.href === "/ngo/pipeline" ? "Pipeline" : pipeView.label}</span> : <><Link href={pipeView.href}>{pipeView.label}</Link><span aria-hidden>/</span><span aria-current="page">{path === "/ngo/cases/new" ? "New case" : "Record"}</span></>}</> : <>
-              {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
-              {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? (here as Destination).group : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
-              </>}
-              {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
-            </nav>
+            {/* The pages you have open, as tabs; the open one carries the breadcrumb. */}
+            <div className="cn-tabs">
+              {tabList.map((t) => t.href === path ? (
+                <div key={t.href} className="cn-tab is-on">
+                  <nav className="sx3-crumb" aria-label="Breadcrumb">
+                    {atHome ? <span aria-current="page">Today</span> : <Link href={def.home}>{def.label}</Link>}
+                    {pipeView ? <>{pipeView.href !== "/ngo/pipeline" && <><span aria-hidden>/</span><Link href="/ngo/pipeline">Pipeline</Link></>}<span aria-hidden>/</span>{pipeView.href === path ? <span aria-current="page">{pipeView.href === "/ngo/pipeline" ? "Pipeline" : pipeView.label}</span> : <><Link href={pipeView.href}>{pipeView.label}</Link><span aria-hidden>/</span><span aria-current="page">{path === "/ngo/cases/new" ? "New case" : "Record"}</span></>}</> : <>
+                    {section&&section.href!==here?.href&&section.href!==def.home&&<><span aria-hidden>/</span><Link href={section.href}>{section.label}</Link></>}
+                    {here && here.href !== def.home && <><span aria-hidden>/</span>{here.href===path?<span aria-current="page">{here.query ? (here as Destination).group : here.label}</span>:<><Link href={here.href}>{here.label}</Link><span aria-hidden>/</span><span aria-current="page">Record</span></>}</>}
+                    </>}
+                    {onAssistant && here?.href !== "/assistant" && <><span aria-hidden>/</span><span aria-current="page">Kaju</span></>}
+                  </nav>
+                </div>
+              ) : (
+                <span key={t.href} className="cn-tab">
+                  <Link href={t.href} className="cn-tab-a">{t.label}</Link>
+                  <button type="button" className="cn-tab-x" aria-label={`Close the tab ${t.label}`} onClick={() => closeTab(t.href)}><X size={12} aria-hidden /></button>
+                </span>
+              ))}
+              <button type="button" className="cn-tab-new" aria-label="Quick actions" title="Quick actions (⌘K)" onClick={() => setFind(true)}><Plus size={14} aria-hidden /></button>
+            </div>
             <button type="button" className="sp-find sx3-find" onClick={() => setFind(true)} aria-label="Search animals, places, cases and organisations" aria-keyshortcuts="Control+K Meta+K /">
               <Search size={15} aria-hidden /><span>Search records</span><kbd>⌘K</kbd>
             </button>
@@ -341,7 +376,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
           </header>
 
           <AmbientLight />
-          <main id="sp-main" className="sp-main" tabIndex={-1}><SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{isFlush ? children : <div className="os-page" key={path}>{children}</div>}</Fragment></main>
+          <main id="sp-main" className="sp-main" tabIndex={-1}>{sample ? <p className="cn-sample"><b>Sample programme</b> · illustrative records, not live programme data</p> : null}<SectionTabs path={path} role={mem.role} reviewer={mem.reviewer} listed={sideHrefs} /><Fragment key={`${user?.id??"public"}:${mem.org?.id??"none"}:${mem.role??"none"}:${mem.reviewer}`}>{isFlush ? children : <div className="os-page" key={path}>{children}</div>}</Fragment></main>
           <StatusFoot place={ws === "health" ? (place?.short_name ?? place?.name ?? null) : ws === "ngo" ? (mem.org?.name ?? null) : ws === "city" ? "Municipal review" : null} programme={(ws === "health" ? place : ngoPlace ?? cityPlace)?.programmes[0]?.name ?? null} illustrative={!!(ws === "health" ? place : ngoPlace ?? cityPlace)?.illustrative} onFind={() => setFind(true)} onKaju={() => ai.toggle()} onGuide={guided ? () => window.dispatchEvent(new Event(FIRSTDAY_EVENT)) : undefined} />
         </div>
 
@@ -397,6 +432,9 @@ function StatusFoot({ place, programme, illustrative, onFind, onKaju, onGuide }:
 }
 
 type NavRow = { item: NavItem; label?: string };
+/** The colour of each module's square, as in the product demo on the landing page. */
+const SQ: Record<string, string> = { list: "flame", inbox: "flame", radio: "flame", paw: "blue", map: "violet", file: "green", check: "violet", shield: "violet", phone: "amber", camera: "amber", syringe: "teal", stethoscope: "teal", layers: "teal", gauge: "slate", users: "slate", settings: "slate", flask: "violet", hospital: "teal", building: "slate", book: "green", chart: "green", home: "blue", arrows: "flame", landmark: "slate", activity: "violet", heart: "green", compass: "teal", grad: "green", plus: "blue", sparkles: "ink" };
+
 type SideNavProps = { nav: NavRow[]; path: string; collapsed: boolean; onAssistant: boolean; label: string };
 
 function SideNavLive(p: SideNavProps) {
@@ -432,7 +470,7 @@ function SideNav({ nav, path, search, collapsed, onAssistant, label }: SideNavPr
         const Icon = ICON[n.icon] ?? Home;
         const href = n.query ? `${n.href}?${n.query}` : n.href;
         const key = href;
-        const lead = n.icon === "kaju" ? <span className="sx-kaju-ic" aria-hidden><KajuFace size={16} /></span> : n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : n.tone ? <span className={`sx4-sq t-${n.tone}`} aria-hidden><Icon size={11} strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />;
+        const lead = n.icon === "kaju" ? <span className="sx-kaju-ic" aria-hidden><KajuFace size={16} /></span> : n.step ? <span className="sx5-step" aria-hidden>{n.step}</span> : n.section ? <span className="cn-sq" data-c={n.tone ?? SQ[n.icon] ?? "blue"} aria-hidden><Icon strokeWidth={2.2} /></span> : <Icon size={16} aria-hidden />;
         const link = <Link key={key} href={href} aria-current={isOn(n) ? "page" : undefined} title={collapsed ? n.label : (n as Destination).note}>{lead}<span>{n.label}</span>{n.count ? <b className="sx-count" data-tone={n.countTone} aria-label={`${n.count} waiting`}>{n.count > 99 ? "99+" : n.count}</b> : null}</Link>;
         return sec ? <Fragment key={key}><p className="sx4-sec">{sec}</p>{link}</Fragment> : link;
       })}

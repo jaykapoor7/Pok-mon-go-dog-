@@ -73,7 +73,7 @@ export function placeNav(p: Place, programmeSlug?: string): PlaceLink[] {
   const prog = p.programmes.find((x) => x.slug === programmeSlug) ?? primaryProgramme(p);
   const pr = prog ? `/programme/${prog.slug}` : null;
   const can = (c: string) => p.capabilities.includes(c);
-  const W = "Work", P = "Programme";
+  const W = "Modules", P = "Programme";
   const links: PlaceLink[] = [];
   if (isFacility(p.kind)) {
     const due = (p.doses_due ?? 0) + (p.notices_new ?? 0);
