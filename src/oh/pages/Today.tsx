@@ -77,15 +77,17 @@ function TodayBody({ name }: { name: string }) {
   /* The daily brief, as the landing demo draws it: what needs this person
      across every place they work, each row opening the place where it waits. */
   const short = (p: { short_name?: string | null; name: string }) => p.short_name ?? p.name;
+  /* One row per kind of alert and area: two confirmed cases in one locality are one decision. */
+  type Grouped = Alert & { n: number; programme: { id: string; slug: string; name: string } };
+  const grouped = [...(alerts ?? []).reduce((m, a0) => { const a = a0 as Grouped; const k = `${a.kind}|${a.area ?? ""}|${a.programme.id}`; const g = m.get(k); if (g) g.n++; else m.set(k, { ...a, n: 1 }); return m; }, new Map<string, Grouped>()).values()];
   const rows: DailyRow[] = [
-    ...(alerts ?? []).slice(0, 3).map((a) => ({ key: `a${a.key}`, href: `/programme/${(a as Alert & { programme: { slug: string } }).programme.slug}`, tone: "flame", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}</b>, meta: [a.area, (a as Alert & { programme: { name: string } }).programme.name].filter(Boolean).join(" · "), tag: "Urgent", verb: "Open" })),
+    ...grouped.slice(0, 3).map((a) => ({ key: `a${a.key}`, href: `/programme/${(a as Alert & { programme: { slug: string } }).programme.slug}`, tone: "flame", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}{a.n > 1 ? ` (${a.n})` : ""}</b>, meta: [a.area, (a as Alert & { programme: { name: string } }).programme.name].filter(Boolean).join(" · "), tag: "Urgent", verb: "Open" })),
     ...(ngoPlace ? placeLines(ngoPlace).map((l) => ({ key: `n${l.text}`, href: "/ngo", tone: l.tone, icon: <PawPrint size={10} strokeWidth={2.4} />, title: <><b>{l.n}</b> {l.text}</>, meta: mem.org?.name ?? "Your NGO", verb: "Open" })) : []),
     ...cards.flatMap((p) => placeLines(p).map((l) => ({ key: `${p.organisation_id}${l.text}`, href: placeHome(p), tone: l.tone, icon: <PlaceIcon kind={p.kind} />, title: <><b>{l.n}</b> {l.text}</>, meta: `${short(p)} · ${KIND_LABEL[p.kind]}`, tag: short(p).length <= 18 ? short(p) : undefined, verb: "Open" }))),
   ].slice(0, 8);
-  const kinds = new Set(cards.map((p) => p.kind));
-  const questions = kinds.has("hospital") || kinds.has("clinic") ? ["Which doses are due today across my places?", "Who has not returned for a scheduled dose?", "Is vaccine confirmed at our referral hospital?", "What are partners waiting for from me?"]
-    : kinds.has("laboratory") ? ["Which samples have been on the way longest?", "How many positives this month, by area?", "Which samples are still testing?", "What are partners waiting for from me?"]
-    : ["What needs a decision in my programmes?", "Which facilities have not confirmed vaccine this week?", "Where were rabies cases confirmed this month?", "What are partners waiting for from me?"];
+  /* Kaju reads requests between partners, never a patient record, dose or sample, so it is offered only where those requests arrive. */
+  const asks = ngoPlace || cards.some((p) => oversees(p.kind) || p.kind === "ngo");
+  const questions = ["What are programme partners waiting for?", "Which partner requests are overdue?"];
 
   return (
     <Page illustrative={illustrative}>
@@ -97,7 +99,7 @@ function TodayBody({ name }: { name: string }) {
         ) : (
           <>
             <NeedsYou rows={rows} />
-            <AskKaju questions={questions} />
+            {asks ? <AskKaju questions={questions} /> : null}
             <section className="dy-sec" aria-labelledby="dy-places-h">
               <h2 id="dy-places-h" className="dy-h">Your places</h2>
               <ul className="dy-list">

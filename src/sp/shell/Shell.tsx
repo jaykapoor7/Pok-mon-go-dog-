@@ -31,6 +31,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getMyNgo, getMyRole, isNgoMember } from "@/lib/actions";
 import { designedNav, ORDER, PROFESSIONAL, WORKSPACES, canDiscover, workspaceView, type Destination, currentDestination, currentDest, lastWorkspace, navOn, rememberWorkspace, tabsFor, workspaceFor, type NavItem, type Role, type WorkspaceId } from "./workspaces";
 import { Finder } from "./Finder";
+import { NotificationsButton } from "@/oh/Notifications";
 import { FirstDay, FIRSTDAY_EVENT, type FirstAction } from "./FirstDay";
 import { Notices } from "../ui/Notice";
 import { AiPanel, AiProvider, useAi } from "@/sp3/ai/AiPanel";
@@ -369,6 +370,7 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
             </button>
             <div className="sp-bar-end">
               <button type="button" className="icon-btn sx5-menu-m" aria-label="Workspace sections" onClick={()=>setSheet(true)}><Menu size={18} aria-hidden /></button>
+              {user ? <NotificationsButton /> : null}
               {!onAssistant && <button type="button" className={`sx3-ai-btn${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Kaju"><span className="sx3-ai-kaju" aria-hidden><KajuFace size={24} /></span><span>Ask Kaju</span></button>}
               {def.action && !reporting && (ws !== "ngo" || mem.member) && <Link href={def.action.href} className="sp-action sx3-action">{def.action.href.includes("report") ? <Radio size={15} aria-hidden /> : <Plus size={15} aria-hidden />}<span>{def.action.label}</span></Link>}
               <span className={`sx3-acct-m${user ? "" : " is-out"}`}><Account user={user} org={mem.org} onSignIn={openSignIn} onSignOut={signOut} /></span>

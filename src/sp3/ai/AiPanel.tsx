@@ -188,6 +188,8 @@ function ScopedAiProvider({children,identity,access,refreshScope}:{children:Reac
   const cancel=useCallback(()=>{const pending=locked.current;stop();if(pending)setMsgs(m=>[...m,{id:uid(),role:'assistant',text:'Stopped waiting. No prepared action was confirmed.',reply:{text:'Stopped waiting. No prepared action was confirmed.',engine:'tools',tools:[],citations:[],proposals:[]}}])},[stop,setMsgs]);
   const [draft,setDraft]=useState<string|null>(null);
   const prefill=useCallback((t:string)=>{setDraft(t);setOpen(true)},[]);
+  /* Elsewhere in the page (the guided demo) can ask Kaju a question on the person's behalf: window "sp:kaju-ask" with { q }. */
+  useEffect(()=>{const on=(e:Event)=>{const q=(e as CustomEvent<{q?:string}>).detail?.q;if(typeof q==='string'&&q.trim())void ask(q.trim())};window.addEventListener('sp:kaju-ask',on);return()=>window.removeEventListener('sp:kaju-ask',on)},[ask]);
   const value=useMemo<Ctx>(()=>({open,setOpen,toggle:()=>setOpen(v=>!v),ask,msgs,busy,reset,stop:cancel,model,scope,role:access?.role??null,contextPath,scopeError:access?.error??null,refreshScope,revision,step,draft,prefill}),[draft,prefill,open,ask,msgs,busy,reset,cancel,model,scope,access?.role,access?.error,contextPath,refreshScope,revision,step]);
   return <AiCtx.Provider value={value}>{children}{isRecordingDemo&&<DemoFileViewer/>}</AiCtx.Provider>;
 }

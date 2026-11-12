@@ -1,10 +1,12 @@
 "use client";
 
-/* The guide card for the live demo. It follows the visitor across screens and
-   roles: one step at a time, the control to look at highlighted on the page,
-   Next moving to the next screen (signing in as the next role when the work
-   changes hands). "Roam freely" folds it to a small pill; the visitor can
-   resume, switch role or start again from there. */
+/* The guide for the live demo. It tells one story in chapters and follows
+   the visitor across screens and roles: one chapter at a time, the thing
+   to look at highlighted on the page, Next moving to the next screen and
+   signing in as the next person when the work changes hands (a short
+   chapter card covers the change, so nothing flashes). "Explore freely"
+   folds it to a small pill; the visitor can resume, switch role or start
+   again from there. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Compass, Minus, Sparkles, UserRound } from "lucide-react";
@@ -15,6 +17,7 @@ import "./demo-tour.css";
 
 const pathOf = (p: string) => p.split("?")[0];
 const emailOf = (r: DemoRole) => `demo-${r}@straypaw.invalid`;
+const TRANSIT = "sp.demo.transit";
 
 async function signedInAs(): Promise<string | null> {
   const sb = getSupabase();
@@ -24,7 +27,7 @@ async function signedInAs(): Promise<string | null> {
 
 function findTarget(labels: string[], anywhere: boolean, sel?: string): HTMLElement | null {
   const root = (anywhere ? document : document.querySelector("main")) ?? document;
-  if (sel) { const hit = [...root.querySelectorAll<HTMLElement>(sel)].find((n) => n.offsetParent !== null); if (hit) return hit; }
+  if (sel) { const hit = [...document.querySelectorAll<HTMLElement>(sel)].find((n) => n.offsetParent !== null && !n.closest(".dt, .dt-pill")); if (hit) return hit; }
   const nodes = [...root.querySelectorAll<HTMLElement>("a, button, summary")].filter((n) => !n.closest(".dt, .dt-pill") && n.offsetParent !== null);
   for (const l of labels) {
     const want = l.toLowerCase();
@@ -35,6 +38,22 @@ function findTarget(labels: string[], anywhere: boolean, sel?: string): HTMLElem
   return null;
 }
 
+/* The card that covers a change of person: which chapter, and who is speaking now. */
+function Transit({ i, leaving }: { i: number; leaving: boolean }) {
+  const t = TOUR[i];
+  if (!t) return null;
+  return (
+    <div className={`dt-transit${leaving ? " is-leaving" : ""}`} role="status" aria-live="polite">
+      <div className="dt-transit-in">
+        <p className="dt-transit-k">Chapter {i + 1} of {TOUR_DONE}</p>
+        <h2>{t.chapter}</h2>
+        <p className="dt-transit-who"><i aria-hidden />Now as the {t.who.toLowerCase()}</p>
+        <ol className="dt-transit-dots" aria-hidden>{TOUR.map((x, k) => <li key={x.chapter} className={k < i ? "is-done" : k === i ? "is-on" : undefined} />)}</ol>
+      </div>
+    </div>
+  );
+}
+
 export function DemoTour() {
   const router = useRouter();
   const pathname = usePathname();
@@ -43,6 +62,8 @@ export function DemoTour() {
   const [err, setErr] = useState<string | null>(null);
   const [tabs, setTabs] = useState(false);
   const [found, setFound] = useState(false);
+  const [transit, setTransit] = useState<{ i: number; leaving: boolean } | null>(null);
+  const [asked, setAsked] = useState(false);
   const scrolled = useRef<string>("");
 
   useEffect(() => {
@@ -50,17 +71,31 @@ export function DemoTour() {
     const on = () => setS(readTour());
     window.addEventListener(TOUR_EVENT, on);
     window.addEventListener("storage", on);
+    /* Arriving from a change of person: show the chapter card; the effect below lets the screen through. */
+    try {
+      const v = sessionStorage.getItem(TRANSIT);
+      if (v !== null) { sessionStorage.removeItem(TRANSIT); setTransit({ i: Number(v), leaving: false }); }
+    } catch { /* storage blocked: no chapter card, the screen simply loads */ }
     return () => { window.removeEventListener(TOUR_EVENT, on); window.removeEventListener("storage", on); };
   }, []);
+
+  /* The chapter card stays while the next person is being signed in, then fades after a moment on the new screen. */
+  useEffect(() => {
+    if (!transit || busy) return;
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const t = window.setTimeout(() => setTransit(transit.leaving ? null : { ...transit, leaving: true }), transit.leaving ? (calm ? 0 : 450) : (calm ? 250 : 900));
+    return () => window.clearTimeout(t);
+  }, [transit, busy]);
 
   useEffect(() => { const t = setTimeout(() => setTabs(!!document.querySelector(".sp-tabs")), 300); return () => clearTimeout(t); }, [pathname]);
 
   const step = s && s.step < TOUR_DONE ? TOUR[s.step] : null;
-  /* A step's screen includes the records opened from it (/ngo/verification/…), but /ngo itself does not swallow the whole workspace. */
+  useEffect(() => { setAsked(false); }, [s?.step]);
+  /* A step's screen includes the records opened from it, but /ngo itself does not swallow the whole workspace. */
   const base = step ? pathOf(step.path) : "";
   const onScreen = !!step && (pathname === base || (base.split("/").length > 2 && pathname.startsWith(`${base}/`)) || !!step.within?.some((w) => pathname.startsWith(w)));
 
-  /* Point at the control this step is about, once the screen has its data. */
+  /* Point at the thing this chapter is about, once the screen has its data. */
   useEffect(() => {
     setFound(false);
     if (!s || s.mode !== "guided" || !(step?.point || step?.sel) || !onScreen) return;
@@ -75,7 +110,7 @@ export function DemoTour() {
         el = hit; el.classList.add("sp-tour-hl"); setFound(true);
         const id = `${s.step}:${pathname}`;
         const r = hit.getBoundingClientRect();
-        /* Keep the control clear of the top bar and of this card. */
+        /* Keep it clear of the top bar and of this card. */
         const cardTop = document.querySelector(".dt")?.getBoundingClientRect().top ?? window.innerHeight;
         if (scrolled.current !== id && (r.top < 72 || r.bottom > cardTop - 16)) {
           scrolled.current = id;
@@ -109,10 +144,12 @@ export function DemoTour() {
     setBusy(true);
     const who = await signedInAs();
     if (who !== emailOf(t.role)) {
+      setTransit({ i, leaving: false });
       const e = await enterAs(t.role);
-      if (e) { setErr(e); setBusy(false); return; }
+      if (e) { setErr(e); setBusy(false); setTransit(null); return; }
       writeTour({ mode, step: i, role: t.role });
-      window.location.assign(t.path); /* a fresh load so every screen reads the new role */
+      try { sessionStorage.setItem(TRANSIT, String(i)); } catch { /* fine */ }
+      window.location.assign(t.path); /* a fresh load so every screen reads the new person */
       return;
     }
     writeTour({ mode, step: i, role: t.role });
@@ -128,7 +165,10 @@ export function DemoTour() {
     window.location.assign(DEMO_ROLES[r].home);
   }, [s?.step]);
 
-  if (!s || s.mode === "off" || pathname === "/try") return null;
+  const askKaju = (q: string) => { setAsked(true); window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); };
+
+  const cover = transit ? <Transit i={transit.i} leaving={transit.leaving} /> : null;
+  if (!s || s.mode === "off" || pathname === "/try") return cover;
   const place = tabs ? " has-tabs" : "";
   const roles = (
     <details className="dt-roles">
@@ -141,56 +181,77 @@ export function DemoTour() {
 
   if (s.mode === "roam") {
     return (
-      <div className={`dt-pill${place}`} role="region" aria-label="Guided demo">
-        <button type="button" className="dt-resume" disabled={busy} onClick={() => go(Math.min(s.step, TOUR_DONE - 1))}>
-          <Compass size={15} aria-hidden /> <span>Guided demo</span> <small>{s.step >= TOUR_DONE ? "Start again" : `Resume ${s.step + 1} of ${TOUR_DONE}`}</small>
-        </button>
-        {roles}
-        {err && <p className="dt-err" role="alert">{err}</p>}
-      </div>
+      <>
+        {cover}
+        <div className={`dt-pill${place}`} role="region" aria-label="Guided demo">
+          <button type="button" className="dt-resume" disabled={busy} onClick={() => go(Math.min(s.step, TOUR_DONE - 1))}>
+            <Compass size={15} aria-hidden /> <span>The story</span> <small>{s.step >= TOUR_DONE ? "Watch again" : `Resume · chapter ${s.step + 1} of ${TOUR_DONE}`}</small>
+          </button>
+          {roles}
+          {err && <p className="dt-err" role="alert">{err}</p>}
+        </div>
+      </>
     );
   }
 
   const n = TOUR_DONE;
+  const bar = (at: number) => (
+    <ol className="dt-steps" aria-label={`Chapter ${Math.min(at, n - 1) + 1} of ${n}`}>
+      {TOUR.map((t, k) => <li key={t.chapter} title={t.chapter} className={k < at ? "is-done" : k === at ? "is-on" : undefined} />)}
+    </ol>
+  );
+
   if (!step) {
     return (
-      <aside className={`dt${place}`} aria-label="Guided demo">
-        <div className="dt-top"><span className="dt-k">Guided demo · complete</span><button type="button" className="dt-min" onClick={() => writeTour({ ...s, mode: "roam" })}>Roam freely <Minus size={14} aria-hidden /></button></div>
-        <div className="dt-bar"><i style={{ width: "100%" }} /></div>
-        <h2>That is the full platform</h2>
-        <p className="dt-list">{SHOWN.join(" · ")}</p>
-        <div className="dt-act">
-          <button type="button" className="dt-btn" disabled={busy} onClick={() => go(0)}>Start again</button>
-          <button type="button" className="dt-btn is-go" onClick={() => writeTour({ ...s, mode: "roam" })}>Roam freely</button>
-        </div>
-        <div className="dt-foot">{roles}<a href="/demo" className="dt-link">Talk to us about a pilot</a></div>
-        {err && <p className="dt-err" role="alert">{err}</p>}
-      </aside>
+      <>
+        {cover}
+        <aside className={`dt is-end${place}`} aria-label="Guided demo">
+          <div className="dt-top"><span className="dt-k">The story · complete</span><button type="button" className="dt-min" onClick={() => writeTour({ ...s, mode: "roam" })}>Explore freely <Minus size={14} aria-hidden /></button></div>
+          {bar(n)}
+          <h2>One bite, followed across six institutions</h2>
+          <p>Each person did their own work in their own place, on one shared record, and saw only what their role allows.</p>
+          <ul className="dt-shown">{SHOWN.map((x, k) => <li key={x} style={{ ["--k" as string]: k }}>{x}</li>)}</ul>
+          <div className="dt-act">
+            <button type="button" className="dt-btn" disabled={busy} onClick={() => go(0)}>Watch again</button>
+            <button type="button" className="dt-btn is-go" onClick={() => writeTour({ ...s, mode: "roam" })}>Explore freely <ArrowRight size={15} aria-hidden /></button>
+          </div>
+          <div className="dt-foot">{roles}<a href="https://www.straypaw.org/demo" className="dt-link">Talk to us about a pilot</a></div>
+          {err && <p className="dt-err" role="alert">{err}</p>}
+        </aside>
+      </>
     );
   }
 
   const next = s.step + 1 < n ? TOUR[s.step + 1] : null;
-  const label = !onScreen ? "Take me there" : !next ? "Finish" : next.role !== step.role ? `Next: sign in as ${DEMO_ROLES[next.role].label.toLowerCase()}` : `Next: ${next.title.charAt(0).toLowerCase()}${next.title.slice(1)}`;
+  const label = !onScreen ? "Take me there" : !next ? "Finish the story" : `Next: ${next.chapter}`;
   return (
-    <aside className={`dt${place}`} aria-label="Guided demo" aria-live="polite">
-      <div className="dt-top">
-        <span className="dt-k"><span className="dt-k-l">Guided demo · </span>{s.step + 1} of {n}</span>
-        <span className="dt-role">{DEMO_ROLES[step.role].label}</span>
-        <button type="button" className="dt-min" onClick={() => writeTour({ ...s, mode: "roam" })}>Roam freely <Minus size={14} aria-hidden /></button>
-      </div>
-      <div className="dt-bar" aria-hidden><i style={{ width: `${((s.step + 1) / n) * 100}%` }} /></div>
-      <h2>{step.title}</h2>
-      <p>{step.body}</p>
-      {step.hint && onScreen && <p className="dt-hint"><Sparkles size={14} aria-hidden /> {found ? `${step.hint} It is highlighted on the page.` : step.hint}</p>}
-      <div className="dt-act">
-        <button type="button" className="dt-btn" disabled={busy || s.step === 0} onClick={() => go(s.step - 1)}><ArrowLeft size={15} aria-hidden /> Back</button>
-        <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => go(onScreen ? s.step + 1 : s.step)}>{busy ? "Opening…" : label} {!busy && <ArrowRight size={15} aria-hidden />}</button>
-      </div>
-      <div className="dt-foot">
-        <span className="dt-note">Your place is kept if you roam.</span>
-        {roles}
-      </div>
-      {err && <p className="dt-err" role="alert">{err}</p>}
-    </aside>
+    <>
+      {cover}
+      <aside key={s.step} className={`dt${place}`} aria-label="Guided demo" aria-live="polite">
+        <div className="dt-top">
+          <span className="dt-k">Chapter {s.step + 1} of {n}<span className="dt-k-l"> · {step.chapter}</span></span>
+          <button type="button" className="dt-min" onClick={() => writeTour({ ...s, mode: "roam" })}>Explore freely <Minus size={14} aria-hidden /></button>
+        </div>
+        {bar(s.step)}
+        <p className="dt-who"><i aria-hidden />{step.who}</p>
+        <h2>{step.title}</h2>
+        <p>{step.body}</p>
+        {onScreen && (step.hint || step.ask) ? (
+          <div className="dt-do">
+            {step.hint ? <p className="dt-hint"><Sparkles size={14} aria-hidden /> {step.hint}{found && !step.ask ? " It is highlighted." : ""}</p> : null}
+            {step.ask ? <button type="button" className="dt-kaju" disabled={asked} onClick={() => askKaju(step.ask!)}><Sparkles size={14} aria-hidden />{asked ? "Kaju is answering" : `Ask Kaju: “${step.ask}”`}</button> : null}
+          </div>
+        ) : null}
+        <div className="dt-act">
+          <button type="button" className="dt-btn is-back" aria-label="Previous chapter" disabled={busy || s.step === 0} onClick={() => go(s.step - 1)}><ArrowLeft size={15} aria-hidden /></button>
+          <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => go(onScreen ? s.step + 1 : s.step)}>{busy ? "Opening…" : label} {!busy && <ArrowRight size={15} aria-hidden />}</button>
+        </div>
+        <div className="dt-foot">
+          <span className="dt-note">Every record here is illustrative.</span>
+          {roles}
+        </div>
+        {err && <p className="dt-err" role="alert">{err}</p>}
+      </aside>
+    </>
   );
 }

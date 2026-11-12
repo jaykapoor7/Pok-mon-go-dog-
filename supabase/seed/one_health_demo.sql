@@ -48,6 +48,25 @@ INSERT INTO public.oh_areas (id, parent_id, level, name, source, illustrative)
 SELECT ('f2000000-0000-4000-8000-0000000002' || lpad(i::text, 2, '0'))::uuid, 'f2000000-0000-4000-8000-000000000004', 'locality', n, 'Locality name; boundary not loaded', true
   FROM unnest(ARRAY['Ganapathy', 'Peelamedu', 'Gandhipuram']) WITH ORDINALITY AS t(n, i);
 
+-- Approximate outlines for the illustrative localities, so the programme map can
+-- place bites, confirmed cases and coverage. A small hexagon around each
+-- locality's approximate centre: NOT an official boundary (ward boundaries are a
+-- dependency on the municipal GIS team). Re-runnable.
+UPDATE public.oh_areas a SET geometry = v.g::jsonb, source = 'Approximate locality outline (illustrative); official boundary not loaded'
+  FROM (VALUES
+  ('HSR Layout', '{"type": "Polygon", "coordinates": [[[77.64951, 12.9116], [77.64411, 12.92069], [77.63329, 12.92069], [77.62789, 12.9116], [77.63329, 12.90251], [77.64411, 12.90251], [77.64951, 12.9116]]]}'),
+  ('Koramangala', '{"type": "Polygon", "coordinates": [[[77.63531, 12.9352], [77.62991, 12.94429], [77.61909, 12.94429], [77.61369, 12.9352], [77.61909, 12.92611], [77.62991, 12.92611], [77.63531, 12.9352]]]}'),
+  ('BTM Layout', '{"type": "Polygon", "coordinates": [[[77.62091, 12.9166], [77.61551, 12.92569], [77.60469, 12.92569], [77.59929, 12.9166], [77.60469, 12.90751], [77.61551, 12.90751], [77.62091, 12.9166]]]}'),
+  ('Jayanagar', '{"type": "Polygon", "coordinates": [[[77.59461, 12.9299], [77.58921, 12.93899], [77.57839, 12.93899], [77.57299, 12.9299], [77.57839, 12.92081], [77.58921, 12.92081], [77.59461, 12.9299]]]}'),
+  ('Banashankari', '{"type": "Polygon", "coordinates": [[[77.55761, 12.9255], [77.55221, 12.93459], [77.54139, 12.93459], [77.53599, 12.9255], [77.54139, 12.91641], [77.55221, 12.91641], [77.55761, 12.9255]]]}'),
+  ('Indiranagar', '{"type": "Polygon", "coordinates": [[[77.65161, 12.9784], [77.64621, 12.98749], [77.63539, 12.98749], [77.62999, 12.9784], [77.63539, 12.96931], [77.64621, 12.96931], [77.65161, 12.9784]]]}'),
+  ('Whitefield', '{"type": "Polygon", "coordinates": [[[77.76081, 12.9698], [77.75541, 12.97889], [77.74459, 12.97889], [77.73919, 12.9698], [77.74459, 12.96071], [77.75541, 12.96071], [77.76081, 12.9698]]]}'),
+  ('Malleshwaram', '{"type": "Polygon", "coordinates": [[[77.58211, 13.0031], [77.57671, 13.01219], [77.56589, 13.01219], [77.56048, 13.0031], [77.56589, 12.99401], [77.57671, 12.99401], [77.58211, 13.0031]]]}'),
+  ('Rajajinagar', '{"type": "Polygon", "coordinates": [[[77.56441, 12.9915], [77.55901, 13.00059], [77.54819, 13.00059], [77.54279, 12.9915], [77.54819, 12.98241], [77.55901, 12.98241], [77.56441, 12.9915]]]}'),
+  ('Yelahanka', '{"type": "Polygon", "coordinates": [[[77.60711, 13.1007], [77.60171, 13.10979], [77.59089, 13.10979], [77.58549, 13.1007], [77.59089, 13.09161], [77.60171, 13.09161], [77.60711, 13.1007]]]}')
+  ) v(name, g)
+ WHERE a.name = v.name AND a.level = 'locality' AND a.illustrative AND a.parent_id = 'f2000000-0000-4000-8000-000000000002';
+
 -- ── Programmes ──────────────────────────────────────────────────────────
 INSERT INTO public.oh_programmes (id, slug, name, parent_id, summary, status, vaccination_target, config, plan, illustrative) VALUES
   ('f0000000-0000-4000-8000-000000000001', 'karnataka-demo', 'Karnataka One Health · Illustrative', NULL,

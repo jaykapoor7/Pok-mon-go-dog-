@@ -12,6 +12,7 @@ import { ArrowRight, Download, MapPin, Plus, Printer } from "lucide-react";
 import { usePlaces, oversees } from "../places";
 import { call, fmtDate, fmtTime, num, relDay, select, showCount, useNames, useRead, AUDIENCE, HANDOFF, HANDOFF_KIND, KIND_LABEL, MODULES, ROLE_LABEL, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, type Alert, type Area, type Count, type Handoff, type Kind, type Network, type NetworkFacility, type Overview, type Role } from "../data";
 import { AlertList, Bars, Chip, Empty, Failed, Glyph, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
+import { AreaIntel } from "../AreaMap";
 
 type Prog = { id: string; slug: string; name: string; parent_id: string | null; summary: string | null; status: string; vaccination_target: number; config: { modules?: string[]; suppress_below?: number; followup_due_days?: number; dog_revaccination_days?: number; alert_window_days?: number }; plan: string; illustrative: boolean; time_zone: string };
 const ALL_MODULES = ["bite_care", "laboratory", "followups", "vaccination", "services", "training"];
@@ -111,11 +112,9 @@ function OverviewBody({ p }: { p: Prog }) {
         </Section>
       ) : null}
 
-      {mods.includes("bite_care") && d.exposures?.by_area.length ? (
-        <Section title="Where bites happened" note="By area of exposure">
-          <div className="oh-table-wrap"><table className="oh-table"><tbody>
-            {d.exposures.by_area.map((w) => <tr key={w.area}><td className="strong" style={{ width: 200 }}>{w.area}</td><td><div className="oh-bar"><i style={{ width: `${((typeof w.n === "number" ? w.n : 4) / maxArea) * 100}%`, opacity: w.n === "<5" ? 0.35 : 1 }} /></div></td><td className="r" style={{ width: 120 }}>{showCount(w.n)}</td></tr>)}
-          </tbody></table></div>
+      {mods.includes("bite_care") || mods.includes("laboratory") ? (
+        <Section title="Where to act" note="Bites, confirmed cases and dog vaccination, by area">
+          <AreaIntel programme={p.id} slug={p.slug} d={d} />
         </Section>
       ) : null}
 

@@ -9,6 +9,8 @@
 
 /* greeting */
 .dy-head { animation: dy-fade .42s var(--dy-ease) both; }
+.sp.sx3 .sp-main .dy-place { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 10px; color: var(--dy-grey); font-size: 13px; font-weight: 500; letter-spacing: 0; }
+.sp.sx3 .sp-main .dy-place::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #1b8a7a; }
 .sp.sx3 .sp-main h1.dy-hello { margin: 0; color: var(--dy-ink); font-size: 36px !important; line-height: 1.12 !important; font-weight: 500 !important; letter-spacing: -.035em !important; }
 .dy-hello span { display: block; color: var(--dy-grey); }
 .dy-since { margin: 20px 0 0; max-width: 68ch; color: var(--dy-grey); font-size: 14px; line-height: 1.6; animation: dy-fade .42s var(--dy-ease) .12s both; }

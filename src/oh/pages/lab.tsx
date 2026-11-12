@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Check, FlaskConical, Microscope, Truck } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { AskKaju, DailyHead, NeedsYou } from "@/sp/ui/Daily";
+import { DailyHead, NeedsYou } from "@/sp/ui/Daily";
 import { usePlaces, primaryProgramme } from "../places";
 import { call, fmtDate, fmtTime, relDay, select, useNames, useRead, RESULT, SAMPLE, SAMPLE_TYPE, SPECIES, type Place, type Sample, type SampleEvent } from "../data";
 import { Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
@@ -42,13 +42,13 @@ export function LabQueue({ place }: { place: Place }) {
   return (
     <Page illustrative={place.illustrative}>
       <div className="dy">
-        <DailyHead name={user?.name} since={<><b>{arriving.length} arriving</b>, <b>{received.length} received</b> and <b>{testing.length} testing</b>. Results go back to the team that sent each sample; a positive also alerts coordination.</>} />
+        <DailyHead place={place.short_name ?? place.name} name={user?.name} since={<><b>{arriving.length} arriving</b>, <b>{received.length} received</b> and <b>{testing.length} testing</b>. Results go back to the team that sent each sample; a positive also alerts coordination.</>} />
         <NeedsYou rows={[
           ...(arriving.length ? [{ key: "arr", href: "#arriving", tone: "amber", icon: <Truck size={10} strokeWidth={2.4} />, title: <><b>{arriving.length} {arriving.length === 1 ? "sample" : "samples"}</b> on the way to you</>, meta: "Receive each one as it arrives, or reject it with a reason", tag: "Receive", verb: "Open" }] : []),
           ...(received.length ? [{ key: "rec", href: "#received", tone: "blue", icon: <FlaskConical size={10} strokeWidth={2.4} />, title: <><b>{received.length} received</b>, not yet testing</>, meta: "Start the test when it begins", tag: "Start", verb: "Open" }] : []),
           ...(testing.length ? [{ key: "tst", href: "#received", tone: "violet", icon: <Microscope size={10} strokeWidth={2.4} />, title: <><b>{testing.length} testing</b>, result not recorded</>, meta: "A result needs its method", tag: "Result", verb: "Open" }] : []),
         ]} clear="No sample is waiting for you." />
-        <AskKaju questions={["Which samples have been on the way longest?", "How many positives this month, by area?", "Which samples are still testing?", "Who sent the most samples this quarter?"]} />
+        {/* No Kaju box here: Kaju does not read laboratory samples or results. */}
       </div>
       <div className="oh-grid halves">
         <Section title="Arriving" id="arriving">{arriving.length ? <div className="oh-rows">{arriving.map((s) => row(s, <><button type="button" className="oh-btn small primary" onClick={() => void step(s, "received")}>Receive</button><button type="button" className="oh-btn small" onClick={() => setAct({ s, step: "rejected" })}>Reject</button></>))}</div> : <Empty title="Nothing on its way" />}</Section>

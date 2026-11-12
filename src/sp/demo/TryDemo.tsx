@@ -1,15 +1,18 @@
 "use client";
 
-/* Entry to the live demo. With ?go=1 (the landing page's button) it signs the
-   visitor in and starts the guide straight away; otherwise it offers the
-   guide or a role to roam as. Off the demonstration site it points there. */
+/* Entry to the live demo: the story in one line of chapters, one button to
+   start it, and every role to explore freely. With ?go=1 (the website's
+   "Explore live demo") it signs the visitor in and starts the story
+   straight away. Off the demonstration site it points there. */
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, Compass } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { DEMO_SITE } from "@/lib/demo-site";
 import { DEMO_ROLES, TOUR, type DemoRole } from "./tour";
 import { enterAs, writeTour } from "./state";
 import "./demo-tour.css";
+
+const GROUP_LABEL = { programme: "Programme", health: "Health", animal: "Animal care", government: "Government" } as const;
 
 export function TryDemo() {
   const [busy, setBusy] = useState<string | null>(null);
@@ -18,13 +21,10 @@ export function TryDemo() {
 
   const start = useCallback(async () => {
     setErr(null); setBusy("guide");
-    /* Start with the connected programme; where its sample accounts are not
-       set up, start at the first step whose account signs in. */
-    let i = 0, e = await enterAs(TOUR[0].role);
-    if (e) { const alt = TOUR.findIndex((t) => !t.role.startsWith("oh-")); if (alt > 0) { const e2 = await enterAs(TOUR[alt].role); if (!e2) { i = alt; e = null; } } }
+    const e = await enterAs(TOUR[0].role);
     if (e) { setErr(e); setBusy(null); return; }
-    writeTour({ mode: "guided", step: i, role: TOUR[i].role });
-    window.location.replace(TOUR[i].path);
+    writeTour({ mode: "guided", step: 0, role: TOUR[0].role });
+    window.location.replace(TOUR[0].path);
   }, []);
 
   const roam = useCallback(async (r: DemoRole) => {
@@ -45,30 +45,34 @@ export function TryDemo() {
     return (
       <div className="try">
         <p className="try-k">Live demo</p>
-        <h1 className="s4-h1">The live demo runs on its own site</h1>
-        <p className="s4-lede">It uses a separate sample workspace, so nothing you do there touches real programme records.</p>
-        <div className="s4-actions"><a className="s4-btn is-primary" href="https://demo.straypaw.org/try?go=1">Open the live demo</a><Link className="s4-btn is-line" href="/demo">Book a walkthrough</Link></div>
+        <h1>The live demo runs on its own site</h1>
+        <p className="try-lede">It uses a separate sample programme, so nothing you do there touches real programme records.</p>
+        <div className="try-go"><a className="try-start" href="https://demo.straypaw.org/try?go=1">Open the live demo <ArrowRight size={17} aria-hidden /></a><Link className="s4-btn is-line" href="/demo">Book a walkthrough</Link></div>
       </div>
     );
   }
 
   return (
     <div className="try">
-      <p className="try-k">Live demo</p>
-      <h1 className="s4-h1">See StrayPaw, one role at a time</h1>
-      <p className="s4-lede">A guided walkthrough of an illustrative Bengaluru programme: the coordination cell, a hospital, the field team and the laboratory on one record, then the ABC work the municipal office reviews.</p>
+      <p className="try-k">Live demo · an illustrative city programme</p>
+      <h1>One dog bite, followed across a city.</h1>
+      <p className="try-lede">A bite in one neighbourhood reaches the hospital, the animal team, the laboratory, the programme and the municipal office, each doing their own work on one shared record. Seven short chapters; you are signed in as each person in turn.</p>
       <div className="try-go">
-        {/* A link, so it still starts the guide if pressed before the page is interactive (/try?go=1 starts on load). */}
-        <a href="/try?go=1" role="button" className="s4-btn is-primary" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Signing you in…" : <>Start the guided demo <ArrowRight size={16} aria-hidden /></>}</a>
-        <span><Compass size={15} aria-hidden /> {TOUR.length} steps, about five minutes. Every record is illustrative.</span>
+        {/* A link, so it still starts the story if pressed before the page is interactive (/try?go=1 starts on load). */}
+        <a href="/try?go=1" role="button" className="try-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening the story…" : <>Start the story <ArrowRight size={17} aria-hidden /></>}</a>
+        <small><Clock size={15} aria-hidden /> About three minutes · every record is illustrative</small>
       </div>
       {err && <p className="try-err" role="alert">{err}</p>}
-      <h2 className="try-h">Or explore as</h2>
+      <ol className="try-story" aria-label="The chapters">
+        {TOUR.map((t, i) => <li key={t.chapter} style={{ ["--i" as string]: i }}><b>{t.chapter}</b><small>{t.title}</small></li>)}
+      </ol>
+      <h2 className="try-h">Or explore as anyone in the programme</h2>
       <ul className="try-roles">
         {(Object.keys(DEMO_ROLES) as DemoRole[]).map((r) => (
-          <li key={r}><button type="button" disabled={!!busy} onClick={() => roam(r)}><b>{DEMO_ROLES[r].label}</b><small>{busy === r ? "Signing you in…" : DEMO_ROLES[r].who}</small><ArrowRight size={15} aria-hidden /></button></li>
+          <li key={r}><button type="button" disabled={!!busy} onClick={() => roam(r)}><em>{GROUP_LABEL[DEMO_ROLES[r].group]}</em><b>{DEMO_ROLES[r].label}</b><small>{busy === r ? "Signing you in…" : DEMO_ROLES[r].who}</small><ArrowRight size={15} aria-hidden /></button></li>
         ))}
       </ul>
+      <p className="try-note">Sample accounts on a separate demonstration database. Institutions are named by their role; no record describes a real person.</p>
     </div>
   );
 }

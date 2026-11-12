@@ -3,7 +3,7 @@ import { TryDemo } from "@/sp/demo/TryDemo";
 
 export const metadata = {
   title: "Live demo, StrayPaw",
-  description: "Walk through a sample Bengaluru ABC programme as a field worker, vet, coordinator, programme lead and municipal reviewer.",
+  description: "One dog bite, followed across a city: the hospital, the animal team, the laboratory, the programme and the municipal office on one shared record. An illustrative demonstration.",
   robots: { index: false, follow: false },
 };
 

@@ -1,0 +1,47 @@
+/* Notifications: a bell in the top bar and one calm panel beneath it. */
+.nf { position: relative; display: inline-flex; }
+.nf-btn { position: relative; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 10px; background: transparent; color: #39445a; cursor: pointer; transition: background .15s ease, color .15s ease; }
+.nf-btn:hover, .nf-btn.is-on { background: #eef1f6; color: #0b1e3d; }
+.nf-btn:focus-visible { outline: 2px solid #2457ce; outline-offset: 2px; }
+.nf-badge { position: absolute; top: 3px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #d9481c; color: #fff; font: 600 10px/16px inherit; text-align: center; box-shadow: 0 0 0 2px #fff; animation: nf-pop .4s cubic-bezier(.3, 1.4, .5, 1) both; }
+@keyframes nf-pop { from { transform: scale(.4); opacity: 0; } }
+
+.nf-panel { position: fixed; z-index: 90; top: 64px; right: 12px; width: min(400px, calc(100vw - 24px)); max-height: min(560px, calc(100dvh - 96px)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .08), 0 24px 56px -18px rgba(11, 30, 61, .38); overflow: hidden; transform-origin: top right; animation: nf-in .22s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes nf-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
+.nf-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 8px 18px; }
+.nf-head b { font-size: 15px; font-weight: 600; color: #0b1e3d; letter-spacing: -.01em; }
+.nf-x { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: #5e6575; cursor: pointer; }
+.nf-x:hover { background: #f2f4f8; }
+.nf-body { overflow: auto; padding: 0 8px 8px; }
+.nf-sec h3 { margin: 10px 10px 4px; color: #8a90a0; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.nf-sec ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.nf-sec li { position: relative; display: flex; align-items: center; gap: 4px; border-radius: 10px; animation: nf-row .3s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 30ms); }
+@keyframes nf-row { from { opacity: 0; transform: translateY(3px); } }
+.nf-sec li:hover { background: #f6f8fb; }
+.nf-sec li a { display: flex; flex: 1; align-items: flex-start; gap: 10px; min-width: 0; padding: 9px 10px; color: inherit; text-decoration: none; border-radius: 10px; }
+.nf-sec li a:focus-visible { outline: 2px solid #2457ce; outline-offset: -2px; }
+.nf-sec li span { display: grid; gap: 2px; min-width: 0; }
+.nf-sec li b { color: #0b1e3d; font-size: 13.5px; font-weight: 500; line-height: 1.35; }
+.nf-sec li small { overflow: hidden; color: #5e6575; font-size: 12.5px; line-height: 1.35; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.nf-sec li.is-new b { font-weight: 600; }
+.nf-sec li.is-new::after { content: ""; position: absolute; top: 15px; right: 10px; width: 7px; height: 7px; border-radius: 50%; background: #2457ce; }
+.nf-sec li.is-new:has(.nf-ack)::after { display: none; }
+.nf-dot { flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #2457ce; }
+.nf-dot[data-tone="flame"] { background: #d9481c; box-shadow: 0 0 0 3px rgba(217, 72, 28, .14); }
+.nf-dot[data-tone="amber"] { background: #c98a12; }
+.nf-dot[data-tone="green"] { background: #1f8a4c; }
+.nf-ack { flex: none; height: 28px; margin-right: 6px; padding: 0 10px; border: 0; border-radius: 8px; background: #f2f4f8; color: #23304a; font: 500 12.5px/1 inherit; cursor: pointer; }
+.nf-ack:hover:not(:disabled) { background: #e7ebf2; }
+.nf-ack:disabled { opacity: .6; }
+.nf-empty { display: grid; justify-items: center; gap: 6px; padding: 28px 24px 34px; text-align: center; }
+.nf-empty span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #e8f5ed; color: #1f8a4c; }
+.nf-empty b { color: #0b1e3d; font-size: 14px; font-weight: 600; }
+.nf-empty small { max-width: 30ch; color: #5e6575; font-size: 12.5px; line-height: 1.45; }
+.nf-foot { margin: 0; padding: 10px 18px 12px; border-top: 1px solid rgba(11, 30, 61, .07); color: #8a90a0; font-size: 11.5px; line-height: 1.45; }
+
+@media (max-width: 640px) {
+  .nf-panel { right: 8px !important; left: 8px; width: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nf-badge, .nf-panel, .nf-sec li { animation: none; }
+}

@@ -38,6 +38,9 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
   const [cases, setCases] = useState<RegisterRow[]>([]);
   const [allCities, setAllCities] = useState<string[]>([]);
   const [at, setAt] = useState(0);
+  /* The pages open earlier, read when the dialog opens (never during the first render, which the server also draws). */
+  const [recent, setRecent] = useState<{ href: string; label: string }[]>([]);
+  useEffect(() => { if (!open) return; try { const v = JSON.parse(sessionStorage.getItem("sp.tabs.v1") ?? "[]"); setRecent(Array.isArray(v) ? v : []); } catch { setRecent([]); } }, [open]);
 
   useEffect(() => {
     const d = ref.current; if (!d) return;
@@ -79,7 +82,7 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
     }
     const dests = menu.length ? menu : def.nav.map((d) => ({ href: d.query ? `${d.href}?${d.query}` : d.href, label: d.label }));
     for (const d of dests) if ((!t || d.label.toLowerCase().includes(t)) && !out.some((h) => h.href === d.href)) out.push({ key: `go:${d.href}`, kind: "Go to", title: d.label, detail: def.label, href: d.href, group: t ? undefined : "Go to" });
-    if (!t) { try { const open = JSON.parse(sessionStorage.getItem("sp.tabs.v1") ?? "[]") as { href: string; label: string }[]; for (const r of open.slice().reverse().slice(0, 4)) if (r.label && !out.some((h) => h.href === r.href)) out.push({ key: `re:${r.href}`, kind: "Go to", title: r.label, detail: "Open earlier", href: r.href, group: "Recent" }); } catch { /* no recent pages */ } }
+    if (!t) { try { for (const r of recent.slice().reverse().slice(0, 4)) if (r.label && !out.some((h) => h.href === r.href)) out.push({ key: `re:${r.href}`, kind: "Go to", title: r.label, detail: "Open earlier", href: r.href, group: "Recent" }); } catch { /* no recent pages */ } }
     /* The pages of the person's places (hospital, laboratory, programme): findable by name like any other. */
     for (const pg of pages) if ((t ? pg.label.toLowerCase().includes(t) || pg.detail.toLowerCase().includes(t) : !menu.length) && !out.some((h) => h.href === pg.href)) out.push({ key: `go:${pg.href}`, kind: "Go to", title: pg.label, detail: pg.detail, href: pg.href, group: t ? undefined : "Go to" });
     for (const g of def.index) for (const l of g.links) if (t && l.label.toLowerCase().includes(t) && !def.nav.some((n) => n.href === l.href)) out.push({ key: `go:${l.href}`, kind: "Go to", title: l.label, detail: `${def.label} · ${g.label}`, href: l.href });
@@ -90,7 +93,7 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
       for (const c of cases) out.push({ key: `k:${c.id}`, kind: "Case", title: `${shortCode(c.case_code)} · ${c.condition_class ?? c.title ?? "Open case"}`, detail: [c.animal_name && !/·/.test(c.animal_name) ? c.animal_name : c.straypaw_id, c.zone, c.status_class?.replace(/_/g, " ")].filter(Boolean).join(" · "), href: `/ngo/cases/${c.id}` });
     }
     return out;
-  }, [q, ws, role, reviewer, allCities, places, animals, cases, onAsk, pages, browse, actions, menu]);
+  }, [q, ws, role, reviewer, allCities, places, animals, cases, onAsk, pages, browse, actions, menu, recent]);
 
   useEffect(() => { setAt(0); }, [hits.length]);
   const ai = useAi();
