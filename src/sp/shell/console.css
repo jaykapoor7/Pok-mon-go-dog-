@@ -32,12 +32,12 @@
 
 /* a sample programme says so, as the demo does */
 .sp .sp-main > .cn-sample { max-width: none; width: auto; }
-.cn-sample { display: flex; align-items: center; gap: 8px; margin: 10px 12px 0; padding: 7px 12px; border-radius: 6px; background: #fdf5e6; box-shadow: inset 3px 0 0 #e0a43a; color: #8a5a0c; font: 400 12.5px/1.4 var(--s3-sans, Inter, system-ui); }
+.cn-sample { display: flex; align-items: center; gap: 8px; margin: 12px 12px 0; padding: 8px 12px; border-radius: 4px; background: #fdf5e6; box-shadow: inset 3px 0 0 #e0a43a; color: #8a5a0c; font: 400 12px/1.4 var(--s3-sans, Inter, system-ui); }
 .cn-sample b { font-weight: 500; }
 
 
 /* the coloured squares of the modules, as in the demo */
-.cn-sq { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; background: var(--cn-blue, #2457ce); color: #fff; }
+.cn-sq { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 4px; background: var(--cn-blue, #2457ce); color: #fff; }
 .cn-sq[data-c="flame"] { background: #f05b40; }
 .cn-sq[data-c="blue"] { background: #2457ce; }
 .cn-sq[data-c="teal"] { background: #1f6f80; }
@@ -56,10 +56,10 @@
   .sp.sx3.os.cn .sx3-col::before, .sp.sx3.os.cn .sx3-col::after { display: none; }
 
   /* top: the pages you have open, as tabs */
-  .sp.sx3.os.cn .sp-bar.sx3-top { position: sticky; top: 0; z-index: 30; height: var(--bar); padding: 0 10px 0 0; gap: 8px; border-bottom: 1px solid var(--cn-line); background: rgba(255, 255, 255, .92); color: var(--cn-ink); -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px); }
+  .sp.sx3.os.cn .sp-bar.sx3-top { position: sticky; top: 0; z-index: 30; height: var(--bar); padding: 0 12px 0 0; gap: 8px; border-bottom: 1px solid var(--cn-line); background: rgba(255, 255, 255, .92); color: var(--cn-ink); -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px); }
   .sp.sx3.os.cn .sx5-back { display: none; }
   .sp.sx3.os.cn .cn-tabs { display: flex; align-self: stretch; min-width: 0; flex: 1 1 auto; overflow: hidden; }
-  .cn-tab { position: relative; display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 220px; padding: 0 12px 0 16px; border-right: 1px solid var(--cn-line); color: var(--cn-grey); font: 400 13px/1 var(--s3-sans, Inter, system-ui); white-space: nowrap; text-decoration: none; animation: cn-tab-in .3s var(--cn-ease) both; transition: background .16s, color .16s; }
+  .cn-tab { position: relative; display: flex; align-items: center; gap: 4px; min-width: 0; max-width: 220px; padding: 0 12px 0 16px; border-right: 1px solid var(--cn-line); color: var(--cn-grey); font: 400 14px/1 var(--s3-sans, Inter, system-ui); white-space: nowrap; text-decoration: none; animation: cn-tab-in .3s var(--cn-ease) both; transition: background .16s, color .16s; }
   @keyframes cn-tab-in { from { opacity: 0; transform: translateY(4px); } }
   .cn-tab > span { overflow: hidden; text-overflow: ellipsis; }
   .cn-tab:not(.is-on):hover { background: var(--cn-hover); color: var(--cn-ink); }
@@ -71,55 +71,55 @@
   .cn-tab-x { display: grid; place-items: center; width: 18px; height: 18px; margin-right: -4px; border: 0; border-radius: 4px; background: none; color: var(--cn-mute); cursor: pointer; opacity: 0; transition: opacity .14s, background .14s, color .14s; }
   .cn-tab:hover .cn-tab-x, .cn-tab-x:focus-visible { opacity: 1; }
   .cn-tab-x:hover { background: #e6e9ef; color: var(--cn-ink); }
-  .cn-tab.is-on { max-width: none; flex: 0 1 auto; padding-right: 18px; color: var(--cn-ink); background: #fff; }
+  .cn-tab.is-on { max-width: none; flex: 0 1 auto; padding-right: 16px; color: var(--cn-ink); background: #fff; }
   .cn-tab.is-on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #fff; }
   .cn-tab-new { flex: none; display: grid; place-items: center; width: 40px; border: 0; border-right: 1px solid var(--cn-line); background: none; color: var(--cn-grey); font-size: 16px; cursor: pointer; transition: background .16s, color .16s; }
   .cn-tab-new:hover { background: var(--cn-hover); color: var(--cn-ink); }
   .cn-tab-new:active svg { transform: rotate(90deg); }
   .cn-tab-new svg { transition: transform .3s var(--cn-spring); }
   /* the breadcrumb is the open tab's name */
-  .sp.sx3.os.cn .cn-tab .sx3-crumb { display: flex; align-items: center; gap: 6px; padding: 0; border: 0; color: var(--cn-grey); font: 400 13px/1 var(--s3-sans, Inter, system-ui); min-width: 0; }
+  .sp.sx3.os.cn .cn-tab .sx3-crumb { display: flex; align-items: center; gap: 4px; padding: 0; border: 0; color: var(--cn-grey); font: 400 14px/1 var(--s3-sans, Inter, system-ui); min-width: 0; }
   .sp.sx3.os.cn .cn-tab .sx3-crumb a { color: inherit; text-decoration: none; transition: color .16s; }
   .sp.sx3.os.cn .cn-tab .sx3-crumb a:hover { color: var(--cn-ink); }
   .sp.sx3.os.cn .cn-tab .sx3-crumb [aria-current] { color: var(--cn-ink); font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
   .sp.sx3.os.cn .cn-tab .sx3-crumb > span[aria-hidden] { color: #c3c8d2; }
-  .sp.sx3.os.cn .sp-find.sx3-find { display: inline-flex; flex: 0 1 240px; max-width: 240px; min-height: 30px; height: 30px; margin-left: auto; padding: 0 6px 0 10px; border: 0; border-radius: 7px; background: #f3f4f7; color: var(--cn-grey); font-size: 12.5px; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .06); transition: background .16s, box-shadow .16s, color .16s; }
+  .sp.sx3.os.cn .sp-find.sx3-find { display: inline-flex; flex: 0 1 240px; max-width: 240px; min-height: 30px; height: 30px; margin-left: auto; padding: 0 8px 0 12px; border: 0; border-radius: 8px; background: #f3f4f7; color: var(--cn-grey); font-size: 12px; box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .06); transition: background .16s, box-shadow .16s, color .16s; }
   .sp.sx3.os.cn .sp-find.sx3-find:hover { background: #fff; color: var(--cn-ink); box-shadow: inset 0 0 0 1px var(--cn-line-2), 0 6px 16px -10px rgba(11, 30, 61, .3); }
   .sp.sx3.os.cn .sp-find.sx3-find span { display: inline; flex: 1; text-align: left; }
-  .sp.sx3.os.cn .sp-find.sx3-find kbd { display: inline-block; border: 0; background: #fff; color: var(--cn-grey); font: 500 10.5px var(--s3-sans); padding: 2px 5px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(11, 30, 61, .08); }
-  .sp.sx3.os.cn .sp-bar-end { margin-left: 0; gap: 6px; }
+  .sp.sx3.os.cn .sp-find.sx3-find kbd { display: inline-block; border: 0; background: #fff; color: var(--cn-grey); font: 500 12px var(--s3-sans); padding: 4px 4px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(11, 30, 61, .08); }
+  .sp.sx3.os.cn .sp-bar-end { margin-left: 0; gap: 4px; }
   .sp.sx3.os.cn .sx3-ai-btn { display: none; }
-  .sp.sx3.os.cn .sp-action.sx3-action { height: 30px; padding-inline: 12px; border-radius: 7px; background: var(--cn-blue); color: #fff; font-size: 12.5px; font-weight: 500; box-shadow: none; transition: background .16s, transform .14s var(--cn-ease), box-shadow .2s; }
+  .sp.sx3.os.cn .sp-action.sx3-action { height: 30px; padding-inline: 12px; border-radius: 8px; background: var(--cn-blue); color: #fff; font-size: 12px; font-weight: 500; box-shadow: none; transition: background .16s, transform .14s var(--cn-ease), box-shadow .2s; }
   .sp.sx3.os.cn .sp-action.sx3-action:hover { background: var(--cn-blue-2); box-shadow: 0 8px 20px -12px rgba(36, 87, 206, .7); transform: none; }
   .sp.sx3.os.cn .sp-action.sx3-action:active { transform: scale(.97); }
 
   /* the stage the work sits on */
-  .sp.sx3.os.cn .sp-main { flex: 1; position: relative; margin: 8px 10px 0; border: 0; border-radius: var(--cn-r) var(--cn-r) 0 0; background: var(--cn-stage); background-image: var(--cn-stage) !important; box-shadow: none; }
+  .sp.sx3.os.cn .sp-main { flex: 1; position: relative; margin: 8px 12px 0; border: 0; border-radius: var(--cn-r) var(--cn-r) 0 0; background: var(--cn-stage); background-image: var(--cn-stage) !important; box-shadow: none; }
   .sp.sx3.os.cn.is-flush .sp-main { flex: none; height: calc(100dvh - var(--bar) - var(--cn-foot) - 8px); overflow: hidden; }
   /* bottom */
-  .sp.sx3.os.cn .cn-foot { position: sticky; bottom: 0; z-index: 29; display: flex; align-items: center; gap: 14px; height: var(--cn-foot); padding: 0 18px 0 14px; border-top: 1px solid var(--cn-line); background: #fff; color: var(--cn-grey); font-size: 11.5px; line-height: 1; white-space: nowrap; }
-  .cn-foot-net { display: inline-flex; align-items: center; gap: 7px; color: var(--cn-ink-2); }
+  .sp.sx3.os.cn .cn-foot { position: sticky; bottom: 0; z-index: 29; display: flex; align-items: center; gap: 12px; height: var(--cn-foot); padding: 0 16px 0 16px; border-top: 1px solid var(--cn-line); background: #fff; color: var(--cn-grey); font-size: 12px; line-height: 1; white-space: nowrap; }
+  .cn-foot-net { display: inline-flex; align-items: center; gap: 8px; color: var(--cn-ink-2); }
   .cn-foot-net i { width: 7px; height: 7px; border-radius: 50%; background: #1f7a4d; box-shadow: 0 0 0 3px rgba(31, 122, 77, .14); }
   .cn-foot-net[data-on="false"] { color: #94600f; }
   .cn-foot-net[data-on="false"] i { background: #d08a1d; box-shadow: 0 0 0 3px rgba(208, 138, 29, .18); }
   .cn-foot-where { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .cn-foot-where span { opacity: .55; }
-  .cn-foot-tag { padding: 3px 7px; border-radius: 5px; background: #fbf1df; color: #94600f; font-size: 11px; font-weight: 500; }
+  .cn-foot-tag { padding: 4px 8px; border-radius: 4px; background: #fbf1df; color: #94600f; font-size: 12px; font-weight: 500; }
   .cn-foot-fill { flex: 1; }
-  .cn-foot :is(button, a) { display: inline-flex; align-items: center; gap: 6px; height: 20px; padding: 0 6px; border: 0; border-radius: 5px; background: none; color: inherit; font: inherit; text-decoration: none; cursor: pointer; transition: color .16s, background .16s; }
+  .cn-foot :is(button, a) { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px; border: 0; border-radius: 4px; background: none; color: inherit; font: inherit; text-decoration: none; cursor: pointer; transition: color .16s, background .16s; }
   .cn-foot :is(button, a):hover { background: var(--cn-hover); color: var(--cn-ink); }
   .cn-foot :is(button, a):focus-visible { outline: 2px solid var(--cn-blue); outline-offset: 1px; }
-  .cn-foot kbd { padding: 1px 5px; border-radius: 4px; background: #f3f4f7; color: var(--cn-grey); font: 500 10.5px var(--s3-sans, system-ui); box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .07); }
+  .cn-foot kbd { padding: 1px 4px; border-radius: 4px; background: #f3f4f7; color: var(--cn-grey); font: 500 12px var(--s3-sans, system-ui); box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .07); }
   .cn-foot-time { color: var(--cn-grey); font-variant-numeric: tabular-nums; }
 
   /* ── the sidebar ── */
   .sp.sx3.os.cn .sx3-side { position: sticky; top: 0; z-index: 40; display: block; height: 100dvh; padding: 0; overflow: visible; border: 0; background: none; }
-  .sp.sx3.os.cn .rl-panel { position: absolute; inset: 0 auto 0 0; width: var(--cn-side); display: flex; flex-direction: column; gap: 1px; padding: 14px 12px 10px; color: var(--cn-ink-2); background: #fff; border-right: 1px solid var(--cn-line); overflow: hidden auto; scrollbar-width: none; transition: transform .44s var(--cn-ease), opacity .2s var(--cn-ease), box-shadow .3s; }
+  .sp.sx3.os.cn .rl-panel { position: absolute; inset: 0 auto 0 0; width: var(--cn-side); display: flex; flex-direction: column; gap: 1px; padding: 16px 12px 12px; color: var(--cn-ink-2); background: #fff; border-right: 1px solid var(--cn-line); overflow: hidden auto; scrollbar-width: none; transition: transform .44s var(--cn-ease), opacity .2s var(--cn-ease), box-shadow .3s; }
   .sp.sx3.os.cn .rl-panel::-webkit-scrollbar { display: none; }
   .sp.sx3.os.cn .rl-panel:has(.sx3-acct-menu, .sx3-ws-menu) { overflow: visible; }
   .sp.sx3.os.cn.is-tucked .rl-panel { transform: translateX(-104%); opacity: 0; pointer-events: none; transition: transform .36s var(--cn-ease), opacity .16s var(--cn-ease) .18s; }
   .sp.sx3.os.cn.is-tucked .sx3-side[data-peek] .rl-panel { transform: none; opacity: 1; pointer-events: auto; border-radius: 0 12px 12px 0; box-shadow: 24px 0 60px -30px rgba(11, 30, 61, .4); transition: transform .46s var(--cn-spring), opacity .14s var(--cn-ease); }
-  .sp.sx3.os.cn .rl-handle { position: absolute; left: 0; top: 50%; z-index: 1; width: 14px; height: 60px; margin-top: -30px; padding: 0; border: 0; border-radius: 0 8px 8px 0; display: grid; place-items: center; background: #eef0f3; color: var(--cn-ink); cursor: pointer; pointer-events: none; opacity: 0; transition: opacity .2s, width .2s, background .16s; }
+  .sp.sx3.os.cn .rl-handle { position: absolute; left: 0; top: 50%; z-index: 1; width: 14px; height: 60px; margin-top: -32px; padding: 0; border: 0; border-radius: 0 8px 8px 0; display: grid; place-items: center; background: #eef0f3; color: var(--cn-ink); cursor: pointer; pointer-events: none; opacity: 0; transition: opacity .2s, width .2s, background .16s; }
   .cn-grip { display: grid; gap: 4px; }
   .cn-grip i { width: 3px; height: 3px; border-radius: 50%; background: #8a90a0; }
   .cn-grip i:nth-child(2) { background: var(--cn-blue); }
@@ -132,28 +132,28 @@
   /* the place: a round mark and its name */
   .sp.sx3.os.cn .cn-place { display: block; position: relative; flex: none; margin: 0 0 8px; }
   .sp.sx3.os.cn a.cn-place { display: grid; }
-  .sp.sx3.os.cn .cn-place .sx3-ws-btn, .sp.sx3.os.cn a.cn-place { grid-template-columns: 22px minmax(0, 1fr) 14px; align-items: center; gap: 9px; width: 100%; padding: 5px 6px; border: 0; border-radius: 7px; background: none; box-shadow: none; text-align: left; text-decoration: none; transition: background .16s, transform .14s var(--cn-ease); }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn, .sp.sx3.os.cn a.cn-place { grid-template-columns: 22px minmax(0, 1fr) 14px; align-items: center; gap: 8px; width: 100%; padding: 4px 8px; border: 0; border-radius: 8px; background: none; box-shadow: none; text-align: left; text-decoration: none; transition: background .16s, transform .14s var(--cn-ease); }
   .sp.sx3.os.cn a.cn-place { grid-template-columns: 22px minmax(0, 1fr); }
   .sp.sx3.os.cn .cn-place .sx3-ws-btn:hover, .sp.sx3.os.cn a.cn-place:hover { background: var(--cn-hover); }
   .sp.sx3.os.cn .cn-place .sx3-ws-btn:active { transform: scale(.985); }
   .sp.sx3.os.cn .cn-place .sx3-ws-btn[aria-expanded="true"] { background: var(--cn-on); }
-  .sp.sx3.os.cn .cn-place .os-avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--cn-blue) !important; color: #fff; font: 600 10px/1 var(--s3-sans); box-shadow: none; }
+  .sp.sx3.os.cn .cn-place .os-avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--cn-blue) !important; color: #fff; font: 600 12px/1 var(--s3-sans); box-shadow: none; }
   .sp.sx3.os.cn .cn-place .sx3-ws-btn > span, .sp.sx3.os.cn a.cn-place > span:last-child { display: grid; gap: 1px; min-width: 0; }
   .sp.sx3.os.cn .cn-place b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-ink); font: 500 14px/1.25 var(--s3-sans); letter-spacing: -.01em; }
-  .sp.sx3.os.cn .cn-place small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-grey); font-size: 11.5px; line-height: 1.3; }
+  .sp.sx3.os.cn .cn-place small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-grey); font-size: 12px; line-height: 1.3; }
   .sp.sx3.os.cn .cn-place .sx3-ws-btn > svg { display: block; color: var(--cn-mute); }
   .sp.sx3.os.cn .cn-place .sx3-ws-menu { top: calc(100% + 6px); left: 0; }
 
   /* Quick actions: the one blue button */
-  .sp.sx3.os.cn .cn-quick { flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; height: 32px; margin: 0 0 10px; border: 0; border-radius: 7px; background: var(--cn-blue); color: #fff; font: 500 13px/1 var(--s3-sans); cursor: pointer; box-shadow: 0 1px 2px rgba(36, 87, 206, .3); transition: background .16s, box-shadow .2s, transform .14s var(--cn-ease); }
+  .sp.sx3.os.cn .cn-quick { flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; height: 32px; margin: 0 0 12px; border: 0; border-radius: 8px; background: var(--cn-blue); color: #fff; font: 500 14px/1 var(--s3-sans); cursor: pointer; box-shadow: 0 1px 2px rgba(36, 87, 206, .3); transition: background .16s, box-shadow .2s, transform .14s var(--cn-ease); }
   .sp.sx3.os.cn .cn-quick:hover { background: var(--cn-blue-2); box-shadow: 0 8px 20px -10px rgba(36, 87, 206, .75); }
   .sp.sx3.os.cn .cn-quick:active { transform: scale(.98); }
   .sp.sx3.os.cn .cn-quick:focus-visible { outline: 2px solid var(--cn-blue); outline-offset: 2px; }
-  .sp.sx3.os.cn .cn-quick kbd { padding: 1px 5px; border-radius: 4px; background: rgba(255, 255, 255, .22); color: #fff; font: 500 10.5px var(--s3-sans); }
+  .sp.sx3.os.cn .cn-quick kbd { padding: 1px 4px; border-radius: 4px; background: rgba(255, 255, 255, .22); color: #fff; font: 500 12px var(--s3-sans); }
 
   /* the menu */
   .sp.sx3.os.cn .sx3-nav { position: relative; flex: none; display: flex; flex-direction: column; gap: 1px; margin: 0; overflow: visible; }
-  .sp.sx3.os.cn .sx3-nav a, .sp.sx3.os.cn .cn-plat :is(a, button) { position: relative; z-index: 1; display: flex; align-items: center; justify-content: flex-start; height: 32px; gap: 10px; padding: 0 8px; border: 0; border-radius: 7px; background: none; color: var(--cn-ink-2); font: 400 13.5px/1 var(--s3-sans); letter-spacing: -.005em; text-align: left; text-decoration: none; cursor: pointer; transition: background .24s var(--cn-ease), color .16s; }
+  .sp.sx3.os.cn .sx3-nav a, .sp.sx3.os.cn .cn-plat :is(a, button) { position: relative; z-index: 1; display: flex; align-items: center; justify-content: flex-start; height: 32px; gap: 8px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--cn-ink-2); font: 400 14px/1 var(--s3-sans); letter-spacing: -.005em; text-align: left; text-decoration: none; cursor: pointer; transition: background .24s var(--cn-ease), color .16s; }
   .sp.sx3.os.cn .sx3-nav a > svg, .sp.sx3.os.cn .cn-plat :is(a, button) > svg { flex: none; width: 16px; height: 16px; color: var(--cn-grey); transition: color .18s var(--cn-ease), transform .3s var(--cn-spring); }
   .sp.sx3.os.cn .sx3-nav a > span:not(.cn-sq), .sp.sx3.os.cn .cn-plat :is(a, button) > span:not(.cn-sq) { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sp.sx3.os.cn .sx3-nav a:hover, .sp.sx3.os.cn .cn-plat :is(a, button):hover { background: var(--cn-hover); color: var(--cn-ink); }
@@ -163,38 +163,38 @@
   .sp.sx3.os.cn .sx3-nav a[aria-current="page"] { background: none; color: var(--cn-ink); font-weight: 500; box-shadow: none; }
   .sp.sx3.os.cn .sx3-nav a[aria-current="page"] > svg { color: var(--cn-ink); }
   .sp.sx3.os.cn .sx3-nav:not(.has-ind) a[aria-current="page"] { background: var(--cn-on); }
-  .sp.sx3.os.cn .os-ind { left: 0; right: 0; top: 0; border-radius: 7px; background: var(--cn-on); box-shadow: none; transition: transform .42s var(--cn-spring), height .3s var(--cn-ease), opacity .2s; }
+  .sp.sx3.os.cn .os-ind { left: 0; right: 0; top: 0; border-radius: 8px; background: var(--cn-on); box-shadow: none; transition: transform .42s var(--cn-spring), height .3s var(--cn-ease), opacity .2s; }
   .sp.sx3.os.cn .os-ind::before { display: none; }
-  .sp.sx3.os.cn .sx4-sec, .sp.sx3.os.cn .cn-plat > p { margin: 8px 0 4px; padding: 12px 8px 4px; border: 0; border-top: 1px solid var(--cn-line); background: none; color: var(--cn-grey); font: 400 11.5px/1.4 var(--s3-sans); letter-spacing: 0; text-transform: none; }
-  .sp.sx3.os.cn .sx-count { margin-left: auto; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 4px; background: var(--cn-blue-soft); color: var(--cn-blue); font: 500 11px/18px var(--s3-sans); text-align: center; box-shadow: none; }
+  .sp.sx3.os.cn .sx4-sec, .sp.sx3.os.cn .cn-plat > p { margin: 8px 0 4px; padding: 12px 8px 4px; border: 0; border-top: 1px solid var(--cn-line); background: none; color: var(--cn-grey); font: 400 12px/1.4 var(--s3-sans); letter-spacing: 0; text-transform: none; }
+  .sp.sx3.os.cn .sx-count { margin-left: auto; min-width: 18px; height: 18px; padding: 0 8px; border-radius: 4px; background: var(--cn-blue-soft); color: var(--cn-blue); font: 500 12px/18px var(--s3-sans); text-align: center; box-shadow: none; }
   .sp.sx3.os.cn .sx-count[data-tone="flame"] { background: #fdece8; color: #c2412a; }
   .sp.sx3.os.cn .sx-count[data-tone="amber"] { background: #fbf1df; color: #94600f; }
   .sp.sx3.os.cn .sx3-nav a:focus-visible, .sp.sx3.os.cn .cn-plat :is(a, button):focus-visible, .sp.sx3.os.cn .cn-me .sx3-icon:focus-visible, .sp.sx3.os.cn .cn-place :is(a, button):focus-visible, .sp.sx3.os.cn .sx3-acct-btn:focus-visible { outline: 2px solid var(--cn-blue); outline-offset: -2px; }
 
   /* Platform: Kaju, the team, everything else */
   .sp.sx3.os.cn .cn-plat { display: flex; flex-direction: column; gap: 1px; flex: none; }
-  .sp.sx3.os.cn .cn-plat kbd { margin-left: auto; padding: 1px 5px; border-radius: 4px; background: #f3f4f7; color: var(--cn-grey); font: 500 10.5px var(--s3-sans); box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .07); }
+  .sp.sx3.os.cn .cn-plat kbd { margin-left: auto; padding: 1px 4px; border-radius: 4px; background: #f3f4f7; color: var(--cn-grey); font: 500 12px var(--s3-sans); box-shadow: inset 0 0 0 1px rgba(11, 30, 61, .07); }
   .sp.sx3.os.cn .cn-kaju[aria-pressed="true"] { background: var(--cn-on); color: var(--cn-ink); font-weight: 500; }
   .sp.sx3.os.cn .cn-kaju .cn-sq { position: relative; overflow: visible; }
-  .sp.sx3.os.cn .cn-kaju .cn-sq::after { content: ""; position: absolute; inset: -3px; border-radius: 7px; box-shadow: 0 0 0 1.5px rgba(109, 79, 216, .5); opacity: 0; transform: scale(.8); transition: opacity .2s, transform .3s var(--cn-spring); }
+  .sp.sx3.os.cn .cn-kaju .cn-sq::after { content: ""; position: absolute; inset: -3px; border-radius: 8px; box-shadow: 0 0 0 1.5px rgba(109, 79, 216, .5); opacity: 0; transform: scale(.8); transition: opacity .2s, transform .3s var(--cn-spring); }
   .sp.sx3.os.cn .cn-kaju.is-cheer .cn-sq::after, .sp.sx3.os.cn .cn-kaju[aria-pressed="true"] .cn-sq::after { opacity: 1; transform: none; }
   .sp.sx3.os.cn .rl-all svg { transition: transform .4s var(--cn-spring); }
   .sp.sx3.os.cn .rl-all:hover svg { transform: rotate(90deg); }
   .sp.sx3.os.cn .cn-fill { display: block; flex: 1; min-height: 12px; }
 
   /* you */
-  .sp.sx3.os.cn .cn-me { flex: none; display: flex; align-items: center; gap: 2px; padding-top: 8px; border-top: 1px solid var(--cn-line); }
+  .sp.sx3.os.cn .cn-me { flex: none; display: flex; align-items: center; gap: 4px; padding-top: 8px; border-top: 1px solid var(--cn-line); }
   .sp.sx3.os.cn .cn-me .sp-acct-wrap { flex: 1; min-width: 0; position: relative; }
-  .sp.sx3.os.cn .cn-me .sx3-acct-btn { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 9px; width: 100%; margin: 0; padding: 5px 6px; border: 0; border-radius: 7px; background: none; color: var(--cn-ink); text-align: left; cursor: pointer; transition: background .16s; }
+  .sp.sx3.os.cn .cn-me .sx3-acct-btn { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 8px; width: 100%; margin: 0; padding: 4px 8px; border: 0; border-radius: 8px; background: none; color: var(--cn-ink); text-align: left; cursor: pointer; transition: background .16s; }
   .sp.sx3.os.cn .cn-me .sx3-acct-btn:hover, .sp.sx3.os.cn .cn-me .sx3-acct-btn[aria-expanded="true"] { background: var(--cn-hover); }
-  .sp.sx3.os.cn .cn-me .sx3-avatar { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #e8eefb; color: var(--cn-blue); font: 600 11px/1 var(--s3-sans); }
+  .sp.sx3.os.cn .cn-me .sx3-avatar { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #e8eefb; color: var(--cn-blue); font: 600 12px/1 var(--s3-sans); }
   .sp.sx3.os.cn .cn-me .sx3-acct-txt { display: grid; gap: 1px; min-width: 0; }
-  .sp.sx3.os.cn .cn-me .sx3-acct-txt b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-ink); font: 500 13px/1.25 var(--s3-sans); }
-  .sp.sx3.os.cn .cn-me .sx3-acct-txt small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-grey); font: 400 11.5px/1.3 var(--s3-sans); letter-spacing: 0; }
-  .sp.sx3.os.cn .cn-me .sx3-signin { flex: 1; display: flex; align-items: center; justify-content: center; height: 32px; margin: 0; padding: 0 12px; border: 0; border-radius: 7px; background: var(--cn-ink); color: #fff; font-size: 13px; font-weight: 500; text-decoration: none; transition: transform .14s var(--cn-ease), background .16s; }
+  .sp.sx3.os.cn .cn-me .sx3-acct-txt b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-ink); font: 500 14px/1.25 var(--s3-sans); }
+  .sp.sx3.os.cn .cn-me .sx3-acct-txt small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cn-grey); font: 400 12px/1.3 var(--s3-sans); letter-spacing: 0; }
+  .sp.sx3.os.cn .cn-me .sx3-signin { flex: 1; display: flex; align-items: center; justify-content: center; height: 32px; margin: 0; padding: 0 12px; border: 0; border-radius: 8px; background: var(--cn-ink); color: #fff; font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .14s var(--cn-ease), background .16s; }
   .sp.sx3.os.cn .cn-me .sx3-signin:hover { background: #1b2e52; }
   .sp.sx3.os.cn .cn-me .sx3-signin:active { transform: scale(.98); }
-  .sp.sx3.os.cn .cn-me .sx3-icon { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 7px; background: none; color: var(--cn-grey); cursor: pointer; transition: color .16s, background .16s; }
+  .sp.sx3.os.cn .cn-me .sx3-icon { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 8px; background: none; color: var(--cn-grey); cursor: pointer; transition: color .16s, background .16s; }
   .sp.sx3.os.cn .cn-me .sx3-icon:hover { background: var(--cn-hover); color: var(--cn-ink); }
 }
 /* narrow desktops: the older chrome folded a sidebar to icons here; this one keeps its words */
@@ -205,9 +205,9 @@
   .sp.sx3.os.cn .sx3-nav a span, .sp.sx3.os.cn .cn-place .sx3-ws-btn span, .sp.sx3.os.cn .cn-place .sx3-ws-btn > svg, .sp.sx3.os.cn .cn-me .sx3-acct-txt { display: block; }
   .sp.sx3.os.cn .sx3-nav a .cn-sq { display: grid; }
   .sp.sx3.os.cn .cn-place .sx3-ws-btn > span, .sp.sx3.os.cn .cn-me .sx3-acct-txt { display: grid; }
-  .sp.sx3.os.cn .cn-place .sx3-ws-btn { grid-template-columns: 22px minmax(0, 1fr) 14px; padding: 5px 6px; }
+  .sp.sx3.os.cn .cn-place .sx3-ws-btn { grid-template-columns: 22px minmax(0, 1fr) 14px; padding: 4px 8px; }
   .sp.sx3.os.cn .cn-me .sx3-acct-btn { grid-template-columns: 26px minmax(0, 1fr); }
-  .sp.sx3.os.cn .sx4-sec { margin: 8px 0 4px; padding: 12px 8px 4px; font-size: 11.5px; }
+  .sp.sx3.os.cn .sx4-sec { margin: 8px 0 4px; padding: 12px 8px 4px; font-size: 12px; }
   .sp.sx3.os.cn .cn-foot-where { display: none; }
   .cn-tab { max-width: 150px; }
 }
@@ -219,26 +219,26 @@
 }
 
 /* the index behind "All sections" */
-.sp-finder-list .sp-finder-group { display: block; min-height: 0; padding: 14px 12px 4px; color: #7a8394; font: 600 11.5px/1.4 var(--s3-sans, system-ui); letter-spacing: .01em; white-space: nowrap; cursor: default; }
-.sp-finder-list .sp-finder-group:first-child { padding-top: 6px; }
+.sp-finder-list .sp-finder-group { display: block; min-height: 0; padding: 16px 12px 4px; color: #7a8394; font: 600 12px/1.4 var(--s3-sans, system-ui); letter-spacing: .01em; white-space: nowrap; cursor: default; }
+.sp-finder-list .sp-finder-group:first-child { padding-top: 8px; }
 .sp-finder-list .sp-finder-group:hover { background: none; }
 
 /* one page title everywhere, in the demo's weight (Today keeps its greeting) */
-.sp.sx3.os.cn .sp-main h1:not(.br-hello):not(.db-hello) { font-size: 22px !important; line-height: 1.2 !important; font-weight: 500 !important; letter-spacing: -.025em !important; color: #0b1e3d; }
-@media (max-width: 860px) { .sp.sx3.os.cn .sp-main h1:not(.br-hello):not(.db-hello) { font-size: 21px !important; } }
+.sp.sx3.os.cn .sp-main h1:not(.br-hello):not(.db-hello) { font-size: 24px !important; line-height: 1.2 !important; font-weight: 500 !important; letter-spacing: -.025em !important; color: #0b1e3d; }
+@media (max-width: 860px) { .sp.sx3.os.cn .sp-main h1:not(.br-hello):not(.db-hello) { font-size: 20px !important; } }
 
 /* the queue's header, as a view of the Pipeline */
-.sp.sx3.os.cn .wk2-k { margin-top: 3px; }
-.sp.sx3.os.cn .wk2-ribbon { min-height: 38px; gap: 6px; }
-.sp.sx3.os.cn .wk2-ribbon button { padding: 4px 12px; border-radius: 10px; }
-.sp.sx3.os.cn .wk2-ribbon b { font-size: 17px; font-weight: 500; }
-.sp.sx3.os.cn .wk2-ribbon span { font-size: 12.5px; font-weight: 500; }
+.sp.sx3.os.cn .wk2-k { margin-top: 4px; }
+.sp.sx3.os.cn .wk2-ribbon { min-height: 38px; gap: 4px; }
+.sp.sx3.os.cn .wk2-ribbon button { padding: 4px 12px; border-radius: 8px; }
+.sp.sx3.os.cn .wk2-ribbon b { font-size: 16px; font-weight: 500; }
+.sp.sx3.os.cn .wk2-ribbon span { font-size: 12px; font-weight: 500; }
 
 /* views of a page: plain words on the stage, one ink underline */
 @media (min-width: 861px) {
-  .sp.sx3.os.cn .sx3-tabs { gap: 2px; margin: 0 28px; padding: 8px 0 0; border-bottom: 1px solid rgba(11, 30, 61, .08); }
+  .sp.sx3.os.cn .sx3-tabs { gap: 4px; margin: 0 32px; padding: 8px 0 0; border-bottom: 1px solid rgba(11, 30, 61, .08); }
   .sp.sx3.os.cn.is-flush .sx3-tabs { padding-inline: 0; }
-  .sp.sx3.os.cn .sx3-tabs a { padding: 9px 11px 10px; border: 0; border-radius: 0; background: none; box-shadow: none; color: #626775; font-size: 13px; font-weight: 400; }
+  .sp.sx3.os.cn .sx3-tabs a { padding: 8px 12px 12px; border: 0; border-radius: 0; background: none; box-shadow: none; color: #626775; font-size: 14px; font-weight: 400; }
   .sp.sx3.os.cn .sx3-tabs a:first-child { padding-left: 0; }
   .sp.sx3.os.cn .sx3-tabs a:first-child::after { left: 0; }
   .sp.sx3.os.cn .sx3-tabs a:hover { color: #0b1e3d; }
@@ -254,4 +254,4 @@
 @media (prefers-reduced-motion: reduce) {
   .sp.sx3.os.cn, .sp.sx3.os.cn .rl-panel, .sp.sx3.os.cn .rl-handle, .sp.sx3.os.cn .os-ind, .sp.sx3.os.cn .sx3-nav a, .sp.sx3.os.cn .sx3-nav a > svg, .sp.sx3.os.cn .cn-sq, .sp.sx3.os.cn .rl-all svg, .cn-tab, .cn-tab-new svg { transition: none !important; animation: none !important; }
 }
-@media (max-width: 860px) { .cn-sample { display: block; margin: 10px 16px 0; } }
+@media (max-width: 860px) { .cn-sample { display: block; margin: 12px 16px 0; } }

@@ -69,28 +69,28 @@ export function AreaIntel({ programme, slug, d }: { programme: string; slug: str
   const { areas, mapped, loading } = useAreas(programme, d);
   const [focus, setFocus] = useState<string | null>(null);
   const act = areas.filter((a) => a.reasons.length).slice(0, 5);
-  if (loading) return <div className="oh-map ar-map" aria-busy="true" />;
+  if (loading) return <div className="oh-map wta-map" aria-busy="true" />;
   return (
-    <div className="ar">
+    <div className="wta">
       {mapped ? <AreaMap areas={areas} focus={focus} onFocus={setFocus} target={d.programme.target || 0.7} /> : (
-        <div className="ar-nomap"><b>Area outlines are not loaded</b><span>Bites, confirmed cases and coverage are listed by area. Load ward or locality boundaries in programme setup to see them on a map.</span></div>
+        <div className="wta-nomap"><b>Area outlines are not loaded</b><span>Bites, confirmed cases and coverage are listed by area. Load ward or locality boundaries in programme setup to see them on a map.</span></div>
       )}
-      <div className="ar-side">
+      <div className="wta-side">
         <h3>Areas to act on</h3>
         {act.length ? (
           <ol>
             {act.map((a, i) => (
               <li key={a.id} className={focus === a.id ? "is-on" : undefined} style={{ ["--i" as string]: i }}>
                 <button type="button" onClick={() => setFocus(a.id)} aria-pressed={focus === a.id} disabled={!a.ring}>
-                  <span className="ar-n">{i + 1}</span>
-                  <span className="ar-t"><b>{a.name}</b><span className="ar-why">{a.reasons.map((r) => <em key={r.text} data-tone={r.tone}>{r.text}</em>)}</span></span>
+                  <span className="wta-n">{i + 1}</span>
+                  <span className="wta-t"><b>{a.name}</b><span className="wta-why">{a.reasons.map((r) => <em key={r.text} data-tone={r.tone}>{r.text}</em>)}</span></span>
                 </button>
               </li>
             ))}
           </ol>
-        ) : <p className="ar-none">No area has a confirmed case, an unusual number of bites or coverage below target.</p>}
-        <p className="ar-how">Ranked by confirmed cases, then the number of bites, then the gap to the vaccination target. Counts under the programme&apos;s threshold are not shown.</p>
-        <Link className="ar-go" href={`/programme/${slug}/coverage`}>Coverage by area<ArrowRight size={14} aria-hidden /></Link>
+        ) : <p className="wta-none">No area has a confirmed case, an unusual number of bites or coverage below target.</p>}
+        <p className="wta-how">Ranked by confirmed cases, then the number of bites, then the gap to the vaccination target. Counts under the programme&apos;s threshold are not shown.</p>
+        <Link className="wta-go" href={`/programme/${slug}/coverage`}>Coverage by area<ArrowRight size={14} aria-hidden /></Link>
       </div>
     </div>
   );
@@ -138,17 +138,17 @@ function AreaMap({ areas, focus, onFocus, target }: { areas: Area[]; focus: stri
   }, [focus, drawn]);
   const sel = drawn.find((a) => a.id === focus);
   return (
-    <div className="oh-map ar-map" role="region" aria-label="Map of bites, confirmed cases and dog vaccination by area">
+    <div className="oh-map wta-map" role="region" aria-label="Map of bites, confirmed cases and dog vaccination by area">
       <div ref={el} style={{ position: "absolute", inset: 0 }} />
       <div className="oh-map-legend" aria-hidden>
         <span><i style={{ background: "#2457ce" }} />Bites recorded (size)</span>
         <span><i style={{ background: "transparent", boxShadow: "0 0 0 2px #d9481c" }} />Rabies confirmed</span>
-        <span><i style={{ background: "#7cc38f", borderRadius: 3 }} />Dogs vaccinated, at target</span>
-        <span><i style={{ background: "#f6d7a7", borderRadius: 3 }} />Below target</span>
-        <span><i style={{ background: "#e7eaf0", borderRadius: 3 }} />No population estimate</span>
+        <span><i style={{ background: "#7cc38f", borderRadius: 4 }} />Dogs vaccinated, at target</span>
+        <span><i style={{ background: "#f6d7a7", borderRadius: 4 }} />Below target</span>
+        <span><i style={{ background: "#e7eaf0", borderRadius: 4 }} />No population estimate</span>
       </div>
       {sel ? (
-        <div className="ar-card" role="status">
+        <div className="wta-card" role="status">
           <b>{sel.name}</b>
           <dl>
             <div><dt>Bites</dt><dd>{sel.bites === null ? "None recorded" : showCount(sel.bites)}</dd></div>

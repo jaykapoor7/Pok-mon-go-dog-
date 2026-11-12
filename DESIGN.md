@@ -27,13 +27,31 @@ what they can do (one primary action, verbs on rows) and what happens next
   reduced motion and on map pages).
 - **Type.** One family in the app: Inter, the face of the app shell and the
   website's product window (`--s3-sans` in `src/sp/shell/app4.css`); DM Sans
-  remains on public pages. No serif, no italics.
-  App page title 28-32px/500; section title 15-16px/500; body 14px;
-  meta 12-12.5px. Numbers use tabular figures.
-- **Space.** 4px grid. Page gutter 32px desktop, 16px phone, identical for
-  tabs, headers and tables so everything lines up with the sidebar edge.
-- **Shape.** Radius 8 (controls), 12 (cards), 999 (chips). Hairline
-  borders, shadow only on things that float (menus, drawers, toasts).
+  remains on public pages. No serif, no italics. Numbers use tabular figures.
+  **Sizes come from one scale: 12, 14, 16, 20, 24, 32, 40, 48.** Meta and
+  labels 12; body and table text 14; section titles and primary row text 16;
+  page titles 24-32; nothing else. (The product's CSS was normalised onto
+  this scale on 12 Nov 2026: 34 sizes became 8.)
+- **The 8-point system.** Every spacing value (padding, margin, gap) is on
+  the scale **4, 8, 12, 16, 24, 32, 40, 48, 64**: multiples of 8, with 4 and
+  12 only inside compact components (chip padding, icon-to-label gaps,
+  stacked text). A 1px nudge is allowed only to sit a border on a border.
+  Page gutter 32px desktop, 16px phone, identical for tabs, headers and
+  tables so everything lines up with the sidebar edge. Control heights 32,
+  40 or 48 (48 for touch targets on phones).
+- **Shape.** Radius from one scale: **4** (tags, small marks), **8**
+  (buttons, inputs, menu items), **12** (cards, rows, panels inside a page),
+  **16** (sheets, drawers, floating panels), **24** (large surfaces only),
+  full (pills, avatars). Hairline borders; shadow only on things that float
+  (menus, drawers, toasts). (Normalised 12 Nov 2026: 21 radii became 5.)
+- **Colour proportion (60-30-10).** About 60% or more of a screen is neutral
+  surface (white cards on the quiet fill), about 30% ink, body text and
+  hairlines, and the blue accent stays under 10%: selection, the primary
+  action and data that is not status. Flame, amber and green appear only as
+  status, never as decoration. Measured on the NGO screens on 12 Nov 2026:
+  accent 1-3.4% of pixels, status colours under 1%.
+- **Checking it.** `python3 scripts/grid8.py <css files>` reports any value off
+  the scale; run it on new stylesheets before merging.
 
 ### 3. Components (fewer, better)
 - **Page header:** title, one-line purpose, at most one primary and one

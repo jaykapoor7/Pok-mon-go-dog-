@@ -296,7 +296,7 @@ function NetworkMap({ facilities, referrals, selected, onSelect }: { facilities:
         <span><i style={{ background: "#e0a530" }} />Limited or not confirmed</span>
         <span><i style={{ background: "#d9452b" }} />Vaccine not available</span>
         <span><i style={{ background: "#2457ce" }} />Wound washing only</span>
-        <span><i style={{ background: "#5b4bc4", borderRadius: 3 }} />Laboratory</span>
+        <span><i style={{ background: "#5b4bc4", borderRadius: 4 }} />Laboratory</span>
       </div>
     </div>
   );
@@ -439,9 +439,9 @@ function ReportBody({ p }: { p: Prog }) {
   if (o.error || !o.data) return <Failed error={o.error ?? "Could not read the programme."} retry={o.reload} />;
   const d = o.data;
   return (
-    <article className="oh-card pad" style={{ display: "grid", gap: 22 }}>
+    <article className="oh-card pad" style={{ display: "grid", gap: 24 }}>
       <p style={{ color: "var(--muted)" }}>Period {fmtDate(d.since, { day: "numeric", month: "long", year: "numeric" })} to {fmtDate(d.today, { day: "numeric", month: "long", year: "numeric" })} · prepared {fmtTime(new Date().toISOString())}</p>
-      <Section title="Partners and responsibilities"><ul style={{ display: "grid", gap: 6 }}>{d.partners.map((x) => <li key={x.id}><b style={{ color: "var(--ink)" }}>{x.name}</b> · {KIND_LABEL[x.kind]}{x.responsibilities ? `: ${x.responsibilities}` : ""}</li>)}</ul></Section>
+      <Section title="Partners and responsibilities"><ul style={{ display: "grid", gap: 4 }}>{d.partners.map((x) => <li key={x.id}><b style={{ color: "var(--ink)" }}>{x.name}</b> · {KIND_LABEL[x.kind]}{x.responsibilities ? `: ${x.responsibilities}` : ""}</li>)}</ul></Section>
       {d.exposures && d.pep ? <Section title="Human bite care"><dl className="oh-facts">
         <div><dt>Bite exposures</dt><dd>{showCount(d.exposures.total)}</dd></div><div><dt>Category III</dt><dd>{showCount(d.exposures.category_iii)}</dd></div>
         <div><dt>Courses prescribed</dt><dd>{showCount(d.pep.courses)}</dd></div><div><dt>Completion</dt><dd>{d.pep.completion_rate === null ? "Too few to show" : pct(d.pep.completion_rate)}</dd></div>
@@ -480,7 +480,7 @@ function DataBody({ p }: { p: Prog }) {
   };
   return (
     <>
-      <div className="oh-actions" style={{ marginBottom: 16 }}><button type="button" className="oh-btn primary" onClick={csv} disabled={!rows.length}><Download size={16} aria-hidden />Download CSV</button><span style={{ color: "var(--muted)", fontSize: 12.5, alignSelf: "center" }}>{rows.length} rows since {fmtDate(x.data.since, { day: "numeric", month: "short", year: "numeric" })}{p.illustrative ? " · illustrative" : ""}</span></div>
+      <div className="oh-actions" style={{ marginBottom: 16 }}><button type="button" className="oh-btn primary" onClick={csv} disabled={!rows.length}><Download size={16} aria-hidden />Download CSV</button><span style={{ color: "var(--muted)", fontSize: 12, alignSelf: "center" }}>{rows.length} rows since {fmtDate(x.data.since, { day: "numeric", month: "short", year: "numeric" })}{p.illustrative ? " · illustrative" : ""}</span></div>
       {rows.length ? <div className="oh-table-wrap" style={{ maxHeight: 560 }}><table className="oh-table"><thead><tr><th>Week</th><th>Area</th><th>Animal</th><th>Category</th><th className="r">Exposures</th></tr></thead><tbody>{rows.slice(0, 300).map((r, i) => <tr key={i}><td>{fmtDate(r.week)}</td><td>{r.area}</td><td>{r.species}</td><td>{r.category}</td><td className="r">{showCount(r.exposures)}</td></tr>)}</tbody></table></div> : <Empty title="No exposures in the last year" />}
     </>
   );

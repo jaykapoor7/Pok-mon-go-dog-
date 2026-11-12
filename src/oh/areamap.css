@@ -1,34 +1,34 @@
 /* Where to act: the area map with the ranked list beside it. */
-.ar { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: stretch; }
-@media (max-width: 1000px) { .ar { grid-template-columns: minmax(0, 1fr); } }
-.ar-map { height: 420px; }
-@media (max-width: 640px) { .ar-map { height: 320px; } }
-.ar-nomap { display: grid; align-content: center; gap: 6px; min-height: 160px; padding: 20px; border: 1px dashed rgba(11, 30, 61, .16); border-radius: 12px; color: #5e6575; font-size: 13.5px; line-height: 1.5; }
-.ar-nomap b { color: #0b1e3d; font-size: 14px; }
-.ar-side { display: grid; align-content: start; gap: 10px; padding: 16px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .08); }
-.ar-side h3 { margin: 0; color: #0b1e3d; font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
-.ar-side ol { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.ar-side li { animation: ar-in .32s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 40ms); }
-@keyframes ar-in { from { opacity: 0; transform: translateY(4px); } }
-.ar-side li button { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background .15s ease; }
-.ar-side li button:hover:not(:disabled), .ar-side li.is-on button { background: #f2f5fb; }
-.ar-side li button:disabled { cursor: default; }
-.ar-side li button:focus-visible { outline: 2px solid #2457ce; outline-offset: -2px; }
-.ar-n { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: #0b1e3d; color: #fff; font-size: 11px; font-weight: 600; }
-.ar-t { display: grid; gap: 4px; min-width: 0; }
-.ar-t b { color: #0b1e3d; font-size: 13.5px; font-weight: 600; }
-.ar-why { display: flex; flex-wrap: wrap; gap: 4px; }
-.ar-why em { padding: 2px 7px; border-radius: 999px; background: #eef2fb; color: #1c47ad; font-size: 11.5px; font-style: normal; font-weight: 500; }
-.ar-why em[data-tone="flame"] { background: #fdeee8; color: #b23a12; }
-.ar-why em[data-tone="amber"] { background: #fdf3df; color: #8a5a00; }
-.ar-none, .ar-how { margin: 0; color: #5e6575; font-size: 12.5px; line-height: 1.5; }
-.ar-how { padding-top: 6px; border-top: 1px solid rgba(11, 30, 61, .07); color: #8a90a0; font-size: 11.5px; }
-.ar-go { display: inline-flex; align-items: center; gap: 6px; color: #2457ce; font-size: 13px; font-weight: 500; text-decoration: none; }
-.ar-go:hover { text-decoration: underline; text-underline-offset: 3px; }
-.ar-card { position: absolute; top: 12px; left: 12px; z-index: 2; display: grid; gap: 6px; min-width: 210px; padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, .96); box-shadow: 0 0 0 1px rgba(11, 30, 61, .08), 0 14px 30px -18px rgba(11, 30, 61, .45); font-size: 12.5px; animation: ar-in .25s ease both; }
-.ar-card b { color: #0b1e3d; font-size: 14px; }
-.ar-card dl { display: grid; gap: 3px; margin: 0; }
-.ar-card dl div { display: flex; justify-content: space-between; gap: 12px; }
-.ar-card dt { color: #5e6575; }
-.ar-card dd { margin: 0; color: #0b1e3d; font-weight: 500; text-align: right; }
-@media (prefers-reduced-motion: reduce) { .ar-side li, .ar-card { animation: none; } }
+.wta { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; align-items: stretch; }
+@media (max-width: 1000px) { .wta { grid-template-columns: minmax(0, 1fr); } }
+.wta-map { height: 420px; }
+@media (max-width: 640px) { .wta-map { height: 320px; } }
+.wta-nomap { display: grid; align-content: center; gap: 4px; min-height: 160px; padding: 24px; border: 1px dashed rgba(11, 30, 61, .16); border-radius: 12px; color: #5e6575; font-size: 14px; line-height: 1.5; }
+.wta-nomap b { color: #0b1e3d; font-size: 14px; }
+.wta-side { display: grid; align-content: start; gap: 8px; padding: 16px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 30, 61, .08); }
+.wta-side h3 { margin: 0; color: #0b1e3d; font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+.wta-side ol { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.wta-side li { animation: wta-in .32s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 40ms); }
+@keyframes wta-in { from { opacity: 0; transform: translateY(4px); } }
+.wta-side li button { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 8px 12px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background .15s ease; }
+.wta-side li button:hover:not(:disabled), .wta-side li.is-on button { background: #f2f5fb; }
+.wta-side li button:disabled { cursor: default; }
+.wta-side li button:focus-visible { outline: 2px solid #2457ce; outline-offset: -2px; }
+.wta-n { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 4px; background: #0b1e3d; color: #fff; font-size: 12px; font-weight: 600; }
+.wta-t { display: grid; gap: 4px; min-width: 0; }
+.wta-t b { color: #0b1e3d; font-size: 14px; font-weight: 600; }
+.wta-why { display: flex; flex-wrap: wrap; gap: 4px; }
+.wta-why em { padding: 4px 8px; border-radius: 999px; background: #eef2fb; color: #1c47ad; font-size: 12px; font-style: normal; font-weight: 500; }
+.wta-why em[data-tone="flame"] { background: #fdeee8; color: #b23a12; }
+.wta-why em[data-tone="amber"] { background: #fdf3df; color: #8a5a00; }
+.wta-none, .wta-how { margin: 0; color: #5e6575; font-size: 12px; line-height: 1.5; }
+.wta-how { padding-top: 8px; border-top: 1px solid rgba(11, 30, 61, .07); color: #8a90a0; font-size: 12px; }
+.wta-go { display: inline-flex; align-items: center; gap: 4px; color: #2457ce; font-size: 14px; font-weight: 500; text-decoration: none; }
+.wta-go:hover { text-decoration: underline; text-underline-offset: 3px; }
+.wta-card { position: absolute; top: 12px; left: 12px; z-index: 2; display: grid; gap: 4px; min-width: 210px; padding: 12px 16px; border-radius: 12px; background: rgba(255, 255, 255, .96); box-shadow: 0 0 0 1px rgba(11, 30, 61, .08), 0 14px 30px -18px rgba(11, 30, 61, .45); font-size: 12px; animation: wta-in .25s ease both; }
+.wta-card b { color: #0b1e3d; font-size: 14px; }
+.wta-card dl { display: grid; gap: 4px; margin: 0; }
+.wta-card dl div { display: flex; justify-content: space-between; gap: 12px; }
+.wta-card dt { color: #5e6575; }
+.wta-card dd { margin: 0; color: #0b1e3d; font-weight: 500; text-align: right; }
+@media (prefers-reduced-motion: reduce) { .wta-side li, .wta-card { animation: none; } }

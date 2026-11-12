@@ -137,32 +137,32 @@ export function NotificationsButton() {
 
   if (!ready || !any) return null;
   return (
-    <div className="nf">
-      <button ref={btn} type="button" className={`nf-btn${open ? " is-on" : ""}`} aria-expanded={open} aria-controls="nf-panel" aria-label={fresh ? `Notifications, ${fresh} new` : "Notifications"} onClick={() => { const r = btn.current?.getBoundingClientRect(); if (r) setAt({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right - 8) }); setOpen((v) => !v); }}>
+    <div className="sp-bell">
+      <button ref={btn} type="button" className={`sp-bell-btn${open ? " is-on" : ""}`} aria-expanded={open} aria-controls="sp-bell-panel" aria-label={fresh ? `Notifications, ${fresh} new` : "Notifications"} onClick={() => { const r = btn.current?.getBoundingClientRect(); if (r) setAt({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right - 8) }); setOpen((v) => !v); }}>
         <Bell size={16} aria-hidden />
-        {fresh ? <b className="nf-badge" aria-hidden>{fresh > 9 ? "9+" : fresh}</b> : null}
+        {fresh ? <b className="sp-bell-badge" aria-hidden>{fresh > 9 ? "9+" : fresh}</b> : null}
       </button>
       {open ? (
-        <div ref={panel} id="nf-panel" className="nf-panel" role="dialog" aria-label="Notifications" style={at ? { top: at.top, right: at.right } : undefined}>
-          <div className="nf-head"><b>Notifications</b><button type="button" className="nf-x" aria-label="Close notifications" onClick={() => { setOpen(false); btn.current?.focus(); }}><X size={15} aria-hidden /></button></div>
+        <div ref={panel} id="sp-bell-panel" className="sp-bell-panel" role="dialog" aria-label="Notifications" style={at ? { top: at.top, right: at.right } : undefined}>
+          <div className="sp-bell-head"><b>Notifications</b><button type="button" className="sp-bell-x" aria-label="Close notifications" onClick={() => { setOpen(false); btn.current?.focus(); }}><X size={15} aria-hidden /></button></div>
           {!shown.length ? (
-            <div className="nf-empty"><span aria-hidden><Check size={16} /></span><b>Nothing needs you right now</b><small>Doses due, requests, results and alerts from your places appear here.</small></div>
+            <div className="sp-bell-empty"><span aria-hidden><Check size={16} /></span><b>Nothing needs you right now</b><small>Doses due, requests, results and alerts from your places appear here.</small></div>
           ) : (
-            <div className="nf-body">
+            <div className="sp-bell-body">
               {GROUPS.map(([g, label]) => {
                 const rows = shown.filter((n) => n.group === g);
                 if (!rows.length) return null;
                 return (
-                  <section key={g} className="nf-sec" aria-label={label}>
+                  <section key={g} className="sp-bell-sec" aria-label={label}>
                     <h3>{label}</h3>
                     <ul>
                       {rows.map((n, i) => (
                         <li key={n.id} className={seen.has(n.id) ? undefined : "is-new"} style={{ ["--i" as string]: i }}>
                           <Link href={n.href} onClick={() => setOpen(false)}>
-                            <i className="nf-dot" data-tone={n.tone} aria-hidden />
+                            <i className="sp-bell-dot" data-tone={n.tone} aria-hidden />
                             <span><b>{n.title}</b><small>{n.meta}</small></span>
                           </Link>
-                          {n.alert ? <button type="button" className="nf-ack" disabled={busy === n.id} onClick={() => void ack(n)}>{busy === n.id ? "Saving…" : "Seen"}</button> : null}
+                          {n.alert ? <button type="button" className="sp-bell-ack" disabled={busy === n.id} onClick={() => void ack(n)}>{busy === n.id ? "Saving…" : "Seen"}</button> : null}
                         </li>
                       ))}
                     </ul>
@@ -171,7 +171,7 @@ export function NotificationsButton() {
               })}
             </div>
           )}
-          {facility ? <p className="nf-foot">Reminder and completion calls are made by the facility and logged on its Today. SMS and WhatsApp are not connected.</p> : null}
+          {facility ? <p className="sp-bell-foot">Reminder and completion calls are made by the facility and logged on its Today. SMS and WhatsApp are not connected.</p> : null}
         </div>
       ) : null}
     </div>

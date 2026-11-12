@@ -175,8 +175,8 @@ function StartProgramme() {
   return (
     <details className="oh-invite">
       <summary>Start a programme</summary>
-      <div className="oh-card pad" style={{ marginTop: 10, display: "grid", gap: 14, maxWidth: 620 }}>
-        <p style={{ color: "var(--muted)", fontSize: 13 }}>For a municipality, a hospital network or a state. You become its lead; next you add partners, areas and people. Nothing is shared until you invite someone.</p>
+      <div className="oh-card pad" style={{ marginTop: 10, display: "grid", gap: 12, maxWidth: 620 }}>
+        <p style={{ color: "var(--muted)", fontSize: 14 }}>For a municipality, a hospital network or a state. You become its lead; next you add partners, areas and people. Nothing is shared until you invite someone.</p>
         <div className="oh-fields">
           <label className="oh-field"><span>Programme name</span><input value={f.name} maxLength={140} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="For example: Pune rabies elimination" /></label>
           <label className="oh-field"><span>City or state</span><input value={f.city} maxLength={80} onChange={(e) => setF({ ...f, city: e.target.value })} /></label>
