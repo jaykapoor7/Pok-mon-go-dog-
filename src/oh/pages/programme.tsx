@@ -174,7 +174,7 @@ function TrainingSheet({ p, onClose, onDone }: { p: Prog; onClose: () => void; o
 }
 
 /* ── Care network: map, readiness and referral pathways ───────────── */
-export function ProgrammeNetwork() { return <Frame title="Care network" lede="Where people can get wound washing, vaccine and immunoglobulin, how recently each was confirmed, and where each place refers people for what it lacks.">{(p) => <NetworkBody p={p} />}</Frame>; }
+export function ProgrammeNetwork() { return <Frame title="Care network" lede="Where people get wound washing, vaccine and immunoglobulin, and how recently each was confirmed.">{(p) => <NetworkBody p={p} />}</Frame>; }
 
 const statusOf = (f: NetworkFacility, svc: string) => f.services.find((s) => s.service === svc)?.status ?? null;
 function tone(f: NetworkFacility): string {
@@ -305,7 +305,7 @@ function NetworkMap({ facilities, referrals, selected, onSelect }: { facilities:
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 /* ── Work between partners ─────────────────────────────────────────── */
-export function ProgrammeWork() { return <Suspense><Frame title="Work between partners" lede="Every request one partner sent another: who it went to, when it is due and what they found.">{(p) => <WorkBody p={p} />}</Frame></Suspense>; }
+export function ProgrammeWork() { return <Suspense><Frame title="Work between partners" lede="Requests between partners: who has each, when it is due, what they found.">{(p) => <WorkBody p={p} />}</Frame></Suspense>; }
 
 function WorkBody({ p }: { p: Prog }) {
   const sp = useSearchParams();
@@ -371,7 +371,7 @@ function AskSheet({ p, orgs, onClose, onDone }: { p: Prog; from: string; orgs: {
 }
 
 /* ── Vaccination coverage ──────────────────────────────────────────── */
-export function ProgrammeCoverage() { return <Frame title="Dog vaccination coverage" lede="Dogs recorded vaccinated on partner registers, against a population estimate wherever one has been recorded with its method and source.">{(p) => <CoverageBody p={p} />}</Frame>; }
+export function ProgrammeCoverage() { return <Frame title="Dog vaccination coverage" lede="Dogs recorded vaccinated, against a population estimate where one exists.">{(p) => <CoverageBody p={p} />}</Frame>; }
 
 function CoverageBody({ p }: { p: Prog }) {
   const o = useRead<Overview>(() => call("oh_programme_overview", { p_programme: p.id, p_days: 365 }), `cov:${p.id}`);
@@ -430,7 +430,7 @@ function EstimateSheet({ p, area, onClose, onDone }: { p: Prog; area: { id: stri
 }
 
 /* ── Report ────────────────────────────────────────────────────────── */
-export function ProgrammeReport() { return <Suspense><Frame title="Programme report" lede="A printable summary for partners, funders and government. Every figure comes from the shared record; small human counts stay hidden." actions={() => <button type="button" className="oh-btn primary" onClick={() => window.print()}><Printer size={16} aria-hidden />Print or save as PDF</button>}>{(p) => <ReportBody p={p} />}</Frame></Suspense>; }
+export function ProgrammeReport() { return <Suspense><Frame title="Programme report" lede="A printable summary. Every figure comes from the shared record." actions={() => <button type="button" className="oh-btn primary" onClick={() => window.print()}><Printer size={16} aria-hidden />Print or save as PDF</button>}>{(p) => <ReportBody p={p} />}</Frame></Suspense>; }
 
 function ReportBody({ p }: { p: Prog }) {
   const sp = useSearchParams();
@@ -466,7 +466,7 @@ function ReportBody({ p }: { p: Prog }) {
 }
 
 /* ── Research data ─────────────────────────────────────────────────── */
-export function ProgrammeData() { return <Frame title="Research data" lede="Weekly counts by area, animal and category, suppressed below the programme's threshold. No row describes a person.">{(p) => <DataBody p={p} />}</Frame>; }
+export function ProgrammeData() { return <Frame title="Research data" lede="Weekly counts by area, animal and category. Small counts suppressed.">{(p) => <DataBody p={p} />}</Frame>; }
 
 function DataBody({ p }: { p: Prog }) {
   const x = useRead<{ since: string; suppress_below: number; rows: { week: string; area: string; species: string; category: string; exposures: Count }[] }>(() => call("oh_research_extract", { p_programme: p.id, p_days: 365 }), `rx:${p.id}`);
@@ -488,7 +488,7 @@ function DataBody({ p }: { p: Prog }) {
 }
 
 /* ── Setup: one programme configured without engineering ─────────── */
-export function ProgrammeSetup() { return <Frame title="Programme setup" lede="Modules, partners, areas, who covers each area, and who works where. Changes apply at once and are visible to partners." wide={false}>{(p, reload) => <SetupBody p={p} reload={reload} />}</Frame>; }
+export function ProgrammeSetup() { return <Frame title="Programme setup" lede="Modules, partners, areas and people. Changes apply at once." wide={false}>{(p, reload) => <SetupBody p={p} reload={reload} />}</Frame>; }
 
 function SetupBody({ p, reload }: { p: Prog; reload: () => void }) {
   const toast = useToast();

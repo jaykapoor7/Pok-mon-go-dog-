@@ -7,7 +7,10 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
-import { Phone } from "lucide-react";
+import { Check, Megaphone, Phone, Siren, Stethoscope, Syringe } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { AskKaju, DailyHead, NeedsYou, type DailyRow } from "@/sp/ui/Daily";
+import { Seg as Seg2 } from "@/sp/ui/Page";
 import { usePlaces, primaryProgramme, isFacility } from "../places";
 import { call, daysFrom, fmtDate, relDay, today, useRead, AGE, COURSE, EXPOSURE_KIND, REMINDER, SEX, SPECIES, WASHED, type Alert, type Area, type ClinicDue, type DueDose, type Notice, type Place, type RegisterRow } from "../data";
 import { AlertList, Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
@@ -25,6 +28,7 @@ export function NotHere({ ready }: { ready: boolean }) {
 }
 
 export function ClinicToday({ place }: { place: Place }) {
+  const { user } = useAuth();
   const { reload: reloadPlaces } = usePlaces();
   const id = place.organisation_id, prog = primaryProgramme(place);
   const due = useRead<ClinicDue>(() => call("oh_clinic_due", { p_facility: id }), `due:${id}`);
@@ -50,94 +54,102 @@ export function ClinicToday({ place }: { place: Place }) {
     if (r.error) toast(r.error, "flame"); else { toast("Marked as contacted."); notices.reload(); reloadPlaces(); }
   };
 
+  /* The daily brief, as the landing demo draws it: one sentence, what needs
+     a person today, a line to Kaju, then one working list at a time. */
+  const nNotices = notices.data?.filter((n) => n.status === "new").length ?? 0;
+  const nWaiting = waiting.data?.length ?? 0;
+  const nDone = due.data?.completed?.filter((c) => !c.told).length ?? 0;
+  const [lane, setLane] = useState<"due" | "done" | "notices" | "waiting">("due");
+  const rows: DailyRow[] = [
+    ...mine.slice(0, 2).map((a) => ({ key: a.key, href: a.kind === "pep_readiness" ? `/workspace/${id}/services` : "#oh-work", tone: a.severity === "urgent" ? "flame" : "amber", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}</b>, meta: a.area ?? undefined, tag: a.severity === "urgent" ? "Urgent" : "Attention", verb: "Open" })),
+    ...(overdue ? [{ key: "overdue", href: "#oh-work", tone: "flame", icon: <Syringe size={10} strokeWidth={2.4} />, title: <><b>{overdue} {overdue === 1 ? "dose" : "doses"}</b> past the date set</>, meta: "Call, or record the dose when it is given", tag: "Overdue", verb: "Open the list" }] : []),
+    ...(nWaiting ? [{ key: "waiting", href: `/workspace/${id}/register?filter=needs_assessment`, tone: "violet", icon: <Stethoscope size={10} strokeWidth={2.4} />, title: <><b>{nWaiting} {nWaiting === 1 ? "bite" : "bites"}</b> waiting for a clinician</>, meta: "Category or course not recorded", tag: "Assess", verb: "Open the register" }] : []),
+    ...(nNotices ? [{ key: "notices", href: "#oh-work", tone: "amber", icon: <Megaphone size={10} strokeWidth={2.4} />, title: <><b>{nNotices} {nNotices === 1 ? "notice" : "notices"}</b> from the public</>, meta: "Not medical records", tag: "New", verb: "Answer" }] : []),
+    ...(nDone ? [{ key: "done", href: "#oh-work", tone: "green", icon: <Check size={10} strokeWidth={2.4} />, title: <><b>{nDone} {nDone === 1 ? "course" : "courses"}</b> completed, not yet told</>, meta: "A completion call closes the loop", tag: "Call", verb: "Open" }] : []),
+  ];
+  const since = due.data ? <><b>{dueToday} due today</b>{overdue ? <>, <b>{overdue} overdue</b></> : null}{nWaiting ? <>, <b>{nWaiting} waiting for a clinician</b></> : null}{nNotices ? <> and <b>{nNotices} {nNotices === 1 ? "notice" : "notices"} from the public</b></> : null}.</> : null;
+
   return (
     <Page illustrative={place.illustrative}>
-      <Head eyebrow={prog?.name} title={`Today at ${place.short_name ?? place.name}`} lede="Who is due a dose, who finished, and what the public told you." />
-      <dl className="oh-stats">
-        <Stat label="Due today" value={due.error ? null : dueToday} href="#due" />
-        <Stat label="Overdue" value={due.error ? null : overdue} tone={overdue ? "flame" : undefined} href="#due" note="Date passed, not yet given" />
-        <Stat label="Waiting for a clinician" value={waiting.error ? null : waiting.data?.length} href={`/workspace/${id}/register?filter=needs_assessment`} note="Category or course not recorded" />
-        <Stat label="Notices from the public" value={notices.error ? null : notices.data?.filter((n) => n.status === "new").length} tone={notices.data?.some((n) => n.status === "new") ? "amber" : undefined} href="#notices" />
-      </dl>
+      <div className="dy">
+        <DailyHead name={user?.name} since={since} loading={!due.data && !due.error} />
+        {due.error ? <Failed error={due.error} retry={due.reload} /> : null}
+        <NeedsYou rows={rows} clear="Nothing needs you here today." />
+        <AskKaju questions={["Who is overdue for a dose today?", "Which courses finished this week?", "Is vaccine confirmed at our referral hospital?", "Which bites still need a category?"]} />
 
-      {mine.length ? <Section title="Needs attention" note="From your records and the laboratory">
-        <AlertList alerts={mine} programmeId={prog!.id} onChange={alerts.reload} canAck={place.capabilities.includes("ack_alert")} hrefFor={(a) => a.kind === "pep_readiness" ? `/workspace/${id}/services` : a.kind === "doses_overdue" ? "#due" : null} />
-      </Section> : null}
+        <section className="dy-sec" id="oh-work" aria-label="The day's lists">
+          <div className="vw-bar">
+            <Seg2 label="The day's lists" value={lane} onChange={(v) => setLane(v)} options={[
+              { id: "due", label: "Doses due", count: list.length, tone: overdue ? "flame" : undefined },
+              { id: "done", label: "Completed", count: due.data?.completed?.length ?? 0 },
+              { id: "notices", label: "From the public", count: nNotices },
+              { id: "waiting", label: "Waiting", count: nWaiting },
+            ]} />
+          </div>
 
-      <div className="oh-grid">
-        <Section title="Doses due" note="Today, tomorrow and overdue" id="due">
-          {due.loading && !due.data ? <Loading /> : due.error ? <Failed error={due.error} retry={due.reload} /> : !list.length ? <Empty title="No doses due">Everyone in a course is up to date.</Empty> : (
-            <div className="oh-rows">
-              {list.map((d) => {
+          {lane === "due" ? (due.loading && !due.data ? <Loading /> : !list.length ? <Empty title="No doses due">Everyone in a course is up to date.</Empty> : (
+            <ul className="dy-work">
+              {list.map((d, i) => {
                 const late = d.due_on < t;
                 return (
-                  <div className="oh-row" key={d.dose_id}>
-                    <span className="oh-row-mark" data-tone={late ? "flame" : d.due_on === t ? "blue" : undefined} aria-hidden />
-                    <Link href={`/workspace/${id}/record/${d.exposure_id}`} className="oh-row-main">
-                      <b>Dose {d.dose_no} of {d.doses_total} · {d.patient_ref ?? d.code}</b>
-                      <span>{AGE[d.age_band] ?? d.age_band} · {late ? `${-daysFrom(d.due_on)} day${daysFrom(d.due_on) === -1 ? "" : "s"} overdue` : relDay(d.due_on)}{d.last_reminder ? ` · ${REMINDER[d.last_reminder.outcome]} ${relDay(d.last_reminder.at).toLowerCase()}` : ""}</span>
-                    </Link>
-                    <div className="oh-row-meta">
+                  <li key={d.dose_id} style={{ ["--j" as string]: i }}>
+                    <span className="dy-sq" data-c={late ? "flame" : d.due_on === t ? "blue" : "slate"} aria-hidden><Syringe size={10} strokeWidth={2.4} /></span>
+                    <Link href={`/workspace/${id}/record/${d.exposure_id}`} className="dy-work-t"><b>Dose {d.dose_no} of {d.doses_total} · <span className="dy-code">{d.patient_ref ?? d.code}</span></b><small>{AGE[d.age_band] ?? d.age_band} · {late ? `${-daysFrom(d.due_on)} day${daysFrom(d.due_on) === -1 ? "" : "s"} overdue` : relDay(d.due_on)}{d.last_reminder ? ` · ${REMINDER[d.last_reminder.outcome]} ${relDay(d.last_reminder.at).toLowerCase()}` : ""}</small></Link>
+                    <div className="dy-work-acts">
                       {d.phone ? <a className="oh-btn small" href={`tel:${d.phone.replace(/\s/g, "")}`} aria-label={`Call about ${d.patient_ref ?? d.code}`}><Phone size={14} aria-hidden />Call</a> : <Chip plain>No consent to call</Chip>}
                       {d.phone ? <LogCall onLog={(o) => void logCall({ p_dose: d.dose_id }, o)} /> : null}
                       {canDose ? <button type="button" className="oh-btn small primary" onClick={() => setDose(d)}>Record dose</button> : null}
                     </div>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
-          )}
-          <p className="oh-note" style={{ marginTop: 10 }}>Reminders are phone calls from the clinic, logged here. Automatic SMS or WhatsApp is <b>not connected</b>.</p>
-        </Section>
+            </ul>
+          )) : null}
+          {lane === "due" ? <p className="dy-foot">Reminders are phone calls from the clinic, logged here. Automatic SMS or WhatsApp is <b>not connected</b>.</p> : null}
 
-        {due.data?.completed?.length ? (
-          <Section title="Courses completed" note="Tell each person their course is complete">
-            <div className="oh-rows">
-              {due.data.completed.map((c) => (
-                <div className="oh-row" key={c.course_id}>
-                  <span className="oh-row-mark" data-tone="green" aria-hidden />
-                  <Link href={`/workspace/${id}/record/${c.exposure_id}`} className="oh-row-main"><b>{c.patient_ref ?? c.code}</b><span>Completed {relDay(c.completed_at).toLowerCase()}{c.told ? " · told" : ""}</span></Link>
-                  <div className="oh-row-meta">
+          {lane === "done" ? (!due.data?.completed?.length ? <Empty title="No course completed recently" /> : (
+            <ul className="dy-work">
+              {due.data.completed.map((c, i) => (
+                <li key={c.course_id} style={{ ["--j" as string]: i }}>
+                  <span className="dy-sq" data-c="green" aria-hidden><Check size={10} strokeWidth={2.4} /></span>
+                  <Link href={`/workspace/${id}/record/${c.exposure_id}`} className="dy-work-t"><b className="dy-code">{c.patient_ref ?? c.code}</b><small>Completed {relDay(c.completed_at).toLowerCase()}{c.told ? " · told" : ""}</small></Link>
+                  <div className="dy-work-acts">
                     {c.phone ? <a className="oh-btn small" href={`tel:${c.phone.replace(/\s/g, "")}`}><Phone size={14} aria-hidden />Call</a> : <Chip plain>No consent to call</Chip>}
                     {c.phone && !c.told ? <LogCall onLog={(o) => void logCall({ p_course: c.course_id }, o)} /> : c.told ? <Chip tone="green">Told</Chip> : null}
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
-          </Section>
-        ) : null}
+            </ul>
+          )) : null}
 
-        <div className="oh-grid halves">
-          <Section title="Notices from the public" note="Not medical records" id="notices">
-            {notices.loading && !notices.data ? <Loading rows={2} /> : notices.error ? <Failed error={notices.error} retry={notices.reload} /> : !notices.data?.length ? <Empty title="No notices" /> : (
-              <div className="oh-rows">
-                {notices.data.map((n) => (
-                  <div className="oh-row" key={n.id}>
-                    <span className="oh-row-mark" data-tone={n.status === "new" ? "amber" : undefined} aria-hidden />
-                    <div className="oh-row-main"><b>{SPECIES[n.animal_species]} · {n.area ?? "Area not given"}</b><span className="wrap">{fmtDate(n.happened_on)} · {n.animal_description ?? "No description"}{n.place ? ` · ${n.place}` : ""}</span></div>
-                    <div className="oh-row-meta">
-                      {n.callback_phone ? <a className="oh-btn small" href={`tel:${n.callback_phone.replace(/\s/g, "")}`}><Phone size={14} aria-hidden />Call</a> : <Chip plain>No callback</Chip>}
-                      {n.status === "new" ? <button type="button" className="oh-btn small" onClick={() => void contacted(n)}>Contacted</button> : <Chip tone="blue">{n.status === "presented" ? "Came in" : "Contacted"}</Chip>}
-                      {n.status !== "presented" ? <Link className="oh-btn small" href={`/workspace/${id}/new?notice=${n.id}&area=${encodeURIComponent(n.area ?? "")}&species=${n.animal_species}&on=${n.happened_on}&animal=${encodeURIComponent(n.animal_description ?? "")}&place=${encodeURIComponent(n.place ?? "")}`}>Patient came in</Link> : null}
-                    </div>
+          {lane === "notices" ? (notices.loading && !notices.data ? <Loading rows={2} /> : notices.error ? <Failed error={notices.error} retry={notices.reload} /> : !notices.data?.length ? <Empty title="No notices" /> : (
+            <ul className="dy-work">
+              {notices.data.map((n, i) => (
+                <li key={n.id} style={{ ["--j" as string]: i }}>
+                  <span className="dy-sq" data-c={n.status === "new" ? "amber" : "slate"} aria-hidden><Megaphone size={10} strokeWidth={2.4} /></span>
+                  <div className="dy-work-t"><b>{SPECIES[n.animal_species]} · {n.area ?? "Area not given"}</b><small>{fmtDate(n.happened_on)} · {n.animal_description ?? "No description"}{n.place ? ` · ${n.place}` : ""}</small></div>
+                  <div className="dy-work-acts">
+                    {n.callback_phone ? <a className="oh-btn small" href={`tel:${n.callback_phone.replace(/\s/g, "")}`}><Phone size={14} aria-hidden />Call</a> : <Chip plain>No callback</Chip>}
+                    {n.status === "new" ? <button type="button" className="oh-btn small" onClick={() => void contacted(n)}>Contacted</button> : <Chip tone="blue">{n.status === "presented" ? "Came in" : "Contacted"}</Chip>}
+                    {n.status !== "presented" ? <Link className="oh-btn small" href={`/workspace/${id}/new?notice=${n.id}&area=${encodeURIComponent(n.area ?? "")}&species=${n.animal_species}&on=${n.happened_on}&animal=${encodeURIComponent(n.animal_description ?? "")}&place=${encodeURIComponent(n.place ?? "")}`}>Patient came in</Link> : null}
                   </div>
-                ))}
-              </div>
-            )}
-          </Section>
-          <Section title="Waiting for a clinician">
-            {waiting.loading && !waiting.data ? <Loading rows={2} /> : waiting.error ? <Failed error={waiting.error} retry={waiting.reload} /> : !waiting.data?.length ? <Empty title="Nothing waiting" /> : (
-              <div className="oh-rows">
-                {waiting.data.slice(0, 6).map((r) => (
-                  <Link className="oh-row" key={r.id} href={`/workspace/${id}/record/${r.id}`}>
-                    <div className="oh-row-main"><b>{r.patient_ref ?? r.code}</b><span>{fmtDate(r.presented_on)} · {SPECIES[r.species]} {EXPOSURE_KIND[r.kind]?.toLowerCase() ?? r.kind} · {r.area ?? "Area not recorded"}</span></div>
-                    <div className="oh-row-meta">{r.category === "not_recorded" ? <Chip tone="amber">Category not recorded</Chip> : <Chip tone="amber">No course yet</Chip>}</div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </Section>
-        </div>
+                </li>
+              ))}
+            </ul>
+          )) : null}
+
+          {lane === "waiting" ? (waiting.loading && !waiting.data ? <Loading rows={2} /> : waiting.error ? <Failed error={waiting.error} retry={waiting.reload} /> : !waiting.data?.length ? <Empty title="Nothing waiting" /> : (
+            <ul className="dy-work">
+              {waiting.data.slice(0, 12).map((r, i) => (
+                <li key={r.id} style={{ ["--j" as string]: i }}>
+                  <span className="dy-sq" data-c="violet" aria-hidden><Stethoscope size={10} strokeWidth={2.4} /></span>
+                  <Link className="dy-work-t" href={`/workspace/${id}/record/${r.id}`}><b className="dy-code">{r.patient_ref ?? r.code}</b><small>{fmtDate(r.presented_on)} · {SPECIES[r.species]} {EXPOSURE_KIND[r.kind]?.toLowerCase() ?? r.kind} · {r.area ?? "Area not recorded"}</small></Link>
+                  <div className="dy-work-acts">{r.category === "not_recorded" ? <Chip tone="amber">Category not recorded</Chip> : <Chip tone="amber">No course yet</Chip>}</div>
+                </li>
+              ))}
+            </ul>
+          )) : null}
+        </section>
       </div>
       {dose ? <DoseSheet dose={dose} onClose={() => setDose(null)} onDone={(msg) => { setDose(null); toast(msg); refresh(); }} /> : null}
     </Page>

@@ -119,8 +119,28 @@ pages, not destinations of the app.
 
 ## 5. Reference per screen
 
-Filled from the reference study (`docs/PRODUCT-STRUCTURE.md` §5 is updated with
-sources when the study is complete).
+The study, with every source, is `docs/REFERENCES.md`. We take interaction patterns,
+never branding. Where a reference conflicts with `DESIGN.md`, DESIGN wins.
+
+| Screen | Strongest reference | What StrayPaw takes |
+|---|---|---|
+| Sign-in, invitations | Clerk | Email, then a six-digit code; "new code" after 30 s; errors under the field; an invitation shows the place and role before asking for an email |
+| First day | Clerk gate + Vercel Geist empty states | A place first, then work; the tour is offered (Start / Skip), never forced; empty states end on a verb ("Record a bite") |
+| Shell | Linear (desktop), Vercel (phone) | Place switcher top-left; switching place keeps the page; ⌘K with recent items, verbs and their keys; a dimmer sidebar so the work leads; one-hand bottom bar on phones |
+| Role home | GovDash daily priorities | Ranked "Needs you today" with one verb each; summary sentence; Kaju one line away |
+| Animal record | Attio | Facts column with "who changed this"; preview from the list keeps your place (↑/↓, "1 of N"); Kaju's summary folded, never above the facts |
+| Case record | Attio activity + SORMAS | One timeline of updates, care and follow-ups with who and why; follow-ups that survive closing |
+| Intake | Intercom + Linear triage | List with a preview; assign keeps the team; deadline badge grey → amber → flame; accept / decline / duplicate; "3 skipped, and why" |
+| Field phone | CommCare + Felt field | Unsent count by the sync control; each queued record listed; one question per screen; GPS accuracy always shown |
+| Vet sign-off, evidence | Ramp | Only complete records reach the vet; each item shows its rule and evidence; "Request changes" threads; no automatic clinical approval |
+| Report packages | Ramp + GovDash | Every figure opens the records it counts; exceptions need a written reason; acceptance is not payment |
+| Bite record, course | OpenMRS O3 | Fixed patient header; entry in a side workspace that survives navigation; the course signed by the clinician; Kaju never proposes doses |
+| Laboratory | SORMAS | Sample belongs to a case or event; results positive / negative / pending / indeterminate; uncertain matches go to a person |
+| Municipal review | Ramp (queue), Felt (map) | Needs review / Flagged / Accepted; change requests on the package; map with a table equivalent |
+| Analytics, research | Metabase + Felt | Click a figure to filter, view the records, or break it down; small counts stay suppressed |
+| Training | TalentLMS | "My training" with progress; the two-minute unit linked from the control it teaches |
+| Kaju | GovDash Dash + Linear agent guidelines | Visible states (working, finished), steps with times, sources under every answer, assumptions stated, a person approves every change |
+| Citizen reporting | Intercom tickets + Linear Asks | One question per screen; a public status separate from internal states; a message when it changes; no account |
 
 ## 6. Status
 

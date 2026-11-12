@@ -15,7 +15,7 @@ import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, ArrowRightLeft, ArrowUp, Check, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, PawPrint, ShieldCheck, Sparkles, TriangleAlert, UserPlus, X } from "lucide-react";
-import { useAi } from "@/sp3/ai/AiPanel";
+import { AskKaju } from "../ui/Daily";
 import { placeHome, usePlaces } from "@/oh/places";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
@@ -28,7 +28,7 @@ import { KajuPrepared } from "./KajuPrepared";
 import { Journey } from "./Journey";
 import "../abc/abc.css";
 import "./brief.css";
-import "./daily.css";
+import "../ui/daily.css";
 
 const H = 3_600_000, DAY = 24 * H;
 const ago = (iso: string | null) => {
@@ -190,31 +190,3 @@ export function Brief() {
 
 const TAG: Record<string, string> = { violet: "Review", flame: "Urgent", amber: "Overdue", green: "Draft", slate: "Check", blue: "Start" };
 
-/* Ask Kaju, as on the landing page: a line that types real questions while it waits, and sends yours to Kaju. */
-const QUESTIONS = ["Which releases this month are missing a photo?", "Draft this month's report package", "What are programme partners waiting for?", "Which cases have had no update for a week?"];
-function AskKaju() {
-  const ai = useAi();
-  const [q, setQ] = useState("");
-  const [hint, setHint] = useState(QUESTIONS[0]);
-  const [focus, setFocus] = useState(false);
-  useEffect(() => {
-    if (focus || q || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let k = 0, n = 0, dir = 1, wait = 0;
-    const id = window.setInterval(() => {
-      if (wait > 0) { wait--; return; }
-      const full = QUESTIONS[k];
-      n += dir; setHint(full.slice(0, Math.max(0, n)));
-      if (dir > 0 && n >= full.length) { dir = -1; wait = 60; }
-      else if (dir < 0 && n <= 0) { dir = 1; k = (k + 1) % QUESTIONS.length; wait = 8; }
-    }, 38);
-    return () => window.clearInterval(id);
-  }, [focus, q]);
-  const send = (text: string) => { const t = text.trim(); if (!t) return; ai.ask(t); setQ(""); };
-  return (
-    <form className={`dy-ask${q || focus ? " is-typing" : ""}`} onSubmit={(e) => { e.preventDefault(); send(q || (focus ? "" : hint)); }} role="search" aria-label="Ask Kaju">
-      <Sparkles size={15} aria-hidden />
-      <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} placeholder={focus ? "Ask Kaju anything about your programme…" : hint || "Ask Kaju anything about your programme…"} aria-label="Ask Kaju anything about your programme" />
-      <button type="submit" className={`dy-send${q ? " is-ready" : ""}`} aria-label="Send to Kaju" disabled={!q.trim()}><ArrowUp size={14} aria-hidden /></button>
-    </form>
-  );
-}
