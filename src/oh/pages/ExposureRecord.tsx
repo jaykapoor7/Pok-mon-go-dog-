@@ -10,6 +10,7 @@ import { call, fmtDate, fmtTime, today, useRead, AGE, AUDIT, COURSE, EXPOSURE_KI
 import { Chip, Failed, Head, Loading, Page, Section, Seg, Sheet, useToast } from "../ui";
 import { Rail } from "@/sp/ui/Rail";
 import { DoseSheet } from "./facility";
+import { Referral } from "./Referral";
 
 export function ExposureRecord({ id, place }: { id: string; place: Place }) {
   const { reload: reloadPlaces } = usePlaces();
@@ -71,6 +72,8 @@ export function ExposureRecord({ id, place }: { id: string; place: Place }) {
             )}
           </Section>
 
+          <Referral exposureId={e.id} canRefer={e.can.assess} onChange={refresh} />
+
           <Section title="Animal follow-up" note="Shared with the animal team without patient details">
             {e.handoff ? (
               <div className="oh-card pad">
@@ -103,7 +106,7 @@ export function ExposureRecord({ id, place }: { id: string; place: Place }) {
             </dl>
           </Section>
           <Section title="History" note="Who did what, kept for audit">
-            <ol className="oh-rows" style={{ maxHeight: 280, overflowY: "auto" }}>
+            <ol className="oh-rows" style={{ maxHeight: 280, overflowY: "auto" }} tabIndex={0} aria-label="History of this record">
               {e.history.filter((h) => h.action !== "read").slice(-12).map((h, i) => <li key={i} className="oh-row" style={{ minHeight: 44 }}><div className="oh-row-main"><b style={{ fontWeight: 500 }}>{AUDIT[h.action] ?? h.action}</b></div><div className="oh-row-meta">{fmtTime(h.at)}</div></li>)}
               {!e.history.some((h) => h.action !== "read") ? <li className="oh-row"><div className="oh-row-main"><span>{place.illustrative ? "Loaded with the illustrative data." : "No changes since it was recorded."}</span></div></li> : null}
             </ol>

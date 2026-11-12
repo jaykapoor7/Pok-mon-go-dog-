@@ -154,5 +154,5 @@
 .try-roles small { grid-column: 1; color: var(--dt-grey); font-size: 14px; }
 .try-roles em { grid-column: 1; justify-self: start; margin-bottom: 4px; padding: 4px 8px; border-radius: 999px; background: #fff; color: var(--dt-grey); font-size: 12px; font-style: normal; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
 .try-roles svg { grid-column: 2; grid-row: 1 / span 3; color: var(--dt-blue); }
-.try-note { margin: 0; color: var(--dt-mute); font-size: 14px; }
+.try-note { margin: 0; color: var(--dt-grey); font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .try-story li { animation: none; } .try-start, .try-roles button { transition: none; } }

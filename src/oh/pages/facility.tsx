@@ -7,12 +7,12 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
-import { Check, Megaphone, Phone, Siren, Stethoscope, Syringe } from "lucide-react";
+import { ArrowLeftRight, Check, Megaphone, Phone, Siren, Stethoscope, Syringe } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { DailyHead, NeedsYou, type DailyRow } from "@/sp/ui/Daily";
 import { Seg as Seg2 } from "@/sp/ui/Page";
 import { usePlaces, primaryProgramme, isFacility } from "../places";
-import { call, daysFrom, fmtDate, relDay, today, useRead, AGE, COURSE, EXPOSURE_KIND, REMINDER, SEX, SPECIES, WASHED, type Alert, type Area, type ClinicDue, type DueDose, type Notice, type Place, type RegisterRow } from "../data";
+import { call, daysFrom, fmtDate, relDay, today, useRead, AGE, COURSE, EXPOSURE_KIND, REMINDER, SERVICE_LABEL, SEX, SPECIES, TRANSFER, WASHED, type Alert, type Area, type ClinicDue, type ClinicTransfers, type DueDose, type Notice, type Place, type RegisterRow, type TransferIn } from "../data";
 import { AlertList, Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
 
 /** The place this page belongs to, or a clear message why it cannot open. */
@@ -35,6 +35,10 @@ export function ClinicToday({ place }: { place: Place }) {
   const notices = useRead<Notice[]>(() => call("oh_clinic_notices", { p_facility: id }), `notices:${id}`);
   const waiting = useRead<RegisterRow[]>(() => call("oh_clinic_register", { p_facility: id, p_filter: "needs_assessment", p_limit: 20 }), `wait:${id}`);
   const alerts = useRead<Alert[]>(() => call("oh_alerts", { p_programme: prog?.id }), `alerts:${prog?.id}:${id}`, !!prog);
+  /* Referrals between facilities (v2.6). Before that migration the function does not exist and the lane is not offered. */
+  const xfer = useRead<ClinicTransfers>(() => call("oh_clinic_transfers", { p_facility: id }), `xfers:${id}`);
+  const xferReady = !!xfer.data && !/could not find the function|does not exist|schema cache/i.test(xfer.error ?? "");
+  const router = useRouter();
   const [dose, setDose] = useState<DueDose | null>(null);
   const toast = useToast();
   const t = due.data?.today ?? today();
@@ -45,7 +49,15 @@ export function ClinicToday({ place }: { place: Place }) {
   /* This facility's own alerts, and confirmed cases anywhere in the programme; one row per kind and area. */
   const mine = [...(alerts.data ?? []).filter((a) => a.organisation_id === id || a.kind === "positive_result")
     .reduce((m, a) => { const k = `${a.kind}|${a.area ?? ""}`; const g = m.get(k); if (g) g.n++; else m.set(k, { ...a, n: 1 }); return m; }, new Map<string, Alert & { n: number }>()).values()];
-  const refresh = () => { due.reload(); notices.reload(); waiting.reload(); alerts.reload(); reloadPlaces(); };
+  const refresh = () => { due.reload(); notices.reload(); waiting.reload(); alerts.reload(); xfer.reload(); reloadPlaces(); };
+  const markTransfer = async (r: TransferIn, action: "arrived" | "not_arrived") => {
+    const res = await call("oh_transfer_act", { p_transfer: r.id, p_action: action });
+    if (res.error) { toast(res.error, "flame"); return; }
+    xfer.reload(); reloadPlaces();
+    if (action === "not_arrived") { toast(`Marked as not arrived. ${r.from_short ?? r.from} can see it.`); return; }
+    toast("Marked as arrived. Record the bite here so the course is followed.");
+    router.push(`/workspace/${id}/new?referral=${r.id}&from=${encodeURIComponent(r.from_short ?? r.from)}&code=${encodeURIComponent(r.code)}&species=${r.animal_species}&on=${r.exposure_on}`);
+  };
 
   const logCall = async (args: { p_dose?: string; p_course?: string }, outcome: string) => {
     const r = await call("oh_log_reminder", { p_dose: args.p_dose ?? null, p_outcome: outcome, p_course: args.p_course ?? null });
@@ -60,7 +72,9 @@ export function ClinicToday({ place }: { place: Place }) {
      a person today, a line to Kaju, then one working list at a time. */
   const nNotices = notices.data?.filter((n) => n.status === "new").length ?? 0;
   const nWaiting = waiting.data?.length ?? 0;
-  const [lane, setLane] = useState<"due" | "done" | "notices" | "waiting">("due");
+  const xIn = xfer.data?.incoming ?? [], xOut = xfer.data?.outgoing ?? [];
+  const nIn = xIn.filter((r) => r.status === "sent").length;
+  const [lane, setLane] = useState<"due" | "done" | "notices" | "waiting" | "referrals">("due");
   /* Needs you: what the lists below do not already show (a confirmed case, vaccine readiness, a lapsed confirmation). Doses, notices,
      completions and bites waiting are the lists themselves, each once, with its count. */
   const rows: DailyRow[] = [
@@ -82,6 +96,7 @@ export function ClinicToday({ place }: { place: Place }) {
               { id: "done", label: "Completed", count: due.data?.completed?.length ?? 0 },
               { id: "notices", label: "From the public", count: nNotices },
               ...(canAssess ? [{ id: "waiting" as const, label: "Waiting for a clinician", count: nWaiting }] : []),
+              ...(xferReady && (xIn.length || xOut.length) ? [{ id: "referrals" as const, label: "Referrals", count: nIn }] : []),
             ]} />
           </div>
 
@@ -147,6 +162,41 @@ export function ClinicToday({ place }: { place: Place }) {
               ))}
             </ul>
           )) : null}
+
+          {/* Referred here: the bite code, its category and what is needed, never who the person is. Sent elsewhere: whether they arrived. */}
+          {lane === "referrals" ? (xfer.error && !xferReady ? <Failed error={xfer.error} retry={xfer.reload} /> : (
+            <>
+              {xIn.length ? <h3 className="dy-sub">Referred here</h3> : null}
+              {xIn.length ? (
+                <ul className="dy-work">
+                  {xIn.map((r, i) => (
+                    <li key={r.id} style={{ ["--j" as string]: i }}>
+                      <span className="dy-sq" data-c={r.status === "sent" ? "blue" : r.status === "arrived" ? "green" : "slate"} aria-hidden><ArrowLeftRight size={10} strokeWidth={2.4} /></span>
+                      <div className="dy-work-t"><b>{SERVICE_LABEL[r.service] ?? r.service} · <span className="dy-code">{r.code}</span></b><small>From {r.from_short ?? r.from} · {r.category === "not_recorded" ? "category not recorded" : `category ${r.category}`} · {SPECIES[r.animal_species] ?? r.animal_species}, {fmtDate(r.exposure_on)} · referred {relDay(r.sent_at).toLowerCase()}{r.note ? ` · ${r.note}` : ""}</small></div>
+                      <div className="dy-work-acts">
+                        {r.status === "sent" ? <>
+                          <button type="button" className="oh-btn small" onClick={() => void markTransfer(r, "not_arrived")}>Did not arrive</button>
+                          <button type="button" className="oh-btn small primary" onClick={() => void markTransfer(r, "arrived")}>Arrived</button>
+                        </> : <Chip tone={TRANSFER[r.status]?.tone}>{TRANSFER[r.status]?.label ?? r.status}</Chip>}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {xOut.length ? <h3 className="dy-sub">Sent elsewhere</h3> : null}
+              {xOut.length ? (
+                <ul className="dy-work">
+                  {xOut.map((r, i) => (
+                    <li key={r.id} style={{ ["--j" as string]: i }}>
+                      <span className="dy-sq" data-c={r.status === "not_arrived" ? "flame" : r.status === "arrived" ? "green" : "slate"} aria-hidden><ArrowLeftRight size={10} strokeWidth={2.4} /></span>
+                      {r.exposure_id ? <Link className="dy-work-t" href={`/workspace/${id}/record/${r.exposure_id}`}><b>{SERVICE_LABEL[r.service] ?? r.service} · <span className="dy-code">{r.code}</span></b><small>To {r.to_short ?? r.to} · referred {relDay(r.sent_at).toLowerCase()}{r.closed_at ? ` · marked ${relDay(r.closed_at).toLowerCase()}` : ""}</small></Link> : null}
+                      <div className="dy-work-acts"><Chip tone={TRANSFER[r.status]?.tone}>{r.status === "sent" ? "Not marked yet" : TRANSFER[r.status]?.label ?? r.status}</Chip></div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </>
+          )) : null}
         </section>
       </div>
       {dose ? <DoseSheet dose={dose} onClose={() => setDose(null)} onDone={(msg) => { setDose(null); toast(msg); refresh(); }} /> : null}
@@ -199,7 +249,7 @@ export function Register({ place }: { place: Place }) {
       <Head eyebrow={place.short_name ?? place.name} title="Bite register" lede="Every presentation at this facility. Opening a record is logged." />
       <div style={{ marginBottom: 16 }}><Seg name="filter" label="Show" value={filter} onChange={setFilter} options={FILTERS} /></div>
       {rows.loading && !rows.data ? <Loading rows={6} /> : rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !rows.data?.length ? <Empty title="No presentations here yet" /> : (
-        <div className="oh-table-wrap">
+        <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table">
           <table className="oh-table">
             <thead><tr><th>Patient</th><th>Exposure</th><th>Area</th><th>Category</th><th>Course</th><th className="r">Doses</th><th>Next due</th></tr></thead>
             <tbody>
@@ -230,10 +280,12 @@ function NewExposureBody({ place }: { place: Place }) {
   const areas = useRead<Area[]>(() => call("oh_org_areas", { p_org: place.organisation_id }), `areas:${place.organisation_id}`);
   const clinician = place.capabilities.includes("assess");
   const fromNotice = sp.get("notice");
+  /* Arrived on a referral from another facility: its animal follow-up was requested there, so it is off here by default. */
+  const fromReferral = sp.get("referral");
   const [f, setF] = useState({
     exposure_on: sp.get("on") ?? today(), kind: "bite", area: "", areaName: sp.get("area") ?? "", age: "not_recorded", sex: "not_recorded", ref: "",
     phone: "", consent: false, species: sp.get("species") ?? "dog", ownership: "unknown", animal: sp.get("animal") ?? "", place: sp.get("place") ?? "",
-    followup: true, category: "not_recorded", washed: "not_recorded",
+    followup: !fromReferral, category: "not_recorded", washed: "not_recorded",
   });
   const [busy, setBusy] = useState(false), [err, setErr] = useState<string | null>(null);
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
@@ -246,7 +298,7 @@ function NewExposureBody({ place }: { place: Place }) {
     const r = await call<{ id: string; code: string; handoff_id: string | null }>("oh_record_exposure", {
       p_facility: place.organisation_id, p_exposure_on: f.exposure_on, p_kind: f.kind, p_area: areaId || null, p_age_band: f.age, p_sex: f.sex,
       p_patient_ref: f.ref || null, p_species: f.species, p_ownership: f.ownership, p_animal_description: f.animal || null, p_animal_place: f.place || null,
-      p_category: clinician ? f.category : "not_recorded", p_source: fromNotice ? "citizen_notice" : "walk_in", p_notice: fromNotice || null,
+      p_category: clinician ? f.category : "not_recorded", p_source: fromNotice ? "citizen_notice" : fromReferral ? "referral" : "walk_in", p_notice: fromNotice || null,
       p_contact_phone: f.consent ? f.phone || null : null, p_reminder_consent: f.consent && !!f.phone, p_request_followup: f.followup && f.ownership !== "owned", p_wound_washed: f.washed,
     });
     setBusy(false);
@@ -260,6 +312,7 @@ function NewExposureBody({ place }: { place: Place }) {
     <Page illustrative={place.illustrative}>
       <Head eyebrow={place.short_name ?? place.name} title="Record a bite" lede="About a minute. The patient is identified by your own register number; no name is stored." />
       {fromNotice ? <p className="oh-note blue" style={{ marginBottom: 20 }}>Started from a notice the public left. Its details are filled in; check them with the patient.</p> : null}
+      {fromReferral ? <p className="oh-note blue" style={{ marginBottom: 20 }}>Referred from {sp.get("from") ?? "another facility"}{sp.get("code") ? `, where the bite is ${sp.get("code")}` : ""}. The date and animal are filled in; check them with the patient. The animal follow-up was requested there, so it is off here.</p> : null}
       <form className="oh-form" onSubmit={submit}>
         <fieldset className="oh-fieldset">
           <legend>What happened</legend>

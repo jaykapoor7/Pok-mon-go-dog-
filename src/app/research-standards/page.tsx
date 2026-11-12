@@ -1,9 +1,10 @@
-import { MarketingPage, Band, Steps } from "@/components/marketing/MarketingPage";
-import { LoopFigure, ResolveFigure } from "@/components/marketing/figures";
+import { Band, Figure, NextLinks, PageHead, Rows, S4Page, Steps, TwoTone } from "@/sp4/site/kit";
+import { LoopFigure, ResolveFigure } from "@/sp4/site/figures";
 import { barrierCounts } from "@/lib/platform/network";
+import "@/sp4/home/home4.css";
 
 export const metadata = {
-  title: "Research standards, how StrayPaw runs a study",
+  title: "Research standards, StrayPaw",
   description:
     "Every StrayPaw study is hypothesis-driven, uses established population-estimation methods, reports against ICAM indicators, and is published whatever the result.",
 };
@@ -78,123 +79,91 @@ export default function ResearchStandardsPage() {
   const counts = barrierCounts();
 
   return (
-    <MarketingPage inApp
-      title="A defined protocol."
-      accent="Published either way."
-      lede="Funders avoid this field because most work in it cannot say what would prove it wrong. Every StrayPaw study is falsifiable, measured against established methods, and published either way."
-      figure={<LoopFigure />}
-      next={[
-        { label: "For funders", href: "/for-funders", note: "How a programme gets scoped, costed and verified." },
-        { label: "Why this exists", href: "/evidence", note: "What is published, and what is missing." },
-        { label: "Discuss a study", href: "/contact?subject=Research%20collaboration", note: "For investigators, funders and institutions." },
-      ]}
-    >
-      <Band
-        tone="paper"
-        title="Seven stages, in"
-        accent="this order."
-      >
-        <p className="mk-body">
-          The order matters more than any individual stage. A hypothesis
-          written after the data is not a hypothesis, and a baseline taken
-          after the intervention is not a baseline, both are the ordinary way
-          this field produces numbers that cannot be relied on.
-        </p>
-        <Steps items={PROTOCOL} />
+    <S4Page close={false}>
+      <PageHead back
+        title={<TwoTone a="A defined protocol." b="Published either way." />}
+        lede="Funders avoid this field because most work in it cannot say what would prove it wrong. Every StrayPaw study is falsifiable, measured against established methods, and published either way."
+      />
+      <div className="s4-wrap"><Figure><LoopFigure /></Figure></div>
+
+      <Band title={<TwoTone a="Seven stages, in" b="this order." />}>
+        <div className="s4-prose">
+          <p>
+            The order matters more than any individual stage. A hypothesis
+            written after the data is not a hypothesis, and a baseline taken
+            after the intervention is not a baseline, both are the ordinary way
+            this field produces numbers that cannot be relied on.
+          </p>
+        </div>
+        <Steps items={PROTOCOL.map((p) => ({ t: p.title, d: p.body }))} />
       </Band>
 
-      <Band
-        tone="ink"
-        title="Established methods,"
-        accent="not invented ones."
-      >
-        <div className="mk-split">
-          <div>
-            <p className="mk-body">
+      <Band dark title={<TwoTone a="Established methods," b="not invented ones." />}>
+        <div className="s4-split2">
+          <div className="s4-prose">
+            <p>
               Nothing in the StrayPaw method set is novel, and that is
               deliberate. Free-roaming dog population estimation has a
               literature; a reviewer should be able to check our approach
               against it rather than take our word for anything.
             </p>
           </div>
-          <figure>
-            <ResolveFigure />
-          </figure>
+          <Figure><ResolveFigure /></Figure>
         </div>
 
-        <div className="mk-list">
-          {METHODS.map((m) => (
-            <div key={m.title} className="mk-row">
-              <b>{m.title}</b>
-              <span className="mk-tag">{m.tag}</span>
-              <p>{m.body}</p>
-            </div>
-          ))}
-        </div>
+        <Rows items={METHODS.map((m) => ({ t: m.title, tag: m.tag, d: m.body }))} />
       </Band>
 
-      <Band
-        tone="ink"
-        title="Who approves it,"
-        accent="and who checks it."
-      >
+      <Band title={<TwoTone a="Who approves it," b="and who checks it." />}>
         <Steps
           items={[
             {
-              n: "01",
-              title: "Institutional review",
-              body: "Studies involving animal handling run under the ethics approval of the executing partner or an academic collaborator, to the standards their institution requires. StrayPaw does not self-certify this.",
+              t: "Institutional review",
+              d: "Studies involving animal handling run under the ethics approval of the executing partner or an academic collaborator, to the standards their institution requires. StrayPaw does not self-certify this.",
             },
             {
-              n: "02",
-              title: "Named investigator",
-              body: "Every study has a named principal investigator accountable for the design and the analysis, and a named executing organisation accountable for the fieldwork.",
+              t: "Named investigator",
+              d: "Every study has a named principal investigator accountable for the design and the analysis, and a named executing organisation accountable for the fieldwork.",
             },
             {
-              n: "03",
-              title: "Data protection",
-              body: "Animal records carry no personal data about reporters beyond what is needed to contact them. Precise locations are restricted, because publishing exact positions of street animals creates a welfare risk.",
+              t: "Data protection",
+              d: "Animal records carry no personal data about reporters beyond what is needed to contact them. Precise locations are restricted, because publishing exact positions of street animals creates a welfare risk.",
             },
             {
-              n: "04",
-              title: "Declared interests",
-              body: "The funder, the executing partner and any commercial relationship are stated on the study record. StrayPaw's own interest in the result is part of that disclosure.",
+              t: "Declared interests",
+              d: "The funder, the executing partner and any commercial relationship are stated on the study record. StrayPaw's own interest in the result is part of that disclosure.",
             },
           ]}
         />
       </Band>
 
-      <Band
-        tone="paper"
-        title="Null results,"
-        accent="published the same way."
-      >
-        <div className="mk-split">
-          <div>
-            <p className="mk-body">
-              A funder&rsquo;s real risk in this sector is not that the work
-              fails. It is that failure goes unreported, so the next programme
-              repeats it. Publishing a null result is the cheapest thing that
-              breaks that cycle.
-            </p>
-          </div>
+      <Band title={<TwoTone a="Null results," b="published the same way." />}>
+        <div className="s4-prose">
+          <p>
+            A funder&rsquo;s real risk in this sector is not that the work
+            fails. It is that failure goes unreported, so the next programme
+            repeats it. Publishing a null result is the cheapest thing that
+            breaks that cycle.
+          </p>
         </div>
 
-        <div className="mk-list">
-          {[
+        <Rows
+          items={[
             ["Protocol published before fieldwork", "Design, hypothesis and analysis plan fixed in advance and public."],
             ["Results published regardless of outcome", "A null result is released on the same terms as a positive one."],
             ["Limitations stated by us, not found by reviewers", "What the study cannot show is part of the study."],
             ["Underlying data available to the funder", "Aggregated openly; individual records available for verification."],
-          ].map(([t, d]) => (
-            <div key={t} className="mk-row">
-              <b>{t}</b>
-              <span className="mk-tag">COMMITMENT</span>
-              <p>{d}</p>
-            </div>
-          ))}
-        </div>
+          ].map(([t, d]) => ({ t, tag: "COMMITMENT", d }))}
+        />
       </Band>
-    </MarketingPage>
+
+      <NextLinks
+        items={[
+          { label: "For funders", href: "/for-funders", note: "How a programme gets scoped, costed and verified." },
+          { label: "Why this exists", href: "/evidence", note: "What is published, and what is missing." },
+          { label: "Discuss a study", href: "/contact?subject=Research%20collaboration", note: "For investigators, funders and institutions." },
+        ]}
+      />
+    </S4Page>
   );
 }

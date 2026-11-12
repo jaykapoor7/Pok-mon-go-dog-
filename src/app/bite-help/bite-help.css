@@ -1,44 +1,48 @@
-.bh-proto { margin: 0 0 20px; padding: 12px 14px; border-radius: 10px; background: #fff7e6; color: #8a5a00; font-size: 14.5px; line-height: 1.5; }
-.bh-urgent { margin: 0 0 28px; padding: 18px 20px; border-radius: 14px; background: #fdecec; border: 1px solid #f3c4c4; }
-.bh-urgent h2 { margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #8f1d1d; }
-.bh-urgent ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; color: #4a1a1a; }
-.bh-call { margin: 12px 0 0; font-size: 16px; font-weight: 600; color: #8f1d1d; }
+/* Bite help, on the site's document column (DocPage in src/sp4/site/kit.tsx). */
+.bh-proto { padding: 12px 16px; border-radius: 8px; background: #fff7e6; color: #8a5a00; font-size: 14px; line-height: 1.5; }
+.bh-urgent { padding: 16px 24px; border-radius: 12px; background: #fdecec; }
+.s4-prose .bh-urgent h2 { margin: 0 0 8px; padding: 0; border: 0; font-size: 20px; font-weight: 600; color: #8f1d1d; }
+.s4-prose .bh-urgent ul { padding-left: 24px; display: grid; gap: 4px; color: #4a1a1a; }
+.s4-prose .bh-call { margin: 12px 0 0; font-size: 16px; font-weight: 600; color: #8f1d1d; }
 .bh-call a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.bh-steps { margin: 0 0 8px; padding-left: 22px; display: grid; gap: 10px; line-height: 1.6; }
-.bh-dont { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
-.bh-src { margin-top: 28px; font-size: 13px; color: #6b7486; }
-.bh-steps { list-style: decimal; }
+.s4-prose .bh-steps { padding-left: 24px; display: grid; gap: 12px; line-height: 1.6; }
+.s4-prose .bh-dont { padding-left: 24px; display: grid; gap: 4px; }
+.s4-prose .bh-src { margin-top: 24px; font-size: 14px; color: #6b7486; }
+.s4-prose .bh-steps { list-style: decimal; }
 .bh-steps li::marker { font-weight: 600; color: #0b1e3d; }
-.bh-dont, .bh-urgent ul { list-style: disc; }
+.s4-prose .bh-dont, .s4-prose .bh-urgent ul { list-style: disc; }
 
 /* Verified centres and the optional notice (src/oh/BiteFinder.tsx). */
 .bf { display: grid; gap: 16px; }
 .bf-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-.bf-item { padding: 16px 18px; border: 1px solid #e4e8f0; border-radius: 14px; }
+.bf-item { padding: 16px 16px; border: 1px solid #e4e8f0; border-radius: 12px; }
 .bf-item h3, .bf-form h3, .bf-done h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; color: #0b1e3d; }
-.bf-meta { margin: 0 0 10px; color: #6b7486; font-size: 13.5px; }
-.bf-svc { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.bf-svc li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 14px; }
+.bf-meta { margin: 0 0 12px; color: #6b7486; font-size: 14px; }
+.bf-svc { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.bf-svc li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 14px; }
 .bf-svc li span { min-width: 210px; color: #3d4a5c; }
-.bf-svc li small { color: #98a1b2; font-size: 12px; }
-.bf-form, .bf-done { margin-top: 12px; padding: 20px; border-radius: 14px; background: #f5f7fb; display: grid; gap: 12px; }
+.bf-svc li small { color: #6b7486; font-size: 12px; }
+.bf-form, .bf-done { margin-top: 12px; padding: 24px; border-radius: 12px; background: #f5f7fb; display: grid; gap: 12px; }
 .bf-form p, .bf-done p { margin: 0; font-size: 14px; color: #3d4a5c; }
 .bf-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 .bf-grid .wide { grid-column: 1 / -1; }
-.bf-form label { display: grid; gap: 4px; font-size: 13px; color: #0b1e3d; font-weight: 500; }
+.bf-form label { display: grid; gap: 4px; font-size: 14px; color: #0b1e3d; font-weight: 500; }
 .bf-form input, .bf-form select { min-height: 42px; padding: 8px 12px; border: 1px solid #d5dbe6; border-radius: 8px; background: #fff; font: inherit; color: #0b1e3d; }
-.bf-form .bf-check { display: flex; gap: 10px; align-items: center; font-weight: 400; color: #3d4a5c; }
+.bf-form .bf-check { display: flex; gap: 8px; align-items: center; font-weight: 400; color: #3d4a5c; }
 .bf-form .bf-check input { min-height: 0; width: 18px; height: 18px; accent-color: #2457ce; }
 .bf-phone { max-width: 260px; }
-.bf-form button { justify-self: start; min-height: 44px; padding: 0 18px; border: 0; border-radius: 8px; background: #2457ce; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.bf-form button { justify-self: start; min-height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: #2457ce; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 .bf-form button[disabled] { opacity: .6; }
 .bf-err { color: #8f2a18 !important; }
-.bf-small { font-size: 12.5px !important; color: #6b7486 !important; }
+.bf-small { font-size: 12px !important; color: #5b6474 !important; }
 
-.bf-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 14px 0 6px; }
-.bf-locate { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #2457ce; background: #2457ce; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.bf-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 16px 0 8px; }
+.bf-locate { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #2457ce; background: #2457ce; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 .bf-locate:disabled { opacity: .6; }
 .bf-need { display: inline-flex; align-items: center; gap: 8px; }
-.bf-need select { min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid #d5dbe6; font: inherit; background: #fff; }
+.bf-need select { min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #d5dbe6; font: inherit; background: #fff; }
 .bf-tools small { color: #6b7486; }
-.bf-km { margin-left: 10px; font-size: 13px; font-weight: 500; color: #2457ce; }
+.bf-km { margin-left: 12px; font-size: 14px; font-weight: 500; color: #2457ce; }
+
+/* The page kit's button colour won over white on blue (2.1:1); this keeps the label white. */
+.bf-locate.bf-locate, .bf-locate.bf-locate:hover { color: #fff; }

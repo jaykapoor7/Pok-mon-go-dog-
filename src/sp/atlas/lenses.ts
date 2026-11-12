@@ -85,7 +85,7 @@ export function lensFigure(id: LensId, cells: MapCell[] | null, cities: National
       open += c.open_cases - u; unconf += u; help += needingHelp(c.needs_help, c.open_cases - u, c.fu_missed_live ?? 0); treat += c.treatments;
     }
     const held = cities.filter((c) => c.animals > 0).length;
-    if (id === "animals") return { big: f(animals), small: `animal records in ${held} cities${clinical ? ` · ${f(clinical)} in a clinical register` : ""}` };
+    if (id === "animals") return { big: f(animals), small: `animal records in ${held} ${held === 1 ? "city" : "cities"}${clinical ? ` · ${f(clinical)} in a clinical register` : ""}` };
     if (id === "help") return { big: f(help), small: "needing help: flagged, open or missed" };
     if (id === "requests" || id === "followups") return { big: f(open), small: unconf ? `confirmed open · ${f(unconf)} unconfirmed` : "confirmed open" };
     if (id === "arv") return { big: f(vacc), small: "recorded vaccinated" };

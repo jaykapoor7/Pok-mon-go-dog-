@@ -260,11 +260,11 @@ function Record({
         >
           <div className="se-city-network-head">
             <b>Who is working, by city</b>
-            <Link href={`/orgs?state=${row.code}`}>Open directory</Link>
+            <Link href={`/community/organisations?state=${row.code}`}>Open directory</Link>
           </div>
           {row.cityGroups.map((group) => (
             <div className="se-city-group" key={group.city}>
-              <Link href={`/orgs?state=${row.code}&city=${encodeURIComponent(group.city)}`}>
+              <Link href={`/community/organisations?state=${row.code}&city=${encodeURIComponent(group.city)}`}>
                 <MapPin size={11} />
                 {group.city}
                 {group.orgs.length > 1 && <span>{group.orgs.length} organisations</span>}

@@ -204,6 +204,7 @@ const TOOL_STEP: Record<string, string> = {
   abc_package_status: "Reading report packages", recent_confirmed_actions: "Verifying confirmed actions", operations_insights: "Running operational checks",
   search_knowledge: "Searching the academy", extract_field_message: "Reading the message", propose_case: "Preparing a case", propose_note: "Preparing a note",
   propose_followup: "Preparing a follow-up", propose_care: "Preparing a care record", navigate: "Finding the screen",
+  query_cases: "Counting cases", case_summary: "Reading the case",
 };
 
 /* ── suggestions, by where the person is ─────────────────────────── */
@@ -213,7 +214,7 @@ function suggestions(path: string): string[] {
   if (path.startsWith("/workspace") || path.startsWith("/programme") || path === "/today") return ["What are programme partners waiting for?", "What can you do?", "Open the academy"];
   if (path.startsWith("/research")) return ["What programmes are published?", "Show published ABC programmes", "How do I request record-level data?"];
   if (path.startsWith("/ngo/training")) return ["Search the academy for safe capture", "What training is available?", "Open the academy"];
-  if (/\/ngo\/(cases|verification)\/[^/]+$/.test(path)) return ["Check this case and its evidence", "What needs attention on this case?", "What can only the veterinarian authorise?"];
+  if (/\/ngo\/(cases|verification)\/[^/]+$/.test(path)) return ["Summarise this case", "Check this case and its evidence", "What can only the veterinarian authorise?"];
   if (/\/(?:ngo\/packages|city\/review)\/[^/]+$/.test(path)) return ["Check this report package", "Show the municipal review queue", "What can only a municipal reviewer accept?"];
   if (path.startsWith("/ngo/packages") || path.startsWith("/ngo/contracts")) return ["Prepare this month's package", "Which records block this month's bill?", "Explain how the bill is calculated"];
   if (path.startsWith("/ngo/work")) return ["What should I do first today, and why?", "Which critical cases have nobody assigned?", "What follow-ups are overdue?"];

@@ -9,7 +9,7 @@ import "@/sp4/home/home4.css";
 export function generateStaticParams() { return STORIES.map((s) => ({ slug: s.slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const s = storyBySlug((await params).slug);
-  return s ? { title: `${s.name} · Customer story · StrayPaw`, description: s.summary } : {};
+  return s ? { title: `${s.name} customer story, StrayPaw`, description: s.summary } : {};
 }
 
 const month = (iso: string | null) => (iso ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }) : "—");

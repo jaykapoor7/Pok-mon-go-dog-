@@ -116,7 +116,7 @@
 .os-strip[data-tone="flame"] .os-strip-i { background: #e04a2f; }
 .os-strip[data-tone="green"] .os-strip-i { background: #1f7a4d; }
 .os-strip-t b { display: block; color: #0b1e3d; font-weight: 600; font-size: 14px; }
-.os-strip-t small { display: block; color: #6b7486; font-size: 12px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.os-strip-t small { display: block; color: #5b6474; font-size: 12px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .os-strip-go { color: #2457ce; transition: transform .3s cubic-bezier(.32, 1.4, .5, 1); }
 .os-strip:hover .os-strip-go { transform: translateX(4px); }
 @media (prefers-reduced-motion: reduce) { .os-strip { animation: none; transition: none; } }

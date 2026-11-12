@@ -8,7 +8,7 @@ import { DeskHeader } from "@/components/app/DeskHeader";
 import "@/components/fundraisers/fundraisers.css";
 
 export const metadata = {
-  title: "Fundraisers, support rescues | StrayPaw",
+  title: "Fundraisers, StrayPaw",
   description:
     "Back verified street-dog rescues in India, vet bills, sterilisation drives and emergencies. Donations go directly to each NGO.",
 };

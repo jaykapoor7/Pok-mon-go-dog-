@@ -67,14 +67,14 @@
 
 .sp-mono {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .sp-kicker {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -102,7 +102,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   min-height: var(--ctl-h);
   padding: var(--ctl-pad);
   border-radius: var(--ctl-r);
@@ -126,11 +126,11 @@
 .sp-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   min-height: 32px;
   border-bottom: 1px solid currentColor;
   padding-bottom: 4px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none;
   color: inherit;
@@ -147,10 +147,10 @@
 /* Below about 430px the wordmark, two buttons and the menu control add up
    to more than the bar: the actions have margin-left:auto and the wordmark
    does not shrink, so "StrayPaw" ran under "I have a code" and the menu
-   button was pushed 19px off the right edge, where it could not be tapped
+   button was pushed 16px off the right edge, where it could not be tapped
    at all. The mark alone is the brand at this size, and the word beside it
    was the only part not doing work. */
-@media (max-width: 430px) {
+@media (max-width: 432px) {
   /* The word stays. Hiding it left a white bar with "Code" and "Open
      app" floating in it and nothing saying whose site this is, which is
      the one thing a header has to do. The room comes from the two
@@ -226,7 +226,7 @@
   top: 36%;
   width: 4px;
   height: 28%;
-  border-radius: 2px;
+  border-radius: 4px;
   background: linear-gradient(to bottom, transparent, rgba(143,183,255,0.9) 40%, rgba(143,183,255,0.9) 60%, transparent);
   filter: blur(2px);
   pointer-events: none;
@@ -264,7 +264,7 @@
 .chip-glass .chip-layer-art {
   width: 300px;
   height: 76px;
-  border-radius: 38px;
+  border-radius: 40px;
   background: linear-gradient(
     165deg,
     rgba(244, 245, 247, 0.22),
@@ -281,7 +281,7 @@
 .chip-cap .chip-layer-art {
   width: 92px;
   height: 64px;
-  border-radius: 32px 6px 6px 32px;
+  border-radius: 32px 4px 4px 32px;
   background: linear-gradient(150deg, rgba(168, 221, 208, 0.38), rgba(102,197,213,0.1));
   border: 1px solid rgba(168, 221, 208, 0.55);
 }
@@ -305,7 +305,7 @@
   position: relative;
   width: 56px;
   height: 46px;
-  border-radius: 3px;
+  border-radius: 4px;
   background: linear-gradient(145deg, #2a3f66, #16233c);
   border: 1px solid var(--electric);
   transition: box-shadow 0.3s ease;
@@ -329,10 +329,10 @@
   text-align: center;
   transition: opacity 0.6s ease 0.5s;
 }
-.chip-readout .sp-mono { display: block; color: #8b98b0; margin-bottom: 9px; }
+.chip-readout .sp-mono { display: block; color: #8b98b0; margin-bottom: 8px; }
 .chip-readout b {
   display: inline-block;
-  padding: 10px 18px;
+  padding: 12px 16px;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 16px;
   font-weight: 500;
@@ -340,7 +340,7 @@
   color: var(--electric);
   background: rgba(11, 16, 32, 0.92);
   border: 1px solid rgba(143, 183, 255, 0.45);
-  border-radius: 3px;
+  border-radius: 4px;
   transition: color 0.3s ease, text-shadow 0.3s ease, border-color 0.3s ease;
 }
 /* Code lights up as the scanner passes */
@@ -364,7 +364,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 2px;
+  gap: 4px;
   transition: opacity 0.5s ease;
 }
 .chip-calls li {
@@ -372,7 +372,7 @@
   grid-template-columns: 30px 34px 1fr;
   align-items: start;
   gap: 12px;
-  padding: 15px 16px;
+  padding: 16px 16px;
   border: 1px solid transparent;
   border-left: 2px solid rgba(143, 183, 255, 0.2);
   cursor: default;
@@ -385,15 +385,15 @@
 }
 .chip-call-n {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   color: var(--electric);
-  padding-top: 3px;
+  padding-top: 4px;
 }
 .chip-call-arrow {
   position: relative;
   height: 1px;
-  margin-top: 9px;
+  margin-top: 8px;
   background: rgba(143, 183, 255, 0.4);
   transition: background 0.22s ease;
 }
@@ -409,8 +409,8 @@
 .chip-calls li.on .chip-call-arrow { background: var(--electric); }
 .chip-calls li:hover .chip-call-arrow::after,
 .chip-calls li.on .chip-call-arrow::after { border-left-color: var(--electric); }
-.chip-calls b { display: block; font-size: 14.5px; font-weight: 600; }
-.chip-calls p { margin: 6px 0 0; font-size: 13px; line-height: 1.55; color: #97a3b8; }
+.chip-calls b { display: block; font-size: 14px; font-weight: 600; }
+.chip-calls p { margin: 8px 0 0; font-size: 14px; line-height: 1.55; color: #97a3b8; }
 
 /* Scan strip */
 .chip-scan {
@@ -423,18 +423,18 @@
   background: rgba(143, 183, 255, 0.16);
   border: 1px solid rgba(143, 183, 255, 0.16);
 }
-.chip-scan-step { background: var(--ink); padding: 24px 22px; }
+.chip-scan-step { background: var(--ink); padding: 24px 24px; }
 .chip-scan-step .spa-mono,
 .chip-scan-step .sp-mono { color: var(--electric); }
 .chip-scan-step b {
   display: block;
   font-family: var(--font-display), system-ui, sans-serif;
   font-weight: 600;
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.1;
   margin: 12px 0 8px;
 }
-.chip-scan-step p { margin: 0; font-size: 13px; line-height: 1.6; color: #97a3b8; }
+.chip-scan-step p { margin: 0; font-size: 14px; line-height: 1.6; color: #97a3b8; }
 
 @media (prefers-reduced-motion: reduce) {
   .chip-coil .chip-layer-art { animation: none; }
@@ -443,14 +443,14 @@
 }
 
 @media (max-width: 900px) {
-  .chip-wrap { grid-template-columns: 1fr; gap: 34px; }
+  .chip-wrap { grid-template-columns: 1fr; gap: 32px; }
   .chip-stage { height: 320px; }
   .chip-scene { transform: none !important; scale: 0.78; }
 }
 @media (max-width: 650px) {
   .chip-stage { height: 260px; }
   .chip-scene { scale: 0.6; }
-  .chip-calls li { grid-template-columns: 26px 20px 1fr; gap: 9px; padding: 13px 10px; }
+  .chip-calls li { grid-template-columns: 26px 20px 1fr; gap: 8px; padding: 12px 12px; }
 }
 
 /* ── map console ────────────────────────────────────────────────── */
@@ -472,7 +472,7 @@
 .sp-footer-bottom {
   border-top: 1px solid #273450;
   margin-top: 10vw;
-  padding-top: 15px;
+  padding-top: 16px;
   /* 3.36:1 on the navy footer. The whole legal strip and its links. */
   color: #949b93;
   display: flex;
@@ -482,7 +482,7 @@
 }
 .sp-footer-bottom a { color: inherit; text-decoration: none; }
 /* The one-line legal strip that closes a page: no band of empty navy above it. */
-.sp-footer.mk-foot { padding-top: 28px; }
+.sp-footer.mk-foot { padding-top: 32px; }
 .mk-foot .sp-footer-bottom { margin-top: 0; border-top: 0; padding-top: 0; }
 .sp-footer-bottom a:hover { color: var(--electric); }
 
@@ -538,21 +538,21 @@
 .chs-heading {
   font-family: var(--font-display), system-ui, sans-serif;
   font-weight: 500;
-  font-size: clamp(40px, 5.5vw, 78px);
+  font-size: clamp(40px, 5.5vw, 80px);
   letter-spacing: -0.06em;
   line-height: 0.9;
-  margin: 18px 0 20px;
+  margin: 16px 0 24px;
   color: var(--paper);
 }
 .chs-heading span { color: var(--electric); }
-.chs-sub { font-size: 15px; line-height: 1.65; color: #8794aa; max-width: 420px; margin: 0; }
+.chs-sub { font-size: 16px; line-height: 1.65; color: #8794aa; max-width: 420px; margin: 0; }
 
 .chs-viz {
   position: relative;
   display: grid;
   grid-template-rows: auto 1fr;
   justify-items: center;
-  gap: 22px;
+  gap: 24px;
   align-content: center;
   height: auto;
   max-height: 84svh;
@@ -623,9 +623,9 @@
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
-  margin-left: 30px;
+  margin-left: 32px;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #b8d1ff;
@@ -635,7 +635,7 @@
 .chs-legend {
   display: none;
   grid-template-columns: 1fr 1fr;
-  gap: 5px 14px;
+  gap: 4px 12px;
   width: 100%;
   max-width: 340px;
   margin: 0;
@@ -645,9 +645,9 @@
 .chs-legend li {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #b8d1ff;
@@ -670,7 +670,7 @@
 .chs-code-label {
   display: block;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #8b98b0;
@@ -678,7 +678,7 @@
 }
 .chs-code b {
   display: inline-block;
-  padding: 9px 16px;
+  padding: 8px 16px;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 14px;
   font-weight: 500;
@@ -686,7 +686,7 @@
   color: var(--electric);
   background: rgba(11,16,32,0.92);
   border: 1px solid rgba(143,183,255,0.4);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .chs-record {
@@ -694,7 +694,7 @@
   background: rgba(23,36,59,0.92);
   border: 1px solid rgba(143,183,255,0.18);
   border-radius: 4px;
-  padding: 14px;
+  padding: 16px;
   position: relative;
 }
 .chs-record-line {
@@ -709,7 +709,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
   border-bottom: 1px solid rgba(143,183,255,0.1);
 }
 .chs-record-tag {
@@ -722,20 +722,20 @@
 .chs-record-status {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8b98b0;
 }
 .chs-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--electric); }
 .chs-dot.green { background: #4cbe87; }
-.chs-record-fields { display: grid; gap: 7px; }
+.chs-record-fields { display: grid; gap: 8px; }
 .chs-field { display: grid; grid-template-columns: 76px 1fr; gap: 8px; align-items: baseline; }
 .chs-field span {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #8b98b0;
@@ -747,11 +747,11 @@
 .chs-net-svg { width: 100%; height: auto; display: block; }
 .chs-net-label {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8b98b0;
-  margin: 10px 0 0;
+  margin: 12px 0 0;
 }
 
 /* ── what it adds up to ───────────────────────────────────────── */
@@ -817,8 +817,8 @@
     grid-template-rows: auto auto;
     align-content: center;
     height: 100svh;
-    padding: 76px 6vw 62px;
-    gap: 10px;
+    padding: 80px 6vw 64px;
+    gap: 8px;
   }
   .chs-viz {
     order: -1;
@@ -853,14 +853,14 @@
   .chs-scene-wrap { transform: scale(calc(var(--chs-scale, 1) * 0.66)); }
   .chs-layer-label { display: none; }
   .chs-legend { display: grid; }
-  .chs-code b { font-size: 12px; padding: 7px 12px; }
-  .chs-code-label { margin-bottom: 5px; }
+  .chs-code b { font-size: 12px; padding: 8px 12px; }
+  .chs-code-label { margin-bottom: 4px; }
   .chs-copy { min-height: 214px; }
-  .chs-heading { font-size: clamp(34px, 11vw, 46px); }
+  .chs-heading { font-size: clamp(32px, 11vw, 48px); }
   .chs-sub { font-size: 14px; }
-  .chs-record { padding: 13px; opacity: var(--chs-rec-op, 1) !important; }
+  .chs-record { padding: 12px; opacity: var(--chs-rec-op, 1) !important; }
   .chs-field { grid-template-columns: 68px 1fr; }
-  .chs-field b { font-size: 11.5px; }
+  .chs-field b { font-size: 12px; }
   .chs-dots { bottom: 22px; left: 6vw; }
 }
 
@@ -925,7 +925,7 @@
     align-items: center;
     min-height: var(--ctl-h);
   }
-  .sp-footer-bottom a { padding: 0 2px; }
+  .sp-footer-bottom a { padding: 0 4px; }
   /* The wordmark is the way home; it should not be a 30px sliver. */
 }
 
@@ -965,14 +965,14 @@
 .lang-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   min-height: 36px;
-  padding: 0 10px;
+  padding: 0 12px;
   background: transparent;
   border: 1px solid rgba(244, 245, 247, 0.18);
   border-radius: var(--ctl-r, 980px);
   color: rgba(244, 245, 247, 0.78);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -984,21 +984,21 @@
   z-index: 60;
   min-width: 172px;
   margin: 0;
-  padding: 5px;
+  padding: 4px;
   list-style: none;
   background: var(--slate);
   border: 1px solid #2b3b57;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
 }
 .lang-menu button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   min-height: 44px;
-  padding: 0 10px;
+  padding: 0 12px;
   background: transparent;
   border: 0;
   border-radius: 4px;
@@ -1012,11 +1012,11 @@
 }
 .lang-menu button[aria-selected="true"] { color: var(--electric); font-weight: 600; }
 .lang-note {
-  padding: 8px 10px 4px;
+  padding: 8px 12px 4px;
   border-top: 1px solid rgba(244, 245, 247, 0.1);
   margin-top: 4px;
   color: rgba(244, 245, 247, 0.46);
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.45;
 }
 @media (max-width: 380px) {

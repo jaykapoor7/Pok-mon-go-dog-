@@ -364,3 +364,7 @@
 .sp .portrait.is-none:not(.is-s) .portrait-none { position: absolute; inset: 0; display: grid; align-content: end; gap: 4px; padding: 16px; color: #eef3ff; }
 .sp .portrait.is-none:not(.is-s) .portrait-none b { font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
 .sp .portrait.is-none:not(.is-s) .portrait-none .mono { font-size: 12px; letter-spacing: 0.04em; color: rgba(219, 230, 255, 0.7); }
+
+/* A small portrait with no photograph is a quiet plate. Its ID is printed beside it already, and the plate's label says
+   "No photograph recorded" to assistive technology; the faint repeat inside it was unreadable (1.1:1) and said nothing new. */
+.sp .portrait.is-none.is-s .portrait-none > * { display: none; }

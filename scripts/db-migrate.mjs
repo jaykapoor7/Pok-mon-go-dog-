@@ -28,7 +28,7 @@ const SETS = {
   delhi: ["seed-delhi-photographs.sql"],
   /* Production catch-up, November 2026: the public-read fix, AnimalID's
      tables and private bucket (the app keeps it behind the animal_id flag
-     until its worker runs), and the One Health programme layer v2.1 to v2.5.
+     until its worker runs), and the One Health programme layer v2.1 to v2.6.
      Additive and safe to run again; no existing row or policy is changed.
      Never includes the illustrative demo seed. */
   "one-health": [
@@ -39,6 +39,7 @@ const SETS = {
     "migrations/20261110230829_one_health_v2_3_programme_setup_grants.sql",
     "migrations/20261111100000_one_health_v2_4_network_alerts.sql",
     "migrations/20261111120000_one_health_v2_5_record_audit_fix.sql",
+    "migrations/20261112140000_one_health_v2_6_referrals_revaccination_logos.sql",
   ],
 };
 

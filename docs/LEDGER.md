@@ -41,6 +41,17 @@ The owner judged the rebuilt landing, hero, navigation and pages (PRs #60, #61) 
 
 The sections below about "Batch 1" and the "Site visual pass" describe work that this decision supersedes on the public site.
 
+## 12 Nov: the public site on one page kit (from the site audit's open items)
+
+| Item | Status | Evidence |
+|---|---|---|
+| 26 public pages on older kits (InfoPage/MarketingShell, MarketingPage, SitePage, CoShell/AudiencePage, the sp3 SolutionPage) moved onto the blueprint's kit (`src/sp4/site/kit.tsx`, `ProductPage`); words, links and URLs kept. The kit gained what they needed: Back (`PageHead back`), `DocPage`/`Prose`, `Block`, `Band`, `Steps`, `Rows`, `NextLinks`, `Figure`, and `ProductPage` `problem`, section eyebrows and `close.sub` (For funders). Older kits deleted | Done | Before/after screenshots of every changed page, 1440×900 and Pixel 7 |
+| Evidence's state explorer and Volunteer's routes were unstyled on a fresh load (their styles are in the console's app.css); now styled in the site's type | Fixed | Screenshots |
+| One title format, "Page, StrayPaw" (blog posts, customer stories, team pages, research sub-pages, fundraisers, Donate, Research standards, The network) | Done | |
+| Internal links that hit a redirect point at the final URL (/access, /report, /map, /following, /orgs, /product, /art-credits, /org/:slug, /partner/cases/:id) on public pages | Done | Shell menus and `src/lib` search/role links (signed-in product) not changed |
+| Public stylesheets on the 8-point scale (`scripts/grid8.py --write`); the homepage's landing sections left as DESIGN.md says | Done | `grid8.py` reports none off scale on the 21 public sheets and the inner-page sections of `home4.css`; home before/after identical in structure |
+| `/report-content` still renders in the app shell, with no site header | Open | Left for a decision |
+
 ## 11 Nov, evening: live state and the dashboard pass
 
 | Thing | State | Evidence |
@@ -229,6 +240,25 @@ first), and a rebuilt live demo. See `docs/BEST-AUDIT.md`.
 | After release, the story on demo.straypaw.org: all seven chapters played on phone and desktop; the end card offered "Explore freely" twice | Fixed (one button) | `e2e/demo-story.spec.ts` against the live demo |
 | Public pages (privacy, terms, donate, the bite finder): the Back arrow sat on a line of its own, touching the eyebrow; `/try` role cards still outlined | Fixed | Screenshots before and after |
 | The whole story on demo.straypaw.org, phone and desktop (after #82) | 2/2 | `e2e/demo-story.spec.ts` against the live demo, version `850f7ccb` |
+
+## 12 Nov, late: "everything left" (owner: "Reseed" and "EVERYTHING left not done")
+
+| Item | Status | Evidence |
+|---|---|---|
+| Staging reseed | Waiting for the owner to accept the database tool's confirmation (it times out after 60 s) | |
+| Production One Health migration | Owner approved; this session cannot start workflows (403). Owner runs Actions → Apply Supabase migration → one-health | |
+| Referral of one person between facilities (health.transfers, v2.6) | Built; waits for v2.6 on staging to be checked | PR #84 |
+| Dogs due for revaccination (NGO Animals) | Built; same wait | PR #84 |
+| Partner logos (upload in setup, overview, report row) | Built; same wait | PR #84 |
+| Kaju: case questions with follow-ups, glossary, case summary (no model) | Done | Contract scripts pass; asked in a browser on staging as the NGO coordinator |
+| Municipal review and contracts on the page pattern | Done | Checked on demo.straypaw.org after release (ABC accounts sign in only there) |
+| Invitations by link; sign-in on signed-out Today | Done | |
+| Case story, All sections, community map plural | Done | |
+| 26 public pages onto the blueprint kit; one title format; links at final URLs; public CSS on the 8-point scale | Done (by a worktree agent, reviewed) | Typecheck, build, browser suite 249/0 |
+| Changelog current; How do I… from Kaju's own steps; security evidence | Done | |
+| Accessibility (axe, WCAG 2.1 A/AA) on 6 public pages and 15 product screens across 6 roles, desktop and phone | Done: every checked screen passes | Contrast tokens for soft fills, valid stat markup, alert headers without nested controls, focusable scroll regions |
+| Page speed (browser-measured on a phone profile via the session proxy) | LCP 0.95–1.9 s, CLS 0 on home, /try, security summary, for-ngos | Lighthouse itself was not permitted in this session |
+| Every page loads about 430 KB of JavaScript, documents included (the root layout carries the app shell) | Open: split the public pages from the app shell's bundle | |
 
 ## 12 Nov: the cinematic public site, behind one switch
 

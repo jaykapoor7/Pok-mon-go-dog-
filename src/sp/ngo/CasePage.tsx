@@ -177,7 +177,7 @@ function Chronology({ history, onChanged }: { history: HistoryRow[]; onChanged: 
           <i className="kr-dot" aria-hidden />
           <div className="kr-ev">
             <p className="kr-ev-t">{h.t.charAt(0).toUpperCase() + h.t.slice(1)}</p>
-            <p className="kr-ev-m"><span className="kr-ev-k">{h.k === "care" ? "Care" : h.k === "note" ? "Note" : "Status"}</span><time>{day(h.at)}</time>{h.who ? <span>{h.who.includes("@") ? h.who.split("@")[0].replace(/^demo-/, "") : h.who}</span> : null}</p>
+            <p className="kr-ev-m">{/* Most rows are notes; only care and status changes are named. */}{h.k !== "note" ? <span className="kr-ev-k">{h.k === "care" ? "Care" : "Status"}</span> : null}<time>{day(h.at)}</time>{h.who ? <span>{h.who.includes("@") ? h.who.split("@")[0].replace(/^demo-/, "") : h.who}</span> : null}</p>
           </div>
           {h.id && <DeleteRecord kind={h.kind} id={h.id} what={h.k === "care" ? "this care record" : h.k === "note" ? "this note" : "this update"} onDone={() => void onChanged()} />}
         </li>

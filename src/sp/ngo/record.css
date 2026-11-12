@@ -19,7 +19,7 @@
 .kr-chip[data-tone="blue"] { background: #e8eefb; color: var(--kr-blue); box-shadow: none; }
 .kr-chip[data-tone="amber"] { background: #fbf1df; color: #94600f; box-shadow: none; }
 .kr-chip[data-tone="green"] { background: #e6f3ec; color: #1f7a4d; box-shadow: none; }
-.kr-chip[data-tone="flame"] { background: #fdece8; color: #c2412a; box-shadow: none; }
+.kr-chip[data-tone="flame"] { background: #fdece8; color: #b4301a; box-shadow: none; }
 .kr-chip[data-tone="violet"] { background: #efebfc; color: #6d4fd8; box-shadow: none; }
 .kr-tools { margin-left: auto; }
 .sp.sx3 .sp-main h1.kr-title { margin: 0; color: var(--kr-ink); font-size: 24px !important; line-height: 1.15 !important; font-weight: 500 !important; letter-spacing: -.03em !important; }
@@ -29,9 +29,9 @@
 .kr-meta li > svg { flex: none; color: var(--kr-grey); }
 .kr-meta small { margin-left: 8px; color: var(--kr-grey); font-size: 12px; }
 .kr-meta b { font-weight: 500; color: var(--kr-ink); }
-.kr-meta .is-flame { color: #c2412a; }
+.kr-meta .is-flame { color: #b4301a; }
 .kr-av { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--kr-blue); color: #fff; font-size: 12px; font-weight: 600; }
-.kr-av.is-none { background: #fdece8; color: #c2412a; }
+.kr-av.is-none { background: #fdece8; color: #b4301a; }
 
 /* layout */
 .kr-grid { display: grid; gap: 12px; align-items: start; }
@@ -80,7 +80,7 @@
 .kr-ev-k { padding: 1px 8px; border-radius: 4px; background: #eef0f3; color: var(--kr-ink-2); font-size: 12px; font-weight: 500; text-transform: capitalize; }
 .kr-line > li[data-k="care"] .kr-ev-k { background: #e6f3ec; color: #1f7a4d; }
 .kr-line > li[data-k="note"] .kr-ev-k { background: #e8eefb; color: var(--kr-blue); }
-.kr-line > li[data-k="late"] .kr-ev-k { background: #fdece8; color: #c2412a; }
+.kr-line > li[data-k="late"] .kr-ev-k { background: #fdece8; color: #b4301a; }
 .kr-line > li[data-k="ahead"] .kr-ev-k { background: #fbf1df; color: #94600f; }
 .kr-ev-note { margin: 4px 0 0; color: var(--kr-ink-2); font-size: 12px; line-height: 1.5; white-space: pre-line; }
 .kr-src summary { cursor: pointer; color: var(--kr-blue); font-size: 12px; }
@@ -179,3 +179,10 @@
 .kr-ask:disabled { opacity: .55; cursor: default; }
 .ka-k .kr-ask { margin-left: auto; }
 .ka-k { justify-content: flex-start; }
+
+/* The story: a delete control on every line was noise. It appears on the line under the pointer or the keyboard, and always on touch screens. */
+@media (hover: hover) {
+  .kr-line > li .dr-btn { opacity: 0; transition: opacity .15s; }
+  .kr-line > li:hover .dr-btn, .kr-line > li:focus-within .dr-btn { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .kr-line > li .dr-btn { transition: none; } }

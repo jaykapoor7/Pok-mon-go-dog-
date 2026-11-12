@@ -39,7 +39,7 @@
 .sp.sx3 .sp-main .btn.is-flame { background: #f05b40; color: #fff; box-shadow: 0 8px 18px -12px rgba(240, 91, 64, .8); }
 .sp.sx3 .sp-main .btn.is-ghost { background: transparent; box-shadow: none; color: var(--s5-blue); }
 .sp.sx3 .sp-main .btn.is-ghost:hover { background: rgba(36, 87, 206, .08); box-shadow: none; }
-.sp.sx3 .sp-main .btn:disabled, .sp.sx3 .sp-main .btn[aria-disabled="true"] { background: #eef0f5; color: #8a90a0; box-shadow: none; transform: none; }
+.sp.sx3 .sp-main .btn:disabled, .sp.sx3 .sp-main .btn[aria-disabled="true"] { background: #eef0f5; color: #626a7a; box-shadow: none; transform: none; }
 .sp.sx3 .sp-main :is(.btn, .chip, a, button, input, select, textarea):focus-visible { outline: 2px solid var(--s5-blue); outline-offset: 2px; }
 .sp.sx3 .sp-action { border-radius: 999px; transition: transform 140ms var(--s5-ease), box-shadow 160ms ease, background-color 160ms ease; }
 .sp.sx3 .sp-action:active { transform: scale(.97); }

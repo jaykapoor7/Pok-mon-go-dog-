@@ -29,15 +29,17 @@ export type ProductSpec = {
   hero: ReactNode;
   heroV?: number;
   strip?: ReactNode;
+  /** The problem the page answers: a heading beside a sentence and the points that make it. */
+  problem?: { eyebrow?: ReactNode; title: Pair; body: ReactNode; points: ReactNode[] };
   pillars?: { title: Pair; lede?: ReactNode; items: { t: string; d: ReactNode }[] };
-  steps?: { title: Pair; lede?: ReactNode; items: { t: string; d: ReactNode }[] };
+  steps?: { eyebrow?: ReactNode; title: Pair; lede?: ReactNode; items: { t: string; d: ReactNode }[] };
   splits?: { id?: string; tag?: ReactNode; title: Pair; body: ReactNode; points?: ReactNode[]; link?: L; ui: ReactNode; v?: number }[];
   modules?: { title: Pair; lede?: ReactNode; items: { label: string; t: string; d: ReactNode; href: string; cta: string }[] };
-  tiles?: { id?: string; title: Pair; link?: L; items: TileSpec[] };
+  tiles?: { id?: string; eyebrow?: ReactNode; title: Pair; link?: L; items: TileSpec[] };
   note?: ReactNode;
   extra?: ReactNode;
   faq?: [string, ReactNode][];
-  close?: { a: ReactNode; b: ReactNode; primary?: L; secondary?: L | null };
+  close?: { a: ReactNode; b: ReactNode; sub?: ReactNode; primary?: L; secondary?: L | null };
 };
 
 export function ProductPage({ s }: { s: ProductSpec }) {
@@ -60,6 +62,21 @@ export function ProductPage({ s }: { s: ProductSpec }) {
         </div>
       </section>
 
+      {s.problem && (
+        <section className="s4-sec" aria-labelledby={`${s.id}-problem`}>
+          <div className="s4-wrap s4-problem">
+            <Rise>
+              {s.problem.eyebrow && <span className="s4-eyebrow">{s.problem.eyebrow}</span>}
+              <h2 id={`${s.id}-problem`} className="s4-h2"><TwoTone a={s.problem.title[0]} b={s.problem.title[1]} /></h2>
+            </Rise>
+            <div className="s4-problem-copy">
+              <p className="s4-lede">{s.problem.body}</p>
+              <ul>{s.problem.points.map((p, i) => <li key={i}><Check size={17} aria-hidden />{p}</li>)}</ul>
+            </div>
+          </div>
+        </section>
+      )}
+
       {s.pillars && (
         <section className="s4-sec" aria-labelledby={`${s.id}-pil`}>
           <div className="s4-wrap">
@@ -72,7 +89,7 @@ export function ProductPage({ s }: { s: ProductSpec }) {
       {s.steps && (
         <section className="s4-sec" aria-labelledby={`${s.id}-steps`}>
           <div className="s4-wrap">
-            <SecHead id={`${s.id}-steps`} title={<TwoTone a={s.steps.title[0]} b={s.steps.title[1]} />} lede={s.steps.lede} />
+            <SecHead id={`${s.id}-steps`} eyebrow={s.steps.eyebrow} title={<TwoTone a={s.steps.title[0]} b={s.steps.title[1]} />} lede={s.steps.lede} />
             <ol className="s4-steps">{s.steps.items.map((p) => <li key={p.t}><b>{p.t}</b><p>{p.d}</p></li>)}</ol>
           </div>
         </section>
@@ -117,7 +134,7 @@ export function ProductPage({ s }: { s: ProductSpec }) {
       {s.tiles && (
         <section className="s4-sec" id={s.tiles.id} aria-labelledby={`${s.id}-tiles`} style={{ scrollMarginTop: 80 }}>
           <div className="s4-wrap">
-            <SecHead id={`${s.id}-tiles`} title={<TwoTone a={s.tiles.title[0]} b={s.tiles.title[1]} />} link={s.tiles.link} />
+            <SecHead id={`${s.id}-tiles`} eyebrow={s.tiles.eyebrow} title={<TwoTone a={s.tiles.title[0]} b={s.tiles.title[1]} />} link={s.tiles.link} />
             <Tiles items={s.tiles.items} />
           </div>
         </section>
@@ -130,7 +147,7 @@ export function ProductPage({ s }: { s: ProductSpec }) {
       )}
 
       {s.faq && <Faq items={s.faq} />}
-      <Close a={s.close?.a} b={s.close?.b} primary={s.close?.primary} secondary={s.close?.secondary} />
+      <Close a={s.close?.a} b={s.close?.b} sub={s.close?.sub} primary={s.close?.primary} secondary={s.close?.secondary} />
     </S4Page>
   );
 }

@@ -136,6 +136,9 @@ function PlaceIcon({ kind }: { kind: Kind }) {
 function InviteCode({ open: startOpen = false }: { open?: boolean }) {
   const { reload } = usePlaces();
   const [code, setCode] = useState(""), [busy, setBusy] = useState(false), [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  /* Opened from an invite link (/today?invite=CODE): the code is filled in and the box is open. */
+  const [fromLink, setFromLink] = useState(false);
+  useEffect(() => { const c = new URLSearchParams(window.location.search).get("invite"); if (c && /^[A-Za-z0-9]{6,12}$/.test(c)) { setCode(c.toUpperCase()); setFromLink(true); } }, []);
   const accept = async () => {
     setBusy(true); setMsg(null);
     const r = await call<{ organisation_id: string; role: string }>("oh_accept_invite", { p_code: code.trim().toUpperCase() });
@@ -144,7 +147,7 @@ function InviteCode({ open: startOpen = false }: { open?: boolean }) {
     else { setMsg({ ok: true, text: `You are in, as ${ROLE_LABEL[r.data.role as keyof typeof ROLE_LABEL] ?? r.data.role}.` }); setCode(""); reload(); }
   };
   return (
-    <details className="oh-invite" open={startOpen || undefined}>
+    <details className="oh-invite" open={startOpen || fromLink || undefined}>
       <summary>Have an invite code?</summary>
       <div className="oh-invite-body">
         <input className="oh-input" value={code} maxLength={12} onChange={(e) => setCode(e.target.value)} placeholder="8-character code" aria-label="Invite code" autoCapitalize="characters" />
@@ -197,9 +200,14 @@ function SignedOut() {
   const { openSignIn } = useAuth();
   const [busy, setBusy] = useState<string | null>(null), [err, setErr] = useState<string | null>(null);
   const go = async (role: string) => { setBusy(role); setErr(null); const e = await enterDemo(role); if (e) { setErr(e); setBusy(null); } };
+  /* Arrived from an invite link: say so, and sign in here; the page keeps its address, so the code is waiting afterwards. */
+  const [invited, setInvited] = useState(false);
+  useEffect(() => { setInvited(!!new URLSearchParams(window.location.search).get("invite")); }, []);
   return (
     <Page>
       <Head title="One record for every animal, bite, dose, sample and follow-up." lede="NGOs, municipal teams, hospitals and laboratories work in one product. Each person sees what they are responsible for; patient records never leave the facility that treats them." actions={<><button type="button" className="oh-btn primary" onClick={openSignIn}>Sign in</button><Link className="oh-btn" href="/bite-help">Bitten or scratched?</Link></>} />
+      {invited ? <p className="oh-note blue" style={{ marginBottom: 16 }}>You have been invited to join an organisation on StrayPaw. Sign in with your email; the invite code is filled in for you.</p> : null}
+      <div className="oh-actions" style={{ marginBottom: 32 }}><button type="button" className="oh-btn primary" onClick={openSignIn}>{invited ? "Sign in to accept the invitation" : "Sign in"}</button></div>
       {DEMO ? (
         <Section title="Explore the demonstration" note="Illustrative data. Choose who to be.">
           {err ? <div style={{ marginBottom: 12 }}><Failed error={err} /></div> : null}

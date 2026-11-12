@@ -1,4 +1,4 @@
-import { MarketingShell } from "@/components/marketing/MarketingShell";
+import { PageHead, S4Page } from "@/sp4/site/kit";
 import { PartnerApplyForm } from "@/components/partner/PartnerApplyForm";
 
 export const dynamic = "force-dynamic";
@@ -10,12 +10,17 @@ export const metadata = {
 
 export default function PartnerApplyPage() {
   return (
-    <MarketingShell inApp
-      eyebrow="Partnerships"
-      title="Apply to partner with StrayPaw."
-      intro="Tell us about your organisation and how you'd use StrayPaw, and upload anything that helps us verify you. We review every application and get in touch personally. It's free for verified partners."
-    >
-      <PartnerApplyForm />
-    </MarketingShell>
+    <S4Page close={false} className="s4-docpage">
+      <PageHead back
+        eyebrow="Partnerships"
+        title="Apply to partner with StrayPaw."
+        lede="Tell us about your organisation and how you'd use StrayPaw, and upload anything that helps us verify you. We review every application and get in touch personally. It's free for verified partners."
+      />
+      <section className="s4-wrap s4-doc">
+        <div className="s4-formcol">
+          <PartnerApplyForm />
+        </div>
+      </section>
+    </S4Page>
   );
 }

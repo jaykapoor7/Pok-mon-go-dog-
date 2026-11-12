@@ -43,13 +43,13 @@ export default function OfflinePage() {
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/report"
+            href="/community/report"
             className="inline-flex h-11 items-center rounded-full bg-[#f05b40] px-5 text-sm font-semibold text-white"
           >
             Start a report anyway
           </Link>
           <Link
-            href="/map"
+            href="/community"
             className="inline-flex h-11 items-center rounded-full border border-[#0b1e3d]/15 px-5 text-sm font-semibold"
           >
             Open the map

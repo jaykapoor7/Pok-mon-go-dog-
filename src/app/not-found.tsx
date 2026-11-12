@@ -16,8 +16,8 @@ export default function NotFound() {
         </p>
         <div className="nf-go">
           <Link href="/" className="sys-btn"><ArrowLeft size={16} aria-hidden /> Home</Link>
-          <Link href="/map" className="sys-btn is-quiet"><MapPin size={16} aria-hidden /> Open the live map</Link>
-          <Link href="/report" className="sys-btn is-quiet">Report an animal <ArrowUpRight size={16} aria-hidden /></Link>
+          <Link href="/community" className="sys-btn is-quiet"><MapPin size={16} aria-hidden /> Open the live map</Link>
+          <Link href="/community/report" className="sys-btn is-quiet">Report an animal <ArrowUpRight size={16} aria-hidden /></Link>
         </div>
         <p className="nf-lede">Looking for your organisation&apos;s workspace? <Link href="/sign-in?next=/app">Sign in with your email and access code.</Link></p>
       </section>

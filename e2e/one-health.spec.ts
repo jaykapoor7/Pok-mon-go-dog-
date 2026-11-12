@@ -12,12 +12,15 @@ test.describe.configure({ mode: "serial" });
 test.setTimeout(180_000);
 
 const HOSPITAL = "/workspace/f1000000-0000-4000-8000-000000000004";
+const HSR = "/workspace/f1000000-0000-4000-8000-000000000005";
 const NGO = "/workspace/f1000000-0000-4000-8000-000000000010";
 const LAB = "/workspace/f1000000-0000-4000-8000-000000000009";
 const PROGRAMME = "/programme/bengaluru-demo";
 const stamp = `E2E-${Date.now().toString(36).toUpperCase()}`;
 /* Phone and desktop runs share staging, so each follows its own sample by code. */
 let sampleCode = "";
+/* The bite code a health centre referred, for the receiving hospital's test. */
+let referredCode = "";
 
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.tour.v2", "straypaw-install-dismissed", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
@@ -100,6 +103,40 @@ test("a nurse records doses but cannot assess or prescribe", async ({ page }) =>
   await page.getByRole("link", { name: stamp }).click();
   await expect(page.getByRole("button", { name: "Prescribe a course" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /^Category (I|II|III)$/ })).toHaveCount(0);
+});
+
+test("a health centre refers a person to the hospital for immunoglobulin", async ({ page }) => {
+  const ref = `${stamp}-R`;
+  await as(page, /Hospital clinician/);
+  await page.goto(`${HSR}/new`);
+  await page.getByRole("textbox", { name: "Your register number" }).fill(ref);
+  await expect(page.getByRole("combobox", { name: /^Area/ })).toBeEnabled();
+  await page.getByRole("combobox", { name: /^Area/ }).selectOption({ label: "HSR Layout" });
+  await seg(page, "Category III");
+  await page.getByRole("button", { name: "Save presentation" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: ref })).toBeVisible({ timeout: 30_000 });
+  const code = ((await page.locator("main").innerText()).match(/BX-\d{4}-[A-Z0-9]{6}/) ?? [""])[0];
+  expect(code).not.toBe("");
+  referredCode = code;
+  await page.getByRole("button", { name: "Refer this person" }).click();
+  await page.locator(".oh-pick", { hasText: "Teaching hospital" }).first().click();
+  await page.getByRole("button", { name: /^Refer/ }).last().click();
+  await expect(page.getByText("Rabies immunoglobulin at Teaching hospital").first()).toBeVisible({ timeout: 30_000 });
+});
+
+test("the hospital's nurse sees the referral without patient details and marks the arrival", async ({ page }) => {
+  test.skip(!referredCode, "Needs the referral from the previous test");
+  const code = referredCode, ref = `${stamp}-R`;
+  await as(page, /Hospital nurse/);
+  await page.goto(HOSPITAL);
+  await page.getByRole("button", { name: /Referrals/ }).first().click();
+  const row = page.locator(".dy-work li", { hasText: code }).first();
+  await expect(row).toBeVisible({ timeout: 30_000 });
+  await expect(row).toContainText("Rabies immunoglobulin");
+  await expect(page.locator("#oh-work")).not.toContainText(ref);
+  await row.getByRole("button", { name: "Arrived" }).click();
+  await expect(page).toHaveURL(/\/new\?referral=/, { timeout: 30_000 });
+  await expect(page.getByText(/Referred from UPHC HSR Layout/)).toBeVisible();
 });
 
 test("another city's lead cannot open this programme", async ({ page }) => {

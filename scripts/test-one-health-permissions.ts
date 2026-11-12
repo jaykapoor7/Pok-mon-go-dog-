@@ -79,6 +79,16 @@ async function main() {
   check("the programme lead sees alerts across facilities", leadKinds.size > 2);
   check("a nurse sees alerts for her own facility only (and confirmed cases)", [...nurseOrgs].every((o) => o === HOSPITAL), JSON.stringify([...nurseOrgs]));
 
+  /* Referrals between facilities (v2.6): clinicians refer, the receiving facility sees no patient details, nobody else sees them */
+  check("a nurse cannot refer a person to another facility", refused(await rpc(nurse, "oh_refer_exposure", { p_exposure: exposureId, p_to: "f1000000-0000-4000-8000-000000000005", p_service: "rig", p_note: null })));
+  check("a clinician cannot refer to an organisation that is not a facility in the programme", refused(await rpc(clinician, "oh_refer_exposure", { p_exposure: exposureId, p_to: "f1000000-0000-4000-8000-000000000013", p_service: "rig", p_note: null })));
+  check("an NGO cannot read a facility's referrals", refused(await rpc(field, "oh_clinic_transfers", { p_facility: HOSPITAL })));
+  check("the programme lead cannot read a facility's referrals", refused(await rpc(lead, "oh_clinic_transfers", { p_facility: HOSPITAL })));
+  const xf = await rpc(nurse, "oh_clinic_transfers", { p_facility: HOSPITAL });
+  const incoming = ((xf.body as { incoming?: Record<string, unknown>[] })?.incoming ?? []);
+  check("people referred in arrive as a bite code and a need, never patient details", xf.status === 200 && incoming.length > 0 && incoming.every((r) => !("patient_ref" in r) && !("contact_phone" in r) && !("age_band" in r) && !("sex" in r)), JSON.stringify(incoming[0] ?? xf.body).slice(0, 200));
+  check("a nurse cannot change a facility's logo", refused(await rpc(nurse, "oh_set_logo", { p_org: HOSPITAL, p_url: null })));
+
   console.log(`\n${n - failed}/${n} One Health permission checks passed against staging.`);
   process.exit(failed ? 1 : 0);
 }

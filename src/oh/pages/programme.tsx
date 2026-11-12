@@ -13,6 +13,8 @@ import { usePlaces, oversees } from "../places";
 import { call, fmtDate, fmtTime, num, relDay, select, showCount, useNames, useRead, AUDIENCE, HANDOFF, HANDOFF_KIND, KIND_LABEL, MODULES, ROLE_LABEL, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, type Alert, type Area, type Count, type Handoff, type Kind, type Network, type NetworkFacility, type Overview, type Role } from "../data";
 import { AlertList, Bars, Chip, Empty, Failed, Glyph, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
 import { AreaIntel } from "../AreaMap";
+import { OrgMark } from "@/components/orgs/OrgMark";
+import { getSupabase } from "@/lib/supabase";
 
 type Prog = { id: string; slug: string; name: string; parent_id: string | null; summary: string | null; status: string; vaccination_target: number; config: { modules?: string[]; suppress_below?: number; followup_due_days?: number; dog_revaccination_days?: number; alert_window_days?: number }; plan: string; illustrative: boolean; time_zone: string };
 const ALL_MODULES = ["bite_care", "laboratory", "followups", "vaccination", "services", "training"];
@@ -64,6 +66,7 @@ function OverviewBody({ p }: { p: Prog }) {
   const { places } = usePlaces();
   const canAck = places.some((x) => x.programmes.some((y) => y.id === p.id) && x.capabilities.includes("ack_alert"));
   const mods = modulesOf(p);
+  const marks = useMarks(p.id);
   if (o.loading && !o.data) return <Loading rows={6} />;
   if (o.error || !o.data) return <Failed error={o.error ?? "Could not read the programme."} retry={o.reload} />;
   const d = o.data;
@@ -71,13 +74,13 @@ function OverviewBody({ p }: { p: Prog }) {
   const open = (alerts.data ?? []).filter((a) => !a.ack);
   const alertHref = (a: Alert) => a.kind === "positive_result" ? `/programme/${p.slug}/work` : a.kind === "pep_readiness" ? `/programme/${p.slug}/network` : a.kind === "coverage_below_target" ? `/programme/${p.slug}/coverage` : a.kind === "followups_overdue" ? `/programme/${p.slug}/work?show=overdue` : null;
   const stats = (
-    <dl className="oh-stats">
+    <div className="oh-stats">
       {mods.includes("bite_care") && d.exposures ? <Stat label="Bite exposures" value={d.exposures.total} note={<>Category III: {showCount(d.exposures.category_iii)}</>} /> : null}
       {mods.includes("bite_care") && d.pep ? <Stat label="Courses completed" value={d.pep.completion_rate === null ? null : pct(d.pep.completion_rate)} note={d.pep.completion_rate === null ? "Too few closed courses to show" : `Did not return: ${showCount(d.pep.lost)}`} tone={d.pep.completion_rate !== null && d.pep.completion_rate < 0.8 ? "amber" : "green"} /> : null}
       {mods.includes("bite_care") && d.exposures ? <Stat label="Wounds washed" value={num(d.exposures.washed_known) ? pct(num(d.exposures.washed) / num(d.exposures.washed_known)) : null} note="Where it was recorded" /> : null}
       {mods.includes("laboratory") ? <Stat label="Laboratory-confirmed" value={d.samples.positive} note={`${d.samples.total} samples · ${d.samples.waiting} waiting${d.samples.median_days_to_result === null ? "" : ` · ${Math.round(d.samples.median_days_to_result * 10) / 10} days to a result`}`} tone={d.samples.positive ? "flame" : undefined} href={`/programme/${p.slug}/work`} /> : null}
       {mods.includes("services") ? <Stat label="Care facilities" value={d.services.facilities} note={`${d.services.arv_unavailable} without vaccine · ${d.services.stale} confirmations expired`} href={`/programme/${p.slug}/network`} tone={d.services.arv_unavailable ? "flame" : d.services.stale ? "amber" : undefined} /> : null}
-    </dl>
+    </div>
   );
   return (
     <>
@@ -108,7 +111,7 @@ function OverviewBody({ p }: { p: Prog }) {
       ) : null}
 
       <Section title="Partners" note={`${d.partners.length} in the programme`}>
-        <PartnerWork partners={d.partners} />
+        <PartnerWork partners={d.partners} marks={marks} />
       </Section>
       {mods.includes("training") ? <Training p={p} d={d} reload={o.reload} /> : null}
     </>
@@ -116,7 +119,7 @@ function OverviewBody({ p }: { p: Prog }) {
 }
 
 /* Partners: the ones with open work, most overdue first; the rest in one line that opens the full list. */
-function PartnerWork({ partners }: { partners: Overview["partners"] }) {
+function PartnerWork({ partners, marks }: { partners: Overview["partners"]; marks: Record<string, string> }) {
   const [all, setAll] = useState(false);
   const busy = partners.filter((x) => x.open || x.overdue).sort((a, b) => b.overdue - a.overdue || b.open - a.open);
   const clear = partners.filter((x) => !x.open && !x.overdue);
@@ -127,7 +130,7 @@ function PartnerWork({ partners }: { partners: Overview["partners"] }) {
         <div className="oh-rows">
           {shown.map((x) => (
             <div className="oh-row" key={x.id}>
-              <Glyph kind={x.kind} />
+              <Mark kind={x.kind} name={x.name} url={marks[x.id]} />
               <div className="oh-row-main"><b>{x.name}</b><span>{x.responsibilities ?? KIND_LABEL[x.kind]}</span></div>
               <div className="oh-row-meta">{x.overdue ? <Chip tone="flame">{x.overdue} overdue</Chip> : null}{x.open ? <Chip plain>{x.open} open</Chip> : <Chip plain tone="green">Clear</Chip>}</div>
             </div>
@@ -207,7 +210,7 @@ function NetworkBody({ p }: { p: Prog }) {
     <>
       <div className="oh-split">
         <NetworkMap facilities={n.facilities} referrals={n.referrals} selected={sel} onSelect={setSel} />
-        <div className="oh-rows" style={{ maxHeight: 460, overflowY: "auto" }}>
+        <div className="oh-rows" style={{ maxHeight: 460, overflowY: "auto" }} tabIndex={0} role="region" aria-label="Facilities">
           {n.facilities.map((f) => {
             const refers = n.referrals.filter((r) => r.from === f.id);
             return (
@@ -226,7 +229,7 @@ function NetworkBody({ p }: { p: Prog }) {
 
       <Section title="Referral pathways" note="Where a place sends people for a service it does not offer" action={n.can_configure ? <button type="button" className="oh-btn small" onClick={() => setAdding(true)}><Plus size={14} aria-hidden />Add a pathway</button> : undefined}>
         {n.referrals.length ? (
-          <div className="oh-table-wrap"><table className="oh-table">
+          <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table"><table className="oh-table">
             <thead><tr><th>From</th><th>For</th><th>To</th><th>Note</th>{n.can_configure ? <th /> : null}</tr></thead>
             <tbody>{n.referrals.map((r) => (
               <tr key={`${r.from}${r.to}${r.service}`}>
@@ -336,7 +339,7 @@ function WorkBody({ p }: { p: Prog }) {
         {raiser ? <button type="button" className="oh-btn primary" style={{ marginLeft: "auto" }} onClick={() => setAsking(true)}><Plus size={16} aria-hidden />Ask a partner</button> : null}
       </div>
       {hand.loading && !hand.data ? <Loading rows={5} /> : hand.error ? <Failed error={hand.error} retry={hand.reload} /> : !list.length ? <Empty title={show === "closed" ? "Nothing closed yet" : "Nothing open"} /> : (
-        <div className="oh-table-wrap"><table className="oh-table">
+        <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table"><table className="oh-table">
           <thead><tr><th>Request</th><th>From</th><th>To</th><th>Area</th><th>Due</th><th>Status</th></tr></thead>
           <tbody>{list.map((h) => {
             const late = ["open", "accepted"].includes(h.status) && h.due_on && h.due_on < t;
@@ -396,13 +399,13 @@ function CoverageBody({ p }: { p: Prog }) {
   const totVac = withEst.reduce((s, v) => s + v.vaccinated, 0), totEst = withEst.reduce((s, v) => s + (v.estimate?.dogs ?? 0), 0);
   return (
     <>
-      <dl className="oh-stats">
+      <div className="oh-stats">
         <Stat label="Target" value={pct(target)} note="Of the dog population" />
         <Stat label="Coverage where estimated" value={totEst ? pct(totVac / totEst) : null} note={totEst ? `${totVac} of an estimated ${totEst} dogs` : "No estimate recorded"} tone={totEst && totVac / totEst < target ? "amber" : "green"} />
         <Stat label="Areas with an estimate" value={`${withEst.length} of ${d.vaccination.length}`} note="Coverage is shown only where there is one" />
         <Stat label="Dogs on registers" value={d.vaccination.reduce((s, v) => s + v.registered, 0)} note={`${d.vaccination.reduce((s, v) => s + v.vaccinated, 0)} recorded vaccinated`} />
-      </dl>
-      <div className="oh-table-wrap"><table className="oh-table">
+      </div>
+      <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table"><table className="oh-table">
         <thead><tr><th>Area</th><th className="r">On registers</th><th className="r">Vaccinated</th><th>Population estimate</th><th>Coverage against target</th>{canEst ? <th /> : null}</tr></thead>
         <tbody>{d.vaccination.map((v) => {
           const cov = v.estimate ? v.vaccinated / v.estimate.dogs : null;
@@ -446,12 +449,15 @@ function ReportBody({ p }: { p: Prog }) {
   const sp = useSearchParams();
   const days = Number(sp.get("days") ?? 90);
   const o = useRead<Overview>(() => call("oh_programme_overview", { p_programme: p.id, p_days: days }), `rep:${p.id}:${days}`);
+  const marks = useMarks(p.id);
   if (o.loading && !o.data) return <Loading rows={6} />;
   if (o.error || !o.data) return <Failed error={o.error ?? "Could not read the programme."} retry={o.reload} />;
   const d = o.data;
   return (
     <article className="oh-card pad" style={{ display: "grid", gap: 24 }}>
       <p style={{ color: "var(--muted)" }}>Period {fmtDate(d.since, { day: "numeric", month: "long", year: "numeric" })} to {fmtDate(d.today, { day: "numeric", month: "long", year: "numeric" })} · prepared {fmtTime(new Date().toISOString())}</p>
+      {/* Co-branding: every partner that has given a logo, at one size, in programme order. Nothing is drawn for a partner without one. */}
+      {Object.keys(marks).length ? <ul className="oh-marks" aria-label="Partners">{d.partners.filter((x) => marks[x.id]).map((x) => <li key={x.id}><OrgMark name={x.name} logoUrl={marks[x.id]} size={48} /><span>{x.short_name ?? x.name}</span></li>)}</ul> : null}
       <Section title="Partners and responsibilities"><ul style={{ display: "grid", gap: 4 }}>{d.partners.map((x) => <li key={x.id}><b style={{ color: "var(--ink)" }}>{x.name}</b> · {KIND_LABEL[x.kind]}{x.responsibilities ? `: ${x.responsibilities}` : ""}</li>)}</ul></Section>
       {d.exposures && d.pep ? <Section title="Human bite care"><dl className="oh-facts">
         <div><dt>Bite exposures</dt><dd>{showCount(d.exposures.total)}</dd></div><div><dt>Category III</dt><dd>{showCount(d.exposures.category_iii)}</dd></div>
@@ -468,7 +474,7 @@ function ReportBody({ p }: { p: Prog }) {
         <div><dt>Median days to close</dt><dd>{d.handoffs.median_days_to_close === null ? "None" : Math.round(d.handoffs.median_days_to_close * 10) / 10}</dd></div>
         <div><dt>Facilities confirming services</dt><dd>{d.services.confirmed} of {d.services.facilities}</dd></div>
       </dl></Section>
-      <Section title="Dog vaccination" note={`Target ${pct(d.programme.target)}`}><div className="oh-table-wrap"><table className="oh-table"><thead><tr><th>Area</th><th className="r">Vaccinated</th><th className="r">Estimate</th><th className="r">Coverage</th></tr></thead><tbody>{d.vaccination.map((v) => <tr key={v.area_id}><td>{v.area}</td><td className="r">{v.vaccinated}</td><td className="r">{v.estimate?.dogs ?? "None"}</td><td className="r">{v.estimate ? pct(v.vaccinated / v.estimate.dogs) : "Needs an estimate"}</td></tr>)}</tbody></table></div></Section>
+      <Section title="Dog vaccination" note={`Target ${pct(d.programme.target)}`}><div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table"><table className="oh-table"><thead><tr><th>Area</th><th className="r">Vaccinated</th><th className="r">Estimate</th><th className="r">Coverage</th></tr></thead><tbody>{d.vaccination.map((v) => <tr key={v.area_id}><td>{v.area}</td><td className="r">{v.vaccinated}</td><td className="r">{v.estimate?.dogs ?? "None"}</td><td className="r">{v.estimate ? pct(v.vaccinated / v.estimate.dogs) : "Needs an estimate"}</td></tr>)}</tbody></table></div></Section>
       <Section title="Training"><p>{d.training.sessions} sessions, {d.training.participants} people: {Object.entries(d.training.by_audience).map(([k, v]) => `${AUDIENCE[k] ?? k} ${v}`).join(", ") || "none recorded"}.</p></Section>
       <p className="oh-note">{p.illustrative ? "Illustrative demonstration: every figure is invented. " : ""}Human counts below {d.programme.suppress_below} are shown as “fewer than {d.programme.suppress_below}”. Vaccination coverage appears only where a population estimate exists.</p>
     </article>
@@ -492,7 +498,7 @@ function DataBody({ p }: { p: Prog }) {
   return (
     <>
       <div className="oh-actions" style={{ marginBottom: 16 }}><button type="button" className="oh-btn primary" onClick={csv} disabled={!rows.length}><Download size={16} aria-hidden />Download CSV</button><span style={{ color: "var(--muted)", fontSize: 12, alignSelf: "center" }}>{rows.length} rows since {fmtDate(x.data.since, { day: "numeric", month: "short", year: "numeric" })}{p.illustrative ? " · illustrative" : ""}</span></div>
-      {rows.length ? <div className="oh-table-wrap" style={{ maxHeight: 560 }}><table className="oh-table"><thead><tr><th>Week</th><th>Area</th><th>Animal</th><th>Category</th><th className="r">Exposures</th></tr></thead><tbody>{rows.slice(0, 300).map((r, i) => <tr key={i}><td>{fmtDate(r.week)}</td><td>{r.area}</td><td>{r.species}</td><td>{r.category}</td><td className="r">{showCount(r.exposures)}</td></tr>)}</tbody></table></div> : <Empty title="No exposures in the last year" />}
+      {rows.length ? <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table" style={{ maxHeight: 560 }}><table className="oh-table"><thead><tr><th>Week</th><th>Area</th><th>Animal</th><th>Category</th><th className="r">Exposures</th></tr></thead><tbody>{rows.slice(0, 300).map((r, i) => <tr key={i}><td>{fmtDate(r.week)}</td><td>{r.area}</td><td>{r.species}</td><td>{r.category}</td><td className="r">{showCount(r.exposures)}</td></tr>)}</tbody></table></div> : <Empty title="No exposures in the last year" />}
     </>
   );
 }
@@ -543,13 +549,14 @@ function SetupBody({ p, reload }: { p: Prog; reload: () => void }) {
 
 function Partners({ p, onChange }: { p: Prog; onChange: () => void }) {
   const o = useRead<Overview>(() => call("oh_programme_overview", { p_programme: p.id, p_days: 30 }), `setup-ov:${p.id}`);
+  const marks = useMarksRead(p.id);
   const [adding, setAdding] = useState(false), [area, setArea] = useState(""), [busy, setBusy] = useState(false);
   const toast = useToast();
   const addArea = async () => { setBusy(true); const r = await call("oh_add_area", { p_programme: p.id, p_name: area, p_level: "ward", p_code: null }); setBusy(false); if (r.error) toast(r.error, "flame"); else { setArea(""); toast("Area added."); o.reload(); } };
   return (
     <>
       <Section title="Partners" action={<button type="button" className="oh-btn small" onClick={() => setAdding(true)}><Plus size={14} aria-hidden />Add a partner</button>}>
-        {o.data ? <div className="oh-rows">{o.data.partners.map((x) => <div className="oh-row" key={x.id}><Glyph kind={x.kind} /><div className="oh-row-main"><b>{x.name}</b><span className="wrap">{KIND_LABEL[x.kind]}{x.responsibilities ? ` · ${x.responsibilities}` : ""}</span></div><div className="oh-row-meta">{showCount(x.members)} people</div></div>)}</div> : <Loading rows={3} />}
+        {o.data ? <div className="oh-rows">{o.data.partners.map((x) => <div className="oh-row" key={x.id}><Mark kind={x.kind} name={x.name} url={marks.data?.[x.id]} /><div className="oh-row-main"><b>{x.name}</b><span className="wrap">{KIND_LABEL[x.kind]}{x.responsibilities ? ` · ${x.responsibilities}` : ""}</span></div><div className="oh-row-meta">{showCount(x.members)} people{marks.ready ? <LogoButton org={x.id} name={x.name} has={!!marks.data?.[x.id]} onDone={(m) => { toast(m); marks.reload(); }} /> : null}</div></div>)}</div> : <Loading rows={3} />}
       </Section>
       <Section title="Areas" note="Wards or localities this programme covers">
         {o.data ? <p style={{ marginBottom: 10 }}>{o.data.vaccination.map((v) => v.area).join(", ") || "None yet"}</p> : null}
@@ -596,7 +603,7 @@ function Invites({ orgs }: { orgs: { id: string; name: string; kind: Kind }[] })
         <label className="oh-field"><span>Email (optional)</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
       </div>
       {err ? <Failed error={err} /> : null}
-      <div className="oh-submit" style={{ marginTop: 12 }}><button type="button" className="oh-btn primary" disabled={busy} onClick={() => void create()}>Create invite code</button>{code ? <p>Give them this code: <span className="oh-code">{code}</span> · they sign in to StrayPaw and enter it under <b>Have an invite code?</b> on Today.</p> : null}</div>
+      <div className="oh-submit" style={{ marginTop: 12 }}><button type="button" className="oh-btn primary" disabled={busy} onClick={() => void create()}>Create invite code</button>{code ? <InviteLink code={code} /> : null}</div>
       {list.data ? <div className="oh-rows" style={{ marginTop: 16 }}>
         {list.data.members.map((m, i) => <div className="oh-row" key={`m${i}`} style={{ minHeight: 48 }}><div className="oh-row-main"><b>{m.name ?? "Member"}</b><span>{ROLE_LABEL[m.role]} · since {fmtDate(m.since)}</span></div></div>)}
         {list.data.invites.map((v) => <div className="oh-row" key={v.code} style={{ minHeight: 48 }}><div className="oh-row-main"><b>{v.name ?? v.email ?? "Invited"}</b><span>{ROLE_LABEL[v.role]} · code {v.code} · expires {relDay(v.expires_at).toLowerCase()}</span></div><div className="oh-row-meta"><Chip tone="amber">Not yet accepted</Chip></div></div>)}
@@ -606,3 +613,61 @@ function Invites({ orgs }: { orgs: { id: string; name: string; kind: Kind }[] })
 }
 
 export { ProgrammeOverview as default };
+
+/* ── Partner logos (v2.6) ─────────────────────────────────────────────
+   Read from oh_partner_marks; a partner without a logo keeps its glyph.
+   Before v2.6 the function does not exist: no logo is shown and no upload
+   is offered. */
+const noFn = (e: string | null) => !!e && /could not find the function|does not exist|schema cache/i.test(e);
+function useMarksRead(pid: string) {
+  const r = useRead<Record<string, string>>(() => call("oh_partner_marks", { p_programme: pid }), `marks:${pid}`);
+  return { data: r.data ?? {}, ready: !!r.data && !noFn(r.error), reload: r.reload };
+}
+function useMarks(pid: string): Record<string, string> { return useMarksRead(pid).data; }
+
+function Mark({ kind, name, url }: { kind: Kind; name: string; url?: string | null }) {
+  return url ? <OrgMark name={name} logoUrl={url} size={32} /> : <Glyph kind={kind} />;
+}
+
+/** Upload or remove a partner's logo. The database decides who may: a lead of the partner or of the programme. */
+function LogoButton({ org, name, has, onDone }: { org: string; name: string; has: boolean; onDone: (m: string) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const toast = useToast();
+  const upload = async (file: File) => {
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { toast("Use a PNG, JPEG or WebP image.", "flame"); return; }
+    if (file.size > 512 * 1024) { toast("Keep the logo under 512 KB.", "flame"); return; }
+    const supa = getSupabase();
+    if (!supa) return;
+    setBusy(true);
+    const path = `${org}/logo-${Date.now()}.${file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg"}`;
+    const up = await supa.storage.from("oh-logos").upload(path, file, { contentType: file.type, upsert: false });
+    if (up.error) { setBusy(false); toast(/row-level security|not authori[sz]ed|403/i.test(up.error.message) ? "Only a lead of this partner or of the programme can set its logo." : up.error.message, "flame"); return; }
+    const url = supa.storage.from("oh-logos").getPublicUrl(path).data.publicUrl;
+    const r = await call("oh_set_logo", { p_org: org, p_url: url });
+    setBusy(false);
+    if (r.error) toast(r.error, "flame"); else onDone(`Logo saved for ${name}.`);
+  };
+  const remove = async () => { setBusy(true); const r = await call("oh_set_logo", { p_org: org, p_url: null }); setBusy(false); if (r.error) toast(r.error, "flame"); else onDone(`Logo removed for ${name}.`); };
+  return (
+    <>
+      <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f); }} />
+      <button type="button" className="oh-btn small quiet" disabled={busy} onClick={() => input.current?.click()} aria-label={`${has ? "Change" : "Add"} the logo of ${name}`}>{busy ? "Saving…" : has ? "Change logo" : "Add logo"}</button>
+      {has ? <button type="button" className="oh-btn small quiet" disabled={busy} onClick={() => void remove()} aria-label={`Remove the logo of ${name}`}>Remove</button> : null}
+    </>
+  );
+}
+
+/** The invite as a link that opens Today with the code filled in (after sign-in), and the code itself for reading out. */
+function InviteLink({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const link = typeof window === "undefined" ? `/today?invite=${code}` : `${window.location.origin}/today?invite=${code}`;
+  const copy = async () => { try { await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 2000); } catch { setCopied(false); } };
+  return (
+    <div className="oh-invite-out" role="status">
+      <p>Send them this link. It opens StrayPaw with the code filled in; they sign in and press Join.</p>
+      <div className="oh-invite-link"><code>{link}</code><button type="button" className="oh-btn small" onClick={() => void copy()}>{copied ? "Copied" : "Copy link"}</button></div>
+      <p className="oh-note">Or read out the code <span className="oh-code">{code}</span>. It works once and expires in 14 days.</p>
+    </div>
+  );
+}

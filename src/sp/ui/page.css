@@ -1,7 +1,7 @@
 /* One page pattern for every screen behind the menu. */
 /* The pattern's parts carry their own colours, so a lane switch or a row works on a page that is not a .vw page. */
-:where(.vw, .vw-head, .vw-seg, .vw-list, .vw-row, .vw-empty, .vw-meter) { --vw-ink: #0f1524; --vw-mute: #6b7486; --vw-faint: #8a93a5; --vw-line: #e6e9ef; }
-.vw { --vw-ink: #0f1524; --vw-mute: #6b7486; --vw-faint: #8a93a5; --vw-line: #e6e9ef; width: min(var(--max, 1280px), 100% - 2 * var(--gut, 24px)); margin-inline: auto; padding: 24px 0 56px; color: var(--vw-ink); font-family: var(--s3-sans, Inter, system-ui, sans-serif); letter-spacing: -.01em; }
+:where(.vw, .vw-head, .vw-seg, .vw-list, .vw-row, .vw-empty, .vw-meter) { --vw-ink: #0f1524; --vw-mute: #5b6474; --vw-faint: #626a7a; --vw-line: #e6e9ef; }
+.vw { --vw-ink: #0f1524; --vw-mute: #5b6474; --vw-faint: #626a7a; --vw-line: #e6e9ef; width: min(var(--max, 1280px), 100% - 2 * var(--gut, 24px)); margin-inline: auto; padding: 24px 0 56px; color: var(--vw-ink); font-family: var(--s3-sans, Inter, system-ui, sans-serif); letter-spacing: -.01em; }
 .vw.is-narrow { width: min(920px, 100% - 2 * var(--gut, 24px)); }
 
 /* head */

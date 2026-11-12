@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { HeartHandshake, HandHelping, Share2, ArrowRight } from "lucide-react";
-import { InfoPage, H2 } from "@/components/info/InfoPage";
+import { DocPage } from "@/sp4/site/kit";
 
 export const metadata = {
-  title: "Support StrayPaw, Donate & sponsor",
+  title: "Donate & sponsor, StrayPaw",
   description:
     "StrayPaw is free and open. Support street-dog care by donating, sponsoring a rescue, volunteering or spreading the word.",
 };
@@ -14,7 +14,7 @@ const DONATE_URL = process.env.NEXT_PUBLIC_DONATE_URL?.trim();
 
 export default function DonatePage() {
   return (
-    <InfoPage title="Support StrayPaw">
+    <DocPage title="Support StrayPaw">
       <p>
         StrayPaw is free, open and community-run, there&apos;s no paywall and no
         ads. If it&apos;s helped you or a dog near you, here are a few ways to keep
@@ -26,13 +26,13 @@ export default function DonatePage() {
           href={DONATE_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn-primary mt-2 w-full py-3 text-base"
+          className="s4-btn is-primary"
         >
-          <HeartHandshake className="h-5 w-5" /> Donate to StrayPaw
+          <HeartHandshake size={18} aria-hidden /> Donate to StrayPaw
         </a>
       )}
 
-      <H2>Fund a rescue directly</H2>
+      <h2>Fund a rescue directly</h2>
       <p>
         The biggest impact is supporting the NGOs doing the on-ground work,
         clearing vet bills, sterilisation drives and emergencies. Their live
@@ -40,44 +40,44 @@ export default function DonatePage() {
       </p>
       <Link
         href="/fundraisers"
-        className="btn-primary mt-1 inline-flex w-full items-center justify-center gap-2 py-3 text-base"
+        className="s4-btn is-primary"
       >
-        <HeartHandshake className="h-5 w-5" /> See NGO fundraisers
+        <HeartHandshake size={18} aria-hidden /> See NGO fundraisers
       </Link>
       <Link
         href="/community/organisations"
-        className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"
+        className="s4-link is-sm"
       >
-        See partner NGOs <ArrowRight className="h-4 w-4" />
+        See partner NGOs <ArrowRight size={16} aria-hidden />
       </Link>
 
-      <H2>Give your time</H2>
+      <h2>Give your time</h2>
       <p>
         Not able to donate? Offering to help a dog near you, or registering your
         rescue, is just as valuable.
       </p>
       <Link
         href="/get-involved"
-        className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"
+        className="s4-link is-sm"
       >
-        <HandHelping className="h-4 w-4" /> Volunteer or register an NGO
+        <HandHelping size={16} aria-hidden /> Volunteer or register an NGO
       </Link>
 
-      <H2>Spread the word</H2>
+      <h2>Spread the word</h2>
       <p>
         Sharing StrayPaw puts more eyes on the street, every new reporter makes
         the map more useful for the dogs and the rescues that help them.
       </p>
       <Link
-        href="/map"
-        className="inline-flex items-center gap-1.5 font-semibold text-paw-600 hover:underline"
+        href="/community"
+        className="s4-link is-sm"
       >
-        <Share2 className="h-4 w-4" /> Open the map
+        <Share2 size={16} aria-hidden /> Open the map
       </Link>
 
-      <p className="mt-6 text-sm text-bark-400">
+      <p className="s4-small">
         Open-sourcing stray-dog care, for the people, by the people.
       </p>
-    </InfoPage>
+    </DocPage>
   );
 }

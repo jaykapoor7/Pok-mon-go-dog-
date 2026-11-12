@@ -1,0 +1,63 @@
+/* ════════════════════════════════════════════════════════════════════
+   Volunteer: routes filtered by work and state, each naming the
+   organisations that do that work. On the site's page kit
+   (src/sp4/site/kit.tsx); the filter and route styles live here because
+   the console stylesheet (app.css) is not loaded on public pages.
+   ════════════════════════════════════════════════════════════════════ */
+
+.vol { display: grid; gap: 24px; color: var(--s4-ink); }
+.vol .spa-mono { font-size: 12px; font-weight: 500; color: var(--s4-mute); }
+html .s4 .vol .spa-mono { font-family: inherit; }
+
+.vol .vol-filters { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: end; }
+.vol .vol-search { position: relative; display: flex; align-items: center; }
+.vol .vol-search > svg:first-child { position: absolute; left: 16px; color: var(--s4-mute); pointer-events: none; }
+.vol .vol-search input { width: 100%; min-height: 48px; padding: 0 40px; border: 0; border-radius: 12px; background: var(--s4-tile); font: inherit; font-size: 16px; color: var(--s4-ink); }
+.vol .vol-search input:focus { outline: 2px solid var(--s4-blue); outline-offset: 0; }
+.vol .vol-search > button { position: absolute; right: 8px; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 99px; background: transparent; color: var(--s4-grey); cursor: pointer; }
+.vol .vol-search > button:hover { background: #fff; color: var(--s4-ink); }
+.vol .vol-select { display: grid; gap: 4px; }
+.vol .vol-select select { width: 100%; min-height: 48px; padding: 0 40px 0 16px; border: 0; border-radius: 12px; background: var(--s4-tile) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%230b1e3d' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center; appearance: none; font: inherit; font-size: 16px; color: var(--s4-ink); cursor: pointer; }
+.vol .vol-select select:focus { outline: 2px solid var(--s4-blue); outline-offset: 0; }
+
+.vol .vol-count { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.vol .vol-clear { min-height: 32px; padding: 0 12px; border: 0; border-radius: 99px; background: var(--s4-tile); font: inherit; font-size: 14px; color: var(--s4-ink); cursor: pointer; }
+.vol .vol-clear:hover { background: var(--s4-tile-2); }
+
+.vol .vol-list { display: grid; gap: 12px; }
+.vol .vol-route { display: grid; gap: 16px; padding: 24px; border-radius: 16px; background: var(--s4-tile); min-width: 0; }
+.vol .vol-route header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: start; }
+.vol .vol-route h2 { font-size: 24px; line-height: 1.25; letter-spacing: -0.02em; font-weight: 500; }
+.vol .vol-route header p { margin-top: 8px; font-size: 16px; line-height: 1.55; color: var(--s4-grey); max-width: 640px; }
+.vol .vol-meta { text-align: right; }
+.vol .vol-meta .spa-mono { display: block; }
+.vol .vol-meta b { display: block; margin-top: 4px; font-size: 16px; font-weight: 500; }
+.vol .vol-n { display: block; margin-top: 8px; color: var(--s4-blue) !important; }
+.vol .vol-orgs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.vol .vol-orgs li { min-width: 0; }
+.vol .vol-orgs a, .vol .vol-orgs span:not(.vol-place) { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 56px; padding: 12px 16px; border-radius: 12px; background: #fff; min-width: 0; transition: box-shadow 160ms var(--s4-ease); }
+.vol .vol-orgs a:hover { box-shadow: inset 0 0 0 1px var(--s4-blue); }
+.vol .vol-orgs b { font-size: 16px; font-weight: 500; overflow-wrap: anywhere; }
+.vol .vol-place { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: var(--s4-grey); }
+.vol .vol-orgs svg { flex: none; color: var(--s4-mute); }
+.vol .vol-orgs a > svg:last-child { margin-left: auto; }
+.vol .vol-more { justify-self: start; min-height: 40px; padding: 0 16px; border: 0; border-radius: 99px; background: #fff; font: inherit; font-size: 14px; font-weight: 500; color: var(--s4-blue); cursor: pointer; }
+.vol .vol-more:hover { background: var(--s4-blue-soft); }
+.vol .spa-empty { display: grid; gap: 12px; justify-items: start; padding: 32px; border-radius: 16px; background: var(--s4-tile); }
+.vol .spa-empty h2 { font-size: 24px; font-weight: 500; letter-spacing: -0.02em; }
+.vol .spa-empty p { max-width: 480px; font-size: 16px; color: var(--s4-grey); }
+.vol .spa-cta { min-height: 40px; padding: 0 16px; border: 0; border-radius: 99px; background: var(--s4-blue); font: inherit; font-size: 14px; font-weight: 500; color: #fff; cursor: pointer; }
+
+.vol .vol-note { padding-top: 24px; border-top: 1px solid var(--s4-line); font-size: 16px; line-height: 1.6; color: var(--s4-grey); max-width: 760px; }
+.vol .vol-note b { font-weight: 500; color: var(--s4-ink); }
+.vol .vol-note a { color: var(--s4-blue); text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 860px) {
+  .vol .vol-filters { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .vol .vol-route { padding: 16px; }
+  .vol .vol-route header { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .vol .vol-route h2 { font-size: 20px; }
+  .vol .vol-meta { text-align: left; }
+  .vol .vol-orgs { grid-template-columns: minmax(0, 1fr); }
+  .vol .vol-more, .vol .vol-clear { min-height: 48px; }
+}

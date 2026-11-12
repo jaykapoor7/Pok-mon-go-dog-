@@ -14,7 +14,7 @@
 --     whose people cannot read Bengaluru's records.
 --
 -- Re-runnable: it deletes only rows with the fixed demo ids below.
--- Requires: the One Health v2.1–v2.4 migrations; the sample NGOs
+-- Requires: the One Health v2.1–v2.6 migrations; the sample NGOs
 --   d0000000-0000-4000-8000-0000000000a0 (Bengaluru) and
 --   20000000-0000-4000-8000-000000000001 (Coimbatore); and the demo accounts
 --   created by staging/one-health-accounts.sql.
@@ -34,6 +34,7 @@ DELETE FROM public.oh_members WHERE organisation_id::text LIKE 'f1000000-%';
 DELETE FROM public.oh_organisations WHERE id::text LIKE 'f1000000-%';
 DELETE FROM public.oh_estimates WHERE area_id::text LIKE 'f2000000-%';
 DELETE FROM public.oh_areas WHERE id::text LIKE 'f2000000-%';
+-- health.transfers go with their exposures (ON DELETE CASCADE).
 
 -- ── Geography ───────────────────────────────────────────────────────────
 INSERT INTO public.oh_areas (id, parent_id, level, name, time_zone, source, illustrative) VALUES
@@ -238,5 +239,32 @@ INSERT INTO public.oh_handoffs (programme_id, kind, from_org, to_org, title, det
   ('f0000000-0000-4000-8000-000000000002', 'result_notice', 'f1000000-0000-4000-8000-000000000009', 'f1000000-0000-4000-8000-000000000002', 'Positive result: SX-ILL-001, HSR Layout', 'Laboratory-confirmed positive. Check bites recorded in this locality.', 'f2000000-0000-4000-8000-000000000101', NULL, 'f3000000-0000-4000-8000-000000000001', 'open', current_date, NULL, now() - interval '5 days', NULL, NULL),
   ('f0000000-0000-4000-8000-000000000002', 'vaccination_request', 'f1000000-0000-4000-8000-000000000002', 'f1000000-0000-4000-8000-000000000003', 'Ring vaccination around HSR Layout', 'Following the confirmed case, vaccinate dogs in the surrounding localities.', 'f2000000-0000-4000-8000-000000000101', NULL, NULL, 'accepted', current_date + 5, NULL, now() - interval '4 days', NULL, NULL),
   ('f0000000-0000-4000-8000-000000000002', 'service_gap', 'f1000000-0000-4000-8000-000000000007', 'f1000000-0000-4000-8000-000000000002', 'Anti-rabies vaccine not available at UPHC Whitefield', 'Patients are being referred to the teaching hospital.', 'f2000000-0000-4000-8000-000000000107', NULL, NULL, 'open', current_date + 1, NULL, now() - interval '3 hours', NULL, NULL);
+
+-- ── Referrals between facilities (v2.6) ────────────────────────────────
+-- One person referred today from the health centre without vaccine to the
+-- teaching hospital, not yet marked; one referred for immunoglobulin three
+-- days ago who arrived. Patient details never travel with a referral.
+INSERT INTO health.transfers (exposure_id, from_org, to_org, service, note, status, sent_by_name, sent_at, closed_by_name, closed_at)
+SELECT e.id, e.facility_id, 'f1000000-0000-4000-8000-000000000004', 'arv', 'Illustrative: vaccine not available here today', 'sent', 'Duty medical officer', now() - interval '2 hours', NULL, NULL
+  FROM health.exposures e WHERE e.facility_id = 'f1000000-0000-4000-8000-000000000007' AND e.category IN ('II', 'III') ORDER BY e.exposure_on DESC, e.id LIMIT 1;
+INSERT INTO health.transfers (exposure_id, from_org, to_org, service, note, status, sent_by_name, sent_at, closed_by_name, closed_at)
+SELECT e.id, e.facility_id, 'f1000000-0000-4000-8000-000000000004', 'rig', NULL, 'arrived', 'Dr. Arjun Rao', now() - interval '3 days', 'Sister Lakshmi N.', now() - interval '3 days' + interval '3 hours'
+  FROM health.exposures e WHERE e.facility_id = 'f1000000-0000-4000-8000-000000000005' AND e.category = 'III' ORDER BY e.exposure_on DESC, e.id LIMIT 1;
+UPDATE health.exposures e SET referred_to = t.to_org FROM health.transfers t WHERE t.exposure_id = e.id AND e.facility_id::text LIKE 'f1000000-%';
+
+-- ── Dog vaccination dates for revaccination (illustrative) ──────────────
+-- The sample NGO's animals marked vaccinated get a dated vaccination 300 to
+-- 399 days ago, so against the programme's 365-day setting some are overdue
+-- and some are due within a fortnight. Inserted once and refreshed in place
+-- afterwards: an insert also writes the animal's timeline, audit and
+-- workflow rows, and deleting would leave those behind.
+INSERT INTO public.medical_events (id, dog_id, kind, event_date, notes, performed_by, is_demo)
+SELECT ('f4000000-0000-4000-8000-' || lpad(rn::text, 12, '0'))::uuid, id, 'vaccination', current_date - (300 + (rn * 17) % 100),
+       'Illustrative vaccination date, for the revaccination demonstration', 'Sample field team', true
+  FROM (SELECT d.id, row_number() OVER (ORDER BY d.id) rn FROM public.dogs d
+         WHERE d.ngo_id = 'd0000000-0000-4000-8000-0000000000a0' AND d.vaccination_status = 'vaccinated') x
+ON CONFLICT (id) DO UPDATE SET event_date = excluded.event_date;
+UPDATE public.animal_timeline_events t SET occurred_at = m.event_date::timestamptz
+  FROM public.medical_events m WHERE m.id::text LIKE 'f4000000-%' AND t.source_ref->>'medical_event_id' = m.id::text AND t.occurred_at <> m.event_date::timestamptz;
 
 COMMIT;
