@@ -52,6 +52,18 @@ what they can do (one primary action, verbs on rows) and what happens next
   accent 1-3.4% of pixels, status colours under 1%.
 - **Checking it.** `python3 scripts/grid8.py <css files>` reports any value off
   the scale; run it on new stylesheets before merging.
+- **No lines around things** (`src/sp/ui/calm.css`, the last stylesheet). No
+  outline around a card, a tile or a row. A soft fill (`#f5f6f8`) marks a
+  surface; one hairline divides rows in a list; space separates sections.
+  Only floating things (menus, dialogs, the notification panel, toasts) keep
+  a shadow, and only controls (inputs, buttons) keep a line.
+- **Each fact once.** A count appears in one place on a screen: in the list's
+  tab or heading, not also in a sentence above it and a tile beside it. A
+  brief's "Needs you" carries only what the lists below do not already show.
+- **No long columns.** A list shows what is most recent or most urgent first
+  and stops (four cards per Pipeline stage, five or six rows elsewhere), with
+  "All n" or "Show all n" one click away. A grid of cards that mostly say
+  "nothing here" becomes one line.
 
 ### 3. Components (fewer, better)
 - **Page header:** title, one-line purpose, at most one primary and one

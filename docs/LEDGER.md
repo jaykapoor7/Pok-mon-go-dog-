@@ -222,6 +222,7 @@ first), and a rebuilt live demo. See `docs/BEST-AUDIT.md`.
 | Product CSS on one 8-point system (spacing, radius, type); 60-30-10 colour measured | Done | `scripts/grid8.py` reports nothing off scale; DESIGN.md |
 | NGO phone: Today rows wrap, Pipeline opens on work, guide card compact | Done | Phone screenshots |
 | Report period picker; a programme can be created inside one the person leads | Done | |
+| Owner: "no long columns, no redundant data, no strings around cards": calm.css (no outlines), each fact once (hospital, laboratory, Requests, overview), short lists with "Show all" | Done | Before/after screenshots of six screens |
 | Journey on staging | 14/14 | `e2e/one-health.spec.ts` |
 | Permissions on staging | 19/19 | `scripts/test-one-health-permissions.ts` |
 | Kaju isolation | 12/12 | `scripts/test-kaju-automations.ts` |
