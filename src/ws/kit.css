@@ -266,3 +266,16 @@ a.k-stat:focus-visible { outline: 2px solid var(--k-blue); }
   .k-card b { font-size: 16px; line-height: 24px; }
   .k-card small, .k-card-c { font-size: 14px; line-height: 20px; }
 }
+
+/* Filters that carry counts are the page's flow: each a big figure over its name, the chosen one marked. One look says how much waits where. */
+@media (min-width: 861px) {
+  .k-tools:has(.k-lanes b) { display: block; }
+  .k-lanes:has(b) { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; width: 100%; margin: 16px 0 8px; padding: 0; background: none; box-shadow: none; }
+  .k-lanes:has(b) button { display: flex; flex-direction: column-reverse; align-items: flex-start; justify-content: flex-end; gap: 4px; height: auto; min-height: 96px; padding: 12px 0 8px; border-top: 4px solid var(--n-fill); border-radius: 0; background: none; box-shadow: none; color: var(--n-text-2); font-size: 16px; font-weight: 500; line-height: 24px; text-align: left; transition: border-color .15s, color .15s; }
+  .k-lanes:has(b) button:hover { border-top-color: var(--n-line-2); color: var(--n-text); background: none; }
+  .k-lanes:has(b) button[aria-pressed="true"] { border-top-color: var(--n-blue); color: var(--n-text); background: none; box-shadow: none; }
+  .k-lanes:has(b) button b { min-width: 0; padding: 0; background: none; color: var(--n-text-3); font-size: 40px; font-weight: 600; line-height: 48px; letter-spacing: -.03em; }
+  .k-lanes:has(b) button[aria-pressed="true"] b, .k-lanes:has(b) button b[data-tone] { color: var(--n-text); }
+  .k-lanes:has(b) button b[data-tone="flame"], .k-lanes:has(b) button b[data-tone="red"] { color: var(--n-red); }
+}
+@media (min-width: 861px) { .k-lanes:has(b) button b, .k-lanes:has(b) button b[data-tone] { background: none !important; } .k-lanes:has(b) button b[data-tone="amber"], .k-lanes:has(b) button b[data-tone="yellow"] { color: var(--t-orange); } .k-lanes:has(b) button b[data-tone="blue"] { color: var(--n-blue); } }

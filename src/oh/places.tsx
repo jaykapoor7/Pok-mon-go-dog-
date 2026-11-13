@@ -78,31 +78,32 @@ export function placeNav(p: Place, programmeSlug?: string): PlaceLink[] {
   if (isFacility(p.kind)) {
     const due = (p.doses_due ?? 0) + (p.notices_new ?? 0) + (p.transfers_in ?? 0);
     links.push({ href: w, label: "Today", short: "Today", icon: "home", exact: true, count: due || null, tone: "flame", mobile: true });
-    links.push({ href: `${w}/register`, label: "Bite register", short: "Register", icon: "list", section: W, mobile: true });
-    links.push({ href: `${w}/services`, label: "Services we offer", short: "Services", icon: "shield", section: W, count: p.services_stale || null, tone: "amber" });
+    links.push({ href: `${w}/register`, label: "Bites", short: "Bites", icon: "list", section: W, mobile: true });
+    links.push({ href: `${w}/services`, label: "Vaccine and services", short: "Services", icon: "shield", section: W, count: p.services_stale || null, tone: "amber" });
   } else if (p.kind === "laboratory") {
     links.push({ href: w, label: "Today", short: "Today", icon: "home", exact: true, count: p.samples_waiting || null, tone: "blue", mobile: true });
-    links.push({ href: `${w}/services`, label: "Services we offer", short: "Services", icon: "shield", section: W, count: p.services_stale || null, tone: "amber" });
+    links.push({ href: `${w}/services`, label: "Vaccine and services", short: "Services", icon: "shield", section: W, count: p.services_stale || null, tone: "amber" });
   } else if (p.kind === "ngo") {
     links.push({ href: "/ngo", label: "Today", short: "Today", icon: "home", exact: true, mobile: true });
   }
   if (pr) {
     if (oversees(p.kind)) {
       links.push({ href: pr, label: "Today", short: "Today", icon: "home", exact: true, mobile: true });
-      links.push({ href: `${pr}/coverage`, label: "Vaccination coverage", short: "Coverage", icon: "syringe", section: W, mobile: true });
+      links.push({ href: `${pr}/coverage`, label: "Dog vaccination", short: "Dogs", icon: "syringe", section: W, mobile: true });
       links.push({ href: `${pr}/report`, label: "Report", short: "Report", icon: "file", section: W, mobile: true });
     } else if (p.kind === "ngo") {
       /* A field partner's part in the programme, in the order it is used: what partners are asking for (the
          animal side of a bite), how far dog vaccination has come against the target, where care is, the whole picture. */
       links.push({ href: w, label: "Requests", short: "Requests", icon: "arrows", exact: true, section: P, count: p.handoffs_open || null, tone: p.handoffs_overdue ? "flame" : "blue", mobile: true });
-      links.push({ href: `${pr}/coverage`, label: "Vaccination coverage", short: "Coverage", icon: "syringe", section: P });
+      links.push({ href: `${pr}/coverage`, label: "Dog vaccination", short: "Dogs", icon: "syringe", section: P });
     }
-    links.push({ href: `${pr}/network`, label: "Care network", short: "Network", icon: "map", section: P, mobile: oversees(p.kind) });
+    /* Where bitten people can be sent. A field partner does not refer patients, so it is not in their menu. */
+    if (p.kind !== "ngo") links.push({ href: `${pr}/network`, label: "Hospitals", short: "Hospitals", icon: "map", section: P, mobile: oversees(p.kind) });
     if (oversees(p.kind)) links.push({ href: `${pr}/work`, label: "Requests", short: "Requests", icon: "arrows", section: P, count: p.handoffs_open || null, tone: p.handoffs_overdue ? "flame" : "blue", mobile: true });
-    else links.push({ href: pr, label: "Overview", short: "Programme", icon: "gauge", exact: true, section: P });
+    else links.push({ href: pr, label: "Programme", short: "Programme", icon: "gauge", exact: true, section: P });
     if (oversees(p.kind)) {
-      if (p.kind === "research" || can("oversee")) links.push({ href: `${pr}/data`, label: "Research data", icon: "activity", section: "Manage" });
-      if (can("manage") || can("invite")) links.push({ href: `${pr}/setup`, label: "Programme setup", icon: "settings", section: "Manage" });
+      if (p.kind === "research" || can("oversee")) links.push({ href: `${pr}/data`, label: "Data export", icon: "activity", section: "Manage" });
+      if (can("manage") || can("invite")) links.push({ href: `${pr}/setup`, label: "Setup", icon: "settings", section: "Manage" });
     }
   }
   return links;
