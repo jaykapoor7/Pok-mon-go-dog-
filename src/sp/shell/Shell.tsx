@@ -245,16 +245,19 @@ function ShellInner({ children, flush }: { children: ReactNode; flush: boolean }
   useEffect(() => { try { const v = JSON.parse(sessionStorage.getItem("sp.tabs.v1") ?? "[]"); if (Array.isArray(v)) setTabs(v.filter((x) => x && typeof x.href === "string" && typeof x.label === "string")); } catch { /* storage unavailable: tabs start empty */ } }, []);
   useEffect(() => {
     const t = window.setTimeout(() => {
-      const label = (document.title.split(/,| · | \| /)[0] ?? "").trim() || def.label;
+      /* A place's home is "Today", as the sidebar calls it. Two tabs with the same
+         name are the same thing to the person (the /today hop before a redirect,
+         for one), so a new tab replaces one of the same name. */
+      const label = path === def.home ? "Today" : (document.title.split(/,| · | \| /)[0] ?? "").trim() || def.label;
       setTabs((prev) => {
         const i = prev.findIndex((x) => x.href === path);
-        const next = i >= 0 ? prev.map((x, k) => (k === i ? { ...x, label } : x)) : [...prev, { href: path, label }].slice(-5);
+        const next = i >= 0 ? prev.map((x, k) => (k === i ? { ...x, label } : x)) : [...prev.filter((x) => x.label !== label), { href: path, label }].slice(-5);
         try { sessionStorage.setItem("sp.tabs.v1", JSON.stringify(next)); } catch { /* not kept */ }
         return next;
       });
     }, 350);
     return () => window.clearTimeout(t);
-  }, [path, def.label]);
+  }, [path, def.label, def.home]);
   const closeTab = (href: string) => setTabs((prev) => { const next = prev.filter((x) => x.href !== href); try { sessionStorage.setItem("sp.tabs.v1", JSON.stringify(next)); } catch { /* not kept */ } return next; });
   const tabList = tabs.some((x) => x.href === path) ? tabs : [...tabs, { href: path, label: "" }];
   /* The Pipeline's views share one breadcrumb: NGO / Pipeline / the view. */

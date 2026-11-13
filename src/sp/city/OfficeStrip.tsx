@@ -7,7 +7,7 @@
    record cannot support is shown as unknown, and accepted is never paid. */
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, ClipboardCheck, FileText, Undo2 } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Undo2 } from "lucide-react";
 import { AskKaju, DailyHead, NeedsYou } from "../ui/Daily";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myContext, orgNames, packageCases, packages, type AbcContext, type Package, type PackageCase } from "@/lib/abc";
@@ -80,56 +80,64 @@ export function OfficeStrip({ onOffice, publicOpen, onPublic }: { onOffice?: (on
   const today = new Date().toISOString().slice(0, 10);
   const contractOf = (ngo: string) => terms?.contracts.filter((c) => c.ngo_id === ngo && c.office_id === office.id && c.starts_on <= today && c.ends_on >= today)[0] ?? null;
 
+  const ev = [
+    { label: "All five evidence items", n: complete },
+    { label: "Vet signed", n: signed },
+    { label: "Operator reviewed", n: reviewed },
+  ];
+
+  /* One column, the same as every home: what needs a decision, then what the
+     waiting packages hold, then the year's claims, then who submits. Each fact
+     once, no boxes around sections. */
   return (
     <section className="os" aria-label={`${office.name}: operations and decisions`}>
       <div className="dy os-brief">
         <DailyHead name={user?.name} since={<>{office.name}{office.city ? `, ${office.city}` : ""}: <b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"} waiting for your decision</b>{v.oldest !== null && v.waiting.length ? ` (oldest ${v.oldest === 0 ? "today" : `${v.oldest} ${v.oldest === 1 ? "day" : "days"}`})` : ""}, {v.withOperator.length} with the operator, {v.decided.length} decided in {year}.</>} />
         <NeedsYou rows={[
-          ...(v.waiting.length ? [{ key: "wait", href: "/city/review", tone: "violet", icon: <ClipboardCheck size={10} strokeWidth={2.4} />, title: <><b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"}</b> waiting for your decision</>, meta: v.oldest === null ? undefined : v.oldest === 0 ? "Submitted today" : `Oldest waiting ${v.oldest} ${v.oldest === 1 ? "day" : "days"}`, tag: "Decide", verb: "Review" }] : []),
+          ...(v.waiting.length ? [{ key: "wait", href: v.waiting.length === 1 ? `/city/review/${v.waiting[0].id}` : "/city/review", tone: "violet", icon: <ClipboardCheck size={10} strokeWidth={2.4} />, title: v.waiting.length === 1 ? <><b>{v.waiting[0].title}</b> waits for your decision</> : <><b>{v.waiting.length} packages</b> wait for your decision</>, meta: [v.waiting.length === 1 ? names[v.waiting[0].ngo_id] : null, v.oldest === null ? null : v.oldest === 0 ? "submitted today" : `${v.waiting.length === 1 ? "waiting" : "oldest waiting"} ${v.oldest} ${v.oldest === 1 ? "day" : "days"}`].filter(Boolean).join(" · "), tag: "Decide", verb: "Review" }] : []),
           ...(v.withOperator.length ? [{ key: "op", href: "/city/review?tab=operator", tone: "amber", icon: <Undo2 size={10} strokeWidth={2.4} />, title: <><b>{v.withOperator.length}</b> queried or returned to the operator</>, meta: "Waiting on their answer", tag: "With operator", verb: "Open" }] : []),
-          { key: "ops", href: "/city/contracts", tone: "slate", icon: <FileText size={10} strokeWidth={2.4} />, title: <><b>{v.ops.length} {v.ops.length === 1 ? "operator" : "operators"}</b> submitting to your office</>, meta: "Contracts and rates", tag: "Contracts", verb: "Open" },
         ]} clear="No package is waiting for your office." />
         <AskKaju questions={["Which packages have waited longest?", "What did we query last month, and why?", "How many sterilisations were accepted this year?", "Which wards have no operator?"]} />
-      </div>
-      <div className="os-grid">
-        <div className="os-card">
-          <h3>Claims in {year}</h3>
+
+        {v.waiting.length > 0 && <section className="dy-sec" aria-labelledby="os-ev-h">
+          <h2 id="os-ev-h" className="dy-h">In the waiting {v.waiting.length === 1 ? "package" : "packages"}</h2>
+          {cases === null ? <p className="os-muted">Reading records…</p> : cases.length === 0 ? <p className="os-muted">No records inside.</p> : (
+            <ul className="os-ev">{ev.map((x) => (
+              <li key={x.label}><span>{x.label}</span><b>{x.n} <small>of {cases.length}</small></b><i aria-hidden style={{ ["--p" as string]: x.n / cases.length }} data-full={x.n === cases.length ? "" : undefined} /></li>
+            ))}</ul>
+          )}
+        </section>}
+
+        <section className="dy-sec" aria-labelledby="os-claims-h">
+          <h2 id="os-claims-h" className="dy-h">Claims in {year}</h2>
           {Object.keys(recs).length === 0 && list.length > 0 ? <p className="os-muted">Reading claims…</p> : thisYear.length === 0 ? <p className="os-muted">No claims submitted to this office yet this year.</p> : (
-            <dl className="os-money">
+            <dl className="os-figs">
               <div><dt>Claimed</dt><dd>{claimed === null ? "Unknown" : money(String(claimed))}</dd></div>
               <div><dt>Accepted</dt><dd>{accepted === null ? "Unknown" : money(String(accepted))}</dd></div>
-              <div><dt>Payment evidence</dt><dd>{paid === null || paid === 0 ? "None recorded" : money(String(paid))}</dd></div>
+              <div><dt>Payment evidence</dt><dd className={paid === null || paid === 0 ? "is-none" : undefined}>{paid === null || paid === 0 ? "None recorded" : money(String(paid))}</dd></div>
             </dl>
           )}
-          <p className="os-note os-wide">Accepted is not paid. Payment evidence is what your office records; StrayPaw does not process payments.{noAmount ? ` ${noAmount} ${noAmount === 1 ? "package has" : "packages have"} no contract amount.` : ""}</p>
-          {v.waiting.length > 0 && <>
-            <h4 className="os-wide">Waiting longest</h4>
-            <ul className="os-list os-wide">{v.waiting.slice(0, 3).map((p) => <li key={p.id}><Link href={`/city/review/${p.id}`}><span><b>{p.title}</b><small>{names[p.ngo_id] ?? "Operator"} · {p.summary.records ?? p.case_ids.length} records · {days(p.submitted_at ?? p.created_at) || "today"}{days(p.submitted_at ?? p.created_at) ? " days" : ""}</small></span><em>Review</em></Link></li>)}</ul>
-          </>}
-        </div>
+          <p className="os-note">Accepted is not paid. Payment evidence is what your office records; StrayPaw does not process payments.{noAmount ? ` ${noAmount} ${noAmount === 1 ? "package has" : "packages have"} no contract amount.` : ""}</p>
+        </section>
 
-        <div className="os-card">
-          <h3 className="os-wide">Operators</h3>
-          <table className="os-table os-wide">
-            <thead><tr><th scope="col">Operator</th><th scope="col">Contract in force</th><th scope="col">Waiting</th><th scope="col">Decided</th></tr></thead>
-            <tbody>{v.ops.map((id) => { const ps = list.filter((p) => p.ngo_id === id); const k = contractOf(id); const rate = k ? terms?.rates.find((r) => r.contract_id === k.id) : null; return (
-              <tr key={id}><th scope="row"><Link href={`/city/review?op=${id}`}>{names[id] ?? "Operator"}</Link></th>
-                <td>{terms === null ? "…" : k ? <>{rate ? `${money(rate.unit_rate)} ${rate.code}` : k.name}{k.illustrative ? <small> illustrative</small> : null}</> : <small>None in force</small>}</td>
-                <td>{ps.filter((p) => isWaitingOnOffice(p.status)).length}</td>
-                <td>{ps.filter((p) => isDecided(p.status)).length}</td></tr>); })}</tbody>
-          </table>
-          <h4>Evidence in waiting packages</h4>
-          {v.waiting.length === 0 ? <p className="os-muted">No package is waiting.</p> : cases === null ? <p className="os-muted">Reading records…</p> : (
-            <ul className="os-bars">
-              <li><span>All five evidence items</span><b>{complete} of {cases.length}</b><i style={{ ["--p" as string]: cases.length ? complete / cases.length : 0 }} /></li>
-              <li><span>Vet sign-off</span><b>{signed} of {cases.length}</b><i style={{ ["--p" as string]: cases.length ? signed / cases.length : 0 }} /></li>
-              <li><span>Operator evidence review</span><b>{reviewed} of {cases.length}</b><i style={{ ["--p" as string]: cases.length ? reviewed / cases.length : 0 }} /></li>
-            </ul>
-          )}
-        </div>
+        <section className="dy-sec" aria-labelledby="os-ops-h">
+          <header className="dy-sec-head"><h2 id="os-ops-h" className="dy-h">{v.ops.length === 1 ? "Operator" : `${v.ops.length} operators`}</h2><Link href="/city/contracts">Contracts and rates <ArrowRight size={13} aria-hidden /></Link></header>
+          <ul className="os-ops">{v.ops.map((id) => {
+            const ps = list.filter((p) => p.ngo_id === id), k = contractOf(id), rate = k ? terms?.rates.find((r) => r.contract_id === k.id) : null;
+            const w = ps.filter((p) => isWaitingOnOffice(p.status)).length, d = ps.filter((p) => isDecided(p.status)).length;
+            return (
+              <li key={id}><Link href={`/city/review?op=${id}`}>
+                <span className="os-ops-t"><b>{names[id] ?? "Operator"}</b><small>{terms === null ? "Reading the contract…" : k ? <>{rate ? `${money(rate.unit_rate)} per ${rate.code}` : k.name}, to {new Date(`${k.ends_on}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}{k.illustrative ? " · illustrative" : ""}</> : "No contract in force"}</small></span>
+                <span className="os-ops-n">{w ? <em>{w} waiting</em> : null}<span>{d} decided</span></span>
+                <ArrowRight size={14} aria-hidden className="os-ops-go" />
+              </Link></li>
+            );
+          })}</ul>
+        </section>
+
+        {onPublic ? <button type="button" className="os-divider" aria-expanded={!!publicOpen} onClick={onPublic}><b>Public record</b><span>Published research data for the city, separate from your office&rsquo;s records.</span><em>{publicOpen ? "Hide" : "Show"}</em></button>
+          : <p className="os-divider"><b>Public record</b> Published research data for the city, separate from your office&rsquo;s operational records.</p>}
       </div>
-      {onPublic ? <button type="button" className="os-divider" aria-expanded={!!publicOpen} onClick={onPublic}><b>Public record</b><span>Published research data for the city, separate from your office&rsquo;s records.</span><em>{publicOpen ? "Hide" : "Show"}</em></button>
-        : <p className="os-divider"><b>Public record</b> Published research data for the city, separate from your office&rsquo;s operational records.</p>}
     </section>
   );
 }

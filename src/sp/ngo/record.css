@@ -36,6 +36,9 @@
 /* layout */
 .kr-grid { display: grid; gap: 12px; align-items: start; }
 @media (min-width: 1000px) { .kr-grid { grid-template-columns: minmax(0, 1fr) 320px; } .kr-side { position: sticky; top: calc(var(--bar, 44px) + 14px); } }
+/* An animal with nothing yet in the main column: the side takes the width rather than leaving a blank column. */
+.kr-main:empty { display: none; }
+@media (min-width: 1000px) { .kr-grid:has(> .kr-main:empty) { grid-template-columns: minmax(0, 1fr); } .kr-grid:has(> .kr-main:empty) .kr-side { position: static; } }
 .kr-main, .kr-side { display: grid; gap: 12px; min-width: 0; align-content: start; }
 
 /* cards */
@@ -146,6 +149,8 @@
 .ka-head { display: grid; gap: 16px; margin-bottom: 16px; animation: kr-fade .42s var(--kr-ease) both; }
 @media (min-width: 760px) { .ka-head { grid-template-columns: 220px minmax(0, 1fr); align-items: start; } }
 .ka-photo .portrait { width: 100%; border-radius: 12px; box-shadow: 0 0 0 1px var(--kr-line), 0 20px 40px -30px rgba(11, 30, 61, .5); }
+/* No photograph: the plate says so; the ID is already beside the name. */
+.sp .ka-photo .portrait-none .mono { display: none; }
 .ka-who { display: grid; gap: 8px; min-width: 0; }
 .ka-k { display: flex; align-items: center; gap: 4px; margin: 0; color: var(--kr-grey); font-size: 12px; }
 .ka-state { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }

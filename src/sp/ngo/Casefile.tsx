@@ -137,14 +137,15 @@ export function Casefile({ id, identifiers = false }: { id: string; identifiers?
 
             <div className="kr-grid">
               <div className="kr-main">
-                <section className="kr-story" aria-labelledby="ka-cases-h">
-                  <div className="kr-sec-head"><h2 id="ka-cases-h">Cases</h2><b className="kr-n">{cases.length}</b></div>
+                {/* Each fact once: a list that holds only the case already named above is left out. */}
+                {(sourceErrors.cases || cases.length > (live ? 1 : 0)) && <section className="kr-story" aria-labelledby="ka-cases-h">
+                  <div className="kr-sec-head"><h2 id="ka-cases-h">{live ? "Every case" : "Cases"}</h2><b className="kr-n">{cases.length}</b></div>
                   {sourceErrors.cases ? <p className="kr-alert" role="alert">{sourceErrors.cases}</p> : cases.length ? (
                     <ul className="kr-rel is-wide">{cases.map((c) => <li key={c.id}><Link href={`/ngo/cases/${c.id}`}><i data-tone={TONE_OF[c.status_class ?? "unknown"] ?? "plain"} aria-hidden /><span><b>{c.condition_class ?? "Request"}</b><small><span className="mono">{shortCode(c.case_code)}</span> · {STATUS_META[(c.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"} · {day(c.occurred_at)}{c.assignee_name ? ` · ${c.assignee_name}` : ""}{c.provenance === "imported_historical_record" ? " · imported" : ""}</small></span><ArrowUpRight size={14} aria-hidden /></Link></li>)}</ul>
                   ) : <p className="kr-quiet">No case on this animal in your organisation.</p>}
-                </section>
+                </section>}
 
-                <section className="kr-story" aria-labelledby="ka-fus-h">
+                {(sourceErrors.followups || fus.length > 0) && <section className="kr-story" aria-labelledby="ka-fus-h">
                   <div className="kr-sec-head"><h2 id="ka-fus-h">Follow-ups</h2><b className="kr-n">{openFus.length ? `${openFus.length} due` : fus.length}</b></div>
                   {sourceErrors.followups ? <p className="kr-alert" role="alert">{sourceErrors.followups}</p> : fus.length ? (
                     <ol className="kr-line">{fus.map((f, i) => { const late = f.status === "upcoming" && Date.parse(f.due_at) < Date.now(); return (
@@ -153,10 +154,10 @@ export function Casefile({ id, identifiers = false }: { id: string; identifiers?
                         <div className="kr-ev"><p className="kr-ev-t">{(f.kind ?? "Recheck").replace(/_/g, " ")}{f.note ? <span className="kr-ev-sub"> · {f.note}</span> : null}</p><p className="kr-ev-m"><span className="kr-ev-k">{f.status === "upcoming" ? (late ? "Late" : "Due") : f.status}</span><time>{day(f.due_at)}</time></p></div>
                         <DeleteRecord kind="followup" id={f.id} what="this follow-up" onDone={() => void load()} />
                       </li>); })}</ol>
-                  ) : <p className="kr-quiet">No follow-ups on this animal.</p>}
-                </section>
+                  ) : null}
+                </section>}
 
-                <div className="kr-ops"><OperationsPanel dogId={id} readOnly /></div>
+                <OperationsPanel dogId={id} readOnly title="Reported on its cases" hideEmpty wrap="kr-ops" />
 
                 {(sourceErrors.timeline || timeline === null || timeline.length > 0) && <details className="kr-fold">
                   <summary><span>Earlier source timeline{timeline ? <b className="kr-n">{timeline.length}</b> : null}</span><ChevronDown size={15} aria-hidden /></summary>

@@ -1,0 +1,11 @@
+/* The reasons as one choice: quiet rows on the form's tile, the chosen one marked. */
+.rc2-reasons { margin: 0; padding: 0; border: 0; min-width: 0; }
+.rc2-reasons legend { padding: 0; margin-bottom: 8px; font-size: 12px; font-weight: 650; color: var(--sp-ink); }
+.rc2-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.rc2-reasons label { position: relative; display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: 8px; background: #fff; color: var(--sp-ink); font-size: 14px; line-height: 1.4; cursor: pointer; transition: box-shadow .16s ease; }
+.rc2-reasons label:hover { box-shadow: 0 0 0 1px rgba(36, 87, 206, .35); }
+.rc2-reasons label.is-on { box-shadow: 0 0 0 2px #2457ce; }
+.rc2-reasons input { position: absolute; opacity: 0; pointer-events: none; }
+.rc2-reasons label:has(input:focus-visible) { outline: 2px solid #2457ce; outline-offset: 2px; }
+@media (max-width: 640px) { .rc2-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .rc2-reasons label { transition: none; } }

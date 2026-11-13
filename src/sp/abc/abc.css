@@ -199,7 +199,7 @@
 .sp .gv-path span { display: inline-flex; align-items: center; gap: 4px; }
 .sp .gv-path span + span::before { content: "→"; color: #2457ce; }
 .sp .gv-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
-@media (min-width: 1200px) { .sp .gv-cols { grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr); } }
+@media (min-width: 1200px) { .sp .gv-cols.has-side { grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr); } }
 .sp .gv-main, .sp .gv-side { min-width: 0; }
 .sp .gv-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .sp .gv-h { margin: 0; font-size: 16px; font-weight: 500; color: #0b1e3d; }

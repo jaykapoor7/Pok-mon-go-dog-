@@ -258,7 +258,26 @@ first), and a rebuilt live demo. See `docs/BEST-AUDIT.md`.
 | Changelog current; How do I… from Kaju's own steps; security evidence | Done | |
 | Accessibility (axe, WCAG 2.1 A/AA) on 6 public pages and 15 product screens across 6 roles, desktop and phone | Done: every checked screen passes | Contrast tokens for soft fills, valid stat markup, alert headers without nested controls, focusable scroll regions |
 | Page speed (browser-measured on a phone profile via the session proxy) | LCP 0.95–1.9 s, CLS 0 on home, /try, security summary, for-ngos | Lighthouse itself was not permitted in this session |
-| Every page loads about 430 KB of JavaScript, documents included (the root layout carries the app shell) | Open: split the public pages from the app shell's bundle | |
+| Every page loads about 430 KB of JavaScript, documents included (the root layout carries the app shell) | Partly fixed on 13 Nov (the frame split out); see below | |
+
+## 13 Nov: after #84 (the municipal workspace, report content, lighter public pages)
+
+#84 merged as `e54acf66`; production and demo.straypaw.org both serve it; the story on the live demo passed on phone and desktop (2/2). Review submissions and Contracts were checked there as the municipal reviewer (the only place those accounts sign in).
+
+| Item | Status | Evidence |
+|---|---|---|
+| Review submissions: with one operator, the list sat in a column 1.7/2.7 wide, cutting the operator's name | Fixed: two columns only when the Operators panel shows | Seen on the live demo after #84 |
+| Municipal Today: claims and operators in outlined cards wider than the brief, a table in capitals, "Waiting longest" repeating the first row, "1 operator submitting" listed as a need | Rebuilt in the brief's column: what waits (one package opens straight to it), what the waiting packages hold, the year's claims as three figures, operators as rows with their contract | To check on the live demo after release |
+| Programmes (`/city/programmes`): old display header, outlined chips, an empty axis bar | On the page pattern: a sentence of how much is published and where, kind lanes with counts, one row per programme on one time scale | Desktop and phone screenshots |
+| The city's public record (`/city/insights`): header out of line with the findings, a field label over the city picker, heavy outlined bars | Same head and controls as every page; the period as lanes; bars without outlines | Desktop and phone screenshots |
+| Tabs: a place's home was "City insights" in the tab and "Today" in the sidebar; the `/today` hop left a second "Today" tab | Home is "Today"; a tab replaces one of the same name | |
+| `/report-content` rendered inside the app frame with no site header | On the site's page kit like Contact; same call to `/api/report-content` | Desktop and phone screenshots |
+| Animal record (NGO): the ID printed inside the empty photograph and beside the name; the open case both in "In the line now" and in Cases; empty Follow-ups and an empty "Care and movements" next to "Care on record" | Each once: the plate says only that no photograph is recorded; Cases shows when it adds to the line ("Every case"); an empty follow-up list and an empty case-reported list are left out; the case-reported list is named "Reported on its cases" so it is not read as a second care record. With nothing in the main column, the care card takes the width | Screenshots as the NGO coordinator on staging |
+| Small portraits with no photograph printed the ID over three lines (case record, lists) | A paw on the plate; the label still names the animal for screen readers | |
+| Every public page loaded the application frame (the root layout carried it) | Fixed: the frame is its own chunk, loaded only on app routes. Uncompressed JavaScript per page: documents 1,394 → 1,157 KB, the bite finder 1,581 → 1,179 KB | Browser measurement, production (`e54acf66`) against a production build of this branch. Still in every page: the sign-in client (about 244 KB uncompressed) and the motion library (about 200 KB); moving them out needs the auth and motion providers restructured. Open |
+| Checks on a production build of this branch | Typecheck and lint clean; 8-point scan clean; accessibility (axe, WCAG 2.1 A/AA) clean on Programmes, the public record and Report content, desktop and phone; One Health journey 18/18; browser suite 234 passed, 19 failed, every failure a homepage check for the non-demo build (this local build points at staging, which makes it a demo build by design); CI runs them on a non-demo build | Local runs |
+| Staging reseed | Still waiting: the database tool's confirmation timed out again after "Do" | |
+| Production One Health migration | Still the owner's: Actions → Apply Supabase migration → one-health | |
 
 ## 12 Nov: the cinematic public site, behind one switch
 

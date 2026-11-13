@@ -2,16 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { usePathname, useSelectedLayoutSegments } from "next/navigation";
-import "./shell-styles";
 
-/* The application shell (sidebar, top bar, Kaju's panel, onboarding) is the
-   largest piece of the app, and most pages this component wraps never show
-   it: public pages render their own header and footer. Loading it here only
-   when a page needs it keeps it out of every public page's scripts. It is
-   still rendered on the server, and its script is preloaded with the page,
-   so an app page arrives with its shell drawn exactly as before. Sections
-   that always have a shell (/ngo, /today, /community, …) import it in their
-   own layout. Its stylesheets stay in the root: see shell-styles.ts. */
+/* The application frame is its own chunk: public pages (the site, documents,
+   the bite finder) never load the sidebar, search, Kaju's panel or the
+   workspace menus. It still renders on the server for app routes. */
 const Shell = dynamic(() => import("@/sp/shell/Shell").then((m) => m.Shell));
 
 /**

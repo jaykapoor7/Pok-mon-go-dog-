@@ -10,7 +10,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useState } from "react";
-import { EyeOff } from "lucide-react";
+import { EyeOff, PawPrint } from "lucide-react";
 
 const SEEN = "sp2.veil.seen";
 const seen = (src: string) => { try { return (JSON.parse(sessionStorage.getItem(SEEN) ?? "[]") as string[]).includes(src); } catch { return false; } };
@@ -33,7 +33,7 @@ export function Portrait({ src, tag, sensitive = false, credit, size = "m", alt 
     if (size === "s") {
       return (
         <figure className={`portrait is-none is-${size}`} style={{ ["--pg" as string]: g }}>
-          <div className="portrait-plate" aria-label={`No photograph recorded for ${tag}`} role="img"><span className="mono">{tag}</span></div>
+          <div className="portrait-plate is-glyph" aria-label={`No photograph recorded for ${tag}`} role="img"><PawPrint size={20} strokeWidth={1.6} aria-hidden /></div>
         </figure>
       );
     }
