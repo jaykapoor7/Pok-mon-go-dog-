@@ -25,7 +25,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, Fragment, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type TouchEvent as ReactTouchEvent } from "react";
 import {
   Activity, ArrowLeft, ArrowRight, ArrowRightLeft, BookOpen, Building2, ChevronDown, ChevronRight, ChevronsLeft, ChevronsUpDown, CircleHelp, ClipboardCheck,
   Compass, Copy, ExternalLink, FileText, FlaskConical, Gauge, GraduationCap, HeartHandshake, Home, Inbox, Landmark, Layers, ListChecks, LogOut, Map as MapIcon, Menu as MenuIcon,
@@ -313,6 +313,25 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
     el.addEventListener("pointermove", move); el.addEventListener("pointerup", up);
   };
   useEffect(() => { setDrawer(false); setFloat(false); }, [path]);
+  /* The phone's sheet closes when it is pulled down from its top. */
+  const pull = useRef<{ y: number; top: boolean } | null>(null);
+  const sheetStart = (e: ReactTouchEvent) => { const sc = (e.currentTarget as HTMLElement).querySelector(".ws-side-in"); pull.current = { y: e.touches[0].clientY, top: !sc || sc.scrollTop <= 0 }; };
+  const sheetEnd = (e: ReactTouchEvent) => { const p = pull.current; pull.current = null; if (p?.top && e.changedTouches[0].clientY - p.y > 72) setDrawer(false); };
+  /* How the next page arrives on a phone: pushed in from the right, back in from the left, or swapped when it is a sibling. The page reads it from the document, so no render waits on it. */
+  useEffect(() => {
+    const root = document.documentElement;
+    const pop = () => { root.dataset.wsNav = "pop"; };
+    const click = (e: MouseEvent) => { const a = (e.target as Element).closest?.("a[href]"); if (!a) return; root.dataset.wsNav = a.closest(".ws-dock, .ws-views, .ws-side") ? "tab" : "push"; };
+    /* Installed as an app there is no browser edge to swipe: a swipe in from the left edge goes back. */
+    let from: { x: number; y: number } | null = null;
+    const standalone = window.matchMedia("(display-mode: standalone)").matches;
+    const ts = (e: TouchEvent) => { const t = e.touches[0]; from = standalone && t.clientX < 24 ? { x: t.clientX, y: t.clientY } : null; };
+    const te = (e: TouchEvent) => { const t = e.changedTouches[0]; if (from && t.clientX - from.x > 72 && Math.abs(t.clientY - from.y) < 48) window.history.back(); from = null; };
+    window.addEventListener("popstate", pop); document.addEventListener("click", click, true);
+    window.addEventListener("touchstart", ts, { passive: true }); window.addEventListener("touchend", te, { passive: true });
+    return () => { window.removeEventListener("popstate", pop); document.removeEventListener("click", click, true); window.removeEventListener("touchstart", ts); window.removeEventListener("touchend", te); };
+  }, []);
+  useEffect(() => { if (!drawer) return; const k = (e: KeyboardEvent) => { if (e.key === "Escape") setDrawer(false); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [drawer]);
 
   /* ── command search, menus, keys ─────────────────────────────────── */
   const [find, setFind] = useState(false);
@@ -377,7 +396,7 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
       <li key={n.href + n.label}>
         <div className={`ws-item${within && (!at?.view || !open) ? " is-on" : ""}${within ? " is-within" : ""}`} data-depth={depth} onContextMenu={(e) => menuAt(e, nodeMenu(n), n.label)}>
           {kids.length ? <button type="button" className="ws-tw" aria-label={open ? `Fold ${n.label}` : `Unfold ${n.label}`} aria-expanded={open} onClick={toggle}><ChevronRight size={14} aria-hidden /></button> : null}
-          <Link href={n.href} aria-current={within && !at?.view ? "page" : undefined} onMouseEnter={() => router.prefetch(n.href)}>
+          <Link href={n.href} aria-current={within ? (at?.view ? "true" : "page") : undefined} onMouseEnter={() => router.prefetch(n.href)}>
             {ic(n.icon, n.tone, true)}
             <span className="ws-lb">{n.label}</span>
           </Link>
@@ -494,6 +513,10 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
     </nav>
   );
   const views = !rec && !inner && at?.node.children ? at.node.children : null;
+  /* The phone: a page reached from another page is pushed on top and gets a back arrow; a top-level page gets the place button. */
+  const deep = !!rec || !!inner || (!at && !atHome);
+  const work = tree[0]?.nodes[0] ?? null;
+  const atWork = !!work && at?.node === work && !deep;
 
   return (
     <Membership.Provider value={mem}>
@@ -503,7 +526,7 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
 
         {/* ── sidebar ───────────────────────────────────────────────── */}
         {prefs.tucked ? <div className="ws-edge" onPointerEnter={floatIn} aria-hidden /> : null}
-        <aside className="ws-side" aria-label="Workspace" data-float={prefs.tucked && float ? "true" : undefined} inert={(phone ? !drawer : prefs.tucked && !float) ? true : undefined} onPointerEnter={prefs.tucked ? floatIn : undefined} onPointerLeave={prefs.tucked ? floatOut : undefined}>{side}</aside>
+        <aside className="ws-side" aria-label="Workspace" onTouchStart={phone ? sheetStart : undefined} onTouchEnd={phone ? sheetEnd : undefined} data-float={prefs.tucked && float ? "true" : undefined} inert={(phone ? !drawer : prefs.tucked && !float) ? true : undefined} onPointerEnter={prefs.tucked ? floatIn : undefined} onPointerLeave={prefs.tucked ? floatOut : undefined}>{side}</aside>
         {!prefs.tucked ? <div className="ws-resize" role="separator" aria-orientation="vertical" aria-label="Resize the sidebar" onPointerDown={resize} onDoubleClick={() => setPrefs({ side: 240 })} /> : null}
         {drawer ? <div className="ws-scrim" onClick={() => setDrawer(false)} aria-hidden /> : null}
 
@@ -511,7 +534,8 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
         <div className="ws-col">
           <header className="ws-bar">
             {prefs.tucked ? <button type="button" className="ws-ib ws-open" onClick={toggleSide} onPointerEnter={floatIn} aria-label="Keep the sidebar open" data-tip="Open the sidebar" data-kbd={`${k.mod} \\`}><PanelLeft size={16} aria-hidden /></button> : null}
-            <button type="button" className="ws-ib ws-drawer-btn" onClick={() => setDrawer(true)} aria-label="Open the menu"><MenuIcon size={18} aria-hidden /></button>
+            {deep ? <button type="button" className="ws-ib ws-phone-back" onClick={() => (canBack ? router.back() : router.push(at?.node.href ?? home))} aria-label="Back"><ArrowLeft size={20} aria-hidden /></button>
+              : <button type="button" className="ws-ib ws-drawer-btn" onClick={() => setDrawer(true)} aria-label="Open the menu" aria-haspopup="dialog" aria-expanded={drawer}><MenuIcon size={18} aria-hidden /></button>}
             <span className="ws-hist">
               <button type="button" className="ws-ib" onClick={() => router.back()} disabled={!canBack} aria-label="Back" data-tip="Back" data-kbd={`${k.alt} ←`}><ArrowLeft size={16} aria-hidden /></button>
               <button type="button" className="ws-ib" onClick={() => router.forward()} aria-label="Forward" data-tip="Forward" data-kbd={`${k.alt} →`}><ArrowRight size={16} aria-hidden /></button>
@@ -535,7 +559,7 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
               })}
               <button type="button" className="ws-ib ws-tab-new" aria-label="Open something: search and quick actions" data-tip="Open a page" data-kbd={`${k.mod} K`} onClick={() => setFind(true)}><Plus size={14} aria-hidden /></button>
             </nav>
-            <span className="ws-phone-title">{title}</span>
+            <span className="ws-phone-title">{deep ? (pageTitle || title) : title}</span>
             <span className="ws-bar-end">
               <button type="button" className="ws-ib ws-search-btn" onClick={() => setFind(true)} aria-label="Search"><Search size={18} aria-hidden /></button>
               {!onAssistant ? <button type="button" className={`ws-kaju${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Ask Kaju" data-tip="Ask Kaju" data-kbd={`${k.mod} J`}><KajuFace size={22} /><span>Ask Kaju</span></button> : null}
@@ -570,7 +594,8 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
         {/* ── phone: the dock ───────────────────────────────────────── */}
         <nav className="ws-dock" aria-label="Main">
           <Link href={home} aria-current={atHome ? "page" : undefined}><Home size={21} strokeWidth={1.8} aria-hidden /><span>Home</span></Link>
-          <button type="button" onClick={() => setFind(true)}><Search size={21} strokeWidth={1.8} aria-hidden /><span>Search</span></button>
+          {work ? <Link href={work.href} aria-current={atWork ? "page" : undefined}>{(() => { const I = ICON[work.icon ?? ""] ?? FileText; return <I size={21} strokeWidth={1.8} aria-hidden />; })()}<span>{work.label}</span></Link>
+            : <button type="button" onClick={() => setFind(true)}><Search size={21} strokeWidth={1.8} aria-hidden /><span>Search</span></button>}
           {action ? <Link href={action.href} className="ws-dock-act" aria-label={action.label}><b>{action.href.includes("report") ? <Radio size={21} aria-hidden /> : <Plus size={21} aria-hidden />}</b><span>{action.short}</span></Link> : null}
           {user ? <NotificationsButton variant="dock" /> : <button type="button" onClick={() => openSignIn()}><ArrowRight size={21} strokeWidth={1.8} aria-hidden /><span>Sign in</span></button>}
           <button type="button" onClick={() => ai.toggle()} aria-pressed={ai.open} className={ai.open ? "is-on" : undefined}><span className="ws-dock-kaju" aria-hidden><KajuFace size={24} /></span><span>Kaju</span></button>

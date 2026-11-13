@@ -31,6 +31,8 @@ export type AiReply = {
   tools: ToolRun[];
   proposals: Proposal[];
   navigate?: { href: string; label: string };
+  /** Figures, tables, charts, timelines, record lists or a sentence with blanks, drawn by the app's own components (see blocks.ts). */
+  blocks?: import("./blocks").Block[];
   /** One-tap next commands when a request is ambiguous or finished: asked again through the same router. */
   suggestions?: string[];
   engine: "model" | "tools";
@@ -38,6 +40,6 @@ export type AiReply = {
 };
 
 export type ChatTurn = { role: "user" | "assistant"; text: string };
-export type AiRequest = { messages: ChatTurn[]; context?: { path?: string; workspace?: string; scope?: string } };
+export type AiRequest = { messages: ChatTurn[]; context?: { path?: string; workspace?: string; scope?: string; /** What the person is looking at: the page title and a record label, shown by the page itself. Untrusted. */ title?: string } };
 
 export const CARE_KINDS = ["sterilisation", "vaccination", "treatment", "checkup", "deworming", "other"] as const;

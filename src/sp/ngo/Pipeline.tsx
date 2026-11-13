@@ -68,7 +68,7 @@ export function Pipeline() {
             {cols.map((c) => {
               const n = c.cards?.length ?? 0, shown = (c.cards ?? []).slice(0, SHOW);
               return (
-                <div key={c.id} data-stage={c.id} className={focus === c.id ? "pl2-focus" : undefined}>
+                <div key={c.id} data-stage={c.id} aria-current={focus === c.id ? "true" : undefined} className={focus === c.id ? "pl2-focus" : undefined}>
                   <Column title={c.title} count={c.state === "ready" ? n : null} note={c.hint} mine={c.mine}
                     footer={c.state === "ready" ? <Link href={c.href} className="pl2-all">{n > SHOW ? `All ${n}` : c.all}<ArrowRight size={13} aria-hidden /></Link> : undefined}>
                     {c.state === "loading" ? <><i className="pl2-skel" /><i className="pl2-skel" /></>

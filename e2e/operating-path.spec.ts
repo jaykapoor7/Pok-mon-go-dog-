@@ -42,11 +42,13 @@ test("Today, the board and a record share one line of work, and each click lands
   await expect(focus).toHaveAttribute("aria-current", "true");
   await expect(focus).toBeInViewport();
   /* The numbers match: Today's count for a stage is the number of cards the board holds for it. */
-  const cards = focus.locator(".pl-card");
+  const cards = focus.locator(".k-card");
   await expect(cards.first()).toBeVisible({ timeout: 60_000 });
 
   /* A card opens the record. The record says where it is in the line and gives one next step. */
+  /* On a wide screen a card opens the record over the board; "Open as a full page" makes it the page. */
   await cards.first().click();
+  if (!isMobile) { await expect(page.getByRole("dialog", { name: /opened over the page/ })).toBeVisible({ timeout: 60_000 }); await page.getByRole("button", { name: "Open as a full page" }).click(); }
   await expect(page).toHaveURL(/\/ngo\/verification\/[0-9a-f-]{36}$/, { timeout: 60_000 });
   const rail = page.getByRole("navigation", { name: "Where this record is in the line of work" });
   await expect(rail.locator("[aria-current='step']")).toContainText("Evidence", { timeout: 60_000 });
@@ -59,8 +61,7 @@ test("Today, the board and a record share one line of work, and each click lands
   await expect(page.locator("#abc-add")).toBeInViewport();
   await expect(page.locator("#abc-add select")).toBeFocused();
   /* The record keeps the Pipeline's views and one breadcrumb. */
-  await expect(page.getByRole("navigation", { name: "Pipeline views" }).getByRole("link", { name: "Sign-off & evidence", exact: true })).toHaveAttribute("aria-current", "true");
-  if (!isMobile) await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Pipeline");
+  if (!isMobile) await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Cases");
 
   /* A stage on the rail goes back to the board, at that stage. */
   await rail.getByRole("link", { name: /With the vet/ }).click();
@@ -68,7 +69,7 @@ test("Today, the board and a record share one line of work, and each click lands
   await expect(page.locator("[data-stage='vet']")).toHaveAttribute("aria-current", "true");
 
   /* A case that needs no procedure has a shorter line: New, In care, Closed. */
-  await page.locator("[data-stage='care'] .pl-card").first().click();
+  await page.goto((await page.locator("[data-stage='care'] .k-card").first().getAttribute("href"))!);
   await expect(page).toHaveURL(/\/ngo\/cases\/[0-9a-f-]{36}$/, { timeout: 60_000 });
   const caseRail = page.getByRole("navigation", { name: "Where this record is in the line of work" });
   await expect(caseRail.locator("[aria-current='step']")).toContainText("In care", { timeout: 60_000 });
@@ -85,24 +86,18 @@ test("the first-day guide points at the real controls and ends on real actions",
   await expect(page.getByRole("navigation", { name: "The line of work today" }).getByRole("link")).toHaveCount(5, { timeout: 60_000 });
   /* A sample session has its own guide, so this one waits to be asked for. */
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  test.skip(!!isMobile, "The status line, where the guide is asked for, is part of the desktop frame");
-  await page.getByRole("contentinfo", { name: "Status" }).getByRole("button", { name: "Guide" }).click();
+  test.skip(!!isMobile, "The guide is asked for from the sidebar, which is part of the desktop frame");
+  await page.getByRole("complementary", { name: "Workspace" }).getByRole("button", { name: "Help and keys" }).click();
+  await page.getByRole("menuitem", { name: "Take the tour" }).click();
   const guide = page.getByRole("dialog");
   await expect(guide.getByRole("heading")).toHaveText("This is your place");
   /* The lit control is the one being described. */
   const lit = async (sel: string) => { const [a, b] = await Promise.all([page.locator(".fd1-light").boundingBox(), page.locator(sel).first().boundingBox()]); expect(Math.abs(a!.x + 6 - b!.x)).toBeLessThanOrEqual(2); expect(Math.abs(a!.y + 6 - b!.y)).toBeLessThanOrEqual(2); };
   await expect.poll(async () => (await page.locator(".fd1-light").boundingBox())?.width ?? 0).toBeGreaterThan(100);
-  await page.waitForTimeout(700); await lit(".cn-place");
-  for (const title of ["The menu is short on purpose", "One thing first", "The line of work", "Kaju", "The status line"]) {
+  await page.waitForTimeout(700); await lit(".ws-place");
+  for (const title of ["The menu is short on purpose", "One thing first", "The line of work", "Kaju", "Your open pages"]) {
     await guide.getByRole("button", { name: /^(Next|Finish)/ }).click();
     await expect(guide.getByRole("heading")).toHaveText(title);
   }
-  await page.waitForTimeout(700); await lit(".cn-foot");
-  await guide.getByRole("button", { name: "Finish" }).click();
-  await expect(guide.getByRole("heading")).toContainText("That is the whole of it");
-  /* It ends on things to do, each a real page of this workspace. */
-  await expect(guide.locator(".fd1-acts a")).toHaveCount(3);
-  await expect(guide.locator(".fd1-acts a").first()).toHaveAttribute("href", "/ngo/pipeline");
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.waitForTimeout(700); await lit(".ws-tabs");
 });

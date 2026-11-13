@@ -24,6 +24,7 @@ import { getSupabase } from "@/lib/supabase";
 import { executeProposal, type Saved } from "./execute";
 import type { AiReply, Citation, Proposal } from "./types";
 import { isAiReply, safeAiHref, auditReference } from "./validation";
+import { Blocks } from "@/kaju/Blocks";
 import { Kaju, KajuFace } from "@/kaju/Kaju";
 import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT_MESSAGE } from "@/lib/files/limits";
 import { useKajuAmbient } from "@/kaju/ambient";
@@ -164,8 +165,8 @@ function ScopedAiProvider({children,identity,access,refreshScope}:{children:Reac
       const session=(await getSupabase()?.auth.getSession())?.data.session;
       if((identity!=='guest'&&session?.user.id!==identity)||(identity==='guest'&&session))throw Error('Your session changed. Reopen Kaju before continuing.');
       if(!current())return;
-      const ws=contextPath.startsWith('/ngo')?'ngo':contextPath.startsWith('/city')?'municipality':contextPath.startsWith('/learn')?'education':'community';
-      const response=await fetch('/api/ai',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json',Accept:'application/x-ndjson, application/json',...(session?{Authorization:`Bearer ${session.access_token}`}:{})},body:JSON.stringify({messages:next.slice(-12).map(m=>({role:m.role,text:m.reply?.text??m.text})),context:{path:contextPath,workspace:ws,scope}})});
+      const ws=contextPath.startsWith('/workspace')||contextPath.startsWith('/programme')||contextPath.startsWith('/today')?'one-health':contextPath.startsWith('/ngo')?'ngo':contextPath.startsWith('/city')?'municipality':contextPath.startsWith('/learn')?'education':'community';
+      const response=await fetch('/api/ai',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json',Accept:'application/x-ndjson, application/json',...(session?{Authorization:`Bearer ${session.access_token}`}:{})},body:JSON.stringify({messages:next.slice(-12).map(m=>({role:m.role,text:m.reply?.text??m.text})),context:{path:contextPath,workspace:ws,scope,title:(document.title||'').slice(0,160)}})});
       let data:any=null;
       /* Streamed replies: show each record check as it finishes, then the answer. */
       if(response.ok&&response.body&&response.headers.get('content-type')?.includes('application/x-ndjson')){
@@ -404,6 +405,7 @@ function Answer({ m }: { m: Msg }) {
       <div className="ai3-body">
         <span className="ai3-name">Kaju{r.engine === "model" ? <i>Model-backed answer</i> : null}{isRecordingDemo ? <i>illustrative demo</i> : null}</span>
         <div className="ai3-text"><Rich text={r.text} /></div>
+        <Blocks blocks={r.blocks} onSend={(t) => ai.ask(t)} busy={ai.busy || !ai.scope} />
         {r.proposals.map((p) => <ProposalCard key={p.id} p={p} />)}
         {r.navigate && safeAiHref(r.navigate.href) && <button type="button" className="s3-btn is-sm is-line ai3-go" onClick={() => router.push(r.navigate!.href)}>Open {r.navigate.label}<ArrowRight size={14} /></button>}
         {r.citations.length > 0 && <Sources items={r.citations} />}

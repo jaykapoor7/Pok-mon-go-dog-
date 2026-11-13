@@ -39,7 +39,8 @@ test("FAQ opens by keyboard and the ending has one purposeful action",async({pag
 test("every published field partner has an accessible organisation profile",async({request})=>{
  for(const partner of fieldPartners.organisations){
   const response=await request.get(`/community/organisations/${partner.slug}`);expect(response.status()).toBe(200);
-  expect(await response.text()).toContain(`<h1 class="display">${partner.name.replaceAll("&","&amp;").replaceAll("'","&#x27;")}</h1>`);
+  /* A partner with a live organisation record shows the app's profile; the others the published one. Both carry the name as the page heading. */
+  const name=partner.name.replaceAll("&","&amp;").replaceAll("'","&#x27;");const html=await response.text();expect(html.includes(`<h1 class="display">${name}</h1>`)||html.includes(`<h1 class="k-title">${name}</h1>`)).toBe(true);
  }
  expect((await request.get("/community/organisations/not-a-published-straypaw-organisation")).status()).toBe(404);
 });

@@ -60,8 +60,12 @@
 .k-table { display: grid; min-width: 0; }
 .k-tr { display: grid; grid-template-columns: var(--k-cols); align-items: center; gap: 0 16px; min-height: 36px; padding: 0 8px; color: var(--k-text); font-size: 14px; line-height: 20px; text-decoration: none; transition: background-color var(--n-hover-t); }
 .k-tr + .k-tr { box-shadow: inset 0 1px 0 var(--k-line); }
-a.k-tr:hover, .k-tr.is-click:hover { background: var(--k-hover); }
-a.k-tr:focus-visible, .k-tr.is-click:focus-visible { outline: 2px solid var(--k-blue); outline-offset: -2px; border-radius: 4px; }
+.k-tr.is-link { position: relative; }
+.k-tr-a { color: inherit; text-decoration: none; outline: 0; }
+.k-tr-a::after { content: ""; position: absolute; inset: 0; border-radius: 4px; }
+.k-tr.is-link :is(button, a:not(.k-tr-a), input, select) { position: relative; z-index: 1; }
+.k-tr.is-link:hover, .k-tr.is-click:hover { background: var(--k-hover); }
+.k-tr-a:focus-visible::after, .k-tr.is-click:focus-visible { outline: 2px solid var(--k-blue); outline-offset: -2px; border-radius: 4px; }
 .k-tr.is-click { cursor: pointer; }
 .k-th { min-height: 32px; color: var(--k-grey); font-size: 12px; font-weight: 500; line-height: 16px; }
 .k-tr > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -189,3 +193,42 @@ a.k-stat:focus-visible { outline: 2px solid var(--k-blue); }
   .k-col { scroll-snap-align: start; }
 }
 @media (prefers-reduced-motion: reduce) { .k-card, .k-btn, .k-row-go, button.k-sec-t svg { transition: none; } .k-card:hover { transform: none; } }
+
+/* ════ The phone: records are read as rows a thumb can hit, never as
+   table columns cut off at the edge. The first cell is the title, the
+   cells marked to keep sit beside it, and every other cell follows on a
+   second, quieter line. A board shows one stage at a time. */
+.k-board-tabs { display: none; }
+@media (max-width: 860px) {
+  .sp.sx3.os.cn.ws .sp-main h1.k-title { font-size: 24px !important; line-height: 32px !important; letter-spacing: -.02em; }
+  .k-tr.k-th { display: none; }
+  .k-col { position: relative; }
+  .k-tools-l, .k-tools-r { width: 100%; }
+  .k-tools .k-search { flex: 1 1 100%; }
+  .k-tools select { flex: 1 1 0; min-width: 0; height: 40px; font-size: 16px; }
+  .k-lanes { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .k-lanes button { flex: none; min-height: 36px; }
+  .k-tr { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-height: 56px; padding: 8px 4px; }
+  .k-tr > span { order: 1; }
+  .k-tr > .k-td-main { flex: 1 1 0; min-width: 40%; font-weight: 500; font-size: 16px; line-height: 24px; }
+  .k-tr::before { content: ""; order: 2; flex-basis: 100%; height: 0; }
+  .k-tr > .is-wide { display: inline; order: 3; flex: 0 1 auto; max-width: 100%; color: var(--k-text-2); font-size: 14px; line-height: 20px; justify-self: auto; text-align: left; }
+  .k-tr > .is-wide:empty { display: none; }
+  .k-tr > .is-wide[data-l]::before { content: attr(data-l) " "; color: var(--n-text-3); }
+  .k-tr > .is-wide { margin-right: 4px; }
+  .k-tr.is-link::after { content: ""; order: 1; flex: none; width: 8px; height: 8px; margin-left: 4px; border-top: 1.5px solid var(--k-text-2); border-right: 1.5px solid var(--k-text-2); transform: rotate(45deg); opacity: .5; }
+  .k-tr.is-link:active, .k-tr.is-click:active, .k-row:active { background: var(--k-hover); }
+  .k-row { min-height: 56px; }
+  /* one stage at a time, swiped or tapped */
+  .k-board-tabs { position: sticky; top: calc(104px + env(safe-area-inset-top)); z-index: 5; display: flex; gap: 8px; margin: 0 -16px 8px; padding: 4px 16px; overflow-x: auto; scrollbar-width: none; background: var(--n-bg); }
+  .k-board-tabs::-webkit-scrollbar { display: none; }
+  .k-board-tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: none; color: var(--k-text-2); font: 500 14px/1 var(--n-font); }
+  .k-board-tabs button[aria-pressed="true"] { background: var(--k-hover); color: var(--k-text); }
+  .k-board-tabs b { font-weight: 500; opacity: .7; }
+  .k-board { display: flex; gap: 16px; margin: 0 -16px; padding: 0 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-padding: 0 16px; }
+  .k-board::-webkit-scrollbar { display: none; }
+  .k-board > * { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+  .k-col-h { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .k-card { padding: 12px; }
+  .k-card b { font-size: 16px; line-height: 24px; }
+}

@@ -344,3 +344,54 @@ button.ws-item:focus-visible, .ws-item > a:focus-visible, .ws-signin:focus-visib
 .sp.sx3.os.cn.ws :where(.vw, .vw-head, .vw-seg, .vw-list, .vw-row, .vw-empty, .vw-meter) { --vw-ink: var(--n-text); --vw-mute: var(--n-text-2); --vw-faint: var(--n-text-2); --vw-line: var(--n-line); }
 .sp.sx3.os.cn.ws .vw { width: min(1120px, 100% - 48px); padding: 16px 0 48px; }
 .sp.sx3.os.cn.ws .sp-main h1.vw-title { font-weight: 700 !important; }
+
+/* ════ The phone: its own frame, not the desktop one made narrow ═══════
+   A top bar that names where you are (a back arrow once you are inside
+   something), a bottom bar for the four places a thumb goes most, sheets
+   that rise from the bottom instead of menus and drawers, and pages that
+   arrive from the side they were opened from. */
+.ws-phone-back { display: none; }
+@keyframes ws-sheet { from { transform: translateY(100%); } }
+@keyframes ws-push { from { opacity: 0; transform: translateX(28px); } }
+@keyframes ws-back { from { opacity: 0; transform: translateX(-28px); } }
+@media (max-width: 860px) {
+  .sp.sx3.os.cn.ws .ws-bar { position: sticky; top: 0; z-index: 40; height: calc(52px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 4px 0; background: color-mix(in srgb, var(--n-bg) 88%, transparent); backdrop-filter: saturate(1.6) blur(16px); -webkit-backdrop-filter: saturate(1.6) blur(16px); box-shadow: 0 1px 0 var(--n-line); }
+  .ws-phone-back { display: inline-grid; width: 44px; height: 44px; }
+  .ws-drawer-btn, .ws-search-btn { width: 44px; height: 44px; }
+  .ws-phone-title { font-size: 16px; font-weight: 600; text-align: center; }
+  /* the menu is a sheet from the bottom, reached by the thumb */
+  .ws-side, .ws.is-tucked .ws-side { top: auto; right: 0; bottom: 0; left: 0; width: 100%; height: auto; max-height: 88dvh; border-radius: 16px 16px 0 0; background: var(--n-bg); transform: translateY(104%); transition: transform .32s cubic-bezier(.32, .72, 0, 1); overflow: hidden; display: flex; flex-direction: column; }
+  .ws-side::before { content: ""; flex: none; align-self: center; width: 36px; height: 4px; margin: 8px 0 0; border-radius: 4px; background: var(--n-line-2); }
+  .ws.has-drawer .ws-side { transform: none; }
+  .ws-side-in { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 12px calc(16px + env(safe-area-inset-bottom)); }
+  .ws-scrim { background: rgba(15, 15, 15, .45); }
+  /* menus are sheets too */
+  .ws-menu { top: auto !important; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); left: 8px !important; width: auto !important; max-height: 72dvh; padding: 8px; border-radius: 16px; box-shadow: 0 0 0 100vmax rgba(15, 15, 15, .45), rgba(15, 15, 15, .2) 0 9px 24px; animation: ws-sheet .28s cubic-bezier(.32, .72, 0, 1) both; }
+  .ws-menu button { min-height: 48px; padding: 4px 12px; border-radius: 8px; font-size: 16px; }
+  /* the sample notice is one quiet line */
+  .sp.sx3.os.cn.ws .cn-sample { margin: 8px 16px 0; padding: 4px 8px; border-radius: 4px; font-size: 12px; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* views scroll sideways under the bar, the chosen one filled */
+  .ws-views { position: sticky; top: calc(52px + env(safe-area-inset-top)); z-index: 30; display: flex; gap: 8px; margin: 0; padding: 8px 16px; overflow-x: auto; scrollbar-width: none; background: color-mix(in srgb, var(--n-bg) 92%, transparent); backdrop-filter: blur(12px); box-shadow: none; }
+  .ws-views::-webkit-scrollbar { display: none; }
+  .ws-views a { flex: none; height: 36px; padding: 0 12px; border-radius: 20px; background: var(--n-fill); color: var(--n-text-2); font-size: 14px; font-weight: 500; box-shadow: none; }
+  .ws-views a::after { display: none; }
+  .ws-views a[aria-current="page"] { background: var(--n-text); color: var(--n-bg); }
+  /* the bottom bar: flat to the edge, like an app's */
+  .ws-dock { right: 0; bottom: 0; left: 0; height: calc(56px + env(safe-area-inset-bottom)); padding: 0 4px env(safe-area-inset-bottom); border-radius: 0; background: color-mix(in srgb, var(--n-bg) 90%, transparent); box-shadow: 0 -1px 0 var(--n-line); backdrop-filter: saturate(1.6) blur(16px); -webkit-backdrop-filter: saturate(1.6) blur(16px); }
+  .ws-dock > a, .ws-dock > button, .ws-dock .sp-bell > button { min-height: 48px; border-radius: 8px; font-size: 12px; transition: color .15s, transform .15s; -webkit-tap-highlight-color: transparent; }
+  .ws-dock > a:active, .ws-dock > button:active { transform: scale(.94); }
+  .ws-dock [aria-current="page"], .ws-dock .is-on { background: none; color: var(--n-text); font-weight: 600; }
+  .ws-dock > a > span, .ws-dock > button > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ws-dock-act b { width: 44px; height: 44px; border-radius: 24px; box-shadow: rgba(15, 15, 15, .16) 0 3px 8px; }
+  .sp.sx3.os.cn.ws .os-page, .sp.sx3.os.cn.ws .ws-flush { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  /* pages arrive from where they were opened */
+  .sp.sx3.os.cn.ws .os-page { animation: ws-push .28s cubic-bezier(.2, .8, .2, 1) both; }
+  :root[data-ws-nav="pop"] .sp.sx3.os.cn.ws .os-page { animation-name: ws-back; }
+  :root[data-ws-nav="tab"] .sp.sx3.os.cn.ws .os-page { animation: ws-fade .18s both; }
+  .ws-peek.is-side, .ws-peek.is-center { animation: ws-sheet .32s cubic-bezier(.32, .72, 0, 1) both; }
+}
+@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+  .sp.sx3.os.cn.ws .os-page, .ws-menu, .ws-peek.is-side, .ws-peek.is-center { animation: none !important; }
+  .ws-side { transition: none !important; }
+}
+@media (max-width: 860px) { .ws-quick kbd { display: none; } .ws-quick { height: 48px; border-radius: 12px; } }

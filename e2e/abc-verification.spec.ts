@@ -9,8 +9,8 @@ test("verification is a module of the NGO workspace and asks a visitor to sign i
   await page.goto("/ngo/verification");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Verification");
   await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
-  /* Verification is a view of the Pipeline: the menu keeps Pipeline lit, and the views sit above the page as tabs. */
-  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Pipeline',exact:true})).toHaveAttribute('aria-current','page');await expect(page.getByRole('navigation',{name:'Pipeline views'}).getByRole('link',{name:'Sign-off & evidence',exact:true})).toHaveAttribute('aria-current','page');await expect(side.getByRole('link',{name:'Team & access',exact:true})).toHaveCount(0)}
+  /* Sign-off is a view of Cases: the sidebar keeps Cases lit, and the views sit above the page. */
+  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Cases',exact:true})).toHaveAttribute('aria-current','true');await expect(page.getByRole('navigation',{name:'Views of Cases'}).getByRole('link',{name:'Sign-off',exact:true})).toHaveAttribute('aria-current','page');await expect(side.getByRole('link',{name:'Team',exact:true})).toHaveCount(0)}
 
 });
 
@@ -27,7 +27,7 @@ test("municipal package review asks a visitor to sign in", async ({ page, isMobi
     /* Only people in a reviewing office see it in the sidebar; everyone else keeps a short one. */
     const side = page.getByRole("complementary", { name: "Workspace" });
     await expect(side.getByRole("link", { name: "Package review" })).toHaveCount(0);
-    await expect(side.getByRole("link", { name: "Today", exact: true })).toBeVisible();
+    await expect(side.getByRole("link", { name: "Home", exact: true })).toBeVisible();
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

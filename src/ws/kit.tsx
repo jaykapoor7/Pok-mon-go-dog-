@@ -29,7 +29,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ChevronRight, Search } from "lucide-react";
 import { usePageState } from "./store";
 import "./kit.css";
@@ -86,8 +86,9 @@ export function Table<R>({ cols, rows, rowKey, href, label, empty, onRow }: { co
       <div className="k-tr k-th" role="row">{cols.map((c, i) => <span key={c.key} role="columnheader" className={`${c.align === "end" ? "is-end" : ""}${i === 0 || c.keep ? "" : " is-wide"}`}>{c.label}</span>)}</div>
       {rows.map((r) => {
         const to = href?.(r) ?? null;
-        const cells = cols.map((c, i) => <span key={c.key} role="cell" className={`${c.align === "end" ? "is-end" : ""}${i === 0 ? " k-td-main" : ""}${i === 0 || c.keep ? "" : " is-wide"}`}>{c.render(r)}</span>);
-        return to ? <Link key={rowKey(r)} href={to} className="k-tr" role="row">{cells}</Link>
+        /* A row that opens a record stays a row for a screen reader; its first cell is the link, stretched over the whole row. */
+        const cells = cols.map((c, i) => <span key={c.key} role="cell" data-l={i === 0 || c.keep || typeof c.label !== "string" ? undefined : c.label} className={`${c.align === "end" ? "is-end" : ""}${i === 0 ? " k-td-main" : ""}${i === 0 || c.keep ? "" : " is-wide"}`}>{i === 0 && to ? <Link href={to} className="k-tr-a">{c.render(r)}</Link> : c.render(r)}</span>);
+        return to ? <div key={rowKey(r)} className="k-tr is-link" role="row">{cells}</div>
           : onRow ? <div key={rowKey(r)} className="k-tr is-click" role="row" tabIndex={0} onClick={() => onRow(r)} onKeyDown={(e) => { if (e.key === "Enter") onRow(r); }}>{cells}</div>
           : <div key={rowKey(r)} className="k-tr" role="row">{cells}</div>;
       })}
@@ -172,7 +173,28 @@ export function Note({ tone = "plain", children, action }: { tone?: "plain" | "a
 
 /* ── board ────────────────────────────────────────────────────────── */
 /** Records grouped by stage, a column each. Cards are the only "cards" in the product. */
-export function Board({ children, label }: { children: ReactNode; label: string }) { return <div className="k-board" role="list" aria-label={label}>{children}</div>; }
+/** A board by stage. On a phone it shows one stage at a time: the stages become a row of buttons above it and the columns swipe sideways. */
+export function Board({ children, label }: { children: ReactNode; label: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [stages, setStages] = useState<{ t: string; n: string }[]>([]);
+  const [on, setOn] = useState(0);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const read = () => { const next = [...el.children].map((c) => ({ t: c.querySelector("h2")?.textContent ?? "", n: c.querySelector(".k-col-h b")?.textContent ?? "" })); setStages((cur) => (JSON.stringify(cur) === JSON.stringify(next) ? cur : next)); };
+    const where = () => { let best = 0, d = Infinity; [...el.children].forEach((c, i) => { const x = Math.abs((c as HTMLElement).offsetLeft - el.offsetLeft - el.scrollLeft); if (x < d) { d = x; best = i; } }); setOn(best); };
+    read(); where();
+    const mo = new MutationObserver(read); mo.observe(el, { childList: true, subtree: true, characterData: true });
+    el.addEventListener("scroll", where, { passive: true });
+    return () => { mo.disconnect(); el.removeEventListener("scroll", where); };
+  }, []);
+  const go = (i: number) => { const el = ref.current, c = el?.children[i] as HTMLElement | undefined; if (el && c) el.scrollTo({ left: c.offsetLeft - el.offsetLeft, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); };
+  return (
+    <>
+      {stages.length > 1 ? <div className="k-board-tabs" role="group" aria-label={`${label}: choose a stage`}>{stages.map((s, i) => <button key={i} type="button" aria-pressed={i === on} onClick={() => go(i)}>{s.t}{s.n ? <b>{s.n}</b> : null}</button>)}</div> : null}
+      <div ref={ref} className="k-board" role="list" aria-label={label}>{children}</div>
+    </>
+  );
+}
 export function Column({ title, count, note, children, footer, mine = false }: { title: ReactNode; count?: number | null; note?: ReactNode; children: ReactNode; footer?: ReactNode; mine?: boolean }) {
   return (
     <section className={`k-col${mine ? " is-mine" : ""}`} role="listitem">

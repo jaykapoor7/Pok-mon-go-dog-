@@ -59,7 +59,7 @@ export function Connections({ back }: { back: string }) {
   const connect = (p: ProviderId, caps: Capability[] = []) => act(`c:${p}`, async () => { const j = await api(`/api/connections/${p}/start?back=${encodeURIComponent(back)}${caps.length ? `&caps=${caps.join(",")}` : ""}`, { method: "POST" }); window.location.assign(j.url); });
 
   const title = back.startsWith("/city") ? "Connections" : "Settings";
-  if (ready && !user) return <Page width="narrow"><Head title={title} sum="Sign in to connect your tools with Kaju." actions={<Btn href="/sign-in">Sign in</Btn>} /></Page>;
+  if (ready && !user) return <Page width="narrow"><Head title="Connections" sum="Sign in to connect your tools with Kaju." actions={<Btn href="/sign-in">Sign in</Btn>} /></Page>;
   const linked = d ? d.providers.filter((p) => p.view?.status === "connected").length : 0;
 
   return (

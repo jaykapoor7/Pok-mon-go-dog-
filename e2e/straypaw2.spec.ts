@@ -163,7 +163,7 @@ test("an Academy lesson is completed on the device", async ({ page }) => {
   const errors = errorsOf(page);
   await page.goto("/learn/courses/reading-the-record/unknown-is-not-zero");
   for (const b of await page.locator(".ex-dog").all()) await b.click();
-  await expect(page.locator(".ls-do .pill", { hasText: "Done" })).toBeVisible();
+  await expect(page.locator(".k-tag", { hasText: "Done" }).first()).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("sp2.learn.done"))).toContain("reading-the-record/unknown-is-not-zero");
   await noOverflow(page);
   expect(errors).toEqual([]);
