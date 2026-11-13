@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { ROLE_KEY } from "@/lib/roles";
-import { TOUR_EVENT, tourIsMounted } from "@/components/app/Welcome";
+import { TOUR_EVENT, tourIsMounted } from "@/components/app/tour-event";
 
 /**
  * Hard fallback for the global "Switch space" control.

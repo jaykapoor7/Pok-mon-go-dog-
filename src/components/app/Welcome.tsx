@@ -14,22 +14,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
+import { TOUR_EVENT, registerTour } from "./tour-event";
+
 const TOUR_KEY = "straypaw.tour.v2";
-export const TOUR_EVENT = "straypaw:tour";
-
-/* How many Welcome dialogs are mounted. RoleSwitchFallback reads this so it
-   only takes over when there is no in-place picker to open: both listen to
-   the same event, and without this the fallback's hard navigation reloaded
-   the page out from under the dialog every time, so the in-place picker
-   never actually ran. */
-let mountedTours = 0;
-export function tourIsMounted() {
-  return mountedTours > 0;
-}
-
-export function openTour() {
-  window.dispatchEvent(new CustomEvent(TOUR_EVENT));
-}
+/* The event, the mounted count and openTour live in ./tour-event, so the root
+   layout can listen without loading this dialog. Re-exported for callers. */
+export { TOUR_EVENT, tourIsMounted, openTour } from "./tour-event";
 
 type EntryRole = "individual" | "feeder" | "educator" | "ngo";
 type Card = { Icon: typeof MapPin; title: string; body: string };
@@ -124,11 +114,11 @@ export function Welcome() {
   }, [step, router]);
 
   useEffect(() => {
-    mountedTours += 1;
+    const unregister = registerTour();
     const open = () => { setRole(null); setStep(0); };
     window.addEventListener(TOUR_EVENT, open);
     return () => {
-      mountedTours -= 1;
+      unregister();
       window.removeEventListener(TOUR_EVENT, open);
     };
   }, []);
