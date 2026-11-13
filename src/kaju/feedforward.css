@@ -1,0 +1,19 @@
+/* Feedforward: the reading above the composer, dotted underlines in it, and the choices. Follows the app's theme. */
+.ff-line { margin: 0 0 8px; padding: 0 4px; color: var(--n-text-2, #73726c); font: 400 14px/20px var(--n-font, system-ui); animation: ff-in .22s cubic-bezier(.2, .7, .2, 1) both; }
+.ff-key { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline dotted; text-decoration-thickness: 1.5px; text-underline-offset: 4px; cursor: pointer; transition: color var(--n-hover-t, 20ms ease-in); }
+.ff-key:hover, .ff-key:focus-visible { color: var(--n-text, #37352f); outline: none; }
+.ff-mirror { position: absolute; z-index: 0; overflow: hidden; border-style: solid; border-color: transparent; color: transparent; pointer-events: none; white-space: pre-wrap; }
+.ff-mark { border-radius: 2px; text-decoration: underline dotted var(--n-text-3, #9b9a97); text-decoration-thickness: 1.5px; text-underline-offset: 4px; animation: ff-mark .3s ease both; }
+.ff-pop { position: fixed; z-index: 450; display: grid; gap: 1px; width: 216px; padding: 4px; border-radius: 12px; background: var(--n-card, #fff); box-shadow: rgba(15, 15, 15, .05) 0 0 0 1px, rgba(15, 15, 15, .1) 0 3px 6px, rgba(15, 15, 15, .2) 0 9px 24px; color: var(--n-text, #37352f); font: 400 14px/20px var(--n-font, system-ui); animation: ff-pop .16s cubic-bezier(.2, .7, .2, 1) both; transform-origin: 0 0; }
+.ff-ask { margin: 0; padding: 8px 8px 4px; color: var(--n-text-2, #73726c); font-size: 12px; line-height: 16px; }
+.ff-pop button { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; padding: 4px 8px; border: 0; border-radius: 4px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ff-pop button:hover, .ff-pop button:focus-visible { background: var(--n-hover, rgba(55, 53, 47, .06)); outline: none; }
+.ff-pop button[aria-checked="true"] { font-weight: 500; }
+.ff-pop form { margin-top: 4px; }
+.ff-pop input { width: 100%; height: 32px; padding: 0 8px; border: 0; border-radius: 4px; box-sizing: border-box; background: var(--n-hover, rgba(55, 53, 47, .06)); color: inherit; font: inherit; outline: 0; }
+.ff-pop input:focus { box-shadow: inset 0 0 0 1.5px var(--n-blue, #1a73d4); }
+.ff-pop input::placeholder { color: var(--n-text-3, #9b9a97); }
+@keyframes ff-in { from { opacity: 0; transform: translateY(4px); } }
+@keyframes ff-mark { from { text-decoration-color: transparent; } }
+@keyframes ff-pop { from { opacity: 0; transform: scale(.97) translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .ff-line, .ff-mark, .ff-pop { animation: none; } }

@@ -157,3 +157,8 @@
 .tm-roles dd { margin: 0; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
 .sp .k-page .og-in.og-date { width: 160px; }
 .og-p:empty { display: none; }
+
+/* ── workflow policies: the extra fields per kind of record, folded ── */
+.wp-kind > summary { min-height: 32px; padding: 4px 0; color: var(--n-text); font-size: 14px; line-height: 24px; cursor: pointer; }
+.wp-kind > summary:focus-visible { outline: 2px solid var(--n-blue); outline-offset: 2px; border-radius: 4px; }
+.wp-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(144px, 1fr)); gap: 4px 16px; padding: 4px 0 8px 16px; }

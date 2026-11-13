@@ -36,3 +36,10 @@
 .kpc2 p { margin: 0; }
 .kpc2 b { font-weight: 600; }
 @media (max-width: 860px) { .pv-ev { flex-wrap: wrap; } }
+
+/* contracts: what each rate requires, under the opened version; a rate in the new-version form */
+.ct2-rates { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.ct2-rates li { display: grid; gap: 0; }
+.ct2-rates b { color: var(--n-text); font-size: 14px; font-weight: 500; line-height: 20px; }
+.ct2-rate { gap: 12px; padding-top: 12px; border-top: 1px solid var(--n-line); }
+.ct2-rate > legend { float: left; width: 100%; color: var(--n-text); font-size: 14px; font-weight: 600; line-height: 20px; }

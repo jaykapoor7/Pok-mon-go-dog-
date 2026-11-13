@@ -28,8 +28,10 @@
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, Search, Upload, X } from "lucide-react";
+import { Search, Upload, X } from "lucide-react";
+import { Btn, Empty, Head, Lanes, More, Panel, Props, Section, Tag } from "@/ws/kit";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { usePageState } from "@/ws/store";
 import { getMyOrg } from "@/lib/actions";
 import { loadCaseFile, type CaseFile } from "@/lib/case-file";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, orgOpenWorkCells, queueOrder, queueRank, type DueFollowup, type OpenCase, type OpsCounts, type OrgOpenWorkCell } from "@/lib/ops";
@@ -37,12 +39,11 @@ import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@
 import type { NGO } from "@/lib/types";
 import { useMembership } from "../shell/Shell";
 import { AreaMap } from "../atlas/AreaMap";
-import { State, day, n } from "../ui";
+import { day, n } from "../ui";
 import { Reading } from "../ui/Reading";
-import { MobileDetails } from "../ui/MobileDetails";
-import { Seg } from "../ui/Page";
 import { FollowupList, NextStep } from "./NextStep";
 import "./ngo.css";
+import "./cases.k.css";
 import "./work2.css";
 import { careNote } from "@/lib/care-note";
 
@@ -77,8 +78,8 @@ export function Work() {
   const [focus, setFocusState] = useState<Focus>("all");
   const setFocus=useCallback((value:Focus)=>{setFocusState(value);const url=new URL(window.location.href);if(value==='all')url.searchParams.delete('focus');else url.searchParams.set('focus',value);window.history.replaceState(window.history.state,'',url)},[]);
   useEffect(()=>{const read=()=>{const value=new URLSearchParams(window.location.search).get('focus');setFocusState(['mine','unowned','critical','followup'].includes(value??'')?value as Focus:'all')};read();window.addEventListener('popstate',read);return()=>window.removeEventListener('popstate',read)},[]);
-  const [group, setGroup] = useState<"priority" | "owner">("priority");
-  const [text, setText] = useState("");
+  const [group, setGroup] = usePageState<"priority" | "owner">("group", "priority");
+  const [text, setText] = usePageState("q", "");
   const [cell, setCell] = useState<string | null>(null);
   const [sel, setSel] = useState<string | null>(null);
   const [pane, setPane] = useState<"inspector" | "map">("inspector");
@@ -160,7 +161,7 @@ export function Work() {
   }, [groups, sel, sheet, selRow]);
   useEffect(() => { listRef.current?.querySelector<HTMLElement>(`[data-key="${sel}"]`)?.scrollIntoView({ block: "nearest" }); }, [sel]);
 
-  if (!ready || !mem.ready) return <div className="wk"><div className="wk-head"><div className="skel" style={{ height: 48, width: 220 }} /></div></div>;
+  if (!ready || !mem.ready) return <div className="wq"><div className="wq-top"><i className="kc-skel" /></div></div>;
   if (!member) return <SignedOut signedIn={!!user} />;
 
   const loading = open === null;
@@ -168,108 +169,73 @@ export function Work() {
   const unplaced = all.filter((r) => !r.cell).length;
   const areaCells = cells.filter((r) => r.h3_r8).map((r) => ({ h3: r.h3_r8, value: cohort === "history" ? r.historical_cases : cohort === "decide" ? r.stale_cases : Math.max(0, r.open_cases - r.stale_cases), hot: cohort === "live" ? r.critical_cases : 0, label: r.city }));
 
-  const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
   const live = co.live.filter((r) => r.kind === "case");
+  const nCrit = live.filter((r) => r.crit).length, nNobody = live.filter((r) => !r.c?.assignee_name).length;
+  const nothing = !loading && !failed && co.live.length + co.decide.length + co.history.length === 0;
   return (
-    <div className={`wk2${sheet ? " is-sheet" : ""}${pane === "map" ? " show-map" : ""}`}>
-      <header className="wk2-day wq-head">
-        <div className="wk2-title">
-          <h1 className="wk2-h">Queue</h1>
-          <p className="wq-sum" aria-live="polite">
-            {loading ? <Reading>Reading your organisation&rsquo;s open work</Reading> : failed ? <span className="is-err">The organisation&rsquo;s work could not be read. Nothing is shown as zero. <button type="button" className="link" onClick={() => void load()}>Retry</button></span> : (
-              <><b>{n(live.length)}</b> live · <b className={live.some((r) => r.crit) ? "is-hot" : undefined}>{n(live.filter((r) => r.crit).length)}</b> critical · <b>{n(co.overdue.length)}</b> follow-ups overdue · <b>{n(live.filter((r) => !r.c?.assignee_name).length)}</b> held by nobody</>
-            )}
-          </p>
-        </div>
-        <p className="wq-day">{today}</p>
-      </header>
+    <div className={`wq kc-scope${sheet ? " is-sheet" : ""}${pane === "map" ? " show-map" : ""}`}>
+      <div className="wq-top">
+        <Head title="Cases"
+          sum={loading ? <Reading>Reading your organisation&rsquo;s open work</Reading> : failed ? <><span className="is-hot">The organisation&rsquo;s work could not be read. Nothing is shown as zero.</span> <button type="button" className="kc-link" onClick={() => void load()}>Retry</button></>
+            : nothing ? "Nothing is on the record yet. Start with the register you already keep."
+            : <>The queue: <b>{n(live.length)}</b> live{nCrit ? <>, <span className="is-hot">{n(nCrit)} critical</span></> : null}, <b>{n(co.overdue.length)}</b> {co.overdue.length === 1 ? "follow-up" : "follow-ups"} overdue, <b>{n(nNobody)}</b> held by nobody.</>}
+          actions={nothing ? <Btn variant="primary" href="/ngo/import" icon={<Upload size={14} />}>Import a register</Btn> : undefined} />
+      </div>
 
-      {!loading && !failed && co.live.length + co.decide.length + co.history.length === 0 && (
-        <Link href="/ngo/import" className="wk2-start">
-          <Upload size={22} aria-hidden />
-          <span><b>Start with the register you already keep.</b><small>Drop in your rescue, treatment or ABC spreadsheet.</small></span>
-          <ArrowUpRight size={20} aria-hidden />
-        </Link>
-      )}
-
-      <div className="wk2-body">
-        <section className="wk2-stream" aria-label="Work queue">
-          <div className="wq-lanes">
-            <Seg<Cohort> label="Which cases" value={cohort} onChange={(k) => { setCohort(k); setSel(null); setLimit(80); }} options={[
+      <div className="wq-body">
+        <section className="wq-col" aria-label="Work queue">
+          <div className="wq-tools">
+            <Lanes<Cohort> label="Which cases" value={cohort} onChange={(k) => { setCohort(k); setSel(null); setLimit(80); }} lanes={[
               { id: "live", label: "Live", count: loading ? null : cohortN("live") },
               { id: "decide", label: "Needs a decision", count: loading ? null : cohortN("decide") },
               { id: "history", label: "Imported", count: loading ? null : cohortN("history") },
             ]} />
-          </div>
-          <div className="wk2-tools">
-            <label className="wk2-search"><Search size={15} aria-hidden /><input ref={searchRef} value={text} onChange={(e) => setText(e.target.value)} placeholder="Code, animal, place, person" aria-label="Filter the queue" /></label>
-            <MobileDetails label="Filters and grouping" active={focus !== "all" || !!cell} className="wk2-filter-fold"><div className="wk2-chips" role="group" aria-label="Show">
+            <label className="k-search wq-search"><Search size={14} aria-hidden /><input ref={searchRef} type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder="Code, animal, place, person" aria-label="Filter the queue" /></label>
+            <div className="wq-chips" role="group" aria-label="Show">
               {(["all", "mine", "unowned", "critical", "followup"] as Focus[]).map((k) => <button key={k} type="button" aria-pressed={focus === k} onClick={() => setFocus(k)}>{k === "all" ? "All" : k === "mine" ? "Mine" : k === "unowned" ? "Unowned" : k === "critical" ? "Critical" : "Follow-ups"}</button>)}
-              {cohort === "live" && <button type="button" className="wk2-group" onClick={() => setGroup(group === "priority" ? "owner" : "priority")} aria-label={`Group by ${group === "priority" ? "person" : "priority"}`}>By {group === "priority" ? "priority" : "person"}</button>}
-              {cell && <button type="button" aria-pressed onClick={() => setCell(null)}>One area <X size={13} aria-hidden /></button>}
-              <button type="button" className="wk2-mobile-map" onClick={() => setPane("map")}>Filter by area on the map</button>
-            </div></MobileDetails>
+              {cell && <button type="button" aria-pressed onClick={() => setCell(null)}>One area <X size={12} aria-hidden /></button>}
+              <span className="wq-chips-end">
+                {cohort === "live" && <button type="button" onClick={() => setGroup(group === "priority" ? "owner" : "priority")} aria-label={`Group by ${group === "priority" ? "person" : "priority"}`}>By {group === "priority" ? "priority" : "person"}</button>}
+                <button type="button" className="wq-tomap" onClick={() => setPane("map")}>Map</button>
+              </span>
+            </div>
           </div>
 
-          <div className="wk2-list" ref={listRef} role="listbox" aria-label={`${rows.length} items in the queue`} aria-activedescendant={sel ? `wk-${sel}` : undefined} tabIndex={0}>
-            {loading && Array.from({ length: 9 }, (_, i) => <div key={i} className="wk2-row is-skel" aria-hidden><span className="skel" /><span className="skel" /></div>)}
+          <div className="wq-list" ref={listRef} role="listbox" aria-label={`${rows.length} items in the queue`} aria-activedescendant={sel ? `wk-${sel}` : undefined} tabIndex={0}>
+            {loading && Array.from({ length: 9 }, (_, i) => <i key={i} className="kc-skel" aria-hidden />)}
             {!loading && !rows.length && (
-              <State art="ngo-empty" title={failed ? "Not read" : all.length ? "Nothing matches" : cohort === "live" ? "Nothing live is waiting" : "Nothing in this cohort"}>
+              <Empty title={failed ? "Not read" : all.length ? "Nothing matches" : cohort === "live" ? "Nothing live is waiting" : "Nothing in this cohort"}>
                 {failed ? "Reload to try again. A failed read is never shown as an empty queue." : all.length ? "Clear the filter or choose another area." : cohort === "live" ? "No critical case, slipped follow-up or live case is open for your organisation right now." : "When there is something here, it will wait for a person to decide. Nothing closes on a timer."}
-              </State>
+              </Empty>
             )}
             {!loading && groups.map((g) => g.rows.length > 0 && (
-              <div key={g.key} role="group" aria-label={g.label} className="wk2-band">
-                <p className="wk2-bandh"><b>{g.label}</b><em>{n(g.rows.length)}</em><span>{g.note}</span></p>
+              <div key={g.key} role="group" aria-label={g.label} className="wq-band">
+                <p className="wq-bandh" title={g.note}><b>{g.label}</b><em>{n(g.rows.length)}</em></p>
                 {g.rows.map((r) => <QueueRow key={r.key} r={r} on={sel === r.key} me={me} onPick={() => { setSel(r.key); setPane("inspector"); setSheet(true); }} />)}
               </div>
             ))}
-            {rows.length > limit && <button type="button" className="wk2-btn wk2-more" onClick={() => setLimit((x) => x + 80)}>Show {Math.min(80, rows.length - limit)} more of {n(rows.length - limit)}</button>}
-            {!loading && unplaced > 0 && <p className="wk2-foot">{n(unplaced)} in this cohort carry no location. They stay in the queue and are not drawn on the map.</p>}
+            {rows.length > limit && <button type="button" className="k-more" onClick={() => setLimit((x) => x + 80)}>Show {Math.min(80, rows.length - limit)} more of {n(rows.length - limit)}</button>}
+            {!loading && unplaced > 0 && <p className="kc-hint wq-foot">{n(unplaced)} in this cohort carry no location. They stay in the queue and are not drawn on the map.</p>}
           </div>
         </section>
 
-        <section className="wk2-stage" aria-label="Map of open work and the chosen case">
-          <AreaMap className="wk2-map" cells={areaCells} selected={cell} focus={selRow?.cell ?? null} onPick={(h) => { setCell(h); setSel(null); }} label="Open work by area" ink={cohort === "history" ? "#cfc3ae" : cohort === "decide" ? "#e5b65a" : "#5fa3ae"}
+        <section className="wq-stage" aria-label="Map of open work and the chosen case">
+          <AreaMap className="wq-map" cells={areaCells} selected={cell} focus={selRow?.cell ?? null} onPick={(h) => { setCell(h); setSel(null); }} label="Open work by area" ink={cohort === "history" ? "#cfc3ae" : cohort === "decide" ? "#e5b65a" : "#5fa3ae"}
             empty={loading ? "Placing the open work…" : "No case in this cohort carries a location."} pad={{ top: 30, left: 30, bottom: 30, right: selRow ? 470 : 30 }} />
-          <p className="wk2-mapkey"><i className="is-area" /> an area with {cohort === "live" ? "live" : cohort === "decide" ? "quiet" : "imported"} cases, sized by count <i className="is-hot" /> holds critical work · areas, never addresses</p>
-          <button type="button" className="wk2-tomap" onClick={() => setPane(pane === "map" ? "inspector" : "map")}>{pane === "map" ? "Back to the queue" : "Map"}</button>
+          <p className="wq-mapkey"><i className="is-area" /> an area with {cohort === "live" ? "live" : cohort === "decide" ? "quiet" : "imported"} cases, sized by count <i className="is-hot" /> holds critical work · areas, never addresses</p>
+          <button type="button" className="k-btn is-plain wq-back" onClick={() => setPane("inspector")}>Back to the queue</button>
           {selRow ? (
-            <aside className="wk2-insp" aria-label="Case inspector">
-              <button type="button" className="wk2-close" onClick={() => { setSheet(false); setSel(null); }} aria-label="Close the case"><X size={17} /></button>
+            <aside className="wq-insp" aria-label="Case inspector">
+              <button type="button" className="wq-close" onClick={() => { setSheet(false); setSel(null); }} aria-label="Close the case"><X size={16} /></button>
               <Inspector key={selRow.key} row={selRow} cohort={cohort} onChanged={load} />
             </aside>
           ) : (
-            <div className="wk2-hint">
-              <p><b>Choose a case</b> to open it here.</p>
-              <dl className="wk-keys">{[["j  k", "move"], ["Enter", "open"], ["o", "case file"], ["m", "map"], ["/", "search"], ["Esc", "close"]].map(([k, v]) => <div key={k}><dt><kbd>{k}</kbd></dt><dd>{v}</dd></div>)}</dl>
-            </div>
+            <p className="wq-hint"><b>Choose a case</b> to open it here. Keys: <kbd>j</kbd> <kbd>k</kbd> move, <kbd>Enter</kbd> open, <kbd>o</kbd> case file, <kbd>m</kbd> map, <kbd>Esc</kbd> close.</p>
           )}
         </section>
       </div>
     </div>
   );
-}
-
-/* The triage ribbon: today's live work as one printed strip, divided by priority. Each band filters the queue. */
-function Ribbon({ rows, focus, onFocus }: { rows: Row[]; focus: Focus; onFocus: (f: Focus) => void }) {
-  const by = RANKS.map((g) => ({ ...g, n: rows.filter((r) => queueRank(r) === g.rank).length }));
-  const total = Math.max(1, rows.length);
-  const target: Record<number, Focus> = { 0: "critical", 1: "followup", 2: "all", 3: "followup" };
-  return (
-    <div className="wk2-ribbon" role="group" aria-label="Live work by priority">
-      {by.map((g) => g.n > 0 && (
-        <button key={g.rank} type="button" className={`is-r${g.rank}`} style={{ flexGrow: Math.max(g.n / total, 0.08) }} aria-pressed={focus === target[g.rank] && g.rank !== 2} onClick={() => onFocus(focus === target[g.rank] ? "all" : target[g.rank])} title={g.note}>
-          <b>{n(g.n)}</b><span>{g.label}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/* Priority → place → animal → case → next action: the chain a staff member reads before acting. */
-function Chain({ steps }: { steps: { k: string; v: React.ReactNode; tone?: string }[] }) {
-  return <ol className="wk-chain" aria-label="This case at a glance">{steps.map((s) => <li key={s.k} className={s.tone ? `is-${s.tone}` : undefined}><small>{s.k}</small><span>{s.v}</span></li>)}</ol>;
 }
 
 function QueueRow({ r, on, me, onPick }: { r: Row; on: boolean; me: string; onPick: () => void }) {
@@ -279,15 +245,12 @@ function QueueRow({ r, on, me, onPick }: { r: Row; on: boolean; me: string; onPi
   const place = c?.zone ?? f?.zone ?? null;
   const owner = c?.assignee_name ?? f?.assignee_name ?? null;
   const status = r.kind === "followup" ? "Overdue" : r.crit ? "Critical" : STATUS_META[(c?.status_class ?? "open") as StatusClass]?.short ?? "Open";
-  const tone = r.crit ? "crit" : r.kind === "followup" ? "late" : status === "In progress" ? "work" : "open";
+  const tone = r.crit ? "flame" : r.kind === "followup" ? "amber" : status === "In progress" ? "blue" : "plain";
   return (
-    <div id={`wk-${r.key}`} data-key={r.key} role="option" aria-selected={on} className={`wk2-row is-${tone}${on ? " is-on" : ""}`} onClick={onPick}>
-      <span className="wk2-code">{shortCode(c?.case_code ?? f?.case_code, "—")}</span>
-      <span className="wk2-age" title={r.kind === "followup" ? `Due ${day(f?.due_at)}` : `Recorded ${day(c?.occurred_at)}`}>{r.kind === "followup" ? `${short(f?.due_at ?? null)} late` : short(c?.occurred_at ?? null)}</span>
-      <b className="wk2-t">{title}</b>
-      <small className="wk2-s">{[who, place].filter(Boolean).join(" · ") || "Animal and place not recorded"}{r.cell ? "" : " · no location"}</small>
-      <span className="wk2-stamp">{status}</span>
-      <span className={`wk2-owner${owner ? "" : " is-none"}${owner && owner === me ? " is-me" : ""}`}>{owner ? (owner === me ? "You" : owner) : "Nobody holds it"}</span>
+    <div id={`wk-${r.key}`} data-key={r.key} role="option" aria-selected={on} className={`wq-row${on ? " is-on" : ""}`} onClick={onPick}>
+      <span className="wq-row-t"><b>{title}</b>
+        <small><span className="kc-code">{shortCode(c?.case_code ?? f?.case_code, "—")}</span> · {[who, place].filter(Boolean).join(" · ") || "Animal and place not recorded"}{r.cell ? "" : " · no location"} · <span className={owner ? undefined : "is-none"}>{owner ? (owner === me ? "You" : owner) : "Nobody holds it"}</span></small></span>
+      <span className="wq-row-e"><Tag tone={tone}>{status}</Tag><span title={r.kind === "followup" ? `Due ${day(f?.due_at)}` : `Recorded ${day(c?.occurred_at)}`}>{r.kind === "followup" ? `${short(f?.due_at ?? null)} late` : short(c?.occurred_at ?? null)}</span></span>
     </div>
   );
 }
@@ -311,18 +274,18 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
   if (!id) {
     const f = row.f!;
     return (
-      <div className="wk-insp">
-        <p className="k">Follow-up · not linked to a case</p>
-        <h2 className="wk2-ih">{realName(f.animal_name) || f.straypaw_id || "Animal follow-up"}</h2>
-        <dl className="ledger"><div><dt>Due</dt><dd>{day(f.due_at)}</dd></div><div><dt>Kind</dt><dd>{(f.kind ?? "recheck").replace(/_/g, " ")}</dd></div><div><dt>Place</dt><dd>{f.zone ?? "not recorded"}</dd></div></dl>
-        {f.note && <p className="body">{f.note}</p>}
-        {f.dog_id && <Link className="btn" href={`/ngo/animals/${f.dog_id}`}>Open the animal <ArrowUpRight size={14} aria-hidden /></Link>}
+      <div className="wq-in">
+        <p className="k-eyebrow">Follow-up · not linked to a case</p>
+        <h2 className="wq-ih">{realName(f.animal_name) || f.straypaw_id || "Animal follow-up"}</h2>
+        <Props items={[{ label: "Due", value: day(f.due_at) }, { label: "Kind", value: (f.kind ?? "recheck").replace(/_/g, " ") }, { label: "Place", value: f.zone ?? "not recorded" }]} />
+        {f.note && <p className="kc-p">{f.note}</p>}
+        {f.dog_id && <div className="kc-acts"><Btn href={`/ngo/animals/${f.dog_id}`}>Open the animal</Btn></div>}
       </div>
     );
   }
-  if (file === "loading") return <div className="wk-insp" aria-busy="true"><div className="skel" style={{ height: 14, width: "40%" }} /><div className="skel" style={{ height: 40, width: "80%", marginTop: 12 }} /><div className="skel" style={{ height: 180, marginTop: 18 }} /></div>;
-  if (file === "error") return <div className="wk-insp"><State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={() => void read()}>Try again</button>}>This case could not be read just now. Nothing was changed.</State></div>;
-  if (!file) return <div className="wk-insp"><State kind="forbidden" title="Not available">This case belongs to another organisation.</State></div>;
+  if (file === "loading") return <div className="wq-in" aria-busy="true"><i className="kc-skel" /><i className="kc-skel is-tall" /><i className="kc-skel is-tall" /></div>;
+  if (file === "error") return <div className="wq-in"><Empty title="Didn't load" action={<Btn small onClick={() => void read()}>Try again</Btn>}>This case could not be read just now. Nothing was changed.</Empty></div>;
+  if (!file) return <div className="wq-in"><Empty title="Not available">This case belongs to another organisation.</Empty></div>;
 
   const { c, reg, animal, updates, followups, medical, neighbours, sameAnimal } = file;
   const imported = reg.provenance === "imported_historical_record";
@@ -332,42 +295,32 @@ function Inspector({ row, cohort, onChanged }: { row: Row; cohort: Cohort; onCha
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   const reloadAll = async () => { await read(); await onChanged(); };
   return (
-    <div className="wk-insp">
-      <p className="k">{shortCode(reg.case_code)} · {STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}{imported ? " · imported record" : ""}</p>
-      <h2 className="wk2-ih">{reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title}</h2>
-      <Chain steps={[
-        { k: "Priority", v: row.kind === "followup" ? "Follow-up overdue" : row.crit ? "Critical" : cohort === "live" ? "Open" : cohort === "decide" ? "Needs a decision" : "Historical review", tone: row.crit || row.kind === "followup" ? "urgent" : undefined },
-        { k: "Place", v: c.zone ?? reg.city ?? "Not recorded", tone: c.zone || reg.city ? undefined : "unknown" },
-        { k: "Animal", v: realName(animal?.name) ?? animal?.straypaw_id ?? (c.dog_id ? "Linked" : "Not linked"), tone: c.dog_id ? undefined : "unknown" },
-        { k: "Held by", v: c.assignee_name ?? "Nobody", tone: c.assignee_name ? undefined : "urgent" },
-        { k: "Next", v: reg.next_action ?? "See below", tone: "next" },
-      ]} />
-      <div className="wk-next" aria-label="Next step">
-        <NextStep file={file} cohort={cohort} onChanged={reloadAll} />
-      </div>
-      {reg.condition_text && <p className="body">{reg.condition_text}</p>}
-      <dl className="ledger">
-        <div><dt>Animal</dt><dd>{c.dog_id ? <Link className="link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? animal?.straypaw_id ?? "Animal record"}</Link> : <span className="pill is-unknown">Not linked</span>}</dd></div>
-        <div><dt>Place</dt><dd>{[c.zone, reg.city].filter(Boolean).join(", ") || "not recorded"} <small>· {reg.location_precision ? reg.location_precision.replace(/_/g, " ") : reg.h3_r8 ? "recorded area" : "no location"}</small></dd></div>
-        <div><dt>Held by</dt><dd>{c.assignee_name ?? <b className="is-flame">Nobody yet</b>}</dd></div>
-        <div><dt>Recorded</dt><dd>{day(reg.occurred_at)}{reg.intake_channel && <small> · via {reg.intake_channel.replace(/_/g, " ")}</small>}</dd></div>
-        {reg.next_action && <div><dt>Next action</dt><dd>{reg.next_action}</dd></div>}
-        {reg.hospital && <div><dt>Clinic</dt><dd>{reg.hospital}</dd></div>}
-      </dl>
+    <div className="wq-in">
+      <p className="k-eyebrow wq-id"><span className="kc-code">{shortCode(reg.case_code)}</span><Tag tone={row.crit || row.kind === "followup" ? "flame" : "plain"}>{row.kind === "followup" ? "Follow-up overdue" : row.crit ? "Critical" : STATUS_META[(reg.status_class ?? "unknown") as StatusClass]?.label ?? "Status not recorded"}</Tag>{imported ? <Tag>Imported record</Tag> : null}</p>
+      <h2 className="wq-ih">{reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title}</h2>
+      {reg.condition_text && <p className="kc-quiet">{reg.condition_text}</p>}
 
+      <Section title="Next step"><Panel pad><NextStep file={file} cohort={cohort} onChanged={reloadAll} /></Panel></Section>
 
-      <section className="wk-sec">
-        <h3>Follow-ups <span className="mono">{followups.length}</span></h3>
-        <FollowupList file={file} onChanged={reloadAll} />
-      </section>
+      <Section title="Properties">
+        <Props items={[
+          { label: "Animal", value: c.dog_id ? <Link className="kc-link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? animal?.straypaw_id ?? "Animal record"}</Link> : "Not linked" },
+          { label: "Place", value: <>{[c.zone, reg.city].filter(Boolean).join(", ") || "not recorded"} <small className="kc-hint">{reg.location_precision ? reg.location_precision.replace(/_/g, " ") : reg.h3_r8 ? "recorded area" : "no location"}</small></> },
+          { label: "Held by", value: c.assignee_name ?? <span className="is-none">Nobody yet</span> },
+          { label: "Recorded", value: <>{day(reg.occurred_at)}{reg.intake_channel && <small className="kc-hint"> via {reg.intake_channel.replace(/_/g, " ")}</small>}</> },
+          ...(reg.next_action ? [{ label: "Next action", value: reg.next_action }] : []),
+          ...(reg.hospital ? [{ label: "Clinic", value: reg.hospital }] : []),
+        ]} />
+      </Section>
 
-      <section className="wk-sec">
-        <h3>Chronology <span className="mono">{history.length}</span></h3>
-        {history.length ? <ol className="chrono">{history.slice(0, 14).map((h, i) => <li key={i} className={`is-${h.k}`}><time className="mono">{day(h.at)}</time><span>{h.t}{h.who && <small> · {h.who}</small>}</span></li>)}</ol> : <p className="small">Nothing recorded on this case since it was opened.</p>}
-      </section>
+      <Section title="Follow-ups" count={followups.length}><Panel><FollowupList file={file} onChanged={reloadAll} /></Panel></Section>
 
-      {(sameAnimal.length > 0 || neighbours.length > 0) && <p className="small">{sameAnimal.length ? `${sameAnimal.length} other case${sameAnimal.length === 1 ? "" : "s"} on this animal. ` : ""}{neighbours.length ? `${neighbours.length} other case${neighbours.length === 1 ? "" : "s"} in the same area.` : ""}</p>}
-      <div className="row wk-insp-foot"><Link href={`/ngo/cases/${c.id}`} className="btn is-s">Full case file <ArrowUpRight size={14} aria-hidden /></Link>{reg.h3_r8 && <Link href={`/ngo/map?area=${reg.h3_r8}${reg.city ? `&city=${encodeURIComponent(reg.city)}` : ""}`} className="btn is-ghost is-s">On the map</Link>}</div>
+      <Section title="Chronology" count={history.length}>
+        <Panel>{history.length ? <More items={history} cap={5}>{(shown) => <ol className="kc-items">{shown.map((h, i) => <li key={i} className="kc-item"><span className="kc-item-t"><b>{h.t}</b><small><time>{day(h.at)}</time>{h.who ? ` · ${h.who}` : ""}</small></span></li>)}</ol>}</More> : <p className="kc-quiet is-pad">Nothing recorded on this case since it was opened.</p>}</Panel>
+      </Section>
+
+      {(sameAnimal.length > 0 || neighbours.length > 0) && <p className="kc-hint wq-foot">{sameAnimal.length ? `${sameAnimal.length} other case${sameAnimal.length === 1 ? "" : "s"} on this animal. ` : ""}{neighbours.length ? `${neighbours.length} other case${neighbours.length === 1 ? "" : "s"} in the same area.` : ""}</p>}
+      <div className="kc-acts wq-acts"><Btn href={`/ngo/cases/${c.id}`}>Full case file</Btn>{reg.h3_r8 && <Btn variant="quiet" href={`/ngo/map?area=${reg.h3_r8}${reg.city ? `&city=${encodeURIComponent(reg.city)}` : ""}`}>On the map</Btn>}</div>
     </div>
   );
 }

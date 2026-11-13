@@ -17,7 +17,9 @@ import { getSupabase } from "@/lib/supabase";
 import { orgCampaigns, type CampaignStats } from "@/lib/campaigns";
 import { orgZones } from "@/lib/programme";
 import { useMembership } from "../shell/Shell";
+import { Head, Page, Panel, Table, Tools, type Col } from "@/ws/kit";
 import { Ack } from "../ui";
+import "../abc/parts.k.css";
 import { NgoGate } from "./Gate";
 import "./ngo.css";
 
@@ -60,6 +62,7 @@ export function Proof() {
   ];
 
   const take = async (o: Out) => {
+    if (busy) return;
     setBusy(o.key); setMsg(null);
     const win = o.open ? window.open("", "_blank") : null;
     try {
@@ -79,39 +82,31 @@ export function Proof() {
   };
 
   const driveName = drives.find((d) => d.id === scope)?.name;
+  const cols: Col<Out>[] = [
+    { key: "doc", label: "Document", width: "minmax(0, 1.2fr)", render: (o) => <span className="kx-cell"><o.icon size={14} aria-hidden /><span>{o.name}<small className="kx-sub">{o.unit}</small></span></span> },
+    { key: "unit", label: "What it holds", width: "minmax(0, 1.4fr)", render: (o) => o.unit },
+    { key: "not", label: "Keep in mind", width: "minmax(0, 1.4fr)", render: (o) => o.not },
+    { key: "fmt", label: "Format", width: "112px", render: (o) => o.fmt },
+    { key: "go", label: "", width: "104px", keep: true, align: "end", render: (o) => <span className="kx-link">{busy === o.key ? "Building…" : o.open ? "Open" : <><Download size={12} aria-hidden /> Download</>}</span> },
+  ];
   return (
     <NgoGate title="Reports & proof" lede="Documents built from your own records, for a municipality, a funder or your board.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · evidence</p><h1 className="serif">Reports &amp; proof</h1></div>
-          <p className="ngo-sum">Reports and evidence for any period, built from your records.</p>
-        </header>
-        <section className="pf-scope" aria-label="Scope">
-          <p className="pf-sentence serif">
-            {cat === "all" ? "All work" : cat === "rescue" ? "Rescue and intake" : cat === "treatment" ? "Treatment" : cat === "vaccination" ? "Rabies vaccination" : "Sterilisation"}
-            {driveName ? <> in <em>{driveName}</em></> : null}, {status === "open" ? "still open" : status === "completed" ? "closed" : "open and closed"}, {year === "all" ? "for all time" : year === "custom" ? <>from {from || "the start"} to {to || "today"}</> : <>in {year}</>}{where ? <>, in <em>{where}</em></> : <>, everywhere you work</>}.
-          </p>
-          <div className="pf-controls">
-            <label className="field"><span className="label">Work</span><select className="select" value={cat} onChange={(e) => setCat(e.target.value)}><option value="all">All work</option><option value="rescue">Rescue and intake</option><option value="treatment">Treatment</option><option value="vaccination">Rabies vaccination</option><option value="sterilisation">Sterilisation (ABC)</option></select></label>
-            <label className="field"><span className="label">Drive</span><select className="select" value={scope} onChange={(e) => setScope(e.target.value)}><option value="">Every drive</option>{drives.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
-            <label className="field"><span className="label">Status</span><select className="select" value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">Open and closed</option><option value="open">Open only</option><option value="completed">Closed only</option></select></label>
-            <label className="field"><span className="label">Period</span><select className="select" value={year} onChange={(e) => setYear(e.target.value)}><option value="all">All time</option>{[yr, yr - 1, yr - 2].map((y) => <option key={y} value={String(y)}>{y}</option>)}<option value="custom">Choose dates…</option></select></label>
-            {year === "custom" && <><label className="field"><span className="label">From</span><input type="date" className="input" value={from} onChange={(e) => setFrom(e.target.value)} /></label><label className="field"><span className="label">To</span><input type="date" className="input" value={to} onChange={(e) => setTo(e.target.value)} /></label></>}
-            <label className="field"><span className="label">Locality</span><select className="select" value={where} onChange={(e) => setWhere(e.target.value)}><option value="">Everywhere</option>{zones.slice(0, 300).map((z) => <option key={z.zone} value={z.zone}>{z.zone}</option>)}</select></label>
-          </div>
-        </section>
-        <div aria-live="polite" className="tm-receipt">{busy ? <Ack state="pending">Building the document…</Ack> : msg ? <Ack state={msg.ok ? "saved" : "failed"}>{msg.t}</Ack> : null}</div>
-        <ol className="pf-shelf">
-          {OUT.map((o) => (
-            <li key={o.key} className="pf-doc">
-              <span className="pf-spine" aria-hidden><o.icon size={18} /></span>
-              <div className="pf-what"><b>{o.name}</b><small>{o.unit}</small></div>
-              <span className="mono small">{o.fmt}</span>
-              <button type="button" className="btn is-s" disabled={!!busy} onClick={() => void take(o)}>{busy === o.key ? "Building…" : o.open ? "Open" : <><Download size={14} aria-hidden /> Download</>}</button>
-            </li>
-          ))}
-        </ol>
-      </div>
+      <Page>
+        <Head title="Reports" sum={<>
+          {cat === "all" ? "All work" : cat === "rescue" ? "Rescue and intake" : cat === "treatment" ? "Treatment" : cat === "vaccination" ? "Rabies vaccination" : "Sterilisation"}
+          {driveName ? <> in <b>{driveName}</b></> : null}, {status === "open" ? "still open" : status === "completed" ? "closed" : "open and closed"}, {year === "all" ? "for all time" : year === "custom" ? <>from {from || "the start"} to {to || "today"}</> : <>in {year}</>}{where ? <>, in <b>{where}</b></> : <>, everywhere you work</>}. Each document is built from your own records.
+        </>} />
+        <Tools>
+          <select className="kx-in is-auto" aria-label="Work" value={cat} onChange={(e) => setCat(e.target.value)}><option value="all">All work</option><option value="rescue">Rescue and intake</option><option value="treatment">Treatment</option><option value="vaccination">Rabies vaccination</option><option value="sterilisation">Sterilisation (ABC)</option></select>
+          <select className="kx-in is-auto" aria-label="Drive" value={scope} onChange={(e) => setScope(e.target.value)}><option value="">Every drive</option>{drives.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</select>
+          <select className="kx-in is-auto" aria-label="Status" value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">Open and closed</option><option value="open">Open only</option><option value="completed">Closed only</option></select>
+          <select className="kx-in is-auto" aria-label="Period" value={year} onChange={(e) => setYear(e.target.value)}><option value="all">All time</option>{[yr, yr - 1, yr - 2].map((y) => <option key={y} value={String(y)}>{y}</option>)}<option value="custom">Choose dates…</option></select>
+          {year === "custom" && <><input type="date" className="kx-in is-auto" aria-label="From" value={from} onChange={(e) => setFrom(e.target.value)} /><input type="date" className="kx-in is-auto" aria-label="To" value={to} onChange={(e) => setTo(e.target.value)} /></>}
+          <select className="kx-in is-auto" aria-label="Locality" value={where} onChange={(e) => setWhere(e.target.value)}><option value="">Everywhere</option>{zones.slice(0, 300).map((z) => <option key={z.zone} value={z.zone}>{z.zone}</option>)}</select>
+        </Tools>
+        <div aria-live="polite" className="kx-live">{busy ? <Ack state="pending">Building the document…</Ack> : msg ? <Ack state={msg.ok ? "saved" : "failed"}>{msg.t}</Ack> : null}</div>
+        <Panel><Table cols={cols} rows={OUT} rowKey={(o) => o.key} onRow={(o) => void take(o)} label="Documents you can take" /></Panel>
+      </Page>
     </NgoGate>
   );
 }

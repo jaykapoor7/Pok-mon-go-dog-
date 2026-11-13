@@ -13,6 +13,7 @@
    the same actions as the manual screens (./execute).
    ════════════════════════════════════════════════════════════════════ */
 
+import { Feedforward } from "@/kaju/Feedforward";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -377,6 +378,7 @@ function Thread({ full = false }: { full?: boolean }) {
         <div ref={end} />
       </div>
       <div className="ai3-compose">
+        <Feedforward text={q} onText={setQ} input={input} />
         <textarea ref={input} value={q} onChange={(e) => setQ(e.target.value)} rows={full ? 3 : 2} placeholder="Ask Kaju, search, or paste a field update…" aria-label="Message Kaju"
           disabled={!ai.scope} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); follow.current=true;send(); } }} />
         {user && <label className="ai3-attach" title="Attach a PDF, Word, Excel, CSV or PowerPoint file"><Paperclip size={15} aria-hidden /><span className="sr-only">Attach a file</span><input type="file" accept=".pdf,.docx,.xlsx,.xls,.csv,.pptx" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} /></label>}
