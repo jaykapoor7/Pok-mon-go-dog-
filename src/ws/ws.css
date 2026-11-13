@@ -327,3 +327,20 @@ button.ws-item:focus-visible, .ws-item > a:focus-visible, .ws-signin:focus-visib
 .sp.sx3.os.cn.ws .sp-main h1.k-title, .sp.sx3.os.cn.ws .sp-main h1 { color: var(--n-text) !important; }
 .sp.sx3.os.cn.ws .cn-sample { margin: 8px 16px 0; background: var(--t-yellow-bg); box-shadow: none; color: var(--t-yellow); border-radius: 4px; }
 :root[data-ws-theme="dark"] body { background: #191919; }
+
+/* Screens not yet rebuilt still read the older colour variables. Pointing those at the theme brings their text,
+   lines, fills and blue into the same palette, in light and dark. */
+.sp.sx3.os.cn.ws {
+  --ink: var(--n-text); --ink-2: var(--n-text); --ink-3: var(--n-text-2); --mute: var(--n-text-2); --body: var(--n-text);
+  --paper: var(--n-bg); --shell: var(--n-side); --line: var(--n-line); --line-2: var(--n-line-2); --rule: var(--n-line);
+  --blue: var(--n-blue); --civ: var(--n-blue); --flame: var(--n-red);
+  --s3-ink: var(--n-text); --s3-ink-2: var(--n-text); --s3-grey: var(--n-text-2); --s3-mute: var(--n-text-2); --s3-line: var(--n-line); --s3-line-2: var(--n-line-2);
+  --s3-blue: var(--n-blue); --s3-ground: var(--n-bg); --s3-paper: var(--n-bg); --s3-fill: var(--n-fill);
+  --cn-ink: var(--n-text); --cn-ink-2: var(--n-text); --cn-grey: var(--n-text-2); --cn-line: var(--n-line); --cn-line-2: var(--n-line-2); --cn-blue: var(--n-blue); --cn-on: var(--n-on); --cn-hover: var(--n-hover);
+  --vw-ink: var(--n-text); --vw-mute: var(--n-text-2); --vw-faint: var(--n-text-2); --vw-line: var(--n-line);
+  --dy-ink: var(--n-text); --dy-ink-2: var(--n-text); --dy-grey: var(--n-text-2); --dy-blue: var(--n-blue);
+  --calm-fill: var(--n-hover); --calm-fill-hover: var(--n-fill); --calm-div: var(--n-line);
+}
+.sp.sx3.os.cn.ws :where(.vw, .vw-head, .vw-seg, .vw-list, .vw-row, .vw-empty, .vw-meter) { --vw-ink: var(--n-text); --vw-mute: var(--n-text-2); --vw-faint: var(--n-text-2); --vw-line: var(--n-line); }
+.sp.sx3.os.cn.ws .vw { width: min(1120px, 100% - 48px); padding: 16px 0 48px; }
+.sp.sx3.os.cn.ws .sp-main h1.vw-title { font-weight: 700 !important; }
