@@ -107,11 +107,11 @@ export function Seg<T extends string>({ name, value, options, onChange, disabled
 /** A list of records as rows: what it is, one line about it, and the one thing to do. */
 export function Rows({ children, label, id }: { children: ReactNode; label?: string; id?: string }) { return <ul className="k-rows oh-rows" aria-label={label} id={id}>{children}</ul>; }
 /** One row. With `href` the name opens the record and the whole row is its target; the controls in `end` stay their own. */
-export function Row({ href, icon, tone, title, meta, end, on }: { href?: string | null; icon?: ReactNode; tone?: Tone; title: ReactNode; meta?: ReactNode; end?: ReactNode; /** The row a map or a list beside it points at. */ on?: boolean }) {
+export function Row({ href, icon, tone, title, meta, end, on, onHover }: { href?: string | null; icon?: ReactNode; tone?: Tone; title: ReactNode; meta?: ReactNode; end?: ReactNode; /** The row a map or a list beside it points at. */ on?: boolean; onHover?: () => void }) {
   const text = <><b>{title}</b>{meta ? <small>{meta}</small> : null}</>;
   return (
     <li>
-      <div className={`k-row oh-row${on ? " is-on" : ""}`}>
+      <div className={`k-row oh-row${on ? " is-on" : ""}`} onMouseEnter={onHover} aria-current={on ? "true" : undefined}>
         {icon ? <span className="k-row-i" data-tone={tone} aria-hidden>{icon}</span> : null}
         {href ? <Link href={href} className="k-row-t oh-row-main oh-row-a">{text}</Link> : <span className="k-row-t oh-row-main">{text}</span>}
         {end ? <span className="k-row-e oh-row-meta">{end}</span> : null}

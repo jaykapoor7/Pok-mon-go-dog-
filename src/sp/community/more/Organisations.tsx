@@ -34,7 +34,7 @@ export function Organisations({ orgs, impacts }: { orgs: DirectoryOrg[]; impacts
   const cols: Col<DirectoryOrg>[] = [
     { key: "name", label: "Organisation", width: "minmax(0, 1.6fr)", render: (o) => o.name },
     { key: "city", label: "City", width: "minmax(0, 1fr)", render: (o) => [o.city, o.state].filter(Boolean).join(", ") || "Place not published" },
-    { key: "what", label: "What they do", width: "minmax(0, 2fr)", render: (o) => <span title={o.mission ?? undefined}>{o.mission ?? o.kind}</span> },
+    { key: "what", label: "What they do", width: "minmax(0, 2fr)", render: (o) => <span title={o.mission ?? undefined}>{o.mission ?? "Not published"}</span> },
     { key: "kind", label: "Kind", width: "112px", render: (o) => o.kind },
     { key: "rec", label: "Records published", width: "minmax(0, 1.6fr)", render: (o) => records(o) },
   ];
@@ -43,7 +43,7 @@ export function Organisations({ orgs, impacts }: { orgs: DirectoryOrg[]; impacts
       <Head title="Organisations"
         sum={!orgs.length ? "The directory could not be read just now." : <><b>{orgs.length}</b> organisations whose work is on StrayPaw. Being listed is not an endorsement or a rating.</>} />
       <Tools end={<SearchBox value={q} onChange={setQ} placeholder="Name, city or work" label="Search organisations" />}>
-        <Lanes<Kind> label="Kind of organisation" value={kind} onChange={setKind} lanes={[{ id: "all", label: "All", count: found.length }, ...KINDS.filter((k) => orgs.some((o) => o.kind === k)).map((k) => ({ id: k as Kind, label: `${k}s`, count: found.filter((o) => o.kind === k).length }))]} />
+        {KINDS.filter((k) => orgs.some((o) => o.kind === k)).length > 1 ? <Lanes<Kind> label="Kind of organisation" value={kind} onChange={setKind} lanes={[{ id: "all", label: "All", count: found.length }, ...KINDS.filter((k) => orgs.some((o) => o.kind === k)).map((k) => ({ id: k as Kind, label: `${k}s`, count: found.filter((o) => o.kind === k).length }))]} /> : null}
       </Tools>
       <Panel>
         <Table label="Organisations" cols={cols} rows={rows} rowKey={(o) => o.id} href={(o) => `/community/organisations/${o.slug}`}
