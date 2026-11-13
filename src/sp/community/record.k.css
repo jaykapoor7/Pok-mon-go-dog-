@@ -1,0 +1,46 @@
+/* My activity and the public animal record: only what the page kit does not already give. Colours are the theme's. */
+.rk-quiet { margin: 0; padding: 12px 8px; color: var(--n-text-2); font-size: 14px; line-height: 20px; }
+.rk-fine { max-width: 88ch; margin: 8px 0 0; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.rk-prose { max-width: 72ch; margin: 0; color: var(--n-text); font-size: 14px; line-height: 20px; }
+.rk-link { color: var(--n-blue); text-decoration: underline; text-decoration-color: var(--n-blue-soft); text-underline-offset: 3px; }
+.rk-unknown { color: var(--n-text-2); }
+.rk-tools { display: flex; margin-bottom: 12px; }
+
+/* A followed animal: the row opens the record, the small control beside it stops following. */
+.rk-follow { display: flex; align-items: center; }
+.rk-follow .k-row { flex: 1; min-width: 0; }
+.rk-thumb { flex: none; width: 32px; height: 32px; overflow: hidden; border-radius: 4px; background: var(--n-fill); }
+.rk-thumb .portrait, .rk-thumb .portrait > * { display: grid; place-items: center; width: 32px; height: 32px; margin: 0; border-radius: 0; background: none; color: var(--n-text-3); }
+.rk-thumb img { width: 32px; height: 32px; object-fit: cover; }
+.rk-un { flex: none; display: grid; place-items: center; width: 32px; height: 32px; margin-right: 4px; border: 0; border-radius: 8px; background: none; color: var(--n-text-2); cursor: pointer; }
+.rk-un:hover { background: var(--n-hover); color: var(--n-text); }
+.rk-un:focus-visible { outline: 2px solid var(--n-blue); }
+
+/* The animal record's head: a small portrait, the name, its ID, one line. */
+.rk-head { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 16px; }
+.rk-pic { width: 120px; height: 120px; overflow: hidden; border-radius: 8px; background: var(--n-fill); }
+.rk-pic .portrait { position: relative; width: 120px; height: 120px; margin: 0; border-radius: 0; aspect-ratio: auto; }
+.rk-pic .portrait img { width: 120px; height: 120px; object-fit: cover; }
+.rk-pic .portrait-none { display: grid; place-content: center; gap: 4px; width: 120px; height: 120px; box-sizing: border-box; padding: 8px; background: none; color: var(--n-text-2); font-size: 12px; line-height: 16px; text-align: center; }
+.rk-pic .portrait-none b { font-weight: 500; }
+.rk-pic .portrait-veil { position: absolute; inset: 0; font-size: 12px; }
+.rk-id { display: grid; gap: 4px; min-width: 0; }
+.rk-code { margin: 0; color: var(--n-text); font: 400 12px/16px var(--s3-mono, ui-monospace, monospace); }
+.rk-code span { color: var(--n-text-2); font-family: var(--s3-sans, Inter, system-ui); }
+.rk-id .k-sum { margin-top: 0; }
+.rk-acts { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; margin-top: 8px; }
+.rk-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rk-actions .rk-fine { flex-basis: 100%; margin: 0; }
+.rk-area { display: block; width: 100%; max-width: 320px; height: auto; }
+.rk-notes { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--n-line); border-bottom: 1px solid var(--n-line); }
+.rk-notes li { padding: 8px; }
+.rk-notes li + li { border-top: 1px solid var(--n-line); }
+.rk-notes p { margin: 0; color: var(--n-text); font-size: 14px; line-height: 20px; }
+.rk-notes small { color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.rk .k-row-e time { white-space: nowrap; }
+@media (max-width: 860px) {
+  .rk-head { grid-template-columns: 80px minmax(0, 1fr); gap: 12px; }
+  .rk-pic, .rk-pic .portrait, .rk-pic .portrait img, .rk-pic .portrait-none { width: 80px; height: 80px; }
+  .rk-pic .portrait-none span { display: none; }
+  .rk-un { width: 40px; height: 40px; }
+}

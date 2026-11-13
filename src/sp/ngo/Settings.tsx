@@ -4,16 +4,17 @@
    public sees, and where its private controls live. Saved through the
    profile RPC, which checks membership. */
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FileUp, GitBranch, Plug, Users } from "lucide-react";
 import { getMyOrg } from "@/lib/actions";
 import type { NGO } from "@/lib/types";
+import { Btn, Head, Note, Page, Panel, Row, Rows, Section } from "@/ws/kit";
 import { Ack } from "../ui";
 import { Reading } from "../ui/Reading";
 import { saveOrgProfile, type Receipt } from "../data/work";
 import { ReportDeadline } from "./ReportDeadline";
 import { NgoGate } from "./Gate";
-import "./ngo.css";
+import "./org.k.css";
 
 type F = { mission: string; about: string; website: string; contact_email: string; contact_phone: string; city: string; state: string; registration_no: string; founded_year: string; areas: string };
 
@@ -38,34 +39,46 @@ export function Settings() {
 
   return (
     <NgoGate title="Settings" lede="Your organisation's profile and where its controls live.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{org && org !== "error" ? org.name : "Your organisation"} · settings</p><h1 className="serif">Settings</h1></div>
-          <p className="ngo-sum">{org && org !== "error" ? (org.verified ? "Verified organisation · your public profile" : "Your public profile") : null}</p>
-          <div className="row">{org && org !== "error" && org.slug && <Link className="btn is-s" href={`/community/organisations/${org.slug}`}>Your public page</Link>}<Link className="btn is-s" href="/ngo/settings/connections">Connections</Link></div>
-        </header>
-        {org === "error" && <p className="im-err"><Ack state="failed">Your organisation&rsquo;s profile could not be read.</Ack></p>}
+      <Page width="narrow">
+        <Head title="Settings"
+          sum={org === null ? <Reading>Reading your organisation</Reading> : org === "error" ? "Your organisation's profile could not be read." : <><b>{org.name}</b>{org.verified ? ", a verified organisation" : ""}. What you save here is your public profile.</>}
+          actions={org && org !== "error" && org.slug ? <Btn href={`/community/organisations/${org.slug}`}>Your public page</Btn> : undefined} />
+        {org === "error" && <Note tone="flame"><Ack state="failed">Your organisation&rsquo;s profile could not be read.</Ack></Note>}
         {f && (
-          <form className="st-grid" onSubmit={(e) => { e.preventDefault(); void save(); }}>
-            <section className="st-sec">
-              <h2 className="h3">Public profile</h2>
-              <div className="field"><label htmlFor="st-m">Mission <span className="small">one sentence</span></label><input id="st-m" className="input" value={f.mission} onChange={set("mission")} maxLength={200} /></div>
-              <div className="field"><label htmlFor="st-a">About</label><textarea id="st-a" className="textarea" value={f.about} onChange={set("about")} rows={6} /></div>
-              <div className="field"><label htmlFor="st-w">Areas of work <span className="small">comma separated</span></label><input id="st-w" className="input" value={f.areas} onChange={set("areas")} placeholder="Rescue, ABC, vaccination" /></div>
-              <div className="st-two"><div className="field"><label htmlFor="st-c">City</label><input id="st-c" className="input" value={f.city} onChange={set("city")} /></div><div className="field"><label htmlFor="st-s">State</label><input id="st-s" className="input" value={f.state} onChange={set("state")} /></div></div>
-            </section>
-            <section className="st-sec">
-              <h2 className="h3">Contact and registration</h2>
-              <div className="field"><label htmlFor="st-web">Website</label><input id="st-web" className="input" type="url" value={f.website} onChange={set("website")} /></div>
-              <div className="field"><label htmlFor="st-e">Public email <span className="small">optional</span></label><input id="st-e" className="input" type="email" value={f.contact_email} onChange={set("contact_email")} /></div>
-              <div className="field"><label htmlFor="st-p">Public phone <span className="small">optional</span></label><input id="st-p" className="input" inputMode="tel" value={f.contact_phone} onChange={set("contact_phone")} /></div>
-              <div className="st-two"><div className="field"><label htmlFor="st-r">Registration no.</label><input id="st-r" className="input" value={f.registration_no} onChange={set("registration_no")} /></div><div className="field"><label htmlFor="st-y">Founded</label><input id="st-y" className="input" inputMode="numeric" value={f.founded_year} onChange={set("founded_year")} pattern="\d{4}" /></div></div>
-              <div className="st-save"><button type="submit" className="btn is-ink" disabled={busy}>{busy ? "Saving…" : "Save the profile"}</button><span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not saved: {r.error}</Ack>) : null}</span></div>
-            </section>
+          <form onSubmit={(e) => { e.preventDefault(); void save(); }}>
+            <Section title="Public profile">
+              <div className="og-form is-wide">
+                <div className="og-f"><label htmlFor="st-m">Mission <span className="og-opt">one sentence</span></label><input id="st-m" className="og-in" value={f.mission} onChange={set("mission")} maxLength={200} /></div>
+                <div className="og-f"><label htmlFor="st-a">About</label><textarea id="st-a" className="og-in" value={f.about} onChange={set("about")} rows={4} /></div>
+                <div className="og-f"><label htmlFor="st-w">Areas of work <span className="og-opt">comma separated</span></label><input id="st-w" className="og-in" value={f.areas} onChange={set("areas")} placeholder="Rescue, ABC, vaccination" /></div>
+                <div className="og-two"><div className="og-f"><label htmlFor="st-c">City</label><input id="st-c" className="og-in" value={f.city} onChange={set("city")} /></div><div className="og-f"><label htmlFor="st-s">State</label><input id="st-s" className="og-in" value={f.state} onChange={set("state")} /></div></div>
+              </div>
+            </Section>
+            <Section title="Contact and registration">
+              <div className="og-form is-wide">
+                <div className="og-f"><label htmlFor="st-web">Website</label><input id="st-web" className="og-in" type="url" value={f.website} onChange={set("website")} /></div>
+                <div className="og-two">
+                  <div className="og-f"><label htmlFor="st-e">Public email <span className="og-opt">optional</span></label><input id="st-e" className="og-in" type="email" value={f.contact_email} onChange={set("contact_email")} /></div>
+                  <div className="og-f"><label htmlFor="st-p">Public phone <span className="og-opt">optional</span></label><input id="st-p" className="og-in" inputMode="tel" value={f.contact_phone} onChange={set("contact_phone")} /></div>
+                </div>
+                <div className="og-two"><div className="og-f"><label htmlFor="st-r">Registration no.</label><input id="st-r" className="og-in" value={f.registration_no} onChange={set("registration_no")} /></div><div className="og-f"><label htmlFor="st-y">Founded</label><input id="st-y" className="og-in" inputMode="numeric" value={f.founded_year} onChange={set("founded_year")} pattern="\\d{4}" /></div></div>
+                <div className="og-go"><Btn type="submit" variant="primary" disabled={busy}>{busy ? "Saving…" : "Save the profile"}</Btn><span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not saved: {r.error}</Ack>) : null}</span></div>
+              </div>
+            </Section>
           </form>
         )}
         {f && <ReportDeadline />}
-      </div>
+        <Section title="More settings">
+          <Panel>
+            <Rows label="More settings">
+              <Row href="/ngo/team" icon={<Users size={14} />} title="Team" meta="Who belongs to your organisation and what each person can do" />
+              <Row href="/ngo/settings/policies" icon={<GitBranch size={14} />} title="Workflow policies" meta="Your procedure requirements, by version" />
+              <Row href="/ngo/settings/connections" icon={<Plug size={14} />} title="Connections" meta="The tools your organisation uses with Kaju" />
+              <Row href="/ngo/import" icon={<FileUp size={14} />} title="Import a register" meta="Bring in the spreadsheet your team already keeps" />
+            </Rows>
+          </Panel>
+        </Section>
+      </Page>
     </NgoGate>
   );
 }

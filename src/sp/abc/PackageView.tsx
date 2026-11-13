@@ -10,6 +10,7 @@ import { shortCode } from "@/lib/caseCode";
 import {useMembership} from '../shell/Shell';
 import {Reconciliation} from "./Reconciliation";
 import {OperationsPanel} from "../ngo/OperationsPanel";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { EVIDENCE_LABEL, NotEnabled, PACKAGE_LABEL, orgNames, packageAct, packageById, packageCases, packageEvents, type EvidenceKind, type Package, type PackageCase, type PackageEvent } from "@/lib/abc";
@@ -75,9 +76,9 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
 
   const claims = side === "reviewer" || ["admin", "coordinator"].includes(mem.role ?? "");
   const recordCols: Col<PackageCase>[] = [
-    { key: "rec", label: "Record", width: "minmax(0, 1.2fr)", render: (c) => c.title || c.case_code },
+    { key: "rec", label: "Record", width: "minmax(0, 1.2fr)", render: (c) => (side === "operator" ? <Link className="pv-open" href={`/ngo/verification/${c.case_id}`}>{c.title || c.case_code}</Link> : c.title || c.case_code) },
     { key: "code", label: "Code and place", render: (c) => [c.case_code ? shortCode(c.case_code) : null, c.city].filter(Boolean).join(" · ") },
-    { key: "ev", label: "Evidence", width: "minmax(0, 2fr)", render: (c) => <span className="pv-ev" onClick={(e) => { if ((e.target as HTMLElement).closest("a, button")) e.stopPropagation(); }}>{c.evidence.map((e, i) => e.url
+    { key: "ev", label: "Evidence", width: "minmax(0, 2fr)", render: (c) => <span className="pv-ev">{c.evidence.map((e, i) => e.url
       ? <EvidenceLink key={i} url={e.url}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}</EvidenceLink>
       : <span key={i}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}{e.location ? `: ${e.location}` : ""}</span>)}</span> },
     { key: "vet", label: "Signed by", render: (c) => c.vet_name ?? <span className="kx-none">Not recorded</span> },
@@ -85,7 +86,7 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
   ];
   const tone = (st: string): "flame" | "amber" | "blue" | "green" | "plain" => (st === "accepted" ? "green" : st === "returned" ? "flame" : st === "queried" || st === "partially_accepted" ? "amber" : st === "submitted" ? "blue" : "plain");
   const rp = pageOf(cases, recordPage, 25);
-  const records = <><Panel><Table cols={recordCols} rows={rp.slice} rowKey={(c) => c.case_id} href={side === "operator" ? (c) => `/ngo/verification/${c.case_id}` : undefined} label="Records in this package" empty={<p className="kx-quiet is-pad">No records in this package.</p>} /></Panel><Pager pg={rp.pg} pages={rp.pages} total={cases.length} size={25} onPage={setRecordPage} /></>;
+  const records = <><Panel><Table cols={recordCols} rows={rp.slice} rowKey={(c) => c.case_id} label="Records in this package" empty={<p className="kx-quiet is-pad">No records in this package.</p>} /></Panel><Pager pg={rp.pg} pages={rp.pages} total={cases.length} size={25} onPage={setRecordPage} /></>;
 
   return (
     <Page className="pv">
