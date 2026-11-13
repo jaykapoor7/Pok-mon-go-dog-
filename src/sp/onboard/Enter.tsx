@@ -260,18 +260,17 @@ function EnterShow() {
         <div className="en-side">
           <p className="en-org"><i>W</i>Ward 14 ABC Unit</p>
           <span className="en-quick">Quick actions <kbd>⌘K</kbd></span>
-          <ul><li className="is-on"><Home size={13} />Today</li></ul>
-          <small>Modules</small>
-          <ul><li><span className="en-sq c-flame" />Pipeline</li><li><span className="en-sq c-blue" />Animals</li><li><span className="en-sq c-green" />Reports</li></ul>
-          <small>Platform</small>
-          <ul><li><span className="en-sq c-ink" />Kaju</li></ul>
+          <ul><li className="is-on"><Home size={13} />Home</li><li><Sparkles size={13} />Kaju</li></ul>
+          <small>Work</small>
+          <ul><li><span className="en-sq c-flame" />Cases</li><li><span className="en-sq c-blue" />Animals</li><li><span className="en-sq c-green" />Reports</li></ul>
         </div>
         <div className="en-main">
-          <p className="en-hello">Good morning, Anita.<span>Here is your daily brief.</span></p>
+          <p className="en-tabs"><span className="is-on">Home</span><span>Cases</span><span>Laila</span></p>
+          <p className="en-hello">Good morning, Anita.<span>Three things need you today.</span></p>
           <ul className="en-rows">
             <li><span className="en-sq c-violet" /><span><b>ABC · Laila</b> is ready for your review</span><em className="t-violet">Review</em></li>
             <li><span className="en-sq c-flame" /><span><b>3 requests</b> from programme partners</span><em className="t-flame">1 overdue</em></li>
-            <li><span className="en-sq c-green" /><span><b>October&apos;s package</b> for the reviewing office</span><em className="t-green">Draft</em></li>
+            <li><span className="en-sq c-green" /><span><b>This month&apos;s report</b> for the reviewing office</span><em className="t-green">Draft</em></li>
           </ul>
           <div className="en-ask"><Sparkles size={13} />Ask Kaju anything about your programme…</div>
         </div>

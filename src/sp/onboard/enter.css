@@ -57,3 +57,27 @@
 .ob.is-enter .ob-cta:hover:not(:disabled) { background: #1c47ad; }
 .ob.is-enter .ob-cta:disabled { background: #e6e9ef; color: #6b7280; box-shadow: none; }
 .ob.is-enter .ob-input { height: 52px; }
+
+/* The preview beside the form is the app as it is now: a quiet page, a tree on the left, open pages as tabs. */
+.en-show { background: #f7f7f5 !important; }
+.en-show::before { display: none; }
+.en-win { box-shadow: rgba(15, 15, 15, .05) 0 0 0 1px, rgba(15, 15, 15, .08) 0 4px 12px, rgba(15, 15, 15, .12) 0 24px 48px -16px !important; color: #37352f; }
+.en-side { background: #f7f7f5; border-right-color: rgba(55, 53, 47, .09) !important; color: #5f5e5b !important; }
+.en-org { color: #37352f !important; }
+.en-org i { border-radius: 4px !important; background: #e3e2e0 !important; color: #37352f !important; }
+.en-quick { background: #1a73d4 !important; }
+.en-side li.is-on { background: rgba(55, 53, 47, .08) !important; color: #37352f !important; }
+.en-side li svg { color: #91918e !important; }
+.en-side small { border-top: 0 !important; color: #91918e !important; }
+.en-sq.c-ink { background: #37352f; }
+.en-main { padding-top: 0 !important; background: #fff !important; }
+.en-tabs { display: flex; gap: 4px; margin: 0 -16px 16px; padding: 8px 8px 0; box-shadow: inset 0 -1px 0 rgba(55, 53, 47, .09); color: #73726c; font-size: 12px; }
+.en-tabs span { padding: 4px 12px 8px; border-radius: 4px 4px 0 0; }
+.en-tabs .is-on { color: #37352f; box-shadow: inset 0 -2px 0 #37352f; font-weight: 500; }
+.en-hello { color: #37352f !important; font-weight: 600 !important; }
+.en-hello span { color: #73726c !important; font-size: 14px; font-weight: 400; letter-spacing: -.01em; }
+.en-rows { gap: 0 !important; }
+.en-rows li { border-radius: 0 !important; background: none !important; box-shadow: inset 0 -1px 0 rgba(55, 53, 47, .09) !important; color: #37352f !important; }
+.en-rows b { color: #37352f !important; }
+.en-ask { background: rgba(55, 53, 47, .04) !important; box-shadow: none !important; color: #73726c !important; }
+.en-cap { color: #73726c !important; }
