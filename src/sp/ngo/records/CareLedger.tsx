@@ -110,7 +110,7 @@ function MedicalCases({ lanes }: { lanes: ReactNode }) {
       <Tools>{lanes}</Tools>
       {d.state === "loading" ? <Panel><SkelRows label="Reading medical cases" /></Panel>
         : d.state === "failed" ? <Panel><div role="alert"><Empty title="Didn't load" action={<Btn onClick={load}>Try again</Btn>}>Medical cases could not be read. {friendlyError(d.error)} Nothing is shown as empty.</Empty></div></Panel>
-        : !medical.length ? <Panel><Empty title="No medical cases yet" action={<Btn href="/ngo/pipeline">Open the cases</Btn>}>Medical cases appear here.</Empty></Panel>
+        : !medical.length ? <Panel><Empty title="No medical cases yet" action={<Btn href="/ngo/rescues">Open the cases</Btn>}>Medical cases appear here.</Empty></Panel>
         : <>
           <Panel><Table cols={cols} rows={slice} rowKey={(c) => c.id} href={(c) => `/ngo/cases/${c.id}`} label="Medical cases" /></Panel>
           <Pager pg={pg} pages={pages} total={medical.length} size={PER} onPage={setPage} />

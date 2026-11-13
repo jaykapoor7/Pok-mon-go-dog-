@@ -1,10 +1,4 @@
-import { Pipeline } from "@/sp/ngo/Pipeline";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-export const metadata = { title: "Pipeline, StrayPaw NGO", robots: { index: false, follow: false } };
-
-/* NGO · Pipeline: the whole line of work on one board. Cases, Intake and
-   Sign-off & evidence are its working views. */
-export default function NgoPipelinePage() {
-  return <Pipeline />;
-}
+/* The single board is retired: the work is two lines, each on its own page. Old links land on Rescues. */
+export default function NgoPipelinePage() { redirect("/ngo/rescues"); }

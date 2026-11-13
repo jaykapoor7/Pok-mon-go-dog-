@@ -14,6 +14,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft, Camera, Check, HeartPulse, LifeBuoy, MapPin, Scissors, Search, Syringe, X } from "lucide-react";
 import type { IntakeData } from "@/lib/operations";
 import "./record.k.css";
@@ -67,8 +68,10 @@ export function IntakeDraft({ known, onSave, onCancel }: { known: KnownAnimal[];
     finally { saving.current = false; setBusy(false); }
   };
 
-  return (
-    <section className="rd" aria-label="Record a dog">
+  /* Drawn over the whole screen, outside the page, so nothing behind it shows through or shifts. */
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <section className="rd" role="dialog" aria-modal="true" aria-label="Record a dog">
       <header className="rd-top">
         {step > 0 ? <button type="button" className="rd-ib" onClick={() => setStep(step - 1)} aria-label="Back"><ArrowLeft size={20} aria-hidden /></button> : <span className="rd-ib" aria-hidden />}
         <ol className="rd-dots" aria-label={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}>{STEPS.map((s, i) => <li key={s} className={i === step ? "is-on" : i < step ? "is-done" : undefined} aria-hidden />)}</ol>
@@ -131,6 +134,7 @@ export function IntakeDraft({ known, onSave, onCancel }: { known: KnownAnimal[];
           : <button type="button" className="rd-go" disabled={busy} onClick={save}>{busy ? "Saving…" : "Save"}</button>}
         {step === 2 && !canNext ? <p className="rd-hint">{!located ? "Waiting for your location." : "Add the area and the city."}</p> : null}
       </footer> : null}
-    </section>
+    </section>,
+    document.body,
   );
 }

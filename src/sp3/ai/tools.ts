@@ -1,4 +1,5 @@
 import "server-only";
+import { shortCode } from "@/lib/caseCode";
 import { programmeFigures } from "./figures";
 import {DESTINATIONS,canDiscover,type Role} from "@/sp/shell/workspaces";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -406,13 +407,14 @@ async function intakeTool(text: string, ctx: ToolCtx): Promise<ToolOut> {
   const dogs = tags.length ? await ctx.db.from("dogs").select("id,name,straypaw_id,code,zone,sex").eq("ngo_id", ctx.orgId).or(tags.map((t) => `straypaw_id.eq.${clean(t)},code.eq.${clean(t)}`).join(",")).limit(20) : { data: [], error: null };
   if (dogs.error) return READ_FAILED;
   const animals = (dogs.data ?? []).flatMap((d) => [d.straypaw_id, d.code].filter(Boolean).map((tag) => ({ id: d.id, label: animalLabel(d), tag: tag as string, zone: d.zone, sex: d.sex })));
-  const openCases = (cases.data ?? []).map((c) => ({ id: c.id, label: c.case_code || c.title || "Open case", dogId: c.dog_id, zone: c.zone, occurredAt: c.occurred_at }));
+  const openCases = (cases.data ?? []).map((c) => ({ id: c.id, label: (c.case_code ? shortCode(c.case_code) : null) || c.title || "Open case", dogId: c.dog_id, zone: c.zone, occurredAt: c.occurred_at }));
   const plans = msgs.map((m, i) => planIntake(m, xs[i], { orgId: ctx.orgId as string, defaultCity: (org?.city as string | null) ?? null, animals, openCases, now }));
   return {
     data: plans.map((p) => ({ report: p.extracted.summary, missing: p.missing, blockers: p.blockers, duplicate: p.duplicate?.label ?? null, options: p.options.map((o) => ({ label: o.label, recommended: o.recommended })) })),
     summary: `Prepared ${plans.length} report${plans.length === 1 ? "" : "s"}; ${plans.filter((p) => p.clear).length} clear`,
     citations: plans.flatMap((p) => p.duplicate ? [{ id: p.duplicate.id, label: p.duplicate.label, href: `/ngo/cases/${p.duplicate.id}`, kind: "case" as const }] : []),
-    proposals: plans.flatMap((p) => p.options.filter((o) => o.recommended).map((o) => o.proposal)),
+    /* One obvious answer: that one, ready to confirm. No obvious answer (it may be an animal already on file): every choice, for the person to pick one. */
+    proposals: plans.flatMap((p) => { const rec = p.options.filter((o) => o.recommended); return (rec.length ? rec : p.options.slice(0, 3)).map((o) => o.proposal); }),
   };
 }
 async function packageTool(id: string, ctx: ToolCtx): Promise<ToolOut> {

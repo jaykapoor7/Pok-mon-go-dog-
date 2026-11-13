@@ -310,7 +310,13 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
   }
   if (/\b(prepare|paste|forward(?:ed)?|whatsapp)\b/.test(t) && q.length > 40) {
     const out = await call(acc, ctx, "prepare_intake", { text: q.replace(/^.*?(?:prepare|paste|forward(?:ed)?)[^:\n]*[:\n]/i, "") });
-    return done(out.ok === false ? (ctx.orgId ? out.summary : needsOrg) : `${out.summary}. Each prepared record is below; confirm the right option. Nothing is saved until you do.`);
+    if (out.ok === false) return done(ctx.orgId ? out.summary : needsOrg);
+    const plans = (Array.isArray(out.data) ? out.data : []) as { report: string; missing: string[]; blockers: string[]; duplicate: string | null }[];
+    const one = plans.length === 1 ? plans[0] : null;
+    if (!acc.proposals.length) return done(one?.blockers.length ? `I read this as **${one.report}**, but I need one thing first: ${one.blockers.join(", ").toLowerCase()}.` : "I could not turn that into a record. Add where it is and what happened, and paste it again.");
+    return done(one
+      ? `I read this as **${one.report}**.${one.duplicate ? ` It may be the same animal as **${one.duplicate}**, which is already open: choose whether to add it there or open a new case.` : ""}${one.missing.length ? ` Not in the message: ${one.missing.join(", ")}.` : ""} Confirm the one you want. Nothing is saved until you do.`
+      : `I read ${plans.length} reports and prepared each one below. Confirm the ones you want. Nothing is saved until you do.`);
   }
   if (/\b(check|review)\b.*\bpackage\b/.test(t)) {
     const id = ctx.pagePath?.match(/\/(?:city\/review|ngo\/packages)\/([0-9a-f-]{36})/i)?.[1];

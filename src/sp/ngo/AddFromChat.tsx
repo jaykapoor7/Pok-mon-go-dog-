@@ -24,7 +24,8 @@ export function AddFromChat() {
   const [text, setText] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const paste = async () => { try { const t = await navigator.clipboard.readText(); if (t.trim()) { setText(t.slice(0, 4000)); setNote(null); } else setNote("Nothing is copied yet. Copy the message in WhatsApp first."); } catch { setNote("Press and hold in the box and choose Paste."); } };
-  const read = () => { const t = text.trim(); if (!t) return; ai.setOpen(true); ai.ask(t, { display: t.length > 140 ? `${t.slice(0, 140)}…` : t }); };
+  const read = () => { const t = text.trim(); if (!t) return; ai.setOpen(true); /* Said plainly so Kaju treats it as a field message to turn into a record, not a question. The person sees their own words. */
+    ai.ask(`Pasted WhatsApp message:\n${t}`, { display: t.length > 140 ? `${t.slice(0, 140)}…` : t }); };
   return (
     <NgoGate title="Add an animal" lede="Paste the message your team sent. Kaju turns it into a record for you to confirm.">
       <Page width="narrow">
