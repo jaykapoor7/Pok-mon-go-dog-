@@ -17,6 +17,7 @@ import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, ArrowRightLeft, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, HeartHandshake, History, PawPrint, ShieldCheck, TriangleAlert, UserPlus } from "lucide-react";
 import { Btn, Head, Note, Page, Panel, Row, Rows, Section, Tag } from "@/ws/kit";
 import { AskKaju } from "../ui/Daily";
+import { KajuOffers } from "@/kaju/Offers";
 import { placeHome, usePlaces } from "@/oh/places";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { dueFollowups, isHistoricalCase, isStale, openCases, opsCounts, recentChanges, type Change, type DueFollowup, type OpenCase, type OpsCounts } from "@/lib/ops";
@@ -142,7 +143,7 @@ export function Brief() {
           : !d ? `${today}. Reading your day…`
           : <>{today}. {parts.length ? <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? " and " : ", ")}{p}</Fragment>)}.{liveLine}</> : <>Nothing changed since yesterday.{liveLine}</>}</>} />
 
-      <div className="hm3-ask"><p className="hm3-ask-k">Ask Kaju</p><AskKaju /></div>
+      <div className="hm3-ask"><p className="hm3-ask-k">Ask Kaju</p><AskKaju /><KajuOffers compact /></div>
 
       {d && d.unavailable.length > 0 && <Note tone="amber">Some parts could not be read: {d.unavailable.join(", ")}. Reload to retry.</Note>}
 
