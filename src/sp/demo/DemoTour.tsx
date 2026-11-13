@@ -64,7 +64,7 @@ export function DemoTour() {
   const [found, setFound] = useState(false);
   const [transit, setTransit] = useState<{ i: number; leaving: boolean } | null>(null);
   const [asked, setAsked] = useState(false);
-  const scrolled = useRef<string>("");
+  const scrolled = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setS(readTour());
@@ -87,7 +87,7 @@ export function DemoTour() {
     return () => window.clearTimeout(t);
   }, [transit, busy]);
 
-  useEffect(() => { const t = setTimeout(() => setTabs(!!document.querySelector(".sp-tabs")), 300); return () => clearTimeout(t); }, [pathname]);
+  useEffect(() => { const t = setTimeout(() => setTabs(!!document.querySelector(".ws-dock")), 300); return () => clearTimeout(t); }, [pathname]);
 
   const step = s && s.step < TOUR_DONE ? TOUR[s.step] : null;
   useEffect(() => { setAsked(false); }, [s?.step]);
@@ -108,12 +108,11 @@ export function DemoTour() {
       if (hit && hit !== el) {
         el?.classList.remove("sp-tour-hl");
         el = hit; el.classList.add("sp-tour-hl"); setFound(true);
-        const id = `${s.step}:${pathname}`;
         const r = hit.getBoundingClientRect();
         /* Keep it clear of the top bar and of this card. */
         const cardTop = document.querySelector(".dt")?.getBoundingClientRect().top ?? window.innerHeight;
-        if (scrolled.current !== id && (r.top < 72 || r.bottom > cardTop - 16)) {
-          scrolled.current = id;
+        if (scrolled.current !== hit && (r.top < 72 || r.bottom > cardTop - 16)) {
+          scrolled.current = hit;
           const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
           const room = cardTop - 72;
           const by = r.height < room ? r.top - 72 - Math.max(0, (room - r.height) / 3) : r.top - 72;
