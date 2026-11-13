@@ -150,3 +150,5 @@ a.dy-work-t:hover b { color: var(--dy-blue); }
 /* A quiet label between two groups in one lane ("Referred here", "Sent elsewhere"). */
 .sp.sx3.os.cn .dy-sub { margin: 16px 0 8px; color: var(--muted, #5b6474); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 .sp.sx3.os.cn .dy-sub:first-child { margin-top: 8px; }
+.dy-ff { position: relative; }
+.dy-ff .ff-line { margin: 0 0 8px; }
