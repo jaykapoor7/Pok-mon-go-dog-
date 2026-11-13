@@ -16,21 +16,17 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { getSurveys, isProjectSurvey } from "@/lib/surveys";
 import type { Survey } from "@/lib/types";
+import { Btn, Empty, Head, More, Note, Page, Panel, Table, Tag, type Col } from "@/ws/kit";
 import { useMembership } from "../../shell/Shell";
-import { Ack, State, day, n } from "../../ui";
+import { Ack, day, n } from "../../ui";
 import { Reading } from "../../ui/Reading";
 import { startSurvey, type Receipt } from "../../data/work-outreach";
 import { NgoGate } from "../Gate";
-import "../ngo.css";
-import "./outreach.css";
+import "../org.k.css";
 
-export function RegisterTabs({ on }: { on: "projects" | "surveys" }) {
-  return (
-    <nav className="tabs or-tabs" aria-label="Field registers">
-      <Link href="/ngo/projects" aria-current={on === "projects" ? "page" : undefined}>Projects</Link>
-      <Link href="/ngo/surveys" aria-current={on === "surveys" ? "page" : undefined}>Surveys and census</Link>
-    </nav>
-  );
+/* Kept for callers: Projects and Surveys are now views of Drives in the frame, which draws the tabs. */
+export function RegisterTabs(_: { on: "projects" | "surveys" }) {
+  return null;
 }
 
 export function Surveys() {
@@ -45,43 +41,37 @@ export function Surveys() {
     catch (e) { setRows(null); setFailed(e instanceof Error ? e.message : "The surveys could not be read."); }
   }, []);
   useEffect(() => { if (mem.member) void load(); }, [mem.member, load]);
+  const none = !!rows && rows.length === 0;
+
+  const cols: Col<Survey>[] = [
+    { key: "title", label: "Survey", width: "minmax(0, 1.2fr)", render: (s) => s.title },
+    { key: "what", label: "What is counted", width: "minmax(0, 1.4fr)", render: (s) => `Dog census${s.description ? ` · ${s.description.slice(0, 120)}` : ""}` },
+    { key: "status", label: "Status", width: "96px", render: (s) => <Tag tone={s.status === "active" ? "green" : "plain"}>{s.status.charAt(0).toUpperCase() + s.status.slice(1)}</Tag> },
+    { key: "created", label: "Created", width: "112px", render: (s) => day(s.created_at) },
+    { key: "acts", label: "", width: "auto", keep: true, align: "end", render: (s) => <span className="og-acts"><Btn small href={`/surveys/${s.id}`}>Open</Btn><Btn small variant="quiet" href={`/surveys/${s.id}/collect`}>Collect</Btn></span> },
+  ];
 
   return (
     <NgoGate title="Surveys and census" lede="Structured dog counts across wards, villages and districts.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · field registers</p><h1 className="serif">Surveys</h1></div>
-          <p className="ngo-sum">{rows ? <><b>{n(rows.length)}</b> survey{rows.length === 1 ? "" : "s"}. </> : failed ? "Your surveys could not be read. Nothing is shown as none. " : <><Reading>Reading your surveys</Reading>{" "}</>}Counts across wards, villages and districts, drawn on the map as they are collected.</p>
-          <div className="row"><button type="button" className="btn is-flame" aria-expanded={making} onClick={() => setMaking((v) => !v)}><Plus size={15} aria-hidden /> New survey</button></div>
-        </header>
-        <RegisterTabs on="surveys" />
-        {(making || (rows && rows.length === 0)) && <NewSurvey onCancel={rows && rows.length ? () => setMaking(false) : undefined} onDone={load} />}
-
+      <Page>
+        <Head title="Drives"
+          sum={<>{rows ? <><b>{n(rows.length)}</b> survey{rows.length === 1 ? "" : "s"}. </> : failed ? "Your surveys could not be read. Nothing is shown as none. " : <><Reading>Reading your surveys</Reading>{" "}</>}Counts across wards, villages and districts, drawn on the map as they are collected.</>}
+          actions={<Btn variant={making || none ? "plain" : "primary"} icon={<Plus size={14} />} aria-expanded={making || none} onClick={() => setMaking((v) => !v)}>New survey</Btn>} />
+        {(making || none) && <Panel pad><NewSurvey onCancel={rows && rows.length ? () => setMaking(false) : undefined} onDone={load} /></Panel>}
         {failed ? (
-          <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed}</State>
+          <Note tone="flame" action={<Btn small onClick={() => void load()}>Try again</Btn>}>Didn&rsquo;t load. {failed}</Note>
         ) : rows === null ? (
-          <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 140 }} /></div>
-        ) : rows.length === 0 ? (
-          <State art="ngo-empty" title="No surveys yet">Create one above, then add the areas your team will cover and collect counts on the map.</State>
+          <div className="og-skel" aria-busy="true"><i /><i /><i /></div>
         ) : (
-          <div className="or-scroll" role="region" aria-label="Surveys" tabIndex={0}>
-            <table className="or-table" style={{ minWidth: 640 }}>
-              <thead><tr><th>Survey</th><th>Status</th><th>Created</th><th /></tr></thead>
-              <tbody>
-                {rows.map((s) => (
-                  <tr key={s.id}>
-                    <td><b>{s.title}</b><small>Dog census{s.description ? ` · ${s.description.slice(0, 120)}` : ""}</small></td>
-                    <td><span className={`pill ${s.status === "active" ? "is-care" : "is-plain"}`} style={{ textTransform: "capitalize" }}>{s.status}</span></td>
-                    <td className="mono">{day(s.created_at)}</td>
-                    <td><div className="or-acts"><Link className="btn is-s" href={`/surveys/${s.id}`}>Open</Link><Link className="btn is-ghost is-s" href={`/surveys/${s.id}/collect`}>Collect</Link></div></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Panel>
+            <More items={rows} cap={12} noun="surveys">{(shown) => (
+              <Table label="Surveys" cols={cols} rows={shown} rowKey={(s) => s.id}
+                empty={<Empty title="No surveys yet">Create one above, then add the areas your team will cover and collect counts on the map.</Empty>} />
+            )}</More>
+          </Panel>
         )}
-        {all >= 200 && <p className="small ngo-foot" style={{ paddingTop: 12 }}>Showing the 200 most recent surveys and projects.</p>}
-      </div>
+        {all >= 200 && <p className="og-hint">Showing the 200 most recent surveys and projects.</p>}
+      </Page>
     </NgoGate>
   );
 }
@@ -92,16 +82,13 @@ function NewSurvey({ onCancel, onDone }: { onCancel?: () => void; onDone: () => 
   const [busy, setBusy] = useState(false);
   const [r, setR] = useState<(Receipt & { id?: string }) | null>(null);
   return (
-    <form className="or-band" onSubmit={async (e) => { e.preventDefault(); if (!title.trim()) return; setBusy(true); setR(null); const x = await startSurvey(title.trim(), desc.trim()); setR(x); setBusy(false); if (x.ok) { setTitle(""); setDesc(""); await onDone(); } }}>
-      <h2>A new survey</h2>
-      <div className="or-form">
-        <div className="field"><label htmlFor="sv-t">Title</label><input id="sv-t" className="input" value={title} onChange={(e) => setTitle(e.target.value)} required placeholder="e.g. Bengaluru stray dog census 2026" /></div>
-        <div className="field"><label htmlFor="sv-d">What is counted, and how <span className="small">optional</span></label><input id="sv-d" className="input" value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
-      </div>
-      <div className="or-send">
-        <button type="submit" className="btn is-ink" disabled={busy || !title.trim()}>{busy ? "Creating…" : "Create the survey"}</button>
-        {onCancel && <button type="button" className="btn is-ghost" onClick={onCancel}>Cancel</button>}
-        <span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}. {r.id && <Link className="link" href={`/surveys/${r.id}`}>Open it to add areas</Link>}</Ack> : <Ack state="failed">Not created: {r.error}</Ack>) : null}</span>
+    <form className="og-form" aria-label="A new survey" onSubmit={async (e) => { e.preventDefault(); if (!title.trim()) return; setBusy(true); setR(null); const x = await startSurvey(title.trim(), desc.trim()); setR(x); setBusy(false); if (x.ok) { setTitle(""); setDesc(""); await onDone(); } }}>
+      <div className="og-f"><label htmlFor="sv-t">Title</label><input id="sv-t" className="og-in" value={title} onChange={(e) => setTitle(e.target.value)} required placeholder="e.g. Bengaluru stray dog census 2026" /></div>
+      <div className="og-f"><label htmlFor="sv-d">What is counted, and how <span className="og-opt">optional</span></label><input id="sv-d" className="og-in" value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
+      <div className="og-go">
+        <Btn type="submit" variant="primary" disabled={busy || !title.trim()}>{busy ? "Creating…" : "Create the survey"}</Btn>
+        {onCancel && <Btn onClick={onCancel}>Cancel</Btn>}
+        <span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}. {r.id && <Link className="og-a" href={`/surveys/${r.id}`}>Open it to add areas</Link>}</Ack> : <Ack state="failed">Not created: {r.error}</Ack>) : null}</span>
       </div>
     </form>
   );

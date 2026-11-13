@@ -106,3 +106,7 @@
 .sp .k-page .dr-animal .portrait svg { width: 12px; height: 12px; }
 .sp .k-page .dr-animal .portrait-veil { padding: 0; }
 .dr-share { margin-top: 8px; }
+
+/* ── rows whose end holds more than fits on a phone ───────────────── */
+.og-date { width: 160px; }
+@media (max-width: 860px) { .k-row.og-wrap { flex-wrap: wrap; } .k-row.og-wrap .k-row-e { flex: 1 1 100%; flex-wrap: wrap; } .og-date { width: auto; flex: 1; } }

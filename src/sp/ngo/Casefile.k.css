@@ -1,0 +1,53 @@
+/* One animal: only what the kit does not give a record. A small portrait beside the head, the three recorded facts as tags,
+   care rows that open in place. Fluid, so it reads the same in a peek. */
+.ka2-top { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 4px; }
+.sp .ka2-photo .portrait { width: 96px; height: 96px; aspect-ratio: auto; border-radius: 8px; }
+.sp .ka2-photo .portrait.is-none { background: var(--n-tag); }
+.sp .ka2-photo .portrait-plate.is-glyph { color: var(--n-text-3); }
+.ka2-who { min-width: 0; }
+.ka2-who .k-head { align-items: flex-start; margin-bottom: 8px; }
+.ka2-k { display: inline-flex; align-items: center; gap: 4px; }
+.ka2-id { color: var(--n-text); font-variant-numeric: tabular-nums; }
+.ka2-facts { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+.ka2-facts li { display: inline-flex; }
+.ka2-line .k-note { flex-wrap: wrap; }
+.ka2-line .k-note b { font-weight: 600; }
+.ka2-note { max-width: 80ch; margin: 0 0 16px; color: var(--n-text-2); font-size: 14px; line-height: 20px; }
+.ka2-cap::first-letter { text-transform: uppercase; }
+.ka2 .k-split { margin-top: 16px; }
+
+/* care rows: the row is one line; a note opens under it */
+.ka2-row { display: flex; align-items: center; min-width: 0; }
+.ka2-row > .k-row { flex: 1; min-width: 0; }
+.ka2-row-e { padding-right: 8px; }
+.ka2-by { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ka2-chev { flex: none; width: 14px; color: var(--n-text-3); transition: transform .18s cubic-bezier(.2, .7, .2, 1); }
+.ka2-chev.is-on { transform: rotate(90deg); }
+.ka2-open { display: grid; gap: 8px; padding: 0 8px 12px 32px; color: var(--n-text); font-size: 14px; line-height: 20px; }
+.ka2-open p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.ka2-src summary { color: var(--n-blue); font-size: 12px; cursor: pointer; }
+.ka2-src p { margin-top: 8px; color: var(--n-text-2); font-size: 12px; line-height: 16px; white-space: pre-wrap; }
+.ka2 .k-row-e .dr-btn { color: var(--n-text-3); }
+
+/* what was reported on its cases (a shared panel): a plain section, no lines of its own */
+.sp .ka2-ops { margin-top: 24px; }
+.sp .ka2-ops .abc-sec { padding: 0; border: 0; }
+.sp.sx3 .sp-main .ka2-ops .ops-head h2 { margin: 0 0 8px; color: var(--n-text); font-size: 14px; font-weight: 600; line-height: 20px; letter-spacing: -.01em; }
+.sp .ka2-ops .abc-hist { border-top: 1px solid var(--n-line); border-bottom: 1px solid var(--n-line); }
+.sp .ka2-ops .abc-hist li { padding: 8px; border-top: 0; box-shadow: inset 0 1px 0 var(--n-line); }
+.sp .ka2-ops .abc-hist li:first-child { box-shadow: none; }
+
+@media (max-width: 860px) {
+  .ka2-top { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; }
+  .sp .ka2-photo .portrait { width: 64px; height: 64px; }
+  .ka2-by { display: none; }
+}
+@container peek (max-width: 520px) { .ka2-top { grid-template-columns: 64px minmax(0, 1fr); } .sp .ka2-photo .portrait { width: 64px; height: 64px; } }
+@media (prefers-reduced-motion: reduce) { .ka2-chev { transition: none; } }
+
+/* identifiers: the reason to retire one, and the form to add one, open under the list */
+.idn-retire { display: flex; align-items: center; gap: 8px; padding: 0 8px 8px; }
+.idn-retire .kx-in { flex: 1; }
+.idn-form { margin-top: 12px; }
+.idn-said { margin-top: 8px; }
+.idn-said:empty { display: none; }

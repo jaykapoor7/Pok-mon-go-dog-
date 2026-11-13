@@ -24,6 +24,7 @@ import { Portrait } from "../ui/Portrait";
 import { day, n } from "../ui";
 import { Pager, SkelRows } from "../abc/Pager";
 import { NgoGate } from "./Gate";
+import "./ngo.css";
 import "./animals.css";
 
 const PAGE = 20;

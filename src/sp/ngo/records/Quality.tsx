@@ -11,15 +11,18 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChevronRight, FileClock, ListChecks } from "lucide-react";
 import type { PartnerRecordRow } from "@/lib/partner-record-explorer";
+import { Btn, Empty, Head, More, Page, Panel, Row, Rows, Section, Split, Tag } from "@/ws/kit";
+import { usePageState } from "@/ws/store";
 import { useMembership } from "../../shell/Shell";
 import { LocalitySpellings } from "../KajuPrepared";
-import { Method, State, day, n } from "../../ui";
-import { Reading } from "../../ui/Reading";
+import { day, n } from "../../ui";
+import { SkelRows } from "../../abc/Pager";
 import { NgoGate } from "../Gate";
 import { ANIMAL_LIMIT, readQuality, type QualityInput } from "./read";
 import "../ngo.css";
-import "./records.css";
+import "./Quality.k.css";
 import { friendlyError } from "@/lib/friendly-error";
 
 const DAY = 86_400_000;
@@ -60,7 +63,7 @@ const SHOW = 50;
 export function Quality() {
   const mem = useMembership();
   const [d, setD] = useState<{ state: "loading" } | { state: "failed"; error: string } | { state: "read"; input: QualityInput }>({ state: "loading" });
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = usePageState<string | null>("queue", null);
   const load = useCallback(() => {
     setD({ state: "loading" });
     readQuality().then((input) => setD({ state: "read", input })).catch((e: unknown) => setD({ state: "failed", error: e instanceof Error ? e.message : "The read failed." }));
@@ -73,61 +76,51 @@ export function Quality() {
 
   return (
     <NgoGate title="Data quality" lede="Review queues for records that weaken matching, analysis or reporting.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">What needs cleaning</h1></div>
-          <p className="ngo-sum">{d.state === "loading" ? <Reading>Reading your records</Reading> : d.state === "failed" ? "Didn’t load. No queue is shown as zero." : total === 0 ? "Nothing to review in the records read." : <><b>{n(total)}</b> record{total === 1 ? "" : "s"} to review{d.state === "read" && d.input.partial ? <>, from the {n(checked)} most recent animals</> : null}. The original source stays as it is.</>}</p>
-        </header>
-        {/* One place for record quality: the related review screens and Kaju's spelling check. */}
-        <nav className="rq-hub" aria-label="Record quality">
-          <Link href="/ngo/animals/identity"><b>Identity & duplicates</b><small>Provisional animals and possible duplicates to confirm</small></Link>
-          <Link href="/ngo/review?cohort=history"><b>Imported records</b><small>Statuses from your registers, not yet confirmed</small></Link>
-          <Link href="/ngo/review"><b>Cases needing a decision</b><small>Open for months with nothing recorded</small></Link>
-        </nav>
-        <LocalitySpellings />
-        <div className="rc-body">
-          {d.state === "loading" && <div className="rc-skel" aria-label="Reading records"><span className="skel" /><span className="skel" /><span className="skel" /></div>}
-          {d.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>The review queues could not be read. {friendlyError(d.error)} No queue is shown as zero.</State>}
+      <Page>
+        <Head title="Animals" sum={d.state === "loading" ? "Reading your records…" : d.state === "failed" ? "Didn’t load. No queue is shown as zero." : total === 0 ? "Nothing to review in the records read." : <><b>{n(total)}</b> record{total === 1 ? "" : "s"} to review{d.state === "read" && d.input.partial ? <>, from the {n(checked)} most recent animals</> : null}. The original source stays as it is.</>} />
+        <Split side={<>
+          {/* One place for record quality: the related review screens and Kaju's spelling check. */}
+          <Section title="Also to review">
+            <Panel><Rows>
+              <Row href="/ngo/review?cohort=history" icon={<FileClock size={14} />} title="Imported records" meta="Statuses from your registers, not yet confirmed" />
+              <Row href="/ngo/review" icon={<ListChecks size={14} />} title="Cases needing a decision" meta="Open for months with nothing recorded" />
+            </Rows></Panel>
+          </Section>
+          <div className="rq2-sp"><LocalitySpellings /></div>
+        </>}>
+          {d.state === "loading" && <Panel><SkelRows n={7} label="Reading records" /></Panel>}
+          {d.state === "failed" && <Panel><div role="alert"><Empty title="Didn't load" action={<Btn onClick={load}>Try again</Btn>}>The review queues could not be read. {friendlyError(d.error)} No queue is shown as zero.</Empty></div></Panel>}
           {d.state === "read" && t && qs && (
-            <div className="rc-stack">
-              <Method items={[["Animals checked", checked < t.animals ? `${n(checked)} most recently seen of ${n(t.animals)}` : `all ${n(t.animals)}`], ["Records", `${n(t.cases)} cases, ${n(t.care)} care, ${n(t.followups)} follow-ups, ${n(t.outcomes)} outcomes`], ["Rules", "as in 1.0"]]} />
-              {t.animals === 0 && t.cases === 0 ? (
-                <State art="ngo-empty" title="Nothing to check yet" action={<Link className="btn is-ink" href="/ngo/import">Import your workbook</Link>}>Nothing to review yet.</State>
-              ) : (
-                <ol className="rc-queues">
+            t.animals === 0 && t.cases === 0 ? (
+              <Panel><Empty title="Nothing to check yet" action={<Btn variant="primary" href="/ngo/import">Import your workbook</Btn>}>Nothing to review yet.</Empty></Panel>
+            ) : (
+              <>
+                <Panel><ul className="k-rows" aria-label="Review queues">
                   {[...qs].sort((a, b) => Number(b.items.length > 0) - Number(a.items.length > 0)).map((q) => {
                     const id = `rc-q-${q.title.replace(/\W+/g, "-").toLowerCase()}`;
-                    const on = open === q.title;
+                    const on = open === q.title && q.items.length > 0;
+                    const inner = <><ChevronRight size={14} aria-hidden className={`rq2-chev${on ? " is-on" : ""}${q.items.length ? "" : " is-none"}`} /><span className="k-row-t"><b>{q.title}</b><small title={q.detail}>{q.detail}</small></span><span className="k-row-e">{q.items.length ? <Tag tone="amber">{n(q.items.length)}</Tag> : <span className="kx-none">0</span>}</span></>;
                     return (
-                      <li key={q.title} className={q.items.length ? "" : "is-clear"}>
-                        <div className="rc-q-row">
-                          <span className="rc-q-n serif" aria-hidden>{n(q.items.length)}</span>
-                          <span className="rc-q-main"><b>{q.title}<span className="sr">: {q.items.length}</span></b><small>{q.detail}</small></span>
-                          <span className="rc-q-act">
-                            {q.items.length > 0 && <button type="button" className="btn is-s" aria-expanded={on} aria-controls={id} onClick={() => setOpen(on ? null : q.title)}>{on ? "Hide" : "Show"}</button>}
-                            <Link className="btn is-ghost is-s" href={q.href}>{q.href.startsWith("/ngo/animals") ? "Register" : "Records"}</Link>
-                          </span>
-                        </div>
+                      <li key={q.title}>
+                        {q.items.length ? <button type="button" className="k-row" aria-expanded={on} aria-controls={id} onClick={() => setOpen(on ? null : q.title)}>{inner}</button> : <div className="k-row">{inner}</div>}
                         {on && (
-                          <ul id={id} className="rc-q-list">
-                            {q.items.slice(0, SHOW).map((it) => (
-                              <li key={it.key}>
-                                {it.href ? <Link href={it.href}><b>{it.label}</b><small className="mono">{it.sub}</small></Link> : <span><b>{it.label}</b><small className="mono">{it.sub}</small></span>}
-                              </li>
-                            ))}
-                            {q.items.length > SHOW && <li className="small">and {n(q.items.length - SHOW)} more. Open the {q.href.startsWith("/ngo/animals") ? "register" : "records explorer"} to see them all.</li>}
-                          </ul>
+                          <div id={id} className="rq2-list">
+                            <More items={q.items.slice(0, SHOW)} cap={8} noun="shown here">{(shown) => <ul className="k-rows">{shown.map((it) => (
+                              <li key={it.key}>{it.href ? <Link href={it.href} className="k-row"><span className="k-row-t"><b>{it.label}</b><small>{it.sub}</small></span><ChevronRight size={14} aria-hidden className="k-row-go" /></Link> : <div className="k-row"><span className="k-row-t"><b>{it.label}</b><small>{it.sub}</small></span></div>}</li>
+                            ))}</ul>}</More>
+                            <p className="kx-quiet is-pad">{q.items.length > SHOW ? <>and {n(q.items.length - SHOW)} more. </> : null}<Link href={q.href}>Open the {q.href.startsWith("/ngo/animals") ? "register" : "records"}</Link>{q.items.length > SHOW ? " to see them all." : null}</p>
+                          </div>
                         )}
                       </li>
                     );
                   })}
-                </ol>
-              )}
-              <p className="small">Checks the {n(ANIMAL_LIMIT)} most recently seen animals. Nothing here edits a record.</p>
-            </div>
+                </ul></Panel>
+                <p className="kx-quiet is-top">Checks the {n(ANIMAL_LIMIT)} most recently seen animals. Nothing here edits a record.</p>
+              </>
+            )
           )}
-        </div>
-      </div>
+        </Split>
+      </Page>
     </NgoGate>
   );
 }
