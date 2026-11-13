@@ -223,32 +223,24 @@ export function DemoTour() {
   }
 
   const next = s.step + 1 < n ? TOUR[s.step + 1] : null;
-  const label = !onScreen ? "Take me there" : !next ? "Finish the story" : `Next: ${next.chapter}`;
+  /* A small card: who you are now, one line of context, and the way on. The visitor looks around the workspace as they like; "Next" works from wherever they are. */
+  const label = !next ? "Finish the story" : `Next: ${next.chapter}`;
+  const line = step.short ?? step.body.split(/(?<=\.)\s/)[0];
   return (
     <>
       {cover}
-      <aside key={s.step} className={`dt${place}`} aria-label="Guided demo" aria-live="polite">
+      <aside key={s.step} className={`dt is-small${place}`} aria-label="Guided demo" aria-live="polite">
         <div className="dt-top">
           <span className="dt-k">Chapter {s.step + 1} of {n}<span className="dt-k-l"> · {step.chapter}</span></span>
-          <button type="button" className="dt-min" onClick={() => writeTour({ ...s, mode: "roam" })}>Explore freely <Minus size={14} aria-hidden /></button>
+          <button type="button" className="dt-min" aria-label="Hide the guide and explore freely" onClick={() => writeTour({ ...s, mode: "roam" })}><Minus size={14} aria-hidden /></button>
         </div>
         {bar(s.step)}
         <p className="dt-who"><i aria-hidden />{step.who}</p>
         <h2>{step.title}</h2>
-        <p>{step.body}</p>
-        {onScreen && (step.hint || step.ask) ? (
-          <div className="dt-do">
-            {step.hint ? <p className="dt-hint"><Sparkles size={14} aria-hidden /> {step.hint}{found && !step.ask ? " It is highlighted." : ""}</p> : null}
-            {step.ask ? <button type="button" className="dt-kaju" disabled={asked} onClick={() => askKaju(step.ask!)}><Sparkles size={14} aria-hidden />{asked ? "Kaju is answering" : `Ask Kaju: “${step.ask}”`}</button> : null}
-          </div>
-        ) : null}
+        <p>{line} Look around freely.</p>
         <div className="dt-act">
           <button type="button" className="dt-btn is-back" aria-label="Previous chapter" disabled={busy || s.step === 0} onClick={() => go(s.step - 1)}><ArrowLeft size={15} aria-hidden /></button>
-          <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => go(onScreen ? s.step + 1 : s.step)}>{busy ? "Opening…" : label} {!busy && <ArrowRight size={15} aria-hidden />}</button>
-        </div>
-        <div className="dt-foot">
-          <span className="dt-note">Every record here is illustrative.</span>
-          {roles}
+          <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => go(s.step + 1)}>{busy ? "Opening…" : label} {!busy && <ArrowRight size={15} aria-hidden />}</button>
         </div>
         {err && <p className="dt-err" role="alert">{err}</p>}
       </aside>

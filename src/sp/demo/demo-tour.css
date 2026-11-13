@@ -158,3 +158,9 @@
 .try-roles svg { grid-column: 2; grid-row: 1 / span 3; color: var(--dt-blue); }
 .try-note { margin: 0; color: var(--dt-grey); font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .try-story li { animation: none; } .try-start, .try-roles button { transition: none; } }
+
+/* The guide as a small card: it says where you are and gets out of the way. */
+.dt.is-small { width: min(320px, calc(100vw - 32px)); padding: 12px 16px 16px; gap: 8px; }
+.dt.is-small h2 { font-size: 16px; line-height: 24px; }
+.dt.is-small > p:not(.dt-who) { font-size: 14px; line-height: 20px; }
+.dt.is-small .dt-act { margin-top: 4px; }
