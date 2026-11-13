@@ -24,22 +24,22 @@ for (const path of ["/security/summary", "/for-ngos"]) {
   test(`${path} does not download the app shell, Kaju's panel or the sign-in sheet`, async ({ page }) => {
     await page.goto(path);
     const js = await scripts(page);
-    expect(js).not.toContain(SHELL);
-    expect(js).not.toContain(KAJU_PANEL);
-    expect(js).not.toContain(SIGN_IN_SHEET);
-    if (process.env.OH_E2E !== "1") expect(js).not.toContain(DEMO_TOUR);
+    expect(js.includes(SHELL), "the app shell was downloaded").toBe(false);
+    expect(js.includes(KAJU_PANEL), "Kaju's panel was downloaded").toBe(false);
+    expect(js.includes(SIGN_IN_SHEET), "the sign-in sheet was downloaded").toBe(false);
+    if (process.env.OH_E2E !== "1") expect(js.includes(DEMO_TOUR), "the guided demo was downloaded").toBe(false);
   });
 }
 
 test("an app page loads its shell and Kaju's panel, and the sign-in sheet when it is asked for", async ({ page }) => {
   await page.goto("/today");
   let js = await scripts(page);
-  expect(js).toContain(SHELL);
-  expect(js).toContain(KAJU_PANEL);
-  expect(js).not.toContain(SIGN_IN_SHEET);
+  expect(js.includes(SHELL), "the app shell is loaded").toBe(true);
+  expect(js.includes(KAJU_PANEL), "Kaju's panel is loaded").toBe(true);
+  expect(js.includes(SIGN_IN_SHEET), "the sign-in sheet waits until it is asked for").toBe(false);
 
   await page.getByRole("main").getByRole("button", { name: "Sign in", exact: true }).first().click();
   await expect(page.getByRole("dialog", { name: "Sign in to StrayPaw" })).toBeVisible();
   js = await scripts(page);
-  expect(js).toContain(SIGN_IN_SHEET);
+  expect(js.includes(SIGN_IN_SHEET), "the sign-in sheet is loaded once opened").toBe(true);
 });
