@@ -12,7 +12,10 @@ import { usePlaces } from "../places";
 import { call, daysFrom, fmtDate, select, today, useNames, useRead, HANDOFF, HANDOFF_KIND, RESULT, SAMPLE, SAMPLE_TYPE, SPECIES, type Area, type Handoff, type Place, type Sample } from "../data";
 import { Chip, Empty, Failed, Head, Loading, Page, Row, Rows, Section, Seg, Sheet, useToast } from "../ui";
 
-type Dog = { id: string; name: string | null; code: string | null; zone: string | null; vaccination_status: string | null };
+type Dog = { id: string; name: string | null; code: string | null; zone: string | null; vaccination_status: string | null; identifiers: string | null };
+/* Words worth comparing between a description and a register entry. A shared word is a hint for a person to check, never a match on its own. */
+const STOP = new Set(["dog", "animal", "the", "and", "with", "from", "near", "left", "right", "that", "this", "was", "has", "its"]);
+const words = (t: string | null | undefined) => new Set((t ?? "").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !STOP.has(w)));
 type ReqLane = "open" | "accepted" | "closed";
 
 export function PartnerRequests({ place }: { place: Place }) {
@@ -82,8 +85,11 @@ export function PartnerRequests({ place }: { place: Place }) {
 }
 
 function Outcome({ h, area, ngoId, institution, onClose, onDone }: { h: Handoff; area: string | null; ngoId: string | null; institution: string; onClose: () => void; onDone: (m: string) => void }) {
-  const dogs = useRead<Dog[]>(() => select<Dog>("dogs", ngoId && area ? { ngo_id: ngoId, zone: area } : { ngo_id: ngoId ?? "" }, "id,name,code,zone,vaccination_status", 100), `dogs:${ngoId}:${area}`, !!ngoId && h.kind === "animal_followup");
+  const dogs = useRead<Dog[]>(() => select<Dog>("dogs", ngoId && area ? { ngo_id: ngoId, zone: area } : { ngo_id: ngoId ?? "" }, "id,name,code,zone,vaccination_status,identifiers", 100), `dogs:${ngoId}:${area}`, !!ngoId && h.kind === "animal_followup");
   const [outcome, setOutcome] = useState(""), [animal, setAnimal] = useState(""), [decline, setDecline] = useState(false), [busy, setBusy] = useState(false), [err, setErr] = useState<string | null>(null);
+  /* Register entries that share a word with the reported description, best first: offered, never chosen for the person. */
+  const said = words(h.detail?.split("\n")[0].replace(/^Animal: /, ""));
+  const likely = !said.size ? [] : (dogs.data ?? []).map((d) => ({ d, n: [...words(`${d.name ?? ""} ${d.identifiers ?? ""}`)].filter((w) => said.has(w)).length })).filter((x) => x.n > 0).sort((a, b) => b.n - a.n).slice(0, 3);
   const save = async () => {
     setBusy(true); setErr(null);
     const r = await call("oh_handoff_act", { p_handoff: h.id, p_action: decline ? "decline" : "done", p_outcome: outcome, p_animal: animal || null });
@@ -95,10 +101,13 @@ function Outcome({ h, area, ngoId, institution, onClose, onDone }: { h: Handoff;
       {h.detail ? <Note><span style={{ whiteSpace: "pre-line" }}>{h.detail}</span></Note> : null}
       <label className="oh-field"><span>{decline ? "Why you cannot do this" : "What you found"}</span><textarea value={outcome} onChange={(e) => setOutcome(e.target.value)} maxLength={600} placeholder={decline ? "For example: outside our ward" : "For example: dog found alive, observed for ten days, healthy"} /></label>
       {h.kind === "animal_followup" && !decline ? (
+        <>
+        {likely.length ? <div className="oh-field"><span>Could it be one of these?</span><div className="oh-inline">{likely.map(({ d }) => <Btn key={d.id} small variant={animal === d.id ? "primary" : undefined} onClick={() => setAnimal(animal === d.id ? "" : d.id)}>{d.name ?? d.code}{d.identifiers ? ` · ${d.identifiers.slice(0, 40)}` : ""}</Btn>)}</div><small>Same words as the description. Check before you link.</small></div> : null}
         <label className="oh-field"><span>The animal on your register</span>
           <select value={animal} onChange={(e) => setAnimal(e.target.value)}><option value="">Not on the register, or not found</option>{(dogs.data ?? []).map((d) => <option key={d.id} value={d.id}>{d.name ?? d.code}{d.code && d.name ? ` · ${d.code}` : ""}{d.vaccination_status === "vaccinated" ? " · vaccinated" : ""}</option>)}</select>
           <small>Linking the animal keeps its history in one place.</small>
         </label>
+        </>
       ) : null}
       {h.kind === "animal_followup" && !decline ? <div><Btn icon={<FlaskConical size={14} />} href={`/workspace/${institution}/sample?handoff=${h.id}&area=${h.area_id ?? ""}&place=${encodeURIComponent(h.place ?? "")}`}>The animal is sick or died: send a sample</Btn></div> : null}
       <label className="oh-check"><input type="checkbox" checked={decline} onChange={(e) => setDecline(e.target.checked)} /><span>My team cannot take this on</span></label>
