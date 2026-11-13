@@ -1,4 +1,4 @@
-/* The guided demo: five real workspaces, in the order work passes between
+/* The guided demo: the citizen's chat and five real workspaces, in the order work passes between
    them. Every record is illustrative and labelled so. Visitors can leave
    the tour at any point and explore; the guide waits where they left. */
 
@@ -45,9 +45,10 @@ const NGO = "/workspace/f1000000-0000-4000-8000-000000000010";
 const LAB = "/workspace/f1000000-0000-4000-8000-000000000009";
 const PROGRAMME = "/programme/bengaluru-demo";
 
-/* One pass through the five workspaces, in the order work travels between them. Each stop is the real dashboard; the card says what just arrived and where it goes next. */
+/* One pass from the citizen through the five workspaces, in the order work travels between them. Each stop is the real dashboard; the card says what just arrived and where it goes next. */
 export const TOUR: TourStep[] = [
-  { role: "oh-clinician", path: HOSPITAL, chapter: "Hospital", who: "Hospital clinician", title: "A bite comes in", body: "Recorded here. The dog's details go to the NGO.", short: "Recorded here. The dog's details go to the NGO.", sel: ".k-lanes" },
+  { role: "oh-clinician", path: "/bite-help", chapter: "Citizen", who: "Anyone, no account", title: "A person reports a bite", body: "A chat, not a form. The notice goes to the nearest clinic.", short: "A chat, not a form. The notice goes to the nearest clinic.", sel: ".bc" },
+  { role: "oh-clinician", path: HOSPITAL, chapter: "Hospital", who: "Hospital clinician", title: "The notice arrives", body: "Bites and doses here. The dog's details go to the NGO.", short: "Bites and doses here. The dog's details go to the NGO.", sel: ".k-lanes" },
   { role: "oh-ngo", path: "/ngo", chapter: "NGO", who: "NGO coordinator", title: "The hospital's request arrives", body: "Find the dog, beside rescues and sterilisation.", short: "Find the dog, beside rescues and sterilisation.", sel: "main a[href^=\"/workspace/\"], .hm3-work" },
   { role: "oh-lab", path: LAB, chapter: "Laboratory", who: "Laboratory scientist", title: "The NGO's sample arrives", body: "Tested here. The result goes to every partner.", short: "Tested here. The result goes to every partner.", sel: ".k-lanes" },
   { role: "oh-programme", path: PROGRAMME, chapter: "Programme", who: "Programme lead", title: "The result lands", body: "Every partner's work, and what needs a decision.", short: "Every partner's work, and what needs a decision.", sel: ".oh-alert" },

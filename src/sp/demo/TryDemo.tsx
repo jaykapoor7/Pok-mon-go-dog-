@@ -56,7 +56,7 @@ export function TryDemo() {
     <div className="try">
       <p className="try-k">Live demo · illustrative data</p>
       <h1>See StrayPaw at work.</h1>
-      <p className="try-lede">Five real workspaces, each handing work to the next. Look around as long as you like.</p>
+      <p className="try-lede">A citizen&apos;s report, then five real workspaces, each handing work to the next. Look around as long as you like.</p>
       <div className="try-go">
         {/* A link, so it still starts the story if pressed before the page is interactive (/try?go=1 starts on load). */}
         <a href="/try?go=1" role="button" className="try-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening…" : <>Start the tour <ArrowRight size={17} aria-hidden /></>}</a>

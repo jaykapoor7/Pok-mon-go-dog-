@@ -147,8 +147,10 @@ test("another city's lead cannot open this programme", async ({ page }) => {
 
 test("the public finder lists centres and refers for what each lacks", async ({ page }) => {
   await page.goto("/bite-help");
-  await expect(page.getByRole("heading", { name: "Wound-Washing Unit · Koramangala" })).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByText(/Sends people to/).first()).toBeVisible();
+  await page.getByRole("button", { name: "No, none of these" }).click();
+  await page.getByRole("button", { name: /Show all \d+ centres/ }).click({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "Wound-Washing Unit · Koramangala" })).toBeVisible();
+  await expect(page.getByText(/^go to /).first()).toBeVisible();
   await page.getByLabel("I need").selectOption("wound_care");
   await expect(page.getByRole("heading", { name: /Whitefield/ })).toBeVisible();
 });

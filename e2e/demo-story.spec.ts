@@ -11,7 +11,7 @@ import { expect, test } from "@playwright/test";
 test.skip(process.env.OH_E2E !== "1", "Needs the demonstration site or a build pointed at staging");
 test.setTimeout(600_000);
 
-const CHAPTERS = ["Hospital", "NGO", "Laboratory", "Programme", "Municipal office"];
+const CHAPTERS = ["Citizen", "Hospital", "NGO", "Laboratory", "Programme", "Municipal office"];
 
 test("the story plays from the first chapter to the last, each one pointing at its screen", async ({ page }) => {
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });

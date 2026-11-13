@@ -103,7 +103,6 @@ export function ReviewInbox() {
       </Panel>
       <Pager pg={pg} pages={pages} total={shownTab.length} size={20} onPage={setPage} />
       {tab === "accepted" || tab === "all" ? <p className="kx-quiet is-top">Accepted means approved for payment. It is not a payment.</p> : null}
-      {office ? <p className="kx-quiet is-top">{office}. Only packages its operators have submitted appear here; drafts never do.</p> : null}
     </>
   );
 

@@ -111,7 +111,7 @@ export function OfficeStrip({ onOffice }: { onOffice?: (on: boolean) => void; pu
   return (
     <section className="mh-office" aria-label={`${office.name}: operations and decisions`}>
       <Head title={`${greeting()}${first ? `, ${first}` : ""}.`}
-        sum={<>{office.name}{office.city ? `, ${office.city}` : ""}: <b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"} waiting for your decision</b>{v.oldest !== null && v.waiting.length ? ` (oldest ${v.oldest === 0 ? "today" : `${v.oldest} ${v.oldest === 1 ? "day" : "days"}`})` : ""}, {v.withOperator.length} with the operator, {v.decided.length} decided in {year}.</>} />
+        sum={<><b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"} waiting for your decision</b>{v.oldest !== null && v.waiting.length ? ` (oldest ${v.oldest === 0 ? "today" : `${v.oldest} ${v.oldest === 1 ? "day" : "days"}`})` : ""}.</>} />
 
       <Section title={needs ? "Needs you today" : "Today"}>
         <Panel>
@@ -147,7 +147,7 @@ export function OfficeStrip({ onOffice }: { onOffice?: (on: boolean) => void; pu
             { label: "Payment evidence", value: paid === null || paid === 0 ? "None recorded" : money(String(paid)) },
           ]} />
         )}
-        <p className="mh-note">Accepted is not paid. Payment evidence is what your office records; StrayPaw does not process payments.{noAmount ? ` ${noAmount} ${noAmount === 1 ? "package has" : "packages have"} no contract amount.` : ""}</p>
+        <p className="mh-note">Accepted is not paid. StrayPaw does not process payments.{noAmount ? ` ${noAmount} ${noAmount === 1 ? "package has" : "packages have"} no contract amount.` : ""}</p>
       </Section>
 
       <Section title={v.ops.length === 1 ? "Operator" : "Operators"} count={v.ops.length === 1 ? null : v.ops.length} action={<Btn small variant="quiet" href="/city/contracts">Contracts and rates</Btn>}>
