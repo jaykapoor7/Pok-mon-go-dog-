@@ -8,12 +8,15 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ClipboardCheck, Undo2 } from "lucide-react";
 import { Btn, Head, Panel, Row, Rows, Section, Stats, Table, Tag, type Col } from "@/ws/kit";
-import { firstName, greeting } from "../ui/Daily";
+import { AskKaju, firstName, greeting } from "../ui/Daily";
+import "../ngo/brief.css";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myContext, orgNames, packageCases, packages, type AbcContext, type Package, type PackageCase } from "@/lib/abc";
 import { readContracts, readReconciliation, money, type Contract, type ContractRate, type Reconciliation } from "@/lib/reconciliation";
 import { isDecided, isVisibleToOffice, isWaitingOnOffice, isWithOperator } from "@/lib/machines/package";
 
+/* Only what Kaju answers from this office's own packages and the public record. */
+const ASK = ["What is waiting for me today?", "Which package has waited longest?", "Show ward coverage and sudden changes"];
 const days = (iso: string) => Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86_400_000));
 const REQUIRED = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"];
 const sum = (xs: (string | null)[]) => xs.reduce<number | null>((t, x) => (x === null || t === null ? t : t + Number(x)), 0);
@@ -112,6 +115,8 @@ export function OfficeStrip({ onOffice }: { onOffice?: (on: boolean) => void; pu
     <section className="mh-office" aria-label={`${office.name}: operations and decisions`}>
       <Head title={`${greeting()}${first ? `, ${first}` : ""}.`}
         sum={<><b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"} waiting for your decision</b>{v.oldest !== null && v.waiting.length ? ` (oldest ${v.oldest === 0 ? "today" : `${v.oldest} ${v.oldest === 1 ? "day" : "days"}`})` : ""}.</>} />
+
+      <div className="hm3-ask"><p className="hm3-ask-k">Ask Kaju</p><AskKaju questions={ASK} /></div>
 
       <Section title={needs ? "Needs you today" : "Today"}>
         <Panel>
