@@ -11,7 +11,6 @@ export const DESTINATIONS:Destination[]=[
  {workspace:'ngo',href:'/ngo/add',label:'Add an animal',short:'Add',icon:'list',group:'Work',primary:false,mobile:true,order:0.2,note:'The whole line of work on one board'},
  {workspace:'ngo',href:'/ngo/rescues',label:'Rescues',short:'Rescues',icon:'list',group:'Work',primary:true,mobile:true,order:0.3,note:'The whole line of work on one board'},
  {workspace:'ngo',href:'/ngo/sterilisation',label:'Sterilisation',short:'Sterilise',icon:'list',group:'Work',primary:true,mobile:false,order:0.4,note:'The whole line of work on one board'},
- {workspace:'ngo',href:'/ngo/pipeline',label:'Pipeline',short:'Pipeline',icon:'list',group:'Work',primary:true,mobile:true,order:0.5,note:'The whole line of work on one board'},
  {workspace:'ngo',href:'/ngo/training',label:'Training',icon:'grad',group:'Organisation',primary:false,note:'Courses, assignments and progress',flag:'training_lms'},
  {workspace:'ngo',href:'/ngo/animals/scan',label:'Scan to find',icon:'paw',group:'Animals',primary:false,note:'Microchip, RFID or QR',flag:'animal_identifiers'},
  {workspace:'ngo',href:'/ngo/readiness',label:'Readiness',icon:'list',group:'Organisation',primary:false,roles:['admin','coordinator'],flag:'readiness_board',listed:false},

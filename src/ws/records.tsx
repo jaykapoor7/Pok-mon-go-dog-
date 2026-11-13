@@ -37,9 +37,9 @@ const ID = "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})";
 export type RecordKind = { kind: string; label: string; icon: string; tone: string; re: RegExp; parent: (m: RegExpMatchArray) => string; View: ComponentType<{ m: RegExpMatchArray }> };
 
 export const RECORDS: RecordKind[] = [
-  { kind: "case", label: "Case", icon: "list", tone: "flame", re: new RegExp(`^/ngo/cases/${ID}$`), parent: () => "/ngo/pipeline", View: ({ m }) => <CasePage id={m[1]} /> },
+  { kind: "case", label: "Case", icon: "list", tone: "flame", re: new RegExp(`^/ngo/cases/${ID}$`), parent: () => "/ngo/rescues", View: ({ m }) => <CasePage id={m[1]} /> },
   { kind: "animal", label: "Animal", icon: "paw", tone: "blue", re: new RegExp(`^/ngo/animals/${ID}$`), parent: () => "/ngo/animals", View: ({ m }) => <Casefile id={m[1]} /> },
-  { kind: "signoff", label: "Sign-off", icon: "shield", tone: "violet", re: new RegExp(`^/ngo/verification/${ID}$`), parent: () => "/ngo/verification", View: ({ m }) => <VerificationCase id={m[1]} /> },
+  { kind: "signoff", label: "Sign-off", icon: "shield", tone: "violet", re: new RegExp(`^/ngo/verification/${ID}$`), parent: () => "/ngo/sterilisation", View: ({ m }) => <VerificationCase id={m[1]} /> },
   { kind: "package", label: "Report package", icon: "file", tone: "green", re: new RegExp(`^/ngo/packages/${ID}$`), parent: () => "/ngo/packages", View: ({ m }) => <PackageView id={m[1]} side="operator" /> },
   { kind: "review", label: "Submission", icon: "check", tone: "violet", re: new RegExp(`^/city/review/${ID}$`), parent: () => "/city/review", View: ({ m }) => <PackageView id={m[1]} side="reviewer" /> },
   { kind: "place-record", label: "Record", icon: "stethoscope", tone: "teal", re: new RegExp(`^/workspace/${ID}/record/${ID}$`), parent: (m) => `/workspace/${m[1]}`, View: ({ m }) => <PlaceRecord org={m[1]} id={m[2]} /> },

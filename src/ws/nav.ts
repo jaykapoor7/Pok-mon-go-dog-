@@ -33,8 +33,8 @@ type Group = { href?: string; label: string; icon: string; tone: string; views: 
 /* ── an NGO ───────────────────────────────────────────────────────── */
 const NGO_WORK: Group[] = [
   /* Two lines of work, each one page. Their older working views still open from inside them and keep the page lit. */
-  { label: "Rescues", icon: "heart", tone: "flame", create: { href: "/ngo/add", label: "Add an animal" }, match: ["/ngo/cases", "/ngo/work", "/ngo/inbox"], views: [["/ngo/rescues", "Rescues"]] },
-  { label: "Sterilisation", icon: "check", tone: "violet", match: ["/ngo/verification", "/ngo/review", "/ngo/pipeline"], views: [["/ngo/sterilisation", "Sterilisation"]] },
+  { label: "Rescues", icon: "heart", tone: "flame", create: { href: "/ngo/add", label: "Add an animal" }, match: ["/ngo/cases", "/ngo/work", "/ngo/inbox", "/ngo/pipeline", "/ngo/add"], views: [["/ngo/rescues", "Rescues"]] },
+  { label: "Sterilisation", icon: "check", tone: "violet", match: ["/ngo/verification", "/ngo/review"], views: [["/ngo/sterilisation", "Sterilisation"]] },
   { label: "Animals", icon: "paw", tone: "blue",
     match: ["/ngo/care", "/ngo/animals/identity", "/ngo/animals/scan", "/ngo/quality"], views: [["/ngo/animals", "All animals", { exact: true, match: ["/ngo/animals"] }], ["/ngo/map", "On the map"]] },
   { label: "Reports", icon: "file", tone: "green",
