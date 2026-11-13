@@ -1,0 +1,10 @@
+.au-msg { margin: 0 0 12px; padding: 8px 12px; border-radius: 8px; background: var(--t-green-bg); color: var(--t-green); font-size: 14px; line-height: 20px; }
+.au-msg.is-err { background: var(--t-red-bg); color: var(--t-red); }
+.au-sentence { margin: 0; color: var(--n-text); font-size: 16px; line-height: 40px; }
+.au-sentence select, .au-sentence input { height: 32px; margin: 0 4px; padding: 0 8px; border: 0; border-radius: 8px; background: var(--n-blue-soft); box-shadow: inset 0 -2px 0 var(--n-blue); color: var(--n-blue); font: 500 16px/24px var(--n-font); }
+.au-sentence input { width: 72px; }
+.au-sentence select:focus-visible, .au-sentence input:focus-visible { outline: 2px solid var(--n-blue); outline-offset: 2px; }
+.au-fine { margin: 8px 0 0; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.au-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 0; }
+.au-row-acts { display: inline-flex; align-items: center; gap: 4px; }
+@media (max-width: 860px) { .au-sentence select, .au-sentence input { height: 40px; } .au-row-acts { flex-wrap: wrap; justify-content: flex-end; } }

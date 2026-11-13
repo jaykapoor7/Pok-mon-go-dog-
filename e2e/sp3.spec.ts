@@ -98,12 +98,13 @@ test("the app shell carries workspace navigation, search and Kaju", async ({ pag
   if (!isMobile) {
     const side = page.getByRole("complementary", { name: "Workspace" });
     await expect(side.getByRole("link", { name: "Programmes" })).toHaveAttribute("aria-current", "page");
-    /* Kaju has one place of his own in the sidebar and a key in the status line; he is not a menu link. */
+    /* Every page is a tab; search and Kaju sit at the top of the sidebar. Kaju is a button, not a page link. */
+    await expect(page.getByRole("navigation", { name: "Open pages" }).getByRole("link", { name: "Programmes" })).toHaveAttribute("aria-current", "page");
+    await expect(side.getByRole("button", { name: /^Quick actions/ })).toBeVisible();
     await expect(side.getByRole("link", { name: "Kaju", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("contentinfo", { name: "Status" }).getByRole("button", { name: /Kaju/ })).toBeVisible();
-    await side.getByRole("button", { name: "Open Kaju" }).click();
+    await side.getByRole("button", { name: /^Kaju/ }).click();
   } else {
-    await page.getByRole("navigation", { name: /navigation/ }).getByRole("button", { name: "Kaju" }).click();
+    await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Kaju" }).click();
   }
   const panel = page.getByRole("complementary", { name: "Kaju" });
   await expect(panel).toBeVisible();

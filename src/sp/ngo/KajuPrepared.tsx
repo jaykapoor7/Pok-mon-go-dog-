@@ -13,12 +13,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { CalendarCheck, Check, CircleAlert, MapPin, Sparkles } from "lucide-react";
+import { CalendarCheck, Check, CircleAlert, MapPin } from "lucide-react";
+import { Btn, More, Panel, Row, Rows } from "@/ws/kit";
 import { getSupabase } from "@/lib/supabase";
 import { confirmMany, confirmVerified, type Saved as Result } from "@/sp3/ai/execute";
 import type { Proposal } from "@/sp3/ai/types";
 import type { LocalityGroup, PromisedReview, Stalled } from "@/sp3/ai/prepare";
 import { Reading } from "../ui/Reading";
+import "./cases.k.css";
 
 type Prepared = {
   checkedAt: string; unavailable: string[]; partial: string[];
@@ -68,50 +70,42 @@ export function KajuPrepared({ actor }: { actor: { id: string; name: string } })
   const action = (p: Proposal | undefined, verb: string) => {
     if (!p) return null;
     const s = status[p.id];
-    if (s?.state === "done") return <span className="kp-done" role="status"><Check size={13} aria-hidden />Scheduled · verified{s.href && <> · <Link href={s.href}>open</Link></>}</span>;
+    if (s?.state === "done") return <span className="kc-ok" role="status"><Check size={13} aria-hidden />Scheduled · verified{s.href && <> · <Link href={s.href}>open</Link></>}</span>;
     return <>
-      <button type="button" className="kp-act" disabled={s?.state === "saving" || batch} onClick={() => void confirm(p)}>{s?.state === "saving" ? "Saving…" : verb}</button>
-      {s?.state === "failed" && <small className="kp-err" role="alert">{s.error}</small>}
+      {s?.state === "failed" && <small className="kc-err" role="alert">{s.error}</small>}
+      <Btn small disabled={s?.state === "saving" || batch} onClick={() => void confirm(p)}>{s?.state === "saving" ? "Saving…" : verb}</Btn>
     </>;
   };
 
-  const [all, setAll] = useState(false);
-  if (failed) return <p className="kx-note" role="status">Prepared work could not be read. <button type="button" className="ai3-inline" onClick={() => void load()}>Try again</button></p>;
-  if (!d) return <p className="kx-note" aria-busy="true"><Reading>Kaju is reading your cases</Reading></p>;
+  if (failed) return <p className="kc-quiet" role="status">Prepared work could not be read. <button type="button" className="kc-link" onClick={() => void load()}>Try again</button></p>;
+  if (!d) return <p className="kc-quiet" aria-busy="true"><Reading>Kaju is reading your cases</Reading></p>;
 
   /* One list, most urgent first: quiet critical cases, promised reviews, then place spellings. */
-  type Item = { key: string; tone: string; icon: React.ReactNode; title: React.ReactNode; meta: string; side: React.ReactNode };
+  type Item = { key: string; tone: "flame" | "amber" | "blue" | "plain"; icon: React.ReactNode; title: React.ReactNode; meta: string; side: React.ReactNode };
   const items: Item[] = [
-    ...d.stalled.map((x) => ({ key: `s${x.caseId}`, tone: "flame", icon: <CircleAlert size={11} strokeWidth={2.4} />,
-      title: <><Link href={`/ngo/cases/${x.caseId}`}>{x.label}</Link> · no update for {x.quietDays} days</>,
+    ...d.stalled.map((x) => ({ key: `s${x.caseId}`, tone: "flame" as const, icon: <CircleAlert size={12} />,
+      title: <><Link className="kc-link" href={`/ngo/cases/${x.caseId}`}>{x.label}</Link> · no update for {x.quietDays} days</>,
       meta: [x.zone, x.holder ? `with ${x.holder}` : "unassigned"].filter(Boolean).join(" · "),
       side: action(proposalFor((p) => p.caseId === x.caseId && p.why.startsWith("Critical")), "Schedule check") })),
-    ...d.reviews.items.map((r) => ({ key: `r${r.eventId}${r.promisedFor}`, tone: r.state === "missed" ? "amber" : "blue", icon: <CalendarCheck size={11} strokeWidth={2.4} />,
-      title: <><Link href={`/ngo/animals/${r.dogId}`}>{r.dogLabel}</Link> · review {r.state === "missed" ? `was due ${fmt(r.promisedFor)}` : `due ${fmt(r.promisedFor)}`}</>,
+    ...d.reviews.items.map((r) => ({ key: `r${r.eventId}${r.promisedFor}`, tone: r.state === "missed" ? "amber" as const : "blue" as const, icon: <CalendarCheck size={12} />,
+      title: <><Link className="kc-link" href={`/ngo/animals/${r.dogId}`}>{r.dogLabel}</Link> · review {r.state === "missed" ? `was due ${fmt(r.promisedFor)}` : `due ${fmt(r.promisedFor)}`}</>,
       meta: r.zone ?? "",
       side: action(proposalFor((x) => x.dogId === r.dogId && x.why.includes(r.state === "missed" ? r.promisedFor : r.quote)), "Schedule") })),
-    ...(d.localities.length ? [{ key: "loc", tone: "slate", icon: <MapPin size={11} strokeWidth={2.4} />,
+    ...(d.localities.length ? [{ key: "loc", tone: "plain" as const, icon: <MapPin size={12} />,
       title: <>{d.localities[0].canonical} · spelled {d.localities[0].variants.length} ways</>,
       meta: d.localities.length > 1 ? `${d.localities.length - 1} more places too` : "Place names",
-      side: <Link className="kx-link" href="/ngo/quality">Review</Link> }] : []),
+      side: <Link className="kc-link" href="/ngo/quality">Review</Link> }] : []),
   ];
-  const shown = all ? items : items.slice(0, 3);
   return (
-    <div className="kx-block">
-      {items.length === 0 ? <p className="kx-calm"><Check size={14} aria-hidden /> All quiet. No critical case has gone silent and no promised review is missed.</p> : (
-        <ul className="kx-list">{shown.map((it) => (
-          <li key={it.key}>
-            <span className={`br-sq t-${it.tone}`} aria-hidden>{it.icon}</span>
-            <span className="kx-t"><span>{it.title}</span>{it.meta && <small>{it.meta}</small>}</span>
-            <span className="kx-side">{it.side}</span>
-          </li>))}</ul>
-      )}
-      <div className="kx-foot">
-        {items.length > 3 && <button type="button" className="kx-more" onClick={() => setAll((v) => !v)}>{all ? "Show fewer" : `${items.length - 3} more`}</button>}
-        {pending.length > 1 && <button type="button" className="kx-more" onClick={() => void confirmAll()} disabled={batch}>{batch ? "Scheduling…" : `Schedule all ${pending.length}`}</button>}
-      </div>
-      {(d.unavailable.length > 0 || stopped) && <p className="kx-note" role="status">{stopped ?? `Could not read ${d.unavailable.join(", ")}.`}</p>}
-    </div>
+    <>
+      <Panel>
+        {items.length === 0 ? <p className="kc-quiet is-pad"><Check size={14} aria-hidden /> All quiet. No critical case has gone silent and no promised review is missed.</p> : (
+          <More items={items} cap={3}>{(shown) => <Rows label="Prepared by Kaju">{shown.map((it) => <Row key={it.key} tone={it.tone} icon={it.icon} title={it.title} meta={it.meta || undefined} end={it.side} />)}</Rows>}</More>
+        )}
+      </Panel>
+      {pending.length > 1 && <p className="kc-acts hm2-all"><Btn small disabled={batch} onClick={() => void confirmAll()}>{batch ? "Scheduling…" : `Schedule all ${pending.length}`}</Btn></p>}
+      {(d.unavailable.length > 0 || stopped) && <p className="kc-quiet" role="status">{stopped ?? `Could not read ${d.unavailable.join(", ")}.`}</p>}
+    </>
   );
 }
 

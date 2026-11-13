@@ -5,6 +5,9 @@ import {getSupabase} from '@/lib/supabase';
 import {useAi} from '@/sp3/ai/AiPanel';
 import {readSnapshot,type CheckSnapshot} from '@/sp3/ai/snapshots';
 import {Reading} from '../ui/Reading';
+import {ChevronRight,ShieldCheck} from 'lucide-react';
+import {Btn,Row,Rows,Tag} from '@/ws/kit';
+import './cases.k.css';
 const labels:Record<string,string>={overdue_followup:'Overdue follow-ups',missing_evidence:'Missing evidence',awaiting_vet:'Awaiting veterinary authorisation',open_clarification:'Municipal clarifications',programme_activity:'Programme activity',reporting_deadline:'Reporting deadline'};
 type Delivery={user_id:string;name:string;role:string;seen_at:string|null};
 export function KajuActivity({orgId}:{orgId:string}){
@@ -34,10 +37,10 @@ export function KajuActivity({orgId}:{orgId:string}){
   if(lead){const r=await db.rpc('kaju_check_delivery',{p_run:run.id});if(!r.error)setDelivery((r.data??[]) as Delivery[]);}};
  const seen=delivery?.filter(d=>d.seen_at)??[];const unseen=delivery?.filter(d=>!d.seen_at)??[];
  const rows=flagged.map(f=>({rule:f.rule,label:labels[f.rule]??f.rule.replaceAll('_',' '),n:f.configured===false?'Not set':f.count===null?'Unknown':String(f.count),links:f.records.filter((r,i,all)=>all.findIndex(x=>x.id===r.id)===i).slice(0,2)}));
- return <details className="kx-checks" onToggle={e=>{if((e.currentTarget as HTMLDetailsElement).open)void opened()}}>
-  <summary><span className="br-sq t-violet" aria-hidden>✓</span><span className="kx-t"><span>Record checks</span><small>{!current||current.loading?<Reading>Reading</Reading>:current.failed?'Could not be read':run?`${time(run.checked_at)}${stale?' · older than a day':''}`:'Not run yet'}</small></span><em className={flagged.length?'is-due':''}>{run?(flagged.length?`${flagged.length} to look at`:'All clear'):''}</em></summary>
-  {current?.failed&&<button type="button" className="kx-more" onClick={()=>void load()}>Read again</button>}
-  {rows.length>0&&<ul className="kx-list">{rows.map(r=><li key={r.rule}><span className="kx-n">{r.n}</span><span className="kx-t"><span>{r.label}</span>{r.links.length>0&&<small>{r.links.map((l,i)=><Fragment key={l.id}>{i>0&&' · '}<Link href={l.href}>{l.label.length>14?`${l.label.slice(0,12)}…`:l.label}</Link></Fragment>)}</small>}</span>{r.rule==='reporting_deadline'&&ai.role==='admin'?<Link className="kx-link" href="/ngo/settings">Set</Link>:<span/>}</li>)}</ul>}
-  <div className="kx-foot"><button type="button" className="kx-more" disabled={ai.busy||!ai.scope} onClick={()=>ai.ask('Run operational checks on my organisation. Explain the recorded gaps and prepare a report for review. Do not change any case or send a message.')}>{ai.busy?'Checking…':'Check again with Kaju'}</button>{lead&&delivery&&delivery.length>0&&<small className="kx-seen">Seen by {seen.length} of {delivery.length}</small>}</div>
+ return <details className="hm2-checks" onToggle={e=>{if((e.currentTarget as HTMLDetailsElement).open)void opened()}}>
+  <summary className="k-row"><span className="k-row-i" data-tone="violet" aria-hidden><ShieldCheck size={12}/></span><span className="k-row-t"><b>Record checks</b><small>{!current||current.loading?<Reading>Reading</Reading>:current.failed?'Could not be read':run?`${time(run.checked_at)}${stale?' · older than a day':''}`:'Not run yet'}</small></span>{run?<span className="k-row-e"><Tag tone={flagged.length?'amber':'green'}>{flagged.length?`${flagged.length} to look at`:'All clear'}</Tag></span>:null}<ChevronRight size={14} aria-hidden className="k-row-go"/></summary>
+  {current?.failed&&<p className="kc-acts hm2-all"><Btn small onClick={()=>void load()}>Read again</Btn></p>}
+  {rows.length>0&&<Rows label="What the last check found">{rows.map(r=><Row key={r.rule} title={r.label} meta={r.links.length>0?r.links.map((l,i)=><Fragment key={l.id}>{i>0&&' · '}<Link className="kc-link" href={l.href}>{l.label.length>14?`${l.label.slice(0,12)}…`:l.label}</Link></Fragment>):undefined} end={<><b className="hm2-n">{r.n}</b>{r.rule==='reporting_deadline'&&ai.role==='admin'?<Link className="kc-link" href="/ngo/settings">Set</Link>:null}</>}/>)}</Rows>}
+  <p className="kc-acts hm2-all"><Btn small disabled={ai.busy||!ai.scope} onClick={()=>ai.ask('Run operational checks on my organisation. Explain the recorded gaps and prepare a report for review. Do not change any case or send a message.')}>{ai.busy?'Checking…':'Check again with Kaju'}</Btn>{lead&&delivery&&delivery.length>0&&<small className="kc-hint">Seen by {seen.length} of {delivery.length}</small>}</p>
  </details>;
 }

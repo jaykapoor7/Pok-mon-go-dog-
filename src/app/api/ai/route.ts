@@ -39,7 +39,7 @@ export async function GET(req:Request) {
 export async function POST(req: Request) {
   let body: AiRequest;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
-  if (!Array.isArray(body?.messages) || body.messages.length > 40 || body.messages.some((m) => !m || !["user", "assistant"].includes(m.role) || typeof m.text !== "string" || m.text.length > 12000) || (body.context != null && (typeof body.context !== "object" || Array.isArray(body.context) || (body.context.path != null && typeof body.context.path !== "string") || (body.context.workspace != null && typeof body.context.workspace !== "string") || (body.context.scope != null && typeof body.context.scope !== "string")))) return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
+  if (!Array.isArray(body?.messages) || body.messages.length > 40 || body.messages.some((m) => !m || !["user", "assistant"].includes(m.role) || typeof m.text !== "string" || m.text.length > 12000) || (body.context != null && (typeof body.context !== "object" || Array.isArray(body.context) || (body.context.path != null && typeof body.context.path !== "string") || (body.context.workspace != null && typeof body.context.workspace !== "string") || (body.context.scope != null && typeof body.context.scope !== "string") || (body.context.title != null && (typeof body.context.title !== "string" || body.context.title.length > 300))))) return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
 
   const auth = req.headers.get("authorization");
   const token = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;

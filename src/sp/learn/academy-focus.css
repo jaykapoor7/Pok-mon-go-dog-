@@ -1,10 +1,1 @@
-/* Academy: one learning path, one activity and one original document in focus. */
-.sp .report-practice {padding:40px max(24px,5vw);display:grid;gap:24px;max-width:1000px;}.sp .report-practice>header h2 {font-size:32px;letter-spacing:-.035em;margin-bottom:12px;}.sp .report-practice>header p {max-width:58ch;line-height:1.6;font-size:16px;}
-@media(max-width:760px){
- .sp.sp-app .ex-dogs {grid-template-columns:repeat(5,minmax(0,1fr));}.sp.sp-app .ex-dog {width:100%;min-width:44px;min-height:44px;}.sp.sp-app .ex-sort li {grid-template-columns:1fr;gap:8px;}.sp.sp-app .ex-tally {flex-wrap:wrap;gap:8px;font-size:12px;}.sp.sp-app .ex-opts {gap:8px;}.sp.sp-app .ex-opt {padding:12px;min-height:48px;font-size:14px;}.sp.sp-app .ex-range {font-size:14px;}.sp.sp-app .ex input[type=range] {min-height:44px;}
- .sp.sp-app .lesson-nav-fold {padding:8px 16px;border-bottom:1px solid var(--line);}.sp.sp-app .ls-rail {padding:12px 0;border:0;}.sp.sp-app .ls-rail ol {display:grid;}.sp.sp-app .ls-rail ol a {white-space:normal;min-height:44px;}.sp.sp-app .ls-p {font-size:16px;}.sp.sp-app .ls-do {padding:24px 16px;}.sp.sp-app .ls-take .serif {font-size:20px;}.sp.sp-app .ls-nav {display:grid;}.sp.sp-app .ls-nav .btn {justify-content:space-between;}
- .sp.sp-app .resources-fold {margin:0 16px;border-bottom:1px solid var(--line);}.sp.sp-app .resources-fold .ws-sec {padding:16px 0;}.sp.sp-app .report-practice {padding:32px 16px;}.sp.sp-app .report-practice>header h2 {font-size:24px;}.sp.sp-app .rs-grid {grid-template-columns:1fr;}.sp.sp-app .rs-lines a {grid-template-columns:20px minmax(0,1fr);}.sp.sp-app .rs-lines a>.mono {grid-column:2;}.sp.sp-app .ac-more {grid-template-columns:1fr;}
-}
-.sp .ex .ex-question-progress {display:block;padding:0 0 12px;border:0;font-size:14px;color:var(--mute);}
-.sp .ex .ex-question-nav {display:flex;justify-content:space-between;gap:12px;padding-top:16px;border:0;}
-.sp .ex .ex-question-nav .btn {font-size:14px;min-height:44px;}
+/* The lesson and the practice report now use the page kit; what remains is in learn.css. */

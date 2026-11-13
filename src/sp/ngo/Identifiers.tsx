@@ -9,7 +9,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { useMembership } from "../shell/Shell";
+import { Btn, Panel, Section } from "@/ws/kit";
 import { Ack } from "../ui";
+import "./ngo.css";
+import "../abc/parts.k.css";
+import "./Casefile.k.css";
 
 export const ID_KINDS = { microchip: "Microchip", rfid_tag: "RFID tag", qr: "QR code", ear_tag: "Ear tag", collar_tag: "Collar tag" } as const;
 type Kind = keyof typeof ID_KINDS;
@@ -74,32 +78,29 @@ export function Identifiers({ dogId }: { dogId: string }) {
   }
 
   return (
-    <section className="cf-card idn" aria-labelledby="idn-h">
-      <h3 className="h3" id="idn-h">Identifiers <span className="mono small">{rows?.length ?? "—"}</span></h3>
-      {error ? <p role="alert">{error} <button className="btn is-s" onClick={() => void load()}>Read again</button></p>
-        : rows === null ? <p role="status">Reading identifiers…</p>
-        : rows.length ? <ul className="idn-list">{rows.map((r) => (
+    <Section title="Identifiers" count={rows ? rows.length : null} action={!adding ? <Btn small onClick={() => setAdding(true)}>Add identifier</Btn> : undefined}>
+      {error ? <p className="kx-said" data-tone="err" role="alert">{error} <Btn small onClick={() => void load()}>Read again</Btn></p>
+        : rows === null ? <p className="kx-quiet" role="status">Reading identifiers…</p>
+        : rows.length ? <Panel><ul className="k-rows">{rows.map((r) => (
           <li key={r.id}>
-            <span className="idn-kind">{ID_KINDS[r.kind]}</span><span className="mono idn-val">{r.value}</span>
-            {r.note && <small>{r.note}</small>}
-            {canRetire && (retiring === r.id
-              ? <span className="idn-retire"><input aria-label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why retire it?" maxLength={200} /><button className="btn is-s" disabled={busy} onClick={() => void retire(r.id)}>Retire</button><button className="btn is-s is-ghost" onClick={() => { setRetiring(null); setReason(""); }}>Cancel</button></span>
-              : <button className="btn is-s is-ghost idn-x" onClick={() => { setRetiring(r.id); setReason(""); }}>Retire</button>)}
-          </li>))}</ul>
-        : <p className="small">No microchip, tag or QR code yet.</p>}
-      {!adding ? <button type="button" className="btn is-s idn-open" onClick={() => setAdding(true)}>Add identifier</button> : <form className="idn-form" onSubmit={add}>
-        <label><span>Type</span><select value={kind} onChange={(e) => setKind(e.target.value as Kind)}>{Object.entries(ID_KINDS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
-        <label><span>Number</span><input value={value} onChange={(e) => setValue(e.target.value)} placeholder={kind === "microchip" ? "985 141 000 123 456" : "Scan or type"} inputMode={kind === "microchip" ? "numeric" : "text"} autoComplete="off" spellCheck={false} maxLength={80} required /></label>
-        <label className="idn-note"><span>Note <small>(optional)</small></span><input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Left shoulder, implanted at sterilisation" maxLength={200} /></label>
-        <div className="idn-act">
-          <button className="btn is-flame" type="submit" disabled={busy || !value.trim()}>{busy ? "Saving…" : "Add identifier"}</button>
-          {canScan && <button className="btn" type="button" onClick={() => { setKind("qr"); setScanning(true); }}>Scan QR</button>}
-          <button className="btn is-ghost" type="button" onClick={() => setAdding(false)}>Cancel</button>
+            <div className="k-row"><span className="k-row-t"><b className="kx-num">{r.value}</b><small>{ID_KINDS[r.kind]}{r.note ? ` · ${r.note}` : ""}</small></span>
+              {canRetire && retiring !== r.id ? <span className="k-row-e"><Btn small variant="quiet" onClick={() => { setRetiring(r.id); setReason(""); }}>Retire</Btn></span> : null}</div>
+            {canRetire && retiring === r.id ? <div className="idn-retire"><input className="kx-in" aria-label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why retire it?" maxLength={200} /><Btn small disabled={busy} onClick={() => void retire(r.id)}>Retire</Btn><Btn small variant="quiet" onClick={() => { setRetiring(null); setReason(""); }}>Cancel</Btn></div> : null}
+          </li>))}</ul></Panel>
+        : <p className="kx-quiet">No microchip, tag or QR code yet.</p>}
+      {adding ? <form className="kx-form idn-form" onSubmit={add}>
+        <label className="kx-f"><span>Type</span><select className="kx-in" value={kind} onChange={(e) => setKind(e.target.value as Kind)}>{Object.entries(ID_KINDS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
+        <label className="kx-f"><span>Number</span><input className="kx-in" value={value} onChange={(e) => setValue(e.target.value)} placeholder={kind === "microchip" ? "985 141 000 123 456" : "Scan or type"} inputMode={kind === "microchip" ? "numeric" : "text"} autoComplete="off" spellCheck={false} maxLength={80} required /></label>
+        <label className="kx-f"><span>Note (optional)</span><input className="kx-in" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Left shoulder, implanted at sterilisation" maxLength={200} /></label>
+        <div className="kx-acts">
+          <Btn type="submit" disabled={busy || !value.trim()}>{busy ? "Saving…" : "Add identifier"}</Btn>
+          {canScan && <Btn onClick={() => { setKind("qr"); setScanning(true); }}>Scan QR</Btn>}
+          <Btn variant="quiet" onClick={() => setAdding(false)}>Cancel</Btn>
         </div>
-      </form>}
-      <div aria-live="polite">{ack && <Ack state={ack.ok ? "saved" : "failed"}>{ack.text}</Ack>}</div>
+      </form> : null}
+      <div aria-live="polite" className="idn-said">{ack && <Ack state={ack.ok ? "saved" : "failed"}>{ack.text}</Ack>}</div>
       {scanning && <QrScan onClose={() => setScanning(false)} onRead={(text) => { setScanning(false); setValue(text.slice(0, 64)); }} />}
-    </section>
+    </Section>
   );
 }
 
@@ -131,7 +132,7 @@ export function QrScan({ onRead, onClose }: { onRead: (text: string) => void; on
       <div className="idn-scan-in">
         <video ref={video} playsInline muted />
         <p>{msg}</p>
-        <button className="btn" onClick={onClose}>Cancel</button>
+        <Btn onClick={onClose}>Cancel</Btn>
       </div>
     </div>
   );

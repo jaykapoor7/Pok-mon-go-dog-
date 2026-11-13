@@ -5,7 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
    show them, not by every page through the root layout (see
    src/components/nav/Chrome.tsx). Each is recognised by a string only its
    own module contains, so this holds whatever the chunks are called. */
-const SHELL = "sx3-acct-m"; /* src/sp/shell/Shell.tsx */
+const SHELL = "ws-phone-title"; /* src/sp/shell/Shell.tsx */
 const KAJU_PANEL = "sp3.ai.thread"; /* src/sp3/ai/AiPanel.tsx */
 const SIGN_IN_SHEET = "s3-signin-sheet"; /* src/components/auth/SignInSheet.tsx */
 const DEMO_TOUR = "dt-transit-who"; /* src/sp/demo/DemoTour.tsx, demonstration builds only */

@@ -14,7 +14,8 @@
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { Fragment, useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, ArrowRightLeft, ArrowUp, Check, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, PawPrint, ShieldCheck, Sparkles, TriangleAlert, UserPlus, X } from "lucide-react";
+import { ArrowRight, ArrowRightLeft, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, PawPrint, ShieldCheck, TriangleAlert, UserPlus } from "lucide-react";
+import { Btn, Head, Note, Page, Panel, Row, Rows, Section, Tag } from "@/ws/kit";
 import { AskKaju } from "../ui/Daily";
 import { placeHome, usePlaces } from "@/oh/places";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -26,9 +27,8 @@ import { Work } from "./Work";
 import { KajuActivity } from "./KajuActivity";
 import { KajuPrepared } from "./KajuPrepared";
 import { Journey } from "./Journey";
-import "../abc/abc.css";
+import "./cases.k.css";
 import "./brief.css";
-import "../ui/daily.css";
 
 const H = 3_600_000, DAY = 24 * H;
 const ago = (iso: string | null) => {
@@ -96,16 +96,16 @@ export function Brief() {
   /* Each role's own next steps first: a vet's procedures to authorise, a
      coordinator's records to review (when verification is switched on). */
   const abcTodo: Row[] = d ? (isVet
-    ? d.abc.filter((r) => stageOf(r) === "vet").slice(0, 3).map((r) => ({ key: `v${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || shortCode(r.case_code)}</b> needs your authorisation</>, meta: r.city ?? "ABC procedure", verb: "Sign off" }))
-    : reviews ? d.abc.filter((r) => stageOf(r) === "review").slice(0, 2).map((r) => ({ key: `r${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={10} strokeWidth={2.4} />, title: <><b>{r.title || shortCode(r.case_code)}</b> is ready for your review</>, verb: "Review it", meta: `Authorised by ${r.vet_name ?? "a veterinarian"}` }))
+    ? d.abc.filter((r) => stageOf(r) === "vet").slice(0, 3).map((r) => ({ key: `v${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={12} />, title: <><b>{r.title || shortCode(r.case_code)}</b> needs your authorisation</>, meta: r.city ?? "ABC procedure", verb: "Sign off" }))
+    : reviews ? d.abc.filter((r) => stageOf(r) === "review").slice(0, 2).map((r) => ({ key: `r${r.case_id}`, href: `/ngo/verification/${r.case_id}`, tone: "violet", icon: <ShieldCheck size={12} />, title: <><b>{r.title || shortCode(r.case_code)}</b> is ready for your review</>, verb: "Review it", meta: `Authorised by ${r.vet_name ?? "a veterinarian"}` }))
     : []) : [];
   const todo: Row[] = isVet ? abcTodo : d ? [
     ...abcTodo,
-    ...crit.slice(0, 2).map((c) => ({ key: `c${c.id}`, href: `/ngo/cases/${c.id}`, tone: "flame", icon: <CircleAlert size={10} strokeWidth={2.4} />, verb: "Assign it", title: <><b>{label(c)}</b> is critical and unassigned</>, meta: [c.zone || c.city, ago(c.occurred_at)].filter(Boolean).join(" · ") })),
-    ...overdue.slice(0, 2).map((f) => ({ key: `f${f.id}`, href: f.case_id ? `/ngo/cases/${f.case_id}` : "/ngo/work?focus=followup", tone: "amber", verb: "Open the case", icon: <CalendarClock size={10} strokeWidth={2.4} />, title: <>Follow-up for <b>{f.case_title || f.animal_name || "a case"}</b> was due {ago(f.due_at)}</>, meta: f.kind || "Follow-up" })),
-    ...(stale && reviews ? [{ key: "stale", href: "/ngo/work?cohort=decide", tone: "violet", verb: "Decide", icon: <TriangleAlert size={10} strokeWidth={2.4} />, title: <><b>{plural(stale, "case")}</b> {stale === 1 ? "is" : "are"} waiting on a decision</>, meta: "Open more than 90 days, nothing recorded for 30" }] : []),
-    ...(reviews ? [{ key: "pkg", href: "/ngo/packages", tone: "green", verb: "Prepare it", icon: <ClipboardList size={10} strokeWidth={2.4} />, title: <><b>{new Date().toLocaleDateString("en-GB", { month: "long" })}&apos;s report package</b> for the reviewing office</>, meta: "Report packages · Kaju prepares, you submit" }] : []),
-    ...(history && reviews ? [{ key: "hist", href: "/ngo/review", tone: "slate", verb: "Review imports", icon: <History size={10} strokeWidth={2.4} />, title: <><b>{plural(history, "imported record", "imported records")}</b> not yet confirmed</>, meta: "From registers you imported; not today's work" }] : []),
+    ...crit.slice(0, 2).map((c) => ({ key: `c${c.id}`, href: `/ngo/cases/${c.id}`, tone: "flame", icon: <CircleAlert size={12} />, verb: "Assign it", title: <><b>{label(c)}</b> is critical and unassigned</>, meta: [c.zone || c.city, ago(c.occurred_at)].filter(Boolean).join(" · ") })),
+    ...overdue.slice(0, 2).map((f) => ({ key: `f${f.id}`, href: f.case_id ? `/ngo/cases/${f.case_id}` : "/ngo/work?focus=followup", tone: "amber", verb: "Open the case", icon: <CalendarClock size={12} />, title: <>Follow-up for <b>{f.case_title || f.animal_name || "a case"}</b> was due {ago(f.due_at)}</>, meta: f.kind || "Follow-up" })),
+    ...(stale && reviews ? [{ key: "stale", href: "/ngo/work?cohort=decide", tone: "violet", verb: "Decide", icon: <TriangleAlert size={12} />, title: <><b>{plural(stale, "case")}</b> {stale === 1 ? "is" : "are"} waiting on a decision</>, meta: "Open more than 90 days, nothing recorded for 30" }] : []),
+    ...(reviews ? [{ key: "pkg", href: "/ngo/packages", tone: "green", verb: "Prepare it", icon: <ClipboardList size={12} />, title: <><b>{new Date().toLocaleDateString("en-GB", { month: "long" })}&apos;s report package</b> for the reviewing office</>, meta: "Report packages · Kaju prepares, you submit" }] : []),
+    ...(history && reviews ? [{ key: "hist", href: "/ngo/review", tone: "slate", verb: "Review imports", icon: <History size={12} />, title: <><b>{plural(history, "imported record", "imported records")}</b> not yet confirmed</>, meta: "From registers you imported; not today's work" }] : []),
   ] : [];
 
   /* With nothing waiting, a field worker's next step is still their main job: registering an animal. */
@@ -120,71 +120,55 @@ export function Brief() {
      what changed; what needs a person today, each row with its colour and
      tag; a line to ask Kaju; the line of work as it stands; Kaju's prepared
      work folded away. */
-  const partner = ngoPlace ? { key: "partners", href: placeHome(ngoPlace), tone: ngoPlace.handoffs_overdue ? "flame" : "blue", icon: <ArrowRightLeft size={10} strokeWidth={2.4} />, title: <><b>{ngoPlace.handoffs_open ? plural(ngoPlace.handoffs_open, "request") : "No requests"}</b> from programme partners</>, meta: ngoPlace.programmes.map((x) => x.name).join(", "), tag: ngoPlace.handoffs_overdue ? `${ngoPlace.handoffs_overdue} overdue` : ngoPlace.handoffs_open ? "Waiting" : "Clear", verb: "Answer" } as Row : null;
+  const partner = ngoPlace ? { key: "partners", href: placeHome(ngoPlace), tone: ngoPlace.handoffs_overdue ? "flame" : "blue", icon: <ArrowRightLeft size={12} />, title: <><b>{ngoPlace.handoffs_open ? plural(ngoPlace.handoffs_open, "request") : "No requests"}</b> from programme partners</>, meta: ngoPlace.programmes.map((x) => x.name).join(", "), tag: ngoPlace.handoffs_overdue ? `${ngoPlace.handoffs_overdue} overdue` : ngoPlace.handoffs_open ? "Waiting" : "Clear", verb: "Answer" } as Row : null;
   const list: Row[] = [...(next ? [next] : []), ...(partner && ngoPlace?.handoffs_open ? [partner] : []), ...rest].slice(0, 6);
   const more = Math.max(0, todo.length + (partner && ngoPlace?.handoffs_open ? 1 : 0) - list.length);
 
+  const TONES: Record<string, "flame" | "amber" | "green" | "blue" | "violet" | "plain"> = { flame: "flame", amber: "amber", green: "green", blue: "blue", violet: "violet", slate: "plain" };
+  const v = (k: string, x: number) => (d && d.unavailable.includes(k) ? null : x);
+  const parts: ReactNode[] = [];
+  const add = (n: number | null, one: string, many: string) => { if (n) parts.push(<b>{n} {n === 1 ? one : many}</b>); };
+  if (d) { add(fresh.length, "record was new or updated", "records were new or updated"); add(v("recent changes", closedNew.length), "case was closed", "cases were closed"); add(v("follow-ups", nOverdue), "follow-up is overdue", "follow-ups are overdue"); }
+  const live = d ? v("counts", nLive) : null;
+  const liveLine = live !== null ? <> <b>{live} {live === 1 ? "case is" : "cases are"} live.</b></> : null;
+
+  /* One screen: the greeting and what changed, what needs a person, a line for Kaju, the five stages, Kaju's work folded. */
   return (
-    <div className={`dy hm${role ? ` is-${role}` : ""}`}>
-      <header className="dy-head hm-head">
-        <h1 className="br-hello dy-hello">{greeting()}, {first}.<span>Here is your daily brief.</span></h1>
-        {failed ? <p className="dy-since">Home could not load just now. Your records are safe; try again in a moment, or open the <Link href="/ngo/pipeline">pipeline</Link>.</p>
-          : !d ? <div className="dy-skel" aria-hidden><i /><i /></div>
-          : <p className="dy-since"><span className="dy-date">{today}.</span> {(() => {
-              const v = (k: string, x: number) => d.unavailable.includes(k) ? null : x;
-              const parts: ReactNode[] = [];
-              const add = (n: number | null, one: string, many: string) => { if (n) parts.push(<b>{n} {n === 1 ? one : many}</b>); };
-              add(fresh.length, "record was new or updated", "records were new or updated");
-              add(v("recent changes", closedNew.length), "case was closed", "cases were closed");
-              add(v("follow-ups", nOverdue), "follow-up is overdue", "follow-ups are overdue");
-              const live = v("counts", nLive);
-              return parts.length ? <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? " and " : ", ")}{p}</Fragment>)}.{live !== null ? <> <b>{live} {live === 1 ? "case is" : "cases are"} live.</b></> : null}</>
-                : <>Nothing changed since yesterday.{live !== null ? <> <b>{live} {live === 1 ? "case is" : "cases are"} live.</b></> : null}</>;
-            })()}</p>}
-      </header>
+    <Page className={`hm2${role ? ` is-${role}` : ""}`}>
+      <Head title={`${greeting()}, ${first}.`}
+        sum={failed ? <>Home could not load just now. Your records are safe; try again in a moment, or open the <Link className="kc-link" href="/ngo/pipeline">pipeline</Link>.</>
+          : !d ? `${today}. Reading your day…`
+          : <>{today}. {parts.length ? <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? " and " : ", ")}{p}</Fragment>)}.{liveLine}</> : <>Nothing changed since yesterday.{liveLine}</>}</>} />
 
-      {d && d.unavailable.length > 0 && <p role="status" className="dy-warn">Some parts could not be read: {d.unavailable.join(", ")}. Open the pipeline to retry.</p>}
+      {d && d.unavailable.length > 0 && <Note tone="amber">Some parts could not be read: {d.unavailable.join(", ")}. Open the pipeline to retry.</Note>}
 
-      {d && <section className="dy-sec hm-first" aria-labelledby="dy-now-h">
-        <h2 id="dy-now-h" className="dy-h">{list.length ? "Needs you today" : "Today"}</h2>
-        {list.length ? (
-          <ul className="dy-list">{list.map((r, i) => (
-            <li key={r.key} style={{ ["--j" as string]: i }} className={i === 0 ? "is-first" : undefined}><Link href={r.href}>
-              <span className="dy-sq" data-c={r.tone} aria-hidden>{r.icon}</span>
-              <span className="dy-t"><span>{r.title}</span><small>{r.meta}</small></span>
-              <em className="dy-tag" data-c={r.tone}>{r.tag ?? TAG[r.tone] ?? "Open"}</em>
-              <span className="dy-go">{r.verb ?? "Open"}<ArrowRight size={13} aria-hidden /></span>
-            </Link></li>
-          ))}</ul>
-        ) : <p className="dy-clear"><span className="dy-check" aria-hidden><Check size={11} strokeWidth={3} /></span>{isVet ? "Nothing is waiting for your sign-off." : "You are all caught up. Nothing needs you today."}</p>}
-        {more > 0 ? <p className="dy-more"><Link href="/ngo/pipeline">{more} more on the board <ArrowRight size={13} aria-hidden /></Link></p> : null}
-      </section>}
+      {d ? <Section title={list.length ? "Needs you today" : "Today"} action={more > 0 ? <Btn small variant="quiet" href="/ngo/pipeline">{more} more on the board</Btn> : undefined}>
+        <Panel>
+          {list.length ? <Rows label="Needs you today">{list.map((r) => (
+            <Row key={r.key} href={r.href} tone={TONES[r.tone] ?? "plain"} icon={r.icon ?? <ArrowRight size={12} />} title={r.title} meta={r.meta} end={<Tag tone={TONES[r.tone] ?? "plain"}>{r.tag ?? TAG[r.tone] ?? "Open"}</Tag>} />
+          ))}</Rows> : <p className="kc-quiet is-pad" role="status">{isVet ? "Nothing is waiting for your sign-off." : "You are all caught up. Nothing needs you today."}</p>}
+        </Panel>
+      </Section> : <div aria-hidden><i className="kc-skel" /><i className="kc-skel" /><i className="kc-skel" /></div>}
 
-      <AskKaju />
+      <div className="hm2-ask"><AskKaju /></div>
 
-      {setup && <section className="dy-setup" aria-labelledby="dy-setup-h">
-        <header><h2 id="dy-setup-h">Set up {mem.org?.name ?? "your workspace"}</h2><button type="button" aria-label="Hide setup" onClick={hideSetup}><X size={15} aria-hidden /></button></header>
-        <p>Three steps and your records start here. Kaju can help with each one.</p>
-        <ol>
-          <li><Link href="/ngo/import"><span className="dy-sq" data-c="green" aria-hidden><FileSpreadsheet size={11} /></span><span><b>Bring your register</b><small>Excel or CSV, as it is. Imported rows stay labelled.</small></span><ArrowRight size={14} aria-hidden /></Link></li>
-          <li><Link href="/ngo/team"><span className="dy-sq" data-c="slate" aria-hidden><UserPlus size={11} /></span><span><b>Add your team</b><small>Field staff, vets and coordinators each get their own code.</small></span><ArrowRight size={14} aria-hidden /></Link></li>
-          <li><Link href="/ngo/field"><span className="dy-sq" data-c="amber" aria-hidden><PawPrint size={11} /></span><span><b>Register your first animal</b><small>Field mode works on a phone, with or without signal.</small></span><ArrowRight size={14} aria-hidden /></Link></li>
-        </ol>
-      </section>}
+      {setup && <Section title={`Set up ${mem.org?.name ?? "your workspace"}`} note="Three steps and your records start here. Kaju can help with each one." action={<Btn small variant="quiet" aria-label="Hide setup" onClick={hideSetup}>Hide</Btn>}>
+        <Panel><Rows>
+          <Row href="/ngo/import" tone="green" icon={<FileSpreadsheet size={12} />} title="Bring your register" meta="Excel or CSV, as it is. Imported rows stay labelled." />
+          <Row href="/ngo/team" icon={<UserPlus size={12} />} title="Add your team" meta="Field staff, vets and coordinators each get their own code." />
+          <Row href="/ngo/field" tone="amber" icon={<PawPrint size={12} />} title="Register your first animal" meta="Field mode works on a phone, with or without signal." />
+        </Rows></Panel>
+      </Section>}
 
-      {mem.org && <section className="dy-sec hm-line" aria-labelledby="dy-line-h">
-        <header className="dy-sec-head"><h2 id="dy-line-h" className="dy-h">The line today</h2><Link href="/ngo/pipeline">Open the board <ArrowRight size={13} aria-hidden /></Link></header>
+      {mem.org && <Section title="The line today" action={<Btn small variant="quiet" href="/ngo/pipeline">Open the board</Btn>}>
         <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />
-      </section>}
+      </Section>}
 
-      {d && !isVet && <details className="dy-kaju">
-        <summary><span className="dy-sq" data-c="ink" aria-hidden><Sparkles size={11} strokeWidth={2.4} /></span><span><b>From Kaju</b><small>Work prepared for you to confirm, and what Kaju checked</small></span><ArrowRight size={14} aria-hidden className="dy-kaju-go" /></summary>
-        <div className="dy-kaju-in">
-          <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />
-          {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
-        </div>
-      </details>}
-    </div>
+      {d && !isVet && <Section title="From Kaju" fold="kaju" open={false} note="Work prepared for you to confirm, and what Kaju checked">
+        <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />
+        {mem.org && <KajuActivity key={`activity:${mem.org.id}`} orgId={mem.org.id} />}
+      </Section>}
+    </Page>
   );
 }
 

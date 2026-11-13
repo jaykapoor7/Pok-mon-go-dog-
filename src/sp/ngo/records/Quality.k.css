@@ -1,0 +1,14 @@
+/* Data quality: a queue opens in place to show its records; Kaju's spelling check sits beside the queues as plain text. */
+.rq2-chev { flex: none; color: var(--n-text-3); transition: transform .18s cubic-bezier(.2, .7, .2, 1); }
+.rq2-chev.is-on { transform: rotate(90deg); }
+.rq2-chev.is-none { visibility: hidden; }
+.rq2-list { padding: 0 0 8px 24px; }
+.rq2-list .k-row { min-height: 40px; }
+.sp .rq2-sp { margin-top: 24px; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.sp .rq2-sp .rq-sp { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.sp.sx3 .sp-main .rq2-sp h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; color: var(--n-text); font-size: 14px; font-weight: 600; line-height: 20px; }
+.sp .rq2-sp p { margin: 0 0 8px; }
+.sp .rq2-sp ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.sp .rq2-sp li b { color: var(--n-text); font-weight: 500; }
+@media (max-width: 860px) { .rq2-list { padding-left: 0; } }
+@media (prefers-reduced-motion: reduce) { .rq2-chev { transition: none; } }

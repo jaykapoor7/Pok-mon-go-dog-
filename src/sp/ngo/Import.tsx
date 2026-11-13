@@ -15,15 +15,15 @@
    updates at once.
    ════════════════════════════════════════════════════════════════════ */
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, ArrowRight, Check, ChevronDown, FileSpreadsheet, RotateCcw, Upload } from "lucide-react";
+import { ArrowRight, RotateCcw, Upload } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { FIELDS, FIELD_LABEL, KIND_LABEL, readWorkbook, rereadSheet, summarise, type ImportRecord, type Mapping, type ReadSheet, type ReadWorkbook, type SheetKind } from "@/lib/ngo-import/read";
 import { useMembership } from "../shell/Shell";
+import { Btn, Head, Note, Page, Panel, Section, Stats, Table, Tag, type Col } from "@/ws/kit";
 import { n } from "../ui";
 import { NgoGate } from "./Gate";
-import "./ngo.css";
+import "./org.k.css";
 import "./import.css";
 
 type Totals = { animals: number; cases: number; care: number; followUps: number; already: number; held: number };
@@ -130,74 +130,80 @@ export function ImportFlow() {
   const total = book ? records().length : 0;
   const pct = total ? Math.round((sent / total) * 100) : 0;
 
-  return (
-      <div className="imx">
-        <header className="imx-head">
-          <p className="k">{mem.org?.name ?? "Your organisation"} · records</p>
-          <h1>Import your register.</h1>
-          <p>Your existing spreadsheet, as it is.</p>
-        </header>
+  const step = phase === "pick" || phase === "reading" ? 1 : phase === "review" ? 2 : 3;
+  const pastCols: Col<Past>[] = [
+    { key: "file", label: "File", width: "minmax(0, 2fr)", render: (b) => b.source_filename },
+    { key: "state", label: "Status", width: "112px", keep: true, render: (b) => <Tag tone={b.status === "imported" ? "green" : "amber"}>{b.status === "imported" ? "Imported" : "Not finished"}</Tag> },
+    { key: "rows", label: "Rows", width: "minmax(0, 1.4fr)", render: (b) => (b.status === "imported" ? `${n(b.rows_imported ?? 0)} rows` : "Import the same file again to continue") },
+    { key: "at", label: "Date", width: "104px", render: (b) => new Date(b.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) },
+  ];
 
-        {err && <p className="imx-err" role="alert"><AlertTriangle size={16} aria-hidden />{err}</p>}
+  return (
+      <Page width="narrow">
+        <Head title="Settings" sum="Import the register your team already keeps, as it is. Imported rows stay labelled as imported; sending the same file again adds only the new rows." />
+        <ol className="imk-steps" aria-label="Steps">
+          {["Choose a file", "Check what was read", "Confirm"].map((t, i) => <li key={t} aria-current={step === i + 1 ? "step" : undefined} className={step > i + 1 ? "is-done" : undefined}><span aria-hidden>{i + 1}</span>{t}</li>)}
+        </ol>
+
+        {err && <Note tone="flame">{err}</Note>}
 
         {(phase === "pick" || phase === "reading") && (
-          <section className="imx-pick">
-            <label className={`imx-drop${drag ? " is-over" : ""}`} onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={(e) => { e.preventDefault(); setDrag(false); void choose(e.dataTransfer.files?.[0] ?? null); }}>
-              {phase === "reading" ? <span className="imx-spin" aria-hidden /> : <Upload size={28} aria-hidden />}
-              <b>{phase === "reading" ? `Reading ${file?.name}…` : "Drop your register here, or choose it"}</b>
-              <small>Excel or CSV. Read on this device; phone numbers and contact columns never leave it.</small>
-              <input type="file" accept=".xlsx,.xls,.csv" disabled={phase === "reading"} onChange={(e) => void choose(e.target.files?.[0] ?? null)} aria-label="Choose a register to import" />
-            </label>
-            {past.length > 0 && <div className="imx-past"><h2>Earlier imports</h2><ul>{past.map((b) => <li key={b.id}><FileSpreadsheet size={16} aria-hidden /><span>{b.source_filename}</span><small>{b.status === "imported" ? `${n(b.rows_imported ?? 0)} rows · ${new Date(b.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : "Not finished: import the same file again to continue"}</small></li>)}</ul></div>}
-          </section>
+          <label className={`imk-drop${drag ? " is-over" : ""}`} onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={(e) => { e.preventDefault(); setDrag(false); void choose(e.dataTransfer.files?.[0] ?? null); }}>
+            {phase === "reading" ? <span className="imk-spin" aria-hidden /> : <Upload size={20} aria-hidden />}
+            <b>{phase === "reading" ? `Reading ${file?.name}…` : "Drop your register here, or choose it"}</b>
+            <small>Excel or CSV. Read on this device; phone numbers and contact columns never leave it.</small>
+            <input type="file" accept=".xlsx,.xls,.csv" disabled={phase === "reading"} onChange={(e) => void choose(e.target.files?.[0] ?? null)} aria-label="Choose a register to import" />
+          </label>
         )}
 
         {book && sum && (phase === "review" || phase === "importing" || phase === "paused") && (
-          <section className="imx-review">
-            <div className="imx-found">
-              <p className="imx-file"><FileSpreadsheet size={16} aria-hidden />{book.fileName}</p>
-              <h2>{plural(sum.records, "record")} about {plural(sum.animals, "animal")}.</h2>
-              <p className="imx-what">{[sum.rescue && plural(sum.rescue, "rescue"), sum.treatment && plural(sum.treatment, "treatment"), sum.sterilisation && plural(sum.sterilisation, "sterilisation"), sum.vaccination && plural(sum.vaccination, "vaccination"), sum.followUp && plural(sum.followUp, "follow-up"), sum.adoption && plural(sum.adoption, "adoption"), sum.animal && plural(sum.animal, "animal listed", "animals listed")].filter(Boolean).join(" · ")}</p>
-              {sum.notDogs > 0 && <p className="imx-note">{plural(sum.notDogs, "row")} about other animals or owned pets will be left out.</p>}
-            </div>
-
-            <ol className="imx-sheets">
-              {book.sheets.map((s) => <SheetRow key={s.name} s={s} busy={phase !== "review"} onKind={(k) => change(s.name, k)} onMap={(m) => change(s.name, s.kind, m, s.year)} onYear={(y) => change(s.name, s.kind, s.mapping, y)} />)}
-            </ol>
+          <>
+            <Section title={book.fileName} note={sum.notDogs > 0 ? `${plural(sum.notDogs, "row")} about other animals or owned pets will be left out.` : undefined}>
+              <p className="og-p"><b>{plural(sum.records, "record")} about {plural(sum.animals, "animal")}.</b> {[sum.rescue && plural(sum.rescue, "rescue"), sum.treatment && plural(sum.treatment, "treatment"), sum.sterilisation && plural(sum.sterilisation, "sterilisation"), sum.vaccination && plural(sum.vaccination, "vaccination"), sum.followUp && plural(sum.followUp, "follow-up"), sum.adoption && plural(sum.adoption, "adoption"), sum.animal && plural(sum.animal, "animal listed", "animals listed")].filter(Boolean).join(" · ")}</p>
+              <Panel className="imk-sheets">
+                <ol className="k-rows" aria-label="Sheets">
+                  {book.sheets.map((s) => <SheetRow key={s.name} s={s} busy={phase !== "review"} onKind={(k) => change(s.name, k)} onMap={(m) => change(s.name, s.kind, m, s.year)} onYear={(y) => change(s.name, s.kind, s.mapping, y)} />)}
+                </ol>
+              </Panel>
+            </Section>
 
             {phase === "review" && (
-              <div className="imx-go">
-                <button type="button" className="btn is-flame imx-btn" onClick={() => void go()} disabled={!total}>Import {plural(total, "record")}<ArrowRight size={18} aria-hidden /></button>
-                <button type="button" className="btn is-ghost" onClick={reset}>Choose another file</button>
+              <div className="og-go imk-go">
+                <Btn variant="primary" onClick={() => void go()} disabled={!total}>Import {plural(total, "record")}</Btn>
+                <Btn variant="quiet" onClick={reset}>Choose another file</Btn>
               </div>
             )}
             {(phase === "importing" || phase === "paused") && (
-              <div className="imx-progress" role="status" aria-live="polite">
-                <div className="imx-bar" aria-hidden><i style={{ width: `${pct}%` }} /></div>
-                <p><b>{n(sent)}</b> of {n(total)} records{phase === "importing" ? " · keep this page open" : ""}</p>
-                {phase === "paused" && <button type="button" className="btn is-ink" onClick={() => void go()}><RotateCcw size={16} aria-hidden />Continue from row {n(sent + 1)}</button>}
+              <div className="imk-progress" role="status" aria-live="polite">
+                <span className="og-bar is-fill" aria-hidden><i style={{ width: `${pct}%` }} /></span>
+                <p className="og-p"><b>{n(sent)}</b> of {n(total)} records{phase === "importing" ? " · keep this page open" : ""}</p>
+                {phase === "paused" && <div className="og-go"><Btn variant="primary" icon={<RotateCcw size={14} />} onClick={() => void go()}>Continue from row {n(sent + 1)}</Btn></div>}
               </div>
             )}
-          </section>
+          </>
         )}
 
         {phase === "done" && (
-          <section className="imx-done">
-            <p className="imx-ok"><Check size={20} aria-hidden />Imported</p>
-            <h2>{totals.animals ? `${plural(totals.animals, "new animal")} on your register.` : "Your register is up to date."}</h2>
-            <dl className="imx-figs">
-              <div><dt>New animals</dt><dd>{n(totals.animals)}</dd></div>
-              <div><dt>Cases</dt><dd>{n(totals.cases)}</dd></div>
-              <div><dt>Care records</dt><dd>{n(totals.care)}</dd></div>
-              <div><dt>Follow-ups ahead</dt><dd>{n(totals.followUps)}</dd></div>
-              {totals.already > 0 && <div><dt>Already imported</dt><dd>{n(totals.already)}</dd></div>}
-            </dl>
-            {held.length > 0 && <details className="imx-held"><summary>{plural(held.length, "row")} left out<ChevronDown size={16} aria-hidden /></summary><ul>{held.slice(0, 200).map((h, i) => <li key={i}><span className="mono">{h.sheet} · row {h.row}</span>{h.reason}</li>)}</ul></details>}
-            <p className="small">Open cases from the register wait in Historical review.</p>
-            <div className="imx-go"><Link className="btn is-ink" href="/ngo/animals">See your animals<ArrowRight size={16} aria-hidden /></Link><Link className="btn" href="/ngo/review?cohort=history">Historical review</Link><button type="button" className="btn is-ghost" onClick={reset}>Import another file</button></div>
-          </section>
+          <Section title="Imported">
+            <p className="og-p imk-done"><b>{totals.animals ? `${plural(totals.animals, "new animal")} on your register.` : "Your register is up to date."}</b> Open cases from the register wait in Historical review.</p>
+            <Stats label="What was imported" items={[
+              { label: "New animals", value: n(totals.animals) },
+              { label: "Cases", value: n(totals.cases) },
+              { label: "Care records", value: n(totals.care) },
+              { label: "Follow-ups ahead", value: n(totals.followUps) },
+              ...(totals.already > 0 ? [{ label: "Already imported", value: n(totals.already) }] : []),
+            ]} />
+            {held.length > 0 && <details className="imk-held"><summary>{plural(held.length, "row")} left out</summary><ul>{held.slice(0, 200).map((h, i) => <li key={i}><span className="og-mono">{h.sheet} · row {h.row}</span>{h.reason}</li>)}</ul></details>}
+            <div className="og-go imk-go"><Btn variant="primary" href="/ngo/animals" icon={<ArrowRight size={14} />}>See your animals</Btn><Btn href="/ngo/review?cohort=history">Historical review</Btn><Btn variant="quiet" onClick={reset}>Import another file</Btn></div>
+          </Section>
         )}
-      </div>
+
+        {past.length > 0 && (
+          <Section title="Earlier imports" count={past.length} fold="past" open={past.length <= 6}>
+            <Panel><Table label="Earlier imports" cols={pastCols} rows={past} rowKey={(b) => b.id} /></Panel>
+          </Section>
+        )}
+      </Page>
   );
 }
 
@@ -205,33 +211,35 @@ function SheetRow({ s, busy, onKind, onMap, onYear }: { s: ReadSheet; busy: bool
   const notes = s.records.filter((r) => r.notes.length);
   const thisYear = new Date().getFullYear();
   return (
-    <li className={`imx-sheet${s.kind === "skip" ? " is-skip" : ""}`}>
-      <div className="imx-sheet-top">
-        <span className="imx-sheet-name"><b>{s.name}</b><small>{s.kind === "skip" ? s.reason : `${n(s.records.length)} records${s.empty ? ` · ${n(s.empty)} blank or total rows skipped` : ""}`}</small></span>
-        <label className="imx-kind"><span className="sr-only">What {s.name} holds</span>
-          <select className="select" value={s.kind} disabled={busy} onChange={(e) => onKind(e.target.value as SheetKind)}>{KINDS.map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</select>
+    <li className={s.kind === "skip" ? "is-skip" : undefined}>
+      <div className="k-row og-wrap">
+        <span className="k-row-t"><b>{s.name}</b><small>{s.kind === "skip" ? s.reason : `${n(s.records.length)} records${s.empty ? ` · ${n(s.empty)} blank or total rows skipped` : ""}`}</small></span>
+        <label className="k-row-e"><span className="sr-only">What {s.name} holds</span>
+          <select className="og-in is-s" value={s.kind} disabled={busy} onChange={(e) => onKind(e.target.value as SheetKind)}>{KINDS.map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</select>
         </label>
       </div>
-      {s.kind !== "skip" && (s.yearless > 0 || s.privateColumns.length > 0 || notes.length > 0) && (
-        <p className="imx-sheet-facts">
-          {s.yearless > 0 && <span>Dates without a year read as{" "}
-            <select className="imx-year" value={s.year ?? thisYear} disabled={busy} onChange={(e) => onYear(Number(e.target.value))} aria-label={`Year for undated rows in ${s.name}`}>{Array.from({ length: 12 }, (_, i) => thisYear - i).map((y) => <option key={y} value={y}>{y}</option>)}</select>
-          </span>}
-          {s.privateColumns.length > 0 && <span>Kept private: {s.privateColumns.join(", ")}</span>}
-          {notes.length > 0 && <span>{plural(notes.length, "row")} with a cell that could not be read; the rest of the row is kept</span>}
-        </p>
-      )}
       {s.kind !== "skip" && (
-        <details className="imx-cols">
-          <summary>Columns<ChevronDown size={15} aria-hidden /></summary>
-          <div className="imx-fields">{FIELDS.map((f) => (
-            <label key={f}><span>{FIELD_LABEL[f]}</span>
-              <select className="select" value={s.mapping[f] ?? ""} disabled={busy} onChange={(e) => onMap({ ...s.mapping, [f]: e.target.value || undefined })}>
-                <option value="">Not in this sheet</option>{s.headers.filter((h) => !s.privateColumns.includes(h)).map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
-            </label>
-          ))}</div>
-        </details>
+        <div className="og-x is-flush imk-x">
+          {(s.yearless > 0 || s.privateColumns.length > 0 || notes.length > 0) && (
+            <p className="og-hint imk-facts">
+              {s.yearless > 0 && <span>Dates without a year read as{" "}
+                <select className="og-in is-s" value={s.year ?? thisYear} disabled={busy} onChange={(e) => onYear(Number(e.target.value))} aria-label={`Year for undated rows in ${s.name}`}>{Array.from({ length: 12 }, (_, i) => thisYear - i).map((y) => <option key={y} value={y}>{y}</option>)}</select>
+              </span>}
+              {s.privateColumns.length > 0 && <span>Kept private: {s.privateColumns.join(", ")}</span>}
+              {notes.length > 0 && <span>{plural(notes.length, "row")} with a cell that could not be read; the rest of the row is kept</span>}
+            </p>
+          )}
+          <details className="imk-cols">
+            <summary>Columns</summary>
+            <div className="imk-fields">{FIELDS.map((f) => (
+              <label key={f} className="og-f"><span className="og-hint">{FIELD_LABEL[f]}</span>
+                <select className="og-in is-s" value={s.mapping[f] ?? ""} disabled={busy} onChange={(e) => onMap({ ...s.mapping, [f]: e.target.value || undefined })}>
+                  <option value="">Not in this sheet</option>{s.headers.filter((h) => !s.privateColumns.includes(h)).map((h) => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </label>
+            ))}</div>
+          </details>
+        </div>
       )}
     </li>
   );

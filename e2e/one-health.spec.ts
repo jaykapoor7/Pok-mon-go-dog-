@@ -97,8 +97,8 @@ test("the programme lead sees the confirmed case and the care network", async ({
 test("a nurse records doses but cannot assess or prescribe", async ({ page }) => {
   await as(page, /Hospital nurse/);
   await page.goto(HOSPITAL);
-  await expect(page.getByRole("heading", { name: /daily brief/ })).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator(".dy-place", { hasText: "Teaching hospital" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Home" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("#oh-work")).toBeVisible({ timeout: 30_000 });
   await page.goto(`${HOSPITAL}/register`);
   await page.getByRole("link", { name: stamp }).click();
   await expect(page.getByRole("button", { name: "Prescribe a course" })).toHaveCount(0);
@@ -130,7 +130,7 @@ test("the hospital's nurse sees the referral without patient details and marks t
   await as(page, /Hospital nurse/);
   await page.goto(HOSPITAL);
   await page.getByRole("button", { name: /Referrals/ }).first().click();
-  const row = page.locator(".dy-work li", { hasText: code }).first();
+  const row = page.locator("#oh-work li", { hasText: code }).first();
   await expect(row).toBeVisible({ timeout: 30_000 });
   await expect(row).toContainText("Rabies immunoglobulin");
   await expect(page.locator("#oh-work")).not.toContainText(ref);

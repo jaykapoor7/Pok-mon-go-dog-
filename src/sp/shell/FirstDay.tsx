@@ -27,12 +27,12 @@ type Step = { sel: string; title: string; body: string };
 export type FirstAction = { href: string; label: string; note: string };
 
 const STEPS: Step[] = [
-  { sel: ".cn-place", title: "This is your place", body: "Everything on this screen belongs to it. If you work in more than one place, this is where you change." },
-  { sel: ".sx3-side .sx3-nav", title: "The menu is short on purpose", body: "Today, then the work, then your part in the programme. The current page sits on the white pill." },
-  { sel: ".hm-first, .hm-head, .oh-head", title: "One thing first", body: "Home names the one thing to do next and gives it one button. Start there each time you open StrayPaw." },
-  { sel: ".hm-line", title: "The line of work", body: "Every record moves left to right through these stages. A stage opens the board at that stage; a record shows where it is on the same line." },
-  { sel: ".cn-kaju", title: "Kaju", body: "Ask in plain words. Kaju finds records, checks them and prepares work. A person always confirms before anything is saved." },
-  { sel: ".cn-foot", title: "The status line", body: "Whether your records are reaching the register, where you are, and the two keys worth knowing: search and Kaju." },
+  { sel: ".ws-place", title: "This is your place", body: "Everything on this screen belongs to it. If you work in more than one place, this is where you change." },
+  { sel: ".ws-tree", title: "The menu is short on purpose", body: "Home, then the work, then your part in the programme. A page with more than one view unfolds to show them." },
+  { sel: ".hm-first, .hm-head, .oh-head, .k-head", title: "One thing first", body: "Home names the one thing to do next and gives it one button. Start there each time you open StrayPaw." },
+  { sel: ".jy2, .hm-line", title: "The line of work", body: "Every record moves left to right through these stages. A stage opens the board at that stage; a record shows where it is on the same line." },
+  { sel: ".ws-kaju, .ws-dock-kaju", title: "Kaju", body: "Ask in plain words. Kaju finds records, checks them and prepares work. A person always confirms before anything is saved." },
+  { sel: ".ws-tabs", title: "Your open pages", body: "Every page you open stays here as a tab, so going back is one click. A record opens over the page you are on; Esc closes it." },
 ];
 
 const visible = (el: Element | null): el is HTMLElement => !!el && el instanceof HTMLElement && el.offsetParent !== null && el.getBoundingClientRect().width > 0;

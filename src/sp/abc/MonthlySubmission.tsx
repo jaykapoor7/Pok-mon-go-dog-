@@ -9,10 +9,10 @@
    below are guidance from the verification queue. If the preview is not
    available, no amount is shown and nothing can be prepared from here. */
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ArrowRight, Check, FileCheck2, Sparkles } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Btn, Lanes, Panel, Row, Rows, Section, Table, Tag } from "@/ws/kit";
+import "./parts.k.css";
 import { createPackage, offices, packages, verificationQueue, type Office, type QueueRow } from "@/lib/abc";
 import { billLines, readBillingPreview, type PreviewResult } from "@/lib/billing";
 import { operationRpc, verifyOperationReceipt, type OperationReceipt } from "@/lib/operations";
@@ -23,7 +23,11 @@ import { holdsPeriod } from "@/lib/machines/package";
 
 const LABEL: Record<string, string> = { sterilisation: "Sterilisation (ABC)", vaccination: "Anti-rabies vaccination" };
 
-export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare: boolean; compact?: boolean }) {
+/** What the month's parts are, so a page can lay them out: the sentence for its head, the month choice, the one action, the body. */
+export type MonthParts = { sum: ReactNode; month: ReactNode; office: ReactNode; action: ReactNode; body: ReactNode };
+type Line = { procedure: string; units: number; rate: string | null; amount: string | null };
+
+export function MonthlySubmission({ canPrepare, compact = false, frame }: { canPrepare: boolean; compact?: boolean; /** Lays the parts out in a page. Without it, they are stacked in one section. */ frame?: (p: MonthParts) => ReactNode }) {
   const router = useRouter();
   const [rows, setRows] = useState<QueueRow[] | null>(null);
   const [offs, setOffs] = useState<Office[]>([]);
@@ -57,9 +61,10 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
     return () => { live = false; };
   }, [office, b.start, b.end, canPrepare]);
 
-  if (state === "off") return null;
-  if (state === "loading") return <section className="ms" aria-busy="true"><h2 className="ms-h"><Sparkles size={14} aria-hidden /> Monthly submission</h2><p className="ms-p">Kaju is reading this month’s records…</p></section>;
-  if (state === "error" || !rows) return <section className="ms"><h2 className="ms-h"><Sparkles size={14} aria-hidden /> Monthly submission</h2><p className="ms-p" role="status">The month’s records could not be read. Nothing is assumed ready.</p></section>;
+  const lay = (p: MonthParts) => (frame ? frame(p) : <section className="ms2" aria-label="Monthly submission"><p className="k-sum" aria-live="polite">{p.sum}</p>{p.month || p.office ? <div className="k-tools"><div className="k-tools-l">{p.month}</div><div className="k-tools-r">{p.office}</div></div> : null}{p.body}{p.action ? <div className="kx-acts">{p.action}</div> : null}</section>);
+  if (state === "off") return frame ? lay({ sum: "Not switched on for this workspace yet.", month: null, office: null, action: null, body: null }) : null;
+  if (state === "loading") return lay({ sum: "Kaju is reading this month’s records…", month: null, office: null, action: null, body: null });
+  if (state === "error" || !rows) return lay({ sum: <span role="status">The month’s records could not be read. Nothing is assumed ready.</span>, month: null, office: null, action: null, body: null });
 
   const g = monthlyPlan(rows, new Date(), which === "previous");
   const pv = preview?.state === "ok" ? preview.preview : null;
@@ -87,48 +92,43 @@ export function MonthlySubmission({ canPrepare, compact = false }: { canPrepare:
     } catch (e) { setErr(e instanceof Error ? e.message : "The package could not be prepared."); setBusy(false); }
   };
 
-  return (
-    <section className="ms" aria-labelledby="ms-h">
-      <div className="ms-top">
-        <h2 id="ms-h" className="ms-h"><Sparkles size={14} aria-hidden /> Monthly submission · {b.label}</h2>
-        <div className="ms-switch" role="group" aria-label="Month">
-          <button type="button" aria-pressed={which === "previous"} onClick={() => setWhich("previous")}>{monthBounds(new Date(), true).label.split(" ")[0]}</button>
-          <button type="button" aria-pressed={which === "current"} onClick={() => setWhich("current")}>{monthBounds(new Date()).label.split(" ")[0]}</button>
-        </div>
-      </div>
+  const blocked = g.blockedBy.reduce((t, x) => t + x.count, 0);
+  const blockedText = blocked || g.partial ? <> <span className="is-hot">{blocked}{g.partial ? "+" : ""} more {blocked === 1 && !g.partial ? "is" : "are"} blocked</span>.</> : null;
+  /* The sentence: what can be claimed, for how much, under which terms, and what blocks the rest. An amount that cannot be read is never shown as zero. */
+  const sum = !canPrepare ? <>{b.label}: {blocked || g.partial ? <><b>{blocked}{g.partial ? "+" : ""}</b> {blocked === 1 && !g.partial ? "record is" : "records are"} blocked from the claim.</> : "nothing is blocking this month’s records."} Coordinators and admins prepare packages.</>
+    : offs.length === 0 ? <>{b.label}: no reviewing office is linked yet, so nothing can be claimed.{blockedText}</>
+    : !office ? <>{b.label}: choose the reviewing office to see what can be claimed.{blockedText}</>
+    : !preview ? <>{b.label}: Kaju is checking which procedures can be claimed…</>
+    : preview.state === "not_deployed" ? <><span role="status">{b.label}: no amount is available for this period.</span>{blockedText}</>
+    : preview.state === "error" ? <><span role="status">{b.label}: the billing preview could not be read: {preview.message}. No amount is shown.</span>{blockedText}</>
+    : pv ? <>{b.label}: {pv.count === 0 ? "nothing can be claimed yet." : <><b>{pv.count}</b> {pv.count === 1 ? "procedure" : "procedures"} can be claimed{pv.contract && pv.total !== null ? <> for <b>₹{pv.total}</b></> : ", amount not known"}.</>}{blockedText}</>
+    : null;
+  const lines: Line[] = pv && pv.count > 0 && pv.contract ? billLines(pv) : [];
+  const body = <>
+    {canPrepare && office && pv && already ? <p className="kx-said" data-tone="ok">The {b.label} package is prepared. It is in the list of packages.</p> : null}
+    {err && <p role="alert" className="kx-said" data-tone="err">{err}</p>}
+    {canPrepare && office && pv && pv.count > 0 ? <Section title="Draft bill" note={pv.contract ? <>{pv.contract.name} v{pv.contract.version}{pv.contract.illustrative ? " · illustrative" : ""}{pv.unpriced ? ` · ${pv.unpriced} without a rate` : ""}</> : undefined}>
+      {pv.contract ? <Panel><Table<Line> label="Draft bill by procedure" rows={lines} rowKey={(l) => l.procedure} cols={[
+        { key: "what", label: "Procedure", width: "minmax(0, 2fr)", render: (l) => LABEL[l.procedure] ?? l.procedure },
+        { key: "units", label: "Units and rate", keep: true, align: "end", render: (l) => <>{l.units} × {l.rate ? `₹${l.rate}` : "no rate"}</> },
+        { key: "amount", label: "Amount", width: "112px", keep: true, align: "end", render: (l) => (l.rate ? `₹${l.amount}` : <span className="kx-none">Not known</span>) },
+      ]} /></Panel> : <p className="kx-quiet">No contract with {officeName} covers {b.label}.</p>}
+      {pv.too_many && <p className="kx-quiet is-top" role="status">Over 2,000 procedures: prepare shorter periods.</p>}
+    </Section> : null}
+    {(g.blockedBy.length > 0 || g.partial) && <Section title="Blocking the rest" count={`${blocked}${g.partial ? "+" : ""}`}>
+      {g.blockedBy.length > 0 && <Panel><Rows label="What blocks the rest">{g.blockedBy.slice(0, compact ? 3 : 6).map((x) => (
+        <Row key={x.reason} href={x.href} title={x.reason} end={<Tag tone="amber">{x.count}</Tag>} />
+      ))}</Rows></Panel>}
+    </Section>}
+  </>;
 
-      {canPrepare && offs.length > 1 && <label className="ms-office">Reviewing office <select className="select" value={office} onChange={(e) => setOffice(e.target.value)}><option value="">Choose…</option>{offs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>}
-      {canPrepare && offs.length === 0 && <p className="ms-p"><small>No reviewing office is linked yet, so nothing can be claimed.</small></p>}
-
-      {canPrepare && office && (!preview ? <p className="ms-p">Kaju is checking which procedures can be claimed…</p>
-        : preview.state === "not_deployed" ? <p className="ms-p" role="status">No amount is available for this period.</p>
-        : preview.state === "error" ? <p className="ms-p" role="status">The billing preview could not be read: {preview.message}. No amount is shown.</p>
-        : pv && <div className="ms-bill">
-          <ul className="ms-stats">
-            <li><span>Ready to claim</span><b>{pv.count}</b></li>
-            <li><span>Blocked</span><b className={g.blockedBy.length ? "is-due" : undefined}>{g.blockedBy.reduce((t, x) => t + x.count, 0)}{g.partial ? "+" : ""}</b></li>
-            <li><span>Draft bill</span><b>{pv.count === 0 ? "₹0" : pv.contract && pv.total !== null ? `₹${pv.total}` : "—"}</b></li>
-          </ul>
-          {pv.count > 0 && (pv.contract ? <>
-            <ul className="ms-lines">{billLines(pv).map((l) => <li key={l.procedure}><span>{LABEL[l.procedure] ?? l.procedure}</span><span>{l.units} × {l.rate ? `₹${l.rate}` : "no rate"}</span><b>{l.rate ? `₹${l.amount}` : "—"}</b></li>)}</ul>
-            <small className="ms-src"><FileCheck2 size={13} aria-hidden /> {pv.contract.name} v{pv.contract.version}{pv.unpriced ? ` · ${pv.unpriced} without a rate` : ""}</small>
-          </> : <small className="ms-src">No contract with {officeName} covers {b.label}.</small>)}
-          {pv.too_many && <small className="ms-src" role="status">Over 2,000 procedures: prepare shorter periods.</small>}
-        </div>)}
-
-      {(g.blockedBy.length > 0 || g.partial) && <>
-        <h3 className="ms-sub">Blocking</h3>
-        {g.blockedBy.length > 0 && <ul className="ms-list">{g.blockedBy.slice(0, compact ? 3 : 6).map((x) => (
-          <li key={x.reason}><Link href={x.href}><span>{x.reason}</span><b>{x.count}</b><ArrowRight size={13} aria-hidden /></Link></li>
-        ))}</ul>}
-
-      </>}
-
-      {canPrepare && office && pv && already && <p className="ms-done"><Check size={14} aria-hidden /> The {b.label} package is prepared. <a href="#ms-packages">See it in Packages</a></p>}
-      {canPrepare && office && ready && <button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => void prepare()}>{busy ? "Preparing and checking…" : `Prepare ${already ? "another" : "the"} ${b.label} package · ₹${pv?.total}`}</button>}
-      {err && <p role="alert" className="ms-err">{err}</p>}
-    </section>
-  );
+  return lay({
+    sum,
+    month: <Lanes<"previous" | "current"> label="Month" value={which} onChange={setWhich} lanes={[{ id: "previous", label: monthBounds(new Date(), true).label.split(" ")[0] }, { id: "current", label: monthBounds(new Date()).label.split(" ")[0] }]} />,
+    office: canPrepare && offs.length > 1 ? <select className="kx-in is-auto" aria-label="Reviewing office" value={office} onChange={(e) => setOffice(e.target.value)}><option value="">Choose the reviewing office…</option>{offs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select> : null,
+    action: canPrepare && office && ready ? <Btn variant="primary" disabled={busy} onClick={() => void prepare()}>{busy ? "Preparing and checking…" : `Prepare ${already ? "another" : "the"} ${b.label} package · ₹${pv?.total}`}</Btn> : null,
+    body,
+  });
 }
 
 /** The reviewing office named by the one contract in force for your organisation today,

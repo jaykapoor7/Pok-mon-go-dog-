@@ -1,0 +1,164 @@
+/* ════════════════════════════════════════════════════════════════════
+   Organisation pages (drives, outreach, team, settings): the few things
+   the page kit does not give. A form field, a receipt line, a row that
+   opens, a small bar. Theme variables only; no outline on anything except a
+   control you can type in or press.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── forms: one column, the label above the field ─────────────────── */
+.og-form { display: grid; gap: 12px; max-width: 560px; min-width: 0; margin: 0; }
+.og-form.is-wide { max-width: none; }
+.og-f { display: grid; gap: 4px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.og-f > label, .og-f > legend, .og-l { padding: 0; color: var(--n-text); font-size: 14px; font-weight: 500; line-height: 20px; }
+.og-opt { margin-left: 4px; color: var(--n-text-2); font-size: 12px; font-weight: 400; }
+.og-hint { margin: 0; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.sp .k-page .og-in { width: 100%; height: 32px; min-height: 0; margin: 0; padding: 0 12px; border: 0; border-radius: 8px; box-sizing: border-box; background: var(--n-bg); box-shadow: inset 0 0 0 1px var(--n-line-2); color: var(--n-text); font: 400 14px/20px var(--n-font); transition: box-shadow .12s; }
+.sp .k-page textarea.og-in { height: auto; min-height: 72px; padding: 8px 12px; resize: vertical; }
+.sp .k-page select.og-in { padding-right: 24px; }
+.sp .k-page .og-in:focus { outline: 0; box-shadow: inset 0 0 0 2px var(--n-blue); }
+.sp .k-page .og-in:disabled { background: var(--n-tag); color: var(--n-text-2); }
+.sp .k-page .og-in::placeholder { color: var(--n-text-2); opacity: .8; }
+.sp .k-page .og-in.is-s { width: auto; max-width: 100%; height: 28px; padding: 0 8px; }
+.sp .k-page select.og-in.is-s { padding-right: 24px; }
+.og-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.og-go { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.og-check { display: flex; align-items: flex-start; gap: 8px; min-height: 24px; color: var(--n-text); font-size: 14px; line-height: 20px; cursor: pointer; }
+.og-check input { flex: none; width: 16px; height: 16px; margin: 0; margin-top: 1px; accent-color: var(--n-blue); }
+.og-check small { color: var(--n-text-2); font-size: 12px; }
+.og-file { color: var(--n-text); font-size: 14px; max-width: 100%; }
+
+/* ── receipts and quiet text ──────────────────────────────────────── */
+.sp .k-page .ack { min-height: 20px; font-size: 14px; font-weight: 500; }
+.sp .k-page .ack[data-state="draft"], .sp .k-page .ack[data-state="pending"] { color: var(--n-text-2); }
+.sp .k-page .ack[data-state="saved"] { color: var(--i-green); }
+.sp .k-page .ack[data-state="failed"] { color: var(--n-red); }
+.og-receipt:empty { display: none; }
+.og-receipt { margin: 0 0 12px; }
+.og-p { max-width: 72ch; margin: 0; color: var(--n-text-2); font-size: 14px; line-height: 20px; }
+.og-p b { color: var(--n-text); font-weight: 500; }
+.og-p.is-err { color: var(--n-red); }
+.og-a { color: var(--n-blue); font-weight: 500; text-decoration: none; }
+.og-a:hover { color: var(--n-blue-2); text-decoration: underline; }
+.og-a:focus-visible, .og-x-btn:focus-visible { outline: 2px solid var(--n-blue); outline-offset: 2px; border-radius: 4px; }
+.og-nr { color: var(--n-text-2); }
+.og-mono { font-family: var(--n-mono); font-size: 12px; letter-spacing: 0; }
+.og-code { padding: 0 4px; border-radius: 4px; background: var(--n-tag); color: var(--n-text); font: 400 12px/20px var(--n-mono); }
+.og-list { display: grid; gap: 4px; margin: 0; padding: 0 0 0 16px; color: var(--n-text); font-size: 14px; line-height: 20px; }
+.og-skel { display: grid; gap: 8px; padding: 8px 0; }
+.og-skel i { display: block; height: 20px; border-radius: 4px; background: var(--n-tag); }
+.og-skel i:nth-child(2) { width: 80%; } .og-skel i:nth-child(3) { width: 60%; }
+
+/* ── a cell with two things in it; a first cell with a grey tail ───── */
+.og-cell { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; vertical-align: middle; }
+.og-cell > :last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.og-cell .part { flex: none; width: 56px; }
+.og-tail { margin-left: 8px; color: var(--n-text-2); font-weight: 400; }
+.og-acts { display: inline-flex; align-items: center; gap: 4px; }
+.og-av { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 12px; background: var(--n-tag); color: var(--n-text); font-size: 12px; font-weight: 500; line-height: 1; }
+.og-bar { display: inline-block; flex: none; width: 64px; height: 4px; border-radius: 4px; background: var(--n-line); overflow: hidden; vertical-align: middle; }
+.og-bar i { display: block; height: 100%; border-radius: 4px; background: var(--n-blue); }
+.og-bar.is-fill { display: block; width: auto; }
+.og-bar.is-hatch { background: repeating-linear-gradient(135deg, var(--n-line-2) 0 2px, transparent 2px 5px); }
+.og-bar.is-hatch i { background: var(--i-green); }
+
+/* ── a row that opens: its detail sits under it, indented to the name ── */
+.og-x-btn { display: grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--n-text-2); cursor: pointer; transition: background-color .08s ease-in; }
+.og-x-btn:hover { background: var(--n-hover); color: var(--n-text); }
+.og-x-btn svg { transition: transform .18s cubic-bezier(.2, .7, .2, 1); }
+.og-x-btn[aria-expanded="true"] svg { transform: rotate(90deg); }
+.og-x { display: grid; gap: 12px; padding: 4px 8px 16px 40px; min-width: 0; }
+.og-x.is-flush { padding-left: 8px; }
+.og-x h3, .og-h3 { margin: 0; color: var(--n-text-2); font-size: 12px; font-weight: 500; line-height: 16px; }
+
+/* ── facts: a label and a figure per line, the figure at the end ───── */
+.og-facts { display: grid; margin: 0; }
+.og-facts > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; min-height: 28px; padding: 4px 0; }
+.og-facts dt { color: var(--n-text-2); font-size: 14px; line-height: 20px; }
+.og-facts dd { margin: 0; color: var(--n-text); font-size: 14px; font-weight: 500; line-height: 20px; font-variant-numeric: tabular-nums; text-align: right; }
+.og-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 32px; }
+
+/* ── the partition strip (recorded yes, recorded no, not recorded) in the kit's colours ── */
+.k-page .part { display: grid; gap: 8px; min-width: 0; }
+.k-page .part-bar { display: flex; height: 8px; border-radius: 4px; background: var(--n-tag); box-shadow: none; overflow: hidden; }
+.k-page .part.is-compact .part-bar { height: 4px; }
+.k-page .part-bar span, .k-page .part-key i { display: block; }
+.sp .k-page .part .is-yes { background: var(--i-green); }
+.sp .k-page .part .is-no { background: var(--n-text-2); }
+.sp .k-page .part .is-unk { background: repeating-linear-gradient(135deg, var(--n-line-2) 0 2px, transparent 2px 5px); }
+.k-page .part-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.k-page .part-key span { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+.sp .k-page .part-key i { width: 8px; height: 8px; border-radius: 4px; box-shadow: none; }
+
+@media (max-width: 860px) {
+  .sp .k-page .og-in { height: 40px; font-size: 16px; }
+  .sp .k-page .og-in.is-s { height: 40px; }
+  .sp .k-page textarea.og-in { height: auto; }
+  .og-two, .og-cols { grid-template-columns: minmax(0, 1fr); }
+  .og-x { padding-left: 12px; padding-right: 12px; }
+  .og-x-btn { width: 40px; height: 40px; }
+  .og-check { min-height: 40px; align-items: center; }
+  .og-check input { margin-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .og-x-btn svg, .sp .k-page .og-in { transition: none; } }
+
+/* ── one drive: a small portrait in the animal's row; the share lines under a partition ── */
+.sp .k-page .dr-animal .portrait { flex: none; width: 24px; height: 24px; border-radius: 4px; }
+.sp .k-page .dr-animal .portrait svg { width: 12px; height: 12px; }
+.sp .k-page .dr-animal .portrait-veil { padding: 0; }
+.dr-share { margin-top: 8px; }
+
+/* ── rows whose end holds more than fits on a phone ───────────────── */
+.og-date { width: 160px; }
+@media (max-width: 860px) { .k-row.og-wrap { flex-wrap: wrap; } .k-row.og-wrap .k-row-e { flex: 1 1 100%; flex-wrap: wrap; } .og-date { width: auto; flex: 1; } }
+
+/* ── feeding spots: the area map beside the list ──────────────────── */
+.fs-map { display: grid; gap: 8px; }
+.fs-map > :first-child { height: 320px; border-radius: 8px; overflow: hidden; }
+
+/* ── projects: entries by week, how often a field is filled, a wide register that scrolls in its own region ── */
+.pj-pulse { display: grid; gap: 8px; margin: 0 0 16px; }
+.pj-pulse-bars { display: flex; align-items: flex-end; gap: 4px; height: 48px; box-shadow: inset 0 -1px 0 var(--n-line-2); }
+.pj-pulse-bars i { flex: 1 1 0; min-width: 2px; max-width: 12px; border-radius: 4px 4px 0 0; background: var(--n-blue); }
+.pj-pulse-bars i.is-zero { height: 2px !important; background: var(--n-line-2); }
+.pj-pulse figcaption { color: var(--n-text-2); font-size: 14px; line-height: 20px; }
+.pj-pulse figcaption b { color: var(--n-text); font-weight: 500; }
+.pj-pulse .is-hot { color: var(--n-red); font-weight: 500; }
+.pj-fields { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pj-fields li { display: grid; grid-template-columns: minmax(0, 1fr) 96px 40px; gap: 8px; align-items: center; color: var(--n-text); font-size: 14px; line-height: 20px; }
+.pj-fields li > span { overflow-wrap: anywhere; }
+.pj-fields b { color: var(--n-text-2); font-size: 12px; font-weight: 400; text-align: right; font-variant-numeric: tabular-nums; }
+.pj-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.pj-scroll:focus-visible { outline: 2px solid var(--n-blue); outline-offset: -2px; }
+.pj-scroll .k-table { min-width: calc(var(--pj-n, 4) * 112px); }
+.pj-blank { display: inline-block; width: 24px; height: 8px; border-radius: 4px; background: repeating-linear-gradient(135deg, var(--n-line-2) 0 2px, transparent 2px 5px); vertical-align: middle; }
+@media (max-width: 860px) { .pj-scroll .k-table { min-width: 0; } }
+
+/* ── fundraising: a small blurred cover in the row, the chosen cover in the form ── */
+.fr-thumb { position: relative; display: block; flex: none; width: 24px; height: 24px; border-radius: 4px; background: var(--n-tag); overflow: hidden; }
+.fr-thumb img, .fr-thumb .sv { width: 100%; height: 100%; object-fit: cover; }
+.fr-cover { position: relative; width: 100%; max-width: 320px; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--n-tag); overflow: hidden; }
+.fr-cover .sv, .fr-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* ── stories: the timeline's rows in the form, and what the public will see ── */
+.st-form { max-width: none; }
+.st-stage { display: grid; grid-template-columns: minmax(0, 1fr) 160px auto; gap: 8px; align-items: center; }
+.st-pv { display: grid; gap: 4px; color: var(--n-text); font-size: 14px; line-height: 20px; }
+.st-pv b { font-size: 16px; font-weight: 600; line-height: 24px; overflow-wrap: anywhere; }
+.st-pv small { color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.st-pv p { margin: 4px 0 0; white-space: pre-line; overflow-wrap: anywhere; }
+.st-pv ol { display: grid; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; }
+.st-pv li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; }
+.st-pv time { color: var(--n-text-2); font-size: 12px; line-height: 20px; }
+@media (max-width: 860px) { .st-stage { grid-template-columns: minmax(0, 1fr) 112px; } .st-stage .k-btn { grid-column: 1 / -1; justify-self: start; } }
+
+/* ── team: what each role can do ──────────────────────────────────── */
+.tm-roles { display: grid; gap: 12px; margin: 0; }
+.tm-roles dt { color: var(--n-text); font-size: 14px; font-weight: 500; line-height: 20px; }
+.tm-roles dd { margin: 0; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.sp .k-page .og-in.og-date { width: 160px; }
+.og-p:empty { display: none; }
+
+/* ── workflow policies: the extra fields per kind of record, folded ── */
+.wp-kind > summary { min-height: 32px; padding: 4px 0; color: var(--n-text); font-size: 14px; line-height: 24px; cursor: pointer; }
+.wp-kind > summary:focus-visible { outline: 2px solid var(--n-blue); outline-offset: 2px; border-radius: 4px; }
+.wp-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(144px, 1fr)); gap: 4px 16px; padding: 4px 0 8px 16px; }

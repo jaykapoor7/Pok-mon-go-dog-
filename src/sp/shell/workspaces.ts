@@ -179,6 +179,22 @@ export const DESTINATIONS:Destination[]=[
   },
   {
     "workspace": "ngo",
+    "href": "/ngo/automations",
+    "assistantKey": "automations",
+    "label": "Automations",
+    "icon": "sparkles",
+    "tone": "violet",
+    "group": "Organisation",
+    "primary": false,
+    "note": "Rules that watch the work and tell the right people",
+    "mobile": false,
+    "roles": [
+      "admin",
+      "coordinator"
+    ]
+  },
+  {
+    "workspace": "ngo",
     "href": "/ngo/team",
     "assistantKey": "team",
     "label": "Team & access",
@@ -592,6 +608,7 @@ const NGO_HUBS: Record<string, Hub> = {
   "/ngo/fundraising": { section: "Reporting", order: 51, primary: true },
   "/ngo/volunteers": { section: "Reporting", order: 52, label: "Volunteers", primary: true, group: "Outreach" },
   "/ngo/training": { section: "Team", order: 60, primary: true, group: "Training" },
+  "/ngo/automations": { section: "Team", order: 69, primary: true },
   "/ngo/team": { section: "Team", order: 70, primary: true },
   "/ngo/settings": { section: "Team", order: 71, primary: true },
   "/ngo/settings/connections": { section: "Team", order: 72, primary: true },

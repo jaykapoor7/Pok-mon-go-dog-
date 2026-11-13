@@ -4,16 +4,13 @@
    exercise, then what to remember and the next lesson. Completing the
    exercise marks the lesson done on this device. */
 
-import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Btn, Head, Page, Panel, Row, Rows, Section, Tag } from "@/ws/kit";
 import { COURSES, findLesson } from "./content";
 import { Exercise } from "./Interactives";
 import { useProgress } from "./progress";
-import { MobileDetails } from "../ui/MobileDetails";
 import "./learn.css";
-import "./academy-focus.css";
-import "./academy.css";
 
 export function Lesson({ course, lesson }: { course: string; lesson: string }) {
   const f = findLesson(course, lesson)!;
@@ -22,36 +19,39 @@ export function Lesson({ course, lesson }: { course: string; lesson: string }) {
   const [justDone, setJustDone] = useState(false);
   const done = has(key) || justDone;
   const nextCourse = !f.next ? COURSES[COURSES.findIndex((c) => c.id === f.c.id) + 1] ?? null : null;
+  const d = f.c.lessons.filter((l) => has(`${f.c.id}/${l.id}`) || (l.id === f.l.id && done)).length;
+  /* A narrow reading column: the read, one exercise, what to remember, then previous and next. The path's other lessons fold underneath. */
   return (
-    <div className="ls" style={{ ["--ink" as string]: f.c.ink }}>
-      <MobileDetails label="Other lessons in this path" className="lesson-nav-fold"><aside className="ls-rail" aria-label={f.c.title}>
-        <Link className="link small" href="/learn"><ArrowLeft size={13} aria-hidden /> Academy</Link>
-        <p className="k">{f.c.title}</p>
-        <ol>{f.c.lessons.map((l, i) => <li key={l.id}><Link href={`/learn/courses/${f.c.id}/${l.id}`} aria-current={l.id === f.l.id ? "page" : undefined} className={has(`${f.c.id}/${l.id}`) ? "is-done" : ""}><span className="ac-tick" aria-hidden>{has(`${f.c.id}/${l.id}`) ? <Check size={12} /> : i + 1}</span>{l.title}</Link></li>)}</ol>
-      </aside></MobileDetails>
-      <article className="ls-main">
-        <p className="k">Lesson {f.i + 1} of {f.c.lessons.length} · {f.l.minutes} min</p>
-        <h1 className="display">{f.l.title}</h1>
-        {f.l.blocks.map((b, i) => b.kind === "text" ? <p key={i} className="ls-p">{b.body}</p>
-          : b.kind === "note" ? <p key={i} className="ls-note">{b.body}</p>
+    <Page width="narrow">
+      <Head title={f.l.title} eyebrow={<>{f.c.title} · lesson {f.i + 1} of {f.c.lessons.length} · {f.l.minutes} min</>}
+        actions={done ? <Tag tone="green">Done</Tag> : undefined} />
+      <p className="lrn-meter is-wide" role="img" aria-label={`${d} of ${f.c.lessons.length} lessons done in this path`}><i style={{ width: `${(d / f.c.lessons.length) * 100}%` }} /></p>
+      <article className="lrn-read">
+        {f.l.blocks.map((b, i) => b.kind === "text" ? <p key={i}>{b.body}</p>
+          : b.kind === "note" ? <p key={i} className="lrn-aside">{b.body}</p>
           : (
-            <section key={i} className={`ls-do${done ? " is-done" : ""}`} aria-label="Exercise">
-              <p className="ls-do-k"><span>Try it</span>{done && <span className="pill is-care"><Check size={12} aria-hidden /> Done</span>}</p>
-              <p className="ls-do-p">{b.prompt}</p>
+            <section key={i} className="lrn-do" aria-label="Exercise">
+              <p className="lrn-do-k"><span>Try it</span>{done && <Tag tone="green">Done</Tag>}</p>
+              <p className="lrn-do-p">{b.prompt}</p>
               <Exercise id={b.id} onDone={() => { if (!done) { mark(key); setJustDone(true); } }} />
             </section>
           ))}
-        <section className={`ls-take${done ? " is-on" : ""}`} aria-live="polite">
-          <p className="k">What to remember</p>
-          <p className="serif">{f.l.takeaway}</p>
+        <section className={`lrn-take${done ? " is-on" : ""}`} aria-live="polite">
+          <b>What to remember</b>
+          <p>{f.l.takeaway}</p>
         </section>
-        <nav className="ls-nav" aria-label="Lessons">
-          {f.prev ? <Link className="btn is-ghost" href={`/learn/courses/${f.c.id}/${f.prev.id}`}><ArrowLeft size={14} aria-hidden /> {f.prev.title}</Link> : <span />}
-          {f.next ? <Link className="btn is-ink" href={`/learn/courses/${f.c.id}/${f.next.id}`}>Next: {f.next.title} <ArrowRight size={14} aria-hidden /></Link>
-            : nextCourse ? <Link className="btn is-ink" href={`/learn/courses/${nextCourse.id}/${nextCourse.lessons[0].id}`}>Next course: {nextCourse.title} <ArrowRight size={14} aria-hidden /></Link>
-            : <Link className="btn is-ink" href="/learn">Back to the Academy</Link>}
-        </nav>
       </article>
-    </div>
+      <nav className="lrn-nav" aria-label="Lessons">
+        {f.prev ? <Btn href={`/learn/courses/${f.c.id}/${f.prev.id}`} icon={<ArrowLeft size={14} />}>{f.prev.title}</Btn> : <span />}
+        {f.next ? <Btn variant="primary" href={`/learn/courses/${f.c.id}/${f.next.id}`}>Next: {f.next.title}</Btn>
+          : nextCourse ? <Btn variant="primary" href={`/learn/courses/${nextCourse.id}/${nextCourse.lessons[0].id}`}>Next course: {nextCourse.title}</Btn>
+          : <Btn variant="primary" href="/learn">Back to the Academy</Btn>}
+      </nav>
+      <Section fold="path" open={false} title={`Other lessons in ${f.c.title}`} count={f.c.lessons.length}>
+        <Panel><Rows label={f.c.title}>
+          {f.c.lessons.map((l, i) => { const ok = has(`${f.c.id}/${l.id}`); return <Row key={l.id} href={`/learn/courses/${f.c.id}/${l.id}`} tone={ok ? "green" : undefined} icon={ok ? <Check size={14} /> : <span className="lrn-num">{i + 1}</span>} title={l.title} meta={`${l.minutes} min${l.id === f.l.id ? " · you are here" : ""}`} />; })}
+        </Rows></Panel>
+      </Section>
+    </Page>
   );
 }

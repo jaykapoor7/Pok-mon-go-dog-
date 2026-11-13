@@ -1,4 +1,5 @@
 import type { AiReply, Proposal } from './types';
+import { isBlock } from './blocks';
 /** Postgres audit IDs may be serial numbers or UUID/text identifiers. */
 export function auditReference(value:unknown):string|null{return typeof value==='string'&&value.length>0&&value.length<=160?value:typeof value==='number'&&Number.isSafeInteger(value)&&value>0?String(value):null}
 const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v);
@@ -32,5 +33,6 @@ export function isAiReply(v:unknown):v is AiReply {
  if(!Array.isArray(v.tools)||v.tools.length>24||!v.tools.every(t=>object(t)&&text(t.name,100)&&text(t.summary)&&typeof t.ok==='boolean'))return false;
  if(!Array.isArray(v.citations)||v.citations.length>100||!v.citations.every(c=>object(c)&&text(c.id,160)&&text(c.label,1000)&&['animal','case','programme','place','page'].includes(String(c.kind))&&safeAiHref(c.href)))return false;
  if(!Array.isArray(v.proposals)||v.proposals.length>24||!v.proposals.every(proposal))return false;
+ if(v.blocks!==undefined&&!(Array.isArray(v.blocks)&&v.blocks.length<=8&&v.blocks.every(isBlock)))return false;
  return (v.notice===undefined||text(v.notice))&&(v.navigate===undefined||(object(v.navigate)&&safeAiHref(v.navigate.href)&&text(v.navigate.label)));
 }

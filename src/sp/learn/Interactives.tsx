@@ -39,7 +39,7 @@ function UnknownLedger({ onDone }: P) {
   return (
     <div className="ex ex-ledger">
       <p className="ex-hint">Tap each animal to read its record. {all ? "All read." : `${STREET.length - seen.size} left.`}</p>
-      <p className="ex-tally mono" aria-live="polite">
+      <p className="ex-tally" aria-live="polite">
         <span className="is-yes">✓ {[...seen].filter((i) => STREET[i] === "yes").length} sterilised</span>
         <span className="is-no">✕ {[...seen].filter((i) => STREET[i] === "no").length} not</span>
         <span className="is-unknown">? {[...seen].filter((i) => STREET[i] === "unk").length} not recorded</span>
@@ -53,7 +53,7 @@ function UnknownLedger({ onDone }: P) {
       </div>
       {all && (
         <div className="ex-out">
-          <div className="seg" role="group" aria-label="How to treat blanks">
+          <div className="lrn-seg" role="group" aria-label="How to treat blanks">
             <button type="button" aria-pressed={mode === "asno"} onClick={() => setMode("asno")}>Blanks as “no”</button>
             <button type="button" aria-pressed={mode === "known"} onClick={() => setMode("known")}>Only the known</button>
             <button type="button" aria-pressed={mode === "honest"} onClick={() => setMode("honest")}>Say all three</button>
@@ -64,7 +64,7 @@ function UnknownLedger({ onDone }: P) {
             <i className="is-no" style={{ flexGrow: n }} />
             <i className="is-unknown" style={{ flexGrow: mode === "known" ? 0.0001 : u }} />
           </div>
-          <p className="ex-big serif">{mode === "asno" ? `${Math.round((y / STREET.length) * 100)}% sterilised` : mode === "known" ? `${Math.round((y / (y + n)) * 100)}% of those recorded` : `${y} sterilised · ${n} not · ${u} not recorded`}</p>
+          <p className="ex-big">{mode === "asno" ? `${Math.round((y / STREET.length) * 100)}% sterilised` : mode === "known" ? `${Math.round((y / (y + n)) * 100)}% of those recorded` : `${y} sterilised · ${n} not · ${u} not recorded`}</p>
           <p className="ex-fb">{mode === "asno" ? "Misleading: twelve animals nobody checked are counted as unsterilised. The programme looks like it failed." : mode === "known" ? "True, but only about eight animals. Without saying so, it sounds like the whole street." : "Honest: the reader can see how much is known before trusting the share."}</p>
         </div>
       )}
@@ -87,18 +87,17 @@ function Precision({ onDone }: P) {
   return (
     <div className="ex ex-prec">
       <svg viewBox="0 0 300 260" className="ex-map" role="img" aria-label={`Placed as: ${L.k}`}>
-        <rect width="300" height="260" fill="#f3ede4" />
-        {[40, 90, 140, 190, 240].map((x) => <line key={x} x1={x} y1="0" x2={x - 30} y2="260" stroke="#e1cfa8" strokeWidth="6" />)}
-        <path d="M0 150 C 80 130, 160 170, 300 140" stroke="#9fc2d6" strokeWidth="10" fill="none" />
-        <circle cx="150" cy="130" r={L.r} fill="#2457ce" fillOpacity={i === 0 ? 1 : 0.18} stroke="#0b1e3d" strokeWidth="1.5" strokeDasharray={i >= 2 ? "5 4" : undefined} style={{ transition: "r .4s var(--ease, ease)" }} />
-        <circle cx={154} cy={126} r={L.r + 6} fill="none" stroke="#f05b40" strokeOpacity=".7" strokeWidth="1.2" style={{ transition: "r .4s var(--ease, ease)" }} />
+        <rect width="300" height="260" style={{ fill: "var(--n-side)" }} />
+        {[40, 90, 140, 190, 240].map((x) => <line key={x} x1={x} y1="0" x2={x - 30} y2="260" style={{ stroke: "var(--n-fill-2)" }} strokeWidth="6" />)}
+        <path d="M0 150 C 80 130, 160 170, 300 140" style={{ stroke: "var(--t-blue-bg)" }} strokeWidth="10" fill="none" />
+        <circle cx="150" cy="130" r={L.r} fillOpacity={i === 0 ? 1 : 0.18} strokeWidth="1.5" strokeDasharray={i >= 2 ? "5 4" : undefined} style={{ fill: "var(--n-blue)", stroke: "var(--n-text)", transition: "r .4s var(--ease, ease)" }} />
       </svg>
       <div className="ex-side">
         <div className="ex-steps" role="group" aria-label="How the record was placed">
           {LEVELS.map((l, k) => <button key={l.k} type="button" aria-pressed={i === k} onClick={() => go(k)} className={visited.has(k) ? "is-seen" : ""}>{l.k}</button>)}
         </div>
         <p className="ex-fb">{L.say}</p>
-        <p className="small"><b>Supports:</b> {L.can}</p>
+        <p className="ex-hint"><b>Supports:</b> {L.can}</p>
       </div>
     </div>
   );
@@ -170,7 +169,7 @@ function Order({ onDone }: P) {
       <div className="ex-opts">
         {order.filter((k) => !picked.includes(k)).map((k) => <button key={k} type="button" className={`ex-opt${wrong === k ? " is-no" : ""}`} onClick={() => tap(k)}><span className="ex-mark" aria-hidden>{wrong === k ? <X size={14} /> : null}</span><span>{POST_BITE_STEPS[k]}{wrong === k && <small>Not yet: something comes before this.</small>}</span></button>)}
       </div>
-      {picked.length > 0 && <button type="button" className="btn is-ghost is-s" onClick={() => { setPicked([]); setWrong(null); }}><RotateCcw size={13} aria-hidden /> Start again</button>}
+      {picked.length > 0 && <button type="button" className="k-btn is-quiet is-s" onClick={() => { setPicked([]); setWrong(null); }}><RotateCcw size={13} aria-hidden /> Start again</button>}
     </div>
   );
 }
@@ -196,11 +195,11 @@ function Sort({ onDone }: P) {
       {OBS.map((o, i) => i === current && (
         <li key={i} className={i in a ? (a[i] === o.see ? "is-ok" : "is-no") : ""}>
           <span>{o.t}</span>
-          <span className="seg" role="group" aria-label={o.t}><button type="button" aria-pressed={a[i] === true} onClick={() => put(i, true)}>I can see it</button><button type="button" aria-pressed={a[i] === false} onClick={() => put(i, false)}>An assumption</button></span>
+          <span className="lrn-seg" role="group" aria-label={o.t}><button type="button" aria-pressed={a[i] === true} onClick={() => put(i, true)}>I can see it</button><button type="button" aria-pressed={a[i] === false} onClick={() => put(i, false)}>An assumption</button></span>
           {i in a && <small>{a[i] === o.see ? (o.see ? "Yes: anyone standing there could check it." : "Yes: nobody saw it happen. Leave it out or say it is unknown.") : o.see ? "You can see this, so it belongs in the report." : o.t.includes("notch") ? "" : "Nobody watched this happen; it is a guess."}{!o.see && o.t.includes("sterilised") ? " An ear notch is a sign, not proof." : ""}</small>}
         </li>
       ))}
-      <li className="ex-question-nav"><button type="button" className="btn" disabled={current === 0} onClick={() => setCurrent(i => i - 1)}>Previous</button><button type="button" className="btn" disabled={current === OBS.length - 1} onClick={() => setCurrent(i => i + 1)}>Next observation</button></li>
+      <li className="ex-question-nav"><button type="button" className="k-btn" disabled={current === 0} onClick={() => setCurrent(i => i - 1)}>Previous</button><button type="button" className="k-btn" disabled={current === OBS.length - 1} onClick={() => setCurrent(i => i + 1)}>Next observation</button></li>
     </ul>
   );
 }
@@ -231,12 +230,11 @@ function Simulation({ onDone }: P) {
     <div className="ex ex-sim">
       <p className="ex-warn">A teaching model with made-up numbers. Not a forecast for any real place.</p>
       <svg viewBox="0 0 320 210" className="ex-chart" role="img" aria-label={`After ten years: ${a[10]} dogs with ${rate}% sterilised each year, ${base[10]} with none`}>
-        <line x1="30" y1="190" x2="310" y2="190" stroke="#0b1e3d" />
-        {[0, 5, 10].map((y) => <text key={y} x={(y / 10) * 280 + 30} y="204" fontSize="10" textAnchor="middle" fill="#5b6478">year {y}</text>)}
-        <path d={path(base)} fill="none" stroke="#c0603c" strokeWidth="2" strokeDasharray="5 4" />
-        <path d={path(a)} fill="none" stroke="#1f6f80" strokeWidth="3" />
-        <path d={path(a)} fill="none" stroke="#f05b40" strokeWidth="1" opacity=".5" transform="translate(2 -2)" />
-        <text x="300" y={190 - (base[10] / max) * 170 - 6} fontSize="10" textAnchor="end" fill="#c0603c">no sterilisation</text>
+        <line x1="30" y1="190" x2="310" y2="190" style={{ stroke: "var(--n-text-3)" }} />
+        {[0, 5, 10].map((y) => <text key={y} x={(y / 10) * 280 + 30} y="204" fontSize="10" textAnchor="middle" style={{ fill: "var(--n-text-2)" }}>year {y}</text>)}
+        <path d={path(base)} fill="none" style={{ stroke: "var(--n-red)" }} strokeWidth="2" strokeDasharray="5 4" />
+        <path d={path(a)} fill="none" style={{ stroke: "var(--i-green)" }} strokeWidth="3" />
+        <text x="300" y={190 - (base[10] / max) * 170 - 6} fontSize="10" textAnchor="end" style={{ fill: "var(--n-red)" }}>no sterilisation</text>
       </svg>
       <label className="ex-range"><span>Share of fertile dogs sterilised each year: <b>{rate}%</b></span><input type="range" min={0} max={90} step={5} value={rate} onChange={(e) => { setRate(Number(e.target.value)); if (!touched) { setTouched(true); onDone(); } }} /></label>
       <label className="ex-range"><span>New dogs arriving each year: <b>{arrive}</b></span><input type="range" min={0} max={30} step={1} value={arrive} onChange={(e) => setArrive(Number(e.target.value))} /></label>
@@ -259,10 +257,10 @@ function Practice({ onDone }: P) {
   return (
     <form className="ex ex-practice" onSubmit={(e) => { e.preventDefault(); setSent(true); if (!tips.length) onDone(); }}>
       <p className="ex-warn">Practice copy: this form cannot send anything.</p>
-      <label className="field"><span className="label">Where</span><input className="input" value={place} onChange={(e) => setPlace(e.target.value)} placeholder="Landmark and road" /></label>
-      <label className="field"><span className="label">What you saw</span><textarea className="textarea" value={what} onChange={(e) => setWhat(e.target.value)} placeholder="Only what you could see" /></label>
-      <fieldset className="field"><legend className="label">Photo from a safe distance?</legend><div className="seg"><button type="button" aria-pressed={photo === "yes"} onClick={() => setPhoto("yes")}>Yes</button><button type="button" aria-pressed={photo === "no"} onClick={() => setPhoto("no")}>Not safely</button></div></fieldset>
-      <button type="submit" className="btn is-ink">Check my practice report</button>
+      <label className="lrn-field"><span>Where</span><input value={place} onChange={(e) => setPlace(e.target.value)} placeholder="Landmark and road" /></label>
+      <label className="lrn-field"><span>What you saw</span><textarea value={what} onChange={(e) => setWhat(e.target.value)} placeholder="Only what you could see" /></label>
+      <fieldset className="lrn-field"><legend>Photo from a safe distance?</legend><div className="lrn-seg"><button type="button" aria-pressed={photo === "yes"} onClick={() => setPhoto("yes")}>Yes</button><button type="button" aria-pressed={photo === "no"} onClick={() => setPhoto("no")}>Not safely</button></div></fieldset>
+      <button type="submit" className="k-btn is-primary">Check my practice report</button>
       {sent && (tips.length ? <ul className="ex-tips">{tips.map((t) => <li key={t}>{t}</li>)}</ul> : <p className="ex-fb"><Check size={14} aria-hidden /> A clear, useful report. In the real form you would now see a receipt marked “Received”, and later whether an organisation took it.</p>)}
     </form>
   );

@@ -41,11 +41,10 @@ for(const theme of ['light','dark'] as const){
   });
 
   test(`sign-in pop-up text stays readable with a saved ${theme} theme`,async({page,isMobile})=>{
-    test.skip(!isMobile,'The phone workspace menu opens the pop-up; desktop uses the full sign-in page.');
+    test.skip(!isMobile,'The phone dock opens the pop-up; desktop uses the full sign-in page.');
     await page.emulateMedia({colorScheme:theme});
     await page.addInitScript(t=>{localStorage.setItem('straypaw.theme',t);localStorage.setItem('straypaw.notice.storage.v1','1')},theme);
-    await page.goto('/community');await page.getByRole('button',{name:'Workspace sections',exact:true}).click();
-    await page.getByRole('dialog',{name:'Sections in Community',exact:true}).getByRole('button',{name:'Sign in',exact:true}).click();
+    await page.goto('/community');await page.getByRole('navigation',{name:'Main'}).getByRole('button',{name:'Sign in',exact:true}).click();
     const dialog=page.getByRole('dialog',{name:'Sign in to StrayPaw'});await expect(dialog).toBeVisible();
     await readable(dialog.getByLabel('Work email',{exact:true}),'contrast@straypaw.invalid');
     await readable(dialog.getByLabel('Access code',{exact:true}),'123456');

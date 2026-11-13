@@ -13,13 +13,12 @@
    an organisation that holds it, read under their own session.
    ════════════════════════════════════════════════════════════════════ */
 
-import Link from "next/link";
-import { MobileDetails } from "../ui/MobileDetails";
 import type { Living, LivingEvent } from "@/lib/animal/living";
+import { Btn, Note, Page, Panel, Props, Row, Rows, Section, Split, Tag } from "@/ws/kit";
 import { Portrait } from "../ui/Portrait";
 import { publicLocality } from "../ui/place";
-import { RecordActions, BackToMap, CasefileLink } from "./RecordActions";
-import "./community.css";
+import { RecordActions, CasefileLink } from "./RecordActions";
+import "./record.k.css";
 
 const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }) : "date not recorded");
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
@@ -45,7 +44,6 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
 
   const sightings = r.events.filter((e) => e.lane === "sight").length, careN = r.events.filter((e) => e.lane === "care").length, casesN = r.events.filter((e) => e.lane === "case").length;
   const place = publicLocality(r.locality);
-  const latest = r.events[r.events.length - 1] ?? null;
   const care = r.events.filter((e) => e.lane === "care").slice(-4).reverse();
   const quietDays = r.lastSeen ? (Date.now() - Date.parse(r.lastSeen)) / 86_400_000 : null;
   /* The one next action the record itself suggests. Nothing here is a promise of rescue. */
@@ -55,124 +53,93 @@ export function AnimalRecord({ r, ngoId }: { r: Living; ngoId: string | null }) 
     : k.ster === "unknown" ? { t: "Sterilisation not recorded", a: "A V-notched ear is a sign, not proof. Note it in a sighting if you see one.", href: `/community/report?animal=${r.id}`, cta: "Add a sighting", urgent: false }
     : quietDays !== null && quietDays > 180 ? { t: "Not seen for over six months", a: "A quiet record is not a missing animal. If you have seen it, a sighting dates the record.", href: `/community/report?animal=${r.id}`, cta: "Add a sighting", urgent: false }
     : { t: "The record is current", a: "Follow it to keep it in My Activity on this device.", href: null, cta: null, urgent: false };
+  const tone = (t: "care" | "urgent" | "unknown" | "plain") => (t === "care" ? "green" : t === "urgent" ? "flame" : "plain") as "green" | "flame" | "plain";
+  const yearList = [...years.entries()];
+  /* One record: a small portrait, the name and its ID; what the record says and its chapters by year; where it lives, who recorded it and what is missing beside. */
   return (
-    <article className="ar">
-      {/* The record's head: identity, place, span and the next useful step. */}
-      <header className="ar-sheet">
-        <div className="ar-bar page"><BackToMap /><CasefileLink id={r.id} ngoId={ngoId} /></div>
-        <div className="ar-hero page">
-          <div className="ar-photo">
-            <Portrait src={r.photo} tag={r.straypawId ?? r.label} sensitive={r.photoSensitive} credit={r.photoAttribution} size="l" alt={`Photograph of ${r.label}`} puppy={r.size === "puppy"} />
-            {r.photos.length > 1 && <p className="k">{r.photos.length} photographs on the record</p>}
-          </div>
-          <div className="ar-id">
-            <p className="ar-strip mono"><span>StrayPaw ID</span>{r.straypawId ?? "pending"}{r.sourceCode ? <><span>Source</span>{r.sourceCode}</> : null}</p>
-            <h1 className="ar-name">{r.label}</h1>
-            <p className="ar-desc">{describe || "Description not recorded"}{place ? <> · recorded in <b>{place}</b>{r.city ? `, ${r.city}` : ""}</> : r.city ? <> · {r.city}</> : null}</p>
-            <MobileDetails label="Record dates and entries"><dl className="ar-span">
-              <div><dt>On the record since</dt><dd>{day(r.firstSeen)}</dd></div>
-              <div><dt>Last recorded</dt><dd>{day(r.lastSeen)}</dd></div>
-              <div><dt>Entries</dt><dd className="tnum">{r.events.length}</dd><small>{sightings} sighting{sightings === 1 ? "" : "s"} · {careN} care · {casesN} request{casesN === 1 ? "" : "s"}</small></div>
-            </dl></MobileDetails>
-            <div className={`ar-next${next.urgent ? " is-urgent" : ""}`}>
-              <p className="k">Next on this record</p>
-              <b>{next.t}</b>
-              <span>{next.a}</span>
-              {next.href && <Link className="btn" href={next.href}>{next.cta}</Link>}
-            </div>
-            <RecordActions id={r.id} label={r.label} />
-          </div>
+    <Page className="rk">
+      <header className="rk-head">
+        <div className="rk-pic">
+          <Portrait src={r.photo} tag={r.straypawId ?? r.label} sensitive={r.photoSensitive} size="m" alt={`Photograph of ${r.label}`} puppy={r.size === "puppy"} />
         </div>
-        {latest && (
-          <div className="ar-latest page" aria-label="Last known activity">
-            <span className="k">Last known activity</span>
-            <time className="mono">{day(latest.date)}</time>
-            <b>{latest.title}</b>
-            <small>{LANE[latest.lane]} · {latest.by ? `recorded by ${latest.by}` : SOURCE[latest.source]}</small>
-          </div>
-        )}
+        <div className="rk-id">
+          <p className="rk-code"><span>StrayPaw ID</span> {r.straypawId ?? "pending"}{r.sourceCode ? <> · <span>Source</span> {r.sourceCode}</> : null}</p>
+          <h1 className="k-title">{r.label}</h1>
+          <p className="k-sum">{describe || "Description not recorded"}{place ? <> · recorded in <b>{place}</b>{r.city ? `, ${r.city}` : ""}</> : r.city ? <> · {r.city}</> : null}{r.photoAttribution ? <> · photo: {r.photoAttribution}</> : null}{r.photos.length > 1 ? <> · {r.photos.length} photographs on the record</> : null}</p>
+          <div className="rk-acts"><RecordActions id={r.id} label={r.label} /><CasefileLink id={r.id} ngoId={ngoId} /></div>
+        </div>
       </header>
 
-      {/* What the record says, and what it does not: four facts, each with its own state. */}
-      <MobileDetails label="Health and care on record" className="ar-ledger-fold"><section className="ar-ledger page" aria-labelledby="ar-ledger-h">
-        <h2 id="ar-ledger-h" className="k">What the record says</h2>
-        <dl className="ar-facts">
-          {facts.map((f, i) => <div key={f.label} className={`is-${f.tone}`} style={{ ["--i" as string]: i }}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}
-        </dl>
-        <div className="ar-care" aria-label="Care on the record">
-          <p className="k">Care on the record</p>
-          {care.length ? <ol>{care.map((e) => <li key={e.id}><time className="mono">{day(e.date)}</time><b>{e.title}</b><small>{e.by ? e.by : SOURCE[e.source]}</small></li>)}</ol>
-            : <p className="ar-care-none">No dated care event is recorded. That is unknown, not proof that no care was given.</p>}
-        </div>
-        <p className="small">Hatched means the record does not say. Not recorded is never counted as no. Identity: one StrayPaw ID across every organisation that records it; matches are made by people, reviewable and reversible, and a likeness alone never merges two animals.</p>
-      </section></MobileDetails>
+      <Note tone={next.urgent ? "flame" : "plain"} action={next.href ? <Btn small href={next.href}>{next.cta}</Btn> : undefined}><b>{next.t}.</b> {next.a}</Note>
 
-      <div className="ar-body page">
-        <section className="ar-life" aria-labelledby="ar-life-h">
-          <p className="k">A life on the record</p>
-          <h2 id="ar-life-h" className="h2">Chapters, by year</h2>
-          <p className="small">Each line says where it came from. Gaps in time are gaps in reporting, not a quiet life or a missing animal.</p>
-          {r.events.length === 0 && <p className="body">Nothing dated yet beyond the profile itself.</p>}
-          {[...years.entries()].map(([y, list], ci) => (
-            <section key={y} className="ar-year">
-              <h3 className="ar-y"><small className="mono">Chapter {ROMAN[ci] ?? ci + 1}</small><span>{y}</span></h3>
-              <ol className="chrono">
-                {list.map((e) => (
-                  <li key={e.id} className={`is-${e.lane === "case" ? (e.tone === "open" ? "urgent" : "report") : e.lane === "care" ? "care" : e.lane === "follow" ? "followup" : "sight"}`}>
-                    <time className="mono">{day(e.date)}{e.end && e.end !== e.date ? ` → ${day(e.end)}` : ""}</time>
-                    <span><b>{e.title}</b></span>
-                    <small>{LANE[e.lane]} · {e.by ? `recorded by ${e.by}` : SOURCE[e.source]}{e.via ? ` · ${e.via}` : ""}</small>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ))}
-        </section>
+      <Split side={<>
+        {r.place && <AreaPlate place={r.place} />}
+        <Section title="Who has recorded it">
+          <p className="rk-prose">{r.hands.orgs.length ? r.hands.orgs.join(", ") : r.keeper}{r.hands.unnamedOrgs ? ` and ${r.hands.unnamedOrgs} organisation${r.hands.unnamedOrgs === 1 ? "" : "s"} that do not publish a name` : ""}{r.hands.residents ? `; ${r.hands.residents} resident sighting${r.hands.residents === 1 ? "" : "s"}` : ""}.</p>
+          <p className="rk-fine">Recording an animal is not a claim that anyone has it in their care.</p>
+        </Section>
+        {gaps.length > 0 && (
+          <Section title="Not yet on the record" action={<Btn small href={`/community/report?animal=${r.id}`}>Add a sighting</Btn>}>
+            <Panel><Rows>{gaps.map((g) => <Row key={g.t} title={g.t} meta={<span title={g.a}>{g.a}</span>} />)}</Rows></Panel>
+          </Section>
+        )}
+        {r.comments.length > 0 && (
+          <Section title="Notes from residents" count={r.comments.length}>
+            <ul className="rk-notes">{r.comments.slice(0, 5).map((c) => <li key={c.id}><p>{c.body}</p><small>{c.author} · {day(c.date)}</small></li>)}</ul>
+          </Section>
+        )}
+      </>}>
+        <Section title="What the record says">
+          <Panel pad><Props items={[
+            ...facts.map((f) => ({ label: f.label, value: f.tone === "care" || f.tone === "urgent" ? <Tag tone={tone(f.tone)}>{f.value}</Tag> : f.tone === "unknown" ? <span className="rk-unknown">{f.value}</span> : f.value })),
+            { label: "On the record since", value: day(r.firstSeen) },
+            { label: "Last recorded", value: day(r.lastSeen) },
+            { label: "Entries", value: <>{r.events.length} <span className="rk-unknown">({sightings} sighting{sightings === 1 ? "" : "s"} · {careN} care · {casesN} request{casesN === 1 ? "" : "s"})</span></> },
+          ]} /></Panel>
+          <p className="rk-fine">Not recorded is never counted as no. Identity: one StrayPaw ID across every organisation that records it; matches are made by people, reviewable and reversible, and a likeness alone never merges two animals.</p>
+        </Section>
 
-        <MobileDetails label="Places, sources and notes" className="ar-side-fold"><aside className="ar-side">
-          {gaps.length > 0 && (
-            <section className="ar-card">
-              <h2 className="h3">Not yet on the record</h2>
-              <ul className="ar-gaps">{gaps.map((g) => <li key={g.t}><b>{g.t}</b><span>{g.a}</span></li>)}</ul>
-              <Link className="btn is-s" href={`/community/report?animal=${r.id}`}>Add a sighting</Link>
-            </section>
-          )}
-          <section className="ar-card">
-            <h2 className="h3">Who has recorded it</h2>
-            <p className="body">{r.hands.orgs.length ? r.hands.orgs.join(", ") : r.keeper}{r.hands.unnamedOrgs ? ` and ${r.hands.unnamedOrgs} organisation${r.hands.unnamedOrgs === 1 ? "" : "s"} that do not publish a name` : ""}{r.hands.residents ? `; ${r.hands.residents} resident sighting${r.hands.residents === 1 ? "" : "s"}` : ""}.</p>
-            <p className="small">Recording an animal is not a claim that anyone has it in their care.</p>
-          </section>
-          {r.place && <AreaPlate place={r.place} />}
-          {r.comments.length > 0 && (
-            <section className="ar-card">
-              <h2 className="h3">Notes from residents</h2>
-              <ul className="ar-notes">{r.comments.slice(0, 5).map((c) => <li key={c.id}><p>{c.body}</p><small>{c.author} · {day(c.date)}</small></li>)}</ul>
-            </section>
-          )}
-        </aside></MobileDetails>
-      </div>
-    </article>
+        <Section title="Care on the record" count={care.length || null}>
+          <Panel>
+            {care.length ? <Rows>{care.map((e) => <Row key={e.id} title={e.title} meta={e.by ? e.by : SOURCE[e.source]} end={<time>{day(e.date)}</time>} />)}</Rows>
+              : <p className="rk-quiet">No dated care event is recorded. That is unknown, not proof that no care was given.</p>}
+          </Panel>
+        </Section>
+
+        {r.events.length === 0 && <Section title="Chapters, by year"><Panel><p className="rk-quiet">Nothing dated yet beyond the profile itself.</p></Panel></Section>}
+        {yearList.map(([y, list], ci) => (
+          <Section key={y} fold={`year-${y}`} open={ci === 0} title={y} count={list.length} note={ci === 0 ? "Each line says where it came from. Gaps in time are gaps in reporting, not a quiet life or a missing animal." : undefined}>
+            <Panel><Rows label={`Chapter ${ROMAN[ci] ?? ci + 1}, ${y}`}>
+              {list.map((e) => (
+                <Row key={e.id} title={e.title}
+                  meta={<>{LANE[e.lane]} · {e.by ? `recorded by ${e.by}` : SOURCE[e.source]}{e.via ? ` · ${e.via}` : ""}</>}
+                  end={<>{e.lane === "case" && e.tone === "open" ? <Tag tone="flame">Open</Tag> : null}<time>{day(e.date)}{e.end && e.end !== e.date ? ` → ${day(e.end)}` : ""}</time></>} />
+              ))}
+            </Rows></Panel>
+          </Section>
+        ))}
+      </Split>
+    </Page>
   );
 }
 
 /* Its area among its neighbours, as round discs: the area, never the spot. */
 function AreaPlate({ place }: { place: NonNullable<Living["place"]> }) {
   const [w, s, e, n] = place.box;
-  const W = 280, H = Math.max(160, Math.round(W * ((n - s) / Math.max(1e-6, e - w)))), x = (lng: number) => ((lng - w) / (e - w)) * W, y = (lat: number) => H - ((lat - s) / (n - s)) * H;
+  const W = 280, H = Math.min(200, Math.max(120, Math.round(W * ((n - s) / Math.max(1e-6, e - w))))), x = (lng: number) => ((lng - w) / (e - w)) * W, y = (lat: number) => H - ((lat - s) / (n - s)) * H;
   const max = Math.max(1, ...place.cells.map((c) => c.n));
   return (
-    <section className="ar-card">
-      <h2 className="h3">Where it lives</h2>
-      <svg className="ar-area" viewBox={`-10 -10 ${W + 20} ${H + 20}`} role="img" aria-label={`Its recorded area and the ${place.cells.length - 1} areas around it`}>
+    <Section title="Where it lives">
+      <svg className="rk-area" viewBox={`-10 -10 ${W + 20} ${H + 20}`} role="img" aria-label={`Its recorded area and the ${place.cells.length - 1} areas around it`}>
         {place.cells.map((c) => {
           let cx = 0, cy = 0; const k = c.ring.length / 2;
           for (let i = 0; i < c.ring.length; i += 2) { cx += x(c.ring[i]); cy += y(c.ring[i + 1]); }
           cx /= k; cy /= k;
           const r = 9 + (c.n / max) * 14;
-          return <g key={c.key}>{c.self && <circle cx={cx + 2} cy={cy - 2} r={r + 6} fill="none" stroke="#f05b40" strokeWidth="1.4" opacity=".8" />}<circle cx={cx} cy={cy} r={c.self ? r + 4 : r} fill={c.self ? "#2457ce" : c.n ? "#a9b5d6" : "none"} stroke="#0b1e3d" strokeOpacity={c.n || c.self ? 0.4 : 0.2} strokeDasharray={c.n || c.self ? undefined : "2 2"} /></g>;
+          return <g key={c.key}><circle cx={cx} cy={cy} r={c.self ? r + 4 : r} style={{ fill: c.self ? "var(--n-blue)" : c.n ? "var(--n-fill-2)" : "none", stroke: "var(--n-text-3)" }} strokeOpacity={c.n || c.self ? 0.6 : 0.5} strokeDasharray={c.n || c.self ? undefined : "2 2"} /></g>;
         })}
       </svg>
-      <p className="small">Its area (blue, ≈0.74 km²) and the areas around it, sized by animals recorded. Dashed rings: nothing recorded yet.</p>
-    </section>
+      <p className="rk-fine">Its area (blue, ≈0.74 km²) and the areas around it, sized by animals recorded. Dashed rings: nothing recorded yet. The area, never the spot.</p>
+    </Section>
   );
 }

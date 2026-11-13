@@ -6,8 +6,8 @@ import { expect, test } from "@playwright/test";
 test("Kaju greets when the agent opens and listens after", async ({ page, isMobile }) => {
   await page.goto("/community");
   const open = isMobile
-    ? page.getByRole("navigation", { name: /navigation/ }).getByRole("button", { name: "Kaju" })
-    : page.getByRole("complementary", { name: "Workspace" }).getByRole("button", { name: "Open Kaju" });
+    ? page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Kaju" })
+    : page.getByRole("complementary", { name: "Workspace" }).getByRole("button", { name: /^Kaju/ });
   await open.click();
   const panel = page.getByRole("complementary", { name: "Kaju" });
   await expect(panel).toBeVisible();

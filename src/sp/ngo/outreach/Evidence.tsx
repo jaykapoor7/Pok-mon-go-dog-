@@ -17,18 +17,21 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link2, Search, ShieldCheck } from "lucide-react";
+import { FileText } from "lucide-react";
+import { Btn, Empty, Head, Lanes, Note, Page, Panel, SearchBox, Tag, Tools, type Col } from "@/ws/kit";
+import { usePageState } from "@/ws/store";
+import { FoldTable, Pager, SkelRows, pageOf } from "../../abc/Pager";
 import { SensitiveVeil } from "@/components/ui/SensitiveVeil";
 import { DOCUMENT_KINDS, type DocumentKind, type SourceDocument } from "@/lib/documents";
 import { getPartnerCases } from "@/lib/cases";
 import { animalTitle } from "@/lib/animal-name";
 import type { Case } from "@/lib/types";
 import { useMembership } from "../../shell/Shell";
-import { Ack, State, day, n } from "../../ui";
+import { Ack, day, n } from "../../ui";
 import { attachDocument, fileScan, readAnimalsForAttach, readDocuments, saveDocument, type OrgAnimalLite, type Receipt } from "../../data/work-outreach";
 import { NgoGate } from "../Gate";
 import "../ngo.css";
-import "./outreach.css";
+import "./Evidence.k.css";
 
 const KIND_LABEL = Object.fromEntries(DOCUMENT_KINDS.map((k) => [k.value, k.label])) as Record<DocumentKind, string>;
 const animalLabel = (a: OrgAnimalLite) => a.name?.trim() || a.code || animalTitle({ name: a.name, straypaw_id: a.straypaw_id, id: a.id });
@@ -40,11 +43,13 @@ export function Evidence() {
   const [failed, setFailed] = useState<string | null>(null);
   const [animals, setAnimals] = useState<OrgAnimalLite[] | null>(null);
   const [cases, setCases] = useState<Case[] | null>(null);
-  const [q, setQ] = useState("");
-  const [kindF, setKindF] = useState<DocumentKind | "">("");
-  const [loose, setLoose] = useState(false);
+  const [q, setQ] = usePageState("q", "");
+  const [kindF, setKindF] = usePageState<DocumentKind | "">("kind", "");
+  const [loose, setLoose] = usePageState("loose", false);
+  const [page, setPage] = useState(0);
   const [editing, setEditing] = useState<string | null>(null);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setFailed(null);
@@ -72,64 +77,59 @@ export function Evidence() {
   }, [docs, q, kindF, loose, byId, caseById]);
   const unfiled = docs?.filter((d) => !d.dog_id && !d.case_id).length ?? 0;
 
+  const { pg, pages, slice } = pageOf(shown, page, 20);
+  const cols: Col<SourceDocument>[] = [
+    { key: "t", label: "Scan", width: "minmax(0, 1.4fr)", render: (d) => <span className="kx-cell"><FileText size={14} aria-hidden /><span>{d.title?.trim() || "Untitled scan"}<small className="kx-sub">{KIND_LABEL[d.kind] ?? d.kind}</small></span></span> },
+    { key: "k", label: "Type", width: "144px", render: (d) => KIND_LABEL[d.kind] ?? d.kind },
+    { key: "d", label: "Date on the record", width: "136px", render: (d) => (d.recorded_on ? <span className="kx-num">{day(d.recorded_on)}</span> : <span className="kx-none">Not given</span>) },
+    { key: "n", label: "Context", width: "minmax(0, 1.6fr)", render: (d) => (d.notes ? <span title={d.notes}>{d.notes}</span> : <span className="kx-none">No context written yet</span>) },
+    { key: "a", label: "Attached to", keep: true, render: (d) => {
+      const a = d.dog_id ? byId.get(d.dog_id) ?? null : null, c = d.case_id ? caseById.get(d.case_id) ?? null : null;
+      return !d.dog_id && !d.case_id ? <Tag tone="amber">Not attached</Tag> : <span className="ev2-links">
+        {d.dog_id && <Link className="kx-link" href={`/ngo/animals/${d.dog_id}`}>{a ? animalLabel(a) : "An animal"}</Link>}
+        {d.case_id && <Link className="kx-link" href={`/ngo/cases/${d.case_id}`}>{c?.title ?? "A case"}</Link>}
+      </span>; } },
+  ];
+  const detail = (d: SourceDocument) => (
+    <div className="ev2-open">
+      <a href={d.url} target="_blank" rel="noreferrer" className="ev2-thumb" aria-label={`Open ${d.title ?? "the scan"} in full`}><SensitiveVeil sensitive={sensitive(d)} id={d.url} compact note="May show an injured animal">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={d.url} alt={d.title ?? "Filed document"} loading="lazy" /></SensitiveVeil></a>
+      <div className="ev2-body">
+        <p className="kx-quiet">Filed {day(d.created_at)}. {d.notes ? d.notes : "No context written yet."}</p>
+        <Attach doc={d} animals={animals} cases={cases} open={editing === d.id} onEdit={() => setEditing(editing === d.id ? null : d.id)} onDone={after} />
+        {editing === d.id ? <EditDoc doc={d} onCancel={() => setEditing(null)} onDone={async (r) => { if (r.ok) setEditing(null); await after(r); }} /> : null}
+      </div>
+    </div>
+  );
+
   return (
     <NgoGate title="Evidence files" lede="The original register pages, ledgers and message threads your records came from.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · evidence</p><h1 className="serif">Evidence files</h1></div>
-          <p className="ngo-sum">{docs ? <><b>{n(docs.length)}</b> filed{docs.length >= 300 ? " (the latest 300)" : ""}, <b>{n(unfiled)}</b> not yet attached. </> : failed ? "The files could not be read. Nothing is shown as none. " : "Reading your files… "}Attach a scan to an animal or case so any transcribed entry can be checked against its page.</p>
-        </header>
-
-        <FileBand onDone={after} />
-        <p className="or-note"><ShieldCheck size={16} aria-hidden /><span>Private to your organisation.</span></p>
-        <div aria-live="polite" className="or-receipt">{receipts.map((r, i) => <div key={i}>{r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not saved: {r.error}</Ack>}</div>)}</div>
+      <Page>
+        <Head title="Reports"
+          sum={<>{docs ? <><b>{n(docs.length)}</b> filed{docs.length >= 300 ? " (the latest 300)" : ""}, <b>{n(unfiled)}</b> not yet attached. </> : failed ? "The files could not be read. Nothing is shown as none. " : "Reading your files… "}Attach a scan to an animal or case so any transcribed entry can be checked against its page. Private to your organisation.</>}
+          actions={<FileBand onDone={after} />} />
+        <div aria-live="polite" className="kx-live">{receipts.map((r, i) => <div key={i}>{r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not saved: {r.error}</Ack>}</div>)}</div>
 
         {failed ? (
-          <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed} A failed read is never shown as an empty library.</State>
+          <Panel><div role="alert"><Empty title="Didn't load" action={<Btn onClick={() => void load()}>Try again</Btn>}>{failed} A failed read is never shown as an empty library.</Empty></div></Panel>
         ) : docs === null ? (
-          <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 180 }} /></div>
+          <Panel><SkelRows label="Reading your files" /></Panel>
         ) : docs.length === 0 ? (
-          <State art="ngo-empty" title="No scans filed yet" action={<Link className="btn" href="/ngo/import">Import a workbook</Link>}>Choose a type, then pick the files.</State>
+          <Panel><Empty title="No scans filed yet" action={<Btn href="/ngo/import">Import a workbook</Btn>}>Choose a type, then pick the files.</Empty></Panel>
         ) : (
           <>
-            <div className="wk-tools">
-              <label className="search wk-search"><Search size={15} aria-hidden /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Titles, context notes, animals and cases" aria-label="Search filed documents" /></label>
-              <select className="select ngo-sel" value={kindF} onChange={(e) => setKindF(e.target.value as DocumentKind | "")} aria-label="Type"><option value="">Every type</option>{DOCUMENT_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
-              <button type="button" className="chip" aria-pressed={loose} onClick={() => setLoose((v) => !v)}>Not yet attached <span className="n">{n(unfiled)}</span></button>
-            </div>
-            <p className="k or-count">{n(shown.length)} of {n(docs.length)} filed{unfiled ? ` · ${n(unfiled)} not yet attached` : ""}{animals === null ? " · animals could not be read, so attaching to an animal is unavailable" : ""}{cases === null ? " · cases could not be read, so attaching to a case is unavailable" : ""}</p>
-            {!shown.length ? <State title="No file matches">Change the search or filters.</State> : (
-              <div className="or-scroll" role="region" aria-label="Filed documents" tabIndex={0}>
-                <table className="or-table" style={{ minWidth: 980 }}>
-                  <thead><tr><th>Scan</th><th>Title and type</th><th>Date on the record</th><th>Context</th><th>Attached to</th><th>Actions</th></tr></thead>
-                  <tbody>
-                    {shown.flatMap((d) => {
-                      const a = d.dog_id ? byId.get(d.dog_id) ?? null : null;
-                      const c = d.case_id ? caseById.get(d.case_id) ?? null : null;
-                      const open = editing === d.id;
-                      const row = (
-                        <tr key={d.id} className={open ? "is-open" : undefined}>
-                          <td><a href={d.url} target="_blank" rel="noreferrer" className="or-thumb" aria-label={`Open ${d.title ?? "the scan"} in full`}><SensitiveVeil sensitive={sensitive(d)} id={d.url} compact note="May show an injured animal">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={d.url} alt={d.title ?? "Filed document"} loading="lazy" /></SensitiveVeil></a></td>
-                          <td><b>{d.title?.trim() || "Untitled scan"}</b><small>{KIND_LABEL[d.kind] ?? d.kind}</small><small className="mono">Filed {day(d.created_at)}</small></td>
-                          <td className="mono">{d.recorded_on ? day(d.recorded_on) : <i className="or-none">not given</i>}</td>
-                          <td style={{ maxWidth: 320 }}>{d.notes ? d.notes : <i className="or-none">No context written yet.</i>}</td>
-                          <td>
-                            {d.dog_id && (a ? <Link className="or-linked" href={`/ngo/animals/${a.id}`}><Link2 size={12} aria-hidden /> {animalLabel(a)}</Link> : <Link className="or-linked" href={`/ngo/animals/${d.dog_id}`}><Link2 size={12} aria-hidden /> An animal</Link>)}
-                            {d.case_id && <Link className="or-linked" href={`/ngo/cases/${d.case_id}`}><Link2 size={12} aria-hidden /> {c?.title ?? "A case"}</Link>}
-                            {!d.dog_id && !d.case_id && <i className="or-none">Not attached</i>}
-                          </td>
-                          <td><Attach doc={d} animals={animals} cases={cases} open={open} onEdit={() => setEditing(open ? null : d.id)} onDone={after} /></td>
-                        </tr>
-                      );
-                      return open ? [row, <tr key={`${d.id}-edit`} className="is-edit"><td colSpan={6}><EditDoc doc={d} onCancel={() => setEditing(null)} onDone={async (r) => { if (r.ok) setEditing(null); await after(r); }} /></td></tr>] : [row];
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <Tools end={<>
+              <SearchBox value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="Titles, context, animals, cases" label="Search filed documents" />
+              <select className="kx-in is-auto" value={kindF} onChange={(e) => { setKindF(e.target.value as DocumentKind | ""); setPage(0); }} aria-label="Type"><option value="">Every type</option>{DOCUMENT_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
+            </>}>
+              <Lanes<"all" | "loose"> label="Show" value={loose ? "loose" : "all"} onChange={(v) => { setLoose(v === "loose"); setPage(0); }} lanes={[{ id: "all", label: "All", count: docs.length }, { id: "loose", label: "Not yet attached", count: unfiled, tone: unfiled ? "amber" : undefined }]} />
+            </Tools>
+            {animals === null || cases === null ? <Note tone="amber">{[animals === null ? "Animals could not be read, so attaching to an animal is unavailable." : null, cases === null ? "Cases could not be read, so attaching to a case is unavailable." : null].filter(Boolean).join(" ")}</Note> : null}
+            <Panel>{!shown.length ? <Empty title="No file matches">Change the search or filters.</Empty>
+              : <FoldTable cols={cols} rows={slice} rowKey={(d) => d.id} label="Filed documents" open={openId} onOpen={(k) => { setOpenId(k); setEditing(null); }} detail={detail} />}</Panel>
+            <Pager pg={pg} pages={pages} total={shown.length} size={20} onPage={setPage} />
           </>
         )}
-      </div>
+      </Page>
     </NgoGate>
   );
 }
@@ -148,16 +148,12 @@ function FileBand({ onDone }: { onDone: (r: Receipt[]) => Promise<void> }) {
     await onDone(out);
   }
   return (
-    <section className="or-band" aria-labelledby="ev-file">
-      <h2 id="ev-file">File a scan</h2>
-      <p className="small">Profiles, ledgers, medical notes or screenshots.</p>
-      <div className="or-band-row">
-        <select className="select" value={kind} onChange={(e) => setKind(e.target.value as DocumentKind)} disabled={!!busy} aria-label="Document type">{DOCUMENT_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
-        <input ref={ref} type="file" accept="image/*" multiple hidden aria-label="Choose scans to file" onChange={(e) => { void pick(e.target.files); e.target.value = ""; }} />
-        <button type="button" className="btn is-ink" disabled={!!busy} onClick={() => ref.current?.click()}>{busy ? "Filing…" : "Choose files"}</button>
-        {busy && <Ack state="pending">{busy}</Ack>}
-      </div>
-    </section>
+    <>
+      <select className="kx-in is-auto" value={kind} onChange={(e) => setKind(e.target.value as DocumentKind)} disabled={!!busy} aria-label="Document type">{DOCUMENT_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select>
+      <input ref={ref} type="file" accept="image/*" multiple hidden aria-label="Choose scans to file" onChange={(e) => { void pick(e.target.files); e.target.value = ""; }} />
+      <Btn variant="primary" disabled={!!busy} onClick={() => ref.current?.click()}>{busy ? "Filing…" : "File scans"}</Btn>
+      {busy && <Ack state="pending">{busy}</Ack>}
+    </>
   );
 }
 
@@ -165,19 +161,19 @@ function Attach({ doc, animals, cases, open, onEdit, onDone }: { doc: SourceDocu
   const [busy, setBusy] = useState(false);
   const go = async (opts: { dogId?: string; caseId?: string; clear?: boolean }, label: string) => { setBusy(true); const r = await attachDocument(doc.id, opts, label); setBusy(false); await onDone(r); };
   return (
-    <div className="or-acts">
+    <div className="kx-acts">
       {!doc.dog_id && animals && animals.length > 0 && (
-        <select className="select" defaultValue="" disabled={busy} aria-label={`Attach ${doc.title ?? "this scan"} to an animal`} onChange={(e) => { const a = animals.find((x) => x.id === e.target.value); if (a) void go({ dogId: a.id }, animalLabel(a)); }}>
+        <select className="kx-in is-auto ev2-sel" defaultValue="" disabled={busy} aria-label={`Attach ${doc.title ?? "this scan"} to an animal`} onChange={(e) => { const a = animals.find((x) => x.id === e.target.value); if (a) void go({ dogId: a.id }, animalLabel(a)); }}>
           <option value="">Attach to an animal…</option>{animals.map((a) => <option key={a.id} value={a.id}>{animalLabel(a)}{a.straypaw_id ? ` · ${a.straypaw_id}` : ""}</option>)}
         </select>
       )}
       {!doc.case_id && cases && cases.length > 0 && (
-        <select className="select" defaultValue="" disabled={busy} aria-label={`Attach ${doc.title ?? "this scan"} to a case`} onChange={(e) => { const c = cases.find((x) => x.id === e.target.value); if (c) void go({ caseId: c.id }, c.title); }}>
+        <select className="kx-in is-auto ev2-sel" defaultValue="" disabled={busy} aria-label={`Attach ${doc.title ?? "this scan"} to a case`} onChange={(e) => { const c = cases.find((x) => x.id === e.target.value); if (c) void go({ caseId: c.id }, c.title); }}>
           <option value="">Attach to a case…</option>{cases.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
         </select>
       )}
-      <button type="button" className="btn is-s" aria-expanded={open} onClick={onEdit}>{doc.notes ? "Edit context" : "Add context"}</button>
-      {(doc.dog_id || doc.case_id) && <button type="button" className="btn is-ghost is-s" disabled={busy} onClick={() => void go({ clear: true }, "")}>Detach</button>}
+      <Btn aria-expanded={open} onClick={onEdit}>{doc.notes ? "Edit context" : "Add context"}</Btn>
+      {(doc.dog_id || doc.case_id) && <Btn variant="quiet" disabled={busy} onClick={() => void go({ clear: true }, "")}>Detach</Btn>}
     </div>
   );
 }
@@ -190,12 +186,12 @@ function EditDoc({ doc, onCancel, onDone }: { doc: SourceDocument; onCancel: () 
   const [busy, setBusy] = useState(false);
   const id = doc.id.slice(0, 8);
   return (
-    <form className="or-edit" onSubmit={async (e) => { e.preventDefault(); setBusy(true); const r = await saveDocument(doc.id, { title, notes, kind, recordedOn: recordedOn || null }); setBusy(false); await onDone(r); }}>
-      <div className="field"><label htmlFor={`ev-t-${id}`}>Title</label><input id={`ev-t-${id}`} className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. ABC ledger, page 14" /></div>
-      <div className="field"><label htmlFor={`ev-k-${id}`}>Type</label><select id={`ev-k-${id}`} className="select" value={kind} onChange={(e) => setKind(e.target.value as DocumentKind)}>{DOCUMENT_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select></div>
-      <div className="field"><label htmlFor={`ev-d-${id}`}>Date on the record</label><input id={`ev-d-${id}`} type="date" className="input" value={recordedOn} onChange={(e) => setRecordedOn(e.target.value)} /></div>
-      <div className="field is-wide"><label htmlFor={`ev-n-${id}`}>What this is</label><textarea id={`ev-n-${id}`} className="textarea" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Whose handwriting, which drive, what the entries cover. Anything the next person would need to read it." /></div>
-      <div className="or-send is-wide"><button type="submit" className="btn is-ink is-s" disabled={busy}>{busy ? "Saving…" : "Save"}</button><button type="button" className="btn is-ghost is-s" onClick={onCancel}>Cancel</button>{busy && <Ack state="pending">Saving…</Ack>}</div>
+    <form className="kx-form" onSubmit={async (e) => { e.preventDefault(); setBusy(true); const r = await saveDocument(doc.id, { title, notes, kind, recordedOn: recordedOn || null }); setBusy(false); await onDone(r); }}>
+      <div className="kx-f"><label htmlFor={`ev-t-${id}`}>Title</label><input id={`ev-t-${id}`} className="kx-in" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. ABC ledger, page 14" /></div>
+      <div className="kx-f"><label htmlFor={`ev-k-${id}`}>Type</label><select id={`ev-k-${id}`} className="kx-in" value={kind} onChange={(e) => setKind(e.target.value as DocumentKind)}>{DOCUMENT_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select></div>
+      <div className="kx-f"><label htmlFor={`ev-d-${id}`}>Date on the record</label><input id={`ev-d-${id}`} type="date" className="kx-in" value={recordedOn} onChange={(e) => setRecordedOn(e.target.value)} /></div>
+      <div className="kx-f"><label htmlFor={`ev-n-${id}`}>What this is</label><textarea id={`ev-n-${id}`} className="kx-in" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Whose handwriting, which drive, what the entries cover. Anything the next person would need to read it." /></div>
+      <div className="kx-acts"><Btn type="submit" disabled={busy}>{busy ? "Saving…" : "Save"}</Btn><Btn variant="quiet" onClick={onCancel}>Cancel</Btn>{busy && <Ack state="pending">Saving…</Ack>}</div>
     </form>
   );
 }

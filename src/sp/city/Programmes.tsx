@@ -9,11 +9,11 @@
    and exported as shown: CSV, Excel, or a printed report.
    ════════════════════════════════════════════════════════════════════ */
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ArrowRight, Download, FileSpreadsheet, Printer } from "lucide-react";
+import { useMemo } from "react";
+import { Download, FileSpreadsheet, Printer } from "lucide-react";
 import { programmeCategory, programmePrimaryTotal, programmePrimaryUnit, type PublicProgramme, type PublicProgrammeCategory } from "@/lib/public-programmes";
-import { Empty, PageHead, Seg } from "../ui/Page";
+import { Btn, Empty, Head, Lanes, Page, Panel, Table, Tools, type Col } from "@/ws/kit";
+import { usePageState } from "@/ws/store";
 import { CAT } from "./kinds";
 import "./city.css";
 
@@ -26,8 +26,9 @@ const SHORT: Record<PublicProgrammeCategory, string> = { sterilisation: "Sterili
 
 export function Programmes({ all, initialCity, now }: { all: PublicProgramme[]; initialCity: string | null; now: number }) {
   const cities = useMemo(() => [...new Set(all.map((p) => p.city).filter(Boolean) as string[])].sort(), [all]);
-  const [city, setCity] = useState(initialCity && cities.includes(initialCity) ? initialCity : "");
-  const [cat, setCat] = useState<Kind>("all");
+  const [picked, setCity] = usePageState<string>("city", initialCity && cities.includes(initialCity) ? initialCity : "");
+  const city = cities.includes(picked) ? picked : "";
+  const [cat, setCat] = usePageState<Kind>("kind", "all");
   const inCity = useMemo(() => all.filter((p) => !city || p.city === city), [all, city]);
   const rows = useMemo(() => inCity.filter((p) => cat === "all" || programmeCategory(p) === cat), [inCity, cat]);
   const counts = useMemo(() => { const m = new Map<PublicProgrammeCategory, number>(); for (const p of inCity) m.set(programmeCategory(p), (m.get(programmeCategory(p)) ?? 0) + 1); return m; }, [inCity]);
@@ -36,58 +37,43 @@ export function Programmes({ all, initialCity, now }: { all: PublicProgramme[]; 
   const span = Math.max(1, t1 - t0);
   const pct = (t: number) => `${((t - t0) / span) * 100}%`;
   const range = dated.length ? [short(new Date(t0).toISOString().slice(0, 10)), short(new Date(t1).toISOString().slice(0, 10))] : null;
-  const byCity = useMemo(() => { const m = new Map<string, PublicProgramme[]>(); for (const p of rows) { const k = p.city ?? "City not recorded"; m.set(k, [...(m.get(k) ?? []), p]); } return [...m.entries()].sort((a, b) => b[1].length - a[1].length); }, [rows]);
+  /* Cities with the most programmes first, each city's programmes together. */
+  const ordered = useMemo(() => { const m = new Map<string, PublicProgramme[]>(); for (const p of rows) { const k = p.city ?? "City not recorded"; m.set(k, [...(m.get(k) ?? []), p]); } return [...m.entries()].sort((a, b) => b[1].length - a[1].length).flatMap(([, l]) => l); }, [rows]);
   const nCities = new Set(inCity.map((p) => p.city ?? "")).size;
+
+  const cols: Col<PublicProgramme>[] = [
+    { key: "name", label: "Programme", width: "minmax(0, 2fr)", render: (p) => <span className="cpk-name"><i style={{ background: CAT[programmeCategory(p)].ink }} aria-hidden />{p.name}</span> },
+    { key: "org", label: "Organisation", width: "minmax(0, 1.2fr)", render: (p) => p.ngo_name },
+    { key: "where", label: "Where", width: "minmax(0, 1.2fr)", render: (p) => [p.zone, p.city].filter(Boolean).join(", ") || "City not recorded" },
+    { key: "when", label: range ? `${range[0]} to ${range[1]}` : "When", width: "minmax(0, 1.4fr)", render: (p) => {
+      const k = programmeCategory(p), a = ms(p.starts_on), b = ms(p.ends_on), has = !Number.isNaN(a) || !Number.isNaN(b);
+      const st = Number.isNaN(a) ? b : a, en = Number.isNaN(b) ? (Number.isNaN(a) ? a : now) : b;
+      const when = has ? [short(p.starts_on), short(p.ends_on) ?? "ongoing"].filter(Boolean).join(" – ") : "Dates not published";
+      return has ? <span className="cpk-band" title={when}><span className="sr-only">{when}</span><i aria-hidden className={Number.isNaN(b) ? "is-open" : undefined} style={{ left: pct(st), width: `max(8px, ${((en - st) / span) * 100}%)`, background: CAT[k].ink }} /></span> : when;
+    } },
+    { key: "fig", label: "On record", width: "144px", align: "end", keep: true, render: (p) => <><b className="cpk-n">{f(programmePrimaryTotal(p))}</b> {programmePrimaryUnit(p)}</> },
+  ];
 
   /* The sentence says how much has been published and where; the lanes are the kinds of work; each row is one programme on the same time scale. */
   return (
-    <div className="vw cpv">
-      <PageHead title="Programmes"
-        sum={!all.length ? "No organisation has published a programme yet." : <><b>{inCity.length}</b> published {inCity.length === 1 ? "programme" : "programmes"}{city ? <> in {city}</> : <> in <b>{nCities}</b> {nCities === 1 ? "city" : "cities"}</>}. Each figure is in the unit its organisation recorded.</>}
-        actions={<>
-          {cities.length > 1 ? <label className="cpv-city-pick"><span className="sr-only">City</span><select value={city} onChange={(e) => setCity(e.target.value)}><option value="">Every city</option>{cities.map((c) => <option key={c} value={c}>{c}</option>)}</select></label> : null}
-          <span className="cpv-export" role="group" aria-label="Export the programmes shown">
-            <button type="button" className="btn is-s" disabled={!rows.length} onClick={() => exportRows(rows, "csv", city, cat === "all" ? "" : cat)}><Download size={14} aria-hidden /> CSV</button>
-            <button type="button" className="btn is-s" disabled={!rows.length} onClick={() => exportRows(rows, "xlsx", city, cat === "all" ? "" : cat)}><FileSpreadsheet size={14} aria-hidden /> Excel</button>
-            <button type="button" className="btn is-s" disabled={!rows.length} onClick={() => window.print()}><Printer size={14} aria-hidden /> Print</button>
-          </span>
-        </>} />
-      {inCity.length > 0 && counts.size > 1 ? (
-        <div className="vw-bar">
-          <Seg<Kind> label="Kind of work" value={cat} onChange={setCat} options={[{ id: "all", label: "All", count: inCity.length }, ...(Object.keys(CAT) as PublicProgrammeCategory[]).filter((k) => counts.get(k)).map((k) => ({ id: k as Kind, label: SHORT[k], count: counts.get(k) }))]} />
-        </div>
-      ) : null}
-      {!rows.length ? <Empty title="No programme matches">No organisation has published a programme of this kind{city ? ` in ${city}` : ""}. That says what has been shared, not what has happened.</Empty> : (
-        <>
-          {byCity.map(([c, list], ci) => (
-            <section key={c} className="cpv-sec" aria-labelledby={`cpv-${ci}`}>
-              <header className="cpv-head">
-                <h2 id={`cpv-${ci}`}>{c} <span>{list.length}</span></h2>
-                {ci === 0 && range ? <p className="cpv-scale" aria-hidden><span>{range[0]}</span><span>{range[1]}</span></p> : null}
-              </header>
-              <ul className="vw-list">
-                {list.map((p, j) => {
-                  const k = programmeCategory(p), a = ms(p.starts_on), b = ms(p.ends_on), has = !Number.isNaN(a) || !Number.isNaN(b);
-                  const st = Number.isNaN(a) ? b : a, en = Number.isNaN(b) ? (Number.isNaN(a) ? a : now) : b;
-                  const when = has ? [short(p.starts_on), short(p.ends_on) ?? "ongoing"].filter(Boolean).join(" – ") : "Dates not published";
-                  return (
-                    <li key={p.id} style={{ ["--j" as string]: j }}>
-                      <Link href={`/city/programmes/${p.id}`} className="vw-row cpv-row">
-                        <span className="cpv-dot" style={{ background: CAT[k].ink }} aria-hidden />
-                        <span className="vw-row-t"><b>{p.name}</b><small>{[p.ngo_name, p.zone, when].filter(Boolean).join(" · ")}</small></span>
-                        <span className="cpv-band" aria-hidden>{has ? <i className={Number.isNaN(b) ? "is-open" : undefined} style={{ left: pct(st), width: `max(8px, ${((en - st) / span) * 100}%)`, background: CAT[k].ink }} /> : null}</span>
-                        <span className="cpv-fig"><b>{f(programmePrimaryTotal(p))}</b><small>{programmePrimaryUnit(p)}</small></span>
-                        <ArrowRight size={14} aria-hidden className="vw-go" />
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
-        </>
-      )}
-    </div>
+    <Page className="cpk">
+      <Head title="Programmes"
+        sum={!all.length ? "No organisation has published a programme yet." : <><b>{inCity.length}</b> published {inCity.length === 1 ? "programme" : "programmes"}{city ? <> in {city}</> : <> in <b>{nCities}</b> {nCities === 1 ? "city" : "cities"}</>}. Each figure is in the unit its organisation recorded.</>} />
+      <Tools end={
+        <span className="cpk-export no-print" role="group" aria-label="Export the programmes shown">
+          <Btn small variant="quiet" icon={<Download size={14} />} disabled={!rows.length} onClick={() => exportRows(rows, "csv", city, cat === "all" ? "" : cat)}>CSV</Btn>
+          <Btn small variant="quiet" icon={<FileSpreadsheet size={14} />} disabled={!rows.length} onClick={() => exportRows(rows, "xlsx", city, cat === "all" ? "" : cat)}>Excel</Btn>
+          <Btn small variant="quiet" icon={<Printer size={14} />} disabled={!rows.length} onClick={() => window.print()}>Print</Btn>
+        </span>
+      }>
+        {inCity.length > 0 && counts.size > 1 ? <Lanes<Kind> label="Kind of work" value={cat} onChange={setCat} lanes={[{ id: "all", label: "All", count: inCity.length }, ...(Object.keys(CAT) as PublicProgrammeCategory[]).filter((k) => counts.get(k)).map((k) => ({ id: k as Kind, label: SHORT[k], count: counts.get(k) }))]} /> : null}
+        {cities.length > 1 ? <label className="mh-pick"><span className="sr-only">City</span><select value={city} onChange={(e) => setCity(e.target.value)}><option value="">Every city</option>{cities.map((c) => <option key={c} value={c}>{c}</option>)}</select></label> : null}
+      </Tools>
+      <Panel>
+        <Table label="Published programmes" cols={cols} rows={ordered} rowKey={(p) => p.id} href={(p) => `/city/programmes/${p.id}`}
+          empty={<Empty title="No programme matches">No organisation has published a programme of this kind{city ? ` in ${city}` : ""}. That says what has been shared, not what has happened.</Empty>} />
+      </Panel>
+    </Page>
   );
 }
 

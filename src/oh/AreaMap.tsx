@@ -17,6 +17,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { Split, Tag } from "@/ws/kit";
 import { call, showCount, useRead, type Network, type Overview } from "./data";
 import "./areamap.css";
 
@@ -70,32 +71,37 @@ export function AreaIntel({ programme, slug, d }: { programme: string; slug: str
   const [focus, setFocus] = useState<string | null>(null);
   const act = areas.filter((a) => a.reasons.length).slice(0, 5);
   if (loading) return <div className="oh-map wta-map" aria-busy="true" />;
+  const TAG = { flame: "flame", amber: "amber", blue: "blue" } as const;
+  const list = (
+    <div className="wta-list">
+      <h3>Areas to act on</h3>
+      {act.length ? (
+        <ol>
+          {act.map((a, i) => (
+            <li key={a.id} className={focus === a.id ? "is-on" : undefined}>
+              <button type="button" onClick={() => setFocus(a.id)} aria-pressed={focus === a.id} disabled={!a.ring}>
+                <span className="wta-n">{i + 1}</span>
+                <span className="wta-t"><b>{a.name}</b><span className="wta-why">{a.reasons.map((r) => <Tag key={r.text} tone={TAG[r.tone]}>{r.text}</Tag>)}</span></span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      ) : <p className="wta-none">No area has a confirmed case, an unusual number of bites or coverage below target.</p>}
+      <p className="wta-how">Ranked by confirmed cases, then the number of bites, then the gap to the vaccination target. Counts under the programme&apos;s threshold are not shown.</p>
+      <Link className="wta-go" href={`/programme/${slug}/coverage`}>Coverage by area<ArrowRight size={14} aria-hidden /></Link>
+    </div>
+  );
   return (
-    <div className="wta">
+    <Split side={list}>
       {mapped ? <AreaMap areas={areas} focus={focus} onFocus={setFocus} target={d.programme.target || 0.7} /> : (
         <div className="wta-nomap"><b>Area outlines are not loaded</b><span>Bites, confirmed cases and coverage are listed by area. Load ward or locality boundaries in programme setup to see them on a map.</span></div>
       )}
-      <div className="wta-side">
-        <h3>Areas to act on</h3>
-        {act.length ? (
-          <ol>
-            {act.map((a, i) => (
-              <li key={a.id} className={focus === a.id ? "is-on" : undefined} style={{ ["--i" as string]: i }}>
-                <button type="button" onClick={() => setFocus(a.id)} aria-pressed={focus === a.id} disabled={!a.ring}>
-                  <span className="wta-n">{i + 1}</span>
-                  <span className="wta-t"><b>{a.name}</b><span className="wta-why">{a.reasons.map((r) => <em key={r.text} data-tone={r.tone}>{r.text}</em>)}</span></span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        ) : <p className="wta-none">No area has a confirmed case, an unusual number of bites or coverage below target.</p>}
-        <p className="wta-how">Ranked by confirmed cases, then the number of bites, then the gap to the vaccination target. Counts under the programme&apos;s threshold are not shown.</p>
-        <Link className="wta-go" href={`/programme/${slug}/coverage`}>Coverage by area<ArrowRight size={14} aria-hidden /></Link>
-      </div>
-    </div>
+    </Split>
   );
 }
 
+/* Drawn on the map itself, outside the page: fixed mark colours in Notion's palette. */
+const MAP = { bite: "#1a73d4", pos: "#d44c47", none: "#e3e2e0", low: "#fadec9", mid: "#e9e5c4", full: "#9fcfae", ink: "#37352f" };
 function AreaMap({ areas, focus, onFocus, target }: { areas: Area[]; focus: string | null; onFocus: (id: string) => void; target: number }) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("maplibre-gl").Map | null>(null);
@@ -118,11 +124,11 @@ function AreaMap({ areas, focus, onFocus, target }: { areas: Area[]; focus: stri
         map.addSource("areas", { type: "geojson", data: { type: "FeatureCollection", features: drawn.map(feature) } });
         map.addSource("dots", { type: "geojson", data: { type: "FeatureCollection", features: drawn.map((a) => ({ ...feature(a), geometry: { type: "Point" as const, coordinates: a.centre! } })) } });
         /* coverage: no estimate is grey; below target runs from pale amber to green at the target */
-        map.addLayer({ id: "fill", type: "fill", source: "areas", paint: { "fill-color": ["case", ["<", ["get", "cov"], 0], "#e7eaf0", ["interpolate", ["linear"], ["get", "cov"], 0, "#f6d7a7", 0.6, "#cfe3b4", 1, "#7cc38f"]], "fill-opacity": 0.62 } });
-        map.addLayer({ id: "edge", type: "line", source: "areas", paint: { "line-color": "#0b1e3d", "line-opacity": 0.22, "line-width": 1 } });
-        map.addLayer({ id: "bites", type: "circle", source: "dots", paint: { "circle-radius": ["interpolate", ["linear"], ["get", "n"], 0, 4, 5, 8, 20, 18], "circle-color": ["case", ["==", ["get", "hidden"], 1], "rgba(0,0,0,0)", "#2457ce"], "circle-opacity": 0.82, "circle-stroke-width": ["case", ["==", ["get", "hidden"], 1], 1.5, 2], "circle-stroke-color": ["case", ["==", ["get", "hidden"], 1], "#2457ce", "#ffffff"] } });
-        map.addLayer({ id: "pos", type: "circle", source: "dots", filter: ["==", ["get", "pos"], 1], paint: { "circle-radius": ["interpolate", ["linear"], ["get", "n"], 0, 9, 5, 13, 20, 24], "circle-color": "rgba(0,0,0,0)", "circle-stroke-width": 3, "circle-stroke-color": "#d9481c" } });
-        map.addLayer({ id: "label", type: "symbol", source: "dots", layout: { "text-field": ["get", "name"], "text-size": 11, "text-offset": [0, 1.7], "text-font": ["Noto Sans Regular"] }, paint: { "text-color": "#23304a", "text-halo-color": "#ffffff", "text-halo-width": 1.4 } });
+        map.addLayer({ id: "fill", type: "fill", source: "areas", paint: { "fill-color": ["case", ["<", ["get", "cov"], 0], MAP.none, ["interpolate", ["linear"], ["get", "cov"], 0, MAP.low, 0.6, MAP.mid, 1, MAP.full]], "fill-opacity": 0.62 } });
+        map.addLayer({ id: "edge", type: "line", source: "areas", paint: { "line-color": MAP.ink, "line-opacity": 0.22, "line-width": 1 } });
+        map.addLayer({ id: "bites", type: "circle", source: "dots", paint: { "circle-radius": ["interpolate", ["linear"], ["get", "n"], 0, 4, 5, 8, 20, 18], "circle-color": ["case", ["==", ["get", "hidden"], 1], "rgba(0,0,0,0)", MAP.bite], "circle-opacity": 0.82, "circle-stroke-width": ["case", ["==", ["get", "hidden"], 1], 1.5, 2], "circle-stroke-color": ["case", ["==", ["get", "hidden"], 1], MAP.bite, "#ffffff"] } });
+        map.addLayer({ id: "pos", type: "circle", source: "dots", filter: ["==", ["get", "pos"], 1], paint: { "circle-radius": ["interpolate", ["linear"], ["get", "n"], 0, 9, 5, 13, 20, 24], "circle-color": "rgba(0,0,0,0)", "circle-stroke-width": 3, "circle-stroke-color": MAP.pos } });
+        map.addLayer({ id: "label", type: "symbol", source: "dots", layout: { "text-field": ["get", "name"], "text-size": 11, "text-offset": [0, 1.7], "text-font": ["Noto Sans Regular"] }, paint: { "text-color": MAP.ink, "text-halo-color": "#ffffff", "text-halo-width": 1.4 } });
         map.on("click", "fill", (e) => { const id = e.features?.[0]?.properties?.id; if (id) onFocus(String(id)); });
         map.on("mouseenter", "fill", () => { map.getCanvas().style.cursor = "pointer"; });
         map.on("mouseleave", "fill", () => { map.getCanvas().style.cursor = ""; });
@@ -144,25 +150,27 @@ function AreaMap({ areas, focus, onFocus, target }: { areas: Area[]; focus: stri
   }, [focus, drawn]);
   const sel = drawn.find((a) => a.id === focus);
   return (
-    <div className="oh-map wta-map" role="region" aria-label="Map of bites, confirmed cases and dog vaccination by area">
-      <div ref={el} style={{ position: "absolute", inset: 0 }} />
-      <div className="oh-map-legend" aria-hidden>
-        <span><i style={{ background: "#2457ce" }} />Bites recorded (size)</span>
-        <span><i style={{ background: "transparent", boxShadow: "0 0 0 2px #d9481c" }} />Rabies confirmed</span>
-        <span><i style={{ background: "#7cc38f", borderRadius: 4 }} />Dogs vaccinated, at target</span>
-        <span><i style={{ background: "#f6d7a7", borderRadius: 4 }} />Below target</span>
-        <span><i style={{ background: "#e7eaf0", borderRadius: 4 }} />No population estimate</span>
+    <div>
+      <div className="oh-map wta-map" role="region" aria-label="Map of bites, confirmed cases and dog vaccination by area">
+        <div ref={el} className="oh-map-fill" />
+        {sel ? (
+          <div className="wta-card" role="status">
+            <b>{sel.name}</b>
+            <dl>
+              <div><dt>Bites</dt><dd>{sel.bites === null ? "None recorded" : showCount(sel.bites)}</dd></div>
+              <div><dt>Confirmed</dt><dd>{sel.positive ? "Yes, by the laboratory" : "No"}</dd></div>
+              <div><dt>Dogs vaccinated</dt><dd>{sel.coverage === null ? `${sel.vaccinated} recorded, no estimate` : `${pct(sel.coverage)} of the estimate`}</dd></div>
+            </dl>
+          </div>
+        ) : null}
       </div>
-      {sel ? (
-        <div className="wta-card" role="status">
-          <b>{sel.name}</b>
-          <dl>
-            <div><dt>Bites</dt><dd>{sel.bites === null ? "None recorded" : showCount(sel.bites)}</dd></div>
-            <div><dt>Confirmed</dt><dd>{sel.positive ? "Yes, by the laboratory" : "No"}</dd></div>
-            <div><dt>Dogs vaccinated</dt><dd>{sel.coverage === null ? `${sel.vaccinated} recorded, no estimate` : `${pct(sel.coverage)} of the estimate`}</dd></div>
-          </dl>
-        </div>
-      ) : null}
+      <ul className="oh-legend" aria-hidden>
+        <li><i style={{ background: MAP.bite }} />Bites recorded (size)</li>
+        <li><i className="ring" />Rabies confirmed</li>
+        <li><i className="sq" style={{ background: MAP.full }} />Dogs vaccinated, at target</li>
+        <li><i className="sq" style={{ background: MAP.low }} />Below target</li>
+        <li><i className="sq" style={{ background: MAP.none }} />No population estimate</li>
+      </ul>
     </div>
   );
 }

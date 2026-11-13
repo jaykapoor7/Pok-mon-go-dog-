@@ -22,7 +22,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bell, Check, X } from "lucide-react";
+import { Bell, Check, Inbox, X } from "lucide-react";
 import { usePlaces, oversees } from "./places";
 import { call, KIND_LABEL, type Alert, type Place } from "./data";
 import "./notifications.css";
@@ -102,13 +102,15 @@ export function useNotifications() {
 
 const GROUPS: [Note["group"], string][] = [["now", "Needs you now"], ["today", "Today"], ["updates", "Updates"]];
 
-export function NotificationsButton() {
+/** The inbox: what needs this person across their places. `variant` only changes the control that opens it
+    (a bell in a bar, a row in the sidebar, a tab on the phone's dock); the panel is the same. */
+export function NotificationsButton({ variant = "bell" }: { variant?: "bell" | "row" | "dock" } = {}) {
   const { notes, ready, any, reload, facility } = useNotifications();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [busy, setBusy] = useState<string | null>(null);
   const [gone, setGone] = useState<Set<string>>(() => new Set());
-  const [at, setAt] = useState<{ top: number; right: number } | null>(null);
+  const [at, setAt] = useState<{ top: number; right?: number; left?: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => { setSeen(readSeen()); }, []);
@@ -136,16 +138,28 @@ export function NotificationsButton() {
     if (!results.some((r) => r.error)) { setGone((g) => new Set(g).add(n.id)); reload(); }
   };
 
-  if (!ready || !any) return null;
+  if (variant === "bell" && (!ready || !any)) return null;
+  const toggle = () => {
+    const r = btn.current?.getBoundingClientRect();
+    if (r) setAt(variant === "row" ? { top: Math.max(8, r.top - 8), left: r.right + 12 } : variant === "dock" ? { top: 56, right: 8 } : { top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right - 8) });
+    setOpen((v) => !v);
+  };
   return (
-    <div className="sp-bell">
-      <button ref={btn} type="button" className={`sp-bell-btn${open ? " is-on" : ""}`} aria-expanded={open} aria-controls="sp-bell-panel" aria-label={fresh ? `Notifications, ${fresh} new` : "Notifications"} onClick={() => { const r = btn.current?.getBoundingClientRect(); if (r) setAt({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right - 8) }); setOpen((v) => !v); }}>
-        <Bell size={16} aria-hidden />
-        {fresh ? <b className="sp-bell-badge" aria-hidden>{fresh > 9 ? "9+" : fresh}</b> : null}
-      </button>
+    <div className={`sp-bell is-${variant}`}>
+      {variant === "bell" ? (
+        <button ref={btn} type="button" className={`sp-bell-btn${open ? " is-on" : ""}`} aria-expanded={open} aria-controls="sp-bell-panel" aria-label={fresh ? `Notifications, ${fresh} new` : "Notifications"} onClick={toggle}>
+          <Bell size={16} aria-hidden />
+          {fresh ? <b className="sp-bell-badge" aria-hidden>{fresh > 9 ? "9+" : fresh}</b> : null}
+        </button>
+      ) : (
+        <button ref={btn} type="button" className={variant === "row" ? `ws-item${open ? " is-open" : ""}` : open ? "is-on" : undefined} aria-expanded={open} aria-controls="sp-bell-panel" aria-label={fresh ? `Inbox, ${fresh} new` : "Inbox"} onClick={toggle}>
+          <span className="ws-ic" aria-hidden><Inbox size={variant === "dock" ? 21 : 16} strokeWidth={1.8} /></span><span className="ws-lb">Inbox</span>
+          {fresh ? <b className="ws-count" data-tone="blue" aria-hidden>{fresh > 9 ? "9+" : fresh}</b> : null}
+        </button>
+      )}
       {open ? (
-        <div ref={panel} id="sp-bell-panel" className="sp-bell-panel" role="dialog" aria-label="Notifications" style={at ? { top: at.top, right: at.right } : undefined}>
-          <div className="sp-bell-head"><b>Notifications</b><button type="button" className="sp-bell-x" aria-label="Close notifications" onClick={() => { setOpen(false); btn.current?.focus(); }}><X size={15} aria-hidden /></button></div>
+        <div ref={panel} id="sp-bell-panel" className="sp-bell-panel" role="dialog" aria-label="Notifications" style={at ? { top: at.top, right: at.right, left: at.left } : undefined}>
+          <div className="sp-bell-head"><b>{variant === "bell" ? "Notifications" : "Inbox"}</b><button type="button" className="sp-bell-x" aria-label="Close notifications" onClick={() => { setOpen(false); btn.current?.focus(); }}><X size={15} aria-hidden /></button></div>
           {!shown.length ? (
             <div className="sp-bell-empty"><span aria-hidden><Check size={16} /></span><b>Nothing needs you right now</b><small>Doses due, requests, results and alerts from your places appear here.</small></div>
           ) : (

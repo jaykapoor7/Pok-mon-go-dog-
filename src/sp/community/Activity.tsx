@@ -14,7 +14,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, BookmarkMinus } from "lucide-react";
+import { BookmarkMinus, Radio } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeviceSightings, getMySightings, type DeviceSighting } from "@/lib/actions";
 import { getDogsByIds } from "@/lib/data";
@@ -22,15 +22,16 @@ import { useFollows } from "@/lib/follows";
 import { animalTitle } from "@/lib/animal-name";
 import { isSensitivePhoto } from "@/lib/sensitive-photo";
 import type { Dog } from "@/lib/types";
+import { Btn, Empty, Head, Lanes, Note, Page, Panel, Row, Rows, Section, Tag } from "@/ws/kit";
+import { usePageState } from "@/ws/store";
 import { Portrait } from "../ui/Portrait";
 import { publicLocality } from "../ui/place";
-import { Ack, State, day, since } from "../ui";
-import "./community.css";
+import { day, since } from "../ui";
+import "./record.k.css";
 
 type Rep = { id: string; dog_id: string | null; zone: string | null; moods: string[]; status: string; created_at: string; where: "device" | "account" };
 type Item = { at: string; kind: "report"; r: Rep } | { at: string; kind: "follow"; d: Dog };
 
-const LADDER = ["Received", "Reviewed", "On the record"];
 function stage(status: string): { i: number; label: string; tone: "info" | "care" | "caution" } {
   const s = status.toLowerCase();
   if (["approved", "live", "published", "verified"].includes(s)) return { i: 2, label: "On the record", tone: "care" };
@@ -45,7 +46,7 @@ export function Activity() {
   const [account, setAccount] = useState<Record<string, unknown>[] | null>(null);
   const [dogs, setDogs] = useState<Dog[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [tab, setTab] = useState<"all" | "reports" | "following">("all");
+  const [tab, setTab] = usePageState<"all" | "reports" | "following">("lane", "all");
 
   useEffect(() => { let live = true; getDeviceSightings().then((r) => live && setDevice(r)).catch(() => { if (live) { setDevice([]); setFailed(true); } }); return () => { live = false; }; }, []);
   useEffect(() => { if (!ready) return; if (!user) { setAccount([]); return; } let live = true; getMySightings(user.id).then((r) => live && setAccount(r as Record<string, unknown>[])).catch(() => live && setAccount([])); return () => { live = false; }; }, [user, ready]);
@@ -71,78 +72,64 @@ export function Activity() {
     for (const it of items) { const k = new Date(it.at).toLocaleDateString("en-GB", { month: "long", year: "numeric" }); by.set(k, [...(by.get(k) ?? []), it]); }
     return [...by.entries()];
   }, [items]);
+  const nFollow = dogs?.length ?? 0;
 
+  /* The sentence says how much there is and where it is kept; the lanes choose reports or follows; each month is a short list of rows. */
   return (
-    <div className="act page">
-      <header className="act-head">
-        <p className="k is-flame">Community · My Activity</p>
-        <h1 className="h1">Your reports and the animals you follow</h1>
-        <p className="lede">{user ? <>Signed in as <b>{user.name}</b>. Reports you send while signed in are on your account, on any device. Animals you follow are kept on this device.</> : <>Kept on this device, no account needed. Reports you sent from here are matched by a private key this device holds; <Link className="link" href="/join">sign in</Link> to keep new reports on an account.</>}</p>
-      </header>
-
-      <div className="tabs" role="tablist" aria-label="Show">
-        {(["all", "reports", "following"] as const).map((t) => <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>{t === "all" ? "Everything" : t === "reports" ? "Reports" : "Following"}<span className="n">{t === "all" ? reports.length + (dogs?.length ?? 0) : t === "reports" ? reports.length : dogs?.length ?? 0}</span></button>)}
+    <Page width="narrow">
+      <Head title="My activity"
+        sum={loading ? "Reading your reports and follows…" : <><b>{reports.length}</b> {reports.length === 1 ? "report" : "reports"} sent and <b>{nFollow}</b> {nFollow === 1 ? "animal" : "animals"} followed. {user ? <>Signed in as {user.name}: reports are on your account, follows are kept on this device.</> : <>Kept on this device, no account needed. <Link className="rk-link" href="/join">Sign in</Link> to keep new reports on an account.</>}</>}
+        actions={<Btn variant="primary" href="/community/report" icon={<Radio size={14} />}>Report an animal</Btn>} />
+      <div className="rk-tools">
+        <Lanes label="Show" value={tab} onChange={setTab} lanes={[{ id: "all", label: "Everything", count: reports.length + nFollow }, { id: "reports", label: "Reports", count: reports.length }, { id: "following", label: "Following", count: nFollow }]} />
       </div>
 
-      {failed && <p className="act-warn" role="alert"><Ack state="failed">Some of your activity could not be read just now.</Ack> That is not the same as having none; reload to try again.</p>}
-      {loading && <div className="stack" style={{ marginTop: 24 }}>{[0, 1, 2].map((i) => <div key={i} className="skel" style={{ height: 88 }} />)}</div>}
+      {failed && <Note tone="flame">Some of your activity could not be read just now. That is not the same as having none; reload to try again.</Note>}
+      {loading && <Panel><p className="rk-quiet" role="status">Reading…</p></Panel>}
       {!loading && !items.length && (
-        <State art="activity-empty" title={tab === "following" ? "You follow no animals yet" : tab === "reports" ? "No reports from you yet" : "Nothing here yet"}
-          action={<><Link className="btn is-flame" href="/community/report">Report an animal</Link><Link className="btn" href="/community">Find an animal on the map</Link></>}>
+        <Panel><Empty title={tab === "following" ? "You follow no animals yet" : tab === "reports" ? "No reports from you yet" : "Nothing here yet"}
+          action={<Btn href="/community">Find an animal on the map</Btn>}>
           Reports you send and animals you follow appear here, each with its real state. Following shows what an animal&rsquo;s public record says; it does not send notifications.
-        </State>
+        </Empty></Panel>
       )}
 
       {!loading && months.map(([m, list]) => (
-        <section key={m} className="act-month" aria-label={m}>
-          <h2 className="act-m serif">{m}</h2>
-          <ol className="act-list">
+        <Section key={m} title={m} count={list.length}>
+          <Panel><Rows label={m}>
             {list.map((it) => it.kind === "report" ? <ReportItem key={`r${it.r.id}`} r={it.r} /> : <FollowItem key={`f${it.d.id}`} d={it.d} onUnfollow={() => toggle(it.d.id)} />)}
-          </ol>
-        </section>
+          </Rows></Panel>
+        </Section>
       ))}
-    </div>
+    </Page>
   );
 }
 
 function ReportItem({ r }: { r: Rep }) {
   const st = stage(r.status);
   const help = r.moods.includes("injured");
+  const place = publicLocality(r.zone);
+  const next = st.i === 0 ? (help ? "Waiting for review. No organisation has accepted it from here; if one does, its record shows it." : "Waiting for a quick review before it joins the record.") : st.i < 0 ? "A reviewer did not publish it. Reasons are not shown publicly." : "It is part of the animal's public record.";
   return (
-    <li className="act-item is-report">
-      <span className="act-dot" aria-hidden />
-      <div className="act-body">
-        <p className="k">{day(r.created_at)} · {r.where === "account" ? "on your account" : "sent from this device"}</p>
-        <h3>{help ? "You reported an animal needing help" : "You reported a sighting"}{publicLocality(r.zone) ? <> in <span className="serif act-place">{publicLocality(r.zone)}</span></> : null}</h3>
-        <ol className="act-ladder" aria-label="Where this report is">
-          {LADDER.map((s, i) => <li key={s} className={st.i >= i ? "is-on" : ""}>{s}</li>)}
-          {st.i < 0 && <li className="is-off">Not published</li>}
-        </ol>
-        <p className="small">{st.i === 0 ? (help ? "Waiting for review. No organisation has accepted it from here; if one does, its record shows it." : "Waiting for a quick review before it joins the record.") : st.i < 0 ? "A reviewer did not publish it. Reasons are not shown publicly." : "It is part of the animal's public record."}</p>
-        {r.dog_id && st.i > 0 && <Link className="btn is-s" href={`/animal/${r.dog_id}`}>The animal&rsquo;s record <ArrowUpRight size={14} aria-hidden /></Link>}
-      </div>
-    </li>
+    <Row href={r.dog_id && st.i > 0 ? `/animal/${r.dog_id}` : undefined} tone={help ? "flame" : "blue"} icon={<Radio size={14} />}
+      title={<>{help ? "You reported an animal needing help" : "You reported a sighting"}{place ? ` in ${place}` : ""}</>}
+      meta={<span title={next}>{day(r.created_at)} · {r.where === "account" ? "on your account" : "sent from this device"} · {next}</span>}
+      end={<Tag tone={st.tone === "care" ? "green" : st.tone === "caution" ? "amber" : "blue"}>{st.i === 0 ? "Received" : st.label}</Tag>} />
   );
 }
 
 function FollowItem({ d, onUnfollow }: { d: Dog; onUnfollow: () => void }) {
   const title = animalTitle({ name: d.name, straypaw_id: d.straypaw_id ?? null, id: d.id } as Parameters<typeof animalTitle>[0]);
   return (
-    <li className="act-item is-follow">
-      <span className="act-dot" aria-hidden />
-      <div className="act-body act-follow">
-        <Link href={`/animal/${d.id}`} className="act-pic"><Portrait src={d.cover_photo || null} tag={title} sensitive={isSensitivePhoto(d)} size="s" /></Link>
-        <div>
-          <p className="k">You follow · last seen {since(d.last_seen)}</p>
-          <h3><Link href={`/animal/${d.id}`} className="serif act-name">{title}</Link></h3>
-          <div className="row" style={{ ["--g" as string]: "6px" }}>
-            {d.needs_help && <span className="pill is-urgent">Needs help</span>}
-            {d.sterilisation_status === "sterilised" ? <span className="pill is-care">Sterilised (recorded)</span> : d.sterilisation_status === "not_sterilised" ? <span className="pill">Recorded not sterilised</span> : <span className="pill is-unknown">Sterilisation not recorded</span>}
-            <span className="pill is-plain">{publicLocality(d.zone) ?? "Locality not published"}</span>
-          </div>
-        </div>
-        <button type="button" className="btn is-ghost is-s" onClick={onUnfollow}><BookmarkMinus size={14} aria-hidden /> Unfollow</button>
-      </div>
+    <li className="rk-follow">
+      <Link href={`/animal/${d.id}`} className="k-row">
+        <span className="rk-thumb" aria-hidden><Portrait src={d.cover_photo || null} tag={title} sensitive={isSensitivePhoto(d)} size="s" /></span>
+        <span className="k-row-t"><b>{title}</b><small>You follow · last seen {since(d.last_seen)} · {publicLocality(d.zone) ?? "Locality not published"}</small></span>
+        <span className="k-row-e">
+          {d.needs_help && <Tag tone="flame">Needs help</Tag>}
+          {d.sterilisation_status === "sterilised" ? <Tag tone="green">Sterilised (recorded)</Tag> : d.sterilisation_status === "not_sterilised" ? <Tag>Recorded not sterilised</Tag> : <Tag>Sterilisation not recorded</Tag>}
+        </span>
+      </Link>
+      <button type="button" className="rk-un" onClick={onUnfollow} aria-label={`Unfollow ${title}`} title="Unfollow"><BookmarkMinus size={14} aria-hidden /></button>
     </li>
   );
 }

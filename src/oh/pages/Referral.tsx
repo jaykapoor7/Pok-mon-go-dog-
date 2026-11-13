@@ -13,7 +13,8 @@
 import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { call, fmtDate, fmtTime, useRead, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, TRANSFER, type ReferralOption, type TransferOut } from "../data";
-import { Chip, Failed, Section, Seg, Sheet, useToast } from "../ui";
+import { Btn, Note, Panel, Tag } from "@/ws/kit";
+import { Chip, Failed, Row, Rows, Section, Seg, Sheet, useToast } from "../ui";
 
 type Need = "arv" | "rig" | "wound_care";
 const NEEDS: [Need, string][] = [["arv", "Vaccine"], ["rig", "Immunoglobulin"], ["wound_care", "Wound washing"]];
@@ -34,26 +35,21 @@ export function Referral({ exposureId, canRefer, onChange }: { exposureId: strin
 
   return (
     <Section title="Referral" note="The receiving facility sees the bite code and what is needed, never who the person is"
-      action={canRefer ? <button type="button" className="oh-btn small" onClick={() => setOpen(true)}>Refer this person</button> : undefined}>
+      action={canRefer ? <Btn small onClick={() => setOpen(true)}>Refer this person</Btn> : undefined}>
       {list.error ? <Failed error={list.error} retry={list.reload} />
-        : !rows.length ? <p className="oh-note">{canRefer ? "Not referred. Refer when this facility cannot give what the person needs." : "Not referred. A clinician refers from this page."}</p>
+        : !rows.length ? <p className="oh-foot">{canRefer ? "Not referred. Refer when this facility cannot give what the person needs." : "Not referred. A clinician refers from this page."}</p>
         : (
-          <ul className="oh-rows">
-            {rows.map((r) => (
-              <li key={r.id} className="oh-row">
-                <div className="oh-row-main">
-                  <b>{SERVICE_LABEL[r.service] ?? r.service} at {r.to_short ?? r.to}</b>
-                  <span>{r.status === "sent" ? `Referred ${fmtTime(r.sent_at)}${r.sent_by ? ` by ${r.sent_by}` : ""}` : `${TRANSFER[r.status]?.label ?? r.status}${r.closed_at ? `, ${fmtDate(r.closed_at)}` : ""}${r.closed_by ? ` · ${r.closed_by}` : ""}`}{r.note ? ` · ${r.note}` : ""}</span>
-                </div>
-                <div className="oh-row-meta">
-                  <Chip tone={TRANSFER[r.status]?.tone}>{TRANSFER[r.status]?.label ?? r.status}</Chip>
-                  {r.status === "sent" && canRefer ? <button type="button" className="oh-btn small quiet" onClick={() => void withdraw(r.id)}>Withdraw</button> : null}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <Panel>
+            <Rows label="Referrals">
+              {rows.map((r) => (
+                <Row key={r.id} title={`${SERVICE_LABEL[r.service] ?? r.service} at ${r.to_short ?? r.to}`}
+                  meta={`${r.status === "sent" ? `Referred ${fmtTime(r.sent_at)}${r.sent_by ? ` by ${r.sent_by}` : ""}` : `${TRANSFER[r.status]?.label ?? r.status}${r.closed_at ? `, ${fmtDate(r.closed_at)}` : ""}${r.closed_by ? ` · ${r.closed_by}` : ""}`}${r.note ? ` · ${r.note}` : ""}`}
+                  end={<><Chip tone={TRANSFER[r.status]?.tone}>{TRANSFER[r.status]?.label ?? r.status}</Chip>{r.status === "sent" && canRefer ? <Btn small variant="quiet" onClick={() => void withdraw(r.id)}>Withdraw</Btn> : null}</>} />
+              ))}
+            </Rows>
+          </Panel>
         )}
-      {sent.length ? <p className="oh-note" style={{ marginTop: 8 }}>The receiving facility marks whether the person arrived. It appears here.</p> : null}
+      {sent.length ? <p className="oh-foot">The receiving facility marks whether the person arrived. It appears here.</p> : null}
       {open ? <ReferSheet exposureId={exposureId} onClose={() => setOpen(false)} onDone={(m) => { setOpen(false); toast(m); list.reload(); onChange(); }} /> : null}
     </Section>
   );
@@ -88,13 +84,13 @@ function ReferSheet({ exposureId, onClose, onDone }: { exposureId: string; onClo
 
   return (
     <Sheet title="Refer this person" note="Choose what they need and where. The other facility sees the bite code and the need only." onClose={onClose}
-      foot={<><button type="button" className="oh-btn" onClick={onClose}>Cancel</button><button type="button" className="oh-btn primary" disabled={busy || !chosen} onClick={() => void save()}>{busy ? "Referring…" : <>Refer <ArrowRight size={14} aria-hidden /></>}</button></>}>
+      foot={<><Btn onClick={onClose}>Cancel</Btn><Btn variant="primary" disabled={busy || !chosen} onClick={() => void save()}>{busy ? "Referring…" : <>Refer <ArrowRight size={14} aria-hidden /></>}</Btn></>}>
       <Seg name="need" label="They need" value={need} onChange={(v) => { setNeed(v); setTo(null); }} options={NEEDS} />
       <fieldset className="oh-picks">
         <legend>Where</legend>
-        {opts.loading && !opts.data ? <p className="oh-note">Reading the facilities in this programme…</p>
+        {opts.loading && !opts.data ? <Note>Reading the facilities in this programme…</Note>
           : opts.error ? <Failed error={opts.error} retry={opts.reload} />
-          : !ranked.length ? <p className="oh-note">No other facility is in this programme yet.</p>
+          : !ranked.length ? <Note>No other facility is in this programme yet.</Note>
           : ranked.map((o) => {
               const s = o.services.find((x) => x.service === need);
               const st = s ? SERVICE_STATUS[s.status] : null;
@@ -102,13 +98,13 @@ function ReferSheet({ exposureId, onClose, onDone }: { exposureId: string; onClo
                 <label key={o.id} className={`oh-pick${chosen === o.id ? " is-on" : ""}`}>
                   <input type="radio" name="refer-to" value={o.id} checked={chosen === o.id} onChange={() => setTo(o.id)} />
                   <span className="oh-pick-main"><b>{o.short_name ?? o.name}</b><small>{[o.area, o.pathways.includes(need) ? "Programme pathway" : null].filter(Boolean).join(" · ") || o.name}</small></span>
-                  <span className="oh-pick-meta">{st ? <Chip tone={st.tone}>{st.label}</Chip> : <Chip>Never confirmed</Chip>}{s && s.status !== "not_verified" ? <small>{daysAgo(s.verified_at) === 0 ? "confirmed today" : `confirmed ${daysAgo(s.verified_at)} d ago`}</small> : null}</span>
+                  <span className="oh-pick-meta">{st ? <Chip tone={st.tone}>{st.label}</Chip> : <Tag>Never confirmed</Tag>}{s && s.status !== "not_verified" ? <small>{daysAgo(s.verified_at) === 0 ? "confirmed today" : `confirmed ${daysAgo(s.verified_at)} d ago`}</small> : null}</span>
                 </label>
               );
             })}
       </fieldset>
-      <label className="oh-field"><span>Note for the other facility <small style={{ color: "var(--muted)", fontWeight: 400 }}>optional</small></span>
-        <textarea value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} placeholder="For example: needs immunoglobulin today; leaving now by auto" /><small style={{ color: "var(--muted)", fontSize: 12 }}>Never the person&apos;s name or phone number.</small></label>
+      <label className="oh-field"><span>Note for the other facility <small>optional</small></span>
+        <textarea value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} placeholder="For example: needs immunoglobulin today; leaving now by auto" /><small>Never the person&apos;s name or phone number.</small></label>
       {err ? <Failed error={err} /> : null}
     </Sheet>
   );

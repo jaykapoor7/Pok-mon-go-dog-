@@ -5,11 +5,12 @@
    fetched when the person asks for it, not when the page is drawn. */
 
 import { useState, type ReactNode } from "react";
+import "./parts.k.css";
 import { evidenceLink, isStoredEvidence } from "@/lib/abc";
 
 export function EvidenceLink({ url, children = "Open" }: { url: string; children?: ReactNode }) {
   const [err, setErr] = useState<string | null>(null);
-  if (!isStoredEvidence(url)) return <a href={url} target="_blank" rel="noreferrer noopener">{children}</a>;
+  if (!isStoredEvidence(url)) return <a className="kx-link" href={url} target="_blank" rel="noreferrer noopener">{children}</a>;
   const open = async () => {
     setErr(null);
     /* Open the tab inside the click so phones do not block it, then point it at the signed link. */
@@ -21,8 +22,8 @@ export function EvidenceLink({ url, children = "Open" }: { url: string; children
   };
   return (
     <>
-      <button type="button" className="abc-linkbtn" onClick={open}>{children}</button>
-      {err && <small className="abc-err-inline" role="alert">{err}</small>}
+      <button type="button" className="kx-link" onClick={open}>{children}</button>
+      {err && <small className="kx-err" role="alert">{err}</small>}
     </>
   );
 }

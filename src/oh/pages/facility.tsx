@@ -7,13 +7,12 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
-import { ArrowLeftRight, Check, Megaphone, Phone, Siren, Stethoscope, Syringe } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { DailyHead, NeedsYou, type DailyRow } from "@/sp/ui/Daily";
-import { Seg as Seg2 } from "@/sp/ui/Page";
+import { ArrowLeftRight, Check, Megaphone, Phone, Stethoscope, Syringe } from "lucide-react";
+import { Btn, Lanes, More, Note, Panel, SearchBox, Table, Tag, Tools, type Col, type Lane } from "@/ws/kit";
+import { usePageState } from "@/ws/store";
 import { usePlaces, primaryProgramme, isFacility } from "../places";
 import { call, daysFrom, fmtDate, relDay, today, useRead, AGE, COURSE, EXPOSURE_KIND, REMINDER, SERVICE_LABEL, SEX, SPECIES, TRANSFER, WASHED, type Alert, type Area, type ClinicDue, type ClinicTransfers, type DueDose, type Notice, type Place, type RegisterRow, type TransferIn } from "../data";
-import { AlertList, Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, Stat, useToast } from "../ui";
+import { Chip, Empty, Failed, Head, Loading, Page, Row, Rows, Section, Seg, Sheet, toneOf, useToast } from "../ui";
 
 /** The place this page belongs to, or a clear message why it cannot open. */
 export function usePlaceParam(): { place: Place | null; ready: boolean } {
@@ -24,11 +23,14 @@ export function usePlaceParam(): { place: Place | null; ready: boolean } {
 
 export function NotHere({ ready }: { ready: boolean }) {
   if (!ready) return <Page><Loading rows={4} /></Page>;
-  return <Page><Empty title="You are not a member of this place">Ask your programme coordinator to add you, or go back to <Link className="oh-btn quiet small" href="/today">Today</Link>.</Empty></Page>;
+  return <Page><Empty title="You are not a member of this place">Ask your programme coordinator to add you, or go back to <Link className="oh-link" href="/today">Today</Link>.</Empty></Page>;
 }
 
+type DayLane = "due" | "done" | "notices" | "waiting" | "referrals";
+const tel = (p: string) => `tel:${p.replace(/\s/g, "")}`;
+const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
+
 export function ClinicToday({ place }: { place: Place }) {
-  const { user } = useAuth();
   const { reload: reloadPlaces } = usePlaces();
   const id = place.organisation_id, prog = primaryProgramme(place);
   const due = useRead<ClinicDue>(() => call("oh_clinic_due", { p_facility: id }), `due:${id}`);
@@ -68,145 +70,138 @@ export function ClinicToday({ place }: { place: Place }) {
     if (r.error) toast(r.error, "flame"); else { toast("Marked as contacted."); notices.reload(); reloadPlaces(); }
   };
 
-  /* The daily brief, as the landing demo draws it: one sentence, what needs
-     a person today, a line to Kaju, then one working list at a time. */
   const nNotices = notices.data?.filter((n) => n.status === "new").length ?? 0;
   const nWaiting = waiting.data?.length ?? 0;
   const xIn = xfer.data?.incoming ?? [], xOut = xfer.data?.outgoing ?? [];
   const nIn = xIn.filter((r) => r.status === "sent").length;
-  const [lane, setLane] = useState<"due" | "done" | "notices" | "waiting" | "referrals">("due");
-  /* Needs you: what the lists below do not already show (a confirmed case, vaccine readiness, a lapsed confirmation). Doses, notices,
-     completions and bites waiting are the lists themselves, each once, with its count. */
-  const rows: DailyRow[] = [
-    ...mine.filter((a) => a.kind !== "doses_overdue" && a.kind !== "courses_completed").slice(0, 3).map((a) => ({ key: a.key, href: a.kind === "pep_readiness" ? `/workspace/${id}/services` : a.kind === "positive_result" ? `/workspace/${id}/register` : "#oh-work", tone: a.severity === "urgent" ? "flame" : "amber", icon: <Siren size={10} strokeWidth={2.4} />, title: <b>{a.title}{a.n > 1 ? ` (${a.n})` : ""}</b>, meta: a.kind === "positive_result" ? `${a.area ?? "In the programme"} · check bites recorded from this locality` : a.area ?? undefined, tag: a.severity === "urgent" ? "Urgent" : "Attention", verb: a.kind === "positive_result" ? "Open the register" : "Open" })),
+  const [lane, setLane] = usePageState<DayLane>("lane", "due");
+  /* What the lists below do not already show: a confirmed case, vaccine readiness, a lapsed confirmation. */
+  const notes = mine.filter((a) => a.kind !== "doses_overdue" && a.kind !== "courses_completed").slice(0, 3);
+  const lanes: Lane<DayLane>[] = [
+    { id: "due", label: "Doses due", count: list.length, tone: overdue ? "flame" : undefined },
+    { id: "done", label: "Completed", count: due.data?.completed?.length ?? 0 },
+    { id: "notices", label: "From the public", count: nNotices, tone: nNotices ? "amber" : undefined },
+    ...(canAssess ? [{ id: "waiting" as const, label: "Waiting for a clinician", count: nWaiting }] : []),
+    ...(xferReady && (xIn.length || xOut.length) ? [{ id: "referrals" as const, label: "Referrals", count: nIn, tone: nIn ? "blue" as const : undefined }] : []),
   ];
+  const at: DayLane = lanes.some((l) => l.id === lane) ? lane : "due";
+  const todayN = due.data ? list.filter((d) => d.due_on === t).length : 0;
+  /* The sentence: what is due today and what is late. The other lists carry their own counts on their lanes. */
+  const sum = due.error ? "The doses due could not be read." : !due.data ? "Reading the day's doses…"
+    : !list.length ? "No doses are due. Everyone in a course is up to date."
+    : <><b>{todayN}</b> {todayN === 1 ? "dose is" : "doses are"} due today{overdue ? <>, <span className="is-hot">{overdue} overdue</span></> : null}{list.length - todayN - (overdue ?? 0) > 0 ? <>, {list.length - todayN - (overdue ?? 0)} coming up</> : null}.</>;
 
   return (
     <Page illustrative={place.illustrative}>
-      <div className="dy">
-        <DailyHead place={place.short_name ?? place.name} name={user?.name} loading={!due.data && !due.error} />
-        {due.error ? <Failed error={due.error} retry={due.reload} /> : null}
-        {rows.length ? <NeedsYou rows={rows} /> : null}
-        {/* No Kaju box here: Kaju never reads patient records, doses or courses, so it cannot answer questions about them. */}
+      <Head title="Home" lede={sum} />
+      {due.error ? <Failed error={due.error} retry={due.reload} /> : null}
+      {notes.map((a) => (
+        <Note key={a.key} tone={a.severity === "urgent" ? "flame" : "amber"}
+          action={<Btn small href={a.kind === "pep_readiness" ? `/workspace/${id}/services` : a.kind === "positive_result" ? `/workspace/${id}/register` : "#oh-work"}>{a.kind === "positive_result" ? "Open the register" : "Open"}</Btn>}>
+          <b>{a.title}{a.n > 1 ? ` (${a.n})` : ""}</b>{a.kind === "positive_result" ? ` · ${a.area ?? "In the programme"} · check bites recorded from this locality` : a.area ? ` · ${a.area}` : ""}
+        </Note>
+      ))}
+      {/* No Kaju box here: Kaju never reads patient records, doses or courses, so it cannot answer questions about them. */}
 
-        <section className="dy-sec" id="oh-work" aria-label="The day's lists">
-          <div className="vw-bar">
-            <Seg2 label="The day's lists" value={lane} onChange={(v) => setLane(v)} options={[
-              { id: "due", label: "Doses due", count: list.length, tone: overdue ? "flame" : undefined },
-              { id: "done", label: "Completed", count: due.data?.completed?.length ?? 0 },
-              { id: "notices", label: "From the public", count: nNotices },
-              ...(canAssess ? [{ id: "waiting" as const, label: "Waiting for a clinician", count: nWaiting }] : []),
-              ...(xferReady && (xIn.length || xOut.length) ? [{ id: "referrals" as const, label: "Referrals", count: nIn }] : []),
-            ]} />
-          </div>
-
-          {lane === "due" ? (due.loading && !due.data ? <Loading /> : !list.length ? <Empty title="No doses due">Everyone in a course is up to date.</Empty> : (
-            <ul className="dy-work">
-              {list.map((d, i) => {
+      <Tools><Lanes label="The day's lists" lanes={lanes} value={at} onChange={setLane} /></Tools>
+      <Panel id="oh-work" aria-label="The day's lists">
+        {at === "due" ? (due.loading && !due.data ? <Loading /> : !list.length ? <Empty title="No doses due">Everyone in a course is up to date.</Empty> : (
+          <More items={list} cap={10} noun="doses">{(shown) => (
+            <Rows label="Doses due">
+              {shown.map((d) => {
                 const late = d.due_on < t;
                 return (
-                  <li key={d.dose_id} style={{ ["--j" as string]: i }}>
-                    <span className="dy-sq" data-c={late ? "flame" : d.due_on === t ? "blue" : "slate"} aria-hidden><Syringe size={10} strokeWidth={2.4} /></span>
-                    <Link href={`/workspace/${id}/record/${d.exposure_id}`} className="dy-work-t"><b>Dose {d.dose_no} of {d.doses_total} · <span className="dy-code">{d.patient_ref ?? d.code}</span></b><small>{AGE[d.age_band] ?? d.age_band} · {late ? `${-daysFrom(d.due_on)} day${daysFrom(d.due_on) === -1 ? "" : "s"} overdue` : relDay(d.due_on)}{d.last_reminder ? ` · ${REMINDER[d.last_reminder.outcome]} ${relDay(d.last_reminder.at).toLowerCase()}` : ""}</small></Link>
-                    <div className="dy-work-acts">
-                      {d.phone ? <a className="oh-btn small" href={`tel:${d.phone.replace(/\s/g, "")}`} aria-label={`Call about ${d.patient_ref ?? d.code}`}><Phone size={14} aria-hidden />Call</a> : <Chip plain>No consent to call</Chip>}
+                  <Row key={d.dose_id} href={`/workspace/${id}/record/${d.exposure_id}`} icon={<Syringe size={14} />} tone={late ? "flame" : d.due_on === t ? "blue" : "plain"}
+                    title={<span className="oh-code">{d.patient_ref ?? d.code}</span>}
+                    meta={<>Dose {d.dose_no} of {d.doses_total} · {AGE[d.age_band] ?? d.age_band} · {late ? <span className="oh-hot">{days(-daysFrom(d.due_on))} overdue</span> : relDay(d.due_on)}{d.last_reminder ? ` · ${REMINDER[d.last_reminder.outcome]} ${relDay(d.last_reminder.at).toLowerCase()}` : ""}</>}
+                    end={<>
+                      {d.phone ? <a className="oh-icon-btn" href={tel(d.phone)} aria-label={`Call about ${d.patient_ref ?? d.code}`} data-tip="Call"><Phone size={14} aria-hidden /></a> : <Tag>No consent to call</Tag>}
                       {d.phone ? <LogCall onLog={(o) => void logCall({ p_dose: d.dose_id }, o)} /> : null}
-                      {canDose ? <button type="button" className="oh-btn small primary" onClick={() => setDose(d)}>Record dose</button> : null}
-                    </div>
-                  </li>
+                      {canDose ? <Btn small onClick={() => setDose(d)}>Record dose</Btn> : null}
+                    </>} />
                 );
               })}
-            </ul>
-          )) : null}
-          {lane === "due" ? <p className="dy-foot">Reminders are phone calls from the clinic, logged here. Automatic SMS or WhatsApp is <b>not connected</b>.</p> : null}
+            </Rows>
+          )}</More>
+        )) : null}
 
-          {lane === "done" ? (!due.data?.completed?.length ? <Empty title="No course completed recently" /> : (
-            <ul className="dy-work">
-              {due.data.completed.map((c, i) => (
-                <li key={c.course_id} style={{ ["--j" as string]: i }}>
-                  <span className="dy-sq" data-c="green" aria-hidden><Check size={10} strokeWidth={2.4} /></span>
-                  <Link href={`/workspace/${id}/record/${c.exposure_id}`} className="dy-work-t"><b className="dy-code">{c.patient_ref ?? c.code}</b><small>Completed {relDay(c.completed_at).toLowerCase()}{c.told ? " · told" : ""}</small></Link>
-                  <div className="dy-work-acts">
-                    {c.phone ? <a className="oh-btn small" href={`tel:${c.phone.replace(/\s/g, "")}`}><Phone size={14} aria-hidden />Call</a> : <Chip plain>No consent to call</Chip>}
-                    {c.phone && !c.told ? <LogCall onLog={(o) => void logCall({ p_course: c.course_id }, o)} /> : c.told ? <Chip tone="green">Told</Chip> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )) : null}
+        {at === "done" ? (!due.data?.completed?.length ? <Empty title="No course completed recently" /> : (
+          <Rows label="Courses completed">
+            {due.data.completed.map((c) => (
+              <Row key={c.course_id} href={`/workspace/${id}/record/${c.exposure_id}`} icon={<Check size={14} />} tone="green"
+                title={<span className="oh-code">{c.patient_ref ?? c.code}</span>} meta={`Completed ${relDay(c.completed_at).toLowerCase()}`}
+                end={<>
+                  {c.phone ? <a className="oh-icon-btn" href={tel(c.phone)} aria-label={`Call about ${c.patient_ref ?? c.code}`} data-tip="Call"><Phone size={14} aria-hidden /></a> : <Tag>No consent to call</Tag>}
+                  {c.phone && !c.told ? <LogCall onLog={(o) => void logCall({ p_course: c.course_id }, o)} /> : c.told ? <Tag tone="green">Told</Tag> : null}
+                </>} />
+            ))}
+          </Rows>
+        )) : null}
 
-          {lane === "notices" ? (notices.loading && !notices.data ? <Loading rows={2} /> : notices.error ? <Failed error={notices.error} retry={notices.reload} /> : !notices.data?.length ? <Empty title="No notices" /> : (
-            <ul className="dy-work">
-              {notices.data.map((n, i) => (
-                <li key={n.id} style={{ ["--j" as string]: i }}>
-                  <span className="dy-sq" data-c={n.status === "new" ? "amber" : "slate"} aria-hidden><Megaphone size={10} strokeWidth={2.4} /></span>
-                  <div className="dy-work-t"><b>{SPECIES[n.animal_species]} · {n.area ?? "Area not given"}</b><small>{fmtDate(n.happened_on)} · {n.animal_description ?? "No description"}{n.place ? ` · ${n.place}` : ""}</small></div>
-                  <div className="dy-work-acts">
-                    {n.callback_phone ? <a className="oh-btn small" href={`tel:${n.callback_phone.replace(/\s/g, "")}`}><Phone size={14} aria-hidden />Call</a> : <Chip plain>No callback</Chip>}
-                    {n.status === "new" ? <button type="button" className="oh-btn small" onClick={() => void contacted(n)}>Contacted</button> : <Chip tone="blue">{n.status === "presented" ? "Came in" : "Contacted"}</Chip>}
-                    {n.status !== "presented" ? <Link className="oh-btn small" href={`/workspace/${id}/new?notice=${n.id}&area=${encodeURIComponent(n.area ?? "")}&species=${n.animal_species}&on=${n.happened_on}&animal=${encodeURIComponent(n.animal_description ?? "")}&place=${encodeURIComponent(n.place ?? "")}`}>Patient came in</Link> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )) : null}
+        {at === "notices" ? (notices.loading && !notices.data ? <Loading rows={2} /> : notices.error ? <Failed error={notices.error} retry={notices.reload} /> : !notices.data?.length ? <Empty title="No notices" /> : (
+          <Rows label="Notices from the public">
+            {notices.data.map((n) => (
+              <Row key={n.id} icon={<Megaphone size={14} />} tone={n.status === "new" ? "amber" : "plain"}
+                title={`${SPECIES[n.animal_species]} · ${n.area ?? "Area not given"}`} meta={`${fmtDate(n.happened_on)} · ${n.animal_description ?? "No description"}${n.place ? ` · ${n.place}` : ""}`}
+                end={<>
+                  {n.callback_phone ? <a className="oh-icon-btn" href={tel(n.callback_phone)} aria-label="Call back" data-tip="Call"><Phone size={14} aria-hidden /></a> : <Tag>No callback</Tag>}
+                  {n.status === "new" ? <Btn small variant="quiet" onClick={() => void contacted(n)}>Contacted</Btn> : <Tag tone="blue">{n.status === "presented" ? "Came in" : "Contacted"}</Tag>}
+                  {n.status !== "presented" ? <Btn small href={`/workspace/${id}/new?notice=${n.id}&area=${encodeURIComponent(n.area ?? "")}&species=${n.animal_species}&on=${n.happened_on}&animal=${encodeURIComponent(n.animal_description ?? "")}&place=${encodeURIComponent(n.place ?? "")}`}>Patient came in</Btn> : null}
+                </>} />
+            ))}
+          </Rows>
+        )) : null}
 
-          {lane === "waiting" ? (waiting.loading && !waiting.data ? <Loading rows={2} /> : waiting.error ? <Failed error={waiting.error} retry={waiting.reload} /> : !waiting.data?.length ? <Empty title="Nothing waiting" /> : (
-            <ul className="dy-work">
-              {waiting.data.slice(0, 12).map((r, i) => (
-                <li key={r.id} style={{ ["--j" as string]: i }}>
-                  <span className="dy-sq" data-c="violet" aria-hidden><Stethoscope size={10} strokeWidth={2.4} /></span>
-                  <Link className="dy-work-t" href={`/workspace/${id}/record/${r.id}`}><b className="dy-code">{r.patient_ref ?? r.code}</b><small>{fmtDate(r.presented_on)} · {SPECIES[r.species]} {EXPOSURE_KIND[r.kind]?.toLowerCase() ?? r.kind} · {r.area ?? "Area not recorded"}</small></Link>
-                  <div className="dy-work-acts">{r.category === "not_recorded" ? <Chip tone="amber">Category not recorded</Chip> : <Chip tone="amber">No course yet</Chip>}</div>
-                </li>
-              ))}
-            </ul>
-          )) : null}
+        {at === "waiting" ? (waiting.loading && !waiting.data ? <Loading rows={2} /> : waiting.error ? <Failed error={waiting.error} retry={waiting.reload} /> : !waiting.data?.length ? <Empty title="Nothing waiting" /> : (
+          <Rows label="Waiting for a clinician">
+            {waiting.data.slice(0, 12).map((r) => (
+              <Row key={r.id} href={`/workspace/${id}/record/${r.id}`} icon={<Stethoscope size={14} />} tone="violet"
+                title={<span className="oh-code">{r.patient_ref ?? r.code}</span>} meta={`${fmtDate(r.presented_on)} · ${SPECIES[r.species]} ${EXPOSURE_KIND[r.kind]?.toLowerCase() ?? r.kind} · ${r.area ?? "Area not recorded"}`}
+                end={<Tag tone="amber">{r.category === "not_recorded" ? "Category not recorded" : "No course yet"}</Tag>} />
+            ))}
+          </Rows>
+        )) : null}
 
-          {/* Referred here: the bite code, its category and what is needed, never who the person is. Sent elsewhere: whether they arrived. */}
-          {lane === "referrals" ? (xfer.error && !xferReady ? <Failed error={xfer.error} retry={xfer.reload} /> : (
-            <>
-              {xIn.length ? <h3 className="dy-sub">Referred here</h3> : null}
-              {xIn.length ? (
-                <ul className="dy-work">
-                  {xIn.map((r, i) => (
-                    <li key={r.id} style={{ ["--j" as string]: i }}>
-                      <span className="dy-sq" data-c={r.status === "sent" ? "blue" : r.status === "arrived" ? "green" : "slate"} aria-hidden><ArrowLeftRight size={10} strokeWidth={2.4} /></span>
-                      <div className="dy-work-t"><b>{SERVICE_LABEL[r.service] ?? r.service} · <span className="dy-code">{r.code}</span></b><small>From {r.from_short ?? r.from} · {r.category === "not_recorded" ? "category not recorded" : `category ${r.category}`} · {SPECIES[r.animal_species] ?? r.animal_species}, {fmtDate(r.exposure_on)} · referred {relDay(r.sent_at).toLowerCase()}{r.note ? ` · ${r.note}` : ""}</small></div>
-                      <div className="dy-work-acts">
-                        {r.status === "sent" ? <>
-                          <button type="button" className="oh-btn small" onClick={() => void markTransfer(r, "not_arrived")}>Did not arrive</button>
-                          <button type="button" className="oh-btn small primary" onClick={() => void markTransfer(r, "arrived")}>Arrived</button>
-                        </> : <Chip tone={TRANSFER[r.status]?.tone}>{TRANSFER[r.status]?.label ?? r.status}</Chip>}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              {xOut.length ? <h3 className="dy-sub">Sent elsewhere</h3> : null}
-              {xOut.length ? (
-                <ul className="dy-work">
-                  {xOut.map((r, i) => (
-                    <li key={r.id} style={{ ["--j" as string]: i }}>
-                      <span className="dy-sq" data-c={r.status === "not_arrived" ? "flame" : r.status === "arrived" ? "green" : "slate"} aria-hidden><ArrowLeftRight size={10} strokeWidth={2.4} /></span>
-                      {r.exposure_id ? <Link className="dy-work-t" href={`/workspace/${id}/record/${r.exposure_id}`}><b>{SERVICE_LABEL[r.service] ?? r.service} · <span className="dy-code">{r.code}</span></b><small>To {r.to_short ?? r.to} · referred {relDay(r.sent_at).toLowerCase()}{r.closed_at ? ` · marked ${relDay(r.closed_at).toLowerCase()}` : ""}</small></Link> : null}
-                      <div className="dy-work-acts"><Chip tone={TRANSFER[r.status]?.tone}>{r.status === "sent" ? "Not marked yet" : TRANSFER[r.status]?.label ?? r.status}</Chip></div>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </>
-          )) : null}
-        </section>
-      </div>
+        {/* Referred here: the bite code, its category and what is needed, never who the person is. Sent elsewhere: whether they arrived. */}
+        {at === "referrals" ? (xfer.error && !xferReady ? <Failed error={xfer.error} retry={xfer.reload} /> : (
+          <>
+            {xIn.length ? <h3 className="oh-sub">Referred here</h3> : null}
+            {xIn.length ? (
+              <Rows label="Referred here">
+                {xIn.map((r) => (
+                  <Row key={r.id} icon={<ArrowLeftRight size={14} />} tone={r.status === "sent" ? "blue" : r.status === "arrived" ? "green" : "plain"}
+                    title={<>{SERVICE_LABEL[r.service] ?? r.service} · <span className="oh-code">{r.code}</span></>}
+                    meta={`From ${r.from_short ?? r.from} · ${r.category === "not_recorded" ? "category not recorded" : `category ${r.category}`} · ${SPECIES[r.animal_species] ?? r.animal_species}, ${fmtDate(r.exposure_on)} · referred ${relDay(r.sent_at).toLowerCase()}${r.note ? ` · ${r.note}` : ""}`}
+                    end={r.status === "sent" ? <>
+                      <Btn small variant="quiet" onClick={() => void markTransfer(r, "not_arrived")}>Did not arrive</Btn>
+                      <Btn small onClick={() => void markTransfer(r, "arrived")}>Arrived</Btn>
+                    </> : <Chip tone={TRANSFER[r.status]?.tone}>{TRANSFER[r.status]?.label ?? r.status}</Chip>} />
+                ))}
+              </Rows>
+            ) : null}
+            {xOut.length ? <h3 className="oh-sub">Sent elsewhere</h3> : null}
+            {xOut.length ? (
+              <Rows label="Sent elsewhere">
+                {xOut.map((r) => (
+                  <Row key={r.id} href={r.exposure_id ? `/workspace/${id}/record/${r.exposure_id}` : null} icon={<ArrowLeftRight size={14} />} tone={r.status === "not_arrived" ? "flame" : r.status === "arrived" ? "green" : "plain"}
+                    title={<>{SERVICE_LABEL[r.service] ?? r.service} · <span className="oh-code">{r.code}</span></>}
+                    meta={`To ${r.to_short ?? r.to} · referred ${relDay(r.sent_at).toLowerCase()}${r.closed_at ? ` · marked ${relDay(r.closed_at).toLowerCase()}` : ""}`}
+                    end={<Chip tone={TRANSFER[r.status]?.tone}>{r.status === "sent" ? "Not marked yet" : TRANSFER[r.status]?.label ?? r.status}</Chip>} />
+                ))}
+              </Rows>
+            ) : null}
+          </>
+        )) : null}
+      </Panel>
+      {at === "due" ? <p className="oh-foot">Reminders are phone calls from the clinic, logged here. Automatic SMS or WhatsApp is <b>not connected</b>.</p> : null}
       {dose ? <DoseSheet dose={dose} onClose={() => setDose(null)} onDone={(msg) => { setDose(null); toast(msg); refresh(); }} /> : null}
     </Page>
   );
 }
 
-function LogCall({ onLog }: { onLog: (outcome: string) => void }) {
+export function LogCall({ onLog }: { onLog: (outcome: string) => void }) {
   return (
-    <select className="oh-btn small" aria-label="Log the call" defaultValue="" onChange={(e) => { if (e.target.value) onLog(e.target.value); e.target.value = ""; }}>
+    <select className="oh-select" aria-label="Log the call" defaultValue="" onChange={(e) => { if (e.target.value) onLog(e.target.value); e.target.value = ""; }}>
       <option value="" disabled>Log call</option>
       {Object.entries(REMINDER).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
     </select>
@@ -224,49 +219,47 @@ export function DoseSheet({ dose, onClose, onDone }: { dose: { dose_id: string; 
   };
   return (
     <Sheet title={`Record dose ${dose.dose_no}`} note={`Due ${fmtDate(dose.due_on, { day: "numeric", month: "long" })}${dose.label ? ` · ${dose.label}` : ""}`} onClose={onClose}
-      foot={<><button type="button" className="oh-btn" onClick={onClose}>Cancel</button><button type="button" className="oh-btn primary" disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save"}</button></>}>
+      foot={<><Btn onClick={onClose}>Cancel</Btn><Btn variant="primary" disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save"}</Btn></>}>
       <Seg name="dose-status" label="Dose outcome" value={status} onChange={setStatus} options={[["given", "Given"], ["missed", "Missed"]]} />
       {status === "given" ? (
         <div className="oh-fields">
           <label className="oh-field"><span>Date given</span><input type="date" value={on} max={today()} onChange={(e) => setOn(e.target.value)} /></label>
           <label className="oh-field"><span>Vaccine batch</span><input value={batch} maxLength={40} onChange={(e) => setBatch(e.target.value)} placeholder="As printed on the vial" /></label>
         </div>
-      ) : <p className="oh-note">A missed dose stays on the record. The clinician decides whether to add a new date or close the course.</p>}
+      ) : <Note>A missed dose stays on the record. The clinician decides whether to add a new date or close the course.</Note>}
       {err ? <Failed error={err} /> : null}
     </Sheet>
   );
 }
 
-const FILTERS: [string, string][] = [["all", "All"], ["needs_assessment", "Waiting for a clinician"], ["active", "In course"], ["closed", "Closed"]];
+const FILTERS: Lane<string>[] = [{ id: "all", label: "All" }, { id: "needs_assessment", label: "Waiting for a clinician" }, { id: "active", label: "In course" }, { id: "closed", label: "Closed" }];
 
 export function Register({ place }: { place: Place }) {
   const sp = useSearchParams();
-  const [filter, setFilter] = useState(sp.get("filter") ?? "all");
+  const [filter, setFilter] = usePageState<string>("lane", sp.get("filter") ?? "all");
+  const [q, setQ] = usePageState<string>("q", "");
   const id = place.organisation_id;
   const rows = useRead<RegisterRow[]>(() => call("oh_clinic_register", { p_facility: id, p_filter: filter, p_limit: 200 }), `reg:${id}:${filter}`);
+  const needle = q.trim().toLowerCase();
+  const all = rows.data ?? [];
+  const list = needle ? all.filter((r) => [r.patient_ref, r.code, r.area, SPECIES[r.species], EXPOSURE_KIND[r.kind]].some((v) => v?.toLowerCase().includes(needle))) : all;
+  const late = all.filter((r) => r.next_due && daysFrom(r.next_due) < 0).length;
+  const cols: Col<RegisterRow>[] = [
+    { key: "code", label: "Bite", width: "minmax(0, 1.4fr)", render: (r) => <span className="oh-code">{r.patient_ref ?? r.code}</span> },
+    { key: "date", label: "Date", width: "72px", render: (r) => fmtDate(r.exposure_on) },
+    { key: "cat", label: "Category", width: "112px", keep: true, render: (r) => r.category === "not_recorded" ? <Tag tone="amber">Not recorded</Tag> : <Tag tone={r.category === "III" ? "flame" : "plain"}>Category {r.category}</Tag> },
+    { key: "animal", label: "Animal", width: "minmax(0, 1fr)", render: (r) => `${SPECIES[r.species]} · ${(EXPOSURE_KIND[r.kind] ?? r.kind).toLowerCase()}` },
+    { key: "area", label: "Area", width: "minmax(0, 1fr)", render: (r) => r.area ?? <span className="oh-quiet">Not recorded</span> },
+    { key: "person", label: "Age, sex", width: "minmax(0, 1fr)", render: (r) => `${AGE[r.age_band]} · ${SEX[r.sex]}` },
+    { key: "course", label: "Course", width: "152px", render: (r) => r.course_status ? <><Tag tone={toneOf(COURSE[r.course_status]?.tone)}>{COURSE[r.course_status]?.label ?? r.course_status}</Tag>{r.doses_total ? <span className="oh-quiet num"> {r.doses_given}/{r.doses_total}</span> : null}</> : <span className="oh-quiet">None</span> },
+    { key: "next", label: "Next dose", width: "104px", align: "end", render: (r) => r.next_due ? (daysFrom(r.next_due) < 0 ? <span className="oh-hot">{relDay(r.next_due)}</span> : relDay(r.next_due)) : "–" },
+  ];
   return (
     <Page illustrative={place.illustrative} wide>
-      <Head eyebrow={place.short_name ?? place.name} title="Bite register" lede="Every presentation at this facility. Opening a record is logged." />
-      <div style={{ marginBottom: 16 }}><Seg name="filter" label="Show" value={filter} onChange={setFilter} options={FILTERS} /></div>
-      {rows.loading && !rows.data ? <Loading rows={6} /> : rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !rows.data?.length ? <Empty title="No presentations here yet" /> : (
-        <div className="oh-table-wrap" tabIndex={0} role="region" aria-label="Table">
-          <table className="oh-table">
-            <thead><tr><th>Patient</th><th>Exposure</th><th>Area</th><th>Category</th><th>Course</th><th className="r">Doses</th><th>Next due</th></tr></thead>
-            <tbody>
-              {rows.data.map((r) => (
-                <tr key={r.id} className="link" onClick={() => { window.location.href = `/workspace/${id}/record/${r.id}`; }}>
-                  <td className="strong"><Link href={`/workspace/${id}/record/${r.id}`}>{r.patient_ref ?? r.code}</Link><div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 400 }}>{AGE[r.age_band]} · {SEX[r.sex]}</div></td>
-                  <td>{EXPOSURE_KIND[r.kind] ?? r.kind} · {SPECIES[r.species]}<div style={{ color: "var(--muted)", fontSize: 12 }}>{fmtDate(r.exposure_on)}</div></td>
-                  <td>{r.area ?? "Not recorded"}</td>
-                  <td>{r.category === "not_recorded" ? <Chip tone="amber">Not recorded</Chip> : <Chip plain>Category {r.category}</Chip>}</td>
-                  <td>{r.course_status ? <Chip tone={COURSE[r.course_status]?.tone}>{COURSE[r.course_status]?.label ?? r.course_status}</Chip> : <span style={{ color: "var(--muted)" }}>None</span>}</td>
-                  <td className="r">{r.doses_total ? `${r.doses_given} / ${r.doses_total}` : "–"}</td>
-                  <td>{r.next_due ? (daysFrom(r.next_due) < 0 ? <Chip tone="flame">{relDay(r.next_due)}</Chip> : relDay(r.next_due)) : "–"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <Head title="Bite register" lede={rows.error ? "The register could not be read." : !rows.data ? "Reading the register…" : <><b>{all.length}</b> {all.length === 1 ? "presentation" : "presentations"} shown{late ? <>, <span className="is-hot">{late} with a dose overdue</span></> : null}. Opening a record is logged.</>} />
+      <Tools end={<SearchBox value={q} onChange={setQ} placeholder="Register number, area" label="Search the register" />}><Lanes label="Show" lanes={FILTERS} value={filter} onChange={setFilter} /></Tools>
+      {rows.loading && !rows.data ? <Loading rows={8} /> : rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !list.length ? <Empty title={needle ? "Nothing matches that search" : "No presentations here yet"} /> : (
+        <Panel><More items={list} cap={20} noun="presentations">{(shown) => <Table label="Bite register" cols={cols} rows={shown} rowKey={(r) => r.id} href={(r) => `/workspace/${id}/record/${r.id}`} />}</More></Panel>
       )}
     </Page>
   );
@@ -309,15 +302,14 @@ function NewExposureBody({ place }: { place: Place }) {
   };
 
   return (
-    <Page illustrative={place.illustrative}>
-      <Head eyebrow={place.short_name ?? place.name} title="Record a bite" lede="About a minute. The patient is identified by your own register number; no name is stored." />
-      {fromNotice ? <p className="oh-note blue" style={{ marginBottom: 20 }}>Started from a notice the public left. Its details are filled in; check them with the patient.</p> : null}
-      {fromReferral ? <p className="oh-note blue" style={{ marginBottom: 20 }}>Referred from {sp.get("from") ?? "another facility"}{sp.get("code") ? `, where the bite is ${sp.get("code")}` : ""}. The date and animal are filled in; check them with the patient. The animal follow-up was requested there, so it is off here.</p> : null}
+    <Page illustrative={place.illustrative} narrow>
+      <Head title="Record a bite" lede="About a minute. The patient is identified by your own register number; no name is stored." />
+      {fromNotice ? <Note tone="blue">Started from a notice the public left. Its details are filled in; check them with the patient.</Note> : null}
+      {fromReferral ? <Note tone="blue">Referred from {sp.get("from") ?? "another facility"}{sp.get("code") ? `, where the bite is ${sp.get("code")}` : ""}. The date and animal are filled in; check them with the patient. The animal follow-up was requested there, so it is off here.</Note> : null}
       <form className="oh-form" onSubmit={submit}>
-        <fieldset className="oh-fieldset">
-          <legend>What happened</legend>
-          <div className="oh-field full"><span>Type of exposure</span><Seg name="kind" label="Type of exposure" value={f.kind} onChange={(v) => set("kind", v)} options={Object.entries(EXPOSURE_KIND) as [string, string][]} /></div>
+        <Section title="What happened">
           <div className="oh-fields">
+            <div className="oh-field"><span>Type of exposure</span><Seg name="kind" label="Type of exposure" value={f.kind} onChange={(v) => set("kind", v)} options={Object.entries(EXPOSURE_KIND) as [string, string][]} /></div>
             <label className="oh-field"><span>Date it happened</span><input type="date" required value={f.exposure_on} max={today()} onChange={(e) => set("exposure_on", e.target.value)} /></label>
             <label className="oh-field"><span>Area</span>
               <select value={areaId} onChange={(e) => set("area", e.target.value)} disabled={!areas.data}>
@@ -325,46 +317,46 @@ function NewExposureBody({ place }: { place: Place }) {
               </select>
               <small>Where it happened, not where the patient lives.</small>
             </label>
+            <div className="oh-field"><span>Wound washing</span><Seg name="washed" label="Wound washing" value={f.washed} onChange={(v) => set("washed", v)} options={Object.entries(WASHED) as [string, string][]} /></div>
           </div>
-          <div className="oh-field full"><span>Wound washing</span><Seg name="washed" label="Wound washing" value={f.washed} onChange={(v) => set("washed", v)} options={Object.entries(WASHED) as [string, string][]} /></div>
-        </fieldset>
+        </Section>
 
-        <fieldset className="oh-fieldset">
-          <legend>Patient</legend>
+        <Section title="Patient">
           <div className="oh-fields">
             <label className="oh-field"><span>Your register number</span><input value={f.ref} maxLength={40} onChange={(e) => set("ref", e.target.value)} placeholder="e.g. OPD number" autoComplete="off" /></label>
-            <label className="oh-field"><span>Age</span><select value={f.age} onChange={(e) => set("age", e.target.value)}>{Object.entries(AGE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
-            <div className="oh-field full"><span>Sex</span><Seg name="sex" label="Sex" value={f.sex} onChange={(v) => set("sex", v)} options={Object.entries(SEX) as [string, string][]} /></div>
-            <label className="oh-check" style={{ gridColumn: "1 / -1" }}><input type="checkbox" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} /><span>The patient agrees to be called about their doses.</span></label>
+            <label className="oh-check"><input type="checkbox" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} /><span>The patient agrees to be called about their doses.</span></label>
             {f.consent ? <label className="oh-field"><span>Phone for reminders</span><input type="tel" inputMode="tel" value={f.phone} pattern="[0-9+ ]{8,16}" onChange={(e) => set("phone", e.target.value)} /><small>Seen only by staff at this facility.</small></label> : null}
           </div>
-        </fieldset>
-
-        <fieldset className="oh-fieldset">
-          <legend>The animal</legend>
-          <div className="oh-field full"><span>Animal</span><Seg name="species" label="Animal" value={f.species} onChange={(v) => set("species", v)} options={Object.entries(SPECIES) as [string, string][]} /></div>
-          <div className="oh-field full"><span>Whose animal</span><Seg name="own" label="Whose animal" value={f.ownership} onChange={(v) => set("ownership", v)} options={[["community", "Street or community"], ["owned", "Someone's pet"], ["unknown", "Not known"]]} /></div>
+        </Section>
+        <Section title="Age and sex" fold="age-sex" open={false} note="Optional">
           <div className="oh-fields">
+            <label className="oh-field"><span>Age</span><select value={f.age} onChange={(e) => set("age", e.target.value)}>{Object.entries(AGE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
+            <div className="oh-field"><span>Sex</span><Seg name="sex" label="Sex" value={f.sex} onChange={(v) => set("sex", v)} options={Object.entries(SEX) as [string, string][]} /></div>
+          </div>
+        </Section>
+
+        <Section title="The animal">
+          <div className="oh-fields">
+            <div className="oh-field"><span>Animal</span><Seg name="species" label="Animal" value={f.species} onChange={(v) => set("species", v)} options={Object.entries(SPECIES) as [string, string][]} /></div>
+            <div className="oh-field"><span>Whose animal</span><Seg name="own" label="Whose animal" value={f.ownership} onChange={(v) => set("ownership", v)} options={[["community", "Street or community"], ["owned", "Someone's pet"], ["unknown", "Not known"]]} /></div>
             <label className="oh-field"><span>What it looked like</span><input value={f.animal} maxLength={300} onChange={(e) => set("animal", e.target.value)} placeholder="Colour, size, collar, marks" /></label>
             <label className="oh-field"><span>Where it can be found</span><input value={f.place} maxLength={200} onChange={(e) => set("place", e.target.value)} placeholder="Landmark or street" /></label>
+            {f.ownership !== "owned" ? (
+              <label className="oh-check"><input type="checkbox" checked={f.followup} onChange={(e) => set("followup", e.target.checked)} /><span>Ask the area&apos;s animal team to find and observe the animal. They receive the description and place only, never patient details.</span></label>
+            ) : null}
           </div>
-          {f.ownership !== "owned" ? (
-            <label className="oh-check"><input type="checkbox" checked={f.followup} onChange={(e) => set("followup", e.target.checked)} /><span>Ask the area&apos;s animal team to find and observe the animal. They receive the description and place only, never patient details.</span></label>
-          ) : null}
-        </fieldset>
+        </Section>
 
-        <fieldset className="oh-fieldset">
-          <legend>Clinical assessment</legend>
+        <Section title="Clinical assessment">
           {clinician ? (
-            <>
-              <p>The category you assessed. StrayPaw records it; it does not assess.</p>
+            <div className="oh-field"><span>Exposure category <small>The category you assessed. StrayPaw records it; it does not assess.</small></span>
               <Seg name="category" label="Exposure category" value={f.category} onChange={(v) => set("category", v)} options={[["I", "Category I"], ["II", "Category II"], ["III", "Category III"], ["not_recorded", "Assess later"]]} />
-            </>
-          ) : <p className="oh-note">A clinician records the exposure category and any course. This presentation will wait for them on Today.</p>}
-        </fieldset>
+            </div>
+          ) : <Note>A clinician records the exposure category and any course. This presentation will wait for them on Home.</Note>}
+        </Section>
 
         {err ? <Failed error={err} /> : null}
-        <div className="oh-submit"><button type="submit" className="oh-btn primary" disabled={busy}>{busy ? "Saving…" : "Save presentation"}</button><button type="button" className="oh-btn" onClick={() => router.back()}>Cancel</button></div>
+        <div className="oh-submit"><Btn variant="primary" type="submit" disabled={busy}>{busy ? "Saving…" : "Save presentation"}</Btn><Btn onClick={() => router.back()}>Cancel</Btn></div>
       </form>
     </Page>
   );

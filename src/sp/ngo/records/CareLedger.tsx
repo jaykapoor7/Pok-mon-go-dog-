@@ -10,54 +10,44 @@
    database checks the writer. A failed read says "Not read".
    ════════════════════════════════════════════════════════════════════ */
 
-import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { getPartnerCases } from "@/lib/cases";
 import type { PartnerMedicalEvent } from "@/lib/animal-actions";
 import { MEDICAL_KINDS, speciesLabel, type Case } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { Btn, Empty, Head, Lanes, Page, Panel, Table, Tag, Tools, type Col } from "@/ws/kit";
+import { usePageState } from "@/ws/store";
 import { useMembership } from "../../shell/Shell";
-import { Method, State, n, since, PageBrief } from "../../ui";
+import { n, since } from "../../ui";
+import { Pager, SkelRows, pageOf } from "../../abc/Pager";
 import { NgoGate } from "../Gate";
-import { CARE_LIMIT, readCare } from "./read";
+import { readCare } from "./read";
 import "../ngo.css";
-import "./records.css";
 import { friendlyError } from "@/lib/friendly-error";
 import { careNote } from "@/lib/care-note";
 
 const labelFor = (kind: string) => MEDICAL_KINDS.find((k) => k.id === kind)?.label ?? (kind.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()));
 const MEDICAL_CATEGORIES = new Set(["injury", "vaccination", "sterilisation"]);
 const isMedical = (c: Case) => !!c.medical_notes || MEDICAL_CATEGORIES.has(c.category);
-const month = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
-
 type Load<T> = { state: "loading" } | { state: "failed"; error: string } | ({ state: "read" } & T);
+
+type View = "events" | "cases";
+const PER = 20;
 
 export function CareLedger() {
   const mem = useMembership();
-  const [view, setView] = useState<"events" | "cases">("events");
+  const [view, setView] = usePageState<View>("lane", "events");
+  const lanes = <Lanes<View> label="Care ledger view" lanes={[{ id: "events", label: "Care given" }, { id: "cases", label: "Medical cases" }]} value={view} onChange={setView} />;
   return (
     <NgoGate title="Care ledger" lede="Treatment, vaccination and field care in date order, each attached to its animal.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · records</p><h1 className="serif">Care ledger</h1></div>
-          <p className="ngo-sum">Treatment, vaccination and field care, newest first.</p>
-        </header>
-        <PageBrief items={[["For", "Every treatment, vaccination and sterilisation your organisation recorded, attached to its animal."], ["Watch", "Care with no clinician named, and medical cases still open."], ["Next", "Open the animal to add or correct care."], ["After", "The event appears here and on the animal’s record, dated."]]} />
-        <div className="tabs rc-tabs" role="tablist" aria-label="Care ledger view">
-          <button type="button" role="tab" id="rc-t-ev" aria-controls="rc-p" aria-selected={view === "events"} onClick={() => setView("events")}>Animal care history</button>
-          <button type="button" role="tab" id="rc-t-cs" aria-controls="rc-p" aria-selected={view === "cases"} onClick={() => setView("cases")}>Medical cases</button>
-        </div>
-        <div id="rc-p" role="tabpanel" aria-labelledby={view === "events" ? "rc-t-ev" : "rc-t-cs"} className="rc-body">
-          {mem.member && (view === "events" ? <Events /> : <MedicalCases />)}
-        </div>
-      </div>
+      <Page>{mem.member && (view === "events" ? <Events lanes={lanes} /> : <MedicalCases lanes={lanes} />)}</Page>
     </NgoGate>
   );
 }
 
-function Events() {
+function Events({ lanes }: { lanes: ReactNode }) {
   const [d, setD] = useState<Load<{ rows: PartnerMedicalEvent[]; total: number }>>({ state: "loading" });
-  const [kind, setKind] = useState("all");
+  const [kind, setKind] = usePageState("kind", "all");
   const load = useCallback(() => {
     setD({ state: "loading" });
     readCare().then((r) => setD({ state: "read", ...r })).catch((e: unknown) => setD({ state: "failed", error: e instanceof Error ? e.message : "The read failed." }));
@@ -68,85 +58,63 @@ function Events() {
   const kinds = useMemo(() => { const m = new Map<string, number>(); rows.forEach((e) => m.set(e.kind, (m.get(e.kind) ?? 0) + 1)); return [...m.entries()]; }, [rows]);
   const [page, setPage] = useState(0);
   useEffect(() => setPage(0), [kind]);
-  const PER = 20;
   const filtered = kind === "all" ? rows : rows.filter((e) => e.kind === kind);
-  const pages = Math.max(1, Math.ceil(filtered.length / PER));
-  const visible = filtered.slice(page * PER, page * PER + PER);
-  const groups = useMemo(() => { const g: { m: string; rows: PartnerMedicalEvent[] }[] = []; for (const e of visible) { const m = month(e.event_date); if (g.at(-1)?.m !== m) g.push({ m, rows: [] }); g.at(-1)!.rows.push(e); } return g; }, [visible]);
+  const { pg, pages, slice: visible } = pageOf(filtered, page, PER);
 
-  if (d.state === "loading") return <div className="rc-skel" aria-label="Reading care history"><span className="skel" /><span className="skel" /><span className="skel" /></div>;
-  if (d.state === "failed") return <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>The care history did not load. {friendlyError(d.error)} Nothing is shown as empty.</State>;
-  if (!d.rows.length) return <State art="ngo-empty" title="No care recorded yet" action={<Link className="btn is-ink" href="/ngo/animals">Open the animal register</Link>}>Care added on an animal&apos;s record appears here.</State>;
+  const cols: Col<PartnerMedicalEvent>[] = [
+    { key: "who", label: "Animal", width: "minmax(0, 1.2fr)", render: (e) => <span className="kx-cell"><span>{e.animal.name || e.animal.code || "Unnamed animal"}<small className="kx-sub">{[labelFor(e.kind), formatDate(e.event_date)].join(" · ")}</small></span></span> },
+    { key: "code", label: "Code and place", render: (e) => [e.animal.code, e.animal.zone].filter(Boolean).join(" · ") || <span className="kx-none">Not recorded</span> },
+    { key: "kind", label: "Care", width: "144px", render: (e) => <Tag tone="green">{labelFor(e.kind)}</Tag> },
+    { key: "date", label: "Date", width: "104px", render: (e) => <time className="kx-num" dateTime={e.event_date}>{formatDate(e.event_date)}</time> },
+    { key: "note", label: "Notes", width: "minmax(0, 1.6fr)", render: (e) => { const t = careNote(e.notes); return t ? <span title={t}>{t}</span> : <span className="kx-none">No notes</span>; } },
+    { key: "by", label: "Given by", render: (e) => e.performed_by || <span className="kx-none">Not recorded</span> },
+  ];
 
   return (
-    <div className="rc-stack">
-      <Method items={[["Scope", "your organisation's animals"], ["Showing", d.total > d.rows.length ? `newest ${n(d.rows.length)} of ${n(d.total)}` : `all ${n(d.total)}`], ["Dates", "as recorded"]]} />
-      <div className="rc-chips" role="group" aria-label="Filter by kind of care">
-        <button type="button" className="chip" aria-pressed={kind === "all"} onClick={() => setKind("all")}>All care <span className="n">{n(rows.length)}</span></button>
-        {kinds.map(([k, c]) => <button key={k} type="button" className="chip" aria-pressed={kind === k} onClick={() => setKind(k)}>{labelFor(k)} <span className="n">{n(c)}</span></button>)}
-      </div>
-      {d.total > d.rows.length && <p className="small">Older entries are on each animal&rsquo;s record. The filter applies to the {n(d.rows.length)} shown.</p>}
-      <div className="rc-scroll" role="region" aria-label="Care events" tabIndex={0}>
-        <table className="rc-table rc-care">
-          <thead><tr><th scope="col">Date</th><th scope="col">Care</th><th scope="col">Animal</th><th scope="col">Notes</th><th scope="col">Given by</th><th scope="col"><span className="sr">Open</span></th></tr></thead>
-          {groups.map((g) => (
-            <tbody key={g.m}>
-              <tr className="rc-month"><th colSpan={6} scope="colgroup"><span className="serif">{g.m}</span></th></tr>
-              {g.rows.map((e) => {
-                const name = e.animal.name || e.animal.code || "Unnamed animal";
-                return (
-                  <tr key={e.id}>
-                    <td className="mono rc-date"><time dateTime={e.event_date}>{formatDate(e.event_date)}</time></td>
-                    <td><span className="pill is-care">{labelFor(e.kind)}</span></td>
-                    <td className="rc-who"><b>{name}</b><small className="mono">{[e.animal.code, e.animal.zone].filter(Boolean).join(" · ") || "Animal record"}</small></td>
-                    <td className="rc-note" title={careNote(e.notes) || undefined}><span>{careNote(e.notes) || <i className="small">No notes</i>}</span></td>
-                    <td className="rc-by">{e.performed_by || <span className="pill is-unknown">Not recorded</span>}</td>
-                    <td className="rc-open"><Link className="btn is-ghost is-s" href={`/ngo/animals/${e.animal.id}`} aria-label={`Open ${name}'s record`}>Open</Link></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          ))}
-        </table>
-      </div>
-      {pages > 1 && <div className="row ngo-pager"><button type="button" className="btn is-s" disabled={page === 0} onClick={() => setPage((v) => v - 1)}>Previous</button><span className="small">Page {page + 1} of {pages}</span><button type="button" className="btn is-s" disabled={page + 1 >= pages} onClick={() => setPage((v) => v + 1)}>Next</button></div>}
-      {!visible.length && <p className="small">No {labelFor(kind).toLowerCase()} entries in this organisation&rsquo;s record.</p>}
-    </div>
+    <>
+      <Head title="Animals" sum={d.state === "loading" ? "Reading care history…" : d.state === "failed" ? "The care history did not load. Nothing is shown as empty." : !d.rows.length ? "No care recorded yet." : d.total > d.rows.length ? <>The newest <b>{n(d.rows.length)}</b> of <b>{n(d.total)}</b> care entries, as dated on each record. Older entries are on each animal&rsquo;s record.</> : <><b>{n(d.total)}</b> care {d.total === 1 ? "entry" : "entries"}, newest first, as dated on each record.</>} />
+      <Tools end={d.state === "read" && d.rows.length ? <select className="kx-in is-auto" value={kind} onChange={(e) => setKind(e.target.value)} aria-label="Filter by kind of care"><option value="all">All care ({n(rows.length)})</option>{kinds.map(([k, c]) => <option key={k} value={k}>{labelFor(k)} ({n(c)})</option>)}</select> : undefined}>{lanes}</Tools>
+      {d.state === "loading" ? <Panel><SkelRows label="Reading care history" /></Panel>
+        : d.state === "failed" ? <Panel><div role="alert"><Empty title="Didn't load" action={<Btn onClick={load}>Try again</Btn>}>The care history did not load. {friendlyError(d.error)} Nothing is shown as empty.</Empty></div></Panel>
+        : !d.rows.length ? <Panel><Empty title="No care recorded yet" action={<Btn variant="primary" href="/ngo/animals">Open the animal register</Btn>}>Care added on an animal&apos;s record appears here.</Empty></Panel>
+        : <>
+          <Panel><Table cols={cols} rows={visible} rowKey={(e) => e.id} href={(e) => `/ngo/animals/${e.animal.id}`} label="Care events" empty={<Empty title={`No ${labelFor(kind).toLowerCase()} entries in this organisation's record.`} />} /></Panel>
+          <Pager pg={pg} pages={pages} total={filtered.length} size={PER} onPage={setPage} />
+        </>}
+    </>
   );
 }
 
-function MedicalCases() {
+function MedicalCases({ lanes }: { lanes: ReactNode }) {
   const [d, setD] = useState<Load<{ rows: Case[] }>>({ state: "loading" });
+  const [page, setPage] = useState(0);
   const load = useCallback(() => {
     setD({ state: "loading" });
     getPartnerCases().then((rows) => setD({ state: "read", rows })).catch((e: unknown) => setD({ state: "failed", error: e instanceof Error ? e.message : "The read failed." }));
   }, []);
   useEffect(load, [load]);
   const medical = useMemo(() => (d.state === "read" ? d.rows.filter(isMedical).sort((a, b) => +new Date(b.last_activity_at) - +new Date(a.last_activity_at)) : []), [d]);
+  const { pg, pages, slice } = pageOf(medical, page, PER);
 
-  if (d.state === "loading") return <div className="rc-skel" aria-label="Reading medical cases"><span className="skel" /><span className="skel" /><span className="skel" /></div>;
-  if (d.state === "failed") return <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Medical cases could not be read. {friendlyError(d.error)} Nothing is shown as empty.</State>;
-  if (!medical.length) return <State art="ngo-empty" title="No medical cases yet" action={<Link className="btn is-ink" href="/ngo">Open the work queue</Link>}>Medical cases appear here.</State>;
+  const cols: Col<Case>[] = [
+    { key: "case", label: "Case", width: "minmax(0, 1.4fr)", render: (c) => c.title },
+    { key: "state", label: "Status", width: "112px", keep: true, render: (c) => <Tag tone={c.status === "resolved" || c.status === "closed" ? "green" : "blue"}>{c.status.replace("_", " ")}</Tag> },
+    { key: "who", label: "Animal and locality", render: (c) => `${speciesLabel(c.species ?? "dog")}${c.zone ? ` · ${c.zone}` : ""}` },
+    { key: "note", label: "Medical notes", width: "minmax(0, 1.4fr)", render: (c) => (c.medical_notes ? <span title={c.medical_notes}>{c.medical_notes}</span> : <span className="kx-none">None</span>) },
+    { key: "last", label: "Last activity", width: "112px", render: (c) => <span className="kx-num">{since(c.last_activity_at)}</span> },
+  ];
 
   return (
-    <div className="rc-stack">
-      <Method items={[["Scope", "your organisation's cases"], ["Read", `${n(d.state === "read" ? d.rows.length : 0)} most recently active`], ["Medical", `${n(medical.length)}: injury, vaccination, sterilisation or with medical notes`]]} />
-      <div className="rc-scroll" role="region" aria-label="Medical cases" tabIndex={0}>
-        <table className="rc-table rc-cases">
-          <thead><tr><th scope="col">Case</th><th scope="col">Status</th><th scope="col">Animal · locality</th><th scope="col">Last activity</th><th scope="col"><span className="sr">Open</span></th></tr></thead>
-          <tbody>
-            {medical.map((c) => (
-              <tr key={c.id}>
-                <td className="rc-who"><b>{c.title}</b>{c.medical_notes && <small>{c.medical_notes}</small>}</td>
-                <td><span className={`pill${c.status === "resolved" || c.status === "closed" ? " is-care" : " is-info"}`}>{c.status.replace("_", " ")}</span></td>
-                <td>{speciesLabel(c.species ?? "dog")}{c.zone ? ` · ${c.zone}` : ""}</td>
-                <td className="mono rc-date">{since(c.last_activity_at)}</td>
-                <td className="rc-open"><Link className="btn is-ghost is-s" href={`/ngo/cases/${c.id}`} aria-label={`Open case ${c.title}`}>Open</Link></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <>
+      <Head title="Animals" sum={d.state === "loading" ? "Reading medical cases…" : d.state === "failed" ? "Medical cases could not be read. Nothing is shown as empty." : <><b>{n(medical.length)}</b> medical {medical.length === 1 ? "case" : "cases"} among your {n(d.rows.length)} most recently active: injury, vaccination, sterilisation, or with medical notes.</>} />
+      <Tools>{lanes}</Tools>
+      {d.state === "loading" ? <Panel><SkelRows label="Reading medical cases" /></Panel>
+        : d.state === "failed" ? <Panel><div role="alert"><Empty title="Didn't load" action={<Btn onClick={load}>Try again</Btn>}>Medical cases could not be read. {friendlyError(d.error)} Nothing is shown as empty.</Empty></div></Panel>
+        : !medical.length ? <Panel><Empty title="No medical cases yet" action={<Btn href="/ngo/pipeline">Open the cases</Btn>}>Medical cases appear here.</Empty></Panel>
+        : <>
+          <Panel><Table cols={cols} rows={slice} rowKey={(c) => c.id} href={(c) => `/ngo/cases/${c.id}`} label="Medical cases" /></Panel>
+          <Pager pg={pg} pages={pages} total={medical.length} size={PER} onPage={setPage} />
+        </>}
+    </>
   );
 }

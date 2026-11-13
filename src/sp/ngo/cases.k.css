@@ -1,0 +1,95 @@
+/* The NGO's daily pages: what the page kit does not give. Forms (labels above, 32px controls), a small
+   inline control for a row, receipts, and a few record parts. Colours are the theme's variables only. */
+
+/* ── forms ────────────────────────────────────────────────────────── */
+.kc-form { display: grid; gap: 12px; min-width: 0; margin: 0; }
+.kc-form.is-tight { gap: 8px; }
+.kc-f { display: grid; gap: 4px; min-width: 0; margin: 0; padding: 0; border: 0; color: var(--n-text-2); font-size: 12px; font-weight: 500; line-height: 16px; }
+.kc-f > legend, .kc-l { padding: 0; margin: 0 0 4px; color: var(--n-text-2); font-size: 12px; font-weight: 500; line-height: 16px; }
+.kc-f > label, .kc-l { display: block; }
+.kc-f small, .kc-hint { color: var(--n-text-2); font-size: 12px; font-weight: 400; line-height: 16px; }
+.kc-hint { margin: 0; }
+.kc-in { box-sizing: border-box; width: 100%; min-width: 0; height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: var(--n-bg); box-shadow: inset 0 0 0 1px var(--n-line-2); color: var(--n-text); font: 400 14px/20px var(--s3-sans, Inter, system-ui, sans-serif); transition: box-shadow .12s; }
+textarea.kc-in { height: auto; min-height: 64px; padding: 8px; resize: vertical; }
+select.kc-in { padding-right: 24px; }
+input[type="file"].kc-in { height: auto; min-height: 32px; padding: 4px 8px; font-size: 12px; }
+.kc-in:focus { outline: 0; box-shadow: inset 0 0 0 2px var(--n-blue); }
+.kc-in::placeholder { color: var(--n-text-3); }
+.kc-in:disabled { opacity: .55; }
+.kc-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.kc-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(144px, 1fr)); gap: 12px; align-items: end; }
+.kc-err { margin: 0; color: var(--n-red); font-size: 14px; line-height: 20px; }
+.kc-ok { display: inline-flex; align-items: center; gap: 4px; margin: 0; color: var(--i-green); font-size: 14px; line-height: 20px; }
+.kc-ok a { color: inherit; }
+.kc-p { margin: 0; color: var(--n-text); font-size: 14px; line-height: 20px; }
+.kc-p b { font-weight: 600; }
+.kc-quiet { margin: 0; color: var(--n-text-2); font-size: 14px; line-height: 20px; }
+.kc-quiet.is-pad { padding: 12px 8px; }
+.kc-link { padding: 0; border: 0; background: none; color: var(--n-blue); font: inherit; text-decoration: none; cursor: pointer; }
+.kc-link:hover { text-decoration: underline; }
+.kc-link:focus-visible { outline: 2px solid var(--n-blue); outline-offset: 2px; border-radius: 4px; }
+.kc-code { color: var(--n-text-2); font: 500 12px/16px var(--s3-mono, ui-monospace, monospace); white-space: nowrap; }
+
+/* a choice between a few things, each with a line of explanation */
+.kc-choice { display: grid; gap: 0; margin: 0; padding: 0; border: 0; }
+.kc-choice > legend { padding: 0; margin: 0 0 4px; color: var(--n-text-2); font-size: 12px; font-weight: 500; line-height: 16px; }
+.kc-choice label { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 8px; border-radius: 8px; color: var(--n-text); font-size: 14px; line-height: 20px; cursor: pointer; transition: background-color .08s ease-in; }
+.kc-choice label:hover { background: var(--n-hover); }
+.kc-choice label:has(input:checked) { background: var(--n-on); }
+.kc-choice input { flex: none; margin: 0; accent-color: var(--n-blue); }
+.kc-choice label > span { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; min-width: 0; }
+.kc-choice b { font-weight: 500; }
+.kc-choice small { color: var(--n-text-2); font-size: 12px; }
+.kc-choice.is-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.kc-choice.is-row > legend { flex-basis: 100%; }
+
+/* a form that opens inside a row or under a control */
+.kc-sheet { display: grid; gap: 12px; padding: 12px; border-radius: 8px; background: var(--n-side); }
+.kc-sheet h2, .kc-sheet h3 { margin: 0; color: var(--n-text); font-size: 14px; font-weight: 600; line-height: 20px; letter-spacing: -.01em; text-transform: none; }
+
+/* a loading shape */
+.kc-skel { display: block; height: 40px; border-radius: 8px; background: var(--n-fill); opacity: .6; }
+.kc-skel + .kc-skel { margin-top: 8px; }
+.kc-skel.is-tall { height: 96px; }
+
+/* receipts from the shared Ack keep their meaning, in the theme's colours */
+.k-page .ack, .kc-scope .ack { min-height: 20px; color: var(--n-text-2); font-size: 14px; font-weight: 400; }
+.k-page .ack[data-state="saved"], .kc-scope .ack[data-state="saved"] { color: var(--i-green); }
+.k-page .ack[data-state="failed"], .kc-scope .ack[data-state="failed"] { color: var(--n-red); }
+
+@media (max-width: 860px) {
+  .kc-in { height: 40px; font-size: 16px; }
+  .kc-choice label { min-height: 40px; }
+}
+@container peek (max-width: 520px) { .kc-two { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── rows that may wrap: a title and a line, then tags and small controls ── */
+.kc-items { display: grid; margin: 0; padding: 0; list-style: none; }
+.kc-items > li + li { box-shadow: inset 0 1px 0 var(--n-line); }
+.kc-item { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 44px; padding: 8px; box-sizing: border-box; color: var(--n-text); font-size: 14px; line-height: 20px; }
+.kc-item-t { display: grid; flex: 1 1 200px; min-width: 0; }
+.kc-item-t > b, .kc-item-t > a { color: var(--n-text); font-weight: 500; overflow-wrap: anywhere; text-decoration: none; }
+.kc-item-t > a:hover { color: var(--n-blue); }
+.kc-item-t > b::first-letter { text-transform: uppercase; }
+.kc-item-t > small { color: var(--n-text-2); font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
+.kc-item-e { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--n-text-2); font-size: 12px; }
+.kc-item > .kc-sheet, .kc-item > .kc-form { flex: 1 1 100%; }
+.kc-item.is-done { opacity: .6; }
+.kc-quiet svg, .kc-ok svg { flex: none; vertical-align: -2px; }
+@media (hover: hover) { .kc-item .dr-btn { opacity: 0; } .kc-item:hover .dr-btn, .kc-item:focus-within .dr-btn { opacity: 1; } }
+
+/* ── the next step on a case ── */
+.ns { display: grid; gap: 12px; min-width: 0; }
+.ns-block { display: grid; gap: 8px; }
+.ns-select { width: auto; max-width: 100%; }
+.ns-ack:empty { display: none; }
+.kc-ul { margin: 0; padding: 0; list-style: none; }
+
+/* ── care and movements ── */
+.ops2 { margin-top: 24px; }
+.ops2-add { margin-bottom: 12px; }
+.ops2-more { flex: 1 1 100%; color: var(--n-text-2); font-size: 12px; }
+.ops2-more > summary { display: inline-block; padding: 4px 0; color: var(--n-blue); cursor: pointer; }
+.ops2-more > summary:focus-visible { outline: 2px solid var(--n-blue); outline-offset: 2px; border-radius: 4px; }
+.ops2-more[open] > summary { margin-bottom: 4px; }
+.ops2-pager { margin-top: 8px; }
