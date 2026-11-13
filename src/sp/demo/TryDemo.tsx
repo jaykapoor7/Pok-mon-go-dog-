@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Clock } from "lucide-react";
 import { DEMO_SITE } from "@/lib/demo-site";
 import { DEMO_ROLES, TOUR, type DemoRole } from "./tour";
-import { enterAs, writeTour } from "./state";
+import { enterAs, leaveFor, writeTour } from "./state";
 import "./demo-tour.css";
 
 const GROUP_LABEL = { programme: "Programme", health: "Health", animal: "Animal care", government: "Government" } as const;
@@ -24,7 +24,7 @@ export function TryDemo() {
     const e = await enterAs(TOUR[0].role);
     if (e) { setErr(e); setBusy(null); return; }
     writeTour({ mode: "guided", step: 0, role: TOUR[0].role });
-    window.location.replace(TOUR[0].path);
+    leaveFor(TOUR[0].path, true);
   }, []);
 
   const roam = useCallback(async (r: DemoRole) => {
@@ -32,7 +32,7 @@ export function TryDemo() {
     const e = await enterAs(r);
     if (e) { setErr(e); setBusy(null); return; }
     writeTour({ mode: "roam", step: 0, role: r });
-    window.location.assign(DEMO_ROLES[r].home);
+    leaveFor(DEMO_ROLES[r].home);
   }, []);
 
   useEffect(() => {
@@ -56,11 +56,11 @@ export function TryDemo() {
     <div className="try">
       <p className="try-k">Live demo · illustrative data</p>
       <h1>See StrayPaw at work.</h1>
-      <p className="try-lede">Eight real screens, one after another: the NGO, the hospital, the laboratory, the programme and the municipal office. Look around each as long as you like.</p>
+      <p className="try-lede">Five real workspaces, each handing work to the next. Look around as long as you like.</p>
       <div className="try-go">
         {/* A link, so it still starts the story if pressed before the page is interactive (/try?go=1 starts on load). */}
         <a href="/try?go=1" role="button" className="try-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening…" : <>Start the tour <ArrowRight size={17} aria-hidden /></>}</a>
-        <small><Clock size={15} aria-hidden /> About two minutes · every record is illustrative</small>
+        <small><Clock size={15} aria-hidden /> About a minute · every record is illustrative</small>
       </div>
       {err && <p className="try-err" role="alert">{err}</p>}
       <ol className="try-story" aria-label="The stops">

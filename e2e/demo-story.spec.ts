@@ -11,7 +11,7 @@ import { expect, test } from "@playwright/test";
 test.skip(process.env.OH_E2E !== "1", "Needs the demonstration site or a build pointed at staging");
 test.setTimeout(600_000);
 
-const CHAPTERS = ["NGO home", "Rescues", "Sterilisation", "Add an animal", "Hospital", "Laboratory", "Programme", "Municipal review"];
+const CHAPTERS = ["Hospital", "NGO", "Laboratory", "Programme", "Municipal office"];
 
 test("the story plays from the first chapter to the last, each one pointing at its screen", async ({ page }) => {
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
@@ -22,7 +22,7 @@ test("the story plays from the first chapter to the last, each one pointing at i
 
   for (let i = 0; i < CHAPTERS.length; i++) {
     const card = page.locator("aside.dt").first();
-    await expect(card.locator(".dt-k")).toContainText(`Chapter ${i + 1} of ${CHAPTERS.length}`, { timeout: 120_000 });
+    await expect(card.locator(".dt-k")).toContainText(`${i + 1} of ${CHAPTERS.length}`, { timeout: 120_000 });
     await expect(page.locator(".dt-transit")).toHaveCount(0, { timeout: 30_000 });
     /* the screen has its data and the chapter's subject is highlighted */
     await expect(page.locator(".sp-tour-hl").first()).toBeVisible({ timeout: 30_000 });

@@ -1,12 +1,6 @@
-/* The guided demo: one story, told by the people who live it.
-
-   A dog bites someone in HSR Layout. The person finds care; the hospital
-   records the bite; the area's NGO is asked to find the dog; the
-   laboratory confirms rabies; the programme sees it and acts; the dogs
-   around it are vaccinated, and the municipal office verifies that work.
-   Seven chapters, each one screen, signed in as the person whose work it
-   is. Every record is illustrative and labelled so. Visitors can leave
-   the story at any point and explore; the guide waits where they left. */
+/* The guided demo: five real workspaces, in the order work passes between
+   them. Every record is illustrative and labelled so. Visitors can leave
+   the tour at any point and explore; the guide waits where they left. */
 
 export type DemoRole = "oh-programme" | "oh-clinician" | "oh-nurse" | "oh-ngo" | "oh-lab" | "field" | "vet" | "coordinator" | "lead" | "municipal";
 
@@ -51,16 +45,13 @@ const NGO = "/workspace/f1000000-0000-4000-8000-000000000010";
 const LAB = "/workspace/f1000000-0000-4000-8000-000000000009";
 const PROGRAMME = "/programme/bengaluru-demo";
 
-/* A straight pass through the real workspaces: each stop is a dashboard as it is, with one line on the card. No storyline. */
+/* One pass through the five workspaces, in the order work travels between them. Each stop is the real dashboard; the card says what just arrived and where it goes next. */
 export const TOUR: TourStep[] = [
-  { role: "oh-ngo", path: "/ngo", chapter: "NGO home", who: "NGO coordinator", title: "What needs you today", body: "The day's priorities and both lines of work.", short: "The day's priorities and both lines of work.", sel: ".hm3-work" },
-  { role: "oh-ngo", path: "/ngo/rescues", chapter: "Rescues", who: "NGO coordinator", title: "Animals in care", body: "New reports, then the animals being helped.", short: "New reports, then the animals being helped.", sel: ".fl" },
-  { role: "oh-ngo", path: "/ngo/sterilisation", chapter: "Sterilisation", who: "NGO coordinator", title: "Three checked steps", body: "Vet sign-off, evidence, then the report.", short: "Vet sign-off, evidence, then the report.", sel: ".fl" },
-  { role: "oh-ngo", path: "/ngo/add", chapter: "Add an animal", who: "NGO coordinator", title: "From a WhatsApp message", body: "Paste the message. Kaju prepares the record.", short: "Paste the message. Kaju prepares the record.", sel: ".ad-box" },
-  { role: "oh-clinician", path: HOSPITAL, chapter: "Hospital", who: "Hospital clinician", title: "Bites and doses", body: "Doses due, and notices from the public.", short: "Doses due, and notices from the public.", sel: ".k-lanes" },
-  { role: "oh-lab", path: LAB, chapter: "Laboratory", who: "Laboratory scientist", title: "Samples and results", body: "Receive, test, report.", short: "Receive, test, report.", sel: ".k-lanes" },
-  { role: "oh-programme", path: PROGRAMME, chapter: "Programme", who: "Programme lead", title: "What needs a decision", body: "Every partner's work in one view.", short: "Every partner's work in one view.", sel: ".oh-alert" },
-  { role: "municipal", path: "/city/review", chapter: "Municipal review", who: "Municipal reviewer", title: "Check and decide", body: "Each submission with its evidence.", short: "Each submission with its evidence.", sel: ".k-lanes" },
+  { role: "oh-clinician", path: HOSPITAL, chapter: "Hospital", who: "Hospital clinician", title: "A bite comes in", body: "Recorded here. The dog's details go to the NGO.", short: "Recorded here. The dog's details go to the NGO.", sel: ".k-lanes" },
+  { role: "oh-ngo", path: "/ngo", chapter: "NGO", who: "NGO coordinator", title: "The hospital's request arrives", body: "Find the dog, beside rescues and sterilisation.", short: "Find the dog, beside rescues and sterilisation.", sel: "main a[href^=\"/workspace/\"], .hm3-work" },
+  { role: "oh-lab", path: LAB, chapter: "Laboratory", who: "Laboratory scientist", title: "The NGO's sample arrives", body: "Tested here. The result goes to every partner.", short: "Tested here. The result goes to every partner.", sel: ".k-lanes" },
+  { role: "oh-programme", path: PROGRAMME, chapter: "Programme", who: "Programme lead", title: "The result lands", body: "Every partner's work, and what needs a decision.", short: "Every partner's work, and what needs a decision.", sel: ".oh-alert" },
+  { role: "municipal", path: "/city/review", chapter: "Municipal office", who: "Municipal reviewer", title: "The NGO's work, verified", body: "Sterilisations checked before the city pays.", short: "Sterilisations checked before the city pays.", sel: ".k-lanes" },
 ];
 
 /* For the closing card. */

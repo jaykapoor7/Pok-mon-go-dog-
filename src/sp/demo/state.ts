@@ -39,3 +39,10 @@ export async function enterAs(role: DemoRole): Promise<string | null> {
   for (const k of QUIET) { try { localStorage.setItem(k, "1"); } catch { /* fine */ } }
   return null;
 }
+
+/** A change of sample account is a fresh visit: leave for the next screen without the last person's open tabs. */
+export function leaveFor(path: string, replace = false) {
+  const clear = () => { try { for (const k of Object.keys(localStorage)) if (k.startsWith("sp.ws.v1:")) { const v = JSON.parse(localStorage.getItem(k) ?? "null"); if (v && typeof v === "object") localStorage.setItem(k, JSON.stringify({ ...v, tabs: [] })); } } catch { /* tabs simply stay */ } };
+  clear(); window.addEventListener("pagehide", clear);
+  if (replace) window.location.replace(path); else window.location.assign(path);
+}
