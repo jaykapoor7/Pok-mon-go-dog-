@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-/* The guided demo as a first-time visitor sees it: /try, Start the story,
+/* The guided demo as a first-time visitor sees it: /try, Start the tour,
    every chapter in turn (each signs in as its person), the thing each
    chapter is about highlighted on the page, Kaju asked on screen, and the
    closing card. Needs a demonstration build (staging database, demo
@@ -11,14 +11,14 @@ import { expect, test } from "@playwright/test";
 test.skip(process.env.OH_E2E !== "1", "Needs the demonstration site or a build pointed at staging");
 test.setTimeout(600_000);
 
-const CHAPTERS = ["Finding care", "The hospital", "The NGO", "The laboratory", "The programme", "The field work", "Verification"];
+const CHAPTERS = ["NGO home", "Rescues", "Sterilisation", "Add an animal", "Hospital", "Laboratory", "Programme", "Municipal review"];
 
 test("the story plays from the first chapter to the last, each one pointing at its screen", async ({ page }) => {
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
   await page.goto("/try");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("One dog bite, followed across a city.");
-  await expect(page.getByRole("list", { name: "The chapters" }).getByRole("listitem")).toHaveCount(CHAPTERS.length);
-  await page.getByRole("button", { name: /Start the story/ }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("See StrayPaw at work.");
+  await expect(page.getByRole("list", { name: "The stops" }).getByRole("listitem")).toHaveCount(CHAPTERS.length);
+  await page.getByRole("button", { name: /Start the tour/ }).click();
 
   for (let i = 0; i < CHAPTERS.length; i++) {
     const card = page.locator("aside.dt").first();
@@ -26,18 +26,11 @@ test("the story plays from the first chapter to the last, each one pointing at i
     await expect(page.locator(".dt-transit")).toHaveCount(0, { timeout: 30_000 });
     /* the screen has its data and the chapter's subject is highlighted */
     await expect(page.locator(".sp-tour-hl").first()).toBeVisible({ timeout: 30_000 });
-    const ask = card.locator(".dt-kaju");
-    if (await ask.count()) {
-      await ask.click();
-      await expect(page.locator(".ai3-panel")).toBeVisible();
-      await expect(page.locator(".ai3-panel")).toContainText(/partners/i, { timeout: 60_000 });
-      await page.getByRole("button", { name: "Close Kaju" }).click();
-    }
     await card.locator(".dt-btn.is-go").click();
   }
 
   const end = page.locator("aside.dt.is-end");
-  await expect(end).toContainText("One bite, followed across six institutions", { timeout: 60_000 });
+  await expect(end).toContainText("That is the platform", { timeout: 60_000 });
   for (const c of CHAPTERS) await expect(end.locator(".dt-shown")).toContainText(c);
   await end.getByRole("button", { name: /Explore freely/ }).click();
   await expect(page.locator(".dt-pill")).toBeVisible();

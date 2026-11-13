@@ -3,7 +3,7 @@ import { TryDemo } from "@/sp/demo/TryDemo";
 
 export const metadata = {
   title: "Live demo, StrayPaw",
-  description: "One dog bite, followed across a city: the hospital, the animal team, the laboratory, the programme and the municipal office on one shared record. An illustrative demonstration.",
+  description: "A two-minute tour of StrayPaw's real workspaces on illustrative data: the NGO, the hospital, the laboratory, the programme and the municipal office.",
   robots: { index: false, follow: false },
 };
 

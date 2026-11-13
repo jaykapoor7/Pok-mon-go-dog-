@@ -54,16 +54,16 @@ export function TryDemo() {
 
   return (
     <div className="try">
-      <p className="try-k">Live demo · an illustrative city programme</p>
-      <h1>One dog bite, followed across a city.</h1>
-      <p className="try-lede">A bite in one neighbourhood reaches the hospital, the animal team, the laboratory, the programme and the municipal office, each doing their own work on one shared record. Seven short chapters; you are signed in as each person in turn.</p>
+      <p className="try-k">Live demo · illustrative data</p>
+      <h1>See StrayPaw at work.</h1>
+      <p className="try-lede">Eight real screens, one after another: the NGO, the hospital, the laboratory, the programme and the municipal office. Look around each as long as you like.</p>
       <div className="try-go">
         {/* A link, so it still starts the story if pressed before the page is interactive (/try?go=1 starts on load). */}
-        <a href="/try?go=1" role="button" className="try-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening the story…" : <>Start the story <ArrowRight size={17} aria-hidden /></>}</a>
-        <small><Clock size={15} aria-hidden /> About three minutes · every record is illustrative</small>
+        <a href="/try?go=1" role="button" className="try-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening…" : <>Start the tour <ArrowRight size={17} aria-hidden /></>}</a>
+        <small><Clock size={15} aria-hidden /> About two minutes · every record is illustrative</small>
       </div>
       {err && <p className="try-err" role="alert">{err}</p>}
-      <ol className="try-story" aria-label="The chapters">
+      <ol className="try-story" aria-label="The stops">
         {TOUR.map((t, i) => <li key={t.chapter} style={{ ["--i" as string]: i }}><b>{t.chapter}</b><small>{t.title}</small></li>)}
       </ol>
       <h2 className="try-h">Or explore as anyone in the programme</h2>

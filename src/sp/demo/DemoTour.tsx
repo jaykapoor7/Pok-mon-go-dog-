@@ -185,7 +185,7 @@ export function DemoTour() {
         {cover}
         <div className={`dt-pill${place}`} role="region" aria-label="Guided demo">
           <button type="button" className="dt-resume" disabled={busy} onClick={() => go(Math.min(s.step, TOUR_DONE - 1))}>
-            <Compass size={15} aria-hidden /> <span>The story</span> <small>{s.step >= TOUR_DONE ? "Watch again" : `Resume · chapter ${s.step + 1} of ${TOUR_DONE}`}</small>
+            <Compass size={15} aria-hidden /> <span>The tour</span> <small>{s.step >= TOUR_DONE ? "Watch again" : `Resume · ${s.step + 1} of ${TOUR_DONE}`}</small>
           </button>
           {roles}
           {err && <p className="dt-err" role="alert">{err}</p>}
@@ -206,13 +206,13 @@ export function DemoTour() {
       <>
         {cover}
         <aside className={`dt is-end${place}`} aria-label="Guided demo">
-          <div className="dt-top"><span className="dt-k">The story · complete</span></div>
+          <div className="dt-top"><span className="dt-k">Tour · complete</span></div>
           {bar(n)}
-          <h2>One bite, followed across six institutions</h2>
-          <p>Each person did their own work in their own place, on one shared record, and saw only what their role allows.</p>
+          <h2>That is the platform</h2>
+          <p>Every screen was a real workspace on illustrative data.</p>
           <ul className="dt-shown">{SHOWN.map((x, k) => <li key={x} style={{ ["--k" as string]: k }}>{x}</li>)}</ul>
           <div className="dt-act">
-            <button type="button" className="dt-btn" disabled={busy} onClick={() => go(0)}>Watch again</button>
+            <button type="button" className="dt-btn" disabled={busy} onClick={() => go(0)}>Again</button>
             <button type="button" className="dt-btn is-go" onClick={() => writeTour({ ...s, mode: "roam" })}>Explore freely <ArrowRight size={15} aria-hidden /></button>
           </div>
           <div className="dt-foot">{roles}<a href="https://www.straypaw.org/demo" className="dt-link">Talk to us about a pilot</a></div>
@@ -224,7 +224,7 @@ export function DemoTour() {
 
   const next = s.step + 1 < n ? TOUR[s.step + 1] : null;
   /* A small card: who you are now, one line of context, and the way on. The visitor looks around the workspace as they like; "Next" works from wherever they are. */
-  const label = !next ? "Finish the story" : `Next: ${next.chapter}`;
+  const label = !next ? "Finish" : `Next: ${next.chapter}`;
   const line = step.short ?? step.body.split(/(?<=\.)\s/)[0];
   return (
     <>
@@ -237,7 +237,7 @@ export function DemoTour() {
         {bar(s.step)}
         <p className="dt-who"><i aria-hidden />{step.who}</p>
         <h2>{step.title}</h2>
-        <p>{line} Look around freely.</p>
+        <p>{line}</p>
         <div className="dt-act">
           <button type="button" className="dt-btn is-back" aria-label="Previous chapter" disabled={busy || s.step === 0} onClick={() => go(s.step - 1)}><ArrowLeft size={15} aria-hidden /></button>
           <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => go(s.step + 1)}>{busy ? "Opening…" : label} {!busy && <ArrowRight size={15} aria-hidden />}</button>
