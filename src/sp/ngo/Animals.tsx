@@ -84,8 +84,6 @@ export function Animals() {
 
   const cols: Col<OrgAnimal>[] = [
     { key: "who", label: "Animal", width: "minmax(0, 1.4fr)", render: (a) => <Who a={a} sensitive={a.needs_help} sub={[a.zone ?? "place not recorded", shortId(a.straypaw_id) ?? "ID pending"].join(" · ")} /> },
-    { key: "id", label: "StrayPaw ID", width: "128px", render: (a) => (a.straypaw_id ? <span className="kx-code" title={a.straypaw_id}>{shortId(a.straypaw_id)}</span> : <span className="kx-none">ID pending</span>) },
-    { key: "code", label: "Your code", width: "96px", render: (a) => a.code ?? <span className="kx-none">None</span> },
     { key: "zone", label: "Place", render: (a) => a.zone ?? <span className="kx-none">Not recorded</span> },
     { key: "ster", label: "Sterilisation", width: "112px", render: (a) => <Fact v={a.sterilisation_status} yes="Sterilised" no="Not sterilised" /> },
     { key: "vacc", label: "Vaccination", width: "112px", render: (a) => <Fact v={a.vaccination_status} yes="Vaccinated" no="Not vaccinated" /> },
@@ -98,13 +96,11 @@ export function Animals() {
       <Page>
         {lens === "revac" && rv?.days ? <RevaccinationList setting={rv} tools={<Lanes<Lens> label="Show" lanes={lenses} value={lens} onChange={setLens} />} /> : <>
           <Head title="Animals"
-            sum={rows === null ? "Reading the register…" : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> {filtered ? (total === 1 ? "animal matches" : "animals match") : (total === 1 ? "animal on your register" : "animals on your register")}. Not recorded is not the same as no: open a record to add what is known.</>}
-            actions={<><Btn icon={<Download size={14} />} disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}>This page as CSV</Btn><Btn href="/ngo/import" icon={<Upload size={14} />}>Import register</Btn></>} />
+            sum={rows === null ? "Reading the register…" : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> {filtered ? (total === 1 ? "match" : "matches") : (total === 1 ? "animal" : "animals")}</>}
+            actions={<><Btn icon={<Download size={14} />} disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}>Download</Btn><Btn href="/ngo/import" icon={<Upload size={14} />}>Import</Btn></>} />
           <Tools end={<>
             <SearchBox value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="Name, ID, your code or place" label="Search the register" />
             <select className="kx-in is-auto an-sel" value={fl.zone} onChange={(e) => { setFl({ ...fl, zone: e.target.value }); setPage(0); }} aria-label="Locality"><option value="">Every locality</option>{zones.slice(0, 200).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({z.n})</option>)}</select>
-            <select className="kx-in is-auto an-sel" value={fl.ster ?? ""} onChange={(e) => { setFl({ ...fl, ster: (e.target.value || null) as Filter["ster"] }); setPage(0); }} aria-label="Sterilisation"><option value="">Any sterilisation</option><option value="sterilised">Sterilised</option><option value="not_sterilised">Recorded not sterilised</option><option value="unknown">Sterilisation not recorded</option></select>
-            <select className="kx-in is-auto an-sel" value={fl.vacc ?? ""} onChange={(e) => { setFl({ ...fl, vacc: (e.target.value || null) as Filter["vacc"] }); setPage(0); }} aria-label="Vaccination"><option value="">Any vaccination</option><option value="vaccinated">Vaccinated</option><option value="not_vaccinated">Recorded not vaccinated</option><option value="unknown">Vaccination not recorded</option></select>
           </>}><Lanes<Lens> label="Show" lanes={lenses} value={lens} onChange={setLens} /></Tools>
           <Panel>
             {rows === null ? <SkelRows n={8} label="Reading the register" />
@@ -135,7 +131,6 @@ function RevaccinationList({ setting, tools }: { setting: RevaccinationSetting; 
   const csv = (rows ?? []).map((r) => ({ straypaw_id: r.straypaw_id, code: r.code, name: r.name, zone: r.zone, last_vaccinated: r.last_vaccinated, due_on: r.due_on, days_overdue: r.days_overdue }));
   const cols: Col<RevaccinationDue>[] = [
     { key: "who", label: "Animal", width: "minmax(0, 1.4fr)", render: (a) => <Who a={a} sub={[a.zone ?? "place not recorded", `last vaccinated ${day(a.last_vaccinated)}`].join(" · ")} /> },
-    { key: "id", label: "StrayPaw ID", width: "128px", render: (a) => (a.straypaw_id ? <span className="kx-code" title={a.straypaw_id}>{shortId(a.straypaw_id)}</span> : <span className="kx-none">ID pending</span>) },
     { key: "zone", label: "Place", render: (a) => a.zone ?? <span className="kx-none">Not recorded</span> },
     { key: "last", label: "Last vaccinated", width: "120px", render: (a) => <span className="kx-num">{day(a.last_vaccinated)}</span> },
     { key: "due", label: "Due on", width: "120px", render: (a) => <span className="kx-num">{day(a.due_on)}</span> },
@@ -145,7 +140,7 @@ function RevaccinationList({ setting, tools }: { setting: RevaccinationSetting; 
     <>
       <Head title="Animals"
         sum={<>{setting.overdue ? <span className="is-hot">{n(setting.overdue)} overdue</span> : "None overdue"}{setting.soon ? <>, <b>{n(setting.soon)}</b> due in the next 14 days</> : null}. Every {setting.days} days{setting.programme ? `, as ${setting.programme} sets` : ""}, from the last vaccination recorded on each animal.</>}
-        actions={<Btn icon={<Download size={14} />} disabled={!csv.length} onClick={() => downloadCsv("straypaw-revaccination.csv", csv)}>This page as CSV</Btn>} />
+        actions={<Btn icon={<Download size={14} />} disabled={!csv.length} onClick={() => downloadCsv("straypaw-revaccination.csv", csv)}>Download</Btn>} />
       <Tools>{tools}</Tools>
       <Panel>
         {rows === null ? <SkelRows n={6} label="Reading the animals due" />

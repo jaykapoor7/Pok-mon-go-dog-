@@ -370,6 +370,7 @@ function Thread({ full = false }: { full?: boolean }) {
             {!full && <div className="ai3-empty-kaju"><KajuMark size={150} /></div>}
             <p className="ai3-empty-h">{user ? `How can I help, ${user.name.split(" ").find((w) => !w.endsWith(".")) ?? user.name}?` : "Ask about public programmes and animals."}</p>
             <p className="ai3-empty-s">{user ? "I read with your own access, cite the records I use, and prepare changes for you to confirm." : "Sign in to ask about your organisation's records. Public questions work without an account."}</p>
+            {!full && <KajuOffers compact />}
             <div className="ai3-sugg">{sugg.map((s) => <button key={s} type="button" disabled={!ai.scope||ai.busy} onClick={() => ai.ask(s)}><Sparkles size={13} aria-hidden />{s.length > 70 ? `${s.slice(0, 68)}…` : s}</button>)}</div>
           </div>
         )}
