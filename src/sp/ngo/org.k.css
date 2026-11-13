@@ -78,13 +78,15 @@
 .og-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 32px; }
 
 /* ── the partition strip (recorded yes, recorded no, not recorded) in the kit's colours ── */
-.sp .k-page .part { gap: 8px; }
-.sp .k-page .part-bar { height: 8px; border-radius: 4px; background: var(--n-tag); box-shadow: none; }
-.sp .k-page .part.is-compact .part-bar { height: 4px; }
+.k-page .part { display: grid; gap: 8px; min-width: 0; }
+.k-page .part-bar { display: flex; height: 8px; border-radius: 4px; background: var(--n-tag); box-shadow: none; overflow: hidden; }
+.k-page .part.is-compact .part-bar { height: 4px; }
+.k-page .part-bar span, .k-page .part-key i { display: block; }
 .sp .k-page .part .is-yes { background: var(--i-green); }
 .sp .k-page .part .is-no { background: var(--n-text-2); }
 .sp .k-page .part .is-unk { background: repeating-linear-gradient(135deg, var(--n-line-2) 0 2px, transparent 2px 5px); }
-.sp .k-page .part-key { gap: 4px 16px; margin: 0; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.k-page .part-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.k-page .part-key span { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
 .sp .k-page .part-key i { width: 8px; height: 8px; border-radius: 4px; box-shadow: none; }
 
 @media (max-width: 860px) {

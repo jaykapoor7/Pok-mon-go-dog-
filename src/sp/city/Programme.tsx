@@ -3,8 +3,8 @@
    Server-rendered from the public programme card. */
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { isResearchArchiveProgramme, programmeCategory, programmePrimaryTotal, programmePrimaryUnit, type PublicProgramme } from "@/lib/public-programmes";
+import { Head, Note, Page, Panel, Props, Row, Rows, Section, Split, Stats, Tag } from "@/ws/kit";
 import { CAT } from "./kinds";
 import "./city.css";
 
@@ -20,40 +20,39 @@ export function Programme({ p, siblings }: { p: PublicProgramme; siblings: Publi
     ...(p.sterilised_recorded && k !== "sterilisation" ? [{ v: p.sterilised_recorded, l: "recorded sterilised", main: false }] : []),
     ...(p.vaccinated_recorded && k !== "vaccination" ? [{ v: p.vaccinated_recorded, l: "recorded vaccinated", main: false }] : []),
   ].filter((x) => x.v > 0);
+  const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+  /* One record: what it was and who ran it, its figures in their own units, what the figures are, then the organisation's words and its other work beside. */
   return (
-    <article className="cp pd">
-      <header className="pd-head" style={{ ["--cat" as string]: CAT[k].ink }}>
-        <Link className="link small" href={`/city/programmes${p.city ? `?city=${encodeURIComponent(p.city)}` : ""}`}><ArrowLeft size={13} aria-hidden /> Programmes</Link>
-        <p className="pd-kind"><i aria-hidden />{CAT[k].label}</p>
-        <h1 className="display">{p.name}</h1>
-        {isResearchArchiveProgramme(p.id) && <p className="pd-by" role="note" style={{ padding: "10px 14px", borderRadius: 8, background: "#fbf1df", color: "#7a4e0c", maxWidth: 720 }}><b>Research archive.</b> This summarises a published research or public dataset. It is kept for reference with its source and is not counted as operational programme work on StrayPaw. <Link className="link" href="/research">About the research archive</Link></p>}
-        <p className="pd-by">Run by {p.ngo_slug ? <Link className="link" href={`/community/organisations/${p.ngo_slug}`}>{p.ngo_name}</Link> : p.ngo_name}</p>
-        <dl className="ledger pd-facts">
-          <div><dt>Where</dt><dd>{[...new Set([p.zone, p.city, p.state].filter(Boolean))].join(", ") || "not published"}</dd></div>
-          <div><dt>When</dt><dd>{date(p.starts_on) ?? "start not published"} – {date(p.ends_on) ?? "ongoing or not published"}</dd></div>
-        </dl>
-      </header>
-      <div className="pd-body">
-        <section className="pd-figs" aria-label="What its record holds">
-          {figs.length ? figs.map((x) => <div key={x.l} className={x.main ? "is-main" : ""}><b className="serif">{f(x.v)}</b><span>{x.l}</span></div>) : <p className="body">No figure published.</p>}
-        </section>
-        <section className="pd-method">
-          <h2 className="h3">What these figures are</h2>
-          <dl className="ledger fi-ledger">
-            <div><dt>Unit</dt><dd>{unit === "animals on record" ? "Animals the organisation recorded in the programme; no separate vaccination or sterilisation figure was published" : unit === "records" ? "Entries in the organisation's register for the programme: requests, cases or treatments, not unique animals" : unit === "observed" ? "Animals observed during the study" : `Animals recorded as ${unit} during the programme`}</dd></div>
-            <div><dt>Source</dt><dd>{p.ngo_name}&rsquo;s own record{p.source_rows_count ? `, ${f(p.source_rows_count)} source rows` : ""}</dd></div>
-            <div><dt>Traceable</dt><dd>{f(p.traceable_animals_recorded)} of these animals have an individual record on StrayPaw</dd></div>
-            <div><dt>Not a claim of</dt><dd>Coverage of the area&rsquo;s animals, or verification by StrayPaw or the municipality</dd></div>
-          </dl>
-        </section>
-        {p.public_summary && <section className="pd-sum"><h2 className="h3">From {p.ngo_name}</h2><p className="body">{p.public_summary}</p></section>}
+    <Page className="cpk">
+      <Head title={p.name} eyebrow={<Tag>{CAT[k].label}</Tag>}
+        sum={<>Run by {p.ngo_slug ? <Link className="cpk-link" href={`/community/organisations/${p.ngo_slug}`}>{p.ngo_name}</Link> : p.ngo_name}.</>} />
+      {isResearchArchiveProgramme(p.id) && <Note tone="amber" action={<Link className="cpk-link" href="/research">About the research archive</Link>}><b>Research archive.</b> This summarises a published research or public dataset. It is kept for reference with its source and is not counted as operational programme work on StrayPaw.</Note>}
+      <Split side={<>
+        {p.public_summary && <Section title={`From ${p.ngo_name}`}><p className="cpk-prose">{p.public_summary}</p></Section>}
         {siblings.length > 0 && (
-          <section className="pd-sib">
-            <h2 className="h3">{p.ngo_name}&rsquo;s other programmes</h2>
-            <ul>{siblings.slice(0, 8).map((s) => <li key={s.id}><Link href={`/city/programmes/${s.id}`}><b>{s.name}</b><small>{CAT[programmeCategory(s)].label}{s.city ? ` · ${s.city}` : ""} · {f(programmePrimaryTotal(s))} {programmePrimaryUnit(s)}</small></Link></li>)}</ul>
-          </section>
+          <Section title={`${p.ngo_name}’s other programmes`} count={siblings.length}>
+            <Panel><Rows>{siblings.slice(0, 8).map((s) => <Row key={s.id} href={`/city/programmes/${s.id}`} title={s.name} meta={`${CAT[programmeCategory(s)].label}${s.city ? ` · ${s.city}` : ""} · ${f(programmePrimaryTotal(s))} ${programmePrimaryUnit(s)}`} />)}</Rows></Panel>
+          </Section>
         )}
-      </div>
-    </article>
+      </>}>
+        <section aria-label="What its record holds">
+          {figs.length ? <Stats items={figs.map((x) => ({ label: cap(x.l), value: f(x.v) }))} /> : <p className="mh-quiet">No figure published.</p>}
+        </section>
+        <Section title="Where and when">
+          <Panel pad><Props items={[
+            { label: "Where", value: [...new Set([p.zone, p.city, p.state].filter(Boolean))].join(", ") || "not published" },
+            { label: "When", value: <>{date(p.starts_on) ?? "start not published"} – {date(p.ends_on) ?? "ongoing or not published"}</> },
+          ]} /></Panel>
+        </Section>
+        <Section title="What these figures are">
+          <Panel pad><Props items={[
+            { label: "Unit", value: unit === "animals on record" ? "Animals the organisation recorded in the programme; no separate vaccination or sterilisation figure was published" : unit === "records" ? "Entries in the organisation's register for the programme: requests, cases or treatments, not unique animals" : unit === "observed" ? "Animals observed during the study" : `Animals recorded as ${unit} during the programme` },
+            { label: "Source", value: <>{p.ngo_name}&rsquo;s own record{p.source_rows_count ? `, ${f(p.source_rows_count)} source rows` : ""}</> },
+            { label: "Traceable", value: <>{f(p.traceable_animals_recorded)} of these animals have an individual record on StrayPaw</> },
+            { label: "Not a claim of", value: <>Coverage of the area&rsquo;s animals, or verification by StrayPaw or the municipality</> },
+          ]} /></Panel>
+        </Section>
+      </Split>
+    </Page>
   );
 }
