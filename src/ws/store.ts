@@ -15,10 +15,11 @@ import { useCallback, useEffect, useSyncExternalStore } from "react";
 export type Tab = { key: string; href: string; title: string; icon?: string; tone?: string; scroll?: number };
 export type Fav = { href: string; title: string; icon?: string; tone?: string };
 export type PeekMode = "side" | "center" | "page";
-export type Prefs = { side: number; tucked: boolean; folded: string[]; open: string[]; peek: PeekMode };
+export type Theme = "light" | "dark" | "system";
+export type Prefs = { side: number; tucked: boolean; folded: string[]; open: string[]; peek: PeekMode; theme: Theme };
 
 type State = { tabs: Tab[]; favs: Fav[]; recent: Fav[]; prefs: Prefs };
-const EMPTY: State = { tabs: [], favs: [], recent: [], prefs: { side: 240, tucked: false, folded: [], open: [], peek: "side" } };
+const EMPTY: State = { tabs: [], favs: [], recent: [], prefs: { side: 240, tucked: false, folded: [], open: [], peek: "side", theme: "light" } };
 export const MAX_TABS = 12;
 
 let owner = "public";

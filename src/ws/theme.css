@@ -1,0 +1,26 @@
+/* The app's colours, light and dark, as Notion has them. Set on <html> so menus and tooltips (drawn outside the
+   frame) follow. Only the application sets data-ws-theme; the public site is not affected. */
+:root {
+  /* Type and timing, as Notion has them: the device's own interface font; hover fills that answer within a frame;
+     things that appear (menus, peeks) ease in briefly and never bounce. */
+  --n-font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  --n-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --n-hover-t: 20ms ease-in; --n-in: 180ms cubic-bezier(.2, .7, .2, 1); --n-out: 120ms ease-in;
+  --n-bg: #fff; --n-card: #fff; --n-side: #f7f7f5; --n-text: #37352f; --n-text-2: #73726c; --n-text-3: #9b9a97;
+  --n-line: rgba(55, 53, 47, .09); --n-line-2: rgba(55, 53, 47, .16); --n-hover: rgba(55, 53, 47, .06); --n-hover-2: rgba(55, 53, 47, .04); --n-press: rgba(55, 53, 47, .12); --n-on: rgba(55, 53, 47, .08);
+  --n-fill: #efefed; --n-fill-2: #e3e2e0; --n-tag: rgba(227, 226, 224, .5);
+  --n-blue: #1a73d4; --n-blue-2: #0b62bf; --n-blue-soft: rgba(35, 131, 226, .12); --n-red: #c4332e; --n-red-bg: #d13a35;
+  --t-red-bg: #ffe2dd; --t-red: #5d1715; --t-yellow-bg: #fdecc8; --t-yellow: #402c1b; --t-green-bg: #dbeddb; --t-green: #1c3829;
+  --t-blue-bg: #d3e5ef; --t-blue: #183347; --t-purple-bg: #e8deee; --t-purple: #412454; --t-orange-bg: #fadec9; --t-orange: #49290e;
+  --i-orange: #d9730d; --i-blue: #337ea9; --i-green: #448361; --i-yellow: #cb912f; --i-purple: #9065b0;
+}
+:root[data-ws-theme="dark"] {
+  color-scheme: dark;
+  --n-bg: #191919; --n-card: #252525; --n-side: #202020; --n-text: #d4d4d4; --n-text-2: #9b9b9b; --n-text-3: #7f7f7f;
+  --n-line: rgba(255, 255, 255, .09); --n-line-2: rgba(255, 255, 255, .16); --n-hover: rgba(255, 255, 255, .055); --n-hover-2: rgba(255, 255, 255, .03); --n-press: rgba(255, 255, 255, .1); --n-on: rgba(255, 255, 255, .08);
+  --n-fill: #2f2f2f; --n-fill-2: #373737; --n-tag: rgba(255, 255, 255, .1);
+  --n-blue: #2383e2; --n-blue-2: #3b93ea; --n-blue-soft: rgba(35, 131, 226, .22); --n-red: #ff7369; --n-red-bg: #c4332e;
+  --t-red-bg: #6e3630; --t-red: #ffd9d4; --t-yellow-bg: #89632a; --t-yellow: #ffeac2; --t-green-bg: #2b593f; --t-green: #d3f0dd;
+  --t-blue-bg: #28456c; --t-blue: #d3e6fb; --t-purple-bg: #492f64; --t-purple: #ead9f7; --t-orange-bg: #854c1d; --t-orange: #ffdfc4;
+  --i-orange: #ffa344; --i-blue: #529cca; --i-green: #4dab9a; --i-yellow: #ffdc49; --i-purple: #9a6dd7;
+}

@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { KIND_LABEL, orgCampaigns, programmeBreakdown, type Breakdown, type CampaignKind, type CampaignStats } from "@/lib/campaigns";
-import { Btn, Empty, Head, Lanes, Note, Page, Panel, Section, Table, Tag, Tools, type Col } from "@/ws/kit";
+import { Btn, Empty, Head, Lanes, More, Note, Page, Panel, Section, Table, Tag, Tools, type Col } from "@/ws/kit";
 import { usePageState } from "@/ws/store";
 import { useMembership } from "../shell/Shell";
 import { Ack, day, n } from "../ui";
@@ -66,8 +66,10 @@ export function Programmes() {
         {!error && (
           <Panel>
             {drives === null ? <div className="og-skel" aria-busy="true"><i /><i /><i /></div> : (
-              <Table label="Drives" cols={cols} rows={drives} rowKey={(d) => d.id} href={(d) => `/ngo/programmes/${d.id}`}
-                empty={<Empty title="No drive yet">Group the animals from a sterilisation, vaccination or census camp to see its coverage.{leader ? " Start a drive to begin." : ""}</Empty>} />
+              <More items={drives} cap={12} noun="drives">{(shown) => (
+                <Table label="Drives" cols={cols} rows={shown} rowKey={(d) => d.id} href={(d) => `/ngo/programmes/${d.id}`}
+                  empty={<Empty title="No drive yet">Group the animals from a sterilisation, vaccination or census camp to see its coverage.{leader ? " Start a drive to begin." : ""}</Empty>} />
+              )}</More>
             )}
           </Panel>
         )}

@@ -11,144 +11,117 @@
    Identity matches are people's decisions; nothing merges automatically.
    ════════════════════════════════════════════════════════════════════ */
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Download, Scissors, Search, Syringe, Upload } from "lucide-react";
+import { Download, PawPrint, Upload } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { orgAnimals, orgRevaccinationDue, orgRevaccinationSetting, orgZones, type OrgAnimal, type RevaccinationDue, type RevaccinationSetting } from "@/lib/programme";
 import { downloadCsv } from "@/lib/csv";
 import { animalTitle } from "@/lib/animal-name";
+import { Btn, Empty, Head, Lanes, Page, Panel, SearchBox, Table, Tag, Tools, type Col, type Lane } from "@/ws/kit";
+import { usePageState } from "@/ws/store";
 import { useMembership } from "../shell/Shell";
 import { Portrait } from "../ui/Portrait";
 import { day, n } from "../ui";
-import { Empty, PageHead, Seg } from "../ui/Page";
-import { Reading } from "../ui/Reading";
+import { Pager, SkelRows } from "../abc/Pager";
 import { NgoGate } from "./Gate";
-import "./ngo.css";
 import "./animals.css";
 
 const PAGE = 20;
 type Filter = { ster: "sterilised" | "not_sterilised" | "unknown" | null; vacc: "vaccinated" | "not_vaccinated" | "unknown" | null; help: boolean | null; zone: string };
 
+const shortId = (id: string | null) => (id ? id.replace(/^([A-Z]+-[A-Z]+)-([0-9A-F]{6})[0-9A-F]{6,}$/i, (_m, p: string, h: string) => `${p}-${h.toUpperCase()}`) : null);
+
+/** One recorded fact: done, recorded as not done, or not recorded (which is not no). */
+function Fact({ v, yes, no }: { v: string | null; yes: string; no: string }) {
+  if (v === "sterilised" || v === "vaccinated") return <Tag tone="green">{yes}</Tag>;
+  if (v === "not_sterilised" || v === "not_vaccinated") return <Tag tone="amber">{no}</Tag>;
+  return <span className="kx-none">Not recorded</span>;
+}
+function Who({ a, sub, sensitive = false }: { a: { id: string; name: string | null; straypaw_id: string | null; cover_photo: string | null }; sub: string; sensitive?: boolean }) {
+  const t = animalTitle({ name: a.name, straypaw_id: a.straypaw_id, id: a.id });
+  return <span className="kx-cell an-who">{a.cover_photo ? <Portrait src={a.cover_photo} tag={t} sensitive={sensitive} size="s" /> : <i className="an-paw" aria-hidden><PawPrint size={14} /></i>}<span>{t}<small className="kx-sub">{sub}</small></span></span>;
+}
+
 export function Animals() {
   const { user } = useAuth();
   const mem = useMembership();
-  const [q, setQ] = useState("");
-  const [fl, setFl] = useState<Filter>({ ster: null, vacc: null, help: null, zone: "" });
+  const [q, setQ] = usePageState("q", "");
+  const [fl, setFl] = usePageState<Filter>("filter", { ster: null, vacc: null, help: null, zone: "" });
   const [rows, setRows] = useState<OrgAnimal[] | null>(null);
   const [zones, setZones] = useState<{ zone: string; n: number }[]>([]);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = usePageState("page", 0);
   const [failed, setFailed] = useState(false);
   const member = !!user && mem.member;
   /* Revaccination: offered only when one of the organisation's programmes sets an interval. */
-  const [revac, setRevac] = useState(false);
+  const [revac, setRevac] = usePageState("revac", false);
   const [rv, setRv] = useState<RevaccinationSetting | null>(null);
 
   useEffect(() => { if (member) orgZones().then(setZones).catch(() => {}); }, [member]);
   useEffect(() => { if (member) orgRevaccinationSetting().then(setRv).catch(() => setRv(null)); }, [member]);
+  const { ster, vacc, help, zone } = fl;
   useEffect(() => {
     if (!member) return;
     let live = true; setRows(null); setFailed(false);
     const t = window.setTimeout(() => {
-      orgAnimals({ search: q, ster: fl.ster as never, vacc: fl.vacc as never, needsHelp: fl.help, zone: fl.zone || null, limit: PAGE, offset: page * PAGE })
+      orgAnimals({ search: q, ster: ster as never, vacc: vacc as never, needsHelp: help, zone: zone || null, limit: PAGE, offset: page * PAGE })
         .then((r) => { if (live) setRows(r); }).catch(() => { if (live) { setRows([]); setFailed(true); } });
     }, 220);
     return () => { live = false; window.clearTimeout(t); };
-  }, [member, q, fl, page]);
+  }, [member, q, ster, vacc, help, zone, page]);
 
   const total = rows?.[0]?.total_count ?? 0;
   const csv = useMemo(() => (rows ?? []).map((a) => ({ straypaw_id: a.straypaw_id, code: a.code, name: a.name, zone: a.zone, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, needs_help: a.needs_help, last_seen: a.last_seen })), [rows]);
 
   /* The lenses the programme asks about first: who needs help, who is not yet sterilised, who is not yet vaccinated. */
   type Lens = "all" | "help" | "ster" | "vacc" | "revac";
-  const lens: Lens = revac ? "revac" : fl.help ? "help" : fl.ster === "not_sterilised" ? "ster" : fl.vacc === "not_vaccinated" ? "vacc" : "all";
-  const setLens = (l: Lens) => { setRevac(l === "revac"); setFl({ ster: l === "ster" ? "not_sterilised" : null, vacc: l === "vacc" ? "not_vaccinated" : null, help: l === "help" ? true : null, zone: l === "revac" ? "" : fl.zone }); setPage(0); };
   const revacOn = !!rv?.days;
-  const lenses: { id: Lens; label: string; count?: number | null }[] = [{ id: "all", label: "All" }, { id: "help", label: "Needs help" }, { id: "ster", label: "Not sterilised" }, { id: "vacc", label: "Not vaccinated" }, ...(revacOn ? [{ id: "revac" as const, label: "Due for revaccination", count: (rv?.overdue ?? 0) + (rv?.soon ?? 0) || null }] : [])];
-  /* The animal under the pointer or the keyboard is shown beside the list, so a person can look before they open. */
-  const [peekId, setPeekId] = useState<string | null>(null);
-  const peek = rows?.find((r) => r.id === peekId) ?? rows?.[0] ?? null;
+  const lens: Lens = revac && revacOn ? "revac" : fl.help ? "help" : fl.ster === "not_sterilised" ? "ster" : fl.vacc === "not_vaccinated" ? "vacc" : "all";
+  const setLens = (l: Lens) => { setRevac(l === "revac"); setFl({ ster: l === "ster" ? "not_sterilised" : null, vacc: l === "vacc" ? "not_vaccinated" : null, help: l === "help" ? true : null, zone: l === "revac" ? "" : fl.zone }); setPage(0); };
+  const due = (rv?.overdue ?? 0) + (rv?.soon ?? 0);
+  const lenses: Lane<Lens>[] = [{ id: "all", label: "All" }, { id: "help", label: "Needs help" }, { id: "ster", label: "Not sterilised" }, { id: "vacc", label: "Not vaccinated" }, ...(revacOn ? [{ id: "revac" as const, label: "Due for revaccination", count: due || null, tone: rv?.overdue ? "flame" as const : "amber" as const }] : [])];
   const filtered = !!(q || fl.ster || fl.vacc || fl.help || fl.zone);
+
+  const cols: Col<OrgAnimal>[] = [
+    { key: "who", label: "Animal", width: "minmax(0, 1.4fr)", render: (a) => <Who a={a} sensitive={a.needs_help} sub={[a.zone ?? "place not recorded", shortId(a.straypaw_id) ?? "ID pending"].join(" · ")} /> },
+    { key: "id", label: "StrayPaw ID", width: "128px", render: (a) => (a.straypaw_id ? <span className="kx-code" title={a.straypaw_id}>{shortId(a.straypaw_id)}</span> : <span className="kx-none">ID pending</span>) },
+    { key: "code", label: "Your code", width: "96px", render: (a) => a.code ?? <span className="kx-none">None</span> },
+    { key: "zone", label: "Place", render: (a) => a.zone ?? <span className="kx-none">Not recorded</span> },
+    { key: "ster", label: "Sterilisation", width: "112px", render: (a) => <Fact v={a.sterilisation_status} yes="Sterilised" no="Not sterilised" /> },
+    { key: "vacc", label: "Vaccination", width: "112px", render: (a) => <Fact v={a.vaccination_status} yes="Vaccinated" no="Not vaccinated" /> },
+    { key: "seen", label: "Last seen", width: "96px", render: (a) => <span className="kx-num">{day(a.last_seen)}</span> },
+    { key: "state", label: "Status", width: "88px", keep: true, render: (a) => (a.needs_help ? <Tag tone="flame">Needs help</Tag> : null) },
+  ];
 
   return (
     <NgoGate title="Animals" lede="Your organisation's register of animals, with what is recorded about each and what is not.">
-      <div className="vw an">
-        <PageHead title="Animals"
-          sum={rows === null ? <Reading>Reading the register</Reading> : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> {filtered ? (total === 1 ? "animal matches" : "animals match") : (total === 1 ? "animal on your register" : "animals on your register")}</>}
-          actions={<><button type="button" className="btn is-s" disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}><Download size={14} aria-hidden /> This page as CSV</button><Link className="btn is-s" href="/ngo/import"><Upload size={14} aria-hidden /> Import register</Link></>} />
-
-        <div className="vw-bar an-bar">
-          <Seg<Lens> label="Show" value={lens} onChange={setLens} options={lenses} />
-          {revac ? null : <div className="an-find">
-            <label className="an-search"><Search size={15} aria-hidden /><input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Name, StrayPaw ID, your code or place" aria-label="Search the register" /></label>
-            <select className="an-sel" value={fl.zone} onChange={(e) => { setFl({ ...fl, zone: e.target.value }); setPage(0); }} aria-label="Locality"><option value="">Every locality</option>{zones.slice(0, 200).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({z.n})</option>)}</select>
-            <details className="an-more"><summary>Recorded status</summary><div>
-              <label>Sterilisation<select value={fl.ster ?? ""} onChange={(e) => { setFl({ ...fl, ster: (e.target.value || null) as Filter["ster"] }); setPage(0); }}><option value="">Any</option><option value="sterilised">Sterilised</option><option value="not_sterilised">Recorded not</option><option value="unknown">Not recorded</option></select></label>
-              <label>Vaccination<select value={fl.vacc ?? ""} onChange={(e) => { setFl({ ...fl, vacc: (e.target.value || null) as Filter["vacc"] }); setPage(0); }}><option value="">Any</option><option value="vaccinated">Vaccinated</option><option value="not_vaccinated">Recorded not</option><option value="unknown">Not recorded</option></select></label>
-            </div></details>
-          </div>}
-        </div>
-
-        {revac && rv?.days ? <RevaccinationList setting={rv} /> : <div className="an-split">
-          <div>
-            {rows === null ? <ul className="vw-list" aria-hidden>{Array.from({ length: 8 }, (_, i) => <li key={i}><span className="skel" style={{ display: "block", height: 44, margin: "10px 0" }} /></li>)}</ul>
-              : !rows.length ? <Empty title={failed ? "Not read" : filtered ? "No animal matches" : "No animals on the register yet"} action={!failed && !filtered ? <Link className="btn is-ink is-s" href="/ngo/import">Import your register</Link> : undefined}>{failed ? "Reload to try again." : filtered ? "Change the search or the lens." : "Animals your team records, and rows released from imports, appear here."}</Empty>
-              : (
-              <ul className="vw-list an-list" aria-label="Animal register">{rows.map((a, j) => {
-                const t = animalTitle({ name: a.name, straypaw_id: a.straypaw_id, id: a.id });
-                return (
-                  <li key={a.id} style={{ ["--j" as string]: j }}>
-                    <Link href={`/ngo/animals/${a.id}`} className={`vw-row an-row${peek?.id === a.id ? " is-peek" : ""}`} onPointerEnter={() => setPeekId(a.id)} onFocus={() => setPeekId(a.id)}>
-                      <Portrait src={a.cover_photo} tag={t} sensitive={a.needs_help} size="s" />
-                      <span className="vw-row-t"><b>{t}</b><small>{[a.zone ?? "place not recorded", a.name ? (a.straypaw_id ?? "ID pending") : null, a.code].filter(Boolean).join(" · ")}</small></span>
-                      <span className="an-marks">{a.needs_help ? <span className="vw-tag" data-tone="flame">Needs help</span> : null}<Mark v={a.sterilisation_status} kind="ster" /><Mark v={a.vaccination_status} kind="vacc" /></span>
-                      <time className="an-seen">{day(a.last_seen)}</time>
-                      <ArrowRight size={14} aria-hidden className="vw-go" />
-                    </Link>
-                  </li>
-                );
-              })}</ul>
-            )}
-            {total > PAGE && <div className="row ngo-pager"><button type="button" className="btn is-s" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</button><span className="small">Page {page + 1} of {Math.ceil(total / PAGE)}</span><button type="button" className="btn is-s" disabled={(page + 1) * PAGE >= total} onClick={() => setPage((p) => p + 1)}>Next</button></div>}
-          </div>
-
-          {peek ? (
-            <aside className="an-peek" aria-label="The animal under the pointer" key={peek.id}>
-              <Portrait src={peek.cover_photo} tag={animalTitle({ name: peek.name, straypaw_id: peek.straypaw_id, id: peek.id })} sensitive={peek.needs_help} size="m" />
-              <h2>{animalTitle({ name: peek.name, straypaw_id: peek.straypaw_id, id: peek.id })}</h2>
-              <p className="an-peek-id">{[peek.straypaw_id ?? "ID pending", peek.code ? `your code ${peek.code}` : null].filter(Boolean).join(" · ")}</p>
-              <dl>
-                <div><dt>Place</dt><dd>{peek.zone ?? "Not recorded"}</dd></div>
-                <div><dt>Sterilisation</dt><dd>{said(peek.sterilisation_status, "Sterilised", "Not sterilised")}</dd></div>
-                <div><dt>Vaccination</dt><dd>{said(peek.vaccination_status, "Vaccinated", "Not vaccinated")}</dd></div>
-                <div><dt>Last seen</dt><dd>{day(peek.last_seen)}</dd></div>
-                {peek.recorded_by ?? peek.assignee_name ? <div><dt>Recorded by</dt><dd>{peek.recorded_by ?? peek.assignee_name}</dd></div> : null}
-              </dl>
-              <Link className="an-peek-go" href={`/ngo/animals/${peek.id}`}>Open the record <ArrowRight size={14} aria-hidden /></Link>
-              <p className="an-peek-note">Not recorded is not the same as no. Open the record to add what is known.</p>
-            </aside>
-          ) : null}
-        </div>}
-      </div>
+      <Page>
+        {lens === "revac" && rv?.days ? <RevaccinationList setting={rv} tools={<Lanes<Lens> label="Show" lanes={lenses} value={lens} onChange={setLens} />} /> : <>
+          <Head title="Animals"
+            sum={rows === null ? "Reading the register…" : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> {filtered ? (total === 1 ? "animal matches" : "animals match") : (total === 1 ? "animal on your register" : "animals on your register")}. Not recorded is not the same as no: open a record to add what is known.</>}
+            actions={<><Btn icon={<Download size={14} />} disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}>This page as CSV</Btn><Btn href="/ngo/import" icon={<Upload size={14} />}>Import register</Btn></>} />
+          <Tools end={<>
+            <SearchBox value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="Name, ID, your code or place" label="Search the register" />
+            <select className="kx-in is-auto an-sel" value={fl.zone} onChange={(e) => { setFl({ ...fl, zone: e.target.value }); setPage(0); }} aria-label="Locality"><option value="">Every locality</option>{zones.slice(0, 200).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({z.n})</option>)}</select>
+            <select className="kx-in is-auto an-sel" value={fl.ster ?? ""} onChange={(e) => { setFl({ ...fl, ster: (e.target.value || null) as Filter["ster"] }); setPage(0); }} aria-label="Sterilisation"><option value="">Any sterilisation</option><option value="sterilised">Sterilised</option><option value="not_sterilised">Recorded not sterilised</option><option value="unknown">Sterilisation not recorded</option></select>
+            <select className="kx-in is-auto an-sel" value={fl.vacc ?? ""} onChange={(e) => { setFl({ ...fl, vacc: (e.target.value || null) as Filter["vacc"] }); setPage(0); }} aria-label="Vaccination"><option value="">Any vaccination</option><option value="vaccinated">Vaccinated</option><option value="not_vaccinated">Recorded not vaccinated</option><option value="unknown">Vaccination not recorded</option></select>
+          </>}><Lanes<Lens> label="Show" lanes={lenses} value={lens} onChange={setLens} /></Tools>
+          <Panel>
+            {rows === null ? <SkelRows n={8} label="Reading the register" />
+              : !rows.length ? <Empty title={failed ? "Not read" : filtered ? "No animal matches" : "No animals on the register yet"} action={!failed && !filtered ? <Btn variant="primary" href="/ngo/import">Import your register</Btn> : undefined}>{failed ? "Reload to try again." : filtered ? "Change the search or the lens." : "Animals your team records, and rows released from imports, appear here."}</Empty>
+              : <Table cols={cols} rows={rows} rowKey={(a) => a.id} href={(a) => `/ngo/animals/${a.id}`} label="Animal register" />}
+          </Panel>
+          <Pager pg={page} pages={Math.ceil(total / PAGE)} total={total} size={PAGE} onPage={setPage} />
+        </>}
+      </Page>
     </NgoGate>
   );
-}
-
-const said = (v: string | null, yes: string, no: string) => (v === "sterilised" || v === "vaccinated" ? yes : v === "not_sterilised" || v === "not_vaccinated" ? no : "Not recorded");
-
-/** One recorded fact as a mark: done, recorded as not done, or not recorded (which is not no). */
-function Mark({ v, kind }: { v: string | null; kind: "ster" | "vacc" }) {
-  const yes = v === "sterilised" || v === "vaccinated", no = v === "not_sterilised" || v === "not_vaccinated";
-  const Icon = kind === "ster" ? Scissors : Syringe;
-  const text = kind === "ster" ? (yes ? "Sterilised" : no ? "Not sterilised" : "Sterilisation not recorded") : (yes ? "Vaccinated" : no ? "Not vaccinated" : "Vaccination not recorded");
-  return <span className="an-mark" data-state={yes ? "yes" : no ? "no" : "unknown"} role="img" aria-label={text} title={text}><Icon size={13} aria-hidden /></span>;
 }
 
 /* The animals past, or within 14 days of, their revaccination date: the same
    rule as the programme's alert (last vaccination recorded on the animal's
    record, plus the programme's interval). Animals marked vaccinated with no
    dated vaccination cannot be placed and are counted, not guessed. */
-function RevaccinationList({ setting }: { setting: RevaccinationSetting }) {
+function RevaccinationList({ setting, tools }: { setting: RevaccinationSetting; tools: React.ReactNode }) {
   const [rows, setRows] = useState<RevaccinationDue[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [page, setPage] = useState(0);
@@ -159,34 +132,28 @@ function RevaccinationList({ setting }: { setting: RevaccinationSetting }) {
   }, [page]);
   const total = rows?.[0]?.total_count ?? 0;
   const csv = (rows ?? []).map((r) => ({ straypaw_id: r.straypaw_id, code: r.code, name: r.name, zone: r.zone, last_vaccinated: r.last_vaccinated, due_on: r.due_on, days_overdue: r.days_overdue }));
+  const cols: Col<RevaccinationDue>[] = [
+    { key: "who", label: "Animal", width: "minmax(0, 1.4fr)", render: (a) => <Who a={a} sub={[a.zone ?? "place not recorded", `last vaccinated ${day(a.last_vaccinated)}`].join(" · ")} /> },
+    { key: "id", label: "StrayPaw ID", width: "128px", render: (a) => (a.straypaw_id ? <span className="kx-code" title={a.straypaw_id}>{shortId(a.straypaw_id)}</span> : <span className="kx-none">ID pending</span>) },
+    { key: "zone", label: "Place", render: (a) => a.zone ?? <span className="kx-none">Not recorded</span> },
+    { key: "last", label: "Last vaccinated", width: "120px", render: (a) => <span className="kx-num">{day(a.last_vaccinated)}</span> },
+    { key: "due", label: "Due on", width: "120px", render: (a) => <span className="kx-num">{day(a.due_on)}</span> },
+    { key: "state", label: "Status", width: "128px", keep: true, render: (a) => { const late = a.days_overdue > 0; return <Tag tone={late ? "flame" : "amber"}>{late ? `${a.days_overdue} day${a.days_overdue === 1 ? "" : "s"} overdue` : a.days_overdue === 0 ? "Due today" : `Due in ${-a.days_overdue} day${a.days_overdue === -1 ? "" : "s"}`}</Tag>; } },
+  ];
   return (
-    <div className="an-revac">
-      <p className="an-revac-sum">
-        {setting.overdue ? <><b>{n(setting.overdue)}</b> overdue</> : "None overdue"}{setting.soon ? <>, <b>{n(setting.soon)}</b> due in the next 14 days</> : null}.
-        {" "}Every {setting.days} days{setting.programme ? `, as ${setting.programme} sets` : ""}, from the last vaccination recorded on each animal.
-        <button type="button" className="oh-more" disabled={!csv.length} onClick={() => downloadCsv("straypaw-revaccination.csv", csv)}><Download size={14} aria-hidden /> This page as CSV</button>
-      </p>
-      {rows === null ? <ul className="vw-list" aria-hidden>{Array.from({ length: 6 }, (_, i) => <li key={i}><span className="skel" style={{ display: "block", height: 44, margin: "10px 0" }} /></li>)}</ul>
-        : failed ? <Empty title="Not read">The list could not be read. Nothing is shown as zero; reload to try again.</Empty>
-        : !rows.length ? <Empty title="No animal is due">Animals appear here 14 days before their revaccination date.</Empty>
-        : (
-        <ul className="vw-list an-list" aria-label="Animals due for revaccination">{rows.map((a, j) => {
-          const t = animalTitle({ name: a.name, straypaw_id: a.straypaw_id, id: a.id });
-          const late = a.days_overdue > 0;
-          return (
-            <li key={a.id} style={{ ["--j" as string]: j }}>
-              <Link href={`/ngo/animals/${a.id}`} className="vw-row an-row">
-                <Portrait src={a.cover_photo} tag={t} size="s" />
-                <span className="vw-row-t"><b>{t}</b><small>{[a.zone ?? "place not recorded", `last vaccinated ${day(a.last_vaccinated)}`].join(" · ")}</small></span>
-                <span className="vw-tag" data-tone={late ? "flame" : "amber"}>{late ? `${a.days_overdue} day${a.days_overdue === 1 ? "" : "s"} overdue` : a.days_overdue === 0 ? "Due today" : `Due in ${-a.days_overdue} day${a.days_overdue === -1 ? "" : "s"}`}</span>
-                <ArrowRight size={14} aria-hidden className="vw-go" />
-              </Link>
-            </li>
-          );
-        })}</ul>
-      )}
-      {total > PAGE && <div className="row ngo-pager"><button type="button" className="btn is-s" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</button><span className="small">Page {page + 1} of {Math.ceil(total / PAGE)}</span><button type="button" className="btn is-s" disabled={(page + 1) * PAGE >= total} onClick={() => setPage((p) => p + 1)}>Next</button></div>}
-      {setting.undated ? <p className="an-peek-note">{n(setting.undated)} {setting.undated === 1 ? "animal is" : "animals are"} marked vaccinated with no dated vaccination, so {setting.undated === 1 ? "it" : "they"} cannot be placed here. Add the date on {setting.undated === 1 ? "its" : "each"} record.</p> : null}
-    </div>
+    <>
+      <Head title="Animals"
+        sum={<>{setting.overdue ? <span className="is-hot">{n(setting.overdue)} overdue</span> : "None overdue"}{setting.soon ? <>, <b>{n(setting.soon)}</b> due in the next 14 days</> : null}. Every {setting.days} days{setting.programme ? `, as ${setting.programme} sets` : ""}, from the last vaccination recorded on each animal.</>}
+        actions={<Btn icon={<Download size={14} />} disabled={!csv.length} onClick={() => downloadCsv("straypaw-revaccination.csv", csv)}>This page as CSV</Btn>} />
+      <Tools>{tools}</Tools>
+      <Panel>
+        {rows === null ? <SkelRows n={6} label="Reading the animals due" />
+          : failed ? <Empty title="Not read">The list could not be read. Nothing is shown as zero; reload to try again.</Empty>
+          : !rows.length ? <Empty title="No animal is due">Animals appear here 14 days before their revaccination date.</Empty>
+          : <Table cols={cols} rows={rows} rowKey={(a) => a.id} href={(a) => `/ngo/animals/${a.id}`} label="Animals due for revaccination" />}
+      </Panel>
+      <Pager pg={page} pages={Math.ceil(total / PAGE)} total={total} size={PAGE} onPage={setPage} />
+      {setting.undated ? <p className="kx-quiet is-top">{n(setting.undated)} {setting.undated === 1 ? "animal is" : "animals are"} marked vaccinated with no dated vaccination, so {setting.undated === 1 ? "it" : "they"} cannot be placed here. Add the date on {setting.undated === 1 ? "its" : "each"} record.</p> : null}
+    </>
   );
 }

@@ -63,6 +63,7 @@ import "./os.css";
 import "./console.css";
 import "../ui/skin.css";
 import "../ui/calm.css";
+import "@/ws/theme.css";
 import "@/ws/ws.css";
 
 type Org = { id: string; name: string } | null;
@@ -290,6 +291,14 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
     e.preventDefault(); openPeek(url.pathname);
   };
 
+  /* Light or dark, as chosen; "system" follows the device. Only while the app is on screen. */
+  useEffect(() => {
+    const m = window.matchMedia("(prefers-color-scheme: dark)");
+    const set = () => { document.documentElement.dataset.wsTheme = prefs.theme === "dark" || (prefs.theme === "system" && m.matches) ? "dark" : "light"; };
+    set(); m.addEventListener("change", set);
+    return () => { m.removeEventListener("change", set); delete document.documentElement.dataset.wsTheme; };
+  }, [prefs.theme]);
+
   /* ── sidebar: width, tucking away, the phone drawer ──────────────── */
   const [float, setFloat] = useState(false);
   const floatT = useRef(0);
@@ -398,6 +407,10 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
     ...(guided ? [{ label: "Take the tour", icon: <Compass size={14} />, onSelect: () => window.dispatchEvent(new Event(FIRSTDAY_EVENT)) } as MenuItem] : []),
     { label: "Help centre", icon: <BookOpen size={14} />, onSelect: () => router.push("/docs") },
     { label: "What is new", icon: <Sparkles size={14} />, onSelect: () => router.push("/product-updates") },
+    "divider", { heading: "Appearance" },
+    { label: "Light", on: prefs.theme === "light", onSelect: () => setPrefs({ theme: "light" }) },
+    { label: "Dark", on: prefs.theme === "dark", onSelect: () => setPrefs({ theme: "dark" }) },
+    { label: "Same as this device", on: prefs.theme === "system", onSelect: () => setPrefs({ theme: "system" }) },
     "divider", { heading: "Keys" },
     { label: "Search and actions", kbd: `${k.mod} K`, onSelect: () => setFind(true) },
     { label: "Kaju", kbd: `${k.mod} J`, onSelect: () => ai.toggle() },
@@ -420,6 +433,10 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
   const pageMenu = (): MenuItem[] => [
     { label: starred ? "Remove from favourites" : "Add to favourites", icon: <Star size={14} />, onSelect: () => star({ href: rec ? path : here, title: pageTitle, icon: pageIcon, tone: pageTone }) },
     { label: "Copy link", icon: <Copy size={14} />, onSelect: () => copy(here) },
+    "divider", { heading: "Appearance" },
+    { label: "Light", on: prefs.theme === "light", onSelect: () => setPrefs({ theme: "light" }) },
+    { label: "Dark", on: prefs.theme === "dark", onSelect: () => setPrefs({ theme: "dark" }) },
+    { label: "Same as this device", on: prefs.theme === "system", onSelect: () => setPrefs({ theme: "system" }) },
     "divider", { heading: "Records open in" },
     { label: "Side peek", on: prefs.peek === "side", onSelect: () => setPrefs({ peek: "side" }) },
     { label: "Centre peek", on: prefs.peek === "center", onSelect: () => setPrefs({ peek: "center" }) },

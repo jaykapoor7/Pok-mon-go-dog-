@@ -5,10 +5,10 @@
    packages operators submitted to it, their claims and contracts, and the
    records inside the waiting packages. Nothing is estimated; an amount the
    record cannot support is shown as unknown, and accepted is never paid. */
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, ClipboardCheck, Undo2 } from "lucide-react";
-import { AskKaju, DailyHead, NeedsYou } from "../ui/Daily";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { ClipboardCheck, Undo2 } from "lucide-react";
+import { Btn, Head, Panel, Row, Rows, Section, Stats, Table, Tag, type Col } from "@/ws/kit";
+import { firstName, greeting } from "../ui/Daily";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { myContext, orgNames, packageCases, packages, type AbcContext, type Package, type PackageCase } from "@/lib/abc";
 import { readContracts, readReconciliation, money, type Contract, type ContractRate, type Reconciliation } from "@/lib/reconciliation";
@@ -18,7 +18,7 @@ const days = (iso: string) => Math.max(0, Math.floor((Date.now() - Date.parse(is
 const REQUIRED = ["capture_photo", "surgery_record", "ear_notch_photo", "release_photo", "release_location"];
 const sum = (xs: (string | null)[]) => xs.reduce<number | null>((t, x) => (x === null || t === null ? t : t + Number(x)), 0);
 
-export function OfficeStrip({ onOffice, publicOpen, onPublic }: { onOffice?: (on: boolean) => void; publicOpen?: boolean; onPublic?: () => void } = {}) {
+export function OfficeStrip({ onOffice }: { onOffice?: (on: boolean) => void; publicOpen?: boolean; onPublic?: () => void } = {}) {
   const { user } = useAuth();
   const [ctx, setCtx] = useState<AbcContext | null>(null);
   const [list, setList] = useState<Package[] | null>(null);
@@ -86,58 +86,73 @@ export function OfficeStrip({ onOffice, publicOpen, onPublic }: { onOffice?: (on
     { label: "Operator reviewed", n: reviewed },
   ];
 
-  /* One column, the same as every home: what needs a decision, then what the
-     waiting packages hold, then the year's claims, then who submits. Each fact
-     once, no boxes around sections. */
+  /* One column, one screen: the sentence, what waits for a decision (each package a row), what the
+     waiting packages hold, the year's claims, then who submits. Each fact once. */
+  const first = firstName(user?.name);
+  const SHOW = 4;
+  const wait = (p: Package) => { const d = days(p.submitted_at ?? p.created_at); return d === 0 ? "submitted today" : `waiting ${d} ${d === 1 ? "day" : "days"}`; };
+  type Op = { id: string; name: string; contract: ReactNode; waiting: number; decided: number };
+  const ops: Op[] = v.ops.map((id) => {
+    const ps = list.filter((p) => p.ngo_id === id), k = contractOf(id), rate = k ? terms?.rates.find((r) => r.contract_id === k.id) : null;
+    return {
+      id, name: names[id] ?? "Operator",
+      contract: terms === null ? "Reading the contract…" : k ? <>{rate ? `${money(rate.unit_rate)} per ${rate.code}` : k.name}, to {new Date(`${k.ends_on}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}{k.illustrative ? " · illustrative" : ""}</> : "No contract in force",
+      waiting: ps.filter((p) => isWaitingOnOffice(p.status)).length, decided: ps.filter((p) => isDecided(p.status)).length,
+    };
+  });
+  const cols: Col<Op>[] = [
+    { key: "name", label: "Operator", width: "minmax(0, 1.2fr)", render: (o) => o.name },
+    { key: "contract", label: "Contract in force", width: "minmax(0, 2fr)", render: (o) => o.contract },
+    { key: "waiting", label: "Waiting", width: "96px", align: "end", keep: true, render: (o) => (o.waiting ? <Tag tone="violet">{o.waiting} waiting</Tag> : "None") },
+    { key: "decided", label: "Decided", width: "80px", align: "end", render: (o) => o.decided },
+  ];
+  const needs = v.waiting.length > 0 || v.withOperator.length > 0;
+
   return (
-    <section className="os" aria-label={`${office.name}: operations and decisions`}>
-      <div className="dy os-brief">
-        <DailyHead name={user?.name} since={<>{office.name}{office.city ? `, ${office.city}` : ""}: <b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"} waiting for your decision</b>{v.oldest !== null && v.waiting.length ? ` (oldest ${v.oldest === 0 ? "today" : `${v.oldest} ${v.oldest === 1 ? "day" : "days"}`})` : ""}, {v.withOperator.length} with the operator, {v.decided.length} decided in {year}.</>} />
-        <NeedsYou rows={[
-          ...(v.waiting.length ? [{ key: "wait", href: v.waiting.length === 1 ? `/city/review/${v.waiting[0].id}` : "/city/review", tone: "violet", icon: <ClipboardCheck size={10} strokeWidth={2.4} />, title: v.waiting.length === 1 ? <><b>{v.waiting[0].title}</b> waits for your decision</> : <><b>{v.waiting.length} packages</b> wait for your decision</>, meta: [v.waiting.length === 1 ? names[v.waiting[0].ngo_id] : null, v.oldest === null ? null : v.oldest === 0 ? "submitted today" : `${v.waiting.length === 1 ? "waiting" : "oldest waiting"} ${v.oldest} ${v.oldest === 1 ? "day" : "days"}`].filter(Boolean).join(" · "), tag: "Decide", verb: "Review" }] : []),
-          ...(v.withOperator.length ? [{ key: "op", href: "/city/review?tab=operator", tone: "amber", icon: <Undo2 size={10} strokeWidth={2.4} />, title: <><b>{v.withOperator.length}</b> queried or returned to the operator</>, meta: "Waiting on their answer", tag: "With operator", verb: "Open" }] : []),
-        ]} clear="No package is waiting for your office." />
-        <AskKaju questions={["Which packages have waited longest?", "What did we query last month, and why?", "How many sterilisations were accepted this year?", "Which wards have no operator?"]} />
+    <section className="mh-office" aria-label={`${office.name}: operations and decisions`}>
+      <Head title={`${greeting()}${first ? `, ${first}` : ""}.`}
+        sum={<>{office.name}{office.city ? `, ${office.city}` : ""}: <b>{v.waiting.length} {v.waiting.length === 1 ? "package" : "packages"} waiting for your decision</b>{v.oldest !== null && v.waiting.length ? ` (oldest ${v.oldest === 0 ? "today" : `${v.oldest} ${v.oldest === 1 ? "day" : "days"}`})` : ""}, {v.withOperator.length} with the operator, {v.decided.length} decided in {year}.</>} />
 
-        {v.waiting.length > 0 && <section className="dy-sec" aria-labelledby="os-ev-h">
-          <h2 id="os-ev-h" className="dy-h">In the waiting {v.waiting.length === 1 ? "package" : "packages"}</h2>
-          {cases === null ? <p className="os-muted">Reading records…</p> : cases.length === 0 ? <p className="os-muted">No records inside.</p> : (
-            <ul className="os-ev">{ev.map((x) => (
-              <li key={x.label}><span>{x.label}</span><b>{x.n} <small>of {cases.length}</small></b><i aria-hidden style={{ ["--p" as string]: x.n / cases.length }} data-full={x.n === cases.length ? "" : undefined} /></li>
-            ))}</ul>
-          )}
-        </section>}
+      <Section title={needs ? "Needs you today" : "Today"}>
+        <Panel>
+          {needs ? (
+            <Rows label="Needs you today">
+              {v.waiting.slice(0, SHOW).map((p) => (
+                <Row key={p.id} href={`/city/review/${p.id}`} tone="violet" icon={<ClipboardCheck size={14} />} title={p.title} meta={[names[p.ngo_id], wait(p)].filter(Boolean).join(" · ")} end={<Tag tone="violet">Decide</Tag>} />
+              ))}
+              {v.waiting.length > SHOW ? <Row href="/city/review" title={`All ${v.waiting.length} waiting packages`} meta="Oldest first, in Review" /> : null}
+              {v.withOperator.length ? <Row href="/city/review?tab=operator" tone="amber" icon={<Undo2 size={14} />} title={`${v.withOperator.length} queried or returned to the operator`} meta="Waiting on their answer" end={<Tag tone="amber">With operator</Tag>} /> : null}
+            </Rows>
+          ) : <p className="mh-quiet">No package is waiting for your office.</p>}
+        </Panel>
+      </Section>
 
-        <section className="dy-sec" aria-labelledby="os-claims-h">
-          <h2 id="os-claims-h" className="dy-h">Claims in {year}</h2>
-          {Object.keys(recs).length === 0 && list.length > 0 ? <p className="os-muted">Reading claims…</p> : thisYear.length === 0 ? <p className="os-muted">No claims submitted to this office yet this year.</p> : (
-            <dl className="os-figs">
-              <div><dt>Claimed</dt><dd>{claimed === null ? "Unknown" : money(String(claimed))}</dd></div>
-              <div><dt>Accepted</dt><dd>{accepted === null ? "Unknown" : money(String(accepted))}</dd></div>
-              <div><dt>Payment evidence</dt><dd className={paid === null || paid === 0 ? "is-none" : undefined}>{paid === null || paid === 0 ? "None recorded" : money(String(paid))}</dd></div>
-            </dl>
-          )}
-          <p className="os-note">Accepted is not paid. Payment evidence is what your office records; StrayPaw does not process payments.{noAmount ? ` ${noAmount} ${noAmount === 1 ? "package has" : "packages have"} no contract amount.` : ""}</p>
-        </section>
+      {v.waiting.length > 0 && (
+        <Section title={`In the waiting ${v.waiting.length === 1 ? "package" : "packages"}`} note={cases?.length ? `${cases.length} ${cases.length === 1 ? "record" : "records"} inside` : undefined}>
+          <Panel>
+            {cases === null ? <p className="mh-quiet">Reading records…</p> : cases.length === 0 ? <p className="mh-quiet">No records inside.</p> : (
+              <ul className="mh-meters">{ev.map((x) => (
+                <li key={x.label}><span>{x.label}</span><b>{x.n} <small>of {cases.length}</small></b><i aria-hidden style={{ ["--p" as string]: x.n / cases.length }} /></li>
+              ))}</ul>
+            )}
+          </Panel>
+        </Section>
+      )}
 
-        <section className="dy-sec" aria-labelledby="os-ops-h">
-          <header className="dy-sec-head"><h2 id="os-ops-h" className="dy-h">{v.ops.length === 1 ? "Operator" : `${v.ops.length} operators`}</h2><Link href="/city/contracts">Contracts and rates <ArrowRight size={13} aria-hidden /></Link></header>
-          <ul className="os-ops">{v.ops.map((id) => {
-            const ps = list.filter((p) => p.ngo_id === id), k = contractOf(id), rate = k ? terms?.rates.find((r) => r.contract_id === k.id) : null;
-            const w = ps.filter((p) => isWaitingOnOffice(p.status)).length, d = ps.filter((p) => isDecided(p.status)).length;
-            return (
-              <li key={id}><Link href={`/city/review?op=${id}`}>
-                <span className="os-ops-t"><b>{names[id] ?? "Operator"}</b><small>{terms === null ? "Reading the contract…" : k ? <>{rate ? `${money(rate.unit_rate)} per ${rate.code}` : k.name}, to {new Date(`${k.ends_on}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}{k.illustrative ? " · illustrative" : ""}</> : "No contract in force"}</small></span>
-                <span className="os-ops-n">{w ? <em>{w} waiting</em> : null}<span>{d} decided</span></span>
-                <ArrowRight size={14} aria-hidden className="os-ops-go" />
-              </Link></li>
-            );
-          })}</ul>
-        </section>
+      <Section title={`Claims in ${year}`}>
+        {Object.keys(recs).length === 0 && list.length > 0 ? <p className="mh-quiet">Reading claims…</p> : thisYear.length === 0 ? <p className="mh-quiet">No claims submitted to this office yet this year.</p> : (
+          <Stats label={`Claims in ${year}`} items={[
+            { label: "Claimed", value: claimed === null ? "Unknown" : money(String(claimed)) },
+            { label: "Accepted", value: accepted === null ? "Unknown" : money(String(accepted)) },
+            { label: "Payment evidence", value: paid === null || paid === 0 ? "None recorded" : money(String(paid)) },
+          ]} />
+        )}
+        <p className="mh-note">Accepted is not paid. Payment evidence is what your office records; StrayPaw does not process payments.{noAmount ? ` ${noAmount} ${noAmount === 1 ? "package has" : "packages have"} no contract amount.` : ""}</p>
+      </Section>
 
-        {onPublic ? <button type="button" className="os-divider" aria-expanded={!!publicOpen} onClick={onPublic}><b>Public record</b><span>Published research data for the city, separate from your office&rsquo;s records.</span><em>{publicOpen ? "Hide" : "Show"}</em></button>
-          : <p className="os-divider"><b>Public record</b> Published research data for the city, separate from your office&rsquo;s operational records.</p>}
-      </div>
+      <Section title={v.ops.length === 1 ? "Operator" : "Operators"} count={v.ops.length === 1 ? null : v.ops.length} action={<Btn small variant="quiet" href="/city/contracts">Contracts and rates</Btn>}>
+        <Panel><Table label="Operators that submit to this office" cols={cols} rows={ops} rowKey={(o) => o.id} href={(o) => `/city/review?op=${o.id}`} empty={<p className="mh-quiet">No operator has submitted a package yet.</p>} /></Panel>
+      </Section>
     </section>
   );
 }
