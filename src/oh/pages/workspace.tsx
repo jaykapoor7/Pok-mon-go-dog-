@@ -7,7 +7,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { isFacility, oversees, placeHome } from "../places";
 import { call, fmtTime, relDay, select, useRead, SERVICE_LABEL, SERVICE_STATUS, type Place, type ServiceNow } from "../data";
-import { Chip, Empty, Failed, Head, Loading, Page, Section, Seg, Sheet, useToast } from "../ui";
+import { Btn, Note, Panel, Tag } from "@/ws/kit";
+import { Chip, Empty, Failed, Head, Loading, Page, Row, Rows, Seg, Sheet, useToast } from "../ui";
 import { ClinicToday, NewExposure, NotHere, Register, usePlaceParam } from "./facility";
 import { ExposureRecord } from "./ExposureRecord";
 import { LabQueue, SampleRecord } from "./lab";
@@ -54,32 +55,26 @@ function Services({ place }: { place: Place }) {
   const offered = OFFERED[place.kind] ?? [];
   const can = place.capabilities.includes("confirm_service");
   const latest = (svc: string) => (rows.data ?? []).filter((r) => r.service === svc).sort((a, b) => b.verified_at.localeCompare(a.verified_at))[0];
+  const state = (svc: string) => { const r = latest(svc); const expired = !!r && new Date(r.valid_until) < new Date(); return { r, expired, st: !r ? null : expired ? "not_verified" : r.status }; };
+  const stale = offered.filter((svc) => { const x = state(svc); return !x.st || x.st === "not_verified"; }).length;
   return (
     <Page illustrative={place.illustrative}>
-      <Head eyebrow={place.short_name ?? place.name} title="Services we offer" lede="Confirm what you can provide today. Patients, referring centres and the programme see each confirmation and when it was made. A confirmation lasts up to a week." />
+      <Head title="Services we offer" lede={rows.data && offered.length ? <>{stale ? <><b>{stale}</b> of {offered.length} {stale === 1 ? "needs" : "need"} confirming. </> : "Every service is confirmed. "}Patients, referring centres and the programme see each confirmation and its date. One lasts up to a week.</> : "Confirm what you can provide today. A confirmation lasts up to a week."} />
       {rows.loading && !rows.data ? <Loading rows={3} /> : rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !offered.length ? <Empty title="This kind of place does not confirm services" /> : (
-        <div className="oh-rows">
-          {offered.map((svc) => {
-            const r = latest(svc);
-            const expired = r && new Date(r.valid_until) < new Date();
-            const st = !r ? null : expired ? "not_verified" : r.status;
-            return (
-              <div className="oh-row" key={svc}>
-                <span className="oh-row-mark" data-tone={!st || st === "not_verified" ? "amber" : st === "available" ? "green" : st === "limited" ? "amber" : "flame"} aria-hidden />
-                <div className="oh-row-main">
-                  <b>{SERVICE_LABEL[svc]}</b>
-                  <span className="wrap">{!r ? "Never confirmed" : expired ? `Last confirmed ${relDay(r.verified_at).toLowerCase()}; expired ${relDay(r.valid_until).toLowerCase()}` : `Confirmed ${fmtTime(r.verified_at)}${r.verified_by_name ? ` by ${r.verified_by_name}` : ""}; valid ${relDay(r.valid_until).toLowerCase()}`}{r?.note && !expired ? ` · ${r.note}` : ""}</span>
-                </div>
-                <div className="oh-row-meta">
-                  {st ? <Chip tone={SERVICE_STATUS[st]?.tone}>{SERVICE_STATUS[st]?.label}</Chip> : <Chip tone="amber">Not confirmed</Chip>}
-                  {can ? <button type="button" className="oh-btn small primary" onClick={() => setEdit(svc)}>Confirm today</button> : null}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <Panel>
+          <Rows label="Services">
+            {offered.map((svc) => {
+              const { r, expired, st } = state(svc);
+              return (
+                <Row key={svc} title={SERVICE_LABEL[svc]}
+                  meta={`${!r ? "Never confirmed" : expired ? `Last confirmed ${relDay(r.verified_at).toLowerCase()}; expired ${relDay(r.valid_until).toLowerCase()}` : `Confirmed ${fmtTime(r.verified_at)}${r.verified_by_name ? ` by ${r.verified_by_name}` : ""}; valid ${relDay(r.valid_until).toLowerCase()}`}${r?.note && !expired ? ` · ${r.note}` : ""}`}
+                  end={<>{st ? <Chip tone={SERVICE_STATUS[st]?.tone}>{SERVICE_STATUS[st]?.label}</Chip> : <Tag tone="amber">Not confirmed</Tag>}{can ? <Btn small onClick={() => setEdit(svc)}>Confirm today</Btn> : null}</>} />
+              );
+            })}
+          </Rows>
+        </Panel>
       )}
-      <p className="oh-note" style={{ marginTop: 16 }}>Confirmations are what a person at this place says is available. StrayPaw is <b>not connected</b> to any stock or supply system.</p>
+      <p className="oh-foot">Confirmations are what a person at this place says is available. StrayPaw is <b>not connected</b> to any stock or supply system.</p>
       {edit ? <ConfirmService org={id} service={edit} onClose={() => setEdit(null)} onDone={(m) => { setEdit(null); toast(m); rows.reload(); }} /> : null}
     </Page>
   );
@@ -96,11 +91,11 @@ function ConfirmService({ org, service, onClose, onDone }: { org: string; servic
   };
   return (
     <Sheet title={SERVICE_LABEL[service]} note="What can you provide today?" onClose={onClose}
-      foot={<><button type="button" className="oh-btn" onClick={onClose}>Cancel</button><button type="button" className="oh-btn primary" disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Confirm"}</button></>}>
+      foot={<><Btn onClick={onClose}>Cancel</Btn><Btn variant="primary" disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Confirm"}</Btn></>}>
       <Seg name="svc" label="Availability" value={status} onChange={setStatus} options={[["available", "Available"], ["limited", "Limited"], ["unavailable", "Not available"]]} />
       <label className="oh-field"><span>Note (optional)</span><input value={note} maxLength={200} onChange={(e) => setNote(e.target.value)} placeholder={status === "available" ? "For example: mornings only" : "For example: supply expected Thursday"} /></label>
       <div className="oh-field"><span>Valid for</span><Seg name="days" label="Valid for" value={days} onChange={setDays} options={[["1", "Today"], ["3", "3 days"], ["7", "A week"]]} /></div>
-      {status !== "available" ? <p className="oh-note">Programme coordination is told when a service is limited or not available, so patients can be referred.</p> : null}
+      {status !== "available" ? <Note>Programme coordination is told when a service is limited or not available, so patients can be referred.</Note> : null}
       {err ? <Failed error={err} /> : null}
     </Sheet>
   );

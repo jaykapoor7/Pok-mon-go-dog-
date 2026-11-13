@@ -10,17 +10,17 @@ import { shortCode } from "@/lib/caseCode";
 import {useMembership} from '../shell/Shell';
 import {Reconciliation} from "./Reconciliation";
 import {OperationsPanel} from "../ngo/OperationsPanel";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { EVIDENCE_LABEL, NotEnabled, PACKAGE_LABEL, orgNames, packageAct, packageById, packageCases, packageEvents, type EvidenceKind, type Package, type PackageCase, type PackageEvent } from "@/lib/abc";
-import { Reading } from "../ui/Reading";
+import { Btn, Empty, Head, Page, Panel, Section, Split, Table, Tag, type Col } from "@/ws/kit";
+import { Pager, SkelRows, pageOf } from "./Pager";
 import { period } from "./Packages";
 import { EvidenceLink } from "./EvidenceLink";
 import { isRecordingDemo } from "@/lib/recording-demo";
 import { DEMO_RATE, demoSanction, demoSanctionPayment } from "@/lib/demo/abc-demo";
 import "../ngo/ngo.css";
-import "./abc.css";
+import "./PackageView.k.css";
 import { actionsFor, type PackageAction } from "@/lib/machines/package";
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -73,66 +73,53 @@ export function PackageView({ id, side }: { id: string; side: "operator" | "revi
     finally { setBusy(false); }
   };
 
+  const claims = side === "reviewer" || ["admin", "coordinator"].includes(mem.role ?? "");
+  const recordCols: Col<PackageCase>[] = [
+    { key: "rec", label: "Record", width: "minmax(0, 1.2fr)", render: (c) => c.title || c.case_code },
+    { key: "code", label: "Code and place", render: (c) => [c.case_code ? shortCode(c.case_code) : null, c.city].filter(Boolean).join(" · ") },
+    { key: "ev", label: "Evidence", width: "minmax(0, 2fr)", render: (c) => <span className="pv-ev" onClick={(e) => { if ((e.target as HTMLElement).closest("a, button")) e.stopPropagation(); }}>{c.evidence.map((e, i) => e.url
+      ? <EvidenceLink key={i} url={e.url}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}</EvidenceLink>
+      : <span key={i}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}{e.location ? `: ${e.location}` : ""}</span>)}</span> },
+    { key: "vet", label: "Signed by", render: (c) => c.vet_name ?? <span className="kx-none">Not recorded</span> },
+    { key: "rev", label: "Reviewed by", render: (c) => c.reviewer_name ?? <span className="kx-none">Not recorded</span> },
+  ];
+  const tone = (st: string): "flame" | "amber" | "blue" | "green" | "plain" => (st === "accepted" ? "green" : st === "returned" ? "flame" : st === "queried" || st === "partially_accepted" ? "amber" : st === "submitted" ? "blue" : "plain");
+  const rp = pageOf(cases, recordPage, 25);
+  const records = <><Panel><Table cols={recordCols} rows={rp.slice} rowKey={(c) => c.case_id} href={side === "operator" ? (c) => `/ngo/verification/${c.case_id}` : undefined} label="Records in this package" empty={<p className="kx-quiet is-pad">No records in this package.</p>} /></Panel><Pager pg={rp.pg} pages={rp.pages} total={cases.length} size={25} onPage={setRecordPage} /></>;
+
   return (
-    <div className="ngo-page abc">
-      {state === "loading" && <div className="abc-empty"><Reading>Reading the package</Reading></div>}
-      {state === "off" && <div className="abc-empty"><b>Package review is not switched on here yet.</b></div>}
-      {state === "missing" && <div className="abc-empty"><b>This package is not available to you.</b>It may still be a draft, or belong to another office.</div>}
-      {state === "error" && <p className="abc-err" role="alert">{err}</p>}
+    <Page className="pv">
+      {state === "loading" && <SkelRows label="Reading the package" />}
+      {state === "off" && <Empty title="Package review is not switched on here yet." />}
+      {state === "missing" && <Empty title="This package is not available to you.">It may still be a draft, or belong to another office.</Empty>}
+      {state === "error" && <p className="kx-said" data-tone="err" role="alert">{err}</p>}
       {state === "ok" && p && (
         <>
           {/* Where the package is on its way to the reviewing office: the same rail as a record, for both sides. */}
           <Rail label="Where this package is" steps={[{ title: p.status === "returned" ? "Returned to prepare" : "Prepared", href: side === "operator" ? "/ngo/packages" : undefined, hint: "All report packages" }, { title: p.status === "queried" ? "Queried by the office" : "With the reviewing office" }]} at={["draft", "returned"].includes(p.status) ? 0 : 1} end="Accepted" ended={p.status === "accepted"} />
-          <header className="ngo-head abc-head">
-            <div><h1>{p.title}</h1></div>
-            <p className="ngo-sum">{org} · {period(p)}{p.submitted_at ? ` · submitted ${when(p.submitted_at)}` : ""}{p.decided_by_name ? ` · ${PACKAGE_LABEL[p.status].toLowerCase()} by ${p.decided_by_name}` : ""}</p>
-            <div className="row ngo-head-act"><span className={`abc-tag t-${p.status}`}>{PACKAGE_LABEL[p.status]}</span>{canExport&&<button type="button" className="btn is-s" disabled={busy} onClick={() => void download("pdf")}>Download PDF</button>}{canExport&&<button type="button" className="btn is-s" disabled={busy} onClick={() => void download("xlsx")}>Download XLSX</button>}</div>
-          </header>
-          {msg && <p className={msg.ok ? "abc-ok" : "abc-err"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
-          <div className="abc-grid">
-            <div>
-              <section className="abc-sec" aria-label="Figures">
-                <div className="abc-kpis">
-                  <div><b>{p.summary.records ?? cases.length}</b><small>Records</small></div>
-                  <div><b>{p.summary.vet_authorised ?? "—"}</b><small>Vet-authorised</small></div>
-                  <div><b>{p.summary.evidence_items ?? "—"}</b><small>Evidence items</small></div>
-                </div>
-              </section>
-              <section className="abc-sec" aria-labelledby="rec-h">
-                <h2 id="rec-h">Records</h2>
-                <table className="abc-cases">
-                  <thead><tr><th>Record</th><th>Evidence</th><th>Signed by</th></tr></thead>
-                  <tbody>{cases.slice(recordPage*25,recordPage*25+25).map((c) => (
-                    <tr key={c.case_id}>
-                      <td>{side === "operator" ? <Link href={`/ngo/verification/${c.case_id}`}>{c.title || c.case_code}</Link> : c.title || c.case_code}<small>{[c.case_code ? shortCode(c.case_code) : null, c.city].filter(Boolean).join(" · ")}</small></td>
-                      <td><span className="ev">{c.evidence.map((e, i) => e.url
-                        ? <EvidenceLink key={i} url={e.url}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}</EvidenceLink>
-                        : <span key={i}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}{e.location ? `: ${e.location}` : ""}</span>)}</span></td>
-                      <td>{c.vet_name ?? "—"}<small>Reviewed by {c.reviewer_name ?? "—"}</small></td>
-                    </tr>
-                  ))}</tbody>
-                </table>{cases.length>25&&<div className="row"><button className="btn" disabled={recordPage===0} onClick={()=>setRecordPage(v=>v-1)}>Previous records</button><span>{cases.length?recordPage*25+1:0}–{Math.min((recordPage+1)*25,cases.length)} of {cases.length}</span><button className="btn" disabled={(recordPage+1)*25>=cases.length} onClick={()=>setRecordPage(v=>v+1)}>Next records</button></div>}
-              </section>
-              <Reconciliation pkg={p} side={side} onChanged={load} sourceCases={cases}/>
-              {side==="reviewer"&&<details><summary>Inspect current animal operation history</summary><label>Animal record<select className="input" aria-label="Inspect animal operations" value={operationCase??""} onChange={e=>setOperationCase(e.target.value||null)}><option value="">Choose one submitted animal</option>{cases.map(c=><option key={c.case_id} value={c.case_id}>{c.title||c.case_code}</option>)}</select></label>{operationCase&&<OperationsPanel key={operationCase} caseId={operationCase} readOnly/>}</details>}
-            </div>
-            <aside className="abc-side" aria-label="Review thread">
-              <section className="abc-sec">
-                <h2>Thread</h2>
-                <ol className="abc-thread">{ev.map((e) => (
-                  <li key={e.id} className={e.side === "reviewer" ? "is-reviewer" : undefined}>
-                    <header><b>{KIND[e.kind] ?? e.kind}</b><span>{e.actor_name} · {when(e.created_at)}</span></header>
-                    {e.body && <p style={{ margin: 0 }}>{e.body}</p>}
-                  </li>
-                ))}</ol>
-              </section>
-              {(!p.item_review_enabled||side==="operator"&&["draft","queried"].includes(p.status))&&<Actions side={side} status={p.status} body={body} setBody={setBody} busy={busy} act={act} />}
-              {isRecordingDemo && p.status === "accepted" && <Sanction id={p.id} side={side} records={cases.length} onDone={load} />}
-            </aside>
-          </div>
+          <Head title={p.title}
+            sum={<><Tag tone={tone(p.status)}>{PACKAGE_LABEL[p.status]}</Tag> {org} · {period(p)}{p.submitted_at ? ` · submitted ${when(p.submitted_at)}` : ""}{p.decided_by_name ? ` · ${PACKAGE_LABEL[p.status].toLowerCase()} by ${p.decided_by_name}` : ""}. <b>{p.summary.records ?? cases.length}</b> {(p.summary.records ?? cases.length) === 1 ? "record" : "records"}, {p.summary.vet_authorised ?? "not counted"} vet-authorised, {p.summary.evidence_items ?? "not counted"} evidence items.</>}
+            actions={canExport ? <><Btn disabled={busy} onClick={() => void download("pdf")}>Download PDF</Btn><Btn disabled={busy} onClick={() => void download("xlsx")}>Download XLSX</Btn></> : undefined} />
+          {msg && <p className="kx-said" data-tone={msg.ok ? "ok" : "err"} role={msg.ok ? "status" : "alert"}>{msg.text}</p>}
+          <Split side={<>
+            <Section title="Conversation" count={ev.length}>
+              <Panel><ol className="pv-thread">{ev.map((e) => (
+                <li key={e.id}>
+                  <header><b>{KIND[e.kind] ?? e.kind}</b>{e.side === "reviewer" ? <Tag tone="violet">Office</Tag> : null}<span>{e.actor_name} · {when(e.created_at)}</span></header>
+                  {e.body && <p>{e.body}</p>}
+                </li>
+              ))}</ol></Panel>
+            </Section>
+            {(!p.item_review_enabled||side==="operator"&&["draft","queried"].includes(p.status))&&<Actions side={side} status={p.status} body={body} setBody={setBody} busy={busy} act={act} />}
+            {isRecordingDemo && p.status === "accepted" && <Sanction id={p.id} side={side} records={cases.length} onDone={load} />}
+          </>}>
+            <Reconciliation pkg={p} side={side} onChanged={load} sourceCases={cases}/>
+            {claims ? <Section title="Records and evidence" count={cases.length} fold="records" open={false}>{records}</Section> : <Section title="Records" count={cases.length}>{records}</Section>}
+            {side==="reviewer"&&<Section title="Current animal operation history" fold="ops" open={false}><label className="kx-f pv-pick"><span>Animal record</span><select className="kx-in" aria-label="Inspect animal operations" value={operationCase??""} onChange={e=>setOperationCase(e.target.value||null)}><option value="">Choose one submitted animal</option>{cases.map(c=><option key={c.case_id} value={c.case_id}>{c.title||c.case_code}</option>)}</select></label>{operationCase&&<OperationsPanel key={operationCase} caseId={operationCase} readOnly wrap="ka2-ops"/>}</Section>}
+          </Split>
         </>
       )}
-    </div>
+    </Page>
   );
 }
 
@@ -140,29 +127,27 @@ function Actions({ side, status, body, setBody, busy, act }: { side: "operator" 
   if (side === "operator") {
     const can = actionsFor("operator", status);
     if (can.includes("submitted")) return (
-      <section className="abc-sec"><h2>{status === "returned" ? "Returned" : "Ready to send"}</h2>
-        <div className="abc-sign"><div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => act("submitted", "Submitted to the reviewing office.")}>Submit package</button></div></div>
-      </section>
+      <Section title={status === "returned" ? "Returned" : "Ready to send"}><div className="kx-acts"><Btn variant="primary" disabled={busy} onClick={() => act("submitted", "Submitted to the reviewing office.")}>Submit package</Btn></div></Section>
     );
     if (can.includes("answer")) return (
-      <section className="abc-sec"><h2>Answer the query</h2>
-        <textarea className="textarea" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Your answer to the office" aria-label="Answer" />
-        <div className="abc-sign"><div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy || !body.trim()} onClick={() => act("answer", "Answer sent; the package is back with the office.")}>Send answer</button></div></div>
-      </section>
+      <Section title="Answer the query"><div className="kx-form">
+        <textarea className="kx-in" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Your answer to the office" aria-label="Answer" />
+        <div className="kx-acts"><Btn variant="primary" disabled={busy || !body.trim()} onClick={() => act("answer", "Answer sent; the package is back with the office.")}>Send answer</Btn></div></div>
+      </Section>
     );
-    return <section className="abc-sec"><p className="abc-note">{status === "accepted" ? "Accepted by the reviewing office." : "With the reviewing office."}</p></section>;
+    return <p className="kx-said pv-state">{status === "accepted" ? "Accepted by the reviewing office. Accepted means approved for payment. It is not a payment." : "With the reviewing office."}</p>;
   }
-  if (!actionsFor("reviewer", status).length) return <section className="abc-sec"><p className="abc-note">{status === "queried" ? "Waiting for the operator's answer." : status === "accepted" ? "You accepted this package." : "Returned to the operator."}</p></section>;
+  if (!actionsFor("reviewer", status).length) return <p className="kx-said pv-state">{status === "queried" ? "Waiting for the operator's answer." : status === "accepted" ? "You accepted this package. Accepted means approved for payment. It is not a payment." : "Returned to the operator."}</p>;
   return (
-    <section className="abc-sec"><h2>Your review</h2>
-      <textarea className="textarea" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Comment (required to ask or return)" aria-label="Review comment" />
-      <div className="abc-sign"><div className="acts">
-        <button type="button" className="btn is-ink is-s" disabled={busy} onClick={() => act("accepted", "Package accepted.")}>Accept</button>
-        <button type="button" className="btn is-s" disabled={busy || !body.trim()} onClick={() => act("query", "Query sent to the operator.")}>Ask a question</button>
-        <button type="button" className="btn is-s" disabled={busy || !body.trim()} onClick={() => act("returned", "Returned to the operator.")}>Return</button>
-      </div></div>
-      <p className="abc-hint">Recorded in your name</p>
-    </section>
+    <Section title="Your review"><div className="kx-form">
+      <textarea className="kx-in" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Comment (required to ask or return)" aria-label="Review comment" />
+      <div className="kx-acts">
+        <Btn variant="primary" disabled={busy} onClick={() => act("accepted", "Package accepted.")}>Accept</Btn>
+        <Btn disabled={busy || !body.trim()} onClick={() => act("query", "Query sent to the operator.")}>Ask a question</Btn>
+        <Btn disabled={busy || !body.trim()} onClick={() => act("returned", "Returned to the operator.")}>Return</Btn>
+      </div>
+      <p className="kx-quiet">Recorded in your name. Accepted means approved for payment. It is not a payment.</p></div>
+    </Section>
   );
 }
 
@@ -174,20 +159,18 @@ function Sanction({ id, side, records, onDone }: { id: string; side: "operator" 
   const amount = records * DEMO_RATE;
   const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
   if (done) return (
-    <section className="abc-sec abc-sanction is-done" aria-label="Payment sanction">
-      <h2>Payment sanctioned</h2>
-      <p className="abc-sanction-amt">{inr(done.amount)}</p>
-      <p className="abc-note">{done.records} verified procedures × {inr(DEMO_RATE)} · sanctioned by {done.by} · ref {done.ref}</p>
-    </section>
+    <Section title="Payment sanctioned">
+      <p className="pv-amt">{inr(done.amount)}</p>
+      <p className="kx-quiet">{done.records} verified procedures × {inr(DEMO_RATE)} · sanctioned by {done.by} · ref {done.ref}</p>
+    </Section>
   );
-  if (side !== "reviewer") return <section className="abc-sec"><p className="abc-note">Accepted. Waiting for the payment sanction.</p></section>;
+  if (side !== "reviewer") return <p className="kx-said pv-state">Accepted. Waiting for the payment sanction.</p>;
   return (
-    <section className="abc-sec abc-sanction" aria-label="Payment sanction">
-      <h2>Sanction for payment</h2>
-      <p className="abc-sanction-amt">{inr(amount)}</p>
-      <p className="abc-note">{records} verified procedures × {inr(DEMO_RATE)} contract rate. The sanction goes to accounts with this package attached.</p>
-      <div className="abc-sign"><div className="acts"><button type="button" className="btn is-ink is-s" disabled={busy} onClick={async () => { setBusy(true); setDone(await demoSanctionPayment(id)); await onDone(); setBusy(false); }}>Sanction {inr(amount)}</button></div></div>
-      <p className="abc-hint">Recorded in your name</p>
-    </section>
+    <Section title="Sanction for payment">
+      <p className="pv-amt">{inr(amount)}</p>
+      <p className="kx-quiet">{records} verified procedures × {inr(DEMO_RATE)} contract rate. The sanction goes to accounts with this package attached.</p>
+      <div className="kx-acts pv-gap"><Btn disabled={busy} onClick={async () => { setBusy(true); setDone(await demoSanctionPayment(id)); await onDone(); setBusy(false); }}>Sanction {inr(amount)}</Btn></div>
+      <p className="kx-quiet">Recorded in your name</p>
+    </Section>
   );
 }

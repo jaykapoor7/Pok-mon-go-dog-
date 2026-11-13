@@ -51,3 +51,7 @@
 .idn-form { margin-top: 12px; }
 .idn-said { margin-top: 8px; }
 .idn-said:empty { display: none; }
+
+/* scan a tag: one field and its button on one line */
+.scan2 { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.scan2 .kx-in { flex: 1 1 240px; width: auto; }

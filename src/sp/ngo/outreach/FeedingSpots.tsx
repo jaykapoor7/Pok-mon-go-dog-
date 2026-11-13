@@ -11,21 +11,19 @@
    can sign up (/community/feeding).
    ════════════════════════════════════════════════════════════════════ */
 
-import { CancelButton } from "@/sp/ui/CancelButton";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { latLngToCell } from "h3-js";
 import { Camera, Crosshair, Plus } from "lucide-react";
 import type { OrgFeedingZone } from "@/lib/feeding-zones";
+import { Btn, Empty, Head, More, Note, Page, Panel, Split, Table, Tag, type Col } from "@/ws/kit";
 import { useMembership } from "../../shell/Shell";
 import { AreaMap } from "../../atlas/AreaMap";
-import { Ack, Method, State, day, n, since, PageBrief } from "../../ui";
+import { Ack, day, n, since } from "../../ui";
 import { Reading } from "../../ui/Reading";
 import { readOrgFeedingSpots, startOrgFeedingSpot } from "../../data/work-outreach";
 import type { Receipt } from "../../data/work";
 import { NgoGate } from "../Gate";
-import "../ngo.css";
-import "./outreach.css";
+import "../org.k.css";
 
 type Load = { state: "reading" } | { state: "read"; rows: OrgFeedingZone[] } | { state: "failed"; error: string };
 
@@ -49,59 +47,42 @@ export function FeedingSpots() {
   }, [rows]);
   const cellOf = (z: OrgFeedingZone) => (Number.isFinite(z.lat) ? latLngToCell(z.lat, z.lng, 8) : null);
   const shown = sel ? rows.filter((z) => cellOf(z) === sel) : rows;
-  const stale = rows.filter((z) => !z.last_fed_at || Date.now() - Date.parse(z.last_fed_at) > 7 * 86_400_000).length;
+  const late = (z: OrgFeedingZone) => !z.last_fed_at || Date.now() - Date.parse(z.last_fed_at) > 7 * 86_400_000;
+  const stale = rows.filter(late).length;
+
+  const cols: Col<OrgFeedingZone>[] = [
+    { key: "name", label: "Spot", width: "minmax(0, 1.6fr)", render: (z) => <>{z.name}{z.description ? <span className="og-tail">{z.description}</span> : null}</> },
+    { key: "zone", label: "Locality", render: (z) => z.zone ?? <span className="og-nr">Not recorded</span> },
+    { key: "vol", label: "Volunteers", width: "80px", align: "end", render: (z) => n(z.volunteer_count) },
+    { key: "fed", label: "Last fed", width: "128px", keep: true, render: (z) => <Tag tone={late(z) ? "flame" : "green"}>{z.last_fed_at ? since(z.last_fed_at) : "Never recorded"}</Tag> },
+    { key: "added", label: "Added", width: "104px", render: (z) => day(z.created_at) },
+  ];
 
   return (
     <NgoGate title="Feeding spots" lede="The spots your organisation feeds, and who has offered to help. Members only.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">Field work · feeding</p><h1 className="serif">Feeding spots</h1></div>
-          <p className="ngo-sum">{load.state === "read" ? rows.length === 0 ? "Places your team feeds, shown on the public map for volunteers." : <><b>{n(rows.length)}</b> spot{rows.length === 1 ? "" : "s"} · <b>{n(stale)}</b> not fed in 7 days</> : load.state === "failed" ? "Not read." : <Reading>Reading your organisation&rsquo;s feeding spots</Reading>}</p>
-          <div className="row" style={{ ["--g" as string]: "8px" }}>
-            <button type="button" className="btn is-ink" aria-expanded={adding} onClick={() => setAdding((v) => !v)}><Plus size={15} aria-hidden /> Add a feeding spot</button>
-            <Link className="btn" href="/community/feeding">The public map</Link>
-          </div>
-        </header>
-        <PageBrief items={[["For", "The places your team feeds, and who offered to help there."], ["Watch", "Spots not fed in 7 days, or never recorded as fed."], ["Next", "Add a spot on site: the location is captured from your phone."], ["After", "It appears on the public feeding map, where volunteers can sign up."]]} />
+      <Page>
+        <Head title="Drives"
+          sum={load.state === "read" ? rows.length === 0 ? "Places your team feeds, shown on the public map for volunteers." : <><b>{n(rows.length)}</b> feeding spot{rows.length === 1 ? "" : "s"}{stale ? <>, <span className="is-hot">{n(stale)} not fed in 7 days</span></> : ", all fed in the last 7 days"}.</> : load.state === "failed" ? "Feeding spots were not read." : <Reading>Reading your organisation&rsquo;s feeding spots</Reading>}
+          actions={<><Btn href="/community/feeding">The public map</Btn><Btn variant={adding ? "plain" : "primary"} icon={<Plus size={14} />} aria-expanded={adding} onClick={() => setAdding((v) => !v)}>Add a feeding spot</Btn></>} />
 
-        {adding && <AddSpot onDone={async (ok) => { if (ok) { setAdding(false); await read(); } }} onCancel={() => setAdding(false)} />}
+        {adding && <Panel pad><AddSpot onDone={async (ok) => { if (ok) { setAdding(false); await read(); } }} onCancel={() => setAdding(false)} /></Panel>}
 
-        {load.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={() => void read()}>Try again</button>}>{load.error} A failed read is never shown as no spots.</State>}
-        {load.state === "reading" && <div className="stack" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="skel" style={{ height: 44 }} />)}</div>}
-        {load.state === "read" && !rows.length && <State art="ngo-empty" title="No feeding spots yet" action={<button type="button" className="btn is-ink" onClick={() => setAdding(true)}>Add the first spot</button>}>Add the places your team feeds. Each needs its location captured on site.</State>}
+        {load.state === "failed" && <Note tone="flame" action={<Btn small onClick={() => void read()}>Try again</Btn>}>Didn&rsquo;t load. {load.error} A failed read is never shown as no spots.</Note>}
+        {load.state === "reading" && <div className="og-skel" aria-busy="true"><i /><i /><i /></div>}
+        {load.state === "read" && !rows.length && <Panel><Empty title="No feeding spots yet">Add the places your team feeds. Each needs its location captured on site.</Empty></Panel>}
 
         {load.state === "read" && rows.length > 0 && (
-          <div className="ou-split">
-            <section aria-label="Feeding spots register">
-              <Method items={[["Spots", n(rows.length)], ["Last fed", "as volunteers and staff record it"], ["Place", "shown by area on the map"]]} />
-              {sel && <button type="button" className="chip is-on" onClick={() => setSel(null)}>One area · show all</button>}
-              <div className="or-scroll" role="region" aria-label="Feeding spots" tabIndex={0}>
-                <table className="or-table">
-                  <thead><tr><th scope="col">Spot</th><th scope="col">Locality</th><th scope="col">Volunteers</th><th scope="col">Last fed</th><th scope="col">Added</th></tr></thead>
-                  <tbody>
-                    {shown.map((z) => {
-                      const late = !z.last_fed_at || Date.now() - Date.parse(z.last_fed_at) > 7 * 86_400_000;
-                      return (
-                        <tr key={z.id}>
-                          <th scope="row"><b>{z.name}</b>{z.description && <small className="or-sub">{z.description}</small>}</th>
-                          <td>{z.zone ?? <span className="pill is-unknown">Not recorded</span>}</td>
-                          <td className="mono">{n(z.volunteer_count)}</td>
-                          <td><span className={`pill ${late ? "is-urgent" : "is-care"}`}>{z.last_fed_at ? since(z.last_fed_at) : "Never recorded"}</span></td>
-                          <td className="mono">{day(z.created_at)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-            <aside className="ou-map" aria-label="Feeding spots by area">
-              <AreaMap cells={cells} selected={sel} onPick={setSel} label="Feeding spots by area" ink="#4b7f4f" empty="No spot carries a location." />
-              <p className="small">Discs are areas (≈0.74 km²), sized by spots. Choose one to narrow the register.</p>
-            </aside>
-          </div>
+          <Split side={<aside className="fs-map" aria-label="Feeding spots by area">
+            <AreaMap cells={cells} selected={sel} onPick={setSel} label="Feeding spots by area" ink="#4b7f4f" empty="No spot carries a location." />
+            <p className="og-hint">Discs are areas (≈0.74 km²), sized by spots. Choose one to narrow the list.</p>
+          </aside>}>
+            {sel && <Note action={<Btn small onClick={() => setSel(null)}>Show all</Btn>}>Showing one area.</Note>}
+            <Panel>
+              <More items={shown} cap={12} noun="spots">{(part) => <Table label="Feeding spots" cols={cols} rows={part} rowKey={(z) => z.id} />}</More>
+            </Panel>
+          </Split>
         )}
-      </div>
+      </Page>
     </NgoGate>
   );
 }
@@ -132,19 +113,19 @@ function AddSpot({ onDone, onCancel }: { onDone: (ok: boolean) => void | Promise
     await onDone(x.ok);
   };
   return (
-    <form className="or-form" onSubmit={submit} aria-label="Add a feeding spot">
-      <div className="ou-grid2">
-        <label className="field"><span>Name</span><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Market corner, east gate" required /></label>
-        <label className="field"><span>Locality</span><input className="input" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Neighbourhood or area" /></label>
+    <form className="og-form" onSubmit={submit} aria-label="Add a feeding spot">
+      <label className="og-f"><span className="og-l">Name</span><input className="og-in" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Market corner, east gate" required /></label>
+      <label className="og-f"><span className="og-l">Locality</span><input className="og-in" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Neighbourhood or area" /></label>
+      <label className="og-f"><span className="og-l">Notes</span><textarea className="og-in" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="How many animals, feeding times" /></label>
+      <div className="og-go">
+        <Btn onClick={locate} disabled={locating} icon={<Crosshair size={14} />}>{coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : locating ? "Locating…" : "Capture location (required)"}</Btn>
+        <label className="k-btn is-plain"><Camera size={14} aria-hidden /> {photo ? photo.name.slice(0, 24) : "Photo (optional)"}<input type="file" accept="image/*" hidden onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></label>
       </div>
-      <label className="field"><span>Notes</span><textarea className="input" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="How many animals, feeding times" /></label>
-      <div className="row" style={{ ["--g" as string]: "8px" }}>
-        <button type="button" className="btn" onClick={locate} disabled={locating}><Crosshair size={15} aria-hidden /> {coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : locating ? "Locating…" : "Capture location (required)"}</button>
-        <label className="btn"><Camera size={15} aria-hidden /> {photo ? photo.name.slice(0, 24) : "Photo (optional)"}<input type="file" accept="image/*" hidden onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></label>
-        <button type="submit" className="btn is-ink" disabled={busy}>{busy ? "Saving…" : "Add the spot"}</button><CancelButton onCancel={onCancel} disabled={busy} />
+      <div className="og-go">
+        <Btn type="submit" variant="primary" disabled={busy}>{busy ? "Saving…" : "Add the spot"}</Btn><Btn onClick={onCancel} disabled={busy}>Cancel</Btn>
+        {err && <Ack state="failed">{err}</Ack>}
+        {r && (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">{r.error}</Ack>)}
       </div>
-      {err && <Ack state="failed">{err}</Ack>}
-      {r && (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">{r.error}</Ack>)}
     </form>
   );
 }

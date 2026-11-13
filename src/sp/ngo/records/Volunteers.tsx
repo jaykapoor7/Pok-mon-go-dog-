@@ -13,13 +13,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Phone, Mail } from "lucide-react";
 import type { Volunteer } from "@/lib/team-actions";
+import { Btn, Empty, Head, More, Note, Page, Panel, Table, type Col } from "@/ws/kit";
 import { useMembership } from "../../shell/Shell";
-import { Method, State, day, n, since, PageBrief } from "../../ui";
+import { day, n, since } from "../../ui";
 import { Reading } from "../../ui/Reading";
 import { NgoGate } from "../Gate";
 import { readVolunteers } from "./read";
-import "../ngo.css";
-import "./records.css";
+import "../org.k.css";
 import { friendlyError } from "@/lib/friendly-error";
 
 const isEmail = (c: string) => c.includes("@");
@@ -34,41 +34,30 @@ export function Volunteers() {
   }, []);
   useEffect(() => { if (mem.member) load(); }, [mem.member, load]);
 
+  const cols: Col<Volunteer>[] = [
+    { key: "name", label: "Name", width: "minmax(0, 1fr)", render: (v) => v.name },
+    { key: "zone", label: "Locality", render: (v) => v.zone || <span className="og-nr">Not given</span> },
+    { key: "msg", label: "Message", width: "minmax(0, 2fr)", render: (v) => (v.message ? <span title={v.message}>{v.message}</span> : <span className="og-nr">No message</span>) },
+    { key: "at", label: "Signed up", width: "112px", render: (v) => <time dateTime={v.created_at} title={day(v.created_at)}>{since(v.created_at)}</time> },
+    { key: "contact", label: "Contact", width: "minmax(0, 200px)", keep: true, render: (v) => <a className="og-a og-cell" href={contactHref(v.contact)}>{isEmail(v.contact) ? <Mail size={14} aria-hidden /> : <Phone size={14} aria-hidden />}<span>{v.contact}</span></a> },
+  ];
+
   return (
     <NgoGate title="Volunteer sign-ups" lede="People who offered to help through StrayPaw: a list to call.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · volunteers</p><h1 className="serif">Volunteer sign-ups</h1></div>
-          <p className="ngo-sum">{d.state === "read" ? <><b>{n(d.rows.length)}</b> sign-up{d.rows.length === 1 ? "" : "s"}. </> : d.state === "failed" ? "Not read. " : <><Reading>Reading sign-ups</Reading>{" "}</>}They are not on your team and see nothing. To have someone report for you, add them on <Link className="link" href="/ngo/team">Team</Link>.</p>
-        </header>
-        <PageBrief items={[["For", "People who offered to help an animal your organisation keeps, and sign-ups StrayPaw shared with you. No other organisation sees them."], ["Watch", "The newest offers; they are not yet on your team."], ["Next", "Contact them, then add them on Team with a personal code."], ["After", "They can report for your organisation, and see nothing private."]]} />
-        <div className="rc-body">
-          {d.state === "loading" && <div className="rc-skel" aria-label="Reading sign-ups"><span className="skel" /><span className="skel" /><span className="skel" /></div>}
-          {d.state === "failed" && <State kind="error" title="Didn't load" action={<button type="button" className="btn is-s" onClick={load}>Try again</button>}>Sign-ups could not be read. {friendlyError(d.error)} This is not the same as no sign-ups.</State>}
-          {d.state === "read" && !d.rows.length && <State art="ngo-empty" title="No sign-ups yet" action={<Link className="btn is-ink" href="/ngo/team">Add someone to your team</Link>}>People who offer to help appear here.</State>}
-          {d.state === "read" && d.rows.length > 0 && (
-            <div className="rc-stack">
-              <Method items={[["Source", "offers about your animals, and sign-ups shared with you"], ["Order", "newest first"], ["Shown", `up to 300, ${n(d.rows.length)} read`]]} />
-              <div className="rc-scroll" role="region" aria-label="Volunteer sign-ups" tabIndex={0}>
-                <table className="rc-table rc-vol">
-                  <thead><tr><th scope="col">Name</th><th scope="col">Locality</th><th scope="col">Message</th><th scope="col">Signed up</th><th scope="col">Contact</th></tr></thead>
-                  <tbody>
-                    {d.rows.map((v) => (
-                      <tr key={v.id}>
-                        <td className="rc-who"><b>{v.name}</b></td>
-                        <td>{v.zone || <span className="pill is-unknown">Not given</span>}</td>
-                        <td className="rc-note">{v.message ? <span className="rc-pre">{v.message}</span> : <i className="small">No message</i>}</td>
-                        <td className="mono rc-date"><time dateTime={v.created_at} title={day(v.created_at)}>{since(v.created_at)}</time></td>
-                        <td className="rc-open"><a className="btn is-s" href={contactHref(v.contact)}>{isEmail(v.contact) ? <Mail size={14} aria-hidden /> : <Phone size={14} aria-hidden />}<span className="rc-contact">{v.contact}</span></a></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <Page>
+        <Head title="Volunteers"
+          sum={<>{d.state === "read" ? <><b>{n(d.rows.length)}</b> sign-up{d.rows.length === 1 ? "" : "s"}, newest first. </> : d.state === "failed" ? "Not read. " : <><Reading>Reading sign-ups</Reading>{" "}</>}They are not on your team and see nothing. To have someone report for you, add them on <Link className="og-a" href="/ngo/team">Team</Link>.</>} />
+        {d.state === "loading" && <div className="og-skel" aria-label="Reading sign-ups" aria-busy="true"><i /><i /><i /></div>}
+        {d.state === "failed" && <Note tone="flame" action={<Btn small onClick={load}>Try again</Btn>}>Sign-ups could not be read. {friendlyError(d.error)} This is not the same as no sign-ups.</Note>}
+        {d.state === "read" && (
+          <Panel>
+            <More items={d.rows} cap={15} noun="sign-ups">{(shown) => (
+              <Table label="Volunteer sign-ups" cols={cols} rows={shown} rowKey={(v) => v.id}
+                empty={<Empty title="No sign-ups yet" action={<Btn href="/ngo/team">Add someone to your team</Btn>}>People who offer to help appear here.</Empty>} />
+            )}</More>
+          </Panel>
+        )}
+      </Page>
     </NgoGate>
   );
 }

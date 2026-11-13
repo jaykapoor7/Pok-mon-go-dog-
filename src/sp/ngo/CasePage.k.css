@@ -1,0 +1,7 @@
+/* One case: only what the kit and cases.k.css do not give. */
+.cp-rail { margin-bottom: 12px; }
+.cp-id { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.cp-lede { max-width: 80ch; margin: -8px 0 16px; }
+.cp-strip { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; }
+.cp-map { margin: 4px 0 0 -8px; }
+.cp .k-split-s .k-props > div { grid-template-columns: 112px minmax(0, 1fr); }

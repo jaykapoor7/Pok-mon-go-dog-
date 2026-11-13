@@ -15,14 +15,14 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { Download, Plus } from "lucide-react";
 import { getSurveyResponses, getSurveys, getSurveyTotals, PROJECT_MARKER } from "@/lib/surveys";
 import type { Survey } from "@/lib/types";
+import { Btn, Empty, Head, Lanes, More, Note, Page, Panel, Section, Split, Table, Tag, Tools, type Col } from "@/ws/kit";
+import { usePageState } from "@/ws/store";
 import { useMembership } from "../../shell/Shell";
-import { Ack, Method, State, day, n } from "../../ui";
+import { Ack, day, n } from "../../ui";
 import { Reading } from "../../ui/Reading";
 import { addProjectEntry, startProject, type Receipt } from "../../data/work-outreach";
 import { NgoGate } from "../Gate";
-import { RegisterTabs } from "./Surveys";
-import "../ngo.css";
-import "./outreach.css";
+import "../org.k.css";
 
 type Entry = { id: string; attributes: Record<string, unknown>; notes: string | null; created_at: string };
 const CAP = 500;
@@ -36,7 +36,7 @@ export function Projects() {
   const mem = useMembership();
   const [projects, setProjects] = useState<Survey[] | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = usePageState<string>("project", "");
   const [making, setMaking] = useState(false);
 
   const reload = useCallback(async (pick?: string) => {
@@ -45,40 +45,36 @@ export function Projects() {
       const p = (await getSurveys()).filter((x) => (x.description ?? "").includes(PROJECT_MARKER));
       setProjects(p); setSelected((s) => pick || s || p[0]?.id || "");
     } catch (e) { setProjects(null); setFailed(e instanceof Error ? e.message : "The projects could not be read."); }
-  }, []);
+  }, [setSelected]);
   useEffect(() => { if (mem.member) void reload(); }, [mem.member, reload]);
-  const project = projects?.find((p) => p.id === selected) ?? null;
+  const project = projects?.find((p) => p.id === selected) ?? projects?.[0] ?? null;
+  const none = !!projects && projects.length === 0;
 
   return (
     <NgoGate title="Projects" lede="Registers for work that is not a census.">
-      <div className="ngo-page">
-        <header className="ngo-head">
-          <div><p className="k">{mem.org?.name ?? "Your organisation"} · field registers</p><h1 className="serif">Projects</h1></div>
-          <p className="ngo-sum">{projects ? <><b>{n(projects.length)}</b> project{projects.length === 1 ? "" : "s"}. </> : failed ? "Your projects could not be read. Nothing is shown as none. " : <><Reading>Reading your projects</Reading>{" "}</>}A rabies drive, an ABC drive, a school round: name the fields once and every entry fills them in.</p>
-          <div className="row"><button type="button" className="btn is-flame" aria-expanded={making} onClick={() => setMaking((v) => !v)}><Plus size={15} aria-hidden /> New project</button></div>
-        </header>
-        <RegisterTabs on="projects" />
-        {(making || (projects && projects.length === 0)) && <NewProject onCancel={projects?.length ? () => setMaking(false) : undefined} onDone={async (id) => { setMaking(false); await reload(id); }} />}
+      <Page>
+        <Head title="Drives"
+          sum={<>{projects ? <><b>{n(projects.length)}</b> project{projects.length === 1 ? "" : "s"}. </> : failed ? "Your projects could not be read. Nothing is shown as none. " : <><Reading>Reading your projects</Reading>{" "}</>}A rabies drive, an ABC drive, a school round: name the fields once and every entry fills them in.</>}
+          actions={<Btn variant={making || none ? "plain" : "primary"} icon={<Plus size={14} />} aria-expanded={making || none} onClick={() => setMaking((v) => !v)}>New project</Btn>} />
+        {(making || none) && <Panel pad><NewProject onCancel={projects?.length ? () => setMaking(false) : undefined} onDone={async (id) => { setMaking(false); await reload(id); }} /></Panel>}
 
         {failed ? (
-          <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void reload()}>Try again</button>}>{failed}</State>
+          <Note tone="flame" action={<Btn small onClick={() => void reload()}>Try again</Btn>}>Didn&rsquo;t load. {failed}</Note>
         ) : projects === null ? (
-          <div style={{ padding: "18px 28px" }}><div className="skel" style={{ height: 200 }} /></div>
+          <div className="og-skel" aria-busy="true"><i /><i /><i /></div>
         ) : projects.length === 0 ? (
-          <State art="ngo-empty" title="No projects yet">Name the project and the fields each entry records, above. Ward counts and censuses belong under Surveys.</State>
+          <Panel><Empty title="No projects yet">Name the project and the fields each entry records, above. Ward counts and censuses belong under Surveys.</Empty></Panel>
         ) : (
-          <div className="or-pj">
-            <nav className="or-pj-list" aria-label="Projects">
-              {projects.map((p) => (
-                <button key={p.id} type="button" aria-current={selected === p.id} onClick={() => setSelected(p.id)}>
-                  <b>{p.title}</b><small>{fieldsOf(p).length} field{fieldsOf(p).length === 1 ? "" : "s"} · since {day(p.created_at)}</small>
-                </button>
-              ))}
-            </nav>
+          <>
+            <Tools>
+              {projects.length <= 5
+                ? <Lanes label="Projects" value={project?.id ?? ""} onChange={setSelected} lanes={projects.map((p) => ({ id: p.id, label: p.title }))} />
+                : <label className="og-go"><span className="og-l">Project</span><select className="og-in is-s" value={project?.id ?? ""} onChange={(e) => setSelected(e.target.value)}>{projects.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</select></label>}
+            </Tools>
             {project && <Register key={project.id} project={project} />}
-          </div>
+          </>
         )}
-      </div>
+      </Page>
     </NgoGate>
   );
 }
@@ -106,43 +102,36 @@ function Register({ project }: { project: Survey }) {
     URL.revokeObjectURL(url);
   };
 
+  const cols: Col<Entry>[] = [
+    { key: "date", label: "Date", width: "104px", render: (r) => day(r.created_at) },
+    ...fields.map((f, i): Col<Entry> => ({ key: `f${i}`, label: f, keep: i === 0, render: (r) => (filled(r.attributes?.[f]) ? String(r.attributes?.[f]) : <span className="pj-blank"><span className="sr-only">not recorded</span></span>) })),
+    { key: "notes", label: "Notes", render: (r) => r.notes || "" },
+  ];
+
   return (
-    <section className="or-pj-main" aria-labelledby="pj-title">
-      <div className="or-pj-title">
-        <div><h2 id="pj-title" className="h2">{project.title}</h2>{purposeOf(project) && <p>{purposeOf(project)}</p>}</div>
-        <button type="button" className="btn is-s" onClick={exportCsv} disabled={!entries?.length}><Download size={14} aria-hidden /> Export shown</button>
-      </div>
-      <div className="or-pj-sec" style={{ borderTop: 0, paddingTop: 0 }}>
-        <Method items={[["Total", total !== null ? `${n(total)} ${total === 1 ? "entry" : "entries"}` : "not read"], ["Shown", entries ? `latest ${n(entries.length)} (up to ${CAP})` : "not read"], ["Fields", String(fields.length)]]} />
-      </div>
+    <Section title={project.title} count={total !== null ? `${n(total)} ${total === 1 ? "entry" : "entries"}` : null}
+      note={[purposeOf(project), `since ${day(project.created_at)}`, entries && total !== null && total > entries.length ? `latest ${n(entries.length)} shown` : ""].filter(Boolean).join(" · ")}
+      action={<Btn small icon={<Download size={14} />} onClick={exportCsv} disabled={!entries?.length}>Export shown</Btn>}>
       {failed ? (
-        <State kind="error" title="Didn't load" action={<button type="button" className="btn is-ink" onClick={() => void load()}>Try again</button>}>{failed}</State>
+        <Note tone="flame" action={<Btn small onClick={() => void load()}>Try again</Btn>}>Didn&rsquo;t load. {failed}</Note>
       ) : entries === null ? (
-        <div className="or-pj-sec"><div className="skel" style={{ height: 120 }} /></div>
+        <div className="og-skel" aria-busy="true"><i /><i /><i /></div>
       ) : (
-        <>
-          <div className="or-pj-sec"><Pulse entries={entries} /></div>
-          {entries.length > 0 && <div className="or-pj-sec"><h3 className="h3">How often each field is filled</h3><Completeness fields={fields} entries={entries} /></div>}
-          <div className="or-pj-sec"><NewEntry project={project} fields={fields} onDone={load} /></div>
+        <Split side={<>
+          <Section title="A new entry"><Panel pad><NewEntry project={project} fields={fields} onDone={load} /></Panel></Section>
+          {entries.length > 0 && <Section title="How often each field is filled" fold="filled" open={false}><Panel pad><Completeness fields={fields} entries={entries} /></Panel></Section>}
+        </>}>
+          <Pulse entries={entries} />
           {entries.length > 0 ? (
-            <div className="or-scroll" role="region" aria-label={`${project.title} entries`} tabIndex={0}>
-              <table className="or-table" style={{ minWidth: Math.max(560, 160 * (fields.length + 2)) }}>
-                <thead><tr><th>Date</th>{fields.map((f) => <th key={f}>{f}</th>)}<th>Notes</th></tr></thead>
-                <tbody>
-                  {entries.map((r) => (
-                    <tr key={r.id}>
-                      <td className="mono">{day(r.created_at)}</td>
-                      {fields.map((f) => filled(r.attributes?.[f]) ? <td key={f}>{String(r.attributes?.[f])}</td> : <td key={f} className="is-empty"><span className="sr">not recorded</span></td>)}
-                      <td>{r.notes || ""}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Panel>
+              <div className="pj-scroll" role="region" aria-label={`${project.title} entries`} tabIndex={0} style={{ ["--pj-n" as string]: fields.length + 2 }}>
+                <More items={entries} cap={12} noun="entries">{(shown) => <Table label={`${project.title} entries`} cols={cols} rows={shown} rowKey={(r) => r.id} />}</More>
+              </div>
+            </Panel>
           ) : null}
-        </>
+        </Split>
       )}
-    </section>
+    </Section>
   );
 }
 
@@ -157,13 +146,13 @@ function Pulse({ entries }: { entries: Entry[] }) {
     for (const t of ts) { const i = Math.floor((t - t0) / W) - Math.max(0, k - 104); if (i >= 0 && i < out.length) out[i]++; }
     return out;
   }, [entries]);
-  if (!entries.length) return <p className="body">Nothing recorded yet. The first entry starts this project&rsquo;s clock.</p>;
+  if (!entries.length) return <p className="og-p">Nothing recorded yet. The first entry starts this project&rsquo;s clock.</p>;
   const max = Math.max(...weeks);
   const last = Math.max(...entries.map((e) => Date.parse(e.created_at)));
   const quiet = Math.floor((Date.now() - last) / 86_400_000);
   return (
-    <figure className="or-pulse">
-      <div className="or-pulse-bars" role="img" aria-label={`Entries per week over ${weeks.length} weeks, at most ${max} in one week`}>{weeks.map((v, i) => <i key={i} style={{ height: `${v ? Math.max(8, (v / max) * 100) : 0}%` }} className={v ? "" : "is-zero"} />)}</div>
+    <figure className="pj-pulse">
+      <div className="pj-pulse-bars" role="img" aria-label={`Entries per week over ${weeks.length} weeks, at most ${max} in one week`}>{weeks.map((v, i) => <i key={i} style={{ height: `${v ? Math.max(8, (v / max) * 100) : 0}%` }} className={v ? "" : "is-zero"} />)}</div>
       <figcaption><b>{n(entries.length)}</b> {entries.length === 1 ? "entry" : "entries"} over {weeks.length} {weeks.length === 1 ? "week" : "weeks"}; {quiet === 0 ? "the last one today" : <>the last one <span className={quiet > 30 ? "is-hot" : ""}>{quiet} {quiet === 1 ? "day" : "days"} ago</span></>}.</figcaption>
     </figure>
   );
@@ -171,11 +160,11 @@ function Pulse({ entries }: { entries: Entry[] }) {
 
 function Completeness({ fields, entries }: { fields: string[]; entries: Entry[] }) {
   return (
-    <ol className="or-fields">
+    <ol className="pj-fields">
       {fields.map((f) => {
         const k = entries.filter((e) => filled(e.attributes?.[f])).length;
         const p = k / entries.length;
-        return <li key={f}><span>{f}</span><i className="or-band-bar" role="img" aria-label={`${f}: filled in ${k} of ${entries.length}, the rest not recorded`}><em style={{ width: `${p * 100}%` }} /></i><b>{Math.round(p * 100)}%</b></li>;
+        return <li key={f}><span>{f}</span><i className="og-bar is-fill is-hatch" role="img" aria-label={`${f}: filled in ${k} of ${entries.length}, the rest not recorded`}><i style={{ width: `${p * 100}%` }} /></i><b>{Math.round(p * 100)}%</b></li>;
       })}
     </ol>
   );
@@ -193,13 +182,10 @@ function NewEntry({ project, fields, onDone }: { project: Survey; fields: string
     if (x.ok) { setValues({}); setNotes(""); await onDone(); }
   };
   return (
-    <form onSubmit={submit} className="stack" style={{ ["--g" as string]: "12px" }}>
-      <h3 className="h3">A new entry</h3>
-      <div className="or-form">
-        {fields.map((f, i) => <div key={f} className="field"><label htmlFor={`pe-${i}`}>{f}</label><input id={`pe-${i}`} className="input" value={values[f] || ""} onChange={(e) => setValues((v) => ({ ...v, [f]: e.target.value }))} /></div>)}
-        <div className="field is-wide"><label htmlFor="pe-notes">Notes</label><input id="pe-notes" className="input" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
-      </div>
-      <div className="or-send"><button type="submit" className="btn is-ink" disabled={busy}>{busy ? "Adding…" : "Add the entry"}</button><span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not added: {r.error}</Ack>) : <span className="small">Blank fields are kept as not recorded.</span>}</span></div>
+    <form onSubmit={submit} className="og-form" aria-label="A new entry">
+      {fields.map((f, i) => <div key={f} className="og-f"><label htmlFor={`pe-${i}`}>{f}</label><input id={`pe-${i}`} className="og-in" value={values[f] || ""} onChange={(e) => setValues((v) => ({ ...v, [f]: e.target.value }))} /></div>)}
+      <div className="og-f"><label htmlFor="pe-notes">Notes</label><input id="pe-notes" className="og-in" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
+      <div className="og-go"><Btn type="submit" disabled={busy}>{busy ? "Adding…" : "Add the entry"}</Btn><span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not added: {r.error}</Ack>) : <span className="og-hint">Blank fields are kept as not recorded.</span>}</span></div>
     </form>
   );
 }
@@ -212,17 +198,14 @@ function NewProject({ onCancel, onDone }: { onCancel?: () => void; onDone: (id?:
   const [r, setR] = useState<Receipt | null>(null);
   const fields = splitFields(fieldText);
   return (
-    <form className="or-band" onSubmit={async (e) => { e.preventDefault(); if (!name.trim() || !fields.length) return; setBusy(true); setR(null); const x = await startProject(name.trim(), fields, purpose.trim()); setR(x); setBusy(false); if (x.ok) { setName(""); setFieldText(""); setPurpose(""); await onDone(x.id); } }}>
-      <h2>A new project</h2>
-      <div className="or-form">
-        <div className="field"><label htmlFor="pj-n">Name</label><input id="pj-n" className="input" value={name} onChange={(e) => setName(e.target.value)} required placeholder="ABC drive, R.S. Puram" /></div>
-        <div className="field"><label htmlFor="pj-p">What it is for</label><input id="pj-p" className="input" value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="One line on why this is being recorded" /></div>
-        <div className="field is-wide"><label htmlFor="pj-f">What each entry records</label><textarea id="pj-f" className="textarea" rows={2} style={{ minHeight: 70 }} value={fieldText} onChange={(e) => setFieldText(e.target.value)} placeholder="Sterilised, vaccinated, treatment, next review, separated by commas" /></div>
-        {fields.length > 0 && <p className="or-preview is-wide" aria-label="Fields">{fields.map((f) => <span key={f} className="pill is-plain">{f}</span>)}</p>}
-      </div>
-      <div className="or-send">
-        <button type="submit" className="btn is-ink" disabled={busy || !name.trim() || !fields.length}>{busy ? "Creating…" : "Create the project"}</button>
-        {onCancel && <button type="button" className="btn is-ghost" onClick={onCancel}>Cancel</button>}
+    <form className="og-form" aria-label="A new project" onSubmit={async (e) => { e.preventDefault(); if (!name.trim() || !fields.length) return; setBusy(true); setR(null); const x = await startProject(name.trim(), fields, purpose.trim()); setR(x); setBusy(false); if (x.ok) { setName(""); setFieldText(""); setPurpose(""); await onDone(x.id); } }}>
+      <div className="og-f"><label htmlFor="pj-n">Name</label><input id="pj-n" className="og-in" value={name} onChange={(e) => setName(e.target.value)} required placeholder="ABC drive, R.S. Puram" /></div>
+      <div className="og-f"><label htmlFor="pj-p">What it is for</label><input id="pj-p" className="og-in" value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="One line on why this is being recorded" /></div>
+      <div className="og-f"><label htmlFor="pj-f">What each entry records</label><textarea id="pj-f" className="og-in" rows={2} value={fieldText} onChange={(e) => setFieldText(e.target.value)} placeholder="Sterilised, vaccinated, treatment, next review, separated by commas" /></div>
+      {fields.length > 0 && <p className="og-go" aria-label="Fields">{fields.map((f) => <Tag key={f}>{f}</Tag>)}</p>}
+      <div className="og-go">
+        <Btn type="submit" variant="primary" disabled={busy || !name.trim() || !fields.length}>{busy ? "Creating…" : "Create the project"}</Btn>
+        {onCancel && <Btn onClick={onCancel}>Cancel</Btn>}
         <span aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}</Ack> : <Ack state="failed">Not created: {r.error}</Ack>) : null}</span>
       </div>
     </form>
