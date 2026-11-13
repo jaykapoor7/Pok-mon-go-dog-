@@ -179,7 +179,7 @@ function NetworkBody({ p }: { p: Prog }) {
   const [sel, setSel] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const toast = useToast();
-  const head = (sum: ReactNode) => <Head title="Care network" lede={sum} />;
+  const head = (sum: ReactNode) => <Head title="Hospitals" lede={sum} />;
   if (net.loading && !net.data) return <>{head("Reading the care network…")}<Loading rows={5} /></>;
   if (net.error || !net.data) return <>{head("The care network could not be read.")}<Failed error={net.error ?? "Could not read the network."} retry={net.reload} /></>;
   const n = net.data;
@@ -372,8 +372,8 @@ function CoverageBody({ p }: { p: Prog }) {
   const toast = useToast();
   const { places } = usePlaces();
   const canEst = places.some((x) => x.programmes.some((y) => y.id === p.id) && x.capabilities.includes("record_estimate"));
-  if (o.loading && !o.data) return <><Head title="Vaccination coverage" lede="Reading coverage…" /><Loading rows={5} /></>;
-  if (o.error || !o.data) return <><Head title="Vaccination coverage" lede="Coverage could not be read." /><Failed error={o.error ?? "Could not read coverage."} retry={o.reload} /></>;
+  if (o.loading && !o.data) return <><Head title="Dog vaccination" lede="Reading coverage…" /><Loading rows={5} /></>;
+  if (o.error || !o.data) return <><Head title="Dog vaccination" lede="Coverage could not be read." /><Failed error={o.error ?? "Could not read coverage."} retry={o.reload} /></>;
   const d = o.data, target = d.programme.target;
   const withEst = d.vaccination.filter((v) => v.estimate);
   const totVac = withEst.reduce((s, v) => s + v.vaccinated, 0), totEst = withEst.reduce((s, v) => s + (v.estimate?.dogs ?? 0), 0);
@@ -388,7 +388,7 @@ function CoverageBody({ p }: { p: Prog }) {
   ];
   return (
     <>
-      <Head title="Vaccination coverage" lede={totEst ? <><b>{pct(totVac / totEst)}</b> of an estimated {totEst.toLocaleString("en-IN")} dogs are recorded vaccinated, against a target of <b>{pct(target)}</b>. {withEst.length} of {d.vaccination.length} areas have a population estimate.</> : <>No population estimate is recorded, so coverage cannot be shown. The target is <b>{pct(target)}</b> of the dog population.</>} />
+      <Head title="Dog vaccination" lede={totEst ? <><b>{pct(totVac / totEst)}</b> of an estimated {totEst.toLocaleString("en-IN")} dogs are recorded vaccinated, against a target of <b>{pct(target)}</b>. {withEst.length} of {d.vaccination.length} areas have a population estimate.</> : <>No population estimate is recorded, so coverage cannot be shown. The target is <b>{pct(target)}</b> of the dog population.</>} />
       <Stats label="Dogs on partner registers" items={[figure("Dogs on registers", d.vaccination.reduce((s, v) => s + v.registered, 0)), figure("Recorded vaccinated", d.vaccination.reduce((s, v) => s + v.vaccinated, 0)), figure("Areas without an estimate", d.vaccination.length - withEst.length, { tone: d.vaccination.length - withEst.length ? "amber" : undefined })]} />
       <Panel><More items={d.vaccination} cap={15} noun="areas">{(shown) => <Table label="Coverage by area" cols={cols} rows={shown} rowKey={(v) => v.area_id} />}</More></Panel>
       <p className="oh-foot">The tick on each bar is the target. Vaccinated dogs come from partner registers (animals recorded vaccinated in each area). Registers undercount dogs vaccinated in drives without individual records. Coverage is <b>never</b> shown without a population estimate.</p>

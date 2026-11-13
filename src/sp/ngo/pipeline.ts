@@ -31,7 +31,8 @@ export const STAGES: StageDef[] = [
   { id: "evidence", title: "Evidence", hint: "Release photo or place missing", href: "/ngo/verification?stage=evidence", all: "Open evidence", empty: "Every record has its evidence." },
   { id: "report", title: "To report", hint: "Review, then into the package", href: "/ngo/verification?stage=review", all: "Open review", empty: "Nothing is waiting to be reported." },
 ];
-export const stageHref = (id: StageId) => `/ngo/pipeline?stage=${id}`;
+/** Where a stage lives now: on the page of its line of work, at that step. */
+export const stageHref = (id: StageId) => `${id === "new" || id === "care" ? "/ngo/rescues" : "/ngo/sterilisation"}#${id}`;
 
 /** The stage a procedure record is at, from the database's own flags; "done" once it is in a package or accepted. */
 export function stageOfRow(r: QueueRow): StageId | "done" {

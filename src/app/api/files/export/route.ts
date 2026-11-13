@@ -23,7 +23,10 @@ export async function POST(req: Request) {
   const source = REPORT_SOURCES.includes(b.source) ? (b.source as ReportSource) : null;
   if (!format || !source) return NextResponse.json({ error: "Choose a format and a report." }, { status: 400 });
   try {
-    const f = await makeFile(format, await buildReport(source, c.db, String(b.title ?? "").slice(0, 120)));
+    const report = await buildReport(source, c.db, String(b.title ?? "").slice(0, 120));
+    /* A look before downloading: the same content the file will carry, first rows only. Nothing is written or sent. */
+    if (b.preview === true) return NextResponse.json({ title: report.title, subtitle: report.subtitle ?? null, period: report.period ?? null, columns: report.columns.slice(0, 8), rows: report.rows.slice(0, 12).map((r) => r.slice(0, 8).map((v) => String(v).slice(0, 120))), total: report.rows.length, notes: (report.notes ?? []).slice(0, 4) }, { headers: { "Cache-Control": "no-store" } });
+    const f = await makeFile(format, report);
     return new NextResponse(new Uint8Array(f.bytes), { headers: { "Content-Type": f.mime, "Content-Disposition": `attachment; filename="${f.filename}"`, "Cache-Control": "no-store" } });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message.slice(0, 200) }, { status: 400 });

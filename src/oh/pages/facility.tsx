@@ -256,7 +256,7 @@ export function Register({ place }: { place: Place }) {
   ];
   return (
     <Page illustrative={place.illustrative} wide>
-      <Head title="Bite register" lede={rows.error ? "The register could not be read." : !rows.data ? "Reading the register…" : <><b>{all.length}</b> {all.length === 1 ? "presentation" : "presentations"} shown{late ? <>, <span className="is-hot">{late} with a dose overdue</span></> : null}. Opening a record is logged.</>} />
+      <Head title="Bites" lede={rows.error ? "The register could not be read." : !rows.data ? "Reading the register…" : <><b>{all.length}</b> {all.length === 1 ? "presentation" : "presentations"} shown{late ? <>, <span className="is-hot">{late} with a dose overdue</span></> : null}. Opening a record is logged.</>} />
       <Tools end={<SearchBox value={q} onChange={setQ} placeholder="Register number, area" label="Search the register" />}><Lanes label="Show" lanes={FILTERS} value={filter} onChange={setFilter} /></Tools>
       {rows.loading && !rows.data ? <Loading rows={8} /> : rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !list.length ? <Empty title={needle ? "Nothing matches that search" : "No presentations here yet"} /> : (
         <Panel><More items={list} cap={20} noun="presentations">{(shown) => <Table label="Bite register" cols={cols} rows={shown} rowKey={(r) => r.id} href={(r) => `/workspace/${id}/record/${r.id}`} />}</More></Panel>

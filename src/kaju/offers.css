@@ -1,0 +1,38 @@
+.ko { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0 0 24px; }
+.ko-card { display: grid; align-content: space-between; gap: 16px; min-height: 144px; padding: 16px; border-radius: 16px; background: var(--n-side); }
+.ko-card p { display: grid; gap: 4px; margin: 0; color: var(--n-text-2); font-size: 16px; line-height: 24px; }
+.ko-card p b { color: var(--n-text); font-size: 40px; font-weight: 600; line-height: 48px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.ko-card.is-quiet p { grid-auto-flow: row; color: var(--n-text); font-weight: 600; }
+.ko-card.is-quiet p svg { color: var(--n-text-3); margin-bottom: 8px; }
+.ko-card div { display: flex; flex-wrap: wrap; gap: 8px; }
+.ko-go, .ko-watch { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border: 0; border-radius: 8px; font: 500 14px/1 var(--n-font); cursor: pointer; transition: background .12s; }
+.ko-go { background: var(--n-text); color: var(--n-bg); }
+.ko-go:hover { opacity: .88; }
+.ko-watch { background: none; box-shadow: inset 0 0 0 1px var(--n-line-2); color: var(--n-text); }
+.ko-watch:hover { background: var(--n-hover); }
+.ko-go:disabled, .ko-watch:disabled { opacity: .5; cursor: default; }
+.ko :is(button):focus-visible { outline: 2px solid var(--n-blue); outline-offset: 2px; }
+/* the Kaju page: one calm column, the conversation is the page */
+.ai3-full-head.kj { flex-direction: column; align-items: center; gap: 8px; padding: 16px 0 24px; text-align: center; }
+.ai3-full-head.kj h1 { margin: 8px 0 0; color: var(--n-text); font-size: 32px; font-weight: 700; line-height: 40px; letter-spacing: -.02em; }
+.ai3-full-head.kj .kj-new { position: absolute; top: 16px; right: 24px; }
+.ai3-full-in { position: relative; }
+@media (max-width: 860px) { .ko { grid-template-columns: minmax(0, 1fr); } .ko-card { min-height: 0; } .ko-go, .ko-watch { height: 44px; font-size: 16px; } }
+
+/* preview of a prepared file */
+.kp { margin: 8px 0; }
+.kp-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--n-fill); color: var(--n-text); font: 500 14px/1 var(--n-font); cursor: pointer; }
+.kp-btn:hover { background: var(--n-hover); }
+.kp-doc { margin-top: 8px; padding: 12px; border-radius: 12px; background: var(--n-bg); box-shadow: inset 0 0 0 1px var(--n-line); }
+.kp-t { display: grid; gap: 0; margin: 0 0 8px; }
+.kp-t b { color: var(--n-text); font-size: 16px; font-weight: 600; line-height: 24px; }
+.kp-t span, .kp-note { color: var(--n-text-2); font-size: 12px; line-height: 16px; }
+.kp-note { margin: 8px 0 0; }
+.kp-scroll { overflow-x: auto; }
+.kp table { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 16px; }
+.kp th, .kp td { padding: 4px 12px 4px 0; text-align: left; white-space: nowrap; box-shadow: inset 0 -1px 0 var(--n-line); }
+.kp th { color: var(--n-text-2); font-weight: 500; }
+
+.ko-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 0; color: var(--n-text-2); font-size: 16px; line-height: 24px; }
+.ko-line span { flex: 1 1 240px; }
+.ko-line b { color: var(--n-text); font-weight: 600; }

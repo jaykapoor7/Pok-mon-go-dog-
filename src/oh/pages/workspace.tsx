@@ -59,7 +59,7 @@ function Services({ place }: { place: Place }) {
   const stale = offered.filter((svc) => { const x = state(svc); return !x.st || x.st === "not_verified"; }).length;
   return (
     <Page illustrative={place.illustrative}>
-      <Head title="Services we offer" lede={rows.data && offered.length ? <>{stale ? <><b>{stale}</b> of {offered.length} {stale === 1 ? "needs" : "need"} confirming. </> : "Every service is confirmed. "}Patients, referring centres and the programme see each confirmation and its date. One lasts up to a week.</> : "Confirm what you can provide today. A confirmation lasts up to a week."} />
+      <Head title="Vaccine and services" lede={rows.data && offered.length ? <>{stale ? <><b>{stale}</b> of {offered.length} {stale === 1 ? "needs" : "need"} confirming. </> : "Every service is confirmed. "}Patients, referring centres and the programme see each confirmation and its date. One lasts up to a week.</> : "Confirm what you can provide today. A confirmation lasts up to a week."} />
       {rows.loading && !rows.data ? <Loading rows={3} /> : rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !offered.length ? <Empty title="This kind of place does not confirm services" /> : (
         <Panel>
           <Rows label="Services">

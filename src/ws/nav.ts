@@ -32,22 +32,19 @@ type Group = { href?: string; label: string; icon: string; tone: string; views: 
 
 /* ── an NGO ───────────────────────────────────────────────────────── */
 const NGO_WORK: Group[] = [
-  { label: "Cases", icon: "list", tone: "flame", create: { href: "/ngo/cases/new", label: "New case" }, match: ["/ngo/cases"],
-    views: [["/ngo/pipeline", "Board"], ["/ngo/work", "Queue"], ["/ngo/inbox", "Intake"], ["/ngo/verification", "Sign-off"], ["/ngo/review", "Decisions"]] },
+  /* Two lines of work, each one page. Their older working views still open from inside them and keep the page lit. */
+  { label: "Rescues", icon: "heart", tone: "flame", create: { href: "/ngo/add", label: "Add an animal" }, match: ["/ngo/cases", "/ngo/work", "/ngo/inbox"], views: [["/ngo/rescues", "Rescues"]] },
+  { label: "Sterilisation", icon: "check", tone: "violet", match: ["/ngo/verification", "/ngo/review", "/ngo/pipeline"], views: [["/ngo/sterilisation", "Sterilisation"]] },
   { label: "Animals", icon: "paw", tone: "blue",
-    views: [["/ngo/animals", "Register", { exact: true, match: ["/ngo/animals"] }], ["/ngo/care", "Care ledger"], ["/ngo/map", "Map"], ["/ngo/animals/identity", "Identity review"], ["/ngo/animals/scan", "Scan a tag"], ["/ngo/quality", "Data quality"]] },
+    match: ["/ngo/care", "/ngo/animals/identity", "/ngo/animals/scan", "/ngo/quality"], views: [["/ngo/animals", "All animals", { exact: true, match: ["/ngo/animals"] }], ["/ngo/map", "On the map"]] },
   { label: "Reports", icon: "file", tone: "green",
-    views: [["/ngo/packages", "Monthly report"], ["/ngo/proof", "Exports"], ["/ngo/evidence", "Evidence files"], ["/ngo/contracts", "Contracts"]] },
+    match: ["/ngo/proof", "/ngo/evidence", "/ngo/contracts"], views: [["/ngo/packages", "Monthly report"]] },
 ];
+/* Only what running the organisation needs. Drives, outreach and surveys still open by address and from search, but they are not part of the everyday menu. */
 const NGO_ORG: Group[] = [
-  { label: "Drives", icon: "layers", tone: "teal",
-    views: [["/ngo/programmes", "All drives", { exact: true, match: ["/ngo/programmes"] }], ["/ngo/programmes/zones", "Working zones"], ["/ngo/surveys", "Surveys"], ["/ngo/feeding", "Feeding spots"], ["/ngo/projects", "Projects"]] },
-  { label: "Outreach", icon: "heart", tone: "violet",
-    views: [["/ngo/stories", "Stories"], ["/ngo/fundraising", "Fundraising"], ["/ngo/volunteers", "Volunteers"]] },
-  { label: "Automations", icon: "sparkles", tone: "violet", views: [["/ngo/automations", "Library and activity"]] },
-  { label: "Team", icon: "users", tone: "slate", views: [["/ngo/team", "Members and codes"], ["/ngo/training", "Training"]] },
-  { label: "Settings", icon: "settings", tone: "slate",
-    views: [["/ngo/settings", "Organisation", { exact: true }], ["/ngo/settings/policies", "Workflow policies"], ["/ngo/settings/connections", "Connections"], ["/ngo/import", "Import a register"]] },
+  { label: "Team", icon: "users", tone: "slate", match: ["/ngo/training"], views: [["/ngo/team", "Team"]] },
+  { label: "Automations", icon: "sparkles", tone: "violet", views: [["/ngo/automations", "Automations"]] },
+  { label: "Settings", icon: "settings", tone: "slate", match: ["/ngo/settings/policies", "/ngo/settings/connections", "/ngo/import"], views: [["/ngo/settings", "Settings", { exact: true }]] },
 ];
 
 /* ── a reviewing office ───────────────────────────────────────────── */
@@ -97,7 +94,8 @@ export function workspaceTree(i: NavInput): Section[] {
     const ok = allowed("ngo");
     const work = build(NGO_WORK, ok);
     /* The field team's round comes first for the people who walk it. */
-    if (ok.has("/ngo/field")) { const round: Node = { href: "/ngo/field", label: "My round", icon: "phone", tone: "amber" }; if (i.role === "member") work.unshift(round); else work.push(round); }
+    if (ok.has("/ngo/field")) { const round: Node = { href: "/ngo/field", label: "Field work", icon: "phone", tone: "amber" }; /* Only the people who walk the round get it as a page; everyone else adds animals from the message their team sent. */
+      if (i.role === "member") work.unshift(round); }
     return [{ id: "work", label: "Work", nodes: work }, ...prog(i.programmeLinks), { id: "org", label: "Organisation", nodes: build(NGO_ORG, ok) }].filter((s) => s.nodes.length);
   }
   if (i.ws === "city") {

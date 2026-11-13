@@ -25,6 +25,7 @@ import { executeProposal, type Saved } from "./execute";
 import type { AiReply, Citation, Proposal } from "./types";
 import { isAiReply, safeAiHref, auditReference } from "./validation";
 import { Blocks } from "@/kaju/Blocks";
+import { KajuOffers } from "@/kaju/Offers";
 import { Kaju, KajuFace } from "@/kaju/Kaju";
 import { MAX_UPLOAD_BYTES, UPLOAD_LIMIT_MESSAGE } from "@/lib/files/limits";
 import { useKajuAmbient } from "@/kaju/ambient";
@@ -34,7 +35,6 @@ import { isRecordingDemo } from "@/lib/recording-demo";
 import { demoExecute, demoKajuReply } from "@/lib/demo/kaju-demo";
 import { DemoFileViewer } from "@/sp/demo/FileViewer";
 import "./ai.css";
-import { KajuHub } from "@/sp/ngo/KajuHub";
 import { shortCode } from "@/lib/caseCode";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; reply?: AiReply; error?: string; retry?:string; display?: string; fileName?: string };
@@ -268,11 +268,12 @@ export function AiWorkspace() {
   return (
     <div className="ai3-full">
       <div className="ai3-full-in">
-        <header className="ai3-full-head">
-          <div className="ai3-full-id"><span className="ai3-full-kaju"><KajuMark size={96} /></span><div><span className="s3-eyebrow">StrayPaw&rsquo;s AI agent</span><h1>Ask Kaju.</h1><p>Check your records. Prepare the next step. You confirm every change.</p></div></div>
-          <span className="ai3-full-acts"><Link className="s3-btn is-line is-sm" href={connectionsHref(ai.contextPath)}><Plug size={14} />Manage connections</Link>{ai.msgs.length > 0 && <button type="button" className="s3-btn is-line is-sm" onClick={ai.reset}><RotateCcw size={14} />New conversation</button>}</span>
+        <header className="ai3-full-head kj">
+          <span className="ai3-full-kaju"><KajuMark size={72} /></span>
+          <h1>Ask Kaju.</h1>
+          {ai.msgs.length > 0 && <button type="button" className="s3-btn is-line is-sm kj-new" onClick={ai.reset}><RotateCcw size={14} />New conversation</button>}
         </header>
-        {ai.msgs.length === 0 && <KajuHub />}
+        {ai.msgs.length === 0 && <KajuOffers />}
         <Thread key={`${ai.scope??'pending'}:${ai.revision}`} full />
       </div>
     </div>
@@ -485,9 +486,11 @@ function ProposalCard({ p }: { p: Proposal }) {
     finally{locked.current=false;setState('idle')}
   }
   if (state === "cancel") return <p className="ai3-notice"><X size={12} aria-hidden />Cancelled. Nothing was saved.</p>;
+  const fileProposal = p.kind === "report_file" ? p : null;
   return (
     <div className={`ai3-prop${saved?.ok ? " is-done" : ""}`} role="group" aria-label="Prepared change">
       <p className="ai3-prop-h">{saved?.ok ? <><CheckCircle2 size={14} />{p.kind === "email" || p.kind === "calendar_event" || p.kind === "report_file" || p.kind === "chat_post" || p.kind === "sms" ? saved.what : "Saved to the record"}</> : <><Sparkles size={13} />{outside ? "Prepared, not sent" : "Prepared, not saved"}</>}</p>
+      {fileProposal && !saved?.ok ? <FilePreview format={fileProposal.format} source={fileProposal.source} title={fileProposal.title} /> : null}
       {p.why&&<p className="ai3-notice">{p.why}</p>}
       {checking&&<p className="ai3-notice" role="status">Checking for an existing confirmation…</p>}
       <dl>{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd tabIndex={v.length>400?0:undefined}>{v}</dd></div>)}</dl>
@@ -542,4 +545,32 @@ async function describeFile(f: File): Promise<{ label: string; register: boolean
     } catch { return { label: "Spreadsheet", register: false }; }
   }
   return { label: ext === "pdf" ? "PDF document" : ext === "docx" ? "Word document" : ext === "pptx" ? "PowerPoint deck" : "Document", register: false };
+}
+
+
+/* What a prepared file will contain, shown before it is downloaded: its title, how many rows, and the first few. */
+type Peek = { title: string; subtitle: string | null; period: string | null; columns: string[]; rows: string[][]; total: number; notes: string[] };
+function FilePreview({ format, source, title }: { format: string; source: string; title: string }) {
+  const [open, setOpen] = useState(false);
+  const [peek, setPeek] = useState<Peek | "failed" | null>(null);
+  const load = async () => {
+    setOpen((v) => !v); if (peek) return;
+    try {
+      const token = (await getSupabase()?.auth.getSession())?.data.session?.access_token;
+      const r = await fetch("/api/files/export", { method: "POST", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ format, source, title, preview: true }) });
+      const d = r.ok ? await r.json() : null;
+      setPeek(d && Array.isArray(d.columns) && Array.isArray(d.rows) ? (d as Peek) : "failed");
+    } catch { setPeek("failed"); }
+  };
+  return (
+    <div className="kp">
+      <button type="button" className="kp-btn" aria-expanded={open} onClick={load}><FileText size={14} aria-hidden />{open ? "Hide the preview" : "Preview what is inside"}</button>
+      {open ? peek === null ? <p className="kp-note" role="status">Reading…</p> : peek === "failed" ? <p className="kp-note" role="alert">The preview could not be read. You can still download the file.</p> : (
+        <div className="kp-doc">
+          <p className="kp-t"><b>{peek.title}</b><span>{[peek.period, `${peek.total.toLocaleString("en-IN")} ${peek.total === 1 ? "row" : "rows"}`, format.toUpperCase()].filter(Boolean).join(" · ")}</span></p>
+          {peek.rows.length ? <div className="kp-scroll"><table><thead><tr>{peek.columns.map((c) => <th key={c} scope="col">{c}</th>)}</tr></thead><tbody>{peek.rows.map((r, i) => <tr key={i}>{r.map((v, k) => <td key={k}>{v}</td>)}</tr>)}</tbody></table></div> : <p className="kp-note">This report has no rows right now.</p>}
+          {peek.total > peek.rows.length ? <p className="kp-note">First {peek.rows.length} of {peek.total.toLocaleString("en-IN")} rows shown. The file has all of them.</p> : null}
+        </div>) : null}
+    </div>
+  );
 }

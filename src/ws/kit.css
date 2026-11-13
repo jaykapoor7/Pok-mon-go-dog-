@@ -232,3 +232,50 @@ a.k-stat:focus-visible { outline: 2px solid var(--k-blue); }
   .k-card { padding: 12px; }
   .k-card b { font-size: 16px; line-height: 24px; }
 }
+
+/* ════ Readable by default. People read these pages at arm's length and
+   many are not at ease with software: text is 16px, a page has one clear
+   title and one sentence under it, sections stand well apart, and a row
+   is tall enough to read and to hit. */
+@media (min-width: 861px) {
+  .k-page { --k-w: 960px; padding: 32px 0 80px; font-size: 16px; line-height: 24px; }
+  .k-page.is-narrow { --k-w: 760px; }
+  .k-page.is-wide { --k-w: 1200px; }
+  .sp.sx3.os.cn.ws .sp-main h1.k-title { font-size: 32px !important; line-height: 40px !important; letter-spacing: -.02em; }
+  .k-sum { margin-top: 8px; font-size: 18px; line-height: 28px; max-width: 64ch; }
+  .k-sec { margin-top: 40px; }
+  .sp.sx3.os.cn.ws .sp-main .k-sec-t h2 { font-size: 20px; line-height: 28px; }
+  .k-sec-t b, .k-sec-n { font-size: 14px; }
+  .k-row { min-height: 56px; padding: 8px; }
+  .k-row-t b { font-size: 16px; line-height: 24px; }
+  .k-row-t small { font-size: 14px; line-height: 20px; }
+  .k-row-e { font-size: 14px; }
+  .k-tr { min-height: 48px; font-size: 16px; line-height: 24px; }
+  .k-tr.k-th { min-height: 40px; font-size: 14px; }
+  .k-tag { height: 24px; font-size: 14px; }
+  .k-btn { height: 36px; padding: 0 16px; font-size: 16px; }
+  .k-btn.is-s { height: 32px; padding: 0 12px; font-size: 14px; }
+  .k-lanes button { height: 32px; padding: 0 12px; font-size: 16px; }
+  .k-search { height: 36px; }
+  .k-search input { font-size: 16px; }
+  .k-stat dt, .k-stat small { font-size: 14px; line-height: 20px; }
+  .k-stat dd { font-size: 28px; line-height: 36px; }
+  .k-props dt, .k-props dd { font-size: 16px; }
+  .k-empty b { font-size: 18px; }
+  .k-empty p, .k-note { font-size: 16px; line-height: 24px; }
+  .k-card b { font-size: 16px; line-height: 24px; }
+  .k-card small, .k-card-c { font-size: 14px; line-height: 20px; }
+}
+
+/* Filters that carry counts are the page's flow: each a big figure over its name, the chosen one marked. One look says how much waits where. */
+@media (min-width: 861px) {
+  .k-tools:has(.k-lanes b) { display: block; }
+  .k-lanes:has(b) { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; width: 100%; margin: 16px 0 8px; padding: 0; background: none; box-shadow: none; }
+  .k-lanes:has(b) button { display: flex; flex-direction: column-reverse; align-items: flex-start; justify-content: flex-end; gap: 4px; height: auto; min-height: 96px; padding: 12px 0 8px; border-top: 4px solid var(--n-fill); border-radius: 0; background: none; box-shadow: none; color: var(--n-text-2); font-size: 16px; font-weight: 500; line-height: 24px; text-align: left; transition: border-color .15s, color .15s; }
+  .k-lanes:has(b) button:hover { border-top-color: var(--n-line-2); color: var(--n-text); background: none; }
+  .k-lanes:has(b) button[aria-pressed="true"] { border-top-color: var(--n-blue); color: var(--n-text); background: none; box-shadow: none; }
+  .k-lanes:has(b) button b { min-width: 0; padding: 0; background: none; color: var(--n-text-3); font-size: 40px; font-weight: 600; line-height: 48px; letter-spacing: -.03em; }
+  .k-lanes:has(b) button[aria-pressed="true"] b, .k-lanes:has(b) button b[data-tone] { color: var(--n-text); }
+  .k-lanes:has(b) button b[data-tone="flame"], .k-lanes:has(b) button b[data-tone="red"] { color: var(--n-red); }
+}
+@media (min-width: 861px) { .k-lanes:has(b) button b, .k-lanes:has(b) button b[data-tone] { background: none !important; } .k-lanes:has(b) button b[data-tone="amber"], .k-lanes:has(b) button b[data-tone="yellow"] { color: var(--t-orange); } .k-lanes:has(b) button b[data-tone="blue"] { color: var(--n-blue); } }
