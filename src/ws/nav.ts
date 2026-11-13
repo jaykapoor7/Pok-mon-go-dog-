@@ -44,6 +44,7 @@ const NGO_ORG: Group[] = [
     views: [["/ngo/programmes", "All drives", { exact: true, match: ["/ngo/programmes"] }], ["/ngo/programmes/zones", "Working zones"], ["/ngo/surveys", "Surveys"], ["/ngo/feeding", "Feeding spots"], ["/ngo/projects", "Projects"]] },
   { label: "Outreach", icon: "heart", tone: "violet",
     views: [["/ngo/stories", "Stories"], ["/ngo/fundraising", "Fundraising"], ["/ngo/volunteers", "Volunteers"]] },
+  { label: "Automations", icon: "sparkles", tone: "violet", views: [["/ngo/automations", "Library and activity"]] },
   { label: "Team", icon: "users", tone: "slate", views: [["/ngo/team", "Members and codes"], ["/ngo/training", "Training"]] },
   { label: "Settings", icon: "settings", tone: "slate",
     views: [["/ngo/settings", "Organisation", { exact: true }], ["/ngo/settings/policies", "Workflow policies"], ["/ngo/settings/connections", "Connections"], ["/ngo/import", "Import a register"]] },

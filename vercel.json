@@ -17,6 +17,10 @@
     {
       "path": "/api/admin/kaju/checks",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/admin/automations/run",
+      "schedule": "30 4 * * *"
     }
   ],
   "ignoreCommand": "bash scripts/vercel-ignore.sh"

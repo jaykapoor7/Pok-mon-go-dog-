@@ -191,6 +191,21 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
   const acc: Acc = { citations: [], tools: [], proposals: [] };
   /* Every answer offers a next step, so a conversation never dead-ends. */
   const done = (text: string): Omit<AiReply, "notice"> => ({ text, ...acc, engine: "tools", suggestions: acc.proposals.length ? undefined : followUps(asked, !!ctx.orgId, office) });
+  const ta = asked.toLowerCase().trim();
+  /* An automation is asked for in plain words: one sentence with its decisions as blanks. The filled sentence opens the automation, ready to turn on; a person turns it on. */
+  const AUTO: [RegExp, string, string][] = [[/follow[- ]?ups?/, "overdue_followup", "overdue follow-ups"], [/evidence|photos?/, "missing_evidence", "incomplete evidence"], [/vet|sign[- ]?off|procedures?/, "awaiting_vet", "procedures waiting for sign-off"], [/clarif|questions?|reviewing office|municipal/, "open_clarification", "questions from the reviewing office"], [/deadline/, "reporting_deadline", "the report deadline"], [/summary|digest|everything/, "digest", "a summary of everything waiting"]];
+  if (ctx.orgId && has(ta, /\b(automat\w*|remind (me|us)|alert (me|us)|notify (me|us)|tell (me|us|leads|everyone) (when|about|every)|every (day|week|morning|monday))\b/)) {
+    const done2 = ta.match(/^every (day|week), tell (leads|everyone) about (.+?) when at least (\d+) (?:is|are) waiting\.?$/);
+    const pick = AUTO.find(([re, , label]) => (done2 ? done2[3] === label : re.test(ta)));
+    if (done2 && pick) {
+      acc.navigate = { href: `/ngo/automations?rule=${pick[1]}&every=${done2[1]}&notify=${done2[2]}&min=${Math.min(1000, Number(done2[4]) || 1)}`, label: "the automation to turn on" };
+      return { ...done(`Ready: every ${done2[1]}, ${done2[2]} are told about ${pick[2]} when at least ${done2[4]} ${done2[4] === "1" ? "is" : "are"} waiting. Open it and press **Turn on**. Nothing runs until you do.`), suggestions: undefined };
+    }
+    acc.blocks = [{ kind: "blanks", parts: ["Every ", { blank: "every" }, ", tell ", { blank: "who" }, " about ", { blank: "what" }, " when at least ", { blank: "min" }, " are waiting."],
+      blanks: [{ id: "every", label: "how often", control: "choice", options: ["day", "week"], ...(has(ta, /week|monday/) ? { value: "week" } : has(ta, /\b(day|daily|morning)\b/) ? { value: "day" } : {}) }, { id: "who", label: "who", control: "choice", options: ["leads", "everyone"], ...(has(ta, /everyone|whole team|all of us/) ? { value: "everyone" } : {}) }, { id: "what", label: "what to watch", control: "choice", options: AUTO.map((x) => x[2]), ...(pick ? { value: pick[2] } : {}) }, { id: "min", label: "how many", control: "choice", options: ["1", "3", "5", "10"] }],
+      note: "People are told inside StrayPaw. Nothing is sent outside and no record is changed." }];
+    return { ...done("I can set that up. Fill in the blanks and I will get it ready for you to turn on."), suggestions: undefined };
+  }
   const needsOrg = ctx.orgId ? "I could not read your records. Counts are unknown. Try again." : "That needs an organisation workspace. Join your organisation with its code, or ask me about published programmes and the public map.";
   const firstName = (ctx.userName ?? "").trim().split(/\s+/).find((w) => !/^(dr|mr|mrs|ms|prof)\.?$/i.test(w)) ?? null;
   { const chat = smallTalk(q, firstName && !firstName.includes("@") ? firstName : null); if (chat) return done(chat); }

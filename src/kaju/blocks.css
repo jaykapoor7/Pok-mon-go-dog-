@@ -65,7 +65,7 @@
 .kb-blanks { display: grid; gap: 8px; padding: 12px; border-radius: 12px; background: var(--n-side); }
 .kb-lead { margin: 0; color: var(--n-text-2); font-size: 14px; line-height: 20px; }
 .kb-sentence { margin: 0; color: var(--n-text); font-size: 16px; line-height: 32px; }
-.kb-blank { display: inline; margin: 0 2px; padding: 2px 8px; border: 0; border-bottom: 2px dotted var(--n-blue); border-radius: 4px 4px 0 0; background: var(--n-blue-soft); color: var(--n-blue); font: inherit; font-weight: 500; line-height: 24px; cursor: pointer; transition: background .15s, color .15s; }
+.kb-blank { display: inline; margin: 0 4px; padding: 0 8px; border: 0; border-bottom: 2px dotted var(--n-blue); border-radius: 4px 4px 0 0; background: var(--n-blue-soft); color: var(--n-blue); font: inherit; font-weight: 500; line-height: 24px; cursor: pointer; transition: background .15s, color .15s; }
 .kb-blank:not(.is-filled) { color: var(--n-text-2); font-weight: 400; animation: kb-wait 1.6s ease-in-out infinite; }
 .kb-blank.is-filled { border-bottom-style: solid; }
 .kb-blank[aria-expanded="true"] { background: var(--n-blue); color: #fff; animation: none; }
