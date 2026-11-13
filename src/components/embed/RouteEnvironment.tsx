@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Haptics } from "@/components/ux/Haptics";
 import { InstallPrompt } from "@/components/ux/InstallPrompt";
-import { Toaster } from "@/components/ui/sonner";
 import { StorageNotice } from "@/components/site/StorageNotice";
 import { ServiceWorker } from "@/components/site/ServiceWorker";
 import { MotionRoot } from "@/components/motion/MotionRoot";
@@ -38,7 +37,10 @@ export function RouteEnvironment({ children }: { children: React.ReactNode }) {
               <InstallPrompt />
               <StorageNotice />
               <ServiceWorker />
-              <Toaster />
+              {/* No sonner <Toaster /> here: nothing calls sonner's toast(), so it only
+                  put an empty region and its library on every page. The app's
+                  toasts come from oh/ui's ToastHost. If sonner is used, mount the
+                  Toaster from components/ui/sonner where it is needed. */}
             </AuthProvider>
           </MotionRoot>
         </LocaleProvider>
