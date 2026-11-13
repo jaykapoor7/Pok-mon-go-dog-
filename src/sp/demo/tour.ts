@@ -57,7 +57,7 @@ export const TOUR: TourStep[] = [
   { role: "oh-clinician", path: `${HOSPITAL}/register`, chapter: "The hospital", who: "Hospital clinician",
     title: "The hospital records the bite",
     body: "The clinician records it once: category, wound washing, the course and its dates. The area's NGO is asked to find the dog automatically, without any patient details.",
-    sel: "main a[href*='/record/']", within: [`${HOSPITAL}/record/`], hint: "Open a bite record to see the course and the follow-up." },
+    sel: "main .k-tr.is-link, main a[href*='/record/']", within: [`${HOSPITAL}/record/`], hint: "Open a bite record to see the course and the follow-up." },
   { role: "oh-ngo", path: NGO, chapter: "The NGO", who: "NGO coordinator",
     title: "The right team is asked to find the dog",
     body: "The request reaches the NGO responsible for HSR Layout: the animal and the place, never the patient. The team records what they found and can send a sample.",
@@ -70,14 +70,14 @@ export const TOUR: TourStep[] = [
     title: "The programme sees it and acts",
     body: "What needs a decision comes first: the confirmed case, a health centre without vaccine and its referral, overdue doses. Below, one map shows bites, confirmed cases and dog vaccination by area, with the areas to act on.",
     sel: ".oh-alert", hint: "Scroll down to “Where to act”." },
-  { role: "field", path: "/ngo/field", chapter: "Vaccination", who: "NGO field worker",
-    title: "The dogs around it are vaccinated",
-    body: "In the field, each dog is recorded with a photo and its place in about a minute, with or without signal. A veterinarian signs each procedure before it counts.",
-    sel: ".rn-capture" },
+  { role: "field", path: "/ngo/sterilisation", chapter: "The field work", who: "NGO field team",
+    title: "The dogs around it are vaccinated and sterilised",
+    body: "Each procedure moves through three steps before it counts: a veterinarian signs it, the release photo and place are added, and it goes into the month's report. The figures show how many wait at each step.",
+    sel: ".fl", hint: "Each step lists the records waiting at it." },
   { role: "municipal", path: "/city/review", chapter: "Verification", who: "Municipal reviewer",
     title: "The municipal office verifies the work",
     body: "Every claimed animal arrives with its evidence and the vet's sign-off. Kaju checks each one and drafts the review notes; the office decides.",
-    sel: "main a[href^='/city/review/']", within: ["/city/review/"], hint: "Open the waiting package." },
+    sel: "main .k-tr.is-link, main a[href^='/city/review/']", within: ["/city/review/"], hint: "Open the waiting package." },
 ];
 
 /* For the closing card. */
