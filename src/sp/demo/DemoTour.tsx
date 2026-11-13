@@ -12,7 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Compass, Minus, Sparkles, UserRound } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { DEMO_ROLES, SHOWN, TOUR, TOUR_DONE, type DemoRole } from "./tour";
-import { enterAs, readTour, writeTour, TOUR_EVENT, type TourState } from "./state";
+import { enterAs, leaveFor, readTour, writeTour, TOUR_EVENT, type TourState } from "./state";
 import "./demo-tour.css";
 
 const pathOf = (p: string) => p.split("?")[0];
@@ -45,7 +45,7 @@ function Transit({ i, leaving }: { i: number; leaving: boolean }) {
   return (
     <div className={`dt-transit${leaving ? " is-leaving" : ""}`} role="status" aria-live="polite">
       <div className="dt-transit-in">
-        <p className="dt-transit-k">Chapter {i + 1} of {TOUR_DONE}</p>
+        <p className="dt-transit-k">{i + 1} of {TOUR_DONE}</p>
         <h2>{t.chapter}</h2>
         <p className="dt-transit-who"><i aria-hidden />Now as the {t.who.toLowerCase()}</p>
         <ol className="dt-transit-dots" aria-hidden>{TOUR.map((x, k) => <li key={x.chapter} className={k < i ? "is-done" : k === i ? "is-on" : undefined} />)}</ol>
@@ -64,7 +64,7 @@ export function DemoTour() {
   const [found, setFound] = useState(false);
   const [transit, setTransit] = useState<{ i: number; leaving: boolean } | null>(null);
   const [asked, setAsked] = useState(false);
-  const scrolled = useRef<string>("");
+  const scrolled = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setS(readTour());
@@ -87,7 +87,7 @@ export function DemoTour() {
     return () => window.clearTimeout(t);
   }, [transit, busy]);
 
-  useEffect(() => { const t = setTimeout(() => setTabs(!!document.querySelector(".sp-tabs")), 300); return () => clearTimeout(t); }, [pathname]);
+  useEffect(() => { const t = setTimeout(() => setTabs(!!document.querySelector(".ws-dock")), 300); return () => clearTimeout(t); }, [pathname]);
 
   const step = s && s.step < TOUR_DONE ? TOUR[s.step] : null;
   useEffect(() => { setAsked(false); }, [s?.step]);
@@ -108,12 +108,11 @@ export function DemoTour() {
       if (hit && hit !== el) {
         el?.classList.remove("sp-tour-hl");
         el = hit; el.classList.add("sp-tour-hl"); setFound(true);
-        const id = `${s.step}:${pathname}`;
         const r = hit.getBoundingClientRect();
         /* Keep it clear of the top bar and of this card. */
         const cardTop = document.querySelector(".dt")?.getBoundingClientRect().top ?? window.innerHeight;
-        if (scrolled.current !== id && (r.top < 72 || r.bottom > cardTop - 16)) {
-          scrolled.current = id;
+        if (scrolled.current !== hit && (r.top < 72 || r.bottom > cardTop - 16)) {
+          scrolled.current = hit;
           const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
           const room = cardTop - 72;
           const by = r.height < room ? r.top - 72 - Math.max(0, (room - r.height) / 3) : r.top - 72;
@@ -149,7 +148,7 @@ export function DemoTour() {
       if (e) { setErr(e); setBusy(false); setTransit(null); return; }
       writeTour({ mode, step: i, role: t.role });
       try { sessionStorage.setItem(TRANSIT, String(i)); } catch { /* fine */ }
-      window.location.assign(t.path); /* a fresh load so every screen reads the new person */
+      leaveFor(t.path); /* a fresh load so every screen reads the new person */
       return;
     }
     writeTour({ mode, step: i, role: t.role });
@@ -162,7 +161,7 @@ export function DemoTour() {
     const e = await enterAs(r);
     if (e) { setErr(e); setBusy(false); return; }
     writeTour({ mode: "roam", step: s?.step ?? 0, role: r });
-    window.location.assign(DEMO_ROLES[r].home);
+    leaveFor(DEMO_ROLES[r].home);
   }, [s?.step]);
 
   const askKaju = (q: string) => { setAsked(true); window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); };
@@ -185,7 +184,7 @@ export function DemoTour() {
         {cover}
         <div className={`dt-pill${place}`} role="region" aria-label="Guided demo">
           <button type="button" className="dt-resume" disabled={busy} onClick={() => go(Math.min(s.step, TOUR_DONE - 1))}>
-            <Compass size={15} aria-hidden /> <span>The story</span> <small>{s.step >= TOUR_DONE ? "Watch again" : `Resume · chapter ${s.step + 1} of ${TOUR_DONE}`}</small>
+            <Compass size={15} aria-hidden /> <span>The tour</span> <small>{s.step >= TOUR_DONE ? "Watch again" : `Resume · ${s.step + 1} of ${TOUR_DONE}`}</small>
           </button>
           {roles}
           {err && <p className="dt-err" role="alert">{err}</p>}
@@ -196,7 +195,7 @@ export function DemoTour() {
 
   const n = TOUR_DONE;
   const bar = (at: number) => (
-    <ol className="dt-steps" aria-label={`Chapter ${Math.min(at, n - 1) + 1} of ${n}`}>
+    <ol className="dt-steps" aria-label={`Stop ${Math.min(at, n - 1) + 1} of ${n}`}>
       {TOUR.map((t, k) => <li key={t.chapter} title={t.chapter} className={k < at ? "is-done" : k === at ? "is-on" : undefined} />)}
     </ol>
   );
@@ -206,13 +205,13 @@ export function DemoTour() {
       <>
         {cover}
         <aside className={`dt is-end${place}`} aria-label="Guided demo">
-          <div className="dt-top"><span className="dt-k">The story · complete</span></div>
+          <div className="dt-top"><span className="dt-k">Tour · complete</span></div>
           {bar(n)}
-          <h2>One bite, followed across six institutions</h2>
-          <p>Each person did their own work in their own place, on one shared record, and saw only what their role allows.</p>
+          <h2>That is the platform</h2>
+          <p>Every screen was a real workspace on illustrative data.</p>
           <ul className="dt-shown">{SHOWN.map((x, k) => <li key={x} style={{ ["--k" as string]: k }}>{x}</li>)}</ul>
           <div className="dt-act">
-            <button type="button" className="dt-btn" disabled={busy} onClick={() => go(0)}>Watch again</button>
+            <button type="button" className="dt-btn" disabled={busy} onClick={() => go(0)}>Again</button>
             <button type="button" className="dt-btn is-go" onClick={() => writeTour({ ...s, mode: "roam" })}>Explore freely <ArrowRight size={15} aria-hidden /></button>
           </div>
           <div className="dt-foot">{roles}<a href="https://www.straypaw.org/demo" className="dt-link">Talk to us about a pilot</a></div>
@@ -224,22 +223,22 @@ export function DemoTour() {
 
   const next = s.step + 1 < n ? TOUR[s.step + 1] : null;
   /* A small card: who you are now, one line of context, and the way on. The visitor looks around the workspace as they like; "Next" works from wherever they are. */
-  const label = !next ? "Finish the story" : `Next: ${next.chapter}`;
+  const label = !next ? "Finish" : `Next: ${next.chapter}`;
   const line = step.short ?? step.body.split(/(?<=\.)\s/)[0];
   return (
     <>
       {cover}
       <aside key={s.step} className={`dt is-small${place}`} aria-label="Guided demo" aria-live="polite">
         <div className="dt-top">
-          <span className="dt-k">Chapter {s.step + 1} of {n}<span className="dt-k-l"> · {step.chapter}</span></span>
+          <span className="dt-k">{s.step + 1} of {n}<span className="dt-k-l"> · {step.chapter}</span></span>
           <button type="button" className="dt-min" aria-label="Hide the guide and explore freely" onClick={() => writeTour({ ...s, mode: "roam" })}><Minus size={14} aria-hidden /></button>
         </div>
         {bar(s.step)}
         <p className="dt-who"><i aria-hidden />{step.who}</p>
         <h2>{step.title}</h2>
-        <p>{line} Look around freely.</p>
+        <p>{line}</p>
         <div className="dt-act">
-          <button type="button" className="dt-btn is-back" aria-label="Previous chapter" disabled={busy || s.step === 0} onClick={() => go(s.step - 1)}><ArrowLeft size={15} aria-hidden /></button>
+          <button type="button" className="dt-btn is-back" aria-label="Previous stop" disabled={busy || s.step === 0} onClick={() => go(s.step - 1)}><ArrowLeft size={15} aria-hidden /></button>
           <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => go(s.step + 1)}>{busy ? "Opening…" : label} {!busy && <ArrowRight size={15} aria-hidden />}</button>
         </div>
         {err && <p className="dt-err" role="alert">{err}</p>}

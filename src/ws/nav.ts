@@ -68,7 +68,7 @@ function build(groups: Group[], allowed: Set<string>): Node[] {
     const first = g.views.find(([href]) => allowed.has(href))!;
     /* Allowed only one view that is not the page's main one: the page is that view, by its own name. */
     const label = kids.length === 1 && kids[0].href !== g.views[0][0] ? kids[0].label : g.label;
-    out.push({ href: first[0], label, icon: g.icon, tone: g.tone, match: [...(g.match ?? []), ...kids.map((k) => k.href), ...(first[2]?.match ?? [])], exact: true, children: kids.length > 1 ? kids : undefined, create: g.create });
+    out.push({ href: first[0], label, icon: g.icon, tone: g.tone, match: [...(g.match ?? []), ...kids.filter((k) => !k.exact).map((k) => k.href), ...(first[2]?.match ?? [])], exact: true, children: kids.length > 1 ? kids : undefined, create: g.create });
   }
   return out;
 }

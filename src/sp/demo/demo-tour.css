@@ -164,3 +164,15 @@
 .dt.is-small h2 { font-size: 16px; line-height: 24px; }
 .dt.is-small > p:not(.dt-who) { font-size: 14px; line-height: 20px; }
 .dt.is-small .dt-act { margin-top: 4px; }
+@media (max-width: 760px) {
+  /* On a phone the card is a strip above the dock: the bar, a title, one line, the way on. */
+  .dt.is-small { width: auto; padding: 12px; gap: 4px; border-radius: 12px; }
+  .dt.is-small .dt-top { position: absolute; top: 12px; right: 4px; }
+  .dt.is-small .dt-k { display: none; }
+  .dt.is-small .dt-steps { margin: 0 40px 4px 0; }
+  .dt.is-small h2 { padding-right: 32px; font-size: 16px; line-height: 24px; }
+  .dt.is-small > p:not(.dt-who) { -webkit-line-clamp: 2; }
+  .dt.is-small .dt-act { margin-top: 4px; }
+  .dt.is-small .dt-btn { min-height: 40px; }
+  .dt.is-small .dt-btn.is-back { width: 40px; }
+}

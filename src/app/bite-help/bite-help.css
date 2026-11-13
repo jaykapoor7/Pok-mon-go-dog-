@@ -46,3 +46,46 @@
 
 /* The page kit's button colour won over white on blue (2.1:1); this keeps the label white. */
 .bf-locate.bf-locate, .bf-locate.bf-locate:hover { color: #fff; }
+
+/* The page as a conversation (src/oh/BiteChat.tsx). */
+.bc { display: grid; gap: 12px; max-width: 560px; }
+.s4-prose .bc-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.bc-m { max-width: 92%; padding: 12px 16px; border-radius: 16px 16px 16px 4px; background: #f2f4f8; color: #0b1e3d; font-size: 16px; line-height: 24px; justify-self: start; animation: bc-in .24s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes bc-in { from { opacity: 0; transform: translateY(6px); } }
+.bc-m.is-me { justify-self: end; border-radius: 16px 16px 4px 16px; background: #2457ce; color: #fff; }
+.bc-m.is-urgent { background: #fdecec; color: #8f1d1d; }
+.bc-m a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.s4-prose .bc-m ul { margin: 8px 0 0; padding-left: 20px; list-style: disc; display: grid; gap: 4px; }
+.bc-m:has(.bc-centres) { max-width: 100%; width: 100%; background: none; padding: 0; }
+.bc-reply { position: sticky; bottom: calc(var(--dt-h, 0px) + 12px); display: grid; }
+.bc-chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.bc-chips button, .bc-more { min-height: 44px; padding: 0 16px; border: 1.5px solid #2457ce; border-radius: 24px; background: #fff; color: #2457ce; font: 600 16px/24px inherit; cursor: pointer; transition: background .12s, color .12s; }
+.bc-chips button:hover, .bc-more:hover { background: #2457ce; color: #fff; }
+.bc-type { display: flex; gap: 8px; padding: 4px; border: 1.5px solid #d5dbe6; border-radius: 28px; background: #fff; }
+.bc-type:focus-within { border-color: #2457ce; }
+.bc-type input { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border: 0; background: none; font: inherit; font-size: 16px; color: #0b1e3d; outline: none; }
+.bc-type button { flex: none; display: inline-grid; place-items: center; min-width: 44px; height: 44px; padding: 0 12px; border: 0; border-radius: 24px; background: #2457ce; color: #fff; font: 600 14px/1 inherit; cursor: pointer; }
+.bc-type button.is-quiet { background: none; color: #6b7486; }
+.bc-wait, .bc-err { margin: 0; font-size: 14px; color: #6b7486; text-align: right; }
+.bc-err { color: #c23a22; }
+.bc-centres { display: grid; gap: 12px; }
+.bc-demo { margin: 0; padding: 8px 12px; border-radius: 8px; background: #fff7e6; color: #8a5a00; font-size: 14px; line-height: 20px; }
+.bc-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.bc-tools > button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: #2457ce; color: #fff; font: 600 14px/20px inherit; cursor: pointer; }
+.bc-tools label { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #3d4a5c; }
+.bc-tools select { min-height: 44px; padding: 0 8px; border: 1px solid #d5dbe6; border-radius: 8px; background: #fff; font: inherit; font-size: 14px; }
+.s4-prose .bc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.bc-list > li { padding: 12px 16px; border: 1px solid #e4e8f0; border-radius: 12px; background: #fff; }
+.s4-prose .bc-list h3 { display: flex; justify-content: space-between; gap: 8px; margin: 0; padding: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: #0b1e3d; }
+.bc-list h3 span { flex: none; color: #2457ce; font-size: 14px; }
+.s4-prose .bc-list p { margin: 0 0 8px; color: #6b7486; font-size: 14px; line-height: 20px; }
+.s4-prose .bc-list li > p:last-child { margin: 8px 0 0; }
+.s4-prose .bc-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.bc-list ul li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; font-size: 14px; line-height: 20px; }
+.bc-list ul li span { flex: 1; min-width: 120px; color: #3d4a5c; }
+.bc-list ul li small { flex-basis: 100%; color: #8a90a0; font-size: 12px; line-height: 16px; }
+.bc-more { justify-self: start; min-height: 40px; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .bc-m { animation: none; } }
+.s4-prose .bc-log > li, .s4-prose .bc-list li { list-style: none; }
+.s4-prose .bc-log > li::before, .s4-prose .bc-list li::before { content: none; }
+.s4-prose .bc-m > ul > li { list-style: disc; }
