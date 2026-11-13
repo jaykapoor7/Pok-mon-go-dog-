@@ -19,6 +19,7 @@ import { useAi } from "@/sp3/ai/AiPanel";
 import { searchRegister, type RegisterRow } from "@/lib/case-register";
 import type { FoundAnimal, FoundPlace } from "@/lib/livingmap/server";
 import { WORKSPACES, workspaceView, type Role, type WorkspaceId } from "./workspaces";
+import { wsState } from "@/ws/store";
 
 type Hit = { key: string; kind: "Place" | "City" | "Animal" | "Case" | "Go to" | "Ask Kaju" | "Do"; title: string; detail: string; href: string; group?: string };
 /* Plain names for the areas of a workspace, as the index shows them. */
@@ -40,7 +41,8 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
   const [at, setAt] = useState(0);
   /* The pages open earlier, read when the dialog opens (never during the first render, which the server also draws). */
   const [recent, setRecent] = useState<{ href: string; label: string }[]>([]);
-  useEffect(() => { if (!open) return; try { const v = JSON.parse(sessionStorage.getItem("sp.tabs.v1") ?? "[]"); setRecent(Array.isArray(v) ? v : []); } catch { setRecent([]); } }, [open]);
+  /* Recent: the records and pages this person was on last, newest last (the list below reads it from the end). */
+  useEffect(() => { if (!open) return; setRecent(wsState().recent.map((r) => ({ href: r.href, label: r.title })).reverse()); }, [open]);
 
   useEffect(() => {
     const d = ref.current; if (!d) return;
@@ -82,7 +84,7 @@ export function Finder({ open, onClose, ws, member, role, reviewer, onAsk, pages
     }
     const dests = menu.length ? menu : def.nav.map((d) => ({ href: d.query ? `${d.href}?${d.query}` : d.href, label: d.label }));
     for (const d of dests) if ((!t || d.label.toLowerCase().includes(t)) && !out.some((h) => h.href === d.href)) out.push({ key: `go:${d.href}`, kind: "Go to", title: d.label, detail: def.label, href: d.href, group: t ? undefined : "Go to" });
-    if (!t) { try { for (const r of recent.slice().reverse().slice(0, 4)) if (r.label && !out.some((h) => h.href === r.href)) out.push({ key: `re:${r.href}`, kind: "Go to", title: r.label, detail: "Open earlier", href: r.href, group: "Recent" }); } catch { /* no recent pages */ } }
+    if (!t) { try { for (const r of recent.slice().reverse().slice(0, 6)) if (r.label && !out.some((h) => h.href === r.href)) out.push({ key: `re:${r.href}`, kind: "Go to", title: r.label, detail: "Open earlier", href: r.href, group: "Recent" }); } catch { /* no recent pages */ } }
     /* The pages of the person's places (hospital, laboratory, programme): findable by name like any other. */
     for (const pg of pages) if ((t ? pg.label.toLowerCase().includes(t) || pg.detail.toLowerCase().includes(t) : !menu.length) && !out.some((h) => h.href === pg.href)) out.push({ key: `go:${pg.href}`, kind: "Go to", title: pg.label, detail: pg.detail, href: pg.href, group: t ? undefined : "Go to" });
     for (const g of def.index) for (const l of g.links) if (t && l.label.toLowerCase().includes(t) && !def.nav.some((n) => n.href === l.href)) out.push({ key: `go:${l.href}`, kind: "Go to", title: l.label, detail: `${def.label} · ${g.label}`, href: l.href });

@@ -112,19 +112,25 @@ export function useNames(ready = true) {
 }
 
 /** Run a read when the inputs are ready; a change of `key` re-runs it. */
+/* What a page read last, by its key, for this visit only (memory, never the device's storage). Coming back to a tab
+   shows what was there at once and reads it again behind; nothing is shown as current that the server has not just
+   confirmed for long, and signing out empties it. */
+const READS = new Map<string, unknown>();
+export function clearReads() { READS.clear(); }
 export function useRead<T>(read: () => Promise<{ data: T | null; error: string | null }>, key: string, ready = true): Result<T> {
-  const [state, set] = useState<{ data: T | null; error: string | null; loading: boolean }>({ data: null, error: null, loading: true });
+  const [state, set] = useState<{ data: T | null; error: string | null; loading: boolean; key: string }>(() => ({ data: (READS.get(key) as T | undefined) ?? null, error: null, loading: true, key }));
   const [tick, setTick] = useState(0);
   const reload = useCallback(() => setTick((n) => n + 1), []);
   useEffect(() => {
     if (!ready) return;
     let live = true;
-    set((s) => ({ ...s, loading: true }));
-    read().then((r) => { if (live) set({ data: r.data, error: r.error, loading: false }); });
+    set((s) => (s.key === key ? { ...s, loading: true } : { data: (READS.get(key) as T | undefined) ?? null, error: null, loading: true, key }));
+    read().then((r) => { if (!live) return; if (r.data !== null && !r.error) READS.set(key, r.data); set({ data: r.data, error: r.error, loading: false, key }); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, tick, ready]);
-  return { ...state, reload };
+  /* A key that has just changed never shows the previous key's data. */
+  return state.key === key ? { data: state.data, error: state.error, loading: state.loading, reload } : { data: (READS.get(key) as T | undefined) ?? null, error: null, loading: true, reload };
 }
 
 /* ── Plain-English labels, in one place ────────────────────────────── */

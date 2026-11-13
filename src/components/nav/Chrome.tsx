@@ -1,12 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { usePathname, useSelectedLayoutSegments } from "next/navigation";
 
-/* The application frame is its own chunk: public pages (the site, documents,
-   the bite finder) never load the sidebar, search, Kaju's panel or the
-   workspace menus. It still renders on the server for app routes. */
-const Shell = dynamic(() => import("@/sp/shell/Shell").then((m) => m.Shell));
+/* The application frame is not imported here. App pages live in the (app) route group, whose one layout mounts the
+   frame once for all of them; public pages (the site, documents, the bite finder) never load it. */
 
 /**
  * Marketing and auth pages render their own full-bleed chrome.
@@ -103,6 +100,7 @@ const SP2 = /^\/(community|ngo|city|learn|animal|search|trust|assistant|today|wo
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const segments = useSelectedLayoutSegments();
+  /* App pages get their frame from the (app) layout. */
   if (SP2.test(pathname)) return <>{children}</>;
   // Marketing and profile routes have their own main landmark.
   // ISR can render the root through an internal pathname. The route tree
@@ -117,6 +115,6 @@ export function Chrome({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Everything else is an app surface: the one 3.0 application shell.
-  return <Shell>{children}</Shell>;
+  // Everything else that is an app surface lives in the (app) group and is framed there.
+  return <>{children}</>;
 }
