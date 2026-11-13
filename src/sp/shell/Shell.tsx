@@ -261,7 +261,9 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
       if (next) { restore.current = next.key; router.push(next.href, { scroll: false }); } else if (!atHome) router.push(home);
     } else closeTabs(keys);
   }, [pageKey, router, home, atHome]);
-  const tabList = tabs.some((t) => t.key === pageKey) ? tabs : [...tabs, { key: pageKey, href: here, title: fixedTitle ?? "" }];
+  /* A page passed through on the way somewhere else (a sign-in hop, a redirect) never got a name: it is not a page the person opened, so it is not a tab. */
+  const named = tabs.filter((t) => t.title || t.key === pageKey);
+  const tabList = named.some((t) => t.key === pageKey) ? named : [...named, { key: pageKey, href: here, title: fixedTitle ?? "" }];
   const [drag, setDrag] = useState<{ key: string; over: string | null } | null>(null);
 
   /* ── peek: a record over the page ────────────────────────────────── */

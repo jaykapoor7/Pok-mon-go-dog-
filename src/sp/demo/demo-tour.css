@@ -2,6 +2,8 @@
    covers a change of person, and /try. Fixed above everything except
    dialogs; on phones the card sits above the bottom tab bar. */
 .dt, .dt-pill, .dt-transit, .try { --dt-ink: #0b1e3d; --dt-ink-2: #23304a; --dt-grey: #5e6575; --dt-mute: #8a90a0; --dt-blue: #2457ce; --dt-line: rgba(11, 30, 61, .1); --dt-ease: cubic-bezier(.2, .8, .2, 1); font-family: inherit; color: var(--dt-ink); }
+/* Inside the app the guide wears the app's own colours; the entry page keeps the public site's. */
+.dt, .dt-pill, .dt-transit { --dt-ink: #37352f; --dt-ink-2: #37352f; --dt-grey: #73726c; --dt-mute: #91918e; --dt-blue: #1a73d4; --dt-line: rgba(55, 53, 47, .09); }
 
 /* ── the card ── */
 .dt { position: fixed; z-index: 85; right: 20px; bottom: 20px; width: min(392px, calc(100vw - 32px)); max-height: calc(100dvh - 120px); overflow: auto;
@@ -21,11 +23,11 @@
 .dt-who { display: inline-flex; align-items: center; gap: 8px; margin: 4px 0 -4px; color: var(--dt-grey); font-size: 12px; font-weight: 500; }
 .dt-who i { width: 7px; height: 7px; border-radius: 50%; background: #1b8a7a; box-shadow: 0 0 0 3px rgba(27, 138, 122, .15); }
 .dt h2 { margin: 0; color: var(--dt-ink); font-size: 20px; font-weight: 600; line-height: 1.25; letter-spacing: -.02em; }
-.dt p { margin: 0; color: #39445a; font-size: 14px; line-height: 1.5; }
+.dt p { margin: 0; color: #5f5e5b; font-size: 14px; line-height: 1.5; }
 .dt > p:not(.dt-who) { animation: dt-rise .5s var(--dt-ease) .08s both; }
 @keyframes dt-rise { from { opacity: 0; transform: translateY(4px); } }
 .dt-do { display: grid; gap: 8px; }
-.dt .dt-hint { display: flex; gap: 8px; align-items: flex-start; padding: 8px 12px; border-radius: 8px; background: #f3f6fd; color: #1c3f99; font-size: 14px; }
+.dt .dt-hint { display: flex; gap: 8px; align-items: flex-start; padding: 8px 12px; border-radius: 8px; background: rgba(35, 131, 226, .08); color: #0b62bf; font-size: 14px; }
 .dt .dt-hint svg { flex: none; margin-top: 4px; }
 .dt-kaju { display: inline-flex; align-items: center; gap: 8px; justify-self: start; min-height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: #0b1e3d; color: #fff; font: inherit; font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; transition: transform .15s var(--dt-ease), background .15s; }
 .dt-kaju:hover:not(:disabled) { background: #1b2e52; }
@@ -156,3 +158,9 @@
 .try-roles svg { grid-column: 2; grid-row: 1 / span 3; color: var(--dt-blue); }
 .try-note { margin: 0; color: var(--dt-grey); font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .try-story li { animation: none; } .try-start, .try-roles button { transition: none; } }
+
+/* The guide as a small card: it says where you are and gets out of the way. */
+.dt.is-small { width: min(320px, calc(100vw - 32px)); padding: 12px 16px 16px; gap: 8px; }
+.dt.is-small h2 { font-size: 16px; line-height: 24px; }
+.dt.is-small > p:not(.dt-who) { font-size: 14px; line-height: 20px; }
+.dt.is-small .dt-act { margin-top: 4px; }

@@ -11,10 +11,18 @@
 
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
+import { redirect } from "next/navigation";
+import { DEMO_SITE } from "@/lib/demo-site";
 
 type HomeModule = { metadata: Metadata; default: () => ReactElement };
 
 const home: HomeModule = process.env.MARKETING_EXPERIENCE === "cinematic" ? require("@/cine/Home") : require("./_home/legacy");
 
 export const metadata = home.metadata;
-export default home.default;
+const Home = home.default;
+
+/* The demonstration site is shared as a link to the walkthrough: it opens on the demo, not on the marketing homepage. */
+export default function Page() {
+  if (DEMO_SITE) redirect("/try");
+  return <Home />;
+}
