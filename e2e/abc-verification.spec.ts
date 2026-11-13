@@ -9,8 +9,8 @@ test("verification is a module of the NGO workspace and asks a visitor to sign i
   await page.goto("/ngo/verification");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Verification");
   await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
-  /* Sign-off is a view of Cases: the sidebar keeps Cases lit, and the views sit above the page. */
-  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Cases',exact:true})).toHaveAttribute('aria-current','true');await expect(page.getByRole('navigation',{name:'Views of Cases'}).getByRole('link',{name:'Sign-off',exact:true})).toHaveAttribute('aria-current','page');await expect(side.getByRole('link',{name:'Team',exact:true})).toHaveCount(0)}
+  /* Sign-off belongs to Sterilisation: the sidebar keeps it lit. */
+  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Sterilisation',exact:true})).toHaveAttribute('aria-current','page');await expect(side.getByRole('link',{name:'Team',exact:true})).toHaveCount(0)}
 
 });
 

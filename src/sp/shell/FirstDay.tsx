@@ -30,7 +30,7 @@ const STEPS: Step[] = [
   { sel: ".ws-place", title: "This is your place", body: "Everything on this screen belongs to it. If you work in more than one place, this is where you change." },
   { sel: ".ws-tree", title: "The menu is short on purpose", body: "Home, then the work, then your part in the programme. A page with more than one view unfolds to show them." },
   { sel: ".hm-first, .hm-head, .oh-head, .k-head", title: "One thing first", body: "Home names the one thing to do next and gives it one button. Start there each time you open StrayPaw." },
-  { sel: ".jy2, .hm-line", title: "The line of work", body: "Every record moves left to right through these stages. A stage opens the board at that stage; a record shows where it is on the same line." },
+  { sel: ".hm3-work", title: "The line of work", body: "Rescues and sterilisation, each drawn step by step with how many are waiting. A step opens its page at that step." },
   { sel: ".ws-kaju, .ws-dock-kaju", title: "Kaju", body: "Ask in plain words. Kaju finds records, checks them and prepares work. A person always confirms before anything is saved." },
   { sel: ".ws-tabs", title: "Your open pages", body: "Every page you open stays here as a tab, so going back is one click. A record opens over the page you are on; Esc closes it." },
 ];

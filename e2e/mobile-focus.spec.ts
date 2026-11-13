@@ -94,9 +94,9 @@ test("desktop sidebar is a tree of the work, each place once, with tabs above th
   test.skip(!!isMobile, "desktop sidebar");
   await page.goto("/ngo"); const side = page.getByRole("complementary", { name: "Workspace" });
   await expect(side.getByRole("link", { name: "Home", exact: true })).toHaveAttribute("aria-current", "page");
-  /* The whole line of work is one page, Cases; its board, queue, intake and sign-off are views folded under it, not more rows. */
-  for (const place of ["Cases", "Animals"]) await expect(side.getByRole("link", { name: place, exact: true })).toHaveCount(1);
-  for (const gone of ["Work queue", "Intake", "Treatment & release", "Pipeline", "Map"]) await expect(side.getByRole("link", { name: gone, exact: true })).toHaveCount(0);
+  /* Two lines of work, each one page; nothing to unfold to find the work. */
+  for (const place of ["Rescues", "Sterilisation", "Animals"]) await expect(side.getByRole("link", { name: place, exact: true })).toHaveCount(1);
+  for (const gone of ["Work queue", "Intake", "Treatment & release", "Pipeline", "Cases", "Drives", "Outreach"]) await expect(side.getByRole("link", { name: gone, exact: true })).toHaveCount(0);
   /* Search and Kaju are buttons at the top of the sidebar; the place switcher sits above them. */
   await expect(side.getByRole("button", { name: /Places and account/ })).toBeVisible();
   await expect(side.getByRole("button", { name: /^Kaju/ })).toBeVisible();
@@ -107,13 +107,10 @@ test("desktop sidebar is a tree of the work, each place once, with tabs above th
   expect(Math.abs(main!.x - (sb!.x + sb!.width))).toBeLessThanOrEqual(1);
   /* Every page opened is a tab; going somewhere else keeps the first one open. */
   const tabs = page.getByRole("navigation", { name: "Open pages" });
-  await side.getByRole("link", { name: "Cases", exact: true }).click();
-  await expect(page).toHaveURL(/\/ngo\/pipeline$/);
-  await expect(tabs.getByRole("link", { name: "Cases" })).toHaveAttribute("aria-current", "page");
+  await side.getByRole("link", { name: "Rescues", exact: true }).click();
+  await expect(page).toHaveURL(/\/ngo\/rescues$/);
+  await expect(tabs.getByRole("link", { name: "Rescues" })).toHaveAttribute("aria-current", "page");
   await expect(tabs.getByRole("link", { name: "Home" })).toHaveCount(1);
-  /* Opening a folded page shows its views in the tree. */
-  await side.getByRole("button", { name: "Unfold Cases" }).click();
-  await expect(side.getByRole("link", { name: "Queue", exact: true })).toBeVisible();
   /* One Quick actions button; it opens search. */
   await side.getByRole("button", { name: /^Quick actions/ }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -124,7 +121,7 @@ test("the phone menu opens the same tree and closes without losing the page", as
   await page.goto("/ngo"); const side = page.getByRole("complementary", { name: "Workspace" });
   await expect(side).toHaveAttribute("inert", "");
   await page.getByRole("button", { name: "Open the menu", exact: true }).click();
-  await expect(side.getByRole("link", { name: "Cases", exact: true })).toBeVisible();
+  await expect(side.getByRole("link", { name: "Rescues", exact: true })).toBeVisible();
   await expect(side.getByRole("link", { name: "Team", exact: true })).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(side).toHaveAttribute("inert", "");
@@ -184,21 +181,15 @@ test("the sidebar tucks away, comes back on the key, and has no More list", asyn
   await expect(side.getByRole("link", { name: "Home", exact: true })).toBeVisible();
 });
 
-test("Cases is one board, and the queue, intake and sign-off are its views", async ({ page, isMobile }) => {
-  await page.goto("/ngo/pipeline");
-  /* Signed out, the board is the same door as every NGO page: it reads nothing private. */
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Cases");
-  await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
-  const views = page.getByRole("navigation", { name: "Views of Cases" });
-  for (const v of ["Board", "Queue", "Intake", "Sign-off"]) await expect(views.getByRole("link", { name: v, exact: true })).toHaveCount(1);
-  await expect(views.getByRole("link", { name: "Board", exact: true })).toHaveAttribute("aria-current", "page");
-  /* Decisions are a coordinator's view: a visitor is not offered it. */
-  await expect(views.getByRole("link", { name: "Decisions", exact: true })).toHaveCount(0);
-  await views.getByRole("link", { name: "Intake", exact: true }).click();
-  await expect(page).toHaveURL(/\/ngo\/inbox$/);
-  await expect(page.getByRole("navigation", { name: "Views of Cases" }).getByRole("link", { name: "Intake", exact: true })).toHaveAttribute("aria-current", "page");
-  if (!isMobile) await expect(page.getByRole("complementary", { name: "Workspace" }).getByRole("link", { name: "Cases", exact: true })).toHaveAttribute("aria-current", "true");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+test("each line of work is one page and reads nothing private for a visitor", async ({ page, isMobile }) => {
+  for (const [path, title] of [["/ngo/rescues", "Rescues"], ["/ngo/sterilisation", "Sterilisation"], ["/ngo/add", "Add an animal"]]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(title);
+    await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
+    await expect(page.locator(".ln-row")).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  }
+  if (!isMobile) await expect(page.getByRole("complementary", { name: "Workspace" }).getByRole("link", { name: "Rescues", exact: true })).toBeVisible();
 });
 
 test("Quick actions is an organised index of the workspace", async ({ page, isMobile }) => {
