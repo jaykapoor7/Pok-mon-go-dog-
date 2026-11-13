@@ -518,7 +518,7 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
               })}
               <button type="button" className="ws-ib ws-tab-new" aria-label="Open something: search and quick actions" data-tip="Open a page" data-kbd={`${k.mod} K`} onClick={() => setFind(true)}><Plus size={14} aria-hidden /></button>
             </nav>
-            <span className="ws-phone-title">{pageTitle || title}</span>
+            <span className="ws-phone-title">{title}</span>
             <span className="ws-bar-end">
               <button type="button" className="ws-ib ws-search-btn" onClick={() => setFind(true)} aria-label="Search"><Search size={18} aria-hidden /></button>
               {!onAssistant ? <button type="button" className={`ws-kaju${ai.open ? " is-on" : ""}`} onClick={() => ai.toggle()} aria-pressed={ai.open} aria-label="Ask Kaju" data-tip="Ask Kaju" data-kbd={`${k.mod} J`}><KajuFace size={22} /><span>Ask Kaju</span></button> : null}

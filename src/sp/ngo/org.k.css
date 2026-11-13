@@ -1,0 +1,100 @@
+/* ════════════════════════════════════════════════════════════════════
+   Organisation pages (drives, outreach, team, settings): the few things
+   the page kit does not give. A form field, a receipt line, a row that
+   opens, a small bar. Notion's palette; no outline on anything except a
+   control you can type in or press.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── forms: one column, the label above the field ─────────────────── */
+.og-form { display: grid; gap: 12px; max-width: 560px; min-width: 0; margin: 0; }
+.og-form.is-wide { max-width: none; }
+.og-f { display: grid; gap: 4px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.og-f > label, .og-f > legend, .og-l { padding: 0; color: #37352f; font-size: 14px; font-weight: 500; line-height: 20px; }
+.og-opt { margin-left: 4px; color: #73726c; font-size: 12px; font-weight: 400; }
+.og-hint { margin: 0; color: #73726c; font-size: 12px; line-height: 16px; }
+.sp .k-page .og-in { width: 100%; height: 32px; min-height: 0; margin: 0; padding: 0 12px; border: 0; border-radius: 8px; box-sizing: border-box; background: #fff; box-shadow: inset 0 0 0 1px rgba(55, 53, 47, .16); color: #37352f; font: 400 14px/20px var(--s3-sans, Inter, system-ui, sans-serif); transition: box-shadow .12s; }
+.sp .k-page textarea.og-in { height: auto; min-height: 72px; padding: 8px 12px; resize: vertical; }
+.sp .k-page select.og-in { padding-right: 24px; }
+.sp .k-page .og-in:focus { outline: 0; box-shadow: inset 0 0 0 2px #1a73d4; }
+.sp .k-page .og-in:disabled { background: rgba(227, 226, 224, .5); color: #73726c; }
+.sp .k-page .og-in::placeholder { color: #73726c; opacity: .8; }
+.sp .k-page .og-in.is-s { width: auto; max-width: 100%; height: 28px; padding: 0 8px; }
+.sp .k-page select.og-in.is-s { padding-right: 24px; }
+.og-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.og-go { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.og-check { display: flex; align-items: flex-start; gap: 8px; min-height: 24px; color: #37352f; font-size: 14px; line-height: 20px; cursor: pointer; }
+.og-check input { flex: none; width: 16px; height: 16px; margin: 0; margin-top: 1px; accent-color: #1a73d4; }
+.og-check small { color: #73726c; font-size: 12px; }
+.og-file { color: #37352f; font-size: 14px; max-width: 100%; }
+
+/* ── receipts and quiet text ──────────────────────────────────────── */
+.sp .k-page .ack { min-height: 20px; font-size: 14px; font-weight: 500; }
+.sp .k-page .ack[data-state="draft"], .sp .k-page .ack[data-state="pending"] { color: #73726c; }
+.sp .k-page .ack[data-state="saved"] { color: #2f6b4b; }
+.sp .k-page .ack[data-state="failed"] { color: #c4332e; }
+.og-receipt:empty { display: none; }
+.og-receipt { margin: 0 0 12px; }
+.og-p { max-width: 72ch; margin: 0; color: #73726c; font-size: 14px; line-height: 20px; }
+.og-p b { color: #37352f; font-weight: 500; }
+.og-p.is-err { color: #c4332e; }
+.og-a { color: #1a73d4; font-weight: 500; text-decoration: none; }
+.og-a:hover { color: #0b62bf; text-decoration: underline; }
+.og-a:focus-visible, .og-x-btn:focus-visible { outline: 2px solid #1a73d4; outline-offset: 2px; border-radius: 4px; }
+.og-nr { color: #73726c; }
+.og-mono { font-family: var(--s3-mono, ui-monospace, monospace); font-size: 12px; letter-spacing: 0; }
+.og-code { padding: 0 4px; border-radius: 4px; background: rgba(227, 226, 224, .5); color: #37352f; font: 400 12px/20px var(--s3-mono, ui-monospace, monospace); }
+.og-list { display: grid; gap: 4px; margin: 0; padding: 0 0 0 16px; color: #37352f; font-size: 14px; line-height: 20px; }
+.og-skel { display: grid; gap: 8px; padding: 8px 0; }
+.og-skel i { display: block; height: 20px; border-radius: 4px; background: rgba(227, 226, 224, .5); }
+.og-skel i:nth-child(2) { width: 80%; } .og-skel i:nth-child(3) { width: 60%; }
+
+/* ── a cell with two things in it; a first cell with a grey tail ───── */
+.og-cell { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; vertical-align: middle; }
+.og-cell > :last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.og-cell .part { flex: none; width: 56px; }
+.og-tail { margin-left: 8px; color: #73726c; font-weight: 400; }
+.og-acts { display: inline-flex; align-items: center; gap: 4px; }
+.og-av { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 12px; background: rgba(227, 226, 224, .5); color: #37352f; font-size: 12px; font-weight: 500; line-height: 1; }
+.og-bar { display: inline-block; flex: none; width: 64px; height: 4px; border-radius: 4px; background: rgba(55, 53, 47, .09); overflow: hidden; vertical-align: middle; }
+.og-bar i { display: block; height: 100%; border-radius: 4px; background: #1a73d4; }
+.og-bar.is-fill { display: block; width: auto; }
+.og-bar.is-hatch { background: repeating-linear-gradient(135deg, rgba(55, 53, 47, .16) 0 2px, transparent 2px 5px); }
+.og-bar.is-hatch i { background: #2f6b4b; }
+
+/* ── a row that opens: its detail sits under it, indented to the name ── */
+.og-x-btn { display: grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; background: none; color: #73726c; cursor: pointer; transition: background-color .08s ease-in; }
+.og-x-btn:hover { background: rgba(55, 53, 47, .06); color: #37352f; }
+.og-x-btn svg { transition: transform .18s cubic-bezier(.2, .7, .2, 1); }
+.og-x-btn[aria-expanded="true"] svg { transform: rotate(90deg); }
+.og-x { display: grid; gap: 12px; padding: 4px 8px 16px 40px; min-width: 0; }
+.og-x.is-flush { padding-left: 8px; }
+.og-x h3, .og-h3 { margin: 0; color: #73726c; font-size: 12px; font-weight: 500; line-height: 16px; }
+
+/* ── facts: a label and a figure per line, the figure at the end ───── */
+.og-facts { display: grid; margin: 0; }
+.og-facts > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; min-height: 28px; padding: 4px 0; }
+.og-facts dt { color: #73726c; font-size: 14px; line-height: 20px; }
+.og-facts dd { margin: 0; color: #37352f; font-size: 14px; font-weight: 500; line-height: 20px; font-variant-numeric: tabular-nums; text-align: right; }
+.og-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 32px; }
+
+/* ── the partition strip (recorded yes, recorded no, not recorded) in the kit's colours ── */
+.sp .k-page .part { gap: 8px; }
+.sp .k-page .part-bar { height: 8px; border-radius: 4px; background: rgba(227, 226, 224, .5); box-shadow: none; }
+.sp .k-page .part.is-compact .part-bar { height: 4px; }
+.sp .k-page .part .is-yes { background: #2f6b4b; }
+.sp .k-page .part .is-no { background: #73726c; }
+.sp .k-page .part .is-unk { background: repeating-linear-gradient(135deg, rgba(55, 53, 47, .2) 0 2px, transparent 2px 5px); }
+.sp .k-page .part-key { gap: 4px 16px; margin: 0; color: #73726c; font-size: 12px; line-height: 16px; }
+.sp .k-page .part-key i { width: 8px; height: 8px; border-radius: 4px; box-shadow: none; }
+
+@media (max-width: 860px) {
+  .sp .k-page .og-in { height: 40px; font-size: 16px; }
+  .sp .k-page .og-in.is-s { height: 40px; }
+  .sp .k-page textarea.og-in { height: auto; }
+  .og-two, .og-cols { grid-template-columns: minmax(0, 1fr); }
+  .og-x { padding-left: 12px; padding-right: 12px; }
+  .og-x-btn { width: 40px; height: 40px; }
+  .og-check { min-height: 40px; align-items: center; }
+  .og-check input { margin-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .og-x-btn svg, .sp .k-page .og-in { transition: none; } }
