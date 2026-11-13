@@ -5,9 +5,10 @@
    you today (coloured rows with tags; the verb slides in on hover), and a
    line to ask Kaju. Pages bring their own rows and words. */
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ArrowUp, Check, Sparkles } from "lucide-react";
 import { useAi } from "@/sp3/ai/AiPanel";
+import { Feedforward } from "@/kaju/Feedforward";
 import "./daily.css";
 
 export const greeting = () => { const h = Number(new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", hour12: false })); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; };
@@ -54,6 +55,7 @@ export function AskKaju({ questions = QUESTIONS_NGO }: { questions?: string[] })
   const [q, setQ] = useState("");
   const [hint, setHint] = useState(questions[0]);
   const [focus, setFocus] = useState(false);
+  const box = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (focus || q || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let k = 0, n = 0, dir = 1, wait = 0;
@@ -68,10 +70,13 @@ export function AskKaju({ questions = QUESTIONS_NGO }: { questions?: string[] })
   }, [focus, q, questions]);
   const send = (text: string) => { const t = text.trim(); if (!t) return; ai.ask(t); setQ(""); };
   return (
+    <div className="dy-ff">
+    <Feedforward text={q} onText={setQ} input={box} />
     <form className={`dy-ask${q || focus ? " is-typing" : ""}`} onSubmit={(e) => { e.preventDefault(); send(q || (focus ? "" : hint)); }} role="search" aria-label="Ask Kaju">
       <Sparkles size={15} aria-hidden />
-      <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} placeholder={focus ? "Ask Kaju anything about your programme…" : hint || "Ask Kaju anything about your programme…"} aria-label="Ask Kaju anything about your programme" />
+      <input ref={box} value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} placeholder={focus ? "Ask Kaju anything about your programme…" : hint || "Ask Kaju anything about your programme…"} aria-label="Ask Kaju anything about your programme" />
       <button type="submit" className={`dy-send${q ? " is-ready" : ""}`} aria-label="Send to Kaju" disabled={!q.trim()}><ArrowUp size={14} aria-hidden /></button>
     </form>
+    </div>
   );
 }

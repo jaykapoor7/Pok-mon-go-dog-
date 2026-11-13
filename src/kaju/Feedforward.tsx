@@ -14,7 +14,7 @@ import "./feedforward.css";
 let cityList: Promise<string[]> | null = null;
 const cities = () => (cityList ??= fetch("/api/livingmap?kind=cities").then((r) => (r.ok ? r.json() : { cities: [] })).then((j) => ((j.cities ?? []) as { city: string }[]).map((x) => x.city)).catch(() => { cityList = null; return []; }));
 
-export function Feedforward({ text, onText, input }: { text: string; onText: (t: string) => void; input: RefObject<HTMLTextAreaElement | null> }) {
+export function Feedforward({ text, onText, input }: { text: string; onText: (t: string) => void; input: RefObject<HTMLTextAreaElement | HTMLInputElement | null> }) {
   const [read, setRead] = useState(text);
   const [places, setPlaces] = useState<string[]>([]);
   const mirror = useRef<HTMLDivElement>(null);
@@ -30,6 +30,8 @@ export function Feedforward({ text, onText, input }: { text: string; onText: (t:
     const el = input.current, m = mirror.current; if (!el || !m) return;
     const cs = getComputedStyle(el);
     for (const p of ["font", "letterSpacing", "lineHeight", "padding", "borderWidth", "boxSizing", "whiteSpace", "wordBreak", "overflowWrap", "textAlign"] as const) m.style[p] = cs[p];
+    /* A one-line input centres its text; the mirror does the same with a line as tall as the box. */
+    if (el.tagName === "INPUT") { m.style.whiteSpace = "pre"; m.style.lineHeight = `${el.clientHeight}px`; }
     m.style.width = `${el.offsetWidth}px`; m.style.height = `${el.offsetHeight}px`;
     m.style.left = `${el.offsetLeft}px`; m.style.top = `${el.offsetTop}px`;
     const sync = () => { m.scrollTop = el.scrollTop; };
@@ -45,9 +47,9 @@ export function Feedforward({ text, onText, input }: { text: string; onText: (t:
   /* A click that lands inside an understood phrase opens its choices; so does Alt+Down with the caret in one. */
   useEffect(() => {
     const el = input.current; if (!el) return;
-    const at = () => live.find((s) => el.selectionStart === el.selectionEnd && el.selectionStart > s.start && el.selectionStart < s.end);
+    const at = () => { const c = el.selectionStart ?? -1; return live.find((s) => c === el.selectionEnd && c > s.start && c < s.end); };
     const click = () => { const s = at(); if (s) openSlot(s); };
-    const key = (e: KeyboardEvent) => { if (e.altKey && e.key === "ArrowDown") { const s = at(); if (s) { e.preventDefault(); openSlot(s); } } };
+    const key = (ev: Event) => { const e = ev as KeyboardEvent; if (e.altKey && e.key === "ArrowDown") { const s = at(); if (s) { e.preventDefault(); openSlot(s); } } };
     el.addEventListener("click", click); el.addEventListener("keydown", key);
     return () => { el.removeEventListener("click", click); el.removeEventListener("keydown", key); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
