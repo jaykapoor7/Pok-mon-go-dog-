@@ -14,6 +14,8 @@ export async function GET(req: Request) {
   const db = getSupabaseAdmin();
   if (!db) return NextResponse.json({ error: "Automation store unavailable" }, { status: 503 });
   const due = await db.rpc("automation_due", { p_limit: 100 });
+  /* Until the automations database change is applied there is nothing to run: say so plainly instead of failing every day. */
+  if (due.error && /PGRST202|42883|does not exist|schema cache/i.test(`${due.error.code} ${due.error.message}`)) return NextResponse.json({ ran: 0, state: "awaiting the automations database change" }, { headers: { "Cache-Control": "no-store" } });
   if (due.error) return NextResponse.json({ error: "Could not read due automations" }, { status: 503 });
   const started = Date.now();
   let ran = 0, delivered = 0, skipped = 0, failed = 0;
