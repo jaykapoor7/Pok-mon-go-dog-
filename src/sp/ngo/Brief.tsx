@@ -14,7 +14,7 @@
 import { shortCode } from "@/lib/caseCode";
 import Link from "next/link";
 import { Fragment, useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, ArrowRightLeft, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, History, PawPrint, ShieldCheck, TriangleAlert, UserPlus } from "lucide-react";
+import { ArrowRight, ArrowRightLeft, CalendarClock, CircleAlert, ClipboardList, FileSpreadsheet, HeartHandshake, History, PawPrint, ShieldCheck, TriangleAlert, UserPlus } from "lucide-react";
 import { Btn, Head, Note, Page, Panel, Row, Rows, Section, Tag } from "@/ws/kit";
 import { AskKaju } from "../ui/Daily";
 import { placeHome, usePlaces } from "@/oh/places";
@@ -26,7 +26,9 @@ import { useMembership } from "../shell/Shell";
 import { Work } from "./Work";
 import { KajuActivity } from "./KajuActivity";
 import { KajuPrepared } from "./KajuPrepared";
-import { Journey } from "./Journey";
+import { useOrgOpen } from "./Gate";
+import { usePipeline } from "./pipeline";
+import { ABC_STEPS, Flow, RESCUE_STEPS } from "./Lines";
 import "./cases.k.css";
 import "./brief.css";
 
@@ -136,21 +138,21 @@ export function Brief() {
   return (
     <Page className={`hm2${role ? ` is-${role}` : ""}`}>
       <Head title={`${greeting()}, ${first}.`}
-        sum={failed ? <>Home could not load just now. Your records are safe; try again in a moment, or open the <Link className="kc-link" href="/ngo/pipeline">pipeline</Link>.</>
+        sum={failed ? <>Home could not load just now. Your records are safe; try again in a moment, or open the <Link className="kc-link" href="/ngo/rescues">rescues</Link>.</>
           : !d ? `${today}. Reading your day…`
           : <>{today}. {parts.length ? <>Since yesterday: {parts.map((p, i) => <Fragment key={i}>{i > 0 && (i === parts.length - 1 ? " and " : ", ")}{p}</Fragment>)}.{liveLine}</> : <>Nothing changed since yesterday.{liveLine}</>}</>} />
 
-      {d && d.unavailable.length > 0 && <Note tone="amber">Some parts could not be read: {d.unavailable.join(", ")}. Open the pipeline to retry.</Note>}
+      <div className="hm3-ask"><p className="hm3-ask-k">Ask Kaju</p><AskKaju /></div>
 
-      {d ? <Section title={list.length ? "Needs you today" : "Today"} action={more > 0 ? <Btn small variant="quiet" href="/ngo/pipeline">{more} more on the board</Btn> : undefined}>
+      {d && d.unavailable.length > 0 && <Note tone="amber">Some parts could not be read: {d.unavailable.join(", ")}. Reload to retry.</Note>}
+
+      {d ? <Section title={list.length ? "Needs you today" : "Today"} action={more > 0 ? <Btn small variant="quiet" href="/ngo/rescues">{more} more</Btn> : undefined}>
         <Panel>
           {list.length ? <Rows label="Needs you today">{list.map((r) => (
             <Row key={r.key} href={r.href} tone={TONES[r.tone] ?? "plain"} icon={r.icon ?? <ArrowRight size={12} />} title={r.title} meta={r.meta} end={<Tag tone={TONES[r.tone] ?? "plain"}>{r.tag ?? TAG[r.tone] ?? "Open"}</Tag>} />
           ))}</Rows> : <p className="kc-quiet is-pad" role="status">{isVet ? "Nothing is waiting for your sign-off." : "You are all caught up. Nothing needs you today."}</p>}
         </Panel>
       </Section> : <div aria-hidden><i className="kc-skel" /><i className="kc-skel" /><i className="kc-skel" /></div>}
-
-      <div className="hm2-ask"><AskKaju /></div>
 
       {setup && <Section title={`Set up ${mem.org?.name ?? "your workspace"}`} note="Three steps and your records start here. Kaju can help with each one." action={<Btn small variant="quiet" aria-label="Hide setup" onClick={hideSetup}>Hide</Btn>}>
         <Panel><Rows>
@@ -160,9 +162,7 @@ export function Brief() {
         </Rows></Panel>
       </Section>}
 
-      {mem.org && <Section title="The line today" action={<Btn small variant="quiet" href="/ngo/pipeline">Open the board</Btn>}>
-        <Journey key={`journey:${mem.org.id}`} orgId={mem.org.id} role={role} />
-      </Section>}
+      {mem.org && !isVet && <Section title="Your work"><YourWork role={role} /></Section>}
 
       {d && !isVet && <Section title="From Kaju" fold="kaju" open={false} note="Work prepared for you to confirm, and what Kaju checked">
         <KajuPrepared key={`prepared:${mem.org?.id ?? "org"}`} actor={{ id: user.id, name: user.name ?? "Team member" }} />
@@ -174,3 +174,15 @@ export function Brief() {
 
 const TAG: Record<string, string> = { violet: "Review", flame: "Urgent", amber: "Overdue", green: "Draft", slate: "Check", blue: "Start" };
 
+
+/* The two lines of work, each drawn as it runs: its steps left to right with how many wait at each. A step opens its page at that step. */
+function YourWork({ role }: { role: ReturnType<typeof useMembership>["role"] }) {
+  const open = useOrgOpen();
+  const { cols, ready } = usePipeline(open, role);
+  return (
+    <div className="hm3-work">
+      <section className="hm3-flow"><Link href="/ngo/rescues" className="hm3-flow-h"><span className="hm3-ic is-flame" aria-hidden><HeartHandshake size={20} /></span><b>Rescues</b><ArrowRight size={18} aria-hidden /></Link><Flow steps={RESCUE_STEPS} cols={cols} ready={ready} base="/ngo/rescues" label="Rescues, step by step" /></section>
+      <section className="hm3-flow"><Link href="/ngo/sterilisation" className="hm3-flow-h"><span className="hm3-ic is-violet" aria-hidden><ShieldCheck size={20} /></span><b>Sterilisation</b><ArrowRight size={18} aria-hidden /></Link><Flow steps={ABC_STEPS} cols={cols} ready={ready} base="/ngo/sterilisation" label="Sterilisation, step by step" /></section>
+    </div>
+  );
+}

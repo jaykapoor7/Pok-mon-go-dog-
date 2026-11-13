@@ -1,0 +1,43 @@
+/* A line of work: numbered steps down the page, each with its waiting records. Generous, readable, nothing boxed. */
+.ln { display: grid; gap: 40px; margin: 32px 0 0; padding: 0; list-style: none; }
+.ln-h { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 16px; align-items: start; }
+.ln-n { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 16px; background: var(--n-fill); color: var(--n-text-2); font: 600 16px/1 var(--n-font); }
+.sp.sx3.os.cn.ws .sp-main .ln-h h2 { display: flex; align-items: baseline; gap: 12px; margin: 0; color: var(--n-text); font-size: 20px; font-weight: 600; line-height: 32px; letter-spacing: -.01em; }
+.ln-h h2 b { color: var(--n-text-3); font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.ln-h p { max-width: 60ch; margin: 0; color: var(--n-text-2); font-size: 16px; line-height: 24px; }
+.ln-list { display: grid; gap: 0; margin: 16px 0 0 48px; padding: 0; list-style: none; box-shadow: inset 0 1px 0 var(--n-line); }
+.ln-row { display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 8px; border-radius: 8px; color: var(--n-text); text-decoration: none; box-shadow: inset 0 -1px 0 var(--n-line); transition: background var(--n-hover-t, .1s); }
+.ln-row:hover { background: var(--n-hover); }
+.ln-row:focus-visible { outline: 2px solid var(--n-blue); outline-offset: -2px; }
+.ln-row.is-hot { box-shadow: inset 4px 0 0 var(--n-red), inset 0 -1px 0 var(--n-line); padding-left: 16px; }
+.ln-t { flex: 1; min-width: 0; display: grid; gap: 0; }
+.ln-t b { overflow: hidden; font-size: 16px; font-weight: 500; line-height: 24px; text-overflow: ellipsis; white-space: nowrap; }
+.ln-t small { overflow: hidden; color: var(--n-text-2); font-size: 14px; line-height: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.ln-row > svg { flex: none; color: var(--n-text-3); }
+.ln-all { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 8px; color: var(--n-blue); font-size: 16px; font-weight: 500; text-decoration: none; }
+.ln-all:hover { text-decoration: underline; }
+.ln-none { margin: 16px 0 0 48px; padding: 16px; border-radius: 8px; background: var(--n-fill); color: var(--n-text-2); font-size: 16px; line-height: 24px; }
+.ln-none.is-err { background: var(--t-red-bg); color: var(--t-red); }
+.ln-skel { display: block; height: 64px; box-shadow: inset 0 -1px 0 var(--n-line); background: linear-gradient(90deg, transparent, var(--n-fill), transparent) 0 0 / 200% 100%; animation: ln-sh 1.4s linear infinite; }
+@keyframes ln-sh { to { background-position: -200% 0; } }
+@media (max-width: 860px) { .ln { gap: 32px; margin-top: 24px; } .ln-list, .ln-none { margin-left: 0; } }
+@media (prefers-reduced-motion: reduce) { .ln-skel { animation: none; } }
+
+/* The flow: nodes joined by a line, each a big count over its name, with a bar showing its share of the work. */
+.fl { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; margin: 32px 0 0; }
+.fl-node { position: relative; display: grid; gap: 4px; padding: 16px 16px 16px 0; color: var(--n-text-2); text-decoration: none; border-radius: 8px; transition: background var(--n-hover-t, .1s); }
+.fl-node + .fl-node { padding-left: 16px; }
+.fl-node:hover { background: var(--n-hover); }
+.fl-node:focus-visible { outline: 2px solid var(--n-blue); outline-offset: -2px; }
+.fl-bar { display: block; height: 4px; margin-bottom: 12px; border-radius: 4px; background: var(--n-fill); overflow: hidden; }
+.fl-bar i { display: block; width: 100%; height: 100%; border-radius: 4px; background: var(--n-text-3); transform-origin: left; transform: scaleX(var(--v)); transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+.fl-node.has .fl-bar i { background: var(--n-blue); }
+.fl-node b { color: var(--n-text-3); font-size: 40px; font-weight: 600; line-height: 48px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.fl-node.has b { color: var(--n-text); }
+.fl-node > span:last-child { font-size: 16px; font-weight: 500; line-height: 24px; }
+.fl-node:not(:last-child)::after { content: "→"; position: absolute; top: 44px; right: 8px; color: var(--n-text-3); font-size: 20px; }
+.fl.is-s .fl-node b { font-size: 32px; line-height: 40px; }
+.ln-h p { font-size: 14px; line-height: 20px; }
+.ln-step { scroll-margin-top: 96px; }
+@media (max-width: 860px) { .fl-node b { font-size: 32px; line-height: 40px; } .fl-node > span:last-child { font-size: 14px; } .fl-node:not(:last-child)::after { display: none; } }
+@media (prefers-reduced-motion: reduce) { .fl-bar i { transition: none; } }
