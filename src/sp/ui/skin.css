@@ -91,8 +91,8 @@ html .sp.sx3.os.cn .sp-main :is(.input, .select, .textarea):focus { outline: 0; 
 .sp.sx3.os.cn .rpt-now > :is(section, div):first-child, .sp.sx3.os.cn .ms { border: 0; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px var(--sk-line); }
 
 /* ── the field round: the capture control is the blue one ── */
-.sp.sx3.os.cn .rn-capture { background: linear-gradient(180deg, #2a5fd8, #2457ce); box-shadow: 0 14px 30px -18px rgba(36, 87, 206, .8); }
-.sp.sx3.os.cn .rn-capture:hover { background: linear-gradient(180deg, #2457ce, #1c47ad); }
+.sp.sx3.os.cn .rn-capture { background: var(--n-blue, #2383e2); box-shadow: none; border-radius: 12px; }
+.sp.sx3.os.cn .rn-capture:hover { background: var(--n-blue-2, #0b6bcb); box-shadow: none; }
 .sp.sx3.os.cn .rn-capture-x { color: var(--sk-blue); }
 .sp.sx3.os.cn .rn-btn.is-yes { background: var(--sk-blue); }
 .sp.sx3.os.cn .rn-btn.is-yes:hover:not(:disabled) { background: var(--sk-blue-2); }
@@ -123,6 +123,6 @@ html .sp.sx3.os.cn .oh .dy-work-acts select { height: 28px; min-height: 28px; pa
 html .sp.sx3.os.cn .oh .dy-ask input { box-shadow: none !important; border: 0; background: none; }
 
 /* ── 10/20/30: a programme's description is two lines at most ── */
-.sp.sx3.os.cn .oh-head p:not(.oh-eyebrow) { display: -webkit-box; max-width: 70ch; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #626775; font-size: 14px; }
+.sp.sx3.os.cn .oh-head p:not(.oh-eyebrow):not(.k-sum) { display: -webkit-box; max-width: 70ch; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #626775; font-size: 14px; }
 .sp.sx3.os.cn .oh-stats { border: 0; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px var(--sk-line); }
 .sp.sx3.os.cn :is(.oh-card, .oh-rows, .oh-table-wrap) { border: 0; border-radius: 8px; box-shadow: 0 0 0 1px var(--sk-line); }

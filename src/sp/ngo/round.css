@@ -191,3 +191,9 @@
 @media (prefers-reduced-motion: reduce) {
   .rn *, .rn *::after { animation: none !important; transition: none !important; }
 }
+
+/* In the app's own type: section names in sentence case at section size, and an age that is never cut off. */
+.rn-h { margin: 24px 0 8px; color: var(--n-text, #37352f); font-size: 18px; font-weight: 600; letter-spacing: -.01em; text-transform: none; }
+.rn-tray-head h2 { letter-spacing: normal; text-transform: none; }
+.rn-when { width: 72px; height: auto; min-height: 58px; padding: 8px 4px; border-radius: 12px; }
+.rn-when small { max-width: none; overflow: visible; white-space: normal; text-overflow: clip; }

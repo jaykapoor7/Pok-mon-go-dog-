@@ -286,3 +286,17 @@ a.k-stat:focus-visible { outline: 2px solid var(--k-blue); }
   .k-tr > .k-td-main { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .k-tr > .is-wide { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 }
+/* In the narrow side column a row's title and line wrap instead of being cut off. */
+.k-split-s .k-row-t b, .k-split-s .k-row-t small { overflow: visible; white-space: normal; text-overflow: clip; }
+/* A note spans the page like the rows under it; the reading-width cap is for prose, not notices. */
+.sp.sx3.os.cn.ws .sp-main p.k-note { max-width: none; }
+/* Desktop tables wrap a long cell onto a second line instead of cutting it to "Sample · B…". */
+@media (min-width: 861px) {
+  .k-tr > span { overflow: visible; white-space: normal; text-overflow: clip; overflow-wrap: break-word; }
+  .k-tr:not(.k-th) { padding-top: 8px; padding-bottom: 8px; }
+}
+/* At 16px a property label needs more room than 144px, or "Courses prescribed" breaks over two lines. */
+@media (min-width: 861px) { .k-props > div { grid-template-columns: 220px minmax(0, 1fr); } }
+/* On a phone a row's title wraps rather than being cut to "Vaccination du…"; its detail line stays one line. */
+@media (max-width: 860px) { .k-row-t b { overflow: visible; white-space: normal; text-overflow: clip; } }
+@media (max-width: 860px) { .k-tr > .k-td-main { white-space: normal; text-overflow: clip; overflow: visible; } }

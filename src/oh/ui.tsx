@@ -24,7 +24,7 @@ export const toneOf = (t?: string | null): Tone => (t && TONES.has(t) ? (t as To
 export function Page({ children, illustrative, wide, narrow }: { children: ReactNode; illustrative?: boolean; wide?: boolean; narrow?: boolean }) {
   return (
     <KPage width={narrow ? "narrow" : wide ? "wide" : "default"} className="oh">
-      {illustrative ? <div className="oh-sample"><Note tone="amber"><b>Illustrative demonstration.</b> Every record here is invented; no figure is a real programme figure.</Note></div> : null}
+      {illustrative ? <div className="oh-sample"><Note tone="amber"><span><b>Sample programme</b> · illustrative records, not live programme data</span></Note></div> : null}
       {children}
     </KPage>
   );

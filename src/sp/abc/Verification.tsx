@@ -15,7 +15,7 @@ import { NotEnabled, STAGE_LABEL, myContext, stageOf, verificationQueue, type Ab
 import { NgoGate, useOrgOpen } from "../ngo/Gate";
 import { KajuEmptyState } from "@/kaju/Presence";
 import { Reading } from "../ui/Reading";
-import { Empty, Meter, PageHead, Seg } from "../ui/Page";
+import { Btn, Empty, Head, Lanes, Note, Page, Panel, Row, Rows, Tag, Tools } from "@/ws/kit";
 import "../ngo/ngo.css";
 import "./abc.css";
 import { STAGE_ORDER } from "@/lib/machines/abc-stage";
@@ -91,43 +91,36 @@ export function Verification() {
 
   return (
     <NgoGate title="Verification" lede="Every ABC procedure with its evidence, veterinary sign-off and review.">
-      <div className="vw abc">
-        <PageHead title="Sign-off & evidence"
+      <Page>
+        <Head title="Sign-off & evidence"
           sum={off ? "Not switched on for this workspace yet." : rows === null && !err ? <Reading>Reading your procedure records</Reading> : err ? "The records could not be read. Nothing is shown as zero."
-            : <><b>{laneCount("mine")}</b> waiting on you · <b>{laneCount("others")}</b> with others · <b>{laneCount("reported")}</b> reported</>}
-          actions={lead ? <Link className="btn is-s" href="/ngo/packages">Reports</Link> : null} />
+            : <><b>{laneCount("mine")}</b> waiting on you, <b>{laneCount("others")}</b> with others, <b>{laneCount("reported")}</b> reported.</>}
+          actions={lead ? <Btn href="/ngo/packages">Monthly report</Btn> : undefined} />
 
         {off ? <Empty title="Sign-off is not switched on here yet.">Your records are unchanged.</Empty>
-          : err ? <p className="vw-err" role="alert">{err}</p> : rows && (
+          : err ? <Note tone="flame">{err}</Note> : rows && (
           <>
             {stage === "all" ? (
-              <div className="vw-bar">
-                <Seg<Lane> label="Who a record is waiting on" value={active} onChange={(l) => { setLane(l); setPage(0); }} options={[
-                  { id: "mine", label: "Waiting on you", count: laneCount("mine"), tone: laneCount("mine") ? "flame" : "plain" },
-                  { id: "others", label: "With others", count: laneCount("others") },
-                  { id: "reported", label: "Reported", count: laneCount("reported") },
-                ]} />
-              </div>
-            ) : <p className="vw-note"><span>Showing only: <b>{STAGE_LABEL[stage]}</b> ({counts[stage]})</span><button type="button" onClick={clearStage}>Show everything</button></p>}
+              <Tools><Lanes<Lane> label="Who a record is waiting on" value={active} onChange={(l) => { setLane(l); setPage(0); }} lanes={[
+                { id: "mine", label: "Waiting on you", count: laneCount("mine"), tone: laneCount("mine") ? "flame" : undefined },
+                { id: "others", label: "With others", count: laneCount("others") },
+                { id: "reported", label: "Reported", count: laneCount("reported") },
+              ]} /></Tools>
+            ) : <Note action={<Btn small variant="quiet" onClick={clearStage}>Show everything</Btn>}>Showing only <b>{STAGE_LABEL[stage]}</b> ({counts[stage]})</Note>}
             {shown.length ? (
-              <><ul className="vw-list">{slice.map((r, j) => { const s = stageOf(r), Icon = GLYPH[s]; return (
-                <li key={r.case_id} style={{ ["--j" as string]: j }}><Link className="vw-row" href={`/ngo/verification/${r.case_id}`}>
-                  <span className="vw-glyph" data-tone={TONE[s]} aria-hidden><Icon size={15} /></span>
-                  <span className="vw-row-t"><b>{r.title || shortCode(r.case_code, "Procedure record")}</b>
-                    <span className="vw-row-next"><i>{FINAL.includes(s) ? "Now" : "Next"}</i><span>{nextOf(r, s)}{FINAL.includes(s) ? "" : ` · ${WHO[s]}`}</span></span>
-                    <small>{[r.city, day(r.created_at)].filter(Boolean).join(" · ")}</small></span>
-                  <Meter total={r.evidence_count + r.missing.length} n={r.evidence_count} label="evidence items" />
-                  <span className="vw-tag" data-tone={TONE[s]}>{STAGE_LABEL[s]}</span>
-                  <ArrowRight size={14} aria-hidden className="vw-go" />
-                </Link></li>
-              ); })}</ul>
+              <><Panel><Rows label="Procedure records">{slice.map((r) => { const s = stageOf(r), Icon = GLYPH[s]; return (
+                <Row key={r.case_id} href={`/ngo/verification/${r.case_id}`} icon={<Icon size={14} />} tone={TONE[s]}
+                  title={r.title || shortCode(r.case_code, "Procedure record")}
+                  meta={<>{FINAL.includes(s) ? "Now: " : "Next: "}{nextOf(r, s)}{FINAL.includes(s) ? "" : ` · ${WHO[s]}`}{[r.city, day(r.created_at)].filter(Boolean).map((x) => ` · ${x}`).join("")}</>}
+                  end={<><span className="vw-ev">{r.evidence_count} of {r.evidence_count + r.missing.length}</span><Tag tone={TONE[s]}>{STAGE_LABEL[s]}</Tag></>} />
+              ); })}</Rows></Panel>
               <Pager pg={pg} pages={pages} total={shown.length} size={PAGE} onPage={setPage} /></>
             ) : (
               <KajuEmptyState title={stage !== "all" ? EMPTY_STAGE[stage as Stage] : active === "mine" ? "Nothing is waiting on you." : active === "others" ? "Nothing is waiting on anyone else." : "Nothing has been reported yet."}>{stage === "all" && active === "mine" && laneCount("others") ? "Open “With others” to see what the rest of the team holds." : null}</KajuEmptyState>
             )}
           </>
         )}
-      </div>
+      </Page>
     </NgoGate>
   );
 }

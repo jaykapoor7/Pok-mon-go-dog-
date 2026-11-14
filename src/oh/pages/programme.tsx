@@ -452,7 +452,7 @@ function ReportBody({ p }: { p: Prog }) {
       ]} /></Section>
       <Section title="Coordination"><Props items={[
         { label: "Requests closed", value: d.handoffs.done }, { label: "Open", value: d.handoffs.open }, { label: "Overdue", value: d.handoffs.overdue },
-        { label: "Median days to close", value: days1(d.handoffs.median_days_to_close) }, { label: "Confirming services", value: `${d.services.confirmed} of ${d.services.facilities} facilities` },
+        { label: "Median days to close", value: days1(d.handoffs.median_days_to_close) }, { label: "Services confirmed", value: `${d.services.confirmed} across ${d.services.facilities} facilities` },
       ]} /></Section>
       <Section title="Dog vaccination" note={`Target ${pct(d.programme.target)}`}><Panel><Table label="Dog vaccination by area" cols={vcols} rows={d.vaccination} rowKey={(v) => v.area_id} /></Panel></Section>
       <Section title="Training"><p>{d.training.sessions} sessions, {d.training.participants} people: {Object.entries(d.training.by_audience).map(([k, v]) => `${AUDIENCE[k] ?? k} ${v}`).join(", ") || "none recorded"}.</p></Section>

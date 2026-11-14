@@ -15,7 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pause, Play, Trash2, Zap } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { byRule, DAYS, LIBRARY, type Template } from "@/lib/automations/library";
-import { Btn, Empty, Head, Note, Page, Panel, Row, Rows, Section, Split, Table, Tag, type Col } from "@/ws/kit";
+import { Btn, Empty, Head, Note, Page, Panel, Row, Rows, Section, Table, Tag, type Col } from "@/ws/kit";
 import { usePageState } from "@/ws/store";
 import { useMembership } from "../shell/Shell";
 import { NgoGate } from "./Gate";
@@ -102,19 +102,10 @@ export function Automations() {
           </Section>
         ) : null}
 
-        <Split side={
-          <Section title="Library" count={LIBRARY.filter((t) => t.state === "ready").length}>
-            <Panel><Rows>
-              {LIBRARY.map((t) => (
-                <Row key={t.id} title={t.name} meta={t.state === "ready" ? `${t.for} · ${t.does}` : `${t.for} · Not yet built. ${t.why}`}
-                  end={t.state !== "ready" ? <Tag tone="plain">Not yet</Tag> : on.has(t.rule!) ? <Tag tone="green">On</Tag> : <Btn small disabled={state !== "ready" || !can} onClick={() => setDraft({ t, every: t.every, weekday: 1, min: t.min, notify: t.notify })}>Set up</Btn>} />
-              ))}
-            </Rows></Panel>
-          </Section>
-        }>
+        {/* What is on, then the library, then what ran: a section appears only when it has something in it. */}
+        {autos?.length ? <>
           <Section title="Yours" count={autos?.length ?? 0}>
-            {state === "ready" && autos!.length === 0 ? <Empty title="Nothing is on yet">Pick one from the library, or ask Kaju: “remind us about overdue follow-ups”.</Empty>
-              : <Panel><Rows>
+            {<Panel><Rows>
                 {(autos ?? []).map((a) => (
                   <Row key={a.id} icon={<Zap size={16} aria-hidden />} title={a.name}
                     meta={`${rhythm(a)} · tells ${a.notify === "everyone" ? "everyone" : "leads and coordinators"} at ${a.min_count} or more · ${a.last_run_at ? `last ran ${when(a.last_run_at)}` : "has not run yet"}`}
@@ -129,11 +120,21 @@ export function Automations() {
                 ))}
               </Rows></Panel>}
           </Section>
+        </> : null}
+          <Section title="Library" count={LIBRARY.filter((t) => t.state === "ready").length}>
+            <Panel><Rows>
+              {LIBRARY.map((t) => (
+                <Row key={t.id} title={t.name} meta={t.state === "ready" ? `${t.for} · ${t.does}` : `${t.for} · Not yet built. ${t.why}`}
+                  end={t.state !== "ready" ? <Tag tone="plain">Not yet</Tag> : on.has(t.rule!) ? <Tag tone="green">On</Tag> : <Btn small disabled={state !== "ready" || !can} onClick={() => setDraft({ t, every: t.every, weekday: 1, min: t.min, notify: t.notify })}>Set up</Btn>} />
+              ))}
+            </Rows></Panel>
+          </Section>
+        {runs.length ? <>
           <Section title="Activity" count={runs.length} action={failed ? <Btn small onClick={() => setLane(lane === "failed" ? "all" : "failed")}>{lane === "failed" ? "Show all" : `Only failed (${failed})`}</Btn> : undefined}>
             {shown.length ? <Panel><Table label="Automation runs" cols={cols} rows={shown} rowKey={(r) => r.id} /></Panel>
               : <Empty title="No runs yet">Each run appears here: what it found, who was told, and anything that failed.</Empty>}
           </Section>
-        </Split>
+        </> : null}
       </Page>
     </NgoGate>
   );

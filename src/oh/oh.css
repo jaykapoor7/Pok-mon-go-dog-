@@ -13,7 +13,7 @@
 .sp-main:has(> .cn-sample) .oh-sample, .ws-peek-body .oh-sample { display: none; }
 
 /* The head keeps its name for the guide that points at it; the sentence is the kit's. */
-.sp.sx3.os.cn.ws .oh-head p.k-sum { display: block; max-width: 80ch; overflow: visible; -webkit-line-clamp: unset; color: var(--n-text-2); font-size: 14px; }
+.sp.sx3.os.cn.ws .oh-head p.k-sum { display: block; max-width: 80ch; overflow: visible; -webkit-line-clamp: unset; color: var(--n-text-2); }
 .oh-anchor { margin-top: 24px; }
 .oh-anchor:first-child { margin-top: 0; }
 .oh-unknown { color: var(--n-text-2); font-size: 14px; font-weight: 500; letter-spacing: 0; }
@@ -223,3 +223,13 @@ button.oh-role:disabled { opacity: .6; cursor: default; }
   .oh .k-acts, .oh .k-tools, .no-print { display: none !important; }
   .k-page.oh { width: auto; margin: 0; padding: 0; }
 }
+/* The sample notice looks the same wherever it appears: one quiet line, like the frame's strip. */
+.oh-sample .k-note { margin-bottom: 16px; padding: 6px 12px; font-size: 14px !important; line-height: 20px !important; }
+.oh-foot { font-size: 14px; line-height: 20px; }
+/* Facilities beside the map: name and details first, then each service on its own line below; nothing overlaps or is cut off. */
+.oh-facs .k-row { flex-wrap: wrap; align-items: flex-start; row-gap: 8px; }
+.oh-facs .k-row-t { flex: 1 1 100%; }
+.oh-facs .k-row-e { flex: 1 1 100%; flex-wrap: wrap; justify-content: flex-start; gap: 4px; max-width: none; }
+.oh-facs { max-height: 460px; }
+@media (min-width: 861px) { .oh-stack > span, .oh-stack > small { white-space: normal; overflow: visible; text-overflow: clip; } }
+@media (max-width: 860px) { .oh-stack > span { white-space: normal; overflow: visible; text-overflow: clip; } }
