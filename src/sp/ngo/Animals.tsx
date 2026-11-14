@@ -36,7 +36,7 @@ const shortId = (id: string | null) => (id ? id.replace(/^([A-Z]+-[A-Z]+)-([0-9A
 function Fact({ v, yes, no }: { v: string | null; yes: string; no: string }) {
   if (v === "sterilised" || v === "vaccinated") return <Tag tone="green">{yes}</Tag>;
   if (v === "not_sterilised" || v === "not_vaccinated") return <Tag tone="amber">{no}</Tag>;
-  return <span className="kx-none">Not recorded</span>;
+  return <span className="kx-none" aria-label="Not recorded">—</span>;
 }
 function Who({ a, sub, sensitive = false }: { a: { id: string; name: string | null; straypaw_id: string | null; cover_photo: string | null }; sub: string; sensitive?: boolean }) {
   const t = animalTitle({ name: a.name, straypaw_id: a.straypaw_id, id: a.id });
@@ -84,11 +84,12 @@ export function Animals() {
 
   const cols: Col<OrgAnimal>[] = [
     { key: "who", label: "Animal", width: "minmax(0, 1.4fr)", render: (a) => <Who a={a} sensitive={a.needs_help} sub={[a.zone ?? "place not recorded", shortId(a.straypaw_id) ?? "ID pending"].join(" · ")} /> },
-    { key: "zone", label: "Place", render: (a) => a.zone ?? <span className="kx-none">Not recorded</span> },
+    { key: "zone", label: "Place", render: (a) => a.zone ?? <span className="kx-none" aria-label="Not recorded">—</span> },
     { key: "ster", label: "Sterilisation", width: "112px", render: (a) => <Fact v={a.sterilisation_status} yes="Sterilised" no="Not sterilised" /> },
     { key: "vacc", label: "Vaccination", width: "112px", render: (a) => <Fact v={a.vaccination_status} yes="Vaccinated" no="Not vaccinated" /> },
     { key: "seen", label: "Last seen", width: "96px", render: (a) => <span className="kx-num">{day(a.last_seen)}</span> },
-    { key: "state", label: "Status", width: "88px", keep: true, render: (a) => (a.needs_help ? <Tag tone="flame">Needs help</Tag> : null) },
+    /* Only when an animal on this page needs help: an always-empty column is noise. */
+    ...((rows ?? []).some((a) => a.needs_help) ? [{ key: "state", label: "Status", width: "104px", keep: true, render: (a: OrgAnimal) => (a.needs_help ? <Tag tone="flame">Needs help</Tag> : null) }] : []),
   ];
 
   return (
@@ -99,7 +100,7 @@ export function Animals() {
             sum={rows === null ? "Reading the register…" : failed ? "The register could not be read. Nothing is shown as zero." : <><b>{n(total)}</b> {filtered ? (total === 1 ? "match" : "matches") : (total === 1 ? "animal" : "animals")}</>}
             actions={<><Btn icon={<Download size={14} />} disabled={!csv.length} onClick={() => downloadCsv("straypaw-animals.csv", csv)}>Download</Btn><Btn href="/ngo/import" icon={<Upload size={14} />}>Import</Btn></>} />
           <Tools end={<>
-            <SearchBox value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="Name, ID, your code or place" label="Search the register" />
+            <SearchBox value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="Search animals" label="Search the register" />
             <select className="kx-in is-auto an-sel" value={fl.zone} onChange={(e) => { setFl({ ...fl, zone: e.target.value }); setPage(0); }} aria-label="Locality"><option value="">Every locality</option>{zones.slice(0, 200).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({z.n})</option>)}</select>
           </>}><Lanes<Lens> label="Show" lanes={lenses} value={lens} onChange={setLens} /></Tools>
           <Panel>

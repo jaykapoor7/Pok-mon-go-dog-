@@ -82,7 +82,7 @@ export function placeNav(p: Place, programmeSlug?: string): PlaceLink[] {
     links.push({ href: `${w}/services`, label: "Vaccine and services", short: "Services", icon: "shield", section: W, count: p.services_stale || null, tone: "amber" });
   } else if (p.kind === "laboratory") {
     links.push({ href: w, label: "Today", short: "Today", icon: "home", exact: true, count: p.samples_waiting || null, tone: "blue", mobile: true });
-    links.push({ href: `${w}/services`, label: "Vaccine and services", short: "Services", icon: "shield", section: W, count: p.services_stale || null, tone: "amber" });
+    links.push({ href: `${w}/services`, label: "Testing", short: "Services", icon: "shield", section: W, count: p.services_stale || null, tone: "amber" });
   } else if (p.kind === "ngo") {
     links.push({ href: "/ngo", label: "Today", short: "Today", icon: "home", exact: true, mobile: true });
   }

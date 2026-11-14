@@ -90,8 +90,8 @@ export function Rescues() {
   const { cols, ready } = usePipeline(open, mem.role);
   return (
     <NgoGate title="Rescues" lede="Animals someone asked you to help, from the first report until the case is closed.">
-      <Page width="narrow">
-        <Head title="Rescues" actions={<Btn variant="primary" href="/ngo/add" icon={<Plus size={16} />}>Add an animal</Btn>} />
+      <Page>
+        <Head title="Rescues" />
         <Flow steps={RESCUE} cols={cols} ready={ready} label="Rescues, step by step" />
         <Steps steps={RESCUE} cols={cols} ready={ready} />
       </Page>
@@ -105,8 +105,8 @@ export function Sterilisation() {
   const lead = mem.role === "admin" || mem.role === "coordinator";
   return (
     <NgoGate title="Sterilisation" lede="Each procedure, from the operation to the report the municipality accepts.">
-      <Page width="narrow">
-        <Head title="Sterilisation" actions={<>{lead ? <Btn href="/ngo/packages">Monthly report</Btn> : null}<Btn variant="primary" href="/ngo/add" icon={<Plus size={16} />}>Add an animal</Btn></>} />
+      <Page>
+        <Head title="Sterilisation" actions={lead ? <Btn href="/ngo/packages">Monthly report</Btn> : undefined} />
         <Flow steps={ABC} cols={cols} ready={ready} label="Sterilisation, step by step" />
         <Steps steps={ABC} cols={cols} ready={ready} />
       </Page>
