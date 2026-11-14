@@ -520,6 +520,15 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
   const work = tree[0]?.nodes[0] ?? null;
   const atWork = !!work && at?.node === work && !deep;
 
+  /* Moderation is its own console with its own index: no workspace sidebar, tabs or dock around it. */
+  if (path === "/trust" || path.startsWith("/trust/")) return (
+    <Membership.Provider value={mem}>
+      <div className={`sp sp-app s3-root sx3 os cn ws is-console ${spFonts}`}>
+        <main id="sp-main" className="sp-main" tabIndex={-1}>{children}</main>
+      </div>
+    </Membership.Provider>
+  );
+
   return (
     <Membership.Provider value={mem}>
       <div className={`sp sp-app s3-root sx3 os cn ws ${spFonts}${isFlush ? " is-flush" : ""}${isMap ? " is-map" : ""}${prefs.tucked ? " is-tucked" : ""}${ai.open && !onAssistant ? " has-ai" : ""}${peekPath ? ` has-peek is-peek-${prefs.peek === "center" ? "center" : "side"}` : ""}${drawer ? " has-drawer" : ""}`} data-ws={ws} style={{ ["--ws-side" as string]: `${prefs.side}px`, ["--ws" as string]: base.ink }}>
