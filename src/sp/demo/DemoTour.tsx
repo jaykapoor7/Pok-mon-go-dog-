@@ -116,7 +116,9 @@ export function DemoTour() {
           const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
           const room = cardTop - 72;
           const by = r.height < room ? r.top - 72 - Math.max(0, (room - r.height) / 3) : r.top - 72;
-          window.scrollBy({ top: by, behavior: calm ? "auto" : "smooth" });
+          /* When the thing fits on the first screen with the page's own title above it, show the page from its top instead of cutting the title off. */
+          if (r.top + window.scrollY + r.height < cardTop - 16) window.scrollTo({ top: 0, behavior: calm ? "auto" : "smooth" });
+          else window.scrollBy({ top: by, behavior: calm ? "auto" : "smooth" });
         }
       }
       if (tries > 40) clearInterval(tick); /* keep looking for 20 s: a cold staging load can take that long */
@@ -152,6 +154,9 @@ export function DemoTour() {
       return;
     }
     writeTour({ mode, step: i, role: t.role });
+    /* The public pages and the workspace have different frames: moving between them is a full load, or the card changes while the page stays. */
+    const inApp = (x: string) => !x.startsWith("/bite-help");
+    if (inApp(pathOf(t.path)) !== inApp(window.location.pathname)) { window.location.assign(t.path); return; }
     router.push(t.path);
     setBusy(false);
   }, [router, s?.role]);
