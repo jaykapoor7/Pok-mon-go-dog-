@@ -60,7 +60,7 @@ function OverviewBody({ p }: { p: Prog }) {
   const mods = modulesOf(p);
   const marks = useMarks(p.id);
   const open = (alerts.data ?? []).filter((a) => !a.ack), urgent = open.filter((a) => a.severity === "urgent").length;
-  const head = <Head title="Overview" lede={<><b>{p.name}</b> · {KIND_PLAN[p.plan] ?? "Programme"}, {(STATUS[p.status] ?? p.status).toLowerCase()}. {alerts.error ? "What needs a decision could not be read." : !alerts.data ? "Reading what needs a decision…" : open.length ? <><b>{open.length}</b> {open.length === 1 ? "thing needs" : "things need"} a decision{urgent ? <>, <span className="is-hot">{urgent} urgent</span></> : null}.</> : "Nothing needs a decision."}</>} actions={<PeriodPicker />} />;
+  const head = <Head title="Overview" lede={<><b>{p.name}</b> · {KIND_PLAN[p.plan] ?? "Programme"}{p.plan === p.status ? "" : `, ${(STATUS[p.status] ?? p.status).toLowerCase()}`}. {alerts.error ? "What needs a decision could not be read." : !alerts.data ? "Reading what needs a decision…" : open.length ? <><b>{open.length}</b> {open.length === 1 ? "thing needs" : "things need"} a decision{urgent ? <>, <span className="is-hot">{urgent} urgent</span></> : null}.</> : "Nothing needs a decision."}</>} actions={<PeriodPicker />} />;
   if (o.loading && !o.data) return <>{head}<Loading rows={6} /></>;
   if (o.error || !o.data) return <>{head}<Failed error={o.error ?? "Could not read the programme."} retry={o.reload} /></>;
   const d = o.data;
@@ -68,8 +68,8 @@ function OverviewBody({ p }: { p: Prog }) {
   const alertHref = (a: Alert) => a.kind === "positive_result" ? `/programme/${p.slug}/work` : a.kind === "pep_readiness" ? `/programme/${p.slug}/network` : a.kind === "coverage_below_target" ? `/programme/${p.slug}/coverage` : a.kind === "followups_overdue" ? `/programme/${p.slug}/work?show=overdue` : null;
   const stats = [
     ...(mods.includes("bite_care") && d.exposures ? [figure("Bite exposures", d.exposures.total, { note: <>Category III: {showCount(d.exposures.category_iii)}</> })] : []),
-    ...(mods.includes("bite_care") && d.pep ? [figure("Courses completed", d.pep.completion_rate === null ? null : pct(d.pep.completion_rate), { note: d.pep.completion_rate === null ? "Too few closed courses to show" : `Did not return: ${showCount(d.pep.lost)}`, tone: d.pep.completion_rate !== null && d.pep.completion_rate < 0.8 ? "amber" : "green" })] : []),
-    ...(mods.includes("bite_care") && d.exposures ? [figure("Wounds washed", num(d.exposures.washed_known) ? pct(num(d.exposures.washed) / num(d.exposures.washed_known)) : null, { note: "Where it was recorded" })] : []),
+    ...(mods.includes("bite_care") && d.pep ? [figure("Courses completed", d.pep.completion_rate === null ? "—" : pct(d.pep.completion_rate), { note: d.pep.completion_rate === null ? "Too few closed courses to show" : `Did not return: ${showCount(d.pep.lost)}`, tone: d.pep.completion_rate !== null && d.pep.completion_rate < 0.8 ? "amber" : "green" })] : []),
+    ...(mods.includes("bite_care") && d.exposures ? [figure("Wounds washed", num(d.exposures.washed_known) ? pct(num(d.exposures.washed) / num(d.exposures.washed_known)) : "—", { note: num(d.exposures.washed_known) ? "Where it was recorded" : "Not recorded yet" })] : []),
     ...(mods.includes("laboratory") ? [figure("Laboratory-confirmed", d.samples.positive, { note: `${d.samples.total} samples · ${d.samples.waiting} waiting${d.samples.median_days_to_result === null ? "" : ` · ${Math.round(d.samples.median_days_to_result * 10) / 10} days to a result`}`, tone: d.samples.positive ? "flame" : undefined, href: `/programme/${p.slug}/work` })] : []),
     ...(mods.includes("services") ? [figure("Care facilities", d.services.facilities, { note: `${d.services.arv_unavailable} without vaccine · ${d.services.stale} confirmations expired`, href: `/programme/${p.slug}/network`, tone: d.services.arv_unavailable ? "flame" : d.services.stale ? "amber" : undefined })] : []),
   ];
@@ -433,7 +433,7 @@ function ReportBody({ p }: { p: Prog }) {
     { key: "area", label: "Area", width: "minmax(0, 1.4fr)", render: (v) => v.area },
     { key: "vac", label: "Vaccinated", width: "88px", align: "end", keep: true, render: (v) => v.vaccinated },
     { key: "est", label: "Estimate", width: "88px", align: "end", render: (v) => v.estimate?.dogs ?? "None" },
-    { key: "cov", label: "Coverage", width: "136px", align: "end", keep: true, render: (v) => v.estimate ? pct(v.vaccinated / v.estimate.dogs) : "Needs an estimate" },
+    { key: "cov", label: "Coverage", width: "168px", align: "end", keep: true, render: (v) => v.estimate ? pct(v.vaccinated / v.estimate.dogs) : "Needs an estimate" },
   ];
   const days1 = (x: number | null) => (x === null ? "None" : Math.round(x * 10) / 10);
   return (
@@ -452,7 +452,7 @@ function ReportBody({ p }: { p: Prog }) {
       ]} /></Section>
       <Section title="Coordination"><Props items={[
         { label: "Requests closed", value: d.handoffs.done }, { label: "Open", value: d.handoffs.open }, { label: "Overdue", value: d.handoffs.overdue },
-        { label: "Median days to close", value: days1(d.handoffs.median_days_to_close) }, { label: "Services confirmed", value: `${d.services.confirmed} across ${d.services.facilities} facilities` },
+        { label: "Median days to close", value: days1(d.handoffs.median_days_to_close) }, { label: "Services confirmed", value: `${d.services.confirmed} across ${d.services.facilities} ${d.services.facilities === 1 ? "facility" : "facilities"}` },
       ]} /></Section>
       <Section title="Dog vaccination" note={`Target ${pct(d.programme.target)}`}><Panel><Table label="Dog vaccination by area" cols={vcols} rows={d.vaccination} rowKey={(v) => v.area_id} /></Panel></Section>
       <Section title="Training"><p>{d.training.sessions} sessions, {d.training.participants} people: {Object.entries(d.training.by_audience).map(([k, v]) => `${AUDIENCE[k] ?? k} ${v}`).join(", ") || "none recorded"}.</p></Section>
@@ -546,8 +546,8 @@ function Partners({ p, onChange }: { p: Prog; onChange: () => void }) {
   const addArea = async () => { setBusy(true); const r = await call("oh_add_area", { p_programme: p.id, p_name: area, p_level: "ward", p_code: null }); setBusy(false); if (r.error) toast(r.error, "flame"); else { setArea(""); toast("Area added."); o.reload(); } };
   type Pt = Overview["partners"][number];
   const cols: Col<Pt>[] = [
-    { key: "name", label: "Partner", width: "minmax(0, 1.6fr)", render: (x) => <span className="oh-cov"><Mark kind={x.kind} name={x.name} url={marks.data?.[x.id]} />{x.name}</span> },
-    { key: "kind", label: "Kind", width: "minmax(0, 1fr)", render: (x) => <span title={x.responsibilities ?? undefined}>{KIND_LABEL[x.kind]}</span> },
+    { key: "name", label: "Partner", width: "minmax(0, 2fr)", render: (x) => <span className="oh-cov"><Mark kind={x.kind} name={x.name} url={marks.data?.[x.id]} />{x.name}</span> },
+    { key: "kind", label: "Kind", width: "minmax(0, 1.3fr)", render: (x) => <span title={x.responsibilities ?? undefined}>{KIND_LABEL[x.kind]}</span> },
     { key: "people", label: "People", width: "96px", align: "end", keep: true, render: (x) => showCount(x.members) },
     ...(marks.ready ? [{ key: "logo", label: "Logo", width: "184px", align: "end" as const, render: (x: Pt) => <LogoButton org={x.id} name={x.name} has={!!marks.data?.[x.id]} onDone={(m) => { toast(m); marks.reload(); }} /> }] : []),
   ];
