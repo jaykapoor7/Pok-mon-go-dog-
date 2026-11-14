@@ -100,7 +100,7 @@ export function placeNav(p: Place, programmeSlug?: string): PlaceLink[] {
     /* Where bitten people can be sent. A field partner does not refer patients, so it is not in their menu. */
     if (p.kind !== "ngo") links.push({ href: `${pr}/network`, label: "Hospitals", short: "Hospitals", icon: "map", section: P, mobile: oversees(p.kind) });
     if (oversees(p.kind)) links.push({ href: `${pr}/work`, label: "Requests", short: "Requests", icon: "arrows", section: P, count: p.handoffs_open || null, tone: p.handoffs_overdue ? "flame" : "blue", mobile: true });
-    else links.push({ href: pr, label: "Programme", short: "Programme", icon: "gauge", exact: true, section: P });
+    else links.push({ href: pr, label: "Overview", short: "Overview", icon: "gauge", exact: true, section: P });
     if (oversees(p.kind)) {
       if (p.kind === "research" || can("oversee")) links.push({ href: `${pr}/data`, label: "Data export", icon: "activity", section: "Manage" });
       if (can("manage") || can("invite")) links.push({ href: `${pr}/setup`, label: "Setup", icon: "settings", section: "Manage" });

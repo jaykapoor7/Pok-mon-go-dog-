@@ -32,7 +32,7 @@
 .fd1-back, .fd1-next { display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; font: 500 14px var(--s3-sans, system-ui); cursor: pointer; transition: background .16s, transform .14s, gap .2s cubic-bezier(.3, 1.25, .5, 1); }
 .fd1-back { background: none; color: var(--n-text-2, #73726c); }
 .fd1-back:hover { background: var(--n-hover, rgba(55,53,47,.06)); color: var(--n-text, #37352f); }
-.fd1-next { background: var(--n-blue, #1a73d4); color: #fff; font-weight: 600; }
+.fd1-next, .sp .fd1-next { background: var(--n-blue, #1a73d4); color: #fff !important; font-weight: 600; }
 .fd1-next:hover { background: var(--n-blue-2, #0b62bf); gap: 8px; }
 .fd1-next:active, .fd1-back:active { transform: scale(.97); }
 .fd1-next:focus-visible, .fd1-back:focus-visible, .fd1-x:focus-visible { outline: 2px solid var(--n-blue, #1a73d4); outline-offset: 2px; }
