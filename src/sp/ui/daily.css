@@ -152,3 +152,5 @@ a.dy-work-t:hover b { color: var(--dy-blue); }
 .sp.sx3.os.cn .dy-sub:first-child { margin-top: 8px; }
 .dy-ff { position: relative; }
 .dy-ff .ff-line { margin: 0 0 8px; }
+/* The bar draws its own focus ring; the field inside it never adds a second box. */
+.dy-ask input, .dy-ask input:focus, .dy-ask input:focus-visible { outline: 0 !important; box-shadow: none !important; }

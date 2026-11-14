@@ -279,3 +279,10 @@ a.k-stat:focus-visible { outline: 2px solid var(--k-blue); }
   .k-lanes:has(b) button b[data-tone="flame"], .k-lanes:has(b) button b[data-tone="red"] { color: var(--n-red); }
 }
 @media (min-width: 861px) { .k-lanes:has(b) button b, .k-lanes:has(b) button b[data-tone] { background: none !important; } .k-lanes:has(b) button b[data-tone="amber"], .k-lanes:has(b) button b[data-tone="yellow"] { color: var(--t-orange); } .k-lanes:has(b) button b[data-tone="blue"] { color: var(--n-blue); } }
+/* On a phone a table is never wider than the screen: its one column takes the width there is, and a long cell wraps or trims instead of pushing the page sideways. */
+@media (max-width: 860px) {
+  .k-table { grid-template-columns: minmax(0, 1fr); }
+  .k-tr { min-width: 0; }
+  .k-tr > .k-td-main { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .k-tr > .is-wide { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+}

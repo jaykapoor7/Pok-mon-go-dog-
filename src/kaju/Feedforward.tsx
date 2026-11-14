@@ -34,9 +34,11 @@ export function Feedforward({ text, onText, input }: { text: string; onText: (t:
     if (el.tagName === "INPUT") { m.style.whiteSpace = "pre"; m.style.lineHeight = `${el.clientHeight}px`; }
     m.style.width = `${el.offsetWidth}px`; m.style.height = `${el.offsetHeight}px`;
     m.style.left = `${el.offsetLeft}px`; m.style.top = `${el.offsetTop}px`;
-    const sync = () => { m.scrollTop = el.scrollTop; };
-    el.addEventListener("scroll", sync); sync();
-    return () => el.removeEventListener("scroll", sync);
+    /* A long line scrolls inside a one-line field; the underlines travel with it. */
+    const sync = () => { m.scrollTop = el.scrollTop; m.scrollLeft = el.scrollLeft; };
+    const evs = ["scroll", "input", "keyup", "click", "select"] as const;
+    for (const e of evs) el.addEventListener(e, sync); sync(); const raf = requestAnimationFrame(sync);
+    return () => { for (const e of evs) el.removeEventListener(e, sync); cancelAnimationFrame(raf); };
   });
 
   const openSlot = (s: Slot) => {
