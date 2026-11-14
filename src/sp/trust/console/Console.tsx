@@ -36,29 +36,31 @@ import "./console.css";
 
 type Def = { id: SectionId; label: string; note: string; path?: string; pick?: (b: Record<string, unknown>) => unknown };
 const GROUPS: { label: string; items: Def[] }[] = [
-  { label: "Moderation", items: [
-    { id: "today", label: "Today", note: "What needs you, what the public sees, and whether the data is healthy", path: "/api/admin/overview", pick: (b) => b },
-    { id: "arrivals", label: "Recent arrivals", note: "Every sighting and request that came in, from the community or an organisation, newest first", path: "/api/admin/arrivals", pick: (b) => ({ arrivals: b.arrivals ?? [], week: b.week ?? 0 }) },
+  { label: "", items: [
+    { id: "today", label: "Today", note: "What needs you, who is working, and whether it is all up", path: "/api/admin/overview", pick: (b) => b },
   ] },
-  { label: "Queues", items: [
+  { label: "To decide", items: [
     { id: "sightings", label: "New reports", note: "Approve, link to an animal, or reject", path: "/api/admin/sightings", pick: (b) => b.pending ?? [] },
     { id: "partners", label: "Partner requests", note: "Organisations asking for a workspace", path: "/api/admin/partners", pick: (b) => ({ requests: b.requests ?? [], grants: b.grants ?? [] }) },
     { id: "reports", label: "Content reports", note: "Something reported as wrong or unsafe", path: "/api/admin/reports", pick: (b) => b.reports ?? [] },
     { id: "feedback", label: "Feedback", note: "Notes from people using StrayPaw", path: "/api/admin/feedback", pick: (b) => b.feedback ?? [] },
     { id: "verify", label: "Outcomes to verify", note: "Closed cases with before and after proof", path: "/api/admin/cases", pick: (b) => b.pending ?? [] },
   ] },
+  { label: "Partners", items: [
+    { id: "orgs", label: "Organisations", note: "Workspaces, members and codes", path: "/api/admin/orgs", pick: (b) => b.orgs ?? [] },
+    { id: "offices", label: "Reviewing offices", note: "Government offices that receive ABC report packages, and their reviewers", path: "/api/admin/offices", pick: (b) => b.offices ?? [] },
+  ] },
   { label: "Records", items: [
     { id: "dogs", label: "Animals", note: "Correct or remove an animal record", path: "/api/admin/dogs", pick: (b) => b.dogs ?? [] },
+    { id: "arrivals", label: "Recent arrivals", note: "Every sighting and request that came in, from the community or an organisation, newest first", path: "/api/admin/arrivals", pick: (b) => ({ arrivals: b.arrivals ?? [], week: b.week ?? 0 }) },
     { id: "feeding", label: "Feeding spots", note: "Public feeding spots", path: "/api/admin/feeding-zones", pick: (b) => b.zones ?? [] },
     { id: "fundraisers", label: "Fundraisers", note: "Approve, feature or close campaigns", path: "/api/admin/fundraisers", pick: (b) => b.fundraisers ?? [] },
   ] },
-  { label: "People", items: [
+  { label: "Community offers", items: [
     { id: "volunteers", label: "Volunteer offers", note: "People offering to help an animal", path: "/api/admin/helpers", pick: (b) => ({ volunteers: b.volunteers ?? [], ngos: b.ngos ?? [] }) },
     { id: "ngos", label: "NGO offers", note: "Organisations offering to help", path: "/api/admin/helpers", pick: (b) => ({ volunteers: b.volunteers ?? [], ngos: b.ngos ?? [] }) },
   ] },
-  { label: "Setup", items: [
-    { id: "orgs", label: "Organisations", note: "Workspaces, members and codes", path: "/api/admin/orgs", pick: (b) => b.orgs ?? [] },
-    { id: "offices", label: "Reviewing offices", note: "Government offices that receive ABC report packages, and their reviewers", path: "/api/admin/offices", pick: (b) => b.offices ?? [] },
+  { label: "Tools", items: [
     { id: "imports", label: "Master imports", note: "Load an organisation's workbook" },
     { id: "enrich", label: "Historical enrichment", note: "Match imported history to records" },
   ] },
@@ -156,13 +158,13 @@ export function Console() {
         <nav className="cn-index" aria-label="Console sections">
           {GROUPS.map((g) => (
             <div key={g.label} className="cn-group">
-              <p className="k">{g.label}</p>
+              {g.label ? <p className="k">{g.label}</p> : null}
               {g.items.map((d) => {
                 const r = reads[d.id], c = count(r, d.id);
                 return (
                   <button key={d.id} type="button" aria-current={sec === d.id ? "page" : undefined} onClick={() => setSec(d.id)}>
                     <span>{d.label}</span>
-                    <em className={`mono${r?.state === "failed" ? " is-err" : ""}`}>{r?.state === "failed" ? "not read" : r?.state === "reading" && c === null ? "…" : c ?? ""}</em>
+                    <em className={`mono${r?.state === "failed" ? " is-err" : ""}`}>{r?.state === "failed" ? "not read" : r?.state === "reading" && c === null ? "…" : c || ""}</em>
                   </button>
                 );
               })}

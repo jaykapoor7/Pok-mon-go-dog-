@@ -148,3 +148,52 @@
 
 /* Recent arrivals: a second line under a cell (kind, who sent it). */
 .sp .cn-sub { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+
+/* Today: live strip, partners, work between organisations, the site. */
+.sp .op-live { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.sp .op-live > div { position: relative; display: grid; gap: 2px; padding: 12px 16px 12px 28px; border-radius: 12px; background: var(--shell); }
+.sp .op-live i { position: absolute; top: 18px; left: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--teal, #1f7a4d); }
+.sp .op-live .is-warn i { background: var(--amber, #c27a0e); }
+.sp .op-live span { font-size: 12px; color: var(--mute); }
+.sp .op-live b { font: 650 18px/1.3 var(--sans); }
+.sp .op-live small { font-size: 12px; color: var(--ink-2); }
+.sp .op-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sp .op-orgs { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.sp .op-orgs th, .sp .op-orgs td { padding: 12px 12px 12px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.sp .op-orgs thead th { padding-top: 0; font-size: 12px; font-weight: 600; color: var(--mute); }
+.sp .op-orgs tbody th b { display: block; font-size: 16px; font-weight: 600; }
+.sp .op-orgs small { display: block; color: var(--mute); font-size: 12px; font-weight: 400; }
+.sp .op-orgs td small { display: inline; }
+.sp .op-pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; white-space: nowrap; background: var(--shell); color: var(--ink-2); }
+.sp .op-pill.is-ok { background: #e6f4ea; color: #1f6b3d; }
+.sp .op-pill.is-warn { background: #fdf3e2; color: #8a5a00; }
+.sp .op-figs > div.is-hot dd { color: var(--flame-ink, #b23a1f); }
+.sp .op-bars { display: grid; gap: 4px; max-width: 560px; margin: 16px 0 0; padding: 0; list-style: none; }
+.sp .op-bars li { display: grid; grid-template-columns: minmax(96px, 30%) minmax(0, 1fr) 56px; gap: 12px; align-items: center; min-height: 28px; font-size: 14px; }
+.sp .op-bars span { overflow: hidden; color: var(--ink-2); text-overflow: ellipsis; white-space: nowrap; }
+.sp .op-bars i { height: 8px; border-radius: 4px; background: linear-gradient(var(--blue), var(--blue)) left / var(--v) 100% no-repeat, var(--shell); }
+.sp .op-bars b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.sp .op-more { border-top: 1px solid var(--line); padding-top: 12px; }
+.sp .op-more > summary { cursor: pointer; font: 600 16px/1.4 var(--sans); color: var(--ink-2); }
+.sp .op-more[open] > summary { margin-bottom: 16px; }
+.sp .op-more.is-inner { margin-top: 12px; border-top: 0; padding-top: 0; }
+.sp .op-more.is-inner > summary { font-size: 14px; }
+@media (max-width: 760px) {
+  .sp .op-live { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sp .op-orgs thead { display: none; }
+  .sp .op-orgs tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .sp .op-orgs th, .sp .op-orgs td { padding: 0; border: 0; }
+  .sp .op-orgs td:nth-child(n+3) { grid-column: 1 / -1; color: var(--mute); font-size: 12px; }
+  .sp .op-orgs td:nth-child(3)::before { content: "People "; }
+  .sp .op-orgs td:nth-child(4)::before { content: "This week "; }
+  .sp .op-orgs td:nth-child(5)::before { content: "Last work "; }
+  .sp .op-orgs td:nth-child(n+3) { display: inline; }
+}
+
+/* Standalone: the console fills the window on its own (the frame's grid and page column are switched off). */
+.sp.sp-app.ws.is-console { display: block !important; grid-template-columns: none !important; min-height: 100dvh; background: var(--paper, #fff); }
+.sp.sp-app.ws.is-console > .sp-main { display: block !important; width: 100% !important; max-width: none !important; min-height: 100dvh; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+.sp.sp-app.ws.is-console .tr { width: 100%; }
+.sp .op-orgs tbody th, .sp .op-orgs tbody th b, .sp .op-orgs tbody th small { text-transform: none; letter-spacing: normal; font-family: var(--sans); }
+.sp .op-figs.is-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sp .op-orgs tbody th b { color: var(--ink); }

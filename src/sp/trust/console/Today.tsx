@@ -7,15 +7,26 @@
    from the server; a part that could not be read says so.
    ════════════════════════════════════════════════════════════════════ */
 
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { AlertTriangle, ArrowRight, Check, RefreshCw } from "lucide-react";
 import { since } from "../../ui";
-import { send, type Read } from "./api";
+import { get, send, type Read } from "./api";
 import { ReceiptLine, useReceipt } from "./parts";
 import type { Overview, SectionId } from "./types";
 import { friendlyError } from "@/lib/friendly-error";
 
 export type Need = { id: SectionId; label: string; n: number; oldest: string | null; what: string };
+
+/* /api/admin/platform: the platform as it is now. */
+type Partner = { id: string; name: string; kind: string; city: string | null; sample: boolean; people: number; invites: number; week: number; month: number; last: string | null };
+type Platform = {
+  live: { production: { sha: string; environment: string }; demo: { up: boolean; sha: string | null; database: string | null; ms: number | null }; kaju: "model" | "tools_only"; automations: { state: "ready" | "awaiting_database" | "unread"; on: number } };
+  partners: Partner[];
+  connected: { sent: number; answered: number; overdue: number; samplesSent: number; resulted: number; waitingAtLab: number };
+  site: { views: number; visitors: number; logins: number; pages: { path: string; n: number }[]; capped: boolean };
+  unread: string[];
+};
+const KIND: Record<string, string> = { ngo: "NGO", hospital: "Hospital", clinic: "Clinic", laboratory: "Laboratory", coordinator: "Programme", municipal: "Municipal office", state: "State", research: "Research", training: "Training" };
 
 const f = (n: number | null | undefined) => (n ?? 0).toLocaleString("en-IN");
 const age = (iso: string | null) => (iso ? since(iso) : null);
@@ -25,9 +36,17 @@ export function Today({ secret, read, needs, onGo, reload }: { secret: string; r
   const waiting = needs.filter((x) => x.n > 0).sort((a, b) => (a.oldest ?? "9").localeCompare(b.oldest ?? "9"));
   const total = waiting.reduce((s, x) => s + x.n, 0);
   const o = read && "data" in read ? read.data : undefined;
+  const [pf, setPf] = useState<Read<Platform> | undefined>();
+  const readPf = useCallback(async () => { setPf((x) => ({ state: "reading", data: x && "data" in x ? x.data : undefined })); setPf(await get<Platform>(secret, "/api/admin/platform", (b) => b as unknown as Platform)); }, [secret]);
+  useEffect(() => { void readPf(); }, [readPf, read]);
+  const p = pf && "data" in pf ? pf.data : undefined;
 
   return (
     <div className="op">
+      {pf?.state === "failed" && !p ? <p className="op-err" role="alert"><AlertTriangle size={16} aria-hidden /> The platform could not be read. {friendlyError(pf.error)}</p>
+        : !p ? <div className="cn-reading" role="status" aria-label="Reading the platform"><span className="skel" /></div>
+        : <Live p={p} />}
+
       <section className="op-needs" aria-labelledby="op-needs-h">
         <h2 id="op-needs-h" className="op-h">{total ? `${f(total)} ${total === 1 ? "thing needs" : "things need"} you` : "Nothing needs you"}</h2>
         {!waiting.length ? (
@@ -54,12 +73,95 @@ export function Today({ secret, read, needs, onGo, reload }: { secret: string; r
         <div className="cn-reading" role="status" aria-label="Reading the overview"><span className="skel" /><span className="skel" /><span className="skel" /></div>
       ) : (
         <>
-          <Record o={o} />
+          {p ? <><Partners p={p} onGo={onGo} /><Connected p={p} /><Site p={p} /></> : null}
           <Health o={o} secret={secret} reload={reload} onGo={onGo} />
-          <Week o={o} onGo={onGo} />
+          <details className="op-more">
+            <summary>Public record and the last seven days</summary>
+            <Record o={o} />
+            <Week o={o} onGo={onGo} />
+          </details>
         </>
       )}
     </div>
+  );
+}
+
+/* ── is it up ──────────────────────────────────────────────────────── */
+function Live({ p }: { p: Platform }) {
+  const { production: pr, demo, kaju, automations: au } = p.live;
+  const same = !!demo.sha && demo.sha === pr.sha;
+  const tiles: { ok: boolean; k: string; v: string; s: string }[] = [
+    { ok: true, k: "Production", v: "Up", s: `build ${pr.sha.slice(0, 7)}` },
+    { ok: demo.up && demo.database === "ok", k: "Demo site", v: !demo.up ? "Down" : demo.database === "ok" ? "Up" : "Database not answering", s: demo.sha ? (same ? "same build as production" : `build ${demo.sha.slice(0, 7)}`) : "no answer" },
+    { ok: kaju === "model", k: "Kaju", v: kaju === "model" ? "Model on" : "Without a model", s: kaju === "model" ? "answers with the paid model" : "answers from records only" },
+    { ok: au.state === "ready", k: "Automations", v: au.state === "ready" ? `${au.on} on` : au.state === "awaiting_database" ? "Not switched on" : "Not read", s: au.state === "awaiting_database" ? "needs the database change" : au.state === "ready" ? "run daily" : "" },
+  ];
+  return (
+    <section className="op-live" aria-label="Is it up">
+      {tiles.map((t) => <div key={t.k} className={t.ok ? "is-ok" : "is-warn"}><i aria-hidden /><span>{t.k}</span><b>{t.v}</b><small>{t.s}</small></div>)}
+    </section>
+  );
+}
+
+/* ── who is on StrayPaw, and are they using it ─────────────────────── */
+const state = (x: Partner) => (x.week ? { t: "Active this week", c: "is-ok" } : x.month ? { t: "Quiet", c: "is-warn" } : { t: x.people ? "Not started" : "No one joined", c: "is-off" });
+function Partners({ p, onGo }: { p: Platform; onGo: (id: SectionId) => void }) {
+  const real = p.partners.filter((x) => !x.sample), sample = p.partners.filter((x) => x.sample);
+  const active = real.filter((x) => x.week).length;
+  const row = (x: Partner) => { const s = state(x); return (
+    <tr key={`${x.kind}:${x.id}`}>
+      <th scope="row"><b>{x.name}</b><small>{KIND[x.kind] ?? x.kind}{x.city ? ` · ${x.city}` : ""}</small></th>
+      <td><span className={`op-pill ${s.c}`}>{s.t}</span></td>
+      <td>{x.people}{x.invites ? <small> +{x.invites} invited</small> : null}</td>
+      <td>{x.week || "—"}</td>
+      <td>{x.last ? since(x.last) : "never"}</td>
+    </tr>); };
+  const table = (xs: Partner[], label: string) => (
+    <table className="op-orgs"><caption className="sr">{label}</caption>
+      <thead><tr><th scope="col">Organisation</th><th scope="col">Status</th><th scope="col">People</th><th scope="col">This week</th><th scope="col">Last work</th></tr></thead>
+      <tbody>{xs.map(row)}</tbody></table>);
+  return (
+    <section className="op-sec" aria-labelledby="op-org-h">
+      <div className="op-row"><h2 id="op-org-h" className="op-h2">Partners</h2><button type="button" className="btn is-s" onClick={() => onGo("orgs")}>Manage <ArrowRight size={14} aria-hidden /></button></div>
+      <p className="op-sub">{real.length ? <><b>{active}</b> of {real.length} working this week.</> : "No partner has a workspace yet."}</p>
+      {real.length ? table(real, "Partner organisations") : null}
+      {sample.length ? <details className="op-more is-inner"><summary>{sample.length} sample organisations (demo data)</summary>{table(sample, "Sample organisations")}</details> : null}
+    </section>
+  );
+}
+
+/* ── work passed between organisations ─────────────────────────────── */
+function Connected({ p }: { p: Platform }) {
+  const c = p.connected;
+  return (
+    <section className="op-sec" aria-labelledby="op-con-h">
+      <h2 id="op-con-h" className="op-h2">Between organisations · 7 days</h2>
+      <dl className="op-figs is-small is-6">
+        <div><dt>Requests sent</dt><dd>{f(c.sent)}</dd></div>
+        <div><dt>Answered</dt><dd>{f(c.answered)}</dd></div>
+        <div className={c.overdue ? "is-hot" : undefined}><dt>Overdue now</dt><dd>{f(c.overdue)}</dd></div>
+        <div><dt>Samples sent</dt><dd>{f(c.samplesSent)}</dd></div>
+        <div><dt>Results reported</dt><dd>{f(c.resulted)}</dd></div>
+        <div><dt>At the laboratory</dt><dd>{f(c.waitingAtLab)}</dd></div>
+      </dl>
+    </section>
+  );
+}
+
+/* ── the public site ───────────────────────────────────────────────── */
+function Site({ p }: { p: Platform }) {
+  const s = p.site, top = Math.max(1, ...s.pages.map((x) => x.n));
+  return (
+    <section className="op-sec" aria-labelledby="op-site-h">
+      <h2 id="op-site-h" className="op-h2">straypaw.org · 7 days</h2>
+      <dl className="op-figs is-small">
+        <div><dt>Visitors</dt><dd>{f(s.visitors)}</dd></div>
+        <div><dt>Pages opened</dt><dd>{f(s.views)}{s.capped ? "+" : ""}</dd></div>
+        <div><dt>Sign-ins</dt><dd>{f(s.logins)}</dd></div>
+      </dl>
+      {s.pages.length ? <ul className="op-bars" aria-label="Most opened">{s.pages.map((x) => <li key={x.path}><span>{x.path === "/" ? "Home" : x.path}</span><i style={{ ["--v" as string]: `${(x.n / top) * 100}%` }} aria-hidden /><b>{f(x.n)}</b></li>)}</ul> : null}
+      <p className="op-note">Visitors who opted out of counting are not included. Demo site visits are counted on the demo, not here.</p>
+    </section>
   );
 }
 
@@ -118,17 +220,21 @@ function Health({ o, secret, reload, onGo }: { o: Overview; secret: string; relo
       act: noCity.length ? <button type="button" className="btn is-s" onClick={() => onGo("orgs")}>Set cities</button> : undefined },
   ];
 
-  return (
-    <section className="op-sec" aria-labelledby="op-health-h">
-      <h2 id="op-health-h" className="op-h2">Data health</h2>
+  const bad = rows.filter((x) => !x.ok);
+  const list = (xs: typeof rows) => (
       <ul className="op-checks">
-        {rows.map((x) => (
+        {xs.map((x) => (
           <li key={x.title} className={x.ok ? "is-ok" : "is-warn"}>
             <i aria-hidden>{x.ok ? <Check size={14} /> : <AlertTriangle size={14} />}</i>
             <div><b>{x.title}</b><p>{x.detail}</p>{x.act}</div>
           </li>
         ))}
-      </ul>
+      </ul>);
+  return (
+    <section className="op-sec" aria-labelledby="op-health-h">
+      <h2 id="op-health-h" className="op-h2">Data health</h2>
+      {bad.length ? list(bad) : <p className="op-calm"><Check size={16} aria-hidden /> All {rows.length} checks pass.</p>}
+      {bad.length && bad.length < rows.length ? <details className="op-more is-inner"><summary>{rows.length - bad.length} passing</summary>{list(rows.filter((x) => x.ok))}</details> : null}
       <ReceiptLine r={r} />
       {o.pipeline.imports.length > 0 && (
         <details className="op-imports">
