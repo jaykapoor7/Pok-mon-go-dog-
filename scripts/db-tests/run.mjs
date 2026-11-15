@@ -17,8 +17,10 @@ const MIGRATIONS = [
   "20261115100000_rebuild_foundations.sql", "20261115110000_rebuild_kaju_in_channel.sql", "20261115120000_rebuild_kaju_missions.sql", "20261115130000_rebuild_people_studies_vet.sql",
   "20261116100000_rebuild_collaboration.sql", "20261116110000_rebuild_kaju_engine.sql", "20261116120000_rebuild_research_access.sql",
   "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
+  "20261116150000_rebuild_vet_clinics_and_joining.sql",
 ];
 
+process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
 const db = new PGlite();
 await db.exec(readFileSync(join(here, "base.sql"), "utf8"));
 for (const m of MIGRATIONS) {
@@ -261,6 +263,40 @@ ok(log.length === 1 && log[0].phone_masked.startsWith("••••") && log[0].
 ok((await as(A, "select id from nx_pep_reminders($1)", [clinic])).length === 0, "nobody outside the clinic sees it");
 ok(await refused(nurse, "select * from health.reminder_outbox") !== null, "the reminder queue itself is not readable through the API");
 ok((await as(P, "select nx_automation_run($1, true) as r", [rem]))[0].r.found === 0, "running it again the same day queues nothing new");
+
+section("Independent veterinary clinics");
+const V = uuid(), VN = uuid();
+for (const [id, nm] of [[V, "Dr. Vee"], [VN, "Nina Nurse"]]) await db.query("insert into auth.users (id, raw_user_meta_data) values ($1, $2)", [id, { display_name: nm }]);
+const vc = (await as(V, "select nx_register_vet_clinic('Kind Paws Veterinary Clinic', 'Pune', 'Dr. Vee') as id"))[0].id;
+ok((await as(V, "select workspace, kind, source from nx_my_workspaces() where org_id = $1", [vc]))[0]?.source === "vet_clinic", "the clinic opens in the Healthcare workspace as a veterinary clinic");
+await db.query("insert into oh_members (organisation_id, user_id, role) values ($1, $2, 'nurse')", [vc, VN]);
+const dog1 = (await one("insert into dogs (ngo_id, name) values ($1, 'Brownie') returning id", [N1])).id;
+const pat = (await as(VN, "insert into nx_vet_patients (clinic_id, name, brought_by, ngo_id, dog_id) values ($1, 'Brownie', 'ngo', $2, $3) returning id", [vc, N1, dog1]))[0].id;
+ok(await refused(C, "insert into nx_vet_patients (clinic_id, name) values ($1, 'x')", [vc]) !== null, "an outsider cannot add patients to the clinic");
+const enc = (await as(VN, "insert into nx_vet_encounters (clinic_id, patient_id, kind, findings, diagnosis, next_due) values ($1, $2, 'sterilisation', 'Healthy female', 'Spay, no complications', current_date + 7) returning id", [vc, pat]))[0].id;
+ok(await refused(VN, "insert into nx_vet_encounters (clinic_id, patient_id, kind, signed_at) values ($1, $2, 'exam', now())", [vc, pat]) !== null, "nobody writes a record as already signed");
+ok(await refused(VN, "select nx_vet_sign($1)", [enc]) !== null, "a nurse cannot sign a clinical record");
+await as(V, "select nx_vet_sign($1)", [enc]);
+ok(await refused(VN, "update nx_vet_encounters set diagnosis = 'changed' where id = $1 returning id", [enc]) !== null || (await one("select diagnosis from nx_vet_encounters where id = $1", [enc])).diagnosis === "Spay, no complications", "a signed record does not change");
+const shared = await as(A, "select * from nx_vet_shared_for_ngo($1)", [N1]);
+ok(shared.length === 1 && shared[0].last_kind === "sterilisation" && !("diagnosis" in shared[0]) && !("findings" in shared[0]), "the NGO sees only that it was done and when the next visit is due");
+ok((await as(C, "select * from nx_vet_shared_for_ngo($1)", [N1])).length === 0, "another NGO sees nothing");
+ok((await as(A, "select id from nx_vet_encounters")).length === 0, "the NGO cannot read the clinical record itself");
+ok((await as(VN, "insert into nx_appointments (org_id, vet_patient_id, title, starts_at) values ($1, $2, 'Suture check', now() + interval '7 days') returning id", [vc, pat])).length === 1, "the clinic books its own patient");
+ok(await refused(VN, "insert into nx_appointments (org_id, dog_id, title, starts_at) values ($1, $2, 'x', now())", [vc, dog1]) !== null, "but cannot book an NGO's animal directly");
+
+section("Finding an organisation and asking to join");
+const J = uuid(); await db.query("insert into auth.users (id) values ($1)", [J]);
+ok((await as(J, "select id from nx_find_orgs('Twelve')")).some((o) => o.id === N1), "an NGO can be found by name");
+await db.query("insert into review_offices (name) values ('Pune Municipal Review Office')");
+ok((await as(J, "select id from nx_find_orgs('Review Office')")).length === 0, "a reviewing office is never listed");
+const jr = (await as(J, "select nx_request_join($1, 'I volunteer at the Ward 12 shelter', 'Jaya') as id", [N1]))[0].id;
+ok((await as(A, "select id from nx_notifications where title like 'Jaya asked to join'")).length === 1, "the NGO's leads are asked");
+ok(await refused(B, "select nx_decide_join($1, 'approve', 'member')", [jr]) !== null, "a member cannot let people in");
+ok(await refused(A, "select nx_decide_join($1, 'approve', 'admin')", [jr]) !== null, "a request cannot be approved straight into the lead role");
+await as(A, "select nx_decide_join($1, 'approve', 'member')", [jr]);
+ok((await as(J, "select org_id from nx_my_workspaces()")).some((w) => w.org_id === N1), "after approval the person is a member with the role chosen");
+ok(await refused(J, "select nx_request_join($1)", [coordOrg]) !== null, "a programme's coordination cannot be joined by asking");
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

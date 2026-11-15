@@ -27,3 +27,5 @@ create table public.medical_events (id uuid primary key default gen_random_uuid(
 create table public.animal_followups (id uuid primary key default gen_random_uuid(), case_id uuid, dog_id uuid, due_at timestamptz, status text default 'open');
 create or replace function public.my_ngo() returns uuid language sql stable security definer set search_path = public as $$ select ngo_id from ngo_members where user_id = auth.uid() order by created_at limit 1 $$;
 grant execute on function public.my_ngo() to authenticated;
+-- As in Supabase, signed-in sessions hold table privileges and row-level security narrows them.
+grant select, insert, update on public.dogs, public.cases, public.ngos, public.medical_events, public.animal_followups to authenticated;
