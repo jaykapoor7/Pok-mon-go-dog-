@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
-import { NgoProgrammes } from "@/nx/pages/Ops";
+import { Programmes } from "@/nx/pages/ngo/Programmes";
 export const metadata: Metadata = { title: "Programmes, StrayPaw" };
-export default function Page() { return <NgoProgrammes />; }
+export default async function Page({ searchParams }: { searchParams: Promise<{ tab?: string; title?: string; case?: string }> }) {
+  const p = await searchParams;
+  return <Programmes tab={p.tab ?? null} title={p.title ?? null} caseId={p.case ?? null} />;
+}
