@@ -1,18 +1,18 @@
-# Production database changes waiting for the owner's approval
+# Production database changes for the rebuild
 
-Nothing below has been applied to production (`toujthlzjmhmoyykmayx`). Each file has been applied and tested on staging
-(`ucxfxiddufwqithtdtix`) only. Production stays unchanged until the owner approves these exact files, in this order.
+**Applied to production (`toujthlzjmhmoyykmayx`) on 15 Nov 2026 by the owner**, as one transaction in the SQL Editor,
+after the owner approved it. Every file was first applied and tested on staging (`ucxfxiddufwqithtdtix`).
 
 All five are additive. They create new tables and functions, and `nx_my_workspaces` gains one more kind of row. None of
 them drops, renames or rewrites an existing table, and none changes or deletes an existing row.
 
-| Order | File | What it adds | Staging |
-| --- | --- | --- | --- |
-| 1 | `supabase/migrations/20261113120000_automations.sql` | `automations`, `automation_runs`, `automation_notices`; save, pause, run and due functions. Nothing is switched on. | Applied (run by the owner in the SQL Editor) |
-| 2 | `supabase/migrations/20261115100000_rebuild_foundations.sql` | `nx_channels`, `nx_channel_members`, `nx_messages`, `nx_tasks`, `nx_notifications`, `nx_missions`, `nx_mission_steps`; `nx_is_member`, `nx_my_workspaces`, `nx_can_read_channel`; realtime on messages | Applied |
-| 3 | `supabase/migrations/20261115110000_rebuild_kaju_in_channel.sql` | `nx_kaju_reply`: Kaju's fixed-rule reply in a channel (no model) | Applied |
-| 4 | `supabase/migrations/20261115120000_rebuild_kaju_missions.sql` | `nx_tasks.mission_id`, one-follow-up-per-case guard, `nx_mission_followups`, `nx_mission_approve`, `nx_mission_cancel` | Applied |
-| 5 | `supabase/migrations/20261115130000_rebuild_people_studies_vet.sql` | Direct messages (`nx_org_people`, `nx_open_dm`, `nx_my_dms`), unread (`nx_mark_read`, `nx_unread`), studies (`nx_studies`, `nx_study_notes`, `nx_study_outputs`, `nx_study_snapshot`), appointments (`nx_appointments`), and the veterinarian's Healthcare row in `nx_my_workspaces` | Applied |
+| Order | File | What it adds | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 1 | `supabase/migrations/20261113120000_automations.sql` | `automations`, `automation_runs`, `automation_notices`; save, pause, run and due functions. Nothing is switched on. | Applied (run by the owner in the SQL Editor) | Applied |
+| 2 | `supabase/migrations/20261115100000_rebuild_foundations.sql` | `nx_channels`, `nx_channel_members`, `nx_messages`, `nx_tasks`, `nx_notifications`, `nx_missions`, `nx_mission_steps`; `nx_is_member`, `nx_my_workspaces`, `nx_can_read_channel`; realtime on messages | Applied | Applied |
+| 3 | `supabase/migrations/20261115110000_rebuild_kaju_in_channel.sql` | `nx_kaju_reply`: Kaju's fixed-rule reply in a channel (no model) | Applied | Applied |
+| 4 | `supabase/migrations/20261115120000_rebuild_kaju_missions.sql` | `nx_tasks.mission_id`, one-follow-up-per-case guard, `nx_mission_followups`, `nx_mission_approve`, `nx_mission_cancel` | Applied | Applied |
+| 5 | `supabase/migrations/20261115130000_rebuild_people_studies_vet.sql` | Direct messages (`nx_org_people`, `nx_open_dm`, `nx_my_dms`), unread (`nx_mark_read`, `nx_unread`), studies (`nx_studies`, `nx_study_notes`, `nx_study_outputs`, `nx_study_snapshot`), appointments (`nx_appointments`), and the veterinarian's Healthcare row in `nx_my_workspaces` | Applied | Applied |
 
 ## What was checked on staging
 
@@ -23,6 +23,15 @@ them drops, renames or rewrites an existing table, and none changes or deletes a
 - Mission approval is idempotent, only the person who started a mission can approve it, and a case with an open follow-up is never given a second one.
 - Automations: a coordinator turned on a rule, ran it, paused it and removed it. One run found nothing and told nobody; another found 1 record and told the 3 leads and coordinators inside StrayPaw. Removing the rule removed its runs and notices.
 - An NGO veterinarian gets both the NGO workspace and the Healthcare (Veterinary) workspace for the same organisation, and can book an appointment only for that organisation's animals.
+
+## Checked on production after it was applied (read-only)
+
+- All 14 new tables exist. Each has row-level security on and its policies in place, and the anonymous role cannot read any of them.
+- All 19 new functions exist as security-definer functions, and the anonymous role cannot execute any of them.
+- `nx_messages` is in the realtime publication, and the new tables are empty.
+- Supabase's security advisor reports nothing new beyond its project-wide note that signed-in users can call
+  security-definer functions. Each of these functions checks the caller's organisation membership itself.
+- `www.straypaw.org/next/ngo/today` returns 200.
 
 ## Rollback
 
