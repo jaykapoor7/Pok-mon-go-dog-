@@ -8,7 +8,7 @@ them drops, renames or rewrites an existing table, and none changes or deletes a
 
 | Order | File | What it adds | Staging |
 | --- | --- | --- | --- |
-| 1 | `supabase/migrations/20261113120000_automations.sql` | `automations`, `automation_runs`, `automation_notices`; save, pause, run and due functions. Nothing is switched on. | Waiting: the file was sent for the staging SQL Editor |
+| 1 | `supabase/migrations/20261113120000_automations.sql` | `automations`, `automation_runs`, `automation_notices`; save, pause, run and due functions. Nothing is switched on. | Applied (run by the owner in the SQL Editor) |
 | 2 | `supabase/migrations/20261115100000_rebuild_foundations.sql` | `nx_channels`, `nx_channel_members`, `nx_messages`, `nx_tasks`, `nx_notifications`, `nx_missions`, `nx_mission_steps`; `nx_is_member`, `nx_my_workspaces`, `nx_can_read_channel`; realtime on messages | Applied |
 | 3 | `supabase/migrations/20261115110000_rebuild_kaju_in_channel.sql` | `nx_kaju_reply`: Kaju's fixed-rule reply in a channel (no model) | Applied |
 | 4 | `supabase/migrations/20261115120000_rebuild_kaju_missions.sql` | `nx_tasks.mission_id`, one-follow-up-per-case guard, `nx_mission_followups`, `nx_mission_approve`, `nx_mission_cancel` | Applied |
@@ -21,6 +21,7 @@ them drops, renames or rewrites an existing table, and none changes or deletes a
 - An outsider cannot open a direct message, mark a channel read, book an appointment or list an organisation's people.
 - A study snapshot is taken by the database as the signed-in person, from the programme's suppressed extract. It cannot contain more than that person is allowed to see.
 - Mission approval is idempotent, only the person who started a mission can approve it, and a case with an open follow-up is never given a second one.
+- Automations: a coordinator turned on a rule, ran it, paused it and removed it. One run found nothing and told nobody; another found 1 record and told the 3 leads and coordinators inside StrayPaw. Removing the rule removed its runs and notices.
 - An NGO veterinarian gets both the NGO workspace and the Healthcare (Veterinary) workspace for the same organisation, and can book an appointment only for that organisation's animals.
 
 ## Rollback
