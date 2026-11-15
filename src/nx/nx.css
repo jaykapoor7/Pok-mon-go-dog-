@@ -670,3 +670,13 @@ button.nx-item { width: calc(100% - 0px); text-align: left; }
 }
 .nx-needs-btn { display: flex; gap: 10px; align-items: flex-start; width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 .nx-needs-btn:hover { background: var(--hover); }
+.nx-saved { display: flex; flex-wrap: wrap; gap: 4px; }
+.nx-view.is-saved { display: inline-flex; align-items: center; gap: 0; padding: 0; box-shadow: inset 0 0 0 1px var(--line-2); }
+.nx-view.is-saved button { border: 0; background: none; color: inherit; font: inherit; height: 100%; padding: 0 4px 0 10px; cursor: pointer; }
+.nx-view.is-saved button + button { padding: 0 8px 0 4px; color: var(--ink-3); }
+.nx-view.is-saved.is-on { background: var(--sel); color: var(--ink); }
+@media (max-width: 640px) { .nx-saveview { display: none; } }
+.nx-pin { position: relative; display: block; }
+.nx-pin button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none; color: var(--ink-3); display: grid; place-items: center; width: 22px; height: 22px; border-radius: 5px; opacity: 0; cursor: pointer; }
+.nx-pin:hover button, .nx-pin button:focus-visible { opacity: 1; }
+.nx-pin button:hover { background: var(--line); color: var(--ink); }

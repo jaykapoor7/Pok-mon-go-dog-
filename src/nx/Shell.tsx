@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { ChevronsUpDown, Hash, Home, Users, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
+import { ChevronsUpDown, Hash, Home, Pin, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CH_PEOPLE, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
 import { GOV, HEALTH, KAJU, LAB, NGO, RESEARCH, VET, VET_PATHS, WS_LABEL, classicOf, homeOf } from "./nav";
 import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
 import { useProgrammeChannels } from "./collab";
+import { getSupabase } from "@/lib/supabase";
 import { OfflineBar, ToastHost } from "./kit";
 import { KajuProvider, useKaju } from "./kaju/state";
 import { KajuDock } from "./kaju/Dock";
@@ -81,6 +82,14 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const unreadMap = useUnread(live.org?.org_id ?? null, path);
   const dms = useDms(live.org?.org_id ?? null);
   const progChans = useProgrammeChannels(!!live.org);
+  const [pins, setPins] = useState<{ id: string; page: string; name: string }[]>([]);
+  const orgId = live.org?.org_id ?? null;
+  useEffect(() => {
+    const db = getSupabase(); if (!db || !orgId) { setPins([]); return; }
+    const load = () => { void db.from("nx_saved_views").select("id,page,name").eq("kind", "pin").order("created_at").limit(12).then(({ data, error }) => { if (!error) setPins((data ?? []) as { id: string; page: string; name: string }[]); }); };
+    load(); window.addEventListener("nx:pins", load); return () => window.removeEventListener("nx:pins", load);
+  }, [orgId]);
+  const unpin = async (id: string) => { setPins((p) => p.filter((x) => x.id !== id)); await getSupabase()?.from("nx_saved_views").delete().eq("id", id); };
   const [picking, setPicking] = useState(false);
   const chanName = (id: string) => chans.rows?.find((c) => c.id === id)?.name ?? null;
   const office = live.org?.source === "review_office";
@@ -119,6 +128,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
           : <Link href={ws === "gov" ? "/next/ngo/today" : "/next/gov/overview"} className="nx-org" title="Switch workspace"><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span><ChevronsUpDown size={14} /></Link>}
         <div className="nx-nav">
           {nav.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span>{i.n && !live.org ? <i>{i.n}</i> : null}</Link>)}
+          {pins.length ? <><div className="nx-nav-h">Pinned</div>{pins.map((x) => <span key={x.id} className="nx-pin"><Link href={x.page} className={`nx-item ${path === x.page ? "is-on" : ""}`} aria-current={path === x.page ? "page" : undefined}><Pin size={13} /><span>{x.name}</span></Link><button type="button" aria-label={`Unpin ${x.name}`} onClick={() => void unpin(x.id)}><X size={12} /></button></span>)}</> : null}
           <div className="nx-nav-h">Channels<button type="button" aria-label="New channel" onClick={() => live.org && setAdding(true)}><Plus size={13} /></button></div>
           {live.org ? <>
             {(chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => { const href = `/next/channels/${c.name}`; const n = path === href ? 0 : unreadMap[c.id] ?? 0; return <Link key={c.id} href={href} className={`nx-item ${path === href ? "is-on" : n ? "is-unread" : ""}`} aria-current={path === href ? "page" : undefined} aria-label={n ? `#${c.name}, ${n} unread` : undefined}><Hash size={14} /><span>{c.name}</span>{n ? <i>{n}</i> : null}</Link>; })}

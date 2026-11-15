@@ -16,6 +16,7 @@ const MIGRATIONS = [
   "20261111100000_one_health_v2_4_network_alerts.sql", "20261111120000_one_health_v2_5_record_audit_fix.sql", "20261112140000_one_health_v2_6_referrals_revaccination_logos.sql",
   "20261115100000_rebuild_foundations.sql", "20261115110000_rebuild_kaju_in_channel.sql", "20261115120000_rebuild_kaju_missions.sql", "20261115130000_rebuild_people_studies_vet.sql",
   "20261116100000_rebuild_collaboration.sql", "20261116110000_rebuild_kaju_engine.sql", "20261116120000_rebuild_research_access.sql",
+  "20261116130000_rebuild_saved_views.sql",
 ];
 
 const db = new PGlite();
@@ -223,6 +224,11 @@ ok((await as(R, "select nx_take_extract($1) as id", [req])).length === 1 && (awa
 await as(P, "select nx_decide_data_request($1, 'revoke', 'Study ended')", [req]);
 ok((await as(R, "select id from nx_data_extracts")).length === 0, "after revocation the extracts can no longer be read");
 ok(await refused(R, "select nx_take_extract($1)", [req]) !== null, "and no new extract can be taken");
+
+section("Saved views and pins");
+await as(A, "insert into nx_saved_views (org_id, kind, page, name, state) values ($1, 'view', '/ngo/cases', 'Ward 12 critical', '{\"view\":\"critical\",\"q\":\"ward 12\"}')", [N1]);
+ok((await as(B, "select id from nx_saved_views")).length === 0, "nobody sees another person's saved views");
+ok(await refused(C, "insert into nx_saved_views (org_id, kind, page, name) values ($1, 'pin', '/ngo/cases/x', 'x')", [N1]) !== null, "a view cannot be saved against an organisation one is not in");
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
