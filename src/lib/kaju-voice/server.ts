@@ -2,15 +2,16 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { VOICE_LANGUAGES, type VoiceTestConfig } from "./shared";
 import type { VoiceAccess } from "./access";
-import { voicePreviewEnabled } from "./deployment";
+import { PRODUCTION_VOICE_HOSTS, voiceMode } from "./deployment";
 
 const REQUIRED = ["SARVAM_VOICE_API_KEY", "SARVAM_VOICE_ORG_ID", "SARVAM_VOICE_WORKSPACE_ID", "SARVAM_VOICE_APP_ID", "SARVAM_VOICE_VERSION"] as const;
 const ID = /^[a-zA-Z0-9_-]{1,128}$/;
 
-/** First proof is deliberately local-only. Hosted access fails closed.
- * Shared usage storage and programme policies are required before hosting. */
-export function voiceTestEnabled(env: Record<string, string | undefined> = process.env) {
-  return voicePreviewEnabled(env) || (env.NODE_ENV === "development" && env.SARVAM_VOICE_ENABLED === "true" && !env.VERCEL);
+/** Voice runs only where voiceMode() names a mode: production on its own
+ * database and domains, the assigned preview branch on staging, or next dev.
+ * Everywhere else every voice route fails closed. */
+export function voiceEnabled(env: Record<string, string | undefined> = process.env) {
+  return voiceMode(env) !== null;
 }
 
 export function readVoiceSettings(env: Record<string, string | undefined> = process.env): { config: VoiceTestConfig; apiKey: string } | { missing: string[] } {
@@ -57,40 +58,54 @@ export function isLocalVoiceRequest(req: Request) {
   return !site || site === "same-origin";
 }
 
-/** Same-origin HTTPS only on the explicitly assigned preview branch. */
+/** Same-origin HTTPS only: production custom domains, or the assigned
+ * preview's own deployment hosts. The Host header is what Vercel routed on.
+ * The bearer token (never a cookie) is the real authority; these checks keep
+ * other sites and other deployments from driving the endpoints at all. */
 export function isVoiceRequest(req: Request, env: Record<string, string | undefined> = process.env) {
-  if (!voicePreviewEnabled(env)) return isLocalVoiceRequest(req);
-  const url = new URL(req.url);
-  const hosts = [env.VERCEL_URL, env.VERCEL_BRANCH_URL].filter(Boolean);
-  if (url.protocol !== "https:" || !hosts.includes(url.host) || req.headers.get("host") !== url.host) return false;
+  const mode = voiceMode(env);
+  if (!mode) return false;
+  if (mode === "local") return isLocalVoiceRequest(req);
+  const host = req.headers.get("host") ?? "";
+  const hosts: readonly string[] = mode === "production" ? PRODUCTION_VOICE_HOSTS : [env.VERCEL_URL, env.VERCEL_BRANCH_URL].filter((h): h is string => !!h);
+  if (!hosts.includes(host)) return false;
+  const protocol = req.headers.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(/:$/, "");
+  if (protocol !== "https") return false;
   if (req.headers.get("X-StrayPaw-Voice-Test") !== "1") return false;
   const origin = req.headers.get("origin"), site = req.headers.get("sec-fetch-site");
-  return (!origin || origin === url.origin) && (!site || site === "same-origin");
+  return (!origin || origin === `https://${host}`) && (!site || site === "same-origin");
 }
 
-export async function issueVoiceSession(config: VoiceTestConfig, apiKey: string, fetcher: typeof fetch = fetch) {
+export async function issueVoiceSession(config: VoiceTestConfig, apiKey: string, fetcher: typeof fetch = fetch, env: Record<string, string | undefined> = process.env) {
   const requestId = randomUUID();
+  const mode = voiceMode(env) ?? "off";
   // Only this fixed API and server-selected agent/version can receive the key.
   const url = new URL(`https://apps.sarvam.ai/api/app-runtime/orgs/${config.org_id}/workspaces/${config.workspace_id}/apps/${config.app_id}/url`);
   url.searchParams.set("interaction_type", "call");
   url.searchParams.set("version", String(config.version));
+  // A short, fixed reason for the logs: an HTTP status or a category, never a
+  // provider body, key, signed URL, audio or transcript.
+  let reason = "network";
   try {
     const upstream = await fetcher(url, {
       headers: { "X-API-Key": apiKey, Accept: "application/json" },
       cache: "no-store", redirect: "error", signal: AbortSignal.timeout(12_000),
     });
-    if (!upstream.ok) throw new Error("Provider refused the session");
+    if (!upstream.ok) { reason = `provider_${upstream.status}`; throw new Error("Provider refused the session"); }
+    reason = "invalid_response";
     const data: unknown = await upstream.json();
     if (!data || typeof data !== "object" || !("url" in data) || !("reference_id" in data)
       || typeof data.url !== "string" || typeof data.reference_id !== "string" || !data.reference_id || data.reference_id.length > 256) throw new Error("Invalid session");
+    reason = "invalid_host";
     const socket = new URL(data.url);
     if (socket.protocol !== "wss:" || socket.username || socket.password || socket.port
       || !(socket.hostname === "sarvam.ai" || socket.hostname.endsWith(".sarvam.ai"))) throw new Error("Invalid voice host");
     // No keys, signed URLs, raw errors, audio or transcripts in application logs.
-    console.info("kaju_voice_session", { requestId, scope: "local-test", version: config.version, outcome: "issued" });
+    console.info("kaju_voice_session", { requestId, mode, version: config.version, outcome: "issued" });
     return { url: data.url, reference_id: data.reference_id };
-  } catch {
-    console.info("kaju_voice_session", { requestId, scope: "local-test", version: config.version, outcome: "failed" });
-    throw new Error("Kaju could not connect. Check the Voice Agents key, IDs and committed version.");
+  } catch (err) {
+    if (err instanceof Error && err.name === "TimeoutError") reason = "timeout";
+    console.info("kaju_voice_session", { requestId, mode, version: config.version, outcome: "failed", reason });
+    throw new Error("Kaju Voice could not connect.");
   }
 }

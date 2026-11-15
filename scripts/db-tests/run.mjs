@@ -388,5 +388,40 @@ await as(A, "select nx_decide_join($1, 'approve', 'member')", [jr]);
 ok((await as(J, "select org_id from nx_my_workspaces()")).some((w) => w.org_id === N1), "after approval the person is a member with the role chosen");
 ok(await refused(J, "select nx_request_join($1)", [coordOrg]) !== null, "a programme's coordination cannot be joined by asking");
 
+section("Kaju Voice session grants (preview migration, then the production access migration, re-run)");
+{
+  const T = uuid(), U = uuid(), E = uuid();
+  await db.query("insert into auth.users (id, email, email_confirmed_at) values ($1, 'tester@example.invalid', now()), ($2, 'other@example.invalid', now()), ($3, 'unconfirmed@example.invalid', null)", [T, U, E]);
+  await db.exec(readFileSync(join(MIG, "20261115145414_kaju_voice_preview_sessions.sql"), "utf8"));
+  await db.query("insert into public.kaju_voice_testers (email) values ('tester@example.invalid'), ('unconfirmed@example.invalid')");
+  for (let i = 0; i < 2; i++) await db.exec(readFileSync(join(MIG, "20261117100000_kaju_voice_access.sql"), "utf8"));
+  const granted = (await db.query("select user_id from public.kaju_voice_access")).rows.map((r) => r.user_id);
+  ok(granted.length === 1 && granted[0] === T, "only the confirmed preview tester is carried over, by account ID");
+  ok((await one("select to_regclass('public.kaju_voice_testers') as t")).t === null, "the email list is retired");
+  ok(await refused(T, "select user_id from public.kaju_voice_access") !== null, "nobody signed in can read the access list");
+  ok(await refused(U, "insert into public.kaju_voice_access (user_id) values ($1)", [U]) !== null, "nobody signed in can grant themselves voice");
+  ok((await refused(U, "select public.kaju_voice_reserve(3)"))?.includes("VOICE_ACCESS_DENIED"), "an account without access cannot reserve a session");
+  ok((await refused(E, "select public.kaju_voice_reserve(3)"))?.includes("VOICE_ACCESS_DENIED"), "an unconfirmed email on the old list gets no access");
+  await db.exec("set role anon");
+  let anonRefused = false; try { await db.query("select public.kaju_voice_reserve(3)"); } catch { anonRefused = true; } finally { await db.exec("reset role"); }
+  ok(anonRefused, "signed-out callers cannot call the voice RPCs");
+  const s1 = (await as(T, "select public.kaju_voice_reserve(3) as id"))[0].id;
+  ok(!!s1, "the tester reserves a session");
+  ok(await refused(T, "insert into public.kaju_voice_sessions (user_id, scope_id, agent_version) values ($1, $1, 3)", [T]) !== null, "sessions cannot be written directly");
+  ok(await refused(T, "update public.kaju_voice_sessions set status = 'issued' where id = $1", [s1]) !== null, "sessions cannot be updated directly");
+  ok((await as(T, "select public.kaju_voice_update($1, 'issued', 'ref-1') as ok", [s1]))[0].ok === true, "the server marks the grant issued with the provider reference");
+  await db.query("insert into public.kaju_voice_access (user_id) values ($1)", [U]);
+  ok((await as(U, "select public.kaju_voice_update(null, 'client_connected', 'ref-1', '{\"audioSent\":true}') as ok"))[0].ok === false, "another account cannot report on the tester's session");
+  ok((await as(T, "select public.kaju_voice_update(null, 'client_connected', 'ref-1', '{\"audioSent\":true,\"audioReceived\":true}') as ok"))[0].ok === true, "the tester's client reports the connection");
+  ok((await as(T, "select public.kaju_voice_update(null, 'client_ended', 'ref-1', '{\"interrupted\":true}') as ok"))[0].ok === true, "and its end");
+  const row = (await as(T, "select status, connected_at, ended_at, client_audio_sent, client_audio_received, client_interrupted from public.kaju_voice_sessions where id = $1", [s1]))[0];
+  ok(row?.status === "issued" && row.connected_at && row.ended_at && row.client_audio_sent && row.client_audio_received && row.client_interrupted, "the session row holds times and client observations only");
+  ok((await as(U, "select id from public.kaju_voice_sessions")).length === 0, "an account sees only its own sessions");
+  for (let i = 0; i < 4; i++) await as(T, "select public.kaju_voice_reserve(3)");
+  ok((await refused(T, "select public.kaju_voice_reserve(3)"))?.includes("VOICE_LIMIT"), "a sixth start within a minute is refused");
+  await db.query("delete from auth.users where id = $1", [T]);
+  ok((await one("select count(*)::int as n from public.kaju_voice_sessions where user_id = $1", [T])).n === 0 && (await one("select count(*)::int as n from public.kaju_voice_access where user_id = $1", [T])).n === 0, "deleting an account deletes its voice access and sessions");
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

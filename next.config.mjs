@@ -14,6 +14,8 @@
    footer in src/components/site) compare this same value, which the build
    turns into a constant, so the experience not shown, with its scripts
    and styles, is left out of the bundles. ─────────────────────────────── */
+import { voiceMode } from "./src/lib/kaju-voice/mode.mjs";
+
 const MARKETING_EXPERIENCE = process.env.MARKETING_EXPERIENCE === "cinematic" ? "cinematic" : "legacy";
 
 /** @type {import('next').NextConfig} */
@@ -131,9 +133,10 @@ const nextConfig = {
           { key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=()" },
         ],
       },
-      // Only the explicitly enabled, localhost-only Kaju voice proof may use
-      // the microphone. All hosted routes keep the existing denial.
-      ...((process.env.NODE_ENV === "development" && process.env.SARVAM_VOICE_ENABLED === "true" && !process.env.VERCEL) || (process.env.VERCEL_ENV === "preview" && process.env.SARVAM_VOICE_ENABLED === "true" && process.env.SARVAM_VOICE_PREVIEW_BRANCH && process.env.VERCEL_GIT_COMMIT_REF === process.env.SARVAM_VOICE_PREVIEW_BRANCH && process.env.NEXT_PUBLIC_SUPABASE_URL === "https://ucxfxiddufwqithtdtix.supabase.co") ? [{
+      // Kaju Voice is the only document allowed the microphone, and only where
+      // voiceMode() names a mode (production on its own database, the assigned
+      // preview on staging, or next dev). Every other route keeps the denial.
+      ...(voiceMode() ? [{
         source: "/kaju/voice",
         headers: [{ key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=(self)" }],
       }] : []),

@@ -6,12 +6,16 @@ import { getSupabase } from "@/lib/supabase";
 import { VOICE_LANGUAGES, VOICE_TEST_HEADERS, type VoiceLanguage, type VoiceTestConfig } from "@/lib/kaju-voice/shared";
 import { StagingSignIn } from "./StagingSignIn";
 import { createVoiceTransport, type VoiceTransport, type VoiceEvidence } from "./transport";
+import type { VoiceMode } from "@/lib/kaju-voice/deployment";
 
 const emptyEvidence = { sent: false, received: false, interrupted: false };
 const STATUS: Record<string, string> = { idle: "Ready", connecting: "Connecting", connected: "Connected", listening: "Listening", speaking: "Speaking", error: "Connection failed" };
 
-export function VoiceTest({ ready, preview = false }: { ready: boolean; preview?: boolean }) {
-  const { user, openSignIn } = useAuth();
+/** production: the signed-in StrayPaw account only. preview: the staging tester
+ * sign-in. local: next dev with a local access code. */
+export function VoiceTest({ ready, mode }: { ready: boolean; mode: VoiceMode }) {
+  const live = mode === "production", hosted = mode !== "local";
+  const { user, openSignIn, ready: authReady } = useAuth();
   const [localCode, setLocalCode] = useState("");
   const [language, setLanguage] = useState<VoiceLanguage>("English");
   const [status, setStatus] = useState("Ready");
@@ -69,18 +73,18 @@ export function VoiceTest({ ready, preview = false }: { ready: boolean; preview?
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Error("Use localhost or HTTPS so the browser can access your microphone.");
       const session = (await getSupabase()?.auth.getSession())?.data.session;
-      const token = (!preview && localCode.trim()) || session?.access_token;
+      const token = (!hosted && localCode.trim()) || session?.access_token;
       if (!token) throw Error("Sign in to StrayPaw to start Kaju Voice.");
       headers = { ...VOICE_TEST_HEADERS, Authorization: `Bearer ${token}` };
       const response = await fetch("/api/kaju/voice/config", { headers, cache: "no-store", signal: AbortSignal.timeout(10_000) });
-      if (!response.ok) { const body = await response.json().catch(() => ({})); throw Error(typeof body.error === "string" ? body.error : "Voice configuration is unavailable."); }
+      if (!response.ok) { const body = await response.json().catch(() => ({})); throw Error(typeof body.error === "string" ? body.error : "Kaju Voice is not available right now."); }
       const config: VoiceTestConfig = await response.json();
       if (!current()) return;
       agent = await createVoiceTransport({ config, language, headers,
         status: (state) => { if (current()) setStatus(STATUS[state] ?? "Connecting"); },
         transcript: (role, text) => { if (current()) setMessages((old) => [...old.slice(-49), { role, text }]); },
         evidence: (value) => { if (current()) { sessionEvidence = value; setEvidence(value); } },
-        failed: (kind) => { if (current()) setError(kind === "NotAllowedError" ? "Allow microphone access for this page, then try again." : kind === "NotFoundError" ? "No microphone was found. Connect one and try again." : "Voice connection failed. Check microphone access and the server's Voice Agents configuration."); },
+        failed: (kind) => { if (current()) setError(kind === "NotAllowedError" ? "Allow microphone access for this page, then try again." : kind === "NotFoundError" ? "No microphone was found. Connect one and try again." : "Kaju Voice could not connect. Check that your microphone is allowed, then try again."); },
         ended: () => {
           void report("client_ended");
           if (current()) {
@@ -105,7 +109,10 @@ export function VoiceTest({ ready, preview = false }: { ready: boolean; preview?
   };
 
   return <section aria-label="Kaju voice conversation" className="kv-test">
-    {preview ? (!user ? <StagingSignIn /> : <p className="kv-note">Signed in as {user.email}</p>) : <div className="kv-access">
+    {mode === "production" ? (authReady && !user ? <div className="kv-access">
+      <p>Sign in to StrayPaw to speak with Kaju.</p>
+      <button type="button" onClick={openSignIn}>Sign in</button>
+    </div> : null) : mode === "preview" ? (!user ? <StagingSignIn /> : <p className="kv-note">Signed in as {user.email}</p>) : <div className="kv-access">
       <label htmlFor="kv-access">Local voice access code</label>
       <input id="kv-access" type="password" autoComplete="off" spellCheck={false} value={localCode} disabled={busy}
         onChange={(e) => setLocalCode(e.target.value)} aria-describedby="kv-access-help" />
@@ -117,21 +124,25 @@ export function VoiceTest({ ready, preview = false }: { ready: boolean; preview?
       {VOICE_LANGUAGES.map((name) => <option key={name}>{name}</option>)}
     </select>
     <div className="kv-actions">
-      <button onClick={() => void start()} disabled={!ready || busy || (preview && !user)}>Start conversation</button>
+      <button onClick={() => void start()} disabled={!ready || busy || (hosted && !user)}>Start conversation</button>
       <button onClick={() => void stop()} disabled={!busy}>Stop</button>
       <button disabled={!connected} onClick={() => {
         const agent = agentRef.current; if (!agent) return;
         if (agent.isMuted()) agent.unmute(); else agent.mute(); setMuted(agent.isMuted());
       }}>{muted ? "Unmute" : "Mute"}</button>
     </div>
-    <p role="status">{ready ? status : "Not connected · setup needed"}{muted ? " · Microphone muted" : ""}</p>
+    <p role="status">{ready ? status : live ? "Kaju Voice is not available right now." : "Not connected · setup needed"}{muted ? " · Microphone muted" : ""}</p>
     {error ? <p role="alert">{error}</p> : null}
-    {usageWarning ? <p role="alert">{usageWarning}</p> : null}
-    {interaction ? <p className="kv-note">Sarvam interaction: {interaction}</p> : null}
-    {busy || interaction ? <p className="kv-note">Audio sent: {evidence.sent ? "yes" : "not yet"} · Audio received: {evidence.received ? "yes" : "not yet"} · Interrupted: {evidence.interrupted ? "yes" : "not yet"}</p> : null}
+    {!live && usageWarning ? <p role="alert">{usageWarning}</p> : null}
+    {/* Connection diagnostics for the preview and next dev only. In production the same
+        observations are recorded with the session, never shown. */}
+    {!live && interaction ? <p className="kv-note">Sarvam interaction: {interaction}</p> : null}
+    {!live && (busy || interaction) ? <p className="kv-note">Audio sent: {evidence.sent ? "yes" : "not yet"} · Audio received: {evidence.received ? "yes" : "not yet"} · Interrupted: {evidence.interrupted ? "yes" : "not yet"}</p> : null}
     <ol className="kv-transcript" aria-live="polite" aria-label="Conversation transcript">
       {messages.map((msg, index) => <li key={index}><strong>{msg.role}:</strong> {msg.text}</li>)}
     </ol>
-    <p className="kv-note">Stops after 2 minutes. Transcript stays on this page; session metadata is recorded in the staging workspace. Sarvam workspace retention settings still apply.</p>
+    <p className="kv-note">{live
+      ? "A conversation stops after 2 minutes. The transcript is shown on this page only. StrayPaw records when each conversation starts and ends, never its audio or words. Sarvam handles the audio under its own data retention settings."
+      : "Stops after 2 minutes. Transcript stays on this page; session metadata is recorded in the staging workspace. Sarvam workspace retention settings still apply."}</p>
   </section>;
 }

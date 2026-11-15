@@ -3,6 +3,7 @@ import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { VoiceError, type VoiceAccess } from "./access";
+import { voiceMode } from "./deployment";
 
 type Entry = {
   at: number; id: string; actorId: string; scope: VoiceAccess["scope"]; auth: VoiceAccess["auth"];
@@ -10,8 +11,8 @@ type Entry = {
   referenceId?: string; version?: number; audioSent?: boolean; audioReceived?: boolean; interrupted?: boolean;
 };
 
-/** Local proof only: durable session grants, not a billing ledger. Hosted use
- * remains disabled. A future shared database adapter can replace this class. */
+/** next dev only: durable session grants, not a billing ledger. Hosted
+ * deployments never write here; they use the shared database adapter below. */
 export class LocalVoiceUsage {
   private pending: Promise<unknown> = Promise.resolve();
   constructor(private root = join(process.cwd(), ".local", "kaju-voice")) {}
@@ -66,13 +67,24 @@ export class LocalVoiceUsage {
 
 export const voiceUsage = new LocalVoiceUsage();
 
-/** Caller-scoped staging database adapter, shared across Vercel instances. */
-export function usageForVoiceAccess(access: VoiceAccess) {
-  if (!access.db) return voiceUsage;
+/** Caller-scoped database adapter, shared across Vercel instances: the
+ * production database in production, staging in the preview. Hosted modes
+ * never fall back to the instance's filesystem, which is neither shared nor
+ * durable. Session grants only; not a billing ledger. */
+export function usageForVoiceAccess(access: VoiceAccess, env: Record<string, string | undefined> = process.env) {
+  if (!access.db) {
+    if (voiceMode(env) === "local") return voiceUsage;
+    throw new VoiceError("Kaju Voice is not available right now.", 503);
+  }
   const db = access.db;
   const rpc = async (name: string, args: Record<string, unknown>) => {
     const { data, error } = await db.rpc(name, args);
-    if (error) throw new VoiceError(error.message.includes("VOICE_LIMIT") ? "Voice session limit reached. Try again later." : "Voice session usage could not be recorded.", error.message.includes("VOICE_LIMIT") ? 429 : 503);
+    if (error) {
+      const text = `${error.message ?? ""} ${error.code ?? ""}`;
+      if (text.includes("VOICE_LIMIT")) throw new VoiceError("Too many Kaju Voice conversations have been started. Try again later.", 429);
+      if (text.includes("VOICE_ACCESS_DENIED")) throw new VoiceError("Kaju Voice is not available for your account yet.", 403);
+      throw new VoiceError("Kaju Voice is not available right now. Try again in a moment.", 503);
+    }
     if (data === false) throw new VoiceError("That voice session is not available to your account.", 403);
     return data;
   };

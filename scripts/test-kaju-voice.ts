@@ -4,9 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
 import ts from "typescript";
-import { isLocalVoiceRequest, issueVoiceSession, readVoiceSettings, settingsForVoiceAccess, voiceTestEnabled } from "../src/lib/kaju-voice/server";
+import { isLocalVoiceRequest, isVoiceRequest, issueVoiceSession, readVoiceSettings, settingsForVoiceAccess, voiceEnabled } from "../src/lib/kaju-voice/server";
+import { PRODUCTION_SUPABASE_URL, STAGING_SUPABASE_URL, voiceMode } from "../src/lib/kaju-voice/deployment";
 import { VoiceError, voiceAccess, type VoiceAccess } from "../src/lib/kaju-voice/access";
-import { LocalVoiceUsage } from "../src/lib/kaju-voice/usage";
+import { LocalVoiceUsage, usageForVoiceAccess } from "../src/lib/kaju-voice/usage";
 import { createVoiceTransport } from "../src/kaju/voice/transport";
 import type { VoiceTestConfig } from "../src/lib/kaju-voice/shared";
 import { GET as signSession } from "../src/app/api/kaju/voice/orgs/[orgId]/workspaces/[workspaceId]/apps/[appId]/url/route";
@@ -22,8 +23,8 @@ const sentinel = "unit-test-credential-never-sent";
 const settingsEnv = { ...env, SARVAM_VOICE_API_KEY: sentinel, SARVAM_VOICE_ORG_ID: config.org_id, SARVAM_VOICE_WORKSPACE_ID: config.workspace_id, SARVAM_VOICE_APP_ID: config.app_id, SARVAM_VOICE_VERSION: "3" };
 
 async function accessChecks() {
-  for (const v of [{ NODE_ENV: "production", SARVAM_VOICE_ENABLED: "true" }, { ...env, VERCEL: "1" }, { NODE_ENV: "development" }]) assert.equal(voiceTestEnabled(v), false);
-  assert.equal(voiceTestEnabled(env), true);
+  for (const v of [{ NODE_ENV: "production", SARVAM_VOICE_ENABLED: "true" }, { ...env, VERCEL: "1" }, { NODE_ENV: "development" }]) assert.equal(voiceEnabled(v), false);
+  assert.equal(voiceEnabled(env), true);
   assert.ok("missing" in readVoiceSettings({}));
   assert.ok("missing" in readVoiceSettings({ ...settingsEnv, SARVAM_VOICE_APP_ID: "../other" }));
   assert.ok("missing" in readVoiceSettings({ ...settingsEnv, SARVAM_VOICE_VERSION: "3.1" }));
@@ -51,6 +52,56 @@ async function accessChecks() {
   const assigned = settingsForVoiceAccess(orgAccess, { ...settingsEnv, SARVAM_VOICE_ORG_AGENTS: JSON.stringify({ "org-a": { app_id: "org-agent", version: 9 } }) });
   assert.ok("config" in assigned && assigned.config.app_id === "org-agent" && assigned.config.version === 9);
   return access;
+}
+
+async function productionChecks() {
+  const on = { SARVAM_VOICE_ENABLED: "true", VERCEL: "1", NODE_ENV: "production" };
+  const prod = { ...on, VERCEL_ENV: "production", NEXT_PUBLIC_SUPABASE_URL: PRODUCTION_SUPABASE_URL };
+  const preview = { ...on, VERCEL_ENV: "preview", SARVAM_VOICE_PREVIEW_BRANCH: "feat/voice", VERCEL_GIT_COMMIT_REF: "feat/voice", NEXT_PUBLIC_SUPABASE_URL: STAGING_SUPABASE_URL, VERCEL_URL: "p-1.vercel.app", VERCEL_BRANCH_URL: "p-git.vercel.app" };
+  assert.equal(voiceMode(prod), "production");
+  assert.equal(voiceMode({ ...prod, NEXT_PUBLIC_SUPABASE_URL: `${PRODUCTION_SUPABASE_URL}/` }), "production");
+  // Production never runs on staging data, a preview never on production data, and nothing runs unless enabled.
+  for (const v of [{ ...prod, NEXT_PUBLIC_SUPABASE_URL: STAGING_SUPABASE_URL }, { ...prod, SARVAM_VOICE_ENABLED: "false" }, { ...prod, NEXT_PUBLIC_SUPABASE_URL: undefined },
+    { ...preview, NEXT_PUBLIC_SUPABASE_URL: PRODUCTION_SUPABASE_URL }, { ...preview, VERCEL_GIT_COMMIT_REF: "main" }, { ...preview, SARVAM_VOICE_PREVIEW_BRANCH: "" }, { ...on, VERCEL_ENV: "development" }]) assert.equal(voiceMode(v), null);
+  assert.equal(voiceMode(preview), "preview");
+  const hosted = (host: string, headers: Record<string, string> = {}) => new Request(`https://${host}/api/kaju/voice/config`, { headers: { host, "x-forwarded-proto": "https", "X-StrayPaw-Voice-Test": "1", ...headers } });
+  for (const host of ["www.straypaw.org", "straypaw.org"]) {
+    assert.equal(isVoiceRequest(hosted(host), prod), true);
+    assert.equal(isVoiceRequest(hosted(host, { origin: `https://${host}`, "sec-fetch-site": "same-origin" }), prod), true);
+  }
+  for (const r of [hosted("pok-mon-go-dog.vercel.app"), hosted("p-1.vercel.app"), hosted("www.straypaw.org", { origin: "https://evil.example" }), hosted("www.straypaw.org", { origin: "https://straypaw.org" }),
+    hosted("www.straypaw.org", { "sec-fetch-site": "cross-site" }), hosted("www.straypaw.org", { "X-StrayPaw-Voice-Test": "" }), hosted("www.straypaw.org", { "x-forwarded-proto": "http" }), hosted("localhost:3300")]) assert.equal(isVoiceRequest(r, prod), false);
+  assert.equal(isVoiceRequest(hosted("p-1.vercel.app"), preview), true);
+  assert.equal(isVoiceRequest(hosted("www.straypaw.org"), preview), false);
+  assert.equal(isVoiceRequest(hosted("www.straypaw.org"), { ...prod, NEXT_PUBLIC_SUPABASE_URL: STAGING_SUPABASE_URL }), false);
+  const live = { ...prod, NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-anon", SARVAM_VOICE_ALLOWED_USER_IDS: "tester-id", SARVAM_VOICE_LOCAL_TOKEN: localToken };
+  const user = (id: string): typeof fetch => async (input) => String(input).includes("/auth/v1/user")
+    ? Response.json({ id, email: "tester@example.invalid", email_confirmed_at: "2026-11-01T00:00:00Z", user_metadata: { role: "owner" } }) : Response.json([]);
+  const signed = hosted("www.straypaw.org", { Authorization: "Bearer user-session" });
+  const access = await voiceAccess(signed, live, user("tester-id"));
+  assert.equal(access.actorId, "tester-id"); assert.equal(access.scope.kind, "standalone"); assert.ok(access.db, "production uses the caller-scoped database client");
+  await assert.rejects(voiceAccess(signed, live, user("someone-else")), status(403));
+  await assert.rejects(voiceAccess(hosted("www.straypaw.org", { Authorization: "Bearer user-session", "X-StrayPaw-Voice-Organisation": "org-a" }), live, user("tester-id")), status(403));
+  // The local access code is never an identity on a hosted deployment.
+  await assert.rejects(voiceAccess(hosted("www.straypaw.org", { Authorization: `Bearer ${localToken}` }), live, async () => Response.json({ message: "invalid" }, { status: 401 })), status(401));
+  // Hosted usage is the shared database or nothing: never the instance filesystem.
+  assert.throws(() => usageForVoiceAccess({ ...access, db: undefined }, live), status(503));
+  assert.throws(() => usageForVoiceAccess({ ...access, db: undefined }, preview), status(503));
+  assert.equal(typeof usageForVoiceAccess(access, live).reserve, "function");
+  // The microphone Permissions-Policy follows the same guard at build time.
+  const { default: nextConfig } = await import("../next.config.mjs");
+  const previous = { ...process.env };
+  try {
+    for (const [v, expected] of [[prod, true], [{ ...prod, NEXT_PUBLIC_SUPABASE_URL: STAGING_SUPABASE_URL }, false], [preview, true], [{ ...preview, VERCEL_GIT_COMMIT_REF: "main" }, false], [{ NODE_ENV: "production" }, false]] as const) {
+      for (const key of ["SARVAM_VOICE_ENABLED", "VERCEL", "VERCEL_ENV", "NEXT_PUBLIC_SUPABASE_URL", "SARVAM_VOICE_PREVIEW_BRANCH", "VERCEL_GIT_COMMIT_REF"]) delete process.env[key];
+      Object.assign(process.env, v);
+      const rules = (await nextConfig.headers!()).filter((rule: { source: string }) => rule.source === "/kaju/voice");
+      assert.equal(rules.length === 1 && JSON.stringify(rules[0]).includes("microphone=(self)"), expected);
+    }
+  } finally {
+    for (const key of Object.keys(process.env)) if (!(key in previous)) delete process.env[key];
+    Object.assign(process.env, previous);
+  }
 }
 
 async function usageChecks(access: VoiceAccess) {
@@ -184,7 +235,7 @@ async function privacyChecks() {
 }
 
 async function main() {
-  const access = await accessChecks(); await usageChecks(access); await proxyChecks(); await transportChecks(); await privacyChecks();
+  const access = await accessChecks(); await productionChecks(); await usageChecks(access); await proxyChecks(); await transportChecks(); await privacyChecks();
   console.log("Kaju voice security and lifecycle checks passed. All provider/audio transports were simulated; no live calls.");
 }
 void main().catch((error) => { console.error(error); process.exitCode = 1; });

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { VoiceError, voiceAccess } from "@/lib/kaju-voice/access";
-import { isVoiceRequest, voiceTestEnabled } from "@/lib/kaju-voice/server";
+import { isVoiceRequest, voiceEnabled } from "@/lib/kaju-voice/server";
 import { usageForVoiceAccess } from "@/lib/kaju-voice/usage";
 
 export const runtime = "nodejs";
 export async function POST(req: Request) {
   const headers = { "Cache-Control": "private, no-store" };
   const fail = (error: string, status: number) => NextResponse.json({ error }, { status, headers });
-  if (!voiceTestEnabled() || !isVoiceRequest(req)) return fail("Voice test is unavailable.", 403);
+  if (!voiceEnabled() || !isVoiceRequest(req)) return fail("Kaju Voice is not available.", 403);
   try {
     const access = await voiceAccess(req);
     const raw = await req.text();
