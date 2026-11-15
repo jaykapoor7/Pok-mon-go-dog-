@@ -78,8 +78,8 @@ export function useMessages(channelId: string | null) {
   }, [channelId, setRows]);
   return r;
 }
-export async function postMessage(channelId: string, body: string, authorName: string | null) {
-  return getSupabase()!.from("nx_messages").insert({ channel_id: channelId, body, author_name: authorName }).select("id,channel_id,parent_id,author_id,author_kind,author_name,body,record_label,proposal,created_at").single();
+export async function postMessage(channelId: string, body: string, authorName: string | null, parentId?: string) {
+  return getSupabase()!.from("nx_messages").insert({ channel_id: channelId, body, author_name: authorName, parent_id: parentId ?? null }).select("id,channel_id,parent_id,author_id,author_kind,author_name,body,record_label,proposal,created_at").single();
 }
 /** Ask Kaju about a channel. The database builds the reply from messages the person can already read, by fixed rules, and posts it. */
 export async function askKaju(channelId: string, ask: string): Promise<{ ok: boolean; error?: string }> {

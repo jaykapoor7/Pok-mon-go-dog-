@@ -102,7 +102,7 @@ export type Msg = { id: string; who: string; when: string; text: string; record?
 export const MESSAGES: Msg[] = [
   { id: "m1", who: "Priya M.", when: "9:14 am", text: "Today's vaccination records are in. Two dogs weren't at their stops, so we need a return visit." },
   { id: "m2", who: "Nisha R.", when: "9:27 am", text: "Two return visits, yes. I've attached 17 location photos to the drive.", record: "CAM-0108 · Ward 12 drive" },
-  { id: "m3", who: "Dr. Arun K.", when: "10:07 am", text: "I can do the clinical follow-up if transport can reach the centre before noon.", replies: 2 },
+  { id: "m3", who: "Dr. Arun K.", when: "10:07 am", text: "I can do the clinical follow-up if transport can reach the centre before noon." },
 ];
 export const KAJU_TASKS = ["Return visit: AN-1042, Ward 12, tomorrow", "Return visit: AN-0877, Ward 12, tomorrow"];
 export const CH_WORK = [{ title: "Evidence review, 3 records", note: "Due today · Nisha R." }];
