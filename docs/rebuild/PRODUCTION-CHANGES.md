@@ -72,11 +72,11 @@ Rollback: drop the new tables, functions and the two schedules (`select cron.uns
 
 # Third set: four automation rules that counted the wrong thing or too little
 
-**Waiting for the owner's approval.** Apply on staging first, then production.
+**Applied on staging, then on production, on 2026-11-15**, through the Supabase tool. Both applies succeeded.
 
 | Order | File | What it changes | Staging | Production |
 | --- | --- | --- | --- | --- |
-| 13 | `20261116170000_rebuild_automation_rule_fixes.sql` | Replaces one function, `nx_automation_run`. No table, column, policy or row changes. | Not yet | Not yet |
+| 13 | `20261116170000_rebuild_automation_rule_fixes.sql` | Replaces one function, `nx_automation_run`. No table, column, policy or row changes. | Applied | Applied |
 
 What it fixes (found in `docs/rebuild/AUTOMATIONS-AUDIT.md`):
 - `services_stale` counted every past confirmation, so a facility that confirmed daily was still told its services

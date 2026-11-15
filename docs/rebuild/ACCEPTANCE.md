@@ -76,7 +76,7 @@ Checks referred to (all run on 2026-11-15 on this branch):
 | Organisation memory with approval and revocation | Verified (database) · UI built | `test:db`. |
 | Screens Kaju opens exist and respect roles | Verified | `test:routes`; `src/lib/kaju/screens.ts`. |
 | Connected services with permission boundaries | Built · Blocked (external) | Needs OAuth apps (OWNER_ACTIONS 8). |
-| Automations across workspaces | Partly verified · see `AUTOMATIONS-AUDIT.md` | `test:db` covers 8 of the 15 rules and the scheduler tick with nobody signed in. Four rules counted the wrong thing or too little and are fixed (`20261116170000`). Against the 30-row matrix: 1 Verified, 1 Built, 1 Blocked (external), 27 Incomplete — rules notify but do not follow up or escalate. |
+| Automations across workspaces | Partly verified · see `AUTOMATIONS-AUDIT.md` | `test:db` covers 8 of the 15 rules and the scheduler tick with nobody signed in. Four rules counted the wrong thing or too little and are fixed (`20261116170000`, applied on staging and production). Against the 30-row matrix: 1 Verified, 1 Built, 1 Blocked (external), 27 Incomplete — rules notify but do not follow up or escalate. |
 
 ## 5. Healthcare, government, research specifics
 
