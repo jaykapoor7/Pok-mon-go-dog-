@@ -75,7 +75,7 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
         {fromReferral ? <p className="nx-note" style={{ marginTop: 14 }}><Info size={13} /><span>Referred from {q.from ?? "another facility"}{q.code ? `, where the bite is ${q.code}` : ""}. The date and animal are filled in; check them with the patient. The animal follow-up was asked for there, so it is off here. This record is linked to the referral.</span></p> : null}
         <form onSubmit={submit} style={{ marginTop: 18 }} noValidate>
           <Block title="What happened">
-            <div className="nx-fields">
+            <div className="nx-fields gh-fields">
               <div className="nx-field is-wide"><span>Type of exposure</span><Seg name="kind" label="Type of exposure" value={f.kind} onChange={(v) => set("kind", v)} options={Object.entries(EXPOSURE_KIND) as [string, string][]} /></div>
               <Field label="Date it happened" hint="Not in the future, and within the last year."><input type="date" required value={f.exposure_on} min={minDay} max={indiaToday()} onChange={(e) => set("exposure_on", e.target.value)} /></Field>
               <Field label="Area" hint="Where it happened, not where the patient lives."><select value={areaId} onChange={(e) => set("area", e.target.value)} disabled={!sample && !areas.data}><option value="">Not known</option>{(areas.data ?? []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></Field>
@@ -83,7 +83,7 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
             </div>
           </Block>
           <Block title="Patient">
-            <div className="nx-fields">
+            <div className="nx-fields gh-fields">
               <Field label="Your register number"><input value={f.ref} maxLength={40} onChange={(e) => set("ref", e.target.value)} placeholder="For example the OPD number" autoComplete="off" /></Field>
               <Field label="Age"><select value={f.age} onChange={(e) => set("age", e.target.value)}>{Object.entries(AGE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
               <div className="nx-field is-wide"><span>Sex</span><Seg name="sex" label="Sex" value={f.sex} onChange={(v) => set("sex", v)} options={Object.entries(SEX) as [string, string][]} /></div>
@@ -92,7 +92,7 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
             </div>
           </Block>
           <Block title="The animal">
-            <div className="nx-fields">
+            <div className="nx-fields gh-fields">
               <div className="nx-field is-wide"><span>Animal</span><Seg name="species" label="Animal" value={f.species} onChange={(v) => set("species", v)} options={Object.entries(SPECIES) as [string, string][]} /></div>
               <div className="nx-field is-wide"><span>Whose animal</span><Seg name="own" label="Whose animal" value={f.ownership} onChange={(v) => set("ownership", v)} options={[["community", "Street or community"], ["owned", "Someone's pet"], ["unknown", "Not known"]]} /></div>
               <Field label="What it looked like"><input value={f.animal} maxLength={300} onChange={(e) => set("animal", e.target.value)} placeholder="Colour, size, collar, marks" /></Field>

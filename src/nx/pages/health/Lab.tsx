@@ -171,7 +171,7 @@ function SampleForm({ sample, q, senders }: { sample: boolean; q: SampleQuery; s
         {q.handoff ? <p className="nx-note" style={{ marginTop: 14 }}><Info size={13} /><span>Sent for a follow-up request. The sample is linked to it.</span></p> : null}
         <form onSubmit={submit} style={{ marginTop: 18 }}>
           <Block title="The sample">
-            <div className="nx-fields">
+            <div className="nx-fields gh-fields">
               {senders.length > 1 ? <Field label="Sent by" wide><select value={fromId} onChange={(e) => setFromId(e.target.value)}>{senders.map((p) => <option key={p.organisation_id} value={p.organisation_id}>{p.name} · {KIND_LABEL[p.kind] ?? p.kind}</option>)}</select></Field> : null}
               <div className="nx-field is-wide"><span>Animal</span><Seg name="sp" label="Animal" value={f.species} onChange={(v) => set("species", v)} options={(Object.entries(SPECIES) as [string, string][]).filter(([k]) => k !== "unknown")} /></div>
               <div className="nx-field is-wide"><span>Sample</span><Seg name="type" label="Sample" value={f.type} onChange={(v) => set("type", v)} options={Object.entries(SAMPLE_TYPE) as [string, string][]} /></div>
@@ -181,7 +181,7 @@ function SampleForm({ sample, q, senders }: { sample: boolean; q: SampleQuery; s
             <p className="nx-note" style={{ marginTop: 10 }}><Info size={13} /><span>Follow the laboratory&apos;s own collection, packaging and cold-chain instructions. Only trained, vaccinated staff should collect samples.</span></p>
           </Block>
           <Block title="Where and why">
-            <div className="nx-fields">
+            <div className="nx-fields gh-fields">
               <Field label="Area"><select value={f.area} onChange={(e) => set("area", e.target.value)}><option value="">Not known</option>{(areas.data ?? []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></Field>
               <Field label="Place"><input value={f.place} maxLength={200} onChange={(e) => set("place", e.target.value)} placeholder="Landmark or street" /></Field>
               <Field label="What happened to the animal" wide><textarea value={f.reason} maxLength={400} onChange={(e) => set("reason", e.target.value)} placeholder="Signs seen, when it died, whether it bit anyone" /></Field>

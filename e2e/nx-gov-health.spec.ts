@@ -49,7 +49,7 @@ for (const [path, heading] of PAGES) {
 test("Verification queue opens the package record in the new app", async ({ page }) => {
   await open(page, "/next/gov/verification");
   await page.locator("button.nx-tr").first().click();
-  await page.getByRole("dialog").getByRole("link", { name: "Open the review" }).click();
+  await page.getByRole("dialog").getByRole("link", { name: "Open the review" }).last().click();
   await expect(page).toHaveURL(/\/next\/gov\/verification\/v2$/);
   await expect(page.getByRole("heading", { name: "Decision on this claim" })).toBeVisible();
   await noClassicLinks(page);
@@ -72,13 +72,13 @@ test("Package review: a claim shows its checks; selecting claims offers a batch 
 test("Programme record: tabs for coverage, network, work, report and setup; invites point at the new start page", async ({ page }) => {
   await open(page, "/next/gov/programmes/sample");
   await expect(page.getByRole("heading", { name: "Needs a decision" })).toBeVisible();
-  await page.getByRole("tab", { name: "Coverage" }).click();
+  await page.getByRole("tab", { name: "Coverage", exact: true }).click();
   await expect(page.getByRole("table", { name: "Coverage by area" })).toContainText("Needs an estimate");
-  await page.getByRole("tab", { name: "Network" }).click();
+  await page.getByRole("tab", { name: "Network", exact: true }).click();
   await expect(page.getByText("It is not a stock count and does not say a place is open now")).toBeVisible();
-  await page.getByRole("tab", { name: "Work" }).click();
+  await page.getByRole("tab", { name: "Work", exact: true }).click();
   await expect(page.getByText("Requests never carry patient details")).toBeVisible();
-  await page.getByRole("tab", { name: "Setup" }).click();
+  await page.getByRole("tab", { name: "Setup", exact: true }).click();
   await expect(page.getByRole("heading", { name: "People" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Create invite code" })).toHaveAttribute("href", "/try");
   await noClassicLinks(page);

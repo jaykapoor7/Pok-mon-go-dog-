@@ -61,6 +61,8 @@
 .gh-totals dd { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 14px; }
 
 .gh-form { display: grid; gap: 10px; margin-top: 8px; }
+.gh-fields { align-items: start; }
+.gh-fields > .nx-field { align-content: start; }
 .gh-form .gh-acts, .gh-acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .gh-acts.is-end { justify-content: flex-end; }
 .gh-hint { color: var(--ink-3); font-size: 11.5px; }
@@ -124,6 +126,11 @@
   .gh-batch .gh-batch-a { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .gh-claim, .gh-seg label { transition: none; } }
+
+/* The shared timeline's content column is also the old chip-row class; in these pages it is a plain column. */
+:is(.gh-block, .gh-body) .nx-tl .nx-tl-c { display: block; margin-top: 0; }
+:is(.gh-block, .gh-body) .nx-tl .nx-tl-b { color: var(--ink-2); font-size: 12.5px; margin-top: 4px; }
+:is(.gh-block, .gh-body) .nx-tl li { padding-bottom: 14px; }
 
 /* A tab bar inside a padded page runs edge to edge, like on a record. */
 .gh-tabwrap { margin: 0 -32px; }

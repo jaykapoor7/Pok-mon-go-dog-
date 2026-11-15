@@ -199,7 +199,7 @@ export function DoseModal({ dose, onClose, onDone }: { dose: { dose_id: string; 
   return <Modal title={`Record dose ${dose.dose_no}`} onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || (status === "given" && !on)} onClick={() => void save()}>Save</button></>}>
     <p className="nx-sub" style={{ marginTop: 0 }}>Due {fmtDate(dose.due_on, { day: "numeric", month: "long" })}{dose.label ? ` · ${dose.label}` : ""}. Recorded in your name.</p>
     <Seg name="dose-status" label="Dose outcome" value={status} onChange={setStatus} options={[["given", "Given"], ["missed", "Missed"]]} />
-    {status === "given" ? <div className="nx-fields"><Field label="Date given"><input type="date" value={on} max={indiaToday()} onChange={(ev) => setOn(ev.target.value)} /></Field><Field label="Vaccine batch"><input value={batch} maxLength={40} onChange={(ev) => setBatch(ev.target.value)} placeholder="As printed on the vial" /></Field></div>
+    {status === "given" ? <div className="nx-fields gh-fields"><Field label="Date given"><input type="date" value={on} max={indiaToday()} onChange={(ev) => setOn(ev.target.value)} /></Field><Field label="Vaccine batch"><input value={batch} maxLength={40} onChange={(ev) => setBatch(ev.target.value)} placeholder="As printed on the vial" /></Field></div>
       : <p className="nx-note"><span>A missed dose stays on the record. The clinician decides whether to add a new date or close the course.</span></p>}
   </Modal>;
 }

@@ -12,6 +12,7 @@ import type { Tone } from "../../fixtures";
 import { ago, capsIn, indiaToday, uploadLogo, usePlaces } from "../../data/govhealth";
 import { SAMPLE_ALERTS, SAMPLE_HANDOFFS, SAMPLE_NAMES, SAMPLE_NETWORK, SAMPLE_OVERVIEW, SAMPLE_PROGRAMME } from "../../data/govhealth-samples";
 import { Block, Opening, SignedConfirm, TryLink } from "../gh/parts";
+import { WeekBars } from "../Gov";
 
 /* One programme, seen whole: what needs a decision, coverage against dated estimates, the care network, the work
    between partners, the data extract, a printable report and, for its leads, its setup. What each person sees and
@@ -112,6 +113,7 @@ function OverviewTab({ sample, p, caps, go }: Ctx) {
             {d ? <ul className="gh-list">{[...d.partners].sort((a, b) => b.overdue - a.overdue || b.open - a.open).map((x) => <li key={x.id}><div><b>{x.name}</b><small>{KIND_LABEL[x.kind] ?? x.kind}{x.responsibilities ? ` · ${x.responsibilities}` : ""}</small></div><span className="gh-row-a">{x.overdue ? <Chip tone="bad">{x.overdue} overdue</Chip> : x.open ? <span className="nx-t3">{x.open} open</span> : <Chip tone="ok">Clear</Chip>}</span></li>)}</ul> : <Skeleton rows={3} />}
           </Block>
           {d?.children.length ? <Block title="Programmes in this one"><ul className="gh-list">{d.children.map((c) => <li key={c.slug}><div><Link href={`/next/gov/programmes/${c.slug}`} className="gh-link">{c.name}</Link><small>{STATUS[c.status] ?? c.status} · bites {showCount(c.exposures)} · confirmed cases {c.positives} · overdue work {c.overdue}</small></div></li>)}</ul></Block> : null}
+          {mods.includes("bite_care") && d?.exposures?.by_week.length ? <Block title="Bites by week" note="Weeks with fewer than the threshold show as <5, without a bar height."><WeekBars weeks={d.exposures.by_week} /></Block> : null}
           {mods.includes("training") && d ? <Block title="Training" note={`${d.training.sessions} sessions, ${d.training.participants} people`} action={caps.has("record_training") ? (sample ? <TryLink sm quiet><Plus size={13} />Record a session</TryLink> : <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setTraining(true)}><Plus size={13} />Record a session</button>) : undefined}>
             {Object.keys(d.training.by_audience).length ? <ul className="gh-list">{Object.entries(d.training.by_audience).map(([k, v]) => <li key={k}><div>{AUDIENCE[k] ?? k}</div><span className="num">{v} people</span></li>)}</ul> : <p className="nx-sub">No training recorded in this period.</p>}
           </Block> : null}
@@ -138,7 +140,7 @@ function TrainingModal({ p, onClose, onDone }: { p: Prog; onClose: () => void; o
   const { busy, run } = useAct();
   const save = async () => { const r = await run("training", () => call("oh_record_training", { p_programme: p.id, p_title: f.title.trim(), p_audience: f.audience, p_held_on: f.on, p_participants: Number(f.n || 0), p_institutions: f.inst ? Number(f.inst) : null, p_notes: f.notes.trim() || null }), { ok: "Training session recorded." }); if (r.ok) onDone(); };
   return <Modal title="Record a training session" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || f.title.trim().length < 3} onClick={() => void save()}>Save session</button></>}>
-    <div className="nx-fields">
+    <div className="nx-fields gh-fields">
       <Field label="Title" wide><input value={f.title} maxLength={160} onChange={(e) => setF({ ...f, title: e.target.value })} autoFocus /></Field>
       <Field label="Audience"><select value={f.audience} onChange={(e) => setF({ ...f, audience: e.target.value })}>{Object.entries(AUDIENCE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
       <Field label="Held on"><input type="date" max={indiaToday()} value={f.on} onChange={(e) => setF({ ...f, on: e.target.value })} /></Field>
@@ -187,7 +189,7 @@ export function EstimateModal({ p, area, onClose, onDone }: { p: { id: string };
   const save = async () => { const r = await run("est", () => call("oh_record_estimate", { p_programme: p.id, p_area: area.id, p_dogs: Number(f.dogs), p_method: f.method.trim(), p_source: f.source.trim(), p_on: f.on }), { ok: `Estimate recorded for ${area.name}, dated ${day(f.on)}.` }); if (r.ok) onDone(); };
   return <Modal title={`Population estimate · ${area.name}`} onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!ok || !!busy} onClick={() => void save()}>Save estimate</button></>}>
     <p className="nx-sub" style={{ marginTop: 0 }}>Coverage in this area is calculated against it. Earlier estimates stay in the record.</p>
-    <div className="nx-fields">
+    <div className="nx-fields gh-fields">
       <Field label="Estimated dogs"><input inputMode="numeric" value={f.dogs} onChange={(e) => setF({ ...f, dogs: e.target.value.replace(/\D/g, "") })} autoFocus /></Field>
       <Field label="Estimated on" hint="The date of the survey, not today."><input type="date" max={indiaToday()} value={f.on} onChange={(e) => setF({ ...f, on: e.target.value })} /></Field>
       <Field label="Method" wide><input value={f.method} maxLength={200} onChange={(e) => setF({ ...f, method: e.target.value })} placeholder="For example: mark and resight street survey" /></Field>
@@ -234,7 +236,7 @@ function PathwayModal({ p, facilities, onClose, onDone }: { p: Prog; facilities:
   const { busy, run } = useAct();
   const save = async () => { const r = await run("pw", () => call("oh_set_referral", { p_programme: p.id, p_from: f.from, p_to: f.to, p_service: f.svc, p_note: f.note.trim() || null, p_remove: false }), { ok: "Referral pathway saved." }); if (r.ok) onDone(); };
   return <Modal title="Add a referral pathway" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || !f.from || !f.to || f.from === f.to} onClick={() => void save()}>Save pathway</button></>}>
-    <div className="nx-fields">
+    <div className="nx-fields gh-fields">
       <Field label="From" wide><select value={f.from} onChange={(e) => setF({ ...f, from: e.target.value })}>{facilities.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></Field>
       <Field label="For"><select value={f.svc} onChange={(e) => setF({ ...f, svc: e.target.value })}>{["rig", "arv", "wound_care"].map((s) => <option key={s} value={s}>{SERVICE_LABEL[s]}</option>)}</select></Field>
       <Field label="To"><select value={f.to} onChange={(e) => setF({ ...f, to: e.target.value })}>{facilities.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></Field>
@@ -283,7 +285,7 @@ function AskModal({ p, partners, areas, onClose, onDone }: { p: Prog; partners: 
   const save = async () => { const r = await run("ask", () => call("oh_raise_handoff", { p_programme: p.id, p_kind: f.kind, p_to: f.to, p_title: f.title.trim(), p_detail: f.detail.trim() || null, p_area: f.area || null, p_due: f.due || null }), { ok: "Sent. It is on the partner's list now, with the due date." }); if (r.ok) onDone(); };
   return <Modal title="Ask a partner" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || f.title.trim().length < 3 || !f.to} onClick={() => void save()}>Send request</button></>}>
     <p className="nx-sub" style={{ marginTop: 0 }}>The partner sees it on their list. Never include patient details.</p>
-    <div className="nx-fields">
+    <div className="nx-fields gh-fields">
       <Field label="Kind of request"><select value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })}>{["vaccination_request", "animal_followup", "sample_request", "service_gap"].map((k) => <option key={k} value={k}>{HANDOFF_KIND[k]}</option>)}</select></Field>
       <Field label="To"><select value={f.to} onChange={(e) => setF({ ...f, to: e.target.value })}>{partners.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></Field>
       <Field label="What you need" wide><input value={f.title} maxLength={160} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="For example: vaccinate dogs around the market" autoFocus /></Field>
@@ -384,10 +386,10 @@ function SetupTab({ sample, p, caps, places, reloadProg }: Ctx & { reloadProg?: 
       </Block> : null}
       {manage || caps.has("oversee") ? <Block title="Areas and assignments" note="Wards or localities the programme covers, and which partner answers for each duty there. A bite recorded in an area raises its animal follow-up with the assigned partner.">
         {d ? <ul className="gh-list">{areas.map((a) => <li key={a.area_id} style={{ gridTemplateColumns: "minmax(0, 1fr)" }}><div><b>{a.area}</b><small>{a.estimate ? `Estimate ${a.estimate.dogs} dogs, ${fmtDate(a.estimate.on, { day: "numeric", month: "short", year: "numeric" })}, ${a.estimate.source}` : "No dated estimate"}</small></div>
-          <div className="nx-fields" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))" }}>{Object.entries(DUTY).map(([k, l]) => { const cur = (asg.data ?? []).find((x) => x.area_id === a.area_id && x.duty === k)?.organisation_id ?? ""; return <Field key={k} label={l}>{sample ? <select value={cur} disabled aria-disabled><option value="">Nobody</option>{d.partners.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select> : <select value={cur} disabled={!!busy} onChange={(e) => void assign(a.area_id, k, e.target.value || null)}><option value="">Nobody</option>{d.partners.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select>}</Field>; })}</div>
+          <div className="nx-fields gh-fields" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))" }}>{Object.entries(DUTY).map(([k, l]) => { const cur = (asg.data ?? []).find((x) => x.area_id === a.area_id && x.duty === k)?.organisation_id ?? ""; return <Field key={k} label={l}>{sample ? <select value={cur} disabled aria-disabled><option value="">Nobody</option>{d.partners.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select> : <select value={cur} disabled={!!busy} onChange={(e) => void assign(a.area_id, k, e.target.value || null)}><option value="">Nobody</option>{d.partners.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select>}</Field>; })}</div>
           <div className="gh-acts">{caps.has("record_estimate") || caps.has("oversee") ? (sample ? <TryLink sm quiet>Record an estimate</TryLink> : <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setEst({ id: a.area_id, name: a.area })}>Record an estimate</button>) : null}</div></li>)}</ul> : <Skeleton rows={3} />}
         {asg.error ? <p className="gh-err">{asg.error}</p> : null}
-        {manage ? <div className="gh-form" style={{ marginTop: 12 }}><div className="nx-fields" style={{ gridTemplateColumns: "minmax(0, 1.4fr) 140px 120px" }}>
+        {manage ? <div className="gh-form" style={{ marginTop: 12 }}><div className="nx-fields gh-fields" style={{ gridTemplateColumns: "minmax(0, 1.4fr) 140px 120px" }}>
           <Field label="New area"><input value={area.name} maxLength={120} onChange={(e) => setArea({ ...area, name: e.target.value })} placeholder="Ward or locality name" /></Field>
           <Field label="Level"><select value={area.level} onChange={(e) => setArea({ ...area, level: e.target.value })}><option value="ward">Ward</option><option value="locality">Locality</option><option value="zone">Zone</option></select></Field>
           <Field label="Code (optional)"><input value={area.code} maxLength={20} onChange={(e) => setArea({ ...area, code: e.target.value })} /></Field></div>
@@ -421,7 +423,7 @@ function Settings({ sample, p, onSaved }: { sample: boolean; p: Prog; onSaved: (
   return (
     <Block title="What this programme does" note="Changes apply at once for every partner.">
       <div className="gh-mods">{ALL_MODULES.map((m) => <label key={m}><input type="checkbox" checked={mods.includes(m)} onChange={(e) => setMods(e.target.checked ? [...mods, m] : mods.filter((x) => x !== m))} /><span><b>{MODULES[m].label}</b><small>{MODULES[m].note}</small></span></label>)}</div>
-      <div className="nx-fields" style={{ marginTop: 12 }}>
+      <div className="nx-fields gh-fields" style={{ marginTop: 12 }}>
         <Field label="Status"><select value={status} onChange={(e) => setStatus(e.target.value)}>{Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
         <Field label="Dog vaccination target (%)"><input inputMode="numeric" value={target} onChange={(e) => setTarget(e.target.value.replace(/\D/g, "").slice(0, 3))} /></Field>
         <Field label="Days to answer a follow-up"><input inputMode="numeric" value={due} onChange={(e) => setDue(e.target.value.replace(/\D/g, "").slice(0, 2))} /></Field>
@@ -449,7 +451,7 @@ function PartnerModal({ p, onClose, onDone }: { p: Prog; onClose: () => void; on
   const { busy, run } = useAct();
   const save = async () => { const r = await run("partner", () => call("oh_add_partner", { p_programme: p.id, p_kind: f.kind, p_name: f.name.trim(), p_short_name: f.short.trim() || null, p_responsibilities: f.resp.trim() || null, p_area: null, p_existing: null, p_ngo: null }), { ok: `${f.name.trim()} added. Invite their people next.` }); if (r.ok) onDone(); };
   return <Modal title="Add a partner" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!!busy || f.name.trim().length < 2} onClick={() => void save()}>Add partner</button></>}>
-    <div className="nx-fields">
+    <div className="nx-fields gh-fields">
       <Field label="Kind" hint="An NGO joins by linking its existing StrayPaw organisation, through StrayPaw support."><select value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value as Kind })}>{(Object.keys(KIND_LABEL) as Kind[]).filter((k) => k !== "ngo").map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</select></Field>
       <Field label="Short name"><input value={f.short} maxLength={40} onChange={(e) => setF({ ...f, short: e.target.value })} /></Field>
       <Field label="Name" wide><input value={f.name} maxLength={160} onChange={(e) => setF({ ...f, name: e.target.value })} autoFocus /></Field>
@@ -475,7 +477,7 @@ function Invites({ sample, orgs }: { sample: boolean; orgs: { id: string; name: 
   const copy = async () => { try { await navigator.clipboard.writeText(link); toast({ text: "Link copied.", tone: "ok" }); } catch { toast({ text: "Could not copy. Select the link and copy it.", tone: "bad" }); } };
   return (
     <Block title="People" note="Invite someone with a code. They open the link, sign in and join with the role you chose.">
-      <div className="nx-fields">
+      <div className="nx-fields gh-fields">
         <Field label="Organisation"><select value={org} onChange={(e) => { setOrg(e.target.value); const k = orgs.find((o) => o.id === e.target.value)?.kind ?? "coordinator"; setRole((INVITE_ROLES[k] ?? ["analyst"])[0]); }}>{orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></Field>
         <Field label="Role"><select value={role} onChange={(e) => setRole(e.target.value as Role)}>{roles.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select></Field>
         <Field label="Name"><input value={name} maxLength={80} onChange={(e) => setName(e.target.value)} /></Field>

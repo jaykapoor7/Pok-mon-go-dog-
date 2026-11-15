@@ -109,7 +109,7 @@ function Details({ sample, org, onSaved }: { sample: boolean; org: Org; onSaved:
   };
   return (
     <Block title="Our details" note="Shown to referring centres, and to the public when the facility is listed.">
-      <div className="nx-fields">
+      <div className="nx-fields gh-fields">
         <Field label="Address" wide><input value={f.address} maxLength={300} onChange={(e) => setF({ ...f, address: e.target.value })} /></Field>
         <Field label="Phone"><input type="tel" inputMode="tel" value={f.phone} maxLength={40} onChange={(e) => setF({ ...f, phone: e.target.value })} /></Field>
         <Field label="Hours" hint="As usually kept. It is not a promise the facility is open now."><input value={f.hours} maxLength={200} onChange={(e) => setF({ ...f, hours: e.target.value })} placeholder="For example: Mon to Sat, 9 am to 4 pm" /></Field>

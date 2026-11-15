@@ -96,7 +96,7 @@ function NewContract({ offices, operators, onClose, onSaved }: { offices: Office
     <>
       <Modal title="New contract version" wide onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!ready || !!busy} onClick={() => setAsking(true)}>Save this version</button></>}>
         <p className="nx-sub" style={{ marginTop: 0 }}>Enter the terms exactly as in the signed source document. Saved versions cannot be changed.</p>
-        <div className="nx-fields">
+        <div className="nx-fields gh-fields">
           <Field label="Contract name"><input value={f.name} maxLength={160} onChange={(e) => setF({ ...f, name: e.target.value })} autoFocus /></Field>
           <Field label="Version"><input type="number" inputMode="numeric" min={1} value={f.version} onChange={(e) => setF({ ...f, version: e.target.value })} /></Field>
           <Field label="Source reference" wide hint="The work order, letter of award or agreement number."><input value={f.reference} maxLength={1000} onChange={(e) => setF({ ...f, reference: e.target.value })} /></Field>
@@ -110,7 +110,7 @@ function NewContract({ offices, operators, onClose, onSaved }: { offices: Office
         {rates.map((r, i) => (
           <fieldset key={i} className="gh-pane" style={{ border: 0 }}>
             <legend className="nx-h3" style={{ margin: 0 }}>Rate {i + 1}</legend>
-            <div className="nx-fields">
+            <div className="nx-fields gh-fields">
               <Field label="Procedure"><select value={r.code} onChange={(e) => setRate(i, blankRate(e.target.value as RateDraft["code"]))}>{(Object.keys(PROC) as RateDraft["code"][]).map((k) => <option key={k} value={k}>{PROC[k]}</option>)}</select></Field>
               <Field label="Rate per animal (INR)"><input type="number" inputMode="decimal" step="0.01" min={0} max={100000000} value={r.unit_rate} onChange={(e) => setRate(i, { unit_rate: e.target.value })} /></Field>
               <Field label="Label" wide><input value={r.label} maxLength={160} onChange={(e) => setRate(i, { label: e.target.value })} /></Field>

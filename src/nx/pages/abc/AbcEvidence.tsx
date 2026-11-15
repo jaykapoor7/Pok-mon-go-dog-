@@ -99,9 +99,6 @@ function Body({ caseId, sample, d, reload }: { caseId: string; sample: boolean; 
               if (r.ok) await reload(); return r.ok;
             }} busy={busy === "add"} /> : null}
           </Block>
-          <Block title="History">
-            <Timeline items={[...d.hist].reverse().slice(0, 30).map((h, i) => ({ id: `${h.at}${i}`, when: dayTime(h.at), title: HISTORY_LABEL(h.kind), who: h.actor || null, body: h.detail || undefined, tone: h.kind === "vet_authorised" || h.kind === "evidence_reviewed" || h.kind === "package:accepted" ? "ok" : h.kind.includes("returned") || h.kind.startsWith("withdrawn") ? "bad" : undefined }))} empty="Nothing recorded yet." />
-          </Block>
         </div>
         <aside aria-label="Sign-offs">
           <Block title="Veterinary authorisation">
@@ -126,6 +123,11 @@ function Body({ caseId, sample, d, reload }: { caseId: string; sample: boolean; 
           </Block>
           <p className="nx-note"><Lock size={13} /><span>A signature is the signer&apos;s own and names them. It is never made for anyone, and Kaju never signs or approves.</span></p>
         </aside>
+      </div>
+      <div style={{ marginTop: 22 }}>
+        <Block title="History">
+          <Timeline items={[...d.hist].reverse().slice(0, 30).map((h, i) => ({ id: `${h.at}${i}`, when: dayTime(h.at), title: HISTORY_LABEL(h.kind), who: h.actor || null, body: h.detail || undefined, tone: h.kind === "vet_authorised" || h.kind === "evidence_reviewed" || h.kind === "package:accepted" ? "ok" : h.kind.includes("returned") || h.kind.startsWith("withdrawn") ? "bad" : undefined }))} empty="Nothing recorded yet." />
+        </Block>
       </div>
       {dlg === "authorise" ? <SignedConfirm title="Authorise this procedure" who={live.userName} busy={busy === "sign"} confirm="Authorise" onClose={() => setDlg(null)} onConfirm={() => void signed(() => vetAuthorise(caseId, note.trim() || undefined), "Procedure authorised in your name.")} tick="I performed or supervised this procedure and the surgery record is mine.">
         <p>Your authorisation is recorded with your name and the time. You can undo it straight after.</p></SignedConfirm> : null}
@@ -154,7 +156,7 @@ function AddEvidence({ sample, kinds, onAdd, busy }: { sample: boolean; kinds: E
   const submit = async (e: FormEvent) => { e.preventDefault(); if (!ready) return; const ok = await onAdd(kind, isPlace ? { location: place.trim() } : { file: file! }); if (ok) { setFile(null); setPlace(""); } };
   return (
     <form className="gh-form" onSubmit={submit} style={{ marginTop: 12 }}>
-      <div className="nx-fields">
+      <div className="nx-fields gh-fields">
         <Field label="Add"><select value={kind} disabled={busy} onChange={(e) => { setKind(e.target.value as EvidenceKind); setFile(null); setPlace(""); }}>{kinds.map((k) => <option key={k} value={k}>{EVIDENCE_LABEL[k]}</option>)}</select></Field>
         {isPlace ? <Field label="Where the animal was released"><input value={place} maxLength={300} onChange={(e) => setPlace(e.target.value)} placeholder="Ward, landmark or street" /></Field>
           : <div className="nx-field"><span>{kind === "surgery_record" ? "Photo or PDF of the record" : "Photo"}</span><span className="gh-acts">{sample ? <TryLink sm quiet>Choose a file</TryLink> : <FilePick label={file ? file.name : kind === "surgery_record" ? "Choose a photo or PDF" : "Take or choose a photo"} accept={kind === "surgery_record" ? "image/*,application/pdf" : "image/*"} onFiles={(f) => setFile(f[0] ?? null)} disabled={busy} />}</span></div>}

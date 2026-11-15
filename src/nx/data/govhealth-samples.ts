@@ -4,7 +4,7 @@
 import type { Alert, Exposure, Handoff, Network, Overview, Sample, SampleEvent } from "@/oh/data";
 import type { Attestation, Checklist, Evidence, HistoryRow, Package, PackageCase, PackageEvent } from "@/lib/abc";
 import type { ClaimItem, Contract, ContractRate, Reconciliation } from "@/lib/reconciliation";
-import { BITES, LAB_DETAIL, LAB_SAMPLES, REVIEWS, VET_PROCS } from "../fixtures";
+import { BITES, LAB_DETAIL, LAB_SAMPLES, REVIEWS, SURV_AREAS, SURV_WEEKS, VET_PROCS } from "../fixtures";
 
 const iso = (daysAgo: number, h = 10) => { const d = new Date(Date.now() - daysAgo * 864e5); d.setHours(h, 0, 0, 0); return d.toISOString(); };
 const date = (daysAgo: number) => iso(daysAgo).slice(0, 10);
@@ -64,7 +64,7 @@ export const SAMPLE_OVERVIEW: Overview = {
     { id: "o4", name: "District hospital", short_name: "District hospital", kind: "hospital", responsibilities: "Referrals for severe exposures", members: 6, open: 0, overdue: 0 },
     { id: "o5", name: "Veterinary laboratory", short_name: "Vet lab", kind: "laboratory", responsibilities: "Rabies testing of submitted samples", members: 3, open: 2, overdue: 0 },
   ],
-  exposures: { total: 70, category_iii: 21, washed: 38, washed_known: 52, by_week: [], by_area: [] },
+  exposures: { total: 70, category_iii: 21, washed: 38, washed_known: 52, by_week: SURV_WEEKS, by_area: SURV_AREAS },
   pep: { courses: 49, completed: 31, lost: 6, active: 12, completion_rate: 0.84, doses_overdue: 4 },
   samples: { total: 6, waiting: 2, positive: 1, negative: 3, median_days_to_result: 4, positive_areas: ["Ward 08"] },
   handoffs: { open: 6, overdue: 2, done: 14, median_days_to_close: 3.5, service_gaps: 1 },

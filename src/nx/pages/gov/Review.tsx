@@ -163,7 +163,7 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
     <div>
       {recErr ? <Failed error={recErr} retry={() => void reload()} /> : !rec ? <Skeleton rows={5} label="Reading claims" /> : <>
         <div className="gh-block-h"><h3 className="nx-h3">Claims, animal by animal <span className="nx-count">{items.length}</span></h3>
-          {canDecide && clean.length ? <span className="gh-block-a"><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setPicked(new Set(clean.map((i) => i.key)))}>Select the {clean.length} without exceptions</button></span> : null}</div>
+          {(canDecide || sample) && clean.length ? <span className="gh-block-a"><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setPicked(new Set(clean.map((i) => i.key)))}>Select the {clean.length} without exceptions</button></span> : null}</div>
         {pickedItems.length ? (
           <div className="gh-batch" role="region" aria-label="Decide the selected claims">
             <b>{pickedItems.length} selected</b>
@@ -274,7 +274,7 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
     <Block title="Payment reference" note="Record the official reference of a payment made outside StrayPaw, with its document. StrayPaw does not make or approve payments.">
       {sample ? <div className="gh-acts"><TryLink quiet sm>Record a payment reference</TryLink></div> : (
         <form className="gh-form" onSubmit={(e) => { e.preventDefault(); if (doc) setDlg({ k: "payment" }); }}>
-          <div className="nx-fields">
+          <div className="nx-fields gh-fields">
             <Field label="Amount in the document (INR)"><input type="number" inputMode="decimal" min={0} step="0.01" required value={pay.amount} onChange={(e) => setPay((p) => ({ ...p, amount: e.target.value }))} /></Field>
             <Field label="Paid on"><input type="date" required max={indiaToday()} value={pay.paidOn} onChange={(e) => setPay((p) => ({ ...p, paidOn: e.target.value }))} /></Field>
             <Field label="Official reference" wide><input required maxLength={200} value={pay.reference} onChange={(e) => setPay((p) => ({ ...p, reference: e.target.value }))} placeholder="Voucher or transfer number" /></Field>
