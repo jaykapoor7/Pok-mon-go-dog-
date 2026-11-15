@@ -17,7 +17,7 @@ const MIGRATIONS = [
   "20261115100000_rebuild_foundations.sql", "20261115110000_rebuild_kaju_in_channel.sql", "20261115120000_rebuild_kaju_missions.sql", "20261115130000_rebuild_people_studies_vet.sql",
   "20261116100000_rebuild_collaboration.sql", "20261116110000_rebuild_kaju_engine.sql", "20261116120000_rebuild_research_access.sql",
   "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
-  "20261116150000_rebuild_vet_clinics_and_joining.sql",
+  "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -263,6 +263,27 @@ ok(log.length === 1 && log[0].phone_masked.startsWith("••••") && log[0].
 ok((await as(A, "select id from nx_pep_reminders($1)", [clinic])).length === 0, "nobody outside the clinic sees it");
 ok(await refused(nurse, "select * from health.reminder_outbox") !== null, "the reminder queue itself is not readable through the API");
 ok((await as(P, "select nx_automation_run($1, true) as r", [rem]))[0].r.found === 0, "running it again the same day queues nothing new");
+
+section("A bite recorded from a referral");
+{
+  const centre = (await one("insert into oh_organisations (kind, name) values ('clinic', 'Ward 9 Health Centre') returning id")).id;
+  const hospital = (await one("insert into oh_organisations (kind, name) values ('hospital', 'District Hospital') returning id")).id;
+  const other = (await one("insert into oh_organisations (kind, name) values ('hospital', 'Other Hospital') returning id")).id;
+  const doc = uuid(), outsider = uuid();
+  await db.query("insert into auth.users (id) values ($1), ($2)", [doc, outsider]);
+  await db.query("insert into oh_members (organisation_id, user_id, role) values ($1, $2, 'clinician'), ($3, $4, 'clinician')", [hospital, doc, other, outsider]);
+  const first = (await one("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind) values ($1, 'C-1', current_date - 1, current_date - 1, 'bite') returning id", [centre])).id;
+  const tr = (await one("insert into health.transfers (exposure_id, from_org, to_org, service) values ($1, $2, $3, 'rig') returning id", [first, centre, hospital])).id;
+  const args = "($1, current_date - 1, 'bite', null, 'not_recorded', 'not_recorded', null, 'dog', 'unknown', null, null, 'not_recorded', 'walk_in', null, null, false, false, 'not_recorded', $2)";
+  ok(await refused(outsider, `select public.oh_record_exposure${args}`, [other, tr]) !== null, "a hospital the person was not referred to cannot claim the referral");
+  const rec = (await as(doc, `select public.oh_record_exposure${args} as r`, [hospital, tr]))[0].r;
+  ok(rec.transfer_id === tr, "the receiving hospital records the bite with the referral it came from");
+  const row = await one("select e.transfer_id, e.source, t.status from health.exposures e join health.transfers t on t.id = e.transfer_id where e.id = $1", [rec.id]);
+  ok(row?.source === "referral" && row?.status === "arrived", "the bite is marked as from a referral and the referral as arrived");
+  ok(await refused(doc, `select public.oh_record_exposure${args}`, [hospital, tr]) !== null, "a second bite cannot be recorded for the same referral");
+  const plain = (await as(doc, "select public.oh_record_exposure($1, current_date, 'scratch', null) as r", [hospital]))[0].r;
+  ok(!!plain.id && plain.transfer_id === null, "a walk-in bite is recorded as before, without a referral");
+}
 
 section("Independent veterinary clinics");
 const V = uuid(), VN = uuid();

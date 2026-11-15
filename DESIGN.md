@@ -242,7 +242,7 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
 >   breadcrumb, search, AI and the one primary action. Phones keep the thumb
 >   bar plus an AI tab. Workspace order: Municipality, NGO, Community,
 >   Education.
-> * **StrayPaw AI** docks on the right or runs full screen at `/assistant`;
+> * **StrayPaw AI** docks on the right or runs full screen at `/kaju` (the compact panel opens with ⌘J on every app page);
 >   answers carry tool runs and source links; changes are cards with
 >   Confirm, saved through the normal RPCs.
 > * **Honesty labels**: demos say "Product demo", integrations show live
