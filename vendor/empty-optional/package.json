@@ -1,0 +1,7 @@
+{
+  "name": "empty-optional",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Stands in for optional native dependencies StrayPaw never loads (sarvam-conv-ai-sdk's Node.js audio: speaker, node-record-lpcm16). The SDK's browser entry, the only one used, imports neither. Replacing them keeps unused native code, and speaker's unfixed GHSA-w5fc-gj3h-26rx, out of every install.",
+  "license": "UNLICENSED"
+}
