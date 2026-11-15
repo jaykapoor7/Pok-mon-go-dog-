@@ -96,8 +96,9 @@ export async function readMembers(): Promise<Res<Member[]>> {
   return r.error ? { error: r.error } : { data: (r.data ?? []).map((m) => ({ user_id: m.user_id, role: m.role ?? "member", name: m.name ?? "Member" })) };
 }
 
-/** The volunteer row the case functions name people from. Best effort, as in the classic app. */
-async function ensureVolunteer(a: Actor) { try { await db().rpc("upsert_volunteer", { p_id: a.id, p_name: a.name }); } catch { /* not fatal */ } }
+/** The volunteer row the case functions name people from (a new case is assigned to its creator, which must have one).
+    Best effort, as in the classic app. */
+export async function ensureVolunteer(a: Actor) { try { await db().rpc("upsert_volunteer", { p_id: a.id, p_name: a.name }); } catch { /* not fatal */ } }
 
 /** Take an unheld case, or claim an unowned report for the organisation (take_case decides which). */
 export async function takeCase(id: string, a: Actor): Promise<Res<true>> {

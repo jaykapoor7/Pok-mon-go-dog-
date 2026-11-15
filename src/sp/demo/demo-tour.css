@@ -64,6 +64,8 @@
 
 /* While Kaju's panel is open on the right, the card steps to its left so the answer stays readable. */
 @media (min-width: 761px) { html:has(.ai3-panel) .dt, html:has(.ai3-panel) .dt-pill { right: calc(min(440px, 100vw) + 20px); transition: right .3s var(--dt-ease); } }
+/* A modal sheet owns the screen (the field intake's Next and Save sit where the pill does on a phone): the guide steps aside until it closes. */
+html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-modal="true"]) .dt-pill { display: none; }
 
 /* ── the pill ── */
 .dt-pill { position: fixed; z-index: 85; right: 20px; bottom: 20px; display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: #fff;
