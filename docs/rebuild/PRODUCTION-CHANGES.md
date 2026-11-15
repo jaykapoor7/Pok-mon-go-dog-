@@ -42,20 +42,22 @@ rebuild's pages already fall back to sample data, or to a plain "not set up yet"
 
 # Second set: collaboration, Kaju engine, research access, saved views, automations, clinics and joining, bite referral link
 
-**Staging: files 6 to 9 applied (2026-11-15); files 10 to 12 waiting** (`docs/rebuild/sql/STAGING_rebuild_stage3.sql`, one
-transaction). **Production: waiting**, for the owner's approval after staging (`docs/rebuild/sql/PRODUCTION_rebuild_stage2.sql`,
-all seven). Every file runs and re-runs cleanly on a local Postgres with the earlier migrations, and 119 behaviour and
-permission checks pass (`npm run test:db`, in CI).
+**Applied on staging and on production on 2026-11-15**, with the owner's approval of each change in the session. Every file
+runs and re-runs cleanly on a local Postgres with the earlier migrations, and 119 behaviour and permission checks pass
+(`npm run test:db`, in CI). Checked on staging with its sample organisations (rolled back): a Kaju mission found 27 cases,
+waited for approval and made 27 tasks once; mentions and search never crossed organisations; an automation ran and told the
+sample team. Checked on production read-only afterwards: every new table and function present, 11 Kaju tools registered,
+the two schedules (`nx-automations-tick`, `nx-mission-tick`) running, the `nx-files` bucket private, the new policies in place.
 
 | Order | File | What it adds | Staging | Production |
 | --- | --- | --- | --- | --- |
-| 6 | `20261116100000_rebuild_collaboration.sql` | Mentions (notified only if they can read the channel), reactions, files in a private bucket (`nx-files`) readable only through the channel, edit and delete with kept history, message search under the caller's own access, one record-discussion channel per organisation, programme channels across organisations (access ends when an organisation leaves), announcement posting rules, notification settings, push subscriptions, delivery records | Applied, checked | Waiting |
-| 7 | `20261116110000_rebuild_kaju_engine.sql` | Tool registry with levels, organisation rules (stricter only), personal limits, mission steps with retries and backoff, idempotent effects, approvals, person-only steps, trace, outbox for outside messages, organisation memory with approval; a once-a-minute database schedule (`nx-mission-tick`) that runs due steps | Applied, checked | Waiting |
-| 8 | `20261116120000_rebuild_research_access.sql` | Data requests to programmes, steward decisions, versioned suppressed extracts, revocation | Applied, checked | Waiting |
-| 9 | `20261116130000_rebuild_saved_views.sql` | Saved views and pins, private to each person | Applied, checked | Waiting |
-| 10 | `20261116140000_rebuild_automations_v2.sql` | Automations for every workspace; consented PEP reminders queued in the clinical schema (not readable through the API); an hourly database schedule (`nx-automations-tick`) | Waiting | Waiting |
-| 11 | `20261116150000_rebuild_vet_clinics_and_joining.sql` | `veterinary` organisation kind, clinic patients and veterinarian-signed records, the minimal status a partner NGO sees, finding an organisation and asking to join | Waiting | Waiting |
-| 12 | `20261116160000_rebuild_bite_referral_link.sql` | A bite recorded at the facility a person was referred to keeps that referral, once per referral, and marks it arrived | Waiting | Waiting |
+| 6 | `20261116100000_rebuild_collaboration.sql` | Mentions (notified only if they can read the channel), reactions, files in a private bucket (`nx-files`) readable only through the channel, edit and delete with kept history, message search under the caller's own access, one record-discussion channel per organisation, programme channels across organisations (access ends when an organisation leaves), announcement posting rules, notification settings, push subscriptions, delivery records | Applied, checked | Applied, checked |
+| 7 | `20261116110000_rebuild_kaju_engine.sql` | Tool registry with levels, organisation rules (stricter only), personal limits, mission steps with retries and backoff, idempotent effects, approvals, person-only steps, trace, outbox for outside messages, organisation memory with approval; a once-a-minute database schedule (`nx-mission-tick`) that runs due steps | Applied, checked | Applied, checked |
+| 8 | `20261116120000_rebuild_research_access.sql` | Data requests to programmes, steward decisions, versioned suppressed extracts, revocation | Applied, checked | Applied, checked |
+| 9 | `20261116130000_rebuild_saved_views.sql` | Saved views and pins, private to each person | Applied, checked | Applied, checked |
+| 10 | `20261116140000_rebuild_automations_v2.sql` | Automations for every workspace; consented PEP reminders queued in the clinical schema (not readable through the API); an hourly database schedule (`nx-automations-tick`) | Applied, checked | Applied, checked |
+| 11 | `20261116150000_rebuild_vet_clinics_and_joining.sql` | `veterinary` organisation kind, clinic patients and veterinarian-signed records, the minimal status a partner NGO sees, finding an organisation and asking to join | Applied, checked | Applied, checked |
+| 12 | `20261116160000_rebuild_bite_referral_link.sql` | A bite recorded at the facility a person was referred to keeps that referral, once per referral, and marks it arrived | Applied, checked | Applied, checked |
 
 What changes in existing objects (all widening or equal-or-stricter; no data touched):
 - Check constraints widened: `nx_channels.kind`, `nx_messages.record_kind`, `nx_tasks.record_kind`, `nx_notifications.kind`, `nx_mission_steps.state`, `oh_organisations.kind` (adds `veterinary`).

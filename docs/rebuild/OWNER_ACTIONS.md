@@ -5,8 +5,8 @@ step, and starts working without a code change once you have. Nothing here is ne
 
 | # | What | Why it needs you | How to switch it on |
 | --- | --- | --- | --- |
-| 1 | Run the staging database change | Supabase asks the project owner to confirm schema changes | Open the staging project's SQL Editor, paste `docs/rebuild/sql/STAGING_rebuild_stage3.sql` (automations, veterinary clinics and joining, bite referral link; one transaction, safe to run twice) and run it. The earlier four files of this set are already on staging. |
-| 2 | Approve the production database change | Production changes need your authorisation | After staging checks pass, a `PRODUCTION_*.sql` file is listed in `docs/rebuild/PRODUCTION-CHANGES.md` with exactly what it adds. Run it in the production SQL Editor. Additive only; rollback is listed there. |
+| 1 | ~~Run the staging database change~~ | Done 2026-11-15 | Applied with your approval in the session and checked. |
+| 2 | ~~Approve the production database change~~ | Done 2026-11-15 | Applied with your approval in the session and checked. |
 | 3 | Claude for free-form Kaju answers and planning | A paid model needs your key and a spending decision | In Vercel, set `ANTHROPIC_API_KEY`, `STRAYPAW_AI_MODE=model`, `STRAYPAW_AI_AUTHORISED_BY=<your name>:<date>`, `STRAYPAW_AI_MONTHLY_CEILING_INR`, `STRAYPAW_AI_USER_DAILY_REQUESTS`, `STRAYPAW_AI_ORG_DAILY_REQUESTS`, `STRAYPAW_AI_INR_PER_MTOK_IN`, `STRAYPAW_AI_INR_PER_MTOK_OUT`. Without all of them Kaju answers and plans by fixed rules and says so. |
 | 4 | Email notifications | A sending domain must be verified in your name | Verify the domain in Resend, set `RESEND_API_KEY` and `EMAIL_FROM` in Vercel. People who turned email on then receive it; attempts before that are listed as not connected. |
 | 5 | Browser push notifications | Push keys identify the site to browsers | Generate VAPID keys (`npx web-push generate-vapid-keys`), set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT=mailto:<a contact address>` in Vercel. |

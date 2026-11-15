@@ -39,11 +39,11 @@ Checks referred to (all run on 2026-11-15 on this branch):
 | Government review: decisions, items, finalise, payment reference | Built, verified signed out | e2e nx-gov-health; live reviewer session not exercised locally (sign-in returned 502 locally). |
 | Programme setup, partners, invitations, estimates, Where to act map | Built, verified signed out | e2e nx-gov-health; programme-lead session exercised on staging read paths (one assignment change undone). |
 | Healthcare: bites, PEP (clinician-entered), referrals, services | Built, verified signed out and as a clinician on staging | Worker report: clinician session on staging (wound washing changed and undone). |
-| Bite keeps its referral | Verified (database) · Waiting on staging | `test:db` "A bite recorded from a referral" (5 checks); staging bundle sent. |
+| Bite keeps its referral | Verified (database) · live on staging and production | `test:db` "A bite recorded from a referral" (5 checks); staging bundle sent. |
 | Laboratory sample lifecycle | Built, verified as a laboratory scientist (read paths) | Worker report. |
-| Independent veterinary clinics | Verified (database) · UI built · Waiting on staging | `test:db` "Independent veterinary clinics"; clinic Today and Patients wired; staging bundle sent. |
+| Independent veterinary clinics | Verified (database) · UI built | `test:db` "Independent veterinary clinics"; clinic Today and Patients wired; staging bundle sent. |
 | Research access requests, approval, revocation, versioned extracts | Verified (database, staging) | `test:db`; tables present on staging. |
-| Organisation discovery, requests, invitations, roles, onboarding | Verified (database) · UI built · Waiting on staging | `test:db` "Finding an organisation and asking to join". |
+| Organisation discovery, requests, invitations, roles, onboarding | Verified (database) · UI built | `test:db` "Finding an organisation and asking to join". |
 | Notifications | Verified (database, delivery logic) | `test:db`; `test:notify-delivery`; old stored links mapped in delivery. |
 | Global search | Built, verified signed out | e2e "Command bar … hands words to Kaju without running them". |
 | Saved views, pins, persistent tabs | Verified (database, staging) · UI built | `test:db` "Saved views and pins"; tables on staging. |
@@ -75,14 +75,14 @@ Checks referred to (all run on 2026-11-15 on this branch):
 | Organisation memory with approval and revocation | Verified (database) · UI built | `test:db`. |
 | Screens Kaju opens exist and respect roles | Verified | `test:routes`; `src/lib/kaju/screens.ts`. |
 | Connected services with permission boundaries | Built · Blocked (external) | Needs OAuth apps (OWNER_ACTIONS 8). |
-| Automations across workspaces | Verified (database) · UI built · Waiting on staging | `test:db` "Automations for every workspace"; staging bundle sent. |
+| Automations across workspaces | Verified (database) · UI built | `test:db` "Automations for every workspace"; staging bundle sent. |
 
 ## 5. Healthcare, government, research specifics
 
 | Requirement | Status | Evidence / reason |
 | --- | --- | --- |
 | PEP reminder scheduling, consent, delivery log, retry | Verified (database) · Blocked (external) for sending | `test:db`; sending needs OWNER_ACTIONS 6. |
-| Independent veterinary clinic onboarding | Verified (database) · UI built · Waiting on staging | Start page "Veterinary clinic"; clinic Today, Patients, Appointments. |
+| Independent veterinary clinic onboarding | Verified (database) · UI built | Start page "Veterinary clinic"; clinic Today, Patients, Appointments. |
 | Offline capture and idempotent sync | Built, not yet verified offline in a browser | Field mode; outbox spec. |
 | Coverage and surveillance with suppression, provenance, denominators | Built (earlier releases) | Programme Coverage tab shows only dated estimates; small counts hidden. |
 
@@ -101,7 +101,7 @@ Checks referred to (all run on 2026-11-15 on this branch):
 | --- | --- | --- |
 | 1 | New NGO signs up, invites, opens a case, posts in a channel | Built; steps covered separately (Start, Team invite API, case, channel); not scripted end to end |
 | 2 | Municipal field worker records a vaccination, reviewer receives it | Built; reviewer session not exercised locally |
-| 3 | Independent vet clinic | Verified (database) · Waiting on staging |
+| 3 | Independent vet clinic | Verified (database) |
 | 4 | Hospital bite case, clinician PEP schedule, consented reminder, non-clinical denied | Verified (database reminders, permissions); UI as clinician on staging |
 | 5 | Lab result recorded by staff, parties notified, Kaju cannot validate | Verified (database: person-only); UI read paths as lab scientist |
 | 6 | Programme coordinator creates programme, invites partners | Built; invite and setup exercised on staging read paths |
