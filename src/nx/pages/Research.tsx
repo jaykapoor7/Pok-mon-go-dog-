@@ -1,5 +1,7 @@
 "use client";
 
+import { DataRequests } from "./DataRequests";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Download, Lock, X } from "lucide-react";
@@ -73,6 +75,7 @@ export function Datasets() {
           ))}
           {sets && !sets.length ? <p className="nx-sub" style={{ padding: "20px 0" }}><b style={{ color: "var(--ink)" }}>No datasets are approved for this organisation yet.</b></p> : null}
         </div>
+        {!sample && live.orgFor("research") ? <div style={{ marginTop: 28 }}><DataRequests org={live.orgFor("research")!} /></div> : null}
         <p className="nx-note" style={{ marginTop: 18, maxWidth: 720 }}><Lock size={13} /><span>Patient-level records never leave the treating facility. To use another programme&apos;s data, its steward approves a request; access is versioned and can be withdrawn.</span></p>
       </div>
     </Shell>

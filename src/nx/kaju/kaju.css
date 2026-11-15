@@ -109,3 +109,8 @@
 .nx-mem-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .nx-mem p { color: var(--ink-2); white-space: pre-wrap; }
 @media (max-width: 640px) { .nx-rtable thead { display: none; } .nx-rtable tr { display: grid; grid-template-columns: 1fr auto; padding: 6px 0; border-bottom: 1px solid var(--line); } .nx-rtable td { border: 0; padding: 4px 0; } .nx-rtable td:nth-child(2) { display: none; } }
+.nx-dreq { list-style: none; margin: 8px 0 0; padding: 0; display: grid; }
+.nx-dreq > li { padding: 14px 0; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.nx-dreq-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.nx-q { font-size: 11px; color: var(--ink-2); word-break: break-all; display: block; max-width: 520px; }
+.nx-chk-inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); margin-right: 12px; min-height: 32px; }
