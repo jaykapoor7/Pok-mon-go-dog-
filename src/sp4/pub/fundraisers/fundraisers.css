@@ -1,0 +1,38 @@
+/* Fundraisers: a list of campaigns and one campaign. */
+.fr-list { border-top: 1px solid var(--pb-line); }
+.fr-list > li { border-bottom: 1px solid var(--pb-line); }
+.fr-item { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 24px; align-items: start; padding: 16px 8px; margin: 0 -8px; border-radius: 12px; transition: background 140ms var(--pb-ease); }
+.fr-item:hover { background: var(--pb-fill); }
+.fr-item:hover b { color: var(--pb-blue); }
+.fr-cover .pb-pic { aspect-ratio: 4 / 3; }
+.fr-text { display: grid; gap: 8px; min-width: 0; }
+.fr-text b { font-size: 20px; line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; color: var(--s4-ink); overflow-wrap: anywhere; }
+.fr-text small { font-size: 14px; color: var(--pb-mute); }
+.fr-prog { display: grid; gap: 8px; max-width: 480px; }
+.fr-prog p { font-size: 14px; color: var(--pb-body); font-variant-numeric: tabular-nums; }
+.fr-prog b { color: var(--s4-ink); font-weight: 600; }
+.fr-bar { height: 8px; border-radius: 99px; background: var(--pb-fill-2); overflow: hidden; }
+.fr-bar i { display: block; height: 100%; border-radius: 99px; background: var(--pb-blue); }
+.fr-donate { display: grid; gap: 16px; padding: 24px; border-radius: 16px; background: var(--pb-fill); }
+.fr-dl { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--pb-body); }
+.fr-donate-btn { width: 100%; min-height: 48px; font-size: 16px; }
+.fr-hero { max-width: 720px; }
+.fr-hero .pb-pic { aspect-ratio: 16 / 9; }
+.fr-budget { width: 100%; max-width: 560px; border-collapse: collapse; font-size: 16px; }
+.fr-budget th, .fr-budget td { padding: 12px 0; border-bottom: 1px solid var(--pb-line); text-align: left; font-weight: 400; color: var(--pb-body); }
+.fr-budget td { text-align: right; color: var(--s4-ink); font-variant-numeric: tabular-nums; font-weight: 500; }
+.fr-budget tfoot th, .fr-budget tfoot td { font-weight: 600; color: var(--s4-ink); }
+.fr-updates { display: grid; gap: 24px; border-left: 2px solid var(--pb-line); padding-left: 24px; }
+.fr-updates li { display: grid; gap: 8px; }
+.fr-updates time { font-size: 14px; color: var(--pb-mute); }
+.fr-up-pic { max-width: 480px; }
+.fr-case { display: flex; align-items: center; gap: 8px; }
+.fr-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; }
+.fr-lines { display: grid; gap: 8px; }
+.fr-line { display: grid; grid-template-columns: minmax(0, 1fr) 128px auto; gap: 8px; align-items: center; }
+@media (max-width: 640px) {
+  .fr-item { grid-template-columns: 96px minmax(0, 1fr); gap: 16px; }
+  .fr-text b { font-size: 16px; }
+  .fr-donate { padding: 16px; }
+  .fr-line { grid-template-columns: minmax(0, 1fr) 96px auto; }
+}
