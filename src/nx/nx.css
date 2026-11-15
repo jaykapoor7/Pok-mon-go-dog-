@@ -263,6 +263,16 @@ button.nx-tr, a.nx-tr { width: 100%; }
   .nx-props { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
   .nx-search { width: 170px; }
 }
+/* Today's work table: in a narrow column the record keeps room to be read, and its place moves under it. */
+.nx .nx-place-m { display: none; }
+.nx .nx-table.is-today { container-type: inline-size; }
+@media (min-width: 641px) {
+  @container (max-width: 720px) {
+    .nx .nx-table.is-today .nx-tr.is-work, .nx .nx-table.is-today .nx-tr.is-head { grid-template-columns: 28px minmax(0, 1fr) 108px 132px 56px !important; }
+    .nx .nx-table.is-today .is-place { display: none; }
+    .nx .nx-table.is-today .nx-place-m { display: inline; }
+  }
+}
 @media (max-width: 640px) {
   .nx { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; font-size: 14px; }
   .nx-rail { display: none; }

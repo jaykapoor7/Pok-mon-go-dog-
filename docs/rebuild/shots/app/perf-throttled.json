@@ -1,0 +1,69 @@
+{
+ "conditions": "Pixel 7, CPU 4x slower, 150 ms RTT, 1.6 Mbps down, cold cache, local production build",
+ "measured": "2026-11-15T16:24:10.721Z",
+ "pages": [
+  {
+   "page": "/ngo/today",
+   "load_ms": 3452,
+   "lcp_ms": 3876,
+   "cls": 0,
+   "tbt_ms": 446,
+   "js_kb": 335,
+   "tap_ms": null
+  },
+  {
+   "page": "/ngo/cases",
+   "load_ms": 3651,
+   "lcp_ms": 3976,
+   "cls": 0,
+   "tbt_ms": 409,
+   "js_kb": 363,
+   "tap_ms": 234
+  },
+  {
+   "page": "/ngo/animals",
+   "load_ms": 3728,
+   "lcp_ms": 4056,
+   "cls": 0,
+   "tbt_ms": 534,
+   "js_kb": 368,
+   "tap_ms": 210
+  },
+  {
+   "page": "/gov/verification",
+   "load_ms": 3445,
+   "lcp_ms": 3672,
+   "cls": 0,
+   "tbt_ms": 297,
+   "js_kb": 334,
+   "tap_ms": 185
+  },
+  {
+   "page": "/health/today",
+   "load_ms": 3763,
+   "lcp_ms": 3924,
+   "cls": 0,
+   "tbt_ms": 256,
+   "js_kb": 379,
+   "tap_ms": null
+  },
+  {
+   "page": "/kaju",
+   "load_ms": 3473,
+   "lcp_ms": 1328,
+   "cls": 0,
+   "tbt_ms": 332,
+   "js_kb": 334,
+   "tap_ms": null
+  },
+  {
+   "page": "/channels/abc-ward-12",
+   "load_ms": 3491,
+   "lcp_ms": 3736,
+   "cls": 0,
+   "tbt_ms": 380,
+   "js_kb": 339,
+   "tap_ms": null
+  }
+ ]
+}
