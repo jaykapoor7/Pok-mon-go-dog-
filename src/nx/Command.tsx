@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ClipboardList, CornerDownLeft, Hash, PawPrint, Search, Sparkles } from "lucide-react";
+import { ArrowRight, ClipboardList, CornerDownLeft, Hash, MessageSquare, PawPrint, Search, Sparkles } from "lucide-react";
+import { recordHref, searchMessages } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { ANIMALS, CASES, CHANNELS } from "./fixtures";
 import { PAGES } from "./nav";
@@ -13,7 +14,7 @@ import { useChannels, useLive } from "./live";
    Records come from the signed-in organisation only, through the same row-level security as every page.
    Clinical records are not searched here: a patient is found from inside the facility's own register. */
 
-type Hit = { id: string; group: "Pages" | "Channels" | "Animals" | "Cases" | "Kaju"; label: string; detail?: string; href: string; icon: React.ReactNode };
+type Hit = { id: string; group: "Pages" | "Channels" | "Animals" | "Cases" | "Messages" | "Kaju"; label: string; detail?: string; href: string; icon: React.ReactNode };
 const esc = (s: string) => s.replace(/[%_\\,()]/g, " ").trim();
 
 export function Command({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -42,22 +43,25 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
       return;
     }
     const db = getSupabase();
-    if (!db || !ngo) { setRecords([]); return; }
+    if (!db) { setRecords([]); return; }
     const term = esc(n);
     if (!term) { setRecords([]); return; }
     let alive = true;
     setBusy(true);
     const t = window.setTimeout(async () => {
       const like = `%${term}%`;
-      const [d, c] = await Promise.all([
-        db.from("dogs").select("id,name,code,zone").eq("ngo_id", ngo.org_id).or(`name.ilike.${like},code.ilike.${like},zone.ilike.${like}`).limit(5),
-        db.from("cases").select("id,title,case_code,zone").eq("ngo_id", ngo.org_id).or(`title.ilike.${like},case_code.ilike.${like},zone.ilike.${like}`).limit(5),
+      const none = Promise.resolve({ data: [] as unknown[] });
+      const [d, c, msgs] = await Promise.all([
+        ngo ? db.from("dogs").select("id,name,code,zone").eq("ngo_id", ngo.org_id).or(`name.ilike.${like},code.ilike.${like},zone.ilike.${like}`).limit(5) : none,
+        ngo ? db.from("cases").select("id,title,case_code,zone").eq("ngo_id", ngo.org_id).or(`title.ilike.${like},case_code.ilike.${like},zone.ilike.${like}`).limit(5) : none,
+        n.length >= 3 ? searchMessages(n) : Promise.resolve([]),
       ]);
       if (!alive) return;
       setBusy(false);
       setRecords([
         ...((d.data ?? []) as { id: string; name: string | null; code: string | null; zone: string | null }[]).map((x): Hit => ({ id: x.id, group: "Animals", label: x.name || "Unnamed", detail: [x.code, x.zone].filter(Boolean).join(" · "), href: `/next/ngo/animals/${x.id}`, icon: <PawPrint size={14} /> })),
         ...((c.data ?? []) as { id: string; title: string | null; case_code: string | null; zone: string | null }[]).map((x): Hit => ({ id: x.id, group: "Cases", label: x.title || "Untitled case", detail: [x.case_code && x.case_code.length > 14 ? `${x.case_code.slice(0, 4)}…${x.case_code.slice(-6)}` : x.case_code, x.zone].filter(Boolean).join(" · "), href: `/ngo/cases/${x.id}`, icon: <ClipboardList size={14} /> })),
+        ...msgs.slice(0, 6).map((m): Hit => ({ id: `m${m.id}`, group: "Messages", label: m.body.length > 90 ? `${m.body.slice(0, 90)}…` : m.body, detail: `${m.channel_kind === "dm" ? "Direct message" : m.channel_kind === "record" ? m.record_label ?? "Record discussion" : `#${m.channel_name}`} · ${m.author_name ?? "Member"}`, href: m.channel_kind === "record" ? recordHref(m.record_kind, m.record_id) ?? "/next/ngo/today" : `/next/channels/${m.channel_name}?m=${m.id}`, icon: <MessageSquare size={14} /> })),
       ]);
     }, 180);
     return () => { alive = false; window.clearTimeout(t); setBusy(false); };
@@ -68,7 +72,7 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     const office = live.org?.source === "review_office", lab = live.org?.kind === "laboratory";
     const pages = PAGES.filter((p) => (!p.office || !live.org || office) && (!p.lab || !live.org || lab)).filter((p) => !l || `${p.label} ${p.ws}`.toLowerCase().includes(l)).slice(0, l ? 6 : 8)
       .map((p): Hit => ({ id: p.href + p.ws, group: "Pages", label: p.label, detail: p.ws, href: p.href, icon: <p.icon size={14} /> }));
-    const chanNames = live.org ? (chans.rows ?? []).filter((c) => c.kind !== "dm").map((c) => c.name) : CHANNELS.map((c) => c.name);
+    const chanNames = live.org ? (chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => c.name) : CHANNELS.map((c) => c.name);
     const channels = chanNames.filter((c) => !l || c.includes(l)).slice(0, 4).map((c): Hit => ({ id: `#${c}`, group: "Channels", label: `#${c}`, href: `/next/channels/${c}`, icon: <Hash size={14} /> }));
     const kaju: Hit[] = l ? [{ id: "kaju", group: "Kaju", label: `Ask Kaju: “${q.trim()}”`, detail: "Nothing is sent until you press Run", href: `/next/kaju?q=${encodeURIComponent(q.trim())}`, icon: <Sparkles size={14} /> }] : [];
     return [...records, ...pages, ...channels, ...kaju];

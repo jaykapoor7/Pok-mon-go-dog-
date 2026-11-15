@@ -13,7 +13,7 @@
    passed straight through. A queued report must never be answered by a
    cached 200, and no personal data belongs in the cache. */
 
-const VERSION = "straypaw-v2";
+const VERSION = "straypaw-v3";
 const SHELL = `${VERSION}-shell`;
 const PAGES = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline";
@@ -120,4 +120,24 @@ self.addEventListener('message',event=>{
    await Promise.all(urls.map(url=>shell.add(url)));event.ports[0]?.postMessage({ready:true});
   }catch{const cached=await Promise.all(urls.map(url=>caches.match(url)));event.ports[0]?.postMessage({ready:!!await caches.match('/ngo/field')&&cached.every(Boolean)})}
  })());
+});
+
+/* Browser push, for people who turned it on in StrayPaw's notification settings. The message carries a title and a
+   link back into StrayPaw only; what it is about is read inside the app, where access is checked. */
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch { d = {}; }
+  const title = typeof d.title === "string" && d.title ? d.title.slice(0, 120) : "StrayPaw";
+  const url = typeof d.url === "string" && d.url.startsWith(self.location.origin) ? d.url : "/next";
+  event.waitUntil(self.registration.showNotification(title, { body: "Open it in StrayPaw", data: { url }, tag: url, icon: "/icon.png", badge: "/icon.png" }));
+});
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data && event.notification.data.url ? event.notification.data.url : "/next";
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const same = all.find((c) => c.url === url);
+    if (same) return same.focus();
+    return self.clients.openWindow(url);
+  })());
 });

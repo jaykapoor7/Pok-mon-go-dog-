@@ -668,3 +668,5 @@ button.nx-item { width: calc(100% - 0px); text-align: left; }
   .nx-toasts { bottom: 76px; }
   .nx-field :is(input, textarea, select), .nx-btn { min-height: 44px; }
 }
+.nx-needs-btn { display: flex; gap: 10px; align-items: flex-start; width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.nx-needs-btn:hover { background: var(--hover); }

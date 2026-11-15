@@ -10,7 +10,7 @@ import { Check, Chip, Sample, initials } from "../ui";
 import { Confirm, toast } from "../kit";
 import { CH_PEOPLE, CH_RECORDS, CH_WORK, KAJU_TASKS, MESSAGES, SAMPLE_CHATS } from "../fixtures";
 import { addTasks, askKaju, createChannel, markRead, setTaskDone, useChannels, useDms, useLive, useOrgPeople, useTasks } from "../live";
-import { EMOJI, FILE_TYPES, deleteMessage, editMessage, fileLink, mentionsIn, sendMessage, uploadFile, useChannelMessages, useProgrammeChannels, useReactions, type FileRef, type Msg } from "../collab";
+import { recordHref, EMOJI, FILE_TYPES, deleteMessage, editMessage, fileLink, mentionsIn, sendMessage, uploadFile, useChannelMessages, useProgrammeChannels, useReactions, type FileRef, type Msg } from "../collab";
 import "../css/channel.css";
 
 /* A channel: people talking, with the work, records and files the talk is about one tab away. Mentions notify only
@@ -30,7 +30,6 @@ type View = {
 };
 
 const clock = (iso?: string) => (iso ? new Date(iso) : new Date()).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }).toLowerCase();
-const recordHref = (kind: string | null, id: string | null) => !kind || !id ? null : kind === "animal" ? `/next/ngo/animals/${id}` : kind === "case" ? `/next/ngo/cases/${id}` : kind === "package" || kind === "submission" ? `/next/ngo/submissions/${id}` : kind === "programme" ? `/next/ngo/programmes/${id}` : null;
 
 function FileChip({ f, sample }: { f: FileRef; sample?: boolean }) {
   const [busy, setBusy] = useState(false);

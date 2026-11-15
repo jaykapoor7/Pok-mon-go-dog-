@@ -99,7 +99,9 @@ export async function uploadFile(channelId: string, f: File): Promise<{ file?: F
 export async function fileLink(path: string) { const r = await getSupabase()!.storage.from("nx-files").createSignedUrl(path, 300); return r.data?.signedUrl ?? null; }
 
 /* ── Search, programme channels, record threads ───────────────────── */
-export type Hit = { id: string; channel_id: string; channel_name: string; channel_kind: string; body: string; author_name: string | null; created_at: string; record_label: string | null };
+export type Hit = { id: string; channel_id: string; channel_name: string; channel_kind: string; body: string; author_name: string | null; created_at: string; record_kind: string | null; record_id: string | null; record_label: string | null };
+/** Where a record lives in the app, for links from messages and search. */
+export const recordHref = (kind: string | null, id: string | null) => !kind || !id ? null : kind === "animal" ? `/next/ngo/animals/${id}` : kind === "case" ? `/next/ngo/cases/${id}` : kind === "package" || kind === "submission" ? `/next/ngo/submissions/${id}` : kind === "programme" ? `/next/ngo/programmes/${id}` : null;
 export async function searchMessages(q: string): Promise<Hit[]> {
   if (q.trim().length < 2) return [];
   const r = await getSupabase()!.rpc("nx_search_messages", { p_q: q.trim().slice(0, 200), p_limit: 20 });
@@ -126,4 +128,27 @@ export function useRecordChannel(orgId: string | null) {
 export function mentionsIn(text: string, people: { user_id: string; name: string }[]) {
   const low = text.toLowerCase();
   return [...new Set([...people].sort((a, b) => b.name.length - a.name.length).filter((p) => p.name.length > 1 && low.includes(`@${p.name.toLowerCase()}`)).map((p) => p.user_id))].slice(0, 20);
+}
+
+/** Database-written links use the app's canonical paths; while the app also answers under /next, map them there. */
+export const appPath = (h: string | null | undefined) => !h ? null : /^\/(ngo|gov|health|research|kaju|channels|start|settings)(\/|$|\?)/.test(h) ? `/next${h}` : h;
+
+export type Notice = { id: string; kind: string; title: string; body: string | null; href: string | null; created_at: string; read_at: string | null };
+/** The person's own notifications, newest first; read again every minute and when asked. */
+export function useNotices(enabled: boolean) {
+  const [rows, setRows] = useState<Notice[] | null>(null);
+  const [tick, setTick] = useState(0);
+  const reload = useCallback(() => setTick((n) => n + 1), []);
+  useEffect(() => {
+    const db = getSupabase(); if (!db || !enabled) return;
+    let alive = true;
+    void db.from("nx_notifications").select("id,kind,title,body,href,created_at,read_at").order("created_at", { ascending: false }).limit(30).then(({ data, error }) => { if (alive) setRows(error ? [] : (data ?? []) as Notice[]); });
+    return () => { alive = false; };
+  }, [enabled, tick]);
+  useEffect(() => { if (!enabled) return; const t = window.setInterval(reload, 60000); return () => window.clearInterval(t); }, [enabled, reload]);
+  const markRead = useCallback(async (ids: string[] | null) => {
+    setRows((rs) => rs?.map((r) => (!ids || ids.includes(r.id) ? { ...r, read_at: r.read_at ?? new Date().toISOString() } : r)) ?? rs);
+    await getSupabase()?.rpc("nx_mark_notifications_read", { p_ids: ids });
+  }, []);
+  return { rows, reload, markRead };
 }
