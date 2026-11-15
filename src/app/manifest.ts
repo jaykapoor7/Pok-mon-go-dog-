@@ -8,7 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "StrayPaw",
     description:
       "An open, community-run map for India's street animals, spot, report and care.",
-    start_url: "/map",
+    /* Opens the workspace for someone signed in, and the way in for everyone else. */
+    start_url: "/app",
     display: "standalone",
     background_color: "#fbfdff",
     /* The logo's own ground, so the install splash and the icon agree. */

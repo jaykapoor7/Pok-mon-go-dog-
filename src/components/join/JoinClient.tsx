@@ -92,7 +92,7 @@ export function JoinClient({ initialCode }: { initialCode?: string }) {
         return;
       }
 
-      const destination = data.kind === "personal" ? (data.role === "feeder" ? "/feeder" : "/app") : "/partner";
+      const destination = data.kind === "personal" ? (data.role === "feeder" ? "/feeder" : "/app") : "/home";
 
       /* Staff. The server has issued a one-time token bound to their email;
          exchanging it here is what actually creates the session, so it is

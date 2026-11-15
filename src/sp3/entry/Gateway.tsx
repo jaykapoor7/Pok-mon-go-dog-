@@ -54,14 +54,14 @@ export function Gateway() {
       if (flowHoldsWelcome()) { setS({ phase: "choose", signedIn: true, known }); return; }
       /* Returning from sign-in in the middle of registering: finish that first. */
       if (known && !choose && !safe && readFlow()) { setS({ phase: "choose", signedIn: true, known }); return; }
-      const fits = (to: string) => (to.startsWith("/ngo") ? member : to.startsWith("/city/review") || to.startsWith("/city/contracts") ? reviewer : true);
+      const fits = (to: string) => (to.startsWith("/ngo") ? member : to.startsWith("/gov/verification") ? reviewer : true);
       if (choose && (member || reviewer)) { setS(member && reviewer ? { phase: "both", org: org?.name ?? "your organisation" } : { phase: "choose", signedIn: true }); return; }
       if (safe && fits(safe)) { setS({ phase: "routing", to: safe, org: org?.name ?? "your workspace" }); router.replace(safe); return; }
-      /* The new StrayPaw is the default: anyone with a workspace (an NGO, a programme partner, a reviewing office, an
-         NGO's veterinarian) opens it, and it picks the workspace. The classic pages stay one link away. */
-      if (member || reviewer || nws > 0) { setS({ phase: "routing", to: "/next", org: org?.name ?? "your workspace" }); router.replace("/next"); return; }
+      /* Anyone with a workspace (an NGO, a programme partner, a reviewing office, a clinic, an NGO's veterinarian) opens
+         Home, which picks the workspace. */
+      if (member || reviewer || nws > 0) { setS({ phase: "routing", to: "/home", org: org?.name ?? "your workspace" }); router.replace("/home"); return; }
       /* Signed in with no organisation yet: the new Start page lists the ways in. */
-      if (nws === 0) { setS({ phase: "routing", to: "/next/start", org: "StrayPaw" }); router.replace("/next/start"); return; }
+      if (nws === 0) { setS({ phase: "routing", to: "/start", org: "StrayPaw" }); router.replace("/start"); return; }
       setS({ phase: "choose", signedIn: true });
     }).catch(() => { if (live) setS({ phase: "error" }); });
     return () => { live = false; };
@@ -81,8 +81,8 @@ export function Gateway() {
             <h1 className="s3-h2">Which work are you doing now?</h1>
             <p className="s3-lede">Your account belongs to {s.org} and to a reviewing office. Each workspace shows only what that role may see.</p>
             <div className="s3g-grid">
-              <Choice href="/ngo" icon={<Building2 size={18} />} t={`${s.org} operations`} d="Intake, animals, care, release and monthly submissions." primary />
-              <Choice href="/city/insights" icon={<Landmark size={18} />} t="Government oversight" d="Decisions, operators and ward activity for your reviewing office." primary />
+              <Choice href="/ngo/today" icon={<Building2 size={18} />} t={`${s.org} operations`} d="Intake, animals, care, release and monthly submissions." primary />
+              <Choice href="/gov/overview" icon={<Landmark size={18} />} t="Government oversight" d="Decisions, operators and ward activity for your reviewing office." primary />
             </div>
           </>
         ) : (

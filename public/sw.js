@@ -13,7 +13,7 @@
    passed straight through. A queued report must never be answered by a
    cached 200, and no personal data belongs in the cache. */
 
-const VERSION = "straypaw-v3";
+const VERSION = "straypaw-v4";
 const SHELL = `${VERSION}-shell`;
 const PAGES = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline";
@@ -85,7 +85,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (request.mode === "navigate" && ["/", "/offline", "/ngo/field", "/next/ngo/field"].includes(url.pathname)) {
+  if (request.mode === "navigate" && ["/", "/offline", "/ngo/field"].includes(url.pathname)) {
     event.respondWith(
       fetch(request)
         .then((res) => {
