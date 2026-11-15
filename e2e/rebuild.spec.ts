@@ -8,11 +8,14 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem("straypaw.notice.storage.v1", "1"); localStorage.setItem("sp.demo.tour.v1", JSON.stringify({ mode: "off", step: 0, role: null })); });
 });
 
+/* Typing before React has attached would be lost on any server-rendered page; wait for the page to settle first. */
+const open = async (page: import("@playwright/test").Page, path: string) => { await page.goto(path); await page.waitForLoadState("networkidle"); };
+
 const noSideScroll = async (page: import("@playwright/test").Page) =>
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 
 test("Today: finishing a task moves it to Done and updates the count", async ({ page }) => {
-  await page.goto("/next/ngo/today");
+  await open(page, "/next/ngo/today");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Priya");
   await expect(page.locator(".nx-sub")).toContainText("6 things need you");
   await page.getByRole("button", { name: /^Mark done: Injured street dog/ }).click();
@@ -22,7 +25,7 @@ test("Today: finishing a task moves it to Done and updates the count", async ({ 
 });
 
 test("Animals: a view narrows the table and a row opens its record", async ({ page }) => {
-  await page.goto("/next/ngo/animals");
+  await open(page, "/next/ngo/animals");
   await expect(page.locator("button.nx-tr")).toHaveCount(9);
   await page.getByRole("tab", { name: /Identity to review/ }).click();
   await expect(page.locator("button.nx-tr")).toHaveCount(1);
@@ -36,7 +39,7 @@ test("Animals: a view narrows the table and a row opens its record", async ({ pa
 });
 
 test("Insights: choosing a ward narrows the figures and the table together", async ({ page }) => {
-  await page.goto("/next/gov/overview");
+  await open(page, "/next/gov/overview");
   await expect(page.locator("button.nx-tr")).toHaveCount(6);
   await page.locator(".nx-barrow", { hasText: "Ward 08" }).click();
   await expect(page.locator("button.nx-tr")).toHaveCount(1);
@@ -46,7 +49,7 @@ test("Insights: choosing a ward narrows the figures and the table together", asy
 });
 
 test("Channel: Kaju proposes tasks and creates them only when accepted", async ({ page }) => {
-  await page.goto("/next/channels/abc-ward-12");
+  await open(page, "/next/channels/abc-ward-12");
   const work = page.getByRole("tab", { name: /^Work/ });
   await expect(work).toContainText("1");
   await page.getByLabel("Message #abc-ward-12").fill("@Kaju turn these updates into tasks");
@@ -59,7 +62,7 @@ test("Channel: Kaju proposes tasks and creates them only when accepted", async (
 });
 
 test("Kaju: details are recognised before sending, and a run stops for approval", async ({ page }) => {
-  await page.goto("/next/kaju");
+  await open(page, "/next/kaju");
   const ask = page.getByLabel("Ask Kaju");
   await ask.fill("Prepare next week's follow-ups for Ward 12, assign to Field team A, and notify #field-operations");
   await expect(page.locator(".nx-span")).toHaveCount(4);

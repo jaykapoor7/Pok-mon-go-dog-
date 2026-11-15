@@ -62,12 +62,13 @@ export const ANIMALS: Animal[] = [
   { id: "AN-0824", name: "Brown puppy, school gate", species: "Dog", sex: "Male", age: "Under 1 year", ward: "Ward 01", abc: "Not yet", arv: "Due", identity: "Recorded", trust: "Recorded", last: "30 Oct", next: "Vaccination, 18 Nov", cases: 1, mark: "—" },
 ];
 
-export type Entry = { title: string; when: string; by: string; body: string; tone: Tone; chips: [string, Tone][] };
+export type Entry = { period: "Upcoming" | "This week" | "Earlier"; title: string; when: string; by: string; body: string; tone: Tone; chips: [string, Tone][] };
 export const TIMELINE: Entry[] = [
-  { title: "Follow-up observation added", when: "Today, 12:44 pm", by: "Field team A", body: "Seen at the assigned location, eating normally. Photo attached.", tone: "accent", chips: [["Recorded", "plain"], ["Needs veterinary review", "warn"]] },
-  { title: "Anti-rabies vaccination given", when: "12 Nov", by: "Dr. Arun K., veterinarian", body: "Batch reference and administering clinician recorded.", tone: "ok", chips: [["Clinically signed", "ok"], ["Municipal review pending", "accent"]] },
-  { title: "Recovery after sterilisation completed", when: "28 Oct", by: "Veterinary centre", body: "Recovery review and release note linked. Signed certificate attached.", tone: "ok", chips: [["Verified", "ok"]] },
-  { title: "First capture documented", when: "24 Oct", by: "Field team A", body: "Identity, location photo and capture evidence linked to this record.", tone: "plain", chips: [["Recorded", "plain"]] },
+  { period: "Upcoming", title: "Recovery check", when: "Mon 16 Nov", by: "Assigned to Dr. Arun K.", body: "Post-operative check at the veterinary centre.", tone: "plain", chips: [["Scheduled", "plain"]] },
+  { period: "This week", title: "Follow-up observation added", when: "Today, 12:44 pm", by: "Field team A", body: "Seen at the assigned location, eating normally. Photo attached.", tone: "accent", chips: [["Recorded", "plain"], ["Needs veterinary review", "warn"]] },
+  { period: "This week", title: "Anti-rabies vaccination given", when: "12 Nov", by: "Dr. Arun K., veterinarian", body: "Batch reference and administering clinician recorded.", tone: "ok", chips: [["Clinically signed", "ok"], ["Municipal review pending", "accent"]] },
+  { period: "Earlier", title: "Recovery after sterilisation completed", when: "28 Oct", by: "Veterinary centre", body: "Recovery review and release note linked. Signed certificate attached.", tone: "ok", chips: [["Verified", "ok"]] },
+  { period: "Earlier", title: "First capture documented", when: "24 Oct", by: "Field team A", body: "Identity, location photo and capture evidence linked to this record.", tone: "plain", chips: [["Recorded", "plain"]] },
 ];
 export const RELATED = [
   { ref: "CASE-0278", what: "Injury report", state: "Open" }, { ref: "CAM-0108", what: "Ward 12 drive", state: "Active" }, { ref: "VIS-0443", what: "Return visit", state: "Scheduled" },

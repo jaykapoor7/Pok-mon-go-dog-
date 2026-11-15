@@ -33,14 +33,22 @@ export function AnimalBody({ a, drawer }: { a: Animal; drawer?: boolean }) {
 
       <section aria-label="Activity and medical history">
         <h3 className="nx-h3">Activity and medical history</h3>
-        <ol className="nx-tl">
-          {TIMELINE.map((e) => (
-            <li key={e.title}>
-              <span className={`nx-tl-d ${e.tone === "ok" ? "t-ok" : e.tone === "accent" ? "t-accent" : ""}`}>{e.tone === "ok" ? <Tick size={10} strokeWidth={3} /> : null}</span>
-              <div><b>{e.title}</b><small>{e.when} · {e.by}</small><p>{e.body}</p><div className="nx-tl-c">{e.chips.map(([c, t]) => <Chip key={c} tone={t}>{c}</Chip>)}</div></div>
-            </li>
-          ))}
-        </ol>
+        {(["Upcoming", "This week", "Earlier"] as const).map((per) => {
+          const es = TIMELINE.filter((e) => e.period === per);
+          return es.length ? (
+            <div key={per}>
+              <p className={`nx-tl-g ${per === "Upcoming" ? "is-up" : ""}`}>{per}</p>
+              <ol className="nx-tl">
+                {es.map((e) => (
+                  <li key={e.title}>
+                    <span className={`nx-tl-d ${e.tone === "ok" ? "t-ok" : e.tone === "accent" ? "t-accent" : ""}`}>{e.tone === "ok" ? <Tick size={10} strokeWidth={3} /> : null}</span>
+                    <div><b>{e.title}</b><small>{e.when} · {e.by}</small><p>{e.body}</p><div className="nx-tl-c">{e.chips.map(([c, t]) => <Chip key={c} tone={t}>{c}</Chip>)}</div></div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null;
+        })}
         <p className="nx-note"><Info size={13} /><span>A field record, a clinician&apos;s signature and a municipal verification are three separate steps. Each chip says which one it is.</span></p>
       </section>
 

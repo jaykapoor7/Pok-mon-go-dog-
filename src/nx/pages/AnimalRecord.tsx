@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Plus, Share2 } from "lucide-react";
+import { ClipboardPlus, Plus, Share2, Stethoscope } from "lucide-react";
 import { Shell } from "../Shell";
 import { Sample, TrustChip, initials } from "../ui";
 import { ANIMALS } from "../fixtures";
@@ -22,8 +22,8 @@ export function AnimalRecord({ id }: { id: string }) {
         <div className="nx-rec-t">
           <span className="nx-rec-av">{initials(a.species)}</span>
           <div><h1><span className="num">{a.id}</span> · {a.name}<Sample /></h1><p>{a.ward} · Last seen {a.last} <TrustChip trust={a.trust} /></p></div>
-          <div className="nx-rec-acts"><button type="button" className="nx-btn is-quiet"><Share2 size={13} />Share</button><button type="button" className="nx-btn"><Plus size={14} />Add encounter</button></div>
         </div>
+        <div className="nx-rec-acts"><button type="button" className="nx-btn is-sm"><Plus size={13} />Add encounter</button><button type="button" className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />Start a case</button><button type="button" className="nx-btn is-quiet is-sm"><Stethoscope size={13} />Refer to a vet</button><button type="button" className="nx-btn is-quiet is-sm"><Share2 size={13} />Share</button></div>
       </div>
       <div className="nx-tabs" role="tablist" aria-label="Record sections">
         {TABS.map((t) => <button key={t} type="button" role="tab" aria-selected={tab === t} className={`nx-tab ${tab === t ? "is-on" : ""}`} onClick={() => setTab(t)}>{t}{tab === t ? <motion.span layoutId="nx-tab" className="nx-tab-line" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 620, damping: 46 }} /> : null}</button>)}
