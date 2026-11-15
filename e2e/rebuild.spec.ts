@@ -107,6 +107,17 @@ test("Laboratory: the work queue puts the oldest sample first, and results wait 
   await noSideScroll(page);
 });
 
+test("Research: an aggregated dataset where suppressed cells are counted apart, never added in", async ({ page }) => {
+  await open(page, "/next/research/datasets");
+  await expect(page.locator(".nx-sub").first()).toContainText("1 dataset approved for you");
+  await page.getByRole("link", { name: /Explore/ }).last().click();
+  await expect(page).toHaveURL(/\/next\/research\/explore/);
+  await expect(page.locator(".nx-fig").nth(1)).toContainText("Cells suppressed");
+  await page.getByRole("combobox", { name: "area" }).selectOption("HSR Layout");
+  await expect(page.locator(".nx-filter.is-on")).toContainText("HSR Layout");
+  await noSideScroll(page);
+});
+
 test("Insights: choosing a ward narrows the figures and the table together", async ({ page }) => {
   await open(page, "/next/gov/overview");
   await expect(page.locator("button.nx-tr")).toHaveCount(6);
