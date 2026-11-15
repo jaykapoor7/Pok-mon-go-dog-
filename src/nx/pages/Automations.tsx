@@ -9,6 +9,7 @@ import { Confirm, Empty, Field, Modal, Section, Skeleton, dayTime, useAct } from
 import { useLive } from "../live";
 import { getSupabase } from "@/lib/supabase";
 import { ELSEWHERE, ENTRIES, type Entry } from "@/lib/automations/v2";
+import { ReportingRules } from "./ReportingRules";
 
 /* Automations: fixed rules an organisation turns on. Each counts something and tells the right people inside
    StrayPaw, on a schedule the database keeps whether or not anyone has the app open. A lead or coordinator turns them
@@ -73,6 +74,7 @@ export function KajuAutomations() {
               </div>
             </li>); })}</ul>}
         </Section>
+        {org?.workspace === "ngo" ? <ReportingRules org={org} manager={manager} /> : null}
         {org ? <Section title="Recent runs" count={runs.length}>
           {!runs.length ? <Empty title="No runs yet" hint="Runs appear here with what each found and how many people it told." /> : <table className="nx-rtable"><thead><tr><th>When</th><th>Rule</th><th>Result</th><th>Told</th></tr></thead><tbody>{runs.map((r) => <tr key={r.id}><td>{dayTime(r.started_at)}</td><td>{autos?.find((a) => a.id === r.automation_id)?.name ?? "Removed rule"}</td><td><Chip tone={r.status === "succeeded" ? "ok" : r.status === "failed" ? "bad" : "plain"}>{r.status === "succeeded" ? "Told" : r.status === "failed" ? "Failed" : "Nothing found"}</Chip> <span className="nx-t3">{r.error ?? r.summary}</span></td><td className="num">{r.delivered}</td></tr>)}</tbody></table>}
           <p className="nx-foot">The database runs these on schedule. Times are in India Standard Time.</p>

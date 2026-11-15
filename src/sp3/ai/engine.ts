@@ -201,7 +201,7 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
     const done2 = ta.match(/^every (day|week), tell (leads|everyone) about (.+?) when at least (\d+) (?:is|are) waiting\.?$/);
     const pick = AUTO.find(([re, , label]) => (done2 ? done2[3] === label : re.test(ta)));
     if (done2 && pick) {
-      acc.navigate = { href: `/ngo/automations?rule=${pick[1]}&every=${done2[1]}&notify=${done2[2]}&min=${Math.min(1000, Number(done2[4]) || 1)}`, label: "the automation to turn on" };
+      acc.navigate = { href: `/kaju/automations?rule=${pick[1]}&every=${done2[1]}&notify=${done2[2]}&min=${Math.min(1000, Number(done2[4]) || 1)}`, label: "the automation to turn on" };
       return { ...done(`Ready: every ${done2[1]}, ${done2[2]} are told about ${pick[2]} when at least ${done2[4]} ${done2[4] === "1" ? "is" : "are"} waiting. Open it and press **Turn on**. Nothing runs until you do.`), suggestions: undefined };
     }
     acc.blocks = [{ kind: "blanks", parts: ["Every ", { blank: "every" }, ", tell ", { blank: "who" }, " about ", { blank: "what" }, " when at least ", { blank: "min" }, " are waiting."],

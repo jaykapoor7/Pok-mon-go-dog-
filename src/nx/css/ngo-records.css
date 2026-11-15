@@ -241,3 +241,8 @@
 @media (prefers-reduced-motion: reduce) {
   .nx .nf-switch i, .nx .nf-switch i::after, .nx .nr-photos img, .nx .nr-more-d summary::before { transition: none; }
 }
+
+/* Operations › Map: the organisation map in a framed box under the tabs, tall enough to read an area. */
+.nx .nr-map { display: flex; flex-direction: column; height: clamp(420px, calc(100dvh - 260px), 900px); margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.nx .nr-map > .fm, .nx .nr-map > div { flex: 1; min-height: 0; }
+@media (max-width: 720px) { .nx .nr-map { height: calc(100dvh - 240px); margin-inline: -16px; border-radius: 0; border-inline: 0; } }

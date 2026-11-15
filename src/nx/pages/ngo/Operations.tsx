@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { NGO_LENSES } from "@/sp/atlas/lenses";
+import { MapSkeleton } from "@/sp/map/MapSkeleton";
 import { ArrowRight, MapPin, Smartphone } from "lucide-react";
 import { dueFollowups, type DueFollowup } from "@/lib/ops";
 import { getSupabase } from "@/lib/supabase";
@@ -18,10 +21,15 @@ import { RecordList, type RCol, type RView } from "./RecordList";
 
 /* Operations: the field visits due, grouped by day and place so a team can plan a round; the care log (every care event
    in date order beside its animal, and the cases that carry medical work); and the two lines of work, rescues and
-   sterilisation, step by step. Field mode, for the phone on the street, opens from here. */
+   sterilisation, step by step; and the organisation's own map of open work, needs and care by area. Field mode, for the
+   phone on the street, opens from here. */
 
-type Part = "Visits" | "Care log" | "Rescues" | "Sterilisation";
-const PARTS: Part[] = ["Visits", "Care log", "Rescues", "Sterilisation"];
+/* The map is heavy (MapLibre), so it loads only when its tab is opened. It reads with the member's own token
+   (scope=org, never cached), so another organisation's records never reach it. */
+const FieldMap = dynamic(() => import("@/sp/map/FieldMap").then((m) => m.FieldMap), { ssr: false, loading: () => <MapSkeleton label="Reading your organisation's map" /> });
+
+type Part = "Visits" | "Care log" | "Rescues" | "Sterilisation" | "Map";
+const PARTS: Part[] = ["Visits", "Care log", "Rescues", "Sterilisation", "Map"];
 const word = (v: string | null | undefined, none = "—") => (v ? v.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : none);
 
 export function Operations() {
@@ -38,6 +46,7 @@ export function Operations() {
     <Shell crumb={["NGO", "Operations"]}>
       {part === "Visits" ? <Visits ngo={ngo} tabs={tabs} action={field} />
         : part === "Care log" ? <CareLog ngo={ngo} tabs={tabs} action={field} />
+        : part === "Map" ? <OrgMap ngo={ngo} tabs={tabs} action={field} />
         : <LanePage ngo={ngo} tabs={tabs} action={field} which={part === "Rescues" ? "rescue" : "abc"} />}
     </Shell>
   );
@@ -165,6 +174,18 @@ const ABC: Step[] = [
   { id: "evidence", title: "Evidence", says: "Release photo or place", none: "Every record has what it needs.", all: "Open submissions", href: "/next/ngo/submissions" },
   { id: "report", title: "Ready to send", says: "Goes into this month's report", none: "Nothing is waiting to be sent.", all: "Open submissions", href: "/next/ngo/submissions" },
 ];
+function OrgMap({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.ReactNode; action: React.ReactNode }) {
+  return (
+    <div className="nx-page" style={{ maxWidth: "none" }}>
+      <div className="nx-head"><div><h1 className="nx-h1">Operations{ngo ? null : <Sample />}</h1><p className="nx-sub">Your organisation&apos;s open work, needs and care, by area. Only your organisation&apos;s records are on it.</p></div>{action}</div>
+      {tabs}
+      {ngo
+        ? <div className="nr-map"><Suspense fallback={<MapSkeleton label="Reading your organisation's map" />}><FieldMap variant="ngo" scope="org" lenses={NGO_LENSES} defaultLens="help" embedded /></Suspense></div>
+        : <p className="nx-sub" style={{ marginTop: 18 }}>Sign in as a member of an NGO to see your organisation&apos;s map. The public map of every city is on <Link href="/explore" className="nr-link">Explore</Link>.</p>}
+    </div>
+  );
+}
+
 function LanePage({ ngo, tabs, action, which }: { ngo: Workspace | null; tabs: React.ReactNode; action: React.ReactNode; which: "rescue" | "abc" }) {
   const [lanes, setLanes] = useState<Lanes | null>(null);
   useEffect(() => { if (!ngo) return; let live = true; void readLanes(ngo.org_id).then((l) => { if (live) setLanes(l); }); return () => { live = false; }; }, [ngo]);

@@ -57,8 +57,8 @@ export async function weeklyDigest({ db, orgId }: Ctx): Promise<Out> {
   const failed = [opened, closed, care, signs, pk, queue, overdue].filter((r) => r.error).length;
   if (failed === 7) return FAILED;
   const citations: Citation[] = [
-    { id: "work", label: "Work queue", href: "/ngo/work", kind: "page" },
-    { id: "abc", label: "ABC queue", href: "/ngo/verification", kind: "page" },
+    { id: "work", label: "Work queue", href: "/ngo/cases", kind: "page" },
+    { id: "abc", label: "ABC queue", href: "/ngo/submissions?tab=evidence", kind: "page" },
   ];
   return { data: { since, ...lines, partial: failed > 0 }, summary: `Last 7 days${failed ? ` · ${failed} source${failed === 1 ? "" : "s"} unreadable` : ""}`, citations };
 }
@@ -85,7 +85,7 @@ export async function overdueFollowups({ db, orgId }: Ctx): Promise<Out> {
     id: pid(), why: `Overdue by ${i.daysLate} day${i.daysLate === 1 ? "" : "s"}${i.holder ? ` · held by ${i.holder}` : ""}`, kind: "schedule_followup" as const, caseId: i.case_id!, caseLabel: i.label, dogId: i.dog_id, dueAt: due,
     note: `${(i.kind ?? "Follow-up").replace(/_/g, " ")} was due ${new Date(i.due_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} and not recorded. Rescheduled.`,
   }));
-  const citations: Citation[] = groups.flatMap((g) => g.items).slice(0, 8).map((i) => ({ id: i.id, label: `${i.label} · ${i.daysLate}d late`, href: i.case_id ? `/ngo/cases/${i.case_id}` : i.dog_id ? `/ngo/animals/${i.dog_id}` : "/ngo/work", kind: i.case_id ? "case" as const : "animal" as const }));
+  const citations: Citation[] = groups.flatMap((g) => g.items).slice(0, 8).map((i) => ({ id: i.id, label: `${i.label} · ${i.daysLate}d late`, href: i.case_id ? `/ngo/cases/${i.case_id}` : i.dog_id ? `/ngo/animals/${i.dog_id}` : "/ngo/cases", kind: i.case_id ? "case" as const : "animal" as const }));
   return { data: { total: items.length, groups: groups.map((g) => ({ holder: g.holder, count: g.items.length, oldest: g.items[0]?.daysLate ?? 0 })), reschedule_to: due, limit: 200 }, summary: `${items.length} overdue follow-up${items.length === 1 ? "" : "s"}`, citations, proposals };
 }
 
@@ -112,7 +112,7 @@ export async function claimDraft({ db, orgId }: Ctx): Promise<Out> {
     const why = s === "evidence" ? `missing ${r.missing.map((k) => EVIDENCE_LABEL[k].toLowerCase()).join(", ")}` : s === "vet" ? "waiting for a vet" : s === "review" ? "waiting for coordinator review" : `returned: ${r.returned_note ?? "see note"}`;
     return { case_id: r.case_id, code: shortCode(r.case_code), why };
   });
-  const citations: Citation[] = [{ id: "packages", label: "Monthly claim", href: "/ngo/packages", kind: "page" }, ...blocked.map((x) => ({ id: x.case_id, label: `${x.code} · ${x.why}`, href: `/ngo/verification/${x.case_id}`, kind: "case" as const }))];
+  const citations: Citation[] = [{ id: "packages", label: "Monthly claim", href: "/ngo/submissions", kind: "page" }, ...blocked.map((x) => ({ id: x.case_id, label: `${x.code} · ${x.why}`, href: `/ngo/cases/${x.case_id}?tab=abc`, kind: "case" as const }))];
   return {
     data: { month: b.label, ready, contract: contracts.error ? "unknown" : offices.length === 1 ? "one office" : offices.length ? "several offices" : "none", blocked_by: plan.blockedBy, blocked_records: blocked, partial: plan.partial },
     summary: `${b.label}: ${ready ? `${ready.count} claimable` : "claimable amount unknown"} · ${plan.blockedBy.reduce((t, x) => t + x.count, 0)} blocked`, citations,
@@ -143,7 +143,7 @@ export async function officeBrief({ db }: Ctx): Promise<Out> {
   }));
   const month = monthBounds(new Date());
   const decidedThisMonth = rows.filter((r) => isDecided(r.status) && r.decided_at && r.decided_at.slice(0, 10) >= month.start).length;
-  const citations: Citation[] = checked.map((p) => ({ id: p.id, label: p.title, href: `/city/review/${p.id}`, kind: "page" as const }));
+  const citations: Citation[] = checked.map((p) => ({ id: p.id, label: p.title, href: `/gov/verification/${p.id}`, kind: "page" as const }));
   return {
     data: { offices: offices.map((o) => o.name), waiting: waiting.length, checked, decided_this_month: decidedThisMonth, with_operator: rows.filter((r) => r.status === "queried" || r.status === "returned").length },
     summary: `${waiting.length} package${waiting.length === 1 ? "" : "s"} waiting · ${checked.reduce((t, p) => t + (p.exceptions ?? 0), 0)} exceptions found`, citations,
