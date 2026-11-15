@@ -600,3 +600,5 @@ button.nx-item { width: calc(100% - 0px); text-align: left; }
 .nx-modal { position: fixed; inset: 0; z-index: 60; background: rgba(15, 20, 30, .32); display: grid; place-items: center; padding: 16px; }
 .nx-modal-b { width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--bg); border-radius: 12px; box-shadow: var(--shadow); padding: 18px; }
 .nx-rel .nx-rel-i { display: flex; align-items: center; gap: 8px; height: 30px; color: var(--ink-2); } .nx-rel .nx-rel-i small { margin-left: auto; color: var(--ink-3); font-size: 11px; }
+.nx-classic { margin: 2px 8px 4px; color: var(--ink-3); font-size: 12px; } .nx-classic:hover { color: var(--ink); }
+.nx-start { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-top: 22px; }

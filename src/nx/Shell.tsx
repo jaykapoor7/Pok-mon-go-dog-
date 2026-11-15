@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ChevronsUpDown, Hash, Home, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CH_PEOPLE, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
-import { GOV, HEALTH, KAJU, LAB, NGO, RESEARCH, VET, VET_PATHS, WS_LABEL, homeOf } from "./nav";
+import { GOV, HEALTH, KAJU, LAB, NGO, RESEARCH, VET, VET_PATHS, WS_LABEL, classicOf, homeOf } from "./nav";
 import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { createChannel, openDm, useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
@@ -97,7 +97,8 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
             {DMS.map((d) => { const href = `/next/channels/${dmSlug(d.name)}`; return <Link key={d.name} href={href} className={`nx-item ${path === href ? "is-on" : ""}`} aria-current={path === href ? "page" : undefined}><span className={`nx-dot ${d.here ? "" : "is-away"}`} /><span>{d.name}</span></Link>; })}
           </>}
         </div>
-        {live.org ? <Link href="/next/kaju" className="nx-side-f"><Sparkles size={13} /><span><b>Kaju</b> works inside {org.name}</span></Link> : live.ready && !live.signedIn ? <Link href="/sign-in?next=/next/ngo/today" className="nx-side-f"><Sparkles size={13} /><span>Sample data. <b>Sign in</b> to open your workspace</span></Link> : <Link href="/next/kaju" className="nx-side-f"><Sparkles size={13} /><span><b>Kaju</b> has 2 things for you to approve</span></Link>}
+        {cur ? <Link href={classicOf(cur.workspace, cur.org_id, cur.kind, cur.source)} className="nx-item nx-classic" title="The previous version of StrayPaw, kept while the new one settles in"><span>Classic view</span></Link> : null}
+        {live.org ? <Link href="/next/kaju" className="nx-side-f"><Sparkles size={13} /><span><b>Kaju</b> works inside {org.name}</span></Link> : live.ready && !live.signedIn ? <Link href="/sign-in?next=/next" className="nx-side-f"><Sparkles size={13} /><span>Sample data. <b>Sign in</b> to open your workspace</span></Link> : live.ready && live.signedIn ? <Link href="/next/start" className="nx-side-f"><Sparkles size={13} /><span>Sample data. <b>Join or start</b> an organisation to see your own</span></Link> : <Link href="/next/kaju" className="nx-side-f"><Sparkles size={13} /><span><b>Kaju</b> has 2 things for you to approve</span></Link>}
       </aside>
 
       <div className="nx-main">

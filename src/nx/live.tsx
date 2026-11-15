@@ -203,7 +203,7 @@ export function useVocab(orgId: string | null) {
     let alive = true;
     Promise.all([
       db.from("cases").select("zone,assignee_name").eq("ngo_id", orgId).is("resolved_at", null).limit(500),
-      db.from("nx_channels").select("name").eq("org_id", orgId).limit(100),
+      db.from("nx_channels").select("name").eq("org_id", orgId).neq("kind", "dm").limit(100),
     ]).then(([c, ch]) => {
       if (!alive) return;
       const rows = (c.data ?? []) as { zone: string | null; assignee_name: string | null }[];
