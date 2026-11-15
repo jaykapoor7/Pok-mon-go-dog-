@@ -10,6 +10,8 @@ import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
 import { OfflineBar, ToastHost } from "./kit";
+import { KajuProvider, useKaju } from "./kaju/state";
+import { KajuDock } from "./kaju/Dock";
 import { createChannel, openDm, useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
 import "./nx.css";
 
@@ -27,7 +29,7 @@ export const wsOf = (path: string): Ws => (/^\/next\/gov/.test(path) ? "gov" : /
 /** The frame is mounted once, in the layout, and stays while pages change. A page tells it where it is with Shell. */
 export function Frame({ children }: { children: ReactNode }) {
   const [meta, setMeta] = useState<Meta>({ crumb: [""] });
-  return <MetaCtx.Provider value={setMeta}><FrameBody meta={meta}>{children}</FrameBody></MetaCtx.Provider>;
+  return <MetaCtx.Provider value={setMeta}><KajuProvider><FrameBody meta={meta}>{children}</FrameBody></KajuProvider></MetaCtx.Provider>;
 }
 
 /** A page's place in the frame: its breadcrumb, workspace and whether it runs edge to edge. */
@@ -36,7 +38,7 @@ export function Shell({ crumb, children, ws, flush }: { crumb: [string, string?]
   const key = `${crumb[0]}\u0000${crumb[1] ?? ""}\u0000${ws ?? ""}\u0000${flush ? 1 : 0}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useIsoLayout(() => { set?.({ crumb, ws, flush }); }, [key, set]);
-  if (!set) return <MetaCtx.Provider value={() => {}}><FrameBody meta={{ crumb, ws, flush }}>{children}</FrameBody></MetaCtx.Provider>;
+  if (!set) return <MetaCtx.Provider value={() => {}}><KajuProvider><FrameBody meta={{ crumb, ws, flush }}>{children}</FrameBody></KajuProvider></MetaCtx.Provider>;
   return <>{children}</>;
 }
 
@@ -51,6 +53,14 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const live = useLive();
   const router = useRouter();
   const [cmd, setCmd] = useState(false);
+  const kaju = useKaju();
+  const { setPage, setOpen: setKaju } = kaju;
+  useEffect(() => { setPage({ path, title: crumb[1] ?? crumb[0] }); }, [path, crumb, setPage]);
+  /* ⌘J or Ctrl J opens compact Kaju anywhere except on Kaju's own pages. */
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if ((e.key === "j" || e.key === "J") && (e.metaKey || e.ctrlKey)) { e.preventDefault(); if (!path.startsWith("/next/kaju")) setKaju(!kaju.open); } };
+    window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
+  }, [path, setKaju, kaju.open]);
   /* ⌘K or Ctrl K anywhere; "/" when not typing in a field. */
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
@@ -135,7 +145,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
             <button type="button" className="nx-ib nx-only-s" aria-label="Search" onClick={() => setCmd(true)}><Search size={18} /></button>
             <NeedsYou />
             <button type="button" className="nx-ib nx-only-s" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} onClick={flip}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
-            <Link href="/next/kaju" className="nx-kaju nx-hide-s"><Sparkles size={14} /><span>Kaju</span></Link>
+            {path.startsWith("/next/kaju") ? null : <button type="button" className="nx-kaju nx-hide-s" aria-expanded={kaju.open} aria-keyshortcuts="Meta+J Control+J" title="Kaju (⌘J)" onClick={() => setKaju(!kaju.open)}><Sparkles size={14} /><span>Kaju</span></button>}
           </div>
         </header>
         <WorkTabs path={path} title={crumb[1]} home={home} />
@@ -145,6 +155,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
 
       <Command open={cmd} onClose={() => setCmd(false)} />
       <ToastHost />
+      {path.startsWith("/next/kaju") ? null : <KajuDock crumb={crumb[1] ?? crumb[0]} />}
       <nav className="nx-dock" aria-label="Sections">
         <Link href={home} className={on(home) ? "is-on" : ""}><Home size={20} />Today</Link>
         <Link href="/next/ngo/animals" className={on("/next/ngo/animals") ? "is-on" : ""}><ListChecks size={20} />Work</Link>
