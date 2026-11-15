@@ -7,13 +7,14 @@ import { ArrowRight, Camera, Clock, Plus, Sparkles } from "lucide-react";
 import { Shell } from "../Shell";
 import { Check, Chip, Sample } from "../ui";
 import { FIGS, ME, ORG, PREPARED, TEAM, VISITS, WORK, type Work } from "../fixtures";
+import { addTasks, setTaskDone, useLive, useNgoCounts, useTasks, type Task } from "../live";
 
 const COLS = "22px minmax(0, 1fr) 132px 104px 138px 64px";
 const GROUPS: Work["group"][] = ["Now", "Today", "This week"];
 
 function greeting() { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; }
 
-export function Today() {
+function SampleToday() {
   const [done, setDone] = useState<Set<string>>(new Set());
   const calm = useReducedMotion();
   const toggle = (id: string) => setDone((d) => { const n = new Set(d); if (n.has(id)) n.delete(id); else n.add(id); return n; });
@@ -94,4 +95,75 @@ export function Today() {
       </div>
     </Shell>
   );
+}
+
+/** Today for a signed-in organisation: its real tasks, and counts the database returns. */
+function LiveToday() {
+  const { org, userId, userName } = useLive();
+  const tasks = useTasks(org!.org_id);
+  const counts = useNgoCounts(org!.workspace === "ngo" ? org!.org_id : null);
+  const [title, setTitle] = useState("");
+  const [note, setNote] = useState<string | null>(null);
+  const calm = useReducedMotion();
+  const spring = calm ? { duration: 0 } : { type: "spring" as const, stiffness: 520, damping: 42, mass: .7 };
+  const date = useMemo(() => new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }), []);
+  const rows = tasks.rows ?? [], open = rows.filter((t) => t.state === "open"), closed = rows.filter((t) => t.state === "done");
+  const today = new Date().toISOString().slice(0, 10), overdue = open.filter((t) => t.due_on && t.due_on < today).length;
+  const { setRows } = tasks;
+  const toggle = async (t: Task) => {
+    const done = t.state !== "done";
+    setRows((r) => r?.map((x) => (x.id === t.id ? { ...x, state: done ? "done" : "open" } : x)) ?? r);
+    const r = await setTaskDone(t.id, done, userId);
+    if (r.error) { setNote(`Not saved: ${r.error.message}`); tasks.reload(); }
+  };
+  const add = async () => { const t = title.trim(); if (!t) return; setNote(null); const r = await addTasks(org!.org_id, [t]); if (r.error) setNote(`Not added: ${r.error.message}`); else { setTitle(""); tasks.reload(); } };
+  const fig = (n: number | null, label: string, href?: string) => { const inner = <><b>{n === null ? "—" : n.toLocaleString("en-IN")}</b><span>{label}{href ? <ArrowRight size={12} /> : null}</span></>; return href ? <Link key={label} href={href} className="nx-fig">{inner}</Link> : <div key={label} className="nx-fig">{inner}</div>; };
+  const row = (t: Task) => (
+    <motion.li key={t.id} layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={spring}>
+      <div className={`nx-tr is-work ${t.state === "done" ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: "22px minmax(0, 1fr) 150px 120px 90px" }}>
+        <Check done={t.state === "done"} onClick={() => void toggle(t)} label={t.state === "done" ? `Reopen: ${t.title}` : `Mark done: ${t.title}`} />
+        <span className="nx-cell-main"><span><b>{t.title}</b><small>{t.source_kind === "kaju" ? "Proposed by Kaju, accepted by a person" : t.source_kind === "manual" ? "Added by hand" : t.source_kind}{t.record_label ? ` · ${t.record_label}` : ""}</small></span></span>
+        <span className="nx-t2 nx-hide-s">{t.assignee_name ?? "Unassigned"}</span>
+        <span className="nx-t3 nx-hide-s">{t.due_on ? new Date(t.due_on).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "No date"}</span>
+        <span>{t.state === "done" ? <Chip tone="ok">Done</Chip> : t.due_on && t.due_on < today ? <Chip tone="bad">Overdue</Chip> : <Chip>Open</Chip>}</span>
+      </div>
+    </motion.li>
+  );
+  return (
+    <Shell crumb={["Today"]}>
+      <div className="nx-page">
+        <div className="nx-head"><div><p className="nx-eyebrow">{date} · {org!.name}</p><h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1><p className="nx-sub">{tasks.rows === null ? "Reading your work…" : <><b className="num">{open.length}</b> open {open.length === 1 ? "task" : "tasks"}{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}.</>}</p></div></div>
+        <div className="nx-figs">
+          {fig(tasks.rows === null ? null : open.length, "Open tasks")}
+          {fig(tasks.rows === null ? null : closed.length, "Done")}
+          {org!.workspace === "ngo" ? fig(counts.animals, "Animals on the register", "/next/ngo/animals") : null}
+          {org!.workspace === "ngo" ? fig(counts.openCases, "Open cases") : null}
+        </div>
+        <div className="nx-cols">
+          <div>
+            <section className="nx-sec" aria-labelledby="t-work">
+              <div className="nx-sec-h"><h2 id="t-work">Work</h2><span className="nx-count">{open.length}</span></div>
+              <form className="nx-add" onSubmit={(e) => { e.preventDefault(); void add(); }}><Plus size={14} /><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Add a task and press Enter" aria-label="Add a task" maxLength={240} /></form>
+              {note ? <p className="nx-foot" role="alert">{note}</p> : null}
+              {tasks.error ? <p className="nx-foot" role="alert">Tasks could not be read: {tasks.error}</p> : null}
+              <LayoutGroup>
+                <ul className="nx-table"><AnimatePresence initial={false} mode="popLayout">{open.map(row)}</AnimatePresence></ul>
+                {closed.length ? <><motion.div layout="position" transition={spring} className="nx-tr nx-th" style={{ gridTemplateColumns: "1fr", minHeight: 28 }}><span>Done <span className="nx-count">{closed.length}</span></span></motion.div><ul className="nx-table"><AnimatePresence initial={false} mode="popLayout">{closed.map(row)}</AnimatePresence></ul></> : null}
+              </LayoutGroup>
+              {tasks.rows && !rows.length ? <p className="nx-sub" style={{ padding: "20px 0" }}><b style={{ color: "var(--ink)" }}>No tasks yet.</b> Add one above, or ask @Kaju in a channel to turn updates into tasks.</p> : null}
+            </section>
+          </div>
+          <aside>
+            <section className="nx-sec" aria-labelledby="t-kaju"><div className="nx-sec-h"><h2 id="t-kaju">Kaju prepared</h2></div><p className="nx-foot" style={{ marginTop: 4 }}>Nothing is waiting for your approval. Kaju prepares work when you ask it in a channel.</p></section>
+          </aside>
+        </div>
+      </div>
+    </Shell>
+  );
+}
+
+export function Today() {
+  const live = useLive();
+  if (!live.ready) return <Shell crumb={["Today"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
+  return live.org ? <LiveToday /> : <SampleToday />;
 }
