@@ -78,7 +78,8 @@ function SubmissionsView({ rows, sample, loading, note }: { rows: Row[]; sample:
 }
 
 function LiveSubmissions() {
-  const { org } = useLive();
+  const live = useLive();
+  const org = live.orgFor("ngo") ?? live.org;
   const isNgo = org!.workspace === "ngo";
   const [state, setState] = useState<{ rows: Row[] | null; note: string | null }>({ rows: null, note: null });
   useEffect(() => {

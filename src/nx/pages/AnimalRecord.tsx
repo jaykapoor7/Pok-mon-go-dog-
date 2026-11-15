@@ -45,7 +45,8 @@ const when = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "
 
 /** The record of one real animal: what the register holds, what was logged against it, and its cases. */
 function LiveRecord({ id }: { id: string }) {
-  const { org } = useLive();
+  const live = useLive();
+  const org = live.orgFor("ngo") ?? live.org;
   const a = useAnimal(org!.workspace === "ngo" ? org!.org_id : null, id);
   const [tab, setTab] = useState("Summary");
   const calm = useReducedMotion();
