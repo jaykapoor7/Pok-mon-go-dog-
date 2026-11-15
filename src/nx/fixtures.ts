@@ -111,7 +111,7 @@ export const CH_PEOPLE = ["Priya M.", "Nisha R.", "Dr. Arun K.", "Field team A"]
 
 /* ── Kaju ────────────────────────────────────────────────────────── */
 export type Step = { text: string; state: "done" | "run" | "wait" | "todo" };
-export type Mission = { id: string; title: string; meta: string; state: string; tone: Tone; steps: Step[]; act?: string };
+export type Mission = { id: string; title: string; meta: string; state: string; tone: Tone; steps: Step[]; act?: string; preview?: string[] };
 export const MISSIONS: Mission[] = [
   { id: "ms1", title: "Prepare the weekly ABC submission", meta: "Started 2:12 pm · Kind Hour", state: "Waiting for your approval", tone: "warn", act: "Review and approve", steps: [
     { text: "Collected 48 linked procedure records", state: "done" }, { text: "Checked photos, dates and certificates", state: "done" }, { text: "Prepared 5 follow-ups for missing evidence", state: "done" }, { text: "Send the packet to the municipal office", state: "wait" }] },
