@@ -2,13 +2,14 @@
   "name": "straypaw-delhi",
   "version": "1.0.0",
   "private": true,
-  "description": "StrayPaw Delhi \u2014 a community-powered map for discovering and caring for Delhi's street dogs.",
+  "description": "StrayPaw Delhi — a community-powered map for discovering and caring for Delhi's street dogs.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.mjs,.ts,.tsx --ignore-pattern node_modules --ignore-pattern .next",
     "typecheck": "tsc --noEmit",
+    "test:db": "node scripts/db-tests/run.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "demo:record": "tsx scripts/record-demo.ts",
@@ -99,6 +100,7 @@
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17",
     "@playwright/test": "^1.63.0",
     "@types/canvas-confetti": "^1.6.4",
     "@types/d3-contour": "^3.0.6",

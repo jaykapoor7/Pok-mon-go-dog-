@@ -44,6 +44,8 @@ jobs:
             next-${{ hashFiles('package-lock.json') }}-
             next-
       - run: npm run typecheck
+      - name: Database behaviour and permission tests (local Postgres, no network)
+        run: npm run test:db
       - run: npm run build
       - name: Import and case regression tests
         run: |
