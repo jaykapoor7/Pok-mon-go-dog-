@@ -186,7 +186,7 @@ begin
   if (select count(*) from nx_join_requests where user_id = auth.uid() and created_at > now() - interval '1 day') >= 5 then raise exception 'You sent several requests today. Try again tomorrow.' using errcode = 'P0001'; end if;
   insert into nx_join_requests (org_id, org_kind, display_name, note) values (p_org, k, nullif(left(btrim(coalesce(p_name, '')), 80), ''), nullif(left(btrim(coalesce(p_note, '')), 500), '')) returning id into v;
   insert into nx_notifications (user_id, org_id, kind, title, href)
-  select m, p_org, 'approval', left(coalesce(nullif(btrim(p_name), ''), 'Someone') || ' asked to join', 200), case when k = 'ngo' then '/ngo/team' else '/start' end
+  select m, p_org, 'approval', left(coalesce(nullif(btrim(p_name), ''), 'Someone') || ' asked to join', 200), '/requests'
     from nx_org_members(p_org, array['admin', 'lead', 'coordinator']) m;
   return v;
 end $$;
