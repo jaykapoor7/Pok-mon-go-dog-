@@ -3,6 +3,7 @@ import webpush from "web-push";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { SITE_URL } from "@/lib/site-url";
 import { attempt, type Delivery, type Senders } from "@/lib/notify/deliver";
+import { sendSms } from "@/lib/connections/sms";
 
 /* The delivery worker for notifications outside StrayPaw (email, browser push). Runs on the deployment's schedule with
    the cron secret. Every attempt is recorded on nx_deliveries; nothing is sent through a provider that is not set up. */
@@ -48,6 +49,20 @@ export async function GET(req: Request) {
     await db.from("nx_deliveries").update({ status: out.status, attempts: row.attempts + (out.status === "held_quiet" || out.status === "not_connected" ? 0 : 1), next_attempt_at: out.next_attempt_at ?? now.toISOString(), last_error: out.last_error ?? null, provider_ref: out.provider_ref ?? null, updated_at: now.toISOString() }).eq("id", row.id);
     if (out.status === "sent") sent++; else if (out.status === "held_quiet") held++; else if (out.status === "not_connected") notConnected++; else if (out.status === "failed") failed++;
   }
-  console.info("notifications delivery", JSON.stringify({ due: due.data?.length ?? 0, sent, held, failed, not_connected: notConnected }));
-  return NextResponse.json({ due: due.data?.length ?? 0, sent, held, failed, not_connected: notConnected }, { headers: { "Cache-Control": "no-store" } });
+  /* Consented PEP reminders from the clinicians' schedules, through the organisation's approved SMS template. */
+  const pep = { due: 0, sent: 0, not_connected: 0, failed: 0 };
+  const smsReady = !!process.env.MSG91_AUTH_KEY?.trim() && !!process.env.MSG91_PEP_TEMPLATE_ID?.trim();
+  const rem = await db.rpc("nx_pep_outbox_due", { p_limit: 50 });
+  for (const r of (rem.error ? [] : rem.data ?? []) as { id: string; channel: string; phone: string; vars: string[]; attempts: number }[]) {
+    if (Date.now() - started > 50_000) break;
+    pep.due++;
+    if (r.channel !== "sms" || !smsReady) { await db.rpc("nx_pep_outbox_mark", { p_id: r.id, p_status: "not_connected", p_error: r.channel === "sms" ? "No approved SMS reminder template is configured." : "WhatsApp is not connected." }); pep.not_connected++; continue; }
+    try {
+      const prev = process.env.MSG91_TEMPLATE_ID; process.env.MSG91_TEMPLATE_ID = process.env.MSG91_PEP_TEMPLATE_ID;
+      const out = await sendSms([r.phone], Array.isArray(r.vars) ? r.vars.map(String) : []).finally(() => { process.env.MSG91_TEMPLATE_ID = prev; });
+      await db.rpc("nx_pep_outbox_mark", { p_id: r.id, p_status: "sent", p_ref: out.id }); pep.sent++;
+    } catch (e) { await db.rpc("nx_pep_outbox_mark", { p_id: r.id, p_status: r.attempts + 1 >= 5 ? "failed" : "retry", p_error: e instanceof Error ? e.message : "SMS failed" }); pep.failed++; }
+  }
+  console.info("notifications delivery", JSON.stringify({ due: due.data?.length ?? 0, sent, held, failed, not_connected: notConnected, pep }));
+  return NextResponse.json({ due: due.data?.length ?? 0, sent, held, failed, not_connected: notConnected, pep }, { headers: { "Cache-Control": "no-store" } });
 }

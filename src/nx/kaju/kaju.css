@@ -114,3 +114,7 @@
 .nx-dreq-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .nx-q { font-size: 11px; color: var(--ink-2); word-break: break-all; display: block; max-width: 520px; }
 .nx-chk-inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); margin-right: 12px; min-height: 32px; }
+.nx-autos { list-style: none; margin: 8px 0 0; padding: 0; display: grid; }
+.nx-autos > li { padding: 14px 0; border-bottom: 1px solid var(--line); display: grid; gap: 5px; }
+.nx-autos > li.is-on { box-shadow: inset 3px 0 0 var(--ok); padding-left: 12px; }
+.nx-autos-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

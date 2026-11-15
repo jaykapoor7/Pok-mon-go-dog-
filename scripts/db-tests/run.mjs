@@ -16,7 +16,7 @@ const MIGRATIONS = [
   "20261111100000_one_health_v2_4_network_alerts.sql", "20261111120000_one_health_v2_5_record_audit_fix.sql", "20261112140000_one_health_v2_6_referrals_revaccination_logos.sql",
   "20261115100000_rebuild_foundations.sql", "20261115110000_rebuild_kaju_in_channel.sql", "20261115120000_rebuild_kaju_missions.sql", "20261115130000_rebuild_people_studies_vet.sql",
   "20261116100000_rebuild_collaboration.sql", "20261116110000_rebuild_kaju_engine.sql", "20261116120000_rebuild_research_access.sql",
-  "20261116130000_rebuild_saved_views.sql",
+  "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
 ];
 
 const db = new PGlite();
@@ -229,6 +229,38 @@ section("Saved views and pins");
 await as(A, "insert into nx_saved_views (org_id, kind, page, name, state) values ($1, 'view', '/ngo/cases', 'Ward 12 critical', '{\"view\":\"critical\",\"q\":\"ward 12\"}')", [N1]);
 ok((await as(B, "select id from nx_saved_views")).length === 0, "nobody sees another person's saved views");
 ok(await refused(C, "insert into nx_saved_views (org_id, kind, page, name) values ($1, 'pin', '/ngo/cases/x', 'x')", [N1]) !== null, "a view cannot be saved against an organisation one is not in");
+
+section("Automations for every workspace");
+ok(await refused(B, "select nx_automation_save($1, 'overdue_tasks', 'Overdue tasks')", [N1]) !== null, "a member cannot turn automations on");
+await db.query("insert into nx_tasks (org_id, title, created_by, assignee_id, due_on) values ($1, 'Late visit', $2, $3, current_date - 5)", [N1, A, B]);
+const au = (await as(A, "select nx_automation_save($1, 'overdue_tasks', 'Overdue tasks', 'day', '{\"days\":2}') as id", [N1]))[0].id;
+const r1 = (await as(A, "select nx_automation_run($1, false) as r", [au]))[0].r;
+ok(r1.status === "succeeded" && r1.found >= 1, "overdue tasks are found");
+ok((await as(B, "select id from nx_notifications where kind = 'reminder' and title like '%of your tasks%'")).length === 1, "the assignee is reminded about their own task");
+ok((await as(A, "select nx_automation_run($1, false) as r", [au]))[0].r.status === "skipped", "the same day is never delivered twice");
+ok((await as(C, "select id from nx_automation_runs")).length === 0, "another organisation cannot see the runs");
+// A clinic with a prescribed course: doses due, one missed, reminders only for the consenting patient.
+const clinic = (await one("insert into oh_organisations (kind, name, short_name) values ('clinic', 'Ward 12 Health Centre', 'W12 HC') returning id")).id;
+const nurse = uuid(); await db.query("insert into auth.users (id) values ($1)", [nurse]);
+await db.query("insert into oh_members (organisation_id, user_id, role) values ($1, $2, 'lead'), ($1, $3, 'nurse')", [clinic, P, nurse]);
+const ex1 = (await one("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, 'B-1', current_date - 3, current_date - 3, 'bite', true, '+91 98450 00001') returning id", [clinic])).id;
+const ex2 = (await one("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, 'B-2', current_date - 3, current_date - 3, 'bite', false, null) returning id", [clinic])).id;
+for (const [ex, d] of [[ex1, 0], [ex2, 0], [ex2, -2]]) {
+  const course = (await one("insert into health.pep_courses (exposure_id, regimen, prescribed_by) values ($1, 'Essen 4-dose IM', $2) on conflict (exposure_id) do update set regimen = excluded.regimen returning id", [ex, P])).id;
+  await db.query("insert into health.pep_doses (course_id, dose_no, due_on) values ($1, (select coalesce(max(dose_no), 0) + 1 from health.pep_doses where course_id = $1), current_date + $2::int)", [course, d]);
+}
+const due = (await as(P, "select nx_automation_save($1, 'pep_doses_due', 'PEP doses due', 'day', '{}', 'clinical') as id", [clinic]))[0].id;
+ok((await as(P, "select nx_automation_run($1, false) as r", [due]))[0].r.found === 2, "doses due today are counted from the clinician's schedule");
+ok((await as(nurse, "select body from nx_notifications where title = 'PEP doses due'"))[0]?.body.includes("as prescribed"), "the nurse is told, with a count and no patient details");
+const missed = (await as(P, "select nx_automation_save($1, 'pep_missed', 'Missed PEP doses', 'day', '{}', 'clinical') as id", [clinic]))[0].id;
+ok((await as(P, "select nx_automation_run($1, false) as r", [missed]))[0].r.found === 1, "a missed dose is flagged for the clinical team");
+const rem = (await as(P, "select nx_automation_save($1, 'pep_reminders', 'PEP reminders', 'day', '{}', 'clinical') as id", [clinic]))[0].id;
+ok((await as(P, "select nx_automation_run($1, false) as r", [rem]))[0].r.found === 1, "a reminder is queued only for the patient who consented");
+const log = await as(nurse, "select phone_masked, status from nx_pep_reminders($1)", [clinic]);
+ok(log.length === 1 && log[0].phone_masked.startsWith("••••") && log[0].status === "queued", "staff see the reminder with the number masked");
+ok((await as(A, "select id from nx_pep_reminders($1)", [clinic])).length === 0, "nobody outside the clinic sees it");
+ok(await refused(nurse, "select * from health.reminder_outbox") !== null, "the reminder queue itself is not readable through the API");
+ok((await as(P, "select nx_automation_run($1, true) as r", [rem]))[0].r.found === 0, "running it again the same day queues nothing new");
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
