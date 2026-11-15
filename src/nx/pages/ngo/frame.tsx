@@ -67,16 +67,19 @@ export type GCol<R> = { label: string; width: string; render: (r: R) => ReactNod
 export function Grid<R>({ label, cols, rows, rowKey, rowLabel, onOpen, href, openKey, empty }: { label: string; cols: GCol<R>[]; rows: R[]; rowKey: (r: R) => string; rowLabel?: (r: R) => string; onOpen?: (r: R) => void; href?: (r: R) => string | null; openKey?: string | null; empty?: ReactNode }) {
   const tpl = cols.map((c) => c.width).join(" ");
   const cell = (c: GCol<R>, i: number) => (i === 0 || c.keep ? undefined : "nx-hide-s");
+  /* A list people open rows from is a named group of buttons or links, each saying what it opens; a list that is only
+     read is a table, with its headers. Both look the same. */
+  const interactive = !!href || !!onOpen;
   return (
-    <div className="nx-table ns-grid" role="table" aria-label={label}>
-      <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: tpl }}>{cols.map((c, i) => <span key={c.label || i} role="columnheader" className={cell(c, i)}>{c.label}</span>)}</div>
+    <div className="nx-table ns-grid" role={interactive ? "group" : "table"} aria-label={label}>
+      <div className="nx-tr nx-th" role={interactive ? undefined : "row"} aria-hidden={interactive ? true : undefined} style={{ gridTemplateColumns: tpl }}>{cols.map((c, i) => <span key={c.label || i} role={interactive ? undefined : "columnheader"} className={cell(c, i)}>{c.label}</span>)}</div>
       {rows.map((r) => {
-        const inner = cols.map((c, i) => <span key={c.label || i} role="cell" className={cell(c, i)} style={{ minWidth: 0 }}>{c.render(r)}</span>);
+        const inner = cols.map((c, i) => <span key={c.label || i} role={interactive ? undefined : "cell"} className={cell(c, i)} style={{ minWidth: 0 }}>{c.render(r)}</span>);
         const to = href?.(r);
         return to
-          ? <Link key={rowKey(r)} href={to} role="row" className="nx-tr" style={{ gridTemplateColumns: tpl }} aria-label={rowLabel ? `Open ${rowLabel(r)}` : undefined}>{inner}</Link>
+          ? <Link key={rowKey(r)} href={to} className="nx-tr" style={{ gridTemplateColumns: tpl }} aria-label={rowLabel ? `Open ${rowLabel(r)}` : undefined}>{inner}</Link>
           : onOpen
-          ? <button key={rowKey(r)} type="button" role="row" className={`nx-tr ${openKey === rowKey(r) ? "is-sel" : ""}`} style={{ gridTemplateColumns: tpl }} onClick={() => onOpen(r)} aria-label={rowLabel ? `Open ${rowLabel(r)}` : undefined}>{inner}</button>
+          ? <button key={rowKey(r)} type="button" className={`nx-tr ${openKey === rowKey(r) ? "is-sel" : ""}`} style={{ gridTemplateColumns: tpl }} onClick={() => onOpen(r)} aria-label={rowLabel ? `Open ${rowLabel(r)}` : undefined}>{inner}</button>
           : <div key={rowKey(r)} role="row" className="nx-tr" style={{ gridTemplateColumns: tpl }}>{inner}</div>;
       })}
       {!rows.length && empty ? <div className="ns-empty-row">{empty}</div> : null}

@@ -91,7 +91,7 @@ test("Inbox: reports can be chosen together, and WhatsApp and paste are tabs", a
   await page.getByRole("button", { name: /^Select the report from Ward 12/ }).click();
   await expect(page.getByText("1 chosen")).toBeVisible();
   await page.getByRole("tab", { name: "WhatsApp" }).click();
-  await expect(page.getByText("Field team A").first()).toBeVisible();
+  await expect(page.getByText("Field team A").filter({ visible: true }).first()).toBeVisible();
   await page.getByRole("tab", { name: "Paste a message" }).click();
   await expect(page.getByLabel("The message")).toBeVisible();
   await expect(page.getByRole("link", { name: "Read it with Kaju" })).toHaveAttribute("href", "/try");

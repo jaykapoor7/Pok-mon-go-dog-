@@ -268,7 +268,7 @@ test("Surveillance: small counts suppressed, alerts never declare an outbreak", 
 test("Government reports: programme reports and accepted packages, nothing written by Kaju", async ({ page }) => {
   await open(page, "/gov/reports");
   await expect(page.getByRole("heading", { name: "Programme reports" })).toBeVisible();
-  await expect(page.getByRole("table", { name: "Accepted packages" }).locator(".nx-tr:not(.nx-th)")).toHaveCount(3);
+  await expect(page.getByRole("group", { name: "Accepted packages" }).locator(".nx-tr:not(.nx-th)")).toHaveCount(3);
   await noSideScroll(page);
 });
 
@@ -309,7 +309,7 @@ test("Kaju approvals: missions stop for the person who started them, history kee
   await expect(page.locator(".nx-run")).toHaveCount(1);
   await expect(page.locator(".nx-run").first().locator(".nx-run-steps li")).toHaveCount(4);
   await expect(page.locator(".nx-run-steps li.is-waiting_approval")).toHaveCount(1);
-  await expect(page.getByRole("link", { name: "Try a live mission" })).toHaveAttribute("href", "/try");
+  await expect(page.locator("a", { hasText: "Try a live mission" })).toHaveAttribute("href", "/try");
   await open(page, "/kaju/history");
   await expect(page.locator(".nx-run")).toHaveCount(2);
   await noSideScroll(page);

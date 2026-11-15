@@ -69,10 +69,10 @@ test.describe("at 390px", () => {
 
 test("Submissions: tabs keep their place in the address, and sample actions open the live demo", async ({ page }) => {
   await open(page, "/ngo/submissions");
-  await expect(page.getByText("Sample data").first()).toBeVisible();
+  await expect(page.getByText("Sample data").filter({ visible: true }).first()).toBeVisible();
   await page.getByRole("tab", { name: "Contracts" }).click();
   await expect(page).toHaveURL(/\?tab=contracts$/);
-  await expect(page.getByRole("table", { name: "Contract versions" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Contract versions" })).toBeVisible();
   const add = page.getByRole("link", { name: /New contract version/ });
   await expect(add).toHaveAttribute("href", "/try");
   await expect(add).toHaveAttribute("title", "Opens the live demo, where this works");
@@ -87,7 +87,7 @@ test("Packages: a row previews its package and opens the record", async ({ page 
   await expect(drawer).toContainText("The reviewing office asked a question");
   await drawer.getByRole("link", { name: "Open the package" }).last().click();
   await expect(page).toHaveURL(/\/ngo\/submissions\/sample-oct$/);
-  await expect(page.getByRole("table", { name: "Claims" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Claims" })).toBeVisible();
   await page.getByRole("tab", { name: "Records and evidence" }).click();
   await expect(page.getByRole("table", { name: "Records in this package" })).toBeVisible();
 });
@@ -95,7 +95,7 @@ test("Packages: a row previews its package and opens the record", async ({ page 
 test("Evidence readiness opens on a stage from the address", async ({ page }) => {
   await open(page, "/ngo/submissions?tab=evidence&stage=returned");
   await expect(page.getByRole("tab", { name: /Returned/ })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("table", { name: "Procedure records" }).getByRole("row")).toHaveCount(2);
+  await expect(page.getByRole("group", { name: "Procedure records" }).locator(".nx-tr:not(.nx-th)")).toHaveCount(1);
 });
 
 test("Programmes: a drive opens its record with its animals", async ({ page }) => {
@@ -104,9 +104,9 @@ test("Programmes: a drive opens its record with its animals", async ({ page }) =
   await expect(page.getByRole("dialog")).toContainText("of 75 known");
   await page.getByRole("dialog").getByRole("link", { name: "Open the drive" }).last().click();
   await expect(page).toHaveURL(/\/ngo\/programmes\/sample-d1$/);
-  await expect(page.getByRole("table", { name: "Animals in this drive" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Animals in this drive" })).toBeVisible();
   await page.getByRole("tab", { name: "Not recorded" }).click();
-  await expect(page.getByRole("table", { name: "Animals in this drive" }).getByRole("row")).toHaveCount(3);
+  await expect(page.getByRole("group", { name: "Animals in this drive" }).locator(".nx-tr:not(.nx-th)")).toHaveCount(2);
 });
 
 test("Zones: a zone previews its staff and next step", async ({ page }) => {

@@ -74,7 +74,7 @@ test("Programme record: tabs for coverage, network, work, report and setup; invi
   await open(page, "/gov/programmes/sample");
   await expect(page.getByRole("heading", { name: "Needs a decision" })).toBeVisible();
   await page.getByRole("tab", { name: "Coverage", exact: true }).click();
-  await expect(page.getByRole("table", { name: "Coverage by area" })).toContainText("Needs an estimate");
+  await expect(page.getByRole("group", { name: "Coverage by area" })).toContainText("Needs an estimate");
   await page.getByRole("tab", { name: "Network", exact: true }).click();
   await expect(page.getByText("It is not a stock count and does not say a place is open now")).toBeVisible();
   await page.getByRole("tab", { name: "Work", exact: true }).click();
