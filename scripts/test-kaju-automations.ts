@@ -99,7 +99,7 @@ export async function automationChecks(ok: (s: string) => void) {
       : n === 'abc_package_cases' ? { data: [], error: null } : { data: null, error: null });
   const brief = await withTools('What is waiting for me today?', { db: office, orgId: null, userName: 'L', userId: 'u', actorRole: 'municipal_reviewer' });
   assert.match(brief.text, /1 package waits for a decision/); assert.match(brief.text, /Care Trust/); assert.match(brief.text, /waiting 5 days/); assert.match(brief.text, /exception/);
-  assert.ok(brief.citations.some((c) => c.href === '/city/review/p1'));
+  assert.ok(brief.citations.some((c) => c.href === '/gov/verification/p1'));
   assert.doesNotMatch(brief.text, /accepted on your behalf|I accepted|I approved/i);
   ok('the office brief pre-checks waiting packages and links each one; it decides nothing');
 
@@ -116,7 +116,7 @@ export async function automationChecks(ok: (s: string) => void) {
   const asked = await withTools('What are programme partners waiting for?', { db: programme([place]), orgId: 'o', userName: 'F', userId: 'u', actorRole: 'coordinator' });
   assert.match(asked.text, /2 requests from programme partners/); assert.match(asked.text, /1 overdue/); assert.match(asked.text, /Find and observe the dog/); assert.match(asked.text, /Market gate/);
   assert.match(asked.text, /patient records never reach me/);
-  assert.ok(asked.tools.some((t) => t.name === 'partner_requests')); assert.ok(asked.citations.some((c) => c.href === '/workspace/p1'));
+  assert.ok(asked.tools.some((t) => t.name === 'partner_requests')); assert.ok(asked.citations.some((c) => c.href === '/health/today'));
   assert.deepEqual(reads.map((r) => r.table), ['oh_handoffs']);
   assert.doesNotMatch(reads[0].cols, /detail|patient|phone|outcome/);
   assert.doesNotMatch(JSON.stringify(asked), /97|43|doses_due|notices_new/);
