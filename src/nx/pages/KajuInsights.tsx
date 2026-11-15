@@ -1,5 +1,7 @@
 "use client";
 
+import { appHref } from "../kaju/state";
+
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowRight, Info, RefreshCw } from "lucide-react";
@@ -77,7 +79,7 @@ export function KajuInsights() {
               <article key={f.rule} className={`nx-chk ${f.count ? "is-on" : ""}`}>
                 <div className="nx-chk-h"><b className="num">{f.rule === "reporting_deadline" && !f.configured ? "—" : f.count}</b><span>{LABEL[f.rule] ?? f.rule.replace(/_/g, " ")}</span>{f.rule === "reporting_deadline" && !f.configured ? <Chip>Not set</Chip> : f.count ? <Chip tone="warn">Needs a look</Chip> : <Chip tone="ok">Clear</Chip>}</div>
                 <p className="nx-chk-m"><Info size={12} />{f.rule === "reporting_deadline" && !f.configured ? "No reporting deadline has been set by the organisation lead, so none is assumed." : f.explanation}</p>
-                {f.records.length ? <ul className="nx-chk-r">{f.records.slice(0, 5).map((r, i) => <li key={`${r.label}-${i}`}>{r.href ? <Link href={r.href}>{short(r.label)}<ArrowRight size={11} /></Link> : <span>{short(r.label)}</span>}</li>)}{f.count > 5 ? <li className="nx-t3">and {f.count - 5} more</li> : null}</ul> : null}
+                {f.records.length ? <ul className="nx-chk-r">{f.records.slice(0, 5).map((r, i) => <li key={`${r.label}-${i}`}>{r.href ? <Link href={appHref(r.href)}>{short(r.label)}<ArrowRight size={11} /></Link> : <span>{short(r.label)}</span>}</li>)}{f.count > 5 ? <li className="nx-t3">and {f.count - 5} more</li> : null}</ul> : null}
               </article>
             ))}
           </div>
