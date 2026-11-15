@@ -7,7 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Bookmark, Maximize2, Pin, Search, X } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { useLive } from "./live";
-import { Field, Modal, toast } from "./kit";
+import { Failed, Field, Modal, toast } from "./kit";
 import { Shell, type Ws } from "./Shell";
 import { Sample } from "./ui";
 
@@ -17,10 +17,10 @@ export type Col<R> = { label: string; width: string; render: (r: R) => ReactNode
 export type View<R> = { id: string; label: string; test: (r: R) => boolean };
 export type Preview = { title: ReactNode; sub?: ReactNode; body: ReactNode; href?: string; hrefLabel?: string; hrefNote?: string };
 
-export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sample, views, columns, rows, rowKey, rowLabel, search, preview, loading, note, empty, sort }: {
+export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sample, views, columns, rows, rowKey, rowLabel, search, preview, loading, note, error, empty, sort }: {
   ws?: Ws; crumb: [string, string?]; eyebrow?: ReactNode; title: string; sub: ReactNode; action?: ReactNode; sample: boolean;
   views: View<R>[]; columns: Col<R>[]; rows: R[]; rowKey: (r: R) => string; rowLabel: (r: R) => string; search?: (r: R) => string;
-  preview: (r: R) => Preview; loading: boolean; note?: string | null; empty: { none: string; filtered?: string; hint?: string }; sort?: (a: R, b: R) => number;
+  preview: (r: R) => Preview; loading: boolean; note?: string | null; /** A read that failed. With nothing read, the page says so and shows no counts, never zeros. */ error?: string | null; empty: { none: string; filtered?: string; hint?: string }; sort?: (a: R, b: R) => number;
 }) {
   const path = usePathname();
   const live = useLive();
@@ -59,24 +59,26 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
   const virtual = shown.length > BIG;
   const slice = virtual ? shown.slice(win[0], win[1]) : shown;
   const p = open ? preview(open) : null;
+  const failed = !!error && !loading && rows.length === 0;
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenId(null); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
 
   return (
     <Shell ws={ws} crumb={crumb}>
       <div className="nx-page" style={{ maxWidth: "none" }}>
         <div className="nx-head">
-          <div>{eyebrow ? <p className="nx-eyebrow">{eyebrow}{sample ? <Sample /> : null}</p> : null}<h1 className="nx-h1">{title}{sample && !eyebrow ? <Sample /> : null}</h1><p className="nx-sub">{sub}</p></div>
+          <div>{eyebrow ? <p className="nx-eyebrow">{eyebrow}{sample ? <Sample /> : null}</p> : null}<h1 className="nx-h1">{title}{sample && !eyebrow ? <Sample /> : null}</h1><p className="nx-sub">{failed ? <>{title} could not be read, so nothing is shown as zero.</> : sub}</p></div>
           {action}
         </div>
         <div className="nx-bar">
           {views.length > 1 ? <div className="nx-views" role="tablist" aria-label="Views">
-            {views.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId={`nx-lp-${title}`} className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}<span className="nx-count">{rows.filter(v.test).length}</span></span></button>)}
+            {views.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId={`nx-lp-${title}`} className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}<span className="nx-count">{failed ? "—" : rows.filter(v.test).length}</span></span></button>)}
           </div> : null}
           {saved.length ? <div className="nx-saved" aria-label="Saved views">{saved.map((v) => <span key={v.id} className={`nx-view is-saved ${v.state.view === view && (v.state.q ?? "") === q ? "is-on" : ""}`}><button type="button" onClick={() => { if (v.state.view && views.some((x) => x.id === v.state.view)) setView(v.state.view); setQ(v.state.q ?? ""); }}>{v.name}</button><button type="button" aria-label={`Remove saved view ${v.name}`} onClick={() => void removeView(v.id)}><X size={11} /></button></span>)}</div> : null}
           {search ? <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" aria-label={`Search ${title.toLowerCase()}`} /></label> : null}
           {live.org && !sample && (q.trim() || view !== views[0].id) ? <button type="button" className="nx-btn is-quiet is-sm nx-saveview" onClick={() => setNaming(views.find((x) => x.id === view)?.label + (q.trim() ? `: ${q.trim()}` : ""))}><Bookmark size={12} />Save view</button> : null}
         </div>
         {note ? <p className="nx-foot" role="status">{note}</p> : null}
+        {error && !failed ? <p className="nx-foot" role="alert">Some of this could not be read: {error}</p> : null}
         <div className="nx-table" role="group" aria-label={title} data-virtual={virtual ? "" : undefined}>
           <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: cols }}>{columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined}>{c.label}</span>)}</div>
           {virtual && win[0] > 0 ? <div aria-hidden style={{ height: win[0] * EST }} /> : null}
@@ -86,7 +88,7 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
             </button>
           ))}
           {virtual && win[1] < shown.length ? <div aria-hidden style={{ height: (shown.length - win[1]) * EST }} /> : null}
-          {loading ? <p className="nx-sub" style={{ padding: "24px 0" }}>Reading…</p> : !shown.length ? <div style={{ padding: "40px 0", textAlign: "center", color: "var(--ink-2)" }}><b style={{ color: "var(--ink)" }}>{rows.length ? empty.filtered ?? "Nothing in this view" : empty.none}</b>{empty.hint && !rows.length ? <p style={{ marginTop: 4 }}>{empty.hint}</p> : rows.length ? <p style={{ marginTop: 4 }}>Choose another view or clear the search.</p> : null}</div> : null}
+          {loading ? <p className="nx-sub" style={{ padding: "24px 0" }}>Reading…</p> : failed ? <Failed error={error!} /> : !shown.length ? <div style={{ padding: "40px 0", textAlign: "center", color: "var(--ink-2)" }}><b style={{ color: "var(--ink)" }}>{rows.length ? empty.filtered ?? "Nothing in this view" : empty.none}</b>{empty.hint && !rows.length ? <p style={{ marginTop: 4 }}>{empty.hint}</p> : rows.length ? <p style={{ marginTop: 4 }}>Choose another view or clear the search.</p> : null}</div> : null}
         </div>
       </div>
       <AnimatePresence>

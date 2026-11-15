@@ -58,7 +58,7 @@ export function Facilities() {
     preview={(r) => ({ title: r.name, sub: `${r.kind} · ${r.area}`, body: <><dl className="nx-props"><div><dt>Hours</dt><dd>{r.hours}</dd></div>{r.phone ? <div><dt>Phone</dt><dd><a href={`tel:${r.phone.replace(/\s/g, "")}`} style={{ color: "var(--accent)" }}><Phone size={12} /> {r.phone}</a></dd></div> : null}</dl>
       <h3 className="nx-h3" style={{ marginTop: 18 }}>Services</h3><ul className="nx-svc">{r.services.map((s) => <li key={s.service}><span>{s.service}</span><Chip tone={SVC_TONE[s.status] ?? "plain"}>{s.status}</Chip><small>confirmed {s.on}</small></li>)}</ul>
       <p className="nx-note" style={{ marginTop: 12 }}><MapPin size={13} /><span>What each facility last confirmed. It is not a live stock count.</span></p></> })}
-    loading={!sample && !net.data && !net.error} note={net.error} empty={{ none: "No facilities listed", hint: "Facilities join the directory through the programme." }} />;
+    loading={!sample && !net.data && !net.error} error={net.error} empty={{ none: "No facilities listed", hint: "Facilities join the directory through the programme." }} />;
 }
 
 /* ── Surveillance, for a clinic ───────────────────────────────────── */
@@ -166,7 +166,7 @@ export function Testing() {
     views={[{ id: "all", label: "In the laboratory", test: () => true }, { id: "r", label: "Received, not started", test: (r: LabRow) => r.status === "Received" }, { id: "t", label: "Testing", test: (r: LabRow) => r.status === "Testing" }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.species} ${r.from}`} sort={(a, b) => bench(b) - bench(a)}
     preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={STATUS[r.status] ?? "plain"}>{r.status}</Chip></>, body: <><dl className="nx-props"><div><dt>From</dt><dd>{r.from}</dd></div><div><dt>Place</dt><dd>{r.area}</dd></div><div><dt>Collected</dt><dd>{r.collected}</dd></div><div><dt>Received</dt><dd>{r.received ?? "—"}</dd></div><div><dt>Method</dt><dd>{r.method ?? "Recorded with the result"}</dd></div></dl>{steps(r, l)}{custody(r)}{labNote}</>, href: r.href, hrefLabel: "Open the sample", hrefNote: "The chain of custody and the result are on the sample." })}
-    loading={l.loading} note={l.error} empty={{ none: "Nothing is in the laboratory", hint: "Received samples appear here until a result is released." }} />}</LabGate>;
+    loading={l.loading} error={l.error} empty={{ none: "Nothing is in the laboratory", hint: "Received samples appear here until a result is released." }} />}</LabGate>;
 }
 
 export function Results() {
@@ -184,7 +184,7 @@ export function Results() {
     views={[{ id: "all", label: "All", test: () => true }, { id: "pos", label: "Positive", test: (r: LabRow) => r.result === "Positive" }, { id: "no", label: "Positive, no notice", test: (r: LabRow) => r.result === "Positive" && !r.notice }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.species} ${r.area} ${r.result ?? ""}`} sort={(a, b) => (b.resultedAt ?? 0) - (a.resultedAt ?? 0)}
     preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={r.result === "Positive" ? "bad" : "plain"}>{r.result ?? "—"}</Chip></>, body: <><dl className="nx-props"><div><dt>Method</dt><dd>{r.method ?? "Not recorded"}</dd></div><div><dt>Released by</dt><dd>{r.by ?? "—"}</dd></div><div><dt>Released</dt><dd>{r.on ?? "—"}</dd></div><div><dt>Notice</dt><dd>{r.notice ?? (r.result === "Positive" ? "None sent" : "Not needed")}</dd></div><div><dt>From</dt><dd>{r.from}</dd></div></dl>{steps(r, l)}{custody(r)}{labNote}</>, href: r.href, hrefLabel: "Open the sample", hrefNote: "The signed result and its notice are on the sample." })}
-    loading={l.loading} note={l.error} empty={{ none: "No results released yet" }} />}</LabGate>;
+    loading={l.loading} error={l.error} empty={{ none: "No results released yet" }} />}</LabGate>;
 }
 
 const median = (xs: number[]) => { if (!xs.length) return null; const s = [...xs].sort((a, b) => a - b); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };

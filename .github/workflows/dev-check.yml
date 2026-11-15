@@ -70,6 +70,22 @@ jobs:
           npm run test:kaju-planner
           npm run test:notify-delivery
           npm run test:inference-off
+      - name: Automations, intake, packages and record rules
+        run: |
+          npm run test:kaju-automations
+          npm run test:kaju-intake
+          npm run test:kaju-prepare
+          npm run test:careos-webhook
+          npm run test:ai-extract
+          npm run test:auto-approve
+          npm run test:package-check
+          npm run test:monthly
+          npm run test:state-machines
+          npm run test:operational-cohorts
+          npm run test:record-dates
+          npm run test:location-cell
+          npm run test:bounded-supabase-fetch
+          npm run test:v1-cleanup-chunks
       # --with-deps fetches extra system fonts from Ubuntu's mirror. When the
       # runner cannot reach that mirror (11 Nov 2026: six runs lost, the suite
       # never started), the browser still runs on the libraries already in the

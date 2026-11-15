@@ -25,6 +25,11 @@ create table public.dogs (id uuid primary key default gen_random_uuid(), ngo_id 
 create table public.cases (id uuid primary key default gen_random_uuid(), ngo_id uuid, dog_id uuid, title text, case_code text, zone text, city text, due_at timestamptz, follow_up_at date, resolved_at timestamptz, status text default 'open', created_at timestamptz default now());
 create table public.medical_events (id uuid primary key default gen_random_uuid(), dog_id uuid, kind text, event_date date, created_at timestamptz default now());
 create table public.animal_followups (id uuid primary key default gen_random_uuid(), case_id uuid, dog_id uuid, due_at timestamptz, status text default 'open');
+-- Training (20261107090000_training_lms.sql), only the columns the automation rules read.
+create table public.training_courses (id uuid primary key default gen_random_uuid(), ngo_id uuid, title text);
+create table public.training_lessons (id uuid primary key default gen_random_uuid(), course_id uuid references public.training_courses, title text);
+create table public.training_assignments (id uuid primary key default gen_random_uuid(), course_id uuid references public.training_courses, ngo_id uuid, user_id uuid, assigned_by uuid, due_on date, unique (course_id, user_id));
+create table public.training_progress (id uuid primary key default gen_random_uuid(), lesson_id uuid references public.training_lessons, course_id uuid, user_id uuid, ngo_id uuid, passed boolean not null default true, unique (lesson_id, user_id));
 create or replace function public.my_ngo() returns uuid language sql stable security definer set search_path = public as $$ select ngo_id from ngo_members where user_id = auth.uid() order by created_at limit 1 $$;
 grant execute on function public.my_ngo() to authenticated;
 -- As in Supabase, signed-in sessions hold table privileges and row-level security narrows them.

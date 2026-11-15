@@ -67,3 +67,29 @@ What changes in existing objects (all widening or equal-or-stricter; no data tou
 - Two database schedules (pg_cron): `nx-mission-tick` every minute and `nx-automations-tick` hourly. They run only steps and rules people started or turned on.
 
 Rollback: drop the new tables, functions and the two schedules (`select cron.unschedule('nx-mission-tick'); select cron.unschedule('nx-automations-tick');`), and restore the replaced functions and policies from migrations 2 to 5 (and `oh_record_exposure` from `20261110230655_one_health_v2_2_workflows.sql`, then drop `health.exposures.transfer_id`). No existing row is changed by these files, so nothing needs restoring.
+
+---
+
+# Third set: four automation rules that counted the wrong thing or too little
+
+**Applied on staging, then on production, on 2026-11-15**, through the Supabase tool. Both applies succeeded.
+
+| Order | File | What it changes | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 13 | `20261116170000_rebuild_automation_rule_fixes.sql` | Replaces one function, `nx_automation_run`. No table, column, policy or row changes. | Applied | Applied |
+
+What it fixes (found in `docs/rebuild/AUTOMATIONS-AUDIT.md`):
+- `services_stale` counted every past confirmation, so a facility that confirmed daily was still told its services
+  were stale. Now only each service's latest confirmation counts.
+- `training_due` counted courses people had finished and told only leads. Now unfinished courses only, and each
+  person is told about their own.
+- `alerts_open` failed every time the hourly schedule ran it, because `oh_alerts` needs a signed-in programme member.
+  A scheduled run now reads with the access of the person who turned the automation on. If that person has left the
+  programme, the run fails and records why, as before.
+- `referrals_waiting` counted only handoffs. It now also counts patients referred to the facility and not yet marked
+  arrived. These are counts only; the notice names no patient.
+
+Checked: `test:db` (139 checks). Five of the new checks fail without the migration and pass with it. On production today
+no automation is turned on, so no organisation has had a wrong count.
+
+Rollback: run the `nx_automation_run` definition from `20261116140000_rebuild_automations_v2.sql` again.

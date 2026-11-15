@@ -36,10 +36,10 @@ export function monthlyPlan(rows: QueueRow[], now: Date, previous = false, readL
   const missing = new Map<EvidenceKind, number>();
   for (const r of inMonth) { const s = stageOf(r); counts[s]++; if (s === "evidence") for (const k of r.missing) missing.set(k, (missing.get(k) ?? 0) + 1); }
   const blockedBy = [
-    ...[...missing].sort((a, c) => c[1] - a[1]).map(([k, n]) => ({ reason: `Missing ${EVIDENCE_LABEL[k].toLowerCase()}`, count: n, href: "/ngo/submissions?tab=evidence" })),
-    ...(counts.vet ? [{ reason: "Waiting for veterinary authorisation", count: counts.vet, href: "/ngo/submissions?tab=evidence" }] : []),
-    ...(counts.review ? [{ reason: "Waiting for coordinator evidence review", count: counts.review, href: "/ngo/submissions?tab=evidence" }] : []),
-    ...(counts.returned ? [{ reason: "Returned for correction", count: counts.returned, href: "/ngo/submissions?tab=evidence" }] : []),
+    ...[...missing].sort((a, c) => c[1] - a[1]).map(([k, n]) => ({ reason: `Missing ${EVIDENCE_LABEL[k].toLowerCase()}`, count: n, href: "/ngo/submissions?tab=evidence&stage=evidence" })),
+    ...(counts.vet ? [{ reason: "Waiting for veterinary authorisation", count: counts.vet, href: "/ngo/submissions?tab=evidence&stage=vet" }] : []),
+    ...(counts.review ? [{ reason: "Waiting for coordinator evidence review", count: counts.review, href: "/ngo/submissions?tab=evidence&stage=review" }] : []),
+    ...(counts.returned ? [{ reason: "Returned for correction", count: counts.returned, href: "/ngo/submissions?tab=evidence&stage=returned" }] : []),
   ];
   return { ...b, counts, blockedBy, partial };
 }

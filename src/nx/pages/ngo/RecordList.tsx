@@ -69,7 +69,8 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
     window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
   }, [rowKey, hrefOf, router]);
 
-  const count = (v: RView<R>) => (v.count !== undefined ? v.count : v.test ? rows.filter(v.test).length : null);
+  // A failed read with nothing read shows no counts, never zeros.
+  const count = (v: RView<R>) => (error && !rows.length ? null : v.count !== undefined ? v.count : v.test ? rows.filter(v.test).length : null);
   return (
     <>
       <div className="nx-page" style={{ maxWidth: "none" }}>

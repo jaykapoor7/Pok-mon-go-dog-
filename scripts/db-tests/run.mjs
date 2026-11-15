@@ -18,6 +18,7 @@ const MIGRATIONS = [
   "20261116100000_rebuild_collaboration.sql", "20261116110000_rebuild_kaju_engine.sql", "20261116120000_rebuild_research_access.sql",
   "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
+  "20261116170000_rebuild_automation_rule_fixes.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -166,6 +167,31 @@ await as(A, "insert into nx_channels (org_id, name) values ($1, 'field-ops')", [
 ok((await as(A, "select nx_mission_retry($1) as s", [flaky]))[0].s === "completed", "after the cause is fixed, retry completes it");
 ok((await as(B, "select count(*)::int n from nx_messages m join nx_channels c on c.id = m.channel_id where c.name = 'field-ops'"))[0].n === 1, "the message was posted exactly once");
 
+section("Kaju missions: reject and cancel");
+{
+  // The same plan as above: step 2 (creating several tasks) waits for approval; step 3 would post in #general.
+  const two = JSON.stringify(plan);
+  const rj = (await as(A, "select nx_mission_start($1, 'Rejected mission', '{}', $2, 'reject-1') as id", [N1, two]))[0].id;
+  const rs = await one("select id, state from nx_mission_steps where mission_id = $1 and position = 2", [rj]);
+  ok(rs.state === "waiting_approval", "creating several tasks waits for approval");
+  ok(await refused(B, "select nx_mission_decide($1, 'reject')", [rs.id]) !== null, "only the owner can reject a step");
+  ok((await as(A, "select nx_mission_decide($1, 'reject', null, 'Not now') as s", [rs.id]))[0].s === "cancelled", "rejecting a step cancels the mission");
+  const after = await as(A, "select position, state from nx_mission_steps where mission_id = $1 order by position", [rj]);
+  ok(after[1].state === "skipped" && after[2].state === "cancelled", "the rejected step is skipped and nothing after it runs");
+  ok((await one("select count(*)::int n from nx_tasks where mission_id = $1", [rj])).n === 0, "a rejected step created nothing");
+  ok((await as(A, "select kind from nx_mission_events where mission_id = $1", [rj])).some((e) => e.kind === "rejected"), "the trace records who rejected it");
+  ok(await refused(A, "select nx_mission_decide($1, 'approve')", [rs.id]) !== null, "a rejected step cannot be approved afterwards");
+
+  const cm = (await as(A, "select nx_mission_start($1, 'Cancelled mission', '{}', $2, 'cancel-1') as id", [N1, two]))[0].id;
+  ok(await refused(B, "select nx_mission_cancel($1)", [cm]) !== null, "only the owner can cancel a mission");
+  await as(A, "select nx_mission_cancel($1)", [cm]);
+  ok((await one("select state from nx_missions where id = $1", [cm])).state === "cancelled", "cancelling stops the mission");
+  ok((await as(A, "select state from nx_mission_steps where mission_id = $1 and position > 1", [cm])).every((x) => x.state === "cancelled"), "every step not yet done is cancelled");
+  ok(await refused(A, "select nx_mission_cancel($1)", [cm]) !== null, "a cancelled mission cannot be cancelled twice");
+  await db.query("select nx_mission_tick()");
+  ok((await one("select count(*)::int n from nx_tasks where mission_id = $1", [cm])).n === 0, "the schedule runs nothing from a cancelled mission");
+}
+
 section("Kaju missions: human-only steps, policies, outside messages");
 const human = (await as(A, "select nx_mission_start($1, 'Claim review', '{}', $2) as id", [N1, JSON.stringify([{ label: "Decide the claim", tool: "verify_claim", input: {} }, { label: "Note it", tool: "create_task", input: { title: "File the decision" } }])]))[0].id;
 const hs = await one("select id, state, level from nx_mission_steps where mission_id = $1 and position = 1", [human]);
@@ -263,6 +289,49 @@ ok(log.length === 1 && log[0].phone_masked.startsWith("••••") && log[0].
 ok((await as(A, "select id from nx_pep_reminders($1)", [clinic])).length === 0, "nobody outside the clinic sees it");
 ok(await refused(nurse, "select * from health.reminder_outbox") !== null, "the reminder queue itself is not readable through the API");
 ok((await as(P, "select nx_automation_run($1, true) as r", [rem]))[0].r.found === 0, "running it again the same day queues nothing new");
+
+section("Automation rules count the right things");
+{
+  // services_stale: every confirmation is a new row; only each service's latest one counts.
+  await db.query(`insert into oh_service_status (organisation_id, service, status, verified_by, verified_by_name, verified_at, valid_until) values
+    ($1, 'arv', 'available', $2, 'Priya', now() - interval '20 days', now() - interval '13 days'),
+    ($1, 'arv', 'available', $2, 'Priya', now() - interval '1 hour', now() + interval '6 days'),
+    ($1, 'rig', 'limited', $2, 'Priya', now() - interval '20 days', now() - interval '13 days')`, [clinic, P]);
+  const st = (await as(P, "select nx_automation_save($1, 'services_stale', 'Stale services', 'day', '{\"days\":7}', 'clinical') as id", [clinic]))[0].id;
+  ok((await as(P, "select nx_automation_run($1, false) as r", [st]))[0].r.found === 1, "a service confirmed today is not stale because of an older confirmation; one never reconfirmed is");
+
+  // training_due: finished courses are not due, and the person who has to do it is told.
+  const course = (await one("insert into training_courses (ngo_id, title) values ($1, 'Safe handling') returning id", [N1])).id;
+  const [l1, l2] = [(await one("insert into training_lessons (course_id, title) values ($1, 'One') returning id", [course])).id, (await one("insert into training_lessons (course_id, title) values ($1, 'Two') returning id", [course])).id];
+  const done = uuid(); await db.query("insert into auth.users (id) values ($1)", [done]); await db.query("insert into ngo_members (ngo_id, user_id, role) values ($1, $2, 'member')", [N1, done]);
+  await db.query("insert into training_assignments (course_id, ngo_id, user_id, assigned_by, due_on) values ($1, $2, $3, $5, current_date + 1), ($1, $2, $4, $5, current_date + 1)", [course, N1, B, done, A]);
+  await db.query("insert into training_progress (lesson_id, course_id, user_id, ngo_id) values ($1, $3, $4, $5), ($1, $3, $6, $5), ($2, $3, $6, $5)", [l1, l2, course, B, N1, done]);
+  const tr = (await as(A, "select nx_automation_save($1, 'training_due', 'Training due', 'day', '{\"days\":3}') as id", [N1]))[0].id;
+  ok((await as(A, "select nx_automation_run($1, false) as r", [tr]))[0].r.found === 1, "a course someone has finished is not counted as due");
+  ok((await as(B, "select id from nx_notifications where title = 'Training is due for you'")).length === 1, "the person with unfinished training is told");
+  ok((await as(done, "select id from nx_notifications where title = 'Training is due for you'")).length === 0, "the person who finished is not");
+
+  // referrals_waiting: patients referred to the facility and not yet marked arrived are counted, never named.
+  const sender = (await one("insert into oh_organisations (kind, name) values ('clinic', 'Ward 3 Health Centre') returning id")).id;
+  const rex = (await one("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, patient_ref) values ($1, 'R-77', current_date - 3, current_date - 3, 'bite', 'PATIENT-REF-77') returning id", [sender])).id;
+  await db.query("insert into health.transfers (exposure_id, from_org, to_org, service, sent_at) values ($1, $2, $3, 'rig', now() - interval '2 days')", [rex, sender, clinic]);
+  const rw = (await as(P, "select nx_automation_save($1, 'referrals_waiting', 'Referrals waiting', 'day', '{\"hours\":24}', 'clinical') as id", [clinic]))[0].id;
+  const rr = (await as(P, "select nx_automation_run($1, false) as r", [rw]))[0].r;
+  ok(rr.found >= 1 && /1 patient referral not yet marked arrived/.test(rr.summary), "a patient referred here and not yet arrived is counted");
+  ok(!/R-77|PATIENT-REF-77/.test(JSON.stringify(rr)) && (await as(nurse, "select body from nx_notifications where title = 'Referrals waiting'")).every((x) => !/R-77|PATIENT/.test(x.body ?? "")), "the notice names no patient");
+
+  // alerts_open on the schedule: nobody is signed in, so it reads with the access of the person who turned it on.
+  const al = (await as(P, "select nx_automation_save($1, 'alerts_open', 'Signals to review', 'day') as id", [coordOrg]))[0].id;
+  const byHand = (await as(P, "select nx_automation_run($1, true) as r", [al]))[0].r;
+  await db.query("update nx_automations set status = 'paused' where id <> $1", [al]);
+  await db.query("update nx_automations set last_run_at = null where id = $1", [al]);
+  await db.query("select set_config('request.jwt.claims', '', false)");
+  await db.query("select nx_automations_tick()");
+  const sched = await one("select status, found, error from nx_automation_runs where automation_id = $1 and dedupe_key not like '%:now:%'", [al]);
+  ok(sched && sched.status !== "failed", `a scheduled signals check runs with nobody signed in (${sched?.status} ${sched?.error ?? ""})`);
+  ok(sched && (sched.found ?? 0) === (byHand.found ?? 0), "and finds what the coordinator's own run found");
+  await db.query("update nx_automations set status = 'active'");
+}
 
 section("A bite recorded from a referral");
 {

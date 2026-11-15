@@ -12,7 +12,7 @@ import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { ALERTS, OUTPUTS, PARTNERS, PROG_SAMPLE, SURV_AREAS, SURV_WEEKS, TARGET, WARDS, type Tone } from "../fixtures";
 import { useLive } from "../live";
-import { TabBar } from "../kit";
+import { Failed, TabBar } from "../kit";
 import { ContractsTab } from "./gov/Contracts";
 
 /* Government & Programmes, built on the programme the person oversees (oh_programme_overview and friends).
@@ -24,28 +24,33 @@ const num = (c: Count | undefined) => (c === null || c === undefined ? "—" : t
 const val = (c: Count | undefined) => (typeof c === "number" ? c : 0);
 
 /* ── The programme this person oversees ─────────────────────────── */
-type Mode = "loading" | "sample" | "programme" | "office" | "none";
+type Mode = "loading" | "sample" | "programme" | "office" | "none" | "failed";
 function useGov() {
   const live = useLive();
   const gov = live.orgFor("government");
   const govId = gov?.org_id ?? null;
   const [progs, setProgs] = useState<ProgrammeRef[] | null>(null);
   const [pid, setPid] = useState<string | null>(null);
+  // A failed read is said as such; it is never shown as "no programme".
+  const [failed, setFailed] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!live.ready || !govId) return;
     let alive = true;
+    setFailed(null); setProgs(null);
     call<Place[]>("oh_my_today").then((r) => {
       if (!alive) return;
+      if (r.error) { setFailed(r.error); return; }
       const mine = (Array.isArray(r.data) ? r.data : []).filter((p) => oversees(p.kind));
       const ordered = [...mine.filter((p) => p.organisation_id === govId), ...mine.filter((p) => p.organisation_id !== govId)];
       setProgs([...new Map(ordered.flatMap((p) => p.programmes).map((x) => [x.id, x])).values()]);
     });
     return () => { alive = false; };
-  }, [live.ready, govId]);
+  }, [live.ready, govId, attempt]);
   const office = gov?.source === "review_office";
-  const mode: Mode = !live.ready ? "loading" : !live.org ? "sample" : !gov ? "none" : office ? "office" : progs === null ? "loading" : progs.length ? "programme" : "none";
+  const mode: Mode = !live.ready ? "loading" : !live.org ? "sample" : !gov ? "none" : office ? "office" : failed ? "failed" : progs === null ? "loading" : progs.length ? "programme" : "none";
   const prog = progs?.find((p) => p.id === pid) ?? progs?.[0] ?? null;
-  return { gov, mode, progs: progs ?? [], prog, pick: setPid };
+  return { gov, mode, progs: progs ?? [], prog, pick: setPid, failed, retry: () => setAttempt((n) => n + 1) };
 }
 
 /** One read, keyed; a changed key starts a new read and the old answer is not shown for it. */
@@ -86,6 +91,7 @@ export function GovProgrammes() {
   const g = useGov();
   const o = useCall<Overview>("oh_programme_overview", g.mode === "programme" && g.prog ? { p_programme: g.prog.id, p_days: 365 } : null, `cov:${g.prog?.id}`);
   if (g.mode === "loading") return <Opening crumb="Programmes" />;
+  if (g.mode === "failed") return <Plain crumb="Programmes" title="Programmes"><Failed error={`Your programmes could not be read, so nothing is shown as missing. ${g.failed ?? ""}`} retry={g.retry} /></Plain>;
   if (g.mode === "none") return <Plain crumb="Programmes" title="Programmes">{g.gov ? `${g.gov.name} does not oversee a programme on StrayPaw yet.` : NOT_IN}</Plain>;
   if (g.mode === "office") return <Plain crumb="Programmes" title="Programmes">{g.gov!.name} reviews packages that operators send it. It is not a member of a programme on StrayPaw, so there is no programme coverage to show here. <Link href="/gov/verification" style={{ color: "var(--accent)" }}>Open verification</Link>.</Plain>;
   const sample = g.mode === "sample";
@@ -109,7 +115,7 @@ export function GovProgrammes() {
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.area} search={(r) => r.area}
       sort={(a, b) => (covOf(a) ?? 2) - (covOf(b) ?? 2)}
       preview={(r) => ({ title: r.area, sub: <CovBar c={covOf(r)} target={target} />, body: <><dl className="nx-props"><div><dt>Vaccinated</dt><dd className="num">{r.vaccinated.toLocaleString("en-IN")}</dd></div><div><dt>Registered</dt><dd className="num">{r.registered.toLocaleString("en-IN")}</dd></div>{r.estimate ? <><div><dt>Estimate</dt><dd><span className="num">{r.estimate.dogs.toLocaleString("en-IN")}</span> dogs</dd></div><div><dt>Method</dt><dd>{r.estimate.method}</dd></div><div><dt>Source</dt><dd>{r.estimate.source}</dd></div><div><dt>Dated</dt><dd>{r.estimate.on}</dd></div></> : <div><dt>Estimate</dt><dd>None recorded</dd></div>}</dl><p className="nx-note" style={{ marginTop: 14 }}><span>Coverage is vaccinated dogs recorded on StrayPaw divided by the dated estimate. Dogs vaccinated outside StrayPaw are not counted, so it can understate coverage.</span></p></>, href: r.href, hrefLabel: "Open coverage", hrefNote: "Estimates are recorded with their method and source on the programme's Coverage tab." })}
-      loading={o.loading} note={o.err} empty={{ none: "No areas in this programme yet", hint: "Areas are added when the programme is set up." }} />
+      loading={o.loading} error={o.err} empty={{ none: "No areas in this programme yet", hint: "Areas are added when the programme is set up." }} />
   );
 }
 
@@ -124,6 +130,7 @@ export function Partners() {
   const o = useCall<Overview>("oh_programme_overview", args, `pp:${g.prog?.id}`);
   const net = useCall<Network>("oh_programme_network", args ? { p_programme: g.prog!.id } : null, `net:${g.prog?.id}`);
   if (g.mode === "loading") return <Opening crumb="Partners" />;
+  if (g.mode === "failed") return <Plain crumb="Partners" title="Partners"><Failed error={`Your programmes could not be read, so nothing is shown as missing. ${g.failed ?? ""}`} retry={g.retry} /></Plain>;
   if (g.mode === "none") return <Plain crumb="Partners" title="Partners">{g.gov ? `${g.gov.name} does not oversee a programme on StrayPaw yet, so it has no partners here.` : NOT_IN}</Plain>;
   if (g.mode === "office") return <Operators />;
   const sample = g.mode === "sample";
@@ -147,7 +154,7 @@ export function Partners() {
       preview={(r) => ({ title: r.name, sub: r.kind, body: <><dl className="nx-props"><div><dt>Responsible for</dt><dd>{r.responsibilities}</dd></div><div><dt>People</dt><dd className="num">{num(r.members)}</dd></div><div><dt>Open requests</dt><dd className="num">{r.open}{r.overdue ? <>&nbsp;<Chip tone="bad">{r.overdue} overdue</Chip></> : null}</dd></div></dl>
         {r.services.length ? <><h3 className="nx-h3" style={{ marginTop: 18 }}>Services</h3><ul className="nx-svc">{r.services.map((s) => <li key={s.service}><span>{s.service}</span><Chip tone={STATUS_TONE[s.status] ?? "plain"}>{s.status}</Chip><small>confirmed {s.on}</small></li>)}</ul><p className="nx-note" style={{ marginTop: 12 }}><span>What the facility last confirmed. It is not a stock count.</span></p></> : null}</>,
         href: sample ? "/gov/programmes/sample?tab=Network" : slug ? `/gov/programmes/${slug}?tab=Network` : undefined, hrefLabel: "Open in the network", hrefNote: "Invitations and responsibilities are managed on the programme's Setup tab." })}
-      loading={o.loading} note={o.err} empty={{ none: "No partners yet", hint: "Organisations join a programme by invitation." }} />
+      loading={o.loading} error={o.err} empty={{ none: "No partners yet", hint: "Organisations join a programme by invitation." }} />
   );
 }
 
@@ -181,7 +188,7 @@ function Operators() {
       views={[{ id: "all", label: "All", test: () => true }, { id: "w", label: "Waiting for you", test: (r: OpRow) => r.waiting > 0 }]}
       columns={cols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => r.name} sort={(a, b) => b.waiting - a.waiting || b.sent - a.sent}
       preview={(r) => ({ title: r.name, sub: "Operator", body: <dl className="nx-props"><div><dt>Packages sent</dt><dd className="num">{r.sent}</dd></div><div><dt>Waiting for you</dt><dd className="num">{r.waiting}</dd></div><div><dt>Accepted</dt><dd className="num">{r.accepted}</dd></div><div><dt>Records accepted</dt><dd className="num">{r.records.toLocaleString("en-IN")}</dd></div></dl>, href: "/gov/verification", hrefLabel: "Open verification" })}
-      loading={rows === null} note={err} empty={{ none: "No operator has sent a package yet" }} />
+      loading={rows === null} error={err} empty={{ none: "No operator has sent a package yet" }} />
   );
 }
 
@@ -213,6 +220,7 @@ export function Surveillance() {
   const sample = g.mode === "sample";
   const alerts: AlertRow[] = useMemo(() => sample ? ALERTS : (al.data ?? []).map((a) => ({ key: a.key, severity: a.severity, kind: ALERT_KIND[a.kind] ?? a.kind, title: a.title, detail: a.detail, area: a.area, at: fmtDate(a.at), ack: a.ack ? `Acknowledged${a.ack.by ? ` by ${a.ack.by}` : ""}, ${fmtDate(a.ack.at)}` : null })), [sample, al.data]);
   if (g.mode === "loading") return <Opening crumb="Surveillance" />;
+  if (g.mode === "failed") return <Plain crumb="Surveillance" title="Surveillance"><Failed error={`Your programmes could not be read, so nothing is shown as missing. ${g.failed ?? ""}`} retry={g.retry} /></Plain>;
   if (g.mode === "none" || g.mode === "office") return <Plain crumb="Surveillance" title="Surveillance">{g.gov ? `${g.gov.name} is not part of a programme that shares surveillance on StrayPaw. Bite, laboratory and handoff signals appear here once it is.` : NOT_IN}</Plain>;
   const x = o.data;
   const weeks = sample ? SURV_WEEKS : x?.exposures?.by_week ?? [];
@@ -283,6 +291,7 @@ export function GovReports() {
     return () => { alive = false; };
   }, [officeId]);
   if (g.mode === "loading") return <Opening crumb="Reports" />;
+  if (g.mode === "failed") return <Plain crumb="Reports" title="Reports"><Failed error={`Your programmes could not be read, so nothing is shown as missing. ${g.failed ?? ""}`} retry={g.retry} /></Plain>;
   if (g.mode === "none") return <Plain crumb="Reports" title="Reports">{g.gov ? `${g.gov.name} has no programme or reviewed packages on StrayPaw yet, so there is nothing to report from.` : NOT_IN}</Plain>;
   const sample = g.mode === "sample";
   const slug = g.prog?.slug;
@@ -329,6 +338,7 @@ export function ProgrammeHome() {
   const o = useCall<Overview>("oh_programme_overview", on ? { p_programme: g.prog!.id, p_days: 30 } : null, `home:${g.prog?.id}`);
   const al = useCall<Alert[]>("oh_alerts", on ? { p_programme: g.prog!.id } : null, `al:${g.prog?.id}`);
   if (g.mode === "loading") return <Opening crumb="Overview" />;
+  if (g.mode === "failed") return <Plain crumb="Overview" title="Overview"><Failed error={`Your programmes could not be read, so nothing is shown as missing. ${g.failed ?? ""}`} retry={g.retry} /></Plain>;
   if (g.mode !== "programme") return <Plain crumb="Overview" title="Overview">{g.gov ? `${g.gov.name} does not oversee a programme on StrayPaw yet.` : NOT_IN}</Plain>;
   const x = o.data;
   const target = x?.programme.target ?? TARGET;

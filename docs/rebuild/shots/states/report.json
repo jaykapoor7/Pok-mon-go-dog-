@@ -1,0 +1,506 @@
+[
+ {
+  "view": "ngo-today",
+  "mode": "populated",
+  "width": "1440",
+  "file": "ngo-today-populated-1440.png",
+  "says": "Sunday, 15 November · Sample · Bengaluru Animal Care Trust Good afternoon, Farah 0 open tasks. 0 Open tasks 0 Done 35 Animals on the register 30 Open cases Work"
+ },
+ {
+  "view": "ngo-today",
+  "mode": "empty",
+  "width": "1440",
+  "file": "ngo-today-empty-1440.png",
+  "says": "Sunday, 15 November · Sample · Bengaluru Animal Care Trust Good afternoon, Farah 0 open tasks. 0 Open tasks 0 Done 0 Animals on the register 0 Open cases Work 0"
+ },
+ {
+  "view": "ngo-today",
+  "mode": "error",
+  "width": "1440",
+  "file": "ngo-today-error-1440.png",
+  "says": "Sunday, 15 November · Sample · Bengaluru Animal Care Trust Good afternoon, Farah Your work could not be read just now. — Open tasks — Done — Animals on the regi"
+ },
+ {
+  "view": "ngo-animals",
+  "mode": "populated",
+  "width": "1440",
+  "file": "ngo-animals-populated-1440.png",
+  "says": "Animals 35 animals on Sample · Bengaluru Animal Care Trust's register. Unknown is kept apart from no. Record an animal All 35 Needs help Not sterilised Not vacc"
+ },
+ {
+  "view": "ngo-animals",
+  "mode": "empty",
+  "width": "1440",
+  "file": "ngo-animals-empty-1440.png",
+  "says": "Animals 0 animals on Sample · Bengaluru Animal Care Trust's register. Unknown is kept apart from no. Record an animal All 0 Needs help Not sterilised Not vaccin"
+ },
+ {
+  "view": "ngo-animals",
+  "mode": "error",
+  "width": "1440",
+  "file": "ngo-animals-error-1440.png",
+  "says": "Animals The register could not be read. Nothing is shown as zero. Record an animal All 0 Needs help Not sterilised Not vaccinated Identity review Every place Do"
+ },
+ {
+  "view": "ngo-cases",
+  "mode": "populated",
+  "width": "1440",
+  "file": "ngo-cases-populated-1440.png",
+  "says": "Cases 30 open, 4 critical or high, 0 held by nobody, at Sample · Bengaluru Animal Care Trust. New case Open 30 Mine 0 Unassigned 0 Critical and high 4 Follow-up"
+ },
+ {
+  "view": "ngo-cases",
+  "mode": "empty",
+  "width": "1440",
+  "file": "ngo-cases-empty-1440.png",
+  "says": "Cases 0 open, 0 held by nobody, at Sample · Bengaluru Animal Care Trust. New case Open 0 Mine 0 Unassigned 0 Critical and high 0 Follow-up due 0 Resolved 0 Case"
+ },
+ {
+  "view": "ngo-cases",
+  "mode": "error",
+  "width": "1440",
+  "file": "ngo-cases-error-1440.png",
+  "says": "Cases Cases could not be read. Nothing is shown as zero. New case Open 0 Mine 0 Unassigned 0 Critical and high 0 Follow-up due 0 Resolved 0 Could not read this "
+ },
+ {
+  "view": "gov-overview",
+  "mode": "populated",
+  "width": "1440",
+  "file": "gov-overview-populated-1440.png",
+  "says": "Bengaluru Rabies Elimination · Illustrative Overview Part of Karnataka One Health · Illustrative. You manage this programme. 2 Urgent alerts open 4 Areas below "
+ },
+ {
+  "view": "gov-overview",
+  "mode": "empty",
+  "width": "1440",
+  "file": "gov-overview-empty-1440.png",
+  "says": "Overview Programme Coordination Cell does not oversee a programme on StrayPaw yet."
+ },
+ {
+  "view": "gov-overview",
+  "mode": "error",
+  "width": "1440",
+  "file": "gov-overview-error-1440.png",
+  "says": "Overview Could not read this Your programmes could not be read, so nothing is shown as missing. Service unavailable Try again"
+ },
+ {
+  "view": "gov-surveillance",
+  "mode": "populated",
+  "width": "1440",
+  "file": "gov-surveillance-populated-1440.png",
+  "says": "Bengaluru Rabies Elimination · Illustrative Surveillance 64 exposures recorded in the last 90 days, 1 laboratory-confirmed positive. Alerts follow fixed program"
+ },
+ {
+  "view": "gov-surveillance",
+  "mode": "empty",
+  "width": "1440",
+  "file": "gov-surveillance-empty-1440.png",
+  "says": "Surveillance Programme Coordination Cell is not part of a programme that shares surveillance on StrayPaw. Bite, laboratory and handoff signals appear here once "
+ },
+ {
+  "view": "gov-surveillance",
+  "mode": "error",
+  "width": "1440",
+  "file": "gov-surveillance-error-1440.png",
+  "says": "Surveillance Could not read this Your programmes could not be read, so nothing is shown as missing. Service unavailable Try again"
+ },
+ {
+  "view": "health-pep",
+  "mode": "populated",
+  "width": "1440",
+  "file": "health-pep-populated-1440.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Doses due 2 due today, 3 overdue. Schedules are the clinician's; StrayPaw only counts the days. All due 8 Today 2 Overdue 3"
+ },
+ {
+  "view": "health-pep",
+  "mode": "empty",
+  "width": "1440",
+  "file": "health-pep-empty-1440.png",
+  "says": ""
+ },
+ {
+  "view": "health-pep",
+  "mode": "error",
+  "width": "1440",
+  "file": "health-pep-error-1440.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Doses due Doses due could not be read, so nothing is shown as zero. All due — Today — Overdue — Presentation Dose Due Last "
+ },
+ {
+  "view": "health-referrals",
+  "mode": "populated",
+  "width": "1440",
+  "file": "health-referrals-populated-1440.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Referrals 1 person is on the way here. A referral carries the case code, category and service needed; names and phone numbe"
+ },
+ {
+  "view": "health-referrals",
+  "mode": "empty",
+  "width": "1440",
+  "file": "health-referrals-empty-1440.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Referrals 0 people are on the way here. A referral carries the case code, category and service needed; names and phone numb"
+ },
+ {
+  "view": "health-referrals",
+  "mode": "error",
+  "width": "1440",
+  "file": "health-referrals-error-1440.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Referrals Referrals could not be read, so nothing is shown as zero. On the way here — Sent by us — All — Requests to us — W"
+ },
+ {
+  "view": "lab-samples",
+  "mode": "populated",
+  "width": "1440",
+  "file": "lab-samples-populated-1440.png",
+  "says": "Reference Rabies Diagnostic Laboratory Samples 3 in the queue, the oldest collected 7 days ago. A result is released when a laboratory scientist records it with"
+ },
+ {
+  "view": "lab-samples",
+  "mode": "empty",
+  "width": "1440",
+  "file": "lab-samples-empty-1440.png",
+  "says": "Reference Rabies Diagnostic Laboratory Samples 0 in the queue. A result is released when a laboratory scientist records it with the method and validates it. All"
+ },
+ {
+  "view": "lab-samples",
+  "mode": "error",
+  "width": "1440",
+  "file": "lab-samples-error-1440.png",
+  "says": "Reference Rabies Diagnostic Laboratory Samples Samples could not be read, so nothing is shown as zero. All samples — Arriving — Rejected — Sample From Collected"
+ },
+ {
+  "view": "lab-results",
+  "mode": "populated",
+  "width": "1440",
+  "file": "lab-results-populated-1440.png",
+  "says": "Reference Rabies Diagnostic Laboratory Results 2 released, 1 positive. A result is released when a laboratory scientist records it with the method and validates"
+ },
+ {
+  "view": "lab-results",
+  "mode": "empty",
+  "width": "1440",
+  "file": "lab-results-empty-1440.png",
+  "says": "Reference Rabies Diagnostic Laboratory Results 0 released, 0 positive. A result is released when a laboratory scientist records it with the method and validates"
+ },
+ {
+  "view": "lab-results",
+  "mode": "error",
+  "width": "1440",
+  "file": "lab-results-error-1440.png",
+  "says": "Reference Rabies Diagnostic Laboratory Results Results could not be read, so nothing is shown as zero. All — Positive — Positive, no notice — Sample Result Rele"
+ },
+ {
+  "view": "research-studies",
+  "mode": "populated",
+  "width": "1440",
+  "file": "research-studies-populated-1440.png",
+  "says": "Programme Epidemiology Unit Studies 1 open study. Each uses one programme's aggregated data, with small counts suppressed by the database. New study Open 1 Clos"
+ },
+ {
+  "view": "research-studies",
+  "mode": "empty",
+  "width": "1440",
+  "file": "research-studies-empty-1440.png",
+  "says": "Programme Epidemiology Unit Studies 0 open studies. Each uses one programme's aggregated data, with small counts suppressed by the database. New study Open 0 Cl"
+ },
+ {
+  "view": "research-studies",
+  "mode": "error",
+  "width": "1440",
+  "file": "research-studies-error-1440.png",
+  "says": "Programme Epidemiology Unit Studies Studies could not be read, so nothing is shown as zero. New study Open — Closed — All — Study Programme Reports State Could "
+ },
+ {
+  "view": "channels",
+  "mode": "populated",
+  "width": "1440",
+  "file": "channels-populated-1440.png",
+  "says": "#general does not exist yet Create it for Sample · Bengaluru Animal Care Trust. Everyone in the organisation can read and post. Create #general"
+ },
+ {
+  "view": "channels",
+  "mode": "empty",
+  "width": "1440",
+  "file": "channels-empty-1440.png",
+  "says": "#general does not exist yet Create it for Sample · Bengaluru Animal Care Trust. Everyone in the organisation can read and post. Create #general"
+ },
+ {
+  "view": "channels",
+  "mode": "error",
+  "width": "1440",
+  "file": "channels-error-1440.png",
+  "says": "general Sample · Bengaluru Animal Care Trust Messages Work Records Files Reading messages… Service unavailable Enter to send · Shift Enter for a new line Send L"
+ },
+ {
+  "view": "kaju",
+  "mode": "populated",
+  "width": "1440",
+  "file": "kaju-populated-1440.png",
+  "says": "Works inside Sample · Bengaluru Animal Care Trust, with your permissions What should we get done? Ask a question, or hand over an outcome. Kaju shows its plan f"
+ },
+ {
+  "view": "kaju",
+  "mode": "empty",
+  "width": "1440",
+  "file": "kaju-empty-1440.png",
+  "says": "Works inside Sample · Bengaluru Animal Care Trust, with your permissions What should we get done? Ask a question, or hand over an outcome. Kaju shows its plan f"
+ },
+ {
+  "view": "kaju",
+  "mode": "error",
+  "width": "1440",
+  "file": "kaju-error-1440.png",
+  "says": "Works inside Sample · Bengaluru Animal Care Trust, with your permissions What should we get done? Ask a question, or hand over an outcome. Kaju shows its plan f"
+ },
+ {
+  "view": "ngo-today",
+  "mode": "populated",
+  "width": "390",
+  "file": "ngo-today-populated-390.png",
+  "says": "Sunday, 15 November · Sample · Bengaluru Animal Care Trust Good afternoon, Farah 0 open tasks. 0 Open tasks 0 Done 35 Animals on the register 30 Open cases Work"
+ },
+ {
+  "view": "ngo-today",
+  "mode": "empty",
+  "width": "390",
+  "file": "ngo-today-empty-390.png",
+  "says": "Sunday, 15 November · Sample · Bengaluru Animal Care Trust Good afternoon, Farah 0 open tasks. 0 Open tasks 0 Done 0 Animals on the register 0 Open cases Work 0"
+ },
+ {
+  "view": "ngo-today",
+  "mode": "error",
+  "width": "390",
+  "file": "ngo-today-error-390.png",
+  "says": "Sunday, 15 November · Sample · Bengaluru Animal Care Trust Good afternoon, Farah Your work could not be read just now. — Open tasks — Done — Animals on the regi"
+ },
+ {
+  "view": "ngo-animals",
+  "mode": "populated",
+  "width": "390",
+  "file": "ngo-animals-populated-390.png",
+  "says": "Animals 35 animals on Sample · Bengaluru Animal Care Trust's register. Unknown is kept apart from no. Record an animal All 35 Needs help Not sterilised Not vacc"
+ },
+ {
+  "view": "ngo-animals",
+  "mode": "empty",
+  "width": "390",
+  "file": "ngo-animals-empty-390.png",
+  "says": "Animals 0 animals on Sample · Bengaluru Animal Care Trust's register. Unknown is kept apart from no. Record an animal All 0 Needs help Not sterilised Not vaccin"
+ },
+ {
+  "view": "ngo-animals",
+  "mode": "error",
+  "width": "390",
+  "file": "ngo-animals-error-390.png",
+  "says": "Animals The register could not be read. Nothing is shown as zero. Record an animal All 0 Needs help Not sterilised Not vaccinated Identity review Every place Do"
+ },
+ {
+  "view": "ngo-cases",
+  "mode": "populated",
+  "width": "390",
+  "file": "ngo-cases-populated-390.png",
+  "says": "Cases 30 open, 4 critical or high, 0 held by nobody, at Sample · Bengaluru Animal Care Trust. New case Open 30 Mine 0 Unassigned 0 Critical and high 4 Follow-up"
+ },
+ {
+  "view": "ngo-cases",
+  "mode": "empty",
+  "width": "390",
+  "file": "ngo-cases-empty-390.png",
+  "says": "Cases 0 open, 0 held by nobody, at Sample · Bengaluru Animal Care Trust. New case Open 0 Mine 0 Unassigned 0 Critical and high 0 Follow-up due 0 Resolved 0 No c"
+ },
+ {
+  "view": "ngo-cases",
+  "mode": "error",
+  "width": "390",
+  "file": "ngo-cases-error-390.png",
+  "says": "Cases Cases could not be read. Nothing is shown as zero. New case Open 0 Mine 0 Unassigned 0 Critical and high 0 Follow-up due 0 Resolved 0 Could not read this "
+ },
+ {
+  "view": "gov-overview",
+  "mode": "populated",
+  "width": "390",
+  "file": "gov-overview-populated-390.png",
+  "says": "Bengaluru Rabies Elimination · Illustrative Overview Part of Karnataka One Health · Illustrative. You manage this programme. 2 Urgent alerts open 4 Areas below "
+ },
+ {
+  "view": "gov-overview",
+  "mode": "empty",
+  "width": "390",
+  "file": "gov-overview-empty-390.png",
+  "says": "Overview Programme Coordination Cell does not oversee a programme on StrayPaw yet."
+ },
+ {
+  "view": "gov-overview",
+  "mode": "error",
+  "width": "390",
+  "file": "gov-overview-error-390.png",
+  "says": "Overview Could not read this Your programmes could not be read, so nothing is shown as missing. Service unavailable Try again"
+ },
+ {
+  "view": "gov-surveillance",
+  "mode": "populated",
+  "width": "390",
+  "file": "gov-surveillance-populated-390.png",
+  "says": "Bengaluru Rabies Elimination · Illustrative Surveillance 64 exposures recorded in the last 90 days, 1 laboratory-confirmed positive. Alerts follow fixed program"
+ },
+ {
+  "view": "gov-surveillance",
+  "mode": "empty",
+  "width": "390",
+  "file": "gov-surveillance-empty-390.png",
+  "says": "Surveillance Programme Coordination Cell is not part of a programme that shares surveillance on StrayPaw. Bite, laboratory and handoff signals appear here once "
+ },
+ {
+  "view": "gov-surveillance",
+  "mode": "error",
+  "width": "390",
+  "file": "gov-surveillance-error-390.png",
+  "says": "Surveillance Could not read this Your programmes could not be read, so nothing is shown as missing. Service unavailable Try again"
+ },
+ {
+  "view": "health-pep",
+  "mode": "populated",
+  "width": "390",
+  "file": "health-pep-populated-390.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Doses due 2 due today, 3 overdue. Schedules are the clinician's; StrayPaw only counts the days. All due 8 Today 2 Overdue 3"
+ },
+ {
+  "view": "health-pep",
+  "mode": "empty",
+  "width": "390",
+  "file": "health-pep-empty-390.png",
+  "says": ""
+ },
+ {
+  "view": "health-pep",
+  "mode": "error",
+  "width": "390",
+  "file": "health-pep-error-390.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Doses due Doses due could not be read, so nothing is shown as zero. All due — Today — Overdue — Could not read this Service"
+ },
+ {
+  "view": "health-referrals",
+  "mode": "populated",
+  "width": "390",
+  "file": "health-referrals-populated-390.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Referrals 1 person is on the way here. A referral carries the case code, category and service needed; names and phone numbe"
+ },
+ {
+  "view": "health-referrals",
+  "mode": "empty",
+  "width": "390",
+  "file": "health-referrals-empty-390.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Referrals 0 people are on the way here. A referral carries the case code, category and service needed; names and phone numb"
+ },
+ {
+  "view": "health-referrals",
+  "mode": "error",
+  "width": "390",
+  "file": "health-referrals-error-390.png",
+  "says": "Teaching Hospital Anti-Rabies Clinic Referrals Referrals could not be read, so nothing is shown as zero. On the way here — Sent by us — All — Requests to us — W"
+ },
+ {
+  "view": "lab-samples",
+  "mode": "populated",
+  "width": "390",
+  "file": "lab-samples-populated-390.png",
+  "says": "Reference Rabies Diagnostic Laboratory Samples 3 in the queue, the oldest collected 7 days ago. A result is released when a laboratory scientist records it with"
+ },
+ {
+  "view": "lab-samples",
+  "mode": "empty",
+  "width": "390",
+  "file": "lab-samples-empty-390.png",
+  "says": "Reference Rabies Diagnostic Laboratory Samples 0 in the queue. A result is released when a laboratory scientist records it with the method and validates it. All"
+ },
+ {
+  "view": "lab-samples",
+  "mode": "error",
+  "width": "390",
+  "file": "lab-samples-error-390.png",
+  "says": "Reference Rabies Diagnostic Laboratory Samples Samples could not be read, so nothing is shown as zero. All samples — Arriving — Rejected — Could not read this S"
+ },
+ {
+  "view": "lab-results",
+  "mode": "populated",
+  "width": "390",
+  "file": "lab-results-populated-390.png",
+  "says": "Reference Rabies Diagnostic Laboratory Results 2 released, 1 positive. A result is released when a laboratory scientist records it with the method and validates"
+ },
+ {
+  "view": "lab-results",
+  "mode": "empty",
+  "width": "390",
+  "file": "lab-results-empty-390.png",
+  "says": "Reference Rabies Diagnostic Laboratory Results 0 released, 0 positive. A result is released when a laboratory scientist records it with the method and validates"
+ },
+ {
+  "view": "lab-results",
+  "mode": "error",
+  "width": "390",
+  "file": "lab-results-error-390.png",
+  "says": "Reference Rabies Diagnostic Laboratory Results Results could not be read, so nothing is shown as zero. All — Positive — Positive, no notice — Could not read thi"
+ },
+ {
+  "view": "research-studies",
+  "mode": "populated",
+  "width": "390",
+  "file": "research-studies-populated-390.png",
+  "says": "Programme Epidemiology Unit Studies 1 open study. Each uses one programme's aggregated data, with small counts suppressed by the database. New study Open 1 Clos"
+ },
+ {
+  "view": "research-studies",
+  "mode": "empty",
+  "width": "390",
+  "file": "research-studies-empty-390.png",
+  "says": "Programme Epidemiology Unit Studies 0 open studies. Each uses one programme's aggregated data, with small counts suppressed by the database. New study Open 0 Cl"
+ },
+ {
+  "view": "research-studies",
+  "mode": "error",
+  "width": "390",
+  "file": "research-studies-error-390.png",
+  "says": "Programme Epidemiology Unit Studies Studies could not be read, so nothing is shown as zero. New study Open — Closed — All — Could not read this Studies could no"
+ },
+ {
+  "view": "channels",
+  "mode": "populated",
+  "width": "390",
+  "file": "channels-populated-390.png",
+  "says": "#general does not exist yet Create it for Sample · Bengaluru Animal Care Trust. Everyone in the organisation can read and post. Create #general"
+ },
+ {
+  "view": "channels",
+  "mode": "empty",
+  "width": "390",
+  "file": "channels-empty-390.png",
+  "says": "#general does not exist yet Create it for Sample · Bengaluru Animal Care Trust. Everyone in the organisation can read and post. Create #general"
+ },
+ {
+  "view": "channels",
+  "mode": "error",
+  "width": "390",
+  "file": "channels-error-390.png",
+  "says": "general Sample · Bengaluru Animal Care Trust Messages Work Records Files Reading messages… Service unavailable Enter to send · Shift Enter for a new line Send"
+ },
+ {
+  "view": "kaju",
+  "mode": "populated",
+  "width": "390",
+  "file": "kaju-populated-390.png",
+  "says": "Works inside Sample · Bengaluru Animal Care Trust, with your permissions What should we get done? Ask a question, or hand over an outcome. Kaju shows its plan f"
+ },
+ {
+  "view": "kaju",
+  "mode": "empty",
+  "width": "390",
+  "file": "kaju-empty-390.png",
+  "says": "Works inside Sample · Bengaluru Animal Care Trust, with your permissions What should we get done? Ask a question, or hand over an outcome. Kaju shows its plan f"
+ },
+ {
+  "view": "kaju",
+  "mode": "error",
+  "width": "390",
+  "file": "kaju-error-390.png",
+  "says": "Works inside Sample · Bengaluru Animal Care Trust, with your permissions What should we get done? Ask a question, or hand over an outcome. Kaju shows its plan f"
+ }
+]

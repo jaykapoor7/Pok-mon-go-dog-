@@ -24,7 +24,7 @@ import { EVIDENCE_LABEL, type EvidenceKind } from "@/lib/abc";
 import type { IntakeData, LifecycleData, OperationKind, WorkflowPolicy } from "@/lib/operations";
 import { archiveDraft, clearOfflineDevice, deleteDraft, fieldCache, lockOffline, offlineUnlocked, offlineVaultExists, putDraft, readDrafts, readSynced, startOnlineSession, unlockOffline, type FieldDraft, type SyncedFieldRecord, type VaccinationData } from "@/lib/field/outbox";
 import { submitFieldDraft } from "@/lib/field/sync";
-import { backToAssigned, isoDay, setFollowup, shortCode, startWork, type Actor } from "../../data/ngo";
+import { backToAssigned, ensureVolunteer, isoDay, setFollowup, shortCode, startWork, type Actor } from "../../data/ngo";
 import { LifecycleForm, TryLink, undoWith } from "./parts";
 import "../../css/ngo-records.css";
 
@@ -193,6 +193,9 @@ function Round({ org, actor, scope, mode, online, head, offlineReady, storageErr
     let sent = 0, bad = 0;
     try {
       const queued = (await readDrafts(scope)).filter((d) => !only || only.includes(d.id)).sort((a, b) => Number(!!b.intake) - Number(!!a.intake) || Date.parse(a.at) - Date.parse(b.at));
+      // An intake opens a case assigned to this person, which needs their volunteer row; someone whose first record is
+      // made in the field has none yet, and the server would refuse the case.
+      if (queued.some((d) => d.intake)) await ensureVolunteer(actor);
       for (const d of queued) {
         try { const saved = await submitFieldDraft(d, actor.id, org.org_id); await archiveDraft(d, { id: d.id, scope, at: saved.confirmedAt, caseId: saved.caseId, dogId: saved.dogId, auditId: saved.audit_id, label: d.note.slice(0, 120) }); sent++; }
         catch (e) { bad++; await putDraft({ ...d, status: "failed", error: errText(e) }).catch(() => {}); }
@@ -202,7 +205,7 @@ function Round({ org, actor, scope, mode, online, head, offlineReady, storageErr
       if (sent) await load();
     } catch (e) { setStorageError(`${errText(e)} The records stay on this phone.`); }
     finally { lock.current = false; setSyncing(false); await readBox(); }
-  }, [scope, actor.id, org.org_id, load, readBox, setStorageError]);
+  }, [scope, actor, org.org_id, load, readBox, setStorageError]);
   /* Online, a saved record goes straight away; offline, it waits until the person chooses to send. */
   /* Each record is tried once by itself; a record that fails waits for a person, so a refusal never loops. */
   const tried = useRef(new Set<string>());

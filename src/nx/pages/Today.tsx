@@ -26,9 +26,9 @@ function SampleToday() {
     <motion.li key={w.id} layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={spring}>
       <div className={`nx-tr is-work ${isDone ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: COLS }}>
         <Check done={isDone} onClick={() => toggle(w.id)} label={isDone ? `Reopen: ${w.title}` : `Mark done: ${w.title}`} />
-        <Link href={w.animal ? `/ngo/animals/${w.animal}` : "/ngo/animals"} className="nx-cell-main"><span><b>{w.title}</b><small>{w.ref} · {w.kind}<span className="nx-only-s"> · {w.place}</span></small></span></Link>
+        <Link href={w.animal ? `/ngo/animals/${w.animal}` : "/ngo/animals"} className="nx-cell-main"><span><b>{w.title}</b><small>{w.ref} · {w.kind}<span className="nx-only-s"> · {w.place}</span><span className="nx-place-m"> · {w.place}</span></small></span></Link>
         <span className="nx-t2 nx-hide-s">{w.who}</span>
-        <span className="nx-t2 nx-hide-s">{w.place}</span>
+        <span className="nx-t2 nx-hide-s is-place">{w.place}</span>
         <span>{isDone ? <Chip tone="ok">Done</Chip> : <Chip tone={w.tone}>{w.state}</Chip>}</span>
         <span className="nx-t3 nx-hide-s">{w.when}</span>
       </div>
@@ -55,8 +55,8 @@ function SampleToday() {
           <div>
             <section className="nx-sec" aria-labelledby="t-work">
               <div className="nx-sec-h"><h2 id="t-work">My work</h2><span className="nx-count">{open.length}</span><Link href="/ngo/animals">All work <ArrowRight size={12} /></Link></div>
-              <div className="nx-table">
-                <div className="nx-tr nx-th" style={{ gridTemplateColumns: COLS }}><span /><span>Record</span><span>Assigned to</span><span>Place</span><span>State</span><span>Updated</span></div>
+              <div className="nx-table is-today">
+                <div className="nx-tr nx-th is-head" style={{ gridTemplateColumns: COLS }}><span /><span>Record</span><span>Assigned to</span><span className="is-place">Place</span><span>State</span><span>Updated</span></div>
                 <LayoutGroup>
                   {GROUPS.map((g) => {
                     const rows = open.filter((w) => w.group === g);
@@ -132,7 +132,7 @@ function LiveToday() {
   return (
     <Shell crumb={["Today"]}>
       <div className="nx-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{date} · {org!.name}</p><h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1><p className="nx-sub">{tasks.rows === null ? "Reading your work…" : <><b className="num">{open.length}</b> open {open.length === 1 ? "task" : "tasks"}{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}.</>}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{date} · {org!.name}</p><h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1><p className="nx-sub">{tasks.rows === null && tasks.error ? "Your work could not be read just now." : tasks.rows === null ? "Reading your work…" : <><b className="num">{open.length}</b> open {open.length === 1 ? "task" : "tasks"}{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}.</>}</p></div></div>
         <div className="nx-figs">
           {fig(tasks.rows === null ? null : open.length, "Open tasks")}
           {fig(tasks.rows === null ? null : closed.length, "Done")}

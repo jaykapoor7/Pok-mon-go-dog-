@@ -75,6 +75,10 @@
 .nx-side-f b { color: var(--ink-2); font-weight: 500; }
 
 /* Main column */
+/* Skip link: the first thing a keyboard reaches, hidden until it has focus. */
+.nx-skip { position: fixed; z-index: 200; left: 12px; top: -60px; padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--bg); font-weight: 600; text-decoration: none; }
+.nx-skip:focus { top: 12px; outline: 2px solid var(--focus, #4c8dff); outline-offset: 2px; }
+.nx-body:focus { outline: none; }
 .nx-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
 .nx-main > .nx-top { flex: 0 0 44px; }
 .nx-main > .nx-body { flex: 1 1 auto; }
@@ -258,6 +262,16 @@ button.nx-tr, a.nx-tr { width: 100%; }
   .nx-rec > :nth-child(2) { border-left: 0; padding-left: 32px; }
   .nx-props { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
   .nx-search { width: 170px; }
+}
+/* Today's work table: in a narrow column the record keeps room to be read, and its place moves under it. */
+.nx .nx-place-m { display: none; }
+.nx .nx-table.is-today { container-type: inline-size; }
+@media (min-width: 641px) {
+  @container (max-width: 720px) {
+    .nx .nx-table.is-today .nx-tr.is-work, .nx .nx-table.is-today .nx-tr.is-head { grid-template-columns: 28px minmax(0, 1fr) 108px 132px 56px !important; }
+    .nx .nx-table.is-today .is-place { display: none; }
+    .nx .nx-table.is-today .nx-place-m { display: inline; }
+  }
 }
 @media (max-width: 640px) {
   .nx { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; font-size: 14px; }

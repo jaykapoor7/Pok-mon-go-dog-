@@ -44,11 +44,11 @@ jobs:
       - name: Wait for the deployment
         run: |
           for i in $(seq 1 30); do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "$E2E_BASE_URL/next/start" || true)
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$E2E_BASE_URL/start" || true)
             [ "$code" = "200" ] && exit 0
             sleep 20
           done
-          echo "The deployment did not answer at /next/start" && exit 1
+          echo "The deployment did not answer at /start" && exit 1
       - name: Signed-in suite
         run: npx playwright test e2e/rebuild-signed-in.spec.ts --project=desktop --trace off
       - name: Guided demo, every chapter
