@@ -259,3 +259,9 @@ export const LAB_DETAIL: Record<string, { received: string | null; bench: number
   x4: { received: "8 days ago", bench: null, method: "Direct fluorescent antibody test", by: "Laboratory scientist", on: "5 days ago", notice: "Sent to the programme coordinator, not opened yet", custody: [{ what: "Collected", who: "Field team", when: "9 days ago" }, { what: "Received", who: "Laboratory scientist", when: "8 days ago" }, { what: "Result released", who: "Laboratory scientist", when: "5 days ago", note: "Positive" }] },
   x5: { received: "19 days ago", bench: null, method: "Direct fluorescent antibody test", by: "Laboratory scientist", on: "16 days ago", notice: null, custody: [{ what: "Collected", who: "Municipal team", when: "20 days ago" }, { what: "Received", who: "Laboratory scientist", when: "19 days ago" }, { what: "Result released", who: "Laboratory scientist", when: "16 days ago", note: "Negative" }] },
 };
+
+/* ── Kaju mission history (sample) ─────────────────────────────── */
+export const MISSIONS_DONE: Mission[] = [
+  { id: "ms3", title: "Prepare follow-ups in Ward 08 due this week", meta: "Yesterday · approved by you", state: "Completed", tone: "ok", steps: [{ text: "Found 4 open cases in Ward 08 needing a follow-up", state: "done" }, { text: "Drafted 4 follow-up tasks for Field team B", state: "done" }, { text: "Created 4 tasks and told #field-operations", state: "done" }] },
+  { id: "ms4", title: "Prepare follow-ups due tomorrow", meta: "12 Nov · cancelled by you", state: "Cancelled", tone: "plain", steps: [{ text: "Found 2 open cases needing a follow-up; 1 already has one open", state: "done" }, { text: "Drafted 2 follow-up tasks", state: "done" }, { text: "Cancelled before anything was created", state: "todo" }] },
+];

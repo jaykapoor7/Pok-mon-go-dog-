@@ -304,3 +304,26 @@ test("Healthcare surveillance: programme totals, not this facility's patients", 
   await expect(page.locator(".nx-vbars")).toBeVisible();
   await noSideScroll(page);
 });
+
+test("Kaju approvals: missions stop for the person who started them, history keeps every step", async ({ page }) => {
+  await open(page, "/next/kaju/approvals");
+  await expect(page.locator("button.nx-tr")).toHaveCount(1);
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog").locator(".nx-steps li")).toHaveCount(4);
+  await page.getByRole("dialog").getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByRole("dialog")).toContainText("sign in to approve or cancel");
+  await page.keyboard.press("Escape");
+  await open(page, "/next/kaju/history");
+  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await noSideScroll(page);
+});
+
+test("Research map: areas only, synced with the table, suppressed areas hatched", async ({ page }) => {
+  await open(page, "/next/research/maps");
+  await expect(page.locator(".nx-area")).toHaveCount(6);
+  await page.getByRole("tab", { name: "Vaccination" }).click();
+  await page.locator(".nx-area").first().click();
+  await expect(page.locator(".nx-map-t .nx-tr.is-sel")).toHaveCount(1);
+  await expect(page.locator(".nx-note")).toContainText("do not show cause");
+  await noSideScroll(page);
+});

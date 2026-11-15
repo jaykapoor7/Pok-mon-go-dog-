@@ -145,9 +145,9 @@ export function useAnimal(ngoId: string | null, id: string | null) {
 }
 
 /* ── Kaju missions ───────────────────────────────────────────────── */
-export type MissionRow = { id: string; org_id: string; title: string; state: string; created_at: string; request: Record<string, string | null>; nx_mission_steps: { position: number; label: string; state: string; result: { tasks?: { title: string; label: string; due: string | null }[] } | null }[] };
+export type MissionRow = { id: string; org_id: string; owner_id?: string | null; title: string; state: string; created_at: string; updated_at?: string | null; request: Record<string, string | null>; nx_mission_steps: { position: number; label: string; state: string; tool?: string | null; approved_at?: string | null; result: { tasks?: { title: string; label: string; due: string | null }[]; created?: number; posted?: boolean } | null }[] };
 export function useMissions(orgId: string | null) {
-  return useRows<MissionRow>(orgId, () => getSupabase()!.from("nx_missions").select("id,org_id,title,state,created_at,request,nx_mission_steps(position,label,state,result)").eq("org_id", orgId!).order("created_at", { ascending: false }).limit(20));
+  return useRows<MissionRow>(orgId, () => getSupabase()!.from("nx_missions").select("id,org_id,owner_id,title,state,created_at,updated_at,request,nx_mission_steps(position,label,state,tool,approved_at,result)").eq("org_id", orgId!).order("created_at", { ascending: false }).limit(100));
 }
 export async function startFollowups(orgId: string, req: { place?: string; when?: string; team?: string; channel?: string }) {
   return getSupabase()!.rpc("nx_mission_followups", { p_org: orgId, p_request: req });
