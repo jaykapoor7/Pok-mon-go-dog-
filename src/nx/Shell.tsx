@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { ChevronsUpDown, Hash, Home, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
+import { ChevronsUpDown, Hash, Home, Users, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CH_PEOPLE, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
 import { GOV, HEALTH, KAJU, LAB, NGO, RESEARCH, VET, VET_PATHS, WS_LABEL, classicOf, homeOf } from "./nav";
 import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
+import { useProgrammeChannels } from "./collab";
 import { OfflineBar, ToastHost } from "./kit";
 import { KajuProvider, useKaju } from "./kaju/state";
 import { KajuDock } from "./kaju/Dock";
@@ -79,6 +80,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const [adding, setAdding] = useState(false);
   const unreadMap = useUnread(live.org?.org_id ?? null, path);
   const dms = useDms(live.org?.org_id ?? null);
+  const progChans = useProgrammeChannels(!!live.org);
   const [picking, setPicking] = useState(false);
   const chanName = (id: string) => chans.rows?.find((c) => c.id === id)?.name ?? null;
   const office = live.org?.source === "review_office";
@@ -119,9 +121,10 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
           {nav.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span>{i.n && !live.org ? <i>{i.n}</i> : null}</Link>)}
           <div className="nx-nav-h">Channels<button type="button" aria-label="New channel" onClick={() => live.org && setAdding(true)}><Plus size={13} /></button></div>
           {live.org ? <>
-            {(chans.rows ?? []).filter((c) => c.kind !== "dm").map((c) => { const href = `/next/channels/${c.name}`; const n = path === href ? 0 : unreadMap[c.id] ?? 0; return <Link key={c.id} href={href} className={`nx-item ${path === href ? "is-on" : n ? "is-unread" : ""}`} aria-current={path === href ? "page" : undefined} aria-label={n ? `#${c.name}, ${n} unread` : undefined}><Hash size={14} /><span>{c.name}</span>{n ? <i>{n}</i> : null}</Link>; })}
-            {chans.rows && !chans.rows.some((c) => c.kind !== "dm") && !adding ? <Link href="/next/channels/general" className="nx-item"><Plus size={14} /><span>Create #general</span></Link> : null}
+            {(chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => { const href = `/next/channels/${c.name}`; const n = path === href ? 0 : unreadMap[c.id] ?? 0; return <Link key={c.id} href={href} className={`nx-item ${path === href ? "is-on" : n ? "is-unread" : ""}`} aria-current={path === href ? "page" : undefined} aria-label={n ? `#${c.name}, ${n} unread` : undefined}><Hash size={14} /><span>{c.name}</span>{n ? <i>{n}</i> : null}</Link>; })}
+            {chans.rows && !chans.rows.some((c) => c.kind === "channel" || c.kind === "announcement") && !adding ? <Link href="/next/channels/general" className="nx-item"><Plus size={14} /><span>Create #general</span></Link> : null}
             {adding ? <form className="nx-item" onSubmit={(e) => { e.preventDefault(); void addChannel(new FormData(e.currentTarget).get("n") as string); }}><Hash size={14} /><input name="n" autoFocus aria-label="Channel name" placeholder="channel-name" maxLength={40} onBlur={() => setAdding(false)} onKeyDown={(e) => { if (e.key === "Escape") setAdding(false); }} style={{ border: 0, outline: 0, background: "none", font: "inherit", color: "inherit", width: "100%", padding: 0 }} /></form> : null}
+            {progChans?.length ? <><div className="nx-nav-h">Programme channels</div>{progChans.map((c) => { const href = `/next/channels/${c.name}`; return <Link key={c.id} href={href} className={`nx-item ${path === href ? "is-on" : ""}`} aria-current={path === href ? "page" : undefined} title={c.programme_name}><Users size={14} /><span>{c.name}</span></Link>; })}</> : null}
             <div className="nx-nav-h">Direct messages<button type="button" aria-label="New direct message" aria-expanded={picking} onClick={() => setPicking((x) => !x)}><Plus size={13} /></button></div>
             {picking ? <People orgId={live.org.org_id} me={live.userId} onClose={() => setPicking(false)} onPick={async (id) => { const r = await openDm(live.org!.org_id, id); setPicking(false); if (r.name) { chans.reload(); dms.reload(); router.push(`/next/channels/${r.name}`); } }} /> : null}
             {[...(dms.rows ?? [])].sort((a, b) => (b.last_at ?? "").localeCompare(a.last_at ?? "")).map((d) => { const name = chanName(d.channel_id); if (!name) return null; const href = `/next/channels/${name}`; const n = path === href ? 0 : unreadMap[d.channel_id] ?? 0; return <Link key={d.channel_id} href={href} className={`nx-item ${path === href ? "is-on" : n ? "is-unread" : ""}`} aria-current={path === href ? "page" : undefined}><span className="nx-dot is-away" /><span>{d.other_name}</span>{n ? <i>{n}</i> : null}</Link>; })}

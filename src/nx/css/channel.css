@@ -1,0 +1,41 @@
+/* Channels: files, mentions, reactions, edits and message tools. */
+.nx-msg { position: relative; }
+.nx-msg.is-focus { background: var(--accent-soft); }
+.nx-msg.is-deleted p { font-style: italic; }
+.nx-msg-tools { position: absolute; top: 4px; right: 6px; display: flex; gap: 2px; opacity: 0; transition: opacity .12s; background: var(--bg); border-radius: 7px; box-shadow: inset 0 0 0 1px var(--line); padding: 1px; }
+.nx-msg:hover .nx-msg-tools, .nx-msg:focus-within .nx-msg-tools { opacity: 1; }
+.nx-msg-tools .nx-ib { width: 26px; height: 26px; }
+.nx-pop { position: absolute; right: 0; top: 30px; z-index: 6; display: flex; gap: 2px; padding: 4px; background: var(--bg); border-radius: 9px; box-shadow: var(--shadow), inset 0 0 0 1px var(--line); }
+.nx-pop button { border: 0; background: none; font-size: 16px; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.nx-pop button:hover, .nx-pop button:focus-visible { background: var(--hover); outline: none; }
+.nx-pop.is-menu { flex-direction: column; min-width: 140px; }
+.nx-pop.is-menu button { width: 100%; justify-content: flex-start; font-size: 13px; padding: 0 10px; }
+.nx-pop.is-menu button.is-bad { color: var(--bad); }
+.nx-reacts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.nx-reacts button { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border: 0; border-radius: 12px; background: var(--hover); color: var(--ink-2); font: inherit; font-size: 12px; cursor: pointer; }
+.nx-reacts button.is-mine { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.nx-file { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; height: 30px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--side); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: 12.5px; cursor: pointer; }
+.nx-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-file small { color: var(--ink-3); }
+.nx-file:hover:not([disabled]) { background: var(--hover); }
+.nx-file.is-pending { cursor: default; }
+.nx-file.is-pending button { border: 0; background: none; color: var(--ink-3); cursor: pointer; display: grid; place-items: center; }
+.nx-compose { position: relative; }
+.nx-compose-files { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px 6px; }
+.nx-compose.is-closed { display: flex; align-items: center; gap: 8px; padding: 12px; color: var(--ink-2); font-size: 12.5px; }
+.nx-mention { position: absolute; left: 8px; bottom: calc(100% + 4px); z-index: 7; list-style: none; margin: 0; padding: 4px; background: var(--bg); border-radius: 10px; box-shadow: var(--shadow), inset 0 0 0 1px var(--line); min-width: 220px; }
+.nx-mention button { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 6px; cursor: pointer; text-align: left; }
+.nx-mention button:hover { background: var(--hover); }
+.nx-mention .nx-msg-f { width: 22px; height: 22px; font-size: 9px; }
+.nx-edit { display: grid; gap: 6px; margin-top: 4px; }
+.nx-edit textarea { width: 100%; min-height: 60px; border: 0; border-radius: 8px; box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--bg); color: var(--ink); font: inherit; padding: 8px 10px; resize: vertical; }
+.nx-edit div { display: flex; gap: 6px; }
+@media (max-width: 640px) { .nx-msg-tools { opacity: 1; position: static; margin-top: 6px; width: max-content; } .nx-msg { grid-template-columns: 32px minmax(0, 1fr); } }
+@media (hover: none) { .nx-msg-tools { opacity: 1; } }
+.nx-rthread { display: grid; gap: 8px; }
+.nx-rthread-l { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.nx-rthread-l li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; }
+.nx-rthread-l .nx-msg-f { width: 28px; height: 28px; font-size: 10px; }
+.nx-rthread-l time { color: var(--ink-3); font-size: 11px; margin-left: 6px; }
+.nx-rthread-l p { white-space: pre-wrap; margin-top: 1px; }
+.nx-rthread-l li.is-deleted p { color: var(--ink-3); font-style: italic; }
