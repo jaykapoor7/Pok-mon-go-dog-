@@ -36,7 +36,7 @@ const KAJU = [
   { href: "/next/kaju/insights", label: "Insights", icon: BarChart3 },
   { href: "/next/kaju/history", label: "History", icon: History },
 ];
-const BUILT = new Set(["/next/ngo/today", "/next/ngo/animals", "/next/gov/overview", "/next/kaju"]);
+const BUILT = new Set(["/next/ngo/today", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/kaju"]);
 const WS_LABEL: Record<string, string> = { ngo: "NGO workspace", government: "Government & Programmes", healthcare: "Healthcare", research: "Research" };
 export type Ws = "ngo" | "gov" | "kaju";
 
