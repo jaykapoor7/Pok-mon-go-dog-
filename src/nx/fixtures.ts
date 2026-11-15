@@ -138,3 +138,22 @@ export const CASES: SampleCase[] = [
   { id: "c6", code: "CASE-0198", title: "Brindle male, sterilised and released", kind: "Sterilisation", severity: "Normal", place: "Ward 08", who: "Nisha R.", stage: "Closed", next: "—", due: null, updated: "6 Nov", resolved: true, trust: "Verified" },
   { id: "c7", code: "CASE-0187", title: "White dog, eye infection treated", kind: "Injury", severity: "Normal", place: "Ward 02", who: "Dr. Arun K.", stage: "Closed", next: "—", due: null, updated: "2 Nov", resolved: true, trust: "Verified" },
 ];
+
+/* ── Inbox and submissions (sample) ──────────────────────────────── */
+export type SampleReport = { id: string; what: string; note: string; place: string; from: string; source: "Citizen report" | "WhatsApp" | "Email" | "Partner referral"; state: string; tone: Tone; when: string; match?: string };
+export const REPORTS: SampleReport[] = [
+  { id: "r1", what: "Dog hit by a two-wheeler, cannot stand", note: "Near the flower market gate. Reporter is staying with the dog.", place: "Ward 12", from: "Resident", source: "Citizen report", state: "New", tone: "bad", when: "10 min" },
+  { id: "r2", what: "Tan female with a notched ear, limping", note: "Seen three days running outside the bakery.", place: "Ward 08", from: "Feeder", source: "Citizen report", state: "New", tone: "accent", when: "1 h", match: "AN-1107 · Tan female, notched ear" },
+  { id: "r3", what: "Puppies under a parked lorry", note: "Four or five, mother nearby. Lorry leaves on Monday.", place: "Ward 05", from: "Shopkeeper", source: "Citizen report", state: "New", tone: "accent", when: "3 h" },
+  { id: "r4", what: "Referral: dog under observation after a bite", note: "Sent by the health centre. Animal facts only; no patient details are shared here.", place: "Ward 08", from: "Health centre", source: "Partner referral", state: "Assigned", tone: "warn", when: "Yesterday" },
+  { id: "r5", what: "Same dog reported again at the bus stand", note: "Looks like the pale female already on the register.", place: "Ward 05", from: "Resident", source: "Citizen report", state: "Possible duplicate", tone: "warn", when: "Yesterday", match: "AN-0933 · Pale dog near the bus stand" },
+  { id: "r6", what: "Cat stuck on a second-floor ledge", note: "Fire service already called by the reporter.", place: "Ward 14", from: "Resident", source: "Citizen report", state: "Closed", tone: "plain", when: "2 days" },
+];
+export type SampleSubmission = { id: string; title: string; office: string; period: string; records: number; ready: number; state: "Draft" | "Submitted" | "Query open" | "Accepted" | "Returned"; tone: Tone; when: string; note: string };
+export const SUBMISSIONS: SampleSubmission[] = [
+  { id: "s1", title: "November 2026 · sterilisation", office: "East Zone office", period: "1–30 Nov", records: 48, ready: 43, state: "Draft", tone: "plain", when: "Today", note: "5 records still need a location photo." },
+  { id: "s2", title: "October 2026 · sterilisation", office: "East Zone office", period: "1–31 Oct", records: 61, ready: 61, state: "Query open", tone: "warn", when: "Yesterday", note: "The reviewer asked about two release dates." },
+  { id: "s3", title: "October 2026 · vaccination", office: "East Zone office", period: "1–31 Oct", records: 204, ready: 204, state: "Submitted", tone: "accent", when: "4 Nov", note: "Waiting for the reviewing office." },
+  { id: "s4", title: "September 2026 · sterilisation", office: "East Zone office", period: "1–30 Sep", records: 57, ready: 57, state: "Accepted", tone: "ok", when: "12 Oct", note: "Accepted by the reviewing office. Accepted is not paid." },
+  { id: "s5", title: "August 2026 · sterilisation", office: "East Zone office", period: "1–31 Aug", records: 52, ready: 52, state: "Returned", tone: "bad", when: "9 Sep", note: "Returned: 3 records had no surgeon's authorisation." },
+];

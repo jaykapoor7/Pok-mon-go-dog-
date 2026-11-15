@@ -36,7 +36,7 @@ const KAJU = [
   { href: "/next/kaju/insights", label: "Insights", icon: BarChart3 },
   { href: "/next/kaju/history", label: "History", icon: History },
 ];
-const BUILT = new Set(["/next/ngo/today", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/kaju"]);
+const BUILT = new Set(["/next/ngo/today", "/next/ngo/inbox", "/next/ngo/submissions", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/kaju"]);
 const WS_LABEL: Record<string, string> = { ngo: "NGO workspace", government: "Government & Programmes", healthcare: "Healthcare", research: "Research" };
 export type Ws = "ngo" | "gov" | "kaju";
 
@@ -80,7 +80,7 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
         <div className="nx-nav">
           {nav.map((i) => (
             BUILT.has(i.href)
-              ? <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span>{i.n ? <i>{i.n}</i> : null}</Link>
+              ? <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span>{i.n && !live.org ? <i>{i.n}</i> : null}</Link>
               : <span key={i.href} className="nx-item is-soon" aria-disabled="true" title="Not built yet"><i.icon size={15} /><span>{i.label}</span><i>Soon</i></span>
           ))}
           <div className="nx-nav-h">Channels<button type="button" aria-label="New channel" onClick={() => live.org && setAdding(true)}><Plus size={13} /></button></div>
