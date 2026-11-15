@@ -434,3 +434,9 @@ a.nx-side-f:hover { color: var(--ink-2); background: var(--hover); }
   .nx-span { height: 34px; }
   .nx-legend { display: none; }
 }
+
+/* Add row */
+.nx-add { display: flex; align-items: center; gap: 9px; height: 40px; padding: 0 8px; border-bottom: 1px solid var(--line); color: var(--ink-3); }
+.nx-add input { flex: 1; border: 0; outline: 0; background: none; font: inherit; color: var(--ink); padding: 0; min-width: 0; }
+.nx-add:focus-within { border-bottom-color: var(--accent); color: var(--accent); }
+@media (max-width: 640px) { .nx-add input { font-size: 16px; } .nx-add { height: 48px; } }
