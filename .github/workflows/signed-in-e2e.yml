@@ -1,0 +1,55 @@
+name: Signed-in checks (demo)
+
+# The rebuilt app, signed in as each sample role on demo.straypaw.org, which runs on staging's illustrative data.
+# Read-only: the suite opens pages and never creates, changes or deletes a record. It needs no secrets: it signs in
+# the way a visitor does on /try. Runs by hand, and once after each demo sync so the deployment has had time to finish.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Deployment to check"
+        required: true
+        default: "https://demo.straypaw.org"
+  workflow_run:
+    workflows: ["Demo sync"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signed-in-e2e
+  cancel-in-progress: true
+
+jobs:
+  signed-in:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      E2E_SIGNED_IN: "1"
+      OH_E2E: "1"
+      E2E_BASE_URL: ${{ inputs.base_url || 'https://demo.straypaw.org' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install browser
+        run: timeout 300 npx playwright install --with-deps chromium || npx playwright install chromium
+      # The demo deploy finishes a few minutes after the sync; wait until the deployment answers with the new app.
+      - name: Wait for the deployment
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$E2E_BASE_URL/next/start" || true)
+            [ "$code" = "200" ] && exit 0
+            sleep 20
+          done
+          echo "The deployment did not answer at /next/start" && exit 1
+      - name: Signed-in suite
+        run: npx playwright test e2e/rebuild-signed-in.spec.ts --project=desktop --trace off
+      - name: Guided demo, every chapter
+        run: npx playwright test e2e/demo-story.spec.ts --project=desktop --trace off

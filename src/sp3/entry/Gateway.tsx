@@ -13,10 +13,8 @@ import "@/sp4/sp4.css";
 import "@/sp4/entry4.css";
 import { Onboarding } from "@/sp/onboard/Onboarding";
 import { flowHoldsWelcome, readFlow, type Outcome } from "@/sp/onboard/flow";
-import { DEMO_SITE } from "@/lib/demo-site";
+import { getSupabase } from "@/lib/supabase";
 
-/** Whether this browser has been through the welcome. The demo site never interrupts its guided tour with it. */
-function welcomed() { try { return DEMO_SITE || localStorage.getItem("sp.onboard.done") === "1"; } catch { return true; } }
 
 /* ════════════════════════════════════════════════════════════════════
    Open App. The product gateway.
@@ -46,21 +44,24 @@ export function Gateway() {
     /* Where to go is decided by server-checked memberships only: an NGO
        membership, a reviewing-office membership, both, or neither. A
        remembered workspace, an email domain or the URL never decides. */
-    Promise.all([isNgoMember(), getMyNgo().catch(() => null), getMyRole()]).then(([member, org, role]) => {
+    const workspaces = async () => { const db = getSupabase(); if (!db) return 0; const r = await db.rpc("nx_my_workspaces"); return r.error ? -1 : ((r.data ?? []) as unknown[]).length; };
+    Promise.all([isNgoMember(), getMyNgo().catch(() => null), getMyRole(), workspaces().catch(() => -1)]).then(([member, org, role, nws]) => {
       if (!live) return;
       const safe = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
       const reviewer = role.reviewer;
       /* The onboarding flow just signed this person in and is showing their welcome: stay on it. */
       const known: Outcome | undefined = member ? { kind: "member", role: role.role, org: org?.name ?? null, reviewer } : reviewer ? { kind: "reviewer" } : undefined;
       if (flowHoldsWelcome()) { setS({ phase: "choose", signedIn: true, known }); return; }
-      /* A member's first time here on this device (or returning from sign-in mid-welcome): Kaju shows them round once, then never again. */
-      if (known && !choose && !safe && (!welcomed() || readFlow())) { setS({ phase: "choose", signedIn: true, known }); return; }
+      /* Returning from sign-in in the middle of registering: finish that first. */
+      if (known && !choose && !safe && readFlow()) { setS({ phase: "choose", signedIn: true, known }); return; }
       const fits = (to: string) => (to.startsWith("/ngo") ? member : to.startsWith("/city/review") || to.startsWith("/city/contracts") ? reviewer : true);
       if (choose && (member || reviewer)) { setS(member && reviewer ? { phase: "both", org: org?.name ?? "your organisation" } : { phase: "choose", signedIn: true }); return; }
       if (safe && fits(safe)) { setS({ phase: "routing", to: safe, org: org?.name ?? "your workspace" }); router.replace(safe); return; }
-      if (member && reviewer) { setS({ phase: "both", org: org?.name ?? "your organisation" }); return; }
-      if (member) { setS({ phase: "routing", to: "/ngo", org: org?.name ?? "your organisation" }); router.replace("/ngo"); return; }
-      if (reviewer) { setS({ phase: "routing", to: "/city/insights", org: "your reviewing office" }); router.replace("/city/insights"); return; }
+      /* The new StrayPaw is the default: anyone with a workspace (an NGO, a programme partner, a reviewing office, an
+         NGO's veterinarian) opens it, and it picks the workspace. The classic pages stay one link away. */
+      if (member || reviewer || nws > 0) { setS({ phase: "routing", to: "/next", org: org?.name ?? "your workspace" }); router.replace("/next"); return; }
+      /* Signed in with no organisation yet: the new Start page lists the ways in. */
+      if (nws === 0) { setS({ phase: "routing", to: "/next/start", org: "StrayPaw" }); router.replace("/next/start"); return; }
       setS({ phase: "choose", signedIn: true });
     }).catch(() => { if (live) setS({ phase: "error" }); });
     return () => { live = false; };

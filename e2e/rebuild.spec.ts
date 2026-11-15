@@ -393,3 +393,16 @@ test("Nothing in any sidebar is marked Soon", async ({ page }) => {
     await expect(page.locator(".nx-item.is-soon")).toHaveCount(0);
   }
 });
+
+test("Start: every kind of organisation has a way in, and none is self-granted", async ({ page }) => {
+  await open(page, "/next/start");
+  await expect(page.locator(".nx-start .nx-chk")).toHaveCount(6);
+  await expect(page.getByText("never self-registered")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Register an NGO/ })).toHaveAttribute("href", /\/sign-in\?as=org/);
+  await noSideScroll(page);
+});
+
+test("Signed out, /next opens the sample workspace", async ({ page }) => {
+  await page.goto("/next");
+  await expect(page).toHaveURL(/\/next\/ngo\/today/);
+});

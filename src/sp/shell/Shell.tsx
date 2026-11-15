@@ -417,6 +417,7 @@ function Frame({ children, flush }: { children: ReactNode; flush: boolean }) {
     ...(places.length > 1 ? [{ heading: "Your places" } as MenuItem, ...places.map((p): MenuItem => ({ label: p.title, note: p.sub, on: p.on, onSelect: () => router.push(p.href) })), "divider" as const] : []),
     ...(user ? [
       ...(view === "ngo" && mem.role === "admin" ? [{ label: "Members and codes", icon: <Users size={14} />, onSelect: () => router.push("/ngo/team") } as MenuItem, { label: "Settings", icon: <Settings size={14} />, onSelect: () => router.push("/ngo/settings") } as MenuItem] : []),
+      { label: "Open the new StrayPaw", icon: <Sparkles size={14} />, onSelect: () => router.push("/next") } as MenuItem,
       { label: "Join a place with a code", icon: <Plus size={14} />, onSelect: () => router.push("/join") } as MenuItem,
       "divider" as const,
       { heading: user.email ?? user.name } as MenuItem,

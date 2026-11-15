@@ -70,3 +70,11 @@ export const PAGES: { href: string; label: string; ws: string; icon: NavItem["ic
   ...HEALTH.map((i) => ({ ...i, ws: "Healthcare" })), ...LAB.filter((i) => i.href !== "/next/health/today").map((i) => ({ ...i, ws: "Laboratory", lab: true })),
   ...RESEARCH.map((i) => ({ ...i, ws: "Research" })), ...KAJU.map((i) => ({ ...i, ws: "Kaju" })),
 ].filter((i) => BUILT.has(i.href));
+
+/** The classic page for the same work, kept reachable while the new app settles in. */
+export function classicOf(w: string, id: string, kind?: string, source?: string): string {
+  if (kind === "veterinary") return "/ngo/verification?stage=vet";
+  if (w === "ngo") return "/ngo";
+  if (source === "review_office") return "/city/insights";
+  return `/workspace/${id}`;
+}

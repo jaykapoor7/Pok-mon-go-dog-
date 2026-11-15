@@ -68,7 +68,7 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     const office = live.org?.source === "review_office", lab = live.org?.kind === "laboratory";
     const pages = PAGES.filter((p) => (!p.office || !live.org || office) && (!p.lab || !live.org || lab)).filter((p) => !l || `${p.label} ${p.ws}`.toLowerCase().includes(l)).slice(0, l ? 6 : 8)
       .map((p): Hit => ({ id: p.href + p.ws, group: "Pages", label: p.label, detail: p.ws, href: p.href, icon: <p.icon size={14} /> }));
-    const chanNames = live.org ? (chans.rows ?? []).map((c) => c.name) : CHANNELS.filter((c) => c.name === "abc-ward-12").map((c) => c.name);
+    const chanNames = live.org ? (chans.rows ?? []).filter((c) => c.kind !== "dm").map((c) => c.name) : CHANNELS.map((c) => c.name);
     const channels = chanNames.filter((c) => !l || c.includes(l)).slice(0, 4).map((c): Hit => ({ id: `#${c}`, group: "Channels", label: `#${c}`, href: `/next/channels/${c}`, icon: <Hash size={14} /> }));
     const kaju: Hit[] = l ? [{ id: "kaju", group: "Kaju", label: `Ask Kaju: “${q.trim()}”`, detail: "Nothing is sent until you press Run", href: `/next/kaju?q=${encodeURIComponent(q.trim())}`, icon: <Sparkles size={14} /> }] : [];
     return [...records, ...pages, ...channels, ...kaju];
