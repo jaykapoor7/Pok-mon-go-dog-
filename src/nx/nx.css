@@ -166,7 +166,8 @@ button.nx-tr, a.nx-tr { width: 100%; }
 
 /* Filter bar */
 .nx-bar { display: flex; align-items: center; gap: 6px; margin-top: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.nx-views { display: flex; gap: 2px; position: relative; flex: none; }
+.nx-views { display: flex; gap: 2px; position: relative; flex: 0 1 auto; min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: thin; padding: 2px; margin: -2px; }
+.nx-view { flex: none; }
 .nx-view { height: 28px; padding: 0 10px; border-radius: 7px; color: var(--ink-2); position: relative; display: inline-flex; align-items: center; gap: 6px; transition: color .12s; }
 .nx-view:hover { color: var(--ink); }
 .nx-view.is-on { color: var(--ink); font-weight: 500; }
