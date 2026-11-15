@@ -224,3 +224,43 @@ test("Programmes: coverage counts only animals whose status was recorded", async
   await expect(page.getByRole("dialog")).toContainText("not a share of the area");
   await noSideScroll(page);
 });
+
+test("Government programmes: coverage only where a dated estimate exists", async ({ page }) => {
+  await open(page, "/next/gov/programmes");
+  await expect(page.locator(".nx-sub").first()).toContainText("no estimate");
+  await page.getByRole("tab", { name: /^No estimate/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(1);
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("None recorded");
+  await page.keyboard.press("Escape");
+  await noSideScroll(page);
+});
+
+test("Partners: overdue requests first, services shown as last confirmed", async ({ page }) => {
+  await open(page, "/next/gov/partners");
+  const rows = page.locator("button.nx-tr");
+  await expect(rows).toHaveCount(6);
+  await expect(rows.first()).toContainText("overdue");
+  await page.getByRole("tab", { name: /^Health and laboratory/ }).click();
+  await expect(rows).toHaveCount(3);
+  await rows.filter({ hasText: "Health centre" }).first().click();
+  await expect(page.getByRole("dialog")).toContainText("not a stock count");
+  await noSideScroll(page);
+});
+
+test("Surveillance: small counts suppressed, alerts never declare an outbreak", async ({ page }) => {
+  await open(page, "/next/gov/surveillance");
+  await expect(page.locator(".nx-sub").first()).toContainText("none of them declares an outbreak");
+  await expect(page.locator(".nx-vbars text.sup")).toHaveCount(1);
+  await expect(page.locator(".nx-feed li")).toHaveCount(5);
+  await page.getByRole("tab", { name: "30 days" }).click();
+  await expect(page.getByRole("tab", { name: "30 days" })).toHaveAttribute("aria-selected", "true");
+  await noSideScroll(page);
+});
+
+test("Government reports: programme reports and accepted packages, nothing written by Kaju", async ({ page }) => {
+  await open(page, "/next/gov/reports");
+  await expect(page.getByRole("heading", { name: "Programme reports" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Accepted packages" }).locator(".nx-tr:not(.nx-th)")).toHaveCount(3);
+  await noSideScroll(page);
+});
