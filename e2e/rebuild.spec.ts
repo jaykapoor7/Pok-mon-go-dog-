@@ -50,6 +50,27 @@ test("Cases: views narrow one list, and a row opens its details", async ({ page 
   await noSideScroll(page);
 });
 
+test("Inbox: reports wait in one queue, and a suggested match stays a suggestion", async ({ page }) => {
+  await open(page, "/next/ngo/inbox");
+  await expect(page.locator("button.nx-tr")).toHaveCount(4);
+  await page.getByRole("tab", { name: /Possible match/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("Nothing is linked until a person confirms it");
+  await noSideScroll(page);
+});
+
+test("Submissions: packages are grouped by where they stand with the reviewing office", async ({ page }) => {
+  await open(page, "/next/ngo/submissions");
+  await expect(page.locator("button.nx-tr")).toHaveCount(5);
+  await expect(page.locator(".nx-sub")).toContainText("2 waiting on you");
+  await page.getByRole("tab", { name: /With the reviewing office/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await page.getByRole("tab", { name: /Decided/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await noSideScroll(page);
+});
+
 test("Insights: choosing a ward narrows the figures and the table together", async ({ page }) => {
   await open(page, "/next/gov/overview");
   await expect(page.locator("button.nx-tr")).toHaveCount(6);
