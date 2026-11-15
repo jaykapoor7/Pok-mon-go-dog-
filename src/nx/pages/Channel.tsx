@@ -160,13 +160,13 @@ function ChannelView(v: View) {
             <Composer v={v} parent={parent.id} placeholder="Reply in thread" autoFocus />
           </aside>
         ) : v.dm ? <aside className="nx-ch-side" aria-label="About this conversation">
-          <h3 className="nx-h3">Private</h3>
+          <h2 className="nx-h3">Private</h2>
           <p className="nx-foot" style={{ marginTop: 0 }}>Only you and {v.dm} can read this conversation and its files. Kaju is not part of direct messages, and nothing here becomes a task unless one of you creates it.</p>
         </aside> : <aside className="nx-ch-side" aria-label="About this channel">
-          <h3 className="nx-h3">Linked work <span className="nx-count">{open}</span></h3>
+          <h2 className="nx-h3">Linked work <span className="nx-count">{open}</span></h2>
           {open ? <ul className="nx-feed">{v.work.filter((w) => !w.done).slice(0, 4).map((w) => <li key={w.id} style={{ gridTemplateColumns: "16px minmax(0,1fr)" }}><span className="nx-check" aria-hidden /><div><b>{w.title}</b><small>{w.note}</small></div></li>)}</ul> : <p className="nx-foot" style={{ marginTop: 0 }}>Nothing open.</p>}
-          {v.people.length ? <><h3 className="nx-h3">People</h3><div className="nx-people">{v.people.map((p) => <Chip key={p} bare>{p}</Chip>)}</div></> : null}
-          <h3 className="nx-h3">Kaju here</h3>
+          {v.people.length ? <><h2 className="nx-h3">People</h2><div className="nx-people">{v.people.map((p) => <Chip key={p} bare>{p}</Chip>)}</div></> : null}
+          <h2 className="nx-h3">Kaju here</h2>
           <p className="nx-foot" style={{ marginTop: 0 }}>Kaju reads only what you can see in this channel, quotes messages as written, and asks before anything is created.</p>
         </aside>}
       </div>
