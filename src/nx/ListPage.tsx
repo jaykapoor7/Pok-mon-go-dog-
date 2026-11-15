@@ -45,6 +45,19 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
   const cols = columns.map((c) => c.width).join(" ");
   const shown = useMemo(() => { const v = views.find((x) => x.id === view) ?? views[0]; const n = q.trim().toLowerCase(); const out = rows.filter((r) => v.test(r) && (!n || !search || search(r).toLowerCase().includes(n))); return sort ? [...out].sort(sort) : out; }, [rows, views, view, q, search, sort]);
   const open = rows.find((r) => rowKey(r) === openId) ?? null;
+  /* Long lists render only the rows near the screen, so a register of thousands scrolls as smoothly as one of twenty. */
+  const BIG = 250, EST = typeof window !== "undefined" && window.innerWidth <= 640 ? 64 : 46;
+  const [win, setWin] = useState<[number, number]>([0, BIG]);
+  useEffect(() => {
+    if (shown.length <= BIG) return;
+    const m = document.getElementById("nx-main"); if (!m) return;
+    const t = document.querySelector(".nx-table[data-virtual]") as HTMLElement | null;
+    const on = () => { const top = Math.max(0, m.scrollTop - (t?.offsetTop ?? 0)); const first = Math.max(0, Math.floor(top / EST) - 40); setWin([first, first + Math.ceil(m.clientHeight / EST) + 80]); };
+    on(); m.addEventListener("scroll", on, { passive: true }); window.addEventListener("resize", on);
+    return () => { m.removeEventListener("scroll", on); window.removeEventListener("resize", on); };
+  }, [shown.length, EST]);
+  const virtual = shown.length > BIG;
+  const slice = virtual ? shown.slice(win[0], win[1]) : shown;
   const p = open ? preview(open) : null;
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenId(null); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
 
@@ -64,13 +77,15 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
           {live.org && !sample && (q.trim() || view !== views[0].id) ? <button type="button" className="nx-btn is-quiet is-sm nx-saveview" onClick={() => setNaming(views.find((x) => x.id === view)?.label + (q.trim() ? `: ${q.trim()}` : ""))}><Bookmark size={12} />Save view</button> : null}
         </div>
         {note ? <p className="nx-foot" role="status">{note}</p> : null}
-        <div className="nx-table" role="table" aria-label={title}>
+        <div className="nx-table" role="table" aria-label={title} aria-rowcount={shown.length + 1} data-virtual={virtual ? "" : undefined}>
           <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: cols }}>{columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined}>{c.label}</span>)}</div>
-          {shown.map((r) => (
+          {virtual && win[0] > 0 ? <div aria-hidden style={{ height: win[0] * EST }} /> : null}
+          {slice.map((r) => (
             <button key={rowKey(r)} type="button" role="row" className={`nx-tr ${openId === rowKey(r) ? "is-sel" : ""}`} style={{ gridTemplateColumns: cols }} onClick={() => setOpenId(rowKey(r))} aria-label={`Open ${rowLabel(r)}`}>
               {columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined} style={{ minWidth: 0 }}>{c.render(r)}</span>)}
             </button>
           ))}
+          {virtual && win[1] < shown.length ? <div aria-hidden style={{ height: (shown.length - win[1]) * EST }} /> : null}
           {loading ? <p className="nx-sub" style={{ padding: "24px 0" }}>Reading…</p> : !shown.length ? <div style={{ padding: "40px 0", textAlign: "center", color: "var(--ink-2)" }}><b style={{ color: "var(--ink)" }}>{rows.length ? empty.filtered ?? "Nothing in this view" : empty.none}</b>{empty.hint && !rows.length ? <p style={{ marginTop: 4 }}>{empty.hint}</p> : rows.length ? <p style={{ marginTop: 4 }}>Choose another view or clear the search.</p> : null}</div> : null}
         </div>
       </div>
