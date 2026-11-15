@@ -268,14 +268,17 @@ ok((await as(B, "select id from nx_notifications where kind = 'reminder' and tit
 ok((await as(A, "select nx_automation_run($1, false) as r", [au]))[0].r.status === "skipped", "the same day is never delivered twice");
 ok((await as(C, "select id from nx_automation_runs")).length === 0, "another organisation cannot see the runs");
 // A clinic with a prescribed course: doses due, one missed, reminders only for the consenting patient.
+// The dose rules count by the date in India, so the schedule is seeded on that date too. Seeding on UTC
+// current_date made these checks fail every evening from 18:30 to 24:00 UTC, when India is a day ahead.
+const indiaToday = "(now() at time zone 'Asia/Kolkata')::date";
 const clinic = (await one("insert into oh_organisations (kind, name, short_name) values ('clinic', 'Ward 12 Health Centre', 'W12 HC') returning id")).id;
 const nurse = uuid(); await db.query("insert into auth.users (id) values ($1)", [nurse]);
 await db.query("insert into oh_members (organisation_id, user_id, role) values ($1, $2, 'lead'), ($1, $3, 'nurse')", [clinic, P, nurse]);
-const ex1 = (await one("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, 'B-1', current_date - 3, current_date - 3, 'bite', true, '+91 98450 00001') returning id", [clinic])).id;
-const ex2 = (await one("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, 'B-2', current_date - 3, current_date - 3, 'bite', false, null) returning id", [clinic])).id;
+const ex1 = (await one(`insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, 'B-1', ${indiaToday} - 3, ${indiaToday} - 3, 'bite', true, '+91 98450 00001') returning id`, [clinic])).id;
+const ex2 = (await one(`insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, 'B-2', ${indiaToday} - 3, ${indiaToday} - 3, 'bite', false, null) returning id`, [clinic])).id;
 for (const [ex, d] of [[ex1, 0], [ex2, 0], [ex2, -2]]) {
   const course = (await one("insert into health.pep_courses (exposure_id, regimen, prescribed_by) values ($1, 'Essen 4-dose IM', $2) on conflict (exposure_id) do update set regimen = excluded.regimen returning id", [ex, P])).id;
-  await db.query("insert into health.pep_doses (course_id, dose_no, due_on) values ($1, (select coalesce(max(dose_no), 0) + 1 from health.pep_doses where course_id = $1), current_date + $2::int)", [course, d]);
+  await db.query(`insert into health.pep_doses (course_id, dose_no, due_on) values ($1, (select coalesce(max(dose_no), 0) + 1 from health.pep_doses where course_id = $1), ${indiaToday} + $2::int)`, [course, d]);
 }
 const due = (await as(P, "select nx_automation_save($1, 'pep_doses_due', 'PEP doses due', 'day', '{}', 'clinical') as id", [clinic]))[0].id;
 ok((await as(P, "select nx_automation_run($1, false) as r", [due]))[0].r.found === 2, "doses due today are counted from the clinician's schedule");
