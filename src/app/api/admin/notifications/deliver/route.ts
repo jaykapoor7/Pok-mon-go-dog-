@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { SITE_URL } from "@/lib/site-url";
 import { attempt, type Delivery, type Senders } from "@/lib/notify/deliver";
 import { sendSms } from "@/lib/connections/sms";
+import { sendEmailAs } from "@/lib/connections/send";
 
 /* The delivery worker for notifications outside StrayPaw (email, browser push). Runs on the deployment's schedule with
    the cron secret. Every attempt is recorded on nx_deliveries; nothing is sent through a provider that is not set up. */
@@ -63,6 +64,19 @@ export async function GET(req: Request) {
       await db.rpc("nx_pep_outbox_mark", { p_id: r.id, p_status: "sent", p_ref: out.id }); pep.sent++;
     } catch (e) { await db.rpc("nx_pep_outbox_mark", { p_id: r.id, p_status: r.attempts + 1 >= 5 ? "failed" : "retry", p_error: e instanceof Error ? e.message : "SMS failed" }); pep.failed++; }
   }
-  console.info("notifications delivery", JSON.stringify({ due: due.data?.length ?? 0, sent, held, failed, not_connected: notConnected, pep }));
-  return NextResponse.json({ due: due.data?.length ?? 0, sent, held, failed, not_connected: notConnected, pep }, { headers: { "Cache-Control": "no-store" } });
+  /* Approved messages from Kaju missions to people outside StrayPaw, sent as the person who approved them. */
+  const ext = { due: 0, sent: 0, not_connected: 0, failed: 0 };
+  const out = await db.from("nx_outbox").select("id,org_id,channel,recipient,subject,body,attempts,created_by,approved_by").eq("status", "queued").not("approved_at", "is", null).lte("next_attempt_at", now.toISOString()).limit(30);
+  for (const m of (out.error ? [] : out.data ?? []) as { id: string; org_id: string; channel: string; recipient: string; subject: string | null; body: string; attempts: number; created_by: string; approved_by: string }[]) {
+    if (Date.now() - started > 55_000) break;
+    ext.due++;
+    const mark = (status: string, error: string | null, ref: string | null = null) => db.from("nx_outbox").update({ status, attempts: m.attempts + (status === "not_connected" ? 0 : 1), last_error: error, provider_ref: ref, next_attempt_at: status === "queued" ? new Date(now.getTime() + Math.min(60, 2 ** (m.attempts + 1)) * 60000).toISOString() : now.toISOString(), updated_at: now.toISOString() }).eq("id", m.id);
+    if (m.channel !== "email") { await mark("not_connected", `${m.channel === "sms" ? "SMS" : "WhatsApp"} from missions is not connected.`); ext.not_connected++; continue; }
+    const r = await sendEmailAs(db, m.approved_by ?? m.created_by, m.org_id, { to: m.recipient, subject: m.subject ?? "From StrayPaw", body: m.body });
+    if (r.ok) { await mark("sent", null, r.ref); ext.sent++; }
+    else if (!r.connected) { await mark("not_connected", r.error); ext.not_connected++; }
+    else { await mark(m.attempts + 1 >= 5 ? "failed" : "queued", r.error); ext.failed++; }
+  }
+  console.info("notifications delivery", JSON.stringify({ due: due.data?.length ?? 0, sent, held, failed, not_connected: notConnected, pep, outside: ext }));
+  return NextResponse.json({ due: due.data?.length ?? 0, sent, held, failed, not_connected: notConnected, pep, outside: ext }, { headers: { "Cache-Control": "no-store" } });
 }
