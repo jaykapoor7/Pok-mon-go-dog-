@@ -55,7 +55,7 @@ test("report form: each screen says what is missing before it moves on", async (
   await page.getByRole("button", { name: /An animal needs help/ }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Where is the animal?" })).toBeVisible();
   await page.getByRole("button", { name: /This is the place/ }).click();
-  await expect(page.getByRole("alert")).toContainText("Pin the place first");
+  await expect(page.locator("#rp-err")).toContainText("Pin the place first");
   await expect(page.getByRole("heading", { level: 1, name: "Where is the animal?" })).toBeVisible();
 });
 
@@ -72,7 +72,7 @@ test("report form: a refused report says it was not sent and keeps the answers",
   const send = page.getByRole("button", { name: "Send the report" });
   if (await page.locator("iframe[src*='challenges.cloudflare.com']").count()) {
     await send.click();
-    await expect(page.getByRole("alert")).toContainText("Complete the check");
+    await expect(page.locator("#rp-err")).toContainText("Complete the check");
     test.skip(true, "Turnstile is configured here; the refused-report path needs a solved check.");
   }
   await send.click();
@@ -86,7 +86,7 @@ test("operator console asks for the password and opens nothing without it", asyn
   await open(page, "/trust/console");
   await expect(page.getByRole("heading", { level: 1, name: "Moderation" })).toBeVisible();
   await page.getByRole("button", { name: "Open the console" }).click();
-  await expect(page.getByRole("alert")).toContainText("Enter the moderation password");
+  await expect(page.locator("#tc-gate-err")).toContainText("Enter the moderation password");
   await expect(page.locator(".cn-index")).toHaveCount(0);
 });
 

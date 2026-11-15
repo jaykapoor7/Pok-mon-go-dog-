@@ -202,7 +202,7 @@ export function Report() {
   );
 
   return (
-    <div className={`s4-wrap rp${step === "where" ? " is-where" : ""}`}>
+    <div className={`s4-wrap rpf${step === "where" ? " is-where" : ""}`}>
       <div className="rp-form">
         <div className="rp-top">
           {step !== "door" ? <button type="button" className="pb-btn is-quiet rp-back" onClick={back}><ArrowLeft size={16} aria-hidden /> Back</button> : null}
@@ -358,7 +358,7 @@ function Receipt({ receipt, help, restart, heading }: { receipt: { ref: string |
   const ref = receipt.ref ? receipt.ref.slice(0, 8).toUpperCase() : null;
   const steps = help ? ["Received", "Under review", "Offered to an organisation", "Accepted by an organisation", "In progress", "Closed with an outcome"] : ["Received", "Reviewed", "On the animal's record"];
   return (
-    <div className="s4-wrap rp is-done">
+    <div className="s4-wrap rpf is-done">
       <div className="rp-form">
         <section className="rp-screen" aria-labelledby="rp-h">
           <p className="pb-eyebrow">Receipt</p>

@@ -1,6 +1,6 @@
 /* Report an animal: one question per screen, phone first, with the draft beside it on a wide screen. */
-.rp { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 320px); justify-content: space-between; gap: 48px; align-items: start; padding-top: 32px; padding-bottom: 64px; }
-.rp.is-done { grid-template-columns: minmax(0, 720px); }
+.rpf { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 320px); justify-content: space-between; gap: 48px; align-items: start; padding-top: 32px; padding-bottom: 64px; }
+.rpf.is-done { grid-template-columns: minmax(0, 720px); }
 .rp-form { display: grid; gap: 16px; min-width: 0; }
 .rp-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 40px; }
 .rp-back { margin-left: -12px; }
@@ -41,7 +41,7 @@
 
 .rp-go { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .rp-wide { min-width: 240px; }
-.rp-err { display: grid; gap: 8px; padding: 16px; border-radius: 12px; background: var(--pb-flame-soft); color: var(--pb-flame); font-size: 14px; line-height: 1.5; }
+.rp-err { display: grid; gap: 8px; padding: 16px; border-radius: 12px; background: var(--pb-flame-soft); color: var(--pb-flame-2); font-size: 14px; line-height: 1.5; }
 .rp-err b { font-weight: 600; }
 .rp-err ul { display: grid; gap: 4px; padding-left: 24px; list-style: disc; color: #8f2c19; }
 
@@ -74,11 +74,11 @@
 .rp-side p { font-size: 12px; line-height: 1.5; color: var(--pb-mute); }
 
 @media (max-width: 1024px) {
-  .rp { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .rpf { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .rp-side { display: none; }
 }
 @media (max-width: 640px) {
-  .rp { padding-top: 16px; }
+  .rpf { padding-top: 16px; }
   .rp-h { font-size: 32px; }
   .rp-lede { font-size: 16px; }
   .rp-doors { grid-template-columns: minmax(0, 1fr); }
