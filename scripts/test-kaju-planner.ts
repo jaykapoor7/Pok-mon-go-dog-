@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { planFromIntent, preview, validatePlan } from "../src/lib/kaju/registry";
 import { ScriptedPlanner, choosePlanner, type PlanContext } from "../src/lib/kaju/planner";
+import { readSentence, toIntent } from "../src/nx/kaju/intent";
 
 const ok = (name: string) => console.log(`  ✓ ${name}`);
 const ctx = (over: Partial<PlanContext> = {}): PlanContext => ({ text: "Prepare next week's follow-ups for Ward 12 and tell field-ops", org: { id: "o", name: "Ward Twelve Animal Care", workspace: "ngo" }, channels: ["general", "field-ops"], places: ["Ward 12"], people: [{ id: "00000000-0000-4000-8000-000000000001", name: "Ana" }], ...over });
@@ -26,6 +27,23 @@ const ctx = (over: Partial<PlanContext> = {}): PlanContext => ({ text: "Prepare 
   assert.deepEqual(pv.map((s) => s.waits), [false, true, false]); ok("creating several tasks waits; finding and posting do not");
   assert.equal(preview(v.ok ? v.plan : p!, { post_message: 9 })[2].why, "Your organisation has switched this tool off."); ok("a switched-off tool says so before anything starts");
   assert.equal(planFromIntent({ action: "create_task" }), null); ok("a task without a title is not planned");
+
+  console.log("Composer: understanding while typing, one submit");
+  const vocab = { places: ["Ward 12", "Ward 8"], teams: ["Field team A"], channels: ["field-ops", "general"], people: [{ id: "00000000-0000-4000-8000-00000000000a", name: "Ana Rao" }, { id: "00000000-0000-4000-8000-00000000000b", name: "Ana Das" }] };
+  const s1 = "Prepare next week's follow-ups for Ward 12, assign to Ana, and notify #field-ops";
+  const r1 = readSentence(s1, vocab);
+  assert.equal(r1.action, "prepare_followups"); ok("the action is recognised");
+  assert.deepEqual(r1.spans.map((x) => x.kind).sort(), ["Channel", "Person", "Place", "When"]); ok("place, date, person and channel are underlined");
+  assert.ok(r1.spans.find((x) => x.kind === "Person")!.ambiguous && r1.missing.length === 1); ok("two people called Ana: asked once, inline");
+  assert.equal(toIntent(s1, r1), null); ok("nothing can be submitted while it is ambiguous");
+  const r2 = readSentence(s1, vocab, { Person: "00000000-0000-4000-8000-00000000000b" });
+  const i2 = toIntent(s1, r2);
+  assert.ok(i2 && i2.assignee_id === "00000000-0000-4000-8000-00000000000b" && i2.place === "Ward 12" && i2.when === "next week" && i2.channel === "field-ops"); ok("after the correction one structured request is ready");
+  assert.ok(validatePlan(planFromIntent(i2!)).ok); ok("and it becomes a valid plan by fixed rules");
+  assert.equal(readSentence("How is coverage counted in Ward 8?", vocab).action, "ask"); ok("a question stays a question");
+  assert.equal(toIntent("Post in #general", readSentence("Post in #general", vocab)), null); ok("a post without its words is not submitted");
+  const unknown = readSentence("Prepare follow-ups for Ward 99", vocab);
+  assert.ok(!unknown.spans.some((x) => x.kind === "Place")); ok("a place that is not in the organisation is left as words, not guessed");
 
   console.log("Choosing a planner");
   const none = await choosePlanner(ctx(), async () => null);

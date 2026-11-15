@@ -27,7 +27,7 @@ export function readSentence(text: string, v: Vocab, choices: Partial<Record<Kin
   const pick = (kind: Kind, words: string[], toOption: (w: string) => Option = (w) => ({ label: w, value: w })) => {
     let best: { at: [number, number]; w: string } | null = null;
     for (const w of words) { const at = find(text, w); if (at && (!best || w.length > best.w.length)) best = { at, w }; }
-    if (best) add({ kind, start: best.at[0], end: best.at[1], text: text.slice(best.at[0], best.at[1]), options: words.map(toOption), ambiguous: false });
+    if (best) { const b = best; add({ kind, start: b.at[0], end: b.at[1], text: text.slice(b.at[0], b.at[1]), options: [toOption(b.w), ...words.filter((w) => w !== b.w).map(toOption)], ambiguous: false }); }
   };
   const email = /[\w.+-]+@[\w-]+\.[\w.-]+/.exec(text);
   if (email) add({ kind: "Email", start: email.index, end: email.index + email[0].length, text: email[0], options: [{ label: email[0], value: email[0] }], ambiguous: false });
