@@ -103,6 +103,7 @@
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@electric-sql/pglite": "^0.2.17",
     "@playwright/test": "^1.63.0",
     "@types/canvas-confetti": "^1.6.4",
