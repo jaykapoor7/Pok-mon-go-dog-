@@ -1,186 +1,320 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowDown, ArrowUp, Maximize2, Plus, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Camera, ClipboardPlus, Download, Info, Loader2, ScanLine } from "lucide-react";
 import { Shell } from "../Shell";
-import { Chip, Sample, TrustChip, initials } from "../ui";
-import { ANIMALS, type Animal } from "../fixtures";
-import { AnimalBody } from "./AnimalBody";
-import { useDogs, useLive, type Dog } from "../live";
+import { Chip, TrustChip, initials } from "../ui";
+import { Confirm, Field, Modal, Props, Timeline, day, errText, n, toast, useAct, words } from "../kit";
+import { ANIMALS, TIMELINE, type Animal } from "../fixtures";
+import { useLive, type Workspace } from "../live";
+import { downloadCsv } from "@/lib/csv";
+import { publicFlagOn } from "@/lib/flags";
+import { operationRpc, verifyOperationReceipt, type OperationReceipt } from "@/lib/operations";
+import { identityCandidates, lookupIdentifier, newestCaseOf, readAnimals, readIdentityQueue, readRevacDue, readRevacSetting, readZones, realName, setNeedsHelp, shortCode, type AnimalQuery, type IdentityRow, type OrgAnimal, type Revac, type RevacDue } from "../data/ngo";
+import { RecordList, type RCol, type RView } from "./ngo/RecordList";
+import { PhotoSearch } from "./ngo/PhotoSearch";
+import { TryLink, isLead, undoWith } from "./ngo/parts";
 
-const COLS = "minmax(0, 1.7fr) 104px 116px 112px 96px 78px minmax(0, 1fr)";
-const VIEWS = [
-  { id: "all", label: "All", test: () => true },
-  { id: "follow", label: "Needs follow-up", test: (a: Animal) => a.next !== "—" },
-  { id: "identity", label: "Identity to review", test: (a: Animal) => a.identity === "Needs review" },
-  { id: "unverified", label: "Not yet verified", test: (a: Animal) => a.trust !== "Verified" },
-] as const;
-const tone = (v: string) => (/^(Sterilised|Vaccinated)$/.test(v) ? "ok" : /Due/.test(v) ? "warn" : "plain") as "ok" | "warn" | "plain";
+/* The organisation's register. The database filters and pages it (org_animals), so a register of thousands never comes
+   into the browser: search, lenses (needs help, not sterilised, not vaccinated, due for revaccination when a programme
+   sets an interval), a place filter and a download of the current result. Leads and coordinators also see the animals
+   waiting for an identity decision; with tags switched on, anyone can scan a tag to open its animal. */
 
-function SampleAnimals() {
-  const [view, setView] = useState<(typeof VIEWS)[number]["id"]>("all");
-  const [q, setQ] = useState("");
-  const [ward, setWard] = useState<string | null>(null);
-  const [asc, setAsc] = useState(false);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const calm = useReducedMotion();
-  const wards = useMemo(() => [...new Set(ANIMALS.map((a) => a.ward))].sort(), []);
-  const rows = useMemo(() => {
-    const v = VIEWS.find((x) => x.id === view)!;
-    const out = ANIMALS.filter((a) => v.test(a) && (!ward || a.ward === ward) && (!q || `${a.id} ${a.name} ${a.ward} ${a.mark}`.toLowerCase().includes(q.toLowerCase())));
-    return asc ? [...out].reverse() : out;
-  }, [view, q, ward, asc]);
-  const open = ANIMALS.find((a) => a.id === openId) ?? null;
-  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenId(null); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
-  const nextWard = () => setWard((w) => (w === null ? wards[0] : wards[wards.indexOf(w) + 1] ?? null));
-
-  return (
-    <Shell crumb={["NGO", "Animals"]}>
-      <div className="nx-page" style={{ maxWidth: "none" }}>
-        <div className="nx-head">
-          <div><h1 className="nx-h1">Animals<Sample /></h1><p className="nx-sub"><b className="num">{rows.length}</b> of {ANIMALS.length} on the register. Each row says how far its record has been checked.</p></div>
-          <Link href="/try" className="nx-btn" title="Opens the live demo, where this works"><Plus size={14} />Add an animal</Link>
-        </div>
-        <div className="nx-bar">
-          <div className="nx-views" role="tablist" aria-label="Views">
-            {VIEWS.map((v) => (
-              <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>
-                {view === v.id ? <motion.span layoutId="nx-view" className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}
-                <span>{v.label}<span className="nx-count">{ANIMALS.filter(v.test).length}</span></span>
-              </button>
-            ))}
-          </div>
-          <button type="button" className={`nx-filter ${ward ? "is-on" : ""}`} onClick={nextWard} aria-label={ward ? `Place: ${ward}. Change` : "Filter by place"}>{ward ?? "Any place"}{ward ? <X size={12} onClick={(e) => { e.stopPropagation(); setWard(null); }} /> : null}</button>
-          <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find an animal" aria-label="Find an animal" /></label>
-        </div>
-
-        <div className="nx-table" role="table" aria-label="Animals">
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: COLS }}>
-            <span>Animal</span><span>Place</span><span>Sterilisation</span><span>Vaccination</span><span>Record</span>
-            <span><button type="button" onClick={() => setAsc((x) => !x)} aria-label={`Sort by last seen, ${asc ? "oldest" : "newest"} first`}>Last seen{asc ? <ArrowUp size={11} /> : <ArrowDown size={11} />}</button></span><span>Next</span>
-          </div>
-          {rows.map((a) => (
-            <button key={a.id} type="button" role="row" className={`nx-tr ${openId === a.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: COLS }} onClick={() => setOpenId(a.id)} aria-label={`Open ${a.id}, ${a.name}`}>
-              <span className="nx-cell-main"><span className="nx-thumb">{initials(a.species)}</span><span><b>{a.name}</b><small><span className="num">{a.id}</span> · {a.sex} · {a.age}<span className="nx-only-s"> · {a.ward}</span></small></span></span>
-              <span className="nx-t2 nx-hide-s">{a.ward}</span>
-              <span className="nx-hide-s"><Chip tone={tone(a.abc)}>{a.abc}</Chip></span>
-              <span className="nx-hide-s"><Chip tone={tone(a.arv)}>{a.arv}</Chip></span>
-              <span><TrustChip trust={a.trust} /></span>
-              <span className="nx-t3 nx-hide-s">{a.last}</span>
-              <span className="nx-t2 nx-hide-s">{a.next}</span>
-            </button>
-          ))}
-          {!rows.length ? <div style={{ padding: "40px 0", textAlign: "center", color: "var(--ink-2)" }}><b style={{ color: "var(--ink)" }}>No animal matches</b><p style={{ marginTop: 4 }}>Change the view or clear the search.</p><p style={{ marginTop: 12 }}><button type="button" className="nx-btn is-quiet" onClick={() => { setView("all"); setQ(""); setWard(null); }}>Show all animals</button></p></div> : null}
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {open ? (
-          <motion.aside key="d" className="nx-drawer" role="dialog" aria-label={`${open.id}, ${open.name}`}
-            initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
-            <div className="nx-drawer-h">
-              <span className="num">{open.id}</span>
-              <span style={{ marginLeft: "auto" }} />
-              <Link href={`/next/ngo/animals/${open.id}`} className="nx-ib" aria-label="Open full record"><Maximize2 size={15} /></Link>
-              <button type="button" className="nx-ib" onClick={() => setOpenId(null)} aria-label="Close"><X size={16} /></button>
-            </div>
-            <div className="nx-drawer-b">
-              <div className="nx-rec-t" style={{ marginBottom: 16 }}><span className="nx-rec-av">{initials(open.species)}</span><div><h1>{open.name}</h1><p>{open.ward} · Last seen {open.last} <TrustChip trust={open.trust} /></p></div></div>
-              <AnimalBody a={open} drawer />
-            </div>
-          </motion.aside>
-        ) : null}
-      </AnimatePresence>
-    </Shell>
-  );
-}
-
-const word = (v: string | null) => (v ? v.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : "Not recorded");
-const dogTone = (v: string | null) => (v && /^(sterili[sz]ed|vaccinated|done|yes)$/i.test(v) ? "ok" : v && /due|pending/i.test(v) ? "warn" : "plain") as "ok" | "warn" | "plain";
-const trustOf = (d: Dog) => (d.provenance && /import/i.test(d.provenance) ? "Imported" : "Recorded") as "Imported" | "Recorded";
-const seen = (d: Dog) => (d.last_seen ? new Date(d.last_seen).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Not recorded");
-const LCOLS = "minmax(0, 1.7fr) minmax(0, 1fr) 128px 128px 96px 112px";
-const LVIEWS = [
-  { id: "all", label: "All", test: () => true },
-  { id: "abc", label: "Sterilisation not recorded", test: (d: Dog) => dogTone(d.sterilisation_status) !== "ok" },
-  { id: "arv", label: "Vaccination not recorded", test: (d: Dog) => dogTone(d.vaccination_status) !== "ok" },
-  { id: "imp", label: "Imported", test: (d: Dog) => trustOf(d) === "Imported" },
-] as const;
-
-/** The organisation's own register, read from the same table the current app writes. Nothing is shown that the row does not hold. */
-function LiveAnimals() {
-  const live = useLive();
-  const org = live.orgFor("ngo") ?? live.org;
-  const isNgo = org!.workspace === "ngo";
-  const dogs = useDogs(isNgo ? org!.org_id : null);
-  const [view, setView] = useState<(typeof LVIEWS)[number]["id"]>("all");
-  const [q, setQ] = useState("");
-  const [openId, setOpenId] = useState<string | null>(null);
-  const calm = useReducedMotion();
-  const all = useMemo(() => dogs.rows ?? [], [dogs.rows]);
-  const rows = useMemo(() => { const v = LVIEWS.find((x) => x.id === view)!; const n = q.trim().toLowerCase(); return all.filter((d) => v.test(d) && (!n || `${d.name ?? ""} ${d.code ?? ""} ${d.straypaw_id ?? ""} ${d.zone ?? ""} ${d.identifiers ?? ""}`.toLowerCase().includes(n))); }, [all, view, q]);
-  const open = all.find((d) => d.id === openId) ?? null;
-  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenId(null); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
-  if (!isNgo) return <Shell crumb={["NGO", "Animals"]}><div className="nx-page"><h1 className="nx-h1">Animals</h1><p className="nx-sub">{org!.name} is not an NGO workspace, so it has no animal register of its own.</p></div></Shell>;
-  /* The organisation's own code where it has one; otherwise the tail of the StrayPaw ID, which is long. */
-  const id = (d: Dog) => d.code ?? (d.straypaw_id ? `SP-${d.straypaw_id.slice(-8)}` : d.id.slice(0, 8).toUpperCase());
-  return (
-    <Shell crumb={["NGO", "Animals"]}>
-      <div className="nx-page" style={{ maxWidth: "none" }}>
-        <div className="nx-head"><div><h1 className="nx-h1">Animals</h1><p className="nx-sub">{dogs.rows === null ? "Reading the register…" : <><b className="num">{rows.length}</b> of {all.length}{all.length === 300 ? " most recently seen" : ""} on {org!.name}&apos;s register.</>}</p></div><Link href="/ngo/add" className="nx-btn"><Plus size={14} />Add an animal</Link></div>
-        <div className="nx-bar">
-          <div className="nx-views" role="tablist" aria-label="Views">
-            {LVIEWS.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId="nx-lview" className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}<span className="nx-count">{all.filter(v.test).length}</span></span></button>)}
-          </div>
-          <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find an animal" aria-label="Find an animal" /></label>
-        </div>
-        {dogs.error ? <p className="nx-foot" role="alert">The register could not be read: {dogs.error}</p> : null}
-        <div className="nx-table" role="table" aria-label="Animals">
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: LCOLS }}><span>Animal</span><span>Place</span><span>Sterilisation</span><span>Vaccination</span><span>Record</span><span>Last seen</span></div>
-          {rows.map((d) => (
-            <button key={d.id} type="button" role="row" className={`nx-tr ${openId === d.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: LCOLS }} onClick={() => setOpenId(d.id)} aria-label={`Open ${id(d)}`}>
-              <span className="nx-cell-main"><span className="nx-thumb">{initials(d.species ?? "Dog")}</span><span><b>{d.name || "Unnamed"}</b><small><span className="num">{id(d)}</span>{d.sex ? ` · ${word(d.sex)}` : ""}<span className="nx-only-s">{d.zone ? ` · ${d.zone}` : ""}</span></small></span></span>
-              <span className="nx-t2 nx-hide-s">{d.zone ?? d.city ?? "Not recorded"}</span>
-              <span className="nx-hide-s"><Chip tone={dogTone(d.sterilisation_status)}>{word(d.sterilisation_status)}</Chip></span>
-              <span className="nx-hide-s"><Chip tone={dogTone(d.vaccination_status)}>{word(d.vaccination_status)}</Chip></span>
-              <span><TrustChip trust={trustOf(d)} /></span>
-              <span className="nx-t3 nx-hide-s">{seen(d)}</span>
-            </button>
-          ))}
-          {dogs.rows && !rows.length ? <div style={{ padding: "40px 0", textAlign: "center", color: "var(--ink-2)" }}><b style={{ color: "var(--ink)" }}>{all.length ? "No animal matches" : "No animals on the register yet"}</b><p style={{ marginTop: 4 }}>{all.length ? "Change the view or clear the search." : "Add the first one, or import a register."}</p></div> : null}
-        </div>
-      </div>
-      <AnimatePresence>
-        {open ? (
-          <motion.aside key="d" className="nx-drawer" role="dialog" aria-label={`${id(open)}`} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
-            <div className="nx-drawer-h"><span className="num">{id(open)}</span><span style={{ marginLeft: "auto" }} /><Link href={`/next/ngo/animals/${open.id}`} className="nx-ib" aria-label="Open full record"><Maximize2 size={15} /></Link><button type="button" className="nx-ib" onClick={() => setOpenId(null)} aria-label="Close"><X size={16} /></button></div>
-            <div className="nx-drawer-b">
-              <div className="nx-rec-t" style={{ marginBottom: 16 }}><span className="nx-rec-av">{initials(open.species ?? "Dog")}</span><div><h1>{open.name || "Unnamed"}</h1><p>{open.zone ?? open.city ?? "Place not recorded"} · Last seen {seen(open)} <TrustChip trust={trustOf(open)} /></p></div></div>
-              <h3 className="nx-h3">Details</h3>
-              <dl className="nx-props">
-                <div><dt>Animal ID</dt><dd className="num">{id(open)}</dd></div>
-                <div><dt>Species</dt><dd>{word(open.species)}</dd></div>
-                <div><dt>Sex</dt><dd>{word(open.sex)}</dd></div>
-                <div><dt>Colour</dt><dd style={{ fontWeight: 400 }}>{open.color ?? "Not recorded"}</dd></div>
-                <div><dt>Marks</dt><dd style={{ fontWeight: 400 }}>{open.identifiers ?? "Not recorded"}</dd></div>
-                <div><dt>Sterilisation</dt><dd><Chip tone={dogTone(open.sterilisation_status)}>{word(open.sterilisation_status)}</Chip></dd></div>
-                <div><dt>Vaccination</dt><dd><Chip tone={dogTone(open.vaccination_status)}>{word(open.vaccination_status)}</Chip></dd></div>
-                <div><dt>Identity</dt><dd>{word(open.identity_state)}</dd></div>
-              </dl>
-              <p style={{ marginTop: 18 }}><Link href={`/next/ngo/animals/${open.id}`} className="nx-btn is-quiet">Open full record</Link></p>
-
-            </div>
-          </motion.aside>
-        ) : null}
-      </AnimatePresence>
-    </Shell>
-  );
-}
+const PAGE = 25;
+type Lens = "all" | "help" | "ster" | "vacc" | "revac" | "identity";
+const factTone = (v: string | null) => (v === "sterilised" || v === "vaccinated" ? "ok" : v === "not_sterilised" || v === "not_vaccinated" ? "warn" : "plain") as "ok" | "warn" | "plain";
+const fact = (v: string | null, yes: string, no: string) => (v === "sterilised" || v === "vaccinated" ? yes : v === "not_sterilised" || v === "not_vaccinated" ? no : "Not recorded");
+const idOf = (a: { code: string | null; straypaw_id: string | null; id: string }) => a.code ?? (a.straypaw_id ? shortCode(a.straypaw_id) : a.id.slice(0, 8).toUpperCase());
 
 export function Animals() {
   const live = useLive();
   if (!live.ready) return <Shell crumb={["NGO", "Animals"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
-  return live.org ? <LiveAnimals /> : <SampleAnimals />;
+  if (!live.org) return <SampleAnimals />;
+  const org = live.orgFor("ngo");
+  if (!org) return <Shell crumb={["NGO", "Animals"]}><div className="nx-page"><h1 className="nx-h1">Animals</h1><p className="nx-sub">{live.org.name} is not an NGO workspace, so it has no animal register of its own.</p></div></Shell>;
+  return <LiveAnimals org={org} />;
+}
+
+/* ── Live ────────────────────────────────────────────────────────── */
+
+function LiveAnimals({ org }: { org: Workspace }) {
+  const lead = isLead(org.role);
+  const tags = publicFlagOn("animal_identifiers");
+  const [lens, setLens] = useState<Lens>("all");
+  const [zone, setZone] = useState("");
+  const [q, setQ] = useState("");
+  const [dq, setDq] = useState("");
+  const [page, setPage] = useState(0);
+  const [zones, setZones] = useState<{ zone: string; n: number }[]>([]);
+  const [rv, setRv] = useState<Revac | null>(null);
+  const [scan, setScan] = useState(false);
+  useEffect(() => { void readZones().then((r) => setZones(r.data ?? [])); void readRevacSetting().then((r) => setRv(r.data ?? null)); }, []);
+  useEffect(() => { const t = window.setTimeout(() => { setDq(q); setPage(0); }, 260); return () => window.clearTimeout(t); }, [q]);
+  useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); if (v === "identity" && lead) setLens("identity"); if (v === "scan" && tags) setScan(true); }, [lead, tags]);
+  const choose = (l: string) => { setLens(l as Lens); setPage(0); };
+  const revacOn = !!rv?.days;
+  const [counts, setCounts] = useState<Partial<Record<Lens, number>>>({});
+  const views: RView<unknown>[] = [
+    { id: "all", label: "All" }, { id: "help", label: "Needs help" }, { id: "ster", label: "Not sterilised" }, { id: "vacc", label: "Not vaccinated" },
+    ...(revacOn ? [{ id: "revac", label: "Due for revaccination", count: (rv!.overdue ?? 0) + (rv!.soon ?? 0) }] : []),
+    ...(lead ? [{ id: "identity", label: "Identity review" }] : []),
+  ].map((v) => ({ ...v, count: "count" in v ? v.count : counts[v.id as Lens] ?? null }));
+  const action = <div className="nr-tools">{tags ? <button type="button" className="nx-btn is-quiet is-keep" onClick={() => setScan(true)}><ScanLine size={14} />Scan a tag</button> : null}<Link href="/next/ngo/field" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>;
+  const setCount = useCallback((l: Lens, c: number) => setCounts((x) => (x[l] === c ? x : { ...x, [l]: c })), []);
+  const common = { org, views, lens, choose, action, setCount };
+  return (
+    <Shell crumb={["NGO", "Animals"]}>
+      {lens === "revac" && rv ? <RevacList {...common} setting={rv} page={page} setPage={setPage} />
+        : lens === "identity" && lead ? <IdentityList {...common} />
+        : <Register {...common} zone={zone} setZone={(z) => { setZone(z); setPage(0); }} zones={zones} q={q} setQ={setQ} dq={dq} page={page} setPage={setPage} />}
+      {scan ? <ScanTag onClose={() => setScan(false)} /> : null}
+    </Shell>
+  );
+}
+type Common = { org: Workspace; views: RView<unknown>[]; lens: Lens; choose: (l: string) => void; action: React.ReactNode; setCount: (l: Lens, c: number) => void };
+
+function Pager({ page, total, setPage }: { page: number; total: number; setPage: (p: number) => void }) {
+  if (total <= PAGE) return null;
+  const last = Math.max(0, Math.ceil(total / PAGE) - 1);
+  return <div className="nr-pager" role="navigation" aria-label="Pages"><button type="button" className="nx-btn is-quiet is-sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button><span><b className="num">{n(page * PAGE + 1)}–{n(Math.min(total, (page + 1) * PAGE))}</b> of {n(total)}</span><button type="button" className="nx-btn is-quiet is-sm" disabled={page >= last} onClick={() => setPage(page + 1)}>Next</button></div>;
+}
+
+function Register({ org, views, lens, choose, action, setCount, zone, setZone, zones, q, setQ, dq, page, setPage }: Common & { zone: string; setZone: (z: string) => void; zones: { zone: string; n: number }[]; q: string; setQ: (s: string) => void; dq: string; page: number; setPage: (p: number) => void }) {
+  const [rows, setRows] = useState<OrgAnimal[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [csv, setCsv] = useState(false);
+  const filter = useMemo<Omit<AnimalQuery, "limit" | "offset">>(() => ({ search: dq, zone: zone || null, needs: lens === "help" ? true : null, ster: lens === "ster" ? "not_sterilised" : null, vacc: lens === "vacc" ? "not_vaccinated" : null }), [dq, zone, lens]);
+  const load = useCallback(async () => { setRows(null); setError(null); const r = await readAnimals({ ...filter, limit: PAGE, offset: page * PAGE }); if (r.error) { setError(errText(r.error)); setRows([]); } else setRows(r.data ?? []); }, [filter, page]);
+  useEffect(() => { void load(); }, [load]);
+  const total = rows?.[0]?.total_count ?? 0;
+  useEffect(() => { if (rows) setCount(lens, total); }, [rows, total, lens, setCount]);
+  const download = async () => {
+    setCsv(true);
+    const all: OrgAnimal[] = [];
+    for (let off = 0; off < Math.min(total, 10000); off += 500) { const r = await readAnimals({ ...filter, limit: 500, offset: off }); if (r.error) { toast({ text: `The download stopped: ${errText(r.error)}`, tone: "bad" }); setCsv(false); return; } all.push(...(r.data ?? [])); if ((r.data ?? []).length < 500) break; }
+    downloadCsv("straypaw-animals.csv", all.map((a) => ({ straypaw_id: a.straypaw_id, code: a.code, name: a.name, zone: a.zone, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, needs_help: a.needs_help, last_seen: a.last_seen })), { title: "Animals", organisation: org.name });
+    toast({ text: `Downloaded ${n(all.length)} ${all.length === 1 ? "animal" : "animals"}${total > all.length ? ` of ${n(total)}` : ""}.`, tone: "ok" });
+    setCsv(false);
+  };
+  const cols: RCol<OrgAnimal>[] = [
+    { label: "Animal", width: "minmax(0, 1.6fr)", render: (a) => <span className="nx-cell-main"><span className="nx-thumb">{initials(a.species ?? "Dog")}</span><span><b>{realName(a.name) ?? "Unnamed"}</b><small><span className="num">{idOf(a)}</span><span className="nx-only-s">{a.zone ? ` · ${a.zone}` : ""}</span></small></span></span> },
+    { label: "Place", width: "minmax(0, 1fr)", hideOnPhone: true, render: (a) => <span className="nx-t2">{a.zone ?? "Not recorded"}</span> },
+    { label: "Sterilisation", width: "128px", hideOnPhone: true, render: (a) => <Chip tone={factTone(a.sterilisation_status)}>{fact(a.sterilisation_status, "Sterilised", "Not sterilised")}</Chip> },
+    { label: "Vaccination", width: "128px", hideOnPhone: true, render: (a) => <Chip tone={factTone(a.vaccination_status)}>{fact(a.vaccination_status, "Vaccinated", "Not vaccinated")}</Chip> },
+    { label: "Status", width: "112px", render: (a) => (a.needs_help ? <Chip tone="bad">Needs help</Chip> : <span className="nx-t3">—</span>) },
+    { label: "Last seen", width: "104px", hideOnPhone: true, render: (a) => <span className="nx-t3">{day(a.last_seen)}</span> },
+  ];
+  return (
+    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => `${idOf(a)}, ${realName(a.name) ?? "Unnamed"}`} columns={cols} views={views} view={lens} onView={choose}
+      query={q} onQuery={setQ} placeholder="Name, code, StrayPaw ID, place" hrefOf={(a) => `/next/ngo/animals/${a.id}`}
+      sub={rows === null ? "Reading the register…" : error ? "The register could not be read. Nothing is shown as zero." : <><b className="num">{n(total)}</b> {filterOn(filter) ? (total === 1 ? "match" : "matches") : total === 1 ? "animal" : "animals"} on {org.name}&apos;s register. Unknown is kept apart from no.</>}
+      action={action} loading={rows === null} error={error} onRetry={() => void load()}
+      tools={<div className="nr-tools"><select className="nr-sel" value={zone} onChange={(e) => setZone(e.target.value)} aria-label="Place"><option value="">Every place</option>{zones.slice(0, 300).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({n(z.n)})</option>)}</select>
+        <button type="button" className="nx-btn is-quiet is-sm" disabled={!total || csv} onClick={() => void download()}>{csv ? <Loader2 size={13} className="nx-spin" /> : <Download size={13} />}Download</button></div>}
+      empty={{ none: "No animals on the register yet", filtered: filterOn(filter) ? "No animal matches" : "No animals on the register yet", hint: filterOn(filter) ? "Change the search, the lens or the place." : <>Animals your team records, and rows released from imports, appear here. <Link className="nr-link" href="/next/ngo/field">Record the first one in field mode</Link>.</> }}
+      foot={<Pager page={page} total={total} setPage={setPage} />}
+      preview={(a) => ({ title: realName(a.name) ?? "Unnamed", sub: <><span className="num">{idOf(a)}</span> · {a.zone ?? "Place not recorded"} · last seen {day(a.last_seen)}</>, href: `/next/ngo/animals/${a.id}`, hrefLabel: "Open full record",
+        body: <AnimalPeek a={a} onChanged={load} /> })} />
+  );
+}
+const filterOn = (f: Omit<AnimalQuery, "limit" | "offset">) => !!(f.search || f.zone || f.needs || f.ster || f.vacc);
+
+function AnimalPeek({ a, onChanged }: { a: OrgAnimal; onChanged: () => Promise<void> }) {
+  const { busy, run } = useAct();
+  const [help, setHelp] = useState(a.needs_help);
+  const flip = async () => {
+    const to = !help;
+    const r = await run("help", () => setNeedsHelp(a.id, to), { ok: to ? "Flagged as needing help." : "Needs-help flag cleared.", undo: () => undoWith(() => setNeedsHelp(a.id, !to), async () => { setHelp(!to); await onChanged(); })() });
+    if (r.ok) { setHelp(to); await onChanged(); }
+  };
+  return <>
+    <Props items={[["Animal ID", <span key="i" className="num">{idOf(a)}</span>], ["Name", realName(a.name) ?? "Not recorded"], ["Place", a.zone ?? "Not recorded"],
+      ["Sterilisation", <Chip key="s" tone={factTone(a.sterilisation_status)}>{fact(a.sterilisation_status, "Sterilised", "Not sterilised")}</Chip>],
+      ["Vaccination", <Chip key="v" tone={factTone(a.vaccination_status)}>{fact(a.vaccination_status, "Vaccinated", "Not vaccinated")}</Chip>],
+      ["Needs help", help ? <Chip key="h" tone="bad">Yes</Chip> : "No"], ["First recorded", day(a.created_at)]]} />
+    <div className="nr-acts" style={{ marginTop: 14 }}>
+      <button type="button" className="nx-btn is-quiet is-sm" disabled={!!busy} onClick={() => void flip()}>{help ? "Clear the needs-help flag" : "Flag as needing help"}</button>
+      <Link href={`/next/ngo/cases/new?dog=${a.id}`} className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />Start a case</Link>
+    </div>
+  </>;
+}
+
+function RevacList({ org, views, lens, choose, action, setting, page, setPage }: Common & { setting: Revac; page: number; setPage: (p: number) => void }) {
+  const [rows, setRows] = useState<RevacDue[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => { setRows(null); const r = await readRevacDue(PAGE, page * PAGE); if (r.error) { setError(errText(r.error)); setRows([]); } else { setError(null); setRows(r.data ?? []); } }, [page]);
+  useEffect(() => { void load(); }, [load]);
+  const total = rows?.[0]?.total_count ?? 0;
+  const cols: RCol<RevacDue>[] = [
+    { label: "Animal", width: "minmax(0, 1.5fr)", render: (a) => <span className="nx-cell-main"><span className="nx-thumb">D</span><span><b>{realName(a.name) ?? "Unnamed"}</b><small><span className="num">{idOf(a)}</span> · last vaccinated {day(a.last_vaccinated)}</small></span></span> },
+    { label: "Place", width: "minmax(0, 1fr)", hideOnPhone: true, render: (a) => <span className="nx-t2">{a.zone ?? "Not recorded"}</span> },
+    { label: "Due on", width: "120px", hideOnPhone: true, render: (a) => <span className="nx-t3">{day(a.due_on)}</span> },
+    { label: "Status", width: "140px", render: (a) => <Chip tone={a.days_overdue > 0 ? "bad" : "warn"}>{a.days_overdue > 0 ? `${a.days_overdue} day${a.days_overdue === 1 ? "" : "s"} overdue` : a.days_overdue === 0 ? "Due today" : `Due in ${-a.days_overdue} day${a.days_overdue === -1 ? "" : "s"}`}</Chip> },
+  ];
+  return (
+    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => `${idOf(a)}, ${realName(a.name) ?? "Unnamed"}`} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/next/ngo/animals/${a.id}`}
+      sub={<>{setting.overdue ? <span style={{ color: "var(--bad)" }}>{n(setting.overdue)} overdue</span> : "None overdue"}{setting.soon ? <>, <b className="num">{n(setting.soon)}</b> due in the next 14 days</> : null}. Every {setting.days} days{setting.programme ? `, as ${setting.programme} sets` : ""}, from the last vaccination recorded on each animal.</>}
+      action={action} loading={rows === null} error={error} onRetry={() => void load()}
+      tools={<button type="button" className="nx-btn is-quiet is-sm" disabled={!rows?.length} onClick={() => downloadCsv("straypaw-revaccination.csv", (rows ?? []).map((r) => ({ straypaw_id: r.straypaw_id, code: r.code, name: r.name, zone: r.zone, last_vaccinated: r.last_vaccinated, due_on: r.due_on, days_overdue: r.days_overdue })), { title: "Due for revaccination", organisation: org.name })}><Download size={13} />Download this page</button>}
+      empty={{ none: "No animal is due", filtered: "No animal is due", hint: "Animals appear here 14 days before their revaccination date." }}
+      foot={<><Pager page={page} total={total} setPage={setPage} />{setting.undated ? <p className="nr-hint" style={{ marginTop: 10 }}>{n(setting.undated)} {setting.undated === 1 ? "animal is" : "animals are"} marked vaccinated with no dated vaccination, so {setting.undated === 1 ? "it" : "they"} cannot be placed here. Add the date on {setting.undated === 1 ? "its" : "each"} record.</p> : null}</>}
+      preview={(a) => ({ title: realName(a.name) ?? "Unnamed", sub: <><span className="num">{idOf(a)}</span> · {a.zone ?? "Place not recorded"}</>, href: `/next/ngo/animals/${a.id}`, hrefLabel: "Open full record",
+        body: <><Props items={[["Last vaccinated", day(a.last_vaccinated)], ["Due on", day(a.due_on)], ["Interval", `${setting.days} days`]]} /><p className="nr-hint" style={{ marginTop: 12 }}>Record the new vaccination on the animal&apos;s record; it then leaves this list.</p></> })} />
+  );
+}
+
+function IdentityList({ org, views, lens, choose, action, setCount }: Common) {
+  const live = useLive();
+  const [rows, setRows] = useState<IdentityRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => { const r = await readIdentityQueue(org.org_id); if (r.error) { setError(errText(r.error)); setRows([]); } else { setError(null); setRows(r.data ?? []); setCount("identity", (r.data ?? []).length); } }, [org.org_id, setCount]);
+  useEffect(() => { void load(); }, [load]);
+  const cols: RCol<IdentityRow>[] = [
+    { label: "Animal", width: "minmax(0, 1.2fr)", render: (a) => <span className="nx-cell-main"><span><b>{realName(a.name) ?? a.code ?? "Unnamed animal"}</b><small>{a.identifiers || "Markings not recorded"}</small></span></span> },
+    { label: "Code", width: "120px", hideOnPhone: true, render: (a) => <span className="nx-t2 num">{a.code ?? "None"}</span> },
+    { label: "Markings", width: "minmax(0, 1.4fr)", hideOnPhone: true, render: (a) => <span className="nx-t2">{a.identifiers || "Not recorded"}</span> },
+    { label: "Identity", width: "150px", render: (a) => <Chip tone="warn">{words(a.identity_state)}</Chip> },
+  ];
+  return (
+    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => realName(a.name) ?? a.code ?? "Unnamed animal"} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/next/ngo/animals/${a.id}`}
+      sub={rows === null ? "Reading animals waiting for a decision…" : rows.length ? <><b className="num">{rows.length}</b> {rows.length === 1 ? "animal waits" : "animals wait"} for an identity decision{rows.length >= 100 ? " (the newest 100)" : ""}. Choose one to record the decision; both source histories are kept and nothing merges.</> : "No animal is marked provisional or a possible duplicate."}
+      action={action} loading={rows === null} error={error} onRetry={() => void load()}
+      empty={{ none: "Nothing to confirm", filtered: "Nothing to confirm", hint: "No animal is marked provisional or a possible duplicate." }}
+      foot={publicFlagOn("animal_id") ? <PhotoSearch ngoId={org.org_id} admin={org.role === "admin"} /> : null}
+      preview={(a, close) => ({ title: realName(a.name) ?? a.code ?? "Identity decision", sub: <>{a.code ?? "No code"} · {words(a.identity_state)}</>, href: `/next/ngo/animals/${a.id}`, hrefLabel: "Open the animal's history",
+        body: live.userId ? <IdentityDecision key={a.id} a={a} ngoId={org.org_id} userId={live.userId} onDone={async () => { close(); await load(); }} /> : null })} />
+  );
+}
+
+/** An identity decision is a recorded operation on the animal's newest case (operations_record_event, kind identification). */
+function IdentityDecision({ a, ngoId, userId, onDone }: { a: IdentityRow; ngoId: string; userId: string; onDone: () => Promise<void> }) {
+  const [decision, setDecision] = useState("confirmed_distinct");
+  const [search, setSearch] = useState("");
+  const [matches, setMatches] = useState<IdentityRow[]>([]);
+  const [candidate, setCandidate] = useState("");
+  const [reason, setReason] = useState("");
+  const [caseId, setCaseId] = useState<string | null | undefined>(undefined);
+  const [ask, setAsk] = useState(false);
+  const requests = useRef(new Map<string, { id: string; at: string }>());
+  const { busy, run } = useAct();
+  useEffect(() => { void newestCaseOf(ngoId, a.id).then((r) => setCaseId(r.error ? null : r.data ?? null)); }, [ngoId, a.id]);
+  useEffect(() => { if (decision === "confirmed_distinct" || search.trim().length < 2) { setMatches([]); return; } const t = window.setTimeout(() => { void identityCandidates(ngoId, a.id, search).then(setMatches); }, 300); return () => window.clearTimeout(t); }, [search, decision, ngoId, a.id]);
+  const ready = !!caseId && reason.trim().length >= 3 && (decision === "confirmed_distinct" || !!candidate);
+  const save = async () => {
+    const key = JSON.stringify([caseId, reason, decision, candidate]);
+    let req = requests.current.get(key); if (!req) { req = { id: crypto.randomUUID(), at: new Date().toISOString() }; requests.current.set(key, req); }
+    const payload = { template: "lifecycle-v1", occurredAt: req.at, notes: reason.trim(), identityDecision: decision, ...(decision !== "confirmed_distinct" ? { candidateId: candidate } : {}) };
+    const r = await run("id", async () => { try { const x = await operationRpc<OperationReceipt>("operations_record_event", { p_request: req!.id, p_case: caseId, p_kind: "identification", p_payload: payload, p_policy: null }); await verifyOperationReceipt(x, "animal_operation_events", userId, { case_id: caseId, kind: "identification" }, req!.id); return {}; } catch (e) { return { error: errText(e) }; } }, { ok: "Identity decision saved; the source and audit were checked." });
+    if (r.ok) { setAsk(false); await onDone(); }
+  };
+  if (caseId === undefined) return <p className="nr-quiet">Reading the animal&apos;s case…</p>;
+  if (caseId === null) return <p className="nr-err">This animal has no case, so the decision has nowhere to be recorded. <Link className="nr-link" href={`/next/ngo/cases/new?dog=${a.id}`}>Open a case for it</Link> first.</p>;
+  return (
+    <form className="nr-sheet" onSubmit={(e) => { e.preventDefault(); if (ready) setAsk(true); }}>
+      <Field label="Decision"><select value={decision} onChange={(e) => { setDecision(e.target.value); setCandidate(""); }}><option value="confirmed_distinct">Confirmed as a distinct animal</option><option value="possible_duplicate">Possible duplicate, needs investigation</option><option value="linked_existing">References an existing animal; both records kept</option></select></Field>
+      {decision !== "confirmed_distinct" ? <>
+        <Field label="Find the related animal"><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Name, tag or markings" /></Field>
+        <Field label="Related animal"><select required value={candidate} onChange={(e) => setCandidate(e.target.value)}><option value="">{matches.length ? "Choose the matching record" : "Search above first"}</option>{matches.map((m) => <option key={m.id} value={m.id}>{realName(m.name) ?? "Unnamed"} · {m.code ?? "no code"} · {m.identifiers ?? "no markings"}</option>)}</select></Field>
+      </> : null}
+      <Field label="Evidence and reason"><textarea required minLength={3} maxLength={4000} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="What you compared: marks, photos, place and dates" /></Field>
+      <p className="nr-hint">Identity review never deletes or merges an animal history.</p>
+      <div className="nr-acts"><button type="submit" className="nx-btn is-sm" disabled={!ready || !!busy}>Record the decision…</button></div>
+      {ask ? <Confirm title="Record this identity decision?" confirm="Record it" busy={!!busy} onClose={() => setAsk(false)} onConfirm={() => void save()}><p>It is saved on the animal&apos;s newest case with your name and reason. Both source histories are kept.</p></Confirm> : null}
+    </form>
+  );
+}
+
+/** Scan a microchip, RFID tag or QR code, or type it. Your own animals open; another organisation's tag is only reported as registered elsewhere. */
+function ScanTag({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const [value, setValue] = useState("");
+  const [said, setSaid] = useState<{ tone: "ok" | "bad" | "plain"; text: string } | null>(null);
+  const [camera, setCamera] = useState(false);
+  const { busy, run } = useAct();
+  const canScan = typeof window !== "undefined" && "BarcodeDetector" in window && !!navigator.mediaDevices?.getUserMedia;
+  const find = async (raw: string) => {
+    const v = raw.trim(); if (v.length < 3) return; setSaid(null);
+    const r = await run("scan", () => lookupIdentifier(v), { quiet: true });
+    if (!r.ok) { setSaid({ tone: "bad", text: r.error ?? "The lookup failed. Nothing was changed." }); return; }
+    const h = r.result?.data;
+    if (!h?.found) setSaid({ tone: "plain", text: "No animal carries this identifier. Search the register, and add it from the animal's record." });
+    else if (!h.own) setSaid({ tone: "plain", text: "Registered with another organisation." });
+    else if (h.dog_id) { setSaid({ tone: "ok", text: `Opening ${h.name || h.straypaw_id || "the animal"}…` }); router.push(`/next/ngo/animals/${h.dog_id}`); }
+  };
+  return (
+    <Modal title="Scan a tag" onClose={onClose}>
+      <p className="nx-sub" style={{ marginTop: 0 }}>A handheld reader types the number and Enter. Your own animals open directly.</p>
+      <form className="nr-acts" onSubmit={(e) => { e.preventDefault(); void find(value); }}>
+        <input className="nr-scan-in" style={{ flex: 1, minWidth: 0, height: 38, borderRadius: 8, border: 0, boxShadow: "inset 0 0 0 1px var(--line-2)", background: "var(--bg)", color: "var(--ink)", padding: "0 10px", font: "inherit" }} autoFocus value={value} onChange={(e) => setValue(e.target.value)} placeholder="Scan or type an identifier" aria-label="Identifier" autoComplete="off" spellCheck={false} maxLength={80} />
+        <button type="submit" className="nx-btn" disabled={!!busy || value.trim().length < 3}>{busy ? <Loader2 size={13} className="nx-spin" /> : null}Find</button>
+        {canScan ? <button type="button" className="nx-btn is-quiet" onClick={() => setCamera(true)}><Camera size={13} />Use camera</button> : null}
+      </form>
+      <div aria-live="polite">{said ? <p className={said.tone === "bad" ? "nr-err" : said.tone === "ok" ? "nr-ok" : "nx-sub"}>{said.text}</p> : null}</div>
+      {camera ? <QrScan onClose={() => setCamera(false)} onRead={(t) => { setCamera(false); setValue(t); void find(t); }} /> : null}
+    </Modal>
+  );
+}
+
+type Detector = { detect: (src: CanvasImageSource) => Promise<{ rawValue: string }[]> };
+/** Camera QR reading where the browser supports it. */
+export function QrScan({ onRead, onClose }: { onRead: (text: string) => void; onClose: () => void }) {
+  const video = useRef<HTMLVideoElement>(null);
+  const [msg, setMsg] = useState("Point the camera at the QR code.");
+  useEffect(() => {
+    let stream: MediaStream | null = null, raf = 0, alive = true;
+    const Ctor = (window as unknown as { BarcodeDetector?: new (o: { formats: string[] }) => Detector }).BarcodeDetector;
+    if (!Ctor) { setMsg("This browser cannot read QR codes with the camera. Type the code instead."); return; }
+    const det = new Ctor({ formats: ["qr_code"] });
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then((s) => {
+      if (!alive) { s.getTracks().forEach((t) => t.stop()); return; }
+      stream = s; if (video.current) { video.current.srcObject = s; void video.current.play(); }
+      const tick = async () => { if (!alive || !video.current) return; try { const c = await det.detect(video.current); if (c[0]?.rawValue) { onRead(c[0].rawValue); return; } } catch { /* keep looking */ } raf = requestAnimationFrame(() => void tick()); };
+      raf = requestAnimationFrame(() => void tick());
+    }).catch(() => setMsg("Camera access was not allowed. Type the code instead."));
+    return () => { alive = false; cancelAnimationFrame(raf); stream?.getTracks().forEach((t) => t.stop()); };
+  }, [onRead]);
+  return <div style={{ display: "grid", gap: 8 }}><video ref={video} playsInline muted style={{ width: "100%", borderRadius: 10, background: "var(--side)" }} /><p className="nx-sub">{msg}</p><button type="button" className="nx-btn is-quiet is-sm" onClick={onClose}>Stop the camera</button></div>;
+}
+
+/* ── Sample ──────────────────────────────────────────────────────── */
+
+const sTone = (v: string) => (/^(Sterilised|Vaccinated|Verified)$/.test(v) ? "ok" : /Due|review/i.test(v) ? "warn" : "plain") as "ok" | "warn" | "plain";
+const SAMPLE_HELP = new Set(["AN-0951", "AN-1042"]);
+const SVIEWS: RView<Animal>[] = [
+  { id: "all", label: "All", test: () => true },
+  { id: "help", label: "Needs help", test: (a) => SAMPLE_HELP.has(a.id) },
+  { id: "ster", label: "Not sterilised", test: (a) => a.abc !== "Sterilised" },
+  { id: "vacc", label: "Not vaccinated", test: (a) => a.arv !== "Vaccinated" },
+  { id: "identity", label: "Identity to review", test: (a) => a.identity === "Needs review" },
+];
+const SCOLS: RCol<Animal>[] = [
+  { label: "Animal", width: "minmax(0, 1.6fr)", render: (a) => <span className="nx-cell-main"><span className="nx-thumb">{initials(a.species)}</span><span><b>{a.name}</b><small><span className="num">{a.id}</span> · {a.sex} · {a.age}<span className="nx-only-s"> · {a.ward}</span></small></span></span> },
+  { label: "Place", width: "minmax(0, .9fr)", hideOnPhone: true, render: (a) => <span className="nx-t2">{a.ward}</span> },
+  { label: "Sterilisation", width: "120px", hideOnPhone: true, render: (a) => <Chip tone={sTone(a.abc)}>{a.abc}</Chip> },
+  { label: "Vaccination", width: "112px", hideOnPhone: true, render: (a) => <Chip tone={sTone(a.arv)}>{a.arv}</Chip> },
+  { label: "Record", width: "96px", render: (a) => <TrustChip trust={a.trust} /> },
+  { label: "Last seen", width: "84px", hideOnPhone: true, render: (a) => <span className="nx-t3">{a.last}</span> },
+];
+function SampleAnimals() {
+  return (
+    <Shell crumb={["NGO", "Animals"]}>
+      <RecordList id="animals" title="Animals" sample rows={ANIMALS} rowKey={(a) => a.id} rowLabel={(a) => `${a.id}, ${a.name}`} columns={SCOLS} views={SVIEWS} search={(a) => `${a.id} ${a.name} ${a.ward} ${a.mark}`} placeholder="Name, code, place"
+        sub={<><b className="num">{ANIMALS.length}</b> animals on the register. Each row says how far its record has been checked.</>}
+        action={<div className="nr-tools"><TryLink quiet><ScanLine size={14} />Scan a tag</TryLink><Link href="/next/ngo/field" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>}
+        tools={<TryLink quiet sm><Download size={13} />Download</TryLink>} loading={false} empty={{ none: "No animals yet" }} hrefOf={(a) => `/next/ngo/animals/${a.id}`}
+        preview={(a) => ({ title: a.name, sub: <>{a.ward} · Last seen {a.last} <TrustChip trust={a.trust} /></>, href: `/next/ngo/animals/${a.id}`, hrefLabel: "Open full record", body: <SampleBody a={a} /> })} />
+    </Shell>
+  );
+}
+export function SampleBody({ a }: { a: Animal }) {
+  return <>
+    <Props items={[["Animal ID", <span key="i" className="num">{a.id}</span>], ["Species", a.species], ["Sex", a.sex], ["Est. age", a.age], ["Place", a.ward], ["Marks", a.mark],
+      ["Sterilisation", <Chip key="s" tone={sTone(a.abc)}>{a.abc}</Chip>], ["Vaccination", <Chip key="v" tone={sTone(a.arv)}>{a.arv}</Chip>], ["Identity", <Chip key="d" tone={sTone(a.identity)}>{a.identity}</Chip>], ["Next", a.next]]} />
+    <h3 className="nx-h3">Activity and medical history</h3>
+    <Timeline items={TIMELINE.slice(0, 3).map((e) => ({ id: e.title, when: e.when, who: e.by, title: e.title, body: e.body, tone: e.tone === "ok" ? "ok" : e.tone === "accent" ? "accent" : undefined }))} />
+    <p className="nx-note"><Info size={13} /><span>A field record, a clinician&apos;s signature and a municipal verification are three separate steps.</span></p>
+    <div className="nr-acts" style={{ marginTop: 14 }}><TryLink quiet sm>Flag as needing help</TryLink><TryLink quiet sm><ClipboardPlus size={13} />Start a case</TryLink></div>
+  </>;
 }
