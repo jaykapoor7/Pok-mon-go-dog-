@@ -45,7 +45,7 @@ Unverified modules ship switched off. A flag is on only when its name is listed 
 | `citizen_bite_assist` | Bite or scratch help at `/bite-help` (off: needs clinical review before any public use) |
 | `training_lms` | Training at `/ngo/training` (on in production) |
 | `animal_identifiers` | RFID, microchip and QR identifiers; scan at `/ngo/animals/scan` (on in production) |
-| `readiness_board` | Readiness board in the workspace menu (on in production) |
+| `readiness_board` | Retired with the classic workspace menu; the same list is in NGO Settings → What is connected for everyone. A name left in `SP_FLAGS` is ignored. |
 
 ## Kaju and model use
 

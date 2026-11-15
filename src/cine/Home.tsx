@@ -55,7 +55,7 @@ export default function CinematicHome() {
               <p className="cn8-k">Meet Kaju</p>
               <h2 id="cn8-kaju-h" className="cn8-h2">The intelligence in the network, answerable to the record.</h2>
               <p className="cn8-lede">Kaju is built into StrayPaw. It reads what your role can read, shows each step it takes, names the records behind every answer, and prepares work for a person to confirm. It never approves a procedure or a payment.</p>
-              <Link href="/kaju" className="cn8-btn is-line">Meet Kaju<ArrowRight size={15} aria-hidden /></Link>
+              <Link href="/ai" className="cn8-btn is-line">Meet Kaju<ArrowRight size={15} aria-hidden /></Link>
             </div>
             <KajuDemo asks={undefined} />
           </div>

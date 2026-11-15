@@ -70,7 +70,6 @@ function holders(c: MapCell, open: boolean): { who: string[]; note: string } {
 /** Every rule that applies to one area, most urgent first. */
 export function areaWork(c: MapCell, i: number, city: string, now = Date.now()): WorkItem[] {
   const place = placeName(c.zone);
-  const enc = encodeURIComponent(place);
   const items: WorkItem[] = [];
   const add = (kind: WorkKind, size: number, reason: string, open: boolean, actions: WorkAction[]) => {
     const h = holders(c, open);
@@ -83,39 +82,39 @@ export function areaWork(c: MapCell, i: number, city: string, now = Date.now()):
   if (waiting > 0) {
     const age = days(c.open_oldest, now);
     add("waiting", waiting * 4 + Math.min(40, age / 30), `${n(waiting, "request")} open for more than 30 days.`, true, [
-      { label: "Open these requests", href: `/partner/cases?place=${enc}&sort=oldest`, audience: "member" },
+      { label: "Open these requests", href: "/ngo/cases?view=decide", audience: "member" },
       report,
     ]);
   }
   if (c.unassigned) add("unassigned", c.unassigned * 4, `${n(c.unassigned, "open request")} with nobody assigned.`, true, [
-    { label: "Assign them", href: `/partner/cases?place=${enc}&lens=nobody`, audience: "member" },
+    { label: "Assign them", href: "/ngo/cases?view=unassigned", audience: "member" },
   ]);
   /* Only rechecks missed on requests still confirmed open: one missed before a
      request closed is history (all 221 on record came from one import). */
   const missed = c.fu_missed_live ?? 0;
   if (missed) add("missed", missed * 3, `${n(missed, "follow-up")} missed on ${missed === 1 ? "a request" : "requests"} still open${c.fu_upcoming ? `, ${c.fu_upcoming} more due` : ""}.`, true, [
-    { label: "Plan the follow-ups", href: "/partner/followups", audience: "member" },
+    { label: "Plan the follow-ups", href: "/ngo/cases?view=due", audience: "member" },
     report,
   ]);
   if (c.needs_help && !c.open_cases) add("flagged", c.needs_help * 8, `${n(c.needs_help, "animal")} flagged as needing help, and no request is open here.`, false, [
-    { label: "Open a request", href: "/partner/cases/new", audience: "member" },
+    { label: "Open a request", href: "/ngo/cases/new", audience: "member" },
     { label: "Report the animal's condition", href: "/report", audience: "all" },
   ]);
   if (c.open_unconfirmed) add("confirm", c.open_unconfirmed * 2, `${n(c.open_unconfirmed, "request")} marked open in an imported register and not confirmed in StrayPaw since. Whether ${c.open_unconfirmed === 1 ? "it is" : "they are"} still open is not known.`, true, [
-    { label: "Review their status", href: `/partner/cases?place=${enc}&sort=oldest`, audience: "member" },
+    { label: "Review their status", href: "/ngo/cases?view=imported", audience: "member" },
     report,
   ]);
   if (c.status_unknown) add("outcome", c.status_unknown, `${n(c.status_unknown, "request")} with no status recorded: open or closed is not known.`, false, [
-    { label: "Record their outcomes", href: `/partner/cases?place=${enc}`, audience: "member" },
+    { label: "Record their outcomes", href: "/ngo/cases?view=reason", audience: "member" },
   ]);
   if (c.animals >= 10 && c.ster_unknown >= c.animals / 2) add("survey", Math.round(c.ster_unknown / 5), `Sterilisation status is unknown for ${c.ster_unknown.toLocaleString("en-IN")} of ${n(c.animals, "animal")} (${Math.round((c.ster_unknown / c.animals) * 100)}%).`, false, [
-    { label: "Plan a status survey", href: "/partner/surveys", audience: "member" },
+    { label: "Plan a status survey", href: "/ngo/programmes?tab=surveys", audience: "member" },
     { label: "Share this area", copy: true, audience: "all" },
   ]);
   const last = [c.last_seen, c.last_case, c.care_last].filter(Boolean).sort().at(-1) ?? null;
   const quiet = days(last, now);
   if (c.animals >= 5 && quiet > 365) add("revisit", Math.round(c.animals / 4), `${n(c.animals, "animal")} on the record and nothing new for ${(quiet / 365).toFixed(1).replace(/\.0$/, "")} years.`, false, [
-    { label: "Plan a field visit", href: "/partner/field", audience: "member" },
+    { label: "Plan a field visit", href: "/ngo/field", audience: "member" },
     { label: "Report a sighting here", href: "/report", audience: "all" },
   ]);
   return items.sort((a, b) => b.score - a.score);
@@ -141,7 +140,7 @@ export function nationalWork(cities: NationalCity[], unplaced: Unplaced[]): Work
     items.push({
       key: `place:${u.zone}`, kind: "place", cell: null, city: null, place: u.zone, score: URGENCY.place + u.open_cases,
       reason: `${n(u.open_cases, "open request")} recorded at “${u.zone}” with no city, so on no map.`, who: [], whoNote: "",
-      actions: [{ label: "Place these requests", href: `/partner/cases?q=${encodeURIComponent(u.zone)}`, audience: "member" }],
+      actions: [{ label: "Place these requests", href: "/ngo/cases", audience: "member" }],
     });
   }
   return items.sort((a, b) => b.score - a.score);

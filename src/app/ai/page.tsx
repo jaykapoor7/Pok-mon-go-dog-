@@ -5,13 +5,18 @@ import { AiBand } from "@/sp4/home/Interactive";
 
 export const metadata = { title: "Kaju, StrayPaw", description: "A tool-using assistant inside every StrayPaw workspace: searches the records you can read, answers with citations, finds gaps and prepares changes a person confirms." };
 
+/* Meet Kaju. The cinematic site has its own Kaju page (bundled only in that build, see next.config.mjs); the app's
+   own Kaju is at /kaju. */
+const KajuPage: typeof import("@/cine/KajuPage").KajuPage | null = process.env.MARKETING_EXPERIENCE === "cinematic" ? require("@/cine/KajuPage").KajuPage : null;
+
 export default function AiPage() {
+  if (KajuPage) return <KajuPage />;
   return <ProductPage s={{
     id: "ai",
     eyebrow: "Kaju",
     title: ["Answers, checks and paperwork,", "done by Kaju"],
     lede: "Kaju answers from your records, finds what is missing and prepares changes for your team to confirm.",
-    primary: { href: "/assistant", label: "Open Kaju" },
+    primary: { href: "/kaju", label: "Open Kaju" },
     secondary: { href: "/demo", label: "Book a demo" },
     hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><AskUi v={3} /><ProposeUi v={1} /></div>,
     heroV: 2,

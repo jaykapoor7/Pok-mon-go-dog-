@@ -206,8 +206,8 @@ export function Onboarding({ signedIn, startAt, known }: { signedIn: boolean; st
   const staff = f.outcome?.kind === "member" || f.outcome?.kind === "reviewer";
   const primaryHref = (): string => {
     const o = f.outcome;
-    if (o?.kind === "member") return o.role === "veterinarian" ? "/ngo/verification?stage=vet" : o.role === "member" ? "/ngo/field" : "/ngo";
-    if (o?.kind === "reviewer") return "/city/review";
+    if (o?.kind === "member") return o.role === "veterinarian" ? "/health/procedures" : o.role === "member" ? "/ngo/field" : "/ngo/today";
+    if (o?.kind === "reviewer") return "/gov/verification";
     if (f.path === "org" || f.path === "office") return "/sign-in?as=org&switch=1&next=/app";
     return crew[0]?.href ?? "/app";
   };

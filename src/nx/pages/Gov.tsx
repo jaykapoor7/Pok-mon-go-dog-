@@ -12,6 +12,8 @@ import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { ALERTS, OUTPUTS, PARTNERS, PROG_SAMPLE, SURV_AREAS, SURV_WEEKS, TARGET, WARDS, type Tone } from "../fixtures";
 import { useLive } from "../live";
+import { TabBar } from "../kit";
+import { ContractsTab } from "./gov/Contracts";
 
 /* Government & Programmes, built on the programme the person oversees (oh_programme_overview and friends).
    Every count comes from the database, which suppresses small human-health counts as "<5" and never returns
@@ -85,13 +87,13 @@ export function GovProgrammes() {
   const o = useCall<Overview>("oh_programme_overview", g.mode === "programme" && g.prog ? { p_programme: g.prog.id, p_days: 365 } : null, `cov:${g.prog?.id}`);
   if (g.mode === "loading") return <Opening crumb="Programmes" />;
   if (g.mode === "none") return <Plain crumb="Programmes" title="Programmes">{g.gov ? `${g.gov.name} does not oversee a programme on StrayPaw yet.` : NOT_IN}</Plain>;
-  if (g.mode === "office") return <Plain crumb="Programmes" title="Programmes">{g.gov!.name} reviews packages that operators send it. It is not a member of a programme on StrayPaw, so there is no programme coverage to show here. <Link href="/next/gov/verification" style={{ color: "var(--accent)" }}>Open verification</Link>.</Plain>;
+  if (g.mode === "office") return <Plain crumb="Programmes" title="Programmes">{g.gov!.name} reviews packages that operators send it. It is not a member of a programme on StrayPaw, so there is no programme coverage to show here. <Link href="/gov/verification" style={{ color: "var(--accent)" }}>Open verification</Link>.</Plain>;
   const sample = g.mode === "sample";
   const target = sample ? TARGET : o.data?.programme.target ?? TARGET;
   const slug = g.prog?.slug;
   const rows: AreaRow[] = sample
-    ? WARDS.map((w) => ({ id: w.ward, area: w.ward, vaccinated: w.verified, registered: w.submitted, estimate: w.estimate ? { dogs: w.estimate, method: "Street survey", source: `${w.operator}, ${w.estimated}`, on: w.estimated } : null }))
-    : (o.data?.vaccination ?? []).map((v) => ({ id: v.area_id, area: v.area, vaccinated: v.vaccinated, registered: v.registered, estimate: v.estimate ? { ...v.estimate, on: fmtDate(v.estimate.on, { day: "numeric", month: "short", year: "numeric" }) } : null, href: slug ? `/programme/${slug}/coverage` : undefined }));
+    ? WARDS.map((w) => ({ id: w.ward, area: w.ward, vaccinated: w.verified, registered: w.submitted, estimate: w.estimate ? { dogs: w.estimate, method: "Street survey", source: `${w.operator}, ${w.estimated}`, on: w.estimated } : null, href: "/gov/programmes/sample?tab=Coverage" }))
+    : (o.data?.vaccination ?? []).map((v) => ({ id: v.area_id, area: v.area, vaccinated: v.vaccinated, registered: v.registered, estimate: v.estimate ? { ...v.estimate, on: fmtDate(v.estimate.on, { day: "numeric", month: "short", year: "numeric" }) } : null, href: slug ? `/gov/programmes/${slug}?tab=Coverage` : undefined }));
   const withEst = rows.filter((r) => covOf(r) !== null), at = withEst.filter((r) => covOf(r)! >= target).length;
   const cols: Col<AreaRow>[] = [
     { label: "Area", width: "minmax(0, 1fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.area}</b><small>{r.estimate ? `Estimate ${r.estimate.dogs.toLocaleString("en-IN")} dogs · ${r.estimate.on}` : "No dated estimate"}<span className="nx-only-s"> · {covOf(r) !== null ? pct(covOf(r)!) : "no coverage figure"}</span></small></span></span> },
@@ -102,11 +104,11 @@ export function GovProgrammes() {
     <ListPage ws="gov" crumb={["Government", "Programmes"]} title="Programmes" sample={sample}
       eyebrow={<><ProgName g={g} sample={sample} />{!sample && o.data?.programme.illustrative && !/illustrative/i.test(o.data.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</>}
       sub={o.loading ? "Reading the programme…" : <><b className="num">{at}</b> of {withEst.length} {withEst.length === 1 ? "area" : "areas"} with a dated estimate reach the {pct(target)} target.{rows.length - withEst.length ? <> {rows.length - withEst.length} {rows.length - withEst.length === 1 ? "has" : "have"} no estimate, so no coverage is shown.</> : null}</>}
-      action={!sample && slug ? <Link href={`/programme/${slug}/coverage`} className="nx-btn is-quiet">Record an estimate</Link> : undefined}
+      action={sample ? <Link href="/gov/programmes/sample?tab=Coverage" className="nx-btn is-quiet">Open the programme</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Coverage`} className="nx-btn is-quiet">Record an estimate</Link> : undefined}
       views={[{ id: "all", label: "All areas", test: () => true }, { id: "low", label: "Below target", test: (r: AreaRow) => covOf(r) !== null && covOf(r)! < target }, { id: "none", label: "No estimate", test: (r: AreaRow) => covOf(r) === null }]}
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.area} search={(r) => r.area}
       sort={(a, b) => (covOf(a) ?? 2) - (covOf(b) ?? 2)}
-      preview={(r) => ({ title: r.area, sub: <CovBar c={covOf(r)} target={target} />, body: <><dl className="nx-props"><div><dt>Vaccinated</dt><dd className="num">{r.vaccinated.toLocaleString("en-IN")}</dd></div><div><dt>Registered</dt><dd className="num">{r.registered.toLocaleString("en-IN")}</dd></div>{r.estimate ? <><div><dt>Estimate</dt><dd><span className="num">{r.estimate.dogs.toLocaleString("en-IN")}</span> dogs</dd></div><div><dt>Method</dt><dd>{r.estimate.method}</dd></div><div><dt>Source</dt><dd>{r.estimate.source}</dd></div><div><dt>Dated</dt><dd>{r.estimate.on}</dd></div></> : <div><dt>Estimate</dt><dd>None recorded</dd></div>}</dl><p className="nx-note" style={{ marginTop: 14 }}><span>Coverage is vaccinated dogs recorded on StrayPaw divided by the dated estimate. Dogs vaccinated outside StrayPaw are not counted, so it can understate coverage.</span></p></>, href: r.href, hrefLabel: "Open coverage", hrefNote: "Estimates are recorded on the programme's coverage page." })}
+      preview={(r) => ({ title: r.area, sub: <CovBar c={covOf(r)} target={target} />, body: <><dl className="nx-props"><div><dt>Vaccinated</dt><dd className="num">{r.vaccinated.toLocaleString("en-IN")}</dd></div><div><dt>Registered</dt><dd className="num">{r.registered.toLocaleString("en-IN")}</dd></div>{r.estimate ? <><div><dt>Estimate</dt><dd><span className="num">{r.estimate.dogs.toLocaleString("en-IN")}</span> dogs</dd></div><div><dt>Method</dt><dd>{r.estimate.method}</dd></div><div><dt>Source</dt><dd>{r.estimate.source}</dd></div><div><dt>Dated</dt><dd>{r.estimate.on}</dd></div></> : <div><dt>Estimate</dt><dd>None recorded</dd></div>}</dl><p className="nx-note" style={{ marginTop: 14 }}><span>Coverage is vaccinated dogs recorded on StrayPaw divided by the dated estimate. Dogs vaccinated outside StrayPaw are not counted, so it can understate coverage.</span></p></>, href: r.href, hrefLabel: "Open coverage", hrefNote: "Estimates are recorded with their method and source on the programme's Coverage tab." })}
       loading={o.loading} note={o.err} empty={{ none: "No areas in this programme yet", hint: "Areas are added when the programme is set up." }} />
   );
 }
@@ -138,13 +140,13 @@ export function Partners() {
   return (
     <ListPage ws="gov" crumb={["Government", "Partners"]} title="Partners" sample={sample} eyebrow={<ProgName g={g} sample={sample} />}
       sub={o.loading ? "Reading partners…" : <><b className="num">{rows.length}</b> organisations in the programme{late ? <>, <b className="num">{late}</b> with overdue requests</> : null}. Joining a programme does not open one organisation&apos;s records to another.</>}
-      action={!sample && slug ? <Link href={`/programme/${slug}/network`} className="nx-btn is-quiet">Open the network</Link> : undefined}
+      action={sample ? <Link href="/gov/programmes/sample?tab=Network" className="nx-btn is-quiet">Open the network</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Network`} className="nx-btn is-quiet">Open the network</Link> : undefined}
       views={[{ id: "all", label: "All", test: () => true }, { id: "late", label: "Overdue requests", test: (r: PartnerRow) => r.overdue > 0 }, { id: "health", label: "Health and laboratory", test: (r: PartnerRow) => HEALTH.has(r.kind) }, { id: "field", label: "Field and municipal", test: (r: PartnerRow) => !HEALTH.has(r.kind) }]}
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => `${r.name} ${r.kind} ${r.responsibilities}`}
       sort={(a, b) => b.overdue - a.overdue || b.open - a.open || a.name.localeCompare(b.name)}
       preview={(r) => ({ title: r.name, sub: r.kind, body: <><dl className="nx-props"><div><dt>Responsible for</dt><dd>{r.responsibilities}</dd></div><div><dt>People</dt><dd className="num">{num(r.members)}</dd></div><div><dt>Open requests</dt><dd className="num">{r.open}{r.overdue ? <>&nbsp;<Chip tone="bad">{r.overdue} overdue</Chip></> : null}</dd></div></dl>
         {r.services.length ? <><h3 className="nx-h3" style={{ marginTop: 18 }}>Services</h3><ul className="nx-svc">{r.services.map((s) => <li key={s.service}><span>{s.service}</span><Chip tone={STATUS_TONE[s.status] ?? "plain"}>{s.status}</Chip><small>confirmed {s.on}</small></li>)}</ul><p className="nx-note" style={{ marginTop: 12 }}><span>What the facility last confirmed. It is not a stock count.</span></p></> : null}</>,
-        href: slug ? `/programme/${slug}/network` : undefined, hrefLabel: "Open in the network", hrefNote: "Invitations and responsibilities are managed on the programme's network page." })}
+        href: sample ? "/gov/programmes/sample?tab=Network" : slug ? `/gov/programmes/${slug}?tab=Network` : undefined, hrefLabel: "Open in the network", hrefNote: "Invitations and responsibilities are managed on the programme's Setup tab." })}
       loading={o.loading} note={o.err} empty={{ none: "No partners yet", hint: "Organisations join a programme by invitation." }} />
   );
 }
@@ -178,7 +180,7 @@ function Operators() {
       sub={rows === null ? "Reading packages…" : <><b className="num">{list.length}</b> {list.length === 1 ? "operator has" : "operators have"} sent this office a package. Sending a package does not make an operator a contracted partner.</>}
       views={[{ id: "all", label: "All", test: () => true }, { id: "w", label: "Waiting for you", test: (r: OpRow) => r.waiting > 0 }]}
       columns={cols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => r.name} sort={(a, b) => b.waiting - a.waiting || b.sent - a.sent}
-      preview={(r) => ({ title: r.name, sub: "Operator", body: <dl className="nx-props"><div><dt>Packages sent</dt><dd className="num">{r.sent}</dd></div><div><dt>Waiting for you</dt><dd className="num">{r.waiting}</dd></div><div><dt>Accepted</dt><dd className="num">{r.accepted}</dd></div><div><dt>Records accepted</dt><dd className="num">{r.records.toLocaleString("en-IN")}</dd></div></dl>, href: "/next/gov/verification", hrefLabel: "Open verification" })}
+      preview={(r) => ({ title: r.name, sub: "Operator", body: <dl className="nx-props"><div><dt>Packages sent</dt><dd className="num">{r.sent}</dd></div><div><dt>Waiting for you</dt><dd className="num">{r.waiting}</dd></div><div><dt>Accepted</dt><dd className="num">{r.accepted}</dd></div><div><dt>Records accepted</dt><dd className="num">{r.records.toLocaleString("en-IN")}</dd></div></dl>, href: "/gov/verification", hrefLabel: "Open verification" })}
       loading={rows === null} note={err} empty={{ none: "No operator has sent a package yet" }} />
   );
 }
@@ -228,7 +230,7 @@ export function Surveillance() {
       <div className="nx-page" style={{ maxWidth: 1080 }}>
         <div className="nx-head"><div><p className="nx-eyebrow"><ProgName g={g} sample={sample} />{sample ? <Sample /> : x?.programme.illustrative && !/illustrative/i.test(x.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</p><h1 className="nx-h1">Surveillance</h1>
           <p className="nx-sub">{o.loading ? "Reading signals…" : <><b className="num">{num(total)}</b> exposures recorded in the last {PERIODS.find((p) => p.d === days)!.label}{s ? <>, <b className="num">{s.positive}</b> laboratory-confirmed {s.positive === 1 ? "positive" : "positives"}</> : null}. Alerts follow fixed programme rules; none of them declares an outbreak.</>}</p></div>
-          {!sample && slug ? <Link href={`/programme/${slug}/work`} className="nx-btn is-quiet">Open the response queue</Link> : null}
+          {sample ? <Link href="/gov/programmes/sample?tab=Work" className="nx-btn is-quiet">Open the response queue</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Work`} className="nx-btn is-quiet">Open the response queue</Link> : null}
         </div>
         <div className="nx-bar" style={{ borderBottom: 0, paddingBottom: 0 }}><div className="nx-views" role="tablist" aria-label="Period">{PERIODS.map((p) => <button key={p.d} type="button" role="tab" aria-selected={days === p.d} className={`nx-view ${days === p.d ? "is-on" : ""}`} onClick={() => setDays(p.d)}>{days === p.d ? <span className="nx-view-bg" /> : null}<span>{p.label}</span></button>)}</div></div>
         {o.err || al.err ? <p className="nx-foot" role="alert">{o.err ?? al.err}</p> : null}
@@ -266,6 +268,7 @@ export function Surveillance() {
 type OutRow = { id: string; title: string; source: string; kind: string; period: string; records: number; by: string; on: string; href?: string };
 export function GovReports() {
   const g = useGov();
+  const [tab, setTab] = useState<"Reports" | "Contracts">(() => (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "Contracts" ? "Contracts" : "Reports"));
   const [ps, setPs] = useState<OutRow[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const officeId = g.mode === "office" ? g.gov!.org_id : null;
@@ -275,7 +278,7 @@ export function GovReports() {
     packages().then(async (all) => {
       const done = all.filter((p) => p.office_id === officeId && (p.status === "accepted" || p.status === "partially_accepted"));
       const names = await orgNames([...new Set(done.map((p) => p.ngo_id))]).catch(() => ({} as Record<string, string>));
-      if (alive) setPs(done.map((p) => ({ id: p.id, title: p.title, source: names[p.ngo_id] ?? "Operator", kind: PACKAGE_LABEL[p.status], period: `${fmtDate(p.period_start)} – ${fmtDate(p.period_end)}`, records: p.summary?.records ?? 0, by: p.decided_by_name ?? "—", on: p.decided_at ? fmtDate(p.decided_at) : "—", href: `/city/review/${p.id}` })));
+      if (alive) setPs(done.map((p) => ({ id: p.id, title: p.title, source: names[p.ngo_id] ?? "Operator", kind: PACKAGE_LABEL[p.status], period: `${fmtDate(p.period_start)} – ${fmtDate(p.period_end)}`, records: p.summary?.records ?? 0, by: p.decided_by_name ?? "—", on: p.decided_at ? fmtDate(p.decided_at) : "—", href: `/gov/verification/${p.id}` })));
     }).catch(() => { if (alive) { setPs([]); setErr("Packages could not be read just now."); } });
     return () => { alive = false; };
   }, [officeId]);
@@ -283,31 +286,37 @@ export function GovReports() {
   if (g.mode === "none") return <Plain crumb="Reports" title="Reports">{g.gov ? `${g.gov.name} has no programme or reviewed packages on StrayPaw yet, so there is nothing to report from.` : NOT_IN}</Plain>;
   const sample = g.mode === "sample";
   const slug = g.prog?.slug;
-  const outs: OutRow[] = sample ? OUTPUTS : ps ?? [];
+  const outs: OutRow[] = sample ? OUTPUTS.map((o) => ({ ...o, href: "/gov/verification/v4" })) : ps ?? [];
+  /* Contracts belong to a reviewing office: it reviews claims against them. */
+  const withContracts = sample || g.mode === "office";
+  const pick = (t: "Reports" | "Contracts") => { setTab(t); try { const u = new URL(window.location.href); if (t === "Contracts") u.searchParams.set("tab", t); else u.searchParams.delete("tab"); window.history.replaceState(null, "", u); } catch {} };
   const progReports = sample || g.mode === "programme" ? [
-    { t: "Programme report", d: "Exposures, treatment completion, laboratory results, coverage and training for a chosen period, ready to print or save as PDF.", href: slug ? `/programme/${slug}/report` : null },
-    { t: "Coverage by area", d: "Vaccinated dogs against each area's dated estimate, with the estimate's source.", href: slug ? `/programme/${slug}/coverage` : null },
-    { t: "Data export", d: "Weekly exposures by area, species and category as a CSV, with small counts suppressed. No patient details.", href: slug ? `/programme/${slug}/data` : null },
+    { t: "Programme report", d: "Exposures, treatment completion, laboratory results, coverage and training for a chosen period, ready to print or save as PDF.", href: `/gov/programmes/${slug ?? "sample"}?tab=Report` },
+    { t: "Coverage by area", d: "Vaccinated dogs against each area's dated estimate, with the estimate's source.", href: `/gov/programmes/${slug ?? "sample"}?tab=Coverage` },
+    { t: "Data export", d: "Weekly exposures by area, species and category as a CSV, with small counts suppressed. No patient details.", href: `/gov/programmes/${slug ?? "sample"}?tab=Data` },
   ] : [];
   return (
     <Shell ws="gov" crumb={["Government", "Reports"]}>
       <div className="nx-page" style={{ maxWidth: 1000 }}>
         <div className="nx-head"><div><p className="nx-eyebrow">{g.mode === "office" ? g.gov!.name : <ProgName g={g} sample={sample} />}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Reports</h1><p className="nx-sub">Every report is built from records and says where each figure comes from. Kaju does not write reports.</p></div></div>
+        {withContracts ? <div className="gh-tabwrap"><TabBar id="gov-reports" tabs={["Reports", "Contracts"]} value={tab} onChange={pick} label="Reports and contracts" /></div> : null}
+        {withContracts && tab === "Contracts" ? <ContractsTab /> : <>
         {progReports.length ? <section className="nx-sec" aria-labelledby="rp-p" style={{ marginTop: 20 }}>
           <div className="nx-sec-h"><h2 id="rp-p">Programme reports</h2></div>
           <ul className="nx-feed">{progReports.map((r) => <li key={r.t}><span className="nx-feed-i"><FileText size={12} /></span><div>{r.href ? <Link href={r.href} className="nx-rep-a"><b>{r.t}</b><ArrowRight size={12} /></Link> : <b>{r.t}</b>}<p>{r.d}</p></div></li>)}</ul>
         </section> : null}
         {g.mode === "office" || sample ? <section className="nx-sec" aria-labelledby="rp-o" style={{ marginTop: 26 }}>
-          <div className="nx-sec-h"><h2 id="rp-o">Accepted packages</h2><span className="nx-count">{outs.length}</span>{!sample ? <Link href="/next/gov/verification">Verification <ArrowRight size={12} /></Link> : null}</div>
-          <div className="nx-table" role="table" aria-label="Accepted packages">
-            <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}><span>Package</span><span className="nx-hide-s">Records</span><span className="nx-hide-s">Decided</span></div>
+          <div className="nx-sec-h"><h2 id="rp-o">Accepted packages</h2><span className="nx-count">{outs.length}</span>{!sample ? <Link href="/gov/verification">Verification <ArrowRight size={12} /></Link> : null}</div>
+          <div className="nx-table" role="group" aria-label="Accepted packages">
+            <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}><span>Package</span><span className="nx-hide-s">Records</span><span className="nx-hide-s">Decided</span></div>
             {outs.map((r) => { const inner = <><span className="nx-cell-main" style={{ minWidth: 0 }}><span><b>{r.title}</b><small>{r.source} · {r.period}{r.kind !== "Accepted" && r.kind !== "Accepted package" ? ` · ${r.kind}` : ""}<span className="nx-only-s"> · {r.records} records</span></small></span></span><span className="num nx-hide-s">{r.records.toLocaleString("en-IN")}</span><span className="nx-t2 nx-hide-s">{r.on} · {r.by}</span></>;
-              return r.href ? <Link key={r.id} href={r.href} role="row" className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}>{inner}</Link> : <div key={r.id} role="row" className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}>{inner}</div>; })}
+              return r.href ? <Link key={r.id} href={r.href} className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}>{inner}</Link> : <div key={r.id} className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}>{inner}</div>; })}
             {!sample && ps === null ? <p className="nx-sub" style={{ padding: "18px 0" }}>Reading…</p> : !outs.length ? <p className="nx-sub" style={{ padding: "18px 0" }}>No package has been accepted yet.</p> : null}
           </div>
           {err ? <p className="nx-foot" role="alert">{err}</p> : null}
           <p className="nx-foot">An accepted package is signed by the named reviewer on the date shown. Accepted is not the same as paid; StrayPaw does not process payments.</p>
         </section> : null}
+        </>}
       </div>
     </Shell>
   );
@@ -335,14 +344,14 @@ export function ProgrammeHome() {
           <p className="nx-sub">{o.loading ? "Reading the programme…" : <>{x?.programme.parent ? <>Part of {x.programme.parent.name}. </> : null}{x?.can_manage ? "You manage this programme." : "You can see this programme; changes are made by its coordinators."}</>}</p></div></div>
         {o.err ? <p className="nx-foot" role="alert">{o.err}</p> : null}
         <div className="nx-figs">
-          {fig(urgent.length, "Urgent alerts open", "/next/gov/surveillance")}
-          {fig(x ? low : "—", `Areas below ${pct(target)}`, "/next/gov/programmes")}
-          {fig(x ? noEst : "—", "Areas without an estimate", "/next/gov/programmes")}
-          {fig(x ? late : "—", "Partners with overdue requests", "/next/gov/partners")}
-          {fig(x ? num(x.exposures?.total) : "—", "Exposures, 30 days", "/next/gov/surveillance")}
+          {fig(urgent.length, "Urgent alerts open", "/gov/surveillance")}
+          {fig(x ? low : "—", `Areas below ${pct(target)}`, "/gov/programmes")}
+          {fig(x ? noEst : "—", "Areas without an estimate", "/gov/programmes")}
+          {fig(x ? late : "—", "Partners with overdue requests", "/gov/partners")}
+          {fig(x ? num(x.exposures?.total) : "—", "Exposures, 30 days", "/gov/surveillance")}
         </div>
         <section className="nx-sec" aria-labelledby="h-u" style={{ marginTop: 26 }}>
-          <div className="nx-sec-h"><h2 id="h-u">Needs a decision</h2><Link href="/next/gov/surveillance">All alerts <ArrowRight size={12} /></Link></div>
+          <div className="nx-sec-h"><h2 id="h-u">Needs a decision</h2><Link href="/gov/surveillance">All alerts <ArrowRight size={12} /></Link></div>
           <ul className="nx-feed" style={{ maxWidth: 760 }}>{urgent.slice(0, 5).map((a) => <li key={a.key}><span className="nx-feed-i" style={{ background: "var(--bad-soft)", color: "var(--bad)" }}><ShieldAlert size={12} /></span><div><b>{a.title}</b><p>{a.detail}</p><small>{ALERT_KIND[a.kind] ?? a.kind}{a.area ? ` · ${a.area}` : ""} · {fmtDate(a.at)}</small></div></li>)}</ul>
           {!al.loading && !urgent.length ? <p className="nx-sub">Nothing urgent is open.</p> : null}
         </section>

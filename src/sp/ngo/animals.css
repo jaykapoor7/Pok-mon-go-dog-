@@ -1,5 +1,0 @@
-/* Animals, the register: only what the kit's table does not give. A small picture (or a paw where none is recorded) beside the name. */
-.sp .an-who .portrait.is-s { flex: none; width: 24px; height: 24px; border-radius: 4px; }
-.an-paw { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 4px; background: var(--n-tag); color: var(--n-text-3); }
-.an-sel { max-width: 176px; }
-@media (max-width: 860px) { .an-sel { flex: 1 1 40%; max-width: none; } }

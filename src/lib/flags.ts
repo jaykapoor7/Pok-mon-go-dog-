@@ -11,7 +11,6 @@ export const FLAGS = {
   citizen_bite_assist: "Bite or scratch help for citizens (prototype, awaiting clinical review)",
   training_lms: "Training courses, assignments and completion records",
   animal_identifiers: "RFID, microchip and QR identifiers on animal records",
-  readiness_board: "Module readiness board for staff",
   animal_id: "AnimalID: photo-based identity suggestions in Identity review (needs the AnimalID worker; staging first)",
 } as const;
 

@@ -5,33 +5,6 @@ import { expect, test } from "@playwright/test";
    workflow itself is checked end to end on staging with real sessions
    (scripts/staging/abc-workflow-check.mjs, 55 checks). */
 
-test("verification is a module of the NGO workspace and asks a visitor to sign in", async ({ page, isMobile }) => {
-  await page.goto("/ngo/verification");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Verification");
-  await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
-  /* Sign-off belongs to Sterilisation: the sidebar keeps it lit. */
-  if(!isMobile){const side=page.getByRole('complementary',{name:'Workspace'});await expect(side.getByRole('link',{name:'Sterilisation',exact:true})).toHaveAttribute('aria-current','page');await expect(side.getByRole('link',{name:'Team',exact:true})).toHaveCount(0)}
-
-});
-
-test("report packages ask a visitor to sign in", async ({ page }) => {
-  await page.goto("/ngo/packages");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Report packages");
-});
-
-test("municipal package review asks a visitor to sign in", async ({ page, isMobile }) => {
-  await page.goto("/city/review");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Package review");
-  await expect(page.getByRole("link", { name: "Sign in" }).first()).toBeVisible();
-  if (!isMobile) {
-    /* Only people in a reviewing office see it in the sidebar; everyone else keeps a short one. */
-    const side = page.getByRole("complementary", { name: "Workspace" });
-    await expect(side.getByRole("link", { name: "Package review" })).toHaveCount(0);
-    await expect(side.getByRole("link", { name: "Home", exact: true })).toBeVisible();
-  }
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-});
-
 test("the homepage introduces Kaju and what it handles", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Meet Kaju, the AI agent for\s*animal welfare programmes/);
@@ -55,11 +28,10 @@ test("every public page has exactly one main heading (mission included)", async 
   await expect(page.locator("h1")).toHaveCount(1);
 });
 
-test("the verification queue reads nothing for a signed-out visitor", async ({ page }) => {
+test("evidence, packages and the review queue read nothing for a signed-out visitor", async ({ page }) => {
   const calls: string[] = [];
-  page.on("request", (r) => { if (/rpc\/abc_/.test(r.url())) calls.push(r.url()); });
-  await page.goto("/ngo/verification");
-  await page.goto("/ngo/packages");
+  page.on("request", (r) => { if (/rpc\/(abc_|operations_)/.test(r.url())) calls.push(r.url()); });
+  for (const path of ["/ngo/submissions?tab=evidence", "/ngo/submissions", "/gov/verification", "/health/procedures"]) { await page.goto(path); await page.waitForLoadState("networkidle"); }
   await page.waitForTimeout(800);
   expect(calls).toEqual([]);
 });

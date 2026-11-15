@@ -133,8 +133,8 @@ function OfficeOverview() {
       <div className="nx-page">
         <div className="nx-head"><div><p className="nx-eyebrow">{office.name}</p><h1 className="nx-h1">Overview</h1><p className="nx-sub">{ps === null ? "Reading packages…" : <><b className="num">{count(["submitted"])}</b> waiting for a decision. Accepted means accepted by this office; StrayPaw does not process payments.</>}</p></div></div>
         <div className="nx-figs">
-          {fig(ps === null ? null : count(["submitted"]), "Waiting for you", "/next/gov/verification")}
-          {fig(ps === null ? null : count(["queried"]), "Question with the operator", "/next/gov/verification")}
+          {fig(ps === null ? null : count(["submitted"]), "Waiting for you", "/gov/verification")}
+          {fig(ps === null ? null : count(["queried"]), "Question with the operator", "/gov/verification")}
           {fig(ps === null ? null : count(["accepted", "partially_accepted"]), "Accepted packages")}
           {fig(ps === null ? null : records, "Records in accepted packages")}
         </div>
@@ -148,7 +148,7 @@ function OfficeOverview() {
           </div>
         </section>
         <section className="nx-sec" aria-labelledby="o-recent">
-          <div className="nx-sec-h"><h2 id="o-recent">Latest</h2><Link href="/next/gov/verification">Open the queue <ArrowRight size={12} /></Link></div>
+          <div className="nx-sec-h"><h2 id="o-recent">Latest</h2><Link href="/gov/verification">Open the queue <ArrowRight size={12} /></Link></div>
           <ul className="nx-feed" style={{ maxWidth: 720 }}>{list.slice(0, 5).map((p) => <li key={p.id}><span className="nx-feed-i"><ArrowRight size={12} /></span><div><b>{p.title}</b><p>{names[p.ngo_id] ?? "Operator"} · {PACKAGE_LABEL[p.status] ?? p.status}</p></div></li>)}</ul>
         </section>
       </div>

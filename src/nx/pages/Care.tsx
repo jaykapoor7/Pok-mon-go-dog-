@@ -3,18 +3,19 @@
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { Lock, MapPin, Phone, ShieldAlert } from "lucide-react";
-import { ALERT_KIND, HANDOFF, KIND_LABEL as OH_KIND, SERVICE_SHORT, SERVICE_STATUS, TRANSFER, call, fmtDate, select, useNames, useRead, type Alert, type ClinicTransfers, type Count, type Handoff, type Network, type Overview, type Place, type Sample, type SampleEvent } from "@/oh/data";
+import { ALERT_KIND, HANDOFF, KIND_LABEL as OH_KIND, SERVICE_SHORT, SERVICE_STATUS, call, fmtDate, select, useNames, useRead, type Alert, type Count, type Handoff, type Network, type Overview, type Place, type Sample, type SampleEvent } from "@/oh/data";
 import { ListPage, type Col } from "../ListPage";
 import { Shell } from "../Shell";
 import { Chip, Sample as SampleChip } from "../ui";
-import { FACILITIES, LAB_DETAIL, LAB_SAMPLES, REFERRALS, SURV_AREAS, SURV_WEEKS, ALERTS, type Tone } from "../fixtures";
+import { FACILITIES, LAB_DETAIL, LAB_SAMPLES, SURV_AREAS, SURV_WEEKS, ALERTS, type Tone } from "../fixtures";
 import { useLive } from "../live";
 import { NotHealth, STATUS, d, isLab, useClinic, word } from "./Health";
 import { WeekBars } from "./Gov";
+import { LabSteps } from "./health/Lab";
 
-/* The rest of Healthcare: referrals, the facility directory and surveillance for a clinic; testing, results and
-   quality for a laboratory. Read as the signed-in person through the functions the current app uses. Actions
-   (marking an arrival, confirming services, laboratory steps) stay on the pages that already record them. */
+/* The rest of Healthcare: the facility directory and surveillance for a clinic; testing, results and quality for a
+   laboratory. Read as the signed-in person through the functions the current app uses. Laboratory steps can be taken
+   from a row's preview; confirming services is on Our services; referrals are on their own page. */
 
 const num = (c: Count | undefined) => (c === null || c === undefined ? "—" : typeof c === "number" ? c.toLocaleString("en-IN") : c);
 const val = (c: Count | undefined) => (typeof c === "number" ? c : 0);
@@ -26,40 +27,6 @@ function usePlace(orgId: string | null) {
   const places = useRead<Place[]>(() => call<Place[]>("oh_my_today"), "nx-places", !!orgId);
   const place = (places.data ?? []).find((p) => p.organisation_id === orgId) ?? null;
   return { place, prog: place?.programmes[0] ?? null, loading: !!orgId && places.loading && !places.data };
-}
-
-/* ── Referrals ────────────────────────────────────────────────────── */
-type RefRow = { id: string; code: string; dir: "in" | "out"; other: string; service: string; category: string; species: string; exposure: string; sent: string; by: string; status: string; note: string | null; closed: string | null };
-const REF_TONE: Record<string, Tone> = { Referred: "accent", Arrived: "ok", "Did not arrive": "bad", Withdrawn: "plain" };
-const refCols: Col<RefRow>[] = [
-  { label: "Referral", width: "minmax(0, 1.3fr)", render: (r) => <span className="nx-cell-main"><span><b className="num">{r.code}</b><small>{r.dir === "in" ? `From ${r.other}` : `To ${r.other}`}<span className="nx-only-s"> · {r.service}</span></small></span></span> },
-  { label: "Needs", width: "minmax(0, 1fr)", hideOnPhone: true, render: (r) => <span className="nx-t2">{r.service} · Category {r.category}</span> },
-  { label: "Sent", width: "110px", hideOnPhone: true, render: (r) => <span className="nx-t3">{r.sent}</span> },
-  { label: "Status", width: "130px", render: (r) => <Chip tone={REF_TONE[r.status] ?? "plain"}>{r.status}</Chip> },
-];
-export function Referrals() {
-  const live = useLive(); const org = useClinic();
-  const clinic = !!org && !isLab(org);
-  const tr = useRead<ClinicTransfers>(() => call("oh_clinic_transfers", { p_facility: org!.org_id }), `nx-tr:${org?.org_id}`, clinic);
-  const rows = useMemo<RefRow[]>(() => {
-    if (!tr.data) return [];
-    const ins = tr.data.incoming.map((t) => ({ id: t.id, code: t.code, dir: "in" as const, other: t.from_short ?? t.from, service: word(t.service === "arv" ? "anti-rabies vaccine" : t.service === "rig" ? "rabies immunoglobulin" : t.service), category: t.category, species: word(t.animal_species), exposure: fmtDate(t.exposure_on), sent: fmtDate(t.sent_at), by: t.sent_by ?? "—", status: TRANSFER[t.status]?.label ?? word(t.status), note: t.note, closed: t.closed_at ? `${fmtDate(t.closed_at)}${t.closed_by ? `, ${t.closed_by}` : ""}` : null }));
-    const outs = tr.data.outgoing.map((t) => ({ id: t.id, code: t.code ?? "—", dir: "out" as const, other: t.to_short ?? t.to, service: word(t.service === "arv" ? "anti-rabies vaccine" : t.service === "rig" ? "rabies immunoglobulin" : t.service), category: "—", species: "—", exposure: "—", sent: fmtDate(t.sent_at), by: t.sent_by ?? "—", status: TRANSFER[t.status]?.label ?? word(t.status), note: t.note ?? null, closed: t.closed_at ? `${fmtDate(t.closed_at)}${t.closed_by ? `, ${t.closed_by}` : ""}` : null }));
-    return [...ins, ...outs];
-  }, [tr.data]);
-  if (!live.ready) return <Opening crumb="Referrals" />;
-  const sample = !live.org;
-  if (!sample && !org) return <NotHealth crumb="Referrals" />;
-  if (!sample && isLab(org)) return <Only crumb="Referrals">Referrals carry people between clinics. {org!.name} is a laboratory; samples it receives are on the Samples page.</Only>;
-  const data = sample ? REFERRALS : rows;
-  const waiting = data.filter((r) => r.dir === "in" && r.status === "Referred").length;
-  return <ListPage ws="health" crumb={["Healthcare", "Referrals"]} title="Referrals" sample={sample} eyebrow={sample ? "District hospital" : org!.name}
-    sub={sample || tr.data ? <><b className="num">{waiting}</b> {waiting === 1 ? "person is" : "people are"} on the way here. A referral carries the case code, category and service needed; names and phone numbers stay with the sending facility.</> : "Reading referrals…"}
-    action={!sample ? <Link href={`/workspace/${org!.org_id}`} className="nx-btn is-quiet">Mark an arrival</Link> : undefined}
-    views={[{ id: "in", label: "On the way here", test: (r: RefRow) => r.dir === "in" && r.status === "Referred" }, { id: "out", label: "Sent by us", test: (r: RefRow) => r.dir === "out" }, { id: "all", label: "All", test: () => true }]}
-    columns={refCols} rows={data} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.other} ${r.service}`}
-    preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.dir === "in" ? `From ${r.other}` : `To ${r.other}`} <Chip tone={REF_TONE[r.status] ?? "plain"}>{r.status}</Chip></>, body: <><dl className="nx-props"><div><dt>Needs</dt><dd>{r.service}</dd></div>{r.category !== "—" ? <div><dt>Category</dt><dd>{r.category}</dd></div> : null}{r.species !== "—" ? <div><dt>Animal</dt><dd>{r.species}</dd></div> : null}{r.exposure !== "—" ? <div><dt>Exposure</dt><dd>{r.exposure}</dd></div> : null}<div><dt>Sent</dt><dd>{r.sent} · {r.by}</dd></div>{r.note ? <div><dt>Note</dt><dd>{r.note}</dd></div> : null}{r.closed ? <div><dt>Closed</dt><dd>{r.closed}</dd></div> : null}</dl><p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Only the case code and the incident facts travel with a referral. Kaju does not read referrals.</span></p></>, href: sample ? undefined : `/workspace/${org!.org_id}`, hrefLabel: "Open the clinic page", hrefNote: "Arrivals are marked on the clinic page." })}
-    loading={!sample && !tr.data && !tr.error} note={tr.error} empty={{ none: "No referrals yet", hint: "People referred to or from this facility appear here." }} />;
 }
 
 /* ── Facilities ───────────────────────────────────────────────────── */
@@ -85,7 +52,7 @@ export function Facilities() {
   const canConfirm = !!place?.capabilities.includes("confirm_service");
   return <ListPage ws="health" crumb={["Healthcare", "Facilities"]} title="Facilities" sample={sample} eyebrow={sample ? "East Zone rabies programme" : prog!.name}
     sub={sample || net.data ? <><b className="num">{vacc}</b> of {data.length} facilities last confirmed anti-rabies vaccine in stock. Call before sending someone: a status is only as fresh as its date.</> : "Reading the directory…"}
-    action={!sample && canConfirm ? <Link href={`/workspace/${org!.org_id}/services`} className="nx-btn is-quiet">Confirm our services</Link> : undefined}
+    action={sample || canConfirm ? <Link href="/health/facilities/ours" className="nx-btn is-quiet is-keep">Confirm our services</Link> : undefined}
     views={[{ id: "all", label: "All", test: () => true }, { id: "vac", label: "Vaccine available", test: (r: FacRow) => r.services.some((s) => s.service === "Vaccine" && s.status === "Available") }, { id: "gap", label: "Gaps or unconfirmed", test: gap }]}
     columns={facCols} rows={data} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => `${r.name} ${r.area} ${r.kind}`}
     preview={(r) => ({ title: r.name, sub: `${r.kind} · ${r.area}`, body: <><dl className="nx-props"><div><dt>Hours</dt><dd>{r.hours}</dd></div>{r.phone ? <div><dt>Phone</dt><dd><a href={`tel:${r.phone.replace(/\s/g, "")}`} style={{ color: "var(--accent)" }}><Phone size={12} /> {r.phone}</a></dd></div> : null}</dl>
@@ -136,7 +103,7 @@ export function HealthSurveillance() {
 }
 
 /* ── Laboratory: testing, results, quality ────────────────────────── */
-type LabRow = { id: string; code: string; species: string; type: string; from: string; area: string; collected: string; status: string; result: string | null; days: number; received: string | null; bench: number | null; method: string | null; by: string | null; on: string | null; notice: string | null; noticeTone: Tone; custody: { what: string; who: string; when: string; note?: string }[]; href?: string; collectedAt?: number; receivedAt?: number; resultedAt?: number; rejectedNote?: string | null };
+type LabRow = { raw?: Sample; id: string; code: string; species: string; type: string; from: string; area: string; collected: string; status: string; result: string | null; days: number; received: string | null; bench: number | null; method: string | null; by: string | null; on: string | null; notice: string | null; noticeTone: Tone; custody: { what: string; who: string; when: string; note?: string }[]; href?: string; collectedAt?: number; receivedAt?: number; resultedAt?: number; rejectedNote?: string | null };
 const STEP: Record<string, string> = { collected: "Collected", dispatched: "Dispatched", received: "Received", testing: "Testing started", resulted: "Result released", rejected: "Rejected" };
 const bench = (r: LabRow) => r.bench ?? 0;
 const NOTICE: Record<string, string> = { open: "not opened yet", accepted: "being acted on", done: "closed", declined: "declined" };
@@ -163,14 +130,15 @@ function useLab() {
         received: rec ? fmtDate(rec.at) : null, bench: rec ? Math.floor((now - Date.parse(rec.at)) / 864e5) : null, method: s.method, by: s.resulted_by_name, on: s.resulted_at ? fmtDate(s.resulted_at) : null,
         notice: sent ? `Sent to ${names.org(sent.to_org) ?? "a partner"}, ${NOTICE[sent.status] ?? HANDOFF[sent.status]?.label.toLowerCase() ?? sent.status}` : null, noticeTone: sent ? (sent.status === "done" ? "ok" : "accent") : s.result === "positive" ? "bad" : "plain",
         custody: es.map((e) => ({ what: STEP[e.action] ?? word(e.action), who: e.actor_name ?? "—", when: fmtDate(e.at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }), note: e.note ?? undefined })),
-        href: org ? `/workspace/${org.org_id}/record/${s.id}` : undefined,
+        href: `/health/samples/${s.id}`, raw: s,
         collectedAt: Date.parse(s.collected_on), receivedAt: rec ? Date.parse(rec.at) : undefined, resultedAt: s.resulted_at ? Date.parse(s.resulted_at) : undefined, rejectedNote: es.find((e) => e.action === "rejected")?.note ?? null,
       };
     });
-  }, [samples.data, events.data, notices.data, names, now, org]);
+  }, [samples.data, events.data, notices.data, names, now]);
   const sample = live.ready && !live.org;
-  const data: LabRow[] = sample ? LAB_SAMPLES.map((r) => { const x = LAB_DETAIL[r.id]; return { ...r, ...x, noticeTone: x.notice ? "accent" : r.result === "Positive" ? "bad" : "plain" }; }) : rows;
-  return { live, org, lab, sample, data, error: samples.error ?? events.error, loading: !sample && !samples.data && !samples.error };
+  const data: LabRow[] = sample ? LAB_SAMPLES.map((r) => { const x = LAB_DETAIL[r.id]; return { ...r, ...x, noticeTone: x.notice ? "accent" : r.result === "Positive" ? "bad" : "plain", href: `/health/samples/${r.id}` }; }) : rows;
+  const reload = () => { samples.reload(); events.reload(); };
+  return { live, org, lab, sample, data, error: samples.error ?? events.error, loading: !sample && !samples.data && !samples.error, reload };
 }
 function LabGate({ crumb, l, children }: { crumb: string; l: ReturnType<typeof useLab>; children: () => ReactNode }) {
   if (!l.live.ready) return <Opening crumb={crumb} />;
@@ -179,7 +147,9 @@ function LabGate({ crumb, l, children }: { crumb: string; l: ReturnType<typeof u
   return <>{children()}</>;
 }
 const custody = (r: LabRow) => <><h3 className="nx-h3" style={{ marginTop: 18 }}>Chain of custody</h3><ol className="nx-tl">{r.custody.map((c, i) => <li key={i}><span className={`nx-tl-d ${i === r.custody.length - 1 ? "t-accent" : "t-ok"}`} /><div><b>{c.what}</b><small>{c.who} · {c.when}</small>{c.note ? <p>{c.note}</p> : null}</div></li>)}</ol></>;
-const labNote = <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Each step is taken by named laboratory staff on the sample page. StrayPaw does not choose protocols or interpret results, and Kaju never does.</span></p>;
+const labNote = <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Each step is taken by named laboratory staff and recorded with their name. StrayPaw does not choose protocols or interpret results, and Kaju never does.</span></p>;
+/* The next laboratory step, from the row's preview; the sample page has the full chain of custody. */
+const steps = (r: LabRow, l: { sample: boolean; reload: () => void }) => (l.sample ? <LabSteps compact sample s={{ id: r.id, code: r.code, status: r.status.toLowerCase(), species: r.species.toLowerCase(), sample_type: r.type.toLowerCase().replace(/ /g, "_") }} onDone={() => {}} /> : r.raw ? <LabSteps compact s={r.raw} onDone={l.reload} /> : null);
 
 export function Testing() {
   const l = useLab();
@@ -195,7 +165,7 @@ export function Testing() {
     sub={<><b className="num">{rows.length}</b> {rows.length === 1 ? "sample is" : "samples are"} in the laboratory{rows.length ? <>, the longest for <b className="num">{Math.max(...rows.map(bench))}</b> days</> : null}. Oldest first.</>}
     views={[{ id: "all", label: "In the laboratory", test: () => true }, { id: "r", label: "Received, not started", test: (r: LabRow) => r.status === "Received" }, { id: "t", label: "Testing", test: (r: LabRow) => r.status === "Testing" }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.species} ${r.from}`} sort={(a, b) => bench(b) - bench(a)}
-    preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={STATUS[r.status] ?? "plain"}>{r.status}</Chip></>, body: <><dl className="nx-props"><div><dt>From</dt><dd>{r.from}</dd></div><div><dt>Place</dt><dd>{r.area}</dd></div><div><dt>Collected</dt><dd>{r.collected}</dd></div><div><dt>Received</dt><dd>{r.received ?? "—"}</dd></div><div><dt>Method</dt><dd>{r.method ?? "Recorded with the result"}</dd></div></dl>{custody(r)}{labNote}</>, href: r.href, hrefLabel: "Open the sample", hrefNote: "Start testing or release a result on the sample." })}
+    preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={STATUS[r.status] ?? "plain"}>{r.status}</Chip></>, body: <><dl className="nx-props"><div><dt>From</dt><dd>{r.from}</dd></div><div><dt>Place</dt><dd>{r.area}</dd></div><div><dt>Collected</dt><dd>{r.collected}</dd></div><div><dt>Received</dt><dd>{r.received ?? "—"}</dd></div><div><dt>Method</dt><dd>{r.method ?? "Recorded with the result"}</dd></div></dl>{steps(r, l)}{custody(r)}{labNote}</>, href: r.href, hrefLabel: "Open the sample", hrefNote: "The chain of custody and the result are on the sample." })}
     loading={l.loading} note={l.error} empty={{ none: "Nothing is in the laboratory", hint: "Received samples appear here until a result is released." }} />}</LabGate>;
 }
 
@@ -210,10 +180,10 @@ export function Results() {
   ];
   const pos = rows.filter((r) => r.result === "Positive");
   return <LabGate crumb="Results" l={l}>{() => <ListPage ws="health" crumb={["Healthcare", "Results"]} title="Results" sample={l.sample} eyebrow={l.sample ? "Reference Rabies Diagnostic Laboratory" : l.org!.name}
-    sub={<><b className="num">{rows.length}</b> released, <b className="num">{pos.length}</b> positive{pos.filter((r) => !r.notice).length ? <>, <b className="num">{pos.filter((r) => !r.notice).length}</b> without a notice to a partner</> : null}. A result is released only after a laboratory scientist validates it.</>}
+    sub={<><b className="num">{rows.length}</b> released, <b className="num">{pos.length}</b> positive{pos.filter((r) => !r.notice).length ? <>, <b className="num">{pos.filter((r) => !r.notice).length}</b> without a notice to a partner</> : null}. A result is released when a laboratory scientist records it with the method and validates it.</>}
     views={[{ id: "all", label: "All", test: () => true }, { id: "pos", label: "Positive", test: (r: LabRow) => r.result === "Positive" }, { id: "no", label: "Positive, no notice", test: (r: LabRow) => r.result === "Positive" && !r.notice }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.species} ${r.area} ${r.result ?? ""}`} sort={(a, b) => (b.resultedAt ?? 0) - (a.resultedAt ?? 0)}
-    preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={r.result === "Positive" ? "bad" : "plain"}>{r.result ?? "—"}</Chip></>, body: <><dl className="nx-props"><div><dt>Method</dt><dd>{r.method ?? "Not recorded"}</dd></div><div><dt>Released by</dt><dd>{r.by ?? "—"}</dd></div><div><dt>Released</dt><dd>{r.on ?? "—"}</dd></div><div><dt>Notice</dt><dd>{r.notice ?? (r.result === "Positive" ? "None sent" : "Not needed")}</dd></div><div><dt>From</dt><dd>{r.from}</dd></div></dl>{custody(r)}{labNote}</>, href: r.href, hrefLabel: "Open the sample", hrefNote: "The signed result and its notice are on the sample." })}
+    preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={r.result === "Positive" ? "bad" : "plain"}>{r.result ?? "—"}</Chip></>, body: <><dl className="nx-props"><div><dt>Method</dt><dd>{r.method ?? "Not recorded"}</dd></div><div><dt>Released by</dt><dd>{r.by ?? "—"}</dd></div><div><dt>Released</dt><dd>{r.on ?? "—"}</dd></div><div><dt>Notice</dt><dd>{r.notice ?? (r.result === "Positive" ? "None sent" : "Not needed")}</dd></div><div><dt>From</dt><dd>{r.from}</dd></div></dl>{steps(r, l)}{custody(r)}{labNote}</>, href: r.href, hrefLabel: "Open the sample", hrefNote: "The signed result and its notice are on the sample." })}
     loading={l.loading} note={l.error} empty={{ none: "No results released yet" }} />}</LabGate>;
 }
 
@@ -245,7 +215,7 @@ export function Quality() {
           <div className="nx-sec-h"><h2 id="q-r">Rejected samples</h2><span className="nx-count">{rejected.length}</span></div>
           {rejected.length ? <ul className="nx-feed">{rejected.map((r) => <li key={r.id}><span className="nx-feed-i"><ShieldAlert size={12} /></span><div><b className="num">{r.code}</b><p>{r.rejectedNote ?? "No reason recorded"}</p><small>{r.from} · collected {r.collected}</small></div></li>)}</ul> : <p className="nx-sub">No sample has been rejected.</p>}
         </section>
-        {waiting.length ? <section className="nx-sec" aria-labelledby="q-w"><div className="nx-sec-h"><h2 id="q-w">Waiting over 5 days</h2><Link href="/next/health/testing">Testing</Link></div><ul className="nx-feed">{waiting.map((r) => <li key={r.id}><span className="nx-feed-i"><ShieldAlert size={12} /></span><div><b className="num">{r.code}</b><p>{r.species} · {r.type} · {bench(r)} days since it was received</p></div></li>)}</ul></section> : null}
+        {waiting.length ? <section className="nx-sec" aria-labelledby="q-w"><div className="nx-sec-h"><h2 id="q-w">Waiting over 5 days</h2><Link href="/health/testing">Testing</Link></div><ul className="nx-feed">{waiting.map((r) => <li key={r.id}><span className="nx-feed-i"><ShieldAlert size={12} /></span><div><b className="num">{r.code}</b><p>{r.species} · {r.type} · {bench(r)} days since it was received</p></div></li>)}</ul></section> : null}
         <p className="nx-note" style={{ marginTop: 26, maxWidth: 680 }}><Lock size={13} /><span>StrayPaw does not hold standard operating procedures, competency records or instrument logs. A laboratory that runs its own information system keeps those there.</span></p>
       </div>
     </Shell>

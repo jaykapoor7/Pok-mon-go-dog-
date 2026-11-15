@@ -10,7 +10,7 @@
    environment and redeploy the same commit. Nothing else changes.
 
    It is read here once and written into the build. The four places that
-   choose (src/app/page.tsx, src/app/kaju/page.tsx, and the header and
+   choose (src/app/page.tsx, src/app/ai/page.tsx, and the header and
    footer in src/components/site) compare this same value, which the build
    turns into a constant, so the experience not shown, with its scripts
    and styles, is left out of the bundles. ─────────────────────────────── */
@@ -53,10 +53,8 @@ const nextConfig = {
      states how we design a study, two different things, one word. The index
      is now /sources; the old path keeps working. */
   async redirects() {
-    /* StrayPaw 2.0 replaced every post-app screen. Each old URL lands on
-       its new home, query strings carried, so links in the world, emails
-       and bookmarks keep working. Temporary (307) on purpose: a rollback
-       to 1.0 must not be fought by browsers caching permanent redirects. */
+    /* Public-site addresses that moved keep working (temporary, so a rollback is never fought by cached redirects).
+       The application has no aliases: its pages live at their own addresses. */
     const to = (pairs) => pairs.map(([source, destination]) => ({ source, destination, permanent: false }));
     return [
       // Keep existing NGO bookmarks usable after the domain move. Match only
@@ -84,27 +82,6 @@ const nextConfig = {
         ["/resources", "/learn/resources"],
         /* Trust */
         ["/moderate", "/trust"], ["/admin", "/trust/console"],
-        /* NGO: every /partner screen with a 2.0 home. Parked features
-           (fundraising, surveys, projects, organisation feeding spots, care
-           ledger, data quality, volunteer sign-ups, story publishing and
-           evidence files) keep their 1.0 pages until they are redesigned. */
-        ["/dashboard", "/ngo"], ["/partner", "/ngo"], ["/partner/operations", "/ngo"],
-        ["/partner/followups", "/ngo?focus=followup"],
-        ["/partner/cases", "/ngo"], ["/cases", "/ngo"], ["/ngo/cases", "/ngo/work"],
-        ["/partner/animals", "/ngo/animals"], ["/partner/records", "/ngo/animals"],
-        ["/partner/animals/:id", "/ngo/animals/:id"],
-        ["/partner/map", "/ngo/map"],
-        ["/partner/inbox", "/ngo/inbox"], ["/partner/incoming", "/ngo/inbox"],
-        ["/partner/review", "/ngo/review"],
-        ["/partner/field", "/ngo/field"], ["/partner/import", "/ngo/import"],
-        ["/partner/drives", "/ngo/programmes"], ["/partner/drives/:id", "/ngo/programmes/:id"],
-        ["/partner/reports", "/ngo/proof"],
-        ["/partner/team", "/ngo/team"], ["/partner/codes", "/ngo/team"],
-        ["/partner/settings", "/ngo/settings"],
-        ["/partner/medical", "/ngo/care"], ["/partner/quality", "/ngo/quality"], ["/partner/volunteers", "/ngo/volunteers"],
-        ["/partner/stories", "/ngo/stories"], ["/partner/resources", "/ngo/evidence"], ["/partner/fundraising", "/ngo/fundraising"],
-        ["/partner/fundraisers/new", "/ngo/fundraising/new"], ["/partner/surveys", "/ngo/surveys"], ["/partner/projects", "/ngo/projects"],
-        ["/partner/feeding", "/ngo/feeding"],
         /* Site pages that predate 2.0 */
         ["/changelog", "/our-story"], ["/about", "/our-story"], ["/company", "/our-story"],
       ]),
@@ -112,13 +89,6 @@ const nextConfig = {
         .map((source) => ({ source, destination: "/evidence", permanent: false })),
       ...["/what-we-do"].map((source) => ({ source, destination: "/our-story", permanent: true })),
       { source: "/organisations", destination: "/solutions", permanent: true },
-      /* A case opened from an animal: the old ?dog / ?dogId become ?dog. */
-      { source: "/partner/cases/new", has: [{ type: "query", key: "dogId", value: "(?<dog>.+)" }], destination: "/ngo/cases/new?dog=:dog", permanent: false },
-      { source: "/cases/new", has: [{ type: "query", key: "dog", value: "(?<dog>.+)" }], destination: "/ngo/cases/new?dog=:dog", permanent: false },
-      { source: "/partner/cases/new", destination: "/ngo/cases/new", permanent: false },
-      { source: "/cases/new", destination: "/ngo/cases/new", permanent: false },
-      { source: "/partner/cases/:id", destination: "/ngo/cases/:id", permanent: false },
-      { source: "/cases/:id", destination: "/ngo/cases/:id", permanent: false },
       { source: "/index", destination: "/", permanent: true },
       /* StrayPaw 3.0 consolidations: old URLs land on their new homes. */
       ...to([

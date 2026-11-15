@@ -1,7 +1,7 @@
 import "server-only";
 import { shortCode } from "@/lib/caseCode";
 import { programmeFigures } from "./figures";
-import {DESTINATIONS,canDiscover,type Role} from "@/sp/shell/workspaces";
+import { SCREENS, canOpen, type ScreenRole as Role } from "@/lib/kaju/screens";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { verifyAction } from "./verify";
 import { operationsInsights } from "./insights";
@@ -40,7 +40,7 @@ const caseLabel = (c: { case_code?: string | null; title?: string | null; condit
 const animalLabel = (a: { name?: string | null; straypaw_id?: string | null; code?: string | null }) => a.name || a.straypaw_id || a.code || "Animal";
 const NEEDS_ORG = { data: { error: "Organisation access required" }, summary: "Needs an organisation workspace", citations: [], ok: false } satisfies ToolOut;
 
-export const NAV:Record<string,{href:string;label:string;aliases?:string[]}>=Object.fromEntries(DESTINATIONS.filter(n=>n.assistantKey).map(n=>[n.assistantKey!,{href:n.href,label:n.label,aliases:n.aliases}]));
+export const NAV:Record<string,{href:string;label:string;aliases?:string[]}>=Object.fromEntries(SCREENS.map(n=>[n.key,{href:n.href,label:n.label,aliases:n.aliases}]));
 
 export const TOOL_DEFS = [
   { name: "prepared_work", description: "Find work that needs a person before anyone notices: critical cases with no update for 14 days, reviews promised in care notes but never scheduled, and localities spelled several ways. Returns follow-up proposals the person confirms. Changes nothing.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -128,9 +128,9 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "propose_care": return proposeCare(input, ctx);
     case "navigate": {
       const n = NAV[String(input.to)];
-      const destination=DESTINATIONS.find(d=>d.assistantKey===String(input.to));
+      const destination=SCREENS.find(d=>d.key===String(input.to));
       const role=['admin','coordinator','veterinarian','member'].includes(ctx.actorRole??'')?ctx.actorRole as Role:null;
-      if(destination&&(!canDiscover(destination,role,ctx.actorRole==='municipal_reviewer')||destination.workspace==='ngo'&&!ctx.orgId))return {data:{error:'This screen requires an authorised workspace role'},summary:'This screen requires an authorised workspace role',citations:[],ok:false};
+      if(destination&&(!canOpen(destination,role,ctx.actorRole==='municipal_reviewer')||destination.workspace==='ngo'&&!ctx.orgId))return {data:{error:'This screen requires an authorised workspace role'},summary:'This screen requires an authorised workspace role',citations:[],ok:false};
       return n ? { data: n, summary: `Open ${n.label}`, citations: [], navigate: n } : { data: { error: "Unknown screen" }, summary: "Unknown screen", citations: [], ok: false };
     }
     default:
@@ -190,7 +190,7 @@ async function partnerRequests({ db }: ToolCtx): Promise<ToolOut> {
   return {
     data: { in_programme: true, open, overdue, places, requests },
     summary: open ? `${open} from partners · ${overdue} overdue` : "No open requests from partners",
-    citations: waiting.map((p) => ({ id: `place:${p.id}`, label: `Requests · ${p.name}`, href: `/workspace/${p.id}`, kind: "page" as const })),
+    citations: waiting.map((p) => ({ id: `place:${p.id}`, label: `Requests · ${p.name}`, href: "/health/today", kind: "page" as const })),
   };
 }
 
@@ -334,7 +334,7 @@ async function abcVerification({ db, orgId }: ToolCtx): Promise<ToolOut> {
   const { data, error } = await db.rpc("abc_verification_queue", { p_limit: 100 });
   if (error) return READ_FAILED;
   const rows = Array.isArray(data) ? data.slice(0, 100) : [];
-  return { data: { records: rows, sampled: rows.length, limit: 100, note: "At most 100 visible cases. Flags are database attestations, not a new certification." }, summary: `${rows.length} ABC records checked (up to 100)`, citations: rows.slice(0, 12).map((r) => ({ id: r.case_id, label: caseLabel(r), href: `/ngo/verification/${r.case_id}`, kind: "case" as const })) };
+  return { data: { records: rows, sampled: rows.length, limit: 100, note: "At most 100 visible cases. Flags are database attestations, not a new certification." }, summary: `${rows.length} ABC records checked (up to 100)`, citations: rows.slice(0, 12).map((r) => ({ id: r.case_id, label: caseLabel(r), href: `/ngo/cases/${r.case_id}?tab=abc`, kind: "case" as const })) };
 }
 
 async function abcPackages({ db }: ToolCtx): Promise<ToolOut> {
@@ -345,7 +345,7 @@ async function abcPackages({ db }: ToolCtx): Promise<ToolOut> {
   const { data: context, error: contextError } = await db.rpc("abc_my_context");
   if (contextError) return READ_FAILED;
   const municipal = !context?.ngo_id && context?.offices?.length;
-  return { data: { packages: rows, limit: 50, note: "Visible packages only; at most 50 most recent. No decision was made." }, summary: `${rows.length} visible report packages (up to 50)`, citations: rows.slice(0, 12).map((r) => ({ id: r.id, label: r.title, href: `${municipal ? "/city/review" : "/ngo/packages"}/${r.id}`, kind: "page" as const })) };
+  return { data: { packages: rows, limit: 50, note: "Visible packages only; at most 50 most recent. No decision was made." }, summary: `${rows.length} visible report packages (up to 50)`, citations: rows.slice(0, 12).map((r) => ({ id: r.id, label: r.title, href: `${municipal ? "/gov/verification" : "/ngo/submissions"}/${r.id}`, kind: "page" as const })) };
 }
 
 async function recentConfirmedActions({db,orgId}:ToolCtx):Promise<ToolOut>{
@@ -368,7 +368,7 @@ async function currentRecord(ctx:ToolCtx):Promise<ToolOut>{
   const own=await ctx.db.from('cases').select('id').eq('id',id).eq('ngo_id',ctx.orgId).maybeSingle();if(own.error)return READ_FAILED;if(!own.data)return unavailable;
   const [row,check]=await Promise.all([ctx.db.from('org_case_facts').select('id,case_code,title,status_class,provenance,occurred_at').eq('id',id).maybeSingle(),ctx.db.rpc('abc_case_checklist',{p_case_id:id})]);
   if(row.error||check.error)return READ_FAILED;if(!row.data)return unavailable;
-  return {data:{record:row.data,checklist:check.data,note:'Recorded evidence and attestations only; not clinical certification.'},summary:`Checked ${caseLabel(row.data)} and its recorded evidence`,citations:[{id,label:caseLabel(row.data),href:`/ngo/verification/${id}`,kind:'case'}]};
+  return {data:{record:row.data,checklist:check.data,note:'Recorded evidence and attestations only; not clinical certification.'},summary:`Checked ${caseLabel(row.data)} and its recorded evidence`,citations:[{id,label:caseLabel(row.data),href:`/ngo/cases/${id}?tab=abc`,kind:'case'}]};
  }
  if(kind==='packages'){
   const row=await ctx.db.from('report_packages').select('id,title,status,period_start,period_end,submitted_at').eq('id',id).maybeSingle();if(row.error)return READ_FAILED;if(!row.data)return unavailable;
@@ -426,6 +426,6 @@ async function packageTool(id: string, ctx: ToolCtx): Promise<ToolOut> {
   return {
     data: { status: rec.status, contract: rec.contract?.name ?? null, clean: chk.clean, exceptions: chk.exceptions, decided: chk.decided, by_issue: chk.byIssue, exceptions_detail: chk.checks.filter((x) => !x.clean).slice(0, 15).map((x) => ({ claim: x.key, issues: x.issues, draft_note: x.draft })), note: "Kaju compares records; every decision is the reviewer's own." },
     summary: `${chk.clean} clean · ${chk.exceptions} with exceptions`,
-    citations: [{ id, label: "Package", href: ctx.actorRole === "municipal_reviewer" ? `/city/review/${id}` : `/ngo/packages/${id}`, kind: "page" }],
+    citations: [{ id, label: "Package", href: ctx.actorRole === "municipal_reviewer" ? `/gov/verification/${id}` : `/ngo/submissions/${id}`, kind: "page" }],
   };
 }

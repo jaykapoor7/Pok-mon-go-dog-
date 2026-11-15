@@ -3,7 +3,7 @@ import {expect,test} from '@playwright/test';
 test('old NGO domains preserve bookmarks and POSTs while moving to the canonical host', async({request})=>{
   test.skip(!!process.env.E2E_BASE_URL?.startsWith('https:'),'Host matching is checked against the local production server; live aliases are probed separately.');
   for(const host of ['straypaw.kapoorjay.com','pok-mon-go-dog.vercel.app']){
-    for(const path of ['/','/sign-in?next=%2Fngo%2Fverification','/login?next=%2Fdashboard','/partner/animals?city=Coimbatore']){
+    for(const path of ['/','/sign-in?next=%2Fngo%2Fcases','/login?next=%2Fhome','/ngo/animals?city=Coimbatore']){
       const response=await request.get(path,{headers:{Host:host},maxRedirects:0});
       expect(response.status()).toBe(307);
       const location=new URL(response.headers().location);expect(location.origin).toBe('https://www.straypaw.org');

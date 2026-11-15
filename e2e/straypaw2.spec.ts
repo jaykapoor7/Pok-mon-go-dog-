@@ -32,18 +32,21 @@ test.describe("old addresses land on their 2.0 homes", () => {
     ["/map?city=Coimbatore", /\/community\?city=Coimbatore$/], ["/report", /\/community\/report$/],
     ["/following", /\/community\/activity$/], ["/dog/00000000-0000-4000-8000-000000000000", /\/animal\/00000000-0000-4000-8000-000000000000$/],
     ["/insights?city=Coimbatore", /\/city\/insights\?city=Coimbatore$/], ["/municipality", /\/city$/], ["/programmes", /\/city\/programmes$/],
-    ["/partner", /\/ngo$/], ["/partner/cases/new?dogId=abc", /\/ngo\/cases\/new\?(.*&)?dog=abc(&|$)/], ["/partner/review", /\/ngo\/review$/],
-    ["/resources", /\/learn\/resources$/], ["/moderate", /\/trust$/], ["/orgs", /\/community\/organisations$/],
-    ["/partner/medical", /\/ngo\/care$/], ["/partner/quality", /\/ngo\/quality$/], ["/partner/volunteers", /\/ngo\/volunteers$/],
-    ["/partner/stories", /\/ngo\/stories$/], ["/partner/resources", /\/ngo\/evidence$/], ["/partner/fundraising", /\/ngo\/fundraising$/],
-    ["/partner/fundraisers/new", /\/ngo\/fundraising\/new$/], ["/partner/surveys", /\/ngo\/surveys$/], ["/partner/projects", /\/ngo\/projects$/],
-    ["/partner/feeding", /\/ngo\/feeding$/], ["/admin", /\/trust\/console$/],
+    ["/resources", /\/learn\/resources$/], ["/moderate", /\/trust$/], ["/orgs", /\/community\/organisations$/], ["/admin", /\/trust\/console$/],
   ];
   for (const [from, to] of cases) test(from, async ({ request }) => {
     const r = await request.get(from, { maxRedirects: 0 });
     expect(r.status()).toBe(307);
     expect(r.headers().location).toMatch(to);
   });
+});
+
+/* The classic application is gone: its addresses are not redirected anywhere, they simply do not exist. */
+test("retired application addresses are not pages and do not redirect", async ({ request }) => {
+  for (const from of ["/partner", "/partner/cases/new?dogId=abc", "/dashboard", "/cases", "/ngo/work", "/ngo/verification", "/city/review", "/assistant", "/today", "/workspace/x", "/programme/x", "/next/ngo/today"]) {
+    const r = await request.get(from, { maxRedirects: 0 });
+    expect(r.status(), from).toBe(404);
+  }
 });
 
 test("the landing page still renders its hero", async ({ page }) => {
@@ -107,9 +110,9 @@ test("the Municipality map opens on its evidence layers", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test("the NGO map explains itself when signed out", async ({ page }) => {
-  await page.goto("/ngo/map");
-  await expect(page.getByText(/Only members of your organisation can open it/)).toBeVisible();
+test("the organisation map asks a visitor to sign in and draws nothing", async ({ page }) => {
+  await page.goto("/ngo/operations?view=map");
+  await expect(page.getByText(/Sign in as a member of an NGO to see your organisation/)).toBeVisible();
   await expect(page.locator(".fm-map canvas")).toHaveCount(0);
 });
 
@@ -152,11 +155,14 @@ test.describe("reporting", () => {
   });
 });
 
-test("the NGO workspace explains itself when signed out", async ({ page }) => {
+test("signed out, the NGO workspace shows labelled sample records and reads nothing private", async ({ page }) => {
+  const reads: string[] = [];
+  page.on("request", (r) => { if (/\/rest\/v1\/(rpc\/)?(org_animals|dogs|cases)/.test(r.url())) reads.push(r.url()); });
   await page.goto("/ngo/animals");
-  await expect(page.getByText(/Only members of your organisation can open it/)).toBeVisible();
-  await expect(page.locator(".fm-map canvas")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /Sign in with your code/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByText("Sample data", { exact: true }).first()).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  expect(reads).toEqual([]);
 });
 
 test("an Academy lesson is completed on the device", async ({ page }) => {

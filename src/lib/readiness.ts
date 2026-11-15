@@ -68,7 +68,7 @@ export const MODULES: Module[] = [
   // Platform
   { id: "platform-rls", name: "Tenant isolation and audit", area: "Platform", status: "LIVE", december: true, evidence: "Row-level security per organisation, operational audit log. 2026-11-07 hardening: search_path pinned on 20 functions, 17 organisation-only functions closed to signed-out callers; verified signed-out (169 e2e) and as members. Public views remain security-definer by design (docs/SECURITY-DEFINER-VIEWS.md).", next: "Turn on leaked-password protection in Supabase Auth settings (dashboard switch)." },
   { id: "platform-ops", name: "Operations, monitoring and restore", area: "Platform", status: "STAGING", december: true, evidence: "Runbook (docs/OPERATIONS-RUNBOOK.md): deep health check at /api/health?deep=1, backups, restore to a new project, rollback, credential rotation.", next: "Point an uptime monitor at /api/health?deep=1, record the backup retention, and decide whether pilot data must stay in India (production is in Seoul)." },
-  { id: "platform-flags", name: "Feature flags and readiness", area: "Platform", status: "STAGING", december: true, evidence: "SP_FLAGS switches unverified modules on per deployment; this registry.", flag: "readiness_board" },
+  { id: "platform-flags", name: "Feature flags and readiness", area: "Platform", status: "STAGING", december: true, evidence: "SP_FLAGS switches unverified modules on per deployment; this registry." },
 ];
 
 export const STATUS_ORDER: Status[] = ["LIVE", "STAGING", "BLOCKED", "PLANNED"];

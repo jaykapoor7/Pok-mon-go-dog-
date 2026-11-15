@@ -10,6 +10,7 @@ import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { REVIEWS, type Tone } from "../fixtures";
 import { useLive } from "../live";
+import { Denied } from "../kit";
 
 /* The reviewing office's queue. Packages arrive here when an operator submits them; the office decides.
    Nothing on this page approves or returns anything: the decision is a signed step taken by a named reviewer. */
@@ -44,10 +45,10 @@ function VerificationView({ rows, sample, loading, note, office }: { rows: Row[]
           </div>
         </div>
         {note ? <p className="nx-foot" role="status">{note}</p> : null}
-        <div className="nx-table" role="table" aria-label="Packages to review">
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: COLS }}><span>Package</span><span>Operator</span><span>Period</span><span>Records</span><span>State</span><span>Waiting</span></div>
+        <div className="nx-table" role="group" aria-label="Packages to review">
+          <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: COLS }}><span>Package</span><span>Operator</span><span>Period</span><span>Records</span><span>State</span><span>Waiting</span></div>
           {shown.map((r) => (
-            <button key={r.id} type="button" role="row" className={`nx-tr ${openId === r.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: COLS }} onClick={() => setOpenId(r.id)} aria-label={`Open ${r.title} from ${r.operator}`}>
+            <button key={r.id} type="button" className={`nx-tr ${openId === r.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: COLS }} onClick={() => setOpenId(r.id)} aria-label={`Open ${r.title} from ${r.operator}`}>
               <span className="nx-cell-main"><span><b>{r.title}</b><small>{r.flags.length ? <span style={{ color: "var(--warn)" }}>{r.flags.length} {r.flags.length === 1 ? "thing" : "things"} to check</span> : "No exceptions flagged"}<span className="nx-only-s"> · {r.operator}</span></small></span></span>
               <span className="nx-t2 nx-hide-s">{r.operator}</span>
               <span className="nx-t3 nx-hide-s">{r.period}</span>
@@ -75,8 +76,8 @@ function VerificationView({ rows, sample, loading, note, office }: { rows: Row[]
               <h3 className="nx-h3">To check</h3>
               {open.flags.length ? <ul className="nx-feed">{open.flags.map((f) => <li key={f}><span className="nx-feed-i" style={{ color: "var(--warn)" }}><AlertTriangle size={12} /></span><div><p style={{ color: "var(--ink)" }}>{f}</p></div></li>)}</ul> : <p className="nx-foot" style={{ marginTop: 0 }}>{open.vet !== null ? "No exceptions flagged by the fixed checks." : "Open the review to run the fixed checks on each record."}</p>}
               <p className="nx-note" style={{ marginTop: 14 }}><ShieldCheck size={13} /><span>Accept, return or ask a question is a signed decision by a named reviewer, recorded with the reason. Kaju can list what to check; it never decides.</span></p>
-              <p style={{ marginTop: 16 }}>{open.href ? <Link href={open.href} className="nx-btn">Open the review</Link> : <Link href="/try" className="nx-btn" title="Opens the live demo, where this works">Open the review</Link>}</p>
-              {open.href ? <p className="nx-foot">The review, with each record&apos;s evidence and the decision, opens in the current app until it is rebuilt here.</p> : null}
+              <p style={{ marginTop: 16 }}>{open.href ? <Link href={open.href} className="nx-btn">Open the review</Link> : null}</p>
+              <p className="nx-foot">The review shows each record&apos;s evidence beside the checks and the decision.</p>
             </div>
           </motion.aside>
         ) : null}
@@ -87,8 +88,9 @@ function VerificationView({ rows, sample, loading, note, office }: { rows: Row[]
 
 function LiveVerification() {
   const live = useLive();
-  const office = live.orgFor("government");
-  const isOffice = office?.source === "review_office";
+  /* A person can sit in a reviewing office and in a programme; the office is what this page is for. */
+  const office = live.orgs.find((o) => o.source === "review_office") ?? null;
+  const isOffice = !!office;
   const [state, setState] = useState<{ rows: Row[] | null; note: string | null }>({ rows: null, note: null });
   useEffect(() => {
     if (!isOffice || !office) return;
@@ -100,16 +102,16 @@ function LiveVerification() {
       const now = Date.now();
       setState({ note: null, rows: mine.map((p): Row => {
         const label = PACKAGE_LABEL[p.status] ?? p.status, since = p.submitted_at ?? p.created_at, days = p.status === "submitted" ? Math.max(0, Math.floor((now - Date.parse(since)) / 864e5)) : 0;
-        return { id: p.id, title: p.title, operator: names[p.ngo_id] ?? "Operator", period: `${day(p.period_start)} – ${day(p.period_end)}`, records: p.summary?.records ?? p.case_ids?.length ?? 0, vet: p.summary?.vet_authorised ?? null, evidence: p.summary?.evidence_items ?? null, state: label, tone: TONE[label] ?? "plain", waiting: p.status === "submitted" ? (days === 0 ? "Today" : `${days} ${days === 1 ? "day" : "days"}`) : day(p.decided_at), days, flags: p.summary?.vet_authorised != null && p.summary.records != null && p.summary.vet_authorised < p.summary.records ? [`${p.summary.records - p.summary.vet_authorised} records without a surgeon's authorisation`] : [], href: `/city/review/${p.id}`, bucket: bucketOf(label) };
+        return { id: p.id, title: p.title, operator: names[p.ngo_id] ?? "Operator", period: `${day(p.period_start)} – ${day(p.period_end)}`, records: p.summary?.records ?? p.case_ids?.length ?? 0, vet: p.summary?.vet_authorised ?? null, evidence: p.summary?.evidence_items ?? null, state: label, tone: TONE[label] ?? "plain", waiting: p.status === "submitted" ? (days === 0 ? "Today" : `${days} ${days === 1 ? "day" : "days"}`) : day(p.decided_at), days, flags: p.summary?.vet_authorised != null && p.summary.records != null && p.summary.vet_authorised < p.summary.records ? [`${p.summary.records - p.summary.vet_authorised} records without a surgeon's authorisation`] : [], href: `/gov/verification/${p.id}`, bucket: bucketOf(label) };
       }) });
     }).catch((e: unknown) => { if (alive) setState({ rows: [], note: e instanceof NotEnabled ? "Verification is not switched on for this office yet." : "The queue could not be read just now." }); });
     return () => { alive = false; };
   }, [isOffice, office]);
-  if (!isOffice) return <Shell ws="gov" crumb={["Government", "Verification"]}><div className="nx-page"><h1 className="nx-h1">Verification</h1><p className="nx-sub">Verification is the work of a reviewing office. Your account is not a reviewer at any office, so there is nothing to decide here. An office adds reviewers; it cannot be chosen from a menu.</p></div></Shell>;
+  if (!isOffice) return <Shell ws="gov" crumb={["Government", "Verification"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Verification</h1><Denied what="Verification is the work of a reviewing office" why={`Your account${live.orgFor("government") ? ` works in ${live.orgFor("government")!.name}, which` : ""} is not a reviewer at any office, so there is nothing to decide here. An office adds its reviewers; the role cannot be chosen from a menu.`} back={{ href: "/gov/overview", label: "Back to the overview" }} /></div></Shell>;
   return <VerificationView rows={state.rows ?? []} sample={false} loading={state.rows === null} note={state.note} office={office!.name} />;
 }
 
-const SAMPLE: Row[] = REVIEWS.map((r) => ({ ...r, tone: TONE[r.state] ?? "plain", bucket: bucketOf(r.state) }));
+const SAMPLE: Row[] = REVIEWS.map((r) => ({ ...r, tone: TONE[r.state] ?? "plain", bucket: bucketOf(r.state), href: `/gov/verification/${r.id}` }));
 
 export function Verification() {
   const live = useLive();

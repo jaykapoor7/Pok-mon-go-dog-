@@ -1,114 +1,168 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Maximize2, Plus, Search, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Plus } from "lucide-react";
 import { Shell } from "../Shell";
-import { Chip, Sample, TrustChip } from "../ui";
-import { CASES, type Tone, type Trust } from "../fixtures";
-import { useCases, useLive } from "../live";
+import { Chip, TrustChip } from "../ui";
+import { Failed, Props, Skeleton, day, errText } from "../kit";
+import { useLive, type Workspace } from "../live";
+import { loadCaseFile, type CaseFile } from "@/lib/case-file";
+import { careNote } from "@/lib/care-note";
+import { isCriticalCondition, isHistorical, isOpenClass, isReasonless, isStaleFact, readCases, realName, shortCode, statusLabel, STATUS_TONE, type CaseFact } from "../data/ngo";
+import { SAMPLE_CASES, sampleFollowups, sampleHistory, type CaseRow } from "../data/ngo-sample";
+import { RecordList, type RCol, type RView } from "./ngo/RecordList";
+import { CaseNext, FollowupList, SampleNext, TryLink, cohortOf, useMembers } from "./ngo/parts";
 
-/* One table for every case, with views instead of separate pages. Sample and live rows are shaped into the same
-   row here, so the two paths share one screen. */
-type Row = { id: string; code: string; title: string; kind: string; severity: string; place: string; who: string; stage: string; next: string; due: string | null; overdue: boolean; updated: string; resolved: boolean; trust: Trust; href?: string; detail?: string | null };
+/* Every case the organisation holds, on one list with views instead of separate pages: today's open work, mine, nobody's,
+   critical, follow-ups due, and the cohorts that wait on a person's decision (quiet for months, imported and never
+   confirmed, closed without a reason). The drawer carries the case's next step, so most work never leaves the list. */
 
-const COLS = "minmax(0, 1.8fr) 108px 112px minmax(0, 1fr) 132px minmax(0, 1.1fr) 84px";
-const SEV: Record<string, Tone> = { Critical: "bad", High: "warn", Normal: "plain", Low: "plain" };
-const word = (v: string | null | undefined, none = "Not recorded") => (v ? v.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : none);
-const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null);
-const VIEWS = [
-  { id: "active", label: "Active", test: (r: Row) => !r.resolved },
-  { id: "urgent", label: "Critical and high", test: (r: Row) => !r.resolved && (r.severity === "Critical" || r.severity === "High") },
-  { id: "due", label: "Due or overdue", test: (r: Row) => !r.resolved && !!r.due },
-  { id: "unassigned", label: "Unassigned", test: (r: Row) => !r.resolved && r.who === "Unassigned" },
-  { id: "resolved", label: "Resolved", test: (r: Row) => r.resolved },
-] as const;
+const sev = (v: string | null) => (v ? v.replace(/^./, (c) => c.toUpperCase()) : "Normal");
+const ddmm = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null);
 
-function CasesView({ rows, sample, loading, error, orgName }: { rows: Row[]; sample: boolean; loading: boolean; error: string | null; orgName: string }) {
-  const [view, setView] = useState<(typeof VIEWS)[number]["id"]>("active");
-  const [q, setQ] = useState("");
-  const [openId, setOpenId] = useState<string | null>(null);
-  const calm = useReducedMotion();
-  const shown = useMemo(() => { const v = VIEWS.find((x) => x.id === view)!; const n = q.trim().toLowerCase(); return rows.filter((r) => v.test(r) && (!n || `${r.code} ${r.title} ${r.place} ${r.who} ${r.kind}`.toLowerCase().includes(n))); }, [rows, view, q]);
-  const open = rows.find((r) => r.id === openId) ?? null;
-  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenId(null); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
-  const active = rows.filter((r) => !r.resolved).length;
+function views(me: string | null): RView<CaseRow>[] {
+  return [
+    { id: "open", label: "Open", test: (r) => r.open && !r.historical && !r.stale },
+    { id: "mine", label: "Mine", test: (r) => r.open && !!me && r.assigneeId === me },
+    { id: "unassigned", label: "Unassigned", test: (r) => r.open && !r.historical && r.who === "Unassigned" },
+    { id: "critical", label: "Critical and high", test: (r) => r.open && !r.historical && r.crit },
+    { id: "due", label: "Follow-up due", test: (r) => !r.historical && r.dueSoon },
+    { id: "decide", label: "Needs a decision", test: (r) => r.open && !r.historical && r.stale },
+    { id: "imported", label: "Imported, not confirmed", test: (r) => r.open && r.historical },
+    { id: "reason", label: "Missing reason", test: (r) => r.reasonless },
+    { id: "resolved", label: "Resolved", test: (r) => !r.open },
+  ];
+}
+/* The cohorts that only exist on some registers are shown when they hold something. */
+const OPTIONAL = new Set(["decide", "imported", "reason"]);
+const cols: RCol<CaseRow>[] = [
+  { label: "Case", width: "minmax(0, 1.8fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.title}</b><small><span className="num">{r.code}</span>{r.animal ? ` · ${r.animal}` : ""} · {r.kind}<span className="nx-only-s"> · {r.place} · {r.who}</span></small></span></span> },
+  { label: "Status", width: "136px", render: (r) => <Chip tone={r.tone}>{r.open ? (r.crit && r.tone === "bad" ? "Critical" : r.status) : r.status}</Chip> },
+  { label: "Place", width: "minmax(0, .9fr)", hideOnPhone: true, render: (r) => <span className="nx-t2">{r.place}</span> },
+  { label: "Held by", width: "minmax(0, 1fr)", hideOnPhone: true, render: (r) => <span className="nx-t2" style={r.who === "Unassigned" ? { color: "var(--ink-3)" } : undefined}>{r.who === "Unassigned" ? "Nobody yet" : r.who}</span> },
+  { label: "Next", width: "minmax(0, 1.1fr)", hideOnPhone: true, render: (r) => <span className="nx-t2">{r.due ? <><span style={r.overdue ? { color: "var(--bad)", fontWeight: 500 } : undefined}>{r.overdue ? "Late · " : ""}{r.due}</span>{r.next !== "—" ? ` · ${r.next}` : ""}</> : r.next}</span> },
+  { label: "Updated", width: "88px", hideOnPhone: true, render: (r) => <span className="nx-t3">{r.updated}</span> },
+];
+const search = (r: CaseRow) => `${r.code} ${r.title} ${r.place} ${r.who} ${r.kind} ${r.animal ?? ""}`;
 
+function toRow(c: CaseFact, now: number): CaseRow {
+  const open = isOpenClass(c.status_class), historical = isHistorical(c), stale = open && isStaleFact(c, now), crit = isCriticalCondition(c.condition_class) || c.severity === "critical" || c.severity === "high";
+  const dueAt = c.next_due ? Date.parse(c.next_due) : null, endToday = new Date(); endToday.setHours(23, 59, 59, 999);
+  const status = !open ? statusLabel(c.status_class) : historical ? "Imported, not confirmed" : stale ? "Needs a decision" : c.status_class === "in_progress" ? "In progress" : c.assignee_name ? "Open" : "Unassigned";
+  return {
+    id: c.id, code: shortCode(c.case_code, c.id.slice(0, 8).toUpperCase()), title: c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Untitled case",
+    kind: c.condition_class && c.condition_class !== "Not recorded" && c.title ? c.title : sev(c.severity), severity: sev(c.severity), crit, place: c.zone ?? c.city ?? "Not recorded", who: c.assignee_name || "Unassigned", assigneeId: c.assignee_id,
+    open, statusClass: c.status_class ?? "unknown", status, tone: !open ? STATUS_TONE[c.status_class ?? "unknown"] ?? "plain" : crit ? (isCriticalCondition(c.condition_class) || c.severity === "critical" ? "bad" : "warn") : stale ? "warn" : c.status_class === "in_progress" ? "accent" : "plain",
+    next: c.next_action || (c.followups_upcoming ? `${c.followups_upcoming} follow-up${c.followups_upcoming === 1 ? "" : "s"}` : "—"), due: dueAt ? `Follow-up ${ddmm(c.next_due)}` : null, dueSoon: !!dueAt && dueAt <= endToday.getTime(), overdue: !!dueAt && dueAt < now,
+    updated: ddmm(c.last_activity_at ?? c.occurred_at) ?? "—", updatedAt: Date.parse(c.last_activity_at ?? c.occurred_at ?? "") || 0, occurredAt: Date.parse(c.occurred_at ?? "") || 0,
+    historical, stale, reasonless: isReasonless(c), trust: c.provenance && /import/i.test(c.provenance) ? "Imported" : "Recorded", animal: realName(c.animal_name) ?? (c.straypaw_id ? shortCode(c.straypaw_id) : null), dogId: c.dog_id, href: `/ngo/cases/${c.id}`,
+  };
+}
+/* Critical first, then whoever has waited longest (the classic queue's order); closed cases by their last activity. */
+const order = (a: CaseRow, b: CaseRow) => Number(b.open) - Number(a.open) || (a.open ? Number(b.crit) - Number(a.crit) || a.occurredAt - b.occurredAt : b.updatedAt - a.updatedAt);
+
+function useView(initial = "open") {
+  const [v, setV] = useState(initial);
+  useEffect(() => { const q = new URLSearchParams(window.location.search).get("view"); if (q) setV(q); }, []);
+  const set = useCallback((x: string) => { setV(x); try { const u = new URL(window.location.href); if (x === "open") u.searchParams.delete("view"); else u.searchParams.set("view", x); window.history.replaceState(window.history.state, "", u); } catch { /* address bar unchanged */ } }, []);
+  return [v, set] as const;
+}
+
+function LiveCases({ org }: { org: Workspace }) {
+  const live = useLive();
+  const [data, setData] = useState<{ rows: CaseRow[]; openCapped: boolean; closedCapped: boolean } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useView();
+  const members = useMembers(true);
+  const load = useCallback(async () => { const r = await readCases(org.org_id); if (r.error) { setError(errText(r.error)); return; } setError(null); const now = Date.now(); setData({ ...r.data!, rows: r.data!.rows.map((c) => toRow(c, now)).sort(order) }); }, [org.org_id]);
+  useEffect(() => { void load(); }, [load]);
+  const rows = useMemo(() => data?.rows ?? [], [data]);
+  const all = views(live.userId);
+  const vs = all.filter((v) => !OPTIONAL.has(v.id) || rows.some(v.test!) || v.id === view);
+  const open = rows.filter((r) => r.open && !r.historical && !r.stale), crit = open.filter((r) => r.crit).length, nobody = open.filter((r) => r.who === "Unassigned").length;
+  const actor = live.userId ? { id: live.userId, name: live.userName ?? "Team member" } : null;
   return (
     <Shell crumb={["NGO", "Cases"]}>
-      <div className="nx-page" style={{ maxWidth: "none" }}>
-        <div className="nx-head">
-          <div><h1 className="nx-h1">Cases{sample ? <Sample /> : null}</h1><p className="nx-sub">{loading ? "Reading cases…" : <><b className="num">{active}</b> active of {rows.length}{rows.length === 300 ? " most recent" : ""}{sample ? "" : ` at ${orgName}`}. Rescue, injury, sterilisation, vaccination and investigation in one list.</>}</p></div>
-          {sample ? <Link href="/try" className="nx-btn" title="Opens the live demo, where this works"><Plus size={14} />New case</Link> : <Link href="/ngo/cases/new" className="nx-btn"><Plus size={14} />New case</Link>}
-        </div>
-        <div className="nx-bar">
-          <div className="nx-views" role="tablist" aria-label="Views">
-            {VIEWS.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId="nx-cview" className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}<span className="nx-count">{rows.filter(v.test).length}</span></span></button>)}
-          </div>
-          <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a case" aria-label="Find a case" /></label>
-        </div>
-        {error ? <p className="nx-foot" role="alert">Cases could not be read: {error}</p> : null}
-        <div className="nx-table" role="table" aria-label="Cases">
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: COLS }}><span>Case</span><span>Severity</span><span>Place</span><span>Assigned to</span><span>Stage</span><span>Next</span><span>Updated</span></div>
-          {shown.map((r) => (
-            <button key={r.id} type="button" role="row" className={`nx-tr ${openId === r.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: COLS }} onClick={() => setOpenId(r.id)} aria-label={`Open ${r.code}, ${r.title}`}>
-              <span className="nx-cell-main"><span><b>{r.title}</b><small><span className="num">{r.code}</span> · {r.kind}<span className="nx-only-s"> · {r.place}</span></small></span></span>
-              <span>{r.resolved ? <Chip tone="ok">Resolved</Chip> : <Chip tone={SEV[r.severity] ?? "plain"}>{r.severity}</Chip>}</span>
-              <span className="nx-t2 nx-hide-s">{r.place}</span>
-              <span className="nx-t2 nx-hide-s">{r.who}</span>
-              <span className="nx-t2 nx-hide-s">{r.stage}</span>
-              <span className="nx-t2 nx-hide-s">{r.due ? <>{r.next !== "—" ? `${r.next} · ` : ""}<span style={r.overdue ? { color: "var(--bad)", fontWeight: 500 } : undefined}>{r.overdue ? "overdue " : ""}{r.due}</span></> : r.next}</span>
-              <span className="nx-t3 nx-hide-s">{r.updated}</span>
-            </button>
-          ))}
-          {!loading && !shown.length ? <div style={{ padding: "40px 0", textAlign: "center", color: "var(--ink-2)" }}><b style={{ color: "var(--ink)" }}>{rows.length ? "No case in this view" : "No cases yet"}</b><p style={{ marginTop: 4 }}>{rows.length ? "Choose another view or clear the search." : "Open the first one with New case."}</p></div> : null}
-        </div>
-      </div>
-      <AnimatePresence>
-        {open ? (
-          <motion.aside key="d" className="nx-drawer" role="dialog" aria-label={`${open.code}, ${open.title}`} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
-            <div className="nx-drawer-h"><span className="num">{open.code}</span><span style={{ marginLeft: "auto" }} />{open.href ? <Link href={open.href} className="nx-ib" aria-label="Open full case"><Maximize2 size={15} /></Link> : null}<button type="button" className="nx-ib" onClick={() => setOpenId(null)} aria-label="Close"><X size={16} /></button></div>
-            <div className="nx-drawer-b">
-              <div className="nx-rec-t" style={{ marginBottom: 16 }}><div><h1>{open.title}</h1><p>{open.kind} · {open.place} {open.resolved ? <Chip tone="ok">Resolved</Chip> : <Chip tone={SEV[open.severity] ?? "plain"}>{open.severity}</Chip>}</p></div></div>
-              <h3 className="nx-h3">Details</h3>
-              <dl className="nx-props">
-                <div><dt>Case</dt><dd className="num">{open.code}</dd></div>
-                <div><dt>Stage</dt><dd>{open.stage}</dd></div>
-                <div><dt>Assigned to</dt><dd>{open.who}</dd></div>
-                <div><dt>Next</dt><dd style={{ fontWeight: 400 }}>{open.next}</dd></div>
-                <div><dt>Due</dt><dd style={{ fontWeight: 400 }}>{open.due ?? "No date"}</dd></div>
-                <div><dt>Updated</dt><dd style={{ fontWeight: 400 }}>{open.updated}</dd></div>
-                <div><dt>Record</dt><dd><TrustChip trust={open.trust} /></dd></div>
-              </dl>
-              {open.detail ? <><h3 className="nx-h3">Reported</h3><p style={{ color: "var(--ink-2)", whiteSpace: "pre-wrap" }}>{open.detail}</p></> : null}
-              {open.href ? <><p style={{ marginTop: 18 }}><Link href={open.href} className="nx-btn is-quiet">Open full case</Link></p><p className="nx-foot">The full case, with its timeline and evidence, opens in the current app until the new case page reads live data.</p></> : null}
-            </div>
-          </motion.aside>
-        ) : null}
-      </AnimatePresence>
+      <RecordList id="cases" title="Cases" sample={false} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.title}`} columns={cols} views={vs} view={view} onView={setView} search={search} placeholder="Code, animal, place, person"
+        sub={!data && !error ? "Reading cases…" : error ? "Cases could not be read. Nothing is shown as zero." : <><b className="num">{open.length}</b> open{crit ? <>, <span style={{ color: "var(--bad)" }}>{crit} critical or high</span></> : null}, {nobody} held by nobody, at {org.name}.{data?.openCapped ? " Showing the newest 800 open cases." : ""}</>}
+        action={<Link href="/ngo/cases/new" className="nx-btn is-keep"><Plus size={14} />New case</Link>}
+        loading={!data && !error} error={error} onRetry={() => void load()} hrefOf={(r) => r.href}
+        empty={{ none: "No cases yet", filtered: "No case in this view", hint: <>Open the first one with <Link className="nr-link" href="/ngo/cases/new">New case</Link>, or import the register you already keep.</> }}
+        preview={(r) => ({ title: r.title, sub: <><span className="num">{r.code}</span> · {r.place} <Chip tone={r.tone}>{r.status}</Chip></>, href: r.href, hrefLabel: "Open the full case", body: actor ? <CaseDrawer key={r.id} id={r.id} role={org.role} actor={actor} members={members} onListChanged={load} /> : <p className="nx-sub">Sign in again to act on this case.</p> })} />
     </Shell>
   );
 }
 
-function LiveCases() {
-  const live = useLive();
-  const org = live.orgFor("ngo") ?? live.org;
-  const isNgo = org!.workspace === "ngo";
-  const cases = useCases(isNgo ? org!.org_id : null);
-  const today = new Date().toISOString().slice(0, 10);
-  const rows = useMemo<Row[]>(() => (cases.rows ?? []).map((c) => {
-    const due = c.due_at ?? c.follow_up_at;
-    return { id: c.id, code: c.case_code && c.case_code.length <= 14 ? c.case_code : c.case_code ? `${c.case_code.slice(0, 4)}…${c.case_code.slice(-6)}` : c.id.slice(0, 8).toUpperCase(), title: c.title || "Untitled case", kind: word(c.category, "Uncategorised"), severity: word(c.severity, "Normal"), place: c.zone ?? c.city ?? "Not recorded", who: c.assignee_name ?? "Unassigned", stage: word(c.stage ?? c.status), next: c.next_action ?? "—", due: day(due), overdue: !!due && !c.resolved_at && due.slice(0, 10) < today, updated: day(c.last_activity_at ?? c.created_at) ?? "—", resolved: !!c.resolved_at, trust: (c.provenance && /import/i.test(c.provenance) ? "Imported" : "Recorded") as Trust, href: `/ngo/cases/${c.id}`, detail: c.description };
-  }), [cases.rows, today]);
-  if (!isNgo) return <Shell crumb={["NGO", "Cases"]}><div className="nx-page"><h1 className="nx-h1">Cases</h1><p className="nx-sub">{org!.name} is not an NGO workspace, so it has no case list of its own.</p></div></Shell>;
-  return <CasesView rows={rows} sample={false} loading={cases.rows === null} error={cases.error} orgName={org!.name} />;
+/** The drawer: the case's next step, its follow-ups and what happened last, read fresh with the member's session. */
+function CaseDrawer({ id, role, actor, members, onListChanged }: { id: string; role: string; actor: { id: string; name: string }; members: ReturnType<typeof useMembers>; onListChanged: () => Promise<void> }) {
+  const [file, setFile] = useState<CaseFile | null | "loading" | { error: string }>("loading");
+  const gen = useRef(0);
+  const read = useCallback(async () => { const v = ++gen.current; try { const f = await loadCaseFile(id); if (v === gen.current) setFile(f); } catch (e) { if (v === gen.current) setFile({ error: errText(e) }); } }, [id]);
+  useEffect(() => { void read(); }, [read]);
+  const changed = useCallback(async () => { await Promise.all([read(), onListChanged()]); }, [read, onListChanged]);
+  if (file === "loading") return <Skeleton rows={5} label="Reading the case" />;
+  if (file && "error" in file) return <Failed error={file.error} retry={() => void read()} />;
+  if (!file) return <p className="nx-sub">This case is not in your organisation&apos;s records. It may have been removed.</p>;
+  const { c, reg, updates, medical, animal } = file;
+  const history = [
+    ...updates.map((u) => ({ id: u.id, at: u.created_at, t: u.note || (u.to_status ? `Status → ${u.to_status.replace(/_/g, " ")}` : u.type.replace(/_/g, " ")), who: u.actor_name })),
+    ...medical.map((m) => ({ id: m.id, at: m.event_date, t: `${m.kind.replace(/_/g, " ")}${careNote(m.notes) ? `: ${careNote(m.notes)}` : ""}`, who: m.performed_by })),
+  ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 4);
+  return (
+    <>
+      {reg.condition_text ? <p className="nx-sub" style={{ marginTop: -8, marginBottom: 12 }}>{reg.condition_text}</p> : null}
+      <h3 className="nx-h3">Next step</h3>
+      <CaseNext file={file} role={role} actor={actor} members={members} onChanged={changed} />
+      <h3 className="nx-h3">Details</h3>
+      <Props items={[
+        ["Status", <Chip key="s" tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>],
+        ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? (animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal record")}</Link> : "Not linked"],
+        ["Place", [c.zone, reg.city].filter(Boolean).join(", ") || "Not recorded"],
+        ["Held by", c.assignee_name ?? "Nobody yet"],
+        ["Recorded", `${day(reg.occurred_at)}${reg.intake_channel ? ` via ${reg.intake_channel.replace(/_/g, " ")}` : ""}`],
+        ...(reg.next_action ? [["Next action", reg.next_action] as [string, string]] : []),
+        ["Record", <TrustChip key="t" trust={reg.provenance === "imported_historical_record" ? "Imported" : "Recorded"} />],
+      ]} />
+      <h3 className="nx-h3">Follow-ups <span className="nx-count">{file.followups.length}</span></h3>
+      <FollowupList items={file.followups} onChanged={changed} />
+      <h3 className="nx-h3">Latest <span className="nx-count">{updates.length + medical.length}</span></h3>
+      {history.length ? <ul className="nr-items">{history.map((h) => <li key={h.id} className="nr-item"><span className="nr-item-t"><b>{h.t}</b><small>{day(h.at)}{h.who ? ` · ${h.who.includes("@") ? h.who.split("@")[0] : h.who}` : ""}</small></span></li>)}</ul> : <p className="nr-quiet">Nothing recorded on this case since it was opened.</p>}
+      {cohortOf(file) === "history" ? <p className="nr-hint" style={{ marginTop: 10 }}>An imported case is not counted as today&apos;s work until a person confirms it.</p> : null}
+    </>
+  );
 }
 
-const SAMPLE: Row[] = CASES.map((c) => ({ ...c, overdue: false, detail: null }));
+function SampleCases() {
+  const all = views(null);
+  const vs = all.filter((v) => !OPTIONAL.has(v.id) || SAMPLE_CASES.some(v.test!));
+  const open = SAMPLE_CASES.filter((r) => r.open && !r.historical && !r.stale);
+  return (
+    <Shell crumb={["NGO", "Cases"]}>
+      <RecordList id="cases" title="Cases" sample rows={SAMPLE_CASES} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.title}`} columns={cols} views={vs} search={search} placeholder="Code, animal, place, person"
+        sub={<><b className="num">{open.length}</b> open, {open.filter((r) => r.crit).length} critical or high, {open.filter((r) => r.who === "Unassigned").length} held by nobody. Rescue, injury, sterilisation, vaccination and investigation in one list.</>}
+        action={<Link href="/try" className="nx-btn is-keep" title="Opens the live demo, where this works"><Plus size={14} />New case</Link>}
+        loading={false} empty={{ none: "No cases yet" }} hrefOf={(r) => r.href}
+        preview={(r) => ({ title: r.title, sub: <><span className="num">{r.code}</span> · {r.place} {r.open ? <Chip tone={r.tone}>{r.status}</Chip> : <Chip tone="ok">Resolved</Chip>}</>, href: r.href, hrefLabel: "Open the full case", body: <>
+          <h3 className="nx-h3">Next step</h3>
+          {r.open ? <SampleNext held={r.who} /> : <p className="nr-quiet">Closed after field work.</p>}
+          <h3 className="nx-h3">Details</h3>
+          <Props items={[["Case", <span key="c" className="num">{r.code}</span>], ["Kind", r.kind], ["Severity", r.severity], ["Held by", r.who === "Unassigned" ? "Nobody yet" : r.who], ["Next", r.next], ["Due", r.due ?? "No date"], ["Record", <TrustChip key="t" trust={r.trust} />]]} />
+          <h3 className="nx-h3">Follow-ups</h3>
+          <FollowupList sample items={sampleFollowups(r.id)} onChanged={() => {}} />
+          <h3 className="nx-h3">Latest</h3>
+          <ul className="nr-items">{sampleHistory(r.id).slice(0, 3).map((h) => <li key={h.id} className="nr-item"><span className="nr-item-t"><b>{h.title}</b><small>{h.when} · {h.who}</small></span></li>)}</ul>
+          <p style={{ marginTop: 14 }}><TryLink quiet sm>Act on this case in the live demo</TryLink></p>
+        </> })} />
+    </Shell>
+  );
+}
 
 export function Cases() {
   const live = useLive();
   if (!live.ready) return <Shell crumb={["NGO", "Cases"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
-  return live.org ? <LiveCases /> : <CasesView rows={SAMPLE} sample loading={false} error={null} orgName="" />;
+  if (!live.org) return <SampleCases />;
+  const org = live.orgFor("ngo");
+  if (!org) return <Shell crumb={["NGO", "Cases"]}><div className="nx-page"><h1 className="nx-h1">Cases</h1><p className="nx-sub">{live.org.name} is not an NGO workspace, so it has no case list of its own.</p></div></Shell>;
+  return <LiveCases org={org} />;
 }

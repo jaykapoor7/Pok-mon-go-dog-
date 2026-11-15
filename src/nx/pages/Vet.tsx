@@ -11,6 +11,7 @@ import { Chip, Sample } from "../ui";
 import { VET_APPTS, VET_CASES, VET_PROCS, type Tone, type VetAppt, type VetCase, type VetProc } from "../fixtures";
 import { HealthToday } from "./Health";
 import { bookAppointment, setAppointmentStatus, useAppointments, useCases, useDogs, useLive, type Appointment, type Case, type Dog } from "../live";
+import { ClinicPatients, ClinicToday } from "./VetClinic";
 
 /* The veterinary experience, inside Healthcare, for a veterinarian of an NGO. It reads that NGO's own animals, cases,
    procedures and follow-ups; appointments are the only new record. Clinical findings and sign-offs are recorded on
@@ -80,7 +81,7 @@ export function Appointments() {
       views={[{ id: "today", label: "Today", test: (r: ApRow) => r.day === "Today" }, { id: "next", label: "Coming up", test: (r: ApRow) => r.day !== "Past" && r.status === "booked" }, { id: "past", label: "Past", test: (r: ApRow) => r.day === "Past" }, { id: "all", label: "All", test: () => true }]}
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.title} search={(r) => `${r.title} ${r.animal}`} sort={(a, b) => a.at - b.at}
       preview={(r) => ({ title: r.title, sub: <><Chip tone={STATUS[r.status][1]}>{STATUS[r.status][0]}</Chip> <span className="nx-t3">{r.when}</span></>, body: <>
-        <dl className="nx-props"><div><dt>Animal</dt><dd>{r.dogId ? <Link href={`/next/ngo/animals/${r.dogId}`} style={{ color: "var(--accent)" }}>{r.animal}</Link> : r.animal}</dd></div><div><dt>Kind</dt><dd>{KIND[r.kind] ?? r.kind}</dd></div><div><dt>Veterinarian</dt><dd>{r.vet}</dd></div></dl>
+        <dl className="nx-props"><div><dt>Animal</dt><dd>{r.dogId ? <Link href={`/ngo/animals/${r.dogId}`} style={{ color: "var(--accent)" }}>{r.animal}</Link> : r.animal}</dd></div><div><dt>Kind</dt><dd>{KIND[r.kind] ?? r.kind}</dd></div><div><dt>Veterinarian</dt><dd>{r.vet}</dd></div></dl>
         {r.status === "booked" ? <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 14 }}><button type="button" className="nx-btn is-sm" onClick={() => mark(r, "done")}>Mark done</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => mark(r, "missed")}>Missed</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => mark(r, "cancelled")}>Cancel</button></div> : null}
         {msg ? <p className="nx-foot" role="status">{msg}</p> : null}
         <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Marking a visit done records that it happened. What was found and done goes on the case, signed by the veterinarian.</span></p></> })}
@@ -127,12 +128,17 @@ export function ClinicalCare() {
     sub={c.loading ? "Reading cases…" : <><b className="num">{c.rows.filter((r) => r.severity === "critical" || r.severity === "high").length}</b> critical or high of {c.rows.length} open injury, rescue and treatment cases. Most urgent first.</>}
     views={[{ id: "urgent", label: "Critical and high", test: (r: CareRow) => r.severity === "critical" || r.severity === "high" }, { id: "all", label: "All open", test: () => true }]}
     columns={careCols} rows={c.rows} rowKey={(r) => r.id} rowLabel={(r) => r.title} search={(r) => `${r.title} ${r.animal} ${r.code}`} sort={(a, b) => SEV_ORDER.indexOf(a.severity) - SEV_ORDER.indexOf(b.severity)}
-    preview={(r) => ({ title: r.title, sub: <><Chip tone={SEV[r.severity] ?? "plain"}>{r.severity}</Chip> {r.category}</>, body: <><dl className="nx-props"><div><dt>Animal</dt><dd>{r.dogId ? <Link href={`/next/ngo/animals/${r.dogId}`} style={{ color: "var(--accent)" }}>{r.animal}</Link> : r.animal}</dd></div><div><dt>Case</dt><dd className="num">{r.code}</dd></div><div><dt>Next step</dt><dd>{r.next}</dd></div><div><dt>Updated</dt><dd>{r.updated}</dd></div></dl>{careNote}</>, href: r.caseHref, hrefLabel: "Open the case", hrefNote: "Notes, treatment and sign-off are on the case." })}
+    preview={(r) => ({ title: r.title, sub: <><Chip tone={SEV[r.severity] ?? "plain"}>{r.severity}</Chip> {r.category}</>, body: <><dl className="nx-props"><div><dt>Animal</dt><dd>{r.dogId ? <Link href={`/ngo/animals/${r.dogId}`} style={{ color: "var(--accent)" }}>{r.animal}</Link> : r.animal}</dd></div><div><dt>Case</dt><dd className="num">{r.code}</dd></div><div><dt>Next step</dt><dd>{r.next}</dd></div><div><dt>Updated</dt><dd>{r.updated}</dd></div></dl>{careNote}</>, href: r.caseHref, hrefLabel: "Open the case", hrefNote: "Notes, treatment and sign-off are on the case." })}
     loading={c.loading} note={c.error} empty={{ none: "No open clinical cases", hint: "Injury, rescue and treatment cases appear here while they are open." }} />}</Gate>;
 }
 
 type PatRow = { id: string; animal: string; cases: number; worst: VetCase["severity"]; titles: string; dogId: string | null };
 export function Patients() {
+  const live = useLive(); const hc = live.orgFor("healthcare");
+  if (live.org && hc?.source === "vet_clinic") return <ClinicPatients clinic={hc} />;
+  return <NgoPatients />;
+}
+function NgoPatients() {
   const v = useVet(); const c = useCare(v);
   const rows: PatRow[] = useMemo(() => {
     const by = new Map<string, CareRow[]>();
@@ -148,7 +154,7 @@ export function Patients() {
     sub={c.loading ? "Reading patients…" : <><b className="num">{rows.length}</b> {rows.length === 1 ? "animal is" : "animals are"} under clinical care. An animal with no open injury, rescue or treatment case is not listed.</>}
     views={[{ id: "all", label: "Under care", test: () => true }, { id: "urgent", label: "Critical or high", test: (r: PatRow) => r.worst === "critical" || r.worst === "high" }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.animal} search={(r) => `${r.animal} ${r.titles}`} sort={(a, b) => SEV_ORDER.indexOf(a.worst) - SEV_ORDER.indexOf(b.worst)}
-    preview={(r) => ({ title: r.animal, sub: `${r.cases} open ${r.cases === 1 ? "case" : "cases"}`, body: <><p>{r.titles}</p>{careNote}</>, href: r.dogId ? `/next/ngo/animals/${r.dogId}` : undefined, hrefLabel: "Open the animal", hrefNote: "Its full history, cases and procedures are on the record." })}
+    preview={(r) => ({ title: r.animal, sub: `${r.cases} open ${r.cases === 1 ? "case" : "cases"}`, body: <><p>{r.titles}</p>{careNote}</>, href: r.dogId ? `/ngo/animals/${r.dogId}` : undefined, hrefLabel: "Open the animal", hrefNote: "Its full history, cases and procedures are on the record." })}
     loading={c.loading} note={c.error} empty={{ none: "No animals under care", hint: "Animals appear here while they have an open clinical case." }} />}</Gate>;
 }
 
@@ -160,7 +166,7 @@ export function Procedures() {
   const [q, setQ] = useState<QueueRow[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => { if (!v.orgId) return; let alive = true; verificationQueue().then((r) => { if (alive) setQ(r); }).catch((e: unknown) => { if (alive) { setQ([]); setErr(e instanceof Error ? e.message : "The procedure queue could not be read."); } }); return () => { alive = false; }; }, [v.orgId]);
-  const rows: ProcRow[] = v.sample ? VET_PROCS : (q ?? []).filter((r) => !/imported_historical/.test(r.provenance ?? "")).map((r) => { const st = stageOf(r); return { id: r.case_id, code: r.case_code && r.case_code.length > 14 ? `${r.case_code.slice(0, 4)}…${r.case_code.slice(-6)}` : r.case_code ?? r.case_id.slice(0, 8).toUpperCase(), animal: r.title ?? "Procedure", stage: r.vet_authorised ? "Signed" : st === "vet" ? "Waiting for vet" : st === "evidence" ? "Needs evidence" : (STAGE_LABEL[st] as VetProc["stage"]), missing: r.missing.map((m) => m.replace(/_/g, " ")), vet: r.vet_name, when: new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }), href: `/ngo/verification/${r.case_id}` }; });
+  const rows: ProcRow[] = v.sample ? VET_PROCS.map((p) => ({ ...p, href: `/health/procedures/${p.id}` })) : (q ?? []).filter((r) => !/imported_historical/.test(r.provenance ?? "")).map((r) => { const st = stageOf(r); return { id: r.case_id, code: r.case_code && r.case_code.length > 14 ? `${r.case_code.slice(0, 4)}…${r.case_code.slice(-6)}` : r.case_code ?? r.case_id.slice(0, 8).toUpperCase(), animal: r.title ?? "Procedure", stage: r.vet_authorised ? "Signed" : st === "vet" ? "Waiting for vet" : st === "evidence" ? "Needs evidence" : (STAGE_LABEL[st] as VetProc["stage"]), missing: r.missing.map((m) => m.replace(/_/g, " ")), vet: r.vet_name, when: new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }), href: `/health/procedures/${r.case_id}` }; });
   const waiting = rows.filter((r) => r.stage === "Waiting for vet").length;
   const cols: Col<ProcRow>[] = [
     { label: "Procedure", width: "minmax(0, 1.4fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.animal}</b><small>{r.code} · {r.when}{r.missing.length ? ` · missing ${r.missing.join(", ")}` : ""}</small></span></span> },
@@ -216,15 +222,15 @@ export function VetToday() {
       <div className="nx-page" style={{ maxWidth: 960 }}>
         <div className="nx-head"><div><p className="nx-eyebrow">{v.sample ? "Kind Hour · Veterinary" : v.vet!.name}{v.sample ? <Sample /> : null}</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{appts.length} {appts.length === 1 ? "appointment" : "appointments"} today, {waitingSign} {waitingSign === 1 ? "procedure waits" : "procedures wait"} for your sign-off.</p></div></div>
         <div className="nx-figs">
-          {fig(appts.length, "Appointments today", "/next/health/appointments")}
-          {fig(waitingSign, "Waiting for your sign-off", "/next/health/procedures")}
-          {fig(urgent.length, "Critical or high cases", "/next/health/care")}
-          {fig(c.rows.length, "Open clinical cases", "/next/health/care")}
+          {fig(appts.length, "Appointments today", "/health/appointments")}
+          {fig(waitingSign, "Waiting for your sign-off", "/health/procedures")}
+          {fig(urgent.length, "Critical or high cases", "/health/care")}
+          {fig(c.rows.length, "Open clinical cases", "/health/care")}
         </div>
         <div className="nx-cols" style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" }}>
-          <section className="nx-sec" aria-labelledby="vt-a"><div className="nx-sec-h"><h2 id="vt-a">Appointments</h2><Link href="/next/health/appointments">All <ArrowRight size={12} /></Link></div>
+          <section className="nx-sec" aria-labelledby="vt-a"><div className="nx-sec-h"><h2 id="vt-a">Appointments</h2><Link href="/health/appointments">All <ArrowRight size={12} /></Link></div>
             <ul className="nx-feed">{appts.map((a) => <li key={a.id}><span className="nx-feed-i"><CalendarPlus size={12} /></span><div><b>{a.title}</b><p>{a.animal} · {a.when}</p></div></li>)}</ul>{!appts.length ? <p className="nx-sub">Nothing booked for today.</p> : null}</section>
-          <section className="nx-sec" aria-labelledby="vt-u" style={{ marginTop: 0 }}><div className="nx-sec-h"><h2 id="vt-u">Most urgent</h2><Link href="/next/health/care">Clinical care <ArrowRight size={12} /></Link></div>
+          <section className="nx-sec" aria-labelledby="vt-u" style={{ marginTop: 0 }}><div className="nx-sec-h"><h2 id="vt-u">Most urgent</h2><Link href="/health/care">Clinical care <ArrowRight size={12} /></Link></div>
             <ul className="nx-feed">{urgent.slice(0, 5).map((r) => <li key={r.id}><span className="nx-feed-i" style={r.severity === "critical" ? { background: "var(--bad-soft)", color: "var(--bad)" } : undefined}><Stethoscope size={12} /></span><div><b>{r.title}</b><p>{r.animal} · {r.next}</p></div></li>)}</ul>{!urgent.length && !c.loading ? <p className="nx-sub">No critical or high cases open.</p> : null}</section>
         </div>
         <p className="nx-note" style={{ marginTop: 22, maxWidth: 700 }}><Lock size={13} /><span>This view reads {v.sample ? "the NGO" : v.vet!.name}&apos;s own animals and cases. StrayPaw does not suggest diagnoses or treatments, and Kaju does not read clinical notes.</span></p>
@@ -236,5 +242,8 @@ export function VetToday() {
 /** Healthcare's Today: a veterinarian of an NGO gets their day; a clinic or laboratory gets theirs. */
 export function HealthHome() {
   const live = useLive();
-  return live.orgFor("healthcare")?.kind === "veterinary" ? <VetToday /> : <HealthToday />;
+  const hc = live.orgFor("healthcare");
+  /* An independent clinic keeps its own patients; a veterinarian of an NGO works on that NGO's animals. */
+  if (live.org && hc?.source === "vet_clinic") return <ClinicToday clinic={hc} />;
+  return hc?.kind === "veterinary" ? <VetToday /> : <HealthToday />;
 }

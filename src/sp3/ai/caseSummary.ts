@@ -267,9 +267,9 @@ export async function caseSummary(ref: string, ctx: ToolCtx): Promise<ToolOut> {
     history, historyMore, historyPartial: !!history && (!updates || !care || !followups), next, upcoming, abc, unread,
   };
   const citations: Citation[] = [{ id: caseId, label, href: `/ngo/cases/${caseId}`, kind: "case" }];
-  if (abc) citations.push({ id: `verification:${caseId}`, label: `Evidence and sign-off · ${label}`, href: `/ngo/verification/${caseId}`, kind: "page" });
+  if (abc) citations.push({ id: `verification:${caseId}`, label: `Evidence and sign-off · ${label}`, href: `/ngo/cases/${caseId}?tab=abc`, kind: "page" });
   if (summary.animal) citations.push({ id: summary.animal.id, label: summary.animal.name ?? summary.animal.tag ?? "Animal", href: `/ngo/animals/${summary.animal.id}`, kind: "animal" });
-  if (abc?.pkg) citations.push({ id: abc.pkg.id, label: abc.pkg.title, href: `/ngo/packages/${abc.pkg.id}`, kind: "page" });
+  if (abc?.pkg) citations.push({ id: abc.pkg.id, label: abc.pkg.title, href: `/ngo/submissions/${abc.pkg.id}`, kind: "page" });
   return { data: summary, summary: `Read ${label}${unread.length ? `; could not read ${unread.join(", ")}` : ""}`.slice(0, 160), citations };
 }
 

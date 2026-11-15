@@ -44,7 +44,7 @@ assert.equal(calls.length, before); ok('ABC queue requires organisation before r
 const rows = [{ case_id: 'test-case', case_code: 'TEST-1', missing: ['release_photo'], vet_authorised: false }];
 const ctx: ToolCtx = { ...fail, db: db({ data: rows, error: null }) };
 const queue = await runTool('abc_verification_status', {}, ctx);
-assert.equal(queue.citations[0].href, '/ngo/verification/test-case'); assert.equal((queue.data as { limit: number }).limit, 100); ok('ABC queue uses bounded source results and exact record links');
+assert.equal(queue.citations[0].href, '/ngo/cases/test-case?tab=abc'); assert.equal((queue.data as { limit: number }).limit, 100); ok('ABC queue uses bounded source results and exact record links');
 
 const reportText = 'Injured dog limping near the bus stop';
 const first = await answer([{ role: 'user', text: reportText }], ctx, {});
@@ -167,7 +167,7 @@ try{
  for(const q of ['Summarise this case','summarize the case please',"What's happening with case BLR-2041?",'status of this case','What is the status of SPC-47A86E?','Where does this case stand?','Any update on this case?','tell me about case SPA-DOG-497C3A','case summary','How is this case going?'])assert.equal(caseSummaryAsked(q),true,q);
  for(const q of ['Check this case and its evidence','What needs attention on this case?','Summarise this animal’s history',"Summarise today's work",'how many open cases','case status by zone','which case is overdue','What’s the latest case?','Add a note to SPC-47A86E: dog eating well','Follow up on SPC-47A86E tomorrow','how do I update the status of a case','Open a new case','update case SPC-47A86E to closed','what is the status of our submission'])assert.equal(caseSummaryAsked(q),false,q);
  assert.deepEqual(caseReference('status of case BLR-2041',`/ngo/cases/${CASE}`),{by:'code',value:'BLR-2041'});assert.deepEqual(caseReference('summarise this case',`/ngo/verification/${CASE}`),{by:'page',value:CASE});
- assert.deepEqual(caseReference('what is the status of the case re-opened yesterday','/ngo/work'),{by:'none'});assert.deepEqual(caseReference(`summary of ${CASE.toUpperCase()}`),{by:'id',value:CASE});
+ assert.deepEqual(caseReference('what is the status of the case re-opened yesterday','/ngo/cases'),{by:'none'});assert.deepEqual(caseReference(`summary of ${CASE.toUpperCase()}`),{by:'id',value:CASE});
  ok('“summarise this case” and its everyday phrasings reach the case summary; checks, commands, counts and how-to questions keep their routes; a named case wins over the open page');
  const head={id:CASE,case_code:'SPC-0B9A3C1E1F2A4C3D9E8F123456789ABC',title:'Dog with a wound',condition_class:'Maggot wound',status_class:'in_progress',zone:'Adyar',city:'Chennai',assignee_name:'Ravi Kumar',dog_id:DOG,animal_name:'Ginger',straypaw_id:'SPA-DOG-ACC70743182B',occurred_at:iso(10),last_activity_at:iso(2),next_action:'Recheck the wound',provenance:null,reviewed_at:null,closure_reason:null,
   /* Fields no summary may repeat, as if a projection had leaked them. */ patient_name:'SECRET PATIENT',doses_due:97,exposure_category:'III'};
@@ -185,10 +185,10 @@ try{
  for(const want of ['**SPC-0B9A3C** · Maggot wound','In progress. Held by Ravi Kumar.','Ginger (SPA-DOG-ACC707)','Adyar, Chennai','Evidence: 4 of 5 recorded; missing release photo.','Veterinary sign-off: recorded by Dr Meena','Coordinator review: not recorded.','Stage: **Needs evidence**. Next step for the field team: add the missing evidence items.','Follow-up (dressing change) was due','3 days overdue','Next action noted on the case: “Recheck the wound”','Nothing was changed'])assert.ok(sum.text.includes(want),want);
  const at=(s:string)=>sum.text.indexOf(s);assert.ok(at('Case opened (Asha)')>0&&at('Case opened')<at('Care recorded: sterilisation, Spay done (Dr Meena)')&&at('Care recorded')<at('Note: “Called the feeder')&&at('Note:')<at('Follow-up done (recheck)'));
  assert.match(sum.text,/\[phone removed\]/);assert.doesNotMatch(JSON.stringify(sum),/98450|SECRET PATIENT|patient_name|doses_due|exposure_category/);
- assert.deepEqual(sum.citations.map(c=>c.href),[`/ngo/cases/${CASE}`,`/ngo/verification/${CASE}`,`/ngo/animals/${DOG}`]);
+ assert.deepEqual(sum.citations.map(c=>c.href),[`/ngo/cases/${CASE}`,`/ngo/cases/${CASE}?tab=abc`,`/ngo/animals/${DOG}`]);
  ok('a case summary: status and holder, animal and place, history oldest first, ABC evidence and sign-off, what is next; contact details masked; links to the record only');
  for(const said of ['','this case','current']){const r=await runTool('case_summary',{case:said},member(full().db,`/ngo/cases/${CASE}`));assert.equal((r.data as {id?:string}).id,CASE,said);}
- assert.equal((await runTool('case_summary',{case:'this case'},member(full().db,'/ngo/work'))).ok,false);
+ assert.equal((await runTool('case_summary',{case:'this case'},member(full().db,'/ngo/cases'))).ok,false);
  ok('the model path’s “this case” means the case open on the page, and nothing when no case is open');
  const allowed=['org_case_facts','cases','case_updates','animal_followups','medical_events','abc_attestations','report_packages'];
  assert.ok(a.log.tables.every(t=>allowed.includes(t)),a.log.tables.join());assert.deepEqual(a.log.rpcs,['abc_case_checklist']);assert.deepEqual(a.log.schemas,[]);
@@ -220,7 +220,7 @@ try{
  assert.match(broke.text,/could not be read/);assert.deepEqual(broke.citations,[]);assert.equal(broke.tools[0]?.ok,false);
  assert.equal((await runTool('case_summary',{case:'SPC-1A2B3C'},fail)).ok,false);assert.deepEqual((await runTool('case_summary',{case:'SPC-1A2B3C'},fail)).citations,[]);
  ok('a failed read of the case is a failure, never an empty summary');
- const which=records({});const ask=await withTools('summarise this case',member(which.db,'/ngo/work'));assert.match(ask.text,/Which case\?/);assert.deepEqual(which.log.tables,[]);
+ const which=records({});const ask=await withTools('summarise this case',member(which.db,'/ngo/cases'));assert.match(ask.text,/Which case\?/);assert.deepEqual(which.log.tables,[]);
  const guest=records({});assert.match((await withTools('Summarise this case',{...member(guest.db,`/ngo/cases/${CASE}`),orgId:null})).text,/needs an organisation workspace/);assert.deepEqual(guest.log.tables,[]);
  ok('with no case named or open, Kaju asks which; a guest is refused before any read');
  assert.equal((await withTools('Check this case and its evidence',member(full().db,`/ngo/verification/${CASE}`))).tools[0]?.name,'current_record');ok('checking a record’s evidence keeps its own route');

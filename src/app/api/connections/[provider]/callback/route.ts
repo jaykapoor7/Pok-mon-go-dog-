@@ -12,11 +12,11 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request, { params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params;
   const url = new URL(req.url);
-  const home = (q: string, back = "/ngo/settings/connections") => NextResponse.redirect(`${siteUrl(req)}${back}?${q}`);
+  const home = (q: string, back = "/settings") => NextResponse.redirect(`${siteUrl(req)}${back}${back.includes("?") ? "&" : "?"}${q}`);
   if (!isProvider(provider)) return home("connection=error&reason=provider");
   let state;
   try { state = readState(url.searchParams.get("state")); } catch { state = null; }
-  const back = state?.r ?? "/ngo/settings/connections";
+  const back = state?.r ?? "/settings";
   if (url.searchParams.get("error")) return home(`connection=cancelled&provider=${provider}`, back);
   const cookie = req.headers.get("cookie")?.match(new RegExp(`(?:^|; )sp_conn_${provider}=([^;]+)`))?.[1];
   let nonce: string | undefined, verifier: string | undefined;

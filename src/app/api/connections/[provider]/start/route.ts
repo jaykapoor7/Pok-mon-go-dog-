@@ -23,7 +23,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ provide
   const challenge = createHash("sha256").update(verifier).digest("base64url");
   const nonce = randomBytes(16).toString("base64url");
   const back = new URL(req.url).searchParams.get("back") ?? "";
-  const state = signState({ u: c.userId, p: provider, n: nonce, r: back.startsWith("/") && !back.startsWith("//") ? back : "/ngo/settings/connections" });
+  const state = signState({ u: c.userId, p: provider, n: nonce, r: back.startsWith("/") && !back.startsWith("//") ? back : "/settings" });
   /* Incremental consent: a person may add an optional capability (such as
      finding correspondence) for their own account; nothing else is widened. */
   const optional = PROVIDERS[provider].optional ?? {};

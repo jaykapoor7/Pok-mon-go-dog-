@@ -9,7 +9,7 @@ import { Check, Chip, Sample } from "../ui";
 import { FIGS, ME, ORG, PREPARED, TEAM, VISITS, WORK, type Work } from "../fixtures";
 import { addTasks, setTaskDone, useLive, useNgoCounts, useTasks, type Task } from "../live";
 
-const COLS = "22px minmax(0, 1fr) 132px 104px 138px 64px";
+const COLS = "28px minmax(0, 1fr) 132px 104px 138px 64px";
 const GROUPS: Work["group"][] = ["Now", "Today", "This week"];
 
 function greeting() { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; }
@@ -26,7 +26,7 @@ function SampleToday() {
     <motion.li key={w.id} layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={spring}>
       <div className={`nx-tr is-work ${isDone ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: COLS }}>
         <Check done={isDone} onClick={() => toggle(w.id)} label={isDone ? `Reopen: ${w.title}` : `Mark done: ${w.title}`} />
-        <Link href={w.animal ? `/next/ngo/animals/${w.animal}` : "/next/ngo/animals"} className="nx-cell-main"><span><b>{w.title}</b><small>{w.ref} · {w.kind}<span className="nx-only-s"> · {w.place}</span></small></span></Link>
+        <Link href={w.animal ? `/ngo/animals/${w.animal}` : "/ngo/animals"} className="nx-cell-main"><span><b>{w.title}</b><small>{w.ref} · {w.kind}<span className="nx-only-s"> · {w.place}</span></small></span></Link>
         <span className="nx-t2 nx-hide-s">{w.who}</span>
         <span className="nx-t2 nx-hide-s">{w.place}</span>
         <span>{isDone ? <Chip tone="ok">Done</Chip> : <Chip tone={w.tone}>{w.state}</Chip>}</span>
@@ -54,7 +54,7 @@ function SampleToday() {
         <div className="nx-cols">
           <div>
             <section className="nx-sec" aria-labelledby="t-work">
-              <div className="nx-sec-h"><h2 id="t-work">My work</h2><span className="nx-count">{open.length}</span><Link href="/next/ngo/animals">All work <ArrowRight size={12} /></Link></div>
+              <div className="nx-sec-h"><h2 id="t-work">My work</h2><span className="nx-count">{open.length}</span><Link href="/ngo/animals">All work <ArrowRight size={12} /></Link></div>
               <div className="nx-table">
                 <div className="nx-tr nx-th" style={{ gridTemplateColumns: COLS }}><span /><span>Record</span><span>Assigned to</span><span>Place</span><span>State</span><span>Updated</span></div>
                 <LayoutGroup>
@@ -71,7 +71,7 @@ function SampleToday() {
             <section className="nx-sec" aria-labelledby="t-visits">
               <div className="nx-sec-h"><h2 id="t-visits">Next visits</h2><span className="nx-count">{VISITS.length}</span></div>
               <ul className="nx-table">
-                {VISITS.map((v) => <li key={v.what} className="nx-tr is-visit" style={{ gridTemplateColumns: "22px 108px minmax(0, 1fr) auto" }}><Clock size={14} style={{ color: "var(--ink-3)" }} /><span className="nx-t3 nx-hide-s">{v.when}</span><span className="nx-cell-main"><span><b>{v.what}</b><small className="nx-only-s">{v.when}</small></span></span><span className="nx-t2">{v.who}</span></li>)}
+                {VISITS.map((v) => <li key={v.what} className="nx-tr is-visit" style={{ gridTemplateColumns: "28px 108px minmax(0, 1fr) auto" }}><Clock size={14} style={{ color: "var(--ink-3)" }} /><span className="nx-t3 nx-hide-s">{v.when}</span><span className="nx-cell-main"><span><b>{v.what}</b><small className="nx-only-s">{v.when}</small></span></span><span className="nx-t2">{v.who}</span></li>)}
               </ul>
             </section>
           </div>
@@ -120,7 +120,7 @@ function LiveToday() {
   const fig = (n: number | null, label: string, href?: string) => { const inner = <><b>{n === null ? "—" : n.toLocaleString("en-IN")}</b><span>{label}{href ? <ArrowRight size={12} /> : null}</span></>; return href ? <Link key={label} href={href} className="nx-fig">{inner}</Link> : <div key={label} className="nx-fig">{inner}</div>; };
   const row = (t: Task) => (
     <motion.li key={t.id} layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={spring}>
-      <div className={`nx-tr is-work ${t.state === "done" ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: "22px minmax(0, 1fr) 150px 120px 90px" }}>
+      <div className={`nx-tr is-work ${t.state === "done" ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: "28px minmax(0, 1fr) 150px 120px 90px" }}>
         <Check done={t.state === "done"} onClick={() => void toggle(t)} label={t.state === "done" ? `Reopen: ${t.title}` : `Mark done: ${t.title}`} />
         <span className="nx-cell-main"><span><b>{t.title}</b><small>{t.source_kind === "kaju" ? "Proposed by Kaju, accepted by a person" : t.source_kind === "manual" ? "Added by hand" : t.source_kind}{t.record_label ? ` · ${t.record_label}` : ""}</small></span></span>
         <span className="nx-t2 nx-hide-s">{t.assignee_name ?? "Unassigned"}</span>
@@ -136,7 +136,7 @@ function LiveToday() {
         <div className="nx-figs">
           {fig(tasks.rows === null ? null : open.length, "Open tasks")}
           {fig(tasks.rows === null ? null : closed.length, "Done")}
-          {org!.workspace === "ngo" ? fig(counts.animals, "Animals on the register", "/next/ngo/animals") : null}
+          {org!.workspace === "ngo" ? fig(counts.animals, "Animals on the register", "/ngo/animals") : null}
           {org!.workspace === "ngo" ? fig(counts.openCases, "Open cases") : null}
         </div>
         <div className="nx-cols">

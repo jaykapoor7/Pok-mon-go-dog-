@@ -21,14 +21,14 @@ import "./cine.css";
 
 export const CINE_LINKS = [
   { href: "/platform", label: "Platform" },
-  { href: "/kaju", label: "Kaju" },
+  { href: "/ai", label: "Kaju" },
   { href: "/solutions", label: "Solutions" },
   { href: "/customers", label: "Proof" },
   { href: "/pricing", label: "Pricing" },
 ];
 
 /* Pages whose first screen is the world: the bar floats over it. Every other page keeps a white bar in the flow, as before. */
-const IMMERSIVE = new Set(["/", "/kaju"]);
+const IMMERSIVE = new Set(["/", "/ai"]);
 
 export function CineNav() {
   const path = usePathname() ?? "/";
