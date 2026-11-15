@@ -118,6 +118,24 @@ test("Research: an aggregated dataset where suppressed cells are counted apart, 
   await noSideScroll(page);
 });
 
+test("Command bar: opens from the keyboard, finds a record, opens it, and hands words to Kaju without running them", async ({ page }) => {
+  await open(page, "/next/ngo/today");
+  await page.getByRole("button", { name: "Search" }).first().click();
+  const box = page.getByRole("combobox", { name: "Search" });
+  await expect(box).toBeFocused();
+  await box.fill("brown");
+  await expect(page.getByRole("option", { name: /Brown street dog/ })).toBeVisible();
+  await box.press("Enter");
+  await expect(page).toHaveURL(/\/next\/ngo\/animals\/AN-1042$/);
+  await page.getByRole("button", { name: "Search" }).first().click();
+  await page.getByRole("combobox", { name: "Search" }).fill("what is waiting");
+  await page.getByRole("option", { name: /Ask Kaju/ }).click();
+  await expect(page).toHaveURL(/\/next\/kaju\?q=/);
+  await expect(page.getByLabel("Ask Kaju")).toHaveValue("what is waiting");
+  await expect(page.locator(".nx-mission")).toHaveCount(2);
+  await noSideScroll(page);
+});
+
 test("Insights: choosing a ward narrows the figures and the table together", async ({ page }) => {
   await open(page, "/next/gov/overview");
   await expect(page.locator("button.nx-tr")).toHaveCount(6);

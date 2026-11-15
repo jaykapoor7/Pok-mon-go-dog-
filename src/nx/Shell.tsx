@@ -3,66 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { Activity, Building2, FlaskConical, Microscope, Syringe, BarChart3, Bell, CalendarClock, Handshake, History, Radar, ShieldCheck, Zap, ChevronsUpDown, ClipboardList, FileCheck2, FolderKanban, Hash, Home, Inbox, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, PawPrint, Plus, Route, Search, Settings, Sparkles, Sun } from "lucide-react";
+import { Bell, CalendarClock, ChevronsUpDown, Hash, Home, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CLINIC, DMS, GOV_ORG, ME, ORG } from "./fixtures";
+import { BUILT, GOV, HEALTH, KAJU, LAB, NGO, RESEARCH, WS_LABEL, homeOf } from "./nav";
+import { Command } from "./Command";
 import { createChannel, useChannels, useLive } from "./live";
 import "./nx.css";
 
 /* The new frame: a slim rail for the things that follow you everywhere, one sidebar for the workspace,
    and a top bar that says where you are. On a phone the rail and sidebar give way to five tabs. */
 
-type NavItem = { href: string; label: string; icon: typeof Home; n?: number; office?: boolean };
-const NGO: NavItem[] = [
-  { href: "/next/ngo/today", label: "Today", icon: Home },
-  { href: "/next/ngo/inbox", label: "Inbox", icon: Inbox, n: 4 },
-  { href: "/next/ngo/cases", label: "Cases", icon: ClipboardList },
-  { href: "/next/ngo/animals", label: "Animals", icon: PawPrint },
-  { href: "/next/ngo/operations", label: "Operations", icon: Route },
-  { href: "/next/ngo/programmes", label: "Programmes", icon: FolderKanban },
-  { href: "/next/ngo/submissions", label: "Submissions & Reports", icon: FileCheck2 },
-];
-const GOV: NavItem[] = [
-  { href: "/next/gov/overview", label: "Overview", icon: BarChart3 },
-  { href: "/next/gov/programmes", label: "Programmes", icon: FolderKanban },
-  { href: "/next/gov/partners", label: "Partners", icon: Handshake },
-  { href: "/next/gov/verification", label: "Verification", icon: ShieldCheck, n: 22, office: true },
-  { href: "/next/gov/surveillance", label: "Surveillance", icon: Radar },
-  { href: "/next/gov/reports", label: "Reports", icon: FileCheck2 },
-];
-const HEALTH: NavItem[] = [
-  { href: "/next/health/today", label: "Today", icon: Home },
-  { href: "/next/health/bites", label: "Bite cases", icon: ClipboardList },
-  { href: "/next/health/pep", label: "PEP", icon: Syringe },
-  { href: "/next/health/referrals", label: "Referrals", icon: Route },
-  { href: "/next/health/facilities", label: "Facilities", icon: Building2 },
-  { href: "/next/health/surveillance", label: "Surveillance", icon: Activity },
-];
-const LAB: NavItem[] = [
-  { href: "/next/health/today", label: "Work queue", icon: Home },
-  { href: "/next/health/samples", label: "Samples", icon: FlaskConical },
-  { href: "/next/health/testing", label: "Testing", icon: Microscope },
-  { href: "/next/health/results", label: "Results", icon: FileCheck2 },
-  { href: "/next/health/quality", label: "Quality", icon: ShieldCheck },
-];
-const RESEARCH: NavItem[] = [
-  { href: "/next/research/datasets", label: "Datasets", icon: LayoutGrid },
-  { href: "/next/research/explore", label: "Explore", icon: BarChart3 },
-  { href: "/next/research/maps", label: "Maps & Analysis", icon: Radar },
-  { href: "/next/research/studies", label: "Studies", icon: FolderKanban },
-  { href: "/next/research/reports", label: "Reports", icon: FileCheck2 },
-];
-const KAJU: NavItem[] = [
-  { href: "/next/kaju", label: "Ask Kaju", icon: Sparkles },
-  { href: "/next/kaju/missions", label: "Missions", icon: ListChecks, n: 2 },
-  { href: "/next/kaju/automations", label: "Automations", icon: Zap },
-  { href: "/next/kaju/approvals", label: "Approvals", icon: ShieldCheck },
-  { href: "/next/kaju/insights", label: "Insights", icon: BarChart3 },
-  { href: "/next/kaju/history", label: "History", icon: History },
-];
-const BUILT = new Set(["/next/ngo/today", "/next/ngo/inbox", "/next/ngo/submissions", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/gov/verification", "/next/health/today", "/next/health/bites", "/next/health/pep", "/next/health/samples", "/next/research/datasets", "/next/research/explore", "/next/kaju"]);
-/** Where an organisation's workspace opens. Healthcare and research open in the current app until they are rebuilt. */
-const homeOf = (w: string, id: string) => (w === "ngo" ? "/next/ngo/today" : w === "government" ? "/next/gov/overview" : w === "healthcare" ? "/next/health/today" : w === "research" ? "/next/research/datasets" : `/workspace/${id}`);
-const WS_LABEL: Record<string, string> = { ngo: "NGO workspace", government: "Government & Programmes", healthcare: "Healthcare", research: "Research" };
 export type Ws = "ngo" | "gov" | "health" | "research" | "kaju";
 
 export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, string?]; children: ReactNode; ws?: Ws; flush?: boolean }) {
@@ -73,6 +23,16 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
   const on = (href: string) => path === href || (href !== "/next/kaju" && path.startsWith(href + "/"));
   const live = useLive();
   const router = useRouter();
+  const [cmd, setCmd] = useState(false);
+  /* ⌘K or Ctrl K anywhere; "/" when not typing in a field. */
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName));
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) { e.preventDefault(); setCmd((o) => !o); }
+      else if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); setCmd(true); }
+    };
+    window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
+  }, []);
   const inChannel = path.startsWith("/next/channels"), inKaju = path.startsWith("/next/kaju");
   /* A workspace's pages act for one of the person's organisations of that kind; the picked one follows the workspace they are in. */
   const want = ws === "gov" ? live.orgFor("government") : ws === "health" ? live.orgFor("healthcare") : ws === "research" ? live.orgFor("research") : ws === "ngo" && !inChannel ? live.orgFor("ngo") : null;
@@ -100,7 +60,7 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
         <Link href={home} className={`nx-rail-b ${!inChannel && !inKaju ? "is-on" : ""}`} aria-label="Workspace" title="Workspace"><LayoutGrid size={17} /></Link>
         <Link href={CHANNEL} className={`nx-rail-b ${inChannel ? "is-on" : ""}`} aria-label="Channels" title="Channels" data-n={unread}><MessageSquare size={17} /></Link>
         <Link href="/next/kaju" className={`nx-rail-b ${inKaju ? "is-on" : ""}`} aria-label="Kaju" title="Kaju"><Sparkles size={17} /></Link>
-        <button type="button" className="nx-rail-b" aria-label="Search" title="Search"><Search size={17} /></button>
+        <button type="button" className="nx-rail-b" aria-label="Search" title="Search (⌘K)" onClick={() => setCmd(true)}><Search size={17} /></button>
         <span className="nx-rail-sp" />
         <button type="button" className="nx-rail-b" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} title="Theme" onClick={flip}>{theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}</button>
         <button type="button" className="nx-rail-b" aria-label="Settings" title="Settings"><Settings size={16} /></button>
@@ -137,8 +97,8 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
         <header className="nx-top">
           <div className="nx-crumb">{crumb[1] ? <><Link href={home} className="nx-hide-s">{crumb[0]}</Link><span className="nx-hide-s">/</span><b>{crumb[1]}</b></> : <b>{crumb[0]}</b>}</div>
           <div className="nx-top-r">
-            <button type="button" className="nx-search"><Search size={14} /><span>Search anything</span><kbd>⌘K</kbd></button>
-            <button type="button" className="nx-ib nx-only-s" aria-label="Search"><Search size={18} /></button>
+            <button type="button" className="nx-search" onClick={() => setCmd(true)} aria-keyshortcuts="Meta+K Control+K"><Search size={14} /><span>Search anything</span><kbd>⌘K</kbd></button>
+            <button type="button" className="nx-ib nx-only-s" aria-label="Search" onClick={() => setCmd(true)}><Search size={18} /></button>
             <button type="button" className="nx-ib nx-hide-s" aria-label="Schedule"><CalendarClock size={16} /></button>
             <button type="button" className="nx-ib" aria-label="Notifications"><Bell size={16} /></button>
             <button type="button" className="nx-ib nx-only-s" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} onClick={flip}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
@@ -148,6 +108,7 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
         <main className={`nx-body ${flush ? "is-flush" : ""}`} id="nx-main">{children}</main>
       </div>
 
+      <Command open={cmd} onClose={() => setCmd(false)} />
       <nav className="nx-dock" aria-label="Sections">
         <Link href={home} className={on(home) ? "is-on" : ""}><Home size={20} />Today</Link>
         <Link href="/next/ngo/animals" className={on("/next/ngo/animals") ? "is-on" : ""}><ListChecks size={20} />Work</Link>
