@@ -336,3 +336,60 @@ test("Kaju insights: every check says what it counts, and an unset deadline is n
   await expect(page.locator("p[role=status]")).toContainText("sign in");
   await noSideScroll(page);
 });
+
+test("Direct messages: private, and Kaju is not offered in them", async ({ page }) => {
+  await open(page, "/next/channels/dm-nisha-r");
+  await expect(page.locator(".nx-ch-h h1")).toContainText("Nisha R.");
+  await expect(page.getByRole("button", { name: "Mention Kaju" })).toHaveCount(0);
+  await expect(page.getByLabel("About this conversation")).toContainText("Kaju is not part of direct messages");
+  await page.getByLabel("Message Nisha R.").fill("On my way");
+  await page.getByLabel("Message Nisha R.").press("Enter");
+  await expect(page.locator(".nx-msgs .nx-msg")).toHaveCount(3);
+  await noSideScroll(page);
+});
+
+test("Every sample channel opens with its own conversation", async ({ page }) => {
+  for (const name of ["general", "field-operations", "referrals"]) {
+    await open(page, `/next/channels/${name}`);
+    await expect(page.locator(".nx-msgs .nx-msg").first()).toBeVisible();
+  }
+});
+
+test("Kaju automations: nothing is on until a lead turns it on, and the schedule is not promised", async ({ page }) => {
+  await open(page, "/next/kaju/automations");
+  await expect(page.locator(".nx-chk")).toHaveCount(7);
+  await expect(page.getByText("does not promise that it runs on its own")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Not offered, and why" })).toBeVisible();
+  await noSideScroll(page);
+});
+
+test("Research studies and reports: snapshots are fixed, suppressed cells counted apart", async ({ page }) => {
+  await open(page, "/next/research/studies");
+  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("Take a snapshot");
+  await page.keyboard.press("Escape");
+  await open(page, "/next/research/reports");
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("Exact query");
+  await expect(page.getByRole("dialog")).toContainText("never added in");
+  await noSideScroll(page);
+});
+
+test("Veterinary: patients, appointments, clinical care, procedures and follow-ups", async ({ page }) => {
+  for (const [path, rows] of [["patients", 4], ["appointments", 2], ["care", 3], ["procedures", 2], ["followups", 3]] as const) {
+    await open(page, `/next/health/${path}`);
+    await expect(page.locator("button.nx-tr")).toHaveCount(rows);
+  }
+  await page.goto("/next/health/procedures");
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("never done for you");
+  await noSideScroll(page);
+});
+
+test("Nothing in any sidebar is marked Soon", async ({ page }) => {
+  for (const path of ["/next/ngo/today", "/next/gov/overview", "/next/health/today", "/next/research/datasets", "/next/kaju"]) {
+    await open(page, path);
+    await expect(page.locator(".nx-item.is-soon")).toHaveCount(0);
+  }
+});

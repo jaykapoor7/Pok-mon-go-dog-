@@ -22,7 +22,8 @@ export const word = (v: string | null | undefined) => (v ? v.replace(/_/g, " ").
 export const isLab = (o: Workspace | null) => o?.kind === "laboratory";
 const privacy = <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Patient details stay with the treating facility. Partners see only the animal facts needed for a follow-up. Kaju does not read these records.</span></p>;
 
-export function useClinic() { const live = useLive(); return live.orgFor("healthcare"); }
+/** The clinic or laboratory this person works in. A veterinarian of an NGO is not one: their view is the veterinary one. */
+export function useClinic() { const live = useLive(); const h = live.orgFor("healthcare"); return h?.kind === "veterinary" ? null : h; }
 export function NotHealth({ crumb }: { crumb: string }) {
   return <Shell ws="health" crumb={["Healthcare", crumb]}><div className="nx-page"><h1 className="nx-h1">{crumb}</h1><p className="nx-sub">Your account is not part of a hospital, clinic or laboratory, so there are no clinical records here. Access to clinical records is granted by the facility; it cannot be chosen from a menu.</p></div></Shell>;
 }
@@ -68,7 +69,7 @@ export function Bites() {
     sub={sample || reg.data ? <><b className="num">{list.filter((r) => r.course === "Waiting for a clinician").length}</b> waiting for a clinician, <b className="num">{list.filter((r) => r.late).length}</b> with a dose overdue. Categories and doses are entered by clinicians.</> : "Reading the register…"}
     views={biteViews} columns={biteCols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.ref} ${r.area}`}
     preview={bitePreview} loading={!sample && !reg.data && !reg.error} note={reg.error} empty={{ none: "No bites recorded yet", hint: "Each presentation is recorded by the clinic." }}
-    action={sample ? <button type="button" className="nx-btn">Record a bite</button> : <Link href={`/workspace/${org!.org_id}/new`} className="nx-btn">Record a bite</Link>} />;
+    action={sample ? <Link href="/try" className="nx-btn" title="Opens the live demo, where this works">Record a bite</Link> : <Link href={`/workspace/${org!.org_id}/new`} className="nx-btn">Record a bite</Link>} />;
 }
 
 /* ── PEP doses due ─────────────────────────────────────────────────── */
@@ -155,7 +156,7 @@ export function HealthToday() {
     <Shell ws="health" crumb={["Healthcare", "Today"]}>
       <div className="nx-page">
         <div className="nx-head"><div><p className="nx-eyebrow">{sample ? CLINIC.name : org!.name}{sample ? <SampleChip /> : null}</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{doses === null ? "Reading the day…" : <><b className="num">{doses}</b> {doses === 1 ? "dose" : "doses"} due today{late ? <>, <b className="num">{late}</b> overdue</> : null}. <b className="num">{waitN ?? "—"}</b> waiting for a clinician.</>}</p></div>
-          {sample ? <button type="button" className="nx-btn">Record a bite</button> : <Link href={`/workspace/${org!.org_id}/new`} className="nx-btn">Record a bite</Link>}</div>
+          {sample ? <Link href="/try" className="nx-btn" title="Opens the live demo, where this works">Record a bite</Link> : <Link href={`/workspace/${org!.org_id}/new`} className="nx-btn">Record a bite</Link>}</div>
         <div className="nx-figs">
           {fig(doses, "Doses due today", "/next/health/pep")}
           {fig(late, "Overdue", "/next/health/pep")}

@@ -35,7 +35,7 @@ function SampleInsights() {
       <div className="nx-page">
         <div className="nx-head">
           <div><p className="nx-eyebrow">{GOV_ORG.kind} · {GOV_ORG.city}<Sample /></p><h1 className="nx-h1">Programme insights</h1><p className="nx-sub">Verified vaccination activity against the estimated dog population, by ward.</p></div>
-          <button type="button" className="nx-btn is-quiet"><Download size={13} />Export</button>
+          <Link href="/try" className="nx-btn is-quiet" title="Opens the live demo, where this works"><Download size={13} />Export</Link>
         </div>
         <div className="nx-bar">
           {[4, 8, 12].map((n) => <button key={n} type="button" className={`nx-filter ${range === n ? "is-on" : ""}`} onClick={() => setRange(n)} aria-pressed={range === n}>Last {n} weeks</button>)}

@@ -40,7 +40,7 @@ function CasesView({ rows, sample, loading, error, orgName }: { rows: Row[]; sam
       <div className="nx-page" style={{ maxWidth: "none" }}>
         <div className="nx-head">
           <div><h1 className="nx-h1">Cases{sample ? <Sample /> : null}</h1><p className="nx-sub">{loading ? "Reading cases…" : <><b className="num">{active}</b> active of {rows.length}{rows.length === 300 ? " most recent" : ""}{sample ? "" : ` at ${orgName}`}. Rescue, injury, sterilisation, vaccination and investigation in one list.</>}</p></div>
-          {sample ? <button type="button" className="nx-btn"><Plus size={14} />New case</button> : <Link href="/ngo/cases/new" className="nx-btn"><Plus size={14} />New case</Link>}
+          {sample ? <Link href="/try" className="nx-btn" title="Opens the live demo, where this works"><Plus size={14} />New case</Link> : <Link href="/ngo/cases/new" className="nx-btn"><Plus size={14} />New case</Link>}
         </div>
         <div className="nx-bar">
           <div className="nx-views" role="tablist" aria-label="Views">

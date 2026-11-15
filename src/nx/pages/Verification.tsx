@@ -75,7 +75,7 @@ function VerificationView({ rows, sample, loading, note, office }: { rows: Row[]
               <h3 className="nx-h3">To check</h3>
               {open.flags.length ? <ul className="nx-feed">{open.flags.map((f) => <li key={f}><span className="nx-feed-i" style={{ color: "var(--warn)" }}><AlertTriangle size={12} /></span><div><p style={{ color: "var(--ink)" }}>{f}</p></div></li>)}</ul> : <p className="nx-foot" style={{ marginTop: 0 }}>{open.vet !== null ? "No exceptions flagged by the fixed checks." : "Open the review to run the fixed checks on each record."}</p>}
               <p className="nx-note" style={{ marginTop: 14 }}><ShieldCheck size={13} /><span>Accept, return or ask a question is a signed decision by a named reviewer, recorded with the reason. Kaju can list what to check; it never decides.</span></p>
-              <p style={{ marginTop: 16 }}>{open.href ? <Link href={open.href} className="nx-btn">Open the review</Link> : <button type="button" className="nx-btn">Open the review</button>}</p>
+              <p style={{ marginTop: 16 }}>{open.href ? <Link href={open.href} className="nx-btn">Open the review</Link> : <Link href="/try" className="nx-btn" title="Opens the live demo, where this works">Open the review</Link>}</p>
               {open.href ? <p className="nx-foot">The review, with each record&apos;s evidence and the decision, opens in the current app until it is rebuilt here.</p> : null}
             </div>
           </motion.aside>

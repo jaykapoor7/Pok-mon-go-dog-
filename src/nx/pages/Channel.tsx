@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, AtSign, Check as Tick, Hash, Paperclip, Send, Settings2, Smile, Sparkles, X } from "lucide-react";
+import { ArrowUpRight, AtSign, Check as Tick, Hash, Send, Sparkles, X } from "lucide-react";
 import { Shell } from "../Shell";
 import { Check, Chip, Sample, initials } from "../ui";
-import { CH_PEOPLE, CH_RECORDS, CH_WORK, KAJU_TASKS, MESSAGES } from "../fixtures";
-import { addTasks, askKaju, createChannel, postMessage, setTaskDone, useChannels, useLive, useMessages, useTasks } from "../live";
+import { CH_PEOPLE, CH_RECORDS, CH_WORK, KAJU_TASKS, MESSAGES, SAMPLE_CHATS } from "../fixtures";
+import { addTasks, askKaju, createChannel, markRead, postMessage, setTaskDone, useChannels, useDms, useLive, useMessages, useTasks } from "../live";
 
 type Tab = "Messages" | "Work" | "Records" | "Files";
 type VMsg = { id: string; who: string; when: string; text: string; kaju?: boolean; record?: string | null; tasks?: string[] | null; parent?: string | null };
@@ -14,6 +14,8 @@ type VTask = { id: string; title: string; note: string; done: boolean };
 type View = {
   name: string; sample: boolean; sub: string; msgs: VMsg[] | null; work: VTask[]; records: string[]; people: string[];
   accepted: (m: VMsg) => boolean; onSend: (text: string, parent?: string) => void; onAccept: (m: VMsg) => void; onToggle?: (t: VTask) => void; note?: string | null;
+  /** The other person, when this is a direct message. Kaju is not offered in a direct message. */
+  dm?: string | null;
 };
 
 /** A channel: people talking, with the work and records the talk is about one tab away.
@@ -54,21 +56,22 @@ function ChannelView(v: View) {
     </motion.div>
   );
   const open = v.work.filter((w) => !w.done).length;
-  const tabs: [Tab, number?][] = [["Messages"], ["Work", open], ["Records", v.records.length], ["Files"]];
+  const tabs: [Tab, number?][] = v.dm ? [["Messages"]] : [["Messages"], ["Work", open], ["Records", v.records.length], ["Files"]];
+  const label = v.dm ?? `#${v.name}`;
   const task = (w: VTask) => <li key={w.id} className={`nx-tr ${w.done ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: "22px minmax(0,1fr)" }}>{v.onToggle ? <Check done={w.done} onClick={() => v.onToggle!(w)} label={w.done ? `Reopen: ${w.title}` : `Mark done: ${w.title}`} /> : <span className="nx-check" aria-hidden />}<span className="nx-cell-main"><span><b>{w.title}</b><small>{w.note}</small></span></span></li>;
 
   return (
-    <Shell crumb={["Channels", v.name]} flush>
+    <Shell crumb={v.dm ? ["Direct messages", v.dm] : ["Channels", v.name]} flush>
       <div className="nx-ch">
         <div className="nx-ch-main">
-          <div className="nx-ch-h"><div><h1><Hash size={16} style={{ color: "var(--ink-3)" }} />{v.name}{v.sample ? <Sample /> : null}</h1><p>{v.sub}</p></div><button type="button" className="nx-btn is-quiet is-sm" style={{ marginLeft: "auto" }}><Settings2 size={13} />Details</button></div>
+          <div className="nx-ch-h"><div><h1>{v.dm ? <span className="nx-msg-f" style={{ width: 22, height: 22, fontSize: 9 }}>{initials(v.dm)}</span> : <Hash size={16} style={{ color: "var(--ink-3)" }} />}{v.dm ?? v.name}{v.sample ? <Sample /> : null}</h1><p>{v.sub}</p></div></div>
           <div className="nx-tabs" role="tablist" aria-label="Channel sections">
             {tabs.map(([t, n]) => <button key={t} type="button" role="tab" aria-selected={tab === t} className={`nx-tab ${tab === t ? "is-on" : ""}`} onClick={() => setTab(t)}>{t}{n ? <span className="nx-count">{n}</span> : null}{tab === t ? <motion.span layoutId="nx-ch-tab" className="nx-tab-line" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 620, damping: 46 }} /> : null}</button>)}
           </div>
 
           {tab === "Messages" ? <>
             <div className="nx-msgs" role="log" aria-label="Messages">
-              {v.msgs === null ? <p className="nx-sub" style={{ padding: "24px 0" }}>Reading messages…</p> : !top.length ? <p className="nx-sub" style={{ padding: "24px 0" }}><b style={{ color: "var(--ink)" }}>No messages yet.</b> Say what is happening; type @Kaju to hand it work.</p> : <p className="nx-day"><span>{v.sample ? "Today" : "Latest"}</span></p>}
+              {v.msgs === null ? <p className="nx-sub" style={{ padding: "24px 0" }}>Reading messages…</p> : !top.length ? <p className="nx-sub" style={{ padding: "24px 0" }}><b style={{ color: "var(--ink)" }}>No messages yet.</b> {v.dm ? `Only you and ${v.dm} can read this conversation.` : "Say what is happening; type @Kaju to hand it work."}</p> : <p className="nx-day"><span>{v.sample ? "Today" : "Latest"}</span></p>}
               <AnimatePresence initial={false}>
                 {top.map((m) => bubble(m))}
               </AnimatePresence>
@@ -76,11 +79,9 @@ function ChannelView(v: View) {
               <div ref={end} />
             </div>
             <form className="nx-compose" onSubmit={(e) => { e.preventDefault(); send(); }}>
-              <textarea rows={1} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }} placeholder={`Message #${v.name}. Type @Kaju to hand it work.`} aria-label={`Message #${v.name}`} maxLength={8000} />
+              <textarea rows={1} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }} placeholder={v.dm ? `Message ${v.dm}` : `Message #${v.name}. Type @Kaju to hand it work.`} aria-label={`Message ${label}`} maxLength={8000} />
               <div className="nx-compose-f">
-                <button type="button" className="nx-ib" aria-label="Attach a file"><Paperclip size={15} /></button>
-                <button type="button" className="nx-ib" aria-label="Mention Kaju" onClick={() => setText((t) => (t ? `${t} @Kaju ` : "@Kaju turn these updates into tasks"))}><AtSign size={15} /></button>
-                <button type="button" className="nx-ib" aria-label="Add a reaction"><Smile size={15} /></button>
+                {v.dm ? null : <button type="button" className="nx-ib" aria-label="Mention Kaju" onClick={() => setText((t) => (t ? `${t} @Kaju ` : "@Kaju turn these updates into tasks"))}><AtSign size={15} /></button>}
                 <small className="nx-hide-s">Enter to send</small>
                 <button type="submit" className="nx-btn is-sm" style={{ marginLeft: "auto" }} disabled={!text.trim()}><Send size={12} />Send</button>
               </div>
@@ -94,7 +95,7 @@ function ChannelView(v: View) {
 
         {parent ? (
           <aside className="nx-ch-side nx-thread-p" aria-label={`Thread: ${parent.who}`}>
-            <div className="nx-thread-h"><b>Thread</b><span>#{v.name}</span><button type="button" className="nx-ib" style={{ marginLeft: "auto" }} onClick={() => setThread(null)} aria-label="Close thread"><X size={16} /></button></div>
+            <div className="nx-thread-h"><b>Thread</b><span>{label}</span><button type="button" className="nx-ib" style={{ marginLeft: "auto" }} onClick={() => setThread(null)} aria-label="Close thread"><X size={16} /></button></div>
             <div className="nx-thread-b">
               {bubble(parent, true)}
               <p className="nx-day"><span>{tcount ? `${tcount} ${tcount === 1 ? "reply" : "replies"}` : "No replies yet"}</span></p>
@@ -106,7 +107,10 @@ function ChannelView(v: View) {
               <div className="nx-compose-f"><small>Enter to send</small><button type="submit" className="nx-btn is-sm" style={{ marginLeft: "auto" }} disabled={!reply.trim()}><Send size={12} />Reply</button></div>
             </form>
           </aside>
-        ) : <aside className="nx-ch-side" aria-label="About this channel">
+        ) : v.dm ? <aside className="nx-ch-side" aria-label="About this conversation">
+          <h3 className="nx-h3">Private</h3>
+          <p className="nx-foot" style={{ marginTop: 0 }}>Only you and {v.dm} can read this conversation. Kaju is not part of direct messages, and nothing here becomes a task unless one of you creates it.</p>
+        </aside> : <aside className="nx-ch-side" aria-label="About this channel">
           <h3 className="nx-h3">Linked work <span className="nx-count">{open}</span></h3>
           {open ? <ul className="nx-feed">{v.work.filter((w) => !w.done).slice(0, 4).map((w) => <li key={w.id} style={{ gridTemplateColumns: "16px minmax(0,1fr)" }}><span className="nx-check" aria-hidden /><div><b>{w.title}</b><small>{w.note}</small></div></li>)}</ul> : <p className="nx-foot" style={{ marginTop: 0 }}>Nothing open.</p>}
           {v.records.length ? <><h3 className="nx-h3">Shared records</h3><div className="nx-rel">{v.records.map((r) => <a key={r} href="#"><ArrowUpRight size={13} /><span>{r}</span></a>)}</div></> : null}
@@ -120,6 +124,18 @@ function ChannelView(v: View) {
 }
 
 const clock = (iso?: string) => (iso ? new Date(iso) : new Date()).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }).toLowerCase();
+
+/** Every other sample channel and direct message: a short conversation of its own. */
+function SampleChat({ name }: { name: string }) {
+  const chat = SAMPLE_CHATS[name];
+  const calm = useReducedMotion();
+  const [msgs, setMsgs] = useState<VMsg[]>((chat?.msgs ?? []).map((m) => ({ ...m, parent: m.parent ?? null })));
+  const onSend = (t: string, parent?: string) => {
+    setMsgs((m) => [...m, { id: `u${Date.now()}`, who: "You", when: clock(), text: t, parent: parent ?? null }]);
+    if (!chat?.dm && !parent && /@kaju/i.test(t)) window.setTimeout(() => setMsgs((m) => [...m, { id: `k${Date.now()}`, who: "Kaju", kaju: true, when: clock(), text: `I read the ${Math.min(3, chat?.msgs.length ?? 0)} latest messages here. Nothing is created until someone in this channel asks and accepts.` }]), calm ? 0 : 650);
+  };
+  return <ChannelView name={name} sample dm={chat?.dm ?? null} sub={chat?.sub ?? "Sample channel"} msgs={msgs} work={[]} records={[]} people={chat?.people ?? []} accepted={() => false} onSend={onSend} onAccept={() => {}} />;
+}
 
 function SampleChannel({ name }: { name: string }) {
   const [msgs, setMsgs] = useState<VMsg[]>([...MESSAGES.map((m) => ({ id: m.id, who: m.who, when: m.when, text: m.text, record: m.record })),
@@ -141,6 +157,10 @@ function LiveChannel({ name }: { name: string }) {
   const channels = useChannels(org!.org_id);
   const ch = channels.rows?.find((c) => c.name === name) ?? null;
   const messages = useMessages(ch?.id ?? null);
+  const dms = useDms(ch?.kind === "dm" ? org!.org_id : null);
+  const dm = ch?.kind === "dm" ? dms.rows?.find((d) => d.channel_id === ch.id)?.other_name ?? "Direct message" : null;
+  const seen = messages.rows?.length ?? 0;
+  useEffect(() => { if (ch) void markRead(ch.id); }, [ch, seen]);
   const tasks = useTasks(org!.org_id, ch?.id ?? null);
   const [note, setNote] = useState<string | null>(null);
   const [making, setMaking] = useState(false);
@@ -162,17 +182,17 @@ function LiveChannel({ name }: { name: string }) {
     const r = await postMessage(ch.id, t, userName, parent);
     if (r.error) { setNote(`Not sent: ${r.error.message}`); return; }
     setRows((rows) => (rows && !rows.some((x) => x.id === r.data.id) ? [...rows, r.data] : rows));
-    if (!parent && /@kaju\b/i.test(t)) { const k = await askKaju(ch.id, t); if (!k.ok) setNote(k.error ?? null); else messages.reload(); }
+    if (!parent && ch.kind !== "dm" && /@kaju\b/i.test(t)) { const k = await askKaju(ch.id, t); if (!k.ok) setNote(k.error ?? null); else messages.reload(); }
   };
   const onAccept = async (m: VMsg) => { if (!ch || !m.tasks) return; const r = await addTasks(org!.org_id, m.tasks, { messageId: m.id, channelId: ch.id }); if (r.error) setNote(`Tasks not created: ${r.error.message}`); else tasks.reload(); };
   const msgs: VMsg[] | null = messages.rows ? messages.rows.map((m) => ({ id: m.id, who: m.author_kind === "kaju" ? "Kaju" : m.author_id === userId ? "You" : m.author_name ?? "Member", kaju: m.author_kind === "kaju", when: clock(m.created_at), text: m.body, record: m.record_label, tasks: m.proposal?.tasks ?? null, parent: m.parent_id })) : null;
   const work: VTask[] = (tasks.rows ?? []).map((t) => ({ id: t.id, title: t.title, note: t.source_kind === "kaju" ? "Proposed by Kaju, accepted here" : t.assignee_name ?? "Unassigned", done: t.state === "done" }));
-  return <ChannelView name={name} sample={false} sub={`${ch?.topic || org!.name}`} msgs={ch ? msgs : null} work={work} records={[]} people={[]} accepted={(m) => done.has(m.id)} onSend={onSend} onAccept={onAccept} note={note ?? messages.error ?? tasks.error}
+  return <ChannelView name={name} sample={false} dm={dm} sub={dm ? "Direct message" : `${ch?.topic || org!.name}`} msgs={ch ? msgs : null} work={work} records={[]} people={[]} accepted={(m) => done.has(m.id)} onSend={onSend} onAccept={onAccept} note={note ?? messages.error ?? tasks.error}
     onToggle={async (t) => { const r = await setTaskDone(t.id, !t.done, userId); if (r.error) setNote(r.error.message); else tasks.reload(); }} />;
 }
 
 export function Channel({ name }: { name: string }) {
   const live = useLive();
   if (!live.ready) return <Shell crumb={["Channels", name]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
-  return live.org ? <LiveChannel name={name} /> : <SampleChannel name={name} />;
+  return live.org ? <LiveChannel name={name} /> : name === "abc-ward-12" ? <SampleChannel name={name} /> : <SampleChat name={name} />;
 }

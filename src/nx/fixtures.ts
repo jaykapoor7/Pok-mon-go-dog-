@@ -277,3 +277,51 @@ export const FINDINGS: Finding[] = [
   { rule: "reporting_deadline", count: 0, explanation: "The organisation lead supplied this deadline. No deadline is inferred when it has not been set.", records: [], configured: false, due_on: null },
 ];
 export const WORKLOAD: [string, number][] = [["Field team A", 9], ["Nisha R.", 7], ["Field team B", 6], ["Dr. Arun K.", 3], ["Unassigned", 4]];
+
+/* ── Sample conversations for the other channels and direct messages ── */
+export const dmSlug = (name: string) => `dm-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
+export type SampleChat = { sub: string; dm?: string; people: string[]; msgs: { id: string; who: string; when: string; text: string; parent?: string }[] };
+export const SAMPLE_CHATS: Record<string, SampleChat> = {
+  general: { sub: "Everyone at Kind Hour", people: ["Priya M.", "Nisha R.", "Dr. Arun K.", "Field team A", "Field team B"], msgs: [
+    { id: "g1", who: "Priya M.", when: "9:02 am", text: "Morning all. The van is back from service, so both teams are out today." },
+    { id: "g2", who: "Nisha R.", when: "9:10 am", text: "Reminder: photos for the October package by Friday, please." },
+    { id: "g3", who: "Field team B", when: "9:24 am", text: "Ward 08 round starts at 10. We will post anything urgent in #field-operations." }] },
+  "field-operations": { sub: "Day-to-day field work", people: ["Field team A", "Field team B", "Nisha R."], msgs: [
+    { id: "f1", who: "Field team B", when: "10:41 am", text: "Ward 08: tan female with a notched ear limping near the bakery again. Taking photos." },
+    { id: "f2", who: "Nisha R.", when: "10:44 am", text: "That may be AN-1107. Please add the photos to the report so it can be matched." },
+    { id: "f3", who: "Field team A", when: "11:05 am", text: "Ward 12: two dogs not found at the usual stop. Will try again tomorrow morning." }] },
+  referrals: { sub: "Animals referred by health partners", people: ["Nisha R.", "Dr. Arun K."], msgs: [
+    { id: "r1", who: "Nisha R.", when: "Yesterday", text: "The health centre sent an observation request for a dog in Ward 08. Animal facts only; no patient details." },
+    { id: "r2", who: "Dr. Arun K.", when: "Yesterday", text: "Observation started. Day 10 falls on the 21st." }] },
+  [dmSlug("Nisha R.")]: { sub: "Direct message", dm: "Nisha R.", people: ["You", "Nisha R."], msgs: [
+    { id: "d1", who: "Nisha R.", when: "8:55 am", text: "Can you check the two release dates the reviewer asked about?" },
+    { id: "d2", who: "You", when: "9:01 am", text: "Yes, I will look after the morning round." }] },
+  [dmSlug("Field team A")]: { sub: "Direct message", dm: "Field team A", people: ["You", "Field team A"], msgs: [
+    { id: "d3", who: "Field team A", when: "11:06 am", text: "We missed AN-1042 and AN-0877 today. Same stop tomorrow at 8:30?" }] },
+  [dmSlug("Dr. Arun K.")]: { sub: "Direct message", dm: "Dr. Arun K.", people: ["You", "Dr. Arun K."], msgs: [
+    { id: "d4", who: "Dr. Arun K.", when: "Yesterday", text: "Sterilisation for AN-0987 is booked for Thursday at 10." }] },
+};
+
+/* ── Veterinary (sample) ───────────────────────────────────────── */
+export type VetAppt = { id: string; title: string; kind: string; animal: string; when: string; day: "Today" | "Tomorrow" | "Later" | "Past"; status: "booked" | "done" | "missed" | "cancelled"; vet: string };
+export const VET_APPTS: VetAppt[] = [
+  { id: "va1", title: "Recovery check after sterilisation", kind: "recovery", animal: "AN-0987 · Bhura", when: "Today 10:30 am", day: "Today", status: "booked", vet: "Dr. Arun K." },
+  { id: "va2", title: "Wound dressing change", kind: "check", animal: "AN-1107 · Tan female", when: "Today 12:00 pm", day: "Today", status: "booked", vet: "Dr. Arun K." },
+  { id: "va3", title: "Sterilisation", kind: "procedure", animal: "AN-1042 · Brown street dog", when: "Tomorrow 9:00 am", day: "Tomorrow", status: "booked", vet: "Dr. Arun K." },
+  { id: "va4", title: "Anti-rabies booster", kind: "vaccination", animal: "AN-0824 · Kalu", when: "Fri 21 Nov 11:00 am", day: "Later", status: "booked", vet: "Dr. Arun K." },
+  { id: "va5", title: "Post-operative check", kind: "recovery", animal: "AN-0951 · Moti", when: "Wed 12 Nov", day: "Past", status: "done", vet: "Dr. Arun K." },
+];
+export type VetCase = { id: string; code: string; title: string; animal: string; category: string; severity: "critical" | "high" | "normal" | "low"; next: string; updated: string };
+export const VET_CASES: VetCase[] = [
+  { id: "vc1", code: "CASE-0241", title: "Deep wound on the neck", animal: "AN-1107 · Tan female", category: "Injury", severity: "critical", next: "Dressing change today", updated: "2 h ago" },
+  { id: "vc2", code: "CASE-0236", title: "Limping after a road accident", animal: "AN-0951 · Moti", category: "Injury", severity: "high", next: "X-ray when transport is free", updated: "Yesterday" },
+  { id: "vc3", code: "CASE-0229", title: "Puppy separated from mother", animal: "AN-0824 · Kalu", category: "Rescue", severity: "high", next: "Feeding plan review", updated: "Yesterday" },
+  { id: "vc4", code: "CASE-0214", title: "Mange treatment, week 2", animal: "AN-0877 · Laila", category: "Other", severity: "normal", next: "Second dose on Friday", updated: "3 days ago" },
+];
+export type VetProc = { id: string; code: string; animal: string; stage: "Waiting for vet" | "Needs evidence" | "Signed"; missing: string[]; vet: string | null; when: string };
+export const VET_PROCS: VetProc[] = [
+  { id: "vp1", code: "SP-1071", animal: "AN-1042 · Brown street dog", stage: "Waiting for vet", missing: [], vet: null, when: "Today" },
+  { id: "vp2", code: "SP-1067", animal: "AN-0987 · Bhura", stage: "Waiting for vet", missing: [], vet: null, when: "Yesterday" },
+  { id: "vp3", code: "SP-1042", animal: "AN-0933 · Pale female", stage: "Needs evidence", missing: ["Release photo"], vet: null, when: "2 days ago" },
+  { id: "vp4", code: "SP-1031", animal: "AN-0912 · Raja", stage: "Signed", missing: [], vet: "Dr. Arun K.", when: "4 days ago" },
+];

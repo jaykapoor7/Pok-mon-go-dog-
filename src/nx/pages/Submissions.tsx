@@ -36,7 +36,7 @@ function SubmissionsView({ rows, sample, loading, note }: { rows: Row[]; sample:
       <div className="nx-page" style={{ maxWidth: "none" }}>
         <div className="nx-head">
           <div><h1 className="nx-h1">Submissions &amp; Reports{sample ? <Sample /> : null}</h1><p className="nx-sub">{loading ? "Reading packages…" : <><b className="num">{rows.length}</b> {rows.length === 1 ? "package" : "packages"}{asks ? <>, <b className="num">{asks}</b> waiting on you</> : null}. The reviewing office decides; accepted is not paid.</>}</p></div>
-          {sample ? <button type="button" className="nx-btn"><Plus size={14} />New package</button> : <Link href="/ngo/packages" className="nx-btn"><Plus size={14} />New package</Link>}
+          {sample ? <Link href="/try" className="nx-btn" title="Opens the live demo, where this works"><Plus size={14} />New package</Link> : <Link href="/ngo/packages" className="nx-btn"><Plus size={14} />New package</Link>}
         </div>
         <div className="nx-bar">
           <div className="nx-views" role="tablist" aria-label="Views">

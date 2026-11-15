@@ -1,4 +1,4 @@
-import { Activity, BarChart3, Building2, ClipboardList, FileCheck2, FlaskConical, FolderKanban, Handshake, History, Home, Inbox, LayoutGrid, ListChecks, Microscope, PawPrint, Radar, Route, ShieldCheck, Sparkles, Syringe, Zap } from "lucide-react";
+import { Activity, BarChart3, Building2, CalendarDays, ClipboardCheck, ClipboardList, FileCheck2, FlaskConical, FolderKanban, Handshake, History, Home, Inbox, LayoutGrid, ListChecks, Microscope, PawPrint, Radar, Route, Scissors, ShieldCheck, Sparkles, Stethoscope, Syringe, Zap } from "lucide-react";
 
 /* Every page of the rebuilt app, by workspace. The sidebar, the phone bar and the command bar all read this. */
 export type NavItem = { href: string; label: string; icon: typeof Home; n?: number; office?: boolean };
@@ -27,6 +27,16 @@ export const HEALTH: NavItem[] = [
   { href: "/next/health/facilities", label: "Facilities", icon: Building2 },
   { href: "/next/health/surveillance", label: "Surveillance", icon: Activity },
 ];
+/* A veterinarian of an NGO: that NGO's animals from the clinical side. */
+export const VET: NavItem[] = [
+  { href: "/next/health/today", label: "Today", icon: Home },
+  { href: "/next/health/patients", label: "Patients", icon: PawPrint },
+  { href: "/next/health/appointments", label: "Appointments", icon: CalendarDays },
+  { href: "/next/health/care", label: "Clinical care", icon: Stethoscope },
+  { href: "/next/health/procedures", label: "Procedures", icon: Scissors },
+  { href: "/next/health/followups", label: "Follow-ups", icon: ClipboardCheck },
+];
+export const VET_PATHS = ["/next/health/patients", "/next/health/appointments", "/next/health/care", "/next/health/procedures", "/next/health/followups"];
 export const LAB: NavItem[] = [
   { href: "/next/health/today", label: "Work queue", icon: Home },
   { href: "/next/health/samples", label: "Samples", icon: FlaskConical },
@@ -49,7 +59,7 @@ export const KAJU: NavItem[] = [
   { href: "/next/kaju/insights", label: "Insights", icon: BarChart3 },
   { href: "/next/kaju/history", label: "History", icon: History },
 ];
-export const BUILT = new Set(["/next/ngo/today", "/next/ngo/operations", "/next/ngo/programmes", "/next/ngo/inbox", "/next/ngo/submissions", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/gov/programmes", "/next/gov/partners", "/next/gov/verification", "/next/gov/surveillance", "/next/gov/reports", "/next/health/today", "/next/health/referrals", "/next/health/facilities", "/next/health/surveillance", "/next/health/testing", "/next/health/results", "/next/health/quality", "/next/health/bites", "/next/health/pep", "/next/health/samples", "/next/research/datasets", "/next/research/explore", "/next/research/maps", "/next/kaju", "/next/kaju/missions", "/next/kaju/approvals", "/next/kaju/history", "/next/kaju/insights"]);
+export const BUILT = new Set(["/next/ngo/today", "/next/ngo/operations", "/next/ngo/programmes", "/next/ngo/inbox", "/next/ngo/submissions", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/gov/programmes", "/next/gov/partners", "/next/gov/verification", "/next/gov/surveillance", "/next/gov/reports", "/next/health/today", "/next/health/patients", "/next/health/appointments", "/next/health/care", "/next/health/procedures", "/next/health/followups", "/next/health/referrals", "/next/health/facilities", "/next/health/surveillance", "/next/health/testing", "/next/health/results", "/next/health/quality", "/next/health/bites", "/next/health/pep", "/next/health/samples", "/next/research/datasets", "/next/research/explore", "/next/research/maps", "/next/research/studies", "/next/research/reports", "/next/kaju", "/next/kaju/missions", "/next/kaju/automations", "/next/kaju/approvals", "/next/kaju/history", "/next/kaju/insights"]);
 /** Where an organisation's workspace opens. Healthcare and research open in the current app until they are rebuilt. */
 export const homeOf = (w: string, id: string) => (w === "ngo" ? "/next/ngo/today" : w === "government" ? "/next/gov/overview" : w === "healthcare" ? "/next/health/today" : w === "research" ? "/next/research/datasets" : `/workspace/${id}`);
 export const WS_LABEL: Record<string, string> = { ngo: "NGO workspace", government: "Government & Programmes", healthcare: "Healthcare", research: "Research" };

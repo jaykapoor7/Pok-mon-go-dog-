@@ -44,7 +44,7 @@ function SampleToday() {
             <h1 className="nx-h1">{greeting()}, {ME.name}</h1>
             <p className="nx-sub"><b className="num">{open.length}</b> {open.length === 1 ? "thing needs" : "things need"} you. Kaju has prepared {PREPARED.length}.</p>
           </div>
-          <button type="button" className="nx-btn"><Plus size={14} />New case</button>
+          <Link href="/try" className="nx-btn" title="Opens the live demo, where this works"><Plus size={14} />New case</Link>
         </div>
 
         <div className="nx-figs">
@@ -80,7 +80,7 @@ function SampleToday() {
             <section className="nx-sec" aria-labelledby="t-kaju">
               <div className="nx-sec-h"><h2 id="t-kaju">Kaju prepared</h2><span className="nx-count">{PREPARED.length}</span></div>
               <ul className="nx-feed">
-                {PREPARED.map((p) => <li key={p.title}><span className="nx-feed-i is-kaju"><Sparkles size={12} /></span><div><b>{p.title}</b><p>{p.body}</p><div className="nx-feed-a"><button type="button" className="nx-btn is-quiet is-sm">{p.act}</button></div></div></li>)}
+                {PREPARED.map((p) => <li key={p.title}><span className="nx-feed-i is-kaju"><Sparkles size={12} /></span><div><b>{p.title}</b><p>{p.body}</p><div className="nx-feed-a"><Link href="/try" className="nx-btn is-quiet is-sm" title="Opens the live demo, where this works">{p.act}</Link></div></div></li>)}
               </ul>
             </section>
             <section className="nx-sec" aria-labelledby="t-team">
@@ -91,7 +91,7 @@ function SampleToday() {
             </section>
           </aside>
         </div>
-        <button type="button" className="nx-btn nx-capture"><Camera size={16} />Capture a field update</button>
+        <Link href="/try" className="nx-btn nx-capture" title="Opens the live demo, where this works"><Camera size={16} />Capture a field update</Link>
       </div>
     </Shell>
   );
