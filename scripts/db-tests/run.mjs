@@ -130,6 +130,21 @@ ok((await as(A, "select id from nx_deliveries")).length === 0, "nobody sees anot
 ok((await as(B, "select nx_mark_notifications_read() as n"))[0].n >= 1, "notifications can be marked read");
 
 /* ── Kaju missions ───────────────────────────────────────────────────── */
+section("@Kaju proposes tasks from a channel; accepting twice creates nothing more");
+{
+  const notes = (await as(A, "insert into nx_channels (org_id, name, topic) values ($1, 'field-notes', 'Field notes') returning id", [N1]))[0].id;
+  await as(A, "insert into nx_messages (channel_id, body, author_name) values ($1, 'We need to revisit the market dog tomorrow. Photos are still missing for the Ward 12 release.', 'Asha Admin')", [notes]);
+  ok(await refused(C, "select nx_kaju_reply($1, 'tasks')", [notes]) !== null, "someone outside the channel cannot ask Kaju about it");
+  const reply = (await as(B, "select nx_kaju_reply($1, 'tasks') as id", [notes]))[0].id;
+  const msg = await one("select author_kind, proposal, body from nx_messages where id = $1", [reply]);
+  const proposed = msg.proposal?.tasks ?? [];
+  ok(msg.author_kind === "kaju" && proposed.length >= 2 && /Nothing is created until you accept/.test(msg.body), "Kaju answers in the channel, attributed, with the tasks quoted and nothing created");
+  ok((await one("select count(*)::int n from nx_tasks where source_message_id = $1", [reply])).n === 0, "no task exists before someone accepts");
+  const accept = () => as(B, "insert into nx_tasks (org_id, title, created_by, source_kind, source_message_id, channel_id) select $1, t, $2, 'kaju', $3, $4 from unnest($5::text[]) t on conflict (source_message_id, title) do nothing", [N1, B, reply, notes, proposed]);
+  await accept(); await accept();
+  ok((await one("select count(*)::int n from nx_tasks where source_message_id = $1", [reply])).n === proposed.length, "accepting the same proposal twice creates each task once");
+}
+
 section("Kaju missions: approval, idempotency, retries");
 await db.query("insert into nx_tasks (org_id, title, created_by, record_kind, record_id) values ($1, 'Existing follow-up', $2, 'case', $3)", [N1, A, cases[2]]);
 const plan = [
@@ -190,6 +205,23 @@ section("Kaju missions: reject and cancel");
   ok(await refused(A, "select nx_mission_cancel($1)", [cm]) !== null, "a cancelled mission cannot be cancelled twice");
   await db.query("select nx_mission_tick()");
   ok((await one("select count(*)::int n from nx_tasks where mission_id = $1", [cm])).n === 0, "the schedule runs nothing from a cancelled mission");
+}
+
+section("Kaju missions: a passed deadline");
+{
+  // A mission still waiting for approval when its deadline passes: the owner hears once, and the trace says so.
+  const dl = (await as(A, "select nx_mission_start($1, 'Ward 12 follow-ups by Friday', '{}', $2, 'deadline-1', null, now() + interval '1 hour') as id", [N1, JSON.stringify(plan)]))[0].id;
+  ok((await one("select state from nx_missions where id = $1", [dl])).state === "waiting_person", "the mission waits for approval");
+  await db.query("select nx_mission_tick()");
+  ok((await as(A, "select id from nx_notifications where title = 'Past its deadline: Ward 12 follow-ups by Friday'")).length === 0, "nothing is said before the deadline");
+  await db.query("update nx_missions set deadline = now() - interval '1 minute' where id = $1", [dl]);
+  await db.query("select nx_mission_tick()");
+  await db.query("select nx_mission_tick()");
+  ok((await as(A, "select id from nx_notifications where title = 'Past its deadline: Ward 12 follow-ups by Friday'")).length === 1, "the owner is told once that the deadline passed");
+  ok((await as(B, "select id from nx_notifications where title like 'Past its deadline%'")).length === 0, "nobody else is told");
+  ok((await as(A, "select kind from nx_mission_events where mission_id = $1", [dl])).some((e) => e.kind === "deadline"), "the trace records the missed deadline");
+  ok((await one("select state from nx_missions where id = $1", [dl])).state === "waiting_person", "the mission keeps waiting for the person; nothing runs by itself");
+  await as(A, "select nx_mission_cancel($1)", [dl]);
 }
 
 section("Kaju missions: human-only steps, policies, outside messages");
