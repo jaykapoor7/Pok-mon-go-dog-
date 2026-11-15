@@ -206,3 +206,32 @@ export const DRIVES: SampleDrive[] = [
   { id: "d3", name: "Indiranagar census", kind: "Census", zone: "Indiranagar", dates: "3 Nov – 10 Nov", animals: 47, sterilised: 20, sterUnknown: 21, vaccinated: 18, vaccUnknown: 23, people: 3, archived: false },
   { id: "d4", name: "Ward 01 school outreach", kind: "Outreach", zone: "Ward 01", dates: "Sep 2026", animals: 12, sterilised: 7, sterUnknown: 2, vaccinated: 9, vaccUnknown: 1, people: 4, archived: true },
 ];
+
+/* ── Government programme (sample) ─────────────────────────────── */
+export const PROG_SAMPLE = { name: "East Zone rabies programme", parent: "State One Health programme", status: "Pilot", target: 0.7, since: "17 Aug", slug: null as string | null };
+export type SamplePartner = { id: string; name: string; kind: string; responsibilities: string; members: number; open: number; overdue: number; services: { service: string; status: string; on: string }[] };
+export const PARTNERS: SamplePartner[] = [
+  { id: "p1", name: "Kind Hour", kind: "Field partner", responsibilities: "Sterilisation and vaccination in Wards 01 and 02", members: 9, open: 2, overdue: 0, services: [{ service: "Dog vaccination", status: "Available", on: "12 Nov" }] },
+  { id: "p2", name: "Street Care Trust", kind: "Field partner", responsibilities: "Sterilisation in Wards 05 and 08; bite follow-ups", members: 7, open: 3, overdue: 2, services: [{ service: "Dog vaccination", status: "Limited", on: "9 Nov" }] },
+  { id: "p3", name: "Municipal field team", kind: "Municipal department", responsibilities: "Catching and transport, Wards 11 and 12", members: 12, open: 1, overdue: 0, services: [] },
+  { id: "p4", name: "Health centre · Ward 08", kind: "Health centre", responsibilities: "Bite care and vaccine doses", members: 4, open: 1, overdue: 1, services: [{ service: "Anti-rabies vaccine", status: "Not available", on: "14 Nov" }, { service: "Wound washing", status: "Available", on: "14 Nov" }] },
+  { id: "p5", name: "District hospital", kind: "Hospital", responsibilities: "Referrals for severe exposures", members: 6, open: 0, overdue: 0, services: [{ service: "Anti-rabies vaccine", status: "Available", on: "13 Nov" }, { service: "Rabies immunoglobulin", status: "Available", on: "13 Nov" }] },
+  { id: "p6", name: "Veterinary laboratory", kind: "Laboratory", responsibilities: "Rabies testing of submitted samples", members: 3, open: 2, overdue: 0, services: [{ service: "Rabies testing", status: "Available", on: "10 Nov" }] },
+];
+export const SURV_WEEKS: { week: string; n: number | "<5" }[] = [
+  { week: "15 Sep", n: 6 }, { week: "22 Sep", n: "<5" }, { week: "29 Sep", n: 7 }, { week: "6 Oct", n: 9 }, { week: "13 Oct", n: 8 }, { week: "20 Oct", n: 11 }, { week: "27 Oct", n: 7 }, { week: "3 Nov", n: 12 }, { week: "10 Nov", n: 10 },
+];
+export const SURV_AREAS: { area: string; n: number | "<5" }[] = [{ area: "Ward 08", n: 18 }, { area: "Ward 12", n: 14 }, { area: "Ward 05", n: 11 }, { area: "Ward 02", n: 9 }, { area: "Ward 01", n: 7 }, { area: "Ward 14", n: "<5" }];
+export type SampleAlert = { key: string; severity: "urgent" | "attention" | "info"; kind: string; title: string; detail: string; area: string | null; at: string; ack: string | null };
+export const ALERTS: SampleAlert[] = [
+  { key: "a1", severity: "urgent", kind: "Laboratory confirmed", title: "Positive rabies result, Ward 08", detail: "Resulted by the veterinary laboratory. Animal follow-up requested from Street Care Trust.", area: "Ward 08", at: "Today", ack: null },
+  { key: "a2", severity: "urgent", kind: "Treatment readiness", title: "Health centre · Ward 08: anti-rabies vaccine not available", detail: "Confirmed by the duty medical officer. Referral for this: District hospital.", area: "Ward 08", at: "Today", ack: null },
+  { key: "a3", severity: "attention", kind: "Doses overdue", title: "4 vaccine doses overdue", detail: "Across two health centres. Patient details stay with the facilities.", area: null, at: "Yesterday", ack: null },
+  { key: "a4", severity: "attention", kind: "Vaccination coverage", title: "Ward 08 below the 70% target", detail: "61% of the October survey estimate.", area: "Ward 08", at: "Yesterday", ack: "Acknowledged by the programme lead" },
+  { key: "a5", severity: "info", kind: "Sample waiting", title: "2 samples waiting at the laboratory", detail: "Oldest received 3 days ago.", area: null, at: "2 days", ack: null },
+];
+export const OUTPUTS = [
+  { id: "o1", title: "September 2026 · sterilisation", source: "Street Care Trust", kind: "Accepted package", period: "1–30 Sep", records: 57, by: "A. Reviewer", on: "12 Oct" },
+  { id: "o2", title: "August 2026 · vaccination", source: "Kind Hour", kind: "Accepted package", period: "1–31 Aug", records: 188, by: "A. Reviewer", on: "8 Sep" },
+  { id: "o3", title: "July 2026 · sterilisation", source: "Kind Hour", kind: "Partially accepted", period: "1–31 Jul", records: 49, by: "A. Reviewer", on: "11 Aug" },
+];

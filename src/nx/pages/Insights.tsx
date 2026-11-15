@@ -9,6 +9,7 @@ import { GOV_ORG, SERIES, TARGET, WARDS } from "../fixtures";
 import { PACKAGE_LABEL, orgNames, packages, type Package } from "@/lib/abc";
 import { isVisibleToOffice } from "@/lib/machines/package";
 import { useLive } from "../live";
+import { ProgrammeHome } from "./Gov";
 
 const COLS = "minmax(0, 1.2fr) minmax(0, 1fr) 92px 92px 112px 132px 72px";
 const W = 640, H = 200, PAD = 24;
@@ -161,12 +162,5 @@ export function Insights() {
   const gov = live.orgFor("government");
   if (!live.org) return <SampleInsights />;
   if (gov?.source === "review_office") return <OfficeOverview />;
-  return (
-    <Shell ws="gov" crumb={["Government", "Overview"]}>
-      <div className="nx-page"><h1 className="nx-h1">Overview</h1>
-        <p className="nx-sub">{gov ? <>The programme overview for {gov.name} opens in the current app until it is rebuilt here.</> : "Your account is not part of a government office or programme."}</p>
-        {gov ? <p style={{ marginTop: 16 }}><Link href={`/workspace/${gov.org_id}`} className="nx-btn is-quiet">Open the programme</Link></p> : null}
-      </div>
-    </Shell>
-  );
+  return <ProgrammeHome />;
 }
