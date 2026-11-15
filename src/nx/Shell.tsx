@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { ChevronsUpDown, Hash, Home, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CH_PEOPLE, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
 import { GOV, HEALTH, KAJU, LAB, NGO, RESEARCH, VET, VET_PATHS, WS_LABEL, classicOf, homeOf } from "./nav";
 import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
+import { WorkTabs } from "./Tabs";
+import { OfflineBar, ToastHost } from "./kit";
 import { createChannel, openDm, useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
 import "./nx.css";
 
@@ -16,8 +18,32 @@ import "./nx.css";
 
 export type Ws = "ngo" | "gov" | "health" | "research" | "kaju";
 
-export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, string?]; children: ReactNode; ws?: Ws; flush?: boolean }) {
+type Meta = { crumb: [string, string?]; ws?: Ws; flush?: boolean };
+const MetaCtx = createContext<((m: Meta) => void) | null>(null);
+const useIsoLayout = typeof window === "undefined" ? useEffect : useLayoutEffect;
+/** The workspace a path belongs to, so the frame is right before a page says anything. */
+export const wsOf = (path: string): Ws => (/^\/next\/gov/.test(path) ? "gov" : /^\/next\/health/.test(path) ? "health" : /^\/next\/research/.test(path) ? "research" : /^\/next\/kaju/.test(path) ? "kaju" : "ngo");
+
+/** The frame is mounted once, in the layout, and stays while pages change. A page tells it where it is with Shell. */
+export function Frame({ children }: { children: ReactNode }) {
+  const [meta, setMeta] = useState<Meta>({ crumb: [""] });
+  return <MetaCtx.Provider value={setMeta}><FrameBody meta={meta}>{children}</FrameBody></MetaCtx.Provider>;
+}
+
+/** A page's place in the frame: its breadcrumb, workspace and whether it runs edge to edge. */
+export function Shell({ crumb, children, ws, flush }: { crumb: [string, string?]; children: ReactNode; ws?: Ws; flush?: boolean }) {
+  const set = useContext(MetaCtx);
+  const key = `${crumb[0]}\u0000${crumb[1] ?? ""}\u0000${ws ?? ""}\u0000${flush ? 1 : 0}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useIsoLayout(() => { set?.({ crumb, ws, flush }); }, [key, set]);
+  if (!set) return <MetaCtx.Provider value={() => {}}><FrameBody meta={{ crumb, ws, flush }}>{children}</FrameBody></MetaCtx.Provider>;
+  return <>{children}</>;
+}
+
+function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const path = usePathname();
+  const { crumb, flush } = meta;
+  const ws = meta.ws ?? wsOf(path);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   useEffect(() => { try { const t = localStorage.getItem("nx.theme"); if (t === "dark" || t === "light") setTheme(t); else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark"); } catch {} }, []);
   const flip = () => setTheme((t) => { const n = t === "dark" ? "light" : "dark"; try { localStorage.setItem("nx.theme", n); } catch {} return n; });
@@ -112,10 +138,13 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
             <Link href="/next/kaju" className="nx-kaju nx-hide-s"><Sparkles size={14} /><span>Kaju</span></Link>
           </div>
         </header>
+        <WorkTabs path={path} title={crumb[1]} home={home} />
+        <OfflineBar />
         <main className={`nx-body ${flush ? "is-flush" : ""}`} id="nx-main">{children}</main>
       </div>
 
       <Command open={cmd} onClose={() => setCmd(false)} />
+      <ToastHost />
       <nav className="nx-dock" aria-label="Sections">
         <Link href={home} className={on(home) ? "is-on" : ""}><Home size={20} />Today</Link>
         <Link href="/next/ngo/animals" className={on("/next/ngo/animals") ? "is-on" : ""}><ListChecks size={20} />Work</Link>
