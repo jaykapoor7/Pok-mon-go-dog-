@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { BarChart3, Bell, CalendarClock, Handshake, History, Radar, ShieldCheck, Zap, ChevronsUpDown, ClipboardList, FileCheck2, FolderKanban, Hash, Home, Inbox, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, PawPrint, Plus, Route, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, DMS, GOV_ORG, ME, ORG } from "./fixtures";
@@ -24,7 +24,7 @@ const GOV = [
   { href: "/next/gov/overview", label: "Overview", icon: BarChart3 },
   { href: "/next/gov/programmes", label: "Programmes", icon: FolderKanban },
   { href: "/next/gov/partners", label: "Partners", icon: Handshake },
-  { href: "/next/gov/verification", label: "Verification", icon: ShieldCheck, n: 22 },
+  { href: "/next/gov/verification", label: "Verification", icon: ShieldCheck, n: 22, office: true },
   { href: "/next/gov/surveillance", label: "Surveillance", icon: Radar },
   { href: "/next/gov/reports", label: "Reports", icon: FileCheck2 },
 ];
@@ -36,7 +36,9 @@ const KAJU = [
   { href: "/next/kaju/insights", label: "Insights", icon: BarChart3 },
   { href: "/next/kaju/history", label: "History", icon: History },
 ];
-const BUILT = new Set(["/next/ngo/today", "/next/ngo/inbox", "/next/ngo/submissions", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/kaju"]);
+const BUILT = new Set(["/next/ngo/today", "/next/ngo/inbox", "/next/ngo/submissions", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/gov/verification", "/next/kaju"]);
+/** Where an organisation's workspace opens. Healthcare and research open in the current app until they are rebuilt. */
+const homeOf = (w: string, id: string) => (w === "ngo" ? "/next/ngo/today" : w === "government" ? "/next/gov/overview" : `/workspace/${id}`);
 const WS_LABEL: Record<string, string> = { ngo: "NGO workspace", government: "Government & Programmes", healthcare: "Healthcare", research: "Research" };
 export type Ws = "ngo" | "gov" | "kaju";
 
@@ -47,17 +49,25 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
   const flip = () => setTheme((t) => { const n = t === "dark" ? "light" : "dark"; try { localStorage.setItem("nx.theme", n); } catch {} return n; });
   const on = (href: string) => path === href || (href !== "/next/kaju" && path.startsWith(href + "/"));
   const live = useLive();
+  const router = useRouter();
+  const inChannel = path.startsWith("/next/channels"), inKaju = path.startsWith("/next/kaju");
+  /* A workspace's pages act for one of the person's organisations of that kind; the picked one follows the workspace they are in. */
+  const want = ws === "gov" ? live.orgFor("government") : ws === "ngo" && !inChannel ? live.orgFor("ngo") : null;
+  const { pick } = live;
+  useEffect(() => { if (want && want.org_id !== live.org?.org_id) pick(want.org_id); }, [want, live.org, pick]);
   const chans = useChannels(live.org?.org_id ?? null);
   const [adding, setAdding] = useState(false);
-  const nav = ws === "gov" ? GOV : ws === "kaju" ? KAJU : NGO;
+  const office = live.org?.source === "review_office";
+  /* Verification is a reviewing office's work. A programme coordinator in the same workspace does not see it; the database refuses it either way. */
+  const nav = (ws === "gov" ? GOV : ws === "kaju" ? KAJU : NGO).filter((i) => !("office" in i) || !live.org || office);
+  const switchOrg = () => { if (live.orgs.length < 2 || !live.org) return; const next = live.orgs[(live.orgs.findIndex((o) => o.org_id === live.org!.org_id) + 1) % live.orgs.length]; pick(next.org_id); router.push(homeOf(next.workspace, next.org_id)); };
   const sampleOrg = ws === "gov" ? GOV_ORG : ORG;
   const org = live.org ? { name: live.org.name, short: (live.org.short_name ?? live.org.name).split(/[^A-Za-z0-9]+/).filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase(), kind: WS_LABEL[live.org.workspace] ?? live.org.kind } : sampleOrg;
   const me = live.org && live.userName ? live.userName.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() : ME.initials;
   const CHANNEL = live.org ? `/next/channels/${chans.rows?.[0]?.name ?? "general"}` : "/next/channels/abc-ward-12";
   const unread = live.org ? undefined : "2";
   const addChannel = async (raw: string) => { const name = raw.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); setAdding(false); if (!live.org || name.length < 2) return; const r = await createChannel(live.org.org_id, name, ""); if (!r.error) { chans.reload(); window.location.assign(`/next/channels/${name}`); } };
-  const home = ws === "gov" ? "/next/gov/overview" : "/next/ngo/today";
-  const inChannel = path.startsWith("/next/channels"), inKaju = path.startsWith("/next/kaju");
+  const home = live.org ? homeOf(live.org.workspace, live.org.org_id) : ws === "gov" ? "/next/gov/overview" : "/next/ngo/today";
 
   return (
     <div className="nx" data-theme={theme}>
@@ -75,7 +85,7 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
 
       <aside className="nx-side" aria-label={`${org.name} navigation`}>
         {live.org
-          ? <button type="button" className="nx-org" title={live.orgs.length > 1 ? "Switch organisation" : undefined} onClick={() => { if (live.orgs.length > 1) live.pick(live.orgs[(live.orgs.findIndex((o) => o.org_id === live.org!.org_id) + 1) % live.orgs.length].org_id); }}><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span>{live.orgs.length > 1 ? <ChevronsUpDown size={14} /> : null}</button>
+          ? <button type="button" className="nx-org" title={live.orgs.length > 1 ? "Switch organisation" : undefined} onClick={switchOrg}><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span>{live.orgs.length > 1 ? <ChevronsUpDown size={14} /> : null}</button>
           : <Link href={ws === "gov" ? "/next/ngo/today" : "/next/gov/overview"} className="nx-org" title="Switch workspace"><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span><ChevronsUpDown size={14} /></Link>}
         <div className="nx-nav">
           {nav.map((i) => (

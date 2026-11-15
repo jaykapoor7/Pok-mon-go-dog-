@@ -111,7 +111,8 @@ const LVIEWS = [
 
 /** The organisation's own register, read from the same table the current app writes. Nothing is shown that the row does not hold. */
 function LiveAnimals() {
-  const { org } = useLive();
+  const live = useLive();
+  const org = live.orgFor("ngo") ?? live.org;
   const isNgo = org!.workspace === "ngo";
   const dogs = useDogs(isNgo ? org!.org_id : null);
   const [view, setView] = useState<(typeof LVIEWS)[number]["id"]>("all");

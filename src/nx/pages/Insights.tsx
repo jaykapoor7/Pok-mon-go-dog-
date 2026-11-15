@@ -1,17 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Download, Sparkles, X } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, Download, Sparkles, X } from "lucide-react";
 import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { GOV_ORG, SERIES, TARGET, WARDS } from "../fixtures";
+import { PACKAGE_LABEL, orgNames, packages, type Package } from "@/lib/abc";
+import { isVisibleToOffice } from "@/lib/machines/package";
+import { useLive } from "../live";
 
 const COLS = "minmax(0, 1.2fr) minmax(0, 1fr) 92px 92px 112px 132px 72px";
 const W = 640, H = 200, PAD = 24;
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 
 /** Analytics the Linear way: one chart, one breakdown, one table, and choosing in any of them narrows the others. */
-export function Insights() {
+function SampleInsights() {
   const [ward, setWard] = useState<string | null>(null);
   const [hover, setHover] = useState<number | null>(null);
   const [range, setRange] = useState(12);
@@ -102,6 +106,66 @@ export function Insights() {
             <li><span className="nx-feed-i is-kaju"><Sparkles size={12} /></span><div><b>Ward 12 uses a 2025 population count</b><p>Its coverage figure rests on an estimate older than the others. A new survey would change it.</p></div></li>
           </ul>
         </section>
+      </div>
+    </Shell>
+  );
+}
+
+/** A reviewing office's overview: what waits, what was decided, who sends work. Every figure is a count of its own packages. */
+function OfficeOverview() {
+  const live = useLive();
+  const office = live.orgFor("government")!;
+  const [ps, setPs] = useState<Package[] | null>(null);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    packages().then(async (all) => { const mine = all.filter((p) => p.office_id === office.org_id && isVisibleToOffice(p.status)); const n = await orgNames([...new Set(mine.map((p) => p.ngo_id))]).catch(() => ({})); if (alive) { setPs(mine); setNames(n); } }).catch(() => { if (alive) { setPs([]); setErr("Packages could not be read just now."); } });
+    return () => { alive = false; };
+  }, [office.org_id]);
+  const list = ps ?? [], count = (s: string[]) => list.filter((p) => s.includes(p.status)).length;
+  const records = list.filter((p) => p.status === "accepted" || p.status === "partially_accepted").reduce((a, p) => a + (p.summary?.records ?? 0), 0);
+  const ops = [...new Set(list.map((p) => p.ngo_id))].map((id) => ({ id, name: names[id] ?? "Operator", waiting: list.filter((p) => p.ngo_id === id && p.status === "submitted").length, total: list.filter((p) => p.ngo_id === id).length }));
+  const fig = (n: number | null, label: string, href?: string) => { const inner = <><b>{n === null ? "—" : n.toLocaleString("en-IN")}</b><span>{label}{href ? <ArrowRight size={12} /> : null}</span></>; return href ? <Link key={label} href={href} className="nx-fig">{inner}</Link> : <div key={label} className="nx-fig">{inner}</div>; };
+  return (
+    <Shell ws="gov" crumb={["Government", "Overview"]}>
+      <div className="nx-page">
+        <div className="nx-head"><div><p className="nx-eyebrow">{office.name}</p><h1 className="nx-h1">Overview</h1><p className="nx-sub">{ps === null ? "Reading packages…" : <><b className="num">{count(["submitted"])}</b> waiting for a decision. Accepted means accepted by this office; StrayPaw does not process payments.</>}</p></div></div>
+        <div className="nx-figs">
+          {fig(ps === null ? null : count(["submitted"]), "Waiting for you", "/next/gov/verification")}
+          {fig(ps === null ? null : count(["queried"]), "Question with the operator", "/next/gov/verification")}
+          {fig(ps === null ? null : count(["accepted", "partially_accepted"]), "Accepted packages")}
+          {fig(ps === null ? null : records, "Records in accepted packages")}
+        </div>
+        {err ? <p className="nx-foot" role="alert">{err}</p> : null}
+        <section className="nx-sec" style={{ marginTop: 26 }} aria-labelledby="o-ops">
+          <div className="nx-sec-h"><h2 id="o-ops">Operators</h2><span className="nx-count">{ops.length}</span></div>
+          <div className="nx-table">
+            <div className="nx-tr nx-th" style={{ gridTemplateColumns: "minmax(0,1fr) 140px 120px" }}><span>Operator</span><span>Waiting for you</span><span>Packages</span></div>
+            {ops.map((o) => <div key={o.id} className="nx-tr" style={{ gridTemplateColumns: "minmax(0,1fr) 140px 120px" }}><span className="nx-cell-main"><span><b>{o.name}</b></span></span><span className="num">{o.waiting}</span><span className="num">{o.total}</span></div>)}
+            {ps && !ops.length ? <p className="nx-sub" style={{ padding: "20px 0" }}><b style={{ color: "var(--ink)" }}>No operator has sent a package yet.</b></p> : null}
+          </div>
+        </section>
+        <section className="nx-sec" aria-labelledby="o-recent">
+          <div className="nx-sec-h"><h2 id="o-recent">Latest</h2><Link href="/next/gov/verification">Open the queue <ArrowRight size={12} /></Link></div>
+          <ul className="nx-feed" style={{ maxWidth: 720 }}>{list.slice(0, 5).map((p) => <li key={p.id}><span className="nx-feed-i"><ArrowRight size={12} /></span><div><b>{p.title}</b><p>{names[p.ngo_id] ?? "Operator"} · {PACKAGE_LABEL[p.status] ?? p.status}</p></div></li>)}</ul>
+        </section>
+      </div>
+    </Shell>
+  );
+}
+
+export function Insights() {
+  const live = useLive();
+  if (!live.ready) return <Shell ws="gov" crumb={["Government", "Overview"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
+  const gov = live.orgFor("government");
+  if (!live.org) return <SampleInsights />;
+  if (gov?.source === "review_office") return <OfficeOverview />;
+  return (
+    <Shell ws="gov" crumb={["Government", "Overview"]}>
+      <div className="nx-page"><h1 className="nx-h1">Overview</h1>
+        <p className="nx-sub">{gov ? <>The programme overview for {gov.name} opens in the current app until it is rebuilt here.</> : "Your account is not part of a government office or programme."}</p>
+        {gov ? <p style={{ marginTop: 16 }}><Link href={`/workspace/${gov.org_id}`} className="nx-btn is-quiet">Open the programme</Link></p> : null}
       </div>
     </Shell>
   );

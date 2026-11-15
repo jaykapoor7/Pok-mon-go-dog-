@@ -157,3 +157,13 @@ export const SUBMISSIONS: SampleSubmission[] = [
   { id: "s4", title: "September 2026 · sterilisation", office: "East Zone office", period: "1–30 Sep", records: 57, ready: 57, state: "Accepted", tone: "ok", when: "12 Oct", note: "Accepted by the reviewing office. Accepted is not paid." },
   { id: "s5", title: "August 2026 · sterilisation", office: "East Zone office", period: "1–31 Aug", records: 52, ready: 52, state: "Returned", tone: "bad", when: "9 Sep", note: "Returned: 3 records had no surgeon's authorisation." },
 ];
+
+/* ── Verification (sample) ───────────────────────────────────────── */
+export type SampleReview = { id: string; title: string; operator: string; period: string; records: number; vet: number; evidence: number; state: "Submitted" | "Query open" | "Accepted" | "Returned" | "Partially accepted"; waiting: string; days: number; flags: string[] };
+export const REVIEWS: SampleReview[] = [
+  { id: "v1", title: "November 2026 · sterilisation", operator: "Kind Hour", period: "1–14 Nov", records: 22, vet: 22, evidence: 106, state: "Submitted", waiting: "Today", days: 0, flags: [] },
+  { id: "v2", title: "October 2026 · sterilisation", operator: "Street Care Trust", period: "1–31 Oct", records: 61, vet: 59, evidence: 290, state: "Submitted", waiting: "6 days", days: 6, flags: ["2 records without a surgeon's authorisation", "1 possible duplicate animal"] },
+  { id: "v3", title: "October 2026 · vaccination", operator: "Kind Hour", period: "1–31 Oct", records: 204, vet: 204, evidence: 612, state: "Query open", waiting: "3 days", days: 3, flags: ["Reviewer asked about two release dates"] },
+  { id: "v4", title: "September 2026 · sterilisation", operator: "Street Care Trust", period: "1–30 Sep", records: 57, vet: 57, evidence: 281, state: "Accepted", waiting: "—", days: 0, flags: [] },
+  { id: "v5", title: "August 2026 · sterilisation", operator: "Municipal field team", period: "1–31 Aug", records: 52, vet: 49, evidence: 240, state: "Returned", waiting: "—", days: 0, flags: ["3 records had no surgeon's authorisation"] },
+];

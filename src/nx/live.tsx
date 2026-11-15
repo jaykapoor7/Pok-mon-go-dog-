@@ -12,8 +12,10 @@ export type Channel = { id: string; name: string; topic: string | null; kind: st
 export type Message = { id: string; channel_id: string; parent_id: string | null; author_id: string | null; author_kind: "person" | "kaju"; author_name: string | null; body: string; record_label: string | null; proposal: { tasks: string[] } | null; created_at: string };
 export type Task = { id: string; org_id: string; title: string; note: string | null; state: "open" | "done" | "cancelled"; due_on: string | null; assignee_name: string | null; source_kind: string; source_message_id: string | null; channel_id: string | null; record_label: string | null; created_at: string };
 
-type Live = { ready: boolean; signedIn: boolean; userId: string | null; userName: string | null; orgs: Workspace[]; org: Workspace | null; pick: (id: string) => void; missing: boolean };
-const Ctx = createContext<Live>({ ready: false, signedIn: false, userId: null, userName: null, orgs: [], org: null, pick: () => {}, missing: false });
+type Live = { ready: boolean; signedIn: boolean; userId: string | null; userName: string | null; orgs: Workspace[]; org: Workspace | null; pick: (id: string) => void; missing: boolean;
+  /** The organisation a workspace's pages act for: the one picked if it belongs to that workspace, otherwise the first that does. */
+  orgFor: (w: Workspace["workspace"]) => Workspace | null };
+const Ctx = createContext<Live>({ ready: false, signedIn: false, userId: null, userName: null, orgs: [], org: null, pick: () => {}, missing: false, orgFor: () => null });
 export const useLive = () => useContext(Ctx);
 const KEY = "nx.org";
 
@@ -39,7 +41,9 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const pick = useCallback((id: string) => { setPicked(id); try { localStorage.setItem(KEY, id); } catch {} }, []);
   const value = useMemo<Live>(() => {
     const list = orgs ?? [];
-    return { ready: authReady && orgs !== null, signedIn: !!user, userId: user?.id ?? null, userName: user?.name ?? null, orgs: list, org: list.find((o) => o.org_id === picked) ?? list[0] ?? null, pick, missing };
+    const org = list.find((o) => o.org_id === picked) ?? list[0] ?? null;
+    const orgFor = (w: Workspace["workspace"]) => (org?.workspace === w ? org : list.find((o) => o.workspace === w) ?? null);
+    return { ready: authReady && orgs !== null, signedIn: !!user, userId: user?.id ?? null, userName: user?.name ?? null, orgs: list, org, pick, missing, orgFor };
   }, [authReady, orgs, user, picked, pick, missing]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

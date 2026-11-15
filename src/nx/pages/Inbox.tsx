@@ -81,7 +81,8 @@ function InboxView({ rows, sample, loading, note }: { rows: Row[]; sample: boole
 }
 
 function LiveInbox() {
-  const { org } = useLive();
+  const live = useLive();
+  const org = live.orgFor("ngo") ?? live.org;
   const isNgo = org!.workspace === "ngo";
   const [rows, setRows] = useState<Row[] | null>(null);
   useEffect(() => {

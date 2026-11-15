@@ -71,6 +71,17 @@ test("Submissions: packages are grouped by where they stand with the reviewing o
   await noSideScroll(page);
 });
 
+test("Verification: the office queue sorts what waits longest first, and states that decisions are signed", async ({ page }) => {
+  await open(page, "/next/gov/verification");
+  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await expect(page.locator(".nx-sub")).toContainText("the oldest for 6 days");
+  await expect(page.locator("button.nx-tr").first()).toContainText("Street Care Trust");
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("signed decision by a named reviewer");
+  await expect(page.getByRole("dialog")).toContainText("2 records without a surgeon's authorisation");
+  await noSideScroll(page);
+});
+
 test("Insights: choosing a ward narrows the figures and the table together", async ({ page }) => {
   await open(page, "/next/gov/overview");
   await expect(page.locator("button.nx-tr")).toHaveCount(6);

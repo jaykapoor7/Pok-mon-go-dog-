@@ -92,7 +92,8 @@ function CasesView({ rows, sample, loading, error, orgName }: { rows: Row[]; sam
 }
 
 function LiveCases() {
-  const { org } = useLive();
+  const live = useLive();
+  const org = live.orgFor("ngo") ?? live.org;
   const isNgo = org!.workspace === "ngo";
   const cases = useCases(isNgo ? org!.org_id : null);
   const today = new Date().toISOString().slice(0, 10);
