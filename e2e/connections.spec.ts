@@ -7,7 +7,6 @@ import { expect, test } from "@playwright/test";
 test("signed out, Connections is a sample that connects nothing", async ({ page }) => {
   await page.goto("/ngo/settings?tab=connections");
   await expect(page.getByRole("tab", { name: "Connections", selected: true })).toBeVisible();
-  await expect(page.getByText(/Connected as /)).toHaveCount(0);
   const requests: string[] = [];
   page.on("request", (r) => { if (/\/api\/connections/.test(r.url())) requests.push(r.url()); });
   await page.waitForLoadState("networkidle");

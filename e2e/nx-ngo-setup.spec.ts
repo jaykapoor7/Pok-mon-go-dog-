@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { RETIRED } from "./retired";
 
 /* NGO submissions, programmes, team, settings, import and training in the new app, signed out (sample data).
    Every page renders, links only to new or public routes, and never scrolls sideways on a phone. */
@@ -9,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 
 const open = async (page: Page, path: string) => { await page.goto(path); await page.waitForLoadState("networkidle"); };
 /* Classic addresses the new app must not link to. Public pages (/community, /fundraisers/<id>, /contact) are allowed. */
-const CLASSIC = /^\/(ngo|city|workspace|programme|surveys|assistant)(\/|$|\?)|^\/today(\/|$|\?)|^\/animal\/|^\/fundraisers\/new/;
+const CLASSIC = RETIRED;
 const classicLinks = (page: Page) => page.locator("#nx-main a[href]").evaluateAll((as, re) => as.map((a) => a.getAttribute("href") ?? "").filter((h) => new RegExp(re).test(h)), CLASSIC.source);
 const noSideScroll = async (page: Page) => {
   const r = await page.evaluate(() => { const m = document.querySelector("#nx-main") as HTMLElement | null; return { doc: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1, main: !m || m.scrollWidth <= m.clientWidth + 1 }; });

@@ -2,7 +2,7 @@
    Monochrome surfaces; five functional colours: ink (navy), accent (cobalt), ok (teal-green), warn (amber), bad (red). */
 .nx {
   --bg: #fff; --side: #f6f7f8; --rail: #eceef1; --raise: #fff;
-  --ink: #1e232b; --ink-2: #59616d; --ink-3: #8b929d;
+  --ink: #1e232b; --ink-2: #59616d; --ink-3: #656c77;
   --line: #e7e9ec; --line-2: #dfe2e6; --hover: #f2f4f6; --sel: #e9eefb;
   --navy: #1d2535; --on-navy: #fff;
   --accent: #2c5ccc; --accent-soft: #ebf0fc;
@@ -17,7 +17,7 @@
 }
 .nx[data-theme="dark"] {
   --bg: #14171c; --side: #101317; --rail: #0b0d10; --raise: #1a1e25;
-  --ink: #e8ebef; --ink-2: #a4acb7; --ink-3: #747c88;
+  --ink: #e8ebef; --ink-2: #a4acb7; --ink-3: #8e96a2;
   --line: #242930; --line-2: #2c323a; --hover: #1b1f26; --sel: #1a2540;
   --navy: #e8ebef; --on-navy: #14171c;
   --accent: #86a8f7; --accent-soft: #1a2540;
@@ -146,7 +146,7 @@ button.nx-tr, a.nx-tr { width: 100%; }
 .nx-t2 { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nx-t3 { color: var(--ink-3); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .nx-thumb { width: 28px; height: 28px; border-radius: 7px; flex: none; display: grid; place-items: center; font-size: 10px; font-weight: 700; color: var(--ink-2); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); }
-.nx-check { width: 16px; height: 16px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px var(--line-2); display: grid; place-items: center; flex: none; transition: background .14s, box-shadow .14s, transform .09s; color: transparent; }
+.nx-check { width: 20px; height: 20px; margin: 2px 4px 2px 2px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px var(--line-2); display: grid; place-items: center; flex: none; transition: background .14s, box-shadow .14s, transform .09s; color: transparent; }
 .nx-check:hover { box-shadow: inset 0 0 0 1.5px var(--accent); }
 .nx-check:active { transform: scale(.9); }
 .nx-check.is-done { background: var(--ok); box-shadow: none; color: #fff; }
@@ -680,3 +680,5 @@ button.nx-item { width: calc(100% - 0px); text-align: left; }
 .nx-pin button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none; color: var(--ink-3); display: grid; place-items: center; width: 22px; height: 22px; border-radius: 5px; opacity: 0; cursor: pointer; }
 .nx-pin:hover button, .nx-pin button:focus-visible { opacity: 1; }
 .nx-pin button:hover { background: var(--line); color: var(--ink); }
+/* Links inside running text are underlined, so they are told apart without relying on colour (WCAG 1.4.1). */
+.nx p a:not([class*="nx-btn"]):not(.nx-reclink):not(.nx-fig), .nx .nx-sub a:not([class*="nx-btn"]), .nx .ns-link { text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }

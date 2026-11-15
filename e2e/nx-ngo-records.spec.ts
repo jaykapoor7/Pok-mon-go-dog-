@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { RETIRED } from "./retired";
 
 /* NGO operational records on the rebuilt app, signed out (sample data): cases with their drawer and record, a new case,
    animals and an animal record, the inbox, operations and field mode. Each page renders, links only to rebuilt routes,
@@ -8,7 +9,7 @@ const PAGES = [
   "/ngo/cases", "/ngo/cases/c2", "/ngo/cases/new?title=Injured%20dog&zone=Ward%2012&note=Seen%20at%20the%20gate",
   "/ngo/animals", "/ngo/animals/AN-1042", "/ngo/inbox", "/ngo/operations", "/ngo/field",
 ];
-const CLASSIC = /^\/(ngo|city|workspace|programme|today|animal|assistant)(\/|\?|#|$)/;
+const CLASSIC = RETIRED;
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem("straypaw.notice.storage.v1", "1"); localStorage.setItem("sp.demo.tour.v1", JSON.stringify({ mode: "off", step: 0, role: null })); });

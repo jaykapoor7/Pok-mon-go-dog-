@@ -86,12 +86,12 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
           {search || onQuery ? <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => (onQuery ? onQuery(e.target.value) : setQOwn(e.target.value))} placeholder={placeholder} aria-label={`Search ${title.toLowerCase()}`} /></label> : null}
         </div>
         {error ? <Failed error={error} retry={onRetry} /> : (
-          <div className="nx-table" role="table" aria-label={title} ref={box}>
-            <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: cols }}>{select ? <span /> : null}{columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined}>{c.label}</span>)}</div>
+          <div className="nx-table" role="group" aria-label={title} ref={box}>
+            <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: cols }}>{select ? <span /> : null}{columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined}>{c.label}</span>)}</div>
             {shown.map((r) => {
               const key = rowKey(r);
               const btn = (
-                <button key={key} type="button" role="row" data-rk={key} className={`nx-tr ${openId === key ? "is-sel" : ""}`} style={{ gridTemplateColumns: select ? columns.map((c) => c.width).join(" ") : cols }} onClick={() => setOpenId(key)} aria-label={`Open ${rowLabel(r)}`}>
+                <button key={key} type="button" data-rk={key} className={`nx-tr ${openId === key ? "is-sel" : ""}`} style={{ gridTemplateColumns: select ? columns.map((c) => c.width).join(" ") : cols }} onClick={() => setOpenId(key)} aria-label={`Open ${rowLabel(r)}`}>
                   {columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined} style={{ minWidth: 0 }}>{c.render(r)}</span>)}
                 </button>
               );

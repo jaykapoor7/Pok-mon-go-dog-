@@ -31,8 +31,10 @@ test.describe("legacy experience", () => {
     await page.goto("/");
     await expect(page.locator(".cn8")).toHaveCount(0);
     await expect(page.locator("h1").first()).toBeVisible();
-    await page.goto("/kaju");
-    await expect(page).toHaveURL(/\/ai$/);
+    /* Meet Kaju is the public page at /ai; /kaju is Kaju itself, inside the app. */
+    await page.goto("/ai");
+    await expect(page.locator("h1").first()).toBeVisible();
+    await expect(page.locator(".nx-rail")).toHaveCount(0);
   });
 });
 
@@ -45,7 +47,7 @@ test.describe("cinematic experience", () => {
     const wide = (page.viewportSize()?.width ?? 0) > 900;
     if (wide) {
       const site = page.getByRole("navigation", { name: "Site", exact: true });
-      for (const [label, href] of [["Platform", "/platform"], ["Kaju", "/kaju"], ["Solutions", "/solutions"], ["Proof", "/customers"], ["Pricing", "/pricing"]]) {
+      for (const [label, href] of [["Platform", "/platform"], ["Kaju", "/ai"], ["Solutions", "/solutions"], ["Proof", "/customers"], ["Pricing", "/pricing"]]) {
         await expect(site.getByRole("link", { name: label, exact: true })).toHaveAttribute("href", href);
       }
     } else {

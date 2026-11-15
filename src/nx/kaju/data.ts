@@ -7,10 +7,14 @@ import type { Vocab } from "./intent";
 /* What Kaju's screens read. Every read goes through the person's own session, so row-level security decides. */
 
 /** Names the composer may recognise: this organisation's places, teams, channels and people. */
+/* Signed out, the composer reads against the sample organisation's own words (labelled as sample on the page). */
+const SAMPLE_VOCAB: Vocab = { places: ["Ward 12", "Ward 14", "Ward 9"], teams: ["Field team A", "Field team B"], channels: ["field-operations", "abc-ward-12", "general"], people: [] };
 export function useKajuVocab(orgId: string | null, workspace: string | null): Vocab {
-  const [v, setV] = useState<Vocab>({ places: [], teams: [], channels: [], people: [] });
+  const [v, setV] = useState<Vocab>(orgId ? { places: [], teams: [], channels: [], people: [] } : SAMPLE_VOCAB);
   useEffect(() => {
-    const db = getSupabase(); if (!db || !orgId) return;
+    if (!orgId) { setV(SAMPLE_VOCAB); return; }
+    setV({ places: [], teams: [], channels: [], people: [] });
+    const db = getSupabase(); if (!db) return;
     let alive = true;
     void Promise.all([
       workspace === "ngo" ? db.from("cases").select("zone,assignee_name").eq("ngo_id", orgId).is("resolved_at", null).limit(500) : Promise.resolve({ data: [] }),

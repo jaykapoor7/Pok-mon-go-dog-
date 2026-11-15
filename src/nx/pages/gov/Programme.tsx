@@ -165,10 +165,10 @@ function CoverageTab({ sample, p, caps }: Ctx) {
     <div className="gh-body is-narrow" style={{ maxWidth: 1040 }}>
       <p className="nx-sub" style={{ marginTop: 0 }}>{!d ? "Reading coverage…" : totE ? <><b className="num">{pct(totV / totE)}</b> of an estimated {totE.toLocaleString("en-IN")} dogs are recorded vaccinated, against a target of <b>{pct(target)}</b>. {withEst.length} of {d.vaccination.length} areas have a dated estimate.</> : <>No dated estimate is recorded, so coverage is not shown. The target is {pct(target)}.</>}</p>
       {o.error ? <Failed error={o.error} retry={o.reload} /> : !d ? <Skeleton rows={5} /> : (
-        <div className="nx-table" role="table" aria-label="Coverage by area" style={{ marginTop: 14 }}>
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: "minmax(0, 1fr) 130px minmax(0, 1.4fr) 110px 140px" }}><span>Area</span><span className="nx-hide-s">Vaccinated</span><span className="nx-hide-s">Estimate and source</span><span>Coverage</span><span className="nx-hide-s" /></div>
+        <div className="nx-table" role="group" aria-label="Coverage by area" style={{ marginTop: 14 }}>
+          <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: "minmax(0, 1fr) 130px minmax(0, 1.4fr) 110px 140px" }}><span>Area</span><span className="nx-hide-s">Vaccinated</span><span className="nx-hide-s">Estimate and source</span><span>Coverage</span><span className="nx-hide-s" /></div>
           {d.vaccination.map((v) => { const c = v.estimate && v.estimate.dogs > 0 ? v.vaccinated / v.estimate.dogs : null; return (
-            <div key={v.area_id} role="row" className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1fr) 130px minmax(0, 1.4fr) 110px 140px" }}>
+            <div key={v.area_id} className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1fr) 130px minmax(0, 1.4fr) 110px 140px" }}>
               <span className="nx-cell-main"><span><b>{v.area}</b><small>{v.vaccinated.toLocaleString("en-IN")} of {v.registered.toLocaleString("en-IN")} on registers<span className="nx-only-s"> · {v.estimate ? `estimate ${v.estimate.dogs}, ${fmtDate(v.estimate.on, { month: "short", year: "numeric" })}` : "no estimate"}</span></small></span></span>
               <span className="num nx-hide-s">{v.vaccinated.toLocaleString("en-IN")}</span>
               <span className="nx-t2 nx-hide-s" style={{ whiteSpace: "normal" }}>{v.estimate ? <>{v.estimate.dogs.toLocaleString("en-IN")} dogs · {v.estimate.method} · {v.estimate.source} · {fmtDate(v.estimate.on, { day: "numeric", month: "short", year: "numeric" })}</> : <span className="nx-t3">No dated estimate</span>}</span>
@@ -324,9 +324,9 @@ function DataTab({ sample, p }: Ctx) {
       <div className="nx-head"><p className="nx-sub" style={{ margin: 0 }}>{!x.data ? (x.error ? "The extract could not be read." : "Reading the extract…") : <><b className="num">{rows.length}</b> weekly counts by area, animal and category since {fmtDate(x.data.since, { day: "numeric", month: "short", year: "numeric" })}. Counts below {x.data.suppress_below} are hidden. No patient details.</>}</p>
         <button type="button" className="nx-btn is-keep" disabled={!rows.length} onClick={csv}><Download size={13} />Download CSV</button></div>
       {x.error ? <Failed error={x.error} retry={x.reload} /> : !x.data ? <Skeleton rows={5} /> : rows.length ? (
-        <div className="nx-table" role="table" aria-label="Exposures by week" style={{ marginTop: 14 }}>
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: "100px minmax(0, 1fr) 100px 100px 100px" }}><span>Week</span><span>Area</span><span className="nx-hide-s">Animal</span><span className="nx-hide-s">Category</span><span>Exposures</span></div>
-          {rows.slice(0, 300).map((r, i) => <div key={i} role="row" className="nx-tr" style={{ gridTemplateColumns: "100px minmax(0, 1fr) 100px 100px 100px" }}><span className="nx-t3">{fmtDate(r.week)}</span><span className="nx-cell-main"><span><b>{r.area}</b><small className="nx-only-s">{r.species} · category {r.category} · {fmtDate(r.week)}</small></span></span><span className="nx-t2 nx-hide-s">{r.species}</span><span className="nx-t2 nx-hide-s">{r.category}</span><span className="num">{showCount(r.exposures)}</span></div>)}
+        <div className="nx-table" role="group" aria-label="Exposures by week" style={{ marginTop: 14 }}>
+          <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: "100px minmax(0, 1fr) 100px 100px 100px" }}><span>Week</span><span>Area</span><span className="nx-hide-s">Animal</span><span className="nx-hide-s">Category</span><span>Exposures</span></div>
+          {rows.slice(0, 300).map((r, i) => <div key={i} className="nx-tr" style={{ gridTemplateColumns: "100px minmax(0, 1fr) 100px 100px 100px" }}><span className="nx-t3">{fmtDate(r.week)}</span><span className="nx-cell-main"><span><b>{r.area}</b><small className="nx-only-s">{r.species} · category {r.category} · {fmtDate(r.week)}</small></span></span><span className="nx-t2 nx-hide-s">{r.species}</span><span className="nx-t2 nx-hide-s">{r.category}</span><span className="num">{showCount(r.exposures)}</span></div>)}
         </div>) : <Empty title="No exposures in the last year" />}
     </div>
   );

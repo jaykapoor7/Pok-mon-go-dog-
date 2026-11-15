@@ -45,10 +45,10 @@ function VerificationView({ rows, sample, loading, note, office }: { rows: Row[]
           </div>
         </div>
         {note ? <p className="nx-foot" role="status">{note}</p> : null}
-        <div className="nx-table" role="table" aria-label="Packages to review">
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: COLS }}><span>Package</span><span>Operator</span><span>Period</span><span>Records</span><span>State</span><span>Waiting</span></div>
+        <div className="nx-table" role="group" aria-label="Packages to review">
+          <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: COLS }}><span>Package</span><span>Operator</span><span>Period</span><span>Records</span><span>State</span><span>Waiting</span></div>
           {shown.map((r) => (
-            <button key={r.id} type="button" role="row" className={`nx-tr ${openId === r.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: COLS }} onClick={() => setOpenId(r.id)} aria-label={`Open ${r.title} from ${r.operator}`}>
+            <button key={r.id} type="button" className={`nx-tr ${openId === r.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: COLS }} onClick={() => setOpenId(r.id)} aria-label={`Open ${r.title} from ${r.operator}`}>
               <span className="nx-cell-main"><span><b>{r.title}</b><small>{r.flags.length ? <span style={{ color: "var(--warn)" }}>{r.flags.length} {r.flags.length === 1 ? "thing" : "things"} to check</span> : "No exceptions flagged"}<span className="nx-only-s"> · {r.operator}</span></small></span></span>
               <span className="nx-t2 nx-hide-s">{r.operator}</span>
               <span className="nx-t3 nx-hide-s">{r.period}</span>

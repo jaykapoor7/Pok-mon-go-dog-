@@ -1,0 +1,3 @@
+/* The addresses of the retired classic application. None of them is a page any more, and no link in the app or the
+   public site may point at one. The app's own pages (/ngo/cases, /gov/overview, ...) are not in this list. */
+export const RETIRED = /^\/(today|assistant|workspace|programme|partner|surveys|dashboard|next)(\/|\?|#|$)|^\/ngo(\?|#|$)|^\/ngo\/(work|review|pipeline|verification|packages|proof|care|map|add|automations|contracts|evidence|stories|quality|surveys|projects|feeding|fundraising|volunteers|readiness|rescues|sterilisation|offline|settings\/(connections|policies))(\/|\?|#|$)|^\/city\/(review|contracts|connections)(\/|\?|#|$)|^\/fundraisers\/new(\/|\?|#|$)/;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Sparkles, Trash2 } from "lucide-react";
 import { Shell } from "../Shell";
@@ -33,6 +33,8 @@ export function Kaju() {
   const missions = useMissionList(org?.org_id ?? null);
   const { prefs } = useKajuPrefs();
   const [planned, setPlanned] = useState<Planned | null>(null);
+  /* Words handed over from the command bar (?q=) are placed in the composer, not sent. */
+  useEffect(() => { try { const q = new URLSearchParams(window.location.search).get("q"); if (q) window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); } catch {} }, []);
   const [busy, setBusy] = useState(false);
   const waiting = (missions.rows ?? []).filter((m) => m.state === "waiting_person" || m.state === "blocked");
   const recent = (missions.rows ?? []).slice(0, 5);

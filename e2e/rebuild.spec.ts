@@ -140,7 +140,7 @@ test("Command bar: opens from the keyboard, finds a record, opens it, and hands 
   await page.getByRole("option", { name: /Ask Kaju/ }).click();
   await expect(page).toHaveURL(/\/kaju\?q=/);
   await expect(page.getByLabel("Ask Kaju")).toHaveValue("what is waiting");
-  await expect(page.locator(".nx-mission")).toHaveCount(2);
+  await expect(page.locator('section[aria-labelledby="kj-m"] li')).toHaveCount(2);
   await noSideScroll(page);
 });
 
@@ -197,13 +197,12 @@ test("Kaju: details are recognised before sending, and a run stops for approval"
   const ask = page.getByLabel("Ask Kaju");
   await ask.fill("Prepare next week's follow-ups for Ward 12, assign to Field team A, and notify #field-operations");
   await expect(page.locator(".nx-span")).toHaveCount(4);
-  await expect(page.locator(".nx-mission")).toHaveCount(2);
   await page.getByRole("button", { name: /^Place: Ward 12/ }).click();
-  await expect(page.locator(".nx-plan")).toContainText("Ward 14");
-  await ask.press("Enter");
-  await expect(page.locator(".nx-mission")).toHaveCount(3);
-  await page.getByRole("button", { name: "Approve and post" }).click();
-  await expect(page.locator(".nx-mission").first()).toContainText("Completed");
+  await page.getByRole("listbox", { name: /choose/ }).getByRole("option", { name: "Ward 14" }).click();
+  await expect(page.getByRole("button", { name: /^Place: Ward 14/ })).toBeVisible();
+  /* Signed out, Kaju can read the sentence but plans nothing: the sample missions are labelled and nothing starts. */
+  await expect(page.locator('section[aria-labelledby="kj-m"] li')).toHaveCount(2);
+  await expect(page.getByRole("button", { name: /^Plan/ })).toHaveCount(0);
   await noSideScroll(page);
 });
 
@@ -307,14 +306,12 @@ test("Healthcare surveillance: programme totals, not this facility's patients", 
 
 test("Kaju approvals: missions stop for the person who started them, history keeps every step", async ({ page }) => {
   await open(page, "/kaju/approvals");
-  await expect(page.locator("button.nx-tr")).toHaveCount(1);
-  await page.locator("button.nx-tr").first().click();
-  await expect(page.getByRole("dialog").locator(".nx-steps li")).toHaveCount(4);
-  await page.getByRole("dialog").getByRole("button", { name: "Cancel" }).click();
-  await expect(page.getByRole("dialog")).toContainText("sign in to approve or cancel");
-  await page.keyboard.press("Escape");
+  await expect(page.locator(".nx-run")).toHaveCount(1);
+  await expect(page.locator(".nx-run").first().locator(".nx-run-steps li")).toHaveCount(4);
+  await expect(page.locator(".nx-run-steps li.is-waiting_approval")).toHaveCount(1);
+  await expect(page.getByRole("link", { name: "Try a live mission" })).toHaveAttribute("href", "/try");
   await open(page, "/kaju/history");
-  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await expect(page.locator(".nx-run")).toHaveCount(2);
   await noSideScroll(page);
 });
 
@@ -357,9 +354,10 @@ test("Every sample channel opens with its own conversation", async ({ page }) =>
 
 test("Kaju automations: nothing is on until a lead turns it on, and the schedule is not promised", async ({ page }) => {
   await open(page, "/kaju/automations");
-  await expect(page.locator(".nx-chk")).toHaveCount(7);
-  await expect(page.getByText("does not promise that it runs on its own")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Not offered, and why" })).toBeVisible();
+  await expect(page.locator(".nx-autos > li")).toHaveCount(15);
+  await expect(page.locator(".nx-autos > li.is-on")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Turn on" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Other routine work Kaju takes on" })).toBeVisible();
   await noSideScroll(page);
 });
 
@@ -396,7 +394,7 @@ test("Nothing in any sidebar is marked Soon", async ({ page }) => {
 
 test("Start: every kind of organisation has a way in, and none is self-granted", async ({ page }) => {
   await open(page, "/start");
-  await expect(page.locator(".nx-start .nx-chk")).toHaveCount(6);
+  await expect(page.locator(".nx-start .nx-chk")).toHaveCount(7);
   await expect(page.getByText("never self-registered")).toBeVisible();
   await expect(page.getByRole("link", { name: /Register an NGO/ })).toHaveAttribute("href", /\/sign-in\?as=org/);
   await noSideScroll(page);

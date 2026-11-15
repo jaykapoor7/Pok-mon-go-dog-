@@ -110,9 +110,9 @@ export function Maps() {
               {layer === "exposures" ? <><span><i style={{ background: "var(--accent)", opacity: .3 }} />Fewer</span><span><i style={{ background: "var(--accent)" }} />More</span><span><i className="is-h" />Under 5, not shown</span></> : layer === "coverage" ? <><span><i style={{ background: "var(--ok)" }} />At or above {Math.round(target * 100)}%</span><span><i style={{ background: "var(--warn)" }} />Below</span><span><i className="is-h" />No dated estimate</span></> : <><span><i style={{ background: "var(--bad)", opacity: .7 }} />Positive result in the period</span></>}
             </figcaption>
           </figure>
-          <div className="nx-table nx-map-t" role="table" aria-label="Areas">
-            <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: "minmax(0, 1fr) 110px" }}><span>Area</span><span>{LAYERS.find((l) => l.id === layer)!.label}</span></div>
-            {rows.map((a) => <button key={a.id} type="button" role="row" className={`nx-tr ${sel === a.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: "minmax(0, 1fr) 110px" }} onClick={() => setSel(sel === a.id ? null : a.id)}><span className="nx-cell-main"><span><b>{a.name}</b>{layer === "coverage" && a.estimate ? <small>{a.vaccinated} of an estimated {a.estimate} dogs</small> : null}</span></span><span className="num">{valueOf(a)}</span></button>)}
+          <div className="nx-table nx-map-t" role="group" aria-label="Areas">
+            <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: "minmax(0, 1fr) 110px" }}><span>Area</span><span>{LAYERS.find((l) => l.id === layer)!.label}</span></div>
+            {rows.map((a) => <button key={a.id} type="button" className={`nx-tr ${sel === a.id ? "is-sel" : ""}`} style={{ gridTemplateColumns: "minmax(0, 1fr) 110px" }} onClick={() => setSel(sel === a.id ? null : a.id)}><span className="nx-cell-main"><span><b>{a.name}</b>{layer === "coverage" && a.estimate ? <small>{a.vaccinated} of an estimated {a.estimate} dogs</small> : null}</span></span><span className="num">{valueOf(a)}</span></button>)}
             {!areas.length ? <p className="nx-sub" style={{ padding: "18px 0" }}>Reading areas…</p> : null}
           </div>
         </div>

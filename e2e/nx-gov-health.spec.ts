@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { RETIRED } from "./retired";
 
 /* Government verification, programmes, human healthcare and the laboratory in the new app, signed out (sample data).
    Every page renders with the sample chip, links to no classic route, and has no sideways scroll on a 390px phone.
@@ -9,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 const open = async (page: Page, path: string) => { await page.goto(path); await page.waitForLoadState("networkidle"); };
-const CLASSIC = /^\/(ngo|city|workspace|programme|animal|assistant|today)(\/|$|\?)/;
+const CLASSIC = RETIRED;
 async function noClassicLinks(page: Page) {
   const hrefs = await page.$$eval("a[href]", (as) => as.filter((a) => !a.classList.contains("nx-classic")).map((a) => a.getAttribute("href") ?? ""));
   expect(hrefs.filter((h) => CLASSIC.test(h))).toEqual([]);

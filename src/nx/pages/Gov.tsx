@@ -307,10 +307,10 @@ export function GovReports() {
         </section> : null}
         {g.mode === "office" || sample ? <section className="nx-sec" aria-labelledby="rp-o" style={{ marginTop: 26 }}>
           <div className="nx-sec-h"><h2 id="rp-o">Accepted packages</h2><span className="nx-count">{outs.length}</span>{!sample ? <Link href="/gov/verification">Verification <ArrowRight size={12} /></Link> : null}</div>
-          <div className="nx-table" role="table" aria-label="Accepted packages">
-            <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}><span>Package</span><span className="nx-hide-s">Records</span><span className="nx-hide-s">Decided</span></div>
+          <div className="nx-table" role="group" aria-label="Accepted packages">
+            <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}><span>Package</span><span className="nx-hide-s">Records</span><span className="nx-hide-s">Decided</span></div>
             {outs.map((r) => { const inner = <><span className="nx-cell-main" style={{ minWidth: 0 }}><span><b>{r.title}</b><small>{r.source} · {r.period}{r.kind !== "Accepted" && r.kind !== "Accepted package" ? ` · ${r.kind}` : ""}<span className="nx-only-s"> · {r.records} records</span></small></span></span><span className="num nx-hide-s">{r.records.toLocaleString("en-IN")}</span><span className="nx-t2 nx-hide-s">{r.on} · {r.by}</span></>;
-              return r.href ? <Link key={r.id} href={r.href} role="row" className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}>{inner}</Link> : <div key={r.id} role="row" className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}>{inner}</div>; })}
+              return r.href ? <Link key={r.id} href={r.href} className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}>{inner}</Link> : <div key={r.id} className="nx-tr" style={{ gridTemplateColumns: "minmax(0, 1.5fr) 110px 140px" }}>{inner}</div>; })}
             {!sample && ps === null ? <p className="nx-sub" style={{ padding: "18px 0" }}>Reading…</p> : !outs.length ? <p className="nx-sub" style={{ padding: "18px 0" }}>No package has been accepted yet.</p> : null}
           </div>
           {err ? <p className="nx-foot" role="alert">{err}</p> : null}

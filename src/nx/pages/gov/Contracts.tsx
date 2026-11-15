@@ -55,11 +55,11 @@ export function ContractsTab() {
       {err ? <Failed error={err} retry={() => void load()} /> : !data ? <Skeleton rows={4} label="Reading contracts" /> : !rows.length ? (
         <Empty title="No contract yet" hint="Amounts stay unknown until the source terms are entered." action={allowed ? <button type="button" className="nx-btn" onClick={() => setComposing(true)}>Add the first version</button> : undefined} />
       ) : (
-        <div className="nx-table" role="table" aria-label="Contract versions" style={{ marginTop: 10 }}>
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr) 190px 150px" }}><span>Contract</span><span className="nx-hide-s">Operator</span><span className="nx-hide-s">In force</span><span>Status</span></div>
+        <div className="nx-table" role="group" aria-label="Contract versions" style={{ marginTop: 10 }}>
+          <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr) 190px 150px" }}><span>Contract</span><span className="nx-hide-s">Operator</span><span className="nx-hide-s">In force</span><span>Status</span></div>
           {rows.map((c) => { const rs = data.rates.filter((r) => r.contract_id === c.id); return (
             <div key={c.id}>
-              <button type="button" role="row" className={`nx-tr ${open === c.id ? "is-sel" : ""}`} aria-expanded={open === c.id} style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr) 190px 150px" }} onClick={() => setOpen(open === c.id ? null : c.id)}>
+              <button type="button" className={`nx-tr ${open === c.id ? "is-sel" : ""}`} aria-expanded={open === c.id} style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr) 190px 150px" }} onClick={() => setOpen(open === c.id ? null : c.id)}>
                 <span className="nx-cell-main"><span><b>{c.name}</b><small>Version {c.version} · {rs.map((r) => `${money(r.unit_rate)} ${PROC[r.code]?.toLowerCase() ?? r.code}`).join(" · ") || "No rates"}<span className="nx-only-s"> · {c.operator}</span></small></span></span>
                 <span className="nx-t2 nx-hide-s">{c.operator}</span>
                 <span className="nx-t3 nx-hide-s">{fmt(c.starts_on)} – {fmt(c.ends_on)}</span>

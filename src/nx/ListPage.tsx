@@ -77,11 +77,11 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
           {live.org && !sample && (q.trim() || view !== views[0].id) ? <button type="button" className="nx-btn is-quiet is-sm nx-saveview" onClick={() => setNaming(views.find((x) => x.id === view)?.label + (q.trim() ? `: ${q.trim()}` : ""))}><Bookmark size={12} />Save view</button> : null}
         </div>
         {note ? <p className="nx-foot" role="status">{note}</p> : null}
-        <div className="nx-table" role="table" aria-label={title} aria-rowcount={shown.length + 1} data-virtual={virtual ? "" : undefined}>
-          <div className="nx-tr nx-th" role="row" style={{ gridTemplateColumns: cols }}>{columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined}>{c.label}</span>)}</div>
+        <div className="nx-table" role="group" aria-label={title} data-virtual={virtual ? "" : undefined}>
+          <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: cols }}>{columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined}>{c.label}</span>)}</div>
           {virtual && win[0] > 0 ? <div aria-hidden style={{ height: win[0] * EST }} /> : null}
           {slice.map((r) => (
-            <button key={rowKey(r)} type="button" role="row" className={`nx-tr ${openId === rowKey(r) ? "is-sel" : ""}`} style={{ gridTemplateColumns: cols }} onClick={() => setOpenId(rowKey(r))} aria-label={`Open ${rowLabel(r)}`}>
+            <button key={rowKey(r)} type="button" className={`nx-tr ${openId === rowKey(r) ? "is-sel" : ""}`} style={{ gridTemplateColumns: cols }} onClick={() => setOpenId(rowKey(r))} aria-label={`Open ${rowLabel(r)}`}>
               {columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined} style={{ minWidth: 0 }}>{c.render(r)}</span>)}
             </button>
           ))}

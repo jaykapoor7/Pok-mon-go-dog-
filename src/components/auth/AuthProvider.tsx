@@ -9,7 +9,6 @@ import {
   useState,
   startTransition,
 } from "react";
-import dynamic from "next/dynamic";
 import {lockOffline} from "@/lib/field/outbox";
 import { getSupabase } from "@/lib/supabase";
 import "@/sp3/sp3.css";
@@ -20,8 +19,6 @@ import { storeRole, type Role } from "@/lib/roles";
 import { isRecordingDemo } from "@/lib/recording-demo";
 import { demoUser } from "@/lib/demo/abc-demo";
 
-/* Loaded when someone first opens the sign-in sheet (./SignInSheet). */
-const SignInLayer = dynamic(() => import("./SignInSheet").then((m) => m.SignInLayer), { ssr: false });
 
 // ─────────────────────────────────────────────────────────────
 // Accounts.
@@ -72,11 +69,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
      that hydrates later, which then rendered its signed-out state from a
      context the server never saw. */
   const [ready, setReady] = useState(!supa && !isRecordingDemo);
-  const [open, setOpen] = useState(false);
-  /* The sheet's code arrives on its first open and then stays mounted, so
-     closing it still plays its exit. */
-  const [sheetLoaded, setSheetLoaded] = useState(false);
-  useEffect(() => { if (open) setSheetLoaded(true); }, [open]);
   const offlineOwner=useRef<string|null>(null);
   const pendingRef = useRef<null | (() => void)>(null);
 
@@ -125,7 +117,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user && pendingRef.current) {
         const action = pendingRef.current;
         pendingRef.current = null;
-        setOpen(false);
         action();
       }
     });
@@ -165,7 +156,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [supa]);
 
-  const openSignIn = useCallback(() => setOpen(true), []);
+  /* Signing in happens on its own page; the person comes back to where they were. */
+  const openSignIn = useCallback(() => { try { window.location.assign(`/sign-in?next=${encodeURIComponent(window.location.pathname + window.location.search)}`); } catch { /* no window */ } }, []);
 
   const requireAuth = useCallback(
     (onReady?: () => void) => {
@@ -174,10 +166,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return true;
       }
       pendingRef.current = onReady ?? null;
-      setOpen(true);
+      openSignIn();
       return false;
     },
-    [user]
+    [user, openSignIn]
   );
 
   return (
@@ -186,7 +178,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
 
-      {(open || sheetLoaded) && <SignInLayer open={open} onClose={() => setOpen(false)} />}
     </Ctx.Provider>
   );
 }
