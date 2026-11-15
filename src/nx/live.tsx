@@ -143,3 +143,38 @@ export function useAnimal(ngoId: string | null, id: string | null) {
   }, [ngoId, id]);
   return state;
 }
+
+/* ── Kaju missions ───────────────────────────────────────────────── */
+export type MissionRow = { id: string; org_id: string; title: string; state: string; created_at: string; request: Record<string, string | null>; nx_mission_steps: { position: number; label: string; state: string; result: { tasks?: { title: string; label: string; due: string | null }[] } | null }[] };
+export function useMissions(orgId: string | null) {
+  return useRows<MissionRow>(orgId, () => getSupabase()!.from("nx_missions").select("id,org_id,title,state,created_at,request,nx_mission_steps(position,label,state,result)").eq("org_id", orgId!).order("created_at", { ascending: false }).limit(20));
+}
+export async function startFollowups(orgId: string, req: { place?: string; when?: string; team?: string; channel?: string }) {
+  return getSupabase()!.rpc("nx_mission_followups", { p_org: orgId, p_request: req });
+}
+export const approveMission = (id: string) => getSupabase()!.rpc("nx_mission_approve", { p_mission: id });
+export const cancelMission = (id: string) => getSupabase()!.rpc("nx_mission_cancel", { p_mission: id });
+/** Words Kaju can recognise for this organisation: its own places, people on its cases, and its channels. */
+export function useVocab(orgId: string | null) {
+  const [v, setV] = useState<{ kind: string; words: string[] }[] | null>(null);
+  useEffect(() => {
+    const db = getSupabase(); if (!db || !orgId) return;
+    let alive = true;
+    Promise.all([
+      db.from("cases").select("zone,assignee_name").eq("ngo_id", orgId).is("resolved_at", null).limit(500),
+      db.from("nx_channels").select("name").eq("org_id", orgId).limit(100),
+    ]).then(([c, ch]) => {
+      if (!alive) return;
+      const rows = (c.data ?? []) as { zone: string | null; assignee_name: string | null }[];
+      const uniq = (xs: (string | null)[]) => [...new Set(xs.filter((x): x is string => !!x && x.trim().length > 1).map((x) => x.trim()))].sort();
+      setV([
+        { kind: "Place", words: uniq(rows.map((r) => r.zone)) },
+        { kind: "Team", words: uniq(rows.map((r) => r.assignee_name)) },
+        { kind: "Channel", words: ((ch.data ?? []) as { name: string }[]).map((x) => `#${x.name}`) },
+        { kind: "When", words: ["next week", "tomorrow", "today", "this week"] },
+      ]);
+    });
+    return () => { alive = false; };
+  }, [orgId]);
+  return v;
+}
