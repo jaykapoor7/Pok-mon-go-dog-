@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { ChevronsUpDown, Hash, Home, Pin, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
+import { ChevronsUpDown, Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CH_PEOPLE, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
-import { GOV, HEALTH, KAJU, LAB, NGO, RESEARCH, VET, VET_PATHS, WS_LABEL, classicOf, homeOf } from "./nav";
+import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, VET_PATHS, WS_LABEL, classicOf, homeOf } from "./nav";
 import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
@@ -118,7 +118,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
         <button type="button" className="nx-rail-b" aria-label="Search" title="Search (⌘K)" onClick={() => setCmd(true)}><Search size={17} /></button>
         <span className="nx-rail-sp" />
         <button type="button" className="nx-rail-b" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} title="Theme" onClick={flip}>{theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}</button>
-        {live.orgFor("ngo") ? <Link href="/ngo/settings" className="nx-rail-b" aria-label="Organisation settings" title="Organisation settings"><Settings size={16} /></Link> : null}
+        <Link href={live.orgFor("ngo") ? "/next/ngo/settings" : "/next/settings"} className="nx-rail-b" aria-label="Settings" title="Settings"><Settings size={16} /></Link>
         <span className="nx-face" aria-label={live.userName ?? ME.name}>{me}</span>
       </nav>
 
@@ -128,6 +128,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
           : <Link href={ws === "gov" ? "/next/ngo/today" : "/next/gov/overview"} className="nx-org" title="Switch workspace"><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span><ChevronsUpDown size={14} /></Link>}
         <div className="nx-nav">
           {nav.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span>{i.n && !live.org ? <i>{i.n}</i> : null}</Link>)}
+          {ws === "ngo" && !inChannel ? <><div className="nx-nav-h">Your organisation</div>{NGO_MORE.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span></Link>)}{live.orgs.some((o) => ["admin", "lead"].includes(o.role)) ? <Link href="/next/requests" className={`nx-item ${on("/next/requests") ? "is-on" : ""}`}><UserPlus size={15} /><span>Requests to join</span></Link> : null}</> : null}
           {pins.length ? <><div className="nx-nav-h">Pinned</div>{pins.map((x) => <span key={x.id} className="nx-pin"><Link href={x.page} className={`nx-item ${path === x.page ? "is-on" : ""}`} aria-current={path === x.page ? "page" : undefined}><Pin size={13} /><span>{x.name}</span></Link><button type="button" aria-label={`Unpin ${x.name}`} onClick={() => void unpin(x.id)}><X size={12} /></button></span>)}</> : null}
           <div className="nx-nav-h">Channels<button type="button" aria-label="New channel" onClick={() => live.org && setAdding(true)}><Plus size={13} /></button></div>
           {live.org ? <>
