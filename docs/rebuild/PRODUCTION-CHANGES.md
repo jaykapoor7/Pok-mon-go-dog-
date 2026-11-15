@@ -70,7 +70,7 @@ Rollback: drop the new tables, functions and the two schedules (`select cron.uns
 
 ---
 
-# Third set: three automation rules that counted the wrong thing
+# Third set: four automation rules that counted the wrong thing or too little
 
 **Waiting for the owner's approval.** Apply on staging first, then production.
 
@@ -86,8 +86,10 @@ What it fixes (found in `docs/rebuild/AUTOMATIONS-AUDIT.md`):
 - `alerts_open` failed every time the hourly schedule ran it, because `oh_alerts` needs a signed-in programme member.
   A scheduled run now reads with the access of the person who turned the automation on. If that person has left the
   programme, the run fails and records why, as before.
+- `referrals_waiting` counted only handoffs. It now also counts patients referred to the facility and not yet marked
+  arrived. These are counts only; the notice names no patient.
 
-Checked: `test:db` (125 checks). The six new checks fail without the migration and pass with it. On production today
+Checked: `test:db` (139 checks). Five of the new checks fail without the migration and pass with it. On production today
 no automation is turned on, so no organisation has had a wrong count.
 
 Rollback: run the `nx_automation_run` definition from `20261116140000_rebuild_automations_v2.sql` again.

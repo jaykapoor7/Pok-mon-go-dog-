@@ -253,12 +253,17 @@ Also present: `nx_missions.deadline` and `deadline_noted`.
 
 ## 6. Closed since the audit (same day)
 
-- **Gaps 1–3 fixed** in `20261116170000_rebuild_automation_rule_fixes.sql`, with six new `test:db` checks. Each check
-  fails without the migration and passes with it.
+- **Gaps 1–3 fixed, and gap 6 in part,** in `20261116170000_rebuild_automation_rule_fixes.sql`, with eight new
+  `test:db` checks. Five of them fail without the migration and pass with it. The other three guard what the fixes
+  must not break: the person who finished is not told, the notice names no patient, and a scheduled run finds what a
+  run by hand finds.
   - `services_stale` counts only each service's latest confirmation.
   - `training_due` leaves out finished courses and tells each person about their own training.
   - A scheduled `alerts_open` run reads with the access of the person who turned it on. The test calls
     `nx_automations_tick()` with nobody signed in.
+  - `referrals_waiting` also counts patients referred to the facility and not yet marked arrived. These are counts
+    only, and the test checks that the notice names no patient. Escalating to the sending facility is still not
+    built.
 - **Gap 14 fixed.** CI now runs `test:kaju-automations`, `test:kaju-intake`, `test:kaju-prepare`,
   `test:careos-webhook`, `test:ai-extract`, `test:auto-approve`, `test:package-check`, `test:monthly`,
   `test:state-machines`, `test:operational-cohorts`, `test:record-dates`, `test:location-cell`,
@@ -270,5 +275,8 @@ Also present: `nx_missions.deadline` and `deadline_noted`.
 - **Gap 10 fixed, not yet tested.** `sendEmailAs` marks the connection expired on a revoked grant, and the worker
   records the message as not connected instead of retrying it five times. No test covers it yet: `markStatus` needs
   the service-role client, and the connection tests have no test double for it.
+- **Gap 12 partly closed.** `test:db` now checks reject and cancel: only the owner may do either, nothing after a
+  rejected step runs, and the schedule runs nothing from a cancelled mission. The missed-deadline notice is still
+  untested.
 - **Row statuses are unchanged by these fixes.** The rules now count the right things, but rows 4, 7, 14, 15, 18, 19
   and 20 still have no follow-up or escalation chain (gap 5). The other gaps above remain as written.

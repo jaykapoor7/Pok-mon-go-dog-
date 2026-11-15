@@ -1,4 +1,4 @@
--- Three automation rules that counted the wrong thing (found in the row-by-row audit, docs/rebuild/AUTOMATIONS-AUDIT.md).
+-- Four automation rules that counted the wrong thing (or too little) (found in the row-by-row audit, docs/rebuild/AUTOMATIONS-AUDIT.md).
 -- Replaces one function; no table or row changes.
 --   services_stale  counted every past confirmation, so a facility that confirmed each day was still told it was stale.
 --                   Now only each service's latest confirmation counts.
@@ -6,13 +6,15 @@
 --                   and each person is told about their own.
 --   alerts_open     always failed when the scheduler ran it, because oh_alerts needs a signed-in programme member. Now a
 --                   scheduled run reads with the access of the person who turned the automation on.
+--   referrals_waiting  counted only handoffs. It now also counts patients referred to the facility and not yet marked
+--                   arrived (counts only).
 -- Rollback: re-run nx_automation_run from 20261116140000_rebuild_automations_v2.sql.
 
 create or replace function public.nx_automation_run(p_id uuid, p_now boolean default false)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   a nx_automations; k text; n int := 0; said text := ''; href text; sent int := 0; who uuid[]; v_run uuid; days int; hours int; td date := (now() at time zone 'Asia/Kolkata')::date;
-  roles text[]; extra int := 0; u uuid; v_claims text := current_setting('request.jwt.claims', true);
+  roles text[]; extra int := 0; u uuid; v_claims text := current_setting('request.jwt.claims', true); v_pat int := 0;
 begin
   select * into a from nx_automations where id = p_id for update;
   if a.id is null then raise exception 'Automation not found'; end if;
@@ -83,7 +85,11 @@ begin
       said := n || ' consented reminder' || case when n = 1 then '' else 's' end || ' queued from the clinicians'' schedule. Sent only through a connected SMS or WhatsApp account; until then each is recorded as not connected.'; href := '/health/pep';
     elsif a.rule = 'referrals_waiting' then
       select count(*) into n from oh_handoffs where to_org = a.org_id and status = 'open' and created_at < now() - make_interval(hours => hours);
-      said := n || ' referral' || case when n = 1 then ' or handoff has' else 's or handoffs have' end || ' waited more than ' || hours || ' hours for your answer'; href := '/health/referrals';
+      -- Patients referred here and not yet marked arrived. Counted only: no patient detail leaves the clinical schema.
+      select count(*) into v_pat from health.transfers where to_org = a.org_id and status = 'sent' and sent_at < now() - make_interval(hours => hours);
+      n := n + v_pat;
+      said := n || ' referral' || case when n = 1 then ' or handoff has' else 's or handoffs have' end || ' waited more than ' || hours || ' hours for your answer'
+        || case when v_pat > 0 then ', including ' || v_pat || ' patient referral' || case when v_pat = 1 then '' else 's' end || ' not yet marked arrived' else '' end; href := '/health/referrals';
     elsif a.rule = 'services_stale' then
       -- Every confirmation is kept as a new row; only each service's latest one says whether it is stale.
       select count(*) into n from (select distinct on (service) verified_at, valid_until from oh_service_status

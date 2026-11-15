@@ -6,7 +6,7 @@ check that proves it is still to run), **Blocked (external)** (works up to an ow
 **Incomplete** (with the reason). Nothing is marked Verified on the strength of a build or a type check alone.
 
 Checks referred to (all run on 2026-11-15 on this branch):
-- `test:db` — 125 checks on a local Postgres running every rebuild migration, acting as different people through row-level security (`scripts/db-tests/run.mjs`, in CI).
+- `test:db` — 139 checks on a local Postgres running every rebuild migration, acting as different people through row-level security (`scripts/db-tests/run.mjs`, in CI).
 - `test:routes` — 7 checks: every sidebar link, every screen Kaju can open and every mapped old link opens a page; no classic route exists (in CI).
 - `test:kaju-planner` (plan validation, composer, model planner against a mock client), `test:kaju-reliability` (47), `test:kaju-polish` (27), `test:kaju-automations` (12), `test:notify-delivery`, `test:inference-off`, `test:state-machines`, `test:operational-cohorts` and ten more suites — all passing, in CI. (Until 2026-11-15 the automations, intake, package, state-machine and record-rule suites were not in `dev-check.yml`, although this list said so; they are now.)
 - e2e — Playwright on a production build, phone (Pixel 7) and desktop (1440): 672 tests; the full run had 601 passing and 23 failing, all fixed and their specs re-run to green (accessibility and rebuild 168/168, NGO, government/health, public and map 433 passing). Signed-in checks run on demo.straypaw.org after each sync (`signed-in-e2e.yml`).
@@ -71,12 +71,12 @@ Checks referred to (all run on 2026-11-15 on this branch):
 | Reliable conversation: invalid or unsafe replies refused, stop, time-out with retry, late answers dropped, expired session, workspace change hides the thread | Verified (browser) | `e2e/nx-kaju-transport.spec.ts` (7 tests, phone and desktop). |
 | Model provider abstraction with Claude | Verified (mock) · Blocked (external) for live | `test:kaju-planner` against a mock client; live needs OWNER_ACTIONS 3. |
 | Tool registry with levels, validated inputs, org rules stricter only | Verified | `test:kaju-planner`; `test:db` policies. |
-| Durable missions: steps, trace, retries with backoff, idempotency, recovery | Verified (database, staging) · cancel and reject not tested | `test:db`; staging mission (27 cases found, approval wait, 27 tasks, same key → same mission). `nx_mission_cancel`, the reject decision and the missed-deadline notice have no test. |
+| Durable missions: steps, trace, retries with backoff, idempotency, cancel, reject, recovery | Verified (database, staging) · deadline notice not tested | `test:db` ("Kaju missions: reject and cancel": only the owner rejects or cancels, nothing after a rejected step runs, the schedule runs nothing from a cancelled mission); staging mission (27 cases found, approval wait, 27 tasks, same key → same mission). The missed-deadline notice has no test. |
 | Human approval; person-only decisions never run | Verified (database) | `test:db`. |
 | Organisation memory with approval and revocation | Verified (database) · UI built | `test:db`. |
 | Screens Kaju opens exist and respect roles | Verified | `test:routes`; `src/lib/kaju/screens.ts`. |
 | Connected services with permission boundaries | Built · Blocked (external) | Needs OAuth apps (OWNER_ACTIONS 8). |
-| Automations across workspaces | Partly verified · see `AUTOMATIONS-AUDIT.md` | `test:db` covers 7 of the 15 rules and the scheduler tick with nobody signed in. Three rules counted the wrong thing and are fixed (`20261116170000`). Against the 30-row matrix: 1 Verified, 1 Built, 1 Blocked (external), 27 Incomplete — rules notify but do not follow up or escalate. |
+| Automations across workspaces | Partly verified · see `AUTOMATIONS-AUDIT.md` | `test:db` covers 8 of the 15 rules and the scheduler tick with nobody signed in. Four rules counted the wrong thing or too little and are fixed (`20261116170000`). Against the 30-row matrix: 1 Verified, 1 Built, 1 Blocked (external), 27 Incomplete — rules notify but do not follow up or escalate. |
 
 ## 5. Healthcare, government, research specifics
 
