@@ -43,6 +43,12 @@ export const VET: NavItem[] = [
   { href: "/next/health/procedures", label: "Procedures", icon: Scissors },
   { href: "/next/health/followups", label: "Follow-ups", icon: ClipboardCheck },
 ];
+/* An independent veterinary clinic: its own patients and visits. */
+export const CLINIC_VET: NavItem[] = [
+  { href: "/next/health/today", label: "Today", icon: Home },
+  { href: "/next/health/patients", label: "Patients", icon: PawPrint },
+  { href: "/next/health/appointments", label: "Appointments", icon: CalendarDays },
+];
 export const VET_PATHS = ["/next/health/patients", "/next/health/appointments", "/next/health/care", "/next/health/procedures", "/next/health/followups"];
 export const LAB: NavItem[] = [
   { href: "/next/health/today", label: "Work queue", icon: Home },

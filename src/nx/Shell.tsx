@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { ChevronsUpDown, Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CH_PEOPLE, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
-import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, VET_PATHS, WS_LABEL, classicOf, homeOf } from "./nav";
+import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, CLINIC_VET, VET_PATHS, WS_LABEL, classicOf, homeOf } from "./nav";
 import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
@@ -97,7 +97,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const cur = (ws !== "ngo" && ws !== "kaju" ? want : null) ?? live.org;
   const lab = live.org ? cur?.kind === "laboratory" : path.startsWith("/next/health/samples") || ["/next/health/testing", "/next/health/results", "/next/health/quality"].some((p) => path.startsWith(p));
   const vet = live.org ? cur?.kind === "veterinary" : VET_PATHS.some((p) => path.startsWith(p));
-  const nav = (ws === "gov" ? GOV : ws === "health" ? (vet ? VET : lab ? LAB : HEALTH) : ws === "research" ? RESEARCH : ws === "kaju" ? KAJU : NGO).filter((i) => !i.office || !live.org || office);
+  const nav = (ws === "gov" ? GOV : ws === "health" ? (vet ? (cur?.source === "vet_clinic" ? CLINIC_VET : VET) : lab ? LAB : HEALTH) : ws === "research" ? RESEARCH : ws === "kaju" ? KAJU : NGO).filter((i) => !i.office || !live.org || office);
   const switchOrg = () => { if (live.orgs.length < 2 || !live.org) return; const next = live.orgs[(live.orgs.findIndex((o) => o.org_id === live.org!.org_id) + 1) % live.orgs.length]; pick(next.org_id); router.push(homeOf(next.workspace, next.org_id)); };
   const sampleOrg = ws === "gov" ? GOV_ORG : ws === "health" ? (vet ? { name: "Kind Hour", short: "KH", kind: "Healthcare · Veterinary" } : lab ? { name: "Reference Rabies Diagnostic Laboratory", short: "RL", kind: "Healthcare · Laboratory" } : CLINIC) : ws === "research" ? { name: "Programme Epidemiology Unit", short: "PE", kind: "Research" } : ORG;
   const org = cur ? { name: cur.name, short: ((ws) => (ws.length > 1 ? ws.map((w) => w[0]).join("") : (ws[0] ?? "").slice(0, 2)).slice(0, 2).toUpperCase())((cur.short_name ?? cur.name).split(/[^A-Za-z0-9]+/).filter(Boolean)), kind: vet ? "Healthcare · Veterinary" : WS_LABEL[cur.workspace] ?? cur.kind } : sampleOrg;

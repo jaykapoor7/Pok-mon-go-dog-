@@ -18,6 +18,7 @@ import { useLive, type Workspace } from "../../live";
 import { readCareLog, readLanes, readMedicalCases, shortCode, type CareLogRow, type LaneCard, type Lanes, type MedicalCase } from "../../data/ngo";
 import { SAMPLE_CARE, SAMPLE_LANES, type SampleCare } from "../../data/ngo-sample";
 import { RecordList, type RCol, type RView } from "./RecordList";
+import { SharedClinicStatus } from "../VetClinic";
 
 /* Operations: the field visits due, grouped by day and place so a team can plan a round; the care log (every care event
    in date order beside its animal, and the cases that carry medical work); and the two lines of work, rescues and
@@ -48,6 +49,7 @@ export function Operations() {
         : part === "Care log" ? <CareLog ngo={ngo} tabs={tabs} action={field} />
         : part === "Map" ? <OrgMap ngo={ngo} tabs={tabs} action={field} />
         : <LanePage ngo={ngo} tabs={tabs} action={field} which={part === "Rescues" ? "rescue" : "abc"} />}
+      {part === "Care log" && ngo ? <div className="nx-page" style={{ maxWidth: "none", paddingTop: 0 }}><SharedClinicStatus ngoId={ngo.org_id} /></div> : null}
     </Shell>
   );
 }

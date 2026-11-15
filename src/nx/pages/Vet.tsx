@@ -11,6 +11,7 @@ import { Chip, Sample } from "../ui";
 import { VET_APPTS, VET_CASES, VET_PROCS, type Tone, type VetAppt, type VetCase, type VetProc } from "../fixtures";
 import { HealthToday } from "./Health";
 import { bookAppointment, setAppointmentStatus, useAppointments, useCases, useDogs, useLive, type Appointment, type Case, type Dog } from "../live";
+import { ClinicPatients, ClinicToday } from "./VetClinic";
 
 /* The veterinary experience, inside Healthcare, for a veterinarian of an NGO. It reads that NGO's own animals, cases,
    procedures and follow-ups; appointments are the only new record. Clinical findings and sign-offs are recorded on
@@ -133,6 +134,11 @@ export function ClinicalCare() {
 
 type PatRow = { id: string; animal: string; cases: number; worst: VetCase["severity"]; titles: string; dogId: string | null };
 export function Patients() {
+  const live = useLive(); const hc = live.orgFor("healthcare");
+  if (live.org && hc?.source === "vet_clinic") return <ClinicPatients clinic={hc} />;
+  return <NgoPatients />;
+}
+function NgoPatients() {
   const v = useVet(); const c = useCare(v);
   const rows: PatRow[] = useMemo(() => {
     const by = new Map<string, CareRow[]>();
@@ -236,5 +242,8 @@ export function VetToday() {
 /** Healthcare's Today: a veterinarian of an NGO gets their day; a clinic or laboratory gets theirs. */
 export function HealthHome() {
   const live = useLive();
-  return live.orgFor("healthcare")?.kind === "veterinary" ? <VetToday /> : <HealthToday />;
+  const hc = live.orgFor("healthcare");
+  /* An independent clinic keeps its own patients; a veterinarian of an NGO works on that NGO's animals. */
+  if (live.org && hc?.source === "vet_clinic") return <ClinicToday clinic={hc} />;
+  return hc?.kind === "veterinary" ? <VetToday /> : <HealthToday />;
 }
