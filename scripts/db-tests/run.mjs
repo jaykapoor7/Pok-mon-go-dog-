@@ -18,7 +18,7 @@ const MIGRATIONS = [
   "20261116100000_rebuild_collaboration.sql", "20261116110000_rebuild_kaju_engine.sql", "20261116120000_rebuild_research_access.sql",
   "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
-  "20261116170000_rebuild_automation_rule_fixes.sql",
+  "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -273,9 +273,10 @@ const nurse = uuid(); await db.query("insert into auth.users (id) values ($1)", 
 await db.query("insert into oh_members (organisation_id, user_id, role) values ($1, $2, 'lead'), ($1, $3, 'nurse')", [clinic, P, nurse]);
 const ex1 = (await one("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, 'B-1', current_date - 3, current_date - 3, 'bite', true, '+91 98450 00001') returning id", [clinic])).id;
 const ex2 = (await one("insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, 'B-2', current_date - 3, current_date - 3, 'bite', false, null) returning id", [clinic])).id;
+// Due dates are clinic days in India, as the rules count them (UTC and IST dates differ for 5½ hours each night).
 for (const [ex, d] of [[ex1, 0], [ex2, 0], [ex2, -2]]) {
   const course = (await one("insert into health.pep_courses (exposure_id, regimen, prescribed_by) values ($1, 'Essen 4-dose IM', $2) on conflict (exposure_id) do update set regimen = excluded.regimen returning id", [ex, P])).id;
-  await db.query("insert into health.pep_doses (course_id, dose_no, due_on) values ($1, (select coalesce(max(dose_no), 0) + 1 from health.pep_doses where course_id = $1), current_date + $2::int)", [course, d]);
+  await db.query("insert into health.pep_doses (course_id, dose_no, due_on) values ($1, (select coalesce(max(dose_no), 0) + 1 from health.pep_doses where course_id = $1), (now() at time zone 'Asia/Kolkata')::date + $2::int)", [course, d]);
 }
 const due = (await as(P, "select nx_automation_save($1, 'pep_doses_due', 'PEP doses due', 'day', '{}', 'clinical') as id", [clinic]))[0].id;
 ok((await as(P, "select nx_automation_run($1, false) as r", [due]))[0].r.found === 2, "doses due today are counted from the clinician's schedule");
@@ -330,6 +331,69 @@ section("Automation rules count the right things");
   const sched = await one("select status, found, error from nx_automation_runs where automation_id = $1 and dedupe_key not like '%:now:%'", [al]);
   ok(sched && sched.status !== "failed", `a scheduled signals check runs with nobody signed in (${sched?.status} ${sched?.error ?? ""})`);
   ok(sched && (sched.found ?? 0) === (byHand.found ?? 0), "and finds what the coordinator's own run found");
+  await db.query("update nx_automations set status = 'active'");
+}
+
+section("Automations follow up: acknowledgement, escalation and closure");
+{
+  const nextSecond = () => new Promise((r) => setTimeout(r, 1100)); // two "Run now" in one second are one run (double-click guard)
+  const dup = (await one("insert into dogs (ngo_id, name, identity_state) values ($1, 'Brownie', 'possible_duplicate') returning id", [N1])).id;
+  const fa = (await as(A, "select nx_automation_save($1, 'possible_duplicates', 'Possible duplicates', 'day', '{\"escalate_hours\":2}') as id", [N1]))[0].id;
+  const r1 = (await as(A, "select nx_automation_run($1, true) as r", [fa]))[0].r;
+  const run1 = await one("select id, open_since, resolved_at, acknowledged_at from nx_automation_runs where automation_id = $1 and status = 'succeeded' order by finished_at desc limit 1", [fa]);
+  ok(r1.found === 1 && run1.open_since && !run1.resolved_at && !run1.acknowledged_at, "a run that tells people opens a follow-up");
+  const nudges = async (who) => (await as(who, "select id from nx_notifications where title = 'Not picked up: Possible duplicates'")).length;
+
+  // Nobody acknowledges it within the rule's hours: the schedule tells the admins and leads, once.
+  await db.query("update nx_automations set status = 'paused' where id <> $1", [fa]);
+  await db.query("update nx_automation_runs set open_since = now() - interval '3 hours' where id = $1", [run1.id]);
+  await db.query("select set_config('request.jwt.claims', '', false)");
+  await db.query("select nx_automations_tick()");
+  ok((await one("select escalated_at from nx_automation_runs where id = $1", [run1.id])).escalated_at !== null, "a follow-up nobody picked up is escalated by the schedule");
+  ok(await nudges(A) === 1 && await nudges(B) === 0, "the admin is told it was not picked up; a member who does not lead is not");
+  await db.query("select nx_automations_tick()");
+  ok(await nudges(A) === 1, "it is escalated once, not every hour");
+
+  // A member says what is being done; someone outside cannot.
+  ok(await refused(C, "select nx_automation_ack($1, 'Not mine')", [run1.id]) !== null, "another organisation cannot acknowledge it");
+  ok(await refused(B, "select nx_automation_ack($1, 'ok')", [run1.id]) !== null, "an acknowledgement must say what is being done");
+  await as(B, "select nx_automation_ack($1, 'Checking both records against the photos')", [run1.id]);
+  const ack = await one("select acknowledged_by, outcome, resolved_at from nx_automation_runs where id = $1", [run1.id]);
+  ok(ack.acknowledged_by === B && ack.outcome.startsWith("Checking") && ack.resolved_at === null, "the acknowledgement keeps who, when and what, and leaves it open");
+
+  // Still found on the next run: the new run is open with a fresh clock (it was acknowledged); the old one is carried.
+  await nextSecond(); await as(A, "select nx_automation_run($1, true)", [fa]);
+  const runs = await db.query("select id, resolved_note, open_since > now() - interval '1 minute' as fresh from nx_automation_runs where automation_id = $1 and status = 'succeeded' order by finished_at", [fa]);
+  ok(runs.rows.length === 2 && runs.rows[0].resolved_note === "Carried into a later run" && runs.rows[1].fresh, "a later run carries the earlier follow-up and starts its own");
+
+  // Unacknowledged and still found: the clock and the escalation carry, so a daily rule cannot restart the wait.
+  await db.query("update nx_automation_runs set open_since = now() - interval '5 hours', escalated_at = now() - interval '1 hour' where id = $1", [runs.rows[1].id]);
+  await nextSecond(); await as(A, "select nx_automation_run($1, true)", [fa]);
+  const carried = await one("select open_since < now() - interval '4 hours' as old, escalated_at is not null as esc from nx_automation_runs where automation_id = $1 and status = 'succeeded' and resolved_at is null", [fa]);
+  ok(carried.old && carried.esc, "an unacknowledged follow-up keeps its clock and its escalation into the next run");
+  await db.query("select nx_automations_tick()");
+  ok(await nudges(A) === 1, "and is not escalated a second time");
+
+  // The duplicate is resolved: the next run finds nothing and closes what was open.
+  await db.query("update dogs set identity_state = 'confirmed' where id = $1", [dup]);
+  await nextSecond(); await as(A, "select nx_automation_run($1, true)", [fa]);
+  ok((await one("select count(*)::int n from nx_automation_runs where automation_id = $1 and status = 'succeeded' and resolved_at is null", [fa])).n === 0, "a run that finds nothing closes the open follow-up");
+
+  // Closing by hand, with the reason; and escalation turned off.
+  await db.query("update dogs set identity_state = 'possible_duplicate' where id = $1", [dup]);
+  await as(A, "select nx_automation_save($1, 'possible_duplicates', 'Possible duplicates', 'day', '{\"escalate_hours\":0}')", [N1]);
+  await nextSecond(); await as(A, "select nx_automation_run($1, true)", [fa]);
+  const open = await one("select id from nx_automation_runs where automation_id = $1 and status = 'succeeded' and resolved_at is null", [fa]);
+  await db.query("update nx_automation_runs set open_since = now() - interval '48 hours' where id = $1", [open.id]);
+  await db.query("select nx_automations_tick()");
+  ok((await one("select escalated_at from nx_automation_runs where id = $1", [open.id])).escalated_at === null, "with escalation off, nothing is escalated");
+  await as(A, "select nx_automation_ack($1, 'Same dog; records already linked by hand', true)", [open.id]);
+  const closed = await one("select resolved_at, resolved_note from nx_automation_runs where id = $1", [open.id]);
+  ok(closed.resolved_at !== null && /^Closed by /.test(closed.resolved_note), "a member can close it with the reason, named");
+  ok(await refused(A, "select nx_automation_ack($1, 'again')", [open.id]) !== null, "a closed follow-up cannot be acknowledged again");
+  // A malformed escalation setting cannot stop the schedule for everyone.
+  await db.query("update nx_automations set params = params || '{\"escalate_hours\":\"soon\"}' where id = $1", [fa]);
+  ok(await db.query("select nx_automations_tick()").then(() => true, () => false), "a malformed escalation setting does not stop the schedule");
   await db.query("update nx_automations set status = 'active'");
 }
 
