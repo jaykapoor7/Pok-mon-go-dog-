@@ -82,6 +82,31 @@ test("Verification: the office queue sorts what waits longest first, and states 
   await noSideScroll(page);
 });
 
+test("Healthcare: a clinic's day and register, with doses only counted as given at the clinic", async ({ page }) => {
+  await open(page, "/next/health/today");
+  await expect(page.locator(".nx-sub").first()).toContainText("2 doses due today, 1 overdue");
+  await open(page, "/next/health/bites");
+  await expect(page.locator("button.nx-tr")).toHaveCount(6);
+  await page.getByRole("tab", { name: /Dose overdue/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(1);
+  await open(page, "/next/health/pep");
+  await expect(page.locator("button.nx-tr").first()).toContainText("Overdue");
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("A reminder sent is not a dose given");
+  await noSideScroll(page);
+});
+
+test("Laboratory: the work queue puts the oldest sample first, and results wait for validation", async ({ page }) => {
+  await open(page, "/next/health/samples");
+  await expect(page.locator("button.nx-tr")).toHaveCount(3);
+  await expect(page.locator("button.nx-tr").first()).toContainText("SX-ILL-004");
+  await page.getByRole("tab", { name: /Resulted/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("Kaju never interprets or releases a result");
+  await noSideScroll(page);
+});
+
 test("Insights: choosing a ward narrows the figures and the table together", async ({ page }) => {
   await open(page, "/next/gov/overview");
   await expect(page.locator("button.nx-tr")).toHaveCount(6);
