@@ -61,6 +61,37 @@ function useRows<T>(key: string | null, read: () => PromiseLike<{ data: unknown;
 export function useChannels(orgId: string | null) {
   return useRows<Channel>(orgId, () => getSupabase()!.from("nx_channels").select("id,name,topic,kind").eq("org_id", orgId!).order("name"));
 }
+/* ── Direct messages and unread ─────────────────────────────────── */
+export type Person = { user_id: string; name: string; role: string };
+export type Dm = { channel_id: string; other_id: string; other_name: string; last_at: string | null };
+/** People in an organisation, by display name only, for starting a direct message. */
+export function useOrgPeople(orgId: string | null) {
+  return useRows<Person>(orgId, () => getSupabase()!.rpc("nx_org_people", { p_org: orgId! }));
+}
+export function useDms(orgId: string | null) {
+  return useRows<Dm>(orgId, () => getSupabase()!.rpc("nx_my_dms", { p_org: orgId! }));
+}
+/** Opens (or finds) the direct message with one person and returns its channel name for the address bar. */
+export async function openDm(orgId: string, userId: string): Promise<{ name: string | null; error: string | null }> {
+  const db = getSupabase()!;
+  const { data, error } = await db.rpc("nx_open_dm", { p_org: orgId, p_user: userId });
+  if (error) return { name: null, error: error.message };
+  const ch = await db.from("nx_channels").select("name").eq("id", data as string).single();
+  return { name: (ch.data?.name as string | undefined) ?? null, error: ch.error?.message ?? null };
+}
+/** New messages by others since the person last opened each channel. Re-read when `tick` changes. */
+export function useUnread(orgId: string | null, tick: unknown) {
+  const [map, setMap] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const db = getSupabase(); if (!db || !orgId) { setMap({}); return; }
+    let alive = true;
+    db.rpc("nx_unread", { p_org: orgId }).then(({ data, error }) => { if (!alive || error) return; const m: Record<string, number> = {}; for (const r of (data ?? []) as { channel_id: string; unread: number }[]) if (r.unread) m[r.channel_id] = r.unread; setMap(m); });
+    return () => { alive = false; };
+  }, [orgId, tick]);
+  return map;
+}
+export const markRead = (channelId: string) => getSupabase()!.rpc("nx_mark_read", { p_channel: channelId });
+
 export async function createChannel(orgId: string, name: string, topic: string) {
   return getSupabase()!.from("nx_channels").insert({ org_id: orgId, name, topic }).select("id,name,topic,kind").single();
 }
@@ -143,6 +174,16 @@ export function useAnimal(ngoId: string | null, id: string | null) {
   }, [ngoId, id]);
   return state;
 }
+
+/* ── Veterinary appointments ────────────────────────────────────── */
+export type Appointment = { id: string; org_id: string; dog_id: string | null; case_id: string | null; title: string; kind: string; starts_at: string; duration_min: number; status: "booked" | "done" | "missed" | "cancelled"; note: string | null; vet_name: string | null; created_at: string };
+export function useAppointments(orgId: string | null) {
+  return useRows<Appointment>(orgId, () => getSupabase()!.from("nx_appointments").select("id,org_id,dog_id,case_id,title,kind,starts_at,duration_min,status,note,vet_name,created_at").eq("org_id", orgId!).order("starts_at", { ascending: true }).limit(300));
+}
+export const bookAppointment = (a: { org_id: string; dog_id: string | null; title: string; kind: string; starts_at: string; duration_min: number; vet_name: string | null; note: string | null }) =>
+  getSupabase()!.from("nx_appointments").insert(a).select("id").single();
+export const setAppointmentStatus = (id: string, status: Appointment["status"]) =>
+  getSupabase()!.from("nx_appointments").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
 
 /* ── Kaju missions ───────────────────────────────────────────────── */
 export type MissionRow = { id: string; org_id: string; owner_id?: string | null; title: string; state: string; created_at: string; updated_at?: string | null; request: Record<string, string | null>; nx_mission_steps: { position: number; label: string; state: string; tool?: string | null; approved_at?: string | null; result: { tasks?: { title: string; label: string; due: string | null }[]; created?: number; posted?: boolean } | null }[] };

@@ -41,7 +41,7 @@ function SampleAnimals() {
       <div className="nx-page" style={{ maxWidth: "none" }}>
         <div className="nx-head">
           <div><h1 className="nx-h1">Animals<Sample /></h1><p className="nx-sub"><b className="num">{rows.length}</b> of {ANIMALS.length} on the register. Each row says how far its record has been checked.</p></div>
-          <button type="button" className="nx-btn"><Plus size={14} />Add an animal</button>
+          <Link href="/try" className="nx-btn" title="Opens the live demo, where this works"><Plus size={14} />Add an animal</Link>
         </div>
         <div className="nx-bar">
           <div className="nx-views" role="tablist" aria-label="Views">

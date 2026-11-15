@@ -6,13 +6,13 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ClipboardPlus, Plus, Share2, Stethoscope } from "lucide-react";
 import { Shell } from "../Shell";
 import { Sample, TrustChip, initials } from "../ui";
-import { ANIMALS } from "../fixtures";
+import { ANIMALS, RELATED, TIMELINE } from "../fixtures";
 import { AnimalBody } from "./AnimalBody";
 import { Check as Tick, ArrowUpRight, Info } from "lucide-react";
 import { Chip } from "../ui";
 import { useAnimal, useLive, type TimelineEvent } from "../live";
 
-const TABS = ["Summary", "Interventions", "Cases", "Evidence", "Activity"];
+const TABS = ["Summary", "Cases", "Activity"];
 
 function SampleRecord({ id }: { id: string }) {
   const a = ANIMALS.find((x) => x.id === id);
@@ -31,7 +31,11 @@ function SampleRecord({ id }: { id: string }) {
       <div className="nx-tabs" role="tablist" aria-label="Record sections">
         {TABS.map((t) => <button key={t} type="button" role="tab" aria-selected={tab === t} className={`nx-tab ${tab === t ? "is-on" : ""}`} onClick={() => setTab(t)}>{t}{tab === t ? <motion.span layoutId="nx-tab" className="nx-tab-line" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 620, damping: 46 }} /> : null}</button>)}
       </div>
-      {tab === "Summary" ? <AnimalBody a={a} /> : <div className="nx-page"><p className="nx-sub">{tab} is not built yet. Summary shows the full record.</p></div>}
+      {tab === "Summary" ? <AnimalBody a={a} /> : tab === "Cases" ? (
+        <div className="nx-page"><h3 className="nx-h3">Cases and work <span className="nx-count">{RELATED.length}</span></h3><div className="nx-rel">{RELATED.map((r) => <span key={r.ref} className="nx-rel-i"><ArrowUpRight size={13} /><span className="num">{r.ref}</span><span style={{ color: "var(--ink-3)" }}>{r.what}</span><small>{r.state}</small></span>)}</div></div>
+      ) : (
+        <div className="nx-page" style={{ maxWidth: 720 }}><ol className="nx-tl">{TIMELINE.map((e) => <li key={`${e.title}-${e.when}`}><span className={`nx-tl-d ${e.tone === "ok" ? "t-ok" : e.tone === "accent" ? "t-accent" : ""}`}>{e.tone === "ok" ? <Tick size={10} strokeWidth={3} /> : null}</span><div><b>{e.title}</b><small>{e.when} · {e.by}</small><p>{e.body}</p><div className="nx-tl-c">{e.chips.map(([c, t]) => <Chip key={c} tone={t}>{c}</Chip>)}</div></div></li>)}</ol></div>
+      )}
     </Shell>
   );
 }
