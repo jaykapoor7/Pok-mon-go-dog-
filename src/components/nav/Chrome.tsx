@@ -86,7 +86,6 @@ const SELF_SHELLED = new Set<string>([
   "/following",
   "/insights",
   "/resources",
-  "/learn",
   "/stories",
   "/orgs",
 ]);
@@ -94,8 +93,12 @@ const SELF_SHELLED = new Set<string>([
 /** StrayPaw 3.0 public and entry pages render their own nav and footer. */
 const S3_PUBLIC = /^\/(pricing|abc-operations|security|research|for-governments|for-ngos|for-funders|for-hospitals|platform|ai|kaju-agents|blog|product-updates|roadmap|events|teams|whatsapp|customers|demo|docs|solutions|sign-in|app|partners|faq|donate|safety|bite-help|privacy|terms|cookies)(\/|$)/;
 
-/** StrayPaw 2.0 routes mount their own shell (src/sp/shell/Shell). */
-const SP2 = /^\/(community|ngo|city|learn|animal|search|trust|assistant|today|workspace|programme)(\/|$)/;
+/** Classic app routes still in the (app) route group, which mounts their frame (src/sp/shell/Shell). */
+const SP2 = /^\/(ngo|assistant|today|workspace|programme|city\/(review|contracts|connections)|fundraisers\/new)(\/|$)/;
+
+/** Public record pages rebuilt on the public site kit (src/sp4/pub), outside the (app) group: they render
+    the site header and footer themselves (the operator console at /trust its own bar), never the app frame. */
+const PUBLIC_RECORD = /^\/(community|animal|fundraisers|learn|search|offline|city|trust)(\/|$)/;
 
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -106,7 +109,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
   // ISR can render the root through an internal pathname. The route tree
   // identifies the landing page consistently during regeneration and in the
   // browser, so its server HTML never acquires the application console.
-  const own = segments.length === 0 || OWN_CHROME.has(pathname) || S3_PUBLIC.test(pathname) || pathname.startsWith("/org/") || pathname.startsWith("/dog/");
+  const own = segments.length === 0 || OWN_CHROME.has(pathname) || S3_PUBLIC.test(pathname) || PUBLIC_RECORD.test(pathname) || pathname.startsWith("/org/") || pathname.startsWith("/dog/");
   if (own) return <><a href="#main-content" className="skip-link">Skip to content</a><div id="main-content" tabIndex={-1}>{children}</div></>;
 
   if (pathname.startsWith("/embed/") || pathname.startsWith("/org/")) return <>{children}</>;

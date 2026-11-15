@@ -1,0 +1,15 @@
+/* One animal's public record. */
+.an-head { display: grid; grid-template-columns: 320px minmax(0, 1fr); grid-template-areas: "back back" "pic id"; gap: 16px 32px; align-items: start; padding-top: 24px; padding-bottom: 32px; }
+.an-back { grid-area: back; margin-left: -12px; }
+.an-pic { grid-area: pic; min-width: 0; }
+.an-id { grid-area: id; display: grid; gap: 12px; justify-items: start; min-width: 0; }
+.an-code { font-size: 14px; color: var(--s4-ink); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.02em; overflow-wrap: anywhere; }
+.an-code span { font-family: var(--s4-sans); letter-spacing: 0; color: var(--pb-mute); }
+.an-acts { display: grid; gap: 8px; }
+.an-years { display: grid; }
+.an-note { font-weight: 400; white-space: pre-wrap; }
+.an-area { display: block; width: 100%; max-width: 320px; height: auto; }
+@media (max-width: 760px) {
+  .an-head { grid-template-columns: minmax(0, 1fr); grid-template-areas: "back" "pic" "id"; padding-top: 8px; padding-bottom: 24px; }
+  .an-pic { max-width: 420px; }
+}

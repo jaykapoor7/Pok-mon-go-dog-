@@ -373,7 +373,7 @@ function AreaCard({ cell, city, area, onAnimal, variant }: { cell: MapCell; city
       )}
       <p className="fm-note">On the map, each dot is one recorded animal, arranged inside this area. A dot is not where the animal was seen.</p>
       {variant === "community" && <Link className="fm-btn is-flame" href={`/community/report?lat=${cell.c[1]}&lng=${cell.c[0]}`}><Radio size={16} aria-hidden /> Report an animal here</Link>}
-      {variant === "ngo" && <Link className="fm-btn is-flame" href={`/ngo/cases/new?lat=${cell.c[1].toFixed(5)}&lng=${cell.c[0].toFixed(5)}&zone=${encodeURIComponent(placeName(cell.zone))}`}><Radio size={16} aria-hidden /> Open a case in this area</Link>}
+      {variant === "ngo" && <Link className="fm-btn is-flame" href={`/next/ngo/cases/new?lat=${cell.c[1].toFixed(5)}&lng=${cell.c[0].toFixed(5)}&zone=${encodeURIComponent(placeName(cell.zone))}`}><Radio size={16} aria-hidden /> Open a case in this area</Link>}
     </div>
   );
 }
@@ -416,9 +416,9 @@ function AnimalCard({ a, city, cell, variant, embedded }: { a: AreaAnimal; city:
       </ol>
       <p className="fm-note">{a.org ? `Kept by ${a.org}. ` : ""}Placed by area, not by street. A status is as recorded, never assumed.</p>
       <div className="fm-acts">
-        <Link className="fm-btn is-ink" href={variant === "ngo" ? `/ngo/animals/${a.id}` : `/animal/${a.id}${from ? `?from=${encodeURIComponent(from)}` : ""}`}>{variant === "ngo" ? "Casefile" : "The full record"} <ArrowUpRight size={16} aria-hidden /></Link>
+        <Link className="fm-btn is-ink" href={variant === "ngo" ? `/next/ngo/animals/${a.id}` : `/animal/${a.id}${from ? `?from=${encodeURIComponent(from)}` : ""}`}>{variant === "ngo" ? "Casefile" : "The full record"} <ArrowUpRight size={16} aria-hidden /></Link>
         {variant === "community" && <Link className="fm-btn is-flame" href={`/community/report?animal=${a.id}`}><Radio size={16} aria-hidden /> I saw this animal</Link>}
-        {variant === "ngo" && <Link className="fm-btn is-flame" href={`/ngo/cases/new?dog=${a.id}`}><Radio size={16} aria-hidden /> Open a case</Link>}
+        {variant === "ngo" && <Link className="fm-btn is-flame" href={`/next/ngo/cases/new?dog=${a.id}`}><Radio size={16} aria-hidden /> Open a case</Link>}
         <button type="button" className="fm-btn" onClick={share}><Share2 size={16} aria-hidden /> {copied ? "Link copied" : "Share"}</button>
       </div>
     </article>
@@ -479,7 +479,7 @@ function PickBar({ variant, zoom, center, onCancel }: { variant: MapVariant; zoo
   const router = useRouter();
   const close = zoom >= 11 && center;
   const ngo = variant === "ngo";
-  const base = ngo ? "/ngo/cases/new" : "/community/report";
+  const base = ngo ? "/next/ngo/cases/new" : "/community/report";
   return (
     <>
       <div className="fm-cross" aria-hidden><Crosshair size={36} /></div>
