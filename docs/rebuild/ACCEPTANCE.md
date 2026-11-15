@@ -6,10 +6,11 @@ check that proves it is still to run), **Blocked (external)** (works up to an ow
 **Incomplete** (with the reason). Nothing is marked Verified on the strength of a build or a type check alone.
 
 Checks referred to:
-- `test:db` — 97 checks on a local Postgres running every rebuild migration, acting as different people through row-level security (`scripts/db-tests/run.mjs`, in CI).
+- `test:db` — 114 checks on a local Postgres running every rebuild migration, acting as different people through row-level security (`scripts/db-tests/run.mjs`, in CI).
 - `test:kaju-planner` — 32 checks: plan validation, fixed-rule plans, the composer, the model planner against a mock client.
 - `test:notify-delivery` — 12 checks: quiet hours, providers not set up, retries, approvals not held.
 - e2e — Playwright suites in `e2e/` (signed out on every push; signed in on demo.straypaw.org after each sync).
+- staging — checks run on the staging database (`ucxfxiddufwqithtdtix`) with its sample organisations, inside a transaction that is rolled back, so nothing is left behind.
 
 ## 1. Classic retired
 
@@ -46,7 +47,7 @@ Checks referred to:
 | Requirement | Status | Evidence / reason |
 | --- | --- | --- |
 | Channels, DMs, threads, unread | Verified | Earlier release; `test:db` DM privacy. |
-| @mentions with notifications only to people who can read the channel | Verified (database) | `test:db`: outsider mention dropped, notification without wording. |
+| @mentions with notifications only to people who can read the channel | Verified (database, staging) | `test:db`: outsider mention dropped, notification without wording; staging 2026-11-15: a mention of another NGO's person was dropped, a member found the message and was notified, the outsider found, was notified about and could read nothing. |
 | Reactions, files, edit/delete with history, announcements | Verified (database) · UI built | `test:db` channel checks. |
 | Message search respecting access | Verified (database) | `test:db`: search never returns another organisation's or a DM's messages. |
 | Record-attached discussions | Verified (database) · UI built | `test:db` record threads; `RecordThread` component. |
@@ -61,7 +62,7 @@ Checks referred to:
 | Composer that understands while typing, corrections, one submit | Verified (logic) · UI built | `test:kaju-planner` composer checks. |
 | Model provider abstraction with Claude | Verified (mock) · Blocked (external) for live | `test:kaju-planner` model planner against a mock client; live needs OWNER_ACTIONS 3. |
 | Tool registry with levels, validated inputs, org rules stricter only | Verified | `test:kaju-planner` validation; `test:db` policies. |
-| Durable missions: steps, trace, retries with backoff, idempotency, cancel, recovery | Verified (database) | `test:db` "Kaju missions". |
+| Durable missions: steps, trace, retries with backoff, idempotency, cancel, recovery | Verified (database, staging) | `test:db` "Kaju missions"; staging 2026-11-15: a mission on the sample NGO found 27 open cases, waited for approval, made 27 tasks once approved, the same start key returned the same mission, trace created → waiting_approval → approved → completed. |
 | Human approval for consequential steps; person-only decisions never run | Verified (database) | `test:db`. |
 | Organisation memory with approval and revocation | Verified (database) · UI built | `test:db` "Organisation memory". |
 | Connected services with permission boundaries | Built · Blocked (external) | Approved mission emails send from the approver's own connection; needs OAuth apps (OWNER_ACTIONS 8). |
@@ -97,8 +98,8 @@ Checks referred to:
 | 8 | Research access, versioned extract, revocation | Verified (database) |
 | 9 | @Kaju summarises a thread, proposes a task, user confirms | Built (earlier release) |
 | 10 | Composer identifies ward/date/person, correction, one submit | Verified (logic) |
-| 11 | Mission pauses for approval, resumes, retry without duplicates | Verified (database) |
-| 12 | Mixed-organisation isolation including search | Verified (database) |
+| 11 | Mission pauses for approval, resumes, retry without duplicates | Verified (database, staging) |
+| 12 | Mixed-organisation isolation including search | Verified (database, staging) |
 | 13 | Offline report caches and syncs without double posting | Built, not yet verified |
 | 14 | Reduced motion and keyboard only | Incomplete |
 | 15 | Charts and maps with numerator, denominator, freshness | Built (earlier releases) |
