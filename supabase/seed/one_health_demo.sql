@@ -259,7 +259,7 @@ UPDATE health.exposures e SET referred_to = t.to_org FROM health.transfers t WHE
 -- afterwards: an insert also writes the animal's timeline, audit and
 -- workflow rows, and deleting would leave those behind.
 INSERT INTO public.medical_events (id, dog_id, kind, event_date, notes, performed_by, is_demo)
-SELECT ('f4000000-0000-4000-8000-' || lpad(rn::text, 12, '0'))::uuid, id, 'vaccination', current_date - (300 + (rn * 17) % 100),
+SELECT ('f4000000-0000-4000-8000-' || lpad(rn::text, 12, '0'))::uuid, id, 'vaccination', current_date - (300 + (rn * 17) % 100)::int,
        'Illustrative vaccination date, for the revaccination demonstration', 'Sample field team', true
   FROM (SELECT d.id, row_number() OVER (ORDER BY d.id) rn FROM public.dogs d
          WHERE d.ngo_id = 'd0000000-0000-4000-8000-0000000000a0' AND d.vaccination_status = 'vaccinated') x
