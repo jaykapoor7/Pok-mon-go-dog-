@@ -10,7 +10,7 @@
    environment and redeploy the same commit. Nothing else changes.
 
    It is read here once and written into the build. The four places that
-   choose (src/app/page.tsx, src/app/kaju/page.tsx, and the header and
+   choose (src/app/page.tsx, src/app/ai/page.tsx, and the header and
    footer in src/components/site) compare this same value, which the build
    turns into a constant, so the experience not shown, with its scripts
    and styles, is left out of the bundles. ─────────────────────────────── */

@@ -12,7 +12,7 @@ import { World } from "./world/World";
 import "./cine.css";
 
 const COLS: { h: string; links: [string, string][] }[] = [
-  { h: "Platform", links: [["/platform", "Overview"], ["/kaju", "Kaju"], ["/abc-operations", "ABC operations"], ["/security", "Security"], ["/pricing", "Pricing"]] },
+  { h: "Platform", links: [["/platform", "Overview"], ["/ai", "Kaju"], ["/abc-operations", "ABC operations"], ["/security", "Security"], ["/pricing", "Pricing"]] },
   { h: "Solutions", links: [["/for-ngos", "NGOs and veterinary teams"], ["/for-governments", "Municipal government"], ["/for-hospitals", "Hospitals and public health"], ["/research", "Researchers"], ["/for-funders", "CSR sponsors"]] },
   { h: "Proof", links: [["/customers", "Field partners"], ["/demo", "Book a demo"], ["/evidence", "Evidence"], ["/status", "Status"], ["/roadmap", "Roadmap"], ["/product-updates", "Product updates"]] },
   { h: "Company", links: [["/our-story", "Our story"], ["/docs", "Help"], ["/contact", "Contact"], ["/privacy", "Privacy"], ["/terms", "Terms"]] },

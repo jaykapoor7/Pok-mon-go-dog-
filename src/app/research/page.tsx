@@ -21,7 +21,7 @@ export default function ResearchPage() {
             <p className="rs-eyebrow">StrayPaw Research</p>
             <h1 className="rs-h1"><TwoTone a="Records you can check," b="data you can cite" /></h1>
             <p className="rs-lede">For researchers working on dog populations and rabies in India. Every dataset states its source, licence and limits.</p>
-            <div className="rs-actions"><Link href="/research/datasets" className="s4-btn is-primary">Browse datasets</Link><Link href="/research/workbench" className="s4-btn is-line">Open the workbench</Link><Link href="/research/access" className="s4-btn is-line">Request data access</Link></div>
+            <div className="rs-actions"><Link href="/research/catalogue" className="s4-btn is-primary">Browse datasets</Link><Link href="/research/workbench" className="s4-btn is-line">Open the workbench</Link><Link href="/research/access" className="s4-btn is-line">Request data access</Link></div>
           </div>
           <aside className="rs-glance" aria-label="Catalogue at a glance">
             <p className="rs-glance-h">Catalogue at a glance</p>
@@ -39,9 +39,9 @@ export default function ResearchPage() {
       <section className="s4-sec rs-body" aria-labelledby="rs-cat">
         <div className="s4-wrap rs-cols">
           <div>
-            <div className="rs-sec-h"><h2 id="rs-cat" className="rs-h2">Dataset catalogue</h2><Link href="/research/datasets" className="s4-link">Full catalogue <ArrowRight size={15} aria-hidden /></Link></div>
+            <div className="rs-sec-h"><h2 id="rs-cat" className="rs-h2">Dataset catalogue</h2><Link href="/research/catalogue" className="s4-link">Full catalogue <ArrowRight size={15} aria-hidden /></Link></div>
             <ul className="rs-list">
-              {DATASETS.map((d) => <li key={d.id}><Link href={`/research/datasets#${d.id}`}><span><b>{d.title}</b><small>{d.holder} · {d.geography}</small></span><span className={`rs-pill is-${d.access}`}>{ACCESS_LABEL[d.access]}</span><ArrowRight size={15} aria-hidden /></Link></li>)}
+              {DATASETS.map((d) => <li key={d.id}><Link href={`/research/catalogue#${d.id}`}><span><b>{d.title}</b><small>{d.holder} · {d.geography}</small></span><span className={`rs-pill is-${d.access}`}>{ACCESS_LABEL[d.access]}</span><ArrowRight size={15} aria-hidden /></Link></li>)}
             </ul>
           </div>
           <aside aria-labelledby="rs-method">
