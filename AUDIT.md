@@ -105,7 +105,7 @@ Old URLs keep working through redirects until the replacement is verified.
 | `/ngo/programmes` | `/ngo/programmes/*` | Rebuild |
 | `/ngo/submissions` | `/ngo/sterilisation`, `/ngo/verification/*`, `/ngo/packages/*`, `/ngo/review`, `/ngo/evidence` | Merge |
 | Secondary: team, training, templates, settings, integrations | `/ngo/team`, `/ngo/training`, `/ngo/settings/*`, `/ngo/import`, `/ngo/automations` | Keep, restyle; automations move under Kaju |
-| — | `/ngo/feeding`, `/ngo/fundraising`, `/ngo/surveys`, `/ngo/volunteers`, `/ngo/stories`, `/ngo/projects`, `/ngo/proof`, `/ngo/quality`, `/ngo/readiness`, `/ngo/care`, `/ngo/contracts` | Remove from the product after owner confirms; data untouched |
+| — | `/ngo/feeding`, `/ngo/fundraising`, `/ngo/surveys`, `/ngo/volunteers`, `/ngo/stories`, `/ngo/projects`, `/ngo/proof`, `/ngo/quality`, `/ngo/readiness`, `/ngo/care`, `/ngo/contracts` | Dropped from the new navigation (owner confirmed 15 Nov); data untouched |
 
 ### Government & Programmes
 | New | Built from | Decision |
@@ -160,7 +160,7 @@ Old URLs keep working through redirects until the replacement is verified.
 
 1. Unifying tenancy touches every RLS policy. It needs staging rehearsal and owner approval before production.
 2. The LinkedIn demo link is public. Replacing pages under it without a working tour would break a live promise.
-3. One real partner NGO uses the current NGO pages. Their daily screens change; they should be told before the switch.
+3. One real partner NGO uses the current NGO pages. Their daily screens change; the owner has told them (15 Nov).
 4. Channels carry a privacy risk: patient facts must not reach general channels, search or Kaju context.
 5. The scope is several months of work for one builder. It ships in stages behind a flag, not as one release.
 

@@ -80,3 +80,48 @@ export const THREAD = [
   { who: "Nisha R.", when: "2 h", text: "Has the recovery note been shared with the municipal office?" },
   { who: "Kaju", when: "2 h", text: "The signed note is on this record. I can attach it to the October submission; that needs your approval." },
 ];
+
+/* ── Government & Programmes ─────────────────────────────────────── */
+export const GOV_ORG = { name: "East Zone office", short: "EZ", kind: "Government & Programmes", city: "Zone East" };
+export type Ward = { ward: string; operator: string; submitted: number; verified: number; estimate: number | null; estimated: string; exceptions: number; state: string; tone: Tone; updated: string };
+export const WARDS: Ward[] = [
+  { ward: "Ward 01", operator: "Kind Hour", submitted: 212, verified: 198, estimate: 230, estimated: "Oct 2026 survey", exceptions: 2, state: "On track", tone: "ok", updated: "Today" },
+  { ward: "Ward 02", operator: "Kind Hour", submitted: 188, verified: 154, estimate: 220, estimated: "Oct 2026 survey", exceptions: 6, state: "On track", tone: "ok", updated: "Today" },
+  { ward: "Ward 05", operator: "Street Care Trust", submitted: 241, verified: 232, estimate: 255, estimated: "Oct 2026 survey", exceptions: 1, state: "On track", tone: "ok", updated: "Yesterday" },
+  { ward: "Ward 08", operator: "Street Care Trust", submitted: 236, verified: 171, estimate: 280, estimated: "Oct 2026 survey", exceptions: 16, state: "Evidence missing", tone: "warn", updated: "Yesterday" },
+  { ward: "Ward 12", operator: "Kind Hour", submitted: 204, verified: 150, estimate: 320, estimated: "Mar 2025 count", exceptions: 9, state: "Below target", tone: "bad", updated: "Today" },
+  { ward: "Ward 14", operator: "Municipal field team", submitted: 203, verified: 212 - 0, estimate: null, estimated: "No estimate", exceptions: 15, state: "Needs an estimate", tone: "warn", updated: "2 days" },
+];
+/* Weekly counts, oldest first: [verified, submitted only]. */
+export const SERIES: [number, number][] = [[62, 18], [71, 22], [80, 20], [77, 31], [95, 28], [104, 26], [98, 40], [121, 33], [133, 37], [128, 48], [150, 41], [158, 52]];
+export const TARGET = 0.7;
+
+/* ── Channel ─────────────────────────────────────────────────────── */
+export type Msg = { id: string; who: string; when: string; text: string; record?: string; kaju?: { tasks: string[] }; replies?: number };
+export const MESSAGES: Msg[] = [
+  { id: "m1", who: "Priya M.", when: "9:14 am", text: "Today's vaccination records are in. Two dogs weren't at their stops, so we need a return visit." },
+  { id: "m2", who: "Nisha R.", when: "9:27 am", text: "Two return visits, yes. I've attached 17 location photos to the drive.", record: "CAM-0108 · Ward 12 drive" },
+  { id: "m3", who: "Dr. Arun K.", when: "10:07 am", text: "I can do the clinical follow-up if transport can reach the centre before noon.", replies: 2 },
+];
+export const KAJU_TASKS = ["Return visit: AN-1042, Ward 12, tomorrow", "Return visit: AN-0877, Ward 12, tomorrow"];
+export const CH_WORK = [{ title: "Evidence review, 3 records", note: "Due today · Nisha R." }];
+export const CH_RECORDS = ["CAM-0108 · Ward 12 drive", "AN-1042 · Brown street dog", "Field assignment list"];
+export const CH_PEOPLE = ["Priya M.", "Nisha R.", "Dr. Arun K.", "Field team A"];
+
+/* ── Kaju ────────────────────────────────────────────────────────── */
+export type Step = { text: string; state: "done" | "run" | "wait" | "todo" };
+export type Mission = { id: string; title: string; meta: string; state: string; tone: Tone; steps: Step[]; act?: string };
+export const MISSIONS: Mission[] = [
+  { id: "ms1", title: "Prepare the weekly ABC submission", meta: "Started 2:12 pm · Kind Hour", state: "Waiting for your approval", tone: "warn", act: "Review and approve", steps: [
+    { text: "Collected 48 linked procedure records", state: "done" }, { text: "Checked photos, dates and certificates", state: "done" }, { text: "Prepared 5 follow-ups for missing evidence", state: "done" }, { text: "Send the packet to the municipal office", state: "wait" }] },
+  { id: "ms2", title: "Watch for field replies", meta: "Every day at 4:00 pm", state: "Running", tone: "ok", steps: [{ text: "Waiting on 3 replies. Next check in 45 minutes.", state: "run" }] },
+];
+export const DECISIONS = [{ title: "Submission ready", body: "48 records, 5 corrections asked for, 1 email waiting to go." }, { title: "Two possible identity matches", body: "Review before any records are linked." }];
+export const CONNECTED: [string, string, Tone][] = [["StrayPaw records", "Allowed", "ok"], ["Channels", "Allowed", "ok"], ["Email", "Not connected", "plain"], ["WhatsApp Business", "Not set up", "plain"]];
+/* What the composer can recognise while you type. kind → the choices a person can switch between. */
+export const VOCAB: { kind: string; words: string[] }[] = [
+  { kind: "Place", words: WARDS.map((w) => w.ward) },
+  { kind: "Team", words: ["Field team A", "Field team B", "Nisha R.", "Dr. Arun K."] },
+  { kind: "Channel", words: ["#field-operations", "#abc-ward-12", "#general", "#referrals"] },
+  { kind: "When", words: ["next week", "tomorrow", "today", "this week"] },
+];
