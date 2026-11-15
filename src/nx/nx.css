@@ -533,3 +533,5 @@ a.nx-side-f:hover { color: var(--ink-2); background: var(--hover); }
 @media (max-width: 640px) { .nx .nx-cols { grid-template-columns: minmax(0, 1fr) !important; } }
 @media (prefers-reduced-motion: reduce) { .nx-vbars rect, .nx-rep-a svg { transition: none; } }
 .nx-vbars text.sup { fill: var(--ink-3); font-size: 9.5px; }
+.nx-chips { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+@media (max-width: 640px) { .nx .nx-only-s.nx-chips { display: flex; } }

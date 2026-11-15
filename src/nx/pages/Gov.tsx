@@ -188,7 +188,7 @@ type AlertRow = { key: string; severity: "urgent" | "attention" | "info"; kind: 
 const SEV: Record<AlertRow["severity"], { tone: Tone; label: string }> = { urgent: { tone: "bad", label: "Urgent" }, attention: { tone: "warn", label: "Attention" }, info: { tone: "plain", label: "Information" } };
 const PERIODS = [{ d: 30, label: "30 days" }, { d: 90, label: "90 days" }, { d: 365, label: "12 months" }];
 
-function WeekBars({ weeks }: { weeks: { week: string; n: Count }[] }) {
+export function WeekBars({ weeks }: { weeks: { week: string; n: Count }[] }) {
   const max = Math.max(5, ...weeks.map((w) => val(w.n)));
   const W = 640, H = 150, gap = 4, bw = weeks.length ? (W - gap * (weeks.length - 1)) / weeks.length : 0;
   return (

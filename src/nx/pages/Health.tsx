@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { Info, Lock } from "lucide-react";
-import { call, select, useRead, type ClinicDue, type Notice, type RegisterRow, type Sample } from "@/oh/data";
+import { call, select, useNames, useRead, type ClinicDue, type Notice, type RegisterRow, type Sample } from "@/oh/data";
 import { ListPage, type Col } from "../ListPage";
 import { Shell } from "../Shell";
 import { Chip, Sample as SampleChip } from "../ui";
@@ -14,16 +14,16 @@ import { useLive, type Workspace } from "../live";
    from the restricted health records through the functions the current app already uses, as the signed-in person.
    Kaju does not read any of it. */
 
-const d = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—");
+export const d = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—");
 const today = () => new Date().toISOString().slice(0, 10);
 const COURSE: Record<string, Tone> = { "Waiting for a clinician": "warn", "In course": "accent", Completed: "ok", "Did not return": "bad" };
-const STATUS: Record<string, Tone> = { Collected: "plain", Dispatched: "plain", Received: "accent", Testing: "warn", Resulted: "ok" };
-const word = (v: string | null | undefined) => (v ? v.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : "—");
-const isLab = (o: Workspace | null) => o?.kind === "laboratory";
+export const STATUS: Record<string, Tone> = { Collected: "plain", Dispatched: "plain", Received: "accent", Testing: "warn", Resulted: "ok", Rejected: "bad" };
+export const word = (v: string | null | undefined) => (v ? v.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : "—");
+export const isLab = (o: Workspace | null) => o?.kind === "laboratory";
 const privacy = <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Patient details stay with the treating facility. Partners see only the animal facts needed for a follow-up. Kaju does not read these records.</span></p>;
 
-function useClinic() { const live = useLive(); return live.orgFor("healthcare"); }
-function NotHealth({ crumb }: { crumb: string }) {
+export function useClinic() { const live = useLive(); return live.orgFor("healthcare"); }
+export function NotHealth({ crumb }: { crumb: string }) {
   return <Shell ws="health" crumb={["Healthcare", crumb]}><div className="nx-page"><h1 className="nx-h1">{crumb}</h1><p className="nx-sub">Your account is not part of a hospital, clinic or laboratory, so there are no clinical records here. Access to clinical records is granted by the facility; it cannot be chosen from a menu.</p></div></Shell>;
 }
 
@@ -109,17 +109,18 @@ const sCols: Col<SRow>[] = [
   { label: "Status", width: "120px", render: (r) => <Chip tone={STATUS[r.status] ?? "plain"}>{r.status}</Chip> },
   { label: "Result", width: "110px", render: (r) => r.result ? <Chip tone={r.result === "Positive" ? "bad" : "plain"}>{r.result}</Chip> : <span className="nx-t3">Not released</span> },
 ];
+/* The register of every sample sent here. Testing and Results are their own pages; this one is about arrival. */
 const sViews = [
-  { id: "queue", label: "Work queue", test: (r: SRow) => r.status !== "Resulted" },
-  { id: "transit", label: "In transit", test: (r: SRow) => r.status === "Dispatched" || r.status === "Collected" },
-  { id: "testing", label: "Received or testing", test: (r: SRow) => r.status === "Received" || r.status === "Testing" },
-  { id: "done", label: "Resulted", test: (r: SRow) => r.status === "Resulted" },
+  { id: "all", label: "All samples", test: () => true },
+  { id: "transit", label: "Arriving", test: (r: SRow) => r.status === "Dispatched" || r.status === "Collected" },
+  { id: "rej", label: "Rejected", test: (r: SRow) => r.status === "Rejected" },
 ];
 export function Samples({ title = "Samples" }: { title?: string }) {
   const live = useLive(); const org = useClinic();
   const rows = useRead<Sample[]>(() => select<Sample>("oh_samples", { laboratory_id: org!.org_id }), `nx-lab:${org?.org_id}`, !!org && isLab(org));
+  const names = useNames(!!org && isLab(org));
   const now = Date.now();
-  const list = useMemo<SRow[]>(() => (org && rows.data ? rows.data.map((s) => ({ id: s.id, code: s.code, species: word(s.species), type: word(s.sample_type), from: "Submitting partner", area: s.place ?? "—", collected: d(s.collected_on), status: word(s.status), result: s.status === "resulted" && s.result ? word(s.result) : null, days: Math.floor((now - Date.parse(s.collected_on)) / 864e5), href: `/workspace/${org.org_id}/record/${s.id}` })) : []), [org, rows.data, now]);
+  const list = useMemo<SRow[]>(() => (org && rows.data ? rows.data.map((s) => ({ id: s.id, code: s.code, species: word(s.species), type: word(s.sample_type), from: names.org(s.submitted_by) ?? "Submitting partner", area: s.place ?? names.area(s.area_id) ?? "—", collected: d(s.collected_on), status: word(s.status), result: s.status === "resulted" && s.result ? word(s.result) : null, days: Math.floor((now - Date.parse(s.collected_on)) / 864e5), href: `/workspace/${org.org_id}/record/${s.id}` })) : []), [org, rows.data, now, names]);
   if (!live.ready) return <Shell ws="health" crumb={["Healthcare", title]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const sample = !live.org;
   if (!sample && !isLab(org)) return <Shell ws="health" crumb={["Healthcare", title]}><div className="nx-page"><h1 className="nx-h1">{title}</h1><p className="nx-sub">Samples are a laboratory&apos;s work. {org ? `${org.name} is not a laboratory.` : "Your account is not part of a laboratory."}</p></div></Shell>;

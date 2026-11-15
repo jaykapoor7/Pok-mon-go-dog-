@@ -235,3 +235,27 @@ export const OUTPUTS = [
   { id: "o2", title: "August 2026 · vaccination", source: "Kind Hour", kind: "Accepted package", period: "1–31 Aug", records: 188, by: "A. Reviewer", on: "8 Sep" },
   { id: "o3", title: "July 2026 · sterilisation", source: "Kind Hour", kind: "Partially accepted", period: "1–31 Jul", records: 49, by: "A. Reviewer", on: "11 Aug" },
 ];
+
+/* ── Healthcare referrals, facilities, laboratory (sample) ─────── */
+export type SampleReferral = { id: string; code: string; dir: "in" | "out"; other: string; service: string; category: string; species: string; exposure: string; sent: string; by: string; status: string; note: string | null; closed: string | null };
+export const REFERRALS: SampleReferral[] = [
+  { id: "f1", code: "BX-2611-4C1E", dir: "in", other: "Health centre · Ward 08", service: "Anti-rabies vaccine", category: "II", species: "Dog", exposure: "13 Nov", sent: "Today", by: "Duty medical officer", status: "Referred", note: "Vaccine not available here today", closed: null },
+  { id: "f2", code: "BX-2611-77A0", dir: "in", other: "Wound unit · Ward 05", service: "Rabies immunoglobulin", category: "III", species: "Dog", exposure: "14 Nov", sent: "Yesterday", by: "Nurse on duty", status: "Arrived", note: null, closed: "Yesterday, casualty nurse" },
+  { id: "f3", code: "BX-2610-1D93", dir: "in", other: "Health centre · Ward 12", service: "Anti-rabies vaccine", category: "II", species: "Cat", exposure: "8 Nov", sent: "9 Nov", by: "Medical officer", status: "Did not arrive", note: null, closed: "12 Nov, records clerk" },
+  { id: "f4", code: "BX-2611-0B52", dir: "out", other: "District hospital", service: "Rabies immunoglobulin", category: "III", species: "Monkey", exposure: "12 Nov", sent: "12 Nov", by: "Dr. Arun K.", status: "Referred", note: "Deep bite to the hand", closed: null },
+];
+export type SampleFacility = { id: string; name: string; kind: string; area: string; hours: string; phone: string | null; services: { service: string; status: string; on: string }[] };
+export const FACILITIES: SampleFacility[] = [
+  { id: "h1", name: "District hospital", kind: "Hospital", area: "Ward 01", hours: "Every day, 8 am to 8 pm", phone: null, services: [{ service: "Vaccine", status: "Available", on: "13 Nov" }, { service: "RIG", status: "Available", on: "13 Nov" }, { service: "Wound washing", status: "Available", on: "13 Nov" }] },
+  { id: "h2", name: "Health centre · Ward 08", kind: "Health centre", area: "Ward 08", hours: "Mon to Sat, 9 am to 4 pm", phone: null, services: [{ service: "Vaccine", status: "Not available", on: "14 Nov" }, { service: "Wound washing", status: "Available", on: "14 Nov" }] },
+  { id: "h3", name: "Health centre · Ward 12", kind: "Health centre", area: "Ward 12", hours: "Mon to Sat, 9 am to 4 pm", phone: null, services: [{ service: "Vaccine", status: "Not confirmed recently", on: "2 Nov" }, { service: "Wound washing", status: "Not confirmed recently", on: "2 Nov" }] },
+  { id: "h4", name: "Wound unit · Ward 05", kind: "Health centre", area: "Ward 05", hours: "Every day, 7 am to 9 pm", phone: null, services: [{ service: "Wound washing", status: "Available", on: "14 Nov" }] },
+  { id: "h5", name: "Veterinary laboratory", kind: "Laboratory", area: "Ward 02", hours: "Mon to Fri, 9 am to 5 pm", phone: null, services: [{ service: "Testing", status: "Limited", on: "10 Nov" }] },
+];
+export const LAB_DETAIL: Record<string, { received: string | null; bench: number | null; method: string | null; by: string | null; on: string | null; notice: string | null; custody: { what: string; who: string; when: string; note?: string }[] }> = {
+  x1: { received: null, bench: null, method: null, by: null, on: null, notice: null, custody: [{ what: "Collected", who: "Field team", when: "Yesterday 4 pm" }, { what: "Dispatched", who: "Field team", when: "Yesterday 6 pm", note: "Cold chain, sealed container" }] },
+  x2: { received: "Yesterday", bench: 1, method: null, by: null, on: null, notice: null, custody: [{ what: "Collected", who: "Field team", when: "2 days ago" }, { what: "Dispatched", who: "Field team", when: "2 days ago" }, { what: "Received", who: "Laboratory scientist", when: "Yesterday" }] },
+  x3: { received: "5 days ago", bench: 5, method: null, by: null, on: null, notice: null, custody: [{ what: "Collected", who: "Municipal team", when: "6 days ago" }, { what: "Dispatched", who: "Municipal team", when: "6 days ago" }, { what: "Received", who: "Laboratory scientist", when: "5 days ago" }, { what: "Testing started", who: "Laboratory scientist", when: "4 days ago" }] },
+  x4: { received: "8 days ago", bench: null, method: "Direct fluorescent antibody test", by: "Laboratory scientist", on: "5 days ago", notice: "Sent to the programme coordinator, not opened yet", custody: [{ what: "Collected", who: "Field team", when: "9 days ago" }, { what: "Received", who: "Laboratory scientist", when: "8 days ago" }, { what: "Result released", who: "Laboratory scientist", when: "5 days ago", note: "Positive" }] },
+  x5: { received: "19 days ago", bench: null, method: "Direct fluorescent antibody test", by: "Laboratory scientist", on: "16 days ago", notice: null, custody: [{ what: "Collected", who: "Municipal team", when: "20 days ago" }, { what: "Received", who: "Laboratory scientist", when: "19 days ago" }, { what: "Result released", who: "Laboratory scientist", when: "16 days ago", note: "Negative" }] },
+};

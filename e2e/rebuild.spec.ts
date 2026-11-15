@@ -96,14 +96,22 @@ test("Healthcare: a clinic's day and register, with doses only counted as given 
   await noSideScroll(page);
 });
 
-test("Laboratory: the work queue puts the oldest sample first, and results wait for validation", async ({ page }) => {
+test("Laboratory: samples arrive, testing puts the oldest first, results are released by staff", async ({ page }) => {
   await open(page, "/next/health/samples");
-  await expect(page.locator("button.nx-tr")).toHaveCount(3);
-  await expect(page.locator("button.nx-tr").first()).toContainText("SX-ILL-004");
-  await page.getByRole("tab", { name: /Resulted/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(5);
+  await page.getByRole("tab", { name: /^Arriving/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(1);
+  await open(page, "/next/health/testing");
   await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await expect(page.locator("button.nx-tr").first()).toContainText("SX-ILL-004");
   await page.locator("button.nx-tr").first().click();
-  await expect(page.getByRole("dialog")).toContainText("Kaju never interprets or releases a result");
+  await expect(page.getByRole("dialog")).toContainText("Chain of custody");
+  await page.keyboard.press("Escape");
+  await open(page, "/next/health/results");
+  await page.getByRole("tab", { name: /^Positive/ }).first().click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(1);
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("Kaju never does");
   await noSideScroll(page);
 });
 
@@ -262,5 +270,37 @@ test("Government reports: programme reports and accepted packages, nothing writt
   await open(page, "/next/gov/reports");
   await expect(page.getByRole("heading", { name: "Programme reports" })).toBeVisible();
   await expect(page.getByRole("table", { name: "Accepted packages" }).locator(".nx-tr:not(.nx-th)")).toHaveCount(3);
+  await noSideScroll(page);
+});
+
+test("Laboratory quality: turnaround from recorded steps, and what StrayPaw does not hold", async ({ page }) => {
+  await open(page, "/next/health/quality");
+  await expect(page.locator(".nx-fig")).toHaveCount(5);
+  await expect(page.getByText("does not hold standard operating procedures")).toBeVisible();
+  await noSideScroll(page);
+});
+
+test("Referrals: people on the way here, with no names or phone numbers", async ({ page }) => {
+  await open(page, "/next/health/referrals");
+  await expect(page.locator("button.nx-tr")).toHaveCount(1);
+  await page.getByRole("tab", { name: /^All/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(4);
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("Only the case code and the incident facts");
+  await noSideScroll(page);
+});
+
+test("Facilities: services as last confirmed, gaps in their own view", async ({ page }) => {
+  await open(page, "/next/health/facilities");
+  await expect(page.locator(".nx-sub").first()).toContainText("1 of 5");
+  await page.getByRole("tab", { name: /^Gaps/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(3);
+  await noSideScroll(page);
+});
+
+test("Healthcare surveillance: programme totals, not this facility's patients", async ({ page }) => {
+  await open(page, "/next/health/surveillance");
+  await expect(page.locator(".nx-sub").first()).toContainText("not this facility");
+  await expect(page.locator(".nx-vbars")).toBeVisible();
   await noSideScroll(page);
 });
