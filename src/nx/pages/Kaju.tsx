@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Check as Tick, ChevronDown, CornerDownLeft, Sparkles } from "lucide-react";
 import { Shell } from "../Shell";
+import { VoiceEntry } from "@/kaju/voice/VoiceEntry";
 import { Chip, Sample } from "../ui";
 import { CONNECTED, DECISIONS, MISSIONS, VOCAB, type Mission, type Step, type Tone } from "../fixtures";
 import { approveMission, cancelMission, startFollowups, useLive, useMissions, useVocab, type MissionRow } from "../live";
@@ -57,7 +58,7 @@ function KajuView(v: View) {
       <div className="nx-kj">
         <div className="nx-head">
           <div><p className="nx-eyebrow">{v.eyebrow}{v.sample ? <Sample /> : null}</p><h1 className="nx-h1">What should we get done?</h1><p className="nx-sub">Hand over an outcome, check what it found, and approve before anything is created.</p></div>
-          {waiting ? <Chip tone="warn">{waiting} waiting for you</Chip> : <Chip tone="ok">Nothing waiting</Chip>}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}><VoiceEntry />{waiting ? <Chip tone="warn">{waiting} waiting for you</Chip> : <Chip tone="ok">Nothing waiting</Chip>}</div>
         </div>
         <div className="nx-kj-cols">
           <div>

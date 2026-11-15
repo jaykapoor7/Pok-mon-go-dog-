@@ -14,6 +14,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 import { Feedforward } from "@/kaju/Feedforward";
+import { VoiceEntry } from "@/kaju/voice/VoiceEntry";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -251,6 +252,7 @@ export function AiPanel() {
       <header className="ai3-head">
         <span className="kaju-head-mark"><KajuMark size={46} /></span><b>Kaju</b><span className="ai3-head-sub">StrayPaw&rsquo;s AI agent</span>
         <span className="ai3-head-act">
+          <VoiceEntry compact />
           <button type="button" className="ai3-icon" onClick={ai.reset} aria-label="New conversation" title="New conversation"><RotateCcw size={15} /></button>
           <Link className="ai3-icon" href={connectionsHref(ai.contextPath)} aria-label="Manage connections" title="Manage connections"><Plug size={15} /></Link>
           <Link className="ai3-icon" href="/assistant" aria-label="Open full screen" title="Open full screen"><Maximize2 size={15} /></Link>
@@ -271,6 +273,7 @@ export function AiWorkspace() {
         <header className="ai3-full-head kj">
           <span className="ai3-full-kaju"><KajuMark size={72} /></span>
           <h1>Ask Kaju.</h1>
+          <VoiceEntry />
           {ai.msgs.length > 0 && <button type="button" className="s3-btn is-line is-sm kj-new" onClick={ai.reset}><RotateCcw size={14} />New conversation</button>}
         </header>
         {ai.msgs.length === 0 && <KajuOffers />}

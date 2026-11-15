@@ -161,6 +161,12 @@ const nextConfig = {
           { key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=()" },
         ],
       },
+      // Only the explicitly enabled, localhost-only Kaju voice proof may use
+      // the microphone. All hosted routes keep the existing denial.
+      ...((process.env.NODE_ENV === "development" && process.env.SARVAM_VOICE_ENABLED === "true" && !process.env.VERCEL) || (process.env.VERCEL_ENV === "preview" && process.env.SARVAM_VOICE_ENABLED === "true" && process.env.SARVAM_VOICE_PREVIEW_BRANCH && process.env.VERCEL_GIT_COMMIT_REF === process.env.SARVAM_VOICE_PREVIEW_BRANCH && process.env.NEXT_PUBLIC_SUPABASE_URL === "https://ucxfxiddufwqithtdtix.supabase.co") ? [{
+        source: "/kaju/voice",
+        headers: [{ key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=(self)" }],
+      }] : []),
     ];
   },
 };
