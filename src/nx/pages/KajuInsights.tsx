@@ -30,17 +30,31 @@ export function KajuInsights() {
   const live = useLive();
   const ngo = live.orgFor("ngo");
   const ngoId = live.org ? ngo?.org_id ?? null : null;
-  const [run, setRun] = useState<{ at: string; findings: Finding[] } | null | undefined>(undefined);
+  const [run, setRun] = useState<{ id: string; at: string; findings: Finding[] } | null | undefined>(undefined);
+  const [seenBy, setSeenBy] = useState<{ user_id: string; name: string; role: string; seen_at: string | null }[] | null>(null);
+  const lead = !!ngo && ["admin", "coordinator", "lead"].includes(ngo.role);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const cases = useCases(ngoId);
   const read = useCallback(async () => {
     const db = getSupabase(); if (!db || !ngoId) return;
-    const { data, error } = await db.from("kaju_check_runs").select("checked_at,findings").eq("ngo_id", ngoId).order("checked_at", { ascending: false }).limit(1).maybeSingle();
+    const { data, error } = await db.from("kaju_check_runs").select("id,checked_at,findings").eq("ngo_id", ngoId).order("checked_at", { ascending: false }).limit(1).maybeSingle();
     if (error) { setMsg("The latest checks could not be read."); setRun(null); return; }
-    setRun(data ? { at: data.checked_at as string, findings: (data.findings ?? []) as Finding[] } : null);
+    setRun(data ? { id: data.id as string, at: data.checked_at as string, findings: (data.findings ?? []) as Finding[] } : null);
   }, [ngoId]);
   useEffect(() => { void read(); }, [read]);
+  /* Opening the checks records that this person has seen the latest run; leads see who has. */
+  useEffect(() => {
+    const db = getSupabase(); if (!db || !run) return;
+    let alive = true;
+    void (async () => {
+      await db.rpc("kaju_mark_check_seen", { p_run: run.id });
+      if (!lead) return;
+      const r = await db.rpc("kaju_check_delivery", { p_run: run.id });
+      if (alive && !r.error) setSeenBy((r.data ?? []) as { user_id: string; name: string; role: string; seen_at: string | null }[]);
+    })();
+    return () => { alive = false; };
+  }, [run, lead]);
   const workload = useMemo<[string, number][]>(() => {
     const open = (cases.rows ?? []).filter((c) => !c.resolved_at && !/imported_historical/.test(c.provenance ?? ""));
     const m = new Map<string, number>(); for (const c of open) { const k = c.assignee_name ?? "Unassigned"; m.set(k, (m.get(k) ?? 0) + 1); }
@@ -84,6 +98,7 @@ export function KajuInsights() {
             ))}
           </div>
           {!findings.length && run !== undefined && !sample ? <p className="nx-sub">Run the checks to see what needs a look.</p> : null}
+          {lead && seenBy && seenBy.length ? <p className="nx-foot">Seen by {seenBy.filter((d) => d.seen_at).length} of {seenBy.length}{seenBy.some((d) => !d.seen_at) ? <>: not yet {seenBy.filter((d) => !d.seen_at).slice(0, 6).map((d) => d.name).join(", ")}{seenBy.filter((d) => !d.seen_at).length > 6 ? " and others" : ""}</> : null}.</p> : null}
         </section>
         <section className="nx-sec" aria-labelledby="ki-w" style={{ marginTop: 30 }}>
           <div className="nx-sec-h"><h2 id="ki-w">Open cases per person</h2><span className="nx-count">{openTotal}</span></div>
