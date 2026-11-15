@@ -167,3 +167,23 @@ export const REVIEWS: SampleReview[] = [
   { id: "v4", title: "September 2026 · sterilisation", operator: "Street Care Trust", period: "1–30 Sep", records: 57, vet: 57, evidence: 281, state: "Accepted", waiting: "—", days: 0, flags: [] },
   { id: "v5", title: "August 2026 · sterilisation", operator: "Municipal field team", period: "1–31 Aug", records: 52, vet: 49, evidence: 240, state: "Returned", waiting: "—", days: 0, flags: ["3 records had no surgeon's authorisation"] },
 ];
+
+/* ── Healthcare (sample). Invented references; no real patient. Dose numbers and dates are as a clinician entered them. ── */
+export const CLINIC = { name: "Teaching Hospital Anti-Rabies Clinic", short: "TH", kind: "Healthcare · Human" };
+export type SampleBite = { id: string; code: string; ref: string; age: string; category: "I" | "II" | "III" | "Not yet assessed"; species: string; area: string; on: string; course: "Waiting for a clinician" | "In course" | "Completed" | "Did not return"; doses: string; next: string | null };
+export const BITES: SampleBite[] = [
+  { id: "b1", code: "BX-2611-4F2A", ref: "OPD-ILL-0412", age: "15–29", category: "Not yet assessed", species: "Dog", area: "Jayanagar", on: "Today", course: "Waiting for a clinician", doses: "—", next: null },
+  { id: "b2", code: "BX-2611-9C1D", ref: "OPD-ILL-0409", age: "5–14", category: "III", species: "Dog", area: "HSR Layout", on: "13 Nov", course: "In course", doses: "2 given", next: "Today" },
+  { id: "b3", code: "BX-2611-27E0", ref: "OPD-ILL-0398", age: "30–49", category: "II", species: "Dog", area: "BTM Layout", on: "8 Nov", course: "In course", doses: "3 given", next: "Today" },
+  { id: "b4", code: "BX-2611-B7A3", ref: "OPD-ILL-0391", age: "50+", category: "III", species: "Cat", area: "Koramangala", on: "4 Nov", course: "In course", doses: "2 given", next: "Overdue 3 days" },
+  { id: "b5", code: "BX-2610-11F8", ref: "OPD-ILL-0350", age: "15–29", category: "II", species: "Dog", area: "Indiranagar", on: "12 Oct", course: "Completed", doses: "Completed", next: null },
+  { id: "b6", code: "BX-2610-0A9C", ref: "OPD-ILL-0331", age: "30–49", category: "III", species: "Dog", area: "Whitefield", on: "3 Oct", course: "Did not return", doses: "2 given", next: null },
+];
+export type SampleSampleRow = { id: string; code: string; species: string; type: string; from: string; area: string; collected: string; status: "Dispatched" | "Received" | "Testing" | "Resulted"; result: string | null; days: number };
+export const LAB_SAMPLES: SampleSampleRow[] = [
+  { id: "x1", code: "SX-ILL-005", species: "Dog", type: "Saliva", from: "Animal Care Trust", area: "Koramangala", collected: "Yesterday", status: "Dispatched", result: null, days: 1 },
+  { id: "x2", code: "SX-ILL-003", species: "Cat", type: "Brain tissue", from: "Animal Care Trust", area: "BTM Layout", collected: "2 days ago", status: "Received", result: null, days: 2 },
+  { id: "x3", code: "SX-ILL-004", species: "Cattle", type: "Brain tissue", from: "Municipal division", area: "Yelahanka", collected: "6 days ago", status: "Testing", result: null, days: 6 },
+  { id: "x4", code: "SX-ILL-001", species: "Dog", type: "Brain tissue", from: "Animal Care Trust", area: "HSR Layout", collected: "9 days ago", status: "Resulted", result: "Positive", days: 9 },
+  { id: "x5", code: "SX-ILL-002", species: "Dog", type: "Brain tissue", from: "Municipal division", area: "Whitefield", collected: "20 days ago", status: "Resulted", result: "Negative", days: 20 },
+];
