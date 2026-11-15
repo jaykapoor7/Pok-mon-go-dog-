@@ -49,7 +49,7 @@ export const KAJU: NavItem[] = [
   { href: "/next/kaju/insights", label: "Insights", icon: BarChart3 },
   { href: "/next/kaju/history", label: "History", icon: History },
 ];
-export const BUILT = new Set(["/next/ngo/today", "/next/ngo/inbox", "/next/ngo/submissions", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/gov/verification", "/next/health/today", "/next/health/bites", "/next/health/pep", "/next/health/samples", "/next/research/datasets", "/next/research/explore", "/next/kaju"]);
+export const BUILT = new Set(["/next/ngo/today", "/next/ngo/operations", "/next/ngo/programmes", "/next/ngo/inbox", "/next/ngo/submissions", "/next/ngo/cases", "/next/ngo/animals", "/next/gov/overview", "/next/gov/verification", "/next/health/today", "/next/health/bites", "/next/health/pep", "/next/health/samples", "/next/research/datasets", "/next/research/explore", "/next/kaju"]);
 /** Where an organisation's workspace opens. Healthcare and research open in the current app until they are rebuilt. */
 export const homeOf = (w: string, id: string) => (w === "ngo" ? "/next/ngo/today" : w === "government" ? "/next/gov/overview" : w === "healthcare" ? "/next/health/today" : w === "research" ? "/next/research/datasets" : `/workspace/${id}`);
 export const WS_LABEL: Record<string, string> = { ngo: "NGO workspace", government: "Government & Programmes", healthcare: "Healthcare", research: "Research" };

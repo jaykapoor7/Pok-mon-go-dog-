@@ -198,3 +198,29 @@ test("Kaju: details are recognised before sending, and a run stops for approval"
   await expect(page.locator(".nx-mission").first()).toContainText("Completed");
   await noSideScroll(page);
 });
+
+test("Operations: visits due by tomorrow, overdue first, with the place to plan a round", async ({ page }) => {
+  await open(page, "/next/ngo/operations");
+  await expect(page.locator(".nx-sub").first()).toContainText("overdue");
+  const rows = page.locator("button.nx-tr");
+  await expect(rows).toHaveCount(5);
+  await expect(rows.first()).toContainText("Overdue");
+  await page.getByRole("tab", { name: /^Next 7 days/ }).click();
+  await expect(rows).toHaveCount(7);
+  await rows.first().click();
+  await expect(page.getByRole("dialog")).toContainText("does not order a route");
+  await page.keyboard.press("Escape");
+  await noSideScroll(page);
+});
+
+test("Programmes: coverage counts only animals whose status was recorded", async ({ page }) => {
+  await open(page, "/next/ngo/programmes");
+  await expect(page.locator("button.nx-tr")).toHaveCount(3);
+  await page.getByRole("tab", { name: /^Archived/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(1);
+  await page.getByRole("tab", { name: /^Active/ }).click();
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("of 75 known");
+  await expect(page.getByRole("dialog")).toContainText("not a share of the area");
+  await noSideScroll(page);
+});

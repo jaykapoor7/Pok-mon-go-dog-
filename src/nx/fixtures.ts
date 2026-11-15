@@ -187,3 +187,22 @@ export const LAB_SAMPLES: SampleSampleRow[] = [
   { id: "x4", code: "SX-ILL-001", species: "Dog", type: "Brain tissue", from: "Animal Care Trust", area: "HSR Layout", collected: "9 days ago", status: "Resulted", result: "Positive", days: 9 },
   { id: "x5", code: "SX-ILL-002", species: "Dog", type: "Brain tissue", from: "Municipal division", area: "Whitefield", collected: "20 days ago", status: "Resulted", result: "Negative", days: 20 },
 ];
+
+/* ── Operations and programmes (sample) ─────────────────────────── */
+export type SampleVisit = { id: string; when: string; day: "Overdue" | "Today" | "Tomorrow" | "This week"; what: string; kind: string; place: string; who: string; animal: string | null; case: string | null };
+export const VISITS_OPS: SampleVisit[] = [
+  { id: "o1", when: "12 Nov", day: "Overdue", what: "Day 7 observation after a bite report", kind: "Observation", place: "Ward 08", who: "Field team B", animal: "AN-1107", case: "CASE-0214" },
+  { id: "o2", when: "Today 4:30 pm", day: "Today", what: "Recovery check after sterilisation", kind: "Recovery", place: "Indiranagar", who: "Dr. Arun K.", animal: "AN-0987", case: "CASE-0241" },
+  { id: "o3", when: "Today 11:00 am", day: "Today", what: "Return visit: dog not found at the stop", kind: "Vaccination", place: "Ward 12", who: "Field team A", animal: "AN-1042", case: null },
+  { id: "o4", when: "Tomorrow 8:30 am", day: "Tomorrow", what: "Return visit: dog not found at the stop", kind: "Vaccination", place: "Ward 12", who: "Field team A", animal: "AN-0877", case: null },
+  { id: "o5", when: "Tomorrow 10:00 am", day: "Tomorrow", what: "Transport to the veterinary centre", kind: "Transport", place: "Ward 12", who: "Field team A", animal: "AN-0951", case: "CASE-0236" },
+  { id: "o6", when: "Thu 20 Nov", day: "This week", what: "Sterilisation booked", kind: "Procedure", place: "Indiranagar", who: "Dr. Arun K.", animal: "AN-0987", case: "CASE-0241" },
+  { id: "o7", when: "Fri 21 Nov", day: "This week", what: "Vaccinate on the Ward 01 visit", kind: "Vaccination", place: "Ward 01", who: "Nisha R.", animal: "AN-0824", case: "CASE-0229" },
+];
+export type SampleDrive = { id: string; name: string; kind: string; zone: string; dates: string; animals: number; sterilised: number; sterUnknown: number; vaccinated: number; vaccUnknown: number; people: number; archived: boolean };
+export const DRIVES: SampleDrive[] = [
+  { id: "d1", name: "Ward 12 vaccination drive", kind: "Vaccination drive", zone: "Ward 12", dates: "1 Nov – 30 Nov", animals: 84, sterilised: 61, sterUnknown: 9, vaccinated: 52, vaccUnknown: 6, people: 6, archived: false },
+  { id: "d2", name: "Ward 08 ABC round", kind: "ABC round", zone: "Ward 08", dates: "15 Oct – 15 Dec", animals: 121, sterilised: 88, sterUnknown: 14, vaccinated: 90, vaccUnknown: 11, people: 5, archived: false },
+  { id: "d3", name: "Indiranagar census", kind: "Census", zone: "Indiranagar", dates: "3 Nov – 10 Nov", animals: 47, sterilised: 20, sterUnknown: 21, vaccinated: 18, vaccUnknown: 23, people: 3, archived: false },
+  { id: "d4", name: "Ward 01 school outreach", kind: "Outreach", zone: "Ward 01", dates: "Sep 2026", animals: 12, sterilised: 7, sterUnknown: 2, vaccinated: 9, vaccUnknown: 1, people: 4, archived: true },
+];
