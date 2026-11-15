@@ -65,7 +65,7 @@ About 70 marketing and policy pages (`/`, `/product`, `/kaju`, `/pricing`, `/for
 
 - 23 Playwright specs in `e2e/`; one "quality" gate in CI (typecheck, lint, build, e2e) on every pull request.
 - `demo-sync.yml` copies `main` to the `demo` branch after the gate passes; `production-health-probe.yml` checks production.
-- Known defect: `e2e/one-health.spec.ts` writes into the illustrative demo programme on every run, which polluted the demo. Reseeded on 15 November; the tests still need their own programme.
+- `e2e/one-health.spec.ts` writes into the illustrative demo programme, but only when run by hand with `OH_E2E=1`; CI skips it. Manual runs had polluted the demo; it was reseeded on 15 November and no test rows have appeared since. Anyone running it should reseed afterwards (`supabase/seed/one_health_demo.sql`).
 - No tests for cross-tenant isolation written as such; RLS is exercised only indirectly.
 
 ### 2.7 Phone and offline

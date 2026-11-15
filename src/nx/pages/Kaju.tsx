@@ -29,6 +29,8 @@ export function Kaju() {
   const timers = useRef<number[]>([]);
   const calm = useReducedMotion();
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  /* Words handed over from the command bar arrive as ?q= and wait in the box; nothing runs until the person presses Run. */
+  useEffect(() => { try { const q = new URLSearchParams(window.location.search).get("q"); if (q) { setText(q.slice(0, 2000)); box.current?.focus(); } } catch {} }, []);
   const spans = useMemo(() => read(text), [text]);
   const val = (s: Span) => fix[s.kind] ?? s.value;
   const cycle = (s: Span) => { const ws = VOCAB.find((v) => v.kind === s.kind)!.words; setFix((f) => ({ ...f, [s.kind]: ws[(ws.indexOf(val(s)) + 1) % ws.length] })); };
