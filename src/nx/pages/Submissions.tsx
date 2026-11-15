@@ -26,7 +26,6 @@ export function Submissions({ tab: initial, stage }: { tab?: string | null; stag
   if (who.notNgo) return <Holding crumb={CRUMB} title="Submissions & Reports" text="Your organisation is not an NGO workspace. Packages sent to a reviewing office appear under Verification there." />;
   return (
     <TabbedPage id="subs" crumb={CRUMB} title="Submissions & Reports" eyebrow={who.ngo?.name ?? "Kind Hour"} sample={who.sample}
-      sub="Packages for the reviewing office, the evidence behind them, and the documents your records come from."
       tabs={TABS.map((t) => t.label) as Tab[]} tab={tab} onTab={setTab}>
       {tab === "Packages" ? <PackagesTab who={who} />
         : tab === "Evidence readiness" ? <EvidenceTab who={who} stage={stage} />

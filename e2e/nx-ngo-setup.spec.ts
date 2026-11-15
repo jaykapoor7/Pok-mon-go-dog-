@@ -99,7 +99,9 @@ test("Evidence readiness opens on a stage from the address", async ({ page }) =>
 
 test("Programmes: a drive opens its record with its animals", async ({ page }) => {
   await open(page, "/next/ngo/programmes");
-  await page.getByRole("link", { name: "Open Ward 12 vaccination drive" }).click();
+  await page.getByRole("button", { name: "Open Ward 12 vaccination drive" }).click();
+  await expect(page.getByRole("dialog")).toContainText("of 75 known");
+  await page.getByRole("dialog").getByRole("link", { name: "Open the drive" }).last().click();
   await expect(page).toHaveURL(/\/next\/ngo\/programmes\/sample-d1$/);
   await expect(page.getByRole("table", { name: "Animals in this drive" })).toBeVisible();
   await page.getByRole("tab", { name: "Not recorded" }).click();

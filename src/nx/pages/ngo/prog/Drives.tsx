@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { KIND_LABEL, type Breakdown, type CampaignKind, type CampaignStats } from "@/lib/campaigns";
 import { useRead } from "@/oh/data";
 import { leadOrCoord, read } from "../../../data/ngo-setup";
 import { readBreakdown, readDrives, setArchived, startDrive } from "../../../data/ngo-programmes";
-import { Failed, Field, Modal, Skeleton, day, errText, useAct } from "../../../kit";
+import { Failed, Field, Modal, Props, Skeleton, day, errText, useAct } from "../../../kit";
 import { Chip } from "../../../ui";
-import { Grid, Partition, Tools, TryLink, Views, type GCol, type Who } from "../parts";
+import { Drawer, Grid, Partition, Tools, TryLink, Views, type GCol, type Who } from "../parts";
 import { S_BREAKDOWN, S_DRIVES } from "../sample";
 
 /* Drives: sterilisation, vaccination, census and treatment drives, each read as what is recorded and what is not.
@@ -28,12 +29,14 @@ export function DrivesTab({ who }: { who: Who }) {
   const r = useRead<Data>(() => read(async () => { const [d, b] = await Promise.all([readDrives(true), readBreakdown()]); return { drives: d, breakdown: b }; }), "ns:drives", !who.sample && !!who.ngo);
   const [view, setView] = useState<"active" | "archived" | "all">("active");
   const [making, setMaking] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
   if (!who.sample && r.loading && !r.data) return <Skeleton rows={5} label="Reading your drives" />;
   if (!who.sample && r.error && !r.data) return <Failed error={`${errText(r.error)} Unavailable data is not zero.`} retry={r.reload} />;
   const d: Data = who.sample ? { drives: S_DRIVES, breakdown: S_BREAKDOWN as Breakdown } : r.data!;
   const leader = who.sample || leadOrCoord(who.role);
   const shown = d.drives.filter((x) => view === "all" || (view === "archived" ? x.archived : !x.archived));
   const o = d.breakdown?.overall;
+  const open = d.drives.find((x) => x.id === openId) ?? null;
   const waiting = d.breakdown ? d.breakdown.waiting.ours + d.breakdown.waiting.community : 0;
   const cols: GCol<CampaignStats>[] = [
     { label: "Drive", width: "minmax(0, 1.5fr)", render: (x) => <span className="nx-cell-main"><span><b>{x.name}{x.archived ? <span className="nx-t3" style={{ fontWeight: 400 }}> · archived</span> : null}</b><small>{KIND_LABEL[x.kind] ?? x.kind} · {when(x)}<span className="nx-only-s"> · {x.total} animals, {pct(x.sterilised, x.sterilised + x.not_sterilised)} sterilised of known</span></small></span></span> },
@@ -48,8 +51,12 @@ export function DrivesTab({ who }: { who: Who }) {
         <span className="ns-sum"><b>{d.drives.filter((x) => !x.archived).length}</b> active {d.drives.filter((x) => !x.archived).length === 1 ? "drive" : "drives"}. Percentages count only animals whose status was recorded.{waiting > 0 ? <> <Link className="ns-link" href="/next/ngo/inbox">{waiting} {waiting === 1 ? "report" : "reports"} waiting to be filed</Link>.</> : null}{!leader ? " A lead or coordinator starts drives." : ""}</span>
       </Tools>
       <Views id="dr" value={view} onChange={setView} views={[{ id: "active", label: "Active", count: d.drives.filter((x) => !x.archived).length }, { id: "archived", label: "Archived", count: d.drives.filter((x) => x.archived).length }, { id: "all", label: "All", count: d.drives.length }]} />
-      <Grid label="Drives" cols={cols} rows={shown} rowKey={(x) => x.id} rowLabel={(x) => x.name} href={(x) => `/next/ngo/programmes/${x.id}`}
+      <Grid label="Drives" cols={cols} rows={shown} rowKey={(x) => x.id} rowLabel={(x) => x.name} onOpen={(x) => setOpenId(x.id)} openKey={openId}
         empty={<><b>{d.drives.length ? "Nothing in this view" : "No drive yet"}</b><p>Group the animals from a sterilisation, vaccination or census camp to see what is recorded.{leader && !d.drives.length ? " Start a drive to begin." : ""}</p></>} />
+      <AnimatePresence>{open ? <Drawer key={open.id} head={KIND_LABEL[open.kind] ?? open.kind} title={open.name} sub={<>{when(open)}{open.archived ? <> <Chip bare>Archived</Chip></> : null}</>} onClose={() => setOpenId(null)} href={`/next/ngo/programmes/${open.id}`} hrefLabel="Open the drive">
+        <Props items={[["Animals", <span key="a" className="num">{open.total}</span>], ["Sterilised", <span key="s"><span className="num">{open.sterilised}</span>&nbsp;<span className="nx-t3" style={{ fontWeight: 400 }}>of {open.sterilised + open.not_sterilised} known · {open.ster_unknown} not recorded</span></span>], ["Vaccinated", <span key="v"><span className="num">{open.vaccinated}</span>&nbsp;<span className="nx-t3" style={{ fontWeight: 400 }}>of {open.vaccinated + open.not_vaccinated} known · {open.vacc_unknown} not recorded</span></span>], ["Need help", open.needs_help], ["People", open.people], ["Observations", open.observations]]} />
+        <p className="nx-note" style={{ marginTop: 14 }}><span>These are animals the organisation recorded in this drive, not a share of the area&apos;s dog population. Population coverage needs a dated estimate.</span></p>
+      </Drawer> : null}</AnimatePresence>
       {o ? <section className="ns-sec"><div className="nx-sec-h"><h2>Whole register</h2><span className="nx-count">{o.total} animals</span></div>
         <div className="ns-cols" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", marginTop: 8 }}>
           <div className="ns-stack"><b style={{ fontWeight: 500 }}>Sterilisation</b><Partition yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" /></div>

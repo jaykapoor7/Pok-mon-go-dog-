@@ -25,7 +25,7 @@ export const PKG_TONE: Record<string, Tone> = { draft: "plain", submitted: "acce
 export const period = (p: Pick<Package, "period_start" | "period_end">) => `${day(p.period_start)} – ${day(p.period_end)}`;
 const PROC: Record<string, string> = { sterilisation: "Sterilisation (ABC)", vaccination: "Anti-rabies vaccination" };
 type Bucket = "all" | "draft" | "with" | "decided";
-const bucketOf = (s: string): Exclude<Bucket, "all"> => (s === "draft" ? "draft" : s === "submitted" || s === "queried" ? "with" : s === "returned" ? "with" : "decided");
+const bucketOf = (s: string): Exclude<Bucket, "all"> => (s === "draft" ? "draft" : s === "submitted" || s === "queried" ? "with" : "decided");
 
 type Data = { list: Package[]; offices: Office[]; queue: QueueRow[]; office: string | null };
 async function load(ngoId: string): Promise<Data> {
@@ -62,9 +62,9 @@ function PackagesView({ sample, list, offs, queue, defaultOffice, canPrepare, re
     <>
       <Month sample={sample} offs={offs} queue={queue} list={list} defaultOffice={defaultOffice} canPrepare={canPrepare} />
       <Tools end={sample ? <TryLink quiet small><Plus size={13} />A package for another period</TryLink> : canPrepare && offs.length ? <button type="button" className="nx-btn is-quiet is-sm" onClick={() => setOther(true)}><Plus size={13} />A package for another period</button> : null}>
-        <span className="ns-sum"><b>{list.length}</b> {list.length === 1 ? "package" : "packages"}{asks ? <>, <b>{asks}</b> waiting on you</> : null}. Accepted means approved for payment. It is not a payment.</span>
+        <p className="nx-sub ns-sum" style={{ marginTop: 0 }}><b>{list.length}</b> {list.length === 1 ? "package" : "packages"}{asks ? <>, <b>{asks}</b> waiting on you</> : null}. The reviewing office decides; accepted means approved for payment, not paid.</p>
       </Tools>
-      <Views id="pk" value={view} onChange={setView} views={[{ id: "all", label: "All", count: list.length }, { id: "draft", label: "Being prepared", count: list.filter((p) => bucketOf(p.status) === "draft").length }, { id: "with", label: "With the office or you", count: list.filter((p) => bucketOf(p.status) === "with").length }, { id: "decided", label: "Decided", count: list.filter((p) => bucketOf(p.status) === "decided").length }]} />
+      <Views id="pk" value={view} onChange={setView} views={[{ id: "all", label: "All", count: list.length }, { id: "draft", label: "Being prepared", count: list.filter((p) => bucketOf(p.status) === "draft").length }, { id: "with", label: "With the reviewing office", count: list.filter((p) => bucketOf(p.status) === "with").length }, { id: "decided", label: "Decided", count: list.filter((p) => bucketOf(p.status) === "decided").length }]} />
       <Grid label="Packages" cols={cols} rows={shown} rowKey={(p) => p.id} rowLabel={(p) => p.title} onOpen={(p) => setOpenId(p.id)} openKey={openId}
         empty={<><b>{list.length ? "Nothing in this view" : "No packages yet"}</b><p>{list.length ? "Choose another view." : "A package gathers a period's approved records for the reviewing office."}</p></>} />
       <AnimatePresence>{open ? <Drawer key={open.id} head={officeName(open.office_id)} title={open.title} sub={<>{period(open)} <Chip tone={PKG_TONE[open.status] ?? "plain"}>{PACKAGE_LABEL[open.status]}</Chip></>} onClose={() => setOpenId(null)} href={`/next/ngo/submissions/${open.id}`} hrefLabel="Open the package">
