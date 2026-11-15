@@ -1,0 +1,146 @@
+[
+ {
+  "device": "desktop",
+  "page": "/ngo/today",
+  "ttfb": 4,
+  "dcl": 52,
+  "lcp": 268,
+  "cls": 0,
+  "jsKB": 334
+ },
+ {
+  "device": "desktop",
+  "page": "/ngo/cases",
+  "ttfb": 5,
+  "dcl": 57,
+  "lcp": 248,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "desktop",
+  "page": "/ngo/animals",
+  "ttfb": 5,
+  "dcl": 41,
+  "lcp": 224,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "desktop",
+  "page": "/gov/verification",
+  "ttfb": 4,
+  "dcl": 34,
+  "lcp": 168,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "desktop",
+  "page": "/health/today",
+  "ttfb": 5,
+  "dcl": 73,
+  "lcp": 220,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "desktop",
+  "page": "/kaju",
+  "ttfb": 4,
+  "dcl": 34,
+  "lcp": 76,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "desktop",
+  "page": "/channels/abc-ward-12",
+  "ttfb": 11,
+  "dcl": 41,
+  "lcp": 200,
+  "cls": 0.019,
+  "jsKB": 0
+ },
+ {
+  "device": "desktop",
+  "page": "/community/report",
+  "ttfb": 5,
+  "dcl": 55,
+  "lcp": 128,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "phone",
+  "page": "/ngo/today",
+  "ttfb": 5,
+  "dcl": 54,
+  "lcp": 292,
+  "cls": 0,
+  "jsKB": 334
+ },
+ {
+  "device": "phone",
+  "page": "/ngo/cases",
+  "ttfb": 5,
+  "dcl": 80,
+  "lcp": 260,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "phone",
+  "page": "/ngo/animals",
+  "ttfb": 4,
+  "dcl": 95,
+  "lcp": 236,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "phone",
+  "page": "/gov/verification",
+  "ttfb": 5,
+  "dcl": 86,
+  "lcp": 220,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "phone",
+  "page": "/health/today",
+  "ttfb": 6,
+  "dcl": 67,
+  "lcp": 248,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "phone",
+  "page": "/kaju",
+  "ttfb": 6,
+  "dcl": 84,
+  "lcp": 100,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "phone",
+  "page": "/channels/abc-ward-12",
+  "ttfb": 12,
+  "dcl": 48,
+  "lcp": 240,
+  "cls": 0,
+  "jsKB": 0
+ },
+ {
+  "device": "phone",
+  "page": "/community/report",
+  "ttfb": 5,
+  "dcl": 115,
+  "lcp": 84,
+  "cls": 0,
+  "jsKB": 0
+ }
+]
