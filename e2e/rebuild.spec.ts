@@ -327,3 +327,12 @@ test("Research map: areas only, synced with the table, suppressed areas hatched"
   await expect(page.locator(".nx-note")).toContainText("do not show cause");
   await noSideScroll(page);
 });
+
+test("Kaju insights: every check says what it counts, and an unset deadline is not assumed", async ({ page }) => {
+  await open(page, "/next/kaju/insights");
+  await expect(page.locator(".nx-chk")).toHaveCount(6);
+  await expect(page.locator(".nx-chk").filter({ hasText: "Reporting deadline" })).toContainText("Not set");
+  await page.getByRole("button", { name: /Run the checks now/ }).click();
+  await expect(page.locator("p[role=status]")).toContainText("sign in");
+  await noSideScroll(page);
+});

@@ -265,3 +265,15 @@ export const MISSIONS_DONE: Mission[] = [
   { id: "ms3", title: "Prepare follow-ups in Ward 08 due this week", meta: "Yesterday · approved by you", state: "Completed", tone: "ok", steps: [{ text: "Found 4 open cases in Ward 08 needing a follow-up", state: "done" }, { text: "Drafted 4 follow-up tasks for Field team B", state: "done" }, { text: "Created 4 tasks and told #field-operations", state: "done" }] },
   { id: "ms4", title: "Prepare follow-ups due tomorrow", meta: "12 Nov · cancelled by you", state: "Cancelled", tone: "plain", steps: [{ text: "Found 2 open cases needing a follow-up; 1 already has one open", state: "done" }, { text: "Drafted 2 follow-up tasks", state: "done" }, { text: "Cancelled before anything was created", state: "todo" }] },
 ];
+
+/* ── Kaju checks (sample) ──────────────────────────────────────── */
+export type Finding = { rule: string; count: number; explanation: string; records: { label: string; href?: string }[]; configured?: boolean; due_on?: string | null };
+export const FINDINGS: Finding[] = [
+  { rule: "overdue_followup", count: 7, explanation: "Upcoming follow-ups dated before today on current open cases.", records: [{ label: "CASE-0214" }, { label: "CASE-0236" }, { label: "CASE-0229" }] },
+  { rule: "missing_evidence", count: 5, explanation: "ABC records missing one or more of the five required evidence kinds. File presence is not content verification.", records: [{ label: "SP-1042" }, { label: "SP-1067" }] },
+  { rule: "awaiting_vet", count: 3, explanation: "A surgery record is attached but no current veterinary authorisation is recorded. Only a veterinarian can authorise.", records: [{ label: "SP-1071" }] },
+  { rule: "open_clarification", count: 1, explanation: "Submitted packages with an unanswered municipal query.", records: [{ label: "October 2026 · sterilisation" }] },
+  { rule: "programme_activity", count: 0, explanation: "Active programmes older than seven days with no linked animal observation recorded in the last seven days. This is a record gap, not proof of no fieldwork.", records: [] },
+  { rule: "reporting_deadline", count: 0, explanation: "The organisation lead supplied this deadline. No deadline is inferred when it has not been set.", records: [], configured: false, due_on: null },
+];
+export const WORKLOAD: [string, number][] = [["Field team A", 9], ["Nisha R.", 7], ["Field team B", 6], ["Dr. Arun K.", 3], ["Unassigned", 4]];
