@@ -1,103 +1,120 @@
-# Kaju Voice v3 — protected staging preview
+# Kaju Voice v3
 
-Status: the owner's Samvaad voice/tone test passed. The real StrayPaw voice
-conversation is pending the Voice Agents API key and a microphone test through
-the protected HTTPS preview. A build, socket connection or simulated test is not
-a successful conversation.
+Kaju Voice is a separate, additional voice agent. The existing Kaju text agent
+(`/api/ai`, `src/sp3/ai/engine.ts`, the Kaju dock and `/kaju`) is unchanged; voice
+adds a microphone entry beside it and its own page, routes and records. The
+agent is meant for the public in time; this release limits live voice to the
+owner's verified tester account.
 
-## Deployment and access
+Status: the owner's Samvaad voice/tone test passed. A build, socket connection
+or simulated test is not a successful conversation; only a real two-way
+conversation on www.straypaw.org completes the integration (see Acceptance).
 
-- Feature branch: `feat/kaju-voice-v3-preview`; PR targets main but is not merged.
-- Existing Vercel project: `pok-mon-go-dog`, existing team; Preview only.
-- Keep the existing Vercel Authentication protection enabled. No share/bypass
-  token, production promotion, custom domain or public exposure is required.
-- Preview inherits only the existing staging Supabase URL and publishable key:
-  project `ucxfxiddufwqithtdtix`. Production credentials are not copied.
-- Voice requires Preview, the exact configured branch, staging database URL and
-  explicit opt-in. Production fails closed even if a flag is accidentally set.
-- Existing Kaju dock, full workspace and `/next/kaju` include **Kaju Voice**.
-  Full navigation to `/kaju/voice` loads its microphone Permissions-Policy.
-  Production navigation is unchanged because its public feature flag is unset.
-- The preview uses the same Supabase AuthProvider/session as StrayPaw. Email
-  sign-in is available on the voice page because the staging preview has no
-  standing-code service-role credentials. An email code or the Supabase email's
-  verification link can be verified without requiring a new redirect allowlist.
-- Backend checks Supabase `getUser`, confirmed email and the server tester
-  allowlist. Organisation impersonation and local access codes are denied on
-  hosted previews. The staging database has a matching server-managed tester
-  allowlist. No user_metadata role or email is trusted.
+## Where it runs
 
-## Branch-scoped Vercel variables
+One guard, `src/lib/kaju-voice/mode.mjs`, is shared by `next.config.mjs` (the
+microphone Permissions-Policy, decided at build) and every voice route:
 
-All below target **Preview / feat/kaju-voice-v3-preview** only:
+| Mode | Requires | Database |
+| --- | --- | --- |
+| production | `VERCEL_ENV=production`, `SARVAM_VOICE_ENABLED=true`, production Supabase URL | `toujthlzjmhmoyykmayx` |
+| preview | `VERCEL_ENV=preview`, the exact `SARVAM_VOICE_PREVIEW_BRANCH`, staging Supabase URL | `ucxfxiddufwqithtdtix` |
+| local | `next dev`, `SARVAM_VOICE_ENABLED=true`, not on Vercel | local ledger in `.local/` |
+
+Anything else fails closed: no microphone permission, `/kaju/voice` is a 404, and
+every voice route refuses. Production never runs against staging data, and a
+preview never against production data.
+
+## Production access
+
+- Entry: the Kaju dock (microphone icon) and the `/kaju` header (**Kaju Voice**;
+  hidden on phones by the existing header rule, where the dock icon is the entry).
+  The entry appears only for a signed-in account that `GET /api/kaju/voice/access`
+  allows. It is a full navigation, so only `/kaju/voice` holds microphone access.
+- The page uses normal StrayPaw sign-in (`/sign-in?next=/kaju/voice`). There is no
+  access-code field, no staging label and no configuration detail in production.
+- Requests: same-origin HTTPS on `www.straypaw.org` or `straypaw.org`, the
+  `X-StrayPaw-Voice-Test` header, and the caller's Supabase access token as a
+  bearer token (never a cookie). The server verifies it with `getUser`.
+- Two allowlists, both by account ID: `SARVAM_VOICE_ALLOWED_USER_IDS` (server)
+  and `public.kaju_voice_access` (database, checked again by the RPCs).
+  Organisation and programme scope are refused for now; they are later work.
+- To add an account: append its ID to `SARVAM_VOICE_ALLOWED_USER_IDS` and redeploy,
+  and insert it into `public.kaju_voice_access` with the SQL editor.
+
+## Vercel variables
+
+Production only (Preview and Development are not selected):
 
 | Variable | Value/purpose |
 | --- | --- |
-| `SARVAM_VOICE_API_KEY` | **Secret; owner enters directly in Vercel** |
+| `SARVAM_VOICE_API_KEY` | **Sensitive; the owner enters it directly in Vercel** |
 | `SARVAM_VOICE_ENABLED` | `true` |
-| `SARVAM_VOICE_PREVIEW_BRANCH` | `feat/kaju-voice-v3-preview` |
-| `NEXT_PUBLIC_KAJU_VOICE_TEST` | `true`; non-secret navigation flag |
 | `SARVAM_VOICE_ORG_ID` | `019f745c-34b5-7ca4-84c2-562f7ae6e330` |
 | `SARVAM_VOICE_WORKSPACE_ID` | `019f745c-34ba-7ac9-845e-7b4f95ec904f` |
 | `SARVAM_VOICE_APP_ID` | `Kaju-Voice--2d965bed-bdfc` |
 | `SARVAM_VOICE_VERSION` | `3` |
-| `SARVAM_VOICE_ALLOWED_EMAILS` | Owner's confirmed tester email; server only |
+| `SARVAM_VOICE_ALLOWED_USER_IDS` | Owner's verified production account ID; server only |
+| `NEXT_PUBLIC_KAJU_VOICE` | `true`; shows the entry to allowed accounts only |
 
-The API key is not prefixed NEXT_PUBLIC_, committed, printed, pulled locally or
-entered in the StrayPaw browser. After the owner saves it in Vercel, rebuild the
-same feature preview to apply it. Never select Production or Development.
+The preview branch `feat/kaju-voice-v3-preview` keeps its own branch-scoped set
+(`SARVAM_VOICE_PREVIEW_BRANCH`, `SARVAM_VOICE_ALLOWED_EMAILS`,
+`NEXT_PUBLIC_KAJU_VOICE_TEST`, the same IDs). The API key is never prefixed
+`NEXT_PUBLIC_`, committed, printed, pulled locally or entered in the browser.
+Environment changes apply on the next build.
 
 ## Transport and controls
 
-Official `sarvam-conv-ai-sdk/browser` pinned to 0.0.42. Browser `apiKey` is empty;
-only the fixed-purpose backend signing endpoint sends the real key to Sarvam.
-The browser gets an ephemeral signed WSS URL and connects audio directly to
-Sarvam. Requests are authenticated, same-origin HTTPS and no-store; arbitrary
-hosts, agents, versions, queries and redirects are refused. SDK console logging
-of signed URLs/transcripts is removed at install/build, without global logging
-changes. No credentials, signed URLs, audio or transcripts are application logs.
+Official `sarvam-conv-ai-sdk/browser` pinned to 0.0.42. The browser `apiKey` is
+empty; only the fixed-purpose signing route sends the real key to Sarvam, for the
+server-selected agent and version. The browser gets an ephemeral signed WSS URL
+and streams audio directly to Sarvam. Arbitrary hosts, agents, versions, queries
+and redirects are refused. SDK console logging of signed URLs and transcripts is
+removed at install/build (`scripts/sarvam-sdk-privacy.mjs`). `.npmrc` sets
+`omit=peer` so the SDK's required peer `node` does not install a second Node
+binary that would shadow the platform Node in npm scripts.
 
-Start, Stop, Mute/Unmute, live transcripts, English/Hindi/Kannada selection and a
-two-minute cutoff reuse the existing implementation. The committed Samvaad v3
-settings remain Shubh at 1.15, all three languages, automatic switching and
-interruptions, with the professional prompt in `kaju-voice-instructions.md`.
-No remote prompt change, telephony, hospital search, report submission or billing.
+Start, Stop, Mute/Unmute, live transcripts (You / Kaju), English/Hindi/Kannada
+starting language and a two-minute cutoff. The committed Samvaad v3 settings
+remain Shubh at 1.15, all three languages, automatic switching and interruptions,
+with the professional prompt in `kaju-voice-instructions.md`. No telephony,
+hospital search, report submission or billing.
 
-## Shared staging usage
+Server logs: `kaju_voice_session` with mode, version, outcome and, on failure, a
+fixed reason (`provider_<status>`, `invalid_response`, `invalid_host`, `timeout`,
+`network`). Never keys, signed URLs, provider bodies, audio or transcripts.
 
-Staging-only migration `20261115145414_kaju_voice_preview_sessions.sql` adds an
-RLS-enabled session ledger and narrow authenticated RPCs. Authenticated callers
-cannot insert/update directly; RPCs check auth.uid and the tester allowlist.
-Atomic reservations enforce 5 starts/minute and 20/day per tester across Vercel
-instances. Failures also consume a reservation. A failed usage write stops the
-connection flow. No service-role key is needed.
+## Session records
 
-Metadata: caller/scope, agent version, timestamps, provider reference, outcome
-and client audio/interruption observations. Client reports are not provider
-verified duration or billable usage. No audio, transcript or signed URL storage.
-Organisation configuration/access adapters remain separate for later rollout;
-this preview permits only standalone tester scope. Programme subscriptions and
-billing need a later authorization/usage review.
+Migrations, applied in order: `20261115145414_kaju_voice_preview_sessions.sql`
+(staging and production), then `20261117100000_kaju_voice_access.sql`
+(production; safe to re-run, and staging can take it later). Result:
 
-## Verification and remaining acceptance
+- `kaju_voice_sessions`: RLS; signed-in callers read only their own rows and
+  cannot insert or update. Account deletion removes the rows.
+- `kaju_voice_access`: account IDs allowed to start voice; RLS with no policies
+  and no client grants.
+- `kaju_voice_reserve` / `kaju_voice_update`: security definer, `search_path=''`,
+  check `auth.uid()` against the access list; not executable by `anon`. Atomic
+  limits: 5 starts per minute and 20 per day per account; failures count too.
 
-Earlier SDK/security/lifecycle checks and production build passed. Those were
-simulated and are not counted as live voice success. They are not rerun for this
-preview step. TypeScript checks the hosted adaptation and Vercel builds the
-actual deployment. Staging RLS/RPC privileges were verified directly.
+Recorded: account/scope, agent version, times, provider reference, outcome and
+client audio/interruption observations. Not provider-verified duration or
+billable usage. No audio, transcript or signed URL is stored. `npm run test:db`
+covers the grants, limits and permissions.
 
-Live acceptance, using sample content:
-1. Sign into the protected preview and staging with the approved tester email.
-2. Open Kaju → Kaju Voice → Start and allow microphone access.
-3. English: “Hi Kaju, what is StrayPaw?” Hear a reply and see both transcript turns.
-4. Hindi: “अब हिंदी में बात कीजिए।” Confirm Hindi reply/transcript and professional tone.
-5. Kannada: “ಈಗ ಕನ್ನಡದಲ್ಲಿ ಮಾತನಾಡಿ.” Confirm Kannada reply/transcript.
-6. Speak during an answer: playback should stop and Kaju should follow the new turn.
-7. Mute and speak: no new user turn; Unmute resumes capture.
-8. Stop during playback/connection; browser recording indicator must clear.
-9. Restart, navigate away and allow a two-minute call to end; no lingering capture.
-10. Denied microphone/network loss must show an error and allow recovery.
+## Acceptance (live, sample content only)
 
-Only a real two-way StrayPaw conversation completes this integration. Record
-pass/fail and a provider interaction reference, without sharing keys, signed
-URLs or network traces. No production merge/deployment until separately approved.
+On www.straypaw.org, signed in as the approved account:
+1. Kaju → Kaju Voice → Start conversation; allow the microphone.
+2. English: “Hi Kaju, what is StrayPaw?” Hear a reply; see You and Kaju turns.
+3. Hindi: “अब हिंदी में बात कीजिए।” Hindi reply and transcript, respectful tone.
+4. Kannada: “ಈಗ ಕನ್ನಡದಲ್ಲಿ ಮಾತನಾಡಿ.” Kannada reply and transcript.
+5. Speak during a reply: playback stops and Kaju follows the new turn.
+6. Mute and speak: no new turn. Unmute: capture resumes.
+7. Stop: the browser's recording indicator clears.
+8. Leaving the page or the two-minute limit also ends capture.
+
+Server-side evidence for each run: a `kaju_voice_sessions` row with `issued`,
+`connected_at`, `ended_at` and the audio/interruption flags, plus the
+`kaju_voice_session` log line.
