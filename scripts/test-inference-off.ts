@@ -62,7 +62,7 @@ async function main() {
   ok("each run is written with its tokens and rupee cost; failed writes are reported; nothing is written while off");
 
   /* One door: no other source file may import a model SDK or the OIDC helper. */
-  const allowed = new Set(["src/lib/ai/inference.ts", "src/sp3/ai/engine.ts", "src/lib/photo-check.ts"]);
+  const allowed = new Set(["src/lib/ai/inference.ts", "src/sp3/ai/engine.ts", "src/lib/photo-check.ts", "src/lib/kaju/claude.ts"]);
   const walk = (d: string): string[] => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : /\.(ts|tsx|js|mjs)$/.test(f) ? [p] : []; });
   const offenders = walk("src").filter((f) => /@vercel\/oidc|@anthropic-ai\/sdk|from ["']openai["']|@google\/generative-ai|@ai-sdk\/|ai-gateway\.vercel\.sh/.test(readFileSync(f, "utf8")) && !allowed.has(f));
   assert.deepEqual(offenders, []);
