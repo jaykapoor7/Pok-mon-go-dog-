@@ -38,6 +38,18 @@ test("Animals: a view narrows the table and a row opens its record", async ({ pa
   await noSideScroll(page);
 });
 
+test("Cases: views narrow one list, and a row opens its details", async ({ page }) => {
+  await open(page, "/next/ngo/cases");
+  await expect(page.locator("button.nx-tr")).toHaveCount(5);
+  await page.getByRole("tab", { name: /Critical and high/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(3);
+  await page.getByRole("tab", { name: /Resolved/ }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(2);
+  await page.locator("button.nx-tr").first().click();
+  await expect(page.getByRole("dialog")).toContainText("CASE-0198");
+  await noSideScroll(page);
+});
+
 test("Insights: choosing a ward narrows the figures and the table together", async ({ page }) => {
   await open(page, "/next/gov/overview");
   await expect(page.locator("button.nx-tr")).toHaveCount(6);

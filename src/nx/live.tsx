@@ -117,3 +117,25 @@ export function useNgoCounts(ngoId: string | null) {
   }, [ngoId]);
   return c;
 }
+
+export type Case = { id: string; case_code: string | null; title: string | null; zone: string | null; city: string | null; severity: string | null; category: string | null; status: string | null; stage: string | null; assignee_name: string | null; next_action: string | null; due_at: string | null; follow_up_at: string | null; last_activity_at: string | null; created_at: string; resolved_at: string | null; dog_id: string | null; provenance: string | null; description: string | null };
+export function useCases(ngoId: string | null) {
+  return useRows<Case>(ngoId, () => getSupabase()!.from("cases").select("id,case_code,title,zone,city,severity,category,status,stage,assignee_name,next_action,due_at,follow_up_at,last_activity_at,created_at,resolved_at,dog_id,provenance,description").eq("ngo_id", ngoId!).order("resolved_at", { ascending: true, nullsFirst: true }).order("last_activity_at", { ascending: false, nullsFirst: false }).limit(300));
+}
+
+export type TimelineEvent = { id: string; event_type: string | null; title: string | null; details: string | null; occurred_at: string; actor_name: string | null; provenance: string | null };
+/** One animal with what happened to it and the cases it is part of. Reads only rows the person's organisation holds. */
+export function useAnimal(ngoId: string | null, id: string | null) {
+  const [state, setState] = useState<{ dog: Dog | null; events: TimelineEvent[]; cases: Case[]; loading: boolean; error: string | null }>({ dog: null, events: [], cases: [], loading: true, error: null });
+  useEffect(() => {
+    const db = getSupabase(); if (!db || !ngoId || !id) return;
+    let alive = true;
+    Promise.all([
+      db.from("dogs").select("id,name,code,straypaw_id,species,sex,zone,city,sterilisation_status,vaccination_status,identity_state,provenance,last_seen,identifiers,color").eq("ngo_id", ngoId).eq("id", id).maybeSingle(),
+      db.from("animal_timeline_events").select("id,event_type,title,details,occurred_at,actor_name,provenance").eq("ngo_id", ngoId).eq("dog_id", id).order("occurred_at", { ascending: false }).limit(100),
+      db.from("cases").select("id,case_code,title,zone,city,severity,category,status,stage,assignee_name,next_action,due_at,follow_up_at,last_activity_at,created_at,resolved_at,dog_id,provenance,description").eq("ngo_id", ngoId).eq("dog_id", id).order("created_at", { ascending: false }).limit(50),
+    ]).then(([d, e, c]) => { if (alive) setState({ dog: (d.data as Dog | null) ?? null, events: (e.data ?? []) as TimelineEvent[], cases: (c.data ?? []) as Case[], loading: false, error: d.error?.message ?? e.error?.message ?? c.error?.message ?? null }); });
+    return () => { alive = false; };
+  }, [ngoId, id]);
+  return state;
+}

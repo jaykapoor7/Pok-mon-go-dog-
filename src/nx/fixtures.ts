@@ -126,3 +126,15 @@ export const VOCAB: { kind: string; words: string[] }[] = [
   { kind: "Channel", words: ["#field-operations", "#abc-ward-12", "#general", "#referrals"] },
   { kind: "When", words: ["next week", "tomorrow", "today", "this week"] },
 ];
+
+/* ── Cases (sample) ──────────────────────────────────────────────── */
+export type SampleCase = { id: string; code: string; title: string; kind: string; severity: "Critical" | "High" | "Normal" | "Low"; place: string; who: string; stage: string; next: string; due: string | null; updated: string; resolved: boolean; trust: Trust };
+export const CASES: SampleCase[] = [
+  { id: "c1", code: "CASE-0278", title: "Injured street dog near the flower market", kind: "Rescue", severity: "Critical", place: "Ward 12", who: "Unassigned", stage: "Triage", next: "Assign a field team", due: "Today", updated: "10 min", resolved: false, trust: "Recorded" },
+  { id: "c2", code: "CASE-0241", title: "Recovery after sterilisation", kind: "Sterilisation", severity: "Normal", place: "Indiranagar", who: "Dr. Arun K.", stage: "Clinical care", next: "Recovery check", due: "Today", updated: "2 h", resolved: false, trust: "Reviewed" },
+  { id: "c3", code: "CASE-0236", title: "Limping grey dog, old injury", kind: "Injury", severity: "High", place: "Ward 12", who: "Field team A", stage: "Field response", next: "Transport to the centre", due: "16 Nov", updated: "Yesterday", resolved: false, trust: "Recorded" },
+  { id: "c4", code: "CASE-0229", title: "Puppy at the school gate, unvaccinated", kind: "Vaccination", severity: "Low", place: "Ward 01", who: "Nisha R.", stage: "Scheduled", next: "Vaccinate on the Ward 01 visit", due: "18 Nov", updated: "2 days", resolved: false, trust: "Recorded" },
+  { id: "c5", code: "CASE-0214", title: "Dog reported after a bite, observation", kind: "Investigation", severity: "High", place: "Ward 08", who: "Field team B", stage: "Follow-up", next: "Day 7 observation", due: "17 Nov", updated: "2 days", resolved: false, trust: "Reviewed" },
+  { id: "c6", code: "CASE-0198", title: "Brindle male, sterilised and released", kind: "Sterilisation", severity: "Normal", place: "Ward 08", who: "Nisha R.", stage: "Closed", next: "—", due: null, updated: "6 Nov", resolved: true, trust: "Verified" },
+  { id: "c7", code: "CASE-0187", title: "White dog, eye infection treated", kind: "Injury", severity: "Normal", place: "Ward 02", who: "Dr. Arun K.", stage: "Closed", next: "—", due: null, updated: "2 Nov", resolved: true, trust: "Verified" },
+];

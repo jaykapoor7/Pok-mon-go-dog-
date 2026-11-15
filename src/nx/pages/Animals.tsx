@@ -154,7 +154,7 @@ function LiveAnimals() {
       <AnimatePresence>
         {open ? (
           <motion.aside key="d" className="nx-drawer" role="dialog" aria-label={`${id(open)}`} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
-            <div className="nx-drawer-h"><span className="num">{id(open)}</span><span style={{ marginLeft: "auto" }} /><Link href={`/ngo/animals/${open.id}`} className="nx-ib" aria-label="Open full record"><Maximize2 size={15} /></Link><button type="button" className="nx-ib" onClick={() => setOpenId(null)} aria-label="Close"><X size={16} /></button></div>
+            <div className="nx-drawer-h"><span className="num">{id(open)}</span><span style={{ marginLeft: "auto" }} /><Link href={`/next/ngo/animals/${open.id}`} className="nx-ib" aria-label="Open full record"><Maximize2 size={15} /></Link><button type="button" className="nx-ib" onClick={() => setOpenId(null)} aria-label="Close"><X size={16} /></button></div>
             <div className="nx-drawer-b">
               <div className="nx-rec-t" style={{ marginBottom: 16 }}><span className="nx-rec-av">{initials(open.species ?? "Dog")}</span><div><h1>{open.name || "Unnamed"}</h1><p>{open.zone ?? open.city ?? "Place not recorded"} · Last seen {seen(open)} <TrustChip trust={trustOf(open)} /></p></div></div>
               <h3 className="nx-h3">Details</h3>
@@ -168,8 +168,8 @@ function LiveAnimals() {
                 <div><dt>Vaccination</dt><dd><Chip tone={dogTone(open.vaccination_status)}>{word(open.vaccination_status)}</Chip></dd></div>
                 <div><dt>Identity</dt><dd>{word(open.identity_state)}</dd></div>
               </dl>
-              <p style={{ marginTop: 18 }}><Link href={`/ngo/animals/${open.id}`} className="nx-btn is-quiet">Open full record</Link></p>
-              <p className="nx-foot">The full record, with its history and evidence, opens in the current app until the new record page reads live data.</p>
+              <p style={{ marginTop: 18 }}><Link href={`/next/ngo/animals/${open.id}`} className="nx-btn is-quiet">Open full record</Link></p>
+
             </div>
           </motion.aside>
         ) : null}
