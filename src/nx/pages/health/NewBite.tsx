@@ -27,7 +27,7 @@ export function NewBite({ q }: { q: BiteQuery }) {
   const place = placeOf(pl.places, org?.org_id);
   if (!org || !isFacilityKind(org.kind) || !can(place, "record_exposure")) return (
     <Shell ws="health" crumb={["Bite cases", "Record a bite"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Record a bite</h1>
-      <Denied what={org && isFacilityKind(org.kind) ? "Your role here cannot record bites" : "Bites are recorded by hospitals and health centres"} why={org && isFacilityKind(org.kind) ? `A clinician, nurse or records officer at ${org.name} can.` : "Your account is not part of a hospital or health centre. A partner who meets a bitten person refers them to one."} back={{ href: "/next/health/today", label: "Back to Today" }} /></div></Shell>
+      <Denied what={org && isFacilityKind(org.kind) ? "Your role here cannot record bites" : "Bites are recorded by hospitals and health centres"} why={org && isFacilityKind(org.kind) ? `A clinician, nurse or records officer at ${org.name} can.` : "Your account is not part of a hospital or health centre. A partner who meets a bitten person refers them to one."} back={{ href: "/health/today", label: "Back to Today" }} /></div></Shell>
   );
   return <BiteForm sample={false} q={q} orgId={org.org_id} orgName={org.name} clinician={can(place, "assess")} />;
 }
@@ -64,7 +64,7 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
     if (!r.ok || !r.result) return;
     const res = r.result as { data: { id: string; code: string; handoff_id: string | null }; linked: boolean };
     toast({ tone: "ok", text: `Saved as ${res.data.code}.${res.data.handoff_id ? " The area's animal team has been asked to follow up." : ""}${fromReferral && !res.linked ? " This database cannot link it to the referral yet; the referral itself is marked arrived." : ""}` });
-    router.push(`/next/health/bites/${res.data.id}`);
+    router.push(`/health/bites/${res.data.id}`);
   };
   const summary = `${SPECIES[f.species] ?? f.species} ${(EXPOSURE_KIND[f.kind] ?? f.kind).toLowerCase()} on ${f.exposure_on}${areaId ? ` in ${areas.data?.find((a) => a.id === areaId)?.name ?? "the chosen area"}` : ""}, register number ${f.ref.trim() || "not given"}${clinician && f.category !== "not_recorded" ? `, category ${f.category}` : ""}.`;
   return (
@@ -104,7 +104,7 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
             {clinician ? <div className="nx-field"><span>Exposure category <small>The category you assessed. StrayPaw records it; it does not assess.</small></span><Seg name="category" label="Exposure category" value={f.category} onChange={(v) => set("category", v)} options={[["I", "Category I"], ["II", "Category II"], ["III", "Category III"], ["not_recorded", "Assess later"]]} /></div>
               : <p className="nx-note"><Lock size={13} /><span>A clinician records the category and any course. This presentation waits for them on Today.</span></p>}
           </Block>
-          <div className="gh-acts" style={{ marginTop: 22 }}>{sample ? <TryLink>Save presentation</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Save presentation</button>}<Link href="/next/health/bites" className="nx-btn is-quiet">Cancel</Link>{!ready ? <span className="gh-hint">Check the date{f.consent ? " and phone number" : ""}.</span> : null}</div>
+          <div className="gh-acts" style={{ marginTop: 22 }}>{sample ? <TryLink>Save presentation</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Save presentation</button>}<Link href="/health/bites" className="nx-btn is-quiet">Cancel</Link>{!ready ? <span className="gh-hint">Check the date{f.consent ? " and phone number" : ""}.</span> : null}</div>
         </form>
         {asking ? <Confirm title="Save this presentation" busy={busy === "bite"} confirm="Save" onClose={() => setAsking(false)} onConfirm={() => void save()}><p>{summary}</p><p className="gh-hint">It goes into {orgName}&apos;s bite register in your name.</p></Confirm> : null}
       </div>

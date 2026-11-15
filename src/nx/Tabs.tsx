@@ -12,7 +12,7 @@ import { X } from "lucide-react";
 type T = { href: string; title: string };
 const KEY = "nx.tabs.v1";
 const MAX = 8;
-const RECORD = /^\/next\/(ngo\/(animals|cases|submissions|programmes)\/[^/]+|gov\/(verification|programmes|reports)\/[^/]+|research\/(studies|datasets)\/[^/]+|health\/(patients|referrals|samples|bites)\/[^/]+|channels\/[^/]+)$/;
+const RECORD = /^\/(ngo\/(animals|cases|submissions|programmes)\/[^/]+|gov\/(verification|programmes|reports)\/[^/]+|research\/(studies|datasets)\/[^/]+|health\/(patients|referrals|samples|bites|procedures)\/(?!new$)[^/]+|channels\/[^/]+)$/;
 
 const read = (): T[] => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v.filter((t) => t && typeof t.href === "string" && typeof t.title === "string" && RECORD.test(t.href)).slice(0, MAX) : []; } catch { return []; } };
 const write = (t: T[]) => { try { localStorage.setItem(KEY, JSON.stringify(t)); } catch {} };

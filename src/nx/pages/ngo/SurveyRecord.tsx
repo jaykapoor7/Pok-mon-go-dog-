@@ -46,14 +46,14 @@ export function SurveyRecord({ id, collect }: { id: string; collect?: boolean })
   if (!who.ready || (live && d.s === "loading")) return <Shell crumb={crumb}><div className="nx-page"><Skeleton rows={6} label="Reading the survey" /></div></Shell>;
   if (who.notNgo) return <Shell crumb={crumb}><div className="nx-page"><Denied what="Surveys are private to the NGO that keeps them" why="Your account is not part of an NGO." /></div></Shell>;
   if (!who.sample && d.s === "error") return <Shell crumb={crumb}><div className="nx-page"><Failed error={d.e} retry={() => void load()} /></div></Shell>;
-  if (!data) return <Shell crumb={crumb}><div className="nx-page"><Denied what="This survey is not in your organisation's register" why="It may belong to another organisation, or it does not exist." back={{ href: "/next/ngo/programmes?tab=surveys", label: "All surveys" }} /></div></Shell>;
+  if (!data) return <Shell crumb={crumb}><div className="nx-page"><Denied what="This survey is not in your organisation's register" why="It may belong to another organisation, or it does not exist." back={{ href: "/ngo/programmes?tab=surveys", label: "All surveys" }} /></div></Shell>;
   const s = data.survey;
   const tabs: Tab[] = project ? ["Register"] : ["Overview", "Collect"];
   const current: Tab = project ? "Register" : tab;
   return (
     <Shell crumb={crumb}>
       <RecordHead title={<>{s.title}{who.sample ? <Sample /> : null}</>} sub={<><Chip tone={s.status === "active" ? "ok" : "plain"}>{s.status.replace(/^./, (c) => c.toUpperCase())}</Chip><span>{project ? "Project register" : "Dog census"} · since {day(s.created_at)}</span></>}
-        actions={<Link className="nx-btn is-quiet" href="/next/ngo/programmes?tab=surveys">All surveys</Link>} />
+        actions={<Link className="nx-btn is-quiet" href="/ngo/programmes?tab=surveys">All surveys</Link>} />
       {tabs.length > 1 ? <TabBar id="sv" tabs={tabs} value={current} onChange={setTab} label="Survey sections" /> : <div style={{ borderBottom: "1px solid var(--line)", marginTop: 16 }} />}
       <div className="nx-page" style={{ maxWidth: 1100, paddingTop: 20 }}>
         {(project ? purposeOf(s.description) : s.description) ? <p className="nx-sub" style={{ marginBottom: 12 }}>{project ? purposeOf(s.description) : s.description}</p> : null}

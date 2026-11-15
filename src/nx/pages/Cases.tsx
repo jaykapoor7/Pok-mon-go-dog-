@@ -56,7 +56,7 @@ function toRow(c: CaseFact, now: number): CaseRow {
     open, statusClass: c.status_class ?? "unknown", status, tone: !open ? STATUS_TONE[c.status_class ?? "unknown"] ?? "plain" : crit ? (isCriticalCondition(c.condition_class) || c.severity === "critical" ? "bad" : "warn") : stale ? "warn" : c.status_class === "in_progress" ? "accent" : "plain",
     next: c.next_action || (c.followups_upcoming ? `${c.followups_upcoming} follow-up${c.followups_upcoming === 1 ? "" : "s"}` : "—"), due: dueAt ? `Follow-up ${ddmm(c.next_due)}` : null, dueSoon: !!dueAt && dueAt <= endToday.getTime(), overdue: !!dueAt && dueAt < now,
     updated: ddmm(c.last_activity_at ?? c.occurred_at) ?? "—", updatedAt: Date.parse(c.last_activity_at ?? c.occurred_at ?? "") || 0, occurredAt: Date.parse(c.occurred_at ?? "") || 0,
-    historical, stale, reasonless: isReasonless(c), trust: c.provenance && /import/i.test(c.provenance) ? "Imported" : "Recorded", animal: realName(c.animal_name) ?? (c.straypaw_id ? shortCode(c.straypaw_id) : null), dogId: c.dog_id, href: `/next/ngo/cases/${c.id}`,
+    historical, stale, reasonless: isReasonless(c), trust: c.provenance && /import/i.test(c.provenance) ? "Imported" : "Recorded", animal: realName(c.animal_name) ?? (c.straypaw_id ? shortCode(c.straypaw_id) : null), dogId: c.dog_id, href: `/ngo/cases/${c.id}`,
   };
 }
 /* Critical first, then whoever has waited longest (the classic queue's order); closed cases by their last activity. */
@@ -86,9 +86,9 @@ function LiveCases({ org }: { org: Workspace }) {
     <Shell crumb={["NGO", "Cases"]}>
       <RecordList id="cases" title="Cases" sample={false} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.title}`} columns={cols} views={vs} view={view} onView={setView} search={search} placeholder="Code, animal, place, person"
         sub={!data && !error ? "Reading cases…" : error ? "Cases could not be read. Nothing is shown as zero." : <><b className="num">{open.length}</b> open{crit ? <>, <span style={{ color: "var(--bad)" }}>{crit} critical or high</span></> : null}, {nobody} held by nobody, at {org.name}.{data?.openCapped ? " Showing the newest 800 open cases." : ""}</>}
-        action={<Link href="/next/ngo/cases/new" className="nx-btn is-keep"><Plus size={14} />New case</Link>}
+        action={<Link href="/ngo/cases/new" className="nx-btn is-keep"><Plus size={14} />New case</Link>}
         loading={!data && !error} error={error} onRetry={() => void load()} hrefOf={(r) => r.href}
-        empty={{ none: "No cases yet", filtered: "No case in this view", hint: <>Open the first one with <Link className="nr-link" href="/next/ngo/cases/new">New case</Link>, or import the register you already keep.</> }}
+        empty={{ none: "No cases yet", filtered: "No case in this view", hint: <>Open the first one with <Link className="nr-link" href="/ngo/cases/new">New case</Link>, or import the register you already keep.</> }}
         preview={(r) => ({ title: r.title, sub: <><span className="num">{r.code}</span> · {r.place} <Chip tone={r.tone}>{r.status}</Chip></>, href: r.href, hrefLabel: "Open the full case", body: actor ? <CaseDrawer key={r.id} id={r.id} role={org.role} actor={actor} members={members} onListChanged={load} /> : <p className="nx-sub">Sign in again to act on this case.</p> })} />
     </Shell>
   );
@@ -117,7 +117,7 @@ function CaseDrawer({ id, role, actor, members, onListChanged }: { id: string; r
       <h3 className="nx-h3">Details</h3>
       <Props items={[
         ["Status", <Chip key="s" tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>],
-        ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/next/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? (animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal record")}</Link> : "Not linked"],
+        ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? (animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal record")}</Link> : "Not linked"],
         ["Place", [c.zone, reg.city].filter(Boolean).join(", ") || "Not recorded"],
         ["Held by", c.assignee_name ?? "Nobody yet"],
         ["Recorded", `${day(reg.occurred_at)}${reg.intake_channel ? ` via ${reg.intake_channel.replace(/_/g, " ")}` : ""}`],

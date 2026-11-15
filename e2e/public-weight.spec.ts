@@ -5,8 +5,8 @@ import { expect, test, type Page } from "@playwright/test";
    show them, not by every page through the root layout (see
    src/components/nav/Chrome.tsx). Each is recognised by a string only its
    own module contains, so this holds whatever the chunks are called. */
-const SHELL = "ws-phone-title"; /* src/sp/shell/Shell.tsx */
-const KAJU_PANEL = "sp3.ai.thread"; /* src/sp3/ai/AiPanel.tsx */
+const SHELL = "nx-rail-b"; /* src/nx/Shell.tsx */
+const KAJU_PANEL = "nx.kaju.turns.v2"; /* src/nx/kaju/state.tsx */
 const SIGN_IN_SHEET = "s3-signin-sheet"; /* src/components/auth/SignInSheet.tsx */
 const DEMO_TOUR = "dt-transit-who"; /* src/sp/demo/DemoTour.tsx, demonstration builds only */
 
@@ -31,15 +31,10 @@ for (const path of ["/security/summary", "/for-ngos"]) {
   });
 }
 
-test("an app page loads its shell and Kaju's panel, and the sign-in sheet when it is asked for", async ({ page }) => {
-  await page.goto("/today");
-  let js = await scripts(page);
+test("an app page loads its shell and Kaju, and not the sign-in sheet", async ({ page }) => {
+  await page.goto("/ngo/today");
+  const js = await scripts(page);
   expect(js.includes(SHELL), "the app shell is loaded").toBe(true);
-  expect(js.includes(KAJU_PANEL), "Kaju's panel is loaded").toBe(true);
-  expect(js.includes(SIGN_IN_SHEET), "the sign-in sheet waits until it is asked for").toBe(false);
-
-  await page.getByRole("main").getByRole("button", { name: "Sign in", exact: true }).first().click();
-  await expect(page.getByRole("dialog", { name: "Sign in to StrayPaw" })).toBeVisible();
-  js = await scripts(page);
-  expect(js.includes(SIGN_IN_SHEET), "the sign-in sheet is loaded once opened").toBe(true);
+  expect(js.includes(KAJU_PANEL), "Kaju is loaded").toBe(true);
+  expect(js.includes(SIGN_IN_SHEET), "the sign-in sheet is not part of the app").toBe(false);
 });

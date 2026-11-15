@@ -52,7 +52,7 @@ export function Facilities() {
   const canConfirm = !!place?.capabilities.includes("confirm_service");
   return <ListPage ws="health" crumb={["Healthcare", "Facilities"]} title="Facilities" sample={sample} eyebrow={sample ? "East Zone rabies programme" : prog!.name}
     sub={sample || net.data ? <><b className="num">{vacc}</b> of {data.length} facilities last confirmed anti-rabies vaccine in stock. Call before sending someone: a status is only as fresh as its date.</> : "Reading the directory…"}
-    action={sample || canConfirm ? <Link href="/next/health/facilities/ours" className="nx-btn is-quiet is-keep">Confirm our services</Link> : undefined}
+    action={sample || canConfirm ? <Link href="/health/facilities/ours" className="nx-btn is-quiet is-keep">Confirm our services</Link> : undefined}
     views={[{ id: "all", label: "All", test: () => true }, { id: "vac", label: "Vaccine available", test: (r: FacRow) => r.services.some((s) => s.service === "Vaccine" && s.status === "Available") }, { id: "gap", label: "Gaps or unconfirmed", test: gap }]}
     columns={facCols} rows={data} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => `${r.name} ${r.area} ${r.kind}`}
     preview={(r) => ({ title: r.name, sub: `${r.kind} · ${r.area}`, body: <><dl className="nx-props"><div><dt>Hours</dt><dd>{r.hours}</dd></div>{r.phone ? <div><dt>Phone</dt><dd><a href={`tel:${r.phone.replace(/\s/g, "")}`} style={{ color: "var(--accent)" }}><Phone size={12} /> {r.phone}</a></dd></div> : null}</dl>
@@ -130,13 +130,13 @@ function useLab() {
         received: rec ? fmtDate(rec.at) : null, bench: rec ? Math.floor((now - Date.parse(rec.at)) / 864e5) : null, method: s.method, by: s.resulted_by_name, on: s.resulted_at ? fmtDate(s.resulted_at) : null,
         notice: sent ? `Sent to ${names.org(sent.to_org) ?? "a partner"}, ${NOTICE[sent.status] ?? HANDOFF[sent.status]?.label.toLowerCase() ?? sent.status}` : null, noticeTone: sent ? (sent.status === "done" ? "ok" : "accent") : s.result === "positive" ? "bad" : "plain",
         custody: es.map((e) => ({ what: STEP[e.action] ?? word(e.action), who: e.actor_name ?? "—", when: fmtDate(e.at, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }), note: e.note ?? undefined })),
-        href: `/next/health/samples/${s.id}`, raw: s,
+        href: `/health/samples/${s.id}`, raw: s,
         collectedAt: Date.parse(s.collected_on), receivedAt: rec ? Date.parse(rec.at) : undefined, resultedAt: s.resulted_at ? Date.parse(s.resulted_at) : undefined, rejectedNote: es.find((e) => e.action === "rejected")?.note ?? null,
       };
     });
   }, [samples.data, events.data, notices.data, names, now]);
   const sample = live.ready && !live.org;
-  const data: LabRow[] = sample ? LAB_SAMPLES.map((r) => { const x = LAB_DETAIL[r.id]; return { ...r, ...x, noticeTone: x.notice ? "accent" : r.result === "Positive" ? "bad" : "plain", href: `/next/health/samples/${r.id}` }; }) : rows;
+  const data: LabRow[] = sample ? LAB_SAMPLES.map((r) => { const x = LAB_DETAIL[r.id]; return { ...r, ...x, noticeTone: x.notice ? "accent" : r.result === "Positive" ? "bad" : "plain", href: `/health/samples/${r.id}` }; }) : rows;
   const reload = () => { samples.reload(); events.reload(); };
   return { live, org, lab, sample, data, error: samples.error ?? events.error, loading: !sample && !samples.data && !samples.error, reload };
 }
@@ -215,7 +215,7 @@ export function Quality() {
           <div className="nx-sec-h"><h2 id="q-r">Rejected samples</h2><span className="nx-count">{rejected.length}</span></div>
           {rejected.length ? <ul className="nx-feed">{rejected.map((r) => <li key={r.id}><span className="nx-feed-i"><ShieldAlert size={12} /></span><div><b className="num">{r.code}</b><p>{r.rejectedNote ?? "No reason recorded"}</p><small>{r.from} · collected {r.collected}</small></div></li>)}</ul> : <p className="nx-sub">No sample has been rejected.</p>}
         </section>
-        {waiting.length ? <section className="nx-sec" aria-labelledby="q-w"><div className="nx-sec-h"><h2 id="q-w">Waiting over 5 days</h2><Link href="/next/health/testing">Testing</Link></div><ul className="nx-feed">{waiting.map((r) => <li key={r.id}><span className="nx-feed-i"><ShieldAlert size={12} /></span><div><b className="num">{r.code}</b><p>{r.species} · {r.type} · {bench(r)} days since it was received</p></div></li>)}</ul></section> : null}
+        {waiting.length ? <section className="nx-sec" aria-labelledby="q-w"><div className="nx-sec-h"><h2 id="q-w">Waiting over 5 days</h2><Link href="/health/testing">Testing</Link></div><ul className="nx-feed">{waiting.map((r) => <li key={r.id}><span className="nx-feed-i"><ShieldAlert size={12} /></span><div><b className="num">{r.code}</b><p>{r.species} · {r.type} · {bench(r)} days since it was received</p></div></li>)}</ul></section> : null}
         <p className="nx-note" style={{ marginTop: 26, maxWidth: 680 }}><Lock size={13} /><span>StrayPaw does not hold standard operating procedures, competency records or instrument logs. A laboratory that runs its own information system keeps those there.</span></p>
       </div>
     </Shell>

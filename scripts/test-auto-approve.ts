@@ -4,7 +4,6 @@ import { passesAutoApproval, sightingChecks } from "../src/lib/auto-approve";
 import { checkSightingPhoto, photoCheckAvailable } from "../src/lib/photo-check";
 import { animalSubtitle, animalTag, animalTitle, describeAnimal, givenName } from "../src/lib/animal-name";
 import { isSensitivePhoto, describesInjury } from "../src/lib/sensitive-photo";
-import { dogArtFor, DOG_ART, WORKS } from "../src/lib/art/sources";
 
 const base = { photoUrl: "https://x/p.jpg", lat: 11.0, lng: 76.9, notes: "Limping near the bus stop", nickname: null, signedIn: true, forOrganisation: false, claimedDogId: null, trust: 60 };
 
@@ -47,10 +46,6 @@ assert.equal(isSensitivePhoto(null), false);
 assert.equal(describesInjury("deep wound on the leg"), true);
 assert.equal(describesInjury(null, ["friendly", "hit by a car"]), true);
 assert.equal(describesInjury("sleeping by the tea stall", ["friendly"]), false);
-assert.deepEqual(dogArtFor("abc"), dogArtFor("abc"));
-assert.equal(DOG_ART.find((d) => d.src === dogArtFor("abc", "puppy").src)?.puppy, true);
-assert.notEqual(DOG_ART.find((d) => d.src === dogArtFor("abc", "medium").src)?.puppy, true);
-for (const d of DOG_ART) assert.ok(WORKS[d.work], `credit for ${d.src}`);
 /* Without credentials the photo check is unavailable and never approves. */
 async function photo() {
   delete process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_AUTH_TOKEN;

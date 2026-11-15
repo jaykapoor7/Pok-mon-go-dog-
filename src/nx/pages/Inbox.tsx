@@ -124,7 +124,7 @@ function Decide({ ids, rows, drives, onDone }: { ids: string[]; rows: Row[]; dri
         <label className="nr-claim"><input type="checkbox" checked={claim} onChange={(e) => setClaim(e.target.checked)} />Register the animals as ours</label>
         <button type="button" className="nx-btn is-quiet is-sm" disabled={!drive || !!busy} onClick={() => setAsk(true)}>File {ids.length} into the drive…</button>
       </div>
-      {!drives.length ? <p className="nr-hint">No drive yet. Start one in <Link className="nr-link" href="/next/ngo/programmes">Programmes</Link>.</p> : null}
+      {!drives.length ? <p className="nr-hint">No drive yet. Start one in <Link className="nr-link" href="/ngo/programmes">Programmes</Link>.</p> : null}
       {ask && d ? <Confirm title={`File ${ids.length} ${ids.length === 1 ? "report" : "reports"} into ${d.name}?`} confirm="File them" busy={!!busy} onClose={() => setAsk(false)} onConfirm={() => void run("file", () => fileReports(ids, d.id, claim), { ok: (x) => `Filed ${x.data?.filed ?? 0} ${x.data?.filed === 1 ? "report" : "reports"}${x.data?.registered ? `, ${x.data.registered} new ${x.data.registered === 1 ? "animal" : "animals"} registered` : ""}.` }).then((r) => { if (r.ok) { setAsk(false); void onDone(); } })}>
         <p>Each report is recorded as seen in this drive{claim ? ", and animals not yet on your register are registered as your organisation's" : ""}. Filing records a sighting, not a treatment.</p>
       </Confirm> : null}
@@ -191,7 +191,7 @@ function WhatsApp({ org }: { org: Workspace }) {
           {m.location ? <p className="nx-t3"><MapPin size={12} style={{ verticalAlign: "-2px" }} /> {m.location.label ?? "Shared location"}</p> : null}
           <small>{dayTime(m.received_at)}</small></li>)}</ol>
         <div className="nr-acts">
-          {last.status === "linked" && last.linked_case_id ? <Link className="nx-btn is-sm" href={`/next/ngo/cases/${last.linked_case_id}`}>Open the case<ArrowRight size={13} /></Link> : opening ? (
+          {last.status === "linked" && last.linked_case_id ? <Link className="nx-btn is-sm" href={`/ngo/cases/${last.linked_case_id}`}>Open the case<ArrowRight size={13} /></Link> : opening ? (
             <form className="nr-sheet" style={{ width: "100%" }} onSubmit={(e) => { e.preventDefault(); if (title.trim()) void act(() => actWhatsApp({ type: "open_case", item_id: last.id, dog_id: last.linked_dog_id, title: title.trim(), severity: last.urgency === "emergency" ? "critical" : last.urgency === "urgent" ? "high" : "normal" }), "Case opened from the message."); }}>
               <Field label="Case title"><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Injured dog near the market" autoFocus maxLength={200} /></Field>
               <p className="nr-hint">Severity follows the message: {last.urgency === "emergency" ? "critical" : last.urgency === "urgent" ? "high" : "normal"}. You can change it on the case.</p>
@@ -246,7 +246,7 @@ function Paste({ sample }: { sample: boolean }) {
         <div className="nr-reply">{reply.text.replace(/\*\*/g, "")}</div>
         {reply.notice ? <p className="nr-hint">{reply.notice}</p> : null}
         {reply.proposals.map((p) => <ProposalCard key={p.id} p={p} />)}
-        {!reply.proposals.length ? <p className="nr-hint">Kaju did not prepare a record from this message. Open a case by hand from <Link className="nr-link" href="/next/ngo/cases/new">New case</Link>.</p> : null}
+        {!reply.proposals.length ? <p className="nr-hint">Kaju did not prepare a record from this message. Open a case by hand from <Link className="nr-link" href="/ngo/cases/new">New case</Link>.</p> : null}
       </section> : null}
     </div>
   );
@@ -271,7 +271,7 @@ function ProposalCard({ p }: { p: Proposal }) {
       <dl className="nr-dl">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       {saved ? <p className="nr-acts">{saved.what}.{saved.href ? <Link className="nr-link" href={saved.href}>Open it</Link> : null}</p>
         : record ? <div className="nr-acts"><button type="button" className="nx-btn is-sm" disabled={!!busy} onClick={() => setAsk(true)}>Confirm and save…</button><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setGone(true)}>Not this</button></div>
-        : <p className="nr-hint">This acts outside StrayPaw. Open it in <Link className="nr-link" href="/next/kaju">Kaju</Link> to check and send it.</p>}
+        : <p className="nr-hint">This acts outside StrayPaw. Open it in <Link className="nr-link" href="/kaju">Kaju</Link> to check and send it.</p>}
       {ask ? <Confirm title="Save what Kaju prepared?" confirm="Save it" busy={!!busy} onClose={() => setAsk(false)} onConfirm={() => void run("confirm", () => kajuConfirm(p), { ok: "Saved; the audit record was checked." }).then((r) => { if (r.ok && r.result?.data) { setSaved({ what: r.result.data.what, href: nextHref(r.result.data.href) }); setAsk(false); } })}>
         <p>It is saved under your name, marked as prepared with Kaju and confirmed by you. Confirming again never saves it twice.</p>
       </Confirm> : null}

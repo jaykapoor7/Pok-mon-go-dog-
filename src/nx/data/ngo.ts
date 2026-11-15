@@ -6,6 +6,7 @@
    (never throw), so a page's useAct can say what the database said in plain words. */
 
 import { getSupabase } from "@/lib/supabase";
+import { canonicalHref } from "@/lib/routes/canonical";
 import { uploadPhoto } from "@/lib/actions";
 import { createCase as createCaseLib, type CreateCaseInput } from "@/lib/case-actions";
 import { DEFAULT_TRIAGE, STATUS_META, type Condition, type StatusClass } from "@/lib/register/taxonomy";
@@ -40,14 +41,11 @@ export const realName = (s: string | null | undefined) => { const t = (s ?? "").
 export const isCriticalCondition = (c: string | null | undefined) => DEFAULT_TRIAGE[(c ?? "Not recorded") as Condition] === "Critical";
 export const statusLabel = (s: string | null | undefined) => STATUS_META[(s ?? "unknown") as StatusClass]?.label ?? "Status not recorded";
 export const STATUS_TONE: Record<string, "plain" | "accent" | "ok" | "warn" | "bad"> = { open: "accent", in_progress: "warn", closed: "ok", other_ngo: "plain", no_action: "plain", not_attended: "bad", unknown: "plain" };
-/** Links Kaju or older records carry to classic pages open the rebuilt page instead. */
+/** Links Kaju or older records carry open the page that does that work now; outside links are refused. */
 export function nextHref(href: string | null | undefined): string | null {
   if (!href) return null;
-  if (/^\/ngo\/cases\/[0-9a-f-]{36}/i.test(href)) return href.replace(/^\/ngo\//, "/next/ngo/");
-  if (/^\/ngo\/animals\/[0-9a-f-]{36}/i.test(href)) return href.replace(/^\/ngo\//, "/next/ngo/");
-  if (href.startsWith("/next/")) return href;
-  if (href === "/ngo" || href.startsWith("/ngo/work")) return "/next/ngo/cases";
-  return href.startsWith("/") && !/^\/(ngo|city|workspace|programme|today|animal|assistant)(\/|$)/.test(href) ? href : null;
+  const h = canonicalHref(href);
+  return h.startsWith("/") && !h.startsWith("//") ? h : null;
 }
 const DAY = 86_400_000;
 export const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -284,7 +282,7 @@ export function caseFromReport(r: Pick<Incoming, "lat" | "lng" | "zone" | "notes
   if (r.zone) p.set("zone", r.zone);
   p.set("title", (r.mood_tags ?? []).includes("injured") ? "Injured animal reported" : "Reported animal");
   if (r.notes) p.set("note", r.notes);
-  return `/next/ngo/cases/new?${p.toString()}`;
+  return `/ngo/cases/new?${p.toString()}`;
 }
 const MISSING_FN = new Set(["PGRST202", "42883", "42P01"]);
 export type WaState = { kind: "ok"; items: CareInboxItem[] } | { kind: "unlinked" } | { kind: "error"; detail: string };
@@ -303,7 +301,7 @@ export async function kajuRead(text: string): Promise<Res<AiReply>> {
     const who = await fetch("/api/ai", { cache: "no-store", headers: auth });
     const w = await who.json().catch(() => null) as { scope?: string } | null;
     if (!who.ok || typeof w?.scope !== "string") return { error: "Kaju could not check your workspace access. Nothing was changed. Try again." };
-    const r = await fetch("/api/ai", { method: "POST", headers: { ...auth, "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ messages: [{ role: "user", text: `Pasted WhatsApp message:\n${text}` }], context: { path: "/next/ngo/inbox", workspace: "ngo", scope: w.scope, title: "Inbox" } }) });
+    const r = await fetch("/api/ai", { method: "POST", headers: { ...auth, "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ messages: [{ role: "user", text: `Pasted WhatsApp message:\n${text}` }], context: { path: "/ngo/inbox", workspace: "ngo", scope: w.scope, title: "Inbox" } }) });
     const d = await r.json().catch(() => null) as (AiReply & { error?: string }) | null;
     if (!r.ok || !d || typeof d.text !== "string") return { error: d?.error ?? "Kaju could not read the message. Nothing was changed. Try again." };
     return { data: { ...d, proposals: Array.isArray(d.proposals) ? d.proposals : [] } };
@@ -371,16 +369,16 @@ export async function readLanes(ngoId: string): Promise<Lanes> {
   const now = Date.now();
   const card = (r: QueueRow): LaneCard => {
     const st = r.returned_note ? "returned" : abcStage(r); const gap = r.missing.map((k) => GAP[k] ?? k.replace(/_/g, " "));
-    return { key: `q-${r.case_id}`, href: `/next/ngo/cases/${r.case_id}`, code: shortCode(r.case_code), title: r.title || "Procedure record", age: ageOf(r.created_at), hot: st === "returned",
+    return { key: `q-${r.case_id}`, href: `/ngo/cases/${r.case_id}`, code: shortCode(r.case_code), title: r.title || "Procedure record", age: ageOf(r.created_at), hot: st === "returned",
       meta: st === "returned" ? (r.returned_note ?? "Returned for a correction") : st === "evidence" ? `Missing ${gap.slice(0, 2).join(", ") || "evidence"}${gap.length > 2 ? ` and ${gap.length - 2} more` : ""}` : st === "vet" ? (r.city ?? "Waiting for the veterinarian") : `Signed by ${r.vet_name ?? "the veterinarian"}`,
       tag: st === "returned" ? { label: "Returned", tone: "bad" } : st === "evidence" ? { label: `${r.evidence_count} of 5`, tone: "warn" } : st === "vet" ? { label: "Sign-off", tone: "accent" } : { label: r.evidence_reviewed ? "Approved" : "Review", tone: r.evidence_reviewed ? "ok" : "accent" } };
   };
   const lane = (id: "vet" | "evidence" | "report") => (q ? q.filter((r) => abcStage(r) === id).map(card).sort(urgent) : null);
   return {
-    new: ours.error || community.error ? null : [...(ours.data ?? []), ...(community.data ?? [])].filter((r, i, all) => all.findIndex((x) => x.id === r.id) === i).map((r) => ({ key: `i-${r.id}`, href: "/next/ngo/inbox", code: "Report", title: r.nickname || (r.mood_tags?.[0] ? r.mood_tags[0].replace(/_/g, " ") : "Animal reported"), meta: r.zone || "Place not given", age: ageOf(r.created_at), tag: { label: "To triage", tone: "plain" as const } })),
+    new: ours.error || community.error ? null : [...(ours.data ?? []), ...(community.data ?? [])].filter((r, i, all) => all.findIndex((x) => x.id === r.id) === i).map((r) => ({ key: `i-${r.id}`, href: "/ngo/inbox", code: "Report", title: r.nickname || (r.mood_tags?.[0] ? r.mood_tags[0].replace(/_/g, " ") : "Animal reported"), meta: r.zone || "Place not given", age: ageOf(r.created_at), tag: { label: "To triage", tone: "plain" as const } })),
     care: cases.error ? null : (cases.data?.rows ?? []).filter((c) => isOpenClass(c.status_class) && !isHistorical(c) && !isStaleFact(c, now) && !inQ.has(c.id)).map((c): LaneCard => {
       const crit = isCriticalCondition(c.condition_class);
-      return { key: `c-${c.id}`, href: `/next/ngo/cases/${c.id}`, code: shortCode(c.case_code), title: c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Open case", meta: [realName(c.animal_name), c.zone ?? c.city].filter(Boolean).join(" · ") || "Place not recorded", age: ageOf(c.occurred_at), who: c.assignee_name, hot: crit,
+      return { key: `c-${c.id}`, href: `/ngo/cases/${c.id}`, code: shortCode(c.case_code), title: c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Open case", meta: [realName(c.animal_name), c.zone ?? c.city].filter(Boolean).join(" · ") || "Place not recorded", age: ageOf(c.occurred_at), who: c.assignee_name, hot: crit,
         tag: crit ? { label: "Critical", tone: "bad" } : (c.followups_missed ?? 0) > 0 ? { label: "Follow-up overdue", tone: "warn" } : c.status_class === "in_progress" ? { label: "In progress", tone: "accent" } : { label: "Open", tone: "plain" } };
     }).sort(urgent),
     vet: lane("vet"), evidence: lane("evidence"), report: lane("report"),

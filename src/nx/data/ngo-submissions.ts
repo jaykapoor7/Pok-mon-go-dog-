@@ -26,7 +26,7 @@ export function monthBounds(now: Date, previous = false) {
   const start = new Date(Date.UTC(y, m, 1)), end = new Date(Date.UTC(y, m + 1, 0));
   return { start: iso(start), end: iso(end), label: start.toLocaleDateString("en-IN", { month: "long", year: "numeric", timeZone: "UTC" }) };
 }
-const EVIDENCE_TAB = "/next/ngo/submissions?tab=evidence";
+const EVIDENCE_TAB = "/ngo/submissions?tab=evidence";
 /** What still blocks records of a month from a claim. Guidance from the verification queue only; what can be
     claimed and for how much comes from the database's billing preview. */
 export function blockers(rows: QueueRow[], start: string, end: string, readLimit = 500) {
@@ -173,8 +173,8 @@ export async function readQuality(ngoId: string) {
   if (total > 0 && animals.length === 0 && records.length === 0) throw new Error("Only part of the record came back.");
   return { animals, records, total, partial: animals.length < total };
 }
-const animalItem = (a: QualityAnimal): QualityItem => ({ key: a.id, label: a.name || a.straypaw_id || a.code || "Unnamed animal", sub: [a.straypaw_id ?? "No StrayPaw ID", a.code ?? "no source ID", a.zone || "no locality"].join(" · "), href: `/next/ngo/animals/${a.id}` });
-const recordItem = (r: PartnerRecordRow): QualityItem => ({ key: r.id, label: r.title, sub: [r.date ? (Number.isFinite(Date.parse(r.date)) ? new Date(r.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : `date "${r.date}"`) : "no date", r.animalLabel, r.locality, r.status].filter(Boolean).join(" · "), href: r.caseId ? `/next/ngo/cases/${r.caseId}` : r.animalId ? `/next/ngo/animals/${r.animalId}` : null });
+const animalItem = (a: QualityAnimal): QualityItem => ({ key: a.id, label: a.name || a.straypaw_id || a.code || "Unnamed animal", sub: [a.straypaw_id ?? "No StrayPaw ID", a.code ?? "no source ID", a.zone || "no locality"].join(" · "), href: `/ngo/animals/${a.id}` });
+const recordItem = (r: PartnerRecordRow): QualityItem => ({ key: r.id, label: r.title, sub: [r.date ? (Number.isFinite(Date.parse(r.date)) ? new Date(r.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : `date "${r.date}"`) : "no date", r.animalLabel, r.locality, r.status].filter(Boolean).join(" · "), href: r.caseId ? `/ngo/cases/${r.caseId}` : r.animalId ? `/ngo/animals/${r.animalId}` : null });
 /** The classic data-quality rules, verbatim. */
 export function qualityQueues(animals: QualityAnimal[], records: PartnerRecordRow[]): QualityQueue[] {
   const now = Date.now();

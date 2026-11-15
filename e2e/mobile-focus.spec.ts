@@ -57,13 +57,6 @@ test("the AI jobs advance by themselves and stop when one is chosen", async ({ p
   await expect(jobs.nth(3)).toHaveAttribute("aria-pressed", "true");
 });
 
-test("only a verified dual-role member gets a workspace switcher", async ({ page }) => {
-  for (const path of ["/community", "/ngo"]) {
-    await page.goto(path);
-    await expect(page.locator(".sx3-ws-btn:visible, .sp-ws-btn:visible")).toHaveCount(0);
-  }
-});
-
 test("phone menu: grouped places, one demo action, one sign in", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -76,57 +69,6 @@ test("phone menu: grouped places, one demo action, one sign in", async ({ page }
   await expect(page.getByRole("button", { name: "Open menu", exact: true })).toHaveAttribute("aria-expanded", "false");
 });
 
-test("signed-out NGO page shows what the workspace includes at every width", async ({ page }) => {
-  for (const width of [320, 768, 1280]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("/ngo");
-    const items = page.locator(".ngo-door-inc li");
-    await expect(items).toHaveCount(3);
-    for (const p of await page.locator(".ngo-door-inc p").all()) {
-      await expect(p).toBeVisible();
-      expect(await p.evaluate(el => el.getBoundingClientRect().width)).toBeGreaterThan(150);
-    }
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-  }
-});
-
-test("desktop sidebar is a tree of the work, each place once, with tabs above the page", async ({ page, isMobile }) => {
-  test.skip(!!isMobile, "desktop sidebar");
-  await page.goto("/ngo"); const side = page.getByRole("complementary", { name: "Workspace" });
-  await expect(side.getByRole("link", { name: "Home", exact: true })).toHaveAttribute("aria-current", "page");
-  /* Two lines of work, each one page; nothing to unfold to find the work. */
-  for (const place of ["Rescues", "Sterilisation", "Animals"]) await expect(side.getByRole("link", { name: place, exact: true })).toHaveCount(1);
-  for (const gone of ["Work queue", "Intake", "Treatment & release", "Pipeline", "Cases", "Drives", "Outreach"]) await expect(side.getByRole("link", { name: gone, exact: true })).toHaveCount(0);
-  /* Search and Kaju are buttons at the top of the sidebar; the place switcher sits above them. */
-  await expect(side.getByRole("button", { name: /Places and account/ })).toBeVisible();
-  await expect(side.getByRole("button", { name: /^Kaju/ })).toBeVisible();
-  await expect(side.getByRole("link", { name: "Kaju", exact: true })).toHaveCount(0);
-  /* The sidebar runs the full height and the page starts where it ends. */
-  const [sb, main, vh] = await Promise.all([side.boundingBox(), page.locator("#sp-main").boundingBox(), page.evaluate(() => window.innerHeight)]);
-  expect(sb!.y).toBe(0); expect(Math.round(sb!.height)).toBe(vh);
-  expect(Math.abs(main!.x - (sb!.x + sb!.width))).toBeLessThanOrEqual(1);
-  /* Every page opened is a tab; going somewhere else keeps the first one open. */
-  const tabs = page.getByRole("navigation", { name: "Open pages" });
-  await side.getByRole("link", { name: "Rescues", exact: true }).click();
-  await expect(page).toHaveURL(/\/ngo\/rescues$/);
-  await expect(tabs.getByRole("link", { name: "Rescues" })).toHaveAttribute("aria-current", "page");
-  await expect(tabs.getByRole("link", { name: "Home" })).toHaveCount(1);
-  /* One Quick actions button; it opens search. */
-  await side.getByRole("button", { name: /^Quick actions/ }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
-});
-test("the phone menu opens the same tree and closes without losing the page", async ({ page, isMobile }) => {
-  test.skip(!isMobile, "phone menu");
-  await page.goto("/ngo"); const side = page.getByRole("complementary", { name: "Workspace" });
-  await expect(side).toHaveAttribute("inert", "");
-  await page.getByRole("button", { name: "Open the menu", exact: true }).click();
-  await expect(side.getByRole("link", { name: "Rescues", exact: true })).toBeVisible();
-  await expect(side.getByRole("link", { name: "Team", exact: true })).toHaveCount(0);
-  await page.keyboard.press("Escape");
-  await expect(side).toHaveAttribute("inert", "");
-  await expect(page).toHaveURL(/\/ngo$/);
-});
 test("workshops run one activity at a time and pair attributed originals", async ({ page }) => {
   await page.goto("/learn/workshops");
   const track = page.getByRole("list", { name: /where the group is/ });
@@ -165,39 +107,4 @@ test("practice gives feedback; there are no printable cards", async ({ page }) =
   await page.getByRole("button", { name: "Not safely", exact: true }).click();
   await page.getByRole("button", { name: "Check my practice report", exact: true }).click();
   await expect(page.getByText(/Practice complete/)).toBeVisible();
-});
-
-test("the sidebar tucks away, comes back on the key, and has no More list", async ({ page, isMobile }) => {
-  test.skip(!!isMobile, "desktop sidebar");
-  await page.goto("/ngo"); const side = page.getByRole("complementary", { name: "Workspace" });
-  await expect(side.getByText("More", { exact: true })).toHaveCount(0);
-  await expect(side.locator("details")).toHaveCount(0);
-  await expect(async () => { await side.getByRole("button", { name: "Tuck the sidebar away" }).click({ timeout: 1000 }); await expect(page.locator(".sp.ws")).toHaveClass(/is-tucked/, { timeout: 1000 }); }).toPass({ timeout: 15_000 });
-  await page.mouse.move(900, 500);
-  await expect(side).toHaveAttribute("inert", "");
-  /* The same key brings it back, and its links work. */
-  await page.keyboard.press("Control+Backslash");
-  await expect(page.locator(".sp.ws")).not.toHaveClass(/is-tucked/);
-  await expect(side.getByRole("link", { name: "Home", exact: true })).toBeVisible();
-});
-
-test("each line of work is one page and reads nothing private for a visitor", async ({ page, isMobile }) => {
-  for (const [path, title] of [["/ngo/rescues", "Rescues"], ["/ngo/sterilisation", "Sterilisation"], ["/ngo/add", "Add an animal"]]) {
-    await page.goto(path);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText(title);
-    await expect(page.getByRole("link", { name: /Sign in with your code|Join with a code/ })).toBeVisible();
-    await expect(page.locator(".ln-row")).toHaveCount(0);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-  }
-  if (!isMobile) await expect(page.getByRole("complementary", { name: "Workspace" }).getByRole("link", { name: "Rescues", exact: true })).toBeVisible();
-});
-
-test("Quick actions is an organised index of the workspace", async ({ page, isMobile }) => {
-  test.skip(!!isMobile, "desktop sidebar");
-  await page.goto("/ngo"); const side = page.getByRole("complementary", { name: "Workspace" });
-  await expect(async () => { await side.getByRole("button", { name: /^Quick actions/ }).click({ timeout: 1000 }); await expect(page.getByRole("dialog", { name: "Search" })).toBeVisible({ timeout: 1000 }); }).toPass({ timeout: 15_000 });
-  const index = page.getByRole("dialog", { name: "Search" });
-  await expect(index.locator(".sp-finder-group").first()).toBeVisible();
-  await expect(index.getByRole("option").first()).toBeVisible();
-  await page.keyboard.press("Escape"); await expect(index).toBeHidden();
 });

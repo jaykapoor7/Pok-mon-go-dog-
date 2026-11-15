@@ -24,13 +24,13 @@ import { S_POLICIES, S_PROFILE } from "./sample";
 const TABS = [{ slug: "profile", label: "Profile" }, { slug: "deadline", label: "Report deadline" }, { slug: "policies", label: "Policies" }, { slug: "connections", label: "Connections" }, { slug: "connected", label: "What is connected" }] as const;
 type Tab = (typeof TABS)[number]["label"];
 const CRUMB: [string, string] = ["NGO", "Settings"];
-export const NGO_SETTINGS_BACK = "/next/ngo/settings?tab=connections";
+export const NGO_SETTINGS_BACK = "/ngo/settings?tab=connections";
 
 export function Settings({ tab: initial, flags }: { tab?: string | null; flags: Flag[] }) {
   const who = useWho();
   const [tab, setTab] = useTab(TABS, initial);
   if (!who.ready) return <Holding crumb={CRUMB} text="Opening…" />;
-  if (who.notNgo) return <Holding crumb={CRUMB} title="Settings" text={<>Your organisation is not an NGO workspace. Your own connections are under <Link className="ns-link" href="/next/settings">your settings</Link>.</>} />;
+  if (who.notNgo) return <Holding crumb={CRUMB} title="Settings" text={<>Your organisation is not an NGO workspace. Your own connections are under <Link className="ns-link" href="/settings">your settings</Link>.</>} />;
   return (
     <TabbedPage id="set" crumb={CRUMB} title="Settings" eyebrow={who.ngo?.name ?? "Kind Hour"} sample={who.sample}
       sub="The organisation's public profile, its reporting date and procedure policies, the tools connected to Kaju, and what is live."
@@ -213,11 +213,11 @@ export function PersonalSettings() {
     <Shell ws={ws} crumb={["Settings"]}>
       <div className="nx-page ns-page" style={{ maxWidth: 900 }}>
         <div className="nx-head"><div><p className="nx-eyebrow">{live.userName ?? "Your account"}</p><h1 className="nx-h1">Your settings</h1><p className="nx-sub">The tools you connect to Kaju. Each connection is yours; your organisation&apos;s lead decides what may be shared.</p></div></div>
-        {live.signedIn ? <ConnectionsPanel back="/next/settings" sample={false} /> : <>
-          <ConnectionsPanel back="/next/settings" sample />
-          <div className="ns-acts"><Link className="nx-btn" href="/sign-in?next=/next/settings">Sign in to connect your tools</Link><TryLink quiet>Open the live demo</TryLink></div>
+        {live.signedIn ? <ConnectionsPanel back="/settings" sample={false} /> : <>
+          <ConnectionsPanel back="/settings" sample />
+          <div className="ns-acts"><Link className="nx-btn" href="/sign-in?next=/settings">Sign in to connect your tools</Link><TryLink quiet>Open the live demo</TryLink></div>
         </>}
-        {live.orgFor("ngo") ? <p className="nx-foot">Organisation settings, profile and policies are under <Link className="ns-link" href="/next/ngo/settings">NGO settings</Link>.</p> : null}
+        {live.orgFor("ngo") ? <p className="nx-foot">Organisation settings, profile and policies are under <Link className="ns-link" href="/ngo/settings">NGO settings</Link>.</p> : null}
       </div>
     </Shell>
   );

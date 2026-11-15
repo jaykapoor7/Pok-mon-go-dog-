@@ -4,11 +4,14 @@ import { expect, test } from "@playwright/test";
    pretends to be connected. Signed-in flows need provider credentials and
    are checked on staging (scripts/test-connections.ts, RLS checks). */
 
-test("the Connections page asks a visitor to sign in", async ({ page }) => {
-  await page.goto("/ngo/settings/connections");
-  await expect(page.getByRole("heading", { level: 1, name: "Connections" })).toBeVisible();
-  await expect(page.getByText("Sign in to connect your tools with Kaju.")).toBeVisible();
-  await expect(page.getByText("Connected", { exact: true })).toHaveCount(0);
+test("signed out, Connections is a sample that connects nothing", async ({ page }) => {
+  await page.goto("/ngo/settings?tab=connections");
+  await expect(page.getByRole("tab", { name: "Connections", selected: true })).toBeVisible();
+  await expect(page.getByText(/Connected as /)).toHaveCount(0);
+  const requests: string[] = [];
+  page.on("request", (r) => { if (/\/api\/connections/.test(r.url())) requests.push(r.url()); });
+  await page.waitForLoadState("networkidle");
+  expect(requests, "a visitor's page asks no connection API").toEqual([]);
 });
 
 test("connection APIs refuse requests without a session", async ({ request }) => {

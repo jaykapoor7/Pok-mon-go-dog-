@@ -23,17 +23,17 @@ async function noSideScroll(page: Page) {
 }
 
 const PAGES: [string, RegExp][] = [
-  ["/next/gov/verification/v2", /October 2026 · sterilisation/],
-  ["/next/gov/programmes/sample", /East Zone rabies programme/],
-  ["/next/gov/programmes/sample?tab=Setup", /What this programme does/],
-  ["/next/gov/reports?tab=Contracts", /Contract versions/],
-  ["/next/health/bites/new", /Record a bite/],
-  ["/next/health/bites/b2", /OPD-ILL-0409/],
-  ["/next/health/samples/new", /Send a sample/],
-  ["/next/health/samples/x3", /SX-ILL-004/],
-  ["/next/health/procedures/vp1", /Sterilisation/],
-  ["/next/health/referrals", /Referrals/],
-  ["/next/health/facilities/ours", /Our services/],
+  ["/gov/verification/v2", /October 2026 · sterilisation/],
+  ["/gov/programmes/sample", /East Zone rabies programme/],
+  ["/gov/programmes/sample?tab=Setup", /What this programme does/],
+  ["/gov/reports?tab=Contracts", /Contract versions/],
+  ["/health/bites/new", /Record a bite/],
+  ["/health/bites/b2", /OPD-ILL-0409/],
+  ["/health/samples/new", /Send a sample/],
+  ["/health/samples/x3", /SX-ILL-004/],
+  ["/health/procedures/vp1", /Sterilisation/],
+  ["/health/referrals", /Referrals/],
+  ["/health/facilities/ours", /Our services/],
 ];
 
 for (const [path, heading] of PAGES) {
@@ -47,16 +47,16 @@ for (const [path, heading] of PAGES) {
 }
 
 test("Verification queue opens the package record in the new app", async ({ page }) => {
-  await open(page, "/next/gov/verification");
+  await open(page, "/gov/verification");
   await page.locator("button.nx-tr").first().click();
   await page.getByRole("dialog").getByRole("link", { name: "Open the review" }).last().click();
-  await expect(page).toHaveURL(/\/next\/gov\/verification\/v2$/);
+  await expect(page).toHaveURL(/\/gov\/verification\/v2$/);
   await expect(page.getByRole("heading", { name: "Decision on this claim" })).toBeVisible();
   await noClassicLinks(page);
 });
 
 test("Package review: a claim shows its checks; selecting claims offers a batch decision that goes to the demo", async ({ page }) => {
-  await open(page, "/next/gov/verification/v2");
+  await open(page, "/gov/verification/v2");
   await page.getByRole("button", { name: "Open claim SP-1042" }).click();
   await expect(page.getByRole("list", { name: "Fixed checks for this claim" })).toContainText("Missing evidence");
   await expect(page.getByText("Accept is not offered while a requirement is missing")).toBeVisible();
@@ -70,7 +70,7 @@ test("Package review: a claim shows its checks; selecting claims offers a batch 
 });
 
 test("Programme record: tabs for coverage, network, work, report and setup; invites point at the new start page", async ({ page }) => {
-  await open(page, "/next/gov/programmes/sample");
+  await open(page, "/gov/programmes/sample");
   await expect(page.getByRole("heading", { name: "Needs a decision" })).toBeVisible();
   await page.getByRole("tab", { name: "Coverage", exact: true }).click();
   await expect(page.getByRole("table", { name: "Coverage by area" })).toContainText("Needs an estimate");
@@ -85,34 +85,34 @@ test("Programme record: tabs for coverage, network, work, report and setup; invi
 });
 
 test("Exposure record: the schedule is the clinician's, never computed", async ({ page }) => {
-  await open(page, "/next/health/bites/b1");
+  await open(page, "/health/bites/b1");
   await expect(page.getByText("StrayPaw does not calculate or suggest a schedule", { exact: false }).or(page.getByText("Record the category first"))).toBeVisible();
-  await open(page, "/next/health/bites/b2");
+  await open(page, "/health/bites/b2");
   await expect(page.getByRole("list", { name: "Doses" })).toBeVisible();
   await expect(page.getByText("Every dose date here was entered by the clinician")).toBeVisible();
   await expect(page.getByText("Kaju does not read this record")).toBeVisible();
 });
 
 test("Sample record: chain of custody, and the laboratory step for its status", async ({ page }) => {
-  await open(page, "/next/health/samples/x3");
+  await open(page, "/health/samples/x3");
   await expect(page.getByRole("heading", { name: "Chain of custody" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Record the result" })).toHaveAttribute("href", "/try");
-  await open(page, "/next/health/samples/x1");
+  await open(page, "/health/samples/x1");
   await expect(page.getByRole("link", { name: "Receive" })).toBeVisible();
 });
 
 test("Procedure sign-off: evidence, the veterinarian's authorisation and the review, as links to the demo", async ({ page }) => {
-  await open(page, "/next/health/procedures/vp1");
+  await open(page, "/health/procedures/vp1");
   await expect(page.getByRole("heading", { name: "Veterinary authorisation" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Authorise the procedure" })).toHaveAttribute("href", "/try");
   await expect(page.getByText("Kaju never signs or approves", { exact: false })).toBeVisible();
-  await open(page, "/next/health/procedures");
+  await open(page, "/health/procedures");
   await page.locator("button.nx-tr").first().click();
-  await expect(page.getByRole("dialog").getByRole("link", { name: "Review and sign" }).first()).toHaveAttribute("href", /\/next\/health\/procedures\/vp\d$/);
+  await expect(page.getByRole("dialog").getByRole("link", { name: "Review and sign" }).first()).toHaveAttribute("href", /\/health\/procedures\/vp\d$/);
 });
 
 test("Referrals: arrivals, requests to the facility and where it sends people", async ({ page }) => {
-  await open(page, "/next/health/referrals");
+  await open(page, "/health/referrals");
   await expect(page.locator("button.nx-tr")).toHaveCount(1);
   await page.locator("button.nx-tr").first().click();
   await expect(page.getByRole("dialog").getByRole("link", { name: "Arrived: record the bite" })).toHaveAttribute("href", "/try");
@@ -124,11 +124,11 @@ test("Referrals: arrivals, requests to the facility and where it sends people", 
 });
 
 test("Bite and dose lists link to the new clinical record", async ({ page }) => {
-  await open(page, "/next/health/bites");
+  await open(page, "/health/bites");
   await page.locator("button.nx-tr").first().click();
-  await expect(page.getByRole("dialog").getByRole("link", { name: "Open the clinical record" }).first()).toHaveAttribute("href", /\/next\/health\/bites\/b\d$/);
-  await open(page, "/next/health/today");
+  await expect(page.getByRole("dialog").getByRole("link", { name: "Open the clinical record" }).first()).toHaveAttribute("href", /\/health\/bites\/b\d$/);
+  await open(page, "/health/today");
   await noClassicLinks(page);
-  await open(page, "/next/health/facilities");
-  await expect(page.getByRole("link", { name: "Confirm our services" })).toHaveAttribute("href", "/next/health/facilities/ours");
+  await open(page, "/health/facilities");
+  await expect(page.getByRole("link", { name: "Confirm our services" })).toHaveAttribute("href", "/health/facilities/ours");
 });

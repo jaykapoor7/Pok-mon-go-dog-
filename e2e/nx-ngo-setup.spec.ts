@@ -17,33 +17,33 @@ const noSideScroll = async (page: Page) => {
 };
 
 const PAGES: [string, RegExp][] = [
-  ["/next/ngo/submissions", /Submissions & Reports/],
-  ["/next/ngo/submissions?tab=evidence", /Submissions & Reports/],
-  ["/next/ngo/submissions?tab=contracts", /Submissions & Reports/],
-  ["/next/ngo/submissions?tab=documents", /Submissions & Reports/],
-  ["/next/ngo/submissions?tab=exports", /Submissions & Reports/],
-  ["/next/ngo/submissions?tab=stories", /Submissions & Reports/],
-  ["/next/ngo/submissions?tab=quality", /Submissions & Reports/],
-  ["/next/ngo/submissions/sample-oct", /ABC claims · October 2026/],
-  ["/next/ngo/programmes", /Programmes/],
-  ["/next/ngo/programmes?tab=zones", /Programmes/],
-  ["/next/ngo/programmes?tab=surveys", /Programmes/],
-  ["/next/ngo/programmes?tab=feeding", /Programmes/],
-  ["/next/ngo/programmes?tab=fundraising", /Programmes/],
-  ["/next/ngo/programmes/sample-d1", /Ward 12 vaccination drive/],
-  ["/next/ngo/programmes/surveys/sample-sv1", /Ward 12 dog census 2026/],
-  ["/next/ngo/programmes/surveys/sample-pj1", /School round register/],
-  ["/next/ngo/team", /Team/],
-  ["/next/ngo/team?tab=codes", /Team/],
-  ["/next/ngo/team?tab=volunteers", /Team/],
-  ["/next/ngo/settings", /Settings/],
-  ["/next/ngo/settings?tab=deadline", /Settings/],
-  ["/next/ngo/settings?tab=policies", /Settings/],
-  ["/next/ngo/settings?tab=connections", /Settings/],
-  ["/next/ngo/settings?tab=connected", /Settings/],
-  ["/next/settings", /Your settings/],
-  ["/next/ngo/import", /Import a register/],
-  ["/next/ngo/training", /Training/],
+  ["/ngo/submissions", /Submissions & Reports/],
+  ["/ngo/submissions?tab=evidence", /Submissions & Reports/],
+  ["/ngo/submissions?tab=contracts", /Submissions & Reports/],
+  ["/ngo/submissions?tab=documents", /Submissions & Reports/],
+  ["/ngo/submissions?tab=exports", /Submissions & Reports/],
+  ["/ngo/submissions?tab=stories", /Submissions & Reports/],
+  ["/ngo/submissions?tab=quality", /Submissions & Reports/],
+  ["/ngo/submissions/sample-oct", /ABC claims · October 2026/],
+  ["/ngo/programmes", /Programmes/],
+  ["/ngo/programmes?tab=zones", /Programmes/],
+  ["/ngo/programmes?tab=surveys", /Programmes/],
+  ["/ngo/programmes?tab=feeding", /Programmes/],
+  ["/ngo/programmes?tab=fundraising", /Programmes/],
+  ["/ngo/programmes/sample-d1", /Ward 12 vaccination drive/],
+  ["/ngo/programmes/surveys/sample-sv1", /Ward 12 dog census 2026/],
+  ["/ngo/programmes/surveys/sample-pj1", /School round register/],
+  ["/ngo/team", /Team/],
+  ["/ngo/team?tab=codes", /Team/],
+  ["/ngo/team?tab=volunteers", /Team/],
+  ["/ngo/settings", /Settings/],
+  ["/ngo/settings?tab=deadline", /Settings/],
+  ["/ngo/settings?tab=policies", /Settings/],
+  ["/ngo/settings?tab=connections", /Settings/],
+  ["/ngo/settings?tab=connected", /Settings/],
+  ["/settings", /Your settings/],
+  ["/ngo/import", /Import a register/],
+  ["/ngo/training", /Training/],
 ];
 
 for (const [path, heading] of PAGES) {
@@ -67,7 +67,7 @@ test.describe("at 390px", () => {
 });
 
 test("Submissions: tabs keep their place in the address, and sample actions open the live demo", async ({ page }) => {
-  await open(page, "/next/ngo/submissions");
+  await open(page, "/ngo/submissions");
   await expect(page.getByText("Sample data").first()).toBeVisible();
   await page.getByRole("tab", { name: "Contracts" }).click();
   await expect(page).toHaveURL(/\?tab=contracts$/);
@@ -80,42 +80,42 @@ test("Submissions: tabs keep their place in the address, and sample actions open
 });
 
 test("Packages: a row previews its package and opens the record", async ({ page }) => {
-  await open(page, "/next/ngo/submissions");
+  await open(page, "/ngo/submissions");
   await page.getByRole("button", { name: "Open ABC claims · October 2026" }).click();
   const drawer = page.getByRole("dialog");
   await expect(drawer).toContainText("The reviewing office asked a question");
   await drawer.getByRole("link", { name: "Open the package" }).last().click();
-  await expect(page).toHaveURL(/\/next\/ngo\/submissions\/sample-oct$/);
+  await expect(page).toHaveURL(/\/ngo\/submissions\/sample-oct$/);
   await expect(page.getByRole("table", { name: "Claims" })).toBeVisible();
   await page.getByRole("tab", { name: "Records and evidence" }).click();
   await expect(page.getByRole("table", { name: "Records in this package" })).toBeVisible();
 });
 
 test("Evidence readiness opens on a stage from the address", async ({ page }) => {
-  await open(page, "/next/ngo/submissions?tab=evidence&stage=returned");
+  await open(page, "/ngo/submissions?tab=evidence&stage=returned");
   await expect(page.getByRole("tab", { name: /Returned/ })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("table", { name: "Procedure records" }).getByRole("row")).toHaveCount(2);
 });
 
 test("Programmes: a drive opens its record with its animals", async ({ page }) => {
-  await open(page, "/next/ngo/programmes");
+  await open(page, "/ngo/programmes");
   await page.getByRole("button", { name: "Open Ward 12 vaccination drive" }).click();
   await expect(page.getByRole("dialog")).toContainText("of 75 known");
   await page.getByRole("dialog").getByRole("link", { name: "Open the drive" }).last().click();
-  await expect(page).toHaveURL(/\/next\/ngo\/programmes\/sample-d1$/);
+  await expect(page).toHaveURL(/\/ngo\/programmes\/sample-d1$/);
   await expect(page.getByRole("table", { name: "Animals in this drive" })).toBeVisible();
   await page.getByRole("tab", { name: "Not recorded" }).click();
   await expect(page.getByRole("table", { name: "Animals in this drive" }).getByRole("row")).toHaveCount(3);
 });
 
 test("Zones: a zone previews its staff and next step", async ({ page }) => {
-  await open(page, "/next/ngo/programmes?tab=zones");
+  await open(page, "/ngo/programmes?tab=zones");
   await page.getByRole("button", { name: "Open Ward 12 market and temple" }).click();
   await expect(page.getByRole("dialog")).toContainText("Supervisor review");
 });
 
 test("Training says plainly when it is not switched on", async ({ page }) => {
-  await open(page, "/next/ngo/training");
+  await open(page, "/ngo/training");
   const off = page.getByText("Training is not switched on for this organisation");
   const on = page.getByRole("tab", { name: "My training" });
   await expect(off.or(on)).toBeVisible();

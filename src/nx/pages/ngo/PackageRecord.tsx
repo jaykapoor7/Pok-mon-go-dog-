@@ -47,15 +47,15 @@ export function PackageRecord({ id }: { id: string }) {
   useEffect(() => { if (live) void load(); }, [live, load]);
   const crumb: [string, string] = ["Submissions & Reports", state.s === "ok" ? state.d.pkg.title : who.sample ? S_PACKAGES.find((p) => p.id === id)?.title ?? "Package" : "Package"];
   if (!who.ready) return <Shell crumb={crumb}><div className="nx-page"><Skeleton rows={6} label="Opening the package" /></div></Shell>;
-  if (who.notNgo) return <Shell crumb={crumb}><div className="nx-page"><Denied what="This package belongs to an NGO workspace" why="Your organisation reviews packages under Verification in the government workspace." back={{ href: "/next/gov/verification", label: "Open Verification" }} /></div></Shell>;
+  if (who.notNgo) return <Shell crumb={crumb}><div className="nx-page"><Denied what="This package belongs to an NGO workspace" why="Your organisation reviews packages under Verification in the government workspace." back={{ href: "/gov/verification", label: "Open Verification" }} /></div></Shell>;
   if (who.sample) {
     const pk = S_PACKAGES.find((p) => p.id === id) ?? (sampleId ? null : S_PACKAGES[1]);
-    if (!pk) return <Shell crumb={crumb}><div className="nx-page"><Empty title="This sample package does not exist" action={<Link className="nx-btn is-quiet" href="/next/ngo/submissions">All packages</Link>} /></div></Shell>;
+    if (!pk) return <Shell crumb={crumb}><div className="nx-page"><Empty title="This sample package does not exist" action={<Link className="nx-btn is-quiet" href="/ngo/submissions">All packages</Link>} /></div></Shell>;
     return <View sample d={{ pkg: pk, cases: S_PACKAGE_CASES, events: S_PACKAGE_EVENTS, offices: S_OFFICES }} role="coordinator" reload={async () => {}} />;
   }
   if (state.s === "loading") return <Shell crumb={crumb}><div className="nx-page"><Skeleton rows={6} label="Reading the package" /></div></Shell>;
   if (state.s === "off") return <Shell crumb={crumb}><div className="nx-page"><Empty title="Packages are not switched on for this organisation yet" /></div></Shell>;
-  if (state.s === "missing") return <Shell crumb={crumb}><div className="nx-page"><Denied what="This package is not available to you" why="It may belong to another organisation, or it no longer exists." back={{ href: "/next/ngo/submissions", label: "All packages" }} /></div></Shell>;
+  if (state.s === "missing") return <Shell crumb={crumb}><div className="nx-page"><Denied what="This package is not available to you" why="It may belong to another organisation, or it no longer exists." back={{ href: "/ngo/submissions", label: "All packages" }} /></div></Shell>;
   if (state.s === "error") return <Shell crumb={crumb}><div className="nx-page"><Failed error={state.e} retry={() => void load()} /></div></Shell>;
   return <View sample={false} d={state.d} role={who.role} reload={load} />;
 }
@@ -80,7 +80,7 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
         actions={<>
           {sample ? <><TryLink quiet><Download size={13} />Download PDF</TryLink><TryLink quiet><Download size={13} />Download XLSX</TryLink></>
             : operator ? <><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("pdf")}><Download size={13} />{busy === "dl:pdf" ? "Preparing…" : "Download PDF"}</button><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("xlsx")}><Download size={13} />{busy === "dl:xlsx" ? "Preparing…" : "Download XLSX"}</button></> : null}
-          <Link className="nx-btn is-quiet" href="/next/ngo/submissions">All packages</Link>
+          <Link className="nx-btn is-quiet" href="/ngo/submissions">All packages</Link>
         </>} />
       <TabBar id="pkg" tabs={TABS as unknown as Tab[]} value={tab} onChange={setTab} label="Package sections" />
       <div className="nx-rec">
@@ -114,7 +114,7 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
 /* ── Records and evidence ── */
 function Records({ cases, sample }: { cases: PackageCase[]; sample: boolean }) {
   const cols: GCol<PackageCase>[] = [
-    { label: "Record", width: "minmax(0, 1.3fr)", render: (c) => <span className="nx-cell-main"><span><b>{sample ? c.title || c.case_code : <Link href={`/next/ngo/cases/${c.case_id}`} className="ns-link">{c.title || shortCode(c.case_code)}</Link>}</b><small>{[shortCode(c.case_code, ""), c.city].filter(Boolean).join(" · ")}</small></span></span> },
+    { label: "Record", width: "minmax(0, 1.3fr)", render: (c) => <span className="nx-cell-main"><span><b>{sample ? c.title || c.case_code : <Link href={`/ngo/cases/${c.case_id}`} className="ns-link">{c.title || shortCode(c.case_code)}</Link>}</b><small>{[shortCode(c.case_code, ""), c.city].filter(Boolean).join(" · ")}</small></span></span> },
     { label: "Evidence", width: "minmax(0, 2fr)", keep: true, render: (c) => <span className="ns-row-acts" style={{ justifyContent: "flex-start", flexWrap: "wrap" }}>{c.evidence.length ? c.evidence.map((e, i) => e.url ? <EvidenceLink key={i} url={e.url}>{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}</EvidenceLink> : <span key={i} className="nx-t2">{EVIDENCE_LABEL[e.kind as EvidenceKind] ?? e.kind}{e.location ? `: ${e.location}` : ""}</span>) : <span className="nx-t3">None</span>}</span> },
     { label: "Signed by", width: "minmax(0, .8fr)", render: (c) => <span className="nx-t2 ns-cell">{c.vet_name ?? "Not recorded"}</span> },
     { label: "Reviewed by", width: "minmax(0, .8fr)", render: (c) => <span className="nx-t2 ns-cell">{c.reviewer_name ?? "Not recorded"}</span> },
@@ -182,7 +182,7 @@ function ClaimDetail({ sample, pkg, item, source, reviewEnabled, onChanged }: { 
       <Props items={[["Decision", <span key="d">{item.decision === "pending" ? "Awaiting individual review" : DECISION[item.decision].label}{item.decision === "accepted" && item.accepted_units !== null ? ` · ${item.accepted_units} accepted` : ""}</span>], ["Reviewer", item.reviewer ?? "Not yet"], ["Decided", item.decided_at ? dayTime(item.decided_at) : "Not yet"], ["Units and rate", `${item.claimed_units} × ${money(item.unit_rate)}`], ["Vet authorisation", vet ?? "Not recorded"], ["Coordinator review", rev ?? "Not recorded"]]} />
       {item.note ? <p className="nx-note" style={{ marginTop: 12 }}><span>{item.note}</span></p> : null}
       {item.missing.length ? <p className="nx-foot ns-note-bad">Requirements not complete: {item.missing.join("; ")}</p> : null}
-      {!sample ? <p style={{ marginTop: 10 }}><Link className="ns-link" href={`/next/ngo/cases/${item.case_id}`}>Open the case, its evidence and clinical record</Link></p> : null}
+      {!sample ? <p style={{ marginTop: 10 }}><Link className="ns-link" href={`/ngo/cases/${item.case_id}`}>Open the case, its evidence and clinical record</Link></p> : null}
       {reviewEnabled && (item.decision === "query" || item.decision === "returned") ? (sample ? <div className="ns-acts"><TryLink small>Answer this claim</TryLink></div> : <div className="ns-compose" style={{ marginTop: 14 }}>
         <label className="nx-field"><span>Your response to the office</span><textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="What you checked or corrected for this animal" /></label>
         <div><button type="button" className="nx-btn is-sm" disabled={!note.trim() || !!busy} onClick={() => setAsking(true)}><Send size={12} />Send response</button></div>
@@ -237,7 +237,7 @@ function Configure({ pkg, items, current, catalog, onClose, onDone }: { pkg: Pac
   if (asking) return <Confirm title="Save these claims" confirm="Save claims" busy={busy === "claims"} onClose={() => setAsking(false)} onConfirm={save}><p>{plural(claims.length, "claim")} on {cases.length} {cases.length === 1 ? "record" : "records"}{contract ? `, priced from ${eligible.find((c) => c.id === contract)?.name ?? "the chosen contract"}` : ", with no contract: amounts stay unknown"}. The package stays a draft.</p></Confirm>;
   return (
     <Modal wide title="Configure claims" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" onClick={() => setAsking(true)}>Review</button></>}>
-      <label className="nx-field"><span>Package contract</span><select value={contract} onChange={(e) => { setContract(e.target.value); setChosen(new Set()); }}><option value="">No contract · amounts unknown</option>{eligible.map((c) => <option key={c.id} value={c.id}>{c.name} · v{c.version}{c.illustrative ? " · illustrative" : ""}</option>)}</select><small>Only versions covering {period(pkg)} for this office are offered. <Link className="ns-link" href="/next/ngo/submissions?tab=contracts">Contract terms</Link></small></label>
+      <label className="nx-field"><span>Package contract</span><select value={contract} onChange={(e) => { setContract(e.target.value); setChosen(new Set()); }}><option value="">No contract · amounts unknown</option>{eligible.map((c) => <option key={c.id} value={c.id}>{c.name} · v{c.version}{c.illustrative ? " · illustrative" : ""}</option>)}</select><small>Only versions covering {period(pkg)} for this office are offered. <Link className="ns-link" href="/ngo/submissions?tab=contracts">Contract terms</Link></small></label>
       {!cases.length ? <p className="nx-sub">This package has no records to claim.</p> : !rates.length ? <p className="nx-sub">{contract ? "This contract has no rates." : "Choose a contract to pick procedures."}</p> : cases.map((c) => (
         <fieldset key={c.case_id} className="ns-set"><legend>{c.title || c.case_code}</legend>
           {rates.map((r) => { const key = `${c.case_id}:${r.id}`; return <label key={r.id} className="ns-check"><input type="checkbox" checked={chosen.has(key)} onChange={(e) => setChosen((old) => { const n = new Set(old); if (e.target.checked) n.add(key); else n.delete(key); return n; })} />{r.label} · {money(r.unit_rate)} · one animal, one claim</label>; })}

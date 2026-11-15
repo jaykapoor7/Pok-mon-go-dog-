@@ -12,8 +12,8 @@ import { readSentence, toIntent, type Kind, type Span, type Vocab } from "./inte
 
 const KIND_WORD: Record<Kind, string> = { Place: "Place", Person: "Person", Team: "Team", Channel: "Channel", When: "When", Date: "Date", Email: "Email" };
 
-export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, placeholder, predictive = true, initial = "", canPlan = true }: {
-  vocab: Vocab; busy?: boolean; onAsk: (text: string) => void; onPlan: (text: string, intent: Intent) => void; compact?: boolean; autoFocus?: boolean; placeholder?: string; predictive?: boolean; initial?: string; canPlan?: boolean;
+export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, placeholder, predictive = true, initial = "", canPlan = true, disabled = false }: {
+  vocab: Vocab; busy?: boolean; onAsk: (text: string) => void; onPlan: (text: string, intent: Intent) => void; compact?: boolean; disabled?: boolean; autoFocus?: boolean; placeholder?: string; predictive?: boolean; initial?: string; canPlan?: boolean;
 }) {
   const [text, setText] = useState(initial);
   const [choices, setChoices] = useState<Partial<Record<Kind, string>>>({});
@@ -48,7 +48,7 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
     <form className={`nx-ask nx-composer ${compact ? "is-compact" : ""}`} onSubmit={(e) => { e.preventDefault(); submit(); }}>
       <div className="nx-ask-in">
         <div aria-hidden>{marked}{"\n"}</div>
-        <textarea ref={box} rows={compact ? 1 : 2} value={text} autoFocus={autoFocus} maxLength={2000}
+        <textarea ref={box} rows={compact ? 1 : 2} value={text} autoFocus={autoFocus} maxLength={2000} disabled={disabled}
           onChange={(e) => setText(e.target.value)} onClick={caret} onKeyUp={(e) => { if (e.key.startsWith("Arrow") || e.key === "Home" || e.key === "End") caret(); }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); }

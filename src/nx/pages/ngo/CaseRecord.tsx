@@ -51,7 +51,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
 
   if (file === "loading") return <Shell crumb={["Cases", "…"]}><div className="nx-page"><Skeleton rows={8} label="Reading the case" /></div></Shell>;
   if (file && "error" in file) return <Shell crumb={["Cases", "Case"]}><div className="nx-page"><Failed error={file.error} retry={() => void read()} /></div></Shell>;
-  if (!file) return <Shell crumb={["Cases", "Not found"]}><div className="nx-page"><h1 className="nx-h1">This case is not in {org.name}&apos;s records</h1><p className="nx-sub">It may belong to another organisation, have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/next/ngo/cases" className="nx-btn is-quiet">Back to Cases</Link></p></div></Shell>;
+  if (!file) return <Shell crumb={["Cases", "Not found"]}><div className="nx-page"><h1 className="nx-h1">This case is not in {org.name}&apos;s records</h1><p className="nx-sub">It may belong to another organisation, have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/ngo/cases" className="nx-btn is-quiet">Back to Cases</Link></p></div></Shell>;
 
   const { c, reg, animal, updates, medical, followups, neighbours, sameAnimal } = file;
   const code = shortCode(reg.case_code, c.id.slice(0, 8).toUpperCase());
@@ -74,7 +74,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
 
   const props: [string, ReactNode][] = [
     ["Status", <Chip key="s" tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>],
-    ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/next/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? (animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal record")}</Link> : "Not linked"],
+    ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? (animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal record")}</Link> : "Not linked"],
     ["Place", <span key="p">{place || "Not recorded"} <span className="nx-t3">{reg.location_precision ? words(reg.location_precision).toLowerCase() : reg.h3_r8 ? "recorded area" : "no location"}</span></span>],
     ["Recorded", <span key="r">{day(reg.occurred_at)}{reg.intake_channel ? <span className="nx-t3"> via {reg.intake_channel.replace(/_/g, " ")}</span> : null}</span>],
     ["Held by", c.assignee_name ?? "Nobody yet"],
@@ -93,7 +93,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
       <RecordHead av={<PawPrint size={18} />} title={<><span className="num">{code}</span> · {title}</>}
         sub={<>{place || "Place not recorded"} · recorded {day(reg.occurred_at)} · {c.assignee_name ? <>held by <b>{c.assignee_name}</b></> : "nobody holds it yet"}</>}
         chips={<><Chip tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>{imported ? <Chip>Imported record</Chip> : null}{cohort === "decide" ? <Chip tone="warn">Waiting on a decision</Chip> : null}</>}
-        actions={<><Link href="/next/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><DeleteRecord kind="case" id={c.id} what="this case" label="Delete case" onDone={() => router.push("/next/ngo/cases")} onRestored={() => router.push(`/next/ngo/cases/${c.id}`)} /></>} />
+        actions={<><Link href="/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><DeleteRecord kind="case" id={c.id} what="this case" label="Delete case" onDone={() => router.push("/ngo/cases")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></>} />
       {reg.condition_text || c.description ? <p className="nr-lede">{reg.condition_text || c.description}</p> : null}
       <TabBar id="case" tabs={tabs} value={tab} onChange={setTab} label="Case sections" />
       {tab === "Overview" ? (
@@ -140,7 +140,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
 
 function Related({ rows, none }: { rows: Neighbour[]; none: string }) {
   if (!rows.length) return <p className="nr-quiet">{none}</p>;
-  return <div className="nx-rel">{rows.map((r) => <Link key={r.id} href={`/next/ngo/cases/${r.id}`}><ArrowUpRight size={13} /><span className="num">{shortCode(r.case_code)}</span><span style={{ color: "var(--ink-3)" }}>{r.condition_class && r.condition_class !== "Not recorded" ? r.condition_class : r.title ?? "Request"}</span><small>{statusLabel(r.status_class)} · {day(r.occurred_at)}</small></Link>)}</div>;
+  return <div className="nx-rel">{rows.map((r) => <Link key={r.id} href={`/ngo/cases/${r.id}`}><ArrowUpRight size={13} /><span className="num">{shortCode(r.case_code)}</span><span style={{ color: "var(--ink-3)" }}>{r.condition_class && r.condition_class !== "Not recorded" ? r.condition_class : r.title ?? "Request"}</span><small>{statusLabel(r.status_class)} · {day(r.occurred_at)}</small></Link>)}</div>;
 }
 
 /** Photos may show an injury, so each starts blurred and shows on a tap. */
@@ -155,16 +155,16 @@ function SampleRecord({ id }: { id: string }) {
   const r = SAMPLE_CASES.find((x) => x.id === id);
   const [tab, setTab] = useState<Tab>("Overview");
   const history = useMemo(() => sampleHistory(id), [id]);
-  if (!r) return <Shell crumb={["Cases", id]}><div className="nx-page"><h1 className="nx-h1">No case with this reference</h1><p className="nx-sub">It may have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/next/ngo/cases" className="nx-btn is-quiet">Back to Cases</Link></p></div></Shell>;
+  if (!r) return <Shell crumb={["Cases", id]}><div className="nx-page"><h1 className="nx-h1">No case with this reference</h1><p className="nx-sub">It may have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/ngo/cases" className="nx-btn is-quiet">Back to Cases</Link></p></div></Shell>;
   const items: TItem[] = history.map((h) => ({ id: h.id, when: h.when, who: h.who, title: h.title, tone: h.kind === "care" ? "ok" : h.kind === "status" ? "accent" : undefined }));
   return (
     <Shell crumb={["Cases", r.code]}>
       <RecordHead av={<PawPrint size={18} />} title={<><span className="num">{r.code}</span> · {r.title}<Sample /></>} sub={<>{r.place} · {r.kind} · {r.who === "Unassigned" ? "nobody holds it yet" : <>held by <b>{r.who}</b></>}</>}
-        chips={<Chip tone={r.tone}>{r.status}</Chip>} actions={<><Link href="/next/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><TryLink sm quiet>Delete case</TryLink></>} />
+        chips={<Chip tone={r.tone}>{r.status}</Chip>} actions={<><Link href="/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><TryLink sm quiet>Delete case</TryLink></>} />
       <TabBar id="case" tabs={[["Overview", undefined], ["History", items.length], ["Care and movements", undefined], ["Related", undefined]] as [Tab, number | undefined][]} value={tab} onChange={setTab} label="Case sections" />
       {tab === "Overview" ? (
         <div className="nx-rec">
-          <section aria-label="Properties"><h3 className="nx-h3">Properties</h3><Props items={[["Status", <Chip key="s" tone={r.tone}>{r.status}</Chip>], ["Animal", r.animal ? <Link key="a" className="nr-link" href={`/next/ngo/animals/${r.animal}`}>{r.animal}</Link> : "Not linked"], ["Place", r.place], ["Held by", r.who === "Unassigned" ? "Nobody yet" : r.who], ["Severity", r.severity], ["Kind", r.kind], ["Next action", r.next], ["Record", <TrustChip key="t" trust={r.trust} />]]} /></section>
+          <section aria-label="Properties"><h3 className="nx-h3">Properties</h3><Props items={[["Status", <Chip key="s" tone={r.tone}>{r.status}</Chip>], ["Animal", r.animal ? <Link key="a" className="nr-link" href={`/ngo/animals/${r.animal}`}>{r.animal}</Link> : "Not linked"], ["Place", r.place], ["Held by", r.who === "Unassigned" ? "Nobody yet" : r.who], ["Severity", r.severity], ["Kind", r.kind], ["Next action", r.next], ["Record", <TrustChip key="t" trust={r.trust} />]]} /></section>
           <div>
             <Section title="Next step">{r.open ? <SampleNext held={r.who} /> : <p className="nr-quiet">Closed after field work.</p>}</Section>
             <Section title="Follow-ups" count={sampleFollowups(id).length}><FollowupList sample items={sampleFollowups(id)} onChanged={() => {}} /></Section>

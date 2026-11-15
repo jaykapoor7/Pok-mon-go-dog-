@@ -46,7 +46,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   useEffect(() => { void read(); }, [read]);
   if (file === "loading") return <Shell crumb={["Animals", "…"]}><div className="nx-page"><Skeleton rows={8} label="Reading the record" /></div></Shell>;
   if (file && "error" in file) return <Shell crumb={["Animals", "Animal"]}><div className="nx-page"><Failed error={file.error} retry={() => void read()} /></div></Shell>;
-  if (!file) return <Shell crumb={["Animals", "Not found"]}><div className="nx-page"><h1 className="nx-h1">No animal with this ID on {org.name}&apos;s register</h1><p className="nx-sub">It may belong to another organisation, have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/next/ngo/animals" className="nx-btn is-quiet">Back to Animals</Link></p></div></Shell>;
+  if (!file) return <Shell crumb={["Animals", "Not found"]}><div className="nx-page"><h1 className="nx-h1">No animal with this ID on {org.name}&apos;s register</h1><p className="nx-sub">It may belong to another organisation, have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/ngo/animals" className="nx-btn is-quiet">Back to Animals</Link></p></div></Shell>;
 
   const { dog: d, cases, followups, care, timeline, partial } = file;
   const code = d.code ?? (d.straypaw_id ? shortCode(d.straypaw_id) : d.id.slice(0, 8).toUpperCase());
@@ -57,7 +57,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const history: TItem[] = timeline.map((t) => ({ id: t.id, when: day(t.occurred_at), who: t.actor_name, title: t.title || words(t.event_type, "Event"), body: t.details ? careNote(t.details) : undefined, tone: /vaccin|sterili|surgery|treat|medical/i.test(`${t.event_type} ${t.title}`) ? "ok" : undefined,
     action: <span className="nr-tl-act"><Chip>{t.provenance && /import/i.test(t.provenance) ? "Imported" : words(t.provenance, "Recorded")}</Chip><DeleteRecord kind="timeline" id={t.id} what="this history entry" onDone={read} /></span> }));
   const fus = followups.map((f) => ({ id: f.id, due_at: f.due_at, status: f.status, kind: f.kind, note: f.note, completed_at: null as string | null, case_id: f.case_id }));
-  const caseList = cases.length ? <div className="nx-rel">{cases.map((c) => <Link key={c.id} href={`/next/ngo/cases/${c.id}`}><ArrowUpRight size={13} /><span className="num">{shortCode(c.case_code)}</span><span style={{ color: "var(--ink-3)" }}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Request"}</span><small><Chip tone={STATUS_TONE[c.status_class ?? "unknown"] ?? "plain"}>{statusLabel(c.status_class)}</Chip></small></Link>)}</div> : <p className="nr-quiet">This animal is not part of any case.</p>;
+  const caseList = cases.length ? <div className="nx-rel">{cases.map((c) => <Link key={c.id} href={`/ngo/cases/${c.id}`}><ArrowUpRight size={13} /><span className="num">{shortCode(c.case_code)}</span><span style={{ color: "var(--ink-3)" }}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Request"}</span><small><Chip tone={STATUS_TONE[c.status_class ?? "unknown"] ?? "plain"}>{statusLabel(c.status_class)}</Chip></small></Link>)}</div> : <p className="nr-quiet">This animal is not part of any case.</p>;
   const tabs: [Tab, number | undefined][] = [["Summary", undefined], ["Care", care.length || undefined], ["Cases", cases.length || undefined], ["History", timeline.length || undefined], ["Discussion", undefined]];
 
   return (
@@ -67,8 +67,8 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
         chips={<><Chip tone={factTone(d.sterilisation_status)}>{fact(d.sterilisation_status, "Sterilised", "Not sterilised", "Sterilisation not recorded")}</Chip><Chip tone={factTone(d.vaccination_status)}>{fact(d.vaccination_status, "Vaccinated", "Not vaccinated", "Vaccination not recorded")}</Chip>{d.needs_help ? <Chip tone="bad">Needs help</Chip> : null}<TrustChip trust={imported ? "Imported" : "Recorded"} /></>}
         actions={<>
           <button type="button" className="nx-btn is-sm" onClick={() => { setTab("Care"); setCaring(true); }}><Plus size={13} />Record care</button>
-          {liveCase ? <Link href={`/next/ngo/cases/${liveCase.id}`} className="nx-btn is-quiet is-sm">Open its case</Link> : null}
-          <Link href={`/next/ngo/cases/new?dog=${d.id}`} className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />{liveCase ? "Open another case" : "Start a case"}</Link>
+          {liveCase ? <Link href={`/ngo/cases/${liveCase.id}`} className="nx-btn is-quiet is-sm">Open its case</Link> : null}
+          <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />{liveCase ? "Open another case" : "Start a case"}</Link>
           <button type="button" className="nx-btn is-quiet is-sm" disabled={!!busy} onClick={flip}>{d.needs_help ? "Clear needs help" : "Flag as needing help"}</button>
         </>} />
       <TabBar id="animal" tabs={tabs} value={tab} onChange={setTab} label="Record sections" />
@@ -83,7 +83,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
             {d.intake_notes ? <><h3 className="nx-h3">Intake note</h3><p className="nx-sub" style={{ whiteSpace: "pre-wrap" }}>{d.intake_notes}</p></> : null}
           </section>
           <div>
-            <p className="nx-note" style={{ marginBottom: 18 }}><Info size={13} /><span>{liveCase ? <><b style={{ color: "var(--ink)" }}>In the line now:</b> {liveCase.condition_class && liveCase.condition_class !== "Not recorded" ? liveCase.condition_class : "an open case"}, {statusLabel(liveCase.status_class).toLowerCase()}{liveCase.assignee_name ? `, held by ${liveCase.assignee_name}` : ""}. <Link className="nr-link" href={`/next/ngo/cases/${liveCase.id}`}>Open its case</Link></> : <><b style={{ color: "var(--ink)" }}>Not in the line.</b> No open case on this animal. <Link className="nr-link" href={`/next/ngo/cases/new?dog=${d.id}`}>Start one</Link></>}</span></p>
+            <p className="nx-note" style={{ marginBottom: 18 }}><Info size={13} /><span>{liveCase ? <><b style={{ color: "var(--ink)" }}>In the line now:</b> {liveCase.condition_class && liveCase.condition_class !== "Not recorded" ? liveCase.condition_class : "an open case"}, {statusLabel(liveCase.status_class).toLowerCase()}{liveCase.assignee_name ? `, held by ${liveCase.assignee_name}` : ""}. <Link className="nr-link" href={`/ngo/cases/${liveCase.id}`}>Open its case</Link></> : <><b style={{ color: "var(--ink)" }}>Not in the line.</b> No open case on this animal. <Link className="nr-link" href={`/ngo/cases/new?dog=${d.id}`}>Start one</Link></>}</span></p>
             <Section title="Care on record" count={care.length} action={<button type="button" className="nx-btn is-quiet is-sm" aria-expanded={caring} onClick={() => setCaring((v) => !v)}>{caring ? "Close" : "Record care"}</button>}>
               {caring ? <CareForm dogId={d.id} onSaved={read} onCancel={() => setCaring(false)} /> : null}
               <Timeline items={careItems.slice(0, 6)} empty="No care recorded yet. Vaccination, sterilisation, treatment and check-ups recorded here, or on its cases, appear with who recorded them." />
@@ -146,7 +146,7 @@ function Identifiers({ dogId, canRetire }: { dogId: string; canRetire: boolean }
 function SampleRecord({ id }: { id: string }) {
   const a = ANIMALS.find((x) => x.id === id);
   const [tab, setTab] = useState<"Summary" | "Cases" | "Activity">("Summary");
-  if (!a) return <Shell crumb={["Animals", id]}><div className="nx-page"><h1 className="nx-h1">No animal with this ID</h1><p className="nx-sub">It may have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/next/ngo/animals" className="nx-btn is-quiet">Back to Animals</Link></p></div></Shell>;
+  if (!a) return <Shell crumb={["Animals", id]}><div className="nx-page"><h1 className="nx-h1">No animal with this ID</h1><p className="nx-sub">It may have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/ngo/animals" className="nx-btn is-quiet">Back to Animals</Link></p></div></Shell>;
   return (
     <Shell crumb={["Animals", a.id]}>
       <RecordHead av={initials(a.species)} title={<><span className="num">{a.id}</span> · {a.name}<Sample /></>} sub={<>{a.ward} · Last seen {a.last}</>} chips={<TrustChip trust={a.trust} />}

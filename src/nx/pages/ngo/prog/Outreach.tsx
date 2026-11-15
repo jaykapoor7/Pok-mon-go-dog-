@@ -117,7 +117,7 @@ function NewCampaign({ initialTitle, caseId, actor, onClose, onDone }: { initial
   if (asking) return <Confirm title="Publish this campaign" confirm="Publish campaign" busy={busy === "fund"} onClose={() => setAsking(false)} onConfirm={save}><p>&ldquo;{f.title.trim()}&rdquo; is public as soon as it is published. Donors are sent to {url}; StrayPaw never holds the money.</p><p>Only members of a verified partner organisation can publish. If yours is not verified, the database refuses it and nothing is published.</p></Confirm>;
   return (
     <Modal wide title="New campaign" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!ok} onClick={() => setAsking(true)}>Review</button></>}>
-      {caseId ? <p className="nx-note"><span>Linked to <Link className="ns-link" href={`/next/ngo/cases/${caseId}`}>a case</Link>. The campaign will show on it.</span></p> : null}
+      {caseId ? <p className="nx-note"><span>Linked to <Link className="ns-link" href={`/ngo/cases/${caseId}`}>a case</Link>. The campaign will show on it.</span></p> : null}
       <div className="nx-fields">
         <Field label="Title" wide><input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Clear pending vet bills for 30 rescues" autoFocus /></Field>
         <Field label="Category"><select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })}>{FUNDRAISER_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</select></Field>

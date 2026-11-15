@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { ArrowRight, Copy, Download, MapPin, Plus, Printer, ShieldAlert, Upload } from "lucide-react";
+import { AreaIntel } from "./AreaIntel";
 import { ALERT_KIND, AUDIENCE, HANDOFF, HANDOFF_KIND, KIND_LABEL, MODULES, ROLE_LABEL, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, call, fmtDate, select, showCount, useNames, useRead, type Alert, type Count, type Handoff, type Kind, type Network, type Overview, type Place, type Role } from "@/oh/data";
 import { Shell } from "../../Shell";
 import { Chip, Sample } from "../../ui";
@@ -50,7 +51,7 @@ function LiveProgramme({ slug, tab }: { slug: string; tab?: string }) {
   const caps = useMemo(() => capsIn(pl.places, p?.id), [pl.places, p?.id]);
   if ((prog.loading && !prog.data) || pl.loading) return <Opening ws="gov" crumb={["Programmes", "Programme"]} />;
   if (prog.error) return <Shell ws="gov" crumb={["Programmes", "Programme"]}><div className="nx-page"><Failed error={prog.error} retry={prog.reload} /></div></Shell>;
-  if (!p) return <Shell ws="gov" crumb={["Programmes", "Programme"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Programme</h1><Empty title="This programme is not visible to you" hint="Only organisations taking part in a programme can open it." action={<Link href="/next/gov/programmes" className="nx-btn is-quiet">Back to programmes</Link>} /></div></Shell>;
+  if (!p) return <Shell ws="gov" crumb={["Programmes", "Programme"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Programme</h1><Empty title="This programme is not visible to you" hint="Only organisations taking part in a programme can open it." action={<Link href="/gov/programmes" className="nx-btn is-quiet">Back to programmes</Link>} /></div></Shell>;
   return <View sample={false} p={p} caps={caps} places={pl.places} first={tab} reloadProg={prog.reload} />;
 }
 
@@ -99,6 +100,7 @@ function OverviewTab({ sample, p, caps, go }: Ctx) {
           {mods.includes("laboratory") ? fig(d.samples.positive, "Laboratory-confirmed", "Work") : null}
           {mods.includes("services") ? fig(d.services.arv_unavailable, "Facilities without vaccine", "Network") : null}
         </div>)}
+      {!sample && d && (mods.includes("bite_care") || mods.includes("laboratory")) ? <Block title="Where to act" note="Bites, confirmed cases and dog vaccination, by area"><AreaIntel programme={p.id} slug={p.slug} d={d} /></Block> : null}
       <div className="nx-cols" style={{ gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)", marginTop: 24, gap: 28 }}>
         <Block title="Needs a decision">
           {al.error ? <Failed error={al.error} retry={al.reload} /> : al.loading ? <Skeleton rows={3} /> : (al.data ?? []).length ? (
@@ -112,7 +114,7 @@ function OverviewTab({ sample, p, caps, go }: Ctx) {
           <Block title="Partners" note="Organisations taking part. Joining does not open one organisation's records to another.">
             {d ? <ul className="gh-list">{[...d.partners].sort((a, b) => b.overdue - a.overdue || b.open - a.open).map((x) => <li key={x.id}><div><b>{x.name}</b><small>{KIND_LABEL[x.kind] ?? x.kind}{x.responsibilities ? ` · ${x.responsibilities}` : ""}</small></div><span className="gh-row-a">{x.overdue ? <Chip tone="bad">{x.overdue} overdue</Chip> : x.open ? <span className="nx-t3">{x.open} open</span> : <Chip tone="ok">Clear</Chip>}</span></li>)}</ul> : <Skeleton rows={3} />}
           </Block>
-          {d?.children.length ? <Block title="Programmes in this one"><ul className="gh-list">{d.children.map((c) => <li key={c.slug}><div><Link href={`/next/gov/programmes/${c.slug}`} className="gh-link">{c.name}</Link><small>{STATUS[c.status] ?? c.status} · bites {showCount(c.exposures)} · confirmed cases {c.positives} · overdue work {c.overdue}</small></div></li>)}</ul></Block> : null}
+          {d?.children.length ? <Block title="Programmes in this one"><ul className="gh-list">{d.children.map((c) => <li key={c.slug}><div><Link href={`/gov/programmes/${c.slug}`} className="gh-link">{c.name}</Link><small>{STATUS[c.status] ?? c.status} · bites {showCount(c.exposures)} · confirmed cases {c.positives} · overdue work {c.overdue}</small></div></li>)}</ul></Block> : null}
           {mods.includes("bite_care") && d?.exposures?.by_week.length ? <Block title="Bites by week" note="Weeks with fewer than the threshold show as <5, without a bar height."><WeekBars weeks={d.exposures.by_week} /></Block> : null}
           {mods.includes("training") && d ? <Block title="Training" note={`${d.training.sessions} sessions, ${d.training.participants} people`} action={caps.has("record_training") ? (sample ? <TryLink sm quiet><Plus size={13} />Record a session</TryLink> : <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setTraining(true)}><Plus size={13} />Record a session</button>) : undefined}>
             {Object.keys(d.training.by_audience).length ? <ul className="gh-list">{Object.entries(d.training.by_audience).map(([k, v]) => <li key={k}><div>{AUDIENCE[k] ?? k}</div><span className="num">{v} people</span></li>)}</ul> : <p className="nx-sub">No training recorded in this period.</p>}

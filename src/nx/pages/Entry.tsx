@@ -9,7 +9,7 @@ import { homeOf } from "../nav";
 import { Shell } from "../Shell";
 import { useLive } from "../live";
 
-/* Entry to the new app. `/next` sends a signed-in person to the workspace they belong to, and someone with no
+/* Entry to the new app. `/home` sends a signed-in person to the workspace they belong to, and someone with no
    workspace yet to Start. Nothing here grants access: every path is an existing, server-checked one (registering
    an NGO, a staff code, a programme invitation, starting one's own programme). Institutional roles such as a
    reviewing office are set up with StrayPaw and are never self-selected. */
@@ -19,9 +19,9 @@ export function NextHome() {
   const router = useRouter();
   useEffect(() => {
     if (!live.ready) return;
-    if (!live.signedIn) { router.replace("/next/ngo/today"); return; }
+    if (!live.signedIn) { router.replace("/ngo/today"); return; }
     const o = live.org ?? live.orgs[0];
-    router.replace(o ? homeOf(o.workspace, o.org_id) : "/next/start");
+    router.replace(o ? homeOf(o.workspace, o.org_id) : "/start");
   }, [live.ready, live.signedIn, live.org, live.orgs, router]);
   return <div style={{ display: "grid", placeItems: "center", minHeight: "60vh", color: "#667085", font: "14px system-ui" }} role="status"><span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}><Loader2 size={16} className="nx-spin" />Opening your workspace…</span></div>;
 }
@@ -51,7 +51,7 @@ export function Start() {
     setBusy(false);
     if (r.error || !r.data) { setMsg({ ok: false, text: r.error ?? "That code did not work. Check it with the person who gave it to you." }); return; }
     setMsg({ ok: true, text: "You are in. Opening your workspace…" });
-    window.location.assign("/next");
+    window.location.assign("/home");
   };
   const startProgramme = async () => {
     const slug = prog.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
@@ -60,7 +60,7 @@ export function Start() {
     const r = await call<{ id: string; slug: string }>("oh_create_programme", { p_name: prog.name.trim(), p_slug: slug, p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata", p_area_names: areas, p_parent: null, p_city: prog.city.trim() || null, p_display_name: prog.me.trim() || null });
     setBusy(false);
     if (r.error || !r.data) { setMsg({ ok: false, text: r.error ?? "The programme could not be created." }); return; }
-    window.location.assign("/next/gov/overview");
+    window.location.assign("/gov/overview");
   };
 
   const registerVet = async () => {
@@ -68,7 +68,7 @@ export function Start() {
     const r = await call<string>("nx_register_vet_clinic", { p_name: vet.name.trim(), p_city: vet.city.trim() || null, p_display_name: vet.me.trim() || null });
     setBusy(false);
     if (r.error || !r.data) { setMsg({ ok: false, text: r.error ?? "The clinic could not be registered." }); return; }
-    window.location.assign("/next/health/today");
+    window.location.assign("/health/today");
   };
   const askToJoin = async () => {
     if (!asking) return;
@@ -79,7 +79,7 @@ export function Start() {
     setAsking(null); setNote(""); setMsg({ ok: true, text: `Asked. ${asking.name}'s leads decide, and you will be told here and by notification.` });
   };
   const signedIn = live.signedIn;
-  const signIn = (as?: string) => `/sign-in?${as ? `as=${as}&` : ""}switch=1&next=${encodeURIComponent("/next")}`;
+  const signIn = (as?: string) => `/sign-in?${as ? `as=${as}&` : ""}switch=1&next=${encodeURIComponent("/home")}`;
   const cards: Card[] = [
     { icon: PawPrint, title: "An NGO or animal welfare group", body: "Register your organisation. You become its lead and can invite your team, field staff and veterinarians.",
       act: <Link href={signIn("org")} className="nx-btn">Register an NGO<ArrowRight size={14} /></Link> },
@@ -104,7 +104,7 @@ export function Start() {
           <p className="nx-eyebrow">{signedIn ? (live.orgs.length ? `You are in ${live.orgs.length} ${live.orgs.length === 1 ? "workspace" : "workspaces"}` : "You are signed in, but not part of an organisation yet") : "Welcome to StrayPaw"}</p>
           <h1 className="nx-h1">{live.orgs.length ? "Join another organisation" : "How will you use StrayPaw?"}</h1>
           <p className="nx-sub">Choose what fits. Every route below is checked by the database; none of them gives access by itself.</p>
-        </div>{live.orgs.length ? <Link href="/next" className="nx-btn is-keep">Open my workspace<ArrowRight size={14} /></Link> : null}</div>
+        </div>{live.orgs.length ? <Link href="/home" className="nx-btn is-keep">Open my workspace<ArrowRight size={14} /></Link> : null}</div>
 
         {!signedIn && live.ready ? <p className="nx-note" style={{ marginTop: 18 }}><KeyRound size={13} /><span>Already have an account? <Link href={signIn()} style={{ color: "var(--accent)" }}>Sign in</Link> with your email and a six-character code. No password.</span></p> : null}
 

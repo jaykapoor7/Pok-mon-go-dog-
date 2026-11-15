@@ -79,7 +79,7 @@ export function PhotoSearch({ ngoId, admin }: { ngoId: string; admin: boolean })
         {job?.status === "rejected_quality" ? <div className="nr-err"><b>This photo cannot be compared reliably.</b> {(job.quality?.reasons ?? [job.error ?? "Poor photo"]).join(" ")}</div> : null}
         {job?.status === "failed" ? <p className="nr-err" role="alert">The comparison failed: {job.error ?? "no reason given"}. Try again.</p> : null}
         {job?.status === "done" && cands ? <div style={{ display: "grid", gap: 10 }}>
-          {settled ? <p className="nr-ok"><Tick size={13} /> Recorded as {settled.decision === "same_animal" ? "the same animal" : "a new animal"}. {settled.dog_id ? <Link className="nr-link" href={`/next/ngo/animals/${settled.dog_id}`}>Open the animal</Link> : null}</p>
+          {settled ? <p className="nr-ok"><Tick size={13} /> Recorded as {settled.decision === "same_animal" ? "the same animal" : "a new animal"}. {settled.dog_id ? <Link className="nr-link" href={`/ngo/animals/${settled.dog_id}`}>Open the animal</Link> : null}</p>
             : cands.length ? <p className="nr-hint">Closest animals on your register. Similarity compares photo features; it is not a probability.</p> : <p className="nr-quiet">No animal on your register has an indexed photo yet.</p>}
           {cands.length ? <ul className="nr-items">{cands.map((c) => <li key={c.id} className="nr-item" style={rejected.has(c.dog_id) ? { opacity: .5 } : undefined}>
             <Thumb uri={c.matched_photo_uri} alt={c.dog?.name ?? "Candidate animal"} />
@@ -89,7 +89,7 @@ export function PhotoSearch({ ngoId, admin }: { ngoId: string; admin: boolean })
           </li>)}</ul> : null}
           {!settled ? (linkNew ? <div className="nr-sheet"><Field label="Link the photo to the new animal's record"><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name or code of the record you registered" /></Field>
             <div className="nr-pick">{found.map((f) => <button key={f.id} type="button" disabled={!!busy} onClick={() => void act(() => decide(job.id, "new_animal", f.id), "Recorded as a new animal.")}>{f.label}</button>)}</div>
-            <p className="nr-hint">Not on the register yet? Record it first in <Link className="nr-link" href="/next/ngo/field">field mode</Link>.</p></div>
+            <p className="nr-hint">Not on the register yet? Record it first in <Link className="nr-link" href="/ngo/field">field mode</Link>.</p></div>
             : <p><button type="button" className="nr-link" onClick={() => setLinkNew(true)}>None of these: it is a new animal</button></p>) : null}
           {decisions.length ? <details className="nr-more-d"><summary>Decisions on this photo · {decisions.length}</summary><ul className="nr-items">{decisions.map((d) => <li key={d.id} className="nr-item"><span className="nr-item-t"><b>{words(d.decision)}</b><small>{dayTime(d.decided_at)}{d.reversed_at ? ` · reversed: ${d.reversal_reason}` : ""}</small></span>{!d.reversed_at ? <span className="nr-item-e"><button type="button" className="nx-btn is-quiet is-sm" disabled={!!busy} onClick={() => { setRev(d); setWhy(""); }}><RotateCcw size={12} />Reverse</button></span> : null}</li>)}</ul></details> : null}
         </div> : null}

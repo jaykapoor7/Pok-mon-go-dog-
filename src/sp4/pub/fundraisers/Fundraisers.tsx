@@ -52,7 +52,7 @@ export function FundraiserList({ list }: { list: Fundraiser[] }) {
             })}
           </ul>
         )}
-        <p className="pb-fine">Are you a verified partner NGO? Campaigns are started from your organisation&rsquo;s workspace. <Link href="/sign-in?next=/next/ngo/programmes">Sign in to start one</Link>.</p>
+        <p className="pb-fine">Are you a verified partner NGO? Campaigns are started from your organisation&rsquo;s workspace. <Link href="/sign-in?next=/ngo/programmes">Sign in to start one</Link>.</p>
       </Body>
     </>
   );

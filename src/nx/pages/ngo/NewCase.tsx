@@ -78,14 +78,14 @@ function Form({ pre, ngoId, sample }: { pre: Prefill; ngoId: string | null; samp
     sent.current = true;
     const actor = { id: live.userId, name: live.userName ?? "Team member" };
     const r = await run("new", () => createCase({ title: title.trim(), description: desc.trim() || undefined, category: cat, severity: sev, city: city.trim(), zone: zone.trim() || animal?.zone || null, lat, lng, dogId: animal?.id ?? null, informerContact: informer.trim() || null, hospital: hospital.trim() || null, costEstimate: estN, costSpent: spentN }, actor),
-      { ok: "Case opened. It is in your queue.", undo: (x) => undoWith(() => removeRecord("case", String(x.data), "Undo: opened by mistake"), () => router.push("/next/ngo/cases"), "The new case was removed.")() });
+      { ok: "Case opened. It is in your queue.", undo: (x) => undoWith(() => removeRecord("case", String(x.data), "Undo: opened by mistake"), () => router.push("/ngo/cases"), "The new case was removed.")() });
     sent.current = false;
-    if (r.ok && r.result?.data) router.push(`/next/ngo/cases/${r.result.data}`);
+    if (r.ok && r.result?.data) router.push(`/ngo/cases/${r.result.data}`);
   };
 
   return (
     <Shell crumb={["Cases", "New case"]}>
-      <RecordHead title={<>Open a case{sample ? <Sample /> : null}</>} sub={sample ? "Sample form. In the live demo the case joins your queue as soon as it is saved." : "It joins your queue as soon as it is saved."} actions={<Link href="/next/ngo/cases" className="nx-btn is-quiet is-sm">Cancel</Link>} />
+      <RecordHead title={<>Open a case{sample ? <Sample /> : null}</>} sub={sample ? "Sample form. In the live demo the case joins your queue as soon as it is saved." : "It joins your queue as soon as it is saved."} actions={<Link href="/ngo/cases" className="nx-btn is-quiet is-sm">Cancel</Link>} />
       <form className="nr-form" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
         <section aria-label="What and how urgent">
           <fieldset className="nr-radios is-col"><legend>What kind of request</legend>
@@ -103,7 +103,7 @@ function Form({ pre, ngoId, sample }: { pre: Prefill; ngoId: string | null; samp
         </section>
         <section aria-label="Where and which animal">
           <div className="nx-field"><span>The animal</span>
-            {animal ? <p className="nr-acts"><b>{label(animal)}</b>{animal.code ? <span className="nx-t3">{animal.code}</span> : null}<Link className="nr-link" href={`/next/ngo/animals/${animal.id}`}>Open its record</Link><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setAnimal(null)}><X size={13} />Unlink</button></p>
+            {animal ? <p className="nr-acts"><b>{label(animal)}</b>{animal.code ? <span className="nx-t3">{animal.code}</span> : null}<Link className="nr-link" href={`/ngo/animals/${animal.id}`}>Open its record</Link><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setAnimal(null)}><X size={13} />Unlink</button></p>
               : sample ? <p className="nr-hint">In the live demo you can link an animal from your register.</p>
               : <><label className="nx-find" style={{ marginLeft: 0, height: 34, display: "flex" }}><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find it on your register: name, code, marks" aria-label="Find an animal to link" /></label>
                 {found.length ? <div className="nr-pick">{found.map((d) => <button key={d.id} type="button" onClick={() => { setAnimal(d); setQ(""); if (d.zone && !zone) setZone(d.zone); if (d.city) setCity(d.city); if (d.lat != null && d.lng != null && lat === null) { setLat(d.lat); setLng(d.lng); } }}><b>{label(d)}</b><small>{[d.code, d.zone].filter(Boolean).join(" · ") || "No code or place recorded"}</small></button>)}</div> : q.trim().length >= 2 ? <p className="nr-hint">No animal on your register matches. Open the case without one and link it later.</p> : <p className="nr-hint">Not linked. Open the case without an animal and link it later, once it is identified.</p>}</>}

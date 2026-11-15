@@ -44,7 +44,7 @@ function ProposalCard({ turn, p }: { turn: Turn; p: Proposal }) {
 }
 
 export function Thread({ compact }: { compact?: boolean }) {
-  const { turns, ask } = useKaju();
+  const { turns, ask, stop, retry, page } = useKaju();
   const calm = useReducedMotion();
   const shown = compact ? turns.slice(-4) : turns;
   if (!turns.length) return null;
@@ -56,8 +56,8 @@ export function Thread({ compact }: { compact?: boolean }) {
             <div className="nx-ka">
               <span className="nx-ka-i"><Sparkles size={13} /></span>
               <div>
-                {t.pending ? <p className="nx-t3" role="status"><Loader2 size={12} className="nx-spin" /> {t.progress?.length ? t.progress[t.progress.length - 1] : "Reading what you can see…"}</p> : null}
-                {t.error ? <p className="nx-kerr" role="alert">{t.error}</p> : null}
+                {t.pending ? <p className="nx-t3" role="status"><Loader2 size={12} className="nx-spin" /> {t.progress?.length ? t.progress[t.progress.length - 1] : "Reading what you can see…"} <button type="button" className="nx-link" onClick={stop}>Stop waiting</button></p> : null}
+                {t.error ? <div className="nx-kerr" role="alert"><p>{t.error}</p>{t.kind === "expired" ? <Link className="nx-btn is-sm" href={`/sign-in?next=${encodeURIComponent(page.path || "/kaju")}`}>Sign in</Link> : <button type="button" className="nx-btn is-quiet is-sm" onClick={() => retry(t.id)}>Try again</button>}</div> : null}
                 {t.reply ? <>
                   <p className="nx-ka-t">{t.reply.text}</p>
                   {t.reply.citations?.length ? <div className="nx-kcite" aria-label="Records Kaju read">{t.reply.citations.slice(0, compact ? 4 : 12).map((c) => <Link key={c.id + c.href} href={appHref(c.href)} className="nx-reclink"><ArrowUpRight size={12} />{c.label}</Link>)}</div> : null}

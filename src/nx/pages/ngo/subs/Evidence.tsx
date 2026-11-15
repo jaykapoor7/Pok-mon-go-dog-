@@ -60,7 +60,7 @@ export function EvidenceTab({ who, stage }: { who: Who; stage?: string | null })
         { id: "mine", label: "Waiting on you", count: laneCount("mine") }, { id: "others", label: "With others", count: laneCount("others") }, { id: "reported", label: "Reported", count: laneCount("reported") },
         ...STAGE_ORDER.filter((s) => counts[s] > 0 || s === initial).map((s) => ({ id: s as Lane, label: STAGE_LABEL[s], count: counts[s] })),
       ]} />
-      <Grid label="Procedure records" cols={cols} rows={shown} rowKey={(x) => x.case_id} rowLabel={(x) => x.title || x.case_code || "procedure record"} href={(x) => (who.sample ? null : `/next/ngo/cases/${x.case_id}`)}
+      <Grid label="Procedure records" cols={cols} rows={shown} rowKey={(x) => x.case_id} rowLabel={(x) => x.title || x.case_code || "procedure record"} href={(x) => (who.sample ? null : `/ngo/cases/${x.case_id}`)}
         empty={<><b>{active === "mine" ? "Nothing is waiting on you" : active === "others" ? "Nothing is waiting on anyone else" : active === "reported" ? "Nothing has been reported yet" : `Nothing is ${STAGE_LABEL[active as Stage].toLowerCase()}`}</b>{active === "mine" && laneCount("others") ? <p>Open With others to see what the rest of the team holds.</p> : null}</>} />
       {who.sample ? <p className="nx-foot">Signed in, each row opens its case, where evidence is added, the vet signs and a coordinator reviews.</p> : null}
     </>

@@ -45,7 +45,7 @@ export function Kaju() {
   const start = async () => {
     if (!org || !planned) return;
     setBusy(true); const r = await k.start(org.org_id, planned); setBusy(false);
-    if (r.id) { setPlanned(null); missions.reload(); router.push(`/next/kaju/missions?m=${r.id}`); }
+    if (r.id) { setPlanned(null); missions.reload(); router.push(`/kaju/missions?m=${r.id}`); }
     else toast({ text: r.error ?? "Not started.", tone: "bad" });
   };
   const quick = org?.workspace === "ngo"
@@ -57,29 +57,29 @@ export function Kaju() {
       <div className="nx-kj">
         <div className="nx-head">
           <div><p className="nx-eyebrow">{org ? `Works inside ${org.name}, with your permissions` : "Answers from public records until you sign in"}{!live.signedIn && live.ready ? <Sample /> : null}</p><h1 className="nx-h1">What should we get done?</h1><p className="nx-sub">Ask a question, or hand over an outcome. Kaju shows its plan first; anything that changes several records or leaves StrayPaw waits for you.</p></div>
-          {waiting.length ? <Link href="/next/kaju/approvals" className="nx-btn is-quiet is-keep"><Chip tone="warn">{waiting.length}</Chip>waiting for you</Link> : null}
+          {waiting.length ? <Link href="/kaju/approvals" className="nx-btn is-quiet is-keep"><Chip tone="warn">{waiting.length}</Chip>waiting for you</Link> : null}
         </div>
         <div className="nx-kj-cols">
           <div>
             <motion.div layoutId={calm ? undefined : "kaju-surface"} className="nx-kj-surface">
               <Thread />
               {planned ? <PlanCard planned={planned} busy={busy} onStart={start} onDiscard={() => setPlanned(null)} /> : null}
-              <Composer vocab={vocab} predictive={prefs.predictive} busy={busy || k.busy} autoFocus onAsk={(t) => void k.ask(t)} onPlan={(t, i) => void plan(t, i)} canPlan={!!org} />
+              <Composer vocab={vocab} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus onAsk={(t) => void k.ask(t)} onPlan={(t, i) => void plan(t, i)} canPlan={!!org} />
               {k.turns.length ? <p className="nx-foot"><button type="button" className="nx-thread" onClick={k.clear}><Trash2 size={12} /> Clear this conversation</button> · It stays in this browser tab only.</p> : null}
             </motion.div>
             {!k.turns.length ? <section className="nx-sec" style={{ marginTop: 22 }} aria-labelledby="kj-q"><div className="nx-sec-h"><h2 id="kj-q">From where you are</h2></div>
               <div className="nx-quick">{quick.map((q) => <button key={q} type="button" onClick={() => window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } }))}><ArrowUpRight size={13} style={{ flex: "none" }} /><span>{q}</span></button>)}</div></section> : null}
           </div>
           <aside>
-            <section className="nx-sec" aria-labelledby="kj-m"><div className="nx-sec-h"><h2 id="kj-m">Missions</h2>{org ? <Link href="/next/kaju/missions">All</Link> : null}</div>
-              {org ? (recent.length ? <ul className="nx-feed">{recent.map((m) => { const [w, t] = missionState(m.state); return <li key={m.id}><span className="nx-feed-i is-kaju"><Sparkles size={12} /></span><div><Link href={`/next/kaju/missions?m=${m.id}`}><b>{m.title}</b></Link><p><Chip tone={t}>{w}</Chip></p></div></li>; })}</ul> : <p className="nx-foot" style={{ marginTop: 0 }}>{missions.rows ? "No missions yet. Hand over work above." : "Reading…"}</p>)
+            <section className="nx-sec" aria-labelledby="kj-m"><div className="nx-sec-h"><h2 id="kj-m">Missions</h2>{org ? <Link href="/kaju/missions">All</Link> : null}</div>
+              {org ? (recent.length ? <ul className="nx-feed">{recent.map((m) => { const [w, t] = missionState(m.state); return <li key={m.id}><span className="nx-feed-i is-kaju"><Sparkles size={12} /></span><div><Link href={`/kaju/missions?m=${m.id}`}><b>{m.title}</b></Link><p><Chip tone={t}>{w}</Chip></p></div></li>; })}</ul> : <p className="nx-foot" style={{ marginTop: 0 }}>{missions.rows ? "No missions yet. Hand over work above." : "Reading…"}</p>)
                 : <ul className="nx-feed">{MISSIONS.slice(0, 2).map((m) => <li key={m.id}><span className="nx-feed-i is-kaju"><Sparkles size={12} /></span><div><b>{m.title}</b><p><Chip tone={m.tone}>{m.state}</Chip> <Sample /></p></div></li>)}</ul>}
             </section>
             <section className="nx-sec" aria-labelledby="kj-c"><div className="nx-sec-h"><h2 id="kj-c">What Kaju can use</h2></div>
               <ul className="nx-conn">{CONNECTED.map(([n, s, t]) => <li key={n}>{n}<Chip tone={t}>{s}</Chip></li>)}</ul>
               <p className="nx-foot">Email, calendar, WhatsApp and SMS work only through an account connected in settings. Until then Kaju prepares them and says they are not connected.</p></section>
             <section className="nx-sec" aria-labelledby="kj-r"><div className="nx-sec-h"><h2 id="kj-r">Rules</h2></div>
-              <p className="nx-foot" style={{ marginTop: 0 }}>Kaju reads only what you can see. It never makes clinical, laboratory, verification, payment or data-access decisions. <Link href="/next/kaju/rules">Your organisation&apos;s rules and memory</Link></p></section>
+              <p className="nx-foot" style={{ marginTop: 0 }}>Kaju reads only what you can see. It never makes clinical, laboratory, verification, payment or data-access decisions. <Link href="/kaju/rules">Your organisation&apos;s rules and memory</Link></p></section>
           </aside>
         </div>
       </div>

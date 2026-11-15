@@ -28,7 +28,7 @@ export function QualityTab({ who }: { who: Who }) {
   return (
     <>
       <Tools><span className="ns-sum">{empty ? "Nothing to check yet." : total === 0 ? "Nothing to review in the records read." : <><b>{total}</b> {total === 1 ? "record" : "records"} to review{r.data?.partial ? `, from the ${r.data.animals.length} most recent animals` : ""}. The original source stays as it is.</>}</span></Tools>
-      {empty ? <div className="nx-empty"><b>Nothing to check yet</b><p>Import your register and its records appear in these queues.</p><div className="nx-empty-a"><Link className="nx-btn" href="/next/ngo/import">Import your register</Link></div></div> : (
+      {empty ? <div className="nx-empty"><b>Nothing to check yet</b><p>Import your register and its records appear in these queues.</p><div className="nx-empty-a"><Link className="nx-btn" href="/ngo/import">Import your register</Link></div></div> : (
         <ul className="ns-conn" aria-label="Review queues">
           {[...qs].sort((a, b) => Number(b.items.length > 0) - Number(a.items.length > 0)).map((q) => {
             const on = open === q.title && q.items.length > 0;
@@ -46,7 +46,7 @@ export function QualityTab({ who }: { who: Who }) {
           })}
         </ul>
       )}
-      <p className="nx-foot">Checks the {ANIMAL_LIMIT} most recently seen animals. Imported records and cases needing a decision are reviewed in <Link href="/next/ngo/cases" style={{ color: "var(--accent)" }}>Cases</Link>. Nothing here edits a record.</p>
+      <p className="nx-foot">Checks the {ANIMAL_LIMIT} most recently seen animals. Imported records and cases needing a decision are reviewed in <Link href="/ngo/cases" style={{ color: "var(--accent)" }}>Cases</Link>. Nothing here edits a record.</p>
     </>
   );
 }

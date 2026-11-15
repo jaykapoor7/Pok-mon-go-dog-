@@ -61,7 +61,7 @@ function LiveAnimals({ org }: { org: Workspace }) {
     ...(revacOn ? [{ id: "revac", label: "Due for revaccination", count: (rv!.overdue ?? 0) + (rv!.soon ?? 0) }] : []),
     ...(lead ? [{ id: "identity", label: "Identity review" }] : []),
   ].map((v) => ({ ...v, count: "count" in v ? v.count : counts[v.id as Lens] ?? null }));
-  const action = <div className="nr-tools">{tags ? <button type="button" className="nx-btn is-quiet is-keep" onClick={() => setScan(true)}><ScanLine size={14} />Scan a tag</button> : null}<Link href="/next/ngo/field" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>;
+  const action = <div className="nr-tools">{tags ? <button type="button" className="nx-btn is-quiet is-keep" onClick={() => setScan(true)}><ScanLine size={14} />Scan a tag</button> : null}<Link href="/ngo/field" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>;
   const setCount = useCallback((l: Lens, c: number) => setCounts((x) => (x[l] === c ? x : { ...x, [l]: c })), []);
   const common = { org, views, lens, choose, action, setCount };
   return (
@@ -108,14 +108,14 @@ function Register({ org, views, lens, choose, action, setCount, zone, setZone, z
   ];
   return (
     <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => `${idOf(a)}, ${realName(a.name) ?? "Unnamed"}`} columns={cols} views={views} view={lens} onView={choose}
-      query={q} onQuery={setQ} placeholder="Name, code, StrayPaw ID, place" hrefOf={(a) => `/next/ngo/animals/${a.id}`}
+      query={q} onQuery={setQ} placeholder="Name, code, StrayPaw ID, place" hrefOf={(a) => `/ngo/animals/${a.id}`}
       sub={rows === null ? "Reading the register…" : error ? "The register could not be read. Nothing is shown as zero." : <><b className="num">{n(total)}</b> {filterOn(filter) ? (total === 1 ? "match" : "matches") : total === 1 ? "animal" : "animals"} on {org.name}&apos;s register. Unknown is kept apart from no.</>}
       action={action} loading={rows === null} error={error} onRetry={() => void load()}
       tools={<div className="nr-tools"><select className="nr-sel" value={zone} onChange={(e) => setZone(e.target.value)} aria-label="Place"><option value="">Every place</option>{zones.slice(0, 300).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({n(z.n)})</option>)}</select>
         <button type="button" className="nx-btn is-quiet is-sm" disabled={!total || csv} onClick={() => void download()}>{csv ? <Loader2 size={13} className="nx-spin" /> : <Download size={13} />}Download</button></div>}
-      empty={{ none: "No animals on the register yet", filtered: filterOn(filter) ? "No animal matches" : "No animals on the register yet", hint: filterOn(filter) ? "Change the search, the lens or the place." : <>Animals your team records, and rows released from imports, appear here. <Link className="nr-link" href="/next/ngo/field">Record the first one in field mode</Link>.</> }}
+      empty={{ none: "No animals on the register yet", filtered: filterOn(filter) ? "No animal matches" : "No animals on the register yet", hint: filterOn(filter) ? "Change the search, the lens or the place." : <>Animals your team records, and rows released from imports, appear here. <Link className="nr-link" href="/ngo/field">Record the first one in field mode</Link>.</> }}
       foot={<Pager page={page} total={total} setPage={setPage} />}
-      preview={(a) => ({ title: realName(a.name) ?? "Unnamed", sub: <><span className="num">{idOf(a)}</span> · {a.zone ?? "Place not recorded"} · last seen {day(a.last_seen)}</>, href: `/next/ngo/animals/${a.id}`, hrefLabel: "Open full record",
+      preview={(a) => ({ title: realName(a.name) ?? "Unnamed", sub: <><span className="num">{idOf(a)}</span> · {a.zone ?? "Place not recorded"} · last seen {day(a.last_seen)}</>, href: `/ngo/animals/${a.id}`, hrefLabel: "Open full record",
         body: <AnimalPeek a={a} onChanged={load} /> })} />
   );
 }
@@ -136,7 +136,7 @@ function AnimalPeek({ a, onChanged }: { a: OrgAnimal; onChanged: () => Promise<v
       ["Needs help", help ? <Chip key="h" tone="bad">Yes</Chip> : "No"], ["First recorded", day(a.created_at)]]} />
     <div className="nr-acts" style={{ marginTop: 14 }}>
       <button type="button" className="nx-btn is-quiet is-sm" disabled={!!busy} onClick={() => void flip()}>{help ? "Clear the needs-help flag" : "Flag as needing help"}</button>
-      <Link href={`/next/ngo/cases/new?dog=${a.id}`} className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />Start a case</Link>
+      <Link href={`/ngo/cases/new?dog=${a.id}`} className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />Start a case</Link>
     </div>
   </>;
 }
@@ -154,13 +154,13 @@ function RevacList({ org, views, lens, choose, action, setting, page, setPage }:
     { label: "Status", width: "140px", render: (a) => <Chip tone={a.days_overdue > 0 ? "bad" : "warn"}>{a.days_overdue > 0 ? `${a.days_overdue} day${a.days_overdue === 1 ? "" : "s"} overdue` : a.days_overdue === 0 ? "Due today" : `Due in ${-a.days_overdue} day${a.days_overdue === -1 ? "" : "s"}`}</Chip> },
   ];
   return (
-    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => `${idOf(a)}, ${realName(a.name) ?? "Unnamed"}`} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/next/ngo/animals/${a.id}`}
+    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => `${idOf(a)}, ${realName(a.name) ?? "Unnamed"}`} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/ngo/animals/${a.id}`}
       sub={<>{setting.overdue ? <span style={{ color: "var(--bad)" }}>{n(setting.overdue)} overdue</span> : "None overdue"}{setting.soon ? <>, <b className="num">{n(setting.soon)}</b> due in the next 14 days</> : null}. Every {setting.days} days{setting.programme ? `, as ${setting.programme} sets` : ""}, from the last vaccination recorded on each animal.</>}
       action={action} loading={rows === null} error={error} onRetry={() => void load()}
       tools={<button type="button" className="nx-btn is-quiet is-sm" disabled={!rows?.length} onClick={() => downloadCsv("straypaw-revaccination.csv", (rows ?? []).map((r) => ({ straypaw_id: r.straypaw_id, code: r.code, name: r.name, zone: r.zone, last_vaccinated: r.last_vaccinated, due_on: r.due_on, days_overdue: r.days_overdue })), { title: "Due for revaccination", organisation: org.name })}><Download size={13} />Download this page</button>}
       empty={{ none: "No animal is due", filtered: "No animal is due", hint: "Animals appear here 14 days before their revaccination date." }}
       foot={<><Pager page={page} total={total} setPage={setPage} />{setting.undated ? <p className="nr-hint" style={{ marginTop: 10 }}>{n(setting.undated)} {setting.undated === 1 ? "animal is" : "animals are"} marked vaccinated with no dated vaccination, so {setting.undated === 1 ? "it" : "they"} cannot be placed here. Add the date on {setting.undated === 1 ? "its" : "each"} record.</p> : null}</>}
-      preview={(a) => ({ title: realName(a.name) ?? "Unnamed", sub: <><span className="num">{idOf(a)}</span> · {a.zone ?? "Place not recorded"}</>, href: `/next/ngo/animals/${a.id}`, hrefLabel: "Open full record",
+      preview={(a) => ({ title: realName(a.name) ?? "Unnamed", sub: <><span className="num">{idOf(a)}</span> · {a.zone ?? "Place not recorded"}</>, href: `/ngo/animals/${a.id}`, hrefLabel: "Open full record",
         body: <><Props items={[["Last vaccinated", day(a.last_vaccinated)], ["Due on", day(a.due_on)], ["Interval", `${setting.days} days`]]} /><p className="nr-hint" style={{ marginTop: 12 }}>Record the new vaccination on the animal&apos;s record; it then leaves this list.</p></> })} />
   );
 }
@@ -178,12 +178,12 @@ function IdentityList({ org, views, lens, choose, action, setCount }: Common) {
     { label: "Identity", width: "150px", render: (a) => <Chip tone="warn">{words(a.identity_state)}</Chip> },
   ];
   return (
-    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => realName(a.name) ?? a.code ?? "Unnamed animal"} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/next/ngo/animals/${a.id}`}
+    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => realName(a.name) ?? a.code ?? "Unnamed animal"} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/ngo/animals/${a.id}`}
       sub={rows === null ? "Reading animals waiting for a decision…" : rows.length ? <><b className="num">{rows.length}</b> {rows.length === 1 ? "animal waits" : "animals wait"} for an identity decision{rows.length >= 100 ? " (the newest 100)" : ""}. Choose one to record the decision; both source histories are kept and nothing merges.</> : "No animal is marked provisional or a possible duplicate."}
       action={action} loading={rows === null} error={error} onRetry={() => void load()}
       empty={{ none: "Nothing to confirm", filtered: "Nothing to confirm", hint: "No animal is marked provisional or a possible duplicate." }}
       foot={publicFlagOn("animal_id") ? <PhotoSearch ngoId={org.org_id} admin={org.role === "admin"} /> : null}
-      preview={(a, close) => ({ title: realName(a.name) ?? a.code ?? "Identity decision", sub: <>{a.code ?? "No code"} · {words(a.identity_state)}</>, href: `/next/ngo/animals/${a.id}`, hrefLabel: "Open the animal's history",
+      preview={(a, close) => ({ title: realName(a.name) ?? a.code ?? "Identity decision", sub: <>{a.code ?? "No code"} · {words(a.identity_state)}</>, href: `/ngo/animals/${a.id}`, hrefLabel: "Open the animal's history",
         body: live.userId ? <IdentityDecision key={a.id} a={a} ngoId={org.org_id} userId={live.userId} onDone={async () => { close(); await load(); }} /> : null })} />
   );
 }
@@ -210,7 +210,7 @@ function IdentityDecision({ a, ngoId, userId, onDone }: { a: IdentityRow; ngoId:
     if (r.ok) { setAsk(false); await onDone(); }
   };
   if (caseId === undefined) return <p className="nr-quiet">Reading the animal&apos;s case…</p>;
-  if (caseId === null) return <p className="nr-err">This animal has no case, so the decision has nowhere to be recorded. <Link className="nr-link" href={`/next/ngo/cases/new?dog=${a.id}`}>Open a case for it</Link> first.</p>;
+  if (caseId === null) return <p className="nr-err">This animal has no case, so the decision has nowhere to be recorded. <Link className="nr-link" href={`/ngo/cases/new?dog=${a.id}`}>Open a case for it</Link> first.</p>;
   return (
     <form className="nr-sheet" onSubmit={(e) => { e.preventDefault(); if (ready) setAsk(true); }}>
       <Field label="Decision"><select value={decision} onChange={(e) => { setDecision(e.target.value); setCandidate(""); }}><option value="confirmed_distinct">Confirmed as a distinct animal</option><option value="possible_duplicate">Possible duplicate, needs investigation</option><option value="linked_existing">References an existing animal; both records kept</option></select></Field>
@@ -241,7 +241,7 @@ function ScanTag({ onClose }: { onClose: () => void }) {
     const h = r.result?.data;
     if (!h?.found) setSaid({ tone: "plain", text: "No animal carries this identifier. Search the register, and add it from the animal's record." });
     else if (!h.own) setSaid({ tone: "plain", text: "Registered with another organisation." });
-    else if (h.dog_id) { setSaid({ tone: "ok", text: `Opening ${h.name || h.straypaw_id || "the animal"}…` }); router.push(`/next/ngo/animals/${h.dog_id}`); }
+    else if (h.dog_id) { setSaid({ tone: "ok", text: `Opening ${h.name || h.straypaw_id || "the animal"}…` }); router.push(`/ngo/animals/${h.dog_id}`); }
   };
   return (
     <Modal title="Scan a tag" onClose={onClose}>
@@ -302,9 +302,9 @@ function SampleAnimals() {
     <Shell crumb={["NGO", "Animals"]}>
       <RecordList id="animals" title="Animals" sample rows={ANIMALS} rowKey={(a) => a.id} rowLabel={(a) => `${a.id}, ${a.name}`} columns={SCOLS} views={SVIEWS} search={(a) => `${a.id} ${a.name} ${a.ward} ${a.mark}`} placeholder="Name, code, place"
         sub={<><b className="num">{ANIMALS.length}</b> animals on the register. Each row says how far its record has been checked.</>}
-        action={<div className="nr-tools"><TryLink quiet><ScanLine size={14} />Scan a tag</TryLink><Link href="/next/ngo/field" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>}
-        tools={<TryLink quiet sm><Download size={13} />Download</TryLink>} loading={false} empty={{ none: "No animals yet" }} hrefOf={(a) => `/next/ngo/animals/${a.id}`}
-        preview={(a) => ({ title: a.name, sub: <>{a.ward} · Last seen {a.last} <TrustChip trust={a.trust} /></>, href: `/next/ngo/animals/${a.id}`, hrefLabel: "Open full record", body: <SampleBody a={a} /> })} />
+        action={<div className="nr-tools"><TryLink quiet><ScanLine size={14} />Scan a tag</TryLink><Link href="/ngo/field" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>}
+        tools={<TryLink quiet sm><Download size={13} />Download</TryLink>} loading={false} empty={{ none: "No animals yet" }} hrefOf={(a) => `/ngo/animals/${a.id}`}
+        preview={(a) => ({ title: a.name, sub: <>{a.ward} · Last seen {a.last} <TrustChip trust={a.trust} /></>, href: `/ngo/animals/${a.id}`, hrefLabel: "Open full record", body: <SampleBody a={a} /> })} />
     </Shell>
   );
 }

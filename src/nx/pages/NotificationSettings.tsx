@@ -46,7 +46,7 @@ export function NotificationSettings() {
   };
 
   if (!live.ready) return <Shell crumb={["Settings", "Notifications"]}><div className="nx-page"><Skeleton /></div></Shell>;
-  if (!live.signedIn) return <Shell crumb={["Settings", "Notifications"]}><div className="nx-page"><h1 className="nx-h1">Notifications</h1><p className="nx-sub">Sign in to choose how StrayPaw tells you about mentions, approvals and work for you. <Link href="/sign-in?next=/next/settings/notifications">Sign in</Link></p></div></Shell>;
+  if (!live.signedIn) return <Shell crumb={["Settings", "Notifications"]}><div className="nx-page"><h1 className="nx-h1">Notifications</h1><p className="nx-sub">Sign in to choose how StrayPaw tells you about mentions, approvals and work for you. <Link href="/sign-in?next=/settings/notifications">Sign in</Link></p></div></Shell>;
   return (
     <Shell crumb={["Settings", "Notifications"]}>
       <div className="nx-page" style={{ maxWidth: 820 }}>

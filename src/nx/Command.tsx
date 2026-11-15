@@ -37,8 +37,8 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     if (!live.org) {
       const l = n.toLowerCase();
       setRecords([
-        ...ANIMALS.filter((a) => `${a.id} ${a.name} ${a.ward}`.toLowerCase().includes(l)).slice(0, 5).map((a): Hit => ({ id: a.id, group: "Animals", label: a.name, detail: `${a.id} · ${a.ward}`, href: `/next/ngo/animals/${a.id}`, icon: <PawPrint size={14} /> })),
-        ...CASES.filter((c) => `${c.code} ${c.title} ${c.place}`.toLowerCase().includes(l)).slice(0, 5).map((c): Hit => ({ id: c.id, group: "Cases", label: c.title, detail: `${c.code} · ${c.place}`, href: "/next/ngo/cases", icon: <ClipboardList size={14} /> })),
+        ...ANIMALS.filter((a) => `${a.id} ${a.name} ${a.ward}`.toLowerCase().includes(l)).slice(0, 5).map((a): Hit => ({ id: a.id, group: "Animals", label: a.name, detail: `${a.id} · ${a.ward}`, href: `/ngo/animals/${a.id}`, icon: <PawPrint size={14} /> })),
+        ...CASES.filter((c) => `${c.code} ${c.title} ${c.place}`.toLowerCase().includes(l)).slice(0, 5).map((c): Hit => ({ id: c.id, group: "Cases", label: c.title, detail: `${c.code} · ${c.place}`, href: "/ngo/cases", icon: <ClipboardList size={14} /> })),
       ]);
       return;
     }
@@ -59,9 +59,9 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
       if (!alive) return;
       setBusy(false);
       setRecords([
-        ...((d.data ?? []) as { id: string; name: string | null; code: string | null; zone: string | null }[]).map((x): Hit => ({ id: x.id, group: "Animals", label: x.name || "Unnamed", detail: [x.code, x.zone].filter(Boolean).join(" · "), href: `/next/ngo/animals/${x.id}`, icon: <PawPrint size={14} /> })),
+        ...((d.data ?? []) as { id: string; name: string | null; code: string | null; zone: string | null }[]).map((x): Hit => ({ id: x.id, group: "Animals", label: x.name || "Unnamed", detail: [x.code, x.zone].filter(Boolean).join(" · "), href: `/ngo/animals/${x.id}`, icon: <PawPrint size={14} /> })),
         ...((c.data ?? []) as { id: string; title: string | null; case_code: string | null; zone: string | null }[]).map((x): Hit => ({ id: x.id, group: "Cases", label: x.title || "Untitled case", detail: [x.case_code && x.case_code.length > 14 ? `${x.case_code.slice(0, 4)}…${x.case_code.slice(-6)}` : x.case_code, x.zone].filter(Boolean).join(" · "), href: `/ngo/cases/${x.id}`, icon: <ClipboardList size={14} /> })),
-        ...msgs.slice(0, 6).map((m): Hit => ({ id: `m${m.id}`, group: "Messages", label: m.body.length > 90 ? `${m.body.slice(0, 90)}…` : m.body, detail: `${m.channel_kind === "dm" ? "Direct message" : m.channel_kind === "record" ? m.record_label ?? "Record discussion" : `#${m.channel_name}`} · ${m.author_name ?? "Member"}`, href: m.channel_kind === "record" ? recordHref(m.record_kind, m.record_id) ?? "/next/ngo/today" : `/next/channels/${m.channel_name}?m=${m.id}`, icon: <MessageSquare size={14} /> })),
+        ...msgs.slice(0, 6).map((m): Hit => ({ id: `m${m.id}`, group: "Messages", label: m.body.length > 90 ? `${m.body.slice(0, 90)}…` : m.body, detail: `${m.channel_kind === "dm" ? "Direct message" : m.channel_kind === "record" ? m.record_label ?? "Record discussion" : `#${m.channel_name}`} · ${m.author_name ?? "Member"}`, href: m.channel_kind === "record" ? recordHref(m.record_kind, m.record_id) ?? "/ngo/today" : `/channels/${m.channel_name}?m=${m.id}`, icon: <MessageSquare size={14} /> })),
       ]);
     }, 180);
     return () => { alive = false; window.clearTimeout(t); setBusy(false); };
@@ -73,8 +73,8 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     const pages = PAGES.filter((p) => (!p.office || !live.org || office) && (!p.lab || !live.org || lab)).filter((p) => !l || `${p.label} ${p.ws}`.toLowerCase().includes(l)).slice(0, l ? 6 : 8)
       .map((p): Hit => ({ id: p.href + p.ws, group: "Pages", label: p.label, detail: p.ws, href: p.href, icon: <p.icon size={14} /> }));
     const chanNames = live.org ? (chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => c.name) : CHANNELS.map((c) => c.name);
-    const channels = chanNames.filter((c) => !l || c.includes(l)).slice(0, 4).map((c): Hit => ({ id: `#${c}`, group: "Channels", label: `#${c}`, href: `/next/channels/${c}`, icon: <Hash size={14} /> }));
-    const kaju: Hit[] = l ? [{ id: "kaju", group: "Kaju", label: `Ask Kaju: “${q.trim()}”`, detail: "Nothing is sent until you press Run", href: `/next/kaju?q=${encodeURIComponent(q.trim())}`, icon: <Sparkles size={14} /> }] : [];
+    const channels = chanNames.filter((c) => !l || c.includes(l)).slice(0, 4).map((c): Hit => ({ id: `#${c}`, group: "Channels", label: `#${c}`, href: `/channels/${c}`, icon: <Hash size={14} /> }));
+    const kaju: Hit[] = l ? [{ id: "kaju", group: "Kaju", label: `Ask Kaju: “${q.trim()}”`, detail: "Nothing is sent until you press Run", href: `/kaju?q=${encodeURIComponent(q.trim())}`, icon: <Sparkles size={14} /> }] : [];
     return [...records, ...pages, ...channels, ...kaju];
   }, [q, records, live.org, chans.rows]);
 

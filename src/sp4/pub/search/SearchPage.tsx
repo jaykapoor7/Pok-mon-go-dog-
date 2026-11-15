@@ -15,7 +15,7 @@ export function SearchPage({ q, groups, failed = [] }: { q: string; groups: { ki
   return (
     <>
       <Head title="Search"
-        sum={<>{q.length < 3 ? "Type at least three letters." : n ? <><b>{n}</b> {n === 1 ? "result" : "results"} for “{q}”.</> : `Nothing on the public record matches “${q}”.`} Organisation members search their own cases in their <Link className="pb-link" href="/sign-in?next=/next">workspace</Link>.</>}>
+        sum={<>{q.length < 3 ? "Type at least three letters." : n ? <><b>{n}</b> {n === 1 ? "result" : "results"} for “{q}”.</> : `Nothing on the public record matches “${q}”.`} Organisation members search their own cases in their <Link className="pb-link" href="/sign-in?next=/home">workspace</Link>.</>}>
         <form action="/search" className="sx-form" role="search">
           <label className="sx-q"><Search size={16} aria-hidden /><span className="pb-sr">Search the public record</span><input name="q" type="search" defaultValue={q} placeholder="A city, a neighbourhood, a StrayPaw tag, an organisation" autoFocus={!q} enterKeyHint="search" /></label>
           <button type="submit" className="pb-btn is-primary">Search</button>

@@ -41,7 +41,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
   const start = async () => {
     if (!org || !planned) return;
     setBusy(true); const r = await k.start(org.org_id, planned); setBusy(false);
-    if (r.id) { setPlanned(null); k.setOpen(false); toast({ text: "Mission started. It runs as you and stops where it needs you.", tone: "ok", href: `/next/kaju/missions?m=${r.id}`, hrefLabel: "Open" }); }
+    if (r.id) { setPlanned(null); k.setOpen(false); toast({ text: "Mission started. It runs as you and stops where it needs you.", tone: "ok", href: `/kaju/missions?m=${r.id}`, hrefLabel: "Open" }); }
     else toast({ text: r.error ?? "Not started.", tone: "bad" });
   };
   return (
@@ -55,7 +55,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
             <span className="nx-ka-i"><Sparkles size={13} /></span><b>Kaju</b>
             {crumb ? <span className="nx-dockk-ctx" title="Kaju knows which page you opened it on">On {crumb}</span> : null}
             <span style={{ marginLeft: "auto" }} />
-            <button type="button" className="nx-ib" aria-label="Open full Kaju" title="Open full Kaju" onClick={() => { k.setOpen(false); router.push("/next/kaju"); }}><Maximize2 size={15} /></button>
+            <button type="button" className="nx-ib" aria-label="Open full Kaju" title="Open full Kaju" onClick={() => { k.setOpen(false); router.push("/kaju"); }}><Maximize2 size={15} /></button>
             <button type="button" className="nx-ib" aria-label="Close Kaju" onClick={() => k.setOpen(false)}><X size={16} /></button>
           </div>
           <div className="nx-dockk-b">
@@ -63,7 +63,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
             <Thread compact />
             {planned ? <PlanCard planned={planned} busy={busy} onStart={start} onDiscard={() => setPlanned(null)} /> : null}
           </div>
-          <Composer compact predictive={prefs.predictive} vocab={vocab} busy={busy || k.busy} onAsk={(t) => void k.ask(t)} onPlan={(t, i) => void plan(t, i)} canPlan={!!org} />
+          <Composer compact predictive={prefs.predictive} vocab={vocab} busy={busy || k.busy} disabled={k.expired} onAsk={(t) => void k.ask(t)} onPlan={(t, i) => void plan(t, i)} canPlan={!!org} />
         </motion.div>
       ) : null}
     </AnimatePresence>

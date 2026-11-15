@@ -34,7 +34,7 @@ export type Senders = {
 
 /** Decide and, if due, attempt one delivery. Pure apart from the senders, so it is tested without a network. */
 export async function attempt(d: Delivery, n: { title: string; kind: string; href: string | null }, ctx: { now: Date; settings: Settings | null; email: string | null; subs: { endpoint: string; p256dh: string; auth: string }[]; site: string }, send: Senders): Promise<Outcome> {
-  const link = `${ctx.site}${n.href && n.href.startsWith("/") ? n.href : "/next"}`;
+  const link = `${ctx.site}${n.href && n.href.startsWith("/") ? n.href : "/home"}`;
   if (n.kind !== "approval") { const q = quietUntil(ctx.now, ctx.settings); if (q) return { status: "held_quiet", next_attempt_at: q.toISOString() }; }
   const fail = (e: string): Outcome => d.attempts + 1 >= MAX ? { status: "failed", last_error: e.slice(0, 500) } : { status: "queued", next_attempt_at: backoff(d.attempts + 1, ctx.now).toISOString(), last_error: e.slice(0, 500) };
   if (d.channel === "email") {

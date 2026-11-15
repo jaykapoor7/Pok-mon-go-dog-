@@ -118,3 +118,4 @@
 .nx-autos > li { padding: 14px 0; border-bottom: 1px solid var(--line); display: grid; gap: 5px; }
 .nx-autos > li.is-on { box-shadow: inset 3px 0 0 var(--ok); padding-left: 12px; }
 .nx-autos-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.nx-kerr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } .nx-kerr > p { margin: 0; }

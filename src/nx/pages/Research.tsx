@@ -70,7 +70,7 @@ export function Datasets() {
               <span className="nx-t2 nx-hide-s">{s.programme}{s.illustrative ? <> <Chip bare>Illustrative</Chip></> : null}</span>
               <span className="nx-t3 nx-hide-s">{s.extract ? fmt(s.extract.since) : "—"}</span>
               <span className="num nx-hide-s">{s.extract ? s.extract.rows.length.toLocaleString("en-IN") : "—"}</span>
-              <span>{s.extract ? <Link href={`/next/research/explore?d=${s.id}`} className="nx-btn is-quiet is-sm">Explore <ArrowRight size={12} /></Link> : null}</span>
+              <span>{s.extract ? <Link href={`/research/explore?d=${s.id}`} className="nx-btn is-quiet is-sm">Explore <ArrowRight size={12} /></Link> : null}</span>
             </div>
           ))}
           {sets && !sets.length ? <p className="nx-sub" style={{ padding: "20px 0" }}><b style={{ color: "var(--ink)" }}>No datasets are approved for this organisation yet.</b></p> : null}

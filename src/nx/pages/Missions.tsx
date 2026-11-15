@@ -140,8 +140,8 @@ function LiveMissions({ view }: { view: ViewId }) {
   return (
     <Shell ws="kaju" crumb={["Kaju", t]}>
       <div className="nx-page nx-runs-page" style={{ maxWidth: "none" }}>
-        <div className="nx-head"><div><p className="nx-eyebrow">{live.org?.name}</p><h1 className="nx-h1">{t}</h1><p className="nx-sub">{sub}</p></div><Link href="/next/kaju" className="nx-btn is-quiet"><Sparkles size={13} />New mission</Link></div>
-        {list.error ? <Failed error={errText(list.error)} retry={list.reload} /> : list.rows === null ? <Skeleton /> : !shown.length && !open ? <Empty title={view === "approvals" ? "Nothing is waiting for you" : view === "history" ? "No finished missions yet" : "No missions running"} hint={view === "missions" ? "Hand Kaju an outcome from the Kaju page or the panel (⌘J)." : undefined} action={view !== "missions" ? <Link className="nx-btn is-quiet" href="/next/kaju/missions">All missions</Link> : <Link className="nx-btn" href="/next/kaju">Ask Kaju</Link>} /> : (
+        <div className="nx-head"><div><p className="nx-eyebrow">{live.org?.name}</p><h1 className="nx-h1">{t}</h1><p className="nx-sub">{sub}</p></div><Link href="/kaju" className="nx-btn is-quiet"><Sparkles size={13} />New mission</Link></div>
+        {list.error ? <Failed error={errText(list.error)} retry={list.reload} /> : list.rows === null ? <Skeleton /> : !shown.length && !open ? <Empty title={view === "approvals" ? "Nothing is waiting for you" : view === "history" ? "No finished missions yet" : "No missions running"} hint={view === "missions" ? "Hand Kaju an outcome from the Kaju page or the panel (⌘J)." : undefined} action={view !== "missions" ? <Link className="nx-btn is-quiet" href="/kaju/missions">All missions</Link> : <Link className="nx-btn" href="/kaju">Ask Kaju</Link>} /> : (
           <div className="nx-runs">
             <ul className="nx-runs-l" aria-label={t}>
               {shown.map((m) => { const [w, tone] = missionState(m.state); const steps = m.nx_mission_steps; const d = steps.filter((s) => s.state === "done").length; return (

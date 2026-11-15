@@ -43,7 +43,7 @@ export function RecordThread({ kind, id, label }: { kind: "animal" | "case" | "p
     const r = await sendMessage(ch.id, note.trim() || `Sharing ${label}`, { authorName: live.userName, mentions: mentionsIn(note, people.rows ?? []), record: { kind, id, label } });
     setBusy(false);
     if (r.error) { toast({ text: r.error.message, tone: "bad" }); return; }
-    setShare(false); setNote(""); toast({ text: `Shared in #${ch.name}.`, tone: "ok", href: `/next/channels/${ch.name}`, hrefLabel: "Open" });
+    setShare(false); setNote(""); toast({ text: `Shared in #${ch.name}.`, tone: "ok", href: `/channels/${ch.name}`, hrefLabel: "Open" });
   };
   return (
     <div className="nx-rthread">

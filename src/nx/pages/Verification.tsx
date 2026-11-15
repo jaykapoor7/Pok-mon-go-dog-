@@ -102,16 +102,16 @@ function LiveVerification() {
       const now = Date.now();
       setState({ note: null, rows: mine.map((p): Row => {
         const label = PACKAGE_LABEL[p.status] ?? p.status, since = p.submitted_at ?? p.created_at, days = p.status === "submitted" ? Math.max(0, Math.floor((now - Date.parse(since)) / 864e5)) : 0;
-        return { id: p.id, title: p.title, operator: names[p.ngo_id] ?? "Operator", period: `${day(p.period_start)} – ${day(p.period_end)}`, records: p.summary?.records ?? p.case_ids?.length ?? 0, vet: p.summary?.vet_authorised ?? null, evidence: p.summary?.evidence_items ?? null, state: label, tone: TONE[label] ?? "plain", waiting: p.status === "submitted" ? (days === 0 ? "Today" : `${days} ${days === 1 ? "day" : "days"}`) : day(p.decided_at), days, flags: p.summary?.vet_authorised != null && p.summary.records != null && p.summary.vet_authorised < p.summary.records ? [`${p.summary.records - p.summary.vet_authorised} records without a surgeon's authorisation`] : [], href: `/next/gov/verification/${p.id}`, bucket: bucketOf(label) };
+        return { id: p.id, title: p.title, operator: names[p.ngo_id] ?? "Operator", period: `${day(p.period_start)} – ${day(p.period_end)}`, records: p.summary?.records ?? p.case_ids?.length ?? 0, vet: p.summary?.vet_authorised ?? null, evidence: p.summary?.evidence_items ?? null, state: label, tone: TONE[label] ?? "plain", waiting: p.status === "submitted" ? (days === 0 ? "Today" : `${days} ${days === 1 ? "day" : "days"}`) : day(p.decided_at), days, flags: p.summary?.vet_authorised != null && p.summary.records != null && p.summary.vet_authorised < p.summary.records ? [`${p.summary.records - p.summary.vet_authorised} records without a surgeon's authorisation`] : [], href: `/gov/verification/${p.id}`, bucket: bucketOf(label) };
       }) });
     }).catch((e: unknown) => { if (alive) setState({ rows: [], note: e instanceof NotEnabled ? "Verification is not switched on for this office yet." : "The queue could not be read just now." }); });
     return () => { alive = false; };
   }, [isOffice, office]);
-  if (!isOffice) return <Shell ws="gov" crumb={["Government", "Verification"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Verification</h1><Denied what="Verification is the work of a reviewing office" why={`Your account${live.orgFor("government") ? ` works in ${live.orgFor("government")!.name}, which` : ""} is not a reviewer at any office, so there is nothing to decide here. An office adds its reviewers; the role cannot be chosen from a menu.`} back={{ href: "/next/gov/overview", label: "Back to the overview" }} /></div></Shell>;
+  if (!isOffice) return <Shell ws="gov" crumb={["Government", "Verification"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Verification</h1><Denied what="Verification is the work of a reviewing office" why={`Your account${live.orgFor("government") ? ` works in ${live.orgFor("government")!.name}, which` : ""} is not a reviewer at any office, so there is nothing to decide here. An office adds its reviewers; the role cannot be chosen from a menu.`} back={{ href: "/gov/overview", label: "Back to the overview" }} /></div></Shell>;
   return <VerificationView rows={state.rows ?? []} sample={false} loading={state.rows === null} note={state.note} office={office!.name} />;
 }
 
-const SAMPLE: Row[] = REVIEWS.map((r) => ({ ...r, tone: TONE[r.state] ?? "plain", bucket: bucketOf(r.state), href: `/next/gov/verification/${r.id}` }));
+const SAMPLE: Row[] = REVIEWS.map((r) => ({ ...r, tone: TONE[r.state] ?? "plain", bucket: bucketOf(r.state), href: `/gov/verification/${r.id}` }));
 
 export function Verification() {
   const live = useLive();

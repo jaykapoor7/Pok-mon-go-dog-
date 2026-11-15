@@ -6,7 +6,7 @@ import { AlertTriangle, Check as Tick, Download, FileSearch, Info, ShieldCheck }
 import { EVIDENCE_LABEL, NotEnabled, PACKAGE_LABEL, orgNames, packageAct, packageById, packageCases, packageEvents, type EvidenceKind, type Package, type PackageCase, type PackageEvent } from "@/lib/abc";
 import { money, readReconciliation, type ClaimItem, type DecisionSource, type Reconciliation } from "@/lib/reconciliation";
 import { operationRpc, operationsDb, readOperations, OPERATION_LABELS, type OperationEvent, type OperationReview } from "@/lib/operations";
-import { PACKAGE_STATE, isPackageStatus, type PackageAction } from "@/lib/machines/package";
+import { PACKAGE_STATE, isDecided, isPackageStatus, type PackageAction } from "@/lib/machines/package";
 import { checkPackage } from "@/sp3/ai/packageCheck";
 import { Shell } from "../../Shell";
 import { Chip, Sample } from "../../ui";
@@ -38,7 +38,7 @@ export function PackageReview({ id }: { id: string }) {
     <Shell ws="gov" crumb={["Verification", "Package"]}>
       <div className="nx-page" style={{ maxWidth: 760 }}>
         <h1 className="nx-h1">Package review</h1>
-        <Denied what="Only a reviewing office decides packages" why={`Your account works in ${live.orgFor("government")?.name ?? live.org.name}, which is not a reviewing office. A package is opened and decided only by members of the office it was sent to. An office adds its reviewers; the role cannot be chosen here.`} back={{ href: "/next/gov/verification", label: "Back to verification" }} />
+        <Denied what="Only a reviewing office decides packages" why={`Your account works in ${live.orgFor("government")?.name ?? live.org.name}, which is not a reviewing office. A package is opened and decided only by members of the office it was sent to. An office adds its reviewers; the role cannot be chosen here.`} back={{ href: "/gov/verification", label: "Back to verification" }} />
       </div>
     </Shell>
   );
@@ -64,7 +64,7 @@ function LiveReview({ id, office, actor, who }: { id: string; office: Workspace;
       <div className="nx-page" style={{ maxWidth: 760 }}>
         <h1 className="nx-h1">Package review</h1>
         {s.state === "error" ? <Failed error={s.err!} retry={() => void load()} />
-          : <Empty title={s.state === "off" ? "Package review is not switched on for this office yet" : "This package is not available to you"} hint={s.state === "off" ? undefined : "It may still be a draft with the operator, or it was sent to another office."} action={<Link href="/next/gov/verification" className="nx-btn is-quiet">Back to verification</Link>} />}
+          : <Empty title={s.state === "off" ? "Package review is not switched on for this office yet" : "This package is not available to you"} hint={s.state === "off" ? undefined : "It may still be a draft with the operator, or it was sent to another office."} action={<Link href="/gov/verification" className="nx-btn is-quiet">Back to verification</Link>} />}
       </div>
     </Shell>
   );
@@ -269,7 +269,7 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
     </Block>
   ) : null;
 
-  const paid = pkg.status === "accepted" || pkg.status === "partially_accepted";
+  const paid = isDecided(pkg.status);
   const paymentBox = paid ? (
     <Block title="Payment reference" note="Record the official reference of a payment made outside StrayPaw, with its document. StrayPaw does not make or approve payments.">
       {sample ? <div className="gh-acts"><TryLink quiet sm>Record a payment reference</TryLink></div> : (

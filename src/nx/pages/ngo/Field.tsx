@@ -252,7 +252,7 @@ function Round({ org, actor, scope, mode, online, head, offlineReady, storageErr
         <ol className="nf-stops">{mine.map((c) => <CaseStop key={c.id} c={c} online={online} started={c.status_class === "in_progress" || done[`s${c.id}`] === "Started"} busy={!!busy} drafted={drafts.filter((d) => d.caseId === c.id).length} onStart={() => void start(c)}
           onNote={(t) => note(c, t)} onEvidence={(k, f, l) => evidence(c, k, f, l)} onVaccination={(v) => vaccination(c, v)} vaccDefaults={vaccDefaults} policies={policies} onOperation={(k, d, p, r) => operation(c.id, c.case_code, k, d, p, r)} keepWord={mode === "online" && online ? "Save" : "Keep on this phone"} />)}</ol></section> : null}
 
-      {cases !== null && !failed && !stops ? <div className="nx-empty"><b>Nothing is held by you</b><p>Take a case from the list and it becomes a stop here.</p><div className="nx-empty-a"><Link className="nx-btn" href={unowned ? "/next/ngo/cases?view=unassigned" : "/next/ngo/cases"}>{unowned ? `See ${unowned} unassigned ${unowned === 1 ? "case" : "cases"}` : "Open the cases"}</Link></div></div> : null}
+      {cases !== null && !failed && !stops ? <div className="nx-empty"><b>Nothing is held by you</b><p>Take a case from the list and it becomes a stop here.</p><div className="nx-empty-a"><Link className="nx-btn" href={unowned ? "/ngo/cases?view=unassigned" : "/ngo/cases"}>{unowned ? `See ${unowned} unassigned ${unowned === 1 ? "case" : "cases"}` : "Open the cases"}</Link></div></div> : null}
 
       <section className="nf-phone" aria-label="This phone">
         <header><span className="nf-lock" aria-hidden><Smartphone size={16} /></span><div><b>This phone</b><small>{waiting ? `${waiting} ${waiting === 1 ? "record" : "records"} not sent yet` : offlineReady ? "Ready to work without signal" : "Nothing waiting to be sent"}</small></div>
@@ -261,10 +261,10 @@ function Round({ org, actor, scope, mode, online, head, offlineReady, storageErr
           onRemove={() => setAsk({ title: "Remove this copy from the phone?", body: d.status === "failed" ? "It was not confirmed by the server. Removing it loses what it holds unless you have copied it." : "It has not been sent. Removing it loses what it holds.", confirm: "Remove it", danger: true, go: async () => { await deleteDraft(d.id); await readBox(); } })}
           onReplace={async (text) => { await keep({ ...d, id: uuid(), note: text, status: "pending", error: undefined }); await deleteDraft(d.id); await readBox(); }}
           onOperation={(k, data, p, r) => operation(d.caseId, d.code, k, data, p, r, d.id)} />)}</div> : null}
-        {synced.length ? <details className="nr-more-d"><summary>Sent from this phone · {synced.length}</summary><ul className="nr-items">{[...synced].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 30).map((x) => <li key={x.id} className="nr-item"><span className="nr-item-t"><b><Link className="nr-link" href={`/next/ngo/cases/${x.caseId}`}>{x.label}</Link></b><small>Sent {dayTime(x.at)} · receipt {x.auditId}</small></span><span className="nf-dot" data-s="sent" aria-label="Sent" /></li>)}</ul></details> : null}
+        {synced.length ? <details className="nr-more-d"><summary>Sent from this phone · {synced.length}</summary><ul className="nr-items">{[...synced].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 30).map((x) => <li key={x.id} className="nr-item"><span className="nr-item-t"><b><Link className="nr-link" href={`/ngo/cases/${x.caseId}`}>{x.label}</Link></b><small>Sent {dayTime(x.at)} · receipt {x.auditId}</small></span><span className="nf-dot" data-s="sent" aria-label="Sent" /></li>)}</ul></details> : null}
         <div className="nr-acts">
-          <Link className="nx-btn is-quiet is-sm" href="/next/ngo/animals?view=scan"><ScanLine size={13} />Scan a tag</Link>
-          <Link className="nx-btn is-quiet is-sm" href="/next/ngo/operations"><Route size={13} />Visits this week</Link>
+          <Link className="nx-btn is-quiet is-sm" href="/ngo/animals?view=scan"><ScanLine size={13} />Scan a tag</Link>
+          <Link className="nx-btn is-quiet is-sm" href="/ngo/operations"><Route size={13} />Visits this week</Link>
           {mode === "offline" ? <button type="button" className="nx-btn is-quiet is-sm" onClick={() => { lockOffline(); relock(); }}><Lock size={13} />Lock offline records</button> : null}
           {mode === "offline" ? <button type="button" className="nx-btn is-quiet is-sm" onClick={() => setAsk({ title: "Clear sent records from this phone?", body: "Records already sent stay on the server. Records still waiting must be sent or removed first; this phone will ask for a new PIN next time.", confirm: "Clear them", danger: true, go: async () => { await clearOfflineDevice(scope); relock(); } })}><Trash2 size={13} />Clear sent records</button> : null}
         </div>
@@ -284,9 +284,9 @@ function Draft({ d, online, syncing, policies, onSend, onRemove, onReplace, onOp
   /* A refusal before the server saved anything can be corrected and sent as a new record. A record whose saved copy could not be
      checked may already be on the server, so it is retried as the same request instead, never copied. */
   const unverified = /verif|differs|audit|receipt/i.test(err);
-  const fix = /sign in|session/i.test(err) ? <Link className="nr-link" href="/sign-in?next=/next/ngo/field">Sign in again</Link>
+  const fix = /sign in|session/i.test(err) ? <Link className="nr-link" href="/sign-in?next=/ngo/field">Sign in again</Link>
     : /intake first/i.test(err) ? <span>Send the animal&apos;s intake first; this one follows it.</span>
-    : unverified ? <span>It may already be saved. Send this one again: the same request is checked, never saved twice.{d.caseId && !d.intake && !d.intakeRequest ? <> Or <Link className="nr-link" href={`/next/ngo/cases/${d.caseId}`}>open the case</Link> to look.</> : null}</span>
+    : unverified ? <span>It may already be saved. Send this one again: the same request is checked, never saved twice.{d.caseId && !d.intake && !d.intakeRequest ? <> Or <Link className="nr-link" href={`/ngo/cases/${d.caseId}`}>open the case</Link> to look.</> : null}</span>
     : plain ? <span>Correct it and send it again.</span> : <span>Send it again, or remove it and record it once more.</span>;
   return (
     <details className="nf-draft" open={d.status === "failed" || undefined}>
@@ -325,7 +325,7 @@ function CaseStop({ c, online, started, busy, drafted, onStart, onNote, onEviden
   const gps = () => navigator.geolocation?.getCurrentPosition((p) => setLoc(`Observed GPS: ${p.coords.latitude}, ${p.coords.longitude}; accuracy ${Math.round(p.coords.accuracy)} m; ${new Date(p.timestamp).toISOString()}`), () => setError("Location is unavailable. Say where it was in words."));
   return (
     <li className="nf-stop">
-      <div className="nf-stop-t"><b><Link href={`/next/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></b><small>{started ? "Started" : "Open"} · {[shortCode(c.case_code), c.animal_name, c.zone].filter(Boolean).join(" · ") || "Animal and place not recorded"}</small></div>
+      <div className="nf-stop-t"><b><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></b><small>{started ? "Started" : "Open"} · {[shortCode(c.case_code), c.animal_name, c.zone].filter(Boolean).join(" · ") || "Animal and place not recorded"}</small></div>
       <div className="nf-acts">
         {!started ? <button type="button" className="nx-btn" disabled={!online || busy} onClick={onStart}><Play size={15} />Start</button> : null}
         <button type="button" className={`nx-btn ${started ? "" : "is-quiet"}`} aria-expanded={open} onClick={() => { setOpen((v) => !v); shut(); }}><Plus size={15} />Record</button>
@@ -333,7 +333,7 @@ function CaseStop({ c, online, started, busy, drafted, onStart, onNote, onEviden
       {!online && !started ? <p className="nr-hint">Starting work needs signal. Records can still be kept on this phone.</p> : null}
       {open ? <div className="nf-tools" role="group" aria-label="What to record on this case">
         {tools.filter((x) => x[3]).map(([id, label, Icon]) => <button key={id} type="button" aria-pressed={tool === id} onClick={() => setTool(tool === id ? null : id)}><Icon size={18} /><span>{label}</span></button>)}
-        <Link href={`/next/ngo/cases/${c.id}`}><ArrowUpRight size={18} /><span>Open the case</span></Link>
+        <Link href={`/ngo/cases/${c.id}`}><ArrowUpRight size={18} /><span>Open the case</span></Link>
       </div> : null}
       {error ? <p className="nr-err" role="alert">{error}</p> : null}
       {open && tool === "note" ? <form className="nr-sheet" onSubmit={(e) => { e.preventDefault(); if (t.trim()) void save(async () => { await onNote(t.trim()); setT(""); }); }}>

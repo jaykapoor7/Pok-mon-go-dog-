@@ -19,7 +19,7 @@ async function signIn(page: Page, label: string) {
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "sp.firstday.v1", "sp.firstday.offer.v1", "sp.onboard.done"]) localStorage.setItem(k, "1"); });
   await page.goto("/try");
   await page.getByRole("button", { name: new RegExp(label) }).first().click();
-  await page.waitForURL(/\/next\//, { timeout: 90_000 });
+  await page.waitForURL(/\//, { timeout: 90_000 });
   await page.waitForLoadState("networkidle");
 }
 /** A signed-in page shows the organisation's own name and never the sample-data chip. */
@@ -33,61 +33,61 @@ const rows = (page: Page) => page.locator("button.nx-tr");
 
 role("oh-ngo")("NGO coordinator: lands in the NGO workspace and reads its own cases, animals and Kaju's checks", async ({ page }) => {
   await signIn(page, "NGO coordinator");
-  await expect(page).toHaveURL(/\/next\/ngo\/today/);
+  await expect(page).toHaveURL(/\/ngo\/today/);
   await expect(page.locator(".nx-org b")).not.toHaveText("Kind Hour");
-  await live(page, "/next/ngo/cases");
+  await live(page, "/ngo/cases");
   await expect(rows(page).first()).toBeVisible();
-  await live(page, "/next/ngo/animals");
+  await live(page, "/ngo/animals");
   await expect(rows(page).first()).toBeVisible();
-  await live(page, "/next/kaju/insights");
+  await live(page, "/kaju/insights");
   await expect(page.locator(".nx-chk")).toHaveCount(6);
-  await expect(page.locator("a.nx-classic")).toHaveAttribute("href", "/ngo");
+  await expect(page.locator("a.nx-classic")).toHaveCount(0);
 });
 
 role("oh-clinician")("Hospital clinician: health workspace with referrals and facilities, and no NGO case list", async ({ page }) => {
   await signIn(page, "Hospital clinician");
-  await expect(page).toHaveURL(/\/next\/health\/today/);
-  await live(page, "/next/health/facilities");
+  await expect(page).toHaveURL(/\/health\/today/);
+  await live(page, "/health/facilities");
   await expect(rows(page).first()).toBeVisible();
-  await live(page, "/next/health/referrals");
+  await live(page, "/health/referrals");
   await expect(page.locator(".nx-sub").first()).toContainText("names and phone numbers stay with the sending facility");
-  await page.goto("/next/ngo/cases");
+  await page.goto("/ngo/cases");
   await expect(page.locator(".nx-sub").first()).toContainText("not an NGO workspace");
 });
 
 role("oh-lab")("Laboratory scientist: samples, testing and results from the laboratory's own register", async ({ page }) => {
   await signIn(page, "Laboratory scientist");
-  await live(page, "/next/health/samples");
+  await live(page, "/health/samples");
   await expect(rows(page).first()).toBeVisible();
-  await live(page, "/next/health/results");
+  await live(page, "/health/results");
   await expect(page.locator(".nx-sub").first()).toContainText("validates it");
-  await live(page, "/next/health/quality");
+  await live(page, "/health/quality");
   await expect(page.locator(".nx-fig")).toHaveCount(5);
 });
 
 role("oh-programme")("Programme lead: programme coverage, partners and surveillance with suppressed counts", async ({ page }) => {
   await signIn(page, "Programme lead");
-  await expect(page).toHaveURL(/\/next\/gov\/overview/);
-  await live(page, "/next/gov/programmes");
+  await expect(page).toHaveURL(/\/gov\/overview/);
+  await live(page, "/gov/programmes");
   await expect(rows(page).first()).toBeVisible();
-  await live(page, "/next/gov/partners");
+  await live(page, "/gov/partners");
   await expect(rows(page).first()).toBeVisible();
-  await live(page, "/next/gov/surveillance");
+  await live(page, "/gov/surveillance");
   await expect(page.locator(".nx-sub").first()).toContainText("none of them declares an outbreak");
 });
 
 role("municipal")("Municipal reviewer: the office's own verification queue", async ({ page }) => {
   await signIn(page, "Municipal reviewer");
-  await expect(page).toHaveURL(/\/next\/gov\//);
-  await live(page, "/next/gov/verification");
+  await expect(page).toHaveURL(/\/gov\//);
+  await live(page, "/gov/verification");
   await expect(page.locator(".nx-sub").first()).toContainText("Decisions are signed by a named reviewer");
 });
 
 role("vet")("Veterinarian: the veterinary view of the NGO's animals", async ({ page }) => {
   await signIn(page, "Veterinarian");
-  await expect(page).toHaveURL(/\/next\/health\/today/);
+  await expect(page).toHaveURL(/\/health\/today/);
   await expect(page.locator(".nx-org small")).toContainText("Veterinary");
-  await live(page, "/next/health/procedures");
+  await live(page, "/health/procedures");
   await expect(page.locator(".nx-sub").first()).toContainText("Only a veterinarian can sign");
-  await live(page, "/next/health/care");
+  await live(page, "/health/care");
 });

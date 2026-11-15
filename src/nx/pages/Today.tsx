@@ -26,7 +26,7 @@ function SampleToday() {
     <motion.li key={w.id} layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={spring}>
       <div className={`nx-tr is-work ${isDone ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: COLS }}>
         <Check done={isDone} onClick={() => toggle(w.id)} label={isDone ? `Reopen: ${w.title}` : `Mark done: ${w.title}`} />
-        <Link href={w.animal ? `/next/ngo/animals/${w.animal}` : "/next/ngo/animals"} className="nx-cell-main"><span><b>{w.title}</b><small>{w.ref} · {w.kind}<span className="nx-only-s"> · {w.place}</span></small></span></Link>
+        <Link href={w.animal ? `/ngo/animals/${w.animal}` : "/ngo/animals"} className="nx-cell-main"><span><b>{w.title}</b><small>{w.ref} · {w.kind}<span className="nx-only-s"> · {w.place}</span></small></span></Link>
         <span className="nx-t2 nx-hide-s">{w.who}</span>
         <span className="nx-t2 nx-hide-s">{w.place}</span>
         <span>{isDone ? <Chip tone="ok">Done</Chip> : <Chip tone={w.tone}>{w.state}</Chip>}</span>
@@ -54,7 +54,7 @@ function SampleToday() {
         <div className="nx-cols">
           <div>
             <section className="nx-sec" aria-labelledby="t-work">
-              <div className="nx-sec-h"><h2 id="t-work">My work</h2><span className="nx-count">{open.length}</span><Link href="/next/ngo/animals">All work <ArrowRight size={12} /></Link></div>
+              <div className="nx-sec-h"><h2 id="t-work">My work</h2><span className="nx-count">{open.length}</span><Link href="/ngo/animals">All work <ArrowRight size={12} /></Link></div>
               <div className="nx-table">
                 <div className="nx-tr nx-th" style={{ gridTemplateColumns: COLS }}><span /><span>Record</span><span>Assigned to</span><span>Place</span><span>State</span><span>Updated</span></div>
                 <LayoutGroup>
@@ -136,7 +136,7 @@ function LiveToday() {
         <div className="nx-figs">
           {fig(tasks.rows === null ? null : open.length, "Open tasks")}
           {fig(tasks.rows === null ? null : closed.length, "Done")}
-          {org!.workspace === "ngo" ? fig(counts.animals, "Animals on the register", "/next/ngo/animals") : null}
+          {org!.workspace === "ngo" ? fig(counts.animals, "Animals on the register", "/ngo/animals") : null}
           {org!.workspace === "ngo" ? fig(counts.openCases, "Open cases") : null}
         </div>
         <div className="nx-cols">

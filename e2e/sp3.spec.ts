@@ -6,7 +6,8 @@ import { expect, test } from "@playwright/test";
 const PUBLIC = ["/", "/abc-operations", "/security", "/research", "/platform", "/ai", "/kaju-agents", "/blog", "/product-updates", "/roadmap", "/events", "/teams/coordinators", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
   "/customers", "/customers/the-pawsome-people-project", "/customers/the-kind-hour-foundation", "/demo", "/docs", "/faq", "/sign-in", "/app", "/join", "/access",
   "/our-story", "/mission", "/contact", "/privacy", "/explore", "/evidence", "/for-community", "/education", "/partner-apply", "/partner-programmes"];
-const APP = ["/ngo", "/ngo/animals", "/ngo/inbox", "/ngo/programmes", "/ngo/field", "/ngo/review", "/ngo/proof", "/ngo/team", "/city", "/city/programmes", "/city/insights", "/city/report", "/community", "/community/report", "/learn", "/assistant", "/fundraisers", "/surveys"];
+const APP = ["/home", "/start", "/ngo/today", "/ngo/cases", "/ngo/animals", "/ngo/inbox", "/ngo/operations", "/ngo/programmes", "/ngo/submissions", "/ngo/field", "/ngo/team", "/gov/overview", "/gov/verification", "/gov/programmes", "/health/today", "/health/pep", "/health/samples", "/research/datasets", "/kaju", "/kaju/missions", "/kaju/automations", "/channels/general",
+  "/city", "/city/programmes", "/city/insights", "/city/report", "/community", "/community/report", "/learn", "/fundraisers"];
 
 test("every public and app route answers 200", async ({ request }) => {
   for (const path of [...PUBLIC, ...APP]) {
@@ -93,22 +94,17 @@ test("Open App offers ways in to a signed-out visitor", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Report an animal/ })).toBeVisible();
 });
 
-test("the app shell carries workspace navigation, search and Kaju", async ({ page, isMobile }) => {
-  await page.goto("/city/programmes");
-  if (!isMobile) {
-    const side = page.getByRole("complementary", { name: "Workspace" });
-    await expect(side.getByRole("link", { name: "Programmes" })).toHaveAttribute("aria-current", "page");
-    /* Every page is a tab; search and Kaju sit at the top of the sidebar. Kaju is a button, not a page link. */
-    await expect(page.getByRole("navigation", { name: "Open pages" }).getByRole("link", { name: "Programmes" })).toHaveAttribute("aria-current", "page");
-    await expect(side.getByRole("button", { name: /^Quick actions/ })).toBeVisible();
-    await expect(side.getByRole("link", { name: "Kaju", exact: true })).toHaveCount(0);
-    await side.getByRole("button", { name: /^Kaju/ }).click();
-  } else {
-    await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Kaju" }).click();
-  }
-  const panel = page.getByRole("complementary", { name: "Kaju" });
+test("the app frame carries workspace navigation, search and Kaju", async ({ page, isMobile }) => {
+  test.skip(!!isMobile, "the sidebar and the compact Kaju panel are desktop furniture; phones use the rail");
+  await page.goto("/gov/programmes");
+  await expect(page.getByRole("link", { name: "Programmes", exact: true }).first()).toHaveAttribute("aria-current", "page");
+  await page.getByRole("navigation", { name: "StrayPaw" }).getByRole("button", { name: "Search" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Kaju/ }).first().click();
+  const panel = page.getByRole("dialog", { name: "Kaju" });
   await expect(panel).toBeVisible();
-  await expect(panel.getByRole("textbox", { name: "Message Kaju" })).toBeVisible();
+  await expect(panel.getByRole("textbox", { name: "Ask Kaju" })).toBeVisible();
 });
 
 /* A missing distributed counter denies guest questions (429). Forged

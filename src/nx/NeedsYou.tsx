@@ -14,8 +14,8 @@ import { appPath, useNotices } from "./collab";
 
 type Item = { id: string; kind: "kaju" | "task" | "review"; title: string; detail: string; href: string; tone: "warn" | "bad" | "accent" };
 const SAMPLE: Item[] = [
-  { id: "s1", kind: "kaju", title: "Prepare the weekly ABC submission", detail: "Kaju is waiting for your approval", href: "/next/kaju", tone: "warn" },
-  { id: "s2", kind: "task", title: "Injured street dog near the flower market", detail: "Needs assignment · due today", href: "/next/ngo/today", tone: "bad" },
+  { id: "s1", kind: "kaju", title: "Prepare the weekly ABC submission", detail: "Kaju is waiting for your approval", href: "/kaju", tone: "warn" },
+  { id: "s2", kind: "task", title: "Injured street dog near the flower market", detail: "Needs assignment · due today", href: "/ngo/today", tone: "bad" },
 ];
 
 function useNeeds(): Item[] | null {
@@ -35,13 +35,13 @@ function useNeeds(): Item[] | null {
           db.from("nx_missions").select("id,title").eq("org_id", ngo.org_id).eq("state", "waiting_person").limit(10),
           db.from("nx_tasks").select("id,title,due_on").eq("org_id", ngo.org_id).eq("state", "open").not("due_on", "is", null).lte("due_on", today).order("due_on").limit(10),
         ]);
-        for (const x of (m.data ?? []) as { id: string; title: string }[]) out.push({ id: `m${x.id}`, kind: "kaju", title: x.title, detail: "Kaju is waiting for your approval", href: "/next/kaju", tone: "warn" });
-        for (const x of (t.data ?? []) as { id: string; title: string; due_on: string }[]) out.push({ id: `t${x.id}`, kind: "task", title: x.title, detail: x.due_on < today ? `Overdue since ${new Date(x.due_on).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : "Due today", href: "/next/ngo/today", tone: x.due_on < today ? "bad" : "accent" });
+        for (const x of (m.data ?? []) as { id: string; title: string }[]) out.push({ id: `m${x.id}`, kind: "kaju", title: x.title, detail: "Kaju is waiting for your approval", href: "/kaju", tone: "warn" });
+        for (const x of (t.data ?? []) as { id: string; title: string; due_on: string }[]) out.push({ id: `t${x.id}`, kind: "task", title: x.title, detail: x.due_on < today ? `Overdue since ${new Date(x.due_on).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : "Due today", href: "/ngo/today", tone: x.due_on < today ? "bad" : "accent" });
       }
       if (gov?.source === "review_office") {
         const ps = await packages().catch(() => []);
         const waiting = ps.filter((p) => p.office_id === gov.org_id && p.status === "submitted");
-        if (waiting.length) out.push({ id: "review", kind: "review", title: `${waiting.length} ${waiting.length === 1 ? "package waits" : "packages wait"} for a decision`, detail: gov.name, href: "/next/gov/verification", tone: "warn" });
+        if (waiting.length) out.push({ id: "review", kind: "review", title: `${waiting.length} ${waiting.length === 1 ? "package waits" : "packages wait"} for a decision`, detail: gov.name, href: "/gov/verification", tone: "warn" });
       }
       if (alive) setItems(out);
     })();
@@ -83,7 +83,7 @@ export function NeedsYou() {
                 <ul>{notes.rows.slice(0, 12).map((x) => { const href = appPath(x.href); const body = <><span className={`nx-needs-i t-${x.kind === "approval" ? "warn" : x.kind === "mention" ? "accent" : "accent"}`}>{x.kind === "approval" ? <ShieldCheck size={13} /> : <Bell size={13} />}</span><span><b style={{ fontWeight: x.read_at ? 500 : 650 }}>{x.title}</b><small>{x.body ? `${x.body} · ` : ""}{new Date(x.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</small></span></>;
                   return <li key={x.id}>{href ? <Link href={href} onClick={() => { setOpen(false); void notes.markRead([x.id]); }}>{body}</Link> : <button type="button" className="nx-needs-btn" onClick={() => void notes.markRead([x.id])}>{body}</button>}</li>; })}</ul>
               )}
-              <p className="nx-needs-f"><Link href="/next/settings/notifications" onClick={() => setOpen(false)}>Notification settings</Link> · Email and push only if you turn them on.</p>
+              <p className="nx-needs-f"><Link href="/settings/notifications" onClick={() => setOpen(false)}>Notification settings</Link> · Email and push only if you turn them on.</p>
             </> : <p className="nx-needs-f">Read live from records you can open. Kaju missions, tasks due, and decisions waiting.</p>}
           </motion.div>
         ) : null}

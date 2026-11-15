@@ -27,7 +27,7 @@ export function StoriesTab({ who }: { who: Who }) {
     { label: "Story", width: "minmax(0, 1.8fr)", render: (s) => <span className="nx-cell-main"><span><b>{s.title}</b><small>{s.location_label || "No public locality"}</small></span></span> },
     { label: "Public locality", width: "minmax(0, 1fr)", render: (s) => <span className="nx-t2">{s.location_label || "Not given"}</span> },
     { label: "Published", width: "120px", keep: true, render: (s) => <span className="nx-t3">{s.published_at ? day(s.published_at) : "Not published"}</span> },
-    { label: "", width: "120px", render: (s) => (s.case_id && !who.sample ? <Link className="nx-btn is-quiet is-sm" href={`/next/ngo/cases/${s.case_id}`}>Open the case</Link> : null) },
+    { label: "", width: "120px", render: (s) => (s.case_id && !who.sample ? <Link className="nx-btn is-quiet is-sm" href={`/ngo/cases/${s.case_id}`}>Open the case</Link> : null) },
   ];
   return (
     <>

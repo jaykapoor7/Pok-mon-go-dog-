@@ -113,7 +113,7 @@ export function OwnerControls({ f }: { f: Fundraiser }) {
           </>
         )}
         <div aria-live="polite">{busy ? <Ack state="pending">Sending…</Ack> : r ? (r.ok ? <Ack state="saved">{r.what}.</Ack> : <Ack state="failed">Not saved: {r.error}</Ack>) : null}</div>
-        {f.case_id && <p className="pb-fine"><ClipboardList size={16} aria-hidden /> <Link href={`/next/ngo/cases/${f.case_id}`}>Open the case this funds</Link> in your workspace.</p>}
+        {f.case_id && <p className="pb-fine"><ClipboardList size={16} aria-hidden /> <Link href={`/ngo/cases/${f.case_id}`}>Open the case this funds</Link> in your workspace.</p>}
       </Panel>
     </Sec>
   );

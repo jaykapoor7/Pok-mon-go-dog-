@@ -16,7 +16,7 @@ import { S_SURVEYS } from "../sample";
    own page, offline if need be. A project is a register for work that is not a census, with its own fields; it is a
    survey carrying a field marker, as classic keeps it (create_survey, submit_survey_response). */
 
-export const surveyHref = (id: string) => `/next/ngo/programmes/surveys/${id}`;
+export const surveyHref = (id: string) => `/ngo/programmes/surveys/${id}`;
 export function SurveysTab({ who }: { who: Who }) {
   const r = useRead<Survey[]>(() => read(readSurveys), "ns:surveys", !who.sample && !!who.ngo);
   const [view, setView] = useState<"surveys" | "projects">("surveys");

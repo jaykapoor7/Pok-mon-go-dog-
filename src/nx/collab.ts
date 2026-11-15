@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { canonicalHref } from "@/lib/routes/canonical";
 import { getSupabase } from "@/lib/supabase";
 
 /* Messages, reactions, files, mentions, edits, search and record threads. Every read and write goes through the
@@ -101,7 +102,7 @@ export async function fileLink(path: string) { const r = await getSupabase()!.st
 /* ── Search, programme channels, record threads ───────────────────── */
 export type Hit = { id: string; channel_id: string; channel_name: string; channel_kind: string; body: string; author_name: string | null; created_at: string; record_kind: string | null; record_id: string | null; record_label: string | null };
 /** Where a record lives in the app, for links from messages and search. */
-export const recordHref = (kind: string | null, id: string | null) => !kind || !id ? null : kind === "animal" ? `/next/ngo/animals/${id}` : kind === "case" ? `/next/ngo/cases/${id}` : kind === "package" || kind === "submission" ? `/next/ngo/submissions/${id}` : kind === "programme" ? `/next/ngo/programmes/${id}` : null;
+export const recordHref = (kind: string | null, id: string | null) => !kind || !id ? null : kind === "animal" ? `/ngo/animals/${id}` : kind === "case" ? `/ngo/cases/${id}` : kind === "package" || kind === "submission" ? `/ngo/submissions/${id}` : kind === "programme" ? `/ngo/programmes/${id}` : null;
 export async function searchMessages(q: string): Promise<Hit[]> {
   if (q.trim().length < 2) return [];
   const r = await getSupabase()!.rpc("nx_search_messages", { p_q: q.trim().slice(0, 200), p_limit: 20 });
@@ -131,7 +132,8 @@ export function mentionsIn(text: string, people: { user_id: string; name: string
 }
 
 /** Database-written links use the app's canonical paths; while the app also answers under /next, map them there. */
-export const appPath = (h: string | null | undefined) => !h ? null : /^\/(ngo|gov|health|research|kaju|channels|start|settings)(\/|$|\?)/.test(h) ? `/next${h}` : h;
+/** A stored link (notification, record) opens the page that does that work now. */
+export const appPath = (h: string | null | undefined) => (!h ? null : canonicalHref(h));
 
 export type Notice = { id: string; kind: string; title: string; body: string | null; href: string | null; created_at: string; read_at: string | null };
 /** The person's own notifications, newest first; read again every minute and when asked. */

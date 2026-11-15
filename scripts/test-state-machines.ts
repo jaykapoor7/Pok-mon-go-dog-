@@ -34,7 +34,7 @@ assert.deepEqual([...PACKAGE_STATUSES].filter((s) => !seen.has(s)), ["partially_
 for (const s of PACKAGE_STATUSES) assert.ok([isWaitingOnOffice(s), isWithOperator(s), isDecided(s)].filter(Boolean).length <= 1, s);
 assert.deepEqual([isWaitingOnOffice("archived"), isWithOperator("archived"), isDecided("archived")], [false, false, false]);
 /* no screen re-derives the groupings by hand */
-for (const f of ["src/sp/city/OfficeStrip.tsx", "src/sp/abc/ReviewInbox.tsx", "src/sp3/ai/engine.ts"]) {
+for (const f of ["src/nx/pages/gov/Review.tsx", "src/nx/pages/Verification.tsx", "src/nx/pages/ngo/subs/Packages.tsx", "src/nx/pages/ngo/PackageRecord.tsx", "src/sp3/ai/engine.ts"]) {
   const src = readFileSync(f, "utf8");
   assert.ok(!/status === "queried" \|\| \w+\.status === "returned"/.test(src), `${f} re-derives "with the operator"`);
   assert.ok(!/status === "accepted" \|\| \w+\.status === "partially_accepted"/.test(src), `${f} re-derives "decided"`);

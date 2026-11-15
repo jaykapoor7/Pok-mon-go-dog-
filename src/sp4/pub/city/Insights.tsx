@@ -65,7 +65,7 @@ export function Insights() {
         actions={city ? <LinkBtn href={`/city/report?city=${encodeURIComponent(city)}`} icon={<Printer size={16} aria-hidden />}>City report</LinkBtn> : undefined} />
       <Body>
         {office && (
-          <Note tone="blue" action={<LinkBtn small variant="primary" href="/next/gov/overview" icon={<ArrowRight size={16} aria-hidden />}>Open your office</LinkBtn>}>
+          <Note tone="blue" action={<LinkBtn small variant="primary" href="/gov/overview" icon={<ArrowRight size={16} aria-hidden />}>Open your office</LinkBtn>}>
             <b>You review for {office.name}.</b> Your office&rsquo;s report packages, contracts and operators are in the app. This page is the public record, the same for everyone.
           </Note>
         )}

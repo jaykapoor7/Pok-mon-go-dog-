@@ -44,5 +44,5 @@ export function CasefileLink({ id, ngoId }: { id: string; ngoId: string | null }
   const [mine, setMine] = useState(false);
   useEffect(() => { if (!user || !ngoId) { setMine(false); return; } let live = true; getMyNgo().then((o) => { if (live) setMine(!!o && o.id === ngoId); }).catch(() => {}); return () => { live = false; }; }, [user, ngoId]);
   if (!mine) return null;
-  return <LinkBtn href={`/next/ngo/animals/${id}`} icon={<FolderLock size={16} aria-hidden />}>Open your organisation&rsquo;s case file</LinkBtn>;
+  return <LinkBtn href={`/ngo/animals/${id}`} icon={<FolderLock size={16} aria-hidden />}>Open your organisation&rsquo;s case file</LinkBtn>;
 }

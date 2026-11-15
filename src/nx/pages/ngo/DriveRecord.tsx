@@ -39,7 +39,7 @@ export function DriveRecord({ id }: { id: string }) {
   const crumb: [string, string] = ["Programmes", stats?.name ?? "Drive"];
   if (!who.ready || (live && s === null)) return <Shell crumb={crumb}><div className="nx-page"><Skeleton rows={6} label="Reading the drive" /></div></Shell>;
   if (who.notNgo) return <Shell crumb={crumb}><div className="nx-page"><Denied what="Drives belong to an NGO workspace" why="Your account is not part of an NGO." /></div></Shell>;
-  if (!stats) return <Shell crumb={crumb}><div className="nx-page"><Denied what="This drive is not available to you" why="It is not readable with your organisation's access, or it does not exist." back={{ href: "/next/ngo/programmes", label: "All drives" }} /></div></Shell>;
+  if (!stats) return <Shell crumb={crumb}><div className="nx-page"><Denied what="This drive is not available to you" why="It is not readable with your organisation's access, or it does not exist." back={{ href: "/ngo/programmes", label: "All drives" }} /></div></Shell>;
   const leader = who.sample || leadOrCoord(who.role);
   const flip = () => void run("arch", () => setArchived(stats.id, !stats.archived), { ok: stats.archived ? "Drive restored." : "Drive archived. Its animals and records are kept.", undo: async () => { await setArchived(stats.id, stats.archived); await load(); } }).then(async (x) => { setAsking(false); if (x.ok) await load(); });
   const csv = () => downloadCsv(`straypaw-drive-${stats.name.replace(/\W+/g, "-").toLowerCase()}.csv`, (list ?? []).map((a) => ({ code: a.code, name: a.name, zone: a.zone, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, needs_help: a.needs_help, filed: a.created_at })), { title: `Drive: ${stats.name}`, organisation: who.ngo?.name ?? null });
@@ -57,7 +57,7 @@ export function DriveRecord({ id }: { id: string }) {
         actions={<>
           <button type="button" className="nx-btn is-quiet" disabled={!list?.length} onClick={csv}><Download size={13} />Animals as CSV</button>
           {who.sample ? <TryLink quiet><Archive size={13} />Archive</TryLink> : leader ? <button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => setAsking(true)}>{stats.archived ? <><ArchiveRestore size={13} />Restore</> : <><Archive size={13} />Archive</>}</button> : null}
-          <Link className="nx-btn is-quiet" href="/next/ngo/programmes">All drives</Link>
+          <Link className="nx-btn is-quiet" href="/ngo/programmes">All drives</Link>
         </>} />
       <div className="nx-rec" style={{ marginTop: 16, borderTop: "1px solid var(--line)" }}>
         <div>
@@ -69,8 +69,8 @@ export function DriveRecord({ id }: { id: string }) {
           <section>
             <div className="nx-sec-h"><h2>Animals in this drive</h2><span className="nx-count">{list?.length ?? "…"}</span></div>
             <Views id="dra" value={ster} onChange={setSter} views={[{ id: "", label: "Every animal" }, { id: "sterilised", label: "Sterilised" }, { id: "not_sterilised", label: "Recorded not" }, { id: "unknown", label: "Not recorded" }]} />
-            {list === null ? <Skeleton rows={5} label="Reading animals" /> : <Grid label="Animals in this drive" cols={cols} rows={list} rowKey={(a) => a.id} rowLabel={(a) => a.name ?? a.code ?? "animal"} href={(a) => (who.sample ? null : `/next/ngo/animals/${a.id}`)}
-              empty={<><b>No animal filed into this drive{ster ? " with that status" : ""} yet</b><p>File reports from the Inbox to add animals to this drive.</p><p><Link className="nx-btn is-quiet" href="/next/ngo/inbox">Open the Inbox</Link></p></>} />}
+            {list === null ? <Skeleton rows={5} label="Reading animals" /> : <Grid label="Animals in this drive" cols={cols} rows={list} rowKey={(a) => a.id} rowLabel={(a) => a.name ?? a.code ?? "animal"} href={(a) => (who.sample ? null : `/ngo/animals/${a.id}`)}
+              empty={<><b>No animal filed into this drive{ster ? " with that status" : ""} yet</b><p>File reports from the Inbox to add animals to this drive.</p><p><Link className="nx-btn is-quiet" href="/ngo/inbox">Open the Inbox</Link></p></>} />}
           </section>
         </div>
         <div>

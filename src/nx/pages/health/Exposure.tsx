@@ -31,7 +31,7 @@ export function ExposureRecord({ id }: { id: string }) {
   const place = placeOf(pl.places, org?.org_id);
   if (!org || org.kind === "veterinary" || !isFacilityKind(org.kind) || !can(place, "view_register")) return (
     <Shell ws="health" crumb={["Bite cases", "Record"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Clinical record</h1>
-      <Denied what="Only the treating facility's staff open this record" why={org && isFacilityKind(org.kind) ? `Your role at ${org.name} does not include the bite register. A clinician, nurse or records officer of the facility can open it.` : "Bite records stay with the hospital or health centre that treats the person. Other partners see only the animal facts needed for a follow-up."} back={{ href: "/next/health/today", label: "Back to Today" }} /></div></Shell>
+      <Denied what="Only the treating facility's staff open this record" why={org && isFacilityKind(org.kind) ? `Your role at ${org.name} does not include the bite register. A clinician, nurse or records officer of the facility can open it.` : "Bite records stay with the hospital or health centre that treats the person. Other partners see only the animal facts needed for a follow-up."} back={{ href: "/health/today", label: "Back to Today" }} /></div></Shell>
   );
   return <LiveExposure id={id} place={place!} />;
 }
@@ -41,7 +41,7 @@ function LiveExposure({ id, place }: { id: string; place: Place }) {
   const rec = useRead<Exposure>(() => call("oh_clinic_exposure", { p_exposure: id }), `nx-exp:${id}`);
   const xf = useRead<TransferOut[]>(() => call("oh_exposure_transfers", { p_exposure: id }), `nx-expx:${id}`);
   if (rec.loading && !rec.data) return <Opening ws="health" crumb={["Bite cases", "Record"]} />;
-  if (rec.error && /Only staff|permission/i.test(rec.error)) return <Shell ws="health" crumb={["Bite cases", "Record"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Clinical record</h1><Denied what="This record belongs to another facility" why={rec.error} back={{ href: "/next/health/bites", label: "Back to bite cases" }} /></div></Shell>;
+  if (rec.error && /Only staff|permission/i.test(rec.error)) return <Shell ws="health" crumb={["Bite cases", "Record"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Clinical record</h1><Denied what="This record belongs to another facility" why={rec.error} back={{ href: "/health/bites", label: "Back to bite cases" }} /></div></Shell>;
   if (rec.error || !rec.data) return <Shell ws="health" crumb={["Bite cases", "Record"]}><div className="nx-page"><Failed error={rec.error ?? "This record was not found."} retry={rec.reload} /></div></Shell>;
   return <ExposureView sample={false} e={rec.data} place={place} transfers={/does not exist|not set up/i.test(xf.error ?? "") ? null : xf.data ?? []} reload={() => { rec.reload(); xf.reload(); }} />;
 }

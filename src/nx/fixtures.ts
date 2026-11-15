@@ -18,10 +18,10 @@ export const WORK: Work[] = [
 ];
 
 export const FIGS = [
-  { n: "28", note: "6 new this week", label: "Open cases", href: "/next/ngo/animals" },
-  { n: "7", note: "", label: "Due before Monday", href: "/next/ngo/animals" },
-  { n: "93%", note: "214 of 230 events", label: "Evidence complete", href: "/next/ngo/animals" },
-  { n: "3", note: "", label: "Waiting on partners", href: "/next/ngo/animals" },
+  { n: "28", note: "6 new this week", label: "Open cases", href: "/ngo/animals" },
+  { n: "7", note: "", label: "Due before Monday", href: "/ngo/animals" },
+  { n: "93%", note: "214 of 230 events", label: "Evidence complete", href: "/ngo/animals" },
+  { n: "3", note: "", label: "Waiting on partners", href: "/ngo/animals" },
 ];
 
 export const VISITS = [

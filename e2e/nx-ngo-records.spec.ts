@@ -5,8 +5,8 @@ import { test, expect, type Page } from "@playwright/test";
    and never scrolls sideways on a phone. Read-only: nothing here signs in or writes. */
 
 const PAGES = [
-  "/next/ngo/cases", "/next/ngo/cases/c2", "/next/ngo/cases/new?title=Injured%20dog&zone=Ward%2012&note=Seen%20at%20the%20gate",
-  "/next/ngo/animals", "/next/ngo/animals/AN-1042", "/next/ngo/inbox", "/next/ngo/operations", "/next/ngo/field",
+  "/ngo/cases", "/ngo/cases/c2", "/ngo/cases/new?title=Injured%20dog&zone=Ward%2012&note=Seen%20at%20the%20gate",
+  "/ngo/animals", "/ngo/animals/AN-1042", "/ngo/inbox", "/ngo/operations", "/ngo/field",
 ];
 const CLASSIC = /^\/(ngo|city|workspace|programme|today|animal|assistant)(\/|\?|#|$)/;
 
@@ -32,7 +32,7 @@ for (const path of PAGES) {
 }
 
 test("Cases: the drawer carries the next step, and its actions open the live demo", async ({ page }) => {
-  await open(page, "/next/ngo/cases");
+  await open(page, "/ngo/cases");
   await expect(page.getByRole("tab", { name: /^Needs a decision/ })).toBeVisible();
   await page.getByRole("tab", { name: /^Unassigned/ }).click();
   await expect(page.locator("button.nx-tr")).toHaveCount(1);
@@ -40,14 +40,14 @@ test("Cases: the drawer carries the next step, and its actions open the live dem
   const drawer = page.getByRole("dialog");
   await expect(drawer).toContainText("Next step");
   await expect(drawer.getByRole("link", { name: "Take it" })).toHaveAttribute("href", "/try");
-  await expect(drawer.getByRole("link", { name: "Open the full case" }).first()).toHaveAttribute("href", "/next/ngo/cases/c1");
+  await expect(drawer.getByRole("link", { name: "Open the full case" }).first()).toHaveAttribute("href", "/ngo/cases/c1");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
 test("Cases: j and k move between rows and Enter opens one", async ({ page }, info) => {
   test.skip(info.project.name === "mobile", "A keyboard path");
-  await open(page, "/next/ngo/cases");
+  await open(page, "/ngo/cases");
   await page.locator("button.nx-tr").first().focus();
   await page.keyboard.press("j");
   await expect(page.locator("button.nx-tr").nth(1)).toBeFocused();
@@ -58,7 +58,7 @@ test("Cases: j and k move between rows and Enter opens one", async ({ page }, in
 });
 
 test("Case record: follow-ups, history and care tabs", async ({ page }) => {
-  await open(page, "/next/ngo/cases/c2");
+  await open(page, "/ngo/cases/c2");
   await expect(page.locator("h1")).toContainText("CASE-0241");
   await expect(page.getByText("Recovery check at the centre")).toBeVisible();
   await page.getByRole("tab", { name: /^History/ }).click();
@@ -68,7 +68,7 @@ test("Case record: follow-ups, history and care tabs", async ({ page }) => {
 });
 
 test("New case: the form starts filled from the address", async ({ page }) => {
-  await open(page, "/next/ngo/cases/new?title=Injured%20dog&zone=Ward%2012&note=Seen%20at%20the%20gate&lat=12.97&lng=77.59");
+  await open(page, "/ngo/cases/new?title=Injured%20dog&zone=Ward%2012&note=Seen%20at%20the%20gate&lat=12.97&lng=77.59");
   await expect(page.getByLabel("In a few words")).toHaveValue("Injured dog");
   await expect(page.getByLabel("Area, street or landmark (optional)")).toHaveValue("Ward 12");
   await expect(page.getByLabel("Latitude")).toHaveValue("12.97");
@@ -76,7 +76,7 @@ test("New case: the form starts filled from the address", async ({ page }) => {
 });
 
 test("Animals: lenses narrow the register and identity review is a view", async ({ page }) => {
-  await open(page, "/next/ngo/animals");
+  await open(page, "/ngo/animals");
   await page.getByRole("tab", { name: /^Not sterilised/ }).click();
   await expect(page.locator("button.nx-tr")).toHaveCount(3);
   await page.getByRole("tab", { name: /^Identity to review/ }).click();
@@ -86,7 +86,7 @@ test("Animals: lenses narrow the register and identity review is a view", async 
 });
 
 test("Inbox: reports can be chosen together, and WhatsApp and paste are tabs", async ({ page }) => {
-  await open(page, "/next/ngo/inbox");
+  await open(page, "/ngo/inbox");
   await page.getByRole("button", { name: /^Select the report from Ward 12/ }).click();
   await expect(page.getByText("1 chosen")).toBeVisible();
   await page.getByRole("tab", { name: "WhatsApp" }).click();
@@ -97,7 +97,7 @@ test("Inbox: reports can be chosen together, and WhatsApp and paste are tabs", a
 });
 
 test("Operations: care log and the two lanes sit beside the visits, with field mode a tap away", async ({ page }) => {
-  await open(page, "/next/ngo/operations");
+  await open(page, "/ngo/operations");
   await page.getByRole("tab", { name: "Care log" }).click();
   await expect(page.locator("button.nx-tr")).toHaveCount(4);
   const parts = page.getByRole("tablist", { name: "Operations" });
@@ -105,12 +105,12 @@ test("Operations: care log and the two lanes sit beside the visits, with field m
   await expect(page.getByRole("heading", { name: /Vet sign-off/ })).toBeVisible();
   await parts.getByRole("tab", { name: "Rescues" }).click();
   await expect(page.getByRole("heading", { name: /In care/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open field mode" })).toHaveAttribute("href", "/next/ngo/field");
+  await expect(page.getByRole("link", { name: "Open field mode" })).toHaveAttribute("href", "/ngo/field");
 });
 
 test("Field mode: the round on a phone, every action opening the live demo", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await open(page, "/next/ngo/field");
+  await open(page, "/ngo/field");
   await expect(page.getByRole("heading", { name: "Your round" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Record an animal" })).toHaveAttribute("href", "/try");
   const done = page.getByRole("link", { name: "Done" }).first();

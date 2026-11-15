@@ -116,9 +116,9 @@ self.addEventListener('message',event=>{
  if(event.data?.type!=='warm-field-shell'||!Array.isArray(event.data.urls))return;
  event.waitUntil((async()=>{
   const urls=event.data.urls.filter(value=>{try{const u=new URL(value,self.location.origin);return u.origin===self.location.origin&&(isBuildAsset(u)||isPublicArt(u))}catch{return false}}).slice(0,120);
-  try{const shell=await caches.open(SHELL),pages=await caches.open(PAGES);await pages.add('/next/ngo/field');await pages.add('/ngo/field').catch(()=>{});
+  try{const shell=await caches.open(SHELL),pages=await caches.open(PAGES);await pages.add('/ngo/field');await pages.add('/ngo/field').catch(()=>{});
    await Promise.all(urls.map(url=>shell.add(url)));event.ports[0]?.postMessage({ready:true});
-  }catch{const cached=await Promise.all(urls.map(url=>caches.match(url)));event.ports[0]?.postMessage({ready:!!(await caches.match('/next/ngo/field')||await caches.match('/ngo/field'))&&cached.every(Boolean)})}
+  }catch{const cached=await Promise.all(urls.map(url=>caches.match(url)));event.ports[0]?.postMessage({ready:!!(await caches.match('/ngo/field')||await caches.match('/ngo/field'))&&cached.every(Boolean)})}
  })());
 });
 
@@ -128,12 +128,12 @@ self.addEventListener("push", (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch { d = {}; }
   const title = typeof d.title === "string" && d.title ? d.title.slice(0, 120) : "StrayPaw";
-  const url = typeof d.url === "string" && d.url.startsWith(self.location.origin) ? d.url : "/next";
+  const url = typeof d.url === "string" && d.url.startsWith(self.location.origin) ? d.url : "/home";
   event.waitUntil(self.registration.showNotification(title, { body: "Open it in StrayPaw", data: { url }, tag: url, icon: "/icon.png", badge: "/icon.png" }));
 });
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data && event.notification.data.url ? event.notification.data.url : "/next";
+  const url = event.notification.data && event.notification.data.url ? event.notification.data.url : "/home";
   event.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     const same = all.find((c) => c.url === url);

@@ -37,7 +37,7 @@ export function OurServices() {
   const place = placeOf(pl.places, org?.org_id);
   if (!org || org.kind === "veterinary" || !OFFERED[org.kind] || !can(place, "confirm_service")) return (
     <Shell ws="health" crumb={["Facilities", "Our services"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Our services</h1>
-      <Denied what="Services are confirmed by the facility's own staff" why={org && OFFERED[org.kind] ? `Your role at ${org.name} does not include confirming services.` : "Your account is not part of a hospital, health centre or laboratory."} back={{ href: "/next/health/facilities", label: "Back to facilities" }} /></div></Shell>
+      <Denied what="Services are confirmed by the facility's own staff" why={org && OFFERED[org.kind] ? `Your role at ${org.name} does not include confirming services.` : "Your account is not part of a hospital, health centre or laboratory."} back={{ href: "/health/facilities", label: "Back to facilities" }} /></div></Shell>
   );
   return <LiveServices place={place!} />;
 }
@@ -64,7 +64,7 @@ function View({ sample, place, org, reloadOrg }: { sample: boolean; place: Place
       <div className="nx-page" style={{ maxWidth: 880 }}>
         <div className="nx-head"><div><p className="nx-eyebrow">{org.name}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Our services</h1>
           <p className="nx-sub">{!sample && !rows.data ? "Reading what was confirmed…" : stale ? <><b className="num">{stale}</b> of {offered.length} {stale === 1 ? "service needs" : "services need"} confirming. </> : "Every service is confirmed. "}A confirmation lasts up to a week. Patients, referring centres and the programme see it with its date.</p></div>
-          <Link href="/next/health/facilities" className="nx-btn is-quiet">All facilities</Link></div>
+          <Link href="/health/facilities" className="nx-btn is-quiet">All facilities</Link></div>
         {rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !sample && !rows.data ? <Skeleton rows={3} /> : (
           <Block title="What we can provide">
             <ul className="gh-list">{offered.map((svc) => { const { r, expired, st } = state(svc); return (

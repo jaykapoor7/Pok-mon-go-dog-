@@ -94,7 +94,7 @@ function LiveSample({ id, places }: { id: string; places: Place[] }) {
   if (rows.loading && !rows.data) return <Opening ws="health" crumb={["Samples", "Sample"]} />;
   if (rows.error) return <Shell ws="health" crumb={["Samples", "Sample"]}><div className="nx-page"><Failed error={rows.error} retry={rows.reload} /></div></Shell>;
   const s = rows.data?.[0];
-  if (!s) return <Shell ws="health" crumb={["Samples", "Sample"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Sample</h1><Empty title="This sample is not visible to you" hint="Only the team that sent it and the laboratory that received it can open a sample." action={<Link href="/next/health/samples" className="nx-btn is-quiet">Back to samples</Link>} /></div></Shell>;
+  if (!s) return <Shell ws="health" crumb={["Samples", "Sample"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Sample</h1><Empty title="This sample is not visible to you" hint="Only the team that sent it and the laboratory that received it can open a sample." action={<Link href="/health/samples" className="nx-btn is-quiet">Back to samples</Link>} /></div></Shell>;
   const lab = placeOf(places, s.laboratory_id);
   return <SampleView sample={false} s={s} events={ev.data ?? []} eventsError={ev.error} from={names.org(s.submitted_by, false) ?? "Programme partner"} lab={names.org(s.laboratory_id, false) ?? "Laboratory"} area={names.area(s.area_id)} isLab={!!lab && lab.capabilities.includes("lab_step")} reload={() => { rows.reload(); ev.reload(); }} />;
 }
@@ -141,7 +141,7 @@ export function NewSample({ q }: { q: SampleQuery }) {
   if (!live.ready || (live.org && pl.loading)) return <Opening ws="health" crumb={["Samples", "Send a sample"]} />;
   if (!live.org) return <SampleForm sample q={q} senders={[{ organisation_id: "s", name: "Animal Care Trust", kind: "ngo" } as Place]} />;
   const senders = pl.places.filter((p) => p.capabilities.includes("send_sample"));
-  if (!senders.length) return <Shell ws="health" crumb={["Samples", "Send a sample"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Send a sample</h1><Denied what="Your role cannot send samples" why="Samples are sent by field teams, clinicians and programme coordinators. A laboratory receives them; it does not send them." back={{ href: "/next/health/today", label: "Back to Today" }} /></div></Shell>;
+  if (!senders.length) return <Shell ws="health" crumb={["Samples", "Send a sample"]}><div className="nx-page" style={{ maxWidth: 760 }}><h1 className="nx-h1">Send a sample</h1><Denied what="Your role cannot send samples" why="Samples are sent by field teams, clinicians and programme coordinators. A laboratory receives them; it does not send them." back={{ href: "/health/today", label: "Back to Today" }} /></div></Shell>;
   return <SampleForm sample={false} q={q} senders={senders} />;
 }
 
@@ -161,7 +161,7 @@ function SampleForm({ sample, q, senders }: { sample: boolean; q: SampleQuery; s
     const r = await run("send", () => call<{ id: string; code: string }>("oh_submit_sample", { p_from: fromId, p_lab: lab, p_species: f.species, p_type: f.type, p_collected_on: f.on, p_area: f.area || null, p_place: f.place.trim() || null, p_reason: f.reason.trim() || null, p_handoff: q.handoff || null }), { ok: (x) => `Sample ${(x as { data?: { code?: string } | null }).data?.code ?? ""} is on its way. Write the code on the container.` });
     setAsking(false);
     const d = (r.result as { data?: { id: string } | null } | undefined)?.data;
-    if (r.ok && d?.id) router.push(`/next/health/samples/${d.id}`);
+    if (r.ok && d?.id) router.push(`/health/samples/${d.id}`);
   };
   const submit = (e: FormEvent) => { e.preventDefault(); if (ready) setAsking(true); };
   return (
@@ -187,7 +187,7 @@ function SampleForm({ sample, q, senders }: { sample: boolean; q: SampleQuery; s
               <Field label="What happened to the animal" wide><textarea value={f.reason} maxLength={400} onChange={(e) => set("reason", e.target.value)} placeholder="Signs seen, when it died, whether it bit anyone" /></Field>
             </div>
           </Block>
-          <div className="gh-acts" style={{ marginTop: 22 }}>{sample ? <TryLink>Send sample</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Send sample</button>}<Link href="/next/health/samples" className="nx-btn is-quiet">Cancel</Link>{!labs.length && !sample && names.orgs.length ? <span className="gh-err">No laboratory is part of your programme yet.</span> : null}</div>
+          <div className="gh-acts" style={{ marginTop: 22 }}>{sample ? <TryLink>Send sample</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Send sample</button>}<Link href="/health/samples" className="nx-btn is-quiet">Cancel</Link>{!labs.length && !sample && names.orgs.length ? <span className="gh-err">No laboratory is part of your programme yet.</span> : null}</div>
         </form>
         {asking ? <Confirm title="Send this sample" busy={busy === "send"} confirm="Send" onClose={() => setAsking(false)} onConfirm={() => void save()}><p>{SPECIES[f.species]} {(SAMPLE_TYPE[f.type] ?? f.type).toLowerCase()} collected {fmtDate(f.on, { day: "numeric", month: "long" })}, to {labs.find((l) => l.id === lab)?.name}. The laboratory sees it as on its way.</p></Confirm> : null}
       </div>

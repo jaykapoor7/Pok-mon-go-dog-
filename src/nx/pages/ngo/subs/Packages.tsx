@@ -7,7 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { createPackage, offices, packages, PACKAGE_LABEL, verificationQueue, type Office, type Package, type QueueRow } from "@/lib/abc";
 import { billLines, type PreviewResult } from "@/lib/billing";
-import { holdsPeriod } from "@/lib/machines/package";
+import { holdsPeriod, isWithOperator } from "@/lib/machines/package";
 import { read, leadOrCoord } from "../../../data/ngo-setup";
 import { blockers, contractOffice, monthBounds, prepareMonthly, readBillingPreview } from "../../../data/ngo-submissions";
 import { Confirm, Failed, Field, Modal, Props, Skeleton, day, errText, toast, useAct } from "../../../kit";
@@ -50,7 +50,7 @@ function PackagesView({ sample, list, offs, queue, defaultOffice, canPrepare, re
   const officeName = (id: string) => offs.find((o) => o.id === id)?.name ?? "Reviewing office";
   const shown = list.filter((p) => view === "all" || bucketOf(p.status) === view);
   const open = list.find((p) => p.id === openId) ?? null;
-  const asks = list.filter((p) => p.status === "queried" || p.status === "returned").length;
+  const asks = list.filter((p) => isWithOperator(p.status)).length;
   const cols: GCol<Package>[] = [
     { label: "Package", width: "minmax(0, 1.6fr)", render: (p) => <span className="nx-cell-main"><span><b>{p.title}</b><small>{period(p)}<span className="nx-only-s"> · {officeName(p.office_id)}</span></small></span></span> },
     { label: "Reviewing office", width: "minmax(0, 1fr)", render: (p) => <span className="nx-t2 ns-cell">{officeName(p.office_id)}</span> },
@@ -67,7 +67,7 @@ function PackagesView({ sample, list, offs, queue, defaultOffice, canPrepare, re
       <Views id="pk" value={view} onChange={setView} views={[{ id: "all", label: "All", count: list.length }, { id: "draft", label: "Being prepared", count: list.filter((p) => bucketOf(p.status) === "draft").length }, { id: "with", label: "With the reviewing office", count: list.filter((p) => bucketOf(p.status) === "with").length }, { id: "decided", label: "Decided", count: list.filter((p) => bucketOf(p.status) === "decided").length }]} />
       <Grid label="Packages" cols={cols} rows={shown} rowKey={(p) => p.id} rowLabel={(p) => p.title} onOpen={(p) => setOpenId(p.id)} openKey={openId}
         empty={<><b>{list.length ? "Nothing in this view" : "No packages yet"}</b><p>{list.length ? "Choose another view." : "A package gathers a period's approved records for the reviewing office."}</p></>} />
-      <AnimatePresence>{open ? <Drawer key={open.id} head={officeName(open.office_id)} title={open.title} sub={<>{period(open)} <Chip tone={PKG_TONE[open.status] ?? "plain"}>{PACKAGE_LABEL[open.status]}</Chip></>} onClose={() => setOpenId(null)} href={`/next/ngo/submissions/${open.id}`} hrefLabel="Open the package">
+      <AnimatePresence>{open ? <Drawer key={open.id} head={officeName(open.office_id)} title={open.title} sub={<>{period(open)} <Chip tone={PKG_TONE[open.status] ?? "plain"}>{PACKAGE_LABEL[open.status]}</Chip></>} onClose={() => setOpenId(null)} href={`/ngo/submissions/${open.id}`} hrefLabel="Open the package">
         <Props items={[["Office", officeName(open.office_id)], ["Period", period(open)], ["Records", <span key="n" className="num">{open.summary?.records ?? open.case_ids?.length ?? 0}</span>], ["Vet-authorised", open.summary?.vet_authorised ?? "Not counted"], ["Evidence items", open.summary?.evidence_items ?? "Not counted"], ["Submitted", open.submitted_at ? day(open.submitted_at) : "Not yet"], ["Decided", open.decided_by_name ? `${PACKAGE_LABEL[open.status]} by ${open.decided_by_name}` : "Not yet"]]} />
         <p className="nx-note" style={{ marginTop: 14 }}><span>{open.status === "draft" ? "Not sent yet. Open the package to check its claims and submit it." : open.status === "queried" ? "The reviewing office asked a question. Open the package to answer it." : open.status === "returned" ? "Returned by the office. Correct it and submit again." : open.status === "accepted" ? "Accepted means approved for payment. It is not a payment." : "With the reviewing office."}</span></p>
       </Drawer> : null}</AnimatePresence>
@@ -115,7 +115,7 @@ function Month({ sample, offs, queue, list, defaultOffice, canPrepare }: { sampl
       if (!x.ok || !x.result) return;
       if (!x.result.same) { setMismatch({ id: x.result.id, text: `The package was prepared, but its claims (₹${x.result.claimed ?? "unknown"}) do not match the preview (₹${pv.total}). Open it and check before submitting.` }); return; }
       toast({ text: `The ${b.label} package is prepared as a draft. Its totals match the preview.`, tone: "ok" });
-      router.push(`/next/ngo/submissions/${x.result.id}`);
+      router.push(`/ngo/submissions/${x.result.id}`);
     });
   };
   return (
@@ -126,7 +126,7 @@ function Month({ sample, offs, queue, list, defaultOffice, canPrepare }: { sampl
       </div>
       <p className="ns-sum" aria-live="polite">{sum}</p>
       {already && !sample ? <p className="nx-note"><span>The {b.label} package for {officeName} is already prepared. It is in the list below.</span></p> : null}
-      {mismatch ? <p className="nx-note ns-note-bad" role="alert"><span>{mismatch.text} <Link href={`/next/ngo/submissions/${mismatch.id}`} className="ns-link">Open the package</Link></span></p> : null}
+      {mismatch ? <p className="nx-note ns-note-bad" role="alert"><span>{mismatch.text} <Link href={`/ngo/submissions/${mismatch.id}`} className="ns-link">Open the package</Link></span></p> : null}
       {pv && pv.count > 0 && (sample || canPrepare) ? (pv.contract ? <div className="ns-bill">
         <p className="ns-small">Draft bill · {pv.contract.name} v{pv.contract.version}{pv.contract.illustrative ? " · illustrative terms" : ""}{pv.unpriced ? ` · ${pv.unpriced} without a rate` : ""}</p>
         <Grid label="Draft bill by procedure" rows={lines} rowKey={(l) => l.procedure} cols={[
@@ -159,7 +159,7 @@ function OtherPeriod({ offs, defaultOffice, onClose, onDone }: { offs: Office[];
   const [f, setF] = useState({ title: "", start: new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1)).toISOString().slice(0, 10), end: now.toISOString().slice(0, 10), office: defaultOffice });
   const [asking, setAsking] = useState(false);
   const ok = f.title.trim().length > 2 && !!f.office && !!f.start && !!f.end && f.end >= f.start;
-  const go = () => void run("other", () => createPackage(f.title.trim(), f.start, f.end, f.office), { ok: "Package prepared as a draft." }).then((x) => { if (x.ok && x.result) { onDone(); router.push(`/next/ngo/submissions/${x.result}`); } else setAsking(false); });
+  const go = () => void run("other", () => createPackage(f.title.trim(), f.start, f.end, f.office), { ok: "Package prepared as a draft." }).then((x) => { if (x.ok && x.result) { onDone(); router.push(`/ngo/submissions/${x.result}`); } else setAsking(false); });
   if (asking) return <Confirm title="Prepare this package" confirm="Prepare package" busy={busy === "other"} onClose={() => setAsking(false)} onConfirm={go}><p>{f.title.trim()}, {day(f.start)} to {day(f.end)}, for {offs.find((o) => o.id === f.office)?.name}. The database gathers the approved records of that period; it is created as a draft and nothing is sent.</p></Confirm>;
   return (
     <Modal title="A package for another period" onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className="nx-btn" disabled={!ok} onClick={() => setAsking(true)}>Review</button></>}>
