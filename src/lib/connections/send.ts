@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ADAPTERS, need } from "./adapters";
-import { accessToken, audit } from "./server";
+import { ADAPTERS, ProviderAuthError, need } from "./adapters";
+import { accessToken, audit, markStatus } from "./server";
 import { PROVIDERS, type ProviderId } from "./providers";
 
 /* Send an approved email as the person who approved it, through their own connected account and only with the
@@ -23,7 +23,14 @@ export async function sendEmailAs(db: SupabaseClient, userId: string, orgId: str
       else { const d = await need(A, "createDraft")(t.token, m); await need(A, "sendDraft")(t.token, d.id); ref = d.id; }
       await audit({ connection_id: t.connectionId, user_id: userId, ngo_id: orgId, provider: p, action: "email_sent", detail: { recipients: 1, source: "kaju_mission" } });
       return { ok: true, ref };
-    } catch (e) { return { ok: false, error: (e as Error).message.slice(0, 200), connected: true }; }
+    } catch (e) {
+      // A revoked or expired grant is not a passing fault: mark the connection, and stop retrying until it is reconnected.
+      if (e instanceof ProviderAuthError) {
+        await markStatus(t.connectionId, "expired", "Access no longer accepted");
+        return { ok: false, error: `Reconnect ${PROVIDERS[p].name} in Settings → Connections: it no longer accepts this connection.`, connected: false };
+      }
+      return { ok: false, error: (e as Error).message.slice(0, 200), connected: true };
+    }
   }
   return { ok: false, error: lastError, connected: false };
 }

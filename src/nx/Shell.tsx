@@ -110,6 +110,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
 
   return (
     <div className="nx" data-theme={theme}>
+      <a className="nx-skip" href="#nx-main">Skip to content</a>
       <nav className="nx-rail" aria-label="StrayPaw">
         <Link href={home} className="nx-mark" aria-label="StrayPaw home">sp</Link>
         <Link href={home} className={`nx-rail-b ${!inChannel && !inKaju ? "is-on" : ""}`} aria-label="Workspace" title="Workspace"><LayoutGrid size={17} /></Link>
@@ -163,7 +164,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
         </header>
         <WorkTabs path={path} title={crumb[1]} home={home} />
         <OfflineBar />
-        <main className={`nx-body ${flush ? "is-flush" : ""}`} id="nx-main">{children}</main>
+        <main className={`nx-body ${flush ? "is-flush" : ""}`} id="nx-main" tabIndex={-1}>{children}</main>
       </div>
 
       <Command open={cmd} onClose={() => setCmd(false)} />

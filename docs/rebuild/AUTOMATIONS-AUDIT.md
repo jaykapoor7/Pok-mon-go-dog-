@@ -250,3 +250,25 @@ Also present: `nx_missions.deadline` and `deadline_noted`.
   for PEP SMS (item 6) and mission email (item 8) in `route.ts` have no test with test doubles. Item 9 says missions
   and automations "already run every minute or hour inside the database". That holds only where pg_cron is
   installed, and nothing in the repository checks it.
+
+## 6. Closed since the audit (same day)
+
+- **Gaps 1–3 fixed** in `20261116170000_rebuild_automation_rule_fixes.sql`, with six new `test:db` checks. Each check
+  fails without the migration and passes with it.
+  - `services_stale` counts only each service's latest confirmation.
+  - `training_due` leaves out finished courses and tells each person about their own training.
+  - A scheduled `alerts_open` run reads with the access of the person who turned it on. The test calls
+    `nx_automations_tick()` with nobody signed in.
+- **Gap 14 fixed.** CI now runs `test:kaju-automations`, `test:kaju-intake`, `test:kaju-prepare`,
+  `test:careos-webhook`, `test:ai-extract`, `test:auto-approve`, `test:package-check`, `test:monthly`,
+  `test:state-machines`, `test:operational-cohorts`, `test:record-dates`, `test:location-cell`,
+  `test:bounded-supabase-fetch` and `test:v1-cleanup-chunks`. All of them passed locally first. `test:monthly` had
+  been failing, because the monthly plan's links had lost the evidence stage they open; that is fixed.
+- **Gap 17 checked by hand.** On production and staging, `cron.job` holds `nx-mission-tick` and
+  `nx-automations-tick`, both active, and their runs in the last 24 hours succeeded (`docs/rebuild/TRACE-STAGING.md`).
+  No repository check exists yet.
+- **Gap 10 fixed, not yet tested.** `sendEmailAs` marks the connection expired on a revoked grant, and the worker
+  records the message as not connected instead of retrying it five times. No test covers it yet: `markStatus` needs
+  the service-role client, and the connection tests have no test double for it.
+- **Row statuses are unchanged by these fixes.** The rules now count the right things, but rows 4, 7, 14, 15, 18, 19
+  and 20 still have no follow-up or escalation chain (gap 5). The other gaps above remain as written.

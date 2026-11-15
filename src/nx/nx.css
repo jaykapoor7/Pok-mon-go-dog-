@@ -75,6 +75,10 @@
 .nx-side-f b { color: var(--ink-2); font-weight: 500; }
 
 /* Main column */
+/* Skip link: the first thing a keyboard reaches, hidden until it has focus. */
+.nx-skip { position: fixed; z-index: 200; left: 12px; top: -60px; padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--bg); font-weight: 600; text-decoration: none; }
+.nx-skip:focus { top: 12px; outline: 2px solid var(--focus, #4c8dff); outline-offset: 2px; }
+.nx-body:focus { outline: none; }
 .nx-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
 .nx-main > .nx-top { flex: 0 0 44px; }
 .nx-main > .nx-body { flex: 1 1 auto; }

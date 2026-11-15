@@ -18,6 +18,7 @@ const MIGRATIONS = [
   "20261116100000_rebuild_collaboration.sql", "20261116110000_rebuild_kaju_engine.sql", "20261116120000_rebuild_research_access.sql",
   "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
+  "20261116170000_rebuild_automation_rule_fixes.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -263,6 +264,40 @@ ok(log.length === 1 && log[0].phone_masked.startsWith("••••") && log[0].
 ok((await as(A, "select id from nx_pep_reminders($1)", [clinic])).length === 0, "nobody outside the clinic sees it");
 ok(await refused(nurse, "select * from health.reminder_outbox") !== null, "the reminder queue itself is not readable through the API");
 ok((await as(P, "select nx_automation_run($1, true) as r", [rem]))[0].r.found === 0, "running it again the same day queues nothing new");
+
+section("Automation rules count the right things");
+{
+  // services_stale: every confirmation is a new row; only each service's latest one counts.
+  await db.query(`insert into oh_service_status (organisation_id, service, status, verified_by, verified_by_name, verified_at, valid_until) values
+    ($1, 'arv', 'available', $2, 'Priya', now() - interval '20 days', now() - interval '13 days'),
+    ($1, 'arv', 'available', $2, 'Priya', now() - interval '1 hour', now() + interval '6 days'),
+    ($1, 'rig', 'limited', $2, 'Priya', now() - interval '20 days', now() - interval '13 days')`, [clinic, P]);
+  const st = (await as(P, "select nx_automation_save($1, 'services_stale', 'Stale services', 'day', '{\"days\":7}', 'clinical') as id", [clinic]))[0].id;
+  ok((await as(P, "select nx_automation_run($1, false) as r", [st]))[0].r.found === 1, "a service confirmed today is not stale because of an older confirmation; one never reconfirmed is");
+
+  // training_due: finished courses are not due, and the person who has to do it is told.
+  const course = (await one("insert into training_courses (ngo_id, title) values ($1, 'Safe handling') returning id", [N1])).id;
+  const [l1, l2] = [(await one("insert into training_lessons (course_id, title) values ($1, 'One') returning id", [course])).id, (await one("insert into training_lessons (course_id, title) values ($1, 'Two') returning id", [course])).id];
+  const done = uuid(); await db.query("insert into auth.users (id) values ($1)", [done]); await db.query("insert into ngo_members (ngo_id, user_id, role) values ($1, $2, 'member')", [N1, done]);
+  await db.query("insert into training_assignments (course_id, ngo_id, user_id, assigned_by, due_on) values ($1, $2, $3, $5, current_date + 1), ($1, $2, $4, $5, current_date + 1)", [course, N1, B, done, A]);
+  await db.query("insert into training_progress (lesson_id, course_id, user_id, ngo_id) values ($1, $3, $4, $5), ($1, $3, $6, $5), ($2, $3, $6, $5)", [l1, l2, course, B, N1, done]);
+  const tr = (await as(A, "select nx_automation_save($1, 'training_due', 'Training due', 'day', '{\"days\":3}') as id", [N1]))[0].id;
+  ok((await as(A, "select nx_automation_run($1, false) as r", [tr]))[0].r.found === 1, "a course someone has finished is not counted as due");
+  ok((await as(B, "select id from nx_notifications where title = 'Training is due for you'")).length === 1, "the person with unfinished training is told");
+  ok((await as(done, "select id from nx_notifications where title = 'Training is due for you'")).length === 0, "the person who finished is not");
+
+  // alerts_open on the schedule: nobody is signed in, so it reads with the access of the person who turned it on.
+  const al = (await as(P, "select nx_automation_save($1, 'alerts_open', 'Signals to review', 'day') as id", [coordOrg]))[0].id;
+  const byHand = (await as(P, "select nx_automation_run($1, true) as r", [al]))[0].r;
+  await db.query("update nx_automations set status = 'paused' where id <> $1", [al]);
+  await db.query("update nx_automations set last_run_at = null where id = $1", [al]);
+  await db.query("select set_config('request.jwt.claims', '', false)");
+  await db.query("select nx_automations_tick()");
+  const sched = await one("select status, found, error from nx_automation_runs where automation_id = $1 and dedupe_key not like '%:now:%'", [al]);
+  ok(sched && sched.status !== "failed", `a scheduled signals check runs with nobody signed in (${sched?.status} ${sched?.error ?? ""})`);
+  ok(sched && (sched.found ?? 0) === (byHand.found ?? 0), "and finds what the coordinator's own run found");
+  await db.query("update nx_automations set status = 'active'");
+}
 
 section("A bite recorded from a referral");
 {

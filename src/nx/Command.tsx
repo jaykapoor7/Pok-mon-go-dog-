@@ -28,7 +28,15 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
   const box = useRef<HTMLInputElement>(null);
   const ngo = live.orgFor("ngo");
   const chans = useChannels(live.org?.org_id ?? null);
-  useEffect(() => { if (open) { setQ(""); setAt(0); setRecords([]); window.setTimeout(() => box.current?.focus(), 10); } }, [open]);
+  /* Focus moves into the box on open and goes back to where the person was on close (WCAG 2.4.3). */
+  const before = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (open) { before.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setQ(""); setAt(0); setRecords([]); window.setTimeout(() => box.current?.focus(), 10); return; }
+    const back = before.current; before.current = null;
+    // After the box has left the page (its removal would otherwise drop focus on the document).
+    if (!back) return; // never opened: nothing to give back
+    window.setTimeout(() => (back && back !== document.body && back.isConnected ? back : document.getElementById("nx-main"))?.focus({ preventScroll: true }), 60);
+  }, [open]);
 
   /* Records: sample rows when signed out; otherwise the NGO's own animals and cases, asked for once the person pauses. */
   useEffect(() => {

@@ -31,7 +31,12 @@ export function KajuDock({ crumb }: { crumb: string }) {
   const before = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (k.open) { before.current = document.activeElement as HTMLElement | null; window.setTimeout(() => panel.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus(), 30); }
-    else before.current?.focus?.();
+    else {
+      // After the panel has left the page; with nothing to go back to, the page's content takes focus.
+      const back = before.current; before.current = null;
+      if (!back) return; // never opened: nothing to give back
+      window.setTimeout(() => (back && back !== document.body && back.isConnected ? back : document.getElementById("nx-main"))?.focus?.({ preventScroll: true }), 60);
+    }
   }, [k.open]);
   const plan = async (text: string, intent: Parameters<typeof k.plan>[2]) => {
     if (!org) { toast({ text: "Sign in to an organisation to hand Kaju work.", tone: "bad" }); return; }

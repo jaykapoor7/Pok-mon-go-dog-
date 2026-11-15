@@ -1,7 +1,9 @@
 # What only you can do
 
-Everything below is already built and tested with test doubles. Each feature shows "Not connected" until you do the
-step, and starts working without a code change once you have. Nothing here is needed for the rest of the app to work.
+Everything below is already built. Most of it is tested with test doubles; the exceptions are the PEP SMS and the
+mission email sending loops in `/api/admin/notifications/deliver`, which have no test yet (`AUTOMATIONS-AUDIT.md`,
+gap 8). Each feature shows "Not connected" until you do the step, and starts working without a code change once you
+have. Nothing here is needed for the rest of the app to work.
 
 | # | What | Why it needs you | How to switch it on |
 | --- | --- | --- | --- |
