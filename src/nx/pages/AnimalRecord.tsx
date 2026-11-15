@@ -1,5 +1,7 @@
 "use client";
 
+import { RecordThread } from "../RecordThread";
+
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, ClipboardPlus, Info, Lock, Plus } from "lucide-react";
@@ -19,7 +21,7 @@ import { QrScan, SampleBody } from "./Animals";
    case closing, the reported operations on its cases, its earlier source timeline and its cases. Clinical records say
    what they are: recorded by the organisation, not a clinician's sign-off. */
 
-type Tab = "Summary" | "Care" | "Cases" | "History";
+type Tab = "Summary" | "Care" | "Cases" | "History" | "Discussion";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const kindLabel = (k: string) => MEDICAL_KINDS.find((x) => x.id === k)?.label ?? words(k);
 const factTone = (v: string | null) => (v === "sterilised" || v === "vaccinated" ? "ok" : v === "not_sterilised" || v === "not_vaccinated" ? "warn" : "plain") as "ok" | "warn" | "plain";
@@ -56,7 +58,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
     action: <span className="nr-tl-act"><Chip>{t.provenance && /import/i.test(t.provenance) ? "Imported" : words(t.provenance, "Recorded")}</Chip><DeleteRecord kind="timeline" id={t.id} what="this history entry" onDone={read} /></span> }));
   const fus = followups.map((f) => ({ id: f.id, due_at: f.due_at, status: f.status, kind: f.kind, note: f.note, completed_at: null as string | null, case_id: f.case_id }));
   const caseList = cases.length ? <div className="nx-rel">{cases.map((c) => <Link key={c.id} href={`/next/ngo/cases/${c.id}`}><ArrowUpRight size={13} /><span className="num">{shortCode(c.case_code)}</span><span style={{ color: "var(--ink-3)" }}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Request"}</span><small><Chip tone={STATUS_TONE[c.status_class ?? "unknown"] ?? "plain"}>{statusLabel(c.status_class)}</Chip></small></Link>)}</div> : <p className="nr-quiet">This animal is not part of any case.</p>;
-  const tabs: [Tab, number | undefined][] = [["Summary", undefined], ["Care", care.length || undefined], ["Cases", cases.length || undefined], ["History", timeline.length || undefined]];
+  const tabs: [Tab, number | undefined][] = [["Summary", undefined], ["Care", care.length || undefined], ["Cases", cases.length || undefined], ["History", timeline.length || undefined], ["Discussion", undefined]];
 
   return (
     <Shell crumb={["Animals", code]}>
@@ -102,6 +104,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
           <p className="nr-hint">Recorded by the organisation, not clinician-signed. A veterinary sign-off is a separate step on the case.</p>
         </div>
       ) : tab === "Cases" ? <div className="nx-page" style={{ maxWidth: 860 }}><Section title="Cases" count={cases.length}>{caseList}</Section></div>
+        : tab === "Discussion" ? <div className="nx-page" style={{ maxWidth: 820 }}><RecordThread kind="animal" id={id} label={`${code} · ${realName(d.name) ?? "Unnamed"}`} /></div>
         : <div className="nx-page" style={{ maxWidth: 860 }}><Section title="Earlier source timeline" count={timeline.length}><Timeline items={history} empty="No earlier timeline entries. Structured operations are shown on the summary." /></Section><p className="nr-hint">Deleting moves an entry to removed records for 30 days; Undo brings it back.</p></div>}
     </Shell>
   );

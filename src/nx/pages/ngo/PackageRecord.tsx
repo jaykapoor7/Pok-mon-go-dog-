@@ -1,5 +1,7 @@
 "use client";
 
+import { RecordThread } from "../../RecordThread";
+
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -26,7 +28,7 @@ const KIND: Record<string, string> = { created: "Prepared", submitted: "Submitte
 const DECISION: Record<ClaimItem["decision"], { label: string; tone: "plain" | "ok" | "warn" | "bad" }> = { pending: { label: "Waiting", tone: "plain" }, accepted: { label: "Accepted", tone: "ok" }, query: { label: "Queried", tone: "warn" }, returned: { label: "Returned", tone: "bad" }, rejected: { label: "Rejected", tone: "bad" } };
 type Filter = "all" | ClaimItem["decision"];
 type Data = { pkg: Package; cases: PackageCase[]; events: PackageEvent[]; offices: Office[] };
-const TABS = ["Claims", "Records and evidence"] as const;
+const TABS = ["Claims", "Records and evidence", "Discussion"] as const;
 type Tab = (typeof TABS)[number];
 
 export function PackageRecord({ id }: { id: string }) {
@@ -89,6 +91,7 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
         </div>
         <div className="ns-rec-main">
           {tab === "Claims" ? (operator || sample ? <Claims sample={sample} pkg={p} cases={cases} /> : <Denied what="Claims are for coordinators and leads" why="Contract reconciliation is available to your coordinator or organisation lead. The records in this package are under Records and evidence." />)
+            : tab === "Discussion" ? (sample ? <p className="nx-sub">Discussion about this package with your team appears here.</p> : <RecordThread kind="package" id={p.id} label={p.title} />)
             : <Records cases={cases} sample={sample} />}
         </div>
         <div>

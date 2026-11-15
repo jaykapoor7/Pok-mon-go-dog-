@@ -1,5 +1,7 @@
 "use client";
 
+import { RecordThread } from "../../RecordThread";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -19,7 +21,7 @@ import { CareForm, CaseNext, DeleteRecord, FollowupList, OpsEvents, SampleNext, 
    cases on the same animal or in the same area. Read with the member's own session; every action waits for the
    database's answer. */
 
-type Tab = "Overview" | "History" | "Care and movements" | "Related";
+type Tab = "Overview" | "History" | "Care and movements" | "Related" | "Discussion";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function CaseRecord({ id }: { id: string }) {
@@ -63,7 +65,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
     ...followups.map((f) => ({ id: `f${f.id}`, at: Date.parse(f.completed_at ?? f.due_at), when: day(f.completed_at ?? f.due_at), tone: f.status === "done" ? ("ok" as const) : f.status === "missed" ? ("warn" as const) : undefined,
       title: `Follow-up · ${words(f.kind, "recheck")} · ${f.status === "upcoming" || f.status === "postponed" ? `due ${day(f.due_at)}` : words(f.status).toLowerCase()}`, body: f.note ?? undefined, action: <DeleteRecord kind="followup" id={f.id} what="this follow-up" onDone={read} /> })),
   ].sort((a, b) => b.at - a.at);
-  const tabs: [Tab, number | undefined][] = [["Overview", undefined], ["History", story.length], ["Care and movements", undefined], ["Related", neighbours.length + sameAnimal.length || undefined]];
+  const tabs: [Tab, number | undefined][] = [["Overview", undefined], ["History", story.length], ["Care and movements", undefined], ["Related", neighbours.length + sameAnimal.length || undefined], ["Discussion", undefined]];
 
   const props: [string, ReactNode][] = [
     ["Status", <Chip key="s" tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>],
@@ -117,6 +119,8 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
           <OpsEvents caseId={c.id} role={org.role} userId={live.userId} />
           {c.dog_id ? <Section title="Record a care event"><CareForm dogId={c.dog_id} caseId={c.id} onSaved={read} /></Section> : <p className="nr-hint" style={{ marginTop: 16 }}>Link an animal to this case to record a care event on it.</p>}
         </div>
+      ) : tab === "Discussion" ? (
+        <div className="nx-page" style={{ maxWidth: 820 }}><RecordThread kind="case" id={c.id} label={code} /></div>
       ) : (
         <div className="nx-page nx-two" style={{ marginTop: 0 }}>
           <Section title="On the same animal" count={sameAnimal.length}><Related rows={sameAnimal} none={c.dog_id ? "No other case on this animal." : "This case is not linked to an animal."} /></Section>
