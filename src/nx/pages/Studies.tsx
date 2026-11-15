@@ -122,7 +122,7 @@ export function Studies() {
         <form className="nx-form" onSubmit={(e) => { e.preventDefault(); const f = e.currentTarget; void addNote(s, String(new FormData(f).get("note") ?? "")); f.reset(); }}><textarea name="note" rows={2} placeholder="Add a note" aria-label="Add a note" maxLength={4000} /><button type="submit" className="nx-btn is-sm is-quiet">Add note</button></form>
         {msg ? <p className="nx-foot" role="status">{msg}</p> : null}
         <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>A snapshot is taken by the database as you, from data you are already allowed to see. Kaju does not write studies or reports.</span></p></> })}
-      loading={r.studies === null} note={r.err ?? msg} empty={{ none: "No studies yet", hint: "Start one with a question and the programme whose data it uses." }} />
+      loading={r.studies === null} error={r.err} note={msg} empty={{ none: "No studies yet", hint: "Start one with a question and the programme whose data it uses." }} />
     {creating ? <div className="nx-modal" role="dialog" aria-label="New study" onKeyDown={(e) => { if (e.key === "Escape") setCreating(false); }}>
       <form className="nx-modal-b nx-form" onSubmit={(e) => { e.preventDefault(); void create(new FormData(e.currentTarget)); }}>
         <h2 className="nx-h3" style={{ marginTop: 0, fontSize: 15 }}>New study</h2>
@@ -176,5 +176,5 @@ export function ResearchReports() {
       <dl className="nx-props"><div><dt>Source</dt><dd>Programme extract, suppressed by the database</dd></div><div><dt>Period</dt><dd>{o.query.days} days, from {day(o.snapshot.since)}</dd></div><div><dt>Cohort</dt><dd>{cohortText(o.query.cohort)}</dd></div></dl>
       {o.caveats ? <p className="nx-note" style={{ marginTop: 12 }}><Info size={13} /><span>{o.caveats}</span></p> : null}
       <p style={{ marginTop: 14 }}><button type="button" className="nx-btn is-sm" onClick={() => csv(o)}><Download size={12} />Download CSV</button></p></> }; }}
-    loading={r.outputs === null} note={r.err} empty={{ none: "No reports yet", hint: "Open a study and save a snapshot; it appears here as version 1." }} />;
+    loading={r.outputs === null} error={r.err} empty={{ none: "No reports yet", hint: "Open a study and save a snapshot; it appears here as version 1." }} />;
 }

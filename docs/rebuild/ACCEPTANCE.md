@@ -92,9 +92,10 @@ Checks referred to (all run on 2026-11-15 on this branch):
 | Requirement | Status | Evidence / reason |
 | --- | --- | --- |
 | 390 / 768 / 1440, light and dark | Verified | 102 screenshots, none with sideways scroll or page errors; contact sheets in `docs/rebuild/shots/app/`. |
+| Populated, empty and error states | Verified (signed in on staging, 12 views × 390 and 1440) | `docs/rebuild/shots/states/` (sheets and `report.json`). After sign-in, every read except the workspace list is answered with nothing, or with a server error. Found and fixed: Government Overview and Surveillance said "does not oversee a programme" when the read failed; laboratory Results, Samples, Referrals, PEP and Studies showed zeros on a failed read (list pages now say the read failed and show no counts); Today stayed on "Reading your work…"; the NGO lists' view chips showed 0 beside "nothing is shown as zero". PEP's "empty" capture crashed only because the test answered an object-returning function with a list, which the database never does. |
 | WCAG 2.2 AA automated checks | Verified (serious and critical) | axe on 24 pages × 2 themes × 2 devices; contrast tokens raised, list semantics fixed, inline links underlined, 24px targets; a skip link added to the frame (2.4.1) and focus returned after dialogs close (2.4.3). Manual screen-reader pass not done. |
-| Reduced motion | Verified (automated) | Every axe and screenshot run uses reduced motion; Kaju and lists use `useReducedMotion`. |
-| Performance | Measured (local production build) | `docs/rebuild/shots/app/perf.json`: largest paint 76–292 ms on localhost, layout shift ≤ 0.019, 334 KB JS on the first app page. Not measured on a real network or device. |
+| Reduced motion | Verified (automated, recorded) | Every axe and screenshot run uses reduced motion; Kaju and lists use `useReducedMotion`. Recordings of the Kaju panel, command bar, list to record and view chips, with and without reduced motion, in `docs/rebuild/shots/motion/`. |
+| Performance | Measured, below target on a slow phone | Local production build: `perf.json`, largest paint 76–292 ms on localhost. Phone-class (`perf-throttled.json`: Pixel 7, CPU 4× slower, slow 4G, cold cache): largest paint 3.7–4.1 s on six of seven pages (the 2.5 s "good" mark is missed; Kaju 1.3 s), blocking time 256–534 ms, a tap on a list row answers in 185–234 ms, layout shift 0, 334–379 KB of JavaScript. Not measured on a real device or network. Reducing the first-load JavaScript is open work. |
 
 ## 7. The 15 scenarios (09_DELIVERY_TEST_AND_MIGRATION.md)
 

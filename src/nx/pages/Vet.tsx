@@ -85,7 +85,7 @@ export function Appointments() {
         {r.status === "booked" ? <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 14 }}><button type="button" className="nx-btn is-sm" onClick={() => mark(r, "done")}>Mark done</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => mark(r, "missed")}>Missed</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => mark(r, "cancelled")}>Cancel</button></div> : null}
         {msg ? <p className="nx-foot" role="status">{msg}</p> : null}
         <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Marking a visit done records that it happened. What was found and done goes on the case, signed by the veterinarian.</span></p></> })}
-      loading={!v.sample && ap.rows === null} note={ap.error ?? msg} empty={{ none: "No appointments yet", hint: "Book a check, procedure or recovery visit for an animal on the register." }} />
+      loading={!v.sample && ap.rows === null} error={ap.error} note={msg} empty={{ none: "No appointments yet", hint: "Book a check, procedure or recovery visit for an animal on the register." }} />
     {booking ? <div className="nx-modal" role="dialog" aria-label="Book an appointment" onKeyDown={(e) => { if (e.key === "Escape") setBooking(false); }}>
       <form className="nx-modal-b nx-form" onSubmit={(e) => { e.preventDefault(); void book(new FormData(e.currentTarget)); }}>
         <h2 className="nx-h3" style={{ marginTop: 0, fontSize: 15 }}>Book an appointment</h2>
@@ -129,7 +129,7 @@ export function ClinicalCare() {
     views={[{ id: "urgent", label: "Critical and high", test: (r: CareRow) => r.severity === "critical" || r.severity === "high" }, { id: "all", label: "All open", test: () => true }]}
     columns={careCols} rows={c.rows} rowKey={(r) => r.id} rowLabel={(r) => r.title} search={(r) => `${r.title} ${r.animal} ${r.code}`} sort={(a, b) => SEV_ORDER.indexOf(a.severity) - SEV_ORDER.indexOf(b.severity)}
     preview={(r) => ({ title: r.title, sub: <><Chip tone={SEV[r.severity] ?? "plain"}>{r.severity}</Chip> {r.category}</>, body: <><dl className="nx-props"><div><dt>Animal</dt><dd>{r.dogId ? <Link href={`/ngo/animals/${r.dogId}`} style={{ color: "var(--accent)" }}>{r.animal}</Link> : r.animal}</dd></div><div><dt>Case</dt><dd className="num">{r.code}</dd></div><div><dt>Next step</dt><dd>{r.next}</dd></div><div><dt>Updated</dt><dd>{r.updated}</dd></div></dl>{careNote}</>, href: r.caseHref, hrefLabel: "Open the case", hrefNote: "Notes, treatment and sign-off are on the case." })}
-    loading={c.loading} note={c.error} empty={{ none: "No open clinical cases", hint: "Injury, rescue and treatment cases appear here while they are open." }} />}</Gate>;
+    loading={c.loading} error={c.error} empty={{ none: "No open clinical cases", hint: "Injury, rescue and treatment cases appear here while they are open." }} />}</Gate>;
 }
 
 type PatRow = { id: string; animal: string; cases: number; worst: VetCase["severity"]; titles: string; dogId: string | null };
@@ -155,7 +155,7 @@ function NgoPatients() {
     views={[{ id: "all", label: "Under care", test: () => true }, { id: "urgent", label: "Critical or high", test: (r: PatRow) => r.worst === "critical" || r.worst === "high" }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.animal} search={(r) => `${r.animal} ${r.titles}`} sort={(a, b) => SEV_ORDER.indexOf(a.worst) - SEV_ORDER.indexOf(b.worst)}
     preview={(r) => ({ title: r.animal, sub: `${r.cases} open ${r.cases === 1 ? "case" : "cases"}`, body: <><p>{r.titles}</p>{careNote}</>, href: r.dogId ? `/ngo/animals/${r.dogId}` : undefined, hrefLabel: "Open the animal", hrefNote: "Its full history, cases and procedures are on the record." })}
-    loading={c.loading} note={c.error} empty={{ none: "No animals under care", hint: "Animals appear here while they have an open clinical case." }} />}</Gate>;
+    loading={c.loading} error={c.error} empty={{ none: "No animals under care", hint: "Animals appear here while they have an open clinical case." }} />}</Gate>;
 }
 
 /* ── Procedures: the ABC queue, from the veterinarian's side ──────── */
@@ -178,7 +178,7 @@ export function Procedures() {
     views={[{ id: "vet", label: "Waiting for you", test: (r: ProcRow) => r.stage === "Waiting for vet" }, { id: "ev", label: "Needs evidence", test: (r: ProcRow) => r.stage === "Needs evidence" }, { id: "signed", label: "Signed", test: (r: ProcRow) => r.stage === "Signed" }, { id: "all", label: "All", test: () => true }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.animal}`}
     preview={(r) => ({ title: r.animal, sub: <><Chip tone={PROC_TONE[r.stage] ?? "plain"}>{r.stage}</Chip> <span className="num nx-t3">{r.code}</span></>, body: <><dl className="nx-props"><div><dt>Missing</dt><dd>{r.missing.length ? r.missing.join(", ") : "Nothing"}</dd></div><div><dt>Signed by</dt><dd>{r.vet ?? "Not signed"}</dd></div><div><dt>Recorded</dt><dd>{r.when}</dd></div></dl><p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Signing confirms the surgery record as the veterinarian&apos;s own. It is never done for you, and StrayPaw keeps who signed and when.</span></p></>, href: r.href, hrefLabel: "Review and sign", hrefNote: "The sign-off is on the procedure's page." })}
-    loading={!v.sample && q === null} note={err} empty={{ none: "No procedures recorded", hint: "Sterilisation records appear here as they are filed." }} />}</Gate>;
+    loading={!v.sample && q === null} error={err} empty={{ none: "No procedures recorded", hint: "Sterilisation records appear here as they are filed." }} />}</Gate>;
 }
 
 /* ── Follow-ups ───────────────────────────────────────────────────── */
@@ -203,7 +203,7 @@ export function VetFollowups() {
     views={[{ id: "all", label: "Next 7 days", test: () => true }, { id: "late", label: "Overdue", test: (r: FuRow) => r.day === "Overdue" }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.what} search={(r) => `${r.what} ${r.animal}`} sort={(a, b) => a.at - b.at}
     preview={(r) => ({ title: r.what, sub: r.animal, body: <><dl className="nx-props"><div><dt>Due</dt><dd>{r.when}</dd></div></dl>{careNote}</>, href: r.href, hrefLabel: "Open the case" })}
-    loading={!v.sample && fs === null} note={err} empty={{ none: "No follow-ups due", hint: "Follow-ups scheduled on cases appear here." }} />}</Gate>;
+    loading={!v.sample && fs === null} error={err} empty={{ none: "No follow-ups due", hint: "Follow-ups scheduled on cases appear here." }} />}</Gate>;
 }
 
 /* ── Today ────────────────────────────────────────────────────────── */

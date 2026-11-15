@@ -132,7 +132,7 @@ function LiveToday() {
   return (
     <Shell crumb={["Today"]}>
       <div className="nx-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{date} · {org!.name}</p><h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1><p className="nx-sub">{tasks.rows === null ? "Reading your work…" : <><b className="num">{open.length}</b> open {open.length === 1 ? "task" : "tasks"}{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}.</>}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{date} · {org!.name}</p><h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1><p className="nx-sub">{tasks.rows === null && tasks.error ? "Your work could not be read just now." : tasks.rows === null ? "Reading your work…" : <><b className="num">{open.length}</b> open {open.length === 1 ? "task" : "tasks"}{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}.</>}</p></div></div>
         <div className="nx-figs">
           {fig(tasks.rows === null ? null : open.length, "Open tasks")}
           {fig(tasks.rows === null ? null : closed.length, "Done")}

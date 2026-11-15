@@ -72,7 +72,7 @@ export function Bites() {
   return <ListPage ws="health" crumb={["Healthcare", "Bite cases"]} eyebrow={sample ? CLINIC.name : org!.name} title="Bite cases" sample={sample}
     sub={sample || reg.data ? <><b className="num">{list.filter((r) => r.course === "Waiting for a clinician").length}</b> waiting for a clinician, <b className="num">{list.filter((r) => r.late).length}</b> with a dose overdue. Categories and doses are entered by clinicians.</> : "Reading the register…"}
     views={biteViews} columns={biteCols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.ref} ${r.area}`}
-    preview={bitePreview} loading={!sample && !reg.data && !reg.error} note={reg.error} empty={{ none: "No bites recorded yet", hint: "Each presentation is recorded by the clinic." }}
+    preview={bitePreview} loading={!sample && !reg.data && !reg.error} error={reg.error} empty={{ none: "No bites recorded yet", hint: "Each presentation is recorded by the clinic." }}
     action={<Link href="/health/bites/new" className="nx-btn is-keep">Record a bite</Link>} />;
 }
 
@@ -102,7 +102,7 @@ export function Pep() {
     views={[{ id: "all", label: "All due", test: () => true }, { id: "today", label: "Today", test: (r: DoseRow) => r.isToday }, { id: "late", label: "Overdue", test: (r: DoseRow) => r.late }]}
     columns={doseCols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.dose}`} sort={(a, b) => Number(b.late) - Number(a.late)}
     preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.ref} · {r.dose}</>, body: <><dl className="nx-props"><div><dt>Due</dt><dd>{r.due}</dd></div><div><dt>Reminder</dt><dd style={{ fontWeight: 400 }}>{r.reminder}</dd></div></dl><PepDose sample={sample} orgId={org?.org_id ?? null} dose={r.doseNo && r.dueOn ? { dose_id: r.id, dose_no: r.doseNo, due_on: r.dueOn, label: r.ref } : null} onDone={due.reload} /><p className="nx-note" style={{ marginTop: 14 }}><Info size={13} /><span>A dose counts as given only when a person records it at the clinic. A reminder sent is not a dose given.</span></p>{privacy}</>, href: r.href, hrefLabel: "Open the clinical record", hrefNote: "The course, every dose and the reminder calls are in the clinical record." })}
-    loading={!sample && !due.data && !due.error} note={due.error} empty={{ none: "No doses are due", hint: "Everyone in a course is up to date." }} />;
+    loading={!sample && !due.data && !due.error} error={due.error} empty={{ none: "No doses are due", hint: "Everyone in a course is up to date." }} />;
 }
 
 /* ── Laboratory samples ────────────────────────────────────────────── */
@@ -135,7 +135,7 @@ export function Samples({ title = "Samples" }: { title?: string }) {
     sub={sample || rows.data ? <><b className="num">{queue.length}</b> in the queue{queue.length ? <>, the oldest collected <b className="num">{Math.max(...queue.map((r) => r.days))}</b> days ago</> : null}. A result is released when a laboratory scientist records it with the method and validates it.</> : "Reading samples…"}
     views={sViews} columns={sCols} rows={data} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.species} ${r.from} ${r.area}`} sort={(a, b) => b.days - a.days}
     preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={STATUS[r.status] ?? "plain"}>{r.status}</Chip></>, body: <><dl className="nx-props"><div><dt>From</dt><dd>{r.from}</dd></div><div><dt>Place</dt><dd>{r.area}</dd></div><div><dt>Collected</dt><dd>{r.collected}</dd></div><div><dt>Result</dt><dd>{r.result ?? "Not released"}</dd></div></dl>{sample ? <LabSteps compact sample s={{ id: r.id, code: r.code, status: r.status.toLowerCase(), species: r.species.toLowerCase(), sample_type: r.type.toLowerCase().replace(/ /g, "_") }} onDone={() => {}} /> : r.raw ? <LabSteps compact s={r.raw} onDone={rows.reload} /> : null}<p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Receiving, testing and releasing a result are steps taken by named laboratory staff. Kaju never interprets or releases a result.</span></p></>, href: r.href, hrefLabel: "Open the sample", hrefNote: "Chain of custody and the result are recorded on the sample." })}
-    loading={!sample && !rows.data && !rows.error} note={rows.error} empty={{ none: "No samples have been sent to this laboratory", hint: "Partners send samples from their workspace." }} />;
+    loading={!sample && !rows.data && !rows.error} error={rows.error} empty={{ none: "No samples have been sent to this laboratory", hint: "Partners send samples from their workspace." }} />;
 }
 
 /* ── Today: a clinic's day, or a laboratory's queue ───────────────── */

@@ -74,7 +74,7 @@ export function Referrals() {
       <Props items={[["Needs", r.service], ...(r.category !== "—" ? [["Category", r.category] as [string, string]] : []), ...(r.species !== "—" ? [["Animal", r.species] as [string, string]] : []), ...(r.exposure !== "—" ? [["Exposure", r.exposure] as [string, string]] : []), ...(r.sent !== "—" ? [["Sent", `${r.sent}${r.by !== "—" ? ` · ${r.by}` : ""}`] as [string, string]] : []), ...(r.note ? [["Note", r.note] as [string, string]] : []), ...(r.closed ? [["Closed", r.closed] as [string, string]] : [])]} />
       <RowActions r={r} sample={sample} place={place} canConfigure={!!net.data?.can_configure} progId={prog?.id ?? null} onDone={reload} />
       <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>{r.kind === "request" || r.kind === "pathway" ? "Requests and pathways never carry patient details." : "Only the case code and the incident facts travel with a referral."} Kaju does not read referrals.</span></p></> })}
-    loading={!sample && !tr.data && !tr.error} note={tr.error} empty={{ none: "No referrals yet", hint: "People referred to or from this facility appear here." }} />;
+    loading={!sample && !tr.data && !tr.error} error={tr.error} empty={{ none: "No referrals yet", hint: "People referred to or from this facility appear here." }} />;
 }
 
 function RowActions({ r, sample, place, canConfigure, progId, onDone }: { r: Row; sample: boolean; place: Place | null; canConfigure: boolean; progId: string | null; onDone: () => void }) {
