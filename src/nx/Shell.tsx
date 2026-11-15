@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { Bell, CalendarClock, ChevronsUpDown, Hash, Home, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
+import { CalendarClock, ChevronsUpDown, Hash, Home, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CLINIC, DMS, GOV_ORG, ME, ORG } from "./fixtures";
 import { BUILT, GOV, HEALTH, KAJU, LAB, NGO, RESEARCH, WS_LABEL, homeOf } from "./nav";
 import { Command } from "./Command";
+import { NeedsYou } from "./NeedsYou";
 import { createChannel, useChannels, useLive } from "./live";
 import "./nx.css";
 
@@ -100,7 +101,7 @@ export function Shell({ crumb, children, ws = "ngo", flush }: { crumb: [string, 
             <button type="button" className="nx-search" onClick={() => setCmd(true)} aria-keyshortcuts="Meta+K Control+K"><Search size={14} /><span>Search anything</span><kbd>⌘K</kbd></button>
             <button type="button" className="nx-ib nx-only-s" aria-label="Search" onClick={() => setCmd(true)}><Search size={18} /></button>
             <button type="button" className="nx-ib nx-hide-s" aria-label="Schedule"><CalendarClock size={16} /></button>
-            <button type="button" className="nx-ib" aria-label="Notifications"><Bell size={16} /></button>
+            <NeedsYou />
             <button type="button" className="nx-ib nx-only-s" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} onClick={flip}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
             <Link href="/next/kaju" className="nx-kaju nx-hide-s"><Sparkles size={14} /><span>Kaju</span></Link>
           </div>

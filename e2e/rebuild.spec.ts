@@ -136,6 +136,31 @@ test("Command bar: opens from the keyboard, finds a record, opens it, and hands 
   await noSideScroll(page);
 });
 
+test("Channel threads: replies open beside the channel and stay out of the main list", async ({ page }) => {
+  await open(page, "/next/channels/abc-ward-12");
+  await expect(page.locator(".nx-msgs .nx-msg")).toHaveCount(3);
+  await page.getByRole("button", { name: /2 replies to Dr\. Arun K\./ }).click();
+  const pane = page.getByRole("complementary", { name: /Thread/ });
+  await expect(pane.locator(".nx-msg")).toHaveCount(3);
+  await page.getByLabel("Reply in thread").fill("I will take it.");
+  await page.getByLabel("Reply in thread").press("Enter");
+  await expect(pane.locator(".nx-msg")).toHaveCount(4);
+  await expect(page.locator(".nx-msgs .nx-msg")).toHaveCount(3);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: /3 replies to Dr\. Arun K\./ })).toBeVisible();
+  await noSideScroll(page);
+});
+
+test("Bell: lists what is waiting on the person, and closes with Escape", async ({ page }) => {
+  await open(page, "/next/ngo/today");
+  const bell = page.getByRole("button", { name: /2 things need you/ });
+  await bell.click();
+  const panel = page.getByRole("dialog", { name: "Needs you" });
+  await expect(panel).toContainText("Kaju is waiting for your approval");
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
+});
+
 test("Insights: choosing a ward narrows the figures and the table together", async ({ page }) => {
   await open(page, "/next/gov/overview");
   await expect(page.locator("button.nx-tr")).toHaveCount(6);
