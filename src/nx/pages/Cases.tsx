@@ -160,8 +160,7 @@ function SampleCases() {
 
 export function Cases() {
   const live = useLive();
-  if (!live.ready) return <Shell crumb={["NGO", "Cases"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
-  if (!live.org) return <SampleCases />;
+  if (!live.ready || !live.org) return <SampleCases />; // in the server HTML, so it paints first; members never see it
   const org = live.orgFor("ngo");
   if (!org) return <Shell crumb={["NGO", "Cases"]}><div className="nx-page"><h1 className="nx-h1">Cases</h1><p className="nx-sub">{live.org.name} is not an NGO workspace, so it has no case list of its own.</p></div></Shell>;
   return <LiveCases org={org} />;

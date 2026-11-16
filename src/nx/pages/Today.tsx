@@ -164,6 +164,6 @@ function LiveToday() {
 
 export function Today() {
   const live = useLive();
-  if (!live.ready) return <Shell crumb={["Today"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
-  return live.org ? <LiveToday /> : <SampleToday />;
+  // Until the session is known the sample page is shown: it is in the server HTML, so it paints first (members never see it).
+  return live.ready && live.org ? <LiveToday /> : <SampleToday />;
 }
