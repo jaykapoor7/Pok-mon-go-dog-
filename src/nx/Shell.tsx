@@ -11,7 +11,7 @@ import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
 import { useProgrammeChannels } from "./collab";
 import { getSupabase } from "@/lib/supabase";
-import { OfflineBar, ToastHost } from "./kit";
+import { Failed, OfflineBar, ToastHost } from "./kit";
 import { KajuProvider, useKaju } from "./kaju/state";
 import { KajuDock } from "./kaju/Dock";
 import { createChannel, openDm, useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
@@ -164,7 +164,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
         </header>
         <WorkTabs path={path} title={crumb[1]} home={home} />
         <OfflineBar />
-        <main className={`nx-body ${flush ? "is-flush" : ""}`} id="nx-main" tabIndex={-1}>{children}</main>
+        <main className={`nx-body ${flush ? "is-flush" : ""}`} id="nx-main" tabIndex={-1}>{live.failed && live.signedIn ? <div className="nx-page"><h1 className="nx-h1">Your workspace could not be read</h1><Failed error="StrayPaw could not reach your organisation's records, so nothing is shown rather than sample data. Check your connection and try again." retry={live.retry} /></div> : children}</main>
       </div>
 
       <Command open={cmd} onClose={() => setCmd(false)} />

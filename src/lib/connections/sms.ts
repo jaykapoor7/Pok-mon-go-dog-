@@ -12,14 +12,15 @@ export function normaliseIndian(n: string): string | null {
   return /^[6-9]\d{9}$/.test(ten) ? `91${ten}` : null;
 }
 
-export async function sendSms(to: string[], values: string[]): Promise<{ id: string; count: number }> {
+/** `templateId` picks an approved template other than the default one (MSG91_TEMPLATE_ID), without touching shared state. */
+export async function sendSms(to: string[], values: string[], templateId?: string): Promise<{ id: string; count: number }> {
   const mobiles = [...new Set(to.map(normaliseIndian).filter((x): x is string => !!x))].slice(0, 50);
   if (!mobiles.length) throw new Error("Add at least one valid Indian mobile number.");
   const vars = Object.fromEntries(values.slice(0, 5).map((v, i) => [`var${i + 1}`, v.replace(/[\r\n]+/g, " ").slice(0, 30)]));
   const r = await fetch("https://control.msg91.com/api/v5/flow", {
     method: "POST",
     headers: { authkey: process.env.MSG91_AUTH_KEY!.trim(), "Content-Type": "application/json", accept: "application/json" },
-    body: JSON.stringify({ template_id: process.env.MSG91_TEMPLATE_ID!.trim(), short_url: "0", recipients: mobiles.map((mobiles) => ({ mobiles, ...vars })) }),
+    body: JSON.stringify({ template_id: (templateId ?? process.env.MSG91_TEMPLATE_ID!).trim(), short_url: "0", recipients: mobiles.map((mobiles) => ({ mobiles, ...vars })) }),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || j.type === "error") throw new Error(`MSG91: ${j.message ?? r.status}`);

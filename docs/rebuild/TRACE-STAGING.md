@@ -138,12 +138,21 @@ What the earlier attempts showed, each a rule working as intended:
   decision. A new animal is never treated as distinct, or merged, until a coordinator decides.
 - Once the vet has signed off, the record is locked: the identity decision has to come first.
 
-One finding, not fixed: field mode has two ways to record a vaccination. The lifecycle form
-(`operations_record_event`, kind `vaccination`) records both the operation and the medical record. The quick ARV form
-(`field_confirm_vaccination`) records only the medical record. Under a contract that requires the vaccination
-operation, a dog vaccinated through the quick form shows "Operation: vaccination" as missing, and the coordinator cannot
-submit it until the operation is recorded. Making the quick form also record the operation needs care, because the
-lifecycle form calls the quick form internally and would then record it twice.
+One finding, since fixed: field mode has two ways to record a vaccination. The lifecycle form
+(`operations_record_event`, kind `vaccination`) recorded both the operation and the medical record; the quick ARV form
+(`field_confirm_vaccination`) recorded only the medical record. Under a contract that requires the vaccination
+operation, a dog vaccinated with the quick form showed "Operation: vaccination" as missing and could not be submitted.
+`20261117130000_rebuild_quick_arv_operation.sql` makes the quick form record the operation too, linked to its one medical
+record, while the lifecycle form still records one of each. The trace now uses the quick form (re-run on 2026-11-16,
+rolled back):
+
+```
+1 field worker, quick ARV form: dog and case recorded (identity provisional); vaccination operations: 1, medical records: 1, linked: true
+  lifecycle form, second dog: vaccination operations 1, medical records 1
+  ...
+4 coordinator: package of 1 record submitted (submitted)
+5 reviewer: in the queue: true; claim decided and review closed (accepted)
+```
 
 ## 8. A programme, a partner and an invitation (scenario 6)
 
@@ -166,3 +175,28 @@ the app moved to its own addresses, so it opened "not found". It now opens `/sta
 any app link under `/next/`. Production had sent no invitations, so no broken link went out.
 
 After the three runs, staging holds none of their organisations, programmes, contracts, sign-ins or animals.
+
+## 9. Code review of the day's changes (2026-11-16)
+
+A review of the changes in #120, #123 and the quick ARV fix reported eight findings. Fixed:
+- **A follow-up's acknowledgement was dropped by the next run** that still found something, so it showed as not picked
+  up and was raised with the leads again. `20261117140000` (production changes, seventh set).
+- **A member could briefly see the sample workspace after signing in.** The layout's inline script marks a browser that
+  holds a session only on a full page load; signing in moves into the app without one. `LiveProvider` now marks it
+  before the first paint as well. Checked in a browser: signing in through `/sign-in?next=/ngo/cases`, no sample chip was
+  ever visible.
+- **A failed workspace read showed members the sample workspace.** Any error reading `nx_my_workspaces` was taken for a
+  database without the rebuild's tables. Now only that case keeps the sample. Other errors are retried twice, then the frame
+  says the workspace could not be read and offers "Try again", which hides the page again while it reads. Checked in a
+  browser with the read failing: the error, never the sample; after "Try again", the organisation's own cases.
+- **Older open follow-ups disappeared from "Waiting for someone"**, which was built from the 30 latest runs. It now has its
+  own query for every open follow-up.
+- **The PEP sender swapped `process.env.MSG91_TEMPLATE_ID`** around each send, which any other SMS sent from the same
+  server at that moment would pick up. `sendSms` now takes the template as an argument.
+
+Not changed:
+- **A quick ARV vaccination on an already signed-off case is still accepted** (it now also records the operation). The
+  lifecycle form refuses changes to an attested record. Whether a field worker should be stopped from recording a
+  vaccination on a signed-off case is a decision for the programme owner.
+- **Escalation hours can only be set when a rule is turned on.**
+- **The "sample until ready" rule is repeated on each page.**

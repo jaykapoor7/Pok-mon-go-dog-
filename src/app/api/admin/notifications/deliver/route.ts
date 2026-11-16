@@ -57,10 +57,9 @@ export async function GET(req: Request) {
   const pep = await deliverPepReminders((rem.error ? [] : rem.data ?? []) as PepReminder[], {
     smsReady,
     deadline: started + 50_000,
-    send: async (phone, vars) => {
-      const prev = process.env.MSG91_TEMPLATE_ID; process.env.MSG91_TEMPLATE_ID = process.env.MSG91_PEP_TEMPLATE_ID;
-      try { return await sendSms([phone], vars); } finally { process.env.MSG91_TEMPLATE_ID = prev; }
-    },
+    /* The PEP template is passed with the send; swapping process.env for it would leak into any other SMS sent from
+       this server at the same moment. */
+    send: (phone, vars) => sendSms([phone], vars, process.env.MSG91_PEP_TEMPLATE_ID!),
     mark: async (id, status, error, ref) => {
       const r = await db.rpc("nx_pep_outbox_mark", { p_id: id, p_status: status, p_error: error ?? null, p_ref: ref ?? null });
       if (r.error) console.info("notifications delivery", JSON.stringify({ state: "pep outcome not recorded", status }));
