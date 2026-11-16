@@ -221,3 +221,12 @@
   .kc-m, .kc-typing i, .kv-ring, .kv-kaju, .kb-report .is-in dd { animation: none !important; }
   .kb-modes button, .kb-quick button, .kv-call, .kv-btn svg { transition: none; }
 }
+
+/* The call's language and Kaju's ear: the ring follows the caller's voice while Kaju listens. */
+.kv-langs { display: inline-flex; gap: 4px; margin-top: 12px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+.kv-langs button { min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: rgba(255, 255, 255, .85); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.kv-langs button.is-on { background: #fff; color: #0f2656; }
+.kv-time em { margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #fff; font-size: 12px; font-style: normal; font-weight: 600; }
+.kv.is-listening .kv-kaju { box-shadow: 0 0 0 calc(var(--lvl, 0) * 22px) rgba(61, 220, 132, .22); transition: box-shadow .08s linear; }
+.kv.is-thinking .kv-status { opacity: .8; }
+@media (prefers-reduced-motion: reduce) { .kv.is-listening .kv-kaju { transition: none; } }

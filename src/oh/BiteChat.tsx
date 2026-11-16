@@ -17,7 +17,7 @@ import { Kaju } from "@/kaju/Kaju";
 import type { KajuState } from "@/kaju/poses";
 import { call, relDay, today, useRead, SERVICE_LABEL, SERVICE_STATUS, SPECIES } from "./data";
 import { readBite, type BiteDraft } from "./biteIntake";
-import { canSpeak, checkMic, digits, listen, problemText, speak, whenWord, yesNo, type VoiceProblem } from "./voiceAgent";
+import { Ears, checkMic, digits, hearSarvam, hush, listen, lockVoice, problemText, sarvamReady, sayAloud, speak, unlockAudio, whenWord, yesNo, type Heard, type VoiceProblem } from "./voiceAgent";
 
 type Facility = { id: string; name: string; kind: string; area: string | null; address: string | null; phone: string | null; hours: string | null; lat: number | null; lng: number | null; services: { service: string; status: string; verified_at: string; valid_until: string }[]; refers: { service: string; to: string; to_id: string }[] };
 type Pub = { programme: { name: string; illustrative: boolean; areas: { id: string; name: string }[] } | null; facilities: Facility[] };
@@ -25,7 +25,8 @@ type At = "tell" | "danger" | "urgent" | "notify" | "when" | "date" | "area" | "
 type Form = { on: string; area: string; place: string; species: string; animal: string; phone: string };
 type Card = { kind: "danger" } | { kind: "urgent" } | { kind: "review"; f: Form; area: string | null; when: string | null } | { kind: "sent"; to: string; hours: string | null } | { kind: "centres"; first: string | null };
 type Msg = { id: number; who: "kaju" | "me"; text: string; voice?: string; card?: Card; tone?: "aid" | "urgent"; spoken?: boolean; tour?: string };
-type Talk = { on: boolean; phase: "connecting" | "speaking" | "listening" | "idle" | "muted"; words: string; problem: VoiceProblem | null; started: number; ended: boolean; muted: boolean };
+type Talk = { on: boolean; phase: "connecting" | "thinking" | "speaking" | "listening" | "idle" | "muted"; words: string; caption: string; problem: VoiceProblem | null; started: number; ended: boolean; muted: boolean; engine: "sarvam" | "browser"; lang: string };
+const CALL_LANGS: [string, string][] = [["en-IN", "English"], ["kn-IN", "ಕನ್ನಡ"], ["hi-IN", "हिन्दी"]];
 type Mode = "chat" | "call";
 type Known = "when" | "area" | "animal" | "looks" | "place";
 type Sent = { to: string; hours: string | null; time: string };
@@ -40,20 +41,20 @@ const KIND: Record<string, string> = { bite: "A bite", scratch: "A scratch", lic
 const EMPTY: Form = { on: today(), area: "", place: "", species: "dog", animal: "", phone: "" };
 /* The questions, in the order Kaju asks them, and what Kaju says again when an answer is not clear. */
 const QUESTION: Record<"when" | "area" | "animal" | "looks" | "place" | "call", string> = {
-  when: "When did it happen?", area: "Which area was it in?", animal: "What animal was it?",
-  looks: "What did the animal look like? Its colour, size, a collar, any marks.", place: "Where is it usually seen? A landmark or a street.",
-  call: "May the clinic call you about this?",
+  when: "When did it happen?", area: "Which area?", animal: "What animal was it?",
+  looks: "What did it look like? Colour, size, a collar?", place: "Where is it usually seen?",
+  call: "Can the clinic call you if needed?",
 };
 const ASK: Partial<Record<At, string>> = {
-  tell: "Tell me what happened.", danger: "Is any of this true? Say yes or no.", urgent: "Shall I tell the clinic you are coming? Say yes or no.",
-  notify: "Shall I tell the clinic you are coming? Say yes or no.", when: "Say today, yesterday, or earlier.", area: "Say the name of the area.",
-  animal: "Say dog, cat, monkey, or another animal.", looks: "Describe the animal: its colour, size, a collar.", place: "Say a landmark or a street, or say skip.",
-  call: "May the clinic call you? Say yes or no.", phone: "Say your phone number.", review: "Say send, or start again.",
+  tell: "What happened?", danger: "Any of those? Yes or no?", urgent: "Shall I tell the clinic? Yes or no?",
+  notify: "Shall I tell the clinic? Yes or no?", when: "Today, yesterday, or earlier?", area: "Which area?",
+  animal: "Which animal?", looks: "What did it look like?", place: "A landmark or street? Or say skip.",
+  call: "Can they call you? Yes or no?", phone: "What's your number?", review: "Shall I send it?",
 };
 const OPENING: Msg[] = [
-  { id: 1, who: "kaju", text: "Hello, I'm Kaju. I can help you get care after an animal bite or scratch, and let the clinic know you're coming.", voice: "Hello, I'm Kaju. I can help you get care after an animal bite or scratch, and let the clinic know you are coming." },
-  { id: 2, who: "kaju", tone: "aid", text: "First, wash the wound with soap and running water for at least 15 minutes.", voice: "First, wash the wound with soap and running water, for at least fifteen minutes." },
-  { id: 3, who: "kaju", text: "What happened? Tell me in your own words." },
+  { id: 1, who: "kaju", text: "Hi, I'm Kaju. I'll help you get care, and tell the clinic you're coming.", voice: "Hi, I'm Kaju." },
+  { id: 2, who: "kaju", tone: "aid", text: "First, wash the wound with soap and running water for 15 minutes.", voice: "First, wash the wound with soap and water for fifteen minutes." },
+  { id: 3, who: "kaju", text: "What happened?", voice: "Now, what happened?" },
 ];
 
 export function BiteHelp({ slug }: { slug: string | null }) {
@@ -72,7 +73,10 @@ export function BiteHelp({ slug }: { slug: string | null }) {
   const [sent, setSent] = useState<Sent | null>(null);
   const [reached, setReached] = useState<string[]>([]);
   const [err, setErr] = useState<string | null>(null);
-  const [talk, setTalk] = useState<Talk>({ on: false, phase: "idle", words: "", problem: null, started: 0, ended: false, muted: false });
+  const [talk, setTalk] = useState<Talk>({ on: false, phase: "idle", words: "", caption: "", problem: null, started: 0, ended: false, muted: false, engine: "browser", lang: "en-IN" });
+  const [sarvam, setSarvam] = useState<boolean | null>(null);
+  useEffect(() => { void sarvamReady().then(setSarvam); }, []);
+  const ears = useRef<Ears | null>(null), browserVoice = useRef<SpeechSynthesisVoice | null>(null);
   const [again, setAgain] = useState(0);
   const known = useRef<Set<Known>>(new Set());
   const nextId = useRef(10), spoken = useRef(false), heardTo = useRef(0), skipSay = useRef(false), finish = useRef<(() => void) | null>(null);
@@ -95,10 +99,10 @@ export function BiteHelp({ slug }: { slug: string | null }) {
 
   /* ── The conversation ── */
   const understood = (d: BiteDraft) => {
-    const bits = [d.kind === "scratch" ? "a scratch" : d.kind === "lick_broken_skin" ? "a lick on broken skin" : "a bite",
-      d.species ? `by ${d.ownership === "community" ? "a street" : d.ownership === "owned" ? "someone's" : "a"} ${SPECIES[d.species].toLowerCase()}` : null,
-      d.area ? `in ${d.area.name}` : null, d.on ? (d.when ?? dayWord(d.on).toLowerCase()) : null].filter(Boolean).join(", ");
-    return `Thank you. I understood ${bits}.${d.wantsCare ? " You're looking for medical help." : ""}${d.signs.length ? ` You mentioned ${d.signs.join(", ")}.` : ""}`;
+    const what = d.kind === "scratch" ? "scratch" : d.kind === "lick_broken_skin" ? "lick on broken skin" : "bite";
+    const who = d.species ? `${d.ownership === "community" ? "street " : d.ownership === "owned" ? "pet " : ""}${SPECIES[d.species].toLowerCase()} ` : "";
+    const where = d.area ? ` in ${d.area.name}` : "", when = d.on ? `, ${d.when ?? dayWord(d.on).toLowerCase()}` : "";
+    return `Got it: a ${who}${what}${where}${when}.${d.signs.length ? ` You mentioned ${d.signs.join(", ")}.` : ""}`;
   };
   const tell = (words: string) => {
     const w = words.trim();
@@ -108,20 +112,20 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     setF((x) => ({ ...x, ...(d.on ? { on: d.on } : {}), ...(d.area ? { area: d.area.id } : {}), ...(d.species ? { species: d.species } : {}), ...(d.looks ? { animal: d.looks } : {}), ...(d.place ? { place: d.place } : {}) }));
     for (const [k, v] of [["when", d.on], ["area", d.area], ["animal", d.species], ["looks", d.looks], ["place", d.place]] as const) if (v) known.current.add(k);
     say(w, { text: understood(d), tour: "bite-understood" },
-      { text: "One safety question. Is any of this true? Heavy bleeding or a deep wound. Several bites, or bites on the face, head, neck or hands. A young child, or someone unwell or unable to care for themselves.", voice: "One safety question. Is there heavy bleeding or a deep wound? Several bites, or a bite on the face, head, neck or hands? Or is it a young child, or someone unwell? Say yes or no.", card: { kind: "danger" } });
+      { text: "Quick safety check. Is any of this true? Heavy bleeding or a deep wound. Several bites, or bites on the face, head, neck or hands. A young child, or someone unwell.", voice: "Quick safety check. Any heavy bleeding, or a deep wound? Several bites, or a bite on the face, head, neck or hands? Or is it a young child, or someone unwell?", card: { kind: "danger" } });
     reach("understood"); setAt("danger");
   };
   const urgent = (me: string) => {
     setDanger("yes");
-    say(me, { tone: "urgent", card: { kind: "urgent" }, text: "Get emergency help now. Call 108 for an ambulance, or go to the nearest hospital emergency department.", voice: "Get emergency help now. Call 1 0 8 for an ambulance, or go to the nearest hospital emergency department." },
-      { text: "The nearest anti-rabies centres, with what each has confirmed:", voice: "The nearest centres are on your screen.", card: { kind: "centres", first: null } },
-      { text: "Shall I tell the nearest centre you're coming?", voice: "Shall I tell the nearest centre you are coming?" });
+    say(me, { tone: "urgent", card: { kind: "urgent" }, text: "This needs emergency care. Call 108 now, or go to the nearest hospital emergency.", voice: "This needs emergency care. Please call 1 0 8 now, or go to the nearest hospital emergency." },
+      { text: "Nearest anti-rabies centres:", voice: "", card: { kind: "centres", first: null } },
+      { text: "Shall I tell the nearest clinic you're coming?" });
     reach("danger"); setAt("urgent");
   };
   const noDanger = (me: string) => {
     setDanger("none");
-    say(me, { text: "Please see a doctor today, even if the wound looks small or the animal seemed healthy. The doctor decides on vaccination.", voice: "Please see a doctor today, even if the wound looks small. The doctor decides on vaccination." },
-      { text: "I can tell the nearest anti-rabies centre you're coming, so they're ready for you. Shall I?", voice: "I can tell the nearest anti-rabies centre you are coming, so they are ready for you. Shall I?", tour: "bite-notify" });
+    say(me, { text: "Good. Please still see a doctor today, even if it looks small. The doctor decides on the vaccine." , voice: "Good. Please still see a doctor today, even if it looks small." },
+      { text: "Shall I tell the nearest clinic you're coming?", tour: "bite-notify" });
     reach("danger"); setAt("notify");
   };
   const nextOf = (after: At): "when" | "area" | "animal" | "looks" | "place" | "call" => {
@@ -130,14 +134,15 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     for (const s of order.slice(from + 1)) if (s === "call" || !known.current.has(s)) return s;
     return "call";
   };
-  const askNext = (after: At, me: string | null, pre?: string) => {
+  const askNext = (after: At, me: string | null, pre = "") => {
     const n = nextOf(after);
-    say(me, ...(pre ? [{ text: pre }] : []), { text: QUESTION[n], tour: "bite-ask" });
+    const q = n === "looks" && f.species === "dog" ? "What did the dog look like? Colour, size, a collar?" : QUESTION[n];
+    say(me, { text: `${pre}${q}`, tour: "bite-ask" });
     setAt(n);
   };
-  const notify = (me: string) => { reach("ask"); askNext("notify", me, "A few details for the clinic and the animal team."); };
-  const centresOnly = (me: string) => { say(me, { text: "The nearest anti-rabies centres, with what each has confirmed:", voice: "The nearest centres are on your screen, with what each has confirmed.", card: { kind: "centres", first: null } }, { text: "Take care, and please see a doctor today." }); setAt("closed"); };
-  const whatNot = (me: string) => say(me, { text: "Please don't put chilli, turmeric, oil, lime or any home remedy on the wound, don't wait to see whether the animal becomes ill, and don't try to catch or hurt it." });
+  const notify = (me: string) => { reach("ask"); askNext("notify", me, "Sure. "); };
+  const centresOnly = (me: string) => { say(me, { text: "Here are the nearest anti-rabies centres.", voice: "The nearest centres are on your screen.", card: { kind: "centres", first: null } }, { text: "Take care, and please see a doctor today." }); setAt("closed"); };
+  const whatNot = (me: string) => say(me, { text: "Don't put chilli, turmeric, oil or any home remedy on the wound. Don't wait to see if the animal gets ill, and don't try to catch it." });
   const onWhen = (iso: string, me: string) => { setF((x) => ({ ...x, on: iso })); known.current.add("when"); askNext("when", me); };
   const onArea = (a: { id: string; name: string } | null, me: string) => { if (a) setF((x) => ({ ...x, area: a.id })); known.current.add("area"); askNext("area", me); };
   const onAnimal = (k: string, me: string) => { setF((x) => ({ ...x, species: k })); known.current.add("animal"); askNext("animal", me); };
@@ -151,8 +156,9 @@ export function BiteHelp({ slug }: { slug: string | null }) {
   const review = (me: string, phone: string | null) => {
     const next = { ...f, phone: phone ?? "" };
     setF(next);
-    say(me, { text: "Here is your report.", voice: `Here is your report. ${dayWord(next.on)}${draft?.when ? `, ${draft.when}` : ""}. ${areaName(next.area) ?? "Area not given"}${next.place ? `, ${next.place}` : ""}. ${SPECIES[next.species] ?? "An animal"}${next.animal ? `: ${next.animal}` : ""}.`, card: { kind: "review", f: next, area: areaName(next.area), when: draft?.when ?? null } },
-      { text: "Shall I send it to the nearest anti-rabies centre? Your name isn't asked for.", voice: "Shall I send it to the nearest anti-rabies centre? Say send, or start again." });
+    const kind = (SPECIES[next.species] ?? "animal").toLowerCase(), area = areaName(next.area);
+    say(me, { text: "Here's your report.", voice: `Here's your report: a ${kind} bite${area ? ` in ${area}` : ""}, ${draft?.when ?? dayWord(next.on).toLowerCase()}${next.animal ? `. ${next.animal.replace(/[.\s]+$/, "")}` : ""}.`, card: { kind: "review", f: next, area, when: draft?.when ?? null } },
+      { text: "Shall I send it to the nearest anti-rabies centre?", voice: "Shall I send it?" });
     reach("review"); setAt("review");
   };
   const callMe = (me: string) => { say(me, { text: "What number should they call?" }); setAt("phone"); };
@@ -169,9 +175,9 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     const to = r.data?.facility ?? { name: "the programme", hours: null };
     setSent({ to: to.name, hours: to.hours, time: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) });
     say(null,
-      { card: { kind: "sent", to: to.name, hours: to.hours }, text: `Sent to ${to.name}. They know you're coming.`, voice: `Sent to ${to.name}. They know you are coming.${to.hours ? ` They are open ${to.hours.toLowerCase()}.` : ""}` },
-      { text: "When the clinic records your visit, the animal team for your area is asked to find and observe the dog." },
-      { text: "Where to go today:", voice: "This is not an appointment. Please see a doctor today.", card: { kind: "centres", first: to.name } });
+      { card: { kind: "sent", to: to.name, hours: to.hours }, text: `Sent to ${to.name}. They know you're coming.`, voice: `Done. ${to.name} knows you're coming.${to.hours ? ` They're open ${to.hours.toLowerCase()}.` : ""} Please go today. Take care.` },
+      { text: "When the clinic records your visit, the animal team for your area is asked to find and observe the dog.", voice: "" },
+      { text: "Where to go today:", voice: "", card: { kind: "centres", first: to.name } });
     reach("sent"); setAt("done");
   };
 
@@ -200,7 +206,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
   const typed = (t: string) => {
     const w = t.trim();
     if (!w || typing || at === "sending") return;
-    if (interpret(at, w) === "unclear") say(w, { text: at === "tell" ? "Tell me a little more: what happened, where and when?" : "Sorry, I didn't catch that. Choose one of the answers below, or say it another way." });
+    if (interpret(at, w) === "unclear") say(w, { text: at === "tell" ? "Tell me a little more: what happened, where and when?" : "Sorry, I didn't get that. Tap an answer below, or say it another way." });
   };
 
   /* The answers to tap, the same in the chat and on the call. */
@@ -217,41 +223,76 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     at === "review" ? [["Send the report", () => void send(), "is-go"], ["Start again", () => restart()]] :
     at === "done" || at === "closed" ? [["Start a new report", () => restart("Start a new report")]] : [];
 
-  /* ── The call: each new message from Kaju said aloud, then one answer heard and read like a tap. ── */
-  const startCall = async () => {
+  /* ── The call: each new message from Kaju said aloud, then one answer heard and read like a tap. With Sarvam the
+     voice is Bulbul and the ears are Saaras (any Indian language, read as English); otherwise the browser's own,
+     with one voice kept for the whole call. ── */
+  const startCall = async (lang: string) => {
+    unlockAudio(); /* inside the tap, so the browser lets Kaju speak */
     setMode("call");
     const lastMe = [...log].reverse().find((m) => m.who === "me");
     heardTo.current = lastMe ? lastMe.id : 0;
-    setTalk({ on: false, phase: "connecting", words: "", problem: null, started: Date.now(), ended: false, muted: false });
-    const p = await checkMic();
-    if (p) { setTalk((t) => ({ ...t, on: false, phase: "idle", problem: p })); return; }
-    setTalk((t) => ({ ...t, on: true, phase: "connecting", started: Date.now() }));
+    setTalk({ on: false, phase: "connecting", words: "", caption: "", problem: null, started: Date.now(), ended: false, muted: false, engine: "browser", lang });
+    const viaSarvam = await sarvamReady();
+    if (viaSarvam) {
+      const e = new Ears(), p = await e.open();
+      if (p) { setTalk((t) => ({ ...t, phase: "idle", problem: p })); return; }
+      ears.current = e;
+    } else {
+      const p = await checkMic();
+      if (p) { setTalk((t) => ({ ...t, phase: "idle", problem: p })); return; }
+      browserVoice.current = await lockVoice();
+    }
+    setTalk((t) => ({ ...t, on: true, engine: viaSarvam ? "sarvam" : "browser", lang: viaSarvam ? lang : "en-IN", started: Date.now() }));
   };
-  const endCall = (problem: VoiceProblem | null = null) => { finish.current = null; try { window.speechSynthesis?.cancel(); } catch { /* fine */ } setTalk((t) => ({ ...t, on: false, phase: "idle", words: "", problem, ended: true })); };
+  const endCall = (problem: VoiceProblem | null = null) => { finish.current = null; hush(); ears.current?.close(); ears.current = null; setTalk((t) => ({ ...t, on: false, phase: "idle", words: "", problem, ended: true })); };
+  useEffect(() => () => { hush(); ears.current?.close(); }, []);
   useEffect(() => {
     if (!talk.on || typing) return;
     const ctl = new AbortController(), sig = ctl.signal;
     const set = (x: Partial<Talk>) => { if (!sig.aborted) setTalk((t) => (t.on ? { ...t, ...x } : t)); };
+    const viaSarvam = talk.engine === "sarvam";
+    const sayLine = async (line: string): Promise<boolean> => {
+      if (!viaSarvam) { set({ phase: "speaking", caption: line }); await speak(line, sig, browserVoice.current); return true; }
+      set({ phase: "thinking" });
+      const r = await sayAloud(line, talk.lang, sig, () => set({ phase: "speaking" }));
+      if ("error" in r) { set({ phase: "idle", problem: r.error }); return false; }
+      if (r.said) set({ caption: r.said });
+      return true;
+    };
+    const hear = async (): Promise<Heard> => {
+      set({ phase: "listening", words: "", problem: null });
+      if (!viaSarvam) return listen((w) => set({ words: w }), sig, finish);
+      const e = ears.current;
+      if (!e) return { error: "failed" };
+      finish.current = () => e.stop();
+      const level = (v: number) => document.querySelector<HTMLElement>(".kv-kaju")?.style.setProperty("--lvl", v.toFixed(2));
+      const audio = await e.record(sig, level);
+      finish.current = null;
+      if (audio === "no-speech") return { error: "no-speech" };
+      set({ phase: "thinking" });
+      return hearSarvam(audio, sig);
+    };
     (async () => {
       const fresh = log.filter((m) => m.who === "kaju" && m.id > heardTo.current);
       if (log.length) heardTo.current = Math.max(heardTo.current, log[log.length - 1].id);
-      let line: string | null = skipSay.current ? null : fresh.map((m) => m.voice ?? m.text).join(" ");
+      let line = skipSay.current ? "" : fresh.map((m) => (m.voice !== undefined ? m.voice : m.text)).filter(Boolean).join(" ");
       skipSay.current = false;
       let tries = 0;
       while (!sig.aborted) {
-        if (line && canSpeak()) { set({ phase: "speaking", words: "" }); await speak(line, sig); }
+        if (line && !(await sayLine(line))) return;
         if (sig.aborted) return;
         if (at === "done" || at === "closed") { endCall(); return; }
         if (!ASK[at]) { set({ phase: "idle" }); return; }
         if (talk.muted) { set({ phase: "muted" }); return; }
-        set({ phase: "listening", words: "", problem: null });
-        const h = await listen((w) => set({ words: w }), sig, finish);
+        const h = await hear();
         if (sig.aborted) return;
         if ("error" in h) {
           if (h.error === "no-speech" && tries++ < 1) { line = `Sorry, I didn't hear you. ${ASK[at]}`; continue; }
           if (h.error === "denied" || h.error === "unsupported" || h.error === "no-mic") { endCall(h.error); return; }
           set({ phase: "idle", problem: h.error }); return;
         }
+        /* Kaju answers in the language the caller speaks (Kannada or Hindi replies are machine-translated). */
+        if (viaSarvam && h.lang && h.lang !== talk.lang && CALL_LANGS.some(([c]) => c === h.lang)) setTalk((t) => ({ ...t, lang: h.lang as string }));
         set({ words: h.text });
         spoken.current = true;
         const r = interpret(at, h.text);
@@ -289,7 +330,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
         <div className="kb-grid">
           {mode === "chat"
             ? <ChatView {...view} onSend={typed} example={at === "tell" ? BITE_EXAMPLE : at === "looks" ? LOOKS_EXAMPLE : null} onDate={(iso) => { setF((x) => ({ ...x, on: iso })); known.current.add("when"); askNext("when", dayWord(iso)); }} />
-            : <CallView {...view} talk={talk} sent={sent} onStart={() => void startCall()} onEnd={() => endCall()} onMute={() => setTalk((t) => ({ ...t, muted: !t.muted }))} onAnswer={answerNow} onDone={() => finish.current?.()} onChat={() => pick("chat")} />}
+            : <CallView {...view} talk={talk} sent={sent} sarvam={sarvam} onStart={(lang) => void startCall(lang)} onEnd={() => endCall()} onMute={() => setTalk((t) => ({ ...t, muted: !t.muted }))} onAnswer={answerNow} onDone={() => finish.current?.()} onChat={() => pick("chat")} onLang={(lang) => setTalk((t) => ({ ...t, lang }))} />}
           <Report draft={draft} f={f} at={at} danger={danger} areaName={areaName(f.area)} sent={sent} known={known.current} />
         </div>
         <p className="kb-foot">Prototype for the Bengaluru One Health pilot, awaiting clinical review. First aid follows WHO rabies guidance and India&apos;s National Rabies Control Programme; the first aid, the safety question and the advice are fixed steps. Kaju reads your words with fixed rules on this device: no AI model reads them, and nothing here assesses a wound or recommends treatment.</p>
@@ -345,9 +386,9 @@ function Bubble({ m, slug }: { m: Msg; slug: string | null }) {
   return (
     <li className={`kc-m is-${m.who}${m.tone ? ` is-${m.tone}` : ""}${c ? ` has-${c.kind}` : ""}`} data-tour={m.tour}>
       {m.spoken ? <Mic size={13} aria-label="Said aloud" className="kc-said" /> : null}
-      {!c ? (m.tone === "aid" ? <><b>First, wash the wound</b> with soap and running water for at least 15 minutes.</> : m.text)
-        : c.kind === "danger" ? <><b>One safety question.</b> Is any of this true?<ul><li>Heavy bleeding, or a deep wound</li><li>Several bites, or bites on the face, head, neck or hands</li><li>A young child, or someone unwell or unable to care for themselves</li></ul></>
-        : c.kind === "urgent" ? <><b>Get emergency help now.</b> Call <a href="tel:108">108</a> for an ambulance, or go to the nearest hospital emergency department.</>
+      {!c ? (m.tone === "aid" ? <><b>First, wash the wound</b> with soap and running water for 15 minutes.</> : m.text)
+        : c.kind === "danger" ? <><b>Quick safety check.</b> Is any of this true?<ul><li>Heavy bleeding, or a deep wound</li><li>Several bites, or bites on the face, head, neck or hands</li><li>A young child, or someone unwell</li></ul></>
+        : c.kind === "urgent" ? <><b>This needs emergency care.</b> Call <a href="tel:108">108</a> now, or go to the nearest hospital emergency.</>
         : c.kind === "review" ? <ReviewCard c={c} />
         : c.kind === "sent" ? <span className="kc-sent" data-tour="bite-sent"><span className="kc-ok" aria-hidden><Check size={14} strokeWidth={3} /></span><span><b>Sent to {c.to}.</b> They know you&apos;re coming.{c.hours ? ` Open ${c.hours.toLowerCase()}.` : ""}</span></span>
         : <>{m.text}{slug ? <Centres slug={slug} first={c.first} /> : <p>Go to the nearest government hospital.</p>}</>}
@@ -374,21 +415,23 @@ function ReviewCard({ c }: { c: Extract<Card, { kind: "review" }> }) {
 
 /* ── The call ── */
 const clock = (ms: number) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
-function CallView({ at, quick, typing, log, err, ready, slug, talk, sent, onStart, onEnd, onMute, onAnswer, onDone, onChat }: View & { talk: Talk; sent: Sent | null; onStart: () => void; onEnd: () => void; onMute: () => void; onAnswer: () => void; onDone: () => void; onChat: () => void }) {
+function CallView({ at, quick, typing, log, err, ready, slug, talk, sent, sarvam, onStart, onEnd, onMute, onAnswer, onDone, onChat, onLang }: View & { talk: Talk; sent: Sent | null; sarvam: boolean | null; onStart: (lang: string) => void; onEnd: () => void; onMute: () => void; onAnswer: () => void; onDone: () => void; onChat: () => void; onLang: (lang: string) => void }) {
   const [now, setNow] = useState(() => Date.now());
   const [endedAt, setEndedAt] = useState(0);
+  const [lang, setLang] = useState("en-IN");
   useEffect(() => { if (!talk.on) return; const id = window.setInterval(() => setNow(Date.now()), 500); return () => window.clearInterval(id); }, [talk.on]);
   useEffect(() => { if (talk.ended) setEndedAt(Date.now()); }, [talk.ended]);
   const live = talk.on || talk.phase === "connecting";
   const lastKaju = [...log].reverse().find((m) => m.who === "kaju");
-  const pose: KajuState = talk.problem ? "concerned" : !live ? (sent ? "success" : talk.ended ? "goodbye" : "sitting") : talk.phase === "speaking" ? "explaining" : talk.phase === "listening" ? "listening" : talk.phase === "connecting" ? "looking" : "headTilt";
-  const status = talk.phase === "connecting" ? "Connecting…" : talk.phase === "speaking" ? "Kaju is speaking" : talk.phase === "listening" ? "Listening…" : talk.phase === "muted" ? "Microphone off" : "Your turn";
-  const caption = talk.phase === "listening" || (talk.words && talk.phase !== "speaking") ? (talk.words ? `“${talk.words}”` : ASK[at] ?? "") : lastKaju?.text ?? "";
+  const pose: KajuState = talk.problem ? "concerned" : !live ? (sent ? "success" : talk.ended ? "goodbye" : "sitting") : talk.phase === "speaking" ? "explaining" : talk.phase === "listening" ? "listening" : talk.phase === "thinking" ? "thinking" : talk.phase === "connecting" ? "looking" : "headTilt";
+  const status = talk.phase === "connecting" ? "Calling Kaju…" : talk.phase === "speaking" ? "Kaju" : talk.phase === "listening" ? "Listening" : talk.phase === "thinking" ? "One moment…" : talk.phase === "muted" ? "Microphone off" : "Your turn";
+  const caption = talk.phase === "listening" ? (talk.words ? `“${talk.words}”` : "") : talk.phase === "thinking" && talk.words ? `“${talk.words}”` : talk.caption || lastKaju?.text || "";
+  const langName = CALL_LANGS.find(([c]) => c === talk.lang)?.[1] ?? "English";
   return (
     <section className={`kv${live ? " is-live" : ""} is-${talk.phase}${sent && slug && !live ? " has-centres" : ""}`} aria-label="Call Kaju">
       <div className="kv-head">
         <span className="kv-who"><i className={live ? "is-on" : undefined} aria-hidden /> Kaju helpline</span>
-        <span className="kv-time">{live ? clock(now - talk.started) : talk.ended ? `Call ended · ${clock(endedAt - talk.started)}` : "Bite and scratch help"}</span>
+        <span className="kv-time">{live ? <>{clock(now - talk.started)}{talk.engine === "sarvam" ? <em>{langName}</em> : null}</> : talk.ended ? `Call ended · ${clock(endedAt - talk.started)}` : sarvam ? "Voice by Sarvam AI" : "Bite and scratch help"}</span>
       </div>
       <div className="kv-stage">
         <div className="kv-kaju" aria-hidden><span className="kv-ring" /><span className="kv-ring" /><Kaju state={pose} size={176} /></div>
@@ -396,11 +439,12 @@ function CallView({ at, quick, typing, log, err, ready, slug, talk, sent, onStar
           <p className="kv-status" role="status">{status}</p>
           <p className="kv-caption" aria-live="polite">{caption}</p>
         </> : talk.ended || talk.problem ? <>
-          <p className="kv-status">{talk.problem ? "The call could not continue" : sent ? "Report sent" : "Call ended"}</p>
-          <p className="kv-caption">{talk.problem ? problemText(talk.problem) : sent ? `Sent to ${sent.to} at ${sent.time}. They know you're coming.` : "You can call again, or carry on in the chat."}</p>
+          <p className="kv-status">{talk.problem ? "The call stopped" : sent ? "Report sent" : "Call ended"}</p>
+          <p className="kv-caption">{talk.problem ? problemText(talk.problem) : sent ? `${sent.to} knows you're coming.` : "Call again, or carry on in the chat."}</p>
         </> : <>
-          <p className="kv-status">Talk to Kaju</p>
-          <p className="kv-caption">Kaju asks what happened, checks for danger signs and tells the clinic you&apos;re coming. Just talk, as on a phone call.</p>
+          <p className="kv-status">Call Kaju</p>
+          <p className="kv-caption">Just talk. Kaju asks, listens, and tells the clinic you&apos;re coming.</p>
+          {sarvam ? <div className="kv-langs" role="radiogroup" aria-label="Language">{CALL_LANGS.map(([c, l]) => <button key={c} type="button" role="radio" aria-checked={lang === c} className={lang === c ? "is-on" : undefined} onClick={() => { setLang(c); onLang(c); }}>{l}</button>)}</div> : null}
         </>}
       </div>
       {err ? <p className="kb-err" role="alert">{err}</p> : null}
@@ -411,13 +455,13 @@ function CallView({ at, quick, typing, log, err, ready, slug, talk, sent, onStar
           <button type="button" className="kv-btn" onClick={onMute} aria-pressed={talk.muted}>{talk.muted ? <MicOff size={20} aria-hidden /> : <Mic size={20} aria-hidden />}<span>{talk.muted ? "Unmute" : "Mute"}</span></button>
           <button type="button" className="kv-end" onClick={onEnd} aria-label="End call"><PhoneOff size={24} aria-hidden /></button>
           {talk.phase === "listening" ? <button type="button" className="kv-btn" onClick={onDone}><Check size={20} aria-hidden /><span>Done</span></button>
-            : <button type="button" className="kv-btn" onClick={onAnswer} disabled={talk.phase === "speaking" || talk.phase === "connecting"}><Mic size={20} aria-hidden /><span>Answer</span></button>}
+            : <button type="button" className="kv-btn" onClick={onAnswer} disabled={talk.phase !== "idle" && talk.phase !== "muted"}><Mic size={20} aria-hidden /><span>Answer</span></button>}
         </> : <div className="kv-start">
-          <button type="button" className="kv-call" onClick={onStart} disabled={!ready} data-tour="bite-call"><Phone size={22} aria-hidden /> {ready ? (talk.ended ? "Call again" : "Call Kaju") : "One moment…"}</button>
+          <button type="button" className="kv-call" onClick={() => onStart(lang)} disabled={!ready || sarvam === null} data-tour="bite-call"><Phone size={22} aria-hidden /> {ready && sarvam !== null ? (talk.ended ? "Call again" : "Call Kaju") : "One moment…"}</button>
           {talk.ended || talk.problem ? <button type="button" className="kv-link" onClick={onChat}>Continue in the chat</button> : null}
         </div>}
       </div>
-      <p className="kv-note">A public Kaju helpline number comes with the pilot. In this demo the call runs in your browser, with its own speech recognition and voice (English for now): allow the microphone when asked.</p>
+      <p className="kv-note">{sarvam ? "Voice by Sarvam AI: your answers are turned into text by Sarvam and not stored by StrayPaw. Kannada and Hindi replies are machine-translated, awaiting review. A public helpline number comes with the pilot." : "Using this browser's own voice (English). A public helpline number comes with the pilot."}</p>
     </section>
   );
 }

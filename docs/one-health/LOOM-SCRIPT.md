@@ -40,21 +40,21 @@ demonstration database, not yet in programme use) · **Planned for the pilot** �
 | 4 | Type *"Brown dog, no collar, usually near the bus stop on 100 Feet Road"* (or **Example**), send, then **No, don't call me** | **Your report** in the chat; the report on the right reads "Ready: waiting for your OK to send", with the landmark picked out. |
 | 5 | **Send the report** | "Sent to Teaching Hospital Anti-Rabies Clinic. They know you're coming." Then **Where to go today**, with that clinic first, marked **Expecting you**. |
 
-**To show the voice call instead** (optional, adds about 30 seconds): press **Call**, then **Call Kaju**, allow the
-microphone, and answer aloud: the opening words above, then "No", "Yes", the description, "No", "Send it". Kaju
-speaks every question, the caption shows what it heard, the report fills in the same way, and the call ends with
-"Report sent". Every answer can also be tapped on the call screen.
+**To show the voice call** (optional, about 45 seconds): press **Call**, pick **English**, **ಕನ್ನಡ** or **हिन्दी**,
+then **Call Kaju** and allow the microphone. Answer aloud: what happened, "No", "Yes", the dog's description, "No",
+"Send it". Kaju's voice is Sarvam's Bulbul; your answers are read by Sarvam's Saaras, in any of those languages; the
+caption shows each line and the report fills in the same way. Every answer can also be tapped.
 
 > "A resident who's been bitten opens Kaju. First aid comes first, and it's fixed wording. Then she just says what
 > happened. Kaju pulls out the place, the time and the animal, and you can watch the report build on the right.
 > One safety question, the advice to see a doctor today, and then Kaju offers to tell the clinic she's coming,
 > asking only for what it still needs. Nothing is sent until she confirms, and then she's told exactly where to go.
-> It's the same conversation by phone: Kaju asks aloud and listens. Today the call runs in the browser; a public
-> helpline number, and calls in Kannada, are part of the pilot. No AI model reads her words here: Kaju uses fixed
+> It's the same conversation as a call: Kaju asks aloud and listens, in English, Kannada or Hindi, using Sarvam's
+> Indian-language voice models. Today the call runs in the browser; a public helpline number is part of the pilot. No AI model reads her words here: Kaju uses fixed
 > rules on her own device. WhatsApp reports land in the same place, and that live connection is waiting on Meta's
 > verification."
 
-**Marks:** Kaju chat, the browser voice call and the report *In staging* · the public helpline number and Kannada calls *Planned for the pilot* · WhatsApp Business *Awaiting integration*.
+**Marks:** Kaju chat, the Kaju call (Sarvam voice) and the report *In staging* · the public helpline number *Planned for the pilot* · WhatsApp Business *Awaiting integration*.
 
 **Then click:** **Next role: Hospital**.
 

@@ -286,3 +286,16 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
 .try-legend .is-external b { background: #fbf1e1; color: #85560c; }
 .dt-kaju.is-there { background: var(--dt-blue); }
 .dt-kaju.is-there:hover:not(:disabled) { background: #1d49b0; }
+
+/* The guide, said simply: where you are, the idea, the one thing to do, the way on. Status marks stay as chips;
+   what each one covers, the presenter's notes and Replay / Restart / roles open under Details. */
+.dt-more { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 8px; border: 0; border-radius: 8px; background: #f2f5fc; color: var(--dt-ink); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; margin-left: auto; }
+.dt.is-guide .dt-top .dt-min { margin-left: 4px; }
+.dt.is-guide { width: min(340px, calc(100vw - 32px)); gap: 10px; padding: 14px 16px 14px; }
+.dt.is-guide h2 { font-size: 18px; line-height: 24px; letter-spacing: -.015em; }
+.dt.is-guide .dt-say { font-size: 14px; line-height: 20px; color: #4a4a46; }
+.dt.is-guide:not(.is-more) .dt-who, .dt.is-guide:not(.is-more) .dt-act-k, .dt.is-guide:not(.is-more) > .dt-note:not([role="status"]), .dt.is-guide:not(.is-more) .dt-foot, .dt.is-guide:not(.is-more) .dt-tags li span { display: none; }
+.dt-tags.is-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.dt-tags.is-chips li { display: contents; }
+@media (max-width: 760px) { .dt.is-guide:not(.is-more) .dt-tags.is-chips { display: none; } }
+.dt.is-guide .dt-stages small { font-size: 11px; }

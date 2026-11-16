@@ -79,7 +79,7 @@ async function runFills(fills: Fill[]) {
     if (f.op === "wait") { await new Promise((r) => setTimeout(r, f.ms)); continue; }
     /* A field the page adds a moment later ("Add a dose date") is waited for, not skipped. */
     let el = field(f.sel);
-    for (let i = 0; !el && i < 25; i++) { await new Promise((r) => setTimeout(r, 80)); el = field(f.sel); }
+    for (let i = 0; !el && i < 60; i++) { await new Promise((r) => setTimeout(r, 80)); el = field(f.sel); }
     if (!el) continue;
     if (f.op === "type" && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) { setNative(el, typeof f.value === "function" ? f.value(indiaToday()) : f.value); el.focus({ preventScroll: true }); }
     else if (f.op === "select" && el instanceof HTMLSelectElement) setNative(el, f.value);
@@ -124,6 +124,8 @@ export function DemoTour() {
   /* On a phone the card shows the instruction and the way on; the marks and the rest open on request. */
   const [more, setMore] = useState(false);
   const card = useRef<HTMLElement | null>(null);
+  /* Answers "Next action" gives for the presenter, done one after another in the background. */
+  const chain = useRef<Promise<void>>(Promise.resolve());
   const scrolled = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -243,19 +245,20 @@ export function DemoTour() {
     return () => window.clearTimeout(t);
   }, [doneAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* Next: an action that is not done yet and can be answered (the citizen's questions) is answered first, the way a
-     person would, so the next screen exists; then the guide moves on. */
-  const next = async () => {
+  /* Next moves on at once. An action that is not done yet and can be answered (the citizen's questions) is answered
+     in the background, in order, the way a person would; only a change of person waits for those answers, so the
+     next person's screen has what they need (the hospital, the notice). */
+  const next = () => {
     if (!s || !stage || !act) return;
-    if (act.auto && onScreen && !doneAt && !isDone(act)) {
-      setFilling(true);
-      await runFills(act.auto);
-      for (let i = 0; i < 40 && !isDone(act); i++) await new Promise((r) => setTimeout(r, 150));
-      setFilling(false);
-      const cur = readTour();
-      if (cur.step !== s.step || cur.act !== s.act) return; /* it moved on by itself */
-    }
-    if (s.act < stage.acts.length - 1) void go(s.step, s.act + 1); else void go(s.step + 1, 0);
+    if (act.auto && onScreen && !doneAt && !isDone(act)) { const fills = act.auto; chain.current = chain.current.then(() => runFills(fills)).catch(() => undefined); }
+    if (s.act < stage.acts.length - 1) { void go(s.step, s.act + 1); return; }
+    setBusy(true);
+    const last = act;
+    void chain.current.then(async () => {
+      for (let i = 0; i < 40 && last.done && !isDone(last); i++) await new Promise((r) => setTimeout(r, 150));
+      setBusy(false);
+      void go(s.step + 1, 0);
+    });
   };
   const back = () => { if (!s) return; if (s.act > 0) void go(s.step, s.act - 1); else if (s.step > 0) void go(s.step - 1, STAGES[s.step - 1].acts.length - 1); };
   const replay = () => { if (s) void go(s.step, 0); };
@@ -343,7 +346,7 @@ export function DemoTour() {
       {cover}
       <aside ref={card} key={`${s.step}:${s.act}`} className={`dt is-guide${place}${done ? " is-done" : ""}${more ? " is-more" : ""}`} aria-label="Guided demo" aria-live="polite">
         <div className="dt-top">
-          <span className="dt-k">Stage {s.step + 1} of {TOUR_DONE}<span className="dt-k-l"> · {stage.label}</span></span>
+          <span className="dt-k">{s.step + 1} · {stage.label}<span className="dt-k-l"> · {s.act + 1}/{n}</span></span>
           <button type="button" className="dt-more" aria-expanded={more} onClick={() => setMore((m) => !m)}>{more ? "Less" : "Details"} {more ? <ChevronDown size={14} aria-hidden /> : <ChevronUp size={14} aria-hidden />}</button>
           <button type="button" className="dt-min" aria-label="Exit the guide and explore freely" title="Exit: explore freely; resume any time" onClick={() => writeTour({ mode: "roam", step: s.step })}><Minus size={14} aria-hidden /> Exit</button>
         </div>
@@ -356,17 +359,18 @@ export function DemoTour() {
           <div className="dt-do"><button type="button" className="dt-kaju" disabled={filling} onClick={() => void fill()}><Wand2 size={14} aria-hidden />{filling ? "Filling…" : act.example.label}</button></div>
         ) : null}
         {onScreen && act.sel && !found && !done ? <p className="dt-note" role="status">Waiting for the screen to show it…</p> : null}
-        <ul className="dt-tags" aria-label="What this shows">{act.tags.map(([k, t]) => <li key={t} className={`is-${k}`} title={AVAIL[k].note}><b>{AVAIL[k].label}</b><span>{t}</span></li>)}</ul>
+        {more ? <ul className="dt-tags" aria-label="What this shows">{act.tags.map(([k, t]) => <li key={t} className={`is-${k}`}><b>{AVAIL[k].label}</b><span>{t}</span></li>)}</ul>
+          : <ul className="dt-tags is-chips" aria-label="What this shows">{[...new Set(act.tags.map(([k]) => k))].map((k) => <li key={k} className={`is-${k}`} title={act.tags.filter(([x]) => x === k).map(([, t]) => t).join(" · ")}><b>{AVAIL[k].label}</b></li>)}</ul>}
         {act.note ? <p className="dt-note">{act.note}</p> : null}
         {last && done && stage.handoff ? <p className="dt-handoff">{stage.handoff}</p> : null}
         <div className="dt-act">
           <button type="button" className="dt-btn is-back" aria-label="Back" disabled={busy || (s.step === 0 && s.act === 0)} onClick={back}><ArrowLeft size={15} aria-hidden /></button>
           {act.example && onScreen ? <button type="button" className="dt-btn is-ex" aria-label={act.example.label} title={act.example.label} disabled={filling} onClick={() => void fill()}><Wand2 size={15} aria-hidden /><span>Example</span></button> : null}
           {needsGo ? <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => void go(s.step, s.act)}>{busy ? "Opening…" : "Take me there"} {!busy && <ArrowRight size={15} aria-hidden />}</button>
-            : <button type="button" className={`dt-btn is-go${done ? " is-ready" : ""}`} disabled={busy || filling} onClick={() => void next()}>{busy ? "Opening…" : filling ? "Answering…" : goLabel} {!busy && !filling && <ArrowRight size={15} aria-hidden />}</button>}
+            : <button type="button" className={`dt-btn is-go${done ? " is-ready" : ""}`} disabled={busy} onClick={next}>{busy ? "Opening…" : goLabel} {!busy && <ArrowRight size={15} aria-hidden />}</button>}
         </div>
         <div className="dt-foot">
-          {needsGo ? <button type="button" className="dt-text" disabled={busy} onClick={() => void next()}>{last && nextStage ? `Skip to ${nextStage.label}` : "Skip"}</button> : null}
+          {needsGo ? <button type="button" className="dt-text" disabled={busy} onClick={next}>{last && nextStage ? `Skip to ${nextStage.label}` : "Skip"}</button> : null}
           <button type="button" className="dt-text" disabled={busy} onClick={replay}>Replay stage</button>
           <button type="button" className="dt-text" disabled={busy} onClick={restart}>Restart</button>
           {roles}
