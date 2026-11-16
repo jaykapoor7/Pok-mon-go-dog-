@@ -15,12 +15,14 @@ import { isAiReply } from "@/sp3/ai/validation";
 export type TurnError = "incomplete" | "timeout" | "stopped" | "expired" | "failed";
 export type Turn = { id: string; role: "user" | "kaju"; text: string; reply?: AiReply; pending?: boolean; progress?: string[]; error?: string; kind?: TurnError; saved?: Record<string, Saved> };
 export type PlanStepView = { n: number; label: string; tool: string; level: number; how: string; waits: boolean; why: string | null; external: boolean };
-export type Planned = { plan: Plan; steps: PlanStepView[]; planner: string; key: string; text: string };
+/** A plan for review. `levels` holds every tool's level in this organisation, so steps the person adds or edits say
+    truthfully how they will run; `deadline` (YYYY-MM-DD) is when the person wants it finished, if they said. */
+export type Planned = { plan: Plan; steps: PlanStepView[]; planner: string; key: string; text: string; levels: Record<string, number>; deadline?: string | null };
 type Ctx = {
   turns: Turn[]; busy: boolean; open: boolean; setOpen: (o: boolean) => void; page: { path: string; title?: string };
   setPage: (p: { path: string; title?: string }) => void;
   ask: (text: string) => Promise<void>; clear: () => void; stop: () => void; retry: (turnId: string) => void; expired: boolean;
-  plan: (orgId: string, text: string, intent: Intent | null) => Promise<{ ok: true; planned: Planned } | { ok: false; error: string }>;
+  plan: (orgId: string, text: string, intent: Intent | null) => Promise<{ ok: true; planned: Planned } | { ok: false; error: string; noModel?: boolean }>;
   start: (orgId: string, p: Planned) => Promise<{ id?: string; error?: string }>;
   confirm: (turnId: string, p: Proposal) => Promise<Saved>;
 };
@@ -141,14 +143,14 @@ export function KajuProvider({ children }: { children: ReactNode }) {
   const plan = useCallback(async (orgId: string, text: string, intent: Intent | null) => {
     const t = await token(); if (!t) return { ok: false as const, error: "Sign in to plan missions." };
     const res = await fetch("/api/kaju/plan", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ orgId, text, intent, page }) });
-    const j = await res.json().catch(() => ({})) as { ok?: boolean; error?: string; plan?: Plan; steps?: PlanStepView[]; planner?: string };
-    if (!res.ok || !j.ok || !j.plan || !j.steps) return { ok: false as const, error: j.error ?? "Kaju could not plan this. Nothing was started." };
-    return { ok: true as const, planned: { plan: j.plan, steps: j.steps, planner: j.planner ?? "rules", key: `m${Date.now()}${Math.random().toString(36).slice(2, 8)}`, text } };
+    const j = await res.json().catch(() => ({})) as { ok?: boolean; error?: string; plan?: Plan; steps?: PlanStepView[]; planner?: string; levels?: Record<string, number>; model?: boolean };
+    if (!res.ok || !j.ok || !j.plan || !j.steps) return { ok: false as const, error: j.error ?? "Kaju could not plan this. Nothing was started.", noModel: j.model === false };
+    return { ok: true as const, planned: { plan: j.plan, steps: j.steps, planner: j.planner ?? "rules", key: `m${Date.now()}${Math.random().toString(36).slice(2, 8)}`, text, levels: j.levels ?? {} } };
   }, [page]);
 
   const start = useCallback(async (orgId: string, p: Planned) => {
     const t = await token(); if (!t) return { error: "Sign in again." };
-    const res = await fetch("/api/kaju/missions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ orgId, plan: p.plan, key: p.key, request: { text: p.text.slice(0, 2000), planner: p.planner } }) });
+    const res = await fetch("/api/kaju/missions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ orgId, plan: p.plan, key: p.key, request: { text: p.text.slice(0, 2000), planner: p.planner }, ...(p.deadline ? { deadline: `${p.deadline}T23:59:00+05:30` } : {}) }) });
     const j = await res.json().catch(() => ({})) as { id?: string; error?: string };
     return res.ok && j.id ? { id: j.id } : { error: j.error ?? "The mission could not be started." };
   }, []);

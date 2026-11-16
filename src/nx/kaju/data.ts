@@ -39,7 +39,7 @@ export type StepRow = { id: string; position: number; label: string; tool: strin
 export type MissionRow = { id: string; org_id: string; title: string; state: string; source: string; created_at: string; updated_at: string; error: string | null; deadline: string | null; request: Record<string, unknown>; nx_mission_steps: StepRow[] };
 export type EventRow = { id: number; step_id: string | null; at: string; kind: string; message: string; data: Record<string, unknown> | null };
 
-const MISSION = "id,org_id,title,state,source,created_at,updated_at,error,deadline,request,nx_mission_steps(id,position,label,tool,state,level,why,attempts,max_attempts,next_attempt_at,started_at,finished_at,error,result,input,approved_at,note)";
+export const MISSION = "id,org_id,title,state,source,created_at,updated_at,error,deadline,request,nx_mission_steps(id,position,label,tool,state,level,why,attempts,max_attempts,next_attempt_at,started_at,finished_at,error,result,input,approved_at,note)";
 /** The person's own missions, newest first. Polls gently while any is running or retrying. */
 export function useMissionList(orgId: string | null) {
   const [rows, setRows] = useState<MissionRow[] | null>(null);
@@ -47,15 +47,16 @@ export function useMissionList(orgId: string | null) {
   const [tick, setTick] = useState(0);
   const reload = useCallback(() => setTick((n) => n + 1), []);
   useEffect(() => {
-    const db = getSupabase(); if (!db) return;
+    /* Missions belong to a person in an organisation: with no organisation there is nothing to read (and a signed-out
+       read would only be refused). */
+    const db = getSupabase(); if (!db || !orgId) return;
     let alive = true;
-    let q = db.from("nx_missions").select(MISSION).order("created_at", { ascending: false }).limit(100);
-    if (orgId) q = q.eq("org_id", orgId);
+    const q = db.from("nx_missions").select(MISSION).eq("org_id", orgId).order("created_at", { ascending: false }).limit(100);
     void q.then(({ data, error: e }) => { if (!alive) return; if (e) setError(e.message); else { setError(null); setRows((data ?? []) as unknown as MissionRow[]); } });
     return () => { alive = false; };
   }, [orgId, tick]);
   const active = (rows ?? []).some((m) => ["ready", "running", "retrying"].includes(m.state));
-  useEffect(() => { if (!active) return; const t = window.setInterval(reload, 4000); return () => window.clearInterval(t); }, [active, reload]);
+  useEffect(() => { if (!active) return; const t = window.setInterval(() => { if (document.visibilityState === "visible") reload(); }, 4000); return () => window.clearInterval(t); }, [active, reload]);
   return { rows, error, reload };
 }
 
@@ -79,15 +80,15 @@ export const runMine = async () => await getSupabase()!.rpc("nx_mission_run_mine
 
 export type Prefs = { predictive: boolean; autonomy_cap: number };
 /** The person's own limits on Kaju. Missing row means the defaults: understanding on, low-risk steps run on their own. */
-export function useKajuPrefs() {
+export function useKajuPrefs(signedIn = true) {
   const [p, setP] = useState<Prefs>({ predictive: true, autonomy_cap: 2 });
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    const db = getSupabase(); if (!db) return;
+    const db = getSupabase(); if (!db || !signedIn) return;
     let alive = true;
     void db.from("nx_kaju_prefs").select("predictive,autonomy_cap").maybeSingle().then(({ data }) => { if (alive && data) setP(data as Prefs); });
     return () => { alive = false; };
-  }, [tick]);
+  }, [tick, signedIn]);
   const save = useCallback(async (next: Prefs) => {
     const db = getSupabase()!; const uid = (await db.auth.getUser()).data.user?.id;
     const r = await db.from("nx_kaju_prefs").upsert({ user_id: uid, ...next, updated_at: new Date().toISOString() });
