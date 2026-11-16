@@ -92,6 +92,8 @@ async function runFills(fills: Fill[]) {
     let el = field(f.sel);
     for (let i = 0; !el && i < 60; i++) { await new Promise((r) => setTimeout(r, 80)); el = field(f.sel); }
     if (!el) continue;
+    /* A button the page has not enabled yet (the chat waits for its area list) is waited for, not pressed in vain. */
+    if (f.op === "press") for (let i = 0; i < 60 && (el as HTMLButtonElement).disabled; i++) await new Promise((r) => setTimeout(r, 100));
     if (f.op === "type" && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) { setNative(el, typeof f.value === "function" ? f.value(indiaToday()) : f.value); el.focus({ preventScroll: true }); }
     else if (f.op === "select" && el instanceof HTMLSelectElement) setNative(el, f.value);
     else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLInputElement) { if (!el.checked) el.click(); }
