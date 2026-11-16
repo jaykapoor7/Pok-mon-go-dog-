@@ -152,7 +152,7 @@ test("Kaju's call: it says each question aloud, hears the answers, fills the rep
   await expect(page.locator(".kb[data-reached~=\"sent\"]")).toBeVisible({ timeout: 30_000 });
   await expect(page.locator(".kv")).toContainText("Report sent", { timeout: 30_000 });
   const said = (await page.evaluate(() => (window as unknown as { __said: string[] }).__said)).join(" ");
-  for (const w of ["wash the wound", "I understood a bite, by a street dog, in Indiranagar, this morning", "One safety question", "What did the animal look like", "Shall I send it", "Sent to"]) expect(said).toContain(w);
+  for (const w of ["wash the wound", "Got it: a street dog bite in Indiranagar, this morning", "Quick safety check", "What did the dog look like", "Shall I send it?", "knows you're coming"]) expect(said).toContain(w);
   /* The person's own words: none of them is taken for a landmark. */
   await expect(report).not.toContainText("a stray dog near");
 });
