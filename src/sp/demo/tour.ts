@@ -1,8 +1,9 @@
 /* The guided demo on demo.straypaw.org: one fictional dog bite in Indiranagar, followed through the real StrayPaw
    workspaces of a city One Health programme, in six stages. Each stage is a few actions on real screens: the guide
    points at the control, says what to click, type or say, notices when it is done, and moves on. The presenter
-   drives the product; the guide never clicks for them. Where typing would slow a recording, an action offers a
-   one-click example that fills the field and leaves pressing the button to the person.
+   drives the product. Where typing would slow a recording, an action offers a one-click example that fills the
+   field and leaves pressing the button to the person; on the citizen's questions, "Next action" answers for them
+   if they have not, because each answer opens the next question.
 
    Every action is marked with what it shows: live and tested, built and in staging, planned for the pilot, or
    awaiting an outside integration. Every record is illustrative (docs/one-health/DEMO.md). */
@@ -61,6 +62,9 @@ export type Act = {
   sel?: string;
   /** Fills the example in, for a recording without typing. */
   example?: { label: string; fills: Fill[] };
+  /** What "Next action" does when the action is not done yet: the same steps a person takes, so the story never
+      stalls on an unanswered question (the screen after it depends on this one). */
+  auto?: Fill[];
   /** Checked twice a second; the action is done when it matches. Without it, the presenter moves on. */
   done?: Done;
   /** The screen to remember once done, for later actions ("@bite"). */
@@ -82,29 +86,34 @@ const REQUEST = '[data-tour="request"][data-area="Indiranagar"]';
 export const STAGES: Stage[] = [
   {
     id: "citizen", label: "Citizen", role: "oh-clinician", who: "A resident, no account", title: "Report a suspected dog bite",
-    lede: "A resident tells Kaju what happened in plain words. Kaju structures it, asks for what is missing and sends a notice to the clinic once the person confirms.",
+    lede: "A resident chats with Kaju, or calls and talks. Kaju structures the report, asks only for what is missing and tells the clinic once the person confirms.",
     handoff: "The notice is now on the hospital's Today, before the patient arrives.",
     acts: [
-      { id: "tell", title: "Tell Kaju what happened", path: "/bite-help", sel: '[data-tour="bite-tell"]',
-        say: "Type or speak, in English: “A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance.” Then press Tell Kaju.",
-        example: { label: "Use the example words", fills: [{ op: "type", sel: '[data-tour="bite-tell"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance." }] },
-        done: { sel: '[data-tour="bite-understood"]' },
-        tags: [["staging", "Kaju reads the report by fixed rules, on the device"], ["staging", "Speaking through the browser's dictation"], ["pilot", "Bite reports by phone and in Kannada through Kaju Voice"]],
-        note: "First aid comes first and is fixed. Kaju extracts the place, time and animal, and asks for the rest; no AI model reads the words." },
-      { id: "safety", title: "Answer the safety question", path: "/bite-help", sel: ".bc-reply .bc-chips",
-        say: "Read what Kaju understood. Then answer the fixed danger-sign question: press “No, none of these”.",
-        done: { sel: ".bc-centres" }, tags: [["staging", "Fixed first-aid and danger-sign steps, awaiting clinical review"]],
+      { id: "tell", title: "Chat with Kaju, or call", path: "/bite-help", sel: '[data-tour="bite-compose"], [data-tour="bite-call"]',
+        say: "Kaju works by chat and by phone call. In the chat, type or press Example, then send: “A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance.” Or choose Call, press “Call Kaju” and say it.",
+        example: { label: "Use the example words", fills: [{ op: "press", sel: '[data-tour="mode-chat"]' }, { op: "wait", ms: 150 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance." }] },
+        auto: [{ op: "press", sel: '[data-tour="mode-chat"]' }, { op: "wait", ms: 200 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance." }, { op: "wait", ms: 150 }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send' }],
+        done: { sel: '[data-reached~="understood"]' },
+        tags: [["staging", "Kaju chat: reads the report by fixed rules and asks only for what is missing"], ["staging", "Kaju voice call in the browser: it speaks, listens and fills the report"], ["pilot", "A public Kaju helpline number, and calls in Kannada"]],
+        note: "The report on the right fills in as the person types or talks. Speech is the browser's own; no AI model reads the words." },
+      { id: "safety", title: "Answer the safety question", path: "/bite-help", sel: '[data-tour="bite-quick"]',
+        say: "Kaju says what it understood, then asks the fixed danger-sign question. Say or press “No, none of these”.",
+        auto: [{ op: "press", sel: "text:No, none of these" }],
+        done: { sel: '[data-reached~="danger"]' }, tags: [["staging", "Fixed first-aid and danger-sign steps, awaiting clinical review"]],
         note: "Any yes sends the person to 108 straight away. Kaju never judges the wound." },
-      { id: "where", title: "See where to go", path: "/bite-help", sel: ".bc-centres",
-        say: "The nearest centres, with what each confirmed recently: vaccine, immunoglobulin, wound washing. Then press “Tell the programme about the animal”.",
-        done: { sel: '[data-tour="bite-answer"]' }, tags: [["staging", "Service status each facility confirmed, dated"], ["external", "A verified list of centres from the health department"]] },
-      { id: "dog", title: "Add what Kaju asked for", path: "/bite-help", sel: ".bc-reply",
-        say: "Kaju asks only what the report did not say: what the dog looked like. Describe it and press send, then choose “No, just send it”.",
-        example: { label: "Use the example description", fills: [{ op: "type", sel: '[data-tour="bite-answer"] input', value: "Brown dog, no collar, usually near the bus stop on 100 Feet Road" }] },
-        done: { sel: '[data-tour="bite-review"]' }, tags: [["staging", "Only the missing questions are asked"]] },
-      { id: "send", title: "Confirm and send", path: "/bite-help", sel: '[data-tour="bite-review-acts"]',
-        say: "Check the notice Kaju prepared, then press “Send the notice”. Nothing was sent before this.",
-        done: { sel: '[data-tour="bite-sent"]' }, tags: [["staging", "The notice reaches the nearest anti-rabies centre"], ["external", "WhatsApp reports: live connection awaits Meta verification"]],
+      { id: "notify", title: "Let Kaju tell the clinic", path: "/bite-help", sel: '[data-tour="bite-quick"]',
+        say: "Kaju advises seeing a doctor today and offers to tell the nearest anti-rabies centre the person is coming. Say or press “Yes, tell the clinic”.",
+        auto: [{ op: "press", sel: "text:Yes, tell the clinic" }],
+        done: { sel: '[data-reached~="ask"]' }, tags: [["staging", "The person decides whether a notice is sent"]] },
+      { id: "dog", title: "Add what Kaju asks for", path: "/bite-help", sel: '[data-tour="bite-compose"], [data-tour="bite-quick"]',
+        say: "Kaju asks only what the first words did not say: what the dog looked like. Say or type it, then answer “No” to the call-back question.",
+        example: { label: "Use the example description", fills: [{ op: "type", sel: '[data-tour="bite-compose"] textarea', value: "Brown dog, no collar, usually near the bus stop on 100 Feet Road" }] },
+        auto: [{ op: "press", sel: '[data-tour="mode-chat"]' }, { op: "wait", ms: 200 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "Brown dog, no collar, usually near the bus stop on 100 Feet Road" }, { op: "wait", ms: 150 }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send' }, { op: "wait", ms: 1500 }, { op: "press", sel: "text:No, don't call me" }],
+        done: { sel: '[data-reached~="review"]' }, tags: [["staging", "Only the missing questions are asked"]] },
+      { id: "send", title: "Confirm and send", path: "/bite-help", sel: '[data-tour="bite-quick"]',
+        say: "Check the report, then say “Send” or press “Send the report”. Kaju shows where to go today, with the centre that now expects the person first.",
+        auto: [{ op: "press", sel: '[data-tour="bite-quick"] .is-go' }],
+        done: { sel: '[data-reached~="sent"]' }, tags: [["staging", "The notice reaches the nearest anti-rabies centre"], ["external", "WhatsApp reports: live connection awaits Meta verification"]],
         note: "Residents can also report on WhatsApp: messages, photos, voice notes and location arrive in an NGO's Inbox. That connection awaits Meta verification; you will see the pasted-message path in stage 3." },
     ],
   },

@@ -16,12 +16,12 @@ and tell us which features have been tested and which you plan to test.*
 
 | Capability | Status | Evidence |
 |---|---|---|
-| Fixed first aid and danger-sign steps, nearest centres with dated service status (`/bite-help`) | In staging | Behind the `citizen_bite_assist` flag, demo only, awaiting clinical review of the wording |
-| Kaju reads a free-text bite report and lists what is missing (place, time, animal, description) | In staging | New in this release: `src/oh/biteIntake.ts`, fixed rules on the device, no model; `npm run test:bite-intake` (5 checks) |
-| Speaking instead of typing | In staging | The browser's dictation (Chrome uses Google's speech service), English; microphone allowed on `/bite-help` on demo builds only |
-| The person confirms the notice; it reaches the nearest anti-rabies centre | In staging | `oh_submit_bite_notice`; verified in the browser run (notice appears on the hospital's Today) |
+| Kaju bite help (`/bite-help`): fixed first aid and danger-sign steps, advice to see a doctor today, nearest centres with dated service status | In staging | Behind the `citizen_bite_assist` flag, demo only, awaiting clinical review of the wording |
+| Kaju chat: reads a free-text report, asks only for what is missing, fills a visible report the person confirms | In staging | `src/oh/BiteChat.tsx`, `src/oh/biteIntake.ts`; fixed rules on the device, no model; `npm run test:bite-intake` (6 checks) |
+| Kaju voice call in the browser: Kaju says each question aloud, listens, reads the answer like a tap, and sends on a spoken "send" | In staging | `src/oh/voiceAgent.ts` (the browser's speech recognition and speech synthesis, English); `e2e/demo-story.spec.ts` drives the whole call with stand-in speech; microphone allowed on `/bite-help` on demo builds only |
+| The person confirms the notice; it reaches the nearest anti-rabies centre, which is then shown first ("Expecting you") | In staging | `oh_submit_bite_notice`; verified in the browser run (notice appears on the hospital's Today) |
 | Kaju Voice in English, Hindi and Kannada | Live and tested | `/talk` on straypaw.org (Sarvam, production only); it explains StrayPaw, it does not take bite reports |
-| Bite reports by phone and in Kannada through Kaju Voice | Planned for the pilot | Needs clinical sign-off of the spoken wording |
+| A public Kaju helpline number, and bite reports by phone in Kannada | Planned for the pilot | Needs telephony, Kannada recognition and speech, and clinical sign-off of the spoken wording |
 | WhatsApp Business: messages, photos, voice notes, location into the NGO Inbox | Awaiting integration | Parser and intake built and tested with simulated traffic (`npm run test:kaju-intake`); live connection awaits Meta verification |
 | A pasted WhatsApp message becomes a prepared case | Live and tested | Inbox → Paste a message |
 
@@ -93,7 +93,7 @@ the demo. The demonstration records are fictional and show no programme outcome.
 | Check | Result |
 |---|---|
 | Typecheck, lint | Pass (one older warning in `src/sp4/home/v7/FiveSteps.tsx`) |
-| `test:bite-intake`, `test:kaju-incident` | 5 and 6 checks pass |
+| `test:bite-intake`, `test:kaju-incident` | 6 and 6 checks pass |
 | Kaju suites (`reliability` 47, `automations`, `planner`, `polish`, `intake` 9, `prepare` 5, `inference-off` 8), `test:routes` 8 | Pass |
 | Full guided demo in a real browser against staging, 1920×1080: 6 stages, 27 actions, every highlighted control used | Complete, no page or database errors |
 | `e2e/demo-story.spec.ts` (OH_E2E=1) on https://demo.straypaw.org, deployment from commit a181fad2: the whole walkthrough, Start Demo to the closing card, including that one person's open records never follow into the next person's screens | Pass (1.4 min) |

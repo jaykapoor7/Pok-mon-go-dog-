@@ -1,259 +1,499 @@
 "use client";
 
-/* Bite help as a conversation: one short message at a time. First aid comes first, always. Then the person can tell
-   Kaju what happened in their own words, typed or spoken: Kaju picks out the fields a clinic needs with fixed rules
-   on the device (src/oh/biteIntake.ts), shows what it understood, and asks only for what is missing. The danger-sign
-   question, the first aid and the advice to see a doctor are the same reviewed steps as before; nothing here
-   assesses a wound or recommends treatment, and no AI model reads anything. The person confirms the notice before it
-   is sent, exactly as the old form sent it. Location never leaves the device. */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, LocateFixed, Mic, MicOff, Send, Sparkles } from "lucide-react";
+/* Help after an animal bite, with Kaju: the chat and the voice call a resident would use. Both are one conversation
+   in one order: first aid, the person's own words, what Kaju understood, the fixed danger-sign question, the advice
+   to see a doctor today, an offer to tell the nearest anti-rabies centre, only the details still missing, the report
+   to confirm, and where to go. Beside it, the report Kaju is preparing fills in as the person speaks or types.
+
+   Kaju reads the words with fixed rules on the device (src/oh/biteIntake.ts); no AI model reads anything. The call
+   uses the browser's own speech recognition and speech (src/oh/voiceAgent.ts); a public phone number is planned for
+   the pilot. The first aid, the danger-sign question and the advice are the reviewed fixed steps; nothing here
+   assesses a wound or recommends treatment. Nothing is sent until the person confirms. Location never leaves the
+   device. */
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { Check, LocateFixed, MessageCircle, Mic, MicOff, Phone, PhoneOff, Send, Wand2 } from "lucide-react";
+import { Kaju } from "@/kaju/Kaju";
+import type { KajuState } from "@/kaju/poses";
 import { call, relDay, today, useRead, SERVICE_LABEL, SERVICE_STATUS, SPECIES } from "./data";
 import { readBite, type BiteDraft } from "./biteIntake";
+import { canSpeak, checkMic, digits, listen, problemText, speak, whenWord, yesNo, type VoiceProblem } from "./voiceAgent";
 
 type Facility = { id: string; name: string; kind: string; area: string | null; address: string | null; phone: string | null; hours: string | null; lat: number | null; lng: number | null; services: { service: string; status: string; verified_at: string; valid_until: string }[]; refers: { service: string; to: string; to_id: string }[] };
 type Pub = { programme: { name: string; illustrative: boolean; areas: { id: string; name: string }[] } | null; facilities: Facility[] };
-type At = "tell" | "emergency" | "urgent" | "care" | "when" | "date" | "area" | "animal" | "looks" | "place" | "call" | "phone" | "review" | "sending" | "done";
-type Msg = { who: "bot" | "me"; body: ReactNode; tone?: "urgent" };
+type At = "tell" | "danger" | "urgent" | "notify" | "when" | "date" | "area" | "animal" | "looks" | "place" | "call" | "phone" | "review" | "sending" | "done" | "closed";
 type Form = { on: string; area: string; place: string; species: string; animal: string; phone: string };
+type Card = { kind: "danger" } | { kind: "urgent" } | { kind: "review"; f: Form; area: string | null; when: string | null } | { kind: "sent"; to: string; hours: string | null } | { kind: "centres"; first: string | null };
+type Msg = { id: number; who: "kaju" | "me"; text: string; voice?: string; card?: Card; tone?: "aid" | "urgent"; spoken?: boolean; tour?: string };
+type Talk = { on: boolean; phase: "connecting" | "speaking" | "listening" | "idle" | "muted"; words: string; problem: VoiceProblem | null; started: number; ended: boolean; muted: boolean };
+type Mode = "chat" | "call";
+type Known = "when" | "area" | "animal" | "looks" | "place";
+type Sent = { to: string; hours: string | null; time: string };
 
-const tone: Record<string, string> = { green: "#1f7a4d", amber: "#a86a0c", flame: "#c23a22", "": "#6b7486" };
-const km = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
-  const r = (d: number) => (d * Math.PI) / 180, R = 6371;
-  const x = Math.sin(r(b.lat - a.lat) / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(r(b.lng - a.lng) / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(x));
-};
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
-/** The words the guided demo offers with one click, when speaking is not possible. */
+/** The words the guided demo offers with one click. */
 export const BITE_EXAMPLE = "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance.";
 export const LOOKS_EXAMPLE = "Brown dog, no collar, usually near the bus stop on 100 Feet Road";
 const dayWord = (iso: string) => iso === today() ? "Today" : iso === daysAgo(1) ? "Yesterday" : new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 const WHO: Record<string, string> = { self: "You", someone: "Someone else", child: "A child" };
-const ASKED: Record<string, string> = { when: "when it happened", where: "the area", animal: "which animal", looks: "what the animal looked like", danger: "danger signs" };
+const KIND: Record<string, string> = { bite: "A bite", scratch: "A scratch", lick_broken_skin: "A lick on broken skin" };
+const EMPTY: Form = { on: today(), area: "", place: "", species: "dog", animal: "", phone: "" };
+/* The questions, in the order Kaju asks them, and what Kaju says again when an answer is not clear. */
+const QUESTION: Record<"when" | "area" | "animal" | "looks" | "place" | "call", string> = {
+  when: "When did it happen?", area: "Which area was it in?", animal: "What animal was it?",
+  looks: "What did the animal look like? Its colour, size, a collar, any marks.", place: "Where is it usually seen? A landmark or a street.",
+  call: "May the clinic call you about this?",
+};
+const ASK: Partial<Record<At, string>> = {
+  tell: "Tell me what happened.", danger: "Is any of this true? Say yes or no.", urgent: "Shall I tell the clinic you are coming? Say yes or no.",
+  notify: "Shall I tell the clinic you are coming? Say yes or no.", when: "Say today, yesterday, or earlier.", area: "Say the name of the area.",
+  animal: "Say dog, cat, monkey, or another animal.", looks: "Describe the animal: its colour, size, a collar.", place: "Say a landmark or a street, or say skip.",
+  call: "May the clinic call you? Say yes or no.", phone: "Say your phone number.", review: "Say send, or start again.",
+};
+const OPENING: Msg[] = [
+  { id: 1, who: "kaju", text: "Hello, I'm Kaju. I can help you get care after an animal bite or scratch, and let the clinic know you're coming.", voice: "Hello, I'm Kaju. I can help you get care after an animal bite or scratch, and let the clinic know you are coming." },
+  { id: 2, who: "kaju", tone: "aid", text: "First, wash the wound with soap and running water for at least 15 minutes.", voice: "First, wash the wound with soap and running water, for at least fifteen minutes." },
+  { id: 3, who: "kaju", text: "What happened? Tell me in your own words." },
+];
 
-export function BiteChat({ slug }: { slug: string | null }) {
-  const [at, setAt] = useState<At>("tell");
-  const [log, setLog] = useState<Msg[]>([
-    { who: "bot", body: <><b>Wash the wound now.</b> Soap and running water, for at least 15 minutes.</> },
-    { who: "bot", body: <>Tell me what happened, in your own words. Type it or speak it: I will pick out what the clinic needs and ask for the rest.</> },
-  ]);
-  const [f, setF] = useState<Form>({ on: today(), area: "", place: "", species: "dog", animal: "", phone: "" });
-  const [draft, setDraft] = useState<BiteDraft | null>(null);
-  /* Fields the person has given, in their own words or by answering. Kaju asks only for the others. */
-  const known = useRef<Set<"when" | "area" | "animal" | "looks" | "place">>(new Set());
-  const [text, setText] = useState(""), [err, setErr] = useState<string | null>(null);
-  const [sentTo, setSentTo] = useState<string | null>(null);
-  const end = useRef<HTMLDivElement>(null);
-  const say = (me: ReactNode | null, ...bot: Msg[]) => setLog((l) => [...l, ...(me ? [{ who: "me" as const, body: me }] : []), ...bot]);
-  useEffect(() => { if (log.length > 2) end.current?.scrollIntoView({ block: "end", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }, [log.length, at]);
+export function BiteHelp({ slug }: { slug: string | null }) {
   const pub = useRead<Pub>(() => (slug ? call<Pub>("oh_public_services", { p_programme_slug: slug }) : Promise.resolve({ data: null, error: null })), `pub:${slug}`);
   const areas = pub.data?.programme?.areas ?? [];
   const areaName = (id: string) => areas.find((a) => a.id === id)?.name ?? null;
+  const ready = !slug || !!pub.data || !!pub.error;
 
-  const danger = (pre: ReactNode | null) => ({ who: "bot" as const, body: <>{pre}Is any of this true?<ul><li>Heavy bleeding, or a deep wound</li><li>Several bites, or bites on the face, head, neck or hands</li><li>A young child, or someone unwell or unable to care for themselves</li></ul></> });
-  /* The person's own words, read by Kaju. */
+  const [mode, setMode] = useState<Mode>("chat");
+  const [at, setAt] = useState<At>("tell");
+  const [log, setLog] = useState<Msg[]>(OPENING);
+  const [queue, setQueue] = useState<Msg[]>([]);
+  const [f, setF] = useState<Form>(EMPTY);
+  const [draft, setDraft] = useState<BiteDraft | null>(null);
+  const [danger, setDanger] = useState<"none" | "yes" | null>(null);
+  const [sent, setSent] = useState<Sent | null>(null);
+  const [reached, setReached] = useState<string[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+  const [talk, setTalk] = useState<Talk>({ on: false, phase: "idle", words: "", problem: null, started: 0, ended: false, muted: false });
+  const [again, setAgain] = useState(0);
+  const known = useRef<Set<Known>>(new Set());
+  const nextId = useRef(10), spoken = useRef(false), heardTo = useRef(0), skipSay = useRef(false), finish = useRef<(() => void) | null>(null);
+  const reach = (m: string) => setReached((r) => (r.includes(m) ? r : [...r, m]));
+  const instant = mode === "call" || (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  /* The person's message shows at once; Kaju's follow, one at a time, after a short "typing" pause in the chat. */
+  const say = (me: string | null, ...bots: Omit<Msg, "id" | "who">[]) => {
+    const sp = spoken.current; spoken.current = false;
+    if (me) setLog((l) => [...l, { id: nextId.current++, who: "me", text: me, spoken: sp }]);
+    if (bots.length) setQueue((q) => [...q, ...bots.map((b) => ({ ...b, id: nextId.current++, who: "kaju" as const }))]);
+  };
+  useEffect(() => {
+    if (!queue.length) return;
+    const m = queue[0];
+    const t = window.setTimeout(() => { setLog((l) => [...l, m]); setQueue((q) => q.slice(1)); }, instant ? 0 : Math.min(1000, 360 + m.text.length * 5));
+    return () => window.clearTimeout(t);
+  }, [queue, instant]);
+  const typing = queue.length > 0;
+
+  /* ── The conversation ── */
+  const understood = (d: BiteDraft) => {
+    const bits = [d.kind === "scratch" ? "a scratch" : d.kind === "lick_broken_skin" ? "a lick on broken skin" : "a bite",
+      d.species ? `by ${d.ownership === "community" ? "a street" : d.ownership === "owned" ? "someone's" : "a"} ${SPECIES[d.species].toLowerCase()}` : null,
+      d.area ? `in ${d.area.name}` : null, d.on ? (d.when ?? dayWord(d.on).toLowerCase()) : null].filter(Boolean).join(", ");
+    return `Thank you. I understood ${bits}.${d.wantsCare ? " You're looking for medical help." : ""}${d.signs.length ? ` You mentioned ${d.signs.join(", ")}.` : ""}`;
+  };
   const tell = (words: string) => {
     const w = words.trim();
     if (!w) return;
     const d = readBite(w, areas);
-    setDraft(d); setText("");
-    const next = { ...f };
-    if (d.on) { next.on = d.on; known.current.add("when"); }
-    if (d.area) { next.area = d.area.id; known.current.add("area"); }
-    if (d.species) { next.species = d.species; known.current.add("animal"); }
-    if (d.looks) { next.animal = d.looks; known.current.add("looks"); }
-    if (d.place) { next.place = d.place; known.current.add("place"); }
-    setF(next);
-    say(w, { who: "bot", body: <Understood d={d} /> }, danger(d.signs.length ? <>You mentioned {d.signs.join(", ")}. </> : null));
-    setAt("emergency");
+    setDraft(d);
+    setF((x) => ({ ...x, ...(d.on ? { on: d.on } : {}), ...(d.area ? { area: d.area.id } : {}), ...(d.species ? { species: d.species } : {}), ...(d.looks ? { animal: d.looks } : {}), ...(d.place ? { place: d.place } : {}) }));
+    for (const [k, v] of [["when", d.on], ["area", d.area], ["animal", d.species], ["looks", d.looks], ["place", d.place]] as const) if (v) known.current.add(k);
+    say(w, { text: understood(d), tour: "bite-understood" },
+      { text: "One safety question. Is any of this true? Heavy bleeding or a deep wound. Several bites, or bites on the face, head, neck or hands. A young child, or someone unwell or unable to care for themselves.", voice: "One safety question. Is there heavy bleeding or a deep wound? Several bites, or a bite on the face, head, neck or hands? Or is it a young child, or someone unwell? Say yes or no.", card: { kind: "danger" } });
+    reach("understood"); setAt("danger");
   };
-  const care = (me: string) => { say(me, { who: "bot", body: <><b>See a doctor today,</b> even if the wound looks small or the animal seemed healthy. The doctor decides on vaccine.</> }, { who: "bot", body: slug ? <Centres slug={slug} /> : <>Go to the nearest government hospital. Verified centres will be listed here once the health department confirms them.</> }); setAt("care"); };
-  /* What to ask next: only what the person has not told Kaju yet. */
-  const QUESTION: Record<string, ReactNode> = { when: "When did it happen?", area: "Which area?", animal: "What animal was it?", looks: "What did the animal look like? Colour, size, a collar, any marks.", place: "Where can it be found? A landmark or street.", call: "May a clinic call you about this?" };
-  const nextOf = (after: At, k: Set<string>): At => {
-    const order: At[] = ["when", "area", "animal", "looks", "place", "call"];
-    for (const s of order.slice(order.indexOf(after) + 1)) if (s === "call" || !k.has(s)) return s;
+  const urgent = (me: string) => {
+    setDanger("yes");
+    say(me, { tone: "urgent", card: { kind: "urgent" }, text: "Get emergency help now. Call 108 for an ambulance, or go to the nearest hospital emergency department.", voice: "Get emergency help now. Call 1 0 8 for an ambulance, or go to the nearest hospital emergency department." },
+      { text: "The nearest anti-rabies centres, with what each has confirmed:", voice: "The nearest centres are on your screen.", card: { kind: "centres", first: null } },
+      { text: "Shall I tell the nearest centre you're coming?", voice: "Shall I tell the nearest centre you are coming?" });
+    reach("danger"); setAt("urgent");
+  };
+  const noDanger = (me: string) => {
+    setDanger("none");
+    say(me, { text: "Please see a doctor today, even if the wound looks small or the animal seemed healthy. The doctor decides on vaccination.", voice: "Please see a doctor today, even if the wound looks small. The doctor decides on vaccination." },
+      { text: "I can tell the nearest anti-rabies centre you're coming, so they're ready for you. Shall I?", voice: "I can tell the nearest anti-rabies centre you are coming, so they are ready for you. Shall I?", tour: "bite-notify" });
+    reach("danger"); setAt("notify");
+  };
+  const nextOf = (after: At): "when" | "area" | "animal" | "looks" | "place" | "call" => {
+    const order = ["when", "area", "animal", "looks", "place", "call"] as const;
+    const from = (order as readonly string[]).indexOf(after);
+    for (const s of order.slice(from + 1)) if (s === "call" || !known.current.has(s)) return s;
     return "call";
   };
-  const askNext = (after: At, me: ReactNode, k = known.current) => { const n = nextOf(after, k); setText(""); say(me, { who: "bot", body: QUESTION[n] }); setAt(n); };
-  const answered = (key: "when" | "area" | "animal" | "looks" | "place") => known.current.add(key);
-  const review = (me: ReactNode | null, phone: string | null) => { say(me, { who: "bot", body: <Review f={f} phone={phone} areaName={areaName(f.area)} draft={draft} /> }); setF((x) => ({ ...x, phone: phone ?? "" })); setAt("review"); };
+  const askNext = (after: At, me: string | null, pre?: string) => {
+    const n = nextOf(after);
+    say(me, ...(pre ? [{ text: pre }] : []), { text: QUESTION[n], tour: "bite-ask" });
+    setAt(n);
+  };
+  const notify = (me: string) => { reach("ask"); askNext("notify", me, "A few details for the clinic and the animal team."); };
+  const centresOnly = (me: string) => { say(me, { text: "The nearest anti-rabies centres, with what each has confirmed:", voice: "The nearest centres are on your screen, with what each has confirmed.", card: { kind: "centres", first: null } }, { text: "Take care, and please see a doctor today." }); setAt("closed"); };
+  const whatNot = (me: string) => say(me, { text: "Please don't put chilli, turmeric, oil, lime or any home remedy on the wound, don't wait to see whether the animal becomes ill, and don't try to catch or hurt it." });
+  const onWhen = (iso: string, me: string) => { setF((x) => ({ ...x, on: iso })); known.current.add("when"); askNext("when", me); };
+  const onArea = (a: { id: string; name: string } | null, me: string) => { if (a) setF((x) => ({ ...x, area: a.id })); known.current.add("area"); askNext("area", me); };
+  const onAnimal = (k: string, me: string) => { setF((x) => ({ ...x, species: k })); known.current.add("animal"); askNext("animal", me); };
+  const onLooks = (v: string) => {
+    /* A landmark said with the description ("…near the bus stop") answers the next question too. */
+    const p = v ? readBite(v, areas).place : null;
+    setF((x) => ({ ...x, animal: v, ...(p && !x.place ? { place: p } : {}) })); known.current.add("looks"); if (p) known.current.add("place");
+    askNext("looks", v || "Skip");
+  };
+  const onPlace = (v: string) => { setF((x) => ({ ...x, place: v })); known.current.add("place"); askNext("place", v || "Skip"); };
+  const review = (me: string, phone: string | null) => {
+    const next = { ...f, phone: phone ?? "" };
+    setF(next);
+    say(me, { text: "Here is your report.", voice: `Here is your report. ${dayWord(next.on)}${draft?.when ? `, ${draft.when}` : ""}. ${areaName(next.area) ?? "Area not given"}${next.place ? `, ${next.place}` : ""}. ${SPECIES[next.species] ?? "An animal"}${next.animal ? `: ${next.animal}` : ""}.`, card: { kind: "review", f: next, area: areaName(next.area), when: draft?.when ?? null } },
+      { text: "Shall I send it to the nearest anti-rabies centre? Your name isn't asked for.", voice: "Shall I send it to the nearest anti-rabies centre? Say send, or start again." });
+    reach("review"); setAt("review");
+  };
+  const callMe = (me: string) => { say(me, { text: "What number should they call?" }); setAt("phone"); };
+  const restart = (me = "Start again") => {
+    setDraft(null); setDanger(null); known.current = new Set(); setF(EMPTY); setSent(null);
+    say(me, { text: "What happened? Tell me in your own words." }); setAt("tell");
+  };
   const send = async () => {
     setAt("sending"); setErr(null);
+    say("Send the report");
     const phone = f.phone.trim() || null;
     const r = await call<{ facility: { name: string; hours: string | null } | null }>("oh_submit_bite_notice", { p_programme_slug: slug, p_happened_on: f.on, p_area: f.area || null, p_place: f.place || null, p_species: f.species, p_animal_description: f.animal || null, p_phone: phone, p_consent: !!phone, p_lat: null, p_lng: null });
     if (r.error) { setErr(r.error); setAt("review"); return; }
     const to = r.data?.facility ?? { name: "the programme", hours: null };
-    setSentTo(to.name);
-    say("Send the notice", { who: "bot", body: <span data-tour="bite-sent"><b>Sent to {to.name}</b>{to.hours ? ` (${to.hours})` : ""}. This is not an appointment: still see a doctor today.</span> }); setAt("done");
+    setSent({ to: to.name, hours: to.hours, time: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) });
+    say(null,
+      { card: { kind: "sent", to: to.name, hours: to.hours }, text: `Sent to ${to.name}. They know you're coming.`, voice: `Sent to ${to.name}. They know you are coming.${to.hours ? ` They are open ${to.hours.toLowerCase()}.` : ""}` },
+      { text: "When the clinic records your visit, the animal team for your area is asked to find and observe the dog." },
+      { text: "Where to go today:", voice: "This is not an appointment. Please see a doctor today.", card: { kind: "centres", first: to.name } });
+    reach("sent"); setAt("done");
   };
 
-  const chips = (items: [string, () => void][]) => <div className="bc-chips">{items.map(([l, go]) => <button key={l} type="button" onClick={go}>{l}</button>)}</div>;
-  const typed = (label: string, placeholder: string, onDone: (v: string) => void, opts?: { type?: string; skip?: boolean; example?: string }) => (
-    <form className="bc-type" data-tour="bite-answer" onSubmit={(e) => { e.preventDefault(); if (text.trim() || opts?.skip !== false) onDone(text.trim()); }}>
-      <input aria-label={label} type={opts?.type ?? "text"} inputMode={opts?.type === "tel" ? "tel" : undefined} pattern={opts?.type === "tel" ? "[0-9+ ]{8,16}" : undefined} required={opts?.skip === false} value={text} maxLength={200} placeholder={placeholder} onChange={(e) => setText(e.target.value)} autoFocus data-example={opts?.example} />
-      {opts?.skip !== false && !text.trim() ? <button type="submit" className="is-quiet">Skip</button> : <button type="submit" aria-label="Send"><Send size={16} aria-hidden /></button>}
-    </form>);
+  /** A typed or spoken answer, read as the matching button. */
+  const interpret = (a: At, t: string): "next" | "unclear" => {
+    const yn = yesNo(t);
+    switch (a) {
+      case "tell": if (t.trim().split(/\s+/).length < 3) return "unclear"; tell(t); return "next";
+      case "danger": if (yn === "yes") { urgent(t); return "next"; } if (yn === "no") { noDanger(t); return "next"; } return "unclear";
+      case "urgent": case "notify":
+        if (/\b(not do|shouldn'?t|should not|avoid)\b/i.test(t)) { whatNot(t); return "next"; }
+        if (yn === "yes" || /\b(tell|send|inform|let them know)\b/i.test(t)) { notify(t); return "next"; }
+        if (yn === "no" || /\b(where|centres?|centers?|hospital|just show)\b/i.test(t)) { centresOnly(t); return "next"; }
+        return "unclear";
+      case "when": { const w = whenWord(t); if (w === "today") { onWhen(today(), t); return "next"; } if (w === "yesterday") { onWhen(daysAgo(1), t); return "next"; } if (w === "earlier") { say(t, { text: "Please choose the date." }); setAt("date"); return "next"; } return "unclear"; }
+      case "area": { const hit = readBite(t, areas).area; if (hit) { onArea(hit, t); return "next"; } if (/\b(not sure|don'?t know|no idea|skip)\b/i.test(t)) { onArea(null, t); return "next"; } return "unclear"; }
+      case "animal": { const sp = readBite(t, areas).species; if (sp) { onAnimal(sp, t); return "next"; } return "unclear"; }
+      case "looks": onLooks(/^\s*(skip|nothing|don'?t know)\b/i.test(t) ? "" : t); return "next";
+      case "place": onPlace(/^\s*(skip|nothing|don'?t know)\b/i.test(t) ? "" : t); return "next";
+      case "call": if (yn === "yes") { callMe(t); return "next"; } if (yn === "no") { review(t, null); return "next"; } return "unclear";
+      case "phone": { const d = digits(t); if (d.length >= 8 && d.length <= 13) { review(t, d); return "next"; } return "unclear"; }
+      case "review": if (/\b(start again|restart|start over|change|wrong)\b/i.test(t)) { restart(t); return "next"; } if (yn === "yes" || /\bsend\b/i.test(t)) { void send(); return "next"; } return "unclear";
+      default: return "unclear";
+    }
+  };
+  const typed = (t: string) => {
+    const w = t.trim();
+    if (!w || typing || at === "sending") return;
+    if (interpret(at, w) === "unclear") say(w, { text: at === "tell" ? "Tell me a little more: what happened, where and when?" : "Sorry, I didn't catch that. Choose one of the answers below, or say it another way." });
+  };
 
-  /* Kaju matches the area against the programme's own list, so the report waits for it (a second at most). */
-  const areasReady = !slug || !!pub.data || !!pub.error;
-  const reply = at === "tell" ? <Tell ready={areasReady} text={text} setText={setText} onTell={tell} onSteps={() => { say("Answer step by step", danger(null)); setAt("emergency"); }} />
-    : at === "emergency" ? chips([["Yes", () => { say("Yes", { who: "bot", tone: "urgent", body: <><b>Get emergency help now.</b> Call <a href="tel:108">108</a> for an ambulance, or <a href="tel:112">112</a>.</> }); setAt("urgent"); }], ["No, none of these", () => care("No, none of these")]])
-    : at === "urgent" ? chips([["Where can I go?", () => care("Where can I go?")]])
-    : at === "care" ? (slug ? chips([["Tell the programme about the animal", () => askNext("care", "Tell the programme about the animal")], ["What should I not do?", () => say("What should I not do?", { who: "bot", body: <>Do not<ul><li>put chilli, turmeric, oil, lime, herbs or any home remedy on the wound</li><li>wait to see whether the animal becomes ill</li><li>try to catch, hurt or kill the animal</li></ul></> })]]) : null)
-    : at === "when" ? chips([["Today", () => { setF({ ...f, on: today() }); answered("when"); askNext("when", "Today"); }], ["Yesterday", () => { setF({ ...f, on: daysAgo(1) }); answered("when"); askNext("when", "Yesterday"); }], ["Earlier", () => setAt("date")]])
-    : at === "date" ? <form className="bc-type" onSubmit={(e) => { e.preventDefault(); answered("when"); askNext("when", f.on); }}><input type="date" aria-label="The date it happened" value={f.on} min={daysAgo(30)} max={today()} onChange={(e) => setF({ ...f, on: e.target.value })} required /><button type="submit" aria-label="Send"><Send size={16} aria-hidden /></button></form>
-    : at === "area" ? chips([...areas.map((a): [string, () => void] => [a.name, () => { setF({ ...f, area: a.id }); answered("area"); askNext("area", a.name); }]), ["Not sure", () => { answered("area"); askNext("area", "Not sure"); }]])
-    : at === "animal" ? chips(Object.entries(SPECIES).map(([k, v]): [string, () => void] => [v, () => { setF({ ...f, species: k }); answered("animal"); askNext("animal", v); }]))
-    : at === "looks" ? typed("What the animal looked like", "Colour, size, collar, marks", (v) => {
-        /* A landmark said with the description ("…near the bus stop") answers the next question too. */
-        const p = v ? readBite(v, areas).place : null;
-        setF({ ...f, animal: v, ...(p && !f.place ? { place: p } : {}) }); answered("looks"); if (p) answered("place");
-        askNext("looks", v || "Skip");
-      }, { example: LOOKS_EXAMPLE })
-    : at === "place" ? typed("Where it can be found", "Landmark or street", (v) => { setF({ ...f, place: v }); answered("place"); askNext("place", v || "Skip"); })
-    : at === "call" ? chips([["Yes, call me", () => { say("Yes, call me", { who: "bot", body: "Your phone number?" }); setText(""); setAt("phone"); }], ["No, just send it", () => review("No, just send it", null)]])
-    : at === "phone" ? typed("Phone", "Phone number", (v) => review(v, v), { type: "tel", skip: false })
-    : at === "review" ? <div className="bc-chips" data-tour="bite-review-acts"><button type="button" className="is-go" onClick={() => void send()}><Check size={16} aria-hidden /> Send the notice</button><button type="button" onClick={() => { setDraft(null); known.current = new Set(); setF({ on: today(), area: "", place: "", species: "dog", animal: "", phone: "" }); say("Start again", { who: "bot", body: <>Tell me what happened, in your own words.</> }); setAt("tell"); }}>Start again</button></div>
-    : at === "sending" ? <p className="bc-wait" role="status">Sending…</p> : null;
+  /* The answers to tap, the same in the chat and on the call. */
+  const quick: [string, () => void, string?][] =
+    at === "danger" ? [["Yes", () => urgent("Yes")], ["No, none of these", () => noDanger("No, none of these")]] :
+    at === "urgent" ? [["Yes, tell the clinic", () => notify("Yes, tell the clinic"), "is-go"]] :
+    at === "notify" ? [["Yes, tell the clinic", () => notify("Yes, tell the clinic"), "is-go"], ["No, just show me where to go", () => centresOnly("No, just show me where to go")], ["What should I not do?", () => whatNot("What should I not do?")]] :
+    at === "when" ? [["Today", () => onWhen(today(), "Today")], ["Yesterday", () => onWhen(daysAgo(1), "Yesterday")], ["Earlier", () => { say("Earlier", { text: "Please choose the date." }); setAt("date"); }]] :
+    at === "area" ? [...areas.map((a): [string, () => void] => [a.name, () => onArea(a, a.name)]), ["Not sure", () => onArea(null, "Not sure")]] :
+    at === "animal" ? Object.entries(SPECIES).map(([k, v]): [string, () => void] => [v, () => onAnimal(k, v)]) :
+    at === "looks" ? [["Skip", () => onLooks("")]] :
+    at === "place" ? [["Skip", () => onPlace("")]] :
+    at === "call" ? [["Yes, call me", () => callMe("Yes, call me")], ["No, don't call me", () => review("No, don't call me", null)]] :
+    at === "review" ? [["Send the report", () => void send(), "is-go"], ["Start again", () => restart()]] :
+    at === "done" || at === "closed" ? [["Start a new report", () => restart("Start a new report")]] : [];
 
+  /* ── The call: each new message from Kaju said aloud, then one answer heard and read like a tap. ── */
+  const startCall = async () => {
+    setMode("call");
+    const lastMe = [...log].reverse().find((m) => m.who === "me");
+    heardTo.current = lastMe ? lastMe.id : 0;
+    setTalk({ on: false, phase: "connecting", words: "", problem: null, started: Date.now(), ended: false, muted: false });
+    const p = await checkMic();
+    if (p) { setTalk((t) => ({ ...t, on: false, phase: "idle", problem: p })); return; }
+    setTalk((t) => ({ ...t, on: true, phase: "connecting", started: Date.now() }));
+  };
+  const endCall = (problem: VoiceProblem | null = null) => { finish.current = null; try { window.speechSynthesis?.cancel(); } catch { /* fine */ } setTalk((t) => ({ ...t, on: false, phase: "idle", words: "", problem, ended: true })); };
+  useEffect(() => {
+    if (!talk.on || typing) return;
+    const ctl = new AbortController(), sig = ctl.signal;
+    const set = (x: Partial<Talk>) => { if (!sig.aborted) setTalk((t) => (t.on ? { ...t, ...x } : t)); };
+    (async () => {
+      const fresh = log.filter((m) => m.who === "kaju" && m.id > heardTo.current);
+      if (log.length) heardTo.current = Math.max(heardTo.current, log[log.length - 1].id);
+      let line: string | null = skipSay.current ? null : fresh.map((m) => m.voice ?? m.text).join(" ");
+      skipSay.current = false;
+      let tries = 0;
+      while (!sig.aborted) {
+        if (line && canSpeak()) { set({ phase: "speaking", words: "" }); await speak(line, sig); }
+        if (sig.aborted) return;
+        if (at === "done" || at === "closed") { endCall(); return; }
+        if (!ASK[at]) { set({ phase: "idle" }); return; }
+        if (talk.muted) { set({ phase: "muted" }); return; }
+        set({ phase: "listening", words: "", problem: null });
+        const h = await listen((w) => set({ words: w }), sig, finish);
+        if (sig.aborted) return;
+        if ("error" in h) {
+          if (h.error === "no-speech" && tries++ < 1) { line = `Sorry, I didn't hear you. ${ASK[at]}`; continue; }
+          if (h.error === "denied" || h.error === "unsupported" || h.error === "no-mic") { endCall(h.error); return; }
+          set({ phase: "idle", problem: h.error }); return;
+        }
+        set({ words: h.text });
+        spoken.current = true;
+        const r = interpret(at, h.text);
+        spoken.current = false;
+        if (r === "next") return;
+        if (tries++ < 2) { line = `Sorry, I didn't catch that. ${ASK[at]}`; continue; }
+        set({ phase: "idle" }); return;
+      }
+    })();
+    return () => ctl.abort();
+  }, [talk.on, talk.muted, at, again, typing, log.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const answerNow = () => { skipSay.current = true; setTalk((t) => ({ ...t, problem: null, muted: false })); setAgain((n) => n + 1); };
+
+  const pick = (m: Mode) => { if (m === mode) return; if (m === "chat" && talk.on) endCall(); setMode(m); };
+  const view = { at, quick, typing, log, err, ready, slug };
   return (
-    <section className="bc" aria-label="Help after a bite" data-tour-state={at} data-sent-to={sentTo ?? undefined}>
-      <ol className="bc-log" aria-live="polite">
-        {log.map((m, i) => <li key={i} className={`bc-m is-${m.who}${m.tone ? ` is-${m.tone}` : ""}`}>{m.body}</li>)}
-      </ol>
-      {err ? <p className="bc-err" role="alert">{err}</p> : null}
-      <div className="bc-reply">{reply}</div>
-      <div ref={end} />
+    <div className="kb" data-at={at} data-mode={mode} data-reached={reached.join(" ")} data-sent-to={sent?.to}>
+      <header className="kb-top">
+        <Link href="/" className="kb-brand" aria-label="StrayPaw home"><img src="/icon-192.png" alt="" width={28} height={28} /><span>StrayPaw</span></Link>
+        <span className="kb-app"><b>Kaju</b><span>Help after an animal bite</span></span>
+        {pub.data?.programme?.illustrative ? <span className="kb-demo">Demonstration · fictional records</span> : null}
+        <a className="kb-108" href="tel:108" aria-label="Emergency: call 108"><Phone size={14} aria-hidden /><span>Emergency</span> <b>108</b></a>
+      </header>
+      <main id="main" className="kb-main">
+        <div className="kb-head">
+          <div>
+            <h1>Bitten or scratched by an animal?</h1>
+            <p>Kaju helps you get care today and tells the nearest anti-rabies centre you&apos;re coming. Chat, or call and talk.</p>
+          </div>
+          <div className="kb-modes" role="tablist" aria-label="How to talk to Kaju">
+            <button type="button" role="tab" aria-selected={mode === "chat"} className={mode === "chat" ? "is-on" : undefined} onClick={() => pick("chat")} data-tour="mode-chat"><MessageCircle size={16} aria-hidden /> Chat</button>
+            <button type="button" role="tab" aria-selected={mode === "call"} className={mode === "call" ? "is-on" : undefined} onClick={() => pick("call")} data-tour="mode-call"><Phone size={16} aria-hidden /> Call</button>
+          </div>
+        </div>
+        <div className="kb-grid">
+          {mode === "chat"
+            ? <ChatView {...view} onSend={typed} example={at === "tell" ? BITE_EXAMPLE : at === "looks" ? LOOKS_EXAMPLE : null} onDate={(iso) => { setF((x) => ({ ...x, on: iso })); known.current.add("when"); askNext("when", dayWord(iso)); }} />
+            : <CallView {...view} talk={talk} sent={sent} onStart={() => void startCall()} onEnd={() => endCall()} onMute={() => setTalk((t) => ({ ...t, muted: !t.muted }))} onAnswer={answerNow} onDone={() => finish.current?.()} onChat={() => pick("chat")} />}
+          <Report draft={draft} f={f} at={at} danger={danger} areaName={areaName(f.area)} sent={sent} known={known.current} />
+        </div>
+        <p className="kb-foot">Prototype for the Bengaluru One Health pilot, awaiting clinical review. First aid follows WHO rabies guidance and India&apos;s National Rabies Control Programme; the first aid, the safety question and the advice are fixed steps. Kaju reads your words with fixed rules on this device: no AI model reads them, and nothing here assesses a wound or recommends treatment.</p>
+      </main>
+    </div>
+  );
+}
+
+type View = { at: At; quick: [string, () => void, string?][]; typing: boolean; log: Msg[]; err: string | null; ready: boolean; slug: string | null };
+
+function Quick({ quick, typing }: { quick: View["quick"]; typing: boolean }) {
+  if (!quick.length || typing) return null;
+  return <div className="kb-quick" data-tour="bite-quick">{quick.map(([l, go, cls]) => <button key={l} type="button" className={cls} onClick={go}>{l === "Send the report" ? <Check size={16} aria-hidden /> : null}{l}</button>)}</div>;
+}
+
+/* ── The chat ── */
+function ChatView({ at, quick, typing, log, err, ready, slug, onSend, example, onDate }: View & { onSend: (t: string) => void; example: string | null; onDate: (iso: string) => void }) {
+  const [text, setText] = useState("");
+  const [date, setDate] = useState(today());
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => { const el = box.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }, [log.length, typing, at]);
+  const submit = () => { if (!text.trim() || !ready) return; onSend(text); setText(""); };
+  const tel = at === "phone";
+  const hint = at === "tell" ? "Describe what happened…" : at === "looks" ? "Colour, size, collar, marks…" : at === "place" ? "A landmark or street…" : tel ? "Phone number" : "Type a reply…";
+  const closed = at === "sending" || at === "done" || at === "closed";
+  return (
+    <section className="kc" aria-label="Chat with Kaju">
+      <div className="kc-head">
+        <span className="kc-ava" aria-hidden><Kaju state={typing ? "thinking" : at === "done" ? "success" : "sitting"} size={44} still /></span>
+        <span className="kc-who"><b>Kaju</b><small>{typing ? "typing…" : "StrayPaw's assistant"}</small></span>
+      </div>
+      <div className="kc-log" ref={box} aria-live="polite">
+        <ol>{log.map((m) => <Bubble key={m.id} m={m} slug={slug} />)}</ol>
+        {typing ? <p className="kc-typing" aria-label="Kaju is typing"><i /><i /><i /></p> : null}
+      </div>
+      {err ? <p className="kb-err" role="alert">{err}</p> : null}
+      <div className="kc-foot">
+        <Quick quick={quick} typing={typing} />
+        {at === "date" ? <form className="kb-quick" data-tour="bite-quick" onSubmit={(e) => { e.preventDefault(); onDate(date); }}><input type="date" aria-label="The date it happened" value={date} min={daysAgo(30)} max={today()} onChange={(e) => setDate(e.target.value)} /><button type="submit" className="is-go">Use this date</button></form> : null}
+        {closed ? null : <form className="kc-compose" data-tour="bite-compose" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+          {example && !typing ? <button type="button" className="kc-ex" onClick={() => setText(example)} title="Fill in an example"><Wand2 size={14} aria-hidden /> Example</button> : null}
+          <textarea aria-label="Message Kaju" rows={1} value={text} maxLength={600} placeholder={hint} inputMode={tel ? "tel" : undefined}
+            onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); } }} />
+          <button type="submit" className="kc-send" aria-label="Send to Kaju" disabled={!text.trim() || !ready}><Send size={18} aria-hidden /></button>
+        </form>}
+      </div>
     </section>
   );
 }
 
-/* What Kaju understood from the person's words, field by field, with what it still needs. */
-function Understood({ d }: { d: BiteDraft }) {
-  const rows: [string, string | null][] = [
-    ["What happened", d.kind ? ({ bite: "A bite", scratch: "A scratch", lick_broken_skin: "A lick on broken skin" } as Record<string, string>)[d.kind] : null],
-    ["Animal", d.species ? `${SPECIES[d.species]}${d.ownership === "community" ? ", street or community" : d.ownership === "owned" ? ", someone's pet" : ""}` : null],
-    ["Area", d.area?.name ?? null],
-    ["Where", d.place],
-    ["When", d.on ? `${dayWord(d.on)}${d.when ? ` (${d.when})` : ""}` : null],
-    ["Who was hurt", d.person ? WHO[d.person] : null],
-    ["Looking for", d.wantsCare ? "Medical help" : null],
-  ];
-  const still = d.missing.filter((m) => m !== "danger").map((m) => ASKED[m]);
+function Bubble({ m, slug }: { m: Msg; slug: string | null }) {
+  const c = m.card;
   return (
-    <div className="bk-read" data-tour="bite-understood">
-      <p className="bk-h"><span className="bk-mark" aria-hidden><Sparkles size={12} /></span><b>What I understood</b><small>Read on this device, by fixed rules</small></p>
-      <dl>{rows.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
-      <p className="bk-still">{still.length ? <>Still needed: {still.join(", ")}. First, one safety question.</> : <>One safety question first.</>}</p>
-    </div>
+    <li className={`kc-m is-${m.who}${m.tone ? ` is-${m.tone}` : ""}${c ? ` has-${c.kind}` : ""}`} data-tour={m.tour}>
+      {m.spoken ? <Mic size={13} aria-label="Said aloud" className="kc-said" /> : null}
+      {!c ? (m.tone === "aid" ? <><b>First, wash the wound</b> with soap and running water for at least 15 minutes.</> : m.text)
+        : c.kind === "danger" ? <><b>One safety question.</b> Is any of this true?<ul><li>Heavy bleeding, or a deep wound</li><li>Several bites, or bites on the face, head, neck or hands</li><li>A young child, or someone unwell or unable to care for themselves</li></ul></>
+        : c.kind === "urgent" ? <><b>Get emergency help now.</b> Call <a href="tel:108">108</a> for an ambulance, or go to the nearest hospital emergency department.</>
+        : c.kind === "review" ? <ReviewCard c={c} />
+        : c.kind === "sent" ? <span className="kc-sent" data-tour="bite-sent"><span className="kc-ok" aria-hidden><Check size={14} strokeWidth={3} /></span><span><b>Sent to {c.to}.</b> They know you&apos;re coming.{c.hours ? ` Open ${c.hours.toLowerCase()}.` : ""}</span></span>
+        : <>{m.text}{slug ? <Centres slug={slug} first={c.first} /> : <p>Go to the nearest government hospital.</p>}</>}
+    </li>
   );
 }
 
-/* The notice as it will be sent: the person checks it and presses Send. */
-function Review({ f, phone, areaName, draft }: { f: Form; phone: string | null; areaName: string | null; draft: BiteDraft | null }) {
+function ReviewCard({ c }: { c: Extract<Card, { kind: "review" }> }) {
+  const { f } = c;
   return (
-    <div className="bk-read is-review" data-tour="bite-review">
-      <p className="bk-h"><span className="bk-mark" aria-hidden><Sparkles size={12} /></span><b>Your notice, ready to send</b><small>Check it first</small></p>
+    <div className="kc-card" data-tour="bite-review">
+      <p className="kc-card-h">Your report</p>
       <dl>
-        <div><dt>When</dt><dd>{dayWord(f.on)}{draft?.when ? ` (${draft.when})` : ""}</dd></div>
-        <div><dt>Area</dt><dd>{areaName ?? "Not given"}</dd></div>
+        <div><dt>When</dt><dd>{dayWord(f.on)}{c.when ? ` (${c.when})` : ""}</dd></div>
+        <div><dt>Area</dt><dd>{c.area ?? "Not given"}</dd></div>
         {f.place ? <div><dt>Where</dt><dd>{f.place}</dd></div> : null}
         <div><dt>Animal</dt><dd>{SPECIES[f.species] ?? f.species}</dd></div>
         <div><dt>Looked like</dt><dd>{f.animal || "Not given"}</dd></div>
-        <div><dt>Call back</dt><dd>{phone ? `Yes, on ${phone}` : "No"}</dd></div>
+        <div><dt>Call back</dt><dd>{f.phone ? `Yes, on ${f.phone}` : "No"}</dd></div>
       </dl>
-      <p className="bk-still">It goes to the nearest anti-rabies centre in the programme, so they know before you arrive. Your name is not asked for.</p>
     </div>
   );
 }
 
-type Speech = { start: () => void; stop: () => void; abort: () => void; lang: string; interimResults: boolean; continuous: boolean; onresult: ((e: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null; onerror: ((e: { error: string }) => void) | null; onend: (() => void) | null };
-
-/* The first answer: the person's own words, typed or spoken. Speaking uses the browser's own speech service. */
-function Tell({ ready, text, setText, onTell, onSteps }: { ready: boolean; text: string; setText: (v: string) => void; onTell: (v: string) => void; onSteps: () => void }) {
-  const [mic, setMic] = useState<"idle" | "on" | "none" | "denied" | "failed">("idle");
-  const rec = useRef<Speech | null>(null);
-  const base = useRef("");
-  useEffect(() => () => rec.current?.abort(), []);
-  const listen = () => {
-    if (mic === "on") { rec.current?.stop(); return; }
-    const W = window as unknown as { SpeechRecognition?: new () => Speech; webkitSpeechRecognition?: new () => Speech };
-    const SR = W.SpeechRecognition ?? W.webkitSpeechRecognition;
-    if (!SR) { setMic("none"); return; }
-    const r = new SR();
-    r.lang = "en-IN"; r.interimResults = true; r.continuous = false;
-    base.current = text ? `${text.trim()} ` : "";
-    r.onresult = (e) => { let s = ""; for (let i = 0; i < e.results.length; i++) s += e.results[i][0].transcript; setText(`${base.current}${s}`.slice(0, 600)); };
-    r.onerror = (e) => setMic(e.error === "not-allowed" || e.error === "service-not-allowed" ? "denied" : e.error === "no-speech" || e.error === "aborted" ? "idle" : "failed");
-    r.onend = () => setMic((m) => (m === "on" ? "idle" : m));
-    rec.current = r;
-    try { r.start(); setMic("on"); } catch { setMic("failed"); }
-  };
-  const note = mic === "none" ? "Speaking is not available in this browser. Type instead, or use the example."
-    : mic === "denied" ? "The microphone is blocked for this page. Allow it in the browser, or type instead."
-      : mic === "failed" ? "Speech could not be turned into text just now. Type instead, or use the example." : null;
+/* ── The call ── */
+const clock = (ms: number) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+function CallView({ at, quick, typing, log, err, ready, slug, talk, sent, onStart, onEnd, onMute, onAnswer, onDone, onChat }: View & { talk: Talk; sent: Sent | null; onStart: () => void; onEnd: () => void; onMute: () => void; onAnswer: () => void; onDone: () => void; onChat: () => void }) {
+  const [now, setNow] = useState(() => Date.now());
+  const [endedAt, setEndedAt] = useState(0);
+  useEffect(() => { if (!talk.on) return; const id = window.setInterval(() => setNow(Date.now()), 500); return () => window.clearInterval(id); }, [talk.on]);
+  useEffect(() => { if (talk.ended) setEndedAt(Date.now()); }, [talk.ended]);
+  const live = talk.on || talk.phase === "connecting";
+  const lastKaju = [...log].reverse().find((m) => m.who === "kaju");
+  const pose: KajuState = talk.problem ? "concerned" : !live ? (sent ? "success" : talk.ended ? "goodbye" : "sitting") : talk.phase === "speaking" ? "explaining" : talk.phase === "listening" ? "listening" : talk.phase === "connecting" ? "looking" : "headTilt";
+  const status = talk.phase === "connecting" ? "Connecting…" : talk.phase === "speaking" ? "Kaju is speaking" : talk.phase === "listening" ? "Listening…" : talk.phase === "muted" ? "Microphone off" : "Your turn";
+  const caption = talk.phase === "listening" || (talk.words && talk.phase !== "speaking") ? (talk.words ? `“${talk.words}”` : ASK[at] ?? "") : lastKaju?.text ?? "";
   return (
-    <div className="bk-tell" data-tour="bite-tell">
-      <form className="bk-box" onSubmit={(e) => { e.preventDefault(); if (ready) onTell(text); }}>
-        <textarea aria-label="Tell Kaju what happened" rows={3} maxLength={600} value={text} onChange={(e) => setText(e.target.value)} placeholder="For example: a stray dog bit my neighbour near the market this morning" data-example={BITE_EXAMPLE} />
-        <div className="bk-acts">
-          <button type="button" className={`bk-mic${mic === "on" ? " is-on" : ""}`} onClick={listen} aria-pressed={mic === "on"} aria-label={mic === "on" ? "Stop listening" : "Speak instead of typing"} data-tour="bite-mic">{mic === "denied" || mic === "none" ? <MicOff size={18} aria-hidden /> : <Mic size={18} aria-hidden />}<span>{mic === "on" ? "Listening… tap to stop" : "Speak"}</span></button>
-          <button type="button" className="bk-ex" onClick={() => setText(BITE_EXAMPLE)} data-tour="bite-example">Use an example</button>
-          <button type="submit" className="bk-send" disabled={!text.trim() || !ready}><Send size={16} aria-hidden /> {ready ? "Tell Kaju" : "One moment…"}</button>
-        </div>
-      </form>
-      <p className="bk-note" role={note ? "status" : undefined}>{note ?? <>Speaking uses your browser&apos;s speech service (in Chrome, Google&apos;s) to turn words into text, in English for now. Kaju reads the text on this device; nothing is sent until you confirm.</>}</p>
-      <button type="button" className="bk-steps" onClick={onSteps}>Answer step by step instead</button>
-    </div>
+    <section className={`kv${live ? " is-live" : ""} is-${talk.phase}${sent && slug && !live ? " has-centres" : ""}`} aria-label="Call Kaju">
+      <div className="kv-head">
+        <span className="kv-who"><i className={live ? "is-on" : undefined} aria-hidden /> Kaju helpline</span>
+        <span className="kv-time">{live ? clock(now - talk.started) : talk.ended ? `Call ended · ${clock(endedAt - talk.started)}` : "Bite and scratch help"}</span>
+      </div>
+      <div className="kv-stage">
+        <div className="kv-kaju" aria-hidden><span className="kv-ring" /><span className="kv-ring" /><Kaju state={pose} size={176} /></div>
+        {live ? <>
+          <p className="kv-status" role="status">{status}</p>
+          <p className="kv-caption" aria-live="polite">{caption}</p>
+        </> : talk.ended || talk.problem ? <>
+          <p className="kv-status">{talk.problem ? "The call could not continue" : sent ? "Report sent" : "Call ended"}</p>
+          <p className="kv-caption">{talk.problem ? problemText(talk.problem) : sent ? `Sent to ${sent.to} at ${sent.time}. They know you're coming.` : "You can call again, or carry on in the chat."}</p>
+        </> : <>
+          <p className="kv-status">Talk to Kaju</p>
+          <p className="kv-caption">Kaju asks what happened, checks for danger signs and tells the clinic you&apos;re coming. Just talk, as on a phone call.</p>
+        </>}
+      </div>
+      {err ? <p className="kb-err" role="alert">{err}</p> : null}
+      {live ? <Quick quick={quick} typing={typing} /> : null}
+      {sent && slug && !live ? <div className="kv-centres"><Centres slug={slug} first={sent.to} /></div> : null}
+      <div className="kv-controls">
+        {live ? <>
+          <button type="button" className="kv-btn" onClick={onMute} aria-pressed={talk.muted}>{talk.muted ? <MicOff size={20} aria-hidden /> : <Mic size={20} aria-hidden />}<span>{talk.muted ? "Unmute" : "Mute"}</span></button>
+          <button type="button" className="kv-end" onClick={onEnd} aria-label="End call"><PhoneOff size={24} aria-hidden /></button>
+          {talk.phase === "listening" ? <button type="button" className="kv-btn" onClick={onDone}><Check size={20} aria-hidden /><span>Done</span></button>
+            : <button type="button" className="kv-btn" onClick={onAnswer} disabled={talk.phase === "speaking" || talk.phase === "connecting"}><Mic size={20} aria-hidden /><span>Answer</span></button>}
+        </> : <div className="kv-start">
+          <button type="button" className="kv-call" onClick={onStart} disabled={!ready} data-tour="bite-call"><Phone size={22} aria-hidden /> {ready ? (talk.ended ? "Call again" : "Call Kaju") : "One moment…"}</button>
+          {talk.ended || talk.problem ? <button type="button" className="kv-link" onClick={onChat}>Continue in the chat</button> : null}
+        </div>}
+      </div>
+      <p className="kv-note">A public Kaju helpline number comes with the pilot. In this demo the call runs in your browser, with its own speech recognition and voice (English for now): allow the microphone when asked.</p>
+    </section>
   );
 }
 
-/* Where to go: the centres the programme lists publicly, nearest first when the person shares their location. */
-function Centres({ slug }: { slug: string }) {
+/* The report Kaju is preparing, filled in as the person speaks or types. */
+function Report({ draft, f, at, danger, areaName, sent, known }: { draft: BiteDraft | null; f: Form; at: At; danger: "none" | "yes" | null; areaName: string | null; sent: Sent | null; known: Set<Known> }) {
+  const started = !!draft;
+  const rows: [string, string | null][] = [
+    ["What happened", draft?.kind ? KIND[draft.kind] : started ? "Not said" : null],
+    ["Animal", known.has("animal") ? `${SPECIES[f.species] ?? f.species}${draft?.ownership === "community" ? ", street or community" : draft?.ownership === "owned" ? ", someone's pet" : ""}` : null],
+    ["Area", areaName ?? (known.has("area") ? "Not sure" : null)],
+    ["When", known.has("when") ? `${dayWord(f.on)}${draft?.when ? ` (${draft.when})` : ""}` : null],
+    ["Who was hurt", draft?.person ? WHO[draft.person] : null],
+    ["Danger signs", danger === "none" ? "None of the listed signs" : danger === "yes" ? "Yes: emergency help advised" : null],
+    ["Looked like", f.animal || (known.has("looks") ? "Not given" : null)],
+    ["Where it is seen", f.place || (known.has("place") ? "Not given" : null)],
+    ["Call back", at === "review" || sent ? (f.phone ? `Yes, on ${f.phone}` : "No") : null],
+  ];
+  const status = sent ? `Sent to ${sent.to}, ${sent.time}` : at === "review" ? "Ready: waiting for your OK to send" : started ? "Filling in from what you said" : "Starts when you tell Kaju what happened";
+  return (
+    <aside className={`kb-report${sent ? " is-sent" : at === "review" ? " is-ready" : ""}`} aria-label="The report Kaju is preparing" data-tour="bite-report">
+      <p className="kb-r-h"><b>Kaju&apos;s report</b><span>{rows.filter(([, v]) => v).length} of {rows.length}</span></p>
+      <p className="kb-r-s" role="status">{sent ? <Check size={14} strokeWidth={3} aria-hidden /> : null}{status}</p>
+      <dl>{rows.map(([k, v]) => <div key={k} className={v ? "is-in" : undefined}><dt>{k}</dt><dd>{v ?? "—"}</dd></div>)}</dl>
+      <p className="kb-r-n">Read on this device by fixed rules; no AI model reads your words. Nothing is sent until you confirm, and your name is not asked for.</p>
+    </aside>
+  );
+}
+
+/* Where to go: the centres the programme lists publicly; the one told about the person first. */
+function Centres({ slug, first }: { slug: string; first: string | null }) {
   const pub = useRead<Pub>(() => call<Pub>("oh_public_services", { p_programme_slug: slug }), `pub:${slug}`);
   const [me, setMe] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState<"idle" | "busy" | "denied">("idle");
-  const [need, setNeed] = useState<"any" | "arv" | "wound_care">("any");
   const [all, setAll] = useState(false);
   const list = useMemo(() => {
-    const x = (pub.data?.facilities ?? []).filter((c) => need === "any" || c.services.some((s) => s.service === need && s.status === "available"));
-    return x.map((c) => ({ ...c, d: me && c.lat !== null && c.lng !== null ? km(me, { lat: c.lat, lng: c.lng }) : null })).sort((a, b) => (a.d ?? 1e9) - (b.d ?? 1e9));
-  }, [pub.data, me, need]);
+    const km = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+      const r = (d: number) => (d * Math.PI) / 180, R = 6371;
+      const x = Math.sin(r(b.lat - a.lat) / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(r(b.lng - a.lng) / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(x));
+    };
+    return (pub.data?.facilities ?? []).map((c) => ({ ...c, d: me && c.lat !== null && c.lng !== null ? km(me, { lat: c.lat, lng: c.lng }) : null }))
+      .sort((a, b) => (a.name === first ? -1 : b.name === first ? 1 : (a.d ?? 1e9) - (b.d ?? 1e9)));
+  }, [pub.data, me, first]);
   const locate = () => {
     if (!navigator.geolocation) { setLocating("denied"); return; }
     setLocating("busy");
     navigator.geolocation.getCurrentPosition((p) => { setMe({ lat: p.coords.latitude, lng: p.coords.longitude }); setLocating("idle"); }, () => setLocating("denied"), { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
   };
-  if (pub.loading && !pub.data) return <>Finding centres…</>;
-  if (pub.error || !pub.data?.programme) return <>Go to the nearest government hospital. The list of centres could not be loaded just now.</>;
-  const shown = all ? list : list.slice(0, 3);
+  if (pub.loading && !pub.data) return <p className="kb-wait">Finding centres…</p>;
+  if (pub.error || !pub.data?.programme) return <p>Go to the nearest government hospital. The list of centres could not be loaded just now.</p>;
+  const shown = all ? list : list.slice(0, first ? 2 : 3);
+  const tone: Record<string, string> = { green: "is-ok", amber: "is-warn", flame: "is-bad" };
   return (
-    <div className="bc-centres">
-      {pub.data.programme.illustrative ? <p className="bc-demo" role="note"><b>Demonstration.</b> These centres are invented. Do not travel to them.</p> : null}
-      <div className="bc-tools">
-        <button type="button" onClick={locate} disabled={locating === "busy"}><LocateFixed size={16} aria-hidden />{me ? "Nearest first" : locating === "busy" ? "Finding you…" : "Show nearest first"}</button>
-        <label><span>I need</span><select value={need} onChange={(e) => setNeed(e.target.value as typeof need)}><option value="any">Any centre</option><option value="wound_care">Wound washing now</option><option value="arv">Anti-rabies vaccine</option></select></label>
-      </div>
-      {locating === "denied" ? <small>Location is off. The list is in name order.</small> : null}
-      {!list.length ? <p>No centre has confirmed that service recently. Go to the nearest government hospital.</p> : (
-        <ul className="bc-list">
-          {shown.map((c) => (
-            <li key={c.id}>
-              <h3>{c.name}{c.d !== null ? <span>{c.d < 1 ? "under 1 km" : `${c.d.toFixed(1)} km`}</span> : null}</h3>
-              <p>{[c.area, c.hours].filter(Boolean).join(" · ")}{c.phone && /\d/.test(c.phone) ? <> · <a href={`tel:${c.phone.replace(/\s/g, "")}`}>Call</a></> : null}{c.lat !== null && c.lng !== null ? <> · <a href={`https://www.openstreetmap.org/?mlat=${c.lat}&mlon=${c.lng}#map=17/${c.lat}/${c.lng}`} target="_blank" rel="noopener noreferrer">Map</a></> : null}</p>
-              <ul>
-                {["wound_care", "arv", "rig"].filter((s) => s !== "rig" || c.services.some((x) => x.service === "rig") || c.refers.some((r) => r.service === "rig")).map((s) => {
-                  const v = c.services.find((x) => x.service === s), ref = c.refers.find((r) => r.service === s);
-                  const st = v?.status ?? (ref ? "refers" : "not_verified"), k = SERVICE_STATUS[st] ?? { label: "Refers elsewhere", tone: "" };
-                  return <li key={s}><span>{SERVICE_LABEL[s]}</span><b style={{ color: tone[k.tone] }}>{k.label}</b>{st === "not_verified" && v ? <small>last confirmed {relDay(v.verified_at).toLowerCase()}</small> : ref ? <small>go to {ref.to}</small> : null}</li>;
-                })}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      )}
-      {list.length > 3 && !all ? <button type="button" className="bc-more" onClick={() => setAll(true)}>Show all {list.length} centres</button> : null}
+    <div className="kb-centres">
+      {pub.data.programme.illustrative ? <p className="kb-fict" role="note">Demonstration: these centres are invented. Do not travel to them.</p> : null}
+      <ul>
+        {shown.map((c) => (
+          <li key={c.id} className={c.name === first ? "is-first" : undefined}>
+            <p className="kb-c-h"><b>{c.name}</b>{c.name === first ? <em>Expecting you</em> : c.d !== null ? <span>{c.d < 1 ? "under 1 km" : `${c.d.toFixed(1)} km`}</span> : null}</p>
+            <p className="kb-c-m">{[c.area, c.hours].filter(Boolean).join(" · ")}{c.phone && /\d/.test(c.phone) ? <> · <a href={`tel:${c.phone.replace(/\s/g, "")}`}>Call</a></> : null}{c.lat !== null && c.lng !== null ? <> · <a href={`https://www.openstreetmap.org/?mlat=${c.lat}&mlon=${c.lng}#map=17/${c.lat}/${c.lng}`} target="_blank" rel="noopener noreferrer">Map</a></> : null}</p>
+            <ul className="kb-c-s">
+              {["wound_care", "arv", "rig"].map((s) => {
+                const v = c.services.find((x) => x.service === s), ref = c.refers.find((r) => r.service === s);
+                const st = v?.status ?? (ref ? "refers" : "not_verified"), k = SERVICE_STATUS[st] ?? { label: "Refers elsewhere", tone: "" };
+                return <li key={s}><span>{SERVICE_LABEL[s]}</span><b className={tone[k.tone] ?? ""}>{k.label}</b>{st === "not_verified" && v ? <small>last confirmed {relDay(v.verified_at).toLowerCase()}</small> : ref ? <small>go to {ref.to}</small> : null}</li>;
+              })}
+            </ul>
+          </li>
+        ))}
+      </ul>
+      <p className="kb-c-tools">
+        {list.length > shown.length ? <button type="button" onClick={() => setAll(true)}>Show all {list.length} centres</button> : null}
+        {!first ? <button type="button" onClick={locate} disabled={locating === "busy"}><LocateFixed size={14} aria-hidden /> {me ? "Nearest first" : locating === "busy" ? "Finding you…" : "Nearest to me"}</button> : null}
+        {locating === "denied" ? <small>Location is off; the list is in name order.</small> : null}
+      </p>
     </div>
   );
 }

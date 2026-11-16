@@ -70,10 +70,17 @@ export function readBite(raw: string, areas: BiteArea[], now = new Date()): Bite
 
   /* A landmark: "near the bus stop", "outside the temple on 100 Feet Road". The area alone is not a landmark. */
   let place: string | null = null;
-  const lm = text.match(/\b(?:near|outside|opposite|behind|next to|in front of|by|at)\s+(the\s+[^,.;!?]{3,60}|[^,.;!?]*?\b(?:road|rd|street|cross|main|stop|stand|market|temple|school|park|metro|station|gate|circle|junction|signal|layout|colony|nagar|block)\b[^,.;!?]{0,30})/i);
+  /* "bitten by a dog" names the animal, not a place. */
+  const lmText = text.replace(/\b(bit|bitten|scratched|attacked|chased|licked)\s+by\b/gi, "$1");
+  const lm = lmText.match(/\b(?:near|outside|opposite|behind|next to|in front of|by|at)\s+(the\s+[^,.;!?]{3,60}|[^,.;!?]*?\b(?:road|rd|street|cross|main|stop|stand|market|temple|school|park|metro|station|gate|circle|junction|signal|layout|colony|nagar|block)\b[^,.;!?]{0,30})/i);
   if (lm) {
     const p = lm[1].replace(/\b(this|today|yesterday|last)\b.*$/i, "").replace(/\s+(in|on)\s*$/i, "").trim();
-    if (p && (!area || norm(p) !== norm(area.name))) place = p.slice(0, 120);
+    /* Words about the animal are not a landmark: "a stray dog near the bus stop" keeps "the bus stop". */
+    const aboutAnimal = (x: string) => /\b(dogs?|pupp(?:y|ies)|cats?|monkeys?|cows?|stray|bitten|bit)\b/i.test(x);
+    let q: string | null = p;
+    for (let k = 0; k < 3 && q && aboutAnimal(q); k++) q = q.match(/\b(?:near|outside|opposite|behind|next to|in front of|at)\s+(.+)$/i)?.[1].trim() ?? null;
+    /* Nor is the area itself ("near Indira Nagar"). */
+    if (q && (!area || norm(q) !== norm(area.name))) place = q.slice(0, 120);
   }
 
   /* When: words the person used, turned into a date in India. */

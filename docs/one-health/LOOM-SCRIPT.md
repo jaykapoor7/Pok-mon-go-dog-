@@ -27,29 +27,40 @@ demonstration database, not yet in programme use) · **Planned for the pilot** �
 
 ---
 
-## 1 · Citizen reporting and AI intake (0:20 to 1:00)
+## 1 · Citizen reporting and AI intake (0:20 to 1:05)
+
+**On screen:** Kaju's bite help: the **Chat** with Kaju on the left, **Kaju's report** on the right (empty), and a
+**Call** tab. Kaju has already given first aid and asked what happened.
 
 | # | Click, type or say | What happens |
 |---|---|---|
-| 1 | Press **Speak** and say, or type: *"A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance."* Then **Tell Kaju**. | Kaju shows **What I understood**: a bite, a street dog, Indiranagar, today (this morning), someone else, looking for medical help, and "Still needed: what the animal looked like". |
-| 2 | **No, none of these** (the danger-sign question) | "See a doctor today" and the nearest centres, each with what it confirmed: vaccine, immunoglobulin, wound washing. |
-| 3 | **Tell the programme about the animal** | Kaju asks only what was missing: what the dog looked like. |
-| 4 | Type *"Brown dog, no collar, usually near the bus stop on 100 Feet Road"* (or the guide's **Use the example description**), press send, then **No, just send it** | **Your notice, ready to send**: when, area, where, animal, description. |
-| 5 | **Send the notice** | "Sent to Teaching Hospital Anti-Rabies Clinic". |
+| 1 | In the chat, type (or press **Example**): *"A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance."* and press send. | Kaju types back what it understood: a bite, by a street dog, in Indiranagar, this morning, looking for medical help. **Kaju's report** fills in: what happened, animal, area, when, who was hurt. |
+| 2 | **No, none of these** (the fixed danger-sign question) | "Please see a doctor today…", then Kaju offers to tell the nearest anti-rabies centre. |
+| 3 | **Yes, tell the clinic** | Kaju asks only what was missing: what the dog looked like. |
+| 4 | Type *"Brown dog, no collar, usually near the bus stop on 100 Feet Road"* (or **Example**), send, then **No, don't call me** | **Your report** in the chat; the report on the right reads "Ready: waiting for your OK to send", with the landmark picked out. |
+| 5 | **Send the report** | "Sent to Teaching Hospital Anti-Rabies Clinic. They know you're coming." Then **Where to go today**, with that clinic first, marked **Expecting you**. |
 
-> "First aid always comes first, and it's fixed wording. Then she just says what happened. Kaju pulls out the place,
-> the time and the animal, and asks only for what's missing. It uses fixed rules on her own device, with no AI model
-> reading her words, and nothing is sent until she confirms. Kaju already speaks Kannada, Hindi and English on
-> straypaw.org. Taking bite reports by phone and in Kannada is part of the pilot. WhatsApp reports land in the same
-> place, and that live connection is waiting on Meta's verification."
+**To show the voice call instead** (optional, adds about 30 seconds): press **Call**, then **Call Kaju**, allow the
+microphone, and answer aloud: the opening words above, then "No", "Yes", the description, "No", "Send it". Kaju
+speaks every question, the caption shows what it heard, the report fills in the same way, and the call ends with
+"Report sent". Every answer can also be tapped on the call screen.
 
-**Marks:** Kaju intake and dictation *In staging* · Kannada and phone bite reports *Planned for the pilot* · WhatsApp Business *Awaiting integration*.
+> "A resident who's been bitten opens Kaju. First aid comes first, and it's fixed wording. Then she just says what
+> happened. Kaju pulls out the place, the time and the animal, and you can watch the report build on the right.
+> One safety question, the advice to see a doctor today, and then Kaju offers to tell the clinic she's coming,
+> asking only for what it still needs. Nothing is sent until she confirms, and then she's told exactly where to go.
+> It's the same conversation by phone: Kaju asks aloud and listens. Today the call runs in the browser; a public
+> helpline number, and calls in Kannada, are part of the pilot. No AI model reads her words here: Kaju uses fixed
+> rules on her own device. WhatsApp reports land in the same place, and that live connection is waiting on Meta's
+> verification."
+
+**Marks:** Kaju chat, the browser voice call and the report *In staging* · the public helpline number and Kannada calls *Planned for the pilot* · WhatsApp Business *Awaiting integration*.
 
 **Then click:** **Next role: Hospital**.
 
 ---
 
-## 2 · Hospital and human-health response (1:00 to 1:40)
+## 2 · Hospital and human-health response (1:05 to 1:40)
 
 | # | Click, type or say | What happens |
 |---|---|---|
@@ -169,7 +180,8 @@ demonstration database, not yet in programme use) · **Planned for the pilot** �
 
 | Problem | Do this |
 |---|---|
-| **Speak** says the microphone is blocked or unavailable | Press **Use the example words** on the guide. Speaking needs Chrome and the microphone allowed for demo.straypaw.org. |
+| The call says the microphone is blocked, or the browser cannot listen | Press **Continue in the chat** (or the **Chat** tab) and use **Example**. The call needs Chrome, Edge or Safari and the microphone allowed for demo.straypaw.org (Brave switches the speech service off). |
+| A question is not answered and the guide waits | Press **Next action**: on the citizen's questions it answers for you and moves on. |
 | Kaju's answer shows an error | Press **Try again** under it. Kaju needs no outside AI service here, so only a lost connection stops it. |
 | The highlighted control is not where you are | Press **Take me there** on the guide. |
 | A screen is still loading ("Waiting for the screen to show it…") | Wait two seconds; the demo database is in Mumbai. |
@@ -183,4 +195,4 @@ demonstration database, not yet in programme use) · **Planned for the pilot** �
 2. To clear every rehearsal from the demonstration database (optional, owner only): run
    `supabase/seed/one_health_demo.sql` in the staging SQL editor. It removes and recreates only the One Health demo
    rows. See `docs/one-health/README.md` §5.
-3. Allow the microphone when Chrome asks, if you will speak the first report.
+3. Allow the microphone when Chrome asks, if you will show the call.

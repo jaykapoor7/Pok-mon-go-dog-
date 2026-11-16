@@ -10,7 +10,7 @@
    dialog is open, and folds to a small pill ("Exit") from which the visitor can resume, switch role or end. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, ChevronUp, Compass, Minus, RotateCcw, UserRound, Wand2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronUp, Compass, Minus, RotateCcw, UserRound, Wand2, X } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { AVAIL, CLOSING, DEMO_ROLES, STAGES, TOUR_DONE, actPath, onActScreen, type Act, type DemoRole, type Fill } from "./tour";
 import { enterAs, leaveFor, readTour, writeTour, TOUR_EVENT, type TourState } from "./state";
@@ -121,6 +121,8 @@ export function DemoTour() {
   const [corner, setCorner] = useState<Corner>("br");
   const [filling, setFilling] = useState(false);
   const [transit, setTransit] = useState<{ i: number; leaving: boolean } | null>(null);
+  /* On a phone the card shows the instruction and the way on; the marks and the rest open on request. */
+  const [more, setMore] = useState(false);
   const card = useRef<HTMLElement | null>(null);
   const scrolled = useRef<HTMLElement | null>(null);
 
@@ -165,7 +167,10 @@ export function DemoTour() {
       setFound(!!hit);
       if (hit && scrolled.current !== hit) {
         const r = hit.getBoundingClientRect();
-        if (r.top < 64 || r.bottom > window.innerHeight - 24) { scrolled.current = hit; hit.scrollIntoView({ block: r.height > window.innerHeight * .6 ? "start" : "center", behavior: calm() ? "auto" : "smooth" }); }
+        const sheet = window.innerWidth <= 760 ? card.current?.getBoundingClientRect().top ?? window.innerHeight : window.innerHeight;
+        const floor = Math.min(window.innerHeight, sheet) - 12;
+        /* scroll-margin (demo-tour.css) keeps the control clear of the header and of the card on a phone. */
+        if (r.top < 64 || r.bottom > floor) { scrolled.current = hit; hit.scrollIntoView({ block: r.height > floor - 80 ? "start" : "nearest", behavior: calm() ? "auto" : "smooth" }); }
         else scrolled.current = hit;
       }
       const c = card.current?.getBoundingClientRect();
@@ -238,7 +243,20 @@ export function DemoTour() {
     return () => window.clearTimeout(t);
   }, [doneAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const next = () => { if (!s || !stage) return; if (s.act < stage.acts.length - 1) void go(s.step, s.act + 1); else void go(s.step + 1, 0); };
+  /* Next: an action that is not done yet and can be answered (the citizen's questions) is answered first, the way a
+     person would, so the next screen exists; then the guide moves on. */
+  const next = async () => {
+    if (!s || !stage || !act) return;
+    if (act.auto && onScreen && !doneAt && !isDone(act)) {
+      setFilling(true);
+      await runFills(act.auto);
+      for (let i = 0; i < 40 && !isDone(act); i++) await new Promise((r) => setTimeout(r, 150));
+      setFilling(false);
+      const cur = readTour();
+      if (cur.step !== s.step || cur.act !== s.act) return; /* it moved on by itself */
+    }
+    if (s.act < stage.acts.length - 1) void go(s.step, s.act + 1); else void go(s.step + 1, 0);
+  };
   const back = () => { if (!s) return; if (s.act > 0) void go(s.step, s.act - 1); else if (s.step > 0) void go(s.step - 1, STAGES[s.step - 1].acts.length - 1); };
   const replay = () => { if (s) void go(s.step, 0); };
   const restart = () => void go(0, 0, { fresh: true });
@@ -323,9 +341,10 @@ export function DemoTour() {
   return (
     <>
       {cover}
-      <aside ref={card} key={`${s.step}:${s.act}`} className={`dt is-guide${place}${done ? " is-done" : ""}`} aria-label="Guided demo" aria-live="polite">
+      <aside ref={card} key={`${s.step}:${s.act}`} className={`dt is-guide${place}${done ? " is-done" : ""}${more ? " is-more" : ""}`} aria-label="Guided demo" aria-live="polite">
         <div className="dt-top">
           <span className="dt-k">Stage {s.step + 1} of {TOUR_DONE}<span className="dt-k-l"> · {stage.label}</span></span>
+          <button type="button" className="dt-more" aria-expanded={more} onClick={() => setMore((m) => !m)}>{more ? "Less" : "Details"} {more ? <ChevronDown size={14} aria-hidden /> : <ChevronUp size={14} aria-hidden />}</button>
           <button type="button" className="dt-min" aria-label="Exit the guide and explore freely" title="Exit: explore freely; resume any time" onClick={() => writeTour({ mode: "roam", step: s.step })}><Minus size={14} aria-hidden /> Exit</button>
         </div>
         {bar(s.step)}
@@ -342,11 +361,12 @@ export function DemoTour() {
         {last && done && stage.handoff ? <p className="dt-handoff">{stage.handoff}</p> : null}
         <div className="dt-act">
           <button type="button" className="dt-btn is-back" aria-label="Back" disabled={busy || (s.step === 0 && s.act === 0)} onClick={back}><ArrowLeft size={15} aria-hidden /></button>
+          {act.example && onScreen ? <button type="button" className="dt-btn is-ex" aria-label={act.example.label} title={act.example.label} disabled={filling} onClick={() => void fill()}><Wand2 size={15} aria-hidden /><span>Example</span></button> : null}
           {needsGo ? <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => void go(s.step, s.act)}>{busy ? "Opening…" : "Take me there"} {!busy && <ArrowRight size={15} aria-hidden />}</button>
-            : <button type="button" className={`dt-btn is-go${done ? " is-ready" : ""}`} disabled={busy} onClick={next}>{busy ? "Opening…" : goLabel} {!busy && <ArrowRight size={15} aria-hidden />}</button>}
+            : <button type="button" className={`dt-btn is-go${done ? " is-ready" : ""}`} disabled={busy || filling} onClick={() => void next()}>{busy ? "Opening…" : filling ? "Answering…" : goLabel} {!busy && !filling && <ArrowRight size={15} aria-hidden />}</button>}
         </div>
         <div className="dt-foot">
-          {needsGo ? <button type="button" className="dt-text" disabled={busy} onClick={next}>{last && nextStage ? `Skip to ${nextStage.label}` : "Skip"}</button> : null}
+          {needsGo ? <button type="button" className="dt-text" disabled={busy} onClick={() => void next()}>{last && nextStage ? `Skip to ${nextStage.label}` : "Skip"}</button> : null}
           <button type="button" className="dt-text" disabled={busy} onClick={replay}>Replay stage</button>
           <button type="button" className="dt-text" disabled={busy} onClick={restart}>Restart</button>
           {roles}

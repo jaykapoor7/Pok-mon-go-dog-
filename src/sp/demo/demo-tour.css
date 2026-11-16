@@ -240,11 +240,38 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
 .dt.is-end h2 { font-size: 20px; line-height: 28px; }
 .dt-end { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 999px; background: none; color: var(--dt-grey); cursor: pointer; }
 .dt-end:hover { background: #f2f5fc; color: var(--dt-ink); }
+.dt-more { display: none; }
+/* The control the guide points at scrolls clear of the header, and on a phone clear of the card too. */
+.sp-tour-hl { scroll-margin: 88px 0 24px; }
 @media (max-width: 760px) {
-  .dt.is-guide { left: 10px; right: 10px; width: auto; max-height: 56dvh; }
+  /* On a phone the card is a short sheet: where you are, what to do, the example and the way on. "Details" opens
+     the status marks, the note and Replay / Restart / roles. It never grows past 45% of the screen. */
+  .dt.is-guide { left: 8px; right: 8px; width: auto; max-height: 45dvh; padding: 12px 12px 12px; gap: 8px; }
+  .dt.is-guide .dt-top { min-height: 24px; }
+  .dt-more { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: #f2f5fc; color: var(--dt-ink); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .dt.is-guide .dt-min { margin-left: 4px; }
+  .dt.is-guide .dt-k { flex: 1; }
   .dt-stages small { display: none; }
-  .dt.is-guide .dt-note, .dt-tags li span { display: none; }
+  .dt-stages button { padding: 2px 0; }
+  .dt.is-guide:not(.is-more) .dt-act-k, .dt.is-guide:not(.is-more) .dt-tags, .dt.is-guide:not(.is-more) > .dt-note:not([role="status"]), .dt.is-guide:not(.is-more) .dt-foot { display: none; }
+  .dt.is-guide .dt-tags li span { display: inline; }
+  .dt.is-guide .dt-act { margin-top: 0; }
+  .dt.is-guide .dt-btn { min-height: 44px; }
+  .dt.is-guide .dt-btn.is-back { width: 44px; }
+  .dt.is-guide .dt-kaju { min-height: 40px; }
+  .sp-tour-hl { scroll-margin: 80px 0 calc(var(--dt-h, 0px) + 24px); }
+  .dt.is-guide.is-more > p:not(.dt-who) { display: block; -webkit-line-clamp: unset; }
+  /* The site makes every button 44px tall on touch screens; the stage bar and the top row stay slim here. */
+  .dt.is-guide .dt-stages button { min-height: 24px; padding: 10px 0; }
+  .dt.is-guide .dt-top button { min-height: 36px; }
+  .dt.is-guide { gap: 6px; }
+  .dt.is-guide:not(.is-more) > p.dt-say { -webkit-line-clamp: 2; }
+  /* The example sits beside the way on; the long button returns under Details. */
+  .dt.is-guide:not(.is-more) .dt-do { display: none; }
+  .dt-btn.is-ex { display: inline-flex; flex: none; gap: 4px; padding: 0 12px; }
+  .dt.is-guide.is-more .dt-btn.is-ex { display: none; }
 }
+@media (min-width: 761px) { .dt-btn.is-ex { display: none; } }
 @media (prefers-reduced-motion: reduce) { .dt.is-guide, .dt-stages button span { transition: none; } .dt-tick, .dt-btn.is-go.is-ready { animation: none; } }
 
 /* /try: six stages and the status marks */

@@ -54,4 +54,13 @@ assert.equal(elsewhere.area, null, "an area outside the programme is not matched
 assert.ok(elsewhere.missing.includes("where"));
 ok("a place outside the programme's areas is left for the person to choose");
 
+const said = readBite("a person was bitten by a stray dog near Indira Nagar this morning they need medical assistance", AREAS, now);
+assert.equal(said.area?.name, "Indiranagar");
+assert.equal(said.place, null, "\"bitten by a stray dog near Indira Nagar\" names the animal and the area, not a landmark");
+assert.equal(said.on, "2026-11-16");
+assert.equal(said.wantsCare, true);
+const saidLooks = readBite("brown dog no collar usually near the bus stop on 100 Feet Road", AREAS, now);
+assert.ok(saidLooks.place && /^the bus stop on 100 Feet Road$/i.test(saidLooks.place), String(saidLooks.place));
+ok("speech as the browser writes it (no punctuation, \"Indira Nagar\"): the same fields, and the landmark without the animal");
+
 console.log(`\n${n} bite intake checks passed`);
