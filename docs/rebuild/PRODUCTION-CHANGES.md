@@ -117,3 +117,35 @@ setting not stopping the schedule for everyone.
 
 Rollback: run `nx_automation_run` from `20261116170000` and `nx_automations_tick` from `20261116140000`. The new
 columns and `nx_automation_ack` can stay, unused.
+
+---
+
+# Fifth set: PEP reminders are checked again when they are sent
+
+**Applied on staging, checked there in a rolled-back run, then applied on production, on 2026-11-16**, through the
+Supabase tool.
+
+| Order | File | What it changes | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 15 | `20261117110000_rebuild_pep_reminder_validity.sql` | Replaces one function, `nx_pep_outbox_due` (delivery worker only; service role). Before returning what is due it cancels, with the reason, every queued reminder that no longer holds: the dose given or no longer due, its date passed or moved, the course stopped, consent withdrawn, or the number changed. No table, column, constraint or grant changes. | Applied, checked | Applied, checked |
+
+Why: the morning automation queues a reminder and the delivery worker sends it later (once a day, at 04:45 UTC, and a
+failed send waits for the next run). The worker sent whatever was queued, so a reminder could reach a patient after the
+dose had been given, after the clinician stopped the course, after the patient withdrew consent, or at a number they had
+since replaced.
+
+Staging check (rolled back): a valid reminder was offered to the worker; one for a dose recorded as given, one whose date
+the clinician moved and one for a patient who withdrew consent were cancelled with their reasons and not offered; a
+signed-in user calling the function was refused.
+
+Production before applying (read-only, 2026-11-16): `health.reminder_outbox` holds 0 rows, so no existing reminder changes.
+Signed-in users cannot call the function.
+
+Production after applying (read-only): the new definition is in place; the delivery worker's role may call it, signed-in
+users and anonymous visitors may not; still 0 reminder rows.
+
+`test:db`: 202 checks, including 20 on reminders: the retry wait (2, 4, … up to 60 minutes), giving up, never sending
+twice, a missing SMS account not counted as an attempt, each of the six reasons a reminder stops holding, and staff seeing
+the reason with the number still masked. Eight of them fail without this migration.
+
+Rollback: run `nx_pep_outbox_due` from `20261116140000_rebuild_automations_v2.sql` again.

@@ -5,6 +5,7 @@ import { SITE_URL } from "@/lib/site-url";
 import { attempt, type Delivery, type Senders } from "@/lib/notify/deliver";
 import { sendSms } from "@/lib/connections/sms";
 import { sendEmailAs } from "@/lib/connections/send";
+import { deliverPepReminders, type PepReminder } from "@/lib/notify/pep";
 
 /* The delivery worker for notifications outside StrayPaw (email, browser push). Runs on the deployment's schedule with
    the cron secret. Every attempt is recorded on nx_deliveries; nothing is sent through a provider that is not set up. */
@@ -51,19 +52,20 @@ export async function GET(req: Request) {
     if (out.status === "sent") sent++; else if (out.status === "held_quiet") held++; else if (out.status === "not_connected") notConnected++; else if (out.status === "failed") failed++;
   }
   /* Consented PEP reminders from the clinicians' schedules, through the organisation's approved SMS template. */
-  const pep = { due: 0, sent: 0, not_connected: 0, failed: 0 };
   const smsReady = !!process.env.MSG91_AUTH_KEY?.trim() && !!process.env.MSG91_PEP_TEMPLATE_ID?.trim();
   const rem = await db.rpc("nx_pep_outbox_due", { p_limit: 50 });
-  for (const r of (rem.error ? [] : rem.data ?? []) as { id: string; channel: string; phone: string; vars: string[]; attempts: number }[]) {
-    if (Date.now() - started > 50_000) break;
-    pep.due++;
-    if (r.channel !== "sms" || !smsReady) { await db.rpc("nx_pep_outbox_mark", { p_id: r.id, p_status: "not_connected", p_error: r.channel === "sms" ? "No approved SMS reminder template is configured." : "WhatsApp is not connected." }); pep.not_connected++; continue; }
-    try {
+  const pep = await deliverPepReminders((rem.error ? [] : rem.data ?? []) as PepReminder[], {
+    smsReady,
+    deadline: started + 50_000,
+    send: async (phone, vars) => {
       const prev = process.env.MSG91_TEMPLATE_ID; process.env.MSG91_TEMPLATE_ID = process.env.MSG91_PEP_TEMPLATE_ID;
-      const out = await sendSms([r.phone], Array.isArray(r.vars) ? r.vars.map(String) : []).finally(() => { process.env.MSG91_TEMPLATE_ID = prev; });
-      await db.rpc("nx_pep_outbox_mark", { p_id: r.id, p_status: "sent", p_ref: out.id }); pep.sent++;
-    } catch (e) { await db.rpc("nx_pep_outbox_mark", { p_id: r.id, p_status: r.attempts + 1 >= 5 ? "failed" : "retry", p_error: e instanceof Error ? e.message : "SMS failed" }); pep.failed++; }
-  }
+      try { return await sendSms([phone], vars); } finally { process.env.MSG91_TEMPLATE_ID = prev; }
+    },
+    mark: async (id, status, error, ref) => {
+      const r = await db.rpc("nx_pep_outbox_mark", { p_id: id, p_status: status, p_error: error ?? null, p_ref: ref ?? null });
+      if (r.error) console.info("notifications delivery", JSON.stringify({ state: "pep outcome not recorded", status }));
+    },
+  });
   /* Approved messages from Kaju missions to people outside StrayPaw, sent as the person who approved them. */
   const ext = { due: 0, sent: 0, not_connected: 0, failed: 0 };
   const out = await db.from("nx_outbox").select("id,org_id,channel,recipient,subject,body,attempts,created_by,approved_by").eq("status", "queued").not("approved_at", "is", null).lte("next_attempt_at", now.toISOString()).limit(30);

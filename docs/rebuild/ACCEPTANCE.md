@@ -6,7 +6,7 @@ check that proves it is still to run), **Blocked (external)** (works up to an ow
 **Incomplete** (with the reason). Nothing is marked Verified on the strength of a build or a type check alone.
 
 Checks referred to (all run on 2026-11-15 on this branch):
-- `test:db` — 164 checks on a local Postgres running every rebuild migration, acting as different people through row-level security (`scripts/db-tests/run.mjs`, in CI).
+- `test:db` — 202 checks on a local Postgres running every rebuild migration, acting as different people through row-level security (`scripts/db-tests/run.mjs`, in CI).
 - `test:routes` — 7 checks: every sidebar link, every screen Kaju can open and every mapped old link opens a page; no classic route exists (in CI).
 - `test:kaju-planner` (plan validation, composer, model planner against a mock client), `test:kaju-reliability` (47), `test:kaju-polish` (27), `test:kaju-automations` (12), `test:notify-delivery`, `test:inference-off`, `test:state-machines`, `test:operational-cohorts` and ten more suites — all passing, in CI. (Until 2026-11-15 the automations, intake, package, state-machine and record-rule suites were not in `dev-check.yml`, although this list said so; they are now.)
 - e2e — Playwright on a production build, phone (Pixel 7) and desktop (1440): 672 tests; the full run had 601 passing and 23 failing, all fixed and their specs re-run to green (accessibility and rebuild 168/168, NGO, government/health, public and map 433 passing). Signed-in checks run on demo.straypaw.org after each sync (`signed-in-e2e.yml`).
@@ -82,7 +82,7 @@ Checks referred to (all run on 2026-11-15 on this branch):
 
 | Requirement | Status | Evidence / reason |
 | --- | --- | --- |
-| PEP reminder scheduling, consent, delivery log, retry | Verified (database: scheduling, consent, masking) · retry untested · Blocked (external) for sending | `test:db`; the outbox retry (`nx_pep_outbox_mark`) and the worker's sending loop have no test; sending needs OWNER_ACTIONS 6. |
+| PEP reminder scheduling, consent, delivery log, retry | Verified (database and sending loop) · Blocked (external) for sending | `test:db` "PEP reminders: sent only while they still hold, retried, then given up" (20 checks: the wait before a retry, giving up, never twice, and a reminder no longer sent once the dose is given, its date passes or moves, the course stops, consent is withdrawn or the number changes); `test:notify-delivery` runs the worker's sending loop with a stand-in sender. Sending needs OWNER_ACTIONS 6. |
 | Independent veterinary clinic onboarding | Verified (database) · UI built | Start page "Veterinary clinic"; clinic Today, Patients, Appointments. |
 | Offline capture and idempotent sync | Verified (phone browser, staging) | `e2e/field-offline-staging.spec.ts`. |
 | Coverage and surveillance with suppression, provenance, denominators | Built (earlier releases) | Programme Coverage tab shows only dated estimates; small counts hidden. |
