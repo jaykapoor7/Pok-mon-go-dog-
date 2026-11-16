@@ -175,3 +175,28 @@ the app moved to its own addresses, so it opened "not found". It now opens `/sta
 any app link under `/next/`. Production had sent no invitations, so no broken link went out.
 
 After the three runs, staging holds none of their organisations, programmes, contracts, sign-ins or animals.
+
+## 9. Code review of the day's changes (2026-11-16)
+
+A review of the changes in #120, #123 and the quick ARV fix reported eight findings. Fixed:
+- **A follow-up's acknowledgement was dropped by the next run** that still found something, so it showed as not picked
+  up and was raised with the leads again. `20261117140000` (production changes, seventh set).
+- **A member could briefly see the sample workspace after signing in.** The layout's inline script marks a browser that
+  holds a session only on a full page load; signing in moves into the app without one. `LiveProvider` now marks it
+  before the first paint as well. Checked in a browser: signing in through `/sign-in?next=/ngo/cases`, no sample chip was
+  ever visible.
+- **A failed workspace read showed members the sample workspace.** Any error reading `nx_my_workspaces` was taken for a
+  database without the rebuild's tables. Now only that case keeps the sample. Other errors are retried twice, then the frame
+  says the workspace could not be read and offers "Try again", which hides the page again while it reads. Checked in a
+  browser with the read failing: the error, never the sample; after "Try again", the organisation's own cases.
+- **Older open follow-ups disappeared from "Waiting for someone"**, which was built from the 30 latest runs. It now has its
+  own query for every open follow-up.
+- **The PEP sender swapped `process.env.MSG91_TEMPLATE_ID`** around each send, which any other SMS sent from the same
+  server at that moment would pick up. `sendSms` now takes the template as an argument.
+
+Not changed:
+- **A quick ARV vaccination on an already signed-off case is still accepted** (it now also records the operation). The
+  lifecycle form refuses changes to an attested record. Whether a field worker should be stopped from recording a
+  vaccination on a signed-off case is a decision for the programme owner.
+- **Escalation hours can only be set when a rule is turned on.**
+- **The "sample until ready" rule is repeated on each page.**

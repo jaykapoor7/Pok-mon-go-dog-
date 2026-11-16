@@ -21,6 +21,7 @@ const MIGRATIONS = [
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
   "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
   "20261117120000_rebuild_pep_reminder_validity.sql", "20261117130000_rebuild_quick_arv_operation.sql",
+  "20261117140000_rebuild_automation_ack_carry.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -463,13 +464,20 @@ section("Automations follow up: acknowledgement, escalation and closure");
   const ack = await one("select acknowledged_by, outcome, resolved_at from nx_automation_runs where id = $1", [run1.id]);
   ok(ack.acknowledged_by === B && ack.outcome.startsWith("Checking") && ack.resolved_at === null, "the acknowledgement keeps who, when and what, and leaves it open");
 
-  // Still found on the next run: the new run is open with a fresh clock (it was acknowledged); the old one is carried.
+  // Still found on the next run: the old run is carried into the new one, which keeps who is handling it, what they
+  // said and when it first opened. (It used to start unacknowledged, so it showed as not picked up and was raised with
+  // the leads again.)
   await nextSecond(); await as(A, "select nx_automation_run($1, true)", [fa]);
-  const runs = await db.query("select id, resolved_note, open_since > now() - interval '1 minute' as fresh from nx_automation_runs where automation_id = $1 and status = 'succeeded' order by finished_at", [fa]);
-  ok(runs.rows.length === 2 && runs.rows[0].resolved_note === "Carried into a later run" && runs.rows[1].fresh, "a later run carries the earlier follow-up and starts its own");
+  const runs = await db.query("select id, resolved_note, acknowledged_by, outcome, open_since < now() - interval '2 hours' as old from nx_automation_runs where automation_id = $1 and status = 'succeeded' order by finished_at", [fa]);
+  ok(runs.rows.length === 2 && runs.rows[0].resolved_note === "Carried into a later run", "a later run carries the earlier follow-up");
+  ok(runs.rows[1].acknowledged_by === B && runs.rows[1].outcome.startsWith("Checking") && runs.rows[1].old, "and keeps its acknowledgement and its first open time");
+  const before = await nudges(A);
+  await db.query("update nx_automation_runs set open_since = now() - interval '30 hours', escalated_at = null where id = $1", [runs.rows[1].id]);
+  await db.query("select nx_automations_tick()");
+  ok(await nudges(A) === before, "an acknowledged follow-up carried into a later run is not raised with the leads again");
 
   // Unacknowledged and still found: the clock and the escalation carry, so a daily rule cannot restart the wait.
-  await db.query("update nx_automation_runs set open_since = now() - interval '5 hours', escalated_at = now() - interval '1 hour' where id = $1", [runs.rows[1].id]);
+  await db.query("update nx_automation_runs set acknowledged_by = null, acknowledged_at = null, outcome = null, open_since = now() - interval '5 hours', escalated_at = now() - interval '1 hour' where id = $1", [runs.rows[1].id]);
   await nextSecond(); await as(A, "select nx_automation_run($1, true)", [fa]);
   const carried = await one("select open_since < now() - interval '4 hours' as old, escalated_at is not null as esc from nx_automation_runs where automation_id = $1 and status = 'succeeded' and resolved_at is null", [fa]);
   ok(carried.old && carried.esc, "an unacknowledged follow-up keeps its clock and its escalation into the next run");

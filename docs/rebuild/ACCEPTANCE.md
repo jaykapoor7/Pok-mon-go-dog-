@@ -6,7 +6,7 @@ check that proves it is still to run), **Blocked (external)** (works up to an ow
 **Incomplete** (with the reason). Nothing is marked Verified on the strength of a build or a type check alone.
 
 Checks referred to (all run on 2026-11-15 on this branch):
-- `test:db` — 228 checks on a local Postgres running every rebuild migration, acting as different people through row-level security (`scripts/db-tests/run.mjs`, in CI).
+- `test:db` — 230 checks on a local Postgres running every rebuild migration, acting as different people through row-level security (`scripts/db-tests/run.mjs`, in CI).
 - `test:routes` — 7 checks: every sidebar link, every screen Kaju can open and every mapped old link opens a page; no classic route exists (in CI).
 - `test:kaju-planner` (plan validation, composer, model planner against a mock client), `test:kaju-reliability` (47), `test:kaju-polish` (27), `test:kaju-automations` (12), `test:notify-delivery`, `test:inference-off`, `test:state-machines`, `test:operational-cohorts` and ten more suites — all passing, in CI. (Until 2026-11-15 the automations, intake, package, state-machine and record-rule suites were not in `dev-check.yml`, although this list said so; they are now.)
 - e2e — Playwright on a production build, phone (Pixel 7) and desktop (1440): 672 tests; the full run had 601 passing and 23 failing, all fixed and their specs re-run to green (accessibility and rebuild 168/168, NGO, government/health, public and map 433 passing). Signed-in checks run on demo.straypaw.org after each sync (`signed-in-e2e.yml`).

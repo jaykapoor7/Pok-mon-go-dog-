@@ -39,6 +39,7 @@ export function KajuAutomations() {
   const [outcome, setOutcome] = useState("");
   const [closeIt, setCloseIt] = useState(false);
   const [followups, setFollowups] = useState(true);
+  const [openRuns, setOpenRuns] = useState<Run[]>([]);
   const { busy, run } = useAct();
   const manager = !!org && ["admin", "lead", "coordinator"].includes(org.role);
   useEffect(() => {
@@ -49,7 +50,10 @@ export function KajuAutomations() {
         .then(async (r) => r.error && /column|schema cache/i.test(r.error.message)
           ? { ...(await db.from("nx_automation_runs").select("id,automation_id,status,found,delivered,summary,error,started_at").eq("org_id", org.org_id).order("started_at", { ascending: false }).limit(30)), old: true }
           : { ...r, old: false }),
-    ]).then(([a, r]) => { if (a.error && /does not exist|schema cache/i.test(a.error.message)) { setMissing(true); setAutos([]); return; } setAutos((a.data ?? []) as Auto[]); setRuns((r.data ?? []) as Run[]); setFollowups(!r.old); });
+      /* Every follow-up still open, however old: the recent runs above are only the latest 30. */
+      db.from("nx_automation_runs").select("id,automation_id,status,found,delivered,summary,error,started_at,open_since,acknowledged_at,outcome,escalated_at,resolved_at,resolved_note")
+        .eq("org_id", org.org_id).eq("status", "succeeded").gt("found", 0).is("resolved_at", null).order("open_since", { ascending: true }).limit(200),
+    ]).then(([a, r, o]) => { if (a.error && /does not exist|schema cache/i.test(a.error.message)) { setMissing(true); setAutos([]); return; } setAutos((a.data ?? []) as Auto[]); setRuns((r.data ?? []) as Run[]); setFollowups(!r.old && !o.error); setOpenRuns((o.error ? [] : o.data ?? []) as Run[]); });
   }, [db, org, tick]);
   const library = useMemo(() => ENTRIES.filter((e) => !org || (e.ws.includes(org.workspace) && (!e.kinds || e.kinds.includes(org.kind)))), [org]);
   const mine = (rule: string) => autos?.find((a) => a.rule === rule) ?? null;
@@ -84,7 +88,7 @@ export function KajuAutomations() {
             </li>); })}</ul>}
         </Section>
         {org?.workspace === "ngo" ? <ReportingRules org={org} manager={manager} /> : null}
-        {org && followups ? (() => { const open = runs.filter((r) => r.status === "succeeded" && (r.found ?? 0) > 0 && !r.resolved_at); return (
+        {org && followups ? (() => { const open = openRuns; return (
           <Section title="Waiting for someone" count={open.length}>
             {!open.length ? <Empty title="Nothing waiting" hint="When a rule finds something, it waits here until someone says what is being done, or a later run finds nothing." /> : <ul className="nx-feed">{open.map((r) => (
               <li key={r.id} style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>

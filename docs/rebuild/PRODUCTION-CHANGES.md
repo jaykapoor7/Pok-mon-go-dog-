@@ -183,3 +183,30 @@ written.
 
 Rollback: re-create `field_confirm_vaccination` from `20261102132030_field_vaccination_receipts.sql` and
 `operations_record_event` from `20261103004523_offline_intake_and_lifecycle.sql`.
+
+---
+
+# Seventh set: a follow-up keeps its acknowledgement when the rule finds something again
+
+**Applied on staging, checked there in a rolled-back run, then applied on production, on 2026-11-16**, through the
+Supabase tool. Found by a code review of the day's changes.
+
+| Order | File | What it changes | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 17 | `20261117140000_rebuild_automation_ack_carry.sql` | Replaces `nx_automation_run`. When a rule still finds something, the new run keeps the open follow-up's latest acknowledgement (who, when, what) and its earliest open time; before, only an unacknowledged clock was carried. No table, column or grant changes. | Applied, checked | Applied, checked |
+
+Why: with 20261116180000, a member's acknowledgement ("Nisha is visiting both addresses tomorrow") was closed with the
+earlier run as "Carried into a later run". The next morning's run then showed "Not picked up", and after the rule's
+escalation hours the schedule told the admins and leads about work someone was already handling.
+
+Staging check (rolled back), as the sample NGO coordinator: run, acknowledge, run again; the later run is open and
+acknowledged with the same outcome, and with its open time set 30 hours back the hourly tick did not escalate it.
+
+Production before applying (read-only): the live function was identical to 20261116180000; no automation has been turned
+on and there are no runs, so nothing existing changes. After applying: the same definition as staging; signed-in members
+may call it, anonymous visitors may not.
+
+`test:db`: 230 checks. Three fail without this migration, including "an acknowledged follow-up carried into a later run is
+not raised with the leads again".
+
+Rollback: re-create `nx_automation_run` from `20261116180000_rebuild_automation_followup.sql`.

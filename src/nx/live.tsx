@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
 
@@ -13,9 +13,11 @@ export type Message = { id: string; channel_id: string; parent_id: string | null
 export type Task = { id: string; org_id: string; title: string; note: string | null; state: "open" | "done" | "cancelled"; due_on: string | null; assignee_name: string | null; source_kind: string; source_message_id: string | null; channel_id: string | null; record_label: string | null; created_at: string };
 
 type Live = { ready: boolean; signedIn: boolean; userId: string | null; userName: string | null; orgs: Workspace[]; org: Workspace | null; pick: (id: string) => void; missing: boolean;
+  /** The signed-in person's workspaces could not be read (after retrying). Pages must not fall back to sample data then. */
+  failed: boolean; retry: () => void;
   /** The organisation a workspace's pages act for: the one picked if it belongs to that workspace, otherwise the first that does. */
   orgFor: (w: Workspace["workspace"]) => Workspace | null };
-const Ctx = createContext<Live>({ ready: false, signedIn: false, userId: null, userName: null, orgs: [], org: null, pick: () => {}, missing: false, orgFor: () => null });
+const Ctx = createContext<Live>({ ready: false, signedIn: false, userId: null, userName: null, orgs: [], org: null, pick: () => {}, missing: false, failed: false, retry: () => {}, orgFor: () => null });
 export const useLive = () => useContext(Ctx);
 const KEY = "nx.org";
 
@@ -23,28 +25,47 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const { user, ready: authReady } = useAuth();
   const [orgs, setOrgs] = useState<Workspace[] | null>(null);
   const [missing, setMissing] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   useEffect(() => { try { setPicked(localStorage.getItem(KEY)); } catch {} }, []);
+  /* Before the first paint of an app page reached by navigating inside the site (after signing in, say), mark a browser
+     that holds a session, as the layout's inline script does on a full page load, so a member never sees the sample. */
+  useLayoutEffect(() => {
+    const html = document.documentElement;
+    html.removeAttribute("data-ready");
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^sb-.+-auth-token$/.test(k)) { html.setAttribute("data-member", ""); break; } } } catch {}
+  }, []);
   useEffect(() => {
     if (!authReady) return;
     const db = getSupabase();
     if (!user || !db) { setOrgs([]); return; }
     let alive = true;
-    db.rpc("nx_my_workspaces").then(({ data, error }) => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const read = (n: number) => db.rpc("nx_my_workspaces").then(({ data, error }) => {
       if (!alive) return;
-      /* A database that does not have the rebuild's tables yet is not an error for the person: the screens stay on sample data. */
-      if (error) { setMissing(true); setOrgs([]); return; }
-      setOrgs((data ?? []) as Workspace[]);
-    });
-    return () => { alive = false; };
-  }, [authReady, user]);
+      if (error) {
+        /* A database that does not have the rebuild's tables yet is not an error for the person: the screens stay on sample data. */
+        if (/does not exist|schema cache|PGRST202|Could not find the function/i.test(error.message)) { setMissing(true); setOrgs([]); return; }
+        /* Anything else (no signal, a timeout, a server error) is tried twice more; then the frame says it could not be read,
+           rather than showing a member the sample workspace as if it were theirs. */
+        if (n < 2) { timer = setTimeout(() => void read(n + 1), 1500 * (n + 1)); return; }
+        setFailed(true); setOrgs([]); return;
+      }
+      setFailed(false); setOrgs((data ?? []) as Workspace[]);
+    }, () => { if (alive) { if (n < 2) timer = setTimeout(() => void read(n + 1), 1500 * (n + 1)); else { setFailed(true); setOrgs([]); } } });
+    void read(0);
+    return () => { alive = false; if (timer) clearTimeout(timer); };
+  }, [authReady, user, attempt]);
+  /* Reading again hides the page as on first load (nx.css), so the sample never shows while the read is under way. */
+  const retry = useCallback(() => { document.documentElement.removeAttribute("data-ready"); setFailed(false); setOrgs(null); setAttempt((a) => a + 1); }, []);
   const pick = useCallback((id: string) => { setPicked(id); try { localStorage.setItem(KEY, id); } catch {} }, []);
   const value = useMemo<Live>(() => {
     const list = orgs ?? [];
     const org = list.find((o) => o.org_id === picked) ?? list[0] ?? null;
     const orgFor = (w: Workspace["workspace"]) => (org?.workspace === w ? org : list.find((o) => o.workspace === w) ?? null);
-    return { ready: authReady && orgs !== null, signedIn: !!user, userId: user?.id ?? null, userName: user?.name ?? null, orgs: list, org, pick, missing, orgFor };
-  }, [authReady, orgs, user, picked, pick, missing]);
+    return { ready: authReady && orgs !== null, signedIn: !!user, userId: user?.id ?? null, userName: user?.name ?? null, orgs: list, org, pick, missing, failed, retry, orgFor };
+  }, [authReady, orgs, user, picked, pick, missing, failed, retry]);
   // Once known, the page may show what it has (nx.css keeps a member's sample page hidden until then).
   useEffect(() => { if (value.ready) document.documentElement.setAttribute("data-ready", ""); }, [value.ready]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
