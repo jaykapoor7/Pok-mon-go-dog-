@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { VoiceError, type VoiceAccess } from "./access";
 import { voiceMode } from "./deployment";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 type Entry = {
   at: number; id: string; actorId: string; scope: VoiceAccess["scope"]; auth: VoiceAccess["auth"];
@@ -71,7 +72,8 @@ export const voiceUsage = new LocalVoiceUsage();
  * production database in production, staging in the preview. Hosted modes
  * never fall back to the instance's filesystem, which is neither shared nor
  * durable. Session grants only; not a billing ledger. */
-export function usageForVoiceAccess(access: VoiceAccess, env: Record<string, string | undefined> = process.env) {
+export function usageForVoiceAccess(access: VoiceAccess, env: Record<string, string | undefined> = process.env, admin: () => ReturnType<typeof getSupabaseAdmin> = getSupabaseAdmin) {
+  if (access.auth === "public") return publicUsage(access, admin);
   if (!access.db) {
     if (voiceMode(env) === "local") return voiceUsage;
     throw new VoiceError("Kaju Voice is not available right now.", 503);
@@ -93,5 +95,27 @@ export function usageForVoiceAccess(access: VoiceAccess, env: Record<string, str
     issued: (_access: VoiceAccess, id: string, referenceId: string) => rpc("kaju_voice_update", { p_id: id, p_event: "issued", p_reference: referenceId }),
     failed: (_access: VoiceAccess, id: string) => rpc("kaju_voice_update", { p_id: id, p_event: "failed" }),
     report: (_access: VoiceAccess, referenceId: string, event: string, flags: { audioSent: boolean; audioReceived: boolean; interrupted: boolean }) => rpc("kaju_voice_update", { p_reference: referenceId, p_event: event, p_flags: flags }),
+  };
+}
+
+/** Public conversations: the row was reserved when the session token was
+ * minted. "claim" makes the token sign at most one provider session, before
+ * the provider is called. Service role only; nothing here is reachable by a
+ * browser's own Supabase key. */
+function publicUsage(access: VoiceAccess, admin: () => ReturnType<typeof getSupabaseAdmin>) {
+  const db = admin();
+  if (!db || access.scope.kind !== "public") throw new VoiceError("Kaju Voice is not available right now.", 503);
+  const sid = access.scope.id;
+  const rpc = async (args: Record<string, unknown>) => {
+    const { data, error } = await db.rpc("kaju_voice_public_update", { p_id: sid, ...args });
+    if (error) throw new VoiceError("Kaju Voice is not available right now. Try again in a moment.", 503);
+    if (data !== true) throw new VoiceError("This conversation has expired. Start again.", 403);
+    return data;
+  };
+  return {
+    reserve: async (_access: VoiceAccess, _version: number) => { await rpc({ p_event: "claim" }); return sid; },
+    issued: (_access: VoiceAccess, _id: string, referenceId: string) => rpc({ p_event: "issued", p_reference: referenceId }),
+    failed: (_access: VoiceAccess, _id: string) => rpc({ p_event: "failed" }),
+    report: (_access: VoiceAccess, referenceId: string, event: string, flags: { audioSent: boolean; audioReceived: boolean; interrupted: boolean }) => rpc({ p_event: event, p_reference: referenceId, p_flags: flags }),
   };
 }

@@ -32,10 +32,22 @@ export function readVoiceSettings(env: Record<string, string | undefined> = proc
   };
 }
 
+/** The public agent: its own Samvaad app and committed version, never the
+ * staff agent by default. Same organisation, workspace and server key. */
+export function publicVoiceSettings(env: Record<string, string | undefined> = process.env): { config: VoiceTestConfig; apiKey: string } | { missing: string[] } {
+  const settings = readVoiceSettings(env);
+  if ("missing" in settings) return settings;
+  const app = env.SARVAM_VOICE_PUBLIC_APP_ID?.trim() ?? "", raw = env.SARVAM_VOICE_PUBLIC_VERSION?.trim() ?? "", version = Number(raw);
+  if (!ID.test(app) || !/^\d+$/.test(raw) || !Number.isSafeInteger(version) || version < 1) return { missing: ["SARVAM_VOICE_PUBLIC_APP_ID", "SARVAM_VOICE_PUBLIC_VERSION"] };
+  return { apiKey: settings.apiKey, config: { ...settings.config, app_id: app, version } };
+}
+
 /** Explicit per-organisation agent assignment; no cross-tenant fallback. */
 export function settingsForVoiceAccess(access: VoiceAccess, env: Record<string, string | undefined> = process.env) {
   const settings = readVoiceSettings(env);
-  if ("missing" in settings || access.scope.kind === "standalone") return settings;
+  if ("missing" in settings) return settings;
+  if (access.scope.kind === "public") return publicVoiceSettings(env);
+  if (access.scope.kind === "standalone") return settings;
   try {
     const assignments = JSON.parse(env.SARVAM_VOICE_ORG_AGENTS ?? "{}");
     const assigned = assignments[access.scope.id];

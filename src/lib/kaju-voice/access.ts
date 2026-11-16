@@ -2,9 +2,10 @@ import "server-only";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { voiceMode } from "./deployment";
+import { isPublicToken, publicVoiceMode, readPublicToken } from "./public";
 import { createBoundedSupabaseFetch } from "@/lib/bounded-supabase-fetch";
 
-export type VoiceAccess = { actorId: string; auth: "local-test" | "supabase"; scope: { kind: "standalone" | "organisation"; id: string }; db?: SupabaseClient };
+export type VoiceAccess = { actorId: string; auth: "local-test" | "supabase" | "public"; scope: { kind: "standalone" | "organisation" | "public"; id: string }; db?: SupabaseClient };
 type Env = Record<string, string | undefined>;
 export class VoiceError extends Error {
   constructor(message: string, public status: number) { super(message); }
@@ -24,6 +25,13 @@ export async function voiceAccess(req: Request, env: Env = process.env, request:
   const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
   if (!token || token.length > 8192) throw new VoiceError("Sign in to StrayPaw to use Kaju Voice.", 401);
   const org = req.headers.get("X-StrayPaw-Voice-Organisation");
+  // A public conversation: no StrayPaw identity, one ledger row, no tools.
+  if (isPublicToken(token)) {
+    if (publicVoiceMode(env) === "off" || org) throw new VoiceError("Kaju Voice is not available.", 403);
+    const sid = readPublicToken(token, env);
+    if (!sid) throw new VoiceError("This conversation has expired. Start again.", 401);
+    return { actorId: `public:${sid}`, auth: "public", scope: { kind: "public", id: sid } };
+  }
   const local = env.SARVAM_VOICE_LOCAL_TOKEN?.trim();
   if (mode !== "production" && mode !== "preview" && env.NODE_ENV === "development" && !env.VERCEL && local && local.length >= 32 && timingSafeEqual(digest(local), digest(token))) {
     if (org) throw new VoiceError("Local test access cannot act for an organisation.", 403);

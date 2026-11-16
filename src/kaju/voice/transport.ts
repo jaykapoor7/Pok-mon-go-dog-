@@ -7,7 +7,19 @@ type Options = {
   config: VoiceTestConfig; language: VoiceLanguage; headers: Record<string, string>;
   status: (state: string) => void; transcript: (role: string, text: string) => void;
   evidence: (value: VoiceEvidence) => void; ended: () => void; failed: (kind: string) => void;
+  /** Loudness of the latest 16-bit PCM chunk, 0 to 1: the caller's microphone or Kaju's reply. UI only; nothing leaves the page. */
+  level?: (source: "you" | "kaju", value: number) => void;
 };
+
+/** RMS of little-endian 16-bit PCM, normalised to 0..1. */
+export function pcmLevel(data: Uint8Array) {
+  const samples = data.byteLength >> 1;
+  if (!samples) return 0;
+  const view = new DataView(data.buffer, data.byteOffset, samples * 2);
+  let sum = 0;
+  for (let i = 0; i < samples; i++) { const v = view.getInt16(i * 2, true) / 32768; sum += v * v; }
+  return Math.min(1, Math.sqrt(sum / samples) * 4);
+}
 
 /** Official SDK adapter, isolated from UI, records, identity and billing.
  * Injectable loader is for lifecycle tests, never a production fallback. */
@@ -32,12 +44,12 @@ export async function createVoiceTransport(options: Options, load: () => Promise
     async start(callback) {
       if (disposed) return;
       try {
-        await audio.start(async (data, frames) => { if (!disposed) await callback(data, frames); });
+        await audio.start(async (data, frames) => { if (!disposed) { options.level?.("you", pcmLevel(data)); await callback(data, frames); } });
         if (disposed) await audio.stop();
       } catch (err) { await audio.stop(); fail(err instanceof Error ? err.name : "audio"); throw Error("Microphone unavailable"); }
     },
     async stop() { await audio.stop(); },
-    async output(data, sampleRate) { if (!disposed) await audio.output(data, sampleRate); },
+    async output(data, sampleRate) { if (!disposed) { options.level?.("kaju", pcmLevel(data)); await audio.output(data, sampleRate); } },
     interrupt() { audio.interrupt(); },
   };
   agent = new sdk.ConversationAgent({
@@ -47,6 +59,8 @@ export async function createVoiceTransport(options: Options, load: () => Promise
       version: options.config.version, user_identifier: options.config.user_identifier!, user_identifier_type: "custom",
       interaction_type: sdk.InteractionType.CALL, input_sample_rate: 16000, output_sample_rate: 16000,
       initial_language_name: options.language as InteractionConfig["initial_language_name"],
+      // Server-issued only (see /api/kaju/voice/config); never typed in the browser.
+      ...(options.config.agent_variables ? { agent_variables: options.config.agent_variables } : {}),
     },
     audioInterface: guardedAudio,
     stateCallback: (state) => { if (!disposed) options.status(state); },

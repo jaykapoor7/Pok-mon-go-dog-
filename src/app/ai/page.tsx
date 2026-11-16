@@ -17,7 +17,8 @@ export default function AiPage() {
     title: ["Answers, checks and paperwork,", "done by Kaju"],
     lede: "Kaju answers from your records, finds what is missing and prepares changes for your team to confirm.",
     primary: { href: "/kaju", label: "Open Kaju" },
-    secondary: { href: "/demo", label: "Book a demo" },
+    // The public voice entry, once Talk to Kaju is open to everyone (NEXT_PUBLIC_KAJU_VOICE_PUBLIC=on).
+    secondary: process.env.NEXT_PUBLIC_KAJU_VOICE_PUBLIC === "on" ? { href: "/talk", label: "Talk to Kaju" } : { href: "/demo", label: "Book a demo" },
     hero: <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, justifyItems: "center", width: "100%" }}><AskUi v={3} /><ProposeUi v={1} /></div>,
     heroV: 2,
     pillars: {
