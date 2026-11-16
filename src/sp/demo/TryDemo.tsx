@@ -1,17 +1,15 @@
 "use client";
 
 /* The front door of the live demo (demo.straypaw.org opens here): one line of what it shows, one button to start,
-   the six stages it walks through, what each status mark means, and every role to explore freely. With ?go=1 it
+   the six stages it walks through, and the four places to explore freely. With ?go=1 it
    signs the visitor in and starts straight away. Off the demonstration site it points there. */
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Clock } from "lucide-react";
 import { DEMO_SITE } from "@/lib/demo-site";
-import { AVAIL, DEMO_ROLES, STAGES, type Avail, type DemoRole } from "./tour";
+import { DEMO_ROLES, DEMO_SHOWN, SHOWN_LABEL, STAGES, type DemoRole } from "./tour";
 import { enterAs, leaveFor, writeTour } from "./state";
 import "./demo-tour.css";
-
-const GROUP_LABEL = { programme: "Programme", health: "Health", animal: "Animal care", government: "Government" } as const;
 
 export function TryDemo() {
   const [busy, setBusy] = useState<string | null>(null);
@@ -54,28 +52,26 @@ export function TryDemo() {
 
   return (
     <div className="try">
-      <p className="try-k">One Health demo · fictional records</p>
+      <p className="try-k">StrayPaw One Health</p>
       <h1>One Health. One Connected Response.</h1>
       <p className="try-lede">Follow a single dog-bite incident across citizens, healthcare, animal-health teams, municipalities and researchers — coordinated through StrayPaw and Kaju.</p>
       <div className="try-go">
         {/* A link, so it still starts if pressed before the page is interactive (/try?go=1 starts on load). */}
         <a href="/try?go=1" role="button" className="try-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening…" : <>Start Demo <ArrowRight size={17} aria-hidden /></>}</a>
-        <small><Clock size={15} aria-hidden /> About five minutes · you work in the real workspaces; a small guide shows where</small>
+        <small><Clock size={15} aria-hidden /> About four minutes · press Next, or try every step yourself</small>
       </div>
       {err && <p className="try-err" role="alert">{err}</p>}
       <ol className="try-story is-six" aria-label="The six stages">
         {STAGES.map((t, i) => <li key={t.id} style={{ ["--i" as string]: i }}><b>{t.label}</b><small>{t.title}</small></li>)}
       </ol>
-      <ul className="try-legend" aria-label="What the marks in the guide mean">
-        {(Object.keys(AVAIL) as Avail[]).map((k) => <li key={k} className={`is-${k}`}><b>{AVAIL[k].label}</b><span>{AVAIL[k].note}</span></li>)}
-      </ul>
-      <h2 className="try-h">Or explore as anyone in the programme</h2>
+      <h2 className="try-h">Or explore on your own</h2>
       <ul className="try-roles">
-        {(Object.keys(DEMO_ROLES) as DemoRole[]).map((r) => (
-          <li key={r}><button type="button" disabled={!!busy} onClick={() => roam(r)}><em>{GROUP_LABEL[DEMO_ROLES[r].group]}</em><b>{DEMO_ROLES[r].label}</b><small>{busy === r ? "Signing you in…" : DEMO_ROLES[r].who}</small><ArrowRight size={15} aria-hidden /></button></li>
+        <li><a className="try-role" href="/bite-help"><b>Resident</b><small>Report a bite to Kaju, by chat or call</small><ArrowRight size={15} aria-hidden /></a></li>
+        {DEMO_SHOWN.map((r) => (
+          <li key={r}><button type="button" disabled={!!busy} onClick={() => roam(r)}><b>{SHOWN_LABEL[r]?.label ?? DEMO_ROLES[r].label}</b><small>{busy === r ? "Signing you in…" : SHOWN_LABEL[r]?.who ?? DEMO_ROLES[r].who}</small><ArrowRight size={15} aria-hidden /></button></li>
         ))}
       </ul>
-      <p className="try-note">Sample accounts on a separate demonstration database. Institutions are named by their role; every person, patient and record is fictional.</p>
+      <p className="try-note">A demonstration programme: every person, patient and record is fictional.</p>
     </div>
   );
 }

@@ -313,7 +313,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
       <header className="kb-top">
         <Link href="/" className="kb-brand" aria-label="StrayPaw home"><img src="/icon-192.png" alt="" width={28} height={28} /><span>StrayPaw</span></Link>
         <span className="kb-app"><b>Kaju</b><span>Help after an animal bite</span></span>
-        {pub.data?.programme?.illustrative ? <span className="kb-demo">Demonstration · fictional records</span> : null}
+        {pub.data?.programme?.illustrative ? <span className="kb-demo">Demo</span> : null}
         <a className="kb-108" href="tel:108" aria-label="Emergency: call 108"><Phone size={14} aria-hidden /><span>Emergency</span> <b>108</b></a>
       </header>
       <main id="main" className="kb-main">
@@ -333,7 +333,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
             : <CallView {...view} talk={talk} sent={sent} sarvam={sarvam} onStart={(lang) => void startCall(lang)} onEnd={() => endCall()} onMute={() => setTalk((t) => ({ ...t, muted: !t.muted }))} onAnswer={answerNow} onDone={() => finish.current?.()} onChat={() => pick("chat")} onLang={(lang) => setTalk((t) => ({ ...t, lang }))} />}
           <Report draft={draft} f={f} at={at} danger={danger} areaName={areaName(f.area)} sent={sent} known={known.current} />
         </div>
-        <p className="kb-foot">Prototype for the Bengaluru One Health pilot, awaiting clinical review. First aid follows WHO rabies guidance and India&apos;s National Rabies Control Programme; the first aid, the safety question and the advice are fixed steps. Kaju reads your words with fixed rules on this device: no AI model reads them, and nothing here assesses a wound or recommends treatment.</p>
+        <p className="kb-foot">First aid follows WHO rabies guidance and India&apos;s National Rabies Control Programme. Kaju never assesses a wound or recommends treatment; a doctor decides.</p>
       </main>
     </div>
   );
@@ -461,7 +461,7 @@ function CallView({ at, quick, typing, log, err, ready, slug, talk, sent, sarvam
           {talk.ended || talk.problem ? <button type="button" className="kv-link" onClick={onChat}>Continue in the chat</button> : null}
         </div>}
       </div>
-      <p className="kv-note">{sarvam ? "Voice by Sarvam AI: your answers are turned into text by Sarvam and not stored by StrayPaw. Kannada and Hindi replies are machine-translated, awaiting review. A public helpline number comes with the pilot." : "Using this browser's own voice (English). A public helpline number comes with the pilot."}</p>
+      <p className="kv-note">{sarvam ? "Voice by Sarvam AI. Speak English, ಕನ್ನಡ or हिन्दी." : "Speak in English."} Allow the microphone when asked.</p>
     </section>
   );
 }
@@ -486,7 +486,7 @@ function Report({ draft, f, at, danger, areaName, sent, known }: { draft: BiteDr
       <p className="kb-r-h"><b>Kaju&apos;s report</b><span>{rows.filter(([, v]) => v).length} of {rows.length}</span></p>
       <p className="kb-r-s" role="status">{sent ? <Check size={14} strokeWidth={3} aria-hidden /> : null}{status}</p>
       <dl>{rows.map(([k, v]) => <div key={k} className={v ? "is-in" : undefined}><dt>{k}</dt><dd>{v ?? "—"}</dd></div>)}</dl>
-      <p className="kb-r-n">Read on this device by fixed rules; no AI model reads your words. Nothing is sent until you confirm, and your name is not asked for.</p>
+      <p className="kb-r-n">Nothing is sent until you confirm. Your name is not asked for.</p>
     </aside>
   );
 }
@@ -517,7 +517,6 @@ function Centres({ slug, first }: { slug: string; first: string | null }) {
   const tone: Record<string, string> = { green: "is-ok", amber: "is-warn", flame: "is-bad" };
   return (
     <div className="kb-centres">
-      {pub.data.programme.illustrative ? <p className="kb-fict" role="note">Demonstration: these centres are invented. Do not travel to them.</p> : null}
       <ul>
         {shown.map((c) => (
           <li key={c.id} className={c.name === first ? "is-first" : undefined}>

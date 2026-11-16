@@ -299,3 +299,31 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
 .dt-tags.is-chips li { display: contents; }
 @media (max-width: 760px) { .dt.is-guide:not(.is-more) .dt-tags.is-chips { display: none; } }
 .dt.is-guide .dt-stages small { font-size: 11px; }
+
+/* ── Docked: on a wide screen the guide is a column of its own at the right, and the product takes the rest, so the
+   guide never covers anything on the page. The app (fixed to the window) and the public pages step aside for it. ── */
+@media (min-width: 1100px) {
+  html.dt-on { --dt-dock: 360px; }
+  html.dt-on .nx { right: var(--dt-dock); }
+  html.dt-on .ai3-panel { right: var(--dt-dock) !important; }
+  .dt.is-guide, .dt.is-guide.is-bl, .dt.is-guide.is-tr, .dt.is-end {
+    top: 0; right: 0; bottom: 0; left: auto; width: var(--dt-dock); max-height: none; border-radius: 0; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 14px; overflow-y: auto; background: #fbfbfa;
+    box-shadow: inset 1px 0 0 rgba(55, 53, 47, .1); animation: none;
+  }
+  .dt.is-guide h2, .dt.is-end h2 { margin-top: 12px; font-size: 24px; line-height: 30px; letter-spacing: -.02em; }
+  .dt.is-guide .dt-say { font-size: 16px; line-height: 24px; color: #4a4a46; }
+  .dt.is-guide .dt-act { margin-top: 8px; }
+  .dt.is-guide .dt-btn { min-height: 44px; }
+  .dt.is-guide .dt-handoff { font-size: 14px; line-height: 20px; }
+  .dt.is-guide .dt-foot, .dt.is-end .dt-foot { margin-top: auto; padding-top: 12px; }
+  .dt.is-guide > * { animation: dt-rise .35s var(--dt-ease) both; }
+  html:has(.ai3-panel) .dt, html:has(.ai3-panel) .dt-pill { right: 0; }
+}
+@media (min-width: 1100px) and (prefers-reduced-motion: reduce) { .dt.is-guide > * { animation: none; } }
+/* /try: the resident's own way in sits with the roles. */
+.try-roles a.try-role { width: 100%; height: 100%; display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; padding: 16px; border-radius: 12px; background: #f5f6f8; color: var(--dt-ink); text-decoration: none; }
+.try-roles a.try-role:hover { background: #eef0f4; }
+.try-roles a.try-role b { font-size: 16px; font-weight: 600; }
+.try-roles a.try-role small { grid-column: 1; color: var(--dt-grey); font-size: 14px; }
+.try-roles a.try-role svg { grid-column: 2; grid-row: 1 / span 2; color: var(--dt-blue); }

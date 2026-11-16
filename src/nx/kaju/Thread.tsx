@@ -7,6 +7,7 @@ import { ArrowUpRight, Check as Tick, Loader2 } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
 import { appHref, useKaju, type Turn } from "./state";
+import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
    as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx). */
@@ -82,7 +83,7 @@ export function Thread({ compact }: { compact?: boolean }) {
                   {t.reply.navigate ? <p><Link className="nx-btn is-quiet is-sm" href={appHref(t.reply.navigate.href)}>{t.reply.navigate.label}<ArrowUpRight size={12} /></Link></p> : null}
                   {!compact && t.reply.tools?.length ? <details className="nx-ktools"><summary>What Kaju checked ({t.reply.tools.length})</summary><ul>{t.reply.tools.map((x, i) => <li key={i} className={x.ok ? "" : "is-bad"}>{x.summary}</li>)}</ul></details> : null}
                   {t.reply.suggestions?.length ? <div className="nx-ksugg">{t.reply.suggestions.slice(0, 3).map((s) => <button key={s} type="button" onClick={() => void ask(s)}>{s}</button>)}</div> : null}
-                  <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}</p>
+                  <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : DEMO_SITE ? "Answered from records you can see." : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}</p>
                 </> : null}
               </div>
             </div>

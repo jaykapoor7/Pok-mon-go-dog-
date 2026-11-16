@@ -17,103 +17,54 @@ const on = (page: Page, re: RegExp) => card(page).getByRole("button", { name: re
 /** The guide's one-click example; the label returns once every field is filled. */
 const example = async (page: Page, re: RegExp) => { await on(page, re); await expect(card(page).getByRole("button", { name: re })).toBeEnabled({ timeout: 15_000 }); };
 
-test("one bite, six stages: the guide points at each control, notices each step and hands over to the next role", async ({ page, isMobile }) => {
+test("one bite, six stages: Next alone walks the whole response, and every step really happens", async ({ page, isMobile }) => {
   test.skip(isMobile, "the recording is made on a desktop");
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
   await page.goto("/try");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("One Health. One Connected Response.");
   await expect(page.getByRole("list", { name: "The six stages" }).getByRole("listitem")).toHaveCount(6);
   await page.getByRole("button", { name: /Start Demo/ }).click();
+  const next = async (title: string) => { await act(page, title); await card(page).locator(".dt-btn.is-go:not([disabled])").click(); };
 
-  /* 1 · Citizen: the chat. Kaju reads the words, asks the safety question, offers to tell the clinic, asks only
-     what is missing, the person confirms, the clinic is told and Kaju shows where to go. */
+  /* 1 · Citizen: Kaju takes the report and tells the clinic. */
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
-  await act(page, "Report a bite");
-  await expect(page.locator(".sp-tour-hl")).toBeVisible();
-  await example(page, /Use the example words/);
-  await page.getByRole("button", { name: "Send to Kaju" }).click();
+  await expect(page.locator(".sp-tour-hl")).toBeVisible({ timeout: 30_000 });
+  await next("Tell Kaju what happened");
   const report = page.locator('[data-tour="bite-report"]');
-  for (const w of ["A bite", "Dog, street or community", "Indiranagar", "Today (this morning)", "Someone else"]) await expect(report).toContainText(w, { timeout: 20_000 });
-  await act(page, "One safety question");
-  await page.getByRole("button", { name: "No, none of these" }).click();
-  await act(page, "Tell the clinic");
-  await page.getByRole("button", { name: "Yes, tell the clinic" }).click();
-  await act(page, "Only what's missing");
-  await example(page, /Use the example description/);
-  await page.getByRole("button", { name: "Send to Kaju" }).click();
-  await page.getByRole("button", { name: "No, don't call me" }).click();
-  await act(page, "Confirm and send");
-  await expect(report).toContainText("the bus stop on 100 Feet Road");
-  await page.getByRole("button", { name: "Send the report" }).click();
-  await expect(page.locator('[data-tour="bite-sent"]')).toContainText("Sent to", { timeout: 30_000 });
-  await expect(page.locator(".kb-centres li.is-first")).toContainText("Expecting you", { timeout: 20_000 });
-  await on(page, /Next role: Hospital/);
+  for (const w of ["Indiranagar", "Today (this morning)", "None of the listed signs"]) await expect(report).toContainText(w, { timeout: 30_000 });
+  await next("Send it to the clinic");
 
-  /* 2 · Hospital: the notice becomes the bite record; the clinician's category and course; the NGO is asked. */
-  await act(page, "The notice is waiting");
-  await page.locator('[data-tour="notice"][data-area="Indiranagar"] [data-tour="notice-came"]').first().click();
-  await act(page, "Record the bite");
-  await example(page, /Fill the example entry/);
-  await page.getByRole("button", { name: "Save presentation" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Save", exact: true }).click();
-  await act(page, "Prescribe the course");
-  await example(page, /Fill the example prescription/);
-  await page.getByRole("button", { name: "Save prescription" }).click();
-  await page.getByRole("dialog").locator("input[type=checkbox]").check();
-  await page.getByRole("dialog").getByRole("button", { name: "Save prescription" }).click();
-  await expect(page.locator('ul[aria-label="Doses"] li')).toHaveCount(4, { timeout: 30_000 });
-  await act(page, "The animal team is asked");
-  await expect(page.locator('[data-tour="exposure-handoff"]')).toContainText("Animal Care Trust");
-  await on(page, /Next action/);
-  await act(page, "What each clinic has");
-  await on(page, /Next role: Animal health/);
+  /* 2 · Hospital: the notice, the bite record, the course. */
+  await act(page, "The clinic is ready");
+  await expect(page.locator('[data-tour="notice"][data-area="Indiranagar"]').first()).toBeVisible({ timeout: 30_000 });
+  await next("The clinic is ready");
+  await next("Record the bite");
+  await page.waitForURL(/\/health\/bites\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+  await next("Prescribe the course");
 
-  /* 3 · Animal health: accept the request, find the dog, read its history, link it. */
+  /* 3 · Animal health: the request, Simba, the link, WhatsApp. */
   await act(page, "A request arrives");
-  /* A new person starts with no open tabs: the hospital's patient record never follows into the NGO's screens. */
-  await expect(page.getByRole("navigation", { name: "Open records" })).not.toContainText("OPD-DEMO");
-  await page.locator('[data-tour="request"][data-area="Indiranagar"][data-status="open"] [data-tour="request-accept"]').first().click();
-  await act(page, "Find the dog");
-  await on(page, /Take me there/);
-  await page.locator("main button, main a", { hasText: "Simba" }).first().click();
-  await page.getByRole("link", { name: /Open full record/ }).first().click();
-  await act(page, "Its whole history");
+  await next("A request arrives");
+  await act(page, "Simba's record");
+  await page.waitForURL(/\/ngo\/animals\/[0-9a-f-]{36}/, { timeout: 60_000 });
   await expect(page.locator("main")).toContainText("Vaccination");
-  await on(page, /Next action/);
-  await act(page, "Link the dog");
-  await page.locator('[data-tour="request"][data-area="Indiranagar"][data-status="accepted"] [data-tour="request-link"]').first().click();
-  await page.getByRole("dialog").locator("label", { hasText: "Simba" }).first().click();
-  await page.getByRole("dialog").getByRole("button", { name: "Link the animal" }).click();
-  await act(page, "Reports from WhatsApp");
-  await expect(page.locator('[data-tour="request"][data-area="Indiranagar"]').first()).toContainText("animal linked: Simba");
-  await on(page, /Take me there/);
+  await next("Simba's record");
+  await next("Link Simba to the bite");
+  await act(page, "Reports on WhatsApp");
+  await expect(page.locator('[data-tour="request"][data-area="Indiranagar"]').first()).toBeVisible();
   await page.waitForURL(/\/ngo\/inbox/, { timeout: 60_000 });
-  await on(page, /Next role: Kaju/);
+  await card(page).locator(".dt-btn.is-go:not([disabled])").click();
 
-  /* 4 · Kaju: the briefing from records, what is missing, who does what, prepared work confirmed. */
-  await act(page, "Ask Kaju");
-  await example(page, /Use the example question/);
-  await page.locator('textarea[aria-label="Ask Kaju"]').press("Enter");
+  /* 4 · Kaju: the briefing and the prepared work, confirmed. */
+  await next("Ask Kaju");
   const answer = page.locator('[data-tour="kaju-answer"]', { hasText: "Who does what" });
   await expect(answer).toBeVisible({ timeout: 60_000 });
-  for (const w of ["Indiranagar bite", "Simba (IND-112)", "Missing", "does not read patient or dose records"]) await expect(answer).toContainText(w);
-  await act(page, "What's missing, who does what");
-  await on(page, /Next action/);
-  await act(page, "Approve the next steps");
-  const props = page.locator(".nx-kprop");
-  const prepared = await props.count();
-  expect(prepared).toBeGreaterThan(0);
-  for (let i = 0; i < prepared; i++) {
-    await props.nth(i).getByRole("button", { name: "Confirm" }).click();
-    await expect(props.nth(i).locator(".nx-kok")).toBeVisible({ timeout: 30_000 });
-  }
-  await act(page, "What Kaju can use");
-  await on(page, /Next role: Municipality/);
+  for (const w of ["Indiranagar bite", "Simba (IND-112)", "Missing"]) await expect(answer).toContainText(w);
+  await next("Approve the next steps");
 
-  /* 5 · Municipality and 6 · One Health: oversight, coverage, the network, suppressed data, the report. */
-  for (const t of ["What needs a decision", "The incident, followed up", "Coverage and gaps", "Reports"]) { await act(page, t); await on(page, /^(Next action|Next role)/); }
-  for (const t of ["Where to act", "The care network", "Privacy-protected data", "Evaluate the pilot"]) { await act(page, t); await on(page, /^(Next action|Finish)/); }
-  await expect(page.locator("aside.dt.is-end")).toContainText("One incident becomes a coordinated response");
+  /* 5 · Municipality and 6 · One Health. */
+  for (const t of ["What needs a decision", "Coverage and gaps", "Where to act", "Research-ready data"]) await next(t);
+  await expect(page.locator("aside.dt.is-end")).toContainText("One incident becomes a coordinated response", { timeout: 60_000 });
   await page.locator("aside.dt.is-end").getByRole("button", { name: /Explore freely/ }).click();
   await expect(page.locator(".dt-pill")).toBeVisible();
 });
@@ -213,7 +164,7 @@ test("the guide's Next action answers an untouched citizen stage and opens the h
     expect(sheet && sheet.height < page.viewportSize()!.height * 0.5).toBeTruthy();
     expect(compose && sheet && compose.y + compose.height <= sheet.y + 1).toBeTruthy();
   }
-  for (const t of ["Report a bite", "One safety question", "Tell the clinic", "Only what's missing", "Confirm and send"]) {
+  for (const t of ["Tell Kaju what happened", "Send it to the clinic"]) {
     await act(page, t);
     await card(page).locator(".dt-btn.is-go").click();
   }

@@ -25,6 +25,15 @@ export const DEMO_ROLES: Record<DemoRole, { label: string; who: string; home: st
   lead: { label: "NGO lead", who: "Runs the unit, with Kaju's checks", home: "/kaju/insights", group: "animal" },
 };
 
+/** The roles a visitor is offered: one per part of the response. The others stay for the staff demos and tests. */
+export const DEMO_SHOWN: DemoRole[] = ["oh-clinician", "oh-ngo", "oh-municipal", "oh-programme"];
+export const SHOWN_LABEL: Partial<Record<DemoRole, { label: string; who: string }>> = {
+  "oh-clinician": { label: "Hospital", who: "Bite register, PEP courses, doses due" },
+  "oh-ngo": { label: "NGO", who: "Requests, the animal register, WhatsApp reports, Kaju" },
+  "oh-municipal": { label: "Municipality", who: "Alerts, coverage and follow-up across the city" },
+  "oh-programme": { label: "One Health programme", who: "Surveillance, the care network, research data" },
+};
+
 /** What an action shows, in the grant's own terms. */
 export type Avail = "live" | "staging" | "pilot" | "external";
 export const AVAIL: Record<Avail, { label: string; note: string }> = {
@@ -36,13 +45,14 @@ export const AVAIL: Record<Avail, { label: string; note: string }> = {
 export type Tag = [Avail, string];
 
 /** One thing the guide fills when the presenter asks for the example. */
-export type Fill =
+export type Fill = (
   | { op: "type"; sel: string; value: string | ((today: string) => string) }
   | { op: "check"; sel: string }
   | { op: "pick"; sel: string }
   | { op: "select"; sel: string; value: string }
   | { op: "press"; sel: string }
-  | { op: "wait"; ms: number };
+  | { op: "wait"; ms: number }
+) & { /** Only when this matches on the page (the step it answers is the one showing). */ when?: string };
 
 /** How the guide knows an action is done. */
 export type Done =
@@ -71,7 +81,7 @@ export type Act = {
   keep?: string;
   /** This action needs another person signed in. */
   role?: DemoRole;
-  tags: Tag[];
+  tags?: Tag[];
   /** An honest note shown under the instruction. */
   note?: string;
   optional?: boolean;
@@ -83,54 +93,57 @@ const PROGRAMME = "/gov/programmes/bengaluru-demo";
 const plus = (today: string, n: number) => new Date(Date.parse(`${today}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 const REQUEST = '[data-tour="request"][data-area="Indiranagar"]';
 
+/* The example prescription: the clinic's protocol as written, with each dose date the clinician's. */
+const RX: Fill[] = [
+  { op: "type", sel: 'input[placeholder="As written in your protocol"]', value: "Intradermal, 2 sites (updated Thai Red Cross): days 0, 3, 7 and 28" },
+  { op: "check", sel: ".gh-form .gh-tick input" },
+  { op: "type", sel: 'input[aria-label="Dose 1 date"]', value: (t) => t },
+  { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
+  { op: "type", sel: 'input[aria-label="Dose 2 date"]', value: (t) => plus(t, 3) },
+  { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
+  { op: "type", sel: 'input[aria-label="Dose 3 date"]', value: (t) => plus(t, 7) },
+  { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
+  { op: "type", sel: 'input[aria-label="Dose 4 date"]', value: (t) => plus(t, 28) },
+];
+const SIMBA = "/ngo/animals/c1c5368c-4c58-4df9-a49a-7c9aac25b315";
+const AT = (s: string) => `.kb[data-at="${s}"]`;
+
 export const STAGES: Stage[] = [
   {
-    id: "citizen", label: "Citizen", role: "oh-clinician", who: "A resident, no account", title: "Report a suspected dog bite",
-    lede: "A resident chats with Kaju, or calls and talks. Kaju structures the report, asks only for what is missing and tells the clinic once the person confirms.",
-    handoff: "The notice is now on the hospital's Today, before the patient arrives.",
+    id: "citizen", label: "Citizen", role: "oh-clinician", who: "A resident, no account", title: "Report a dog bite",
+    lede: "A resident chats with Kaju or calls. Kaju fills the report, asks only what is missing and tells the clinic.",
+    handoff: "The clinic has the report before the patient arrives.",
     acts: [
-      { id: "tell", title: "Report a bite", path: "/bite-help", sel: '[data-tour="bite-compose"], [data-tour="bite-call"]',
-        say: "Type it, tap Example, or switch to Call and say it.",
-        example: { label: "Use the example words", fills: [{ op: "press", sel: '[data-tour="mode-chat"]' }, { op: "wait", ms: 150 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance." }] },
-        auto: [{ op: "press", sel: '[data-tour="mode-chat"]' }, { op: "wait", ms: 200 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance." }, { op: "wait", ms: 150 }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send' }],
-        done: { sel: '[data-reached~="understood"]' },
-        tags: [["staging", "Kaju chat: reads the report by fixed rules and asks only for what is missing"], ["staging", "Kaju voice call in the browser: it speaks, listens and fills the report"], ["pilot", "A public Kaju helpline number, and calls in Kannada"]],
-        note: "The report on the right fills in as the person types or talks. Speech is the browser's own; no AI model reads the words." },
-      { id: "safety", title: "One safety question", path: "/bite-help", sel: '[data-tour="bite-quick"]',
-        say: "Say or tap “No, none of these”.",
-        auto: [{ op: "press", sel: "text:No, none of these" }],
-        done: { sel: '[data-reached~="danger"]' }, tags: [["staging", "Fixed first-aid and danger-sign steps, awaiting clinical review"]],
-        note: "Any yes sends the person to 108 straight away. Kaju never judges the wound." },
-      { id: "notify", title: "Tell the clinic", path: "/bite-help", sel: '[data-tour="bite-quick"]',
-        say: "Say or tap “Yes, tell the clinic”.",
-        auto: [{ op: "press", sel: "text:Yes, tell the clinic" }],
-        done: { sel: '[data-reached~="ask"]' }, tags: [["staging", "The person decides whether a notice is sent"]],
-        note: "Kaju advises seeing a doctor today and offers to tell the nearest anti-rabies centre the person is coming. Say or press “Yes, tell the clinic”." },
-      { id: "dog", title: "Only what's missing", path: "/bite-help", sel: '[data-tour="bite-compose"], [data-tour="bite-quick"]',
-        say: "Describe the dog, then “No, don't call me”.",
-        example: { label: "Use the example description", fills: [{ op: "type", sel: '[data-tour="bite-compose"] textarea', value: "Brown dog, no collar, usually near the bus stop on 100 Feet Road" }] },
-        auto: [{ op: "press", sel: '[data-tour="mode-chat"]' }, { op: "wait", ms: 200 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "Brown dog, no collar, usually near the bus stop on 100 Feet Road" }, { op: "wait", ms: 150 }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send' }, { op: "wait", ms: 1500 }, { op: "press", sel: "text:No, don't call me" }],
-        done: { sel: '[data-reached~="review"]' }, tags: [["staging", "Only the missing questions are asked"]],
-        note: "Kaju asks only what the first words did not say: what the dog looked like. Say or type it, then answer “No” to the call-back question." },
-      { id: "send", title: "Confirm and send", path: "/bite-help", sel: '[data-tour="bite-quick"]',
-        say: "Say or tap “Send the report”.",
-        auto: [{ op: "press", sel: '[data-tour="bite-quick"] .is-go' }],
-        done: { sel: '[data-reached~="sent"]' }, tags: [["staging", "The notice reaches the nearest anti-rabies centre"], ["external", "WhatsApp reports: live connection awaits Meta verification"]],
-        note: "Residents can also report on WhatsApp: messages, photos, voice notes and location arrive in an NGO's Inbox. That connection awaits Meta verification; you will see the pasted-message path in stage 3." },
+      { id: "tell", title: "Tell Kaju what happened", path: "/bite-help", sel: '[data-tour="bite-compose"], [data-tour="bite-call"]',
+        say: "Chat or call. Kaju fills the report on the right and asks only what's missing.",
+        example: { label: "Use the example", fills: [{ op: "press", sel: '[data-tour="mode-chat"]', when: '.kb[data-mode="call"]' }, { op: "wait", ms: 150 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance." }] },
+        auto: [
+          { op: "press", sel: '[data-tour="mode-chat"]', when: '.kb[data-mode="call"]' }, { op: "wait", ms: 200 },
+          { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance.", when: AT("tell") }, { op: "wait", ms: 120, when: AT("tell") }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send', when: AT("tell") },
+          { op: "press", sel: "text:No, none of these", when: AT("danger") },
+          { op: "press", sel: "text:Yes, tell the clinic", when: AT("notify") },
+          { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "Brown dog, no collar, usually near the bus stop on 100 Feet Road", when: AT("looks") }, { op: "wait", ms: 120, when: AT("looks") }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send', when: AT("looks") },
+          { op: "press", sel: "text:No, don't call me", when: AT("call") },
+        ],
+        done: { sel: '[data-reached~="review"]' } },
+      { id: "send", title: "Send it to the clinic", path: "/bite-help", sel: '[data-tour="bite-quick"]',
+        say: "Kaju sends the report and shows where to go today.",
+        auto: [{ op: "press", sel: '[data-tour="bite-quick"] .is-go', when: AT("review") }],
+        done: { sel: '[data-reached~="sent"]' } },
     ],
   },
   {
-    id: "hospital", label: "Hospital", role: "oh-clinician", who: "Duty clinician, Teaching Hospital Anti-Rabies Clinic", title: "Review urgency and manage the PEP pathway",
-    lede: "The clinic sees the notice, records the presentation from it, assesses the category and prescribes the course. Patient details stay here; the dog's details go to the animal team.",
-    handoff: "Recording the bite sent a follow-up request to the NGO that covers Indiranagar, with no patient details.",
+    id: "hospital", label: "Hospital", role: "oh-clinician", who: "Duty clinician, Teaching Hospital Anti-Rabies Clinic", title: "Treat the patient",
+    lede: "The clinic records the bite from the report and prescribes the course. The animal team is asked to find the dog.",
+    handoff: "The NGO for Indiranagar now has a request to find the dog, without any patient details.",
     acts: [
-      { id: "notice", title: "The notice is waiting", path: "/health/today", sel: '[data-tour="notice"][data-area="Indiranagar"] [data-tour="notice-came"]',
-        say: "Tap “Patient came in”.",
-        done: { path: /^\/health\/bites\/new/ }, tags: [["staging", "Public notices on the clinic's Today"]],
-        note: "Under Notices from the public, the Indiranagar notice is waiting. The patient has arrived: press “Patient came in”." },
+      { id: "notice", title: "The clinic is ready", path: "/health/today", sel: '[data-tour="notice"][data-area="Indiranagar"] [data-tour="notice-came"]',
+        say: "The report is waiting. Tap “Patient came in”.",
+        auto: [{ op: "press", sel: '[data-tour="notice"][data-area="Indiranagar"] [data-tour="notice-came"]' }],
+        done: { path: /^\/health\/bites\/new/ } },
       { id: "present", title: "Record the bite", path: "/health/bites/new", at: /^\/health\/bites\/new/, sel: 'form button[type="submit"]',
-        say: "Fill the example, then Save presentation and Save.",
-        example: { label: "Fill the example entry", fills: [
+        say: "Filled from the report. The clinician sets the category and saves.",
+        example: { label: "Fill the example", fills: [
           { op: "type", sel: 'input[placeholder="For example the OPD number"]', value: "OPD-DEMO-1116" },
           { op: "select", sel: "field:Age|select", value: "30-49" },
           { op: "pick", sel: 'input[name="sex"][value="female"]' },
@@ -138,131 +151,80 @@ export const STAGES: Stage[] = [
           { op: "pick", sel: 'input[name="own"][value="community"]' },
           { op: "pick", sel: 'input[name="category"][value="III"]' },
         ] },
-        done: { path: /^\/health\/bites\/[0-9a-f-]{36}$/ }, keep: "bite",
-        tags: [["staging", "Bite register, with the category recorded in the clinician's name"]],
-        note: "StrayPaw records the clinician's assessment; it never assesses. The example entry is fictional." },
+        auto: [
+          { op: "type", sel: 'input[placeholder="For example the OPD number"]', value: "OPD-DEMO-1116" },
+          { op: "select", sel: "field:Age|select", value: "30-49" },
+          { op: "pick", sel: 'input[name="sex"][value="female"]' },
+          { op: "pick", sel: 'input[name="washed"][value="before_arrival"]' },
+          { op: "pick", sel: 'input[name="own"][value="community"]' },
+          { op: "pick", sel: 'input[name="category"][value="III"]' },
+          { op: "wait", ms: 200 }, { op: "press", sel: 'form button[type="submit"]' }, { op: "wait", ms: 400 },
+          { op: "press", sel: "dialog:Save" },
+        ],
+        done: { path: /^\/health\/bites\/[0-9a-f-]{36}$/ }, keep: "bite" },
       { id: "prescribe", title: "Prescribe the course", path: "@bite", at: /^\/health\/bites\/[0-9a-f-]{36}$/, sel: ".gh-form",
-        say: "Fill the example, then Save prescription and confirm.",
-        example: { label: "Fill the example prescription", fills: [
-          { op: "type", sel: 'input[placeholder="As written in your protocol"]', value: "Intradermal, 2 sites (updated Thai Red Cross): days 0, 3, 7 and 28" },
-          { op: "check", sel: ".gh-form .gh-tick input" },
-          { op: "type", sel: 'input[aria-label="Dose 1 date"]', value: (t) => t },
-          { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
-          { op: "type", sel: 'input[aria-label="Dose 2 date"]', value: (t) => plus(t, 3) },
-          { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
-          { op: "type", sel: 'input[aria-label="Dose 3 date"]', value: (t) => plus(t, 7) },
-          { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
-          { op: "type", sel: 'input[aria-label="Dose 4 date"]', value: (t) => plus(t, 28) },
-        ] },
-        done: { sel: 'ul[aria-label="Doses"]' },
-        tags: [["staging", "Clinician-entered course; each dose appears on Today when due"], ["external", "SMS or WhatsApp reminders (logged phone calls today)"]],
-        note: "StrayPaw does not calculate or suggest a schedule. Every dose date is the clinician's." },
-      { id: "handoff", title: "The animal team is asked", path: "@bite", at: /^\/health\/bites\/[0-9a-f-]{36}$/, sel: '[data-tour="exposure-handoff"]',
-        say: "The NGO gets the place and the dog, never the patient.",
-        tags: [["staging", "Automatic follow-up request to the area's animal team"]],
-        note: "Under Animal follow-up: the NGO for Indiranagar has been asked to find and observe the dog. It received the place and description, never the patient." },
-      { id: "services", title: "What each clinic has", path: "/health/facilities", sel: "main .nx-table, main table, main ul",
-        say: "Vaccine, immunoglobulin and wound washing, each with a date.",
-        tags: [["staging", "Service confirmations and referral pathways"], ["external", "Real facility data from BBMP Health and KIMS"]],
-        note: "Each facility confirms what it has, with a date: vaccine, immunoglobulin, wound washing. Referral pathways send people where a service is missing.", optional: true },
+        say: "Each dose lands on the clinic's Today. The NGO is asked to find the dog.",
+        example: { label: "Fill the example", fills: RX },
+        auto: [...RX, { op: "wait", ms: 200 }, { op: "press", sel: "text:Save prescription" }, { op: "wait", ms: 400 },
+          { op: "check", sel: '[role="dialog"] input[type="checkbox"]' }, { op: "wait", ms: 120 }, { op: "press", sel: "dialog:Save prescription" }],
+        done: { sel: 'ul[aria-label="Doses"]' } },
     ],
   },
   {
-    id: "animal", label: "Animal health", role: "oh-ngo", who: "NGO coordinator, Animal Care Trust", title: "Investigate the animal",
-    lede: "The NGO that covers Indiranagar receives the request, finds the dog on its register, reads its vaccination and ABC history, and links it to the request.",
-    handoff: "The dog, its history and the request are now connected for every partner.",
+    id: "animal", label: "Animal health", role: "oh-ngo", who: "NGO coordinator, Animal Care Trust", title: "Find the dog",
+    lede: "The NGO for Indiranagar gets the request, finds the dog on its register and links it to the bite. Residents' WhatsApp reports land here too.",
+    handoff: "The bite and the dog's record are connected for every partner.",
     acts: [
-      { id: "accept", title: "A request arrives", path: `${PROGRAMME}?tab=Work`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: `${REQUEST}[data-status="open"] [data-tour="request-accept"]`,
-        say: "Tap “Accept”.",
-        done: { sel: `${REQUEST}[data-status="accepted"]` }, tags: [["staging", "Requests between partners, with due dates"]],
-        note: "In the programme's Work list, the request from the Teaching Hospital is new. Press “Accept”." },
-      { id: "register", title: "Find the dog", path: "/ngo/animals?place=Indiranagar", at: /^\/ngo\/animals\/?$/, sel: "text:Open full record, text:Simba",
-        say: "Open Simba, then “Open full record”.",
-        done: { path: /^\/ngo\/animals\/[0-9a-f-]{36}/ }, keep: "dog", tags: [["live", "Animal register with identities and photos"]],
-        note: "The register opens at Indiranagar. The description said brown, no collar: open Simba, then “Open full record”." },
-      { id: "history", title: "Its whole history", path: "@dog", at: /^\/ngo\/animals\/[0-9a-f-]{36}/, sel: "heading:Care on record, main",
-        say: "Vaccination, sterilisation and every ABC step, each signed.",
-        tags: [["live", "Vaccination, sterilisation and ABC records with evidence"], ["live", "Veterinary sign-off and review states"]],
-        note: "Care on record: sterilised on 4 Nov, vaccinated against rabies on 21 Oct 2025. Below it, the ABC timeline from capture to release, with who recorded each step." },
-      { id: "link", title: "Link the dog", path: `${PROGRAMME}?tab=Work`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: `${REQUEST}[data-status="accepted"] [data-tour="request-link"], [data-tour="request-dogs"]`,
-        say: "Tap “Link the animal”, choose Simba, confirm.",
-        example: { label: "Add the example note", fills: [{ op: "type", sel: ".nx-modal textarea, [role=dialog] textarea", value: "Seen near the bus stop on 100 Feet Road, calm and eating. Observing for ten days." }] },
-        done: { sel: REQUEST, text: "animal linked" }, tags: [["staging", "The bite and the animal's record, connected"]],
-        note: "Back in Work, press “Link the animal”, choose Simba, and press “Link the animal” again." },
-      { id: "whatsapp", title: "Reports from WhatsApp", path: "/ngo/inbox?view=paste", at: /^\/ngo\/inbox/, sel: "main textarea, main",
-        say: "A pasted message becomes a prepared case.",
-        tags: [["live", "Pasted WhatsApp messages into prepared cases"], ["external", "WhatsApp Business connection, pending Meta verification"]],
-        note: "Reports also come from WhatsApp. Today a team member pastes a message here and Kaju prepares the case; the live WhatsApp Business link awaits Meta's verification.", optional: true },
+      { id: "accept", title: "A request arrives", path: `${PROGRAMME}?tab=Work`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: `newest:${REQUEST}[data-status="open"] [data-tour="request-accept"]`,
+        say: "The hospital asked for the dog to be found. Tap “Accept”.",
+        auto: [{ op: "press", sel: `newest:${REQUEST}[data-status="open"] [data-tour="request-accept"]` }],
+        done: { sel: `${REQUEST}[data-status="accepted"]` } },
+      { id: "history", title: "Simba's record", path: SIMBA, at: /^\/ngo\/animals\/[0-9a-f-]{36}/, sel: "heading:Care on record, main",
+        say: "The described dog: vaccination, sterilisation and every ABC step, each signed." },
+      { id: "link", title: "Link Simba to the bite", path: `${PROGRAMME}?tab=Work`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: `newest:${REQUEST}[data-status="accepted"] [data-tour="request-link"], [data-tour="request-dogs"]`,
+        say: "Tap “Link the animal” and choose Simba.",
+        auto: [{ op: "press", sel: `newest:${REQUEST}[data-status="accepted"] [data-tour="request-link"]` }, { op: "wait", ms: 500 },
+          { op: "pick", sel: '[data-tour="request-dogs"] input[type="radio"]' }, { op: "wait", ms: 120 }, { op: "press", sel: '[data-tour="request-save"]' }],
+        done: { sel: REQUEST, text: "animal linked" } },
+      { id: "whatsapp", title: "Reports on WhatsApp", path: "/ngo/inbox?view=whatsapp", at: /^\/ngo\/inbox/, sel: ".nr-wa, main",
+        say: "Residents send photos, voice notes and location. One tap opens a case." },
     ],
   },
   {
-    id: "kaju", label: "Kaju", role: "oh-ngo", who: "The same coordinator, with Kaju", title: "Kaju coordinates the response",
-    lede: "Ask Kaju about the incident in plain words. It reads the records the coordinator may see, says what is missing and who does what, and prepares the next steps for approval.",
-    handoff: "The response is organised, and every step is on the record in a person's name.",
+    id: "kaju", label: "Kaju", role: "oh-ngo", who: "The same coordinator, with Kaju", title: "Kaju coordinates",
+    lede: "Ask Kaju in plain words. It answers from the records, says what is missing and prepares the next steps.",
+    handoff: "Every step is on the record, in a person's name.",
     acts: [
       { id: "ask", title: "Ask Kaju", path: "/kaju", at: /^\/kaju\/?$/, sel: 'textarea[aria-label="Ask Kaju"]',
-        say: "Tap the example, then press Enter.",
-        example: { label: "Use the example question", fills: [{ op: "type", sel: 'textarea[aria-label="Ask Kaju"]', value: "What's happening with the Indiranagar bite incident? What's missing, and what do the teams need to do next?" }] },
-        done: { sel: '[data-tour="kaju-answer"]', text: "Who does what" },
-        tags: [["live", "Kaju answers from records the person may see, by fixed rules"], ["staging", "The incident briefing across partners"], ["pilot", "Free-form answers with a connected model"]],
-        note: "No paid model runs on the demo. Kaju's answer comes from fixed rules over real records, and it says so under the answer." },
-      { id: "brief", title: "What's missing, who does what", path: "/kaju", at: /^\/kaju\/?$/, sel: '[data-tour="kaju-answer"]',
-        say: "Every fact links to its record.",
-        tags: [["live", "Record links on every answer"], ["live", "Kaju never reads patient or dose records"]],
-        note: "Kaju names the dog and its history, what is missing (the observation is not planned, the rabies vaccination is overdue) and each partner's part. Every fact links to its record." },
-      { id: "approve", title: "Approve the next steps", path: "/kaju", at: /^\/kaju\/?$/, sel: ".nx-kprop .nx-btn",
-        say: "Tap “Confirm” on each. Saved in your name.",
-        done: { sel: ".nx-kprop .nx-kok", allOf: ".nx-kprop" }, tags: [["live", "Prepared work that waits for a person's confirmation"]],
-        note: "Kaju prepared the next steps: an observation case for this request and, when it is due, a revaccination follow-up. Press “Confirm” on each. Nothing was saved until now; each is saved in your name." },
-      { id: "limits", title: "What Kaju can use", path: "/kaju", at: /^\/kaju\/?$/, sel: "main aside, main",
-        say: "What is connected, and what is not yet.",
-        tags: [["live", "Daily checks, missions and approvals"], ["external", "Email, SMS and WhatsApp sending"]],
-        note: "Beside the conversation: what Kaju noticed today, its missions, and what it can use. Email, SMS and WhatsApp say plainly that they are not connected yet.", optional: true },
+        say: "“What's happening with the Indiranagar bite? What's missing?”",
+        example: { label: "Use the example", fills: [{ op: "type", sel: 'textarea[aria-label="Ask Kaju"]', value: "What's happening with the Indiranagar bite incident? What's missing, and what do the teams need to do next?" }] },
+        auto: [{ op: "type", sel: 'textarea[aria-label="Ask Kaju"]', value: "What's happening with the Indiranagar bite incident? What's missing, and what do the teams need to do next?" }, { op: "wait", ms: 150 }, { op: "press", sel: ".nx-composer button[type=submit]" }],
+        done: { sel: '[data-tour="kaju-answer"]', text: "Who does what" } },
+      { id: "approve", title: "Approve the next steps", path: "/kaju", at: /^\/kaju\/?$/, sel: ".nx-kprop .nx-btn, [data-tour=\"kaju-answer\"]",
+        say: "Kaju prepared them. Tap “Confirm”; each is saved in your name.",
+        auto: [{ op: "press", sel: ".nx-kprop:not(:has(.nx-kok)) .nx-btn" }, { op: "wait", ms: 900 }, { op: "press", sel: ".nx-kprop:not(:has(.nx-kok)) .nx-btn" }],
+        done: { sel: ".nx-kprop .nx-kok", allOf: ".nx-kprop" } },
     ],
   },
   {
-    id: "municipality", label: "Municipality", role: "oh-municipal", who: "Municipal health officer", title: "Oversee the response",
-    lede: "The municipality sees the programme as a whole: what needs a decision, the incident's follow-up, vaccination coverage against the target, and the reports it shares.",
-    handoff: "The municipality knows what happened, what is still open and what evidence supports it.",
+    id: "municipality", label: "Municipality", role: "oh-municipal", who: "Municipal health officer", title: "Oversee the city",
+    lede: "The municipality sees what needs a decision and where vaccination falls short.",
+    handoff: "The city knows what happened, what is open and where to act.",
     acts: [
       { id: "overview", title: "What needs a decision", path: "/gov/overview", sel: "main .nx-figs, main",
-        say: "Alerts from written programme rules.",
-        tags: [["staging", "Programme overview and rule-based alerts"]],
-        note: "Urgent alerts, areas below the 70% target, areas without an estimate, partners with overdue requests. Each alert comes from a written programme rule." },
-      { id: "followup", title: "The incident, followed up", path: `${PROGRAMME}?tab=Work`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: REQUEST,
-        say: "Who holds it and when it is due. Never the patient.",
-        tags: [["staging", "Accountability for work between partners"]],
-        note: "The Indiranagar request: accepted by Animal Care Trust, with Simba linked. The officer sees who holds it and when it is due, never the patient." },
+        say: "Alerts, coverage and overdue work across the city." },
       { id: "coverage", title: "Coverage and gaps", path: `${PROGRAMME}?tab=Coverage`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: "main table, main ul, main",
-        say: "No estimate, no claimed figure.",
-        tags: [["staging", "Coverage against dated estimates"], ["external", "Official ward boundaries and census estimates"]],
-        note: "Verified vaccinations against each area's dated estimate. Indiranagar has no estimate yet, so no coverage is claimed there: that is a gap to fill." },
-      { id: "reports", title: "Reports", path: "/gov/reports", sel: "main",
-        say: "Every figure says where it comes from.",
-        tags: [["staging", "Programme reports and exports"]],
-        note: "A programme report to print or save as PDF, coverage by area, and a data export with small counts hidden. Every figure says where it comes from.", optional: true },
+        say: "Vaccination against each area's target, and where it falls short." },
     ],
   },
   {
-    id: "consortium", label: "One Health", role: "oh-programme", who: "Programme coordination cell", title: "Learn from the record",
-    lede: "At the consortium level, the same records become surveillance, coverage and gap analysis, and privacy-protected data for evaluating the pilot.",
+    id: "consortium", label: "One Health", role: "oh-programme", who: "Programme coordination cell", title: "Learn from every case",
+    lede: "The same records become surveillance and privacy-protected data for research.",
     acts: [
       { id: "where", title: "Where to act", path: PROGRAMME, at: /^\/gov\/programmes\/bengaluru-demo/, sel: "main",
-        say: "Bites, lab results and vaccination, by area.",
-        tags: [["staging", "Programme-wide surveillance by area"], ["external", "Integration with IHIP and state surveillance"]],
-        note: "Bites, laboratory-confirmed cases and dog vaccination, by area, with what needs a decision. Nothing here declares an outbreak; it shows where to look." },
-      { id: "network", title: "The care network", path: `${PROGRAMME}?tab=Network`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: "main",
-        say: "Every facility and referral, on one map.",
-        tags: [["staging", "Care network and referral pathways"]],
-        note: "Every facility's services as last confirmed, and the referral pathways between them, on one map.", optional: true },
-      { id: "data", title: "Privacy-protected data", path: `${PROGRAMME}?tab=Data`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: "main",
-        say: "Counts below 5 are hidden.",
-        tags: [["staging", "Suppressed extracts and steward-approved access"], ["external", "Ethics approval for research on real data"]],
-        note: "Weekly exposures by area, animal and category. Counts below 5 are hidden and never added into a total; no row identifies a person." },
-      { id: "report", title: "Evaluate the pilot", path: `${PROGRAMME}?tab=Report`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: "main",
-        say: "How the six-month pilot is measured.",
-        tags: [["staging", "Programme report"], ["pilot", "Pilot evaluation with partners' real data"]],
-        note: "The programme report: exposures, course completion, laboratory results, coverage and follow-up indicators for a chosen period. This is how the six-month pilot is measured." },
+        say: "Bites, lab results and vaccination, by area." },
+      { id: "data", title: "Research-ready data", path: `${PROGRAMME}?tab=Data`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: "main",
+        say: "Weekly, by area and category. Small counts are hidden." },
     ],
   },
 ];

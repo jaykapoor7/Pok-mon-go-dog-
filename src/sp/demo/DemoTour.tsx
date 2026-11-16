@@ -10,9 +10,9 @@
    dialog is open, and folds to a small pill ("Exit") from which the visitor can resume, switch role or end. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronUp, Compass, Minus, RotateCcw, UserRound, Wand2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronUp, Compass, Minus, RotateCcw, UserRound, Wand2, X } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { AVAIL, CLOSING, DEMO_ROLES, STAGES, TOUR_DONE, actPath, onActScreen, type Act, type DemoRole, type Fill } from "./tour";
+import { CLOSING, DEMO_ROLES, DEMO_SHOWN, SHOWN_LABEL, STAGES, TOUR_DONE, actPath, onActScreen, type Act, type DemoRole, type Fill } from "./tour";
 import { enterAs, leaveFor, readTour, writeTour, TOUR_EVENT, type TourState } from "./state";
 import "./demo-tour.css";
 
@@ -34,7 +34,17 @@ const visible = (n: Element | null): n is HTMLElement => !!n && (n as HTMLElemen
 function resolve(sel: string | undefined): HTMLElement | null {
   if (!sel) return null;
   for (const part of sel.split(/,(?![^[]*\])/).map((x) => x.trim()).filter(Boolean)) {
-    if (part.startsWith("text:")) {
+    if (part.startsWith("newest:")) {
+      /* "newest:<css>": of the matches, the one in the most recently created row (rehearsals leave older ones). */
+      const when = (n: Element) => n.closest("[data-created]")?.getAttribute("data-created") ?? "";
+      const hit = [...document.querySelectorAll<HTMLElement>(part.slice(7))].filter(visible).sort((a, b) => when(b).localeCompare(when(a)))[0];
+      if (hit) return hit;
+    } else if (part.startsWith("dialog:")) {
+      /* "dialog:Save": the button with exactly that text in the open dialog. */
+      const want = part.slice(7).trim().toLowerCase();
+      const hit = [...document.querySelectorAll<HTMLElement>('[role="dialog"] button')].find((n) => visible(n) && (n.textContent ?? "").trim().toLowerCase() === want);
+      if (hit) return hit;
+    } else if (part.startsWith("text:")) {
       const want = part.slice(5).toLowerCase();
       const nodes = [...document.querySelectorAll<HTMLElement>("a, button, summary")].filter((n) => visible(n) && !n.closest("nav, header, .nx-side, .nx-sidebar"));
       const hit = nodes.find((n) => (n.textContent ?? "").trim().toLowerCase().startsWith(want)) ?? nodes.find((n) => (n.textContent ?? "").toLowerCase().includes(want));
@@ -76,6 +86,7 @@ const field = (sel: string): HTMLElement | null => {
 };
 async function runFills(fills: Fill[]) {
   for (const f of fills) {
+    if (f.when && !document.querySelector(f.when)) continue;
     if (f.op === "wait") { await new Promise((r) => setTimeout(r, f.ms)); continue; }
     /* A field the page adds a moment later ("Add a dose date") is waited for, not skipped. */
     let el = field(f.sel);
@@ -121,8 +132,6 @@ export function DemoTour() {
   const [corner, setCorner] = useState<Corner>("br");
   const [filling, setFilling] = useState(false);
   const [transit, setTransit] = useState<{ i: number; leaving: boolean } | null>(null);
-  /* On a phone the card shows the instruction and the way on; the marks and the rest open on request. */
-  const [more, setMore] = useState(false);
   const card = useRef<HTMLElement | null>(null);
   /* Answers "Next action" gives for the presenter, done one after another in the background. */
   const chain = useRef<Promise<void>>(Promise.resolve());
@@ -230,7 +239,8 @@ export function DemoTour() {
     }
     writeTour(base);
     if (!onActScreen(a, window.location.pathname, m) || (opts.fresh && path)) {
-      if (isPublic(path) !== isPublic(window.location.pathname) || path.includes("?")) window.location.assign(path);
+      /* Pages that keep their tab in the address (the programme) can rewrite it as they load; a full load is sure. */
+      if (isPublic(path) !== isPublic(window.location.pathname) || path.includes("?") || window.location.search) window.location.assign(path);
       else router.push(path);
     }
     setBusy(false);
@@ -250,8 +260,31 @@ export function DemoTour() {
      next person's screen has what they need (the hospital, the notice). */
   const next = () => {
     if (!s || !stage || !act) return;
-    if (act.auto && onScreen && !doneAt && !isDone(act)) { const fills = act.auto; chain.current = chain.current.then(() => runFills(fills)).catch(() => undefined); }
-    if (s.act < stage.acts.length - 1) { void go(s.step, s.act + 1); return; }
+    const answer = !!act.auto && onScreen && !doneAt && !isDone(act);
+    if (answer) { const fills = act.auto!; chain.current = chain.current.then(() => runFills(fills)).catch(() => undefined); }
+    /* An answer that opens another screen ("Patient came in", "Save") is waited for, so the two never race. */
+    if (answer && act.done && "path" in act.done) {
+      setBusy(true);
+      const here = act;
+      void chain.current.then(async () => {
+        for (let i = 0; i < 60 && !isDone(here); i++) await new Promise((r) => setTimeout(r, 150));
+        setBusy(false);
+        if (s.act < stage.acts.length - 1) void go(s.step, s.act + 1); else void go(s.step + 1, 0);
+      });
+      return;
+    }
+    /* The next step is on another screen: finish this one's answer here first (a page can rewrite its own address
+       after an action, which would cancel a move made at the same moment). */
+    const following = s.act < stage.acts.length - 1 ? stage.acts[s.act + 1] : null;
+    if (answer && following && !onActScreen(following, window.location.pathname, memo, window.location.search)) {
+      setBusy(true);
+      void chain.current.then(async () => {
+        for (let i = 0; i < 40 && act.done && !isDone(act); i++) await new Promise((r) => setTimeout(r, 150));
+        setBusy(false); void go(s.step, s.act + 1);
+      });
+      return;
+    }
+    if (following) { void go(s.step, s.act + 1); return; }
     setBusy(true);
     const last = act;
     void chain.current.then(async () => {
@@ -282,11 +315,11 @@ export function DemoTour() {
     <details className="dt-roles" open={rolesOpen} onToggle={(e) => setRolesOpen((e.currentTarget as HTMLDetailsElement).open)}>
       <summary aria-busy={switching ? true : undefined}>
         <UserRound size={14} aria-hidden />
-        {switching ? <span role="status">Opening as {DEMO_ROLES[switching].label}…</span> : <span>{s.role ? DEMO_ROLES[s.role].label : "Switch role"}</span>}
+        {switching ? <span role="status">Opening as {SHOWN_LABEL[switching]?.label ?? DEMO_ROLES[switching].label}…</span> : <span>{s.role ? SHOWN_LABEL[s.role]?.label ?? DEMO_ROLES[s.role].label : "Switch role"}</span>}
         <ChevronUp size={14} aria-hidden className="dt-roles-chev" />
       </summary>
-      <ul aria-label="Choose a role">{(Object.keys(DEMO_ROLES) as DemoRole[]).map((r) => (
-        <li key={r}><button type="button" disabled={busy} aria-current={s.role === r ? "true" : undefined} onClick={() => switchRole(r)}><b>{DEMO_ROLES[r].label}</b><small>{s.role === r ? "You are viewing as this role" : DEMO_ROLES[r].who}</small></button></li>
+      <ul aria-label="Choose a role">{DEMO_SHOWN.map((r) => (
+        <li key={r}><button type="button" disabled={busy} aria-current={s.role === r ? "true" : undefined} onClick={() => switchRole(r)}><b>{SHOWN_LABEL[r]?.label ?? DEMO_ROLES[r].label}</b><small>{s.role === r ? "You are here" : SHOWN_LABEL[r]?.who ?? DEMO_ROLES[r].who}</small></button></li>
       ))}</ul>
     </details>
   );
@@ -318,7 +351,7 @@ export function DemoTour() {
       <>
         {cover}
         <aside ref={card} className={`dt is-end${place}`} aria-label="Guided demo">
-          <div className="dt-top"><span className="dt-k">One Health demo · complete</span></div>
+          <div className="dt-top"><span className="dt-k">Complete</span></div>
           {bar(TOUR_DONE)}
           <h2>{CLOSING}</h2>
           <p>A resident reported a bite, the hospital responded, the animal team investigated, Kaju organised the next steps, the municipality followed it, and the programme learned from the record.</p>
@@ -326,7 +359,7 @@ export function DemoTour() {
             <button type="button" className="dt-btn" disabled={busy} onClick={restart}><RotateCcw size={14} aria-hidden /> Restart</button>
             <button type="button" className="dt-btn is-go" onClick={() => writeTour({ mode: "roam", step: TOUR_DONE })}>Explore freely <ArrowRight size={15} aria-hidden /></button>
           </div>
-          <div className="dt-foot">{roles}<a href="https://www.straypaw.org/demo" className="dt-link">Talk to us about the pilot</a></div>
+          <div className="dt-foot">{roles}<a href="https://www.straypaw.org/demo" className="dt-link">Talk to us</a></div>
           {err && <p className="dt-err" role="alert">{err}</p>}
         </aside>
       </>
@@ -344,24 +377,18 @@ export function DemoTour() {
   return (
     <>
       {cover}
-      <aside ref={card} key={`${s.step}:${s.act}`} className={`dt is-guide${place}${done ? " is-done" : ""}${more ? " is-more" : ""}`} aria-label="Guided demo" aria-live="polite">
+      <aside ref={card} key={`${s.step}:${s.act}`} className={`dt is-guide${place}${done ? " is-done" : ""}`} aria-label="Guided demo" aria-live="polite">
         <div className="dt-top">
           <span className="dt-k">{s.step + 1} · {stage.label}<span className="dt-k-l"> · {s.act + 1}/{n}</span></span>
-          <button type="button" className="dt-more" aria-expanded={more} onClick={() => setMore((m) => !m)}>{more ? "Less" : "Details"} {more ? <ChevronDown size={14} aria-hidden /> : <ChevronUp size={14} aria-hidden />}</button>
           <button type="button" className="dt-min" aria-label="Exit the guide and explore freely" title="Exit: explore freely; resume any time" onClick={() => writeTour({ mode: "roam", step: s.step })}><Minus size={14} aria-hidden /> Exit</button>
         </div>
         {bar(s.step)}
-        <p className="dt-who"><i aria-hidden />{stage.who}</p>
-        <div className="dt-act-k"><span>Action {s.act + 1} of {n}{act.optional ? " · optional" : ""}</span><ol aria-hidden>{stage.acts.map((x, k) => <li key={x.id} className={k < s.act ? "is-done" : k === s.act ? "is-on" : undefined} />)}</ol></div>
         <h2>{done ? <span className="dt-tick" aria-label="Done"><Check size={14} strokeWidth={3} aria-hidden /></span> : null}{act.title}</h2>
         <p className="dt-say">{act.say}</p>
         {act.example && onScreen ? (
           <div className="dt-do"><button type="button" className="dt-kaju" disabled={filling} onClick={() => void fill()}><Wand2 size={14} aria-hidden />{filling ? "Filling…" : act.example.label}</button></div>
         ) : null}
         {onScreen && act.sel && !found && !done ? <p className="dt-note" role="status">Waiting for the screen to show it…</p> : null}
-        {more ? <ul className="dt-tags" aria-label="What this shows">{act.tags.map(([k, t]) => <li key={t} className={`is-${k}`}><b>{AVAIL[k].label}</b><span>{t}</span></li>)}</ul>
-          : <ul className="dt-tags is-chips" aria-label="What this shows">{[...new Set(act.tags.map(([k]) => k))].map((k) => <li key={k} className={`is-${k}`} title={act.tags.filter(([x]) => x === k).map(([, t]) => t).join(" · ")}><b>{AVAIL[k].label}</b></li>)}</ul>}
-        {act.note ? <p className="dt-note">{act.note}</p> : null}
         {last && done && stage.handoff ? <p className="dt-handoff">{stage.handoff}</p> : null}
         <div className="dt-act">
           <button type="button" className="dt-btn is-back" aria-label="Back" disabled={busy || (s.step === 0 && s.act === 0)} onClick={back}><ArrowLeft size={15} aria-hidden /></button>
@@ -371,7 +398,6 @@ export function DemoTour() {
         </div>
         <div className="dt-foot">
           {needsGo ? <button type="button" className="dt-text" disabled={busy} onClick={next}>{last && nextStage ? `Skip to ${nextStage.label}` : "Skip"}</button> : null}
-          <button type="button" className="dt-text" disabled={busy} onClick={replay}>Replay stage</button>
           <button type="button" className="dt-text" disabled={busy} onClick={restart}>Restart</button>
           {roles}
         </div>
