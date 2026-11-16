@@ -17,13 +17,14 @@ export type RView<R> = { id: string; label: string; test?: (r: R) => boolean; co
 export type RPreview = { title: ReactNode; sub?: ReactNode; body: ReactNode; href?: string; hrefLabel?: string };
 
 export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view: viewIn, onView, rows, rowKey, rowLabel, columns, search, query, onQuery, placeholder = "Search",
-  tools, above, preview, loading, error, onRetry, empty, select, foot, hrefOf, id = "rl", serverSide }: {
+  tools, above, preview, loading, error, onRetry, empty, select, foot, hrefOf, id = "rl", serverSide, replace }: {
   title: string; sub: ReactNode; eyebrow?: ReactNode; action?: ReactNode; sample: boolean;
   views: RView<R>[]; view?: string; onView?: (id: string) => void; rows: R[]; rowKey: (r: R) => string; rowLabel: (r: R) => string; columns: RCol<R>[];
   search?: (r: R) => string; query?: string; onQuery?: (q: string) => void; placeholder?: string;
   tools?: ReactNode; above?: ReactNode; preview: (r: R, close: () => void) => RPreview; loading: boolean; error?: string | null; onRetry?: () => void;
   empty: { none: string; filtered?: string; hint?: ReactNode }; select?: { ids: Set<string>; toggle: (id: string) => void; label: (r: R) => string }; foot?: ReactNode; hrefOf?: (r: R) => string | undefined; id?: string;
   /** The rows are already the database's answer for the chosen view and search. */ serverSide?: boolean;
+  /** Shown in place of the table (a map of the same records, say), under the same views, tools and search. */ replace?: ReactNode;
 }) {
   const [viewOwn, setViewOwn] = useState(views[0]?.id ?? "");
   const view = viewIn ?? viewOwn;
@@ -86,7 +87,7 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
           {tools}
           {search || onQuery ? <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => (onQuery ? onQuery(e.target.value) : setQOwn(e.target.value))} placeholder={placeholder} aria-label={`Search ${title.toLowerCase()}`} /></label> : null}
         </div>
-        {error ? <Failed error={error} retry={onRetry} /> : (
+        {replace ?? (error ? <Failed error={error} retry={onRetry} /> : (
           <div className="nx-table" role="group" aria-label={title} ref={box}>
             <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: cols }}>{select ? <span /> : null}{columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined}>{c.label}</span>)}</div>
             {shown.map((r) => {
@@ -100,9 +101,9 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
             })}
             {loading ? <Skeleton rows={6} /> : !shown.length ? <div className="nr-none"><b>{rows.length || server ? empty.filtered ?? "Nothing in this view" : empty.none}</b>{!rows.length && !server && empty.hint ? <p>{empty.hint}</p> : rows.length || server ? <p>{server && !rows.length && empty.hint ? empty.hint : "Choose another view or clear the search."}</p> : null}</div> : null}
           </div>
-        )}
-        {foot}
-        {shown.length > 1 && !sample ? <p className="nr-keys nx-hide-s" aria-hidden><kbd>j</kbd><kbd>k</kbd> move · <kbd>Enter</kbd> open{hrefOf ? <> · <kbd>o</kbd> full record</> : null} · <kbd>Esc</kbd> close</p> : null}
+        ))}
+        {replace ? null : foot}
+        {shown.length > 1 && !sample && !replace ? <p className="nr-keys nx-hide-s" aria-hidden><kbd>j</kbd><kbd>k</kbd> move · <kbd>Enter</kbd> open{hrefOf ? <> · <kbd>o</kbd> full record</> : null} · <kbd>Esc</kbd> close</p> : null}
       </div>
       <AnimatePresence>
         {open && p ? (

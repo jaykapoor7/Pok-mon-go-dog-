@@ -15,6 +15,7 @@ import { getMyAnimals } from "@/lib/animal-actions";
 import { getPartnerRecordRows, type PartnerRecordRow } from "@/lib/partner-record-explorer";
 import type { Case } from "@/lib/types";
 import { db, rpc, saveBlob, token, verified } from "./ngo-setup";
+import { animalLine } from "../animalLabel";
 
 export { readBillingPreview };
 
@@ -173,7 +174,7 @@ export async function readQuality(ngoId: string) {
   if (total > 0 && animals.length === 0 && records.length === 0) throw new Error("Only part of the record came back.");
   return { animals, records, total, partial: animals.length < total };
 }
-const animalItem = (a: QualityAnimal): QualityItem => ({ key: a.id, label: a.name || a.straypaw_id || a.code || "Unnamed animal", sub: [a.straypaw_id ?? "No StrayPaw ID", a.code ?? "no source ID", a.zone || "no locality"].join(" · "), href: `/ngo/animals/${a.id}` });
+const animalItem = (a: QualityAnimal): QualityItem => ({ key: a.id, label: animalLine(a), sub: [a.straypaw_id ?? "No StrayPaw ID", a.code ?? "no source ID", a.zone || "no locality"].join(" · "), href: `/ngo/animals/${a.id}` });
 const recordItem = (r: PartnerRecordRow): QualityItem => ({ key: r.id, label: r.title, sub: [r.date ? (Number.isFinite(Date.parse(r.date)) ? new Date(r.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : `date "${r.date}"`) : "no date", r.animalLabel, r.locality, r.status].filter(Boolean).join(" · "), href: r.caseId ? `/ngo/cases/${r.caseId}` : r.animalId ? `/ngo/animals/${r.animalId}` : null });
 /** The classic data-quality rules, verbatim. */
 export function qualityQueues(animals: QualityAnimal[], records: PartnerRecordRow[]): QualityQueue[] {

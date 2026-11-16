@@ -1,7 +1,11 @@
 /* Sample records for the NGO record pages when nobody is signed in. Every name, place and number is invented and is
    shown with the "Sample data" chip. Built on src/nx/fixtures.ts, which stays as it is. */
 
-import { CASES, REPORTS, type Trust } from "../fixtures";
+import { ANIMALS, CASES, REPORTS, type Trust } from "../fixtures";
+import { animalLine } from "../animalLabel";
+
+/** A sample animal named as the live pages name one: its sample ID is its register code. */
+const sampleLine = (id: string) => { const a = ANIMALS.find((x) => x.id === id); return a ? animalLine({ id: a.id, name: a.name, code: a.id, species: a.species }) : id; };
 
 export type CaseRow = {
   id: string; code: string; title: string; kind: string; severity: string; crit: boolean; place: string; who: string; assigneeId: string | null;
@@ -9,11 +13,12 @@ export type CaseRow = {
   updated: string; updatedAt: number; occurredAt: number; historical: boolean; stale: boolean; reasonless: boolean; trust: Trust; animal: string | null; dogId: string | null; href: string; detail?: string | null;
 };
 
+const SAMPLE_DOG: Record<string, string> = { c2: "AN-0987", c3: "AN-0951", c5: "AN-1107" };
 const fromFixture = CASES.map((c): CaseRow => ({
   id: c.id, code: c.code, title: c.title, kind: c.kind, severity: c.severity, crit: c.severity === "Critical" || c.severity === "High", place: c.place, who: c.who, assigneeId: null,
   open: !c.resolved, statusClass: c.resolved ? "closed" : c.stage === "Triage" ? "open" : "in_progress", status: c.resolved ? "Resolved" : c.stage, tone: c.resolved ? "ok" : c.severity === "Critical" ? "bad" : c.severity === "High" ? "warn" : "plain",
   next: c.next, due: c.due, dueSoon: c.due === "Today", overdue: false, updated: c.updated, updatedAt: 0, occurredAt: 0, historical: false, stale: false, reasonless: false, trust: c.trust,
-  animal: c.id === "c2" ? "AN-0987" : c.id === "c3" ? "AN-0951" : c.id === "c5" ? "AN-1107" : null, dogId: null, href: `/ngo/cases/${c.id}`, detail: null,
+  animal: SAMPLE_DOG[c.id] ? sampleLine(SAMPLE_DOG[c.id]) : null, dogId: SAMPLE_DOG[c.id] ?? null, href: `/ngo/cases/${c.id}`, detail: null,
 }));
 /* Two more, so the views for work that waits on a decision have something to show. Neither is in today's work. */
 export const SAMPLE_CASES: CaseRow[] = [
