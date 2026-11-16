@@ -95,7 +95,9 @@ export function BiteChat({ slug }: { slug: string | null }) {
       {opts?.skip !== false && !text.trim() ? <button type="submit" className="is-quiet">Skip</button> : <button type="submit" aria-label="Send"><Send size={16} aria-hidden /></button>}
     </form>);
 
-  const reply = at === "tell" ? <Tell text={text} setText={setText} onTell={tell} onSteps={() => { say("Answer step by step", danger(null)); setAt("emergency"); }} />
+  /* Kaju matches the area against the programme's own list, so the report waits for it (a second at most). */
+  const areasReady = !slug || !!pub.data || !!pub.error;
+  const reply = at === "tell" ? <Tell ready={areasReady} text={text} setText={setText} onTell={tell} onSteps={() => { say("Answer step by step", danger(null)); setAt("emergency"); }} />
     : at === "emergency" ? chips([["Yes", () => { say("Yes", { who: "bot", tone: "urgent", body: <><b>Get emergency help now.</b> Call <a href="tel:108">108</a> for an ambulance, or <a href="tel:112">112</a>.</> }); setAt("urgent"); }], ["No, none of these", () => care("No, none of these")]])
     : at === "urgent" ? chips([["Where can I go?", () => care("Where can I go?")]])
     : at === "care" ? (slug ? chips([["Tell the programme about the animal", () => askNext("care", "Tell the programme about the animal")], ["What should I not do?", () => say("What should I not do?", { who: "bot", body: <>Do not<ul><li>put chilli, turmeric, oil, lime, herbs or any home remedy on the wound</li><li>wait to see whether the animal becomes ill</li><li>try to catch, hurt or kill the animal</li></ul></> })]]) : null)
@@ -169,7 +171,7 @@ function Review({ f, phone, areaName, draft }: { f: Form; phone: string | null; 
 type Speech = { start: () => void; stop: () => void; abort: () => void; lang: string; interimResults: boolean; continuous: boolean; onresult: ((e: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null; onerror: ((e: { error: string }) => void) | null; onend: (() => void) | null };
 
 /* The first answer: the person's own words, typed or spoken. Speaking uses the browser's own speech service. */
-function Tell({ text, setText, onTell, onSteps }: { text: string; setText: (v: string) => void; onTell: (v: string) => void; onSteps: () => void }) {
+function Tell({ ready, text, setText, onTell, onSteps }: { ready: boolean; text: string; setText: (v: string) => void; onTell: (v: string) => void; onSteps: () => void }) {
   const [mic, setMic] = useState<"idle" | "on" | "none" | "denied" | "failed">("idle");
   const rec = useRef<Speech | null>(null);
   const base = useRef("");
@@ -193,12 +195,12 @@ function Tell({ text, setText, onTell, onSteps }: { text: string; setText: (v: s
       : mic === "failed" ? "Speech could not be turned into text just now. Type instead, or use the example." : null;
   return (
     <div className="bk-tell" data-tour="bite-tell">
-      <form className="bk-box" onSubmit={(e) => { e.preventDefault(); onTell(text); }}>
+      <form className="bk-box" onSubmit={(e) => { e.preventDefault(); if (ready) onTell(text); }}>
         <textarea aria-label="Tell Kaju what happened" rows={3} maxLength={600} value={text} onChange={(e) => setText(e.target.value)} placeholder="For example: a stray dog bit my neighbour near the market this morning" data-example={BITE_EXAMPLE} />
         <div className="bk-acts">
           <button type="button" className={`bk-mic${mic === "on" ? " is-on" : ""}`} onClick={listen} aria-pressed={mic === "on"} aria-label={mic === "on" ? "Stop listening" : "Speak instead of typing"} data-tour="bite-mic">{mic === "denied" || mic === "none" ? <MicOff size={18} aria-hidden /> : <Mic size={18} aria-hidden />}<span>{mic === "on" ? "Listening… tap to stop" : "Speak"}</span></button>
           <button type="button" className="bk-ex" onClick={() => setText(BITE_EXAMPLE)} data-tour="bite-example">Use an example</button>
-          <button type="submit" className="bk-send" disabled={!text.trim()}><Send size={16} aria-hidden /> Tell Kaju</button>
+          <button type="submit" className="bk-send" disabled={!text.trim() || !ready}><Send size={16} aria-hidden /> {ready ? "Tell Kaju" : "One moment…"}</button>
         </div>
       </form>
       <p className="bk-note" role={note ? "status" : undefined}>{note ?? <>Speaking uses your browser&apos;s speech service (in Chrome, Google&apos;s) to turn words into text, in English for now. Kaju reads the text on this device; nothing is sent until you confirm.</>}</p>
