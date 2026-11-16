@@ -6,16 +6,19 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, ClipboardPlus, Info, Lock, Plus } from "lucide-react";
 import { Shell } from "../Shell";
-import { Chip, Sample, TrustChip, initials } from "../ui";
-import { Failed, Field, Props, RecordHead, Section, Skeleton, TabBar, Timeline, day, errText, useAct, words, type TItem } from "../kit";
+import { Chip, Sample, TrustChip } from "../ui";
+import { Failed, Field, Modal, Props, RecordHead, Section, Skeleton, TabBar, Timeline, day, errText, useAct, words, type TItem } from "../kit";
 import { ANIMALS, RELATED } from "../fixtures";
 import { useLive, type Workspace } from "../live";
+import { AnimalPhoto, AnimalTitle } from "../AnimalPhoto";
+import { animalLabel } from "../animalLabel";
+import { PHOTO_WORD, readAnimalGallery, type GalleryPhoto } from "../data/animals";
 import { careNote } from "@/lib/care-note";
 import { publicFlagOn } from "@/lib/flags";
 import { MEDICAL_KINDS } from "@/lib/types";
-import { ID_KINDS, addIdentifier, identifierProblem, readAnimal, readIdentifiers, realName, retireIdentifier, setNeedsHelp, shortCode, statusLabel, STATUS_TONE, type AnimalFile, type IdKind, type Identifier } from "../data/ngo";
+import { ID_KINDS, addIdentifier, identifierProblem, readAnimal, readIdentifiers, retireIdentifier, setNeedsHelp, shortCode, statusLabel, STATUS_TONE, type AnimalFile, type IdKind, type Identifier } from "../data/ngo";
 import { CareForm, DeleteRecord, FollowupList, OpsEvents, Partial, TryLink, undoWith } from "./ngo/parts";
-import { QrScan, SampleBody } from "./Animals";
+import { QrScan, SampleBody, numberFact, sampleRef } from "./Animals";
 
 /* One animal at the organisation's depth: what the register holds, care with who recorded it, follow-ups that survive a
    case closing, the reported operations on its cases, its earlier source timeline and its cases. Clinical records say
@@ -44,12 +47,17 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const { busy, run } = useAct();
   const read = useCallback(async () => { const r = await readAnimal(org.org_id, id); setFile(r.error ? { error: errText(r.error) } : r.data ?? null); }, [org.org_id, id]);
   useEffect(() => { void read(); }, [read]);
+  const [photos, setPhotos] = useState<GalleryPhoto[] | null | { error: string }>(null);
+  const cover = file && file !== "loading" && !("error" in file) ? file.dog.cover_photo : undefined;
+  const readPhotos = useCallback(async () => { if (cover === undefined) return; setPhotos(null); const r = await readAnimalGallery(org.org_id, id, cover); setPhotos(r.error ? { error: errText(r.error) } : r.data ?? []); }, [org.org_id, id, cover]);
+  useEffect(() => { void readPhotos(); }, [readPhotos]);
   if (file === "loading") return <Shell crumb={["Animals", "…"]}><div className="nx-page"><Skeleton rows={8} label="Reading the record" /></div></Shell>;
   if (file && "error" in file) return <Shell crumb={["Animals", "Animal"]}><div className="nx-page"><Failed error={file.error} retry={() => void read()} /></div></Shell>;
   if (!file) return <Shell crumb={["Animals", "Not found"]}><div className="nx-page"><h1 className="nx-h1">No animal with this ID on {org.name}&apos;s register</h1><p className="nx-sub">It may belong to another organisation, have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/ngo/animals" className="nx-btn is-quiet">Back to Animals</Link></p></div></Shell>;
 
   const { dog: d, cases, followups, care, timeline, partial } = file;
-  const code = d.code ?? (d.straypaw_id ? shortCode(d.straypaw_id) : d.id.slice(0, 8).toUpperCase());
+  const label = animalLabel(d);
+  const lead = Array.isArray(photos) ? photos[0]?.url ?? null : photos === null ? undefined : null;
   const imported = d.provenance === "imported_historical_record";
   const liveCase = cases.find((c) => (c.status_class === "open" || c.status_class === "in_progress") && c.provenance !== "imported_historical_record") ?? null;
   const flip = () => { const to = !d.needs_help; void run("help", () => setNeedsHelp(d.id, to), { ok: to ? "Flagged as needing help." : "Needs-help flag cleared.", undo: () => undoWith(() => setNeedsHelp(d.id, !to), read)() }).then((r) => { if (r.ok) void read(); }); };
@@ -61,8 +69,8 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const tabs: [Tab, number | undefined][] = [["Summary", undefined], ["Care", care.length || undefined], ["Cases", cases.length || undefined], ["History", timeline.length || undefined], ["Discussion", undefined]];
 
   return (
-    <Shell crumb={["Animals", code]}>
-      <RecordHead av={initials(d.species ?? "Dog")} title={<><span className="num">{code}</span> · {realName(d.name) ?? "Unnamed"}</>}
+    <Shell crumb={["Animals", label.line]}>
+      <RecordHead av={<AnimalPhoto src={lead} size="head" />} title={<AnimalTitle a={d} />}
         sub={<><Lock size={11} style={{ verticalAlign: "-1px" }} /> Private to {org.name} · {[d.zone, d.city].filter(Boolean).join(", ") || "Place not recorded"} · last seen {d.last_seen ? day(d.last_seen) : "not recorded"}</>}
         chips={<><Chip tone={factTone(d.sterilisation_status)}>{fact(d.sterilisation_status, "Sterilised", "Not sterilised", "Sterilisation not recorded")}</Chip><Chip tone={factTone(d.vaccination_status)}>{fact(d.vaccination_status, "Vaccinated", "Not vaccinated", "Vaccination not recorded")}</Chip>{d.needs_help ? <Chip tone="bad">Needs help</Chip> : null}<TrustChip trust={imported ? "Imported" : "Recorded"} /></>}
         actions={<>
@@ -75,9 +83,10 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
       <div style={{ padding: "12px 32px 0" }}><Partial parts={partial} /></div>
       {tab === "Summary" ? (
         <div className="nx-rec">
-          <section aria-label="Details">
+          <section aria-label="Photos and details">
+            <RecordPhotos photos={photos} label={label.line} retry={() => void readPhotos()} />
             <h3 className="nx-h3">Details</h3>
-            <Props items={[["Animal ID", <span key="i" className="num">{code}</span>], ["StrayPaw ID", d.straypaw_id ? <span key="s" className="num" title={d.straypaw_id}>{shortCode(d.straypaw_id)}</span> : "Pending"], ["Species", words(d.species)], ["Sex", words(d.sex)], ["Colour", d.color ?? "Not recorded"],
+            <Props items={[["Number", numberFact(d)], ["StrayPaw ID", d.straypaw_id ? <span key="s" className="num" title={d.straypaw_id}>{shortCode(d.straypaw_id)}</span> : "Pending"], ["Species", words(d.species)], ["Sex", words(d.sex)], ["Colour", d.color ?? "Not recorded"],
               ["Place", `${[d.zone, d.city].filter(Boolean).join(", ") || "Not recorded"}${d.lat != null && d.lng != null ? " (exact point held privately)" : ""}`], ["Marks", d.identifiers ?? "Not recorded"],
               ["Identity", <Chip key="d" tone={d.identity_state === "confirmed" || d.identity_state === "verified" ? "ok" : d.identity_state ? "warn" : "plain"}>{words(d.identity_state)}</Chip>], ...(d.owner_name ? [["Carer", `${d.owner_name} (contact private)`] as [string, string]] : [])]} />
             {d.intake_notes ? <><h3 className="nx-h3">Intake note</h3><p className="nx-sub" style={{ whiteSpace: "pre-wrap" }}>{d.intake_notes}</p></> : null}
@@ -104,7 +113,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
           <p className="nr-hint">Recorded by the organisation, not clinician-signed. A veterinary sign-off is a separate step on the case.</p>
         </div>
       ) : tab === "Cases" ? <div className="nx-page" style={{ maxWidth: 860 }}><Section title="Cases" count={cases.length}>{caseList}</Section></div>
-        : tab === "Discussion" ? <div className="nx-page" style={{ maxWidth: 820 }}><RecordThread kind="animal" id={id} label={`${code} · ${realName(d.name) ?? "Unnamed"}`} /></div>
+        : tab === "Discussion" ? <div className="nx-page" style={{ maxWidth: 820 }}><RecordThread kind="animal" id={id} label={label.line} /></div>
         : <div className="nx-page" style={{ maxWidth: 860 }}><Section title="Earlier source timeline" count={timeline.length}><Timeline items={history} empty="No earlier timeline entries. Structured operations are shown on the summary." /></Section><p className="nr-hint">Deleting moves an entry to removed records for 30 days; Undo brings it back.</p></div>}
     </Shell>
   );
@@ -143,16 +152,41 @@ function Identifiers({ dogId, canRetire }: { dogId: string; canRetire: boolean }
   );
 }
 
+/** The record's photos: the lead photo large, the others beside it to choose from, each saying when it was taken and on
+    which case. None yet is said plainly, with where photos come from; a failed read never looks like "no photos". */
+function RecordPhotos({ photos, label, retry }: { photos: GalleryPhoto[] | null | { error: string }; label: string; retry?: () => void }) {
+  const [i, setI] = useState(0);
+  const [full, setFull] = useState(false);
+  if (photos && !Array.isArray(photos)) return <div className="am-photos"><AnimalPhoto src={null} size="hero" /><p className="nr-err" role="alert">The photos could not be read. Nothing is shown as missing. {retry ? <button type="button" className="nr-link" onClick={retry}>Read again</button> : null}</p></div>;
+  if (photos === null) return <div className="am-photos" aria-busy="true"><AnimalPhoto src={null} size="hero" /><p className="am-none">Looking for photos…</p></div>;
+  if (!photos.length) return <div className="am-photos"><AnimalPhoto src={null} size="hero" /><p className="am-none">No photo yet. Photos taken in field mode, when the animal is recorded, ear-notched or released, appear here.</p></div>;
+  const p = photos[Math.min(i, photos.length - 1)];
+  return (
+    <section className="am-photos" aria-label={`Photos of ${label}`}>
+      <figure>
+        <AnimalPhoto src={p.url} size="hero" alt={`${PHOTO_WORD[p.kind]}: ${label}`} onClick={() => setFull(true)} />
+        <figcaption>{PHOTO_WORD[p.kind]}{p.at ? `, ${day(p.at)}` : ""}{p.caseId ? <>. <Link href={`/ngo/cases/${p.caseId}`}>Open its case</Link></> : null}</figcaption>
+      </figure>
+      {photos.length > 1 ? <div className="am-strip" role="group" aria-label="Choose a photo">{photos.map((x, k) => <button key={x.key} type="button" aria-pressed={k === i} aria-label={`${PHOTO_WORD[x.kind]}${x.at ? `, ${day(x.at)}` : ""}`} onClick={() => setI(k)}><AnimalPhoto src={x.url} /></button>)}</div> : null}
+      {full ? <Modal title={`${PHOTO_WORD[p.kind]} · ${label}`} onClose={() => setFull(false)} wide>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="am-full" src={p.url} alt={`${PHOTO_WORD[p.kind]}: ${label}`} />
+      </Modal> : null}
+    </section>
+  );
+}
+
 function SampleRecord({ id }: { id: string }) {
   const a = ANIMALS.find((x) => x.id === id);
   const [tab, setTab] = useState<"Summary" | "Cases" | "Activity">("Summary");
   if (!a) return <Shell crumb={["Animals", id]}><div className="nx-page"><h1 className="nx-h1">No animal with this ID</h1><p className="nx-sub">It may have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/ngo/animals" className="nx-btn is-quiet">Back to Animals</Link></p></div></Shell>;
+  const ref = sampleRef(a);
   return (
-    <Shell crumb={["Animals", a.id]}>
-      <RecordHead av={initials(a.species)} title={<><span className="num">{a.id}</span> · {a.name}<Sample /></>} sub={<>{a.ward} · Last seen {a.last}</>} chips={<TrustChip trust={a.trust} />}
+    <Shell crumb={["Animals", animalLabel(ref).line]}>
+      <RecordHead av={<AnimalPhoto src={null} size="head" />} title={<><AnimalTitle a={ref} /><Sample /></>} sub={<>{a.ward} · Last seen {a.last}</>} chips={<TrustChip trust={a.trust} />}
         actions={<><TryLink sm><Plus size={13} />Record care</TryLink><TryLink sm quiet><ClipboardPlus size={13} />Start a case</TryLink><TryLink sm quiet>Flag as needing help</TryLink></>} />
       <TabBar id="animal" tabs={["Summary", "Cases", "Activity"]} value={tab} onChange={setTab} label="Record sections" />
-      {tab === "Summary" ? <div className="nx-page" style={{ maxWidth: 860 }}><SampleBody a={a} /></div>
+      {tab === "Summary" ? <div className="nx-page" style={{ maxWidth: 860 }}><div style={{ maxWidth: 240 }}><RecordPhotos photos={[]} label={animalLabel(ref).line} /></div><SampleBody a={a} photo={false} /></div>
         : tab === "Cases" ? <div className="nx-page"><Section title="Cases and work" count={RELATED.length}><div className="nx-rel">{RELATED.map((r) => <span key={r.ref} className="nx-rel-i"><ArrowUpRight size={13} /><span className="num">{r.ref}</span><span style={{ color: "var(--ink-3)" }}>{r.what}</span><small>{r.state}</small></span>)}</div></Section></div>
         : <div className="nx-page" style={{ maxWidth: 720 }}><p className="nx-sub">In the live demo, every care event and earlier history entry appears here with who recorded it, and each can be deleted with a reason and undone.</p><p style={{ marginTop: 12 }}><TryLink sm quiet>Open the live demo</TryLink></p></div>}
     </Shell>

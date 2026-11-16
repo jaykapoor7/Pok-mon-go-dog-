@@ -71,7 +71,7 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
 .dt-pill { position: fixed; z-index: 85; right: 20px; bottom: 20px; display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: #fff;
   box-shadow: 0 0 0 1px var(--dt-line), 0 12px 30px -12px rgba(11, 30, 61, .4); animation: dt-in .35s var(--dt-ease) both; }
 .dt-resume { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--dt-blue); color: #fff; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
-.dt-resume small { font-size: 12px; opacity: .85; }
+.dt-resume small { font-size: 12px; } /* full white: 4.7:1 on the blue, where .85 opacity read 3.9:1 */
 .dt-pill .dt-roles summary { border-radius: 999px; }
 .dt-pill .dt-err { position: absolute; right: 0; bottom: calc(100% + 8px); width: 260px; padding: 8px 12px; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px var(--dt-line); }
 
@@ -114,6 +114,15 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
   html:has(.ai3-panel) .dt, html:has(.ai3-panel) .dt-pill { display: none; }
   .dt-pill { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
   .dt-resume span { display: none; }
+}
+/* In the app on a phone the thumb bar (.nx-dock, shown up to 640px) owns the bottom edge: the guide sits above it and
+   never on its tabs, and the app's toasts move up so the pill never hides one. In field mode, where the round's own
+   buttons sit low on the screen, the pill folds to its two controls (the role switch keeps its name for screen readers). */
+@media (max-width: 640px) {
+  html:has(.nx-dock) .dt, html:has(.nx-dock) .dt-pill { bottom: calc(72px + env(safe-area-inset-bottom)); }
+  html:has(.nx-dock):has(.dt-pill) .nx .nx-toasts { bottom: calc(128px + env(safe-area-inset-bottom)); }
+  html:has(.fm) .dt-pill .dt-resume { min-height: 40px; padding: 0 12px; }
+  html:has(.fm) .dt-pill .dt-roles summary { width: 40px; min-height: 40px; padding: 0; justify-content: center; gap: 0; font-size: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .dt, .dt-pill, .dt > p, .dt-shown li, .dt-transit, .dt-transit-in, .dt-transit-who i, .sp-tour-hl { animation: none !important; }
@@ -178,3 +187,8 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
   .dt.is-small .dt-btn { min-height: 40px; }
   .dt.is-small .dt-btn.is-back { width: 40px; }
 }
+/* The role switcher says which role is open, turns its arrow when the list is open, and says who it is signing in as. */
+.dt-roles summary .dt-roles-chev { transition: transform .2s cubic-bezier(.2, .7, .2, 1); }
+.dt-roles:not([open]) summary .dt-roles-chev { transform: rotate(180deg); }
+.dt-roles summary[aria-busy="true"] { color: var(--dt-blue); cursor: progress; }
+@media (prefers-reduced-motion: reduce) { .dt-roles summary .dt-roles-chev { transition: none; } }

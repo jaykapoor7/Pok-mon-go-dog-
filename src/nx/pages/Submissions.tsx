@@ -6,7 +6,6 @@ import { EvidenceTab } from "./ngo/subs/Evidence";
 import { ContractsTab } from "./ngo/subs/Contracts";
 import { DocumentsTab } from "./ngo/subs/Documents";
 import { ExportsTab } from "./ngo/subs/Exports";
-import { StoriesTab } from "./ngo/subs/Stories";
 import { QualityTab } from "./ngo/subs/Quality";
 
 /* Submissions & Reports: what the organisation sends, or prepares to send, to a reviewing office, and the records
@@ -14,7 +13,7 @@ import { QualityTab } from "./ngo/subs/Quality";
 
 const TABS = [
   { slug: "packages", label: "Packages" }, { slug: "evidence", label: "Evidence readiness" }, { slug: "contracts", label: "Contracts" },
-  { slug: "documents", label: "Documents" }, { slug: "exports", label: "Exports" }, { slug: "stories", label: "Stories" }, { slug: "quality", label: "Record quality" },
+  { slug: "documents", label: "Documents" }, { slug: "exports", label: "Exports" }, { slug: "quality", label: "Record quality" },
 ] as const;
 type Tab = (typeof TABS)[number]["label"];
 const CRUMB: [string, string] = ["NGO", "Submissions & Reports"];
@@ -32,7 +31,6 @@ export function Submissions({ tab: initial, stage }: { tab?: string | null; stag
         : tab === "Contracts" ? <ContractsTab who={who} />
         : tab === "Documents" ? <DocumentsTab who={who} />
         : tab === "Exports" ? <ExportsTab who={who} />
-        : tab === "Stories" ? <StoriesTab who={who} />
         : <QualityTab who={who} />}
     </TabbedPage>
   );

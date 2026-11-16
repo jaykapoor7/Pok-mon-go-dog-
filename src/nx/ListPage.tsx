@@ -30,6 +30,9 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
   const [openId, setOpenId] = useState<string | null>(null);
   /* Coming back to a list finds it as it was left: the same view, search, open record and scroll. */
   useEffect(() => { try { const v = JSON.parse(sessionStorage.getItem(KEY) ?? "null") as { view?: string; q?: string; open?: string | null; top?: number } | null; if (v) { if (v.view && views.some((x) => x.id === v.view)) setView(v.view); if (typeof v.q === "string") setQ(v.q); if (v.open) setOpenId(v.open); if (v.top) window.setTimeout(() => { const m = document.getElementById("nx-main"); if (m) m.scrollTop = v.top!; }, 60); } } catch {}
+    /* A link can open the list on one of its views (?view=ster), e.g. from a count elsewhere; it wins over the remembered view. */
+    const want = new URLSearchParams(window.location.search).get("view");
+    if (want && views.some((x) => x.id === want)) setView(want);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [KEY]);
   useEffect(() => { const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify({ view, q, open: openId, top: document.getElementById("nx-main")?.scrollTop ?? 0 })); } catch {} }; save(); return save; }, [KEY, view, q, openId]);

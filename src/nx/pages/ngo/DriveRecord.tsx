@@ -13,6 +13,8 @@ import { campaignAnimals, campaignStats, setArchived } from "../../data/ngo-prog
 import { Grid, Partition, TryLink, Views, useWho, type GCol } from "./frame";
 import { when } from "./prog/Drives";
 import { S_DRIVES, S_DRIVE_ANIMALS } from "./sample";
+import { animalLabel } from "../../animalLabel";
+import { AnimalTag } from "../../AnimalPhoto";
 
 /* One drive: what is recorded about the animals filed into it, the share statements side by side (of those
    recorded, of all filed), its animals with filters, CSV, and archive or restore (archive_campaign). */
@@ -44,7 +46,7 @@ export function DriveRecord({ id }: { id: string }) {
   const flip = () => void run("arch", () => setArchived(stats.id, !stats.archived), { ok: stats.archived ? "Drive restored." : "Drive archived. Its animals and records are kept.", undo: async () => { await setArchived(stats.id, stats.archived); await load(); } }).then(async (x) => { setAsking(false); if (x.ok) await load(); });
   const csv = () => downloadCsv(`straypaw-drive-${stats.name.replace(/\W+/g, "-").toLowerCase()}.csv`, (list ?? []).map((a) => ({ code: a.code, name: a.name, zone: a.zone, sterilisation: a.sterilisation_status, vaccination: a.vaccination_status, needs_help: a.needs_help, filed: a.created_at })), { title: `Drive: ${stats.name}`, organisation: who.ngo?.name ?? null });
   const cols: GCol<CampaignAnimal>[] = [
-    { label: "Animal", width: "minmax(0, 1.4fr)", render: (a) => <span className="nx-cell-main"><span><b>{a.name ?? a.code ?? "Unnamed"}</b><small className="ns-mono">{a.code ?? "no code"}<span className="nx-only-s"> · {STER[a.sterilisation_status] ?? a.sterilisation_status}</span></small></span></span> },
+    { label: "Animal", width: "minmax(0, 1.4fr)", render: (a) => <span className="nx-cell-main"><span><b>{animalLabel(a).title}<AnimalTag tag={animalLabel(a).name ? animalLabel(a).tag : null} /></b><small className="ns-mono">{a.code ? `code ${a.code}` : "no code"}<span className="nx-only-s"> · {STER[a.sterilisation_status] ?? a.sterilisation_status}</span></small></span></span> },
     { label: "Locality", width: "minmax(0, 1fr)", render: (a) => <span className="nx-t2">{a.zone ?? "Not recorded"}</span> },
     { label: "Vaccination", width: "120px", render: (a) => <Chip tone={a.vaccination_status === "vaccinated" ? "ok" : "plain"}>{VACC[a.vaccination_status] ?? a.vaccination_status}</Chip> },
     { label: "Needs help", width: "100px", render: (a) => (a.needs_help ? <Chip tone="bad">Needs help</Chip> : null) },
@@ -74,12 +76,11 @@ export function DriveRecord({ id }: { id: string }) {
           </section>
         </div>
         <div>
-          <h3 className="nx-h3">Sterilisation</h3>
-          <Partition yes={stats.sterilised} no={stats.not_sterilised} unknown={stats.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" />
-          <dl className="ns-dl" style={{ gridTemplateColumns: "minmax(0, 1fr)", marginTop: 8 }}><div><dt>Of those recorded</dt><dd>{pct(stats.ster_pct_of_known)}</dd></div><div><dt>Of all animals filed</dt><dd>{pct(stats.ster_pct_of_all)}</dd></div></dl>
-          <h3 className="nx-h3">Vaccination</h3>
-          <Partition yes={stats.vaccinated} no={stats.not_vaccinated} unknown={stats.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" />
-          <dl className="ns-dl" style={{ gridTemplateColumns: "minmax(0, 1fr)", marginTop: 8 }}><div><dt>Of those recorded</dt><dd>{pct(stats.vacc_pct_of_known)}</dd></div><div><dt>Of all animals filed</dt><dd>{pct(stats.vacc_pct_of_all)}</dd></div></dl>
+          <div className="ns-part-grid is-one">
+            <Partition title="Sterilised" yes={stats.sterilised} no={stats.not_sterilised} unknown={stats.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" />
+            <Partition title="Vaccinated" yes={stats.vaccinated} no={stats.not_vaccinated} unknown={stats.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" />
+          </div>
+          <p className="nx-foot">Shares count the animals in this drive whose status was recorded. Of all {stats.total.toLocaleString("en-IN")} animals filed: {pct(stats.ster_pct_of_all)} sterilised, {pct(stats.vacc_pct_of_all)} vaccinated.</p>
         </div>
       </div>
       {asking ? <Confirm title={stats.archived ? "Restore this drive" : "Archive this drive"} confirm={stats.archived ? "Restore" : "Archive"} busy={busy === "arch"} onClose={() => setAsking(false)} onConfirm={flip}><p>{stats.archived ? `${stats.name} returns to the active drives.` : `${stats.name} moves to the archived drives. Its animals and records are kept, and you can restore it.`}</p></Confirm> : null}

@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
-import { NGO_LENSES } from "@/sp/atlas/lenses";
-import { MapSkeleton } from "@/sp/map/MapSkeleton";
-import { ArrowRight, MapPin, Smartphone } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowRight, Camera, MapPin, Smartphone } from "lucide-react";
 import { dueFollowups, type DueFollowup } from "@/lib/ops";
 import { getSupabase } from "@/lib/supabase";
 import { careNote } from "@/lib/care-note";
@@ -13,41 +11,48 @@ import { MEDICAL_KINDS } from "@/lib/types";
 import { Shell } from "../../Shell";
 import { Chip, Sample } from "../../ui";
 import { Props, TabBar, day, errText, n, words } from "../../kit";
-import { VISITS_OPS, type Tone } from "../../fixtures";
+import { ANIMALS, VISITS_OPS, type Tone } from "../../fixtures";
 import { useLive, type Workspace } from "../../live";
+import { AnimalTag } from "../../AnimalPhoto";
+import { animalLabel, animalLine, withAnimalName } from "../../animalLabel";
+import { readAnimalRefs } from "../../data/animals";
 import { readCareLog, readLanes, readMedicalCases, shortCode, type CareLogRow, type LaneCard, type Lanes, type MedicalCase } from "../../data/ngo";
 import { SAMPLE_CARE, SAMPLE_LANES, type SampleCare } from "../../data/ngo-sample";
 import { RecordList, type RCol, type RView } from "./RecordList";
+import "../../field.css";
 import { SharedClinicStatus } from "../VetClinic";
 
 /* Operations: the field visits due, grouped by day and place so a team can plan a round; the care log (every care event
    in date order beside its animal, and the cases that carry medical work); and the two lines of work, rescues and
-   sterilisation, step by step; and the organisation's own map of open work, needs and care by area. Field mode, for the
-   phone on the street, opens from here. */
+   sterilisation, step by step. Field mode, for the phone on the street, opens from here. Where the animals are is the
+   Animals page's map (an old link to the map here opens it there). */
 
-/* The map is heavy (MapLibre), so it loads only when its tab is opened. It reads with the member's own token
-   (scope=org, never cached), so another organisation's records never reach it. */
-const FieldMap = dynamic(() => import("@/sp/map/FieldMap").then((m) => m.FieldMap), { ssr: false, loading: () => <MapSkeleton label="Reading your organisation's map" /> });
-
-type Part = "Visits" | "Care log" | "Rescues" | "Sterilisation" | "Map";
-const PARTS: Part[] = ["Visits", "Care log", "Rescues", "Sterilisation", "Map"];
+type Part = "Visits" | "Care log" | "Rescues" | "Sterilisation";
+const PARTS: Part[] = ["Visits", "Care log", "Rescues", "Sterilisation"];
 const word = (v: string | null | undefined, none = "—") => (v ? v.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : none);
+/** A sample visit names its animal the way the live list does. */
+const sampleAnimal = (id: string | null) => { const a = id ? ANIMALS.find((x) => x.id === id) : null; return a ? animalLine({ id: a.id, name: a.name, code: a.id, species: a.species }) : id; };
 
 export function Operations() {
   const live = useLive();
+  const router = useRouter();
   const [part, setPart] = useState<Part>("Visits");
-  useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); const p = PARTS.find((x) => x.toLowerCase().replace(" ", "-") === v); if (p) setPart(p); }, []);
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("view");
+    if (v === "map") { router.replace("/ngo/animals?view=map"); return; }
+    const p = PARTS.find((x) => x.toLowerCase().replace(" ", "-") === v); if (p) setPart(p);
+  }, [router]);
   const choose = (p: Part) => { setPart(p); try { const u = new URL(window.location.href); if (p === "Visits") u.searchParams.delete("view"); else u.searchParams.set("view", p.toLowerCase().replace(" ", "-")); window.history.replaceState(window.history.state, "", u); } catch { /* address unchanged */ } };
   if (!live.ready) return <Shell crumb={["NGO", "Operations"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const ngo = live.orgFor("ngo");
   if (live.org && !ngo) return <Shell crumb={["NGO", "Operations"]}><div className="nx-page"><h1 className="nx-h1">Operations</h1><p className="nx-sub">Your account is not part of an NGO, so there are no field visits here.</p></div></Shell>;
   const tabs = <div className="nr-bleed"><TabBar id="ops" tabs={PARTS} value={part} onChange={choose} label="Operations" /></div>;
-  const field = <Link href="/ngo/field" className="nx-btn is-keep"><Smartphone size={14} />Open field mode</Link>;
+  /* Field mode, and the quickest way to record an animal (it opens field mode with the record screen up). */
+  const field = <div className="nr-tools"><Link href="/ngo/field" className="nx-btn is-quiet is-keep"><Smartphone size={14} />Open field mode</Link><Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry"><Camera size={14} />Record an animal</Link></div>;
   return (
     <Shell crumb={["NGO", "Operations"]}>
       {part === "Visits" ? <Visits ngo={ngo} tabs={tabs} action={field} />
         : part === "Care log" ? <CareLog ngo={ngo} tabs={tabs} action={field} />
-        : part === "Map" ? <OrgMap ngo={ngo} tabs={tabs} action={field} />
         : <LanePage ngo={ngo} tabs={tabs} action={field} which={part === "Rescues" ? "rescue" : "abc"} />}
       {part === "Care log" && ngo ? <div className="nx-page" style={{ maxWidth: "none", paddingTop: 0 }}><SharedClinicStatus ngoId={ngo.org_id} /></div> : null}
     </Shell>
@@ -60,7 +65,7 @@ const DAY_TONE: Record<string, Tone> = { Overdue: "bad", Today: "accent", Tomorr
 const ORDER = ["Overdue", "Today", "Tomorrow", "This week", "Imported"];
 type Visit = { id: string; when: string; day: string; what: string; kind: string; place: string; who: string; animal: string | null; case: string | null; caseHref?: string; animalHref?: string };
 const vCols: RCol<Visit>[] = [
-  { label: "Visit", width: "minmax(0, 1.7fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.what}</b><small>{[r.case, r.animal].filter(Boolean).join(" · ") || r.kind}<span className="nx-only-s"> · {r.place}</span></small></span></span> },
+  { label: "Visit", width: "minmax(0, 1.7fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.what}</b><small>{[r.case, r.animal && !r.what.includes(r.animal) ? r.animal : null].filter(Boolean).join(" · ") || r.kind}<span className="nx-only-s"> · {r.place}</span></small></span></span> },
   { label: "When", width: "150px", render: (r) => <Chip tone={DAY_TONE[r.day] ?? "plain"}>{r.day === "Overdue" ? `Overdue · ${r.when}` : r.day === "Imported" ? `Imported · ${r.when}` : r.when}</Chip> },
   { label: "Place", width: "minmax(0, 1fr)", hideOnPhone: true, render: (r) => <span className="nx-t2">{r.place}</span> },
   { label: "Assigned to", width: "minmax(0, 1fr)", hideOnPhone: true, render: (r) => <span className="nx-t2">{r.who}</span> },
@@ -82,13 +87,18 @@ async function loadVisits(ngoId: string): Promise<Visit[]> {
   ]);
   if (cs.error) throw new Error(cs.error.message);
   const imported = (src: string | null | undefined) => src === "historical_import" || src === "imported_historical_record";
-  const out: Visit[] = fs.map((f: DueFollowup) => ({ id: f.id, when: imported(f.source) ? day(f.due_at) : fmt(f.due_at), day: imported(f.source) ? "Imported" : dayOf(f.due_at), what: f.note || word(f.kind, "Follow-up"), kind: word(f.kind, "Follow-up"), place: f.zone ?? f.city ?? "Place not recorded", who: f.assignee_name ?? "Unassigned", animal: f.animal_name ?? f.straypaw_id, case: f.case_code ? shortCode(f.case_code) : null, caseHref: f.case_id ? `/ngo/cases/${f.case_id}` : undefined, animalHref: f.dog_id ? `/ngo/animals/${f.dog_id}` : undefined }));
+  /* Each visit names its animal as the register does ("Dog 125", "Tiger (132)"), read from the organisation's own animals. */
+  const caseRows = (cs.data ?? []) as DueCase[];
+  const refs = await readAnimalRefs(ngoId, [...fs.map((f) => f.dog_id), ...caseRows.map((c) => c.dog_id)]);
+  const named = (id: string | null, fallback?: { name: string | null; straypaw_id: string | null }) => (id && refs.get(id) ? animalLine(refs.get(id)) : id && fallback ? animalLine({ id, ...fallback }) : null);
+  const say = (text: string, id: string | null) => withAnimalName(text, id ? refs.get(id) : null);
+  const out: Visit[] = fs.map((f: DueFollowup) => ({ id: f.id, when: imported(f.source) ? day(f.due_at) : fmt(f.due_at), day: imported(f.source) ? "Imported" : dayOf(f.due_at), what: say(f.note || word(f.kind, "Follow-up"), f.dog_id), kind: word(f.kind, "Follow-up"), place: f.zone ?? f.city ?? "Place not recorded", who: f.assignee_name ?? "Unassigned", animal: named(f.dog_id, { name: f.animal_name, straypaw_id: f.straypaw_id }), case: f.case_code ? shortCode(f.case_code) : null, caseHref: f.case_id ? `/ngo/cases/${f.case_id}` : undefined, animalHref: f.dog_id ? `/ngo/animals/${f.dog_id}` : undefined }));
   const seen = new Set(fs.map((f) => f.case_id).filter(Boolean));
-  for (const c of (cs.data ?? []) as DueCase[]) {
+  for (const c of caseRows) {
     const due = c.due_at ?? c.follow_up_at;
     if (!due || seen.has(c.id) || due > week) continue;
     const old = imported(c.provenance);
-    out.push({ id: `case:${c.id}`, when: old ? day(due) : fmt(due), day: old ? "Imported" : dayOf(due), what: c.next_action || c.title || "Case follow-up", kind: "Case due", place: c.zone ?? c.city ?? "Place not recorded", who: c.assignee_name ?? "Unassigned", animal: null, case: shortCode(c.case_code, c.id.slice(0, 8).toUpperCase()), caseHref: `/ngo/cases/${c.id}`, animalHref: c.dog_id ? `/ngo/animals/${c.dog_id}` : undefined });
+    out.push({ id: `case:${c.id}`, when: old ? day(due) : fmt(due), day: old ? "Imported" : dayOf(due), what: say(c.next_action || c.title || "Case follow-up", c.dog_id), kind: "Case due", place: c.zone ?? c.city ?? "Place not recorded", who: c.assignee_name ?? "Unassigned", animal: named(c.dog_id), case: shortCode(c.case_code, c.id.slice(0, 8).toUpperCase()), caseHref: `/ngo/cases/${c.id}`, animalHref: c.dog_id ? `/ngo/animals/${c.dog_id}` : undefined });
   }
   return out;
 }
@@ -99,7 +109,7 @@ function Visits({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.Reac
   const load = useCallback(async () => { if (!ngo) return; try { setRows(await loadVisits(ngo.org_id)); setErr(null); } catch (e) { setRows([]); setErr(errText(e)); } }, [ngo]);
   useEffect(() => { void load(); }, [load]);
   const sample = !ngo;
-  const list = useMemo<Visit[]>(() => [...(sample ? (VISITS_OPS as Visit[]) : rows ?? [])].sort((a, b) => ORDER.indexOf(a.day) - ORDER.indexOf(b.day) || a.place.localeCompare(b.place)), [sample, rows]);
+  const list = useMemo<Visit[]>(() => [...(sample ? (VISITS_OPS as Visit[]).map((v) => ({ ...v, animal: sampleAnimal(v.animal) })) : rows ?? [])].sort((a, b) => ORDER.indexOf(a.day) - ORDER.indexOf(b.day) || a.place.localeCompare(b.place)), [sample, rows]);
   const byPlace = useMemo(() => { const m = new Map<string, number>(); for (const v of list) if (["Overdue", "Today", "Tomorrow"].includes(v.day)) m.set(v.place, (m.get(v.place) ?? 0) + 1); return [...m].sort((a, b) => b[1] - a[1]); }, [list]);
   const overdue = list.filter((v) => v.day === "Overdue").length, today = list.filter((v) => v.day === "Today").length;
   const views: RView<Visit>[] = [{ id: "soon", label: "Due by tomorrow", test: (v) => ["Overdue", "Today", "Tomorrow"].includes(v.day) }, { id: "late", label: "Overdue", test: (v) => v.day === "Overdue" }, { id: "week", label: "Next 7 days", test: (v) => v.day !== "Imported" }, ...(list.some((v) => v.day === "Imported") ? [{ id: "imp", label: "Imported, never confirmed", test: (v: Visit) => v.day === "Imported" }] : [])];
@@ -119,9 +129,11 @@ function Visits({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.Reac
 /* ── Care log (read only) ────────────────────────────────────────── */
 
 const kindLabel = (k: string) => MEDICAL_KINDS.find((x) => x.id === k)?.label ?? words(k);
-type CareRow = { id: string; animal: string; code: string; zone: string; kind: string; date: string; dateIso: string | null; notes: string; by: string; href?: string; caseHref?: string };
+/* Each care entry names its animal as the register does: the name with its number beside it, or "Dog 128". */
+type CareRow = { id: string; animal: string; tag: string | null; line: string; code: string; zone: string; kind: string; date: string; dateIso: string | null; notes: string; by: string; href?: string; caseHref?: string };
+const careAnimal = (a: { id?: string; name: string | null; code: string | null; species?: string | null }) => { const l = animalLabel(a); return { animal: l.title, tag: l.name ? l.tag : null, line: l.line, code: l.code ?? "" }; };
 const cCols: RCol<CareRow>[] = [
-  { label: "Animal", width: "minmax(0, 1.3fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.animal}</b><small><span className="num">{r.code}</span>{r.zone ? ` · ${r.zone}` : ""}<span className="nx-only-s"> · {r.date}</span></small></span></span> },
+  { label: "Animal", width: "minmax(0, 1.3fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.animal}<AnimalTag tag={r.tag} /></b><small>{r.zone || "Place not recorded"}<span className="nx-only-s"> · {r.date}</span></small></span></span> },
   { label: "Care", width: "140px", render: (r) => <Chip tone="ok">{r.kind}</Chip> },
   { label: "Date", width: "112px", hideOnPhone: true, render: (r) => <span className="nx-t3">{r.date}</span> },
   { label: "Notes", width: "minmax(0, 1.6fr)", hideOnPhone: true, render: (r) => <span className="nx-t2">{r.notes || "No notes"}</span> },
@@ -142,7 +154,7 @@ function CareLog({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.Rea
   const load = useCallback(async () => { if (!ngo) return; const [a, b] = await Promise.all([readCareLog(ngo.org_id), readMedicalCases(ngo.org_id)]); if (a.error || b.error) { setErr(errText(a.error ?? b.error)); setData({ rows: [], total: 0 }); setCases([]); return; } setErr(null); setData(a.data!); setCases(b.data!); }, [ngo]);
   useEffect(() => { void load(); }, [load]);
   const sample = !ngo;
-  const rows: CareRow[] = useMemo(() => sample ? SAMPLE_CARE.map((s: SampleCare) => ({ ...s, dateIso: null })) : (data?.rows ?? []).map((m) => ({ id: m.id, animal: m.animal.name || m.animal.code || "Unnamed animal", code: m.animal.code ?? m.animal.id.slice(0, 8).toUpperCase(), zone: m.animal.zone ?? "", kind: kindLabel(m.kind), date: day(m.event_date), dateIso: m.event_date, notes: careNote(m.notes), by: m.performed_by ?? "", href: `/ngo/animals/${m.animal.id}`, caseHref: m.case_id ? `/ngo/cases/${m.case_id}` : undefined })), [sample, data]);
+  const rows: CareRow[] = useMemo(() => sample ? SAMPLE_CARE.map((s: SampleCare) => ({ ...s, ...careAnimal({ name: s.animal, code: s.code }), dateIso: null })) : (data?.rows ?? []).map((m) => ({ id: m.id, ...careAnimal(m.animal), zone: m.animal.zone ?? "", kind: kindLabel(m.kind), date: day(m.event_date), dateIso: m.event_date, notes: careNote(m.notes), by: m.performed_by ?? "", href: `/ngo/animals/${m.animal.id}`, caseHref: m.case_id ? `/ngo/cases/${m.case_id}` : undefined })), [sample, data]);
   const kinds = useMemo(() => [...new Set(rows.map((r) => r.kind))].sort(), [rows]);
   const meds: MedRow[] = (cases ?? []).map((c) => ({ id: c.id, code: shortCode(c.case_code, c.id.slice(0, 8).toUpperCase()), title: c.title || "Case", state: words(c.status), zone: c.zone ?? "", notes: c.medical_notes ?? "", last: day(c.last_activity_at), href: `/ngo/cases/${c.id}` }));
   const switcher = <div className="nx-views" role="tablist" aria-label="Care log view" style={{ marginRight: 8 }}>{(["events", "cases"] as const).map((l) => <button key={l} type="button" role="tab" aria-selected={lane === l} className={`nx-view ${lane === l ? "is-on" : ""}`} onClick={() => setLane(l)} style={lane === l ? { background: "var(--hover)" } : undefined}><span>{l === "events" ? "Care given" : "Medical cases"}</span></button>)}</div>;
@@ -153,11 +165,11 @@ function CareLog({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.Rea
       preview={(r) => ({ title: r.title, sub: <span className="num">{r.code}</span>, href: r.href, hrefLabel: "Open the case", body: <Props items={[["Status", r.state], ["Place", r.zone || "Not recorded"], ["Medical notes", r.notes || "None"], ["Last activity", r.last]]} /> })} />
   );
   return (
-    <RecordList id="care" title="Operations" sample={sample} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => `${r.kind}, ${r.animal}`} columns={cCols} views={[{ id: "all", label: "All care", test: () => true }, ...kinds.map((k) => ({ id: k, label: k, test: (r: CareRow) => r.kind === k }))]} search={(r) => `${r.animal} ${r.code} ${r.zone} ${r.notes} ${r.by}`} placeholder="Animal, place, person"
+    <RecordList id="care" title="Operations" sample={sample} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => `${r.kind}, ${r.line}`} columns={cCols} views={[{ id: "all", label: "All care", test: () => true }, ...kinds.map((k) => ({ id: k, label: k, test: (r: CareRow) => r.kind === k }))]} search={(r) => `${r.line} ${r.code} ${r.zone} ${r.notes} ${r.by}`} placeholder="Animal, number, place, person"
       sub={sample ? <>Care given, newest first, each beside its animal. Read only: care is recorded on an animal&apos;s record.</> : data === null ? "Reading care history…" : !rows.length ? "No care recorded yet." : data.total && data.total > rows.length ? <>The newest <b className="num">{n(rows.length)}</b> of <b className="num">{n(data.total)}</b> care entries, as dated on each record. Older entries are on each animal&apos;s record.</> : <><b className="num">{n(rows.length)}</b> care {rows.length === 1 ? "entry" : "entries"}, newest first, as dated on each record.</>}
       action={action} above={<>{tabs}{!sample ? <div className="nr-acts" style={{ marginTop: 12 }}>{switcher}</div> : null}</>} loading={!sample && data === null} error={err} onRetry={() => void load()} hrefOf={(r) => r.href}
       empty={{ none: "No care recorded yet", hint: <>Care added on an animal&apos;s record appears here. <Link className="nr-link" href="/ngo/animals">Open the register</Link>.</> }}
-      preview={(r) => ({ title: `${r.kind} · ${r.animal}`, sub: <><span className="num">{r.code}</span>{r.zone ? ` · ${r.zone}` : ""}</>, href: r.href, hrefLabel: "Open the animal's record", body: <>
+      preview={(r) => ({ title: `${r.kind} · ${r.line}`, sub: <>{r.zone || "Place not recorded"}{r.code ? <> · code <span className="num">{r.code}</span></> : null}</>, href: r.href, hrefLabel: "Open the animal's record", body: <>
         <Props items={[["Care", r.kind], ["Date", r.date], ["Given by", r.by || "Not recorded"], ["Notes", r.notes || "None"], ...(r.caseHref ? [["Case", <Link key="c" className="nr-link" href={r.caseHref}>Open the case</Link>] as [string, React.ReactNode]] : [])]} />
         <p className="nr-hint" style={{ marginTop: 12 }}>Recorded by your organisation. A veterinary sign-off is a separate step on the case.</p>
       </> })} />
@@ -176,18 +188,6 @@ const ABC: Step[] = [
   { id: "evidence", title: "Evidence", says: "Release photo or place", none: "Every record has what it needs.", all: "Open submissions", href: "/ngo/submissions" },
   { id: "report", title: "Ready to send", says: "Goes into this month's report", none: "Nothing is waiting to be sent.", all: "Open submissions", href: "/ngo/submissions" },
 ];
-function OrgMap({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.ReactNode; action: React.ReactNode }) {
-  return (
-    <div className="nx-page" style={{ maxWidth: "none" }}>
-      <div className="nx-head"><div><h1 className="nx-h1">Operations{ngo ? null : <Sample />}</h1><p className="nx-sub">Your organisation&apos;s open work, needs and care, by area. Only your organisation&apos;s records are on it.</p></div>{action}</div>
-      {tabs}
-      {ngo
-        ? <div className="nr-map"><Suspense fallback={<MapSkeleton label="Reading your organisation's map" />}><FieldMap variant="ngo" scope="org" lenses={NGO_LENSES} defaultLens="help" embedded /></Suspense></div>
-        : <p className="nx-sub" style={{ marginTop: 18 }}>Sign in as a member of an NGO to see your organisation&apos;s map. The public map of every city is on <Link href="/explore" className="nr-link">Explore</Link>.</p>}
-    </div>
-  );
-}
-
 function LanePage({ ngo, tabs, action, which }: { ngo: Workspace | null; tabs: React.ReactNode; action: React.ReactNode; which: "rescue" | "abc" }) {
   const [lanes, setLanes] = useState<Lanes | null>(null);
   useEffect(() => { if (!ngo) return; let live = true; void readLanes(ngo.org_id).then((l) => { if (live) setLanes(l); }); return () => { live = false; }; }, [ngo]);

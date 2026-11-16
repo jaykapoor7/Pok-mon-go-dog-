@@ -10,6 +10,7 @@ import { useLive } from "../live";
 import { getSupabase } from "@/lib/supabase";
 import { ELSEWHERE, ENTRIES, type Entry } from "@/lib/automations/v2";
 import { ReportingRules } from "./ReportingRules";
+import { KajuPlaces } from "../kaju/Places";
 
 /* Automations: fixed rules an organisation turns on. Each counts something and tells the right people inside
    StrayPaw, on a schedule the database keeps whether or not anyone has the app open. A lead or coordinator turns them
@@ -67,6 +68,7 @@ export function KajuAutomations() {
   return (
     <Shell ws="kaju" crumb={["Kaju", "Automations"]}>
       <div className="nx-page">
+        <KajuPlaces />
         <div className="nx-head"><div><p className="nx-eyebrow">{org ? org.name : <>Sample library<Sample /></>}</p><h1 className="nx-h1">Automations</h1><p className="nx-sub">Rules that watch for routine work and tell the right people inside StrayPaw. They count and remind; decisions stay with people.</p></div></div>
         {missing ? <p className="nx-note"><Zap size={13} /><span>Automations are not set up on this database yet.</span></p> : null}
         <Section title={org ? "Available here" : "The library"} count={library.length}>

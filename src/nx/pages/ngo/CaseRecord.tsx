@@ -13,7 +13,9 @@ import { Failed, Props, RecordHead, Section, Skeleton, TabBar, Timeline, day, da
 import { useLive, type Workspace } from "../../live";
 import { loadCaseFile, type CaseFile, type Neighbour } from "@/lib/case-file";
 import { careNote } from "@/lib/care-note";
-import { realName, shortCode, statusLabel, STATUS_TONE } from "../../data/ngo";
+import { shortCode, statusLabel, STATUS_TONE } from "../../data/ngo";
+import { animalLine, withAnimalName } from "../../animalLabel";
+import { useAnimalRefs } from "../../data/animals";
 import { SAMPLE_CASES, sampleFollowups, sampleHistory } from "../../data/ngo-sample";
 import { CareForm, CaseNext, DeleteRecord, FollowupList, OpsEvents, SampleNext, TryLink, cohortOf, useMembers } from "./parts";
 
@@ -48,6 +50,9 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const read = useCallback(async () => { const v = ++gen.current; try { const f = await loadCaseFile(id); if (v === gen.current) setFile(f); } catch (e) { if (v === gen.current) setFile({ error: errText(e) }); } }, [id]);
   useEffect(() => { void read(); }, [read]);
   const actor = live.userId ? { id: live.userId, name: live.userName ?? "Team member" } : null;
+  /* The animal is named as the register names it ("Dog 125", "Tiger (132)"), and a title written with its code reads with that name. */
+  const dogId = file && file !== "loading" && !("error" in file) ? file.c.dog_id : null;
+  const dog = useAnimalRefs(org.org_id, [dogId])?.get(dogId ?? "") ?? null;
 
   if (file === "loading") return <Shell crumb={["Cases", "…"]}><div className="nx-page"><Skeleton rows={8} label="Reading the case" /></div></Shell>;
   if (file && "error" in file) return <Shell crumb={["Cases", "Case"]}><div className="nx-page"><Failed error={file.error} retry={() => void read()} /></div></Shell>;
@@ -55,7 +60,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
 
   const { c, reg, animal, updates, medical, followups, neighbours, sameAnimal } = file;
   const code = shortCode(reg.case_code, c.id.slice(0, 8).toUpperCase());
-  const title = reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title;
+  const title = reg.condition_class && reg.condition_class !== "Not recorded" ? reg.condition_class : c.title && withAnimalName(c.title, dog);
   const cohort = cohortOf(file);
   const imported = reg.provenance === "imported_historical_record";
   const place = [c.zone, reg.city].filter(Boolean).join(", ");
@@ -74,7 +79,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
 
   const props: [string, ReactNode][] = [
     ["Status", <Chip key="s" tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>],
-    ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? (animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal record")}</Link> : "Not linked"],
+    ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/ngo/animals/${c.dog_id}`}>{animalLine(dog ?? { id: c.dog_id, name: animal?.name, straypaw_id: animal?.straypaw_id })}</Link> : "Not linked"],
     ["Place", <span key="p">{place || "Not recorded"} <span className="nx-t3">{reg.location_precision ? words(reg.location_precision).toLowerCase() : reg.h3_r8 ? "recorded area" : "no location"}</span></span>],
     ["Recorded", <span key="r">{day(reg.occurred_at)}{reg.intake_channel ? <span className="nx-t3"> via {reg.intake_channel.replace(/_/g, " ")}</span> : null}</span>],
     ["Held by", c.assignee_name ?? "Nobody yet"],
@@ -164,7 +169,7 @@ function SampleRecord({ id }: { id: string }) {
       <TabBar id="case" tabs={[["Overview", undefined], ["History", items.length], ["Care and movements", undefined], ["Related", undefined]] as [Tab, number | undefined][]} value={tab} onChange={setTab} label="Case sections" />
       {tab === "Overview" ? (
         <div className="nx-rec">
-          <section aria-label="Properties"><h3 className="nx-h3">Properties</h3><Props items={[["Status", <Chip key="s" tone={r.tone}>{r.status}</Chip>], ["Animal", r.animal ? <Link key="a" className="nr-link" href={`/ngo/animals/${r.animal}`}>{r.animal}</Link> : "Not linked"], ["Place", r.place], ["Held by", r.who === "Unassigned" ? "Nobody yet" : r.who], ["Severity", r.severity], ["Kind", r.kind], ["Next action", r.next], ["Record", <TrustChip key="t" trust={r.trust} />]]} /></section>
+          <section aria-label="Properties"><h3 className="nx-h3">Properties</h3><Props items={[["Status", <Chip key="s" tone={r.tone}>{r.status}</Chip>], ["Animal", r.animal ? <Link key="a" className="nr-link" href={`/ngo/animals/${r.dogId ?? ""}`}>{r.animal}</Link> : "Not linked"], ["Place", r.place], ["Held by", r.who === "Unassigned" ? "Nobody yet" : r.who], ["Severity", r.severity], ["Kind", r.kind], ["Next action", r.next], ["Record", <TrustChip key="t" trust={r.trust} />]]} /></section>
           <div>
             <Section title="Next step">{r.open ? <SampleNext held={r.who} /> : <p className="nr-quiet">Closed after field work.</p>}</Section>
             <Section title="Follow-ups" count={sampleFollowups(id).length}><FollowupList sample items={sampleFollowups(id)} onChanged={() => {}} /></Section>

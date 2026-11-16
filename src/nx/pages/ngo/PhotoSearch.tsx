@@ -11,7 +11,7 @@ import { BAND_LABEL, datasetSummary, decide, photoLink, readCandidates, readDeci
 import { getSupabase } from "@/lib/supabase";
 import { Confirm, Field, Modal, Section, dayTime, errText, useAct, words } from "../../kit";
 import { Chip } from "../../ui";
-import { shortCode } from "../../data/ngo";
+import { animalLine } from "../../animalLabel";
 
 function Thumb({ uri, alt }: { uri: string | null | undefined; alt: string }) {
   const [src, setSrc] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export function PhotoSearch({ ngoId, admin }: { ngoId: string; admin: boolean })
     const t = window.setTimeout(async () => {
       const term = q.trim().replace(/[%_,()]/g, "").slice(0, 60);
       const { data } = await getSupabase()!.from("dogs").select("id,name,straypaw_id,code").eq("ngo_id", ngoId).or(`name.ilike.%${term}%,code.ilike.%${term}%,straypaw_id.ilike.%${term}%`).order("created_at", { ascending: false }).limit(6);
-      setFound(((data ?? []) as { id: string; name: string | null; straypaw_id: string | null; code: string | null }[]).map((d) => ({ id: d.id, label: `${d.name || "Unnamed animal"} · ${shortCode(d.straypaw_id ?? d.code, "no code")}` })));
+      setFound(((data ?? []) as { id: string; name: string | null; straypaw_id: string | null; code: string | null }[]).map((d) => ({ id: d.id, label: `${animalLine(d)}${d.code ? ` · code ${d.code}` : ""}` })));
     }, 250);
     return () => window.clearTimeout(t);
   }, [linkNew, q, ngoId]);
@@ -83,7 +83,7 @@ export function PhotoSearch({ ngoId, admin }: { ngoId: string; admin: boolean })
             : cands.length ? <p className="nr-hint">Closest animals on your register. Similarity compares photo features; it is not a probability.</p> : <p className="nr-quiet">No animal on your register has an indexed photo yet.</p>}
           {cands.length ? <ul className="nr-items">{cands.map((c) => <li key={c.id} className="nr-item" style={rejected.has(c.dog_id) ? { opacity: .5 } : undefined}>
             <Thumb uri={c.matched_photo_uri} alt={c.dog?.name ?? "Candidate animal"} />
-            <span className="nr-item-t"><b>{c.dog?.name || "Unnamed animal"}</b><small>{shortCode(c.dog?.straypaw_id ?? c.dog?.code, "no code")}{c.dog?.zone ? ` · ${c.dog.zone}` : ""}</small></span>
+            <span className="nr-item-t"><b>{animalLine(c.dog)}</b><small>{[c.dog?.zone, c.dog?.code ? `code ${c.dog.code}` : null].filter(Boolean).join(" · ") || "Place not recorded"}</small></span>
             <span className="nr-item-e"><span title="Raw similarity of photo features, not a probability"><Chip tone={c.band === "strong" ? "accent" : "plain"}>{BAND_LABEL[c.band]} · {c.similarity.toFixed(2)}</Chip></span>
               {!settled && !rejected.has(c.dog_id) ? <><button type="button" className="nx-btn is-sm" disabled={!!busy} onClick={() => setSame(c)}><Tick size={13} />Same animal</button><button type="button" className="nx-btn is-quiet is-sm" disabled={!!busy} onClick={() => void act(() => decide(job.id, "not_this_animal", c.dog_id), "Recorded: not this animal.")}><X size={13} />Not this one</button></> : null}</span>
           </li>)}</ul> : null}

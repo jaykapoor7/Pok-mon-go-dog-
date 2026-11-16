@@ -10,7 +10,8 @@ import { Field, GeoField, RecordHead, useAct } from "../../kit";
 import { useLive } from "../../live";
 import { parseINRAmount } from "@/lib/case-actions";
 import type { CaseCategory, CaseSeverity } from "@/lib/types";
-import { createCase, findDogs, orgCity, readDog, realName, removeRecord, shortCode, type DogBrief } from "../../data/ngo";
+import { createCase, findDogs, orgCity, readDog, removeRecord, type DogBrief } from "../../data/ngo";
+import { animalLine, animalSearch } from "../../animalLabel";
 import { TryLink, undoWith } from "./parts";
 
 /* Open a case: what is wrong, how urgent, where (coordinates kept privately; shared views only ever show the area), and
@@ -27,7 +28,8 @@ const CATS: { id: CaseCategory; label: string; note: string }[] = [
   { id: "other", label: "Something else", note: "Describe it below" },
 ];
 const SEV: { id: CaseSeverity; label: string }[] = [{ id: "critical", label: "Critical, act today" }, { id: "high", label: "High" }, { id: "normal", label: "Normal" }, { id: "low", label: "Low" }];
-const label = (d: DogBrief) => realName(d.name) ?? (d.straypaw_id ? shortCode(d.straypaw_id) : d.code ?? "Unnamed animal");
+/** The animal as the register names it: "Tiger (132)" or "Dog 128". */
+const label = (d: DogBrief) => animalLine(d);
 
 export function NewCase({ pre }: { pre: Prefill }) {
   const live = useLive();
@@ -68,7 +70,7 @@ function Form({ pre, ngoId, sample }: { pre: Prefill; ngoId: string | null; samp
       if (d.lat != null && d.lng != null && pre.lat == null) { setLat(d.lat); setLng(d.lng); }
     });
   }, [ngoId, pre.dog, pre.lat]);
-  useEffect(() => { if (!ngoId || q.trim().length < 2) { setFound([]); return; } const t = window.setTimeout(() => { void findDogs(ngoId, q).then(setFound); }, 250); return () => window.clearTimeout(t); }, [ngoId, q]);
+  useEffect(() => { if (!ngoId || q.trim().length < 2) { setFound([]); return; } const t = window.setTimeout(() => { void findDogs(ngoId, animalSearch(q)).then(setFound); }, 250); return () => window.clearTimeout(t); }, [ngoId, q]);
 
   const estN = est.trim() ? parseINRAmount(est) : null, spentN = spent.trim() ? parseINRAmount(spent) : null;
   const geoOk = (lat === null) === (lng === null);
@@ -106,7 +108,7 @@ function Form({ pre, ngoId, sample }: { pre: Prefill; ngoId: string | null; samp
             {animal ? <p className="nr-acts"><b>{label(animal)}</b>{animal.code ? <span className="nx-t3">{animal.code}</span> : null}<Link className="nr-link" href={`/ngo/animals/${animal.id}`}>Open its record</Link><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setAnimal(null)}><X size={13} />Unlink</button></p>
               : sample ? <p className="nr-hint">In the live demo you can link an animal from your register.</p>
               : <><label className="nx-find" style={{ marginLeft: 0, height: 34, display: "flex" }}><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find it on your register: name, code, marks" aria-label="Find an animal to link" /></label>
-                {found.length ? <div className="nr-pick">{found.map((d) => <button key={d.id} type="button" onClick={() => { setAnimal(d); setQ(""); if (d.zone && !zone) setZone(d.zone); if (d.city) setCity(d.city); if (d.lat != null && d.lng != null && lat === null) { setLat(d.lat); setLng(d.lng); } }}><b>{label(d)}</b><small>{[d.code, d.zone].filter(Boolean).join(" · ") || "No code or place recorded"}</small></button>)}</div> : q.trim().length >= 2 ? <p className="nr-hint">No animal on your register matches. Open the case without one and link it later.</p> : <p className="nr-hint">Not linked. Open the case without an animal and link it later, once it is identified.</p>}</>}
+                {found.length ? <div className="nr-pick">{found.map((d) => <button key={d.id} type="button" onClick={() => { setAnimal(d); setQ(""); if (d.zone && !zone) setZone(d.zone); if (d.city) setCity(d.city); if (d.lat != null && d.lng != null && lat === null) { setLat(d.lat); setLng(d.lng); } }}><b>{label(d)}</b><small>{[d.zone, d.code ? `code ${d.code}` : null].filter(Boolean).join(" · ") || "No code or place recorded"}</small></button>)}</div> : q.trim().length >= 2 ? <p className="nr-hint">No animal on your register matches. Open the case without one and link it later.</p> : <p className="nr-hint">Not linked. Open the case without an animal and link it later, once it is identified.</p>}</>}
             {problem ? <p className="nr-err" role="alert">{problem}</p> : null}
           </div>
           <Field label="City"><input value={city} onChange={(e) => setCity(e.target.value)} required minLength={2} maxLength={120} /></Field>

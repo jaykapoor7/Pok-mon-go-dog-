@@ -9,6 +9,7 @@ import { useLive } from "../live";
 import { getSupabase } from "@/lib/supabase";
 import { LEVEL_WORD, TOOLS, type Level, type ToolName } from "@/lib/kaju/registry";
 import { useKajuPrefs } from "../kaju/data";
+import { KajuPlaces } from "../kaju/Places";
 
 /* What Kaju may do here. The registry sets each tool's level; an organisation's leads can only make a tool stricter
    or switch it off; each person can hold Kaju to asking first. Memory is how the organisation works, written down,
@@ -33,7 +34,7 @@ export function KajuRules() {
   const db = getSupabase();
   const policies = useRows<Policy>(() => db!.from("nx_kaju_policies").select("tool,level,enabled,updated_at").eq("org_id", org!.org_id), org ? `p${org.org_id}` : null);
   const memory = useRows<Memory>(() => db!.from("nx_kaju_memory").select("id,scope,kind,title,body,created_by,approved_at,revoked_at,created_at").eq("org_id", org!.org_id).is("revoked_at", null).order("created_at", { ascending: false }), org ? `m${org.org_id}` : null);
-  const { prefs, save } = useKajuPrefs();
+  const { prefs, save } = useKajuPrefs(live.signedIn);
   const { busy, run } = useAct();
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState({ title: "", body: "", kind: "procedure", scope: "org" as "org" | "personal" });
@@ -41,7 +42,7 @@ export function KajuRules() {
   if (!live.ready) return <Shell ws="kaju" crumb={["Kaju", "Rules and memory"]}><div className="nx-page"><Skeleton /></div></Shell>;
   if (!org) return (
     <Shell ws="kaju" crumb={["Kaju", "Rules and memory"]}>
-      <div className="nx-page"><p className="nx-eyebrow">How Kaju is held<Sample /></p><h1 className="nx-h1">Rules and memory</h1><p className="nx-sub">Each organisation decides how far Kaju goes on its own, and writes down how it works so Kaju can follow it.</p>
+      <div className="nx-page"><KajuPlaces /><p className="nx-eyebrow">How Kaju is held<Sample /></p><h1 className="nx-h1">Rules and memory</h1><p className="nx-sub">Each organisation decides how far Kaju goes on its own, and writes down how it works so Kaju can follow it.</p>
         <table className="nx-rtable"><tbody>{(Object.keys(TOOLS) as ToolName[]).map((t) => <tr key={t}><td>{TOOLS[t].label}</td><td><Chip tone={TOOLS[t].level >= 3 ? "warn" : "plain"}>{LEVEL_WORD[TOOLS[t].level as Level]}</Chip></td></tr>)}</tbody></table>
         <p style={{ marginTop: 16 }}><Link href="/try" className="nx-btn" title="Opens the live demo, where this works">Set rules in the live demo</Link></p></div>
     </Shell>
@@ -56,7 +57,7 @@ export function KajuRules() {
 
   return (
     <Shell ws="kaju" crumb={["Kaju", "Rules and memory"]}>
-      <div className="nx-page">
+      <div className="nx-page"><KajuPlaces />
         <div className="nx-head"><div><p className="nx-eyebrow">{org.name}</p><h1 className="nx-h1">Rules and memory</h1><p className="nx-sub">The database applies these when each step runs. A rule can make Kaju stricter than the defaults, never looser.</p></div></div>
         <TabBar id="kr" tabs={["Tools", ["Memory", memory.rows?.length], "Your limits"]} value={tab} onChange={setTab} />
         {tab === "Tools" ? <Section title="What each tool may do here">

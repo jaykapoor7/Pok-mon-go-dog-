@@ -1,0 +1,113 @@
+/* Conversations: the New channel and New message dialogs, the list of conversations on phones and tablets, the channel
+   header, a channel's first message, and the first-run start for an organisation with no channels.
+   Type 12/14/16/20/24; spacing 4/8/12/16/24/32; radii 8/12; controls keep a line, surfaces do not. */
+
+/* ── Dialog fields ─────────────────────────────────────────────── */
+.nx .cx-form { display: grid; gap: 16px; }
+.nx .cx-lede { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.nx .cx-field { display: grid; gap: 8px; min-width: 0; }
+.nx .cx-field > label { font-size: 14px; font-weight: 600; color: var(--ink); }
+.nx .cx-field > label span { font-weight: 400; color: var(--ink-3); }
+.nx .cx-box { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 8px; background: var(--bg); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line-2); transition: box-shadow .12s; }
+.nx .cx-box:focus-within { box-shadow: inset 0 0 0 2px var(--accent); }
+.nx .cx-box.is-bad { box-shadow: inset 0 0 0 1px var(--bad); }
+.nx .cx-box.is-bad:focus-within { box-shadow: inset 0 0 0 2px var(--bad); }
+.nx .cx-box svg { flex: none; }
+.nx .cx-box input { flex: 1; min-width: 0; height: 40px; border: 0; outline: 0; background: none; font: inherit; font-size: 14px; color: var(--ink); padding: 0; }
+.nx .cx-box input::placeholder { color: var(--ink-3); }
+.nx .cx-box input:focus-visible { outline: none; }
+.nx .cx-check { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.nx .cx-check.is-ok { color: var(--ink-2); }
+.nx .cx-check.is-bad { color: var(--bad); }
+.nx .cx-check a { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+.nx .cx-who { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--side); color: var(--ink-2); font-size: 14px; line-height: 20px; }
+.nx .cx-who svg { height: 20px; color: var(--ink-3); } /* a 16px icon centred on the first 20px line */
+.nx .cx-who b { display: block; color: var(--ink); font-weight: 600; }
+.nx .cx-err { font-size: 14px; color: var(--bad); }
+
+/* ── New message ───────────────────────────────────────────────── */
+.nx .cx-people { display: grid; gap: 4px; max-height: min(360px, 48vh); overflow-y: auto; margin: 0 -8px; padding: 0 8px; }
+.nx .cx-person { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 8px; border-radius: 8px; text-align: left; color: var(--ink); transition: background .1s; }
+.nx .cx-person:hover, .nx .cx-person.is-at { background: var(--hover); }
+.nx .cx-person.is-at { background: var(--sel); }
+.nx .cx-person[disabled] { cursor: default; }
+.nx .cx-av { width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; letter-spacing: 0; }
+.nx .cx-av.is-s { width: 24px; height: 24px; }
+.nx .cx-pn { min-width: 0; }
+.nx .cx-pn b, .nx .cx-pn small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx .cx-pn b { font-size: 14px; line-height: 20px; font-weight: 500; }
+.nx .cx-pn small { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.nx .cx-verb { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.nx .cx-person.is-at .cx-verb, .nx .cx-person:hover .cx-verb { color: var(--accent); }
+.nx .cx-none { font-size: 14px; line-height: 20px; color: var(--ink-2); padding: 12px 8px; }
+.nx .cx-none a { color: var(--accent); }
+.nx .cx-private { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.nx .cx-private svg { flex: none; margin-top: 1px; }
+
+/* ── Every conversation (phones and tablets) ───────────────────── */
+.nx .cx-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.nx .cx-acts .nx-btn { height: 40px; padding: 0 12px; font-size: 14px; }
+.nx .cx-group { font-size: 12px; font-weight: 600; color: var(--ink-3); margin: 8px 0 4px; }
+.nx .cx-list { display: grid; gap: 4px; }
+.nx .cx-row { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 8px; border-radius: 8px; font-size: 14px; color: var(--ink); transition: background .1s; }
+.nx .cx-row:hover { background: var(--hover); }
+.nx .cx-row.is-on { background: var(--sel); font-weight: 500; }
+.nx .cx-row.is-unread { font-weight: 600; }
+.nx .cx-ic { width: 24px; height: 24px; display: grid; place-items: center; color: var(--ink-3); flex: none; }
+.nx .cx-row.is-on .cx-ic { color: var(--accent); }
+.nx .cx-rn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx .cx-row i { margin-left: auto; font-style: normal; font-size: 12px; font-weight: 600; line-height: 16px; padding: 0 8px; border-radius: 8px; background: var(--accent); color: #fff; font-variant-numeric: tabular-nums; }
+.nx[data-theme="dark"] .cx-row i { color: #0b0d10; }
+
+/* ── Channel header ────────────────────────────────────────────── */
+.nx .nx-ch-h.cx-head { align-items: flex-start; gap: 12px; }
+.nx .cx-back { display: none; flex: none; }
+.nx .cx-mark { width: 32px; height: 32px; border-radius: 8px; flex: none; display: grid; place-items: center; background: var(--side); color: var(--ink-2); font-size: 12px; font-weight: 600; }
+.nx .cx-mark.is-dm { border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.nx .cx-title { min-width: 0; flex: 1; }
+.nx .nx-ch-h .cx-title h1 { font-size: 20px; line-height: 32px; font-weight: 600; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.nx .nx-ch-h .cx-purpose { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.nx .nx-ch-h .cx-readers { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.nx .nx-ch-h .cx-readers svg { flex: none; }
+
+/* ── The first message in a channel ────────────────────────────── */
+.nx .cx-start { display: grid; justify-items: start; gap: 8px; padding: 24px 0 16px; max-width: 560px; }
+.nx .cx-start .cx-mark { width: 40px; height: 40px; }
+.nx .cx-start h2 { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); }
+.nx .cx-start p { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+
+/* ── An organisation's first channel, or a channel that is not there ── */
+.nx .cx-first { display: grid; gap: 16px; max-width: 600px; }
+.nx .cx-first-mark { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.nx .cx-first h1 { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -.01em; color: var(--ink); }
+.nx .cx-first > p { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.nx .cx-preview { display: grid; gap: 4px; padding: 16px; border-radius: 12px; background: var(--side); }
+.nx .cx-preview b { display: flex; align-items: center; gap: 4px; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); }
+.nx .cx-preview b svg { color: var(--ink-3); }
+.nx .cx-preview span { font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.nx .cx-preview small { display: flex; align-items: center; gap: 4px; font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.nx .cx-first-a { display: flex; gap: 8px; flex-wrap: wrap; }
+.nx .cx-first-a .nx-btn { height: 40px; padding: 0 16px; font-size: 14px; }
+.nx .cx-first .cx-group { margin: 16px 0 -8px; }
+.nx .cx-first-back { display: none; align-items: center; gap: 8px; min-height: 44px; margin: -8px 0 0 -8px; padding: 0 8px; border-radius: 8px; font-size: 14px; color: var(--ink-2); }
+.nx .cx-first-back:hover { background: var(--hover); color: var(--ink); }
+
+/* ── Composer ──────────────────────────────────────────────────── */
+.nx .nx-compose textarea { max-height: 168px; overflow-y: auto; }
+
+/* Below 1100px the sidebar is hidden: the channel header and the first-run page offer every conversation instead. */
+@media (max-width: 1100px) {
+  .nx .cx-back { display: grid; margin-left: -8px; }
+  .nx .cx-first-back { display: inline-flex; justify-self: start; }
+}
+@media (max-width: 640px) {
+  .nx .cx-box input { font-size: 16px; height: 44px; }
+  .nx .cx-box { min-height: 44px; }
+  .nx .cx-person { min-height: 56px; }
+  .nx .cx-acts .nx-btn, .nx .cx-first-a .nx-btn { height: 44px; flex: 1 1 auto; justify-content: center; }
+  .nx .nx-ch-h.cx-head { gap: 8px; align-items: center; }
+  .nx .nx-ch-h .cx-title h1 { font-size: 16px; line-height: 24px; }
+  /* A phone keyboard has its own send key, so the keyboard hint goes; the message tools sit under the words, not in a box. */
+  .nx .nx-compose-f small { display: none; }
+  .nx .nx-msg .nx-msg-tools { grid-column: 2; margin-top: 0; padding: 0; background: none; box-shadow: none; }
+}

@@ -9,7 +9,9 @@ import { Failed, Props, Skeleton, day, errText } from "../kit";
 import { useLive, type Workspace } from "../live";
 import { loadCaseFile, type CaseFile } from "@/lib/case-file";
 import { careNote } from "@/lib/care-note";
-import { isCriticalCondition, isHistorical, isOpenClass, isReasonless, isStaleFact, readCases, realName, shortCode, statusLabel, STATUS_TONE, type CaseFact } from "../data/ngo";
+import { isCriticalCondition, isHistorical, isOpenClass, isReasonless, isStaleFact, readCases, shortCode, statusLabel, STATUS_TONE, type CaseFact } from "../data/ngo";
+import { animalLine, withAnimalName } from "../animalLabel";
+import { useAnimalRefs } from "../data/animals";
 import { SAMPLE_CASES, sampleFollowups, sampleHistory, type CaseRow } from "../data/ngo-sample";
 import { RecordList, type RCol, type RView } from "./ngo/RecordList";
 import { CaseNext, FollowupList, SampleNext, TryLink, cohortOf, useMembers } from "./ngo/parts";
@@ -56,7 +58,7 @@ function toRow(c: CaseFact, now: number): CaseRow {
     open, statusClass: c.status_class ?? "unknown", status, tone: !open ? STATUS_TONE[c.status_class ?? "unknown"] ?? "plain" : crit ? (isCriticalCondition(c.condition_class) || c.severity === "critical" ? "bad" : "warn") : stale ? "warn" : c.status_class === "in_progress" ? "accent" : "plain",
     next: c.next_action || (c.followups_upcoming ? `${c.followups_upcoming} follow-up${c.followups_upcoming === 1 ? "" : "s"}` : "—"), due: dueAt ? `Follow-up ${ddmm(c.next_due)}` : null, dueSoon: !!dueAt && dueAt <= endToday.getTime(), overdue: !!dueAt && dueAt < now,
     updated: ddmm(c.last_activity_at ?? c.occurred_at) ?? "—", updatedAt: Date.parse(c.last_activity_at ?? c.occurred_at ?? "") || 0, occurredAt: Date.parse(c.occurred_at ?? "") || 0,
-    historical, stale, reasonless: isReasonless(c), trust: c.provenance && /import/i.test(c.provenance) ? "Imported" : "Recorded", animal: realName(c.animal_name) ?? (c.straypaw_id ? shortCode(c.straypaw_id) : null), dogId: c.dog_id, href: `/ngo/cases/${c.id}`,
+    historical, stale, reasonless: isReasonless(c), trust: c.provenance && /import/i.test(c.provenance) ? "Imported" : "Recorded", animal: c.dog_id ? animalLine({ id: c.dog_id, name: c.animal_name, straypaw_id: c.straypaw_id }) : null, dogId: c.dog_id, href: `/ngo/cases/${c.id}`,
   };
 }
 /* Critical first, then whoever has waited longest (the classic queue's order); closed cases by their last activity. */
@@ -77,7 +79,10 @@ function LiveCases({ org }: { org: Workspace }) {
   const members = useMembers(true);
   const load = useCallback(async () => { const r = await readCases(org.org_id); if (r.error) { setError(errText(r.error)); return; } setError(null); const now = Date.now(); setData({ ...r.data!, rows: r.data!.rows.map((c) => toRow(c, now)).sort(order) }); }, [org.org_id]);
   useEffect(() => { void load(); }, [load]);
-  const rows = useMemo(() => data?.rows ?? [], [data]);
+  /* Each case names its animal as the register does ("Dog 125", "Tiger (132)"), and a title written with the animal's
+     code reads with that name instead; the list fills in the numbers once the organisation's animals are read. */
+  const refs = useAnimalRefs(org.org_id, useMemo(() => (data?.rows ?? []).map((r) => r.dogId), [data]));
+  const rows = useMemo(() => (data?.rows ?? []).map((r) => { const a = r.dogId ? refs?.get(r.dogId) : null; return a ? { ...r, animal: animalLine(a), title: withAnimalName(r.title, a), kind: withAnimalName(r.kind, a) } : r; }), [data, refs]);
   const all = views(live.userId);
   const vs = all.filter((v) => !OPTIONAL.has(v.id) || rows.some(v.test!) || v.id === view);
   const open = rows.filter((r) => r.open && !r.historical && !r.stale), crit = open.filter((r) => r.crit).length, nobody = open.filter((r) => r.who === "Unassigned").length;
@@ -89,13 +94,13 @@ function LiveCases({ org }: { org: Workspace }) {
         action={<Link href="/ngo/cases/new" className="nx-btn is-keep"><Plus size={14} />New case</Link>}
         loading={!data && !error} error={error} onRetry={() => void load()} hrefOf={(r) => r.href}
         empty={{ none: "No cases yet", filtered: "No case in this view", hint: <>Open the first one with <Link className="nr-link" href="/ngo/cases/new">New case</Link>, or import the register you already keep.</> }}
-        preview={(r) => ({ title: r.title, sub: <><span className="num">{r.code}</span> · {r.place} <Chip tone={r.tone}>{r.status}</Chip></>, href: r.href, hrefLabel: "Open the full case", body: actor ? <CaseDrawer key={r.id} id={r.id} role={org.role} actor={actor} members={members} onListChanged={load} /> : <p className="nx-sub">Sign in again to act on this case.</p> })} />
+        preview={(r) => ({ title: r.title, sub: <><span className="num">{r.code}</span> · {r.place} <Chip tone={r.tone}>{r.status}</Chip></>, href: r.href, hrefLabel: "Open the full case", body: actor ? <CaseDrawer key={r.id} id={r.id} animalName={r.dogId ? r.animal : null} role={org.role} actor={actor} members={members} onListChanged={load} /> : <p className="nx-sub">Sign in again to act on this case.</p> })} />
     </Shell>
   );
 }
 
 /** The drawer: the case's next step, its follow-ups and what happened last, read fresh with the member's session. */
-function CaseDrawer({ id, role, actor, members, onListChanged }: { id: string; role: string; actor: { id: string; name: string }; members: ReturnType<typeof useMembers>; onListChanged: () => Promise<void> }) {
+function CaseDrawer({ id, animalName, role, actor, members, onListChanged }: { id: string; animalName: string | null; role: string; actor: { id: string; name: string }; members: ReturnType<typeof useMembers>; onListChanged: () => Promise<void> }) {
   const [file, setFile] = useState<CaseFile | null | "loading" | { error: string }>("loading");
   const gen = useRef(0);
   const read = useCallback(async () => { const v = ++gen.current; try { const f = await loadCaseFile(id); if (v === gen.current) setFile(f); } catch (e) { if (v === gen.current) setFile({ error: errText(e) }); } }, [id]);
@@ -117,7 +122,7 @@ function CaseDrawer({ id, role, actor, members, onListChanged }: { id: string; r
       <h3 className="nx-h3">Details</h3>
       <Props items={[
         ["Status", <Chip key="s" tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>],
-        ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/ngo/animals/${c.dog_id}`}>{realName(animal?.name) ?? (animal?.straypaw_id ? shortCode(animal.straypaw_id) : "Animal record")}</Link> : "Not linked"],
+        ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/ngo/animals/${c.dog_id}`}>{animalName ?? animalLine({ id: c.dog_id, name: animal?.name, straypaw_id: animal?.straypaw_id })}</Link> : "Not linked"],
         ["Place", [c.zone, reg.city].filter(Boolean).join(", ") || "Not recorded"],
         ["Held by", c.assignee_name ?? "Nobody yet"],
         ["Recorded", `${day(reg.occurred_at)}${reg.intake_channel ? ` via ${reg.intake_channel.replace(/_/g, " ")}` : ""}`],

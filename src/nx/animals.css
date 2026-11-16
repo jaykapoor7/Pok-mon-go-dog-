@@ -1,0 +1,105 @@
+/* Animals: their photos, the number beside a name, the record's photo area and the register's map.
+   On DESIGN.md's scales (type 12/14/16/20, space 4-64, radius 4/8/12/16); colours from the workspace's own tokens, so
+   the dark theme follows. The map's marks use the fixed product colours: blue for an animal, flame only for one that
+   needs help. */
+
+/* ── Photo and placeholder ───────────────────────────────────────── */
+.nx .am-ph { --am-s: 40px; position: relative; flex: none; width: var(--am-s); height: var(--am-s); border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: var(--hover); color: var(--ink-3); padding: 0; }
+.nx .am-ph-i { width: 44%; height: 44%; opacity: .45; }
+.nx .am-ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .2s var(--ease, ease); }
+.nx .am-ph.is-in img { opacity: 1; }
+.nx .am-ph.is-head { --am-s: 56px; border-radius: 12px; }
+.nx .am-ph.is-card { --am-s: 64px; border-radius: 8px; }
+.nx .am-ph.is-hero { width: 100%; height: auto; aspect-ratio: 4 / 3; border-radius: 12px; }
+.nx .am-ph.is-hero .am-ph-i { width: 48px; height: 48px; }
+.nx button.am-ph { cursor: zoom-in; }
+.nx button.am-ph:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .nx .am-ph img { transition: none; } }
+
+/* The record header carries the photo in place of a letter tile. */
+.nx .nx-rec-av:has(> .am-ph) { width: auto; height: auto; background: none; box-shadow: none; border-radius: 12px; }
+
+/* ── Name and number ─────────────────────────────────────────────── */
+.nx .am-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 4px; margin-left: 8px; border-radius: 4px; background: var(--hover); color: var(--ink-2); font-size: 12px; font-weight: 500; line-height: 1; vertical-align: 2px; letter-spacing: 0; }
+.nx h1 .am-tag { height: 24px; padding: 0 8px; font-size: 14px; vertical-align: 4px; }
+.nx .am-cell { gap: 12px; }
+.nx .am-cell b { line-height: 20px; }
+
+/* ── The record's photos ─────────────────────────────────────────── */
+.nx .am-photos { display: grid; gap: 8px; margin: 0 0 24px; }
+.nx .am-photos figure { margin: 0; display: grid; gap: 8px; }
+.nx .am-photos figcaption { font-size: 12px; line-height: 1.5; color: var(--ink-3); }
+.nx .am-photos figcaption a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.nx .am-strip { display: flex; gap: 8px; flex-wrap: wrap; }
+.nx .am-strip button { border-radius: 8px; padding: 0; }
+.nx .am-strip .am-ph { --am-s: 48px; }
+.nx .am-strip button[aria-pressed="true"] .am-ph { box-shadow: 0 0 0 2px var(--accent); }
+.nx .am-none { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+.nx .am-full { display: block; width: 100%; max-height: 72vh; object-fit: contain; border-radius: 12px; background: var(--hover); }
+@media (max-width: 760px) { .nx .am-photos { max-width: 480px; } }
+
+/* ── List or map ─────────────────────────────────────────────────── */
+.nx .am-switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--hover); }
+.nx .am-switch button { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 500; color: var(--ink-2); }
+.nx .am-switch button[aria-pressed="true"] { background: var(--raise); color: var(--ink); box-shadow: 0 1px 2px rgba(11, 30, 61, .08); }
+@media (max-width: 720px) { .nx .am-switch button { height: 36px; padding: 0 12px; font-size: 14px; } }
+
+/* ── The map ─────────────────────────────────────────────────────── */
+.nx .am-wrap { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.nx .am-wrap.is-solo { grid-template-columns: minmax(0, 1fr); }
+.nx .am-map { position: relative; height: clamp(420px, calc(100dvh - 300px), 760px); border-radius: 12px; overflow: hidden; background: #f1f4f9; }
+.nx .am-canvas { position: absolute; inset: 0; }
+.nx .am-map .maplibregl-ctrl-group { border-radius: 8px; box-shadow: 0 1px 2px rgba(11, 30, 61, .08), 0 4px 12px -4px rgba(11, 30, 61, .16); }
+.nx .am-map .maplibregl-ctrl-group button { width: 32px; height: 32px; }
+.nx .am-map .maplibregl-ctrl-attrib { background: rgba(255, 255, 255, .85); font-size: 12px; }
+/* The public map lifts its corner controls over a floating bottom bar (globals.css); in the app the bar sits below the page. */
+.nx .am-map .maplibregl-ctrl-bottom-right { bottom: 0 !important; }
+.nx .am-say { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--ink-2); font-size: 14px; z-index: 1; }
+.nx .am-say > div { max-width: 360px; display: grid; gap: 8px; justify-items: center; }
+.nx .am-say b { color: var(--ink); font-size: 16px; font-weight: 600; }
+.nx .am-say.is-wait { background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .5) 50%, transparent 70%) 0 0 / 200% 100%, #f1f4f9; animation: am-shine 1.4s linear infinite; }
+@keyframes am-shine { to { background-position: -200% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { .nx .am-say.is-wait { animation: none; } }
+.nx .am-legend { position: absolute; left: 16px; bottom: 16px; z-index: 1; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 4px 8px; border-radius: 8px; background: rgba(255, 255, 255, .92); color: #4a5568; font-size: 12px; box-shadow: 0 1px 2px rgba(11, 30, 61, .08); }
+.nx .am-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.nx .am-legend i { width: 12px; height: 12px; border-radius: 50%; background: #2457ce; box-shadow: 0 0 0 2px #fff; flex: none; }
+.nx .am-legend i.is-help { background: #f05b40; }
+.nx .am-legend i.is-many { width: 16px; height: 16px; background: #2457ce; opacity: .85; }
+.nx .am-note { margin-top: 8px; font-size: 12px; color: var(--ink-3); }
+
+/* The animal a tap chose: a card on the map (a sheet along the bottom on a phone). */
+.nx .am-peek { position: absolute; left: 16px; top: 16px; z-index: 2; width: 320px; max-width: calc(100% - 32px); display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: var(--raise); box-shadow: var(--shadow); }
+.nx .am-peek-h { display: flex; gap: 12px; align-items: flex-start; }
+.nx .am-peek-h > div { min-width: 0; flex: 1; }
+.nx .am-peek-h b { display: block; font-size: 16px; font-weight: 600; color: var(--ink); line-height: 24px; overflow-wrap: anywhere; }
+.nx .am-peek-h small { display: block; font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.nx .am-peek-x { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--ink-3); flex: none; }
+.nx .am-peek-x:hover { background: var(--hover); color: var(--ink); }
+.nx .am-peek-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.nx .am-peek-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .nx .am-peek { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-width: none; }
+  .nx .am-peek-x { width: 44px; height: 44px; margin: -8px -8px 0 0; }
+  .nx .am-peek-acts .nx-btn { min-height: 44px; flex: 1; justify-content: center; }
+  .nx .am-legend { left: 8px; bottom: auto; top: 8px; gap: 8px; }
+}
+
+/* Animals in view, beside the map on a wide screen: the map's keyboard and screen-reader path. */
+.nx .am-side { display: grid; gap: 8px; min-width: 0; }
+.nx .am-side h2 { font-size: 14px; font-weight: 600; color: var(--ink); display: flex; gap: 8px; align-items: baseline; }
+.nx .am-side h2 small { font-size: 12px; font-weight: 400; color: var(--ink-3); }
+.nx .am-side ul { display: grid; max-height: clamp(360px, calc(100dvh - 340px), 720px); overflow-y: auto; }
+.nx .am-side li + li { border-top: 1px solid var(--line); }
+.nx .am-side li button { width: 100%; display: flex; align-items: center; padding: 8px; border-radius: 8px; text-align: left; }
+.nx .am-side li button:hover { background: var(--hover); }
+.nx .am-side li button[aria-pressed="true"] { background: var(--sel, var(--accent-soft)); }
+.nx .am-side .nx-cell-main small { font-size: 12px; }
+.nx .am-side p { font-size: 12px; color: var(--ink-3); }
+@media (max-width: 1180px) {
+  .nx .am-wrap { grid-template-columns: minmax(0, 1fr); }
+  .nx .am-side { display: none; }
+}
+@media (max-width: 720px) {
+  .nx .am-map { height: max(320px, calc(100dvh - 360px)); border-radius: 8px; }
+}
+.nx .am-busy { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 1; padding: 4px 12px; border-radius: 999px; background: rgba(255, 255, 255, .92); color: var(--ink-2); font-size: 12px; box-shadow: 0 1px 2px rgba(11, 30, 61, .08); }
