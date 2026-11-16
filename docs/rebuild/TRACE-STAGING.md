@@ -91,3 +91,78 @@ Read-only, on 2026-11-15:
 
 No organisation on production has turned an automation on yet, so the hourly tick has nothing to run. The
 notification delivery cron has had nothing to deliver.
+
+## 6. A new NGO, from registration to its first post (scenario 1)
+
+`docs/rebuild/sql/STAGING_trace_scenario1_new_ngo.sql`, run on 2026-11-16 and rolled back. Registration and the
+redeeming of a code at sign-in run as the service role, as `/api/register/org` and `/api/join` do. Every other step runs
+as the named person through row-level security. The two people are throwaway sign-ins created inside the transaction.
+
+```
+1 registration: organisation created, unverified; lead code issued: true
+2 lead signs in: member as admin
+3 lead invites a colleague: code issued: true
+4 colleague signs in: member as member
+5 colleague invites a member: refused (Only a team lead can give someone dashboard access)
+  opens a case: in the new organisation: true
+6 lead creates #general; sees the colleague's case: true
+  colleague posts; the lead reads 1 message
+7 another NGO: sees the case false, the channel false, the message false; posts: refused (new row violates row-level security policy for table "nx_messages")
+```
+
+Not covered: the code emails themselves (no email is sent from a trace), and the browser steps.
+
+## 7. A field vaccination reaching the municipal reviewer (scenario 2)
+
+`docs/rebuild/sql/STAGING_trace_scenario2_vaccination_to_reviewer.sql`, run on 2026-11-16 and rolled back, with the
+sample Bengaluru operator NGO, its field worker, veterinarian and coordinator, and the sample municipal ABC cell's
+reviewer. Two stand-ins, both inside the transaction: the photo's storage object is inserted directly (the app uploads
+it first), and the reviewer creates an illustrative vaccination rate, because the sample contract prices sterilisation
+only.
+
+```
+1 field worker: dog and case recorded (identity provisional); vaccination recorded: true, with its medical record: true
+  the field worker confirming the identity: refused (Coordinator access required for identity review)
+2 evidence added; the field worker signing off as a vet: refused (Only a veterinarian in this organisation can authorise a procedure)
+3 vet signed off; coordinator confirmed the identity (confirmed) and reviewed: vet_authorised, evidence_reviewed
+4 coordinator: package of 1 record submitted (submitted)
+  the operator accepting its own claim: refused (Only an independent reviewer at the receiving office can decide submitted items)
+5 reviewer: in the queue: true; claim decided and review closed (accepted)
+6 coordinator sees: accepted; events: created → submitted → accepted
+```
+
+What the earlier attempts showed, each a rule working as intended:
+- The field intake needs a location fix and a time (the phone always sends them).
+- A photo must be stored under the path named after its own send, so a retried send cannot attach someone else's file.
+- Submission was refused while the record still lacked the contract's required operation and a person's identity
+  decision. A new animal is never treated as distinct, or merged, until a coordinator decides.
+- Once the vet has signed off, the record is locked: the identity decision has to come first.
+
+One finding, not fixed: field mode has two ways to record a vaccination. The lifecycle form
+(`operations_record_event`, kind `vaccination`) records both the operation and the medical record. The quick ARV form
+(`field_confirm_vaccination`) records only the medical record. Under a contract that requires the vaccination
+operation, a dog vaccinated through the quick form shows "Operation: vaccination" as missing, and the coordinator cannot
+submit it until the operation is recorded. Making the quick form also record the operation needs care, because the
+lifecycle form calls the quick form internally and would then record it twice.
+
+## 8. A programme, a partner and an invitation (scenario 6)
+
+`docs/rebuild/sql/STAGING_trace_scenario6_programme.sql`, run on 2026-11-16 and rolled back, as the sample programme lead,
+with a throwaway doctor and a throwaway second person.
+
+```
+1 coordinator: programme created (planning), 2 wards; their own organisation, as lead
+2 coordinator: partner added (hospital, in the programme: true); invitation code issued
+  a laboratory role at a hospital: refused (Laboratory roles belong to laboratories)
+3 outsider adds a partner: refused (Only a programme lead can add partners)
+4 another email uses the code: refused (This code was sent to a different email address)
+5 doctor: joined as clinician; sees their hospital: true
+  the same code again: refused (This code is not valid or has expired)
+6 coordinator: 1 invitation listed for the partner; recorded as accepted by the doctor: true
+```
+
+Found while preparing it: the invitation link the coordinator copies pointed at `/next/start`, which has not existed since
+the app moved to its own addresses, so it opened "not found". It now opens `/start?invite=…`, and `test:routes` fails on
+any app link under `/next/`. Production had sent no invitations, so no broken link went out.
+
+After the three runs, staging holds none of their organisations, programmes, contracts, sign-ins or animals.

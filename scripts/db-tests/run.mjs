@@ -19,6 +19,7 @@ const MIGRATIONS = [
   "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
   "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
+  "20261117120000_rebuild_pep_reminder_validity.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -324,6 +325,72 @@ ok(log.length === 1 && log[0].phone_masked.startsWith("••••") && log[0].
 ok((await as(A, "select id from nx_pep_reminders($1)", [clinic])).length === 0, "nobody outside the clinic sees it");
 ok(await refused(nurse, "select * from health.reminder_outbox") !== null, "the reminder queue itself is not readable through the API");
 ok((await as(P, "select nx_automation_run($1, true) as r", [rem]))[0].r.found === 0, "running it again the same day queues nothing new");
+
+section("PEP reminders: sent only while they still hold, retried, then given up");
+{
+  // The delivery worker runs as the service role: these calls are made without a signed-in user.
+  const svc = async (sql, params = []) => (await db.query(sql, params)).rows;
+  const offered = async () => (await svc("select id from nx_pep_outbox_due(50)")).map((x) => x.id);
+  const state = (id) => one("select status, attempts, last_error, round(extract(epoch from next_attempt_at - now()) / 60)::int as wait from health.reminder_outbox where id = $1", [id]);
+  ok(await refused(nurse, "select * from nx_pep_outbox_due(50)") !== null, "staff cannot read the delivery queue, which holds full numbers");
+  ok(await refused(nurse, "select nx_pep_outbox_mark(gen_random_uuid(), 'sent')") !== null, "staff cannot mark a reminder as sent");
+
+  const r1 = (await one("select id from health.reminder_outbox where facility_id = $1", [clinic])).id;
+  ok((await offered()).includes(r1), "the worker is given the queued reminder");
+  await svc("select nx_pep_outbox_mark($1, 'retry', 'Provider timeout')", [r1]);
+  let s = await state(r1);
+  ok(s.status === "queued" && s.attempts === 1 && s.last_error === "Provider timeout" && s.wait === 2, "a failed send is kept with its reason and waits two minutes");
+  ok(!(await offered()).includes(r1), "it is not offered again before then");
+  await svc("update health.reminder_outbox set next_attempt_at = now() where id = $1", [r1]);
+  ok((await offered()).includes(r1), "it is offered again when the wait is over");
+  await svc("select nx_pep_outbox_mark($1, 'retry', 'Provider timeout')", [r1]);
+  ok((await state(r1)).wait === 4, "each later failure waits twice as long");
+  await svc("update health.reminder_outbox set attempts = 8, next_attempt_at = now() where id = $1", [r1]);
+  await svc("select nx_pep_outbox_mark($1, 'retry', 'Provider timeout')", [r1]);
+  ok((await state(r1)).wait === 60, "the wait never exceeds an hour");
+  await svc("update health.reminder_outbox set next_attempt_at = now() where id = $1", [r1]);
+  await svc("select nx_pep_outbox_mark($1, 'failed', 'Provider timeout')", [r1]);
+  ok((await state(r1)).status === "failed" && !(await offered()).includes(r1), "once the worker gives up, the reminder is never offered again");
+
+  // Reminders that stop holding between the morning queue and the send.
+  const exp = async (code, phone) => (await one(`insert into health.exposures (facility_id, code, exposure_on, presented_on, exposure_kind, reminder_consent, contact_phone) values ($1, $2, ${indiaToday} - 3, ${indiaToday} - 3, 'bite', true, $3) returning id`, [clinic, code, phone])).id;
+  const course = async (ex) => (await one("insert into health.pep_courses (exposure_id, regimen, prescribed_by) values ($1, 'Essen 4-dose IM', $2) returning id", [ex, P])).id;
+  const dose = async (c, no, offset) => (await one(`insert into health.pep_doses (course_id, dose_no, due_on) values ($1, $2, ${indiaToday} + $3::int) returning id`, [c, no, offset])).id;
+  const queue = async (d, phone, saysOffset) => (await one(`insert into health.reminder_outbox (facility_id, dose_id, for_day, phone, body, vars) values ($1, $2, ${indiaToday}, $3, 'Reminder', jsonb_build_array('W12 HC', '1', to_char(${indiaToday} + $4::int, 'DD Mon'))) returning id`, [clinic, d, phone, saysOffset])).id;
+  const ph = "+91 98450 00003";
+  const c3 = await course(await exp("B-3", ph));
+  const ok1 = await queue(await dose(c3, 1, 0), ph, 0);
+  const givenDose = await dose(c3, 2, 0); const given = await queue(givenDose, ph, 0);
+  const late = await queue(await dose(c3, 3, -1), ph, -1);
+  const moved = await queue(await dose(c3, 4, 1), ph, 0);
+  const oldNumber = await queue(await dose(c3, 5, 0), "+91 98450 09999", 0);
+  await db.query(`update health.pep_doses set status = 'given', given_on = ${indiaToday} where id = $1`, [givenDose]);
+  const ex4 = await exp("B-4", "+91 98450 00004");
+  const withdrawn = await queue(await dose(await course(ex4), 1, 0), "+91 98450 00004", 0);
+  await db.query("update health.exposures set reminder_consent = false, contact_phone = null where id = $1", [ex4]);
+  const c5 = await course(await exp("B-5", "+91 98450 00005"));
+  const stopped = await queue(await dose(c5, 1, 0), "+91 98450 00005", 0);
+  await db.query("update health.pep_courses set status = 'discontinued' where id = $1", [c5]);
+
+  const now = await offered();
+  ok(now.includes(ok1), "a reminder that still holds is sent");
+  const why = async (id) => { const r = await state(id); return r.status === "cancelled" ? r.last_error : `still ${r.status}`; };
+  ok((await why(given)) === "Not sent: the dose is no longer due.", "not sent once the dose is recorded as given");
+  ok((await why(late)) === "Not sent: the dose date has passed.", "not sent after the dose date");
+  ok((await why(moved)) === "Not sent: the clinician moved the dose date.", "not sent with a date the clinician has since moved");
+  ok((await why(oldNumber)) === "Not sent: the patient's number changed.", "not sent to a number the patient has replaced");
+  ok((await why(withdrawn)) === "Not sent: the patient withdrew consent to reminders.", "not sent after the patient withdraws consent");
+  ok((await why(stopped)) === "Not sent: the course is no longer active.", "not sent after the clinician stops the course");
+  ok(![given, late, moved, oldNumber, withdrawn, stopped].some((id) => now.includes(id)), "none of them reaches the worker");
+  const seen = await as(nurse, "select status, last_error, phone_masked from nx_pep_reminders($1)", [clinic]);
+  ok(seen.filter((r) => r.status === "cancelled").length === 6 && seen.every((r) => r.phone_masked.startsWith("••••")), "staff see each one that was not sent, and why, with the number still masked");
+
+  await svc("select nx_pep_outbox_mark($1, 'not_connected', 'No approved SMS reminder template is configured.')", [ok1]);
+  ok((await state(ok1)).attempts === 0 && !(await offered()).includes(ok1), "a reminder with no connected account is recorded, not counted as an attempt, and not retried");
+  await svc("update health.reminder_outbox set status = 'queued' where id = $1", [ok1]);
+  await svc("select nx_pep_outbox_mark($1, 'sent', null, 'msg-1')", [ok1]);
+  ok((await state(ok1)).status === "sent" && !(await offered()).includes(ok1), "a sent reminder is never sent twice");
+}
 
 section("Automation rules count the right things");
 {

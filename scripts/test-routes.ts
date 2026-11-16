@@ -2,7 +2,7 @@
    opens a page that exists, and none of the retired classic routes exists any more. Reads the route files in src/app;
    needs no server. */
 import assert from "node:assert/strict";
-import { readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { CLINIC_VET, GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET } from "../src/nx/nav";
 import { SCREENS } from "../src/lib/kaju/screens";
@@ -35,6 +35,18 @@ const RETIRED = ["/today", "/assistant", "/workspace/x", "/workspace/x/record/y"
   "/ngo/stories", "/ngo/quality", "/ngo/surveys", "/ngo/projects", "/ngo/feeding", "/ngo/fundraising", "/ngo/volunteers", "/ngo/readiness", "/ngo/rescues", "/ngo/sterilisation", "/ngo/offline",
   "/surveys", "/surveys/x", "/partner", "/next", "/next/ngo/today"];
 check("no classic route is still a page", () => { for (const h of RETIRED) assert.ok(!exists(h), `retired route still exists: ${h}`); });
+
+/* No link the app builds may point under /next/, the prefix the app used before it moved to its own addresses: those
+   addresses are not pages. (A programme's partner invitation link still did, and opened "not found".) */
+check("no link in the app points under the retired /next/ prefix", () => {
+  const files: string[] = [];
+  const all = (d: string) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) all(p); else if (/\.(tsx|ts)$/.test(f)) files.push(p); } };
+  all(join(__dirname, "../src"));
+  const bad = files.flatMap((f) => readFileSync(f, "utf8").split("\n").map((l, i) => [f, i + 1, l] as const))
+    .filter(([, , l]) => /[`"'}]\/next\/(start|ngo|gov|health|kaju|channels|home|settings|requests|research|vet|lab)\b/.test(l))
+    .map(([f, n]) => `${relative(join(__dirname, ".."), f)}:${n}`);
+  assert.deepEqual(bad, []);
+});
 
 /* Links stored before the rebuild (notifications, Kaju findings, bookmarks) open the page doing that work now. */
 const OLD: [string, string][] = [
