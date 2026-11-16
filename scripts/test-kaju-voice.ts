@@ -99,6 +99,12 @@ async function productionChecks() {
       Object.assign(process.env, v);
       const rules = (await nextConfig.headers!()).filter((rule: { source: string }) => rule.source === "/kaju/voice");
       assert.equal(rules.length === 1 && JSON.stringify(rules[0]).includes("microphone=(self)"), expected);
+      // Kaju Voice lives in the app dock, so StrayPaw's own pages follow the same guard; the embed widget never does.
+      const all = await nextConfig.headers!();
+      const site = all.find((rule: { source: string }) => rule.source.startsWith("/:path((?!embed"));
+      const embed = all.find((rule: { source: string }) => rule.source === "/embed/:path*");
+      assert.equal(JSON.stringify(site).includes("microphone=(self)"), expected);
+      assert.ok(JSON.stringify(embed).includes("microphone=()"));
     }
   } finally {
     for (const key of Object.keys(process.env)) if (!(key in previous)) delete process.env[key];
@@ -309,7 +315,7 @@ async function privacyChecks() {
     }
   }
   await scan(root);
-  for (const file of ["VoiceExperience.tsx", "WorkspaceVoice.tsx", "transport.ts", "VoiceEntry.tsx"]) assert.ok(!(await readFile(join("src/kaju/voice", file), "utf8")).includes("process.env.SARVAM_VOICE_API_KEY"));
+  for (const file of ["VoiceExperience.tsx", "WorkspaceVoice.tsx", "PublicVoice.tsx", "KajuVoice.tsx", "availability.ts", "transport.ts"]) assert.ok(!(await readFile(join("src/kaju/voice", file), "utf8")).includes("process.env.SARVAM_VOICE_API_KEY"));
 }
 
 async function main() {

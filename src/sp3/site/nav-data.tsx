@@ -64,6 +64,7 @@ export const MEGA: Record<"platform" | "solutions" | "resources", MegaCol[]> = {
       { href: "/data-governance", label: "Data governance" },
     ] },
     { title: "Open to everyone", links: [
+      ...(process.env.NEXT_PUBLIC_KAJU_VOICE_PUBLIC === "on" ? [{ href: "/talk", label: "Try Kaju Voice", hint: "Talk to Kaju in English, Hindi or Kannada" }] : []),
       { href: "/community", label: "National register", hint: "The public map of India's street animals" },
       { href: "/research", label: "Research", hint: "Open data, methods and studies" },
       { href: "/research/workbench", label: "Research workbench", hint: "Monthly series, filters and downloads" },

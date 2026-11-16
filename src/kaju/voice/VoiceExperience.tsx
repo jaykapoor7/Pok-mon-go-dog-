@@ -9,6 +9,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { VOICE_LANGUAGES, VOICE_TEST_HEADERS, type VoiceLanguage, type VoiceTestConfig } from "@/lib/kaju-voice/shared";
 import { createVoiceTransport, type VoiceEvidence, type VoiceTransport } from "./transport";
 import "@/kaju/kaju.css";
+import "./voice.css";
 
 /* One conversation with Kaju, the same in every place it is offered: the
    public page, the staff workspace and the preview. Kaju himself carries the
@@ -44,9 +45,11 @@ type Props = {
   diagnostics?: boolean;
   /** A new identity ends any conversation (and its transcript) from the last one. */
   identity?: string | null;
+  /** Inside the Kaju dock: smaller Kaju, tighter spacing. */
+  compact?: boolean;
 };
 
-export function VoiceExperience({ ready, authorize, canStart, gate, unavailable, privacy, diagnostics = false, identity = null }: Props) {
+export function VoiceExperience({ ready, authorize, canStart, gate, unavailable, privacy, diagnostics = false, identity = null, compact = false }: Props) {
   const calm = !!useReducedMotion();
   const { locale } = useLocale();
   const [language, setLanguage] = useState<VoiceLanguage>(FROM_LOCALE[locale] ?? "English");
@@ -208,10 +211,10 @@ export function VoiceExperience({ ready, authorize, canStart, gate, unavailable,
   const inCall = busy;
 
   return (
-    <section className="kvx" aria-label="Conversation with Kaju">
+    <section className={`kvx${compact ? " is-compact" : ""}`} aria-label="Conversation with Kaju">
       <div ref={stage} className={`kvx-stage${calm ? " is-calm" : ""}`} data-phase={phase}>
         <span className="kvx-halo" aria-hidden />
-        <Kaju state={POSE[phase]} size={208} still={calm} className="kvx-kaju" label="Kaju" />
+        <Kaju state={POSE[phase]} size={compact ? 136 : 208} still={calm} className="kvx-kaju" label="Kaju" />
       </div>
 
       <p className="kvx-status" role="status">
@@ -261,7 +264,7 @@ export function VoiceExperience({ ready, authorize, canStart, gate, unavailable,
       </details> : null}
 
       {diagnostics && (inCall || reference) ? <p className="kvx-fine">
-        Sarvam interaction: {reference || "not yet"} · Audio sent: {evidence.sent ? "yes" : "not yet"} · Audio received: {evidence.received ? "yes" : "not yet"} · Interrupted: {evidence.interrupted ? "yes" : "not yet"}
+        Voice interaction: {reference || "not yet"} · Audio sent: {evidence.sent ? "yes" : "not yet"} · Audio received: {evidence.received ? "yes" : "not yet"} · Interrupted: {evidence.interrupted ? "yes" : "not yet"}
       </p> : null}
       <p className="kvx-fine">{privacy}</p>
     </section>

@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Maximize2, Sparkles, X } from "lucide-react";
+import { Keyboard, Maximize2, Mic, Sparkles, X } from "lucide-react";
 import { useLive } from "../live";
 import { toast } from "../kit";
 import { Composer } from "./Composer";
 import { PlanCard, Thread } from "./Thread";
 import { useKajuPrefs, useKajuVocab } from "./data";
 import { useKaju, type Planned } from "./state";
-import { VoiceEntry } from "@/kaju/voice/VoiceEntry";
+import { KajuVoice } from "@/kaju/voice/KajuVoice";
+import { VOICE_OFFERED } from "@/kaju/voice/availability";
 import "./kaju.css";
 
 /* Compact Kaju: summoned from any page (the Kaju button or ⌘J), aware of the page it was opened on, and sharing its
@@ -28,6 +29,8 @@ export function KajuDock({ crumb }: { crumb: string }) {
   const { prefs } = useKajuPrefs();
   const [planned, setPlanned] = useState<Planned | null>(null);
   const [busy, setBusy] = useState(false);
+  // Talk or type: the same Kaju, in the same panel. Closing the panel ends any conversation.
+  const [voice, setVoice] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const before = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -61,16 +64,20 @@ export function KajuDock({ crumb }: { crumb: string }) {
             <span className="nx-ka-i"><Sparkles size={13} /></span><b>Kaju</b>
             {crumb ? <span className="nx-dockk-ctx" title="Kaju knows which page you opened it on">On {crumb}</span> : null}
             <span style={{ marginLeft: "auto" }} />
-            <VoiceEntry compact />
+            {VOICE_OFFERED ? <button type="button" className={`nx-ib${voice ? " is-on" : ""}`} aria-pressed={voice} aria-label={voice ? "Back to typing" : "Talk to Kaju"} title={voice ? "Back to typing" : "Talk to Kaju"} onClick={() => setVoice((v) => !v)}>
+              {voice ? <Keyboard size={15} /> : <Mic size={15} />}
+            </button> : null}
             <button type="button" className="nx-ib" aria-label="Open full Kaju" title="Open full Kaju" onClick={() => { k.setOpen(false); router.push("/kaju"); }}><Maximize2 size={15} /></button>
             <button type="button" className="nx-ib" aria-label="Close Kaju" onClick={() => k.setOpen(false)}><X size={16} /></button>
           </div>
-          <div className="nx-dockk-b">
-            {!k.turns.length && !planned ? <p className="nx-t3" style={{ padding: "4px 2px 8px" }}>{org ? `Ask about ${org.name}'s records, or hand over work. Kaju shows a plan before anything starts.` : <>Sign in to ask about your organisation. <Link href="/try">Try the live demo</Link>.</>}</p> : null}
-            <Thread compact />
-            {planned ? <PlanCard planned={planned} busy={busy} onStart={start} onDiscard={() => setPlanned(null)} /> : null}
-          </div>
-          <Composer compact predictive={prefs.predictive} vocab={vocab} busy={busy || k.busy} disabled={k.expired} onAsk={(t) => void k.ask(t)} onPlan={(t, i) => void plan(t, i)} canPlan={!!org} />
+          {voice ? <div className="nx-dockk-b is-voice"><KajuVoice compact /></div> : <>
+            <div className="nx-dockk-b">
+              {!k.turns.length && !planned ? <p className="nx-t3" style={{ padding: "4px 2px 8px" }}>{org ? `Ask about ${org.name}'s records, or hand over work. Kaju shows a plan before anything starts.` : <>Sign in to ask about your organisation. <Link href="/try">Try the live demo</Link>.</>}</p> : null}
+              <Thread compact />
+              {planned ? <PlanCard planned={planned} busy={busy} onStart={start} onDiscard={() => setPlanned(null)} /> : null}
+            </div>
+            <Composer compact predictive={prefs.predictive} vocab={vocab} busy={busy || k.busy} disabled={k.expired} onAsk={(t) => void k.ask(t)} onPlan={(t, i) => void plan(t, i)} canPlan={!!org} />
+          </>}
         </motion.div>
       ) : null}
     </AnimatePresence>
