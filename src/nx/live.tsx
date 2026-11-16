@@ -45,6 +45,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     const orgFor = (w: Workspace["workspace"]) => (org?.workspace === w ? org : list.find((o) => o.workspace === w) ?? null);
     return { ready: authReady && orgs !== null, signedIn: !!user, userId: user?.id ?? null, userName: user?.name ?? null, orgs: list, org, pick, missing, orgFor };
   }, [authReady, orgs, user, picked, pick, missing]);
+  // Once known, the page may show what it has (nx.css keeps a member's sample page hidden until then).
+  useEffect(() => { if (value.ready) document.documentElement.setAttribute("data-ready", ""); }, [value.ready]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

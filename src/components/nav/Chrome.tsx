@@ -68,8 +68,6 @@ const OWN_CHROME = new Set<string>([
   "/partner-programmes",
   "/mission",
   "/licences",
-  // Meet Kaju, a page of the cinematic site (src/cine); in the legacy site it redirects to /ai.
-  "/kaju",
 ]);
 
 /**
@@ -93,8 +91,9 @@ const SELF_SHELLED = new Set<string>([
 /** StrayPaw 3.0 public and entry pages render their own nav and footer. */
 const S3_PUBLIC = /^\/(talk|pricing|abc-operations|security|research|for-governments|for-ngos|for-funders|for-hospitals|platform|ai|kaju-agents|blog|product-updates|roadmap|events|teams|whatsapp|customers|demo|docs|solutions|sign-in|app|partners|faq|donate|safety|bite-help|privacy|terms|cookies)(\/|$)/;
 
-/** Classic app routes still in the (app) route group, which mounts their frame (src/sp/shell/Shell). */
-const SP2 = /^\/(ngo|assistant|today|workspace|programme|city\/(review|contracts|connections)|fundraisers\/new)(\/|$)/;
+/** The app's own routes, in the (work) route group, which mounts its frame (src/nx/Shell) with its own skip link and
+    main landmark. Public pages at nearby addresses (/research/access, /research/catalogue, /ai) are not in this list. */
+const SP2 = /^\/(ngo|gov|health|kaju|channels|home|start|settings|requests|research\/(datasets|explore|maps|reports|studies))(\/|$)/;
 
 /** Public record pages rebuilt on the public site kit (src/sp4/pub), outside the (app) group: they render
     the site header and footer themselves (the operator console at /trust its own bar), never the app frame. */
@@ -103,7 +102,7 @@ const PUBLIC_RECORD = /^\/(community|animal|fundraisers|learn|search|offline|cit
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const segments = useSelectedLayoutSegments();
-  /* App pages get their frame from the (app) layout. */
+  /* App pages get their frame from the (work) layout. */
   if (SP2.test(pathname)) return <>{children}</>;
   // Marketing and profile routes have their own main landmark.
   // ISR can render the root through an internal pathname. The route tree

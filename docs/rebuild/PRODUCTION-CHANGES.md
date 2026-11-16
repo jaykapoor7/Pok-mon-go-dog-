@@ -93,3 +93,27 @@ Checked: `test:db` (139 checks). Five of the new checks fail without the migrati
 no automation is turned on, so no organisation has had a wrong count.
 
 Rollback: run the `nx_automation_run` definition from `20261116140000_rebuild_automations_v2.sql` again.
+
+---
+
+# Fourth set: automations follow up
+
+**Applied on staging, checked there in a rolled-back run, then applied on production, on 2026-11-15**, through the Supabase
+tool.
+
+| Order | File | What it changes | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 14 | `20261116180000_rebuild_automation_followup.sql` | Adds seven nullable columns to `nx_automation_runs` (`open_since`, `acknowledged_by`, `acknowledged_at`, `outcome`, `escalated_at`, `resolved_at`, `resolved_note`) and one partial index. Adds `nx_automation_ack`. Replaces `nx_automation_run` and `nx_automations_tick`. No existing row changes. | Applied, checked | Applied, checked |
+
+Staging check (rolled back), as the sample NGO coordinator: a rule found one record and told 3 people; with the run
+backdated past its 2 hours, the schedule escalated it once and told the 1 lead; the coordinator's acknowledgement was
+kept; the next run found nothing and closed it ("Nothing left when it ran again").
+
+Production check (read-only): all seven columns exist; members may run `nx_automation_ack` and anonymous visitors may
+not; the hourly tick escalates. No automation has run on production yet.
+
+`test:db`: 164 checks, including the follow-up lifecycle, escalation once and never when turned off, and a malformed
+setting not stopping the schedule for everyone.
+
+Rollback: run `nx_automation_run` from `20261116170000` and `nx_automations_tick` from `20261116140000`. The new
+columns and `nx_automation_ack` can stay, unused.

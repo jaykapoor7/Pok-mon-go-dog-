@@ -60,8 +60,7 @@ The run found two faults, now fixed:
 - **Hidden buttons.** On the demo build, the guided-demo pill covered the intake sheet's Next and Save on phones.
 
 The app never deletes a field intake, because its operational event is an audit record. So the test rows are cleared
-with `docs/rebuild/sql/STAGING_cleanup_offline_checks.sql`. That clean-up waits on the owner's confirmation in the
-Supabase tool.
+with `docs/rebuild/sql/STAGING_cleanup_offline_checks.sql`. It was run on 2026-11-15, and no test animal or event is left.
 
 ## 3. Signed in, against staging, from a local build
 

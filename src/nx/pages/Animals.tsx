@@ -30,8 +30,7 @@ const idOf = (a: { code: string | null; straypaw_id: string | null; id: string }
 
 export function Animals() {
   const live = useLive();
-  if (!live.ready) return <Shell crumb={["NGO", "Animals"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
-  if (!live.org) return <SampleAnimals />;
+  if (!live.ready || !live.org) return <SampleAnimals />; // in the server HTML, so it paints first; members never see it
   const org = live.orgFor("ngo");
   if (!org) return <Shell crumb={["NGO", "Animals"]}><div className="nx-page"><h1 className="nx-h1">Animals</h1><p className="nx-sub">{live.org.name} is not an NGO workspace, so it has no animal register of its own.</p></div></Shell>;
   return <LiveAnimals org={org} />;
