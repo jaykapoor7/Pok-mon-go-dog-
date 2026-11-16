@@ -75,6 +75,10 @@
 .nx-side-f b { color: var(--ink-2); font-weight: 500; }
 
 /* Main column */
+/* A browser holding a session (marked before paint by the work layout) does not see the sample page that visitors see at
+   once; it waits for its own workspace. */
+html[data-member]:not([data-ready]) #nx-main > * { visibility: hidden; }
+html[data-member]:not([data-ready]) #nx-main::before { content: "Opening…"; display: block; position: absolute; padding: 24px 32px; color: var(--ink-2); font-size: 14px; }
 /* A labelled checkbox row inside a sheet (24px target). */
 .nx .nx-check-row { display: flex; align-items: center; gap: 10px; min-height: 32px; margin: 4px 0 8px; font-size: 14px; cursor: pointer; }
 .nx .nx-check-row input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
@@ -152,6 +156,7 @@ button.nx-tr, a.nx-tr { width: 100%; }
 .nx-cell-main small { display: block; color: var(--ink-3); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nx-t2 { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nx-t3 { color: var(--ink-3); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+p.nx-t3 { white-space: normal; } /* a sentence wraps; a cell value (span) stays on one line */
 .nx-thumb { width: 28px; height: 28px; border-radius: 7px; flex: none; display: grid; place-items: center; font-size: 10px; font-weight: 700; color: var(--ink-2); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); }
 .nx-check { width: 24px; height: 24px; border-radius: 7px; box-shadow: inset 0 0 0 1.5px var(--line-2); display: grid; place-items: center; flex: none; transition: background .14s, box-shadow .14s, transform .09s; color: transparent; }
 .nx-check:hover { box-shadow: inset 0 0 0 1.5px var(--accent); }
@@ -640,7 +645,7 @@ button.nx-item { width: calc(100% - 0px); text-align: left; }
 .nx-dlg-h { display: flex; align-items: center; gap: 8px; padding: 14px 14px 10px 18px; }
 .nx-dlg-h h2 { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
 .nx-dlg-h .nx-ib { margin-left: auto; }
-.nx-dlg-c { padding: 0 18px 16px; overflow: auto; display: grid; gap: 12px; }
+.nx-dlg-c { padding: 0 18px 16px; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; } /* one column no child can widen past the sheet */
 .nx-dlg-f { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--side); }
 .nx-confirm { color: var(--ink-2); display: grid; gap: 8px; }
 .nx-confirm ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }

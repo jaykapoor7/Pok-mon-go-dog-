@@ -145,7 +145,7 @@ export function HealthToday() {
   const due = useRead<ClinicDue>(() => call("oh_clinic_due", { p_facility: org!.org_id }), `nx-due:${org?.org_id}`, clinic);
   const notices = useRead<Notice[]>(() => call("oh_clinic_notices", { p_facility: org!.org_id }), `nx-not:${org?.org_id}`, clinic);
   const waiting = useRead<RegisterRow[]>(() => call("oh_clinic_register", { p_facility: org!.org_id, p_filter: "needs_assessment", p_limit: 50 }), `nx-wait:${org?.org_id}`, clinic);
-  if (!live.ready) return <Shell ws="health" crumb={["Healthcare", "Today"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
+  // Until the session is known (live.org is null) the sample page below is shown: it paints first, and members never see it.
   if (live.org && isLab(org)) return <Samples title="Work queue" />;
   const sample = !live.org;
   if (!sample && !org) return <NotHealth crumb="Today" />;

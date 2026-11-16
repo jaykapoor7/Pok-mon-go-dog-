@@ -261,6 +261,6 @@ function LiveChannel({ name }: { name: string }) {
 
 export function Channel({ name }: { name: string }) {
   const live = useLive();
-  if (!live.ready) return <Shell crumb={["Channels", name]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
-  return live.org ? <Suspense fallback={null}><LiveChannel name={name} /></Suspense> : name === "abc-ward-12" ? <SampleChannel name={name} /> : <SampleChat name={name} />;
+  // Until the session is known the sample channel is shown: it paints first, and members never see it.
+  return live.ready && live.org ? <Suspense fallback={null}><LiveChannel name={name} /></Suspense> : name === "abc-ward-12" ? <SampleChannel name={name} /> : <SampleChat name={name} />;
 }

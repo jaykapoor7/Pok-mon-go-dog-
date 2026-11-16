@@ -115,6 +115,6 @@ const SAMPLE: Row[] = REVIEWS.map((r) => ({ ...r, tone: TONE[r.state] ?? "plain"
 
 export function Verification() {
   const live = useLive();
-  if (!live.ready) return <Shell ws="gov" crumb={["Government", "Verification"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
-  return live.org ? <LiveVerification /> : <VerificationView rows={SAMPLE} sample loading={false} office="East Zone office · Government & Programmes" />;
+  // Until the session is known the sample page is shown: it paints first, and members never see it.
+  return live.ready && live.org ? <LiveVerification /> : <VerificationView rows={SAMPLE} sample loading={false} office="East Zone office · Government & Programmes" />;
 }

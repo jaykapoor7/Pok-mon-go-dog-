@@ -42,7 +42,8 @@ export function StorageNotice() {
   /* Nor over the welcome or the sign-in, whose one button lives at the bottom of a phone screen. */
   const reporting = pathname.startsWith("/report") || pathname.startsWith("/community/report") || pathname === "/app" || pathname === "/sign-in";
   /* StrayPaw 2.0 workspaces use the compact form, placed by globals.css above the phone thumb bar. */
-  const sp2 = /^\/(community|ngo|city|learn|animal|search|trust)(\/|$)/.test(pathname);
+  // The app (its own routes, as in nav/Chrome) and the public record pages take the short in-app wording.
+  const sp2 = /^\/(community|ngo|gov|health|kaju|channels|home|start|settings|requests|research\/(datasets|explore|maps|reports|studies)|city|learn|animal|search|trust)(\/|$)/.test(pathname);
   const inApp = sp2 || pathname === "/app" || pathname === "/map" || pathname === "/insights" || pathname === "/stories" || pathname === "/following" || pathname === "/join" || pathname === "/partner-apply" || pathname.startsWith("/partner");
 
   useEffect(() => {
