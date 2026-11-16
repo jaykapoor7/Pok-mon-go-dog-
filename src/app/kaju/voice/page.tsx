@@ -19,7 +19,7 @@ export default function KajuVoicePage() {
   return <main className="kv" id="main">
     <div className="kv-top"><a href="/kaju">Back to Kaju</a><p className="kv-label">{LABEL[mode]}</p></div>
     <h1>Talk to Kaju</h1>
-    <p className="kv-lede">Speak in English, Hindi or Kannada. Kaju follows when you switch. Your voice is sent to Sarvam, StrayPaw&rsquo;s voice partner. Do not share personal or patient details.</p>
+    <p className="kv-lede">Speak in English, Hindi or Kannada. Kaju follows when you switch. Do not share personal or patient details.</p>
     <WorkspaceVoice mode={mode} ready={ready} />
     {/* Setup detail is for the preview and next dev only, never the live site. */}
     {mode !== "production" && "missing" in settings ? <p className="kv-note">Configuration needed: {settings.missing.join(", ")}. No connection has been made.</p> : null}

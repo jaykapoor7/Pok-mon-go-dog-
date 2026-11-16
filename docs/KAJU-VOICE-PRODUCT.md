@@ -63,22 +63,34 @@ caller ──audio──► Sarvam (speech, conversation, voice: Shubh 1.15, EN/
   numbers. It is the base for per-scope limits and later billing; no billing
   is built.
 
-## 3. What is built (16 Nov 2026)
+## 3. Capability matrix (16 Nov 2026)
 
-| Piece | State |
-| --- | --- |
-| Sarvam v3 agent (Shubh 1.15, EN/HI/KN, switching, interruptions, professional prompt) | Committed in Samvaad; unchanged |
-| Browser SDK 0.0.42, console logging stripped; unused Node audio packages not installed | Live |
-| Signing proxy: server key only, fixed agent and version, signed WSS URL to the browser | Live |
-| Production access: www.straypaw.org, StrayPaw sign-in, account-ID allowlist in server and database | Live (owner account only); needs `SARVAM_VOICE_API_KEY` |
-| Session ledger with RLS, narrow RPCs and atomic limits (5 a minute, 20 a day) | Live in production |
-| Voice entry in the Kaju dock and `/kaju`, shown only to allowed accounts | Live |
-| Shared conversation experience: Kaju's poses for real states, levels from real audio, caption plus secondary transcript, recovery, reduced motion, 390px-first, Hindi/Kannada UI | Built on this branch |
-| Public `/talk`: consent, Turnstile, per-device and site-wide limits, single-use public session token, public-only agent, service-role-only ledger; `SARVAM_VOICE_PUBLIC` off/owner/on | Built on this branch; off until approved |
-| Phone helpline | Not started; needs the approvals in section 6 |
-| Tools (facilities, first aid, bite report, routing) | None; blocked as below |
-| Staff voice commands through Kaju's engine | Planned (section 2) |
-| Organisation/programme configuration | `SARVAM_VOICE_ORG_AGENTS` env only; table planned (section 5) |
+"Working" means deployed and checked from outside. Even working voice features
+await a real conversation: production has recorded no successful session,
+because Sarvam rejects the saved key (`provider_401`, a general API key where
+the Voice Agents workspace key is required).
+
+| Capability (spec section) | Status | Notes |
+| --- | --- | --- |
+| Transport: official SDK, server-only key, signed WSS, fixed agent/version (1, 9) | Working | Signing path matches the SDK's requests; secrets, signed URLs and transcripts are kept out of logs |
+| EN/HI/KN, switching, interruptions, professional register (1) | Working (agent v3) | Committed in Samvaad; client picks the start language, agent switches |
+| Start, End, Mute, language choice, transcripts for both roles (8) | Working | Caption plus full transcript; cleanup on End, leaving, sign-out or account change |
+| States: connecting, listening, preparing a reply, speaking, muted, ended, failed (8) | Working | "Reconnecting" is not shown: the SDK does not reconnect; a dropped call offers Talk again |
+| Mic denied, no device, connection loss, expired session, 2-minute limit (8) | Working | Silence is handled by the agent only |
+| Inside the existing Kaju: dock on every app page, `/kaju` on desktop and phone (8) | Working | Talk/Type switch in place; no separate page needed |
+| Public: `/talk`, "Try Kaju Voice" in the header menu, consent, bot check, limits (2, 9) | Working | Same v3 agent, whose prompt still calls itself a connection test |
+| Account scope from verified identity; public and staff paths separated (9) | Working | Server allowlist plus `kaju_voice_access`; public tokens are single-use |
+| Session ledger: scope, times, outcome, no audio or words (9) | Working | Client-reported flags only; not billable proof |
+| Typing and talking without restarting (7) | Partial | Switch keeps the page; the voice transcript and the typed thread are separate |
+| Organisation/programme voice configuration, usage view (9, 6) | Partial | Env-level agent map only; no table, admin screen or usage view |
+| Spoken commands through Kaju's engine and tools for signed-in teams (6) | Missing | Plan: speech in and out around `/api/ai`, so permissions and confirmation cards stay as they are |
+| Voice starting or resuming a Kaju mission/workroom (7) | Missing | Missions exist (`nx_mission_start`); not yet reachable by voice |
+| Visual results: facility list or map, report draft, approval controls (8) | Missing | Comes with the tools below |
+| Tool endpoints for the agent with scoped tokens (2, 3, 9) | Missing | Architecture in section 2; no tool is useful until the approvals below |
+| Bite urgency checks and first aid (2) | Needs clinical approval | Only the prototype `BiteChat` text exists, awaiting clinical review; no reviewed, versioned source |
+| Verified facility search (3) | Needs programme data | Production has QA facilities only and no service confirmations |
+| Bite report drafting, confirmed submission, routing (4, 5) | Needs approval and data | `oh_submit_bite_notice` exists, but needs a real programme, a receiving facility and its anonymous access locked down first |
+| Telephony, billing (excluded) | Not in scope | Plan kept in section 6 |
 
 ## 4. Tools, against the records that exist
 

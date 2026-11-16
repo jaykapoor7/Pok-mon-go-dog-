@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Sparkles, Trash2 } from "lucide-react";
+import { ArrowUpRight, Keyboard, Mic, Sparkles, Trash2 } from "lucide-react";
 import { Shell } from "../Shell";
-import { VoiceEntry } from "@/kaju/voice/VoiceEntry";
+import { KajuVoice } from "@/kaju/voice/KajuVoice";
+import { VOICE_OFFERED } from "@/kaju/voice/availability";
 import { Chip, Sample } from "../ui";
 import { toast } from "../kit";
 import { CONNECTED, MISSIONS } from "../fixtures";
@@ -37,6 +38,7 @@ export function Kaju() {
   /* Words handed over from the command bar (?q=) are placed in the composer, not sent. */
   useEffect(() => { try { const q = new URLSearchParams(window.location.search).get("q"); if (q) window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); } catch {} }, []);
   const [busy, setBusy] = useState(false);
+  const [voice, setVoice] = useState(false);
   const waiting = (missions.rows ?? []).filter((m) => m.state === "waiting_person" || m.state === "blocked");
   const recent = (missions.rows ?? []).slice(0, 5);
 
@@ -60,15 +62,17 @@ export function Kaju() {
       <div className="nx-kj">
         <div className="nx-head">
           <div><p className="nx-eyebrow">{org ? `Works inside ${org.name}, with your permissions` : "Answers from public records until you sign in"}{!live.signedIn && live.ready ? <Sample /> : null}</p><h1 className="nx-h1">What should we get done?</h1><p className="nx-sub">Ask a question, or hand over an outcome. Kaju shows its plan first; anything that changes several records or leaves StrayPaw waits for you.</p></div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}><VoiceEntry />{waiting.length ? <Link href="/kaju/approvals" className="nx-btn is-quiet is-keep"><Chip tone="warn">{waiting.length}</Chip>waiting for you</Link> : null}</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>{VOICE_OFFERED ? <button type="button" className="nx-btn is-quiet is-keep" aria-pressed={voice} onClick={() => setVoice((v) => !v)}>{voice ? <><Keyboard size={15} aria-hidden />Type instead</> : <><Mic size={15} aria-hidden />Talk to Kaju</>}</button> : null}{waiting.length ? <Link href="/kaju/approvals" className="nx-btn is-quiet is-keep"><Chip tone="warn">{waiting.length}</Chip>waiting for you</Link> : null}</div>
         </div>
         <div className="nx-kj-cols">
           <div>
             <motion.div layoutId={calm ? undefined : "kaju-surface"} className="nx-kj-surface">
-              <Thread />
-              {planned ? <PlanCard planned={planned} busy={busy} onStart={start} onDiscard={() => setPlanned(null)} /> : null}
-              <Composer vocab={vocab} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus onAsk={(t) => void k.ask(t)} onPlan={(t, i) => void plan(t, i)} canPlan={!!org} />
-              {k.turns.length ? <p className="nx-foot"><button type="button" className="nx-thread" onClick={k.clear}><Trash2 size={12} /> Clear this conversation</button> · It stays in this browser tab only.</p> : null}
+              {voice ? <div className="nx-kj-voice"><KajuVoice /></div> : <>
+                <Thread />
+                {planned ? <PlanCard planned={planned} busy={busy} onStart={start} onDiscard={() => setPlanned(null)} /> : null}
+                <Composer vocab={vocab} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus onAsk={(t) => void k.ask(t)} onPlan={(t, i) => void plan(t, i)} canPlan={!!org} />
+                {k.turns.length ? <p className="nx-foot"><button type="button" className="nx-thread" onClick={k.clear}><Trash2 size={12} /> Clear this conversation</button> · It stays in this browser tab only.</p> : null}
+              </>}
             </motion.div>
             {!k.turns.length ? <section className="nx-sec" style={{ marginTop: 22 }} aria-labelledby="kj-q"><div className="nx-sec-h"><h2 id="kj-q">From where you are</h2></div>
               <div className="nx-quick">{quick.map((q) => <button key={q} type="button" onClick={() => window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } }))}><ArrowUpRight size={13} style={{ flex: "none" }} /><span>{q}</span></button>)}</div></section> : null}

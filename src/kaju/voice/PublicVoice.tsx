@@ -10,7 +10,7 @@ import { VoiceExperience } from "./VoiceExperience";
 /** Kaju Voice for anyone, without a StrayPaw account. "owner": the same
  * public path, but only an allowlisted signed-in account can start, so the
  * owner verifies it on the live site before it opens. */
-export function PublicVoice({ ready, mode }: { ready: boolean; mode: "owner" | "on" }) {
+export function PublicVoice({ ready, mode, compact = false }: { ready: boolean; mode: "owner" | "on"; compact?: boolean }) {
   const { user, openSignIn, ready: authReady } = useAuth();
   const [consent, setConsent] = useState(false);
   const [human, setHuman] = useState<string | null>(null);
@@ -35,14 +35,14 @@ export function PublicVoice({ ready, mode }: { ready: boolean; mode: "owner" | "
   const gate = <>
     <label className="kvx-consent">
       <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-      <span><span>I understand Kaju is an automated assistant, and my voice is sent to Sarvam, StrayPaw&rsquo;s voice partner, for this conversation.</span> <a href="/privacy">Privacy</a></span>
+      <span><span>I understand Kaju is an automated assistant and my voice is processed to hold this conversation.</span> <a href="/privacy">Privacy</a></span>
     </label>
     {HAS_TURNSTILE ? <div className="kvx-check"><Turnstile key={round} onVerify={setHuman} /></div> : null}
     {mode === "owner" && authReady && !user ? <p className="kvx-fine"><span>Kaju Voice is not open to everyone yet.</span> <button type="button" className="kvx-link" onClick={openSignIn}>Sign in to try it</button></p> : null}
   </>;
 
-  return <VoiceExperience ready={ready && HAS_TURNSTILE} authorize={authorize} identity={user?.id ?? "public"}
+  return <VoiceExperience ready={ready && HAS_TURNSTILE} authorize={authorize} identity={user?.id ?? "public"} compact={compact}
     canStart={consent && !!human && (mode === "on" || !!user)} gate={gate}
     unavailable={<p>Kaju Voice is not available right now. Please try again later.</p>}
-    privacy="A conversation stops after 2 minutes. The words stay on this page only. StrayPaw records when each conversation starts and ends, never its audio or words. Sarvam handles the audio under its own data retention settings." />;
+    privacy="A conversation stops after 2 minutes. The words stay on this screen only. StrayPaw records when each conversation starts and ends, never its audio or words." />;
 }

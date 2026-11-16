@@ -9,7 +9,7 @@ import { VoiceExperience } from "./VoiceExperience";
 
 /** Kaju Voice for a signed-in person. production: the StrayPaw account only.
  * preview: the staging tester sign-in. local: next dev with a local access code. */
-export function WorkspaceVoice({ ready, mode }: { ready: boolean; mode: VoiceMode }) {
+export function WorkspaceVoice({ ready, mode, compact = false }: { ready: boolean; mode: VoiceMode; compact?: boolean }) {
   const { user, openSignIn, ready: authReady } = useAuth();
   const [localCode, setLocalCode] = useState("");
   const authorize = async () => {
@@ -27,14 +27,14 @@ export function WorkspaceVoice({ ready, mode }: { ready: boolean; mode: VoiceMod
       <label htmlFor="kv-access">Local voice access code</label>
       <input id="kv-access" type="password" autoComplete="off" spellCheck={false} value={localCode}
         onChange={(e) => setLocalCode(e.target.value)} aria-describedby="kv-access-help" />
-      <p className="kv-note" id="kv-access-help">Use SARVAM_VOICE_LOCAL_TOKEN from your local configuration. Keep the Sarvam API key on the server.</p>
+      <p className="kv-note" id="kv-access-help">Use SARVAM_VOICE_LOCAL_TOKEN from your local configuration. Keep the voice API key on the server.</p>
       <button type="button" onClick={() => { if (user) setLocalCode(""); else openSignIn(); }}>{user ? "Use your signed-in StrayPaw account instead" : "Sign in to StrayPaw instead"}</button>
     </div>;
-  return <VoiceExperience ready={ready} authorize={authorize} identity={user?.id ?? null}
+  return <VoiceExperience ready={ready} authorize={authorize} identity={user?.id ?? null} compact={compact}
     canStart={mode === "local" ? !!(localCode.trim() || user) : !!user} gate={gate}
     unavailable={<p>Kaju Voice is not available right now.</p>}
     diagnostics={mode !== "production"}
     privacy={mode === "production"
-      ? "A conversation stops after 2 minutes. The words stay on this page only. StrayPaw records when each conversation starts and ends, never its audio or words. Sarvam handles the audio under its own data retention settings."
-      : "Stops after 2 minutes. Transcript stays on this page; session metadata is recorded in the staging workspace. Sarvam workspace retention settings still apply."} />;
+      ? "A conversation stops after 2 minutes. The words stay on this screen only. StrayPaw records when each conversation starts and ends, never its audio or words."
+      : "Stops after 2 minutes. Transcript stays on this page; session metadata is recorded in the staging workspace. The voice provider's retention settings still apply."} />;
 }
