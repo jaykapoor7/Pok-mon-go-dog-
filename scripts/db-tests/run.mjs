@@ -19,7 +19,7 @@ const MIGRATIONS = [
   "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
   "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
-  "20261117110000_rebuild_pep_reminder_validity.sql",
+  "20261117120000_rebuild_pep_reminder_validity.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });

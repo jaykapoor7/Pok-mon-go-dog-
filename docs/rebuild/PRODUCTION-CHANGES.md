@@ -127,7 +127,7 @@ Supabase tool.
 
 | Order | File | What it changes | Staging | Production |
 | --- | --- | --- | --- | --- |
-| 15 | `20261117110000_rebuild_pep_reminder_validity.sql` | Replaces one function, `nx_pep_outbox_due` (delivery worker only; service role). Before returning what is due it cancels, with the reason, every queued reminder that no longer holds: the dose given or no longer due, its date passed or moved, the course stopped, consent withdrawn, or the number changed. No table, column, constraint or grant changes. | Applied, checked | Applied, checked |
+| 15 | `20261117120000_rebuild_pep_reminder_validity.sql` | Replaces one function, `nx_pep_outbox_due` (delivery worker only; service role). Before returning what is due it cancels, with the reason, every queued reminder that no longer holds: the dose given or no longer due, its date passed or moved, the course stopped, consent withdrawn, or the number changed. No table, column, constraint or grant changes. | Applied, checked | Applied, checked |
 
 Why: the morning automation queues a reminder and the delivery worker sends it later (once a day, at 04:45 UTC, and a
 failed send waits for the next run). The worker sent whatever was queued, so a reminder could reach a patient after the
