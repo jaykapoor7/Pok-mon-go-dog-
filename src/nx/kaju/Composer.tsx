@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, CornerDownLeft, Loader2, Sparkles, X } from "lucide-react";
 import type { Intent } from "@/lib/kaju/registry";
@@ -12,8 +12,17 @@ import { readSentence, toIntent, type Kind, type Span, type Vocab } from "./inte
 
 const KIND_WORD: Record<Kind, string> = { Place: "Place", Person: "Person", Team: "Team", Channel: "Channel", When: "When", Date: "Date", Email: "Email" };
 
-export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, placeholder, predictive = true, initial = "", canPlan = true, disabled = false }: {
-  vocab: Vocab; busy?: boolean; onAsk: (text: string) => void; onPlan: (text: string, intent: Intent) => void; compact?: boolean; disabled?: boolean; autoFocus?: boolean; placeholder?: string; predictive?: boolean; initial?: string; canPlan?: boolean;
+/* A request for work in the person's own words (not a question, and not one of the jobs Kaju reads by fixed rules).
+   With a model connected it goes to the planner; without one, Kaju says so plainly and points to its jobs. */
+const QUESTION = /\?\s*$|^\s*(what|which|who|whom|whose|when|where|why|how|is|are|was|were|can|could|do|does|did|should|will|would|show|list|tell me|explain)\b/i;
+const WORK = /^\s*(please\s+)?(prepare|plan|create|make|send|post|notify|remind|assign|schedule|draft|set up|organi[sz]e|arrange|follow up|coordinate|get|book|ask|email|write to|tell)\b/i;
+export const looksLikeWork = (t: string) => WORK.test(t) && !QUESTION.test(t);
+const useIsoLayout = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, placeholder, predictive = true, initial = "", canPlan = true, disabled = false, modelPlanning = false }: {
+  vocab: Vocab; busy?: boolean; onAsk: (text: string) => void; onPlan: (text: string, intent: Intent | null) => void; compact?: boolean; disabled?: boolean; autoFocus?: boolean; placeholder?: string; predictive?: boolean; initial?: string; canPlan?: boolean;
+  /** Free-form planning is live on this deployment (a model is connected). */
+  modelPlanning?: boolean;
 }) {
   const [text, setText] = useState(initial);
   const [choices, setChoices] = useState<Partial<Record<Kind, string>>>({});
@@ -22,6 +31,20 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
   const box = useRef<HTMLTextAreaElement>(null);
   const calm = useReducedMotion();
   useEffect(() => { if (initial) setText(initial); }, [initial]);
+  /* Words typed before the page finished loading (a slow phone) are already in the box: keep them, so Enter sends what
+     the person sees rather than nothing. */
+  const early = useRef(false);
+  const sent = useRef(false);
+  /* From here on the composer's own keys are live; the page stops holding Enter. */
+  useIsoLayout(() => { (window as { __kjLive?: boolean }).__kjLive = true; }, []);
+  useEffect(() => {
+    /* Enter pressed before then was held by the page (EARLY_ENTER, app/(work)/kaju/page.tsx): send it now, once. */
+    const w = window as { __kjEnter?: boolean };
+    const pressed = !!w.__kjEnter; w.__kjEnter = false;
+    const v = box.current?.value ?? ""; if (!v.trim() || sent.current) return;
+    setText((cur) => cur || v.slice(0, 2000));
+    if (pressed) early.current = true;
+  }, []);
   useEffect(() => { const on = (e: Event) => { const q = (e as CustomEvent<{ q?: string }>).detail?.q; if (q) { setText(q.slice(0, 2000)); box.current?.focus(); } }; window.addEventListener("sp:kaju-ask", on); return () => window.removeEventListener("sp:kaju-ask", on); }, []);
   const reading = useMemo(() => {
     if (!predictive) return { spans: [] as Span[], action: text.trim() ? "ask" as const : null, preview: "", missing: [] as string[] };
@@ -30,28 +53,39 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
     return { ...r, spans, missing: spans.some((s) => s.ambiguous) ? r.missing : r.missing.filter((m) => !/^Which /.test(m)) };
   }, [text, vocab, choices, ignored, predictive]);
   const intent = useMemo(() => (canPlan ? toIntent(text, reading) : null), [text, reading, canPlan]);
-  const isTask = !!reading.action && reading.action !== "ask" && canPlan;
+  const work = canPlan && reading.action === "ask" && looksLikeWork(text);
+  const free = work && modelPlanning;
+  const isTask = (!!reading.action && reading.action !== "ask" && canPlan) || free;
   const submit = () => {
     const t = text.trim(); if (!t || busy) return;
-    if (isTask) { if (!intent) { box.current?.focus(); return; } onPlan(t, intent); }
+    if (free) onPlan(t, null);
+    else if (isTask) { if (!intent) { box.current?.focus(); return; } onPlan(t, intent); }
     else onAsk(t);
+    sent.current = true; early.current = false; (window as { __kjEnter?: boolean }).__kjEnter = false;
     setText(""); setChoices({}); setIgnored(new Set()); setMenu(null);
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (early.current && text.trim()) { early.current = false; submit(); } });
+  /* Send what the box shows. If the box holds words the composer has not read yet (typed while the page was loading),
+     read them first and send on the next render, so they are understood like any other words. */
+  const go = (seen: string | undefined) => { const dom = seen ?? text; if (dom.trim() && dom !== text) { setText(dom.slice(0, 2000)); early.current = true; } else submit(); };
   /* Caret inside an understood word opens its menu, so a tap on the underline corrects it. */
   const caret = () => { const at = box.current?.selectionStart ?? -1; const s = reading.spans.find((x) => at >= x.start && at <= x.end); setMenu(s ? s.kind : null); };
   const marked = useMemo(() => { const parts: React.ReactNode[] = []; let at = 0; reading.spans.forEach((s, i) => { if (s.start < at) return; parts.push(text.slice(at, s.start), <u key={i} className={s.ambiguous ? "is-amb" : undefined}>{text.slice(s.start, s.end)}</u>); at = s.end; }); parts.push(text.slice(at)); return parts; }, [text, reading.spans]);
   const open = menu ? reading.spans.find((s) => s.kind === menu) ?? null : null;
-  const status = !text.trim() ? (predictive ? "Kaju reads as you type. Nothing is sent until you press Run." : "Type a question or a request.")
+  const status = !text.trim() ? (predictive ? "Kaju underlines what it recognises as you type. Nothing is sent until you press the button." : "Type a question or a request.")
+    : free ? "Kaju will plan this with a model. You see every step, and who does it, before anything starts."
+    : work ? "On this deployment Kaju plans from its fixed jobs: pick one below, or press Ask for an answer from your records."
     : reading.missing.length ? reading.missing[0] : reading.preview;
 
   return (
-    <form className={`nx-ask nx-composer ${compact ? "is-compact" : ""}`} onSubmit={(e) => { e.preventDefault(); submit(); }}>
+    <form className={`nx-ask nx-composer ${compact ? "is-compact" : ""}`} onSubmit={(e) => { e.preventDefault(); go(box.current?.value); }}>
       <div className="nx-ask-in">
         <div aria-hidden>{marked}{"\n"}</div>
         <textarea ref={box} rows={compact ? 1 : 2} value={text} autoFocus={autoFocus} maxLength={2000} disabled={disabled}
           onChange={(e) => setText(e.target.value)} onClick={caret} onKeyUp={(e) => { if (e.key.startsWith("Arrow") || e.key === "Home" || e.key === "End") caret(); }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); }
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); go(e.currentTarget.value); }
             else if (e.key === "Escape" && menu) { e.stopPropagation(); setMenu(null); }
             else if (e.key === "ArrowDown" && e.altKey) { e.preventDefault(); caret(); }
           }}
@@ -68,11 +102,11 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
       </AnimatePresence>
       <div className="nx-ask-f">
         <Sparkles size={13} />
-        <span id="kj-status" className={reading.missing.length ? "is-missing" : undefined} aria-live="polite">{status}</span>
+        <span id="kj-status" className={!text.trim() ? "is-idle" : reading.missing.length && !work ? "is-missing" : work && !free ? "is-note" : undefined} aria-live="polite">{status}</span>
         {reading.spans.length && !compact ? <span className="nx-kread" aria-label="What Kaju understood">
           {reading.spans.map((s) => <button key={s.kind} type="button" className={`nx-span ${s.ambiguous ? "is-amb" : ""}`} onClick={() => setMenu(menu === s.kind ? null : s.kind)} aria-expanded={menu === s.kind} aria-label={`${KIND_WORD[s.kind]}: ${s.options[0]?.label ?? s.text}. Change`}><small>{KIND_WORD[s.kind]}</small>{s.ambiguous ? `${s.text}?` : s.options[0]?.label ?? s.text}<ChevronDown size={11} /></button>)}
         </span> : null}
-        <button type="submit" className="nx-btn is-sm" disabled={!text.trim() || !!busy || (isTask && !intent)}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}{isTask ? "Plan" : "Ask"}<CornerDownLeft size={12} /></button>
+        <button type="submit" className="nx-btn is-sm" disabled={!text.trim() || !!busy || (isTask && !free && !intent)}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}{isTask ? "Plan" : "Ask"}<CornerDownLeft size={12} /></button>
       </div>
     </form>
   );
