@@ -475,7 +475,7 @@ function Invites({ sample, orgs }: { sample: boolean; orgs: { id: string; name: 
   const live = useLive();
   const list = useOh<InviteList>(sample, { members: [{ name: "Programme lead", role: "lead", since: new Date(Date.now() - 90 * 864e5).toISOString() }], invites: [{ code: "SAMPLE01", role: "analyst", email: null, name: "District analyst", expires_at: new Date(Date.now() + 9 * 864e5).toISOString() }] }, () => call("oh_org_invites", { p_org: org }), `nx-inv:${org}:${code}`, !!org);
   const create = async () => { const r = await run("invite", () => call<string>("oh_create_invite", { p_org: org, p_role: role, p_email: email.trim() || null, p_display_name: name.trim() || null }), { quiet: true }); setAsking(false); if (r.ok && r.result && typeof r.result === "object" && "data" in r.result) { const c = (r.result as { data: string | null }).data; if (c) { setCode(c); setName(""); setEmail(""); toast({ text: "Invite code created. It works once and expires in 14 days.", tone: "ok" }); } } };
-  const link = code ? `${typeof window === "undefined" ? "" : window.location.origin}/next/start?invite=${code}` : "";
+  const link = code ? `${typeof window === "undefined" ? "" : window.location.origin}/start?invite=${code}` : "";
   const copy = async () => { try { await navigator.clipboard.writeText(link); toast({ text: "Link copied.", tone: "ok" }); } catch { toast({ text: "Could not copy. Select the link and copy it.", tone: "bad" }); } };
   return (
     <Block title="People" note="Invite someone with a code. They open the link, sign in and join with the role you chose.">
