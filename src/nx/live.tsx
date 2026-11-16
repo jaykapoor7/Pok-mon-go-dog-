@@ -82,8 +82,23 @@ function useRows<T>(key: string | null, read: () => PromiseLike<{ data: unknown;
 }
 
 export function useChannels(orgId: string | null) {
-  return useRows<Channel>(orgId, () => getSupabase()!.from("nx_channels").select("id,name,topic,kind").eq("org_id", orgId!).order("name"));
+  const r = useRows<Channel>(orgId, () => getSupabase()!.from("nx_channels").select("id,name,topic,kind").eq("org_id", orgId!).order("name"));
+  const { reload, setRows } = r;
+  /* A channel made anywhere on the page (the sidebar, a channel page, the phone list) shows in every list at once, before the re-read. */
+  useEffect(() => {
+    if (!orgId) return;
+    const on = (e: Event) => {
+      const c = (e as CustomEvent<(Channel & { org_id: string }) | null>).detail;
+      if (c && c.org_id !== orgId) return;
+      if (c) setRows((rows) => (rows && !rows.some((x) => x.id === c.id) ? [...rows, { id: c.id, name: c.name, topic: c.topic, kind: c.kind }].sort((a, b) => a.name.localeCompare(b.name)) : rows));
+      reload();
+    };
+    window.addEventListener("nx:channels", on); return () => window.removeEventListener("nx:channels", on);
+  }, [orgId, reload, setRows]);
+  return r;
 }
+/** Tell every channel list on the page that a channel was made or opened. */
+export const announceChannel = (c: Channel & { org_id: string }) => window.dispatchEvent(new CustomEvent("nx:channels", { detail: c }));
 /* ── Direct messages and unread ─────────────────────────────────── */
 export type Person = { user_id: string; name: string; role: string };
 export type Dm = { channel_id: string; other_id: string; other_name: string; last_at: string | null };
@@ -92,15 +107,28 @@ export function useOrgPeople(orgId: string | null) {
   return useRows<Person>(orgId, () => getSupabase()!.rpc("nx_org_people", { p_org: orgId! }));
 }
 export function useDms(orgId: string | null) {
-  return useRows<Dm>(orgId, () => getSupabase()!.rpc("nx_my_dms", { p_org: orgId! }));
+  const r = useRows<Dm>(orgId, () => getSupabase()!.rpc("nx_my_dms", { p_org: orgId! }));
+  const { reload, setRows } = r;
+  useEffect(() => {
+    if (!orgId) return;
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<(Dm & { org_id: string }) | null>).detail;
+      if (d && d.org_id !== orgId) return;
+      if (d) setRows((rows) => (rows && !rows.some((x) => x.channel_id === d.channel_id) ? [...rows, { channel_id: d.channel_id, other_id: d.other_id, other_name: d.other_name, last_at: d.last_at }] : rows));
+      reload();
+    };
+    window.addEventListener("nx:dms", on); return () => window.removeEventListener("nx:dms", on);
+  }, [orgId, reload, setRows]);
+  return r;
 }
+export const announceDm = (d: Dm & { org_id: string }) => window.dispatchEvent(new CustomEvent("nx:dms", { detail: d }));
 /** Opens (or finds) the direct message with one person and returns its channel name for the address bar. */
-export async function openDm(orgId: string, userId: string): Promise<{ name: string | null; error: string | null }> {
+export async function openDm(orgId: string, userId: string): Promise<{ name: string | null; id: string | null; error: string | null }> {
   const db = getSupabase()!;
   const { data, error } = await db.rpc("nx_open_dm", { p_org: orgId, p_user: userId });
-  if (error) return { name: null, error: error.message };
-  const ch = await db.from("nx_channels").select("name").eq("id", data as string).single();
-  return { name: (ch.data?.name as string | undefined) ?? null, error: ch.error?.message ?? null };
+  if (error) return { name: null, id: null, error: error.message };
+  const ch = await db.from("nx_channels").select("id,name").eq("id", data as string).single();
+  return { name: (ch.data?.name as string | undefined) ?? null, id: (ch.data?.id as string | undefined) ?? null, error: ch.error?.message ?? null };
 }
 /** New messages by others since the person last opened each channel. Re-read when `tick` changes. */
 export function useUnread(orgId: string | null, tick: unknown) {

@@ -1,35 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, AtSign, Check as Tick, FileText, Hash, Loader2, Megaphone, MoreHorizontal, Paperclip, Pencil, Send, SmilePlus, Sparkles, Trash2, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, AtSign, Check as Tick, FileText, Hash, Loader2, Lock, Megaphone, MoreHorizontal, Paperclip, Pencil, Send, SmilePlus, Sparkles, Trash2, Users, X } from "lucide-react";
 import { Shell } from "../Shell";
 import { Check, Chip, Sample, initials } from "../ui";
-import { Confirm, toast } from "../kit";
+import { Confirm, Skeleton, errText, toast } from "../kit";
 import { CH_PEOPLE, CH_RECORDS, CH_WORK, KAJU_TASKS, MESSAGES, SAMPLE_CHATS } from "../fixtures";
-import { addTasks, askKaju, createChannel, markRead, setTaskDone, useChannels, useDms, useLive, useOrgPeople, useTasks } from "../live";
+import { addTasks, announceChannel, askKaju, createChannel, markRead, setTaskDone, useChannels, useDms, useLive, useOrgPeople, useTasks, type Channel as ChannelRow, type Workspace } from "../live";
 import { recordHref, EMOJI, FILE_TYPES, deleteMessage, editMessage, fileLink, mentionsIn, sendMessage, uploadFile, useChannelMessages, useProgrammeChannels, useReactions, type FileRef, type Msg } from "../collab";
+import { GENERAL_PURPOSE, faceOf, isUnnamed, nameMissing, newConversation, personName, roleWord } from "../conversations";
 import "../css/channel.css";
+import "../css/conversations.css";
 
 /* A channel: people talking, with the work, records and files the talk is about one tab away. Mentions notify only
    people who can read the channel; files live in the channel's private folder; edits and deletions are marked and kept
    for audit. Kaju answers when asked and creates nothing until a person accepts. */
 
 type Tab = "Messages" | "Work" | "Records" | "Files";
-type VMsg = { id: string; who: string; when: string; text: string; kaju?: boolean; record?: string | null; recordHref?: string | null; tasks?: string[] | null; parent?: string | null; mine?: boolean; edited?: boolean; deleted?: boolean; files?: FileRef[] };
+type VMsg = { id: string; who: string; when: string; day?: string | null; text: string; kaju?: boolean; record?: string | null; recordHref?: string | null; tasks?: string[] | null; parent?: string | null; mine?: boolean; edited?: boolean; deleted?: boolean; files?: FileRef[] };
 type VTask = { id: string; title: string; note: string; done: boolean };
 type Person = { user_id: string; name: string };
 type View = {
-  name: string; sample: boolean; sub: string; msgs: VMsg[] | null; work: VTask[]; people: string[]; mentionable: Person[];
+  name: string; sample: boolean; sub?: string | null; msgs: VMsg[] | null; work: VTask[]; people: string[]; mentionable: Person[];
   accepted: (m: VMsg) => boolean; onSend: (text: string, parent?: string, files?: FileRef[]) => Promise<boolean> | boolean | void; onAccept: (m: VMsg) => void; onToggle?: (t: VTask) => void; note?: string | null;
   dm?: string | null; kind?: string; canPost?: boolean; programme?: string | null; focus?: string | null;
+  /** Who can read the conversation, said in one line under its name. */
+  readers?: { icon: "users" | "lock" | "megaphone"; text: string } | null;
   reactions?: { counts: (id: string) => { emoji: string; n: number; mine: boolean }[]; toggle: (id: string, e: string) => void };
   onEdit?: (m: VMsg, body: string) => Promise<boolean>; onDelete?: (m: VMsg) => Promise<boolean>; onUpload?: (f: File) => Promise<FileRef | null>;
 };
 
 const clock = (iso?: string) => (iso ? new Date(iso) : new Date()).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }).toLowerCase();
+/** The day a message was posted, as a heading between days: Today, Yesterday, then the date. */
+const dayOf = (iso: string) => {
+  const d = new Date(iso), now = new Date(), y = new Date(now); y.setDate(now.getDate() - 1);
+  const same = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+  return same(d, now) ? "Today" : same(d, y) ? "Yesterday" : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", ...(d.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }) });
+};
 
 function FileChip({ f, sample }: { f: FileRef; sample?: boolean }) {
   const [busy, setBusy] = useState(false);
@@ -45,6 +55,8 @@ function Composer({ v, parent, placeholder, autoFocus }: { v: View; parent?: str
   const [at, setAt] = useState<string | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   const pick = useRef<HTMLInputElement>(null);
+  /* The box grows with what is written, up to about six lines, then scrolls. */
+  useLayoutEffect(() => { const t = box.current; if (!t) return; t.style.height = "auto"; t.style.height = `${Math.min(t.scrollHeight, 168)}px`; }, [text]);
   const matches = at !== null ? v.mentionable.filter((p) => p.name.toLowerCase().includes(at.toLowerCase())).slice(0, 6) : [];
   const onChange = (val: string) => { setText(val); const m = /(^|\s)@([\p{L}.\- ]{0,30})$/u.exec(val.slice(0, box.current?.selectionStart ?? val.length)); setAt(m && v.mentionable.length ? m[2] : null); };
   const choose = (p: Person) => { const cur = box.current?.selectionStart ?? text.length; const before = text.slice(0, cur).replace(/@([\p{L}.\- ]{0,30})$/u, `@${p.name} `); setText(before + text.slice(cur)); setAt(null); box.current?.focus(); };
@@ -59,7 +71,7 @@ function Composer({ v, parent, placeholder, autoFocus }: { v: View; parent?: str
       {files.length || uploading ? <div className="nx-compose-files">{files.map((f) => <span key={f.path} className="nx-file is-pending"><Paperclip size={12} />{f.name}<button type="button" aria-label={`Remove ${f.name}`} onClick={() => setFiles((fs) => fs.filter((x) => x.path !== f.path))}><X size={11} /></button></span>)}{uploading ? <span className="nx-file is-pending"><Loader2 size={12} className="nx-spin" />Uploading…</span> : null}</div> : null}
       <div className="nx-compose-f">
         {v.dm || v.sample ? null : <button type="button" className="nx-ib" aria-label="Mention Kaju" title="Ask Kaju" onClick={() => setText((t) => (t ? `${t} @Kaju ` : "@Kaju turn these updates into tasks"))}><Sparkles size={15} /></button>}
-        {v.mentionable.length ? <button type="button" className="nx-ib" aria-label="Mention someone" onClick={() => { setText((t) => `${t}${t && !t.endsWith(" ") ? " " : ""}@`); setAt(""); box.current?.focus(); }}><AtSign size={15} /></button> : null}
+        {v.mentionable.length ? <button type="button" className="nx-ib" aria-label="Mention someone" title="Mention someone" onClick={() => { setText((t) => `${t}${t && !t.endsWith(" ") ? " " : ""}@`); setAt(""); box.current?.focus(); }}><AtSign size={15} /></button> : null}
         {v.onUpload ? <><button type="button" className="nx-ib" aria-label="Attach a file" title="Attach a file (10 MB at most)" onClick={() => pick.current?.click()}><Paperclip size={15} /></button><input ref={pick} type="file" hidden multiple accept={FILE_TYPES} onChange={(e) => { void add(e.target.files); e.target.value = ""; }} /></> : null}
         <small className="nx-hide-s">Enter to send · Shift Enter for a new line</small>
         <button type="submit" className="nx-btn is-sm" style={{ marginLeft: "auto" }} disabled={(!text.trim() && !files.length) || !!uploading}><Send size={12} />{parent ? "Reply" : "Send"}</button>
@@ -124,25 +136,43 @@ function ChannelView(v: View) {
     );
   };
   const task = (w: VTask) => <li key={w.id} className={`nx-tr ${w.done ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: "22px minmax(0,1fr)" }}>{v.onToggle ? <Check done={w.done} onClick={() => v.onToggle!(w)} label={w.done ? `Reopen: ${w.title}` : `Mark done: ${w.title}`} /> : <span className="nx-check" aria-hidden />}<span className="nx-cell-main"><span><b>{w.title}</b><small>{w.note}</small></span></span></li>;
-  const kindIcon = v.kind === "announcement" ? <Megaphone size={16} style={{ color: "var(--ink-3)" }} /> : v.kind === "programme" ? <Users size={16} style={{ color: "var(--ink-3)" }} /> : <Hash size={16} style={{ color: "var(--ink-3)" }} />;
+  const kindIcon = v.kind === "announcement" ? <Megaphone size={16} /> : v.kind === "programme" ? <Users size={16} /> : <Hash size={16} />;
+  const mark = <span className={`cx-mark ${v.dm ? "is-dm" : ""}`} aria-hidden>{v.dm ? faceOf(v.dm) : kindIcon}</span>;
+  const readersIcon = v.readers?.icon === "lock" ? <Lock size={12} aria-hidden /> : v.readers?.icon === "megaphone" ? <Megaphone size={12} aria-hidden /> : <Users size={12} aria-hidden />;
+  /* A heading between days; sample conversations are all today. */
+  const listed: ReactNode[] = top.flatMap((m, i) => (m.day && m.day !== top[i - 1]?.day ? [<p key={`day-${m.id}`} className="nx-day"><span>{m.day}</span></p>, bubble(m)] : [bubble(m)]));
 
   return (
     <Shell crumb={v.dm ? ["Direct messages", v.dm] : ["Channels", v.name]} flush>
       <div className="nx-ch">
         <div className="nx-ch-main">
-          <div className="nx-ch-h"><div><h1>{v.dm ? <span className="nx-msg-f" style={{ width: 22, height: 22, fontSize: 9 }}>{initials(v.dm)}</span> : kindIcon}{v.dm ?? v.name}{v.sample ? <Sample /> : null}{v.programme ? <Chip tone="accent">Programme · {v.programme}</Chip> : null}</h1><p>{v.sub}</p></div></div>
+          <div className="nx-ch-h cx-head">
+            <button type="button" className="nx-ib cx-back" aria-label="All conversations" title="All conversations" onClick={() => newConversation({ kind: "list" })}><ArrowLeft size={18} /></button>
+            {mark}
+            <div className="cx-title">
+              <h1>{v.dm ?? v.name}{v.sample ? <Sample /> : null}{v.programme ? <Chip tone="accent">Programme · {v.programme}</Chip> : null}</h1>
+              {v.sub ? <p className="cx-purpose">{v.sub}</p> : null}
+              {v.readers ? <p className="cx-readers">{readersIcon}{v.readers.text}</p> : null}
+            </div>
+          </div>
           <div className="nx-tabs" role="tablist" aria-label="Channel sections">
             {tabs.map(([t, n]) => <button key={t} type="button" role="tab" aria-selected={tab === t} className={`nx-tab ${tab === t ? "is-on" : ""}`} onClick={() => setTab(t)}>{t}{n ? <span className="nx-count">{n}</span> : null}{tab === t ? <motion.span layoutId="nx-ch-tab" className="nx-tab-line" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 620, damping: 46 }} /> : null}</button>)}
           </div>
 
           {tab === "Messages" ? <>
             <div className="nx-msgs" role="log" aria-label="Messages" aria-live="polite">
-              {v.msgs === null ? <p className="nx-sub" style={{ padding: "24px 0" }}>Reading messages…</p> : !top.length ? <p className="nx-sub" style={{ padding: "24px 0" }}><b style={{ color: "var(--ink)" }}>No messages yet.</b> {v.dm ? `Only you and ${v.dm} can read this conversation.` : v.programme ? "Partners invited to this programme channel read it. Nothing private to your organisation is shared unless you post it." : "Say what is happening; type @ to mention someone or @Kaju to hand it work."}</p> : <p className="nx-day"><span>{v.sample ? "Today" : "Latest"}</span></p>}
-              <AnimatePresence initial={false}>{top.map((m) => bubble(m))}</AnimatePresence>
+              {v.msgs === null ? <Skeleton rows={4} label="Reading messages" /> : !top.length ? (
+                <div className="cx-start">
+                  {mark}
+                  <h2>{v.dm ? (nameMissing(v.dm) ? "No messages yet" : `No messages with ${v.dm} yet`) : `No messages in #${v.name} yet`}</h2>
+                  <p>{v.dm ? "Write the first message below. Files you attach are shared with the two of you only." : v.programme ? "Partners invited to this programme channel read it. Nothing private to your organisation is shared unless you post it." : v.canPost === false ? "Announcements from the organisation's leads appear here." : "Write the first message below. Type @ and a name to bring someone in, or @Kaju to turn updates into tasks."}</p>
+                </div>
+              ) : v.sample ? <p className="nx-day"><span>Today</span></p> : null}
+              <AnimatePresence initial={false}>{listed}</AnimatePresence>
               {v.note ? <p className="nx-foot" role="status">{v.note}</p> : null}
               <div ref={end} />
             </div>
-            <Composer v={v} placeholder={v.dm ? `Message ${v.dm}` : `Message #${v.name}`} />
+            <Composer v={v} placeholder={v.dm ? (nameMissing(v.dm) ? "Write a message" : `Message ${v.dm}`) : `Message #${v.name}`} />
           </> : null}
           {tab === "Work" ? <div className="nx-msgs">{v.work.length ? <ul className="nx-table">{v.work.map(task)}</ul> : <p className="nx-sub" style={{ padding: "24px 0" }}><b style={{ color: "var(--ink)" }}>No work linked to this channel.</b> Ask @Kaju to turn updates into tasks.</p>}</div> : null}
           {tab === "Records" ? <div className="nx-msgs">{recordsShown.length ? <ul className="nx-table">{recordsShown.map((r) => <li key={r.id} className="nx-tr" style={{ gridTemplateColumns: "22px minmax(0,1fr)" }}><ArrowUpRight size={14} style={{ color: "var(--ink-3)" }} />{r.href ? <Link href={r.href}>{r.label}</Link> : <span>{r.label}</span>}</li>)}</ul> : <p className="nx-sub" style={{ padding: "24px 0" }}><b style={{ color: "var(--ink)" }}>No records shared here yet.</b> A message posted from a record links back to it here.</p>}</div> : null}
@@ -165,7 +195,7 @@ function ChannelView(v: View) {
         </aside> : <aside className="nx-ch-side" aria-label="About this channel">
           <h2 className="nx-h3">Linked work <span className="nx-count">{open}</span></h2>
           {open ? <ul className="nx-feed">{v.work.filter((w) => !w.done).slice(0, 4).map((w) => <li key={w.id} style={{ gridTemplateColumns: "16px minmax(0,1fr)" }}><span className="nx-check" aria-hidden /><div><b>{w.title}</b><small>{w.note}</small></div></li>)}</ul> : <p className="nx-foot" style={{ marginTop: 0 }}>Nothing open.</p>}
-          {v.people.length ? <><h2 className="nx-h3">People</h2><div className="nx-people">{v.people.map((p) => <Chip key={p} bare>{p}</Chip>)}</div></> : null}
+          {v.people.length ? <><h2 className="nx-h3">People</h2><div className="nx-people">{v.people.map((p, i) => <Chip key={`${p}-${i}`} bare>{p}</Chip>)}</div></> : null}
           <h2 className="nx-h3">Kaju here</h2>
           <p className="nx-foot" style={{ marginTop: 0 }}>Kaju reads only what you can see in this channel, quotes messages as written, and asks before anything is created.</p>
         </aside>}
@@ -184,7 +214,7 @@ function SampleChat({ name }: { name: string }) {
     setMsgs((m) => [...m, { id: `u${Date.now()}`, who: "You", when: clock(), text: t, parent: parent ?? null, mine: true }]);
     if (!chat?.dm && !parent && /@kaju/i.test(t)) window.setTimeout(() => setMsgs((m) => [...m, { id: `k${Date.now()}`, who: "Kaju", kaju: true, when: clock(), text: `I read the ${Math.min(3, chat?.msgs.length ?? 0)} latest messages here. Nothing is created until someone in this channel asks and accepts.` }]), calm ? 0 : 650);
   };
-  return <ChannelView name={name} sample dm={chat?.dm ?? null} sub={chat?.sub ?? "Sample channel"} msgs={msgs} work={[]} people={chat?.people ?? []} mentionable={[]} accepted={() => false} onSend={onSend} onAccept={() => {}} />;
+  return <ChannelView name={name} sample dm={chat?.dm ?? null} sub={chat?.sub ?? "Sample channel"} readers={chat?.dm ? { icon: "lock", text: "Only the two of you can read this" } : null} msgs={msgs} work={[]} people={chat?.people ?? []} mentionable={[]} accepted={() => false} onSend={onSend} onAccept={() => {}} />;
 }
 
 function SampleChannel({ name }: { name: string }) {
@@ -213,28 +243,23 @@ function LiveChannel({ name }: { name: string }) {
   const messages = useChannelMessages(ch?.id ?? null);
   const people = useOrgPeople(org!.org_id);
   const dms = useDms(ch?.kind === "dm" ? org!.org_id : null);
-  const dm = ch?.kind === "dm" ? dms.rows?.find((d) => d.channel_id === ch.id)?.other_name ?? "Direct message" : null;
+  const dmRow = ch?.kind === "dm" ? dms.rows?.find((d) => d.channel_id === ch.id) ?? null : null;
+  const dmRole = dmRow ? people.rows?.find((p) => p.user_id === dmRow.other_id)?.role ?? null : null;
+  const dm = ch?.kind === "dm" ? (dmRow ? personName(dmRow.other_name, dmRole) : "Direct message") : null;
   const seen = messages.rows?.length ?? 0;
   const chId = ch?.id ?? null;
   useEffect(() => { if (chId) void markRead(chId); }, [chId, seen]);
-  const tasks = useTasks(org!.org_id, ch?.id ?? null);
+  /* Work linked to this channel only: nothing is read until the channel is known, so the organisation's other tasks never show here. */
+  const tasks = useTasks(ch ? org!.org_id : null, ch?.id ?? null);
   const ids = useMemo(() => (messages.rows ?? []).map((m) => m.id), [messages.rows]);
   const reactions = useReactions(ids);
   const [note, setNote] = useState<string | null>(null);
-  const [making, setMaking] = useState(false);
   const done = useMemo(() => new Set((tasks.rows ?? []).map((t) => t.source_message_id).filter(Boolean) as string[]), [tasks.rows]);
   const lead = ["admin", "lead", "coordinator"].includes(org!.role);
-  const mentionable = (people.rows ?? []).filter((p) => p.user_id !== userId);
+  /* Someone without a name cannot be told apart in a suggestion, so they are not offered there (as in Kaju's list of people). */
+  const mentionable = (people.rows ?? []).filter((p) => p.user_id !== userId && !isUnnamed(p.name));
 
-  if (channels.rows && !ch && progs !== null) {
-    return (
-      <Shell crumb={["Channels", name]}>
-        <div className="nx-page"><h1 className="nx-h1">#{name} does not exist yet</h1><p className="nx-sub">Create it for {org!.name}. Everyone in the organisation can read and post.</p>
-          <p style={{ marginTop: 16 }}><button type="button" className="nx-btn" disabled={making} onClick={async () => { setMaking(true); const r = await createChannel(org!.org_id, name, ""); setMaking(false); if (r.error) setNote(r.error.message); else channels.reload(); }}>{making ? "Creating…" : `Create #${name}`}</button></p>
-          {note ? <p className="nx-foot" role="alert">{note}</p> : null}</div>
-      </Shell>
-    );
-  }
+  if (channels.rows && !ch && progs !== null) return <NoChannel name={name} org={org!} channels={channels.rows} people={people.rows?.length ?? null} />;
   const onSend = async (t: string, parent?: string, files?: FileRef[]) => {
     if (!ch) return false;
     setNote(null);
@@ -245,18 +270,85 @@ function LiveChannel({ name }: { name: string }) {
     return true;
   };
   const onAccept = async (m: VMsg) => { if (!ch || !m.tasks) return; const r = await addTasks(org!.org_id, m.tasks, { messageId: m.id, channelId: ch.id }); if (r.error) setNote(`Tasks not created: ${r.error.message}`); else tasks.reload(); };
-  const msgs: VMsg[] | null = messages.rows ? messages.rows.map((m: Msg) => ({ id: m.id, who: m.author_kind === "kaju" ? (m.author_name ?? "Kaju") : m.author_id === userId ? "You" : m.author_name ?? "Member", kaju: m.author_kind === "kaju", when: clock(m.created_at), text: m.body, record: m.record_label, recordHref: recordHref(m.record_kind, m.record_id), tasks: m.proposal?.tasks ?? null, parent: m.parent_id, mine: m.author_id === userId && m.author_kind === "person", edited: !!m.edited_at, deleted: !!m.deleted_at, files: m.files })) : null;
+  const msgs: VMsg[] | null = messages.rows ? messages.rows.map((m: Msg) => ({ id: m.id, who: m.author_kind === "kaju" ? (m.author_name ?? "Kaju") : m.author_id === userId ? "You" : m.author_name ?? "Member", kaju: m.author_kind === "kaju", when: clock(m.created_at), day: dayOf(m.created_at), text: m.body, record: m.record_label, recordHref: recordHref(m.record_kind, m.record_id), tasks: m.proposal?.tasks ?? null, parent: m.parent_id, mine: m.author_id === userId && m.author_kind === "person", edited: !!m.edited_at, deleted: !!m.deleted_at, files: m.files })) : null;
   const work: VTask[] = (tasks.rows ?? []).map((t) => ({ id: t.id, title: t.title, note: t.source_kind === "kaju" ? "Proposed by Kaju, accepted here" : t.assignee_name ?? "Unassigned", done: t.state === "done" }));
   const counts = (id: string) => EMOJI.map((e) => { const rs = reactions.rows.filter((r) => r.message_id === id && r.emoji === e); return { emoji: e, n: rs.length, mine: rs.some((r) => r.user_id === userId) }; }).filter((x) => x.n);
+  /* Who can read, said once under the name; the count is everyone in the organisation, who can all read an open channel. */
+  const n = people.rows?.length ?? 0;
+  const count = n ? ` · ${n} ${n === 1 ? "person" : "people"}` : "";
+  const readers: View["readers"] = !ch ? null
+    : ch.kind === "dm" ? { icon: "lock", text: "Only the two of you can read this" }
+    : ch.kind === "programme" ? { icon: "users", text: `People invited from partner organisations in ${prog?.programme_name ?? "the programme"} can read and post` }
+    : ch.kind === "announcement" ? { icon: "megaphone", text: `Everyone in ${org!.name} can read${count}. Leads and coordinators post.` }
+    : { icon: "users", text: `Everyone in ${org!.name} can read and post${count}` };
+  const open = ch?.kind === "channel" || ch?.kind === "announcement";
+  const names = open ? [...(people.rows ?? [])].sort((a, b) => Number(b.user_id === userId) - Number(a.user_id === userId)).map((p) => (p.user_id === userId ? "You" : personName(p.name, p.role))) : [];
   return <ChannelView name={name} sample={false} dm={dm} kind={ch?.kind} programme={prog?.programme_name ?? null} focus={sp.get("m")}
     canPost={ch?.kind === "announcement" ? lead : true}
-    sub={dm ? "Direct message" : prog ? `Shared with partner organisations in ${prog.programme_name}` : `${ch?.topic || org!.name}`}
-    msgs={ch ? msgs : null} work={work} people={[]} mentionable={ch?.kind === "programme" ? [] : mentionable} accepted={(m) => done.has(m.id)} onSend={onSend} onAccept={onAccept} note={note ?? messages.error ?? tasks.error}
+    sub={dm ? (dmRow && dmRole && !isUnnamed(dmRow.other_name) ? roleWord(dmRole) : null) : ch?.topic || null}
+    readers={readers}
+    msgs={ch ? msgs : null} work={work} people={names.length > 12 ? [...names.slice(0, 11), `and ${names.length - 11} more`] : names} mentionable={ch?.kind === "programme" ? [] : mentionable} accepted={(m) => done.has(m.id)} onSend={onSend} onAccept={onAccept} note={note ?? messages.error ?? tasks.error}
     reactions={{ counts, toggle: (id, e) => { void reactions.toggle(id, e, userId); } }}
     onEdit={async (m, body) => { const r = await editMessage(m.id, body); if (r.error) { toast({ text: r.error.message, tone: "bad" }); return false; } messages.reload(); return true; }}
     onDelete={async (m) => { const r = await deleteMessage(m.id); if (r.error) { toast({ text: r.error.message, tone: "bad" }); return false; } toast({ text: "Message deleted.", tone: "ok" }); messages.reload(); return true; }}
     onUpload={ch ? async (f) => { const r = await uploadFile(ch.id, f); if (r.error) { toast({ text: r.error, tone: "bad" }); return null; } return r.file ?? null; } : undefined}
     onToggle={async (t) => { const r = await setTaskDone(t.id, !t.done, userId); if (r.error) setNote(r.error.message); else tasks.reload(); }} />;
+}
+
+/** A channel that is not there. #general, the one everyone reads, is set up in one step; any other name opens New channel. */
+function NoChannel({ name, org, channels, people }: { name: string; org: Workspace; channels: ChannelRow[]; people: number | null }) {
+  const router = useRouter();
+  const own = channels.filter((c) => c.kind === "channel" || c.kind === "announcement");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const setup = async () => {
+    setBusy(true); setErr(null);
+    const r = await createChannel(org.org_id, "general", GENERAL_PURPOSE);
+    setBusy(false);
+    const row = r.data as ChannelRow | null;
+    if (r.error || !row) { setErr(r.error?.code === "23505" ? "#general already exists. Open it from All conversations." : errText(r.error ?? "")); return; }
+    announceChannel({ ...row, org_id: org.org_id });
+    toast({ text: `#general is ready. Everyone in ${org.name} can read it.`, tone: "ok" });
+    if (name !== "general") router.push("/channels/general");
+  };
+  const back = <button type="button" className="cx-first-back" onClick={() => newConversation({ kind: "list" })}><ArrowLeft size={16} aria-hidden />All conversations</button>;
+  /* #general is the one everyone reads, so it is offered in one step whenever it is missing. */
+  const first = !own.length || name === "general";
+  const others = own.length ? <><h2 className="cx-group">Open another channel</h2>
+    <ul className="cx-list">{own.slice(0, 8).map((c) => <li key={c.id}><Link className="cx-row" href={`/channels/${c.name}`}><span className="cx-ic" aria-hidden>{c.kind === "announcement" ? <Megaphone size={16} /> : <Hash size={16} />}</span><span className="cx-rn">{c.name}</span></Link></li>)}</ul></> : null;
+  return (
+    <Shell crumb={["Channels", name]}>
+      <div className="nx-page">
+        {first ? (
+          <section className="cx-first" aria-labelledby="cx-first-h">
+            {back}
+            <span className="cx-first-mark" aria-hidden><Hash size={24} /></span>
+            <h1 id="cx-first-h">Start with #general</h1>
+            <p>{own.length ? `${org.name} does not have #general yet. It is the shared conversation everyone in the organisation reads.` : `${org.name} has no channels yet. A channel is a shared conversation, and #general is the one everyone reads.`}</p>
+            <div className="cx-preview">
+              <b><Hash size={16} aria-hidden />general</b>
+              <span>{GENERAL_PURPOSE}</span>
+              <small><Users size={12} aria-hidden />Everyone in {org.name} can read and post{people ? ` · ${people} ${people === 1 ? "person" : "people"}` : ""}</small>
+            </div>
+            <div className="cx-first-a">
+              <button type="button" className="nx-btn" disabled={busy} onClick={() => void setup()}>{busy ? <Loader2 size={14} className="nx-spin" /> : null}{busy ? "Setting up…" : "Set up #general"}</button>
+              <button type="button" className="nx-btn is-quiet" onClick={() => newConversation({ kind: "channel", name: name === "general" ? "" : name })}>Name a different channel</button>
+            </div>
+            {err ? <p className="cx-err" role="alert">{err}</p> : null}
+            {others}
+          </section>
+        ) : (
+          <section className="cx-first" aria-labelledby="cx-first-h">
+            {back}
+            <h1 id="cx-first-h">No channel called #{name}</h1>
+            <p>Check the name, or create it. Everyone in {org.name} will be able to read and post in it.</p>
+            <div className="cx-first-a"><button type="button" className="nx-btn" onClick={() => newConversation({ kind: "channel", name })}>Create #{name}</button></div>
+            {others}
+          </section>
+        )}
+      </div>
+    </Shell>
+  );
 }
 
 export function Channel({ name }: { name: string }) {
