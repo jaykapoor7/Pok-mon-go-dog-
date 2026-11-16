@@ -19,7 +19,7 @@ export default function BiteHelpPage() {
   return (
     <DocPage title="Bitten or scratched by an animal" eyebrow="Help after a bite">
       <BiteChat slug={process.env.NEXT_PUBLIC_OH_PUBLIC_PROGRAMME ?? null} />
-      <p className="bh-src">Prototype, awaiting clinical review. First aid follows WHO rabies guidance and India&apos;s National Rabies Control Programme. These are fixed steps: nothing here is read by an AI, assesses risk or recommends treatment.</p>
+      <p className="bh-src">Prototype, awaiting clinical review. First aid follows WHO rabies guidance and India&apos;s National Rabies Control Programme. The first aid, the safety question and the advice are fixed steps. Kaju reads what you write with fixed rules on this device; no AI model reads it, and nothing here assesses risk or recommends treatment.</p>
     </DocPage>
   );
 }

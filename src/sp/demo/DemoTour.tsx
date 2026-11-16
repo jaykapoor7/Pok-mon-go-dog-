@@ -1,23 +1,26 @@
 "use client";
 
-/* The guide for the live demo. It tells one story in chapters and follows
-   the visitor across screens and roles: one chapter at a time, the thing
-   to look at highlighted on the page, Next moving to the next screen and
-   signing in as the next person when the work changes hands (a short
-   chapter card covers the change, so nothing flashes). "Explore freely"
-   folds it to a small pill; the visitor can resume, switch role or start
-   again from there. */
+/* The guide for the live One Health demo. It walks one fictional dog bite through six stages of real StrayPaw
+   workspaces. In each stage it points at the control to use (a ring on the real element, nothing laid over the
+   page), says what to click, type or say, notices when it is done and moves to the next action. Changing stage
+   signs in as the next person, behind a short card so nothing flashes. Where typing would slow a recording, an
+   action can fill its example in; pressing the button is always the presenter's.
+
+   The card keeps out of the way: it moves to whichever corner does not cover what it points at, hides while a
+   dialog is open, and folds to a small pill ("Exit") from which the visitor can resume, switch role or end. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, ChevronUp, Compass, Minus, Sparkles, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronUp, Compass, Minus, RotateCcw, UserRound, Wand2, X } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
-import { DEMO_ROLES, SHOWN, TOUR, TOUR_DONE, type DemoRole } from "./tour";
+import { AVAIL, CLOSING, DEMO_ROLES, STAGES, TOUR_DONE, actPath, onActScreen, type Act, type DemoRole, type Fill } from "./tour";
 import { enterAs, leaveFor, readTour, writeTour, TOUR_EVENT, type TourState } from "./state";
 import "./demo-tour.css";
 
-const pathOf = (p: string) => p.split("?")[0];
 const emailOf = (r: DemoRole) => `demo-${r}@straypaw.invalid`;
 const TRANSIT = "sp.demo.transit";
+const isPublic = (p: string) => p.split("?")[0].startsWith("/bite-help");
+const indiaToday = () => new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10);
+const calm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 async function signedInAs(): Promise<string | null> {
   const sb = getSupabase();
@@ -25,48 +28,98 @@ async function signedInAs(): Promise<string | null> {
   try { const { data } = await sb.auth.getSession(); return data.session?.user.email ?? null; } catch { return null; }
 }
 
-function findTarget(labels: string[], anywhere: boolean, sel?: string): HTMLElement | null {
-  const root = (anywhere ? document : document.querySelector("main")) ?? document;
-  if (sel) { const hit = [...document.querySelectorAll<HTMLElement>(sel)].find((n) => n.offsetParent !== null && !n.closest(".dt, .dt-pill")); if (hit) return hit; }
-  const nodes = [...root.querySelectorAll<HTMLElement>("a, button, summary")].filter((n) => !n.closest(".dt, .dt-pill") && n.offsetParent !== null);
-  for (const l of labels) {
-    const want = l.toLowerCase();
-    const hit = nodes.find((n) => (n.getAttribute("aria-label") ?? n.textContent ?? "").trim().toLowerCase().startsWith(want))
-      ?? nodes.find((n) => (n.textContent ?? "").toLowerCase().includes(want));
-    if (hit) return hit;
+const visible = (n: Element | null): n is HTMLElement => !!n && (n as HTMLElement).offsetParent !== null && !n.closest(".dt, .dt-pill");
+/** The element an action points at. Besides CSS: "text:Simba" (a link or button with that text) and
+    "heading:Care on record" (the section under that heading). Lists are separated by commas, first match wins. */
+function resolve(sel: string | undefined): HTMLElement | null {
+  if (!sel) return null;
+  for (const part of sel.split(/,(?![^[]*\])/).map((x) => x.trim()).filter(Boolean)) {
+    if (part.startsWith("text:")) {
+      const want = part.slice(5).toLowerCase();
+      const nodes = [...document.querySelectorAll<HTMLElement>("a, button, summary")].filter((n) => visible(n) && !n.closest("nav, header, .nx-side, .nx-sidebar"));
+      const hit = nodes.find((n) => (n.textContent ?? "").trim().toLowerCase().startsWith(want)) ?? nodes.find((n) => (n.textContent ?? "").toLowerCase().includes(want));
+      if (hit) return hit;
+    } else if (part.startsWith("heading:")) {
+      const want = part.slice(8).toLowerCase();
+      const h = [...document.querySelectorAll<HTMLElement>("main h1, main h2, main h3")].find((n) => visible(n) && (n.textContent ?? "").trim().toLowerCase().startsWith(want));
+      const box = h?.closest<HTMLElement>("section, .nx-sec, .gh-block") ?? h ?? null;
+      if (box) return box;
+    } else {
+      try { const hit = [...document.querySelectorAll(part)].find(visible); if (hit) return hit as HTMLElement; } catch { /* a selector this browser does not support */ }
+    }
   }
   return null;
 }
+function isDone(a: Act): boolean {
+  if (!a.done) return false;
+  if ("path" in a.done) return a.done.path.test(window.location.pathname);
+  const d = a.done;
+  const els = [...document.querySelectorAll(d.sel)].filter((n) => !d.text || (n.textContent ?? "").toLowerCase().includes(d.text.toLowerCase()));
+  return els.length >= Math.max(d.count ?? 1, d.allOf ? document.querySelectorAll(d.allOf).length : 0);
+}
 
-/* The card that covers a change of person: which chapter, and who is speaking now. */
+/* Fill a field the way a person would, so the page's own handlers see it. */
+function setNative(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, value: string) {
+  const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : el instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
+  Object.getOwnPropertyDescriptor(proto, "value")?.set?.call(el, value);
+  el.dispatchEvent(new Event(el instanceof HTMLSelectElement ? "change" : "input", { bubbles: true }));
+  if (!(el instanceof HTMLSelectElement)) el.dispatchEvent(new Event("change", { bubbles: true }));
+}
+const field = (sel: string): HTMLElement | null => {
+  /* "field:Age|select": the control inside the form field labelled Age. */
+  if (sel.startsWith("field:")) {
+    const [label, inner] = sel.slice(6).split("|");
+    const f = [...document.querySelectorAll<HTMLElement>("label.nx-field, .nx-field")].find((x) => (x.querySelector("span")?.textContent ?? "").trim().toLowerCase().startsWith(label.toLowerCase()));
+    return (f?.querySelector<HTMLElement>(inner || "input, select, textarea")) ?? null;
+  }
+  return resolve(sel);
+};
+async function runFills(fills: Fill[]) {
+  for (const f of fills) {
+    if (f.op === "wait") { await new Promise((r) => setTimeout(r, f.ms)); continue; }
+    const el = field(f.sel);
+    if (!el) continue;
+    if (f.op === "type" && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) { setNative(el, typeof f.value === "function" ? f.value(indiaToday()) : f.value); el.focus({ preventScroll: true }); }
+    else if (f.op === "select" && el instanceof HTMLSelectElement) setNative(el, f.value);
+    else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLInputElement) { if (!el.checked) el.click(); }
+    else if (f.op === "press") el.click();
+    await new Promise((r) => setTimeout(r, 40));
+  }
+}
+
+/* The card that covers a change of person: which stage, and who is working now. */
 function Transit({ i, leaving }: { i: number; leaving: boolean }) {
-  const t = TOUR[i];
+  const t = STAGES[i];
   if (!t) return null;
   return (
     <div className={`dt-transit${leaving ? " is-leaving" : ""}`} role="status" aria-live="polite">
       <div className="dt-transit-in">
-        <p className="dt-transit-k">{i + 1} of {TOUR_DONE}</p>
-        <h2>{t.chapter}</h2>
-        <p className="dt-transit-who"><i aria-hidden />Now as the {t.who.toLowerCase()}</p>
-        <ol className="dt-transit-dots" aria-hidden>{TOUR.map((x, k) => <li key={x.chapter} className={k < i ? "is-done" : k === i ? "is-on" : undefined} />)}</ol>
+        <p className="dt-transit-k">Stage {i + 1} of {TOUR_DONE}</p>
+        <h2>{t.label}</h2>
+        <p className="dt-transit-who"><i aria-hidden />{t.who}</p>
+        <ol className="dt-transit-dots" aria-hidden>{STAGES.map((x, k) => <li key={x.id} className={k < i ? "is-done" : k === i ? "is-on" : undefined} />)}</ol>
       </div>
     </div>
   );
 }
+
+type Corner = "br" | "bl" | "tr";
 
 export function DemoTour() {
   const router = useRouter();
   const pathname = usePathname();
   const [s, setS] = useState<TourState | null>(null);
   const [busy, setBusy] = useState(false);
-  /* The role list is controlled, so choosing a role closes it at once and the pill says who it is signing in as. */
   const [rolesOpen, setRolesOpen] = useState(false);
   const [switching, setSwitching] = useState<DemoRole | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tabs, setTabs] = useState(false);
   const [found, setFound] = useState(false);
+  const [doneAt, setDoneAt] = useState<number | null>(null);
+  const [corner, setCorner] = useState<Corner>("br");
+  const [filling, setFilling] = useState(false);
   const [transit, setTransit] = useState<{ i: number; leaving: boolean } | null>(null);
-  const [asked, setAsked] = useState(false);
+  const card = useRef<HTMLElement | null>(null);
   const scrolled = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -74,95 +127,120 @@ export function DemoTour() {
     const on = () => setS(readTour());
     window.addEventListener(TOUR_EVENT, on);
     window.addEventListener("storage", on);
-    /* Arriving from a change of person: show the chapter card; the effect below lets the screen through. */
     try {
       const v = sessionStorage.getItem(TRANSIT);
       if (v !== null) { sessionStorage.removeItem(TRANSIT); setTransit({ i: Number(v), leaving: false }); }
-    } catch { /* storage blocked: no chapter card, the screen simply loads */ }
+    } catch { /* storage blocked: no stage card, the screen simply loads */ }
     return () => { window.removeEventListener(TOUR_EVENT, on); window.removeEventListener("storage", on); };
   }, []);
 
-  /* The chapter card stays while the next person is being signed in, then fades after a moment on the new screen. */
+  /* The stage card stays while the next person is signed in, then fades after a moment on the new screen. */
   useEffect(() => {
     if (!transit || busy) return;
-    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = window.setTimeout(() => setTransit(transit.leaving ? null : { ...transit, leaving: true }), transit.leaving ? (calm ? 0 : 450) : (calm ? 250 : 900));
+    const t = window.setTimeout(() => setTransit(transit.leaving ? null : { ...transit, leaving: true }), transit.leaving ? (calm() ? 0 : 450) : (calm() ? 250 : 900));
     return () => window.clearTimeout(t);
   }, [transit, busy]);
 
   useEffect(() => { const t = setTimeout(() => setTabs(!!document.querySelector(".ws-dock")), 300); return () => clearTimeout(t); }, [pathname]);
 
-  const step = s && s.step < TOUR_DONE ? TOUR[s.step] : null;
-  useEffect(() => { setAsked(false); }, [s?.step]);
-  /* A step's screen includes the records opened from it, but /ngo itself does not swallow the whole workspace. */
-  const base = step ? pathOf(step.path) : "";
-  const onScreen = !!step && (pathname === base || (base.split("/").length > 2 && pathname.startsWith(`${base}/`)) || !!step.within?.some((w) => pathname.startsWith(w)));
+  const stage = s && s.step < TOUR_DONE ? STAGES[s.step] : null;
+  const act = stage ? stage.acts[Math.min(s!.act, stage.acts.length - 1)] : null;
+  const memo = s?.memo ?? {};
+  const [here, setHere] = useState(0);
+  const onScreen = !!act && typeof window !== "undefined" && onActScreen(act, pathname, memo, window.location.search) && here >= 0;
+  useEffect(() => { setDoneAt(null); scrolled.current = null; }, [s?.step, s?.act]);
 
-  /* Point at the thing this chapter is about, once the screen has its data. */
+  /* Point at the control, notice when the action is done, and keep the card off what it points at. */
   useEffect(() => {
-    setFound(false);
-    if (!s || s.mode !== "guided" || !(step?.point || step?.sel) || !onScreen) return;
-    let el: HTMLElement | null = null, tries = 0;
-    const labels = step.point ?? [];
-    const anywhere = labels.some((p) => p.toLowerCase().includes("kaju"));
-    const tick = setInterval(() => {
-      tries++;
-      const hit = findTarget(labels, anywhere, step.sel);
-      if (hit && hit !== el) {
-        el?.classList.remove("sp-tour-hl");
-        el = hit; el.classList.add("sp-tour-hl"); setFound(true);
+    if (!s || s.mode !== "guided" || !act) return;
+    let el: HTMLElement | null = null;
+    const tick = () => {
+      /* A tab changed in place (the programme's tabs) changes the screen without a navigation: look again. */
+      const now = onActScreen(act, window.location.pathname, readTour().memo, window.location.search);
+      if (now !== onScreen) { setHere((h) => h + 1); return; }
+      const hit = onScreen ? resolve(act.sel) : null;
+      if (hit !== el) { el?.classList.remove("sp-tour-hl"); el = hit; el?.classList.add("sp-tour-hl"); }
+      setFound(!!hit);
+      if (hit && scrolled.current !== hit) {
         const r = hit.getBoundingClientRect();
-        /* Keep it clear of the top bar and of this card. */
-        const cardTop = document.querySelector(".dt")?.getBoundingClientRect().top ?? window.innerHeight;
-        if (scrolled.current !== hit && (r.top < 72 || r.bottom > cardTop - 16)) {
-          scrolled.current = hit;
-          const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          const room = cardTop - 72;
-          const by = r.height < room ? r.top - 72 - Math.max(0, (room - r.height) / 3) : r.top - 72;
-          /* When the thing fits on the first screen with the page's own title above it, show the page from its top instead of cutting the title off. */
-          if (r.top + window.scrollY + r.height < cardTop - 16) window.scrollTo({ top: 0, behavior: calm ? "auto" : "smooth" });
-          else window.scrollBy({ top: by, behavior: calm ? "auto" : "smooth" });
-        }
+        if (r.top < 64 || r.bottom > window.innerHeight - 24) { scrolled.current = hit; hit.scrollIntoView({ block: r.height > window.innerHeight * .6 ? "start" : "center", behavior: calm() ? "auto" : "smooth" }); }
+        else scrolled.current = hit;
       }
-      if (tries > 40) clearInterval(tick); /* keep looking for 20 s: a cold staging load can take that long */
-    }, 500);
-    return () => { clearInterval(tick); el?.classList.remove("sp-tour-hl"); };
-  }, [s, step, onScreen, pathname]);
+      const c = card.current?.getBoundingClientRect();
+      if (hit && c && window.innerWidth > 760) {
+        const r = hit.getBoundingClientRect();
+        const covers = (x: { left: number; right: number; top: number; bottom: number }) => !(r.right < x.left || r.left > x.right || r.bottom < x.top || r.top > x.bottom);
+        const w = c.width, h = c.height, W = window.innerWidth, H = window.innerHeight;
+        const spots: Record<Corner, { left: number; right: number; top: number; bottom: number }> = {
+          br: { left: W - 20 - w, right: W - 20, top: H - 20 - h, bottom: H - 20 },
+          bl: { left: 20, right: 20 + w, top: H - 20 - h, bottom: H - 20 },
+          tr: { left: W - 20 - w, right: W - 20, top: 72, bottom: 72 + h },
+        };
+        setCorner((now) => (!covers(spots[now]) ? now : (["br", "bl", "tr"] as Corner[]).find((k) => !covers(spots[k])) ?? now));
+      }
+      /* An action that ends on another screen ("open the record") is done wherever the presenter now is. */
+      if ((onScreen || (act.done && "path" in act.done)) && isDone(act)) setDoneAt((d) => d ?? Date.now());
+    };
+    tick();
+    const id = window.setInterval(tick, 450);
+    return () => { window.clearInterval(id); el?.classList.remove("sp-tour-hl"); };
+  }, [s, act, onScreen, pathname]);
 
   /* Leave room under the page so the last rows can scroll above the card. */
   useEffect(() => {
     const root = document.documentElement;
     if (!s || s.mode !== "guided") { root.style.removeProperty("--dt-h"); root.classList.remove("dt-on"); return; }
-    const card = document.querySelector<HTMLElement>(".dt");
-    if (!card) return;
-    const set = () => root.style.setProperty("--dt-h", `${card.offsetHeight}px`);
+    const el = card.current;
+    if (!el) return;
+    const set = () => root.style.setProperty("--dt-h", `${el.offsetHeight}px`);
     set(); root.classList.add("dt-on");
-    const ro = new ResizeObserver(set); ro.observe(card);
+    const ro = new ResizeObserver(set); ro.observe(el);
     return () => { ro.disconnect(); root.classList.remove("dt-on"); };
   }, [s, pathname]);
 
-  const go = useCallback(async (i: number, mode: TourState["mode"] = "guided") => {
+  /* Go to one action: sign in as its person if needed (a new stage), otherwise open its screen if not already there. */
+  const go = useCallback(async (step: number, actIdx = 0, opts: { fresh?: boolean; mode?: TourState["mode"] } = {}) => {
     setErr(null);
-    if (i >= TOUR_DONE) { writeTour({ mode: "guided", step: TOUR_DONE, role: s?.role ?? null }); return; }
-    const t = TOUR[i];
+    if (step >= TOUR_DONE) { writeTour({ mode: "guided", step: TOUR_DONE, act: 0 }); return; }
+    const st = STAGES[step], a = st.acts[actIdx];
+    const role = a.role ?? st.role;
+    const cur = readTour();
+    const m = opts.fresh ? {} : cur.memo;
+    const path = actPath(a, m) || st.acts.map((x) => actPath(x, m)).find(Boolean) || DEMO_ROLES[role].home;
+    const base = { mode: opts.mode ?? "guided" as const, step, act: actIdx, role, memo: m, ...(opts.fresh ? { started: Date.now() } : {}) };
     setBusy(true);
     const who = await signedInAs();
-    if (who !== emailOf(t.role)) {
-      setTransit({ i, leaving: false });
-      const e = await enterAs(t.role);
+    if (who !== emailOf(role) || opts.fresh) {
+      setTransit({ i: step, leaving: false });
+      const e = await enterAs(role);
       if (e) { setErr(e); setBusy(false); setTransit(null); return; }
-      writeTour({ mode, step: i, role: t.role });
-      try { sessionStorage.setItem(TRANSIT, String(i)); } catch { /* fine */ }
-      leaveFor(t.path); /* a fresh load so every screen reads the new person */
+      writeTour(base);
+      try { sessionStorage.setItem(TRANSIT, String(step)); } catch { /* fine */ }
+      leaveFor(path);
       return;
     }
-    writeTour({ mode, step: i, role: t.role });
-    /* The public pages and the workspace have different frames: moving between them is a full load, or the card changes while the page stays. */
-    const inApp = (x: string) => !x.startsWith("/bite-help");
-    if (inApp(pathOf(t.path)) !== inApp(window.location.pathname)) { window.location.assign(t.path); return; }
-    router.push(t.path);
+    writeTour(base);
+    if (!onActScreen(a, window.location.pathname, m) || (opts.fresh && path)) {
+      if (isPublic(path) !== isPublic(window.location.pathname) || path.includes("?")) window.location.assign(path);
+      else router.push(path);
+    }
     setBusy(false);
-  }, [router, s?.role]);
+  }, [router]);
+
+  /* Done: remember the screen if a later action needs it, then move to the next action of the stage. */
+  useEffect(() => {
+    if (!doneAt || !s || !stage || !act) return;
+    if (act.keep && memo[act.keep] !== window.location.pathname) writeTour({ mode: "guided", step: s.step, memo: { ...memo, [act.keep]: window.location.pathname } });
+    if (s.act >= stage.acts.length - 1) return;
+    const t = window.setTimeout(() => writeTour({ mode: "guided", step: s.step, act: s.act + 1 }), calm() ? 600 : 1300);
+    return () => window.clearTimeout(t);
+  }, [doneAt]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const next = () => { if (!s || !stage) return; if (s.act < stage.acts.length - 1) void go(s.step, s.act + 1); else void go(s.step + 1, 0); };
+  const back = () => { if (!s) return; if (s.act > 0) void go(s.step, s.act - 1); else if (s.step > 0) void go(s.step - 1, STAGES[s.step - 1].acts.length - 1); };
+  const replay = () => { if (s) void go(s.step, 0); };
+  const restart = () => void go(0, 0, { fresh: true });
+  const fill = async () => { if (!act?.example) return; setFilling(true); await runFills(act.example.fills); setFilling(false); };
 
   const switchRole = useCallback(async (r: DemoRole) => {
     setRolesOpen(false);
@@ -174,11 +252,9 @@ export function DemoTour() {
     leaveFor(DEMO_ROLES[r].home);
   }, [s?.step, s?.role]);
 
-  const askKaju = (q: string) => { setAsked(true); window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); };
-
   const cover = transit ? <Transit i={transit.i} leaving={transit.leaving} /> : null;
   if (!s || s.mode === "off" || pathname === "/try") return cover;
-  const place = tabs ? " has-tabs" : "";
+  const place = `${tabs ? " has-tabs" : ""} is-${corner}`;
   const roles = (
     <details className="dt-roles" open={rolesOpen} onToggle={(e) => setRolesOpen((e.currentTarget as HTMLDetailsElement).open)}>
       <summary aria-busy={switching ? true : undefined}>
@@ -196,64 +272,82 @@ export function DemoTour() {
     return (
       <>
         {cover}
-        <div className={`dt-pill${place}`} role="region" aria-label="Guided demo">
-          <button type="button" className="dt-resume" disabled={busy} onClick={() => go(Math.min(s.step, TOUR_DONE - 1))}>
-            <Compass size={15} aria-hidden /> <span>The tour</span> <small>{s.step >= TOUR_DONE ? "Watch again" : `Resume · ${s.step + 1} of ${TOUR_DONE}`}</small>
+        <div className={`dt-pill${tabs ? " has-tabs" : ""}`} role="region" aria-label="Guided demo">
+          <button type="button" className="dt-resume" disabled={busy} onClick={() => void go(Math.min(s.step, TOUR_DONE - 1), s.step >= TOUR_DONE ? 0 : s.act)}>
+            <Compass size={15} aria-hidden /> <span>The demo</span> <small>{s.step >= TOUR_DONE ? "Watch again" : `Resume · ${STAGES[s.step].label}`}</small>
           </button>
           {roles}
+          <button type="button" className="dt-end" aria-label="End the guided demo" title="End the guided demo" onClick={() => { writeTour({ mode: "off", step: 0, act: 0 }); window.location.assign("/try"); }}><X size={14} aria-hidden /></button>
           {err && <p className="dt-err" role="alert">{err}</p>}
         </div>
       </>
     );
   }
 
-  const n = TOUR_DONE;
   const bar = (at: number) => (
-    <ol className="dt-steps" aria-label={`Stop ${Math.min(at, n - 1) + 1} of ${n}`}>
-      {TOUR.map((t, k) => <li key={t.chapter} title={t.chapter} className={k < at ? "is-done" : k === at ? "is-on" : undefined} />)}
+    <ol className="dt-stages" aria-label={`Stage ${Math.min(at, TOUR_DONE - 1) + 1} of ${TOUR_DONE}`}>
+      {STAGES.map((t, k) => <li key={t.id} className={k < at ? "is-done" : k === at ? "is-on" : undefined}><button type="button" disabled={busy} onClick={() => void go(k, 0)} title={`${k + 1}. ${t.label}`} aria-label={`Stage ${k + 1}: ${t.label}`}><span /></button><small>{t.label}</small></li>)}
     </ol>
   );
 
-  if (!step) {
+  if (!stage || !act) {
     return (
       <>
         {cover}
-        <aside className={`dt is-end${place}`} aria-label="Guided demo">
-          <div className="dt-top"><span className="dt-k">Tour · complete</span></div>
-          {bar(n)}
-          <h2>That is the platform</h2>
-          <p>Every screen was a real workspace on illustrative data.</p>
-          <ul className="dt-shown">{SHOWN.map((x, k) => <li key={x} style={{ ["--k" as string]: k }}>{x}</li>)}</ul>
+        <aside ref={card} className={`dt is-end${place}`} aria-label="Guided demo">
+          <div className="dt-top"><span className="dt-k">One Health demo · complete</span></div>
+          {bar(TOUR_DONE)}
+          <h2>{CLOSING}</h2>
+          <p>A resident reported a bite, the hospital responded, the animal team investigated, Kaju organised the next steps, the municipality followed it, and the programme learned from the record.</p>
           <div className="dt-act">
-            <button type="button" className="dt-btn" disabled={busy} onClick={() => go(0)}>Again</button>
-            <button type="button" className="dt-btn is-go" onClick={() => writeTour({ ...s, mode: "roam" })}>Explore freely <ArrowRight size={15} aria-hidden /></button>
+            <button type="button" className="dt-btn" disabled={busy} onClick={restart}><RotateCcw size={14} aria-hidden /> Restart</button>
+            <button type="button" className="dt-btn is-go" onClick={() => writeTour({ mode: "roam", step: TOUR_DONE })}>Explore freely <ArrowRight size={15} aria-hidden /></button>
           </div>
-          <div className="dt-foot">{roles}<a href="https://www.straypaw.org/demo" className="dt-link">Talk to us about a pilot</a></div>
+          <div className="dt-foot">{roles}<a href="https://www.straypaw.org/demo" className="dt-link">Talk to us about the pilot</a></div>
           {err && <p className="dt-err" role="alert">{err}</p>}
         </aside>
       </>
     );
   }
 
-  const next = s.step + 1 < n ? TOUR[s.step + 1] : null;
-  /* A small card: who you are now, one line of context, and the way on. The visitor looks around the workspace as they like; "Next" works from wherever they are. */
-  const label = !next ? "Finish" : `Next: ${next.chapter}`;
-  const line = step.short ?? step.body.split(/(?<=\.)\s/)[0];
+  const n = stage.acts.length;
+  const last = s.act >= n - 1;
+  const done = !!doneAt;
+  const nextStage = STAGES[s.step + 1];
+  const goLabel = !last ? "Next action" : nextStage ? `Next role: ${nextStage.label}` : "Finish";
+  const there = actPath(act, memo);
+  /* The action's screen is not open: the way on is to open it (or skip the action). */
+  const needsGo = !onScreen && !!there;
   return (
     <>
       {cover}
-      <aside key={s.step} className={`dt is-small${place}`} aria-label="Guided demo" aria-live="polite">
+      <aside ref={card} key={`${s.step}:${s.act}`} className={`dt is-guide${place}${done ? " is-done" : ""}`} aria-label="Guided demo" aria-live="polite">
         <div className="dt-top">
-          <span className="dt-k">{s.step + 1} of {n}<span className="dt-k-l"> · {step.chapter}</span></span>
-          <button type="button" className="dt-min" aria-label="Hide the guide and explore freely" onClick={() => writeTour({ ...s, mode: "roam" })}><Minus size={14} aria-hidden /></button>
+          <span className="dt-k">Stage {s.step + 1} of {TOUR_DONE}<span className="dt-k-l"> · {stage.label}</span></span>
+          <button type="button" className="dt-min" aria-label="Exit the guide and explore freely" title="Exit: explore freely; resume any time" onClick={() => writeTour({ mode: "roam", step: s.step })}><Minus size={14} aria-hidden /> Exit</button>
         </div>
         {bar(s.step)}
-        <p className="dt-who"><i aria-hidden />{step.who}</p>
-        <h2>{step.title}</h2>
-        <p>{line}</p>
+        <p className="dt-who"><i aria-hidden />{stage.who}</p>
+        <div className="dt-act-k"><span>Action {s.act + 1} of {n}{act.optional ? " · optional" : ""}</span><ol aria-hidden>{stage.acts.map((x, k) => <li key={x.id} className={k < s.act ? "is-done" : k === s.act ? "is-on" : undefined} />)}</ol></div>
+        <h2>{done ? <span className="dt-tick" aria-label="Done"><Check size={14} strokeWidth={3} aria-hidden /></span> : null}{act.title}</h2>
+        <p className="dt-say">{act.say}</p>
+        {act.example && onScreen ? (
+          <div className="dt-do"><button type="button" className="dt-kaju" disabled={filling} onClick={() => void fill()}><Wand2 size={14} aria-hidden />{filling ? "Filling…" : act.example.label}</button></div>
+        ) : null}
+        {onScreen && act.sel && !found && !done ? <p className="dt-note" role="status">Waiting for the screen to show it…</p> : null}
+        <ul className="dt-tags" aria-label="What this shows">{act.tags.map(([k, t]) => <li key={t} className={`is-${k}`} title={AVAIL[k].note}><b>{AVAIL[k].label}</b><span>{t}</span></li>)}</ul>
+        {act.note ? <p className="dt-note">{act.note}</p> : null}
+        {last && done && stage.handoff ? <p className="dt-handoff">{stage.handoff}</p> : null}
         <div className="dt-act">
-          <button type="button" className="dt-btn is-back" aria-label="Previous stop" disabled={busy || s.step === 0} onClick={() => go(s.step - 1)}><ArrowLeft size={15} aria-hidden /></button>
-          <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => go(s.step + 1)}>{busy ? "Opening…" : label} {!busy && <ArrowRight size={15} aria-hidden />}</button>
+          <button type="button" className="dt-btn is-back" aria-label="Back" disabled={busy || (s.step === 0 && s.act === 0)} onClick={back}><ArrowLeft size={15} aria-hidden /></button>
+          {needsGo ? <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => void go(s.step, s.act)}>{busy ? "Opening…" : "Take me there"} {!busy && <ArrowRight size={15} aria-hidden />}</button>
+            : <button type="button" className={`dt-btn is-go${done ? " is-ready" : ""}`} disabled={busy} onClick={next}>{busy ? "Opening…" : goLabel} {!busy && <ArrowRight size={15} aria-hidden />}</button>}
+        </div>
+        <div className="dt-foot">
+          {needsGo ? <button type="button" className="dt-text" disabled={busy} onClick={next}>Skip</button> : null}
+          <button type="button" className="dt-text" disabled={busy} onClick={replay}>Replay stage</button>
+          <button type="button" className="dt-text" disabled={busy} onClick={restart}>Restart</button>
+          {roles}
         </div>
         {err && <p className="dt-err" role="alert">{err}</p>}
       </aside>

@@ -78,6 +78,10 @@ function LiveAnimals({ org }: { org: Workspace }) {
   const [rv, setRv] = useState<Revac | null>(null);
   const [scan, setScan] = useState(false);
   useEffect(() => { void readZones().then((r) => setZones(r.data ?? [])); void readRevacSetting().then((r) => setRv(r.data ?? null)); }, []);
+  /* A link can open the register at one place: /ngo/animals?place=Indiranagar. */
+  /* Read again once the places have loaded: arriving by an in-app link, the address can settle after the first paint. */
+  const linked = useRef(false);
+  useEffect(() => { if (linked.current) return; const p = new URLSearchParams(window.location.search).get("place"); if (p) { linked.current = true; setZone(p.slice(0, 80)); setPage(0); } }, [zones.length]);
   useEffect(() => { const t = window.setTimeout(() => { setDq(q); setPage(0); }, 260); return () => window.clearTimeout(t); }, [q]);
   useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); if (v === "identity" && lead) setLens("identity"); if (v === "help" || v === "ster" || v === "vacc") setLens(v); if (v === "scan" && tags) setScan(true); }, [lead, tags]);
   /* The map draws the register's own lenses; the revaccination and identity lists are lists. */

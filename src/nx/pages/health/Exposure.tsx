@@ -130,7 +130,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
             ) : null}
           </Block>
           <Block title="Animal follow-up" note="Shared without patient details">
-            {e.handoff ? <ul className="gh-list"><li><div><b>{e.handoff.outcome ?? "Waiting for the team to report what they found."}</b><small>{e.handoff.to}</small></div><span className="gh-row-a"><Chip tone={e.handoff.status === "done" ? "ok" : e.handoff.status === "declined" ? "plain" : "accent"}>{HANDOFF[e.handoff.status]?.label ?? e.handoff.status}</Chip></span></li></ul>
+            {e.handoff ? <ul className="gh-list" data-tour="exposure-handoff"><li><div><b>{e.handoff.outcome ?? "Waiting for the team to report what they found."}</b><small>{e.handoff.to}</small></div><span className="gh-row-a"><Chip tone={e.handoff.status === "done" ? "ok" : e.handoff.status === "declined" ? "plain" : "accent"}>{HANDOFF[e.handoff.status]?.label ?? e.handoff.status}</Chip></span></li></ul>
               : <p className="nx-sub">{e.animal_ownership === "owned" ? "The animal is someone's pet; no field follow-up was asked for." : e.area ? "No follow-up was asked for, or no animal team covers this area." : "No area was recorded, so no follow-up was sent."}</p>}
           </Block>
           <Block title="History" note={`Who did what, kept for audit.${opened ? ` Opened ${opened} ${opened === 1 ? "time" : "times"}.` : ""}`}>

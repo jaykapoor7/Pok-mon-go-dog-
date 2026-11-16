@@ -13,7 +13,6 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "demo:record": "tsx scripts/record-demo.ts",
-    "demo:one-health": "tsx scripts/record-one-health-demo.ts",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:security:audit": "node scripts/db-security-audit.mjs",
     "db:security:matrix": "node scripts/db-rls-matrix.mjs",
@@ -65,7 +64,9 @@
     "test:package-check": "node --import tsx scripts/test-package-check.ts",
     "test:kaju-intake": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-intake.ts",
     "test:state-machines": "node --import tsx scripts/test-state-machines.ts",
-    "test:one-health-permissions": "node --import tsx scripts/test-one-health-permissions.ts"
+    "test:one-health-permissions": "node --import tsx scripts/test-one-health-permissions.ts",
+    "test:bite-intake": "node --import tsx scripts/test-bite-intake.ts",
+    "test:kaju-incident": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-incident.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

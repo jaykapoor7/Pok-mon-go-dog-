@@ -2,8 +2,8 @@ import { S4Page } from "@/sp4/site/kit";
 import { TryDemo } from "@/sp/demo/TryDemo";
 
 export const metadata = {
-  title: "Live demo, StrayPaw",
-  description: "A two-minute tour of StrayPaw's real workspaces on illustrative data: the NGO, the hospital, the laboratory, the programme and the municipal office.",
+  title: "One Health demo, StrayPaw",
+  description: "One fictional dog bite followed through StrayPaw's real workspaces: the citizen, the hospital, the animal-health team, Kaju, the municipality and the One Health programme.",
   robots: { index: false, follow: false },
 };
 

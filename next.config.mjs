@@ -148,6 +148,12 @@ const nextConfig = {
         source: "/talk",
         headers: [{ key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=(self)" }],
       }] : []),
+      // The demonstration's bite report (demo.straypaw.org only, on the staging database): the person may speak
+      // instead of typing, through the browser's own dictation. Production keeps the denial on this page.
+      ...((process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").includes("ucxfxiddufwqithtdtix") ? [{
+        source: "/bite-help",
+        headers: [{ key: "Permissions-Policy", value: "camera=(), geolocation=(self), microphone=(self)" }],
+      }] : []),
     ];
   },
 };

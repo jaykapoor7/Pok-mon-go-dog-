@@ -40,14 +40,23 @@ numbers are all zeros. Nothing claims a live integration.
 8. **The public** (`/bite-help`): nearest first, "I need wound washing now", what each
    centre confirmed and where it refers.
 
-## The guided walkthrough (`/try` on the demo site)
+## The guided walkthrough (demo.straypaw.org)
 
-Twelve steps, signed in step by step through the existing demo sign-in (`/api/demo/session`):
-programme lead (overview, care network) → hospital clinician (two places) → NGO coordinator
-(the hospital's request on the NGO's Today; Kaju on who is waiting) → laboratory scientist →
-then the ABC chain the same NGO runs for the municipal office (field mode, vet sign-off,
-monthly claim, Kaju's morning check, municipal command view, claim review). If the
-programme accounts are not set up on a deployment, the guide starts at the ABC chain.
+demo.straypaw.org opens `/try`: "One Health. One Connected Response." and **Start Demo**. The guide
+(`src/sp/demo/`: `tour.ts` defines it, `DemoTour.tsx` runs it) follows one fictional bite in Indiranagar through six
+stages of real workspaces, signing in as each person through the existing demo sign-in (`/api/demo/session`):
+
+1. **Citizen** (`/bite-help`): Kaju reads the report (`src/oh/biteIntake.ts`), asks what is missing, the person confirms, the notice reaches the clinic.
+2. **Hospital** (clinician): the notice becomes the bite record, Category III, the clinician's course; the area's NGO is asked to follow up.
+3. **Animal health** (NGO coordinator): accept the request, find Simba on the register, read its vaccination and ABC history, link it to the request.
+4. **Kaju** (same coordinator): the incident briefing (`src/sp3/ai/incident.ts`), what is missing, who does what, prepared work confirmed.
+5. **Municipality** (municipal health officer): overview, the request's follow-up, coverage, reports.
+6. **One Health** (programme lead): where to act, the care network, suppressed research data, the programme report.
+
+Each action rings the real control, notices when it is done and moves on; an action that needs typing offers a
+one-click example. Every action is marked live and tested, in staging, planned for the pilot, or awaiting
+integration (`docs/one-health/CAPABILITY-AUDIT.md`). The narration for a recording is `docs/one-health/LOOM-SCRIPT.md`;
+`e2e/demo-story.spec.ts` drives the same path (`OH_E2E=1`).
 
 ## Set-up on staging (done 11 Nov 2026)
 
