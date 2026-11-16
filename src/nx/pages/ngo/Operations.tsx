@@ -5,7 +5,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { NGO_LENSES } from "@/sp/atlas/lenses";
 import { MapSkeleton } from "@/sp/map/MapSkeleton";
-import { ArrowRight, MapPin, Smartphone } from "lucide-react";
+import { ArrowRight, Camera, MapPin, Smartphone } from "lucide-react";
 import { dueFollowups, type DueFollowup } from "@/lib/ops";
 import { getSupabase } from "@/lib/supabase";
 import { careNote } from "@/lib/care-note";
@@ -18,6 +18,7 @@ import { useLive, type Workspace } from "../../live";
 import { readCareLog, readLanes, readMedicalCases, shortCode, type CareLogRow, type LaneCard, type Lanes, type MedicalCase } from "../../data/ngo";
 import { SAMPLE_CARE, SAMPLE_LANES, type SampleCare } from "../../data/ngo-sample";
 import { RecordList, type RCol, type RView } from "./RecordList";
+import "../../field.css";
 import { SharedClinicStatus } from "../VetClinic";
 
 /* Operations: the field visits due, grouped by day and place so a team can plan a round; the care log (every care event
@@ -42,7 +43,8 @@ export function Operations() {
   const ngo = live.orgFor("ngo");
   if (live.org && !ngo) return <Shell crumb={["NGO", "Operations"]}><div className="nx-page"><h1 className="nx-h1">Operations</h1><p className="nx-sub">Your account is not part of an NGO, so there are no field visits here.</p></div></Shell>;
   const tabs = <div className="nr-bleed"><TabBar id="ops" tabs={PARTS} value={part} onChange={choose} label="Operations" /></div>;
-  const field = <Link href="/ngo/field" className="nx-btn is-keep"><Smartphone size={14} />Open field mode</Link>;
+  /* Field mode, and the quickest way to record an animal (it opens field mode with the record screen up). */
+  const field = <div className="nr-tools"><Link href="/ngo/field" className="nx-btn is-quiet is-keep"><Smartphone size={14} />Open field mode</Link><Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry"><Camera size={14} />Record an animal</Link></div>;
   return (
     <Shell crumb={["NGO", "Operations"]}>
       {part === "Visits" ? <Visits ngo={ngo} tabs={tabs} action={field} />

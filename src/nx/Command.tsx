@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ClipboardList, CornerDownLeft, Hash, MessageSquare, PawPrint, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Camera, ClipboardList, CornerDownLeft, Hash, MessageSquare, PawPrint, Search, Smartphone, Sparkles } from "lucide-react";
 import { recordHref, searchMessages } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { ANIMALS, CASES, CHANNELS } from "./fixtures";
@@ -83,8 +83,13 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     const chanNames = live.org ? (chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => c.name) : CHANNELS.map((c) => c.name);
     const channels = chanNames.filter((c) => !l || c.includes(l)).slice(0, 4).map((c): Hit => ({ id: `#${c}`, group: "Channels", label: `#${c}`, href: `/channels/${c}`, icon: <Hash size={14} /> }));
     const kaju: Hit[] = l ? [{ id: "kaju", group: "Kaju", label: `Ask Kaju: “${q.trim()}”`, detail: "Nothing is sent until you press Run", href: `/kaju?q=${encodeURIComponent(q.trim())}`, icon: <Sparkles size={14} /> }] : [];
-    return [...records, ...pages, ...channels, ...kaju];
-  }, [q, records, live.org, chans.rows]);
+    /* Recording an animal is one step from anywhere in an NGO workspace: field mode opens with the record screen up. */
+    const acts: Hit[] = !live.org || ngo ? ([
+      [{ id: "act:record", group: "Pages", label: "Record an animal", detail: "Field mode", href: "/ngo/field?record=1", icon: <Camera size={14} /> }, "record animal dog report intake register capture photo new"],
+      [{ id: "act:field", group: "Pages", label: "Field mode", detail: "NGO", href: "/ngo/field", icon: <Smartphone size={14} /> }, "field mode round offline phone stops"],
+    ] as [Hit, string][]).filter(([, words]) => !l || l.split(/\s+/).every((w) => words.includes(w))).map(([h]) => h) : [];
+    return [...records, ...acts, ...pages, ...channels, ...kaju];
+  }, [q, records, live.org, ngo, chans.rows]);
 
   useEffect(() => { setAt(0); }, [q]);
   const go = (h: Hit | undefined) => { if (!h) return; onClose(); router.push(h.href); };

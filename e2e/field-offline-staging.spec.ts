@@ -33,7 +33,7 @@ test("an offline intake waits on the phone, survives a lost answer, and is saved
   await expect(page.getByRole("heading", { name: "Your round" })).toBeVisible({ timeout: 30_000 });
 
   // Choose to work offline and set this phone's PIN.
-  await page.locator(".nf-net").click();
+  await page.locator(".fm-net").click();
   await page.getByRole("switch", { name: "Work offline" }).click();
   await page.getByLabel("New PIN").fill(PIN);
   await page.getByLabel("Repeat the PIN").fill(PIN);
@@ -42,25 +42,24 @@ test("an offline intake waits on the phone, survives a lost answer, and is saved
 
   // No signal from here on.
   await context.setOffline(true);
-  await expect(page.locator(".nf-net")).toContainText(/Offline|No signal/);
+  await expect(page.locator(".fm-net")).toContainText(/Offline|No signal/);
 
+  // One screen: photo, why, where (found by the phone), details folded away, one Save.
   await page.getByRole("button", { name: /Record an animal/ }).click();
   const sheet = page.getByRole("dialog", { name: "Record an animal" });
-  await sheet.getByRole("radio", { name: /Vaccinate/ }).click();
   await sheet.locator('input[type="file"]').setInputFiles({ name: "dog.jpg", mimeType: "image/jpeg", buffer: JPEG });
-  await sheet.getByRole("button", { name: "Next" }).click();
+  await sheet.getByRole("radio", { name: /Vaccinate/ }).click();
   await expect(sheet.getByText("Location found")).toBeVisible();
   await sheet.getByLabel("Area or street").fill("HSR Layout, 14th Main");
   await sheet.getByLabel("City").fill("Bengaluru");
-  await sheet.getByRole("button", { name: "Next" }).click();
+  await sheet.getByText("More about the dog").click();
   await sheet.getByLabel("Name or tag, if it has one").fill("Offline check");
-  await sheet.getByRole("button", { name: "Next" }).click();
-  await sheet.getByLabel("Anything to add? (optional)").fill(marker);
-  await expect(sheet.getByText("It is kept on this phone, encrypted, and sent when you choose.")).toBeVisible();
+  await sheet.getByLabel("Anything to add?").fill(marker);
+  await expect(sheet.getByText("Kept on this phone, locked with your PIN, until you send it.")).toBeVisible();
   await sheet.getByRole("button", { name: "Save" }).click();
   await expect(sheet).toBeHidden();
 
-  const phone = page.getByRole("region", { name: "This phone" });
+  const phone = page.getByRole("region", { name: "On this phone" });
   await expect(phone).toContainText("1 record not sent yet");
   await expect(phone.getByRole("button", { name: /Waiting/ })).toBeDisabled();
 
@@ -98,9 +97,9 @@ test("an offline intake waits on the phone, survives a lost answer, and is saved
   await phone.getByRole("button", { name: "Send it" }).click();
 
   // The failure is shown on the record itself, with a way to try again; nothing was removed from the phone.
-  const draft = phone.locator("details.nf-draft");
+  const draft = phone.locator("details.fm-draft");
   await expect(draft).toHaveAttribute("open", "");
-  await expect(draft.locator('.nf-dot[data-s="failed"]')).toHaveCount(1);
+  await expect(draft.locator('.fm-dot[data-s="failed"]')).toHaveCount(1);
   await expect(draft).toContainText("The connection dropped before the answer arrived.");
   await expect(phone).toContainText("1 record not sent yet");
 
