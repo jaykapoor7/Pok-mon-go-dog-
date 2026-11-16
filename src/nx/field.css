@@ -1,0 +1,278 @@
+/* Field mode (src/nx/pages/ngo/Field.tsx): the round on a phone and the one sheet that records an animal.
+   Its own prefix, fm-, so the site's not-found page (.nf in src/app/system.css: 72vh of grey and a 72px heading) can
+   never style it again. DESIGN.md 4.0: one white ground, quiet fill for surfaces, no lines around cards, blue for the
+   one main action, amber for late or waiting, green for done, flame only for urgent. Type 12/14/16/20/24; spacing
+   4/8/12/16/24/32/40/48; radii 4/8/12/16; touch targets 44-48px on phones. */
+
+.nx .fm, .nx .fm-entry {
+  --fm-ink: #0b1e3d; --fm-body: #4a5568; --fm-mute: #6b7486; --fm-line: #e4e8f0;
+  --fm-fill: #f5f7fb; --fm-fill-2: #eaeef5; --fm-raise: #fff;
+  --fm-blue: #2457ce; --fm-blue-2: #1d49b0; --fm-blue-soft: #eaf0fc; --fm-on-blue: #fff;
+  --fm-flame: #f05b40; --fm-flame-ink: #b3341c; --fm-flame-soft: #fdece8;
+  --fm-ok: #1f7a4d; --fm-ok-soft: #e6f3ec;
+  --fm-warn: #d08a1d; --fm-warn-ink: #8a5a0b; --fm-warn-soft: #fbf1df;
+  --fm-bad: #ad3b37;
+  --fm-ease: cubic-bezier(.2, .7, .2, 1);
+}
+.nx[data-theme="dark"] .fm, .nx[data-theme="dark"] .fm-entry {
+  --fm-ink: var(--ink); --fm-body: var(--ink-2); --fm-mute: var(--ink-3); --fm-line: #333a44;
+  --fm-fill: #1c2027; --fm-fill-2: #262b33; --fm-raise: #2b313a;
+  --fm-blue: var(--accent); --fm-blue-2: #a3bdf9; --fm-blue-soft: var(--accent-soft); --fm-on-blue: #0b0d10;
+  --fm-flame: #f4826b; --fm-flame-ink: #f4a08e; --fm-flame-soft: #331b1a;
+  --fm-ok: var(--ok); --fm-ok-soft: var(--ok-soft);
+  --fm-warn: var(--warn); --fm-warn-ink: var(--warn); --fm-warn-soft: var(--warn-soft);
+  --fm-bad: var(--bad);
+}
+
+/* DESIGN's muted grey (#6b7486) reads 4.7:1 on white but 4.4:1 on the quiet fill; on filled surfaces small text takes a
+   slightly deeper grey so it stays above 4.5:1 (WCAG 1.4.3). */
+.nx:not([data-theme="dark"]) :is(.fm-where, .fm-more, .fm-netp, .fm-empty, .fm-form, .fm-pin, .fm-photo, .fm-net), .nx:not([data-theme="dark"]) .fm .nr-sheet { --fm-mute: #586174; }
+
+/* ── The page ─────────────────────────────────────────────────────── */
+.nx .fm { max-width: 760px; padding: 32px 32px 64px; display: grid; gap: 24px; align-content: start; color: var(--fm-body); font-size: 14px; line-height: 20px; }
+.nx .fm b { font-weight: 600; color: var(--fm-ink); }
+
+.nx .fm-head { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "eye net rec" "h1 net rec" "sum net rec"; column-gap: 12px; align-items: end; }
+.nx .fm-eyebrow { grid-area: eye; font-size: 12px; line-height: 16px; color: var(--fm-mute); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.nx .fm-head h1 { grid-area: h1; margin-top: 4px; font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -.02em; color: var(--fm-ink); }
+.nx .fm-sum { grid-area: sum; margin-top: 4px; font-size: 14px; line-height: 20px; color: var(--fm-body); }
+.nx .fm-sum .is-late { color: var(--fm-warn-ink); }
+.nx .fm-net { grid-area: net; }
+.nx .fm-record { grid-area: rec; }
+
+/* Connection: a quiet pill that opens what it means. */
+.nx .fm-net { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 999px; background: var(--fm-fill); color: var(--fm-ink); font-size: 14px; font-weight: 500; white-space: nowrap; transition: background .15s; }
+.nx .fm-net > i { width: 8px; height: 8px; border-radius: 50%; background: var(--fm-ok); flex: none; }
+.nx .fm-net[data-s="offline"] > i { background: var(--fm-warn); }
+.nx .fm-net[data-s="nosignal"] > i { background: transparent; box-shadow: inset 0 0 0 2px var(--fm-warn); }
+.nx .fm-net .fm-tag { margin-right: -8px; }
+.nx .fm-netp { display: grid; gap: 12px; padding: 16px; border-radius: 12px; background: var(--fm-fill); color: var(--fm-body); }
+.nx .fm-netp p { max-width: 60ch; }
+.nx .fm-switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; width: 100%; font-weight: 500; color: var(--fm-ink); }
+.nx .fm-switch i { position: relative; width: 40px; height: 24px; border-radius: 12px; background: var(--fm-fill-2); flex: none; transition: background .16s; box-shadow: inset 0 0 0 1px var(--fm-line); }
+.nx .fm-switch i::after { content: ""; position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--fm-raise); box-shadow: 0 1px 2px rgba(11, 30, 61, .2); transition: transform .16s var(--fm-ease); }
+.nx .fm-switch[aria-checked="true"] i { background: var(--fm-blue); box-shadow: none; }
+.nx .fm-switch[aria-checked="true"] i::after { transform: translateX(16px); }
+.nx .fm-netp-a { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── Buttons, tags, notes ─────────────────────────────────────────── */
+.nx .fm-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; background: var(--fm-fill); color: var(--fm-ink); font-size: 14px; line-height: 20px; font-weight: 500; white-space: nowrap; flex: none; transition: background .15s, transform .1s; }
+.nx .fm-btn:active { transform: scale(.98); }
+.nx .fm-btn.is-go { background: var(--fm-blue); color: var(--fm-on-blue); }
+.nx .fm-btn.is-sm { height: 32px; padding: 0 12px; }
+.nx .fm-btn.is-wide { width: 100%; height: 48px; font-size: 16px; }
+.nx .fm-btn[disabled] { opacity: .5; cursor: default; transform: none; }
+.nx .fm-link { color: var(--fm-blue); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+.nx .fm-link.fm-start { min-height: 32px; }
+.nx .fm-err .fm-link { color: inherit; }
+.nx .fm-tag { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 4px; background: var(--fm-fill); color: var(--fm-body); font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; }
+.nx .fm-tag.is-late, .nx .fm-tag.is-wait { background: var(--fm-warn-soft); color: var(--fm-warn-ink); }
+.nx .fm-tag.is-on { background: var(--fm-blue-soft); color: var(--fm-blue); }
+.nx .fm-tag.is-ok { background: var(--fm-ok-soft); color: var(--fm-ok); }
+.nx .fm-tag.is-bad { background: var(--bad-soft); color: var(--fm-bad); }
+.nx .fm-hint { font-size: 12px; line-height: 16px; color: var(--fm-mute); }
+.nx .fm-err { padding: 8px 12px; border-radius: 8px; background: var(--bad-soft); color: var(--fm-bad); font-size: 14px; line-height: 20px; }
+.nx .fm-ok { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; background: var(--fm-ok-soft); color: var(--fm-ok); font-size: 14px; font-weight: 500; }
+.nx .fm-quiet { color: var(--fm-mute); }
+
+/* ── The round: two short lists, hairlines between rows, nothing boxed ── */
+.nx .fm-sec { display: grid; gap: 4px; }
+.nx .fm-sec-h { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.nx .fm-sec-h { flex-wrap: wrap; row-gap: 8px; }
+.nx .fm-sec-h h2 { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--fm-ink); white-space: nowrap; }
+.nx .fm-count { color: var(--fm-mute); font-size: 14px; font-variant-numeric: tabular-nums; }
+.nx .fm-sec-h > .fm-btn { margin-left: auto; }
+.nx .fm-list { display: grid; }
+.nx .fm-stop { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 16px; align-items: center; padding: 12px 0; }
+.nx .fm-stop + .fm-stop { border-top: 1px solid var(--fm-line); }
+.nx .fm-stop-t { display: grid; gap: 4px; min-width: 0; }
+.nx .fm-stop-t > b { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--fm-ink); overflow-wrap: anywhere; }
+.nx .fm-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--fm-mute); font-size: 14px; line-height: 20px; }
+.nx .fm-meta > :not(.fm-tag) + :not(.fm-tag)::before { content: "·"; margin-right: 8px; }
+.nx .fm-stop.is-done .fm-stop-t > b { color: var(--fm-mute); }
+.nx .fm-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.nx .fm-stop > .fm-full { grid-column: 1 / -1; }
+.nx .fm-acts > .fm-btn[aria-expanded="true"] { background: var(--fm-blue-soft); color: var(--fm-blue); }
+.nx .fm-tools { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.nx .fm-tools > button, .nx .fm-tools > a { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: 8px; background: var(--fm-fill); color: var(--fm-ink); font-size: 14px; font-weight: 500; text-align: left; transition: background .15s; }
+.nx .fm-tools svg { color: var(--fm-blue); flex: none; }
+.nx .fm-tools > [aria-pressed="true"] { background: var(--fm-blue-soft); color: var(--fm-blue); box-shadow: inset 0 0 0 2px var(--fm-blue); }
+.nx .fm-empty { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; padding: 16px; border-radius: 12px; background: var(--fm-fill); }
+.nx .fm-empty p { color: var(--fm-body); }
+.nx .fm-empty .fm-btn, .nx .fm-netp .fm-btn { background: var(--fm-raise); }
+
+/* A form opened on a stop: a quiet surface under the row. */
+.nx .fm-form, .nx .fm .nr-sheet { grid-column: 1 / -1; display: grid; gap: 16px; padding: 16px; border-radius: 12px; background: var(--fm-fill); box-shadow: none; }
+.nx .fm-form-a { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx .fm-form .fm-btn:not(.is-go), .nx .fm-draft .fm-btn:not(.is-go) { background: var(--fm-raise); box-shadow: inset 0 0 0 1px var(--fm-line); }
+
+/* Fields and shared controls, on the field scale. Controls keep their line; surfaces do not. */
+.nx .fm .nx-field { gap: 8px; font-size: 14px; line-height: 20px; color: var(--fm-ink); }
+.nx .fm .nx-field > span { font-weight: 500; }
+.nx .fm .nx-field small { font-size: 12px; line-height: 16px; color: var(--fm-mute); }
+.nx .fm .nx-field :is(input, textarea, select) { min-height: 40px; padding: 8px 12px; border-radius: 8px; font-size: 14px; line-height: 20px; background: var(--fm-raise); box-shadow: inset 0 0 0 1px var(--fm-line); color: var(--fm-ink); }
+.nx .fm .nx-field select { padding: 0 12px; }
+.nx .fm .nx-field :is(input, textarea, select):focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 1px; }
+.nx .fm .nx-fields { gap: 16px 12px; }
+.nx .fm .nr-hint { font-size: 12px; line-height: 16px; color: var(--fm-mute); }
+.nx .fm .nr-err { font-size: 14px; line-height: 20px; padding: 8px 12px; }
+.nx .fm .nr-ok { font-size: 14px; line-height: 20px; padding: 8px 12px; }
+.nx .fm .nr-acts { gap: 8px; }
+.nx .fm .nx-btn { height: 40px; padding: 0 16px; border-radius: 8px; gap: 8px; font-size: 14px; }
+.nx .fm .nx-btn.is-sm { height: 32px; padding: 0 12px; }
+.nx .fm .nx-btn:not(.is-quiet):not(.is-danger) { background: var(--fm-blue) !important; color: var(--fm-on-blue) !important; }
+.nx .fm .nx-btn.is-quiet { background: var(--fm-raise) !important; box-shadow: inset 0 0 0 1px var(--fm-line); }
+.nx .fm .nx-chip { height: 24px; padding: 0 8px; border-radius: 4px; font-size: 12px; }
+
+/* ── What waits on this phone ─────────────────────────────────────── */
+.nx .fm-draft + .fm-draft { border-top: 1px solid var(--fm-line); }
+.nx .fm-draft > summary { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 56px; padding: 8px 0; cursor: pointer; list-style: none; }
+.nx .fm-draft > summary::-webkit-details-marker { display: none; }
+.nx .fm-draft > summary b { display: block; font-size: 14px; line-height: 20px; }
+.nx .fm-draft > summary small { display: block; color: var(--fm-mute); font-size: 12px; line-height: 16px; }
+.nx .fm-draft > div { display: grid; gap: 12px; padding: 0 0 16px 24px; }
+.nx .fm-draft > div > p { overflow-wrap: anywhere; }
+.nx .fm-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--fm-warn); flex: none; }
+.nx .fm-dot[data-s="failed"] { background: var(--fm-bad); }
+.nx .fm-dot[data-s="sent"] { background: var(--fm-ok); }
+.nx .fm-sent > summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--fm-body); font-weight: 500; cursor: pointer; list-style: none; }
+.nx .fm-sent > summary::-webkit-details-marker { display: none; }
+.nx .fm-sent > summary svg { color: var(--fm-mute); transition: transform .16s var(--fm-ease); }
+.nx .fm-sent[open] > summary svg { transform: rotate(180deg); }
+.nx .fm-sent li { display: grid; grid-template-columns: minmax(0, 1fr) 8px; gap: 12px; align-items: center; padding: 8px 0; }
+.nx .fm-sent li + li { border-top: 1px solid var(--fm-line); }
+.nx .fm-sent li small { display: block; color: var(--fm-mute); font-size: 12px; line-height: 16px; }
+.nx .fm-onphone { font-size: 14px; color: var(--fm-mute); display: inline-flex; align-items: center; gap: 8px; }
+
+/* ── The PIN ─────────────────────────────────────────────────────── */
+.nx .fm-pin { max-width: 400px; display: grid; gap: 16px; padding: 24px; border-radius: 16px; background: var(--fm-fill); }
+.nx .fm-pin h2 { font-size: 20px; line-height: 28px; font-weight: 600; color: var(--fm-ink); }
+.nx .fm-pin form { display: grid; gap: 16px; }
+.nx .fm-pin input { height: 48px; border-radius: 8px; border: 0; box-shadow: inset 0 0 0 1px var(--fm-line); background: var(--fm-raise); color: var(--fm-ink); font: 600 24px var(--s4-inter, Inter), system-ui; letter-spacing: .4em; text-align: center; padding: 0 12px; }
+.nx .fm-pin input:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 1px; }
+.nx .fm-lock { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; background: var(--fm-raise); color: var(--fm-blue); }
+
+/* ── Record an animal: one screen, one Save ───────────────────────── */
+.nx .fm-scrim { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 32px; background: rgba(11, 30, 61, .32); }
+.nx .fm-sheet { width: min(600px, 100%); max-height: calc(100dvh - 64px); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--bg); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 64px -24px rgba(11, 30, 61, .5); animation: fm-in .22s var(--fm-ease) both; }
+@keyframes fm-in { from { opacity: 0; transform: translateY(8px); } }
+.nx .fm-sheet-h { display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 24px; border-bottom: 1px solid var(--fm-line); }
+.nx .fm-sheet-h h2 { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; color: var(--fm-ink); }
+.nx .fm-sheet-h h2:focus { outline: none; }
+.nx .fm-x { margin-left: auto; width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; color: var(--fm-body); transition: background .15s; }
+.nx .fm-sheet-b { overflow: auto; overscroll-behavior: contain; padding: 24px; display: grid; gap: 24px; align-content: start; }
+.nx .fm-sheet-f { display: grid; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--fm-line); background: var(--bg); }
+.nx .fm-note { font-size: 14px; line-height: 20px; color: var(--fm-body); }
+.nx .fm-note.is-bad { color: var(--fm-bad); font-weight: 500; }
+
+.nx .fm-q { display: grid; gap: 12px; min-width: 0; }
+.nx .fm-q > h3 { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--fm-ink); }
+.nx .fm-q-note { color: var(--fm-mute); }
+
+.nx .fm-photo { position: relative; display: grid; justify-items: center; align-content: center; gap: 4px; min-height: 160px; padding: 24px 16px; border-radius: 12px; background: var(--fm-fill); color: var(--fm-ink); text-align: center; overflow: hidden; cursor: pointer; transition: background .15s; }
+.nx .fm-photo:focus-within { outline: 2px solid var(--fm-blue); outline-offset: 2px; }
+.nx .fm-photo-i { width: 48px; height: 48px; margin-bottom: 8px; border-radius: 50%; display: grid; place-items: center; background: var(--fm-blue); color: var(--fm-on-blue); }
+.nx .fm-photo b { font-size: 16px; line-height: 24px; }
+.nx .fm-photo small { color: var(--fm-mute); font-size: 14px; line-height: 20px; }
+.nx .fm-photo input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.nx .fm-photo.has-shot { padding: 0; min-height: 0; }
+.nx .fm-photo.has-shot img { display: block; width: 100%; height: 240px; object-fit: cover; }
+.nx .fm-retake { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 999px; background: rgba(255, 255, 255, .94); color: #0b1e3d; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px -4px rgba(11, 30, 61, .35); pointer-events: none; }
+.nx .fm-start { justify-self: start; }
+
+.nx .fm-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx .fm-chip { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 999px; background: var(--fm-fill); color: var(--fm-ink); font-size: 14px; font-weight: 500; transition: background .15s, box-shadow .15s, color .15s; }
+.nx .fm-chip svg { color: var(--fm-blue); flex: none; }
+.nx .fm-chip.is-urgent svg { color: var(--fm-flame); }
+.nx .fm-chip[aria-checked="true"] { background: var(--fm-blue-soft); color: var(--fm-blue); box-shadow: inset 0 0 0 2px var(--fm-blue); }
+.nx .fm-chip.is-urgent[aria-checked="true"] { background: var(--fm-flame-soft); color: var(--fm-flame-ink); box-shadow: inset 0 0 0 2px var(--fm-flame); }
+.nx .fm-chip.is-urgent[aria-checked="true"] svg { color: var(--fm-flame-ink); }
+
+.nx .fm-where { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 12px 12px 16px; border-radius: 12px; background: var(--fm-fill); }
+.nx .fm-where > svg { color: var(--fm-mute); }
+.nx .fm-where.is-found > svg { color: var(--fm-ok); }
+.nx .fm-where.is-failed > svg { color: var(--fm-warn); }
+.nx .fm-where-t b { display: block; font-size: 14px; line-height: 20px; }
+.nx .fm-where-t small { display: block; color: var(--fm-mute); font-size: 12px; line-height: 16px; }
+.nx .fm-where-a { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.nx .fm-where-a .fm-btn { background: var(--fm-raise); }
+.nx .fm-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.nx .fm-two.is-pair { gap: 8px; }
+
+.nx .fm-more { border-radius: 12px; background: var(--fm-fill); }
+.nx .fm-more > summary { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 16px; cursor: pointer; list-style: none; border-radius: 12px; }
+.nx .fm-more > summary::-webkit-details-marker { display: none; }
+.nx .fm-more > summary > span { display: grid; min-width: 0; }
+.nx .fm-more > summary b { font-size: 16px; line-height: 24px; }
+.nx .fm-more > summary small { color: var(--fm-mute); font-size: 14px; line-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx .fm-more > summary > svg { margin-left: auto; flex: none; color: var(--fm-mute); transition: transform .16s var(--fm-ease); }
+.nx .fm-more[open] > summary > svg { transform: rotate(180deg); }
+.nx .fm-more > div { display: grid; gap: 16px; padding: 4px 16px 16px; }
+.nx .fm-seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx .fm-seg button { height: 40px; padding: 0 16px; border-radius: 8px; background: var(--fm-raise); color: var(--fm-ink); box-shadow: inset 0 0 0 1px var(--fm-line); font-size: 14px; font-weight: 500; }
+.nx .fm-seg button[aria-checked="true"] { background: var(--fm-blue-soft); color: var(--fm-blue); box-shadow: inset 0 0 0 2px var(--fm-blue); }
+.nx .fm-pick { display: grid; gap: 4px; }
+.nx .fm-pick button { display: grid; gap: 4px; padding: 8px 12px; min-height: 48px; border-radius: 8px; background: var(--fm-raise); text-align: left; }
+.nx .fm-pick b { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+.nx .fm-pick small { color: var(--fm-mute); font-size: 12px; line-height: 16px; }
+
+/* The way in from Today and Operations wears the same blue as field mode's own. */
+.nx .nx-btn.fm-entry:not(.is-quiet) { background: var(--fm-blue) !important; color: var(--fm-on-blue) !important; }
+
+/* Hover only where there is a pointer that hovers: a tap on a phone never leaves a hover fill behind. */
+@media (hover: hover) {
+  .nx .fm-net:hover { background: var(--fm-fill-2); }
+  .nx .fm-btn:hover { background: var(--fm-fill-2); }
+  .nx .fm-btn.is-go:hover { background: var(--fm-blue-2); }
+  .nx .fm-btn[disabled]:hover { background: var(--fm-fill); }
+  .nx .fm-btn.is-go[disabled]:hover { background: var(--fm-blue); }
+  .nx .fm-stop-t > b a:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .nx .fm-tools > :hover { background: var(--fm-fill-2); }
+  .nx .fm-empty .fm-btn:hover, .nx .fm-netp .fm-btn:hover { background: var(--fm-fill-2); }
+  .nx .fm-x:hover { background: var(--fm-fill); }
+  .nx .fm-photo:hover { background: var(--fm-fill-2); }
+  .nx .fm-chip:hover { background: var(--fm-fill-2); }
+  .nx .fm-where-a .fm-btn:hover { background: var(--fm-fill-2); }
+  .nx .fm-pick button:hover { background: var(--fm-fill-2); }
+}
+
+/* ── Phone ───────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .nx .fm { padding: 16px 16px 96px; gap: 24px; }
+  .nx .fm-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eye net" "h1 net" "sum sum" "rec rec"; align-items: center; }
+  .nx .fm-net { height: 44px; }
+  .nx .fm-record { margin-top: 16px; width: 100%; height: 48px; font-size: 16px; }
+  .nx .fm-btn, .nx .fm-btn.is-sm, .nx .fm .nx-btn, .nx .fm .nx-btn.is-sm { min-height: 44px; }
+  .nx .fm-stop { grid-template-columns: minmax(0, 1fr); padding: 16px 0; }
+  .nx .fm-acts { justify-content: flex-start; }
+  .nx .fm-acts > .fm-btn, .nx .fm-acts > a { flex: 1 1 0; }
+  .nx .fm-tools { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .nx .fm .nx-field :is(input, textarea, select) { min-height: 48px; font-size: 16px; }
+  .nx .fm .nx-field textarea { min-height: 96px; }
+  .nx .fm-link.fm-start { min-height: 44px; }
+  .nx .fm-sec-h > .fm-btn { margin-left: 0; flex: 1 1 100%; }
+  .nx .fm-sent > summary { min-height: 48px; }
+  .nx .fm-pin { padding: 16px; }
+
+  .nx .fm-scrim { padding: 0; place-items: stretch; background: var(--bg); }
+  .nx .fm-sheet { width: 100%; height: 100%; max-height: none; border-radius: 0; box-shadow: none; animation-name: fm-up; animation-duration: .24s; }
+  .nx .fm-sheet-h { min-height: 56px; padding: 4px 4px 4px 16px; }
+  .nx .fm-x { width: 48px; height: 48px; }
+  .nx .fm-sheet-b { padding: 16px; gap: 24px; }
+  .nx .fm-sheet-f { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .nx .fm-chip { height: 44px; }
+  .nx .fm-seg button { height: 44px; flex: 1 1 0; }
+  .nx .fm-photo.has-shot img { height: 200px; }
+  .nx .fm-where { grid-template-columns: 24px minmax(0, 1fr); }
+  .nx .fm-where-a { grid-column: 1 / -1; justify-content: flex-start; }
+  .nx .fm-where-a .fm-btn { flex: 1 1 0; }
+  .nx .fm-two:not(.is-pair) { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .nx .fm-photo { min-height: 128px; padding: 16px; }
+  .nx .fm-photo-i { width: 40px; height: 40px; margin-bottom: 4px; }
+}
+@keyframes fm-up { from { transform: translateY(24px); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nx .fm-sheet { animation: none; }
+  .nx .fm-btn, .nx .fm-chip, .nx .fm-net, .nx .fm-photo, .nx .fm-tools > *, .nx .fm-switch i, .nx .fm-switch i::after, .nx .fm-more > summary > svg, .nx .fm-sent > summary svg { transition: none; }
+}
