@@ -47,7 +47,8 @@ export async function enterAs(role: DemoRole): Promise<string | null> {
 
 /** A change of sample account is a fresh visit: leave for the next screen without the last person's open tabs. */
 export function leaveFor(path: string, replace = false) {
-  const clear = () => { try { for (const k of Object.keys(localStorage)) if (k.startsWith("sp.ws.v1:")) { const v = JSON.parse(localStorage.getItem(k) ?? "null"); if (v && typeof v === "object") localStorage.setItem(k, JSON.stringify({ ...v, tabs: [] })); } } catch { /* tabs simply stay */ } };
+  /* Both the app's open tabs (nx.tabs.v1) and the older workspace tabs: one person's tabs never follow into the next person's screens. */
+  const clear = () => { try { localStorage.setItem("nx.tabs.v1", "[]"); for (const k of Object.keys(localStorage)) if (k.startsWith("sp.ws.v1:")) { const v = JSON.parse(localStorage.getItem(k) ?? "null"); if (v && typeof v === "object") localStorage.setItem(k, JSON.stringify({ ...v, tabs: [] })); } } catch { /* tabs simply stay */ } };
   clear(); window.addEventListener("pagehide", clear);
   if (replace) window.location.replace(path); else window.location.assign(path);
 }
