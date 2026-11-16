@@ -11,6 +11,7 @@ import { Composer } from "./Composer";
 import { PlanCard, Thread } from "./Thread";
 import { useKajuPrefs, useKajuVocab } from "./data";
 import { useKaju, type Planned } from "./state";
+import { VoiceEntry } from "@/kaju/voice/VoiceEntry";
 import "./kaju.css";
 
 /* Compact Kaju: summoned from any page (the Kaju button or ⌘J), aware of the page it was opened on, and sharing its
@@ -60,6 +61,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
             <span className="nx-ka-i"><Sparkles size={13} /></span><b>Kaju</b>
             {crumb ? <span className="nx-dockk-ctx" title="Kaju knows which page you opened it on">On {crumb}</span> : null}
             <span style={{ marginLeft: "auto" }} />
+            <VoiceEntry compact />
             <button type="button" className="nx-ib" aria-label="Open full Kaju" title="Open full Kaju" onClick={() => { k.setOpen(false); router.push("/kaju"); }}><Maximize2 size={15} /></button>
             <button type="button" className="nx-ib" aria-label="Close Kaju" onClick={() => k.setOpen(false)}><X size={16} /></button>
           </div>

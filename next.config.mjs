@@ -14,6 +14,8 @@
    footer in src/components/site) compare this same value, which the build
    turns into a constant, so the experience not shown, with its scripts
    and styles, is left out of the bundles. ─────────────────────────────── */
+import { voiceMode } from "./src/lib/kaju-voice/mode.mjs";
+
 const MARKETING_EXPERIENCE = process.env.MARKETING_EXPERIENCE === "cinematic" ? "cinematic" : "legacy";
 
 /** @type {import('next').NextConfig} */
@@ -131,6 +133,13 @@ const nextConfig = {
           { key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=()" },
         ],
       },
+      // Kaju Voice is the only document allowed the microphone, and only where
+      // voiceMode() names a mode (production on its own database, the assigned
+      // preview on staging, or next dev). Every other route keeps the denial.
+      ...(voiceMode() ? [{
+        source: "/kaju/voice",
+        headers: [{ key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=(self)" }],
+      }] : []),
     ];
   },
 };

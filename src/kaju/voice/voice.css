@@ -1,0 +1,20 @@
+.kv { max-width: 768px; margin: 0 auto; padding: 48px 24px; color: #0b1e3d; background: #fff; font-family: var(--s4-inter), sans-serif; font-size: 16px; line-height: 1.5; min-height: 100vh; }
+.kv h1 { font-size: 32px; font-weight: 600; margin: 16px 0; }
+.kv p { margin: 16px 0; }
+.kv a { color: #2457ce; text-decoration: underline; }
+.kv-label, .kv .kv-note { color: #4a5568; font-size: 14px; overflow-wrap: anywhere; }
+.kv-test { margin-top: 32px; }
+.kv-test label { display: block; margin-bottom: 8px; font-weight: 600; }
+.kv select, .kv button, .kv input { min-height: 48px; padding: 8px 16px; font: inherit; border: 1px solid #6b7486; border-radius: 8px; background: #fff; color: #0b1e3d; }
+.kv input { width: 100%; }
+.kv-access { margin-bottom: 24px; }
+.kv-access button { margin-bottom: 16px; }
+.kv select { width: 100%; }
+.kv-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.kv-actions button:first-child { background: #2457ce; color: #fff; border-color: #2457ce; }
+.kv button:disabled { opacity: .5; cursor: not-allowed; }
+.kv :focus-visible { outline: 2px solid #2457ce; outline-offset: 4px; }
+.kv [role="alert"] { color: #a52a1c; }
+.kv-transcript { padding: 0; list-style: none; }
+.kv-transcript li { padding: 16px 0; border-bottom: 1px solid #e4e8f0; overflow-wrap: anywhere; }
+@media (max-width: 767px) { .kv { padding: 24px 16px; } .kv-actions button:first-child { width: 100%; } }

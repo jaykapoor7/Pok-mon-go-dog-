@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Sparkles, Trash2 } from "lucide-react";
 import { Shell } from "../Shell";
+import { VoiceEntry } from "@/kaju/voice/VoiceEntry";
 import { Chip, Sample } from "../ui";
 import { toast } from "../kit";
 import { CONNECTED, MISSIONS } from "../fixtures";
@@ -59,7 +60,7 @@ export function Kaju() {
       <div className="nx-kj">
         <div className="nx-head">
           <div><p className="nx-eyebrow">{org ? `Works inside ${org.name}, with your permissions` : "Answers from public records until you sign in"}{!live.signedIn && live.ready ? <Sample /> : null}</p><h1 className="nx-h1">What should we get done?</h1><p className="nx-sub">Ask a question, or hand over an outcome. Kaju shows its plan first; anything that changes several records or leaves StrayPaw waits for you.</p></div>
-          {waiting.length ? <Link href="/kaju/approvals" className="nx-btn is-quiet is-keep"><Chip tone="warn">{waiting.length}</Chip>waiting for you</Link> : null}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}><VoiceEntry />{waiting.length ? <Link href="/kaju/approvals" className="nx-btn is-quiet is-keep"><Chip tone="warn">{waiting.length}</Chip>waiting for you</Link> : null}</div>
         </div>
         <div className="nx-kj-cols">
           <div>
