@@ -346,7 +346,7 @@ export function DemoTour() {
             : <button type="button" className={`dt-btn is-go${done ? " is-ready" : ""}`} disabled={busy} onClick={next}>{busy ? "Opening…" : goLabel} {!busy && <ArrowRight size={15} aria-hidden />}</button>}
         </div>
         <div className="dt-foot">
-          {needsGo ? <button type="button" className="dt-text" disabled={busy} onClick={next}>Skip</button> : null}
+          {needsGo ? <button type="button" className="dt-text" disabled={busy} onClick={next}>{last && nextStage ? `Skip to ${nextStage.label}` : "Skip"}</button> : null}
           <button type="button" className="dt-text" disabled={busy} onClick={replay}>Replay stage</button>
           <button type="button" className="dt-text" disabled={busy} onClick={restart}>Restart</button>
           {roles}

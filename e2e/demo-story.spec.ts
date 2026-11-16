@@ -14,6 +14,8 @@ test.setTimeout(600_000);
 const card = (page: Page) => page.locator("aside.dt").first();
 const act = (page: Page, title: string) => expect(card(page).locator("h2", { hasText: title })).toBeVisible({ timeout: 90_000 });
 const on = (page: Page, re: RegExp) => card(page).getByRole("button", { name: re }).click();
+/** The guide's one-click example; the label returns once every field is filled. */
+const example = async (page: Page, re: RegExp) => { await on(page, re); await expect(card(page).getByRole("button", { name: re })).toBeEnabled({ timeout: 15_000 }); };
 
 test("one bite, six stages: the guide points at each control, notices each step and hands over to the next role", async ({ page, isMobile }) => {
   test.skip(isMobile, "the recording is made on a desktop");
@@ -27,7 +29,7 @@ test("one bite, six stages: the guide points at each control, notices each step 
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
   await act(page, "Tell Kaju what happened");
   await expect(page.locator(".sp-tour-hl")).toBeVisible();
-  await on(page, /Use the example words/);
+  await example(page, /Use the example words/);
   await page.getByRole("button", { name: "Tell Kaju" }).click();
   const read = page.locator('[data-tour="bite-understood"]');
   for (const w of ["Dog, street or community", "Indiranagar", "this morning", "Medical help", "what the animal looked like"]) await expect(read).toContainText(w);
@@ -36,7 +38,7 @@ test("one bite, six stages: the guide points at each control, notices each step 
   await act(page, "See where to go");
   await page.getByRole("button", { name: "Tell the programme about the animal" }).click();
   await act(page, "Add what Kaju asked for");
-  await on(page, /Use the example description/);
+  await example(page, /Use the example description/);
   await page.locator('[data-tour="bite-answer"] input').press("Enter");
   await page.getByRole("button", { name: "No, just send it" }).click();
   await act(page, "Confirm and send");
@@ -48,11 +50,11 @@ test("one bite, six stages: the guide points at each control, notices each step 
   await act(page, "The notice is waiting");
   await page.locator('[data-tour="notice"][data-area="Indiranagar"] [data-tour="notice-came"]').first().click();
   await act(page, "Record the presentation");
-  await on(page, /Fill the example entry/);
+  await example(page, /Fill the example entry/);
   await page.getByRole("button", { name: "Save presentation" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Save", exact: true }).click();
   await act(page, "Prescribe the course");
-  await on(page, /Fill the example prescription/);
+  await example(page, /Fill the example prescription/);
   await page.getByRole("button", { name: "Save prescription" }).click();
   await page.getByRole("dialog").locator("input[type=checkbox]").check();
   await page.getByRole("dialog").getByRole("button", { name: "Save prescription" }).click();
@@ -79,11 +81,13 @@ test("one bite, six stages: the guide points at each control, notices each step 
   await page.getByRole("dialog").getByRole("button", { name: "Link the animal" }).click();
   await act(page, "Reports on WhatsApp");
   await expect(page.locator('[data-tour="request"][data-area="Indiranagar"]').first()).toContainText("animal linked: Simba");
+  await on(page, /Take me there/);
+  await page.waitForURL(/\/ngo\/inbox/, { timeout: 60_000 });
   await on(page, /Next role: Kaju/);
 
   /* 4 · Kaju: the briefing from records, what is missing, who does what, prepared work confirmed. */
   await act(page, "Ask Kaju about the incident");
-  await on(page, /Use the example question/);
+  await example(page, /Use the example question/);
   await page.locator('textarea[aria-label="Ask Kaju"]').press("Enter");
   const answer = page.locator('[data-tour="kaju-answer"]', { hasText: "Who does what" });
   await expect(answer).toBeVisible({ timeout: 60_000 });
