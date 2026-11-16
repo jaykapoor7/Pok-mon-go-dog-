@@ -77,13 +77,15 @@ const field = (sel: string): HTMLElement | null => {
 async function runFills(fills: Fill[]) {
   for (const f of fills) {
     if (f.op === "wait") { await new Promise((r) => setTimeout(r, f.ms)); continue; }
-    const el = field(f.sel);
+    /* A field the page adds a moment later ("Add a dose date") is waited for, not skipped. */
+    let el = field(f.sel);
+    for (let i = 0; !el && i < 25; i++) { await new Promise((r) => setTimeout(r, 80)); el = field(f.sel); }
     if (!el) continue;
     if (f.op === "type" && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) { setNative(el, typeof f.value === "function" ? f.value(indiaToday()) : f.value); el.focus({ preventScroll: true }); }
     else if (f.op === "select" && el instanceof HTMLSelectElement) setNative(el, f.value);
     else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLInputElement) { if (!el.checked) el.click(); }
     else if (f.op === "press") el.click();
-    await new Promise((r) => setTimeout(r, 40));
+    await new Promise((r) => setTimeout(r, f.op === "press" ? 160 : 60));
   }
 }
 
