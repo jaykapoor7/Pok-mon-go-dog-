@@ -13,6 +13,7 @@ import { Failed, Field, FilePick, Skeleton, day, errText, toast, useAct } from "
 import { Chip } from "../../../ui";
 import { Drawer, Find, Grid, Tools, TryLink, Views, type GCol, type Who } from "../frame";
 import { S_DOCS } from "../sample";
+import { animalLine } from "../../../animalLabel";
 
 /* Documents: the paper the organisation already has (register pages, ledgers, medical notes, message threads,
    consent forms), each with its own context and attached to an animal or a case, so a transcribed entry can be
@@ -20,7 +21,8 @@ import { S_DOCS } from "../sample";
 
 const KIND = Object.fromEntries(DOCUMENT_KINDS.map((k) => [k.value, k.label])) as Record<DocumentKind, string>;
 const sensitive = (d: SourceDocument) => d.kind === "medical_note" || d.kind === "other" || !!d.case_id;
-const animalLabel = (a: AnimalLite) => a.name?.trim() || a.code || a.straypaw_id || "Unnamed animal";
+/** The animal as the register names it: "Tiger (132)" or "Dog 128". */
+const animalLabel = (a: AnimalLite) => animalLine(a);
 type Data = { docs: SourceDocument[]; animals: AnimalLite[] | null; cases: Case[] | null };
 
 export function DocumentsTab({ who }: { who: Who }) {

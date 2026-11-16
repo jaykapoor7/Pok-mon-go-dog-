@@ -39,6 +39,11 @@ role("oh-ngo")("NGO coordinator: lands in the NGO workspace and reads its own ca
   await expect(rows(page).first()).toBeVisible();
   await live(page, "/ngo/animals");
   await expect(rows(page).first()).toBeVisible();
+  await expect(page.getByText("Unnamed")).toHaveCount(0);
+  /* The register as a map: the organisation's own animals, framed to them, a tap away from each record. */
+  await page.getByRole("button", { name: "Map", exact: true }).click();
+  await expect(page.locator(".am-map canvas")).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("#am-note")).toContainText("Only your organisation's animals are on it.");
   await live(page, "/kaju/insights");
   await expect(page.locator(".nx-chk")).toHaveCount(6);
   await expect(page.locator("a.nx-classic")).toHaveCount(0);

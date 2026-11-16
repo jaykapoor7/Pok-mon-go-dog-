@@ -110,10 +110,12 @@ test("the Municipality map opens on its evidence layers", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+/* The organisation's map is a view of its animal register now (Animals, List | Map); the old Operations map link opens it. */
 test("the organisation map asks a visitor to sign in and draws nothing", async ({ page }) => {
   await page.goto("/ngo/operations?view=map");
+  await expect(page).toHaveURL(/\/ngo\/animals\?view=map/);
   await expect(page.getByText(/Sign in as a member of an NGO to see your organisation/)).toBeVisible();
-  await expect(page.locator(".fm-map canvas")).toHaveCount(0);
+  await expect(page.locator(".am-map canvas, .fm-map canvas")).toHaveCount(0);
 });
 
 test.describe("reporting", () => {
