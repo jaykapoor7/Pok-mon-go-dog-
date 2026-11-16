@@ -58,6 +58,7 @@
     "test:notify-delivery": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-notify-delivery.ts",
     "test:routes": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-routes.ts",
     "test:kaju-planner": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-planner.ts",
+    "test:kaju-workspace": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-workspace.ts",
     "test:monthly": "node --import tsx scripts/test-monthly.ts",
     "test:inference-off": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-inference-off.ts",
     "test:package-check": "node --import tsx scripts/test-package-check.ts",

@@ -1,4 +1,4 @@
--- PROPOSED, NOT APPLIED. For the owner to review and apply on staging, then production.
+-- Applied on staging, checked there, then applied on production on 2026-11-16 (see docs/rebuild/PRODUCTION-CHANGES.md, eighth set).
 --
 -- Live mission workrooms. A mission's workroom (/kaju/missions/[id]) reads the mission, its steps and its events, and
 -- today polls every 4 seconds while Kaju is working and every 20 seconds while it waits. With these three tables in the
