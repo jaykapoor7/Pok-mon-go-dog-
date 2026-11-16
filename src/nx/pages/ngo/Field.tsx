@@ -29,6 +29,7 @@ import { archiveDraft, clearOfflineDevice, deleteDraft, fieldCache, lockOffline,
 import { submitFieldDraft } from "@/lib/field/sync";
 import { backToAssigned, ensureVolunteer, isoDay, setFollowup, shortCode, startWork, type Actor } from "../../data/ngo";
 import { LifecycleForm, TRY, undoWith } from "./parts";
+import { animalLine, animalName, animalSearch } from "@/nx/animalLabel";
 import "../../css/ngo-records.css";
 import "../../field.css";
 
@@ -145,6 +146,8 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
   const [fus, setFus] = useState<DueFollowup[]>([]);
   const [assigned, setAssigned] = useState<string[]>([]);
   const [known, setKnown] = useState<KnownAnimal[]>([]);
+  /* An animal is named the way the register names it: "Tiger (132)" or "Dog 128", never "Unnamed". */
+  const dogLine = (id: string | null, name: string | null) => { const k = id ? known.find((a) => a.id === id) : undefined; return k ? animalLine(k) : animalName(name); };
   const [policies, setPolicies] = useState<WorkflowPolicy[]>([]);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
@@ -272,13 +275,13 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
       {myFus.length ? <section className="fm-sec" aria-labelledby="fm-due"><div className="fm-sec-h"><h2 id="fm-due">Follow-ups due</h2><span className="fm-count">{myFus.length}</span></div>
         <ol className="fm-list">{myFus.map((f) => { const late = Date.parse(f.due_at) < Date.now(), d = done[`f${f.id}`]; return (
           <li key={f.id} className={`fm-stop ${d ? "is-done" : ""}`}>
-            <div className="fm-stop-t"><b>{words(f.kind, "Recheck")}{f.animal_name ? ` · ${f.animal_name}` : ""}</b><span className="fm-meta">{late ? <span className="fm-tag is-late">Late</span> : null}<span>Due {day(f.due_at)}</span>{[shortCode(f.case_code, "follow-up"), f.zone].filter(Boolean).map((x) => <span key={x}>{x}</span>)}</span>{f.note ? <span className="fm-meta">{f.note}</span> : null}</div>
+            <div className="fm-stop-t"><b>{words(f.kind, "Recheck")}{dogLine(f.dog_id, f.animal_name) ? ` · ${dogLine(f.dog_id, f.animal_name)}` : ""}</b><span className="fm-meta">{late ? <span className="fm-tag is-late">Late</span> : null}<span>Due {day(f.due_at)}</span>{[shortCode(f.case_code, "follow-up"), f.zone].filter(Boolean).map((x) => <span key={x}>{x}</span>)}</span>{f.note ? <span className="fm-meta">{f.note}</span> : null}</div>
             {d ? <p className="fm-ok"><Tick size={16} aria-hidden />{d}</p> : <div className="fm-acts"><button type="button" className="fm-btn" disabled={!online || !!busy} onClick={() => void fu(f, "done")}><Tick size={16} aria-hidden />Done</button><button type="button" className="fm-btn" disabled={!online || !!busy} onClick={() => void fu(f, "missed")}>Missed</button></div>}
             {!online && !d ? <p className="fm-hint fm-full">Marking a follow-up needs signal.</p> : null}
           </li>); })}</ol></section> : null}
 
       {mine.length ? <section className="fm-sec" aria-labelledby="fm-mine"><div className="fm-sec-h"><h2 id="fm-mine">Your cases</h2><span className="fm-count">{mine.length}</span></div>
-        <ol className="fm-list">{mine.map((c) => <CaseStop key={c.id} c={c} online={online} started={c.status_class === "in_progress" || done[`s${c.id}`] === "Started"} busy={!!busy} drafted={drafts.filter((d) => d.caseId === c.id).length} onStart={() => void start(c)}
+        <ol className="fm-list">{mine.map((c) => <CaseStop key={c.id} c={c} animal={dogLine(c.dog_id, c.animal_name)} online={online} started={c.status_class === "in_progress" || done[`s${c.id}`] === "Started"} busy={!!busy} drafted={drafts.filter((d) => d.caseId === c.id).length} onStart={() => void start(c)}
           onNote={(t) => note(c, t)} onEvidence={(k, f, l) => evidence(c, k, f, l)} onVaccination={(v) => vaccination(c, v)} vaccDefaults={vaccDefaults} policies={policies} onOperation={(k, d, p, r) => operation(c.id, c.case_code, k, d, p, r)} route={route} />)}</ol></section> : null}
 
       {cases !== null && !failed && !stops ? <div className="fm-empty"><p>Cases you take become stops here.</p><Link className="fm-btn" href={unowned ? "/ngo/cases?view=unassigned" : "/ngo/cases"}>{unowned ? `See ${plural(unowned, "unassigned case", "unassigned cases")}` : "Open the cases"}</Link></div> : null}
@@ -337,7 +340,7 @@ const keepLabel = (route: Route3, what: string) => (route === "keep" ? `Keep the
 const keptToast = (route: Route3) => (route === "send" ? "Saved. Sending now." : route === "hold" ? "Saved on this phone. It is sent when the signal is back." : "Kept on this phone, encrypted. Send it when there is signal.");
 
 type Tool = "note" | "evidence" | "vacc" | "care";
-function CaseStop({ c, online, started, busy, drafted, onStart, onNote, onEvidence, onVaccination, vaccDefaults, policies, onOperation, route }: { c: OpenCase; online: boolean; started: boolean; busy: boolean; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>; onEvidence: (k: EvidenceKind, f: File | null, l: string) => Promise<void>; onVaccination: (v: VaccinationData) => Promise<void>; vaccDefaults?: Pick<VaccinationData, "vaccine" | "batch" | "performedBy">; policies: WorkflowPolicy[]; onOperation: (k: OperationKind, d: LifecycleData, p: string | null, r: string) => Promise<void>; route: Route3 }) {
+function CaseStop({ c, animal, online, started, busy, drafted, onStart, onNote, onEvidence, onVaccination, vaccDefaults, policies, onOperation, route }: { c: OpenCase; animal: string | null; online: boolean; started: boolean; busy: boolean; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>; onEvidence: (k: EvidenceKind, f: File | null, l: string) => Promise<void>; onVaccination: (v: VaccinationData) => Promise<void>; vaccDefaults?: Pick<VaccinationData, "vaccine" | "batch" | "performedBy">; policies: WorkflowPolicy[]; onOperation: (k: OperationKind, d: LifecycleData, p: string | null, r: string) => Promise<void>; route: Route3 }) {
   const [tool, setTool] = useState<Tool | null>(null);
   const [open, setOpen] = useState(false);
   const [t, setT] = useState("");
@@ -350,7 +353,7 @@ function CaseStop({ c, online, started, busy, drafted, onStart, onNote, onEviden
   const tools: [Tool, string, typeof PenLine, boolean][] = [["note", "Note", PenLine, true], ["evidence", "Photo or proof", Camera, true], ["vacc", "Vaccination", Syringe, !!c.dog_id], ["care", "Care or movement", Route, !!c.dog_id]];
   const save = async (fn: () => Promise<void>) => { setSaving(true); setError(null); try { await fn(); shut(); toast({ text: keptToast(route), tone: "ok" }); } catch (e) { setError(errText(e)); } finally { setSaving(false); } };
   const gps = () => navigator.geolocation?.getCurrentPosition((p) => setLoc(`Observed GPS: ${p.coords.latitude}, ${p.coords.longitude}; accuracy ${Math.round(p.coords.accuracy)} m; ${new Date(p.timestamp).toISOString()}`), () => setError("Location is unavailable. Say where it was in words."));
-  const place = [shortCode(c.case_code), c.animal_name, c.zone].filter(Boolean) as string[];
+  const place = [shortCode(c.case_code), animal, c.zone].filter(Boolean) as string[];
   return (
     <li className="fm-stop">
       <div className="fm-stop-t"><b><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></b>
@@ -458,7 +461,8 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
   };
 
   const why = WHY.find((w) => w.id === d.category)!;
-  const matches = search.trim() ? known.filter((a) => [a.name, a.code, a.straypaw_id, a.identifiers].filter(Boolean).join(" ").toLowerCase().includes(search.toLowerCase())).slice(0, 5) : [];
+  const want = animalSearch(search).toLowerCase();
+  const matches = want ? known.filter((a) => [a.name, a.code, a.straypaw_id, a.identifiers].filter(Boolean).join(" ").toLowerCase().includes(want)).slice(0, 5) : [];
   const linked = d.existingDogId ? known.find((a) => a.id === d.existingDogId) : undefined;
   const missing: null | "why" | "where" | "place" = !chosen ? "why" : !located ? "where" : !d.zone.trim() || !d.city.trim() ? "place" : null;
   const need = missing === "why" ? "Choose why you are recording it."
@@ -467,7 +471,7 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
   const goes = route === "send" ? (d.existingDogId ? "Saves to your register now, as a new case on this dog's history." : "Saves to your register now: a new animal and its case.")
     : route === "hold" ? "No signal right now. It waits on this phone and is sent when the signal is back. Keep this page open."
     : "Kept on this phone, locked with your PIN, until you send it.";
-  const details = [d.sex && (d.sex === "Unknown" ? "Sex not sure" : d.sex), linked ? `Seen before: ${linked.name || linked.straypaw_id || linked.code}` : d.name, d.identifiers, d.description && "A note"].filter(Boolean).join(" · ");
+  const details = [d.sex && (d.sex === "Unknown" ? "Sex not sure" : d.sex), linked ? `Seen before: ${animalLine(linked)}` : d.name, d.identifiers, d.description && "A note"].filter(Boolean).join(" · ");
 
   const save = async () => {
     if (saving.current) return;
@@ -555,7 +559,7 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
               <F label="Marks that tell it apart"><input value={d.identifiers} maxLength={500} onChange={(e) => set({ identifiers: e.target.value })} autoComplete="off" /></F>
               {known.length ? <div className="fm-q">
                 <F label="Seen this dog before?"><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search your register" autoComplete="off" /></F>
-                {matches.length ? <div className="fm-pick">{matches.map((a) => <button key={a.id} type="button" onClick={() => { set({ existingDogId: a.id, name: a.name ?? "", code: a.code ?? a.straypaw_id ?? "" }); setSearch(""); }}><b><Search size={16} aria-hidden />{a.name || a.straypaw_id || a.code}</b>{a.identifiers || a.code ? <small>{a.identifiers || a.code}</small> : null}</button>)}</div> : null}
+                {matches.length ? <div className="fm-pick">{matches.map((a) => <button key={a.id} type="button" onClick={() => { set({ existingDogId: a.id, name: a.name ?? "", code: a.code ?? a.straypaw_id ?? "" }); setSearch(""); }}><b><Search size={16} aria-hidden />{animalLine(a)}</b>{a.identifiers || a.code ? <small>{a.identifiers || a.code}</small> : null}</button>)}</div> : null}
                 {d.existingDogId ? <p className="fm-ok" role="status"><Tick size={16} aria-hidden />Added to this dog&apos;s history. <button type="button" className="fm-link" onClick={() => set({ existingDogId: undefined, code: "" })}>Undo</button></p> : null}
               </div> : null}
               <F label="Anything to add?"><textarea value={d.description} maxLength={3000} rows={3} onChange={(e) => set({ description: e.target.value })} /></F>

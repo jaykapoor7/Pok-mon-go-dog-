@@ -79,7 +79,7 @@ function LiveAnimals({ org }: { org: Workspace }) {
   const [scan, setScan] = useState(false);
   useEffect(() => { void readZones().then((r) => setZones(r.data ?? [])); void readRevacSetting().then((r) => setRv(r.data ?? null)); }, []);
   useEffect(() => { const t = window.setTimeout(() => { setDq(q); setPage(0); }, 260); return () => window.clearTimeout(t); }, [q]);
-  useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); if (v === "identity" && lead) setLens("identity"); if (v === "scan" && tags) setScan(true); }, [lead, tags]);
+  useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); if (v === "identity" && lead) setLens("identity"); if (v === "help" || v === "ster" || v === "vacc") setLens(v); if (v === "scan" && tags) setScan(true); }, [lead, tags]);
   /* The map draws the register's own lenses; the revaccination and identity lists are lists. */
   const choose = (l: string) => { setLens(l as Lens); setPage(0); if (l === "revac" || l === "identity") setLayout("list"); };
   const show = (l: Layout) => { setLayout(l); if (l === "map" && (lens === "revac" || lens === "identity")) setLens("all"); };
@@ -91,7 +91,7 @@ function LiveAnimals({ org }: { org: Workspace }) {
     ...(lead ? [{ id: "identity", label: "Identity review" }] : []),
   ].map((v) => ({ ...v, count: "count" in v ? v.count : counts[v.id as Lens] ?? null }));
   /* List or map sits with the page's actions: it changes how the whole register is shown, not what is in it. */
-  const action = <div className="nr-tools"><LayoutSwitch value={layout} onChange={show} />{tags ? <button type="button" className="nx-btn is-quiet is-keep" onClick={() => setScan(true)}><ScanLine size={14} />Scan a tag</button> : null}<Link href="/ngo/field" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>;
+  const action = <div className="nr-tools"><LayoutSwitch value={layout} onChange={show} />{tags ? <button type="button" className="nx-btn is-quiet is-keep" onClick={() => setScan(true)}><ScanLine size={14} />Scan a tag</button> : null}<Link href="/ngo/field?record=1" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>;
   const setCount = useCallback((l: Lens, c: number) => setCounts((x) => (x[l] === c ? x : { ...x, [l]: c })), []);
   const common = { org, views, lens, choose, action, setCount };
   return (
@@ -143,7 +143,7 @@ function Register({ org, views, lens, choose, action, setCount, layout, zone, se
       action={action} loading={rows === null} error={error} onRetry={() => void load()}
       tools={<div className="nr-tools"><select className="nr-sel" value={zone} onChange={(e) => setZone(e.target.value)} aria-label="Place"><option value="">Every place</option>{zones.slice(0, 300).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({n(z.n)})</option>)}</select>
         {layout === "list" ? <button type="button" className="nx-btn is-quiet is-sm" disabled={!total || csv} onClick={() => void download()}>{csv ? <Loader2 size={13} className="nx-spin" /> : <Download size={13} />}Download</button> : null}</div>}
-      empty={{ none: "No animals on the register yet", filtered: filterOn(filter) ? "No animal matches" : "No animals on the register yet", hint: filterOn(filter) ? "Change the search, the lens or the place." : <>Animals your team records, and rows released from imports, appear here. <Link className="nr-link" href="/ngo/field">Record the first one in field mode</Link>.</> }}
+      empty={{ none: "No animals on the register yet", filtered: filterOn(filter) ? "No animal matches" : "No animals on the register yet", hint: filterOn(filter) ? "Change the search, the lens or the place." : <>Animals your team records, and rows released from imports, appear here. <Link className="nr-link" href="/ngo/field?record=1">Record the first one</Link>.</> }}
       foot={<Pager page={page} total={total} setPage={setPage} />}
       replace={layout === "map" ? <AnimalMap ngoId={org.org_id} query={{ search: filter.search, zone: filter.zone, needs: filter.needs, ster: filter.ster, vacc: filter.vacc }} /> : undefined}
       preview={(a) => ({ title: <AnimalTitle a={a} />, sub: <>{a.zone ?? "Place not recorded"} · last seen {day(a.last_seen)}</>, href: `/ngo/animals/${a.id}`, hrefLabel: "Open full record",
@@ -348,7 +348,7 @@ function SampleAnimals() {
     <Shell crumb={["NGO", "Animals"]}>
       <RecordList id="animals" title="Animals" sample rows={ANIMALS} rowKey={(a) => a.id} rowLabel={(a) => animalLabel(sampleRef(a)).line} columns={SCOLS} views={SVIEWS} search={(a) => `${a.id} ${animalLabel(sampleRef(a)).tag} ${a.name} ${a.ward} ${a.mark}`} placeholder="Name, number, code or place"
         sub={<><b className="num">{ANIMALS.length}</b> animals on the register. Each row says how far its record has been checked.</>}
-        action={<div className="nr-tools"><LayoutSwitch value={layout} onChange={setLayout} /><TryLink quiet><ScanLine size={14} />Scan a tag</TryLink><Link href="/ngo/field" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>}
+        action={<div className="nr-tools"><LayoutSwitch value={layout} onChange={setLayout} /><TryLink quiet><ScanLine size={14} />Scan a tag</TryLink><Link href="/ngo/field?record=1" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>}
         tools={layout === "list" ? <TryLink quiet sm><Download size={13} />Download</TryLink> : null} loading={false} empty={{ none: "No animals yet" }} hrefOf={(a) => `/ngo/animals/${a.id}`}
         replace={map}
         preview={(a) => ({ title: <AnimalTitle a={sampleRef(a)} />, sub: <>{a.ward} · Last seen {a.last} <TrustChip trust={a.trust} /></>, href: `/ngo/animals/${a.id}`, hrefLabel: "Open full record", body: <SampleBody a={a} /> })} />
