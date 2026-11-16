@@ -117,7 +117,10 @@ const nextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
-            value: "camera=(self), geolocation=(self), microphone=()",
+            // Kaju Voice runs inside the Kaju dock on any page, so StrayPaw's own
+            // pages may ask for the microphone while voice is on (voiceMode()).
+            // Third-party frames and the embed widget never can.
+            value: `camera=(self), geolocation=(self), microphone=${voiceMode() ? "(self)" : "()"}`,
           },
         ],
       },

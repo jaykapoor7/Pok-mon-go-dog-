@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { ArrowRight, Trash2 } from "lucide-react";
+import { ArrowRight, Keyboard, Mic, Trash2 } from "lucide-react";
 import { Shell } from "../Shell";
-import { VoiceEntry } from "@/kaju/voice/VoiceEntry";
+import { KajuVoice } from "@/kaju/voice/KajuVoice";
+import { VOICE_OFFERED } from "@/kaju/voice/availability";
 import { Kaju as Puppy } from "@/kaju/Kaju";
 import { Sample } from "../ui";
 import { toast } from "../kit";
@@ -46,6 +47,7 @@ export function Kaju() {
   const [started, setStarted] = useState(false);
   /* Words handed over from the command bar (?q=) are placed in the composer, not sent. */
   useEffect(() => { try { const q = new URLSearchParams(window.location.search).get("q"); if (q) window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); } catch {} }, []);
+  const [voice, setVoice] = useState(false);
 
   const plan = useCallback(async (text: string, intent: Parameters<typeof k.plan>[2]) => {
     if (!org) return;
@@ -88,24 +90,26 @@ export function Kaju() {
                 <h1 className="kj-h1">What do you want done?</h1>
                 <p className="kj-sub">Describe the outcome. Kaju turns it into a plan that says who does each step, runs the parts it is allowed to, and stops wherever a person must decide.</p>
               </div>
-              <div className="kj-hero-v"><VoiceEntry /></div>
+              {VOICE_OFFERED ? <div className="kj-hero-v"><button type="button" className="nx-btn is-quiet is-keep" aria-pressed={voice} onClick={() => setVoice((v) => !v)}>{voice ? <><Keyboard size={15} aria-hidden />Type instead</> : <><Mic size={15} aria-hidden />Talk to Kaju</>}</button></div> : null}
             </header>
 
-            <div className="kj-compose">
-              <Composer vocab={vocab} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus canPlan={!!org} modelPlanning={!!caps?.planning}
-                onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} />
-            </div>
-            {noModel ? <p className="kj-nomodel" role="status">{noModel}</p> : null}
-            <Jobs vocab={vocab} canPlan={!!org} busy={busy} onPlan={(t, i) => void plan(t, i)} intro={caps && !caps.planning ? "Kaju plans these jobs by fixed rules, no model needed:" : "Or start from one of Kaju's jobs:"} />
+            {voice ? <div className="nx-kj-voice"><KajuVoice /></div> : <>
+              <div className="kj-compose">
+                <Composer vocab={vocab} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus canPlan={!!org} modelPlanning={!!caps?.planning}
+                  onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} />
+              </div>
+              {noModel ? <p className="kj-nomodel" role="status">{noModel}</p> : null}
+              <Jobs vocab={vocab} canPlan={!!org} busy={busy} onPlan={(t, i) => void plan(t, i)} intro={caps && !caps.planning ? "Kaju plans these jobs by fixed rules, no model needed:" : "Or start from one of Kaju's jobs:"} />
 
-            <AnimatePresence>{planned ? <PlanCard key={planned.key} planned={planned} vocab={vocab} busy={busy} onStart={(p) => void start(p)} onDiscard={() => setPlanned(null)} /> : null}</AnimatePresence>
+              <AnimatePresence>{planned ? <PlanCard key={planned.key} planned={planned} vocab={vocab} busy={busy} onStart={(p) => void start(p)} onDiscard={() => setPlanned(null)} /> : null}</AnimatePresence>
 
-            {k.turns.length ? (
-              <section className="kj-convo" aria-label="Conversation">
-                <Thread />
-                <p className="kj-quiet"><button type="button" className="nx-thread" onClick={k.clear}><Trash2 size={12} /> Clear this conversation</button> · It stays in this browser tab only.</p>
-              </section>
-            ) : null}
+              {k.turns.length ? (
+                <section className="kj-convo" aria-label="Conversation">
+                  <Thread />
+                  <p className="kj-quiet"><button type="button" className="nx-thread" onClick={k.clear}><Trash2 size={12} /> Clear this conversation</button> · It stays in this browser tab only.</p>
+                </section>
+              ) : null}
+            </>}
 
             <section className="kj-sec" aria-labelledby="kj-m">
               <div className="kj-sec-h"><h2 id="kj-m">Missions</h2>{org && rows.length ? <Link href="/kaju/missions" className="kj-link">All missions<ArrowRight size={13} /></Link> : null}{!org ? <Sample /> : null}</div>

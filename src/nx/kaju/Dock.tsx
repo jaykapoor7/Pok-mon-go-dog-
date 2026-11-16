@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Maximize2, X } from "lucide-react";
+import { ArrowUpRight, Keyboard, Maximize2, Mic, X } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import { useLive } from "../live";
 import { toast } from "../kit";
@@ -16,7 +16,8 @@ import { LiveMissionCard } from "./MissionCard";
 import { useKajuPrefs, useKajuVocab } from "./data";
 import { useCapabilities } from "./work";
 import { useKaju, type Planned } from "./state";
-import { VoiceEntry } from "@/kaju/voice/VoiceEntry";
+import { KajuVoice } from "@/kaju/voice/KajuVoice";
+import { VOICE_OFFERED } from "@/kaju/voice/availability";
 import "./kaju.css";
 import "./workspace.css";
 
@@ -35,6 +36,8 @@ export function KajuDock({ crumb }: { crumb: string }) {
   const [planned, setPlanned] = useState<Planned | null>(null);
   const [startedId, setStartedId] = useState<string | null>(null);
   const [phone, setPhone] = useState(false);
+  // Talk or type: the same Kaju, in the same panel. Closing the panel ends any conversation.
+  const [voice, setVoice] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const before = useRef<HTMLElement | null>(null);
   useEffect(() => { const q = window.matchMedia("(max-width: 640px)"); const on = () => setPhone(q.matches); on(); q.addEventListener("change", on); return () => q.removeEventListener("change", on); }, []);
@@ -63,11 +66,13 @@ export function KajuDock({ crumb }: { crumb: string }) {
             <span className="kj-dock-face"><KajuFace size={22} /></span><b>Kaju</b>
             {crumb ? <span className="nx-dockk-ctx" title="Kaju knows which page you opened it on">On {crumb}</span> : null}
             <span style={{ marginLeft: "auto" }} />
-            <VoiceEntry compact />
+            {VOICE_OFFERED ? <button type="button" className={`nx-ib${voice ? " is-on" : ""}`} aria-pressed={voice} aria-label={voice ? "Back to typing" : "Talk to Kaju"} title={voice ? "Back to typing" : "Talk to Kaju"} onClick={() => setVoice((v) => !v)}>
+              {voice ? <Keyboard size={15} /> : <Mic size={15} />}
+            </button> : null}
             <button type="button" className="nx-ib" aria-label="Open full Kaju" title="Open full Kaju" onClick={() => { close(); router.push("/kaju"); }}><Maximize2 size={15} /></button>
             <button type="button" className="nx-ib" aria-label="Close Kaju" onClick={close}><X size={16} /></button>
           </div>
-          <DockBody planned={planned} setPlanned={setPlanned} startedId={startedId} setStartedId={setStartedId} />
+          {voice ? <div className="nx-dockk-b is-voice"><KajuVoice compact /></div> : <DockBody planned={planned} setPlanned={setPlanned} startedId={startedId} setStartedId={setStartedId} />}
         </motion.div>
       ) : null}
     </AnimatePresence>

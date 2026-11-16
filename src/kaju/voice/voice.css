@@ -93,6 +93,20 @@
 .kvt-urgent { margin: 0; font-size: 14px; color: #0b1e3d; font-weight: 600; }
 .kvt-urgent a { color: #2457ce; }
 
+/* Inside the Kaju dock and the /kaju workspace. */
+.kvx.is-compact { gap: 12px; max-width: none; }
+.kvx.is-compact .kvx-stage { width: 176px; height: 152px; margin-top: 0; }
+.kvx.is-compact .kvx-kaju { width: 136px; }
+.kvx.is-compact .kvx-status { font-size: 16px; line-height: 24px; min-height: 24px; }
+.kvx.is-compact .kvx-caption { font-size: 14px; line-height: 20px; min-height: 40px; }
+.kvx.is-compact .kvx-lang span { min-width: 80px; min-height: 40px; font-size: 14px; }
+.kvx.is-compact .kvx-btn { min-height: 40px; }
+.kvx.is-compact .kvx-btn.is-start { min-width: 200px; }
+.kvx.is-compact .kvx-controls { position: sticky; bottom: 0; z-index: 2; background: var(--bg, #fff); padding: 8px 0 12px; }
+.nx-dockk-b.is-voice { padding: 16px 16px 0; }
+.nx-kj-voice { padding: 24px 16px 16px; }
+.nx-ib.is-on { background: #e9effb; color: #2457ce; }
+
 @media (max-width: 767px) {
   .kv { padding: 16px 16px 32px; }
   .kvx-stage { width: 224px; height: 192px; }
@@ -105,4 +119,7 @@
 @media (prefers-reduced-motion: reduce) {
   .kvx-halo, .kvx-lang span, .kvx-btn { transition: none; }
   .kvx-halo { transform: none; }
+}
+@media (max-width: 767px) {
+  .kvx.is-compact .kvx-lang span, .kvx.is-compact .kvx-btn { min-height: 48px; }
 }
