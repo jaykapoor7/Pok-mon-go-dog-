@@ -374,7 +374,7 @@ function ChatView({ at, quick, typing, log, err, ready, slug, onSend, example, o
           {example && !typing ? <button type="button" className="kc-ex" onClick={() => setText(example)} title="Fill in an example"><Wand2 size={14} aria-hidden /> Example</button> : null}
           <textarea aria-label="Message Kaju" rows={1} value={text} maxLength={600} placeholder={hint} inputMode={tel ? "tel" : undefined}
             onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); } }} />
-          <button type="submit" className="kc-send" aria-label="Send to Kaju" disabled={!text.trim() || !ready}><Send size={18} aria-hidden /></button>
+          <button type="submit" className="kc-send" aria-label="Send to Kaju" disabled={!text.trim() || !ready || typing}><Send size={18} aria-hidden /></button>
         </form>}
       </div>
     </section>
