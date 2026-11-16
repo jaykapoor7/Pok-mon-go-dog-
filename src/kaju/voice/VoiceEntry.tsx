@@ -13,6 +13,9 @@ import { VOICE_TEST_HEADERS } from "@/lib/kaju-voice/shared";
    No SDK is loaded until the person starts a conversation. */
 const ALWAYS = process.env.NEXT_PUBLIC_KAJU_VOICE_TEST === "true";
 const CHECKED = process.env.NEXT_PUBLIC_KAJU_VOICE === "true";
+/* NEXT_PUBLIC_KAJU_VOICE_PUBLIC=on: everyone else, signed in or not, gets the
+   public conversation (/talk): no account, no tools, no records. */
+const PUBLIC = process.env.NEXT_PUBLIC_KAJU_VOICE_PUBLIC === "on";
 
 // One check per account per page load, shared by the dock and the workspace.
 const checks = new Map<string, Promise<boolean>>();
@@ -40,11 +43,12 @@ export function VoiceEntry({ compact = false }: { compact?: boolean }) {
     void availableFor(user.id).then((ok) => { if (live) setAllowed(ok); });
     return () => { live = false; };
   }, [user?.id]);
-  if (!ALWAYS && !(CHECKED && allowed)) return null;
+  const href = ALWAYS || (CHECKED && allowed) ? "/kaju/voice" : PUBLIC ? "/talk" : null;
+  if (!href) return null;
   // Full navigation loads the voice page's microphone Permissions-Policy.
   // A client-side transition would retain the previous document's denial.
   // App button classes: 44px touch targets on phones come from nx.css.
-  return <a href="/kaju/voice" className={compact ? "nx-ib" : "nx-btn is-quiet"} aria-label="Kaju Voice" title="Kaju Voice">
+  return <a href={href} className={compact ? "nx-ib" : "nx-btn is-quiet"} aria-label="Kaju Voice" title="Kaju Voice">
     <Mic size={15} aria-hidden />{compact ? null : "Kaju Voice"}
   </a>;
 }

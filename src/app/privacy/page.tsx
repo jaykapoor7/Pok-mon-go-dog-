@@ -31,6 +31,7 @@ export default function PrivacyPage() {
 
       <h2>Kaju</h2>
       <p>Kaju, the assistant, reads records with the same access as the person asking and currently works from those records with built-in tools; no record is sent to an AI model provider. If model-backed answers are switched on for a workspace, its admin will be told first and this policy will name the provider.</p>
+      <p>Kaju Voice: when you choose to talk to Kaju, your voice is sent to Sarvam AI, StrayPaw&apos;s voice provider, to understand you and to speak Kaju&apos;s replies. Kaju Voice cannot see records. StrayPaw does not store the audio or the words of a conversation; it records only when the conversation started and ended and whether audio was exchanged. Talking to Kaju on the public page needs no account; your IP address is used only to limit how often one device can start a conversation. Sarvam handles the audio under its own data retention settings.</p>
 
       <h2>Who processes data for us</h2>
       <p>We use a small number of providers to run StrayPaw: Supabase (database, file storage and sign-in), Vercel (hosting), Resend (email delivery), Mapbox and OpenStreetMap-based services (maps) and Cloudflare Turnstile (protecting forms from abuse). They process data on our instructions. An organisation that connects its own Google, Microsoft, Slack or Zoho account allows StrayPaw to use that account only for what it has allowed.</p>
