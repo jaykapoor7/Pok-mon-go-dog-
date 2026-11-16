@@ -133,6 +133,8 @@ test("Kaju's call: it says each question aloud, hears the answers, fills the rep
       stop() { /* ends on its own */ } abort() { this.onend?.(); }
     }
     w.SpeechRecognition = Rec; w.webkitSpeechRecognition = Rec;
+    /* A microphone that is there and allowed (the test browser has none). */
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [] }) } });
     Object.defineProperty(window, "speechSynthesis", { configurable: true, value: { speak(u: { text: string; onend?: () => void }) { w.__said.push(u.text); setTimeout(() => u.onend?.(), 60); }, cancel() { /* nothing queued */ }, getVoices: () => [], addEventListener() { /* no voices */ } } });
   });
   await page.context().grantPermissions(["microphone"]).catch(() => undefined);
