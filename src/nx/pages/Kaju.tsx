@@ -86,7 +86,7 @@ export function Kaju() {
             <header className="kj-hero">
               <div className="kj-hero-pup" aria-hidden><Puppy state={pose} size={76} /></div>
               <div className="kj-hero-t">
-                <p className="kj-eyebrow">{org ? <>Kaju · works inside {org.name}, with your permissions</> : <>Kaju · answers from public records until you sign in</>}{!live.signedIn && live.ready ? <Sample /> : null}</p>
+                <p className="kj-eyebrow">{org ? <>Kaju · works inside {org.name}, with your permissions</> : <>Kaju · answers from public records until you sign in</>}{!live.signedIn ? <Sample /> : null}</p>
                 <h1 className="kj-h1">What do you want done?</h1>
                 <p className="kj-sub">Describe the outcome. Kaju turns it into a plan that says who does each step, runs the parts it is allowed to, and stops wherever a person must decide.</p>
               </div>
@@ -127,7 +127,7 @@ export function Kaju() {
           </div>
 
           <aside className="kj-side">
-            <Noticed items={notices} sample={!org && live.ready} busy={acting} onAct={(n) => void act(n)} />
+            <Noticed items={notices} sample={!org && (live.ready || !live.signedIn)} busy={acting} onAct={(n) => void act(n)} />
             <Capabilities items={caps?.items ?? null} failed={failed} orgId={org?.org_id ?? null} />
             <p className="kj-rules">Kaju reads only what you can see. It never makes clinical, laboratory, verification, payment or data-access decisions; those steps wait for the person with the authority.</p>
           </aside>
