@@ -9,7 +9,9 @@ export type VoiceTestConfig = {
   version: number;
   languages: VoiceLanguage[];
   user_identifier?: string;
-  scope?: { kind: "standalone" | "organisation"; id: string };
+  scope?: { kind: "standalone" | "organisation" | "public"; id: string };
+  /** Non-secret context for the agent, set by the server for this session. */
+  agent_variables?: Record<string, string>;
 };
 
 export const VOICE_TEST_HEADERS = { "X-StrayPaw-Voice-Test": "1" };

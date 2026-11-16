@@ -14,7 +14,7 @@
    footer in src/components/site) compare this same value, which the build
    turns into a constant, so the experience not shown, with its scripts
    and styles, is left out of the bundles. ─────────────────────────────── */
-import { voiceMode } from "./src/lib/kaju-voice/mode.mjs";
+import { publicVoicePage, voiceMode } from "./src/lib/kaju-voice/mode.mjs";
 
 const MARKETING_EXPERIENCE = process.env.MARKETING_EXPERIENCE === "cinematic" ? "cinematic" : "legacy";
 
@@ -138,6 +138,11 @@ const nextConfig = {
       // preview on staging, or next dev). Every other route keeps the denial.
       ...(voiceMode() ? [{
         source: "/kaju/voice",
+        headers: [{ key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=(self)" }],
+      }] : []),
+      // The public "Talk to Kaju" page, only while SARVAM_VOICE_PUBLIC is owner or on.
+      ...(publicVoicePage() ? [{
+        source: "/talk",
         headers: [{ key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=(self)" }],
       }] : []),
     ];

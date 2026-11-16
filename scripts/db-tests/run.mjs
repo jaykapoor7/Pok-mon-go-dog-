@@ -521,5 +521,32 @@ section("Kaju Voice session grants (preview migration, then the production acces
   ok((await one("select count(*)::int as n from public.kaju_voice_sessions where user_id = $1", [T])).n === 0 && (await one("select count(*)::int as n from public.kaju_voice_access where user_id = $1", [T])).n === 0, "deleting an account deletes its voice access and sessions");
 }
 
+section("Kaju Voice public conversations (no account; server service role only)");
+{
+  for (let i = 0; i < 2; i++) await db.exec(readFileSync(join(MIG, "20261117110000_kaju_voice_public_sessions.sql"), "utf8"));
+  const S = uuid(); await db.query("insert into auth.users (id, email, email_confirmed_at) values ($1, 'staff@example.invalid', now())", [S]);
+  await db.query("insert into public.kaju_voice_access (user_id) values ($1)", [S]);
+  const asRole = async (role, sql, params = []) => { await db.exec(`set role ${role}`); try { return (await db.query(sql, params)).rows; } finally { await db.exec("reset role"); } };
+  const deniedFor = async (role, sql, params = []) => { try { await asRole(role, sql, params); return false; } catch { return true; } };
+  ok(await deniedFor("anon", "select public.kaju_voice_public_reserve(1)"), "signed-out callers cannot start a public conversation directly");
+  ok(await refused(S, "select public.kaju_voice_public_reserve(1)") !== null, "signed-in callers cannot either");
+  const P1 = (await asRole("service_role", "select public.kaju_voice_public_reserve(1) as id"))[0].id;
+  const row = await one("select user_id, scope_kind, scope_id, status from public.kaju_voice_sessions where id = $1", [P1]);
+  ok(row.user_id === null && row.scope_kind === "public" && row.scope_id === P1 && row.status === "reserved", "the server reserves a public row with no account");
+  ok(await refused(S, "select public.kaju_voice_public_update($1, 'claim')", [P1]) !== null, "nobody signed in can advance a public conversation");
+  ok((await asRole("service_role", "select public.kaju_voice_public_update($1, 'claim') as ok", [P1]))[0].ok === true, "its token claims one provider session");
+  ok((await asRole("service_role", "select public.kaju_voice_public_update($1, 'claim') as ok", [P1]))[0].ok === false, "and only one: a replayed token signs nothing more");
+  ok((await asRole("service_role", "select public.kaju_voice_public_update($1, 'issued', 'pub-ref') as ok", [P1]))[0].ok === true, "the signed session is recorded with its reference");
+  ok((await asRole("service_role", "select public.kaju_voice_public_update($1, 'client_ended', 'other-ref') as ok", [P1]))[0].ok === false, "a report must name the conversation's own reference");
+  ok((await asRole("service_role", "select public.kaju_voice_public_update($1, 'client_ended', 'pub-ref', '{\"audioReceived\":true}') as ok", [P1]))[0].ok === true, "the end is recorded");
+  ok((await as(S, "select id from public.kaju_voice_sessions where id = $1", [P1])).length === 0, "a public conversation is invisible to signed-in people");
+  ok((await as(S, "select public.kaju_voice_update(null, 'client_connected', 'pub-ref') as ok"))[0].ok === false, "a staff account cannot report on a public conversation");
+  const P2 = (await asRole("service_role", "select public.kaju_voice_public_reserve(1) as id"))[0].id;
+  await db.query("update public.kaju_voice_sessions set created_at = now() - interval '6 minutes' where id = $1", [P2]);
+  ok((await asRole("service_role", "select public.kaju_voice_public_update($1, 'claim') as ok", [P2]))[0].ok === false, "an old reservation cannot be claimed");
+  let mixed = false; try { await db.query("insert into public.kaju_voice_sessions (user_id, scope_kind, scope_id, agent_version) values (null, 'standalone', gen_random_uuid(), 1)"); } catch { mixed = true; }
+  ok(mixed, "a staff session always has an account; a public one never does");
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

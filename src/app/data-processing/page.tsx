@@ -30,8 +30,9 @@ export default function DataProcessingPage() {
         <li><b>Resend:</b> delivery of sign-in codes and notices by email.</li>
         <li><b>Mapbox and OpenStreetMap-based services:</b> map tiles and place search. Animal records are not sent to them.</li>
         <li><b>Cloudflare Turnstile:</b> protecting public forms from automated abuse.</li>
+        <li><b>Sarvam AI:</b> Kaju Voice, for conversations a person chooses to start: recognising speech, running the spoken conversation and speaking Kaju&apos;s replies. It receives the audio of that conversation, not organisations&apos; records.</li>
       </ul>
-      <p>No AI model provider is a sub-processor today. If model-backed answers are switched on, the provider will be added here and organisations told beforehand. We will tell organisation admins before adding or replacing a sub-processor that handles their records.</p>
+      <p>No AI model provider receives organisations&apos; records. If model-backed answers are switched on, the provider will be added here and organisations told beforehand. We will tell organisation admins before adding or replacing a sub-processor that handles their records.</p>
 
       <h2>Where data is held</h2>
       <p>With the providers above. The database is not hosted in an Indian region today, and we do not claim otherwise. If your programme requires hosting in India, raise it before the agreement so it can be scoped.</p>

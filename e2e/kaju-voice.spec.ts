@@ -8,10 +8,10 @@ test("voice setup stays honest and fits desktop and phone", async ({ page }) => 
   page.on("request", (req) => { if (/sarvam\.ai/.test(req.url())) providerRequests++; });
   const response = await page.goto("/kaju/voice");
   expect(response?.headers()["permissions-policy"]).toContain("microphone=(self)");
-  await expect(page.getByRole("heading", { name: "Speak with Kaju" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Start conversation" })).toBeDisabled();
-  await expect(page.getByRole("status")).toContainText("Not connected");
-  await expect(page.getByLabel("Starting language").locator("option")).toHaveText(["English", "Hindi", "Kannada"]);
+  await expect(page.getByRole("heading", { name: "Talk to Kaju" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start talking" })).toBeDisabled();
+  await expect(page.getByRole("status")).toContainText("not available");
+  await expect(page.getByRole("radio")).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(providerRequests).toBe(0);
 });
