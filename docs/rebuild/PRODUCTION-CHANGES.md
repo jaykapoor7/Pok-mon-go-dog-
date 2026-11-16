@@ -210,3 +210,31 @@ may call it, anonymous visitors may not.
 not raised with the leads again".
 
 Rollback: re-create `nx_automation_run` from `20261116180000_rebuild_automation_followup.sql`.
+
+---
+
+# Eighth set: a mission's workroom updates the moment a step changes
+
+**Applied on staging, checked there, then applied on production, on 2026-11-16**, through the Supabase tool.
+
+| Order | File | What it changes | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 18 | `20261118090000_kaju_missions_realtime.sql` | Adds `nx_missions`, `nx_mission_steps` and `nx_mission_events` to the `supabase_realtime` publication. No table, row, policy, function or grant changes. Guarded and safe to re-run. | Applied, checked | Applied, checked |
+
+Why: the redesigned mission workroom (`/kaju/missions/[id]`) listens for changes to its mission, steps and activity. Without
+the publication it still works, by reading again every 4 seconds while Kaju works and every 20 while it waits; with it, a
+step's change shows at once.
+
+Who receives a change: Realtime applies each table's read policy to every subscriber. All three are limited to the person
+who started the mission (`nx_missions_read`: `owner_id = auth.uid()`; `nx_steps_read` and `nx_mission_events_read`: the
+mission is the reader's own). The policies were identical on staging and production before applying.
+
+Staging check, signed in as two members of the sample NGO: both subscribed to all three tables, and the coordinator
+started a read-only "Check overdue cases" mission (it reads cases and changes nothing). The coordinator received 12
+changes (6 mission, 3 step, 3 activity); the field worker in the same organisation received none. That mission remains
+on staging, completed.
+
+Production after applying (read-only): the publication holds `nx_messages` and the three mission tables.
+
+Rollback: `alter publication supabase_realtime drop table public.nx_missions, public.nx_mission_steps, public.nx_mission_events;`
+

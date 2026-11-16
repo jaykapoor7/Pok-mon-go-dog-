@@ -10,6 +10,7 @@ import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { FINDINGS, WORKLOAD, type Finding } from "../fixtures";
 import { useCases, useLive } from "../live";
+import { KajuPlaces } from "../kaju/Places";
 
 /* Kaju's insights: the fixed checks Kaju runs over the organisation's own records (kaju_refresh_checks), each with
    its method written out, and how open cases are spread across people. No model writes these, no health record is
@@ -80,7 +81,7 @@ export function KajuInsights() {
   const waiting = findings.filter((f) => f.count > 0);
   return (
     <Shell ws="kaju" crumb={["Kaju", "Insights"]}>
-      <div className="nx-page" style={{ maxWidth: 1000 }}>
+      <div className="nx-page" style={{ maxWidth: 1000 }}><KajuPlaces />
         <div className="nx-head"><div><p className="nx-eyebrow">{sample ? "Kind Hour" : ngo!.name}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Insights</h1>
           <p className="nx-sub">{run === undefined && !sample ? "Reading Kaju's checks…" : sample || run ? <><b className="num">{waiting.length}</b> of {findings.length} checks found something{sample ? "" : <>, last run {ago(run!.at)}</>}. Each check says exactly what it counts.</> : "Kaju's checks have not run for this organisation yet."}</p></div>
           <button type="button" className="nx-btn is-keep" onClick={runNow} disabled={busy}><RefreshCw size={14} className={busy ? "nx-spin" : undefined} />{busy ? "Checking…" : "Run the checks now"}</button>

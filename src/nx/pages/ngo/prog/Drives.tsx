@@ -58,9 +58,9 @@ export function DrivesTab({ who }: { who: Who }) {
         <p className="nx-note" style={{ marginTop: 14 }}><span>These are animals the organisation recorded in this drive, not a share of the area&apos;s dog population. Population coverage needs a dated estimate.</span></p>
       </Drawer> : null}</AnimatePresence>
       {o ? <section className="ns-sec"><div className="nx-sec-h"><h2>Whole register</h2><span className="nx-count">{o.total} animals</span></div>
-        <div className="ns-cols" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", marginTop: 8 }}>
-          <div className="ns-stack"><b style={{ fontWeight: 500 }}>Sterilisation</b><Partition yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" /></div>
-          <div className="ns-stack"><b style={{ fontWeight: 500 }}>Vaccination</b><Partition yes={o.vaccinated} no={o.not_vaccinated} unknown={o.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" /></div>
+        <div className="ns-part-grid">
+          <Partition title="Sterilised" yes={o.sterilised} no={o.not_sterilised} unknown={o.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" hrefs={{ no: "/ngo/animals?view=ster" }} />
+          <Partition title="Vaccinated" yes={o.vaccinated} no={o.not_vaccinated} unknown={o.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" hrefs={{ no: "/ngo/animals?view=vacc" }} />
         </div>
         <p className="nx-foot">These are animals the organisation recorded, not a share of the area&apos;s dog population. Population coverage needs a dated estimate.</p>
       </section> : null}

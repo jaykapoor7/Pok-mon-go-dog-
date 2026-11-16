@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Camera, Clock, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Camera, Clock, Plus, Sparkles, Trash2 } from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+import { toast } from "../kit";
 import { Shell } from "../Shell";
 import { Check, Chip, Sample } from "../ui";
 import { FIGS, ME, ORG, PREPARED, TEAM, VISITS, WORK, type Work } from "../fixtures";
 import { addTasks, setTaskDone, useLive, useNgoCounts, useTasks, type Task } from "../live";
+import "../field.css";
 
 const COLS = "28px minmax(0, 1fr) 132px 104px 138px 64px";
 const GROUPS: Work["group"][] = ["Now", "Today", "This week"];
@@ -116,23 +119,34 @@ function LiveToday() {
     const r = await setTaskDone(t.id, done, userId);
     if (r.error) { setNote(`Not saved: ${r.error.message}`); tasks.reload(); }
   };
+  /* Delete archives the task (state "cancelled", which the list leaves out) rather than erasing it, so Undo puts it back
+     exactly as it was and an admin can still find it. */
+  const remove = async (t: Task) => {
+    setNote(null);
+    setRows((r) => r?.filter((x) => x.id !== t.id) ?? r);
+    const db = getSupabase()!;
+    const r = await db.from("nx_tasks").update({ state: "cancelled" }).eq("id", t.id);
+    if (r.error) { setNote(`Not deleted: ${r.error.message}`); tasks.reload(); return; }
+    toast({ text: `Deleted “${t.title}”.`, undo: async () => { await db.from("nx_tasks").update({ state: t.state }).eq("id", t.id); tasks.reload(); } });
+  };
   const add = async () => { const t = title.trim(); if (!t) return; setNote(null); const r = await addTasks(org!.org_id, [t]); if (r.error) setNote(`Not added: ${r.error.message}`); else { setTitle(""); tasks.reload(); } };
   const fig = (n: number | null, label: string, href?: string) => { const inner = <><b>{n === null ? "—" : n.toLocaleString("en-IN")}</b><span>{label}{href ? <ArrowRight size={12} /> : null}</span></>; return href ? <Link key={label} href={href} className="nx-fig">{inner}</Link> : <div key={label} className="nx-fig">{inner}</div>; };
   const row = (t: Task) => (
     <motion.li key={t.id} layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={spring}>
-      <div className={`nx-tr is-work ${t.state === "done" ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: "28px minmax(0, 1fr) 150px 120px 90px" }}>
+      <div className={`nx-tr is-work ${t.state === "done" ? "nx-row-done" : ""}`} style={{ gridTemplateColumns: "28px minmax(0, 1fr) 150px 120px 90px 40px" }}>
         <Check done={t.state === "done"} onClick={() => void toggle(t)} label={t.state === "done" ? `Reopen: ${t.title}` : `Mark done: ${t.title}`} />
         <span className="nx-cell-main"><span><b>{t.title}</b><small>{t.source_kind === "kaju" ? "Proposed by Kaju, accepted by a person" : t.source_kind === "manual" ? "Added by hand" : t.source_kind}{t.record_label ? ` · ${t.record_label}` : ""}</small></span></span>
         <span className="nx-t2 nx-hide-s">{t.assignee_name ?? "Unassigned"}</span>
         <span className="nx-t3 nx-hide-s">{t.due_on ? new Date(t.due_on).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "No date"}</span>
         <span>{t.state === "done" ? <Chip tone="ok">Done</Chip> : t.due_on && t.due_on < today ? <Chip tone="bad">Overdue</Chip> : <Chip>Open</Chip>}</span>
+        <button type="button" className="nx-task-del" aria-label={`Delete: ${t.title}`} title="Delete" onClick={() => void remove(t)}><Trash2 size={15} aria-hidden /></button>
       </div>
     </motion.li>
   );
   return (
     <Shell crumb={["Today"]}>
       <div className="nx-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{date} · {org!.name}</p><h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1><p className="nx-sub">{tasks.rows === null && tasks.error ? "Your work could not be read just now." : tasks.rows === null ? "Reading your work…" : <><b className="num">{open.length}</b> open {open.length === 1 ? "task" : "tasks"}{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}.</>}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{date} · {org!.name}</p><h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1><p className="nx-sub">{tasks.rows === null && tasks.error ? "Your work could not be read just now." : tasks.rows === null ? "Reading your work…" : <><b className="num">{open.length}</b> open {open.length === 1 ? "task" : "tasks"}{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}.</>}</p></div>{org!.workspace === "ngo" ? <Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry"><Camera size={14} />Record an animal</Link> : null}</div>
         <div className="nx-figs">
           {fig(tasks.rows === null ? null : open.length, "Open tasks")}
           {fig(tasks.rows === null ? null : closed.length, "Done")}

@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ClipboardList, CornerDownLeft, Hash, MessageSquare, PawPrint, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Camera, ClipboardList, CornerDownLeft, Hash, MessageSquare, PawPrint, Search, Smartphone, Sparkles } from "lucide-react";
 import { recordHref, searchMessages } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { ANIMALS, CASES, CHANNELS } from "./fixtures";
 import { PAGES } from "./nav";
 import { useChannels, useLive } from "./live";
+import { animalLine, animalSearch } from "./animalLabel";
 
 /* The command bar. One box finds a page, a channel, an animal or a case, or hands the words to Kaju.
    Records come from the signed-in organisation only, through the same row-level security as every page.
@@ -45,7 +46,7 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     if (!live.org) {
       const l = n.toLowerCase();
       setRecords([
-        ...ANIMALS.filter((a) => `${a.id} ${a.name} ${a.ward}`.toLowerCase().includes(l)).slice(0, 5).map((a): Hit => ({ id: a.id, group: "Animals", label: a.name, detail: `${a.id} · ${a.ward}`, href: `/ngo/animals/${a.id}`, icon: <PawPrint size={14} /> })),
+        ...ANIMALS.filter((a) => `${a.id} ${a.name} ${a.ward}`.toLowerCase().includes(l)).slice(0, 5).map((a): Hit => ({ id: a.id, group: "Animals", label: animalLine({ id: a.id, name: a.name, code: a.id, species: a.species }), detail: `${a.ward} · code ${a.id}`, href: `/ngo/animals/${a.id}`, icon: <PawPrint size={14} /> })),
         ...CASES.filter((c) => `${c.code} ${c.title} ${c.place}`.toLowerCase().includes(l)).slice(0, 5).map((c): Hit => ({ id: c.id, group: "Cases", label: c.title, detail: `${c.code} · ${c.place}`, href: "/ngo/cases", icon: <ClipboardList size={14} /> })),
       ]);
       return;
@@ -58,16 +59,18 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     setBusy(true);
     const t = window.setTimeout(async () => {
       const like = `%${term}%`;
+      /* "Dog 128", "#128" and "Tiger (128)" look for the number, which finds the code YEL-128. */
+      const dlike = `%${esc(animalSearch(n)) || term}%`;
       const none = Promise.resolve({ data: [] as unknown[] });
       const [d, c, msgs] = await Promise.all([
-        ngo ? db.from("dogs").select("id,name,code,zone").eq("ngo_id", ngo.org_id).or(`name.ilike.${like},code.ilike.${like},zone.ilike.${like}`).limit(5) : none,
+        ngo ? db.from("dogs").select("id,name,code,species,zone").eq("ngo_id", ngo.org_id).or(`name.ilike.${dlike},code.ilike.${dlike},zone.ilike.${dlike}`).limit(5) : none,
         ngo ? db.from("cases").select("id,title,case_code,zone").eq("ngo_id", ngo.org_id).or(`title.ilike.${like},case_code.ilike.${like},zone.ilike.${like}`).limit(5) : none,
         n.length >= 3 ? searchMessages(n) : Promise.resolve([]),
       ]);
       if (!alive) return;
       setBusy(false);
       setRecords([
-        ...((d.data ?? []) as { id: string; name: string | null; code: string | null; zone: string | null }[]).map((x): Hit => ({ id: x.id, group: "Animals", label: x.name || "Unnamed", detail: [x.code, x.zone].filter(Boolean).join(" · "), href: `/ngo/animals/${x.id}`, icon: <PawPrint size={14} /> })),
+        ...((d.data ?? []) as { id: string; name: string | null; code: string | null; species: string | null; zone: string | null }[]).map((x): Hit => ({ id: x.id, group: "Animals", label: animalLine(x), detail: [x.zone, x.code ? `code ${x.code}` : null].filter(Boolean).join(" · "), href: `/ngo/animals/${x.id}`, icon: <PawPrint size={14} /> })),
         ...((c.data ?? []) as { id: string; title: string | null; case_code: string | null; zone: string | null }[]).map((x): Hit => ({ id: x.id, group: "Cases", label: x.title || "Untitled case", detail: [x.case_code && x.case_code.length > 14 ? `${x.case_code.slice(0, 4)}…${x.case_code.slice(-6)}` : x.case_code, x.zone].filter(Boolean).join(" · "), href: `/ngo/cases/${x.id}`, icon: <ClipboardList size={14} /> })),
         ...msgs.slice(0, 6).map((m): Hit => ({ id: `m${m.id}`, group: "Messages", label: m.body.length > 90 ? `${m.body.slice(0, 90)}…` : m.body, detail: `${m.channel_kind === "dm" ? "Direct message" : m.channel_kind === "record" ? m.record_label ?? "Record discussion" : `#${m.channel_name}`} · ${m.author_name ?? "Member"}`, href: m.channel_kind === "record" ? recordHref(m.record_kind, m.record_id) ?? "/ngo/today" : `/channels/${m.channel_name}?m=${m.id}`, icon: <MessageSquare size={14} /> })),
       ]);
@@ -83,8 +86,13 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     const chanNames = live.org ? (chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => c.name) : CHANNELS.map((c) => c.name);
     const channels = chanNames.filter((c) => !l || c.includes(l)).slice(0, 4).map((c): Hit => ({ id: `#${c}`, group: "Channels", label: `#${c}`, href: `/channels/${c}`, icon: <Hash size={14} /> }));
     const kaju: Hit[] = l ? [{ id: "kaju", group: "Kaju", label: `Ask Kaju: “${q.trim()}”`, detail: "Nothing is sent until you press Run", href: `/kaju?q=${encodeURIComponent(q.trim())}`, icon: <Sparkles size={14} /> }] : [];
-    return [...records, ...pages, ...channels, ...kaju];
-  }, [q, records, live.org, chans.rows]);
+    /* Recording an animal is one step from anywhere in an NGO workspace: field mode opens with the record screen up. */
+    const acts: Hit[] = !live.org || ngo ? ([
+      [{ id: "act:record", group: "Pages", label: "Record an animal", detail: "Field mode", href: "/ngo/field?record=1", icon: <Camera size={14} /> }, "record animal dog report intake register capture photo new"],
+      [{ id: "act:field", group: "Pages", label: "Field mode", detail: "NGO", href: "/ngo/field", icon: <Smartphone size={14} /> }, "field mode round offline phone stops"],
+    ] as [Hit, string][]).filter(([, words]) => !l || l.split(/\s+/).every((w) => words.includes(w))).map(([h]) => h) : [];
+    return [...records, ...acts, ...pages, ...channels, ...kaju];
+  }, [q, records, live.org, ngo, chans.rows]);
 
   useEffect(() => { setAt(0); }, [q]);
   const go = (h: Hit | undefined) => { if (!h) return; onClose(); router.push(h.href); };

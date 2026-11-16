@@ -122,13 +122,34 @@ export function Drawer({ head, title, sub, onClose, href, hrefLabel = "Open the 
 }
 
 /** Yes, no and not recorded, side by side: a share never hides the unknown. */
-export function Partition({ yes, no, unknown, yesLabel, noLabel }: { yes: number; no: number; unknown: number; yesLabel: string; noLabel: string }) {
-  const total = yes + no + unknown;
+/** One measure across the register (sterilisation, vaccination): the headline is the share of animals whose status is
+    known, never of all animals, and "not recorded" stays its own part of the track. Each count opens the list it counts
+    when a link is given. */
+export function Partition({ yes, no, unknown, yesLabel, noLabel, title, hrefs }: { yes: number; no: number; unknown: number; yesLabel: string; noLabel: string; title?: string; hrefs?: { yes?: string; no?: string; unknown?: string } }) {
+  const total = yes + no + unknown, known = yes + no;
   const w = (v: number) => (total ? `${(v / total) * 100}%` : "0%");
+  const share = known ? Math.round((yes / known) * 100) : null;
+  const part = (cls: string, n: number, label: string, href?: string) => {
+    const inner = <><i className={cls} aria-hidden /><b className="num">{n.toLocaleString("en-IN")}</b><span>{label}</span></>;
+    return href && n > 0 ? <Link className="ns-part-s" href={href}>{inner}</Link> : <span className="ns-part-s">{inner}</span>;
+  };
   return (
     <div className="ns-part">
-      <span className="ns-part-bar" role="img" aria-label={`${yes} ${yesLabel}, ${no} ${noLabel}, ${unknown} not recorded`}><i className="is-yes" style={{ width: w(yes) }} /><i className="is-no" style={{ width: w(no) }} /><i className="is-unk" style={{ width: w(unknown) }} /></span>
-      <span className="ns-part-k"><span><i className="is-yes" />{yes.toLocaleString("en-IN")} {yesLabel}</span><span><i className="is-no" />{no.toLocaleString("en-IN")} {noLabel}</span><span><i className="is-unk" />{unknown.toLocaleString("en-IN")} not recorded</span></span>
+      {title ? (
+        <div className="ns-part-h">
+          <span>{title}</span>
+          <b className="num">{share === null ? "—" : `${share}%`}</b>
+          <small>{share === null ? "No status recorded yet" : `of ${known.toLocaleString("en-IN")} with a recorded status`}</small>
+        </div>
+      ) : null}
+      <span className="ns-part-bar" role="img" aria-label={`${yes} ${yesLabel}, ${no} ${noLabel}, ${unknown} not recorded`}>
+        <i className="is-yes" style={{ width: w(yes) }} /><i className="is-no" style={{ width: w(no) }} /><i className="is-unk" style={{ width: w(unknown) }} />
+      </span>
+      <span className="ns-part-k">
+        {part("is-yes", yes, yesLabel, hrefs?.yes)}
+        {part("is-no", no, noLabel, hrefs?.no)}
+        {part("is-unk", unknown, "not recorded", hrefs?.unknown)}
+      </span>
     </div>
   );
 }

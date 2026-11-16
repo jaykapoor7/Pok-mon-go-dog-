@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Check as Tick, Clock3, Hand, Loader2, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { ArrowUpRight, Check as Tick, Loader2 } from "lucide-react";
+import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
-import { appHref, useKaju, type Planned, type Turn } from "./state";
+import { appHref, useKaju, type Turn } from "./state";
 
-/* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, anything it prepared as
-   a card with Confirm, and a plan as steps that say how each one runs. */
+/* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
+   as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx). */
 
 const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
 function proposalLine(p: Proposal) {
@@ -54,7 +55,7 @@ export function Thread({ compact }: { compact?: boolean }) {
         <motion.li key={t.id} className={`nx-kturn is-${t.role}`} initial={calm ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .16 }}>
           {t.role === "user" ? <p className="nx-kq">{t.text}</p> : (
             <div className="nx-ka">
-              <span className="nx-ka-i"><Sparkles size={13} /></span>
+              <span className="nx-ka-i is-face"><KajuFace size={22} /></span>
               <div>
                 {t.pending ? <p className="nx-t3" role="status"><Loader2 size={12} className="nx-spin" /> {t.progress?.length ? t.progress[t.progress.length - 1] : "Reading what you can see…"} <button type="button" className="nx-link" onClick={stop}>Stop waiting</button></p> : null}
                 {t.error ? <div className="nx-kerr" role="alert"><p>{t.error}</p>{t.kind === "expired" ? <Link className="nx-btn is-sm" href={`/sign-in?next=${encodeURIComponent(page.path || "/kaju")}`}>Sign in</Link> : <button type="button" className="nx-btn is-quiet is-sm" onClick={() => retry(t.id)}>Try again</button>}</div> : null}
@@ -73,23 +74,5 @@ export function Thread({ compact }: { compact?: boolean }) {
         </motion.li>
       ))}
     </ol>
-  );
-}
-
-const ICON = (level: number) => (level >= 9 ? <ShieldCheck size={13} /> : level === 4 ? <UserRound size={13} /> : level === 3 ? <Hand size={13} /> : <Clock3 size={13} />);
-/** A plan to review before it starts: every step, how it runs here, and why some wait. */
-export function PlanCard({ planned, onStart, onDiscard, busy }: { planned: Planned; onStart: () => void; onDiscard: () => void; busy?: boolean }) {
-  const blocked = planned.steps.some((s) => s.level >= 9);
-  const waits = planned.steps.filter((s) => s.waits && s.level < 9).length;
-  return (
-    <section className="nx-kplan" aria-label="Plan to review">
-      <div className="nx-kplan-h"><b>{planned.plan.title}</b><span className="nx-t3">{planned.planner === "model" ? "Planned with a model" : "Planned by fixed rules"} · not started</span></div>
-      <ol>{planned.steps.map((s) => <li key={s.n} className={s.level >= 9 ? "is-off" : s.waits ? "is-wait" : ""}><span className="nx-kplan-n">{s.n}</span><div><b>{s.label}</b><small>{ICON(s.level)}{s.how}{s.external ? " · outside StrayPaw" : ""}</small>{s.why ? <p>{s.why}</p> : null}</div></li>)}</ol>
-      <div className="nx-kplan-f">
-        <button type="button" className="nx-btn" disabled={busy || blocked} onClick={onStart}>{busy ? <Loader2 size={13} className="nx-spin" /> : null}Start mission</button>
-        <button type="button" className="nx-btn is-quiet" onClick={onDiscard}>Discard</button>
-        <span className="nx-t3">{blocked ? "A step uses a tool your organisation has switched off." : waits ? `It will stop ${waits === 1 ? "once" : `${waits} times`} for you. Runs as you, with your permissions; it keeps going if you close this page.` : "Runs as you, with your permissions; it keeps going if you close this page."}</span>
-      </div>
-    </section>
   );
 }

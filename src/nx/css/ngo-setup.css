@@ -47,15 +47,34 @@
 .nx .ns-media > div { display: grid; gap: 6px; min-width: 0; }
 
 /* Yes / no / not recorded */
-.nx .ns-part { display: grid; gap: 6px; min-width: 0; }
-.nx .ns-part-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--hover); }
-.nx .ns-part-bar i { display: block; height: 100%; }
+/* Register measures (sterilised, vaccinated): a headline share of the animals whose status is recorded, one thick
+   track with "not recorded" kept as its own quiet part, and three counts that open the list they count. */
+.nx .ns-part-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px; }
+.nx .ns-part-grid.is-one { grid-template-columns: minmax(0, 1fr); }
+.nx .ns-part { display: grid; gap: 12px; min-width: 0; }
+.nx .ns-part-grid .ns-part { padding: 16px; border-radius: 12px; background: var(--side); }
+.nx .ns-part-h { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 4px 12px; }
+.nx .ns-part-h > span { color: var(--ink-2); font-size: 14px; font-weight: 500; }
+.nx .ns-part-h > b { grid-row: span 2; align-self: center; color: var(--ink); font-size: 32px; font-weight: 600; letter-spacing: -.01em; }
+.nx .ns-part-h > small { color: var(--ink-3); font-size: 12px; }
+.nx .ns-part-bar { display: flex; gap: 2px; height: 12px; border-radius: 999px; overflow: hidden; background: var(--hover); }
+.nx .ns-part-bar i { display: block; height: 100%; border-radius: 2px; transform-origin: left center; animation: ns-part-grow .5s cubic-bezier(.2, .7, .2, 1) both; }
+.nx .ns-part-bar i:first-child { border-radius: 999px 2px 2px 999px; }
+.nx .ns-part-bar i:last-child { border-radius: 2px 999px 999px 2px; }
+.nx .ns-part-bar i[style*="width: 0%"] { display: none; }
+@keyframes ns-part-grow { from { transform: scaleX(0); } to { transform: none; } }
 .nx .ns-part i.is-yes { background: var(--ok); }
-.nx .ns-part i.is-no { background: var(--ink-3); }
-.nx .ns-part i.is-unk { background: repeating-linear-gradient(135deg, var(--line-2) 0 3px, transparent 3px 6px); box-shadow: inset 0 0 0 1px var(--line-2); }
-.nx .ns-part-k { display: flex; gap: 4px 14px; flex-wrap: wrap; color: var(--ink-2); font-size: 12px; }
-.nx .ns-part-k span { display: inline-flex; align-items: center; gap: 6px; }
-.nx .ns-part-k i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.nx .ns-part i.is-no { background: var(--warn); }
+.nx .ns-part i.is-unk { background: var(--line-2); }
+.nx .ns-part-k { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.nx .ns-part-s { display: grid; grid-template-columns: 8px minmax(0, 1fr); align-items: center; gap: 0 8px; padding: 8px; margin: -8px 0 -8px -8px; border-radius: 8px; color: var(--ink-2); font-size: 12px; text-decoration: none; }
+.nx a.ns-part-s:hover { background: var(--hover); color: var(--ink); }
+.nx a.ns-part-s:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.nx .ns-part-s i { width: 8px; height: 8px; border-radius: 999px; }
+.nx .ns-part-s b { color: var(--ink); font-size: 16px; font-weight: 600; }
+.nx .ns-part-s span { grid-column: 2; }
+.nx .ns-mini .ns-part-bar { height: 8px; }
+@media (prefers-reduced-motion: reduce) { .nx .ns-part-bar i { animation: none; } }
 .nx .ns-mini { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .nx .ns-mini .ns-part-bar { width: 64px; flex: none; }
 

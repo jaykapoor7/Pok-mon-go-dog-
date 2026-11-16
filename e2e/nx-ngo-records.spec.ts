@@ -86,6 +86,20 @@ test("Animals: lenses narrow the register and identity review is a view", async 
   await expect(page.getByRole("dialog")).toContainText("Activity and medical history");
 });
 
+test("Animals: each is named by its name and number, with a photo place, and the register can be a map", async ({ page }) => {
+  await open(page, "/ngo/animals");
+  await expect(page.getByText("Unnamed")).toHaveCount(0);
+  const first = page.locator("button.nx-tr").first();
+  await expect(first.locator(".am-ph")).toBeVisible();
+  await expect(first.locator(".am-tag")).toHaveText("1042");
+  await page.getByRole("button", { name: "Map", exact: true }).click();
+  await expect(page).toHaveURL(/view=map/);
+  await expect(page.getByText(/Sign in as a member of an NGO to see your organisation/)).toBeVisible();
+  await expect(page.locator("button.nx-tr")).toHaveCount(0);
+  await page.getByRole("button", { name: "List", exact: true }).click();
+  await expect(page.locator("button.nx-tr")).toHaveCount(9);
+});
+
 test("Inbox: reports can be chosen together, and WhatsApp and paste are tabs", async ({ page }) => {
   await open(page, "/ngo/inbox");
   await page.getByRole("button", { name: /^Select the report from Ward 12/ }).click();

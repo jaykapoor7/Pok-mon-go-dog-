@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { caller } from "@/lib/connections/server";
 import { allowUserRequest } from "@/lib/rate-limit";
-import { preview, type Intent } from "@/lib/kaju/registry";
+import { TOOL_NAMES, preview, type Intent } from "@/lib/kaju/registry";
 import { choosePlanner, type PlanContext } from "@/lib/kaju/planner";
 import { modelPlanner } from "@/lib/kaju/claude";
 
@@ -41,8 +41,9 @@ export async function POST(req: Request) {
   if ("unavailable" in planner) return NextResponse.json({ ok: false, error: planner.unavailable, model: false });
   const r = await planner.plan(ctx, req.signal);
   if (!r.ok) return NextResponse.json({ ok: false, error: r.error, planner: r.planner });
-  const tools = [...new Set(r.plan.steps.map((s) => s.tool))];
+  /* Every tool's level here, not only the plan's: the person can add or change steps before starting, and each one
+     must say truthfully how it will run. The database decides again when each step runs. */
   const levels: Record<string, number> = {};
-  await Promise.all(tools.map(async (t) => { const l = await c.db.rpc("nx_tool_level", { p_org: org.org_id, p_tool: t }); if (typeof l.data === "number") levels[t] = l.data; }));
-  return NextResponse.json({ ok: true, planner: r.planner, plan: r.plan, steps: preview(r.plan, levels) }, { headers: { "Cache-Control": "no-store" } });
+  await Promise.all(TOOL_NAMES.map(async (t) => { const l = await c.db.rpc("nx_tool_level", { p_org: org.org_id, p_tool: t }); if (typeof l.data === "number") levels[t] = l.data; }));
+  return NextResponse.json({ ok: true, planner: r.planner, plan: r.plan, steps: preview(r.plan, levels), levels }, { headers: { "Cache-Control": "no-store" } });
 }

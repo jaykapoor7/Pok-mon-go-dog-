@@ -15,6 +15,7 @@ import { Confirm, Denied, Failed, Field, Modal, RecordHead, Skeleton, TabBar, da
 import { addArea, addEntry, fieldsOf, getSurveyAreas, getSurveyById, getSurveyResponses, getSurveyTotals, isProject, purposeOf, searchAnimals } from "../../data/ngo-programmes";
 import { Grid, TryLink, plural, useWho, type GCol } from "./frame";
 import { S_AREAS, S_ENTRIES, S_RESPONSES, S_SURVEYS } from "./sample";
+import { animalLine } from "../../animalLabel";
 
 /* One survey or project. A survey has its areas, totals and observations, and a collect view for the field: entries
    are saved encrypted on the phone first (a six-digit PIN unlocks them) and sent when there is signal, each with
@@ -256,7 +257,7 @@ function CollectForm({ survey, areas, scope, userId, ngoId, onSynced }: { survey
       <Field label="Vaccination mark observed" hint="Records a campaign mark you saw; it does not certify vaccination."><select value={mark} onChange={(e) => setMark(e.target.value)}><option value="unknown">Unknown or not observed</option><option value="marked">Marked</option><option value="unmarked">Unmarked</option></select></Field>
       <div className="nx-field"><span>Sterilised (ear notch)</span><div className="ns-choice">{([["Yes", true], ["No", false], ["Unsure", null]] as const).map(([l, v]) => <button key={l} type="button" aria-pressed={ster === v} onClick={() => setSter(v)}>{l}</button>)}</div></div>
       <Field label="Find a registered animal (optional)" hint="Needs a connection. An unidentified observation is still a valid field sample."><input value={find} onChange={(e) => setFind(e.target.value)} placeholder="Name or tag" /></Field>
-      {animals.length || animalId ? <Field label="Observed animal"><select value={animalId} onChange={(e) => setAnimalId(e.target.value)}><option value="">Not independently identified</option>{animals.map((a) => <option key={a.id} value={a.id}>{a.name || "Unnamed"} · {a.code}</option>)}</select></Field> : null}
+      {animals.length || animalId ? <Field label="Observed animal"><select value={animalId} onChange={(e) => setAnimalId(e.target.value)}><option value="">Not independently identified</option>{animals.map((a) => <option key={a.id} value={a.id}>{animalLine(a)}{a.code ? ` · code ${a.code}` : ""}</option>)}</select></Field> : null}
       <div className="nx-field"><span>Photo (optional)</span><button type="button" className="nx-btn is-quiet" style={{ minHeight: 44 }} onClick={() => photoRef.current?.click()}>{photo ? <><Check size={14} />Photo added</> : <><Camera size={14} />Take a photo</>}</button><input ref={photoRef} type="file" accept="image/*" capture="environment" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (!f) return; try { setPhoto(await compressForUpload(f)); } catch { setErr("This photo could not be prepared. Your other inputs are still here."); } }} /></div>
       <Field label="Notes (optional)"><textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
       {err ? <p className="ns-note-bad" role="alert">{err}</p> : null}

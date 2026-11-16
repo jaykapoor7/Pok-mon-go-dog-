@@ -67,8 +67,8 @@ export const S_STORIES: OwnStory[] = [
 ];
 const qi = (k: string, label: string, sub: string) => ({ key: k, label, sub, href: null });
 export const S_QUALITY: QualityQueue[] = [
-  { title: "Animals missing StrayPaw ID", detail: "No permanent StrayPaw ID yet. Search across registers and exports may miss them until they have one.", items: [qi("a1", "Kalu", "No StrayPaw ID · KH-0442 · Ward 12"), qi("a2", "Unnamed animal", "No StrayPaw ID · no source ID · Ward 08")] },
-  { title: "Animals missing source ID", detail: "The profile exists, but cannot be matched back to a spreadsheet, clinic register or tag.", items: [qi("a2", "Unnamed animal", "No StrayPaw ID · no source ID · Ward 08")] },
+  { title: "Animals missing StrayPaw ID", detail: "No permanent StrayPaw ID yet. Search across registers and exports may miss them until they have one.", items: [qi("a1", "Kalu", "No StrayPaw ID · KH-0442 · Ward 12"), qi("a2", "Dog without a code", "No StrayPaw ID · no source ID · Ward 08")] },
+  { title: "Animals missing source ID", detail: "The profile exists, but cannot be matched back to a spreadsheet, clinic register or tag.", items: [qi("a2", "Dog without a code", "No StrayPaw ID · no source ID · Ward 08")] },
   { title: "Animals missing locality", detail: "Cannot support ward or locality reporting, cluster analysis or repeat-hotspot work.", items: [] },
   { title: "Suspicious record dates", detail: "Unreadable, future or extreme outlier dates distort yearly figures and map activity. Check the source before changing it.", items: [qi("r1", "Rescue from imported register", "date \"31/02/2026\" · Ward 08 · open")] },
   { title: "Open for 30+ days", detail: "Rescue records still open long after the recorded intake date.", items: [qi("r2", "Limping dog near the market", "12 Aug 2026 · Ward 12 · in progress"), qi("r3", "Skin infection, three dogs", "2 Sep 2026 · Ward 08 · assigned")] },

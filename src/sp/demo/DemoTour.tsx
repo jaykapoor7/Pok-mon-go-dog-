@@ -9,7 +9,7 @@
    again from there. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Compass, Minus, Sparkles, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronUp, Compass, Minus, Sparkles, UserRound } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { DEMO_ROLES, SHOWN, TOUR, TOUR_DONE, type DemoRole } from "./tour";
 import { enterAs, leaveFor, readTour, writeTour, TOUR_EVENT, type TourState } from "./state";
@@ -59,6 +59,9 @@ export function DemoTour() {
   const pathname = usePathname();
   const [s, setS] = useState<TourState | null>(null);
   const [busy, setBusy] = useState(false);
+  /* The role list is controlled, so choosing a role closes it at once and the pill says who it is signing in as. */
+  const [rolesOpen, setRolesOpen] = useState(false);
+  const [switching, setSwitching] = useState<DemoRole | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tabs, setTabs] = useState(false);
   const [found, setFound] = useState(false);
@@ -162,12 +165,14 @@ export function DemoTour() {
   }, [router, s?.role]);
 
   const switchRole = useCallback(async (r: DemoRole) => {
-    setErr(null); setBusy(true);
+    setRolesOpen(false);
+    if (s?.role === r) return;
+    setErr(null); setBusy(true); setSwitching(r);
     const e = await enterAs(r);
-    if (e) { setErr(e); setBusy(false); return; }
+    if (e) { setErr(e); setBusy(false); setSwitching(null); return; }
     writeTour({ mode: "roam", step: s?.step ?? 0, role: r });
     leaveFor(DEMO_ROLES[r].home);
-  }, [s?.step]);
+  }, [s?.step, s?.role]);
 
   const askKaju = (q: string) => { setAsked(true); window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); };
 
@@ -175,10 +180,14 @@ export function DemoTour() {
   if (!s || s.mode === "off" || pathname === "/try") return cover;
   const place = tabs ? " has-tabs" : "";
   const roles = (
-    <details className="dt-roles">
-      <summary><UserRound size={14} aria-hidden /> Switch role</summary>
-      <ul>{(Object.keys(DEMO_ROLES) as DemoRole[]).map((r) => (
-        <li key={r}><button type="button" disabled={busy} aria-current={s.role === r ? "true" : undefined} onClick={() => switchRole(r)}><b>{DEMO_ROLES[r].label}</b><small>{DEMO_ROLES[r].who}</small></button></li>
+    <details className="dt-roles" open={rolesOpen} onToggle={(e) => setRolesOpen((e.currentTarget as HTMLDetailsElement).open)}>
+      <summary aria-busy={switching ? true : undefined}>
+        <UserRound size={14} aria-hidden />
+        {switching ? <span role="status">Opening as {DEMO_ROLES[switching].label}…</span> : <span>{s.role ? DEMO_ROLES[s.role].label : "Switch role"}</span>}
+        <ChevronUp size={14} aria-hidden className="dt-roles-chev" />
+      </summary>
+      <ul aria-label="Choose a role">{(Object.keys(DEMO_ROLES) as DemoRole[]).map((r) => (
+        <li key={r}><button type="button" disabled={busy} aria-current={s.role === r ? "true" : undefined} onClick={() => switchRole(r)}><b>{DEMO_ROLES[r].label}</b><small>{s.role === r ? "You are viewing as this role" : DEMO_ROLES[r].who}</small></button></li>
       ))}</ul>
     </details>
   );

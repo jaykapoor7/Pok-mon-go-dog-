@@ -3,18 +3,20 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { ChevronsUpDown, Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
-import { CHANNELS, CH_PEOPLE, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
+import { Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
+import { CHANNELS, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
 import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, CLINIC_VET, VET_PATHS, WS_LABEL, homeOf } from "./nav";
 import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
+import { OrgMenu } from "./OrgMenu";
 import { useProgrammeChannels } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { Failed, OfflineBar, ToastHost } from "./kit";
 import { KajuProvider, useKaju } from "./kaju/state";
 import { KajuDock } from "./kaju/Dock";
-import { createChannel, openDm, useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
+import { useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
+import { ConversationHost, isUnnamed, newConversation, personName } from "./conversations";
 import "./nx.css";
 
 /* The new frame: a slim rail for the things that follow you everywhere, one sidebar for the workspace,
@@ -78,10 +80,11 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const { pick } = live;
   useEffect(() => { if (want && want.org_id !== live.org?.org_id) pick(want.org_id); }, [want, live.org, pick]);
   const chans = useChannels(live.org?.org_id ?? null);
-  const [adding, setAdding] = useState(false);
   const unreadMap = useUnread(live.org?.org_id ?? null, path);
   const dms = useDms(live.org?.org_id ?? null);
   const progChans = useProgrammeChannels(!!live.org);
+  /* Someone without a name is shown by their role, which is read only when a conversation needs it. */
+  const dmPeople = useOrgPeople(dms.rows?.some((d) => isUnnamed(d.other_name)) ? live.org?.org_id ?? null : null);
   const [pins, setPins] = useState<{ id: string; page: string; name: string }[]>([]);
   const orgId = live.org?.org_id ?? null;
   useEffect(() => {
@@ -90,7 +93,6 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
     load(); window.addEventListener("nx:pins", load); return () => window.removeEventListener("nx:pins", load);
   }, [orgId]);
   const unpin = async (id: string) => { setPins((p) => p.filter((x) => x.id !== id)); await getSupabase()?.from("nx_saved_views").delete().eq("id", id); };
-  const [picking, setPicking] = useState(false);
   const chanName = (id: string) => chans.rows?.find((c) => c.id === id)?.name ?? null;
   const office = live.org?.source === "review_office";
   /* Verification is a reviewing office's work. A programme coordinator in the same workspace does not see it; the database refuses it either way. */
@@ -98,14 +100,12 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const lab = live.org ? cur?.kind === "laboratory" : path.startsWith("/health/samples") || ["/health/testing", "/health/results", "/health/quality"].some((p) => path.startsWith(p));
   const vet = live.org ? cur?.kind === "veterinary" : VET_PATHS.some((p) => path.startsWith(p));
   const nav = (ws === "gov" ? GOV : ws === "health" ? (vet ? (cur?.source === "vet_clinic" ? CLINIC_VET : VET) : lab ? LAB : HEALTH) : ws === "research" ? RESEARCH : ws === "kaju" ? KAJU : NGO).filter((i) => !i.office || !live.org || office);
-  const switchOrg = () => { if (live.orgs.length < 2 || !live.org) return; const next = live.orgs[(live.orgs.findIndex((o) => o.org_id === live.org!.org_id) + 1) % live.orgs.length]; pick(next.org_id); router.push(homeOf(next.workspace, next.org_id)); };
   const sampleOrg = ws === "gov" ? GOV_ORG : ws === "health" ? (vet ? { name: "Kind Hour", short: "KH", kind: "Healthcare · Veterinary" } : lab ? { name: "Reference Rabies Diagnostic Laboratory", short: "RL", kind: "Healthcare · Laboratory" } : CLINIC) : ws === "research" ? { name: "Programme Epidemiology Unit", short: "PE", kind: "Research" } : ORG;
   const org = cur ? { name: cur.name, short: ((ws) => (ws.length > 1 ? ws.map((w) => w[0]).join("") : (ws[0] ?? "").slice(0, 2)).slice(0, 2).toUpperCase())((cur.short_name ?? cur.name).split(/[^A-Za-z0-9]+/).filter(Boolean)), kind: vet ? "Healthcare · Veterinary" : WS_LABEL[cur.workspace] ?? cur.kind } : sampleOrg;
   const me = live.org && live.userName ? live.userName.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() : ME.initials;
   const CHANNEL = live.org ? `/channels/${chans.rows?.[0]?.name ?? "general"}` : "/channels/abc-ward-12";
   const unreadTotal = Object.entries(unreadMap).reduce((a, [id, n]) => a + (path === `/channels/${chanName(id)}` ? 0 : n), 0);
   const unread = live.org ? (unreadTotal ? String(unreadTotal) : undefined) : "2";
-  const addChannel = async (raw: string) => { const name = raw.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); setAdding(false); if (!live.org || name.length < 2) return; const r = await createChannel(live.org.org_id, name, ""); if (!r.error) { chans.reload(); window.location.assign(`/channels/${name}`); } };
   const home = live.org ? homeOf(live.org.workspace, live.org.org_id) : ws === "gov" ? "/gov/overview" : ws === "health" ? "/health/today" : ws === "research" ? "/research/datasets" : "/ngo/today";
 
   return (
@@ -124,27 +124,22 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
       </nav>
 
       <aside className="nx-side" aria-label={`${org.name} navigation`}>
-        {live.org
-          ? <button type="button" className="nx-org" title={live.orgs.length > 1 ? "Switch organisation" : undefined} onClick={switchOrg}><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span>{live.orgs.length > 1 ? <ChevronsUpDown size={14} /> : null}</button>
-          : <Link href={ws === "gov" ? "/ngo/today" : "/gov/overview"} className="nx-org" title="Switch workspace"><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span><ChevronsUpDown size={14} /></Link>}
+        <OrgMenu shown={{ ...org, kind: ws === "kaju" ? "Kaju" : org.kind }} ws={ws} current={cur ?? null} />
         <div className="nx-nav">
           {nav.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span>{i.n && !live.org ? <i>{i.n}</i> : null}</Link>)}
           {ws === "ngo" && !inChannel ? <><div className="nx-nav-h">Your organisation</div>{NGO_MORE.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span></Link>)}{live.orgs.some((o) => ["admin", "lead"].includes(o.role)) ? <Link href="/requests" className={`nx-item ${on("/requests") ? "is-on" : ""}`}><UserPlus size={15} /><span>Requests to join</span></Link> : null}</> : null}
           {pins.length ? <><div className="nx-nav-h">Pinned</div>{pins.map((x) => <span key={x.id} className="nx-pin"><Link href={x.page} className={`nx-item ${path === x.page ? "is-on" : ""}`} aria-current={path === x.page ? "page" : undefined}><Pin size={13} /><span>{x.name}</span></Link><button type="button" aria-label={`Unpin ${x.name}`} onClick={() => void unpin(x.id)}><X size={12} /></button></span>)}</> : null}
-          <div className="nx-nav-h">Channels<button type="button" aria-label="New channel" onClick={() => live.org && setAdding(true)}><Plus size={13} /></button></div>
+          <div className="nx-nav-h">Channels<button type="button" aria-label="New channel" title="New channel" onClick={() => newConversation({ kind: "channel" })}><Plus size={13} /></button></div>
           {live.org ? <>
             {(chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => { const href = `/channels/${c.name}`; const n = path === href ? 0 : unreadMap[c.id] ?? 0; return <Link key={c.id} href={href} className={`nx-item ${path === href ? "is-on" : n ? "is-unread" : ""}`} aria-current={path === href ? "page" : undefined} aria-label={n ? `#${c.name}, ${n} unread` : undefined}><Hash size={14} /><span>{c.name}</span>{n ? <i>{n}</i> : null}</Link>; })}
-            {chans.rows && !chans.rows.some((c) => c.kind === "channel" || c.kind === "announcement") && !adding ? <Link href="/channels/general" className="nx-item"><Plus size={14} /><span>Create #general</span></Link> : null}
-            {adding ? <form className="nx-item" onSubmit={(e) => { e.preventDefault(); void addChannel(new FormData(e.currentTarget).get("n") as string); }}><Hash size={14} /><input name="n" autoFocus aria-label="Channel name" placeholder="channel-name" maxLength={40} onBlur={() => setAdding(false)} onKeyDown={(e) => { if (e.key === "Escape") setAdding(false); }} style={{ border: 0, outline: 0, background: "none", font: "inherit", color: "inherit", width: "100%", padding: 0 }} /></form> : null}
+            {chans.rows && !chans.rows.some((c) => c.kind === "channel" || c.kind === "announcement") ? <Link href="/channels/general" className="nx-item"><Plus size={14} /><span>Set up #general</span></Link> : null}
             {progChans?.length ? <><div className="nx-nav-h">Programme channels</div>{progChans.map((c) => { const href = `/channels/${c.name}`; return <Link key={c.id} href={href} className={`nx-item ${path === href ? "is-on" : ""}`} aria-current={path === href ? "page" : undefined} title={c.programme_name}><Users size={14} /><span>{c.name}</span></Link>; })}</> : null}
-            <div className="nx-nav-h">Direct messages<button type="button" aria-label="New direct message" aria-expanded={picking} onClick={() => setPicking((x) => !x)}><Plus size={13} /></button></div>
-            {picking ? <People orgId={live.org.org_id} me={live.userId} onClose={() => setPicking(false)} onPick={async (id) => { const r = await openDm(live.org!.org_id, id); setPicking(false); if (r.name) { chans.reload(); dms.reload(); router.push(`/channels/${r.name}`); } }} /> : null}
-            {[...(dms.rows ?? [])].sort((a, b) => (b.last_at ?? "").localeCompare(a.last_at ?? "")).map((d) => { const name = chanName(d.channel_id); if (!name) return null; const href = `/channels/${name}`; const n = path === href ? 0 : unreadMap[d.channel_id] ?? 0; return <Link key={d.channel_id} href={href} className={`nx-item ${path === href ? "is-on" : n ? "is-unread" : ""}`} aria-current={path === href ? "page" : undefined}><span className="nx-dot is-away" /><span>{d.other_name}</span>{n ? <i>{n}</i> : null}</Link>; })}
-            {dms.rows && !dms.rows.length && !picking ? <button type="button" className="nx-item" onClick={() => setPicking(true)}><Plus size={14} /><span>Message someone</span></button> : null}
+            <div className="nx-nav-h">Direct messages<button type="button" aria-label="New message" title="New message" onClick={() => newConversation({ kind: "message" })}><Plus size={13} /></button></div>
+            {[...(dms.rows ?? [])].sort((a, b) => (b.last_at ?? "").localeCompare(a.last_at ?? "")).map((d) => { const name = chanName(d.channel_id); if (!name) return null; const href = `/channels/${name}`; const n = path === href ? 0 : unreadMap[d.channel_id] ?? 0; return <Link key={d.channel_id} href={href} className={`nx-item ${path === href ? "is-on" : n ? "is-unread" : ""}`} aria-current={path === href ? "page" : undefined}><span className="nx-dot is-away" /><span>{personName(d.other_name, dmPeople.rows?.find((p) => p.user_id === d.other_id)?.role)}</span>{n ? <i>{n}</i> : null}</Link>; })}
+            {dms.rows && !dms.rows.length ? <button type="button" className="nx-item" onClick={() => newConversation({ kind: "message" })}><Plus size={14} /><span>New message</span></button> : null}
           </> : <>
             {CHANNELS.map((c) => { const href = `/channels/${c.name}`; return <Link key={c.name} href={href} className={`nx-item ${path === href ? "is-on" : c.unread ? "is-unread" : ""}`} aria-current={path === href ? "page" : undefined}><Hash size={14} /><span>{c.name}</span>{c.unread && path !== href ? <i>{c.unread}</i> : null}</Link>; })}
-            <div className="nx-nav-h">Direct messages<button type="button" aria-label="New direct message" aria-expanded={picking} onClick={() => setPicking((x) => !x)}><Plus size={13} /></button></div>
-            {picking ? <People sample onClose={() => setPicking(false)} onPick={(name) => { setPicking(false); router.push(`/channels/${dmSlug(name)}`); }} /> : null}
+            <div className="nx-nav-h">Direct messages<button type="button" aria-label="New message" title="New message" onClick={() => newConversation({ kind: "message" })}><Plus size={13} /></button></div>
             {DMS.map((d) => { const href = `/channels/${dmSlug(d.name)}`; return <Link key={d.name} href={href} className={`nx-item ${path === href ? "is-on" : ""}`} aria-current={path === href ? "page" : undefined}><span className={`nx-dot ${d.here ? "" : "is-away"}`} /><span>{d.name}</span></Link>; })}
           </>}
         </div>
@@ -169,6 +164,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
 
       <Command open={cmd} onClose={() => setCmd(false)} />
       <ToastHost />
+      <ConversationHost />
       {path.startsWith("/kaju") ? null : <KajuDock crumb={crumb[1] ?? crumb[0]} />}
       <nav className="nx-dock" aria-label="Sections">
         <Link href={home} className={on(home) ? "is-on" : ""}><Home size={20} />Today</Link>
@@ -177,24 +173,6 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
         <Link href="/kaju" className={inKaju ? "is-on" : ""}><Sparkles size={20} />Kaju</Link>
         <Link href={ws === "gov" ? "/ngo/today" : "/gov/overview"}><MoreHorizontal size={20} />More</Link>
       </nav>
-    </div>
-  );
-}
-
-
-const ROLE_WORD: Record<string, string> = { admin: "lead", coordinator: "coordinator", veterinarian: "veterinarian", member: "member", lead: "lead", clinician: "clinician", nurse: "nurse", lab_scientist: "laboratory scientist", analyst: "analyst", field: "field team", reviewer: "reviewer" };
-/** Choose someone to message: names only, from the same organisation. */
-function People({ orgId = null, me = null, sample, onPick, onClose }: { orgId?: string | null; me?: string | null; sample?: boolean; onPick: (id: string) => void; onClose: () => void }) {
-  const people = useOrgPeople(sample ? null : orgId);
-  const [q, setQ] = useState("");
-  const list = sample ? CH_PEOPLE.filter((p) => !DMS.some((d) => d.name === p)).concat(DMS.map((d) => d.name)).map((n) => ({ id: n, name: n, role: "" }))
-    : (people.rows ?? []).filter((p) => p.user_id !== me).map((p) => ({ id: p.user_id, name: p.name, role: ROLE_WORD[p.role] ?? p.role.replace(/_/g, " ") }));
-  const shown = list.filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase()));
-  return (
-    <div className="nx-people-pick" role="dialog" aria-label="New direct message" onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
-      <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a person" aria-label="Find a person" />
-      <ul>{shown.slice(0, 8).map((p) => <li key={p.id}><button type="button" onClick={() => onPick(p.id)}>{p.name}{p.role ? <small> · {p.role}</small> : null}</button></li>)}
-        {!sample && people.rows === null ? <li className="nx-t3">Reading…</li> : !shown.length ? <li className="nx-t3">No one else here yet.</li> : null}</ul>
     </div>
   );
 }

@@ -12,6 +12,8 @@ import { VET_APPTS, VET_CASES, VET_PROCS, type Tone, type VetAppt, type VetCase,
 import { HealthToday } from "./Health";
 import { bookAppointment, setAppointmentStatus, useAppointments, useCases, useDogs, useLive, type Appointment, type Case, type Dog } from "../live";
 import { ClinicPatients, ClinicToday } from "./VetClinic";
+import { animalLine, animalSearch } from "../animalLabel";
+import { useAnimalRefs } from "../data/animals";
 
 /* The veterinary experience, inside Healthcare, for a veterinarian of an NGO. It reads that NGO's own animals, cases,
    procedures and follow-ups; appointments are the only new record. Clinical findings and sign-offs are recorded on
@@ -23,7 +25,8 @@ const CLINICAL = new Set(["injury", "rescue", "other", "medical", "treatment"]);
 const hhmm = (iso: string) => new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }).toLowerCase();
 const dayOf = (iso: string): VetAppt["day"] => { const d = new Date(iso), t = new Date(); t.setHours(0, 0, 0, 0); const n = Math.floor((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() - t.getTime()) / 864e5); return n < 0 ? "Past" : n === 0 ? "Today" : n === 1 ? "Tomorrow" : "Later"; };
 const whenOf = (iso: string) => { const k = dayOf(iso); return k === "Today" ? `Today ${hhmm(iso)}` : k === "Tomorrow" ? `Tomorrow ${hhmm(iso)}` : new Date(iso).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); };
-const animalName = (d: Dog | undefined) => (d ? `${d.straypaw_id ?? d.code ?? "Animal"}${d.name ? ` · ${d.name}` : ""}` : "Animal not linked");
+/** The animal as the register names it: "Tiger (132)" or "Dog 128". */
+const animalName = (d: Dog | undefined) => (d ? animalLine(d) : "Animal not linked");
 const KIND: Record<string, string> = { check: "Check", procedure: "Procedure", vaccination: "Vaccination", recovery: "Recovery check", other: "Other" };
 const STATUS: Record<Appointment["status"], [string, Tone]> = { booked: ["Booked", "accent"], done: ["Done", "ok"], missed: ["Missed", "bad"], cancelled: ["Cancelled", "plain"] };
 
@@ -73,7 +76,8 @@ export function Appointments() {
     { label: "Kind", width: "120px", hideOnPhone: true, render: (r) => <span className="nx-t3">{KIND[r.kind] ?? r.kind}</span> },
     { label: "State", width: "100px", render: (r) => <Chip tone={STATUS[r.status][1]}>{STATUS[r.status][0]}</Chip> },
   ];
-  const free = (dogs.rows ?? []).filter((d) => `${d.name ?? ""} ${d.straypaw_id ?? ""} ${d.code ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 50);
+  const needle = animalSearch(q).toLowerCase();
+  const free = (dogs.rows ?? []).filter((d) => `${animalLine(d)} ${d.straypaw_id ?? ""} ${d.code ?? ""}`.toLowerCase().includes(needle)).slice(0, 50);
   return <Gate crumb="Appointments" v={v}>{() => <>
     <ListPage ws="health" crumb={["Healthcare", "Appointments"]} title="Appointments" sample={v.sample} eyebrow={v.sample ? "Kind Hour · Veterinary" : v.vet!.name}
       sub={!v.sample && ap.rows === null ? "Reading appointments…" : <><b className="num">{today}</b> booked for today. Booking a visit is not a clinical decision; findings are recorded on the animal&apos;s case.</>}
@@ -188,11 +192,12 @@ export function VetFollowups() {
   const [fs, setFs] = useState<DueFollowup[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => { if (!v.orgId) return; let alive = true; dueFollowups().then((r) => { if (alive) setFs(r); }).catch((e: unknown) => { if (alive) { setFs([]); setErr(e instanceof Error ? e.message : "Follow-ups could not be read."); } }); return () => { alive = false; }; }, [v.orgId]);
+  const refs = useAnimalRefs(v.orgId, (fs ?? []).map((f) => f.dog_id));
   const rows: FuRow[] = v.sample ? [
-    { id: "f1", what: "Day 7 observation after a bite report", animal: "AN-1107 · Tan female", when: "12 Nov", day: "Overdue", at: 0 },
-    { id: "f2", what: "Recovery check after sterilisation", animal: "AN-0987 · Bhura", when: "Today", day: "Today", at: 1 },
-    { id: "f3", what: "Second mange dose", animal: "AN-0877 · Laila", when: "Fri 21 Nov", day: "Later", at: 2 },
-  ] : (fs ?? []).filter((f) => f.source !== "historical_import").map((f) => { const d = dayOf(f.due_at); return { id: f.id, what: f.note || (f.kind ?? "Follow-up").replace(/_/g, " ").replace(/^./, (x) => x.toUpperCase()), animal: f.animal_name ?? f.straypaw_id ?? "Animal", when: whenOf(f.due_at), day: d === "Past" ? "Overdue" : d, at: Date.parse(f.due_at), href: f.case_id ? `/ngo/cases/${f.case_id}` : undefined }; });
+    { id: "f1", what: "Day 7 observation after a bite report", animal: "Tan female (1107)", when: "12 Nov", day: "Overdue", at: 0 },
+    { id: "f2", what: "Recovery check after sterilisation", animal: "Bhura (987)", when: "Today", day: "Today", at: 1 },
+    { id: "f3", what: "Second mange dose", animal: "Laila (877)", when: "Fri 21 Nov", day: "Later", at: 2 },
+  ] : (fs ?? []).filter((f) => f.source !== "historical_import").map((f) => { const d = dayOf(f.due_at); return { id: f.id, what: f.note || (f.kind ?? "Follow-up").replace(/_/g, " ").replace(/^./, (x) => x.toUpperCase()), animal: f.dog_id ? animalLine(refs?.get(f.dog_id) ?? { id: f.dog_id, name: f.animal_name, straypaw_id: f.straypaw_id }) : "Animal not linked", when: whenOf(f.due_at), day: d === "Past" ? "Overdue" : d, at: Date.parse(f.due_at), href: f.case_id ? `/ngo/cases/${f.case_id}` : undefined }; });
   const late = rows.filter((r) => r.day === "Overdue").length;
   const cols: Col<FuRow>[] = [
     { label: "Follow-up", width: "minmax(0, 1.5fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.what}</b><small>{r.animal}</small></span></span> },
