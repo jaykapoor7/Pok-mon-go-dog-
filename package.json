@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "demo:record": "tsx scripts/record-demo.ts",
+    "demo:one-health": "tsx scripts/record-one-health-demo.ts",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:security:audit": "node scripts/db-security-audit.mjs",
     "db:security:matrix": "node scripts/db-rls-matrix.mjs",
