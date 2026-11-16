@@ -95,7 +95,13 @@ test("one bite, six stages: the guide points at each control, notices each step 
   await act(page, "What is missing, and who does what");
   await on(page, /Next action/);
   await act(page, "Approve what Kaju prepared");
-  while (await page.locator(".nx-kprop .nx-btn", { hasText: "Confirm" }).count()) { await page.locator(".nx-kprop .nx-btn", { hasText: "Confirm" }).first().click(); await page.waitForTimeout(2000); }
+  const props = page.locator(".nx-kprop");
+  const prepared = await props.count();
+  expect(prepared).toBeGreaterThan(0);
+  for (let i = 0; i < prepared; i++) {
+    await props.nth(i).getByRole("button", { name: "Confirm" }).click();
+    await expect(props.nth(i).locator(".nx-kok")).toBeVisible({ timeout: 30_000 });
+  }
   await act(page, "What Kaju can use");
   await on(page, /Next role: Municipality/);
 
