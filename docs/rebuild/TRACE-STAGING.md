@@ -138,12 +138,21 @@ What the earlier attempts showed, each a rule working as intended:
   decision. A new animal is never treated as distinct, or merged, until a coordinator decides.
 - Once the vet has signed off, the record is locked: the identity decision has to come first.
 
-One finding, not fixed: field mode has two ways to record a vaccination. The lifecycle form
-(`operations_record_event`, kind `vaccination`) records both the operation and the medical record. The quick ARV form
-(`field_confirm_vaccination`) records only the medical record. Under a contract that requires the vaccination
-operation, a dog vaccinated through the quick form shows "Operation: vaccination" as missing, and the coordinator cannot
-submit it until the operation is recorded. Making the quick form also record the operation needs care, because the
-lifecycle form calls the quick form internally and would then record it twice.
+One finding, since fixed: field mode has two ways to record a vaccination. The lifecycle form
+(`operations_record_event`, kind `vaccination`) recorded both the operation and the medical record; the quick ARV form
+(`field_confirm_vaccination`) recorded only the medical record. Under a contract that requires the vaccination
+operation, a dog vaccinated with the quick form showed "Operation: vaccination" as missing and could not be submitted.
+`20261117130000_rebuild_quick_arv_operation.sql` makes the quick form record the operation too, linked to its one medical
+record, while the lifecycle form still records one of each. The trace now uses the quick form (re-run on 2026-11-16,
+rolled back):
+
+```
+1 field worker, quick ARV form: dog and case recorded (identity provisional); vaccination operations: 1, medical records: 1, linked: true
+  lifecycle form, second dog: vaccination operations 1, medical records 1
+  ...
+4 coordinator: package of 1 record submitted (submitted)
+5 reviewer: in the queue: true; claim decided and review closed (accepted)
+```
 
 ## 8. A programme, a partner and an invitation (scenario 6)
 

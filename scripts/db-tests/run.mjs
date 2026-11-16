@@ -12,6 +12,7 @@ import { dirname, join } from "node:path";
 const here = dirname(fileURLToPath(import.meta.url));
 const MIG = join(here, "../../supabase/migrations");
 const MIGRATIONS = [
+  "20261102132030_field_vaccination_receipts.sql", "20261103004523_offline_intake_and_lifecycle.sql",
   "20261110230441_one_health_v2_1_core.sql", "20261110230655_one_health_v2_2_workflows.sql", "20261110230829_one_health_v2_3_programme_setup_grants.sql",
   "20261111100000_one_health_v2_4_network_alerts.sql", "20261111120000_one_health_v2_5_record_audit_fix.sql", "20261112140000_one_health_v2_6_referrals_revaccination_logos.sql",
   "20261115100000_rebuild_foundations.sql", "20261115110000_rebuild_kaju_in_channel.sql", "20261115120000_rebuild_kaju_missions.sql", "20261115130000_rebuild_people_studies_vet.sql",
@@ -19,7 +20,7 @@ const MIGRATIONS = [
   "20261116130000_rebuild_saved_views.sql", "20261116140000_rebuild_automations_v2.sql",
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
   "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
-  "20261117120000_rebuild_pep_reminder_validity.sql",
+  "20261117120000_rebuild_pep_reminder_validity.sql", "20261117130000_rebuild_quick_arv_operation.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -30,7 +31,7 @@ for (const m of MIGRATIONS) {
   catch (e) { console.error(`Migration failed: ${m}\n  ${e.message}`); process.exit(1); }
 }
 // Applying everything a second time must succeed too: every migration is safe to re-run.
-for (const m of MIGRATIONS.slice(10)) {
+for (const m of MIGRATIONS.slice(MIGRATIONS.indexOf("20261116100000_rebuild_collaboration.sql"))) {
   try { await db.exec(readFileSync(join(MIG, m), "utf8")); }
   catch (e) { console.error(`Re-running failed: ${m}\n  ${e.message}`); process.exit(1); }
 }
@@ -613,6 +614,50 @@ section("Kaju Voice public conversations (no account; server service role only)"
   ok((await asRole("service_role", "select public.kaju_voice_public_update($1, 'claim') as ok", [P2]))[0].ok === false, "an old reservation cannot be claimed");
   let mixed = false; try { await db.query("insert into public.kaju_voice_sessions (user_id, scope_kind, scope_id, agent_version) values (null, 'standalone', gen_random_uuid(), 1)"); } catch { mixed = true; }
   ok(mixed, "a staff session always has an account; a public one never does");
+}
+
+section("Field vaccinations: the quick ARV form and the lifecycle form each record one operation and one medical record");
+{
+  // A separate organisation, so no other check's counts move.
+  const FN = (await one("insert into ngos (name) values ('Field Vaccination Trust') returning id")).id;
+  const FW = uuid(), FC = uuid();
+  for (const [id, name] of [[FW, "Farid Field"], [FC, "Fatima Coordinator"]]) await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, $2, $3)", [id, `${id}@example.invalid`, { display_name: name }]);
+  await db.query("insert into ngo_members (ngo_id, user_id, role) values ($1, $2, 'member'), ($1, $3, 'coordinator')", [FN, FW, FC]);
+  const animal = async () => { const d = (await one("insert into dogs (ngo_id, name) values ($1, 'Field dog') returning id", [FN])).id; const c = (await one("insert into cases (ngo_id, dog_id, title) values ($1, $2, 'Vaccination') returning id", [FN, d])).id; return { d, c }; };
+  const counts = async (c) => one("select (select count(*)::int from animal_operation_events where case_id = $1 and kind = 'vaccination') as ops, (select count(*)::int from medical_events where case_id = $1 and kind = 'vaccination') as med, (select count(*)::int from animal_operation_events e join medical_events m on m.id = e.medical_event_id where e.case_id = $1) as linked", [c]);
+  const today = (await one(`select ${indiaToday} as d`)).d;
+  const day = (d) => (d instanceof Date ? d.toISOString().slice(0, 10) : String(d));
+  const arv = (d, extra = {}) => ({ template: "arv-field-v1", dogId: d, eventDate: day(today), vaccine: "ARV (sample)", batch: "B-1", performedBy: "Field team", location: "Ward 12 market", ...extra });
+
+  // The quick form: one medical record and the operation a contract can require, linked to it.
+  const q = await animal(); const req = uuid();
+  const r1 = (await as(FW, "select field_confirm_vaccination($1, $2, $3) as r", [req, q.c, arv(q.d)]))[0].r;
+  let n = await counts(q.c);
+  ok(n.med === 1 && n.ops === 1 && n.linked === 1, "the quick ARV form records one medical record and one vaccination operation, linked");
+  ok(r1.operation_event_id && !r1.replayed, "its answer names the operation it recorded");
+  const op = await one("select payload, occurred_at::date = $2::date as same_day, actor_name from animal_operation_events where case_id = $1", [q.c, day(today)]);
+  ok(op.payload.vaccine === "ARV (sample)" && op.payload.batch === "B-1" && op.payload.performedBy === "Field team" && op.payload.facility === "Ward 12 market" && op.payload.notes, "the operation carries the vaccine, batch, vaccinator and place, with a note");
+  ok(op.same_day && op.actor_name === "Farid Field", "it is dated on the vaccination day and attributed to the person who sent it");
+  const r2 = (await as(FW, "select field_confirm_vaccination($1, $2, $3) as r", [req, q.c, arv(q.d)]))[0].r;
+  n = await counts(q.c);
+  ok(r2.replayed === true && n.med === 1 && n.ops === 1, "sending the same request again records nothing more");
+  ok(await refused(FW, "select field_confirm_vaccination($1, $2, $3)", [req, q.c, arv(q.d, { batch: "B-2" })]) !== null, "the same request with different content is refused");
+  const past = await animal();
+  await as(FW, "select field_confirm_vaccination($1, $2, $3)", [uuid(), past.c, arv(past.d, { eventDate: day(new Date(Date.parse(day(today)) - 3 * 86400000)) })]);
+  ok((await one("select (occurred_at at time zone 'Asia/Kolkata')::date = $2::date - 3 as ok from animal_operation_events where case_id = $1", [past.c, day(today)])).ok, "a vaccination entered for an earlier day is dated that day");
+
+  // The lifecycle form: still exactly one operation (its own) and one medical record.
+  const l = await animal();
+  await as(FW, "select operations_record_event($1, $2, 'vaccination', $3, null)", [uuid(), l.c, { template: "lifecycle-v1", occurredAt: new Date().toISOString(), performedBy: "Field team", facility: "Ward 12 market", vaccine: "ARV (sample)", batch: "B-3", notes: "No reaction." }]);
+  n = await counts(l.c);
+  ok(n.med === 1 && n.ops === 1 && n.linked === 1, "the lifecycle form still records one operation and one medical record, linked");
+  ok((await one("select payload->>'template' as t from animal_operation_events where case_id = $1", [l.c])).t === "lifecycle-v1", "and the operation is the lifecycle form's own");
+  ok((await one("select current_setting('straypaw.lifecycle_request', true) as v")).v ? false : true, "the lifecycle form's mark does not outlive its call");
+
+  // Nobody outside the organisation records against its animals.
+  ok(await refused(C, "select field_confirm_vaccination($1, $2, $3)", [uuid(), q.c, arv(q.d)]) !== null, "another organisation cannot record a vaccination on this case");
+  ok((await as(C, "select id from animal_operation_events where case_id = $1", [q.c])).length === 0, "and cannot read its operations");
+  ok((await as(FC, "select id from animal_operation_events where case_id = $1", [q.c])).length === 1, "the organisation's coordinator sees the operation");
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -34,3 +34,19 @@ create or replace function public.my_ngo() returns uuid language sql stable secu
 grant execute on function public.my_ngo() to authenticated;
 -- As in Supabase, signed-in sessions hold table privileges and row-level security narrows them.
 grant select, insert, update on public.dogs, public.cases, public.ngos, public.medical_events, public.animal_followups to authenticated;
+-- Field mode (20261102132030_field_vaccination_receipts.sql, 20261103004523_offline_intake_and_lifecycle.sql): only
+-- what those two migrations and their functions read and write, so the real migrations load as written.
+alter table public.medical_events add column if not exists case_id uuid, add column if not exists notes text, add column if not exists performed_by text, add column if not exists created_by_id uuid;
+create table public.operational_audit_log (id bigserial primary key, ngo_id uuid, actor_id uuid, entity_type text, entity_id uuid, action text, before_data jsonb, after_data jsonb, created_at timestamptz not null default now());
+create table public.abc_attestations (id uuid primary key default gen_random_uuid(), case_id uuid, kind text, revoked_at timestamptz, created_at timestamptz default now());
+create table public.case_updates (id uuid primary key default gen_random_uuid(), case_id uuid, actor_id uuid, actor_name text, note text, created_at timestamptz default now());
+create or replace function public.add_medical_event(p_dog_id uuid, p_case_id uuid default null, p_kind text default 'treatment', p_event_date date default current_date, p_notes text default null, p_performed_by text default null)
+returns uuid language sql security definer set search_path = public as $$
+  insert into medical_events (dog_id, case_id, kind, event_date, notes, performed_by, created_by_id) values (p_dog_id, p_case_id, coalesce(p_kind, 'treatment'), coalesce(p_event_date, current_date), p_notes, p_performed_by, auth.uid()) returning id;
+$$;
+create or replace function public.sp_actor_name() returns text language sql stable security definer set search_path = public as $$ select coalesce((select raw_user_meta_data->>'display_name' from auth.users where id = auth.uid()), 'Member') $$;
+create or replace function public.sp_member_role(p_ngo uuid) returns text language sql stable security definer set search_path = public as $$ select role from ngo_members where user_id = auth.uid() and ngo_id = p_ngo $$;
+create or replace function public.add_case_note(p_case_id uuid, p_actor_id uuid, p_actor_name text, p_note text) returns uuid language sql security definer set search_path = public as $$ insert into case_updates (case_id, actor_id, actor_name, note) values (p_case_id, p_actor_id, p_actor_name, p_note) returning id $$;
+create or replace function public.add_case_followup(p_case_id uuid, p_dog_id uuid, p_due date, p_notes text) returns uuid language sql security definer set search_path = public as $$ select null::uuid $$;
+create table public.report_packages (id uuid primary key default gen_random_uuid(), ngo_id uuid, office_id uuid, status text default 'draft', case_ids uuid[] default '{}');
+grant select on public.medical_events, public.operational_audit_log to authenticated;

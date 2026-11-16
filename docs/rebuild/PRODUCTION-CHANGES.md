@@ -149,3 +149,37 @@ twice, a missing SMS account not counted as an attempt, each of the six reasons 
 the reason with the number still masked. Eight of them fail without this migration.
 
 Rollback: run `nx_pep_outbox_due` from `20261116140000_rebuild_automations_v2.sql` again.
+
+---
+
+# Sixth set: quick ARV vaccinations count for contract claims
+
+**Applied on staging, checked there in a rolled-back run, then applied on production, on 2026-11-16**, through the
+Supabase tool.
+
+| Order | File | What it changes | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 16 | `20261117130000_rebuild_quick_arv_operation.sql` | Replaces two functions. `field_confirm_vaccination` (the quick ARV form) also records the vaccination operation, linked to its medical record, when it is called directly. `operations_record_event` (the lifecycle form) marks its own call into it, so the lifecycle form still records exactly one operation and one medical record. No table, column, constraint, grant or claim rule changes. | Applied, checked | Applied, checked |
+
+Why: a contract rate can require the vaccination operation. A dog vaccinated with the quick form had only the medical
+record, so its claim was refused with "Operation: vaccination" missing. Recording it again with the lifecycle form would
+have written a second medical record for the same dose.
+
+Both new bodies are the live definitions plus the added lines. Before writing them, the live definitions were compared:
+`field_confirm_vaccination` is identical on staging, production and in the repository; `operations_record_event` is
+identical on staging and in the repository, and production differs only by one blank line.
+
+Staging check (rolled back): `docs/rebuild/sql/STAGING_trace_scenario2_vaccination_to_reviewer.sql`, now with the quick
+form. One vaccination operation and one medical record, linked; the package was submitted and the municipal reviewer
+accepted it. A second dog recorded with the lifecycle form also had one of each.
+
+Production before applying (read-only, 2026-11-16): no quick-form vaccination exists (0 receipts), no contract rate
+requires the operation, and there are no packages, so no existing row is affected.
+
+`test:db`: 228 checks. They include 13 new ones on both forms: one of each, linked; a replay records nothing more; the
+same request with different content is refused; an earlier day is dated that day; the lifecycle form's mark ends with its
+call; and another organisation cannot record on, or read, the case. They now load the two field-mode migrations as
+written.
+
+Rollback: re-create `field_confirm_vaccination` from `20261102132030_field_vaccination_receipts.sql` and
+`operations_record_event` from `20261103004523_offline_intake_and_lifecycle.sql`.

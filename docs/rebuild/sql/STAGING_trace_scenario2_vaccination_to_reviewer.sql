@@ -2,7 +2,7 @@
 -- The field worker works for the operator NGO under the municipal ABC/ARV contract; the reviewer belongs to the
 -- municipal review office. Every step runs as the named sample person, through row-level security, with the calls the
 -- app makes:
---   field mode (src/lib/field/sync.ts): operations_intake, field_confirm_vaccination, field_confirm_evidence
+--   field mode (src/lib/field/sync.ts): operations_intake, field_confirm_vaccination (the quick ARV form), field_confirm_evidence
 --   case record (AbcEvidence.tsx): abc_vet_authorise, abc_review_evidence
 --   packages (Packages.tsx, PackageRecord.tsx): abc_create_package, abc_package_cases, operations_configure_package,
 --     abc_package_act('submitted')
@@ -25,11 +25,13 @@ begin
   r := operations_intake(gen_random_uuid(), jsonb_build_object('template', 'field-intake-v1', 'name', 'Trace brown female', 'city', 'Bengaluru', 'zone', 'Ward 12',
          'sex', 'female', 'description', 'Brown, white chest, calm. Vaccinated on the spot.', 'category', 'vaccination', 'lat', 12.9116, 'lng', 77.6389, 'accuracy', 12, 'observedAt', now()));
   v_case := coalesce(r->'result'->>'case_id', r->>'case_id')::uuid; dog := coalesce(r->'result'->>'dog_id', r->>'dog_id')::uuid;
-  -- The lifecycle form records the vaccination as an operation (which a contract can require) and its medical record.
-  r := operations_record_event(gen_random_uuid(), v_case, 'vaccination', jsonb_build_object('template', 'lifecycle-v1', 'occurredAt', now(), 'performedBy', 'Field team (sample)',
-         'facility', 'On the street, Ward 12', 'vaccine', 'Anti-rabies (sample)', 'batch', 'TRACE-01', 'dose', '1 ml', 'route', 'IM', 'location', 'Ward 12, near the market', 'notes', 'No reaction.'), null);
-  t := t || '1 field worker: dog and case recorded (identity ' || (select identity_state from dogs where id = dog) || '); vaccination recorded: '
-         || exists (select 1 from animal_operation_events where case_id = v_case and kind = 'vaccination') || ', with its medical record: ' || exists (select 1 from medical_events where case_id = v_case and kind = 'vaccination') || E'\n';
+  -- The quick ARV form (field_confirm_vaccination). Since 20261117130000 it records the vaccination operation a contract
+  -- can require as well as the medical record, linked, so the claim below does not need the lifecycle form.
+  r := field_confirm_vaccination(gen_random_uuid(), v_case, jsonb_build_object('template', 'arv-field-v1', 'dogId', dog, 'eventDate', td, 'vaccine', 'Anti-rabies (sample)',
+         'batch', 'TRACE-01', 'performedBy', 'Field team (sample)', 'location', 'Ward 12, near the market', 'dose', '1 ml', 'route', 'IM', 'notes', 'No reaction.'));
+  t := t || '1 field worker, quick ARV form: dog and case recorded (identity ' || (select identity_state from dogs where id = dog) || '); vaccination operations: '
+         || (select count(*) from animal_operation_events where case_id = v_case and kind = 'vaccination') || ', medical records: ' || (select count(*) from medical_events where case_id = v_case and kind = 'vaccination')
+         || ', linked: ' || exists (select 1 from animal_operation_events e join medical_events m on m.id = e.medical_event_id where e.case_id = v_case) || E'\n';
   begin perform operations_record_event(gen_random_uuid(), v_case, 'identification', jsonb_build_object('template', 'lifecycle-v1', 'occurredAt', now(), 'identityDecision', 'confirmed_distinct', 'notes', 'Looks new to me.'), null);
     t := t || '  the field worker confirming the identity: allowed (WRONG)' || E'\n';
   exception when others then t := t || '  the field worker confirming the identity: refused (' || sqlerrm || ')' || E'\n'; end;
