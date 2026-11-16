@@ -6,6 +6,8 @@ adds a microphone entry beside it and its own page, routes and records. The
 agent is meant for the public in time; this release limits live voice to the
 owner's verified tester account.
 
+Product scope, architecture, the tool plan, the phone helpline and rollout gates: `KAJU-VOICE-PRODUCT.md`.
+
 Status: the owner's Samvaad voice/tone test passed. A build, socket connection
 or simulated test is not a successful conversation; only a real two-way
 conversation on www.straypaw.org completes the integration (see Acceptance).
@@ -62,6 +64,31 @@ The preview branch `feat/kaju-voice-v3-preview` keeps its own branch-scoped set
 `NEXT_PUBLIC_KAJU_VOICE_TEST`, the same IDs). The API key is never prefixed
 `NEXT_PUBLIC_`, committed, printed, pulled locally or entered in the browser.
 Environment changes apply on the next build.
+
+## Public browser voice (`/talk`), off by default
+
+`SARVAM_VOICE_PUBLIC` = `off` (default; `/talk` is a 404) | `owner` (the real
+public path, but a session is minted only for an allowlisted signed-in account)
+| `on` (anyone). The public path requires consent, Cloudflare Turnstile
+(`TURNSTILE_SECRET_KEY`, fails closed), per-IP limits (3 per 10 minutes, 10 a
+day) and a site-wide daily cap (`SARVAM_VOICE_PUBLIC_DAILY_CAP`, default 200,
+database backstop 1000). It mints a 5-minute `pub.` token, bound to one ledger
+row, that signs at most one provider session (`claimed`). It uses its own agent
+(`SARVAM_VOICE_PUBLIC_APP_ID`, `SARVAM_VOICE_PUBLIC_VERSION`), never the staff
+agent. Public rows have no user, and only the service role can write them
+(`20261117110000_kaju_voice_public_sessions.sql`). No tools or records are
+reachable. **Call Kaju** shows only when `NEXT_PUBLIC_KAJU_VOICE_PHONE` is a
+real number; the `/ai` page links to `/talk` only with
+`NEXT_PUBLIC_KAJU_VOICE_PUBLIC=on`.
+
+The conversation UI (`src/kaju/voice/VoiceExperience.tsx`) is shared by `/talk`
+and `/kaju/voice`. Kaju's existing poses show real state: listening, preparing
+a reply (your turn transcribed, reply not started), speaking. A quiet halo
+follows the actual microphone or reply loudness and is static under reduced
+motion. The latest line is a caption; the full transcript is one tap away.
+Opened through an in-app link, the page reloads itself once so the browser
+applies its microphone policy. The UI is in Hindi and Kannada through the
+site's phrase dictionaries, awaiting native review.
 
 ## Transport and controls
 

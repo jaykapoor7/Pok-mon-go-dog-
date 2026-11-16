@@ -8,6 +8,8 @@ import { isLocalVoiceRequest, isVoiceRequest, issueVoiceSession, readVoiceSettin
 import { PRODUCTION_SUPABASE_URL, STAGING_SUPABASE_URL, voiceMode } from "../src/lib/kaju-voice/deployment";
 import { VoiceError, voiceAccess, type VoiceAccess } from "../src/lib/kaju-voice/access";
 import { LocalVoiceUsage, usageForVoiceAccess } from "../src/lib/kaju-voice/usage";
+import { mintPublicToken, publicVoiceMode, readPublicToken, verifyHuman, withinPublicLimits } from "../src/lib/kaju-voice/public";
+import { publicVoiceSettings } from "../src/lib/kaju-voice/server";
 import { createVoiceTransport } from "../src/kaju/voice/transport";
 import type { VoiceTestConfig } from "../src/lib/kaju-voice/shared";
 import { GET as signSession } from "../src/app/api/kaju/voice/orgs/[orgId]/workspaces/[workspaceId]/apps/[appId]/url/route";
@@ -96,6 +98,82 @@ async function productionChecks() {
       for (const key of ["SARVAM_VOICE_ENABLED", "VERCEL", "VERCEL_ENV", "NEXT_PUBLIC_SUPABASE_URL", "SARVAM_VOICE_PREVIEW_BRANCH", "VERCEL_GIT_COMMIT_REF"]) delete process.env[key];
       Object.assign(process.env, v);
       const rules = (await nextConfig.headers!()).filter((rule: { source: string }) => rule.source === "/kaju/voice");
+      assert.equal(rules.length === 1 && JSON.stringify(rules[0]).includes("microphone=(self)"), expected);
+    }
+  } finally {
+    for (const key of Object.keys(process.env)) if (!(key in previous)) delete process.env[key];
+    Object.assign(process.env, previous);
+  }
+}
+
+async function publicChecks() {
+  const prod = { SARVAM_VOICE_ENABLED: "true", VERCEL: "1", NODE_ENV: "production", VERCEL_ENV: "production", NEXT_PUBLIC_SUPABASE_URL: PRODUCTION_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-anon", SARVAM_VOICE_API_KEY: sentinel, SARVAM_VOICE_ORG_ID: "test-org", SARVAM_VOICE_WORKSPACE_ID: "test-workspace", SARVAM_VOICE_APP_ID: "staff-agent", SARVAM_VOICE_VERSION: "3" };
+  // Off unless explicitly owner or on, and never without a voice mode.
+  assert.equal(publicVoiceMode(prod), "off");
+  for (const v of ["owner", "on"] as const) assert.equal(publicVoiceMode({ ...prod, SARVAM_VOICE_PUBLIC: v }), v);
+  assert.equal(publicVoiceMode({ ...prod, SARVAM_VOICE_PUBLIC: "yes" }), "off");
+  assert.equal(publicVoiceMode({ ...prod, SARVAM_VOICE_PUBLIC: "on", NEXT_PUBLIC_SUPABASE_URL: STAGING_SUPABASE_URL }), "off");
+  // The public agent is its own app and version; the staff agent is never a fallback.
+  assert.ok("missing" in publicVoiceSettings(prod));
+  const pub = { ...prod, SARVAM_VOICE_PUBLIC: "on", SARVAM_VOICE_PUBLIC_APP_ID: "public-agent", SARVAM_VOICE_PUBLIC_VERSION: "1" };
+  const ps = publicVoiceSettings(pub);
+  assert.ok("config" in ps && ps.config.app_id === "public-agent" && ps.config.version === 1);
+  assert.ok("missing" in publicVoiceSettings({ ...pub, SARVAM_VOICE_PUBLIC_VERSION: "1.5" }));
+  // Bot check fails closed: no secret, no token, provider error, or a failed check.
+  const ok: typeof fetch = async (_u, init) => { assert.equal(new URLSearchParams(String(init?.body)).get("remoteip"), "203.0.113.9"); return Response.json({ success: true }); };
+  assert.equal(await verifyHuman("t", "203.0.113.9", pub, ok), false);
+  const withSecret = { ...pub, TURNSTILE_SECRET_KEY: "secret" };
+  assert.equal(await verifyHuman("", "203.0.113.9", withSecret, ok), false);
+  assert.equal(await verifyHuman("t", "203.0.113.9", withSecret, async () => Response.json({ success: false })), false);
+  assert.equal(await verifyHuman("t", "203.0.113.9", withSecret, async () => { throw Error("down"); }), false);
+  assert.equal(await verifyHuman("t", "203.0.113.9", withSecret, ok), true);
+  // Limits: per device and for the whole site; no IP means no start.
+  const asked: string[] = [];
+  const allow = (deny?: string) => (async (bucket: string | null, action: string) => { asked.push(`${bucket}:${action}`); return action !== deny; }) as never;
+  assert.equal(await withinPublicLimits(null, pub, allow()), false);
+  assert.equal(await withinPublicLimits("203.0.113.9", pub, allow()), true);
+  assert.deepEqual(asked.splice(0), ["203.0.113.9:kaju-voice-public-10m", "203.0.113.9:kaju-voice-public-day", "all:kaju-voice-public-all"]);
+  assert.equal(await withinPublicLimits("203.0.113.9", pub, allow("kaju-voice-public-all")), false);
+  // Session tokens: bound to one row, short-lived, unforgeable, and never the provider key.
+  const sid = "8d1e2f60-1b2c-4d5e-8f90-0a1b2c3d4e5f", now = Date.UTC(2026, 10, 16, 1);
+  const token = mintPublicToken(sid, pub, now);
+  assert.ok(token.startsWith("pub.") && !token.includes(sentinel));
+  assert.equal(readPublicToken(token, pub, now + 60_000), sid);
+  assert.equal(readPublicToken(token, pub, now + 6 * 60_000), null);
+  assert.equal(readPublicToken(token, { ...pub, SARVAM_VOICE_API_KEY: "another-key" }, now), null);
+  const [head, body, sig] = token.split(".");
+  const forged = `${head}.${Buffer.from(JSON.stringify({ sid: "11111111-1111-4111-8111-111111111111", exp: now + 60_000 })).toString("base64url")}.${sig}`;
+  assert.equal(readPublicToken(forged, pub, now), null);
+  assert.equal(readPublicToken(`${head}.${body}.${sig.slice(0, -2)}xx`, pub, now), null);
+  assert.throws(() => mintPublicToken(sid, { ...pub, SARVAM_VOICE_API_KEY: "" }, now));
+  // Public access: no identity, no organisation, nothing when public voice is off.
+  const live = mintPublicToken(sid, pub);
+  const hostedReq = (headers: Record<string, string>) => new Request("https://www.straypaw.org/api/kaju/voice/config", { headers: { host: "www.straypaw.org", "x-forwarded-proto": "https", "X-StrayPaw-Voice-Test": "1", ...headers } });
+  const access = await voiceAccess(hostedReq({ Authorization: `Bearer ${live}` }), pub, async () => { throw Error("public access must not call Supabase"); });
+  assert.deepEqual([access.auth, access.scope.kind, access.scope.id, access.db], ["public", "public", sid, undefined]);
+  await assert.rejects(voiceAccess(hostedReq({ Authorization: `Bearer ${live}` }), { ...pub, SARVAM_VOICE_PUBLIC: "off" }), status(403));
+  await assert.rejects(voiceAccess(hostedReq({ Authorization: `Bearer ${live}`, "X-StrayPaw-Voice-Organisation": "org-a" }), pub), status(403));
+  await assert.rejects(voiceAccess(hostedReq({ Authorization: `Bearer ${mintPublicToken(sid, pub, Date.now() - 10 * 60_000)}` }), pub), status(401));
+  const routed = settingsForVoiceAccess(access, pub);
+  assert.ok("config" in routed && routed.config.app_id === "public-agent");
+  // Public usage goes only through the service role, and a token signs once.
+  assert.throws(() => usageForVoiceAccess(access, pub, () => null), status(503));
+  const calls: unknown[] = []; let claimed = false;
+  const admin = (() => ({ rpc: async (name: string, args: Record<string, unknown>) => { calls.push([name, args]); if (args.p_event === "claim") { const first = !claimed; claimed = true; return { data: first, error: null }; } return { data: true, error: null }; } })) as never;
+  const usage = usageForVoiceAccess(access, pub, admin);
+  assert.equal(await usage.reserve(access, 1), sid);
+  await assert.rejects(usage.reserve(access, 1), status(403));
+  await usage.issued(access, sid, "ref-1");
+  assert.deepEqual(calls[2], ["kaju_voice_public_update", { p_id: sid, p_event: "issued", p_reference: "ref-1" }]);
+  // /talk gets the microphone only while public voice is owner or on.
+  const { default: nextConfig } = await import("../next.config.mjs");
+  const previous = { ...process.env };
+  try {
+    for (const [v, expected] of [[{ ...prod, SARVAM_VOICE_PUBLIC: "on" }, true], [{ ...prod, SARVAM_VOICE_PUBLIC: "owner" }, true], [prod, false], [{ ...prod, SARVAM_VOICE_PUBLIC: "on", NEXT_PUBLIC_SUPABASE_URL: STAGING_SUPABASE_URL }, false]] as const) {
+      for (const key of ["SARVAM_VOICE_ENABLED", "VERCEL", "VERCEL_ENV", "NEXT_PUBLIC_SUPABASE_URL", "SARVAM_VOICE_PUBLIC"]) delete process.env[key];
+      Object.assign(process.env, v);
+      const rules = (await nextConfig.headers!()).filter((rule: { source: string }) => rule.source === "/talk");
       assert.equal(rules.length === 1 && JSON.stringify(rules[0]).includes("microphone=(self)"), expected);
     }
   } finally {
@@ -231,11 +309,11 @@ async function privacyChecks() {
     }
   }
   await scan(root);
-  for (const file of ["VoiceTest.tsx", "transport.ts", "VoiceEntry.tsx"]) assert.ok(!(await readFile(join("src/kaju/voice", file), "utf8")).includes("process.env.SARVAM_VOICE_API_KEY"));
+  for (const file of ["VoiceExperience.tsx", "WorkspaceVoice.tsx", "transport.ts", "VoiceEntry.tsx"]) assert.ok(!(await readFile(join("src/kaju/voice", file), "utf8")).includes("process.env.SARVAM_VOICE_API_KEY"));
 }
 
 async function main() {
-  const access = await accessChecks(); await productionChecks(); await usageChecks(access); await proxyChecks(); await transportChecks(); await privacyChecks();
+  const access = await accessChecks(); await productionChecks(); await publicChecks(); await usageChecks(access); await proxyChecks(); await transportChecks(); await privacyChecks();
   console.log("Kaju voice security and lifecycle checks passed. All provider/audio transports were simulated; no live calls.");
 }
 void main().catch((error) => { console.error(error); process.exitCode = 1; });

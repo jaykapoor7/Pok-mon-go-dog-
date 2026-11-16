@@ -23,3 +23,9 @@ export function voiceMode(env = process.env) {
   }
   return env.NODE_ENV === "development" && !env.VERCEL ? "local" : null;
 }
+
+/** The public page (/talk) and its microphone permission: owner or on, never off. */
+export function publicVoicePage(env = process.env) {
+  const v = env.SARVAM_VOICE_PUBLIC?.trim();
+  return !!voiceMode(env) && (v === "owner" || v === "on");
+}
