@@ -178,3 +178,8 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
   .dt.is-small .dt-btn { min-height: 40px; }
   .dt.is-small .dt-btn.is-back { width: 40px; }
 }
+/* The role switcher says which role is open, turns its arrow when the list is open, and says who it is signing in as. */
+.dt-roles summary .dt-roles-chev { transition: transform .2s cubic-bezier(.2, .7, .2, 1); }
+.dt-roles:not([open]) summary .dt-roles-chev { transform: rotate(180deg); }
+.dt-roles summary[aria-busy="true"] { color: var(--dt-blue); cursor: progress; }
+@media (prefers-reduced-motion: reduce) { .dt-roles summary .dt-roles-chev { transition: none; } }

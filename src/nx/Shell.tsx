@@ -9,6 +9,7 @@ import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, CLINIC_VET, VET_P
 import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
+import { OrgMenu } from "./OrgMenu";
 import { useProgrammeChannels } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { Failed, OfflineBar, ToastHost } from "./kit";
@@ -98,7 +99,6 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const lab = live.org ? cur?.kind === "laboratory" : path.startsWith("/health/samples") || ["/health/testing", "/health/results", "/health/quality"].some((p) => path.startsWith(p));
   const vet = live.org ? cur?.kind === "veterinary" : VET_PATHS.some((p) => path.startsWith(p));
   const nav = (ws === "gov" ? GOV : ws === "health" ? (vet ? (cur?.source === "vet_clinic" ? CLINIC_VET : VET) : lab ? LAB : HEALTH) : ws === "research" ? RESEARCH : ws === "kaju" ? KAJU : NGO).filter((i) => !i.office || !live.org || office);
-  const switchOrg = () => { if (live.orgs.length < 2 || !live.org) return; const next = live.orgs[(live.orgs.findIndex((o) => o.org_id === live.org!.org_id) + 1) % live.orgs.length]; pick(next.org_id); router.push(homeOf(next.workspace, next.org_id)); };
   const sampleOrg = ws === "gov" ? GOV_ORG : ws === "health" ? (vet ? { name: "Kind Hour", short: "KH", kind: "Healthcare · Veterinary" } : lab ? { name: "Reference Rabies Diagnostic Laboratory", short: "RL", kind: "Healthcare · Laboratory" } : CLINIC) : ws === "research" ? { name: "Programme Epidemiology Unit", short: "PE", kind: "Research" } : ORG;
   const org = cur ? { name: cur.name, short: ((ws) => (ws.length > 1 ? ws.map((w) => w[0]).join("") : (ws[0] ?? "").slice(0, 2)).slice(0, 2).toUpperCase())((cur.short_name ?? cur.name).split(/[^A-Za-z0-9]+/).filter(Boolean)), kind: vet ? "Healthcare · Veterinary" : WS_LABEL[cur.workspace] ?? cur.kind } : sampleOrg;
   const me = live.org && live.userName ? live.userName.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() : ME.initials;
@@ -124,9 +124,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
       </nav>
 
       <aside className="nx-side" aria-label={`${org.name} navigation`}>
-        {live.org
-          ? <button type="button" className="nx-org" title={live.orgs.length > 1 ? "Switch organisation" : undefined} onClick={switchOrg}><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span>{live.orgs.length > 1 ? <ChevronsUpDown size={14} /> : null}</button>
-          : <Link href={ws === "gov" ? "/ngo/today" : "/gov/overview"} className="nx-org" title="Switch workspace"><span className="nx-org-l">{org.short}</span><span><b>{org.name}</b><small>{ws === "kaju" ? "Kaju" : org.kind}</small></span><ChevronsUpDown size={14} /></Link>}
+        <OrgMenu shown={{ ...org, kind: ws === "kaju" ? "Kaju" : org.kind }} ws={ws} current={cur ?? null} />
         <div className="nx-nav">
           {nav.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span>{i.n && !live.org ? <i>{i.n}</i> : null}</Link>)}
           {ws === "ngo" && !inChannel ? <><div className="nx-nav-h">Your organisation</div>{NGO_MORE.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span></Link>)}{live.orgs.some((o) => ["admin", "lead"].includes(o.role)) ? <Link href="/requests" className={`nx-item ${on("/requests") ? "is-on" : ""}`}><UserPlus size={15} /><span>Requests to join</span></Link> : null}</> : null}

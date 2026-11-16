@@ -26,6 +26,11 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
   const live = useLive();
   const KEY = `nx.list:${path}`;
   const [view, setView] = useState(views[0].id);
+  /* A link can open a list on one of its views (?view=ster), e.g. from a count elsewhere that this view lists. */
+  useEffect(() => {
+    const want = new URLSearchParams(window.location.search).get("view");
+    if (want && views.some((v) => v.id === want)) setView(want);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [q, setQ] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   /* Coming back to a list finds it as it was left: the same view, search, open record and scroll. */

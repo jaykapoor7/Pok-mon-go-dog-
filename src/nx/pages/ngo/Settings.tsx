@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, ImagePlus, Plus } from "lucide-react";
 import { OPERATION_LABELS, type WorkflowPolicy } from "@/lib/operations";
-import { MODULES, type Area, type Status } from "@/lib/readiness";
-import { FLAGS, type Flag } from "@/lib/flags";
+import type { Flag } from "@/lib/flags";
 import { useRead } from "@/oh/data";
 import { leadOrCoord, read, readDeadline, readPolicies, readProfile, requestFor, saveDeadline, savePolicy, saveProfile, uploadImage, type OrgProfile } from "../../data/ngo-setup";
 import { Confirm, Failed, Field, FilePick, Modal, Skeleton, errText, useAct } from "../../kit";
@@ -21,7 +20,7 @@ import { S_POLICIES, S_PROFILE } from "./sample";
    connections, and an honest list of what is live in StrayPaw. Saved through the same functions classic uses
    (ngo_update_profile, kaju_set_report_deadline, operations_save_policy, /api/connections*). */
 
-const TABS = [{ slug: "profile", label: "Profile" }, { slug: "deadline", label: "Report deadline" }, { slug: "policies", label: "Policies" }, { slug: "connections", label: "Connections" }, { slug: "connected", label: "What is connected" }] as const;
+const TABS = [{ slug: "profile", label: "Profile" }, { slug: "deadline", label: "Report deadline" }, { slug: "policies", label: "Policies" }, { slug: "connections", label: "Connections" }] as const;
 type Tab = (typeof TABS)[number]["label"];
 const CRUMB: [string, string] = ["NGO", "Settings"];
 export const NGO_SETTINGS_BACK = "/ngo/settings?tab=connections";
@@ -33,13 +32,12 @@ export function Settings({ tab: initial, flags }: { tab?: string | null; flags: 
   if (who.notNgo) return <Holding crumb={CRUMB} title="Settings" text={<>Your organisation is not an NGO workspace. Your own connections are under <Link className="ns-link" href="/settings">your settings</Link>.</>} />;
   return (
     <TabbedPage id="set" crumb={CRUMB} title="Settings" eyebrow={who.ngo?.name ?? "Kind Hour"} sample={who.sample}
-      sub="The organisation's public profile, its reporting date and procedure policies, the tools connected to Kaju, and what is live."
+      sub="Your organisation's profile, its reporting date and procedure policies, and the accounts connected to Kaju."
       tabs={TABS.map((t) => t.label) as Tab[]} tab={tab} onTab={setTab}>
       {tab === "Profile" ? <Profile who={who} />
         : tab === "Report deadline" ? <Deadline who={who} />
         : tab === "Policies" ? <Policies who={who} />
-        : tab === "Connections" ? <ConnectionsPanel back={NGO_SETTINGS_BACK} sample={who.sample} />
-        : <Readiness flags={flags} sample={who.sample} />}
+        : <ConnectionsPanel back={NGO_SETTINGS_BACK} sample={who.sample} />}
     </TabbedPage>
   );
 }
@@ -64,7 +62,7 @@ function Profile({ who }: { who: Who }) {
   const logoNow = logo ?? org.logo_url, coverNow = cover ?? org.cover_photo;
   return (
     <form onSubmit={(e) => { e.preventDefault(); if (!who.sample) save(); }} style={{ maxWidth: 760 }}>
-      <Tools end={org.slug ? <Link className="nx-btn is-quiet is-sm" href={`/community/organisations/${org.slug}`}>Your public page</Link> : null}><span className="ns-sum"><b>{org.name}</b>{org.verified ? ", a verified organisation" : ""}. What you save here is your public profile.</span></Tools>
+      <Tools><span className="ns-sum"><b>{org.name}</b>{org.verified ? ", a verified organisation" : ""}. What you save here is your public profile.</span></Tools>
       <div className="ns-media" style={{ marginTop: 8 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {logoNow ? <img className="ns-logo" src={logoNow} alt="Organisation logo" /> : <span className="ns-logo"><ImagePlus size={18} /></span>}
@@ -175,32 +173,6 @@ function NewPolicy({ onClose, onDone }: { onClose: () => void; onDone: () => voi
         </details>
       ))}
     </Modal>
-  );
-}
-
-/* ── What is connected: an honest list ── */
-const AREAS: Area[] = ["Kaju", "Field & NGO", "Veterinary", "Government", "Research", "Training", "Citizens", "Identity", "Integrations", "Platform"];
-const STATUS: Record<Status, { label: string; tone: Tone }> = { LIVE: { label: "Live", tone: "ok" }, STAGING: { label: "Under test", tone: "accent" }, BLOCKED: { label: "Waiting on others", tone: "warn" }, PLANNED: { label: "Not built yet", tone: "plain" } };
-function Readiness({ flags, sample }: { flags: Flag[]; sample: boolean }) {
-  const on = useMemo(() => new Set(flags), [flags]);
-  const [area, setArea] = useState<Area | "all">("all");
-  const counts = (s: Status) => MODULES.filter((m) => m.status === s).length;
-  const shown = MODULES.filter((m) => area === "all" || m.area === area);
-  return (
-    <>
-      <Tools end={<select className="ns-sel" aria-label="Area" value={area} onChange={(e) => setArea(e.target.value as Area | "all")}><option value="all">Every area</option>{AREAS.filter((a) => MODULES.some((m) => m.area === a)).map((a) => <option key={a} value={a}>{a}</option>)}</select>}>
-        <span className="ns-sum"><b>{counts("LIVE")}</b> live, <b>{counts("STAGING")}</b> under test, <b>{counts("BLOCKED")}</b> waiting on others, <b>{counts("PLANNED")}</b> not built yet. Live means it runs in production for its users and its checks pass.</span>
-      </Tools>
-      {sample ? <p className="nx-foot">This list is the same for everyone. Which tools are connected for you is under Connections.</p> : null}
-      <ul className="ns-ready" aria-label="What is live in StrayPaw">
-        {shown.map((m) => <li key={m.id}>
-          <span><b>{m.name}</b> <span className="nx-t3">· {m.area}</span></span>
-          <span className="ns-chips"><Chip tone={STATUS[m.status].tone}>{STATUS[m.status].label}</Chip>{m.flag ? <Chip tone={on.has(m.flag) ? "ok" : "plain"}>{on.has(m.flag) ? "Switched on" : "Switched off"}</Chip> : null}</span>
-          <p>{m.waitsOn ? <>Waits on: {m.waitsOn}</> : m.next ? <>Next: {m.next}</> : m.evidence}</p>
-          {m.flag ? <p className="ns-small" style={{ gridColumn: "1 / -1" }}>{FLAGS[m.flag]}</p> : null}
-        </li>)}
-      </ul>
-    </>
   );
 }
 

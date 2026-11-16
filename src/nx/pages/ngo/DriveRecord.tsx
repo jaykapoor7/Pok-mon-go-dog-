@@ -74,12 +74,11 @@ export function DriveRecord({ id }: { id: string }) {
           </section>
         </div>
         <div>
-          <h3 className="nx-h3">Sterilisation</h3>
-          <Partition yes={stats.sterilised} no={stats.not_sterilised} unknown={stats.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" />
-          <dl className="ns-dl" style={{ gridTemplateColumns: "minmax(0, 1fr)", marginTop: 8 }}><div><dt>Of those recorded</dt><dd>{pct(stats.ster_pct_of_known)}</dd></div><div><dt>Of all animals filed</dt><dd>{pct(stats.ster_pct_of_all)}</dd></div></dl>
-          <h3 className="nx-h3">Vaccination</h3>
-          <Partition yes={stats.vaccinated} no={stats.not_vaccinated} unknown={stats.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" />
-          <dl className="ns-dl" style={{ gridTemplateColumns: "minmax(0, 1fr)", marginTop: 8 }}><div><dt>Of those recorded</dt><dd>{pct(stats.vacc_pct_of_known)}</dd></div><div><dt>Of all animals filed</dt><dd>{pct(stats.vacc_pct_of_all)}</dd></div></dl>
+          <div className="ns-part-grid is-one">
+            <Partition title="Sterilised" yes={stats.sterilised} no={stats.not_sterilised} unknown={stats.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" />
+            <Partition title="Vaccinated" yes={stats.vaccinated} no={stats.not_vaccinated} unknown={stats.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" />
+          </div>
+          <p className="nx-foot">Shares count the animals in this drive whose status was recorded. Of all {stats.total.toLocaleString("en-IN")} animals filed: {pct(stats.ster_pct_of_all)} sterilised, {pct(stats.vacc_pct_of_all)} vaccinated.</p>
         </div>
       </div>
       {asking ? <Confirm title={stats.archived ? "Restore this drive" : "Archive this drive"} confirm={stats.archived ? "Restore" : "Archive"} busy={busy === "arch"} onClose={() => setAsking(false)} onConfirm={flip}><p>{stats.archived ? `${stats.name} returns to the active drives.` : `${stats.name} moves to the archived drives. Its animals and records are kept, and you can restore it.`}</p></Confirm> : null}

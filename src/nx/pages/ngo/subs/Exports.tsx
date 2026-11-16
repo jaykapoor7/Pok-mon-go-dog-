@@ -23,7 +23,6 @@ const OUT = (): Out[] => [
   { key: "cases", name: "Cases", unit: "One row per request", not: "", fmt: "CSV", endpoint: "/api/partner/export", q: { type: "report", format: "csv", sheet: "Cases" }, file: `straypaw-cases-${day()}.csv` },
   { key: "animals", name: "Animals", unit: "One row per animal profile", not: "Profiles, not unique animals in the area", fmt: "CSV", endpoint: "/api/partner/export", q: { type: "report", format: "csv", sheet: "Animals" }, file: `straypaw-animals-${day()}.csv` },
   { key: "care", name: "Care history", unit: "One row per care event", not: "Recorded by the organisation, not clinician-signed", fmt: "CSV", endpoint: "/api/partner/export", q: { type: "report", format: "csv", sheet: "Care history" }, file: `straypaw-care-${day()}.csv` },
-  { key: "story", name: "Animal story pack", unit: "Print-ready histories of individual animals", not: "Choose animals whose photos you may share", fmt: "Opens in a tab", open: true, endpoint: "/api/partner/story-pack", q: { type: "story" } },
 ];
 const WORK: Record<string, string> = { all: "All work", rescue: "Rescue and intake", treatment: "Treatment", vaccination: "Rabies vaccination", sterilisation: "Sterilisation (ABC)" };
 
