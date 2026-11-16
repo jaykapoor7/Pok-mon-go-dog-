@@ -184,7 +184,7 @@ export const STAGES: Stage[] = [
       { id: "link", title: "Link Simba to the bite", path: `${PROGRAMME}?tab=Work`, at: /^\/gov\/programmes\/bengaluru-demo/, sel: `newest:${REQUEST}[data-status="accepted"] [data-tour="request-link"], [data-tour="request-dogs"]`,
         say: "Tap “Link the animal” and choose Simba.",
         auto: [{ op: "press", sel: `newest:${REQUEST}[data-status="accepted"] [data-tour="request-link"]` }, { op: "wait", ms: 500 },
-          { op: "pick", sel: '[data-tour="request-dogs"] input[type="radio"]' }, { op: "wait", ms: 120 }, { op: "press", sel: '[data-tour="request-save"]' }],
+          { op: "pick", sel: "label:Simba" }, { op: "wait", ms: 120 }, { op: "press", sel: '[data-tour="request-save"]' }],
         done: { sel: REQUEST, text: "animal linked" } },
       { id: "whatsapp", title: "Reports on WhatsApp", path: "/ngo/inbox?view=whatsapp", at: /^\/ngo\/inbox/, sel: ".nr-wa, main",
         say: "Residents send photos, voice notes and location. One tap opens a case." },

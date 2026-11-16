@@ -34,7 +34,12 @@ const visible = (n: Element | null): n is HTMLElement => !!n && (n as HTMLElemen
 function resolve(sel: string | undefined): HTMLElement | null {
   if (!sel) return null;
   for (const part of sel.split(/,(?![^[]*\])/).map((x) => x.trim()).filter(Boolean)) {
-    if (part.startsWith("newest:")) {
+    if (part.startsWith("label:")) {
+      /* "label:Simba": the choice (a radio or checkbox label) with that text. */
+      const want = part.slice(6).trim().toLowerCase();
+      const hit = [...document.querySelectorAll<HTMLElement>("label")].find((n) => visible(n) && (n.textContent ?? "").toLowerCase().includes(want));
+      if (hit) return hit;
+    } else if (part.startsWith("newest:")) {
       /* "newest:<css>": of the matches, the one in the most recently created row (rehearsals leave older ones). */
       const when = (n: Element) => n.closest("[data-created]")?.getAttribute("data-created") ?? "";
       const hit = [...document.querySelectorAll<HTMLElement>(part.slice(7))].filter(visible).sort((a, b) => when(b).localeCompare(when(a)))[0];
@@ -97,6 +102,7 @@ async function runFills(fills: Fill[]) {
     if (f.op === "type" && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) { setNative(el, typeof f.value === "function" ? f.value(indiaToday()) : f.value); el.focus({ preventScroll: true }); }
     else if (f.op === "select" && el instanceof HTMLSelectElement) setNative(el, f.value);
     else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLInputElement) { if (!el.checked) el.click(); }
+    else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLLabelElement) el.click();
     else if (f.op === "press") el.click();
     await new Promise((r) => setTimeout(r, f.op === "press" ? 160 : 60));
   }

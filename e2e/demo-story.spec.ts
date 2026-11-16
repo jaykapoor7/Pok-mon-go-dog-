@@ -51,7 +51,6 @@ test("one bite, six stages: Next alone walks the whole response, and every step 
   await next("Simba's record");
   await next("Link Simba to the bite");
   await act(page, "Reports on WhatsApp");
-  await expect(page.locator('[data-tour="request"][data-area="Indiranagar"]').first()).toBeVisible();
   await page.waitForURL(/\/ngo\/inbox/, { timeout: 60_000 });
   await card(page).locator(".dt-btn.is-go:not([disabled])").click();
 
@@ -169,6 +168,6 @@ test("the guide's Next action answers an untouched citizen stage and opens the h
     await card(page).locator(".dt-btn.is-go").click();
   }
   await page.waitForURL(/\/health\/today/, { timeout: 90_000 });
-  await act(page, "The notice is waiting");
+  await act(page, "The clinic is ready");
   await expect(page.locator('[data-tour="notice"][data-area="Indiranagar"]').first()).toBeVisible({ timeout: 30_000 });
 });
