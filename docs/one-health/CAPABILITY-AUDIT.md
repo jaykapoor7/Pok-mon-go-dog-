@@ -96,3 +96,4 @@ the demo. The demonstration records are fictional and show no programme outcome.
 | `test:bite-intake`, `test:kaju-incident` | 5 and 6 checks pass |
 | Kaju suites (`reliability` 47, `automations`, `planner`, `polish`, `intake` 9, `prepare` 5, `inference-off` 8), `test:routes` 8 | Pass |
 | Full guided demo in a real browser against staging, 1920×1080: 6 stages, 27 actions, every highlighted control used | Complete, no page or database errors |
+| `e2e/demo-story.spec.ts` (OH_E2E=1) on https://demo.straypaw.org, deployment from commit a181fad2: the whole walkthrough, Start Demo to the closing card, including that one person's open records never follow into the next person's screens | Pass (1.4 min) |

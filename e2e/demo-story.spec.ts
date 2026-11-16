@@ -67,6 +67,8 @@ test("one bite, six stages: the guide points at each control, notices each step 
 
   /* 3 · Animal health: accept the request, find the dog, read its history, link it. */
   await act(page, "The hospital's request arrives");
+  /* A new person starts with no open tabs: the hospital's patient record never follows into the NGO's screens. */
+  await expect(page.getByRole("navigation", { name: "Open records" })).not.toContainText("OPD-DEMO");
   await page.locator('[data-tour="request"][data-area="Indiranagar"][data-status="open"] [data-tour="request-accept"]').first().click();
   await act(page, "Find the dog on the register");
   await on(page, /Take me there/);
