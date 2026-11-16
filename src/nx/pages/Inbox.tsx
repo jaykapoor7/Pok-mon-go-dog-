@@ -153,6 +153,8 @@ function SampleReports({ tabs }: { tabs: React.ReactNode }) {
 /* ── WhatsApp ────────────────────────────────────────────────────── */
 
 const URGENCY: Record<string, string> = { emergency: "Emergency", urgent: "Urgent", routine: "Routine", unknown: "" };
+/* A reporter who has not shared a name is told apart by the end of their opaque handle, never their number. */
+const who = (m: CareInboxItem) => m.reporter_name ?? `Reporter ${(m.reporter_handle ?? "").replace(/-/g, "").slice(-4).toUpperCase()}`.trim();
 const DISMISS = ["Not an animal-care matter", "Duplicate of another report", "Spam or a wrong number", "Already handled elsewhere"];
 function WhatsApp({ org }: { org: Workspace }) {
   const [st, setSt] = useState<WaState | null>(null);
@@ -181,9 +183,9 @@ function WhatsApp({ org }: { org: Workspace }) {
   const act = (fn: () => ReturnType<typeof actWhatsApp>, ok: string) => run("wa", fn, { ok }).then((r) => { if (r.ok) { setOpening(false); setTitle(""); setDismiss(false); void load(); } });
   return (
     <div className="nr-wa">
-      <ul className="nr-wa-list" aria-label="Conversations">{threads.map((t) => { const m = t[t.length - 1]; const sel = m.thread_id === last.thread_id; return <li key={m.thread_id}><button type="button" aria-current={sel ? "true" : undefined} onClick={() => { setOn(m.thread_id); setOpening(false); setDismiss(false); }}><span className="nr-av">{(m.reporter_name ?? "?").slice(0, 1)}</span><span style={{ minWidth: 0 }}><b>{m.reporter_name ?? "Reporter"}</b><small>{m.text_en ?? m.text ?? (m.media.length ? "Photo or voice note" : "Shared a location")}</small></span><span className="nx-t3">{ago(m.received_at)}{m.urgency === "emergency" || m.urgency === "urgent" ? <><br /><Chip tone={m.urgency === "emergency" ? "bad" : "warn"}>{URGENCY[m.urgency]}</Chip></> : null}</span></button></li>; })}</ul>
+      <ul className="nr-wa-list" aria-label="Conversations">{threads.map((t) => { const m = t[t.length - 1]; const sel = m.thread_id === last.thread_id; return <li key={m.thread_id}><button type="button" aria-current={sel ? "true" : undefined} onClick={() => { setOn(m.thread_id); setOpening(false); setDismiss(false); }}><span className="nr-av">{who(m).slice(0, 1)}</span><span style={{ minWidth: 0 }}><b>{who(m)}</b><small>{m.text_en ?? m.text ?? (m.media.length ? "Photo or voice note" : "Shared a location")}</small></span><span className="nx-t3">{ago(m.received_at)}{m.urgency === "emergency" || m.urgency === "urgent" ? <><br /><Chip tone={m.urgency === "emergency" ? "bad" : "warn"}>{URGENCY[m.urgency]}</Chip></> : null}</span></button></li>; })}</ul>
       <div className="nr-wa-th">
-        <header><b>{last.reporter_name ?? "Reporter"}</b><small>{dayTime(thread[0].received_at)} · {last.status === "linked" ? "Linked to a case" : last.owner_name ? `With ${last.owner_name}` : "New"}</small></header>
+        <header><b>{who(last)}</b><small>{dayTime(thread[0].received_at)} · {last.status === "linked" ? "Linked to a case" : last.owner_name ? `With ${last.owner_name}` : "New"}</small></header>
         <ol className="nr-msgs">{thread.map((m) => <li key={m.id}>
           {m.media.map((x) => x.kind === "image" ? <button key={x.id} type="button" className={`nr-veil ${x.sensitive && !shown.has(x.id) ? "is-veiled" : ""}`} onClick={() => setShown((s) => new Set(s).add(x.id))} aria-label={x.sensitive && !shown.has(x.id) ? "Show the photo. It may show an injury." : "Photo"}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={x.url} alt="" /></button> : x.kind === "audio" ? <audio key={x.id} controls src={x.url} /> : <a key={x.id} href={x.url} className="nr-link" target="_blank" rel="noopener noreferrer">Open the attachment</a>)}
           {m.text ? <p>{m.text}</p> : null}{m.text_en && m.text_en !== m.text ? <p className="nr-tr">{m.text_en}</p> : null}
