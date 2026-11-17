@@ -100,6 +100,37 @@ export async function withInferenceSlot<T>(fn: () => Promise<T>): Promise<T> {
   try { return await fn(); } finally { running--; }
 }
 
+/* ── The public demonstration's bite helper ─────────────────────────────
+   Kaju's chat and call on /bite-help talk to residents who are not signed
+   in, so they can never use the staff door above. They have their own
+   switch, off unless the owner sets all of it: STRAYPAW_BITE_AI exactly
+   "model", a dated authorisation (STRAYPAW_BITE_AI_AUTHORISED_BY,
+   "name:YYYY-MM-DD") and a cap on turns per day for the whole deployment
+   (STRAYPAW_BITE_AI_DAILY_TURNS). The route adds the demonstration-only flag,
+   the same-site check and per-visitor limits; each turn is capped in output.
+   The cap is counted per server instance and day, so with several instances
+   it is a ceiling per instance: the per-visitor limits bound the rest. */
+let biteDay = "", biteTurns = 0;
+export function publicBiteConfig(env: Record<string, string | undefined> = process.env): InferenceDecision {
+  if (env.STRAYPAW_BITE_AI?.trim() !== "model") return { allowed: false, reason: "Kaju's bite help uses its fixed rules." };
+  const auth = env.STRAYPAW_BITE_AI_AUTHORISED_BY?.trim();
+  if (!auth || !/^[^:]{2,80}:\d{4}-\d{2}-\d{2}$/.test(auth)) return { allowed: false, reason: "Kaju's bite help has no recorded authorisation." };
+  const daily = num(env.STRAYPAW_BITE_AI_DAILY_TURNS);
+  if (!daily) return { allowed: false, reason: "Kaju's bite help has no daily cap." };
+  return { allowed: true, budget: { monthlyCeilingInr: 0, perUserDaily: daily, perOrgDaily: daily, maxConcurrent: 6, maxOutputTokens: 1600, inrPerMTokIn: 0, inrPerMTokOut: 0 } };
+}
+/** One public turn: allowed only while the switch is set and today's cap is not reached. Counts the turn. */
+export function publicBiteTurn(env: Record<string, string | undefined> = process.env, now = new Date()): InferenceDecision {
+  const cfg = publicBiteConfig(env);
+  if (!cfg.allowed) return cfg;
+  const day = now.toISOString().slice(0, 10);
+  if (day !== biteDay) { biteDay = day; biteTurns = 0; }
+  if (biteTurns >= cfg.budget.perUserDaily) return { allowed: false, reason: "Today's turns for Kaju's bite help are used up." };
+  if (running >= cfg.budget.maxConcurrent) return { allowed: false, reason: "Kaju is busy." };
+  biteTurns++;
+  return cfg;
+}
+
 export type ModelCredentials = { gateway: boolean; token: string; model: string };
 /** Credentials, resolved ONLY after an allowed decision. OIDC is imported lazily so it never runs otherwise. */
 export async function modelCredentials(decision: InferenceDecision, env: Record<string, string | undefined> = process.env): Promise<ModelCredentials | null> {

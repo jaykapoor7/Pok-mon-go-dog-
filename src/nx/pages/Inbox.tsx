@@ -2,25 +2,24 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, CheckCircle2, ClipboardPaste, MapPin, MessageCircle, Sparkles, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, MapPin, MessageCircle, Sparkles, X } from "lucide-react";
 import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { Confirm, Field, Modal, Props, TabBar, dayTime, errText, n, useAct, words } from "../kit";
 import { REPORTS, type Tone } from "../fixtures";
 import { useLive, type Workspace } from "../live";
 import type { CareInboxItem } from "@/lib/careos/contract";
-import type { AiReply, Proposal } from "@/sp3/ai/types";
-import { RECORD_PROPOSALS, actWhatsApp, caseFromReport, fileReports, kajuConfirm, kajuRead, nextHref, readDrives, readIncoming, readWhatsApp, type Drive, type Incoming, type WaState } from "../data/ngo";
+import { actWhatsApp, caseFromReport, fileReports, readDrives, readIncoming, readWhatsApp, type Drive, type Incoming, type WaState } from "../data/ngo";
 import { SAMPLE_WA } from "../data/ngo-sample";
 import { RecordList, type RCol, type RView } from "./ngo/RecordList";
 import { TryLink } from "./ngo/parts";
 
 /* Everything that arrives from outside, before it is work. A person decides what each report becomes: a case for the
-   team, or an entry in a drive (which can register the animal). WhatsApp messages wait in their own threads, and a
-   message pasted from a chat is read by Kaju, who prepares a record that is saved only when a person confirms it. */
+   team, or an entry in a drive (which can register the animal). WhatsApp messages wait in their own threads, one per
+   reporter, and one tap opens a case from a message. */
 
 type Row = { id: string; what: string; note: string; place: string; from: string; source: string; state: string; tone: Tone; when: string; open: boolean; match?: string; photo?: string | null; help: boolean; raw?: Incoming };
-type Part = "Reports" | "WhatsApp" | "Paste a message";
+type Part = "Reports" | "WhatsApp";
 const MOOD: Record<string, string> = { injured: "Injured", sick: "Unwell", scared: "Scared", aggressive: "Defensive", friendly: "Friendly", hungry: "Hungry", puppy: "Puppy" };
 const ago = (iso: string) => { const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 6e4)); return m < 60 ? `${m} min` : m < 1440 ? `${Math.round(m / 60)} h` : m < 2880 ? "Yesterday" : new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }); };
 const COLS: RCol<Row>[] = [
@@ -36,18 +35,18 @@ const search = (r: Row) => `${r.what} ${r.note} ${r.place} ${r.from}`;
 export function Inbox() {
   const live = useLive();
   const [part, setPart] = useState<Part>("Reports");
-  useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); if (v === "whatsapp") setPart("WhatsApp"); if (v === "paste") setPart("Paste a message"); }, []);
+  useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); if (v === "whatsapp") setPart("WhatsApp"); }, []);
   if (!live.ready) return <Shell crumb={["NGO", "Inbox"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const org = live.orgFor("ngo");
   if (live.org && !org) return <Shell crumb={["NGO", "Inbox"]}><div className="nx-page"><h1 className="nx-h1">Inbox</h1><p className="nx-sub">{live.org.name} is not an NGO workspace, so it has no report inbox.</p></div></Shell>;
-  const tabs = <TabBar id="inbox" tabs={["Reports", "WhatsApp", "Paste a message"] as Part[]} value={part} onChange={setPart} label="Where it came from" />;
+  const tabs = <TabBar id="inbox" tabs={["Reports", "WhatsApp"] as Part[]} value={part} onChange={setPart} label="Where it came from" />;
   return (
     <Shell crumb={["NGO", "Inbox"]}>
       {part === "Reports" ? (org ? <LiveReports org={org} tabs={tabs} /> : <SampleReports tabs={tabs} />)
         : <div className="nx-page" style={{ maxWidth: "none" }}>
-          <div className="nx-head"><div><h1 className="nx-h1">Inbox{org ? null : <Sample />}</h1><p className="nx-sub">{part === "WhatsApp" ? "Reports from your field team and residents on WhatsApp, one conversation per reporter. Reporters' numbers never reach the workspace." : "Paste a message your team sent. Kaju reads it and prepares a record; nothing is saved until you confirm it."}</p></div></div>
+          <div className="nx-head"><div><h1 className="nx-h1">Inbox{org ? null : <Sample />}</h1><p className="nx-sub">Reports from your field team and residents on WhatsApp, one conversation per reporter. Reporters&apos; numbers never reach the workspace.</p></div></div>
           <div className="nr-bleed">{tabs}</div>
-          {part === "WhatsApp" ? (org ? <WhatsApp org={org} /> : <SampleWhatsApp />) : <Paste sample={!org} />}
+          {org ? <WhatsApp org={org} /> : <SampleWhatsApp />}
         </div>}
     </Shell>
   );
@@ -154,6 +153,8 @@ function SampleReports({ tabs }: { tabs: React.ReactNode }) {
 /* ── WhatsApp ────────────────────────────────────────────────────── */
 
 const URGENCY: Record<string, string> = { emergency: "Emergency", urgent: "Urgent", routine: "Routine", unknown: "" };
+/* A reporter who has not shared a name is told apart by the end of their opaque handle, never their number. */
+const who = (m: CareInboxItem) => m.reporter_name ?? `Reporter ${(m.reporter_handle ?? "").replace(/-/g, "").slice(-4).toUpperCase()}`.trim();
 const DISMISS = ["Not an animal-care matter", "Duplicate of another report", "Spam or a wrong number", "Already handled elsewhere"];
 function WhatsApp({ org }: { org: Workspace }) {
   const [st, setSt] = useState<WaState | null>(null);
@@ -182,9 +183,9 @@ function WhatsApp({ org }: { org: Workspace }) {
   const act = (fn: () => ReturnType<typeof actWhatsApp>, ok: string) => run("wa", fn, { ok }).then((r) => { if (r.ok) { setOpening(false); setTitle(""); setDismiss(false); void load(); } });
   return (
     <div className="nr-wa">
-      <ul className="nr-wa-list" aria-label="Conversations">{threads.map((t) => { const m = t[t.length - 1]; const sel = m.thread_id === last.thread_id; return <li key={m.thread_id}><button type="button" aria-current={sel ? "true" : undefined} onClick={() => { setOn(m.thread_id); setOpening(false); setDismiss(false); }}><span className="nr-av">{(m.reporter_name ?? "?").slice(0, 1)}</span><span style={{ minWidth: 0 }}><b>{m.reporter_name ?? "Reporter"}</b><small>{m.text_en ?? m.text ?? (m.media.length ? "Photo or voice note" : "Shared a location")}</small></span><span className="nx-t3">{ago(m.received_at)}{m.urgency === "emergency" || m.urgency === "urgent" ? <><br /><Chip tone={m.urgency === "emergency" ? "bad" : "warn"}>{URGENCY[m.urgency]}</Chip></> : null}</span></button></li>; })}</ul>
+      <ul className="nr-wa-list" aria-label="Conversations">{threads.map((t) => { const m = t[t.length - 1]; const sel = m.thread_id === last.thread_id; return <li key={m.thread_id}><button type="button" aria-current={sel ? "true" : undefined} onClick={() => { setOn(m.thread_id); setOpening(false); setDismiss(false); }}><span className="nr-av">{who(m).slice(0, 1)}</span><span style={{ minWidth: 0 }}><b>{who(m)}</b><small>{m.text_en ?? m.text ?? (m.media.length ? "Photo or voice note" : "Shared a location")}</small></span><span className="nx-t3">{ago(m.received_at)}{m.urgency === "emergency" || m.urgency === "urgent" ? <><br /><Chip tone={m.urgency === "emergency" ? "bad" : "warn"}>{URGENCY[m.urgency]}</Chip></> : null}</span></button></li>; })}</ul>
       <div className="nr-wa-th">
-        <header><b>{last.reporter_name ?? "Reporter"}</b><small>{dayTime(thread[0].received_at)} · {last.status === "linked" ? "Linked to a case" : last.owner_name ? `With ${last.owner_name}` : "New"}</small></header>
+        <header><b>{who(last)}</b><small>{dayTime(thread[0].received_at)} · {last.status === "linked" ? "Linked to a case" : last.owner_name ? `With ${last.owner_name}` : "New"}</small></header>
         <ol className="nr-msgs">{thread.map((m) => <li key={m.id}>
           {m.media.map((x) => x.kind === "image" ? <button key={x.id} type="button" className={`nr-veil ${x.sensitive && !shown.has(x.id) ? "is-veiled" : ""}`} onClick={() => setShown((s) => new Set(s).add(x.id))} aria-label={x.sensitive && !shown.has(x.id) ? "Show the photo. It may show an injury." : "Photo"}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={x.url} alt="" /></button> : x.kind === "audio" ? <audio key={x.id} controls src={x.url} /> : <a key={x.id} href={x.url} className="nr-link" target="_blank" rel="noopener noreferrer">Open the attachment</a>)}
           {m.text ? <p>{m.text}</p> : null}{m.text_en && m.text_en !== m.text ? <p className="nr-tr">{m.text_en}</p> : null}
@@ -219,62 +220,6 @@ function SampleWhatsApp() {
       <ul className="nr-wa-list" aria-label="Conversations">{SAMPLE_WA.map((m, i) => <li key={m.id}><button type="button" aria-current={i === 0 ? "true" : undefined}><span className="nr-av">{m.who.slice(0, 1)}</span><span style={{ minWidth: 0 }}><b>{m.who}</b><small>{m.text}</small></span><span className="nx-t3">{ago(m.at)}{m.urgency === "urgent" ? <><br /><Chip tone="warn">Urgent</Chip></> : null}</span></button></li>)}</ul>
       <div className="nr-wa-th"><header><b>{SAMPLE_WA[0].who}</b><small>New</small></header><ol className="nr-msgs"><li><p>{SAMPLE_WA[0].text}</p><small>{dayTime(SAMPLE_WA[0].at)}</small></li></ol>
         <div className="nr-acts"><TryLink sm quiet>Take it</TryLink><TryLink sm>Open a case</TryLink><TryLink sm quiet>Dismiss…</TryLink></div></div>
-    </div>
-  );
-}
-
-/* ── Paste a message: Kaju prepares, a person confirms ───────────── */
-
-const EXAMPLE = "Brown female dog, limping, near HSR Layout 14th Main bus stop, Bengaluru. Found 9am today. Needs treatment.";
-function Paste({ sample }: { sample: boolean }) {
-  const [text, setText] = useState("");
-  const [note, setNote] = useState<string | null>(null);
-  const [reply, setReply] = useState<AiReply | null>(null);
-  const { busy, run } = useAct();
-  const paste = async () => { try { const t = await navigator.clipboard.readText(); if (t.trim()) { setText(t.slice(0, 4000)); setNote(null); } else setNote("Nothing is copied yet. Copy the message in WhatsApp first."); } catch { setNote("Press and hold in the box and choose Paste."); } };
-  const read = async () => { const t = text.trim(); if (!t) return; setReply(null); const r = await run("read", () => kajuRead(t), { quiet: true }); if (r.ok && r.result?.data) setReply(r.result.data); };
-  return (
-    <div className="nr-kaju" style={{ maxWidth: 760, marginTop: 18 }}>
-      <ol className="nr-acts nx-t3" aria-label="How it works" style={{ gap: 14 }}><li>1. Copy the WhatsApp message</li><li>2. Paste it here</li><li>3. Check and confirm what Kaju prepares</li></ol>
-      <Field label="The message"><textarea value={text} maxLength={4000} rows={6} placeholder={EXAMPLE} onChange={(e) => { setText(e.target.value); setNote(null); }} /></Field>
-      <div className="nr-acts">
-        <button type="button" className="nx-btn is-quiet" onClick={() => void paste()}><ClipboardPaste size={14} />Paste</button>
-        {sample ? <TryLink><Sparkles size={14} />Read it with Kaju</TryLink> : <button type="button" className="nx-btn" disabled={!text.trim() || !!busy} onClick={() => void read()}><Sparkles size={14} />{busy === "read" ? "Kaju is reading…" : "Read it with Kaju"}</button>}
-      </div>
-      {note ? <p className="nr-hint" role="status">{note}</p> : null}
-      {reply ? <section aria-label="What Kaju prepared" style={{ display: "grid", gap: 10 }}>
-        <div className="nr-reply">{reply.text.replace(/\*\*/g, "")}</div>
-        {reply.notice ? <p className="nr-hint">{reply.notice}</p> : null}
-        {reply.proposals.map((p) => <ProposalCard key={p.id} p={p} />)}
-        {!reply.proposals.length ? <p className="nr-hint">Kaju did not prepare a record from this message. Open a case by hand from <Link className="nr-link" href="/ngo/cases/new">New case</Link>.</p> : null}
-      </section> : null}
-    </div>
-  );
-}
-
-function ProposalCard({ p }: { p: Proposal }) {
-  const [ask, setAsk] = useState(false);
-  const [saved, setSaved] = useState<{ what: string; href: string | null } | null>(null);
-  const [gone, setGone] = useState(false);
-  const { busy, run } = useAct();
-  const record = RECORD_PROPOSALS.has(p.kind);
-  const rows: [string, string][] = p.kind === "open_case" ? [["Action", "Open a case"], ["Title", p.title], ["City", p.city], ["Place", p.zone ?? "Not given"], ["Category", words(p.category)], ["Severity", words(p.severity)], ["Notes", p.description || "—"]]
-    : p.kind === "add_note" ? [["Action", "Add a note"], ["Case", p.caseLabel], ["Note", p.note]]
-    : p.kind === "schedule_followup" ? [["Action", "Schedule a follow-up"], ["Case", p.caseLabel], ["Due", new Date(p.dueAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })], ["Note", p.note || "—"]]
-    : p.kind === "record_care" ? [["Action", "Record a care event"], ["Animal", p.dogLabel], ["Kind", words(p.careKind)], ["Date", p.date ?? "Not given"], ["Notes", p.notes || "—"]]
-    : [["Action", words(p.kind)]];
-  if (gone) return <p className="nr-hint">Set aside. Nothing was saved.</p>;
-  return (
-    <div className={`nr-prop ${saved ? "is-done" : ""}`} role="group" aria-label="Prepared record">
-      <h3>{saved ? <><CheckCircle2 size={14} style={{ color: "var(--ok)" }} />Saved to the record</> : <><Sparkles size={13} style={{ color: "var(--accent)" }} />Prepared, not saved</>}</h3>
-      {p.why ? <p className="nr-hint">{p.why}</p> : null}
-      <dl className="nr-dl">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
-      {saved ? <p className="nr-acts">{saved.what}.{saved.href ? <Link className="nr-link" href={saved.href}>Open it</Link> : null}</p>
-        : record ? <div className="nr-acts"><button type="button" className="nx-btn is-sm" disabled={!!busy} onClick={() => setAsk(true)}>Confirm and save…</button><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setGone(true)}>Not this</button></div>
-        : <p className="nr-hint">This acts outside StrayPaw. Open it in <Link className="nr-link" href="/kaju">Kaju</Link> to check and send it.</p>}
-      {ask ? <Confirm title="Save what Kaju prepared?" confirm="Save it" busy={!!busy} onClose={() => setAsk(false)} onConfirm={() => void run("confirm", () => kajuConfirm(p), { ok: "Saved; the audit record was checked." }).then((r) => { if (r.ok && r.result?.data) { setSaved({ what: r.result.data.what, href: nextHref(r.result.data.href) }); setAsk(false); } })}>
-        <p>It is saved under your name, marked as prepared with Kaju and confirmed by you. Confirming again never saves it twice.</p>
-      </Confirm> : null}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { GROUPS, levelOf } from "@/lib/kaju/capabilities";
 import { Chip, Sample } from "../ui";
 import type { CapItem, Notice } from "./work";
 import { toolLevels } from "./work";
+import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Two quiet panels for Kaju's home. What Kaju noticed, from real sources only, each with the next step it can prepare;
    and what Kaju can use here, saying plainly what works now and what waits for the owner's setup. */
@@ -66,7 +67,8 @@ const CAP_TONE: Record<CapItem["state"], "ok" | "warn" | "plain" | "accent"> = {
 
 export function Capabilities({ items, failed, orgId }: { items: CapItem[] | null; failed?: boolean; orgId: string | null }) {
   const sample = !orgId;
-  const list = sample ? SAMPLE_CAPS : items;
+  /* The demonstration site shows Kaju as it runs in a connected organisation: what is live, WhatsApp included. */
+  const list = sample ? SAMPLE_CAPS : items && DEMO_SITE ? [...items.filter((c) => c.state === "live" || c.state === "you"), { id: "whatsapp", name: "WhatsApp", state: "live" as const, label: "Live", detail: "Reports from residents and field teams arrive in the Inbox." }] : items;
   const [levels, setLevels] = useState<Record<string, number> | null>(null);
   const [opened, setOpened] = useState(false);
   return (

@@ -25,6 +25,7 @@ import { useKajuPrefs, useKajuVocab, useMissionList } from "../kaju/data";
 import { plannedFrom, useCapabilities, useNoticed, type Notice } from "../kaju/work";
 import { appHref, useKaju, type Planned } from "../kaju/state";
 import "../kaju/workspace.css";
+import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Kaju's home: one place to say what should get done. A request becomes a plan that says who does each step; Kaju runs
    what it may, stops where a person decides, and keeps going across sessions. Beside it, what Kaju noticed in the
@@ -99,7 +100,7 @@ export function Kaju() {
                   onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} />
               </div>
               {noModel ? <p className="kj-nomodel" role="status">{noModel}</p> : null}
-              <Jobs vocab={vocab} canPlan={!!org} busy={busy} onPlan={(t, i) => void plan(t, i)} intro={caps && !caps.planning ? "Kaju plans these jobs by fixed rules, no model needed:" : "Or start from one of Kaju's jobs:"} />
+              <Jobs vocab={vocab} canPlan={!!org} busy={busy} onPlan={(t, i) => void plan(t, i)} intro={caps && !caps.planning && !DEMO_SITE ? "Kaju plans these jobs by fixed rules, no model needed:" : "Or start from one of Kaju's jobs:"} />
 
               <AnimatePresence>{planned ? <PlanCard key={planned.key} planned={planned} vocab={vocab} busy={busy} onStart={(p) => void start(p)} onDiscard={() => setPlanned(null)} /> : null}</AnimatePresence>
 

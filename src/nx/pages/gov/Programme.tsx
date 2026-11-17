@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { getSupabase } from "@/lib/supabase";
 import { ArrowRight, Copy, Download, MapPin, Plus, Printer, ShieldAlert, Upload } from "lucide-react";
 import { AreaIntel } from "./AreaIntel";
 import { ALERT_KIND, AUDIENCE, HANDOFF, HANDOFF_KIND, KIND_LABEL, MODULES, ROLE_LABEL, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, call, fmtDate, select, showCount, useNames, useRead, type Alert, type Count, type Handoff, type Kind, type Network, type Overview, type Place, type Role } from "@/oh/data";
@@ -257,9 +258,17 @@ function WorkTab({ sample, p, caps, places }: Ctx) {
   const ar = (id: string | null | undefined) => (sample ? SAMPLE_NAMES[id ?? ""] : names.area(id)) ?? null;
   const [lane, setLane] = useState<"open" | "overdue" | "closed">("open");
   const [asking, setAsking] = useState(false);
-  const [acting, setActing] = useState<{ h: Handoff; action: "done" | "decline" } | null>(null);
+  const [acting, setActing] = useState<{ h: Handoff; action: "done" | "decline" | "link" } | null>(null);
   const { busy, run } = useAct();
   const t = indiaToday();
+  /* The animals linked to requests this team holds, by name, from its own register. */
+  const linkedIds = useMemo(() => [...new Set((hand.data ?? []).map((h) => h.animal_id).filter(Boolean))] as string[], [hand.data]);
+  const [dogNames, setDogNames] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (sample || !linkedIds.length) return;
+    const db = getSupabase(); if (!db) return;
+    void db.from("dogs").select("id,name,code").in("id", linkedIds).then(({ data }) => setDogNames(Object.fromEntries(((data ?? []) as { id: string; name: string | null; code: string | null }[]).map((d) => [d.id, [d.name, d.code ? `(${d.code})` : null].filter(Boolean).join(" ") || "Animal on the register"]))));
+  }, [sample, linkedIds]);
   const all = [...(hand.data ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at));
   const isOpen = (h: Handoff) => h.status === "open" || h.status === "accepted", late = (h: Handoff) => isOpen(h) && !!h.due_on && h.due_on < t;
   const list = all.filter((h) => (lane === "open" ? isOpen(h) : lane === "overdue" ? late(h) : !isOpen(h)));
@@ -271,12 +280,12 @@ function WorkTab({ sample, p, caps, places }: Ctx) {
         {caps.has("raise_handoff") ? (sample ? <TryLink keep><Plus size={13} />Ask a partner</TryLink> : <button type="button" className="nx-btn is-keep" onClick={() => setAsking(true)}><Plus size={13} />Ask a partner</button>) : null}</div>
       <div className="nx-bar"><div className="nx-views" role="tablist" aria-label="Requests">{([["open", "Open", all.filter(isOpen).length], ["overdue", "Overdue", all.filter(late).length], ["closed", "Closed", all.filter((h) => !isOpen(h)).length]] as const).map(([k, l, c]) => <button key={k} type="button" role="tab" aria-selected={lane === k} className={`nx-view ${lane === k ? "is-on" : ""}`} onClick={() => setLane(k)}>{lane === k ? <span className="nx-view-bg" /> : null}<span>{l}<span className="nx-count">{c}</span></span></button>)}</div></div>
       {hand.error ? <Failed error={hand.error} retry={hand.reload} /> : hand.loading ? <Skeleton rows={5} /> : list.length ? (
-        <ul className="gh-list">{list.map((h) => <li key={h.id}><div><b>{h.title}</b><small>{HANDOFF_KIND[h.kind] ?? h.kind} · {nm(h.from_org) ?? "Programme"} → {nm(h.to_org) ?? "Partner"}{ar(h.area_id) ? ` · ${ar(h.area_id)}` : ""}{h.due_on ? ` · due ${fmtDate(h.due_on)}` : ""}{late(h) ? " (overdue)" : ""}{h.outcome ? ` · ${h.outcome}` : ""}{h.closed_by_name ? ` · ${h.closed_by_name}` : ""}</small></div>
+        <ul className="gh-list">{list.map((h) => <li key={h.id} data-tour="request" data-area={ar(h.area_id) ?? undefined} data-status={h.status} data-created={h.created_at}><div><b>{h.title}</b><small>{HANDOFF_KIND[h.kind] ?? h.kind} · {nm(h.from_org) ?? "Programme"} → {nm(h.to_org) ?? "Partner"}{ar(h.area_id) ? ` · ${ar(h.area_id)}` : ""}{h.due_on ? ` · due ${fmtDate(h.due_on)}` : ""}{late(h) ? " (overdue)" : ""}{h.animal_id ? ` · animal linked${dogNames[h.animal_id] ? `: ${dogNames[h.animal_id]}` : ""}` : ""}{h.outcome ? ` · ${h.outcome}` : ""}{h.closed_by_name ? ` · ${h.closed_by_name}` : ""}</small></div>
           <span className="gh-row-a"><Chip tone={late(h) ? "bad" : HTONE[h.status] ?? "plain"}>{HANDOFF[h.status]?.label ?? h.status}</Chip>
-            {isOpen(h) && mine(h) ? (sample ? <TryLink sm quiet>Record outcome</TryLink> : <>{h.status === "open" ? <button type="button" className="nx-btn is-sm" disabled={!!busy} onClick={() => void accept(h)}>Accept</button> : null}<button type="button" className="nx-btn is-sm is-quiet" onClick={() => setActing({ h, action: "done" })}>Record outcome</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setActing({ h, action: "decline" })}>Decline</button></>) : null}</span></li>)}</ul>
+            {isOpen(h) && mine(h) ? (sample ? <TryLink sm quiet>Record outcome</TryLink> : <>{h.status === "open" ? <button type="button" className="nx-btn is-sm" data-tour="request-accept" disabled={!!busy} onClick={() => void accept(h)}>Accept</button> : null}{h.status === "accepted" && !h.animal_id && h.kind === "animal_followup" ? <button type="button" className="nx-btn is-sm" data-tour="request-link" onClick={() => setActing({ h, action: "link" })}>Link the animal</button> : null}<button type="button" className="nx-btn is-sm is-quiet" data-tour="request-outcome" onClick={() => setActing({ h, action: "done" })}>Record outcome</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setActing({ h, action: "decline" })}>Decline</button></>) : null}</span></li>)}</ul>
       ) : <Empty title={lane === "closed" ? "Nothing closed yet" : lane === "overdue" ? "Nothing overdue" : "Nothing open"} />}
       {asking ? <AskModal p={p} partners={(ov.data?.partners ?? []).filter((x) => !places.some((pl) => pl.organisation_id === x.id))} areas={(ov.data?.vaccination ?? []).map((v) => ({ id: v.area_id, name: v.area }))} onClose={() => setAsking(false)} onDone={() => { setAsking(false); hand.reload(); }} /> : null}
-      {acting ? <OutcomeModal h={acting.h} action={acting.action} onClose={() => setActing(null)} onDone={() => { setActing(null); hand.reload(); }} /> : null}
+      {acting ? <OutcomeModal h={acting.h} action={acting.action} area={ar(acting.h.area_id)} onClose={() => setActing(null)} onDone={() => { setActing(null); hand.reload(); }} /> : null}
     </div>
   );
 }
@@ -298,14 +307,43 @@ function AskModal({ p, partners, areas, onClose, onDone }: { p: Prog; partners: 
   </Modal>;
 }
 
-export function OutcomeModal({ h, action, onClose, onDone }: { h: Handoff; action: "done" | "decline"; onClose: () => void; onDone: () => void }) {
+type RegisterDog = { id: string; name: string | null; code: string | null; zone: string | null; color: string | null; cover_photo: string | null; vaccination_status: string | null; sterilisation_status: string | null };
+const dogName = (d: RegisterDog) => [d.name, d.code ? `(${d.code})` : null].filter(Boolean).join(" ") || "Unnamed animal";
+
+/* Close, decline, or link the animal the team found. An animal follow-up links the dog from the team's own
+   register, so the bite and the animal's record stay connected; the database checks the dog is on that register. */
+export function OutcomeModal({ h, action, area, onClose, onDone }: { h: Handoff; action: "done" | "decline" | "link"; area?: string | null; onClose: () => void; onDone: () => void }) {
+  const live = useLive();
   const [outcome, setOutcome] = useState("");
+  const [dog, setDog] = useState<string>(h.animal_id ?? "");
+  const [dogs, setDogs] = useState<RegisterDog[] | null>(null);
   const { busy, run } = useAct();
-  const save = async () => { const r = await run("out", () => call("oh_handoff_act", { p_handoff: h.id, p_action: action, p_outcome: outcome.trim(), p_animal: null }), { ok: action === "done" ? "Closed with what you found. The programme sees it." : "Declined with your reason. The programme sees it." }); if (r.ok) onDone(); };
-  return <Modal title={action === "done" ? "Record what was done" : "Decline this request"} onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" className={`nx-btn ${action === "decline" ? "is-danger" : ""}`} disabled={!!busy || outcome.trim().length < 3} onClick={() => void save()}>{action === "done" ? "Close request" : "Decline"}</button></>}>
+  const ngo = live.orgs.find((o) => o.workspace === "ngo")?.org_id ?? null;
+  const picks = action !== "decline" && h.kind === "animal_followup" && !!ngo;
+  useEffect(() => {
+    if (!picks) return;
+    const db = getSupabase(); if (!db) return;
+    let q = db.from("dogs").select("id,name,code,zone,color,cover_photo,vaccination_status,sterilisation_status").eq("ngo_id", ngo!).order("last_seen", { ascending: false, nullsFirst: false }).limit(12);
+    if (area) q = q.ilike("zone", `%${area.replace(/[%,()*\\]/g, " ").trim()}%`);
+    void q.then(({ data }) => setDogs((data ?? []) as RegisterDog[]));
+  }, [picks, ngo, area]);
+  const chosen = dogs?.find((d) => d.id === dog) ?? null;
+  const note = action === "link" ? [chosen ? `${dogName(chosen)} found and linked.` : null, outcome.trim() || null].filter(Boolean).join(" ") : outcome.trim();
+  const ready = action === "link" ? !!dog : outcome.trim().length >= 3;
+  const save = async () => {
+    const r = await run("out", () => call("oh_handoff_act", { p_handoff: h.id, p_action: action === "link" ? "accept" : action, p_outcome: note || null, p_animal: picks && dog ? dog : null }),
+      { ok: action === "link" ? "Linked. The programme sees which animal the team is observing." : action === "done" ? "Closed with what you found. The programme sees it." : "Declined with your reason. The programme sees it." });
+    if (r.ok) onDone();
+  };
+  const title = action === "link" ? "Link the animal you found" : action === "done" ? "Record what was done" : "Decline this request";
+  return <Modal title={title} onClose={onClose} foot={<><button type="button" className="nx-btn is-quiet" onClick={onClose}>Cancel</button><button type="button" data-tour="request-save" className={`nx-btn ${action === "decline" ? "is-danger" : ""}`} disabled={!!busy || !ready} onClick={() => void save()}>{action === "link" ? "Link the animal" : action === "done" ? "Close request" : "Decline"}</button></>}>
     <p className="nx-sub" style={{ marginTop: 0 }}><b>{h.title}</b></p>
     {h.detail ? <p className="nx-note" style={{ whiteSpace: "pre-line" }}>{h.detail}</p> : null}
-    <Field label={action === "done" ? "What was found or done" : "Why your team cannot take this on"}><textarea value={outcome} maxLength={600} onChange={(e) => setOutcome(e.target.value)} autoFocus placeholder={action === "done" ? "For example: dog found alive, observed for ten days, healthy" : "For example: outside our ward"} /></Field>
+    {picks ? <div className="nx-field" data-tour="request-dogs"><span>Which animal on your register{area ? ` in ${area}` : ""}</span>
+      {dogs === null ? <p className="nx-sub">Reading your register…</p> : dogs.length ? <ul className="gh-list" role="radiogroup" aria-label="Animal">{dogs.map((d) => <li key={d.id}><label className="gh-tick" style={{ width: "100%" }}><input type="radio" name="dog" value={d.id} checked={dog === d.id} onChange={() => setDog(d.id)} /><span><b>{dogName(d)}</b><small className="nx-t3">{[d.color, d.zone, d.sterilisation_status === "sterilised" ? "sterilised" : null, d.vaccination_status === "vaccinated" ? "vaccinated" : d.vaccination_status === "unknown" ? "vaccination not recorded" : null].filter(Boolean).join(" · ")}</small></span></label></li>)}{action !== "link" ? <li><label className="gh-tick"><input type="radio" name="dog" value="" checked={!dog} onChange={() => setDog("")} /><span>Not on our register, or not found</span></label></li> : null}</ul>
+        : <p className="nx-sub">No animal on your register{area ? ` in ${area}` : ""} yet. Record it first from Animals.</p>}
+    </div> : null}
+    <Field label={action === "link" ? "Note for the programme (optional)" : action === "done" ? "What was found or done" : "Why your team cannot take this on"}><textarea value={outcome} maxLength={600} onChange={(e) => setOutcome(e.target.value)} autoFocus={!picks} data-example={action === "link" ? "Seen near the bus stop on 100 Feet Road, calm and eating. Observing for ten days." : undefined} placeholder={action === "link" ? "For example: seen at the bus stop, calm and eating" : action === "done" ? "For example: dog found alive, observed for ten days, healthy" : "For example: outside our ward"} /></Field>
   </Modal>;
 }
 

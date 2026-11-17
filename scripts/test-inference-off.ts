@@ -61,12 +61,29 @@ async function main() {
   setInferenceLedger(null);
   ok("each run is written with its tokens and rupee cost; failed writes are reported; nothing is written while off");
 
+  /* The public demonstration's bite help: its own switch, off unless fully set, with a daily cap. */
+  const { publicBiteConfig, publicBiteTurn } = await import("../src/lib/ai/inference");
+  for (const v of [undefined, "", "on", "MODEL", "true"]) assert.equal(publicBiteConfig({ ...keys, STRAYPAW_BITE_AI: v, STRAYPAW_BITE_AI_AUTHORISED_BY: "owner:2026-11-17", STRAYPAW_BITE_AI_DAILY_TURNS: "5" }).allowed, false);
+  assert.equal(publicBiteConfig({ ...keys, STRAYPAW_BITE_AI: "model", STRAYPAW_BITE_AI_DAILY_TURNS: "5" }).allowed, false, "no authorisation");
+  assert.equal(publicBiteConfig({ ...keys, STRAYPAW_BITE_AI: "model", STRAYPAW_BITE_AI_AUTHORISED_BY: "owner:2026-11-17" }).allowed, false, "no cap");
+  assert.equal(publicBiteConfig({ ...keys, STRAYPAW_AI_MODE: "model", STRAYPAW_AI_AUTHORISED_BY: "owner:2026-11-03" }).allowed, false, "the staff switch does not open it");
+  const bite = { STRAYPAW_BITE_AI: "model", STRAYPAW_BITE_AI_AUTHORISED_BY: "owner:2026-11-17", STRAYPAW_BITE_AI_DAILY_TURNS: "2" };
+  const day = new Date("2026-11-17T08:00:00Z");
+  assert.equal(publicBiteTurn(bite, day).allowed, true); assert.equal(publicBiteTurn(bite, day).allowed, true);
+  assert.equal(publicBiteTurn(bite, day).allowed, false, "daily cap");
+  assert.equal(publicBiteTurn(bite, new Date("2026-11-18T08:00:00Z")).allowed, true, "a new day");
+  const bd = publicBiteConfig(bite);
+  assert.equal(await modelCredentials(bd, { ...bite, VERCEL_OIDC_TOKEN: "t" }), null, "OIDC still needs its own opt-in");
+  assert.equal((await modelCredentials(bd, { ...bite, ANTHROPIC_API_KEY: "k" }))?.token, "k");
+  ok("bite help has its own switch, needs an authorisation and a daily cap, counts turns and still needs a credential");
+
   /* One door: no other source file may import a model SDK or the OIDC helper. */
-  const allowed = new Set(["src/lib/ai/inference.ts", "src/sp3/ai/engine.ts", "src/lib/photo-check.ts", "src/lib/kaju/claude.ts"]);
+  const allowed = new Set(["src/lib/ai/inference.ts", "src/sp3/ai/engine.ts", "src/lib/photo-check.ts", "src/lib/kaju/claude.ts", "src/lib/kaju/biteModel.ts"]);
   const walk = (d: string): string[] => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : /\.(ts|tsx|js|mjs)$/.test(f) ? [p] : []; });
   const offenders = walk("src").filter((f) => /@vercel\/oidc|@anthropic-ai\/sdk|from ["']openai["']|@google\/generative-ai|@ai-sdk\/|ai-gateway\.vercel\.sh/.test(readFileSync(f, "utf8")) && !allowed.has(f));
   assert.deepEqual(offenders, []);
-  for (const f of ["src/sp3/ai/engine.ts", "src/lib/photo-check.ts"]) assert.ok(!readFileSync(f, "utf8").includes("@vercel/oidc"), `${f} must not resolve OIDC itself`);
+  assert.ok(readFileSync("src/lib/kaju/biteModel.ts", "utf8").includes("publicBiteTurn"), "bite help asks its own gate");
+  for (const f of ["src/sp3/ai/engine.ts", "src/lib/photo-check.ts", "src/lib/kaju/biteModel.ts"]) assert.ok(!readFileSync(f, "utf8").includes("@vercel/oidc"), `${f} must not resolve OIDC itself`);
   assert.ok(readFileSync("src/sp3/ai/engine.ts", "utf8").includes("inferenceAllowed"));
   assert.ok(readFileSync("src/lib/photo-check.ts", "utf8").includes("inferenceAllowed"));
   ok("every model call goes through the one gate; nothing else imports a model SDK or OIDC");

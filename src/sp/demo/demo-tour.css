@@ -192,3 +192,131 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
 .dt-roles:not([open]) summary .dt-roles-chev { transform: rotate(180deg); }
 .dt-roles summary[aria-busy="true"] { color: var(--dt-blue); cursor: progress; }
 @media (prefers-reduced-motion: reduce) { .dt-roles summary .dt-roles-chev { transition: none; } }
+
+/* ── The One Health guide (DemoTour.tsx): stages, actions, status marks, the example and the corner it sits in ── */
+.dt.is-guide { width: min(360px, calc(100vw - 32px)); gap: 8px; padding: 12px 16px 16px; transition: left .3s var(--dt-ease), right .3s var(--dt-ease), top .3s var(--dt-ease), bottom .3s var(--dt-ease); }
+@media (min-width: 761px) {
+  .dt.is-bl { right: auto; left: 20px; }
+  .dt.is-tr { bottom: auto; top: 72px; }
+}
+.dt-stages { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.dt-stages li { display: grid; gap: 4px; min-width: 0; }
+.dt-stages button { display: block; width: 100%; padding: 4px 0; border: 0; background: none; cursor: pointer; }
+.dt-stages button span { display: block; height: 4px; border-radius: 4px; background: #e6ebf5; transition: background-color .2s var(--dt-ease); }
+.dt-stages li.is-done button span { background: var(--dt-blue); }
+.dt-stages li.is-on button span { background: var(--dt-blue); box-shadow: 0 0 0 3px rgba(26, 115, 212, .16); }
+.dt-stages button:focus-visible { outline: 2px solid var(--dt-blue); outline-offset: 2px; border-radius: 4px; }
+.dt-stages small { overflow: hidden; color: var(--dt-mute); font-size: 12px; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.dt-stages li.is-on small { color: var(--dt-ink); font-weight: 600; }
+.dt-act-k { display: flex; align-items: center; gap: 8px; color: var(--dt-grey); font-size: 12px; font-weight: 500; }
+.dt-act-k ol { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.dt-act-k li { width: 8px; height: 8px; border-radius: 999px; background: #e6ebf5; }
+.dt-act-k li.is-done { background: var(--dt-blue); }
+.dt-act-k li.is-on { background: #fff; box-shadow: inset 0 0 0 2px var(--dt-blue); }
+.dt.is-guide h2 { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 24px; }
+.dt-tick { flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; background: #1f7a4d; color: #fff; animation: dt-pop .32s var(--dt-ease) both; }
+@keyframes dt-pop { from { transform: scale(.4); opacity: 0; } }
+.dt.is-guide .dt-say { color: var(--dt-ink); font-size: 14px; line-height: 20px; }
+.dt-kaju.is-line { background: #fff; color: var(--dt-ink); box-shadow: inset 0 0 0 1px var(--dt-line); }
+.dt-kaju.is-line:hover:not(:disabled) { background: #f2f5fc; }
+.dt-do { display: flex; flex-wrap: wrap; gap: 8px; }
+.dt-tags { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.dt-tags li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 12px; line-height: 16px; color: var(--dt-grey); }
+.dt-tags b { flex: none; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 600; line-height: 20px; }
+.dt-tags .is-live b { background: #e6f2ec; color: #1f6b44; }
+.dt-tags .is-staging b { background: #e8eefb; color: #1c47ad; }
+.dt-tags .is-pilot b { background: #fff; color: #4a5568; box-shadow: inset 0 0 0 1px #9aa3b5; }
+.dt-tags .is-external b { background: #fbf1e1; color: #85560c; }
+.dt.is-guide .dt-note { font-size: 12px; line-height: 16px; color: var(--dt-grey); }
+.dt.is-guide .dt-handoff { padding: 8px 12px; border-radius: 8px; background: #f2f6fe; color: #1c47ad; font-size: 12px; line-height: 16px; font-weight: 500; }
+.dt-btn.is-go.is-ready { animation: dt-ready 1.4s ease-in-out infinite; }
+@keyframes dt-ready { 50% { box-shadow: 0 0 0 6px rgba(26, 115, 212, .18); } }
+.dt-foot .dt-text { min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--dt-grey); font: inherit; font-size: 12px; cursor: pointer; }
+.dt-foot .dt-text:hover:not(:disabled) { background: #f2f5fc; color: var(--dt-ink); }
+.dt-foot .dt-text:focus-visible, .dt-end:focus-visible { outline: 2px solid var(--dt-blue); outline-offset: 2px; }
+.dt.is-guide .dt-foot { justify-content: flex-start; gap: 4px; }
+.dt.is-guide .dt-foot .dt-roles { margin-left: auto; }
+.dt.is-guide .dt-foot .dt-roles summary { min-height: 32px; font-size: 12px; }
+.dt.is-end h2 { font-size: 20px; line-height: 28px; }
+.dt-end { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 999px; background: none; color: var(--dt-grey); cursor: pointer; }
+.dt-end:hover { background: #f2f5fc; color: var(--dt-ink); }
+.dt-more { display: none; }
+/* The control the guide points at scrolls clear of the header, and on a phone clear of the card too. */
+.sp-tour-hl { scroll-margin: 88px 0 24px; }
+@media (max-width: 760px) {
+  /* On a phone the card is a short sheet: where you are, what to do, the example and the way on. "Details" opens
+     the status marks, the note and Replay / Restart / roles. It never grows past 45% of the screen. */
+  .dt.is-guide { left: 8px; right: 8px; width: auto; max-height: 45dvh; padding: 12px 12px 12px; gap: 8px; }
+  .dt.is-guide .dt-top { min-height: 24px; }
+  .dt-more { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: #f2f5fc; color: var(--dt-ink); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .dt.is-guide .dt-min { margin-left: 4px; }
+  .dt.is-guide .dt-k { flex: 1; }
+  .dt-stages small { display: none; }
+  .dt-stages button { padding: 2px 0; }
+  .dt.is-guide:not(.is-more) .dt-act-k, .dt.is-guide:not(.is-more) .dt-tags, .dt.is-guide:not(.is-more) > .dt-note:not([role="status"]), .dt.is-guide:not(.is-more) .dt-foot { display: none; }
+  .dt.is-guide .dt-tags li span { display: inline; }
+  .dt.is-guide .dt-act { margin-top: 0; }
+  .dt.is-guide .dt-btn { min-height: 44px; }
+  .dt.is-guide .dt-btn.is-back { width: 44px; }
+  .dt.is-guide .dt-kaju { min-height: 40px; }
+  .sp-tour-hl { scroll-margin: 80px 0 calc(var(--dt-h, 0px) + 24px); }
+  .dt.is-guide.is-more > p:not(.dt-who) { display: block; -webkit-line-clamp: unset; }
+  /* The site makes every button 44px tall on touch screens; the stage bar and the top row stay slim here. */
+  .dt.is-guide .dt-stages button { min-height: 24px; padding: 10px 0; }
+  .dt.is-guide .dt-top button { min-height: 36px; }
+  .dt.is-guide { gap: 6px; }
+  .dt.is-guide:not(.is-more) > p.dt-say { -webkit-line-clamp: 2; }
+  /* The example sits beside the way on; the long button returns under Details. */
+  .dt.is-guide:not(.is-more) .dt-do { display: none; }
+  .dt-btn.is-ex { display: inline-flex; flex: none; gap: 4px; padding: 0 12px; }
+  .dt.is-guide.is-more .dt-btn.is-ex { display: none; }
+}
+@media (min-width: 761px) { .dt-btn.is-ex { display: none; } }
+@media (prefers-reduced-motion: reduce) { .dt.is-guide, .dt-stages button span { transition: none; } .dt-tick, .dt-btn.is-go.is-ready { animation: none; } }
+
+/* /try: six stages and the status marks */
+.try-story.is-six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@media (max-width: 900px) { .try-story.is-six { grid-template-columns: minmax(0, 1fr); } }
+.try-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 24px; margin: 0; padding: 0; list-style: none; }
+.try-legend li { display: grid; gap: 4px; justify-items: start; font-size: 14px; color: var(--dt-grey); }
+.try-legend b { padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 600; line-height: 24px; }
+.try-legend .is-live b { background: #e6f2ec; color: #1f6b44; }
+.try-legend .is-staging b { background: #e8eefb; color: #1c47ad; }
+.try-legend .is-pilot b { background: #fff; color: #4a5568; box-shadow: inset 0 0 0 1px #9aa3b5; }
+.try-legend .is-external b { background: #fbf1e1; color: #85560c; }
+.dt-kaju.is-there { background: var(--dt-blue); }
+.dt-kaju.is-there:hover:not(:disabled) { background: #1d49b0; }
+
+/* The guide, said simply: where you are, the idea, the one thing to do, the way on. Status marks stay as chips;
+   what each one covers, the presenter's notes and Replay / Restart / roles open under Details. */
+.dt-more { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 8px; border: 0; border-radius: 8px; background: #f2f5fc; color: var(--dt-ink); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; margin-left: auto; }
+.dt.is-guide .dt-top .dt-min { margin-left: 4px; }
+.dt.is-guide { width: min(340px, calc(100vw - 32px)); gap: 10px; padding: 14px 16px 14px; }
+.dt.is-guide h2 { font-size: 18px; line-height: 24px; letter-spacing: -.015em; }
+.dt.is-guide .dt-say { font-size: 14px; line-height: 20px; color: #4a4a46; }
+.dt.is-guide:not(.is-more) .dt-who, .dt.is-guide:not(.is-more) .dt-act-k, .dt.is-guide:not(.is-more) > .dt-note:not([role="status"]), .dt.is-guide:not(.is-more) .dt-foot, .dt.is-guide:not(.is-more) .dt-tags li span { display: none; }
+.dt-tags.is-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.dt-tags.is-chips li { display: contents; }
+@media (max-width: 760px) { .dt.is-guide:not(.is-more) .dt-tags.is-chips { display: none; } }
+.dt.is-guide .dt-stages small { font-size: 11px; }
+
+/* ── On a wide screen the guide is a compact floating card, never a column: every workspace keeps its full width and
+   its own layout. The card sits in whichever corner does not cover what it points at (DemoTour.tsx). ── */
+@media (min-width: 761px) {
+  .dt.is-guide, .dt.is-end { width: 300px; max-height: calc(100dvh - 112px); overflow-y: auto; border-radius: 16px;
+    box-shadow: 0 0 0 1px rgba(11, 30, 61, .08), 0 18px 48px -18px rgba(11, 30, 61, .35); }
+  .dt.is-guide h2 { font-size: 17px; line-height: 22px; }
+  .dt.is-guide .dt-btn { min-height: 40px; }
+  .dt.is-guide.is-bl, .dt.is-end.is-bl { left: 12px; bottom: 12px; }
+}
+/* /try: the resident's own way in sits with the roles. */
+.try-roles a.try-role { width: 100%; height: 100%; display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; padding: 16px; border-radius: 12px; background: #f5f6f8; color: var(--dt-ink); text-decoration: none; }
+.try-roles a.try-role:hover { background: #eef0f4; }
+.try-roles a.try-role b { font-size: 16px; font-weight: 600; }
+.try-roles a.try-role small { grid-column: 1; color: var(--dt-grey); font-size: 14px; }
+.try-roles a.try-role svg { grid-column: 2; grid-row: 1 / span 2; color: var(--dt-blue); }
+
+/* A field the guide has just filled: lit for a moment, so the person sees the product do it. */
+.dt-filled { outline: 2px solid #2457ce !important; outline-offset: 3px; animation: dt-fill 1.1s ease-out; }
+@keyframes dt-fill { 0% { box-shadow: 0 0 0 7px rgba(36, 87, 206, .22); } 100% { box-shadow: 0 0 0 0 rgba(36, 87, 206, 0); } }
+@media (prefers-reduced-motion: reduce) { .dt-filled { animation: none; } }

@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Check as Tick, Loader2 } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
 import { appHref, useKaju, type Turn } from "./state";
+import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
    as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx). */
@@ -25,6 +26,22 @@ function proposalLine(p: Proposal) {
     case "sms": return `To ${p.to.length} ${p.to.length === 1 ? "person" : "people"}`;
     case "report_file": return `${p.title} (${p.format.toUpperCase()})`;
   }
+}
+
+/* Kaju's words with the little emphasis its answers use: **bold**, and lines that start "- " as a list.
+   Built as elements, never as HTML, so nothing in a record can become markup. */
+const inline = (line: string) => line.split(/(\*\*[^*]+\*\*)/g).map((part, i) => part.startsWith("**") && part.endsWith("**") && part.length > 4 ? <b key={i}>{part.slice(2, -2)}</b> : part);
+export function KText({ text }: { text: string }) {
+  const blocks: ReactNode[] = [];
+  let items: string[] = [];
+  const flush = () => { if (items.length) { blocks.push(<ul key={`l${blocks.length}`} className="nx-ka-l">{items.map((x, i) => <li key={i}>{inline(x)}</li>)}</ul>); items = []; } };
+  for (const line of text.split("\n")) {
+    if (/^\s*[-•]\s+/.test(line)) { items.push(line.replace(/^\s*[-•]\s+/, "")); continue; }
+    flush();
+    if (line.trim()) blocks.push(<p key={`p${blocks.length}`} className="nx-ka-t">{inline(line)}</p>);
+  }
+  flush();
+  return <div className="nx-ka-text" data-tour="kaju-answer">{blocks}</div>;
 }
 
 function ProposalCard({ turn, p }: { turn: Turn; p: Proposal }) {
@@ -61,13 +78,13 @@ export function Thread({ compact }: { compact?: boolean }) {
                 {t.pending ? <p className="nx-t3" role="status"><Loader2 size={12} className="nx-spin" /> {t.progress?.length ? t.progress[t.progress.length - 1] : "Reading what you can see…"} <button type="button" className="nx-link" onClick={stop}>Stop waiting</button></p> : null}
                 {t.error ? <div className="nx-kerr" role="alert"><p>{t.error}</p>{t.kind === "expired" ? <Link className="nx-btn is-sm" href={`/sign-in?next=${encodeURIComponent(page.path || "/kaju")}`}>Sign in</Link> : <button type="button" className="nx-btn is-quiet is-sm" onClick={() => retry(t.id)}>Try again</button>}</div> : null}
                 {t.reply ? <>
-                  <p className="nx-ka-t">{t.reply.text}</p>
+                  <KText text={t.reply.text} />
                   {t.reply.citations?.length ? <div className="nx-kcite" aria-label="Records Kaju read">{t.reply.citations.slice(0, compact ? 4 : 12).map((c) => <Link key={c.id + c.href} href={appHref(c.href)} className="nx-reclink"><ArrowUpRight size={12} />{c.label}</Link>)}</div> : null}
                   {t.reply.proposals?.map((p) => <ProposalCard key={p.id} turn={t} p={p} />)}
                   {t.reply.navigate ? <p><Link className="nx-btn is-quiet is-sm" href={appHref(t.reply.navigate.href)}>{t.reply.navigate.label}<ArrowUpRight size={12} /></Link></p> : null}
                   {!compact && t.reply.tools?.length ? <details className="nx-ktools"><summary>What Kaju checked ({t.reply.tools.length})</summary><ul>{t.reply.tools.map((x, i) => <li key={i} className={x.ok ? "" : "is-bad"}>{x.summary}</li>)}</ul></details> : null}
                   {t.reply.suggestions?.length ? <div className="nx-ksugg">{t.reply.suggestions.slice(0, 3).map((s) => <button key={s} type="button" onClick={() => void ask(s)}>{s}</button>)}</div> : null}
-                  <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}</p>
+                  <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : DEMO_SITE ? "Answered from records you can see." : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}</p>
                 </> : null}
               </div>
             </div>

@@ -1,4 +1,5 @@
 import "server-only";
+import { incidentPlace, sayIncident, type IncidentBrief } from "./incident";
 import Anthropic from "@anthropic-ai/sdk";
 import { inferenceAllowed, modelCredentials, recordInferenceUsage, withInferenceSlot, type InferenceScope, type LedgerDb, type Usage } from "@/lib/ai/inference";
 import { extractFieldMessage } from "./extract";
@@ -208,6 +209,14 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
       blanks: [{ id: "every", label: "how often", control: "choice", options: ["day", "week"], ...(has(ta, /week|monday/) ? { value: "week" } : has(ta, /\b(day|daily|morning)\b/) ? { value: "day" } : {}) }, { id: "who", label: "who", control: "choice", options: ["leads", "everyone"], ...(has(ta, /everyone|whole team|all of us/) ? { value: "everyone" } : {}) }, { id: "what", label: "what to watch", control: "choice", options: AUTO.map((x) => x[2]), ...(pick ? { value: pick[2] } : {}) }, { id: "min", label: "how many", control: "choice", options: ["1", "3", "5", "10"] }],
       note: "People are told inside StrayPaw. Nothing is sent outside and no record is changed." }];
     return { ...done("I can set that up. Fill in the blanks and I will get it ready for you to turn on."), suggestions: undefined };
+  }
+  /* One bite incident in words ("what's happening with the Indiranagar bite? what's missing? what next?"): the
+     partner's request, the animal on the register, what is missing and who does what. Animal side only. */
+  if (/\b(bites?|bitten|incident)\b/i.test(asked) && /\b(happening|status|update|brief\w*|missing|next|going on|where are we|summar\w*|stand)\b/i.test(asked) && !caseSummaryAsked(asked) && !/\b(this|current|selected) case\b|\b[A-Za-z]{2,5}-[0-9A-Za-z]{3,}\b/i.test(asked)) {
+    if (!ctx.orgId) return done("That needs an organisation workspace that takes part in a programme. Sign in with your organisation to see its bite follow-ups.");
+    const out = await call(acc, ctx, "incident_briefing", { place: incidentPlace(asked) ?? "" });
+    if (out.ok === false) return done(out.summary);
+    return done(sayIncident(out.data as IncidentBrief, asked));
   }
   const needsOrg = ctx.orgId ? "I could not read your records. Counts are unknown. Try again." : "That needs an organisation workspace. Join your organisation with its code, or ask me about published programmes and the public map.";
   const firstName = (ctx.userName ?? "").trim().split(/\s+/).find((w) => !/^(dr|mr|mrs|ms|prof)\.?$/i.test(w)) ?? null;
