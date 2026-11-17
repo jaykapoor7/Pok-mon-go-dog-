@@ -308,7 +308,7 @@ export async function kajuRead(text: string): Promise<Res<AiReply>> {
     return { data: { ...d, proposals: Array.isArray(d.proposals) ? d.proposals : [] } };
   } catch (e) { return { error: msg(e) }; }
 }
-export const RECORD_PROPOSALS = new Set(["open_case", "add_note", "schedule_followup", "record_care"]);
+export const RECORD_PROPOSALS = new Set(["open_case", "add_note", "schedule_followup", "record_care", "add_task"]);
 /** Confirming a prepared record: /api/ai/act runs the same server function the manual screens use and checks the audit row. */
 export async function kajuConfirm(p: Proposal): Promise<Res<{ at: string; what: string; href: string | null }>> {
   try {

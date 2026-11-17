@@ -24,6 +24,7 @@ export async function executeProposal(p: Proposal, actor: { id: string; name: st
     case "add_note":
     case "schedule_followup":
     case "record_care":
+    case "add_task":
       r = await confirmedRecord(p);
       break;
     case "email":
