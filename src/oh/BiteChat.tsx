@@ -170,7 +170,12 @@ export function BiteHelp({ slug }: { slug: string | null }) {
       case "send": break;
       case "none": if (reply) out.push({ text: reply }); break;
       case "tell": out.push({ text: reply ?? "Tell me a little more: what happened, where and when?" }); break;
-      default: out.push({ text: reply ?? (next === "looks" ? lookQ(f) : ASK[next]), tour: "bite-ask" });
+      default: {
+        /* An answer to a question of theirs is followed by the question still open, so the conversation never stalls. */
+        const q = next === "looks" ? lookQ(f) : ASK[next];
+        if (reply && !/\?\s*$/.test(reply)) out.push({ text: reply }, { text: q, tour: "bite-ask" });
+        else out.push({ text: reply ?? q, tour: "bite-ask" });
+      }
     }
     setFacts(f);
     const a = atOf(next, f, now.current.at);
