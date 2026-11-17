@@ -183,8 +183,11 @@
   .nx .ns-conn-h { grid-template-columns: 28px minmax(0, 1fr); }
   .nx .ns-conn-e { grid-column: 1 / -1; justify-content: flex-start; }
   .nx .ns-conn-x { padding-left: 0; }
-  .nx .ns-seg button { height: 40px; }
-  .nx .ns-row-acts .nx-btn { min-height: 36px; }
+  .nx .ns-seg button { height: 44px; }
+  .nx .ns-row-acts .nx-btn { min-height: 44px; }
+  .nx .ns-tools .nx-btn { min-height: 44px; }
+  .nx .lp-sheet-tools .nx-find { display: flex !important; height: 48px; margin: 0; border-radius: 12px; padding: 0 12px; }
+  .nx .lp-sheet-tools .nx-find input { width: 100%; font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .nx .ns-meter i, .nx .ns-details summary::before { transition: none; }

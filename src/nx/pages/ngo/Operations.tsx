@@ -48,7 +48,7 @@ export function Operations() {
   if (live.org && !ngo) return <Shell crumb={["NGO", "Operations"]}><div className="nx-page"><h1 className="nx-h1">Operations</h1><p className="nx-sub">Your account is not part of an NGO, so there are no field visits here.</p></div></Shell>;
   const tabs = <div className="nr-bleed"><TabBar id="ops" tabs={PARTS} value={part} onChange={choose} label="Operations" /></div>;
   /* Field mode, and the quickest way to record an animal (it opens field mode with the record screen up). */
-  const field = <div className="nr-tools"><Link href="/ngo/field" className="nx-btn is-quiet is-keep"><Smartphone size={14} />Open field mode</Link><Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry"><Camera size={14} />Record an animal</Link></div>;
+  const field = <div className="nr-tools nr-plus-dup"><Link href="/ngo/field" className="nx-btn is-quiet is-keep"><Smartphone size={14} />Open field mode</Link><Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry"><Camera size={14} />Record an animal</Link></div>;
   return (
     <Shell crumb={["NGO", "Operations"]}>
       {part === "Visits" ? <Visits ngo={ngo} tabs={tabs} action={field} />

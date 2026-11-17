@@ -81,7 +81,7 @@ function Page({ pre: address, ngoId, sample }: { pre: Prefill; ngoId: string | n
 
   return (
     <Shell crumb={["Cases", "New case"]}>
-      <RecordHead title={<>Open a case{sample ? <Sample /> : null}</>} sub={sample ? "Sample. In the live demo, Kaju prepares the case and it joins your queue when you confirm it." : "Tell Kaju what happened. Kaju prepares the case; it joins your queue when you confirm it."} actions={<Link href="/ngo/cases" className="nx-btn is-quiet is-sm">Cancel</Link>} />
+      <RecordHead title={<>Open a case{sample ? <Sample /> : null}</>} sub={sample ? "Sample. In the live demo, Kaju prepares the case and it joins your queue when you confirm it." : "Tell Kaju what happened. Kaju prepares the case; it joins your queue when you confirm it."} actions={<Link href="/ngo/cases" className="nx-btn is-quiet is-sm nr-back-dup">Cancel</Link>} />
       <div className="kc-page">
         <KajuCapture idBase="nc-kaju" sample={sample} context={{ path: "/ngo/cases/new", workspace: "ngo", dogId: address.dog, title: "New case" }}
           placeholder="For example: brown female dog limping near the HSR Layout bus stop, needs a vet today"
