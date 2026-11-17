@@ -21,7 +21,7 @@ import { CARE_WORD, CONFIRMABLE, dayWords, exposureOf, kajuCapture, readAsRecord
 import "./css/capture.css";
 
 export type ByHand = { label: string; go: () => void };
-type Item = { p: Proposal; state: "open" | "saving" | "saved" | "set-aside" | "changed"; saved?: { what: string; href: string | null }; error?: string };
+type Item = { p: Proposal; state: "open" | "saving" | "saved" | "set-aside" | "changed"; saved?: { what: string; href: string | null }; error?: string; errorHref?: string | null };
 
 export function KajuCapture({
   context, via = "say", label = "Tell Kaju what happened", hint, placeholder, sendLabel = "Send", compact, sample, paste,
@@ -99,7 +99,8 @@ export function KajuCapture({
       const notYet = /supported proposal|organisation workspace is required/i.test(r.error ?? "");
       const canChange = !!onChange && (changes ?? []).includes(it.p.kind);
       const e = notYet ? `Kaju cannot save ${(it.p.kind as string) === "register_exposure" ? "bite records" : "this kind of record"} here yet. Nothing was saved.${canChange ? " Press Change to save it from the form." : ""}` : errText(r.error ?? "The save could not be verified yet.");
-      patch(i, { state: "open", error: e }); toast({ text: e, tone: "bad" }); return;
+      /* A refusal can point at the record that already holds this (a bite recorded earlier today): link to it. */
+      patch(i, { state: "open", error: e, errorHref: r.href ?? null }); toast({ text: e, tone: "bad", href: r.href ?? undefined, hrefLabel: r.href ? "Open it" : undefined }); return;
     }
     const saved = { what: r.data.what, href: nextHref(r.data.href) };
     patch(i, { state: "saved", saved });
@@ -213,7 +214,7 @@ function Preview({ it, i, confirm, change, dismiss }: { it: Item; i: number; con
           <button type="button" className="nx-btn is-quiet" aria-describedby={tid} disabled={it.state === "saving"} onClick={dismiss}><X size={14} aria-hidden />Dismiss</button>
         </div>
         : <p className="kc-hint">This acts outside StrayPaw. Open it in <Link className="kc-link" href="/kaju">Kaju</Link> to check and send it.</p>}
-      {it.error ? <p className="kc-err" role="alert">{it.error}</p> : null}
+      {it.error ? <p className="kc-err" role="alert">{it.error}{it.errorHref ? <> <Link href={it.errorHref}>Open the existing record</Link></> : null}</p> : null}
     </li>
   );
 }

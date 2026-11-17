@@ -315,13 +315,13 @@ export const kajuRead = (text: string) => askKaju(`Pasted WhatsApp message:\n${t
     bite-register entry, saved through the bite form's own database function. */
 export const RECORD_PROPOSALS = new Set(["open_case", "add_note", "schedule_followup", "record_care", "add_task", "register_exposure"]);
 /** Confirming a prepared record: /api/ai/act runs the same server function the manual screens use and checks the audit row. */
-export async function kajuConfirm(p: Proposal): Promise<Res<{ at: string; what: string; href: string | null }>> {
+export async function kajuConfirm(p: Proposal): Promise<Res<{ at: string; what: string; href: string | null }> & { href?: string | null }> {
   try {
     const session = (await db().auth.getSession()).data.session;
     if (!session) return { error: "Sign in again to confirm this. Nothing was saved." };
     const r = await fetch("/api/ai/act", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ proposal: p, confirmed: true }) });
     const j = await r.json().catch(() => ({})) as { verified?: boolean; at?: string; what?: string; href?: string; error?: string };
-    return r.ok && j.verified === true && typeof j.at === "string" ? { data: { at: j.at, what: j.what ?? "Saved to the record", href: nextHref(j.href) } } : { error: j.error ?? "The save could not be verified yet. Confirm the same proposal again to check it; it will not be saved twice." };
+    return r.ok && j.verified === true && typeof j.at === "string" ? { data: { at: j.at, what: j.what ?? "Saved to the record", href: nextHref(j.href) } } : { error: j.error ?? "The save could not be verified yet. Confirm the same proposal again to check it; it will not be saved twice.", href: nextHref(j.href) };
   } catch { return { error: "The save status is unknown. Confirm the same proposal again to check it; it will not be saved twice." }; }
 }
 
