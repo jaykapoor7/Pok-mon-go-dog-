@@ -11,9 +11,11 @@ import { ListPage, type Col } from "../ListPage";
 import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { ALERTS, OUTPUTS, PARTNERS, PROG_SAMPLE, SURV_AREAS, SURV_WEEKS, TARGET, WARDS, type Tone } from "../fixtures";
-import { useLive } from "../live";
+import { useLive, useTasks } from "../live";
 import { Failed, TabBar } from "../kit";
 import { ContractsTab } from "./gov/Contracts";
+import { AtKaju } from "../AtKaju";
+import { Grid, Meter, Panel, Rows, Split, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 
 /* Government & Programmes, built on the programme the person oversees (oh_programme_overview and friends).
    Every count comes from the database, which suppresses small human-health counts as "<5" and never returns
@@ -332,39 +334,66 @@ export function GovReports() {
 }
 
 /* ── Overview for a programme coordinator or municipal officer ────── */
+/** The programme lead's home: @Kaju, four figures with what they count drawn small, each opening the list it counts
+    (Surveillance, Programmes below target, Partners with overdue requests), and three panels side by side (what needs a
+    decision, coverage by area, partners), five rows each. Every figure comes from oh_programme_overview and oh_alerts;
+    a read that failed shows "Not read". */
 export function ProgrammeHome() {
   const g = useGov();
+  const live = useLive();
+  const tasks = useTasks(g.gov?.org_id ?? null);
   const on = g.mode === "programme" && g.prog;
-  const o = useCall<Overview>("oh_programme_overview", on ? { p_programme: g.prog!.id, p_days: 30 } : null, `home:${g.prog?.id}`);
+  /* Ninety days, as Surveillance opens, so the exposures figure is the one that page shows first. */
+  const o = useCall<Overview>("oh_programme_overview", on ? { p_programme: g.prog!.id, p_days: 90 } : null, `home:${g.prog?.id}:90`);
   const al = useCall<Alert[]>("oh_alerts", on ? { p_programme: g.prog!.id } : null, `al:${g.prog?.id}`);
   if (g.mode === "loading") return <Opening crumb="Overview" />;
   if (g.mode === "failed") return <Plain crumb="Overview" title="Overview"><Failed error={`Your programmes could not be read, so nothing is shown as missing. ${g.failed ?? ""}`} retry={g.retry} /></Plain>;
   if (g.mode !== "programme") return <Plain crumb="Overview" title="Overview">{g.gov ? `${g.gov.name} does not oversee a programme on StrayPaw yet.` : NOT_IN}</Plain>;
   const x = o.data;
   const target = x?.programme.target ?? TARGET;
-  const low = (x?.vaccination ?? []).filter((v) => v.estimate && v.estimate.dogs > 0 && v.vaccinated / v.estimate.dogs < target).length;
-  const noEst = (x?.vaccination ?? []).filter((v) => !v.estimate).length;
-  const late = (x?.partners ?? []).filter((p) => p.overdue > 0).length;
-  const urgent = (al.data ?? []).filter((a) => a.severity === "urgent" && !a.ack);
-  const fig = (n: ReactNode, label: string, href: string) => <Link key={label} href={href} className="nx-fig"><b>{n}</b><span>{label}<ArrowRight size={12} /></span></Link>;
+  const areas = (x?.vaccination ?? []).map((v) => ({ ...v, cov: v.estimate && v.estimate.dogs > 0 ? v.vaccinated / v.estimate.dogs : null }));
+  const low = areas.filter((a) => a.cov !== null && a.cov < target), reach = areas.filter((a) => a.cov !== null && a.cov >= target), noEst = areas.filter((a) => a.cov === null);
+  const partners = [...(x?.partners ?? [])].sort((a, b) => b.overdue - a.overdue || b.open - a.open);
+  const late = partners.filter((p) => p.overdue > 0);
+  const openAlerts = (al.data ?? []).filter((a) => !a.ack);
+  const urgent = openAlerts.filter((a) => a.severity === "urgent");
+  const slug = g.prog?.slug;
+  /* undefined while reading, null when the read failed: never shown as zero. */
+  const fromO = (n: number | undefined) => (o.err ? null : o.loading ? undefined : n);
+  const exp = x?.exposures?.total, cat3 = x?.exposures?.category_iii;
+  const pct0 = (n: number) => `${Math.round(n * 100)}%`;
   return (
     <Shell ws="gov" crumb={["Government", "Overview"]}>
-      <div className="nx-page" style={{ maxWidth: 1000 }}>
+      <div className="nx-page hm-page">
         <div className="nx-head"><div><p className="nx-eyebrow"><ProgName g={g} sample={false} />{x?.programme.illustrative && !/illustrative/i.test(x.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</p><h1 className="nx-h1">Overview</h1>
           <p className="nx-sub">{o.loading ? "Reading the programme…" : <>{x?.programme.parent ? <>Part of {x.programme.parent.name}. </> : null}{x?.can_manage ? "You manage this programme." : "You can see this programme; changes are made by its coordinators."}</>}</p></div></div>
-        {o.err ? <p className="nx-foot" role="alert">{o.err}</p> : null}
-        <div className="nx-figs">
-          {fig(urgent.length, "Urgent alerts open", "/gov/surveillance")}
-          {fig(x ? low : "—", `Areas below ${pct(target)}`, "/gov/programmes")}
-          {fig(x ? noEst : "—", "Areas without an estimate", "/gov/programmes")}
-          {fig(x ? late : "—", "Partners with overdue requests", "/gov/partners")}
-          {fig(x ? num(x.exposures?.total) : "—", "Exposures, 30 days", "/gov/surveillance")}
-        </div>
-        <section className="nx-sec" aria-labelledby="h-u" style={{ marginTop: 26 }}>
-          <div className="nx-sec-h"><h2 id="h-u">Needs a decision</h2><Link href="/gov/surveillance">All alerts <ArrowRight size={12} /></Link></div>
-          <ul className="nx-feed" style={{ maxWidth: 760 }}>{urgent.slice(0, 5).map((a) => <li key={a.key}><span className="nx-feed-i" style={{ background: "var(--bad-soft)", color: "var(--bad)" }}><ShieldAlert size={12} /></span><div><b>{a.title}</b><p>{a.detail}</p><small>{ALERT_KIND[a.kind] ?? a.kind}{a.area ? ` · ${a.area}` : ""} · {fmtDate(a.at)}</small></div></li>)}</ul>
-          {!al.loading && !urgent.length ? <p className="nx-sub">Nothing urgent is open.</p> : null}
-        </section>
+        <AtKaju role="programme" />
+        {o.err ? <p className="hm-note is-bad" role="alert" style={{ marginTop: 16 }}>The programme could not be read: {o.err}. Its figures show “Not read”.</p> : null}
+        <Tiles>
+          <Tile label="Urgent alerts open" n={al.err ? null : al.loading ? undefined : urgent.length} tone={urgent.length ? "bad" : "plain"} href="/gov/surveillance"
+            visual={openAlerts.length ? <Split parts={[{ n: urgent.length, tone: "bad", label: "urgent" }, { n: openAlerts.filter((a) => a.severity === "attention").length, tone: "warn", label: "attention" }, { n: openAlerts.filter((a) => a.severity === "info").length, tone: "plain", label: "for information" }]} /> : null} note={!al.loading && !al.err && !openAlerts.length ? "Nothing open" : undefined} />
+          <Tile label={`Areas below ${pct0(target)}`} n={fromO(low.length)} tone={low.length ? "warn" : "plain"} href="/gov/programmes?view=low"
+            visual={areas.length ? <Split parts={[{ n: reach.length, tone: "ok", label: "at target" }, { n: low.length, tone: "warn", label: "below" }, { n: noEst.length, tone: "plain", label: "no estimate" }]} /> : null} />
+          <Tile label="Partners with overdue requests" n={fromO(late.length)} tone={late.length ? "warn" : "plain"} href="/gov/partners?view=late"
+            visual={partners.length ? <Meter part={late.length} whole={partners.length} tone="warn" label={`${late.length} of ${partners.length} partners`} /> : null} />
+          <Tile label="Exposures, 90 days" n={o.err ? null : o.loading ? undefined : typeof exp === "number" ? exp : null} text={exp === "<5" ? "Fewer than 5" : undefined} href="/gov/surveillance"
+            visual={typeof exp === "number" && typeof cat3 === "number" && exp > 0 ? <Meter part={cat3} whole={exp} tone="bad" label={`${cat3} category III`} /> : cat3 === "<5" ? <span className="hm-tile-note">Category III: fewer than 5</span> : null} />
+        </Tiles>
+        <Grid cols={2}>
+          <Panel id="h-u" title="Needs a decision">
+            <Rows items={al.data ? [...urgent, ...openAlerts.filter((a) => a.severity === "attention")].map((a): Item => ({ id: a.key, title: a.title, meta: [ALERT_KIND[a.kind] ?? a.kind, a.area, fmtDate(a.at)].filter(Boolean).join(" · "), href: "/gov/surveillance", icon: <ShieldAlert size={16} />, tone: a.severity === "urgent" ? "bad" : "warn", chip: { text: a.severity === "urgent" ? "Urgent" : "Attention", tone: a.severity === "urgent" ? "bad" : "warn" }, kaju: `What should happen next about: ${a.title}?`, kajuLabel: `Ask @Kaju about ${a.title}` })) : null}
+              loading={al.loading} error={al.err ? `Alerts could not be read: ${al.err}.` : null} all={{ href: "/gov/surveillance", label: "All alerts on Surveillance" }} empty="Nothing urgent or needing attention is open." />
+          </Panel>
+          <Panel id="h-c" title="Coverage by area" foot={<span>Lowest first. Coverage is vaccinated dogs on StrayPaw against a dated estimate.</span>}>
+            <Rows items={x ? [...low.sort((a, b) => (a.cov ?? 0) - (b.cov ?? 0)), ...noEst, ...reach.sort((a, b) => (a.cov ?? 0) - (b.cov ?? 0))].map((a): Item => ({ id: a.area_id, title: a.area, meta: a.estimate ? `${a.vaccinated.toLocaleString("en-IN")} of ${a.estimate.dogs.toLocaleString("en-IN")} dogs vaccinated` : `${a.vaccinated.toLocaleString("en-IN")} vaccinated · no dated estimate`, href: slug ? `/gov/programmes/${slug}?tab=Coverage` : "/gov/programmes", icon: <MapPin size={16} />, tone: a.cov === null ? "plain" : a.cov < target ? "warn" : "ok", chip: { text: a.cov === null ? "No estimate" : pct0(a.cov), tone: a.cov === null ? "plain" : a.cov < target ? "warn" : "ok" } })) : null}
+              loading={o.loading} error={o.err ? "Coverage could not be read." : null} all={{ href: "/gov/programmes" }} empty="No areas in this programme yet." />
+          </Panel>
+          <Panel id="h-p" title="Partners">
+            <Rows items={x ? partners.map((p): Item => ({ id: p.id, title: p.name, meta: `${OH_KIND[p.kind] ?? p.kind}${p.responsibilities ? ` · ${p.responsibilities}` : ""}`, href: "/gov/partners", icon: <FileText size={16} />, tone: p.overdue ? "warn" : "plain", chip: p.overdue ? { text: `${p.overdue} overdue`, tone: "warn" } : { text: `${p.open} open`, tone: "plain" } })) : null}
+              loading={o.loading} error={o.err ? "Partners could not be read." : null} all={{ href: "/gov/partners" }} empty="No partners in this programme yet." />
+          </Panel>
+          {g.gov ? <TasksPanel orgId={g.gov.org_id} userId={live.userId} tasks={tasks} /> : null}
+        </Grid>
       </div>
     </Shell>
   );

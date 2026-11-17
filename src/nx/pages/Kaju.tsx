@@ -27,8 +27,9 @@ import { appHref, useKaju, type Planned } from "../kaju/state";
 import "../kaju/workspace.css";
 
 /* Kaju's home: one place to say what should get done. A request becomes a plan that says who does each step; Kaju runs
-   what it may, stops where a person decides, and keeps going across sessions. Beside it, what Kaju noticed in the
-   organisation's own records and what it can use here, said plainly. Signed out, everything shown is labelled sample. */
+   what it may, stops where a person decides, and keeps going across sessions. Under it, what Kaju noticed in the
+   organisation's own records as a short row of cards (three, the rest one click away), and at the foot what it can use
+   here as one line that opens; nothing grows into a side column. Signed out, everything shown is labelled sample. */
 
 export function Kaju() {
   const k = useKaju();
@@ -82,7 +83,7 @@ export function Kaju() {
       <div className="kj kj-home">
         <KajuPlaces />
         <div className="kj-home-grid">
-          <div className="kj-main">
+          <div className="kj-main kj-one">
             <header className="kj-hero">
               <div className="kj-hero-pup" aria-hidden><Puppy state={pose} size={76} /></div>
               <div className="kj-hero-t">
@@ -111,6 +112,9 @@ export function Kaju() {
               ) : null}
             </>}
 
+            {/* What needs a person, under the request and its answer: three cards across, the rest one click away. */}
+            <Noticed items={notices} sample={!org && (live.ready || !live.signedIn)} busy={acting} onAct={(n) => void act(n)} />
+
             <section className="kj-sec" aria-labelledby="kj-m">
               <div className="kj-sec-h"><h2 id="kj-m">Missions</h2>{org && rows.length ? <Link href="/kaju/missions" className="kj-link">All missions<ArrowRight size={13} /></Link> : null}{!org ? <Sample /> : null}</div>
               {org ? (missions.rows === null ? <div className="kj-skel is-tall" aria-label="Reading" /> : recent.length ? (
@@ -124,13 +128,12 @@ export function Kaju() {
                     <span className="kj-mcard-now">{m.steps.find((s) => s.state !== "done")?.text ?? m.meta}</span>
                   </Link></li>))}</ul>}
             </section>
-          </div>
 
-          <aside className="kj-side">
-            <Noticed items={notices} sample={!org && (live.ready || !live.signedIn)} busy={acting} onAct={(n) => void act(n)} />
-            <Capabilities items={caps?.items ?? null} failed={failed} orgId={org?.org_id ?? null} />
-            <p className="kj-rules">Kaju reads only what you can see. It never makes clinical, laboratory, verification, payment or data-access decisions; those steps wait for the person with the authority.</p>
-          </aside>
+            <div className="kj-foot">
+              <Capabilities items={caps?.items ?? null} failed={failed} orgId={org?.org_id ?? null} />
+              <p className="kj-rules">Kaju reads only what you can see. It never makes clinical, laboratory, verification, payment or data-access decisions; those steps wait for the person with the authority.</p>
+            </div>
+          </div>
         </div>
       </div>
     </Shell>
