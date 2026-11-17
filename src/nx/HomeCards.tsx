@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
-import { ArrowRight, AtSign } from "lucide-react";
-import { prefillKaju } from "./AtKaju";
+import { useEffect, useState, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, AtSign, Plus, Trash2 } from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+import { KAJU_SAVED, prefillKaju } from "./AtKaju";
+import { toast } from "./kit";
+import { Check } from "./ui";
+import { addTasks, setTaskDone, type Task, type useTasks } from "./live";
 import "./css/home.css";
 
 /* The parts every home is built from (DESIGN.md 4.0, "No long columns"): a row of figures, each with a small honest
@@ -72,7 +77,7 @@ export function MiniBars({ values, label, tone = "blue" }: { values: { key: stri
 }
 
 /** Panels that sit side by side on a wide screen and stack on a phone. `cols` is how many fit in a row at full width. */
-export function Grid({ children, cols = 2 }: { children: ReactNode; cols?: 2 | 3 }) {
+export function Grid({ children, cols = 2 }: { children: ReactNode; cols?: 1 | 2 | 3 }) {
   return <div className={`hm-grid is-${cols}`}>{children}</div>;
 }
 
@@ -135,5 +140,71 @@ export function Rows({ items, cap = 5, total, all, loading, error, empty, retry,
       {n > cap ? (all ? <Link href={all.href} className="hm-all">{all.label ?? `See all ${fmt(n)}`}<ArrowRight size={14} aria-hidden /></Link>
         : expand ? <button type="button" className="hm-all" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{open ? "Show fewer" : `Show all ${fmt(n)}`}</button> : null) : null}
     </>
+  );
+}
+
+/* ── The person's tasks, on every home ─────────────────────────────
+   A task added here, or confirmed in the @Kaju box, shows on the home it was asked from, whatever the place. */
+
+const EASE = [0.2, 0.7, 0.2, 1] as const;
+const shortDay = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
+export function TaskRow({ id, title, meta, chip, done, onToggle, onDelete, href }: { id: string; title: string; meta: string; chip: { text: string; tone: HmTone }; done: boolean; onToggle: () => void; onDelete?: () => void; href?: string }) {
+  const calm = useReducedMotion();
+  const words = <><b>{title}</b><small><span className={`hm-chip t-${done ? "ok" : chip.tone}`}>{done ? "Done" : chip.text}</span><span className="hm-task-meta">{meta}</span></small></>;
+  return (
+    <motion.li key={id} layout={calm ? false : "position"} initial={calm ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={calm ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0 }} transition={{ duration: .22, ease: EASE }} className={`hm-task ${done ? "is-done" : ""}`}>
+      <Check done={done} onClick={onToggle} label={done ? `Reopen: ${title}` : `Mark done: ${title}`} />
+      {href ? <Link href={href} className="hm-task-t">{words}</Link> : <span className="hm-task-t">{words}</span>}
+      {onDelete ? <button type="button" className="hm-task-x" aria-label={`Delete: ${title}`} title="Delete" onClick={onDelete}><Trash2 size={16} aria-hidden /></button> : null}
+    </motion.li>
+  );
+}
+
+/** The open tasks of an organisation, five at a time: tick one done, delete one (archived, with Undo), add one by hand.
+    `tasks` is the page's own useTasks read, so a page that also counts tasks reads them once. */
+export function TasksPanel({ orgId, userId, tasks, id = "t-tasks", title = "Your tasks" }: { orgId: string; userId: string | null; tasks: ReturnType<typeof useTasks>; id?: string; title?: string }) {
+  const [text, setText] = useState("");
+  const [note, setNote] = useState<string | null>(null);
+  const [allOpen, setAllOpen] = useState(false);
+  const [allDone, setAllDone] = useState(false);
+  const { setRows, reload } = tasks;
+  /* Something confirmed in the @Kaju box shows here without reloading the page. */
+  useEffect(() => { const on = () => reload(); window.addEventListener(KAJU_SAVED, on); return () => window.removeEventListener(KAJU_SAVED, on); }, [reload]);
+  const rows = tasks.rows ?? [], open = rows.filter((t) => t.state === "open"), closed = rows.filter((t) => t.state === "done");
+  const today = new Date().toISOString().slice(0, 10);
+  const toggle = async (t: Task) => {
+    const done = t.state !== "done";
+    setRows((r) => r?.map((x) => (x.id === t.id ? { ...x, state: done ? "done" : "open" } : x)) ?? r);
+    const r = await setTaskDone(t.id, done, userId);
+    if (r.error) { setNote(`Not saved: ${r.error.message}`); reload(); }
+  };
+  /* Delete archives the task (state "cancelled", which the list leaves out) rather than erasing it, so Undo puts it back
+     exactly as it was and an admin can still find it. */
+  const remove = async (t: Task) => {
+    setNote(null);
+    setRows((r) => r?.filter((x) => x.id !== t.id) ?? r);
+    const db = getSupabase()!;
+    const r = await db.from("nx_tasks").update({ state: "cancelled" }).eq("id", t.id);
+    if (r.error) { setNote(`Not deleted: ${r.error.message}`); reload(); return; }
+    toast({ text: `Deleted “${t.title}”.`, undo: async () => { await db.from("nx_tasks").update({ state: t.state }).eq("id", t.id); reload(); } });
+  };
+  const add = async () => { const t = text.trim(); if (!t) return; setNote(null); const r = await addTasks(orgId, [t]); if (r.error) setNote(`Not added: ${r.error.message}`); else { setText(""); reload(); } };
+  const row = (t: Task) => <TaskRow key={t.id} id={t.id} title={t.title} done={t.state === "done"} onToggle={() => void toggle(t)} onDelete={() => void remove(t)}
+    meta={[t.source_kind === "kaju" ? "Proposed by Kaju, accepted by a person" : t.source_kind === "manual" ? "Added by hand" : t.source_kind, t.record_label, t.assignee_name ?? "Unassigned"].filter(Boolean).join(" · ")}
+    chip={t.due_on && t.due_on < today ? { text: "Overdue", tone: "warn" } : t.due_on ? { text: `Due ${shortDay(t.due_on)}`, tone: "plain" } : { text: "Open", tone: "plain" }} />;
+  return (
+    <Panel id={id} title={title} foot={closed.length ? <button type="button" className="hm-all" aria-expanded={allDone} onClick={() => setAllDone((a) => !a)}>{allDone ? "Hide done" : `Show ${fmt(closed.length)} done`}</button> : undefined}>
+      <form className="hm-add" onSubmit={(e) => { e.preventDefault(); void add(); }}><Plus size={16} aria-hidden /><input value={text} onChange={(e) => setText(e.target.value)} placeholder="Add a task and press Enter" aria-label="Add a task" maxLength={240} /></form>
+      {note ? <p className="hm-note is-bad" role="alert">{note}</p> : null}
+      {tasks.error ? <p className="hm-note is-bad" role="alert">Tasks could not be read: {tasks.error}</p> : tasks.rows === null ? <Rows items={null} empty="" /> : (
+        <>
+          <ul className="hm-rows" aria-label="Open tasks"><AnimatePresence initial={false} mode="popLayout">{(allOpen ? open : open.slice(0, 5)).map(row)}</AnimatePresence></ul>
+          {open.length > 5 ? <button type="button" className="hm-all" aria-expanded={allOpen} onClick={() => setAllOpen((a) => !a)}>{allOpen ? "Show fewer" : `Show all ${fmt(open.length)}`}</button> : null}
+          {!rows.length ? <p className="hm-empty">No tasks yet. Add one above, or ask @Kaju: “Add a task: call the vet tomorrow”.</p> : !open.length ? <p className="hm-empty">Every task is done.</p> : null}
+          {allDone && closed.length ? <ul className="hm-rows" aria-label="Done tasks"><AnimatePresence initial={false} mode="popLayout">{closed.slice(0, 20).map(row)}</AnimatePresence></ul> : null}
+        </>
+      )}
+    </Panel>
   );
 }

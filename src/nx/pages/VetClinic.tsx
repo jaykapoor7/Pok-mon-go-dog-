@@ -6,10 +6,10 @@ import { ListPage, type Col } from "../ListPage";
 import { Shell } from "../Shell";
 import { Chip } from "../ui";
 import { Confirm, Empty, Field, Modal, Section, Skeleton, Timeline, day, dayTime, todayIso, useAct, words } from "../kit";
-import { useLive, type Workspace } from "../live";
+import { useLive, useTasks, type Workspace } from "../live";
 import { getSupabase } from "@/lib/supabase";
 import { AtKaju } from "../AtKaju";
-import { Grid, Meter, Panel, Rows, Tile, Tiles, type Item } from "../HomeCards";
+import { Grid, Meter, Panel, Rows, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 
 /* An independent veterinary clinic's own work: its patients, clinical records signed by its veterinarians, and its
    appointments. A record is a draft until a veterinarian signs it, and a signed record does not change. A partner NGO
@@ -120,6 +120,8 @@ export function ClinicPatients({ clinic }: { clinic: Workspace }) {
 /** The clinic's day: @Kaju, four figures, and visits today, unsigned records and follow-ups due side by side. */
 export function ClinicToday({ clinic }: { clinic: Workspace }) {
   const { pats, encs, appts } = useClinic(clinic);
+  const live = useLive();
+  const tasks = useTasks(clinic.org_id);
   const today = todayIso();
   const visits = useMemo(() => appts.filter((a) => a.status === "booked" && a.starts_at.slice(0, 10) <= today), [appts, today]);
   const drafts = encs.filter((e) => !e.signed_at);
@@ -139,7 +141,7 @@ export function ClinicToday({ clinic }: { clinic: Workspace }) {
           <Tile label="Follow-up visits due" n={n(due.length)} tone={due.length ? "warn" : "plain"} href="/health/patients" />
           <Tile label="Patients" n={n((pats ?? []).length)} href="/health/patients" visual={pats && pats.length ? <Meter part={fromNgo} whole={pats.length} tone="blue" label={`${fromNgo} brought by partner NGOs`} /> : null} />
         </Tiles>
-        <Grid cols={3}>
+        <Grid cols={2}>
           <Panel id="ct-v" title="Visits today">
             <Rows items={ready ? visits.map((a): Item => ({ id: a.id, title: a.title, meta: name(a.vet_patient_id), href: "/health/appointments", icon: <CalendarPlus size={16} />, tone: "blue", chip: { text: dayTime(a.starts_at), tone: "blue" } })) : null} all={{ href: "/health/appointments" }} empty="Nothing booked for today." />
           </Panel>
@@ -149,6 +151,7 @@ export function ClinicToday({ clinic }: { clinic: Workspace }) {
           <Panel id="ct-f" title="Follow-up visits due">
             <Rows items={ready ? due.map((e): Item => ({ id: e.id, title: name(e.patient_id), meta: `After ${words(e.kind).toLowerCase()}`, href: "/health/patients", icon: <CalendarPlus size={16} />, tone: "warn", chip: { text: `Due ${day(e.next_due)}`, tone: "warn" } })) : null} all={{ href: "/health/patients" }} empty="No follow-ups are due." />
           </Panel>
+          <TasksPanel orgId={clinic.org_id} userId={live.userId} tasks={tasks} />
         </Grid>
       </div>
     </Shell>

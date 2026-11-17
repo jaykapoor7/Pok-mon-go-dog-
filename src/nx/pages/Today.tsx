@@ -2,18 +2,17 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { AlertTriangle, ArrowRight, CalendarClock, Camera, Hand, ListChecks, PawPrint, Plus, Sparkles, Trash2 } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { AlertTriangle, ArrowRight, CalendarClock, Camera, Hand, ListChecks, PawPrint, Plus, Sparkles } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { dueFollowups } from "@/lib/ops";
-import { toast } from "../kit";
 import { Shell } from "../Shell";
-import { Check, Sample } from "../ui";
+import { Sample } from "../ui";
 import { AtKaju, KAJU_SAVED } from "../AtKaju";
-import { Grid, Meter, Panel, Rows, Split, Strip, Tile, Tiles, type Count, type HmTone, type Item } from "../HomeCards";
+import { Grid, Meter, Panel, Rows, Split, Strip, TaskRow, TasksPanel, Tile, Tiles, type Count, type HmTone, type Item } from "../HomeCards";
 import { ANIMALS, ME, ORG, PREPARED, VISITS_OPS, WORK, type Work } from "../fixtures";
 import { SAMPLE_CASES } from "../data/ngo-sample";
-import { addTasks, setTaskDone, useLive, useTasks, type Task } from "../live";
+import { useLive, useTasks } from "../live";
 import { readAnimalRefs } from "../data/animals";
 import { withAnimalName } from "../animalLabel";
 import "../field.css";
@@ -24,24 +23,11 @@ import "../field.css";
    Cases, Animals), so the two always agree; a read that failed says "Not read", never zero. Signed out, the same page
    shows the labelled sample organisation, counted from the same sample lists those pages show. */
 
-const EASE = [0.2, 0.7, 0.2, 1] as const;
 function greeting() { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; }
 const dateLine = () => new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
 const shortDay = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString("en-IN")} ${n === 1 ? one : many}`;
 const pctOf = (part: number, whole: number) => `${Math.round((part / whole) * 100)}%`;
-
-function TaskRow({ id, title, meta, chip, done, onToggle, onDelete, href }: { id: string; title: string; meta: string; chip: { text: string; tone: HmTone }; done: boolean; onToggle: () => void; onDelete?: () => void; href?: string }) {
-  const calm = useReducedMotion();
-  const words = <><b>{title}</b><small><span className={`hm-chip t-${done ? "ok" : chip.tone}`}>{done ? "Done" : chip.text}</span><span className="hm-task-meta">{meta}</span></small></>;
-  return (
-    <motion.li key={id} layout={calm ? false : "position"} initial={calm ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={calm ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0 }} transition={{ duration: .22, ease: EASE }} className={`hm-task ${done ? "is-done" : ""}`}>
-      <Check done={done} onClick={onToggle} label={done ? `Reopen: ${title}` : `Mark done: ${title}`} />
-      {href ? <Link href={href} className="hm-task-t">{words}</Link> : <span className="hm-task-t">{words}</span>}
-      {onDelete ? <button type="button" className="hm-task-x" aria-label={`Delete: ${title}`} title="Delete" onClick={onDelete}><Trash2 size={16} aria-hidden /></button> : null}
-    </motion.li>
-  );
-}
 
 /* ── Sample organisation (signed out) ─────────────────────────────── */
 
@@ -205,36 +191,14 @@ function LiveToday() {
   const cases = useAsync(ngo ? `c:${ngo.org_id}` : null, () => readCases(ngo!.org_id));
   const herd = useAsync(ngo ? `h:${ngo.org_id}` : null, readHerd);
   const waiting = useAsync(`w:${org!.org_id}`, () => readWaiting(org!.org_id));
-  const [title, setTitle] = useState("");
-  const [note, setNote] = useState<string | null>(null);
-  const [allOpen, setAllOpen] = useState(false);
-  const [allDone, setAllDone] = useState(false);
   const date = useMemo(dateLine, []);
-  const { setRows, reload: reloadTasks } = tasks;
   const { reload: reloadVisits } = visits, { reload: reloadCases } = cases, { reload: reloadWaiting } = waiting;
-  /* Something confirmed in the @Kaju box (a task, a case, a follow-up) shows here without reloading the page. */
-  useEffect(() => { const on = () => { reloadTasks(); reloadVisits(); reloadCases(); reloadWaiting(); }; window.addEventListener(KAJU_SAVED, on); return () => window.removeEventListener(KAJU_SAVED, on); }, [reloadTasks, reloadVisits, reloadCases, reloadWaiting]);
+  /* Something confirmed in the @Kaju box (a case, a follow-up, a task) shows here without reloading the page. */
+  useEffect(() => { const on = () => { reloadVisits(); reloadCases(); reloadWaiting(); }; window.addEventListener(KAJU_SAVED, on); return () => window.removeEventListener(KAJU_SAVED, on); }, [reloadVisits, reloadCases, reloadWaiting]);
 
   const rows = tasks.rows ?? [], open = rows.filter((t) => t.state === "open"), closed = rows.filter((t) => t.state === "done");
   const today = new Date().toISOString().slice(0, 10);
   const lateTasks = open.filter((t) => t.due_on && t.due_on < today);
-  const toggle = async (t: Task) => {
-    const done = t.state !== "done";
-    setRows((r) => r?.map((x) => (x.id === t.id ? { ...x, state: done ? "done" : "open" } : x)) ?? r);
-    const r = await setTaskDone(t.id, done, userId);
-    if (r.error) { setNote(`Not saved: ${r.error.message}`); reloadTasks(); }
-  };
-  /* Delete archives the task (state "cancelled", which the list leaves out) rather than erasing it, so Undo puts it back
-     exactly as it was and an admin can still find it. */
-  const remove = async (t: Task) => {
-    setNote(null);
-    setRows((r) => r?.filter((x) => x.id !== t.id) ?? r);
-    const db = getSupabase()!;
-    const r = await db.from("nx_tasks").update({ state: "cancelled" }).eq("id", t.id);
-    if (r.error) { setNote(`Not deleted: ${r.error.message}`); reloadTasks(); return; }
-    toast({ text: `Deleted “${t.title}”.`, undo: async () => { await db.from("nx_tasks").update({ state: t.state }).eq("id", t.id); reloadTasks(); } });
-  };
-  const add = async () => { const t = title.trim(); if (!t) return; setNote(null); const r = await addTasks(org!.org_id, [t]); if (r.error) setNote(`Not added: ${r.error.message}`); else { setTitle(""); reloadTasks(); } };
 
   /* What needs attention, most urgent first: animals marked as needing help, critical and high cases, visits past their
      date (oldest first), then tasks past their date. Five show; the foot opens the lists they come from. */
@@ -252,10 +216,6 @@ function LiveToday() {
   const c = cases.data, h = herd.data;
   const num = (r: { error: string | null }, v: number | undefined): Count => (r.error ? null : v);
   const retryAll = () => { visits.reload(); cases.reload(); herd.reload(); };
-  const taskRow = (t: Task) => <TaskRow key={t.id} id={t.id} title={t.title} done={t.state === "done"} onToggle={() => void toggle(t)} onDelete={() => void remove(t)}
-    meta={[t.source_kind === "kaju" ? "Proposed by Kaju, accepted by a person" : t.source_kind === "manual" ? "Added by hand" : t.source_kind, t.record_label, t.assignee_name ?? "Unassigned"].filter(Boolean).join(" · ")}
-    chip={t.due_on && t.due_on < today ? { text: "Overdue", tone: "warn" } : t.due_on ? { text: `Due ${shortDay(t.due_on)}`, tone: "plain" } : { text: "Open", tone: "plain" }} />;
-
   return (
     <Shell crumb={["Today"]}>
       <div className="nx-page hm-page">
@@ -279,22 +239,11 @@ function LiveToday() {
             visual={h && h.total ? <><Meter part={h.notSter} whole={h.total} tone="blue" label={`${h.notSter.toLocaleString("en-IN")} not sterilised (${pctOf(h.notSter, h.total)})`} /><Meter part={h.notVacc} whole={h.total} tone="blue" label={`${h.notVacc.toLocaleString("en-IN")} not vaccinated (${pctOf(h.notVacc, h.total)})`} /></> : null} /> : null}
         </Tiles>
         <Grid cols={2}>
-          {ngo ? <Panel id="t-attn" title="Needs attention" count={attention?.length} foot={<><Link href="/ngo/cases?view=critical" className="hm-all">Critical and high cases{c ? ` (${c.critical.length.toLocaleString("en-IN")})` : ""}<ArrowRight size={14} aria-hidden /></Link><Link href="/ngo/operations" className="hm-all">Operations<ArrowRight size={14} aria-hidden /></Link></>}>
+          {ngo ? <Panel id="t-attn" title="Needs attention" foot={<><Link href="/ngo/cases?view=critical" className="hm-all">Critical and high cases{c ? ` (${c.critical.length.toLocaleString("en-IN")})` : ""}<ArrowRight size={14} aria-hidden /></Link><Link href="/ngo/operations" className="hm-all">Operations<ArrowRight size={14} aria-hidden /></Link></>}>
             <Rows items={attention} expand={false} error={partial.length === 3 ? "Visits, cases and animals could not be read." : null} retry={retryAll} empty={partial.length ? `Your ${partial.join(" and ")} could not be read, so nothing is shown as clear.` : "Nothing is overdue or critical. New work arrives in the Inbox."} />
             {partial.length && partial.length < 3 && attention ? <p className="hm-note is-bad" role="alert">Your {partial.join(" and ")} could not be read; {partial.length === 1 ? "it is" : "they are"} not shown here. <button type="button" className="hm-link" onClick={retryAll}>Try again</button></p> : null}
           </Panel> : null}
-          <Panel id="t-tasks" title="Your tasks" foot={closed.length ? <button type="button" className="hm-all" aria-expanded={allDone} onClick={() => setAllDone((a) => !a)}>{allDone ? "Hide done" : `Show ${plural(closed.length, "done task", "done tasks")}`}</button> : undefined}>
-            <form className="hm-add" onSubmit={(e) => { e.preventDefault(); void add(); }}><Plus size={16} aria-hidden /><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Add a task and press Enter" aria-label="Add a task" maxLength={240} /></form>
-            {note ? <p className="hm-note is-bad" role="alert">{note}</p> : null}
-            {tasks.error ? <p className="hm-note is-bad" role="alert">Tasks could not be read: {tasks.error}</p> : tasks.rows === null ? <Rows items={null} empty="" /> : (
-              <>
-                <ul className="hm-rows" aria-label="Open tasks"><AnimatePresence initial={false} mode="popLayout">{(allOpen ? open : open.slice(0, 5)).map(taskRow)}</AnimatePresence></ul>
-                {open.length > 5 ? <button type="button" className="hm-all" aria-expanded={allOpen} onClick={() => setAllOpen((a) => !a)}>{allOpen ? "Show fewer" : `Show all ${open.length}`}</button> : null}
-                {!rows.length ? <p className="hm-empty">No tasks yet. Add one above, or ask @Kaju: “Add a task: call the vet tomorrow”.</p> : !open.length ? <p className="hm-empty">Every task is done.</p> : null}
-                {allDone && closed.length ? <ul className="hm-rows" aria-label="Done tasks"><AnimatePresence initial={false} mode="popLayout">{closed.slice(0, 20).map(taskRow)}</AnimatePresence></ul> : null}
-              </>
-            )}
-          </Panel>
+          <TasksPanel orgId={org!.org_id} userId={userId} tasks={tasks} />
         </Grid>
         <Strip id="t-kaju" title="Kaju is waiting on you" all={{ href: "/kaju/missions", label: "Missions" }} error={waiting.error ? "What Kaju is waiting on could not be read." : null} retry={waiting.reload}
           items={waiting.data?.map((m): Item => ({ id: m.id, title: m.step ? `${m.state === "waiting_approval" ? "Approve" : m.state === "failed" ? "Stopped at" : "Waiting for a person"}: ${m.step}` : m.title, meta: m.title, href: `/kaju/missions/${m.id}`, icon: m.state === "failed" ? <AlertTriangle size={16} /> : <Hand size={16} />, tone: m.state === "failed" ? "bad" : "warn", chip: { text: shortDay(m.at), tone: "plain" } }))}

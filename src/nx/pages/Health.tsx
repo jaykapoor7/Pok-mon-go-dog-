@@ -9,12 +9,12 @@ import { ListPage, type Col } from "../ListPage";
 import { Shell } from "../Shell";
 import { Chip, Sample as SampleChip } from "../ui";
 import { BITES, CLINIC, LAB_SAMPLES, REFERRALS, type Tone } from "../fixtures";
-import { useLive, type Workspace } from "../live";
+import { useLive, useTasks, type Workspace } from "../live";
 import { useAct } from "../kit";
 import { LabSteps } from "./health/Lab";
 import { PepDose } from "./health/Exposure";
 import { AtKaju } from "../AtKaju";
-import { Grid, MiniBars, Panel, Rows, Split, Tile, Tiles, type Item } from "../HomeCards";
+import { Grid, MiniBars, Panel, Rows, Split, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 
 /* Healthcare: one workspace, a different experience for a clinic and for a laboratory. Everything here is read
    from the restricted health records through the functions the current app already uses, as the signed-in person.
@@ -151,6 +151,7 @@ export function HealthToday() {
      opens (and coming back to either page shows it at once). */
   const reg = useRead<RegisterRow[]>(() => call("oh_clinic_register", { p_facility: org!.org_id, p_filter: "all", p_limit: 300 }), `nx-reg:${org?.org_id}`, clinic);
   const tr = useRead<ClinicTransfers>(() => call("oh_clinic_transfers", { p_facility: org!.org_id }), `nx-tr:${org?.org_id}`, clinic);
+  const tasks = useTasks(clinic ? org!.org_id : null);
   const [allNotices, setAllNotices] = useState(false);
   // Until the session is known (live.org is null) the sample page below is shown: it paints first, and members never see it.
   if (live.org && isLab(org)) return <LabToday org={org!} />;
@@ -214,12 +215,13 @@ export function HealthToday() {
             {noticeRows.length > 5 ? <button type="button" className="hm-all" aria-expanded={allNotices} onClick={() => setAllNotices((a) => !a)}>{allNotices ? "Show fewer" : `Show all ${Math.min(noticeRows.length, 30)}`}</button> : null}
           </Panel>
         </Grid>
-        {sample || coming?.length || tr.error ? <Grid cols={2}>
+        <Grid cols={2}>
           <Panel id="h-ref" title="Referred here, on the way">
             <Rows items={comingRows} error={tr.error} retry={tr.reload} all={{ href: "/health/referrals?view=in" }} empty="Nobody is on the way here." />
           </Panel>
-          <Panel id="h-priv" title="Who sees what"><p className="hm-empty">{who}</p></Panel>
-        </Grid> : <p className="hm-note hm-foot-note">{who}</p>}
+          {sample ? <Panel id="h-priv" title="Who sees what"><p className="hm-empty">{who}</p></Panel> : <TasksPanel orgId={org!.org_id} userId={live.userId} tasks={tasks} />}
+        </Grid>
+        {sample ? null : <p className="hm-note hm-foot-note">{who}</p>}
       </div>
     </Shell>
   );
@@ -228,6 +230,8 @@ export function HealthToday() {
 /** A laboratory's day: what is on its way, what is in the laboratory and for how long, and what was released. Each figure
     counts the list it opens (Samples, Testing, Results), from the same read with the same key, so the pages share it. */
 function LabToday({ org }: { org: Workspace }) {
+  const live = useLive();
+  const tasks = useTasks(org.org_id);
   const rows = useRead<Sample[]>(() => select<Sample>("oh_samples", { laboratory_id: org.org_id }), `nx-lab:${org.org_id}`, true);
   const names = useNames(true);
   const now = Date.now();
@@ -255,7 +259,7 @@ function LabToday({ org }: { org: Workspace }) {
             visual={released.length ? <Split parts={[{ n: res("negative"), tone: "ok", label: "negative" }, { n: res("positive"), tone: "bad", label: "positive" }, { n: released.length - res("negative") - res("positive"), tone: "plain", label: "other" }]} /> : null} />
           <Tile label="Rejected" n={n(rejected.length)} href="/health/samples?view=rej" />
         </Tiles>
-        <Grid cols={3}>
+        <Grid cols={2}>
           <Panel id="l-t" title="In the laboratory, oldest first">
             <Rows items={rows.data ? inLab.map((s) => item(s, { text: `${word(s.status)} · ${days(age(s))}`, tone: age(s) > 5 ? "warn" : "plain" })) : null} error={rows.error} retry={rows.reload} all={{ href: "/health/testing" }} empty="Nothing is in the laboratory." />
           </Panel>
@@ -265,6 +269,7 @@ function LabToday({ org }: { org: Workspace }) {
           <Panel id="l-r" title="Released recently">
             <Rows items={rows.data ? released.map((s) => item(s, { text: `${word(s.result)} · ${d(s.resulted_at)}`, tone: s.result === "positive" ? "bad" : s.result === "negative" ? "ok" : "plain" })) : null} error={rows.error} all={{ href: "/health/results" }} empty="No result has been released yet." />
           </Panel>
+          <TasksPanel orgId={org.org_id} userId={live.userId} tasks={tasks} />
         </Grid>
         <p className="hm-note hm-foot-note">Days are counted from collection. Receiving, testing and releasing a result are steps taken by named laboratory staff. Kaju never interprets or releases a result.</p>
       </div>

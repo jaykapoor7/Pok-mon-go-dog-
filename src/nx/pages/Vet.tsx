@@ -10,10 +10,10 @@ import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { VET_APPTS, VET_CASES, VET_PROCS, type Tone, type VetAppt, type VetCase, type VetProc } from "../fixtures";
 import { HealthToday } from "./Health";
-import { bookAppointment, setAppointmentStatus, useAppointments, useCases, useDogs, useLive, type Appointment, type Case, type Dog } from "../live";
+import { bookAppointment, setAppointmentStatus, useAppointments, useCases, useDogs, useLive, useTasks, type Appointment, type Case, type Dog } from "../live";
 import { ClinicPatients, ClinicToday } from "./VetClinic";
 import { AtKaju } from "../AtKaju";
-import { Grid, Panel, Rows, Split, Tile, Tiles, type Item } from "../HomeCards";
+import { Grid, Panel, Rows, Split, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 import { animalLine, animalSearch } from "../animalLabel";
 import { useAnimalRefs } from "../data/animals";
 
@@ -217,6 +217,7 @@ export function VetFollowups() {
 export function VetToday() {
   const v = useVet();
   const ap = useAppointments(v.orgId);
+  const tasks = useTasks(v.orgId);
   const c = useCare(v);
   const [q, setQ] = useState<QueueRow[] | null>(null);
   const [qErr, setQErr] = useState<string | null>(null);
@@ -241,7 +242,7 @@ export function VetToday() {
           <Tile label="Open clinical cases" n={careN} href="/health/care?view=all"
             visual={c.rows.length ? <Split parts={[{ n: sev("critical"), tone: "bad", label: "critical" }, { n: sev("high"), tone: "warn", label: "high" }, { n: sev("normal") + sev("low"), tone: "plain", label: "other" }]} /> : null} />
         </Tiles>
-        <Grid cols={3}>
+        <Grid cols={v.orgId ? 2 : 3}>
           <Panel id="vt-a" title="Appointments today">
             <Rows items={v.sample || ap.rows ? appts.map((a): Item => ({ id: a.id, title: a.title, meta: a.animal, href: "/health/appointments", icon: <CalendarPlus size={16} />, tone: "blue", chip: { text: a.when, tone: "blue" } })) : null}
               error={ap.error} all={{ href: "/health/appointments" }} empty="Nothing booked for today." />
@@ -254,6 +255,7 @@ export function VetToday() {
             <Rows items={v.sample || q ? signRows.map((r): Item => ({ id: r.id, title: r.animal, meta: `${r.code} · ${r.when}${r.missing.length ? ` · missing ${r.missing.join(", ")}` : ""}`, href: r.href, icon: <Lock size={16} />, tone: "warn", chip: { text: "Sign", tone: "warn" } })) : null}
               error={qErr} all={{ href: "/health/procedures" }} empty="Nothing waits for your signature." />
           </Panel>
+          {v.orgId ? <TasksPanel orgId={v.orgId} userId={v.live.userId} tasks={tasks} /> : null}
         </Grid>
         <p className="hm-note" style={{ marginTop: 16 }}>This view reads {v.sample ? "the NGO" : v.vet!.name}&apos;s own animals and cases. StrayPaw does not suggest diagnoses or treatments; only a veterinarian signs a procedure.</p>
       </div>

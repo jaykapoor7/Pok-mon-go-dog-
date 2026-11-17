@@ -121,7 +121,9 @@ function Reply({ t, signedIn, onClose, onFill }: { t: Turn; signedIn: boolean; o
     /* The record actions' module loads only when a person confirms something. */
     const { kajuConfirm } = await import("./data/ngo");
     const res = await kajuConfirm(p as unknown as Proposal);
-    const s: Saved = res.data ? { ok: true, what: res.data.what, href: res.data.href ? appHref(res.data.href) : null } : { ok: false, error: res.error ?? "Not saved." };
+    /* A task lands in this home's own task list, whatever place the person works in; "Open" goes there. */
+    const here = p.kind === "add_task" && document.getElementById("t-tasks") ? "#t-tasks" : null;
+    const s: Saved = res.data ? { ok: true, what: res.data.what, href: here ?? (res.data.href ? appHref(res.data.href) : null) } : { ok: false, error: res.error ?? "Not saved." };
     setSaved((m) => ({ ...m, [p.id]: s }));
     if (s.ok) window.dispatchEvent(new CustomEvent(KAJU_SAVED, { detail: { kind: p.kind } }));
   };

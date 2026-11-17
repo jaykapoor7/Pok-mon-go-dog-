@@ -8,10 +8,10 @@ import { Chip, Sample } from "../ui";
 import { GOV_ORG, SERIES, TARGET, WARDS } from "../fixtures";
 import { PACKAGE_LABEL, orgNames, packages, type Package } from "@/lib/abc";
 import { isVisibleToOffice } from "@/lib/machines/package";
-import { useLive } from "../live";
+import { useLive, useTasks } from "../live";
 import { ProgrammeHome } from "./Gov";
 import { AtKaju } from "../AtKaju";
-import { Grid, Meter, Panel, Rows, Strip, Tile, Tiles, type Item } from "../HomeCards";
+import { Grid, Meter, Panel, Rows, Strip, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 
 const COLS = "minmax(0, 1.2fr) minmax(0, 1fr) 92px 92px 112px 132px 72px";
 const W = 640, H = 200, PAD = 24;
@@ -116,6 +116,7 @@ function SampleInsights() {
 function OfficeOverview() {
   const live = useLive();
   const office = live.orgFor("government")!;
+  const tasks = useTasks(office.org_id);
   const [ps, setPs] = useState<Package[] | null>(null);
   const [names, setNames] = useState<Record<string, string>>({});
   const [err, setErr] = useState<string | null>(null);
@@ -149,7 +150,7 @@ function OfficeOverview() {
           <Tile label="Accepted packages" n={n(accepted)} href="/gov/reports" visual={decided.length ? <Meter part={accepted} whole={decided.length} tone="ok" label={`${accepted} of ${decided.length} decided packages`} /> : null} />
           <Tile label="Records in accepted packages" n={n(records)} href="/gov/reports" />
         </Tiles>
-        <Grid cols={2}>
+        <Grid cols={3}>
           <Panel id="o-wait" title="Waiting for a decision">
             <Rows items={ps ? waiting.map((p): Item => { const d = days(p.submitted_at ?? p.created_at); return { id: p.id, title: p.title, meta: `${names[p.ngo_id] ?? "Operator"}${p.summary?.records ? ` · ${p.summary.records.toLocaleString("en-IN")} records` : ""}`, href: `/gov/verification/${p.id}`, icon: <FileText size={16} />, tone: "warn", chip: { text: d === null ? "Sent" : d === 0 ? "Sent today" : `${d} ${d === 1 ? "day" : "days"} waiting`, tone: d !== null && d > 7 ? "warn" : "plain" }, kaju: `Check the package “${p.title}” before I review it`, kajuLabel: `Ask @Kaju about ${p.title}` }; }) : null}
               error={err} retry={() => setTick((t) => t + 1)} all={{ href: "/gov/verification" }} empty="Nothing is waiting for a decision." />
@@ -158,6 +159,7 @@ function OfficeOverview() {
             <Rows items={ps ? ops.map((o): Item => ({ id: o.id, title: o.name, meta: `${o.total} ${o.total === 1 ? "package" : "packages"}${o.queried ? ` · ${o.queried} with a question` : ""}`, href: "/gov/partners", icon: <Users size={16} />, tone: o.waiting ? "warn" : "plain", chip: o.waiting ? { text: `${o.waiting} waiting`, tone: "warn" } : undefined })) : null}
               error={err} all={{ href: "/gov/partners" }} empty="No operator has sent a package yet." />
           </Panel>
+          <TasksPanel orgId={office.org_id} userId={live.userId} tasks={tasks} />
         </Grid>
         <Strip id="o-recent" title="Recently decided" all={{ href: "/gov/reports", label: "Reports" }} error={err}
           items={ps ? recent.map((p): Item => ({ id: p.id, title: p.title, meta: `${names[p.ngo_id] ?? "Operator"}${p.decided_by_name ? ` · ${p.decided_by_name}` : ""}`, href: `/gov/verification/${p.id}`, icon: <FileText size={16} />, tone: p.status === "returned" ? "plain" : "ok", chip: { text: `${PACKAGE_LABEL[p.status] ?? p.status}${p.decided_at ? ` · ${when(p.decided_at)}` : ""}`, tone: p.status === "returned" ? "plain" : "ok" } })) : undefined}

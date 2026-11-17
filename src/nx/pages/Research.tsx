@@ -8,9 +8,9 @@ import { ArrowRight, Download, Lock, X } from "lucide-react";
 import { call, type Count, type Place, type ProgrammeRef } from "@/oh/data";
 import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
-import { useLive } from "../live";
+import { useLive, useTasks } from "../live";
 import { AtKaju } from "../AtKaju";
-import { Meter, MiniBars, Tile, Tiles } from "../HomeCards";
+import { Grid, Meter, MiniBars, TasksPanel, Tile, Tiles } from "../HomeCards";
 
 /* Research works on governed, aggregated data. The only dataset here is the one the programme already publishes to
    analysts: bite exposures by week, area, animal and category, with small counts suppressed by the database. A suppressed
@@ -58,6 +58,8 @@ const notResearch = <div className="nx-page"><h1 className="nx-h1">Research</h1>
 export function Datasets() {
   const { sets, sample, ready, org } = useDatasets();
   const live = useLive();
+  const unit = sample ? null : live.orgFor("research");
+  const tasks = useTasks(unit?.org_id ?? null);
   /* What the approved extracts hold, added up only from cells that are shown; a suppressed cell is counted apart. */
   const read = useMemo(() => {
     const ok = (sets ?? []).filter((s) => s.extract);
@@ -94,6 +96,7 @@ export function Datasets() {
           ))}
           {sets && !sets.length ? <p className="nx-sub" style={{ padding: "20px 0" }}><b style={{ color: "var(--ink)" }}>No datasets are approved for this organisation yet.</b></p> : null}
         </div>
+        {unit ? <Grid cols={1}><TasksPanel orgId={unit.org_id} userId={live.userId} tasks={tasks} /></Grid> : null}
         {!sample && live.orgFor("research") ? <div style={{ marginTop: 28 }}><DataRequests org={live.orgFor("research")!} /></div> : null}
         <p className="nx-note" style={{ marginTop: 18, maxWidth: 720 }}><Lock size={13} /><span>Patient-level records never leave the treating facility. To use another programme&apos;s data, its steward approves a request; access is versioned and can be withdrawn.</span></p>
       </div>

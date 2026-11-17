@@ -11,11 +11,11 @@ import { ListPage, type Col } from "../ListPage";
 import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { ALERTS, OUTPUTS, PARTNERS, PROG_SAMPLE, SURV_AREAS, SURV_WEEKS, TARGET, WARDS, type Tone } from "../fixtures";
-import { useLive } from "../live";
+import { useLive, useTasks } from "../live";
 import { Failed, TabBar } from "../kit";
 import { ContractsTab } from "./gov/Contracts";
 import { AtKaju } from "../AtKaju";
-import { Grid, Meter, Panel, Rows, Split, Tile, Tiles, type Item } from "../HomeCards";
+import { Grid, Meter, Panel, Rows, Split, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 
 /* Government & Programmes, built on the programme the person oversees (oh_programme_overview and friends).
    Every count comes from the database, which suppresses small human-health counts as "<5" and never returns
@@ -340,6 +340,8 @@ export function GovReports() {
     a read that failed shows "Not read". */
 export function ProgrammeHome() {
   const g = useGov();
+  const live = useLive();
+  const tasks = useTasks(g.gov?.org_id ?? null);
   const on = g.mode === "programme" && g.prog;
   /* Ninety days, as Surveillance opens, so the exposures figure is the one that page shows first. */
   const o = useCall<Overview>("oh_programme_overview", on ? { p_programme: g.prog!.id, p_days: 90 } : null, `home:${g.prog?.id}:90`);
@@ -377,7 +379,7 @@ export function ProgrammeHome() {
           <Tile label="Exposures, 90 days" n={o.err ? null : o.loading ? undefined : typeof exp === "number" ? exp : null} text={exp === "<5" ? "Fewer than 5" : undefined} href="/gov/surveillance"
             visual={typeof exp === "number" && typeof cat3 === "number" && exp > 0 ? <Meter part={cat3} whole={exp} tone="bad" label={`${cat3} category III`} /> : cat3 === "<5" ? <span className="hm-tile-note">Category III: fewer than 5</span> : null} />
         </Tiles>
-        <Grid cols={3}>
+        <Grid cols={2}>
           <Panel id="h-u" title="Needs a decision">
             <Rows items={al.data ? [...urgent, ...openAlerts.filter((a) => a.severity === "attention")].map((a): Item => ({ id: a.key, title: a.title, meta: [ALERT_KIND[a.kind] ?? a.kind, a.area, fmtDate(a.at)].filter(Boolean).join(" · "), href: "/gov/surveillance", icon: <ShieldAlert size={16} />, tone: a.severity === "urgent" ? "bad" : "warn", chip: { text: a.severity === "urgent" ? "Urgent" : "Attention", tone: a.severity === "urgent" ? "bad" : "warn" }, kaju: `What should happen next about: ${a.title}?`, kajuLabel: `Ask @Kaju about ${a.title}` })) : null}
               loading={al.loading} error={al.err ? `Alerts could not be read: ${al.err}.` : null} all={{ href: "/gov/surveillance", label: "All alerts on Surveillance" }} empty="Nothing urgent or needing attention is open." />
@@ -390,6 +392,7 @@ export function ProgrammeHome() {
             <Rows items={x ? partners.map((p): Item => ({ id: p.id, title: p.name, meta: `${OH_KIND[p.kind] ?? p.kind}${p.responsibilities ? ` · ${p.responsibilities}` : ""}`, href: "/gov/partners", icon: <FileText size={16} />, tone: p.overdue ? "warn" : "plain", chip: p.overdue ? { text: `${p.overdue} overdue`, tone: "warn" } : { text: `${p.open} open`, tone: "plain" } })) : null}
               loading={o.loading} error={o.err ? "Partners could not be read." : null} all={{ href: "/gov/partners" }} empty="No partners in this programme yet." />
           </Panel>
+          {g.gov ? <TasksPanel orgId={g.gov.org_id} userId={live.userId} tasks={tasks} /> : null}
         </Grid>
       </div>
     </Shell>
