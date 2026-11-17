@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark, usePhone } from "./gh/parts";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, FileText, MapPin, ShieldAlert } from "lucide-react";
@@ -110,8 +111,8 @@ export function GovProgrammes() {
   ];
   return (
     <ListPage ws="gov" crumb={["Government", "Programmes"]} title="Programmes" sample={sample}
-      eyebrow={<><ProgName g={g} sample={sample} />{!sample && o.data?.programme.illustrative && !/illustrative/i.test(o.data.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</>}
-      sub={o.loading ? "Reading the programme…" : <><b className="num">{at}</b> of {withEst.length} {withEst.length === 1 ? "area" : "areas"} with a dated estimate reach the {pct(target)} target.{rows.length - withEst.length ? <> {rows.length - withEst.length} {rows.length - withEst.length === 1 ? "has" : "have"} no estimate, so no coverage is shown.</> : null}</>}
+      eyebrow={<><ProgName g={g} sample={sample} /><GhMark />{!sample && o.data?.programme.illustrative && !/illustrative/i.test(o.data.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</>}
+      sub={o.loading ? "Reading the programme…" : <><b className="num">{at}</b> of {withEst.length} {withEst.length === 1 ? "area" : "areas"} with a dated estimate reach the {pct(target)} target.{rows.length - withEst.length ? <> <About>{rows.length - withEst.length} {rows.length - withEst.length === 1 ? "has" : "have"} no estimate, so no coverage is shown.</About></> : null}<GhMark /></>}
       action={sample ? <Link href="/gov/programmes/sample?tab=Coverage" className="nx-btn is-quiet">Open the programme</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Coverage`} className="nx-btn is-quiet">Record an estimate</Link> : undefined}
       views={[{ id: "all", label: "All areas", test: () => true }, { id: "low", label: "Below target", test: (r: AreaRow) => covOf(r) !== null && covOf(r)! < target }, { id: "none", label: "No estimate", test: (r: AreaRow) => covOf(r) === null }]}
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.area} search={(r) => r.area}
@@ -148,7 +149,7 @@ export function Partners() {
   ];
   return (
     <ListPage ws="gov" crumb={["Government", "Partners"]} title="Partners" sample={sample} eyebrow={<ProgName g={g} sample={sample} />}
-      sub={o.loading ? "Reading partners…" : <><b className="num">{rows.length}</b> organisations in the programme{late ? <>, <b className="num">{late}</b> with overdue requests</> : null}. Joining a programme does not open one organisation&apos;s records to another.</>}
+      sub={o.loading ? "Reading partners…" : <><b className="num">{rows.length}</b> organisations in the programme{late ? <>, <b className="num">{late}</b> with overdue requests</> : null}. <About>Joining a programme does not open one organisation&apos;s records to another.</About><GhMark /></>}
       action={sample ? <Link href="/gov/programmes/sample?tab=Network" className="nx-btn is-quiet">Open the network</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Network`} className="nx-btn is-quiet">Open the network</Link> : undefined}
       views={[{ id: "all", label: "All", test: () => true }, { id: "late", label: "Overdue requests", test: (r: PartnerRow) => r.overdue > 0 }, { id: "health", label: "Health and laboratory", test: (r: PartnerRow) => HEALTH.has(r.kind) }, { id: "field", label: "Field and municipal", test: (r: PartnerRow) => !HEALTH.has(r.kind) }]}
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => `${r.name} ${r.kind} ${r.responsibilities}`}
@@ -186,7 +187,7 @@ function Operators() {
   ];
   return (
     <ListPage ws="gov" crumb={["Government", "Partners"]} title="Partners" sample={false} eyebrow={office.name}
-      sub={rows === null ? "Reading packages…" : <><b className="num">{list.length}</b> {list.length === 1 ? "operator has" : "operators have"} sent this office a package. Sending a package does not make an operator a contracted partner.</>}
+      sub={rows === null ? "Reading packages…" : <><b className="num">{list.length}</b> {list.length === 1 ? "operator has" : "operators have"} sent this office a package. <About>Sending a package does not make an operator a contracted partner.</About><GhMark /></>}
       views={[{ id: "all", label: "All", test: () => true }, { id: "w", label: "Waiting for you", test: (r: OpRow) => r.waiting > 0 }]}
       columns={cols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => r.name} sort={(a, b) => b.waiting - a.waiting || b.sent - a.sent}
       preview={(r) => ({ title: r.name, sub: "Operator", body: <dl className="nx-props"><div><dt>Packages sent</dt><dd className="num">{r.sent}</dd></div><div><dt>Waiting for you</dt><dd className="num">{r.waiting}</dd></div><div><dt>Accepted</dt><dd className="num">{r.accepted}</dd></div><div><dt>Records accepted</dt><dd className="num">{r.records.toLocaleString("en-IN")}</dd></div></dl>, href: "/gov/verification", hrefLabel: "Open verification" })}
@@ -216,6 +217,9 @@ export function WeekBars({ weeks }: { weeks: { week: string; n: Count }[] }) {
 export function Surveillance() {
   const g = useGov();
   const [days, setDays] = useState(90);
+  /* A phone shows the five newest alerts first; the rest are one tap away. */
+  const phone = usePhone();
+  const [allAlerts, setAllAlerts] = useState(false);
   const on = g.mode === "programme" && g.prog;
   const o = useCall<Overview>("oh_programme_overview", on ? { p_programme: g.prog!.id, p_days: days } : null, `sv:${g.prog?.id}:${days}`);
   const al = useCall<Alert[]>("oh_alerts", on ? { p_programme: g.prog!.id } : null, `al:${g.prog?.id}`);
@@ -239,8 +243,8 @@ export function Surveillance() {
     <Shell ws="gov" crumb={["Government", "Surveillance"]}>
       <div className="nx-page" style={{ maxWidth: 1080 }}>
         <div className="nx-head"><div><p className="nx-eyebrow"><ProgName g={g} sample={sample} />{sample ? <Sample /> : x?.programme.illustrative && !/illustrative/i.test(x.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</p><h1 className="nx-h1">Surveillance</h1>
-          <p className="nx-sub">{o.loading ? "Reading signals…" : <><b className="num">{num(total)}</b> exposures recorded in the last {PERIODS.find((p) => p.d === days)!.label}{s ? <>, <b className="num">{s.positive}</b> laboratory-confirmed {s.positive === 1 ? "positive" : "positives"}</> : null}. Alerts follow fixed programme rules; none of them declares an outbreak.</>}</p></div>
-          {sample ? <Link href="/gov/programmes/sample?tab=Work" className="nx-btn is-quiet">Open the response queue</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Work`} className="nx-btn is-quiet">Open the response queue</Link> : null}
+          <p className="nx-sub">{o.loading ? "Reading signals…" : <><b className="num">{num(total)}</b> exposures recorded in the last {PERIODS.find((p) => p.d === days)!.label}{s ? <>, <b className="num">{s.positive}</b> laboratory-confirmed {s.positive === 1 ? "positive" : "positives"}</> : null}. <About>Alerts follow fixed programme rules; none of them declares an outbreak.</About><GhMark /></>}</p></div>
+          {sample ? <Link href="/gov/programmes/sample?tab=Work" className="nx-btn is-quiet is-keep">Open the response queue</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Work`} className="nx-btn is-quiet is-keep">Open the response queue</Link> : null}
         </div>
         <div className="nx-bar" style={{ borderBottom: 0, paddingBottom: 0 }}><div className="nx-views" role="tablist" aria-label="Period">{PERIODS.map((p) => <button key={p.d} type="button" role="tab" aria-selected={days === p.d} className={`nx-view ${days === p.d ? "is-on" : ""}`} onClick={() => setDays(p.d)}>{days === p.d ? <span className="nx-view-bg" /> : null}<span>{p.label}</span></button>)}</div></div>
         {o.err || al.err ? <p className="nx-foot" role="alert">{o.err ?? al.err}</p> : null}
@@ -265,7 +269,8 @@ export function Surveillance() {
         </div>
         <section className="nx-sec" aria-labelledby="sv-al" style={{ marginTop: 30 }}>
           <div className="nx-sec-h"><h2 id="sv-al">Alerts</h2><span className="nx-count">{alerts.length}</span>{h ? <span className="nx-link" style={{ cursor: "default" }}>{h.open} open handoffs{h.overdue ? `, ${h.overdue} overdue` : ""}</span> : null}</div>
-          <ul className="nx-feed">{alerts.slice(0, 12).map((a) => <li key={a.key}><span className="nx-feed-i" style={a.severity === "urgent" ? { background: "var(--bad-soft)", color: "var(--bad)" } : undefined}><ShieldAlert size={12} /></span><div><b>{a.title}</b><p>{a.detail}</p><small><Chip tone={SEV[a.severity].tone}>{SEV[a.severity].label}</Chip> {a.kind}{a.area ? ` · ${a.area}` : ""} · {a.at}{a.ack ? ` · ${a.ack}` : ""}</small></div></li>)}</ul>
+          <ul className="nx-feed">{alerts.slice(0, phone && !allAlerts ? 5 : 12).map((a) => <li key={a.key}><span className="nx-feed-i" style={a.severity === "urgent" ? { background: "var(--bad-soft)", color: "var(--bad)" } : undefined}><ShieldAlert size={12} /></span><div><b>{a.title}</b><p>{a.detail}</p><small><Chip tone={SEV[a.severity].tone}>{SEV[a.severity].label}</Chip> {a.kind}{a.area ? ` · ${a.area}` : ""} · {a.at}{a.ack ? ` · ${a.ack}` : ""}</small></div></li>)}</ul>
+          {phone && !allAlerts && alerts.length > 5 ? <button type="button" className="nx-btn is-quiet gh-more" onClick={() => setAllAlerts(true)}>Show {Math.min(alerts.length, 12) - 5} more</button> : null}
           {!alerts.length && !al.loading ? <p className="nx-sub">No alerts.</p> : null}
           <p className="nx-foot">Each alert comes from a written rule, such as a positive result or a facility without vaccine. A person in the programme reviews and acknowledges it.</p>
         </section>
@@ -309,7 +314,7 @@ export function GovReports() {
   return (
     <Shell ws="gov" crumb={["Government", "Reports"]}>
       <div className="nx-page" style={{ maxWidth: 1000 }}>
-        <div className="nx-head"><div><p className="nx-eyebrow">{g.mode === "office" ? g.gov!.name : <ProgName g={g} sample={sample} />}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Reports</h1><p className="nx-sub">Every report is built from records and says where each figure comes from. Kaju does not write reports.</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{g.mode === "office" ? g.gov!.name : <ProgName g={g} sample={sample} />}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Reports</h1><p className="nx-sub">Every report is built from records and says where each figure comes from. <About>Kaju does not write reports.</About><GhMark /></p></div></div>
         {withContracts ? <div className="gh-tabwrap"><TabBar id="gov-reports" tabs={["Reports", "Contracts"]} value={tab} onChange={pick} label="Reports and contracts" /></div> : null}
         {withContracts && tab === "Contracts" ? <ContractsTab /> : <>
         {progReports.length ? <section className="nx-sec" aria-labelledby="rp-p" style={{ marginTop: 20 }}>
@@ -366,7 +371,7 @@ export function ProgrammeHome() {
     <Shell ws="gov" crumb={["Government", "Overview"]}>
       <div className="nx-page hm-page">
         <div className="nx-head"><div><p className="nx-eyebrow"><ProgName g={g} sample={false} />{x?.programme.illustrative && !/illustrative/i.test(x.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</p><h1 className="nx-h1">Overview</h1>
-          <p className="nx-sub">{o.loading ? "Reading the programme…" : <>{x?.programme.parent ? <>Part of {x.programme.parent.name}. </> : null}{x?.can_manage ? "You manage this programme." : "You can see this programme; changes are made by its coordinators."}</>}</p></div></div>
+          <p className="nx-sub">{o.loading ? "Reading the programme…" : <>{x?.programme.parent ? <>Part of {x.programme.parent.name}. </> : null}{x?.can_manage ? "You manage this programme." : "You can see this programme; changes are made by its coordinators."}<GhMark /></>}</p></div></div>
         <AtKaju role="programme" />
         {o.err ? <p className="hm-note is-bad" role="alert" style={{ marginTop: 16 }}>The programme could not be read: {o.err}. Its figures show “Not read”.</p> : null}
         <Tiles>

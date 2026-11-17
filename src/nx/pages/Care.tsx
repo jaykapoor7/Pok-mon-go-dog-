@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { Lock, MapPin, Phone, ShieldAlert } from "lucide-react";
@@ -51,7 +52,7 @@ export function Facilities() {
   const vacc = data.filter((r) => r.services.some((s) => s.service === "Vaccine" && s.status === "Available")).length;
   const canConfirm = !!place?.capabilities.includes("confirm_service");
   return <ListPage ws="health" crumb={["Healthcare", "Facilities"]} title="Facilities" sample={sample} eyebrow={sample ? "East Zone rabies programme" : prog!.name}
-    sub={sample || net.data ? <><b className="num">{vacc}</b> of {data.length} facilities last confirmed anti-rabies vaccine in stock. Call before sending someone: a status is only as fresh as its date.</> : "Reading the directory…"}
+    sub={sample || net.data ? <><b className="num">{vacc}</b> of {data.length} facilities last confirmed anti-rabies vaccine in stock. <About>Call before sending someone: a status is only as fresh as its date.</About><GhMark /></> : "Reading the directory…"}
     action={sample || canConfirm ? <Link href="/health/facilities/ours" className="nx-btn is-quiet is-keep">Confirm our services</Link> : undefined}
     views={[{ id: "all", label: "All", test: () => true }, { id: "vac", label: "Vaccine available", test: (r: FacRow) => r.services.some((s) => s.service === "Vaccine" && s.status === "Available") }, { id: "gap", label: "Gaps or unconfirmed", test: gap }]}
     columns={facCols} rows={data} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => `${r.name} ${r.area} ${r.kind}`}
@@ -84,7 +85,7 @@ export function HealthSurveillance() {
     <Shell ws="health" crumb={["Healthcare", "Surveillance"]}>
       <div className="nx-page" style={{ maxWidth: 1080 }}>
         <div className="nx-head"><div><p className="nx-eyebrow">{sample ? "East Zone rabies programme" : prog!.name}{sample ? <SampleChip /> : null}</p><h1 className="nx-h1">Surveillance</h1>
-          <p className="nx-sub">{!sample && o.loading && !x ? "Reading signals…" : <><b className="num">{num(total)}</b> exposures across the programme in the last {days === 365 ? "12 months" : `${days} days`}. These are programme totals, not this facility&apos;s patients.</>}</p></div></div>
+          <p className="nx-sub">{!sample && o.loading && !x ? "Reading signals…" : <><b className="num">{num(total)}</b> exposures across the programme in the last {days === 365 ? "12 months" : `${days} days`}. <About>These are programme totals, not this facility&apos;s patients.</About><GhMark /></>}</p></div></div>
         <div className="nx-bar" style={{ borderBottom: 0, paddingBottom: 0 }}><div className="nx-views" role="tablist" aria-label="Period">{[30, 90, 365].map((n) => <button key={n} type="button" role="tab" aria-selected={days === n} className={`nx-view ${days === n ? "is-on" : ""}`} onClick={() => setDays(n)}>{days === n ? <span className="nx-view-bg" /> : null}<span>{n === 365 ? "12 months" : `${n} days`}</span></button>)}</div></div>
         {o.error || al.error ? <p className="nx-foot" role="alert">{o.error ?? al.error}</p> : null}
         <div className="nx-cols" style={{ gridTemplateColumns: "minmax(0, 1fr) 300px", marginTop: 18 }}>
@@ -162,7 +163,7 @@ export function Testing() {
     { label: "Status", width: "110px", render: (r) => <Chip tone={STATUS[r.status] ?? "plain"}>{r.status}</Chip> },
   ];
   return <LabGate crumb="Testing" l={l}>{() => <ListPage ws="health" crumb={["Healthcare", "Testing"]} title="Testing" sample={l.sample} eyebrow={l.sample ? "Reference Rabies Diagnostic Laboratory" : l.org!.name}
-    sub={<><b className="num">{rows.length}</b> {rows.length === 1 ? "sample is" : "samples are"} in the laboratory{rows.length ? <>, the longest for <b className="num">{Math.max(...rows.map(bench))}</b> days</> : null}. Oldest first.</>}
+    sub={<><b className="num">{rows.length}</b> {rows.length === 1 ? "sample is" : "samples are"} in the laboratory{rows.length ? <>, the longest for <b className="num">{Math.max(...rows.map(bench))}</b> days</> : null}. Oldest first.<GhMark /></>}
     views={[{ id: "all", label: "In the laboratory", test: () => true }, { id: "r", label: "Received, not started", test: (r: LabRow) => r.status === "Received" }, { id: "t", label: "Testing", test: (r: LabRow) => r.status === "Testing" }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.species} ${r.from}`} sort={(a, b) => bench(b) - bench(a)}
     preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={STATUS[r.status] ?? "plain"}>{r.status}</Chip></>, body: <><dl className="nx-props"><div><dt>From</dt><dd>{r.from}</dd></div><div><dt>Place</dt><dd>{r.area}</dd></div><div><dt>Collected</dt><dd>{r.collected}</dd></div><div><dt>Received</dt><dd>{r.received ?? "—"}</dd></div><div><dt>Method</dt><dd>{r.method ?? "Recorded with the result"}</dd></div></dl>{steps(r, l)}{custody(r)}{labNote}</>, href: r.href, hrefLabel: "Open the sample", hrefNote: "The chain of custody and the result are on the sample." })}
@@ -180,7 +181,7 @@ export function Results() {
   ];
   const pos = rows.filter((r) => r.result === "Positive");
   return <LabGate crumb="Results" l={l}>{() => <ListPage ws="health" crumb={["Healthcare", "Results"]} title="Results" sample={l.sample} eyebrow={l.sample ? "Reference Rabies Diagnostic Laboratory" : l.org!.name}
-    sub={<><b className="num">{rows.length}</b> released, <b className="num">{pos.length}</b> positive{pos.filter((r) => !r.notice).length ? <>, <b className="num">{pos.filter((r) => !r.notice).length}</b> without a notice to a partner</> : null}. A result is released when a laboratory scientist records it with the method and validates it.</>}
+    sub={<><b className="num">{rows.length}</b> released, <b className="num">{pos.length}</b> positive{pos.filter((r) => !r.notice).length ? <>, <b className="num">{pos.filter((r) => !r.notice).length}</b> without a notice to a partner</> : null}. <About>A result is released when a laboratory scientist records it with the method and validates it.</About><GhMark /></>}
     views={[{ id: "all", label: "All", test: () => true }, { id: "pos", label: "Positive", test: (r: LabRow) => r.result === "Positive" }, { id: "no", label: "Positive, no notice", test: (r: LabRow) => r.result === "Positive" && !r.notice }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.species} ${r.area} ${r.result ?? ""}`} sort={(a, b) => (b.resultedAt ?? 0) - (a.resultedAt ?? 0)}
     preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={r.result === "Positive" ? "bad" : "plain"}>{r.result ?? "—"}</Chip></>, body: <><dl className="nx-props"><div><dt>Method</dt><dd>{r.method ?? "Not recorded"}</dd></div><div><dt>Released by</dt><dd>{r.by ?? "—"}</dd></div><div><dt>Released</dt><dd>{r.on ?? "—"}</dd></div><div><dt>Notice</dt><dd>{r.notice ?? (r.result === "Positive" ? "None sent" : "Not needed")}</dd></div><div><dt>From</dt><dd>{r.from}</dd></div></dl>{steps(r, l)}{custody(r)}{labNote}</>, href: r.href, hrefLabel: "Open the sample", hrefNote: "The signed result and its notice are on the sample." })}
@@ -202,7 +203,7 @@ export function Quality() {
   return <LabGate crumb="Quality" l={l}>{() =>
     <Shell ws="health" crumb={["Healthcare", "Quality"]}>
       <div className="nx-page" style={{ maxWidth: 960 }}>
-        <div className="nx-head"><div><p className="nx-eyebrow">{l.sample ? "Reference Rabies Diagnostic Laboratory" : l.org?.name}{l.sample ? <SampleChip /> : null}</p><h1 className="nx-h1">Quality</h1><p className="nx-sub">Turnaround and rejected samples, from the steps staff recorded. {done.length} {done.length === 1 ? "result" : "results"} released so far.</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{l.sample ? "Reference Rabies Diagnostic Laboratory" : l.org?.name}{l.sample ? <SampleChip /> : null}</p><h1 className="nx-h1">Quality</h1><p className="nx-sub">Turnaround and rejected samples, from the steps staff recorded. {done.length} {done.length === 1 ? "result" : "results"} released so far.<GhMark /></p></div></div>
         {l.error ? <p className="nx-foot" role="alert">{l.error}</p> : null}
         <div className="nx-figs">
           {fig(f(median(tatAll)), "Days, collected to result", "median")}

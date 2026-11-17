@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Download, FileText, Sparkles, Users, X } from "lucide-react";
@@ -36,7 +37,7 @@ function SampleInsights() {
     <Shell ws="gov" crumb={["Government", "Overview"]}>
       <div className="nx-page hm-page">
         <div className="nx-head">
-          <div><p className="nx-eyebrow">{GOV_ORG.kind} · {GOV_ORG.city}<Sample /></p><h1 className="nx-h1">Programme insights</h1><p className="nx-sub">Verified vaccination activity against the estimated dog population, by ward.</p></div>
+          <div><p className="nx-eyebrow">{GOV_ORG.kind} · {GOV_ORG.city}<Sample /><GhMark /></p><h1 className="nx-h1">Programme insights</h1><p className="nx-sub">Verified vaccination activity against the estimated dog population, by ward.</p></div>
           <Link href="/try" className="nx-btn is-quiet" title="Opens the live demo, where this works"><Download size={13} />Export</Link>
         </div>
         <AtKaju role="programme" />
@@ -142,7 +143,7 @@ function OfficeOverview() {
   return (
     <Shell ws="gov" crumb={["Government", "Overview"]}>
       <div className="nx-page hm-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{office.name}</p><h1 className="nx-h1">Overview</h1><p className="nx-sub">{err ? "Packages could not be read, so nothing is counted." : ps === null ? "Reading packages…" : "Accepted means accepted by this office; StrayPaw does not process payments."}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{office.name}<GhMark /></p><h1 className="nx-h1">Overview</h1><p className="nx-sub">{err ? "Packages could not be read, so nothing is counted." : ps === null ? "Reading packages…" : <About>Accepted means accepted by this office; StrayPaw does not process payments.</About>}</p></div></div>
         <AtKaju role="office" />
         <Tiles>
           <Tile label="Waiting for your decision" n={n(waiting.length)} tone={waiting.length ? "warn" : "plain"} href="/gov/verification" note={oldest !== null ? `The oldest was sent ${oldest === 0 ? "today" : `${oldest} ${oldest === 1 ? "day" : "days"} ago`}` : undefined} />

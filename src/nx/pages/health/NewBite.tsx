@@ -11,7 +11,7 @@ import { Sample } from "../../ui";
 import { Confirm, Denied, Field, toast, useAct } from "../../kit";
 import { useLive } from "../../live";
 import { can, indiaToday, isFacilityKind, placeOf, recordExposure, usePlaces } from "../../data/govhealth";
-import { Block, Opening, Seg, TryLink } from "../gh/parts";
+import { About, Block, GhMark, Opening, Seg, TryLink } from "../gh/parts";
 import { KajuCapture } from "../../KajuCapture";
 import { exposureOf, readBite } from "../../data/capture";
 import type { Proposal } from "@/sp3/ai/types";
@@ -152,7 +152,8 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
   return (
     <Shell ws="health" crumb={["Bite cases", "Record a bite"]}>
       <div className="nx-page" style={{ maxWidth: 820 }}>
-        <div className="nx-head"><div><p className="nx-eyebrow">{orgName}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Record a bite</h1><p className="nx-sub">{prepared ? (clinician ? "Check it with the patient, choose the category and save." : "Check it with the patient and save. A clinician adds the category.") : "Tell Kaju what happened. The patient is identified by your own register number; no name is stored."}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{orgName}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Record a bite</h1><p className="nx-sub">{prepared ? (clinician ? "Check it with the patient, choose the category and save." : "Check it with the patient and save. A clinician adds the category.") : <>Tell Kaju what happened. <About>The patient is identified by your own register number; no name is stored.</About></>}</p></div></div>
+        <GhMark />
         {prepared ? (
           /* Enter in a field never saves here: the record is saved only by its button. */
           <form onSubmit={(e) => e.preventDefault()} style={{ marginTop: 24 }} noValidate>
@@ -187,7 +188,7 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
                   <small>The category you assessed. StrayPaw records it; it does not assess.</small>
                 </div>
               ) : <p className="nx-note"><Lock size={13} /><span>A clinician records the category and any course. This presentation waits for them on Today.</span></p>}
-              <div className="gh-kaju-a">
+              <div className="gh-kaju-a gh-savebar">
                 {sample ? <TryLink>Save to the bite register</TryLink> : <button type="button" className="nx-btn" data-tour="record-save" disabled={!!busy || !ready || matching} onClick={() => void save()}>{busy === "bite" ? "Saving…" : "Save to the bite register"}</button>}
                 <span className="gh-hint" role="status">{!ready ? `Check the date${f.consent ? " and phone number" : ""} in Edit details.` : matching ? "Matching the area to your list…" : `It goes into ${orgName}'s bite register in your name.`}</span>
               </div>
@@ -197,7 +198,7 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
           <div style={{ display: "grid", gap: 24, marginTop: 16 }}>
           <KajuCapture idBase="bite-kaju" sample={sample} context={{ path: "/health/bites/new", workspace: "healthcare", title: "Record a bite" }}
             placeholder="For example: dog bite on the left calf this morning, 34 F, OPD 4521, washed at home, brown stray near the bus stand"
-            hint={<>Type, paste, or use your keyboard&apos;s microphone. Use the register number, never the patient&apos;s name. Kaju reads it with your access and prepares the entry; nothing is saved until you confirm. Kaju never assesses, prescribes or decides eligibility{clinician ? "; the category is yours" : ""}.</>}
+            hint={<>Type, paste, or use your keyboard&apos;s microphone. Use the register number, never the patient&apos;s name. <About>Kaju reads it with your access and prepares the entry; nothing is saved until you confirm. Kaju never assesses, prescribes or decides eligibility{clinician ? "; the category is yours" : ""}.</About></>}
             reading={(t) => readBite(t).facts} byHand={(t) => [{ label: "Fill in by hand", go: () => fromWords(t) }]}
             kinds={["register_exposure"]} onChange={change} changes={["register_exposure"]} />
           <section className="kc-fold" aria-label="Fill in by hand">
@@ -213,7 +214,7 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
               {clinician ? <div className="nx-field"><span>Exposure category <small>The category you assessed. StrayPaw records it; it does not assess.</small></span><Seg name="category" label="Exposure category" value={f.category} onChange={(v) => set("category", v)} options={CATEGORY} /></div>
                 : <p className="nx-note"><Lock size={13} /><span>A clinician records the category and any course. This presentation waits for them on Today.</span></p>}
             </Block>
-            <div className="gh-acts" style={{ marginTop: 22 }}>{sample ? <TryLink>Save presentation</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Save presentation</button>}<Link href="/health/bites" className="nx-btn is-quiet">Cancel</Link>{!ready ? <span className="gh-hint">Check the date{f.consent ? " and phone number" : ""}.</span> : null}</div>
+            <div className="gh-acts gh-savebar" style={{ marginTop: 22 }}>{sample ? <TryLink>Save presentation</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Save presentation</button>}<Link href="/health/bites" className="nx-btn is-quiet">Cancel</Link>{!ready ? <span className="gh-hint">Check the date{f.consent ? " and phone number" : ""}.</span> : null}</div>
           </form>
             </div>
           </section>

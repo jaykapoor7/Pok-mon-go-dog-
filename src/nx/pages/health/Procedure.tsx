@@ -8,7 +8,7 @@ import { Sample } from "../../ui";
 import { Denied, Empty, RecordHead, dayTime } from "../../kit";
 import { useLive } from "../../live";
 import { AbcEvidence, useAbcCase } from "../abc/AbcEvidence";
-import { Opening } from "../gh/parts";
+import { GhMark, Opening } from "../gh/parts";
 
 /* A veterinary procedure for sign-off: the case's evidence, the veterinarian's authorisation and the coordinator's
    review, from the veterinarian's side. The same evidence component serves the NGO's case record. */
@@ -33,6 +33,7 @@ function View({ id, sample }: { id: string; sample: boolean }) {
       <RecordHead av={<Scissors size={18} />} title={<>{h?.title || code || "ABC procedure"}{sample ? <Sample /> : null}</>}
         sub={h ? <>{[h.zone || h.city, `opened ${dayTime(h.created_at)}`].filter(Boolean).join(" · ")}{code ? <span className="gh-code"> · {code}</span> : null} </> : "Reading the procedure…"}
         actions={!sample && h ? <Link href={`/ngo/cases/${id}`} className="nx-btn is-quiet is-sm">Open the case</Link> : undefined} />
+      <GhMark />
       <div className="gh-body" style={{ maxWidth: 1120, borderTop: "1px solid var(--line)", marginTop: 16 }}>
         <AbcEvidence caseId={id} sample={sample} data={c} />
       </div>

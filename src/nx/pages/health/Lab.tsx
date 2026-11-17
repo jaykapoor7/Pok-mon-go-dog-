@@ -12,7 +12,7 @@ import { useLive } from "../../live";
 import type { Tone } from "../../fixtures";
 import { indiaToday, placeOf, usePlaces } from "../../data/govhealth";
 import { sampleSample } from "../../data/govhealth-samples";
-import { Block, Opening, Seg, SignedConfirm, TryLink } from "../gh/parts";
+import { About, ActBar, Block, GhMark, Opening, Seg, SignedConfirm, TryLink } from "../gh/parts";
 
 /* Laboratory samples: sending one, and the sample's own record with its chain of custody. Each step is taken by
    named laboratory staff and recorded with their name; the database allows a step only from the status it follows
@@ -25,13 +25,30 @@ const ACTION: Record<string, string> = { collected: "Collected", dispatched: "Se
 export const sampleTone = (s: Pick<Sample, "status" | "result">): Tone => (s.result === "positive" ? "bad" : s.result === "inconclusive" ? "warn" : TONE[s.status] ?? "plain");
 
 /** The next laboratory steps for one sample, as buttons, for the laboratory that received it. */
-export function LabSteps({ s, sample, onDone, compact }: { s: Pick<Sample, "id" | "code" | "status" | "species" | "sample_type">; sample?: boolean; onDone: () => void; compact?: boolean }) {
+export function LabSteps({ s, sample, onDone, compact, bar }: { s: Pick<Sample, "id" | "code" | "status" | "species" | "sample_type">; sample?: boolean; onDone: () => void; compact?: boolean; /** On a phone: the next step at the thumb, Reject and Add a note under More. */ bar?: boolean }) {
   const [act, setAct] = useState<"resulted" | "rejected" | "note" | null>(null);
   const [ask, setAsk] = useState<"received" | "testing" | null>(null);
   const { busy, run } = useAct();
   const step = async (a: "received" | "testing") => { const r = await run(`step:${s.id}`, () => call("oh_sample_step", { p_sample: s.id, p_action: a }), { ok: a === "received" ? `${s.code} received. It is in the chain of custody in your name.` : `${s.code} is now testing.` }); setAsk(null); if (r.ok) onDone(); };
   const arriving = s.status === "collected" || s.status === "dispatched";
   const sm = compact ? "is-sm" : "";
+  const dialogs = <>
+    {ask ? <Confirm title={ask === "received" ? `Receive ${s.code}` : `Start testing ${s.code}`} busy={busy === `step:${s.id}`} confirm={ask === "received" ? "Mark received" : "Start testing"} onClose={() => setAsk(null)} onConfirm={() => void step(ask)}><p>{ask === "received" ? "Recorded now, in your name, as the laboratory taking custody of the sample." : "Recorded now, in your name. The result is entered when testing is complete."}</p></Confirm> : null}
+    {act ? <StepModal s={s} step={act} onClose={() => setAct(null)} onDone={() => { setAct(null); onDone(); }} /> : null}
+  </>;
+  if (bar) {
+    const rejectable = s.status === "dispatched" || s.status === "received";
+    const primary = sample ? (arriving ? <TryLink>Receive</TryLink> : s.status === "received" ? <TryLink>Start testing</TryLink> : s.status === "testing" ? <TryLink>Record the result</TryLink> : null)
+      : arriving ? <button type="button" className="nx-btn" disabled={!!busy} onClick={() => setAsk("received")}>Receive</button>
+      : s.status === "received" ? <button type="button" className="nx-btn" disabled={!!busy} onClick={() => setAsk("testing")}>Start testing</button>
+      : s.status === "testing" ? <button type="button" className="nx-btn" disabled={!!busy} onClick={() => setAct("resulted")}>Record the result</button> : null;
+    const note = sample ? <TryLink quiet>Add a note</TryLink> : <button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => setAct("note")}>Add a note</button>;
+    /* With no step left (released or rejected), Add a note is the one action and stands on its own. */
+    return <>
+      <ActBar label={s.code} more={primary ? <>{rejectable ? (sample ? <TryLink quiet>Reject the sample</TryLink> : <button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => setAct("rejected")}>Reject the sample</button>) : null}{note}</> : undefined}>{primary ?? note}</ActBar>
+      {dialogs}
+    </>;
+  }
   if (sample) return <div className="gh-steps">{arriving ? <TryLink sm={compact}>Receive</TryLink> : s.status === "received" ? <TryLink sm={compact}>Start testing</TryLink> : s.status === "testing" ? <TryLink sm={compact}>Record the result</TryLink> : null}{s.status === "dispatched" || s.status === "received" ? <TryLink sm={compact} quiet>Reject</TryLink> : null}<TryLink sm={compact} quiet>Add a note</TryLink></div>;
   return (
     <>
@@ -43,8 +60,7 @@ export function LabSteps({ s, sample, onDone, compact }: { s: Pick<Sample, "id" 
         {s.status === "dispatched" || s.status === "received" ? <button type="button" className={`nx-btn is-quiet ${sm}`} disabled={!!busy} onClick={() => setAct("rejected")}>Reject</button> : null}
         <button type="button" className={`nx-btn is-quiet ${sm}`} disabled={!!busy} onClick={() => setAct("note")}>Add a note</button>
       </div>
-      {ask ? <Confirm title={ask === "received" ? `Receive ${s.code}` : `Start testing ${s.code}`} busy={busy === `step:${s.id}`} confirm={ask === "received" ? "Mark received" : "Start testing"} onClose={() => setAsk(null)} onConfirm={() => void step(ask)}><p>{ask === "received" ? "Recorded now, in your name, as the laboratory taking custody of the sample." : "Recorded now, in your name. The result is entered when testing is complete."}</p></Confirm> : null}
-      {act ? <StepModal s={s} step={act} onClose={() => setAct(null)} onDone={() => { setAct(null); onDone(); }} /> : null}
+      {dialogs}
     </>
   );
 }
@@ -125,10 +141,12 @@ function SampleView({ sample, s, events, eventsError, from, lab, area, isLab, re
               : <p className="nx-sub">No result yet. The laboratory records it here.</p>}
           </Block>
           {isLab ? <Block title={closed ? "Notes" : "Next step"} note={closed ? "A released result cannot be changed. A note can still be added." : "Each step is recorded in your name."}>
-            <LabSteps s={s} sample={sample} onDone={reload} />
+            <div className="gh-desk"><LabSteps s={s} sample={sample} onDone={reload} /></div>
           </Block> : <p className="nx-foot">The laboratory takes each step. {s.status === "resulted" ? "The result has been released to you." : "You are told when the result is released."}</p>}
         </aside>
       </div>
+      <GhMark />
+      {isLab ? <LabSteps bar s={s} sample={sample} onDone={reload} /> : null}
     </Shell>
   );
 }
@@ -167,7 +185,8 @@ function SampleForm({ sample, q, senders }: { sample: boolean; q: SampleQuery; s
   return (
     <Shell ws="health" crumb={["Samples", "Send a sample"]}>
       <div className="nx-page" style={{ maxWidth: 820 }}>
-        <div className="nx-head"><div><p className="nx-eyebrow">{senders.find((p) => p.organisation_id === fromId)?.name}{sample ? <SampleChip /> : null}</p><h1 className="nx-h1">Send a sample</h1><p className="nx-sub">You get a code to write on the container. The laboratory sees it arriving and reports the result back to you.</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{senders.find((p) => p.organisation_id === fromId)?.name}{sample ? <SampleChip /> : null}</p><h1 className="nx-h1">Send a sample</h1><p className="nx-sub">You get a code to write on the container. <About>The laboratory sees it arriving and reports the result back to you.</About></p></div></div>
+        <GhMark />
         {q.handoff ? <p className="nx-note" style={{ marginTop: 14 }}><Info size={13} /><span>Sent for a follow-up request. The sample is linked to it.</span></p> : null}
         <form onSubmit={submit} style={{ marginTop: 18 }}>
           <Block title="The sample">
@@ -187,7 +206,7 @@ function SampleForm({ sample, q, senders }: { sample: boolean; q: SampleQuery; s
               <Field label="What happened to the animal" wide><textarea value={f.reason} maxLength={400} onChange={(e) => set("reason", e.target.value)} placeholder="Signs seen, when it died, whether it bit anyone" /></Field>
             </div>
           </Block>
-          <div className="gh-acts" style={{ marginTop: 22 }}>{sample ? <TryLink>Send sample</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Send sample</button>}<Link href="/health/samples" className="nx-btn is-quiet">Cancel</Link>{!labs.length && !sample && names.orgs.length ? <span className="gh-err">No laboratory is part of your programme yet.</span> : null}</div>
+          <div className="gh-acts gh-savebar" style={{ marginTop: 22 }}>{sample ? <TryLink>Send sample</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Send sample</button>}<Link href="/health/samples" className="nx-btn is-quiet">Cancel</Link>{!labs.length && !sample && names.orgs.length ? <span className="gh-err">No laboratory is part of your programme yet.</span> : null}</div>
         </form>
         {asking ? <Confirm title="Send this sample" busy={busy === "send"} confirm="Send" onClose={() => setAsking(false)} onConfirm={() => void save()}><p>{SPECIES[f.species]} {(SAMPLE_TYPE[f.type] ?? f.type).toLowerCase()} collected {fmtDate(f.on, { day: "numeric", month: "long" })}, to {labs.find((l) => l.id === lab)?.name}. The laboratory sees it as on its way.</p></Confirm> : null}
       </div>

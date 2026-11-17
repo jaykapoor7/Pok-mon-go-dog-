@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import { DataRequests } from "./DataRequests";
 
 import Link from "next/link";
@@ -75,7 +76,7 @@ export function Datasets() {
   return (
     <Shell ws="research" crumb={["Research", "Datasets"]}>
       <div className="nx-page hm-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{sample ? "Programme Epidemiology Unit" : org}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Datasets</h1><p className="nx-sub">{sets === null ? "Reading what you may analyse…" : <><b className="num">{sets.length}</b> {sets.length === 1 ? "dataset" : "datasets"} approved for you. Aggregated only; no record identifies a person.</>}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{sample ? "Programme Epidemiology Unit" : org}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Datasets</h1><p className="nx-sub">{sets === null ? "Reading what you may analyse…" : <><b className="num">{sets.length}</b> {sets.length === 1 ? "dataset" : "datasets"} approved for you. <About>Aggregated only; no record identifies a person.</About><GhMark /></>}</p></div></div>
         <AtKaju role="research" />
         <Tiles>
           <Tile label="Rows you can analyse" n={sets === null ? undefined : read.rows} href={read.first ? `/research/explore?d=${read.first}` : undefined} note={read.since ? `Weekly counts since ${fmt(read.since)}` : undefined} />
@@ -140,7 +141,7 @@ export function Explore() {
   return (
     <Shell ws="research" crumb={["Research", "Explore"]}>
       <div className="nx-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{ds.programme}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Explore</h1><p className="nx-sub">{ds.name}, since {fmt(x.since)}. Counts below {x.suppress_below} are suppressed and never added into a total.</p></div><button type="button" className="nx-btn is-quiet" onClick={csv} disabled={!rows.length}><Download size={13} />Download CSV</button></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{ds.programme}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Explore</h1><p className="nx-sub">{ds.name}, since {fmt(x.since)}. <About>Counts below {x.suppress_below} are suppressed and never added into a total.</About><GhMark /></p></div><button type="button" className="nx-btn is-quiet is-keep" onClick={csv} disabled={!rows.length}><Download size={13} />Download CSV</button></div>
         <div className="nx-bar"><Filter label="area" value={area} set={setArea} k="area" /><Filter label="animal" value={species} set={setSpecies} k="species" /><Filter label="category" value={cat} set={setCat} k="category" /></div>
         <div className="nx-figs" style={{ marginTop: 0, borderTop: 0 }}>
           <div className="nx-fig"><b>{total.toLocaleString("en-IN")}</b><span>Exposures in shown cells</span></div>
