@@ -3,20 +3,29 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Camera, ClipboardList, CornerDownLeft, Hash, MessageSquare, PawPrint, Search, Smartphone, Sparkles } from "lucide-react";
+import { ArrowRight, Camera, ClipboardList, CornerDownLeft, Hash, History, MessageSquare, PawPrint, Search, Smartphone, Sparkles } from "lucide-react";
 import { recordHref, searchMessages } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { ANIMALS, CASES, CHANNELS } from "./fixtures";
 import { PAGES } from "./nav";
 import { useChannels, useLive } from "./live";
 import { animalLine, animalSearch } from "./animalLabel";
+import "./css/command.css";
 
 /* The command bar. One box finds a page, a channel, an animal or a case, or hands the words to Kaju.
    Records come from the signed-in organisation only, through the same row-level security as every page.
    Clinical records are not searched here: a patient is found from inside the facility's own register. */
 
-type Hit = { id: string; group: "Pages" | "Channels" | "Animals" | "Cases" | "Messages" | "Kaju"; label: string; detail?: string; href: string; icon: React.ReactNode };
+type Hit = { id: string; group: "Pages" | "Channels" | "Animals" | "Cases" | "Messages" | "Kaju" | "Recent"; label: string; detail?: string; href: string; icon: React.ReactNode };
 const esc = (s: string) => s.replace(/[%_\\,()]/g, " ").trim();
+
+/* On a phone the empty box lists what this person opened from it lately, kept in this browser only (a convenience:
+   nothing is sent or stored elsewhere, and a record they can no longer open simply will not open). */
+const RECENT = "nx.cmd.recent.v1";
+type Recent = { label: string; detail?: string; href: string; kind: Hit["group"] };
+const readRecent = (): Recent[] => { try { const v = JSON.parse(localStorage.getItem(RECENT) ?? "[]"); return Array.isArray(v) ? v.filter((x) => x && typeof x.href === "string" && typeof x.label === "string").slice(0, 6) : []; } catch { return []; } };
+const keepRecent = (h: Hit) => { if (h.group === "Kaju" || h.group === "Messages") return; try { const kind = h.group === "Recent" ? (readRecent().find((r) => r.href === h.href)?.kind ?? "Pages") : h.group; localStorage.setItem(RECENT, JSON.stringify([{ label: h.label, detail: h.detail, href: h.href, kind }, ...readRecent().filter((r) => r.href !== h.href)].slice(0, 6))); } catch {} };
+const KIND_ICON: Partial<Record<Hit["group"], React.ReactNode>> = { Animals: <PawPrint size={14} />, Cases: <ClipboardList size={14} />, Channels: <Hash size={14} /> };
 
 export function Command({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
@@ -28,6 +37,8 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
   const [busy, setBusy] = useState(false);
   const box = useRef<HTMLInputElement>(null);
   const ngo = live.orgFor("ngo");
+  const [recent, setRecent] = useState<Recent[]>([]);
+  useEffect(() => { if (open && window.matchMedia("(max-width: 640px)").matches) setRecent(readRecent()); }, [open]);
   const chans = useChannels(live.org?.org_id ?? null);
   /* Focus moves into the box on open and goes back to where the person was on close (WCAG 2.4.3). */
   const before = useRef<HTMLElement | null>(null);
@@ -99,11 +110,12 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
       [{ id: "act:record", group: "Pages", label: "Record an animal", detail: "Field mode", href: "/ngo/field?record=1", icon: <Camera size={14} /> }, "record animal dog report intake register capture photo new"],
       [{ id: "act:field", group: "Pages", label: "Field mode", detail: "NGO", href: "/ngo/field", icon: <Smartphone size={14} /> }, "field mode round offline phone stops"],
     ] as [Hit, string][]).filter(([, words]) => !l || l.split(/\s+/).every((w) => words.includes(w))).map(([h]) => h) : [];
-    return [...records, ...acts, ...pages, ...channels, ...kaju];
-  }, [q, records, live.org, ngo, chans.rows]);
+    const lately: Hit[] = l ? [] : recent.map((r) => ({ id: `r${r.href}`, group: "Recent", label: r.label, detail: r.detail, href: r.href, icon: KIND_ICON[r.kind] ?? <History size={14} /> }));
+    return [...lately, ...records, ...acts, ...pages, ...channels, ...kaju];
+  }, [q, records, live.org, ngo, chans.rows, recent]);
 
   useEffect(() => { setAt(0); }, [q]);
-  const go = (h: Hit | undefined) => { if (!h) return; onClose(); router.push(h.href); };
+  const go = (h: Hit | undefined) => { if (!h) return; keepRecent(h); onClose(); router.push(h.href); };
   const groups = hits.reduce<{ name: Hit["group"]; items: { h: Hit; i: number }[] }[]>((acc, h, i) => { const g = acc.find((x) => x.name === h.group); if (g) g.items.push({ h, i }); else acc.push({ name: h.group, items: [{ h, i }] }); return acc; }, []);
 
   return (
@@ -121,6 +133,7 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
                   else if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); go(hits[at]); }
                 }} />
               {busy ? <span className="nx-cmd-busy" aria-hidden /> : <kbd>Esc</kbd>}
+              <button type="button" className="nx-cmd-x" onClick={onClose}>Cancel</button>
             </label>
             <div className="nx-cmd-list" id="nx-cmd-list" role="listbox" aria-label="Results">
               {groups.map((g) => (
@@ -128,7 +141,7 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
                   <p className="nx-cmd-g">{g.name}</p>
                   {g.items.map(({ h, i }) => (
                     <button key={h.id} id={`nx-cmd-${i}`} type="button" role="option" aria-selected={i === at} className={`nx-cmd-o ${i === at ? "is-on" : ""}`} onMouseMove={() => setAt(i)} onClick={() => go(h)}>
-                      <span className={`nx-cmd-i ${h.group === "Kaju" ? "is-kaju" : ""}`}>{h.icon}</span><span className="nx-cmd-l">{h.label}</span>{h.detail ? <small>{h.detail}</small> : null}{i === at ? <CornerDownLeft size={13} className="nx-cmd-k" /> : <ArrowRight size={13} className="nx-cmd-k is-off" />}
+                      <span className={`nx-cmd-i ${h.group === "Kaju" ? "is-kaju" : ""}`}>{h.icon}</span><span className="nx-cmd-t"><span className="nx-cmd-l">{h.label}</span>{h.detail ? <small>{h.detail}</small> : null}</span>{i === at ? <CornerDownLeft size={13} className="nx-cmd-k" /> : <ArrowRight size={13} className="nx-cmd-k is-off" />}
                     </button>
                   ))}
                 </div>

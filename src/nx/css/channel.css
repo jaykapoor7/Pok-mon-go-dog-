@@ -30,8 +30,9 @@
 .nx-edit { display: grid; gap: 6px; margin-top: 4px; }
 .nx-edit textarea { width: 100%; min-height: 60px; border: 0; border-radius: 8px; box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--bg); color: var(--ink); font: inherit; padding: 8px 10px; resize: vertical; }
 .nx-edit div { display: flex; gap: 6px; }
-@media (max-width: 640px) { .nx-msg-tools { opacity: 1; position: static; margin-top: 6px; width: max-content; } .nx-msg { grid-template-columns: 32px minmax(0, 1fr); } }
 @media (hover: none) { .nx-msg-tools { opacity: 1; } }
+/* Phone-only: one button per message that opens its actions as a sheet. */
+.ch-more, .ch-acts { display: none; }
 .nx-rthread { display: grid; gap: 8px; }
 .nx-rthread-l { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .nx-rthread-l li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; }
@@ -39,3 +40,73 @@
 .nx-rthread-l time { color: var(--ink-3); font-size: 11px; margin-left: 6px; }
 .nx-rthread-l p { white-space: pre-wrap; margin-top: 1px; }
 .nx-rthread-l li.is-deleted p { color: var(--ink-3); font-style: italic; }
+
+/* ── Messages on a phone (docs/rebuild/MOBILE.md) ────────────────────────────────────────────────────────────────────
+   A conversation reads top to bottom with the newest at the foot, the composer under it as one row (Kaju, attach, the
+   box, send) that stays above the keyboard; each message has one "more" button that opens a sheet with its reactions,
+   reply, edit and delete, so nothing hides behind hover and no row of small tools sits under every message. */
+@media (max-width: 640px) {
+  .nx .nx-msgs { padding: 12px 16px 8px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .nx .nx-msg { grid-template-columns: 32px minmax(0, 1fr); gap: 12px; padding: 8px 40px 8px 8px; margin: 0 -8px; }
+  .nx .nx-msg:hover { background: transparent; }
+  .nx .nx-msg b { font-size: 16px; }
+  .nx .nx-msg p { font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
+  .nx .nx-msg .nx-msg-tools, .nx .nx-msg-tools { display: none; }
+  .nx .nx-msg-reply { display: none; }
+  .nx .ch-more { display: grid; place-items: center; position: absolute; top: 0; right: -4px; width: 44px; height: 44px; border-radius: 12px; color: var(--ink-3); }
+  .nx .ch-more:active { background: var(--hover); }
+  .nx .nx-msg-x .nx-thread { min-height: 44px; display: inline-flex; align-items: center; font-weight: 600; color: var(--accent); }
+  .nx .nx-reacts button { height: 32px; padding: 0 12px; border-radius: 16px; font-size: 14px; }
+  .nx .nx-file { height: 44px; padding: 0 12px; font-size: 14px; border-radius: 12px; }
+  .nx .nx-file.is-pending { height: 40px; }
+  .nx .nx-file.is-pending button { width: 32px; height: 32px; }
+  .nx .nx-edit textarea { font-size: 16px; }
+  .nx .nx-edit .nx-btn { height: 44px; padding: 0 16px; }
+  .nx .nx-prop .nx-btn { height: 44px; }
+
+  /* The composer: one row, the box grows to about six lines. */
+  .nx .nx-compose { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px; margin: 0; padding: 8px; border-radius: 0; box-shadow: none; border-top: 1px solid var(--line); background: var(--bg); }
+  .nx .nx-compose:focus-within { box-shadow: none; }
+  .nx .nx-compose .nx-compose-files { order: 0; flex: 1 1 100%; padding: 0 4px 4px; }
+  .nx .nx-compose .nx-compose-f { display: contents; }
+  .nx .nx-compose .nx-compose-f small { display: none; }
+  .nx .nx-compose .ch-at { display: none; }
+  .nx .nx-compose .ch-kaju { order: 1; }
+  .nx .nx-compose .ch-clip { order: 2; }
+  .nx .nx-compose .ch-kaju, .nx .nx-compose .ch-clip { width: 44px; height: 44px; border-radius: 12px; color: var(--ink-2); }
+  .nx .nx-compose .ch-kaju svg, .nx .nx-compose .ch-clip svg { width: 20px; height: 20px; }
+  .nx .nx-compose textarea { order: 3; flex: 1 1 0; min-width: 0; min-height: 44px; padding: 8px 12px; border-radius: 12px; background: var(--side); box-shadow: inset 0 0 0 1px var(--line-2); font-size: 16px; line-height: 24px; }
+  .nx .nx-compose textarea:focus { box-shadow: inset 0 0 0 2px var(--accent); }
+  .nx .nx-compose .ch-send { order: 4; width: 44px; height: 44px; padding: 0; margin: 0 !important; border-radius: 12px; justify-content: center; }
+  .nx .nx-compose .ch-send svg { width: 20px; height: 20px; }
+  .nx .nx-compose .ch-send[disabled] { opacity: 1; background: var(--side) !important; color: var(--ink-3) !important; box-shadow: inset 0 0 0 1px var(--line); }
+  .nx .ch-send-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .nx .nx-compose.is-closed { padding: 16px; font-size: 14px; }
+  .nx .nx-mention { left: 8px; right: 8px; min-width: 0; }
+  .nx .nx-mention button { min-height: 44px; font-size: 16px; }
+
+  /* A thread is its own screen, with the composer above the safe area. */
+  .nx .nx-thread-p .nx-compose { margin: 0 !important; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .nx .nx-thread-p .nx-thread-h { min-height: 56px; padding-top: env(safe-area-inset-top); }
+  .nx .nx-thread-p .nx-thread-h .nx-ib { width: 44px; height: 44px; }
+
+  /* A message's actions, as a sheet. */
+  .nx .ch-acts { display: grid; gap: 8px; }
+  .nx .ch-acts-q { padding: 0 12px 8px; color: var(--ink-2); font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+  .nx .ch-acts-q b { color: var(--ink); margin-right: 4px; }
+  .nx .ch-acts-r { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0; padding: 0 4px 8px; border-bottom: 1px solid var(--line); }
+  .nx .ch-acts-r button { width: 100%; height: 48px; border-radius: 12px; font-size: 24px; display: grid; place-items: center; }
+  .nx .ch-acts-r button:active { background: var(--hover); }
+  .nx .ch-acts .ch-bad, .nx .ch-acts .ch-bad svg { color: var(--bad); }
+
+  /* A record's discussion. */
+  .nx .nx-rthread .nx-sec-h .nx-btn { min-height: 44px; }
+  .nx .nx-rthread-l li { grid-template-columns: 32px minmax(0, 1fr); gap: 12px; }
+  .nx .nx-rthread-l .nx-msg-f { width: 32px; height: 32px; }
+  .nx .nx-rthread-l p { font-size: 16px; line-height: 24px; }
+  .nx .nx-rthread .nx-compose { border: 0; border-radius: 12px; padding: 8px 0 0; background: transparent; }
+  .nx .nx-rthread .nx-compose .nx-compose-f { display: flex; flex: 1 1 100%; order: 4; align-items: center; gap: 8px; }
+  .nx .nx-rthread .nx-compose .nx-compose-f small { display: block; color: var(--ink-3); font-size: 12px; }
+  .nx .nx-rthread .nx-compose .nx-btn { height: 44px; padding: 0 16px; }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) { .nx .ch-more, .nx .ch-acts-r button { transition: none; } }

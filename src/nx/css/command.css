@@ -1,0 +1,44 @@
+/* Search and the bell on a phone (src/nx/Command.tsx, src/nx/NeedsYou.tsx; docs/rebuild/MOBILE.md). Wide screens keep
+   the command bar and the bell's panel as they are in nx.css: the wrapper below lays out as if it were not there. */
+
+.nx-cmd-t { display: contents; }
+.nx-cmd-x { display: none; }
+
+@media (max-width: 640px) {
+  /* Search: the whole screen, the box at the top with Cancel beside it, then large rows. */
+  .nx-cmd-scrim { padding: 0; align-items: stretch; background: var(--bg); }
+  .nx-cmd-scrim .nx-cmd { height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; padding-top: env(safe-area-inset-top); }
+  .nx-cmd-scrim .nx-cmd-in { height: 64px; gap: 12px; padding: 0 4px 0 16px; }
+  .nx-cmd-scrim .nx-cmd-in > svg { flex: none; }
+  .nx-cmd-scrim .nx-cmd-in input { height: 44px; font-size: 16px; }
+  .nx-cmd-scrim .nx-cmd-in kbd { display: none; }
+  .nx-cmd-scrim .nx-cmd-x { display: inline-flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 12px; color: var(--accent); font-size: 16px; font-weight: 500; flex: none; }
+  .nx-cmd-scrim .nx-cmd-x:active { background: var(--hover); }
+  .nx-cmd-scrim .nx-cmd-list { padding: 4px 8px max(24px, env(safe-area-inset-bottom)); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .nx-cmd-scrim .nx-cmd-g { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 16px 8px 4px; }
+  .nx-cmd-scrim .nx-cmd-o { min-height: 56px; gap: 12px; padding: 8px; border-radius: 12px; text-align: left; }
+  .nx-cmd-scrim .nx-cmd-o.is-on { background: transparent; }
+  .nx-cmd-scrim .nx-cmd-o:active { background: var(--hover); }
+  .nx-cmd-scrim .nx-cmd-i { width: 32px; height: 32px; border-radius: 8px; }
+  .nx-cmd-scrim .nx-cmd-t { display: grid; min-width: 0; flex: 1; gap: 0; }
+  .nx-cmd-scrim .nx-cmd-l { font-size: 16px; line-height: 24px; }
+  .nx-cmd-scrim .nx-cmd-o small { margin-left: 0; max-width: none; font-size: 14px; line-height: 20px; }
+  .nx-cmd-scrim .nx-cmd-k, .nx-cmd-scrim .nx-cmd-k.is-off { display: none; }
+  .nx-cmd-scrim .nx-cmd-none { padding: 24px 8px; font-size: 16px; }
+
+  /* The bell: a sheet of large rows (Phone.tsx's Sheet). */
+  .nx-needs-s .nx-needs-h { padding: 16px 8px 4px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); min-height: 44px; }
+  .nx-needs-s .nx-needs-h:first-child { padding-top: 4px; }
+  .nx-needs-s .nx-needs-h .nx-thread { min-height: 44px; text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--accent); }
+  .nx-needs-s ul { list-style: none; margin: 0; padding: 0; }
+  .nx-needs-s li a, .nx-needs-s .nx-needs-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px; border-radius: 12px; color: var(--ink); text-align: left; -webkit-tap-highlight-color: transparent; }
+  .nx-needs-s li a:active, .nx-needs-s .nx-needs-btn:active { background: var(--hover); }
+  .nx-needs-s .nx-needs-i { width: 40px; height: 40px; border-radius: 12px; }
+  .nx-needs-s b { display: block; font-size: 16px; line-height: 24px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .nx-needs-s small { display: block; color: var(--ink-3); font-size: 14px; line-height: 20px; }
+  .nx-needs-s .nx-needs-e { padding: 8px; font-size: 16px; color: var(--ink-2); }
+  .nx-needs-s .nx-needs-f { margin-top: 16px; padding: 16px 8px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 20px; color: var(--ink-3); }
+  .nx-needs-s .nx-needs-f a { color: var(--accent); font-weight: 500; display: inline-flex; align-items: center; min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .nx-cmd-o, .nx-needs-s a { transition: none; } }
