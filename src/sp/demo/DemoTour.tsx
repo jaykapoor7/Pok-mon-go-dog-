@@ -178,7 +178,8 @@ export function DemoTour() {
   const [tabs, setTabs] = useState(false);
   const [found, setFound] = useState(false);
   const [doneAt, setDoneAt] = useState<number | null>(null);
-  const [corner, setCorner] = useState<Corner>("br");
+  /* Bottom-left first: on every workspace that is the sidebar's empty lower half, so the card covers nothing. */
+  const [corner, setCorner] = useState<Corner>("bl");
   const [filling, setFilling] = useState(false);
   const [transit, setTransit] = useState<{ i: number; leaving: boolean } | null>(null);
   const card = useRef<HTMLElement | null>(null);
@@ -245,7 +246,7 @@ export function DemoTour() {
           bl: { left: 20, right: 20 + w, top: H - 20 - h, bottom: H - 20 },
           tr: { left: W - 20 - w, right: W - 20, top: 72, bottom: 72 + h },
         };
-        setCorner((now) => (!covers(spots[now]) ? now : (["br", "bl", "tr"] as Corner[]).find((k) => !covers(spots[k])) ?? now));
+        setCorner((now) => (!covers(spots[now]) ? now : (["bl", "br", "tr"] as Corner[]).find((k) => !covers(spots[k])) ?? now));
       }
       /* An action that ends on another screen ("open the record") is done wherever the presenter now is. */
       if ((onScreen || (act.done && "path" in act.done)) && isDone(act)) setDoneAt((d) => d ?? Date.now());

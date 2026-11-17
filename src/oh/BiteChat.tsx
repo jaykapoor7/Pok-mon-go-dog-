@@ -78,7 +78,8 @@ const reviewVoice = (f: BiteFacts) => `Here's your report: a ${animalWord(f)} ${
 function rules(at: At, t: string, f: BiteFacts, areas: Area[]): { patch?: Partial<BiteFacts>; next?: BiteNext; reply?: string; unclear?: string; date?: boolean } {
   const yn = yesNo(t), skip = /^\s*(skip|no idea|not sure|don'?t know|dont know|nothing|none)\b/i.test(t);
   if (/\b(start again|restart|start over)\b/i.test(t)) return { next: "restart" };
-  if (/\b(what (should|shouldn'?t) i (not )?do|home remed|turmeric|chilli|chili)\b/i.test(t)) return { reply: WHAT_NOT, next: "none" };
+  /* "What should I NOT do?" (or a home remedy) is answered; "what should I do?" at the end of a description is not. */
+  if (at !== "tell" && /\b(what (should i|to) not do|what shouldn'?t i do|home remed|turmeric|chilli|chili)\b/i.test(t)) return { reply: WHAT_NOT, next: "none" };
   switch (at) {
     case "tell": {
       if (t.trim().split(/\s+/).length < 3) return { unclear: "Tell me a little more: what happened, where and when?" };

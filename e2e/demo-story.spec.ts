@@ -21,9 +21,9 @@ test("one bite, six stages: Next alone walks the whole response, and every step 
   test.skip(isMobile, "the recording is made on a desktop");
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
   await page.goto("/try");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("One Health. One Connected Response.");
-  await expect(page.getByRole("list", { name: "The six stages" }).getByRole("listitem")).toHaveCount(6);
-  await page.getByRole("button", { name: /Start Demo/ }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Follow one dog bite through StrayPaw.");
+  await expect(page.getByRole("list", { name: "The six stops" }).getByRole("listitem")).toHaveCount(6);
+  await page.getByRole("button", { name: /Start the demo/ }).click();
   const next = async (title: string) => { await act(page, title); await card(page).locator(".dt-btn.is-go:not([disabled])").click(); };
 
   /* 1 · Citizen: Kaju takes the report and tells the clinic. */
@@ -95,7 +95,7 @@ test("Kaju's call: it says each question aloud, hears the answers, fills the rep
   /* Kaju's fixed rules read the answers here; the model has its own test. */
   await page.route("**/api/oh/kaju*", (r) => r.fulfill({ status: 404, json: { error: "off" } }));
   await page.goto("/try");
-  await page.getByRole("button", { name: /Start Demo/ }).click();
+  await page.getByRole("button", { name: /Start the demo/ }).click();
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
   await page.locator('[data-tour="mode-call"]').click();
   await page.locator('[data-tour="bite-call"]').click();
@@ -143,7 +143,7 @@ test("Kaju's call with Sarvam: one voice, each answer recorded until the caller 
     } } });
   });
   await page.goto("/try");
-  await page.getByRole("button", { name: /Start Demo/ }).click();
+  await page.getByRole("button", { name: /Start the demo/ }).click();
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
   await page.locator('[data-tour="mode-call"]').click();
   await expect(page.getByRole("radiogroup", { name: "Language" })).toBeVisible({ timeout: 20_000 });
@@ -160,7 +160,7 @@ test("Kaju's call with Sarvam: one voice, each answer recorded until the caller 
 test("the guide's Next action answers an untouched citizen stage and opens the hospital", async ({ page, isMobile }) => {
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
   await page.goto("/try");
-  await page.getByRole("button", { name: /Start Demo/ }).click();
+  await page.getByRole("button", { name: /Start the demo/ }).click();
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
   await expect(page.getByRole("button", { name: "Send to Kaju" })).toBeVisible({ timeout: 30_000 });
   /* On a phone the card is a short sheet that never covers the chat's composer. */
