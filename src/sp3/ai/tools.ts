@@ -17,6 +17,7 @@ import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTool
 import { queryCases } from "./caseQuery";
 import { caseSummary } from "./caseSummary";
 import { proposeTaskTool } from "./captureRoute";
+import { indiaDay } from "./capture";
 import type { CaseQuery } from "./understand";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -207,7 +208,9 @@ async function workSummary({ db, orgId }: ToolCtx): Promise<ToolOut> {
   const base = () => db.from("org_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]);
   const [open, unassigned, critical, overdue, historical, urgent] = await Promise.all([
     base().or(current), base().or(current).is("assignee_name", null), base().or(current).in("condition_class", crit),
-    base().or(current).not("next_due", "is", null).lt("next_due", now),
+    /* Overdue as Today and Operations show it: a dated follow-up visit past due, or the case's own follow-up date
+       (India day) already gone. */
+    base().or(current).or(`next_due.lt.${now},follow_up_at.lt.${indiaDay()}`),
     base().eq("provenance", "imported_historical_record").is("reviewed_at", null),
     db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,assignee_name,next_due,occurred_at,severity").eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]).or(current).order("next_due", { ascending: true, nullsFirst: false }).limit(6),
   ]);
