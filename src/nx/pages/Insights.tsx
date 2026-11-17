@@ -146,7 +146,7 @@ function OfficeOverview() {
         <Tiles>
           <Tile label="Waiting for your decision" n={n(waiting.length)} tone={waiting.length ? "warn" : "plain"} href="/gov/verification" note={oldest !== null ? `The oldest was sent ${oldest === 0 ? "today" : `${oldest} ${oldest === 1 ? "day" : "days"} ago`}` : undefined} />
           <Tile label="Question with the operator" n={n(count(["queried"]))} href="/gov/verification" />
-          <Tile label="Accepted packages" n={n(accepted)} href="/gov/verification" visual={decided.length ? <Meter part={accepted} whole={decided.length} tone="ok" label={`${accepted} of ${decided.length} decided packages`} /> : null} />
+          <Tile label="Accepted packages" n={n(accepted)} href="/gov/reports" visual={decided.length ? <Meter part={accepted} whole={decided.length} tone="ok" label={`${accepted} of ${decided.length} decided packages`} /> : null} />
           <Tile label="Records in accepted packages" n={n(records)} href="/gov/reports" />
         </Tiles>
         <Grid cols={2}>

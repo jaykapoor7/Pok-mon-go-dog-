@@ -334,13 +334,15 @@ export function GovReports() {
 }
 
 /* ── Overview for a programme coordinator or municipal officer ────── */
-/** The programme lead's home: @Kaju, five figures with what they count drawn small, and three panels side by side
-    (what needs a decision, coverage by area, partners), five rows each. Every figure comes from oh_programme_overview
-    and oh_alerts; a read that failed shows "Not read". */
+/** The programme lead's home: @Kaju, four figures with what they count drawn small, each opening the list it counts
+    (Surveillance, Programmes below target, Partners with overdue requests), and three panels side by side (what needs a
+    decision, coverage by area, partners), five rows each. Every figure comes from oh_programme_overview and oh_alerts;
+    a read that failed shows "Not read". */
 export function ProgrammeHome() {
   const g = useGov();
   const on = g.mode === "programme" && g.prog;
-  const o = useCall<Overview>("oh_programme_overview", on ? { p_programme: g.prog!.id, p_days: 30 } : null, `home:${g.prog?.id}`);
+  /* Ninety days, as Surveillance opens, so the exposures figure is the one that page shows first. */
+  const o = useCall<Overview>("oh_programme_overview", on ? { p_programme: g.prog!.id, p_days: 90 } : null, `home:${g.prog?.id}:90`);
   const al = useCall<Alert[]>("oh_alerts", on ? { p_programme: g.prog!.id } : null, `al:${g.prog?.id}`);
   if (g.mode === "loading") return <Opening crumb="Overview" />;
   if (g.mode === "failed") return <Plain crumb="Overview" title="Overview"><Failed error={`Your programmes could not be read, so nothing is shown as missing. ${g.failed ?? ""}`} retry={g.retry} /></Plain>;
@@ -368,19 +370,17 @@ export function ProgrammeHome() {
         <Tiles>
           <Tile label="Urgent alerts open" n={al.err ? null : al.loading ? undefined : urgent.length} tone={urgent.length ? "bad" : "plain"} href="/gov/surveillance"
             visual={openAlerts.length ? <Split parts={[{ n: urgent.length, tone: "bad", label: "urgent" }, { n: openAlerts.filter((a) => a.severity === "attention").length, tone: "warn", label: "attention" }, { n: openAlerts.filter((a) => a.severity === "info").length, tone: "plain", label: "for information" }]} /> : null} note={!al.loading && !al.err && !openAlerts.length ? "Nothing open" : undefined} />
-          <Tile label={`Areas below ${pct0(target)}`} n={fromO(low.length)} tone={low.length ? "warn" : "plain"} href="/gov/programmes"
+          <Tile label={`Areas below ${pct0(target)}`} n={fromO(low.length)} tone={low.length ? "warn" : "plain"} href="/gov/programmes?view=low"
             visual={areas.length ? <Split parts={[{ n: reach.length, tone: "ok", label: "at target" }, { n: low.length, tone: "warn", label: "below" }, { n: noEst.length, tone: "plain", label: "no estimate" }]} /> : null} />
-          <Tile label="Partners with overdue requests" n={fromO(late.length)} tone={late.length ? "warn" : "plain"} href="/gov/partners"
+          <Tile label="Partners with overdue requests" n={fromO(late.length)} tone={late.length ? "warn" : "plain"} href="/gov/partners?view=late"
             visual={partners.length ? <Meter part={late.length} whole={partners.length} tone="warn" label={`${late.length} of ${partners.length} partners`} /> : null} />
-          <Tile label="Exposures, 30 days" n={o.err ? null : o.loading ? undefined : typeof exp === "number" ? exp : null} text={exp === "<5" ? "Fewer than 5" : undefined} href="/gov/surveillance"
+          <Tile label="Exposures, 90 days" n={o.err ? null : o.loading ? undefined : typeof exp === "number" ? exp : null} text={exp === "<5" ? "Fewer than 5" : undefined} href="/gov/surveillance"
             visual={typeof exp === "number" && typeof cat3 === "number" && exp > 0 ? <Meter part={cat3} whole={exp} tone="bad" label={`${cat3} category III`} /> : cat3 === "<5" ? <span className="hm-tile-note">Category III: fewer than 5</span> : null} />
-          {x?.pep && x.pep.completion_rate !== null ? <Tile label="PEP courses completed" text={pct0(x.pep.completion_rate)} href="/gov/surveillance"
-            visual={<Meter part={x.pep.completion_rate} whole={1} tone="ok" label={typeof x.pep.completed === "number" && typeof x.pep.courses === "number" ? `${x.pep.completed} of ${x.pep.courses} courses` : "Of courses that have ended"} />} /> : null}
         </Tiles>
         <Grid cols={3}>
           <Panel id="h-u" title="Needs a decision">
             <Rows items={al.data ? [...urgent, ...openAlerts.filter((a) => a.severity === "attention")].map((a): Item => ({ id: a.key, title: a.title, meta: [ALERT_KIND[a.kind] ?? a.kind, a.area, fmtDate(a.at)].filter(Boolean).join(" · "), href: "/gov/surveillance", icon: <ShieldAlert size={16} />, tone: a.severity === "urgent" ? "bad" : "warn", chip: { text: a.severity === "urgent" ? "Urgent" : "Attention", tone: a.severity === "urgent" ? "bad" : "warn" }, kaju: `What should happen next about: ${a.title}?`, kajuLabel: `Ask @Kaju about ${a.title}` })) : null}
-              loading={al.loading} error={al.err ? `Alerts could not be read: ${al.err}.` : null} all={{ href: "/gov/surveillance" }} empty="Nothing urgent or needing attention is open." />
+              loading={al.loading} error={al.err ? `Alerts could not be read: ${al.err}.` : null} all={{ href: "/gov/surveillance", label: "All alerts on Surveillance" }} empty="Nothing urgent or needing attention is open." />
           </Panel>
           <Panel id="h-c" title="Coverage by area" foot={<span>Lowest first. Coverage is vaccinated dogs on StrayPaw against a dated estimate.</span>}>
             <Rows items={x ? [...low.sort((a, b) => (a.cov ?? 0) - (b.cov ?? 0)), ...noEst, ...reach.sort((a, b) => (a.cov ?? 0) - (b.cov ?? 0))].map((a): Item => ({ id: a.area_id, title: a.area, meta: a.estimate ? `${a.vaccinated.toLocaleString("en-IN")} of ${a.estimate.dogs.toLocaleString("en-IN")} dogs vaccinated` : `${a.vaccinated.toLocaleString("en-IN")} vaccinated · no dated estimate`, href: slug ? `/gov/programmes/${slug}?tab=Coverage` : "/gov/programmes", icon: <MapPin size={16} />, tone: a.cov === null ? "plain" : a.cov < target ? "warn" : "ok", chip: { text: a.cov === null ? "No estimate" : pct0(a.cov), tone: a.cov === null ? "plain" : a.cov < target ? "warn" : "ok" } })) : null}

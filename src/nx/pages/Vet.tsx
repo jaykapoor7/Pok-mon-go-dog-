@@ -238,7 +238,7 @@ export function VetToday() {
           <Tile label="Appointments today" n={apN} href="/health/appointments" />
           <Tile label="Waiting for your sign-off" n={signN} tone={signN ? "warn" : "plain"} href="/health/procedures" />
           <Tile label="Critical or high cases" n={careN === undefined || careN === null ? careN : urgent.length} tone={urgent.length ? "bad" : "plain"} href="/health/care" />
-          <Tile label="Open clinical cases" n={careN} href="/health/care"
+          <Tile label="Open clinical cases" n={careN} href="/health/care?view=all"
             visual={c.rows.length ? <Split parts={[{ n: sev("critical"), tone: "bad", label: "critical" }, { n: sev("high"), tone: "warn", label: "high" }, { n: sev("normal") + sev("low"), tone: "plain", label: "other" }]} /> : null} />
         </Tiles>
         <Grid cols={3}>

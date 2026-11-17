@@ -119,8 +119,10 @@ export function Strip({ id, title, items, cap = 3, all, empty, error, retry }: {
   );
 }
 
-/** At most `cap` rows, then "See all n" (a link to the full list) or "Show all n" (opens here). Honest states first. */
-export function Rows({ items, cap = 5, total, all, loading, error, empty, retry }: { items: Item[] | null; cap?: number; total?: number; all?: { href: string; label?: string }; loading?: boolean; error?: string | null; empty: ReactNode; retry?: () => void }) {
+/** At most `cap` rows, then "See all n" (a link to the full list), or "Show all n" (opens here) when the list is short
+    and has no page of its own; `expand={false}` when the panel's foot already links to the lists it draws from.
+    Honest states first: failed says so, reading shows the rows' shape, and empty says what that means. */
+export function Rows({ items, cap = 5, total, all, loading, error, empty, retry, expand = true }: { items: Item[] | null; cap?: number; total?: number; all?: { href: string; label?: string }; loading?: boolean; error?: string | null; empty: ReactNode; retry?: () => void; expand?: boolean }) {
   const [open, setOpen] = useState(false);
   if (error) return <div className="hm-fail" role="alert"><p>{error} Nothing is shown as zero.</p>{retry ? <button type="button" className="hm-btn" onClick={retry}>Try again</button> : null}</div>;
   if (loading || items === null) return <ul className="hm-rows" aria-label="Reading">{[0, 1, 2].map((i) => <li key={i} className="hm-row is-skel"><span className="hm-skel is-i" /><span className="hm-skel is-t" /></li>)}</ul>;
@@ -131,7 +133,7 @@ export function Rows({ items, cap = 5, total, all, loading, error, empty, retry 
     <>
       <ul className="hm-rows">{shown.map((it) => <Row key={it.id} it={it} />)}</ul>
       {n > cap ? (all ? <Link href={all.href} className="hm-all">{all.label ?? `See all ${fmt(n)}`}<ArrowRight size={14} aria-hidden /></Link>
-        : <button type="button" className="hm-all" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{open ? "Show fewer" : `Show all ${fmt(n)}`}</button>) : null}
+        : expand ? <button type="button" className="hm-all" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{open ? "Show fewer" : `Show all ${fmt(n)}`}</button> : null) : null}
     </>
   );
 }

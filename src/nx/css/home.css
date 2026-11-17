@@ -59,12 +59,12 @@
 .nx .hm-legend span { display: inline-flex; align-items: center; gap: 4px; }
 .nx .hm-legend i { width: 8px; height: 8px; border-radius: 4px; flex: none; }
 .nx .hm-bars { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: 4px; height: 32px; }
-.nx .hm-bar { display: flex; align-items: flex-end; height: 100%; border-radius: 4px; background: var(--hm-track); overflow: hidden; }
+.nx .hm-bar { display: flex; align-items: flex-end; height: 100%; border-radius: 4px; box-shadow: inset 0 -2px 0 var(--hm-track); overflow: hidden; }
 .nx .hm-bar i { display: block; width: 100%; border-radius: 4px 4px 0 0; transform-origin: bottom; animation: hm-rise .26s var(--hm-ease) both; }
 @keyframes hm-rise { from { transform: scaleY(0); } to { transform: none; } }
 
 /* ── Panels, side by side ────────────────────────────────────────── */
-.nx .hm-grid { display: grid; gap: 24px; margin-top: 32px; align-items: start; }
+.nx .hm-grid { display: grid; gap: 24px; margin-top: 32px; align-items: stretch; }
 .nx .hm-grid.is-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .nx .hm-grid.is-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .nx .hm-grid + .hm-grid { margin-top: 24px; }
@@ -119,7 +119,9 @@
 .nx .hm-add input::placeholder { color: var(--hm-mute); opacity: 1; }
 .nx .hm-task { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--hm-line); min-height: 56px; padding: 8px 0; }
 .nx .hm-task:first-child { border-top: 0; }
-.nx .hm-task .nx-check { flex: none; }
+/* The tick keeps its square shape; its tap area reaches 8px past it on every side (44px on a phone). */
+.nx .hm-task .nx-check { flex: none; position: relative; min-height: 0; }
+.nx .hm-task .nx-check::after { content: ""; position: absolute; inset: -8px; }
 .nx .hm-task-t { flex: 1 1 auto; display: grid; min-width: 0; }
 .nx .hm-task.is-done .hm-task-t b { color: var(--hm-mute); text-decoration: line-through; text-decoration-color: var(--hm-line); }
 .nx .hm-task-x { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--hm-mute); }
@@ -127,6 +129,7 @@
 .nx .hm-note { color: var(--hm-mute); font-size: 12px; line-height: 16px; }
 .nx .hm-note.is-bad { color: var(--hm-flame-ink); }
 .nx .hm-link { color: var(--hm-blue); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+.nx .hm-foot-note { margin-top: 16px; max-width: 72ch; }
 
 /* ── A short row of cards (what Kaju is waiting on) ──────────────── */
 .nx .hm-strip { margin-top: 32px; color: var(--hm-body); font-size: 14px; line-height: 20px; }

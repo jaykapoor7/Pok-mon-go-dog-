@@ -1,7 +1,7 @@
 /* @Kaju on every home (src/nx/AtKaju.tsx). DESIGN.md 4.0: white ground, quiet fill for surfaces, no lines around cards
    (only the input keeps one, as a control), blue for the one main action, green for saved, flame never. Type 12/14/16;
-   spacing 4/8/12/16/24/32; radii 8/12/16/full; touch targets 44-48px on phones. On a phone the input bar stays at the top
-   of the page while it scrolls. */
+   spacing 4/8/12/16/24/32; radii 8/12/16/full; touch targets 44-48px on phones. On a phone the box sits near the top of
+   the page, in the flow, so it never covers what the person is reading or the field they are in. */
 
 .nx .ak {
   --ak-ink: #0b1e3d; --ak-body: #4a5568; --ak-mute: #586174; --ak-line: #d5dbe6;
@@ -65,6 +65,11 @@
 .nx .ak-prep-h b { font-size: 14px; }
 .nx .ak-prep-h span { color: var(--ak-mute); font-size: 12px; }
 .nx .ak-prep-l { color: var(--ak-ink); }
+.nx .ak-prep-l.is-title { font-weight: 600; }
+.nx .ak-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; color: var(--ak-body); font-size: 12px; line-height: 16px; }
+.nx .ak-prep-n { color: var(--ak-mute); font-size: 12px; line-height: 16px; }
+.nx .ak-sugg { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx .ak-sugg .ak-chip { background: var(--ak-fill); }
 .nx .ak-prep-w { color: var(--ak-mute); font-size: 12px; line-height: 16px; }
 .nx .ak-prep-f { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .nx .ak-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 8px; background: var(--ak-blue); color: var(--ak-on-blue); font-size: 14px; font-weight: 500; transition: background .2s var(--ak-ease), transform .12s var(--ak-ease); }
@@ -84,8 +89,7 @@
 
 /* Phones: the line stays at the top while the page scrolls; examples slide sideways; every target is 44px or more. */
 @media (max-width: 640px) {
-  .nx .ak { display: contents; }
-  .nx .ak-bar { position: sticky; top: 0; z-index: 5; margin: 16px -16px 0; padding: 8px 16px; background: var(--bg); }
+  .nx .ak { margin-top: 16px; padding: 0; background: transparent; }
   .nx .ak-in { height: 48px; padding-left: 72px; padding-right: 12px; }
   .nx .ak-at { left: 12px; }
   .nx .ak-at svg, .nx .ak-at .kaju-face, .nx .ak-at > :first-child:not(b) { display: none; }
@@ -94,6 +98,8 @@
   .nx .ak-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; flex-basis: 100%; }
   .nx .ak-chips::-webkit-scrollbar { display: none; }
   .nx .ak-chip { flex: none; min-height: 44px; background: var(--ak-fill); }
+  .nx .ak-sugg { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+  .nx .ak-sugg::-webkit-scrollbar { display: none; }
   .nx .ak-open { min-height: 44px; }
   .nx .ak-note { margin-top: 0; }
   .nx .ak-reply { background: var(--ak-fill); }
