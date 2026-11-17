@@ -43,7 +43,9 @@ async function main() {
   assert.ok(h); assert.equal(h.facts.danger, "no", "the person's own answer to the safety question clears it");
   const k = await turn({ reply: "Call 108 now.", next: "where", quick: [], facts: { danger: "yes" } }, { ...NO_FACTS, kind: "bite", species: "dog" }, "looks");
   assert.ok(k); assert.equal(k.facts.danger, "yes", "danger can be raised at any moment");
-  ok("only the person's answer clears the safety check; the model may raise danger, never assume it away");
+  const m = await turn({ reply: "A street dog bit you this morning. The wound has already been washed, which is good.", next: "danger", quick: [], facts: { kind: "bite", species: "dog" } });
+  assert.equal(m?.reply, "A street dog bit you this morning.", "before the safety question, only what was heard");
+  ok("only the person's answer clears the safety check; the model may raise danger, never assume it away; it adds nothing before the safety question");
 
   const e = await biteTurn({ turns: [{ who: "me", text: "hi" }], facts: NO_FACTS, showing: "tell", areas, programme: "B", mode: "chat", today }, undefined, {}, stand({ reply: "x", next: "none" }));
   assert.equal(e, null);
