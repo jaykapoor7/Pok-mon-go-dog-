@@ -1,0 +1,111 @@
+/* @Kaju on every home (src/nx/AtKaju.tsx). DESIGN.md 4.0: white ground, quiet fill for surfaces, no lines around cards
+   (only the input keeps one, as a control), blue for the one main action, green for saved, flame never. Type 12/14/16;
+   spacing 4/8/12/16/24/32; radii 8/12/16/full; touch targets 44-48px on phones. On a phone the input bar stays at the top
+   of the page while it scrolls. */
+
+.nx .ak {
+  --ak-ink: #0b1e3d; --ak-body: #4a5568; --ak-mute: #586174; --ak-line: #d5dbe6;
+  --ak-fill: #f5f7fb; --ak-raise: #fff; --ak-blue: #2457ce; --ak-blue-2: #1d49b0; --ak-blue-soft: #eaf0fc; --ak-on-blue: #fff;
+  --ak-ok: #1f7a4d; --ak-bad: #ad3b37; --ak-ease: cubic-bezier(.2, .7, .2, 1);
+  margin-top: 24px; padding: 16px; border-radius: 16px; background: var(--ak-fill); color: var(--ak-body); font-size: 14px; line-height: 20px;
+}
+.nx[data-theme="dark"] .ak {
+  --ak-ink: var(--ink); --ak-body: var(--ink-2); --ak-mute: var(--ink-3); --ak-line: #39414c;
+  --ak-fill: #191d24; --ak-raise: #222731; --ak-blue: var(--accent); --ak-blue-2: #a3bdf9; --ak-blue-soft: var(--accent-soft); --ak-on-blue: #0b0d10;
+  --ak-ok: var(--ok); --ak-bad: var(--bad);
+}
+.nx .ak :where(p) { margin: 0; }
+.nx .ak b { color: var(--ak-ink); font-weight: 600; }
+
+/* The line itself */
+.nx .ak-bar { display: flex; gap: 8px; align-items: center; }
+.nx .ak-field { position: relative; flex: 1 1 auto; min-width: 0; }
+.nx .ak-at { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 4px; pointer-events: none; }
+.nx .ak-at b { color: var(--ak-blue); font-size: 14px; }
+.nx .ak-in { display: block; width: 100%; height: 48px; padding: 0 16px 0 96px; border: 0; border-radius: 12px; background: var(--ak-raise); box-shadow: inset 0 0 0 1px var(--ak-line); color: var(--ak-ink); font: inherit; font-size: 16px; transition: box-shadow .2s var(--ak-ease); }
+.nx .ak-in::placeholder { color: var(--ak-mute); opacity: 1; }
+.nx .ak-in:hover { box-shadow: inset 0 0 0 1px var(--ak-blue); }
+.nx .ak-in:focus-visible, .nx .ak-in:focus { outline: 2px solid var(--ak-blue); outline-offset: 2px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--ak-blue); }
+.nx .ak-in[disabled] { opacity: .6; }
+.nx .ak-go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; min-width: 88px; padding: 0 24px; border-radius: 12px; background: var(--ak-blue); color: var(--ak-on-blue); font-size: 16px; font-weight: 600; flex: none; transition: background .2s var(--ak-ease), transform .12s var(--ak-ease), opacity .2s; }
+.nx .ak-go:hover { background: var(--ak-blue-2); }
+.nx .ak-go:active { transform: scale(.98); }
+.nx .ak-go[disabled] { opacity: .45; cursor: default; transform: none; background: var(--ak-blue); }
+
+/* Examples, the way to the full Kaju page, and the promise */
+.nx .ak-under { display: flex; align-items: center; gap: 8px 16px; margin-top: 12px; }
+.nx .ak-chips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 auto; min-width: 0; }
+.nx .ak-chip { display: inline-flex; align-items: center; min-height: 32px; padding: 4px 12px; border-radius: 999px; background: var(--ak-raise); color: var(--ak-body); font-size: 14px; line-height: 20px; transition: background .2s var(--ak-ease), color .2s var(--ak-ease); }
+.nx .ak-chip:hover { background: var(--ak-blue-soft); color: var(--ak-blue); }
+.nx .ak-open { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; color: var(--ak-blue); font-size: 14px; font-weight: 500; white-space: nowrap; flex: none; }
+.nx .ak-open:hover { text-decoration: underline; text-underline-offset: 4px; }
+.nx .ak-note { margin-top: 8px; color: var(--ak-mute); font-size: 12px; line-height: 16px; }
+.nx .ak-note a { color: var(--ak-blue); font-weight: 500; }
+
+/* Kaju's answer, under the line */
+.nx .ak-reply { margin-top: 16px; padding: 16px; border-radius: 12px; background: var(--ak-raise); animation: ak-in .24s var(--ak-ease) both; }
+@keyframes ak-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.nx .ak-q { display: flex; align-items: flex-start; gap: 8px; color: var(--ak-mute); font-size: 12px; line-height: 16px; }
+.nx .ak-q b { color: var(--ak-mute); font-weight: 500; flex: none; }
+.nx .ak-x { margin: -12px -12px 0 auto; width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 8px; color: var(--ak-mute); }
+.nx .ak-x:hover { background: var(--ak-fill); color: var(--ak-ink); }
+.nx .ak-wait { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; color: var(--ak-body); }
+.nx .ak-link { color: var(--ak-blue); font-weight: 500; min-height: 32px; display: inline-flex; align-items: center; }
+.nx .ak-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.nx .ak-fail { display: grid; gap: 8px; justify-items: start; margin-top: 8px; color: var(--ak-bad); }
+.nx .ak-ans { display: grid; gap: 12px; margin-top: 8px; }
+.nx .ak-text { display: grid; gap: 8px; color: var(--ak-ink); font-size: 16px; line-height: 24px; max-width: 72ch; }
+.nx .ak-cites { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx .ak-cite { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 4px 12px; border-radius: 8px; background: var(--ak-fill); color: var(--ak-blue); font-size: 14px; font-weight: 500; }
+.nx .ak-cite:hover { background: var(--ak-blue-soft); }
+.nx .ak-cite.is-more { color: var(--ak-body); }
+.nx .ak-preps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.nx .ak-prep { display: grid; gap: 4px; padding: 12px; border-radius: 12px; background: var(--ak-fill); }
+.nx .ak-prep-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.nx .ak-prep-h b { font-size: 14px; }
+.nx .ak-prep-h span { color: var(--ak-mute); font-size: 12px; }
+.nx .ak-prep-l { color: var(--ak-ink); }
+.nx .ak-prep-w { color: var(--ak-mute); font-size: 12px; line-height: 16px; }
+.nx .ak-prep-f { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.nx .ak-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 8px; background: var(--ak-blue); color: var(--ak-on-blue); font-size: 14px; font-weight: 500; transition: background .2s var(--ak-ease), transform .12s var(--ak-ease); }
+.nx .ak-btn:hover { background: var(--ak-blue-2); }
+.nx .ak-btn:active { transform: scale(.98); }
+.nx .ak-btn[disabled] { opacity: .5; cursor: default; transform: none; }
+.nx .ak-btn.is-quiet { background: var(--ak-raise); color: var(--ak-ink); box-shadow: inset 0 0 0 1px var(--ak-line); }
+.nx .ak-btn.is-quiet:hover { background: var(--ak-blue-soft); }
+.nx .ak-ok { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px; color: var(--ak-ok); font-weight: 500; }
+.nx .ak-ok a { color: var(--ak-blue); }
+.nx .ak-err { color: var(--ak-bad); font-size: 12px; line-height: 16px; }
+.nx .ak-more { color: var(--ak-body); }
+.nx .ak-said:empty { display: none; }
+.nx .ak-said { color: var(--ak-mute); font-size: 12px; }
+.nx .ak-foot { display: flex; align-items: center; gap: 8px; color: var(--ak-mute); font-size: 12px; line-height: 16px; }
+.nx .ak-foot .ak-link { margin-left: auto; font-size: 14px; }
+
+/* Phones: the line stays at the top while the page scrolls; examples slide sideways; every target is 44px or more. */
+@media (max-width: 640px) {
+  .nx .ak { display: contents; }
+  .nx .ak-bar { position: sticky; top: 0; z-index: 5; margin: 16px -16px 0; padding: 8px 16px; background: var(--bg); }
+  .nx .ak-in { height: 48px; padding-left: 72px; padding-right: 12px; }
+  .nx .ak-at { left: 12px; }
+  .nx .ak-at svg, .nx .ak-at .kaju-face, .nx .ak-at > :first-child:not(b) { display: none; }
+  .nx .ak-go { min-width: 64px; padding: 0 16px; }
+  .nx .ak-under { flex-wrap: wrap; margin-top: 4px; }
+  .nx .ak-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; flex-basis: 100%; }
+  .nx .ak-chips::-webkit-scrollbar { display: none; }
+  .nx .ak-chip { flex: none; min-height: 44px; background: var(--ak-fill); }
+  .nx .ak-open { min-height: 44px; }
+  .nx .ak-note { margin-top: 0; }
+  .nx .ak-reply { background: var(--ak-fill); }
+  .nx .ak-btn { height: 44px; padding: 0 16px; }
+  .nx .ak-cite, .nx .ak-link { min-height: 44px; }
+  .nx .ak-x { width: 44px; height: 44px; }
+  .nx .ak-preps { grid-template-columns: minmax(0, 1fr); }
+  .nx .ak-prep { background: var(--ak-raise); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx .ak-reply { animation: none; }
+  .nx .ak-go:active, .nx .ak-btn:active { transform: none; }
+  .nx .ak-in, .nx .ak-go, .nx .ak-chip, .nx .ak-btn { transition: none; }
+}

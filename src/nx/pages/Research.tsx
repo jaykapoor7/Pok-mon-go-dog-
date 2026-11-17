@@ -9,6 +9,8 @@ import { call, type Count, type Place, type ProgrammeRef } from "@/oh/data";
 import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { useLive } from "../live";
+import { AtKaju } from "../AtKaju";
+import { Meter, MiniBars, Tile, Tiles } from "../HomeCards";
 
 /* Research works on governed, aggregated data. The only dataset here is the one the programme already publishes to
    analysts: bite exposures by week, area, animal and category, with small counts suppressed by the database. A suppressed
@@ -56,13 +58,30 @@ const notResearch = <div className="nx-page"><h1 className="nx-h1">Research</h1>
 export function Datasets() {
   const { sets, sample, ready, org } = useDatasets();
   const live = useLive();
+  /* What the approved extracts hold, added up only from cells that are shown; a suppressed cell is counted apart. */
+  const read = useMemo(() => {
+    const ok = (sets ?? []).filter((s) => s.extract);
+    const rows = ok.flatMap((s) => s.extract!.rows);
+    const byWeek = new Map<string, number>();
+    for (const r of rows) byWeek.set(r.week, (byWeek.get(r.week) ?? 0) + known(r.exposures));
+    const weeks = [...byWeek].sort((a, b) => a[0].localeCompare(b[0])).slice(-12).map(([w, n]) => ({ key: fmt(w), n }));
+    return { rows: rows.length, supp: rows.filter((r) => r.exposures === "<5").length, shown: rows.reduce((a, r) => a + known(r.exposures), 0), weeks, below: ok[0]?.extract?.suppress_below ?? 5,
+      since: ok.map((s) => s.extract!.since).sort()[0] ?? null, first: ok[0]?.id ?? null, failed: (sets ?? []).filter((s) => !s.extract).length };
+  }, [sets]);
   if (!ready) return <Shell ws="research" crumb={["Research", "Datasets"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   if (!sample && !live.orgFor("research")) return <Shell ws="research" crumb={["Research", "Datasets"]}>{notResearch}</Shell>;
   return (
     <Shell ws="research" crumb={["Research", "Datasets"]}>
-      <div className="nx-page">
+      <div className="nx-page hm-page">
         <div className="nx-head"><div><p className="nx-eyebrow">{sample ? "Programme Epidemiology Unit" : org}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Datasets</h1><p className="nx-sub">{sets === null ? "Reading what you may analyse…" : <><b className="num">{sets.length}</b> {sets.length === 1 ? "dataset" : "datasets"} approved for you. Aggregated only; no record identifies a person.</>}</p></div></div>
-        <div className="nx-table" style={{ marginTop: 18 }}>
+        <AtKaju role="research" />
+        <Tiles>
+          <Tile label="Rows you can analyse" n={sets === null ? undefined : read.rows} href={read.first ? `/research/explore?d=${read.first}` : undefined} note={read.since ? `Weekly counts since ${fmt(read.since)}` : undefined} />
+          <Tile label="Cells suppressed" n={sets === null ? undefined : read.supp} visual={read.rows ? <Meter part={read.supp} whole={read.rows} tone="plain" label={`${read.rows ? Math.round((read.supp / read.rows) * 100) : 0}% of cells hold fewer than ${read.below}`} /> : null} />
+          <Tile label="Exposures in shown cells" n={sets === null ? undefined : read.shown} visual={read.weeks.length > 1 ? <MiniBars label={`Per week, ${read.weeks.length} weeks`} values={read.weeks} /> : null} />
+          {read.failed ? <Tile label="Datasets not readable" n={read.failed} tone="warn" note="Their programme did not return the extract" /> : null}
+        </Tiles>
+        <div className="nx-table" style={{ marginTop: 32 }}>
           <div className="nx-tr nx-th" style={{ gridTemplateColumns: "minmax(0,1.6fr) minmax(0,1fr) 120px 150px 110px" }}><span>Dataset</span><span className="nx-hide-s">Programme</span><span className="nx-hide-s">Since</span><span className="nx-hide-s">Rows</span><span /></div>
           {(sets ?? []).map((s) => (
             <div key={s.id} className="nx-tr" style={{ gridTemplateColumns: "minmax(0,1.6fr) minmax(0,1fr) 120px 150px 110px" }}>
