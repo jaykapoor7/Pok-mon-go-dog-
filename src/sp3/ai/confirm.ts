@@ -7,6 +7,9 @@ import { indiaDay } from "./capture";
 import { myFacilities } from "./health";
 import type { Proposal } from "./types";
 
+/* Where a confirmed task is seen: the home page of the workspace it was added in (as homeOf in src/nx/nav.ts). */
+const TASK_HOME: Record<string, string> = { ngo: "/ngo/today", government: "/gov/overview", healthcare: "/health/today", research: "/research/datasets" };
+
 /* ════════════════════════════════════════════════════════════════════
    Confirming a task or a bite record that Kaju prepared.
 
@@ -57,7 +60,7 @@ export async function confirmTask(db: Db, userId: string, ngoId: string | null, 
   /* The workspace, read again: the person must be a member of it now. */
   const ws = await db.rpc("nx_my_workspaces");
   if (ws.error) return fail(503, "Your workspace could not be checked just now. Nothing was saved; confirm again in a moment.");
-  const place = (Array.isArray(ws.data) ? ws.data : []).find((w: { org_id?: string }) => w.org_id === org) as { name?: string } | undefined;
+  const place = (Array.isArray(ws.data) ? ws.data : []).find((w: { org_id?: string }) => w.org_id === org) as { name?: string; workspace?: string } | undefined;
   if (!place) return fail(403, "You are not a member of that workspace, so the task was not added.");
   /* The person it is for, and the confirming person's own name, from the organisation's list. */
   const people = await db.rpc("nx_org_people", { p_org: org });
@@ -113,7 +116,7 @@ export async function confirmTask(db: Db, userId: string, ngoId: string | null, 
     restored = true;
   }
   await logKaju(db, { kind: "add_task", ok: true, target: id, summary: restored ? "Task put back" : replayed ? "Task already added" : "Task added", ngoId: org === ngoId ? org : null, organisationId: org === ngoId ? null : org });
-  return { status: 200, body: { ok: true, verified: true, replayed, id, kind: "add_task", at: row.created_at, what: restored ? `Task put back: ${row.title}` : replayed ? `Already added: ${row.title}` : `Task added: ${row.title}`, href: "/ngo/today", workspace: place.name ?? null } };
+  return { status: 200, body: { ok: true, verified: true, replayed, id, kind: "add_task", at: row.created_at, what: restored ? `Task put back: ${row.title}` : replayed ? `Already added: ${row.title}` : `Task added: ${row.title}`, href: TASK_HOME[place.workspace ?? ""] ?? "/home", workspace: place.name ?? null } };
 }
 
 const KINDS = ["bite", "scratch", "lick_broken_skin", "other"], BANDS = ["0-4", "5-14", "15-29", "30-49", "50+"], WASH = ["before_arrival", "at_facility", "not_washed"];
