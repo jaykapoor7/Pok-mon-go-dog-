@@ -19,9 +19,12 @@ import "server-only";
 /** The caller's own database session: usage is read and written through
     security-definer functions bound to auth.uid(), never a client-chosen id. */
 export type LedgerDb = { rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> };
-export type InferenceScope = { purpose: "kaju_chat" | "photo_check"; userId: string | null; orgId: string | null; db?: LedgerDb | null };
+/** `verified`: the account's email or phone is confirmed (from the server's own session check, never the browser). */
+export type InferenceScope = { purpose: "kaju_chat" | "photo_check"; userId: string | null; orgId: string | null; db?: LedgerDb | null; verified?: boolean };
 export type InferenceDecision = { allowed: true; budget: Budget } | { allowed: false; reason: string };
-type Budget = { monthlyCeilingInr: number; perUserDaily: number; perOrgDaily: number; maxConcurrent: number; maxOutputTokens: number; inrPerMTokIn: number; inrPerMTokOut: number };
+/** `remainingInr`: the least of what is left this month overall, for the person and for their organisation, once a
+    run is allowed. `runCapInr`: the most one run (all its steps) may cost. `maxSteps`: model calls per run. */
+export type Budget = { monthlyCeilingInr: number; perUserDaily: number; perOrgDaily: number; maxConcurrent: number; maxOutputTokens: number; inrPerMTokIn: number; inrPerMTokOut: number; runCapInr: number; maxSteps: number; remainingInr?: number };
 
 const num = (v: string | undefined) => { const n = Number(v?.trim()); return Number.isFinite(n) && n > 0 ? n : null; };
 
@@ -39,15 +42,30 @@ export function inferenceConfig(env: Record<string, string | undefined> = proces
      ceiling cannot be enforced, so inference stays off. */
   const inrPerMTokIn = num(env.STRAYPAW_AI_INR_PER_MTOK_IN), inrPerMTokOut = num(env.STRAYPAW_AI_INR_PER_MTOK_OUT);
   if (!inrPerMTokIn || !inrPerMTokOut) return { allowed: false, reason: "Model inference has no token price configured, so spend cannot be measured." };
-  return { allowed: true, budget: { monthlyCeilingInr, perUserDaily, perOrgDaily, maxConcurrent: num(env.STRAYPAW_AI_MAX_CONCURRENT) ?? 4, maxOutputTokens: Math.min(num(env.STRAYPAW_AI_MAX_OUTPUT_TOKENS) ?? 2000, 4000), inrPerMTokIn, inrPerMTokOut } };
+  /* Who may use it. "owner" (the default) admits only the owner's own verified account; "grants" admits people and
+     organisations the owner granted in the database. Anything else, or owner mode without an owner id, is off. */
+  const rollout = env.STRAYPAW_AI_ROLLOUT?.trim() || "owner";
+  if (rollout !== "owner" && rollout !== "grants") return { allowed: false, reason: "Model inference has an unknown rollout setting." };
+  if (rollout === "owner" && !UUID.test(env.STRAYPAW_AI_OWNER_USER_ID?.trim() ?? "")) return { allowed: false, reason: "Model inference has no owner account configured." };
+  return { allowed: true, budget: {
+    monthlyCeilingInr, perUserDaily, perOrgDaily, inrPerMTokIn, inrPerMTokOut,
+    maxConcurrent: Math.min(num(env.STRAYPAW_AI_MAX_CONCURRENT) ?? 2, 8),
+    maxOutputTokens: Math.min(num(env.STRAYPAW_AI_MAX_OUTPUT_TOKENS) ?? 2000, 4000),
+    runCapInr: Math.min(num(env.STRAYPAW_AI_RUN_MAX_INR) ?? 10, 100),
+    maxSteps: Math.min(Math.floor(num(env.STRAYPAW_AI_MAX_STEPS) ?? 6), 6),
+  } };
 }
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 let running = 0;
 /* Usage counters and spend come from a ledger the deployment must provide;
    until it exists every check fails closed. */
 export type Usage = { inputTokens: number; outputTokens: number };
+type Grant = { monthlyBudgetInr: number; dailyRequests: number };
+/** What the database says before a run: the switch, the grants and what has been used. Missing fields fail closed. */
+export type LedgerUsage = { userToday: number; orgToday: number; monthInr: number; live?: boolean; userGrant?: Grant | null; orgGrant?: Grant | null; userMonthInr?: number; orgMonthInr?: number };
 type Ledger = {
-  usage(scope: InferenceScope): Promise<{ userToday: number; orgToday: number; monthInr: number } | null>;
+  usage(scope: InferenceScope): Promise<LedgerUsage | null>;
   record?(scope: InferenceScope, row: { model: string; inputTokens: number; outputTokens: number; costInr: number }): Promise<boolean>;
 };
 const finite = (v: unknown) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : null; };
@@ -55,11 +73,20 @@ const finite = (v: unknown) => { const n = Number(v); return Number.isFinite(n) 
 export const databaseLedger: Ledger = {
   async usage(scope) {
     if (!scope.db) return null;
-    const { data, error } = await scope.db.rpc("kaju_model_usage_now");
+    const { data, error } = await scope.db.rpc("kaju_ai_eligibility", { p_org: scope.orgId });
     if (error || !data || typeof data !== "object") return null;
     const d = data as Record<string, unknown>;
-    const userToday = finite(d.user_today), orgToday = finite(d.org_today), monthInr = finite(d.month_inr);
-    return userToday === null || orgToday === null || monthInr === null ? null : { userToday, orgToday, monthInr };
+    const userToday = finite(d.user_today), orgToday = finite(d.org_today), monthInr = finite(d.month_inr), userMonthInr = finite(d.user_month_inr), orgMonthInr = finite(d.org_month_inr);
+    if (userToday === null || orgToday === null || monthInr === null || userMonthInr === null || orgMonthInr === null || typeof d.live !== "boolean") return null;
+    const grant = (g: unknown): Grant | null | undefined => {
+      if (g === null) return null;
+      if (!g || typeof g !== "object") return undefined;
+      const r = g as Record<string, unknown>, m = finite(r.monthly_budget_inr), q = finite(r.daily_requests);
+      return m && q ? { monthlyBudgetInr: m, dailyRequests: q } : undefined;
+    };
+    const userGrant = grant(d.user_grant), orgGrant = grant(d.org_grant);
+    if (userGrant === undefined || orgGrant === undefined) return null;
+    return { userToday, orgToday, monthInr, userMonthInr, orgMonthInr, live: d.live, userGrant, orgGrant };
   },
   async record(scope, row) {
     if (!scope.db) return false;
@@ -86,12 +113,33 @@ export async function inferenceAllowed(scope: InferenceScope, env: Record<string
   const cfg = inferenceConfig(env);
   if (!cfg.allowed) return cfg;
   if (!scope.userId) return { allowed: false, reason: "Signed-out requests never use a paid model." };
+  const rollout = env.STRAYPAW_AI_ROLLOUT?.trim() || "owner";
+  if (rollout === "owner" && (scope.userId.toLowerCase() !== env.STRAYPAW_AI_OWNER_USER_ID?.trim().toLowerCase() || scope.verified !== true))
+    return { allowed: false, reason: "Model answers are not switched on for this account yet." };
   if (running >= cfg.budget.maxConcurrent) return { allowed: false, reason: "Model capacity is busy; using record tools." };
   const u = ledger ? await ledger.usage(scope).catch(() => null) : null;
   if (!u) return { allowed: false, reason: "Model usage cannot be measured, so it is not used." };
+  /* The database switch and a grant are both required, in either rollout mode. */
+  if (u.live !== true) return { allowed: false, reason: "Model use is switched off in the database." };
+  const ug = u.userGrant ?? null, og = scope.orgId ? u.orgGrant ?? null : null;
+  if (!ug && !og) return { allowed: false, reason: "Model answers are not switched on for this account yet." };
   if (u.monthInr >= cfg.budget.monthlyCeilingInr) return { allowed: false, reason: "This month's model budget is used up." };
   if (u.userToday >= cfg.budget.perUserDaily || (scope.orgId && u.orgToday >= cfg.budget.perOrgDaily)) return { allowed: false, reason: "Today's model quota is used up." };
-  return cfg;
+  const userMonth = u.userMonthInr, orgMonth = u.orgMonthInr;
+  if (ug && (userMonth === undefined || userMonth >= ug.monthlyBudgetInr || u.userToday >= ug.dailyRequests)) return { allowed: false, reason: "Your model budget for this period is used up." };
+  if (og && (orgMonth === undefined || orgMonth >= og.monthlyBudgetInr || u.orgToday >= og.dailyRequests)) return { allowed: false, reason: "Your organisation's model budget for this period is used up." };
+  const left = [cfg.budget.monthlyCeilingInr - u.monthInr, ug && userMonth !== undefined ? ug.monthlyBudgetInr - userMonth : Infinity, og && orgMonth !== undefined ? og.monthlyBudgetInr - orgMonth : Infinity];
+  return { allowed: true, budget: { ...cfg.budget, remainingInr: Math.max(0, Math.min(...left)) } };
+}
+
+/** The most one run may still spend: the run cap, or less when the month's remaining budget is smaller. */
+export const runAllowanceInr = (b: Budget) => Math.min(b.runCapInr, b.remainingInr ?? b.runCapInr);
+/** Before each model call in a run: would the worst case of this next call (the input it sends, estimated from its
+    size, plus the full output allowance) take the run past its allowance? Character counts over-estimate tokens for
+    English, so the estimate errs towards stopping early. */
+export function nextCallAffordable(b: Budget, spent: Usage, requestChars: number) {
+  const worst = { inputTokens: spent.inputTokens + Math.ceil(requestChars / 3), outputTokens: spent.outputTokens + b.maxOutputTokens };
+  return usageCostInr(b, worst) <= runAllowanceInr(b);
 }
 
 /** Wraps one allowed call so concurrency is counted and released. */
@@ -117,7 +165,7 @@ export function publicBiteConfig(env: Record<string, string | undefined> = proce
   if (!auth || !/^[^:]{2,80}:\d{4}-\d{2}-\d{2}$/.test(auth)) return { allowed: false, reason: "Kaju's bite help has no recorded authorisation." };
   const daily = num(env.STRAYPAW_BITE_AI_DAILY_TURNS);
   if (!daily) return { allowed: false, reason: "Kaju's bite help has no daily cap." };
-  return { allowed: true, budget: { monthlyCeilingInr: 0, perUserDaily: daily, perOrgDaily: daily, maxConcurrent: 6, maxOutputTokens: 1600, inrPerMTokIn: 0, inrPerMTokOut: 0 } };
+  return { allowed: true, budget: { monthlyCeilingInr: 0, perUserDaily: daily, perOrgDaily: daily, maxConcurrent: 6, maxOutputTokens: 1600, inrPerMTokIn: 0, inrPerMTokOut: 0, runCapInr: 0, maxSteps: 1 } };
 }
 /** One public turn: allowed only while the switch is set and today's cap is not reached. Counts the turn. */
 export function publicBiteTurn(env: Record<string, string | undefined> = process.env, now = new Date()): InferenceDecision {

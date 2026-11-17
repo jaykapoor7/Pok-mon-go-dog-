@@ -38,7 +38,7 @@ test("stopping and clearing drop a late answer", async ({ page }) => {
   await started;
   await page.getByRole("button", { name: "Stop waiting" }).click();
   await expect(page.getByText("Stopped waiting. No prepared action was confirmed.")).toBeVisible();
-  await page.getByRole("button", { name: /Clear this conversation/ }).click();
+  await page.getByRole("button", { name: /New conversation/ }).click();
   release();
   await expect(page.getByText("LATE TRANSPORT TEXT")).toHaveCount(0);
   await expect(box(page)).toBeEnabled();

@@ -26,13 +26,14 @@ async function main() {
   const unpriced = { ...base, STRAYPAW_AI_AUTHORISED_BY: "owner:2026-11-03", STRAYPAW_AI_MONTHLY_CEILING_INR: "500", STRAYPAW_AI_USER_DAILY_REQUESTS: "20", STRAYPAW_AI_ORG_DAILY_REQUESTS: "200" };
   assert.equal(inferenceConfig(unpriced).allowed, false, "no token price");
   ok("without a token price spend cannot be measured, so model mode stays off");
-  const on = { ...unpriced, STRAYPAW_AI_INR_PER_MTOK_IN: "420", STRAYPAW_AI_INR_PER_MTOK_OUT: "2100" };
+  const on = { ...unpriced, STRAYPAW_AI_INR_PER_MTOK_IN: "420", STRAYPAW_AI_INR_PER_MTOK_OUT: "2100", STRAYPAW_AI_ROLLOUT: "grants" };
+  const G = { live: true, userGrant: { monthlyBudgetInr: 1000, dailyRequests: 1000 }, orgGrant: null, userMonthInr: 0, orgMonthInr: 0 };
   assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on)).allowed, false, "no ledger");
-  setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 500 }) });
+  setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 500, ...G }) });
   assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on)).allowed, false, "ceiling");
-  setInferenceLedger({ usage: async () => ({ userToday: 20, orgToday: 0, monthInr: 0 }) });
+  setInferenceLedger({ usage: async () => ({ userToday: 20, orgToday: 0, monthInr: 0, ...G }) });
   assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on)).allowed, false, "user quota");
-  setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 0 }) });
+  setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 0, ...G }) });
   assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: null, orgId: null }, on)).allowed, false, "guest");
   const d = await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on);
   assert.equal(d.allowed, true);
@@ -43,7 +44,8 @@ async function main() {
   /* The database ledger: reads the caller's usage and writes each run, through the caller's session. */
   const { databaseLedger, recordInferenceUsage, usageCostInr } = await import("../src/lib/ai/inference");
   const writes: Record<string, unknown>[] = [];
-  const fakeDb = (now: unknown, fail = false) => ({ rpc: async (fn: string, args?: Record<string, unknown>) => fn === "kaju_model_usage_now" ? { data: now, error: null } : (writes.push({ fn, ...args }), { data: fail ? null : 1, error: fail ? { message: "x" } : null }) });
+  const row = (u: Record<string, unknown> | null) => u && { live: true, user_grant: { monthly_budget_inr: 1000, daily_requests: 1000 }, org_grant: null, user_month_inr: 0, org_month_inr: 0, ...u };
+  const fakeDb = (now: Record<string, unknown> | null, fail = false) => ({ rpc: async (fn: string, args?: Record<string, unknown>) => fn === "kaju_ai_eligibility" ? { data: row(now), error: null } : (writes.push({ fn, ...args }), { data: fail ? null : 1, error: fail ? { message: "x" } : null }) });
   setInferenceLedger(databaseLedger);
   assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on)).allowed, false, "no db session");
   assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o", db: fakeDb(null) }, on)).allowed, false, "unreadable usage");

@@ -94,7 +94,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const careForm = <CareForm key={seed?.n ?? 0} initial={seed} dogId={d.id} onSaved={() => { setCaring(false); setSeed(null); return read(); }} onCancel={() => { setCaring(false); setSeed(null); }} />;
 
   return (
-    <Shell crumb={["Animals", label.line]}>
+    <Shell crumb={["Animals", label.line]} subject={{ kind: "animal", dogId: d.id, label: label.line }}>
       <RecordHead av={<AnimalPhoto src={lead} size="head" />} title={<AnimalTitle a={d} />}
         sub={<><Lock size={11} style={{ verticalAlign: "-1px" }} /> Private to {org.name} · {[d.zone, d.city].filter(Boolean).join(", ") || "Place not recorded"} · last seen {d.last_seen ? day(d.last_seen) : "not recorded"}</>}
         chips={<><Chip tone={factTone(d.sterilisation_status)}>{fact(d.sterilisation_status, "Sterilised", "Not sterilised", "Sterilisation not recorded")}</Chip><Chip tone={factTone(d.vaccination_status)}>{fact(d.vaccination_status, "Vaccinated", "Not vaccinated", "Vaccination not recorded")}</Chip>{d.needs_help ? <Chip tone="bad">Needs help</Chip> : null}<TrustChip trust={imported ? "Imported" : "Recorded"} /></>}

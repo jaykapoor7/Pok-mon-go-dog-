@@ -12,7 +12,7 @@ import { dirname, join } from "node:path";
 const here = dirname(fileURLToPath(import.meta.url));
 const MIG = join(here, "../../supabase/migrations");
 const MIGRATIONS = [
-  "20261102132030_field_vaccination_receipts.sql", "20261103004523_offline_intake_and_lifecycle.sql",
+  "20261102132030_field_vaccination_receipts.sql", "20261103004523_offline_intake_and_lifecycle.sql", "20261106090000_kaju_model_usage_ledger.sql",
   "20261110230441_one_health_v2_1_core.sql", "20261110230655_one_health_v2_2_workflows.sql", "20261110230829_one_health_v2_3_programme_setup_grants.sql",
   "20261111100000_one_health_v2_4_network_alerts.sql", "20261111120000_one_health_v2_5_record_audit_fix.sql", "20261112140000_one_health_v2_6_referrals_revaccination_logos.sql",
   "20261115100000_rebuild_foundations.sql", "20261115110000_rebuild_kaju_in_channel.sql", "20261115120000_rebuild_kaju_missions.sql", "20261115130000_rebuild_people_studies_vet.sql",
@@ -22,6 +22,7 @@ const MIGRATIONS = [
   "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
   "20261117120000_rebuild_pep_reminder_validity.sql", "20261117130000_rebuild_quick_arv_operation.sql",
   "20261117140000_rebuild_automation_ack_carry.sql", "20261118100000_rebuild_automation_rule_counts.sql", "20261118110000_kaju_action_log.sql",
+  "20261119090000_kaju_intelligence_layer.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -765,6 +766,81 @@ section("Kaju's action log: append-only, one's own rows, read by the organisatio
   await db.exec("set role anon");
   try { await db.query("insert into ai_action_log (kind, ok) values ('add_task', true)"); } catch { anonWrote = false; } finally { await db.exec("reset role"); }
   ok(!anonWrote, "visitors cannot write it");
+}
+
+section("Kaju model rollout: off by default, grants and budgets per person and organisation, owner-only stop");
+{
+  const elig = async (who, org = null) => (await as(who, "select kaju_ai_eligibility($1) as e", [org]))[0].e;
+  let e = await elig(A, N1);
+  ok(e.live === false, "the database switch starts off");
+  ok(e.user_grant === null && e.org_grant === null, "nobody has a grant until the owner adds one");
+  ok(await refused(A, "select * from kaju_ai_control") !== null, "the switch row is not readable through the API");
+  ok(await refused(A, "update kaju_ai_control set live = true") !== null && (await one("select live from kaju_ai_control")).live === false, "nobody turns the switch on through the API");
+  ok(await refused(A, "insert into kaju_ai_access (user_id, monthly_budget_inr, daily_requests, granted_by) values ($1, 100, 10, 'me')", [A]) !== null, "nobody grants themselves model access");
+  await db.query("update kaju_ai_control set live = true, owner_user_id = $1", [A]);
+  await db.query("insert into kaju_ai_access (user_id, monthly_budget_inr, daily_requests, granted_by) values ($1, 50, 10, 'owner:test')", [A]);
+  await db.query("insert into kaju_ai_access (org_id, monthly_budget_inr, daily_requests, granted_by) values ($1, 200, 40, 'owner:test')", [N1]);
+  await db.query("insert into kaju_ai_access (org_id, monthly_budget_inr, daily_requests, granted_by, revoked_at) values ($1, 999, 999, 'owner:test', now())", [N2]);
+  e = await elig(A, N1);
+  ok(e.live === true && Number(e.user_grant.monthly_budget_inr) === 50 && Number(e.org_grant.monthly_budget_inr) === 200, "a granted person sees their own and their organisation's grant");
+  e = await elig(C, N1);
+  ok(e.org_grant === null && e.user_grant === null, "someone outside the organisation does not get its grant by naming it");
+  ok((await elig(C, N2)).org_grant === null, "a revoked grant is not used");
+  await as(A, "select record_kaju_model_usage('kaju_chat', 'test-model', 1000, 200, 1.25)");
+  await as(B, "select record_kaju_model_usage('kaju_chat', 'test-model', 1000, 200, 0.75)");
+  e = await elig(A, N1);
+  ok(Number(e.user_today) === 1 && Number(e.org_today) === 2 && Number(e.user_month_inr) === 1.25 && Number(e.org_month_inr) === 2 && Number(e.month_inr) >= 2, "today's runs and this month's spend are counted for the person, the organisation and everyone");
+  ok(await refused(B, "select kaju_ai_stop('test')") !== null, "only the owner can use the emergency stop");
+  ok((await as(B, "select kaju_ai_owner_status() as s"))[0].s === null, "the owner's panel shows nothing to anyone else");
+  const st = (await as(A, "select kaju_ai_owner_status() as s"))[0].s;
+  ok(st.live === true && st.grants.length === 2, "the owner sees the switch and the active grants");
+  await as(A, "select kaju_ai_stop('test stop')");
+  ok((await elig(A, N1)).live === false, "the owner's stop turns model use off at once");
+}
+
+section("Kaju conversations: one's own, inside one's organisation");
+{
+  const t = (await as(B, "insert into kaju_threads (org_id, workspace, title) values ($1, 'ngo', 'Overdue follow-ups') returning id", [N1]))[0].id;
+  await as(B, "insert into kaju_thread_turns (thread_id, role, text) values ($1, 'user', 'which follow-ups are late?'), ($1, 'kaju', 'Three are late.')", [t]);
+  ok((await as(B, "select id from kaju_thread_turns where thread_id = $1", [t])).length === 2, "a person reads their own conversation");
+  ok((await as(A, "select id from kaju_threads where id = $1", [t])).length === 0 && (await as(A, "select id from kaju_thread_turns where thread_id = $1", [t])).length === 0, "an admin of the same organisation cannot read it");
+  ok(await refused(A, "insert into kaju_thread_turns (thread_id, role, text) values ($1, 'user', 'injected')", [t]) !== null, "nobody adds to someone else's conversation");
+  ok(await refused(C, "insert into kaju_threads (org_id, title) values ($1, 'sneaky')", [N1]) !== null, "nobody starts a conversation in an organisation they are not in");
+  ok(await refused(B, "insert into kaju_threads (org_id, workspace, title) values ($1, 'healthcare', 'patients')", [N1]) !== null, "health-workspace conversations are not saved");
+  await as(B, "update kaju_threads set title = 'Late follow-ups' where id = $1", [t]);
+  ok((await as(B, "select title from kaju_threads where id = $1", [t]))[0].title === "Late follow-ups", "a person renames their conversation");
+  await db.query("delete from ngo_members where ngo_id = $1 and user_id = $2", [N1, B]);
+  ok((await as(B, "select id from kaju_threads where id = $1", [t])).length === 0, "after leaving the organisation its conversations are hidden");
+  await db.query("insert into ngo_members (ngo_id, user_id, role) values ($1, $2, 'member')", [N1, B]);
+  await as(B, "delete from kaju_threads where id = $1", [t]);
+  ok((await one("select count(*)::int n from kaju_thread_turns where thread_id = $1", [t])).n === 0, "deleting a conversation removes its turns");
+}
+
+section("Kaju pilot feedback: no text logged, own rows, aggregates for admins only");
+{
+  const log = async (who, org, extra = {}) => (await as(who, "insert into kaju_turn_log (org_id, engine, outcome, tools, latency_ms, intent, cost_inr) values ($1, $2, $3, $4, $5, $6, $7) returning id",
+    [org, extra.engine ?? "tools", extra.outcome ?? "answered", extra.tools ?? ["query_cases"], extra.ms ?? 300, extra.intent ?? "query_cases", extra.cost ?? null]))[0].id;
+  const l1 = await log(B, N1); const l2 = await log(B, N1, { outcome: "no_match", tools: [], intent: "no_match" });
+  await log(A, N1, { engine: "model", cost: 2.5, tools: ["work_summary", "show"], intent: "work_summary" });
+  ok(await refused(C, "insert into kaju_turn_log (org_id, engine, outcome) values ($1, 'tools', 'answered')", [N1]) !== null, "nobody logs a turn for an organisation they are not in");
+  ok(await refused(B, "insert into kaju_turn_log (user_id, org_id, engine, outcome) values ($1, $2, 'tools', 'answered')", [A, N1]) !== null, "nobody logs a turn in someone else's name");
+  ok((await as(A, "select id from kaju_turn_log where id = $1", [l1])).length === 0, "one person's turn rows are not readable by others");
+  await as(B, "insert into kaju_feedback (turn_id, rating, reason, minutes_saved) values ($1, 1, 'saved_time', 15)", [l1]);
+  await as(B, "insert into kaju_feedback (turn_id, rating, reason, comment) values ($1, -1, 'not_useful', 'It did not find the Ward 12 dog')", [l2]);
+  ok(await refused(A, "insert into kaju_feedback (turn_id, rating) values ($1, 1)", [l1]) !== null, "nobody rates someone else's answer");
+  await as(B, "update kaju_feedback set rating = 1, reason = 'saved_time', minutes_saved = 15, updated_at = now() where turn_id = $1", [l1]);
+  ok(await refused(B, "update kaju_feedback set turn_id = $2 where turn_id = $1", [l1, l2]) !== null, "a rating can be changed, but never moved to another answer");
+  await as(A, "update kaju_feedback set rating = -1 where turn_id = $1", [l1]);
+  ok((await one("select rating from kaju_feedback where turn_id = $1", [l1])).rating === 1, "nobody changes someone else's rating");
+  ok((await as(B, "select kaju_pilot_metrics($1, 30) as m", [N1]))[0].m === null, "a member does not see the organisation's aggregates");
+  ok((await as(C, "select kaju_pilot_metrics($1, 30) as m", [N1]))[0].m === null, "another organisation's admin does not either");
+  const m = (await as(A, "select kaju_pilot_metrics($1, 30) as m", [N1]))[0].m;
+  ok(m.turns === 3 && m.people === 2 && m.by_outcome.no_match === 1 && m.feedback.up === 1 && m.feedback.down === 1 && m.feedback.minutes_saved === 15, "the organisation's admin sees counts, outcomes and feedback");
+  ok(Number(m.model_cost_inr) === 2.5 && Number(m.cost_per_completed_inr) === 1.25, "cost per completed answer is measured");
+  ok(m.comments.length === 1 && !JSON.stringify(m.comments).includes(B), "comments are shown without who wrote them");
+  ok(m.top_tools.some((t) => t.tool === "query_cases" && t.runs === 1), "tool use is counted");
+  ok((await as(B, "select kaju_pilot_metrics(null, 30) as m"))[0].m === null, "only the owner sees every organisation");
+  ok((await as(A, "select kaju_pilot_metrics(null, 30) as m"))[0].m.turns >= 3, "the owner sees the whole pilot");
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

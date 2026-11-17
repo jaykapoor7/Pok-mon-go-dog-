@@ -394,9 +394,9 @@ async function main() {
 
   /* ── 8. a model never sees patient records ──────────────────────────── */
   {
-    const ON = { STRAYPAW_AI_MODE: "model", STRAYPAW_AI_AUTHORISED_BY: "test:2026-11-03", STRAYPAW_AI_MONTHLY_CEILING_INR: "100", STRAYPAW_AI_USER_DAILY_REQUESTS: "50", STRAYPAW_AI_ORG_DAILY_REQUESTS: "50", STRAYPAW_AI_INR_PER_MTOK_IN: "420", STRAYPAW_AI_INR_PER_MTOK_OUT: "2100", ANTHROPIC_API_KEY: "isolated-test-key", STRAYPAW_AI_APPROVED_DATA_ROUTE: "direct:claude-opus-5-5" } as const;
+    const ON = { STRAYPAW_AI_MODE: "model", STRAYPAW_AI_AUTHORISED_BY: "test:2026-11-03", STRAYPAW_AI_MONTHLY_CEILING_INR: "100", STRAYPAW_AI_USER_DAILY_REQUESTS: "50", STRAYPAW_AI_ORG_DAILY_REQUESTS: "50", STRAYPAW_AI_INR_PER_MTOK_IN: "420", STRAYPAW_AI_INR_PER_MTOK_OUT: "2100", STRAYPAW_AI_ROLLOUT: "grants", STRAYPAW_AI_RUN_MAX_INR: "50", ANTHROPIC_API_KEY: "isolated-test-key", STRAYPAW_AI_APPROVED_DATA_ROUTE: "direct:claude-opus-5-5" } as const;
     const saved = Object.fromEntries(Object.keys(ON).map((k) => [k, process.env[k]]));
-    Object.assign(process.env, ON); setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 0 }) });
+    Object.assign(process.env, ON); setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 0, live: true, userGrant: { monthlyBudgetInr: 100, dailyRequests: 50 }, orgGrant: null, userMonthInr: 0, orgMonthInr: 0 }) });
     const originalFetch = globalThis.fetch;
     let calls = 0;
     globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ id: "m", type: "message", role: "assistant", model: "test", stop_reason: "end_turn", content: [{ type: "text", text: "Hello from the model." }], usage: { input_tokens: 1, output_tokens: 1 } }), { headers: { "content-type": "application/json" } }); };

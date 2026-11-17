@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {answer,privateModelApproved} from '../src/sp3/ai/engine';
 import {setInferenceLedger} from '../src/lib/ai/inference';
-const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50',STRAYPAW_AI_INR_PER_MTOK_IN:'420',STRAYPAW_AI_INR_PER_MTOK_OUT:'2100'};
+const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50',STRAYPAW_AI_INR_PER_MTOK_IN:'420',STRAYPAW_AI_INR_PER_MTOK_OUT:'2100',STRAYPAW_AI_ROLLOUT:'grants',STRAYPAW_AI_RUN_MAX_INR:'50'};
 import {isAiReply,safeAiHref,auditReference} from '../src/sp3/ai/validation';
 import {buildReport} from '../src/lib/files/reports';
 import {readSnapshot} from '../src/sp3/ai/snapshots';
@@ -26,7 +26,7 @@ async function main(){
  const saved={key:process.env.ANTHROPIC_API_KEY,approval:process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE,model:process.env.STRAYPAW_AI_MODEL};const fetcher=globalThis.fetch;
  const context:ToolCtx={db,orgId:'private-org',userId:'user',userName:'Private name'};let requests=0;
  try{
-  Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0})});
+  Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0,live:true,userGrant:{monthlyBudgetInr:100,dailyRequests:50},orgGrant:null,userMonthInr:0,orgMonthInr:0})});
   process.env.ANTHROPIC_API_KEY='isolated-test-key';delete process.env.STRAYPAW_AI_MODEL;delete process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;
   globalThis.fetch=async()=>{requests++;throw Error('should not leave StrayPaw')};
   const reply=await answer([{role:'user',text:'Hello'}],context,{});assert.equal(reply.engine,'tools');assert.equal(requests,0);assert.match(reply.notice??'',/inside StrayPaw/);ok('private workspace text never reaches an unapproved model route');

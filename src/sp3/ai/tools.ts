@@ -1,3 +1,4 @@
+import { orgProcedures } from "./orgKnowledge";
 import "server-only";
 import { incidentBriefing } from "./incident";
 import { shortCode } from "@/lib/caseCode";
@@ -33,7 +34,7 @@ import type { CaseQuery } from "./understand";
    ════════════════════════════════════════════════════════════════════ */
 
 export type ToolProgress = { tool: string; summary: string; ok: boolean };
-export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; userId?: string; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null; /** Called as each tool finishes, for streamed progress. Never carries record data. */ progress?: (e: ToolProgress) => void;
+export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; userId?: string; /** Email or phone confirmed, per the auth server. */ userVerified?: boolean; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null; /** Called as each tool finishes, for streamed progress. Never carries record data. */ progress?: (e: ToolProgress) => void;
   /** The workspace the page says the person is in ("ngo", "healthcare", …). A hint for wording and for which organisation a task belongs to; never a permission. */ workspace?: string | null;
   /** The record a page sent ("Tell Kaju" on a case or animal). Read again with the person's own access before use. */ subject?: { caseId?: string | null; dogId?: string | null } };
 export type ToolOut = { data: unknown; summary: string; citations: Citation[]; proposals?: Proposal[]; navigate?: { href: string; label: string }; ok?: boolean };
@@ -61,6 +62,7 @@ export const TOOL_DEFS = [
   { name: "ward_activity", description: "Ward coverage (recorded animals with sterilisation and vaccination recorded; denominator is recorded animals, not population) and sudden drops or spikes in newly recorded animals per ward over eight weeks, for the organisation's or office's city.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "partner_requests", description: "Work between programme partners, animal side only: open requests sent to this person's organisations by hospitals, laboratories or the programme cell (find and observe an animal, send a sample, vaccinate an area), with place and due date. Reads the request, never a patient record, dose or clinical count.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "incident_briefing", description: "One bite incident, animal side only: the follow-up request a hospital sent this person's organisation about a place (its title, area, status and due date, never its free text), the animal linked to it or the register's animals in that area, that animal's vaccination and sterilisation dates and open cases, what is missing (not accepted, no animal linked, observation not planned, revaccination due) and who does what. Prepares an observation case and a revaccination follow-up for the person to confirm. Never reads a patient record, dose or clinical count.", input_schema: { type: "object", properties: { place: { type: "string", description: "The area or place the incident is about, e.g. Indiranagar. Empty for the newest." } }, additionalProperties: false } },
+  { name: "org_procedures", description: "Search the organisation's own approved procedures, templates, decisions and facts (written down by its members and approved by a lead in Rules & memory), and the person's own saved preferences. Use for questions like 'how do we…', 'what is our SOP / rule / template for…'. Returns the entries word for word with where they came from; quote them, never extend them. Unapproved, revoked or expired entries are never returned.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
   { name: "search_knowledge", description: "Search published StrayPaw Academy lessons about evidence, recorded counts, unknown status, coverage, population and field safety. Educational content, not current legislation or clinical advice. Returns cited passages; never invent policy.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
   { name: "abc_verification_status", description: "Read the organisation ABC verification queue: missing evidence, vet authorisation and review flags. Bounded sample, never certifies a procedure.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "abc_package_status", description: "Read report package statuses visible to this organisation member or municipal reviewer. Includes periods and recorded summaries; never accepts a package.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -99,6 +101,7 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
   if(name==='current_record')return currentRecord(ctx);
   switch (name) {
     case "prepared_work": return preparedTool(ctx);
+    case "org_procedures": return orgProcedures(String(input.query ?? "").slice(0, 300), ctx);
     case "prepare_intake": return intakeTool(String(input.text ?? "").slice(0, 12000), ctx);
     case "check_package": return packageTool(clean(input.package_id, 64), ctx);
     case "abc_verification_status": return abcVerification(ctx);
@@ -370,9 +373,10 @@ async function recentConfirmedActions({db,orgId}:ToolCtx):Promise<ToolOut>{
 
 async function currentRecord(ctx:ToolCtx):Promise<ToolOut>{
  const path=ctx.pagePath??'';
- const match=path.match(/^\/(ngo\/(cases|verification|animals|programmes|packages)|city\/review)\/([0-9a-f-]{36})$/i);
+ /* Today's addresses (/ngo/submissions, /gov/verification) and the retired ones (/ngo/packages, /city/review) both name a package. */
+ const match=path.match(/^\/(ngo\/(cases|verification|animals|programmes|packages|submissions)|city\/review|gov\/verification)\/([0-9a-f-]{36})$/i);
  if(!match)return {ok:false,data:{error:'No selected record'},summary:'Open a case, animal, programme or review package first.',citations:[]};
- const id=match[3],kind=match[2]??'packages';
+ const id=match[3],kind=!match[2]||match[2]==='submissions'?'packages':match[2];
  if(kind!=='packages'&&!ctx.orgId)return NEEDS_ORG;
  const unavailable={ok:false,data:{error:'Record unavailable in this workspace'},summary:'This record is unavailable in your current workspace.',citations:[]} satisfies ToolOut;
  if(kind==='cases'||kind==='verification'){

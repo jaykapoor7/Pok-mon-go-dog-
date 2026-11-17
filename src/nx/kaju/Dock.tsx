@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Keyboard, Maximize2, Mic, X } from "lucide-react";
+import { ArrowUpRight, History as Clock, Keyboard, Maximize2, Mic, Plus, X } from "lucide-react";
+import { KajuHistory, KeepingNote } from "./History";
+import { startersFor } from "./here";
 import { KajuFace } from "@/kaju/Kaju";
 import { useLive } from "../live";
 import { toast } from "../kit";
@@ -38,6 +40,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
   const [phone, setPhone] = useState(false);
   // Talk or type: the same Kaju, in the same panel. Closing the panel ends any conversation.
   const [voice, setVoice] = useState(false);
+  const [past, setPast] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const before = useRef<HTMLElement | null>(null);
   useEffect(() => { const q = window.matchMedia("(max-width: 640px)"); const on = () => setPhone(q.matches); on(); q.addEventListener("change", on); return () => q.removeEventListener("change", on); }, []);
@@ -66,13 +69,20 @@ export function KajuDock({ crumb }: { crumb: string }) {
             <span className="kj-dock-face"><KajuFace size={22} /></span><b>Kaju</b>
             {crumb ? <span className="nx-dockk-ctx" title="Kaju knows which page you opened it on">On {crumb}</span> : null}
             <span style={{ marginLeft: "auto" }} />
+            {k.keeping === "on" ? <button type="button" className={`nx-ib${past ? " is-on" : ""}`} aria-pressed={past} aria-label="Your conversations" title="Your conversations" onClick={() => { setVoice(false); setPast((v) => !v); }}><Clock size={15} /></button> : null}
             {VOICE_OFFERED ? <button type="button" className={`nx-ib${voice ? " is-on" : ""}`} aria-pressed={voice} aria-label={voice ? "Back to typing" : "Talk to Kaju"} title={voice ? "Back to typing" : "Talk to Kaju"} onClick={() => setVoice((v) => !v)}>
               {voice ? <Keyboard size={15} /> : <Mic size={15} />}
             </button> : null}
             <button type="button" className="nx-ib" aria-label="Open full Kaju" title="Open full Kaju" onClick={() => { close(); router.push("/kaju"); }}><Maximize2 size={15} /></button>
             <button type="button" className="nx-ib" aria-label="Close Kaju" onClick={close}><X size={16} /></button>
           </div>
-          {voice ? <div className="nx-dockk-b is-voice"><KajuVoice compact /></div> : <DockBody planned={planned} setPlanned={setPlanned} startedId={startedId} setStartedId={setStartedId} />}
+          {voice ? <div className="nx-dockk-b is-voice"><KajuVoice compact /></div>
+            : past ? <div className="nx-dockk-b">
+                <p className="kj-quiet" style={{ marginBottom: 8 }}><button type="button" className="nx-thread" onClick={() => { k.clear(); setPast(false); }}><Plus size={12} /> New conversation</button></p>
+                <KajuHistory title={null} onOpened={() => setPast(false)} />
+                {k.history && !k.history.length ? <p className="kj-quiet">No saved conversations yet. What you ask here is kept for you.</p> : null}
+              </div>
+            : <DockBody planned={planned} setPlanned={setPlanned} startedId={startedId} setStartedId={setStartedId} />}
         </motion.div>
       ) : null}
     </AnimatePresence>
@@ -101,12 +111,19 @@ function DockBody({ planned, setPlanned, startedId, setStartedId }: { planned: P
     else toast({ text: r.error ?? "Not started.", tone: "bad" });
   };
   const empty = !k.turns.length && !planned && !startedId;
+  const here = org ? startersFor(k.page.path) : [];
   return (
     <>
       <div className="nx-dockk-b">
         {empty ? <p className="kj-dock-intro">{org ? `Ask about ${org.name}'s records, or say what you want done. Kaju shows the plan, and who does each step, before anything starts.` : <>Sign in to ask about your organisation. <Link href="/try">Try the live demo</Link>.</>}</p> : null}
-        {empty && org ? <Jobs vocab={vocab} canPlan busy={busy} compact onPlan={(t, i) => void plan(t, i)} /> : null}
+        {here.length && !k.turns.length ? <div className="kj-here" role="group" aria-label={`For ${k.page.label ?? "this record"}`}>
+          <span className="kj-here-l">For {k.page.label ?? "this record"}</span>
+          {here.map((h) => <button key={h.label} type="button" className="nx-chipbtn" disabled={k.busy || k.expired}
+            onClick={() => { if (h.send) void k.ask(h.text); else window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q: h.text } })); }}>{h.label}</button>)}
+        </div> : null}
+        {empty && org && !here.length ? <Jobs vocab={vocab} canPlan busy={busy} compact onPlan={(t, i) => void plan(t, i)} /> : null}
         <Thread compact />
+        {k.turns.length ? <p className="kj-quiet" style={{ marginTop: 6 }}><button type="button" className="nx-thread" onClick={k.clear}><Plus size={12} /> New</button> · <KeepingNote /></p> : null}
         {noModel ? <p className="kj-nomodel" role="status">{noModel}</p> : null}
         <AnimatePresence>{planned ? <PlanCard key={planned.key} planned={planned} vocab={vocab} busy={busy} compact onStart={(p) => void start(p)} onDiscard={() => setPlanned(null)} /> : null}</AnimatePresence>
         {startedId ? (
