@@ -289,3 +289,26 @@ rows cannot be changed or removed, a facility's read stays with the facility, vi
 
 Rollback: `drop table public.ai_action_log;` (the server answers "not_deployed" and keeps its own log line per read).
 
+
+# Eleventh set: public-source imports removed (owner's decision, 2026-11-17)
+
+StrayPaw no longer tracks the ~28,000 animals imported from published datasets as a metric. The owner chose to remove
+the public sources only; every organisation that uses StrayPaw keeps all its records.
+
+| # | Migration | What it does | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 21 | `20261118120000_remove_public_source_imports.sql` | Removes the six publisher placeholder organisations (Humane World for Animals / HSI, Mission Rabies, IISER Kolkata, iNaturalist contributors, iNaturalist, Wikimedia Commons; no members) and everything under them. Guarded: stops if a target has a member, an animal that is not an import, or anything outside the set refers to the rows. | Applied: no-op (these organisations are not on staging) | Removed in batches, each a guarded transaction; the migration was then recorded (no-op) |
+
+Removed on production: 27,857 animals, 20,915 cases, 20,915 care rows, about 83,600 timeline rows, about 7,700 import
+rows, 4 import batches, 15 data sources, 198 atlas figures, 6 organisations, and 16 map snapshots of cities that no
+longer hold records. Their photos were links to the publishers' sites, so no stored file was removed.
+
+Kept and checked afterwards: The Pawsome People Project (2,277 animals, 2,192 cases), The Kind Hour Foundation (89),
+67 community reports and their photos (236 MB in storage), all other records. 2,431 animals remain.
+
+Space: database 349 MB to 102 MB after `vacuum (full, analyze)` on the affected tables and the public animal cache.
+
+Site after the change (signed out): `/api/stats` 2,431; `/explore` "2,431 animal records in 12 cities"; removed cities
+answer "No mapped record"; public pages and the app load on desktop and phone without page errors.
+
+Rollback: none from the database. The publishers' datasets remain the source if they are ever wanted again.
