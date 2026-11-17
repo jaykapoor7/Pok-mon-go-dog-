@@ -54,7 +54,9 @@ test("one bite, six stages: Next alone walks the whole response, and every step 
   await page.waitForURL(/\/ngo\/inbox/, { timeout: 60_000 });
   await card(page).locator(".dt-btn.is-go:not([disabled])").click();
 
-  /* 4 · Kaju: the briefing and the prepared work, confirmed. */
+  /* 4 · Kaju: tagged in the team chat, then the briefing and the prepared work, confirmed. */
+  await next("Tag Kaju in the team chat");
+  await act(page, "Ask Kaju");
   await next("Ask Kaju");
   const answer = page.locator('[data-tour="kaju-answer"]', { hasText: "Who does what" });
   await expect(answer).toBeVisible({ timeout: 60_000 });
@@ -90,6 +92,8 @@ test("Kaju's call: it says each question aloud, hears the answers, fills the rep
   await page.context().grantPermissions(["microphone"]).catch(() => undefined);
   /* This test is the browser's own speech; the Sarvam path has its own test below. */
   await page.route("**/api/oh/voice*", (r) => r.fulfill({ json: { sarvam: false } }));
+  /* Kaju's fixed rules read the answers here; the model has its own test. */
+  await page.route("**/api/oh/kaju*", (r) => r.fulfill({ status: 404, json: { error: "off" } }));
   await page.goto("/try");
   await page.getByRole("button", { name: /Start Demo/ }).click();
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
@@ -100,9 +104,9 @@ test("Kaju's call: it says each question aloud, hears the answers, fills the rep
   await expect(report).toContainText("Indiranagar", { timeout: 30_000 });
   await expect(report).toContainText("the bus stop on 100 Feet Road", { timeout: 30_000 });
   await expect(page.locator(".kb[data-reached~=\"sent\"]")).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator(".kv")).toContainText("Report sent", { timeout: 30_000 });
+  await expect(page.locator(".kv")).toContainText("knows you're coming", { timeout: 30_000 });
   const said = (await page.evaluate(() => (window as unknown as { __said: string[] }).__said)).join(" ");
-  for (const w of ["wash the wound", "Got it: a street dog bite in Indiranagar, this morning", "Quick safety check", "What did the dog look like", "Shall I send it?", "knows you're coming"]) expect(said).toContain(w);
+  for (const w of ["wash the wound", "Okay, a street dog bite in Indiranagar, this morning", "Quick safety check", "What did the dog look like", "Shall I send it?", "knows you're coming"]) expect(said).toContain(w);
   /* The person's own words: none of them is taken for a landmark. */
   await expect(report).not.toContainText("a stray dog near");
 });
@@ -126,6 +130,7 @@ test("Kaju's call with Sarvam: one voice, each answer recorded until the caller 
     spoken.push(body.text);
     return r.fulfill({ json: { audio: clip, type: "audio/wav", text: body.text } });
   });
+  await page.route("**/api/oh/kaju*", (r) => r.fulfill({ status: 404, json: { error: "off" } }));
   await page.addInitScript(() => {
     for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1");
     Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: async () => {
@@ -140,15 +145,15 @@ test("Kaju's call with Sarvam: one voice, each answer recorded until the caller 
   await page.getByRole("button", { name: /Start Demo/ }).click();
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
   await page.locator('[data-tour="mode-call"]').click();
-  await expect(page.getByText("Voice by Sarvam AI").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("radiogroup", { name: "Language" })).toBeVisible({ timeout: 20_000 });
   await page.locator('[data-tour="bite-call"]').click();
   await expect(page.locator(".kb[data-reached~=\"sent\"]")).toBeVisible({ timeout: 120_000 });
-  await expect(page.locator(".kv")).toContainText("Report sent", { timeout: 30_000 });
+  await expect(page.locator(".kv")).toContainText("knows you're coming", { timeout: 30_000 });
   await expect(page.locator('[data-tour="bite-report"]')).toContainText("the bus stop on 100 Feet Road");
   expect(sizes.length).toBeGreaterThanOrEqual(6);
   for (const n of sizes) expect(n).toBeGreaterThan(8_000); /* real recordings, not empty files */
   const said = spoken.join(" ");
-  for (const w of ["Hi, I'm Kaju", "Got it: a street dog bite in Indiranagar", "Quick safety check", "Shall I send it?", "knows you're coming"]) expect(said).toContain(w);
+  for (const w of ["Hi, I'm Kaju", "Okay, a street dog bite in Indiranagar", "Quick safety check", "Shall I send it?", "knows you're coming"]) expect(said).toContain(w);
 });
 
 test("the guide's Next action answers an untouched citizen stage and opens the hospital", async ({ page, isMobile }) => {
@@ -170,4 +175,59 @@ test("the guide's Next action answers an untouched citizen stage and opens the h
   await page.waitForURL(/\/health\/today/, { timeout: 90_000 });
   await act(page, "The clinic is ready");
   await expect(page.locator('[data-tour="notice"][data-area="Indiranagar"]').first()).toBeVisible({ timeout: 30_000 });
+});
+
+/* Kaju on a model, with the model answered by a stand-in: what the person said once is never asked again, where it
+   happened is offered as words, the phone's location or a pin (never a list of areas), and the report the person
+   sends is the one the conversation filled. */
+test("Kaju on a model: understands once, asks only what is missing, and sends the report", async ({ page }) => {
+  const today = new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10);
+  const base = { kind: null, species: null, ownership: null, person: null, area: null, place: null, pinned: false, on: null, when: null, looks: null, danger: null, notify: null, callback: null, phone: null, skipped: [] };
+  const told = { ...base, kind: "bite", species: "dog", ownership: "community", person: "someone", area: "Indiranagar", place: "near 100 Feet Road", on: today, when: "this morning", notify: "yes" };
+  const asked: string[] = [];
+  await page.route("**/api/oh/kaju*", async (r) => {
+    if (r.request().method() === "GET") return r.fulfill({ json: { ai: true } });
+    const body = JSON.parse(r.request().postData() ?? "{}") as { showing: string; facts: Record<string, unknown> };
+    asked.push(body.showing);
+    if (body.showing === "tell") return r.fulfill({ json: { reply: "That sounds frightening. A street dog bit someone near 100 Feet Road in Indiranagar this morning.", next: "danger", quick: [], facts: told, fixed: false } });
+    return r.fulfill({ json: { reply: "Thank you, that will help the animal team find it. Can the clinic call you if they need to?", next: "call", quick: [], facts: { ...body.facts, looks: "Brown, no collar, limps a little" }, fixed: false } });
+  });
+  await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
+  await page.goto("/bite-help");
+  await expect(page.locator('.kb[data-ai="1"]')).toBeVisible({ timeout: 30_000 });
+  const say = async (t: string) => { await page.locator('[data-tour="bite-compose"] textarea').fill(t); await page.getByRole("button", { name: "Send to Kaju" }).click(); };
+  await say("my friend got bitten by a street dog near 100 feet road indiranagar this morning, please tell the hospital");
+  await expect(page.locator(".kc-log")).toContainText("That sounds frightening", { timeout: 20_000 });
+  await page.getByRole("button", { name: "No, none of these" }).click();
+  /* The area, the time and the animal were in the first message: Kaju goes straight to what it looked like. */
+  await expect(page.locator(".kb")).toHaveAttribute("data-at", "looks", { timeout: 20_000 });
+  await expect(page.locator(".kc-log")).not.toContainText("Which area");
+  await expect(page.locator(".kc-log")).not.toContainText("Where did it happen");
+  await say("brown, no collar, limps a little");
+  await expect(page.locator(".kc-log")).toContainText("that will help the animal team", { timeout: 20_000 });
+  await page.getByRole("button", { name: "No, don't call me" }).click();
+  const report = page.locator('[data-tour="bite-report"]');
+  for (const w of ["Indiranagar", "near 100 Feet Road", "Today (this morning)", "None of the listed signs", "Brown, no collar, limps a little"]) await expect(report).toContainText(w);
+  await expect(page.locator('[data-tour="bite-review"]')).toBeVisible({ timeout: 20_000 });
+  expect(asked).toEqual(["tell", "looks"]);
+  await page.getByRole("button", { name: "Send the report" }).click();
+  await expect(page.locator('.kb[data-reached~="sent"]')).toBeVisible({ timeout: 30_000 });
+});
+
+test("where it happened: words, the phone's location or a pin, never a list of areas", async ({ page }) => {
+  await page.route("**/api/oh/kaju*", (r) => r.fulfill({ status: 404, json: { error: "off" } }));
+  await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
+  await page.goto("/bite-help");
+  const say = async (t: string) => { await page.locator('[data-tour="bite-compose"] textarea').fill(t); await page.getByRole("button", { name: "Send to Kaju" }).click(); };
+  await say("a dog bit me this morning");
+  await page.getByRole("button", { name: "No, none of these" }).click({ timeout: 20_000 });
+  await page.getByRole("button", { name: "Yes, tell the clinic" }).click({ timeout: 20_000 });
+  await expect(page.locator(".kb")).toHaveAttribute("data-at", "where", { timeout: 20_000 });
+  const chips = page.locator('[data-tour="bite-quick"]');
+  await expect(chips.getByRole("button", { name: "Use my location" })).toBeVisible();
+  await expect(chips.getByRole("button", { name: "Drop a pin" })).toBeVisible();
+  await expect(chips.getByRole("button", { name: "Indiranagar" })).toHaveCount(0);
+  await say("behind the Sony World signal");
+  await expect(page.locator('[data-tour="bite-report"]')).toContainText("behind the Sony World signal", { timeout: 20_000 });
+  await expect(page.locator(".kb")).not.toHaveAttribute("data-at", "where");
 });
