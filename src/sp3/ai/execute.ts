@@ -25,6 +25,7 @@ export async function executeProposal(p: Proposal, actor: { id: string; name: st
     case "schedule_followup":
     case "record_care":
     case "add_task":
+    case "register_exposure":
       r = await confirmedRecord(p);
       break;
     case "email":
@@ -53,6 +54,8 @@ export async function executeProposal(p: Proposal, actor: { id: string; name: st
     the audit record: the database trigger above is. Returns quietly if the
     optional ai_action_log table has not been applied. */
 async function logAction(p: Proposal, r: Saved) {
+  /* Tasks and bite records are logged by the server when they are confirmed; a bite note's words never leave it. */
+  if (p.kind === "add_task" || p.kind === "register_exposure") return;
   try {
     const supa = getSupabase();
     const token = (await supa?.auth.getSession())?.data.session?.access_token;
@@ -69,8 +72,10 @@ async function confirmedRecord(p: Proposal): Promise<Saved> {
     const response = await fetch("/api/ai/act", {method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${t}`},body:JSON.stringify({proposal:p,confirmed:true})});
     const j = await response.json();
     const auditId=auditReference(j.auditId);
-    return response.ok && j.verified === true && typeof j.at==='string'&&auditId ? {ok:true,at:j.at,what:j.what,href:j.href,verified:true,auditId} : {ok:false,error:j.error??"Verification is pending. Retry the same proposal to check it."};
-  } catch { return {ok:false,error:"The action status is unknown. Retry the same proposal to check it."}; }
+    /* A task's receipt is the task row itself and a bite record's is the health register's own audit, read back by the server; neither returns an operational audit id. */
+    const receipted = p.kind === "add_task" || p.kind === "register_exposure" || !!auditId;
+    return response.ok && j.verified === true && typeof j.at==='string'&&receipted ? {ok:true,at:j.at,what:j.what,href:j.href,verified:true,...(auditId?{auditId}:{})} : {ok:false,error:j.error??(p.kind==="register_exposure"?"Kaju could not tell whether the bite was saved. Open Bite cases to check before confirming again.":"Verification is pending. Retry the same proposal to check it.")};
+  } catch { return {ok:false,error:p.kind==="register_exposure"?"Kaju could not tell whether the bite was saved. Open Bite cases to check before confirming again.":"The action status is unknown. Retry the same proposal to check it."}; }
 }
 async function token() {
   return (await getSupabase()?.auth.getSession())?.data.session?.access_token ?? null;
@@ -104,7 +109,8 @@ export const STOP_MESSAGE = /temporarily limited|sign in again/i;
 const STOP = STOP_MESSAGE;
 export async function confirmVerified(p: Proposal, actor: { id: string; name: string }, wait = (ms: number) => new Promise((r) => setTimeout(r, ms))): Promise<Saved> {
   let r = await executeProposal(p, actor);
-  for (let i = 0; i < 2 && !r.ok && PENDING.test(r.error ?? ""); i++) { await wait(1200 * (i + 1)); r = await executeProposal(p, actor); }
+  /* A bite record has no request id in the register, so an unknown outcome is checked by a person, never retried here. */
+  for (let i = 0; i < 2 && !r.ok && p.kind !== "register_exposure" && PENDING.test(r.error ?? ""); i++) { await wait(1200 * (i + 1)); r = await executeProposal(p, actor); }
   if (r.ok && r.verified && typeof window !== "undefined") window.dispatchEvent(new Event("kaju:verified"));
   return r;
 }

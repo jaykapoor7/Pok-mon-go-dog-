@@ -6,6 +6,8 @@
    is returned in `missing`, and the person is asked for it.
    ════════════════════════════════════════════════════════════════════ */
 
+import { lowercasePlace, placeTail } from "./capture";
+
 export type Extracted = {
   category: "injury" | "sterilisation" | "rescue" | "vaccination" | "other";
   severity: "low" | "normal" | "high" | "critical";
@@ -43,12 +45,16 @@ export function extractFieldMessage(raw: string, today = new Date()): Extracted 
   const city = CITIES.find((c) => new RegExp(`\\b${c}\\b`, "i").test(text)) ?? null;
   const placeM = text.match(/\b(?:near|at|in|outside|behind|opposite|opp\.?)\s+([A-Z0-9][\w.'-]*(?:\s+[A-Z0-9][\w.'-]*){0,4})/);
   let place = placeM ? placeM[1].replace(/[.,;]+$/, "") : null;
+  /* "near Ward 12 market": the place nouns after a named place belong to it. */
+  if (place && placeM && !/[.,;]$/.test(placeM[1])) place += placeTail(text.slice((placeM.index ?? 0) + placeM[0].length));
   if (!place) {
     /* "…near the temple, Saibaba Colony, Coimbatore." — a capitalised phrase between commas. */
     const NOT = /^(female|male|photo|released|rescued|ear|adult|puppy|today|yesterday|abc|arv|location|attached)/i;
     const seg = text.split(/[,.;\n]/).map((x) => x.trim()).find((x) => /^[A-Z][\w'-]*(\s+[A-Z][\w'-]*){0,3}$/.test(x) && !NOT.test(x) && !(city && x.toLowerCase() === city.toLowerCase()));
     if (seg) place = seg;
   }
+  /* "by the bus stand": a place in lower case, only when it ends in a place noun ("in a drain" and "by a bike" are not places). */
+  if (!place) place = lowercasePlace(text);
   if (place && city && place.toLowerCase() === city.toLowerCase()) place = null;
   let date: string | null = null;
   if (/\btoday\b/.test(t)) date = iso(today);

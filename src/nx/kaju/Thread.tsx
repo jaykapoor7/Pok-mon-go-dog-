@@ -11,14 +11,31 @@ import { appHref, useKaju, type Turn } from "./state";
 /* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
    as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx). */
 
-const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
+const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", register_exposure: "Record a bite", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
+const day = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+const EXPOSURE: Record<string, string> = { bite: "Bite", scratch: "Scratch", lick_broken_skin: "Lick on broken skin", other: "Other contact" };
+const WASHED: Record<string, string> = { before_arrival: "washed before arrival", at_facility: "washed here", not_washed: "not washed" };
+const AGE: Record<string, string> = { "0-4": "under 5", "5-14": "5 to 14", "15-29": "15 to 29", "30-49": "30 to 49", "50+": "50 and over" };
+/** What a task or a bite record will hold, one fact per line, so the person checks each before confirming. Empty facts are said, not hidden. */
+function proposalFacts(p: Proposal): string[] {
+  if (p.kind === "add_task") return [`Due: ${p.dueOn ? day(p.dueOn) : "no date"}`, `For: ${p.assigneeName ?? "nobody yet"}`, `About: ${p.caseLabel ?? p.dogLabel ?? "no record"}`];
+  if (p.kind === "register_exposure") return [
+    `${p.facilityName} · ${EXPOSURE[p.exposureKind] ?? p.exposureKind} on ${day(p.exposureOn)}${p.exposureTime ? `, ${p.exposureTime}` : ""}${p.site ? ` · ${p.site}` : ""}`,
+    `Patient: ${p.patientRef ?? "no register number"} · ${p.ageText ? `${p.ageText}${p.ageBand ? ` (${AGE[p.ageBand]})` : ""}` : "age not given"} · ${p.sex ?? "sex not given"}`,
+    `Category: ${p.category ?? "not recorded; the clinician records it"} · Wound: ${p.woundWashed ? WASHED[p.woundWashed] : "washing not recorded"}`,
+    `Animal: ${p.species === "unknown" ? "not stated" : p.species}${p.ownership !== "unknown" ? `, ${p.ownership === "community" ? "street or community" : "someone's pet"}` : ""}${p.animalPlace ? ` · ${p.animalPlace}` : ""}${p.areaName ? ` · area ${p.areaName}` : ""}`,
+    `Reminder calls: ${p.reminderConsent ? "agreed, phone saved" : "not agreed"}`,
+  ];
+  return [];
+}
 function proposalLine(p: Proposal) {
   switch (p.kind) {
+    case "add_task": return p.title;
+    case "register_exposure": return "A bite presentation for your register, from your note. Prescribing stays with the clinician.";
     case "open_case": return `${p.title} · ${p.category}, ${p.severity}${p.zone ? ` · ${p.zone}` : ""}`;
     case "add_note": return `${p.caseLabel}: ${p.note}`;
     case "schedule_followup": return `${p.caseLabel} on ${new Date(p.dueAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}${p.note ? `: ${p.note}` : ""}`;
     case "record_care": return `${p.dogLabel}: ${p.careKind}${p.date ? ` on ${p.date}` : ""}`;
-    case "add_task": return `${p.title}${p.dueOn ? ` · due ${new Date(p.dueOn).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : ""}${p.assigneeName ? ` · ${p.assigneeName}` : ""}`;
     case "email": return `To ${p.to.join(", ")} · ${p.subject}`;
     case "calendar_event": return `${p.title} · ${new Date(p.start).toLocaleString("en-IN")}`;
     case "chat_post": return `#${p.channelName}: ${p.text}`;
@@ -34,7 +51,8 @@ function ProposalCard({ turn, p }: { turn: Turn; p: Proposal }) {
   return (
     <div className="nx-kprop">
       <div className="nx-kprop-h"><b>{PROPOSAL_WORD[p.kind]}</b><span className="nx-t3">Prepared, not saved</span></div>
-      <p>{proposalLine(p)}</p>
+      <p>{p.kind === "add_task" ? <b>{proposalLine(p)}</b> : proposalLine(p)}</p>
+      {proposalFacts(p).map((f) => <p key={f} className="nx-t3">{f}</p>)}
       {p.why ? <p className="nx-t3">{p.why}</p> : null}
       <div className="nx-kprop-f">
         {saved?.ok ? <span className="nx-kok"><Tick size={12} strokeWidth={3} />{saved.what ?? "Saved"}{saved.href ? <> · <Link href={appHref(saved.href)}>Open</Link></> : null}</span>
