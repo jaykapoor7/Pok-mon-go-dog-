@@ -44,6 +44,10 @@ function resolve(sel: string | undefined): HTMLElement | null {
       const when = (n: Element) => n.closest("[data-created]")?.getAttribute("data-created") ?? "";
       const hit = [...document.querySelectorAll<HTMLElement>(part.slice(7))].filter(visible).sort((a, b) => when(b).localeCompare(when(a)))[0];
       if (hit) return hit;
+    } else if (part.startsWith("last:")) {
+      /* "last:<css>": the last visible match, so the newest of several answers. */
+      const hit = [...document.querySelectorAll<HTMLElement>(part.slice(5))].filter(visible).at(-1);
+      if (hit) return hit;
     } else if (part.startsWith("dialog:")) {
       /* "dialog:Save": the button with exactly that text in the open dialog. */
       const want = part.slice(7).trim().toLowerCase();
@@ -89,22 +93,52 @@ const field = (sel: string): HTMLElement | null => {
   }
   return resolve(sel);
 };
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/* Each field the guide fills is brought into view and lit for a moment, so the person sees the product do it. */
+function shown(el: HTMLElement) {
+  const box = (el instanceof HTMLInputElement && (el.type === "radio" || el.type === "checkbox") ? el.closest("label") : null) ?? el;
+  const r = box.getBoundingClientRect();
+  if (r.bottom < 72 || r.top > window.innerHeight - 40) box.scrollIntoView({ block: "center", behavior: calm() ? "auto" : "smooth" });
+  box.classList.remove("dt-filled"); void box.offsetWidth; box.classList.add("dt-filled");
+  window.setTimeout(() => box.classList.remove("dt-filled"), 1100);
+}
+/* Text arrives the way a person types it, quickly; at once under reduced motion. */
+async function typeInto(el: HTMLInputElement | HTMLTextAreaElement, value: string) {
+  shown(el);
+  if (calm() || el.type === "date" || value.length < 4) { setNative(el, value); return; }
+  const steps = Math.min(16, value.length);
+  for (let i = 1; i <= steps; i++) { setNative(el, value.slice(0, Math.ceil((value.length * i) / steps))); await sleep(22); }
+}
 async function runFills(fills: Fill[]) {
   for (const f of fills) {
     if (f.when && !document.querySelector(f.when)) continue;
-    if (f.op === "wait") { await new Promise((r) => setTimeout(r, f.ms)); continue; }
+    if (f.op === "wait") { await sleep(f.ms); continue; }
+    if (f.op === "converse") {
+      /* Answer whatever the screen asks, in whatever order, until it reaches `until`. */
+      const atNow = () => document.querySelector("[data-at]")?.getAttribute("data-at") ?? "";
+      for (let i = 0; i < (f.max ?? 12); i++) {
+        for (let k = 0; k < 300 && document.querySelector('[data-busy="1"]'); k++) await sleep(100);
+        await sleep(300);
+        if (document.querySelector(f.until)) break;
+        const at = atNow(), reply = f.replies[at] ?? f.replies["*"];
+        if (!reply) break;
+        await runFills(reply);
+        for (let k = 0; k < 40 && !document.querySelector('[data-busy="1"]') && atNow() === at && !document.querySelector(f.until); k++) await sleep(100);
+      }
+      continue;
+    }
     /* A field the page adds a moment later ("Add a dose date") is waited for, not skipped. */
     let el = field(f.sel);
     for (let i = 0; !el && i < 60; i++) { await new Promise((r) => setTimeout(r, 80)); el = field(f.sel); }
     if (!el) continue;
     /* A button the page has not enabled yet (the chat waits for its area list) is waited for, not pressed in vain. */
     if (f.op === "press") for (let i = 0; i < 60 && (el as HTMLButtonElement).disabled; i++) await new Promise((r) => setTimeout(r, 100));
-    if (f.op === "type" && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) { setNative(el, typeof f.value === "function" ? f.value(indiaToday()) : f.value); el.focus({ preventScroll: true }); }
-    else if (f.op === "select" && el instanceof HTMLSelectElement) setNative(el, f.value);
-    else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLInputElement) { if (!el.checked) el.click(); }
-    else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLLabelElement) el.click();
-    else if (f.op === "press") el.click();
-    await new Promise((r) => setTimeout(r, f.op === "press" ? 160 : 60));
+    if (f.op === "type" && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) { await typeInto(el, typeof f.value === "function" ? f.value(indiaToday()) : f.value); el.focus({ preventScroll: true }); }
+    else if (f.op === "select" && el instanceof HTMLSelectElement) { shown(el); setNative(el, f.value); }
+    else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLInputElement) { shown(el); if (!el.checked) el.click(); }
+    else if ((f.op === "pick" || f.op === "check") && el instanceof HTMLLabelElement) { shown(el); el.click(); }
+    else if (f.op === "press") { shown(el); await sleep(calm() ? 0 : 180); el.click(); }
+    await sleep(f.op === "press" ? 160 : calm() ? 60 : 140);
   }
 }
 

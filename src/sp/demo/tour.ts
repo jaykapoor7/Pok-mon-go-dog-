@@ -52,6 +52,9 @@ export type Fill = (
   | { op: "select"; sel: string; value: string }
   | { op: "press"; sel: string }
   | { op: "wait"; ms: number }
+  /** A conversation: until `until` shows, wait for the screen to settle (no `[data-busy="1"]`), then answer the step
+      it shows (`[data-at]`) with that step's fills. Kaju may ask in any order, or not ask at all. */
+  | { op: "converse"; until: string; replies: Record<string, Fill[]>; max?: number }
 ) & { /** Only when this matches on the page (the step it answers is the one showing). */ when?: string };
 
 /** How the guide knows an action is done. */
@@ -90,23 +93,31 @@ export type Act = {
 export type Stage = { id: string; label: string; role: DemoRole; who: string; title: string; lede: string; acts: Act[]; handoff?: string };
 
 const PROGRAMME = "/gov/programmes/bengaluru-demo";
-const plus = (today: string, n: number) => new Date(Date.parse(`${today}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 const REQUEST = '[data-tour="request"][data-area="Indiranagar"]';
 
-/* The example prescription: the clinic's protocol as written, with each dose date the clinician's. */
-const RX: Fill[] = [
-  { op: "type", sel: 'input[placeholder="As written in your protocol"]', value: "Intradermal, 2 sites (updated Thai Red Cross): days 0, 3, 7 and 28" },
-  { op: "check", sel: ".gh-form .gh-tick input" },
-  { op: "type", sel: 'input[aria-label="Dose 1 date"]', value: (t) => t },
-  { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
-  { op: "type", sel: 'input[aria-label="Dose 2 date"]', value: (t) => plus(t, 3) },
-  { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
-  { op: "type", sel: 'input[aria-label="Dose 3 date"]', value: (t) => plus(t, 7) },
-  { op: "press", sel: "text:Add a dose date" }, { op: "wait", ms: 120 },
-  { op: "type", sel: 'input[aria-label="Dose 4 date"]', value: (t) => plus(t, 28) },
-];
+/* The bite record and the course arrive prepared by Kaju; the clinician makes the one call that is theirs and confirms.
+   The examples answer those calls (category III; immunoglobulin given). The attestation tick and the save stay the
+   presenter's, as a clinician's would; "Next action" does them too, the way a person would. */
+const CATEGORY_III: Fill = { op: "pick", sel: '[data-tour="record-category"] input[value="III"]' };
+const RIG_GIVEN: Fill = { op: "pick", sel: '[data-tour="course-rig"] input[value="given"]' };
 const SIMBA = "/ngo/animals/c1c5368c-4c58-4df9-a49a-7c9aac25b315";
 const AT = (s: string) => `.kb[data-at="${s}"]`;
+/* The citizen's side of the conversation, whatever Kaju asks and in whatever order: Kaju reads the words with a
+   model where it is switched on, so it may already know the answer and not ask at all. */
+const SAY = (value: string): Fill[] => [{ op: "type", sel: '[data-tour="bite-compose"] textarea', value }, { op: "wait", ms: 120 }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send' }];
+const CONVERSE: Fill = { op: "converse", until: '[data-reached~="review"]', max: 14, replies: {
+  tell: SAY("A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance."),
+  danger: [{ op: "press", sel: "text:No, none of these" }],
+  urgent: [{ op: "press", sel: "text:Yes, tell the clinic" }],
+  notify: [{ op: "press", sel: "text:Yes, tell the clinic" }],
+  where: SAY("Near the bus stop on 100 Feet Road, Indiranagar"),
+  when: [{ op: "press", sel: "text:Today" }],
+  date: [{ op: "press", sel: '[data-tour="bite-quick"] .is-go' }],
+  animal: [{ op: "press", sel: "text:Dog" }],
+  looks: SAY("Brown dog, no collar, usually near the bus stop on 100 Feet Road"),
+  call: [{ op: "press", sel: "text:No, don't call me" }],
+  phone: SAY("No, don't call me"),
+} };
 
 export const STAGES: Stage[] = [
   {
@@ -117,14 +128,7 @@ export const STAGES: Stage[] = [
       { id: "tell", title: "Tell Kaju what happened", path: "/bite-help", sel: '[data-tour="bite-compose"], [data-tour="bite-call"]',
         say: "Chat or call. Kaju fills the report on the right and asks only what's missing.",
         example: { label: "Use the example", fills: [{ op: "press", sel: '[data-tour="mode-chat"]', when: '.kb[data-mode="call"]' }, { op: "wait", ms: 150 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance." }] },
-        auto: [
-          { op: "press", sel: '[data-tour="mode-chat"]', when: '.kb[data-mode="call"]' }, { op: "wait", ms: 200 },
-          { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance.", when: AT("tell") }, { op: "wait", ms: 120, when: AT("tell") }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send', when: AT("tell") },
-          { op: "press", sel: "text:No, none of these", when: AT("danger") },
-          { op: "press", sel: "text:Yes, tell the clinic", when: AT("notify") },
-          { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "Brown dog, no collar, usually near the bus stop on 100 Feet Road", when: AT("looks") }, { op: "wait", ms: 120, when: AT("looks") }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send', when: AT("looks") },
-          { op: "press", sel: "text:No, don't call me", when: AT("call") },
-        ],
+        auto: [{ op: "press", sel: '[data-tour="mode-chat"]', when: '.kb[data-mode="call"]' }, { op: "wait", ms: 200 }, CONVERSE],
         done: { sel: '[data-reached~="review"]' } },
       { id: "send", title: "Send it to the clinic", path: "/bite-help", sel: '[data-tour="bite-quick"]',
         say: "Kaju sends the report and shows where to go today.",
@@ -141,32 +145,15 @@ export const STAGES: Stage[] = [
         say: "The report is waiting. Tap “Patient came in”.",
         auto: [{ op: "press", sel: '[data-tour="notice"][data-area="Indiranagar"] [data-tour="notice-came"]' }],
         done: { path: /^\/health\/bites\/new/ } },
-      { id: "present", title: "Record the bite", path: "/health/bites/new", at: /^\/health\/bites\/new/, sel: 'form button[type="submit"]',
-        say: "Filled from the report. The clinician sets the category and saves.",
-        example: { label: "Fill the example", fills: [
-          { op: "type", sel: 'input[placeholder="For example the OPD number"]', value: "OPD-DEMO-1116" },
-          { op: "select", sel: "field:Age|select", value: "30-49" },
-          { op: "pick", sel: 'input[name="sex"][value="female"]' },
-          { op: "pick", sel: 'input[name="washed"][value="before_arrival"]' },
-          { op: "pick", sel: 'input[name="own"][value="community"]' },
-          { op: "pick", sel: 'input[name="category"][value="III"]' },
-        ] },
-        auto: [
-          { op: "type", sel: 'input[placeholder="For example the OPD number"]', value: "OPD-DEMO-1116" },
-          { op: "select", sel: "field:Age|select", value: "30-49" },
-          { op: "pick", sel: 'input[name="sex"][value="female"]' },
-          { op: "pick", sel: 'input[name="washed"][value="before_arrival"]' },
-          { op: "pick", sel: 'input[name="own"][value="community"]' },
-          { op: "pick", sel: 'input[name="category"][value="III"]' },
-          { op: "wait", ms: 200 }, { op: "press", sel: 'form button[type="submit"]' }, { op: "wait", ms: 400 },
-          { op: "press", sel: "dialog:Save" },
-        ],
+      { id: "present", title: "Record the bite", path: "/health/bites/new", at: /^\/health\/bites\/new/, sel: '[data-tour="record-card"]',
+        say: "Kaju prepared it from the report. The clinician sets the category and saves.",
+        example: { label: "Use the example", fills: [CATEGORY_III] },
+        auto: [CATEGORY_III, { op: "wait", ms: 200 }, { op: "press", sel: '[data-tour="record-save"]' }],
         done: { path: /^\/health\/bites\/[0-9a-f-]{36}$/ }, keep: "bite" },
-      { id: "prescribe", title: "Prescribe the course", path: "@bite", at: /^\/health\/bites\/[0-9a-f-]{36}$/, sel: ".gh-form",
-        say: "Each dose lands on the clinic's Today. The NGO is asked to find the dog.",
-        example: { label: "Fill the example", fills: RX },
-        auto: [...RX, { op: "wait", ms: 200 }, { op: "press", sel: "text:Save prescription" }, { op: "wait", ms: 400 },
-          { op: "check", sel: '[role="dialog"] input[type="checkbox"]' }, { op: "wait", ms: 120 }, { op: "press", sel: "dialog:Save prescription" }],
+      { id: "prescribe", title: "Prescribe the course", path: "@bite", at: /^\/health\/bites\/[0-9a-f-]{36}$/, sel: '[data-tour="course-card"]',
+        say: "Kaju prepared the course from the clinic's protocol. The clinician ticks and saves.",
+        example: { label: "Use the example", fills: [RIG_GIVEN] },
+        auto: [RIG_GIVEN, { op: "check", sel: '[data-tour="course-attest"] input' }, { op: "wait", ms: 200 }, { op: "press", sel: '[data-tour="course-save"]' }],
         done: { sel: 'ul[aria-label="Doses"]' } },
     ],
   },
@@ -192,9 +179,14 @@ export const STAGES: Stage[] = [
   },
   {
     id: "kaju", label: "Kaju", role: "oh-ngo", who: "The same coordinator, with Kaju", title: "Kaju coordinates",
-    lede: "Ask Kaju in plain words. It answers from the records, says what is missing and prepares the next steps.",
+    lede: "Kaju works inside the team: tagged in a chat, or asked directly. It answers from the records and prepares the next steps.",
     handoff: "Every step is on the record, in a person's name.",
     acts: [
+      { id: "team", title: "Tag Kaju in the team chat", path: "/channels/indiranagar", at: /^\/channels\/indiranagar/, sel: ".nx-compose textarea",
+        say: "The team talks here. Tag @Kaju and it turns the thread into tasks.",
+        example: { label: "Use the example", fills: [{ op: "type", sel: ".nx-compose textarea", value: "@Kaju turn these updates into tasks" }] },
+        auto: [{ op: "type", sel: ".nx-compose textarea", value: "@Kaju turn these updates into tasks" }, { op: "wait", ms: 150 }, { op: "press", sel: ".nx-compose button[type=submit]" }, { op: "wait", ms: 1200 }, { op: "press", sel: "last:.nx-prop-f .nx-btn" }],
+        done: { sel: ".nx-prop-f", text: "Added to Work" } },
       { id: "ask", title: "Ask Kaju", path: "/kaju", at: /^\/kaju\/?$/, sel: 'textarea[aria-label="Ask Kaju"]',
         say: "“What's happening with the Indiranagar bite? What's missing?”",
         example: { label: "Use the example", fills: [{ op: "type", sel: 'textarea[aria-label="Ask Kaju"]', value: "What's happening with the Indiranagar bite incident? What's missing, and what do the teams need to do next?" }] },
