@@ -11,7 +11,7 @@ import "./bite-help.css";
    it never assesses risk, diagnoses rabies or suggests a treatment. */
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Kaju: help after an animal bite, StrayPaw", robots: { index: false, follow: false } };
+export const metadata = { title: "Kaju: help after a dog bite, StrayPaw", robots: { index: false, follow: false } };
 
 export default function BiteHelpPage() {
   if (!flagOn("citizen_bite_assist")) notFound();

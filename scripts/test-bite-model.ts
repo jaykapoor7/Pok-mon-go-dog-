@@ -47,6 +47,10 @@ async function main() {
   assert.equal(m?.reply, "A street dog bit you this morning.", "before the safety question, only what was heard");
   ok("only the person's answer clears the safety check; the model may raise danger, never assume it away; it adds nothing before the safety question");
 
+  assert.equal(mustAsk({ ...NO_FACTS, kind: "bite", danger: "no", area: "Indiranagar", on: today }), "looks", "dog bites only: the animal is never asked");
+  assert.equal(railNext("animal", { ...NO_FACTS, kind: "bite", danger: "no", area: "Indiranagar", on: today }, "when").next, "looks");
+  ok("dog bites only: Kaju never asks which animal it was");
+
   const e = await biteTurn({ turns: [{ who: "me", text: "hi" }], facts: NO_FACTS, showing: "tell", areas, programme: "B", mode: "chat", today }, undefined, {}, stand({ reply: "x", next: "none" }));
   assert.equal(e, null);
   ok("off unless switched on: the page keeps its fixed rules");
