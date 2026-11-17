@@ -116,7 +116,7 @@ export async function confirmTask(db: Db, userId: string, ngoId: string | null, 
     restored = true;
   }
   await logKaju(db, { kind: "add_task", ok: true, target: id, summary: restored ? "Task put back" : replayed ? "Task already added" : "Task added", ngoId: org === ngoId ? org : null, organisationId: org === ngoId ? null : org });
-  return { status: 200, body: { ok: true, verified: true, replayed, id, kind: "add_task", at: row.created_at, what: restored ? `Task put back: ${row.title}` : replayed ? `Already added: ${row.title}` : `Task added: ${row.title}`, href: TASK_HOME[place.workspace ?? ""] ?? "/home", workspace: place.name ?? null } };
+  return { status: 200, body: { ok: true, verified: true, replayed, id, kind: "add_task", at: row.created_at, what: restored ? `Task put back: ${row.title}` : replayed ? (row.state === "done" ? `Already done: ${row.title}` : `Already added: ${row.title}`) : `Task added: ${row.title}`, href: TASK_HOME[place.workspace ?? ""] ?? "/home", workspace: place.name ?? null } };
 }
 
 const KINDS = ["bite", "scratch", "lick_broken_skin", "other"], BANDS = ["0-4", "5-14", "15-29", "30-49", "50+"], WASH = ["before_arrival", "at_facility", "not_washed"];
