@@ -104,7 +104,8 @@ test("Kaju's call: it says each question aloud, hears the answers, fills the rep
   await expect(report).toContainText("Indiranagar", { timeout: 30_000 });
   await expect(report).toContainText("the bus stop on 100 Feet Road", { timeout: 30_000 });
   await expect(page.locator(".kb[data-reached~=\"sent\"]")).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator(".kv")).toContainText("knows you're coming", { timeout: 30_000 });
+  /* The call ends itself once Kaju has said the last line. */
+  await expect(page.locator(".kv.is-ended")).toContainText("knows you're coming", { timeout: 30_000 });
   const said = (await page.evaluate(() => (window as unknown as { __said: string[] }).__said)).join(" ");
   for (const w of ["wash the wound", "Okay, a street dog bite in Indiranagar, this morning", "Quick safety check", "What did the dog look like", "Shall I send it?", "knows you're coming"]) expect(said).toContain(w);
   /* The person's own words: none of them is taken for a landmark. */
