@@ -16,6 +16,7 @@ import { useLive, useTasks } from "../live";
 import { readAnimalRefs } from "../data/animals";
 import { withAnimalName } from "../animalLabel";
 import "../field.css";
+import "../css/ngo-records.css";
 
 /* Today, an NGO's home. One line to Kaju; four figures, each with a small picture of what it counts and a link to the
    list it counts; then what needs attention beside the person's tasks, five rows each, and what Kaju is waiting on as a
@@ -51,7 +52,7 @@ function SampleToday() {
   const row = (w: Work, isDone: boolean) => <TaskRow key={w.id} id={w.id} title={w.title} meta={`${w.ref} · ${w.kind} · ${w.place} · ${w.who}`} chip={{ text: w.state, tone: WORK_TONE[w.tone] ?? "plain" }} done={isDone} onToggle={() => toggle(w.id)} href={w.animal ? `/ngo/animals/${w.animal}` : undefined} />;
   return (
     <Shell crumb={["Today"]}>
-      <div className="nx-page hm-page">
+      <div className="nx-page hm-page nr-today">
         <div className="nx-head">
           <div>
             <p className="nx-eyebrow" suppressHydrationWarning>{date} · {ORG.city}<Sample /></p>
@@ -220,14 +221,14 @@ function LiveToday() {
   const retryAll = () => { visits.reload(); cases.reload(); herd.reload(); };
   return (
     <Shell crumb={["Today"]}>
-      <div className="nx-page hm-page">
+      <div className="nx-page hm-page nr-today">
         <div className="nx-head">
           <div>
             <p className="nx-eyebrow">{date} · {org!.name}</p>
             <h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1>
             <p className="nx-sub">{attention === null ? "Reading what needs you…" : attention.length ? <><b className="num">{attention.length}</b> {attention.length === 1 ? "thing needs" : "things need"} attention, most urgent first.{partial.length ? ` Your ${partial.join(" and ")} could not be read.` : ""}</> : partial.length ? `Your ${partial.join(" and ")} could not be read, so nothing is shown as clear.` : "Nothing is overdue or critical."}</p>
           </div>
-          {ngo ? <Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry"><Camera size={14} />Record an animal</Link> : null}
+          {ngo ? <Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry nr-plus-dup"><Camera size={14} />Record an animal</Link> : null}
         </div>
         <AtKaju role="ngo" />
         <Tiles>

@@ -21,6 +21,7 @@ import { CareForm, CaseNext, DeleteRecord, FollowupList, OpsEvents, SampleNext, 
 import { KajuCapture, type ByHand } from "../../KajuCapture";
 import { CARE_WORD, dayWords, readRecord } from "../../data/capture";
 import type { Proposal } from "@/sp3/ai/types";
+import { RecordBar } from "../../RecordBar";
 
 /* One case, read top to bottom as it happened: what it is and who holds it, the one next step the person's role
    allows, its follow-ups, the story so far with who recorded each part, photos, care and movements, and the other
@@ -187,6 +188,14 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
           <Section title="In the same area" count={neighbours.length}><Related rows={neighbours} none={reg.h3_r8 ? "No other case recorded in this area." : "This case has no location."} />{neighbours.length >= 60 ? <p className="nr-hint">The 60 most recent are shown.</p> : null}</Section>
         </div>
       )}
+      <RecordBar label="More on this case"
+        primary={actor ? <button type="button" className="nx-btn" onClick={() => { setTab("Overview"); bring("case-next"); }}>Next step</button> : undefined}
+        more={<>
+          {c.dog_id ? <Link href={`/ngo/animals/${c.dog_id}`} className="nx-btn is-quiet"><PawPrint size={16} />Open the animal</Link> : null}
+          {c.dog_id ? <button type="button" data-close className="nx-btn is-quiet" onClick={() => { setTab("Care and movements"); setCaring(true); bring("case-care"); }}>Record care by hand</button> : null}
+          <button type="button" data-close className="nx-btn is-quiet" onClick={() => setTab("History")}>The whole story</button>
+          <DeleteRecord kind="case" id={c.id} what="this case" label="Delete case" onDone={() => router.push("/ngo/cases")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} />
+        </>} />
     </Shell>
   );
 }
@@ -230,6 +239,7 @@ function SampleRecord({ id }: { id: string }) {
       ) : tab === "History" ? <div className="nx-page" style={{ maxWidth: 820 }}><Timeline items={items} /></div>
         : tab === "Care and movements" ? <div className="nx-page" style={{ maxWidth: 820 }}><p className="nx-sub">Capture, release, transfer, vaccination and other steps are recorded here, each with who reported it, and a coordinator confirms or returns each one.</p><p style={{ marginTop: 14 }}><TryLink sm>Record care or movement</TryLink></p></div>
         : <div className="nx-page"><p className="nx-sub">Other cases on the same animal and in the same area appear here in the live demo.</p></div>}
+      <RecordBar label="More on this case" primary={<TryLink>Next step</TryLink>} more={<TryLink quiet>Delete case</TryLink>} />
     </Shell>
   );
 }
