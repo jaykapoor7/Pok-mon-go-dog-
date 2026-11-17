@@ -277,6 +277,8 @@ async function main() {
     assert.match(lost.text, /could not match “zzqx plorb”/); assert.equal(lost.suggestions?.length, 3);
     const bits = await ask("the blue thing on friday near Ward 12 market", n.ctx);
     assert.match(bits.text, /I picked out a date \(.+\) and a place \(Ward 12 market\), but not what to do with them/);
+    assert.equal(bits.suggestions?.length, 3, "three closest things even when only one is close");
+    assert.equal(bits.suggestions?.[0], "Open cases by zone", "the closest comes first");
     const todo = await ask("call the vet on friday about the pups", n.ctx);
     assert.equal(todo.proposals.length, 0, "a to-do with a day is offered back, never prepared on a guess");
     assert.equal(todo.suggestions?.[0], "Add a task: call the vet on friday about the pups");
@@ -325,7 +327,7 @@ async function main() {
     assert.deepEqual([x.facilityId, x.exposureOn, x.exposureTime, x.exposureKind, x.site, x.category, x.ageBand, x.sex, x.woundWashed, x.species, x.ownership, x.patientRef, x.contactPhone, x.reminderConsent],
       [HOSPITAL, today, "16:00", "bite", "left calf", "III", "5-14", "male", null, "unknown", "community", null, null, false]);
     assert.match(x.why, /Not in the note: register number, wound washing \(the note says washed, not whether before arrival or here\), which animal\./);
-    assert.match(x.why, /The register has no field for the time or wound site/); assert.match(x.why, /Prescribing a course stays with the clinician/);
+    assert.match(x.why, /The register has no field for the time or wound site/); assert.match(note.text, /Prescribing the course stays with the clinician/);
     const noCat = only(await ask("Girl, 6 yrs, licked by pet dog on broken skin yesterday", h.ctx), "register_exposure");
     assert.equal(noCat.category, null); assert.equal(noCat.exposureKind, "lick_broken_skin");
     const records = clinic("records");
@@ -357,8 +359,11 @@ async function main() {
     assert.equal((await confirmTask(w.db, ME, ORG, { ...prepared, id: "other-4", caseId: CASE_OTHER })).status, 400);
     assert.equal((await confirmTask(w.db, ME, ORG, { ...prepared, id: "other-5", dogId: TIGER_OTHER, caseId: null })).status, 400);
     assert.equal(w.tables.nx_tasks.length, 1);
+    (w.tables.nx_tasks[0] as Record<string, unknown>).state = "cancelled";
+    const back = await confirmTask(w.db, ME, ORG, prepared);
+    assert.deepEqual([back.status, back.body.what, (w.tables.nx_tasks[0] as Record<string, unknown>).state, w.tables.nx_tasks.length], [200, "Task put back: Visit Dog 125", "open", 1]);
     assert.ok(w.tables.ai_action_log.some((r) => r.kind === "add_task"));
-    ok("Confirm adds the task as the confirming person, reads it back, and the same proposal never adds a second; another organisation, person or record is refused");
+    ok("Confirm adds the task as the confirming person, reads it back, and the same proposal never adds a second (a deleted one is put back); another organisation, person or record is refused");
   }
 
   /* ── 7. confirming: a bite, through the bite form's own function ───── */

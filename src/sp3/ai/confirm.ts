@@ -103,8 +103,17 @@ export async function confirmTask(db: Db, userId: string, ngoId: string | null, 
   const row = back.data as { id: string; org_id: string; title: string; due_on: string | null; assignee_id: string | null; created_by: string; created_at: string; state: string };
   if (row.created_by !== userId || row.org_id !== org || row.title !== title || (row.due_on ?? null) !== (p.dueOn ?? null) || (row.assignee_id ?? null) !== (p.assigneeId ?? null))
     return fail(409, "This proposal was already confirmed with different details. Ask Kaju again for a new one; nothing else was saved.");
-  await logKaju(db, { kind: "add_task", ok: true, target: id, summary: replayed ? "Task already added" : "Task added", ngoId: org === ngoId ? org : null, organisationId: org === ngoId ? null : org });
-  return { status: 200, body: { ok: true, verified: true, replayed, id, kind: "add_task", at: row.created_at, what: replayed ? `Already added: ${row.title}` : `Task added: ${row.title}`, href: "/ngo/today", workspace: place.name ?? null } };
+  /* The same words confirmed again after the task was deleted on Today: the person wants it, so it is put back, not added twice. */
+  let restored = false;
+  if (replayed && row.state === "cancelled") {
+    const up = await db.from("nx_tasks").update({ state: "open" }).eq("id", id).eq("state", "cancelled");
+    if (up.error) return fail(400, "This task was deleted on Today and could not be put back. Nothing else was saved.");
+    const again = await db.from("nx_tasks").select("state").eq("id", id).maybeSingle();
+    if (again.error || (again.data as { state?: string } | null)?.state !== "open") return fail(202, "Verification is pending: the task could not be read back yet. Confirm the same proposal again to check it; it will not be added twice.");
+    restored = true;
+  }
+  await logKaju(db, { kind: "add_task", ok: true, target: id, summary: restored ? "Task put back" : replayed ? "Task already added" : "Task added", ngoId: org === ngoId ? org : null, organisationId: org === ngoId ? null : org });
+  return { status: 200, body: { ok: true, verified: true, replayed, id, kind: "add_task", at: row.created_at, what: restored ? `Task put back: ${row.title}` : replayed ? `Already added: ${row.title}` : `Task added: ${row.title}`, href: "/ngo/today", workspace: place.name ?? null } };
 }
 
 const KINDS = ["bite", "scratch", "lick_broken_skin", "other"], BANDS = ["0-4", "5-14", "15-29", "30-49", "50+"], WASH = ["before_arrival", "at_facility", "not_washed"];

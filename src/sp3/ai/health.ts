@@ -48,6 +48,7 @@ const SHOW = 8;
 const short = (iso: string) => sayDay(iso.slice(0, 10));
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const bite = (id: string, code: string): Citation => ({ id: `bite:${id}`, label: code, href: `/health/bites/${id}`, kind: "page" });
+const cite = (sink: Sink, c: Citation) => { if (!sink.citations.some((x) => x.id === c.id)) sink.citations.push(c); };
 const NOT_A_FACILITY = "Bite and PEP records are kept by hospitals and health centres. Your account is not on the staff of one, so there is nothing of yours for me to read.";
 const COULD_NOT = "I could not check your facility just now, so I have not read anything. Try again.";
 
@@ -85,7 +86,7 @@ export async function healthAnswer(ask: HealthAsk, ctx: ToolCtx, sink: Sink, now
       if (!row) continue;
       const e = await read<ExposureRecord>(ctx, sink, f, "oh_clinic_exposure", { p_exposure: row.id }, "Bite record", () => 1);
       if (!e) return { text: `${ask.code} is in ${f.name}'s register, but its record could not be opened just now. Try again.` };
-      sink.citations.push(bite(e.id, e.code));
+      cite(sink, bite(e.id, e.code));
       return { text: exposureSummary(e, f) };
     }
     return { text: `${ask.code} is not in ${mine.length > 1 ? "your facilities' registers" : `${mine[0].name}'s register`} (the 200 most recent). I only look in your own facility's records. Check the code on the record.` };
@@ -99,9 +100,9 @@ export async function healthAnswer(ask: HealthAsk, ctx: ToolCtx, sink: Sink, now
       if (!x) { unread++; continue; }
       const inWait = (x.incoming ?? []).filter((t) => t.status === "sent"), outWait = (x.outgoing ?? []).filter((t) => t.status === "sent");
       if (inWait.length) lines.push(`**${plural(inWait.length, "person", "people")} referred to you${at(f)}** and not yet marked:`, ...inWait.slice(0, SHOW).map((t) => `- **${t.code ?? "Referral"}** from ${t.from_short ?? t.from ?? "another facility"} for ${SERVICE[t.service] ?? t.service} · sent ${short(t.sent_at)}`));
-      if (outWait.length) { lines.push(`**${plural(outWait.length, "person", "people")} you referred${at(f)}** not yet marked by the other facility:`, ...outWait.slice(0, SHOW).map((t) => `- **${t.code ?? "Referral"}** to ${t.to_short ?? t.to ?? "another facility"} for ${SERVICE[t.service] ?? t.service} · sent ${short(t.sent_at)}`)); for (const t of outWait.slice(0, SHOW)) if (t.exposure_id && t.code) sink.citations.push(bite(t.exposure_id, t.code)); }
+      if (outWait.length) { lines.push(`**${plural(outWait.length, "person", "people")} you referred${at(f)}** not yet marked by the other facility:`, ...outWait.slice(0, SHOW).map((t) => `- **${t.code ?? "Referral"}** to ${t.to_short ?? t.to ?? "another facility"} for ${SERVICE[t.service] ?? t.service} · sent ${short(t.sent_at)}`)); for (const t of outWait.slice(0, SHOW)) if (t.exposure_id && t.code) cite(sink, bite(t.exposure_id, t.code)); }
     }
-    sink.citations.push({ id: "page:/health/referrals", label: "Referrals", href: "/health/referrals", kind: "page" });
+    cite(sink, { id: "page:/health/referrals", label: "Referrals", href: "/health/referrals", kind: "page" });
     if (unread === mine.length) return { text: "I could not read your referrals just now, so I do not know what is waiting. Try again." };
     return { text: lines.length ? `${lines.join("\n")}\n\nMark arrivals on Referrals.${unread ? " One facility's referrals could not be read just now." : ""}` : `No referral is waiting${unread ? " in the referrals I could read" : ""}. Arrivals are marked on Referrals.` };
   }
@@ -111,7 +112,7 @@ export async function healthAnswer(ask: HealthAsk, ctx: ToolCtx, sink: Sink, now
     for (const f of mine) {
       const reg = await read<RegisterRow[]>(ctx, sink, f, "oh_clinic_register", { p_facility: f.id, p_filter: "needs_assessment", p_limit: 50 }, "Bites waiting for a clinician", (d) => (Array.isArray(d) ? d.length : 0));
       if (!reg) return { text: COULD_NOT };
-      if (reg.length) lines.push(`**${plural(reg.length, "bite")} waiting for a clinician${at(f)}**:`, ...reg.slice(0, SHOW).map((r) => { sink.citations.push(bite(r.id, r.code)); return `- **${r.code}**${r.patient_ref ? ` · ${r.patient_ref}` : ""} · ${KIND[r.kind] ?? r.kind} on ${short(r.exposure_on)} · ${r.category === "not_recorded" ? "category not recorded" : `category ${r.category}, no course yet`}`; }));
+      if (reg.length) lines.push(`**${plural(reg.length, "bite")} waiting for a clinician${at(f)}**:`, ...reg.slice(0, SHOW).map((r) => { cite(sink, bite(r.id, r.code)); return `- **${r.code}**${r.patient_ref ? ` · ${r.patient_ref}` : ""} · ${KIND[r.kind] ?? r.kind} on ${short(r.exposure_on)} · ${r.category === "not_recorded" ? "category not recorded" : `category ${r.category}, no course yet`}`; }));
     }
     return { text: lines.length ? `${lines.join("\n")}\n\nThe category and any course are the clinician's to record on each record.` : "No bite is waiting for a clinician's category or course." };
   }
@@ -123,25 +124,29 @@ export async function healthAnswer(ask: HealthAsk, ctx: ToolCtx, sink: Sink, now
     const d = await read<{ today: string; due: DueDose[]; completed: Completed[] }>(ctx, sink, f, "oh_clinic_due", { p_facility: f.id }, "Doses due", (x) => x.due?.length ?? 0);
     if (!d) return { text: COULD_NOT };
     const day = d.today ?? today;
-    const line = (x: DueDose) => { sink.citations.push(bite(x.exposure_id, x.code)); return `- **${x.code}**${x.patient_ref ? ` · ${x.patient_ref}` : ""} · dose ${x.dose_no} of ${x.doses_total} · ${x.due_on === day ? "today" : x.due_on === addDays(day, 1) ? "tomorrow" : `was due ${short(x.due_on)}`}${x.phone ? " · phone on record" : ""}${x.last_reminder ? ` · last call ${CALL[x.last_reminder.outcome] ?? x.last_reminder.outcome}, ${short(x.last_reminder.at)}` : ""}`; };
+    const line = (x: DueDose) => { cite(sink, bite(x.exposure_id, x.code)); return `- **${x.code}**${x.patient_ref ? ` · ${x.patient_ref}` : ""} · dose ${x.dose_no} of ${x.doses_total} · ${x.due_on === day ? "today" : x.due_on === addDays(day, 1) ? "tomorrow" : `was due ${short(x.due_on)}`}${x.phone ? " · phone on record" : ""}${x.last_reminder ? ` · last call ${CALL[x.last_reminder.outcome] ?? x.last_reminder.outcome}, ${short(x.last_reminder.at)}` : ""}`; };
     const due = d.due ?? [];
     if (ask.kind === "missed") {
       const late = due.filter((x) => x.due_on < day);
       if (late.length) { any = true; sections.push(`**${plural(late.length, "dose")} past ${late.length === 1 ? "its" : "their"} date with nothing recorded${at(f)}**:`, ...late.slice(0, SHOW).map(line)); }
     } else if (ask.kind === "calls") {
-      const calls = due.filter((x) => x.phone && !(x.last_reminder && x.last_reminder.at.slice(0, 10) >= addDays(day, -1)));
+      /* One call per person: their earliest waiting dose, and how many more are waiting. */
+      const waiting = due.filter((x) => x.phone && !(x.last_reminder && x.last_reminder.at.slice(0, 10) >= addDays(day, -1)));
+      const people = [...new Map(waiting.map((x) => [x.exposure_id, x])).keys()].map((id) => waiting.filter((x) => x.exposure_id === id));
       const tell = (d.completed ?? []).filter((c) => c.phone && !c.told);
-      if (calls.length) { any = true; sections.push(`**${plural(calls.length, "person", "people")} to remind about a dose${at(f)}** (they agreed to calls):`, ...calls.slice(0, SHOW).map(line)); }
-      if (tell.length) { any = true; sections.push(`**${plural(tell.length, "person", "people")} to tell their course is complete${at(f)}**:`, ...tell.slice(0, SHOW).map((c) => { sink.citations.push(bite(c.exposure_id, c.code)); return `- **${c.code}**${c.patient_ref ? ` · ${c.patient_ref}` : ""} · completed ${short(c.completed_at)}`; })); }
+      if (people.length) { any = true; sections.push(`**${plural(people.length, "person", "people")} to remind about a dose${at(f)}** (they agreed to calls):`, ...people.slice(0, SHOW).map((doses) => `${line(doses[0])}${doses.length > 1 ? ` · ${doses.length - 1} more ${doses.length === 2 ? "dose" : "doses"} waiting` : ""}`)); }
+      if (tell.length) { any = true; sections.push(`**${plural(tell.length, "person", "people")} to tell their course is complete${at(f)}**:`, ...tell.slice(0, SHOW).map((c) => { cite(sink, bite(c.exposure_id, c.code)); return `- **${c.code}**${c.patient_ref ? ` · ${c.patient_ref}` : ""} · completed ${short(c.completed_at)}`; })); }
     } else {
       const want = due.filter((x) => (ask.when === "today" ? x.due_on === day : ask.when === "tomorrow" ? x.due_on === addDays(day, 1) : x.due_on >= day));
       const late = due.filter((x) => x.due_on < day).length;
+      const when = ask.when === "both" ? "today or tomorrow" : ask.when;
       if (want.length) { any = true; sections.push(`**${plural(want.length, "PEP dose")} due ${ask.when === "both" ? "today and tomorrow" : ask.when}${at(f)}**:`, ...want.slice(0, SHOW).map(line), ...(want.length > SHOW ? [`- and ${want.length - SHOW} more on PEP`] : [])); }
+      else if (mine.length > 1) sections.push(`No PEP dose is due ${when}${at(f)}.`);
       if (late) sections.push(`${plural(late, "dose")} ${late === 1 ? "is" : "are"} past ${late === 1 ? "its" : "their"} date with nothing recorded${at(f)}. Ask me “missed doses” to see ${late === 1 ? "it" : "them"}.`);
       if (late) any = true;
     }
   }
-  sink.citations.push({ id: "page:/health/pep", label: "PEP", href: "/health/pep", kind: "page" });
+  cite(sink, { id: "page:/health/pep", label: "PEP", href: "/health/pep", kind: "page" });
   const empty = ask.kind === "missed" ? "No dose is past its date without a record." : ask.kind === "calls" ? "Nobody is waiting for a reminder call: everyone due has been called in the last day, or did not agree to calls." : `No PEP dose is due ${ask.kind === "due" && ask.when !== "both" ? ask.when : "today or tomorrow"}.`;
   return { text: any ? `${sections.join("\n")}\n\nRecord each dose or call on its record. I read and list; giving, missing or changing a dose is recorded by your team.` : empty, suggestions: ask.kind === "due" ? ["Missed doses", "Which patients should we call?", "Referrals waiting"] : ["PEP doses due today", "Referrals waiting"] };
 }
@@ -217,7 +222,8 @@ export async function prepareExposure(note: ExposureNote, said: string, ctx: Too
     note.time || note.site ? `The register has no field for the ${[note.time && "time", note.site && "wound site"].filter(Boolean).join(" or ")}, so ${note.time && note.site ? "they are" : "it is"} not saved with the record.` : null,
     area ? `The ${area.name} animal team will be asked to find and observe the animal (description and place only, never patient details).` : note.place ? `“${note.place}” did not match one of your areas, so no area is set and no animal follow-up is asked for.` : null,
   ].filter(Boolean) as string[];
-  p.why = [`From your note, for ${f.name}.`, missing.length ? `Not in the note: ${missing.join(", ")}.` : "", ...notes, "Prescribing a course stays with the clinician on the record."].filter(Boolean).join(" ");
+  /* The card shows each fact and says prescribing stays with the clinician; this says only what is missing and why. */
+  p.why = [missing.length ? `Not in the note: ${missing.join(", ")}.` : "Everything the register asks for is in the note.", ...notes].join(" ");
   sink.proposals.push(p);
   sink.tools.push({ name: "prepare_exposure", summary: `Prepared a bite record for ${f.name}`, ok: true });
   const facts = [

@@ -16,6 +16,10 @@ const day = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00Z`).toLocaleDateS
 const EXPOSURE: Record<string, string> = { bite: "Bite", scratch: "Scratch", lick_broken_skin: "Lick on broken skin", other: "Other contact" };
 const WASHED: Record<string, string> = { before_arrival: "washed before arrival", at_facility: "washed here", not_washed: "not washed" };
 const AGE: Record<string, string> = { "0-4": "under 5", "5-14": "5 to 14", "15-29": "15 to 29", "30-49": "30 to 49", "50+": "50 and over" };
+/** Kaju's words with the record names and figures it marks (**like this**) in bold, as plain text otherwise. */
+function bold(text: string) {
+  return text.split(/(\*\*[^*\n]+\*\*)/g).map((part, i) => (/^\*\*[^*\n]+\*\*$/.test(part) ? <b key={i}>{part.slice(2, -2)}</b> : part));
+}
 /** What a task or a bite record will hold, one fact per line, so the person checks each before confirming. Empty facts are said, not hidden. */
 function proposalFacts(p: Proposal): string[] {
   if (p.kind === "add_task") return [`Due: ${p.dueOn ? day(p.dueOn) : "no date"}`, `For: ${p.assigneeName ?? "nobody yet"}`, `About: ${p.caseLabel ?? p.dogLabel ?? "no record"}`];
@@ -79,7 +83,7 @@ export function Thread({ compact }: { compact?: boolean }) {
                 {t.pending ? <p className="nx-t3" role="status"><Loader2 size={12} className="nx-spin" /> {t.progress?.length ? t.progress[t.progress.length - 1] : "Reading what you can see…"} <button type="button" className="nx-link" onClick={stop}>Stop waiting</button></p> : null}
                 {t.error ? <div className="nx-kerr" role="alert"><p>{t.error}</p>{t.kind === "expired" ? <Link className="nx-btn is-sm" href={`/sign-in?next=${encodeURIComponent(page.path || "/kaju")}`}>Sign in</Link> : <button type="button" className="nx-btn is-quiet is-sm" onClick={() => retry(t.id)}>Try again</button>}</div> : null}
                 {t.reply ? <>
-                  <p className="nx-ka-t">{t.reply.text}</p>
+                  <p className="nx-ka-t">{bold(t.reply.text)}</p>
                   {t.reply.citations?.length ? <div className="nx-kcite" aria-label="Records Kaju read">{t.reply.citations.slice(0, compact ? 4 : 12).map((c) => <Link key={c.id + c.href} href={appHref(c.href)} className="nx-reclink"><ArrowUpRight size={12} />{c.label}</Link>)}</div> : null}
                   {t.reply.proposals?.map((p) => <ProposalCard key={p.id} turn={t} p={p} />)}
                   {t.reply.navigate ? <p><Link className="nx-btn is-quiet is-sm" href={appHref(t.reply.navigate.href)}>{t.reply.navigate.label}<ArrowUpRight size={12} /></Link></p> : null}

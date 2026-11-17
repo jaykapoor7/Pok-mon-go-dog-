@@ -547,10 +547,11 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
   /* Nothing matched: say so, what was picked out of the words, and the three closest things Kaju can do here. Words that read
      like a to-do with a day are offered back as a task for the person to send; nothing is prepared on a guess. */
   const lost = notFollowed(asked, query);
+  /* The closest first, then this person's usual starting points, so there are always three. */
   const nearest = ctx.orgId
-    ? nearestSkills(q, { org: true, office: false })
-    : office ? nearestSkills(q, { org: false, office: true })
-    : health ? nearestClinic(q)
+    ? [...nearestSkills(q, { org: true, office: false }), ...nearestSkills("", { org: true, office: false })]
+    : office ? [...nearestSkills(q, { org: false, office: true }), ...nearestSkills("", { org: false, office: true })]
+    : health ? [...nearestClinic(q), ...nearestClinic("")]
     : ["Show published programmes", "Open the map", "What is unknown status?", "What is ABC?"];
-  return { ...done(lost.text), suggestions: [...(lost.first && ctx.userId ? [lost.first] : []), ...nearest].slice(0, 3) };
+  return { ...done(lost.text), suggestions: [...new Set([...(lost.first && ctx.userId ? [lost.first] : []), ...nearest])].slice(0, 3) };
 }
