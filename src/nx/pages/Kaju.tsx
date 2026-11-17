@@ -27,8 +27,9 @@ import { appHref, useKaju, type Planned } from "../kaju/state";
 import "../kaju/workspace.css";
 
 /* Kaju's home: one place to say what should get done. A request becomes a plan that says who does each step; Kaju runs
-   what it may, stops where a person decides, and keeps going across sessions. Beside it, what Kaju noticed in the
-   organisation's own records and what it can use here, said plainly. Signed out, everything shown is labelled sample. */
+   what it may, stops where a person decides, and keeps going across sessions. Under it, what Kaju noticed in the
+   organisation's own records as a short row of cards (three, the rest one click away), and at the foot what it can use
+   here as one line that opens; nothing grows into a side column. Signed out, everything shown is labelled sample. */
 
 export function Kaju() {
   const k = useKaju();
