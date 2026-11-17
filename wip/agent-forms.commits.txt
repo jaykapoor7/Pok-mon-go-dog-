@@ -1,8 +1,0 @@
-ed695a83 Merge branch 'worktree-agent-a33bf3151f84ea25e' into agentF2-verify-with-server
-e9d1af0c WIP: send only the person's words (unverified)
-bb3e8d31 Merge commit 'b104e9a8' into agentF2-verify-with-server
-862042af WIP: review fixes (unverified)
-b104e9a8 Kaju: bold marks in the thread, a deleted task put back, three closest things, one call per person
-4b967d78 Kaju understands one line: tasks, records, small talk, a clinician's bite and PEP work
-009a326a WIP: Kaju-first recording (unverified)
-48203613 Kaju understanding: bring in the stopped agent's unfinished work
