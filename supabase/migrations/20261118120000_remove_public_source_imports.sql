@@ -14,6 +14,8 @@
 -- Guarded: it stops, changing nothing, if a target organisation has a member, owns an animal that is not an import,
 -- or if anything outside the set points at the rows being removed.
 -- Map caches rebuild on their own (spatial queue every minute, animal cache and snapshots within 15 minutes).
+-- On production (2026-11-17) the same steps ran in guarded batches (the single transaction is too long for the SQL
+-- tool's time limit), then this migration was recorded there as a no-op. Staging has none of these organisations.
 -- Not reversible from the database; the publishers' datasets remain the source if they are ever wanted again.
 
 do $$
