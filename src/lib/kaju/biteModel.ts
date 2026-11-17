@@ -208,8 +208,11 @@ export async function biteTurn(input: BiteTurnIn, signal?: AbortSignal, env: Rec
   if (!reply) return null;
   const facts = cleanFacts(raw.facts, input.areas, input.today, input.facts);
   if (input.facts.pinned) facts.pinned = true;
+  /* Only the person clears the safety check: "no danger" counts only as an answer to the safety question itself.
+     The model may raise danger at any moment, never assume its absence. */
+  if (facts.danger === "no" && input.facts.danger !== "no" && input.showing !== "danger") facts.danger = input.facts.danger;
   const asked = pickOf(BITE_NEXT, raw.next) ?? "none";
   const { next, fixed } = railNext(asked, facts, input.showing);
-  const quick = Array.isArray(raw.quick) ? raw.quick.map((q) => clip(q, 40)).filter((q): q is string => !!q).slice(0, 3) : [];
-  return { reply: fixed && next in ASK ? ASK[next as keyof typeof ASK] : reply, next, quick: ["danger", "notify", "review", "send", "centres", "call"].includes(next) ? [] : quick, facts, fixed };
+  /* Tap-replies come from the app's own buttons; the model's suggestions repeated what it already knew. */
+  return { reply: fixed && next in ASK ? ASK[next as keyof typeof ASK] : reply, next, quick: [], facts, fixed };
 }

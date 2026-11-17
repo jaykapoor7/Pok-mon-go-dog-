@@ -37,6 +37,14 @@ async function main() {
   assert.equal(cleanFacts({ phone: "+91 98450 12345" }, areas, today).phone, "919845012345");
   ok("danger, then only what is missing (where, when, the animal); the clinic question is the report's Send; a pin counts as where");
 
+  const g = await turn({ reply: "That sounds painful.", next: "looks", quick: ["Street dog"], facts: { kind: "bite", species: "dog", area: "Indiranagar", on: today, danger: "no" } });
+  assert.ok(g); assert.equal(g.facts.danger, null, "the model cannot clear the safety check"); assert.equal(g.next, "danger"); assert.deepEqual(g.quick, []);
+  const h = await turn({ reply: "Okay.", next: "where", quick: [], facts: { danger: "no" } }, { ...NO_FACTS, kind: "bite", species: "dog" }, "danger");
+  assert.ok(h); assert.equal(h.facts.danger, "no", "the person's own answer to the safety question clears it");
+  const k = await turn({ reply: "Call 108 now.", next: "where", quick: [], facts: { danger: "yes" } }, { ...NO_FACTS, kind: "bite", species: "dog" }, "looks");
+  assert.ok(k); assert.equal(k.facts.danger, "yes", "danger can be raised at any moment");
+  ok("only the person's answer clears the safety check; the model may raise danger, never assume it away");
+
   const e = await biteTurn({ turns: [{ who: "me", text: "hi" }], facts: NO_FACTS, showing: "tell", areas, programme: "B", mode: "chat", today }, undefined, {}, stand({ reply: "x", next: "none" }));
   assert.equal(e, null);
   ok("off unless switched on: the page keeps its fixed rules");
