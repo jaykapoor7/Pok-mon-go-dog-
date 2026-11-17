@@ -213,6 +213,9 @@ export async function biteTurn(input: BiteTurnIn, signal?: AbortSignal, env: Rec
   if (facts.danger === "no" && input.facts.danger !== "no" && input.showing !== "danger") facts.danger = input.facts.danger;
   const asked = pickOf(BITE_NEXT, raw.next) ?? "none";
   const { next, fixed } = railNext(asked, facts, input.showing);
+  /* Before the safety question Kaju only says back what it heard: one sentence, whatever else the model added (the
+     fixed safety question and advice follow from the app). */
+  const said = next === "danger" ? reply.split(/(?<=[.!?])\s+/)[0] : reply;
   /* Tap-replies come from the app's own buttons; the model's suggestions repeated what it already knew. */
-  return { reply: fixed && next in ASK ? ASK[next as keyof typeof ASK] : reply, next, quick: [], facts, fixed };
+  return { reply: fixed && next in ASK ? ASK[next as keyof typeof ASK] : said, next, quick: [], facts, fixed };
 }
