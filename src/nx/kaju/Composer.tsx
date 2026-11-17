@@ -55,10 +55,14 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
   const intent = useMemo(() => (canPlan ? toIntent(text, reading) : null), [text, reading, canPlan]);
   const work = canPlan && reading.action === "ask" && looksLikeWork(text);
   const free = work && modelPlanning;
-  const isTask = (!!reading.action && reading.action !== "ask" && canPlan) || free;
+  /* One task ("add a task…", "remind Ravi to…") is prepared as a card to confirm, the same as @Kaju on the home screens,
+     not planned as a mission. Several steps, follow-ups for a ward, posts and emails are still planned. */
+  const single = reading.action === "create_task";
+  const isTask = (!!reading.action && reading.action !== "ask" && !single && canPlan) || free;
   const submit = () => {
     const t = text.trim(); if (!t || busy) return;
-    if (free) onPlan(t, null);
+    if (single) onAsk(t);
+    else if (free) onPlan(t, null);
     else if (isTask) { if (!intent) { box.current?.focus(); return; } onPlan(t, intent); }
     else onAsk(t);
     sent.current = true; early.current = false; (window as { __kjEnter?: boolean }).__kjEnter = false;
