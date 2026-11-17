@@ -17,6 +17,8 @@ import { isResearchArchiveProgramme } from "@/lib/public-programmes";
 import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTools";
 import { queryCases } from "./caseQuery";
 import { caseSummary } from "./caseSummary";
+import { proposeTaskTool } from "./captureRoute";
+import { indiaDay } from "./capture";
 import type { CaseQuery } from "./understand";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -31,7 +33,9 @@ import type { CaseQuery } from "./understand";
    ════════════════════════════════════════════════════════════════════ */
 
 export type ToolProgress = { tool: string; summary: string; ok: boolean };
-export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; userId?: string; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null; /** Called as each tool finishes, for streamed progress. Never carries record data. */ progress?: (e: ToolProgress) => void };
+export type ToolCtx = { db: SupabaseClient; orgId: string | null; userName: string | null; userId?: string; actorRole?: string | null; pagePath?:string; conn?: ConnCtx | null; /** Called as each tool finishes, for streamed progress. Never carries record data. */ progress?: (e: ToolProgress) => void;
+  /** The workspace the page says the person is in ("ngo", "healthcare", …). A hint for wording and for which organisation a task belongs to; never a permission. */ workspace?: string | null;
+  /** The record a page sent ("Tell Kaju" on a case or animal). Read again with the person's own access before use. */ subject?: { caseId?: string | null; dogId?: string | null } };
 export type ToolOut = { data: unknown; summary: string; citations: Citation[]; proposals?: Proposal[]; navigate?: { href: string; label: string }; ok?: boolean };
 
 const clean = (s: unknown, n = 80) => String(s ?? "").replace(/[%,()*\\]/g, " ").trim().slice(0, n);
@@ -73,6 +77,7 @@ export const TOOL_DEFS = [
   { name: "propose_case", description: "Prepare a new case for the user to confirm. Nothing is saved until they press Confirm.", input_schema: { type: "object", properties: { title: { type: "string" }, city: { type: "string" }, zone: { type: "string" }, category: { type: "string", enum: ["injury", "sterilisation", "rescue", "vaccination", "other"] }, severity: { type: "string", enum: ["low", "normal", "high", "critical"] }, description: { type: "string" }, dog_id: { type: "string" } }, required: ["title", "city", "category", "severity", "description"], additionalProperties: false } },
   { name: "propose_note", description: "Prepare a note on an existing case for the user to confirm.", input_schema: { type: "object", properties: { case_id: { type: "string" }, note: { type: "string" } }, required: ["case_id", "note"], additionalProperties: false } },
   { name: "propose_followup", description: "Prepare a follow-up on an existing case for the user to confirm. due_date is YYYY-MM-DD.", input_schema: { type: "object", properties: { case_id: { type: "string" }, due_date: { type: "string" }, note: { type: "string" } }, required: ["case_id", "due_date"], additionalProperties: false } },
+  { name: "propose_task", description: "Prepare a task for the organisation's task list (Today) for the user to confirm. Give the title in plain words, due_on as YYYY-MM-DD if a day was said, assignee_name as the person's name as said (matched exactly to a team member, otherwise left unassigned), assignee_is_me when the user means themselves, and case (a case code) or case_id/dog_id when it is about a record. Nothing is saved until they press Confirm.", input_schema: { type: "object", properties: { title: { type: "string" }, due_on: { type: "string" }, assignee_name: { type: "string" }, assignee_is_me: { type: "boolean" }, case: { type: "string" }, case_id: { type: "string" }, dog_id: { type: "string" } }, required: ["title"], additionalProperties: false } },
   { name: "propose_care", description: "Prepare a care event (sterilisation, vaccination, treatment, checkup, deworming, other) on an animal for the user to confirm. It is a recorded claim by the organisation, never a clinician's sign-off.", input_schema: { type: "object", properties: { dog_id: { type: "string" }, kind: { type: "string", enum: [...CARE_KINDS] }, date: { type: "string" }, notes: { type: "string" } }, required: ["dog_id", "kind"], additionalProperties: false } },
   { name: "navigate", description: `Open a screen for the user. One of: ${Object.keys(NAV).join(", ")}.`, input_schema: { type: "object", properties: { to: { type: "string", enum: Object.keys(NAV) } }, required: ["to"], additionalProperties: false } },
 ] as const;
@@ -129,6 +134,7 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "propose_note": return proposeNote(input, ctx);
     case "propose_followup": return proposeFollowup(input, ctx);
     case "propose_care": return proposeCare(input, ctx);
+    case "propose_task": return proposeTaskTool(input, ctx);
     case "navigate": {
       const n = NAV[String(input.to)];
       const destination=SCREENS.find(d=>d.key===String(input.to));
@@ -205,7 +211,9 @@ async function workSummary({ db, orgId }: ToolCtx): Promise<ToolOut> {
   const base = () => db.from("org_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]);
   const [open, unassigned, critical, overdue, historical, urgent] = await Promise.all([
     base().or(current), base().or(current).is("assignee_name", null), base().or(current).in("condition_class", crit),
-    base().or(current).not("next_due", "is", null).lt("next_due", now),
+    /* Overdue as Today and Operations show it: a dated follow-up visit past due, or the case's own follow-up date
+       (India day) already gone. */
+    base().or(current).or(`next_due.lt.${now},follow_up_at.lt.${indiaDay()}`),
     base().eq("provenance", "imported_historical_record").is("reviewed_at", null),
     db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,assignee_name,next_due,occurred_at,severity").eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]).or(current).order("next_due", { ascending: true, nullsFirst: false }).limit(6),
   ]);

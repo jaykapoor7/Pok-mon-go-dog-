@@ -106,7 +106,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
             ["Looked like", e.animal_description],
             ["Where it is", e.animal_place],
           ]} />
-          <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Patient details stay with this facility. Partners see only the animal facts needed for a follow-up. Kaju does not read this record.</span></p>
+          <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Patient details stay with this facility. Partners see only the animal facts needed for a follow-up. Kaju reads it only for people allowed to open it, and each read is logged. Clinical decisions stay with clinicians.</span></p>
         </section>
 
         <section aria-label="Course">

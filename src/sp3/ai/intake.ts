@@ -79,6 +79,9 @@ export function planIntake(
 
   const city = x.city ?? ctx.defaultCity;
   const blockers = city ? [] : ["Add the city"];
+  /* What the message did not say is named on the card itself, so nobody fills it in from memory. */
+  const notSaid = x.missing.filter((m) => !(m === "city" && city));
+  const why = `New report.${notSaid.length ? ` Not in the message: ${notSaid.join(", ")}.` : ""}${!x.city && city ? ` City taken from your organisation (${city}).` : ""}`;
   const title = x.summary.slice(0, 120) || "Field report";
   const description = [`Report as received:\n${text.slice(0, 1200)}`, x.missing.length ? `Not in the message: ${x.missing.join(", ")}.` : "", x.city ? "" : city ? `City taken from the organisation profile (${city}).` : ""].filter(Boolean).join("\n\n");
   const base = workId("ki", ctx.orgId, text.replace(/\s+/g, " ").trim().toLowerCase());
@@ -92,7 +95,7 @@ export function planIntake(
   if (city) {
     const open = (dog: AnimalCandidate | null, suffix: string, recommended: boolean, detail: string): IntakeOption => ({
       key: `case${suffix}`, label: dog ? `New case for ${dog.label}` : "New case, animal not identified yet", recommended, detail,
-      proposal: { id: `${base}-c${suffix}`, kind: "open_case", why: "New report", title, city, zone: x.place, category: x.category, severity: x.severity, description, dogId: dog?.id ?? null },
+      proposal: { id: `${base}-c${suffix}`, kind: "open_case", why, title, city, zone: x.place, category: x.category, severity: x.severity, description, dogId: dog?.id ?? null },
     });
     if (animal) options.push(open(animal, "a", !strongDuplicate, `Tag ${animal.tag} matches this animal exactly.`));
     else {

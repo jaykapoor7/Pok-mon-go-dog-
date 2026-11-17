@@ -87,9 +87,42 @@ p.kj-quiet { max-width: 68ch; }
 .nx .kj-places { display: none; }
 
 /* ── Home ─────────────────────────────────────────────────────────────── */
-.nx .kj-home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 344px; gap: 48px; align-items: start; }
+/* One column: nothing beside the work grows into a long side column. What Kaju noticed is a strip under the request;
+   what it can use is one line at the foot that opens. */
+.nx .kj-home-grid { display: block; }
 .nx .kj-main { min-width: 0; }
-.nx .kj-side { display: grid; gap: 16px; position: sticky; top: 24px; min-width: 0; }
+.nx .kj-one { max-width: 1040px; }
+
+/* What Kaju noticed: three cards across, the rest one click away */
+.nx .kj-noticed { margin-top: 40px; }
+.nx .kj-noticed-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 32px; }
+.nx .kj-noticed-h h2 { font-size: 16px; font-weight: 600; }
+.nx .kj-noticed-more { margin-left: auto; }
+.nx .kj-noticed-l { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.nx .kj-noticed-l > .kj-notice { padding: 16px; border-radius: 16px; background: var(--kj-fill); align-content: start; }
+.nx .kj-noticed-l .kj-notice-b { display: flex; flex-direction: column; height: 100%; }
+.nx .kj-noticed-l .kj-notice-b b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nx .kj-noticed-l .kj-notice-b p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nx .kj-noticed-l .kj-notice-a { margin-top: auto; padding-top: 8px; }
+.nx .kj-noticed-l .kj-act { background: var(--bg); }
+.nx .kj-noticed-l .kj-act.is-plan { background: var(--accent-soft); }
+.nx .kj-notice-skel { height: 160px; border-radius: 16px; }
+.nx .kj-noticed-none { margin-top: 12px; padding: 16px; border-radius: 16px; background: var(--kj-fill); color: var(--ink-2); font-size: 14px; }
+
+/* What Kaju can use: one line that opens */
+.nx .kj-foot { display: grid; gap: 12px; margin-top: 40px; }
+.nx .kj-capsum { border-radius: 16px; background: var(--kj-fill); }
+.nx .kj-capsum > summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 48px; padding: 12px 48px 12px 16px; border-radius: 16px; position: relative; }
+.nx .kj-capsum > summary::-webkit-details-marker { display: none; }
+.nx .kj-capsum > summary::after { content: ""; position: absolute; right: 24px; top: 50%; width: 8px; height: 8px; border: solid var(--ink-3); border-width: 0 2px 2px 0; transform: translateY(-75%) rotate(45deg); transition: transform .2s var(--kj-ease); }
+.nx .kj-capsum[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+.nx .kj-capsum > summary:hover { background: var(--hover); }
+.nx .kj-capsum-t { font-size: 14px; font-weight: 600; color: var(--ink); }
+.nx .kj-capsum-s { color: var(--ink-2); font-size: 14px; }
+.nx .kj-capsum-s b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.nx .kj-capsum-s .c-live b { color: var(--ok); }
+.nx .kj-capsum-s .c-setup b { color: var(--warn); }
+.nx .kj-capsum-b { padding: 0 16px 16px; }
 .nx .kj-hero { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 16px; align-items: end; }
 .nx .kj-hero-pup { width: 76px; height: 76px; display: grid; place-items: end center; border-radius: 50%; background: radial-gradient(closest-side, var(--accent-soft), transparent); }
 .nx .kj-hero-v { align-self: start; }
@@ -394,14 +427,11 @@ p.kj-quiet { max-width: 68ch; }
   .nx .kj-places::-webkit-scrollbar { display: none; }
   .nx .kj-places a { flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--kj-fill); color: var(--ink-2); font-size: 14px; }
   .nx .kj-places a.is-on { background: var(--sel); color: var(--accent); font-weight: 600; }
-  /* One column, with what Kaju noticed straight after the request. */
-  .nx .kj-home-grid { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
-  .nx .kj-main, .nx .kj-side { display: contents; }
-  .nx .kj-hero { order: 1; } .nx .kj-compose { order: 2; } .nx .kj-nomodel { order: 3; } .nx .kj-jobs { order: 4; } .nx .kj-plan { order: 5; } .nx .kj-convo { order: 6; }
-  .nx .kj-side > :nth-child(1) { order: 7; margin-top: 32px; }
-  .nx .kj-sec { order: 8; }
-  .nx .kj-side > :nth-child(2) { order: 9; margin-top: 32px; }
-  .nx .kj-rules { order: 10; margin-top: 16px; }
+  /* What Kaju noticed slides sideways, two cards in view, so the page never grows a column of them. */
+  .nx .kj-noticed-l { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 12px -32px 0; padding: 0 32px 4px; gap: 12px; }
+  .nx .kj-noticed-l::-webkit-scrollbar { display: none; }
+  .nx .kj-noticed-l > * { flex: 0 0 calc(50% - 8px); scroll-snap-align: start; }
+  .nx .kj-noticed-l.is-all { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; margin: 12px 0 0; padding: 0; }
 }
 @media (max-width: 900px) {
   .nx .kj-runs { grid-template-columns: minmax(0, 1fr); margin-top: 16px; }
@@ -426,6 +456,14 @@ p.kj-quiet { max-width: 68ch; }
   .nx .kj-hero-t > .kj-h1 { grid-column: 2; grid-row: 2; margin-top: 0; align-self: start; }
   .nx .kj-hero-pup { grid-row: 1 / span 2; }
   .nx .kj-compose { margin-top: 16px; }
+  .nx .kj-noticed { margin-top: 32px; }
+  .nx .kj-noticed-l { margin: 12px -16px 0; padding: 0 16px 4px; gap: 8px; }
+  .nx .kj-noticed-l > * { flex-basis: 85%; }
+  .nx .kj-noticed-l.is-all { grid-template-columns: minmax(0, 1fr); margin: 12px 0 0; padding: 0; }
+  .nx .kj-noticed-l > .kj-notice { padding: 12px; border-radius: 12px; }
+  .nx .kj-noticed-more { min-height: 44px; }
+  .nx .kj-foot { margin-top: 32px; }
+  .nx .kj-capsum > summary { min-height: 56px; }
   .nx .kj-jobs-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; }
   .nx .kj-jobs-row::-webkit-scrollbar { display: none; }
   .nx .kj-job { height: 40px; flex: none; }
@@ -487,4 +525,5 @@ p.kj-quiet { max-width: 68ch; }
 @media (prefers-reduced-motion: reduce) {
   .nx .kj-dot.is-live, .nx .kj-glyph.is-run, .nx .kj-seg.s-running, .nx .kj-skel { animation: none !important; }
   .nx .kj-mcard-in:hover, .nx .kj-btn:active, .nx .kj-act:active { transform: none; }
+  .nx .kj-capsum > summary::after { transition: none; }
 }

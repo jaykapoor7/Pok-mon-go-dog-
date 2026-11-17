@@ -17,12 +17,20 @@ import { shortCode, statusLabel, STATUS_TONE } from "../../data/ngo";
 import { animalLine, withAnimalName } from "../../animalLabel";
 import { useAnimalRefs } from "../../data/animals";
 import { SAMPLE_CASES, sampleFollowups, sampleHistory } from "../../data/ngo-sample";
-import { CareForm, CaseNext, DeleteRecord, FollowupList, OpsEvents, SampleNext, TryLink, cohortOf, useMembers } from "./parts";
+import { CareForm, CaseNext, DeleteRecord, FollowupList, OpsEvents, SampleNext, TryLink, cohortOf, useMembers, type HandSeed } from "./parts";
+import { KajuCapture, type ByHand } from "../../KajuCapture";
+import { CARE_WORD, dayWords, readRecord } from "../../data/capture";
+import type { Proposal } from "@/sp3/ai/types";
 
 /* One case, read top to bottom as it happened: what it is and who holds it, the one next step the person's role
    allows, its follow-ups, the story so far with who recorded each part, photos, care and movements, and the other
    cases on the same animal or in the same area. Read with the member's own session; every action waits for the
-   database's answer. */
+   database's answer.
+
+   Recording on a case starts with Tell Kaju, above the tabs ("ate well, follow up Monday", "vaccinated today, batch
+   B-1"): Kaju reads it with this case as context and prepares a note, a follow-up or a care event to confirm. The
+   manual forms fold under "Record by hand". Vet sign-off, evidence attestations, identity decisions and package or
+   claim actions are never routed through Kaju; they stay explicit actions on their own tabs. */
 
 type Tab = "Overview" | "History" | "Care and movements" | "ABC evidence" | "Related" | "Discussion";
 /* `?tab=` opens a section directly: a link from a package item, a reminder or Kaju lands on the evidence itself. */
@@ -46,6 +54,19 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const [tab, setTab] = useState<Tab>("Overview");
   useEffect(() => { setTab(tabFromUrl()); }, []);
   const members = useMembers(true);
+  const [seed, setSeed] = useState<HandSeed | null>(null);
+  const [care, setCare] = useState<{ kind: string; date: string | null; notes: string; n: number } | null>(null);
+  const [caring, setCaring] = useState(false);
+  /* Words handed over from the animal's page (?say=) wait in Tell Kaju, unsent; the address then drops them, so a
+     reload does not bring them back. */
+  const [say, setSay] = useState("");
+  useEffect(() => {
+    try {
+      const u = new URL(window.location.href), w = u.searchParams.get("say");
+      if (!w) return;
+      setSay(w.slice(0, 2000)); u.searchParams.delete("say"); window.history.replaceState(null, "", u);
+    } catch { /* nothing handed over */ }
+  }, []);
   const gen = useRef(0);
   const read = useCallback(async () => { const v = ++gen.current; try { const f = await loadCaseFile(id); if (v === gen.current) setFile(f); } catch (e) { if (v === gen.current) setFile({ error: errText(e) }); } }, [id]);
   useEffect(() => { void read(); }, [read]);
@@ -77,6 +98,26 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   ].sort((a, b) => b.at - a.at);
   const tabs: [Tab, number | undefined][] = [["Overview", undefined], ["History", story.length], ["Care and movements", undefined], ["ABC evidence", undefined], ["Related", neighbours.length + sameAnimal.length || undefined], ["Discussion", undefined]];
 
+  /* Tell Kaju hands a note, a follow-up or a care event to the manual form, already filled (Change, or the person's
+     own words when Kaju prepared nothing), and brings that form into view. */
+  const bring = (id: string) => window.requestAnimationFrame(() => { const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; document.getElementById(id)?.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" }); });
+  const toNext = (s: Omit<HandSeed, "n">) => { setTab("Overview"); setSeed({ ...s, n: Date.now() }); bring("case-next"); };
+  const toCare = (v: { kind: string; date: string | null; notes: string }) => { setTab("Care and movements"); setCare({ ...v, n: Date.now() }); setCaring(true); bring("case-care"); };
+  const byHand = (t: string): ByHand[] => {
+    const r = readRecord(t);
+    return [
+      ...(r.followup ? [{ label: `Schedule the follow-up by hand, ${dayWords(r.followup.due)}`, go: () => toNext({ mode: "followup", due: r.followup!.due, note: r.followup!.note }) }] : []),
+      ...(r.care && c.dog_id ? [{ label: `Record the ${(CARE_WORD[r.care.kind] ?? "care").toLowerCase()} by hand`, go: () => toCare(r.care!) }] : []),
+      { label: r.followup && r.note !== t.trim() ? `Add “${r.note.length > 40 ? `${r.note.slice(0, 40)}…` : r.note}” as a note by hand` : "Add it as a note by hand", go: () => toNext({ mode: "note", note: r.note }) },
+    ];
+  };
+  const change = (p: Proposal) => {
+    if (p.kind === "add_note") toNext({ mode: "note", note: p.note });
+    else if (p.kind === "schedule_followup") toNext({ mode: "followup", due: p.dueAt.slice(0, 10), note: p.note });
+    else if (p.kind === "record_care") toCare({ kind: p.careKind, date: p.date, notes: p.notes });
+    else if (p.kind === "open_case") router.push(`/ngo/cases/new?${new URLSearchParams({ title: p.title, note: p.description, from: "kaju", cat: p.category, sev: p.severity, city: p.city, ...(p.zone ? { zone: p.zone } : {}), ...(p.dogId ? { dog: p.dogId } : {}) }).toString()}`);
+  };
+
   const props: [string, ReactNode][] = [
     ["Status", <Chip key="s" tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>],
     ["Animal", c.dog_id ? <Link key="a" className="nr-link" href={`/ngo/animals/${c.dog_id}`}>{animalLine(dog ?? { id: c.dog_id, name: animal?.name, straypaw_id: animal?.straypaw_id })}</Link> : "Not linked"],
@@ -100,13 +141,17 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
         chips={<><Chip tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>{imported ? <Chip>Imported record</Chip> : null}{cohort === "decide" ? <Chip tone="warn">Waiting on a decision</Chip> : null}</>}
         actions={<><Link href="/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><DeleteRecord kind="case" id={c.id} what="this case" label="Delete case" onDone={() => router.push("/ngo/cases")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></>} />
       {reg.condition_text || c.description ? <p className="nr-lede">{reg.condition_text || c.description}</p> : null}
+      <div className="kc-line"><KajuCapture compact idBase="case-kaju" label="Tell Kaju" context={{ path: `/ngo/cases/${c.id}`, workspace: "ngo", caseId: c.id, dogId: c.dog_id, title: `Case ${code}` }}
+        placeholder={c.dog_id ? "For example: ate well, follow up Monday · vaccinated today, batch B-1" : "For example: ate well, follow up Monday · called the informer, no answer"}
+        hint={<>A note, a follow-up{c.dog_id ? " or care given" : ""}, in your own words. Kaju prepares it for this case; nothing is saved until you confirm.</>}
+        initial={say} reading={(t) => readRecord(t).facts} byHand={byHand} onChange={change} changes={["add_note", "schedule_followup", "record_care", "open_case"]} onSaved={() => void read()} /></div>
       <TabBar id="case" tabs={tabs} value={tab} onChange={setTab} label="Case sections" />
       {tab === "Overview" ? (
         <div className="nx-rec">
           <section aria-label="Properties"><h3 className="nx-h3">Properties</h3><Props items={props} />
             {reg.h3_r8 ? <p className="nr-hint" style={{ marginTop: 10 }}><MapPin size={12} style={{ verticalAlign: "-2px" }} /> The exact point stays private to your organisation; shared views show only the area.</p> : null}</section>
           <div>
-            {actor ? <Section title="Next step"><CaseNext file={file} role={org.role} actor={actor} members={members} onChanged={read} /></Section> : <p className="nx-sub">Sign in again to act on this case.</p>}
+            {actor ? <Section title="Next step" id="case-next"><CaseNext file={file} role={org.role} actor={actor} members={members} onChanged={read} seed={seed} /></Section> : <p className="nx-sub">Sign in again to act on this case.</p>}
             <Section title="Follow-ups" count={followups.length}><FollowupList items={followups} onChanged={read} /></Section>
             <Section title="The story so far" count={story.length} action={story.length > 6 ? <button type="button" className="nx-link" onClick={() => setTab("History")}>See all {story.length}</button> : undefined}>
               <Timeline items={story.slice(0, 6)} empty="Nothing recorded yet. A note, a status change or care on this case appears here, with who recorded it." />
@@ -127,7 +172,10 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
       ) : tab === "Care and movements" ? (
         <div className="nx-page" style={{ maxWidth: 900 }}>
           <OpsEvents caseId={c.id} role={org.role} userId={live.userId} />
-          {c.dog_id ? <Section title="Record a care event"><CareForm dogId={c.dog_id} caseId={c.id} onSaved={read} /></Section> : <p className="nr-hint" style={{ marginTop: 16 }}>Link an animal to this case to record a care event on it.</p>}
+          {c.dog_id ? <Section title="Care events" id="case-care" action={<button type="button" className="nx-btn is-quiet is-sm" aria-expanded={caring} onClick={() => { setCaring((v) => !v); setCare(null); }}>{caring ? "Close" : "Record care by hand"}</button>}>
+            {caring ? <CareForm key={care?.n ?? 0} initial={care} dogId={c.dog_id} caseId={c.id} onSaved={() => { setCaring(false); setCare(null); return read(); }} onCancel={() => { setCaring(false); setCare(null); }} />
+              : <p className="nr-quiet">Tell Kaju above, for example “vaccinated today, batch B-1”, and confirm what it prepares. Care given is recorded by your organisation; it is not a clinician&apos;s sign-off.</p>}
+          </Section> : <p className="nr-hint" style={{ marginTop: 16 }}>Link an animal to this case to record a care event on it.</p>}
         </div>
       ) : tab === "ABC evidence" ? (
         <div className="nx-page" style={{ maxWidth: 1100 }}><AbcEvidence caseId={c.id} /></div>
@@ -166,6 +214,8 @@ function SampleRecord({ id }: { id: string }) {
     <Shell crumb={["Cases", r.code]}>
       <RecordHead av={<PawPrint size={18} />} title={<><span className="num">{r.code}</span> · {r.title}<Sample /></>} sub={<>{r.place} · {r.kind} · {r.who === "Unassigned" ? "nobody holds it yet" : <>held by <b>{r.who}</b></>}</>}
         chips={<Chip tone={r.tone}>{r.status}</Chip>} actions={<><Link href="/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><TryLink sm quiet>Delete case</TryLink></>} />
+      <div className="kc-line"><KajuCapture compact sample idBase="case-kaju" label="Tell Kaju" context={{ path: `/ngo/cases/${id}`, workspace: "ngo", title: `Case ${r.code}` }} placeholder="For example: ate well, follow up Monday"
+        hint="In the live demo, Kaju prepares a note, a follow-up or a care event for this case, and you confirm it." byHand={() => []} /></div>
       <TabBar id="case" tabs={[["Overview", undefined], ["History", items.length], ["Care and movements", undefined], ["Related", undefined]] as [Tab, number | undefined][]} value={tab} onChange={setTab} label="Case sections" />
       {tab === "Overview" ? (
         <div className="nx-rec">

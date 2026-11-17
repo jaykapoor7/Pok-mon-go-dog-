@@ -265,3 +265,27 @@ checks).
 
 Rollback: re-create `nx_automation_run` from `20261117140000_rebuild_automation_ack_carry.sql`.
 
+---
+
+# Tenth set: Kaju's action log (each Kaju read of patient records is recorded)
+
+**Applied on staging, checked there in a rolled-back run, then applied on production, on 2026-11-17**, through the
+Supabase tool. The owner decided that Kaju may read human-health data with the signed-in person's own access only, and
+that each such read is recorded.
+
+| Order | File | What it changes | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 20 | `20261118110000_kaju_action_log.sql` | Adds `public.ai_action_log`: one row per action confirmed from Kaju (open_case, add_note, schedule_followup, record_care, add_task, register_exposure) and per Kaju read of a facility's patient records (`health_read`: the register function and a row count, never a patient detail). Row-level security: a person writes only rows about themselves for an organisation they belong to; members of that organisation, and the person, read them. Append-only: signed-in people may only select and insert (update, delete and truncate revoked). Two indexes. | Applied, checked | Applied, checked |
+
+Staging check (rolled back), as a sample clinician and the sample NGO coordinator: the clinician logged a read for their
+own facility; logging for an NGO they are not in was refused; changing or deleting the row changed 0 rows; the NGO
+coordinator did not see the facility's read and could log and read their own NGO's task; a visitor could not read the log.
+
+Production after applying (read-only): row-level security on, policies `ai_action_log_insert` and `ai_action_log_read`;
+signed-in people may select and insert, not update, delete or truncate; visitors may not select; 0 rows.
+
+`test:db`: 252 checks, 10 of them on this table (own rows only, nobody else's name, members read and others do not,
+rows cannot be changed or removed, a facility's read stays with the facility, visitors cannot write).
+
+Rollback: `drop table public.ai_action_log;` (the server answers "not_deployed" and keeps its own log line per read).
+

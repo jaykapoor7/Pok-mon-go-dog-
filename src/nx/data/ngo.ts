@@ -293,8 +293,9 @@ export async function readWhatsApp(status: CareInboxStatus[] = ["new", "triaged"
 }
 export async function actWhatsApp(action: CareInboxAction): Promise<Res<CareInboxItem>> { return rpc<CareInboxItem>("careos_inbox_act", { p_action: action }); }
 
-/** Kaju reads a pasted field message with the person's own session (the same request the classic panel sends). */
-export async function kajuRead(text: string): Promise<Res<AiReply>> {
+/** One message to Kaju with the person's own session: the workspace scope is checked first, then the words are sent with
+    the page's context. Kaju prepares; nothing is saved here. */
+export async function askKaju(text: string, context: Record<string, unknown>, failed = "Kaju could not read the message. Nothing was changed. Try again."): Promise<Res<AiReply>> {
   try {
     const session = (await db().auth.getSession()).data.session;
     if (!session) return { error: "Your session has ended. Sign in again; nothing was changed." };
@@ -302,21 +303,25 @@ export async function kajuRead(text: string): Promise<Res<AiReply>> {
     const who = await fetch("/api/ai", { cache: "no-store", headers: auth });
     const w = await who.json().catch(() => null) as { scope?: string } | null;
     if (!who.ok || typeof w?.scope !== "string") return { error: "Kaju could not check your workspace access. Nothing was changed. Try again." };
-    const r = await fetch("/api/ai", { method: "POST", headers: { ...auth, "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ messages: [{ role: "user", text: `Pasted WhatsApp message:\n${text}` }], context: { path: "/ngo/inbox", workspace: "ngo", scope: w.scope, title: "Inbox" } }) });
+    const r = await fetch("/api/ai", { method: "POST", headers: { ...auth, "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ messages: [{ role: "user", text }], context: { ...context, scope: w.scope } }) });
     const d = await r.json().catch(() => null) as (AiReply & { error?: string }) | null;
-    if (!r.ok || !d || typeof d.text !== "string") return { error: d?.error ?? "Kaju could not read the message. Nothing was changed. Try again." };
+    if (!r.ok || !d || typeof d.text !== "string") return { error: d?.error ?? failed };
     return { data: { ...d, proposals: Array.isArray(d.proposals) ? d.proposals : [] } };
   } catch (e) { return { error: msg(e) }; }
 }
-export const RECORD_PROPOSALS = new Set(["open_case", "add_note", "schedule_followup", "record_care", "add_task"]);
+/** Kaju reads a pasted field message with the person's own session (the same request the classic panel sends). */
+export const kajuRead = (text: string) => askKaju(`Pasted WhatsApp message:\n${text}`, { path: "/ngo/inbox", workspace: "ngo", title: "Inbox" });
+/** Prepared records that save through /api/ai/act (the same server functions as the manual screens). register_exposure is a
+    bite-register entry, saved through the bite form's own database function. */
+export const RECORD_PROPOSALS = new Set(["open_case", "add_note", "schedule_followup", "record_care", "add_task", "register_exposure"]);
 /** Confirming a prepared record: /api/ai/act runs the same server function the manual screens use and checks the audit row. */
-export async function kajuConfirm(p: Proposal): Promise<Res<{ at: string; what: string; href: string | null }>> {
+export async function kajuConfirm(p: Proposal): Promise<Res<{ at: string; what: string; href: string | null }> & { href?: string | null }> {
   try {
     const session = (await db().auth.getSession()).data.session;
     if (!session) return { error: "Sign in again to confirm this. Nothing was saved." };
     const r = await fetch("/api/ai/act", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ proposal: p, confirmed: true }) });
     const j = await r.json().catch(() => ({})) as { verified?: boolean; at?: string; what?: string; href?: string; error?: string };
-    return r.ok && j.verified === true && typeof j.at === "string" ? { data: { at: j.at, what: j.what ?? "Saved to the record", href: nextHref(j.href) } } : { error: j.error ?? "The save could not be verified yet. Confirm the same proposal again to check it; it will not be saved twice." };
+    return r.ok && j.verified === true && typeof j.at === "string" ? { data: { at: j.at, what: j.what ?? "Saved to the record", href: nextHref(j.href) } } : { error: j.error ?? "The save could not be verified yet. Confirm the same proposal again to check it; it will not be saved twice.", href: nextHref(j.href) };
   } catch { return { error: "The save status is unknown. Confirm the same proposal again to check it; it will not be saved twice." }; }
 }
 

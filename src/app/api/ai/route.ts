@@ -39,7 +39,7 @@ export async function GET(req:Request) {
 export async function POST(req: Request) {
   let body: AiRequest;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
-  if (!Array.isArray(body?.messages) || body.messages.length > 40 || body.messages.some((m) => !m || !["user", "assistant"].includes(m.role) || typeof m.text !== "string" || m.text.length > 12000) || (body.context != null && (typeof body.context !== "object" || Array.isArray(body.context) || (body.context.path != null && typeof body.context.path !== "string") || (body.context.workspace != null && typeof body.context.workspace !== "string") || (body.context.scope != null && typeof body.context.scope !== "string") || (body.context.title != null && (typeof body.context.title !== "string" || body.context.title.length > 300))))) return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
+  if (!Array.isArray(body?.messages) || body.messages.length > 40 || body.messages.some((m) => !m || !["user", "assistant"].includes(m.role) || typeof m.text !== "string" || m.text.length > 12000) || (body.context != null && (typeof body.context !== "object" || Array.isArray(body.context) || (body.context.path != null && typeof body.context.path !== "string") || (body.context.workspace != null && typeof body.context.workspace !== "string") || (body.context.scope != null && typeof body.context.scope !== "string") || (body.context.title != null && (typeof body.context.title !== "string" || body.context.title.length > 300)) || (body.context.caseId != null && (typeof body.context.caseId !== "string" || body.context.caseId.length > 64)) || (body.context.dogId != null && (typeof body.context.dogId !== "string" || body.context.dogId.length > 64))))) return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
 
   const auth = req.headers.get("authorization");
   const token = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
@@ -73,7 +73,9 @@ export async function POST(req: Request) {
     try { const c = await connCaller(req); if (c) conn = { caller: c, caps: await capabilitiesFor(c) }; } catch { conn = null; }
   }
   const turns = body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" as const : "user" as const, text: String(m.text ?? "") }));
-  const baseCtx = { db, orgId, userName, userId, actorRole, pagePath:body.context?.path?.split("?")[0].slice(0,200), conn };
+  /* The workspace and the record a page names are hints only: every read and every confirm checks access again. */
+  const baseCtx = { db, orgId, userName, userId, actorRole, pagePath:body.context?.path?.split("?")[0].slice(0,200), conn,
+    workspace: body.context?.workspace?.slice(0, 40) ?? null, subject: { caseId: body.context?.caseId ?? null, dogId: body.context?.dogId ?? null } };
   /* Streaming: with Accept: application/x-ndjson the reply arrives as lines of
      JSON: one {type:"progress"} per tool as it finishes (its name and a short
      summary, never record data), then one {type:"reply"} or {type:"error"}. */

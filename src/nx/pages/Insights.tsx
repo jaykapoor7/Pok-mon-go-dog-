@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Download, Sparkles, X } from "lucide-react";
+import { Download, FileText, Sparkles, Users, X } from "lucide-react";
 import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { GOV_ORG, SERIES, TARGET, WARDS } from "../fixtures";
 import { PACKAGE_LABEL, orgNames, packages, type Package } from "@/lib/abc";
 import { isVisibleToOffice } from "@/lib/machines/package";
-import { useLive } from "../live";
+import { useLive, useTasks } from "../live";
 import { ProgrammeHome } from "./Gov";
+import { AtKaju } from "../AtKaju";
+import { Grid, Meter, Panel, Rows, Strip, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 
 const COLS = "minmax(0, 1.2fr) minmax(0, 1fr) 92px 92px 112px 132px 72px";
 const W = 640, H = 200, PAD = 24;
@@ -32,23 +34,24 @@ function SampleInsights() {
 
   return (
     <Shell ws="gov" crumb={["Government", "Overview"]}>
-      <div className="nx-page">
+      <div className="nx-page hm-page">
         <div className="nx-head">
           <div><p className="nx-eyebrow">{GOV_ORG.kind} · {GOV_ORG.city}<Sample /></p><h1 className="nx-h1">Programme insights</h1><p className="nx-sub">Verified vaccination activity against the estimated dog population, by ward.</p></div>
           <Link href="/try" className="nx-btn is-quiet" title="Opens the live demo, where this works"><Download size={13} />Export</Link>
         </div>
-        <div className="nx-bar">
+        <AtKaju role="programme" />
+        <div className="nx-bar" style={{ marginTop: 24 }}>
           {[4, 8, 12].map((n) => <button key={n} type="button" className={`nx-filter ${range === n ? "is-on" : ""}`} onClick={() => setRange(n)} aria-pressed={range === n}>Last {n} weeks</button>)}
           {ward ? <button type="button" className="nx-filter is-on" onClick={() => setWard(null)} aria-label={`Clear ${ward}`}>{ward}<X size={12} /></button> : <span className="nx-filter" style={{ boxShadow: "none", color: "var(--ink-3)" }}>All wards · pick one below</span>}
           <span className="nx-t3" style={{ marginLeft: "auto" }}>Synced 15 minutes ago</span>
         </div>
 
-        <div className="nx-figs" style={{ marginTop: 0, borderTop: 0 }}>
-          <div className="nx-fig"><b>{sub.toLocaleString("en-IN")}</b><span>Submitted</span></div>
-          <div className="nx-fig"><b>{ver.toLocaleString("en-IN")}<em>{pct(ver / sub)} of submitted</em></b><span>Reviewed and verified</span></div>
-          <div className="nx-fig"><b>{est ? pct(verEst / est) : "—"}<em>{est ? `${verEst.toLocaleString("en-IN")} of ${est.toLocaleString("en-IN")} dogs` : "no estimate"}</em></b><span>Verified coverage, target {pct(TARGET)}</span></div>
-          <div className="nx-fig"><b>{exc}</b><span>Evidence exceptions</span></div>
-        </div>
+        <Tiles>
+          <Tile label="Submitted" n={sub} note={ward ? `${ward} only` : "All wards"} />
+          <Tile label="Reviewed and verified" n={ver} visual={<Meter part={ver} whole={sub} tone="ok" label={`${pct(ver / sub)} of submitted`} />} />
+          <Tile label={`Verified coverage, target ${pct(TARGET)}`} text={est ? pct(verEst / est) : "No estimate"} visual={est ? <Meter part={verEst} whole={est} tone={verEst / est < TARGET ? "warn" : "ok"} mark={TARGET} label={`${verEst.toLocaleString("en-IN")} of ${est.toLocaleString("en-IN")} dogs`} /> : null} />
+          <Tile label="Evidence exceptions" n={exc} tone={exc ? "warn" : "plain"} note="Events without the photos or location a review needs" />
+        </Tiles>
 
         <div className="nx-two">
           <section aria-labelledby="i-time">
@@ -100,13 +103,10 @@ function SampleInsights() {
           </div>
         </section>
 
-        <section className="nx-sec" aria-labelledby="i-kaju">
-          <div className="nx-sec-h"><h2 id="i-kaju">Kaju noticed</h2></div>
-          <ul className="nx-feed" style={{ maxWidth: 640 }}>
-            <li><span className="nx-feed-i is-kaju"><Sparkles size={12} /></span><div><b>Ward 08: 16 submitted events have no location photo</b><p>They are counted as submitted, not verified. Review the records before treating the ward as complete.</p><div className="nx-feed-a"><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setWard("Ward 08")}>Show Ward 08</button></div></div></li>
-            <li><span className="nx-feed-i is-kaju"><Sparkles size={12} /></span><div><b>Ward 12 uses a 2025 population count</b><p>Its coverage figure rests on an estimate older than the others. A new survey would change it.</p></div></li>
-          </ul>
-        </section>
+        <Strip id="i-kaju" title="Kaju noticed" items={[
+          { id: "k1", title: "Ward 08: 16 submitted events have no location photo", meta: "Counted as submitted, not verified, until the records are reviewed.", icon: <Sparkles size={16} />, tone: "blue", end: <button type="button" className="hm-btn" style={{ marginTop: 8, justifySelf: "start" }} onClick={() => setWard("Ward 08")}>Show Ward 08</button> },
+          { id: "k2", title: "Ward 12 uses a 2025 population count", meta: "Its coverage rests on an estimate older than the others; a new survey would change it.", icon: <Sparkles size={16} />, tone: "blue" },
+        ]} empty="Nothing right now." />
       </div>
     </Shell>
   );
@@ -116,41 +116,54 @@ function SampleInsights() {
 function OfficeOverview() {
   const live = useLive();
   const office = live.orgFor("government")!;
+  const tasks = useTasks(office.org_id);
   const [ps, setPs] = useState<Package[] | null>(null);
   const [names, setNames] = useState<Record<string, string>>({});
   const [err, setErr] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
   useEffect(() => {
     let alive = true;
-    packages().then(async (all) => { const mine = all.filter((p) => p.office_id === office.org_id && isVisibleToOffice(p.status)); const n = await orgNames([...new Set(mine.map((p) => p.ngo_id))]).catch(() => ({})); if (alive) { setPs(mine); setNames(n); } }).catch(() => { if (alive) { setPs([]); setErr("Packages could not be read just now."); } });
+    setErr(null);
+    packages().then(async (all) => { const mine = all.filter((p) => p.office_id === office.org_id && isVisibleToOffice(p.status)); const n = await orgNames([...new Set(mine.map((p) => p.ngo_id))]).catch(() => ({})); if (alive) { setPs(mine); setNames(n); } }).catch(() => { if (alive) { setPs(null); setErr("Packages could not be read just now."); } });
     return () => { alive = false; };
-  }, [office.org_id]);
+  }, [office.org_id, tick]);
   const list = ps ?? [], count = (s: string[]) => list.filter((p) => s.includes(p.status)).length;
+  /* undefined while reading, null when the read failed: never a zero that was not counted. */
+  const n = (v: number) => (err ? null : ps === null ? undefined : v);
+  const waiting = list.filter((p) => p.status === "submitted").sort((a, b) => Date.parse(a.submitted_at ?? a.created_at) - Date.parse(b.submitted_at ?? b.created_at));
+  const decided = list.filter((p) => ["accepted", "partially_accepted", "returned"].includes(p.status));
+  const accepted = count(["accepted", "partially_accepted"]);
   const records = list.filter((p) => p.status === "accepted" || p.status === "partially_accepted").reduce((a, p) => a + (p.summary?.records ?? 0), 0);
-  const ops = [...new Set(list.map((p) => p.ngo_id))].map((id) => ({ id, name: names[id] ?? "Operator", waiting: list.filter((p) => p.ngo_id === id && p.status === "submitted").length, total: list.filter((p) => p.ngo_id === id).length }));
-  const fig = (n: number | null, label: string, href?: string) => { const inner = <><b>{n === null ? "—" : n.toLocaleString("en-IN")}</b><span>{label}{href ? <ArrowRight size={12} /> : null}</span></>; return href ? <Link key={label} href={href} className="nx-fig">{inner}</Link> : <div key={label} className="nx-fig">{inner}</div>; };
+  const ops = [...new Set(list.map((p) => p.ngo_id))].map((id) => ({ id, name: names[id] ?? "Operator", waiting: list.filter((p) => p.ngo_id === id && p.status === "submitted").length, queried: list.filter((p) => p.ngo_id === id && p.status === "queried").length, total: list.filter((p) => p.ngo_id === id).length })).sort((a, b) => b.waiting - a.waiting || b.total - a.total);
+  const days = (iso: string | null) => (iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 864e5)) : null);
+  const oldest = waiting[0] ? days(waiting[0].submitted_at ?? waiting[0].created_at) : null;
+  const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "");
+  const recent = [...decided].sort((a, b) => Date.parse(b.decided_at ?? b.created_at) - Date.parse(a.decided_at ?? a.created_at));
   return (
     <Shell ws="gov" crumb={["Government", "Overview"]}>
-      <div className="nx-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{office.name}</p><h1 className="nx-h1">Overview</h1><p className="nx-sub">{ps === null ? "Reading packages…" : <><b className="num">{count(["submitted"])}</b> waiting for a decision. Accepted means accepted by this office; StrayPaw does not process payments.</>}</p></div></div>
-        <div className="nx-figs">
-          {fig(ps === null ? null : count(["submitted"]), "Waiting for you", "/gov/verification")}
-          {fig(ps === null ? null : count(["queried"]), "Question with the operator", "/gov/verification")}
-          {fig(ps === null ? null : count(["accepted", "partially_accepted"]), "Accepted packages")}
-          {fig(ps === null ? null : records, "Records in accepted packages")}
-        </div>
-        {err ? <p className="nx-foot" role="alert">{err}</p> : null}
-        <section className="nx-sec" style={{ marginTop: 26 }} aria-labelledby="o-ops">
-          <div className="nx-sec-h"><h2 id="o-ops">Operators</h2><span className="nx-count">{ops.length}</span></div>
-          <div className="nx-table">
-            <div className="nx-tr nx-th" style={{ gridTemplateColumns: "minmax(0,1fr) 140px 120px" }}><span>Operator</span><span>Waiting for you</span><span>Packages</span></div>
-            {ops.map((o) => <div key={o.id} className="nx-tr" style={{ gridTemplateColumns: "minmax(0,1fr) 140px 120px" }}><span className="nx-cell-main"><span><b>{o.name}</b></span></span><span className="num">{o.waiting}</span><span className="num">{o.total}</span></div>)}
-            {ps && !ops.length ? <p className="nx-sub" style={{ padding: "20px 0" }}><b style={{ color: "var(--ink)" }}>No operator has sent a package yet.</b></p> : null}
-          </div>
-        </section>
-        <section className="nx-sec" aria-labelledby="o-recent">
-          <div className="nx-sec-h"><h2 id="o-recent">Latest</h2><Link href="/gov/verification">Open the queue <ArrowRight size={12} /></Link></div>
-          <ul className="nx-feed" style={{ maxWidth: 720 }}>{list.slice(0, 5).map((p) => <li key={p.id}><span className="nx-feed-i"><ArrowRight size={12} /></span><div><b>{p.title}</b><p>{names[p.ngo_id] ?? "Operator"} · {PACKAGE_LABEL[p.status] ?? p.status}</p></div></li>)}</ul>
-        </section>
+      <div className="nx-page hm-page">
+        <div className="nx-head"><div><p className="nx-eyebrow">{office.name}</p><h1 className="nx-h1">Overview</h1><p className="nx-sub">{err ? "Packages could not be read, so nothing is counted." : ps === null ? "Reading packages…" : "Accepted means accepted by this office; StrayPaw does not process payments."}</p></div></div>
+        <AtKaju role="office" />
+        <Tiles>
+          <Tile label="Waiting for your decision" n={n(waiting.length)} tone={waiting.length ? "warn" : "plain"} href="/gov/verification" note={oldest !== null ? `The oldest was sent ${oldest === 0 ? "today" : `${oldest} ${oldest === 1 ? "day" : "days"} ago`}` : undefined} />
+          <Tile label="Question with the operator" n={n(count(["queried"]))} href="/gov/verification" />
+          <Tile label="Accepted packages" n={n(accepted)} href="/gov/reports" visual={decided.length ? <Meter part={accepted} whole={decided.length} tone="ok" label={`${accepted} of ${decided.length} decided packages`} /> : null} />
+          <Tile label="Records in accepted packages" n={n(records)} href="/gov/reports" />
+        </Tiles>
+        <Grid cols={3}>
+          <Panel id="o-wait" title="Waiting for a decision">
+            <Rows items={ps ? waiting.map((p): Item => { const d = days(p.submitted_at ?? p.created_at); return { id: p.id, title: p.title, meta: `${names[p.ngo_id] ?? "Operator"}${p.summary?.records ? ` · ${p.summary.records.toLocaleString("en-IN")} records` : ""}`, href: `/gov/verification/${p.id}`, icon: <FileText size={16} />, tone: "warn", chip: { text: d === null ? "Sent" : d === 0 ? "Sent today" : `${d} ${d === 1 ? "day" : "days"} waiting`, tone: d !== null && d > 7 ? "warn" : "plain" }, kaju: `Check the package “${p.title}” before I review it`, kajuLabel: `Ask @Kaju about ${p.title}` }; }) : null}
+              error={err} retry={() => setTick((t) => t + 1)} all={{ href: "/gov/verification" }} empty="Nothing is waiting for a decision." />
+          </Panel>
+          <Panel id="o-ops" title="Operators" count={ps ? ops.length : undefined}>
+            <Rows items={ps ? ops.map((o): Item => ({ id: o.id, title: o.name, meta: `${o.total} ${o.total === 1 ? "package" : "packages"}${o.queried ? ` · ${o.queried} with a question` : ""}`, href: "/gov/partners", icon: <Users size={16} />, tone: o.waiting ? "warn" : "plain", chip: o.waiting ? { text: `${o.waiting} waiting`, tone: "warn" } : undefined })) : null}
+              error={err} all={{ href: "/gov/partners" }} empty="No operator has sent a package yet." />
+          </Panel>
+          <TasksPanel orgId={office.org_id} userId={live.userId} tasks={tasks} />
+        </Grid>
+        <Strip id="o-recent" title="Recently decided" all={{ href: "/gov/reports", label: "Reports" }} error={err}
+          items={ps ? recent.map((p): Item => ({ id: p.id, title: p.title, meta: `${names[p.ngo_id] ?? "Operator"}${p.decided_by_name ? ` · ${p.decided_by_name}` : ""}`, href: `/gov/verification/${p.id}`, icon: <FileText size={16} />, tone: p.status === "returned" ? "plain" : "ok", chip: { text: `${PACKAGE_LABEL[p.status] ?? p.status}${p.decided_at ? ` · ${when(p.decided_at)}` : ""}`, tone: p.status === "returned" ? "plain" : "ok" } })) : undefined}
+          empty="No package has been decided yet." />
       </div>
     </Shell>
   );

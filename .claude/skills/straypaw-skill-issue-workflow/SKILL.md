@@ -13,6 +13,7 @@ Follow the current user request, locked copy decisions, `DESIGN.md`, security/pr
 - Design critique and product UX: `ui-ux-pro-max` and `web-design-guidelines`.
 - Next.js / React: `react-best-practices`.
 - Accessibility audits: `wcag-audit-patterns` and `web-design-guidelines`.
+- Verifying a change before commit or merge (run the real app signed in on staging, walk the flow, fast checks, browser suite, the `Verified:` line): `straypaw-verify`.
 - Browser QA: `agent-browser` when its external CLI is installed, otherwise repository Playwright tests.
 - Motion and animation: existing animation skills; `remotion-best-practices` only for video/Remotion work.
 
