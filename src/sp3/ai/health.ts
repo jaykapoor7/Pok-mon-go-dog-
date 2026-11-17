@@ -65,7 +65,7 @@ async function read<T>(ctx: ToolCtx, sink: Sink, f: Facility, fn: string, args: 
   const ok = !r.error && r.data !== null && r.data !== undefined;
   const n = ok ? count(r.data as T) : 0;
   sink.tools.push({ name: fn, summary: ok ? `${label} at ${f.name}: ${n}` : `Could not read ${label.toLowerCase()} at ${f.name}`, ok });
-  await logKaju(ctx.db, { kind: "health_read", ok, target: `${fn}:${f.id}`, summary: ok ? `${n} rows` : "read refused or failed", organisationId: f.id });
+  await logKaju(ctx.db, { kind: "health_read", ok, target: `${fn}:${f.id}`, summary: ok ? `${n} rows` : "read refused or failed", organisationId: f.id, actor: ctx.userId ?? null });
   return ok ? (r.data as T) : null;
 }
 

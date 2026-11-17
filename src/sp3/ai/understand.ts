@@ -81,13 +81,13 @@ export function canonical(q: string, org: boolean, office = false): string | nul
   return best?.say ?? null;
 }
 
-/** A one-line human reply to conversation that is not a request. */
-export function smallTalk(q: string, name: string | null): string | null {
+/** A one-line human reply to conversation that is not a request. `records`: the person is signed in and has records to read; a visitor is not told otherwise. */
+export function smallTalk(q: string, name: string | null, records = true): string | null {
   /* "hey, how are you", "hi kaju whats up": a greeting in front changes nothing. */
   const t = norm(q).replace(/^(?:(?:hi+|hey+|hello+|yo|ok|okay|so|oh)\s+)+(?:kaju\s+)?(?=\S+\s*\S)/, ""), you = name ? `, ${name}` : "";
   if (t.length > 60) return null;
   if (/^(thanks|thank you|thankyou|thx|ty|cheers|great|nice|perfect|awesome|super|cool|ok|okay|got it|good job|well done|shukriya|dhanyavad)( kaju| so much| a lot| very much)?$/.test(t)) return `Any time${you}. Want me to check what else needs you?`;
-  if (/^(how are you|how are you doing|how r you|how r u|how are u|hows it going|hows everything|whats up|wassup|whatsup|sup|kaise ho|kya haal hai|kya chal raha hai)( kaju| buddy| ji)?$/.test(t)) return `Tail wagging${you}. I've got your records open: ask me what needs attention, or tell me what to prepare.`;
+  if (/^(how are you|how are you doing|how r you|how r u|how are u|hows it going|hows everything|whats up|wassup|whatsup|sup|kaise ho|kya haal hai|kya chal raha hai)( kaju| buddy| ji)?$/.test(t)) return `Tail wagging${you}. ${records ? "I've got your records open: ask me what needs attention, or tell me what to prepare." : "Ask me about published programmes, or sign in to work with your organisation's records."}`;
   if (/^(bye|goodbye|see you|good night|gn|cya|see ya)( kaju)?$/.test(t)) return `See you${you}. Everything you confirmed is saved on the record.`;
   if (/^(whats your name|your name|who made you|who built you|are you a bot|are you ai|are you an ai|are you real|are you human|are you chatgpt|are you claude)$/.test(t)) return "I'm Kaju, StrayPaw's assistant. I work only from your organisation's records: I read, check and prepare, and a person confirms every change.";
   if (/^(good (boy|dog|girl)|who is a good (boy|dog)|you are (cute|the best|great|awesome))$/.test(t)) return "That made my day. Back to work: what shall I look at?";

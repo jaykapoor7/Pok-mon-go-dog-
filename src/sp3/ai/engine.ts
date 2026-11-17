@@ -12,11 +12,10 @@ import { canonical, followUps, glossaryAnswer, howTo, nearestSkills, nextQuestio
 import { sayCases, type CaseAnswer } from "./caseQuery";
 import { ASKS_ABOUT_PEOPLE, caseReference, caseSummaryAsked, sayCaseSummary, type CaseSummary } from "./caseSummary";
 import type { Figures } from "./figures";
-import { CLINICAL_DECISION, looksLikeExposure, looksLikeReport, parseCare, parseExposure, parseFollowup, parseHealthAsk, parseNote, parseTask, stripMention } from "./capture";
+import { CLINICAL_DECISION, EXPOSURE_CODE, looksLikeExposure, looksLikeReport, parseCare, parseExposure, parseFollowup, parseHealthAsk, parseNote, parseTask, stripMention } from "./capture";
 import { fromAsk, prepareCare, prepareFollowup, prepareNote, prepareReport, prepareTask, subjectOf, workspaceHint } from "./captureRoute";
 import { CLINICAL_REPLY, healthAnswer, myFacilities, prepareExposure } from "./health";
-import { asksAboutKaju, capabilities, notFollowed, type Workspace } from "./introduce";
-import { modelReady } from "@/lib/kaju/status";
+import { asksAboutKaju, capabilities, nearestClinic, notFollowed, type Workspace } from "./introduce";
 
 /* ════════════════════════════════════════════════════════════════════
    Kaju engine.
@@ -109,11 +108,12 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   /* Guests never reach a paid model; signed-in people only when the
      central gate allows it AND the data route is approved. */
   const scope: InferenceScope = { purpose: "kaju_chat", userId: ctx.userId ?? null, orgId: ctx.orgId, db: ctx.db as unknown as LedgerDb };
-  /* Patient work (doses, referrals, a bite record, a bite note) is answered by the server's rules only: patient records never
-     go to a model from here, whatever model is configured. */
-  const withHint: ToolCtx = { ...ctx, workspace: ctx.workspace ?? context.workspace ?? null };
-  if (healthContext(withHint) && healthTurn(toolQuestion)) {
-    const r = await withTools(toolQuestion, withHint, earlier);
+  /* Patient work (doses, referrals, a bite record, a bite note) is answered by the server's rules only, and so is any turn of
+     a conversation that already holds a patient record's code: patient records are never sent to a model from here, even
+     one whose data route is approved. */
+  ctx = { ...ctx, workspace: ctx.workspace ?? context.workspace ?? null };
+  if (healthContext(ctx) && (healthTurn(toolQuestion) || turns.some((t) => EXPOSURE_CODE.test(t.text)))) {
+    const r = await withTools(toolQuestion, ctx, earlier);
     return { ...r, notice: "Answered from your facility's records, on StrayPaw's servers." };
   }
   const access = ctx.userId ? await modelAccess(scope) : null;
@@ -203,9 +203,11 @@ const STOP = /\b(find|search|show|me|the|a|an|for|any|all|records?|about|look|up
 /** Someone working as clinical staff: in the healthcare workspace, or signed in with no NGO and no reviewing office. Access is still decided on every read. */
 const healthContext = (ctx: Pick<ToolCtx, "workspace" | "pagePath" | "orgId" | "actorRole" | "userId">) => !!ctx.userId && (workspaceHint(ctx) === "healthcare" || (!ctx.orgId && ctx.actorRole !== "municipal_reviewer" && !workspaceHint(ctx)));
 const healthTurn = (q: string) => !!parseHealthAsk(q) || looksLikeExposure(q) || CLINICAL_DECISION.test(q);
-/* A statement on a record's page ("ate well today") is a note on that record; questions and commands keep their routes. */
+/* A statement sent from a record ("Tell Kaju" on a case: "ate well today") is a note on that record; questions and commands keep their routes. */
 const COMMAND_OR_QUESTION = /^(?:open|go|goto|show|find|search|export|make|create|prepare|draft|run|check|summar\w*|list|count|how|what|whats|which|who|whom|whose|where|when|why|is|are|was|were|can|could|would|will|should|do|does|did|tell|give|take|navigate|help|explain|define|compare|any|anything|reconcile|schedule|book|plan|email|send|post|remind|assign|ask|hi|hello|hey|thanks|thank|ok|okay|yes|no|status|update|close|delete|remove|edit|change|set|mark)\b/i;
 const plainStatement = (q: string) => q.length >= 6 && q.length <= 600 && !/\?\s*$/.test(q) && q.trim().split(/\s+/).length >= 2 && !COMMAND_OR_QUESTION.test(q.trim());
+/* A person bitten, told outside a clinical workspace: StrayPaw keeps people's bite records only at the treating facility. */
+const PERSON_BITTEN = (org: boolean) => `This reads like a person who was bitten, scratched or licked by an animal. Bite and patient records are kept by the hospital or health centre that treats them, so I have not recorded the person here.${org ? " If the animal needs finding or watching, tell me about the animal and where it is, without the person's details, and I will prepare a case." : ""} If someone has just been bitten, Bite help (/bite-help) says what to do and where to go.`;
 
 export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = []): Promise<Omit<AiReply, "notice">> {
   q = stripMention(q);
@@ -237,24 +239,28 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
   }
   const needsOrg = ctx.orgId ? "I could not read your records. Counts are unknown. Try again." : "That needs an organisation workspace. Join your organisation with its code, or ask me about published programmes and the public map.";
   const firstName = (ctx.userName ?? "").trim().split(/\s+/).find((w) => !/^(dr|mr|mrs|ms|prof)\.?$/i.test(w)) ?? null;
-  { const chat = smallTalk(q, firstName && !firstName.includes("@") ? firstName : null); if (chat) return done(chat); }
+  { const chat = smallTalk(q, firstName && !firstName.includes("@") ? firstName : null, !!(ctx.orgId || ctx.userId)); if (chat) return done(chat); }
   const health = healthContext(ctx);
   /* "What can I do with you?", "help", "hi Kaju": what Kaju can do here, from what is wired for this person. */
   if (asksAboutKaju(q)) {
     const hint = workspaceHint(ctx) as Workspace;
     let facility: "clinical" | "staff" | "none" | null = null;
     if (health) { const f = await myFacilities(ctx.db); facility = !f ? null : f.some((x) => x.caps.has("assess")) ? "clinical" : f.some((x) => x.caps.has("view_register") || x.caps.has("record_exposure")) ? "staff" : "none"; }
-    const intro = capabilities({ org: !!ctx.orgId, office, workspace: hint ?? (health ? "healthcare" : null), firstName: firstName && !firstName.includes("@") ? firstName : null, facility, connected: !!ctx.conn });
+    const intro = capabilities({ org: !!ctx.orgId, office, signedIn: !!ctx.userId, workspace: hint ?? (health ? "healthcare" : null), firstName: firstName && !firstName.includes("@") ? firstName : null, facility, connected: !!ctx.conn });
     return { ...done(intro.text), suggestions: intro.suggestions };
   }
   { const how = howTo(q); if (how) { if (how.go) acc.citations.push({ id: `page:${how.go.href}`, label: how.go.label, href: how.go.href, kind: "page" }); return done(how.text); } }
-  /* Clinical staff: their facility's own bite and PEP records, read with their own access. Decisions stay with the clinician. */
+  /* Clinical staff: their facility's own bite and PEP records, read with their own access. A note about a bite comes first
+     (it may mention calls or doses); then questions; decisions stay with the clinician. */
   if (health) {
+    const note = parseExposure(q);
+    if (note) return said(await prepareExposure(note, q, ctx, acc));
     const ask = parseHealthAsk(q);
     if (ask) return said(await healthAnswer(ask, ctx, acc));
     if (CLINICAL_DECISION.test(q)) return said(CLINICAL_REPLY);
-    const note = parseExposure(q);
-    if (note) return said(await prepareExposure(note, q, ctx, acc));
+  } else if (looksLikeExposure(q)) {
+    acc.citations.push({ id: "page:/bite-help", label: "Bite help", href: "/bite-help", kind: "page" });
+    return done(PERSON_BITTEN(!!ctx.orgId));
   }
   /* Work between programme partners (animal side only). Asked before the wording is restated, so "waiting" is not read as the case queue. */
   if (/\b(partners?|hospitals?|laborator\w*|coordination cell|programme cell)\b[^.?!]*\b(requests?|waiting|ask(?:ed|ing)?|needs?|wants?)\b|\brequests? from (?:the |a |our |programme )*(?:partners?|hospitals?|programme|laborator\w*)/i.test(asked)) {
@@ -271,10 +277,11 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
     const run = (name: string, input: Record<string, unknown>) => call(acc, ctx, name, input);
     const subject = subjectOf(ctx);
     const note = parseNote(q); if (note) return said(await prepareNote(note, q, ctx, acc, run));
-    const fu = parseFollowup(q); if (fu && (fu.due || fu.ref || subject.caseId || subject.dogId)) return said(await prepareFollowup(fu, q, ctx, acc, run));
+    const fu = parseFollowup(q); if (fu) return said(await prepareFollowup(fu, q, ctx, acc, run));
     const care = parseCare(q); if (care) return said(await prepareCare(care, q, ctx, acc, run));
     if (looksLikeReport(q) && q.trim().length <= 300) return said(await prepareReport(q, ctx, acc, run));
-    if (subject.caseId && plainStatement(q) && !caseSummaryAsked(q) && !canonical(q, true, office)) return said(await prepareNote({ ref: null, text: q.trim() }, q, ctx, acc, run));
+    /* Words sent from a record that are not a question or a command: a note on that record ("ate well, stitches clean"). */
+    if (subject.sent && plainStatement(q) && !caseSummaryAsked(q) && !canonical(q, true, office)) return said(await prepareNote({ ref: null, text: q.trim() }, q, ctx, acc, run));
   }
   /* One case in words: "summarise this case", "what's happening with case SPC-…", "status of this case". The case is the one named, else the one open on the page. */
   if (caseSummaryAsked(q)) {
@@ -537,12 +544,13 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
   const d = out.data as Record<string, unknown[]>;
   const parts = [d.your_cases?.length && `${d.your_cases.length} of your cases`, d.your_animals?.length && `${d.your_animals.length} of your animals`, d.public_animals?.length && `${d.public_animals.length} public animal records`, d.programmes?.length && `${d.programmes.length} programmes`].filter(Boolean);
   if (parts.length) return done(`For “${query}” I found ${parts.join(", ")}. They are linked below.`);
-  /* Nothing matched: say what was understood, that free-form sentences need a model, and the closest things Kaju can do. */
-  const lost = notFollowed(asked, query, modelReady());
+  /* Nothing matched: say so, what was picked out of the words, and the three closest things Kaju can do here. Words that read
+     like a to-do with a day are offered back as a task for the person to send; nothing is prepared on a guess. */
+  const lost = notFollowed(asked, query);
   const nearest = ctx.orgId
     ? nearestSkills(q, { org: true, office: false })
-    : ctx.actorRole === "municipal_reviewer" ? nearestSkills(q, { org: false, office: true })
-    : health ? ["PEP doses due today", "Referrals waiting", "What can you do?"]
+    : office ? nearestSkills(q, { org: false, office: true })
+    : health ? nearestClinic(q)
     : ["Show published programmes", "Open the map", "What is unknown status?", "What is ABC?"];
-  return { ...done(lost.text), suggestions: [...(lost.first && (ctx.orgId || health || office) ? [lost.first] : []), ...nearest].slice(0, 3) };
+  return { ...done(lost.text), suggestions: [...(lost.first && ctx.userId ? [lost.first] : []), ...nearest].slice(0, 3) };
 }

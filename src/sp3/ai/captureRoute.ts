@@ -4,7 +4,6 @@ import type { ToolCtx, ToolOut } from "./tools";
 import type { Citation, Proposal, ToolRun } from "./types";
 import { extractFieldMessage } from "./extract";
 import { personName, workId } from "./prepare";
-import { editDistance } from "./understand";
 import { animalAtStart, codeIn, indiaDay, reportText, sayDay, type AnimalRef, type CareAsk, type FollowupAsk, type NoteAsk, type TaskAsk } from "./capture";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -46,12 +45,17 @@ export function workspaceHint(ctx: Pick<ToolCtx, "workspace" | "pagePath">): "ng
   return p.startsWith("/health") ? "healthcare" : p.startsWith("/gov") ? "government" : p.startsWith("/research") ? "research" : p.startsWith("/ngo") ? "ngo" : null;
 }
 
-/** The record a note or report is about: what the page sent, else the record open on the page. Checked again before use. */
-export function subjectOf(ctx: Pick<ToolCtx, "subject" | "pagePath">): { caseId: string | null; dogId: string | null } {
+/** The record a note or report is about: what the page sent ("Tell Kaju" on a record: `sent`), else the record open on
+    the page. Checked again with the person's access before use. A report or a plain statement goes to a record only when
+    the page sent it; a command that names no record ("note: …") may use the record open on the page. */
+export function subjectOf(ctx: Pick<ToolCtx, "subject" | "pagePath">): { caseId: string | null; dogId: string | null; sent: boolean } {
   const path = ctx.pagePath ?? "";
-  const caseId = ctx.subject?.caseId && UUID.test(ctx.subject.caseId) ? ctx.subject.caseId : path.match(/^\/ngo\/(?:cases|verification)\/([0-9a-f-]{36})$/i)?.[1] ?? null;
-  const dogId = ctx.subject?.dogId && UUID.test(ctx.subject.dogId) ? ctx.subject.dogId : path.match(/^\/ngo\/animals\/([0-9a-f-]{36})$/i)?.[1] ?? null;
-  return { caseId: caseId?.toLowerCase() ?? null, dogId: dogId?.toLowerCase() ?? null };
+  const sentCase = ctx.subject?.caseId && UUID.test(ctx.subject.caseId) ? ctx.subject.caseId : null;
+  const sentDog = ctx.subject?.dogId && UUID.test(ctx.subject.dogId) ? ctx.subject.dogId : null;
+  if (sentCase || sentDog) return { caseId: sentCase?.toLowerCase() ?? null, dogId: sentCase ? null : sentDog!.toLowerCase(), sent: true };
+  const caseId = path.match(/^\/ngo\/(?:cases|verification)\/([0-9a-f-]{36})$/i)?.[1] ?? null;
+  const dogId = caseId ? null : path.match(/^\/ngo\/animals\/([0-9a-f-]{36})$/i)?.[1] ?? null;
+  return { caseId: caseId?.toLowerCase() ?? null, dogId: dogId?.toLowerCase() ?? null, sent: false };
 }
 
 /* ── reads, with the person's own access ─────────────────────────────── */
@@ -126,6 +130,13 @@ async function oneCase(ctx: ToolCtx, ref: string | null, said: string, sink: Sin
     }
     return { text: `Which case? Give its case code, for example “${what === "note" ? "note on SPC-36A054: ate well today" : "follow up SPC-36A054 next Monday"}”, or open the case and tell me there.` };
   }
+  /* "this case" on a case page arrives as the case's id. */
+  if (UUID.test(ref)) {
+    const c = await caseById(ctx, ref.toLowerCase());
+    if (c === "error") return { text: COULD_NOT };
+    if (c) { cite(sink, caseCite(c)); return { c }; }
+    return { text: "That case is not in your organisation's records, so I have not prepared anything." };
+  }
   const code = codeIn(ref);
   if (code) {
     const rows = await casesByCode(ctx, code);
@@ -162,16 +173,15 @@ async function taskOrg(ctx: ToolCtx): Promise<Org | { error: string }> {
   const pick = rows.find((x) => x.workspace === hint) ?? rows.find((x) => x.org_id === ctx.orgId) ?? rows[0];
   return pick ? { id: pick.org_id, name: pick.name, workspace: pick.workspace } : { error: "Tasks belong to an organisation's workspace, and your account is not in one yet. Join your organisation with its code, then ask me again." };
 }
-/** A team member by the name as said: the full name, one of their names, or a clear start of one. Two matches are both returned; nothing is guessed. */
+/** A team member by the name as said: the full name, or one whole word of it ("Ravi" for Ravi Kumar). Never a near
+    spelling or the start of a name: "Rav" or "Ravii" match nobody. Two matches are both returned for the person to choose. */
 export function matchPerson(said: string, list: Person[]): { hit?: Person; many?: Person[] } {
   const n = said.toLowerCase().replace(/\s+/g, " ").trim();
   const people = list.filter((p) => p.name && p.name !== "A colleague");
   const words = (p: Person) => p.name.toLowerCase().split(/[\s.]+/).filter(Boolean);
   const tiers: ((p: Person) => boolean)[] = [
-    (p) => p.name.toLowerCase() === n,
-    (p) => (n.includes(" ") ? p.name.toLowerCase().startsWith(n) : words(p).includes(n)),
-    (p) => n.length >= 3 && !n.includes(" ") && words(p).some((w) => w.startsWith(n)),
-    (p) => n.length >= 5 && !n.includes(" ") && words(p).some((w) => w.length >= 5 && editDistance(w, n) <= 1),
+    (p) => p.name.toLowerCase().replace(/\s+/g, " ") === n,
+    (p) => (n.includes(" ") ? words(p).join(" ").startsWith(`${n} `) : words(p).includes(n)),
   ];
   for (const t of tiers) { const hits = people.filter(t); if (hits.length === 1) return { hit: hits[0] }; if (hits.length > 1) return { many: hits }; }
   return {};
@@ -232,8 +242,10 @@ export async function prepareTask(t: TaskInput, ctx: ToolCtx, sink: Sink, now = 
       if (a.number) notes.push(`No animal numbered ${a.number} is on your register, so the task is not linked to one.`);
     }
     if (!caseId && !dogId) {
+      /* The record the page sent with the words ("Tell Kaju" on it); the panel open beside a record does not link it. */
       const s = subjectOf(ctx);
-      if (s.caseId) { const c = await caseById(ctx, s.caseId); if (c && c !== "error") { caseId = c.id; caseLabelText = caseLabel(c); cite(sink, caseCite(c)); } }
+      if (!s.sent) { /* not linked */ }
+      else if (s.caseId) { const c = await caseById(ctx, s.caseId); if (c && c !== "error") { caseId = c.id; caseLabelText = caseLabel(c); cite(sink, caseCite(c)); } }
       else if (s.dogId) { const d = await dogById(ctx, s.dogId); if (d && d !== "error") { dogId = d.id; dogLabelText = dogLabel(d); cite(sink, dogCite(d)); } }
     }
   }
@@ -289,7 +301,7 @@ export async function prepareCare(c: CareAsk, said: string, ctx: ToolCtx, sink: 
   if (c.animal) { const got = await oneDog(ctx, c.animal, said, sink); if (!("dog" in got)) return got; dog = got.dog; }
   else if (subject.dogId) { const d = await dogById(ctx, subject.dogId); if (d === "error") return { text: COULD_NOT }; dog = d; }
   else if (subject.caseId) { const cs = await caseById(ctx, subject.caseId); if (cs === "error") return { text: COULD_NOT }; if (cs?.dog_id) { const d = await dogById(ctx, cs.dog_id); if (d === "error") return { text: COULD_NOT }; dog = d; } else if (cs) return { text: "This case has no animal linked yet, so I cannot record care on it. Link the animal on the case first." }; }
-  if (!dog) return { text: `Which animal? Care is recorded on one animal. Give its name or number, for example “vaccinated Tiger (DDS-00421) today”.` };
+  if (!dog) return { text: "Which animal? Care is recorded on one animal. Say its name or the number on its record in the same line, or tell me from the animal's page." };
   cite(sink, dogCite(dog));
   if (c.future) {
     return prepareTask({ title: `${DO[c.careKind]} ${dog.name ?? dogLabel(dog)}`, dueOn: c.date!.day, whoName: null, explicit: false, whoPhrase: null, me: false, caseCode: null, caseId: null, animals: [], dogId: dog.id, said }, ctx, sink, now)
@@ -308,8 +320,11 @@ export async function prepareReport(said: string, ctx: ToolCtx, sink: Sink, call
   const text = reportText(said);
   const x = extractFieldMessage(text);
   if (!ctx.orgId) { sink.tools.push({ name: "extract_field_message", summary: x.summary, ok: true }); return { text: `I read this as: **${x.summary}**. To turn it into a case you need an organisation workspace. Residents can report it at /community/report.` }; }
-  const subject = subjectOf(ctx);
-  /* On a case's page a report is about that case: a note. On an animal's page it goes to the animal's one open case as a note, or becomes a new case for this animal. */
+  /* Sent from a case ("Tell Kaju" on it), a report is about that case: a note. Sent from an animal, it goes to the animal's
+     one open case as a note, or becomes a new case for this animal. Typed in the panel beside a record, it is a new report:
+     the intake desk below still offers the open case if it looks like the same animal. */
+  const sent = subjectOf(ctx);
+  const subject = sent.sent ? sent : { caseId: null, dogId: null };
   if (subject.caseId) {
     const got = await oneCase(ctx, null, said, sink, "note");
     if (!("c" in got)) return got;
@@ -350,5 +365,6 @@ export async function prepareReport(said: string, ctx: ToolCtx, sink: Sink, call
   const plans = (Array.isArray(out.data) ? out.data : []) as { report: string; missing: string[]; blockers: string[]; duplicate: string | null }[];
   const one = plans[0];
   if (!sink.proposals.length) return { text: one?.blockers.some((b) => /city/i.test(b)) ? `I read this as **${one.report}**. Tell me the city and I will prepare the case.` : "I could not turn that into a record. Say where it is and what happened." };
+  if (plans.length > 1) return { text: `I read ${plans.length} reports and prepared each one below. Confirm the ones you want. Nothing is saved until you do.` };
   return { text: `I read this as **${one?.report ?? x.summary}**.${one?.duplicate ? ` It may be the same animal as **${one.duplicate}**, which is already open: choose whether to add it there or open a new case.` : ""}${one?.missing.length ? ` Not in the message: ${one.missing.join(", ")}.` : ""} Confirm the one you want. Nothing is saved until you do.` };
 }

@@ -16,6 +16,7 @@ import { isResearchArchiveProgramme } from "@/lib/public-programmes";
 import { isConnectionTool, runConnectionTool, type ConnCtx } from "./connectTools";
 import { queryCases } from "./caseQuery";
 import { caseSummary } from "./caseSummary";
+import { proposeTaskTool } from "./captureRoute";
 import type { CaseQuery } from "./understand";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -129,7 +130,7 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "propose_note": return proposeNote(input, ctx);
     case "propose_followup": return proposeFollowup(input, ctx);
     case "propose_care": return proposeCare(input, ctx);
-    case "propose_task": return (await import("./captureRoute")).proposeTaskTool(input, ctx);
+    case "propose_task": return proposeTaskTool(input, ctx);
     case "navigate": {
       const n = NAV[String(input.to)];
       const destination=SCREENS.find(d=>d.key===String(input.to));

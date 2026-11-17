@@ -23,7 +23,7 @@ export async function POST(req:Request){
  const p=b?.proposal;
  if(b?.confirmed!==true||!p||typeof p.id!=='string'||!p.id||p.id.length>128)return NextResponse.json({error:'Review and confirm a supported proposal.'},{status:400});
  if(p.kind==='add_task'||p.kind==='register_exposure'){
-  try{const r=p.kind==='add_task'?await confirmTask(c.db,c.userId,c.ngoId,p):await confirmExposure(c.db,p);return NextResponse.json(r.body,{status:r.status,headers:{'Cache-Control':'no-store'}});}
+  try{const r=p.kind==='add_task'?await confirmTask(c.db,c.userId,c.ngoId,p):await confirmExposure(c.db,c.userId,p);return NextResponse.json(r.body,{status:r.status,headers:{'Cache-Control':'no-store'}});}
   catch{return NextResponse.json({error:p.kind==='add_task'?'The task status is unknown. Confirm the same proposal again to check it; it will not be added twice.':'Kaju could not tell whether the bite was saved. Open Bite cases to check before confirming again.'},{status:503});}
  }
  if(!c.ngoId)return NextResponse.json({error:'An organisation workspace is required.'},{status:403});

@@ -43,7 +43,8 @@ export function extractFieldMessage(raw: string, today = new Date()): Extracted 
   const age = /\b(pup|puppy|puppies|pups)\b/.test(t) ? "puppy" : /\b(adult|grown)\b/.test(t) ? "adult" : null;
   const earNotch = /ear ?-?notch/.test(t);
   const city = CITIES.find((c) => new RegExp(`\\b${c}\\b`, "i").test(text)) ?? null;
-  const placeM = text.match(/\b(?:near|at|in|outside|behind|opposite|opp\.?)\s+([A-Z0-9][\w.'-]*(?:\s+[A-Z0-9][\w.'-]*){0,4})/);
+  /* The first place named; "at 4pm" and "at 10:30" are times, not places. */
+  const placeM = [...text.matchAll(/\b(?:near|at|in|outside|behind|opposite|opp\.?)\s+([A-Z0-9][\w.'-]*(?:\s+[A-Z0-9][\w.'-]*){0,4})/g)].find((m) => !/^\d{1,2}(?:[:.]\d{2}\s*(?:am|pm|hrs?)?|\s*(?:am|pm|hrs?))(?![a-z])/i.test(m[1])) ?? null;
   let place = placeM ? placeM[1].replace(/[.,;]+$/, "") : null;
   /* "near Ward 12 market": the place nouns after a named place belong to it. */
   if (place && placeM && !/[.,;]$/.test(placeM[1])) place += placeTail(text.slice((placeM.index ?? 0) + placeM[0].length));

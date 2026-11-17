@@ -8,54 +8,66 @@ import { codeIn, findDate, looksLikeTodo, placeIn, sayDay, stripMention, unpolit
    Kaju introducing itself, and answering what it did not follow.
 
    "What can I do with you?" is answered from what is actually wired for
-   this person: the chat tools and mission tools that exist (tools.ts and
-   the registry), the person's workspace and role as the server verified
-   them, and what works on this deployment now versus what needs the
-   owner's setup (status.ts). Every example phrasing below is one the
-   rule-based router answers today (scripts/test-kaju-capture.ts asks each
-   one), so Kaju never offers something it cannot do.
+   this person: the chat tools that exist (tools.ts), the mission tools and
+   the decisions reserved for people (the registry), the person's
+   workspace, role and facility permissions as the server read them, and
+   what works on this deployment now (status.ts). Every example below is a
+   phrasing the rule-based router answers today in that workspace
+   (scripts/test-kaju-capture.ts asks each one), so Kaju never offers
+   something it cannot do. The one-tap suggestions are only questions that
+   read records; examples that would prepare a record stay as words to try.
    ════════════════════════════════════════════════════════════════════ */
 
 export type Workspace = "ngo" | "government" | "healthcare" | "research" | null;
-export type Who = { org: boolean; office: boolean; workspace: Workspace; firstName: string | null; facility: "clinical" | "staff" | "none" | null; connected: boolean };
+export type Who = { org: boolean; office: boolean; signedIn: boolean; workspace: Workspace; firstName: string | null; facility: "clinical" | "staff" | "none" | null; connected: boolean };
 
-type Can = { id: string; line: string; examples: string[]; for: (w: Who) => boolean; needs: string[] };
+/* `ask`: a question that only reads, safe as a one-tap suggestion. `try`: words that prepare something for the person to confirm. */
+type Example = { say: string; ask?: true };
+type Can = { id: string; line: string; examples: Example[]; for: (w: Who) => boolean; needs: string[] };
 const chat = new Set<string>(TOOL_DEFS.map((t) => t.name));
 const mission = new Set<string>(Object.keys(TOOLS));
 const ngo = (w: Who) => w.org && (w.workspace === null || w.workspace === "ngo");
-const anyWorkspace = (w: Who) => w.org || w.office || w.workspace === "healthcare" || w.workspace === "government" || w.workspace === "research";
+const clinic = (w: Who) => w.facility === "clinical" || w.facility === "staff";
+/* Tasks belong to a workspace the person is a member of: an NGO, a reviewing office, a facility or another partner. */
+const member = (w: Who) => w.org || w.office || clinic(w) || (w.signedIn && (w.workspace === "government" || w.workspace === "research" || w.workspace === "healthcare"));
 
 /* Each capability names the tools behind it; one whose tools are not wired is never offered. */
 const CAN: Can[] = [
-  { id: "tasks", line: "**Tasks**: one line becomes a task with its date, person and record", examples: ["Add a task: call the vet tomorrow", "Remind me to send the package on Monday"], for: anyWorkspace, needs: ["create_task"] },
-  { id: "capture", line: "**Records from one line**: a new case, a note, a follow-up or care given", examples: ["Record a brown female limping near Ward 12 market", "Vaccinated Tiger today, batch B-1"], for: ngo, needs: ["prepare_intake", "propose_case", "propose_note", "propose_followup", "propose_care"] },
-  { id: "day", line: "**Your day**: what needs you, what is overdue, what changed", examples: ["What's overdue?", "What should I do first?"], for: ngo, needs: ["work_summary", "prepared_work"] },
-  { id: "cases", line: "**Questions about cases**: counts, lists and who holds what", examples: ["How many open cases are unassigned?"], for: ngo, needs: ["query_cases"] },
-  { id: "abc", line: "**ABC and claims**: evidence gaps, the vet queue, this month's claim", examples: ["Which records are missing evidence?", "Draft this month's claim"], for: ngo, needs: ["find_missing_evidence", "claim_draft"] },
-  { id: "followups", line: "**Follow-ups**: the overdue ones, with new dates for you to confirm", examples: ["Prepare overdue follow-ups"], for: ngo, needs: ["overdue_followups"] },
-  { id: "office", line: "**Your office's queue**: packages waiting, pre-checked claim by claim", examples: ["What is waiting for me today?", "Show ward coverage and sudden changes", "Draft the monthly report"], for: (w) => w.office, needs: ["office_brief", "ward_activity"] },
-  { id: "clinic", line: "**Your facility's bite and PEP work**: doses due, missed doses, referrals, calls to make, a bite record by its code", examples: ["PEP doses due today", "Missed doses", "Which patients should we call?", "Referrals waiting"], for: (w) => w.facility === "clinical" || w.facility === "staff", needs: [] },
-  { id: "bite", line: "**A bite record from your note**: only what you wrote; the category only if you wrote it", examples: ["8 year old boy bitten on the left calf by a stray today, category III"], for: (w) => w.facility === "clinical" || w.facility === "staff", needs: [] },
-  { id: "howto", line: "**How things work here**: ask “how do I…”", examples: ["How do I add someone to my team?"], for: (w) => w.org, needs: [] },
+  { id: "tasks", line: "**Tasks**: one line becomes a task with its day, person and record", examples: [{ say: "Add a task: call the vet tomorrow" }, { say: "Remind me to send the package on Monday" }], for: member, needs: ["propose_task", "create_task"] },
+  { id: "capture", line: "**Records from one line**: a new case, a note, a follow-up or care given", examples: [{ say: "Record a brown female limping near Ward 12 market" }], for: ngo, needs: ["prepare_intake", "propose_case", "propose_note", "propose_followup", "propose_care"] },
+  { id: "day", line: "**Your day**: what needs you first, what is overdue", examples: [{ say: "What should I do first?", ask: true }, { say: "What's overdue?", ask: true }], for: ngo, needs: ["work_summary", "prepared_work"] },
+  { id: "cases", line: "**Questions about cases and evidence**: counts, gaps, who holds what", examples: [{ say: "How many open cases are unassigned?", ask: true }, { say: "Which records are missing evidence?", ask: true }], for: ngo, needs: ["query_cases", "find_missing_evidence"] },
+  { id: "office", line: "**Your office's queue**: packages waiting, pre-checked claim by claim", examples: [{ say: "What is waiting for me today?", ask: true }, { say: "Show ward coverage and sudden changes", ask: true }], for: (w) => w.office, needs: ["office_brief", "ward_activity"] },
+  { id: "clinic", line: "**Your facility's bite and PEP work**: doses due, missed doses, referrals, calls to make, a bite record by its code", examples: [{ say: "PEP doses due today", ask: true }, { say: "Missed doses", ask: true }, { say: "Which patients should we call?", ask: true }, { say: "Referrals waiting", ask: true }], for: clinic, needs: [] },
+  { id: "bite", line: "**A bite record from your note**: only what you wrote; the category only if you wrote it", examples: [{ say: "8 year old boy bitten on the left calf by a street dog today, washed at home" }], for: clinic, needs: [] },
 ];
-const wired = (c: Can) => c.needs.every((n) => chat.has(n) || mission.has(n) || n === "prepare_intake" || n === "prepare_report");
+const wired = (c: Can) => c.needs.every((n) => chat.has(n) || mission.has(n));
+/* The decisions the registry keeps for people (level 4), in the words a person uses. */
+const KEPT: Record<string, string> = { verify_claim: "a verification", validate_result: "a laboratory result", clinical_decision: "a clinical decision", grant_data_access: "access to restricted data" };
+const keptForPeople = () => (Object.entries(TOOLS) as [string, { level: number }][]).filter(([, t]) => t.level === 4).map(([k]) => KEPT[k]).filter(Boolean);
 
 /** What Kaju can do for this person here, with phrasings that work. No record is read. */
 export function capabilities(w: Who, env: Record<string, string | undefined> = process.env): { text: string; suggestions: string[] } {
   const hello = `Hello${w.firstName ? `, ${w.firstName}` : ""}. I'm Kaju.`;
   const mine = CAN.filter((c) => wired(c) && c.for(w));
   if (!mine.length) return { text: `${hello} I can explain published programmes and help you find public records. Sign in to work with your organisation's cases, tasks, follow-ups and reports.`, suggestions: ["Show published programmes", "How do I register my organisation?", "What is ABC?"] };
-  const examples = [...new Set(mine.flatMap((c) => c.examples))];
-  const pickFrom = mine.map((c) => c.examples[0]);
-  const shown = [...new Set([...pickFrom, ...examples])].slice(0, 6);
+  /* One example from each thing first, then the rest, up to six. */
+  const all = [...mine.map((c) => c.examples[0]), ...mine.flatMap((c) => c.examples.slice(1))];
+  const shown = all.filter((e, i) => all.findIndex((x) => x.say === e.say) === i).slice(0, 6);
   const status = kajuStatus(env);
-  const model = status.find((s) => s.id === "model");
-  const later = [model?.state !== "live" ? "understanding any sentence you write (a model the owner has not connected yet; until then, say it the way the examples do)" : null, w.org && status.find((s) => s.id === "whatsapp")?.state !== "live" ? "reading WhatsApp directly (paste messages to me instead)" : null].filter(Boolean);
+  const later = [
+    status.find((s) => s.id === "model")?.state !== "live" ? "free-form sentences (say it the way the examples do)" : null,
+    w.org && status.find((s) => s.id === "whatsapp")?.state !== "live" ? "reading WhatsApp directly (paste the message to me)" : null,
+  ].filter(Boolean);
+  const kept = keptForPeople();
   return {
-    text: `${hello} Here is what I can do for you here:\n\n${mine.map((c) => `- ${c.line}`).join("\n")}\n\nTry: ${shown.map((s) => `“${s}”`).join(" · ")}\n\nI prepare; you confirm. Nothing is saved until you press Confirm.${w.facility === "clinical" || w.facility === "staff" ? " Clinical decisions stay with the clinician." : ""}${later.length ? `\n\nNot yet: ${later.join("; ")}.` : ""}`,
-    suggestions: shown.slice(0, 4),
+    text: `${hello} Here is what I can do for you here:\n\n${mine.map((c) => `- ${c.line}`).join("\n")}\n\nTry: ${shown.map((e) => `“${e.say}”`).join(" · ")}\n\nI prepare; you confirm. Nothing is saved until you press Confirm.${kept.length ? ` A person always decides ${kept.length > 1 ? `${kept.slice(0, -1).join(", ")} and ${kept[kept.length - 1]}` : kept[0]}.` : ""}${later.length ? `\n\nNot connected yet: ${later.join("; ")}.` : ""}`,
+    suggestions: [...new Set(mine.flatMap((c) => c.examples).filter((e) => e.ask).map((e) => e.say))].slice(0, 4),
   };
 }
+
+/** Every example phrasing, by capability, for the tests that ask each one in its workspace. */
+export const EXAMPLES = Object.fromEntries(CAN.map((c) => [c.id, c.examples.map((e) => e.say)]));
 
 /* ── is this a question about Kaju itself? ───────────────────────────── */
 const tidy = (q: string) => unpolite(stripMention(q)).toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim()
@@ -65,9 +77,9 @@ const ABOUT = [
   /^what (?:all |else )?(?:can|could|do|will) you (?:do|help (?:me |us )?with|offer|handle)(?: for (?:me|us))?(?: here)?$/,
   /^what are you (?:capable of|able to do|good at|for|here for)$/, /^what (?:is|are) (?:your|kajus) (?:capabilities|features|skills|abilities|commands)$/,
   /^how (?:do|does) (?:you|kaju|this|it) work$/, /^how (?:can|could|do|will|would) you help(?: me| us)?(?: here| today)?$/, /^how (?:can|do|should) (?:i|we) use (?:you|kaju|this)$/,
-  /^what (?:do|can) you (?:know|understand)$/, /^(?:who|what) are you$/, /^what is kaju$/, /^what can kaju do$/,
+  /^what do you (?:know|understand)$/, /^(?:who|what) are you$/, /^what is kaju$/, /^what can kaju do$/,
   /^(?:help|help me|i need help|need help|menu|options|commands|capabilities|features|examples|show me examples|what now|where do i start|how do i start|getting started|get started|start)$/,
-  /^(?:tum|aap|tu) kya kya? kar sakte? (?:ho|hain|hai)$/, /^kya kya? kar sakte? (?:ho|hain|hai)$/, /^(?:madad|madad karo|help karo|help kar do|mujhe help chahiye|help chahiye)$/,
+  /^(?:(?:tum|aap|tu) )?(?:kya|kya kya) kar sakt(?:e|i|a)(?: ho| hain| hai)?(?: kaju)?$/, /^(?:tum|aap) kaun ho$/, /^(?:madad|madad karo|help karo|help kar do|mujhe help chahiye|help chahiye)$/,
 ];
 const GREETING = /^(?:hi+|hey+|hello+|helo|hlo|hellow|hiya|yo|namaste|namaskar|namaskaram|vanakkam|good (?:morning|afternoon|evening|day)|gm|morning|evening|hey there|hi there|hello there)(?: (?:kaju|there|team|all|everyone|ji|bhai|buddy|friend))*$/;
 /** "What can I do with you?", "help", "hi Kaju", "tum kya kar sakte ho", typed roughly: the introduction. */
@@ -87,12 +99,29 @@ export function understoodBits(q: string, now = new Date()): string | null {
   ].filter(Boolean) as string[];
   return bits.length ? bits.length === 1 ? bits[0] : `${bits.slice(0, -1).join(", ")} and ${bits[bits.length - 1]}` : null;
 }
-/** The fallback sentence: honest about what was and was not followed, and that free-form understanding needs a model. */
-export function notFollowed(q: string, query: string, modelLive: boolean, now = new Date()): { text: string; first: string | null } {
+/** The fallback sentence: what was not followed, what was picked out, and (for words that read like a to-do with a day) the
+    same words offered back as a task for the person to send, never prepared on a guess. */
+export function notFollowed(q: string, query: string, now = new Date()): { text: string; first: string | null } {
   const bits = understoodBits(q, now);
   const todo = looksLikeTodo(q, now) ? `Add a task: ${unpolite(stripMention(q)).replace(/^./, (c) => c.toLowerCase())}` : null;
   return {
-    text: `I could not match “${query}” to a record or to something I can do.${bits ? ` I picked out ${bits}, but not what to do with ${bits.includes(" and ") ? "them" : "it"}.` : ""}${modelLive ? "" : " I follow set ways of saying things until the owner connects a model for free-form sentences."} The closest things I can do:`,
+    text: `I could not match “${query}” to a record or a task.${bits ? ` I picked out ${bits}, but not what to do with ${bits.includes(" and ") ? "them" : "it"}.` : ""} The closest things I can do:`,
     first: todo,
   };
+}
+
+/* The closest things a clinical person can ask, by the words they used. */
+const CLINIC_ASKS: { ask: string; keys: string[] }[] = [
+  { ask: "PEP doses due today", keys: ["dose", "doses", "due", "today", "pep", "vaccine", "injection", "schedule", "arv"] },
+  { ask: "Missed doses", keys: ["missed", "late", "overdue", "skipped", "defaulter", "return"] },
+  { ask: "Which patients should we call?", keys: ["call", "phone", "remind", "reminder", "patients", "contact"] },
+  { ask: "Referrals waiting", keys: ["referral", "referrals", "referred", "transfer", "rig", "immunoglobulin", "hospital"] },
+  { ask: "Which bites need a category?", keys: ["category", "assess", "assessment", "clinician", "waiting", "bite", "bites"] },
+];
+/** Up to three clinical questions closest to the words (the first three when nothing is close). */
+export function nearestClinic(text: string): string[] {
+  const words = new Set(text.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 2));
+  const scored = CLINIC_ASKS.map((s) => ({ s, n: s.keys.filter((k) => [...words].some((w) => w === k || (w.length > 4 && (w.startsWith(k) || k.startsWith(w))))).length })).sort((a, b) => b.n - a.n);
+  const hits = scored.filter((x) => x.n > 0).map((x) => x.s.ask);
+  return (hits.length ? hits : CLINIC_ASKS.map((s) => s.ask)).slice(0, 3);
 }

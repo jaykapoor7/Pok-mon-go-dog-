@@ -141,13 +141,14 @@ const CODE = /\b([A-Za-z]{2,5}(?:-[A-Za-z]{2,5})?-(?=[A-Za-z0-9]*\d)[A-Za-z0-9]{
 export const codeIn = (t: string) => { const c = t.match(CODE)?.[1]; return c && !/^BX-/i.test(c) && !/^(?:B|batch)-/i.test(c) ? c.toUpperCase() : null; };
 
 export type AnimalRef = { name: string | null; number: string | null; phrase: string };
-const NOT_A_NAME = new Set(["i", "we", "the", "a", "an", "he", "she", "it", "they", "him", "her", "his", "its", "them", "this", "that", "there", "here", "kaju", "straypaw", "dr", "mr", "mrs", "ms", "ward", "market", "road", "street", "today", "tomorrow", "yesterday", "tonight", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", "ok", "okay", "please", "case", "dog", "dogs", "puppy", "pup", "animal", "cat", "all", "every", "each", "some", "one", "two", "batch", "dose", "note", "task", "photo", "photos", "vet", "team", "office", "package", "report", "claim", "sp", "abc", "arv", "pep", "opd", "next", "last", "this", "on", "at", "in", "for", "with", "and", "after", "before", "from", "to", "of", "by", "brown", "black", "white", "female", "male", "stray", "street", "new", "old", "big", "small", "little", "injured", "sick", "my", "our", "your", "their", "not", "no", "yes"]);
+const NOT_A_NAME = new Set(["i", "we", "the", "a", "an", "he", "she", "it", "they", "him", "her", "his", "its", "them", "this", "that", "there", "here", "kaju", "straypaw", "dr", "mr", "mrs", "ms", "ward", "market", "road", "street", "today", "tomorrow", "yesterday", "tonight", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", "ok", "okay", "please", "case", "dog", "dogs", "puppy", "pup", "animal", "cat", "all", "every", "each", "some", "one", "two", "batch", "dose", "note", "task", "photo", "photos", "vet", "team", "office", "package", "report", "claim", "sp", "abc", "arv", "pep", "opd", "next", "last", "this", "on", "at", "in", "for", "with", "and", "after", "before", "from", "to", "of", "by", "brown", "black", "white", "female", "male", "stray", "street", "new", "old", "big", "small", "little", "injured", "sick", "my", "our", "your", "their", "not", "no", "yes", "done", "completed", "pending", "due", "was", "is", "are", "check", "recheck", "visit", "call", "treated", "given", "seen", "fed", "ok"]);
 const nameWord = (w: string) => /^[A-Za-z][A-Za-z'’-]{1,24}$/.test(w) && !NOT_A_NAME.has(w.toLowerCase().replace(/['’]s$/, ""));
 
 /** The animal a phrase starts with: "Tiger (132)", "Dog 125", "dog #125", "DDS-00421", "Tiger's", "tiger". */
 export function animalAtStart(s: string): AnimalRef | null {
   const t = s.replace(/^\s*(?:the\s+)?(?:(?:dog|puppy|pup|bitch|cat|animal)\s+(?:called|named)\s+)?/i, "").trim();
-  let m = t.match(/^([A-Za-z][A-Za-z'’-]{1,24})\s*\(\s*#?\s*([A-Za-z0-9][A-Za-z0-9-]{0,24})\s*\)/);
+  /* "Tiger (132)": the part in brackets is a tag number, so it has a digit ("done (recheck)" is not an animal). */
+  let m = t.match(/^([A-Za-z][A-Za-z'’-]{1,24})\s*\(\s*#?\s*((?=[A-Za-z0-9-]*\d)[A-Za-z0-9][A-Za-z0-9-]{0,24})\s*\)/);
   if (m && nameWord(m[1])) return { name: m[1].replace(/['’]s$/, ""), number: m[2], phrase: m[0] };
   m = t.match(/^(?:dog|puppy|pup|cat|animal)\s*(?:no\.?|number|#)?\s*#?\s*(\d{1,6})\b/i);
   if (m) return { name: null, number: m[1], phrase: m[0] };
@@ -165,7 +166,7 @@ export function animalsIn(text: string, skip: string[] = []): AnimalRef[] {
   const out: AnimalRef[] = [];
   const add = (r: AnimalRef | null) => { if (r && !out.some((x) => x.name === r.name && x.number === r.number)) out.push(r); };
   for (const m of text.matchAll(/\b(?:dog|puppy|pup|cat|animal)\s*(?:no\.?|number|#)?\s*#?\s*(\d{1,6})\b/gi)) add({ name: null, number: m[1], phrase: m[0] });
-  for (const m of text.matchAll(/\b([A-Z][A-Za-z'’-]{1,24})\s*\(\s*#?\s*([A-Za-z0-9][A-Za-z0-9-]{0,24})\s*\)/g)) if (nameWord(m[1])) add({ name: m[1].replace(/['’]s$/, ""), number: m[2], phrase: m[0] });
+  for (const m of text.matchAll(/\b([A-Z][A-Za-z'’-]{1,24})\s*\(\s*#?\s*((?=[A-Za-z0-9-]*\d)[A-Za-z0-9][A-Za-z0-9-]{0,24})\s*\)/g)) if (nameWord(m[1])) add({ name: m[1].replace(/['’]s$/, ""), number: m[2], phrase: m[0] });
   const words = text.split(/\s+/);
   words.forEach((w, i) => {
     const clean = w.replace(/^[("'“]+|[)"'”.,;:!?]+$/g, "");
@@ -248,20 +249,30 @@ export function parseNote(raw: string): NoteAsk | null {
 }
 
 export type FollowupAsk = { ref: string | null; due: Due | null; note: string };
-/** "follow up Max next Monday", "schedule a follow-up for SPC-36A054 on 20 Nov: check the stitches", "recheck Tiger Friday". */
+/** "follow up Max next Monday", "schedule a follow-up for SPC-36A054 on 20 Nov: check the stitches", "recheck Tiger Friday".
+    The words after "follow up" must name a record (a code or an animal) or nothing at all; anything else ("follow-ups could
+    not be read", "follow-up (dressing change) was due") is a sentence about follow-ups, not one to schedule. */
 export function parseFollowup(raw: string, now = new Date()): FollowupAsk | null {
   const q = unpolite(stripMention(raw)).replace(/\s+/g, " ").trim();
   if (RECURRING.test(q) || /^(?:what|which|how|any|show|list|are|is)\b/i.test(q) || /\boverdue|missed|late\b/i.test(q)) return null;
-  const m = q.match(/^(?:(?:schedule|book|set|add|plan|put)\s+(?:in\s+)?(?:a\s+|the\s+)?)?(?:follow[- ]?up|re-?check|re-?visit|check[- ]?up visit)s?\s*(?:visit\s+)?(?:on|for|with|of|to)?\s*([\s\S]*)$/i);
+  const m = q.match(/^((?:schedule|book|set|add|plan|put)\s+(?:in\s+)?(?:a\s+|the\s+)?)?(?:follow[- ]?up|re-?check|re-?visit|check[- ]?up visit)(s?)\b\s*(?:visit\s+)?(?:on|for|with|of|to)?\s*([\s\S]*)$/i);
   if (!m) return null;
-  let rest = m[1].trim(), note = "";
+  const asked = !!m[1];
+  let rest = m[3].trim(), note = "";
   const split = rest.match(/^(.*?)(?:\s*[:–—]\s+|\s+-\s+|:\s*)(.+)$/);
   if (split) { rest = split[1]; note = split[2].trim(); }
   const due = findDate(rest, now, "future") ?? (note ? findDate(note, now, "future") : null);
   let ref = due ? rest.replace(due.phrase, " ") : rest;
   ref = ref.replace(/\b(?:on|by|for|at|in)\s*$/i, "").replace(/\s+/g, " ").replace(/^[\s,;]+|[\s,;.]+$/g, "").replace(/['’]s\s+case$|\s+case$/i, "").replace(/^(?:case|the case)\s+/i, "").trim();
-  /* "follow-ups due this week", "follow-ups pending": a question about follow-ups, not one to schedule. */
-  if (/^(?:due|pending|today|this|that|these|those|list|are|is|was|were|for (?:today|this)|in (?:this|the)|which|done|completed|s\b)/i.test(ref)) return null;
+  if (/^(?:this|current|selected)(?:\s+(?:case|animal|dog|one))?$/i.test(ref)) ref = "";
+  /* "follow-ups due this week": a question about follow-ups. A plural with no scheduling verb is never one to schedule. */
+  if (m[2] && !asked) return null;
+  if (ref) {
+    const animal = animalAtStart(ref);
+    const short = ref.split(/\s+/).length <= 3;
+    const named = short && (!!codeIn(ref) || /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(ref) || (!!animal && animal.phrase.trim().length >= ref.length - 1));
+    if (!named) return null;
+  } else if (!due && !asked) return null;
   return { ref: ref || null, due, note };
 }
 
@@ -296,16 +307,24 @@ export function parseCare(raw: string, now = new Date()): CareAsk | null {
 }
 
 /* ── a field report in one line ──────────────────────────────────────── */
-const REPORT_WORDS = /\b(?:injur\w*|limp\w*|bleed\w*|wound\w*|hurt|hit by|accident|lying|crying|sick|vomit\w*|weak|maggot\w*|fractur\w*|stuck|trapped|abandon\w*|alone|found|spotted|rescued?|mange|skin (?:disease|infection)|unconscious|attacked|paraly\w*|needs? (?:a )?(?:vet|rescue|help|treatment|doctor)|not eating|can'?t walk|cannot walk|dumped|lost|hungry|pregnant|in labou?r)\b/i;
+/* What happened to an animal: words that make a sentence a report on their own ("limping", "hit by", "abandoned"). */
+const HAPPENED = /\b(?:injured|limp\w*|bleed\w*|hurt|hit by|accident|lying|crying|vomit\w*|fractur\w*|stuck|trapped|abandon\w*|found|spotted|rescued?|unconscious|attacked|paraly\w*|needs? (?:a )?(?:vet|rescue|help|treatment|doctor)|not eating|can'?t walk|cannot walk|dumped|in labou?r|bitten by (?:a |another |other )?dogs?)\b/i;
+/* A condition that is also a case title ("Dog with a wound", "Mange"): a report only with a place, a need or more words. */
+const CONDITION = /\b(?:injur\w*|wound\w*|sick|weak|maggot\w*|mange|skin (?:disease|infection)|alone|lost|hungry|pregnant)\b/i;
 const ANIMAL_WORDS = /\b(?:dogs?|pupp(?:y|ies)|pups?|bitch|cats?|kittens?|strays?|animal|female|male|brown|black|white|tan)\b/i;
 const QUESTION = /^(?:how|what|whats|what's|which|where|when|why|who|whose|is|are|was|were|can|could|do|does|did|any|list|show|count|tell|give|find|search)\b|\?\s*$/i;
 const REPORT_LEAD = /^(?:record|report|log|register|new case|open a case|open a new case|create a case|raise a case|there(?:'s| is| are)|we (?:have|found|got|saw)|i (?:found|saw|spotted)|saw|found|spotted)\b(?:\s+(?:a|an|the)?\s*(?:case|report)\s*(?:of|for|about|:)?)?\s*:?\s*/i;
-/** A one-line field report about an animal ("brown female limping near Ward 12 market, needs a vet"), not a question or a command. */
+const PLACE_WORD = /\b(?:near|at|by|outside|behind|opposite|in front of|next to|beside)\s+\S/i;
+/** A one-line field report about an animal ("brown female limping near Ward 12 market, needs a vet"), not a question, a command or a person bitten. */
 export function looksLikeReport(raw: string): boolean {
   const t = unpolite(stripMention(raw)).trim();
-  if (t.length < 12 || t.length > 600 || QUESTION.test(t)) return false;
-  const lead = REPORT_LEAD.test(t);
-  return (REPORT_WORDS.test(t) && (ANIMAL_WORDS.test(t) || lead)) || (lead && ANIMAL_WORDS.test(t) && /\b(?:near|at|by|outside|behind|opposite|in)\b/i.test(t));
+  if (t.length < 12 || t.length > 600 || QUESTION.test(t) || looksLikeExposure(t)) return false;
+  const lead = REPORT_LEAD.test(t), animal = ANIMAL_WORDS.test(t);
+  /* "Record a dog near the temple" is a report; "Register an animal" asks how, and says nothing about one. */
+  if (lead) return HAPPENED.test(t) || CONDITION.test(t) || (animal && (PLACE_WORD.test(t) || t.split(/\s+/).length >= 5));
+  if (!animal) return false;
+  if (HAPPENED.test(t)) return true;
+  return CONDITION.test(t) && (PLACE_WORD.test(t) || /\b(?:needs?|please|urgent|help|send)\b/i.test(t) || t.split(/\s+/).length >= 6);
 }
 /** The report itself, without "record" / "report" / "new case:" in front. */
 export const reportText = (raw: string) => { const t = unpolite(stripMention(raw)).trim(); const r = t.replace(/^(?:record|report|log|register|new case|open a case|open a new case|create a case|raise a case)\b(?:\s+(?:a|an|the)?\s*(?:case|report)\s*(?:of|for|about)?)?\s*:?\s*/i, ""); return (r.length >= 8 ? r : t).replace(/^./, (c) => c.toUpperCase()); };
@@ -324,15 +343,17 @@ export type HealthAsk =
   | { kind: "calls" }
   | { kind: "needs_category" }
   | { kind: "lookup"; code: string };
-const DOSE = /\b(?:doses?|pep|injections?|shots?|arv|vaccine doses?|courses?|schedules?)\b/i;
-/** A question about the facility's own bite and PEP work, or null. */
+const DOSE = /\b(?:doses?|pep|injections?|shots?|arv|vaccine doses?|pep courses?|dose schedules?)\b/i;
+/* A command to do something ("schedule a visit tomorrow", "add a task …"): not a question about doses. */
+const COMMAND = /^(?:schedule|book|plan|add|create|make|assign|remind|record|register|note|log|put|set|send|email|post|prepare|draft|export|open|go|take|call|ring|phone|visit|follow)\b/i;
+/** A question about the facility's own bite and PEP work, or null. A note about a person bitten is not a question. */
 export function parseHealthAsk(raw: string): HealthAsk | null {
   const q = unpolite(stripMention(raw)).replace(/\s+/g, " ").trim();
   const t = q.toLowerCase();
-  if (q.length > 240) return null;
+  if (q.length > 240 || looksLikeExposure(q)) return null;
   const code = q.match(EXPOSURE_CODE)?.[1];
   if (code) return { kind: "lookup", code: code.toUpperCase() };
-  if (/^how (?:do|can|should|to)\b/.test(t)) return null;
+  if (/^how (?:do|can|should|to)\b/.test(t) || COMMAND.test(t)) return null;
   if (/\b(?:missed|overdue|late|skipped|did ?n[o']t (?:come|turn up|return)|no[- ]shows?|defaulters?)\b/.test(t) && (DOSE.test(t) || /\bpatients?\b/.test(t))) return { kind: "missed" };
   if (/\b(?:patients?|people|persons?|who)\b.*\b(?:to\s+)?(?:call|ring|phone|remind)\b|\bcalls? to make\b|\bwho (?:should|do|must) (?:i|we) call\b|\breminder calls?\b|\bwhom? to call\b/.test(t)) return { kind: "calls" };
   if (/\breferr(?:al|als|ed)\b/.test(t) && !/\brefer (?:a|this|the)\b/.test(t)) return { kind: "referrals" };

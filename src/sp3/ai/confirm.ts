@@ -21,10 +21,12 @@ import type { Proposal } from "./types";
    Tasks are idempotent: the row's id is derived from the person and the
    proposal id, so confirming the same proposal again finds the same task
    and never adds a second one. A bite record goes through oh_record_exposure,
-   the bite form's own function; it has no request id, so a confirm whose
-   outcome is unknown is never retried automatically (the reply says to
-   check Bite cases first), and a second bite with the same register number,
-   date and kind presented today is refused as a likely repeat.
+   the bite form's own function; the register keeps no request id, so a
+   confirm whose outcome is unknown is never retried automatically (the
+   reply says to check Bite cases first), the same proposal confirmed again
+   on this server returns the record it made, and a presentation today with
+   the same date, kind and register number (or, with no number, the same
+   age band, sex, category and animal) is refused as a likely repeat.
    ════════════════════════════════════════════════════════════════════ */
 
 type Db = Pick<SupabaseClient, "from" | "rpc">;
@@ -108,7 +110,7 @@ export async function confirmTask(db: Db, userId: string, ngoId: string | null, 
 const KINDS = ["bite", "scratch", "lick_broken_skin", "other"], BANDS = ["0-4", "5-14", "15-29", "30-49", "50+"], WASH = ["before_arrival", "at_facility", "not_washed"];
 const SPECIES = ["dog", "cat", "cattle", "monkey", "wildlife", "other", "unknown"], OWN = ["community", "owned", "unknown"];
 
-export async function confirmExposure(db: Db, p: Exposure, now = new Date()): Promise<Confirmed> {
+export async function confirmExposure(db: Db, userId: string, p: Exposure, now = new Date()): Promise<Confirmed> {
   const bad = !UUID.test(String(p.facilityId)) || !isDay(p.exposureOn) || !KINDS.includes(p.exposureKind) || !(p.category === null || ["I", "II", "III"].includes(p.category))
     || !(p.ageBand === null || BANDS.includes(p.ageBand)) || !(p.sex === null || ["female", "male"].includes(p.sex)) || !(p.woundWashed === null || WASH.includes(p.woundWashed))
     || !SPECIES.includes(p.species) || !OWN.includes(p.ownership) || !optUuid(p.areaId) || typeof p.reminderConsent !== "boolean"
@@ -127,13 +129,22 @@ export async function confirmExposure(db: Db, p: Exposure, now = new Date()): Pr
     const a = await db.rpc("oh_org_areas", { p_org: f.id });
     if (a.error || !(Array.isArray(a.data) && a.data.some((x: { id?: string }) => x.id === p.areaId))) return fail(400, "That area is not one of your facility's areas. Nothing was saved.");
   }
-  /* A likely repeat: the same register number, date and kind already presented today. */
-  if (p.patientRef) {
-    const reg = await db.rpc("oh_clinic_register", { p_facility: f.id, p_filter: "all", p_limit: 50 });
-    const rows = !reg.error && Array.isArray(reg.data) ? (reg.data as { id: string; code: string; patient_ref: string | null; exposure_on: string; presented_on: string; kind: string }[]) : [];
-    const same = rows.find((r) => (r.patient_ref ?? "").toUpperCase() === p.patientRef!.toUpperCase() && r.exposure_on === p.exposureOn && r.kind === p.exposureKind && r.presented_on === today);
-    if (same) return fail(409, `A ${p.exposureKind === "lick_broken_skin" ? "lick" : p.exposureKind} for ${p.patientRef} on ${p.exposureOn} is already recorded today as ${same.code}. Nothing new was saved.`, { href: `/health/bites/${same.id}` });
-  }
+  /* The same proposal confirmed again by the same person on this server: the record it made, read back, never a second one. */
+  const memo = DONE.get(`${userId}|${p.id}`);
+  if (memo) return readBack(db, userId, f.id, p, memo, true);
+  /* A likely repeat, which the register function cannot tell apart: a presentation today with the same date and kind, and
+     the same register number, or (with no number) the same age band, sex, category and animal. Refused, with a link. */
+  const reg = await db.rpc("oh_clinic_register", { p_facility: f.id, p_filter: "all", p_limit: 50 });
+  await logKaju(db, { kind: "health_read", ok: !reg.error, target: `oh_clinic_register:${f.id}`, summary: "checked for a repeat before recording", organisationId: f.id, actor: userId });
+  if (reg.error || !Array.isArray(reg.data)) return fail(503, "Your register could not be checked for a repeat just now. Nothing was saved; confirm again in a moment.");
+  const rows = reg.data as { id: string; code: string; patient_ref: string | null; age_band: string; sex: string; species: string; category: string; exposure_on: string; presented_on: string; kind: string }[];
+  const same = rows.find((r) => r.presented_on === today && r.exposure_on === p.exposureOn && r.kind === p.exposureKind && (p.patientRef
+    ? (r.patient_ref ?? "").toUpperCase() === p.patientRef.toUpperCase()
+    : !r.patient_ref && r.age_band === (p.ageBand ?? "not_recorded") && r.sex === (p.sex ?? "not_recorded") && r.category === (p.category ?? "not_recorded") && r.species === p.species));
+  const what = p.exposureKind === "lick_broken_skin" ? "lick" : p.exposureKind === "other" ? "contact" : p.exposureKind;
+  if (same) return fail(409, p.patientRef
+    ? `A ${what} for ${p.patientRef} on ${p.exposureOn} is already recorded today as ${same.code}. Nothing new was saved.`
+    : `A ${what} with the same date and details is already recorded today as ${same.code}. Nothing new was saved. If this is another patient, add their register number and ask me again, or use the bite form.`, { href: `/health/bites/${same.id}`, code: same.code });
   const args = {
     p_facility: f.id, p_exposure_on: p.exposureOn, p_kind: p.exposureKind, p_area: p.areaId ?? null, p_age_band: p.ageBand ?? "not_recorded", p_sex: p.sex ?? "not_recorded",
     p_patient_ref: p.patientRef, p_species: p.species, p_ownership: p.ownership, p_animal_description: null, p_animal_place: p.animalPlace,
@@ -152,12 +163,21 @@ export async function confirmExposure(db: Db, p: Exposure, now = new Date()): Pr
     return fail(503, "Kaju could not tell whether the bite was saved. Open Bite cases to check before confirming again.");
   }
   if (!saved?.id || !saved.code) return fail(502, "Kaju could not tell whether the bite was saved. Open Bite cases to check before confirming again.");
-  /* Read back through the record's own function (it notes the opening in the health audit). */
+  DONE.set(`${userId}|${p.id}`, saved);
+  if (DONE.size > 500) DONE.delete(DONE.keys().next().value!);
+  return readBack(db, userId, f.id, p, saved, false);
+}
+
+/* Bite records this server made from a proposal, by person and proposal id (the register keeps no request id). */
+const DONE = new Map<string, { id: string; code: string }>();
+
+/** Read the record back through its own function (which notes the opening in the health audit) and compare it with what was confirmed. */
+async function readBack(db: Db, userId: string, facilityId: string, p: Exposure, saved: { id: string; code: string }, replayed: boolean): Promise<Confirmed> {
   const back = await db.rpc("oh_clinic_exposure", { p_exposure: saved.id });
   const e = back.data as { facility_id?: string; exposure_on?: string; exposure_kind?: string; category?: string; patient_ref?: string | null; created_at?: string } | null;
   const href = `/health/bites/${saved.id}`;
-  if (back.error || !e || e.facility_id !== f.id || e.exposure_on !== p.exposureOn || e.exposure_kind !== p.exposureKind || e.category !== (p.category ?? "not_recorded") || (e.patient_ref ?? null) !== (p.patientRef ?? null))
+  if (back.error || !e || e.facility_id !== facilityId || e.exposure_on !== p.exposureOn || e.exposure_kind !== p.exposureKind || e.category !== (p.category ?? "not_recorded") || (e.patient_ref ?? null) !== (p.patientRef ?? null))
     return fail(502, `Saved as ${saved.code}, but it could not be read back to check it. Open it on Bite cases before doing anything else; do not confirm again.`, { href, code: saved.code });
-  await logKaju(db, { kind: "register_exposure", ok: true, target: saved.id, summary: "Bite recorded", organisationId: f.id });
-  return { status: 200, body: { ok: true, verified: true, id: saved.id, code: saved.code, kind: "register_exposure", at: e.created_at ?? new Date().toISOString(), what: `Bite recorded as ${saved.code}`, href } };
+  if (!replayed) await logKaju(db, { kind: "register_exposure", ok: true, target: saved.id, summary: "Bite recorded", organisationId: facilityId, actor: userId });
+  return { status: 200, body: { ok: true, verified: true, replayed, id: saved.id, code: saved.code, kind: "register_exposure", at: e.created_at ?? new Date().toISOString(), what: replayed ? `Already recorded as ${saved.code}` : `Bite recorded as ${saved.code}`, href } };
 }
