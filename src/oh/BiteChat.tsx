@@ -1,6 +1,6 @@
 "use client";
 
-/* Help after an animal bite, with Kaju: the chat and the call a resident would use. Kaju greets, gives first aid,
+/* Help after a dog bite, with Kaju: the chat and the call a resident would use. Kaju greets, gives first aid,
    then listens. The person says what happened in their own words and Kaju understands it, fills the report beside
    the conversation, and asks only for what is still missing, one thing at a time. Questions along the way are
    answered. Where it happened can be said in any words, shared from the phone's location, or pinned on a map.
@@ -61,7 +61,7 @@ const WHAT_NOT = "Don't put chilli, turmeric, oil or any home remedy on the woun
 /* What Kaju says again on the call when it did not hear an answer. */
 const AGAIN: Partial<Record<At, string>> = {
   tell: "What happened?", danger: "Any of those? Yes or no?", urgent: "Shall I tell the clinic? Yes or no?", notify: "Shall I tell the clinic? Yes or no?",
-  where: "Where did it happen?", when: "When did it happen?", animal: "Which animal was it?", looks: "What did it look like? Or say skip.",
+  where: "Where did it happen?", when: "When did it happen?", looks: "What did the dog look like? Or say skip.",
   call: "Can the clinic call you? Yes or no?", phone: "What's your number?", review: "Shall I send it to the clinic?",
 };
 /** The guided demo is doing the clicking (src/sp/demo/DemoTour.tsx): answer at once with the fixed lines. */
@@ -70,8 +70,9 @@ const told = (f: BiteFacts) => !!(f.kind || f.species || f.area || f.place || f.
 const merge = (f: BiteFacts, p: Partial<BiteFacts>): BiteFacts => ({ ...f, ...Object.fromEntries(Object.entries(p).filter(([, v]) => v !== null && v !== undefined)), skipped: [...new Set([...f.skipped, ...(p.skipped ?? [])])] });
 const atOf = (n: BiteNext, f: BiteFacts, cur: At): At =>
   n === "none" ? cur : n === "notify" ? (f.danger === "yes" ? "urgent" : "notify") : n === "centres" ? "closed" : n === "send" ? "review" : n === "restart" ? "tell" : n;
-const animalWord = (f: BiteFacts) => (f.species ? SPECIES[f.species]?.toLowerCase() ?? "animal" : "animal");
-const lookQ = (f: BiteFacts) => (f.species === "dog" || f.species === "cat" ? `So the area's animal team can find it: what did the ${animalWord(f)} look like? Colour, size, a collar?` : ASK.looks);
+/* Bite help is for dog bites: the dog unless the person said another animal. */
+const animalWord = (f: BiteFacts) => (f.species && f.species !== "dog" ? SPECIES[f.species]?.toLowerCase() ?? "dog" : "dog");
+const lookQ = (f: BiteFacts) => `So the area's animal team can find the ${animalWord(f)}: what did it look like? Colour, size, a collar?`;
 const reviewVoice = (f: BiteFacts) => `Here's your report: a ${animalWord(f)} ${f.kind === "scratch" ? "scratch" : "bite"}${f.area ? ` in ${f.area}` : ""}, ${f.when ?? (f.on ? dayWord(f.on).toLowerCase() : "today")}${f.looks ? `. ${f.looks.replace(/[.\s]+$/, "")}` : ""}.`;
 
 /** Kaju's fixed rules for one answer, when no model reads it. */
@@ -101,7 +102,6 @@ function rules(at: At, t: string, f: BiteFacts, areas: Area[]): { patch?: Partia
       return { patch: { area: a?.name ?? null, place: a && place.toLowerCase() === a.name.toLowerCase() ? null : place } };
     }
     case "when": { const w = whenWord(t); return w === "today" ? { patch: { on: today() } } : w === "yesterday" ? { patch: { on: daysAgo(1) } } : w === "earlier" ? { date: true } : skip ? { patch: { skipped: ["when"] } } : { unclear: "Today, yesterday, or earlier?" }; }
-    case "animal": { const sp = readBite(t, areas).species; return sp ? { patch: { species: sp } } : skip ? { patch: { skipped: ["animal"] } } : { unclear: "Which animal was it? A dog, a cat, a monkey?" }; }
     case "looks": return skip ? { patch: { skipped: ["looks"] } } : { patch: { looks: t.trim().slice(0, 240), place: f.place ? null : readBite(t, areas).place } };
     case "call": { const d = digits(t); return d.length >= 8 ? { patch: { callback: "yes", phone: d } } : yn === "yes" ? { patch: { callback: "yes" } } : yn === "no" ? { patch: { callback: "no" } } : { unclear: "Can the clinic call you? Yes or no?" }; }
     case "phone": { const d = digits(t); return d.length >= 8 && d.length <= 13 ? { patch: { phone: d } } : /\b(no|skip|don'?t)\b/i.test(t) ? { patch: { callback: "no" } } : { unclear: "Please type the number, digits only." }; }
@@ -259,7 +259,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     setAt("sending"); setErr(null);
     const phone = f.callback === "yes" && f.phone ? f.phone : null;
     const area = areas.find((a) => a.name === f.area)?.id ?? null;
-    const r = await call<{ facility: { name: string; hours: string | null } | null }>("oh_submit_bite_notice", { p_programme_slug: slug, p_happened_on: f.on ?? today(), p_area: area, p_place: f.place || null, p_species: f.species ?? "unknown", p_animal_description: f.looks || null, p_phone: phone, p_consent: !!phone, p_lat: spot?.lat ?? null, p_lng: spot?.lng ?? null });
+    const r = await call<{ facility: { name: string; hours: string | null } | null }>("oh_submit_bite_notice", { p_programme_slug: slug, p_happened_on: f.on ?? today(), p_area: area, p_place: f.place || null, p_species: f.species ?? "dog", p_animal_description: f.looks || null, p_phone: phone, p_consent: !!phone, p_lat: spot?.lat ?? null, p_lng: spot?.lng ?? null });
     if (r.error) { setErr(r.error); setAt("review"); return; }
     const to = r.data?.facility ?? { name: "the programme", hours: null };
     setSent({ to: to.name, hours: to.hours, time: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) });
@@ -279,7 +279,6 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     at === "notify" ? [{ label: "Yes, tell the clinic", go: tap("Yes, tell the clinic", { notify: "yes" }), cls: "is-go" }, { label: "No, just show me where to go", go: tap("No, just show me where to go", { notify: "no" }) }, { label: "What should I not do?", go: () => void answer("What should I not do?") }] :
     at === "where" ? [{ label: locating ? "Finding you…" : "Use my location", go: locate, icon: "locate" }, { label: "Drop a pin", go: () => setPicking(true), icon: "pin" }] :
     at === "when" ? [{ label: "Today", go: tap("Today", { on: today() }) }, { label: "Yesterday", go: tap("Yesterday", { on: daysAgo(1) }) }, { label: "Earlier", go: () => { showMe("Earlier"); bots({ text: "Please choose the date." }); setAt("date"); } }] :
-    at === "animal" ? Object.entries(SPECIES).filter(([k]) => k !== "unknown").map(([k, v]) => ({ label: v, go: tap(v, { species: k as BiteFacts["species"] }) })) :
     at === "looks" ? [{ label: "Skip", go: tap("Skip", { skipped: ["looks"] }) }] :
     at === "call" ? [{ label: "Yes, call me", go: tap("Yes, call me", { callback: "yes" }) }, { label: "No, don't call me", go: tap("No, don't call me", { callback: "no" }) }] :
     at === "review" ? [{ label: "Send the report", go: sendNow, cls: "is-go", icon: "send" }, { label: "Don't send, just show me where to go", go: tap("Don't send, just show me where to go", { notify: "no" }) }, { label: "Start again", go: () => { showMe("Start again"); restart(); } }] :
@@ -373,14 +372,14 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     <div className="kb" data-at={at} data-mode={mode} data-busy={busy ? "1" : "0"} data-ai={ai ? "1" : "0"} data-reached={reached.join(" ")} data-sent-to={sent?.to}>
       <header className="kb-top">
         <Link href="/" className="kb-brand" aria-label="StrayPaw home"><img src="/icon-192.png" alt="" width={28} height={28} /><span>StrayPaw</span></Link>
-        <span className="kb-app"><b>Kaju</b><span>Help after an animal bite</span></span>
+        <span className="kb-app"><b>Kaju</b><span>Help after a dog bite</span></span>
         {pub.data?.programme?.illustrative ? <span className="kb-demo">Demo</span> : null}
         <a className="kb-108" href="tel:108" aria-label="Emergency: call 108"><Phone size={14} aria-hidden /><span>Emergency</span> <b>108</b></a>
       </header>
       <main id="main" className="kb-main">
         <div className="kb-head">
           <div>
-            <h1>Bitten or scratched by an animal?</h1>
+            <h1>Bitten or scratched by a dog?</h1>
             <p>Tell Kaju what happened. Kaju gets you to care today and lets the nearest anti-rabies centre know you&apos;re coming.</p>
           </div>
           <div className="kb-modes" role="tablist" aria-label="How to talk to Kaju">
@@ -473,7 +472,7 @@ function ReviewCard({ f }: { f: BiteFacts }) {
       <dl>
         <div><dt>When</dt><dd>{f.on ? dayWord(f.on) : "Not given"}{f.when ? ` (${f.when})` : ""}</dd></div>
         <div><dt>Where</dt><dd>{[f.area, f.place].filter(Boolean).join(" · ") || (f.pinned ? "Pinned on the map" : "Not given")}</dd></div>
-        <div><dt>Animal</dt><dd>{f.species ? SPECIES[f.species] : "Not given"}{f.ownership && f.ownership !== "unknown" ? `, ${OWNER[f.ownership]}` : ""}</dd></div>
+        <div><dt>Dog</dt><dd>{f.species && f.species !== "dog" ? `${SPECIES[f.species]} (not a dog)` : f.ownership === "owned" ? "Someone's pet" : f.ownership === "community" ? "Street or community dog" : "Owner not known"}</dd></div>
         <div><dt>Looked like</dt><dd>{f.looks || "Not given"}</dd></div>
         <div><dt>Call back</dt><dd>{f.callback === "yes" && f.phone ? `Yes, on ${f.phone}` : "No"}</dd></div>
       </dl>
@@ -508,7 +507,7 @@ function CallView({ at, chips, busy, log, err, ready, slug, talk, sent, sarvam, 
           <p className="kv-sub">{talk.problem ? problemText(talk.problem) : sent ? `${sent.to} knows you're coming. ${clock(endedAt - talk.started)}` : `Call again, or carry on in the chat. ${clock(endedAt - talk.started)}`}</p>
         </> : <>
           <h2>Kaju</h2>
-          <p className="kv-sub">StrayPaw&apos;s helpline after an animal bite. Talk as you would to a person; Kaju fills the report and tells the clinic.</p>
+          <p className="kv-sub">StrayPaw&apos;s helpline after a dog bite. Talk as you would to a person; Kaju fills the report and tells the clinic.</p>
           {sarvam ? <div className="kv-langs" role="radiogroup" aria-label="Language">{CALL_LANGS.map(([c, l]) => <button key={c} type="button" role="radio" aria-checked={lang === c} className={lang === c ? "is-on" : undefined} onClick={() => { setLang(c); onLang(c); }}>{l}</button>)}</div> : null}
         </>}
         <button type="button" className="kv-call" onClick={() => onStart(lang)} disabled={!ready || sarvam === null} data-tour="bite-call"><Phone size={20} aria-hidden /> {ready && sarvam !== null ? (talk.ended ? "Call again" : "Call Kaju") : "One moment…"}</button>
@@ -546,7 +545,7 @@ function CallView({ at, chips, busy, log, err, ready, slug, talk, sent, sarvam, 
 /* The report Kaju is preparing for the clinic: a live receipt that writes itself as the person speaks or types. */
 function Report({ facts: f, at, sent }: { facts: BiteFacts; at: At; sent: Sent | null }) {
   const rows: [string, string | null][] = [
-    ["What happened", f.kind || f.species ? `${f.kind ? KIND[f.kind] : "A bite"}${f.species ? `, ${SPECIES[f.species]?.toLowerCase()}` : ""}${f.ownership && f.ownership !== "unknown" ? ` (${OWNER[f.ownership]})` : ""}` : null],
+    ["What happened", f.kind || f.species ? `${f.kind ? KIND[f.kind] : "A bite"} by a ${animalWord(f)}${f.ownership && f.ownership !== "unknown" ? ` (${OWNER[f.ownership]})` : ""}` : null],
     ["Who was hurt", f.person ? WHO[f.person] : null],
     ["Area", f.area],
     ["Where", f.place ?? (f.pinned ? "Pinned on the map" : null)],
@@ -556,14 +555,14 @@ function Report({ facts: f, at, sent }: { facts: BiteFacts; at: At; sent: Sent |
     ["Call back", f.callback === "yes" ? (f.phone ? `Yes, on ${f.phone}` : "Yes") : f.callback === "no" ? "No" : null],
   ];
   const filled = rows.filter(([, v]) => v);
-  const needs = (["where", "when", "animal", "looks"] as const).filter((k) => !f.skipped.includes(k) && (k === "where" ? !(f.area || f.place || f.pinned) : k === "when" ? !f.on : k === "animal" ? !f.species : !f.looks));
+  const needs = (["where", "when", "looks"] as const).filter((k) => !f.skipped.includes(k) && (k === "where" ? !(f.area || f.place || f.pinned) : k === "when" ? !f.on : !f.looks));
   const status = sent ? `Sent to ${sent.to} · ${sent.time}` : at === "review" ? "Ready. Waiting for your OK" : filled.length ? "Writing as you talk" : "Starts when you tell Kaju";
   return (
     <aside className={`kb-report${sent ? " is-sent" : at === "review" ? " is-ready" : ""}`} aria-label="The report Kaju is preparing" data-tour="bite-report">
       <div className="kb-r-h"><b>Report for the clinic</b><span className="kb-r-s" role="status">{sent ? <Check size={13} strokeWidth={3} aria-hidden /> : <i aria-hidden />}{status}</span></div>
       {filled.length ? <dl>{filled.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
         : <p className="kb-r-empty">What you tell Kaju appears here, line by line. You check it before anything is sent.</p>}
-      {filled.length && !sent && needs.length && at !== "review" ? <p className="kb-r-todo">Still to ask: {needs.map((k) => ({ where: "where", when: "when", animal: "the animal", looks: "what it looked like" }[k])).join(", ")}</p> : null}
+      {filled.length && !sent && needs.length && at !== "review" ? <p className="kb-r-todo">Still to ask: {needs.map((k) => ({ where: "where", when: "when", looks: "what the dog looked like" }[k])).join(", ")}</p> : null}
       <p className="kb-r-n">Nothing is sent until you confirm. Your name is never asked.</p>
     </aside>
   );

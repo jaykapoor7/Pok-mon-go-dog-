@@ -44,7 +44,7 @@ export const ASK: Record<"where" | "when" | "animal" | "looks" | "call" | "phone
   where: "Where did it happen? A landmark or street is enough, or share your location.",
   when: "When did it happen?",
   animal: "What animal was it?",
-  looks: "So the area's animal team can find it: what did it look like? Colour, size, a collar?",
+  looks: "So the area's animal team can find the dog: what did it look like? Colour, size, a collar?",
   call: "Last one: can the clinic call you if they need to?",
   phone: "What number should they call?",
 };
@@ -74,14 +74,15 @@ export function cleanFacts(raw: unknown, areas: string[], today: string, base: B
 
 const told = (f: BiteFacts) => !!(f.kind || f.species || f.area || f.place || f.pinned || f.on);
 const has = (f: BiteFacts, k: "where" | "when" | "animal" | "looks" | "call") =>
-  f.skipped.includes(k) || (k === "where" ? !!(f.area || f.place || f.pinned) : k === "when" ? !!f.on : k === "animal" ? !!f.species : k === "looks" ? !!f.looks : f.callback !== null);
+  /* Bite help is for dog bites: the animal is never asked. */
+  k === "animal" || f.skipped.includes(k) || (k === "where" ? !!(f.area || f.place || f.pinned) : k === "when" ? !!f.on : k === "looks" ? !!f.looks : f.callback !== null);
 /** What must come next, whatever the model says: the rails. */
 export function mustAsk(f: BiteFacts): BiteNext {
   if (!told(f)) return "tell";
   if (f.danger === null) return "danger";
   /* Telling the clinic is one decision, made on the report itself ("Send it?"), never asked twice. */
   if (f.notify === "no") return "centres";
-  for (const k of ["where", "when", "animal", "looks", "call"] as const) if (!has(f, k)) return k;
+  for (const k of ["where", "when", "looks", "call"] as const) if (!has(f, k)) return k;
   if (f.callback === "yes" && !f.phone) return "phone";
   return "review";
 }
