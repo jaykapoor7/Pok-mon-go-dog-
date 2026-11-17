@@ -41,11 +41,11 @@ const minus = (iso: string, d: number) => new Date(Date.parse(`${iso}T00:00:00Z`
 
 /** The fixed questions, used whenever the model's own question is not the one the rails allow. */
 export const ASK: Record<"where" | "when" | "animal" | "looks" | "call" | "phone", string> = {
-  where: "Where did it happen? A landmark, street or area is fine, or share your location.",
+  where: "Where did it happen? A landmark or street is enough, or share your location.",
   when: "When did it happen?",
   animal: "What animal was it?",
-  looks: "What did it look like? Colour, size, a collar?",
-  call: "Can the clinic call you if they need to?",
+  looks: "So the area's animal team can find it: what did it look like? Colour, size, a collar?",
+  call: "Last one: can the clinic call you if they need to?",
   phone: "What number should they call?",
 };
 
@@ -79,7 +79,7 @@ const has = (f: BiteFacts, k: "where" | "when" | "animal" | "looks" | "call") =>
 export function mustAsk(f: BiteFacts): BiteNext {
   if (!told(f)) return "tell";
   if (f.danger === null) return "danger";
-  if (f.notify === null) return "notify";
+  /* Telling the clinic is one decision, made on the report itself ("Send it?"), never asked twice. */
   if (f.notify === "no") return "centres";
   for (const k of ["where", "when", "animal", "looks", "call"] as const) if (!has(f, k)) return k;
   if (f.callback === "yes" && !f.phone) return "phone";
@@ -90,7 +90,8 @@ export function railNext(model: BiteNext, f: BiteFacts, showing: string): { next
   const must = mustAsk(f);
   if (model === "restart") return { next: "restart", fixed: false };
   if (must === "tell") return { next: model === "none" ? "none" : "tell", fixed: false };
-  if (must === "danger" || must === "notify" || must === "centres") return { next: must, fixed: model !== must && model !== "none" };
+  if (must === "danger" || must === "centres") return { next: must, fixed: model !== must && model !== "none" };
+  if (model === "notify") return { next: must, fixed: true };
   if (model === "none") return { next: "none", fixed: false };
   if (model === "send") return showing === "review" && must === "review" ? { next: "send", fixed: false } : { next: must, fixed: must !== "review" };
   if (model === "review") return { next: must, fixed: must !== "review" };

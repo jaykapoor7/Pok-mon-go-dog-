@@ -107,7 +107,7 @@ test("Kaju's call: it says each question aloud, hears the answers, fills the rep
   /* The call ends itself once Kaju has said the last line. */
   await expect(page.locator(".kv.is-ended")).toContainText("knows you're coming", { timeout: 30_000 });
   const said = (await page.evaluate(() => (window as unknown as { __said: string[] }).__said)).join(" ");
-  for (const w of ["wash the wound", "Okay, a street dog bite in Indiranagar, this morning", "Quick safety check", "What did the dog look like", "Shall I send it?", "knows you're coming"]) expect(said).toContain(w);
+  for (const w of ["wash the wound", "Okay, a street dog bite in Indiranagar, this morning", "Quick safety check", "what did the dog look like", "Shall I send it", "knows you're coming"]) expect(said).toContain(w);
   /* The person's own words: none of them is taken for a landmark. */
   await expect(report).not.toContainText("a stray dog near");
 });
@@ -154,7 +154,7 @@ test("Kaju's call with Sarvam: one voice, each answer recorded until the caller 
   expect(sizes.length).toBeGreaterThanOrEqual(6);
   for (const n of sizes) expect(n).toBeGreaterThan(8_000); /* real recordings, not empty files */
   const said = spoken.join(" ");
-  for (const w of ["Hi, I'm Kaju", "Okay, a street dog bite in Indiranagar", "Quick safety check", "Shall I send it?", "knows you're coming"]) expect(said).toContain(w);
+  for (const w of ["Hi, I'm Kaju", "Okay, a street dog bite in Indiranagar", "Quick safety check", "Shall I send it", "knows you're coming"]) expect(said).toContain(w);
 });
 
 test("the guide's Next action answers an untouched citizen stage and opens the hospital", async ({ page, isMobile }) => {
@@ -222,7 +222,7 @@ test("where it happened: words, the phone's location or a pin, never a list of a
   const say = async (t: string) => { await page.locator('[data-tour="bite-compose"] textarea').fill(t); await page.getByRole("button", { name: "Send to Kaju" }).click(); };
   await say("a dog bit me this morning");
   await page.getByRole("button", { name: "No, none of these" }).click({ timeout: 20_000 });
-  await page.getByRole("button", { name: "Yes, tell the clinic" }).click({ timeout: 20_000 });
+  /* No separate "tell the clinic?": straight to what is missing. */
   await expect(page.locator(".kb")).toHaveAttribute("data-at", "where", { timeout: 20_000 });
   const chips = page.locator('[data-tour="bite-quick"]');
   await expect(chips.getByRole("button", { name: "Use my location" })).toBeVisible();

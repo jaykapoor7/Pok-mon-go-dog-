@@ -106,7 +106,7 @@ const AT = (s: string) => `.kb[data-at="${s}"]`;
    model where it is switched on, so it may already know the answer and not ask at all. */
 const SAY = (value: string): Fill[] => [{ op: "type", sel: '[data-tour="bite-compose"] textarea', value }, { op: "wait", ms: 120 }, { op: "press", sel: '[data-tour="bite-compose"] .kc-send' }];
 const CONVERSE: Fill = { op: "converse", until: '[data-reached~="review"]', max: 14, replies: {
-  tell: SAY("A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance."),
+  tell: SAY("A street dog bit me on the leg near the 100 Feet Road bus stop in Indiranagar this morning. What should I do?"),
   danger: [{ op: "press", sel: "text:No, none of these" }],
   urgent: [{ op: "press", sel: "text:Yes, tell the clinic" }],
   notify: [{ op: "press", sel: "text:Yes, tell the clinic" }],
@@ -114,7 +114,7 @@ const CONVERSE: Fill = { op: "converse", until: '[data-reached~="review"]', max:
   when: [{ op: "press", sel: "text:Today" }],
   date: [{ op: "press", sel: '[data-tour="bite-quick"] .is-go' }],
   animal: [{ op: "press", sel: "text:Dog" }],
-  looks: SAY("Brown dog, no collar, usually near the bus stop on 100 Feet Road"),
+  looks: SAY("Brown, medium size, no collar. He's always at that bus stop."),
   call: [{ op: "press", sel: "text:No, don't call me" }],
   phone: SAY("No, don't call me"),
 } };
@@ -126,8 +126,8 @@ export const STAGES: Stage[] = [
     handoff: "The clinic has the report before the patient arrives.",
     acts: [
       { id: "tell", title: "Tell Kaju what happened", path: "/bite-help", sel: '[data-tour="bite-compose"], [data-tour="bite-call"]',
-        say: "Chat or call. Kaju fills the report on the right and asks only what's missing.",
-        example: { label: "Use the example", fills: [{ op: "press", sel: '[data-tour="mode-chat"]', when: '.kb[data-mode="call"]' }, { op: "wait", ms: 150 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance." }] },
+        say: "Chat or call, in your own words. Kaju writes the report and asks only what's missing.",
+        example: { label: "Use the example", fills: [{ op: "press", sel: '[data-tour="mode-chat"]', when: '.kb[data-mode="call"]' }, { op: "wait", ms: 150 }, { op: "type", sel: '[data-tour="bite-compose"] textarea', value: "A street dog bit me on the leg near the 100 Feet Road bus stop in Indiranagar this morning. What should I do?" }] },
         auto: [{ op: "press", sel: '[data-tour="mode-chat"]', when: '.kb[data-mode="call"]' }, { op: "wait", ms: 200 }, CONVERSE],
         done: { sel: '[data-reached~="review"]' } },
       { id: "send", title: "Send it to the clinic", path: "/bite-help", sel: '[data-tour="bite-quick"]',

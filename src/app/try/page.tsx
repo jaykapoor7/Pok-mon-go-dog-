@@ -1,5 +1,6 @@
 import { S4Page } from "@/sp4/site/kit";
 import { TryDemo } from "@/sp/demo/TryDemo";
+import { DEMO_SITE } from "@/lib/demo-site";
 
 export const metadata = {
   title: "One Health demo, StrayPaw",
@@ -8,6 +9,8 @@ export const metadata = {
 };
 
 export default function TryPage() {
+  /* On the demonstration site the demo is the whole page: no marketing navigation or footer. */
+  if (DEMO_SITE) return <TryDemo />;
   return (
     <S4Page close={false}>
       <section className="s4-wrap" style={{ padding: "96px var(--s4-gut) 120px" }}><TryDemo /></section>

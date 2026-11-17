@@ -196,8 +196,6 @@
 .kb-r-n { margin: 0; color: var(--mute); font-size: 12px; line-height: 17px; }
 
 /* With the guided demo's card at the right of a wide screen, the page keeps to its left. */
-/* With the guided demo docked at the right (demo-tour.css), the page takes the rest of the width. */
-@media (min-width: 1100px) { html.dt-on .kb { margin-right: var(--dt-dock); } }
 @media (max-width: 1100px) {
   .kb-grid { grid-template-columns: minmax(0, 1fr); }
   .kb-report { position: static; }

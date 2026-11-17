@@ -1,15 +1,20 @@
 "use client";
 
-/* The front door of the live demo (demo.straypaw.org opens here): one line of what it shows, one button to start,
-   the six stages it walks through, and the four places to explore freely. With ?go=1 it
-   signs the visitor in and starts straight away. Off the demonstration site it points there. */
+/* The front door of the live demo (demo.straypaw.org opens here). A page of its own, not the marketing site: it says
+   plainly that this is StrayPaw's demo, what one sentence of it shows, one button to start, the six stops as a route,
+   and one row of workspaces to open directly. With ?go=1 it signs the visitor in and starts straight away. Off the
+   demonstration site it points there. */
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, Clock } from "lucide-react";
+import { Activity, ArrowRight, ArrowUpRight, Landmark, MessageCircle, PawPrint, Sparkles, Stethoscope, type LucideIcon } from "lucide-react";
 import { DEMO_SITE } from "@/lib/demo-site";
 import { DEMO_ROLES, DEMO_SHOWN, SHOWN_LABEL, STAGES, type DemoRole } from "./tour";
 import { enterAs, leaveFor, writeTour } from "./state";
 import "./demo-tour.css";
+import "./demo-landing.css";
+
+const STOP: Record<string, LucideIcon> = { citizen: MessageCircle, hospital: Stethoscope, animal: PawPrint, kaju: Sparkles, municipality: Landmark, consortium: Activity };
+const ROLE_ICON: Record<string, LucideIcon> = { "oh-clinician": Stethoscope, "oh-ngo": PawPrint, "oh-municipal": Landmark, "oh-programme": Activity };
 
 export function TryDemo() {
   const [busy, setBusy] = useState<string | null>(null);
@@ -51,27 +56,38 @@ export function TryDemo() {
   }
 
   return (
-    <div className="try">
-      <p className="try-k">StrayPaw One Health</p>
-      <h1>One Health. One Connected Response.</h1>
-      <p className="try-lede">Follow a single dog-bite incident across citizens, healthcare, animal-health teams, municipalities and researchers — coordinated through StrayPaw and Kaju.</p>
-      <div className="try-go">
-        {/* A link, so it still starts if pressed before the page is interactive (/try?go=1 starts on load). */}
-        <a href="/try?go=1" role="button" className="try-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening…" : <>Start Demo <ArrowRight size={17} aria-hidden /></>}</a>
-        <small><Clock size={15} aria-hidden /> About four minutes · press Next, or try every step yourself</small>
-      </div>
-      {err && <p className="try-err" role="alert">{err}</p>}
-      <ol className="try-story is-six" aria-label="The six stages">
-        {STAGES.map((t, i) => <li key={t.id} style={{ ["--i" as string]: i }}><b>{t.label}</b><small>{t.title}</small></li>)}
-      </ol>
-      <h2 className="try-h">Or explore on your own</h2>
-      <ul className="try-roles">
-        <li><a className="try-role" href="/bite-help"><b>Resident</b><small>Report a bite to Kaju, by chat or call</small><ArrowRight size={15} aria-hidden /></a></li>
-        {DEMO_SHOWN.map((r) => (
-          <li key={r}><button type="button" disabled={!!busy} onClick={() => roam(r)}><b>{SHOWN_LABEL[r]?.label ?? DEMO_ROLES[r].label}</b><small>{busy === r ? "Signing you in…" : SHOWN_LABEL[r]?.who ?? DEMO_ROLES[r].who}</small><ArrowRight size={15} aria-hidden /></button></li>
-        ))}
-      </ul>
-      <p className="try-note">A demonstration programme: every person, patient and record is fictional.</p>
+    <div className="dl">
+      <header className="dl-bar">
+        <a href="https://straypaw.org" className="dl-brand"><img src="/icon-192.png" alt="" width={28} height={28} /><span>StrayPaw</span></a>
+        <span className="dl-tag">Demo</span>
+        <a className="dl-out" href="https://straypaw.org">straypaw.org<ArrowUpRight size={14} aria-hidden /></a>
+      </header>
+      <main id="main" className="dl-main">
+        <section className="dl-hero">
+          <p className="dl-k">The StrayPaw demo · a fictional city, the real product</p>
+          <h1>Follow one dog bite through StrayPaw.</h1>
+          <p className="dl-lede">A resident tells Kaju. The clinic treats her, the NGO finds the dog, and the city sees what is missing.</p>
+          <div className="dl-go">
+            {/* A link, so it still starts if pressed before the page is interactive (/try?go=1 starts on load). */}
+            <a href="/try?go=1" role="button" className="dl-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening…" : <>Start the demo <ArrowRight size={18} aria-hidden /></>}</a>
+            <small>About five minutes. Press Next, or click anything.</small>
+          </div>
+          {err && <p className="dl-err" role="alert">{err}</p>}
+        </section>
+        <ol className="dl-route" aria-label="The six stops">
+          {STAGES.map((t) => { const I = STOP[t.id] ?? Sparkles; return <li key={t.id}><span className="dl-stop" aria-hidden><I size={18} /></span><b>{t.label}</b><small>{t.title}</small></li>; })}
+        </ol>
+        <section className="dl-roam" aria-labelledby="dl-roam-h">
+          <h2 id="dl-roam-h">Or open a workspace</h2>
+          <ul>
+            <li><a href="/bite-help"><MessageCircle size={16} aria-hidden /><b>Resident</b><small>Kaju bite help</small></a></li>
+            {DEMO_SHOWN.map((r) => { const I = ROLE_ICON[r] ?? Sparkles; return (
+              <li key={r}><button type="button" disabled={!!busy} onClick={() => roam(r)}><I size={16} aria-hidden /><b>{SHOWN_LABEL[r]?.label ?? DEMO_ROLES[r].label}</b><small>{busy === r ? "Signing you in…" : "Open"}</small></button></li>
+            ); })}
+          </ul>
+        </section>
+      </main>
+      <footer className="dl-foot">Every person, patient and record here is fictional. Nothing you do touches real data.</footer>
     </div>
   );
 }

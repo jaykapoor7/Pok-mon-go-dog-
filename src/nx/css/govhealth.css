@@ -196,3 +196,16 @@
   .nx:has(.gh-print) .nx-rail, .nx:has(.gh-print) .nx-side, .nx:has(.gh-print) .nx-top, .nx:has(.gh-print) .nx-wtabs, .nx:has(.gh-print) .nx-dock, .nx:has(.gh-print) .nx-tabs, .nx:has(.gh-print) .gh-noprint { display: none !important; }
   .nx:has(.gh-print) { position: static; display: block; }
 }
+
+/* The prepared course as the record's band: full width above the columns, and a schedule that folds to two rows
+   rather than crowd its dates when the card is narrow. */
+.gh-prep { max-width: 880px; margin-top: 16px; }
+.gh-kaju { container-type: inline-size; }
+.gh-sched b { white-space: nowrap; }
+@container (max-width: 460px) {
+  .gh-sched { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+  .gh-sched li::after { display: none; }
+  .gh-kaju-h { flex-wrap: wrap; }
+}
+/* A control inside a record's narrow column keeps to the column. */
+.nx-rec select, .nx-rec input:not([type="checkbox"]):not([type="radio"]) { max-width: 100%; min-width: 0; }

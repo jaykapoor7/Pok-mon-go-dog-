@@ -39,8 +39,8 @@ const CALL_LANGS: [string, string][] = [["en-IN", "English"], ["kn-IN", "ಕನ�
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
 /** The words the guided demo offers with one click. */
-export const BITE_EXAMPLE = "A person was bitten by a stray dog near Indiranagar this morning. They need medical assistance.";
-export const LOOKS_EXAMPLE = "Brown dog, no collar, usually near the bus stop on 100 Feet Road";
+export const BITE_EXAMPLE = "A street dog bit me on the leg near the 100 Feet Road bus stop in Indiranagar this morning. What should I do?";
+export const LOOKS_EXAMPLE = "Brown, medium size, no collar. He's always at that bus stop.";
 const dayWord = (iso: string) => iso === today() ? "Today" : iso === daysAgo(1) ? "Yesterday" : new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 const WHO: Record<string, string> = { self: "You", someone: "Someone else", child: "A child" };
 const KIND: Record<string, string> = { bite: "A bite", scratch: "A scratch", lick_broken_skin: "A lick on broken skin", other: "Contact with an animal" };
@@ -54,21 +54,24 @@ const OPENING: Msg[] = [
 ];
 const DANGER: Bot = { card: { kind: "danger" }, tour: "bite-danger", text: "Quick safety check. Is any of this true? Heavy bleeding or a deep wound. Several bites, or bites on the face, head, neck or hands. A young child, or someone unwell.", voice: "Quick safety check. Any heavy bleeding, or a deep wound? Several bites, or a bite on the face, head, neck or hands? Or is it a young child, or someone unwell?" };
 const URGENT: Bot = { tone: "urgent", card: { kind: "urgent" }, text: "This needs emergency care. Call 108 now, or go to the nearest hospital emergency.", voice: "This needs emergency care. Please call 1 0 8 now, or go to the nearest hospital emergency." };
-const DOCTOR: Bot = { text: "Good. Please still see a doctor today, even if it looks small. The doctor decides on the vaccine.", voice: "Good. Please still see a doctor today, even if it looks small." };
-const NOTIFY_Q = "Shall I tell the nearest clinic you're coming?";
+const DOCTOR: Bot = { text: "Good. Please still see a doctor today, even if it looks small; the doctor decides on the vaccine. I'll get the nearest clinic ready for you.", voice: "Good. Please still see a doctor today, even if it looks small. I'll get the clinic ready for you." };
+const ALSO: Bot = { text: "I'll also let the nearest clinic know you're coming.", voice: "I'll also let the clinic know you're coming." };
+const NOTIFY_Q = "Shall I let the nearest clinic know you're coming?";
 const WHAT_NOT = "Don't put chilli, turmeric, oil or any home remedy on the wound. Don't wait to see if the animal gets ill, and don't try to catch it.";
 /* What Kaju says again on the call when it did not hear an answer. */
 const AGAIN: Partial<Record<At, string>> = {
   tell: "What happened?", danger: "Any of those? Yes or no?", urgent: "Shall I tell the clinic? Yes or no?", notify: "Shall I tell the clinic? Yes or no?",
   where: "Where did it happen?", when: "When did it happen?", animal: "Which animal was it?", looks: "What did it look like? Or say skip.",
-  call: "Can the clinic call you? Yes or no?", phone: "What's your number?", review: "Shall I send it?",
+  call: "Can the clinic call you? Yes or no?", phone: "What's your number?", review: "Shall I send it to the clinic?",
 };
+/** The guided demo is doing the clicking (src/sp/demo/DemoTour.tsx): answer at once with the fixed lines. */
+const guided = () => typeof document !== "undefined" && document.documentElement.dataset.dtAuto === "1";
 const told = (f: BiteFacts) => !!(f.kind || f.species || f.area || f.place || f.pinned || f.on);
 const merge = (f: BiteFacts, p: Partial<BiteFacts>): BiteFacts => ({ ...f, ...Object.fromEntries(Object.entries(p).filter(([, v]) => v !== null && v !== undefined)), skipped: [...new Set([...f.skipped, ...(p.skipped ?? [])])] });
 const atOf = (n: BiteNext, f: BiteFacts, cur: At): At =>
   n === "none" ? cur : n === "notify" ? (f.danger === "yes" ? "urgent" : "notify") : n === "centres" ? "closed" : n === "send" ? "review" : n === "restart" ? "tell" : n;
 const animalWord = (f: BiteFacts) => (f.species ? SPECIES[f.species]?.toLowerCase() ?? "animal" : "animal");
-const lookQ = (f: BiteFacts) => (f.species === "dog" || f.species === "cat" ? `What did the ${animalWord(f)} look like? Colour, size, a collar?` : ASK.looks);
+const lookQ = (f: BiteFacts) => (f.species === "dog" || f.species === "cat" ? `So the area's animal team can find it: what did the ${animalWord(f)} look like? Colour, size, a collar?` : ASK.looks);
 const reviewVoice = (f: BiteFacts) => `Here's your report: a ${animalWord(f)} ${f.kind === "scratch" ? "scratch" : "bite"}${f.area ? ` in ${f.area}` : ""}, ${f.when ?? (f.on ? dayWord(f.on).toLowerCase() : "today")}${f.looks ? `. ${f.looks.replace(/[.\s]+$/, "")}` : ""}.`;
 
 /** Kaju's fixed rules for one answer, when no model reads it. */
@@ -101,7 +104,7 @@ function rules(at: At, t: string, f: BiteFacts, areas: Area[]): { patch?: Partia
     case "looks": return skip ? { patch: { skipped: ["looks"] } } : { patch: { looks: t.trim().slice(0, 240), place: f.place ? null : readBite(t, areas).place } };
     case "call": { const d = digits(t); return d.length >= 8 ? { patch: { callback: "yes", phone: d } } : yn === "yes" ? { patch: { callback: "yes" } } : yn === "no" ? { patch: { callback: "no" } } : { unclear: "Can the clinic call you? Yes or no?" }; }
     case "phone": { const d = digits(t); return d.length >= 8 && d.length <= 13 ? { patch: { phone: d } } : /\b(no|skip|don'?t)\b/i.test(t) ? { patch: { callback: "no" } } : { unclear: "Please type the number, digits only." }; }
-    case "review": return yn === "yes" || /\bsend\b/i.test(t) ? { next: "send" } : /\b(change|wrong|edit)\b/i.test(t) ? { next: "restart" } : { unclear: "Shall I send it? Tap Send the report." };
+    case "review": return /\b(don'?t|do not) send\b|\bjust show\b/i.test(t) || yn === "no" ? { patch: { notify: "no" } } : yn === "yes" || /\bsend\b/i.test(t) ? { next: "send" } : /\b(change|wrong|edit)\b/i.test(t) ? { next: "restart" } : { unclear: "Shall I send it? Tap Send the report." };
     default: return { reply: "Please see a doctor today. If it gets worse, call 108.", next: "none" };
   }
 }
@@ -145,7 +148,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
   useEffect(() => {
     if (!queue.length) return;
     const m = queue[0];
-    const t = window.setTimeout(() => { setLog((l) => [...l, m]); setQueue((q) => q.slice(1)); }, instant ? 0 : Math.min(900, 320 + m.text.length * 4));
+    const t = window.setTimeout(() => { setLog((l) => [...l, m]); setQueue((q) => q.slice(1)); }, instant ? 0 : guided() ? 140 : Math.min(900, 320 + m.text.length * 4));
     return () => window.clearTimeout(t);
   }, [queue, instant]);
 
@@ -153,7 +156,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
   const step = (prev: BiteFacts, f: BiteFacts, next: BiteNext, reply: string | null) => {
     if (next === "restart") { restart(); return; }
     const out: Bot[] = [];
-    if (prev.danger !== "yes" && f.danger === "yes") out.push(URGENT, { text: "Nearest anti-rabies centres:", voice: "", card: { kind: "centres", first: null } });
+    if (prev.danger !== "yes" && f.danger === "yes") out.push(URGENT, { text: "Nearest anti-rabies centres:", voice: "", card: { kind: "centres", first: null } }, ALSO);
     else if (prev.danger === null && f.danger === "no") out.push(DOCTOR);
     switch (next) {
       case "danger":
@@ -162,7 +165,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
         break;
       case "notify": out.push({ text: reply ?? NOTIFY_Q, tour: "bite-notify" }); break;
       case "centres": out.push({ text: "Here are the nearest anti-rabies centres.", voice: "The nearest centres are on your screen.", card: { kind: "centres", first: null } }, { text: reply && !/centre|center/i.test(reply) ? reply : "Take care, and please see a doctor today." }); break;
-      case "review": out.push({ text: "Here's your report.", voice: reviewVoice(f), card: { kind: "review" } }, { text: reply && /send/i.test(reply) ? reply : "Shall I send it to the nearest anti-rabies centre?", voice: "Shall I send it?" }); break;
+      case "review": out.push(...(reply && !/send/i.test(reply) ? [{ text: reply }] : []), { text: "Here's your report.", voice: reviewVoice(f), card: { kind: "review" } }, { text: "Shall I send it to the nearest anti-rabies centre, so they know you're coming?", voice: "Shall I send it to the clinic?" }); break;
       case "send": break;
       case "none": if (reply) out.push({ text: reply }); break;
       case "tell": out.push({ text: reply ?? "Tell me a little more: what happened, where and when?" }); break;
@@ -200,7 +203,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     showMe(w, !!o.spoken, o.card);
     setSuggest([]);
     if (o.patch) { const f = merge(prev, o.patch); step(prev, f, mustAsk(f), null); return; }
-    if (ai && misses.current < 3) {
+    if (ai && misses.current < 3 && !guided()) {
       setThinking(true);
       const r = await askModel(w, prev);
       setThinking(false);
@@ -260,7 +263,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
       { text: "Where to go today:", voice: "", card: { kind: "centres", first: to.name } });
     reach("sent"); setAt("done");
   };
-  const sendNow = () => { if (busy || at !== "review") return; showMe("Send the report"); void send(); };
+  const sendNow = () => { if (busy || at !== "review") return; showMe("Send the report"); setFacts((f) => ({ ...f, notify: "yes" })); void send(); };
 
   /* The answers to tap, the same in the chat and on the call. */
   const tap = (label: string, patch: Partial<BiteFacts>) => () => void answer(label, { patch });
@@ -273,7 +276,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
     at === "animal" ? Object.entries(SPECIES).filter(([k]) => k !== "unknown").map(([k, v]) => ({ label: v, go: tap(v, { species: k as BiteFacts["species"] }) })) :
     at === "looks" ? [{ label: "Skip", go: tap("Skip", { skipped: ["looks"] }) }] :
     at === "call" ? [{ label: "Yes, call me", go: tap("Yes, call me", { callback: "yes" }) }, { label: "No, don't call me", go: tap("No, don't call me", { callback: "no" }) }] :
-    at === "review" ? [{ label: "Send the report", go: sendNow, cls: "is-go", icon: "send" }, { label: "Start again", go: () => { showMe("Start again"); restart(); } }] :
+    at === "review" ? [{ label: "Send the report", go: sendNow, cls: "is-go", icon: "send" }, { label: "Don't send, just show me where to go", go: tap("Don't send, just show me where to go", { notify: "no" }) }, { label: "Start again", go: () => { showMe("Start again"); restart(); } }] :
     at === "done" || at === "closed" ? [{ label: "Start a new report", go: () => { showMe("Start a new report"); restart(); } }] : [];
   const chips: Chip[] = [...fixedChips, ...suggest.filter((s) => !fixedChips.some((c) => c.label.toLowerCase() === s.toLowerCase())).slice(0, 3).map((s) => ({ label: s, go: () => void answer(s) }))];
 

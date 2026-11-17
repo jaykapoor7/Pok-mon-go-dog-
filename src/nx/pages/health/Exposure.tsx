@@ -70,6 +70,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
   const setCategory = async (c: string) => { const r = await run("cat", () => call("oh_set_category", { p_exposure: e.id, p_category: c }), { ok: `Category ${c} recorded in your name.` }); setCat(null); if (r.ok) { setChangeCat(false); reload(); } };
   const logCall = async (args: { p_dose: string | null; p_course: string | null }, outcome: string) => { const r = await run("call", () => call("oh_log_reminder", { p_dose: args.p_dose, p_outcome: outcome, p_course: args.p_course }), { ok: `Logged: ${(REMINDER[outcome] ?? outcome).toLowerCase()}.` }); if (r.ok) reload(); };
   const doWithdraw = async (x: TransferOut) => { const r = await run("wd", () => call("oh_transfer_act", { p_transfer: x.id, p_action: "withdrawn" }), { ok: "Referral withdrawn. The other facility no longer expects the person." }); setWithdraw(null); if (r.ok) reload(); };
+  const prepare = !e.course && clinician && e.category !== "not_recorded";
   const history = e.history.filter((h) => h.action !== "read").slice(-15).reverse();
   const opened = e.history.filter((h) => h.action === "read").length;
 
@@ -87,6 +88,9 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
         sub={<>{e.patient_ref ? <span className="gh-code">{e.code} · </span> : null}{SPECIES[e.animal_species] ?? e.animal_species} {(EXPOSURE_KIND[e.exposure_kind] ?? e.exposure_kind).toLowerCase()} on {fmtDate(e.exposure_on, { day: "numeric", month: "long" })}{e.area ? ` in ${e.area}` : ""} </>}
         chips={<><Chip tone={CAT_TONE[e.category] ?? "plain"}>{e.category === "not_recorded" ? "Category not recorded" : `Category ${e.category}`}</Chip>{e.course ? <Chip tone={COURSE_TONE[e.course.status] ?? "plain"}>{COURSE[e.course.status]?.label ?? e.course.status}</Chip> : <Chip>No course</Chip>}</>}
         actions={assess ? (sample ? <TryLink sm quiet>Refer this person</TryLink> : <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setRefer(true)}>Refer this person<ArrowRight size={13} /></button>) : undefined} />
+      {/* With a category and no course yet, the course Kaju prepared is this screen's one decision: a full-width band
+          above the record, never squeezed into a column. */}
+      {prepare ? <div className="gh-prep"><Prescribe sample={sample} e={e} where={place?.name ?? null} onDone={reload} /></div> : null}
       <div className="nx-rec" style={{ marginTop: 16, borderTop: "1px solid var(--line)" }}>
         <section aria-label="Presentation">
           <h3 className="nx-h3">Presentation</h3>
@@ -109,7 +113,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
           <Block title="Course" note={e.course ? `${e.course.regimen} · immunoglobulin ${e.course.rig_given ? "given" : "not given"} · prescribed by ${e.course.prescribed_by_name ?? "a clinician"}, ${fmtDate(e.course.prescribed_at)}` : undefined}
             action={clinician && e.course?.status === "active" ? (sample ? <><TryLink sm quiet><Plus size={13} />Add a dose date</TryLink><TryLink sm quiet>Close early</TryLink></> : <><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setAdding(true)}><Plus size={13} />Add a dose date</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setClosing(true)}>Close early</button></>) : undefined}>
             {!e.course ? (
-              clinician ? (e.category === "not_recorded" ? <p className="nx-sub">Record the category first. Then prescribe from here.</p> : <Prescribe sample={sample} e={e} where={place?.name ?? null} onDone={reload} />)
+              clinician ? (e.category === "not_recorded" ? <p className="nx-sub">Record the category first. Then prescribe from here.</p> : <p className="nx-sub">Kaju prepared the course above. Confirm it to start the doses.</p>)
                 : <p className="nx-sub">No course prescribed. A clinician prescribes from this page.</p>
             ) : (
               <ul className="gh-list" aria-label="Doses">{e.doses.map((d) => { const late = d.status === "due" && d.due_on < t; return (
@@ -187,7 +191,7 @@ function Prescribe({ sample, e, where, onDone }: { sample: boolean; e: Exposure;
   const save = () => prescribe({ regimen: regimen.trim(), rig, dates: filled });
 
   if (!changing) return (
-    <section className="gh-kaju" data-tour="course-card" aria-labelledby={`${tick}-t`} style={{ marginTop: 8 }}>
+    <section className="gh-kaju" data-tour="course-card" aria-labelledby={`${tick}-t`}>
       <div className="gh-kaju-h">
         <span className="gh-kaju-i"><KajuFace size={28} /></span>
         <div><h4 id={`${tick}-t`} className="gh-kaju-t">Kaju prepared the course</h4><p className="gh-kaju-s">From your clinic&apos;s protocol. Nothing is saved until you confirm it.</p></div>

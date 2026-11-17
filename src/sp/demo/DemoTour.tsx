@@ -109,6 +109,13 @@ async function typeInto(el: HTMLInputElement | HTMLTextAreaElement, value: strin
   const steps = Math.min(16, value.length);
   for (let i = 1; i <= steps; i++) { setNative(el, value.slice(0, Math.ceil((value.length * i) / steps))); await sleep(22); }
 }
+/* While the guide does the clicking, the page knows (html[data-dt-auto]): Kaju's chat then answers at once with its
+   fixed lines instead of waiting on a model, so a guided step takes seconds. What a person types is unchanged. */
+let driving = 0;
+async function drive(fills: Fill[]) {
+  driving++; document.documentElement.dataset.dtAuto = "1";
+  try { await runFills(fills); } finally { if (--driving === 0) delete document.documentElement.dataset.dtAuto; }
+}
 async function runFills(fills: Fill[]) {
   for (const f of fills) {
     if (f.when && !document.querySelector(f.when)) continue;
@@ -177,6 +184,8 @@ export function DemoTour() {
   const card = useRef<HTMLElement | null>(null);
   /* Answers "Next action" gives for the presenter, done one after another in the background. */
   const chain = useRef<Promise<void>>(Promise.resolve());
+  /* Steps whose answer has been started (by Next or by "Do this step for me"), so it never runs twice. */
+  const started = useRef(new Set<string>());
   const scrolled = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -302,8 +311,11 @@ export function DemoTour() {
      next person's screen has what they need (the hospital, the notice). */
   const next = () => {
     if (!s || !stage || !act) return;
-    const answer = !!act.auto && onScreen && !doneAt && !isDone(act);
-    if (answer) { const fills = act.auto!; chain.current = chain.current.then(() => runFills(fills)).catch(() => undefined); }
+    const key = `${s.step}.${s.act}`;
+    const fresh = !!act.auto && onScreen && !doneAt && !isDone(act) && !started.current.has(key);
+    if (fresh) { started.current.add(key); const fills = act.auto!; chain.current = chain.current.then(() => drive(fills)).catch(() => undefined); }
+    /* Its answer is under way (just now, or from "Do this step for me"): later moves wait for it, never repeat it. */
+    const answer = fresh || (started.current.has(key) && !doneAt && !isDone(act));
     /* An answer that opens another screen ("Patient came in", "Save") is waited for, so the two never race. */
     if (answer && act.done && "path" in act.done) {
       setBusy(true);
@@ -338,7 +350,16 @@ export function DemoTour() {
   const back = () => { if (!s) return; if (s.act > 0) void go(s.step, s.act - 1); else if (s.step > 0) void go(s.step - 1, STAGES[s.step - 1].acts.length - 1); };
   const replay = () => { if (s) void go(s.step, 0); };
   const restart = () => void go(0, 0, { fresh: true });
-  const fill = async () => { if (!act?.example) return; setFilling(true); await runFills(act.example.fills); setFilling(false); };
+  /* "Do this step for me": the whole step, visibly, the same answer Next would give; Next can be pressed meanwhile. */
+  const fill = async () => {
+    if (!s || !act || (!act.example && !act.auto)) return;
+    const key = `${s.step}.${s.act}`;
+    if (started.current.has(key)) return;
+    started.current.add(key); setFilling(true);
+    const fills = act.auto ?? act.example?.fills ?? [];
+    chain.current = chain.current.then(() => drive(fills)).catch(() => undefined);
+    await chain.current; setFilling(false);
+  };
 
   const switchRole = useCallback(async (r: DemoRole) => {
     setRolesOpen(false);
@@ -427,14 +448,14 @@ export function DemoTour() {
         {bar(s.step)}
         <h2>{done ? <span className="dt-tick" aria-label="Done"><Check size={14} strokeWidth={3} aria-hidden /></span> : null}{act.title}</h2>
         <p className="dt-say">{act.say}</p>
-        {act.example && onScreen ? (
-          <div className="dt-do"><button type="button" className="dt-kaju" disabled={filling} onClick={() => void fill()}><Wand2 size={14} aria-hidden />{filling ? "Filling…" : act.example.label}</button></div>
+        {(act.example || act.auto) && onScreen ? (
+          <div className="dt-do"><button type="button" className="dt-kaju" disabled={filling} onClick={() => void fill()}><Wand2 size={14} aria-hidden />{filling ? "Doing it…" : act.auto ? "Do this step for me" : act.example?.label}</button></div>
         ) : null}
         {onScreen && act.sel && !found && !done ? <p className="dt-note" role="status">Waiting for the screen to show it…</p> : null}
         {last && done && stage.handoff ? <p className="dt-handoff">{stage.handoff}</p> : null}
         <div className="dt-act">
           <button type="button" className="dt-btn is-back" aria-label="Back" disabled={busy || (s.step === 0 && s.act === 0)} onClick={back}><ArrowLeft size={15} aria-hidden /></button>
-          {act.example && onScreen ? <button type="button" className="dt-btn is-ex" aria-label={act.example.label} title={act.example.label} disabled={filling} onClick={() => void fill()}><Wand2 size={15} aria-hidden /><span>Example</span></button> : null}
+          {(act.example || act.auto) && onScreen ? <button type="button" className="dt-btn is-ex" aria-label={act.auto ? "Do this step for me" : act.example?.label} title={act.auto ? "Do this step for me" : act.example?.label} disabled={filling} onClick={() => void fill()}><Wand2 size={15} aria-hidden /><span>Do it</span></button> : null}
           {needsGo ? <button type="button" className="dt-btn is-go" disabled={busy} onClick={() => void go(s.step, s.act)}>{busy ? "Opening…" : "Take me there"} {!busy && <ArrowRight size={15} aria-hidden />}</button>
             : <button type="button" className={`dt-btn is-go${done ? " is-ready" : ""}`} disabled={busy} onClick={next}>{busy ? "Opening…" : goLabel} {!busy && <ArrowRight size={15} aria-hidden />}</button>}
         </div>

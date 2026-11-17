@@ -30,11 +30,12 @@ async function main() {
   assert.ok(d); assert.deepEqual(d.facts.skipped, ["looks"]); assert.equal(d.next, "call");
   ok("a skipped detail is never asked again");
 
-  assert.equal(mustAsk({ ...NO_FACTS, kind: "bite", danger: "yes" }), "notify");
+  assert.equal(mustAsk({ ...NO_FACTS, kind: "bite", danger: "yes" }), "where", "no separate 'tell the clinic?': sending the report is that decision");
+  assert.equal(railNext("notify", { ...NO_FACTS, kind: "bite", danger: "no", area: "Indiranagar" }, "where").next, "when");
   assert.equal(mustAsk({ ...NO_FACTS, kind: "bite", danger: "no", notify: "no" }), "centres");
   assert.equal(railNext("review", { ...NO_FACTS, kind: "bite", danger: "no", notify: "yes", pinned: true }, "where").next, "when");
   assert.equal(cleanFacts({ phone: "+91 98450 12345" }, areas, today).phone, "919845012345");
-  ok("danger, then telling the clinic, then where, when and the animal; a pin counts as where");
+  ok("danger, then only what is missing (where, when, the animal); the clinic question is the report's Send; a pin counts as where");
 
   const e = await biteTurn({ turns: [{ who: "me", text: "hi" }], facts: NO_FACTS, showing: "tell", areas, programme: "B", mode: "chat", today }, undefined, {}, stand({ reply: "x", next: "none" }));
   assert.equal(e, null);
