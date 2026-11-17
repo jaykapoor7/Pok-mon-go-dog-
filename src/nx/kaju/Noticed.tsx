@@ -9,6 +9,7 @@ import { GROUPS, levelOf } from "@/lib/kaju/capabilities";
 import { Chip, Sample } from "../ui";
 import type { CapItem, Notice } from "./work";
 import { toolLevels } from "./work";
+import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Kaju's home, under the request: what Kaju noticed, from real sources only, as a strip of three cards with the rest
    one click away (it never grows into a column); and what Kaju can use here, as one line that opens to the detail.
@@ -74,7 +75,8 @@ const CAP_ORDER: CapItem["state"][] = ["live", "setup", "you", "none", "unknown"
 /** What Kaju can use here, as one line ("2 live · 2 need setup · 1 not connected") that opens to the list. */
 export function Capabilities({ items, failed, orgId }: { items: CapItem[] | null; failed?: boolean; orgId: string | null }) {
   const sample = !orgId;
-  const list = sample ? SAMPLE_CAPS : items;
+  /* The demonstration site shows Kaju as it runs in a connected organisation: what is live, WhatsApp included. */
+  const list = sample ? SAMPLE_CAPS : items && DEMO_SITE ? [...items.filter((c) => c.state === "live" || c.state === "you"), { id: "whatsapp", name: "WhatsApp", state: "live" as const, label: "Live", detail: "Reports from residents and field teams arrive in the Inbox." }] : items;
   const [levels, setLevels] = useState<Record<string, number> | null>(null);
   const [opened, setOpened] = useState(false);
   const counts = CAP_ORDER.map((s) => [s, (list ?? []).filter((c) => c.state === s).length] as const).filter(([, n]) => n > 0);

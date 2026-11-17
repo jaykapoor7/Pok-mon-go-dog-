@@ -60,12 +60,15 @@
     "test:kaju-planner": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-planner.ts",
     "test:kaju-workspace": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-workspace.ts",
     "test:monthly": "node --import tsx scripts/test-monthly.ts",
+    "test:bite-model": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-bite-model.ts",
     "test:inference-off": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-inference-off.ts",
     "test:package-check": "node --import tsx scripts/test-package-check.ts",
     "test:kaju-intake": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-intake.ts",
     "test:kaju-capture": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-capture.ts",
     "test:state-machines": "node --import tsx scripts/test-state-machines.ts",
-    "test:one-health-permissions": "node --import tsx scripts/test-one-health-permissions.ts"
+    "test:one-health-permissions": "node --import tsx scripts/test-one-health-permissions.ts",
+    "test:bite-intake": "node --import tsx scripts/test-bite-intake.ts",
+    "test:kaju-incident": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-incident.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

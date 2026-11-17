@@ -100,15 +100,14 @@ test("Animals: each is named by its name and number, with a photo place, and the
   await expect(page.locator("button.nx-tr")).toHaveCount(9);
 });
 
-test("Inbox: reports can be chosen together, and WhatsApp and paste are tabs", async ({ page }) => {
+test("Inbox: reports can be chosen together, and WhatsApp conversations are their own tab", async ({ page }) => {
   await open(page, "/ngo/inbox");
   await page.getByRole("button", { name: /^Select the report from Ward 12/ }).click();
   await expect(page.getByText("1 chosen")).toBeVisible();
   await page.getByRole("tab", { name: "WhatsApp" }).click();
   await expect(page.getByText("Field team A").filter({ visible: true }).first()).toBeVisible();
-  await page.getByRole("tab", { name: "Paste a message" }).click();
-  await expect(page.getByLabel("The message")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Read it with Kaju" })).toHaveAttribute("href", "/try");
+  /* Messages arrive from WhatsApp itself; there is no pasting. */
+  await expect(page.getByRole("tab", { name: "Paste a message" })).toHaveCount(0);
 });
 
 test("Operations: care log and the two lanes sit beside the visits, with field mode a tap away", async ({ page }) => {

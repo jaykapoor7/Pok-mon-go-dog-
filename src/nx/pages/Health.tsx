@@ -208,7 +208,7 @@ export function HealthToday() {
           <Panel id="h-not" title="Notices from the public" count={sample ? noticeRows.length : fresh?.length}>
             {!sample && notices.error ? <Rows items={null} error={notices.error} retry={notices.reload} empty="" /> : !sample && !notices.data ? <Rows items={null} empty="" /> : noticeRows.length ? (
               <ul className="hm-rows">{(allNotices ? noticeRows.slice(0, 30) : noticeRows.slice(0, 5)).map((n) => (
-                <li key={n.id} className="hm-row">
+                <li key={n.id} className="hm-row" data-tour="notice" data-area={n.raw?.area ?? undefined}>
                   <div className="hm-row-m"><span className="hm-row-i t-blue" aria-hidden><Info size={16} /></span><span className="hm-row-t"><b>{n.what}</b><small><span className="hm-row-meta">{n.where} · {n.cb ? "asked to be called back" : "no callback requested"}{n.phone ? <> · <a href={`tel:${n.phone.replace(/\s/g, "")}`} className="hm-link">{n.phone}</a></> : null}</span></small><NoticeActions sample={sample} n={n.raw} onDone={() => notices.reload()} /></span></div>
                 </li>))}</ul>
             ) : <p className="hm-empty">No new notices.</p>}
@@ -284,6 +284,6 @@ function NoticeActions({ sample, n, onDone }: { sample: boolean; n: Notice | nul
   const q = new URLSearchParams({ notice: n.id, species: n.animal_species, on: n.happened_on, ...(n.area ? { area: n.area } : {}), ...(n.animal_description ? { animal: n.animal_description } : {}), ...(n.place ? { place: n.place } : {}) });
   return <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
     <button type="button" className="nx-btn is-sm is-quiet" disabled={!!busy} onClick={async () => { const r = await run("notice", () => rpc("oh_update_notice", { p_notice: n.id, p_status: "contacted" }), { ok: "Marked as contacted." }); if (r.ok) onDone(); }}>Contacted</button>
-    <Link href={`/health/bites/new?${q.toString()}`} className="nx-btn is-sm is-quiet">Patient came in</Link>
+    <Link href={`/health/bites/new?${q.toString()}`} className="nx-btn is-sm is-quiet" data-tour="notice-came">Patient came in</Link>
   </div>;
 }

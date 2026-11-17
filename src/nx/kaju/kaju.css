@@ -119,3 +119,8 @@
 .nx-autos > li.is-on { box-shadow: inset 3px 0 0 var(--ok); padding-left: 12px; }
 .nx-autos-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .nx-kerr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } .nx-kerr > p { margin: 0; }
+/* Kaju's answer: paragraphs and short lists (Thread.tsx, KText). */
+.nx-ka-text { display: grid; gap: 8px; }
+.nx-ka-text .nx-ka-t { margin: 0; white-space: normal; }
+.nx-ka-l { margin: 0; padding-left: 20px; display: grid; gap: 4px; list-style: disc; line-height: 1.55; }
+.nx-ka-text b { font-weight: 600; }

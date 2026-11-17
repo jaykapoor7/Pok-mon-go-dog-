@@ -1,4 +1,5 @@
 import "server-only";
+import { incidentBriefing } from "./incident";
 import { shortCode } from "@/lib/caseCode";
 import { programmeFigures } from "./figures";
 import { SCREENS, canOpen, type ScreenRole as Role } from "@/lib/kaju/screens";
@@ -59,6 +60,7 @@ export const TOOL_DEFS = [
   { name: "office_brief", description: "For a municipal reviewing office: packages waiting for a decision, oldest first, each pre-checked claim by claim for exceptions (missing evidence, sign-offs, rates, arithmetic, repeats). Never accepts, queries or returns.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "ward_activity", description: "Ward coverage (recorded animals with sterilisation and vaccination recorded; denominator is recorded animals, not population) and sudden drops or spikes in newly recorded animals per ward over eight weeks, for the organisation's or office's city.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "partner_requests", description: "Work between programme partners, animal side only: open requests sent to this person's organisations by hospitals, laboratories or the programme cell (find and observe an animal, send a sample, vaccinate an area), with place and due date. Reads the request, never a patient record, dose or clinical count.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "incident_briefing", description: "One bite incident, animal side only: the follow-up request a hospital sent this person's organisation about a place (its title, area, status and due date, never its free text), the animal linked to it or the register's animals in that area, that animal's vaccination and sterilisation dates and open cases, what is missing (not accepted, no animal linked, observation not planned, revaccination due) and who does what. Prepares an observation case and a revaccination follow-up for the person to confirm. Never reads a patient record, dose or clinical count.", input_schema: { type: "object", properties: { place: { type: "string", description: "The area or place the incident is about, e.g. Indiranagar. Empty for the newest." } }, additionalProperties: false } },
   { name: "search_knowledge", description: "Search published StrayPaw Academy lessons about evidence, recorded counts, unknown status, coverage, population and field safety. Educational content, not current legislation or clinical advice. Returns cited passages; never invent policy.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"], additionalProperties: false } },
   { name: "abc_verification_status", description: "Read the organisation ABC verification queue: missing evidence, vet authorisation and review flags. Bounded sample, never certifies a procedure.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "abc_package_status", description: "Read report package statuses visible to this organisation member or municipal reviewer. Includes periods and recorded summaries; never accepts a package.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -106,6 +108,7 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
     case "claim_draft": return claimDraft(ctx);
     case "office_brief": return officeBrief(ctx);
     case "partner_requests": return partnerRequests(ctx);
+    case "incident_briefing": return incidentBriefing(input, ctx);
     case "ward_activity": return wardActivity(ctx);
     case "search_knowledge": return searchKnowledge(String(input.query ?? "").slice(0, 300));
     case "recent_confirmed_actions": return recentConfirmedActions(ctx);

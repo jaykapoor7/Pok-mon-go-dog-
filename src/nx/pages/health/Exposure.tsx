@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { ArrowRight, Lock, Plus, Stethoscope, X } from "lucide-react";
+import { KajuFace } from "@/kaju/Kaju";
 import { AGE, AUDIT, COURSE, EXPOSURE_KIND, HANDOFF, REMINDER, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, SEX, SPECIES, TRANSFER, WASHED, call, fmtDate, useRead, type Dose, type Exposure, type Place, type ReferralOption, type TransferOut } from "@/oh/data";
 import { Shell } from "../../Shell";
 import { Chip, Sample } from "../../ui";
@@ -15,8 +16,9 @@ import { Block, Opening, Seg, SignedConfirm, TryLink } from "../gh/parts";
 
 /* One presentation, start to finish: what happened, the clinician's assessment and prescription, every dose, the
    reminder calls, any referral, and what the animal team found. StrayPaw records clinical decisions and never makes
-   them: the category is the clinician's, the regimen and every dose date are entered by the clinician, and nothing
-   here computes or suggests a schedule. Patient identity is shown only to facility staff with the register. */
+   them: the category is the clinician's, and the course is the clinic's protocol laid out by Kaju from today, saved
+   only when the clinician confirms it in their name (or changes it on the full form). Patient identity is shown only
+   to facility staff with the register. */
 
 const CAT_TONE: Record<string, Tone> = { I: "plain", II: "accent", III: "bad", not_recorded: "warn" };
 const COURSE_TONE: Record<string, Tone> = { active: "accent", completed: "ok", discontinued: "plain", lost_to_follow_up: "bad" };
@@ -68,6 +70,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
   const setCategory = async (c: string) => { const r = await run("cat", () => call("oh_set_category", { p_exposure: e.id, p_category: c }), { ok: `Category ${c} recorded in your name.` }); setCat(null); if (r.ok) { setChangeCat(false); reload(); } };
   const logCall = async (args: { p_dose: string | null; p_course: string | null }, outcome: string) => { const r = await run("call", () => call("oh_log_reminder", { p_dose: args.p_dose, p_outcome: outcome, p_course: args.p_course }), { ok: `Logged: ${(REMINDER[outcome] ?? outcome).toLowerCase()}.` }); if (r.ok) reload(); };
   const doWithdraw = async (x: TransferOut) => { const r = await run("wd", () => call("oh_transfer_act", { p_transfer: x.id, p_action: "withdrawn" }), { ok: "Referral withdrawn. The other facility no longer expects the person." }); setWithdraw(null); if (r.ok) reload(); };
+  const prepare = !e.course && clinician && e.category !== "not_recorded";
   const history = e.history.filter((h) => h.action !== "read").slice(-15).reverse();
   const opened = e.history.filter((h) => h.action === "read").length;
 
@@ -85,6 +88,9 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
         sub={<>{e.patient_ref ? <span className="gh-code">{e.code} · </span> : null}{SPECIES[e.animal_species] ?? e.animal_species} {(EXPOSURE_KIND[e.exposure_kind] ?? e.exposure_kind).toLowerCase()} on {fmtDate(e.exposure_on, { day: "numeric", month: "long" })}{e.area ? ` in ${e.area}` : ""} </>}
         chips={<><Chip tone={CAT_TONE[e.category] ?? "plain"}>{e.category === "not_recorded" ? "Category not recorded" : `Category ${e.category}`}</Chip>{e.course ? <Chip tone={COURSE_TONE[e.course.status] ?? "plain"}>{COURSE[e.course.status]?.label ?? e.course.status}</Chip> : <Chip>No course</Chip>}</>}
         actions={assess ? (sample ? <TryLink sm quiet>Refer this person</TryLink> : <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setRefer(true)}>Refer this person<ArrowRight size={13} /></button>) : undefined} />
+      {/* With a category and no course yet, the course Kaju prepared is this screen's one decision: a full-width band
+          above the record, never squeezed into a column. */}
+      {prepare ? <div className="gh-prep"><Prescribe sample={sample} e={e} where={place?.name ?? null} onDone={reload} /></div> : null}
       <div className="nx-rec" style={{ marginTop: 16, borderTop: "1px solid var(--line)" }}>
         <section aria-label="Presentation">
           <h3 className="nx-h3">Presentation</h3>
@@ -107,7 +113,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
           <Block title="Course" note={e.course ? `${e.course.regimen} · immunoglobulin ${e.course.rig_given ? "given" : "not given"} · prescribed by ${e.course.prescribed_by_name ?? "a clinician"}, ${fmtDate(e.course.prescribed_at)}` : undefined}
             action={clinician && e.course?.status === "active" ? (sample ? <><TryLink sm quiet><Plus size={13} />Add a dose date</TryLink><TryLink sm quiet>Close early</TryLink></> : <><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setAdding(true)}><Plus size={13} />Add a dose date</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setClosing(true)}>Close early</button></>) : undefined}>
             {!e.course ? (
-              clinician ? (e.category === "not_recorded" ? <p className="nx-sub">Record the category first. Then prescribe from here.</p> : <Prescribe sample={sample} e={e} onDone={reload} />)
+              clinician ? (e.category === "not_recorded" ? <p className="nx-sub">Record the category first. Then prescribe from here.</p> : <p className="nx-sub">Kaju prepared the course above. Confirm it to start the doses.</p>)
                 : <p className="nx-sub">No course prescribed. A clinician prescribes from this page.</p>
             ) : (
               <ul className="gh-list" aria-label="Doses">{e.doses.map((d) => { const late = d.status === "due" && d.due_on < t; return (
@@ -116,7 +122,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
                     {d.status === "due" && canDose && d.id === nextDue?.id ? (sample ? <TryLink sm>Record</TryLink> : <button type="button" className="nx-btn is-sm" onClick={() => setDose(d)}>Record</button>) : null}</span></li>); })}</ul>
             )}
             {e.course?.status_note ? <p className="nx-foot">{e.course.status_note}</p> : null}
-            <p className="nx-foot">StrayPaw does not calculate a schedule. Every dose date here was entered by the clinician.</p>
+            {e.course ? <p className="nx-foot">Every dose date here was confirmed by the prescribing clinician.</p> : null}
           </Block>
           <Referrals sample={sample} transfers={transfers} canRefer={assess} onRefer={() => setRefer(true)} onWithdraw={setWithdraw} />
         </section>
@@ -130,7 +136,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
             ) : null}
           </Block>
           <Block title="Animal follow-up" note="Shared without patient details">
-            {e.handoff ? <ul className="gh-list"><li><div><b>{e.handoff.outcome ?? "Waiting for the team to report what they found."}</b><small>{e.handoff.to}</small></div><span className="gh-row-a"><Chip tone={e.handoff.status === "done" ? "ok" : e.handoff.status === "declined" ? "plain" : "accent"}>{HANDOFF[e.handoff.status]?.label ?? e.handoff.status}</Chip></span></li></ul>
+            {e.handoff ? <ul className="gh-list" data-tour="exposure-handoff"><li><div><b>{e.handoff.outcome ?? "Waiting for the team to report what they found."}</b><small>{e.handoff.to}</small></div><span className="gh-row-a"><Chip tone={e.handoff.status === "done" ? "ok" : e.handoff.status === "declined" ? "plain" : "accent"}>{HANDOFF[e.handoff.status]?.label ?? e.handoff.status}</Chip></span></li></ul>
               : <p className="nx-sub">{e.animal_ownership === "owned" ? "The animal is someone's pet; no field follow-up was asked for." : e.area ? "No follow-up was asked for, or no animal team covers this area." : "No area was recorded, so no follow-up was sent."}</p>}
           </Block>
           <Block title="History" note={`Who did what, kept for audit.${opened ? ` Opened ${opened} ${opened === 1 ? "time" : "times"}.` : ""}`}>
@@ -161,19 +167,55 @@ function Referrals({ sample, transfers, canRefer, onRefer, onWithdraw }: { sampl
   );
 }
 
-/* ── The clinician's prescription: regimen and every date, as entered ── */
-function Prescribe({ sample, e, onDone }: { sample: boolean; e: Exposure; onDone: () => void }) {
+/* ── The prescription: Kaju lays out the clinic's protocol from today; the clinician confirms it or changes it ── */
+
+/** The clinic's post-exposure protocol. There is no per-facility setting yet, so every clinic's prepared course
+    starts from this one; "Change" opens the full form for anything else. */
+const PROTOCOL = { regimen: "Intradermal, 2 sites (updated Thai Red Cross): days 0, 3, 7 and 28", label: "Intradermal, 2 sites", source: "Updated Thai Red Cross", days: [0, 3, 7, 28] };
+const addDays = (iso: string, n: number) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
+
+function Prescribe({ sample, e, where, onDone }: { sample: boolean; e: Exposure; where: string | null; onDone: () => void }) {
   const live = useLive();
-  const [regimen, setRegimen] = useState(""), [rig, setRig] = useState(false), [dates, setDates] = useState<string[]>([""]);
+  const tick = useId();
+  /* Day 0 is today in India; each later dose is counted from it. */
+  const planned = PROTOCOL.days.map((n) => addDays(indiaToday(), n));
+  const [changing, setChanging] = useState(false);
+  const [regimen, setRegimen] = useState(PROTOCOL.regimen), [rig, setRig] = useState(false), [dates, setDates] = useState<string[]>(planned);
+  const [signed, setSigned] = useState(false);
   const [asking, setAsking] = useState(false);
   const { busy, run } = useAct();
   const filled = dates.filter(Boolean);
   const bad = filled.some((d, i) => d < e.exposure_on || (i > 0 && d < filled[i - 1]));
   const ok = regimen.trim().length >= 2 && filled.length >= 1 && filled.length <= 12 && !bad;
-  const save = async () => { const r = await run("rx", () => call("oh_prescribe", { p_exposure: e.id, p_regimen: regimen.trim(), p_rig_given: rig, p_due_dates: filled }), { ok: "Course saved in your name. Each dose appears on Today and in Doses due when it is due." }); setAsking(false); if (r.ok) onDone(); };
+  const prescribe = async (course: { regimen: string; rig: boolean; dates: string[] }) => { const r = await run("rx", () => call("oh_prescribe", { p_exposure: e.id, p_regimen: course.regimen, p_rig_given: course.rig, p_due_dates: course.dates }), { ok: "Course saved in your name. Each dose appears on Today and in Doses due when it is due." }); setAsking(false); if (r.ok) onDone(); };
+  const save = () => prescribe({ regimen: regimen.trim(), rig, dates: filled });
+
+  if (!changing) return (
+    <section className="gh-kaju" data-tour="course-card" aria-labelledby={`${tick}-t`}>
+      <div className="gh-kaju-h">
+        <span className="gh-kaju-i"><KajuFace size={28} /></span>
+        <div><h4 id={`${tick}-t`} className="gh-kaju-t">Kaju prepared the course</h4><p className="gh-kaju-s">From your clinic&apos;s protocol. Nothing is saved until you confirm it.</p></div>
+        {sample ? null : <button type="button" className="gh-link gh-kaju-x" data-tour="course-change" onClick={() => { setRegimen(PROTOCOL.regimen); setDates(planned); setChanging(true); }}>Change</button>}
+      </div>
+      <div className="gh-kaju-rx"><b>{PROTOCOL.label}</b><small>{PROTOCOL.source} · {planned.length} doses, the first today</small></div>
+      <ol className="gh-sched" aria-label="Dose dates Kaju prepared">
+        {planned.map((d, i) => <li key={d} className={i === 0 ? "is-now" : undefined}><span>Day {PROTOCOL.days[i]}</span><b><time dateTime={d}>{fmtDate(d, { day: "numeric", month: "short" })}</time></b><small>{i === 0 ? "Today" : fmtDate(d, { weekday: "short" })}</small></li>)}
+      </ol>
+      <div className="gh-kaju-q" data-tour="course-rig">
+        <span className="gh-kaju-l" aria-hidden>Rabies immunoglobulin</span>
+        <Seg name="course-rig" label="Rabies immunoglobulin" value={rig ? "given" : "not_given"} onChange={(v) => setRig(v === "given")} options={[["not_given", "Not given"], ["given", "Given"]]} />
+      </div>
+      <label className="gh-tick gh-kaju-sign" htmlFor={tick} data-tour="course-attest"><input id={tick} type="checkbox" checked={signed} onChange={(ev) => setSigned(ev.target.checked)} /><span>This is the course I prescribed.<small>Saved in your name{live.userName ? `, ${live.userName}` : ""}{where ? `, at ${where}` : ""}.</small></span></label>
+      <div className="gh-kaju-a">
+        {sample ? <TryLink>Save prescription</TryLink> : <button type="button" className="nx-btn" data-tour="course-save" disabled={!signed || !!busy} aria-disabled={!signed || !!busy} onClick={() => void prescribe({ regimen: PROTOCOL.regimen, rig, dates: planned })}>{busy === "rx" ? "Saving…" : "Save prescription"}</button>}
+        {!signed && !sample ? <span className="gh-hint">Tick to confirm it is your prescription.</span> : null}
+      </div>
+    </section>
+  );
+
   return (
     <div className="gh-form">
-      <p className="nx-note"><Lock size={13} /><span><b>StrayPaw does not calculate or suggest a schedule.</b> Write the regimen as in your facility&apos;s protocol and enter the date you set for each dose.</span></p>
+      <p className="nx-note"><Lock size={13} /><span>Write the regimen as you prescribed it and set each dose date. The course is saved exactly as entered here, in your name.</span></p>
       <Field label="Regimen"><input value={regimen} maxLength={160} onChange={(ev) => setRegimen(ev.target.value)} placeholder="As written in your protocol" /></Field>
       <label className="gh-tick"><input type="checkbox" checked={rig} onChange={(ev) => setRig(ev.target.checked)} /><span>Rabies immunoglobulin given</span></label>
       <div className="nx-field"><span>Dose dates</span>
@@ -181,7 +223,7 @@ function Prescribe({ sample, e, onDone }: { sample: boolean; e: Exposure; onDone
         {dates.length < 12 ? <div><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setDates([...dates, ""])}><Plus size={13} />Add a dose date</button></div> : null}
         {bad ? <small className="gh-err">Dates must be on or after the exposure ({fmtDate(e.exposure_on)}) and in order.</small> : null}
       </div>
-      <div className="gh-acts">{sample ? <TryLink sm>Save prescription</TryLink> : <button type="button" className="nx-btn is-sm" disabled={!ok || !!busy} onClick={() => setAsking(true)}>Save prescription</button>}</div>
+      <div className="gh-acts">{sample ? <TryLink sm>Save prescription</TryLink> : <button type="button" className="nx-btn is-sm" disabled={!ok || !!busy} onClick={() => setAsking(true)}>Save prescription</button>}<button type="button" className="nx-btn is-sm is-quiet" onClick={() => { setChanging(false); setSigned(false); }}>Use Kaju&apos;s course</button></div>
       {asking ? <SignedConfirm title="Save this prescription" who={live.userName} busy={busy === "rx"} confirm="Save prescription" onClose={() => setAsking(false)} onConfirm={() => void save()} tick="This is the course I prescribed.">
         <p>{regimen.trim()}; immunoglobulin {rig ? "given" : "not given"}.</p>
         <ul>{filled.map((d, i) => <li key={i}>Dose {i + 1}: {fmtDate(d, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</li>)}</ul>

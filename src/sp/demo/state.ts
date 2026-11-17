@@ -1,27 +1,32 @@
 "use client";
 
-/* Where a visitor is in the guided demo, kept on this device only. */
+/* Where a visitor is in the guided demo, kept on this device only: the stage, the action within it, the role
+   signed in, and the screens reached earlier in this run (so a later action can return to the record just made). */
 import { getSupabase } from "@/lib/supabase";
 import type { DemoRole } from "./tour";
 
 export type TourMode = "guided" | "roam" | "off";
-export type TourState = { mode: TourMode; step: number; role: DemoRole | null };
+export type TourState = { mode: TourMode; step: number; act: number; role: DemoRole | null; memo: Record<string, string>; started: number };
 
-const KEY = "sp.demo.tour.v1";
+const KEY = "sp.demo.tour.v2";
 export const TOUR_EVENT = "sp:demo-tour";
-const OFF: TourState = { mode: "off", step: 0, role: null };
+const OFF: TourState = { mode: "off", step: 0, act: 0, role: null, memo: {}, started: 0 };
 
 export function readTour(): TourState {
-  try { const v = JSON.parse(localStorage.getItem(KEY) ?? "null") as TourState | null; return v && typeof v.step === "number" ? v : OFF; } catch { return OFF; }
+  try {
+    const v = JSON.parse(localStorage.getItem(KEY) ?? "null") as Partial<TourState> | null;
+    return v && typeof v.step === "number" ? { ...OFF, ...v, act: typeof v.act === "number" ? v.act : 0, memo: v.memo && typeof v.memo === "object" ? v.memo : {} } : OFF;
+  } catch { return OFF; }
 }
 
-export function writeTour(next: TourState) {
-  try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* storage blocked: the guide lasts for this page only */ }
-  window.dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: next }));
+export function writeTour(next: Partial<TourState> & Pick<TourState, "mode" | "step">) {
+  const full: TourState = { ...readTour(), ...next };
+  try { localStorage.setItem(KEY, JSON.stringify(full)); } catch { /* storage blocked: the guide lasts for this page only */ }
+  window.dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: full }));
 }
 
 /* First-run notices that would sit on top of the guide. */
-const QUIET = ["straypaw.notice.storage.v1", "straypaw.tour.v2", "sp.welcome.first-workflow", "straypaw-install-dismissed", "sp.videocard.dismissed"];
+const QUIET = ["straypaw.notice.storage.v1", "straypaw.tour.v2", "sp.welcome.first-workflow", "straypaw-install-dismissed", "sp.videocard.dismissed", "sp.firstday.v1", "sp.firstday.offer.v1", "sp.onboard.done"];
 
 /** Signs this browser in as a sample account. Returns an error message, or null on success. */
 export async function enterAs(role: DemoRole): Promise<string | null> {
@@ -42,7 +47,8 @@ export async function enterAs(role: DemoRole): Promise<string | null> {
 
 /** A change of sample account is a fresh visit: leave for the next screen without the last person's open tabs. */
 export function leaveFor(path: string, replace = false) {
-  const clear = () => { try { for (const k of Object.keys(localStorage)) if (k.startsWith("sp.ws.v1:")) { const v = JSON.parse(localStorage.getItem(k) ?? "null"); if (v && typeof v === "object") localStorage.setItem(k, JSON.stringify({ ...v, tabs: [] })); } } catch { /* tabs simply stay */ } };
+  /* Both the app's open tabs (nx.tabs.v1) and the older workspace tabs: one person's tabs never follow into the next person's screens. */
+  const clear = () => { try { localStorage.setItem("nx.tabs.v1", "[]"); for (const k of Object.keys(localStorage)) if (k.startsWith("sp.ws.v1:")) { const v = JSON.parse(localStorage.getItem(k) ?? "null"); if (v && typeof v === "object") localStorage.setItem(k, JSON.stringify({ ...v, tabs: [] })); } } catch { /* tabs simply stay */ } };
   clear(); window.addEventListener("pagehide", clear);
   if (replace) window.location.replace(path); else window.location.assign(path);
 }

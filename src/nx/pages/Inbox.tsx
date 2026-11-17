@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowRight, CheckCircle2, MapPin, MessageCircle, Sparkles, X } from "lucide-react";
 import { Shell } from "../Shell";
@@ -11,18 +10,16 @@ import { REPORTS, type Tone } from "../fixtures";
 import { useLive, type Workspace } from "../live";
 import type { CareInboxItem } from "@/lib/careos/contract";
 import { actWhatsApp, caseFromReport, fileReports, readDrives, readIncoming, readWhatsApp, type Drive, type Incoming, type WaState } from "../data/ngo";
-import { readCase } from "../data/capture";
-import { KajuCapture } from "../KajuCapture";
 import { SAMPLE_WA } from "../data/ngo-sample";
 import { RecordList, type RCol, type RView } from "./ngo/RecordList";
 import { TryLink } from "./ngo/parts";
 
 /* Everything that arrives from outside, before it is work. A person decides what each report becomes: a case for the
-   team, or an entry in a drive (which can register the animal). WhatsApp messages wait in their own threads, and a
-   message pasted from a chat is read by Kaju, who prepares a record that is saved only when a person confirms it. */
+   team, or an entry in a drive (which can register the animal). WhatsApp messages wait in their own threads, one per
+   reporter, and one tap opens a case from a message. */
 
 type Row = { id: string; what: string; note: string; place: string; from: string; source: string; state: string; tone: Tone; when: string; open: boolean; match?: string; photo?: string | null; help: boolean; raw?: Incoming };
-type Part = "Reports" | "WhatsApp" | "Paste a message";
+type Part = "Reports" | "WhatsApp";
 const MOOD: Record<string, string> = { injured: "Injured", sick: "Unwell", scared: "Scared", aggressive: "Defensive", friendly: "Friendly", hungry: "Hungry", puppy: "Puppy" };
 const ago = (iso: string) => { const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 6e4)); return m < 60 ? `${m} min` : m < 1440 ? `${Math.round(m / 60)} h` : m < 2880 ? "Yesterday" : new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" }); };
 const COLS: RCol<Row>[] = [
@@ -38,18 +35,18 @@ const search = (r: Row) => `${r.what} ${r.note} ${r.place} ${r.from}`;
 export function Inbox() {
   const live = useLive();
   const [part, setPart] = useState<Part>("Reports");
-  useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); if (v === "whatsapp") setPart("WhatsApp"); if (v === "paste") setPart("Paste a message"); }, []);
+  useEffect(() => { const v = new URLSearchParams(window.location.search).get("view"); if (v === "whatsapp") setPart("WhatsApp"); }, []);
   if (!live.ready) return <Shell crumb={["NGO", "Inbox"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const org = live.orgFor("ngo");
   if (live.org && !org) return <Shell crumb={["NGO", "Inbox"]}><div className="nx-page"><h1 className="nx-h1">Inbox</h1><p className="nx-sub">{live.org.name} is not an NGO workspace, so it has no report inbox.</p></div></Shell>;
-  const tabs = <TabBar id="inbox" tabs={["Reports", "WhatsApp", "Paste a message"] as Part[]} value={part} onChange={setPart} label="Where it came from" />;
+  const tabs = <TabBar id="inbox" tabs={["Reports", "WhatsApp"] as Part[]} value={part} onChange={setPart} label="Where it came from" />;
   return (
     <Shell crumb={["NGO", "Inbox"]}>
       {part === "Reports" ? (org ? <LiveReports org={org} tabs={tabs} /> : <SampleReports tabs={tabs} />)
         : <div className="nx-page" style={{ maxWidth: "none" }}>
-          <div className="nx-head"><div><h1 className="nx-h1">Inbox{org ? null : <Sample />}</h1><p className="nx-sub">{part === "WhatsApp" ? "Reports from your field team and residents on WhatsApp, one conversation per reporter. Reporters' numbers never reach the workspace." : "Paste a message your team sent. Kaju reads it and prepares a record; nothing is saved until you confirm it."}</p></div></div>
+          <div className="nx-head"><div><h1 className="nx-h1">Inbox{org ? null : <Sample />}</h1><p className="nx-sub">Reports from your field team and residents on WhatsApp, one conversation per reporter. Reporters&apos; numbers never reach the workspace.</p></div></div>
           <div className="nr-bleed">{tabs}</div>
-          {part === "WhatsApp" ? (org ? <WhatsApp org={org} /> : <SampleWhatsApp />) : <Paste sample={!org} />}
+          {org ? <WhatsApp org={org} /> : <SampleWhatsApp />}
         </div>}
     </Shell>
   );
@@ -156,6 +153,8 @@ function SampleReports({ tabs }: { tabs: React.ReactNode }) {
 /* ── WhatsApp ────────────────────────────────────────────────────── */
 
 const URGENCY: Record<string, string> = { emergency: "Emergency", urgent: "Urgent", routine: "Routine", unknown: "" };
+/* A reporter who has not shared a name is told apart by the end of their opaque handle, never their number. */
+const who = (m: CareInboxItem) => m.reporter_name ?? `Reporter ${(m.reporter_handle ?? "").replace(/-/g, "").slice(-4).toUpperCase()}`.trim();
 const DISMISS = ["Not an animal-care matter", "Duplicate of another report", "Spam or a wrong number", "Already handled elsewhere"];
 function WhatsApp({ org }: { org: Workspace }) {
   const [st, setSt] = useState<WaState | null>(null);
@@ -184,9 +183,9 @@ function WhatsApp({ org }: { org: Workspace }) {
   const act = (fn: () => ReturnType<typeof actWhatsApp>, ok: string) => run("wa", fn, { ok }).then((r) => { if (r.ok) { setOpening(false); setTitle(""); setDismiss(false); void load(); } });
   return (
     <div className="nr-wa">
-      <ul className="nr-wa-list" aria-label="Conversations">{threads.map((t) => { const m = t[t.length - 1]; const sel = m.thread_id === last.thread_id; return <li key={m.thread_id}><button type="button" aria-current={sel ? "true" : undefined} onClick={() => { setOn(m.thread_id); setOpening(false); setDismiss(false); }}><span className="nr-av">{(m.reporter_name ?? "?").slice(0, 1)}</span><span style={{ minWidth: 0 }}><b>{m.reporter_name ?? "Reporter"}</b><small>{m.text_en ?? m.text ?? (m.media.length ? "Photo or voice note" : "Shared a location")}</small></span><span className="nx-t3">{ago(m.received_at)}{m.urgency === "emergency" || m.urgency === "urgent" ? <><br /><Chip tone={m.urgency === "emergency" ? "bad" : "warn"}>{URGENCY[m.urgency]}</Chip></> : null}</span></button></li>; })}</ul>
+      <ul className="nr-wa-list" aria-label="Conversations">{threads.map((t) => { const m = t[t.length - 1]; const sel = m.thread_id === last.thread_id; return <li key={m.thread_id}><button type="button" aria-current={sel ? "true" : undefined} onClick={() => { setOn(m.thread_id); setOpening(false); setDismiss(false); }}><span className="nr-av">{who(m).slice(0, 1)}</span><span style={{ minWidth: 0 }}><b>{who(m)}</b><small>{m.text_en ?? m.text ?? (m.media.length ? "Photo or voice note" : "Shared a location")}</small></span><span className="nx-t3">{ago(m.received_at)}{m.urgency === "emergency" || m.urgency === "urgent" ? <><br /><Chip tone={m.urgency === "emergency" ? "bad" : "warn"}>{URGENCY[m.urgency]}</Chip></> : null}</span></button></li>; })}</ul>
       <div className="nr-wa-th">
-        <header><b>{last.reporter_name ?? "Reporter"}</b><small>{dayTime(thread[0].received_at)} · {last.status === "linked" ? "Linked to a case" : last.owner_name ? `With ${last.owner_name}` : "New"}</small></header>
+        <header><b>{who(last)}</b><small>{dayTime(thread[0].received_at)} · {last.status === "linked" ? "Linked to a case" : last.owner_name ? `With ${last.owner_name}` : "New"}</small></header>
         <ol className="nr-msgs">{thread.map((m) => <li key={m.id}>
           {m.media.map((x) => x.kind === "image" ? <button key={x.id} type="button" className={`nr-veil ${x.sensitive && !shown.has(x.id) ? "is-veiled" : ""}`} onClick={() => setShown((s) => new Set(s).add(x.id))} aria-label={x.sensitive && !shown.has(x.id) ? "Show the photo. It may show an injury." : "Photo"}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={x.url} alt="" /></button> : x.kind === "audio" ? <audio key={x.id} controls src={x.url} /> : <a key={x.id} href={x.url} className="nr-link" target="_blank" rel="noopener noreferrer">Open the attachment</a>)}
           {m.text ? <p>{m.text}</p> : null}{m.text_en && m.text_en !== m.text ? <p className="nr-tr">{m.text_en}</p> : null}
@@ -221,38 +220,6 @@ function SampleWhatsApp() {
       <ul className="nr-wa-list" aria-label="Conversations">{SAMPLE_WA.map((m, i) => <li key={m.id}><button type="button" aria-current={i === 0 ? "true" : undefined}><span className="nr-av">{m.who.slice(0, 1)}</span><span style={{ minWidth: 0 }}><b>{m.who}</b><small>{m.text}</small></span><span className="nx-t3">{ago(m.at)}{m.urgency === "urgent" ? <><br /><Chip tone="warn">Urgent</Chip></> : null}</span></button></li>)}</ul>
       <div className="nr-wa-th"><header><b>{SAMPLE_WA[0].who}</b><small>New</small></header><ol className="nr-msgs"><li><p>{SAMPLE_WA[0].text}</p><small>{dayTime(SAMPLE_WA[0].at)}</small></li></ol>
         <div className="nr-acts"><TryLink sm quiet>Take it</TryLink><TryLink sm>Open a case</TryLink><TryLink sm quiet>Dismiss…</TryLink></div></div>
-    </div>
-  );
-}
-
-/* ── Paste a message: Kaju prepares, a person confirms ───────────── */
-
-/* The shared Tell Kaju box, reading a pasted message the way the inbox always has (kajuRead). A case Kaju prepares is
-   saved on Confirm; Change, or "Open a case by hand" when Kaju prepares nothing, opens the new-case form filled in. */
-const EXAMPLE = "Brown female dog, limping, near HSR Layout 14th Main bus stop, Bengaluru. Found 9am today. Needs treatment.";
-const toNewCase = (v: { title: string; note: string | null; zone: string | null; city: string | null; cat: string | null; sev: string | null; dog?: string | null }, kaju: boolean) => {
-  const p = new URLSearchParams();
-  if (v.title) p.set("title", v.title.slice(0, 200));
-  if (v.note) p.set("note", v.note.slice(0, 1500));
-  if (v.zone) p.set("zone", v.zone.slice(0, 200));
-  if (v.city) p.set("city", v.city.slice(0, 120));
-  if (v.cat) p.set("cat", v.cat);
-  if (v.sev && v.sev !== "normal") p.set("sev", v.sev);
-  if (v.dog) p.set("dog", v.dog);
-  if (kaju) p.set("from", "kaju");
-  return `/ngo/cases/new?${p.toString()}`;
-};
-function Paste({ sample }: { sample: boolean }) {
-  const router = useRouter();
-  return (
-    <div style={{ maxWidth: 760, marginTop: 16 }}>
-      <KajuCapture idBase="inbox-paste" via="whatsapp" paste sample={sample} context={{ path: "/ngo/inbox", workspace: "ngo", title: "Inbox" }}
-        label="The message" sendLabel="Read it with Kaju" placeholder={EXAMPLE}
-        hint="Copy the message in WhatsApp, paste it here, and check what Kaju prepares. Nothing is saved until you confirm."
-        reading={(t) => readCase(t).facts}
-        byHand={(t) => { const r = readCase(t); return [{ label: "Open a case by hand", go: () => router.push(toNewCase({ title: r.title, note: t.trim(), zone: r.zone, city: r.city, cat: r.category, sev: r.severity }, false)) }]; }}
-        changes={["open_case"]}
-        onChange={(p) => { if (p.kind === "open_case") router.push(toNewCase({ title: p.title, note: p.description || null, zone: p.zone, city: p.city, cat: p.category, sev: p.severity, dog: p.dogId }, true)); }} />
     </div>
   );
 }
