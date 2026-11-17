@@ -21,7 +21,7 @@ const MIGRATIONS = [
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
   "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
   "20261117120000_rebuild_pep_reminder_validity.sql", "20261117130000_rebuild_quick_arv_operation.sql",
-  "20261117140000_rebuild_automation_ack_carry.sql",
+  "20261117140000_rebuild_automation_ack_carry.sql", "20261118100000_rebuild_automation_rule_counts.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -643,7 +643,7 @@ section("Field vaccinations: the quick ARV form and the lifecycle form each reco
   let n = await counts(q.c);
   ok(n.med === 1 && n.ops === 1 && n.linked === 1, "the quick ARV form records one medical record and one vaccination operation, linked");
   ok(r1.operation_event_id && !r1.replayed, "its answer names the operation it recorded");
-  const op = await one("select payload, occurred_at::date = $2::date as same_day, actor_name from animal_operation_events where case_id = $1", [q.c, day(today)]);
+  const op = await one("select payload, (occurred_at at time zone 'Asia/Kolkata')::date = $2::date as same_day, actor_name from animal_operation_events where case_id = $1", [q.c, day(today)]);
   ok(op.payload.vaccine === "ARV (sample)" && op.payload.batch === "B-1" && op.payload.performedBy === "Field team" && op.payload.facility === "Ward 12 market" && op.payload.notes, "the operation carries the vaccine, batch, vaccinator and place, with a note");
   ok(op.same_day && op.actor_name === "Farid Field", "it is dated on the vaccination day and attributed to the person who sent it");
   const r2 = (await as(FW, "select field_confirm_vaccination($1, $2, $3) as r", [req, q.c, arv(q.d)]))[0].r;
@@ -666,6 +666,81 @@ section("Field vaccinations: the quick ARV form and the lifecycle form each reco
   ok(await refused(C, "select field_confirm_vaccination($1, $2, $3)", [uuid(), q.c, arv(q.d)]) !== null, "another organisation cannot record a vaccination on this case");
   ok((await as(C, "select id from animal_operation_events where case_id = $1", [q.c])).length === 0, "and cannot read its operations");
   ok((await as(FC, "select id from animal_operation_events where case_id = $1", [q.c])).length === 1, "the organisation's coordinator sees the operation");
+}
+
+section("Every automation rule: the six without a test until now");
+{
+  const run = async (who, id) => (await as(who, "select nx_automation_run($1, false) as r", [id]))[0].r;
+
+  // followups_due: follow-ups due by tomorrow or late, postponed ones included; done ones and other organisations' are not.
+  const other = (await one("insert into ngos (name) values ('Another Trust') returning id")).id;
+  await db.query(`insert into animal_followups (ngo_id, due_at, status) values
+    ($1, now() + interval '2 hours', 'upcoming'), ($1, now() - interval '2 days', 'postponed'), ($1, now() + interval '3 days', 'upcoming'),
+    ($1, now() - interval '1 day', 'completed'), ($2, now() - interval '1 day', 'upcoming')`, [N1, other]);
+  const fd = (await as(A, "select nx_automation_save($1, 'followups_due', 'Follow-ups due', 'day') as id", [N1]))[0].id;
+  const fr = await run(A, fd);
+  ok(fr.found === 2 && /2 follow-ups are due by tomorrow or overdue/.test(fr.summary), `follow-ups due by tomorrow or late are counted, postponed included, done and other organisations' not (${fr.found})`);
+
+  // weekly_summary: one Monday note to everyone, with the same late follow-ups followups_due sees.
+  const late = (await one("select count(*)::int n from animal_followups where ngo_id = $1 and status in ('upcoming', 'postponed') and due_at < now()", [N1])).n;
+  const open = (await one("select (select count(*) from cases where ngo_id = $1 and resolved_at is null) + (select count(*) from nx_tasks where org_id = $1 and state = 'open') as n", [N1])).n;
+  const ws = (await as(A, "select nx_automation_save($1, 'weekly_summary', 'Weekly summary', 'week', '{}', 'everyone') as id", [N1]))[0].id;
+  const wr = await run(A, ws);
+  ok(wr.found === Number(open) && wr.summary.includes(`${late} overdue follow-ups`), `the weekly summary counts open cases and tasks, and late follow-ups including postponed ones (${wr.summary})`);
+  ok((await as(B, "select kind from nx_notifications where title = 'Weekly summary'")).some((x) => x.kind === "digest"), "everyone in the organisation gets it as a digest");
+  ok((await run(A, ws)).status === "skipped", "and only once a week");
+
+  // samples_overdue: the laboratory's wait starts when it received the sample, not when it was registered at collection.
+  const lab = (await one("insert into oh_organisations (kind, name) values ('laboratory', 'State Rabies Laboratory') returning id")).id;
+  const LL = uuid(); await db.query("insert into auth.users (id) values ($1)", [LL]);
+  await db.query("insert into oh_members (organisation_id, user_id, role) values ($1, $2, 'lead')", [lab, LL]);
+  const sample = async (code, status, createdDaysAgo, receivedDaysAgo, extra = {}) => {
+    const id = (await one(`insert into oh_samples (code, submitted_by, laboratory_id, species, sample_type, collected_on, status, result, resulted_at, created_at)
+      values ($1, $2, $3, 'dog', 'brain_tissue', current_date - $4::int, $5, $6, $7, now() - make_interval(days => $4::int)) returning id`,
+      [code, clinic, lab, createdDaysAgo, status, extra.result ?? null, extra.resultedAt ?? null])).id;
+    if (receivedDaysAgo !== null) await db.query("insert into oh_sample_events (sample_id, action, at, organisation_id) values ($1, 'received', now() - make_interval(days => $2::int), $3)", [id, receivedDaysAgo, lab]);
+    return id;
+  };
+  await sample("S-TRAVELLED", "testing", 10, 1);   // registered ten days ago, in the laboratory since yesterday: not overdue
+  await sample("S-WAITING", "received", 10, 5);    // in the laboratory five days: overdue
+  await sample("S-OLD", "testing", 6, null);        // recorded before events: falls back to when it was registered
+  await sample("S-DONE", "resulted", 9, 8, { result: "negative", resultedAt: new Date(Date.now() - 3600e3).toISOString() });
+  const so = (await as(LL, "select nx_automation_save($1, 'samples_overdue', 'Samples waiting too long', 'day', '{\"days\":3}', 'lab') as id", [lab]))[0].id;
+  const sr = await run(LL, so);
+  ok(sr.found === 2, `samples count from when the laboratory received them, not from collection (${sr.found})`);
+
+  // results_released: the team that sent samples hears when results come back, once.
+  const rl = (await as(P, "select nx_automation_save($1, 'results_released', 'Results released', 'day', '{}', 'clinical') as id", [clinic]))[0].id;
+  ok((await run(P, rl)).found === 1, "a result released in the last day is counted for the organisation that sent the sample");
+  ok((await as(nurse, "select body from nx_notifications where title = 'Results released'")).some((x) => /1 laboratory result was released/.test(x.body ?? "") && !/negative|S-DONE/.test(x.body ?? "")), "its clinical team is told that a result exists, never what it is");
+  ok((await as(P, "select nx_automation_run($1, true) as r", [rl]))[0].r.found === 0, "a result already announced is not announced again");
+  ok((await as(LL, "select id from nx_automations where id = $1", [rl])).length === 0, "the laboratory cannot see the sending clinic's automation");
+
+  // packages_waiting: only submitted packages past the days set, for this review office.
+  const office = (await one("insert into review_offices (name) values ('Ward Review Office') returning id")).id;
+  const other_office = (await one("insert into review_offices (name) values ('Another Review Office') returning id")).id;
+  const RV = uuid(); await db.query("insert into auth.users (id) values ($1)", [RV]);
+  await db.query("insert into review_office_members (office_id, user_id, role) values ($1, $2, 'lead')", [office, RV]);
+  await db.query(`insert into report_packages (ngo_id, office_id, status, submitted_at) values
+    ($1, $2, 'submitted', now() - interval '5 days'), ($1, $2, 'submitted', now() - interval '1 day'),
+    ($1, $2, 'queried', now() - interval '10 days'), ($1, $2, 'accepted', now() - interval '10 days'), ($1, $3, 'submitted', now() - interval '9 days')`, [N1, office, other_office]);
+  const pw = (await as(RV, "select nx_automation_save($1, 'packages_waiting', 'Packages waiting', 'day', '{\"days\":3}') as id", [office]))[0].id;
+  const pr = await run(RV, pw);
+  ok(pr.found === 1 && /A named reviewer decides/.test(pr.summary), `only this office's submitted packages past the days set are counted (${pr.found})`);
+
+  // data_requests_waiting: the coordinator who can decide is reminded; other partners in the programme are not.
+  const child = (await one("insert into oh_programmes (slug, name, parent_id, status) values ('pune-ward-12-drive', 'Ward 12 drive', $1, 'active') returning id", [prog.id])).id;
+  const askData = (programme, daysAgo) => db.query(`insert into nx_data_requests (programme_id, requester_org, requested_by, title, purpose, variables, period_from, period_to, status, created_at)
+    values ($1, $2, $3, 'Bite trend', 'Weekly bite exposures by category to plan vaccine supply.', array['week'], current_date - 60, current_date, 'requested', now() - make_interval(days => $4::int))`, [programme, ro, R, daysAgo]);
+  await askData(prog.id, 5); await askData(child, 5); await askData(prog.id, 1);
+  const dc = (await as(P, "select nx_automation_save($1, 'data_requests_waiting', 'Data requests waiting', 'day', '{\"days\":3}') as id", [coordOrg]))[0].id;
+  const dr = await run(P, dc);
+  ok(dr.found === 2, `the programme's coordinator is reminded of each request past the days set, a sub-programme's included, each once (${dr.found})`);
+  const HL = uuid(); await db.query("insert into auth.users (id) values ($1)", [HL]);
+  await db.query("insert into oh_members (organisation_id, user_id, role) values ($1, $2, 'lead')", [fac, HL]);
+  const dh = (await as(HL, "select nx_automation_save($1, 'data_requests_waiting', 'Data requests waiting', 'day', '{\"days\":3}') as id", [fac]))[0].id;
+  const hr = await run(HL, dh);
+  ok(hr.found === 0 && hr.status === "skipped", `a hospital in the programme, which cannot decide on its data, is not asked to (${hr.found})`);
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

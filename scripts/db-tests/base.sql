@@ -24,7 +24,7 @@ create table public.review_office_members (office_id uuid references public.revi
 create table public.dogs (id uuid primary key default gen_random_uuid(), ngo_id uuid, name text, straypaw_id text, code text, cover_photo text, species text, sex text, photo_url text, identity_state text, last_seen_at timestamptz, zone text, city text, vaccination_status text, sterilisation_status text, created_at timestamptz default now());
 create table public.cases (id uuid primary key default gen_random_uuid(), ngo_id uuid, dog_id uuid, title text, case_code text, zone text, city text, due_at timestamptz, follow_up_at date, resolved_at timestamptz, status text default 'open', created_at timestamptz default now());
 create table public.medical_events (id uuid primary key default gen_random_uuid(), dog_id uuid, kind text, event_date date, created_at timestamptz default now());
-create table public.animal_followups (id uuid primary key default gen_random_uuid(), case_id uuid, dog_id uuid, due_at timestamptz, status text default 'open');
+create table public.animal_followups (id uuid primary key default gen_random_uuid(), ngo_id uuid, case_id uuid, dog_id uuid, due_at timestamptz, status text default 'open');
 -- Training (20261107090000_training_lms.sql), only the columns the automation rules read.
 create table public.training_courses (id uuid primary key default gen_random_uuid(), ngo_id uuid, title text);
 create table public.training_lessons (id uuid primary key default gen_random_uuid(), course_id uuid references public.training_courses, title text);
@@ -48,5 +48,5 @@ create or replace function public.sp_actor_name() returns text language sql stab
 create or replace function public.sp_member_role(p_ngo uuid) returns text language sql stable security definer set search_path = public as $$ select role from ngo_members where user_id = auth.uid() and ngo_id = p_ngo $$;
 create or replace function public.add_case_note(p_case_id uuid, p_actor_id uuid, p_actor_name text, p_note text) returns uuid language sql security definer set search_path = public as $$ insert into case_updates (case_id, actor_id, actor_name, note) values (p_case_id, p_actor_id, p_actor_name, p_note) returning id $$;
 create or replace function public.add_case_followup(p_case_id uuid, p_dog_id uuid, p_due date, p_notes text) returns uuid language sql security definer set search_path = public as $$ select null::uuid $$;
-create table public.report_packages (id uuid primary key default gen_random_uuid(), ngo_id uuid, office_id uuid, status text default 'draft', case_ids uuid[] default '{}');
+create table public.report_packages (id uuid primary key default gen_random_uuid(), ngo_id uuid, office_id uuid, status text default 'draft', case_ids uuid[] default '{}', submitted_at timestamptz);
 grant select on public.medical_events, public.operational_audit_log to authenticated;

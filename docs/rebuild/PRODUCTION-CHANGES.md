@@ -238,3 +238,30 @@ Production after applying (read-only): the publication holds `nx_messages` and t
 
 Rollback: `alter publication supabase_realtime drop table public.nx_missions, public.nx_mission_steps, public.nx_mission_events;`
 
+---
+
+# Ninth set: three automation rules count what their notice says
+
+**Applied on staging, checked there in a rolled-back run, then applied on production, on 2026-11-16**, through the
+Supabase tool. Found while writing tests for the six rules that had none.
+
+| Order | File | What it changes | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 19 | `20261118100000_rebuild_automation_rule_counts.sql` | Replaces `nx_automation_run`. `samples_overdue` counts from the laboratory's `received` event, not registration at collection. `data_requests_waiting` counts only for an organisation that can decide (coordinator or state, in the programme or a programme above it), each request once. `weekly_summary` counts late postponed follow-ups, as `followups_due` does. No table, column, policy or grant changes. | Applied, checked | Applied, checked |
+
+Staging check (rolled back), with each rule run the way the hourly schedule runs it (nobody signed in): the sample
+laboratory's overdue samples were counted from receipt (2); a data request waiting five days reminded the sample
+coordinator (1) and not the municipal office in the same programme (0, where the earlier definition gave 1); the sample
+NGO's weekly summary reached its six members.
+
+Production before applying (read-only): the live function was identical to 20261117140000 (md5
+898712332971f05298ad78dbeeb73c82); no automation is turned on, there are no runs, no samples in a laboratory, no open
+data requests and no postponed follow-ups, so nothing existing changes. After applying: md5
+3b8a883260ca5ea30799add2e3cb7b87 on both staging and production; signed-in members may call it, anonymous visitors may
+not.
+
+`test:db`: 242 checks. Four fail without this migration (the weekly summary, the samples count, and both data-request
+checks).
+
+Rollback: re-create `nx_automation_run` from `20261117140000_rebuild_automation_ack_carry.sql`.
+

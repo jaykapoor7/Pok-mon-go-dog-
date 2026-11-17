@@ -38,6 +38,14 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     if (!back) return; // never opened: nothing to give back
     window.setTimeout(() => (back && back !== document.body && back.isConnected ? back : document.getElementById("nx-main"))?.focus({ preventScroll: true }), 60);
   }, [open]);
+  /* Escape closes it wherever focus is, including in the moment before focus has reached the box (the bar's code loads
+     when it is first opened, so it can be on screen a little before the box takes focus). The box's own handler runs
+     first and marks the key as handled, so it never closes twice. */
+  useEffect(() => {
+    if (!open) return;
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); onClose(); } };
+    window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
+  }, [open, onClose]);
 
   /* Records: sample rows when signed out; otherwise the NGO's own animals and cases, asked for once the person pauses. */
   useEffect(() => {

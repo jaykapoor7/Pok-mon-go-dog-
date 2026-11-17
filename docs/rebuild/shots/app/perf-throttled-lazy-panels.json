@@ -1,0 +1,268 @@
+{
+ "conditions": "Pixel 7, CPU 4x slower, 150 ms RTT, 1.6 Mbps down, cold cache, local production build, signed out (sample pages)",
+ "before": [
+  [
+   {
+    "page": "/ngo/today",
+    "load_ms": 4700,
+    "lcp_ms": 3112,
+    "cls": 0,
+    "tbt_ms": 1420,
+    "js_kb": 351,
+    "tap_ms": null
+   },
+   {
+    "page": "/ngo/cases",
+    "load_ms": 3839,
+    "lcp_ms": 1528,
+    "cls": 0,
+    "tbt_ms": 379,
+    "js_kb": 379,
+    "tap_ms": 680
+   },
+   {
+    "page": "/ngo/animals",
+    "load_ms": 3920,
+    "lcp_ms": 1532,
+    "cls": 0,
+    "tbt_ms": 503,
+    "js_kb": 386,
+    "tap_ms": 236
+   },
+   {
+    "page": "/gov/verification",
+    "load_ms": 3774,
+    "lcp_ms": 1240,
+    "cls": 0,
+    "tbt_ms": 422,
+    "js_kb": 350,
+    "tap_ms": 231
+   },
+   {
+    "page": "/health/today",
+    "load_ms": 4035,
+    "lcp_ms": 1308,
+    "cls": 0,
+    "tbt_ms": 340,
+    "js_kb": 397,
+    "tap_ms": null
+   },
+   {
+    "page": "/kaju",
+    "load_ms": 7194,
+    "lcp_ms": 1216,
+    "cls": 0.384,
+    "tbt_ms": 1067,
+    "js_kb": 464,
+    "tap_ms": null
+   },
+   {
+    "page": "/channels/abc-ward-12",
+    "load_ms": 3698,
+    "lcp_ms": 1676,
+    "cls": 0,
+    "tbt_ms": 424,
+    "js_kb": 356,
+    "tap_ms": null
+   }
+  ],
+  [
+   {
+    "page": "/ngo/today",
+    "load_ms": 3682,
+    "lcp_ms": 1532,
+    "cls": 0.001,
+    "tbt_ms": 605,
+    "js_kb": 351,
+    "tap_ms": null
+   },
+   {
+    "page": "/ngo/cases",
+    "load_ms": 3839,
+    "lcp_ms": 1696,
+    "cls": 0,
+    "tbt_ms": 406,
+    "js_kb": 379,
+    "tap_ms": 219
+   },
+   {
+    "page": "/ngo/animals",
+    "load_ms": 3974,
+    "lcp_ms": 1304,
+    "cls": 0,
+    "tbt_ms": 352,
+    "js_kb": 386,
+    "tap_ms": 262
+   },
+   {
+    "page": "/gov/verification",
+    "load_ms": 3659,
+    "lcp_ms": 1556,
+    "cls": 0,
+    "tbt_ms": 421,
+    "js_kb": 350,
+    "tap_ms": 207
+   },
+   {
+    "page": "/health/today",
+    "load_ms": 3998,
+    "lcp_ms": 1804,
+    "cls": 0,
+    "tbt_ms": 375,
+    "js_kb": 397,
+    "tap_ms": null
+   },
+   {
+    "page": "/kaju",
+    "load_ms": 7124,
+    "lcp_ms": 1720,
+    "cls": 0.384,
+    "tbt_ms": 487,
+    "js_kb": 464,
+    "tap_ms": null
+   },
+   {
+    "page": "/channels/abc-ward-12",
+    "load_ms": 3702,
+    "lcp_ms": 1816,
+    "cls": 0,
+    "tbt_ms": 402,
+    "js_kb": 356,
+    "tap_ms": null
+   }
+  ]
+ ],
+ "after_lazy_panels": [
+  [
+   {
+    "page": "/ngo/today",
+    "load_ms": 3220,
+    "lcp_ms": 1340,
+    "cls": 0.001,
+    "tbt_ms": 487,
+    "js_kb": 286,
+    "tap_ms": null
+   },
+   {
+    "page": "/ngo/cases",
+    "load_ms": 3453,
+    "lcp_ms": 1616,
+    "cls": 0,
+    "tbt_ms": 413,
+    "js_kb": 315,
+    "tap_ms": 229
+   },
+   {
+    "page": "/ngo/animals",
+    "load_ms": 3441,
+    "lcp_ms": 1136,
+    "cls": 0,
+    "tbt_ms": 347,
+    "js_kb": 321,
+    "tap_ms": 260
+   },
+   {
+    "page": "/gov/verification",
+    "load_ms": 3199,
+    "lcp_ms": 1384,
+    "cls": 0,
+    "tbt_ms": 354,
+    "js_kb": 285,
+    "tap_ms": 299
+   },
+   {
+    "page": "/health/today",
+    "load_ms": 3553,
+    "lcp_ms": 1408,
+    "cls": 0,
+    "tbt_ms": 424,
+    "js_kb": 332,
+    "tap_ms": null
+   },
+   {
+    "page": "/kaju",
+    "load_ms": 7157,
+    "lcp_ms": 1228,
+    "cls": 0,
+    "tbt_ms": 584,
+    "js_kb": 465,
+    "tap_ms": null
+   },
+   {
+    "page": "/channels/abc-ward-12",
+    "load_ms": 3233,
+    "lcp_ms": 1680,
+    "cls": 0,
+    "tbt_ms": 307,
+    "js_kb": 291,
+    "tap_ms": null
+   }
+  ],
+  [
+   {
+    "page": "/ngo/today",
+    "load_ms": 3274,
+    "lcp_ms": 1368,
+    "cls": 0.001,
+    "tbt_ms": 563,
+    "js_kb": 286,
+    "tap_ms": null
+   },
+   {
+    "page": "/ngo/cases",
+    "load_ms": 3443,
+    "lcp_ms": 1776,
+    "cls": 0,
+    "tbt_ms": 571,
+    "js_kb": 315,
+    "tap_ms": 351
+   },
+   {
+    "page": "/ngo/animals",
+    "load_ms": 3481,
+    "lcp_ms": 1672,
+    "cls": 0,
+    "tbt_ms": 534,
+    "js_kb": 321,
+    "tap_ms": 341
+   },
+   {
+    "page": "/gov/verification",
+    "load_ms": 3230,
+    "lcp_ms": 1748,
+    "cls": 0,
+    "tbt_ms": 357,
+    "js_kb": 285,
+    "tap_ms": 242
+   },
+   {
+    "page": "/health/today",
+    "load_ms": 3563,
+    "lcp_ms": 1188,
+    "cls": 0,
+    "tbt_ms": 492,
+    "js_kb": 332,
+    "tap_ms": null
+   },
+   {
+    "page": "/kaju",
+    "load_ms": 7135,
+    "lcp_ms": 1688,
+    "cls": 0,
+    "tbt_ms": 487,
+    "js_kb": 465,
+    "tap_ms": null
+   },
+   {
+    "page": "/channels/abc-ward-12",
+    "load_ms": 3243,
+    "lcp_ms": 1620,
+    "cls": 0,
+    "tbt_ms": 572,
+    "js_kb": 291,
+    "tap_ms": null
+   }
+  ]
+ ],
+ "note": "Two runs each. After: the command bar and the compact Kaju panel load their code when first opened; the Kaju page's sample tag and notices are drawn from the first paint."
+}
