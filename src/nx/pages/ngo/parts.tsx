@@ -70,15 +70,21 @@ export function cohortOf(file: CaseFile, now = Date.now()): Cohort {
   return open && age > 90 * DAY && quiet > 30 * DAY ? "decide" : "live";
 }
 type Mode = null | "outcome" | "close" | "note" | "followup";
+/** A note or follow-up handed over from Tell Kaju (Change, or the person's own words when Kaju prepared nothing). */
+export type HandSeed = { mode: "note" | "followup"; note: string; due?: string; n: number };
 type Ask = { title: string; body: ReactNode; confirm: string; danger?: boolean; go: () => Promise<unknown> } | null;
 
-/** Exactly the steps the record allows, in the order a team takes them (classic NextStep). */
-export function CaseNext({ file, role, actor, members, onChanged }: { file: CaseFile; role: string | null; actor: Actor; members: Member[] | null; onChanged: () => Promise<unknown> | unknown }) {
+/** Exactly the steps the record allows, in the order a team takes them (classic NextStep). Decisions (take, start,
+    assign, record the outcome, close) stay in view; a note and a follow-up are recorded by telling Kaju, and their
+    manual forms fold under "Record by hand", which a seed from Kaju opens already filled. */
+export function CaseNext({ file, role, actor, members, onChanged, seed }: { file: CaseFile; role: string | null; actor: Actor; members: Member[] | null; onChanged: () => Promise<unknown> | unknown; seed?: HandSeed | null }) {
   const { c, reg, followups } = file;
   const [mode, setMode] = useState<Mode>(null);
   const [ask, setAsk] = useState<Ask>(null);
+  const [hand, setHand] = useState(false);
   const { busy, run } = useAct();
-  useEffect(() => { setMode(null); setAsk(null); }, [c.id]);
+  useEffect(() => { setMode(null); setAsk(null); setHand(false); }, [c.id]);
+  useEffect(() => { if (seed) { setHand(true); setMode(seed.mode); } }, [seed]);
   const open = reg.status_class ? isOpenClass(reg.status_class) : c.status !== "resolved" && c.status !== "closed";
   const mine = c.assignee_id === actor.id, pool = !c.ngo_id, lead = isLead(role);
   const now = Date.now(), age = Math.floor((now - Date.parse(reg.occurred_at)) / DAY), quiet = Math.floor((now - Date.parse(c.last_activity_at || reg.occurred_at)) / DAY);
@@ -136,12 +142,17 @@ export function CaseNext({ file, role, actor, members, onChanged }: { file: Case
       </div> : null}
 
       <div className="nr-acts nr-more">
-        <button type="button" className="nx-btn is-quiet is-sm" aria-expanded={mode === "note"} onClick={() => setMode(mode === "note" ? null : "note")}>Add a note</button>
-        <button type="button" className="nx-btn is-quiet is-sm" aria-expanded={mode === "followup"} onClick={() => setMode(mode === "followup" ? null : "followup")}>Schedule a follow-up</button>
+        <button type="button" className="nx-btn is-quiet is-sm" aria-expanded={hand} aria-controls={`hand-${c.id}`} onClick={() => { setHand((v) => !v); if (mode === "note" || mode === "followup") setMode(null); }}>Record by hand</button>
         {open && !imported && !pool && mode !== "close" ? <button type="button" className="nx-btn is-quiet is-sm" onClick={() => setMode("close")}>Close without field action…</button> : null}
       </div>
-      {mode === "note" ? <NoteForm busy={!!busy} onCancel={() => setMode(null)} onSave={(t) => run("note", () => addNote(c.id, actor, t), { ok: "Note added to the history." }).then((r) => { if (r.ok) void after(); return r.ok; })} /> : null}
-      {mode === "followup" ? <FollowupForm busy={!!busy} onCancel={() => setMode(null)} onSave={(due, note) => run("fu", () => addFollowup(c.id, c.dog_id ?? null, due, note), { ok: `Follow-up scheduled for ${day(due)}.`, undo: (x) => undoWith(() => removeRecord("followup", String(x.data), "Undo: scheduled by mistake"), onChanged, "Follow-up removed.")() }).then((r) => { if (r.ok) void after(); return r.ok; })} /> : null}
+      <div id={`hand-${c.id}`} hidden={!hand} className="nr-hand">
+        <div className="nr-acts">
+          <button type="button" className="nx-btn is-quiet is-sm" aria-expanded={mode === "note"} onClick={() => setMode(mode === "note" ? null : "note")}>Add a note</button>
+          <button type="button" className="nx-btn is-quiet is-sm" aria-expanded={mode === "followup"} onClick={() => setMode(mode === "followup" ? null : "followup")}>Schedule a follow-up</button>
+        </div>
+        {hand && mode === "note" ? <NoteForm key={`n${seed?.n ?? 0}`} initial={seed?.mode === "note" ? seed.note : ""} busy={!!busy} onCancel={() => setMode(null)} onSave={(t) => run("note", () => addNote(c.id, actor, t), { ok: "Note added to the history." }).then((r) => { if (r.ok) void after(); return r.ok; })} /> : null}
+        {hand && mode === "followup" ? <FollowupForm key={`f${seed?.n ?? 0}`} initialDue={seed?.mode === "followup" ? seed.due : undefined} initialNote={seed?.mode === "followup" ? seed.note : ""} busy={!!busy} onCancel={() => setMode(null)} onSave={(due, note) => run("fu", () => addFollowup(c.id, c.dog_id ?? null, due, note), { ok: `Follow-up scheduled for ${day(due)}.`, undo: (x) => undoWith(() => removeRecord("followup", String(x.data), "Undo: scheduled by mistake"), onChanged, "Follow-up removed.")() }).then((r) => { if (r.ok) void after(); return r.ok; })} /> : null}
+      </div>
       {ask ? <Confirm title={ask.title} confirm={ask.confirm} danger={ask.danger} busy={!!busy} onClose={() => setAsk(null)} onConfirm={() => void ask.go()}>{ask.body}</Confirm> : null}
     </div>
   );
@@ -152,7 +163,7 @@ export function SampleNext({ held }: { held: string }) {
   return <div className="nr-next">
     <div className="nr-block"><p>{held === "Unassigned" ? <><b>Nobody holds this case.</b> Take it, or give it to a named person.</> : <>Held by <b>{held}</b>.</>}</p>
       <div className="nr-acts"><TryLink sm>Take it</TryLink><TryLink sm quiet>Start work</TryLink><TryLink sm quiet>Record the outcome…</TryLink><TryLink sm quiet>Assign to…</TryLink></div></div>
-    <div className="nr-acts nr-more"><TryLink sm quiet>Add a note</TryLink><TryLink sm quiet>Schedule a follow-up</TryLink><TryLink sm quiet>Close without field action…</TryLink></div>
+    <div className="nr-acts nr-more"><TryLink sm quiet>Record by hand</TryLink><TryLink sm quiet>Close without field action…</TryLink></div>
   </div>;
 }
 
@@ -207,8 +218,8 @@ function ReasonForm({ busy, onSave }: { busy: boolean; onSave: (r: ReviewReason,
   );
 }
 
-function NoteForm({ busy, onCancel, onSave }: { busy: boolean; onCancel: () => void; onSave: (t: string) => Promise<boolean> }) {
-  const [t, setT] = useState("");
+function NoteForm({ busy, onCancel, onSave, initial = "" }: { busy: boolean; onCancel: () => void; onSave: (t: string) => Promise<boolean>; initial?: string }) {
+  const [t, setT] = useState(initial);
   return (
     <form className="nr-sheet" onSubmit={async (e) => { e.preventDefault(); if (t.trim() && await onSave(t.trim())) setT(""); }}>
       <Field label="Note on the case history"><textarea autoFocus value={t} maxLength={4000} onChange={(e) => setT(e.target.value)} placeholder="A visit, a call, what you saw" /></Field>
@@ -217,9 +228,9 @@ function NoteForm({ busy, onCancel, onSave }: { busy: boolean; onCancel: () => v
   );
 }
 
-function FollowupForm({ busy, onCancel, onSave }: { busy: boolean; onCancel: () => void; onSave: (due: string, note: string) => Promise<boolean> }) {
-  const [d, setD] = useState(() => inDays(7));
-  const [note, setNote] = useState("");
+function FollowupForm({ busy, onCancel, onSave, initialDue, initialNote = "" }: { busy: boolean; onCancel: () => void; onSave: (due: string, note: string) => Promise<boolean>; initialDue?: string; initialNote?: string }) {
+  const [d, setD] = useState(() => (initialDue && /^\d{4}-\d{2}-\d{2}$/.test(initialDue) && initialDue >= inDays(0) ? initialDue : inDays(7)));
+  const [note, setNote] = useState(initialNote);
   return (
     <form className="nr-sheet" onSubmit={async (e) => { e.preventDefault(); if (/^\d{4}-\d{2}-\d{2}$/.test(d) && await onSave(d, note)) setNote(""); }}>
       <div className="nx-fields">
@@ -270,10 +281,12 @@ export function FollowupList({ items, onChanged, sample, markable }: { items: Ca
 
 /* ── Record care on an animal ────────────────────────────────────── */
 
-export function CareForm({ dogId, caseId, onSaved, onCancel }: { dogId: string; caseId?: string | null; onSaved: () => unknown; onCancel?: () => void }) {
-  const [kind, setKind] = useState("vaccination");
-  const [date, setDate] = useState(() => inDays(0));
-  const [notes, setNotes] = useState("");
+/** A care event on an animal. `initial` comes from Tell Kaju: what Kaju prepared (Change) or what the person wrote. A kind
+    that is not one of the register's is left for the person to choose, never replaced by a guess. */
+export function CareForm({ dogId, caseId, onSaved, onCancel, initial }: { dogId: string; caseId?: string | null; onSaved: () => unknown; onCancel?: () => void; initial?: { kind: string; date: string | null; notes: string } | null }) {
+  const [kind, setKind] = useState(() => (initial ? (MEDICAL_KINDS.some((k) => k.id === initial.kind) ? initial.kind : "") : "vaccination"));
+  const [date, setDate] = useState(() => (initial?.date && /^\d{4}-\d{2}-\d{2}$/.test(initial.date) && initial.date <= inDays(0) ? initial.date : inDays(0)));
+  const [notes, setNotes] = useState(initial?.notes ?? "");
   const [by, setBy] = useState("");
   const { busy, run } = useAct();
   return (
@@ -283,13 +296,13 @@ export function CareForm({ dogId, caseId, onSaved, onCancel }: { dogId: string; 
       if (r.ok) { setNotes(""); setBy(""); await onSaved(); }
     }}>
       <div className="nx-fields">
-        <Field label="What"><select value={kind} onChange={(e) => setKind(e.target.value)}>{MEDICAL_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}</select></Field>
+        <Field label="What"><select value={kind} required onChange={(e) => setKind(e.target.value)}>{kind ? null : <option value="" disabled>Choose what was done…</option>}{MEDICAL_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}</select></Field>
         <Field label="When"><input type="date" required value={date} max={inDays(0)} onChange={(e) => setDate(e.target.value)} /></Field>
         <Field label="Done by (optional)" wide><input value={by} maxLength={200} onChange={(e) => setBy(e.target.value)} placeholder="Clinic or person" /></Field>
         <Field label="Notes (optional)" wide><textarea value={notes} maxLength={3000} onChange={(e) => setNotes(e.target.value)} /></Field>
       </div>
       <p className="nr-hint">Recorded by your organisation. It is not a clinician&apos;s sign-off.</p>
-      <div className="nr-acts"><button type="submit" className="nx-btn is-sm" disabled={!!busy}>{busy ? <Loader2 size={13} className="nx-spin" /> : null}Add to the history</button>{onCancel ? <button type="button" className="nx-btn is-quiet is-sm" onClick={onCancel}>Cancel</button> : null}</div>
+      <div className="nr-acts"><button type="submit" className="nx-btn is-sm" disabled={!!busy || !kind}>{busy ? <Loader2 size={13} className="nx-spin" /> : null}Add to the history</button>{onCancel ? <button type="button" className="nx-btn is-quiet is-sm" onClick={onCancel}>Cancel</button> : null}</div>
     </form>
   );
 }
@@ -324,7 +337,7 @@ export function OpsEvents({ caseId, dogId, readOnly, role, userId, title = "Care
   return (
     <section className="nx-sec" aria-label={title}>
       <div className="nx-sec-h"><h2>{title}</h2>{data ? <span className="nx-count">{data.events.length}{data.events.length >= 40 ? "+" : ""}</span> : null}
-        {!readOnly && caseId ? <span style={{ marginLeft: "auto" }}><button type="button" className="nx-btn is-quiet is-sm" aria-expanded={adding} onClick={() => setAdding((v) => !v)}>{adding ? "Close" : "Record care or movement"}</button></span> : null}</div>
+        {!readOnly && caseId ? <span style={{ marginLeft: "auto" }}><button type="button" className="nx-btn is-quiet is-sm" aria-expanded={adding} onClick={() => setAdding((v) => !v)}>{adding ? "Close" : "Record by hand"}</button></span> : null}</div>
       {adding && caseId && userId ? <LifecycleForm events={data?.events} policies={data?.policies} coordinator={coord} onCancel={() => setAdding(false)} onSave={async (kind, payload, policyId, requestId) => {
         const r = await operationRpc<OperationReceipt>("operations_record_event", { p_request: requestId, p_case: caseId, p_kind: kind, p_payload: payload, p_policy: policyId });
         await verifyOperationReceipt(r, "animal_operation_events", userId, { case_id: caseId, kind }, requestId);
