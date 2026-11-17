@@ -101,11 +101,13 @@ export function understoodBits(q: string, now = new Date()): string | null {
 }
 /** The fallback sentence: what was not followed, what was picked out, and (for words that read like a to-do with a day) the
     same words offered back as a task for the person to send, never prepared on a guess. */
+const said = (q: string) => { const w = stripMention(q).replace(/\s+/g, " ").trim().replace(/[?.!]+$/, ""); return w.length > 120 ? `${w.slice(0, 117).replace(/\s+\S*$/, "")}…` : w; };
 export function notFollowed(q: string, query: string, now = new Date()): { text: string; first: string | null } {
   const bits = understoodBits(q, now);
   const todo = looksLikeTodo(q, now) ? `Add a task: ${unpolite(stripMention(q)).replace(/^./, (c) => c.toLowerCase())}` : null;
   return {
-    text: `I could not match “${query}” to a record or a task.${bits ? ` I picked out ${bits}, but not what to do with ${bits.includes(" and ") ? "them" : "it"}.` : ""} The closest things I can do:`,
+    /* Quote the person's own words, not the search terms left after stripping (which read as "'s capital France"). */
+    text: `I could not match “${said(q) || query}” to a record or a task.${bits ? ` I picked out ${bits}, but not what to do with ${bits.includes(" and ") ? "them" : "it"}.` : ""} The closest things I can do:`,
     first: todo,
   };
 }
