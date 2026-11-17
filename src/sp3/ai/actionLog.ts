@@ -7,11 +7,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
    Written with the person's own session, so row-level security decides,
    exactly as /api/ai/log does for confirmed actions.
 
-   The table is proposed, not applied (supabase/proposed/ai_action_log.sql).
-   Until the owner applies it this answers "not_deployed", and each read of
-   patient records is still written to the server's own log (one line:
-   who, which facility, which register function, how many rows; never a
-   patient detail). Opening one bite record also leaves a "read" row in the
+   The table is supabase/migrations/20261118110000_kaju_action_log.sql
+   (append-only; applied on staging and production). Where it is missing
+   this answers "not_deployed". Each read of patient records is also
+   written to the server's own log (one line: who, which facility, which
+   register function, how many rows; never a patient detail). Opening one bite record also leaves a "read" row in the
    health register's own audit (oh_clinic_exposure), and every confirmed
    write has its own history.
    ════════════════════════════════════════════════════════════════════ */

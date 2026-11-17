@@ -21,7 +21,7 @@ const MIGRATIONS = [
   "20261116150000_rebuild_vet_clinics_and_joining.sql", "20261116160000_rebuild_bite_referral_link.sql",
   "20261116170000_rebuild_automation_rule_fixes.sql", "20261116180000_rebuild_automation_followup.sql",
   "20261117120000_rebuild_pep_reminder_validity.sql", "20261117130000_rebuild_quick_arv_operation.sql",
-  "20261117140000_rebuild_automation_ack_carry.sql", "20261118100000_rebuild_automation_rule_counts.sql",
+  "20261117140000_rebuild_automation_ack_carry.sql", "20261118100000_rebuild_automation_rule_counts.sql", "20261118110000_kaju_action_log.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -741,6 +741,30 @@ section("Every automation rule: the six without a test until now");
   const dh = (await as(HL, "select nx_automation_save($1, 'data_requests_waiting', 'Data requests waiting', 'day', '{\"days\":3}') as id", [fac]))[0].id;
   const hr = await run(HL, dh);
   ok(hr.found === 0 && hr.status === "skipped", `a hospital in the programme, which cannot decide on its data, is not asked to (${hr.found})`);
+}
+
+section("Kaju's action log: append-only, one's own rows, read by the organisation");
+{
+  const log = (who, row) => as(who, "insert into ai_action_log (kind, ok, target, summary, ngo_id, organisation_id) values ($1, $2, $3, $4, $5, $6) returning id", [row.kind, row.ok ?? true, row.target ?? null, row.summary ?? null, row.ngo ?? null, row.org ?? null]);
+  const mine = (await log(A, { kind: "add_task", target: "task", summary: "Call the vet", ngo: N1 }))[0].id;
+  ok(!!mine, "a member logs a Kaju action for their own organisation");
+  ok(await refused(C, "insert into ai_action_log (kind, ok, ngo_id) values ('add_task', true, $1)", [N1]) !== null, "someone outside the organisation cannot log for it");
+  ok(await refused(A, "insert into ai_action_log (kind, ok, ngo_id, user_id) values ('add_task', true, $1, $2)", [N1, B]) !== null, "nobody logs a row in someone else's name");
+  ok((await as(B, "select id from ai_action_log where id = $1", [mine])).length === 1, "another member of the organisation reads it");
+  ok((await as(C, "select id from ai_action_log where id = $1", [mine])).length === 0, "another organisation does not");
+  await as(A, "update ai_action_log set summary = 'changed' where id = $1", [mine]).catch(() => null);
+  await as(A, "delete from ai_action_log where id = $1", [mine]).catch(() => null);
+  const after = await one("select summary from ai_action_log where id = $1", [mine]);
+  ok(after && after.summary === "Call the vet", "rows cannot be changed or removed through the API");
+  // A clinician's patient-record read: the facility and a count, read by the facility, not by an NGO.
+  const read = (await log(nurse, { kind: "health_read", target: "oh_pep_due", summary: "3 rows", org: clinic }))[0].id;
+  ok(!!read, "a read of patient records is logged for the clinician's own facility");
+  ok((await as(P, "select id from ai_action_log where id = $1", [read])).length === 1 && (await as(A, "select id from ai_action_log where id = $1", [read])).length === 0, "the facility's lead reads it; an NGO member does not");
+  ok(await refused(A, "insert into ai_action_log (kind, ok, organisation_id) values ('health_read', true, $1)", [clinic]) !== null, "nobody logs a read for a facility they are not in");
+  let anonWrote = true;
+  await db.exec("set role anon");
+  try { await db.query("insert into ai_action_log (kind, ok) values ('add_task', true)"); } catch { anonWrote = false; } finally { await db.exec("reset role"); }
+  ok(!anonWrote, "visitors cannot write it");
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

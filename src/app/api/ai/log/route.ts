@@ -6,10 +6,11 @@ export const dynamic = "force-dynamic";
 
 const KINDS = new Set(["open_case", "add_note", "schedule_followup", "record_care"]);
 
-/* Optional structured log of confirmed Kaju actions, written with the
-   caller's own session (RLS). The table is proposed, not applied
-   (supabase/proposed/ai_action_log.sql); until it exists this answers
-   not_deployed and the record's own history remains the audit trail. */
+/* Structured log of confirmed Kaju actions, written with the caller's own
+   session (RLS): public.ai_action_log, append-only
+   (supabase/migrations/20261118110000_kaju_action_log.sql). Where the table
+   is missing this answers not_deployed and the record's own history
+   remains the audit trail. */
 export async function POST(req: Request) {
   const auth = req.headers.get("authorization");
   const token = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
