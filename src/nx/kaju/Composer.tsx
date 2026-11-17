@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronDown, CornerDownLeft, Loader2, Sparkles, X } from "lucide-react";
+import { ChevronDown, CornerDownLeft, Loader2, Mic, Sparkles, X } from "lucide-react";
 import type { Intent } from "@/lib/kaju/registry";
 import { readSentence, toIntent, type Kind, type Span, type Vocab } from "./intent";
 
@@ -19,10 +19,12 @@ const WORK = /^\s*(please\s+)?(prepare|plan|create|make|send|post|notify|remind|
 export const looksLikeWork = (t: string) => WORK.test(t) && !QUESTION.test(t);
 const useIsoLayout = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, placeholder, predictive = true, initial = "", canPlan = true, disabled = false, modelPlanning = false }: {
+export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, placeholder, predictive = true, initial = "", canPlan = true, disabled = false, modelPlanning = false, onVoice }: {
   vocab: Vocab; busy?: boolean; onAsk: (text: string) => void; onPlan: (text: string, intent: Intent | null) => void; compact?: boolean; disabled?: boolean; autoFocus?: boolean; placeholder?: string; predictive?: boolean; initial?: string; canPlan?: boolean;
   /** Free-form planning is live on this deployment (a model is connected). */
   modelPlanning?: boolean;
+  /** Talk instead of typing. On a phone the microphone sits next to Send; wide screens keep it where it was. */
+  onVoice?: () => void;
 }) {
   const [text, setText] = useState(initial);
   const [choices, setChoices] = useState<Partial<Record<Kind, string>>>({});
@@ -110,7 +112,8 @@ export function Composer({ vocab, busy, onAsk, onPlan, compact, autoFocus, place
         {reading.spans.length && !compact ? <span className="nx-kread" aria-label="What Kaju understood">
           {reading.spans.map((s) => <button key={s.kind} type="button" className={`nx-span ${s.ambiguous ? "is-amb" : ""}`} onClick={() => setMenu(menu === s.kind ? null : s.kind)} aria-expanded={menu === s.kind} aria-label={`${KIND_WORD[s.kind]}: ${s.options[0]?.label ?? s.text}. Change`}><small>{KIND_WORD[s.kind]}</small>{s.ambiguous ? `${s.text}?` : s.options[0]?.label ?? s.text}<ChevronDown size={11} /></button>)}
         </span> : null}
-        <button type="submit" className="nx-btn is-sm" disabled={!text.trim() || !!busy || (isTask && !free && !intent)}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}{isTask ? "Plan" : "Ask"}<CornerDownLeft size={12} /></button>
+        {onVoice ? <button type="button" className="nx-ib kj-mic" aria-label="Talk to Kaju" onClick={onVoice}><Mic size={20} aria-hidden /></button> : null}
+        <button type="submit" className="nx-btn is-sm kj-send" disabled={!text.trim() || !!busy || (isTask && !free && !intent)}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}{isTask ? "Plan" : "Ask"}<CornerDownLeft size={12} /></button>
       </div>
     </form>
   );

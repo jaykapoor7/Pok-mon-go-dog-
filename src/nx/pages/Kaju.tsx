@@ -50,6 +50,18 @@ export function Kaju() {
   /* Words handed over from the command bar (?q=) are placed in the composer, not sent. */
   useEffect(() => { try { const q = new URLSearchParams(window.location.search).get("q"); if (q) window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); } catch {} }, []);
   const [voice, setVoice] = useState(false);
+  /* A phone's composer is one line at the foot of the screen, so its hint is short. */
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => { const m = window.matchMedia("(max-width: 640px)"); const on = () => setNarrow(m.matches); on(); m.addEventListener("change", on); return () => m.removeEventListener("change", on); }, []);
+  /* On a phone the composer sits at the foot of the page, so the newest words, the plan to review and Kaju's answer are
+     brought into view above it as they arrive, as in any messenger. Wide screens keep their own scrolling. */
+  const lastTurn = k.turns[k.turns.length - 1];
+  useEffect(() => {
+    if (!window.matchMedia("(max-width: 640px)").matches || (!k.turns.length && !planned)) return;
+    const main = document.getElementById("nx-main"); if (!main) return;
+    const t = window.setTimeout(() => main.scrollTo({ top: main.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }), 60);
+    return () => window.clearTimeout(t);
+  }, [k.turns.length, lastTurn?.pending, planned]);
 
   const plan = useCallback(async (text: string, intent: Parameters<typeof k.plan>[2]) => {
     if (!org) return;
@@ -97,8 +109,8 @@ export function Kaju() {
 
             {voice ? <div className="nx-kj-voice"><KajuVoice /></div> : <>
               <div className="kj-compose">
-                <Composer vocab={vocab} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus canPlan={!!org} modelPlanning={!!caps?.planning}
-                  onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} />
+                <Composer vocab={vocab} placeholder={narrow ? "Ask or say what to do" : undefined} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus canPlan={!!org} modelPlanning={!!caps?.planning}
+                  onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} onVoice={VOICE_OFFERED ? () => setVoice(true) : undefined} />
               </div>
               {noModel ? <p className="kj-nomodel" role="status">{noModel}</p> : null}
               <Jobs vocab={vocab} canPlan={!!org} busy={busy} onPlan={(t, i) => void plan(t, i)} intro={caps && !caps.planning && !DEMO_SITE ? "Kaju plans these jobs by fixed rules, no model needed:" : "Or start from one of Kaju's jobs:"} />

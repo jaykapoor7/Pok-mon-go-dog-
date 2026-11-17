@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, ArrowUpRight, Check as Tick, Loader2, X } from "lucide-react";
+import { ArrowRight, ArrowUp, ArrowUpRight, Check as Tick, Info, Loader2, X } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
 import { appHref, useKaju, type Turn } from "./kaju/state";
@@ -101,7 +101,7 @@ function PrepCard({ p, signedIn, path, saved, onSave, onDismiss }: { p: Prep; si
         {saved?.ok ? <span className="ak-ok" role="status"><Tick size={14} strokeWidth={3} aria-hidden />{saved.what}{saved.href ? <> · <Link href={saved.href}>Open</Link></> : null}</span>
           : !here ? <><Link className="ak-btn is-quiet" href="/kaju">Review in Kaju<ArrowRight size={14} aria-hidden /></Link><button type="button" className="ak-btn is-quiet" onClick={onDismiss}>Dismiss</button></>
           : !signedIn ? <Link className="ak-btn is-quiet" href={`/sign-in?next=${encodeURIComponent(path)}`}>Sign in to confirm</Link>
-          : <><button type="button" className="ak-btn" disabled={busy} onClick={async () => { setBusy(true); await onSave(); setBusy(false); }}>{busy ? <Loader2 size={14} className="nx-spin" aria-hidden /> : null}Confirm</button>
+          : <><button type="button" className="ak-btn is-go" disabled={busy} onClick={async () => { setBusy(true); await onSave(); setBusy(false); }}>{busy ? <Loader2 size={14} className="nx-spin" aria-hidden /> : null}Confirm</button>
             <button type="button" className="ak-btn is-quiet" disabled={busy} onClick={onDismiss}>Dismiss</button>
             <span className="ak-prep-n">Saved under your name, with Kaju&apos;s help noted.</span></>}
       </div>
@@ -191,13 +191,17 @@ export function AtKaju({ role, note }: { role: KajuRole; note?: ReactNode }) {
             placeholder={narrow ? "Add a task, record, or ask" : "Add a task, record something, or ask"} aria-label="@Kaju: add a task, record something, or ask" aria-describedby={hint}
             onKeyDown={(e) => { if (e.key === "Escape") { if (text) { e.stopPropagation(); setText(""); } else if (asked) { e.stopPropagation(); setAsked(null); } } }} disabled={k.expired} />
         </div>
-        <button type="submit" className="ak-go" disabled={!text.trim() || k.busy || k.expired}>{k.busy && turn?.pending ? <Loader2 size={16} className="nx-spin" aria-hidden /> : null}Ask</button>
+        <button type="submit" className="ak-go" aria-label="Ask" disabled={!text.trim() || k.busy || k.expired}>{k.busy && turn?.pending ? <Loader2 size={16} className="nx-spin" aria-hidden /> : <ArrowUp size={20} strokeWidth={2.4} className="ak-go-i" aria-hidden />}<span className="ak-go-t">Ask</span></button>
       </form>
       <div className="ak-under">
-        <div className="ak-chips" role="group" aria-label="Examples (fill the box)">{chips.map((c) => <button key={c.label} type="button" className="ak-chip" onClick={() => put(c.fill ?? c.label)}>{c.label}</button>)}</div>
+        <div className="ak-chips" role="group" aria-label="Examples (fill the box)">{chips.map((c) => <button key={c.label} type="button" className="ak-chip" onClick={() => put(c.fill ?? c.label)}>{c.label}</button>)}
+          {/* On a phone the way to the full Kaju page ends the strip, so it takes no line of its own. */}
+          <Link href={text.trim() ? `/kaju?q=${encodeURIComponent(text.trim())}` : "/kaju"} className="ak-chip is-open">Open in Kaju<ArrowRight size={14} aria-hidden /></Link></div>
         <Link href={text.trim() ? `/kaju?q=${encodeURIComponent(text.trim())}` : "/kaju"} className="ak-open">Open in Kaju<ArrowRight size={14} aria-hidden /></Link>
       </div>
-      <p className="ak-note" id={hint}>{k.expired ? <>Your session has ended. <Link href={`/sign-in?next=${encodeURIComponent(path)}`}>Sign in again</Link> to use Kaju.</> : <>{note ? <>{note} </> : null}Nothing is sent until you press Ask, and nothing is saved until you confirm.</>}</p>
+      <p className={`ak-note ${k.expired ? "is-expired" : ""}`} id={hint}>{k.expired ? <>Your session has ended. <Link href={`/sign-in?next=${encodeURIComponent(path)}`}>Sign in again</Link> to use Kaju.</> : <>{note ? <>{note} </> : null}Nothing is sent until you press Ask, and nothing is saved until you confirm.</>}</p>
+      {/* On a phone the same promise is one quiet line that opens to the whole note. */}
+      {k.expired ? null : <details className="ak-why"><summary><Info size={14} aria-hidden />Nothing is sent or saved until you say so</summary><p>{note ? <>{note} </> : null}Nothing is sent until you press Ask, and nothing is saved until you confirm.</p></details>}
       <div className="ak-out" ref={out} aria-live="polite">
         {turn ? <div className="ak-reply"><span className="ak-q"><b>You asked</b> {asked?.text}<button type="button" className="ak-x" aria-label="Close Kaju's answer" onClick={() => setAsked(null)}><X size={16} aria-hidden /></button></span><Reply key={turn.id} t={turn} signedIn={live.signedIn} onClose={() => setAsked(null)} onFill={put} /></div> : null}
       </div>

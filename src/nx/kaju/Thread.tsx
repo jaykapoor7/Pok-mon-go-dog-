@@ -77,7 +77,7 @@ function ProposalCard({ turn, p }: { turn: Turn; p: Proposal }) {
       {p.why ? <p className="nx-t3">{p.why}</p> : null}
       <div className="nx-kprop-f">
         {saved?.ok ? <span className="nx-kok"><Tick size={12} strokeWidth={3} />{saved.what ?? "Saved"}{saved.href ? <> · <Link href={appHref(saved.href)}>Open</Link></> : null}</span>
-          : <><button type="button" className="nx-btn is-sm" disabled={busy} onClick={async () => { setBusy(true); await confirm(turn.id, p); setBusy(false); }}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}Confirm</button><span className="nx-t3">Saved under your name, with Kaju&apos;s help noted.</span></>}
+          : <><button type="button" className="nx-btn is-sm kj-confirm" disabled={busy} onClick={async () => { setBusy(true); await confirm(turn.id, p); setBusy(false); }}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}Confirm</button><span className="nx-t3">Saved under your name, with Kaju&apos;s help noted.</span></>}
         {saved && !saved.ok ? <span role="alert" className="nx-kerr">{saved.error}</span> : null}
       </div>
     </div>
