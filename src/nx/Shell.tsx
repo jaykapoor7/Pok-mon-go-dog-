@@ -3,7 +3,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
 import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, CLINIC_VET, VET_PATHS, WS_LABEL, homeOf } from "./nav";
@@ -16,6 +16,7 @@ import { Failed, OfflineBar, ToastHost } from "./kit";
 import { KajuProvider, useKaju } from "./kaju/state";
 import { useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
 import { ConversationHost, isUnnamed, newConversation, personName } from "./conversations";
+import { Back, PhoneBar, PhoneMenu, PlusSheet, parentOf, phoneTabs, type PhoneKind } from "./Phone";
 import "./nx.css";
 /* The compact Kaju panel's styles also place the top bar's Kaju button, so they load with the shell; the panel's code
    loads the first time it is opened. */
@@ -122,6 +123,28 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const unread = live.org ? (unreadTotal ? String(unreadTotal) : undefined) : "2";
   const home = live.org ? homeOf(live.org.workspace, live.org.org_id) : ws === "gov" ? "/gov/overview" : ws === "health" ? "/health/today" : ws === "research" ? "/research/datasets" : "/ngo/today";
 
+  /* The phone: the role's own bar, "+" for the records it makes, and a Menu sheet with the rest (docs/rebuild/MOBILE.md). */
+  const homeWs = ws === "kaju" ? (live.org?.workspace === "government" ? "gov" : live.org?.workspace === "healthcare" ? "health" : live.org?.workspace === "research" ? "research" : "ngo") : ws;
+  const kind: PhoneKind = homeWs === "gov" ? (office ? "office" : "gov") : homeWs === "health" ? (vet ? "vet" : lab ? "lab" : "clinic") : homeWs === "research" ? "research" : "ngo";
+  const [menu, setMenu] = useState(false), [plus, setPlus] = useState(false);
+  const closeMenu = useCallback(() => setMenu(false), []), closePlus = useCallback(() => setPlus(false), []);
+  useEffect(() => { setMenu(false); setPlus(false); }, [path]);
+  const back = parentOf(path, home);
+  /* The page's large title is the title; the bar shows the name once that title has scrolled away. */
+  const [titleGone, setTitleGone] = useState(false);
+  useEffect(() => {
+    setTitleGone(false);
+    const main = document.getElementById("nx-main"); if (!main || typeof IntersectionObserver === "undefined") return;
+    let io: IntersectionObserver | null = null;
+    const watch = () => { const h = main.querySelector("h1"); if (!h) return false; io?.disconnect(); io = new IntersectionObserver(([e]) => setTitleGone(!e.isIntersecting), { root: main, rootMargin: "-8px 0px 0px 0px" }); io.observe(h); return true; };
+    const t = window.setTimeout(() => { if (!watch()) window.setTimeout(watch, 1200); }, 60);
+    return () => { window.clearTimeout(t); io?.disconnect(); };
+  }, [path, crumb]);
+  const convs = live.org
+    ? [...(chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => ({ href: `/channels/${c.name}`, name: `#${c.name}`, n: path === `/channels/${c.name}` ? 0 : unreadMap[c.id] ?? 0 })),
+       ...[...(dms.rows ?? [])].sort((a, b) => (b.last_at ?? "").localeCompare(a.last_at ?? "")).flatMap((d) => { const name = chanName(d.channel_id); return name ? [{ href: `/channels/${name}`, name: personName(d.other_name, dmPeople.rows?.find((p) => p.user_id === d.other_id)?.role), n: path === `/channels/${name}` ? 0 : unreadMap[d.channel_id] ?? 0, dm: true }] : []; })]
+    : [...CHANNELS.map((c) => ({ href: `/channels/${c.name}`, name: `#${c.name}`, n: c.unread ? 1 : 0 })), ...DMS.map((d) => ({ href: `/channels/${dmSlug(d.name)}`, name: d.name, n: 0, dm: true }))];
+
   return (
     <div className="nx" data-theme={theme}>
       <a className="nx-skip" href="#nx-main">Skip to content</a>
@@ -161,13 +184,14 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
       </aside>
 
       <div className="nx-main">
-        <header className="nx-top">
+        <header className={`nx-top ${back ? "has-back" : ""}`} data-title={titleGone ? "bar" : "page"}>
+          {back ? <Back href={back.href} label={back.label} /> : null}
           <div className="nx-crumb">{crumb[1] ? <><Link href={home} className="nx-hide-s">{crumb[0]}</Link><span className="nx-hide-s">/</span><b>{crumb[1]}</b></> : <b>{crumb[0]}</b>}</div>
           <div className="nx-top-r">
             <button type="button" className="nx-search" onClick={() => setCmd(true)} aria-keyshortcuts="Meta+K Control+K"><Search size={14} /><span>Search anything</span><kbd>⌘K</kbd></button>
             <button type="button" className="nx-ib nx-only-s" aria-label="Search" onClick={() => setCmd(true)}><Search size={18} /></button>
             <NeedsYou />
-            <button type="button" className="nx-ib nx-only-s" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} onClick={flip}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
+            <button type="button" className="nx-ib nx-only-s ph-theme" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} onClick={flip}>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
             {path.startsWith("/kaju") ? null : <button type="button" className="nx-kaju nx-hide-s" aria-expanded={kaju.open} aria-keyshortcuts="Meta+J Control+J" title="Kaju (⌘J)" onClick={() => setKaju(!kaju.open)}><Sparkles size={14} /><span>Kaju</span></button>}
           </div>
         </header>
@@ -180,13 +204,11 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
       <ToastHost />
       <ConversationHost />
       {path.startsWith("/kaju") || !dockUsed ? null : <KajuDock crumb={crumb[1] ?? crumb[0]} />}
-      <nav className="nx-dock" aria-label="Sections">
-        <Link href={home} className={on(home) ? "is-on" : ""}><Home size={20} />Today</Link>
-        <Link href="/ngo/animals" className={on("/ngo/animals") ? "is-on" : ""}><ListChecks size={20} />Work</Link>
-        <Link href={CHANNEL} className={inChannel ? "is-on" : ""} data-n={inChannel ? undefined : unread}><MessageSquare size={20} />Messages</Link>
-        <Link href="/kaju" className={inKaju ? "is-on" : ""}><Sparkles size={20} />Kaju</Link>
-        <Link href={ws === "gov" ? "/ngo/today" : "/gov/overview"}><MoreHorizontal size={20} />More</Link>
-      </nav>
+      <PhoneBar tabs={phoneTabs(kind, home)} on={on} plus={kind === "ngo" || kind === "clinic" || kind === "vet"} onPlus={() => setPlus(true)} onMenu={() => setMenu(true)} menuOpen={menu} unread={unread} />
+      <PlusSheet open={plus} onClose={closePlus} kind={kind} onKaju={() => { if (path.startsWith("/kaju")) router.push("/kaju"); else setKaju(true); }} />
+      <PhoneMenu open={menu} onClose={closeMenu} on={on} nav={nav} more={ws === "ngo" && !inChannel ? NGO_MORE : []} convs={convs} newConv={() => newConversation({ kind: "message" })}
+        org={<OrgMenu shown={{ ...org, kind: ws === "kaju" ? "Kaju" : org.kind }} ws={ws} current={cur ?? null} />} theme={theme} flip={flip}
+        settings={live.orgFor("ngo") ? "/ngo/settings" : "/settings"} kajuHome={!!live.org} />
     </div>
   );
 }
