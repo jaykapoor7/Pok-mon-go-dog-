@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, CheckCircle2, ClipboardPaste, MapPin, MessageCircle, Sparkles, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, MapPin, MessageCircle, Sparkles, X } from "lucide-react";
 import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { Confirm, Field, Modal, Props, TabBar, dayTime, errText, n, useAct, words } from "../kit";
 import { REPORTS, type Tone } from "../fixtures";
 import { useLive, type Workspace } from "../live";
 import type { CareInboxItem } from "@/lib/careos/contract";
-import type { AiReply, Proposal } from "@/sp3/ai/types";
-import { RECORD_PROPOSALS, actWhatsApp, caseFromReport, fileReports, kajuConfirm, kajuRead, nextHref, readDrives, readIncoming, readWhatsApp, type Drive, type Incoming, type WaState } from "../data/ngo";
+import { actWhatsApp, caseFromReport, fileReports, readDrives, readIncoming, readWhatsApp, type Drive, type Incoming, type WaState } from "../data/ngo";
+import { readCase } from "../data/capture";
+import { KajuCapture } from "../KajuCapture";
 import { SAMPLE_WA } from "../data/ngo-sample";
 import { RecordList, type RCol, type RView } from "./ngo/RecordList";
 import { TryLink } from "./ngo/parts";
@@ -225,56 +227,32 @@ function SampleWhatsApp() {
 
 /* ── Paste a message: Kaju prepares, a person confirms ───────────── */
 
+/* The shared Tell Kaju box, reading a pasted message the way the inbox always has (kajuRead). A case Kaju prepares is
+   saved on Confirm; Change, or "Open a case by hand" when Kaju prepares nothing, opens the new-case form filled in. */
 const EXAMPLE = "Brown female dog, limping, near HSR Layout 14th Main bus stop, Bengaluru. Found 9am today. Needs treatment.";
+const toNewCase = (v: { title: string; note: string | null; zone: string | null; city: string | null; cat: string | null; sev: string | null; dog?: string | null }, kaju: boolean) => {
+  const p = new URLSearchParams();
+  if (v.title) p.set("title", v.title.slice(0, 200));
+  if (v.note) p.set("note", v.note.slice(0, 1500));
+  if (v.zone) p.set("zone", v.zone.slice(0, 200));
+  if (v.city) p.set("city", v.city.slice(0, 120));
+  if (v.cat) p.set("cat", v.cat);
+  if (v.sev && v.sev !== "normal") p.set("sev", v.sev);
+  if (v.dog) p.set("dog", v.dog);
+  if (kaju) p.set("from", "kaju");
+  return `/ngo/cases/new?${p.toString()}`;
+};
 function Paste({ sample }: { sample: boolean }) {
-  const [text, setText] = useState("");
-  const [note, setNote] = useState<string | null>(null);
-  const [reply, setReply] = useState<AiReply | null>(null);
-  const { busy, run } = useAct();
-  const paste = async () => { try { const t = await navigator.clipboard.readText(); if (t.trim()) { setText(t.slice(0, 4000)); setNote(null); } else setNote("Nothing is copied yet. Copy the message in WhatsApp first."); } catch { setNote("Press and hold in the box and choose Paste."); } };
-  const read = async () => { const t = text.trim(); if (!t) return; setReply(null); const r = await run("read", () => kajuRead(t), { quiet: true }); if (r.ok && r.result?.data) setReply(r.result.data); };
+  const router = useRouter();
   return (
-    <div className="nr-kaju" style={{ maxWidth: 760, marginTop: 18 }}>
-      <ol className="nr-acts nx-t3" aria-label="How it works" style={{ gap: 14 }}><li>1. Copy the WhatsApp message</li><li>2. Paste it here</li><li>3. Check and confirm what Kaju prepares</li></ol>
-      <Field label="The message"><textarea value={text} maxLength={4000} rows={6} placeholder={EXAMPLE} onChange={(e) => { setText(e.target.value); setNote(null); }} /></Field>
-      <div className="nr-acts">
-        <button type="button" className="nx-btn is-quiet" onClick={() => void paste()}><ClipboardPaste size={14} />Paste</button>
-        {sample ? <TryLink><Sparkles size={14} />Read it with Kaju</TryLink> : <button type="button" className="nx-btn" disabled={!text.trim() || !!busy} onClick={() => void read()}><Sparkles size={14} />{busy === "read" ? "Kaju is reading…" : "Read it with Kaju"}</button>}
-      </div>
-      {note ? <p className="nr-hint" role="status">{note}</p> : null}
-      {reply ? <section aria-label="What Kaju prepared" style={{ display: "grid", gap: 10 }}>
-        <div className="nr-reply">{reply.text.replace(/\*\*/g, "")}</div>
-        {reply.notice ? <p className="nr-hint">{reply.notice}</p> : null}
-        {reply.proposals.map((p) => <ProposalCard key={p.id} p={p} />)}
-        {!reply.proposals.length ? <p className="nr-hint">Kaju did not prepare a record from this message. Open a case by hand from <Link className="nr-link" href="/ngo/cases/new">New case</Link>.</p> : null}
-      </section> : null}
-    </div>
-  );
-}
-
-function ProposalCard({ p }: { p: Proposal }) {
-  const [ask, setAsk] = useState(false);
-  const [saved, setSaved] = useState<{ what: string; href: string | null } | null>(null);
-  const [gone, setGone] = useState(false);
-  const { busy, run } = useAct();
-  const record = RECORD_PROPOSALS.has(p.kind);
-  const rows: [string, string][] = p.kind === "open_case" ? [["Action", "Open a case"], ["Title", p.title], ["City", p.city], ["Place", p.zone ?? "Not given"], ["Category", words(p.category)], ["Severity", words(p.severity)], ["Notes", p.description || "—"]]
-    : p.kind === "add_note" ? [["Action", "Add a note"], ["Case", p.caseLabel], ["Note", p.note]]
-    : p.kind === "schedule_followup" ? [["Action", "Schedule a follow-up"], ["Case", p.caseLabel], ["Due", new Date(p.dueAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })], ["Note", p.note || "—"]]
-    : p.kind === "record_care" ? [["Action", "Record a care event"], ["Animal", p.dogLabel], ["Kind", words(p.careKind)], ["Date", p.date ?? "Not given"], ["Notes", p.notes || "—"]]
-    : [["Action", words(p.kind)]];
-  if (gone) return <p className="nr-hint">Set aside. Nothing was saved.</p>;
-  return (
-    <div className={`nr-prop ${saved ? "is-done" : ""}`} role="group" aria-label="Prepared record">
-      <h3>{saved ? <><CheckCircle2 size={14} style={{ color: "var(--ok)" }} />Saved to the record</> : <><Sparkles size={13} style={{ color: "var(--accent)" }} />Prepared, not saved</>}</h3>
-      {p.why ? <p className="nr-hint">{p.why}</p> : null}
-      <dl className="nr-dl">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
-      {saved ? <p className="nr-acts">{saved.what}.{saved.href ? <Link className="nr-link" href={saved.href}>Open it</Link> : null}</p>
-        : record ? <div className="nr-acts"><button type="button" className="nx-btn is-sm" disabled={!!busy} onClick={() => setAsk(true)}>Confirm and save…</button><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setGone(true)}>Not this</button></div>
-        : <p className="nr-hint">This acts outside StrayPaw. Open it in <Link className="nr-link" href="/kaju">Kaju</Link> to check and send it.</p>}
-      {ask ? <Confirm title="Save what Kaju prepared?" confirm="Save it" busy={!!busy} onClose={() => setAsk(false)} onConfirm={() => void run("confirm", () => kajuConfirm(p), { ok: "Saved; the audit record was checked." }).then((r) => { if (r.ok && r.result?.data) { setSaved({ what: r.result.data.what, href: nextHref(r.result.data.href) }); setAsk(false); } })}>
-        <p>It is saved under your name, marked as prepared with Kaju and confirmed by you. Confirming again never saves it twice.</p>
-      </Confirm> : null}
+    <div style={{ maxWidth: 760, marginTop: 16 }}>
+      <KajuCapture idBase="inbox-paste" via="whatsapp" paste sample={sample} context={{ path: "/ngo/inbox", workspace: "ngo", title: "Inbox" }}
+        label="The message" sendLabel="Read it with Kaju" placeholder={EXAMPLE}
+        hint="Copy the message in WhatsApp, paste it here, and check what Kaju prepares. Nothing is saved until you confirm."
+        reading={(t) => readCase(t).facts}
+        byHand={(t) => { const r = readCase(t); return [{ label: "Open a case by hand", go: () => router.push(toNewCase({ title: r.title, note: t.trim(), zone: r.zone, city: r.city, cat: r.category, sev: r.severity }, false)) }]; }}
+        changes={["open_case"]}
+        onChange={(p) => { if (p.kind === "open_case") router.push(toNewCase({ title: p.title, note: p.description || null, zone: p.zone, city: p.city, cat: p.category, sev: p.severity, dog: p.dogId }, true)); }} />
     </div>
   );
 }

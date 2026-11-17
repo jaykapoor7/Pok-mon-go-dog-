@@ -30,6 +30,8 @@ import { submitFieldDraft } from "@/lib/field/sync";
 import { backToAssigned, ensureVolunteer, isoDay, setFollowup, shortCode, startWork, type Actor } from "../../data/ngo";
 import { LifecycleForm, TRY, undoWith } from "./parts";
 import { animalLine, animalName, animalSearch } from "@/nx/animalLabel";
+import { SayIt } from "../../KajuCapture";
+import { readField } from "../../data/capture";
 import "../../css/ngo-records.css";
 import "../../field.css";
 
@@ -410,7 +412,9 @@ function VaccinationForm({ dogId, defaults, route, onSave, onCancel }: { dogId: 
 /* ── Record an animal: one screen, one Save ──────────────────────────
    A photo, why, where, and optional details. The record is the same field-intake-v1 the register has always received
    (src/lib/operations IntakeData): the same fields, the same request id kept for the life of the screen, so a Save that
-   is pressed twice or retried is still one animal. */
+   is pressed twice or retried is still one animal. "Say it" at the top reads one line on the phone ("brown female
+   limping by the temple, needs a vet") and fills the choices below: why, sex, marks, the note, and the area when it is
+   empty. It works offline, sends nothing, and never touches Save, the drafts or sending. */
 
 const WHY: { id: IntakeData["category"]; label: string; note: string; icon: typeof Scissors; says: string; urgent?: boolean }[] = [
   { id: "sterilisation", label: "Sterilise", note: "Caught for the ABC programme.", icon: Scissors, says: "Caught for sterilisation" },
@@ -433,6 +437,7 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
   const [latText, setLatText] = useState(""), [lngText, setLngText] = useState("");
   const [search, setSearch] = useState(""), [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [tried, setTried] = useState(false);
   const box = useRef<HTMLElement>(null), whyRef = useRef<HTMLDivElement>(null), whereRef = useRef<HTMLDivElement>(null), zoneRef = useRef<HTMLInputElement>(null), cityRef = useRef<HTMLInputElement>(null), fileRef = useRef<HTMLInputElement>(null);
+  const moreRef = useRef<HTMLDetailsElement>(null);
   const set = (p: Partial<IntakeData>) => setD((x) => ({ ...x, ...p }));
   const located = Number.isFinite(d.lat) && Number.isFinite(d.lng);
 
@@ -488,6 +493,21 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
       onClose();
     } catch (x) { setError(`${errText(x)} Nothing was lost; try again.`); } finally { saving.current = false; setBusy(false); }
   };
+  /* Say it: the line is read here, on the phone (src/nx/data/capture.ts readField), and only fills what it states.
+     Choices take what was said; typed fields are only filled when empty. Save, the drafts and sending are untouched:
+     the record is whatever the screen holds when the person presses Save. */
+  const sayIt = (text: string): string[] => {
+    const r = readField(text), filled: string[] = [], p: Partial<IntakeData> = {};
+    const label = (id: string) => WHY.find((w) => w.id === id)?.label ?? id;
+    if (r.category) { p.category = r.category; setChosen(true); filled.push(r.also.length ? `${label(r.category)} (you also said ${r.also.map((x) => label(x).toLowerCase()).join(" and ")}; change it below if that is the reason)` : label(r.category)); }
+    if (r.sex) { p.sex = r.sex; filled.push(r.sex === "Unknown" ? "sex not sure" : r.sex); }
+    if (r.marks && !d.identifiers.trim()) { p.identifiers = r.marks.slice(0, 500); filled.push(`marks: ${r.marks}`); }
+    if (r.zone && !d.zone.trim()) { p.zone = r.zone.slice(0, 120); filled.push(`area: ${r.zone}`); }
+    if (!d.description.includes(r.note)) { p.description = (d.description.trim() ? `${d.description.trim()}\n${r.note}` : r.note).slice(0, 3000); filled.push("the note"); }
+    set(p);
+    if ((p.sex || p.identifiers || p.description) && moreRef.current) moreRef.current.open = true;
+    return filled;
+  };
   /* Tab stays inside the screen while it is open (WCAG 2.4.3). */
   const trap = (e: React.KeyboardEvent) => {
     if (e.key !== "Tab" || !box.current) return;
@@ -505,6 +525,7 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
           <button type="button" className="fm-x" onClick={onClose} aria-label="Close without saving"><X size={20} /></button>
         </header>
         <div className="fm-sheet-b">
+          <SayIt onRead={sayIt} placeholder="For example: brown female limping by the temple" />
           <div className="fm-q">
             <label className={`fm-photo ${shot ? "has-shot" : ""}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -551,7 +572,7 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
             </div>
           </div>
 
-          <details className="fm-more">
+          <details className="fm-more" ref={moreRef}>
             <summary><span><b>More about the dog</b><small>{details || "Optional: sex, name, marks, a note"}</small></span><ChevronDown size={20} aria-hidden /></summary>
             <div>
               <div className="nx-field"><span id="fm-sex">Sex</span><div className="fm-seg" role="radiogroup" aria-labelledby="fm-sex">{SEX.map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={d.sex === v} onClick={() => set({ sex: d.sex === v ? "" : v })}>{l}</button>)}</div></div>
