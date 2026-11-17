@@ -19,15 +19,18 @@ import "./css/atkaju.css";
 export type KajuChip = { label: string; fill?: string };
 const task = (example?: string): KajuChip => (example ? { label: `Add a task: ${example}` } : { label: "Add a task: …", fill: "Add a task: " });
 
-/** Example phrasing for each kind of home. A chip ending in "…" fills the start of the sentence for the person to finish. */
+/** Example phrasing for each kind of home, only what Kaju answers there today (checked on staging, 17 Nov 2026); the
+    figures and panels below already open the lists. A chip ending in "…" fills the start of a sentence to finish. */
+const remind: KajuChip = { label: "Remind me to …", fill: "Remind me to " };
+const what: KajuChip = { label: "What can I do with you?" };
 export const KAJU_CHIPS = {
   ngo: [task("call the vet tomorrow"), { label: "What's overdue?" }, { label: "Record a brown female limping near Ward 12" }],
-  office: [{ label: "Packages waiting for review" }, { label: "Which operator has waited longest?" }, task()],
-  programme: [{ label: "Areas below the target" }, { label: "Urgent alerts this week" }, task()],
+  office: [{ label: "Packages waiting for review" }, task(), what],
+  programme: [task(), remind, what],
   clinic: [{ label: "PEP doses due today" }, { label: "Who missed a dose?" }, { label: "Register a bite: …", fill: "Register a bite: " }, task()],
-  lab: [{ label: "Samples waiting longest" }, { label: "Results released this week" }, task()],
-  vet: [{ label: "Procedures waiting for my sign-off" }, { label: "Appointments today" }, task()],
-  research: [{ label: "Exposures by area, last 12 weeks" }, task()],
+  lab: [task(), remind, what],
+  vet: [task(), remind, what],
+  research: [task(), remind, what],
 } satisfies Record<string, KajuChip[]>;
 export type KajuRole = keyof typeof KAJU_CHIPS;
 
@@ -46,6 +49,8 @@ const day = (iso: string | null) => { if (!iso) return null; const d = new Date(
 const bits = (xs: (string | null)[]) => xs.filter(Boolean).join(" · ");
 const EXPOSURE: Record<string, string> = { bite: "Bite", scratch: "Scratch", lick_broken_skin: "Lick on broken skin", other: "Other contact" };
 const WASHED: Record<string, string> = { before_arrival: "washed before arrival", at_facility: "washed here", not_washed: "not washed" };
+/** SPC-F5367A809C1C… reads as SPC-F5367A, as on the record pages; the full code stays on the record and in the title. */
+const shortRef = (label: string) => label.replace(/\b([A-Z]{2,5}(?:-[A-Z]{2,5})?)-([0-9A-F]{6})[0-9A-F]{6,}\b/gi, (_m, a: string, b: string) => `${a}-${b.toUpperCase()}`);
 const kindWord = (k: string) => WORD[k] ?? k.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 const words = (k: string) => k.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").toLowerCase().replace(/^./, (c) => c.toUpperCase());
 
@@ -130,7 +135,7 @@ function Reply({ t, signedIn, onClose, onFill }: { t: Turn; signedIn: boolean; o
   return (
     <div className="ak-ans">
       <div className="ak-text"><Rich text={long ? `${r.text.slice(0, 460).replace(/\s+\S*$/, "")}…` : r.text} /></div>
-      {cites.length ? <div className="ak-cites" aria-label="Records Kaju read">{cites.slice(0, 4).map((c) => <Link key={c.id + c.href} href={appHref(c.href)} className="ak-cite"><ArrowUpRight size={14} aria-hidden />{c.label}</Link>)}{cites.length > 4 ? <Link href="/kaju" className="ak-cite is-more">{cites.length - 4} more in Kaju</Link> : null}</div> : null}
+      {cites.length ? <div className="ak-cites" aria-label="Records Kaju read">{cites.slice(0, 4).map((c) => <Link key={c.id + c.href} href={appHref(c.href)} className="ak-cite" title={c.label}><ArrowUpRight size={14} aria-hidden />{shortRef(c.label)}</Link>)}{cites.length > 4 ? <Link href="/kaju" className="ak-cite is-more">{cites.length - 4} more in Kaju</Link> : null}</div> : null}
       {preps.length ? <ul className="ak-preps" aria-label="What Kaju prepared">{preps.map((p) => <PrepCard key={p.id} p={p} signedIn={signedIn} path={path} saved={saved[p.id]} onSave={() => save(p)} onDismiss={() => { setGone((g) => new Set(g).add(p.id)); setSaid(`Dismissed: ${kindWord(p.kind)}. Nothing was saved.`); }} />)}</ul> : null}
       {r.navigate ? <p><Link className="ak-btn is-quiet" href={appHref(r.navigate.href)}>{r.navigate.label}<ArrowUpRight size={14} aria-hidden /></Link></p> : null}
       {r.suggestions?.length ? <div className="ak-sugg" role="group" aria-label="Ask next (fills the box)">{r.suggestions.slice(0, 3).map((s) => <button key={s} type="button" className="ak-chip" onClick={() => onFill(s)}>{s}</button>)}</div> : null}

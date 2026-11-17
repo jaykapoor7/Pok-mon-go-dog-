@@ -23,6 +23,8 @@ import "../field.css";
    Cases, Animals), so the two always agree; a read that failed says "Not read", never zero. Signed out, the same page
    shows the labelled sample organisation, counted from the same sample lists those pages show. */
 
+/* The greeting and the date follow the reader's clock. The server may be in another time zone, so the two sample lines
+   that show them may differ from the server's HTML (suppressHydrationWarning) instead of failing hydration. */
 function greeting() { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; }
 const dateLine = () => new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
 const shortDay = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
@@ -52,8 +54,8 @@ function SampleToday() {
       <div className="nx-page hm-page">
         <div className="nx-head">
           <div>
-            <p className="nx-eyebrow">{date} · {ORG.city}<Sample /></p>
-            <h1 className="nx-h1">{greeting()}, {ME.name}</h1>
+            <p className="nx-eyebrow" suppressHydrationWarning>{date} · {ORG.city}<Sample /></p>
+            <h1 className="nx-h1" suppressHydrationWarning>{greeting()}, {ME.name}</h1>
             <p className="nx-sub"><b className="num">{open.length}</b> {open.length === 1 ? "thing needs" : "things need"} you. Kaju has prepared {PREPARED.length}.</p>
           </div>
           <Link href="/try" className="nx-btn" title="Opens the live demo, where this works"><Plus size={14} />New case</Link>
