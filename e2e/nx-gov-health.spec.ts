@@ -91,7 +91,7 @@ test("Exposure record: the schedule is the clinician's, never computed", async (
   await open(page, "/health/bites/b2");
   await expect(page.getByRole("list", { name: "Doses" })).toBeVisible();
   await expect(page.getByText("Every dose date here was entered by the clinician")).toBeVisible();
-  await expect(page.getByText("Kaju does not read this record")).toBeVisible();
+  await expect(page.getByText("Kaju reads it only for people allowed to open it")).toBeVisible();
 });
 
 test("Sample record: chain of custody, and the laboratory step for its status", async ({ page }) => {

@@ -106,7 +106,7 @@ export function KajuInsights() {
           <div className="nx-bars" style={{ maxWidth: 640 }}>{load.map(([who, n]) => <div key={who} className="nx-barrow" style={{ gridTemplateColumns: "130px minmax(0, 1fr) 40px" }}><span className="nx-t2">{who}</span><span className="nx-bar-t"><span className={who === "Unassigned" ? "is-low" : ""} style={{ width: `${(n / max) * 100}%` }} /></span><em>{n}</em></div>)}</div>
           <p className="nx-foot">{sample ? "Sample figures." : `Open cases on ${ngo!.name}'s register, imported historical records left out${(cases.rows?.length ?? 0) >= 300 ? "; the 300 most recent cases were read" : ""}.`} A long bar is workload, not performance.</p>
         </section>
-        <p className="nx-note" style={{ marginTop: 22, maxWidth: 700 }}><Info size={13} /><span>These checks are fixed rules over your organisation&apos;s own records. Kaju does not read health records, does not guess causes, and does not change anything from this page.</span></p>
+        <p className="nx-note" style={{ marginTop: 22, maxWidth: 700 }}><Info size={13} /><span>These checks are fixed rules over your organisation&apos;s own records. They do not use patient records, do not guess causes, and does not change anything from this page.</span></p>
       </div>
     </Shell>
   );
