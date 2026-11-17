@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
 import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, CLINIC_VET, VET_PATHS, WS_LABEL, homeOf } from "./nav";
-import { Command } from "./Command";
 import { NeedsYou } from "./NeedsYou";
 import { WorkTabs } from "./Tabs";
 import { OrgMenu } from "./OrgMenu";
@@ -14,10 +14,19 @@ import { useProgrammeChannels } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { Failed, OfflineBar, ToastHost } from "./kit";
 import { KajuProvider, useKaju } from "./kaju/state";
-import { KajuDock } from "./kaju/Dock";
 import { useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
 import { ConversationHost, isUnnamed, newConversation, personName } from "./conversations";
 import "./nx.css";
+/* The compact Kaju panel's styles also place the top bar's Kaju button, so they load with the shell; the panel's code
+   loads the first time it is opened. */
+import "./kaju/kaju.css";
+import "./kaju/workspace.css";
+
+/* The command bar and the compact Kaju panel are closed on every first paint, so their code (Kaju's composer, plans,
+   missions and voice; search) is fetched and run the first time a person opens them, not by every page as it starts.
+   Their keyboard shortcuts live here in the shell, so ⌘K and ⌘J work before either has loaded. */
+const Command = dynamic(() => import("./Command").then((m) => m.Command), { ssr: false });
+const KajuDock = dynamic(() => import("./kaju/Dock").then((m) => m.KajuDock), { ssr: false });
 
 /* The new frame: a slim rail for the things that follow you everywhere, one sidebar for the workspace,
    and a top bar that says where you are. On a phone the rail and sidebar give way to five tabs. */
@@ -57,8 +66,13 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const live = useLive();
   const router = useRouter();
   const [cmd, setCmd] = useState(false);
+  /* Once opened they stay mounted, so they close with their animation and keep what was typed. */
+  const [cmdUsed, setCmdUsed] = useState(false);
+  useEffect(() => { if (cmd) setCmdUsed(true); }, [cmd]);
   const kaju = useKaju();
   const { setPage, setOpen: setKaju } = kaju;
+  const [dockUsed, setDockUsed] = useState(false);
+  useEffect(() => { if (kaju.open) setDockUsed(true); }, [kaju.open]);
   useEffect(() => { setPage({ path, title: crumb[1] ?? crumb[0] }); }, [path, crumb, setPage]);
   /* ⌘J or Ctrl J opens compact Kaju anywhere except on Kaju's own pages. */
   useEffect(() => {
@@ -162,10 +176,10 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
         <main className={`nx-body ${flush ? "is-flush" : ""}`} id="nx-main" tabIndex={-1}>{live.failed && live.signedIn ? <div className="nx-page"><h1 className="nx-h1">Your workspace could not be read</h1><Failed error="StrayPaw could not reach your organisation's records, so nothing is shown rather than sample data. Check your connection and try again." retry={live.retry} /></div> : children}</main>
       </div>
 
-      <Command open={cmd} onClose={() => setCmd(false)} />
+      {cmdUsed ? <Command open={cmd} onClose={() => setCmd(false)} /> : null}
       <ToastHost />
       <ConversationHost />
-      {path.startsWith("/kaju") ? null : <KajuDock crumb={crumb[1] ?? crumb[0]} />}
+      {path.startsWith("/kaju") || !dockUsed ? null : <KajuDock crumb={crumb[1] ?? crumb[0]} />}
       <nav className="nx-dock" aria-label="Sections">
         <Link href={home} className={on(home) ? "is-on" : ""}><Home size={20} />Today</Link>
         <Link href="/ngo/animals" className={on("/ngo/animals") ? "is-on" : ""}><ListChecks size={20} />Work</Link>
