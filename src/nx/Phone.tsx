@@ -76,7 +76,7 @@ export function Sheet({ open, onClose, label, children, full }: { open: boolean;
 /** The bar at the bottom of a phone. */
 export function PhoneBar({ tabs, on, plus, onPlus, onMenu, menuOpen, unread }: { tabs: Tab[]; on: (href: string) => boolean; plus: boolean; onPlus: () => void; onMenu: () => void; menuOpen: boolean; unread?: string }) {
   const cells: ReactNode[] = tabs.map((t) => <Link key={t.href} href={t.href} className={`ph-tab ${on(t.href) ? "is-on" : ""}`} aria-current={on(t.href) ? "page" : undefined}><t.icon size={22} aria-hidden /><span>{t.label}</span></Link>);
-  if (plus) cells.splice(2, 0, <button key="+" type="button" className="ph-plus" aria-label="New: record or ask Kaju" onClick={onPlus}><Plus size={26} strokeWidth={2.4} aria-hidden /></button>);
+  if (plus) cells.splice(2, 0, <button key="+" type="button" className="ph-plus" aria-label="New record, or tell Kaju" onClick={onPlus}><Plus size={26} strokeWidth={2.4} aria-hidden /></button>);
   cells.push(<button key="m" type="button" className={`ph-tab ${menuOpen ? "is-on" : ""}`} aria-expanded={menuOpen} aria-haspopup="dialog" onClick={onMenu} data-n={unread}><MenuIcon size={22} aria-hidden /><span>Menu</span></button>);
   return <nav className={`ph-bar ${plus ? "has-plus" : ""}`} aria-label="Sections" style={{ gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}>{cells}</nav>;
 }
