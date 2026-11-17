@@ -341,6 +341,8 @@ export function DemoTour() {
     }
     if (following) { void go(s.step, s.act + 1); return; }
     setBusy(true);
+    /* A change of person: the loading card shows at once, while this stage's last answer finishes underneath. */
+    if (s.step + 1 < TOUR_DONE) setTransit({ i: s.step + 1, leaving: false });
     const last = act;
     void chain.current.then(async () => {
       for (let i = 0; i < 40 && last.done && !isDone(last); i++) await new Promise((r) => setTimeout(r, 150));

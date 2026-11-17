@@ -151,7 +151,7 @@ test("Kaju's call with Sarvam: one voice, each answer recorded until the caller 
   await expect(page.locator(".kb[data-reached~=\"sent\"]")).toBeVisible({ timeout: 120_000 });
   await expect(page.locator(".kv")).toContainText("knows you're coming", { timeout: 30_000 });
   await expect(page.locator('[data-tour="bite-report"]')).toContainText("the bus stop on 100 Feet Road");
-  expect(sizes.length).toBeGreaterThanOrEqual(6);
+  expect(sizes.length).toBeGreaterThanOrEqual(5); /* what happened, safety, the look, call back, send */
   for (const n of sizes) expect(n).toBeGreaterThan(8_000); /* real recordings, not empty files */
   const said = spoken.join(" ");
   for (const w of ["Hi, I'm Kaju", "Okay, a street dog bite in Indiranagar", "Quick safety check", "Shall I send it", "knows you're coming"]) expect(said).toContain(w);
