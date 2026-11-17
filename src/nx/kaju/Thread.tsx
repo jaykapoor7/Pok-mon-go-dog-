@@ -11,13 +11,14 @@ import { appHref, useKaju, type Turn } from "./state";
 /* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
    as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx). */
 
-const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
+const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
 function proposalLine(p: Proposal) {
   switch (p.kind) {
     case "open_case": return `${p.title} · ${p.category}, ${p.severity}${p.zone ? ` · ${p.zone}` : ""}`;
     case "add_note": return `${p.caseLabel}: ${p.note}`;
     case "schedule_followup": return `${p.caseLabel} on ${new Date(p.dueAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}${p.note ? `: ${p.note}` : ""}`;
     case "record_care": return `${p.dogLabel}: ${p.careKind}${p.date ? ` on ${p.date}` : ""}`;
+    case "add_task": return `${p.title}${p.dueOn ? ` · due ${new Date(p.dueOn).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : ""}${p.assigneeName ? ` · ${p.assigneeName}` : ""}`;
     case "email": return `To ${p.to.join(", ")} · ${p.subject}`;
     case "calendar_event": return `${p.title} · ${new Date(p.start).toLocaleString("en-IN")}`;
     case "chat_post": return `#${p.channelName}: ${p.text}`;
