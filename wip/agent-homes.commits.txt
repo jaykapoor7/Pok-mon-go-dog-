@@ -1,2 +1,5 @@
+57f409c5 Kaju page: its header note describes the one-column layout
+119c6a80 @Kaju examples are only what Kaju answers there; short case codes; sample greeting hydrates
+1a9958b4 Checkpoint: a task list on every home, so a task confirmed in @Kaju shows where it was asked
 fdbfe3ca Homes: every figure counts the list it opens; @Kaju says exactly what it will save
 4e6b0d6c WIP (homes): unfinished work of a stopped agent, saved as found
