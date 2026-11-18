@@ -433,7 +433,17 @@
 /* ── hero: sub line, and the demo grows as the page scrolls ── */
 .s7-hero-sub { margin: 18px auto 0; max-width: 620px; font-size: 19px; line-height: 1.45; color: var(--s4-grey); text-align: center; }
 .s7-home .s6-hero .s4-actions { margin-top: 28px; }
-.s7-home .s6-hero .s6-canvas { transform: scale(calc(.955 + .045 * var(--hp, 0))); transform-origin: 50% 0; transition: transform 60ms linear; }
+/* On a laptop the blueprint opens out as the page scrolls: it starts as a framed card the width of the column and
+   ends at the edges of the window, while the product window inside keeps its size and place. The canvas is laid out
+   full width from the first paint and only its clip changes (HeroScroll sets --hp), so nothing moves or reflows.
+   Under reduced motion --hp stays 0 and the card stays framed. */
+@media (min-width: 901px) {
+  .s7-home .s6-hero .s6-canvas {
+    --bleed: calc((100vw - min(100vw, 1440px)) / 2 + var(--s4-gut));
+    margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50% + 64px); border-radius: 0; box-shadow: none;
+    clip-path: inset(0 calc(var(--bleed) * (1 - var(--hp, 0))) round calc(28px * (1 - var(--hp, 0))));
+  }
+}
 .s7-home .s6-hero .s6-h1, .s7-home .s6-hero .s7-hero-sub { opacity: calc(1 - .45 * var(--hp, 0)); }
 @media (max-width: 760px) { .s7-hero-sub { font-size: 16.5px; padding: 0 8px; } }
 
@@ -1142,3 +1152,8 @@ details.s7-q-row > summary svg { width: 26px; height: 26px; padding: 5px; }
 .s7-cov > span { position: absolute; top: 0; bottom: 0; left: calc(60px + (100% - 102px) * .7); padding-left: 5px; border-left: 1.5px dashed var(--s7-blue); color: var(--s7-blue); font-size: 10.5px; font-weight: 600; white-space: nowrap; }
 @media (max-width: 999px) { .s7-track { margin-top: 4px; } .s7-track button { padding: 0 12px; font-size: 14px; } }
 @media (prefers-reduced-motion: reduce) { .s7-track > i { transition: none; } .s7-doses i.is-due, .s7-cov i, .s7-hands li { animation: none; } }
+
+/* Use cases, pinned: the steps' screens differ in height, and centring the block made the heading and tabs jump each
+   time the step changed while a reader scrolled (layout shift measured at 1440×900). The block now starts at a fixed
+   point, set so the tallest step sits where the centred one did. */
+.s7-home .s7-steps.is-pinned .s7-steps-pin { align-content: start; padding-top: max(24px, calc((100vh - 64px - 680px) / 2)); }

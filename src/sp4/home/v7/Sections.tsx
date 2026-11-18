@@ -15,6 +15,10 @@ import { AliveLogo } from "./AliveLogo";
 import { CountUp } from "@/sp4/site/Live";
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* Up to 960px the tools and the results stack, and each open card has its own height: turning them on a timer would
+   move everything below while someone reads (measured: a 216px jump, layout shift 0.26 on a phone). There they turn
+   only when tapped. */
+const stacked = () => typeof window !== "undefined" && window.matchMedia("(max-width: 960px)").matches;
 
 /* ── Your team's favourite teammate ───────────────────────────────── */
 export function Teammate() {
@@ -199,7 +203,7 @@ export function ToolsAccordion() {
   const [on, setOn] = useState(0);
   const [hover, setHover] = useState(false);
   useEffect(() => {
-    if (hover || reduced()) return;
+    if (hover || reduced() || stacked()) return;
     const id = window.setInterval(() => setOn((v) => (v + 1) % TOOLS.length), 4800);
     return () => window.clearInterval(id);
   }, [hover]);
@@ -234,7 +238,7 @@ export function Results({ stats, cards }: { stats: { n: number; label: string }[
   const [hover, setHover] = useState(false);
   const total = cards.length;
   useEffect(() => {
-    if (hover || reduced() || total < 2) return;
+    if (hover || reduced() || stacked() || total < 2) return;
     const id = window.setInterval(() => setOn((v) => (v + 1) % total), 5600);
     return () => window.clearInterval(id);
   }, [hover, total]);
@@ -306,7 +310,7 @@ export function CloseAndQuestions({ faq }: { faq: [string, string][] }) {
           <div className="s7-c4-copy">
             <h2 id="close-title">Put Kaju to work.</h2>
             <p>Import your records and see Kaju work on them, in action.</p>
-            <div className="s7-row"><Link href="/platform" className="s7-btn is-white is-primary">Explore the platform</Link><Link href="/contact" className="s7-btn is-ghost">Talk to the team</Link></div>
+            <div className="s7-row"><Link href="/platform" className="s7-btn is-white is-primary">Explore the platform<ArrowRight size={16} aria-hidden /></Link><Link href="/contact" className="s7-btn is-ghost">Talk to the team</Link></div>
           </div>
           <Link href="/our-story" className="s7-c4-art" aria-label="Our story: every animal deserves a record">
             <AliveLogo />

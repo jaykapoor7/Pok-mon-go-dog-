@@ -366,6 +366,25 @@ select.s4-input { appearance: none; background-image: url("data:image/svg+xml,%3
   @keyframes s4-art-pop { from { opacity: 0; transform: scale(.3); } }
 }
 
+/* ── menus: a preview of the page a link opens (SiteHeader.tsx Mega). It sits over the column's drawing, so the
+   panel keeps its size; the drawing steps back while a link is pointed at or focused. ── */
+.s4-mega-col.is-feature { position: relative; }
+.s4-mega-feat { display: grid; gap: 16px; align-content: start; transition: opacity 160ms var(--s4-ease), transform 200ms var(--s4-ease); }
+.s4-peek { position: absolute; top: 32px; left: 32px; right: 32px; margin: 0; display: grid; gap: 12px; opacity: 0; transform: translateY(4px); pointer-events: none; transition: opacity 160ms var(--s4-ease), transform 200ms var(--s4-ease); }
+.s4-peek img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 8px; background: #f4f6fa; box-shadow: 0 0 0 1px var(--s4-line), 0 16px 32px -24px rgba(11, 30, 61, .45); }
+.s4-peek figcaption { display: grid; gap: 4px; }
+.s4-peek figcaption b { font-size: 14px; font-weight: 500; color: var(--s4-ink); }
+.s4-peek figcaption small { font-size: 12px; color: var(--s4-grey); font-variant-numeric: tabular-nums; }
+.s4-mega-col.is-peek .s4-mega-feat { opacity: 0; transform: scale(.98); }
+.s4-mega-col.is-peek .s4-peek { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .s4-mega-feat, .s4-peek { transition: none; transform: none !important; } }
+
+/* ── buttons that lead somewhere: the arrow moves a step toward where it goes ── */
+:is(.s4-btn, .s7-btn) > svg.lucide-arrow-right { flex: none; transition: transform 200ms var(--s4-ease); }
+@media (prefers-reduced-motion: no-preference) {
+  :is(.s4-btn, .s7-btn):is(:hover, :focus-visible) > svg.lucide-arrow-right { transform: translateX(4px); }
+}
+
 /* ── inner pages: motion in the landing's language (see PageMotion.tsx) ── */
 .pm-progress { position: fixed; left: 0; right: 0; top: 0; height: 3px; z-index: 80; pointer-events: none; opacity: 0; transition: opacity 240ms ease; }
 .pm-scrolled .pm-progress { opacity: 1; }

@@ -2,7 +2,7 @@
    this file only changes how things arrive, respond and leave. */
 .s8-progress { position: fixed; left: 0; right: 0; top: 0; height: 3px; z-index: 80; pointer-events: none; opacity: 0; transition: opacity 240ms ease; }
 .s8-scrolled .s8-progress { opacity: 1; }
-.s8-progress > span { display: block; height: 100%; transform: scaleX(0); transform-origin: 0 50%; background: linear-gradient(90deg, #2457ce, #6d8ff0 60%, #f05b40); border-radius: 0 3px 3px 0; }
+.s8-progress > span { display: block; height: 100%; transform: scaleX(0); transform-origin: 0 50%; background: #2457ce; border-radius: 0 3px 3px 0; }
 
 /* A soft sky behind the hero copy, the same light as the welcome inside the app. */
 .s7-home .s6-hero { position: relative; isolation: isolate; }
@@ -56,10 +56,8 @@
   /* small things that answer the hand */
   .s4-btn { transition: background 160ms var(--s4-ease), box-shadow 160ms var(--s4-ease), color 160ms var(--s4-ease), transform 140ms cubic-bezier(.2, .7, .2, 1); }
   .s4-btn:active { transform: scale(.97); }
-  .s4-btn.is-primary { position: relative; overflow: hidden; }
-  .s4-btn.is-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 50%, transparent 65%); transform: translateX(-120%); transition: transform 700ms cubic-bezier(.2, .7, .2, 1); pointer-events: none; }
-  .s4-btn.is-primary:hover::after { transform: translateX(120%); }
-  .s4-btn.is-primary:hover { box-shadow: 0 10px 24px -12px rgba(36, 87, 206, .7); transform: translateY(-1px); }
+  /* The primary button answers with its arrow (sp4.css), not a sweep of light. */
+  .s4-btn.is-primary:hover { box-shadow: 0 8px 16px -12px rgba(36, 87, 206, .6); }
   .s4-btn.is-primary:active { transform: scale(.97); }
   .s4-link svg, .s7-link svg { transition: transform 200ms cubic-bezier(.2, .7, .2, 1); }
   .s4-link:hover svg, .s7-link:hover svg { transform: translateX(4px); }
