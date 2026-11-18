@@ -40,5 +40,7 @@ export function isAiReply(v:unknown):v is AiReply {
  if(!Array.isArray(v.citations)||v.citations.length>100||!v.citations.every(c=>object(c)&&text(c.id,160)&&text(c.label,1000)&&['animal','case','programme','place','page'].includes(String(c.kind))&&safeAiHref(c.href)))return false;
  if(!Array.isArray(v.proposals)||v.proposals.length>24||!v.proposals.every(proposal))return false;
  if(v.blocks!==undefined&&!(Array.isArray(v.blocks)&&v.blocks.length<=8&&v.blocks.every(isBlock)))return false;
+ if(v.turnId!==undefined&&!(typeof v.turnId==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.turnId)))return false;
+ if(v.suggestions!==undefined&&!(Array.isArray(v.suggestions)&&v.suggestions.length<=6&&v.suggestions.every(s=>text(s,200))))return false;
  return (v.notice===undefined||text(v.notice))&&(v.navigate===undefined||(object(v.navigate)&&safeAiHref(v.navigate.href)&&text(v.navigate.label)));
 }

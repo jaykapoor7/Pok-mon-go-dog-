@@ -50,7 +50,9 @@ assert.equal(none.find((c) => c.id === "mission_email")?.state, "setup"); ok("no
 assert.equal(none.find((c) => c.id === "whatsapp")?.state, "none"); assert.equal(none.find((c) => c.id === "sms")?.state, "none"); ok("WhatsApp and SMS are never shown as live");
 const on = { STRAYPAW_AI_MODE: "model", STRAYPAW_AI_AUTHORISED_BY: "owner:2026-11-16", STRAYPAW_AI_MONTHLY_CEILING_INR: "100", STRAYPAW_AI_USER_DAILY_REQUESTS: "5", STRAYPAW_AI_ORG_DAILY_REQUESTS: "5", STRAYPAW_AI_INR_PER_MTOK_IN: "1", STRAYPAW_AI_INR_PER_MTOK_OUT: "1" };
 assert.equal(modelReady(on), false); ok("the gate open but no credential: still not live");
-assert.equal(kajuStatus({ ...on, ANTHROPIC_API_KEY: "k" }).find((c) => c.id === "model")?.state, "live"); ok("gate and credential: live");
+assert.equal(kajuStatus({ ...on, ANTHROPIC_API_KEY: "k" }).find((c) => c.id === "model")?.state, "setup"); ok("owner rollout without an owner id: still not live");
+assert.equal(kajuStatus({ ...on, ANTHROPIC_API_KEY: "k", STRAYPAW_AI_OWNER_USER_ID: "0b9a3c1e-1f2a-4c3d-9e8f-123456789abc" }).find((c) => c.id === "model")?.label, "Owner testing only"); ok("owner rollout: shown as owner testing, not live for everyone");
+assert.equal(kajuStatus({ ...on, ANTHROPIC_API_KEY: "k", STRAYPAW_AI_ROLLOUT: "grants" }).find((c) => c.id === "model")?.state, "live"); ok("grants rollout, gate and credential: live for approved accounts");
 const mail = { GOOGLE_CLIENT_ID: "a", GOOGLE_CLIENT_SECRET: "b", CONNECTIONS_ENC_KEY: "c" };
 assert.equal(kajuStatus(mail, false).find((c) => c.id === "mission_email")?.state, "you"); assert.equal(kajuStatus(mail, true).find((c) => c.id === "mission_email")?.state, "live"); assert.equal(kajuStatus(mail, null).find((c) => c.id === "mission_email")?.state, "unknown"); ok("mail apps set: live only with the person's own account; unknown is not false");
 const text = JSON.stringify(kajuStatus({ ...on, ANTHROPIC_API_KEY: "SECRET-VALUE", ...mail, RESEND_API_KEY: "SECRET-VALUE", EMAIL_FROM: "x" }, true));

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { ArrowRight, Keyboard, Mic, Trash2 } from "lucide-react";
+import { ArrowRight, Keyboard, Mic, Plus } from "lucide-react";
 import { Shell } from "../Shell";
 import { KajuVoice } from "@/kaju/voice/KajuVoice";
 import { VOICE_OFFERED } from "@/kaju/voice/availability";
@@ -15,6 +15,7 @@ import { MISSIONS } from "../fixtures";
 import { useLive } from "../live";
 import { Composer } from "../kaju/Composer";
 import { Thread } from "../kaju/Thread";
+import { KajuHistory, KeepingNote } from "../kaju/History";
 import { PlanCard } from "../kaju/Plan";
 import { Jobs } from "../kaju/Jobs";
 import { MissionCard } from "../kaju/MissionCard";
@@ -120,9 +121,10 @@ export function Kaju() {
               {k.turns.length ? (
                 <section className="kj-convo" aria-label="Conversation">
                   <Thread />
-                  <p className="kj-quiet"><button type="button" className="nx-thread" onClick={k.clear}><Trash2 size={12} /> Clear this conversation</button> · It stays in this browser tab only.</p>
+                  <p className="kj-quiet"><button type="button" className="nx-thread" onClick={k.clear}><Plus size={12} /> New conversation</button> · <KeepingNote /></p>
                 </section>
               ) : null}
+              {!k.turns.length && live.signedIn ? <div className="kj-sec" style={{ marginTop: 18 }}><KajuHistory /></div> : null}
             </>}
 
             {/* What needs a person, under the request and its answer: three cards across, the rest one click away. */}

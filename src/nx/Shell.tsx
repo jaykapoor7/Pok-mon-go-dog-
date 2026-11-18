@@ -13,7 +13,7 @@ import { OrgMenu } from "./OrgMenu";
 import { useProgrammeChannels } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { Failed, OfflineBar, ToastHost } from "./kit";
-import { KajuProvider, useKaju } from "./kaju/state";
+import { KajuProvider, useKaju, type KajuSubject } from "./kaju/state";
 import { useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
 import { ConversationHost, isUnnamed, newConversation, personName } from "./conversations";
 import { Back, PhoneBar, PhoneMenu, PlusSheet, parentOf, phoneTabs, type PhoneKind } from "./Phone";
@@ -34,7 +34,8 @@ const KajuDock = dynamic(() => import("./kaju/Dock").then((m) => m.KajuDock), { 
 
 export type Ws = "ngo" | "gov" | "health" | "research" | "kaju";
 
-type Meta = { crumb: [string, string?]; ws?: Ws; flush?: boolean };
+/** `subject`: the record open on the page, so Kaju knows what "this" means. Ids only; the server reads it again with the person's access. */
+type Meta = { crumb: [string, string?]; ws?: Ws; flush?: boolean; subject?: KajuSubject | null };
 const MetaCtx = createContext<((m: Meta) => void) | null>(null);
 const useIsoLayout = typeof window === "undefined" ? useEffect : useLayoutEffect;
 /** The workspace a path belongs to, so the frame is right before a page says anything. */
@@ -47,12 +48,12 @@ export function Frame({ children }: { children: ReactNode }) {
 }
 
 /** A page's place in the frame: its breadcrumb, workspace and whether it runs edge to edge. */
-export function Shell({ crumb, children, ws, flush }: { crumb: [string, string?]; children: ReactNode; ws?: Ws; flush?: boolean }) {
+export function Shell({ crumb, children, ws, flush, subject }: { crumb: [string, string?]; children: ReactNode; ws?: Ws; flush?: boolean; subject?: KajuSubject | null }) {
   const set = useContext(MetaCtx);
-  const key = `${crumb[0]}\u0000${crumb[1] ?? ""}\u0000${ws ?? ""}\u0000${flush ? 1 : 0}`;
+  const key = `${crumb[0]}\u0000${crumb[1] ?? ""}\u0000${ws ?? ""}\u0000${flush ? 1 : 0}\u0000${subject ? `${subject.kind ?? ""}:${subject.caseId ?? ""}:${subject.dogId ?? ""}:${subject.label ?? ""}` : ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useIsoLayout(() => { set?.({ crumb, ws, flush }); }, [key, set]);
-  if (!set) return <MetaCtx.Provider value={() => {}}><KajuProvider><FrameBody meta={{ crumb, ws, flush }}>{children}</FrameBody></KajuProvider></MetaCtx.Provider>;
+  useIsoLayout(() => { set?.({ crumb, ws, flush, subject: subject ?? null }); }, [key, set]);
+  if (!set) return <MetaCtx.Provider value={() => {}}><KajuProvider><FrameBody meta={{ crumb, ws, flush, subject: subject ?? null }}>{children}</FrameBody></KajuProvider></MetaCtx.Provider>;
   return <>{children}</>;
 }
 
@@ -71,10 +72,13 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const [cmdUsed, setCmdUsed] = useState(false);
   useEffect(() => { if (cmd) setCmdUsed(true); }, [cmd]);
   const kaju = useKaju();
-  const { setPage, setOpen: setKaju } = kaju;
+  const { setPage, setSubject, setOpen: setKaju } = kaju;
   const [dockUsed, setDockUsed] = useState(false);
   useEffect(() => { if (kaju.open) setDockUsed(true); }, [kaju.open]);
   useEffect(() => { setPage({ path, title: crumb[1] ?? crumb[0] }); }, [path, crumb, setPage]);
+  const subjectKey = meta.subject ? JSON.stringify(meta.subject) : "";
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setSubject(meta.subject ?? null); }, [path, subjectKey, setSubject]);
   /* ⌘J or Ctrl J opens compact Kaju anywhere except on Kaju's own pages. */
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if ((e.key === "j" || e.key === "J") && (e.metaKey || e.ctrlKey)) { e.preventDefault(); if (!path.startsWith("/kaju")) setKaju(!kaju.open); } };
