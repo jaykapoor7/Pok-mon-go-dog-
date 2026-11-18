@@ -86,6 +86,11 @@
   .nx input:not([type=checkbox]):not([type=radio]), .nx select, .nx textarea { font-size: 16px; }
   .nx .nx-btn { min-height: 44px; }
   .nx .nx-field input, .nx .nx-field select { min-height: 48px; }
+  /* A row with one link is tapped anywhere on the row, not only on its words (Packages' blockers, Reports). */
+  .nx .nx-feed > li { position: relative; min-height: 48px; }
+  .nx .nx-feed > li > div > b > a::after, .nx .nx-feed > li > div > a.nx-rep-a::after { content: ""; position: absolute; inset: 0; }
+  /* A phone number inside a row's line: a thumb-sized hit area without moving the text. */
+  .nx .hm-row-meta .hm-link { display: inline-block; padding: 12px 4px; margin: -12px -4px; }
   /* Dialogs rise from the bottom like every other phone sheet. */
   .nx .nx-modal { align-items: end; padding: 0; }
   .nx .nx-modal-b { width: 100%; max-height: 88dvh; border-radius: 16px 16px 0 0; padding: 24px 16px max(16px, env(safe-area-inset-bottom)); animation: ph-rise .26s cubic-bezier(.2, .9, .25, 1); }
