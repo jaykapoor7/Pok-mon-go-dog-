@@ -84,7 +84,7 @@ function LiveReports({ org, tabs }: { org: Workspace; tabs: React.ReactNode }) {
       sub={rows === null ? "Reading reports…" : <><b className="num">{n(waiting)}</b> to triage of {n(list.length)}. Reports from residents and the community near you arrive here before they become a case.{list.length >= 400 ? " Showing the 200 most recent from each source." : ""}</>}
       above={<div className="nr-bleed">{tabs}</div>} loading={rows === null} error={error} onRetry={() => void load()}
       select={{ ids: picked, toggle, label: (r) => `the report from ${r.place}` }}
-      tools={picked.size ? <span className="nx-t3">{picked.size} chosen · <button type="button" className="nr-link" onClick={() => setPicked(new Set())}>clear</button></span> : <span className="nx-t3 nx-hide-s">Tick reports to file them together</span>}
+      phoneTools={false} tools={picked.size ? <span className="nx-t3">{picked.size} chosen · <button type="button" className="nr-link" onClick={() => setPicked(new Set())}>clear</button></span> : <span className="nx-t3 nx-hide-s">Tick reports to file them together</span>}
       foot={picked.size ? <Decide ids={[...picked]} rows={list} drives={drives} onDone={async () => { setPicked(new Set()); await load(); }} /> : null}
       empty={{ none: "No reports yet", filtered: "Nothing in this view", hint: "Reports from residents appear here as they are sent." }}
       preview={(r) => ({ title: r.what, sub: <>{r.place} · {r.when} <Chip tone={r.tone}>{r.state}</Chip></>, body: <ReportBody r={r} picked={picked.has(r.id)} toggle={() => toggle(r.id)} /> })} />

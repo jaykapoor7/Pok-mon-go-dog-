@@ -92,11 +92,19 @@ test("Animals: each is named by its name and number, with a photo place, and the
   const first = page.locator("button.nx-tr").first();
   await expect(first.locator(".am-ph")).toBeVisible();
   await expect(first.locator(".am-tag")).toHaveText("1042");
+  /* On a phone, list or map sits in the Filter sheet with the place and the download (docs/rebuild/MOBILE.md). */
+  const phone = test.info().project.name === "mobile";
+  const tools = async () => { if (phone) await page.getByRole("button", { name: "Filter" }).click(); };
+  const done = async () => { if (phone) await page.getByRole("dialog", { name: "Filter" }).getByRole("button", { name: "Done" }).click(); };
+  await tools();
   await page.getByRole("button", { name: "Map", exact: true }).click();
+  await done();
   await expect(page).toHaveURL(/view=map/);
   await expect(page.getByText(/Sign in as a member of an NGO to see your organisation/)).toBeVisible();
   await expect(page.locator("button.nx-tr")).toHaveCount(0);
+  await tools();
   await page.getByRole("button", { name: "List", exact: true }).click();
+  await done();
   await expect(page.locator("button.nx-tr")).toHaveCount(9);
 });
 
@@ -119,7 +127,11 @@ test("Operations: care log and the two lanes sit beside the visits, with field m
   await expect(page.getByRole("heading", { name: /Vet sign-off/ })).toBeVisible();
   await parts.getByRole("tab", { name: "Rescues" }).click();
   await expect(page.getByRole("heading", { name: /In care/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open field mode" })).toHaveAttribute("href", "/ngo/field");
+  /* On a phone, field mode is in the "+" sheet, one tap from every page, so Operations does not repeat it. */
+  if (test.info().project.name === "mobile") {
+    await page.getByRole("button", { name: /^New record/ }).click();
+    await expect(page.getByRole("dialog", { name: "New" }).getByRole("link", { name: /^Field mode/ })).toHaveAttribute("href", "/ngo/field");
+  } else await expect(page.getByRole("link", { name: "Open field mode" })).toHaveAttribute("href", "/ngo/field");
 });
 
 test("Field mode: the round on a phone, every action opening the live demo", async ({ page }) => {

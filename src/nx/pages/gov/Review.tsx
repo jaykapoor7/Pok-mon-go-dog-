@@ -15,7 +15,8 @@ import { useLive, type Workspace } from "../../live";
 import type { Tone } from "../../fixtures";
 import { DECISION_LABEL, decideItem, downloadPackage, finalizePackage, indiaToday, recordPayment, type ItemDecision } from "../../data/govhealth";
 import { samplePackage } from "../../data/govhealth-samples";
-import { Block, OpenFile, Opening, SignedConfirm, TryLink } from "../gh/parts";
+import { Block, GhMark, OpenFile, Opening, SignedConfirm, TryLink, usePhone } from "../gh/parts";
+import { Sheet } from "../../Phone";
 
 /* One package from an operator, as the reviewing office decides it. Records and their evidence on the left; the
    checks, the exceptions and the decision on the right. Every decision is recorded in the reviewer's own name
@@ -99,6 +100,11 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
   const [pay, setPay] = useState({ amount: "", paidOn: "", reference: "", note: "" });
   const [doc, setDoc] = useState<File | null>(null);
   const [dlg, setDlg] = useState<Dlg>(null);
+  /* On a phone a claim opens in a sheet: its evidence, its checks and the decision together, one claim at a time.
+     A decision's signed confirmation then takes the sheet's place. */
+  const phone = usePhone();
+  const [claimSheet, setClaimSheet] = useState(false);
+  useEffect(() => { if (dlg) setClaimSheet(false); }, [dlg]);
   const [progress, setProgress] = useState<string | null>(null);
   const { busy, run } = useAct();
   const pending = items.filter((i) => i.decision === "pending");
@@ -180,8 +186,9 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
         <div className="gh-claims" role="list" aria-label="Claims">
           {items.map((i) => { const iss = issues.get(i.key) ?? []; const can = canDecide || sample; return (
             <div key={i.key} role="listitem" className={`gh-claim ${selected?.key === i.key ? "is-sel" : ""}`}>
-              <span className="gh-claim-box">{can && i.decision === "pending" ? <input type="checkbox" checked={picked.has(i.key)} onChange={() => toggle(i.key)} aria-label={`Select ${i.case_code ?? i.title}`} /> : null}</span>
-              <button type="button" className="gh-claim-main" onClick={() => setSel(i.key)} aria-pressed={selected?.key === i.key} aria-label={`Open claim ${i.case_code ?? i.title}`}>
+              {/* A label, so the whole cell (a thumb's size on a phone) ticks the box. */}
+              <label className="gh-claim-box">{can && i.decision === "pending" ? <input type="checkbox" checked={picked.has(i.key)} onChange={() => toggle(i.key)} aria-label={`Select ${i.case_code ?? i.title}`} /> : null}</label>
+              <button type="button" className="gh-claim-main" onClick={() => { setSel(i.key); if (phone) setClaimSheet(true); }} aria-pressed={selected?.key === i.key} aria-label={`Open claim ${i.case_code ?? i.title}`}>
                 <b>{i.title || i.case_code}</b>
                 <small><span className="gh-code">{i.case_code}</span> · {i.procedure_label}{iss.length ? <span style={{ color: "var(--warn)" }}> · {iss.length} to check</span> : ""}</small>
               </button>
@@ -190,7 +197,7 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
             </div>); })}
           {!items.length ? <p className="nx-sub" style={{ padding: "16px 0" }}>This package has no claims.</p> : null}
         </div>
-        {selected ? (() => { const c = cases.find((x) => x.case_id === selected.case_id); return (
+        {selected && !phone ? (() => { const c = cases.find((x) => x.case_id === selected.case_id); return (
           <Block title={`Evidence for ${selected.case_code ?? selected.title}`} note={c?.city ? `Recorded in ${c.city}` : undefined}>
             {evidenceOf(selected, c)}
             <h3 className="nx-h3">Sign-offs</h3>
@@ -288,7 +295,7 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
 
   const right = (
     <aside className="gh-side" aria-label="Checks and decision">
-      {decideBox}{packageBox}{exceptions}{totals}{finalizeBox}{paymentBox}
+      {phone ? null : decideBox}{packageBox}{exceptions}{totals}{finalizeBox}{paymentBox}
       <p className="nx-note" style={{ marginTop: 18 }}><ShieldCheck size={13} /><span>Every decision is recorded in your name with the reason and checked against the audit after it is saved. Accepted means approved for payment. It is not a payment.</span></p>
     </aside>
   );
@@ -331,6 +338,13 @@ function ReviewView({ sample, data, office, actor, who, reload }: { sample: bool
         : tab === "Records" ? <RecordsTab cases={cases} sample={sample} />
         : <HistoryTab pkg={pkg} events={events} items={items} sample={sample} />}
       {dialog}
+      <GhMark />
+      {phone && selected && itemReview ? <Sheet open={claimSheet} onClose={() => setClaimSheet(false)} label={`Claim ${selected.case_code ?? selected.title}`} full>
+        <div className="gh-claim-sheet">
+          {(() => { const c = cases.find((x) => x.case_id === selected.case_id); return <Block title={selected.title || "Evidence"} note={[selected.procedure_label, c?.city ? `Recorded in ${c.city}` : null].filter(Boolean).join(" · ")}>{evidenceOf(selected, c)}<h3 className="nx-h3">Sign-offs</h3>{signoffs(selected, c)}</Block>; })()}
+          {decideBox}
+        </div>
+      </Sheet> : null}
     </Shell>
   );
 }

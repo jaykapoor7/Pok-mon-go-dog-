@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarPlus, FilePlus2, PenLine, Plus } from "lucide-react";
 import { ListPage, type Col } from "../ListPage";
@@ -77,7 +78,7 @@ export function ClinicPatients({ clinic }: { clinic: Workspace }) {
   ];
   return (
     <>
-      <ListPage ws="health" crumb={["Healthcare", "Patients"]} eyebrow={clinic.name} title="Patients" sub="The clinic's own patients. Clinical records are drafts until a veterinarian signs them."
+      <ListPage ws="health" crumb={["Healthcare", "Patients"]} eyebrow={clinic.name} title="Patients" sub={<>The clinic&apos;s own patients. <About>Clinical records are drafts until a veterinarian signs them.</About><GhMark /></>}
         action={<button type="button" className="nx-btn is-keep" onClick={() => setAdding(true)}><Plus size={13} />Add a patient</button>} sample={false}
         views={[{ id: "all", label: "All", test: () => true }, { id: "drafts", label: "Unsigned records", test: (r) => encs.some((e) => e.patient_id === r.id && !e.signed_at) }, { id: "ngo", label: "From partner NGOs", test: (r) => r.brought_by === "ngo" }]}
         columns={cols} rows={pats ?? []} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => `${r.name} ${r.marks ?? ""}`} loading={pats === null}
@@ -133,7 +134,7 @@ export function ClinicToday({ clinic }: { clinic: Workspace }) {
   return (
     <Shell ws="health" crumb={["Healthcare", "Today"]}>
       <div className="nx-page hm-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{clinic.name} · Veterinary clinic</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{ready ? "A clinical record is a draft until a veterinarian signs it; a signed record does not change." : "Reading the clinic's day…"}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{clinic.name} · Veterinary clinic</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{ready ? <About>A clinical record is a draft until a veterinarian signs it; a signed record does not change.</About> : "Reading the clinic's day…"}<GhMark /></p></div></div>
         <AtKaju role="vet" note="Kaju reads only what you can open. Clinical decisions stay with you." />
         <Tiles>
           <Tile label="Visits today" n={n(visits.length)} href="/health/appointments" />

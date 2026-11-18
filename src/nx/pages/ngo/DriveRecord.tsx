@@ -12,6 +12,7 @@ import { leadOrCoord } from "../../data/ngo-setup";
 import { campaignAnimals, campaignStats, setArchived } from "../../data/ngo-programmes";
 import { Grid, Partition, TryLink, Views, useWho, type GCol } from "./frame";
 import { when } from "./prog/Drives";
+import { RecordBar } from "../../RecordBar";
 import { S_DRIVES, S_DRIVE_ANIMALS } from "./sample";
 import { animalLabel } from "../../animalLabel";
 import { AnimalTag } from "../../AnimalPhoto";
@@ -84,6 +85,9 @@ export function DriveRecord({ id }: { id: string }) {
         </div>
       </div>
       {asking ? <Confirm title={stats.archived ? "Restore this drive" : "Archive this drive"} confirm={stats.archived ? "Restore" : "Archive"} busy={busy === "arch"} onClose={() => setAsking(false)} onConfirm={flip}><p>{stats.archived ? `${stats.name} returns to the active drives.` : `${stats.name} moves to the archived drives. Its animals and records are kept, and you can restore it.`}</p></Confirm> : null}
+      <RecordBar label="More on this drive"
+        more={<><button type="button" className="nx-btn is-quiet" disabled={!list?.length} onClick={csv}><Download size={16} />Animals as CSV</button>
+          {who.sample ? <TryLink quiet><Archive size={16} />Archive</TryLink> : leader ? <button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => setAsking(true)}>{stats.archived ? <><ArchiveRestore size={16} />Restore</> : <><Archive size={16} />Archive</>}</button> : null}</>} />
     </Shell>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import { useEffect, useMemo, useState } from "react";
 import { Info } from "lucide-react";
 import { call, type Count, type Network, type Overview, type Place, type ProgrammeRef } from "@/oh/data";
@@ -89,7 +90,7 @@ export function Maps() {
     <Shell ws="research" crumb={["Research", "Maps & Analysis"]}>
       <div className="nx-page" style={{ maxWidth: 1180 }}>
         <div className="nx-head"><div><p className="nx-eyebrow">{sample ? "East Zone rabies programme" : prog!.name}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Maps &amp; Analysis</h1>
-          <p className="nx-sub">{areas.length} areas, coloured by one layer at a time. Areas only, never points, so no one&apos;s location is shown.{sample ? " The sample outlines are schematic." : ""}</p></div></div>
+          <p className="nx-sub">{areas.length} areas, coloured by one layer at a time. <About>Areas only, never points, so no one&apos;s location is shown.{sample ? " The sample outlines are schematic." : ""}</About><GhMark /></p></div></div>
         <div className="nx-bar nx-map-bar" style={{ borderBottom: 0, paddingBottom: 0 }}>
           <div className="nx-views" role="tablist" aria-label="Layer">{LAYERS.map((l) => <button key={l.id} type="button" role="tab" aria-selected={layer === l.id} className={`nx-view ${layer === l.id ? "is-on" : ""}`} onClick={() => setLayer(l.id)}>{layer === l.id ? <span className="nx-view-bg" /> : null}<span>{l.label}</span></button>)}</div>
           {layer !== "coverage" ? <div className="nx-views" role="tablist" aria-label="Period" style={{ marginLeft: "auto" }}>{PERIODS.map((p) => <button key={p.d} type="button" role="tab" aria-selected={days === p.d} className={`nx-view ${days === p.d ? "is-on" : ""}`} onClick={() => setDays(p.d)}>{days === p.d ? <span className="nx-view-bg" /> : null}<span>{p.label}</span></button>)}</div> : null}

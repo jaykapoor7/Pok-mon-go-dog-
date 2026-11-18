@@ -17,6 +17,7 @@ import { leadOrCoord, requestFor } from "../../data/ngo-setup";
 import { answerItem, configureClaims, decisionSource, downloadPackage, itemDecisions, type ItemDecision } from "../../data/ngo-submissions";
 import { Drawer, EvidenceLink, Grid, TryLink, Views, plural, useWho, type GCol } from "./frame";
 import { PKG_TONE, period } from "./subs/Packages";
+import { RecordBar } from "../../RecordBar";
 import { S_CONTRACTS, S_OFFICES, S_PACKAGE_CASES, S_PACKAGE_EVENTS, S_PACKAGES, S_RATES, S_RECON } from "./sample";
 
 /* One report package, as the operator sees it: its claims animal by animal with the office's decisions, the records
@@ -107,6 +108,9 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
       </div>
       {asking === "submit" ? <Confirm title="Submit this package" confirm="Submit package" busy={busy === "submitted"} onClose={() => setAsking(null)} onConfirm={() => act("submitted")}><p>{p.title} goes to {office} with {plural(records, "record")}. The office can then see it, ask questions, accept or return it. Recorded in your name.</p></Confirm> : null}
       {asking === "answer" ? <Confirm title="Send your answer" confirm="Send answer" busy={busy === "answer"} onClose={() => setAsking(null)} onConfirm={() => act("answer")}><p>Your answer goes to {office} and the package goes back to them for review.</p><p className="nx-note"><span>{body.trim()}</span></p></Confirm> : null}
+      <RecordBar label="Download this package"
+        more={sample ? <><TryLink quiet><Download size={16} />Download PDF</TryLink><TryLink quiet><Download size={16} />Download XLSX</TryLink></>
+          : operator ? <><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("pdf")}><Download size={16} />{busy === "dl:pdf" ? "Preparing…" : "Download PDF"}</button><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("xlsx")}><Download size={16} />{busy === "dl:xlsx" ? "Preparing…" : "Download XLSX"}</button></> : undefined} />
     </Shell>
   );
 }

@@ -12,7 +12,8 @@ import { BITES, CLINIC, LAB_SAMPLES, REFERRALS, type Tone } from "../fixtures";
 import { useLive, useTasks, type Workspace } from "../live";
 import { useAct } from "../kit";
 import { LabSteps } from "./health/Lab";
-import { PepDose } from "./health/Exposure";
+import { DoseCall, PepDose } from "./health/Exposure";
+import { About, GhMark } from "./gh/parts";
 import { AtKaju } from "../AtKaju";
 import { Grid, MiniBars, Panel, Rows, Split, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 
@@ -72,18 +73,19 @@ export function Bites() {
   const sample = !live.org;
   if (!sample && (!org || isLab(org))) return <NotHealth crumb="Bite cases" />;
   const list = sample ? BITES.map((b) => ({ ...b, late: (b.next ?? "").startsWith("Overdue"), href: `/health/bites/${b.id}` })) : rows;
-  return <ListPage ws="health" crumb={["Healthcare", "Bite cases"]} eyebrow={sample ? CLINIC.name : org!.name} title="Bite cases" sample={sample}
-    sub={sample || reg.data ? <><b className="num">{list.filter((r) => r.course === "Waiting for a clinician").length}</b> waiting for a clinician, <b className="num">{list.filter((r) => r.late).length}</b> with a dose overdue. Categories and doses are entered by clinicians.</> : "Reading the register…"}
+  return <ListPage ws="health" crumb={["Healthcare", "Bite cases"]} eyebrow={<>{sample ? CLINIC.name : org!.name}<GhMark /></>} title="Bite cases" sample={sample}
+    sub={sample || reg.data ? <><b className="num">{list.filter((r) => r.course === "Waiting for a clinician").length}</b> waiting for a clinician, <b className="num">{list.filter((r) => r.late).length}</b> with a dose overdue. <About>Categories and doses are entered by clinicians.</About></> : "Reading the register…"}
     views={biteViews} columns={biteCols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.ref} ${r.area}`}
     preview={bitePreview} loading={!sample && !reg.data && !reg.error} error={reg.error} empty={{ none: "No bites recorded yet", hint: "Each presentation is recorded by the clinic." }}
     action={<Link href="/health/bites/new" className="nx-btn is-keep">Record a bite</Link>} />;
 }
 
 /* ── PEP doses due ─────────────────────────────────────────────────── */
-type DoseRow = { id: string; code: string; ref: string; dose: string; due: string; late: boolean; isToday: boolean; reminder: string; href?: string; doseNo?: number; dueOn?: string };
+type DoseRow = { id: string; code: string; ref: string; dose: string; due: string; late: boolean; isToday: boolean; reminder: string; href?: string; doseNo?: number; dueOn?: string; phone?: string | null };
 const doseCols: Col<DoseRow>[] = [
-  { label: "Presentation", width: "minmax(0, 1.3fr)", render: (r) => <span className="nx-cell-main"><span><b className="num">{r.code}</b><small>{r.ref}</small></span></span> },
-  { label: "Dose", width: "140px", render: (r) => <span className="nx-t2">{r.dose}</span> },
+  /* On a phone the row also says whether the patient can be called and the last call, the nurse's next decision. */
+  { label: "Presentation", width: "minmax(0, 1.3fr)", render: (r) => <span className="nx-cell-main"><span><b className="num">{r.code}</b><small>{r.ref}<span className="nx-only-s"> · {r.dose}</span></small><small className="nx-only-s">{r.phone === null ? "No calls agreed" : r.reminder === "None yet" ? "Not called yet" : `Last call: ${r.reminder}`}</small></span></span> },
+  { label: "Dose", width: "140px", hideOnPhone: true, render: (r) => <span className="nx-t2">{r.dose}</span> },
   { label: "Due", width: "150px", render: (r) => r.late ? <Chip tone="bad">{r.due}</Chip> : r.isToday ? <Chip tone="accent">Today</Chip> : <span className="nx-t3">{r.due}</span> },
   { label: "Last reminder", width: "minmax(0, 1fr)", hideOnPhone: true, render: (r) => <span className="nx-t3">{r.reminder}</span> },
 ];
@@ -95,16 +97,16 @@ const SAMPLE_DOSES: DoseRow[] = [
 export function Pep() {
   const live = useLive(); const org = useClinic();
   const due = useRead<ClinicDue>(() => call("oh_clinic_due", { p_facility: org!.org_id }), `nx-due:${org?.org_id}`, !!org && !isLab(org));
-  const rows = useMemo<DoseRow[]>(() => (org && due.data ? due.data.due.map((x) => { const t = due.data!.today, late = x.due_on < t; return { id: x.dose_id, code: x.code, ref: x.patient_ref ?? "No reference", dose: `Dose ${x.dose_no} of ${x.doses_total}`, due: late ? `Overdue since ${d(x.due_on)}` : x.due_on === t ? "Today" : d(x.due_on), late, isToday: x.due_on === t, reminder: x.last_reminder ? `${d(x.last_reminder.at)}, ${word(x.last_reminder.outcome).toLowerCase()}` : "None yet", href: `/health/bites/${x.exposure_id}`, doseNo: x.dose_no, dueOn: x.due_on }; }) : []), [org, due.data]);
+  const rows = useMemo<DoseRow[]>(() => (org && due.data ? due.data.due.map((x) => { const t = due.data!.today, late = x.due_on < t; return { id: x.dose_id, code: x.code, ref: x.patient_ref ?? "No reference", dose: `Dose ${x.dose_no} of ${x.doses_total}`, due: late ? `Overdue since ${d(x.due_on)}` : x.due_on === t ? "Today" : d(x.due_on), late, isToday: x.due_on === t, reminder: x.last_reminder ? `${d(x.last_reminder.at)}, ${word(x.last_reminder.outcome).toLowerCase()}` : "None yet", href: `/health/bites/${x.exposure_id}`, doseNo: x.dose_no, dueOn: x.due_on, phone: x.phone }; }) : []), [org, due.data]);
   if (!live.ready) return <Shell ws="health" crumb={["Healthcare", "PEP"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const sample = !live.org;
   if (!sample && (!org || isLab(org))) return <NotHealth crumb="PEP" />;
   const list = sample ? SAMPLE_DOSES : rows;
-  return <ListPage ws="health" crumb={["Healthcare", "PEP"]} eyebrow={sample ? CLINIC.name : org!.name} title="Doses due" sample={sample}
-    sub={sample || due.data ? <><b className="num">{list.filter((r) => r.isToday).length}</b> due today, <b className="num">{list.filter((r) => r.late).length}</b> overdue. Schedules are the clinician&apos;s; StrayPaw only counts the days.</> : "Reading doses…"}
+  return <ListPage ws="health" crumb={["Healthcare", "PEP"]} eyebrow={<>{sample ? CLINIC.name : org!.name}<GhMark /></>} title="Doses due" sample={sample}
+    sub={sample || due.data ? <><b className="num">{list.filter((r) => r.isToday).length}</b> due today, <b className="num">{list.filter((r) => r.late).length}</b> overdue. <About>Schedules are the clinician&apos;s; StrayPaw only counts the days.</About></> : "Reading doses…"}
     views={[{ id: "all", label: "All due", test: () => true }, { id: "today", label: "Today", test: (r: DoseRow) => r.isToday }, { id: "late", label: "Overdue", test: (r: DoseRow) => r.late }]}
     columns={doseCols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.dose}`} sort={(a, b) => Number(b.late) - Number(a.late)}
-    preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.ref} · {r.dose}</>, body: <><dl className="nx-props"><div><dt>Due</dt><dd>{r.due}</dd></div><div><dt>Reminder</dt><dd style={{ fontWeight: 400 }}>{r.reminder}</dd></div></dl><PepDose sample={sample} orgId={org?.org_id ?? null} dose={r.doseNo && r.dueOn ? { dose_id: r.id, dose_no: r.doseNo, due_on: r.dueOn, label: r.ref } : null} onDone={due.reload} /><p className="nx-note" style={{ marginTop: 14 }}><Info size={13} /><span>A dose counts as given only when a person records it at the clinic. A reminder sent is not a dose given.</span></p>{privacy}</>, href: r.href, hrefLabel: "Open the clinical record", hrefNote: "The course, every dose and the reminder calls are in the clinical record." })}
+    preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.ref} · {r.dose}</>, body: <><dl className="nx-props"><div><dt>Due</dt><dd>{r.due}</dd></div><div><dt>Reminder</dt><dd style={{ fontWeight: 400 }}>{r.reminder}</dd></div></dl><DoseCall sample={sample} orgId={org?.org_id ?? null} doseId={r.id} phone={r.phone ?? null} onDone={due.reload} /><PepDose sample={sample} orgId={org?.org_id ?? null} dose={r.doseNo && r.dueOn ? { dose_id: r.id, dose_no: r.doseNo, due_on: r.dueOn, label: r.ref } : null} onDone={due.reload} /><p className="nx-note" style={{ marginTop: 14 }}><Info size={13} /><span>A dose counts as given only when a person records it at the clinic. A reminder sent is not a dose given.</span></p>{privacy}</>, href: r.href, hrefLabel: "Open the clinical record", hrefNote: "The course, every dose and the reminder calls are in the clinical record." })}
     loading={!sample && !due.data && !due.error} error={due.error} empty={{ none: "No doses are due", hint: "Everyone in a course is up to date." }} />;
 }
 
@@ -134,8 +136,8 @@ export function Samples({ title = "Samples" }: { title?: string }) {
   if (!sample && !isLab(org)) return <Shell ws="health" crumb={["Healthcare", title]}><div className="nx-page"><h1 className="nx-h1">{title}</h1><p className="nx-sub">Receiving and testing samples is a laboratory&apos;s work. {org ? `${org.name} is not a laboratory.` : "Your account is not part of a laboratory."}</p><p style={{ marginTop: 16 }}><Link href="/health/samples/new" className="nx-btn is-quiet">Send a sample to a laboratory</Link></p></div></Shell>;
   const data: SRow[] = sample ? LAB_SAMPLES.map((r) => ({ ...r, href: `/health/samples/${r.id}` })) : list;
   const queue = data.filter((r) => r.status !== "Resulted");
-  return <ListPage ws="health" crumb={["Healthcare", title]} eyebrow={sample ? "Reference Rabies Diagnostic Laboratory" : org!.name} title={title} sample={sample}
-    sub={sample || rows.data ? <><b className="num">{queue.length}</b> in the queue{queue.length ? <>, the oldest collected <b className="num">{Math.max(...queue.map((r) => r.days))}</b> days ago</> : null}. A result is released when a laboratory scientist records it with the method and validates it.</> : "Reading samples…"}
+  return <ListPage ws="health" crumb={["Healthcare", title]} eyebrow={<>{sample ? "Reference Rabies Diagnostic Laboratory" : org!.name}<GhMark /></>} title={title} sample={sample}
+    sub={sample || rows.data ? <><b className="num">{queue.length}</b> in the queue{queue.length ? <>, the oldest collected <b className="num">{Math.max(...queue.map((r) => r.days))}</b> days ago</> : null}. <About>A result is released when a laboratory scientist records it with the method and validates it.</About></> : "Reading samples…"}
     views={sViews} columns={sCols} rows={data} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.species} ${r.from} ${r.area}`} sort={(a, b) => b.days - a.days}
     preview={(r) => ({ title: <span className="num">{r.code}</span>, sub: <>{r.species} · {r.type} <Chip tone={STATUS[r.status] ?? "plain"}>{r.status}</Chip></>, body: <><dl className="nx-props"><div><dt>From</dt><dd>{r.from}</dd></div><div><dt>Place</dt><dd>{r.area}</dd></div><div><dt>Collected</dt><dd>{r.collected}</dd></div><div><dt>Result</dt><dd>{r.result ?? "Not released"}</dd></div></dl>{sample ? <LabSteps compact sample s={{ id: r.id, code: r.code, status: r.status.toLowerCase(), species: r.species.toLowerCase(), sample_type: r.type.toLowerCase().replace(/ /g, "_") }} onDone={() => {}} /> : r.raw ? <LabSteps compact s={r.raw} onDone={rows.reload} /> : null}<p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Receiving, testing and releasing a result are steps taken by named laboratory staff. Kaju never interprets or releases a result.</span></p></>, href: r.href, hrefLabel: "Open the sample", hrefNote: "Chain of custody and the result are recorded on the sample." })}
     loading={!sample && !rows.data && !rows.error} error={rows.error} empty={{ none: "No samples have been sent to this laboratory", hint: "Partners send samples from their workspace." }} />;
@@ -189,7 +191,7 @@ export function HealthToday() {
   return (
     <Shell ws="health" crumb={["Healthcare", "Today"]}>
       <div className="nx-page hm-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{sample ? CLINIC.name : org!.name}{sample ? <SampleChip /> : null}</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{doses === undefined ? "Reading the day…" : doses === null ? "The doses due could not be read, so nothing is shown as clear." : <><b className="num">{doses}</b> {doses === 1 ? "dose" : "doses"} due today{late ? <>, <b className="num">{late}</b> overdue</> : null}. <b className="num">{waitN ?? "—"}</b> waiting for a clinician.</>}</p></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{sample ? CLINIC.name : org!.name}{sample ? <SampleChip /> : null}<GhMark /></p><h1 className="nx-h1">Today</h1><p className="nx-sub">{doses === undefined ? "Reading the day…" : doses === null ? "The doses due could not be read, so nothing is shown as clear." : <><b className="num">{doses}</b> {doses === 1 ? "dose" : "doses"} due today{late ? <>, <b className="num">{late}</b> overdue</> : null}. <b className="num">{waitN ?? "—"}</b> waiting for a clinician.</>}</p></div>
           <Link href="/health/bites/new" className="nx-btn is-keep">Record a bite</Link></div>
         <AtKaju role="clinic" note="Kaju reads only what you can open. Clinical decisions stay with you." />
         <Tiles>
@@ -249,7 +251,7 @@ function LabToday({ org }: { org: Workspace }) {
   return (
     <Shell ws="health" crumb={["Healthcare", "Work queue"]}>
       <div className="nx-page hm-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{org.name}</p><h1 className="nx-h1">Work queue</h1><p className="nx-sub">{rows.error ? "Samples could not be read, so nothing is shown as clear." : !rows.data ? "Reading samples…" : "A result is released when a laboratory scientist records it with the method and validates it."}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{org.name}<GhMark /></p><h1 className="nx-h1">Work queue</h1><p className="nx-sub">{rows.error ? "Samples could not be read, so nothing is shown as clear." : !rows.data ? "Reading samples…" : <><About>A result is released when a laboratory scientist records it with the method and validates it.</About></>}</p></div></div>
         <AtKaju role="lab" note="Kaju reads only what you can open. Results are released by laboratory staff, never by Kaju." />
         <Tiles>
           <Tile label="On the way here" n={n(arriving.length)} href="/health/samples?view=transit" note={arriving[0] ? `The oldest collected ${days(age(arriving[0]))} ago` : undefined} />
