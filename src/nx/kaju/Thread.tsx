@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Check as Tick, Loader2 } from "lucide-react";
+import { ArrowUpRight, Check as Tick, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Blocks } from "./Blocks";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
-import { appHref, useKaju, type Turn } from "./state";
+import { appHref, useKaju, type Feedback, type Turn } from "./state";
 import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
@@ -84,8 +85,40 @@ function ProposalCard({ turn, p }: { turn: Turn; p: Proposal }) {
   );
 }
 
+/* One tap to say whether an answer helped. A second, optional row asks one thing: why not, or how much time it saved.
+   Nothing here is required, and it disappears once answered. Only answers the server logged (reply.turnId) are rateable. */
+const WHY_NOT: [string, string][] = [["wrong", "Wrong"], ["incomplete", "Missed something"], ["not_useful", "Not useful"], ["other", "Other"]];
+const SAVED: [number, string][] = [[5, "5 min"], [15, "15 min"], [30, "30 min"], [60, "1 h+"]];
+function Rate({ t }: { t: Turn }) {
+  const { rate } = useKaju();
+  const [step, setStep] = useState<"why" | "time" | "done" | null>(null);
+  const [note, setNote] = useState("");
+  const [why, setWhy] = useState<string | null>(null);
+  if (!t.reply?.turnId) return null;
+  const send = (f: Feedback, next: typeof step) => { void rate(t.id, f); setStep(next); };
+  return (
+    <div className="nx-krate" role="group" aria-label="Was this answer useful?">
+      {step === "done" ? <span className="nx-t3" role="status">Thanks. This helps decide what Kaju learns to do next.</span> : <>
+        <span className="nx-t3">Useful?</span>
+        <button type="button" className="nx-ib is-sm" aria-pressed={t.rated === 1} aria-label="Yes, useful" onClick={() => send({ rating: 1 }, "time")}><ThumbsUp size={13} /></button>
+        <button type="button" className="nx-ib is-sm" aria-pressed={t.rated === -1} aria-label="No, not useful" onClick={() => send({ rating: -1 }, "why")}><ThumbsDown size={13} /></button>
+        {step === "time" ? <span className="nx-krate-more"><span className="nx-t3">Time saved?</span>{SAVED.map(([m, l]) => <button key={m} type="button" className="nx-chipbtn" onClick={() => send({ rating: 1, reason: "saved_time", minutesSaved: m }, "done")}>{l}</button>)}<button type="button" className="nx-link" onClick={() => setStep("done")}>Skip</button></span> : null}
+        {step === "why" ? <span className="nx-krate-more">
+          {WHY_NOT.map(([k, l]) => <button key={k} type="button" className="nx-chipbtn" aria-pressed={why === k} onClick={() => setWhy(k)}>{l}</button>)}
+          <form onSubmit={(e) => { e.preventDefault(); send({ rating: -1, reason: why ?? "other", comment: note.trim() || undefined }, "done"); }} className="nx-krate-f">
+            <label className="sr-only" htmlFor={`kr-${t.id}`}>What should Kaju have done?</label>
+            <input id={`kr-${t.id}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="What should Kaju have done? (optional)" aria-describedby={`kr-${t.id}-who`} />
+            <button type="submit" className="nx-btn is-sm is-quiet">Send</button>
+          </form>
+          <span id={`kr-${t.id}-who`} className="nx-t3" style={{ flexBasis: "100%" }}>Your organisation&apos;s leads and StrayPaw can read these words, without your name.</span>
+        </span> : null}
+      </>}
+    </div>
+  );
+}
+
 export function Thread({ compact }: { compact?: boolean }) {
-  const { turns, ask, stop, retry, page } = useKaju();
+  const { turns, ask, stop, retry, page, busy } = useKaju();
   const calm = useReducedMotion();
   const shown = compact ? turns.slice(-4) : turns;
   if (!turns.length) return null;
@@ -101,12 +134,14 @@ export function Thread({ compact }: { compact?: boolean }) {
                 {t.error ? <div className="nx-kerr" role="alert"><p>{t.error}</p>{t.kind === "expired" ? <Link className="nx-btn is-sm" href={`/sign-in?next=${encodeURIComponent(page.path || "/kaju")}`}>Sign in</Link> : <button type="button" className="nx-btn is-quiet is-sm" onClick={() => retry(t.id)}>Try again</button>}</div> : null}
                 {t.reply ? <>
                   <KText text={t.reply.text} />
+                  {t.reply.blocks?.length ? <Blocks blocks={t.reply.blocks} busy={busy || !!t.restored} onSend={(x) => void ask(x)} /> : null}
                   {t.reply.citations?.length ? <div className="nx-kcite" aria-label="Records Kaju read">{t.reply.citations.slice(0, compact ? 4 : 12).map((c) => <Link key={c.id + c.href} href={appHref(c.href)} className="nx-reclink"><ArrowUpRight size={12} />{c.label}</Link>)}</div> : null}
                   {t.reply.proposals?.map((p) => <ProposalCard key={p.id} turn={t} p={p} />)}
                   {t.reply.navigate ? <p><Link className="nx-btn is-quiet is-sm" href={appHref(t.reply.navigate.href)}>{t.reply.navigate.label}<ArrowUpRight size={12} /></Link></p> : null}
                   {!compact && t.reply.tools?.length ? <details className="nx-ktools"><summary>What Kaju checked ({t.reply.tools.length})</summary><ul>{t.reply.tools.map((x, i) => <li key={i} className={x.ok ? "" : "is-bad"}>{x.summary}</li>)}</ul></details> : null}
                   {t.reply.suggestions?.length ? <div className="nx-ksugg">{t.reply.suggestions.slice(0, 3).map((s) => <button key={s} type="button" onClick={() => void ask(s)}>{s}</button>)}</div> : null}
-                  <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : DEMO_SITE ? "Answered from records you can see." : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}</p>
+                  <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : DEMO_SITE ? "Answered from records you can see." : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}{t.restored ? " · From a saved conversation" : ""}</p>
+                  {!t.restored ? <Rate t={t} /> : null}
                 </> : null}
               </div>
             </div>

@@ -46,13 +46,14 @@ export function photoCheckAvailable() {
 export async function checkSightingPhoto(photoUrl: string, requestedBy: { userId: string | null; orgId?: string | null } = { userId: null }): Promise<PhotoVerdict> {
   if (!photoCheckAvailable()) return { ok: false, reason: "Photo check unavailable" };
   if (!/^https:\/\//i.test(photoUrl)) return { ok: false, reason: "Photo is not a public https link" };
-  const creds = await modelCredentials(await inferenceAllowed({ purpose: "photo_check", userId: requestedBy.userId, orgId: requestedBy.orgId ?? null }));
-  if (!creds || creds.gateway) return { ok: false, reason: "Photo check unavailable" };
+  const decision = await inferenceAllowed({ purpose: "photo_check", userId: requestedBy.userId, orgId: requestedBy.orgId ?? null });
+  const creds = await modelCredentials(decision);
+  if (!creds || creds.gateway || !decision.allowed) return { ok: false, reason: "Photo check unavailable" };
   const client = new Anthropic({ apiKey: creds.token, timeout: 25_000, maxRetries: 0 });
   try {
     const response = await withInferenceSlot(() => client.beta.messages.create({
       model: "claude-opus-5-5",
-      max_tokens: 4000,
+      max_tokens: Math.min(decision.budget.maxOutputTokens, 1000),
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
       output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },

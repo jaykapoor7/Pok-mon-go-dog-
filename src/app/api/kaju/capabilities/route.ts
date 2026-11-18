@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { caller, capabilitiesFor } from "@/lib/connections/server";
-import { kajuStatus, mailAppsReady } from "@/lib/kaju/status";
+import { kajuStatus, mailAppsReady, modelReady } from "@/lib/kaju/status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,5 +17,8 @@ export async function GET(req: Request) {
     if (caps) mail = Object.values(caps).some((list) => (list ?? []).includes("mail.send"));
   } catch { mail = null; }
   const items = kajuStatus(process.env, mail);
-  return NextResponse.json({ items, planning: items.find((i) => i.id === "model")?.state === "live" }, { headers: { "Cache-Control": "no-store" } });
+  /* In owner-only rollout the owner's own verified account plans with the model; everyone else uses the fixed jobs.
+     The gate checks again on every request; this only decides what the composer offers. */
+  const owner = (process.env.STRAYPAW_AI_ROLLOUT?.trim() || "owner") === "owner" && modelReady() && c.verified === true && process.env.STRAYPAW_AI_OWNER_USER_ID?.trim().toLowerCase() === c.userId.toLowerCase();
+  return NextResponse.json({ items, planning: owner || items.find((i) => i.id === "model")?.state === "live" }, { headers: { "Cache-Control": "no-store" } });
 }

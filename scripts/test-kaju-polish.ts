@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {answer,privateModelApproved} from '../src/sp3/ai/engine';
 import {setInferenceLedger} from '../src/lib/ai/inference';
-const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50',STRAYPAW_AI_INR_PER_MTOK_IN:'420',STRAYPAW_AI_INR_PER_MTOK_OUT:'2100'};
+const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50',STRAYPAW_AI_INR_PER_MTOK_IN:'420',STRAYPAW_AI_INR_PER_MTOK_OUT:'2100',STRAYPAW_AI_ROLLOUT:'grants',STRAYPAW_AI_RUN_MAX_INR:'50'};
 import {isAiReply,safeAiHref,auditReference} from '../src/sp3/ai/validation';
 import {buildReport} from '../src/lib/files/reports';
 import {readSnapshot} from '../src/sp3/ai/snapshots';
@@ -24,14 +24,14 @@ async function main(){
  const a=await readAiScope(db,'user');ngo='org-b';const b=await readAiScope(db,'user');assert.notEqual(a.scope,b.scope);role='member';assert.notEqual(b.scope,(await readAiScope(db,'user')).scope);ok('organisation and role changes produce distinct server scope fingerprints');
  await assert.rejects(readAiScope({rpc:async()=>({data:null,error:{message:'denied'}})} as unknown as SupabaseClient,'user'));ok('workspace lookup errors fail closed');
  const saved={key:process.env.ANTHROPIC_API_KEY,approval:process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE,model:process.env.STRAYPAW_AI_MODEL};const fetcher=globalThis.fetch;
- const context:ToolCtx={db,orgId:'private-org',userId:'user',userName:'Private name'};let requests=0;
+ const context:ToolCtx={db,orgId:'private-org',userId:'user',userVerified:true,userName:'Private name'};let requests=0;
  try{
-  Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0})});
+  Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0,live:true,userGrant:{monthlyBudgetInr:100,dailyRequests:50},orgGrant:null,userMonthInr:0,orgMonthInr:0}),reserve:async()=>'res-1',settle:async()=>true});
   process.env.ANTHROPIC_API_KEY='isolated-test-key';delete process.env.STRAYPAW_AI_MODEL;delete process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE;
   globalThis.fetch=async()=>{requests++;throw Error('should not leave StrayPaw')};
   const reply=await answer([{role:'user',text:'Hello'}],context,{});assert.equal(reply.engine,'tools');assert.equal(requests,0);assert.match(reply.notice??'',/inside StrayPaw/);ok('private workspace text never reaches an unapproved model route');
-  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='gateway:google/gemini-2.5-flash';assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'private-org'}),false);ok('approval for another transport/model cannot enable this route');
-  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='direct:claude-opus-5-5';assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'private-org'}),true);
+  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='gateway:google/gemini-2.5-flash';assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'private-org',verified:true}),false);ok('approval for another transport/model cannot enable this route');
+  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='direct:claude-opus-5-5';assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'private-org',verified:true}),true);
   const cancelled=new AbortController();cancelled.abort();await assert.rejects(answer([{role:'user',text:'Hello'}],context,{signal:cancelled.signal}));assert.equal(requests,0);ok('cancelled model requests stop before provider access');
   globalThis.fetch=async()=>{requests++;return new Response('unavailable',{status:503})};
   const error=await answer([{role:'user',text:'Hello'}],context,{});assert.equal(error.engine,'tools');assert.equal(requests,1);ok('provider errors fall back honestly, without automatic retries or writes');

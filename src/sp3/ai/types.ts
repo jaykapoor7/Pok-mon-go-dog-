@@ -58,11 +58,19 @@ export type AiReply = {
   suggestions?: string[];
   engine: "model" | "tools";
   notice?: string;
+  /** Server only: tokens and rupee cost of a model run, for the usage log. Removed before the reply leaves the server. */
+  usage?: { inputTokens: number; outputTokens: number; costInr: number };
+  /** The pilot log row for this answer, so the person can rate it. Absent when nothing was logged. */
+  turnId?: string;
 };
 
 export type ChatTurn = { role: "user" | "assistant"; text: string };
 export type AiRequest = { messages: ChatTurn[]; context?: { path?: string; workspace?: string; scope?: string; /** What the person is looking at: the page title and a record label, shown by the page itself. Untrusted. */ title?: string;
   /** The record a note is about, sent by a record page ("Tell Kaju"). Untrusted: read again with the person's own access before use. */
-  caseId?: string; dogId?: string } };
+  caseId?: string; dogId?: string;
+  /** Where Kaju was asked from (dock, page, channel, voice, capture), for the pilot log only. */
+  surface?: string };
+  /** The person pressed Try again on an earlier answer (pilot log only). */
+  retry?: boolean };
 
 export const CARE_KINDS = ["sterilisation", "vaccination", "treatment", "checkup", "deworming", "other"] as const;

@@ -136,7 +136,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   ];
 
   return (
-    <Shell crumb={["Cases", code]}>
+    <Shell crumb={["Cases", code]} subject={{ kind: "case", caseId: c.id, dogId: c.dog_id ?? null, label: code }}>
       <RecordHead av={<PawPrint size={18} />} title={<><span className="num">{code}</span> · {title}</>}
         sub={<>{place || "Place not recorded"} · recorded {day(reg.occurred_at)} · {c.assignee_name ? <>held by <b>{c.assignee_name}</b></> : "nobody holds it yet"}</>}
         chips={<><Chip tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>{imported ? <Chip>Imported record</Chip> : null}{cohort === "decide" ? <Chip tone="warn">Waiting on a decision</Chip> : null}</>}
