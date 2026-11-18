@@ -129,7 +129,7 @@ test("Operations: care log and the two lanes sit beside the visits, with field m
   await expect(page.getByRole("heading", { name: /In care/ })).toBeVisible();
   /* On a phone, field mode is in the "+" sheet, one tap from every page, so Operations does not repeat it. */
   if (test.info().project.name === "mobile") {
-    await page.getByRole("button", { name: /^New: record/ }).click();
+    await page.getByRole("button", { name: /^New record/ }).click();
     await expect(page.getByRole("dialog", { name: "New" }).getByRole("link", { name: /^Field mode/ })).toHaveAttribute("href", "/ngo/field");
   } else await expect(page.getByRole("link", { name: "Open field mode" })).toHaveAttribute("href", "/ngo/field");
 });
