@@ -10,7 +10,7 @@ import { Denied, Failed, Field, GeoField, Skeleton, useAct } from "../../kit";
 import { useLive } from "../../live";
 import type { Tone } from "../../fixtures";
 import { ago, can, placeOf, usePlaces } from "../../data/govhealth";
-import { Block, Opening, Seg, TryLink } from "../gh/parts";
+import { About, Block, GhMark, Opening, Seg, TryLink } from "../gh/parts";
 
 /* What this facility can provide today, as a named person confirms it for one to seven days at a time, and its
    public details. Patients, referring centres and the programme read these confirmations. An expired confirmation
@@ -63,7 +63,7 @@ function View({ sample, place, org, reloadOrg }: { sample: boolean; place: Place
     <Shell ws="health" crumb={["Facilities", "Our services"]}>
       <div className="nx-page" style={{ maxWidth: 880 }}>
         <div className="nx-head"><div><p className="nx-eyebrow">{org.name}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Our services</h1>
-          <p className="nx-sub">{!sample && !rows.data ? "Reading what was confirmed…" : stale ? <><b className="num">{stale}</b> of {offered.length} {stale === 1 ? "service needs" : "services need"} confirming. </> : "Every service is confirmed. "}A confirmation lasts up to a week. Patients, referring centres and the programme see it with its date.</p></div>
+          <p className="nx-sub">{!sample && !rows.data ? "Reading what was confirmed…" : stale ? <><b className="num">{stale}</b> of {offered.length} {stale === 1 ? "service needs" : "services need"} confirming. </> : "Every service is confirmed. "}<About>A confirmation lasts up to a week. Patients, referring centres and the programme see it with its date.</About><GhMark /></p></div>
           <Link href="/health/facilities" className="nx-btn is-quiet">All facilities</Link></div>
         {rows.error ? <Failed error={rows.error} retry={rows.reload} /> : !sample && !rows.data ? <Skeleton rows={3} /> : (
           <Block title="What we can provide">
