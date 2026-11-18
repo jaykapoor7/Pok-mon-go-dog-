@@ -24,12 +24,12 @@ const quiet = <T>(f: () => Promise<T>) => { const info = console.info; console.i
 /* ── worlds ──────────────────────────────────────────────────────────── */
 function ngo(opts: Parameters<typeof ngoWorld>[0] & { pagePath?: string; subject?: ToolCtx["subject"]; workspace?: string } = {}) {
   const w = ngoWorld(opts); const f = fakeDb(w.tables, w.rpcs);
-  const ctx: ToolCtx = { db: f.db, orgId: ORG, userId: ME, userName: "Asha Menon", actorRole: "coordinator", pagePath: opts.pagePath ?? "/ngo/today", subject: opts.subject, workspace: opts.workspace ?? null };
+  const ctx: ToolCtx = { db: f.db, orgId: ORG, userId: ME, userVerified: true, userName: "Asha Menon", actorRole: "coordinator", pagePath: opts.pagePath ?? "/ngo/today", subject: opts.subject, workspace: opts.workspace ?? null };
   return { ctx, ...f };
 }
 function clinic(role: "clinician" | "nurse" | "records" | "field" = "clinician") {
   const w = healthWorld({ role }); const f = fakeDb(w.tables, w.rpcs);
-  const ctx: ToolCtx = { db: f.db, orgId: null, userId: ME, userName: "Dr Asha Menon", actorRole: null, pagePath: "/health/today" };
+  const ctx: ToolCtx = { db: f.db, orgId: null, userId: ME, userVerified: true, userName: "Dr Asha Menon", actorRole: null, pagePath: "/health/today" };
   return { ctx, world: w, ...f };
 }
 const office = () => { const w = ngoWorld(); const f = fakeDb(w.tables, { ...w.rpcs, nx_my_workspaces: () => ({ data: [{ org_id: "0ff1ce00-0000-4000-8000-000000000001", name: "Ward Office", workspace: "government", kind: "municipal", role: "reviewer" }], error: null }) }); return { ctx: { db: f.db, orgId: null, userId: "0ff1ce00-0000-4000-8000-0000000000a1", userName: "Lata", actorRole: "municipal_reviewer", pagePath: "/gov/verification" } as ToolCtx, ...f }; };
@@ -396,7 +396,7 @@ async function main() {
   {
     const ON = { STRAYPAW_AI_MODE: "model", STRAYPAW_AI_AUTHORISED_BY: "test:2026-11-03", STRAYPAW_AI_MONTHLY_CEILING_INR: "100", STRAYPAW_AI_USER_DAILY_REQUESTS: "50", STRAYPAW_AI_ORG_DAILY_REQUESTS: "50", STRAYPAW_AI_INR_PER_MTOK_IN: "420", STRAYPAW_AI_INR_PER_MTOK_OUT: "2100", STRAYPAW_AI_ROLLOUT: "grants", STRAYPAW_AI_RUN_MAX_INR: "50", ANTHROPIC_API_KEY: "isolated-test-key", STRAYPAW_AI_APPROVED_DATA_ROUTE: "direct:claude-opus-5-5" } as const;
     const saved = Object.fromEntries(Object.keys(ON).map((k) => [k, process.env[k]]));
-    Object.assign(process.env, ON); setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 0, live: true, userGrant: { monthlyBudgetInr: 100, dailyRequests: 50 }, orgGrant: null, userMonthInr: 0, orgMonthInr: 0 }) });
+    Object.assign(process.env, ON); setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 0, live: true, userGrant: { monthlyBudgetInr: 100, dailyRequests: 50 }, orgGrant: null, userMonthInr: 0, orgMonthInr: 0 }), reserve: async () => 'res-1', settle: async () => true });
     const originalFetch = globalThis.fetch;
     let calls = 0;
     globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ id: "m", type: "message", role: "assistant", model: "test", stop_reason: "end_turn", content: [{ type: "text", text: "Hello from the model." }], usage: { input_tokens: 1, output_tokens: 1 } }), { headers: { "content-type": "application/json" } }); };

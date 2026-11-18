@@ -4,6 +4,7 @@ import { allowUserRequest } from "@/lib/rate-limit";
 import { TOOL_NAMES, preview, type Intent } from "@/lib/kaju/registry";
 import { choosePlanner, type PlanContext } from "@/lib/kaju/planner";
 import { modelPlanner } from "@/lib/kaju/claude";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     people: ((people.data ?? []) as { user_id: string; name: string }[]).map((p) => ({ id: p.user_id, name: p.name })),
     places: ((zones.data ?? []) as ({ zone?: string; name?: string } | string)[]).map((z) => (typeof z === "string" ? z : z.zone ?? z.name ?? "")).filter(Boolean),
   };
-  const planner = await choosePlanner(ctx, () => modelPlanner({ purpose: "kaju_chat", userId: c.userId, orgId: org.org_id, db: c.db, verified: c.verified === true }));
+  const planner = await choosePlanner(ctx, () => modelPlanner({ purpose: "kaju_chat", userId: c.userId, orgId: org.org_id, db: c.db, verified: c.verified === true, admin: getSupabaseAdmin() }));
   if ("unavailable" in planner) return NextResponse.json({ ok: false, error: planner.unavailable, model: false });
   const r = await planner.plan(ctx, req.signal);
   if (!r.ok) return NextResponse.json({ ok: false, error: r.error, planner: r.planner });

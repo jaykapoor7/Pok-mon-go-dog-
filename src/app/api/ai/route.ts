@@ -7,6 +7,7 @@ import { inferenceMode } from "@/lib/ai/inference";
 import { readAiScope } from "@/sp3/ai/scope";
 import type { AiReply, AiRequest } from "@/sp3/ai/types";
 import { logTurn, SURFACES, type Surface } from "@/sp3/ai/telemetry";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { caller as connCaller, capabilitiesFor } from "@/lib/connections/server";
 
 export const runtime = "nodejs";
@@ -34,7 +35,7 @@ export async function GET(req:Request) {
   const db=callerClient(token,req.signal);if(!db||!token)return NextResponse.json({error:"Sign in again."},{status:401});
   const who=await db.auth.getUser(token);if(who.error||!who.data.user)return NextResponse.json({error:"Your session has expired. Sign in again."},{status:401});
   const verified=!!(who.data.user.email_confirmed_at||who.data.user.phone_confirmed_at);
-  try {const sc=await readAiScope(db,who.data.user.id);return NextResponse.json({model:await privateModelApproved({purpose:"kaju_chat",userId:who.data.user.id,orgId:sc.orgId,db,verified}),mode:inferenceMode(),tools:true,userId:who.data.user.id,...sc},{headers:{"Cache-Control":"no-store"}});}
+  try {const sc=await readAiScope(db,who.data.user.id);return NextResponse.json({model:await privateModelApproved({purpose:"kaju_chat",userId:who.data.user.id,orgId:sc.orgId,db,verified,admin:getSupabaseAdmin()}),mode:inferenceMode(),tools:true,userId:who.data.user.id,...sc},{headers:{"Cache-Control":"no-store"}});}
   catch {return NextResponse.json({error:"Workspace permissions could not be checked."},{status:503});}
 }
 
@@ -78,7 +79,10 @@ export async function POST(req: Request) {
   }
   const turns = body.messages.map((m) => ({ role: m.role === "assistant" ? "assistant" as const : "user" as const, text: String(m.text ?? "") }));
   /* The workspace and the record a page names are hints only: every read and every confirm checks access again. */
-  const baseCtx = { db, orgId, userName, userId, userVerified, actorRole, pagePath:body.context?.path?.split("?")[0].slice(0,200), conn,
+  /* The service-role connection reserves and settles model spend and writes the pilot log, for the user id verified above.
+     It never reads records: every tool read uses the person's own session (db). */
+  const admin = userId ? getSupabaseAdmin() : null;
+  const baseCtx = { db, admin, orgId, userName, userId, userVerified, actorRole, pagePath:body.context?.path?.split("?")[0].slice(0,200), conn,
     workspace: body.context?.workspace?.slice(0, 40) ?? null, subject: { caseId: body.context?.caseId ?? null, dogId: body.context?.dogId ?? null } };
   /* Pilot log: what kind of answer this was, never what was said (src/sp3/ai/telemetry.ts). Signed-in people only. */
   const rawSurface: unknown = body.context?.surface;
@@ -87,7 +91,7 @@ export async function POST(req: Request) {
   const started = Date.now();
   const question = turns[turns.length - 1]?.text ?? "";
   const finish = async (reply: AiReply | null): Promise<AiReply | null> => {
-    const turnId = userId ? await logTurn(db, { orgId, workspace: baseCtx.workspace, surface, path: baseCtx.pagePath ?? null, question, reply, latencyMs: Date.now() - started, retry, error: !reply }) : null;
+    const turnId = userId ? await logTurn(admin, userId, { orgId, workspace: baseCtx.workspace, surface, path: baseCtx.pagePath ?? null, question, reply, latencyMs: Date.now() - started, retry, error: !reply }) : null;
     if (!reply) return null;
     const { usage: _usage, ...out } = reply; void _usage;
     return turnId ? { ...out, turnId } : out;

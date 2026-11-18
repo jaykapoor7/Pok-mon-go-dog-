@@ -1,8 +1,8 @@
 import "server-only";
 import type { AiReply } from "./types";
 
-/* Pilot observability for Kaju: one row per answer in kaju_turn_log, written with the person's own session so
-   row-level security decides. It records what kind of thing happened, never what was said: no question text, no
+/* Pilot observability for Kaju: one row per answer in kaju_turn_log, written by the server (service role) for the
+   person it verified; people read only their own rows. It records what kind of thing happened, never what was said: no question text, no
    answer text, no record names. Everything here is deterministic and costs nothing to run. */
 
 export type Surface = "dock" | "page" | "channel" | "voice" | "capture" | "other";
@@ -72,10 +72,13 @@ export function turnRecord(t: TurnRow) {
   };
 }
 
-/** Write one row. Best effort: a failed write never changes the answer; it returns null and the answer is not rateable. */
-export async function logTurn(db: unknown, t: TurnRow): Promise<string | null> {
+/** Write one row with the server's own connection, for the user id the server verified (people cannot write these rows
+    themselves, so pilot figures cannot be padded). Best effort: a failed or impossible write never changes the answer;
+    it returns null and the answer is not rateable. */
+export async function logTurn(admin: unknown, userId: string, t: TurnRow): Promise<string | null> {
+  if (!admin || !userId) return null;
   try {
-    const { data, error } = await (db as Db).from("kaju_turn_log").insert(turnRecord(t)).select("id").single();
+    const { data, error } = await (admin as Db).from("kaju_turn_log").insert({ user_id: userId, ...turnRecord(t) }).select("id").single();
     if (error || !data || typeof (data as { id?: unknown }).id !== "string") return null;
     return (data as { id: string }).id;
   } catch { return null; }

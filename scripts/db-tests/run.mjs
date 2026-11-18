@@ -28,7 +28,15 @@ const MIGRATIONS = [
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
 const db = new PGlite();
 await db.exec(readFileSync(join(here, "base.sql"), "utf8"));
+/* Supabase grants every privilege on new tables and functions in public to anon, authenticated and service_role by
+   default. Reproduce that before the Kaju intelligence migration, so its tests see the same privileges production would
+   (a migration that forgets to revoke them must fail here). */
+const SUPABASE_DEFAULTS = `alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+  grant usage on schema public to service_role;`;
 for (const m of MIGRATIONS) {
+  if (m === "20261119090000_kaju_intelligence_layer.sql") await db.exec(SUPABASE_DEFAULTS);
   try { await db.exec(readFileSync(join(MIG, m), "utf8")); }
   catch (e) { console.error(`Migration failed: ${m}\n  ${e.message}`); process.exit(1); }
 }
@@ -47,6 +55,11 @@ async function as(uid, sql, params = []) {
   await db.query("select set_config('request.jwt.claims', $1, false)", [JSON.stringify({ sub: uid, role: "authenticated" })]);
   await db.exec("set role authenticated");
   try { return (await db.query(sql, params)).rows; } finally { await db.exec("reset role"); await db.query("select set_config('request.jwt.claims', '', false)"); }
+}
+/** Run SQL as the server's service role (used only for what the server alone may do). */
+async function asService(sql, params = []) {
+  await db.exec("set role service_role");
+  try { return (await db.query(sql, params)).rows; } finally { await db.exec("reset role"); }
 }
 /** The same, expecting the database to refuse. Returns the error message, or null if it was allowed. */
 async function refused(uid, sql, params = []) { try { await as(uid, sql, params); return null; } catch (e) { if (process.env.DB_TEST_VERBOSE) console.log(`    refused: ${e.message}`); return e.message; } }
@@ -794,8 +807,28 @@ section("Kaju model rollout: off by default, grants and budgets per person and o
   ok((await as(B, "select kaju_ai_owner_status() as s"))[0].s === null, "the owner's panel shows nothing to anyone else");
   const st = (await as(A, "select kaju_ai_owner_status() as s"))[0].s;
   ok(st.live === true && st.grants.length === 2, "the owner sees the switch and the active grants");
+  /* Reservations: the binding decision, server only, under one lock. */
+  const reserve = (who, org, amount, ceiling = 1000, ud = 100, od = 100) => asService("select kaju_ai_reserve($1, $2, 'kaju_chat', $3, $4, $5, $6) as r", [who, org, amount, ceiling, ud, od]).then((x) => x[0].r);
+  ok(await refused(A, "select kaju_ai_reserve($1, $2, 'kaju_chat', 1, 1000, 100, 100)", [A, N1]) !== null, "a signed-in person cannot reserve model spend directly");
+  ok(await refused(A, "select kaju_ai_settle(gen_random_uuid(), 'm', 1, 1, 0)") !== null, "nor settle it");
+  ok(await refused(A, "select * from kaju_ai_reservations") !== null, "nor read reservations");
+  // A has ₹1.25 spent and a ₹50 personal grant; each answer reserves ₹10. Four fit (41.25), the fifth would pass 50.
+  const got = []; for (let i = 0; i < 6; i++) got.push(await reserve(A, N1, 10));
+  ok(got.filter((r) => r.ok).length === 4 && got.at(-1).reason === "user_budget", "reservations count against the budget before any run finishes: four ₹10 answers fit in what is left of ₹50, the fifth is refused");
+  ok(Number((await elig(A, N1)).user_month_inr) === 41.25, "reserved spend is counted as spent");
+  const settled = (await asService("select kaju_ai_settle($1, 'claude-test', 1200, 300, 0.5) as ok", [got[0].id]))[0].ok;
+  ok(settled === true && Number((await elig(A, N1)).user_month_inr) === 31.75, "settling replaces the reservation with the real cost");
+  ok((await asService("select kaju_ai_settle($1, 'claude-test', 1, 1, 0) as ok", [got[0].id]))[0].ok === false, "a reservation is settled once");
+  const row = await one("select org_id, ngo_id from kaju_model_usage where model = 'claude-test'");
+  ok(row.org_id === N1 && row.ngo_id === N1, "the run is recorded against the organisation it was for");
+  ok((await reserve(A, N1, 10)).ok === true, "the freed budget can be used again");
+  ok((await reserve(C, N1, 1)).reason === "no_grant", "naming another organisation does not borrow its grant");
+  ok((await reserve(A, N1, 1, 10)).reason === "ceiling", "the deployment ceiling is enforced inside the lock");
+  ok((await reserve(A, N1, 101)).reason === "invalid", "one answer can never reserve more than ₹100");
   await as(A, "select kaju_ai_stop('test stop')");
   ok((await elig(A, N1)).live === false, "the owner's stop turns model use off at once");
+  ok((await reserve(A, N1, 1)).reason === "switched_off", "after the stop no reservation is granted");
+  await db.query("delete from kaju_ai_reservations");
 }
 
 section("Kaju conversations: one's own, inside one's organisation");
@@ -809,6 +842,8 @@ section("Kaju conversations: one's own, inside one's organisation");
   ok(await refused(B, "insert into kaju_threads (org_id, workspace, title) values ($1, 'healthcare', 'patients')", [N1]) !== null, "health-workspace conversations are not saved");
   await as(B, "update kaju_threads set title = 'Late follow-ups' where id = $1", [t]);
   ok((await as(B, "select title from kaju_threads where id = $1", [t]))[0].title === "Late follow-ups", "a person renames their conversation");
+  ok(await refused(B, "update kaju_threads set org_id = null where id = $1", [t]) !== null, "a conversation cannot be moved out of its organisation");
+  ok(await refused(B, "truncate kaju_threads") !== null, "nobody can empty the table");
   await db.query("delete from ngo_members where ngo_id = $1 and user_id = $2", [N1, B]);
   ok((await as(B, "select id from kaju_threads where id = $1", [t])).length === 0, "after leaving the organisation its conversations are hidden");
   await db.query("insert into ngo_members (ngo_id, user_id, role) values ($1, $2, 'member')", [N1, B]);
@@ -818,18 +853,21 @@ section("Kaju conversations: one's own, inside one's organisation");
 
 section("Kaju pilot feedback: no text logged, own rows, aggregates for admins only");
 {
-  const log = async (who, org, extra = {}) => (await as(who, "insert into kaju_turn_log (org_id, engine, outcome, tools, latency_ms, intent, cost_inr) values ($1, $2, $3, $4, $5, $6, $7) returning id",
-    [org, extra.engine ?? "tools", extra.outcome ?? "answered", extra.tools ?? ["query_cases"], extra.ms ?? 300, extra.intent ?? "query_cases", extra.cost ?? null]))[0].id;
+  const log = async (who, org, extra = {}) => (await asService("insert into kaju_turn_log (user_id, org_id, engine, outcome, tools, latency_ms, intent, cost_inr) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id",
+    [who, org, extra.engine ?? "tools", extra.outcome ?? "answered", extra.tools ?? ["query_cases"], extra.ms ?? 300, extra.intent ?? "query_cases", extra.cost ?? null]))[0].id;
   const l1 = await log(B, N1); const l2 = await log(B, N1, { outcome: "no_match", tools: [], intent: "no_match" });
   await log(A, N1, { engine: "model", cost: 2.5, tools: ["work_summary", "show"], intent: "work_summary" });
-  ok(await refused(C, "insert into kaju_turn_log (org_id, engine, outcome) values ($1, 'tools', 'answered')", [N1]) !== null, "nobody logs a turn for an organisation they are not in");
-  ok(await refused(B, "insert into kaju_turn_log (user_id, org_id, engine, outcome) values ($1, $2, 'tools', 'answered')", [A, N1]) !== null, "nobody logs a turn in someone else's name");
+  ok(await refused(B, "insert into kaju_turn_log (user_id, org_id, engine, outcome, cost_inr) values ($1, $2, 'model', 'answered', 999)", [B, N1]) !== null, "people cannot write turn rows themselves, so pilot figures cannot be padded");
+  ok(await refused(B, "update kaju_turn_log set cost_inr = 0 where user_id = $1", [B]) !== null || (await one("select count(*)::int n from kaju_turn_log where cost_inr = 0")).n === 0, "nor change them");
   ok((await as(A, "select id from kaju_turn_log where id = $1", [l1])).length === 0, "one person's turn rows are not readable by others");
   await as(B, "insert into kaju_feedback (turn_id, rating, reason, minutes_saved) values ($1, 1, 'saved_time', 15)", [l1]);
   await as(B, "insert into kaju_feedback (turn_id, rating, reason, comment) values ($1, -1, 'not_useful', 'It did not find the Ward 12 dog')", [l2]);
   ok(await refused(A, "insert into kaju_feedback (turn_id, rating) values ($1, 1)", [l1]) !== null, "nobody rates someone else's answer");
   await as(B, "update kaju_feedback set rating = 1, reason = 'saved_time', minutes_saved = 15, updated_at = now() where turn_id = $1", [l1]);
   ok(await refused(B, "update kaju_feedback set turn_id = $2 where turn_id = $1", [l1, l2]) !== null, "a rating can be changed, but never moved to another answer");
+  const aTurn = (await one("select id from kaju_turn_log where user_id = $1 limit 1", [A])).id;
+  ok(await refused(B, "update kaju_feedback set turn_id = $2 where turn_id = $1", [l2, aTurn]) !== null, "and never onto someone else's answer, even with Supabase's default privileges");
+  ok(await refused(B, "delete from kaju_feedback where turn_id = $1", [l1]) !== null, "ratings are not deleted through the API");
   await as(A, "update kaju_feedback set rating = -1 where turn_id = $1", [l1]);
   ok((await one("select rating from kaju_feedback where turn_id = $1", [l1])).rating === 1, "nobody changes someone else's rating");
   ok((await as(B, "select kaju_pilot_metrics($1, 30) as m", [N1]))[0].m === null, "a member does not see the organisation's aggregates");
@@ -837,7 +875,7 @@ section("Kaju pilot feedback: no text logged, own rows, aggregates for admins on
   const m = (await as(A, "select kaju_pilot_metrics($1, 30) as m", [N1]))[0].m;
   ok(m.turns === 3 && m.people === 2 && m.by_outcome.no_match === 1 && m.feedback.up === 1 && m.feedback.down === 1 && m.feedback.minutes_saved === 15, "the organisation's admin sees counts, outcomes and feedback");
   ok(Number(m.model_cost_inr) === 2.5 && Number(m.cost_per_completed_inr) === 1.25, "cost per completed answer is measured");
-  ok(m.comments.length === 1 && !JSON.stringify(m.comments).includes(B), "comments are shown without who wrote them");
+  ok(m.comments.length === 1 && !JSON.stringify(m.comments).includes(B) && !("at" in m.comments[0]), "comments are shown without who wrote them or when");
   ok(m.top_tools.some((t) => t.tool === "query_cases" && t.runs === 1), "tool use is counted");
   ok((await as(B, "select kaju_pilot_metrics(null, 30) as m"))[0].m === null, "only the owner sees every organisation");
   ok((await as(A, "select kaju_pilot_metrics(null, 30) as m"))[0].m.turns >= 3, "the owner sees the whole pilot");
@@ -848,10 +886,11 @@ section("Kaju intelligence layer: the rollback removes only what the migration a
   const before = (await one("select count(*)::int n from pg_tables where schemaname = 'public'")).n;
   const usage = (await one("select count(*)::int n from kaju_model_usage")).n;
   await db.exec(readFileSync(join(here, "../../supabase/rollback/20261119090000_kaju_intelligence_layer-rollback.sql"), "utf8"));
-  const gone = await one("select count(*)::int n from pg_tables where schemaname = 'public' and tablename in ('kaju_ai_control','kaju_ai_access','kaju_threads','kaju_thread_turns','kaju_turn_log','kaju_feedback')");
-  const fns = await one("select count(*)::int n from pg_proc where pronamespace = 'public'::regnamespace and proname in ('kaju_ai_eligibility','kaju_ai_stop','kaju_ai_owner_status','kaju_pilot_metrics','kaju_threads_purge','kaju_thread_touch')");
-  ok(gone.n === 0 && fns.n === 0, "the rollback removes the six tables and six functions");
-  ok((await one("select count(*)::int n from pg_tables where schemaname = 'public'")).n === before - 6, "no other table is removed");
+  const gone = await one("select count(*)::int n from pg_tables where schemaname = 'public' and tablename in ('kaju_ai_control','kaju_ai_access','kaju_ai_reservations','kaju_threads','kaju_thread_turns','kaju_turn_log','kaju_feedback')");
+  const fns = await one("select count(*)::int n from pg_proc where pronamespace = 'public'::regnamespace and proname in ('kaju_ai_eligibility','kaju_ai_stop','kaju_ai_owner_status','kaju_pilot_metrics','kaju_threads_purge','kaju_thread_touch','kaju_ai_reserve','kaju_ai_settle','kaju_ai_spent')");
+  const col = await one("select count(*)::int n from information_schema.columns where table_name = 'kaju_model_usage' and column_name = 'org_id'");
+  ok(gone.n === 0 && fns.n === 0 && col.n === 0, "the rollback removes the seven tables, nine functions and the added column");
+  ok((await one("select count(*)::int n from pg_tables where schemaname = 'public'")).n === before - 7, "no other table is removed");
   ok((await one("select count(*)::int n from kaju_model_usage")).n === usage && (await one("select count(*)::int n from ai_action_log")).n > 0, "the usage ledger and the action log keep their rows");
   await db.exec(readFileSync(join(here, "../../supabase/rollback/20261119090000_kaju_intelligence_layer-rollback.sql"), "utf8"));
   ok(true, "running the rollback twice is harmless");

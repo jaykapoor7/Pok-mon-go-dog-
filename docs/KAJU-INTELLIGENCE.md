@@ -65,17 +65,26 @@ laboratory, verification, payment and data-access decisions are level 4 (a perso
 4. An active grant in `kaju_ai_access` for the person or their organisation, with budget left this month and requests
    left today.
 5. The deployment-wide monthly ceiling not reached; per-instance concurrency free.
-6. `STRAYPAW_AI_APPROVED_DATA_ROUTE` names exactly the transport and model in use.
-7. Usage readable from the ledger. Anything unreadable, malformed or missing fails closed.
+6. `STRAYPAW_AI_APPROVED_DATA_ROUTE` names exactly the transport and model in use (chat **and** the mission planner).
+7. A confirmed email or phone on the account, in every rollout mode.
+8. **A reservation.** Before any model call the server reserves the answer's whole allowance with
+   `kaju_ai_reserve`, which re-checks the switch, grants, daily caps, budgets and ceiling under one database-wide
+   lock, counting every other reservation still open. Parallel requests therefore cannot all pass the same remaining
+   budget. After the run, `kaju_ai_settle` replaces the reservation with the measured cost. A run that dies without
+   settling stays counted at its full allowance. Reserving needs the server's service-role connection
+   (`SUPABASE_SERVICE_ROLE_KEY`, set in Production only), so previews and the demo can never call the model.
+9. Anything unreadable, malformed or missing fails closed.
+
+The pilot log (`kaju_turn_log`) is also written only by the server, so people cannot pad the figures.
 
 Within an answer: at most `STRAYPAW_AI_MAX_STEPS` (≤6) model calls, `STRAYPAW_AI_MAX_OUTPUT_TOKENS` (≤4000) per call,
 and before each call its worst case (input estimated from size, full output allowance) must fit the smaller of
 `STRAYPAW_AI_RUN_MAX_INR` (≤₹100, default ₹10) and what is left of the month's budgets. Every run is written to
 `kaju_model_usage` with its cost.
 
-**These are the application's own estimates and limits, not provider-enforced spending limits.** Two server instances
-can each pass the check at the same moment, and the rupee figures come from the prices you set. Set a spend limit in
-the Anthropic Console as well; that is the only hard cap.
+**These are the application's own estimates and limits, not provider-enforced spending limits.** Reservations make
+them hold under parallel requests, but the rupee figures still come from the token prices you set, and the input-size
+estimate is approximate. Set a spend limit in the Anthropic Console as well; that is the only hard cap.
 
 ## 3. Capabilities by role (verified without a model)
 
@@ -95,8 +104,17 @@ from missions remain **not connected**: Kaju prepares the message; nothing is se
 
 Do these in order. Until step 5 nothing can reach a model.
 
-1. **Apply the migration** `supabase/migrations/20261119090000_kaju_intelligence_layer.sql` to production (additive:
-   new tables and functions only). It creates the switch **off** and no grants.
+1. **Apply the migration** `supabase/migrations/20261119090000_kaju_intelligence_layer.sql` to production. It adds new
+   tables and functions and one nullable column (`kaju_model_usage.org_id`, no default, so no table rewrite; the table
+   is empty). It creates the switch **off** and no grants. To undo it at any point:
+   `supabase/rollback/20261119090000_kaju_intelligence_layer-rollback.sql` (one transaction, removes only what the
+   migration added; tested in `npm run test:db`). Check afterwards (read-only):
+   ```sql
+   select (select live from public.kaju_ai_control) as live,
+          (select count(*) from public.kaju_ai_access) as grants,
+          to_regprocedure('public.kaju_ai_reserve(uuid,uuid,text,numeric,numeric,integer,integer)') is not null as reserve_ready;
+   ```
+   Expect `live = false`, `grants = 0`, `reserve_ready = true`.
 2. **Find your user id**: Supabase → Authentication → Users → your account → copy the UUID.
 3. **Vercel, Production** (keep the existing `ANTHROPIC_API_KEY`):
    `STRAYPAW_AI_MODE=model`, `STRAYPAW_AI_AUTHORISED_BY=<your name>:2026-11-DD`, `STRAYPAW_AI_ROLLOUT=owner`,
@@ -116,6 +134,9 @@ Do these in order. Until step 5 nothing can reach a model.
    The panel shows this month's estimated spend; compare it with the Anthropic Console.
 7. **To stop at any time:** the red "Stop all model use now" button on that panel, or `update public.kaju_ai_control set live = false;`,
    or `STRAYPAW_AI_MODE=tools_only` in Vercel and redeploy. Starting again is always the SQL in step 5.
+8. A reservation left open by a crashed run keeps counting at its full allowance (at most ₹10 by default). To see and
+   clear old ones: `select * from public.kaju_ai_reservations where created_at < now() - interval '15 minutes';` then
+   delete them by id once you have checked the Anthropic Console.
 
 What only the live test can show: whether the model chooses tools well, the quality of Hindi replies, real latency,
 real token use per answer, and that the provider accepts the request shape. None of that is claimed here.
@@ -157,9 +178,9 @@ removed with `select public.kaju_threads_purge();` (service role).
 
 | Suite | Checks |
 | --- | --- |
-| `npm run test:kaju-spend` (new) | 21: owner-only rollout, verification, switch, grants, budgets, hard ceilings, per-call cost check, scripted tool loop, invented tools refused, proposals never write, cut-off and refusal handling, provider error fallback, six-call limit, bite help never uses the direct key, the log stores no text, no network |
-| `npm run test:kaju-context` (new) | 13: record starters route correctly, notes on the open case, package checks on today's addresses, Hindi = English routing, org procedures (drafts/expired/revoked/other orgs excluded), no invented procedure |
-| `npm run test:db` | +35 RLS checks on real Postgres (PGlite): switch unreadable and unwritable through the API, no self-grants, grants per org membership, owner-only stop, conversations private and hidden after leaving an org, health conversations refused, feedback only on one's own answers, aggregates only for admins/leads/owner, comments anonymous |
+| `npm run test:kaju-spend` (new) | 25: owner-only rollout, verified accounts, switch, grants, budgets, hard ceilings, per-call cost check, reservations (no reservation means no call; a burst of ten with room for three makes exactly three calls; failed runs settle), planner route approval, scripted tool loop, invented tools refused, proposals never write, cut-off and refusal handling, provider error fallback, six-call limit, bite help never uses the direct key, the log stores no text, no network |
+| `npm run test:kaju-context` (new) | 14: record starters route correctly, notes on the open case, package checks on today's addresses, Hindi = English routing, org procedures (drafts/expired/revoked/other orgs excluded), no invented procedure, "how do we…" keeps existing fixed answers |
+| `npm run test:db` | +57 checks on real Postgres (PGlite) **with Supabase's default privileges applied**: switch unreadable and unwritable, no self-grants, reservations server-only and counted against budgets before settling, usage recorded against the right organisation, owner-only stop, conversations private, unmovable between organisations and hidden after leaving, health conversations refused, turn logs server-only, feedback only on one's own answers and never movable, aggregates only for admins/leads/owner, comments without name or time, rollback removes only what the migration added and re-applies cleanly |
 | `e2e/kaju-intelligence.spec.ts` (new) | Blocks drawn with axe WCAG 2 AA clean, blanks send the finished sentence, rating flows, no sideways scroll at 390, 768 and 1440 px, phone and desktop projects |
 | Existing | All 44 unit scripts, 287 DB checks and 282 e2e tests in the Kaju, mission, accessibility, keyboard, records and gov/health specs pass |
 
@@ -168,13 +189,15 @@ or production, real model behaviour, and email/WhatsApp delivery.
 
 ## 8. Risks and open items
 
-- **Demo branch key.** In Vercel, `ANTHROPIC_API_KEY` is also set for the `demo` preview branch, where
-  `STRAYPAW_BITE_AI=model` lets anyone use bite help with a model (300 turns a day per instance). The current demo
-  deployment predates the key, so it uses the AI Gateway; the next `demo` deployment would have used your key. This
-  change stops that, but only once it is on the `demo` branch. Until then, remove `ANTHROPIC_API_KEY` from the
-  `demo` preview scope, or unset `STRAYPAW_BITE_AI` there, before any `demo` deploy.
+- **Demo branch key: fixed 2026-11-18.** The `demo` preview branch had its own `ANTHROPIC_API_KEY` while public bite help
+  runs with a model there. That variable's value was overwritten and it was moved off `demo` (to this PR's branch,
+  which never auto-deploys); delete it in the Vercel dashboard when convenient. Production's key is a separate variable
+  and unchanged. The code also stops public bite help from using a direct key without `STRAYPAW_BITE_AI_DIRECT_KEY=true`.
+  The demo's bite help still uses the Vercel AI Gateway (`STRAYPAW_AI_ALLOW_OIDC`), billed by Vercel, not your key.
 - Budgets are the application's estimates, enforced per request, not provider limits (section 2).
-- Concurrency is counted per server instance.
+- Reservations hold under parallel requests; a crashed run's reservation stays counted until you clear it (section 4).
+- A member of both an NGO and a health facility who asks about a patient outside the health pages could have that
+  question saved in their own conversation history (only they can read it). Health pages are never saved.
 - Answers by fixed rules are in English even when the question is in Hindi; Hindi replies need the model.
 - WhatsApp, SMS, and email from missions need the owner steps in `docs/rebuild/OWNER_ACTIONS.md`.
 - Future autonomy: approved missions already run within tool levels; scheduled or event-driven model use is not

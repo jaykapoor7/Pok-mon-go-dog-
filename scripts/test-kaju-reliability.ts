@@ -6,7 +6,7 @@ import { answer, privateModelApproved, withTools } from '../src/sp3/ai/engine';
 import { setInferenceLedger } from '../src/lib/ai/inference';
 /* Model paths are exercised against mocked fetch only, with the gate switched on explicitly. */
 const ON={STRAYPAW_AI_MODE:'model',STRAYPAW_AI_AUTHORISED_BY:'test:2026-11-03',STRAYPAW_AI_MONTHLY_CEILING_INR:'100',STRAYPAW_AI_USER_DAILY_REQUESTS:'50',STRAYPAW_AI_ORG_DAILY_REQUESTS:'50',STRAYPAW_AI_INR_PER_MTOK_IN:'420',STRAYPAW_AI_INR_PER_MTOK_OUT:'2100',STRAYPAW_AI_ROLLOUT:'grants',STRAYPAW_AI_RUN_MAX_INR:'50'} as const;
-const enable=()=>{Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0,live:true,userGrant:{monthlyBudgetInr:100,dailyRequests:50},orgGrant:null,userMonthInr:0,orgMonthInr:0})})};
+const enable=()=>{Object.assign(process.env,ON);setInferenceLedger({usage:async()=>({userToday:0,orgToday:0,monthInr:0,live:true,userGrant:{monthlyBudgetInr:100,dailyRequests:50},orgGrant:null,userMonthInr:0,orgMonthInr:0}),reserve:async()=>'res-1',settle:async()=>true})};
 const disable=()=>{for(const k of Object.keys(ON))delete process.env[k];setInferenceLedger(null)};
 import { runTool, TOOL_DEFS, type ToolCtx } from '../src/sp3/ai/tools';
 import { SKILLS } from '../src/sp3/ai/understand';
@@ -66,7 +66,7 @@ globalThis.fetch = async () => {
     usage: { input_tokens: 1, output_tokens: 1 } }), { headers: { 'content-type': 'application/json' } });
 };
 try {
-  const signed: ToolCtx = { ...ctx, userId: 'user' };
+  const signed: ToolCtx = { ...ctx, userId: 'user', userVerified: true };
   const r = await answer([{ role: 'user', text: 'Investigate' }], signed, {});
   assert.equal(responses, 6); assert.equal(r.tools.length, 6); assert.match(r.notice ?? '', /incomplete/i); assert.doesNotMatch(r.text, /^Done/); ok('step exhaustion reports incomplete and preserves tool evidence');
   responses = 0; fanout = 13;
@@ -92,18 +92,18 @@ try{
  globalContext[symbol]={get:()=>({headers:{'x-vercel-oidc-token':jwt()}})};
  process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE='gateway:google/gemini-2.5-flash';
  let oidcCalls=0;const realFetch=globalThis.fetch;globalThis.fetch=async()=>{oidcCalls++;throw Error('no provider call while off')};
- assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org'}),false);
+ assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org',verified:true}),false);
  assert.equal((await answer([{role:'user',text:'Hello'}],ctx,{})).engine,'tools');assert.equal(oidcCalls,0);ok('with inference off, a present OIDC identity is never used and no provider is called');
  globalThis.fetch=realFetch;enable();
- assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org'}),false);ok('OIDC needs its own explicit opt-in even when inference is on');
+ assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org',verified:true}),false);ok('OIDC needs its own explicit opt-in even when inference is on');
  process.env.STRAYPAW_AI_ALLOW_OIDC='true';
- assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org'}),true);ok('runtime request-context OIDC configures the model only after explicit enablement');
+ assert.equal(await privateModelApproved({purpose:'kaju_chat',userId:'user',orgId:'org',verified:true}),true);ok('runtime request-context OIDC configures the model only after explicit enablement');
  globalThis.fetch=async(input,init)=>{
   seen.push(new Headers(input instanceof Request?input.headers:init?.headers).get('authorization')??'');
   return new Response(JSON.stringify({id:'isolated',type:'message',role:'assistant',model:'isolated',stop_reason:'end_turn',content:[{type:'text',text:'Hello. I can help with the available records.'}],usage:{input_tokens:1,output_tokens:1}}),{headers:{'content-type':'application/json'}});
  };
- assert.equal((await answer([{role:'user',text:'Hello'}],{...ctx,userId:'user'},{})).engine,'model');tokenVersion++;
- assert.equal((await answer([{role:'user',text:'Hello again'}],{...ctx,userId:'user'},{})).engine,'model');
+ assert.equal((await answer([{role:'user',text:'Hello'}],{...ctx,userId:'user',userVerified:true},{})).engine,'model');tokenVersion++;
+ assert.equal((await answer([{role:'user',text:'Hello again'}],{...ctx,userId:'user',userVerified:true},{})).engine,'model');
  assert.ok(seen.every(value=>value.startsWith('Bearer ')));assert.notEqual(seen[0],seen[1]);ok('Gateway uses the current scoped token for each run rather than caching an old identity');
 }finally{
  globalThis.fetch=originalFetch;if(oldContext===undefined)delete globalContext[symbol];else globalContext[symbol]=oldContext;

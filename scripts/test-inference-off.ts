@@ -13,7 +13,7 @@ async function main() {
   const keys = { ANTHROPIC_API_KEY: "k", AI_GATEWAY_API_KEY: "g", VERCEL_OIDC_TOKEN: "t", STRAYPAW_AI_ALLOW_OIDC: "true" };
   for (const mode of [undefined, "", "tools_only", "MODEL", "model ", "on", "true"]) {
     const env = { ...keys, STRAYPAW_AI_MODE: mode };
-    const d = await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, env);
+    const d = await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o" }, env);
     assert.equal(d.allowed, false);
     if (!d.allowed) assert.equal(await modelCredentials(d, env), null);
   }
@@ -28,14 +28,14 @@ async function main() {
   ok("without a token price spend cannot be measured, so model mode stays off");
   const on = { ...unpriced, STRAYPAW_AI_INR_PER_MTOK_IN: "420", STRAYPAW_AI_INR_PER_MTOK_OUT: "2100", STRAYPAW_AI_ROLLOUT: "grants" };
   const G = { live: true, userGrant: { monthlyBudgetInr: 1000, dailyRequests: 1000 }, orgGrant: null, userMonthInr: 0, orgMonthInr: 0 };
-  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on)).allowed, false, "no ledger");
+  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o" }, on)).allowed, false, "no ledger");
   setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 500, ...G }) });
-  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on)).allowed, false, "ceiling");
+  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o" }, on)).allowed, false, "ceiling");
   setInferenceLedger({ usage: async () => ({ userToday: 20, orgToday: 0, monthInr: 0, ...G }) });
-  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on)).allowed, false, "user quota");
+  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o" }, on)).allowed, false, "user quota");
   setInferenceLedger({ usage: async () => ({ userToday: 0, orgToday: 0, monthInr: 0, ...G }) });
   assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: null, orgId: null }, on)).allowed, false, "guest");
-  const d = await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on);
+  const d = await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o" }, on);
   assert.equal(d.allowed, true);
   assert.equal(await modelCredentials(d, { ...on, VERCEL_OIDC_TOKEN: "t" }), null, "OIDC needs its own opt-in");
   setInferenceLedger(null);
@@ -47,19 +47,19 @@ async function main() {
   const row = (u: Record<string, unknown> | null) => u && { live: true, user_grant: { monthly_budget_inr: 1000, daily_requests: 1000 }, org_grant: null, user_month_inr: 0, org_month_inr: 0, ...u };
   const fakeDb = (now: Record<string, unknown> | null, fail = false) => ({ rpc: async (fn: string, args?: Record<string, unknown>) => fn === "kaju_ai_eligibility" ? { data: row(now), error: null } : (writes.push({ fn, ...args }), { data: fail ? null : 1, error: fail ? { message: "x" } : null }) });
   setInferenceLedger(databaseLedger);
-  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o" }, on)).allowed, false, "no db session");
-  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o", db: fakeDb(null) }, on)).allowed, false, "unreadable usage");
-  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o", db: fakeDb({ user_today: "x", org_today: 0, month_inr: 0 }) }, on)).allowed, false, "malformed usage");
-  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o", db: fakeDb({ user_today: 0, org_today: 0, month_inr: 499.99 }) }, on)).allowed, true);
-  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", orgId: "o", db: fakeDb({ user_today: 0, org_today: 200, month_inr: 0 }) }, on)).allowed, false, "org quota");
+  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o" }, on)).allowed, false, "no db session");
+  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o", db: fakeDb(null) }, on)).allowed, false, "unreadable usage");
+  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o", db: fakeDb({ user_today: "x", org_today: 0, month_inr: 0 }) }, on)).allowed, false, "malformed usage");
+  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o", db: fakeDb({ user_today: 0, org_today: 0, month_inr: 499.99 }) }, on)).allowed, true);
+  assert.equal((await inferenceAllowed({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o", db: fakeDb({ user_today: 0, org_today: 200, month_inr: 0 }) }, on)).allowed, false, "org quota");
   ok("the database ledger fails closed without a session or with unreadable usage, and enforces org quotas");
   const cfg = inferenceConfig(on);
   assert.ok(cfg.allowed);
   if (cfg.allowed) assert.equal(usageCostInr(cfg.budget, { inputTokens: 1_000_000, outputTokens: 100_000 }), 630);
-  assert.equal(await recordInferenceUsage({ purpose: "kaju_chat", userId: "u", orgId: "o", db: fakeDb({}) }, "m", { inputTokens: 2000, outputTokens: 500 }, on), true);
+  assert.equal(await recordInferenceUsage({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o", db: fakeDb({}) }, "m", { inputTokens: 2000, outputTokens: 500 }, on), true);
   assert.deepEqual(writes.at(-1), { fn: "record_kaju_model_usage", p_purpose: "kaju_chat", p_model: "m", p_input_tokens: 2000, p_output_tokens: 500, p_cost_inr: 1.89 });
-  assert.equal(await recordInferenceUsage({ purpose: "kaju_chat", userId: "u", orgId: "o", db: fakeDb({}, true) }, "m", { inputTokens: 2000, outputTokens: 500 }, on), false, "a failed write is reported");
-  assert.equal(await recordInferenceUsage({ purpose: "kaju_chat", userId: "u", orgId: "o", db: fakeDb({}) }, "m", { inputTokens: 2000, outputTokens: 500 }, {}), false, "nothing is recorded while inference is off");
+  assert.equal(await recordInferenceUsage({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o", db: fakeDb({}, true) }, "m", { inputTokens: 2000, outputTokens: 500 }, on), false, "a failed write is reported");
+  assert.equal(await recordInferenceUsage({ purpose: "kaju_chat", userId: "u", verified: true, orgId: "o", db: fakeDb({}) }, "m", { inputTokens: 2000, outputTokens: 500 }, {}), false, "nothing is recorded while inference is off");
   setInferenceLedger(null);
   ok("each run is written with its tokens and rupee cost; failed writes are reported; nothing is written while off");
 

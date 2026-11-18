@@ -19,7 +19,18 @@ async function main() {
   const inf = await import("../src/lib/ai/inference");
   const { inferenceAllowed, inferenceConfig, setInferenceLedger, nextCallAffordable, runAllowanceInr, usageCostInr } = inf;
   const recorded: { model: string; inputTokens: number; outputTokens: number; costInr: number }[] = [];
-  const withLedger = (row: Usage | null) => setInferenceLedger({ usage: async () => row, record: async (_s, r) => { recorded.push(r); return true; } });
+  /* A ledger double with the database's reservation rule: reserve succeeds only while what is spent plus what is reserved
+     plus this answer's allowance fits the limit, checked one at a time (the database does this under a lock). */
+  const ledgerState = { reserveOk: true, limitInr: Infinity, reserved: 0, spent: 0, reserves: 0, settles: 0 };
+  const withLedger = (row: Usage | null, opts: { reserveOk?: boolean; limitInr?: number } = {}) => {
+    Object.assign(ledgerState, { reserveOk: opts.reserveOk ?? true, limitInr: opts.limitInr ?? Infinity, reserved: 0, spent: 0, reserves: 0, settles: 0 });
+    let chain = Promise.resolve();
+    setInferenceLedger({
+      usage: async () => row,
+      reserve: (_s, l) => { const p = chain.then(async () => { ledgerState.reserves++; if (!ledgerState.reserveOk || ledgerState.spent + ledgerState.reserved + l.amountInr > ledgerState.limitInr) return null; ledgerState.reserved += l.amountInr; return `res-${ledgerState.reserves}`; }); chain = p.then(() => undefined); return p; },
+      settle: async (_s, _id, r) => { ledgerState.settles++; recorded.push(r); ledgerState.spent += r.costInr; return true; },
+    });
+  };
   const scope = (o: Partial<Parameters<typeof inferenceAllowed>[0]> = {}) => ({ purpose: "kaju_chat" as const, userId: OWNER, orgId: "org-1", verified: true, ...o });
 
   /* ── Who may use the model ───────────────────────────────────────── */
@@ -49,6 +60,8 @@ async function main() {
 
   /* ── Budgets ─────────────────────────────────────────────────────── */
   const GR = { ...BASE, STRAYPAW_AI_ROLLOUT: "grants" };
+  withLedger(ledgerRow());
+  assert.equal((await inferenceAllowed(scope({ userId: "u", verified: false }), GR)).allowed, false, "grants mode also needs a verified account");
   withLedger(ledgerRow({ userMonthInr: 100 }));
   assert.match(String((await inferenceAllowed(scope({ userId: "u" }), GR) as { reason?: string }).reason), /Your model budget/);
   withLedger(ledgerRow({ userToday: 20 }));
@@ -62,7 +75,7 @@ async function main() {
   withLedger(ledgerRow({ monthInr: 290, userMonthInr: 40, orgGrant: { monthlyBudgetInr: 500, dailyRequests: 100 }, orgMonthInr: 10 }));
   const d = await inferenceAllowed(scope({ userId: "u" }), GR);
   assert.ok(d.allowed); if (d.allowed) { assert.equal(d.budget.remainingInr, 10); assert.equal(runAllowanceInr(d.budget), 10); }
-  ok("per-person and per-organisation monthly rupee budgets and daily caps, and the deployment ceiling, are each enforced; the least remaining applies");
+  ok("per-person and per-organisation monthly rupee budgets and daily caps, and the deployment ceiling, are each enforced; the least remaining applies; every rollout needs a verified account");
   const caps = inferenceConfig({ ...GR, STRAYPAW_AI_MAX_OUTPUT_TOKENS: "99999", STRAYPAW_AI_RUN_MAX_INR: "9999", STRAYPAW_AI_MAX_STEPS: "50", STRAYPAW_AI_MAX_CONCURRENT: "500" });
   assert.ok(caps.allowed); if (caps.allowed) { assert.equal(caps.budget.maxOutputTokens, 4000); assert.equal(caps.budget.runCapInr, 100); assert.equal(caps.budget.maxSteps, 6); assert.equal(caps.budget.maxConcurrent, 8); }
   const dflt = inferenceConfig(GR);
@@ -158,10 +171,25 @@ async function main() {
     r = await answer([{ role: "user", text: "something unsafe" }], ctx, {});
     assert.equal(r.text, "I can't help with that request."); ok("a refusal is reported plainly");
 
-    reset([]);
+    withLedger(ledgerRow()); reset([]);
     r = await answer([{ role: "user", text: "how many open cases" }], ctx, {});
     assert.equal(r.engine, "tools"); assert.match(r.notice ?? "", /temporarily limited/); assert.equal(sent.length, 1);
-    ok("a provider error falls back to the record tools and says so; the failed call is not retried");
+    assert.equal(ledgerState.settles, 1, "the failed run is still settled");
+    ok("a provider error falls back to the record tools and says so; the failed call is not retried, and its reservation is settled");
+
+    withLedger(ledgerRow(), { reserveOk: false }); reset([{ stop: "end_turn", content: [{ type: "text", text: "x" }] }]);
+    r = await answer([{ role: "user", text: "how many open cases" }], ctx, {});
+    assert.equal(sent.length, 0); assert.equal(r.engine, "tools"); assert.match(r.notice ?? "", /could not be reserved/);
+    ok("when the answer's spending cannot be reserved (no server connection, budget taken by other runs, database down), no model request is made");
+
+    /* Ten answers at once with room for three: the reservations decide, so only three reach the model. */
+    withLedger(ledgerRow(), { limitInr: 30 });
+    reset(Array.from({ length: 10 }, () => ({ stop: "end_turn", content: [{ type: "text", text: "ok" }], usage: { input_tokens: 10, output_tokens: 1 } })));
+    const burst = await Promise.all(Array.from({ length: 10 }, () => answer([{ role: "user", text: "hello" }], ctx, {})));
+    assert.equal(sent.length, 3, "three model requests"); assert.equal(burst.filter((x) => x.engine === "model").length, 3);
+    assert.equal(ledgerState.reserves, 10); assert.equal(ledgerState.settles, 3);
+    ok("a burst of ten parallel answers with budget for three makes exactly three model requests; the rest answer by fixed rules");
+    withLedger(ledgerRow());
 
     reset([
       ...Array.from({ length: 6 }, (_, i) => ({ stop: "tool_use", content: [{ type: "tool_use", id: `t${i}`, name: "search_knowledge", input: { query: "evidence" } }], usage: { input_tokens: 500, output_tokens: 20 } })),
@@ -184,6 +212,20 @@ async function main() {
     reset([{ stop: "end_turn", content: [{ type: "text", text: "x" }] }]); withLedger(ledgerRow());
     r = await answer([{ role: "user", text: "how many open cases" }], { ...ctx, userVerified: false }, {});
     assert.equal(sent.length, 0); ok("with the switch off, another account, an unapproved route, tools-only mode or an unverified session, no model request is made");
+
+    /* The mission planner obeys the same gate, route approval and reservations. */
+    const { modelPlanner } = await import("../src/lib/kaju/claude");
+    withLedger(ledgerRow());
+    process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE = "direct:some-other-model";
+    assert.equal(await modelPlanner({ purpose: "kaju_chat", userId: OWNER, orgId: "org-1", verified: true }), null, "unapproved route");
+    process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE = LIVE.STRAYPAW_AI_APPROVED_DATA_ROUTE;
+    assert.equal(await modelPlanner({ purpose: "kaju_chat", userId: OWNER, orgId: "org-1", verified: false }), null, "unverified");
+    withLedger(ledgerRow(), { reserveOk: false }); reset([{ stop: "end_turn", content: [{ type: "text", text: "x" }] }]);
+    const planner = await modelPlanner({ purpose: "kaju_chat", userId: OWNER, orgId: "org-1", verified: true });
+    assert.ok(planner);
+    const planned = await planner!.plan({ text: "follow up overdue cases", intent: null, page: null, org: { id: "org-1", name: "Org", workspace: "ngo" }, channels: [], people: [], places: [] } as never);
+    assert.equal(planned.ok, false); assert.equal(sent.length, 0, "no reservation, no planning call");
+    ok("the mission planner needs an approved data route, a verified account and a reservation before it calls the model");
   } finally {
     globalThis.fetch = (async () => { network++; throw Error("no network in tests"); }) as typeof fetch;
     for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
@@ -223,6 +265,12 @@ async function main() {
   assert.equal(t.outcomeOf({ text: "x", tools: [], proposals: [{ id: "p", why: "", kind: "add_note", caseId: "c", caseLabel: "C", note: "n" }] }), "prepared");
   assert.equal(t.outcomeOf({ text: "x", tools: [], proposals: [], notice: "Stopped at the per-answer spending limit." }), "limit");
   ok("the pilot log records language, outcome, tools, page kind and timing, never the question, answer, names or numbers");
+  for (const f of ["src/sp3/ai/engine.ts", "src/lib/kaju/claude.ts"]) {
+    const src = readFileSync(f, "utf8");
+    assert.ok(src.includes("reserveInference(") && src.includes("settleInference("), `${f} reserves and settles`);
+    assert.ok(src.indexOf("reserveInference(") < src.lastIndexOf("messages.create("), `${f} reserves before it calls the model`);
+  }
+  ok("every model call path in the app reserves before it calls and settles after");
   const route = readFileSync("src/app/api/ai/route.ts", "utf8");
   assert.ok(/const \{ usage: _usage, \.\.\.out \} = reply/.test(route)); ok("token and cost figures are removed from the reply before it leaves the server");
 

@@ -93,9 +93,13 @@ async function main() {
   assert.ok(r.citations.some((c) => c.href === "/kaju/rules"));
   ok("“what is our procedure…” quotes the organisation's approved entry, linked to its source; drafts, expired, revoked and other organisations' entries are never used");
   w = world({ nx_kaju_memory: [] });
-  r = await ask("how do we handle a dog stuck in a drain?", w.ctx);
-  assert.match(r.text, /Nothing is written down/); assert.ok(!/drain/i.test(r.text.replace(/how do we handle a dog stuck in a drain\??/i, "")), "no invented procedure");
-  ok("with nothing written down, Kaju says so and where to add it, instead of inventing a procedure");
+  r = await ask("what is our procedure for a dog stuck in a drain?", w.ctx);
+  assert.match(r.text, /Nothing is written down/); assert.ok(!/ladder|rope|call the fire/i.test(r.text), "no invented procedure");
+  ok("asked for a procedure that is not written down, Kaju says so and where to add it, instead of inventing one");
+  w = world({ nx_kaju_memory: memory });
+  r = await ask("how do we calculate the bill?", w.ctx);
+  assert.match(r.text, /claim is one recorded procedure/); assert.ok(!r.tools.some((t) => t.name === "org_procedures"));
+  ok("“how do we…” that nothing written down matches keeps its existing fixed answer (billing), with no extra tool shown");
   w = world({ nx_kaju_memory: memory }); w.ctx.orgId = null;
   r = await ask("what is our SOP for bites", w.ctx);
   assert.ok(!r.tools.some((t) => t.name === "org_procedures")); ok("without an organisation, no organisation procedures are read");

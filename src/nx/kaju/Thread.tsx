@@ -107,9 +107,10 @@ function Rate({ t }: { t: Turn }) {
           {WHY_NOT.map(([k, l]) => <button key={k} type="button" className="nx-chipbtn" aria-pressed={why === k} onClick={() => setWhy(k)}>{l}</button>)}
           <form onSubmit={(e) => { e.preventDefault(); send({ rating: -1, reason: why ?? "other", comment: note.trim() || undefined }, "done"); }} className="nx-krate-f">
             <label className="sr-only" htmlFor={`kr-${t.id}`}>What should Kaju have done?</label>
-            <input id={`kr-${t.id}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="What should Kaju have done? (optional)" />
+            <input id={`kr-${t.id}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="What should Kaju have done? (optional)" aria-describedby={`kr-${t.id}-who`} />
             <button type="submit" className="nx-btn is-sm is-quiet">Send</button>
           </form>
+          <span id={`kr-${t.id}-who`} className="nx-t3" style={{ flexBasis: "100%" }}>Your organisation&apos;s leads and StrayPaw can read these words, without your name.</span>
         </span> : null}
       </>}
     </div>

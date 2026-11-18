@@ -1,6 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import { inferenceAllowed, modelCredentials, nextCallAffordable, recordInferenceUsage, withInferenceSlot, type Budget, type InferenceScope } from "@/lib/ai/inference";
+import { inferenceAllowed, modelCredentials, nextCallAffordable, reserveInference, routeApproved, settleInference, withInferenceSlot, type Budget, type InferenceScope } from "@/lib/ai/inference";
 import { PROPOSE_TOOL, validatePlan } from "./registry";
 import { planningPrompt, type PlanContext, type PlanResult, type Planner } from "./planner";
 
@@ -46,12 +46,24 @@ export class ClaudePlanner implements Planner {
   }
 }
 
-/** The model planner for this request, or null when paid inference is off, over budget or not authorised. */
+/** The model planner for this request, or null when paid inference is off, over budget, not authorised, or the data
+    route is not approved. Each planning call reserves its allowance first and settles it after, like chat answers. */
 export async function modelPlanner(scope: InferenceScope): Promise<ClaudePlanner | null> {
   const decision = await inferenceAllowed(scope);
+  if (!decision.allowed) return null;
   const cred = await modelCredentials(decision);
-  if (!cred) return null;
-  const client = new Anthropic({ maxRetries: 1, ...(cred.gateway ? { apiKey: null, authToken: cred.token, baseURL: "https://ai-gateway.vercel.sh" } : { apiKey: cred.token }) });
-  const wrapped: Client = { messages: { create: (body, opts) => withInferenceSlot(() => client.messages.create(body, opts)) } };
-  return new ClaudePlanner(wrapped, cred.model, cred.gateway, (u) => { void recordInferenceUsage(scope, cred.model, u); }, decision.allowed ? decision.budget : undefined);
+  if (!cred || !routeApproved(cred)) return null;
+  const budget = decision.budget;
+  const client = new Anthropic({ maxRetries: 0, ...(cred.gateway ? { apiKey: null, authToken: cred.token, baseURL: "https://ai-gateway.vercel.sh" } : { apiKey: cred.token }) });
+  const wrapped: Client = { messages: { create: async (body, opts) => {
+    const id = await reserveInference(scope, budget);
+    if (!id) throw new Error("Model spending could not be reserved.");
+    let u = { inputTokens: 0, outputTokens: 0 };
+    try {
+      const res = await withInferenceSlot(() => client.messages.create(body, opts));
+      u = { inputTokens: (res.usage?.input_tokens ?? 0) + (res.usage?.cache_creation_input_tokens ?? 0) * 1.25 + (res.usage?.cache_read_input_tokens ?? 0) * 0.1, outputTokens: res.usage?.output_tokens ?? 0 };
+      return res;
+    } finally { await settleInference(scope, id, cred.model, u, budget); }
+  } } };
+  return new ClaudePlanner(wrapped, cred.model, cred.gateway, undefined, budget);
 }

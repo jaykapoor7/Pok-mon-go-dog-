@@ -1,7 +1,7 @@
 import "server-only";
 import { incidentPlace, sayIncident, type IncidentBrief } from "./incident";
 import Anthropic from "@anthropic-ai/sdk";
-import { inferenceAllowed, modelCredentials, nextCallAffordable, recordInferenceUsage, usageCostInr, withInferenceSlot, type Budget, type InferenceScope, type LedgerDb, type Usage } from "@/lib/ai/inference";
+import { inferenceAllowed, modelCredentials, nextCallAffordable, reserveInference, routeApproved, settleInference, usageCostInr, withInferenceSlot, type Budget, type InferenceScope, type LedgerDb, type Usage } from "@/lib/ai/inference";
 import { extractFieldMessage } from "./extract";
 import { NAV, TOOL_DEFS, runTool, toolRun, type ToolCtx, type ToolOut } from "./tools";
 import { connectionToolDefs } from "./connectTools";
@@ -94,7 +94,7 @@ function absorb(acc: Acc, name: string, out: ToolOut, ctx?: ToolCtx) {
 /** Approval names the exact configured transport/model; it is not inferred from a key. */
 export async function privateModelApproved(scope: InferenceScope = { purpose: "kaju_chat", userId: null, orgId: null }) {
   const access = await modelAccess(scope);
-  return !!access && process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE === `${access.gateway ? "gateway" : "direct"}:${access.model}`;
+  return !!access && routeApproved(access);
 }
 
 export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path?: string; workspace?: string; title?: string; signal?:AbortSignal }): Promise<AiReply> {
@@ -113,7 +113,7 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
   }
   /* Guests never reach a paid model; signed-in people only when the
      central gate allows it AND the data route is approved. */
-  const scope: InferenceScope = { purpose: "kaju_chat", userId: ctx.userId ?? null, orgId: ctx.orgId, db: ctx.db as unknown as LedgerDb, verified: ctx.userVerified === true };
+  const scope: InferenceScope = { purpose: "kaju_chat", userId: ctx.userId ?? null, orgId: ctx.orgId, db: ctx.db as unknown as LedgerDb, verified: ctx.userVerified === true, admin: (ctx.admin ?? null) as unknown as LedgerDb | null };
   /* Patient work (doses, referrals, a bite record, a bite note) is answered by the server's rules only, and so is any turn of
      a conversation that already holds a patient record's code: patient records are never sent to a model from here, even
      one whose data route is approved. */
@@ -123,18 +123,26 @@ export async function answer(messages: ChatTurn[], ctx: ToolCtx, context: { path
     return { ...r, notice: "Answered from your facility's records, on StrayPaw's servers." };
   }
   const access = ctx.userId ? await modelAccess(scope) : null;
-  const approved = !!access && process.env.STRAYPAW_AI_APPROVED_DATA_ROUTE === `${access.gateway ? "gateway" : "direct"}:${access.model}`;
+  const approved = !!access && routeApproved(access);
   if (access && approved) {
+    /* The binding check: this answer's whole allowance is reserved under the database's lock before any model call,
+       so parallel requests cannot all pass the same remaining budget. No reservation, no model. */
+    const reservation = await reserveInference(scope, access.budget);
+    if (!reservation) {
+      const r = await withTools(toolQuestion, ctx, earlier);
+      return { ...r, notice: "Model answers are paused: this answer's spending could not be reserved. This reply uses record tools." };
+    }
     const used: Usage = { inputTokens: 0, outputTokens: 0 };
+    let settled = false;
     try {
       const reply = await withInferenceSlot(() => withModel(turns, ctx, context, access, used));
-      /* Every model run is metered; if the ledger cannot record it the reply says so. */
-      const metered = await recordInferenceUsage(scope, access.model, used);
+      settled = await settleInference(scope, reservation, access.model, used, access.budget);
       const usage = { inputTokens: Math.round(used.inputTokens), outputTokens: Math.round(used.outputTokens), costInr: usageCostInr(access.budget, used) };
-      return metered ? { ...reply, usage } : { ...reply, usage, notice: [reply.notice, "Usage could not be recorded; further model replies are paused until it can."].filter(Boolean).join(" ") };
+      /* An unsettled reservation stays counted at its full allowance, so later runs see more spent, never less. */
+      return settled ? { ...reply, usage } : { ...reply, usage, notice: [reply.notice, "Usage could not be settled; it is counted at this answer's full allowance."].filter(Boolean).join(" ") };
     }
     catch {
-      await recordInferenceUsage(scope, access.model, used);
+      if (!settled) await settleInference(scope, reservation, access.model, used, access.budget);
       if(context.signal?.aborted)throw Error("Kaju request cancelled");
       console.error("Kaju model request failed; using scoped record tools");
       const r = await withTools(toolQuestion, ctx, earlier);
@@ -295,6 +303,20 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
     const lines = d.requests.slice(0, 5).map((r) => `- **${r.title}**${r.place ? ` · ${r.place}` : ""}${r.due_on ? ` · due ${r.due_on}${r.overdue ? " (overdue)" : ""}` : ""}`).join("\n");
     return done(`**${pl(d.open, "request", "requests")} from programme partners** ${d.open === 1 ? "is" : "are"} open${d.overdue ? `, ${n(d.overdue)} overdue` : ""}.\n\n${lines}\n\nOpen Requests to accept or close them. I only read the request (the animal and the place); patient records never reach me.`);
   }
+  /* The organisation's own written procedures: an approved entry that matches answers first. "How do we …" questions
+     that nothing written down matches fall through to the answers below (billing, verification, lessons), so the
+     existing fixed answers keep working; only an explicit ask for a procedure, SOP or policy says nothing is written. */
+  if (ctx.orgId) {
+    const tp = q.toLowerCase();
+    const named = /\b(procedures?|sops?|protocols?|polic(y|ies)|templates?|checklists?)\b/.test(tp) || /\b(our|hamare|hamara|apne)\b.*\b(process|rules?)\b/.test(tp);
+    if (named || /\bhow do we\b|\bwhat did we decide\b/.test(tp)) {
+      const out = await runTool("org_procedures", { query: q }, ctx);
+      const d = out.data as { entries?: { title: string; text: string }[]; searched?: number };
+      if (out.ok === false) { if (named) { absorb(acc, "org_procedures", out, ctx); return done(out.summary); } }
+      else if (d.entries?.length) { absorb(acc, "org_procedures", out, ctx); return done(`${d.entries.map((e) => `**${e.title}**\n${e.text}`).join("\n\n")}\n\nFrom your organisation's approved notes in Rules & memory. If something has changed, a lead can update it there.`); }
+      else if (named) { absorb(acc, "org_procedures", out, ctx); return done(d.searched ? "Your organisation has not written that down yet. A lead can add it under Kaju, Rules & memory, and once approved I will use it." : "Nothing is written down in Kaju's memory for your organisation yet. Anyone can add how you work under Kaju, Rules & memory; a lead approves it before I use it."); }
+    }
+  }
   /* One line becomes the record a form would have taken: a note, a follow-up, care given, or a new case from a field report. */
   if (ctx.orgId) {
     const run = (name: string, input: Record<string, unknown>) => call(acc, ctx, name, input);
@@ -411,14 +433,6 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
       const due = data.findings.filter(f => f.count !== 0 || f.configured === false);
       const at = new Date(data.checked_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
       return done(due.length ? `**${due.length} to look at** · checked ${at}\n\n${due.map(f => `- **${label[f.rule] ?? f.rule.replace(/_/g, " ")}**: ${f.configured === false ? "not set" : f.count ?? "unknown"}`).join("\n")}` : `**All clear** · checked ${at}. Nothing needs you right now.`); }
-  }
-  /* The organisation's own written procedures come before general lessons: "how do we…", "our SOP for…". */
-  if (ctx.orgId && (/\b(our|we|hamare|hamara|apne)\b.*\b(procedure|sop|process|policy|rules?|protocol|template|checklist|way)\b/.test(t) || /\bhow do we\b|\bsops?\b|\bwhat did we decide\b/.test(t))) {
-    const out = await call(acc, ctx, "org_procedures", { query: q });
-    const d = out.data as { entries?: { title: string; text: string; scope: string }[]; searched?: number };
-    if (out.ok === false) return done(out.summary);
-    if (d.entries?.length) return done(`${d.entries.map((e) => `**${e.title}**\n${e.text}`).join("\n\n")}\n\nFrom your organisation's approved notes in Rules & memory. If something has changed, a lead can update it there.`);
-    return done(d.searched ? "Your organisation has not written that down yet. A lead can add it under Kaju, Rules & memory, and once approved I will use it." : "Nothing is written down in Kaju's memory for your organisation yet. Anyone can add how you work under Kaju, Rules & memory; a lead approves it before I use it.");
   }
   if (/^(what|why|how|explain)\b/.test(t) && /unknown|denominator|population|coverage|animal count|bite|street safety/.test(t)) {
     const out = await call(acc, ctx, "search_knowledge", { query: q });

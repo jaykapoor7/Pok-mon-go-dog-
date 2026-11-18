@@ -20,7 +20,9 @@ import "server-only";
     security-definer functions bound to auth.uid(), never a client-chosen id. */
 export type LedgerDb = { rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> };
 /** `verified`: the account's email or phone is confirmed (from the server's own session check, never the browser). */
-export type InferenceScope = { purpose: "kaju_chat" | "photo_check"; userId: string | null; orgId: string | null; db?: LedgerDb | null; verified?: boolean };
+/** `admin`: the server's own service-role connection, the only one that can reserve and settle spend. Without it no
+    model call is made. */
+export type InferenceScope = { purpose: "kaju_chat" | "photo_check"; userId: string | null; orgId: string | null; db?: LedgerDb | null; verified?: boolean; admin?: LedgerDb | null };
 export type InferenceDecision = { allowed: true; budget: Budget } | { allowed: false; reason: string };
 /** `remainingInr`: the least of what is left this month overall, for the person and for their organisation, once a
     run is allowed. `runCapInr`: the most one run (all its steps) may cost. `maxSteps`: model calls per run. */
@@ -64,8 +66,13 @@ export type Usage = { inputTokens: number; outputTokens: number };
 type Grant = { monthlyBudgetInr: number; dailyRequests: number };
 /** What the database says before a run: the switch, the grants and what has been used. Missing fields fail closed. */
 export type LedgerUsage = { userToday: number; orgToday: number; monthInr: number; live?: boolean; userGrant?: Grant | null; orgGrant?: Grant | null; userMonthInr?: number; orgMonthInr?: number };
+type Limits = { amountInr: number; ceilingInr: number; userDaily: number; orgDaily: number };
 type Ledger = {
   usage(scope: InferenceScope): Promise<LedgerUsage | null>;
+  /** The binding check: reserve this answer's whole allowance under the database's lock. Returns its id, or null. */
+  reserve?(scope: InferenceScope, limits: Limits): Promise<string | null>;
+  /** Replace a reservation with what the run really used. False when it could not; the reservation then stays counted. */
+  settle?(scope: InferenceScope, id: string, row: { model: string; inputTokens: number; outputTokens: number; costInr: number }): Promise<boolean>;
   record?(scope: InferenceScope, row: { model: string; inputTokens: number; outputTokens: number; costInr: number }): Promise<boolean>;
 };
 const finite = (v: unknown) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : null; };
@@ -87,6 +94,18 @@ export const databaseLedger: Ledger = {
     const userGrant = grant(d.user_grant), orgGrant = grant(d.org_grant);
     if (userGrant === undefined || orgGrant === undefined) return null;
     return { userToday, orgToday, monthInr, userMonthInr, orgMonthInr, live: d.live, userGrant, orgGrant };
+  },
+  async reserve(scope, l) {
+    if (!scope.admin || !scope.userId) return null;
+    const { data, error } = await scope.admin.rpc("kaju_ai_reserve", { p_user: scope.userId, p_org: scope.orgId, p_purpose: scope.purpose, p_amount: l.amountInr, p_ceiling: l.ceilingInr, p_user_daily: l.userDaily, p_org_daily: l.orgDaily });
+    if (error || !data || typeof data !== "object") return null;
+    const d = data as { ok?: unknown; id?: unknown };
+    return d.ok === true && typeof d.id === "string" ? d.id : null;
+  },
+  async settle(scope, id, row) {
+    if (!scope.admin) return false;
+    const { data, error } = await scope.admin.rpc("kaju_ai_settle", { p_id: id, p_model: row.model.slice(0, 120), p_input_tokens: row.inputTokens, p_output_tokens: row.outputTokens, p_cost_inr: row.costInr });
+    return !error && data === true;
   },
   async record(scope, row) {
     if (!scope.db) return false;
@@ -113,8 +132,10 @@ export async function inferenceAllowed(scope: InferenceScope, env: Record<string
   const cfg = inferenceConfig(env);
   if (!cfg.allowed) return cfg;
   if (!scope.userId) return { allowed: false, reason: "Signed-out requests never use a paid model." };
+  /* Every rollout needs a confirmed email or phone, read by the server from the session. */
+  if (scope.verified !== true) return { allowed: false, reason: "Model answers need a verified account." };
   const rollout = env.STRAYPAW_AI_ROLLOUT?.trim() || "owner";
-  if (rollout === "owner" && (scope.userId.toLowerCase() !== env.STRAYPAW_AI_OWNER_USER_ID?.trim().toLowerCase() || scope.verified !== true))
+  if (rollout === "owner" && scope.userId.toLowerCase() !== env.STRAYPAW_AI_OWNER_USER_ID?.trim().toLowerCase())
     return { allowed: false, reason: "Model answers are not switched on for this account yet." };
   if (running >= cfg.budget.maxConcurrent) return { allowed: false, reason: "Model capacity is busy; using record tools." };
   const u = ledger ? await ledger.usage(scope).catch(() => null) : null;
@@ -141,6 +162,22 @@ export function nextCallAffordable(b: Budget, spent: Usage, requestChars: number
   const worst = { inputTokens: spent.inputTokens + Math.ceil(requestChars / 3), outputTokens: spent.outputTokens + b.maxOutputTokens };
   return usageCostInr(b, worst) <= runAllowanceInr(b);
 }
+
+/** Reserve an allowed answer's whole allowance before any model call. Null means do not call the model. */
+export async function reserveInference(scope: InferenceScope, budget: Budget): Promise<string | null> {
+  if (!ledger?.reserve) return null;
+  const amountInr = Math.round(runAllowanceInr(budget) * 10000) / 10000;
+  if (!(amountInr > 0)) return null;
+  return ledger.reserve(scope, { amountInr, ceilingInr: budget.monthlyCeilingInr, userDaily: budget.perUserDaily, orgDaily: budget.perOrgDaily }).catch(() => null);
+}
+/** Settle a reservation with the run's measured usage. Always called after a reserved run, whether it succeeded. */
+export async function settleInference(scope: InferenceScope, id: string, model: string, u: Usage, budget: Budget): Promise<boolean> {
+  if (!ledger?.settle) return false;
+  return ledger.settle(scope, id, { model, inputTokens: Math.round(u.inputTokens), outputTokens: Math.round(u.outputTokens), costInr: usageCostInr(budget, u) }).catch(() => false);
+}
+/** The data route the owner approved must name exactly the transport and model in use. */
+export const routeApproved = (cred: { gateway: boolean; model: string }, env: Record<string, string | undefined> = process.env) =>
+  env.STRAYPAW_AI_APPROVED_DATA_ROUTE?.trim() === `${cred.gateway ? "gateway" : "direct"}:${cred.model}`;
 
 /** Wraps one allowed call so concurrency is counted and released. */
 export async function withInferenceSlot<T>(fn: () => Promise<T>): Promise<T> {

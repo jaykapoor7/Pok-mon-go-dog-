@@ -19,7 +19,7 @@ type Metrics = {
   tool_failure_turns: number; retries: number; corrections: number; median_latency_ms: number | null; p90_latency_ms: number | null;
   model_cost_inr: number; model_tokens: { input: number; output: number }; cost_per_completed_inr: number | null;
   feedback: { up: number; down: number; minutes_saved: number; reasons: Record<string, number> };
-  comments: { rating: number; reason: string | null; comment: string; at: string }[];
+  comments: { rating: number; reason: string | null; comment: string }[];
 };
 const INTENT: Record<string, string> = {
   conversation: "Conversation, no record read", query_cases: "Questions about cases", case_summary: "One case summarised", work_summary: "What needs doing",

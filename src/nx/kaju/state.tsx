@@ -223,7 +223,11 @@ export function KajuProvider({ children }: { children: ReactNode }) {
 
   const loadHistory = useCallback(async () => {
     const db = getSupabase(); if (!db || keepingFor(scope.current, page.path).keeping !== "on") { setHistory([]); return; }
-    const { data, error } = await db.from("kaju_threads").select("id,title,updated_at").is("archived_at", null).order("updated_at", { ascending: false }).limit(20);
+    /* Only conversations held in the workspace the person is in now, so a conversation from another organisation is
+       never continued with this one's records. */
+    const k = keepingFor(scope.current, page.path);
+    const base = db.from("kaju_threads").select("id,title,updated_at").is("archived_at", null);
+    const { data, error } = await (k.orgId ? base.eq("org_id", k.orgId) : base.is("org_id", null)).order("updated_at", { ascending: false }).limit(20);
     setHistory(error ? [] : ((data ?? []) as ThreadSummary[]));
   }, [page.path]);
   const resume = useCallback(async (id: string) => {
