@@ -70,7 +70,7 @@ Phones are their own product, not a narrow desktop. This is the spec every phone
 
 ## Type, spacing, touch
 
-- Body 15px, secondary 13px, page title 26px; line-height 1.45 for reading text.
+- Body 16px, secondary 14px, page title 24px (the 8-point type scale); line-height 1.45 for reading text.
 - 16px side gutter; 8-point spacing; sections separated by space, not boxes inside boxes.
 - Every target at least 44×44px; primary actions 48px tall, full width where they are the screen's main action.
 - Motion: 150–250ms, transform/opacity only, none with reduced motion.
