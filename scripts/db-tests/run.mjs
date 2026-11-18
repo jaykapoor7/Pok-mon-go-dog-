@@ -843,5 +843,22 @@ section("Kaju pilot feedback: no text logged, own rows, aggregates for admins on
   ok((await as(A, "select kaju_pilot_metrics(null, 30) as m"))[0].m.turns >= 3, "the owner sees the whole pilot");
 }
 
+section("Kaju intelligence layer: the rollback removes only what the migration added, and it can be applied again");
+{
+  const before = (await one("select count(*)::int n from pg_tables where schemaname = 'public'")).n;
+  const usage = (await one("select count(*)::int n from kaju_model_usage")).n;
+  await db.exec(readFileSync(join(here, "../../supabase/rollback/20261119090000_kaju_intelligence_layer-rollback.sql"), "utf8"));
+  const gone = await one("select count(*)::int n from pg_tables where schemaname = 'public' and tablename in ('kaju_ai_control','kaju_ai_access','kaju_threads','kaju_thread_turns','kaju_turn_log','kaju_feedback')");
+  const fns = await one("select count(*)::int n from pg_proc where pronamespace = 'public'::regnamespace and proname in ('kaju_ai_eligibility','kaju_ai_stop','kaju_ai_owner_status','kaju_pilot_metrics','kaju_threads_purge','kaju_thread_touch')");
+  ok(gone.n === 0 && fns.n === 0, "the rollback removes the six tables and six functions");
+  ok((await one("select count(*)::int n from pg_tables where schemaname = 'public'")).n === before - 6, "no other table is removed");
+  ok((await one("select count(*)::int n from kaju_model_usage")).n === usage && (await one("select count(*)::int n from ai_action_log")).n > 0, "the usage ledger and the action log keep their rows");
+  await db.exec(readFileSync(join(here, "../../supabase/rollback/20261119090000_kaju_intelligence_layer-rollback.sql"), "utf8"));
+  ok(true, "running the rollback twice is harmless");
+  await db.exec(readFileSync(join(MIG, "20261119090000_kaju_intelligence_layer.sql"), "utf8"));
+  const back = (await as(A, "select kaju_ai_eligibility($1) as e", [N1]))[0].e;
+  ok(back.live === false && back.user_grant === null, "applied again, the switch is off and there are no grants");
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

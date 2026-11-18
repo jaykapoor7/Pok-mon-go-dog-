@@ -70,6 +70,10 @@ jobs:
           npm run test:kaju-planner
           npm run test:notify-delivery
           npm run test:inference-off
+          npm run test:kaju-spend
+          npm run test:kaju-context
+          npm run test:kaju-capture
+          npm run test:bite-model
       - name: Automations, intake, packages and record rules
         run: |
           npm run test:kaju-automations
