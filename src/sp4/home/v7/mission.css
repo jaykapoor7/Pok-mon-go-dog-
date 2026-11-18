@@ -1,0 +1,111 @@
+/* One request becomes a mission (Mission.tsx, MissionPlay.tsx). A product window in the app's own terms: the request,
+   the plan with who is responsible for each step, what each step made, and the activity. Every part holds its place
+   from the first frame; only opacity and small transforms change while it plays. */
+.s9-mission-in { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 64px; align-items: center; }
+.s9-mission-copy { display: grid; gap: 16px; justify-items: start; }
+.s9-mission-copy p { max-width: 40ch; font-size: 20px; line-height: 1.45; color: var(--s4-grey); }
+
+.s9-room { --ok: #1f7a4d; --warn: #9a6416; --warn-bg: #fbf3e4; --soft: #f5f7fb; --ease: cubic-bezier(.2, .7, .2, 1);
+  min-width: 0; background: #fff; border-radius: 16px; overflow: hidden; font-size: 14px; color: var(--s4-ink);
+  box-shadow: 0 0 0 1px var(--s4-line), 0 24px 48px -32px rgba(11, 30, 61, .35); }
+.s9-room-bar { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 16px; border-bottom: 1px solid var(--s4-line); }
+.s9-room-k { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; background: var(--s4-blue); color: #fff; }
+.s9-room-bar b { font-weight: 600; }
+.s9-room-crumb { color: var(--s4-grey); }
+.s9-room-crumb::before { content: "/"; margin-right: 8px; color: var(--s4-line-2); }
+.s9-room-state { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; padding: 4px 12px; border-radius: 99px; background: var(--soft); font-size: 12px; font-weight: 500; }
+.s9-room-state i { width: 8px; height: 8px; border-radius: 50%; background: var(--s4-blue); }
+.s9-room-state.t-warn { background: var(--warn-bg); color: var(--warn); }
+.s9-room-state.t-warn i { background: var(--warn); }
+.s9-room-state.t-ok { color: var(--ok); }
+.s9-room-state.t-ok i { background: var(--ok); }
+
+.s9-room-ask { display: flex; align-items: flex-start; gap: 12px; padding: 16px; }
+.s9-av { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #e3e8f2; color: var(--s4-ink); font-size: 12px; font-weight: 600; }
+.s9-av.is-k { background: var(--s4-blue); color: #fff; }
+.s9-room-ask p { padding: 8px 12px; border-radius: 12px; background: var(--soft); line-height: 1.45; }
+.s9-room-ask p b { display: block; font-size: 12px; font-weight: 600; color: var(--s4-grey); }
+
+.s9-room-body { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; padding: 0 16px 16px; }
+.s9-h { display: grid; gap: 4px; padding-bottom: 8px; font-size: 16px; font-weight: 600; }
+.s9-h small { font-size: 12px; font-weight: 400; color: var(--s4-grey); }
+.s9-plan ol { margin: 0; padding: 0; list-style: none; }
+.s9-step { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 12px 0; border-top: 1px solid var(--s4-line); }
+.s9-glyph { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #eef2fa; color: var(--s4-ink); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; transition: background-color 200ms var(--ease), color 200ms var(--ease), box-shadow 200ms var(--ease); }
+.s9-step.is-running .s9-glyph { background: #fff; color: var(--s4-blue); box-shadow: inset 0 0 0 2px var(--s4-blue); }
+.s9-step.is-waiting .s9-glyph { background: var(--warn-bg); color: var(--warn); }
+.s9-step.is-done .s9-glyph { background: var(--ok); color: #fff; }
+.s9-step-t { display: grid; gap: 4px; min-width: 0; }
+.s9-step-t b { font-weight: 500; line-height: 1.4; }
+.s9-duty { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 12px; font-weight: 500; color: var(--s4-ink-2); }
+.s9-duty small { font-size: 12px; font-weight: 400; color: var(--s4-grey); }
+.s9-duty small::before { content: "· "; }
+.s9-duty-k { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: var(--s4-blue-soft); color: var(--s4-blue); font-size: 12px; font-weight: 700; line-height: 1; }
+.s9-duty.is-you { color: var(--warn); }
+.s9-step-w { max-width: 96px; padding-top: 4px; font-size: 12px; line-height: 1.4; color: var(--s4-grey); text-align: right; }
+.s9-step.is-running .s9-step-w { color: var(--s4-blue); }
+.s9-step.is-waiting .s9-step-w { color: var(--warn); font-weight: 500; }
+.s9-step.is-done .s9-step-w { color: var(--ok); }
+
+.s9-approve { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: var(--warn-bg); visibility: hidden; opacity: 0; transform: translateY(4px); transition: opacity 200ms var(--ease), transform 200ms var(--ease), visibility 0s linear 200ms; }
+.s9-approve[data-on] { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+.s9-approve p { flex: 1; font-weight: 500; color: var(--warn); line-height: 1.4; }
+.s9-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--s4-blue); color: #fff; font: inherit; font-weight: 500; cursor: pointer; transition: background-color 160ms var(--ease), transform 120ms var(--ease); }
+.s9-btn:hover { background: var(--s4-blue-2); }
+.s9-btn:active { transform: scale(.97); }
+.s9-btn:focus-visible, .s9-replay:focus-visible { outline: 2px solid var(--s4-blue); outline-offset: 2px; }
+
+.s9-live { display: grid; gap: 8px; align-content: start; }
+.s9-tile { padding: 12px; border-radius: 12px; background: var(--soft); }
+.s9-tile-h { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--s4-ink-2); }
+.s9-tile-h span { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: #fff; color: var(--s4-grey); font-variant-numeric: tabular-nums; }
+.s9-tile > :not(.s9-tile-h), .s9-tile li { transition: opacity 240ms var(--ease), transform 240ms var(--ease); }
+.s9-tile:not([data-on]) > :not(.s9-tile-h), .s9-tile:not([data-on]) li { opacity: 0; transform: translateY(4px); }
+.s9-tile[data-on] li { transition-delay: calc(var(--k, 0) * 80ms); }
+.s9-tile ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.s9-tile li { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; padding: 4px 8px; border-radius: 8px; background: #fff; font-size: 12px; line-height: 1.5; }
+.s9-tile li b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.s9-tile li span { grid-column: 1 / -1; overflow: hidden; color: var(--s4-grey); text-overflow: ellipsis; white-space: nowrap; }
+.s9-tile li em { grid-row: 1; grid-column: 2; }
+.s9-tile li em { font-style: normal; color: var(--s4-ink-2); white-space: nowrap; }
+.s9-tile-big { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; align-items: baseline; }
+.s9-tile-big b { font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.s9-tile-big small { grid-column: 1 / -1; font-size: 12px; color: var(--s4-grey); }
+.s9-msg { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.5; }
+
+.s9-room-foot { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; align-items: end; padding: 12px 16px; border-top: 1px solid var(--s4-line); }
+.s9-log { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.5; color: var(--s4-grey); }
+.s9-log b { font-weight: 600; color: var(--s4-ink-2); }
+.s9-log li { transition: opacity 240ms var(--ease); }
+.s9-log li:not([data-on]) { opacity: 0; }
+.s9-sum { display: grid; gap: 8px; justify-items: start; visibility: hidden; opacity: 0; transform: translateY(4px); transition: opacity 240ms var(--ease), transform 240ms var(--ease), visibility 0s linear 240ms; }
+.s9-sum[data-on] { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+.s9-sum p { font-size: 12px; line-height: 1.5; color: var(--s4-ink-2); }
+.s9-sum p svg { display: inline; color: var(--ok); vertical-align: -2px; }
+.s9-replay { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--soft); color: var(--s4-ink); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
+.s9-replay:hover { background: #e9edf5; }
+.s9-note { padding: 12px 16px; border-top: 1px solid var(--s4-line); font-size: 12px; color: var(--s4-grey); }
+
+/* The plan arrives one step at a time, the way Kaju's plan arrives in the app. */
+.s9-step { transition: opacity 240ms var(--ease), transform 240ms var(--ease); transition-delay: calc(var(--i, 0) * 160ms); }
+.s9-step:not([data-shown]) { opacity: 0; transform: translateY(4px); }
+.s9-room[data-phase="0"] .s9-h { opacity: 0; }
+.s9-h { transition: opacity 240ms var(--ease); }
+.s9-step.is-running .s9-glyph { animation: s9-work 1200ms ease-in-out infinite; }
+@keyframes s9-work { 50% { box-shadow: inset 0 0 0 2px var(--s4-blue), 0 0 0 4px rgba(36, 87, 206, .14); } }
+.s9-room[data-calm] *, .s9-room[data-calm] *::before { transition: none !important; animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .s9-room *, .s9-room *::before { transition: none !important; animation: none !important; } }
+
+@media (max-width: 1100px) { .s9-mission-in { grid-template-columns: minmax(0, 1fr); gap: 32px; } }
+@media (max-width: 760px) {
+  .s9-mission-copy p { font-size: 16px; }
+  .s9-room-body, .s9-room-foot { grid-template-columns: minmax(0, 1fr); }
+  /* On a phone the glyph and the approval say each step's state; the activity list is left to larger screens. */
+  .s9-step { grid-template-columns: 24px minmax(0, 1fr); }
+  .s9-step-w, .s9-log, .s9-tile li span { display: none; }
+  .s9-room-foot { padding-block: 8px; }
+  .s9-approve { flex-wrap: wrap; }
+  .s9-approve .s9-btn { min-height: 48px; width: 100%; justify-content: center; }
+}
+.s9-approve[hidden] { display: none; }
+.s9-room:focus { outline: none; }

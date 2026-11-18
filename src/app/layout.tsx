@@ -17,6 +17,10 @@ import { inter } from "@/sp4/font";
 
 import { SITE_URL } from "@/lib/site-url";
 import { DemoTourMount } from "@/sp/demo/DemoTourMount";
+import { DEMO_SITE } from "@/lib/demo-site";
+
+/* sp.demo.transit is written by the guide (src/sp/demo/DemoTour.tsx) just before it signs in as the next person. */
+const DEMO_ARRIVE = `try{if(sessionStorage.getItem("sp.demo.transit")!==null){var d=document.documentElement,s=document.createElement("style");s.textContent="html[data-dt-arrive],html[data-dt-arrive] body{background:#f6f8fd!important}html[data-dt-arrive] body{visibility:hidden}html[data-dt-arrive] .dt-transit{visibility:visible}";document.head.appendChild(s);d.setAttribute("data-dt-arrive","");setTimeout(function(){d.removeAttribute("data-dt-arrive")},8000)}}catch(e){}`;
 import { RouteProgress } from "@/components/motion/RouteProgress";
 import { Suspense } from "react";
 
@@ -121,6 +125,10 @@ export default function RootLayout({
       <head />
       <body className={`min-h-dvh font-sans ${sxSans.variable} ${inter.variable}`}>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+        {/* Guided demo, demonstration builds only: when the guide has just changed person, the new screen stays under
+           a plain veil from the first paint until the guide's stage card is on it, so the half-loaded page never
+           flashes between the two cards. Gives up after eight seconds. */}
+        {DEMO_SITE && <script dangerouslySetInnerHTML={{ __html: DEMO_ARRIVE }} />}
         <StructuredData siteUrl={siteUrl} />
         {/* A line across the top while the next page is on its way. */}
         <Suspense fallback={null}><RouteProgress /></Suspense>

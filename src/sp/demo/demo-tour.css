@@ -194,7 +194,20 @@ html:has([role="dialog"][aria-modal="true"]) .dt, html:has([role="dialog"][aria-
 @media (prefers-reduced-motion: reduce) { .dt-roles summary .dt-roles-chev { transition: none; } }
 
 /* ── The One Health guide (DemoTour.tsx): stages, actions, status marks, the example and the corner it sits in ── */
-.dt.is-guide { width: min(360px, calc(100vw - 32px)); gap: 8px; padding: 12px 16px 16px; transition: left .3s var(--dt-ease), right .3s var(--dt-ease), top .3s var(--dt-ease), bottom .3s var(--dt-ease); }
+/* The card glides between corners by a transform DemoTour.tsx plays (a change from right to left cannot transition). */
+.dt.is-guide { width: min(360px, calc(100vw - 32px)); gap: 8px; padding: 12px 16px 16px; }
+/* The card stays between actions; the next action's words arrive from the side the guide is moving toward. */
+.dt > .dt-swap[data-dir] { animation: dt-swap-f 240ms var(--dt-ease) both; }
+.dt > .dt-swap[data-dir="back"] { animation-name: dt-swap-b; }
+@keyframes dt-swap-f { from { opacity: 0; transform: translateX(8px); } }
+@keyframes dt-swap-b { from { opacity: 0; transform: translateX(-8px); } }
+/* A change of person: arriving on the next screen the card is already there (no second fade); leaving, its words lift
+   away a moment before the veil clears. */
+.dt-transit.is-arrived:not(.is-leaving), .dt-transit.is-arrived:not(.is-leaving) .dt-transit-in { animation: none; }
+.dt-transit.is-leaving .dt-transit-in { animation: dt-lift 280ms var(--dt-ease) forwards; }
+@keyframes dt-lift { to { opacity: 0; transform: translateY(-8px); } }
+.dt-transit-dots li { transition: background-color 240ms var(--dt-ease), box-shadow 240ms var(--dt-ease); }
+@media (prefers-reduced-motion: reduce) { .dt > .dt-swap[data-dir], .dt-transit.is-leaving .dt-transit-in { animation: none; } .dt-transit-dots li { transition: none; } }
 @media (min-width: 761px) {
   .dt.is-bl { right: auto; left: 20px; }
   .dt.is-tr { bottom: auto; top: 72px; }

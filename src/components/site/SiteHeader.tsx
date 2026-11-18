@@ -23,8 +23,9 @@ import "@/sp4/sp4.css";
    picks up the bar without an edit.
    ════════════════════════════════════════════════════════════════════ */
 
-import { MEGA, type MegaCol } from "@/sp3/site/nav-data";
+import { MEGA, type MegaCol, type MegaLink } from "@/sp3/site/nav-data";
 import { MegaArt } from "./MegaArt";
+import { NAV_SHOTS } from "./nav-shots";
 import { DEMO_SITE } from "@/lib/demo-site";
 
 /* The cinematic site's navigation, in its build only (next.config.mjs): elsewhere this is null and the module is not bundled. */
@@ -161,6 +162,15 @@ function LegacySiteHeader(props: { tone?: "paper" | "night"; overlay?: boolean; 
 
 function Mega({ id, label, open, onToggle, onHover, cols, feature }: { id: MenuId; label: string; open: boolean; onToggle: (id: MenuId) => void; onHover: (id: MenuId | null) => void; cols: MegaCol[]; feature?: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
+  /* The link pointed at or focused: the panel's last column shows a preview of the page it opens (a capture of the
+     page itself, scripts/nav-previews.cjs). The image loads only then; leaving the links brings the drawing back. */
+  const [peek, setPeek] = useState<MegaLink | null>(null);
+  useEffect(() => { if (!open) setPeek(null); }, [open]);
+  const shot = peek ? NAV_SHOTS[peek.href] : undefined;
+  const linkOf = (t: EventTarget) => {
+    const a = (t as HTMLElement).closest?.<HTMLAnchorElement>("a.s4-dd-item");
+    return a ? cols.flatMap((c) => c.links).find((l) => l.href === a.dataset.href) ?? null : null;
+  };
   /* Opened from the keyboard: focus the first link once the panel renders. */
   const focusFirst = useRef(false);
   useEffect(() => {
@@ -179,16 +189,27 @@ function Mega({ id, label, open, onToggle, onHover, cols, feature }: { id: MenuI
         onKeyDown={(e) => { if (e.key === "ArrowDown" && !open) { e.preventDefault(); e.stopPropagation(); focusFirst.current = true; onToggle(id); } }}>
         {label}<ChevronDown size={14} aria-hidden />
       </button>
-      <div id={`s4-dd-${id}`} className="s4-mega" hidden={!open}>
+      <div id={`s4-dd-${id}`} className="s4-mega" hidden={!open}
+        onPointerOver={(e) => { if (e.pointerType === "mouse") { const l = linkOf(e.target); if (l) setPeek(l); } }}
+        onFocus={(e) => setPeek(linkOf(e.target))}>
         {cols.map((c) => (
-          <div key={c.title} className="s4-mega-col">
+          <div key={c.title} className="s4-mega-col" onPointerLeave={(e) => { if (e.pointerType === "mouse") setPeek(null); }}>
             <p className="s4-mega-h">{c.title}</p>
             <ul>{c.links.map((l) => (
-              <li key={l.href + l.label}><Link href={l.href} className="s4-dd-item"><b>{l.label}</b>{l.hint && <small>{l.hint}</small>}</Link></li>
+              <li key={l.href + l.label}><Link href={l.href} className="s4-dd-item" data-href={l.href}><b>{l.label}</b>{l.hint && <small>{l.hint}</small>}</Link></li>
             ))}</ul>
           </div>
         ))}
-        {feature && <div className="s4-mega-col is-feature">{feature}</div>}
+        {feature && (
+          <div className={`s4-mega-col is-feature${shot ? " is-peek" : ""}`}>
+            <div className="s4-mega-feat">{feature}</div>
+            <figure className="s4-peek" aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {shot && <img key={shot} src={shot} alt="" width={480} height={300} decoding="async" />}
+              <figcaption><b>{peek?.label}</b><small>{peek?.href.split(/[?#]/)[0]}</small></figcaption>
+            </figure>
+          </div>
+        )}
       </div>
     </div>
   );

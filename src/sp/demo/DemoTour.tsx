@@ -8,7 +8,7 @@
 
    The card keeps out of the way: it moves to whichever corner does not cover what it points at, hides while a
    dialog is open, and folds to a small pill ("Exit") from which the visitor can resume, switch role or end. */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, ChevronUp, Compass, Minus, RotateCcw, UserRound, Wand2, X } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
@@ -150,11 +150,13 @@ async function runFills(fills: Fill[]) {
 }
 
 /* The card that covers a change of person: which stage, and who is working now. */
-function Transit({ i, leaving }: { i: number; leaving: boolean }) {
+function Transit({ i, leaving, arrived }: { i: number; leaving: boolean; arrived?: boolean }) {
   const t = STAGES[i];
+  /* The page's own early cover (layout.tsx, html[data-dt-arrive]) hands over to this card once it is on screen. */
+  useEffect(() => { document.documentElement.removeAttribute("data-dt-arrive"); }, []);
   if (!t) return null;
   return (
-    <div className={`dt-transit${leaving ? " is-leaving" : ""}`} role="status" aria-live="polite">
+    <div className={`dt-transit${leaving ? " is-leaving" : ""}${arrived ? " is-arrived" : ""}`} role="status" aria-live="polite">
       <div className="dt-transit-in">
         <p className="dt-transit-k">Stage {i + 1} of {TOUR_DONE}</p>
         <h2>{t.label}</h2>
@@ -181,8 +183,10 @@ export function DemoTour() {
   /* Bottom-left first: on every workspace that is the sidebar's empty lower half, so the card covers nothing. */
   const [corner, setCorner] = useState<Corner>("bl");
   const [filling, setFilling] = useState(false);
-  const [transit, setTransit] = useState<{ i: number; leaving: boolean } | null>(null);
+  const [transit, setTransit] = useState<{ i: number; leaving: boolean; arrived?: boolean } | null>(null);
   const card = useRef<HTMLElement | null>(null);
+  /* Where the card was just before it changes corner, so it can glide there instead of jumping. */
+  const fromRect = useRef<DOMRect | null>(null);
   /* Answers "Next action" gives for the presenter, done one after another in the background. */
   const chain = useRef<Promise<void>>(Promise.resolve());
   /* Steps whose answer has been started (by Next or by "Do this step for me"), so it never runs twice. */
@@ -196,8 +200,11 @@ export function DemoTour() {
     window.addEventListener("storage", on);
     try {
       const v = sessionStorage.getItem(TRANSIT);
-      if (v !== null) { sessionStorage.removeItem(TRANSIT); setTransit({ i: Number(v), leaving: false }); }
-    } catch { /* storage blocked: no stage card, the screen simply loads */ }
+      /* Arriving after a change of person: the previous page's card is already over the screen, so this one does not
+         fade in again; it simply continues, then lifts away. */
+      if (v !== null) { sessionStorage.removeItem(TRANSIT); setTransit({ i: Number(v), leaving: false, arrived: true }); }
+      else document.documentElement.removeAttribute("data-dt-arrive");
+    } catch { /* storage blocked: no stage card, the screen simply loads */ document.documentElement.removeAttribute("data-dt-arrive"); }
     return () => { window.removeEventListener(TOUR_EVENT, on); window.removeEventListener("storage", on); };
   }, []);
 
@@ -216,6 +223,24 @@ export function DemoTour() {
   const [here, setHere] = useState(0);
   const onScreen = !!act && typeof window !== "undefined" && onActScreen(act, pathname, memo, window.location.search) && here >= 0;
   useEffect(() => { setDoneAt(null); scrolled.current = null; }, [s?.step, s?.act]);
+
+  /* A change of corner glides (measured before and after, then played back as a transform); under reduced motion it
+     simply moves. */
+  useLayoutEffect(() => {
+    const el = card.current, from = fromRect.current;
+    fromRect.current = null;
+    if (!el || !from || calm() || typeof el.animate !== "function") return;
+    const to = el.getBoundingClientRect();
+    const dx = from.left - to.left, dy = from.top - to.top;
+    if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return;
+    el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.2, .8, .2, 1)" });
+  }, [corner]);
+
+  /* Which way the guide just moved, so the next action's words arrive from that side. */
+  const pos = s ? s.step * 100 + s.act : 0;
+  const lastPos = useRef(pos);
+  const dir = pos >= lastPos.current ? "fwd" : "back";
+  useEffect(() => { lastPos.current = pos; }, [pos]);
 
   /* Point at the control, notice when the action is done, and keep the card off what it points at. */
   useEffect(() => {
@@ -246,7 +271,11 @@ export function DemoTour() {
           bl: { left: 20, right: 20 + w, top: H - 20 - h, bottom: H - 20 },
           tr: { left: W - 20 - w, right: W - 20, top: 72, bottom: 72 + h },
         };
-        setCorner((now) => (!covers(spots[now]) ? now : (["bl", "br", "tr"] as Corner[]).find((k) => !covers(spots[k])) ?? now));
+        setCorner((now) => {
+          const to = !covers(spots[now]) ? now : (["bl", "br", "tr"] as Corner[]).find((k) => !covers(spots[k])) ?? now;
+          if (to !== now) fromRect.current = card.current?.getBoundingClientRect() ?? null;
+          return to;
+        });
       }
       /* An action that ends on another screen ("open the record") is done wherever the presenter now is. */
       if ((onScreen || (act.done && "path" in act.done)) && isDone(act)) setDoneAt((d) => d ?? Date.now());
@@ -374,7 +403,7 @@ export function DemoTour() {
     leaveFor(DEMO_ROLES[r].home);
   }, [s?.step, s?.role]);
 
-  const cover = transit ? <Transit i={transit.i} leaving={transit.leaving} /> : null;
+  const cover = transit ? <Transit i={transit.i} leaving={transit.leaving} arrived={transit.arrived} /> : null;
   if (!s || s.mode === "off" || pathname === "/try") return cover;
   const place = `${tabs ? " has-tabs" : ""} is-${corner}`;
   const roles = (
@@ -443,14 +472,15 @@ export function DemoTour() {
   return (
     <>
       {cover}
-      <aside ref={card} key={`${s.step}:${s.act}`} className={`dt is-guide${place}${done ? " is-done" : ""}`} aria-label="Guided demo" aria-live="polite">
+      {/* One card for the whole guide: it stays put between actions (and keeps focus on Next); only its words change. */}
+      <aside ref={card} className={`dt is-guide${place}${done ? " is-done" : ""}`} aria-label="Guided demo" aria-live="polite">
         <div className="dt-top">
           <span className="dt-k">{s.step + 1} · {stage.label}<span className="dt-k-l"> · {s.act + 1}/{n}</span></span>
           <button type="button" className="dt-min" aria-label="Exit the guide and explore freely" title="Exit: explore freely; resume any time" onClick={() => writeTour({ mode: "roam", step: s.step })}><Minus size={14} aria-hidden /> Exit</button>
         </div>
         {bar(s.step)}
-        <h2>{done ? <span className="dt-tick" aria-label="Done"><Check size={14} strokeWidth={3} aria-hidden /></span> : null}{act.title}</h2>
-        <p className="dt-say">{act.say}</p>
+        <h2 key={`h${pos}`} className="dt-swap" data-dir={dir}>{done ? <span className="dt-tick" aria-label="Done"><Check size={14} strokeWidth={3} aria-hidden /></span> : null}{act.title}</h2>
+        <p key={`p${pos}`} className="dt-say dt-swap" data-dir={dir}>{act.say}</p>
         {(act.example || act.auto) && onScreen ? (
           <div className="dt-do"><button type="button" className="dt-kaju" disabled={filling} onClick={() => void fill()}><Wand2 size={14} aria-hidden />{filling ? "Doing it…" : act.auto ? "Do this step for me" : act.example?.label}</button></div>
         ) : null}

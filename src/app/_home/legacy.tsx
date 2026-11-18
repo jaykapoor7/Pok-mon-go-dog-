@@ -13,6 +13,7 @@ import { Welcome } from "@/sp4/home/v7/Welcome";
 import { FiveSteps } from "@/sp4/home/v7/FiveSteps";
 import { CloseAndQuestions, Recurring, Results, Teammate, ToolsAccordion } from "@/sp4/home/v7/Sections";
 import { AuditTrail, HeroScroll, Reveal } from "@/sp4/home/v7/Extras";
+import { Mission } from "@/sp4/home/v7/Mission";
 import "@/sp4/home/v7/landing7.css";
 import "@/sp4/home/v7/motion8.css";
 import { LandingMotion } from "@/sp4/home/v7/Motion";
@@ -34,7 +35,8 @@ export const metadata = {
 /* ════════════════════════════════════════════════════════════════════
    Homepage, in order:
    1 hero (Meet Kaju) · 2 partner wall · 3 use cases · 4 Kaju as a
-   teammate · 5 recurring checks for Kaju (dark) · 6 customer results ·
+   teammate · 5 recurring checks for Kaju (dark) · 5b one request becomes
+   a mission (the real planner) · 6 customer results ·
    7 integrations · 8 security · 9 FAQ · 10 closing call to action.
    Buyer: the municipal office that funds ABC and anti-rabies work, and
    the operators it funds. Kaju is the agent; StrayPaw is the platform.
@@ -70,8 +72,8 @@ export default function HomePage() {
           <h1 id="hero-title" className="s4-h1 s6-h1"><span className="sr-only">Meet Kaju, the AI agent for animal welfare programmes</span><span aria-hidden><span className="s4-words"><Words lines={["Meet Kaju, the AI agent for"]} mark="Kaju" /></span><br /><HeroRotator /></span></h1>
           <p className="s7-hero-sub">Every animal deserves a record. Kaju keeps it, from the first report to the monthly claim.</p>
           <div className="s4-actions">{DEMO_SITE
-            ? <><Link href="/try?go=1" className="s4-btn is-primary">Start the live demo</Link><Link href="/try" className="s4-btn is-line">Explore as a role</Link></>
-            : <><Link href="/demo" className="s4-btn is-primary">Book a demo</Link>{LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s4-btn is-line">Try the live demo</a> : <Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link>}</>}</div>
+            ? <><Link href="/try?go=1" className="s4-btn is-primary">Start the live demo<ArrowRight size={18} aria-hidden /></Link><Link href="/try" className="s4-btn is-line">Explore as a role</Link></>
+            : <><Link href="/demo" className="s4-btn is-primary">Book a demo<ArrowRight size={18} aria-hidden /></Link>{LIVE_DEMO_PUBLIC ? <a href={LIVE_DEMO_URL} className="s4-btn is-line">Try the live demo</a> : <Link href="#workflow" className="s4-btn is-line">Watch Kaju build a claim</Link>}</>}</div>
           <HeroScroll />
           <div className="s6-canvas">
             <Blueprint tone="dark" />
@@ -125,6 +127,10 @@ export default function HomePage() {
 
       {/* 5 · recurring work, with Kaju agents */}
       <Recurring />
+
+      {/* 5b · one request becomes a mission: the plan StrayPaw's rules make today, with the approval it waits for.
+         After the blueprint's own sections, so their order (held by e2e/creative-pass.spec.ts) is unchanged. */}
+      <Mission />
 
       {/* 6 · integrations */}
       <section className="s4-sec" aria-labelledby="int-title" id="integrations">
