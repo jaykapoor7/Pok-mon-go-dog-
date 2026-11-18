@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDownRight, CalendarClock, Hand, Loader2, Pencil, Plus, Trash2, UserRound, X } from "lucide-react";
 import { TOOLS, preview, validatePlan, type PlanStep, type ToolName } from "@/lib/kaju/registry";
 import { ADDABLE, DECIDER, FIELDS, cleanInput, effect } from "@/lib/kaju/capabilities";
+import { KIND_WORD, type RecordLink } from "@/lib/kaju/records";
 import { DutyChip } from "./bits";
 import { StepFields } from "./StepFields";
 import type { Vocab } from "./intent";
@@ -37,6 +38,8 @@ export function PlanCard({ planned, onStart, onDiscard, busy, vocab, compact }: 
   const [editing, setEditing] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [deadline, setDeadline] = useState(planned.deadline ?? "");
+  /* The record the mission is about, if it came from one. The person can drop the link; it is only a label. */
+  const [record, setRecord] = useState<RecordLink | null>(planned.record ?? null);
   const seq = useRef(planned.plan.steps.length);
   const card = useRef<HTMLElement>(null);
   useEffect(() => { card.current?.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); }, [calm]);
@@ -61,7 +64,7 @@ export function PlanCard({ planned, onStart, onDiscard, busy, vocab, compact }: 
     if (FIELDS[tool]?.length) setEditing(key);
   };
   const change = (key: string, input: Record<string, unknown>) => setSteps((cur) => cur.map((s) => (s.key === key ? { ...s, input, label: s.auto ? autoLabel(s.tool, input, TOOLS[s.tool].label) : s.label } : s)));
-  const start = () => { if (!check.ok || off || busy) return; onStart({ ...planned, plan: check.plan, steps: preview(check.plan, planned.levels), deadline: deadline || null }); };
+  const start = () => { if (!check.ok || off || busy) return; onStart({ ...planned, plan: check.plan, steps: preview(check.plan, planned.levels), deadline: deadline || null, record }); };
 
   const tomorrow = new Date(Date.now() + 5.5 * 36e5 + 864e5).toISOString().slice(0, 10);
   return (
@@ -69,7 +72,9 @@ export function PlanCard({ planned, onStart, onDiscard, busy, vocab, compact }: 
       <header className="kj-plan-h">
         <p className="kj-eyebrow"><span className="kj-tag">Plan</span>Not started · {planned.planner === "model" ? "planned with a model" : "planned by fixed rules"}</p>
         <input className="kj-plan-title" value={title} maxLength={240} onChange={(e) => setTitle(e.target.value)} aria-label="Mission title" />
-        {planned.text && planned.text.trim() !== title.trim() ? <p className="kj-plan-ask">You asked: “{planned.text}”</p> : null}
+        {planned.text && planned.text.trim() !== title.trim() && !planned.record ? <p className="kj-plan-ask">You asked: “{planned.text}”</p> : null}
+        {record ? <p className="kj-plan-about"><span>About</span><span className="kr-chip is-static"><span className="kr-chip-k">{KIND_WORD[record.kind]}</span><span className="kr-chip-l">{record.label}</span></span><button type="button" className="kj-ib" aria-label={`Do not link this mission to ${record.label}`} title="Do not link it to this record" onClick={() => setRecord(null)}><X size={14} /></button></p>
+          : planned.record ? <p className="kj-plan-about"><span>Not linked to a record.</span><button type="button" className="kj-link" onClick={() => setRecord(planned.record ?? null)}>Link to {planned.record.label}</button></p> : null}
         <div className="kj-who" aria-label="Who does what">
           <span className="d-kaju"><span className="kj-duty-k" aria-hidden>K</span><b>{counts.kaju}</b> {counts.kaju === 1 ? "step" : "steps"} Kaju runs</span>
           <span className={counts.you ? "d-you" : "is-none"}><Hand size={12} /><b>{counts.you}</b> {counts.you === 1 ? "approval" : "approvals"} by you</span>

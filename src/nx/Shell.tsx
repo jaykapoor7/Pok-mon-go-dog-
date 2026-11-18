@@ -50,7 +50,7 @@ export function Frame({ children }: { children: ReactNode }) {
 /** A page's place in the frame: its breadcrumb, workspace and whether it runs edge to edge. */
 export function Shell({ crumb, children, ws, flush, subject }: { crumb: [string, string?]; children: ReactNode; ws?: Ws; flush?: boolean; subject?: KajuSubject | null }) {
   const set = useContext(MetaCtx);
-  const key = `${crumb[0]}\u0000${crumb[1] ?? ""}\u0000${ws ?? ""}\u0000${flush ? 1 : 0}\u0000${subject ? `${subject.kind ?? ""}:${subject.caseId ?? ""}:${subject.dogId ?? ""}:${subject.label ?? ""}` : ""}`;
+  const key = `${crumb[0]}\u0000${crumb[1] ?? ""}\u0000${ws ?? ""}\u0000${flush ? 1 : 0}\u0000${subject ? `${subject.kind ?? ""}:${subject.caseId ?? ""}:${subject.dogId ?? ""}:${subject.packageId ?? ""}:${subject.ws ?? ""}:${subject.label ?? ""}` : ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useIsoLayout(() => { set?.({ crumb, ws, flush, subject: subject ?? null }); }, [key, set]);
   if (!set) return <MetaCtx.Provider value={() => {}}><KajuProvider><FrameBody meta={{ crumb, ws, flush, subject: subject ?? null }}>{children}</FrameBody></KajuProvider></MetaCtx.Provider>;

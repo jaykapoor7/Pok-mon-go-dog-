@@ -22,6 +22,8 @@ import { KajuCapture, type ByHand } from "../../KajuCapture";
 import { CARE_WORD, dayWords, readRecord } from "../../data/capture";
 import type { Proposal } from "@/sp3/ai/types";
 import { RecordBar } from "../../RecordBar";
+import { HandoffButton, RecordWorkrooms, useHandoff } from "../../kaju/records";
+import type { RecordLink } from "@/lib/kaju/records";
 
 /* One case, read top to bottom as it happened: what it is and who holds it, the one next step the person's role
    allows, its follow-ups, the story so far with who recorded each part, photos, care and movements, and the other
@@ -75,6 +77,10 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   /* The animal is named as the register names it ("Dog 125", "Tiger (132)"), and a title written with its code reads with that name. */
   const dogId = file && file !== "loading" && !("error" in file) ? file.c.dog_id : null;
   const dog = useAnimalRefs(org.org_id, [dogId])?.get(dogId ?? "") ?? null;
+  /* Handing this case to Kaju: the plan, once started, carries a link back to it, and the case lists its workrooms. */
+  const ok = file && file !== "loading" && !("error" in file) ? file : null;
+  const link: RecordLink | null = ok ? { kind: "case", id: ok.c.id, label: shortCode(ok.reg.case_code, ok.c.id.slice(0, 8).toUpperCase()), ws: "ngo" } : null;
+  const handoff = useHandoff(link, org.org_id);
 
   if (file === "loading") return <Shell crumb={["Cases", "…"]}><div className="nx-page"><Skeleton rows={8} label="Reading the case" /></div></Shell>;
   if (file && "error" in file) return <Shell crumb={["Cases", "Case"]}><div className="nx-page"><Failed error={file.error} retry={() => void read()} /></div></Shell>;
@@ -140,7 +146,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
       <RecordHead av={<PawPrint size={18} />} title={<><span className="num">{code}</span> · {title}</>}
         sub={<>{place || "Place not recorded"} · recorded {day(reg.occurred_at)} · {c.assignee_name ? <>held by <b>{c.assignee_name}</b></> : "nobody holds it yet"}</>}
         chips={<><Chip tone={STATUS_TONE[reg.status_class ?? "unknown"] ?? "plain"}>{statusLabel(reg.status_class)}</Chip>{imported ? <Chip>Imported record</Chip> : null}{cohort === "decide" ? <Chip tone="warn">Waiting on a decision</Chip> : null}</>}
-        actions={<><Link href="/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><DeleteRecord kind="case" id={c.id} what="this case" label="Delete case" onDone={() => router.push("/ngo/cases")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></>} />
+        actions={<><HandoffButton onOpen={handoff.open} /><Link href="/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><DeleteRecord kind="case" id={c.id} what="this case" label="Delete case" onDone={() => router.push("/ngo/cases")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} /></>} />
       {reg.condition_text || c.description ? <p className="nr-lede">{reg.condition_text || c.description}</p> : null}
       <div className="kc-line"><KajuCapture compact idBase="case-kaju" label="Tell Kaju" context={{ path: `/ngo/cases/${c.id}`, workspace: "ngo", caseId: c.id, dogId: c.dog_id, title: `Case ${code}` }}
         placeholder={c.dog_id ? "For example: ate well, follow up Monday · vaccinated today, batch B-1" : "For example: ate well, follow up Monday · called the informer, no answer"}
@@ -154,6 +160,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
           <div>
             {actor ? <Section title="Next step" id="case-next"><CaseNext file={file} role={org.role} actor={actor} members={members} onChanged={read} seed={seed} /></Section> : <p className="nx-sub">Sign in again to act on this case.</p>}
             <Section title="Follow-ups" count={followups.length}><FollowupList items={followups} onChanged={read} /></Section>
+            {link ? <RecordWorkrooms link={link} orgId={org.org_id} onHand={handoff.open} /> : null}
             <Section title="The story so far" count={story.length} action={story.length > 6 ? <button type="button" className="nx-link" onClick={() => setTab("History")}>See all {story.length}</button> : undefined}>
               <Timeline items={story.slice(0, 6)} empty="Nothing recorded yet. A note, a status change or care on this case appears here, with who recorded it." />
             </Section>
@@ -191,11 +198,13 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
       <RecordBar label="More on this case"
         primary={actor ? <button type="button" className="nx-btn" onClick={() => { setTab("Overview"); bring("case-next"); }}>Next step</button> : undefined}
         more={<>
+          <HandoffButton phone onOpen={handoff.open} />
           {c.dog_id ? <Link href={`/ngo/animals/${c.dog_id}`} className="nx-btn is-quiet"><PawPrint size={16} />Open the animal</Link> : null}
           {c.dog_id ? <button type="button" data-close className="nx-btn is-quiet" onClick={() => { setTab("Care and movements"); setCaring(true); bring("case-care"); }}>Record care by hand</button> : null}
           <button type="button" data-close className="nx-btn is-quiet" onClick={() => setTab("History")}>The whole story</button>
           <DeleteRecord kind="case" id={c.id} what="this case" label="Delete case" onDone={() => router.push("/ngo/cases")} onRestored={() => router.push(`/ngo/cases/${c.id}`)} />
         </>} />
+      {handoff.node}
     </Shell>
   );
 }

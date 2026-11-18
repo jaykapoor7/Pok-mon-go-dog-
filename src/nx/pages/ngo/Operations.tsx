@@ -21,6 +21,9 @@ import { SAMPLE_CARE, SAMPLE_LANES, type SampleCare } from "../../data/ngo-sampl
 import { RecordList, type RCol, type RView } from "./RecordList";
 import "../../field.css";
 import { SharedClinicStatus } from "../VetClinic";
+import { PlanDialog } from "../../kaju/records";
+import { plannedFrom } from "../../kaju/work";
+import type { Planned } from "../../kaju/state";
 
 /* Operations: the field visits due, grouped by day and place so a team can plan a round; the care log (every care event
    in date order beside its animal, and the cases that carry medical work); and the two lines of work, rescues and
@@ -112,10 +115,19 @@ function Visits({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.Reac
   const list = useMemo<Visit[]>(() => [...(sample ? (VISITS_OPS as Visit[]).map((v) => ({ ...v, animal: sampleAnimal(v.animal) })) : rows ?? [])].sort((a, b) => ORDER.indexOf(a.day) - ORDER.indexOf(b.day) || a.place.localeCompare(b.place)), [sample, rows]);
   const byPlace = useMemo(() => { const m = new Map<string, number>(); for (const v of list) if (["Overdue", "Today", "Tomorrow"].includes(v.day)) m.set(v.place, (m.get(v.place) ?? 0) + 1); return [...m].sort((a, b) => b[1] - a[1]); }, [list]);
   const overdue = list.filter((v) => v.day === "Overdue").length, today = list.filter((v) => v.day === "Today").length;
+  /* Overdue work → Kaju's existing follow-up job: it finds open cases with no follow-up task and, once the person
+     approves, adds one for each (find_due_followups, then create_followup_tasks, which always asks first). */
+  const [planned, setPlanned] = useState<Planned | null>(null);
+  const [planning, setPlanning] = useState(false);
+  const prepare = async () => {
+    if (!ngo) return; setPlanning(true);
+    try { setPlanned(await plannedFrom(ngo.org_id, { title: "Prepare follow-ups for open cases with no task", steps: [{ label: "Find open cases that need a follow-up", tool: "find_due_followups", input: { when: "any" } }, { label: "Create a follow-up task for each", tool: "create_followup_tasks", input: { from_step: 1 } }] }, "Prepare follow-ups from Operations")); }
+    finally { setPlanning(false); }
+  };
   const views: RView<Visit>[] = [{ id: "soon", label: "Due by tomorrow", test: (v) => ["Overdue", "Today", "Tomorrow"].includes(v.day) }, { id: "late", label: "Overdue", test: (v) => v.day === "Overdue" }, { id: "week", label: "Next 7 days", test: (v) => v.day !== "Imported" }, ...(list.some((v) => v.day === "Imported") ? [{ id: "imp", label: "Imported, never confirmed", test: (v: Visit) => v.day === "Imported" }] : [])];
-  return (
+  return (<>
     <RecordList id="visits" title="Operations" sample={sample} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.what} columns={vCols} views={views} search={(r) => `${r.what} ${r.place} ${r.who} ${r.animal ?? ""} ${r.case ?? ""}`} placeholder="Place, person, animal"
-      sub={sample || rows ? <><b className="num">{today}</b> {today === 1 ? "visit" : "visits"} today{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}. {byPlace.length && byPlace[0][1] > 1 ? <>Busiest place: <b>{byPlace[0][0]}</b> ({byPlace[0][1]} due by tomorrow).</> : null}</> : "Reading field visits…"}
+      sub={sample || rows ? <><b className="num">{today}</b> {today === 1 ? "visit" : "visits"} today{overdue ? <>, <b className="num">{overdue}</b> overdue</> : null}. {!sample && overdue ? <><button type="button" className="nx-link ops-kaju" disabled={planning} onClick={() => void prepare()}>Prepare follow-ups with Kaju</button>. </> : null}{byPlace.length && byPlace[0][1] > 1 ? <>Busiest place: <b>{byPlace[0][0]}</b> ({byPlace[0][1]} due by tomorrow).</> : null}</> : "Reading field visits…"}
       action={action} above={tabs} loading={!sample && rows === null} error={err} onRetry={() => void load()} hrefOf={(r) => r.caseHref ?? r.animalHref}
       empty={{ none: "No visits due in the next 7 days", hint: "Follow-ups scheduled on cases appear here." }}
       preview={(r) => ({ title: r.what, sub: <>{r.place} <Chip tone={DAY_TONE[r.day] ?? "plain"}>{r.day}</Chip></>, href: r.caseHref, hrefLabel: "Open the case", body: <>
@@ -123,6 +135,8 @@ function Visits({ ngo, tabs, action }: { ngo: Workspace | null; tabs: React.Reac
         <p className="nx-note" style={{ marginTop: 14 }}><MapPin size={13} /><span>{r.day === "Imported" ? "This follow-up came from an imported register and was never confirmed. It is not counted as overdue work." : "Visits are grouped by place to help plan a round. StrayPaw does not have travel times, so it does not order a route for you."}</span></p>
         <p className="nr-hint" style={{ marginTop: 10 }}>Mark it done or missed on the case, or from <Link className="nr-link" href="/ngo/field">field mode</Link> on the phone.</p>
       </> })} />
+    {planned && ngo ? <PlanDialog title="Review the plan" orgId={ngo.org_id} planned={planned} onClose={() => setPlanned(null)} /> : null}
+    </>
   );
 }
 

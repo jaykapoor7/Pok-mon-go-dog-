@@ -17,6 +17,7 @@ import { Jobs } from "./Jobs";
 import { LiveMissionCard } from "./MissionCard";
 import { useKajuPrefs, useKajuVocab } from "./data";
 import { useCapabilities } from "./work";
+import { HandoffStarts, plannedFor, subjectLink } from "./records";
 import { useKaju, type Planned } from "./state";
 import { KajuVoice } from "@/kaju/voice/KajuVoice";
 import { VOICE_OFFERED } from "@/kaju/voice/availability";
@@ -109,10 +110,16 @@ function DockBody({ planned, setPlanned, startedId, setStartedId, onVoice, phone
   const { caps } = useCapabilities(!!org);
   const [busy, setBusy] = useState(false);
   const [noModel, setNoModel] = useState<string | null>(null);
+  /* The record open on the page goes with a plan made here, shown on the plan card where it can be unlinked. Records
+     belong to an NGO workspace; elsewhere nothing is linked. */
+  const link = org?.workspace === "ngo" ? subjectLink(k.page) : null;
+  const [handing, setHanding] = useState(false);
+  const [picking, setPicking] = useState<string | null>(null);
+  useEffect(() => { setHanding(false); }, [link?.id]);
   const plan = async (text: string, intent: Parameters<typeof k.plan>[2]) => {
     if (!org) { toast({ text: "Sign in to an organisation to hand Kaju work.", tone: "bad" }); return; }
     setBusy(true); setNoModel(null); setStartedId(null); const r = await k.plan(org.org_id, text, intent); setBusy(false);
-    if (r.ok) setPlanned(r.planned); else if (r.noModel) setNoModel(r.error); else toast({ text: r.error, tone: "bad" });
+    if (r.ok) setPlanned({ ...r.planned, record: link }); else if (r.noModel) setNoModel(r.error); else toast({ text: r.error, tone: "bad" });
   };
   const start = async (p: Planned) => {
     if (!org) return;
@@ -134,6 +141,11 @@ function DockBody({ planned, setPlanned, startedId, setStartedId, onVoice, phone
           <span className="kj-here-l">For {k.page.label ?? "this record"}</span>
           {here.map((h) => <button key={h.label} type="button" className="nx-chipbtn" disabled={k.busy || k.expired}
             onClick={() => { if (h.send) void k.ask(h.text); else window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q: h.text } })); }}>{h.label}</button>)}
+          {link ? <button type="button" className="nx-chipbtn kj-here-hand" aria-expanded={handing} onClick={() => setHanding((v) => !v)}>Hand to Kaju…</button> : null}
+        </div> : null}
+        {link && org && handing && !planned && !startedId ? <div className="kj-dock-hand">
+          <p className="kj-quiet">A workroom about {link.label}. Choose what Kaju should do; you review the plan before it starts.</p>
+          <HandoffStarts link={link} orgId={org.org_id} busy={picking} onPick={(s) => { setPicking(s.id); void plannedFor(org.org_id, link, s).then((p) => { setPlanned(p); setHanding(false); }).finally(() => setPicking(null)); }} />
         </div> : null}
         {empty && org && !here.length ? <Jobs vocab={vocab} canPlan busy={busy} compact onPlan={(t, i) => void plan(t, i)} /> : null}
         <Thread compact />

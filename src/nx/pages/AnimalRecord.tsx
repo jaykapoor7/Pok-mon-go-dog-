@@ -8,6 +8,8 @@ import { ArrowUpRight, ClipboardPlus, Info, Lock, Plus } from "lucide-react";
 import { Shell } from "../Shell";
 import { Chip, Sample, TrustChip } from "../ui";
 import { RecordBar } from "../RecordBar";
+import { HandoffButton, RecordWorkrooms, useHandoff } from "../kaju/records";
+import type { RecordLink } from "@/lib/kaju/records";
 import { Failed, Field, Modal, Props, RecordHead, Section, Skeleton, TabBar, Timeline, day, errText, useAct, words, type TItem } from "../kit";
 import { ANIMALS, RELATED } from "../fixtures";
 import { useLive, type Workspace } from "../live";
@@ -61,6 +63,10 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const cover = file && file !== "loading" && !("error" in file) ? file.dog.cover_photo : undefined;
   const readPhotos = useCallback(async () => { if (cover === undefined) return; setPhotos(null); const r = await readAnimalGallery(org.org_id, id, cover); setPhotos(r.error ? { error: errText(r.error) } : r.data ?? []); }, [org.org_id, id, cover]);
   useEffect(() => { void readPhotos(); }, [readPhotos]);
+  /* Handing this animal to Kaju: the plan, once started, carries a link back to it, and the record lists its workrooms. */
+  const okFile = file && file !== "loading" && !("error" in file) ? file : null;
+  const link: RecordLink | null = okFile ? { kind: "animal", id: okFile.dog.id, label: animalLabel(okFile.dog).line, ws: "ngo" } : null;
+  const handoff = useHandoff(link, org.org_id);
   if (file === "loading") return <Shell crumb={["Animals", "…"]}><div className="nx-page"><Skeleton rows={8} label="Reading the record" /></div></Shell>;
   if (file && "error" in file) return <Shell crumb={["Animals", "Animal"]}><div className="nx-page"><Failed error={file.error} retry={() => void read()} /></div></Shell>;
   if (!file) return <Shell crumb={["Animals", "Not found"]}><div className="nx-page"><h1 className="nx-h1">No animal with this ID on {org.name}&apos;s register</h1><p className="nx-sub">It may belong to another organisation, have been removed, or the link is wrong.</p><p style={{ marginTop: 16 }}><Link href="/ngo/animals" className="nx-btn is-quiet">Back to Animals</Link></p></div></Shell>;
@@ -100,6 +106,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
         sub={<><Lock size={11} style={{ verticalAlign: "-1px" }} /> Private to {org.name} · {[d.zone, d.city].filter(Boolean).join(", ") || "Place not recorded"} · last seen {d.last_seen ? day(d.last_seen) : "not recorded"}</>}
         chips={<><Chip tone={factTone(d.sterilisation_status)}>{fact(d.sterilisation_status, "Sterilised", "Not sterilised", "Sterilisation not recorded")}</Chip><Chip tone={factTone(d.vaccination_status)}>{fact(d.vaccination_status, "Vaccinated", "Not vaccinated", "Vaccination not recorded")}</Chip>{d.needs_help ? <Chip tone="bad">Needs help</Chip> : null}<TrustChip trust={imported ? "Imported" : "Recorded"} /></>}
         actions={<>
+          <HandoffButton onOpen={handoff.open} />
           {liveCase ? <Link href={`/ngo/cases/${liveCase.id}`} className="nx-btn is-quiet is-sm">Open its case</Link> : null}
           <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />{liveCase ? "Open another case" : "Start a case"}</Link>
           <button type="button" className="nx-btn is-quiet is-sm" disabled={!!busy} onClick={flip}>{d.needs_help ? "Clear needs help" : "Flag as needing help"}</button>
@@ -128,6 +135,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
               {care.length > 6 ? <button type="button" className="nr-link" onClick={() => setTab("Care")}>See all {care.length}</button> : null}
             </Section>
             <Section title="Follow-ups" count={fus.length}><FollowupList items={fus} onChanged={read} markable={(f) => !!fus.find((x) => x.id === f.id)?.case_id} />{fus.some((f) => !f.case_id) ? <p className="nr-hint">A follow-up that is not on a case is marked done from field mode or the case it belongs to; it can be deleted here.</p> : null}</Section>
+            {link ? <RecordWorkrooms link={link} orgId={org.org_id} onHand={handoff.open} /> : null}
           </div>
           <aside aria-label="Identifiers, operations and cases">
             {publicFlagOn("animal_identifiers") ? <Identifiers dogId={d.id} canRetire={["admin", "coordinator", "veterinarian"].includes(org.role)} /> : null}
@@ -147,9 +155,11 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
       <RecordBar label="More on this animal"
         primary={liveCase ? <Link href={`/ngo/cases/${liveCase.id}`} className="nx-btn">Open its case</Link> : <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn"><ClipboardPlus size={16} />Start a case</Link>}
         more={<>
+          <HandoffButton phone onOpen={handoff.open} />
           {liveCase ? <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn is-quiet"><ClipboardPlus size={16} />Open another case</Link> : null}
           <button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={flip}>{d.needs_help ? "Clear needs help" : "Flag as needing help"}</button>
         </>} />
+      {handoff.node}
     </Shell>
   );
 }

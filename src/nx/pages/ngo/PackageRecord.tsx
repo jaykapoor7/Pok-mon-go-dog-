@@ -18,6 +18,9 @@ import { answerItem, configureClaims, decisionSource, downloadPackage, itemDecis
 import { Drawer, EvidenceLink, Grid, TryLink, Views, plural, useWho, type GCol } from "./frame";
 import { PKG_TONE, period } from "./subs/Packages";
 import { RecordBar } from "../../RecordBar";
+import { HandoffButton, RecordWorkrooms, useHandoff } from "../../kaju/records";
+import { useLive } from "../../live";
+import type { RecordLink } from "@/lib/kaju/records";
 import { S_CONTRACTS, S_OFFICES, S_PACKAGE_CASES, S_PACKAGE_EVENTS, S_PACKAGES, S_RATES, S_RECON } from "./sample";
 
 /* One report package, as the operator sees it: its claims animal by animal with the office's decisions, the records
@@ -68,6 +71,10 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
   const [asking, setAsking] = useState<"submit" | "answer" | null>(null);
   const [body, setBody] = useState("");
   const operator = leadOrCoord(role);
+  /* Handing this package to Kaju (a task to check it, or a word to the team), and the workrooms about it. */
+  const orgId = useLive().orgFor("ngo")?.org_id ?? null;
+  const link: RecordLink | null = sample ? null : { kind: "package", id: p.id, label: p.title, ws: "ngo" };
+  const handoff = useHandoff(link, orgId);
   const office = d.offices.find((o) => o.id === p.office_id)?.name ?? "the reviewing office";
   const can = actionsFor("operator", p.status);
   const showActs = !p.item_review_enabled || ["draft", "queried"].includes(p.status);
@@ -75,12 +82,13 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
   const act = (kind: "submitted" | "answer") => void run(kind, () => packageAct(p.id, kind, body), { ok: kind === "submitted" ? `Submitted to ${office}.` : "Answer sent; the package is back with the office." }).then(async (x) => { setAsking(null); if (x.ok) { setBody(""); await reload(); } });
   const download = (format: "pdf" | "xlsx") => void run(`dl:${format}`, () => downloadPackage(p.id, format), { ok: `${format.toUpperCase()} download prepared.` });
   return (
-    <Shell crumb={["Submissions & Reports", p.title]}>
+    <Shell crumb={["Submissions & Reports", p.title]} subject={sample ? null : { kind: "package", packageId: p.id, label: p.title, ws: "ngo" }}>
       <RecordHead title={<>{p.title}{sample ? <Sample /> : null}</>}
         sub={<><Chip tone={PKG_TONE[p.status] ?? "plain"}>{PACKAGE_LABEL[p.status] ?? p.status}</Chip><span>{office}</span><span>· {period(p)}</span></>}
         actions={<>
           {sample ? <><TryLink quiet><Download size={13} />Download PDF</TryLink><TryLink quiet><Download size={13} />Download XLSX</TryLink></>
             : operator ? <><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("pdf")}><Download size={13} />{busy === "dl:pdf" ? "Preparing…" : "Download PDF"}</button><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("xlsx")}><Download size={13} />{busy === "dl:xlsx" ? "Preparing…" : "Download XLSX"}</button></> : null}
+          {handoff.ready ? <HandoffButton onOpen={handoff.open} /> : null}
           <Link className="nx-btn is-quiet" href="/ngo/submissions">All packages</Link>
         </>} />
       <TabBar id="pkg" tabs={TABS as unknown as Tab[]} value={tab} onChange={setTab} label="Package sections" />
@@ -103,6 +111,7 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
             : showActs && can.includes("answer") ? <div className="ns-compose"><label className="nx-field"><span>Your answer to the office</span><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="What you checked and what you changed" /></label><div><button type="button" className="nx-btn" disabled={!!busy || !body.trim()} onClick={() => setAsking("answer")}><Send size={13} />Send answer</button></div></div>
             : <p className="nx-sub">{p.status === "accepted" ? "Accepted by the reviewing office. Accepted means approved for payment. It is not a payment." : p.status === "partially_accepted" ? "Partly accepted. Each claim's decision is under Claims." : p.item_review_enabled && ["returned", "submitted"].includes(p.status) ? "The office decides claim by claim. Answer queried or returned claims under Claims." : "With the reviewing office."}</p>}
           <h3 className="nx-h3">Conversation</h3>
+          {link && orgId ? <RecordWorkrooms link={link} orgId={orgId} onHand={handoff.open} /> : null}
           <Timeline items={events.map((e) => ({ id: e.id, when: dayTime(e.created_at), who: e.actor_name, title: <>{KIND[e.kind] ?? e.kind}{e.side === "reviewer" ? <> <Chip tone="accent">Office</Chip></> : null}</>, body: e.body ?? undefined, tone: e.kind === "accepted" ? "ok" : e.kind === "query" || e.kind === "returned" ? "warn" : undefined }))} empty="Nothing recorded yet." />
         </div>
       </div>
@@ -110,7 +119,8 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
       {asking === "answer" ? <Confirm title="Send your answer" confirm="Send answer" busy={busy === "answer"} onClose={() => setAsking(null)} onConfirm={() => act("answer")}><p>Your answer goes to {office} and the package goes back to them for review.</p><p className="nx-note"><span>{body.trim()}</span></p></Confirm> : null}
       <RecordBar label="Download this package"
         more={sample ? <><TryLink quiet><Download size={16} />Download PDF</TryLink><TryLink quiet><Download size={16} />Download XLSX</TryLink></>
-          : operator ? <><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("pdf")}><Download size={16} />{busy === "dl:pdf" ? "Preparing…" : "Download PDF"}</button><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("xlsx")}><Download size={16} />{busy === "dl:xlsx" ? "Preparing…" : "Download XLSX"}</button></> : undefined} />
+          : <>{handoff.ready ? <HandoffButton phone onOpen={handoff.open} /> : null}{operator ? <><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("pdf")}><Download size={16} />{busy === "dl:pdf" ? "Preparing…" : "Download PDF"}</button><button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => download("xlsx")}><Download size={16} />{busy === "dl:xlsx" ? "Preparing…" : "Download XLSX"}</button></> : null}</>} />
+      {handoff.node}
     </Shell>
   );
 }

@@ -5,6 +5,7 @@ import { canonicalHref } from "@/lib/routes/canonical";
 import { getSupabase } from "@/lib/supabase";
 import type { AiReply, Proposal } from "@/sp3/ai/types";
 import type { Intent, Plan } from "@/lib/kaju/registry";
+import type { RecordLink } from "@/lib/kaju/records";
 import { confirmVerified, type Saved } from "@/sp3/ai/execute";
 import { isAiReply } from "@/sp3/ai/validation";
 
@@ -24,9 +25,11 @@ export type PlanStepView = { n: number; label: string; tool: string; level: numb
 /** A plan for review. `levels` holds every tool's level in this organisation, so steps the person adds or edits say
     truthfully how they will run; `deadline` (YYYY-MM-DD) is when the person wants it finished, if they said. */
 /** The record open on the page. Ids are hints only: the server reads the record again with the person's own access. */
-export type KajuSubject = { caseId?: string | null; dogId?: string | null; label?: string | null; kind?: "case" | "animal" | "package" | "programme" | "mission" | "exposure" | "sample" };
+export type KajuSubject = { caseId?: string | null; dogId?: string | null; packageId?: string | null; label?: string | null; kind?: "case" | "animal" | "package" | "programme" | "mission" | "exposure" | "sample"; ws?: "ngo" | "gov" };
 export type KajuPage = { path: string; title?: string } & KajuSubject;
-export type Planned = { plan: Plan; steps: PlanStepView[]; planner: string; key: string; text: string; levels: Record<string, number>; deadline?: string | null };
+/** `record`: the case, animal or package the mission is about, kept in the mission's request so the workroom and the
+    record can find each other. A label only; the person can remove it before starting. */
+export type Planned = { plan: Plan; steps: PlanStepView[]; planner: string; key: string; text: string; levels: Record<string, number>; deadline?: string | null; record?: RecordLink | null };
 type Ctx = {
   turns: Turn[]; busy: boolean; open: boolean; setOpen: (o: boolean) => void; page: KajuPage;
   setPage: (p: { path: string; title?: string }) => void;
@@ -209,7 +212,7 @@ export function KajuProvider({ children }: { children: ReactNode }) {
 
   const start = useCallback(async (orgId: string, p: Planned) => {
     const t = await token(); if (!t) return { error: "Sign in again." };
-    const res = await fetch("/api/kaju/missions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ orgId, plan: p.plan, key: p.key, request: { text: p.text.slice(0, 2000), planner: p.planner }, ...(p.deadline ? { deadline: `${p.deadline}T23:59:00+05:30` } : {}) }) });
+    const res = await fetch("/api/kaju/missions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ orgId, plan: p.plan, key: p.key, request: { text: p.text.slice(0, 2000), planner: p.planner, ...(p.record ? { record: p.record } : {}) }, ...(p.deadline ? { deadline: `${p.deadline}T23:59:00+05:30` } : {}) }) });
     const j = await res.json().catch(() => ({})) as { id?: string; error?: string };
     return res.ok && j.id ? { id: j.id } : { error: j.error ?? "The mission could not be started." };
   }, []);

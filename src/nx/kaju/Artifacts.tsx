@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Bell, Check as Tick, Hash, Mail, UserRound } from "lucide-react";
 import { shortCode } from "@/lib/caseCode";
 import { DECIDER, shortDate } from "@/lib/kaju/capabilities";
+import { recordHref } from "@/lib/kaju/records";
 import type { StepRow } from "./data";
 import { casesOf, type Artifacts, type FoundCase, type OutboxArt, type TaskArt } from "./work";
 import { when } from "./bits";
@@ -55,7 +56,8 @@ export function TaskCards({ tasks: raw, onToggle }: { tasks: TaskArt[]; onToggle
             {onToggle && t.state !== "cancelled" ? <button type="button" className="kj-task-hit" role="checkbox" aria-checked={t.state === "done"} aria-label={t.state === "done" ? `Reopen: ${t.title}` : `Mark done: ${t.title}`} onClick={() => void toggle(t)}><span className="kj-task-c">{t.state === "done" ? <Tick size={11} strokeWidth={3} /> : null}</span></button>
               : <span className="kj-task-c" role="img" aria-label={t.state === "done" ? "Done" : t.state === "cancelled" ? "Cancelled" : "Open"}>{t.state === "done" ? <Tick size={11} strokeWidth={3} /> : null}</span>}
             <div><b>{t.title}</b><small>{[t.assignee_name ?? "Not assigned", t.due_on ? `due ${shortDate(t.due_on)}` : null].filter(Boolean).join(" · ")}{late ? <em className="kj-late"> · past due</em> : null}{t.state === "cancelled" ? " · cancelled" : ""}</small></div>
-            {t.record_kind === "case" && t.record_id ? <Link className="kj-chiplink" href={`/ngo/cases/${t.record_id}`}>{shortCode(t.record_label, "Case")}<ArrowUpRight size={12} /></Link> : null}
+            {t.record_kind === "case" && t.record_id ? <Link className="kj-chiplink" href={`/ngo/cases/${t.record_id}`}>{shortCode(t.record_label, "Case")}<ArrowUpRight size={12} /></Link>
+              : (t.record_kind === "animal" || t.record_kind === "package") && t.record_id ? <Link className="kj-chiplink" href={recordHref({ kind: t.record_kind, id: t.record_id, ws: "ngo" })}>{t.record_label ?? (t.record_kind === "animal" ? "Animal" : "Package")}<ArrowUpRight size={12} /></Link> : null}
           </Rise>
         );
       })}</ul>

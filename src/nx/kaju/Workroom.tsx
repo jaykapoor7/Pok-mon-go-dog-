@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Bell, CalendarClock, Hand, Hash, ListChecks, Loader2, Mail, Plus, RotateCcw, Search, UserRound, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Bell, CalendarClock, Check as Tick, Hand, Hash, LayoutGrid, ListChecks, ListOrdered, Loader2, Mail, Plus, RotateCcw, Search, UserRound, X } from "lucide-react";
 import { shortCode } from "@/lib/caseCode";
 import { Kaju as Puppy } from "@/kaju/Kaju";
 import type { KajuState } from "@/kaju/poses";
 import { TOOLS, type ToolName } from "@/lib/kaju/registry";
 import { DECIDER, FIELDS, cleanInput, effect, shortDate } from "@/lib/kaju/capabilities";
+import { recordHref, recordLinkOf, type RecordLink } from "@/lib/kaju/records";
 import { Confirm, Skeleton, toast, useAct } from "../kit";
 import { setTaskDone, useLive } from "../live";
 import { cancelMission, decideStep, retryMission, useKajuVocab, type EventRow, type MissionRow, type StepRow } from "./data";
@@ -18,9 +19,13 @@ import { DutyChip, Progress, StateDot, StepGlyph, clock, missionWord, stepTone, 
 import { EmailDraft, StepArtifacts, type OnTask } from "./Artifacts";
 import { StepFields } from "./StepFields";
 import { PlanCard } from "./Plan";
+import { LiveTiles, NewRoom } from "./Live";
+import { produced } from "./MissionCard";
+import { RecordChip } from "./records";
 import { useKaju, type Planned } from "./state";
 import type { Vocab } from "./intent";
 import "./workspace.css";
+import "./rooms.css";
 
 /* A mission's workroom: the plan as it runs, and the real things each step made, as they are made. Kaju's steps show
    whether they are working, waiting, blocked or done; a step that needs a person says exactly what will change and
@@ -28,6 +33,8 @@ import "./workspace.css";
 
 const EASE = [0.2, 0.7, 0.2, 1] as const;
 const inMinutes = (ms: number) => { const m = Math.round(ms / 6e4); return m <= 0 ? "in under a minute" : m === 1 ? "in 1 minute" : `in ${m} minutes`; };
+const VIEW_KEY = "kj.room.view";
+type View = "steps" | "live";
 const puppy = (state: string): KajuState => (state === "running" || state === "ready" ? "thinking" : state === "completed" ? "success" : state === "blocked" ? "concerned" : state === "waiting_person" ? "listening" : "sitting");
 
 export function Workroom({ id, embedded, onChanged }: { id: string; embedded?: boolean; onChanged?: () => void }) {
@@ -61,6 +68,31 @@ function Room({ m, events, embedded, reload }: { m: MissionRow; events: EventRow
   const planner = m.request?.planner === "model" ? "Planned with a model" : m.source === "channel" ? "Started from a channel" : "Planned by fixed rules";
   const repeatable = closed && steps.every((s) => s.tool && s.tool in TOOLS);
   const Title = embedded ? "h2" : "h1";
+  const record = recordLinkOf(m.request?.record);
+  /* Steps or Live, remembered for this viewer. A mission just created opens on Live, after its new room. */
+  const [view, setViewState] = useState<View>("steps");
+  const setView = (v: View) => { setViewState(v); try { localStorage.setItem(VIEW_KEY, v); } catch { /* kept for this visit only */ } };
+  const [intro, setIntro] = useState(false);
+  useEffect(() => {
+    try { const v = localStorage.getItem(VIEW_KEY); if (v === "live" || v === "steps") setViewState(v); } catch { /* default view */ }
+    try {
+      const u = new URL(window.location.href);
+      if (u.searchParams.get("new") !== "1") return;
+      u.searchParams.delete("new"); window.history.replaceState(window.history.state, "", u);
+      if (Date.now() - Date.parse(m.created_at) > 3 * 6e4) return;
+      setViewState("live");
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) setIntro(true);
+    } catch { /* no new room */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [m.id]);
+  const review = (s: StepRow) => {
+    setViewState("steps");
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const el = document.getElementById(`kj-step-${s.id}`);
+      el?.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
+      el?.querySelector<HTMLElement>(".kj-ask button, .kj-ask input")?.focus({ preventScroll: true });
+    }));
+  };
   const lastAt = (s: StepRow) => [...(events ?? [])].reverse().find((e) => e.step_id === s.id)?.at ?? s.finished_at ?? s.started_at;
 
   const runAgain = async () => {
@@ -79,7 +111,8 @@ function Room({ m, events, embedded, reload }: { m: MissionRow; events: EventRow
           {!embedded ? <Link href="/kaju/missions" className="kj-back"><ArrowLeft size={14} />Missions</Link> : null}
           <p className="kj-eyebrow kj-live" aria-live="polite"><StateDot state={m.state} /><b>{word}</b><span>· {planner} · started {when(m.created_at)}</span></p>
           <Title className="kj-room-title">{m.title}</Title>
-          {request && request.trim() !== m.title.trim() ? <p className="kj-plan-ask">You asked: “{request}”</p> : null}
+          {request && request.trim() !== m.title.trim() && !record ? <p className="kj-plan-ask">You asked: “{request}”</p> : null}
+          {record ? <div className="kj-room-about"><span>About</span><RecordChip link={record} /></div> : null}
           <div className="kj-room-meta">
             <Progress steps={steps} />
             <span>{done} of {steps.length} {steps.length === 1 ? "step" : "steps"} done</span>
@@ -99,19 +132,88 @@ function Room({ m, events, embedded, reload }: { m: MissionRow; events: EventRow
         <PlanCard planned={again} vocab={vocab} busy={starting} onStart={(p) => void startAgain(p)} onDiscard={() => setAgain(null)} />
       </motion.div> : null}</AnimatePresence>
 
-      <div className="kj-room-cols">
-        <ol className="kj-steps" aria-label="Steps">
-          {steps.map((s, i) => <StepBlock key={s.id} s={s} i={i} steps={steps} art={art} vocab={vocab} emailLive={emailLive} at={lastAt(s)} reload={reload} onTask={onTask} />)}
-        </ol>
-        <aside className="kj-room-side">
-          <Produced steps={steps} art={art} closed={closed} />
-          <Activity events={events} />
-        </aside>
-      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        {intro ? <NewRoom key="new" title={m.title} steps={steps} onDone={() => setIntro(false)} /> : (
+          <motion.div key="room" initial={calm ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .2, ease: EASE }}>
+            <Closing m={m} steps={steps} record={record} emailLive={emailLive} names={(id) => art.people.get(id) ?? null} onReview={review} onLive={() => setView("live")} reload={reload} />
+            <div className="kj-room-bar">
+              <div className="kj-seg2" role="group" aria-label="Show">
+                <button type="button" aria-pressed={view === "steps"} onClick={() => setView("steps")}><ListOrdered size={14} aria-hidden />Steps</button>
+                <button type="button" aria-pressed={view === "live"} onClick={() => setView("live")}><LayoutGrid size={14} aria-hidden />Live</button>
+              </div>
+              <span className="kj-quiet">{view === "live" ? "What each step makes, as it is made." : "Each step, what it changes, and its decisions."}</span>
+            </div>
+            <Cols view={view} steps={steps} art={art} vocab={vocab} emailLive={emailLive} lastAt={lastAt} reload={reload} onTask={onTask} onReview={review} closed={closed} events={events} />
+          </motion.div>
+        )}
+      </AnimatePresence>
       {cancel ? <Confirm title="Cancel this mission?" confirm="Cancel mission" danger busy={!!busy} onClose={() => setCancel(false)} onConfirm={() => void run("can", () => cancelMission(m.id), { ok: "Cancelled. Anything queued for someone outside StrayPaw was cancelled too." }).then(() => { setCancel(false); reload(); })}>
         <p>Steps not yet done stop now, including any message queued for someone outside StrayPaw. What is already done stays: {done ? `${done} ${done === 1 ? "step" : "steps"} and what they made` : "nothing has been made yet"}.</p>
       </Confirm> : null}
     </article>
+  );
+}
+
+function Cols({ view, steps, art, vocab, emailLive, lastAt, reload, onTask, onReview, closed, events }: { view: View; steps: StepRow[]; art: Artifacts; vocab: Vocab; emailLive: boolean | null; lastAt: (s: StepRow) => string | null; reload: () => void; onTask: OnTask; onReview: (s: StepRow) => void; closed: boolean; events: EventRow[] | null }) {
+  return (
+    <div className={`kj-room-cols is-${view}`}>
+      {view === "live" ? <LiveTiles steps={steps} art={art} emailLive={emailLive} onTask={onTask} onReview={onReview} /> : (
+        <ol className="kj-steps" aria-label="Steps">
+          {steps.map((s, i) => <StepBlock key={s.id} s={s} i={i} steps={steps} art={art} vocab={vocab} emailLive={emailLive} at={lastAt(s)} reload={reload} onTask={onTask} />)}
+        </ol>
+      )}
+      <aside className="kj-room-side">
+        {view === "steps" ? <Produced steps={steps} art={art} closed={closed} /> : null}
+        <Activity events={events} />
+      </aside>
+    </div>
+  );
+}
+
+/** Where the mission stands when it has finished or waits for the person: what it made, and the one thing to do next. */
+function Closing({ m, steps, record, emailLive, names, onReview, onLive, reload }: { m: MissionRow; steps: StepRow[]; record: RecordLink | null; emailLive: boolean | null; names: (id: string) => string | null; onReview: (s: StepRow) => void; onLive: () => void; reload: () => void }) {
+  const calm = useReducedMotion();
+  const { busy, run } = useAct();
+  const [reject, setReject] = useState(false);
+  const [note, setNote] = useState("");
+  const wait = steps.find((s) => s.state === "waiting_approval" || s.state === "waiting_person");
+  if (!(m.state === "completed" || m.state === "cancelled" || (m.state === "waiting_person" && wait))) return null;
+  const made = produced(steps);
+  const done = steps.filter((s) => s.state === "done").length;
+  const approve = wait?.state === "waiting_approval" ? wait : null;
+  const person = wait?.state === "waiting_person" ? wait : null;
+  const who = person ? DECIDER[person.tool as keyof typeof DECIDER] ?? "A person" : null;
+  const href = person && typeof person.input?.href === "string" ? person.input.href : null;
+  const head = approve ? "Ready for your approval" : person ? `Waiting for ${who!.toLowerCase()}` : m.state === "completed" ? "Done" : "Cancelled";
+  const line = approve ? `${done} of ${steps.length} ${steps.length === 1 ? "step" : "steps"} done. Next: ${approve.label}.` : person ? `${person.label}. Kaju waits until it is marked done.` : m.state === "completed" ? `Every step is done${record ? ` for ${record.label}` : ""}.` : "Steps not yet done were stopped. What was already made stays.";
+  return (<>
+    <motion.section className={`kl-close t-${approve || person ? "warn" : m.state === "completed" ? "ok" : "plain"}`} aria-labelledby={`kl-close-${m.id}`} initial={calm ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 420, damping: 38 }}>
+      <div className="kl-close-h">
+        <span className="kl-close-i" aria-hidden>{approve ? <Hand size={16} /> : person ? <UserRound size={16} /> : m.state === "completed" ? <Tick size={16} strokeWidth={3} /> : <X size={16} />}</span>
+        <div><h2 id={`kl-close-${m.id}`}>{head}</h2><p>{line}</p></div>
+      </div>
+      {made.length ? <div className="kl-close-made"><p className="kj-change-h">{m.state === "completed" ? "What it made" : "Made so far"}</p><ul>{made.map((x) => <li key={x}>{x}</li>)}</ul></div>
+        : m.state === "completed" ? <p className="kj-quiet">It made no records, messages or drafts.</p> : null}
+      {approve ? <div className="kj-change"><p className="kj-change-h">What approving changes</p><Change s={approve} steps={steps} input={approve.input ?? {}} names={names} emailLive={emailLive} /></div> : null}
+      <div className="kl-close-a">
+        {approve ? <>
+          <button type="button" className="kj-btn" disabled={!!busy} onClick={() => void run(`ca${approve.id}`, () => decideStep(approve.id, "approve", null), { ok: "Approved. Kaju is carrying on." }).then((r) => { if (r.ok) reload(); })}>{busy === `ca${approve.id}` ? <Loader2 size={14} className="nx-spin" /> : null}Approve</button>
+          <button type="button" className="kj-btn is-quiet" onClick={() => onReview(approve)}>Review</button>
+          <button type="button" className="kj-btn is-quiet" onClick={() => setReject(true)}>Reject</button>
+        </> : person ? <>
+          {href ? <Link className="kj-btn" href={href}>Open where it is decided<ArrowUpRight size={14} /></Link> : null}
+          <button type="button" className={`kj-btn ${href ? "is-quiet" : ""}`} onClick={() => onReview(person)}>Mark it done or stop</button>
+        </> : <>
+          <button type="button" className="kj-btn" onClick={onLive}>Review what it made</button>
+          {record ? <Link className="kj-btn is-quiet" href={recordHref(record)}>Back to {record.label}</Link> : null}
+        </>}
+      </div>
+    </motion.section>
+    {reject && approve ? <Confirm title="Reject this step?" confirm="Reject and stop" danger busy={!!busy} onClose={() => setReject(false)} onConfirm={() => void run("crej", () => decideStep(approve.id, "reject", null, note || null), { ok: "Rejected. Nothing after it ran." }).then(() => { setReject(false); reload(); })}>
+        <p>“{approve.label}” will not run, and the steps after it stop. What already happened stays as it is.</p>
+        <label className="kj-field"><span>Reason (kept in the activity)</span><input value={note} onChange={(e) => setNote(e.target.value)} autoFocus /></label>
+      </Confirm> : null}
+    </>
   );
 }
 
