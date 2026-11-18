@@ -70,7 +70,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
       {k.open && phone ? <motion.div key="scrim" className="kj-scrim" aria-hidden initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }} onClick={close} /> : null}
       {k.open ? (
         <motion.div ref={panel} key="dock" className="nx-dockk kj-dock" role="dialog" aria-label="Kaju"
-          initial={calm ? { opacity: 0 } : phone ? { y: "100%" } : { opacity: 0, y: 16, scale: .98 }} animate={calm ? { opacity: 1 } : phone ? { y: 0 } : { opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : phone ? { y: "100%" } : { opacity: 0, y: 12, scale: .98 }}
+          initial={calm ? { opacity: 0 } : phone ? { opacity: 1, y: "100%", scale: 1 } : { opacity: 0, y: 16, scale: .98 }} animate={calm ? { opacity: 1 } : phone ? { opacity: 1, y: 0, scale: 1 } : { opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : phone ? { y: "100%" } : { opacity: 0, y: 12, scale: .98 }}
           transition={calm ? { duration: .1 } : phone ? { duration: .26, ease: EASE } : { type: "spring", stiffness: 520, damping: 42 }}
           drag={phone && !calm ? "y" : false} dragControls={drag} dragListener={false} dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: .7 }}
           onDragEnd={(_, info) => { if (info.offset.y > 120 || info.velocity.y > 600) close(); }}
