@@ -67,7 +67,7 @@ it when it is a shortcut to a job another place owns and the frame already reach
 ### Government · Programmes (`/gov/programmes`)
 | Control | Decision | Reason |
 |---|---|---|
-| "Record an estimate" | **Shown only to someone who manages the programme**; others see "Open the programme" (same link) | A viewer ("changes are made by its coordinators") was offered an action they cannot take. |
+| "Record an estimate" | **Shown only to someone allowed to record one** (the Coverage tab's own rule: record_estimate or oversee); others see "Open the programme" (same link) | A viewer ("changes are made by its coordinators") was offered an action they cannot take. |
 
 ### NGO · Drive record (`/ngo/programmes/[id]`)
 | Control | Decision | Reason |
