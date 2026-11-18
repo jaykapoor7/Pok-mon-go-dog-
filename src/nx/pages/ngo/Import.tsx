@@ -42,6 +42,8 @@ function Flow({ sample }: { sample: boolean }) {
   const [past, setPast] = useState<ImportBatch[] | null>(null);
   const [pastErr, setPastErr] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
+  /* Counted, so moving over the words inside the drop zone does not make it flicker. */
+  const depth = useRef(0);
   const [asking, setAsking] = useState(false);
   const XLSX = useRef<typeof import("xlsx") | null>(null);
   const run = useRef<{ batchId: string; chunk: number; upload: { path: string; token: string } | null } | null>(null);
@@ -114,9 +116,9 @@ function Flow({ sample }: { sample: boolean }) {
       <ol className="ns-steps" aria-label="Steps">{["Choose a file", "Check what was read", "Import"].map((t, i) => <li key={t} aria-current={step === i + 1 ? "step" : undefined} className={step > i + 1 ? "is-done" : undefined}><span aria-hidden>{step > i + 1 ? "✓" : i + 1}</span>{t}</li>)}</ol>
       {err ? <p className="nx-note ns-note-bad" role="alert"><span>{err}</span></p> : null}
       {(phase === "pick" || phase === "reading") ? (sample ? <div className="ns-drop"><Upload size={20} /><b>Drop your register here, or choose it</b><small>Excel or CSV. Read on this device; phone numbers and contact columns never leave it.</small><div style={{ marginTop: 8 }}><TryLink>Open the live demo to import</TryLink></div></div>
-        : <label className={`ns-drop ${drag ? "is-over" : ""}`} onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={(e) => { e.preventDefault(); setDrag(false); void choose(e.dataTransfer.files?.[0] ?? null); }}>
+        : <label className={`ns-drop ${drag ? "is-over" : ""}`} onDragEnter={(e) => { e.preventDefault(); depth.current++; setDrag(true); }} onDragOver={(e) => e.preventDefault()} onDragLeave={() => { depth.current = Math.max(0, depth.current - 1); if (!depth.current) setDrag(false); }} onDrop={(e) => { e.preventDefault(); depth.current = 0; setDrag(false); void choose(e.dataTransfer.files?.[0] ?? null); }}>
           {phase === "reading" ? <span className="nx-spin" aria-hidden><RotateCcw size={20} /></span> : <Upload size={20} />}
-          <b>{phase === "reading" ? `Reading ${file?.name}…` : "Drop your register here, or choose it"}</b>
+          <b>{phase === "reading" ? `Reading ${file?.name}…` : drag ? "Drop to read it" : "Drop your register here, or choose it"}</b>
           <small>Excel or CSV. Read on this device; phone numbers and contact columns never leave it.</small>
           <input type="file" accept=".xlsx,.xls,.csv" disabled={phase === "reading"} onChange={(e) => void choose(e.target.files?.[0] ?? null)} aria-label="Choose a register to import" />
         </label>) : null}

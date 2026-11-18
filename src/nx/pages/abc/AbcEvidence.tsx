@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Check as Tick, Lock, Trash2 } from "lucide-react";
 import {
   EVIDENCE_KINDS, EVIDENCE_LABEL, HISTORY_LABEL, NotEnabled, addEvidence, caseAttestations, caseChecklist, caseEvidence, caseHead, caseHistory,
@@ -8,11 +8,12 @@ import {
   type AbcContext, type Attestation, type Checklist, type Evidence, type EvidenceKind, type HistoryRow,
 } from "@/lib/abc";
 import { Chip } from "../../ui";
-import { Confirm, Failed, Field, FilePick, Modal, Skeleton, Timeline, dayTime, errText, toast, useAct } from "../../kit";
+import { Confirm, Failed, Field, Modal, Skeleton, Timeline, dayTime, errText, toast, useAct } from "../../kit";
 import { useLive } from "../../live";
 import { removeRecord, restoreRecord } from "../../data/govhealth";
 import { sampleProcedure } from "../../data/govhealth-samples";
 import { Block, OpenFile, SignedConfirm, TryLink } from "../gh/parts";
+import { DropZone, ResultButton, UploadList, useResult, useUploads } from "../../motion";
 
 /* The evidence and sign-offs of one ABC case, for any role. Everyone sees the same checklist, files, signatures and
    history; each person sees only the actions their role has, and the database checks every one again. A
@@ -94,10 +95,9 @@ function Body({ caseId, sample, d, reload }: { caseId: string; sample: boolean; 
               <li key={k}><span className={`gh-ck ${e ? "is-on" : "is-bad"}`} aria-hidden>{e ? <Tick size={10} strokeWidth={3} /> : null}</span>
                 <span>{EVIDENCE_LABEL[k]}<small>{e ? [e.location_text, dayTime(e.created_at)].filter(Boolean).join(" · ") : "Missing"}</small></span>
                 <span className="gh-acts">{e?.url ? <OpenFile url={e.url}>Open</OpenFile> : null}{e && canAdd ? (sample ? <TryLink sm quiet><Trash2 size={13} /></TryLink> : <button type="button" className="nx-ib" aria-label={`Delete the ${EVIDENCE_LABEL[k].toLowerCase()}`} onClick={() => { setReason(""); setDlg({ remove: e }); }}><Trash2 size={14} /></button>) : null}</span></li>); })}</ul>
-            {canAdd ? <AddEvidence sample={sample} kinds={d.chk.missing.length ? d.chk.missing as EvidenceKind[] : required} onAdd={async (k, v) => {
-              const r = await run("add", async () => { const url = v.file ? await uploadEvidenceFile(d.ctx.ngo_id!, caseId, k, v.file) : undefined; return addEvidence(caseId, k, { url, location: v.location }); }, { ok: `${EVIDENCE_LABEL[k]} added.` });
-              if (r.ok) await reload(); return r.ok;
-            }} busy={busy === "add"} /> : null}
+            {canAdd ? <AddEvidence sample={sample} kinds={d.chk.missing.length ? d.chk.missing as EvidenceKind[] : required}
+              onFile={async (k, file, processing) => { const url = await uploadEvidenceFile(d.ctx.ngo_id!, caseId, k, file); processing(); await addEvidence(caseId, k, { url }); await reload(); }}
+              onPlace={async (k, location) => { await addEvidence(caseId, k, { location }); await reload(); }} /> : null}
           </Block>
         </div>
         <aside aria-label="Sign-offs">
@@ -146,22 +146,33 @@ function Body({ caseId, sample, d, reload }: { caseId: string; sample: boolean; 
   );
 }
 
-function AddEvidence({ sample, kinds, onAdd, busy }: { sample: boolean; kinds: EvidenceKind[]; onAdd: (k: EvidenceKind, v: { location?: string; file?: File }) => Promise<boolean>; busy: boolean }) {
+/* Adding evidence: a file goes up the moment it is chosen or dropped, and its own row says what is happening
+   (uploading, then processing while the record is written, then a drawn check). A failure says what failed, with Retry.
+   A release place is typed, and its Add button turns into its result. */
+function AddEvidence({ sample, kinds, onFile, onPlace }: { sample: boolean; kinds: EvidenceKind[]; onFile: (k: EvidenceKind, f: File, processing: () => void) => Promise<void>; onPlace: (k: EvidenceKind, location: string) => Promise<void> }) {
   const [kind, setKind] = useState<EvidenceKind>(kinds[0]);
-  const [file, setFile] = useState<File | null>(null);
   const [place, setPlace] = useState("");
-  useEffect(() => { if (!kinds.includes(kind)) setKind(kinds[0]); }, [kinds, kind]);
+  const [err, setErr] = useState<string | null>(null);
+  const kindRef = useRef(kind); kindRef.current = kind;
+  const ups = useUploads<void>((f, processing) => onFile(kindRef.current, f, processing), { error: errText });
+  const res = useResult();
+  useEffect(() => { if (!kinds.includes(kind) && !ups.busy) setKind(kinds[0]); }, [kinds, kind, ups.busy]);
   const isPlace = kind === "release_location";
-  const ready = isPlace ? place.trim().length >= 3 : !!file;
-  const submit = async (e: FormEvent) => { e.preventDefault(); if (!ready) return; const ok = await onAdd(kind, isPlace ? { location: place.trim() } : { file: file! }); if (ok) { setFile(null); setPlace(""); } };
+  const submit = async (e: FormEvent) => { e.preventDefault(); if (place.trim().length < 3) return; setErr(null); try { await res.run(() => onPlace(kind, place.trim())); setPlace(""); } catch (x) { setErr(errText(x)); } };
   return (
     <form className="gh-form" onSubmit={submit} style={{ marginTop: 12 }}>
       <div className="nx-fields gh-fields">
-        <Field label="Add"><select value={kind} disabled={busy} onChange={(e) => { setKind(e.target.value as EvidenceKind); setFile(null); setPlace(""); }}>{kinds.map((k) => <option key={k} value={k}>{EVIDENCE_LABEL[k]}</option>)}</select></Field>
-        {isPlace ? <Field label="Where the animal was released"><input value={place} maxLength={300} onChange={(e) => setPlace(e.target.value)} placeholder="Ward, landmark or street" /></Field>
-          : <div className="nx-field"><span>{kind === "surgery_record" ? "Photo or PDF of the record" : "Photo"}</span><span className="gh-acts">{sample ? <TryLink sm quiet>Choose a file</TryLink> : <FilePick label={file ? file.name : kind === "surgery_record" ? "Choose a photo or PDF" : "Take or choose a photo"} accept={kind === "surgery_record" ? "image/*,application/pdf" : "image/*"} onFiles={(f) => setFile(f[0] ?? null)} disabled={busy} />}</span></div>}
+        <Field label="Add"><select value={kind} disabled={ups.busy || res.state === "busy"} onChange={(e) => { setKind(e.target.value as EvidenceKind); setPlace(""); }}>{kinds.map((k) => <option key={k} value={k}>{EVIDENCE_LABEL[k]}</option>)}</select></Field>
+        {isPlace ? <Field label="Where the animal was released"><input value={place} maxLength={300} onChange={(e) => setPlace(e.target.value)} placeholder="Ward, landmark or street" /></Field> : null}
       </div>
-      <div className="gh-acts">{sample ? <TryLink sm>Add evidence</TryLink> : <button type="submit" className="nx-btn is-sm" disabled={busy || !ready}>{busy ? "Saving…" : "Add evidence"}</button>}<span className="gh-hint">Files are private to your organisation and open through a link that expires in five minutes. Up to 15 MB.</span></div>
+      {!isPlace ? (sample ? <div className="gh-acts"><TryLink sm quiet>Choose a file</TryLink></div> : <>
+        <DropZone accept={kind === "surgery_record" ? "image/*,application/pdf" : "image/*"} capture={kind === "surgery_record" ? undefined : "environment"} disabled={ups.busy}
+          title={kind === "surgery_record" ? "Add a photo or PDF of the record" : `Add the ${EVIDENCE_LABEL[kind].toLowerCase()}`} hint="Private to your organisation · up to 15 MB" onFiles={(f) => void ups.add(f)} />
+        <UploadList items={ups.items} onRetry={ups.retry} onRemove={ups.remove} processing="Recording it on the case" label="Evidence being added"
+          more={ups.allDone ? <button type="button" className="nx-btn is-quiet is-sm" onClick={ups.clearDone}>Upload more</button> : null} />
+      </>) : null}
+      <div className="gh-acts">{isPlace ? (sample ? <TryLink sm>Add evidence</TryLink> : <ResultButton type="submit" className="nx-btn is-sm" state={res.state} done="Added" disabled={place.trim().length < 3}>Add evidence</ResultButton>) : null}<span className="gh-hint">Files are private to your organisation and open through a link that expires in five minutes. Up to 15 MB.</span></div>
+      {err ? <p className="gh-hint" role="alert" style={{ color: "var(--bad)" }}>{err}</p> : null}
     </form>
   );
 }

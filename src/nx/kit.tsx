@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { DUR, EASE, SPRING } from "./motion/tokens";
 import { AlertTriangle, Check as Tick, Loader2, LocateFixed, Lock, Paperclip, WifiOff, X } from "lucide-react";
 
 /* The working parts every page shares: dialogs, fields, the receipt a person gets after an action (with Undo where it
@@ -46,7 +47,7 @@ export function ToastHost() {
     <div className="nx-toasts" role="status" aria-live="polite">
       <AnimatePresence initial={false}>
         {items.map((t) => (
-          <motion.div key={t.id} className={`nx-toast ${t.tone === "bad" ? "is-bad" : ""}`} initial={calm ? { opacity: 0 } : { opacity: 0, y: 10, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: 6 }} transition={{ duration: .18 }}>
+          <motion.div key={t.id} className={`nx-toast ${t.tone === "bad" ? "is-bad" : ""}`} initial={calm ? { opacity: 0 } : { opacity: 0, y: 10, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: 6 }} transition={calm ? { duration: 0 } : SPRING.pop}>
             {t.tone === "bad" ? <AlertTriangle size={14} /> : t.tone === "ok" ? <motion.span initial={calm ? false : { scale: .6 }} animate={{ scale: 1 }} className="nx-toast-ok"><Tick size={12} strokeWidth={3} /></motion.span> : null}
             <span>{t.text}</span>
             {t.href ? <Link href={t.href} className="nx-toast-a">{t.hrefLabel ?? "Open"}</Link> : null}
@@ -103,7 +104,7 @@ export function Modal({ title, onClose, children, wide, foot }: { title: string;
   };
   return (
     <div className="nx-modal" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }} onKeyDown={key}>
-      <motion.div ref={box} role="dialog" aria-modal="true" aria-labelledby={id} className={`nx-dlg ${wide ? "is-wide" : ""}`} initial={calm ? { opacity: 0 } : { opacity: 0, y: 8, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: .18 }}>
+      <motion.div ref={box} role="dialog" aria-modal="true" aria-labelledby={id} className={`nx-dlg ${wide ? "is-wide" : ""}`} initial={calm ? { opacity: 0 } : { opacity: 0, y: 8, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={calm ? { duration: 0 } : { duration: DUR.state, ease: EASE }}>
         <div className="nx-dlg-h"><h2 id={id}>{title}</h2><button type="button" className="nx-ib" aria-label="Close" onClick={onClose}><X size={16} /></button></div>
         <div className="nx-dlg-c">{children}</div>
         {foot ? <div className="nx-dlg-f">{foot}</div> : null}
@@ -197,7 +198,7 @@ export function TabBar<T extends string>({ tabs, value, onChange, id, label = "S
   const list = tabs.map((t) => (Array.isArray(t) ? t : [t, undefined] as [T, number | undefined]));
   return (
     <div className="nx-tabs" role="tablist" aria-label={label} onKeyDown={(e) => { const i = list.findIndex(([t]) => t === value); if (e.key === "ArrowRight") onChange(list[(i + 1) % list.length][0]); if (e.key === "ArrowLeft") onChange(list[(i - 1 + list.length) % list.length][0]); }}>
-      {list.map(([t, n]) => <button key={t} type="button" role="tab" aria-selected={value === t} tabIndex={value === t ? 0 : -1} className={`nx-tab ${value === t ? "is-on" : ""}`} onClick={() => onChange(t)}>{t}{n ? <span className="nx-count">{n}</span> : null}{value === t ? <motion.span layoutId={`nx-tabline-${id}`} className="nx-tab-line" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 620, damping: 46 }} /> : null}</button>)}
+      {list.map(([t, n]) => <button key={t} type="button" role="tab" aria-selected={value === t} tabIndex={value === t ? 0 : -1} className={`nx-tab ${value === t ? "is-on" : ""}`} onClick={() => onChange(t)}>{t}{n ? <span className="nx-count">{n}</span> : null}{value === t ? <motion.span layoutId={`nx-tabline-${id}`} className="nx-tab-line" transition={calm ? { duration: 0 } : SPRING.glide} /> : null}</button>)}
     </div>
   );
 }

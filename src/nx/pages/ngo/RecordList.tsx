@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Maximize2, Search, X } from "lucide-react";
 import { Check, Sample } from "../../ui";
 import { Failed, Skeleton } from "../../kit";
 import { PhonePeek, PhoneSearchButton, PhoneSearchField, PhoneTools, textOf, usePhone } from "../../PhoneList";
+import { Resizer, Tool, Toolbar, useCalm, usePanelWidth, useSpring } from "../../motion";
 import "../../css/ngo-records.css";
 
 /* One list of records: views that narrow it, search, a table and a drawer that previews a row. Like ListPage, but it
@@ -35,7 +36,9 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
   const [qOwn, setQOwn] = useState("");
   const q = query ?? qOwn;
   const [openId, setOpenId] = useState<string | null>(null);
-  const calm = useReducedMotion();
+  const calm = useCalm();
+  const glide = useSpring("glide"), panelSpring = useSpring("panel");
+  const panel = usePanelWidth(`records:${usePathname()}:${id}`);
   const router = useRouter();
   const box = useRef<HTMLDivElement>(null);
   const phone = usePhone();
@@ -89,7 +92,7 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
         {above}
         <div className="nx-bar lp-bar">
           {views.length > 1 ? <div className="nx-views" role="tablist" aria-label="Views">
-            {views.map((v) => { const n = count(v); return <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => { setView(v.id); setOpenId(null); }}>{view === v.id ? <motion.span layoutId={`nr-v-${id}`} className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}{n !== null && n !== undefined ? <span className="nx-count">{n}</span> : null}</span></button>; })}
+            {views.map((v) => { const n = count(v); return <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => { setView(v.id); setOpenId(null); }}>{view === v.id ? <motion.span layoutId={`nr-v-${id}`} className="nx-view-bg" transition={glide} /> : null}<span>{v.label}{n !== null && n !== undefined ? <span className="nx-count">{n}</span> : null}</span></button>; })}
           </div> : null}
           {tools}
           {search || onQuery ? <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={`Search ${title.toLowerCase()}`} /></label> : null}
@@ -118,8 +121,14 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
       {phone && open && p ? <PhonePeek label={textOf(p.title, rowLabel(open))} sub={p.sub} body={p.body} href={p.href} hrefLabel={p.hrefLabel} onClose={close} /> : null}
       <AnimatePresence>
         {open && p && !phone ? (
-          <motion.aside key="d" className="nx-drawer nr-drawer" role="dialog" aria-label={rowLabel(open)} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
-            <div className="nx-drawer-h"><span>{rowLabel(open)}</span><span style={{ marginLeft: "auto" }} />{p.href ? <Link href={p.href} className="nx-ib" aria-label={p.hrefLabel ?? "Open the full record"}><Maximize2 size={15} /></Link> : null}<button type="button" className="nx-ib" onClick={close} aria-label="Close"><X size={16} /></button></div>
+          <motion.aside key="d" className="nx-drawer nr-drawer" role="dialog" aria-label={rowLabel(open)} style={{ width: `min(${panel.width}px, 100%)` }} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={panelSpring}>
+            <Resizer panel={panel} />
+            <div className="nx-drawer-h"><span>{rowLabel(open)}</span><span style={{ marginLeft: "auto" }} />
+              <Toolbar label="Actions on this preview">
+                {p.href ? <Tool href={p.href} label={p.hrefLabel ?? "Open the full record"} icon={<Maximize2 size={15} />} /> : null}
+                <Tool label="Close" icon={<X size={16} />} onClick={close} />
+              </Toolbar>
+            </div>
             <div className="nx-drawer-b">
               <div className="nx-rec-t" style={{ marginBottom: 16 }}><div><h1>{p.title}</h1>{p.sub ? <p>{p.sub}</p> : null}</div></div>
               {p.body}

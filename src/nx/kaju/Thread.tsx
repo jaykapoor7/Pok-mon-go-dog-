@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Check as Tick, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowUpRight, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Blocks } from "./Blocks";
+import { CheckDraw, Swap } from "../motion";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
 import { appHref, useKaju, type Feedback, type Turn } from "./state";
@@ -77,8 +78,9 @@ function ProposalCard({ turn, p }: { turn: Turn; p: Proposal }) {
       {proposalFacts(p).map((f) => <p key={f} className="nx-t3">{f}</p>)}
       {p.why ? <p className="nx-t3">{p.why}</p> : null}
       <div className="nx-kprop-f">
-        {saved?.ok ? <span className="nx-kok"><Tick size={12} strokeWidth={3} />{saved.what ?? "Saved"}{saved.href ? <> · <Link href={appHref(saved.href)}>Open</Link></> : null}</span>
-          : <><button type="button" className="nx-btn is-sm kj-confirm" disabled={busy} onClick={async () => { setBusy(true); await confirm(turn.id, p); setBusy(false); }}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}Confirm</button><span className="nx-t3">Saved under your name, with Kaju&apos;s help noted.</span></>}
+        {/* Confirm turns into its receipt in place: the button crossfades out and the saved line draws its check. */}
+        <Swap k={saved?.ok ? "saved" : "ask"}>{saved?.ok ? <span className="nx-kok" role="status"><CheckDraw size={12} stroke={3} />{saved.what ?? "Saved"}{saved.href ? <> · <Link href={appHref(saved.href)}>Open</Link></> : null}</span>
+          : <><button type="button" className="nx-btn is-sm kj-confirm" disabled={busy} aria-busy={busy || undefined} onClick={async () => { setBusy(true); await confirm(turn.id, p); setBusy(false); }}>{busy ? <><Loader2 size={12} className="nx-spin" />Saving…</> : "Confirm"}</button><span className="nx-t3">Saved under your name, with Kaju&apos;s help noted.</span></>}</Swap>
         {saved && !saved.ok ? <span role="alert" className="nx-kerr">{saved.error}</span> : null}
       </div>
     </div>
