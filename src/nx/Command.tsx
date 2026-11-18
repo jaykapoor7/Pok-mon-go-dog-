@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { SPRING } from "./motion/tokens";
-import { ArrowRight, Camera, ClipboardList, CornerDownLeft, Hash, History, MessageSquare, PawPrint, Search, Smartphone, Sparkles } from "lucide-react";
+import { ArrowRight, Camera, ClipboardList, CornerDownLeft, Hash, History, MessageSquare, PawPrint, Search, Smartphone, Sparkles, Stethoscope } from "lucide-react";
 import { recordHref, searchMessages } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { ANIMALS, CASES, CHANNELS } from "./fixtures";
@@ -38,6 +38,7 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
   const [busy, setBusy] = useState(false);
   const box = useRef<HTMLInputElement>(null);
   const ngo = live.orgFor("ngo");
+  const hc = live.orgFor("healthcare");
   const [recent, setRecent] = useState<Recent[]>([]);
   useEffect(() => { if (open && window.matchMedia("(max-width: 640px)").matches) setRecent(readRecent()); }, [open]);
   const chans = useChannels(live.org?.org_id ?? null);
@@ -106,14 +107,20 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
     const chanNames = live.org ? (chans.rows ?? []).filter((c) => c.kind === "channel" || c.kind === "announcement").map((c) => c.name) : CHANNELS.map((c) => c.name);
     const channels = chanNames.filter((c) => !l || c.includes(l)).slice(0, 4).map((c): Hit => ({ id: `#${c}`, group: "Channels", label: `#${c}`, href: `/channels/${c}`, icon: <Hash size={14} /> }));
     const kaju: Hit[] = l ? [{ id: "kaju", group: "Kaju", label: `Ask Kaju: “${q.trim()}”`, detail: "Nothing is sent until you press Run", href: `/kaju?q=${encodeURIComponent(q.trim())}`, icon: <Sparkles size={14} /> }] : [];
-    /* Recording an animal is one step from anywhere in an NGO workspace: field mode opens with the record screen up. */
-    const acts: Hit[] = !live.org || ngo ? ([
-      [{ id: "act:record", group: "Pages", label: "Record an animal", detail: "Field mode", href: "/ngo/field?record=1", icon: <Camera size={14} /> }, "record animal dog report intake register capture photo new"],
-      [{ id: "act:field", group: "Pages", label: "Field mode", detail: "NGO", href: "/ngo/field", icon: <Smartphone size={14} /> }, "field mode round offline phone stops"],
-    ] as [Hit, string][]).filter(([, words]) => !l || l.split(/\s+/).every((w) => words.includes(w))).map(([h]) => h) : [];
+    /* The records a role makes are the phone's "+"; on a computer they are here, one step from any page, so a home page
+       does not carry its own record buttons. Recording an animal opens field mode with the record screen up. */
+    const acts: Hit[] = ([
+      ...(!live.org || ngo ? [
+        [{ id: "act:record", group: "Pages", label: "Record an animal", detail: "Field mode", href: "/ngo/field?record=1", icon: <Camera size={14} /> }, "record animal dog report intake register capture photo new"],
+        [{ id: "act:case", group: "Pages", label: "Open a case", detail: "NGO", href: "/ngo/cases/new", icon: <ClipboardList size={14} /> }, "open new case rescue report"],
+        [{ id: "act:field", group: "Pages", label: "Field mode", detail: "NGO", href: "/ngo/field", icon: <Smartphone size={14} /> }, "field mode round offline phone stops"],
+      ] : []),
+      ...(hc && hc.kind !== "laboratory" && hc.kind !== "veterinary" ? [[{ id: "act:bite", group: "Pages", label: "Record a bite", detail: "Healthcare", href: "/health/bites/new", icon: <Stethoscope size={14} /> }, "record new bite scratch lick exposure patient register"]] : []),
+      ...(hc && hc.kind === "veterinary" ? [[{ id: "act:care", group: "Pages", label: "Record clinical care", detail: "Healthcare", href: "/health/care", icon: <Stethoscope size={14} /> }, "record clinical care treatment procedure check"]] : []),
+    ] as [Hit, string][]).filter(([, words]) => !l || l.split(/\s+/).every((w) => words.includes(w))).map(([h]) => h);
     const lately: Hit[] = l ? [] : recent.map((r) => ({ id: `r${r.href}`, group: "Recent", label: r.label, detail: r.detail, href: r.href, icon: KIND_ICON[r.kind] ?? <History size={14} /> }));
     return [...lately, ...records, ...acts, ...pages, ...channels, ...kaju];
-  }, [q, records, live.org, ngo, chans.rows, recent]);
+  }, [q, records, live.org, ngo, hc, chans.rows, recent]);
 
   useEffect(() => { setAt(0); }, [q]);
   const go = (h: Hit | undefined) => { if (!h) return; keepRecent(h); onClose(); router.push(h.href); };

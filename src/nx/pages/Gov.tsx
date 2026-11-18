@@ -113,7 +113,8 @@ export function GovProgrammes() {
     <ListPage ws="gov" crumb={["Government", "Programmes"]} title="Programmes" sample={sample}
       eyebrow={<><ProgName g={g} sample={sample} /><GhMark />{!sample && o.data?.programme.illustrative && !/illustrative/i.test(o.data.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</>}
       sub={o.loading ? "Reading the programme…" : <><b className="num">{at}</b> of {withEst.length} {withEst.length === 1 ? "area" : "areas"} with a dated estimate reach the {pct(target)} target.{rows.length - withEst.length ? <> <About>{rows.length - withEst.length} {rows.length - withEst.length === 1 ? "has" : "have"} no estimate, so no coverage is shown.</About></> : null}<GhMark /></>}
-      action={sample ? <Link href="/gov/programmes/sample?tab=Coverage" className="nx-btn is-quiet">Open the programme</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Coverage`} className="nx-btn is-quiet">Record an estimate</Link> : undefined}
+      /* Only someone who manages the programme can record an estimate; anyone else gets the way into the programme. */
+      action={sample ? <Link href="/gov/programmes/sample?tab=Coverage" className="nx-btn is-quiet">Open the programme</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Coverage`} className="nx-btn is-quiet">{o.data?.can_manage ? "Record an estimate" : "Open the programme"}</Link> : undefined}
       views={[{ id: "all", label: "All areas", test: () => true }, { id: "low", label: "Below target", test: (r: AreaRow) => covOf(r) !== null && covOf(r)! < target }, { id: "none", label: "No estimate", test: (r: AreaRow) => covOf(r) === null }]}
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.area} search={(r) => r.area}
       sort={(a, b) => (covOf(a) ?? 2) - (covOf(b) ?? 2)}

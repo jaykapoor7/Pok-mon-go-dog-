@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { AlertTriangle, ArrowRight, CalendarClock, Camera, Hand, ListChecks, PawPrint, Plus, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarClock, Hand, ListChecks, PawPrint, Sparkles } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { dueFollowups } from "@/lib/ops";
 import { Shell } from "../Shell";
@@ -18,7 +18,8 @@ import { withAnimalName } from "../animalLabel";
 import "../field.css";
 import "../css/ngo-records.css";
 
-/* Today, an NGO's home. One line to Kaju; four figures, each with a small picture of what it counts and a link to the
+/* Today, an NGO's home: what needs the person, not a launcher. It has no record buttons of its own; recording an
+   animal is the phone's "+" and the Animals page, a new case is Cases. One line to Kaju; four figures, each with a small picture of what it counts and a link to the
    list it counts; then what needs attention beside the person's tasks, five rows each, and what Kaju is waiting on as a
    short row of cards. Every figure is counted with the same reads and the same rules as the list it opens (Operations,
    Cases, Animals), so the two always agree; a read that failed says "Not read", never zero. Signed out, the same page
@@ -59,7 +60,6 @@ function SampleToday() {
             <h1 className="nx-h1" suppressHydrationWarning>{greeting()}, {ME.name}</h1>
             <p className="nx-sub"><b className="num">{open.length}</b> {open.length === 1 ? "thing needs" : "things need"} you. Kaju has prepared {PREPARED.length}.</p>
           </div>
-          <Link href="/try" className="nx-btn" title="Opens the live demo, where this works"><Plus size={14} />New case</Link>
         </div>
         <AtKaju role="ngo" />
         <Tiles>
@@ -84,7 +84,6 @@ function SampleToday() {
             <Rows items={PREPARED.map((p) => ({ id: p.title, title: p.title, meta: p.body, href: "/try", icon: <Sparkles size={16} />, tone: "blue" as const, chip: { text: p.act, tone: "blue" as const } }))} empty="Nothing is waiting for your approval." />
           </Panel>
         </Grid>
-        <Link href="/try" className="nx-btn nx-capture" title="Opens the live demo, where this works"><Camera size={16} />Capture a field update</Link>
       </div>
     </Shell>
   );
@@ -228,7 +227,6 @@ function LiveToday() {
             <h1 className="nx-h1">{greeting()}{userName ? `, ${userName.split(" ")[0]}` : ""}</h1>
             <p className="nx-sub">{attention === null ? "Reading what needs you…" : attention.length ? <><b className="num">{attention.length}</b> {attention.length === 1 ? "thing needs" : "things need"} attention, most urgent first.{partial.length ? ` Your ${partial.join(" and ")} could not be read.` : ""}</> : partial.length ? `Your ${partial.join(" and ")} could not be read, so nothing is shown as clear.` : "Nothing is overdue or critical."}</p>
           </div>
-          {ngo ? <Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry nr-plus-dup"><Camera size={14} />Record an animal</Link> : null}
         </div>
         <AtKaju role="ngo" />
         <Tiles>
@@ -242,7 +240,7 @@ function LiveToday() {
             visual={h && h.total ? <><Meter part={h.notSter} whole={h.total} tone="blue" label={`${h.notSter.toLocaleString("en-IN")} not sterilised (${pctOf(h.notSter, h.total)})`} /><Meter part={h.notVacc} whole={h.total} tone="blue" label={`${h.notVacc.toLocaleString("en-IN")} not vaccinated (${pctOf(h.notVacc, h.total)})`} /></> : null} /> : null}
         </Tiles>
         <Grid cols={2}>
-          {ngo ? <Panel id="t-attn" title="Needs attention" foot={<><Link href="/ngo/cases?view=critical" className="hm-all">Critical and high cases{c ? ` (${c.critical.length.toLocaleString("en-IN")})` : ""}<ArrowRight size={14} aria-hidden /></Link><Link href="/ngo/operations" className="hm-all">Operations<ArrowRight size={14} aria-hidden /></Link></>}>
+          {ngo ? <Panel id="t-attn" title="Needs attention" foot={<><Link href="/ngo/cases?view=critical" className="hm-all">Critical and high cases{c ? ` (${c.critical.length.toLocaleString("en-IN")})` : ""}<ArrowRight size={14} aria-hidden /></Link></>}>
             <Rows items={attention} expand={false} error={partial.length === 3 ? "Visits, cases and animals could not be read." : null} retry={retryAll} empty={partial.length ? `Your ${partial.join(" and ")} could not be read, so nothing is shown as clear.` : "Nothing is overdue or critical. New work arrives in the Inbox."} />
             {partial.length && partial.length < 3 && attention ? <p className="hm-note is-bad" role="alert">Your {partial.join(" and ")} could not be read; {partial.length === 1 ? "it is" : "they are"} not shown here. <button type="button" className="hm-link" onClick={retryAll}>Try again</button></p> : null}
           </Panel> : null}

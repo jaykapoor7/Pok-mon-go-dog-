@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Camera, MapPin, Smartphone } from "lucide-react";
+import { ArrowRight, MapPin, Smartphone } from "lucide-react";
 import { dueFollowups, type DueFollowup } from "@/lib/ops";
 import { getSupabase } from "@/lib/supabase";
 import { careNote } from "@/lib/care-note";
@@ -50,8 +50,9 @@ export function Operations() {
   const ngo = live.orgFor("ngo");
   if (live.org && !ngo) return <Shell crumb={["NGO", "Operations"]}><div className="nx-page"><h1 className="nx-h1">Operations</h1><p className="nx-sub">Your account is not part of an NGO, so there are no field visits here.</p></div></Shell>;
   const tabs = <div className="nr-bleed"><TabBar id="ops" tabs={PARTS} value={part} onChange={choose} label="Operations" /></div>;
-  /* Field mode, and the quickest way to record an animal (it opens field mode with the record screen up). */
-  const field = <div className="nr-tools nr-plus-dup"><Link href="/ngo/field" className="nx-btn is-quiet is-keep"><Smartphone size={14} />Open field mode</Link><Link href="/ngo/field?record=1" className="nx-btn is-keep fm-entry"><Camera size={14} />Record an animal</Link></div>;
+  /* Field mode is where this page's round is walked, so it is the page's one action. Recording a single animal is the
+     Animals page's (and the phone's "+"); on a phone "+" also opens field mode, so the button is desktop only. */
+  const field = <div className="nr-tools nr-plus-dup"><Link href="/ngo/field" className="nx-btn is-keep"><Smartphone size={14} />Open field mode</Link></div>;
   return (
     <Shell crumb={["NGO", "Operations"]}>
       {part === "Visits" ? <Visits ngo={ngo} tabs={tabs} action={field} />

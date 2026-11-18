@@ -231,7 +231,7 @@ function SampleRecord({ id }: { id: string }) {
   return (
     <Shell crumb={["Cases", r.code]}>
       <RecordHead av={<PawPrint size={18} />} title={<><span className="num">{r.code}</span> · {r.title}<Sample /></>} sub={<>{r.place} · {r.kind} · {r.who === "Unassigned" ? "nobody holds it yet" : <>held by <b>{r.who}</b></>}</>}
-        chips={<Chip tone={r.tone}>{r.status}</Chip>} actions={<><Link href="/ngo/cases" className="nx-btn is-quiet is-sm">All cases</Link><TryLink sm quiet>Delete case</TryLink></>} />
+        chips={<Chip tone={r.tone}>{r.status}</Chip>} actions={<TryLink sm quiet>Delete case</TryLink>} />
       <div className="kc-line"><KajuCapture compact sample idBase="case-kaju" label="Tell Kaju" context={{ path: `/ngo/cases/${id}`, workspace: "ngo", title: `Case ${r.code}` }} placeholder="For example: ate well, follow up Monday"
         hint="In the live demo, Kaju prepares a note, a follow-up or a care event for this case, and you confirm it." byHand={() => []} /></div>
       <TabBar id="case" tabs={[["Overview", undefined], ["History", items.length], ["Care and movements", undefined], ["Related", undefined]] as [Tab, number | undefined][]} value={tab} onChange={setTab} label="Case sections" />
