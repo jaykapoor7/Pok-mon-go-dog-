@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { SPRING } from "./motion/tokens";
 import { ArrowRight, Camera, ClipboardList, CornerDownLeft, Hash, History, MessageSquare, PawPrint, Search, Smartphone, Sparkles } from "lucide-react";
 import { recordHref, searchMessages } from "./collab";
 import { getSupabase } from "@/lib/supabase";
@@ -123,7 +124,7 @@ export function Command({ open, onClose }: { open: boolean; onClose: () => void 
       {open ? (
         <motion.div key="cmd" className="nx-cmd-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: calm ? 0 : .12 }} onMouseDown={onClose}>
           <motion.div role="dialog" aria-modal="true" aria-label="Search and commands" className="nx-cmd" onMouseDown={(e) => e.stopPropagation()}
-            initial={calm ? false : { opacity: 0, y: -8, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: -6, scale: .99 }} transition={{ type: "spring", stiffness: 520, damping: 40, mass: .7 }}>
+            initial={calm ? false : { opacity: 0, y: -8, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: -6, scale: .99 }} transition={SPRING.pop}>
             <label className="nx-cmd-in"><Search size={16} />
               <input ref={box} value={q} onChange={(e) => setQ(e.target.value)} placeholder={live.org ? "Search pages, channels, animals and cases" : "Search the sample workspace"} aria-label="Search" role="combobox" aria-expanded aria-controls="nx-cmd-list" aria-activedescendant={hits[at] ? `nx-cmd-${at}` : undefined}
                 onKeyDown={(e) => {

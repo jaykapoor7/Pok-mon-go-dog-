@@ -113,9 +113,10 @@ export async function readAnimalsLite(ngoId: string, limit = 200): Promise<Anima
 }
 export async function readCasesLite(limit = 100): Promise<Case[]> { return (await getPartnerCasesPage({ limit })).items; }
 /** Files one scan: images only, uploaded to the photo bucket, then recorded with add_document. */
-export async function fileScan(file: File, kind: DocumentKind): Promise<string> {
+export async function fileScan(file: File, kind: DocumentKind, processing?: () => void): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error(`${file.name} is not an image. Only photographs and scans can be filed.`);
   const url = await uploadPhoto(file);
+  processing?.(); // uploaded; the server now records it
   const id = await addDocument({ url, kind, title: file.name });
   if (!id) throw new Error(`${file.name} was uploaded but not filed. Try again.`);
   return id;

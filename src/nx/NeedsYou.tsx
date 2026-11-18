@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { SPRING } from "./motion/tokens";
 import { Bell, CalendarClock, ShieldCheck, Sparkles } from "lucide-react";
 import { packages } from "@/lib/abc";
 import { getSupabase } from "@/lib/supabase";
@@ -94,7 +95,7 @@ export function NeedsYou() {
       <button type="button" className={`nx-ib ${n ? "has-n" : ""}`} aria-label={n ? `${n} ${n === 1 ? "thing needs" : "things need"} you` : "Nothing needs you"} aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((o) => !o)} data-n={n || undefined}><Bell size={16} /></button>
       {phone ? <Sheet open={open} onClose={shut} label="Needs you"><div className="nx-needs-s">{body(true)}</div></Sheet> : <AnimatePresence>
         {open ? (
-          <motion.div role="dialog" aria-label="Needs you" className="nx-needs-p" initial={calm ? false : { opacity: 0, y: -6, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: -4 }} transition={{ type: "spring", stiffness: 520, damping: 40, mass: .7 }}>{body(false)}</motion.div>
+          <motion.div role="dialog" aria-label="Needs you" className="nx-needs-p" initial={calm ? false : { opacity: 0, y: -6, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: -4 }} transition={SPRING.pop}>{body(false)}</motion.div>
         ) : null}
       </AnimatePresence>}
     </div>

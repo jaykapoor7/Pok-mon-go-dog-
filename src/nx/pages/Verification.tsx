@@ -4,6 +4,7 @@ import { About, GhMark } from "./gh/parts";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { SPRING } from "../motion/tokens";
 import { AlertTriangle, Maximize2, ShieldCheck, X } from "lucide-react";
 import { NotEnabled, PACKAGE_LABEL, orgNames, packages, type Package } from "@/lib/abc";
 import { isVisibleToOffice } from "@/lib/machines/package";
@@ -42,7 +43,7 @@ function VerificationView({ rows, sample, loading, note, office }: { rows: Row[]
         <div className="nx-head"><div><p className="nx-eyebrow">{office}{sample ? <Sample /> : null}<GhMark /></p><h1 className="nx-h1">Verification</h1><p className="nx-sub">{loading ? "Reading the queue…" : <><b className="num">{waiting.length}</b> {waiting.length === 1 ? "package waits" : "packages wait"} for a decision{oldest ? <>, the oldest for <b className="num">{oldest}</b> {oldest === 1 ? "day" : "days"}</> : null}. <About>Decisions are signed by a named reviewer.</About></>}</p></div></div>
         <div className="nx-bar">
           <div className="nx-views" role="tablist" aria-label="Views">
-            {VIEWS.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId="nx-vview" className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}<span className="nx-count">{rows.filter(v.test).length}</span></span></button>)}
+            {VIEWS.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId="nx-vview" className="nx-view-bg" transition={calm ? { duration: 0 } : SPRING.glide} /> : null}<span>{v.label}<span className="nx-count">{rows.filter(v.test).length}</span></span></button>)}
           </div>
         </div>
         {note ? <p className="nx-foot" role="status">{note}</p> : null}
@@ -63,7 +64,7 @@ function VerificationView({ rows, sample, loading, note, office }: { rows: Row[]
       </div>
       <AnimatePresence>
         {open ? (
-          <motion.aside key="d" className="nx-drawer" role="dialog" aria-label={`${open.title}, ${open.operator}`} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
+          <motion.aside key="d" className="nx-drawer" role="dialog" aria-label={`${open.title}, ${open.operator}`} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : SPRING.panel}>
             <div className="nx-drawer-h"><span>{open.operator}</span><span style={{ marginLeft: "auto" }} />{open.href ? <Link href={open.href} className="nx-ib" aria-label="Open the review"><Maximize2 size={15} /></Link> : null}<button type="button" className="nx-ib" onClick={() => setOpenId(null)} aria-label="Close"><X size={16} /></button></div>
             <div className="nx-drawer-b">
               <div className="nx-rec-t" style={{ marginBottom: 16 }}><div><h1>{open.title}</h1><p>{open.operator} · {open.period} <Chip tone={open.tone}>{open.state}</Chip></p></div></div>

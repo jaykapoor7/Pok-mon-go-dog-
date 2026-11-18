@@ -32,6 +32,8 @@ import { LifecycleForm, TRY, undoWith } from "./parts";
 import { animalLine, animalName, animalSearch } from "@/nx/animalLabel";
 import { SayIt } from "../../KajuCapture";
 import { readField } from "../../data/capture";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckDraw, ResultButton, Swap, settle, useCalm, useResult, useSpring, type ResultState } from "../../motion";
 import "../../css/ngo-records.css";
 import "../../field.css";
 
@@ -156,6 +158,10 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
   const [drafts, setDrafts] = useState<FieldDraft[]>([]);
   const [synced, setSynced] = useState<SyncedFieldRecord[]>([]);
   const [syncing, setSyncing] = useState(false);
+  /* What is on its way right now, and what has just arrived: a record's row stays where it was and turns from
+     "Saved on this phone" to "Sending" to "Sent", then joins the sent list. */
+  const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
+  const [justSent, setJustSent] = useState<SyncedFieldRecord[]>([]);
   const [capture, setCapture] = useState(false);
   const [done, setDone] = useState<Record<string, string>>({});
   const [ask, setAsk] = useState<null | { title: string; body: string; confirm: string; danger?: boolean; go: () => Promise<void> }>(null);
@@ -221,18 +227,25 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
     let sent = 0, bad = 0;
     try {
       const queued = (await readDrafts(scope)).filter((d) => !only || only.includes(d.id)).sort((a, b) => Number(!!b.intake) - Number(!!a.intake) || Date.parse(a.at) - Date.parse(b.at));
+      setSendingIds(new Set(queued.map((d) => d.id)));
       // An intake opens a case assigned to this person, which needs their volunteer row; someone whose first record is
       // made in the field has none yet, and the server would refuse the case.
       if (queued.some((d) => d.intake)) await ensureVolunteer(actor);
       for (const d of queued) {
-        try { const saved = await submitFieldDraft(d, actor.id, org.org_id); await archiveDraft(d, { id: d.id, scope, at: saved.confirmedAt, caseId: saved.caseId, dogId: saved.dogId, auditId: saved.audit_id, label: d.note.slice(0, 120) }); sent++; }
+        try {
+          const saved = await submitFieldDraft(d, actor.id, org.org_id);
+          const rec: SyncedFieldRecord = { id: d.id, scope, at: saved.confirmedAt, caseId: saved.caseId, dogId: saved.dogId, auditId: saved.audit_id, label: d.note.slice(0, 120) };
+          await archiveDraft(d, rec); sent++;
+          setJustSent((cur) => [...cur.filter((x) => x.id !== rec.id), rec]);
+          window.setTimeout(() => setJustSent((cur) => cur.filter((x) => x.id !== rec.id)), 5000);
+        }
         catch (e) { bad++; await putDraft({ ...d, status: "failed", error: errText(e) }).catch(() => {}); }
       }
       if (sent) toast({ text: `${sent} ${sent === 1 ? "record" : "records"} sent; the server's copy and audit were checked.`, tone: "ok" });
       if (bad) toast({ text: `${bad} ${bad === 1 ? "record" : "records"} did not go. ${bad === 1 ? "It stays" : "They stay"} on this phone with the reason.`, tone: "bad" });
       if (sent) await load();
     } catch (e) { setStorageError(`${errText(e)} The records stay on this phone.`); }
-    finally { lock.current = false; setSyncing(false); await readBox(); }
+    finally { lock.current = false; setSyncing(false); setSendingIds(new Set()); await readBox(); }
   }, [scope, actor, org.org_id, load, readBox, setStorageError]);
   /* Online, a saved record goes straight away; offline, it waits until the person chooses to send. */
   /* Each record is tried once by itself; a record that fails waits for a person, so a refusal never loops. */
@@ -258,6 +271,9 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
   const lateN = myFus.filter((f) => Date.parse(f.due_at) < Date.now()).length;
   const stops = mine.length + myFus.length;
   const waiting = drafts.length;
+  const calm = useCalm();
+  const panelSpring = useSpring("panel");
+  const arrived = justSent.filter((x) => !drafts.some((d) => d.id === x.id));
   const sum = cases === null ? (failed ? "Your stops could not be read." : "Reading your stops…") : stops === 0 ? "Nothing is held by you right now." : <><b className="num">{plural(stops, "stop", "stops")}</b>{lateN ? <> · <b className="num is-late">{lateN} late</b></> : null}</>;
   const fu = (f: DueFollowup, s: "done" | "missed") => run(`f${f.id}`, () => setFollowup(f.id, s), { ok: s === "done" ? "Follow-up marked done." : "Follow-up marked missed.", undo: () => undoWith(() => setFollowup(f.id, "upcoming"), async () => { setDone((m) => { const x = { ...m }; delete x[`f${f.id}`]; return x; }); await load(); }, "Follow-up reopened.")() }).then((r) => { if (r.ok) setDone((m) => ({ ...m, [`f${f.id}`]: s === "done" ? "Done" : "Missed" })); });
   const start = (c: OpenCase) => run(`s${c.id}`, () => startWork(c.id, actor), { ok: "Marked in progress.", undo: () => undoWith(() => backToAssigned(c.id, actor), async () => { setDone((m) => { const x = { ...m }; delete x[`s${c.id}`]; return x; }); await load(); }, "Back to assigned.")() }).then((r) => { if (r.ok) setDone((m) => ({ ...m, [`s${c.id}`]: "Started" })); });
@@ -278,7 +294,7 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
         <ol className="fm-list">{myFus.map((f) => { const late = Date.parse(f.due_at) < Date.now(), d = done[`f${f.id}`]; return (
           <li key={f.id} className={`fm-stop ${d ? "is-done" : ""}`}>
             <div className="fm-stop-t"><b>{words(f.kind, "Recheck")}{dogLine(f.dog_id, f.animal_name) ? ` · ${dogLine(f.dog_id, f.animal_name)}` : ""}</b><span className="fm-meta">{late ? <span className="fm-tag is-late">Late</span> : null}<span>Due {day(f.due_at)}</span>{[shortCode(f.case_code, "follow-up"), f.zone].filter(Boolean).map((x) => <span key={x}>{x}</span>)}</span>{f.note ? <span className="fm-meta">{f.note}</span> : null}</div>
-            {d ? <p className="fm-ok"><Tick size={16} aria-hidden />{d}</p> : <div className="fm-acts"><button type="button" className="fm-btn" disabled={!online || !!busy} onClick={() => void fu(f, "done")}><Tick size={16} aria-hidden />Done</button><button type="button" className="fm-btn" disabled={!online || !!busy} onClick={() => void fu(f, "missed")}>Missed</button></div>}
+            {d ? <p className="fm-ok">{d === "Done" ? <CheckDraw size={16} /> : <Tick size={16} aria-hidden />}{d}</p> : <div className="fm-acts"><button type="button" className="fm-btn" disabled={!online || !!busy} onClick={() => void fu(f, "done")}><Tick size={16} aria-hidden />Done</button><button type="button" className="fm-btn" disabled={!online || !!busy} onClick={() => void fu(f, "missed")}>Missed</button></div>}
             {!online && !d ? <p className="fm-hint fm-full">Marking a follow-up needs signal.</p> : null}
           </li>); })}</ol></section> : null}
 
@@ -291,10 +307,10 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
       {waiting || synced.length ? <section className="fm-sec" aria-labelledby="fm-phone">
         <div className="fm-sec-h"><h2 id="fm-phone">On this phone</h2>{waiting ? <span className="fm-count">{plural(waiting, "record", "records")} not sent yet</span> : null}
           {waiting ? <button type="button" className={`fm-btn is-sm ${online ? "is-go" : ""}`} disabled={!online || syncing} onClick={() => void send()}>{syncing ? "Sending…" : online ? (waiting === 1 ? "Send it" : `Send all ${waiting}`) : "Waiting for signal"}</button> : null}</div>
-        {waiting ? <div className="fm-list">{drafts.map((d) => <Draft key={d.id} d={d} online={online} syncing={syncing} policies={policies} onSend={() => void send([d.id])} onChanged={readBox}
+        {waiting || arrived.length ? <div className="fm-list"><AnimatePresence initial={false}>{[...drafts.map((d) => ({ k: d.id, d, x: null })), ...arrived.map((x) => ({ k: x.id, d: null, x }))].map((row) => <motion.div key={row.k} className="fm-out" layout={calm ? false : "position"} initial={calm ? false : { opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={calm ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, x: 24 }} transition={panelSpring}><Swap inline={false} k={row.d ? "d" : "x"}>{row.x ? <SentRow x={row.x} /> : (() => { const d = row.d!; return <Draft d={d} sending={syncing && sendingIds.has(d.id)} online={online} syncing={syncing} policies={policies} onSend={() => void send([d.id])} onChanged={readBox}
           onRemove={() => setAsk({ title: "Remove this copy from the phone?", body: d.status === "failed" ? "It was not confirmed by the server. Removing it loses what it holds unless you have copied it." : "It has not been sent. Removing it loses what it holds.", confirm: "Remove it", danger: true, go: async () => { await deleteDraft(d.id); await readBox(); } })}
           onReplace={async (text) => { await keep({ ...d, id: uuid(), note: text, status: "pending", error: undefined }); await deleteDraft(d.id); await readBox(); }}
-          onOperation={(k, data, p, r) => operation(d.caseId, d.code, k, data, p, r, d.id)} />)}</div> : null}
+          onOperation={(k, data, p, r) => operation(d.caseId, d.code, k, data, p, r, d.id)} />; })()}</Swap></motion.div>)}</AnimatePresence></div> : null}
         {synced.length ? <details className="fm-sent"><summary>Sent from this phone · {synced.length}<ChevronDown size={16} aria-hidden /></summary><ul>{[...synced].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 30).map((x) => <li key={x.id}><span><Link className="fm-link" href={`/ngo/cases/${x.caseId}`}>{x.label}</Link><small>Sent {dayTime(x.at)} · receipt {x.auditId}</small></span><span className="fm-dot" data-s="sent" aria-label="Sent" /></li>)}</ul></details> : null}
       </section> : null}
       {ask ? <Confirm title={ask.title} confirm={ask.confirm} danger={ask.danger} onClose={() => setAsk(null)} onConfirm={() => void ask.go().then(() => setAsk(null)).catch((e) => { setStorageError(errText(e)); setAsk(null); })}><p>{ask.body}</p></Confirm> : null}
@@ -303,7 +319,7 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
 }
 
 /* One record waiting on the phone, with what went wrong and how to put it right. */
-function Draft({ d, online, syncing, policies, onSend, onRemove, onReplace, onOperation, onChanged }: { d: FieldDraft; online: boolean; syncing: boolean; policies: WorkflowPolicy[]; onSend: () => void; onRemove: () => void; onReplace: (text: string) => Promise<void>; onOperation: (k: OperationKind, data: LifecycleData, p: string | null, r: string) => Promise<void>; onChanged: () => Promise<void> }) {
+function Draft({ d, sending, online, syncing, policies, onSend, onRemove, onReplace, onOperation, onChanged }: { d: FieldDraft; sending: boolean; online: boolean; syncing: boolean; policies: WorkflowPolicy[]; onSend: () => void; onRemove: () => void; onReplace: (text: string) => Promise<void>; onOperation: (k: OperationKind, data: LifecycleData, p: string | null, r: string) => Promise<void>; onChanged: () => Promise<void> }) {
   const [edit, setEdit] = useState(false);
   const [text, setText] = useState(d.note);
   const [addOp, setAddOp] = useState(false);
@@ -318,7 +334,7 @@ function Draft({ d, online, syncing, policies, onSend, onRemove, onReplace, onOp
     : plain ? <span>Correct it and send it again.</span> : <span>Send it again, or remove it and record it once more.</span>;
   return (
     <details className="fm-draft" open={d.status === "failed" || undefined}>
-      <summary><i className="fm-dot" data-s={d.status === "failed" ? "failed" : "pending"} aria-hidden /><span><b>{d.survey ? "Survey observation" : d.intake ? "Animal intake" : d.code ? shortCode(d.code) : "Field record"}</b><small>{dayTime(d.at)} · {d.status === "failed" ? "Did not go" : "Waiting to be sent"}</small></span><span className={`fm-tag ${d.status === "failed" ? "is-bad" : "is-wait"}`}>{d.status === "failed" ? "Failed" : "Waiting"}</span></summary>
+      <summary data-photo={d.file && d.file.type.startsWith("image/") ? "" : undefined}><i className="fm-dot" data-s={sending ? "sending" : d.status === "failed" ? "failed" : "pending"} aria-hidden />{d.file && d.file.type.startsWith("image/") ? <Shot file={d.file} state={sending ? "sending" : d.status === "failed" ? "failed" : "pending"} /> : null}<span><b>{d.survey ? "Survey observation" : d.intake ? "Animal intake" : d.code ? shortCode(d.code) : "Field record"}</b><small>{dayTime(d.at)} · {sending ? "Sending…" : d.status === "failed" ? "Did not go" : "Saved on this phone, waiting to be sent"}</small></span><Swap k={sending ? "s" : d.status}><span className={`fm-tag ${sending ? "is-on" : d.status === "failed" ? "is-bad" : "is-wait"}`}>{sending ? "Sending" : d.status === "failed" ? "Failed" : "Waiting"}</span></Swap></summary>
       <div>
         <p style={{ whiteSpace: "pre-wrap" }}>{d.note}</p>
         {d.location ? <p className="fm-hint">{d.location}</p> : null}
@@ -337,9 +353,28 @@ function Draft({ d, online, syncing, policies, onSend, onRemove, onReplace, onOp
   );
 }
 
+/** A photo kept with a record, small, with where it is: on this phone, on its way, or failed. */
+function Shot({ file, state }: { file: Blob; state: "pending" | "sending" | "failed" }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => { const u = URL.createObjectURL(file); setUrl(u); return () => URL.revokeObjectURL(u); }, [file]);
+  // eslint-disable-next-line @next/next/no-img-element
+  return <span className="fm-shot" data-s={state}>{url ? <img src={url} alt="" /> : null}{state === "sending" ? <span className="mo-bar" data-s="uploading" aria-hidden><i /></span> : null}</span>;
+}
+
+/** A record that has just been sent: its row stays a moment, with the check drawn, before it joins the sent list. */
+function SentRow({ x }: { x: SyncedFieldRecord }) {
+  return (
+    <div className="fm-draft is-sent" role="status">
+      <div className="fm-sent-now"><span className="fm-sent-ok" aria-hidden><CheckDraw size={12} stroke={2.6} /></span><span><b>{x.label}</b><small>Sent just now · the server&apos;s copy and audit were checked · receipt {x.auditId}</small></span><span className="fm-tag is-ok">Sent</span></div>
+    </div>
+  );
+}
+
 /** The words on a save button, by where the record goes. */
 const keepLabel = (route: Route3, what: string) => (route === "keep" ? `Keep the ${what} on this phone` : `Save the ${what}`);
 const keptToast = (route: Route3) => (route === "send" ? "Saved. Sending now." : route === "hold" ? "Saved on this phone. It is sent when the signal is back." : "Kept on this phone, encrypted. Send it when there is signal.");
+/** What a save button turns into once the record is safely on the phone. */
+const keptLabel = (route: Route3) => (route === "send" ? "Saved, sending" : route === "hold" ? "Saved on this phone" : "Kept on this phone");
 
 type Tool = "note" | "evidence" | "vacc" | "care";
 function CaseStop({ c, animal, online, started, busy, drafted, onStart, onNote, onEvidence, onVaccination, vaccDefaults, policies, onOperation, route }: { c: OpenCase; animal: string | null; online: boolean; started: boolean; busy: boolean; drafted: number; onStart: () => void; onNote: (t: string) => Promise<void>; onEvidence: (k: EvidenceKind, f: File | null, l: string) => Promise<void>; onVaccination: (v: VaccinationData) => Promise<void>; vaccDefaults?: Pick<VaccinationData, "vaccine" | "batch" | "performedBy">; policies: WorkflowPolicy[]; onOperation: (k: OperationKind, d: LifecycleData, p: string | null, r: string) => Promise<void>; route: Route3 }) {
@@ -350,16 +385,20 @@ function CaseStop({ c, animal, online, started, busy, drafted, onStart, onNote, 
   const [file, setFile] = useState<File | null>(null);
   const [loc, setLoc] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const res = useResult();
+  const calm = useCalm();
+  const saving = res.state !== "idle";
   const shut = () => { setTool(null); setError(null); };
   const tools: [Tool, string, typeof PenLine, boolean][] = [["note", "Note", PenLine, true], ["evidence", "Photo or proof", Camera, true], ["vacc", "Vaccination", Syringe, !!c.dog_id], ["care", "Care or movement", Route, !!c.dog_id]];
-  const save = async (fn: () => Promise<void>) => { setSaving(true); setError(null); try { await fn(); shut(); toast({ text: keptToast(route), tone: "ok" }); } catch (e) { setError(errText(e)); } finally { setSaving(false); } };
+  /* The save button itself says it worked ("Saved on this phone ✓") and the form folds away a moment later; the
+     record's own row below then shows it waiting, sending and sent. */
+  const save = async (fn: () => Promise<void>) => { setError(null); try { await res.run(fn); await settle(calm); shut(); res.reset(); } catch (e) { setError(errText(e)); } };
   const gps = () => navigator.geolocation?.getCurrentPosition((p) => setLoc(`Observed GPS: ${p.coords.latitude}, ${p.coords.longitude}; accuracy ${Math.round(p.coords.accuracy)} m; ${new Date(p.timestamp).toISOString()}`), () => setError("Location is unavailable. Say where it was in words."));
   const place = [shortCode(c.case_code), animal, c.zone].filter(Boolean) as string[];
   return (
     <li className="fm-stop">
       <div className="fm-stop-t"><b><Link href={`/ngo/cases/${c.id}`}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Case"}</Link></b>
-        <span className="fm-meta"><span className={`fm-tag ${started ? "is-on" : ""}`}>{started ? "Started" : "Open"}</span>{place.length ? place.map((x, i) => <span key={`${x}${i}`}>{x}</span>) : <span>Animal and place not recorded</span>}</span></div>
+        <span className="fm-meta"><Swap k={started ? "s" : "o"}><span className={`fm-tag ${started ? "is-on" : ""}`}>{started ? "Started" : "Open"}</span></Swap>{place.length ? place.map((x, i) => <span key={`${x}${i}`}>{x}</span>) : <span>Animal and place not recorded</span>}</span></div>
       <div className="fm-acts">
         {!started ? <button type="button" className="fm-btn" disabled={!online || busy} onClick={onStart}><Play size={16} aria-hidden />Start</button> : null}
         <button type="button" className="fm-btn" aria-expanded={open} onClick={() => { setOpen((v) => !v); shut(); }}><Plus size={16} aria-hidden />Record</button>
@@ -372,24 +411,43 @@ function CaseStop({ c, animal, online, started, busy, drafted, onStart, onNote, 
       {error ? <p className="fm-err fm-full" role="alert">{error}</p> : null}
       {open && tool === "note" ? <form className="fm-form" onSubmit={(e) => { e.preventDefault(); if (t.trim()) void save(async () => { await onNote(t.trim()); setT(""); }); }}>
         <F label="Note"><textarea value={t} onChange={(e) => setT(e.target.value)} placeholder="What you saw or did" maxLength={1500} autoFocus /></F>
-        <div className="fm-form-a"><button type="submit" className="fm-btn is-go" disabled={saving || !t.trim()}>{saving ? "Saving…" : keepLabel(route, "note")}</button><button type="button" className="fm-btn" onClick={shut}>Cancel</button></div>
+        <div className="fm-form-a"><ResultButton type="submit" className="fm-btn is-go" state={res.state} done={keptLabel(route)} disabled={saving || !t.trim()}>{keepLabel(route, "note")}</ResultButton><button type="button" className="fm-btn" onClick={shut}>Cancel</button></div>
       </form> : null}
       {open && tool === "evidence" ? <form className="fm-form" onSubmit={(e) => { e.preventDefault(); void save(async () => { await onEvidence(kind, file, loc); setFile(null); setLoc(""); }); }}>
         <F label="What it shows"><select value={kind} onChange={(e) => setKind(e.target.value as EvidenceKind)}>{Object.entries(EVIDENCE_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></F>
-        {kind !== "release_location" ? <F label="Photo or file"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" capture="environment" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></F> : null}
+        {kind !== "release_location" ? <PhotoTile file={file} onFile={setFile} accept="image/jpeg,image/png,image/webp,application/pdf" title="Take a photo" hint="Or choose a photo or PDF" label="Photo or file" /> : null}
         <F label={kind === "release_location" ? "Where it was released" : "Where (optional)"}><textarea value={loc} onChange={(e) => setLoc(e.target.value)} maxLength={1500} required={kind === "release_location"} /></F>
         <div className="fm-form-a"><button type="button" className="fm-btn" onClick={gps}><MapPin size={16} aria-hidden />Use my location</button></div>
-        <div className="fm-form-a"><button type="submit" className="fm-btn is-go" disabled={saving}>{saving ? "Saving…" : keepLabel(route, "proof")}</button><button type="button" className="fm-btn" onClick={shut}>Cancel</button></div>
+        <div className="fm-form-a"><ResultButton type="submit" className="fm-btn is-go" state={res.state} done={keptLabel(route)} disabled={saving}>{keepLabel(route, "proof")}</ResultButton><button type="button" className="fm-btn" onClick={shut}>Cancel</button></div>
       </form> : null}
-      {open && tool === "vacc" && c.dog_id ? <VaccinationForm dogId={c.dog_id} defaults={vaccDefaults} route={route} onCancel={shut} onSave={(v) => save(() => onVaccination(v))} /> : null}
+      {open && tool === "vacc" && c.dog_id ? <VaccinationForm dogId={c.dog_id} defaults={vaccDefaults} route={route} state={res.state} onCancel={shut} onSave={(v) => save(() => onVaccination(v))} /> : null}
       {open && tool === "care" ? <LifecycleForm policies={policies} submitLabel={keepLabel(route, "record")} onCancel={shut} onSave={async (k, d, p, r) => { await onOperation(k, d, p, r); toast({ text: keptToast(route), tone: "ok" }); }} /> : null}
       {drafted ? <p className="fm-onphone fm-full"><i className="fm-dot" data-s="pending" aria-hidden />{plural(drafted, "record", "records")} on this phone, not sent</p> : null}
     </li>
   );
 }
 
+/** The camera, as one big target for a thumb: a photo shows itself once taken, with a way to take it again. */
+function PhotoTile({ file, onFile, accept, title, hint, label }: { file: File | null; onFile: (f: File | null) => void; accept: string; title: string; hint: string; label: string }) {
+  const [shot, setShot] = useState<string | null>(null);
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (!file || !file.type.startsWith("image/")) { setShot(null); return; } const u = URL.createObjectURL(file); setShot(u); return () => URL.revokeObjectURL(u); }, [file]);
+  return (
+    <div className="fm-q">
+      <label className={`fm-photo ${shot ? "has-shot" : ""}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {shot ? <><img src={shot} alt="The photo you took" /><span className="fm-retake" aria-hidden><Camera size={16} />Take it again</span></>
+          : file ? <><span className="fm-photo-i" aria-hidden><Tick size={24} /></span><b>{file.name}</b><small>Press to choose another</small></>
+          : <><span className="fm-photo-i" aria-hidden><Camera size={24} /></span><b>{title}</b><small>{hint}</small></>}
+        <input ref={ref} type="file" accept={accept} capture="environment" aria-label={file ? `${label}: choose another` : label} onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+      </label>
+      {file ? <button type="button" className="fm-link fm-start" onClick={() => { onFile(null); if (ref.current) ref.current.value = ""; }}>{shot ? "Remove the photo" : "Remove the file"}</button> : null}
+    </div>
+  );
+}
+
 /** What was given, as recorded in the field. Veterinary sign-off and municipal review stay separate. */
-function VaccinationForm({ dogId, defaults, route, onSave, onCancel }: { dogId: string; defaults?: Pick<VaccinationData, "vaccine" | "batch" | "performedBy">; route: Route3; onSave: (v: VaccinationData) => Promise<void>; onCancel: () => void }) {
+function VaccinationForm({ dogId, defaults, route, state, onSave, onCancel }: { dogId: string; defaults?: Pick<VaccinationData, "vaccine" | "batch" | "performedBy">; route: Route3; state: ResultState; onSave: (v: VaccinationData) => Promise<void>; onCancel: () => void }) {
   const [v, setV] = useState<VaccinationData>({ template: "arv-field-v1", dogId, eventDate: isoDay(new Date()), vaccine: defaults?.vaccine ?? "", batch: defaults?.batch ?? "", performedBy: defaults?.performedBy ?? "", dose: "", route: "", location: "", notes: "" });
   const [busy, setBusy] = useState(false);
   const f = (k: "vaccine" | "batch" | "performedBy" | "dose" | "route" | "location" | "notes", label: string, req = false, max = 100) => <F label={label}><input required={req} maxLength={max} value={v[k]} onChange={(e) => setV((x) => ({ ...x, [k]: e.target.value }))} /></F>;
@@ -404,7 +462,7 @@ function VaccinationForm({ dogId, defaults, route, onSave, onCancel }: { dogId: 
       <div className="fm-form-a"><button type="button" className="fm-btn" onClick={() => navigator.geolocation?.getCurrentPosition((p) => setV((x) => ({ ...x, location: `Observed GPS: ${p.coords.latitude}, ${p.coords.longitude}; accuracy ${Math.round(p.coords.accuracy)} m; ${new Date(p.timestamp).toISOString()}` })))}><MapPin size={16} aria-hidden />Use my location</button></div>
       {f("notes", "Note (optional)", false, 500)}
       <p className="fm-hint">A field record of what was given. Veterinary sign-off and municipal review remain separate.</p>
-      <div className="fm-form-a"><button type="submit" className="fm-btn is-go" disabled={busy}>{busy ? "Saving…" : keepLabel(route, "vaccination")}</button><button type="button" className="fm-btn" onClick={onCancel}>Cancel</button></div>
+      <div className="fm-form-a"><ResultButton type="submit" className="fm-btn is-go" state={state} done={keptLabel(route)} disabled={busy}>{keepLabel(route, "vaccination")}</ResultButton><button type="button" className="fm-btn" onClick={onCancel}>Cancel</button></div>
     </form>
   );
 }
@@ -435,7 +493,9 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
   const [gps, setGps] = useState<"finding" | "found" | "failed">("finding");
   const [byHand, setByHand] = useState(false);
   const [latText, setLatText] = useState(""), [lngText, setLngText] = useState("");
-  const [search, setSearch] = useState(""), [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [tried, setTried] = useState(false);
+  const [search, setSearch] = useState(""), [error, setError] = useState<string | null>(null), [tried, setTried] = useState(false);
+  const res = useResult(), calm = useCalm();
+  const busy = res.state !== "idle";
   const box = useRef<HTMLElement>(null), whyRef = useRef<HTMLDivElement>(null), whereRef = useRef<HTMLDivElement>(null), zoneRef = useRef<HTMLInputElement>(null), cityRef = useRef<HTMLInputElement>(null), fileRef = useRef<HTMLInputElement>(null);
   const moreRef = useRef<HTMLDetailsElement>(null);
   const set = (p: Partial<IntakeData>) => setD((x) => ({ ...x, ...p }));
@@ -485,13 +545,15 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
       (missing === "why" ? whyRef.current?.querySelector<HTMLElement>("button") : missing === "where" ? whereRef.current?.querySelector<HTMLElement>("input, button") : !d.zone.trim() ? zoneRef.current : cityRef.current)?.focus();
       return;
     }
-    saving.current = true; setBusy(true); setError(null);
+    saving.current = true; setError(null);
     try {
       try { localStorage.setItem(PLACE_KEY, JSON.stringify({ city: d.city.trim(), zone: d.zone.trim() })); } catch { /* not remembered */ }
-      await onSave({ ...d, city: d.city.trim(), zone: d.zone.trim(), description: d.description.trim() || why.says }, file, request.current);
-      toast({ text: route === "send" ? "Animal recorded. Sending now." : route === "hold" ? "Animal recorded on this phone. It is sent when the signal is back." : "Animal recorded and kept on this phone, encrypted.", tone: "ok" });
+      /* The record is the screen's IntakeData exactly as before; only what the button shows has changed. Save turns into
+         where the record now is, holds long enough to read, and the screen closes onto its row in "On this phone". */
+      await res.run(() => onSave({ ...d, city: d.city.trim(), zone: d.zone.trim(), description: d.description.trim() || why.says }, file, request.current));
+      await settle(calm, 700);
       onClose();
-    } catch (x) { setError(`${errText(x)} Nothing was lost; try again.`); } finally { saving.current = false; setBusy(false); }
+    } catch (x) { setError(`${errText(x)} Nothing was lost; try again.`); } finally { saving.current = false; }
   };
   /* Say it: the line is read here, on the phone (src/nx/data/capture.ts readField), and only fills what it states.
      Choices take what was said; typed fields are only filled when empty. Save, the drafts and sending are untouched:
@@ -590,7 +652,7 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
         <footer className="fm-sheet-f">
           {error ? <p className="fm-err" role="alert">{error}</p> : null}
           <p className={`fm-note ${tried && need ? "is-bad" : ""}`} aria-live="polite">{need ?? goes}</p>
-          <button type="button" className="fm-btn is-go is-wide" disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save"}</button>
+          <ResultButton type="button" className="fm-btn is-go is-wide" state={res.state} done={route === "send" ? "Recorded, sending" : route === "hold" ? "Saved on this phone" : "Kept on this phone"} onClick={() => void save()}>Save</ResultButton>
         </footer>
       </section>
     </div>

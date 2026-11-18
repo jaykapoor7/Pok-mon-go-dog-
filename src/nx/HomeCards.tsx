@@ -9,6 +9,7 @@ import { KAJU_SAVED, prefillKaju } from "./AtKaju";
 import { toast } from "./kit";
 import { Check } from "./ui";
 import { addTasks, setTaskDone, type Task, type useTasks } from "./live";
+import { HoldButton, Swap } from "./motion";
 import "./css/home.css";
 
 /* The parts every home is built from (DESIGN.md 4.0, "No long columns"): a row of figures, each with a small honest
@@ -151,12 +152,14 @@ const shortDay = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00`
 
 export function TaskRow({ id, title, meta, chip, done, onToggle, onDelete, href }: { id: string; title: string; meta: string; chip: { text: string; tone: HmTone }; done: boolean; onToggle: () => void; onDelete?: () => void; href?: string }) {
   const calm = useReducedMotion();
-  const words = <><b>{title}</b><small><span className={`hm-chip t-${done ? "ok" : chip.tone}`}>{done ? "Done" : chip.text}</span><span className="hm-task-meta">{meta}</span></small></>;
+  /* Ticking a task crossfades its chip from its due date to Done, so the change is seen where the eye already is. */
+  const words = <><b>{title}</b><small><Swap k={done ? "done" : chip.text}><span className={`hm-chip t-${done ? "ok" : chip.tone}`}>{done ? "Done" : chip.text}</span></Swap><span className="hm-task-meta">{meta}</span></small></>;
   return (
     <motion.li key={id} layout={calm ? false : "position"} initial={calm ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={calm ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0 }} transition={{ duration: .22, ease: EASE }} className={`hm-task ${done ? "is-done" : ""}`}>
       <Check done={done} onClick={onToggle} label={done ? `Reopen: ${title}` : `Mark done: ${title}`} />
       {href ? <Link href={href} className="hm-task-t">{words}</Link> : <span className="hm-task-t">{words}</span>}
-      {onDelete ? <button type="button" className="hm-task-x" aria-label={`Delete: ${title}`} title="Delete" onClick={onDelete}><Trash2 size={16} aria-hidden /></button> : null}
+      {/* A task the person keeps is theirs to drop: hold to delete (Enter twice on a keyboard), and Undo still follows. */}
+      {onDelete ? <HoldButton className="hm-task-x" label={`Delete: ${title}`} onHold={onDelete}><Trash2 size={16} aria-hidden /></HoldButton> : null}
     </motion.li>
   );
 }

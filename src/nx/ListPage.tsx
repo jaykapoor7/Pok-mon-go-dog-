@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Bookmark, Maximize2, Pin, Search, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bookmark, Maximize2, Search, X } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { useLive } from "./live";
 import { Failed, Field, Modal, toast } from "./kit";
 import { Shell, type Ws } from "./Shell";
 import { Sample } from "./ui";
 import { PhonePeek, PhoneSearchButton, PhoneSearchField, textOf, usePhone } from "./PhoneList";
+import { PinToggle, Resizer, Tool, Toolbar, useCalm, usePanelWidth, useSpring } from "./motion";
 
 /* One list page: a head, views that narrow one table, search, and a drawer that previews a row.
    Every rebuilt list uses this, so a person learns it once. */
@@ -44,8 +45,26 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
   useEffect(() => { loadSaved(); }, [loadSaved]);
   const saveView = async (name: string) => { const r = await getSupabase()!.from("nx_saved_views").insert({ org_id: live.org?.org_id ?? null, kind: "view", page: path, name: name.trim().slice(0, 80), state: { view, q } }); if (r.error) toast({ text: /does not exist|schema cache/i.test(r.error.message) ? "Saved views are not set up on this database yet." : r.error.message, tone: "bad" }); else { toast({ text: `Saved “${name.trim()}”.`, tone: "ok" }); loadSaved(); } };
   const removeView = async (id: string) => { await getSupabase()!.from("nx_saved_views").delete().eq("id", id); loadSaved(); };
-  const pin = async (label: string, href: string) => { const r = await getSupabase()!.from("nx_saved_views").insert({ org_id: live.org?.org_id ?? null, kind: "pin", page: href, name: label.slice(0, 80) }); if (r.error) toast({ text: /does not exist|schema cache/i.test(r.error.message) ? "Pins are not set up on this database yet." : r.error.message, tone: "bad" }); else { toast({ text: `Pinned ${label} to the sidebar.`, tone: "ok" }); window.dispatchEvent(new Event("nx:pins")); } };
-  const calm = useReducedMotion();
+  /* Pin to the sidebar is a toggle: the drawer knows whether this record is pinned, and pressing again unpins it. */
+  const [pinned, setPinned] = useState<{ href: string; id: string | null } | null>(null);
+  const [pinBusy, setPinBusy] = useState(false);
+  const pinErr = (m: string) => toast({ text: /does not exist|schema cache/i.test(m) ? "Pins are not set up on this database yet." : m, tone: "bad" });
+  const pin = async (label: string, href: string) => {
+    const db = getSupabase()!; setPinBusy(true);
+    if (pinned?.href === href && pinned.id) {
+      const id = pinned.id; setPinned({ href, id: null });
+      const r = await db.from("nx_saved_views").delete().eq("id", id);
+      if (r.error) { setPinned({ href, id }); pinErr(r.error.message); } else window.dispatchEvent(new Event("nx:pins"));
+    } else {
+      setPinned({ href, id: "pending" });
+      const r = await db.from("nx_saved_views").insert({ org_id: live.org?.org_id ?? null, kind: "pin", page: href, name: label.slice(0, 80) }).select("id").single();
+      if (r.error) { setPinned({ href, id: null }); pinErr(r.error.message); } else { setPinned({ href, id: (r.data as { id: string }).id }); window.dispatchEvent(new Event("nx:pins")); }
+    }
+    setPinBusy(false);
+  };
+  const calm = useCalm();
+  const glide = useSpring("glide"), panelSpring = useSpring("panel");
+  const panel = usePanelWidth(`list:${path}`);
   const phone = usePhone();
   const [finding, setFinding] = useState(false);
   const cols = columns.map((c) => c.width).join(" ");
@@ -66,6 +85,13 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
   const slice = virtual ? shown.slice(win[0], win[1]) : shown;
   const p = open ? preview(open) : null;
   const failed = !!error && !loading && rows.length === 0;
+  const pinHref = open && p?.href && live.org && !sample ? p.href : null;
+  useEffect(() => {
+    if (!pinHref) return;
+    let on = true;
+    void getSupabase()?.from("nx_saved_views").select("id").eq("kind", "pin").eq("page", pinHref).limit(1).then(({ data, error }) => { if (on && !error) setPinned({ href: pinHref, id: (data?.[0] as { id: string } | undefined)?.id ?? null }); });
+    return () => { on = false; };
+  }, [pinHref]);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenId(null); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
 
   return (
@@ -77,7 +103,7 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
         </div>
         <div className="nx-bar lp-bar">
           {views.length > 1 ? <div className="nx-views" role="tablist" aria-label="Views">
-            {views.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId={`nx-lp-${title}`} className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}<span className="nx-count">{failed ? "—" : rows.filter(v.test).length}</span></span></button>)}
+            {views.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId={`nx-lp-${title}`} className="nx-view-bg" transition={glide} /> : null}<span>{v.label}<span className="nx-count">{failed ? "—" : rows.filter(v.test).length}</span></span></button>)}
           </div> : null}
           {saved.length ? <div className="nx-saved" aria-label="Saved views">{saved.map((v) => <span key={v.id} className={`nx-view is-saved ${v.state.view === view && (v.state.q ?? "") === q ? "is-on" : ""}`}><button type="button" onClick={() => { if (v.state.view && views.some((x) => x.id === v.state.view)) setView(v.state.view); setQ(v.state.q ?? ""); }}>{v.name}</button><button type="button" aria-label={`Remove saved view ${v.name}`} onClick={() => void removeView(v.id)}><X size={11} /></button></span>)}</div> : null}
           {search ? <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" aria-label={`Search ${title.toLowerCase()}`} /></label> : null}
@@ -102,8 +128,15 @@ export function ListPage<R>({ ws = "ngo", crumb, eyebrow, title, sub, action, sa
       {phone && open && p ? <PhonePeek label={textOf(p.title, rowLabel(open))} sub={p.sub} body={p.body} href={p.href} hrefLabel={p.hrefLabel} onClose={() => setOpenId(null)} after={p.hrefNote ? <p className="nx-foot">{p.hrefNote}</p> : null} /> : null}
       <AnimatePresence>
         {open && p && !phone ? (
-          <motion.aside key="d" className="nx-drawer" role="dialog" aria-label={rowLabel(open)} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
-            <div className="nx-drawer-h"><span>{rowLabel(open)}</span><span style={{ marginLeft: "auto" }} />{p.href && live.org && !sample ? <button type="button" className="nx-ib" aria-label={`Pin ${rowLabel(open)} to the sidebar`} title="Pin to the sidebar" onClick={() => void pin(rowLabel(open), p.href!)}><Pin size={15} /></button> : null}{p.href ? <Link href={p.href} className="nx-ib" aria-label={p.hrefLabel ?? "Open the full record"}><Maximize2 size={15} /></Link> : null}<button type="button" className="nx-ib" onClick={() => setOpenId(null)} aria-label="Close"><X size={16} /></button></div>
+          <motion.aside key="d" className="nx-drawer" role="dialog" aria-label={rowLabel(open)} style={{ width: `min(${panel.width}px, 100%)` }} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={panelSpring}>
+            <Resizer panel={panel} />
+            <div className="nx-drawer-h"><span>{rowLabel(open)}</span><span style={{ marginLeft: "auto" }} />
+              <Toolbar label="Actions on this preview">
+                {pinHref ? <PinToggle on={pinned?.href === pinHref && !!pinned.id} busy={pinBusy || pinned?.href !== pinHref} label={rowLabel(open)} onToggle={() => void pin(rowLabel(open), pinHref)} /> : null}
+                {p.href ? <Tool href={p.href} label={p.hrefLabel ?? "Open the full record"} icon={<Maximize2 size={15} />} /> : null}
+                <Tool label="Close" icon={<X size={16} />} onClick={() => setOpenId(null)} />
+              </Toolbar>
+            </div>
             <div className="nx-drawer-b">
               <div className="nx-rec-t" style={{ marginBottom: 16 }}><div><h1>{p.title}</h1>{p.sub ? <p>{p.sub}</p> : null}</div></div>
               {p.body}

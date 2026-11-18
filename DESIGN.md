@@ -453,6 +453,10 @@ shows its `FolkPortrait`, labelled as an illustration.
 - The full system (tokens, the techniques taken from awesome-ai-motion and
   where, what was refused, and the Instagram reel pipeline) is in
   [docs/MOTION.md](docs/MOTION.md).
+- The working app (`src/nx`) takes its springs, durations and interaction
+  primitives (result buttons, hold to remove, pin toggle, resizable
+  inspector, uploads, tooltips) from one module, `src/nx/motion/`; see
+  [docs/rebuild/MOTION.md](docs/rebuild/MOTION.md).
 
 ## Accessibility and trust
 

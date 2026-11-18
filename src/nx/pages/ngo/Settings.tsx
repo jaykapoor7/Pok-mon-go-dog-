@@ -9,6 +9,7 @@ import { useRead } from "@/oh/data";
 import { leadOrCoord, read, readDeadline, readPolicies, readProfile, requestFor, saveDeadline, savePolicy, saveProfile, uploadImage, type OrgProfile } from "../../data/ngo-setup";
 import { Confirm, Failed, Field, FilePick, Modal, Skeleton, errText, useAct } from "../../kit";
 import { Chip } from "../../ui";
+import { ResultButton, useResult } from "../../motion";
 import type { Tone } from "../../fixtures";
 import { Shell, type Ws } from "../../Shell";
 import { useLive } from "../../live";
@@ -52,13 +53,15 @@ function Profile({ who }: { who: Who }) {
   const [logo, setLogo] = useState<string | null>(null), [cover, setCover] = useState<string | null>(null);
   const [uploading, setUploading] = useState<"logo" | "cover" | null>(null);
   const { busy, run } = useAct();
+  /* Save the profile turns into "Saved ✓" where the person pressed it; a refusal still says why in a toast. */
+  const saved = useResult();
   useEffect(() => { if (r.data && !f) setF(toForm(r.data)); }, [r.data, f]);
   if (!who.sample && r.loading && !r.data) return <Skeleton rows={6} label="Reading your organisation" />;
   if (!who.sample && r.error && !r.data) return <Failed error={errText(r.error)} retry={r.reload} />;
   if (!org || !f) return <Skeleton rows={6} />;
   const set = (k: keyof F) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF((x) => (x ? { ...x, [k]: e.target.value } : x));
   const pick = (kind: "logo" | "cover", file: File) => { setUploading(kind); void run(`up:${kind}`, () => uploadImage(file), { quiet: true }).then((x) => { setUploading(null); if (x.ok && x.result) (kind === "logo" ? setLogo : setCover)(x.result); }); };
-  const save = () => void run("profile", () => saveProfile({ mission: f.mission.trim(), about: f.about.trim(), website: f.website.trim(), contact_email: f.contact_email.trim(), contact_phone: f.contact_phone.trim(), city: f.city.trim(), state: f.state.trim(), registration_no: f.registration_no.trim(), founded_year: f.founded_year ? Number(f.founded_year) : null, areas_of_work: f.areas.split(",").map((s) => s.trim()).filter(Boolean), logo_url: logo ?? undefined, cover_photo: cover ?? undefined }), { ok: "Profile saved. Your public page shows it now." }).then((x) => { if (x.ok) r.reload(); });
+  const save = () => void run("profile", () => saved.run(() => saveProfile({ mission: f.mission.trim(), about: f.about.trim(), website: f.website.trim(), contact_email: f.contact_email.trim(), contact_phone: f.contact_phone.trim(), city: f.city.trim(), state: f.state.trim(), registration_no: f.registration_no.trim(), founded_year: f.founded_year ? Number(f.founded_year) : null, areas_of_work: f.areas.split(",").map((s) => s.trim()).filter(Boolean), logo_url: logo ?? undefined, cover_photo: cover ?? undefined })), { quiet: true }).then((x) => { if (x.ok) r.reload(); });
   const logoNow = logo ?? org.logo_url, coverNow = cover ?? org.cover_photo;
   return (
     <form onSubmit={(e) => { e.preventDefault(); if (!who.sample) save(); }} style={{ maxWidth: 760 }}>
@@ -92,7 +95,7 @@ function Profile({ who }: { who: Who }) {
         <Field label="Registration number"><input value={f.registration_no} onChange={set("registration_no")} /></Field>
         <Field label="Founded"><input inputMode="numeric" value={f.founded_year} onChange={set("founded_year")} pattern="\d{4}" /></Field>
       </div>
-      <div className="ns-acts">{who.sample ? <TryLink>Save the profile</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy}>{busy === "profile" ? "Saving…" : "Save the profile"}</button>}</div>
+      <div className="ns-acts">{who.sample ? <TryLink>Save the profile</TryLink> : <ResultButton type="submit" className="nx-btn" state={saved.state} done="Saved · your public page shows it" disabled={!!busy && busy !== "profile"}>Save the profile</ResultButton>}</div>
       <p className="nx-foot">Only members of a verified organisation can save it; the database refuses anyone else.</p>
     </form>
   );

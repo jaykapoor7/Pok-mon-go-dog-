@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, ArrowUp, ArrowUpRight, Check as Tick, Info, Loader2, X } from "lucide-react";
+import { ArrowRight, ArrowUp, ArrowUpRight, Info, Loader2, X } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
 import { appHref, useKaju, type Turn } from "./kaju/state";
 import { useLive } from "./live";
+import { CheckDraw, Swap } from "./motion";
 import "./css/atkaju.css";
 
 /* @Kaju on every home: one line near the top where a person adds a task, records something or asks a question, in
@@ -93,15 +94,15 @@ function PrepCard({ p, signedIn, path, saved, onSave, onDismiss }: { p: Prep; si
   const { line, facts } = describe(p);
   return (
     <li className="ak-prep">
-      <div className="ak-prep-h"><b>{kindWord(p.kind)}</b><span>{saved?.ok ? "Saved" : "Prepared, not saved"}</span></div>
+      <div className="ak-prep-h"><b>{kindWord(p.kind)}</b><Swap k={saved?.ok ? "s" : "p"}><span>{saved?.ok ? "Saved" : "Prepared, not saved"}</span></Swap></div>
       <p className={`ak-prep-l ${p.kind === "add_task" ? "is-title" : ""}`}>{line}</p>
       {facts.length ? <ul className="ak-facts">{facts.map((f) => <li key={f}>{f}</li>)}</ul> : null}
       {str(p.why) ? <p className="ak-prep-w">{str(p.why)}</p> : null}
       <div className="ak-prep-f">
-        {saved?.ok ? <span className="ak-ok" role="status"><Tick size={14} strokeWidth={3} aria-hidden />{saved.what}{saved.href ? <> · <Link href={saved.href}>Open</Link></> : null}</span>
+        {saved?.ok ? <Swap k="saved"><span className="ak-ok" role="status"><CheckDraw size={14} stroke={3} />{saved.what}{saved.href ? <> · <Link href={saved.href}>Open</Link></> : null}</span></Swap>
           : !here ? <><Link className="ak-btn is-quiet" href="/kaju">Review in Kaju<ArrowRight size={14} aria-hidden /></Link><button type="button" className="ak-btn is-quiet" onClick={onDismiss}>Dismiss</button></>
           : !signedIn ? <Link className="ak-btn is-quiet" href={`/sign-in?next=${encodeURIComponent(path)}`}>Sign in to confirm</Link>
-          : <><button type="button" className="ak-btn is-go" disabled={busy} onClick={async () => { setBusy(true); await onSave(); setBusy(false); }}>{busy ? <Loader2 size={14} className="nx-spin" aria-hidden /> : null}Confirm</button>
+          : <><button type="button" className="ak-btn is-go" disabled={busy} aria-busy={busy || undefined} onClick={async () => { setBusy(true); await onSave(); setBusy(false); }}>{busy ? <><Loader2 size={14} className="nx-spin" aria-hidden />Saving…</> : "Confirm"}</button>
             <button type="button" className="ak-btn is-quiet" disabled={busy} onClick={onDismiss}>Dismiss</button>
             <span className="ak-prep-n">Saved under your name, with Kaju&apos;s help noted.</span></>}
       </div>
