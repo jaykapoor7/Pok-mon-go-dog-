@@ -44,6 +44,16 @@ export function KajuDock({ crumb }: { crumb: string }) {
   const panel = useRef<HTMLDivElement>(null);
   const before = useRef<HTMLElement | null>(null);
   useEffect(() => { const q = window.matchMedia("(max-width: 640px)"); const on = () => setPhone(q.matches); on(); q.addEventListener("change", on); return () => q.removeEventListener("change", on); }, []);
+  /* On a phone the sheet keeps to the part of the screen the on-screen keyboard leaves, so the composer at its foot stays
+     in reach while typing. */
+  useEffect(() => {
+    const vv = typeof window === "undefined" ? null : window.visualViewport;
+    if (!k.open || !phone || !vv) return;
+    const fit = () => { const el = panel.current; if (!el) return; el.style.setProperty("--kj-kb", `${Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))}px`); el.style.setProperty("--kj-vt", `${Math.max(0, Math.round(vv.offsetTop))}px`); };
+    fit(); const t = window.setTimeout(fit, 60);
+    vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit);
+    return () => { window.clearTimeout(t); vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); };
+  }, [k.open, phone]);
   useEffect(() => {
     if (k.open) { before.current = document.activeElement as HTMLElement | null; window.setTimeout(() => panel.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus(), 30); }
     else {
@@ -69,12 +79,12 @@ export function KajuDock({ crumb }: { crumb: string }) {
             <span className="kj-dock-face"><KajuFace size={22} /></span><b>Kaju</b>
             {crumb ? <span className="nx-dockk-ctx" title="Kaju knows which page you opened it on">On {crumb}</span> : null}
             <span style={{ marginLeft: "auto" }} />
-            {k.keeping === "on" ? <button type="button" className={`nx-ib${past ? " is-on" : ""}`} aria-pressed={past} aria-label="Your conversations" title="Your conversations" onClick={() => { setVoice(false); setPast((v) => !v); }}><Clock size={15} /></button> : null}
-            {VOICE_OFFERED ? <button type="button" className={`nx-ib${voice ? " is-on" : ""}`} aria-pressed={voice} aria-label={voice ? "Back to typing" : "Talk to Kaju"} title={voice ? "Back to typing" : "Talk to Kaju"} onClick={() => setVoice((v) => !v)}>
+            {k.keeping === "on" ? <button type="button" className={`nx-ib kj-dock-b${past ? " is-on" : ""}`} aria-pressed={past} aria-label="Your conversations" title="Your conversations" onClick={() => { setVoice(false); setPast((v) => !v); }}><Clock size={15} /></button> : null}
+            {VOICE_OFFERED ? <button type="button" className={`nx-ib kj-vtoggle${voice ? " is-on" : ""}`} aria-pressed={voice} aria-label={voice ? "Back to typing" : "Talk to Kaju"} title={voice ? "Back to typing" : "Talk to Kaju"} onClick={() => setVoice((v) => !v)}>
               {voice ? <Keyboard size={15} /> : <Mic size={15} />}
             </button> : null}
-            <button type="button" className="nx-ib" aria-label="Open full Kaju" title="Open full Kaju" onClick={() => { close(); router.push("/kaju"); }}><Maximize2 size={15} /></button>
-            <button type="button" className="nx-ib" aria-label="Close Kaju" onClick={close}><X size={16} /></button>
+            <button type="button" className="nx-ib kj-dock-b" aria-label="Open full Kaju" title="Open full Kaju" onClick={() => { close(); router.push("/kaju"); }}><Maximize2 size={15} /></button>
+            <button type="button" className="nx-ib kj-dock-b" aria-label="Close Kaju" onClick={close}><X size={phone ? 22 : 16} /></button>
           </div>
           {voice ? <div className="nx-dockk-b is-voice"><KajuVoice compact /></div>
             : past ? <div className="nx-dockk-b">
@@ -82,7 +92,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
                 <KajuHistory title={null} onOpened={() => setPast(false)} />
                 {k.history && !k.history.length ? <p className="kj-quiet">No saved conversations yet. What you ask here is kept for you.</p> : null}
               </div>
-            : <DockBody planned={planned} setPlanned={setPlanned} startedId={startedId} setStartedId={setStartedId} />}
+            : <DockBody planned={planned} setPlanned={setPlanned} startedId={startedId} setStartedId={setStartedId} onVoice={VOICE_OFFERED ? () => setVoice(true) : undefined} phone={phone} />}
         </motion.div>
       ) : null}
     </AnimatePresence>
@@ -90,7 +100,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
 }
 
 /** The panel's contents, read only while it is open: names for the composer, the person's limits, what Kaju can use. */
-function DockBody({ planned, setPlanned, startedId, setStartedId }: { planned: Planned | null; setPlanned: (p: Planned | null) => void; startedId: string | null; setStartedId: (id: string | null) => void }) {
+function DockBody({ planned, setPlanned, startedId, setStartedId, onVoice, phone }: { planned: Planned | null; setPlanned: (p: Planned | null) => void; startedId: string | null; setStartedId: (id: string | null) => void; onVoice?: () => void; phone: boolean }) {
   const k = useKaju();
   const live = useLive();
   const org = live.org;
@@ -112,9 +122,13 @@ function DockBody({ planned, setPlanned, startedId, setStartedId }: { planned: P
   };
   const empty = !k.turns.length && !planned && !startedId;
   const here = org ? startersFor(k.page.path) : [];
+  /* On a phone the newest words stay in view above the composer as the conversation grows, as in any messenger. */
+  const body = useRef<HTMLDivElement>(null);
+  const last = k.turns[k.turns.length - 1];
+  useEffect(() => { const b = body.current; if (b && window.matchMedia("(max-width: 640px)").matches && (k.turns.length || planned || startedId)) b.scrollTo({ top: b.scrollHeight, behavior: "auto" }); }, [k.turns.length, last?.pending, planned, startedId]);
   return (
     <>
-      <div className="nx-dockk-b">
+      <div className="nx-dockk-b" ref={body}>
         {empty ? <p className="kj-dock-intro">{org ? `Ask about ${org.name}'s records, or say what you want done. Kaju shows the plan, and who does each step, before anything starts.` : <>Sign in to ask about your organisation. <Link href="/try">Try the live demo</Link>.</>}</p> : null}
         {here.length && !k.turns.length ? <div className="kj-here" role="group" aria-label={`For ${k.page.label ?? "this record"}`}>
           <span className="kj-here-l">For {k.page.label ?? "this record"}</span>
@@ -134,8 +148,8 @@ function DockBody({ planned, setPlanned, startedId, setStartedId }: { planned: P
           </motion.div>
         ) : null}
       </div>
-      <Composer compact placeholder="Ask, or say what you want done" predictive={prefs.predictive} vocab={vocab} busy={busy || k.busy} disabled={k.expired} canPlan={!!org} modelPlanning={!!caps?.planning}
-        onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} />
+      <Composer compact placeholder={phone ? "Ask or say what to do" : "Ask, or say what you want done"} predictive={prefs.predictive} vocab={vocab} busy={busy || k.busy} disabled={k.expired} canPlan={!!org} modelPlanning={!!caps?.planning}
+        onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} onVoice={onVoice} />
     </>
   );
 }

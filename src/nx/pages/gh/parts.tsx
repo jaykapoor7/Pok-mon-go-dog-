@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState, type ReactNode } from "react";
-import { ExternalLink, Loader2, PenLine } from "lucide-react";
+import { useEffect, useId, useState, type ReactNode } from "react";
+import { ExternalLink, Loader2, MoreHorizontal, PenLine } from "lucide-react";
 import { evidenceLink, isStoredEvidence } from "@/lib/abc";
 import { Modal, Skeleton } from "../../kit";
 import { Shell, type Ws } from "../../Shell";
+import { Sheet } from "../../Phone";
 import "../../css/govhealth.css";
+import "../../css/ghphone.css";
 
 /* Parts shared by the Government and Healthcare record pages. */
 
@@ -27,8 +29,52 @@ export function SignedConfirm({ title, children, who, where, confirm = "Record d
 }
 
 /** In sample mode an action is a link to the live demo, never a button that does nothing. */
-export function TryLink({ children, quiet, sm, keep }: { children: ReactNode; quiet?: boolean; sm?: boolean; keep?: boolean }) {
-  return <Link href="/try" className={`nx-btn ${quiet ? "is-quiet" : ""} ${sm ? "is-sm" : ""} ${keep ? "is-keep" : ""}`} title="Opens the live demo, where this works">{children}</Link>;
+export function TryLink({ children, quiet, sm, keep, className }: { children: ReactNode; quiet?: boolean; sm?: boolean; keep?: boolean; className?: string }) {
+  return <Link href="/try" className={`nx-btn ${quiet ? "is-quiet" : ""} ${sm ? "is-sm" : ""} ${keep ? "is-keep" : ""}${className ? ` ${className}` : ""}`} title="Opens the live demo, where this works">{children}</Link>;
+}
+
+/* ── Phone (docs/rebuild/MOBILE.md). Nothing below changes a desktop: the bar and the "About this" button are
+   phone-only in govhealth.css, and the hook answers false until the page is in the browser. ── */
+
+/** Marks a page as one of these workspaces, so their phone rules (ghphone.css) never reach another workspace's
+    shared lists and fields once the stylesheet is loaded. Renders nothing visible. */
+export const GhMark = () => <i className="gh-ws" hidden />;
+
+/** True on a phone-width screen. False on the server and on the first paint, so hydration never differs. */
+export function usePhone() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia("(max-width: 640px)"); const f = () => setOn(m.matches);
+    f(); m.addEventListener("change", f); return () => m.removeEventListener("change", f);
+  }, []);
+  return on;
+}
+
+/** An explanation that stays true but out of the way: inline on a desktop, behind "About this" on a phone. */
+export function About({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return <span className={`gh-about ${open ? "is-open" : ""}`}><button type="button" className="gh-about-b" aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)}>{open ? "Hide" : "About this"}</button><span id={id} className="gh-about-t">{children}</span></span>;
+}
+
+/** A record's actions on a phone: the main one (or two) at the thumb, everything else in a "More" sheet. On a desktop
+    it shows nothing; the same actions stay where they are on the page (marked gh-desk, which a phone hides). */
+export function ActBar({ children, more, label = "More actions" }: { children?: ReactNode; more?: ReactNode; label?: string }) {
+  const [open, setOpen] = useState(false);
+  if (!children && !more) return null;
+  return (
+    <>
+      <div className="gh-actbar" role="group" aria-label="Actions">
+        {children}
+        {more ? <button type="button" className="nx-btn is-quiet gh-actbar-m" aria-haspopup="dialog" aria-label={children ? "More actions" : undefined} onClick={() => setOpen(true)}><MoreHorizontal size={18} aria-hidden />{children ? null : "More"}</button> : null}
+      </div>
+      {/* The sheet sits outside the sticky bar, so the bar's layer never caps it under the phone bar. */}
+      {more ? <Sheet open={open} onClose={() => setOpen(false)} label={label}>
+        {/* Choosing an action closes the sheet; the action's own confirmation then rises in its place. */}
+        <div className="gh-sheet-acts" onClick={(e) => { if ((e.target as HTMLElement).closest("a,button")) setOpen(false); }}>{more}</div>
+      </Sheet> : null}
+    </>
+  );
 }
 
 export function Opening({ ws, crumb }: { ws: Ws; crumb: [string, string?] }) {

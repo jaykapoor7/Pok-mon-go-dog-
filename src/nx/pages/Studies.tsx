@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Camera, Download, Info, Lock, Plus } from "lucide-react";
 import { call, type Count, type Place, type ProgrammeRef } from "@/oh/data";
@@ -103,7 +104,7 @@ export function Studies() {
   ];
   return <>
     <ListPage ws="research" crumb={["Research", "Studies"]} title="Studies" sample={r.sample} eyebrow={r.sample ? "Programme Epidemiology Unit" : r.org!.name}
-      sub={r.studies === null ? "Reading studies…" : <><b className="num">{list.filter((s) => s.status !== "closed").length}</b> open {list.filter((s) => s.status !== "closed").length === 1 ? "study" : "studies"}. Each uses one programme&apos;s aggregated data, with small counts suppressed by the database.</>}
+      sub={r.studies === null ? "Reading studies…" : <><b className="num">{list.filter((s) => s.status !== "closed").length}</b> open {list.filter((s) => s.status !== "closed").length === 1 ? "study" : "studies"}. <About>Each uses one programme&apos;s aggregated data, with small counts suppressed by the database.</About><GhMark /></>}
       action={<button type="button" className="nx-btn is-keep" onClick={() => setCreating(true)}><Plus size={14} />New study</button>}
       views={[{ id: "open", label: "Open", test: (s: Study) => s.status !== "closed" }, { id: "closed", label: "Closed", test: (s: Study) => s.status === "closed" }, { id: "all", label: "All", test: () => true }]}
       columns={cols} rows={list} rowKey={(s) => s.id} rowLabel={(s) => s.title} search={(s) => `${s.title} ${s.question ?? ""}`}
@@ -165,7 +166,7 @@ export function ResearchReports() {
     { label: "Taken", width: "130px", hideOnPhone: true, render: (o) => <span className="nx-t3">{day(o.created_at)}</span> },
   ];
   return <ListPage ws="research" crumb={["Research", "Reports"]} title="Reports" sample={r.sample} eyebrow={r.sample ? "Programme Epidemiology Unit" : r.org!.name}
-    sub={r.outputs === null ? "Reading reports…" : <><b className="num">{list.length}</b> report {list.length === 1 ? "version" : "versions"}. Each is a fixed snapshot with the exact query that made it; it does not change when the data does.</>}
+    sub={r.outputs === null ? "Reading reports…" : <><b className="num">{list.length}</b> report {list.length === 1 ? "version" : "versions"}. <About>Each is a fixed snapshot with the exact query that made it; it does not change when the data does.</About><GhMark /></>}
     views={[{ id: "all", label: "All", test: () => true }]} columns={cols} rows={list} rowKey={(o) => o.id} rowLabel={(o) => `${o.title} v${o.version}`} search={(o) => `${o.title} ${o.summary ?? ""}`}
     preview={(o) => { const sum = summarise(o.snapshot.rows); const max = Math.max(1, ...sum.map(([, x]) => x.known)); return { title: o.title, sub: <>Version {o.version} · taken {day(o.created_at)}</>, body: <>
       {o.summary ? <p style={{ marginBottom: 12 }}>{o.summary}</p> : null}

@@ -14,6 +14,7 @@ import { Chip, Sample } from "../../ui";
 import { Confirm, Denied, Failed, Field, Modal, RecordHead, Skeleton, TabBar, day, dayTime, errText, toast, useAct } from "../../kit";
 import { addArea, addEntry, fieldsOf, getSurveyAreas, getSurveyById, getSurveyResponses, getSurveyTotals, isProject, purposeOf, searchAnimals } from "../../data/ngo-programmes";
 import { Grid, TryLink, plural, useWho, type GCol } from "./frame";
+import "../../css/ngo-records.css";
 import { S_AREAS, S_ENTRIES, S_RESPONSES, S_SURVEYS } from "./sample";
 import { animalLine } from "../../animalLabel";
 
@@ -54,7 +55,7 @@ export function SurveyRecord({ id, collect }: { id: string; collect?: boolean })
   return (
     <Shell crumb={crumb}>
       <RecordHead title={<>{s.title}{who.sample ? <Sample /> : null}</>} sub={<><Chip tone={s.status === "active" ? "ok" : "plain"}>{s.status.replace(/^./, (c) => c.toUpperCase())}</Chip><span>{project ? "Project register" : "Dog census"} · since {day(s.created_at)}</span></>}
-        actions={<Link className="nx-btn is-quiet" href="/ngo/programmes?tab=surveys">All surveys</Link>} />
+        actions={<Link className="nx-btn is-quiet nr-back-dup" href="/ngo/programmes?tab=surveys">All surveys</Link>} />
       {tabs.length > 1 ? <TabBar id="sv" tabs={tabs} value={current} onChange={setTab} label="Survey sections" /> : <div style={{ borderBottom: "1px solid var(--line)", marginTop: 16 }} />}
       <div className="nx-page" style={{ maxWidth: 1100, paddingTop: 20 }}>
         {(project ? purposeOf(s.description) : s.description) ? <p className="nx-sub" style={{ marginBottom: 12 }}>{project ? purposeOf(s.description) : s.description}</p> : null}

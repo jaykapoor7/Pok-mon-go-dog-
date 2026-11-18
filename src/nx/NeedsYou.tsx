@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Bell, CalendarClock, ShieldCheck, Sparkles } from "lucide-react";
 import { packages } from "@/lib/abc";
 import { getSupabase } from "@/lib/supabase";
 import { useLive } from "./live";
 import { appPath, useNotices } from "./collab";
+import { Sheet } from "./Phone";
+import "./css/command.css";
 
 /* The bell. Not a feed of everything that happened: a short list of what is waiting on this person, read live
    from records they can already open. Nothing is stored or sent; nothing is marked read here. */
@@ -58,6 +60,10 @@ export function NeedsYou() {
   const [open, setOpen] = useState(false);
   const calm = useReducedMotion();
   const wrap = useRef<HTMLDivElement>(null);
+  /* On a phone the list rises as a sheet of large rows; wide screens keep the panel under the bell. */
+  const [phone, setPhone] = useState(false);
+  useEffect(() => { const m = window.matchMedia("(max-width: 640px)"); const on = () => setPhone(m.matches); on(); m.addEventListener("change", on); return () => m.removeEventListener("change", on); }, []);
+  const shut = useCallback(() => setOpen(false), []);
   useEffect(() => {
     if (!open) return;
     const away = (e: MouseEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
@@ -67,27 +73,30 @@ export function NeedsYou() {
   }, [open]);
   const n = (items?.length ?? 0) + unread.length;
   const icon = (k: Item["kind"]) => (k === "kaju" ? <Sparkles size={13} /> : k === "review" ? <ShieldCheck size={13} /> : <CalendarClock size={13} />);
-  return (
-    <div className="nx-needs" ref={wrap}>
-      <button type="button" className={`nx-ib ${n ? "has-n" : ""}`} aria-label={n ? `${n} ${n === 1 ? "thing needs" : "things need"} you` : "Nothing needs you"} aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((o) => !o)} data-n={n || undefined}><Bell size={16} /></button>
-      <AnimatePresence>
-        {open ? (
-          <motion.div role="dialog" aria-label="Needs you" className="nx-needs-p" initial={calm ? false : { opacity: 0, y: -6, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: -4 }} transition={{ type: "spring", stiffness: 520, damping: 40, mass: .7 }}>
-            <p className="nx-needs-h">Needs you <span className="nx-count">{items === null ? "" : n}</span></p>
+  const body = (sheet: boolean) => (
+    <>
+            {sheet ? null : <p className="nx-needs-h">Needs you <span className="nx-count">{items === null ? "" : n}</span></p>}
             {items === null ? <p className="nx-needs-e">Reading…</p> : !n ? <p className="nx-needs-e">Nothing is waiting on you.</p> : (
               <ul>{items.map((i) => <li key={i.id}><Link href={i.href} onClick={() => setOpen(false)}><span className={`nx-needs-i t-${i.tone}`}>{icon(i.kind)}</span><span><b>{i.title}</b><small>{i.detail}</small></span></Link></li>)}</ul>
             )}
             {live.org ? <>
               <p className="nx-needs-h">Notifications {unread.length ? <><span className="nx-count">{unread.length}</span><button type="button" className="nx-thread" style={{ marginLeft: "auto" }} onClick={() => void notes.markRead(null)}>Mark all read</button></> : null}</p>
               {notes.rows === null ? <p className="nx-needs-e">Reading…</p> : !notes.rows.length ? <p className="nx-needs-e">No notifications yet. Mentions, approvals and shared work appear here.</p> : (
-                <ul>{notes.rows.slice(0, 12).map((x) => { const href = appPath(x.href); const body = <><span className={`nx-needs-i t-${x.kind === "approval" ? "warn" : x.kind === "mention" ? "accent" : "accent"}`}>{x.kind === "approval" ? <ShieldCheck size={13} /> : <Bell size={13} />}</span><span><b style={{ fontWeight: x.read_at ? 500 : 650 }}>{x.title}</b><small>{x.body ? `${x.body} · ` : ""}{new Date(x.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</small></span></>;
-                  return <li key={x.id}>{href ? <Link href={href} onClick={() => { setOpen(false); void notes.markRead([x.id]); }}>{body}</Link> : <button type="button" className="nx-needs-btn" onClick={() => void notes.markRead([x.id])}>{body}</button>}</li>; })}</ul>
+                <ul>{notes.rows.slice(0, 12).map((x) => { const href = appPath(x.href); const row = <><span className={`nx-needs-i t-${x.kind === "approval" ? "warn" : x.kind === "mention" ? "accent" : "accent"}`}>{x.kind === "approval" ? <ShieldCheck size={13} /> : <Bell size={13} />}</span><span><b style={{ fontWeight: x.read_at ? 500 : 650 }}>{x.title}</b><small>{x.body ? `${x.body} · ` : ""}{new Date(x.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</small></span></>;
+                  return <li key={x.id}>{href ? <Link href={href} onClick={() => { setOpen(false); void notes.markRead([x.id]); }}>{row}</Link> : <button type="button" className="nx-needs-btn" onClick={() => void notes.markRead([x.id])}>{row}</button>}</li>; })}</ul>
               )}
               <p className="nx-needs-f"><Link href="/settings/notifications" onClick={() => setOpen(false)}>Notification settings</Link> · Email and push only if you turn them on.</p>
             </> : <p className="nx-needs-f">Read live from records you can open. Kaju missions, tasks due, and decisions waiting.</p>}
-          </motion.div>
+    </>
+  );
+  return (
+    <div className="nx-needs" ref={wrap}>
+      <button type="button" className={`nx-ib ${n ? "has-n" : ""}`} aria-label={n ? `${n} ${n === 1 ? "thing needs" : "things need"} you` : "Nothing needs you"} aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((o) => !o)} data-n={n || undefined}><Bell size={16} /></button>
+      {phone ? <Sheet open={open} onClose={shut} label="Needs you"><div className="nx-needs-s">{body(true)}</div></Sheet> : <AnimatePresence>
+        {open ? (
+          <motion.div role="dialog" aria-label="Needs you" className="nx-needs-p" initial={calm ? false : { opacity: 0, y: -6, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: -4 }} transition={{ type: "spring", stiffness: 520, damping: 40, mass: .7 }}>{body(false)}</motion.div>
         ) : null}
-      </AnimatePresence>
+      </AnimatePresence>}
     </div>
   );
 }

@@ -14,7 +14,7 @@ import { REFERRALS, type Tone } from "../../fixtures";
 import { can, placeOf, usePlaces } from "../../data/govhealth";
 import { OutcomeModal } from "../gov/Programme";
 import { NotHealth, isLab, useClinic, word } from "../Health";
-import { Opening, TryLink } from "../gh/parts";
+import { About, GhMark, Opening, TryLink } from "../gh/parts";
 
 /* People referred between facilities, the requests partners sent this facility, and where it sends people for a
    service it does not offer. A referral carries the case code, category and need; names and phone numbers stay with
@@ -60,8 +60,8 @@ export function Referrals() {
   const data: Row[] = sample ? [...REFERRALS.map((r) => ({ ...r, kind: r.dir as Kind })), ...SAMPLE_EXTRA] : rows;
   const waiting = data.filter((r) => r.kind === "in" && r.status === "Referred").length;
   const reload = () => { tr.reload(); ho.reload(); net.reload(); };
-  return <ListPage ws="health" crumb={["Healthcare", "Referrals"]} title="Referrals" sample={sample} eyebrow={sample ? "District hospital" : org!.name}
-    sub={sample || tr.data ? <><b className="num">{waiting}</b> {waiting === 1 ? "person is" : "people are"} on the way here. A referral carries the case code, category and service needed; names and phone numbers stay with the sending facility.</> : "Reading referrals…"}
+  return <ListPage ws="health" crumb={["Healthcare", "Referrals"]} title="Referrals" sample={sample} eyebrow={<>{sample ? "District hospital" : org!.name}<GhMark /></>}
+    sub={sample || tr.data ? <><b className="num">{waiting}</b> {waiting === 1 ? "person is" : "people are"} on the way here. <About>A referral carries the case code, category and service needed; names and phone numbers stay with the sending facility.</About></> : "Reading referrals…"}
     views={[
       { id: "in", label: "On the way here", test: (r: Row) => r.kind === "in" && r.status === "Referred" },
       { id: "out", label: "Sent by us", test: (r: Row) => r.kind === "out" },

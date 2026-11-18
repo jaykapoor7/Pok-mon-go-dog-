@@ -39,7 +39,7 @@ function views(me: string | null): RView<CaseRow>[] {
 /* The cohorts that only exist on some registers are shown when they hold something. */
 const OPTIONAL = new Set(["decide", "imported", "reason"]);
 const cols: RCol<CaseRow>[] = [
-  { label: "Case", width: "minmax(0, 1.8fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.title}</b><small><span className="num">{r.code}</span>{r.animal ? ` · ${r.animal}` : ""} · {r.kind}<span className="nx-only-s"> · {r.place} · {r.who}</span></small></span></span> },
+  { label: "Case", width: "minmax(0, 1.8fr)", render: (r) => <span className="nx-cell-main"><span><b>{r.title}</b><small><span className="num">{r.code}</span>{r.animal ? ` · ${r.animal}` : ""}<span className="nr-dsk"> · {r.kind}</span><span className="nx-only-s"> · {r.place} · {r.who === "Unassigned" ? "nobody yet" : r.who}{r.overdue ? <b style={{ color: "var(--bad)", display: "inline", fontWeight: 500 }}> · Follow-up late</b> : null}</span></small></span></span> },
   { label: "Status", width: "136px", render: (r) => <Chip tone={r.tone}>{r.open ? (r.crit && r.tone === "bad" ? "Critical" : r.status) : r.status}</Chip> },
   { label: "Place", width: "minmax(0, .9fr)", hideOnPhone: true, render: (r) => <span className="nx-t2">{r.place}</span> },
   { label: "Held by", width: "minmax(0, 1fr)", hideOnPhone: true, render: (r) => <span className="nx-t2" style={r.who === "Unassigned" ? { color: "var(--ink-3)" } : undefined}>{r.who === "Unassigned" ? "Nobody yet" : r.who}</span> },
@@ -91,7 +91,7 @@ function LiveCases({ org }: { org: Workspace }) {
     <Shell crumb={["NGO", "Cases"]}>
       <RecordList id="cases" title="Cases" sample={false} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.title}`} columns={cols} views={vs} view={view} onView={setView} search={search} placeholder="Code, animal, place, person"
         sub={!data && !error ? "Reading cases…" : error ? "Cases could not be read. Nothing is shown as zero." : <><b className="num">{open.length}</b> open{crit ? <>, <span style={{ color: "var(--bad)" }}>{crit} critical or high</span></> : null}, {nobody} held by nobody, at {org.name}.{data?.openCapped ? " Showing the newest 800 open cases." : ""}</>}
-        action={<Link href="/ngo/cases/new" className="nx-btn is-keep"><Plus size={14} />New case</Link>}
+        action={<Link href="/ngo/cases/new" className="nx-btn is-keep nr-plus-dup"><Plus size={14} />New case</Link>}
         loading={!data && !error} error={error} onRetry={() => void load()} hrefOf={(r) => r.href}
         empty={{ none: "No cases yet", filtered: "No case in this view", hint: <>Open the first one with <Link className="nr-link" href="/ngo/cases/new">New case</Link>, or import the register you already keep.</> }}
         preview={(r) => ({ title: r.title, sub: <><span className="num">{r.code}</span> · {r.place} <Chip tone={r.tone}>{r.status}</Chip></>, href: r.href, hrefLabel: "Open the full case", body: actor ? <CaseDrawer key={r.id} id={r.id} animalName={r.dogId ? r.animal : null} role={org.role} actor={actor} members={members} onListChanged={load} /> : <p className="nx-sub">Sign in again to act on this case.</p> })} />
@@ -146,7 +146,7 @@ function SampleCases() {
     <Shell crumb={["NGO", "Cases"]}>
       <RecordList id="cases" title="Cases" sample rows={SAMPLE_CASES} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.title}`} columns={cols} views={vs} search={search} placeholder="Code, animal, place, person"
         sub={<><b className="num">{open.length}</b> open, {open.filter((r) => r.crit).length} critical or high, {open.filter((r) => r.who === "Unassigned").length} held by nobody. Rescue, injury, sterilisation, vaccination and investigation in one list.</>}
-        action={<Link href="/try" className="nx-btn is-keep" title="Opens the live demo, where this works"><Plus size={14} />New case</Link>}
+        action={<Link href="/try" className="nx-btn is-keep nr-plus-dup" title="Opens the live demo, where this works"><Plus size={14} />New case</Link>}
         loading={false} empty={{ none: "No cases yet" }} hrefOf={(r) => r.href}
         preview={(r) => ({ title: r.title, sub: <><span className="num">{r.code}</span> · {r.place} {r.open ? <Chip tone={r.tone}>{r.status}</Chip> : <Chip tone="ok">Resolved</Chip>}</>, href: r.href, hrefLabel: "Open the full case", body: <>
           <h3 className="nx-h3">Next step</h3>

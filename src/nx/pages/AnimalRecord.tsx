@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, ClipboardPlus, Info, Lock, Plus } from "lucide-react";
 import { Shell } from "../Shell";
 import { Chip, Sample, TrustChip } from "../ui";
+import { RecordBar } from "../RecordBar";
 import { Failed, Field, Modal, Props, RecordHead, Section, Skeleton, TabBar, Timeline, day, errText, useAct, words, type TItem } from "../kit";
 import { ANIMALS, RELATED } from "../fixtures";
 import { useLive, type Workspace } from "../live";
@@ -143,6 +144,12 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
       ) : tab === "Cases" ? <div className="nx-page" style={{ maxWidth: 860 }}><Section title="Cases" count={cases.length}>{caseList}</Section></div>
         : tab === "Discussion" ? <div className="nx-page" style={{ maxWidth: 820 }}><RecordThread kind="animal" id={id} label={label.line} /></div>
         : <div className="nx-page" style={{ maxWidth: 860 }}><Section title="Earlier source timeline" count={timeline.length}><Timeline items={history} empty="No earlier timeline entries. Structured operations are shown on the summary." /></Section><p className="nr-hint">Deleting moves an entry to removed records for 30 days; Undo brings it back.</p></div>}
+      <RecordBar label="More on this animal"
+        primary={liveCase ? <Link href={`/ngo/cases/${liveCase.id}`} className="nx-btn">Open its case</Link> : <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn"><ClipboardPlus size={16} />Start a case</Link>}
+        more={<>
+          {liveCase ? <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn is-quiet"><ClipboardPlus size={16} />Open another case</Link> : null}
+          <button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={flip}>{d.needs_help ? "Clear needs help" : "Flag as needing help"}</button>
+        </>} />
     </Shell>
   );
 }
@@ -219,6 +226,7 @@ function SampleRecord({ id }: { id: string }) {
       {tab === "Summary" ? <div className="nx-page" style={{ maxWidth: 860 }}><div style={{ maxWidth: 240 }}><RecordPhotos photos={[]} label={animalLabel(ref).line} /></div><SampleBody a={a} photo={false} /></div>
         : tab === "Cases" ? <div className="nx-page"><Section title="Cases and work" count={RELATED.length}><div className="nx-rel">{RELATED.map((r) => <span key={r.ref} className="nx-rel-i"><ArrowUpRight size={13} /><span className="num">{r.ref}</span><span style={{ color: "var(--ink-3)" }}>{r.what}</span><small>{r.state}</small></span>)}</div></Section></div>
         : <div className="nx-page" style={{ maxWidth: 720 }}><p className="nx-sub">In the live demo, every care event and earlier history entry appears here with who recorded it, and each can be deleted with a reason and undone.</p><p style={{ marginTop: 12 }}><TryLink sm quiet>Open the live demo</TryLink></p></div>}
+      <RecordBar label="More on this animal" primary={<TryLink><ClipboardPlus size={16} />Start a case</TryLink>} more={<TryLink quiet>Flag as needing help</TryLink>} />
     </Shell>
   );
 }
