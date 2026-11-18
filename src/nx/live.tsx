@@ -133,15 +133,30 @@ export async function openDm(orgId: string, userId: string): Promise<{ name: str
 /** New messages by others since the person last opened each channel. Re-read when `tick` changes. */
 export function useUnread(orgId: string | null, tick: unknown) {
   const [map, setMap] = useState<Record<string, number>>({});
+  /* Reading a channel says so (markRead), so the counts are read again after the read is saved, not before it. */
+  const [read, setRead] = useState(0);
+  useEffect(() => { const on = () => setRead((n) => n + 1); window.addEventListener("nx:read", on); return () => window.removeEventListener("nx:read", on); }, []);
   useEffect(() => {
     const db = getSupabase(); if (!db || !orgId) { setMap({}); return; }
     let alive = true;
     db.rpc("nx_unread", { p_org: orgId }).then(({ data, error }) => { if (!alive || error) return; const m: Record<string, number> = {}; for (const r of (data ?? []) as { channel_id: string; unread: number }[]) if (r.unread) m[r.channel_id] = r.unread; setMap(m); });
     return () => { alive = false; };
-  }, [orgId, tick]);
+  }, [orgId, tick, read]);
   return map;
 }
-export const markRead = (channelId: string) => getSupabase()!.rpc("nx_mark_read", { p_channel: channelId });
+/** The person has read a channel: save it, clear the bell's notices that point at it (mentions, replies), then tell the
+    unread badges and the bell to read again. */
+export async function markRead(channelId: string, href?: string) {
+  const db = getSupabase(); if (!db) return;
+  const r = await db.rpc("nx_mark_read", { p_channel: channelId });
+  if (href) {
+    const open = await db.from("nx_notifications").select("id").is("read_at", null).or(`href.eq.${href},href.like.${href}?*,href.like.${href}#*`).limit(200);
+    const ids = ((open.data ?? []) as { id: string }[]).map((x) => x.id);
+    if (ids.length) await db.rpc("nx_mark_notifications_read", { p_ids: ids });
+  }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("nx:read"));
+  return r;
+}
 
 export async function createChannel(orgId: string, name: string, topic: string) {
   return getSupabase()!.from("nx_channels").insert({ org_id: orgId, name, topic }).select("id,name,topic,kind").single();

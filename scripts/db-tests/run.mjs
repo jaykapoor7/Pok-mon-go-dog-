@@ -23,6 +23,7 @@ const MIGRATIONS = [
   "20261117120000_rebuild_pep_reminder_validity.sql", "20261117130000_rebuild_quick_arv_operation.sql",
   "20261117140000_rebuild_automation_ack_carry.sql", "20261118100000_rebuild_automation_rule_counts.sql", "20261118110000_kaju_action_log.sql",
   "20261119090000_kaju_intelligence_layer.sql",
+  "20261119120000_people_names.sql",
 ];
 
 process.on("unhandledRejection", (e) => { console.error(`Test run stopped: ${e?.message ?? e}`); process.exit(1); });
@@ -897,6 +898,24 @@ section("Kaju intelligence layer: the rollback removes only what the migration a
   await db.exec(readFileSync(join(MIG, "20261119090000_kaju_intelligence_layer.sql"), "utf8"));
   const back = (await as(A, "select kaju_ai_eligibility($1) as e", [N1]))[0].e;
   ok(back.live === false && back.user_grant === null, "applied again, the switch is off and there are no grants");
+}
+
+section("People are shown by a name: the sign-in name, else the readable part of the email, never 'A colleague' when either exists");
+{
+  const pn = uuid(), named = uuid();
+  await db.query("insert into auth.users (id, email) values ($1, 'priya.nair7@example.org')", [pn]);
+  await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, 'rk@example.org', $2)", [named, { name: "Ravi Kumar" }]);
+  await db.query("insert into ngo_members (ngo_id, user_id, role) values ($1, $2, 'member'), ($1, $3, 'member')", [N1, pn, named]);
+  const people = await as(A, "select user_id, name from nx_org_people($1)", [N1]);
+  ok(people.find((p) => p.user_id === pn)?.name === "Priya Nair", "someone with no name on record is shown by the readable part of their email");
+  ok(people.find((p) => p.user_id === named)?.name === "Ravi Kumar", "a name on the sign-in record wins");
+  const signed = uuid();
+  await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, 'x9@example.org', $2)", [signed, { display_name: "Anita Rao" }]);
+  await db.query("insert into ngo_members (ngo_id, user_id, role) values ($1, $2, 'member')", [N1, signed]);
+  ok((await as(A, "select name from nx_org_people($1) where user_id = $2", [N1, signed]))[0]?.name === "Anita Rao", "the name given at StrayPaw sign-up (display_name) is used");
+  let refused = false; try { await as(A, "select nx_person_name($1)", [pn]); } catch { refused = true; }
+  ok(refused, "signed-in people cannot call the name helper to look up anyone by id");
+  ok((await as(C, "select count(*)::int n from nx_org_people($1)", [N1]))[0].n === 0, "another organisation still sees nobody");
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

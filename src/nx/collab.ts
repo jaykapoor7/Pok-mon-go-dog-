@@ -148,6 +148,8 @@ export function useNotices(enabled: boolean) {
     return () => { alive = false; };
   }, [enabled, tick]);
   useEffect(() => { if (!enabled) return; const t = window.setInterval(reload, 60000); return () => window.clearInterval(t); }, [enabled, reload]);
+  /* A channel was read: its notices may have been cleared. */
+  useEffect(() => { if (!enabled) return; window.addEventListener("nx:read", reload); return () => window.removeEventListener("nx:read", reload); }, [enabled, reload]);
   const markRead = useCallback(async (ids: string[] | null) => {
     setRows((rs) => rs?.map((r) => (!ids || ids.includes(r.id) ? { ...r, read_at: r.read_at ?? new Date().toISOString() } : r)) ?? rs);
     await getSupabase()?.rpc("nx_mark_notifications_read", { p_ids: ids });

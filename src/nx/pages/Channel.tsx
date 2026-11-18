@@ -282,7 +282,7 @@ function LiveChannel({ name }: { name: string }) {
   const dm = ch?.kind === "dm" ? (dmRow ? personName(dmRow.other_name, dmRole) : "Direct message") : null;
   const seen = messages.rows?.length ?? 0;
   const chId = ch?.id ?? null;
-  useEffect(() => { if (chId) void markRead(chId); }, [chId, seen]);
+  useEffect(() => { if (chId) void markRead(chId, `/channels/${name}`); }, [chId, seen, name]);
   /* Work linked to this channel only: nothing is read until the channel is known, so the organisation's other tasks never show here. */
   const tasks = useTasks(ch ? org!.org_id : null, ch?.id ?? null);
   const ids = useMemo(() => (messages.rows ?? []).map((m) => m.id), [messages.rows]);

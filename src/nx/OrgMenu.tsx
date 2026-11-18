@@ -2,7 +2,9 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, LogOut, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+import { Field, Modal, toast } from "./kit";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useLive, type Workspace } from "./live";
 import { WS_LABEL, homeOf } from "./nav";
@@ -61,6 +63,22 @@ export function OrgMenu({ shown, ws, current }: { shown: Shown; ws: string; curr
     live.pick(o.org_id);
     router.push(homeOf(o.workspace, o.org_id));
   };
+  /* The person's own name, as colleagues see it in messages, tasks and people lists. Nothing else in the app asked for it,
+     so people were shown by their email or as "A colleague". */
+  const [naming, setNaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const saveName = async () => {
+    const name = nameDraft.replace(/\s+/g, " ").trim().slice(0, 80);
+    if (!name) return;
+    setSavingName(true);
+    const r = await getSupabase()?.auth.updateUser({ data: { display_name: name, name } });
+    setSavingName(false);
+    if (!r || r.error) { toast({ text: "Your name could not be saved just now. Try again in a moment.", tone: "bad" }); return; }
+    setNaming(false);
+    toast({ text: `Colleagues now see you as ${name}.`, tone: "ok" });
+    window.dispatchEvent(new Event("nx:dms")); window.dispatchEvent(new Event("nx:channels"));
+  };
   const groups = ORDER.map((w) => ({ w, list: live.orgs.filter((o) => o.workspace === w) })).filter((g) => g.list.length);
 
   return (
@@ -92,6 +110,7 @@ export function OrgMenu({ shown, ws, current }: { shown: Shown; ws: string; curr
               ))}
               <div className="nx-om-sep" role="separator" />
               <button type="button" role="menuitem" className="nx-om-i is-plain" onClick={() => { setOpen(false); router.push("/start"); }}><Plus size={15} aria-hidden /><span className="nx-om-t"><b>Join or add an organisation</b></span></button>
+              <button type="button" role="menuitem" className="nx-om-i is-plain" onClick={() => { setOpen(false); setNameDraft(live.userName ?? ""); setNaming(true); }}><UserRound size={15} aria-hidden /><span className="nx-om-t"><b>Your name</b><small>{live.userName ?? "Not added yet"}</small></span></button>
               <button type="button" role="menuitem" className="nx-om-i is-plain" onClick={() => { setOpen(false); signOut(); }}><LogOut size={15} aria-hidden /><span className="nx-om-t"><b>Sign out</b></span></button>
             </>
           ) : (
@@ -110,6 +129,15 @@ export function OrgMenu({ shown, ws, current }: { shown: Shown; ws: string; curr
             </div>
           )}
         </div>
+      ) : null}
+      {naming ? (
+        <Modal title="Your name" onClose={() => setNaming(false)} foot={<><button type="button" className="nx-btn is-quiet" onClick={() => setNaming(false)}>Cancel</button><button type="button" className="nx-btn" disabled={savingName || !nameDraft.trim()} onClick={() => void saveName()}>{savingName ? "Saving…" : "Save"}</button></>}>
+          <form onSubmit={(e) => { e.preventDefault(); void saveName(); }}>
+            <Field label="Name colleagues see" hint="Shown in messages, tasks and people lists in your organisations.">
+              <input autoFocus value={nameDraft} maxLength={80} autoComplete="name" enterKeyHint="done" onChange={(e) => setNameDraft(e.target.value)} />
+            </Field>
+          </form>
+        </Modal>
       ) : null}
     </div>
   );

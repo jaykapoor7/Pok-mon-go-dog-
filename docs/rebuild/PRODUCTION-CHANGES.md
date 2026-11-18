@@ -312,3 +312,18 @@ Site after the change (signed out): `/api/stats` 2,431; `/explore` "2,431 animal
 answer "No mapped record"; public pages and the app load on desktop and phone without page errors.
 
 Rollback: none from the database. The publishers' datasets remain the source if they are ever wanted again.
+
+# Twelfth set: people shown by their name (owner's report, 2026-11-18)
+
+Direct messages and people lists showed "Member (name not added)" for real colleagues: the database functions read only
+`name`/`full_name` from the sign-in record (StrayPaw's own sign-up stores `display_name`), and nobody could set a name in
+the app.
+
+| # | Migration | What it does | Staging | Production |
+| --- | --- | --- | --- | --- |
+| 22 | `20261119120000_people_names.sql` | Adds `nx_person_name(uuid)` (display_name, name, full_name, the health organisation's display name, the readable part of the email before the @, then "A colleague"); `nx_my_dms`, `nx_org_people` and `nx_programme_people` use it, otherwise unchanged. The helper is not executable by signed-in people or visitors. | Applied, checked (6 of 6 sample NGO people named; helper refused to a member) | Applied, checked (7 of 7 NGO members named; helper not callable by authenticated or anon) |
+
+App: the account menu has "Your name" (saved as display_name and name). Reading a channel now refreshes the unread
+badges after the read is saved and clears that channel's mention notices in the bell.
+
+`test:db`: 314 checks (5 new). Rollback: `supabase/rollback/20261119120000_people_names-rollback.sql`.
