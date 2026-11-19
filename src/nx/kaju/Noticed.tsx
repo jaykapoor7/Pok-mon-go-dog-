@@ -23,7 +23,7 @@ const ICON: Record<Notice["icon"], React.ReactNode> = {
 };
 
 export const SAMPLE_NOTICES: Notice[] = [
-  { id: "s1", tone: "warn", icon: "approval", title: "Waiting for your approval: Create a follow-up task for each", detail: "Prepare follow-ups in Ward 12 due next week. It creates 6 tasks at once, so you approve it first.", source: "Your missions", action: { kind: "link", label: "Review", href: "/kaju/approvals" } },
+  { id: "s1", tone: "warn", icon: "approval", title: "Waiting for your approval: Create a follow-up task for each", detail: "Prepare follow-ups in Ward 12 due next week. It creates 6 tasks at once, so you approve it first.", source: "Kaju's work", action: { kind: "link", label: "Review", href: "/try" } },
   { id: "s2", tone: "accent", icon: "due", title: "4 open cases are due a follow-up this week with no task yet", detail: "Kaju can find them, create a task for each once you approve, and skip any that already have one.", source: "Your cases", action: { kind: "link", label: "Prepare follow-ups due this week", href: "/try" } },
   { id: "s3", tone: "warn", icon: "check", title: "5 ABC records are missing evidence", detail: "Records missing one or more of the five required evidence kinds.", source: "Kaju's daily checks", action: { kind: "link", label: "See the checks", href: "/kaju/insights" } },
 ];
@@ -41,7 +41,7 @@ export function Noticed({ items, sample, busy, onAct }: { items: Notice[] | null
         {more > 0 ? <button type="button" className="kj-link kj-noticed-more" aria-expanded={all} aria-controls="kj-n-list" onClick={() => setAll((a) => !a)}>{all ? "Show fewer" : `${more} more`}</button> : null}
       </div>
       {list === null ? <div className="kj-noticed-l" aria-label="Reading">{[0, 1, 2].map((i) => <div key={i} className="kj-skel kj-notice-skel" />)}</div> : !list.length ? (
-        <p className="kj-noticed-none">Nothing needs you right now. Kaju watches your missions, overdue tasks, automations and its daily checks, and lists here what needs a person.</p>
+        <p className="kj-noticed-none">Nothing needs you right now. Kaju watches overdue tasks, automations, open cases and its daily checks, and lists here what needs a person. Its own work that waits for you is listed under Kaju&apos;s work.</p>
       ) : (
         <ul className={`kj-noticed-l ${all ? "is-all" : ""}`} id="kj-n-list">{shown.map((n, i) => (
           <motion.li key={n.id} className={`kj-notice t-${n.tone}`} initial={calm ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .22, ease: EASE, delay: calm ? 0 : Math.min(i, 6) * .045 }}>
@@ -63,9 +63,9 @@ export function Noticed({ items, sample, busy, onAct }: { items: Notice[] | null
 
 const SAMPLE_CAPS: CapItem[] = [
   { id: "records", name: "Your organisation's records", state: "live", label: "Live", detail: "Reads only what you can open yourself." },
-  { id: "missions", name: "Missions, tasks and channels", state: "live", label: "Live", detail: "Steps run as you, and keep going when the page is closed." },
+  { id: "missions", name: "Work in several steps: tasks and channels", state: "live", label: "Live", detail: "Steps run as you, and keep going when the page is closed." },
   { id: "model", name: "Planning from your own words", state: "setup", label: "Needs setup by the owner", detail: "Until a model is connected, Kaju plans from its fixed jobs." },
-  { id: "mission_email", name: "Email from missions", state: "setup", label: "Needs setup by the owner", detail: "Kaju prepares the email; sending needs a connected account." },
+  { id: "mission_email", name: "Email from Kaju", state: "setup", label: "Needs setup by the owner", detail: "Kaju prepares the email; sending needs a connected account." },
   { id: "whatsapp", name: "WhatsApp", state: "none", label: "Not connected", detail: "Nothing is sent on WhatsApp." },
 ];
 const CAP_TONE: Record<CapItem["state"], "ok" | "warn" | "plain" | "accent"> = { live: "ok", setup: "warn", you: "accent", none: "plain", unknown: "plain" };

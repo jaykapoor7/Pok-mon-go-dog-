@@ -1,35 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
+import { isOpen } from "@/lib/kaju/jobs";
 import { getSupabase } from "@/lib/supabase";
-import { KIND_WORD, handoffStarts, recordHref, startIsReal, type HandoffStart, type RecordFacts, type RecordLink } from "@/lib/kaju/records";
+import { KIND_WORD, handoffStarts, startIsReal, type HandoffStart, type RecordFacts, type RecordLink } from "@/lib/kaju/records";
 import { Modal, Skeleton, toast } from "../kit";
 import { Sheet } from "../Phone";
 import { usePhone } from "../PhoneList";
 import { MISSION, useKajuVocab, type MissionRow } from "./data";
 import { plannedFrom } from "./work";
 import { PlanCard } from "./Plan";
-import { Progress, StateDot, ago, missionWord } from "./bits";
-import { nowLine } from "./MissionCard";
 import { useKaju, type KajuSubject, type Planned } from "./state";
+import { JobGroups, useOpenJob } from "./JobCard";
 import "./workspace.css";
 import "./rooms.css";
+import "./jobs.css";
 
-/* Handing a record to Kaju, and a record's workrooms. From a case, an animal or a package the person picks one of the
-   plans Kaju can make for it from its real tools, reviews it in the usual plan card (every step says who does it and
-   what it changes), and starts it; the mission carries a link to the record. The record then lists the workrooms the
-   person started about it. Missions are private to the person who started them (row-level security), so this list is
-   theirs alone; nothing here widens what anyone can see. */
+/* Handing a record to Kaju, and what Kaju is doing about it. From a case, an animal or a package the person picks one
+   of the plans Kaju can make for it from its real tools, reviews it in the usual plan card (every step says who does it
+   and what it changes), and starts it; the work carries a link to the record (nx_missions.request.record). The record
+   then lists, briefly, what waits for the person and what Kaju is working on, each opening Kaju's card over the record.
+   Kaju's work is private to the person who asked for it (row-level security), so this list is theirs alone; nothing
+   here widens what anyone can see. */
 
 const EASE = [0.2, 0.7, 0.2, 1] as const;
 const istToday = () => new Date(Date.now() + 5.5 * 36e5).toISOString().slice(0, 10);
 const visible = () => typeof document === "undefined" || document.visibilityState === "visible";
 
-/** The record the page names (Shell's `subject`), as a link a mission can carry. */
+/** The record the page names (Shell's `subject`), as a link Kaju's work can carry. */
 export function subjectLink(s: KajuSubject | null | undefined): RecordLink | null {
   if (!s) return null;
   if (s.kind === "case" && s.caseId) return { kind: "case", id: s.caseId, label: s.label ?? "Case", ws: "ngo" };
@@ -86,17 +87,17 @@ export async function plannedFor(orgId: string, link: RecordLink, s: HandoffStar
   return { ...p, record: link };
 }
 
-/** A plan for review in a dialog (a sheet on a phone). Start goes through the same route as every mission, then opens
-    the new workroom. */
+/** A plan for review in a dialog (a sheet on a phone). Start goes through the same route as all of Kaju's work, then
+    opens its card over the record, so the person never leaves the page they were on. */
 export function PlanDialog({ title, orgId, planned, onClose, children }: { title: string; orgId: string; planned: Planned | null; onClose: () => void; children?: ReactNode }) {
   const phone = usePhone();
   const k = useKaju();
-  const router = useRouter();
+  const openJob = useOpenJob();
   const vocab = useKajuVocab(orgId, planned?.record?.ws === "gov" ? "government" : "ngo");
   const [busy, setBusy] = useState(false);
   const start = async (p: Planned) => {
     setBusy(true); const r = await k.start(orgId, p); setBusy(false);
-    if (r.id) { onClose(); router.push(`/kaju/missions/${r.id}?new=1`); } else toast({ text: r.error ?? "Not started.", tone: "bad" });
+    if (r.id) { onClose(); openJob(r.id); } else toast({ text: r.error ?? "Not started.", tone: "bad" });
   };
   const body = <div className="kr-dlg">{planned ? <PlanCard key={planned.key} planned={planned} vocab={vocab} busy={busy} compact={phone} onStart={(p) => void start(p)} onDiscard={onClose} /> : children}</div>;
   return phone ? <Sheet open onClose={onClose} label={title} full>{body}</Sheet> : <Modal title={title} onClose={onClose} wide>{body}</Modal>;
@@ -112,9 +113,9 @@ export function useHandoff(link: RecordLink | null, orgId: string | null) {
   const pick = async (s: HandoffStart) => { if (!link || !orgId) return; setBusy(s.id); try { setPlanned(await plannedFor(orgId, link, s)); } finally { setBusy(null); } };
   const node = open && link && orgId ? (
     <PlanDialog title={planned ? "Review the plan" : `Hand ${link.label} to Kaju`} orgId={orgId} planned={planned} onClose={close}>
-      <p className="kr-lede">Choose what Kaju should do. You see every step, and who does it, before anything starts. The workroom stays linked to this {link.kind === "animal" ? "animal" : link.kind}.</p>
+      <p className="kr-lede">Choose what Kaju should do. You see every step, and who does it, before anything starts. What it makes stays linked to this {link.kind === "animal" ? "animal" : link.kind}.</p>
       <HandoffStarts link={link} orgId={orgId} busy={busy} onPick={(s) => void pick(s)} />
-      <p className="kj-quiet kr-foot">Only you see the workrooms you start. Steps that change several records or reach outside StrayPaw wait for your approval.</p>
+      <p className="kj-quiet kr-foot">Only you see what you hand to Kaju. Steps that change several records or reach outside StrayPaw wait for your approval.</p>
     </PlanDialog>
   ) : null;
   return { open: () => setOpen(true), node, ready: !!link && !!orgId };
@@ -125,9 +126,9 @@ export function HandoffButton({ onOpen, phone }: { onOpen: () => void; phone?: b
   return <button type="button" data-close={phone ? "" : undefined} className={phone ? "nx-btn is-quiet" : "nx-btn is-quiet is-sm"} onClick={onOpen}><Sparkles size={phone ? 16 : 13} aria-hidden />Hand to Kaju</button>;
 }
 
-/* ── A record's workrooms ───────────────────────────────────────────────────────────────────────────────────── */
-/** The person's own missions about this record, kept current: at once on a change where the mission tables are
-    published for live updates (migration 20261118090000), and by polling as the fallback. */
+/* ── What Kaju is doing about a record ──────────────────────────────────────────────────────────────────────── */
+/** The person's own work with Kaju about this record, kept current: at once on a change where the tables are published
+    for live updates (migration 20261118090000), and by polling as the fallback. */
 export function useRecordMissions(link: RecordLink | null, orgId: string | null) {
   const [rows, setRows] = useState<MissionRow[] | null>(null);
   const [tick, setTick] = useState(0);
@@ -147,9 +148,9 @@ export function useRecordMissions(link: RecordLink | null, orgId: string | null)
   useEffect(() => {
     const db = getSupabase(); if (!db || !id || !orgId) return;
     const soon = () => { if (bump.current) window.clearTimeout(bump.current); bump.current = window.setTimeout(reload, 300); };
-    /* New missions about this record arrive through the organisation's missions (only the person's own are delivered);
-       step changes through the steps of the missions already listed. */
-    let ch = db.channel(`kaju:record:${id}`).on("postgres_changes", { event: "*", schema: "public", table: "nx_missions", filter: `org_id=eq.${orgId}` }, soon);
+    /* New work about this record arrives through the organisation's rows (only the person's own are delivered); step
+       changes through the steps of the work already listed. */
+    let ch = db.channel(`kaju:record:${id}:${Math.random().toString(36).slice(2, 10)}`).on("postgres_changes", { event: "*", schema: "public", table: "nx_missions", filter: `org_id=eq.${orgId}` }, soon);
     if (mine) ch = ch.on("postgres_changes", { event: "*", schema: "public", table: "nx_mission_steps", filter: `mission_id=in.(${mine})` }, soon);
     ch.subscribe();
     return () => { if (bump.current) window.clearTimeout(bump.current); void db.removeChannel(ch); };
@@ -158,41 +159,25 @@ export function useRecordMissions(link: RecordLink | null, orgId: string | null)
   return { rows, reload };
 }
 
-/** The workrooms this person started about the record, newest first, each with its state and progress. */
+/** On a record: what waits for the person and what Kaju is working on about it, briefly. Each opens Kaju's card over the
+    record. Finished work is counted, and kept in Kaju's History. (Named for the record pages that already use it.) */
 export function RecordWorkrooms({ link, orgId, onHand }: { link: RecordLink; orgId: string; onHand?: () => void }) {
   const { rows } = useRecordMissions(link, orgId);
-  const calm = useReducedMotion();
-  const open = (rows ?? []).filter((m) => !["completed", "cancelled"].includes(m.state)).length;
+  const openJob = useOpenJob();
+  const open = (rows ?? []).filter((m) => isOpen(m.state));
+  const done = (rows ?? []).length - open.length;
+  const thing = link.kind === "animal" ? "animal" : link.kind;
   return (
     <section className="kr-rooms" aria-labelledby={`kr-rooms-${link.id}`}>
       <div className="kr-rooms-h">
-        <h3 className="nx-h3" id={`kr-rooms-${link.id}`}>With Kaju {rows?.length ? <span className="nx-count">{open ? `${open} open` : rows.length}</span> : null}</h3>
+        <h3 className="nx-h3" id={`kr-rooms-${link.id}`}>With Kaju {open.length ? <span className="nx-count">{open.length}</span> : null}</h3>
         {onHand && rows?.length ? <button type="button" className="nx-link kr-rooms-add" onClick={onHand}><Sparkles size={13} aria-hidden />Hand to Kaju</button> : null}
       </div>
-      {rows === null ? <Skeleton rows={2} label="Reading your workrooms" />
-        : !rows.length ? <p className="nr-quiet">Nothing handed to Kaju about this {link.kind === "animal" ? "animal" : link.kind} yet.{onHand ? <> <button type="button" className="nx-link" onClick={onHand}>Hand it to Kaju</button></> : null}</p>
-        : <ul className="kr-rooms-l">{rows.slice(0, 6).map((m, i) => {
-            const steps = [...m.nx_mission_steps].sort((a, b) => a.position - b.position);
-            const [word] = missionWord(m.state);
-            return (
-              <motion.li key={m.id} initial={calm ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .2, ease: EASE, delay: calm ? 0 : Math.min(i, 5) * .04 }}>
-                <Link href={`/kaju/missions/${m.id}`} className="kr-room">
-                  <span className="kr-room-top"><StateDot state={m.state} /><span>{word}</span><time dateTime={m.updated_at}>{ago(m.updated_at)}</time></span>
-                  <b>{m.title}</b>
-                  <Progress steps={steps} />
-                  <small>{nowLine(m, steps)}</small>
-                  <ArrowUpRight size={14} className="kr-room-go" aria-hidden />
-                </Link>
-              </motion.li>
-            );
-          })}</ul>}
-      {rows && rows.length > 6 ? <p className="nr-hint"><Link className="nr-link" href="/kaju/missions">All your missions</Link></p> : null}
-      {rows?.length ? <p className="nr-hint">Only you see workrooms you started.</p> : null}
+      {rows === null ? <Skeleton rows={2} label="Reading what Kaju is doing" />
+        : !open.length ? <p className="nr-quiet">{rows.length ? `Nothing in progress about this ${thing}.` : `Nothing handed to Kaju about this ${thing} yet.`}{onHand && !rows.length ? <> <button type="button" className="nx-link" onClick={onHand}>Hand it to Kaju</button></> : null}</p>
+        : <div className="kjb-list"><JobGroups rows={open.slice(0, 6)} onOpen={openJob} idBase={`kr-${link.id}`} /></div>}
+      {done ? <p className="nr-hint">{done === 1 ? "1 finished" : `${done} finished`}, kept in <Link className="nr-link" href="/kaju/history">Kaju&apos;s History</Link>. Only you see what you hand to Kaju.</p>
+        : rows?.length ? <p className="nr-hint">Only you see what you hand to Kaju.</p> : null}
     </section>
   );
-}
-
-/** The record a workroom is about, as a chip back to it. */
-export function RecordChip({ link }: { link: RecordLink }) {
-  return <Link className="kr-chip" href={recordHref(link)}><span className="kr-chip-k">{KIND_WORD[link.kind]}</span><span className="kr-chip-l">{link.label}</span><ArrowUpRight size={12} aria-hidden /></Link>;
 }

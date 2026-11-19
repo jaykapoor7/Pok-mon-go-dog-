@@ -5,7 +5,7 @@ import { AlertTriangle, Check as Tick, Clock3, Hand, Loader2, ShieldCheck, UserR
 import { DECIDER, duty, type Duty } from "@/lib/kaju/capabilities";
 import type { StepRow } from "./data";
 
-/* Small pieces every Kaju surface shares, so a state reads the same on the home, in the panel and in a workroom. */
+/* Small pieces every Kaju surface shares, so a state reads the same on the home, in the panel and in Kaju's card. */
 
 export type Tone = "ok" | "warn" | "bad" | "accent" | "plain";
 const MISSION_WORD: Record<string, [string, Tone]> = {
@@ -19,7 +19,7 @@ const STEP_WORD: Record<string, string> = { todo: "Up next", running: "Working",
 export const stepWord = (s: StepRow) => (s.state === "waiting_person" && DECIDER[s.tool as keyof typeof DECIDER] ? `Waiting for ${DECIDER[s.tool as keyof typeof DECIDER]!.toLowerCase()}` : STEP_WORD[s.state] ?? s.state);
 export const stepTone = (state: string): Tone => (state === "done" ? "ok" : state === "running" ? "accent" : state === "waiting_approval" || state === "waiting_person" || state === "retrying" ? "warn" : state === "failed" ? "bad" : "plain");
 
-/** A mission's live state as a dot: it breathes while Kaju works, and holds still under reduced motion. */
+/** The live state of Kaju's work as a dot: it breathes while Kaju works, and holds still under reduced motion. */
 export function StateDot({ state }: { state: string }) {
   const [, tone] = missionWord(state);
   return <span className={`kj-dot t-${tone} ${state === "running" || state === "ready" ? "is-live" : ""}`} aria-hidden />;

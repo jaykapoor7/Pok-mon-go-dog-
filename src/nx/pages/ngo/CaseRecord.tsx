@@ -77,7 +77,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   /* The animal is named as the register names it ("Dog 125", "Tiger (132)"), and a title written with its code reads with that name. */
   const dogId = file && file !== "loading" && !("error" in file) ? file.c.dog_id : null;
   const dog = useAnimalRefs(org.org_id, [dogId])?.get(dogId ?? "") ?? null;
-  /* Handing this case to Kaju: the plan, once started, carries a link back to it, and the case lists its workrooms. */
+  /* Handing this case to Kaju: the plan, once started, carries a link back to it, and the case lists what Kaju is doing about it. */
   const ok = file && file !== "loading" && !("error" in file) ? file : null;
   const link: RecordLink | null = ok ? { kind: "case", id: ok.c.id, label: shortCode(ok.reg.case_code, ok.c.id.slice(0, 8).toUpperCase()), ws: "ngo" } : null;
   const handoff = useHandoff(link, org.org_id);

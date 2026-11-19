@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, History as Clock, Keyboard, Maximize2, Mic, Plus, X } from "lucide-react";
+import { History as Clock, Keyboard, Maximize2, Mic, Plus, X } from "lucide-react";
 import { KajuHistory, KeepingNote } from "./History";
 import { startersFor } from "./here";
 import { KajuFace } from "@/kaju/Kaju";
@@ -14,7 +14,6 @@ import { Composer } from "./Composer";
 import { Thread } from "./Thread";
 import { PlanCard } from "./Plan";
 import { Jobs } from "./Jobs";
-import { LiveMissionCard } from "./MissionCard";
 import { useKajuPrefs, useKajuVocab } from "./data";
 import { useCapabilities } from "./work";
 import { HandoffStarts, plannedFor, subjectLink } from "./records";
@@ -25,8 +24,8 @@ import "./kaju.css";
 import "./workspace.css";
 
 /* Compact Kaju: summoned from any page (the Kaju button or ⌘J), aware of the page it was opened on, and sharing its
-   conversation with the full Kaju page, so expanding loses nothing. The same plan card and jobs as the home, and a
-   mission it starts stays in view, live. On a phone it is a sheet that a downward swipe puts away. It never covers a
+   conversation with the full Kaju page, so expanding loses nothing. The same plan card and jobs as the home, and work
+   it starts stays in the conversation as its card, live. On a phone it is a sheet that a downward swipe puts away. It never covers a
    page by itself: it opens only when asked and closes with Escape. */
 
 const EASE = [0.2, 0.7, 0.2, 1] as const;
@@ -37,7 +36,6 @@ export function KajuDock({ crumb }: { crumb: string }) {
   const calm = useReducedMotion();
   const drag = useDragControls();
   const [planned, setPlanned] = useState<Planned | null>(null);
-  const [startedId, setStartedId] = useState<string | null>(null);
   const [phone, setPhone] = useState(false);
   // Talk or type: the same Kaju, in the same panel. Closing the panel ends any conversation.
   const [voice, setVoice] = useState(false);
@@ -93,7 +91,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
                 <KajuHistory title={null} onOpened={() => setPast(false)} />
                 {k.history && !k.history.length ? <p className="kj-quiet">No saved conversations yet. What you ask here is kept for you.</p> : null}
               </div>
-            : <DockBody planned={planned} setPlanned={setPlanned} startedId={startedId} setStartedId={setStartedId} onVoice={VOICE_OFFERED ? () => setVoice(true) : undefined} phone={phone} />}
+            : <DockBody planned={planned} setPlanned={setPlanned} onVoice={VOICE_OFFERED ? () => setVoice(true) : undefined} phone={phone} />}
         </motion.div>
       ) : null}
     </AnimatePresence>
@@ -101,7 +99,7 @@ export function KajuDock({ crumb }: { crumb: string }) {
 }
 
 /** The panel's contents, read only while it is open: names for the composer, the person's limits, what Kaju can use. */
-function DockBody({ planned, setPlanned, startedId, setStartedId, onVoice, phone }: { planned: Planned | null; setPlanned: (p: Planned | null) => void; startedId: string | null; setStartedId: (id: string | null) => void; onVoice?: () => void; phone: boolean }) {
+function DockBody({ planned, setPlanned, onVoice, phone }: { planned: Planned | null; setPlanned: (p: Planned | null) => void; onVoice?: () => void; phone: boolean }) {
   const k = useKaju();
   const live = useLive();
   const org = live.org;
@@ -118,21 +116,22 @@ function DockBody({ planned, setPlanned, startedId, setStartedId, onVoice, phone
   useEffect(() => { setHanding(false); }, [link?.id]);
   const plan = async (text: string, intent: Parameters<typeof k.plan>[2]) => {
     if (!org) { toast({ text: "Sign in to an organisation to hand Kaju work.", tone: "bad" }); return; }
-    setBusy(true); setNoModel(null); setStartedId(null); const r = await k.plan(org.org_id, text, intent); setBusy(false);
+    setBusy(true); setNoModel(null); const r = await k.plan(org.org_id, text, intent); setBusy(false);
     if (r.ok) setPlanned({ ...r.planned, record: link }); else if (r.noModel) setNoModel(r.error); else toast({ text: r.error, tone: "bad" });
   };
   const start = async (p: Planned) => {
     if (!org) return;
     setBusy(true); const r = await k.start(org.org_id, p); setBusy(false);
-    if (r.id) { setPlanned(null); setStartedId(r.id); }
+    /* The work shows in the conversation, under the words that asked for it, and stays current while it runs. */
+    if (r.id) { setPlanned(null); k.addJob(r.id, p.text); }
     else toast({ text: r.error ?? "Not started.", tone: "bad" });
   };
-  const empty = !k.turns.length && !planned && !startedId;
+  const empty = !k.turns.length && !planned;
   const here = org ? startersFor(k.page.path) : [];
   /* On a phone the newest words stay in view above the composer as the conversation grows, as in any messenger. */
   const body = useRef<HTMLDivElement>(null);
   const last = k.turns[k.turns.length - 1];
-  useEffect(() => { const b = body.current; if (b && window.matchMedia("(max-width: 640px)").matches && (k.turns.length || planned || startedId)) b.scrollTo({ top: b.scrollHeight, behavior: "auto" }); }, [k.turns.length, last?.pending, planned, startedId]);
+  useEffect(() => { const b = body.current; if (b && window.matchMedia("(max-width: 640px)").matches && (k.turns.length || planned)) b.scrollTo({ top: b.scrollHeight, behavior: "auto" }); }, [k.turns.length, last?.pending, planned]);
   return (
     <>
       <div className="nx-dockk-b" ref={body}>
@@ -143,8 +142,8 @@ function DockBody({ planned, setPlanned, startedId, setStartedId, onVoice, phone
             onClick={() => { if (h.send) void k.ask(h.text); else window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q: h.text } })); }}>{h.label}</button>)}
           {link ? <button type="button" className="nx-chipbtn kj-here-hand" aria-expanded={handing} onClick={() => setHanding((v) => !v)}>Hand to Kaju…</button> : null}
         </div> : null}
-        {link && org && handing && !planned && !startedId ? <div className="kj-dock-hand">
-          <p className="kj-quiet">A workroom about {link.label}. Choose what Kaju should do; you review the plan before it starts.</p>
+        {link && org && handing && !planned ? <div className="kj-dock-hand">
+          <p className="kj-quiet">Choose what Kaju should do about {link.label}. You review the plan before it starts, and what it makes stays linked to it.</p>
           <HandoffStarts link={link} orgId={org.org_id} busy={picking} onPick={(s) => { setPicking(s.id); void plannedFor(org.org_id, link, s).then((p) => { setPlanned(p); setHanding(false); }).finally(() => setPicking(null)); }} />
         </div> : null}
         {empty && org && !here.length ? <Jobs vocab={vocab} canPlan busy={busy} compact onPlan={(t, i) => void plan(t, i)} /> : null}
@@ -152,13 +151,6 @@ function DockBody({ planned, setPlanned, startedId, setStartedId, onVoice, phone
         {k.turns.length ? <p className="kj-quiet" style={{ marginTop: 6 }}><button type="button" className="nx-thread" onClick={k.clear}><Plus size={12} /> New</button> · <KeepingNote /></p> : null}
         {noModel ? <p className="kj-nomodel" role="status">{noModel}</p> : null}
         <AnimatePresence>{planned ? <PlanCard key={planned.key} planned={planned} vocab={vocab} busy={busy} compact onStart={(p) => void start(p)} onDiscard={() => setPlanned(null)} /> : null}</AnimatePresence>
-        {startedId ? (
-          <motion.div className="kj-dock-started" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .22, ease: EASE }}>
-            <p className="kj-eyebrow">Started. It runs as you and stops where it needs a person.</p>
-            <LiveMissionCard id={startedId} />
-            <Link href={`/kaju/missions/${startedId}`} className="kj-link" onClick={() => k.setOpen(false)}>Open the workroom<ArrowUpRight size={13} /></Link>
-          </motion.div>
-        ) : null}
       </div>
       <Composer compact placeholder={phone ? "Ask or say what to do" : "Ask, or say what you want done"} predictive={prefs.predictive} vocab={vocab} busy={busy || k.busy} disabled={k.expired} canPlan={!!org} modelPlanning={!!caps?.planning}
         onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} onVoice={onVoice} />

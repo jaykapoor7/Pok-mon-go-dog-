@@ -113,7 +113,7 @@ export function PhoneMenu({ open, onClose, org, nav, more, on, convs, newConv, t
         <li><button type="button" className="ph-row is-quiet" onClick={() => { onClose(); newConv(); }}><Plus size={20} aria-hidden /><span>New message</span></button></li>
       </ul>
       <h3 className="ph-h">Kaju</h3>
-      <ul className="ph-rows">{KAJU.filter((k) => kajuHome || k.href === "/kaju" || k.href === "/kaju/missions").map((i) => row(i))}</ul>
+      <ul className="ph-rows">{KAJU.filter((k) => kajuHome || k.href === "/kaju" || k.href === "/kaju/history").map((i) => row(i))}</ul>
       <ul className="ph-rows is-end">
         <li><Link href={settings} className="ph-row" onClick={onClose}><Settings size={20} aria-hidden /><span>Settings</span></Link></li>
         <li><button type="button" className="ph-row" onClick={flip}>{theme === "dark" ? <Sun size={20} aria-hidden /> : <Moon size={20} aria-hidden />}<span>{theme === "dark" ? "Light theme" : "Dark theme"}</span></button></li>

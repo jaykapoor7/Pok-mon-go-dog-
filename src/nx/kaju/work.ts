@@ -3,18 +3,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { TOOL_NAMES, preview, type Intent, type Plan } from "@/lib/kaju/registry";
-import { DECIDER } from "@/lib/kaju/capabilities";
 import type { Workspace } from "../live";
 import { MISSION, type EventRow, type MissionRow, type StepRow } from "./data";
 import { token, type Planned } from "./state";
 
-/* What a mission's workroom and Kaju's home read: one mission as it changes, the real things it produced (tasks,
-   messages, prepared emails, cases found), what Kaju noticed in the organisation's own records, and what Kaju can use
-   here. Every read goes through the person's own session, so row-level security decides what is shown. */
+/* What Kaju's work card and Kaju's home read: one piece of work (a row in nx_missions) as it changes, the real things
+   it produced (tasks, messages, prepared emails, cases found), what Kaju noticed in the organisation's own records, and
+   what Kaju can use here. Every read goes through the person's own session, so row-level security decides. */
 
 const visible = () => typeof document === "undefined" || document.visibilityState === "visible";
 
-/** One mission, kept current: every 4 seconds while Kaju is working, every 20 while it waits, and at once on a change
+/** One piece of Kaju's work, kept current: every 4 seconds while Kaju is working, every 20 while it waits, and at once on a change
     when the mission tables are published for live updates (supabase/migrations/20261118090000). */
 export function useMission(id: string | null) {
   const [row, setRow] = useState<MissionRow | null | undefined>(undefined);
@@ -49,7 +48,9 @@ export function useMission(id: string | null) {
   useEffect(() => {
     const db = getSupabase(); if (!db || !id) return;
     const soon = () => { if (bump.current) window.clearTimeout(bump.current); bump.current = window.setTimeout(reload, 250); };
-    const ch = db.channel(`kaju:mission:${id}`)
+    /* One topic per watcher: the same work can be on screen twice (in the conversation and opened over the page), and a
+       second subscription to one topic would be refused. */
+    const ch = db.channel(`kaju:mission:${id}:${Math.random().toString(36).slice(2, 10)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "nx_missions", filter: `id=eq.${id}` }, soon)
       .on("postgres_changes", { event: "*", schema: "public", table: "nx_mission_steps", filter: `mission_id=eq.${id}` }, soon)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "nx_mission_events", filter: `mission_id=eq.${id}` }, soon)
@@ -71,7 +72,7 @@ export const casesOf = (s: StepRow): FoundCase[] => {
   return Array.isArray(raw) ? raw.filter((c): c is Record<string, unknown> => !!c && typeof c === "object").map((c) => ({ id: String(c.id ?? ""), code: String(c.code ?? ""), title: String(c.title ?? "Case"), place: typeof c.place === "string" ? c.place : null, due: typeof c.due === "string" ? c.due : null })).filter((c) => c.id) : [];
 };
 
-/** The records, messages and drafts a mission made, read fresh whenever the mission changes, and every 20 seconds while
+/** The records, messages and drafts the work made, read fresh whenever the mission changes, and every 20 seconds while
     it is open, so a task someone finishes elsewhere shows as done here too. */
 export function useArtifacts(m: MissionRow | null | undefined) {
   const [a, setA] = useState<Artifacts>({ tasks: [], messages: [], outbox: [], people: new Map(), ready: false });
@@ -172,8 +173,9 @@ type Raw = {
   due: { week: "this week" | "next week"; n: number }[];
 };
 
-/** Read the sources Kaju watches, then turn each real finding into one line with the next step it can prepare. */
-export function useNoticed(org: Workspace | null, missions: MissionRow[] | null, appHref: (h: string) => string) {
+/** Read the sources Kaju watches, then turn each real finding into one line with the next step it can prepare. Kaju's
+    own work that waits for the person is not repeated here: it is listed under "Kaju's work", with its card. */
+export function useNoticed(org: Workspace | null, appHref: (h: string) => string) {
   const [raw, setRaw] = useState<Raw | null>(null);
   const [tick, setTick] = useState(0);
   useEffect(() => { const t = window.setInterval(() => { if (visible()) setTick((n) => n + 1); }, 60000); return () => window.clearInterval(t); }, []);
@@ -211,18 +213,8 @@ export function useNoticed(org: Workspace | null, missions: MissionRow[] | null,
   }, [orgId, ngo, tick]);
 
   return useMemo<Notice[] | null>(() => {
-    if (!org || !raw || !missions) return null;
+    if (!org || !raw) return null;
     const out: Notice[] = [];
-    for (const m of missions) {
-      const steps = [...m.nx_mission_steps].sort((x, y) => x.position - y.position);
-      const wait = steps.find((s) => s.state === "waiting_approval" || s.state === "waiting_person");
-      const failed = steps.find((s) => s.state === "failed");
-      const href = `/kaju/missions/${m.id}`;
-      if (m.state === "waiting_person" && wait?.state === "waiting_approval") out.push({ id: `a${m.id}`, tone: "warn", icon: "approval", title: `Waiting for your approval: ${wait.label}`, detail: `${m.title}${wait.why ? `. ${wait.why}` : ""}`, source: `Your missions · since ${since(wait.started_at ?? m.updated_at)}`, action: { kind: "link", label: "Review", href } });
-      else if (m.state === "waiting_person" && wait?.state === "waiting_person") out.push({ id: `p${m.id}`, tone: "warn", icon: "person", title: `Waiting for ${(DECIDER[wait.tool as keyof typeof DECIDER] ?? "A person").toLowerCase()}: ${wait.label}`, detail: `${m.title}. Kaju waits until it is marked done.`, source: `Your missions · since ${since(m.updated_at)}`, action: { kind: "link", label: "Open", href } });
-      else if (m.state === "blocked") out.push({ id: `b${m.id}`, tone: "bad", icon: "blocked", title: `Stopped: ${failed?.label ?? m.title}`, detail: `${m.title}. ${failed?.error ?? m.error ?? "A step failed"}. Nothing after it ran.`, source: "Your missions", action: { kind: "link", label: "Open to retry", href } });
-      if (m.deadline && Date.parse(m.deadline) < Date.now() && !["completed", "cancelled"].includes(m.state)) out.push({ id: `d${m.id}`, tone: "bad", icon: "deadline", title: `Past its finish-by date: ${m.title}`, detail: `It was to finish by ${since(m.deadline)}.`, source: "Your missions", action: { kind: "link", label: "Open", href } });
-    }
     if (raw.overdue.length) {
       const ids = [...new Set(raw.overdue.map((t) => t.assignee_id).filter((x): x is string => !!x))].slice(0, 50);
       const first = raw.overdue.slice(0, 2).map((t) => `${t.title}${t.assignee_name ? ` (${t.assignee_name})` : ""}`).join("; ");
@@ -243,5 +235,5 @@ export function useNoticed(org: Workspace | null, missions: MissionRow[] | null,
       out.push({ id: `c${f.rule}`, tone: f.rule === "overdue_followup" ? "bad" : "warn", icon: "check", title: plural(f.count, words[0], words[1]), detail: f.explanation ?? "", source: `Kaju's daily checks · ${ago(raw.check.at)}`, action: one ? { kind: "link", label: "Open the record", href: appHref(f.records![0].href!) } : { kind: "link", label: "See the checks", href: "/kaju/insights" } });
     }
     return out;
-  }, [org, raw, missions, appHref]);
+  }, [org, raw, appHref]);
 }

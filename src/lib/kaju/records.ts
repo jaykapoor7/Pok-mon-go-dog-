@@ -1,10 +1,10 @@
 import { TOOLS, validatePlan, type Plan } from "./registry";
 import { shortDate } from "./capabilities";
 
-/* Workrooms about a record. A mission handed to Kaju from a case, an animal or a package carries a link to that record
-   in its `request` (nx_missions.request.record: kind, id, label, workspace), so the workroom can say what it is about
-   and the record can list its workrooms. The link is a label, never a permission: the record is read again with the
-   person's own access wherever it is shown, and a mission is seen only by the person who started it (RLS).
+/* Kaju's work about a record. Work handed to Kaju from a case, an animal or a package carries a link to that record in
+   its `request` (nx_missions.request.record: kind, id, label, workspace), so its card can say what it is about and the
+   record can list it. The link is a label, never a permission: the record is read again with the person's own access
+   wherever it is shown, and the work is seen only by the person who asked for it (RLS).
 
    The starting points below are plans made by fixed rules from Kaju's real tools (registry.ts). No model is involved,
    nothing runs here, and each plan goes through the same review, validation and approval levels as any other. */
@@ -35,7 +35,7 @@ export function recordHref(l: Pick<RecordLink, "kind" | "id" | "ws">): string {
   return l.ws === "gov" ? `/gov/verification/${l.id}` : `/ngo/submissions/${l.id}`;
 }
 
-/** What a step will make, in a few words, for the room's roster and its live tiles. */
+/** What a step will make, in a few words. */
 export function makes(tool: string, input: Record<string, unknown> = {}): string {
   const ch = typeof input.channel === "string" && input.channel ? `#${input.channel}` : "a channel";
   switch (tool) {

@@ -38,7 +38,7 @@ export function PlanCard({ planned, onStart, onDiscard, busy, vocab, compact }: 
   const [editing, setEditing] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [deadline, setDeadline] = useState(planned.deadline ?? "");
-  /* The record the mission is about, if it came from one. The person can drop the link; it is only a label. */
+  /* The record the work is about, if it came from one. The person can drop the link; it is only a label. */
   const [record, setRecord] = useState<RecordLink | null>(planned.record ?? null);
   const seq = useRef(planned.plan.steps.length);
   const card = useRef<HTMLElement>(null);
@@ -71,9 +71,9 @@ export function PlanCard({ planned, onStart, onDiscard, busy, vocab, compact }: 
     <motion.section ref={card} className={`kj-plan ${compact ? "is-compact" : ""}`} aria-label="Plan to review" initial={calm ? { opacity: 0 } : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .24, ease: EASE }}>
       <header className="kj-plan-h">
         <p className="kj-eyebrow"><span className="kj-tag">Plan</span>Not started · {planned.planner === "model" ? "planned with a model" : "planned by fixed rules"}</p>
-        <input className="kj-plan-title" value={title} maxLength={240} onChange={(e) => setTitle(e.target.value)} aria-label="Mission title" />
+        <input className="kj-plan-title" value={title} maxLength={240} onChange={(e) => setTitle(e.target.value)} aria-label="What Kaju will do (title)" />
         {planned.text && planned.text.trim() !== title.trim() && !planned.record ? <p className="kj-plan-ask">You asked: “{planned.text}”</p> : null}
-        {record ? <p className="kj-plan-about"><span>About</span><span className="kr-chip is-static"><span className="kr-chip-k">{KIND_WORD[record.kind]}</span><span className="kr-chip-l">{record.label}</span></span><button type="button" className="kj-ib" aria-label={`Do not link this mission to ${record.label}`} title="Do not link it to this record" onClick={() => setRecord(null)}><X size={14} /></button></p>
+        {record ? <p className="kj-plan-about"><span>About</span><span className="kr-chip is-static"><span className="kr-chip-k">{KIND_WORD[record.kind]}</span><span className="kr-chip-l">{record.label}</span></span><button type="button" className="kj-ib" aria-label={`Do not link this to ${record.label}`} title="Do not link it to this record" onClick={() => setRecord(null)}><X size={14} /></button></p>
           : planned.record ? <p className="kj-plan-about"><span>Not linked to a record.</span><button type="button" className="kj-link" onClick={() => setRecord(planned.record ?? null)}>Link to {planned.record.label}</button></p> : null}
         <div className="kj-who" aria-label="Who does what">
           <span className="d-kaju"><span className="kj-duty-k" aria-hidden>K</span><b>{counts.kaju}</b> {counts.kaju === 1 ? "step" : "steps"} Kaju runs</span>
@@ -95,7 +95,7 @@ export function PlanCard({ planned, onStart, onDiscard, busy, vocab, compact }: 
                   <div className="kj-pstep-t"><b>{s.label}</b><DutyChip tool={s.tool} level={v.level} compact={compact} /></div>
                   <p className="kj-pstep-e">{effect(s.tool, cleanInput(s.input), names)}</p>
                   {dep ? <p className="kj-dep"><ArrowDownRight size={12} />Uses the list from step {dep}</p> : null}
-                  {v.level >= 9 ? <p className="kj-warn-l">Your organisation has switched this tool off, so the mission cannot start with it. Remove the step or ask a lead.</p> : null}
+                  {v.level >= 9 ? <p className="kj-warn-l">Your organisation has switched this tool off, so this cannot start with it. Remove the step or ask a lead.</p> : null}
                   <AnimatePresence initial={false}>{open ? (
                     <motion.div className="kj-pstep-edit" initial={calm ? { opacity: 0 } : { opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={calm ? { opacity: 0 } : { opacity: 0, height: 0 }} transition={{ duration: .22, ease: EASE }}>
                       <StepFields tool={s.tool} value={s.input} vocab={vocab} idBase={`kp-${s.key}`} onChange={(input) => change(s.key, input)} />
@@ -104,7 +104,7 @@ export function PlanCard({ planned, onStart, onDiscard, busy, vocab, compact }: 
                 </div>
                 <div className="kj-pstep-a">
                   {FIELDS[s.tool]?.length ? <button type="button" className="kj-ib" aria-label={`Change step ${i + 1}`} aria-expanded={open} onClick={() => setEditing(open ? null : s.key)}><Pencil size={14} /></button> : null}
-                  <button type="button" className="kj-ib" aria-label={`Remove step ${i + 1}`} disabled={steps.length < 2 || blocker >= 0} title={blocker >= 0 ? `Step ${blocker + 1} uses this step's list` : steps.length < 2 ? "A mission needs at least one step" : undefined} onClick={() => remove(i)}><Trash2 size={14} /></button>
+                  <button type="button" className="kj-ib" aria-label={`Remove step ${i + 1}`} disabled={steps.length < 2 || blocker >= 0} title={blocker >= 0 ? `Step ${blocker + 1} uses this step's list` : steps.length < 2 ? "A plan needs at least one step" : undefined} onClick={() => remove(i)}><Trash2 size={14} /></button>
                 </div>
               </motion.li>
             );
@@ -126,7 +126,7 @@ export function PlanCard({ planned, onStart, onDiscard, busy, vocab, compact }: 
         <p className="kj-plan-note">{off ? "A step uses a tool your organisation has switched off." : counts.you + counts.people ? `It stops ${counts.you + counts.people === 1 ? "once" : counts.you + counts.people === 2 ? "twice" : `${counts.you + counts.people} times`} for a person. ` : ""}Runs as you, with your permissions, and keeps going if you close this page.{deadline ? " You are told if it is not finished by then." : ""}</p>
         {!check.ok ? <p className="kj-err" role="alert">{plain(check.error)}</p> : null}
         <div className="kj-plan-go">
-          <button type="button" className="kj-btn" disabled={busy || off || !check.ok} onClick={start}>{busy ? <Loader2 size={14} className="nx-spin" /> : null}Start mission</button>
+          <button type="button" className="kj-btn" disabled={busy || off || !check.ok} onClick={start}>{busy ? <Loader2 size={14} className="nx-spin" /> : null}Start</button>
           <button type="button" className="kj-btn is-quiet" onClick={onDiscard}>Discard</button>
         </div>
       </footer>

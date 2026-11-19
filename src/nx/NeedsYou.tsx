@@ -10,6 +10,10 @@ import { getSupabase } from "@/lib/supabase";
 import { useLive } from "./live";
 import { appPath, useNotices } from "./collab";
 import { Sheet } from "./Phone";
+import { plainWords } from "@/lib/kaju/jobs";
+
+/* A notification about Kaju's work opens it over the page the person is on, rather than taking them away. */
+const inPlace = (h: string | null) => (h && h.startsWith("/kaju?job=") ? h.slice("/kaju".length) : h);
 import "./css/command.css";
 
 /* The bell. Not a feed of everything that happened: a short list of what is waiting on this person, read live
@@ -17,11 +21,11 @@ import "./css/command.css";
 
 type Item = { id: string; kind: "kaju" | "task" | "review"; title: string; detail: string; href: string; tone: "warn" | "bad" | "accent" };
 const SAMPLE: Item[] = [
-  { id: "s1", kind: "kaju", title: "Prepare the weekly ABC submission", detail: "Kaju is waiting for your approval", href: "/kaju", tone: "warn" },
+  { id: "s1", kind: "kaju", title: "Prepare the weekly ABC submission", detail: "Waiting for you", href: "/kaju", tone: "warn" },
   { id: "s2", kind: "task", title: "Injured street dog near the flower market", detail: "Needs assignment · due today", href: "/ngo/today", tone: "bad" },
 ];
 
-function useNeeds(): Item[] | null {
+function useNeeds(tick: number): Item[] | null {
   const live = useLive();
   const ngo = live.orgFor("ngo"), gov = live.orgFor("government");
   const [items, setItems] = useState<Item[] | null>(null);
@@ -38,7 +42,8 @@ function useNeeds(): Item[] | null {
           db.from("nx_missions").select("id,title").eq("org_id", ngo.org_id).eq("state", "waiting_person").limit(10),
           db.from("nx_tasks").select("id,title,due_on").eq("org_id", ngo.org_id).eq("state", "open").not("due_on", "is", null).lte("due_on", today).order("due_on").limit(10),
         ]);
-        for (const x of (m.data ?? []) as { id: string; title: string }[]) out.push({ id: `m${x.id}`, kind: "kaju", title: x.title, detail: "Kaju is waiting for your approval", href: "/kaju", tone: "warn" });
+        /* Kaju's work opens in place, over the page the person is on. */
+        for (const x of (m.data ?? []) as { id: string; title: string }[]) out.push({ id: `m${x.id}`, kind: "kaju", title: x.title, detail: "Waiting for you", href: `?job=${x.id}`, tone: "warn" });
         for (const x of (t.data ?? []) as { id: string; title: string; due_on: string }[]) out.push({ id: `t${x.id}`, kind: "task", title: x.title, detail: x.due_on < today ? `Overdue since ${new Date(x.due_on).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : "Due today", href: "/ngo/today", tone: x.due_on < today ? "bad" : "accent" });
       }
       if (gov?.source === "review_office") {
@@ -49,12 +54,13 @@ function useNeeds(): Item[] | null {
       if (alive) setItems(out);
     })();
     return () => { alive = false; };
-  }, [live.ready, live.org, ngo, gov]);
+  }, [live.ready, live.org, ngo, gov, tick]);
   return items;
 }
 
 export function NeedsYou() {
-  const items = useNeeds();
+  const [seen, setSeen] = useState(0);
+  const items = useNeeds(seen);
   const live = useLive();
   const notes = useNotices(!!live.org);
   const unread = (notes.rows ?? []).filter((x) => !x.read_at);
@@ -83,16 +89,16 @@ export function NeedsYou() {
             {live.org ? <>
               <p className="nx-needs-h">Notifications {unread.length ? <><span className="nx-count">{unread.length}</span><button type="button" className="nx-thread" style={{ marginLeft: "auto" }} onClick={() => void notes.markRead(null)}>Mark all read</button></> : null}</p>
               {notes.rows === null ? <p className="nx-needs-e">Reading…</p> : !notes.rows.length ? <p className="nx-needs-e">No notifications yet. Mentions, approvals and shared work appear here.</p> : (
-                <ul>{notes.rows.slice(0, 12).map((x) => { const href = appPath(x.href); const row = <><span className={`nx-needs-i t-${x.kind === "approval" ? "warn" : x.kind === "mention" ? "accent" : "accent"}`}>{x.kind === "approval" ? <ShieldCheck size={13} /> : <Bell size={13} />}</span><span><b style={{ fontWeight: x.read_at ? 500 : 650 }}>{x.title}</b><small>{x.body ? `${x.body} · ` : ""}{new Date(x.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</small></span></>;
+                <ul>{notes.rows.slice(0, 12).map((x) => { const href = inPlace(appPath(x.href)); const row = <><span className={`nx-needs-i t-${x.kind === "approval" ? "warn" : x.kind === "mention" ? "accent" : "accent"}`}>{x.kind === "approval" ? <ShieldCheck size={13} /> : <Bell size={13} />}</span><span><b style={{ fontWeight: x.read_at ? 500 : 650 }}>{plainWords(x.title)}</b><small>{x.body ? `${plainWords(x.body)} · ` : ""}{new Date(x.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</small></span></>;
                   return <li key={x.id}>{href ? <Link href={href} onClick={() => { setOpen(false); void notes.markRead([x.id]); }}>{row}</Link> : <button type="button" className="nx-needs-btn" onClick={() => void notes.markRead([x.id])}>{row}</button>}</li>; })}</ul>
               )}
               <p className="nx-needs-f"><Link href="/settings/notifications" onClick={() => setOpen(false)}>Notification settings</Link> · Email and push only if you turn them on.</p>
-            </> : <p className="nx-needs-f">Read live from records you can open. Kaju missions, tasks due, and decisions waiting.</p>}
+            </> : <p className="nx-needs-f">Read live from records you can open. Kaju&apos;s work waiting for you, tasks due, and decisions waiting.</p>}
     </>
   );
   return (
     <div className="nx-needs" ref={wrap}>
-      <button type="button" className={`nx-ib ${n ? "has-n" : ""}`} aria-label={n ? `${n} ${n === 1 ? "thing needs" : "things need"} you` : "Nothing needs you"} aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((o) => !o)} data-n={n || undefined}><Bell size={16} /></button>
+      <button type="button" className={`nx-ib ${n ? "has-n" : ""}`} aria-label={n ? `${n} ${n === 1 ? "thing needs" : "things need"} you` : "Nothing needs you"} aria-expanded={open} aria-haspopup="dialog" onClick={() => { if (!open) { setSeen((n) => n + 1); notes.reload(); } setOpen((o) => !o); }} data-n={n || undefined}><Bell size={16} /></button>
       {phone ? <Sheet open={open} onClose={shut} label="Needs you"><div className="nx-needs-s">{body(true)}</div></Sheet> : <AnimatePresence>
         {open ? (
           <motion.div role="dialog" aria-label="Needs you" className="nx-needs-p" initial={calm ? false : { opacity: 0, y: -6, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={calm ? { opacity: 0 } : { opacity: 0, y: -4 }} transition={SPRING.pop}>{body(false)}</motion.div>

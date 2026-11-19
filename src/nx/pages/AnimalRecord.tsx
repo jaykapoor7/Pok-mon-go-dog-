@@ -63,7 +63,7 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const cover = file && file !== "loading" && !("error" in file) ? file.dog.cover_photo : undefined;
   const readPhotos = useCallback(async () => { if (cover === undefined) return; setPhotos(null); const r = await readAnimalGallery(org.org_id, id, cover); setPhotos(r.error ? { error: errText(r.error) } : r.data ?? []); }, [org.org_id, id, cover]);
   useEffect(() => { void readPhotos(); }, [readPhotos]);
-  /* Handing this animal to Kaju: the plan, once started, carries a link back to it, and the record lists its workrooms. */
+  /* Handing this animal to Kaju: the plan, once started, carries a link back to it, and the record lists what Kaju is doing about it. */
   const okFile = file && file !== "loading" && !("error" in file) ? file : null;
   const link: RecordLink | null = okFile ? { kind: "animal", id: okFile.dog.id, label: animalLabel(okFile.dog).line, ws: "ngo" } : null;
   const handoff = useHandoff(link, org.org_id);

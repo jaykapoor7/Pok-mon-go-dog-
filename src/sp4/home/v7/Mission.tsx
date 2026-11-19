@@ -6,7 +6,7 @@ import { MissionPlay, type MissionStep } from "./MissionPlay";
 import "./mission.css";
 
 /* ════════════════════════════════════════════════════════════════════
-   One request becomes a mission: how Kaju coordinates work today. The
+   One request, prepared for your approval: how Kaju works today. The
    plan below is not written for the page: it is the plan StrayPaw's own
    fixed rules make for this request (planFromIntent), with each step's
    duty from the same registry the app uses (preview, duty). Only the
@@ -27,8 +27,8 @@ export function Mission() {
     <section className="s4-sec s9-mission" aria-labelledby="mission-title">
       <div className="s4-wrap s9-mission-in">
         <div className="s9-mission-copy">
-          <h2 id="mission-title" className="s4-h2">One request becomes a mission</h2>
-          <p>Kaju plans the steps and does the routine ones. Anything that changes several records waits for you.</p>
+          <h2 id="mission-title" className="s4-h2">One request, prepared for your approval</h2>
+          <p>Kaju plans the steps, does the routine ones and shows what each one made. Anything that changes several records waits for your approval.</p>
           <Link href="/ai" className="s7-link">How Kaju works <ArrowRight size={18} aria-hidden /></Link>
         </div>
         <MissionPlay request={REQUEST} title={plan.title} steps={steps} />

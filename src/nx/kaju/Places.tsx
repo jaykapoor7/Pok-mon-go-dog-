@@ -7,7 +7,7 @@ import "./workspace.css";
 /* Kaju's places, for screens where the sidebar is hidden (tablets and phones). Hidden on wide screens, where the
    sidebar lists the same places. */
 
-const PLACES: [string, string][] = [["/kaju", "Ask Kaju"], ["/kaju/missions", "Missions"], ["/kaju/approvals", "Approvals"], ["/kaju/automations", "Automations"], ["/kaju/insights", "Insights"], ["/kaju/history", "History"], ["/kaju/rules", "Rules"]];
+const PLACES: [string, string][] = [["/kaju", "Ask Kaju"], ["/kaju/automations", "Automations"], ["/kaju/insights", "Insights"], ["/kaju/history", "History"], ["/kaju/rules", "Rules"]];
 
 export function KajuPlaces() {
   const path = usePathname();

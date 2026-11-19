@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import type { Vocab } from "./intent";
+import { plainWords } from "@/lib/kaju/jobs";
 
 /* What Kaju's screens read. Every read goes through the person's own session, so row-level security decides. */
 
@@ -40,14 +41,14 @@ export type MissionRow = { id: string; org_id: string; title: string; state: str
 export type EventRow = { id: number; step_id: string | null; at: string; kind: string; message: string; data: Record<string, unknown> | null };
 
 export const MISSION = "id,org_id,title,state,source,created_at,updated_at,error,deadline,request,nx_mission_steps(id,position,label,tool,state,level,why,attempts,max_attempts,next_attempt_at,started_at,finished_at,error,result,input,approved_at,note)";
-/** The person's own missions, newest first. Polls gently while any is running or retrying. */
+/** The person's own work with Kaju (nx_missions), newest first. Polls gently while any is running or retrying. */
 export function useMissionList(orgId: string | null) {
   const [rows, setRows] = useState<MissionRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const reload = useCallback(() => setTick((n) => n + 1), []);
   useEffect(() => {
-    /* Missions belong to a person in an organisation: with no organisation there is nothing to read (and a signed-out
+    /* Kaju's work belongs to a person in an organisation: with no organisation there is nothing to read (and a signed-out
        read would only be refused). */
     const db = getSupabase(); if (!db || !orgId) return;
     let alive = true;
@@ -71,10 +72,12 @@ export function useMissionEvents(missionId: string | null, tick: unknown) {
   return rows;
 }
 
+/* The database's refusals are written inside its functions; they are shown in plain words (see lib/kaju/jobs.ts). */
+const plain = <T extends { error: { message: string } | null }>(r: T): T => (r.error ? ({ ...r, error: { ...r.error, message: plainWords(r.error.message) } } as T) : r);
 export const decideStep = async (step: string, decision: "approve" | "reject" | "done", input?: Record<string, unknown> | null, note?: string | null) =>
-  await getSupabase()!.rpc("nx_mission_decide", { p_step: step, p_decision: decision, p_input: input ?? null, p_note: note ?? null });
-export const retryMission = async (id: string) => await getSupabase()!.rpc("nx_mission_retry", { p_mission: id });
-export const cancelMission = async (id: string) => await getSupabase()!.rpc("nx_mission_cancel", { p_mission: id });
+  plain(await getSupabase()!.rpc("nx_mission_decide", { p_step: step, p_decision: decision, p_input: input ?? null, p_note: note ?? null }));
+export const retryMission = async (id: string) => plain(await getSupabase()!.rpc("nx_mission_retry", { p_mission: id }));
+export const cancelMission = async (id: string) => plain(await getSupabase()!.rpc("nx_mission_cancel", { p_mission: id }));
 /** Run what is due now, while the person is here. The scheduler runs it anyway when they are not. */
 export const runMine = async () => await getSupabase()!.rpc("nx_mission_run_mine");
 

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { ArrowRight, Keyboard, Mic, Plus } from "lucide-react";
+import { isOpen } from "@/lib/kaju/jobs";
 import { Shell } from "../Shell";
 import { KajuVoice } from "@/kaju/voice/KajuVoice";
 import { VOICE_OFFERED } from "@/kaju/voice/availability";
@@ -18,31 +18,34 @@ import { Thread } from "../kaju/Thread";
 import { KajuHistory, KeepingNote } from "../kaju/History";
 import { PlanCard } from "../kaju/Plan";
 import { Jobs } from "../kaju/Jobs";
-import { MissionCard } from "../kaju/MissionCard";
+import { JobGroups, useOpenJob } from "../kaju/JobCard";
 import { Capabilities, Noticed } from "../kaju/Noticed";
-import { Progress } from "../kaju/bits";
+import { StateDot } from "../kaju/bits";
 import { KajuPlaces } from "../kaju/Places";
 import { useKajuPrefs, useKajuVocab, useMissionList } from "../kaju/data";
 import { plannedFrom, useCapabilities, useNoticed, type Notice } from "../kaju/work";
 import { appHref, useKaju, type Planned } from "../kaju/state";
 import "../kaju/workspace.css";
+import "../kaju/jobs.css";
 import { DEMO_SITE } from "@/lib/demo-site";
 
-/* Kaju's home: one place to say what should get done. A request becomes a plan that says who does each step; Kaju runs
-   what it may, stops where a person decides, and keeps going across sessions. Under it, what Kaju noticed in the
-   organisation's own records as a short row of cards (three, the rest one click away), and at the foot what it can use
-   here as one line that opens; nothing grows into a side column. Signed out, everything shown is labelled sample. */
+/* Kaju's home: one place to say what should get done. A request becomes a plan that says who does each step; once
+   started, Kaju's work shows in the conversation as one card, runs what it may, stops where a person decides, and keeps
+   going across sessions. Under it, what Kaju noticed in the organisation's own records as a short row of cards (three,
+   the rest one click away), then what waits for you and what Kaju is working on as a short list (each opens its card),
+   and at the foot what it can use here as one line that opens. Finished work is kept in History. Signed out, everything
+   shown is labelled sample. */
 
 export function Kaju() {
   const k = useKaju();
   const live = useLive();
-  const router = useRouter();
+  const openJob = useOpenJob();
   const org = live.org;
   const vocab = useKajuVocab(org?.org_id ?? null, org?.workspace ?? null);
   const missions = useMissionList(org?.org_id ?? null);
   const { prefs } = useKajuPrefs(live.signedIn);
   const { caps, failed } = useCapabilities(!!org);
-  const notices = useNoticed(org, missions.rows, appHref);
+  const notices = useNoticed(org, appHref);
   const [planned, setPlanned] = useState<Planned | null>(null);
   const [busy, setBusy] = useState(false);
   const [acting, setActing] = useState<string | null>(null);
@@ -76,7 +79,8 @@ export function Kaju() {
   const start = async (p: Planned) => {
     if (!org) return;
     setBusy(true); const r = await k.start(org.org_id, p); setBusy(false);
-    if (r.id) { setStarted(true); setPlanned(null); missions.reload(); router.push(`/kaju/missions/${r.id}`); }
+    /* The work shows in the conversation, under the words that asked for it, and stays current while it runs. */
+    if (r.id) { setStarted(true); setPlanned(null); missions.reload(); k.addJob(r.id, p.text); }
     else toast({ text: r.error ?? "Not started.", tone: "bad" });
   };
   const act = async (n: Notice) => {
@@ -88,8 +92,7 @@ export function Kaju() {
   };
 
   const rows = missions.rows ?? [];
-  const open = rows.filter((m) => !["completed", "cancelled"].includes(m.state));
-  const recent = [...open, ...rows.filter((m) => ["completed", "cancelled"].includes(m.state)).slice(0, Math.max(0, 4 - open.length))].slice(0, 6);
+  const open = rows.filter((m) => isOpen(m.state));
   const pose = busy || k.busy ? "thinking" : started ? "success" : planned ? "explaining" : "sitting";
 
   return (
@@ -130,18 +133,18 @@ export function Kaju() {
             {/* What needs a person, under the request and its answer: three cards across, the rest one click away. */}
             <Noticed items={notices} sample={!org && (live.ready || !live.signedIn)} busy={acting} onAct={(n) => void act(n)} />
 
+            {/* What waits for you and what Kaju is working on, each opening its card over this page. */}
             <section className="kj-sec" aria-labelledby="kj-m">
-              <div className="kj-sec-h"><h2 id="kj-m">Missions</h2>{org && rows.length ? <Link href="/kaju/missions" className="kj-link">All missions<ArrowRight size={13} /></Link> : null}{!org ? <Sample /> : null}</div>
-              {org ? (missions.rows === null ? <div className="kj-skel is-tall" aria-label="Reading" /> : recent.length ? (
-                <ul className="kj-mcards">{recent.map((m) => <MissionCard key={m.id} m={m} />)}</ul>
-              ) : <p className="kj-quiet">No missions yet. Say what you want done above, or start from one of Kaju&apos;s jobs. Each mission gets a workroom where you can watch it happen.</p>)
-                : <ul className="kj-mcards">{MISSIONS.slice(0, 2).map((m) => (
-                  <li key={m.id} className={`kj-mcard t-${m.tone}`}><Link href="/kaju/missions" className="kj-mcard-in">
-                    <span className="kj-mcard-top"><span className={`kj-dot t-${m.tone}`} aria-hidden /><span className="kj-mcard-w">{m.state}</span></span>
-                    <b className="kj-mcard-h">{m.title}</b>
-                    <Progress steps={m.steps.map((s) => ({ state: s.state === "done" ? "done" : s.state === "wait" ? "waiting_approval" : s.state === "run" ? "running" : "todo" }))} />
-                    <span className="kj-mcard-now">{m.steps.find((s) => s.state !== "done")?.text ?? m.meta}</span>
-                  </Link></li>))}</ul>}
+              <div className="kj-sec-h"><h2 id="kj-m">Kaju&apos;s work</h2>{org && rows.length > open.length ? <Link href="/kaju/history" className="kj-link">Finished work<ArrowRight size={13} /></Link> : null}{!org ? <Sample /> : null}</div>
+              {org ? (missions.rows === null ? <div className="kj-skel" aria-label="Reading" /> : open.length ? (
+                <div className="kjb-list"><JobGroups rows={open} onOpen={openJob} idBase="kj-m" /></div>
+              ) : <p className="kj-quiet">Nothing in progress. Say what you want done above, or start from one of Kaju&apos;s jobs: you see the plan first, then Kaju&apos;s work shows right here in the conversation.</p>)
+                : <div className="kjb-group"><ul>{MISSIONS.slice(0, 2).map((m) => (
+                  <li key={m.id}><Link href="/try" className={`kjb-row t-${m.tone}`} title="Opens the live demo, where this works">
+                    <StateDot state={m.tone === "warn" ? "waiting_person" : "running"} />
+                    <span className="kjb-row-b"><b>{m.title}</b><small>{m.tone === "warn" ? `Waiting for your approval: ${m.steps.find((s) => s.state === "wait")?.text ?? ""}` : m.steps[0]?.text ?? m.meta}</small></span>
+                    <time>{m.meta.split(" · ")[0]}</time>
+                  </Link></li>))}</ul></div>}
             </section>
 
             <div className="kj-foot">

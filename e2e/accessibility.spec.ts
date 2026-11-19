@@ -10,7 +10,7 @@ const PAGES = [
   "/gov/overview", "/gov/verification", "/gov/surveillance",
   "/health/today", "/health/pep", "/health/referrals", "/health/samples",
   "/research/datasets", "/research/explore",
-  "/kaju", "/kaju/missions", "/kaju/automations", "/channels/abc-ward-12", "/start",
+  "/kaju", "/kaju/history", "/kaju/automations", "/channels/abc-ward-12", "/start",
   "/", "/community/report", "/sign-in",
 ];
 

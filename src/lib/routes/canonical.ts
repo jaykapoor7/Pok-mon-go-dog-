@@ -4,6 +4,8 @@
    stored link is shown; new code writes the current addresses directly. Query strings are kept unless the new page
    uses a different one. */
 
+import { jobTarget } from "../kaju/jobs";
+
 type Rule = [RegExp, string | ((m: RegExpMatchArray) => string)];
 
 const RULES: Rule[] = [
@@ -64,6 +66,8 @@ const RULES: Rule[] = [
   [/^\/workspace(?:\/[^/?#]+)?(?=$|[?#])/, "/health/today"],
   /* Kaju and the start of the day */
   [/^\/assistant(?=$|[?#])/, "/kaju"],
+  /* Kaju's work no longer has pages of its own: an old link to one (notifications carry them) opens it over Kaju's home. */
+  [/^\/kaju\/(?:missions|approvals)(?:\/[^/?#]*)?\/?(?:\?[^#]*)?/, (m) => jobTarget(m[0])],
   [/^\/today(?=$|[?#])/, "/home"],
 ];
 

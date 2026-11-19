@@ -1,0 +1,117 @@
+/* Kaju's work as one calm card (JobCard.tsx): in the conversation, on a record, and over any page. A soft fill marks
+   the card; hairlines divide its rows; nothing floats but the dialog that holds it. The state is a dot and a word, the
+   steps a quiet checklist, what was made small rows, and an approval one plain panel with one primary action.
+   Type 12/14/16; spacing 4/8/12/16/24; radius 8/12/16. Both themes come from the app's tokens. */
+
+.nx .kjb { display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: var(--kj-fill); color: var(--ink); font-size: 14px; line-height: 1.5; min-width: 0; }
+.nx .kjb :where(h3, p, ol, ul) { margin: 0; }
+.nx .kjb.is-note { gap: 8px; color: var(--ink-2); }
+.nx .kjb.is-note b { color: var(--ink); font-weight: 600; }
+.nx .kjb.is-full { padding: 0; background: none; }
+
+/* Head: state, title, what it is doing now, the record it is about */
+.nx .kjb-h { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; align-items: start; }
+.nx .kjb-state { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; color: var(--ink-3); }
+.nx .kjb-state b { font-weight: 600; color: var(--ink-2); }
+.nx .kjb.t-warn .kjb-state b { color: var(--warn); }
+.nx .kjb.t-bad .kjb-state b { color: var(--bad); }
+.nx .kjb.t-ok .kjb-state b { color: var(--ok); }
+.nx .kjb-open { grid-column: 2; grid-row: 1 / span 2; margin: -4px -4px 0 0; }
+.nx .kjb-t { grid-column: 1; font-size: 16px; line-height: 1.4; font-weight: 600; letter-spacing: -.008em; overflow-wrap: anywhere; }
+.nx .kjb.is-full .kjb-t { font-size: 20px; }
+.nx .kjb-now { grid-column: 1 / -1; color: var(--ink-2); font-size: 14px; }
+.nx .kjb-now .is-late { color: var(--bad); }
+.nx .kjb-about { grid-column: 1 / -1; margin-top: 4px; }
+
+/* Steps: one quiet line each */
+.nx .kjb-steps { list-style: none; padding: 0; display: grid; }
+.nx .kjb-steps li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 40px; padding: 4px 0; border-top: 1px solid var(--line); }
+.nx .kjb-steps li:first-child { border-top: 0; }
+.nx .kjb-steps .kj-glyph { width: 24px; height: 24px; }
+.nx .kjb-step-t { overflow-wrap: anywhere; }
+.nx .kjb-steps li.s-todo .kjb-step-t, .nx .kjb-steps li.s-skipped .kjb-step-t, .nx .kjb-steps li.s-cancelled .kjb-step-t { color: var(--ink-3); }
+.nx .kjb-step-w { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.nx .kjb-steps li.s-waiting_approval .kjb-step-w, .nx .kjb-steps li.s-waiting_person .kjb-step-w, .nx .kjb-steps li.s-retrying .kjb-step-w { color: var(--warn); font-weight: 500; }
+.nx .kjb-steps li.s-failed .kjb-step-w { color: var(--bad); font-weight: 500; }
+
+/* What it made: the artifacts keep their own rows; inside the card they sit on the page colour */
+.nx .kjb-out:empty { display: none; }
+.nx .kjb-out > .kj-art:first-child, .nx .kjb-out > .kj-result:first-child { margin-top: 0; }
+.nx .kjb .kj-rows, .nx .kjb .kj-tasks, .nx .kjb .kj-msg, .nx .kjb .kj-mail, .nx .kjb .kj-note { background: var(--bg); }
+.nx .kjb .kj-row:hover { background: var(--hover); }
+.nx .kjb.is-full .kj-rows, .nx .kjb.is-full .kj-tasks, .nx .kjb.is-full .kj-msg, .nx .kjb.is-full .kj-mail, .nx .kjb.is-full .kj-note { background: var(--kj-fill); }
+.nx .kjb.is-full .kj-row:hover { background: var(--bg); }
+
+/* Waiting for the person: what approving changes, then Approve */
+.nx .kjb-ask { padding: 16px; border-radius: 12px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-2); }
+.nx .kjb.is-full .kjb-ask { background: var(--kj-fill); box-shadow: none; }
+.nx .kjb-ask-h { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.nx .kjb-ask-h svg { color: var(--warn); flex: none; }
+.nx .kjb-ask-why { margin-top: 4px; color: var(--ink-2); font-size: 14px; }
+.nx .kjb-ask .kj-change { padding: 12px 0 0; background: none; border-radius: 0; }
+.nx .kjb-ask .kj-field { margin-top: 12px; }
+.nx .kjb-ask-a { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+.nx .kjb-ask-a .kj-link { margin-left: 4px; }
+
+.nx .kjb-bad { color: var(--bad); font-size: 14px; overflow-wrap: anywhere; }
+.nx .kjb-f { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.nx .kjb-stop { color: var(--ink-2); font-size: 12px; }
+.nx .kjb-stop:hover { color: var(--bad); }
+.nx .kjb-again .kj-plan { margin: 0; }
+
+/* Everything that happened: closed by default, in the opened view only */
+.nx .kjb-log { border-top: 1px solid var(--line); padding-top: 12px; }
+.nx .kjb-log > summary { display: flex; align-items: center; gap: 4px; min-height: 40px; cursor: pointer; color: var(--ink-2); font-size: 14px; font-weight: 500; list-style: none; }
+.nx .kjb-log > summary::-webkit-details-marker { display: none; }
+.nx .kjb-log > summary::before { content: ""; width: 8px; height: 8px; margin-right: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .16s var(--kj-ease); }
+.nx .kjb-log[open] > summary::before { transform: rotate(45deg); }
+.nx .kjb-log > summary:hover { color: var(--ink); }
+.nx .kjb-log ol { list-style: none; padding: 0; display: grid; margin: 4px 0 12px; }
+.nx .kjb-log li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.nx .kjb-log li p { overflow-wrap: anywhere; }
+.nx .kjb-log time { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+
+/* The opened view, in a dialog or a phone sheet */
+.nx .kjb-sheet { min-width: 0; }
+.nx .nx-dlg.is-wide .kjb-sheet { width: min(640px, calc(100vw - 96px)); }
+
+/* Short lists on a record and on Kaju's home: "Waiting for you", "Kaju is working on" */
+.nx .kjb-list { display: grid; gap: 16px; }
+.nx .kjb-group ul { list-style: none; margin: 0; padding: 4px; display: grid; gap: 0; border-radius: 12px; background: var(--kj-fill); }
+.nx .kjb-group-h { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--ink-2); font-size: 12px; font-weight: 600; }
+.nx .kjb-row { width: 100%; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 48px; padding: 8px 12px; border-radius: 8px; text-align: left; color: var(--ink); transition: background .14s var(--kj-ease); }
+.nx .kjb-row:hover { background: var(--bg); }
+.nx .kjb-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.nx .kjb-row-b { display: grid; min-width: 0; }
+.nx .kjb-row-b b { font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx .kjb-row-b small { color: var(--ink-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx .kjb-row.t-warn .kjb-row-b small { color: var(--warn); }
+.nx .kjb-row.t-bad .kjb-row-b small { color: var(--bad); }
+.nx .kjb-row time { color: var(--ink-3); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nx .kjb-more { margin: 8px 0 0; color: var(--ink-3); font-size: 12px; }
+
+/* In the conversation: the card sits in Kaju's column, under the words that asked for it */
+.nx .nx-kturn.is-job > .kjb { margin-left: 32px; }
+.nx .nx-kthread.is-compact .nx-kturn.is-job > .kjb { margin-left: 0; }
+
+@media (max-width: 640px) {
+  .nx .kjb { padding: 12px; }
+  .nx .kjb.is-full { padding: 0; }
+  .nx .kjb-t { font-size: 16px; }
+  .nx .kjb.is-full .kjb-t { font-size: 20px; }
+  .nx .kjb-steps li { grid-template-columns: 24px minmax(0, 1fr); gap: 4px 12px; padding: 8px 0; }
+  .nx .kjb-step-w { grid-column: 2; white-space: normal; }
+  .nx .kjb-ask { padding: 12px; }
+  /* Approving on a phone: one full-width action within thumb reach, Reject beside the smaller links under it. */
+  .nx .kjb-ask-a .kj-btn { flex: 1 1 120px; min-height: 44px; }
+  .nx .kjb-ask-a .kj-btn:first-child { flex: 1 1 100%; height: 48px; font-size: 16px; }
+  .nx .kjb-ask-a .kj-link, .nx .kjb-stop, .nx .kjb-open { min-height: 44px; }
+  .nx .kjb-open { width: 44px; height: 44px; }
+  .nx .kjb-row { min-height: 56px; }
+  .nx .nx-kturn.is-job > .kjb { margin-left: 0; }
+  .nx .nx-dlg.is-wide .kjb-sheet { width: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx .kjb-log > summary::before, .nx .kjb-row { transition: none; }
+}

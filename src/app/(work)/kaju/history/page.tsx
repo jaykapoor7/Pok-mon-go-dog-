@@ -1,4 +1,4 @@
 import type { Metadata } from "next";
-import { Missions } from "@/nx/pages/Missions";
+import { KajuHistoryPage } from "@/nx/pages/KajuHistory";
 export const metadata: Metadata = { title: "History, Kaju, StrayPaw" };
-export default function Page() { return <Missions view="history" />; }
+export default function Page() { return <KajuHistoryPage />; }

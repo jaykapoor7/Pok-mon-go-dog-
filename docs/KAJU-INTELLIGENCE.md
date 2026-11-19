@@ -10,8 +10,8 @@ while building or testing this. Every model response in the tests is a fixture.
 
 Kaju already had a real engine (`src/sp3/ai/engine.ts`): about 40 record tools that read with the person's own
 Supabase session (row-level security decides), a deterministic router that answers without a model, a Claude tool-use
-loop behind a fail-closed gate (`src/lib/ai/inference.ts`), proposals that save only on Confirm, missions with approval
-levels (`nx_kaju_tools`, `nx_kaju_policies`), automations, deterministic operational checks, Kaju Voice and a usage
+loop behind a fail-closed gate (`src/lib/ai/inference.ts`), proposals that save only on Confirm, work in several steps with
+approval levels (`nx_kaju_tools`, `nx_kaju_policies`), automations, deterministic operational checks, Kaju Voice and a usage
 ledger. The audit found these gaps, now closed:
 
 | Gap found | Now |
@@ -28,6 +28,39 @@ ledger. The audit found these gaps, now closed:
 | No feedback or pilot measurement. | One-tap rating, optional reason or time saved, a turn log with no text, and aggregates for leads and the owner. |
 
 ## 2. Architecture
+
+### Kaju's work in several steps (no "missions", 18 November 2026)
+
+A request that takes several steps (find the cases due a follow-up, create a task for each after approval, tell
+#field-operations) is still one row in `nx_missions` with its steps in `nx_mission_steps`, run by the same tick, with
+the same approvals, retries, idempotency keys, audit trail (`nx_mission_events`), realtime updates and `/api/kaju/*`
+routes. What changed is only what people see and where they are sent:
+
+- **One card, where it was asked** (`src/nx/kaju/JobCard.tsx`, styles `jobs.css`): the state in a word ("Kaju is
+  working", "Waiting for you", "Done", "Stopped"), what Kaju is doing in one line, the steps as a quiet checklist with
+  their real state, the real outputs as small rows (cases found, tasks made with live ticks, the posted message, a
+  prepared email with its true delivery state) and, when a step waits for the person, what approving changes with one
+  Approve and a Reject (and "Change first" where the step can be edited). The plan is still reviewed inline before
+  anything starts.
+- **In the conversation** on Kaju's page and in the panel: Start adds the request and its card to the conversation
+  (`useKaju().addJob`), kept current while it runs. Job turns are never sent to the model.
+- **On the record** it is about (case, animal, package): "With Kaju" lists "Waiting for you" and "Kaju is working on"
+  (`RecordWorkrooms` in `records.tsx`); each row opens the card over the record. Handing a record to Kaju opens the new
+  card over the record instead of leaving the page.
+- **Over any page**: `?job=<id>` on any address opens the card (a dialog on wide screens, a sheet on a phone;
+  `JobWatch.tsx`). Needs you (the bell), the notifications in it, Today's "Waiting for you in Kaju" strip and Kaju's
+  History all open it this way, in place.
+- **History**: `/kaju/history` lists saved conversations and finished or stopped work; each opens the same card, with
+  "Everything that happened" (the event trail) and "Do it again".
+- **Redirects**: `/kaju/missions`, `/kaju/missions/<id>`, `/kaju/approvals` and their `?m=<id>` forms (which database
+  notifications still carry) redirect to `/kaju?job=<id>` or `/kaju` (`jobTarget` in `src/lib/kaju/jobs.ts`, also in
+  `canonicalHref`). They are no longer in the sidebar, the phone menu or Kaju's places.
+- **Words**: no "mission", "workroom" or "room" anywhere a person reads. Strings the database still writes (event
+  lines, a few refusals, notification titles and links) are shown through `plainWords` until the proposed migration
+  `supabase/proposed/2026-11-18-kaju-plain-words.sql` is applied.
+- Removed: the workroom page with its "New room" roster, the Steps/Live grid switch, the activity column and the
+  closing summary; the missions list and the approvals list.
+
 
 One orchestrator, many small tools. No fine-tuning, no embeddings, no background agents.
 
@@ -53,7 +86,7 @@ Kaju panel (⌘J, every page) / Kaju page / @Kaju boxes / record "Tell Kaju" / V
 ```
 
 Consequential work never runs from a chat answer: it is a proposal the person confirms (`confirm.ts`, audit row in
-`ai_action_log`), or a mission step whose autonomy level comes from the database (`nx_tool_level`), where clinical,
+`ai_action_log`), or a step of Kaju's work whose autonomy level comes from the database (`nx_tool_level`), where clinical,
 laboratory, verification, payment and data-access decisions are level 4 (a person only).
 
 ### The paid-model gate (all must hold, otherwise fixed rules answer)
@@ -65,7 +98,7 @@ laboratory, verification, payment and data-access decisions are level 4 (a perso
 4. An active grant in `kaju_ai_access` for the person or their organisation, with budget left this month and requests
    left today.
 5. The deployment-wide monthly ceiling not reached; per-instance concurrency free.
-6. `STRAYPAW_AI_APPROVED_DATA_ROUTE` names exactly the transport and model in use (chat **and** the mission planner).
+6. `STRAYPAW_AI_APPROVED_DATA_ROUTE` names exactly the transport and model in use (chat **and** the planner for work in several steps).
 7. A confirmed email or phone on the account, in every rollout mode.
 8. **A reservation.** Before any model call the server reserves the answer's whole allowance with
    `kaju_ai_reserve`, which re-checks the switch, grants, daily caps, budgets and ceiling under one database-wide
@@ -96,9 +129,9 @@ estimate is approximate. Set a spend limit in the Anthropic Console as well; tha
 | Researchers | Aggregate questions, data-access explanation | as above |
 | Public | Bite help (its own switch), public programme figures | Bite help only with `STRAYPAW_BITE_AI` set |
 
-Connected Gmail, Outlook, Calendar, Drive and Slack actions, email from missions, push and email notifications work as
+Connected Gmail, Outlook, Calendar, Drive and Slack actions, email from Kaju, push and email notifications work as
 before and show "Not connected" until their owner steps are done (`docs/rebuild/OWNER_ACTIONS.md`). WhatsApp and SMS
-from missions remain **not connected**: Kaju prepares the message; nothing is sent.
+from Kaju remain **not connected**: Kaju prepares the message; nothing is sent.
 
 ## 4. Your first live test (owner only)
 
@@ -182,7 +215,7 @@ removed with `select public.kaju_threads_purge();` (service role).
 | `npm run test:kaju-context` (new) | 14: record starters route correctly, notes on the open case, package checks on today's addresses, Hindi = English routing, org procedures (drafts/expired/revoked/other orgs excluded), no invented procedure, "how do we…" keeps existing fixed answers |
 | `npm run test:db` | +57 checks on real Postgres (PGlite) **with Supabase's default privileges applied**: switch unreadable and unwritable, no self-grants, reservations server-only and counted against budgets before settling, usage recorded against the right organisation, owner-only stop, conversations private, unmovable between organisations and hidden after leaving, health conversations refused, turn logs server-only, feedback only on one's own answers and never movable, aggregates only for admins/leads/owner, comments without name or time, rollback removes only what the migration added and re-applies cleanly |
 | `e2e/kaju-intelligence.spec.ts` (new) | Blocks drawn with axe WCAG 2 AA clean, blanks send the finished sentence, rating flows, no sideways scroll at 390, 768 and 1440 px, phone and desktop projects |
-| Existing | All 44 unit scripts, 287 DB checks and 282 e2e tests in the Kaju, mission, accessibility, keyboard, records and gov/health specs pass |
+| Existing | All 44 unit scripts, 287 DB checks and 282 e2e tests in the Kaju, accessibility, keyboard, records and gov/health specs pass |
 
 Not tested here: anything signed in against a real database (the e2e answers are fixtures), the migration on staging
 or production, real model behaviour, and email/WhatsApp delivery.
@@ -199,6 +232,6 @@ or production, real model behaviour, and email/WhatsApp delivery.
 - A member of both an NGO and a health facility who asks about a patient outside the health pages could have that
   question saved in their own conversation history (only they can read it). Health pages are never saved.
 - Answers by fixed rules are in English even when the question is in Hindi; Hindi replies need the model.
-- WhatsApp, SMS, and email from missions need the owner steps in `docs/rebuild/OWNER_ACTIONS.md`.
-- Future autonomy: approved missions already run within tool levels; scheduled or event-driven model use is not
+- WhatsApp, SMS, and email from Kaju need the owner steps in `docs/rebuild/OWNER_ACTIONS.md`.
+- Future autonomy: approved work already runs within tool levels; scheduled or event-driven model use is not
   enabled and would need its own grant type and limits.

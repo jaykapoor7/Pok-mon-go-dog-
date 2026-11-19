@@ -15,7 +15,9 @@ import { isAiReply } from "@/sp3/ai/validation";
 /* What went wrong with a turn decides what the person can do next: try again, or sign in again. */
 export type TurnError = "incomplete" | "timeout" | "stopped" | "expired" | "failed";
 export type Turn = { id: string; role: "user" | "kaju"; text: string; reply?: AiReply; pending?: boolean; progress?: string[]; error?: string; kind?: TurnError; saved?: Record<string, Saved>;
-  /** The person's rating of this answer (pilot feedback). */ rated?: 1 | -1; restored?: boolean };
+  /** The person's rating of this answer (pilot feedback). */ rated?: 1 | -1; restored?: boolean;
+  /** Work Kaju started from this conversation (an nx_missions id): the request and Kaju's card for it, shown where it
+      was asked. Kept out of what is sent to the model. */ job?: string };
 /** A saved conversation, newest first. */
 export type ThreadSummary = { id: string; title: string; updated_at: string };
 /** Whether this conversation is kept: "on" saved to the person's history; "health" and "guest" stay in this tab only. */
@@ -27,8 +29,8 @@ export type PlanStepView = { n: number; label: string; tool: string; level: numb
 /** The record open on the page. Ids are hints only: the server reads the record again with the person's own access. */
 export type KajuSubject = { caseId?: string | null; dogId?: string | null; packageId?: string | null; label?: string | null; kind?: "case" | "animal" | "package" | "programme" | "mission" | "exposure" | "sample"; ws?: "ngo" | "gov" };
 export type KajuPage = { path: string; title?: string } & KajuSubject;
-/** `record`: the case, animal or package the mission is about, kept in the mission's request so the workroom and the
-    record can find each other. A label only; the person can remove it before starting. */
+/** `record`: the case, animal or package the work is about, kept in its request so the record can list it and its
+    card can link back. A label only; the person can remove it before starting. */
 export type Planned = { plan: Plan; steps: PlanStepView[]; planner: string; key: string; text: string; levels: Record<string, number>; deadline?: string | null; record?: RecordLink | null };
 type Ctx = {
   turns: Turn[]; busy: boolean; open: boolean; setOpen: (o: boolean) => void; page: KajuPage;
@@ -41,6 +43,8 @@ type Ctx = {
   rate: (turnId: string, f: Feedback) => Promise<boolean>;
   plan: (orgId: string, text: string, intent: Intent | null) => Promise<{ ok: true; planned: Planned } | { ok: false; error: string; noModel?: boolean }>;
   start: (orgId: string, p: Planned) => Promise<{ id?: string; error?: string }>;
+  /** Put work Kaju just started into the conversation, under the words that asked for it. */
+  addJob: (id: string, text: string) => void;
   confirm: (turnId: string, p: Proposal) => Promise<Saved>;
 };
 const KajuCtx = createContext<Ctx | null>(null);
@@ -141,7 +145,7 @@ export function KajuProvider({ children }: { children: ReactNode }) {
   const ask = useCallback(async (text: string, opts?: { retry?: boolean }) => {
     const q = text.trim(); if (!q || busy || expired) return;
     const uid = `u${Date.now()}`, kid = `k${Date.now()}`;
-    const history = [...turns, { id: uid, role: "user" as const, text: q }].filter((t) => !t.error).slice(-12).map((t) => ({ role: t.role === "user" ? "user" : "assistant", text: t.role === "user" ? t.text : t.reply?.text ?? t.text }));
+    const history = [...turns, { id: uid, role: "user" as const, text: q }].filter((t) => !t.error && !("job" in t && t.job)).slice(-12).map((t) => ({ role: t.role === "user" ? "user" : "assistant", text: t.role === "user" ? t.text : t.reply?.text ?? t.text }));
     setTurns((ts) => [...ts, { id: uid, role: "user", text: q }, { id: kid, role: "kaju", text: "", pending: true, progress: [] }]);
     setBusy(true);
     ctrl.current?.ac.abort();
@@ -203,7 +207,7 @@ export function KajuProvider({ children }: { children: ReactNode }) {
   }, [turns, ask]);
 
   const plan = useCallback(async (orgId: string, text: string, intent: Intent | null) => {
-    const t = await token(); if (!t) return { ok: false as const, error: "Sign in to plan missions." };
+    const t = await token(); if (!t) return { ok: false as const, error: "Sign in to hand Kaju work." };
     const res = await fetch("/api/kaju/plan", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ orgId, text, intent, page }) });
     const j = await res.json().catch(() => ({})) as { ok?: boolean; error?: string; plan?: Plan; steps?: PlanStepView[]; planner?: string; levels?: Record<string, number>; model?: boolean };
     if (!res.ok || !j.ok || !j.plan || !j.steps) return { ok: false as const, error: j.error ?? "Kaju could not plan this. Nothing was started.", noModel: j.model === false };
@@ -214,7 +218,12 @@ export function KajuProvider({ children }: { children: ReactNode }) {
     const t = await token(); if (!t) return { error: "Sign in again." };
     const res = await fetch("/api/kaju/missions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` }, body: JSON.stringify({ orgId, plan: p.plan, key: p.key, request: { text: p.text.slice(0, 2000), planner: p.planner, ...(p.record ? { record: p.record } : {}) }, ...(p.deadline ? { deadline: `${p.deadline}T23:59:00+05:30` } : {}) }) });
     const j = await res.json().catch(() => ({})) as { id?: string; error?: string };
-    return res.ok && j.id ? { id: j.id } : { error: j.error ?? "The mission could not be started." };
+    return res.ok && j.id ? { id: j.id } : { error: j.error ?? "Kaju could not start this. Nothing was changed." };
+  }, []);
+
+  const addJob = useCallback((id: string, text: string) => {
+    const at = Date.now(); const q = text.replace(/\s+/g, " ").trim();
+    setTurns((ts) => ts.some((t) => t.job === id) ? ts : [...ts, ...(q ? [{ id: `j${at}u`, role: "user" as const, text: q, job: id }] : []), { id: `j${at}k`, role: "kaju" as const, text: "", job: id }]);
   }, []);
 
   const confirm = useCallback(async (turnId: string, p: Proposal) => {
@@ -261,8 +270,8 @@ export function KajuProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(() => ({ turns, busy, open, setOpen, page, setPage, setSubject, ask,
     /* A new conversation: the screen is cleared and the next question starts a new saved conversation. */
     clear: () => { const c = ctrl.current; if (c) { c.why = null; c.ac.abort(); ctrl.current = null; } setBusy(false); setTurns([]); thread.current = null; setThreadId(null); },
-    stop, retry, expired, plan, start, confirm, threadId, keeping: keep.keeping, history, loadHistory, resume, forget, rate }),
-  [turns, busy, open, page, setPage, setSubject, ask, stop, retry, expired, plan, start, confirm, threadId, keep.keeping, history, loadHistory, resume, forget, rate]);
+    stop, retry, expired, plan, start, addJob, confirm, threadId, keeping: keep.keeping, history, loadHistory, resume, forget, rate }),
+  [turns, busy, open, page, setPage, setSubject, ask, stop, retry, expired, plan, start, addJob, confirm, threadId, keep.keeping, history, loadHistory, resume, forget, rate]);
   return <KajuCtx.Provider value={value}>{children}</KajuCtx.Provider>;
 }
 

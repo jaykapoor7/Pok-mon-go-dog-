@@ -10,8 +10,9 @@ import { recordHref } from "@/lib/kaju/records";
 import type { StepRow } from "./data";
 import { casesOf, type Artifacts, type FoundCase, type OutboxArt, type TaskArt } from "./work";
 import { when } from "./bits";
+import { plainWords } from "@/lib/kaju/jobs";
 
-/* The things a mission made, shown as what they are: the cases it found as rows that open the record, the tasks it
+/* The things Kaju made, shown as what they are: the cases it found as rows that open the record, the tasks it
    created with their live state, the message it posted as it reads in the channel, and a prepared email with its true
    delivery state. Nothing here is a summary Kaju wrote about itself; every line is read from the record. */
 
@@ -91,9 +92,9 @@ export function EmailDraft({ to, subject, body, channel, out, waiting, emailLive
       <div className="kj-mail">
         <dl><dt>To</dt><dd>{to}</dd>{subject ? <><dt>Subject</dt><dd>{subject}</dd></> : null}</dl>
         <p className="kj-mail-b">{body}</p>
-        <p className={`kj-deliv t-${tone}`}><span className="kj-dot-s" aria-hidden />{word}{out?.last_error && out.status !== "sent" ? `: ${out.last_error}` : ""}</p>
-        {channel !== "email" ? <p className="kj-quiet">Missions do not send {channel === "sms" ? "text messages" : "WhatsApp messages"} yet, so this stays here.</p>
-          : emailLive === false && out?.status !== "sent" ? <p className="kj-quiet">Email from missions needs the owner&apos;s setup on this deployment. Until then an approved email waits and is marked not connected.</p> : null}
+        <p className={`kj-deliv t-${tone}`}><span className="kj-dot-s" aria-hidden />{word}{out?.last_error && out.status !== "sent" ? `: ${plainWords(out.last_error)}` : ""}</p>
+        {channel !== "email" ? <p className="kj-quiet">Kaju does not send {channel === "sms" ? "text messages" : "WhatsApp messages"} yet, so this stays here.</p>
+          : emailLive === false && out?.status !== "sent" ? <p className="kj-quiet">Email from Kaju needs the owner&apos;s setup on this deployment. Until then an approved email waits and is marked not connected.</p> : null}
       </div>
     </div>
   );
@@ -109,8 +110,8 @@ export function Notified({ ids, title, people }: { ids: string[]; title: string;
   );
 }
 
-/** What one step produced, read from the records, for the step's place in the workroom. */
-export function StepArtifacts({ s, steps, art, emailLive, onTask }: { s: StepRow; steps: StepRow[]; art: Artifacts; emailLive?: boolean | null; onTask?: OnTask }) {
+/** What one step produced, read from the records, for its place in Kaju's card. */
+export function StepArtifacts({ s, steps, art, emailLive, onTask, more }: { s: StepRow; steps: StepRow[]; art: Artifacts; emailLive?: boolean | null; onTask?: OnTask; more?: number }) {
   const r = s.result ?? {};
   const tool = s.tool ?? "";
   if (tool === "find_due_followups" || tool === "find_overdue_cases" || tool === "read_cases") {
@@ -119,9 +120,9 @@ export function StepArtifacts({ s, steps, art, emailLive, onTask }: { s: StepRow
     const found = typeof r.found === "number" ? r.found : cases.length;
     const already = typeof r.already_open === "number" ? r.already_open : 0;
     if (!found) return <p className="kj-result">Found no {tool === "find_overdue_cases" ? "overdue cases" : "cases needing a follow-up"}{already ? `; ${already} already ${already === 1 ? "has" : "have"} an open follow-up` : ""}.</p>;
-    return <CaseRows cases={cases} label={`Found ${found} ${found === 1 ? "case" : "cases"}${already ? ` · ${already} already had an open follow-up, left alone` : ""}`} />;
+    return <CaseRows cases={cases} label={`Found ${found} ${found === 1 ? "case" : "cases"}${already ? ` · ${already} already had an open follow-up, left alone` : ""}`} more={more} />;
   }
-  if (tool === "draft_tasks") return s.state === "done" ? <CaseRows cases={casesOf(s)} label="Drafted a follow-up task for each" /> : null;
+  if (tool === "draft_tasks") return s.state === "done" ? <CaseRows cases={casesOf(s)} label="Drafted a follow-up task for each" more={more} /> : null;
   if (tool === "create_task") {
     const t = art.tasks.filter((x) => x.id === r.task_id);
     return t.length ? <TaskCards tasks={t} onToggle={onTask} /> : null;

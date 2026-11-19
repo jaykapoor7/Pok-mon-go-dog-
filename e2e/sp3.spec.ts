@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
 const PUBLIC = ["/", "/abc-operations", "/security", "/research", "/platform", "/ai", "/kaju-agents", "/blog", "/product-updates", "/roadmap", "/events", "/teams/coordinators", "/whatsapp", "/solutions", "/solutions/abc-arv", "/solutions/rescue-care", "/for-governments", "/for-ngos", "/for-funders",
   "/customers", "/customers/the-pawsome-people-project", "/customers/the-kind-hour-foundation", "/demo", "/docs", "/faq", "/sign-in", "/app", "/join", "/access",
   "/our-story", "/mission", "/contact", "/privacy", "/explore", "/evidence", "/for-community", "/education", "/partner-apply", "/partner-programmes"];
-const APP = ["/home", "/start", "/ngo/today", "/ngo/cases", "/ngo/animals", "/ngo/inbox", "/ngo/operations", "/ngo/programmes", "/ngo/submissions", "/ngo/field", "/ngo/team", "/gov/overview", "/gov/verification", "/gov/programmes", "/health/today", "/health/pep", "/health/samples", "/research/datasets", "/kaju", "/kaju/missions", "/kaju/automations", "/channels/general",
+const APP = ["/home", "/start", "/ngo/today", "/ngo/cases", "/ngo/animals", "/ngo/inbox", "/ngo/operations", "/ngo/programmes", "/ngo/submissions", "/ngo/field", "/ngo/team", "/gov/overview", "/gov/verification", "/gov/programmes", "/health/today", "/health/pep", "/health/samples", "/research/datasets", "/kaju", "/kaju/history", "/kaju/automations", "/channels/general",
   "/city", "/city/programmes", "/city/insights", "/city/report", "/community", "/community/report", "/learn", "/fundraisers"];
 
 test("every public and app route answers 200", async ({ request }) => {
@@ -17,7 +17,9 @@ test("every public and app route answers 200", async ({ request }) => {
 });
 
 test("consolidated URLs redirect to their 3.0 homes", async ({ request }) => {
-  for (const [from, to] of [["/product", "/platform"], ["/partners", "/customers"], ["/login", "/sign-in"], ["/book-a-demo", "/demo"], ["/careos", "/whatsapp"]]) {
+  for (const [from, to] of [["/product", "/platform"], ["/partners", "/customers"], ["/login", "/sign-in"], ["/book-a-demo", "/demo"], ["/careos", "/whatsapp"],
+    /* Kaju's work has no pages of its own any more; old links (and notifications) open the same work in place. */
+    ["/kaju/missions", "/kaju"], ["/kaju/approvals", "/kaju"], ["/kaju/approvals?m=0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f", "/kaju?job=0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f"], ["/kaju/missions/0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f", "/kaju?job=0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f"]]) {
     const res = await request.get(from, { maxRedirects: 0 });
     expect([307, 308], from).toContain(res.status());
     expect(res.headers().location, from).toContain(to);

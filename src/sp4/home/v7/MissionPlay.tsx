@@ -1,7 +1,7 @@
 "use client";
 
-/* The mission preview on the homepage (Mission.tsx gives it the real plan). It plays the way a mission runs in the
-   app: the request is sent, Kaju's plan arrives step by step with who is responsible for each, Kaju does its own
+/* The preview on the homepage of one request handled by Kaju (Mission.tsx gives it the real plan). It plays the way
+   Kaju's work runs in the app: the request is sent, Kaju's plan arrives step by step with who is responsible for each, Kaju does its own
    steps, and the step that changes several records waits for a person. Here that person is the visitor: nothing
    after it happens until they press Approve. Every part keeps its place from the first frame, so nothing below moves
    while it plays. Under reduced motion it rests, without timers, at the approval. */
@@ -67,7 +67,7 @@ export function MissionPlay({ request, title, steps }: { request: string; title:
     return () => window.clearTimeout(t);
   }, [p, calm, run]);
 
-  /* The button folds away once pressed, so focus moves to the mission itself rather than being lost. */
+  /* The button folds away once pressed, so focus moves to the preview itself rather than being lost. */
   const approve = () => { setP(calm ? 6 : 4); box.current?.focus({ preventScroll: true }); };
   const replay = () => { setRun((r) => r + 1); setP(calm ? 3 : 0); };
   const word = p === 6 ? "Completed" : p === 3 ? "Waiting for you" : p === 0 ? "Draft" : "Working";
@@ -77,7 +77,7 @@ export function MissionPlay({ request, title, steps }: { request: string; title:
     <div ref={box} className="s9-room" data-phase={p} data-calm={calm || undefined} tabIndex={-1}>
       <div className="s9-room-bar">
         <span className="s9-room-k" aria-hidden><Sparkles size={14} /></span>
-        <b>Kaju</b><span className="s9-room-crumb">Missions</span>
+        <b>Kaju</b><span className="s9-room-crumb">Your request</span>
         <span className={`s9-room-state t-${tone}`} aria-live="polite"><i aria-hidden />{word}</span>
       </div>
 
@@ -132,8 +132,8 @@ export function MissionPlay({ request, title, steps }: { request: string; title:
           {EVENTS.map(([at, who, what]) => <li key={what} data-on={p >= at || undefined}><b>{who}</b> {what}</li>)}
         </ol>
         <div className="s9-sum" data-on={p === 6 || undefined}>
-          <p><Check size={14} strokeWidth={3} aria-hidden /> <b>Done.</b> 4 tasks for the field team, 1 message in #field-ops. Every step is in the mission&rsquo;s history.</p>
-          <button type="button" className="s9-replay" onClick={replay} tabIndex={p === 6 ? 0 : -1} aria-label="Play the mission again"><RotateCcw size={14} aria-hidden /> Again</button>
+          <p><Check size={14} strokeWidth={3} aria-hidden /> <b>Done.</b> 4 tasks for the field team, 1 message in #field-ops. Every step is kept in Kaju&rsquo;s History.</p>
+          <button type="button" className="s9-replay" onClick={replay} tabIndex={p === 6 ? 0 : -1} aria-label="Play it again"><RotateCcw size={14} aria-hidden /> Again</button>
         </div>
       </div>
       <p className="s9-note">Illustrative records. The plan and who decides each step are what StrayPaw makes for this request today.</p>

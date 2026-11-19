@@ -71,7 +71,7 @@ Checks referred to (all run on 2026-11-15 on this branch):
 | Reliable conversation: invalid or unsafe replies refused, stop, time-out with retry, late answers dropped, expired session, workspace change hides the thread | Verified (browser) | `e2e/nx-kaju-transport.spec.ts` (7 tests, phone and desktop). |
 | Model provider abstraction with Claude | Verified (mock) · Blocked (external) for live | `test:kaju-planner` against a mock client; live needs OWNER_ACTIONS 3. |
 | Tool registry with levels, validated inputs, org rules stricter only | Verified | `test:kaju-planner`; `test:db` policies. |
-| Durable missions: steps, trace, retries with backoff, idempotency, cancel, reject, deadline, recovery | Verified (database, staging) | `test:db` ("Kaju missions: reject and cancel", "a passed deadline": the owner is told once and nothing runs by itself); staging mission (27 cases found, approval wait, 27 tasks, same key → same mission). |
+| Durable work in several steps (stored as `nx_missions`): steps, trace, retries with backoff, idempotency, cancel, reject, deadline, recovery | Verified (database, staging) | `test:db` ("Kaju missions: reject and cancel", "a passed deadline": the owner is told once and nothing runs by itself); staging mission (27 cases found, approval wait, 27 tasks, same key → same mission). |
 | Human approval; person-only decisions never run | Verified (database) | `test:db`. |
 | Organisation memory with approval and revocation | Verified (database) · UI built | `test:db`. |
 | Screens Kaju opens exist and respect roles | Verified | `test:routes`; `src/lib/kaju/screens.ts`. |
@@ -120,7 +120,7 @@ back.
 | 8 | Research access, versioned extract, revocation | Verified (database, staging tables) |
 | 9 | @Kaju summarises a thread, proposes a task, user confirms | Verified (database: only readers of the channel can ask; nothing is created until accepted; accepting twice creates each task once) · owners and dates are not taken from the thread |
 | 10 | Composer identifies ward/date/person, correction, one submit | Verified (logic, browser) |
-| 11 | Mission pauses for approval, resumes, retry without duplicates | Verified (database, staging) |
+| 11 | Kaju's work pauses for approval (on its card, where it was asked), resumes, retry without duplicates | Verified (database, staging) |
 | 12 | Mixed-organisation isolation including search | Verified (database, staging) |
 | 13 | Offline report caches and syncs without double posting | Verified (phone browser, staging) |
 | 14 | Reduced motion and keyboard only | Verified (automated) | `e2e/nx-keyboard.spec.ts` with reduced motion: skip link first, sidebar, list row, command bar (/ and Ctrl+K, arrows, Enter), Kaju (Ctrl+J); visible focus each time; focus returns to the page when the command bar or Kaju closes (it fell to the document before; fixed). |

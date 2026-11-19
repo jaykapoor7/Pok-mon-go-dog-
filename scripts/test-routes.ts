@@ -56,9 +56,19 @@ const OLD: [string, string][] = [
   ["/workspace/w/record/r1", "/health/bites/r1"], ["/workspace/w", "/health/today"], ["/programme/bbmp/coverage", "/gov/programmes/bbmp?tab=coverage"],
   ["/ngo/automations?rule=x", "/kaju/automations?rule=x"], ["/ngo/map", "/ngo/operations?view=map"], ["/surveys/s1", "/ngo/programmes/surveys/s1"],
   ["/ngo/cases/c1", "/ngo/cases/c1"], ["/ngo/animals/a1", "/ngo/animals/a1"], ["/partner/cases/c1", "/ngo/cases/c1"], ["/community/report", "/community/report"],
+  /* Kaju's work has no pages of its own: notifications written by the database still carry these, and open it in place. */
+  ["/kaju/missions?m=0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f", "/kaju?job=0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f"], ["/kaju/approvals?m=0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f", "/kaju?job=0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f"],
+  ["/kaju/missions/0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f", "/kaju?job=0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f"], ["/kaju/missions", "/kaju"], ["/kaju/approvals", "/kaju"],
 ];
 check("stored classic links map to current pages", () => { for (const [from, to] of OLD) assert.equal(canonicalHref(from), to, from); });
 check("every mapped link opens a page", () => { for (const [from] of OLD) assert.ok(exists(canonicalHref(from)), `${from} → ${canonicalHref(from)}`); });
+check("Kaju's work is not a place in the sidebar, and its old addresses only redirect", () => {
+  for (const i of KAJU) assert.ok(!/^\/kaju\/(missions|approvals)/.test(i.href) && !/mission|approval/i.test(i.label), `sidebar ${i.label}: ${i.href}`);
+  for (const f of ["kaju/missions/page.tsx", "kaju/missions/[id]/page.tsx", "kaju/approvals/page.tsx"]) {
+    const src = readFileSync(join(APP, "(work)", f), "utf8");
+    assert.ok(/redirect\(jobTarget\(/.test(src) && !/Shell|<[A-Z]\w*[\s/>]/.test(src), `${f} should only redirect`);
+  }
+});
 check("outside links are left alone", () => { for (const h of ["https://example.org/ngo/work", "mailto:a@b.c", ""]) assert.equal(canonicalHref(h), h); });
 
 console.log(`${n} route checks passed`);

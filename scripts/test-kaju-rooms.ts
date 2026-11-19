@@ -1,9 +1,14 @@
-/* Workrooms about records: the record link a mission carries is cleaned to a known kind, an id and a short label; the
-   starting points offered on a case, an animal or a package are plans of Kaju's real tools that pass the same
-   validation as any other, keep their approval levels, and link what they make back to the record. No network. */
+/* Kaju's work about records, and Kaju's work in plain words. The record link the work carries is cleaned to a known
+   kind, an id and a short label; the starting points offered on a case, an animal or a package are plans of Kaju's real
+   tools that pass the same validation as any other, keep their approval levels, and link what they make back to the
+   record. The card's words (state, the one line of what Kaju is doing) never say "mission" or "workroom"; the words the
+   database still writes are shown in plain words; and old links to the retired pages open the same work in place.
+   No network. */
 import assert from "node:assert/strict";
 import { preview, validatePlan } from "../src/lib/kaju/registry";
 import { handoffStarts, makes, recordHref, recordLinkOf, startIsReal, type RecordLink } from "../src/lib/kaju/records";
+import { isJobId, jobLine, jobTarget, jobWord, plainWords, withJob, type JobStep } from "../src/lib/kaju/jobs";
+import { canonicalHref } from "../src/lib/routes/canonical";
 
 const ok = (name: string) => console.log(`  ✓ ${name}`);
 const ID = "497bea18-c431-4783-b7cb-375d15bf1edd";
@@ -56,9 +61,51 @@ assert.ok(!all.some((t) => ["verify_claim", "validate_result", "clinical_decisio
 for (const s of [...cs, ...dog, ...pkg]) assert.ok(!/Runs on its own|approved|done/i.test(s.line), s.line);
 ok("no starting point claims how it will run or that anything is done; the plan card says that from the levels");
 
-console.log("Room words");
+console.log("Step words");
 assert.match(makes("create_followup_tasks"), /once you approve/);
 assert.match(makes("post_message", { channel: "general" }), /#general/);
 assert.match(makes("verify_claim"), /reviewing officer/); ok("each step says what it will make, and who decides");
+
+console.log("Kaju's work, in plain words");
+const banned = /\bmissions?\b|workroom|\broom\b/i;
+const S = (state: string, label: string, tool: string | null = null, note: string | null = null): JobStep => ({ state, label, tool, note });
+const follow = [S("done", "Find open cases due a follow-up", "find_due_followups"), S("waiting_approval", "Create a follow-up task for each", "create_followup_tasks"), S("todo", "Tell #field-operations", "post_message")];
+assert.deepEqual(jobWord("waiting_person", follow), ["Waiting for you", "warn"]);
+assert.equal(jobLine("waiting_person", follow), "Waiting for your approval: Create a follow-up task for each"); ok("a job waiting for an approval says so, and names the step");
+const person = [S("done", "Find", "find_due_followups"), S("waiting_person", "Verify the claim", "verify_claim")];
+assert.match(jobWord("waiting_person", person)[0], /^Waiting for a reviewing officer$/i);
+assert.match(jobLine("waiting_person", person), /^Waiting for a reviewing officer: Verify the claim$/i); ok("a step only a person decides names who decides it, never 'you'");
+assert.deepEqual(jobWord("running", follow), ["Kaju is working", "accent"]);
+assert.equal(jobLine("running", [S("done", "Find", "find_due_followups"), S("running", "Create the tasks", "create_followup_tasks")]), "Working on: Create the tasks");
+assert.deepEqual(jobWord("completed"), ["Done", "ok"]); assert.equal(jobLine("completed", follow), "Every step is done");
+assert.equal(jobWord("cancelled", [S("done", "Find"), S("cancelled", "Create", null, "Not now")])[0], "Rejected");
+assert.equal(jobWord("cancelled", [S("done", "Find"), S("skipped", "Create")])[0], "Cancelled");
+assert.equal(jobLine("blocked", [S("done", "Find"), S("failed", "Create the tasks")]), "Stopped at: Create the tasks"); ok("each state reads in plain words: working, waiting for you, done, rejected, stopped");
+for (const st of ["draft", "ready", "running", "retrying", "waiting_person", "waiting_partner", "blocked", "completed", "cancelled"]) {
+  assert.ok(!banned.test(jobWord(st, follow)[0]), st); assert.ok(!banned.test(jobLine(st, follow)), st);
+}
+ok("no state word or line says mission, workroom or room");
+assert.equal(plainWords("Mission completed."), "Every step is done.");
+assert.equal(plainWords("A step failed. Nothing after it ran. Open the mission to retry or cancel."), "A step failed. Nothing after it ran. Open it to try again or stop it.");
+assert.equal(plainWords("Only the person who started this mission decides its steps."), "Only the person who asked Kaju for this decides its steps.");
+assert.equal(plainWords("This mission cannot be cancelled."), "This can no longer be stopped.");
+assert.equal(plainWords("12 open cases, 4 open tasks, 1 overdue follow-ups, 2 Kaju missions waiting"), "12 open cases, 4 open tasks, 1 overdue follow-ups, 2 waiting for approval in Kaju");
+assert.equal(plainWords("WhatsApp from missions is not connected."), "WhatsApp from Kaju is not connected.");
+assert.equal(plainWords("Approved by Priya: Create a follow-up task for each"), "Approved by Priya: Create a follow-up task for each"); ok("what the database writes is shown in plain words; other lines are left exactly as written");
+for (const t of ["Mission completed.", "The deadline passed before the mission finished.", "Too many missions started in the last minute. Try again shortly.", "a mission has 1 to 20 steps", "a mission needs a title"]) assert.ok(!banned.test(plainWords(t)), t);
+ok("every database line that used the word reads without it");
+
+const JOB = "0f5a3c0e-1d2b-4c3a-9e8f-7a6b5c4d3e2f";
+assert.equal(jobTarget(`/kaju/missions/${JOB}`), `/kaju?job=${JOB}`);
+assert.equal(jobTarget(`/kaju/missions?m=${JOB}`), `/kaju?job=${JOB}`);
+assert.equal(jobTarget(`/kaju/approvals?m=${JOB}`), `/kaju?job=${JOB}`);
+assert.equal(jobTarget(`/kaju/missions/${JOB.toUpperCase()}?new=1`), `/kaju?job=${JOB}`); ok("an old link to a job, from a page or a notification, opens the same job in place");
+assert.equal(jobTarget("/kaju/missions"), "/kaju"); assert.equal(jobTarget("/kaju/approvals"), "/kaju");
+assert.equal(jobTarget("/kaju/missions/not-an-id"), "/kaju"); assert.equal(jobTarget("/kaju/missions?m=1;drop"), "/kaju"); ok("an old list link, or one without a real id, opens Kaju's home");
+assert.equal(jobTarget("/kaju/history"), "/kaju/history"); assert.equal(jobTarget("/ngo/cases/x"), "/ngo/cases/x"); ok("other links are left alone");
+assert.equal(canonicalHref(`/kaju/approvals?m=${JOB}`), `/kaju?job=${JOB}`); assert.equal(canonicalHref(`/kaju/missions?m=${JOB}`), `/kaju?job=${JOB}`); assert.equal(canonicalHref("/kaju/missions"), "/kaju");
+ok("a stored notification link is mapped the same way where it is shown");
+assert.equal(withJob("", JOB), `?job=${JOB}`); assert.equal(withJob("?tab=abc", JOB), `?tab=abc&job=${JOB}`); assert.equal(withJob(`?job=x&tab=abc`, JOB), `?job=${JOB}&tab=abc`); ok("opening a job keeps the page and its own query");
+assert.ok(isJobId(JOB) && !isJobId("x") && !isJobId(null)); ok("only a real id opens a job");
 
 console.log("\nKaju rooms: all checks passed");
