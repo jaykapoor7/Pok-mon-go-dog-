@@ -6,6 +6,7 @@
    (never throw), so a page's useAct can say what the database said in plain words. */
 
 import { getSupabase } from "@/lib/supabase";
+import { allRows } from "@/lib/all-rows";
 import { canonicalHref } from "@/lib/routes/canonical";
 import { uploadPhoto } from "@/lib/actions";
 import { createCase as createCaseLib, type CreateCaseInput } from "@/lib/case-actions";
@@ -332,8 +333,11 @@ export type CareLogRow = { id: string; kind: string; event_date: string; notes: 
 export async function readCareLog(ngoId: string, limit = 250): Promise<Res<{ rows: CareLogRow[]; total: number | null }>> {
   try {
     const s = db();
+    /* Every animal with care, a page of 1,000 at a time: one request stops at 1,000 animals, and the newest care of
+       the rest (Pawsome has 1,191 animals with care) would be missing from a list that says it is newest first. */
     const [d, head] = await Promise.all([
-      s.from("dogs").select("id,name,code,zone,medical_events!inner(id,kind,event_date,notes,performed_by,case_id)").eq("ngo_id", ngoId).limit(5000),
+      allRows((f, t) => s.from("dogs").select("id,name,code,zone,medical_events!inner(id,kind,event_date,notes,performed_by,case_id)").eq("ngo_id", ngoId).order("id").range(f, t), 5000)
+        .then((r) => ({ data: r.rows, error: null as { message: string } | null }), (e: unknown) => ({ data: null, error: { message: msg(e) } })),
       Promise.race([Promise.resolve(s.from("medical_events").select("id,dogs!inner(ngo_id)", { count: "exact", head: true }).eq("dogs.ngo_id", ngoId)).catch(() => null), new Promise<null>((r) => setTimeout(() => r(null), 4000))]),
     ]);
     if (d.error) return { error: d.error.message };

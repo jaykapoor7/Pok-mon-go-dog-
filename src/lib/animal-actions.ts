@@ -1,6 +1,7 @@
 "use client";
 
 import { locationCell } from "./location-cell";
+import { allRows } from "./all-rows";
 import { getSupabase } from "./supabase";
 import { isRecordingDemo, recordingDemoAnimals } from "./recording-demo";
 
@@ -186,12 +187,13 @@ export async function getPartnerMedicalEvents(limit = 200): Promise<PartnerMedic
      Starting from the organisation's own animals uses its index and is fast.
      Same rows, same order (newest first), same limit. */
   const cap = Math.min(250, Math.max(1, Math.floor(limit)));
-  const { data: dogs, error } = await supa
+  /* A page of 1,000 animals at a time: the API stops one request at 1,000 rows. */
+  const { rows: dogs } = await allRows<any>((f, t) => supa
     .from("dogs")
     .select("id, name, code, zone, cover_photo, medical_events!inner(id, dog_id, case_id, kind, event_date, notes, performed_by, created_at)")
     .eq("ngo_id", ngoId)
-    .limit(5000);
-  if (error) throw new Error(error.message);
+    .order("id")
+    .range(f, t), 5000);
   const rows = (dogs ?? []).flatMap((d: any) => (d.medical_events ?? []).map((m: any) => ({ ...m, dogs: d })))
     .sort((x: any, y: any) => String(y.event_date ?? "").localeCompare(String(x.event_date ?? "")) || String(y.created_at ?? "").localeCompare(String(x.created_at ?? "")))
     .slice(0, cap);

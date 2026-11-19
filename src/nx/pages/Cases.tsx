@@ -86,11 +86,12 @@ function LiveCases({ org }: { org: Workspace }) {
   const all = views(live.userId);
   const vs = all.filter((v) => !OPTIONAL.has(v.id) || rows.some(v.test!) || v.id === view);
   const open = rows.filter((r) => r.open && !r.historical && !r.stale), crit = open.filter((r) => r.crit).length, nobody = open.filter((r) => r.who === "Unassigned").length;
+  const imported = rows.filter((r) => r.open && r.historical).length, quiet = rows.filter((r) => r.open && !r.historical && r.stale).length;
   const actor = live.userId ? { id: live.userId, name: live.userName ?? "Team member" } : null;
   return (
     <Shell crumb={["NGO", "Cases"]}>
       <RecordList id="cases" title="Cases" sample={false} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.title}`} columns={cols} views={vs} view={view} onView={setView} search={search} placeholder="Code, animal, place, person"
-        sub={!data && !error ? "Reading cases…" : error ? "Cases could not be read. Nothing is shown as zero." : <><b className="num">{open.length}</b> open{crit ? <>, <span style={{ color: "var(--bad)" }}>{crit} critical or high</span></> : null}, {nobody} held by nobody, at {org.name}.{data?.openCapped ? " Showing the newest 800 open cases." : ""}</>}
+        sub={!data && !error ? "Reading cases…" : error ? "Cases could not be read. Nothing is shown as zero." : <><b className="num">{open.length}</b> open{crit ? <>, <span style={{ color: "var(--bad)" }}>{crit} critical or high</span></> : null}, {nobody} held by nobody, at {org.name}.{quiet ? ` ${quiet.toLocaleString("en-IN")} quiet for months need a decision.` : ""}{imported ? ` ${imported.toLocaleString("en-IN")} imported and not yet confirmed are kept apart, under “Imported, not confirmed”.` : ""}{data?.openCapped ? " Showing the newest 800 open cases." : ""}</>}
         action={<Link href="/ngo/cases/new" className="nx-btn is-keep nr-plus-dup"><Plus size={14} />New case</Link>}
         loading={!data && !error} error={error} onRetry={() => void load()} hrefOf={(r) => r.href}
         empty={{ none: "No cases yet", filtered: "No case in this view", hint: <>Open the first one with <Link className="nr-link" href="/ngo/cases/new">New case</Link>, or import the register you already keep.</> }}

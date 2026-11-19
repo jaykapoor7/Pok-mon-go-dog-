@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Report } from "./native";
 import type { ReportSource } from "@/sp3/ai/types";
+import { allRows } from "@/lib/all-rows";
 import {readSnapshot} from "@/sp3/ai/snapshots";
 import { figureRows, programmeFigures } from "@/sp3/ai/figures";
 
@@ -34,8 +35,9 @@ export async function buildReport(source: ReportSource, db: SupabaseClient, titl
     return { ...head, points: [], columns: ["Case", "Title", "Place", "Status", "Opened", "Assigned to"], rows: (data ?? []).map((c) => [c.case_code ?? "", c.title ?? "", c.zone || c.city || "", c.status_class ?? "", String(c.occurred_at ?? "").slice(0, 10), c.assignee_name ?? "Unassigned"]), notes: ["Unreviewed historical imports are excluded. Export includes at most 1,000 open cases; it is not a programme total."] };
   }
   if (source === "animals") {
-    const { data, error } = await db.from("dogs").select("straypaw_id,name,zone,city,sterilisation_status,vaccination_status,provenance,lat,lng").eq("ngo_id", ngoId).order("created_at", { ascending: false }).limit(2000);
-    if (error) throw new Error(error.message);
+    /* Two pages of 1,000: one request returns at most 1,000 rows, whatever the note below promises. */
+    const { rows: data } = await allRows<{ straypaw_id: string | null; name: string | null; zone: string | null; city: string | null; sterilisation_status: string | null; vaccination_status: string | null; provenance: string | null; lat: number | null; lng: number | null }>(
+      (f, t) => db.from("dogs").select("straypaw_id,name,zone,city,sterilisation_status,vaccination_status,provenance,lat,lng").eq("ngo_id", ngoId).order("created_at", { ascending: false }).order("id").range(f, t), 2000);
     return { ...head, notes: ["At most 2,000 most recently created animals in your organisation. Unknown status is not a negative result."], points: (data ?? []).filter((d) => d.lat != null && d.lng != null).map((d) => ({ name: d.straypaw_id || d.name || "Animal", lat: Number(d.lat), lng: Number(d.lng), props: { sterilisation: d.sterilisation_status ?? "unknown", vaccination: d.vaccination_status ?? "unknown", place: d.zone || d.city || "", source: d.provenance ?? "" } })), columns: ["Tag", "Name", "Place", "Sterilisation", "Vaccination", "Source"], rows: (data ?? []).map((d) => [d.straypaw_id ?? "", d.name ?? "", d.zone || d.city || "", d.sterilisation_status ?? "unknown", d.vaccination_status ?? "unknown", d.provenance ?? ""]) };
   }
   const { data, error } = await db.rpc("abc_verification_queue", { p_limit: 500 });

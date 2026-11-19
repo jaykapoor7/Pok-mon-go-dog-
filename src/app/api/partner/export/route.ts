@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { partnerActor } from "@/lib/partner-actor";
+import { allRows } from "@/lib/all-rows";
 
 export const runtime = "nodejs";
 
@@ -155,12 +156,17 @@ export async function GET(request: Request) {
   const scopeId = url.searchParams.get("scopeId") || null;
   const range = period(url);
 
-  const [{ data: ngo }, { data: rawCases }, { data: rawAnimals }, { data: rawCare }] = await Promise.all([
+  /* The API returns at most 1,000 rows a request, so each table is read a page at a time (lib/all-rows); one request
+     would have exported the newest 1,000 cases of a 2,192-case register and called it the whole. The id order keeps
+     the pages from overlapping. */
+  const read = await Promise.all([
     current.admin.from("ngos").select("id,name,logo_url,city,state").eq("id", current.ngoId).maybeSingle(),
-    current.admin.from("cases").select("*,dogs(name,code,straypaw_id,species,zone,cover_photo,campaign_id)").eq("ngo_id", current.ngoId).order("last_activity_at", { ascending: false }).limit(10000),
-    current.admin.from("dogs").select("*").eq("ngo_id", current.ngoId).order("last_seen", { ascending: false }).limit(10000),
-    current.admin.from("medical_events").select("id,dog_id,case_id,kind,event_date,notes,performed_by,created_at,dogs!inner(name,code,straypaw_id,species,zone,cover_photo,campaign_id,ngo_id)").eq("dogs.ngo_id", current.ngoId).order("event_date", { ascending: false }).limit(10000),
-  ]);
+    allRows<any>((f, t) => current.admin.from("cases").select("*,dogs(name,code,straypaw_id,species,zone,cover_photo,campaign_id)").eq("ngo_id", current.ngoId).order("last_activity_at", { ascending: false }).order("id").range(f, t)),
+    allRows<any>((f, t) => current.admin.from("dogs").select("*").eq("ngo_id", current.ngoId).order("last_seen", { ascending: false }).order("id").range(f, t)),
+    allRows<any>((f, t) => current.admin.from("medical_events").select("id,dog_id,case_id,kind,event_date,notes,performed_by,created_at,dogs!inner(name,code,straypaw_id,species,zone,cover_photo,campaign_id,ngo_id)").eq("dogs.ngo_id", current.ngoId).order("event_date", { ascending: false }).order("id").range(f, t)),
+  ]).catch(() => null);
+  if (!read) return NextResponse.json({ error: "The register could not be read in full, so no export was made. Try again." }, { status: 503 });
+  const [{ data: ngo }, { rows: rawCases }, { rows: rawAnimals }, { rows: rawCare }] = read;
 
   let scope = "Organisation-wide report";
   let survey: any = null;

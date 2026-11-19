@@ -70,7 +70,7 @@ export const TOOL_DEFS = [
   { name: "search_records", description: "Search animals, cases, programmes and places the user is allowed to read. Use for any question naming an animal, tag, case code, place or programme.", input_schema: { type: "object", properties: { query: { type: "string", description: "Words to search for: a name, StrayPaw tag, case code, locality or programme name." } }, required: ["query"], additionalProperties: false } },
   { name: "query_cases", description: "Count, list or group the organisation's cases with filters: state (open, closed, all), unassigned, mine, critical, overdue follow-up, opened within a date window (YYYY-MM-DD, India), older or quiet for N days, and rough terms naming a zone, a person or a condition (matched against the records). Group by zone, assignee, condition, status or month. Imported history nobody has reviewed is left out unless historical is true. One bounded read; reads only.", input_schema: { type: "object", properties: { measure: { type: "string", enum: ["count", "list", "breakdown", "top"] }, by: { type: "string", enum: ["zone", "assignee", "condition", "status", "month"] }, order: { type: "string", enum: ["most", "least"] }, state: { type: "string", enum: ["open", "closed", "all"] }, unassigned: { type: "boolean" }, mine: { type: "boolean" }, critical: { type: "boolean" }, overdue: { type: "boolean" }, quietDays: { type: "number" }, olderDays: { type: "number" }, since: { type: "string" }, until: { type: "string" }, window: { type: "string" }, historical: { type: "boolean" }, terms: { type: "array", items: { type: "string" } } }, additionalProperties: false } },
   { name: "case_summary", description: "Summarise one of the organisation's cases from its own records: status and who holds it, the animal and place, what has happened (updates, notes, care and follow-ups in date order), evidence and veterinary sign-off for ABC records, and what is next and when. Give a case code or case id; with neither, the case open on the page. Unknowns are reported as unknown. Reads only; never reads patient, bite or dose records.", input_schema: { type: "object", properties: { case: { type: "string", description: "A case code as shown on the case, or a case id. Leave empty for the case open on the page." } }, additionalProperties: false } },
-  { name: "work_summary", description: "Summarise the organisation's current work: open cases, unassigned, critical, overdue follow-ups, historical imports awaiting review, and the most urgent open cases.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
+  { name: "work_summary", description: "Summarise the organisation's current work: open cases (not quiet), unassigned, critical and high, overdue follow-ups, quiet cases needing a decision, historical imports awaiting review, and the most urgent open cases.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_missing_evidence", description: "Find the organisation's records that are missing evidence: animals with no photo, open cases with no linked animal or no place.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "find_by_identifier", description: "Find the organisation's animal carrying a microchip, RFID tag, QR code or printed tag number. Another organisation's identifier is reported only as registered elsewhere. Reads only.", input_schema: { type: "object", properties: { value: { type: "string", description: "The identifier as scanned or typed." } }, required: ["value"], additionalProperties: false } },
   { name: "register_stats", description: "Count the organisation's own register: animals recorded, sterilisation and vaccination recorded (with unknowns), animals added in the last 7 and 30 days, open cases, the ABC pipeline, and recorded animals by ward. Recorded counts only, never population estimates.", input_schema: { type: "object", properties: {}, additionalProperties: false } },
@@ -213,19 +213,24 @@ async function workSummary({ db, orgId }: ToolCtx): Promise<ToolOut> {
   const current = "provenance.is.null,provenance.neq.imported_historical_record,reviewed_at.not.is.null";
   const crit = ["Road accident", "Maggot wound", "Human abuse", "Dog bite", "Entrapment", "Suspected rabies"];
   const base = () => db.from("org_case_facts").select("id", { count: "exact", head: true }).eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]);
-  const [open, unassigned, critical, overdue, historical, urgent] = await Promise.all([
-    base().or(current), base().or(current).is("assignee_name", null), base().or(current).in("condition_class", crit),
+  /* The same rules as Today and Cases (nx/data/ngo): "open" is current work that has not gone quiet (open more than
+     ninety days with nothing recorded for thirty); "critical" is the Cases view "Critical and high", a critical
+     condition or a critical or high severity; imported cases nobody has confirmed are counted apart. */
+  const q90 = new Date(Date.now() - 90 * 864e5).toISOString(), q30 = new Date(Date.now() - 30 * 864e5).toISOString();
+  const [open, unassigned, critical, overdue, historical, urgent, quiet] = await Promise.all([
+    base().or(current).or(`occurred_at.is.null,occurred_at.gte.${q90},last_activity_at.gte.${q30}`), base().or(current).is("assignee_name", null), base().or(current).or(`condition_class.in.(${crit.map((c) => `"${c}"`).join(",")}),severity.in.(critical,high)`),
     /* Overdue as Today and Operations show it: a dated follow-up visit past due, or the case's own follow-up date
        (India day) already gone. */
     base().or(current).or(`next_due.lt.${now},follow_up_at.lt.${indiaDay()}`),
     base().eq("provenance", "imported_historical_record").is("reviewed_at", null),
     db.from("org_case_facts").select("id,case_code,title,condition_class,status_class,zone,assignee_name,next_due,occurred_at,severity").eq("ngo_id",orgId).in("status_class", ["open", "in_progress"]).or(current).order("next_due", { ascending: true, nullsFirst: false }).limit(6),
+    base().or(current).lt("occurred_at", q90).or(`last_activity_at.is.null,last_activity_at.lt.${q30}`),
   ]);
-  if ([open, unassigned, critical, overdue, historical, urgent].some((r) => r.error) || [open,unassigned,critical,overdue,historical].some(r=>typeof r.count!=="number")) return READ_FAILED;
-  const data = { open_current: open.count ?? 0, unassigned: unassigned.count ?? 0, critical: critical.count ?? 0, overdue_followups: overdue.count ?? 0, historical_imports_awaiting_review: historical.count ?? 0, next_cases: urgent.data ?? [] };
+  if ([open, unassigned, critical, overdue, historical, urgent, quiet].some((r) => r.error) || [open,unassigned,critical,overdue,historical,quiet].some(r=>typeof r.count!=="number")) return READ_FAILED;
+  const data = { open_current: open.count ?? 0, unassigned: unassigned.count ?? 0, critical: critical.count ?? 0, overdue_followups: overdue.count ?? 0, quiet_needing_decision: quiet.count ?? 0, historical_imports_awaiting_review: historical.count ?? 0, next_cases: urgent.data ?? [] };
   return {
     data,
-    summary: `${data.open_current} open · ${data.unassigned} unassigned · ${data.overdue_followups} overdue`,
+    summary: `${data.open_current} open · ${data.unassigned} unassigned · ${data.overdue_followups} overdue${data.historical_imports_awaiting_review ? ` · ${data.historical_imports_awaiting_review} imported, not yet confirmed` : ""}`,
     citations: (urgent.data ?? []).map((c) => ({ id: c.id, label: caseLabel(c), href: `/ngo/cases/${c.id}`, kind: "case" as const })),
   };
 }

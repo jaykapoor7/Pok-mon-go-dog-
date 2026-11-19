@@ -379,16 +379,16 @@ export async function withTools(q: string, ctx: ToolCtx, earlier: string[] = [])
     const out = await call(acc, ctx, "register_stats");
     if (out.ok === false) return done(ctx.orgId ? out.summary : needsOrg);
     const f = out.data as Figures;
-    const share = (x: number) => { const base = f.capped ? 5000 : f.animals; return base ? ` (${Math.round((x / base) * 100)}%)` : ""; };
+    const share = (x: number) => (f.animals ? ` (${Math.round((x / f.animals) * 100)}% of the register)` : "");
     const lines = [
       `- **${n(f.animals)}** animals on your register · ${n(f.added30)} added in the last 30 days`,
-      `- **${n(f.sterilised)}** with a sterilisation recorded${share(f.sterilised)} · ${n(f.sterilisationUnknown)} unknown`,
-      `- **${n(f.vaccinated)}** with a vaccination recorded${share(f.vaccinated)} · ${n(f.vaccinationUnknown)} unknown`,
-      f.openCases === null ? "" : `- **${n(f.openCases)}** open cases in current work`,
+      `- **${n(f.sterilised)}** with a sterilisation recorded${share(f.sterilised)} · ${n(f.sterilisationUnknown)} not recorded`,
+      `- **${n(f.vaccinated)}** with a vaccination recorded${share(f.vaccinated)} · ${n(f.vaccinationUnknown)} not recorded`,
+      f.openCases === null ? "" : `- **${n(f.openCases)}** open cases in current work (imported cases nobody has confirmed are not counted)`,
       f.abc ? `- ABC pipeline: ${n(f.abc.awaitingVet)} waiting for a vet · ${n(f.abc.awaitingReview)} waiting for review · ${n(f.abc.accepted)} accepted` : "",
       f.wards.length ? `- Most recorded: ${f.wards.slice(0, 3).map((w) => `${w.zone} (${n(w.recorded)})`).join(", ")}` : "",
     ].filter(Boolean);
-    return done(`Here is your register as it stands:\n${lines.join("\n")}\n\nThese are recorded counts, not street-population estimates; unknown is not “no”.`);
+    return done(`Here is your register as it stands:\n${lines.join("\n")}\n\nThese are recorded counts, not street-population estimates; “not recorded” is not “no”.`);
   }
   if (/what.*(completed|done|saved)|recent.*(actions|changes)|verify.*actions/.test(t)) {
     const out = await call(acc, ctx, "recent_confirmed_actions");

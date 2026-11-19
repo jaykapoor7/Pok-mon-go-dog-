@@ -44,6 +44,27 @@ each shown as yes / no / **not recorded**, the last hatched. Filters keep
 "Not recorded" separate from "Recorded not". Nothing unknown is drawn as zero;
 a failed read is shown as "Not read", never as an empty list.
 
+### Sterilised and vaccinated: one rule on every surface
+
+- An animal is sterilised (vaccinated) when `dogs.sterilisation_status` is
+  `sterilised` (`vaccination_status` is `vaccinated`). The NGO home, Animals,
+  Programmes and drives, the government overview and coverage, reports, Kaju's
+  answers and the public map all count this column. The `sterilised` and
+  `vaccinated` booleans are false for "not recorded" too, so nothing counts
+  from them.
+- The headline share is of every animal counted ("102 sterilised (4%) of 2,277
+  animals · 2,175 not recorded"). The share among animals with a recorded
+  status is shown only beside it, and only when some are recorded as not done:
+  on an imported register where only "done" was written down it reads 100%
+  and means nothing.
+- A recorded sterilisation or vaccination care event (imported or not) should
+  set the status. Until `supabase/proposed/2026-11-18-care-sets-status.sql` is
+  applied it does not: on production one Pawsome animal sterilised on 29 Sep
+  2026 is still "not recorded".
+- The database API returns at most 1,000 rows a request. A figure counts with
+  exact counts, and a list or export that needs more pages with `.range()`
+  (`src/lib/all-rows.ts`); one page is never called the whole.
+
 ## Places
 
 - Public pages show an **area** (H3 res 8, ≈0.74 km²) or a **locality**, never a

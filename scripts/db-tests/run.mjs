@@ -918,5 +918,58 @@ section("People are shown by a name: the sign-in name, else the readable part of
   ok((await as(C, "select count(*)::int n from nx_org_people($1)", [N1]))[0].n === 0, "another organisation still sees nobody");
 }
 
+section("Proposed: a recorded sterilisation or vaccination sets the animal's status (supabase/proposed/2026-11-18-care-sets-status.sql)");
+{
+  const PROP = join(here, "../../supabase/proposed");
+  const ngo = (await one("insert into ngos (name) values ('Care status test') returning id")).id;
+  const dog = async (st, vx) => (await one("insert into dogs (ngo_id, sterilisation_status, vaccination_status) values ($1, $2, $3) returning id", [ngo, st, vx])).id;
+  const status = async (id) => one("select sterilisation_status s, vaccination_status v from dogs where id = $1", [id]);
+  // Before the change: an event recorded as care leaves the status unknown, as on production.
+  const before = await dog("unknown", "unknown");
+  await db.query("insert into medical_events (dog_id, kind, event_date) values ($1, 'sterilisation', current_date)", [before]);
+  const untouched = await dog("unknown", "unknown");
+  await db.query("insert into medical_events (dog_id, kind, event_date) values ($1, 'treatment', current_date)", [untouched]);
+  ok((await status(before)).s === "unknown", "today a sterilisation event leaves the animal 'unknown' (the gap this closes)");
+  await db.exec(readFileSync(join(PROP, "2026-11-18-care-sets-status.sql"), "utf8"));
+  ok((await status(before)).s === "sterilised", "the backfill sets the status from the event already recorded");
+  ok((await status(untouched)).s === "unknown" && (await status(untouched)).v === "unknown", "an animal with only other care stays not recorded");
+  const fresh = await dog(null, "not_vaccinated");
+  await db.query("insert into medical_events (dog_id, kind, event_date) values ($1, 'vaccination', current_date)", [fresh]);
+  ok((await status(fresh)).v === "vaccinated" && (await status(fresh)).s === null, "a new vaccination sets vaccinated and nothing else");
+  await db.query("insert into medical_events (dog_id, kind, event_date) values ($1, 'sterilisation', current_date)", [fresh]);
+  ok((await status(fresh)).s === "sterilised", "a new sterilisation sets sterilised");
+  let denied = false;
+  try { await as(A, "select care_sets_dog_status()"); } catch { denied = true; }
+  ok(denied, "a signed-in person cannot call the trigger function");
+  await db.exec(readFileSync(join(PROP, "2026-11-18-care-sets-status.sql"), "utf8"));
+  ok((await one("select count(*)::int n from pg_trigger where tgname = 'medical_events_set_dog_status'")).n === 1, "applying it twice leaves one trigger");
+  await db.exec(readFileSync(join(PROP, "2026-11-18-care-sets-status.rollback.sql"), "utf8"));
+  const after = await dog("unknown", "unknown");
+  await db.query("insert into medical_events (dog_id, kind, event_date) values ($1, 'sterilisation', current_date)", [after]);
+  ok((await status(after)).s === "unknown" && (await status(before)).s === "sterilised", "the rollback stops the trigger and keeps statuses already set");
+}
+
+section("Proposed: the public 'Being helped now' figure leaves out unconfirmed imports (supabase/proposed/2026-11-18-public-impact-active-cases.sql)");
+{
+  const PROP = join(here, "../../supabase/proposed");
+  // Only the columns the function reads, as on production.
+  await db.exec(`alter table dogs add column if not exists is_demo boolean, add column if not exists sterilised boolean, add column if not exists vaccinated boolean;
+    alter table cases add column if not exists status_class text, add column if not exists provenance text, add column if not exists category text, add column if not exists is_demo boolean, add column if not exists status_reviewed_at timestamptz;`);
+  const ngo = (await one("insert into ngos (name) values ('Impact test') returning id")).id;
+  const add = (cls, prov, reviewed) => db.query("insert into cases (ngo_id, status_class, provenance, status_reviewed_at, title) values ($1, $2, $3, $4, 'x')", [ngo, cls, prov, reviewed]);
+  await add("in_progress", "community_report", null); await add("open", null, null);
+  for (let i = 0; i < 5; i++) await add("in_progress", "imported_historical_record", null);
+  await add("open", "imported_historical_record", new Date().toISOString());
+  await add("closed", "imported_historical_record", null);
+  await db.exec(readFileSync(join(PROP, "2026-11-18-public-impact-active-cases.rollback.sql"), "utf8"));
+  const before = await one("select active_cases::int a, case_records::int r, resolved_cases::int c from list_public_org_impacts() where ngo_id = $1", [ngo]);
+  ok(before.a === 8, "today every open status counts, unconfirmed imports included (8)");
+  await db.exec(readFileSync(join(PROP, "2026-11-18-public-impact-active-cases.sql"), "utf8"));
+  await db.exec(readFileSync(join(PROP, "2026-11-18-public-impact-active-cases.sql"), "utf8"));
+  const after = await one("select active_cases::int a, case_records::int r, resolved_cases::int c from list_public_org_impacts() where ngo_id = $1", [ngo]);
+  ok(after.a === 3, "with the change: current work plus the one confirmed import (3), as Today and Cases count it");
+  ok(after.r === before.r && after.c === before.c, "case records and resolved cases are unchanged");
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
