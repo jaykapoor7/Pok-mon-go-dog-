@@ -918,7 +918,7 @@ section("People are shown by a name: the sign-in name, else the readable part of
   ok((await as(C, "select count(*)::int n from nx_org_people($1)", [N1]))[0].n === 0, "another organisation still sees nobody");
 }
 
-section("Proposed: a recorded sterilisation or vaccination sets the animal's status (supabase/proposed/2026-11-18-care-sets-status.sql)");
+section("A recorded sterilisation or vaccination sets the animal's status (supabase/proposed/2026-11-18-care-sets-status.sql)");
 {
   const PROP = join(here, "../../supabase/proposed");
   const ngo = (await one("insert into ngos (name) values ('Care status test') returning id")).id;
@@ -930,7 +930,7 @@ section("Proposed: a recorded sterilisation or vaccination sets the animal's sta
   const untouched = await dog("unknown", "unknown");
   await db.query("insert into medical_events (dog_id, kind, event_date) values ($1, 'treatment', current_date)", [untouched]);
   ok((await status(before)).s === "unknown", "today a sterilisation event leaves the animal 'unknown' (the gap this closes)");
-  await db.exec(readFileSync(join(PROP, "2026-11-18-care-sets-status.sql"), "utf8"));
+  await db.exec(readFileSync(join(MIG, "20261119130000_care_sets_status.sql"), "utf8"));
   ok((await status(before)).s === "sterilised", "the backfill sets the status from the event already recorded");
   ok((await status(untouched)).s === "unknown" && (await status(untouched)).v === "unknown", "an animal with only other care stays not recorded");
   const fresh = await dog(null, "not_vaccinated");
@@ -941,15 +941,15 @@ section("Proposed: a recorded sterilisation or vaccination sets the animal's sta
   let denied = false;
   try { await as(A, "select care_sets_dog_status()"); } catch { denied = true; }
   ok(denied, "a signed-in person cannot call the trigger function");
-  await db.exec(readFileSync(join(PROP, "2026-11-18-care-sets-status.sql"), "utf8"));
+  await db.exec(readFileSync(join(MIG, "20261119130000_care_sets_status.sql"), "utf8"));
   ok((await one("select count(*)::int n from pg_trigger where tgname = 'medical_events_set_dog_status'")).n === 1, "applying it twice leaves one trigger");
-  await db.exec(readFileSync(join(PROP, "2026-11-18-care-sets-status.rollback.sql"), "utf8"));
+  await db.exec(readFileSync(join(here, "../../supabase/rollback/20261119130000_care_sets_status-rollback.sql"), "utf8"));
   const after = await dog("unknown", "unknown");
   await db.query("insert into medical_events (dog_id, kind, event_date) values ($1, 'sterilisation', current_date)", [after]);
   ok((await status(after)).s === "unknown" && (await status(before)).s === "sterilised", "the rollback stops the trigger and keeps statuses already set");
 }
 
-section("Proposed: the public 'Being helped now' figure leaves out unconfirmed imports (supabase/proposed/2026-11-18-public-impact-active-cases.sql)");
+section("The public 'Being helped now' figure leaves out unconfirmed imports (supabase/proposed/2026-11-18-public-impact-active-cases.sql)");
 {
   const PROP = join(here, "../../supabase/proposed");
   // Only the columns the function reads, as on production.
@@ -961,11 +961,11 @@ section("Proposed: the public 'Being helped now' figure leaves out unconfirmed i
   for (let i = 0; i < 5; i++) await add("in_progress", "imported_historical_record", null);
   await add("open", "imported_historical_record", new Date().toISOString());
   await add("closed", "imported_historical_record", null);
-  await db.exec(readFileSync(join(PROP, "2026-11-18-public-impact-active-cases.rollback.sql"), "utf8"));
+  await db.exec(readFileSync(join(here, "../../supabase/rollback/20261119140000_public_impact_active_cases-rollback.sql"), "utf8"));
   const before = await one("select active_cases::int a, case_records::int r, resolved_cases::int c from list_public_org_impacts() where ngo_id = $1", [ngo]);
   ok(before.a === 8, "today every open status counts, unconfirmed imports included (8)");
-  await db.exec(readFileSync(join(PROP, "2026-11-18-public-impact-active-cases.sql"), "utf8"));
-  await db.exec(readFileSync(join(PROP, "2026-11-18-public-impact-active-cases.sql"), "utf8"));
+  await db.exec(readFileSync(join(MIG, "20261119140000_public_impact_active_cases.sql"), "utf8"));
+  await db.exec(readFileSync(join(MIG, "20261119140000_public_impact_active_cases.sql"), "utf8"));
   const after = await one("select active_cases::int a, case_records::int r, resolved_cases::int c from list_public_org_impacts() where ngo_id = $1", [ngo]);
   ok(after.a === 3, "with the change: current work plus the one confirmed import (3), as Today and Cases count it");
   ok(after.r === before.r && after.c === before.c, "case records and resolved cases are unchanged");

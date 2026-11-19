@@ -1,4 +1,4 @@
--- Proposed, not applied. The public "Being helped now" figure leaves out imported cases nobody has confirmed.
+-- The public "Being helped now" figure leaves out imported cases nobody has confirmed.
 --
 -- Why: list_public_org_impacts() feeds the embeddable organisation card (src/app/embed/[slug]/page.tsx, "Being helped
 -- now"). It counts every case whose status class is open or in progress, including imported historical records whose
@@ -9,7 +9,7 @@
 -- What changes: active_cases counts an imported historical case only once a person has confirmed it (status_reviewed_at set),
 -- the rule Today, Cases and Kaju use (src/nx/data/ngo.ts isHistorical). Every other column is unchanged, and the
 -- function keeps its signature, security and settings. Safe to re-run. Rollback: re-apply the previous definition,
--- saved in 2026-11-18-public-impact-active-cases.rollback.sql.
+-- supabase/rollback/20261119140000_public_impact_active_cases-rollback.sql.
 
 create or replace function public.list_public_org_impacts()
  returns table(ngo_id uuid, animals_recorded bigint, sterilised bigint, vaccinated bigint, case_records bigint, active_cases bigint, resolved_cases bigint)

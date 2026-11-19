@@ -1,4 +1,4 @@
--- Proposed, not applied. A recorded sterilisation or vaccination sets the animal's status.
+-- A recorded sterilisation or vaccination sets the animal's status.
 --
 -- Why: every figure in StrayPaw (NGO home, Animals, Programmes, government coverage, reports, Kaju, the public map)
 -- counts an animal as sterilised or vaccinated from dogs.sterilisation_status / dogs.vaccination_status. Nothing ties
@@ -12,7 +12,7 @@
 -- Additive and safe to re-run: one function, one trigger, one idempotent update. It never sets a status back to
 -- unknown and never touches an animal without such an event. The existing dogs_sync_status trigger keeps the
 -- sterilised / vaccinated booleans in step.
--- Rollback: supabase/proposed/2026-11-18-care-sets-status.rollback.sql (drops the trigger and function; statuses set
+-- Rollback: supabase/rollback/20261119130000_care_sets_status-rollback.sql (drops the trigger and function; statuses set
 -- by the backfill stay, since each is backed by a recorded event).
 
 create or replace function public.care_sets_dog_status()
