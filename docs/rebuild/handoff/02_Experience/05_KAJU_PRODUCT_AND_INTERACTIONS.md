@@ -5,7 +5,7 @@
 
 ## Two surfaces, one continuous context
 **Compact:** invocable from any page (keyboard and button), aware of *current permitted* record/list/channel; can quick-answer, draft/update, create a task, open a record or expand. Interface resembles focused Raycast Quick AI: crisp composer, small high-value results, no modal maze.
-**Full Kaju page:** Raycast-like conversational centre with side sections for Missions, Automations, Approvals, Insights, History and Files. User can see progress, inspect sources, preview generated artifacts, approve changes and switch to/from compact without losing state. Missions visually borrow Inngest run steps but show plain-language events, e.g., 'Waiting for supervisor approval' rather than API logs.
+**Full Kaju page:** Raycast-like conversational centre with side sections for Automations, Insights, History and Files. (Updated 18 Nov 2026: there are no Missions or Approvals pages; Kaju's work in several steps shows as one card where it was asked, on its record, in Needs you and Today, and finished work in History. See docs/KAJU-INTELLIGENCE.md section 2.) User can see progress, inspect sources, preview generated artifacts, approve changes and switch to/from compact without losing state. Missions visually borrow Inngest run steps but show plain-language events, e.g., 'Waiting for supervisor approval' rather than API logs.
 
 ## Kaju's SIX operational modes
 1. **Ask:** explain, summarize, locate, compare, chart, map, answer with source-backed links. Never invent sensitive data.
@@ -44,7 +44,7 @@ Render subtle underlines beneath understood spans; tapping shows small editable 
 Different orgs can customize narrower policies; never expand beyond server role ACL, explicit consents and jurisdiction-specific clinical/legal rules. Show 'why approval?' and allow approve/reject/edit with a trace.
 
 ## Durable execution and failure recovery
-Each mission stores: owner/scope, trigger, input/context refs, plan, tool calls, idempotency keys, policy decisions, status, progress, approvals, notifications, retries/backoff, errors, deadlines and final evidence. States: Draft, Ready, Running, Waiting on person, Waiting on partner, Retrying, Blocked, Completed, Canceled. Kaju must be able to resume across sessions and handoff to humans rather than pretending a failed operation succeeded.
+Each piece of Kaju's work stores: owner/scope, trigger, input/context refs, plan, tool calls, idempotency keys, policy decisions, status, progress, approvals, notifications, retries/backoff, errors, deadlines and final evidence. States: Draft, Ready, Running, Waiting on person, Waiting on partner, Retrying, Blocked, Completed, Canceled. Kaju must be able to resume across sessions and handoff to humans rather than pretending a failed operation succeeded.
 
 ## Connected data and communications
 Gmail/Outlook, WhatsApp Business (Meta-approved), Calendar, Drive/docs/sheets, StrayPaw records/channels and additional provider adapters where useful. Use least privilege; connect personal app data only after explicit user consent; connector boundaries per user/org; clear disconnection/revocation. No reading others' private email or WhatsApp simply because of shared workspace membership.
@@ -52,7 +52,7 @@ Gmail/Outlook, WhatsApp Business (Meta-approved), Calendar, Drive/docs/sheets, S
 ## Organization memory
 - Context layers: personal preferences (consented), org SOPs/templates (approved), programme/project memory (scoped), conversation/thread summaries (permissioned), workflow history (auditable).
 - Store references + source validity, not indiscriminate raw sensitive conversation dumps. Expiration and delete/revoke controls.
-- Example: 'How do we usually prepare our government ABC evidence?' -> show established SOP, current records and a reusable mission. No unsupported guesses.
+- Example: 'How do we usually prepare our government ABC evidence?' -> show established SOP, current records and a reusable plan. No unsupported guesses.
 
 ## Proactivity without noise
 Daily 'what matters' digest, exceptions-only alert inbox, due follow-ups, reply tracking, suggested bulk actions and resolved follow-up notes. Organization can choose cadence/quiet hours. High-risk alerts never silently suppressed. Avoid compulsive notification spam and misleading success metrics.

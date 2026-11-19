@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Blocks } from "./Blocks";
+import { JobCard, useOpenJob } from "./JobCard";
 import { CheckDraw, Swap } from "../motion";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
@@ -12,7 +13,8 @@ import { appHref, useKaju, type Feedback, type Turn } from "./state";
 import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
-   as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx). */
+   as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx); once started, Kaju's work shows here, under the
+   words that asked for it, as its card (JobCard.tsx), kept current while it runs. */
 
 const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", register_exposure: "Record a bite", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
 const day = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
@@ -120,15 +122,19 @@ function Rate({ t }: { t: Turn }) {
 }
 
 export function Thread({ compact }: { compact?: boolean }) {
-  const { turns, ask, stop, retry, page, busy } = useKaju();
+  const { turns, ask, stop, retry, page, busy, setOpen } = useKaju();
   const calm = useReducedMotion();
+  const openJob = useOpenJob();
   const shown = compact ? turns.slice(-4) : turns;
   if (!turns.length) return null;
   return (
     <ol className={`nx-kthread ${compact ? "is-compact" : ""}`} aria-label="Conversation with Kaju">
       {shown.map((t) => (
-        <motion.li key={t.id} className={`nx-kturn is-${t.role}`} initial={calm ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .16 }}>
-          {t.role === "user" ? <p className="nx-kq">{t.text}</p> : (
+        <motion.li key={t.id} className={`nx-kturn is-${t.role}${t.job && t.role === "kaju" ? " is-job" : ""}`} initial={calm ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .16 }}>
+          {t.role === "user" ? <p className="nx-kq">{t.text}</p> : t.job ? (
+            /* In the panel, opening it puts the panel away first, so the card is not opened under it. */
+            <JobCard id={t.job} onOpen={() => { if (compact) setOpen(false); openJob(t.job!); }} />
+          ) : (
             <div className="nx-ka">
               <span className="nx-ka-i is-face"><KajuFace size={22} /></span>
               <div>

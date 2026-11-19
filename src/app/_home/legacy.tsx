@@ -35,8 +35,8 @@ export const metadata = {
 /* ════════════════════════════════════════════════════════════════════
    Homepage, in order:
    1 hero (Meet Kaju) · 2 partner wall · 3 use cases · 4 Kaju as a
-   teammate · 5 recurring checks for Kaju (dark) · 5b one request becomes
-   a mission (the real planner) · 6 customer results ·
+   teammate · 5 recurring checks for Kaju (dark) · 5b one request,
+   prepared for your approval (the real planner) · 6 customer results ·
    7 integrations · 8 security · 9 FAQ · 10 closing call to action.
    Buyer: the municipal office that funds ABC and anti-rabies work, and
    the operators it funds. Kaju is the agent; StrayPaw is the platform.
@@ -128,7 +128,7 @@ export default function HomePage() {
       {/* 5 · recurring work, with Kaju agents */}
       <Recurring />
 
-      {/* 5b · one request becomes a mission: the plan StrayPaw's rules make today, with the approval it waits for.
+      {/* 5b · one request, prepared for your approval: the plan StrayPaw's rules make today, with the approval it waits for.
          After the blueprint's own sections, so their order (held by e2e/creative-pass.spec.ts) is unchanged. */}
       <Mission />
 

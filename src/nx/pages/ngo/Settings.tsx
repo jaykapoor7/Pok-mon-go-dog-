@@ -81,7 +81,7 @@ function Profile({ who }: { who: Who }) {
       </div>
       <h3 className="nx-h3" style={{ marginTop: 20 }}>Public profile</h3>
       <div className="nx-fields">
-        <Field label="Mission (one sentence)" wide><input value={f.mission} onChange={set("mission")} maxLength={200} /></Field>
+        <Field label="What you do (one sentence)" wide><input value={f.mission} onChange={set("mission")} maxLength={200} /></Field>
         <Field label="About" wide><textarea value={f.about} onChange={set("about")} rows={4} /></Field>
         <Field label="Areas of work" hint="Separate with commas." wide><input value={f.areas} onChange={set("areas")} placeholder="Rescue, ABC, vaccination" /></Field>
         <Field label="City"><input value={f.city} onChange={set("city")} /></Field>

@@ -200,7 +200,7 @@ test("Kaju: details are recognised before sending, and a run stops for approval"
   await page.getByRole("button", { name: /^Place: Ward 12/ }).click();
   await page.getByRole("listbox", { name: /choose/ }).getByRole("option", { name: "Ward 14" }).click();
   await expect(page.getByRole("button", { name: /^Place: Ward 14/ })).toBeVisible();
-  /* Signed out, Kaju can read the sentence but plans nothing: the sample missions are labelled and nothing starts. */
+  /* Signed out, Kaju can read the sentence but plans nothing: the sample work is labelled and nothing starts. */
   await expect(page.locator('section[aria-labelledby="kj-m"] li')).toHaveCount(2);
   await expect(page.getByRole("button", { name: /^Plan/ })).toHaveCount(0);
   await noSideScroll(page);
@@ -304,12 +304,17 @@ test("Healthcare surveillance: programme totals, not this facility's patients", 
   await noSideScroll(page);
 });
 
-test("Kaju approvals: missions stop for the person who started them, history keeps every step", async ({ page }) => {
+test("Kaju's work: what waits for you is listed on Kaju's home, old approval links land there, history keeps every step", async ({ page }) => {
+  /* There is no approvals page any more: an old link opens Kaju's home, where the work that waits for the person is
+     listed (sample, signed out) with the step it waits on, and nothing in the sidebar or Kaju's places says "Missions". */
   await open(page, "/kaju/approvals");
-  await expect(page.locator(".nx-run")).toHaveCount(1);
-  await expect(page.locator(".nx-run").first().locator(".nx-run-steps li")).toHaveCount(4);
-  await expect(page.locator(".nx-run-steps li.is-waiting_approval")).toHaveCount(1);
-  await expect(page.locator("a", { hasText: "Try a live mission" })).toHaveAttribute("href", "/try");
+  await expect(page).toHaveURL(/\/kaju$/);
+  const work = page.locator('section[aria-labelledby="kj-m"]');
+  await expect(work.getByRole("heading", { name: "Kaju's work" })).toBeVisible();
+  await expect(work.locator("li")).toHaveCount(2);
+  await expect(work.locator("li").first()).toContainText("Waiting for your approval: Send the packet to the municipal office");
+  await expect(work.locator("a").first()).toHaveAttribute("href", "/try");
+  await expect(page.getByText(/\bmissions?\b|workroom/i)).toHaveCount(0);
   await open(page, "/kaju/history");
   await expect(page.locator(".nx-run")).toHaveCount(2);
   await noSideScroll(page);

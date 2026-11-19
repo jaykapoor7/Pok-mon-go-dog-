@@ -56,7 +56,7 @@ export function validatePlan(raw: unknown): { ok: true; plan: Plan } | { ok: fal
   const title = typeof r.title === "string" ? r.title.trim().slice(0, 240) : "";
   if (!title) return { ok: false, error: "The plan needs a title." };
   if (!Array.isArray(r.steps) || r.steps.length < 1) return { ok: false, error: "The plan has no steps." };
-  if (r.steps.length > MAX_STEPS) return { ok: false, error: `A mission has at most ${MAX_STEPS} steps.` };
+  if (r.steps.length > MAX_STEPS) return { ok: false, error: `A plan has at most ${MAX_STEPS} steps.` };
   const steps: PlanStep[] = [];
   for (const [i, s] of r.steps.entries()) {
     const n = i + 1;
@@ -107,7 +107,7 @@ export function planFromIntent(i: Intent): Plan | null {
     }
     case "find_overdue": {
       const steps: PlanStep[] = [{ label: "Find overdue cases", tool: "find_overdue_cases", input: {} }];
-      if (i.channel) steps.push({ label: `Tell #${i.channel}`, tool: "post_message", input: { channel: i.channel, body: "Kaju checked the open cases that are past their due date. The list is in the mission." } });
+      if (i.channel) steps.push({ label: `Tell #${i.channel}`, tool: "post_message", input: { channel: i.channel, body: "Kaju checked the open cases that are past their due date. The list is with Kaju in StrayPaw." } });
       return { title: "Check overdue cases", steps };
     }
     case "create_task":
@@ -125,7 +125,7 @@ export function planFromIntent(i: Intent): Plan | null {
 /** The tool schema offered to a model for proposing a plan. It can only propose; nothing runs until a person starts it. */
 export const PROPOSE_TOOL = {
   name: "propose_mission",
-  description: "Propose a mission for the person to review. It is not started: the person reads the steps and starts it. Use only the listed tools. Steps that change several records or reach outside StrayPaw will wait for approval; decisions reserved for people (verification, lab validation, clinical decisions, data access) are added as person-only steps, never done by Kaju.",
+  description: "Propose a plan for the person to review. It is not started: the person reads the steps and starts it. Use only the listed tools. Steps that change several records or reach outside StrayPaw will wait for approval; decisions reserved for people (verification, lab validation, clinical decisions, data access) are added as person-only steps, never done by Kaju.",
   input_schema: {
     type: "object" as const,
     properties: {

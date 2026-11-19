@@ -43,7 +43,7 @@ Read before writing code: `CLAUDE.md`, `AGENTS.md`, `DESIGN.md`, `docs/rebuild/h
 
 - Attio-dense: tables and lists with a preview drawer and a full record page, not card walls. Rows 40-48px on desktop.
   Record pages: `RecordHead`, `TabBar`, then the `.nx-rec` three-column layout (properties, main, side) where it helps.
-- Linear precision for insights; Slack for messages; Inngest-style steps for missions. No gradients, no hero banners,
+- Linear precision for insights; Slack for messages; Inngest-style steps for Kaju's work (one card where it was asked, no separate pages). No gradients, no hero banners,
   no KPI-card grids, no generic outlined cards.
 - Phone (390px): one column, 44px touch targets, no horizontal page scroll, tables become row lists (ListPage already
   does), primary action reachable. Tablet 768px works. Dark mode works (tokens only, no hard-coded colours).

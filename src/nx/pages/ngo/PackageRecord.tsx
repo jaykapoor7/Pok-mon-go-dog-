@@ -71,7 +71,7 @@ function View({ sample, d, role, reload }: { sample: boolean; d: Data; role: str
   const [asking, setAsking] = useState<"submit" | "answer" | null>(null);
   const [body, setBody] = useState("");
   const operator = leadOrCoord(role);
-  /* Handing this package to Kaju (a task to check it, or a word to the team), and the workrooms about it. */
+  /* Handing this package to Kaju (a task to check it, or a word to the team), and what Kaju is doing about it. */
   const orgId = useLive().orgFor("ngo")?.org_id ?? null;
   const link: RecordLink | null = sample ? null : { kind: "package", id: p.id, label: p.title, ws: "ngo" };
   const handoff = useHandoff(link, orgId);

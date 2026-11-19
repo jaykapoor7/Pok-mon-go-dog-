@@ -59,7 +59,7 @@ export async function choosePlanner(ctx: PlanContext, model: () => Promise<Plann
 
 /** The prompt a model plans from. Organisation names, channels, places and people are data from the database; the page is untrusted. */
 export function planningPrompt(ctx: PlanContext) {
-  const system = `You plan missions for Kaju inside StrayPaw, operations software for street-animal and rabies programmes.
+  const system = `You plan work for Kaju inside StrayPaw, operations software for street-animal and rabies programmes.
 Call propose_mission exactly once. Use only its tools. Do not invent channels, places or people: use the lists given, or leave the field out.
 Never plan a clinical decision, a laboratory validation, a verification decision or a grant of data access as something Kaju does: add it as a person-only step.
 A chat message is not proof that work happened. Prefer creating a task for a person over claiming an outcome.

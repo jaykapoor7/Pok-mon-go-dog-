@@ -248,9 +248,9 @@ function LiveToday() {
           </Panel> : null}
           <TasksPanel orgId={org!.org_id} userId={userId} tasks={tasks} />
         </Grid>
-        <Strip id="t-kaju" title="Kaju is waiting on you" all={{ href: "/kaju/missions", label: "Missions" }} error={waiting.error ? "What Kaju is waiting on could not be read." : null} retry={waiting.reload}
-          items={waiting.data?.map((m): Item => ({ id: m.id, title: m.step ? `${m.state === "waiting_approval" ? "Approve" : m.state === "failed" ? "Stopped at" : "Waiting for a person"}: ${m.step}` : m.title, meta: m.title, href: `/kaju/missions/${m.id}`, icon: m.state === "failed" ? <AlertTriangle size={16} /> : <Hand size={16} />, tone: m.state === "failed" ? "bad" : "warn", chip: { text: shortDay(m.at), tone: "plain" } }))}
-          empty="Nothing right now. Ask @Kaju above, or plan a mission in Kaju." />
+        <Strip id="t-kaju" title="Waiting for you in Kaju" all={{ href: "/kaju", label: "Kaju" }} error={waiting.error ? "What Kaju is waiting on could not be read." : null} retry={waiting.reload}
+          items={waiting.data?.map((m): Item => ({ id: m.id, title: m.step ? `${m.state === "waiting_approval" ? "Approve" : m.state === "failed" ? "Stopped at" : "Waiting for a person"}: ${m.step}` : m.title, meta: m.title, href: `?job=${m.id}`, icon: m.state === "failed" ? <AlertTriangle size={16} /> : <Hand size={16} />, tone: m.state === "failed" ? "bad" : "warn", chip: { text: shortDay(m.at), tone: "plain" } }))}
+          empty="Nothing right now. Ask @Kaju above, or tell Kaju what you want done." />
         {ngo && vs.length ? <p className="hm-note hm-foot-note">Visits from imported registers are left out of these counts, as on Operations.</p> : null}
       </div>
     </Shell>

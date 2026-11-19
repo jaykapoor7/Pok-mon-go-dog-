@@ -14,6 +14,7 @@ import { useProgrammeChannels } from "./collab";
 import { getSupabase } from "@/lib/supabase";
 import { Failed, OfflineBar, ToastHost } from "./kit";
 import { KajuProvider, useKaju, type KajuSubject } from "./kaju/state";
+import { JobWatch } from "./kaju/JobWatch";
 import { useChannels, useDms, useLive, useOrgPeople, useUnread } from "./live";
 import { ConversationHost, isUnnamed, newConversation, personName } from "./conversations";
 import { Back, PhoneBar, PhoneMenu, PlusSheet, parentOf, phoneTabs, type PhoneKind } from "./Phone";
@@ -24,7 +25,7 @@ import "./kaju/kaju.css";
 import "./kaju/workspace.css";
 
 /* The command bar and the compact Kaju panel are closed on every first paint, so their code (Kaju's composer, plans,
-   missions and voice; search) is fetched and run the first time a person opens them, not by every page as it starts.
+   work cards and voice; search) is fetched and run the first time a person opens them, not by every page as it starts.
    Their keyboard shortcuts live here in the shell, so ⌘K and ⌘J work before either has loaded. */
 const Command = dynamic(() => import("./Command").then((m) => m.Command), { ssr: false });
 const KajuDock = dynamic(() => import("./kaju/Dock").then((m) => m.KajuDock), { ssr: false });
@@ -207,6 +208,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
       {cmdUsed ? <Command open={cmd} onClose={() => setCmd(false)} /> : null}
       <ToastHost />
       <ConversationHost />
+      <JobWatch />
       {path.startsWith("/kaju") || !dockUsed ? null : <KajuDock crumb={crumb[1] ?? crumb[0]} />}
       <PhoneBar tabs={phoneTabs(kind, home)} on={on} plus={kind === "ngo" || kind === "clinic" || kind === "vet"} onPlus={() => setPlus(true)} onMenu={() => setMenu(true)} menuOpen={menu} unread={unread} />
       <PlusSheet open={plus} onClose={closePlus} kind={kind} onKaju={() => { if (path.startsWith("/kaju")) router.push("/kaju"); else setKaju(true); }} />

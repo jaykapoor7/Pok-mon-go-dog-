@@ -1,4 +1,4 @@
-import { GraduationCap, Settings2, Upload, Users, SlidersHorizontal, Activity, BarChart3, Building2, CalendarDays, ClipboardCheck, ClipboardList, FileCheck2, FlaskConical, FolderKanban, Handshake, History, Home, Inbox, LayoutGrid, ListChecks, Microscope, PawPrint, Radar, Route, Scissors, ShieldCheck, Sparkles, Stethoscope, Syringe, Zap } from "lucide-react";
+import { GraduationCap, Settings2, Upload, Users, SlidersHorizontal, Activity, BarChart3, Building2, CalendarDays, ClipboardCheck, ClipboardList, FileCheck2, FlaskConical, FolderKanban, Handshake, History, Home, Inbox, LayoutGrid, Microscope, PawPrint, Radar, Route, Scissors, ShieldCheck, Sparkles, Stethoscope, Syringe, Zap } from "lucide-react";
 
 /* Every page of the rebuilt app, by workspace. The sidebar, the phone bar and the command bar all read this. */
 export type NavItem = { href: string; label: string; icon: typeof Home; n?: number; office?: boolean };
@@ -66,14 +66,12 @@ export const RESEARCH: NavItem[] = [
 ];
 export const KAJU: NavItem[] = [
   { href: "/kaju", label: "Ask Kaju", icon: Sparkles },
-  { href: "/kaju/missions", label: "Missions", icon: ListChecks, n: 2 },
   { href: "/kaju/automations", label: "Automations", icon: Zap },
-  { href: "/kaju/approvals", label: "Approvals", icon: ShieldCheck },
   { href: "/kaju/insights", label: "Insights", icon: BarChart3 },
   { href: "/kaju/history", label: "History", icon: History },
   { href: "/kaju/rules", label: "Rules & memory", icon: SlidersHorizontal },
 ];
-export const BUILT = new Set(["/ngo/today", "/ngo/operations", "/ngo/programmes", "/ngo/inbox", "/ngo/submissions", "/ngo/cases", "/ngo/animals", "/gov/overview", "/gov/programmes", "/gov/partners", "/gov/verification", "/gov/surveillance", "/gov/reports", "/health/today", "/health/patients", "/health/appointments", "/health/care", "/health/procedures", "/health/followups", "/health/referrals", "/health/facilities", "/health/surveillance", "/health/testing", "/health/results", "/health/quality", "/health/bites", "/health/pep", "/health/samples", "/research/datasets", "/research/explore", "/research/maps", "/research/studies", "/research/reports", "/kaju", "/kaju/missions", "/kaju/automations", "/kaju/approvals", "/kaju/history", "/kaju/insights", "/kaju/rules", "/ngo/team", "/ngo/training", "/ngo/import", "/ngo/settings"]);
+export const BUILT = new Set(["/ngo/today", "/ngo/operations", "/ngo/programmes", "/ngo/inbox", "/ngo/submissions", "/ngo/cases", "/ngo/animals", "/gov/overview", "/gov/programmes", "/gov/partners", "/gov/verification", "/gov/surveillance", "/gov/reports", "/health/today", "/health/patients", "/health/appointments", "/health/care", "/health/procedures", "/health/followups", "/health/referrals", "/health/facilities", "/health/surveillance", "/health/testing", "/health/results", "/health/quality", "/health/bites", "/health/pep", "/health/samples", "/research/datasets", "/research/explore", "/research/maps", "/research/studies", "/research/reports", "/kaju", "/kaju/automations", "/kaju/history", "/kaju/insights", "/kaju/rules", "/ngo/team", "/ngo/training", "/ngo/import", "/ngo/settings"]);
 /** Where an organisation's workspace opens. Healthcare and research open in the current app until they are rebuilt. */
 export const homeOf = (w: string, id: string) => (w === "ngo" ? "/ngo/today" : w === "government" ? "/gov/overview" : w === "healthcare" ? "/health/today" : w === "research" ? "/research/datasets" : "/home");
 export const WS_LABEL: Record<string, string> = { ngo: "NGO workspace", government: "Government & Programmes", healthcare: "Healthcare", research: "Research" };
