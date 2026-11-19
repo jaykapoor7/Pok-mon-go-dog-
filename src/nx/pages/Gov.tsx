@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, FileText, MapPin, ShieldAlert } from "lucide-react";
 import { ALERT_KIND, KIND_LABEL as OH_KIND, SERVICE_LABEL, SERVICE_STATUS, call, fmtDate, type Alert, type Count, type Network, type Overview, type Place, type ProgrammeRef } from "@/oh/data";
 import { oversees } from "@/oh/places";
+import { capsIn, usePlaces } from "../data/govhealth";
 import { PACKAGE_LABEL, orgNames, packages, type Package } from "@/lib/abc";
 import { isVisibleToOffice } from "@/lib/machines/package";
 import { ListPage, type Col } from "../ListPage";
@@ -93,6 +94,10 @@ function CovBar({ c, target }: { c: number | null; target: number }) {
 export function GovProgrammes() {
   const g = useGov();
   const o = useCall<Overview>("oh_programme_overview", g.mode === "programme" && g.prog ? { p_programme: g.prog.id, p_days: 365 } : null, `cov:${g.prog?.id}`);
+  /* The same rule as the programme's Coverage tab: who may record an estimate is offered it here. */
+  const pl = usePlaces(g.mode === "programme");
+  const caps = useMemo(() => capsIn(pl.places, g.prog?.id), [pl.places, g.prog?.id]);
+  const canEst = caps.has("record_estimate") || caps.has("oversee");
   if (g.mode === "loading") return <Opening crumb="Programmes" />;
   if (g.mode === "failed") return <Plain crumb="Programmes" title="Programmes"><Failed error={`Your programmes could not be read, so nothing is shown as missing. ${g.failed ?? ""}`} retry={g.retry} /></Plain>;
   if (g.mode === "none") return <Plain crumb="Programmes" title="Programmes">{g.gov ? `${g.gov.name} does not oversee a programme on StrayPaw yet.` : NOT_IN}</Plain>;
@@ -113,7 +118,8 @@ export function GovProgrammes() {
     <ListPage ws="gov" crumb={["Government", "Programmes"]} title="Programmes" sample={sample}
       eyebrow={<><ProgName g={g} sample={sample} /><GhMark />{!sample && o.data?.programme.illustrative && !/illustrative/i.test(o.data.programme.name) ? <Chip tone="warn">Illustrative</Chip> : null}</>}
       sub={o.loading ? "Reading the programme…" : <><b className="num">{at}</b> of {withEst.length} {withEst.length === 1 ? "area" : "areas"} with a dated estimate reach the {pct(target)} target.{rows.length - withEst.length ? <> <About>{rows.length - withEst.length} {rows.length - withEst.length === 1 ? "has" : "have"} no estimate, so no coverage is shown.</About></> : null}<GhMark /></>}
-      action={sample ? <Link href="/gov/programmes/sample?tab=Coverage" className="nx-btn is-quiet">Open the programme</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Coverage`} className="nx-btn is-quiet">Record an estimate</Link> : undefined}
+      /* Only someone allowed to record an estimate is offered it; anyone else gets the way into the programme. */
+      action={sample ? <Link href="/gov/programmes/sample?tab=Coverage" className="nx-btn is-quiet">Open the programme</Link> : slug ? <Link href={`/gov/programmes/${slug}?tab=Coverage`} className="nx-btn is-quiet">{canEst ? "Record an estimate" : "Open the programme"}</Link> : undefined}
       views={[{ id: "all", label: "All areas", test: () => true }, { id: "low", label: "Below target", test: (r: AreaRow) => covOf(r) !== null && covOf(r)! < target }, { id: "none", label: "No estimate", test: (r: AreaRow) => covOf(r) === null }]}
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.area} search={(r) => r.area}
       sort={(a, b) => (covOf(a) ?? 2) - (covOf(b) ?? 2)}

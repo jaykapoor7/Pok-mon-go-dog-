@@ -77,7 +77,8 @@ export function Bites() {
     sub={sample || reg.data ? <><b className="num">{list.filter((r) => r.course === "Waiting for a clinician").length}</b> waiting for a clinician, <b className="num">{list.filter((r) => r.late).length}</b> with a dose overdue. <About>Categories and doses are entered by clinicians.</About></> : "Reading the register…"}
     views={biteViews} columns={biteCols} rows={list} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.ref} ${r.area}`}
     preview={bitePreview} loading={!sample && !reg.data && !reg.error} error={reg.error} empty={{ none: "No bites recorded yet", hint: "Each presentation is recorded by the clinic." }}
-    action={<Link href="/health/bites/new" className="nx-btn is-keep">Record a bite</Link>} />;
+    /* On a phone the "+" records a bite from every page, so the list keeps its button on a computer only. */
+    action={<Link href="/health/bites/new" className="nx-btn is-keep gh-desk">Record a bite</Link>} />;
 }
 
 /* ── PEP doses due ─────────────────────────────────────────────────── */
@@ -187,12 +188,12 @@ export function HealthToday() {
   const comingRows: Item[] | null = coming ? coming.map((r) => ({ id: r.id, title: <span className="num">{r.code}</span>, meta: r.meta, href: "/health/referrals?view=in", icon: <Route size={16} />, tone: "blue" as const, chip: { text: `Sent ${r.sent}`, tone: "plain" as const } })) : null;
   const noticeRows = sample ? [{ id: "n1", what: "Brown dog, unprovoked bite", where: "Near a park · today", cb: true, phone: null as string | null, raw: null as Notice | null }, { id: "n2", what: "Puppy, scratch on a child's hand", where: "Outside a school · yesterday", cb: false, phone: null, raw: null }]
     : (fresh ?? []).map((n) => ({ id: n.id, what: n.animal_description ?? word(n.animal_species), where: `${n.place ?? n.area ?? "Place not given"} · ${d(n.happened_on)}`, cb: n.callback_consent, phone: n.callback_phone, raw: n }));
-  const who = "Patient details stay with the treating facility. Partners see only the animal facts needed for a follow-up. Kaju reads these records only for someone who can open them here, and never makes a clinical decision.";
+  /* What Kaju may read is said once, under the @Kaju line; this says who else sees what. */
+  const who = "Patient details stay with the treating facility. Partners see only the animal facts needed for a follow-up.";
   return (
     <Shell ws="health" crumb={["Healthcare", "Today"]}>
       <div className="nx-page hm-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{sample ? CLINIC.name : org!.name}{sample ? <SampleChip /> : null}<GhMark /></p><h1 className="nx-h1">Today</h1><p className="nx-sub">{doses === undefined ? "Reading the day…" : doses === null ? "The doses due could not be read, so nothing is shown as clear." : <><b className="num">{doses}</b> {doses === 1 ? "dose" : "doses"} due today{late ? <>, <b className="num">{late}</b> overdue</> : null}. <b className="num">{waitN ?? "—"}</b> waiting for a clinician.</>}</p></div>
-          <Link href="/health/bites/new" className="nx-btn is-keep">Record a bite</Link></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{sample ? CLINIC.name : org!.name}{sample ? <SampleChip /> : null}<GhMark /></p><h1 className="nx-h1">Today</h1><p className="nx-sub">{doses === undefined ? "Reading the day…" : doses === null ? "The doses due could not be read, so nothing is shown as clear." : <><b className="num">{doses}</b> {doses === 1 ? "dose" : "doses"} due today{late ? <>, <b className="num">{late}</b> overdue</> : null}. <b className="num">{waitN ?? "—"}</b> waiting for a clinician.</>}</p></div></div>
         <AtKaju role="clinic" note="Kaju reads only what you can open. Clinical decisions stay with you." />
         <Tiles>
           <Tile label="Doses due today" n={doses} tone={doses ? "blue" : "plain"} href="/health/pep?view=today" visual={week ? <MiniBars label="Overdue, then the next 7 days" values={week} /> : null} />
@@ -273,7 +274,7 @@ function LabToday({ org }: { org: Workspace }) {
           </Panel>
           <TasksPanel orgId={org.org_id} userId={live.userId} tasks={tasks} />
         </Grid>
-        <p className="hm-note hm-foot-note">Days are counted from collection. Receiving, testing and releasing a result are steps taken by named laboratory staff. Kaju never interprets or releases a result.</p>
+        <p className="hm-note hm-foot-note">Days are counted from collection. Receiving, testing and releasing a result are steps taken by named laboratory staff.</p>
       </div>
     </Shell>
   );

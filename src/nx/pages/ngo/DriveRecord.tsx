@@ -60,7 +60,6 @@ export function DriveRecord({ id }: { id: string }) {
         actions={<>
           <button type="button" className="nx-btn is-quiet" disabled={!list?.length} onClick={csv}><Download size={13} />Animals as CSV</button>
           {who.sample ? <TryLink quiet><Archive size={13} />Archive</TryLink> : leader ? <button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={() => setAsking(true)}>{stats.archived ? <><ArchiveRestore size={13} />Restore</> : <><Archive size={13} />Archive</>}</button> : null}
-          <Link className="nx-btn is-quiet" href="/ngo/programmes">All drives</Link>
         </>} />
       <div className="nx-rec" style={{ marginTop: 16, borderTop: "1px solid var(--line)" }}>
         <div>

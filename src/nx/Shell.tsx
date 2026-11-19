@@ -133,6 +133,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const [menu, setMenu] = useState(false), [plus, setPlus] = useState(false);
   const closeMenu = useCallback(() => setMenu(false), []), closePlus = useCallback(() => setPlus(false), []);
   useEffect(() => { setMenu(false); setPlus(false); }, [path]);
+  /* On a record, the first crumb is its section (as the phone's back arrow is), so a page needs no "All …" link of its own. */
   const back = parentOf(path, home);
   /* The page's large title is the title; the bar shows the name once that title has scrolled away. */
   const [titleGone, setTitleGone] = useState(false);
@@ -190,7 +191,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
       <div className="nx-main">
         <header className={`nx-top ${back ? "has-back" : ""}`} data-title={titleGone ? "bar" : "page"}>
           {back ? <Back href={back.href} label={back.label} /> : null}
-          <div className="nx-crumb">{crumb[1] ? <><Link href={home} className="nx-hide-s">{crumb[0]}</Link><span className="nx-hide-s">/</span><b>{crumb[1]}</b></> : <b>{crumb[0]}</b>}</div>
+          <div className="nx-crumb">{crumb[1] ? <><Link href={back?.href ?? home} className="nx-hide-s">{crumb[0]}</Link><span className="nx-hide-s">/</span><b>{crumb[1]}</b></> : <b>{crumb[0]}</b>}</div>
           <div className="nx-top-r">
             <button type="button" className="nx-search" onClick={() => setCmd(true)} aria-keyshortcuts="Meta+K Control+K"><Search size={14} /><span>Search anything</span><kbd>⌘K</kbd></button>
             <button type="button" className="nx-ib nx-only-s" aria-label="Search" onClick={() => setCmd(true)}><Search size={18} /></button>
