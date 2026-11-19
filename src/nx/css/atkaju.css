@@ -7,7 +7,7 @@
   --ak-ink: #0b1e3d; --ak-body: #4a5568; --ak-mute: #586174; --ak-line: #d5dbe6;
   --ak-fill: #f5f7fb; --ak-raise: #fff; --ak-blue: #2457ce; --ak-blue-2: #1d49b0; --ak-blue-soft: #eaf0fc; --ak-on-blue: #fff;
   --ak-ok: #1f7a4d; --ak-bad: #ad3b37; --ak-ease: cubic-bezier(.2, .7, .2, 1);
-  margin-top: 24px; padding: 16px; border-radius: 16px; background: var(--ak-fill); color: var(--ak-body); font-size: 14px; line-height: 20px;
+  margin-top: 24px; padding: 16px; border-radius: var(--r-lg); background: var(--ak-fill); color: var(--ak-body); font-size: 14px; line-height: 20px;
 }
 .nx[data-theme="dark"] .ak {
   --ak-ink: var(--ink); --ak-body: var(--ink-2); --ak-mute: var(--ink-3); --ak-line: #39414c;
@@ -22,12 +22,12 @@
 .nx .ak-field { position: relative; flex: 1 1 auto; min-width: 0; }
 .nx .ak-at { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 4px; pointer-events: none; }
 .nx .ak-at b { color: var(--ak-blue); font-size: 14px; }
-.nx .ak-in { display: block; width: 100%; height: 48px; padding: 0 16px 0 96px; border: 0; border-radius: 12px; background: var(--ak-raise); box-shadow: inset 0 0 0 1px var(--ak-line); color: var(--ak-ink); font: inherit; font-size: 16px; transition: box-shadow .2s var(--ak-ease); }
+.nx .ak-in { display: block; width: 100%; height: 48px; padding: 0 16px 0 96px; border: 0; border-radius: var(--r-md); background: var(--ak-raise); box-shadow: inset 0 0 0 1px var(--line-ctl); color: var(--ak-ink); font: inherit; font-size: 16px; transition: box-shadow .2s var(--ak-ease); }
 .nx .ak-in::placeholder { color: var(--ak-mute); opacity: 1; }
 .nx .ak-in:hover { box-shadow: inset 0 0 0 1px var(--ak-blue); }
-.nx .ak-in:focus-visible, .nx .ak-in:focus { outline: 2px solid var(--ak-blue); outline-offset: 2px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--ak-blue); }
+.nx .ak-in:focus-visible, .nx .ak-in:focus { outline: 2px solid var(--ak-blue); outline-offset: 2px; border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--ak-blue); }
 .nx .ak-in[disabled] { opacity: .6; }
-.nx .ak-go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; min-width: 88px; padding: 0 24px; border-radius: 12px; background: var(--ak-blue); color: var(--ak-on-blue); font-size: 16px; font-weight: 600; flex: none; transition: background .2s var(--ak-ease), transform .12s var(--ak-ease), opacity .2s; }
+.nx .ak-go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; min-width: 88px; padding: 0 24px; border-radius: var(--r-md); background: var(--ak-blue); color: var(--ak-on-blue); font-size: 16px; font-weight: 600; flex: none; transition: background .2s var(--ak-ease), transform .12s var(--ak-ease), opacity .2s; }
 .nx .ak-go:hover { background: var(--ak-blue-2); }
 .nx .ak-go:active { transform: scale(.98); }
 .nx .ak-go[disabled] { opacity: .45; cursor: default; transform: none; background: var(--ak-blue); }
@@ -39,17 +39,17 @@
 .nx .ak-chip:hover { background: var(--ak-blue-soft); color: var(--ak-blue); }
 .nx .ak-open { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; color: var(--ak-blue); font-size: 14px; font-weight: 500; white-space: nowrap; flex: none; }
 .nx .ak-open:hover { text-decoration: underline; text-underline-offset: 4px; }
-.nx .ak-note { margin-top: 8px; color: var(--ak-mute); font-size: 12px; line-height: 16px; }
+.nx .ak-note { margin-top: 8px; color: var(--ak-mute); font-size: 12px; line-height: var(--lh-note); }
 .nx .ak-note a { color: var(--ak-blue); font-weight: 500; }
 /* Phone-only parts: the arrow in Ask, the strip's last chip and the one-line promise. */
 .nx .ak-go-i, .nx .ak-chip.is-open, .nx .ak-why { display: none; }
 
 /* Kaju's answer, under the line */
-.nx .ak-reply { margin-top: 16px; padding: 16px; border-radius: 12px; background: var(--ak-raise); animation: ak-in .24s var(--ak-ease) both; }
+.nx .ak-reply { margin-top: 16px; padding: 16px; border-radius: var(--r-md); background: var(--ak-raise); animation: ak-in .24s var(--ak-ease) both; }
 @keyframes ak-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .nx .ak-q { display: flex; align-items: flex-start; gap: 8px; color: var(--ak-mute); font-size: 12px; line-height: 16px; }
 .nx .ak-q b { color: var(--ak-mute); font-weight: 500; flex: none; }
-.nx .ak-x { margin: -12px -12px 0 auto; width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 8px; color: var(--ak-mute); }
+.nx .ak-x { margin: -12px -12px 0 auto; width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: var(--r-sm); color: var(--ak-mute); }
 .nx .ak-x:hover { background: var(--ak-fill); color: var(--ak-ink); }
 .nx .ak-wait { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; color: var(--ak-body); }
 .nx .ak-link { color: var(--ak-blue); font-weight: 500; min-height: 32px; display: inline-flex; align-items: center; }
@@ -58,11 +58,11 @@
 .nx .ak-ans { display: grid; gap: 12px; margin-top: 8px; }
 .nx .ak-text { display: grid; gap: 8px; color: var(--ak-ink); font-size: 16px; line-height: 24px; max-width: 72ch; }
 .nx .ak-cites { display: flex; flex-wrap: wrap; gap: 8px; }
-.nx .ak-cite { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 4px 12px; border-radius: 8px; background: var(--ak-fill); color: var(--ak-blue); font-size: 14px; font-weight: 500; }
+.nx .ak-cite { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 4px 12px; border-radius: var(--r-sm); background: var(--ak-fill); color: var(--ak-blue); font-size: 14px; font-weight: 500; }
 .nx .ak-cite:hover { background: var(--ak-blue-soft); }
 .nx .ak-cite.is-more { color: var(--ak-body); }
 .nx .ak-preps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
-.nx .ak-prep { display: grid; gap: 4px; padding: 12px; border-radius: 12px; background: var(--ak-fill); }
+.nx .ak-prep { display: grid; gap: 4px; padding: 12px; border-radius: var(--r-md); background: var(--ak-fill); }
 .nx .ak-prep-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .nx .ak-prep-h b { font-size: 14px; }
 .nx .ak-prep-h span { color: var(--ak-mute); font-size: 12px; }
@@ -74,7 +74,7 @@
 .nx .ak-sugg .ak-chip { background: var(--ak-fill); }
 .nx .ak-prep-w { color: var(--ak-mute); font-size: 12px; line-height: 16px; }
 .nx .ak-prep-f { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-.nx .ak-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 8px; background: var(--ak-blue); color: var(--ak-on-blue); font-size: 14px; font-weight: 500; transition: background .2s var(--ak-ease), transform .12s var(--ak-ease); }
+.nx .ak-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: var(--r-sm); background: var(--ak-blue); color: var(--ak-on-blue); font-size: 14px; font-weight: 500; transition: background .2s var(--ak-ease), transform .12s var(--ak-ease); }
 .nx .ak-btn:hover { background: var(--ak-blue-2); }
 .nx .ak-btn:active { transform: scale(.98); }
 .nx .ak-btn[disabled] { opacity: .5; cursor: default; transform: none; }
@@ -94,12 +94,12 @@
 @media (max-width: 640px) {
   .nx .ak { margin-top: 16px; padding: 0; background: transparent; }
   .nx .ak-bar { position: relative; display: block; }
-  .nx .ak-in { height: 52px; padding: 0 56px 0 72px; border-radius: 16px; }
-  .nx .ak-in:focus-visible, .nx .ak-in:focus { border-radius: 16px; }
+  .nx .ak-in { height: 52px; padding: 0 56px 0 72px; border-radius: var(--r-lg); }
+  .nx .ak-in:focus-visible, .nx .ak-in:focus { border-radius: var(--r-lg); }
   .nx .ak-at { left: 16px; }
   .nx .ak-at svg, .nx .ak-at .kaju-face, .nx .ak-at > :first-child:not(b) { display: none; }
   /* Ask sits inside the box's end: ink when there is something to send, a quiet fill (never a washed-out blue) when not. */
-  .nx .ak-go { position: absolute; right: 4px; top: 4px; width: 44px; height: 44px; min-width: 0; padding: 0; border-radius: 12px; }
+  .nx .ak-go { position: absolute; right: 4px; top: 4px; width: 44px; height: 44px; min-width: 0; padding: 0; border-radius: var(--r-md); }
   .nx .ak-go[disabled] { opacity: 1; background: var(--ak-fill); color: var(--ak-mute); }
   .nx .ak-go-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .nx .ak-go-i { display: block; }

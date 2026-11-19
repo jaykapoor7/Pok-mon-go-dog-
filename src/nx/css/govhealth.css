@@ -8,11 +8,11 @@
 .gh-split > * + * { border-left: 1px solid var(--line); }
 .gh-side { position: sticky; top: 0; align-self: start; max-height: calc(100vh - 96px); overflow: auto; }
 
-.gh-block + .gh-block { margin-top: 22px; }
-.gh-block-h { display: flex; align-items: center; gap: 8px; min-height: 26px; }
+.gh-block + .gh-block { margin-top: var(--sp-sec); }
+.gh-block-h { display: flex; align-items: center; gap: 8px; min-height: 32px; }
 .gh-block-h .nx-h3 { margin: 0; }
 .gh-block-a { margin-left: auto; display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-.gh-block-n { color: var(--ink-3); font-size: 11.5px; margin: 2px 0 8px; max-width: 68ch; }
+.gh-block-n { color: var(--ink-3); font-size: var(--t-meta); line-height: var(--lh-note); margin: 4px 0 8px; max-width: 68ch; }
 .gh-block > .nx-props, .gh-block > .gh-list, .gh-block > ol, .gh-block > ul { margin-top: 6px; }
 
 .gh-list { display: grid; }
@@ -20,7 +20,7 @@
 .gh-list > li:last-child { border-bottom: 0; }
 .gh-list > li > div { min-width: 0; }
 .gh-list b { font-weight: 500; }
-.gh-list small { display: block; color: var(--ink-3); font-size: 11.5px; margin-top: 1px; overflow-wrap: anywhere; }
+.gh-list small { display: block; color: var(--ink-3); font-size: var(--t-meta); line-height: var(--lh-note); margin-top: 4px; overflow-wrap: anywhere; }
 .gh-list .gh-row-a { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
 
 /* Claims to decide: a list that selects one claim, with a box for batch decisions */
@@ -31,11 +31,11 @@
 .gh-claim.is-sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); }
 .gh-claim > button.gh-claim-main { text-align: left; min-width: 0; display: grid; min-height: 36px; align-content: center; }
 .gh-claim-main b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gh-claim-main small { color: var(--ink-3); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gh-claim-main small { color: var(--ink-3); font-size: var(--t-meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gh-claim input[type="checkbox"], .gh-tick input, .gh-checks input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
 .gh-claim .gh-claim-box { display: grid; place-items: center; width: 26px; height: 36px; }
 .gh-amount { font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
-.gh-batch { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 8px 10px; margin: 10px 0; border-radius: 8px; background: var(--accent-soft); color: var(--ink); }
+.gh-batch { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; padding: 8px 12px; margin: 12px 0; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--ink); }
 .gh-batch b { font-weight: 600; }
 .gh-batch .gh-batch-a { margin-left: auto; display: inline-flex; gap: 6px; flex-wrap: wrap; }
 
@@ -43,13 +43,13 @@
 .gh-ev li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 36px; border-bottom: 1px solid var(--line); }
 .gh-ev li:last-child { border-bottom: 0; }
 .gh-ev li > span:nth-child(2) { min-width: 0; }
-.gh-ev small { display: block; color: var(--ink-3); font-size: 11px; overflow-wrap: anywhere; }
-.gh-ev .gh-ck { width: 16px; height: 16px; border-radius: 5px; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--line-2); color: transparent; }
+.gh-ev small { display: block; color: var(--ink-3); font-size: var(--t-meta); overflow-wrap: anywhere; }
+.gh-ev .gh-ck { width: 16px; height: 16px; border-radius: var(--r-xs); display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--line-ctl); color: transparent; }
 .gh-ev .gh-ck.is-on { background: var(--ok); box-shadow: none; color: var(--bg); }
 .gh-ev .gh-ck.is-bad { box-shadow: inset 0 0 0 1.5px var(--bad); }
 
 .gh-checks { display: grid; gap: 4px; }
-.gh-checks li { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--ink-2); padding: 3px 0; }
+.gh-checks li { display: flex; gap: 8px; align-items: flex-start; font-size: var(--t-ui); color: var(--ink-2); padding: 4px 0; }
 .gh-checks li svg { flex: none; margin-top: 2px; }
 .gh-checks li.is-ok svg { color: var(--ok); }
 .gh-checks li.is-bad { color: var(--ink); }
@@ -57,53 +57,53 @@
 
 .gh-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin-top: 6px; }
 .gh-totals div { display: grid; gap: 1px; }
-.gh-totals dt { color: var(--ink-3); font-size: 11.5px; }
-.gh-totals dd { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 14px; }
+.gh-totals dt { color: var(--ink-3); font-size: var(--t-meta); }
+.gh-totals dd { font-weight: 600; font-variant-numeric: tabular-nums; font-size: var(--t-h2); line-height: 24px; }
 
 .gh-form { display: grid; gap: 10px; margin-top: 8px; }
 .gh-fields { align-items: start; }
 .gh-fields > .nx-field { align-content: start; }
 .gh-form .gh-acts, .gh-acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .gh-acts.is-end { justify-content: flex-end; }
-.gh-hint { color: var(--ink-3); font-size: 11.5px; }
-.gh-err { color: var(--bad); font-size: 11.5px; display: block; margin-top: 4px; }
+.gh-hint { color: var(--ink-3); font-size: var(--t-meta); }
+.gh-err { color: var(--bad); font-size: var(--t-meta); display: block; margin-top: 4px; }
 .gh-ok { color: var(--ok); }
 
-.gh-signed { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; background: var(--side); box-shadow: inset 0 0 0 1px var(--line); }
+.gh-signed { display: flex; gap: 8px; align-items: center; padding: 12px 12px; border-radius: var(--r-sm); background: var(--side); box-shadow: inset 0 0 0 1px var(--line); }
 .gh-signed svg { color: var(--ink-3); flex: none; }
 .gh-signed b { display: block; font-weight: 600; }
-.gh-signed small { color: var(--ink-3); font-size: 11.5px; }
-.gh-tick { display: flex; gap: 9px; align-items: flex-start; font-size: 12.5px; color: var(--ink); min-height: 32px; cursor: pointer; }
+.gh-signed small { color: var(--ink-3); font-size: var(--t-meta); }
+.gh-tick { display: flex; gap: 8px; align-items: flex-start; font-size: var(--t-ui); color: var(--ink); min-height: 32px; cursor: pointer; }
 .gh-tick input { margin-top: 2px; flex: none; }
 
 .gh-seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
-.gh-seg label { position: relative; display: inline-flex; align-items: center; min-height: 32px; padding: 0 11px; border-radius: 7px; box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-2); font-size: 12.5px; cursor: pointer; transition: background .12s, color .12s, box-shadow .12s; }
+.gh-seg label { position: relative; display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-2); font-size: var(--t-ui); cursor: pointer; transition: background .12s, color .12s, box-shadow .12s; }
 .gh-seg label:hover { background: var(--hover); color: var(--ink); }
 .gh-seg label.is-on { background: var(--sel); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--accent); font-weight: 500; }
 .gh-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 .gh-seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.gh-link { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: 12.5px; font-weight: 500; min-height: 28px; }
+.gh-link { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: var(--t-ui); font-weight: 500; min-height: 28px; }
 .gh-link:hover { text-decoration: underline; text-underline-offset: 2px; }
 .gh-code { font-variant-numeric: tabular-nums; letter-spacing: .01em; }
-.gh-invite { display: grid; gap: 8px; padding: 12px; border-radius: 9px; background: var(--ok-soft); color: var(--ink); }
-.gh-invite code { display: block; font: 500 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); }
+.gh-invite { display: grid; gap: 8px; padding: 12px; border-radius: var(--r-md); background: var(--ok-soft); color: var(--ink); }
+.gh-invite code { display: block; font: 500 12px ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; padding: 8px 12px; border-radius: var(--r-sm); background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); }
 .gh-invite .gh-big { font: 700 18px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; }
 
 .gh-mods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; }
-.gh-mods label { display: flex; gap: 9px; align-items: flex-start; padding: 8px 10px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
+.gh-mods label { display: flex; gap: 8px; align-items: flex-start; padding: 8px 12px; border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
 .gh-mods label:has(input:checked) { box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--sel); }
 .gh-mods input { margin-top: 2px; accent-color: var(--accent); }
 .gh-mods b { display: block; font-weight: 500; }
-.gh-mods small { color: var(--ink-3); font-size: 11.5px; }
+.gh-mods small { color: var(--ink-3); font-size: var(--t-meta); }
 
 .gh-steps { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
 .gh-state { display: inline-flex; align-items: center; gap: 6px; }
 .gh-marks { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0 4px; }
-.gh-marks li { display: grid; justify-items: center; gap: 4px; font-size: 11px; color: var(--ink-2); max-width: 96px; text-align: center; }
-.gh-marks img { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); }
+.gh-marks li { display: grid; justify-items: center; gap: 4px; font-size: var(--t-meta); color: var(--ink-2); max-width: 96px; text-align: center; }
+.gh-marks img { width: 44px; height: 44px; object-fit: contain; border-radius: var(--r-sm); background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); }
 
-.gh-pane { display: grid; gap: 6px; margin-top: 8px; padding: 12px; border-radius: 9px; box-shadow: inset 0 0 0 1px var(--line); background: var(--bg); }
+.gh-pane { display: grid; gap: 4px; margin-top: 8px; padding: 12px; border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line); background: var(--bg); }
 
 @media (max-width: 1100px) {
   .gh-split { grid-template-columns: minmax(0, 1fr); }
@@ -129,12 +129,12 @@
 
 /* The shared timeline's content column is also the old chip-row class; in these pages it is a plain column. */
 :is(.gh-block, .gh-body) .nx-tl .nx-tl-c { display: block; margin-top: 0; }
-:is(.gh-block, .gh-body) .nx-tl .nx-tl-b { color: var(--ink-2); font-size: 12.5px; margin-top: 4px; }
+:is(.gh-block, .gh-body) .nx-tl .nx-tl-b { color: var(--ink-2); font-size: var(--t-ui); margin-top: 4px; }
 :is(.gh-block, .gh-body) .nx-tl li { padding-bottom: 14px; }
 
 /* Kaju's prepared record or course: what Kaju filled in, the one decision that is the clinician's, and one action
    that saves it in their name. A soft fill marks the surface, never an outline; the full form is one tap away. */
-.gh-kaju { display: grid; gap: 16px; padding: 16px; border-radius: 12px; background: var(--side); color: var(--ink); }
+.gh-kaju { display: grid; gap: 16px; padding: 16px; border-radius: var(--r-md); background: var(--side); color: var(--ink); }
 .gh-kaju-h { display: flex; align-items: flex-start; gap: 12px; }
 .gh-kaju-h > div { flex: 1; min-width: 0; }
 .gh-kaju-i { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; overflow: hidden; }

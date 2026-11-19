@@ -12,14 +12,14 @@
   .nx-cmd-scrim .nx-cmd-in > svg { flex: none; }
   .nx-cmd-scrim .nx-cmd-in input { height: 44px; font-size: 16px; }
   .nx-cmd-scrim .nx-cmd-in kbd { display: none; }
-  .nx-cmd-scrim .nx-cmd-x { display: inline-flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 12px; color: var(--accent); font-size: 16px; font-weight: 500; flex: none; }
+  .nx-cmd-scrim .nx-cmd-x { display: inline-flex; align-items: center; height: 44px; padding: 0 12px; border-radius: var(--r-md); color: var(--accent); font-size: 16px; font-weight: 500; flex: none; }
   .nx-cmd-scrim .nx-cmd-x:active { background: var(--hover); }
   .nx-cmd-scrim .nx-cmd-list { padding: 4px 8px max(24px, env(safe-area-inset-bottom)); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   .nx-cmd-scrim .nx-cmd-g { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 16px 8px 4px; }
-  .nx-cmd-scrim .nx-cmd-o { min-height: 56px; gap: 12px; padding: 8px; border-radius: 12px; text-align: left; }
+  .nx-cmd-scrim .nx-cmd-o { min-height: 56px; gap: 12px; padding: 8px; border-radius: var(--r-md); text-align: left; }
   .nx-cmd-scrim .nx-cmd-o.is-on { background: transparent; }
   .nx-cmd-scrim .nx-cmd-o:active { background: var(--hover); }
-  .nx-cmd-scrim .nx-cmd-i { width: 32px; height: 32px; border-radius: 8px; }
+  .nx-cmd-scrim .nx-cmd-i { width: 32px; height: 32px; border-radius: var(--r-sm); }
   .nx-cmd-scrim .nx-cmd-t { display: grid; min-width: 0; flex: 1; gap: 0; }
   .nx-cmd-scrim .nx-cmd-l { font-size: 16px; line-height: 24px; }
   .nx-cmd-scrim .nx-cmd-o small { margin-left: 0; max-width: none; font-size: 14px; line-height: 20px; }
@@ -31,9 +31,9 @@
   .nx-needs-s .nx-needs-h:first-child { padding-top: 4px; }
   .nx-needs-s .nx-needs-h .nx-thread { min-height: 44px; text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--accent); }
   .nx-needs-s ul { list-style: none; margin: 0; padding: 0; }
-  .nx-needs-s li a, .nx-needs-s .nx-needs-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px; border-radius: 12px; color: var(--ink); text-align: left; -webkit-tap-highlight-color: transparent; }
+  .nx-needs-s li a, .nx-needs-s .nx-needs-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px; border-radius: var(--r-md); color: var(--ink); text-align: left; -webkit-tap-highlight-color: transparent; }
   .nx-needs-s li a:active, .nx-needs-s .nx-needs-btn:active { background: var(--hover); }
-  .nx-needs-s .nx-needs-i { width: 40px; height: 40px; border-radius: 12px; }
+  .nx-needs-s .nx-needs-i { width: 40px; height: 40px; border-radius: var(--r-md); }
   .nx-needs-s b { display: block; font-size: 16px; line-height: 24px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .nx-needs-s small { display: block; color: var(--ink-3); font-size: 14px; line-height: 20px; }
   .nx-needs-s .nx-needs-e { padding: 8px; font-size: 16px; color: var(--ink-2); }

@@ -6,17 +6,26 @@
 .nx .ns-tools { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin: 16px 0 8px; min-width: 0; }
 .nx .ns-tools-l { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; flex: 1 1 320px; color: var(--ink-2); }
 .nx .ns-tools-r { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.nx .ns-tools select, .nx .ns-sel { height: 30px; border: 0; border-radius: 7px; box-shadow: inset 0 0 0 1px var(--line-2); background: var(--bg); color: var(--ink); font: inherit; font-size: 12.5px; padding: 0 8px; max-width: 100%; }
-.nx .ns-tools input[type="date"] { height: 30px; border: 0; border-radius: 7px; box-shadow: inset 0 0 0 1px var(--line-2); background: var(--bg); color: var(--ink); font: inherit; font-size: 12.5px; padding: 0 8px; }
+.nx .ns-tools select, .nx .ns-sel { height: 32px; border: 0; border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--line-ctl); background: var(--bg); color: var(--ink); font: inherit; font-size: var(--t-ui); padding: 0 8px; max-width: 100%; }
+.nx .ns-tools input[type="date"] { height: 32px; border: 0; border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--line-ctl); background: var(--bg); color: var(--ink); font: inherit; font-size: var(--t-ui); padding: 0 8px; }
 .nx .ns-sum { color: var(--ink-2); }
 .nx .ns-sum b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .nx .ns-hot { color: var(--bad); font-weight: 500; }
 .nx .ns-grid .nx-tr { min-height: 44px; }
+/* A dense table in a narrow column (a record's middle column, a tablet) keeps its first column and the columns marked
+   to stay, as on a phone, instead of squeezing the record's name to nothing. The hidden values are in the row's preview. */
+.nx .ns-grid { container-type: inline-size; }
+@container (max-width: 560px) {
+  .nx .ns-grid .nx-th { display: none; }
+  .nx .ns-grid .nx-tr { grid-template-columns: minmax(0, 1fr) !important; grid-auto-flow: column; grid-auto-columns: auto; min-height: 56px; padding-block: 8px; }
+  .nx .ns-grid .nx-tr > .nx-hide-s { display: none; }
+  .nx .ns-grid .nx-cell-main b { white-space: normal; }
+}
 .nx .ns-grid .ns-empty-row { padding: 32px 12px; text-align: center; color: var(--ink-2); display: grid; gap: 6px; justify-items: center; }
 .nx .ns-grid .ns-empty-row b { color: var(--ink); font-weight: 600; }
 .nx .ns-cell { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.nx .ns-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; letter-spacing: 0; }
-.nx .ns-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; padding: 1px 6px; border-radius: 5px; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); user-select: all; }
+.nx .ns-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--t-meta); letter-spacing: 0; }
+.nx .ns-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--t-ui); padding: 1px 8px; border-radius: var(--r-xs); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); user-select: all; }
 .nx .ns-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
 .nx .ns-acts.is-end { justify-content: flex-end; }
 .nx .ns-row-acts { display: inline-flex; gap: 6px; justify-content: flex-end; }
@@ -26,7 +35,7 @@
 .nx .ns-cols > * { min-width: 0; }
 .nx .ns-stack { display: grid; gap: 12px; min-width: 0; }
 .nx .ns-note-bad { color: var(--bad); }
-.nx .ns-check { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--ink); line-height: 1.4; }
+.nx .ns-check { display: flex; align-items: flex-start; gap: 8px; font-size: var(--t-ui); color: var(--ink); line-height: 1.4; }
 .nx .ns-check input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--accent); flex: none; }
 .nx .ns-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 14px; }
 .nx fieldset.ns-set { border: 0; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--line); display: grid; gap: 10px; min-width: 0; }
@@ -39,10 +48,10 @@
 .nx .ns-amount { font-size: 20px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .nx .ns-small { font-size: 12px; color: var(--ink-3); }
 .nx .ns-wrap { overflow-wrap: anywhere; }
-.nx .ns-thumb { width: 100%; max-height: 260px; object-fit: contain; border-radius: 8px; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); }
-.nx .ns-av { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 10.5px; font-weight: 700; flex: none; }
-.nx .ns-logo { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; color: var(--ink-3); flex: none; }
-.nx .ns-cover { width: 100%; height: 96px; border-radius: 10px; object-fit: cover; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; color: var(--ink-3); }
+.nx .ns-thumb { width: 100%; max-height: 260px; object-fit: contain; border-radius: var(--r-sm); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); }
+.nx .ns-av { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: var(--t-meta); font-weight: 700; flex: none; }
+.nx .ns-logo { width: 64px; height: 64px; border-radius: var(--r-md); object-fit: cover; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; color: var(--ink-3); flex: none; }
+.nx .ns-cover { width: 100%; height: 96px; border-radius: var(--r-md); object-fit: cover; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; color: var(--ink-3); }
 .nx .ns-media { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: start; }
 .nx .ns-media > div { display: grid; gap: 6px; min-width: 0; }
 
@@ -52,7 +61,7 @@
 .nx .ns-part-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px; }
 .nx .ns-part-grid.is-one { grid-template-columns: minmax(0, 1fr); }
 .nx .ns-part { display: grid; gap: 12px; min-width: 0; }
-.nx .ns-part-grid .ns-part { padding: 16px; border-radius: 12px; background: var(--side); }
+.nx .ns-part-grid .ns-part { padding: 16px; border-radius: var(--r-md); background: var(--side); }
 .nx .ns-part-h { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 4px 12px; }
 .nx .ns-part-h > span { color: var(--ink-2); font-size: 14px; font-weight: 500; }
 .nx .ns-part-h > b { grid-row: span 2; align-self: center; color: var(--ink); font-size: 32px; font-weight: 600; letter-spacing: -.01em; }
@@ -67,7 +76,7 @@
 .nx .ns-part i.is-no { background: var(--warn); }
 .nx .ns-part i.is-unk { background: var(--line-2); }
 .nx .ns-part-k { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.nx .ns-part-s { display: grid; grid-template-columns: 8px minmax(0, 1fr); align-items: center; gap: 0 8px; padding: 8px; margin: -8px 0 -8px -8px; border-radius: 8px; color: var(--ink-2); font-size: 12px; text-decoration: none; }
+.nx .ns-part-s { display: grid; grid-template-columns: 8px minmax(0, 1fr); align-items: center; gap: 0 8px; padding: 8px; margin: -8px 0 -8px -8px; border-radius: var(--r-sm); color: var(--ink-2); font-size: 12px; text-decoration: none; }
 .nx a.ns-part-s:hover { background: var(--hover); color: var(--ink); }
 .nx a.ns-part-s:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
 .nx .ns-part-s i { width: 8px; height: 8px; border-radius: 999px; }
@@ -81,8 +90,8 @@
 /* Monthly package */
 .nx .ns-month { display: grid; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
 .nx .ns-month-h { display: flex; gap: 8px 16px; align-items: center; flex-wrap: wrap; }
-.nx .ns-seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); }
-.nx .ns-seg button { height: 26px; padding: 0 10px; border-radius: 6px; color: var(--ink-2); font-size: 12.5px; }
+.nx .ns-seg { display: inline-flex; padding: 4px; border-radius: var(--r-sm); background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); }
+.nx .ns-seg button { height: 26px; padding: 0 12px; border-radius: var(--r-sm); color: var(--ink-2); font-size: var(--t-ui); }
 .nx .ns-seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(20, 28, 40, .08), inset 0 0 0 1px var(--line); }
 .nx .ns-bill .nx-tr { min-height: 38px; }
 
@@ -90,7 +99,7 @@
 .nx .ns-rec-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-content: start; }
 .nx .ns-thread { display: grid; gap: 0; }
 .nx .ns-compose { display: grid; gap: 8px; }
-.nx .ns-compose textarea { width: 100%; border: 0; border-radius: 7px; box-shadow: inset 0 0 0 1px var(--line-2); background: var(--bg); color: var(--ink); font: inherit; padding: 8px 10px; min-height: 72px; resize: vertical; }
+.nx .ns-compose textarea { width: 100%; border: 0; border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--line-2); background: var(--bg); color: var(--ink); font: inherit; padding: 8px 12px; min-height: 72px; resize: vertical; }
 .nx .ns-compose textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .nx .ns-details { border-top: 1px solid var(--line); padding: 10px 0 0; margin-top: 10px; }
 .nx .ns-details summary { cursor: pointer; font-size: 12px; font-weight: 500; color: var(--ink-2); list-style: none; display: inline-flex; align-items: center; gap: 6px; min-height: 28px; }
@@ -100,13 +109,13 @@
 .nx .ns-details > *:not(summary) { margin-top: 8px; }
 
 /* Import */
-.nx .ns-steps { display: flex; gap: 6px 18px; flex-wrap: wrap; margin: 16px 0 12px; color: var(--ink-3); font-size: 12.5px; }
+.nx .ns-steps { display: flex; gap: 4px 16px; flex-wrap: wrap; margin: 16px 0 12px; color: var(--ink-3); font-size: var(--t-ui); }
 .nx .ns-steps li { display: inline-flex; align-items: center; gap: 8px; }
-.nx .ns-steps li span { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--line-2); }
+.nx .ns-steps li span { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: var(--t-meta); font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--line-2); }
 .nx .ns-steps li[aria-current="step"] { color: var(--ink); font-weight: 500; }
 .nx .ns-steps li[aria-current="step"] span { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent); }
-.nx .ns-steps li.is-done span { background: var(--ok); color: #fff; box-shadow: none; }
-.nx .ns-drop { display: grid; justify-items: center; gap: 6px; text-align: center; padding: 36px 16px; border-radius: 12px; box-shadow: inset 0 0 0 1.5px var(--line-2); background: var(--side); color: var(--ink-2); cursor: pointer; transition: box-shadow .14s, background .14s; position: relative; }
+.nx .ns-steps li.is-done span { background: var(--ok); color: var(--on-ok); box-shadow: none; }
+.nx .ns-drop { display: grid; justify-items: center; gap: 4px; text-align: center; padding: 40px 16px; border-radius: var(--r-md); box-shadow: inset 0 0 0 1.5px var(--line-2); background: var(--side); color: var(--ink-2); cursor: pointer; transition: box-shadow .14s, background .14s; position: relative; }
 .nx .ns-drop b { color: var(--ink); font-weight: 600; }
 .nx .ns-drop:hover, .nx .ns-drop.is-over { box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--accent-soft); }
 .nx .ns-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
@@ -124,46 +133,46 @@
 .nx .ns-collect { max-width: 520px; display: grid; gap: 16px; }
 .nx .ns-collect .nx-field :is(input, select, textarea) { min-height: 44px; font-size: 15px; }
 .nx .ns-count { display: flex; align-items: center; gap: 14px; }
-.nx .ns-count button { width: 48px; height: 48px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line-2); display: grid; place-items: center; }
+.nx .ns-count button { width: 48px; height: 48px; border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line-2); display: grid; place-items: center; }
 .nx .ns-count b { min-width: 40px; text-align: center; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .nx .ns-choice { display: flex; gap: 8px; flex-wrap: wrap; }
-.nx .ns-choice button { min-height: 44px; padding: 0 16px; border-radius: 9px; box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-2); font-weight: 500; }
+.nx .ns-choice button { min-height: 44px; padding: 0 16px; border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-2); font-weight: 500; }
 .nx .ns-choice button[aria-pressed="true"] { background: var(--navy); color: var(--on-navy); box-shadow: none; }
 .nx .ns-pin { max-width: 360px; display: grid; gap: 10px; }
 .nx .ns-pin input { letter-spacing: .4em; font-size: 18px; text-align: center; }
-.nx .ns-queue { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 9px 11px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); font-size: 12.5px; }
+.nx .ns-queue { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 12px; border-radius: var(--r-sm); background: var(--warn-soft); color: var(--warn); font-size: var(--t-ui); }
 
 /* Training */
 .nx .ns-lesson { display: grid; gap: 12px; max-width: 720px; }
 .nx .ns-lesson h2 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
 .nx .ns-lesson p { color: var(--ink); line-height: 1.6; }
-.nx .ns-video { position: relative; padding-top: 56.25%; border-radius: 10px; overflow: hidden; background: var(--hover); }
+.nx .ns-video { position: relative; padding-top: 56.25%; border-radius: var(--r-md); overflow: hidden; background: var(--hover); }
 .nx .ns-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .nx .ns-quiz { display: grid; gap: 14px; }
 .nx .ns-quiz fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
 .nx .ns-quiz legend { font-weight: 500; margin-bottom: 4px; }
-.nx .ns-quiz label { display: flex; gap: 8px; align-items: center; min-height: 36px; padding: 0 10px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
+.nx .ns-quiz label { display: flex; gap: 8px; align-items: center; min-height: 36px; padding: 0 12px; border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
 .nx .ns-quiz label.is-on { box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--accent-soft); }
-.nx .ns-lessons li button { width: 100%; display: flex; gap: 10px; align-items: center; min-height: 40px; padding: 4px 8px; border-radius: 7px; text-align: left; }
+.nx .ns-lessons li button { width: 100%; display: flex; gap: 8px; align-items: center; min-height: 40px; padding: 4px 8px; border-radius: var(--r-sm); text-align: left; }
 .nx .ns-lessons li button:hover { background: var(--hover); }
 .nx .ns-lessons li button[aria-current="step"] { background: var(--sel); }
-.nx .ns-dot { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--line-2); color: var(--ink-3); flex: none; }
-.nx .ns-dot.is-done { background: var(--ok); color: #fff; box-shadow: none; }
+.nx .ns-dot { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: var(--t-meta); font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--line-2); color: var(--ink-3); flex: none; }
+.nx .ns-dot.is-done { background: var(--ok); color: var(--on-ok); box-shadow: none; }
 .nx .ns-opt { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: center; }
 
 /* Connections */
 .nx .ns-conn { display: grid; gap: 0; }
 .nx .ns-conn > li { border-bottom: 1px solid var(--line); padding: 10px 0; display: grid; gap: 8px; }
 .nx .ns-conn-h { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
-.nx .ns-conn-l { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); font-weight: 700; font-size: 12px; color: var(--ink-2); }
+.nx .ns-conn-l { width: 28px; height: 28px; border-radius: var(--r-sm); display: grid; place-items: center; background: var(--hover); box-shadow: inset 0 0 0 1px var(--line); font-weight: 700; font-size: 12px; color: var(--ink-2); }
 .nx .ns-conn-t b { font-weight: 500; display: block; }
-.nx .ns-conn-t small { display: block; color: var(--ink-3); font-size: 11.5px; overflow-wrap: anywhere; }
+.nx .ns-conn-t small { display: block; color: var(--ink-3); font-size: var(--t-meta); overflow-wrap: anywhere; }
 .nx .ns-conn-e { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .nx .ns-conn-x { padding-left: 40px; display: grid; gap: 10px; }
 .nx .ns-caps li { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 3px 0; }
 .nx .ns-caps li.is-off { color: var(--ink-3); }
-.nx .ns-caps em { font-style: normal; font-size: 11px; color: var(--ink-3); }
-.nx .ns-lock { display: inline-flex; gap: 4px; align-items: center; color: var(--ink-3); font-size: 11.5px; }
+.nx .ns-caps em { font-style: normal; font-size: var(--t-meta); color: var(--ink-3); }
+.nx .ns-lock { display: inline-flex; gap: 4px; align-items: center; color: var(--ink-3); font-size: var(--t-meta); }
 
 /* Readiness */
 .nx .ns-ready { display: grid; gap: 0; }
@@ -186,7 +195,7 @@
   .nx .ns-seg button { height: 44px; }
   .nx .ns-row-acts .nx-btn { min-height: 44px; }
   .nx .ns-tools .nx-btn { min-height: 44px; }
-  .nx .lp-sheet-tools .nx-find { display: flex !important; height: 48px; margin: 0; border-radius: 12px; padding: 0 12px; }
+  .nx .lp-sheet-tools .nx-find { display: flex !important; height: 48px; margin: 0; border-radius: var(--r-md); padding: 0 12px; }
   .nx .lp-sheet-tools .nx-find input { width: 100%; font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {

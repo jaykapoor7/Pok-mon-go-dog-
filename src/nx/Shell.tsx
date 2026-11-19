@@ -3,8 +3,8 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Hash, Home, Pin, UserPlus, Users, X, LayoutGrid, ListChecks, MessageSquare, Moon, MoreHorizontal, PanelLeft, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 import { CHANNELS, CLINIC, DMS, GOV_ORG, ME, ORG, dmSlug } from "./fixtures";
 import { GOV, HEALTH, KAJU, LAB, NGO, NGO_MORE, RESEARCH, VET, CLINIC_VET, VET_PATHS, WS_LABEL, homeOf } from "./nav";
 import { NeedsYou } from "./NeedsYou";
@@ -133,7 +133,18 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
   const kind: PhoneKind = homeWs === "gov" ? (office ? "office" : "gov") : homeWs === "health" ? (vet ? "vet" : lab ? "lab" : "clinic") : homeWs === "research" ? "research" : "ngo";
   const [menu, setMenu] = useState(false), [plus, setPlus] = useState(false);
   const closeMenu = useCallback(() => setMenu(false), []), closePlus = useCallback(() => setPlus(false), []);
-  useEffect(() => { setMenu(false); setPlus(false); }, [path]);
+  /* A tablet (641-1100px wide) has the rail but no room for the sidebar beside the page, so the rail's Menu button opens
+     the same sidebar over the page. It closes on a choice, on Escape and on a tap outside, and gives focus back. */
+  const [side, setSide] = useState(false);
+  const sideRef = useRef<HTMLElement>(null), sideBtn = useRef<HTMLButtonElement>(null);
+  useEffect(() => { setMenu(false); setPlus(false); setSide(false); }, [path]);
+  useEffect(() => {
+    if (!side) return;
+    const t = window.requestAnimationFrame(() => sideRef.current?.querySelector<HTMLElement>(".nx-item.is-on, .nx-item")?.focus());
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { setSide(false); sideBtn.current?.focus(); } };
+    window.addEventListener("keydown", k);
+    return () => { window.cancelAnimationFrame(t); window.removeEventListener("keydown", k); };
+  }, [side]);
   /* On a record, the first crumb is its section (as the phone's back arrow is), so a page needs no "All …" link of its own. */
   const back = parentOf(path, home);
   /* The page's large title is the title; the bar shows the name once that title has scrolled away. */
@@ -156,6 +167,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
       <a className="nx-skip" href="#nx-main">Skip to content</a>
       <nav className="nx-rail" aria-label="StrayPaw">
         <Link href={home} className="nx-mark" aria-label="StrayPaw home">sp</Link>
+        <button type="button" ref={sideBtn} className="nx-rail-b nx-menu-b" aria-label="Menu" title="Menu" aria-expanded={side} aria-controls="nx-side" onClick={() => setSide((s) => !s)}><PanelLeft size={16} /></button>
         <Link href={home} className={`nx-rail-b ${!inChannel && !inKaju ? "is-on" : ""}`} aria-label="Workspace" title="Workspace"><LayoutGrid size={17} /></Link>
         <Link href={CHANNEL} className={`nx-rail-b ${inChannel ? "is-on" : ""}`} aria-label="Channels" title="Channels" data-n={unread}><MessageSquare size={17} /></Link>
         <Link href="/kaju" className={`nx-rail-b ${inKaju ? "is-on" : ""}`} aria-label="Kaju" title="Kaju"><Sparkles size={17} /></Link>
@@ -166,7 +178,8 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
         <span className="nx-face" aria-label={live.userName ?? ME.name}>{me}</span>
       </nav>
 
-      <aside className="nx-side" aria-label={`${org.name} navigation`}>
+      {side ? <div className="nx-side-scrim" aria-hidden="true" onClick={() => setSide(false)} /> : null}
+      <aside id="nx-side" ref={sideRef} className={`nx-side ${side ? "is-open" : ""}`} aria-label={`${org.name} navigation`}>
         <OrgMenu shown={{ ...org, kind: ws === "kaju" ? "Kaju" : org.kind }} ws={ws} current={cur ?? null} />
         <div className="nx-nav">
           {nav.map((i) => <Link key={i.href} href={i.href} className={`nx-item ${on(i.href) ? "is-on" : ""}`} aria-current={on(i.href) ? "page" : undefined}><i.icon size={15} /><span>{i.label}</span>{i.n && !live.org ? <i>{i.n}</i> : null}</Link>)}

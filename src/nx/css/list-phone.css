@@ -12,7 +12,7 @@
   .nx .lp-bar > .nx-views::-webkit-scrollbar { display: none; }
   .nx .lp-bar > .nx-views:only-child, .nx .lp-bar > .nx-views:has(+ .nx-saved:last-child) { padding-right: 32px; }
   .nx .lp-bar .nx-view { height: 44px; padding: 0 12px; font-size: 14px; }
-  .nx .lp-bar .nx-view-bg { inset: 4px 0; border-radius: 8px; }
+  .nx .lp-bar .nx-view-bg { inset: 4px 0; border-radius: var(--r-sm); }
   .nx .lp-bar > .nx-saved { order: 5; flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .nx .lp-bar > .nx-saved .nx-view { height: 36px; flex: none; }
 
@@ -20,16 +20,16 @@
   .nx .lp-tools.lp-ph { display: inline-flex; }
   .nx .lp-tools-w.lp-ph { display: contents; }
   .nx .lp-search.lp-ph { display: flex; }
-  .nx .lp-ib { width: 44px; height: 44px; border-radius: 12px; place-items: center; color: var(--ink-2); background: none; border: 0; flex: none; -webkit-tap-highlight-color: transparent; }
+  .nx .lp-ib { width: 44px; height: 44px; border-radius: var(--r-md); place-items: center; color: var(--ink-2); background: none; border: 0; flex: none; -webkit-tap-highlight-color: transparent; }
   .nx .lp-ib:active { background: var(--hover); }
   .nx .lp-ib.is-on { color: var(--accent); background: var(--accent-soft); }
-  .nx .lp-tools { align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-radius: 12px; border: 0; background: none; box-shadow: inset 0 0 0 1px var(--line-2);
+  .nx .lp-tools { align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-radius: var(--r-md); border: 0; background: none; box-shadow: inset 0 0 0 1px var(--line-2);
     color: var(--ink); font: inherit; font-size: 14px; font-weight: 500; flex: none; position: relative; -webkit-tap-highlight-color: transparent; }
   .nx .lp-tools.is-on { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent); }
-  .nx .lp-dot { font-style: normal; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; line-height: 20px; text-align: center; }
+  .nx .lp-dot { font-style: normal; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700; line-height: 20px; text-align: center; }
   .nx .lp-ib:focus-visible, .nx .lp-tools:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  .nx .lp-search { align-items: center; gap: 8px; height: 48px; margin: 8px 0 4px; padding: 0 0 0 12px; border-radius: 12px; background: var(--bg); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line-2); }
+  .nx .lp-search { align-items: center; gap: 8px; height: 48px; margin: 8px 0 4px; padding: 0 0 0 12px; border-radius: var(--r-md); background: var(--bg); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line-2); }
   .nx .lp-search:focus-within { box-shadow: inset 0 0 0 1.5px var(--accent); }
   .nx .lp-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: var(--ink); font: inherit; font-size: 16px; padding: 0; }
   .nx .lp-search input::-webkit-search-cancel-button { display: none; }
@@ -42,11 +42,11 @@
   /* Sheets the list opens. */
   .nx .lp-sheet-tools { display: grid; gap: 16px; padding: 8px 8px 16px; }
   .nx .lp-sheet-tools .nr-tools, .nx .lp-sheet-tools .ns-tools-l, .nx .lp-sheet-tools .ns-tools-r { display: grid; gap: 12px; }
-  .nx .lp-sheet-tools select, .nx .lp-sheet-tools .nr-sel { width: 100%; max-width: none; height: 48px; font-size: 16px; padding: 0 12px; border-radius: 12px; }
-  .nx .lp-sheet-tools .nx-btn { width: 100%; height: 48px; justify-content: center; font-size: 16px; border-radius: 12px; }
+  .nx .lp-sheet-tools select, .nx .lp-sheet-tools .nr-sel { width: 100%; max-width: none; height: 48px; font-size: 16px; padding: 0 12px; border-radius: var(--r-md); }
+  .nx .lp-sheet-tools .nx-btn { width: 100%; height: 48px; justify-content: center; font-size: 16px; border-radius: var(--r-md); }
   .nx .lp-sheet-tools .nx-t3 { white-space: normal; font-size: 14px; }
   .nx .lp-sheet-foot { position: sticky; bottom: 0; padding: 12px 8px 4px; background: var(--bg); box-shadow: 0 -1px 0 var(--line); }
-  .nx .lp-wide { width: 100%; height: 48px; justify-content: center; font-size: 16px; border-radius: 12px; gap: 8px; }
+  .nx .lp-wide { width: 100%; height: 48px; justify-content: center; font-size: 16px; border-radius: var(--r-md); gap: 8px; }
   .nx .lp-peek { padding: 0 8px 16px; display: grid; align-content: start; }
   .nx .lp-peek-sub { color: var(--ink-2); font-size: 14px; line-height: 1.45; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin: 0 0 16px; }
   .nx .lp-peek .nx-h3:first-child { margin-top: 0; }
@@ -55,12 +55,12 @@
   .nx:has(.rb-bar) .nx-rec-h .nx-rec-acts { display: none; }
   .nx .rb-bar { position: sticky; bottom: 0; z-index: 6; display: flex; gap: 8px; padding: 12px 16px; margin-top: 24px; background: var(--bg); box-shadow: 0 -1px 0 var(--line); }
   .nx .rb-primary { flex: 1; min-width: 0; display: flex; }
-  .nx .rb-primary > .nx-btn, .nx .rb-primary > a, .nx .rb-primary > button { flex: 1; height: 48px; justify-content: center; font-size: 16px; border-radius: 12px; }
-  .nx .rb-more-b { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 16px; border-radius: 12px; border: 0; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-2);
+  .nx .rb-primary > .nx-btn, .nx .rb-primary > a, .nx .rb-primary > button { flex: 1; height: 48px; justify-content: center; font-size: 16px; border-radius: var(--r-md); }
+  .nx .rb-more-b { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 16px; border-radius: var(--r-md); border: 0; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-2);
     color: var(--ink); font: inherit; font-size: 16px; font-weight: 500; flex: none; -webkit-tap-highlight-color: transparent; }
   .nx .rb-more-b.is-alone { flex: 1; justify-content: center; }
   .nx .rb-more-b:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .nx .rb-more { display: grid; gap: 8px; padding: 8px 8px 16px; }
-  .nx .rb-more .nx-btn { width: 100%; height: 48px; justify-content: flex-start; font-size: 16px; border-radius: 12px; padding: 0 16px; gap: 12px; }
+  .nx .rb-more .nx-btn { width: 100%; height: 48px; justify-content: flex-start; font-size: 16px; border-radius: var(--r-md); padding: 0 16px; gap: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .nx .lp-ib, .nx .lp-tools { transition: none; } }
