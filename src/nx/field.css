@@ -216,6 +216,28 @@
 .nx .fm-pick b { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
 .nx .fm-pick small { color: var(--fm-mute); font-size: 12px; line-height: 16px; }
 
+/* Quick record (about twelve seconds): the big targets are 56px, the camera input is never seen, why is a 2-column
+   grid of chips a thumb can hit, and after Send the sheet says where the record is and offers the next one. */
+.nx .fm-cam { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); opacity: 0; pointer-events: none; }
+.nx .fm-btn.is-big { min-height: 56px; height: 56px; padding: 0 24px; border-radius: 12px; font-size: 16px; line-height: 24px; font-weight: 600; }
+.nx button.fm-photo { width: 100%; font: inherit; }
+.nx .fm-photo:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 2px; }
+.nx .fm-chips.is-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nx .fm-chips.is-grid .fm-chip { height: auto; min-height: 56px; padding: 8px 16px; border-radius: 12px; font-size: 16px; line-height: 24px; text-align: left; }
+.nx .fm-chips.is-grid .fm-chip:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.nx .fm-sheet-h .fm-count { margin-left: auto; }
+.nx .fm-sheet-h .fm-count + .fm-x { margin-left: 0; }
+.nx .fm-done { align-content: center; justify-items: center; text-align: center; gap: 16px; }
+.nx .fm-done-i { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--fm-warn-soft); color: var(--fm-warn-ink); }
+.nx .fm-done[data-s="sent"] .fm-done-i { background: var(--fm-ok-soft); color: var(--fm-ok); }
+.nx .fm-done[data-s="failed"] .fm-done-i { background: var(--fm-flame-soft); color: var(--fm-flame-ink); }
+.nx .fm-done-i .mo-check { width: 32px; height: 32px; }
+.nx .fm-done-h { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -.02em; color: var(--fm-ink); }
+.nx .fm-done-h:focus { outline: none; }
+.nx .fm-done-h:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 4px; border-radius: 4px; }
+.nx .fm-done-p { max-width: 40ch; font-size: 16px; line-height: 24px; color: var(--fm-body); }
+.nx .fm-done-a { display: grid; gap: 8px; width: min(400px, 100%); margin-top: 8px; }
+
 /* The way in from Today and Operations wears the same blue as field mode's own. */
 .nx .nx-btn.fm-entry:not(.is-quiet) { background: var(--fm-blue) !important; color: var(--fm-on-blue) !important; }
 
@@ -262,7 +284,7 @@
   .nx .fm-sheet-f { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
   .nx .fm-chip { height: 44px; }
   .nx .fm-seg button { height: 44px; flex: 1 1 0; }
-  .nx .fm-photo.has-shot img { height: 200px; }
+  .nx .fm-photo.has-shot img { height: 160px; }
   .nx .fm-where { grid-template-columns: 24px minmax(0, 1fr); }
   .nx .fm-where-a { grid-column: 1 / -1; justify-content: flex-start; }
   .nx .fm-where-a .fm-btn { flex: 1 1 0; }
