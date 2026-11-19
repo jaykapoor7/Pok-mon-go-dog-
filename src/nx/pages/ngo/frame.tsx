@@ -137,13 +137,16 @@ export function Drawer({ head, title, sub, onClose, href, hrefLabel = "Open the 
 }
 
 /** Yes, no and not recorded, side by side: a share never hides the unknown. */
-/** One measure across the register (sterilisation, vaccination): the headline is the share of animals whose status is
-    known, never of all animals, and "not recorded" stays its own part of the track. Each count opens the list it counts
-    when a link is given. */
+/** One measure across the register (sterilisation, vaccination): the headline is the share of all the animals counted
+    that are recorded as done (one rule on every surface, sp3/ai/figures and docs/straypaw-2-data-truth.md), and "not
+    recorded" stays its own part of the track. The share among animals with a recorded status follows in small type
+    only when some are recorded as not done: on a register where only "done" was ever written down (most imports), it
+    would read 100% and mean nothing. Each count opens the list it counts when a link is given. */
 export function Partition({ yes, no, unknown, yesLabel, noLabel, title, hrefs }: { yes: number; no: number; unknown: number; yesLabel: string; noLabel: string; title?: string; hrefs?: { yes?: string; no?: string; unknown?: string } }) {
   const total = yes + no + unknown, known = yes + no;
   const w = (v: number) => (total ? `${(v / total) * 100}%` : "0%");
-  const share = known ? Math.round((yes / known) * 100) : null;
+  const share = total ? Math.round((yes / total) * 100) : null;
+  const ofKnown = known && no ? Math.round((yes / known) * 100) : null;
   const part = (cls: string, n: number, label: string, href?: string) => {
     const inner = <><i className={cls} aria-hidden /><b className="num">{n.toLocaleString("en-IN")}</b><span>{label}</span></>;
     return href && n > 0 ? <Link className="ns-part-s" href={href}>{inner}</Link> : <span className="ns-part-s">{inner}</span>;
@@ -154,7 +157,7 @@ export function Partition({ yes, no, unknown, yesLabel, noLabel, title, hrefs }:
         <div className="ns-part-h">
           <span>{title}</span>
           <b className="num">{share === null ? "—" : `${share}%`}</b>
-          <small>{share === null ? "No status recorded yet" : `of ${known.toLocaleString("en-IN")} with a recorded status`}</small>
+          <small>{share === null ? "No animals counted yet" : !known ? `of ${total.toLocaleString("en-IN")} animals; no status recorded yet` : `of ${total.toLocaleString("en-IN")} animals${ofKnown !== null ? ` · ${ofKnown}% of the ${known.toLocaleString("en-IN")} with a recorded status` : ""}`}</small>
         </div>
       ) : null}
       <span className="ns-part-bar" role="img" aria-label={`${yes} ${yesLabel}, ${no} ${noLabel}, ${unknown} not recorded`}>

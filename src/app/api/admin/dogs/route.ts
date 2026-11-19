@@ -50,13 +50,21 @@ export async function GET(req: Request) {
 
   const { data, error } = await supa
     .from("dogs")
-    .select("id, name, zone, status, needs_help, vaccinated, sterilised, is_friendly, ear_notch, cover_photo, photo_sensitive, last_seen, ngo_id, created_by_id, created_by_name, ngos(name)")
+    .select("id, name, zone, status, needs_help, vaccinated, sterilised, sterilisation_status, vaccination_status, is_friendly, ear_notch, cover_photo, photo_sensitive, last_seen, ngo_id, created_by_id, created_by_name, ngos(name)")
     .order("needs_help", { ascending: false })
     .order("last_seen", { ascending: false })
     .limit(300);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ dogs: data ?? [], count: data?.length ?? 0 });
+  /* The booleans are false for "not recorded" as well as for "recorded not"; the status columns tell them apart, so the
+     list shows "Not recorded" rather than "No" for an animal whose status nobody wrote down. */
+  const tri = (s: string | null | undefined, yes: string, no: string) => (s === yes ? true : s === no ? false : null);
+  const dogs = (data ?? []).map(({ sterilisation_status, vaccination_status, ...d }: any) => ({
+    ...d,
+    sterilised: sterilisation_status === undefined ? d.sterilised : tri(sterilisation_status, "sterilised", "not_sterilised"),
+    vaccinated: vaccination_status === undefined ? d.vaccinated : tri(vaccination_status, "vaccinated", "not_vaccinated"),
+  }));
+  return NextResponse.json({ dogs, count: dogs.length });
 }
 
 export async function POST(req: Request) {

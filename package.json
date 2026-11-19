@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .js,.mjs,.ts,.tsx --ignore-pattern node_modules --ignore-pattern .next",
     "typecheck": "tsc --noEmit",
     "test:db": "node scripts/db-tests/run.mjs",
+    "test:data-figures": "node --import tsx scripts/test-data-figures.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "demo:record": "tsx scripts/record-demo.ts",

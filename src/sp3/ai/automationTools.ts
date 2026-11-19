@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { allRows } from "@/lib/all-rows";
 import type { QueueRow } from "@/lib/abc";
 import { EVIDENCE_LABEL, stageOf } from "@/lib/abc";
 import { isDecided, isWaitingOnOffice } from "@/lib/machines/package";
@@ -156,10 +157,11 @@ export async function wardActivity({ db, orgId }: Ctx): Promise<Out> {
   if (orgId) { const o = await db.from("ngos").select("city").eq("id", orgId).maybeSingle(); if (o.error) return FAILED; city = (o.data as { city: string | null } | null)?.city ?? null; }
   if (!city) { const c = await db.rpc("abc_my_context"); if (!c.error) city = ((c.data as { offices?: { city: string | null }[] } | null)?.offices ?? []).find((o) => o.city)?.city ?? null; }
   if (!city) return { data: { error: "No city on your organisation or office" }, summary: "Set your organisation's city first", citations: [], ok: false };
-  const a = await db.from("public_spatial_animals").select("zone,sterilisation_status,vaccination_status,first_seen").eq("city", city).limit(5000);
-  if (a.error) return FAILED;
   type A = { zone: string | null; sterilisation_status: string | null; vaccination_status: string | null; first_seen: string | null };
-  const rows = (a.data ?? []) as A[];
+  /* Every public animal in the city, a page of 1,000 at a time (Coimbatore has 2,242; one request returns 1,000). */
+  const a = await allRows<A>((f, t) => db.from("public_spatial_animals").select("zone,sterilisation_status,vaccination_status,first_seen").eq("city", city).order("id").range(f, t), 5000).catch(() => null);
+  if (!a) return FAILED;
+  const rows = a.rows;
   const coverage = wardCoverage(rows).slice(0, 8);
   const shifts = activityShifts(weeklySeries(rows, (r) => r.zone, (r) => r.first_seen, Date.now(), 8)).slice(0, 5);
   return {

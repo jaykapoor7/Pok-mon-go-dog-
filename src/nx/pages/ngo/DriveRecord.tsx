@@ -21,7 +21,6 @@ import { AnimalTag } from "../../AnimalPhoto";
    recorded, of all filed), its animals with filters, CSV, and archive or restore (archive_campaign). */
 
 type Ster = "" | "sterilised" | "not_sterilised" | "unknown";
-const pct = (v: number | null) => (v === null || v === undefined ? "not computable" : `${Math.round(v)}%`);
 const STER: Record<string, string> = { sterilised: "Sterilised", not_sterilised: "Recorded not", unknown: "Not recorded" };
 const VACC: Record<string, string> = { vaccinated: "Vaccinated", not_vaccinated: "Recorded not", unknown: "Not recorded" };
 
@@ -81,7 +80,7 @@ export function DriveRecord({ id }: { id: string }) {
             <Partition title="Sterilised" yes={stats.sterilised} no={stats.not_sterilised} unknown={stats.ster_unknown} yesLabel="sterilised" noLabel="not sterilised" />
             <Partition title="Vaccinated" yes={stats.vaccinated} no={stats.not_vaccinated} unknown={stats.vacc_unknown} yesLabel="vaccinated" noLabel="not vaccinated" />
           </div>
-          <p className="nx-foot">Shares count the animals in this drive whose status was recorded. Of all {stats.total.toLocaleString("en-IN")} animals filed: {pct(stats.ster_pct_of_all)} sterilised, {pct(stats.vacc_pct_of_all)} vaccinated.</p>
+          <p className="nx-foot">Shares are of all {stats.total.toLocaleString("en-IN")} animals filed in this drive; an animal with no status recorded is counted as not recorded, not as “not sterilised”.</p>
         </div>
       </div>
       {asking ? <Confirm title={stats.archived ? "Restore this drive" : "Archive this drive"} confirm={stats.archived ? "Restore" : "Archive"} busy={busy === "arch"} onClose={() => setAsking(false)} onConfirm={flip}><p>{stats.archived ? `${stats.name} returns to the active drives.` : `${stats.name} moves to the archived drives. Its animals and records are kept, and you can restore it.`}</p></Confirm> : null}

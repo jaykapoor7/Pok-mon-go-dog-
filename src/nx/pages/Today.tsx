@@ -31,6 +31,11 @@ const dateLine = () => new Date().toLocaleDateString("en-IN", { weekday: "long",
 const shortDay = (iso: string) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString("en-IN")} ${n === 1 ? one : many}`;
 const pctOf = (part: number, whole: number) => `${Math.round((part / whole) * 100)}%`;
+const en = (n: number) => n.toLocaleString("en-IN");
+/** "102 sterilised (4%) · 2,175 not recorded": what is recorded as done, as a share of the whole register, then what is
+    recorded as not done and what has no status at all, each named for what it is. */
+const statusLine = (yes: number, no: number, total: number, yesWord: string, noWord: string) =>
+  [`${en(yes)} ${yesWord} (${pctOf(yes, total)})`, no ? `${en(no)} ${noWord}` : null, total - yes - no ? `${en(total - yes - no)} not recorded` : null].filter(Boolean).join(" · ");
 
 /* ── Sample organisation (signed out) ─────────────────────────────── */
 
@@ -48,7 +53,7 @@ function SampleToday() {
   const n = (d: string) => VISITS_OPS.filter((v) => v.day === d).length;
   /* Counted as the sample Cases and Animals pages count them, so a figure matches the list it opens. */
   const cases = SAMPLE_CASES.filter((r) => r.open && !r.historical && !r.stale), crit = cases.filter((r) => r.crit).length;
-  const notSter = ANIMALS.filter((a) => a.abc !== "Sterilised").length, notVacc = ANIMALS.filter((a) => a.arv !== "Vaccinated").length;
+  const ster = ANIMALS.filter((a) => a.abc === "Sterilised").length, vacc = ANIMALS.filter((a) => a.arv === "Vaccinated").length;
   const row = (w: Work, isDone: boolean) => <TaskRow key={w.id} id={w.id} title={w.title} meta={`${w.ref} · ${w.kind} · ${w.place} · ${w.who}`} chip={{ text: w.state, tone: WORK_TONE[w.tone] ?? "plain" }} done={isDone} onToggle={() => toggle(w.id)} href={w.animal ? `/ngo/animals/${w.animal}` : undefined} />;
   return (
     <Shell crumb={["Today"]}>
@@ -67,7 +72,7 @@ function SampleToday() {
           <Tile label="Open cases" n={cases.length} href="/ngo/cases" visual={<Meter part={crit} whole={cases.length} tone="bad" label={`${plural(crit, "is", "are")} critical or high`} />} />
           <Tile label="Open work" n={open.length} href="#t-work" visual={<Meter part={closed.length} whole={WORK.length} tone="ok" label={`${closed.length} of ${WORK.length} done`} />} />
           <Tile label="Animals on the register" n={ANIMALS.length} href="/ngo/animals"
-            visual={<><Meter part={notSter} whole={ANIMALS.length} tone="blue" label={`${notSter} not sterilised`} /><Meter part={notVacc} whole={ANIMALS.length} tone="blue" label={`${notVacc} not vaccinated`} /></>} />
+            visual={<><Meter part={ster} whole={ANIMALS.length} tone="ok" label={`${ster} sterilised (${pctOf(ster, ANIMALS.length)})`} /><Meter part={vacc} whole={ANIMALS.length} tone="ok" label={`${vacc} vaccinated (${pctOf(vacc, ANIMALS.length)})`} /></>} />
         </Tiles>
         <Grid cols={3}>
           <Panel id="t-work" title="My work">
@@ -94,8 +99,8 @@ function SampleToday() {
 
 type Visit = { id: string; at: number; day: "Overdue" | "Today" | "Later"; when: string; what: string; place: string; who: string; href?: string };
 type CaseItem = { id: string; code: string; title: string; chip: string; bad: boolean; place: string | null; who: string | null };
-type CaseRead = { open: number; openCrit: number; critical: CaseItem[]; capped: boolean };
-type Herd = { total: number; notSter: number; notVacc: number; help: number };
+type CaseRead = { open: number; openCrit: number; critical: CaseItem[]; capped: boolean; imported: number };
+type Herd = { total: number; ster: number; notSter: number; vacc: number; notVacc: number; help: number };
 type MissionWait = { id: string; title: string; state: string; step: string | null; at: string };
 
 function dayOf(iso: string): Visit["day"] {
@@ -103,11 +108,11 @@ function dayOf(iso: string): Visit["day"] {
   const k = Math.floor((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() - t.getTime()) / 864e5);
   return k < 0 ? "Overdue" : k === 0 ? "Today" : "Later";
 }
-const imported = (src: string | null | undefined) => src === "historical_import" || src === "imported_historical_record";
+const imported_ = (src: string | null | undefined) => src === "historical_import" || src === "imported_historical_record";
 
 /** The field visits Operations lists (loadVisits there): follow-ups due within a week and open cases whose own date has
     come. Imported registers are left out here; Operations shows them apart and never counts them as overdue. */
-async function readVisits(ngoId: string): Promise<Visit[]> {
+async function readVisits(ngoId: string): Promise<{ list: Visit[]; imported: number }> {
   const db = getSupabase(); if (!db) throw new Error("StrayPaw could not be reached.");
   const week = new Date(Date.now() + 7 * 864e5).toISOString();
   const [fs, cs] = await Promise.all([
@@ -119,14 +124,18 @@ async function readVisits(ngoId: string): Promise<Visit[]> {
   const cases = (cs.data ?? []) as C[];
   const refs = await readAnimalRefs(ngoId, [...fs.map((f) => f.dog_id), ...cases.map((c) => c.dog_id)]);
   const say = (text: string, id: string | null) => withAnimalName(text, id ? refs.get(id) : null);
-  const out: Visit[] = fs.filter((f) => !imported(f.source)).map((f) => ({ id: f.id, at: Date.parse(f.due_at), day: dayOf(f.due_at), when: shortDay(f.due_at), what: say(f.note || (f.kind ?? "Follow-up").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()), f.dog_id), place: f.zone ?? f.city ?? "Place not recorded", who: f.assignee_name ?? "Unassigned", href: f.case_id ? `/ngo/cases/${f.case_id}` : f.dog_id ? `/ngo/animals/${f.dog_id}` : undefined }));
+  const out: Visit[] = fs.filter((f) => !imported_(f.source)).map((f) => ({ id: f.id, at: Date.parse(f.due_at), day: dayOf(f.due_at), when: shortDay(f.due_at), what: say(f.note || (f.kind ?? "Follow-up").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()), f.dog_id), place: f.zone ?? f.city ?? "Place not recorded", who: f.assignee_name ?? "Unassigned", href: f.case_id ? `/ngo/cases/${f.case_id}` : f.dog_id ? `/ngo/animals/${f.dog_id}` : undefined }));
   const seen = new Set(fs.map((f) => f.case_id).filter(Boolean));
+  /* How many were left out as imported, so the tile can say so: an imported register's follow-ups are kept apart, and
+     an organisation whose visits are all imported would otherwise read "0 overdue" with no word why. */
+  let imported = fs.filter((f) => imported_(f.source)).length;
   for (const c of cases) {
     const due = c.due_at ?? c.follow_up_at;
-    if (!due || seen.has(c.id) || due > week || imported(c.provenance)) continue;
+    if (!due || seen.has(c.id) || due > week) continue;
+    if (imported_(c.provenance)) { imported++; continue; }
     out.push({ id: `case:${c.id}`, at: Date.parse(due), day: dayOf(due), when: shortDay(due), what: say(c.next_action || c.title || "Case follow-up", c.dog_id), place: c.zone ?? c.city ?? "Place not recorded", who: c.assignee_name ?? "Unassigned", href: `/ngo/cases/${c.id}` });
   }
-  return out.sort((a, b) => a.at - b.at);
+  return { list: out.sort((a, b) => a.at - b.at), imported };
 }
 
 /** The organisation's open cases, read and sorted into the Cases page's own views with its own rules (data/ngo):
@@ -147,10 +156,16 @@ async function readCases(ngoId: string): Promise<CaseRead> {
     const bad = rules.isCriticalCondition(c.condition_class) || c.severity === "critical";
     return { id: c.id, code: rules.shortCode(c.case_code, c.id.slice(0, 8).toUpperCase()), title: c.title || c.condition_class || "Case", chip: rules.isCriticalCondition(c.condition_class) ? c.condition_class! : c.severity === "critical" ? "Critical" : "High", bad, place: c.zone ?? c.city, who: c.assignee_name };
   });
-  return { open: open.length, openCrit: open.filter(crit).length, critical, capped: rows.length >= rules.OPEN_LIMIT };
+  /* Imported open cases nobody has confirmed are kept out of today's work, as on Cases; the tile says how many, so an
+     organisation whose register is mostly imported does not read as having nothing open. */
+  return { open: open.length, openCrit: open.filter(crit).length, critical, capped: rows.length >= rules.OPEN_LIMIT, imported: rows.length - current.length };
 }
 
-/** The register's totals with the Animals page's own lenses (org_animals: All, Needs help, Not sterilised, Not vaccinated). */
+/** The register's totals with the Animals page's own lenses (org_animals: All, Needs help, Not sterilised, Not vaccinated),
+    and the recorded sterilised and vaccinated counts. One rule everywhere (sp3/ai/figures): the animal's recorded status
+    counts; an animal with no status recorded is "not recorded", never "not sterilised", and the share is of every animal
+    on the register. An imported register with most statuses unrecorded therefore reads "102 sterilised (4%) · 2,175 not
+    recorded", not "0 not sterilised (0%)". */
 async function readHerd(): Promise<Herd> {
   const db = getSupabase(); if (!db) throw new Error("StrayPaw could not be reached.");
   const count = async (args: Record<string, unknown>) => {
@@ -159,8 +174,8 @@ async function readHerd(): Promise<Herd> {
     const rows = (Array.isArray(r.data) ? r.data : []) as { total_count: number | string }[];
     return rows.length ? Number(rows[0].total_count) : 0;
   };
-  const [total, notSter, notVacc, help] = await Promise.all([count({}), count({ p_ster: "not_sterilised" }), count({ p_vacc: "not_vaccinated" }), count({ p_needs: true })]);
-  return { total, notSter, notVacc, help };
+  const [total, ster, notSter, vacc, notVacc, help] = await Promise.all([count({}), count({ p_ster: "sterilised" }), count({ p_ster: "not_sterilised" }), count({ p_vacc: "vaccinated" }), count({ p_vacc: "not_vaccinated" }), count({ p_needs: true })]);
+  return { total, ster, notSter, vacc, notVacc, help };
 }
 async function readWaiting(orgId: string): Promise<MissionWait[]> {
   const db = getSupabase(); if (!db) throw new Error("StrayPaw could not be reached.");
@@ -205,7 +220,7 @@ function LiveToday() {
 
   /* What needs attention, most urgent first: animals marked as needing help, critical and high cases, visits past their
      date (oldest first), then tasks past their date. Five show; the foot opens the lists they come from. */
-  const vs = visits.data ?? [];
+  const vs = visits.data?.list ?? [], visitsImported = visits.data?.imported ?? 0;
   const late = vs.filter((v) => v.day === "Overdue"), now = vs.filter((v) => v.day === "Today"), later = vs.filter((v) => v.day === "Later");
   const help = herd.data?.help ?? 0;
   const crit = cases.data?.critical ?? [];
@@ -232,14 +247,14 @@ function LiveToday() {
         </div>
         <AtKaju role="ngo" />
         <Tiles>
-          {ngo ? <Tile label="Visits overdue" n={num(visits, visits.data ? late.length : undefined)} tone={late.length ? "warn" : "plain"} href="/ngo/operations" note={visits.data ? `${plural(vs.length, "visit", "visits")} due in the next 7 days` : undefined}
+          {ngo ? <Tile label="Visits overdue" n={num(visits, visits.data ? late.length : undefined)} tone={late.length ? "warn" : "plain"} href="/ngo/operations" note={visits.data ? `${plural(vs.length, "visit", "visits")} due in the next 7 days${visitsImported ? `; ${plural(visitsImported, "imported follow-up", "imported follow-ups")} not counted` : ""}` : undefined}
             visual={vs.length ? <Split parts={[{ n: late.length, tone: "warn", label: "overdue" }, { n: now.length, tone: "blue", label: "today" }, { n: later.length, tone: "plain", label: "later" }]} /> : null} /> : null}
-          {ngo ? <Tile label="Open cases" n={num(cases, c?.open)} href="/ngo/cases" note={c?.capped ? "The newest 800 open cases were read" : undefined}
+          {ngo ? <Tile label="Open cases" n={num(cases, c?.open)} href="/ngo/cases" note={c ? [c.imported ? `${plural(c.imported, "imported case", "imported cases")} awaiting confirmation, not counted` : null, c.capped ? "The newest 800 open cases were read" : null].filter(Boolean).join(". ") || undefined : undefined}
             visual={c && c.open ? <Meter part={c.openCrit} whole={c.open} tone="bad" label={`${plural(c.openCrit, "is", "are")} critical or high`} /> : null} /> : null}
           <Tile label="Open tasks" n={tasks.error ? null : tasks.rows ? open.length : undefined} tone={lateTasks.length ? "warn" : "plain"} href="#t-tasks" note={lateTasks.length ? `${plural(lateTasks.length, "is", "are")} past the due date` : undefined}
             visual={open.length + closed.length ? <Meter part={closed.length} whole={open.length + closed.length} tone="ok" label={`${closed.length.toLocaleString("en-IN")} of ${(open.length + closed.length).toLocaleString("en-IN")} done`} /> : null} />
           {ngo ? <Tile label="Animals on the register" n={num(herd, h?.total)} href="/ngo/animals"
-            visual={h && h.total ? <><Meter part={h.notSter} whole={h.total} tone="blue" label={`${h.notSter.toLocaleString("en-IN")} not sterilised (${pctOf(h.notSter, h.total)})`} /><Meter part={h.notVacc} whole={h.total} tone="blue" label={`${h.notVacc.toLocaleString("en-IN")} not vaccinated (${pctOf(h.notVacc, h.total)})`} /></> : null} /> : null}
+            visual={h && h.total ? <><Meter part={h.ster} whole={h.total} tone="ok" label={statusLine(h.ster, h.notSter, h.total, "sterilised", "not sterilised")} /><Meter part={h.vacc} whole={h.total} tone="ok" label={statusLine(h.vacc, h.notVacc, h.total, "vaccinated", "not vaccinated")} /></> : null} /> : null}
         </Tiles>
         <Grid cols={2}>
           {ngo ? <Panel id="t-attn" title="Needs attention" foot={<><Link href="/ngo/cases?view=critical" className="hm-all">Critical and high cases{c ? ` (${c.critical.length.toLocaleString("en-IN")})` : ""}<ArrowRight size={14} aria-hidden /></Link><Link href="/ngo/operations" className="hm-all">Operations<ArrowRight size={14} aria-hidden /></Link></>}>
@@ -251,7 +266,7 @@ function LiveToday() {
         <Strip id="t-kaju" title="Kaju is waiting on you" all={{ href: "/kaju/missions", label: "Missions" }} error={waiting.error ? "What Kaju is waiting on could not be read." : null} retry={waiting.reload}
           items={waiting.data?.map((m): Item => ({ id: m.id, title: m.step ? `${m.state === "waiting_approval" ? "Approve" : m.state === "failed" ? "Stopped at" : "Waiting for a person"}: ${m.step}` : m.title, meta: m.title, href: `/kaju/missions/${m.id}`, icon: m.state === "failed" ? <AlertTriangle size={16} /> : <Hand size={16} />, tone: m.state === "failed" ? "bad" : "warn", chip: { text: shortDay(m.at), tone: "plain" } }))}
           empty="Nothing right now. Ask @Kaju above, or plan a mission in Kaju." />
-        {ngo && vs.length ? <p className="hm-note hm-foot-note">Visits from imported registers are left out of these counts, as on Operations.</p> : null}
+        {ngo && (vs.length || visitsImported) ? <p className="hm-note hm-foot-note">Visits from imported registers are left out of these counts, as on Operations{visitsImported ? `: ${plural(visitsImported, "imported follow-up is", "imported follow-ups are")} kept there for review` : ""}. Imported cases nobody has confirmed are left out of open cases, as on Cases.</p> : null}
       </div>
     </Shell>
   );

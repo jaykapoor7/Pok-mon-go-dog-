@@ -39,7 +39,7 @@ export function DrivesTab({ who }: { who: Who }) {
   const open = d.drives.find((x) => x.id === openId) ?? null;
   const waiting = d.breakdown ? d.breakdown.waiting.ours + d.breakdown.waiting.community : 0;
   const cols: GCol<CampaignStats>[] = [
-    { label: "Drive", width: "minmax(0, 1.5fr)", render: (x) => <span className="nx-cell-main"><span><b>{x.name}{x.archived ? <span className="nx-t3" style={{ fontWeight: 400 }}> · archived</span> : null}</b><small>{KIND_LABEL[x.kind] ?? x.kind} · {when(x)}<span className="nx-only-s"> · {x.total} animals, {pct(x.sterilised, x.sterilised + x.not_sterilised)} sterilised of known</span></small></span></span> },
+    { label: "Drive", width: "minmax(0, 1.5fr)", render: (x) => <span className="nx-cell-main"><span><b>{x.name}{x.archived ? <span className="nx-t3" style={{ fontWeight: 400 }}> · archived</span> : null}</b><small>{KIND_LABEL[x.kind] ?? x.kind} · {when(x)}<span className="nx-only-s"> · {x.total} animals, {pct(x.sterilised, x.total)} sterilised</span></small></span></span> },
     { label: "Animals", width: "80px", render: (x) => <span className="num">{x.total}</span> },
     { label: "Sterilised", width: "210px", render: (x) => <Mini yes={x.sterilised} no={x.not_sterilised} unknown={x.ster_unknown} label="sterilised" /> },
     { label: "Vaccinated", width: "210px", render: (x) => <Mini yes={x.vaccinated} no={x.not_vaccinated} unknown={x.vacc_unknown} label="vaccinated" /> },
@@ -48,7 +48,7 @@ export function DrivesTab({ who }: { who: Who }) {
   return (
     <>
       <Tools end={who.sample ? <TryLink small><Plus size={13} />Start a drive</TryLink> : leader ? <button type="button" className="nx-btn is-sm" onClick={() => setMaking(true)}><Plus size={13} />Start a drive</button> : null}>
-        <span className="ns-sum"><b>{d.drives.filter((x) => !x.archived).length}</b> active {d.drives.filter((x) => !x.archived).length === 1 ? "drive" : "drives"}. Percentages count only animals whose status was recorded.{waiting > 0 ? <> <Link className="ns-link" href="/ngo/inbox">{waiting} {waiting === 1 ? "report" : "reports"} waiting to be filed</Link>.</> : null}{!leader ? " A lead or coordinator starts drives." : ""}</span>
+        <span className="ns-sum"><b>{d.drives.filter((x) => !x.archived).length}</b> active {d.drives.filter((x) => !x.archived).length === 1 ? "drive" : "drives"}. Percentages are of all the animals counted; “not recorded” is shown apart, never as “not”.{waiting > 0 ? <> <Link className="ns-link" href="/ngo/inbox">{waiting} {waiting === 1 ? "report" : "reports"} waiting to be filed</Link>.</> : null}{!leader ? " A lead or coordinator starts drives." : ""}</span>
       </Tools>
       <Views id="dr" value={view} onChange={setView} views={[{ id: "active", label: "Active", count: d.drives.filter((x) => !x.archived).length }, { id: "archived", label: "Archived", count: d.drives.filter((x) => x.archived).length }, { id: "all", label: "All", count: d.drives.length }]} />
       <Grid label="Drives" cols={cols} rows={shown} rowKey={(x) => x.id} rowLabel={(x) => x.name} onOpen={(x) => setOpenId(x.id)} openKey={openId}
