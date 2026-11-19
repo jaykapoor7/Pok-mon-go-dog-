@@ -27,6 +27,7 @@ import { EVIDENCE_LABEL, type EvidenceKind } from "@/lib/abc";
 import type { IntakeData, LifecycleData, OperationKind, WorkflowPolicy } from "@/lib/operations";
 import { archiveDraft, clearOfflineDevice, deleteDraft, fieldCache, lockOffline, offlineUnlocked, offlineVaultExists, putDraft, readDrafts, readSynced, startOnlineSession, unlockOffline, type FieldDraft, type SyncedFieldRecord, type VaccinationData } from "@/lib/field/outbox";
 import { submitFieldDraft } from "@/lib/field/sync";
+import { areaNear, cityNear, findPhone } from "@/lib/field/place";
 import { backToAssigned, ensureVolunteer, isoDay, setFollowup, shortCode, startWork, type Actor } from "../../data/ngo";
 import { LifecycleForm, TRY, undoWith } from "./parts";
 import { animalLine, animalName, animalSearch } from "@/nx/animalLabel";
@@ -45,6 +46,8 @@ const uuid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? cr
 const ext = (t: string) => (t === "application/pdf" ? "pdf" : t === "image/png" ? "png" : t === "image/webp" ? "webp" : "jpg");
 const today = () => new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" });
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+/** A phone or tablet with a camera to open from a tap; a desktop gets the file picker only when it asks for it. */
+const phoneCamera = () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
 export function Field() {
   const live = useLive();
@@ -163,6 +166,14 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
   const [justSent, setJustSent] = useState<SyncedFieldRecord[]>([]);
   const [capture, setCapture] = useState(false);
+  /* The record's photo is taken through one camera input that lives here, so the tap that opens the record screen can
+     open the camera in the same moment (a browser opens a camera only straight from a tap). */
+  const [shot, setShot] = useState<File | null>(null);
+  const cam = useRef<HTMLInputElement>(null);
+  /* The record the open record screen is showing as sent: its own confirmation says so, so no toast repeats it. */
+  const showing = useRef<string | null>(null);
+  const shoot = useCallback(() => cam.current?.click(), []);
+  const record = useCallback((camera: boolean) => { setShot(null); setCapture(true); if (camera && phoneCamera()) shoot(); }, [shoot]);
   const [done, setDone] = useState<Record<string, string>>({});
   const [ask, setAsk] = useState<null | { title: string; body: string; confirm: string; danger?: boolean; go: () => Promise<void> }>(null);
   const [vaccDefaults, setVaccDefaults] = useState<Pick<VaccinationData, "vaccine" | "batch" | "performedBy"> | undefined>();
@@ -173,9 +184,10 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
   const wantRecord = useSearchParams().get("record") === "1";
   useEffect(() => {
     if (!wantRecord) return;
-    setCapture(true);
+    /* Arriving from the phone's "+": the camera opens too while the tap that brought the person here still counts. */
+    record(!!(navigator as Navigator & { userActivation?: { isActive: boolean } }).userActivation?.isActive);
     try { const u = new URL(window.location.href); u.searchParams.delete("record"); window.history.replaceState(null, "", u); } catch { /* the address stays as it was */ }
-  }, [wantRecord]);
+  }, [wantRecord, record]);
 
   const fromCache = useCallback(async () => {
     const c = await fieldCache<Cached>(scope).catch(() => undefined);
@@ -224,7 +236,7 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
   /* Send in order: intakes first (later records on a new animal need its case), then oldest first. Each is idempotent. */
   const send = useCallback(async (only?: string[]) => {
     if (lock.current) return; lock.current = true; setSyncing(true);
-    let sent = 0, bad = 0;
+    let sent = 0, bad = 0, seen = 0;
     try {
       const queued = (await readDrafts(scope)).filter((d) => !only || only.includes(d.id)).sort((a, b) => Number(!!b.intake) - Number(!!a.intake) || Date.parse(a.at) - Date.parse(b.at));
       setSendingIds(new Set(queued.map((d) => d.id)));
@@ -235,13 +247,13 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
         try {
           const saved = await submitFieldDraft(d, actor.id, org.org_id);
           const rec: SyncedFieldRecord = { id: d.id, scope, at: saved.confirmedAt, caseId: saved.caseId, dogId: saved.dogId, auditId: saved.audit_id, label: d.note.slice(0, 120) };
-          await archiveDraft(d, rec); sent++;
+          await archiveDraft(d, rec); sent++; if (showing.current === d.id) seen++;
           setJustSent((cur) => [...cur.filter((x) => x.id !== rec.id), rec]);
           window.setTimeout(() => setJustSent((cur) => cur.filter((x) => x.id !== rec.id)), 5000);
         }
         catch (e) { bad++; await putDraft({ ...d, status: "failed", error: errText(e) }).catch(() => {}); }
       }
-      if (sent) toast({ text: `${sent} ${sent === 1 ? "record" : "records"} sent; the server's copy and audit were checked.`, tone: "ok" });
+      if (sent > seen) toast({ text: `${sent} ${sent === 1 ? "record" : "records"} sent; the server's copy and audit were checked.`, tone: "ok" });
       if (bad) toast({ text: `${bad} ${bad === 1 ? "record" : "records"} did not go. ${bad === 1 ? "It stays" : "They stay"} on this phone with the reason.`, tone: "bad" });
       if (sent) await load();
     } catch (e) { setStorageError(`${errText(e)} The records stay on this phone.`); }
@@ -268,6 +280,12 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
   useEffect(() => { if (!prevOnline.current && online && mode === "offline" && drafts.length) toast({ text: `Signal is back. ${drafts.length} ${drafts.length === 1 ? "record waits" : "records wait"} to be sent.`, tone: "plain" }); prevOnline.current = online; }, [online, mode, drafts.length]);
 
   const route: Route3 = mode === "offline" ? "keep" : online ? "send" : "hold";
+  const whereabouts = (id: string): { at: Whereabouts; error?: string } => {
+    if (justSent.some((x) => x.id === id) || synced.some((x) => x.id === id)) return { at: "sent" };
+    const d = drafts.find((x) => x.id === id);
+    if (!d) return { at: null };
+    return syncing && sendingIds.has(id) ? { at: "sending" } : d.status === "failed" ? { at: "failed", error: d.error } : { at: "waiting" };
+  };
   const lateN = myFus.filter((f) => Date.parse(f.due_at) < Date.now()).length;
   const stops = mine.length + myFus.length;
   const waiting = drafts.length;
@@ -284,8 +302,9 @@ function Round({ org, actor, scope, mode, online, head, storageError, setStorage
 
   return (
     <div className="fm">
-      {head(waiting, sum, { record: () => setCapture(true), tools })}
-      {capture ? <RecordSheet known={known} route={route} onSave={intake} onClose={() => setCapture(false)} /> : null}
+      {head(waiting, sum, { record: () => record(true), tools })}
+      <input ref={cam} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="fm-cam" tabIndex={-1} aria-hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) setShot(f); }} />
+      {capture ? <RecordSheet known={known} route={route} file={shot} onShoot={shoot} onDropShot={() => setShot(null)} whereabouts={whereabouts} showing={showing} onSave={intake} onClose={() => { setCapture(false); setShot(null); }} /> : null}
       {storageError ? <p className="fm-err" role="alert">{storageError}</p> : null}
       {cachedAt ? <p className="fm-hint" role="status">Showing the stops kept on this phone at {dayTime(cachedAt)}. They may have changed since; sending checks your current access.</p> : null}
       {failed ? <div className="fm-err" role="alert">Records you make are still kept on this phone. <button type="button" className="fm-link" onClick={() => void load()}>Read your stops again</button></div> : null}
@@ -467,12 +486,18 @@ function VaccinationForm({ dogId, defaults, route, state, onSave, onCancel }: { 
   );
 }
 
-/* ── Record an animal: one screen, one Save ──────────────────────────
-   A photo, why, where, and optional details. The record is the same field-intake-v1 the register has always received
-   (src/lib/operations IntakeData): the same fields, the same request id kept for the life of the screen, so a Save that
-   is pressed twice or retried is still one animal. "Say it" at the top reads one line on the phone ("brown female
-   limping by the temple, needs a vet") and fills the choices below: why, sex, marks, the note, and the area when it is
-   empty. It works offline, sends nothing, and never touches Save, the drafts or sending. */
+/* ── Record an animal: one screen, one Send ──────────────────────────
+   Built for about twelve seconds with the phone in one hand: the camera opens with the screen (on a phone, when the
+   tap that opened it allows), the place is found by the phone and named from it (the city from the phone's own list,
+   the area from a map service when there is signal), why is one big chip (the last record's choice is kept), and one
+   Send. Name, marks, sex and a note stay folded away. "Say it" (src/nx/data/capture.ts readField) reads one line on
+   the phone and fills the choices; it sends nothing and never touches Send, the drafts or sending.
+
+   The record is the same field-intake-v1 the register has always received (src/lib/operations IntakeData): the same
+   keys and meaning, one request id for the life of each record, so a Send pressed twice or retried is still one animal.
+   The area is optional here, as it always was on the server (operations_intake requires the city, the place and the
+   note). After Send the screen says where the record is, from the outbox itself (saved on this phone, sending, sent,
+   or why it did not go), and offers "Record another" for the next animal. */
 
 const WHY: { id: IntakeData["category"]; label: string; note: string; icon: typeof Scissors; says: string; urgent?: boolean }[] = [
   { id: "sterilisation", label: "Sterilise", note: "Caught for the ABC programme.", icon: Scissors, says: "Caught for sterilisation" },
@@ -481,27 +506,41 @@ const WHY: { id: IntakeData["category"]; label: string; note: string; icon: type
   { id: "rescue", label: "Rescue", note: "In danger and needs moving.", icon: LifeBuoy, says: "Rescue needed", urgent: true },
   { id: "other", label: "Something else", note: "Recorded in the field. Say why under More about the dog.", icon: PawPrint, says: "Recorded in the field" },
 ];
-const PLACE_KEY = "sp.field.place";
+const PLACE_KEY = "sp.field.place", WHY_KEY = "sp.field.why";
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
 const SEX: [string, string][] = [["Female", "Female"], ["Male", "Male"], ["Unknown", "Not sure"]];
+/** Where a record made on this screen is now, read from the outbox. */
+type Whereabouts = "waiting" | "sending" | "sent" | "failed" | null;
+const remembered = () => { try { return JSON.parse(localStorage.getItem(PLACE_KEY) ?? "null") as { city?: string; zone?: string } | null; } catch { return null; } };
+const lastWhy = (): IntakeData["category"] | null => { try { const v = localStorage.getItem(WHY_KEY); return WHY.some((w) => w.id === v) ? (v as IntakeData["category"]) : null; } catch { return null; } };
+const fresh = (keep?: Partial<IntakeData>): IntakeData => ({ template: "field-intake-v1", name: "", code: "", city: keep?.city ?? "", zone: keep?.zone ?? "", sex: "", identifiers: "", description: "", category: keep?.category ?? "sterilisation", lat: NaN, lng: NaN, accuracy: null, observedAt: new Date().toISOString() });
 
-function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; route: Route3; onSave: (d: IntakeData, f: File | null, id: string) => Promise<void>; onClose: () => void }) {
+function RecordSheet({ known, route, file, onShoot, onDropShot, whereabouts, showing, onSave, onClose }: { known: KnownAnimal[]; route: Route3; file: File | null; onShoot: () => void; onDropShot: () => void; whereabouts: (id: string) => { at: Whereabouts; error?: string }; showing: React.MutableRefObject<string | null>; onSave: (d: IntakeData, f: File | null, id: string) => Promise<void>; onClose: () => void }) {
   const request = useRef(uuid()), saving = useRef(false), hand = useRef(false);
-  const [d, setD] = useState<IntakeData>({ template: "field-intake-v1", name: "", code: "", city: "", zone: "", sex: "", identifiers: "", description: "", category: "sterilisation", lat: NaN, lng: NaN, accuracy: null, observedAt: new Date().toISOString() });
-  const [chosen, setChosen] = useState(false);
-  const [file, setFile] = useState<File | null>(null), [shot, setShot] = useState<string | null>(null);
-  const [gps, setGps] = useState<"finding" | "found" | "failed">("finding");
+  /* Which place fields the person typed on this screen: those are never replaced by what the phone finds. */
+  const typedPlace = useRef({ zone: false, city: false });
+  const [d, setD] = useState<IntakeData>(() => fresh());
+  const [chosen, setChosen] = useState(false), [whyFrom, setWhyFrom] = useState<"last" | null>(null);
+  const [placeFrom, setPlaceFrom] = useState<"phone" | "last" | null>(null), [editPlace, setEditPlace] = useState(false);
+  const [shot, setShot] = useState<string | null>(null);
+  const [gps, setGps] = useState<"finding" | "found" | "refused" | "failed">("finding"), [slow, setSlow] = useState(false);
   const [byHand, setByHand] = useState(false);
   const [latText, setLatText] = useState(""), [lngText, setLngText] = useState("");
   const [search, setSearch] = useState(""), [error, setError] = useState<string | null>(null), [tried, setTried] = useState(false);
-  const res = useResult(), calm = useCalm();
-  const busy = res.state !== "idle";
-  const box = useRef<HTMLElement>(null), whyRef = useRef<HTMLDivElement>(null), whereRef = useRef<HTMLDivElement>(null), zoneRef = useRef<HTMLInputElement>(null), cityRef = useRef<HTMLInputElement>(null), fileRef = useRef<HTMLInputElement>(null);
+  const [done, setDone] = useState<{ id: string; route: Route3; label: string } | null>(null), [count, setCount] = useState(0);
+  const res = useResult(), calm = useCalm(), morph = useSpring("morph");
+  const box = useRef<HTMLElement>(null), whyRef = useRef<HTMLDivElement>(null), whereRef = useRef<HTMLDivElement>(null), cityRef = useRef<HTMLInputElement>(null), doneRef = useRef<HTMLHeadingElement>(null);
   const moreRef = useRef<HTMLDetailsElement>(null);
   const set = (p: Partial<IntakeData>) => setD((x) => ({ ...x, ...p }));
   const located = Number.isFinite(d.lat) && Number.isFinite(d.lng);
 
-  useEffect(() => { try { const p = JSON.parse(localStorage.getItem(PLACE_KEY) ?? "null") as { city?: string; zone?: string } | null; if (p) setD((x) => ({ ...x, city: p.city ?? "", zone: p.zone ?? "" })); } catch { /* nothing remembered */ } }, []);
+  /* What this phone remembers from the last record: the place (until the phone names a new one) and why. */
+  const recall = useCallback(() => {
+    const p = remembered(), w = lastWhy();
+    if (p?.city || p?.zone) { setD((x) => ({ ...x, city: p.city ?? "", zone: p.zone ?? "" })); setPlaceFrom("last"); }
+    if (w) { setD((x) => ({ ...x, category: w })); setChosen(true); setWhyFrom("last"); }
+  }, []);
+  useEffect(() => { recall(); }, [recall]);
   useEffect(() => { if (!file) { setShot(null); return; } const u = URL.createObjectURL(file); setShot(u); return () => URL.revokeObjectURL(u); }, [file]);
   /* Focus goes into the screen and comes back to the button that opened it (or, opened from a link, to Record an animal). */
   useEffect(() => {
@@ -510,14 +549,31 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
     return () => { const back = before && before !== document.body && before.isConnected ? before : document.querySelector<HTMLElement>(".fm-record"); back?.focus({ preventScroll: true }); };
   }, []);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
-  /* The phone is asked where it is as the screen opens; nobody has to. A place typed by hand is never overwritten. */
+
+  /* The phone is asked where it is as the screen opens; nobody has to. A quick fix comes first and a precise one
+     replaces it; a place typed by hand is never overwritten. The city (and, with signal, the area) is named from the
+     point unless the person typed it here. */
+  const stop = useRef<() => void>(() => {});
   const locate = useCallback(() => {
-    if (!navigator.geolocation) { setGps("failed"); return; }
-    setGps("finding");
-    navigator.geolocation.getCurrentPosition((p) => { if (hand.current) return; setD((x) => ({ ...x, lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy, observedAt: new Date(p.timestamp).toISOString() })); setGps("found"); }, () => setGps("failed"), { enableHighAccuracy: true, timeout: 15000 });
+    stop.current(); setGps("finding"); setSlow(false);
+    const slowT = window.setTimeout(() => setSlow(true), 6000);
+    let named = false;
+    stop.current = findPhone((f) => {
+      window.clearTimeout(slowT);
+      if (hand.current) return;
+      setD((x) => ({ ...x, lat: f.lat, lng: f.lng, accuracy: f.accuracy, observedAt: f.at })); setGps("found"); setSlow(false);
+      if (named) return; named = true;
+      const city = cityNear(f.lat, f.lng);
+      if (city && !typedPlace.current.city) { setD((x) => ({ ...x, city })); setPlaceFrom("phone"); }
+      void areaNear(f.lat, f.lng).then((a) => {
+        if (!a || hand.current) return;
+        setD((x) => ({ ...x, zone: a.area && !typedPlace.current.zone ? a.area : x.zone, city: !city && a.city && !typedPlace.current.city ? a.city : x.city }));
+        if (a.area && !typedPlace.current.zone) setPlaceFrom("phone");
+      });
+    }, (e) => { window.clearTimeout(slowT); setGps(e === "refused" ? "refused" : "failed"); setSlow(false); });
   }, []);
-  useEffect(() => { locate(); }, [locate]);
-  const typeIt = () => { hand.current = true; setByHand(true); if (located) { setLatText(d.lat.toFixed(6)); setLngText(d.lng.toFixed(6)); } };
+  useEffect(() => { locate(); return () => stop.current(); }, [locate]);
+  const typeIt = () => { hand.current = true; stop.current(); setByHand(true); if (located) { setLatText(d.lat.toFixed(6)); setLngText(d.lng.toFixed(6)); } };
   const usePhone = () => { hand.current = false; setByHand(false); setLatText(""); setLngText(""); set({ lat: NaN, lng: NaN, accuracy: null }); locate(); };
   const typed = (a: string, b: string) => {
     const la = Number(a.trim()), lo = Number(b.trim());
@@ -529,42 +585,52 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
   const want = animalSearch(search).toLowerCase();
   const matches = want ? known.filter((a) => [a.name, a.code, a.straypaw_id, a.identifiers].filter(Boolean).join(" ").toLowerCase().includes(want)).slice(0, 5) : [];
   const linked = d.existingDogId ? known.find((a) => a.id === d.existingDogId) : undefined;
-  const missing: null | "why" | "where" | "place" = !chosen ? "why" : !located ? "where" : !d.zone.trim() || !d.city.trim() ? "place" : null;
+  const missing: null | "why" | "where" | "city" = !chosen ? "why" : !located ? "where" : !d.city.trim() ? "city" : null;
   const need = missing === "why" ? "Choose why you are recording it."
     : missing === "where" ? (byHand ? "Type both numbers of the location." : gps === "finding" ? "Finding where you are…" : "The location is needed. Try again, or type it.")
-    : missing === "place" ? (!d.zone.trim() && !d.city.trim() ? "Add the area and the city." : !d.zone.trim() ? "Add the area or street." : "Add the city.") : null;
-  const goes = route === "send" ? (d.existingDogId ? "Saves to your register now, as a new case on this dog's history." : "Saves to your register now: a new animal and its case.")
-    : route === "hold" ? "No signal right now. It waits on this phone and is sent when the signal is back. Keep this page open."
-    : "Kept on this phone, locked with your PIN, until you send it.";
+    : missing === "city" ? "Add the city." : null;
+  const goes = route === "send" ? (d.existingDogId ? "Sends to your register now, as a new case on this dog's history." : "Sends to your register now: a new animal and its case.")
+    : route === "hold" ? "No signal right now. It is saved on this phone and sent when the signal is back. Keep this page open."
+    : "Saved on this phone, locked with your PIN, until you send it.";
   const details = [d.sex && (d.sex === "Unknown" ? "Sex not sure" : d.sex), linked ? `Seen before: ${animalLine(linked)}` : d.name, d.identifiers, d.description && "A note"].filter(Boolean).join(" · ");
+  const place = [d.zone.trim(), d.city.trim()].filter(Boolean).join(", ");
+  const showPlace = editPlace || !d.city.trim() || (tried && missing === "city");
 
   const save = async () => {
     if (saving.current) return;
     if (missing) {
       setTried(true);
-      (missing === "why" ? whyRef.current?.querySelector<HTMLElement>("button") : missing === "where" ? whereRef.current?.querySelector<HTMLElement>("input, button") : !d.zone.trim() ? zoneRef.current : cityRef.current)?.focus();
+      if (missing === "city") setEditPlace(true);
+      window.setTimeout(() => (missing === "why" ? whyRef.current?.querySelector<HTMLElement>("button") : missing === "where" ? whereRef.current?.querySelector<HTMLElement>("input, button") : cityRef.current)?.focus(), 0);
       return;
     }
     saving.current = true; setError(null);
     try {
-      try { localStorage.setItem(PLACE_KEY, JSON.stringify({ city: d.city.trim(), zone: d.zone.trim() })); } catch { /* not remembered */ }
-      /* The record is the screen's IntakeData exactly as before; only what the button shows has changed. Save turns into
-         where the record now is, holds long enough to read, and the screen closes onto its row in "On this phone". */
-      await res.run(() => onSave({ ...d, city: d.city.trim(), zone: d.zone.trim(), description: d.description.trim() || why.says }, file, request.current));
-      await settle(calm, 700);
-      onClose();
+      try { localStorage.setItem(PLACE_KEY, JSON.stringify({ city: d.city.trim(), zone: d.zone.trim() })); localStorage.setItem(WHY_KEY, d.category); } catch { /* not remembered */ }
+      const id = request.current;
+      await res.run(() => onSave({ ...d, city: d.city.trim(), zone: d.zone.trim(), description: d.description.trim() || why.says }, file, id));
+      setDone({ id, route, label: why.label }); setCount((n) => n + 1);
     } catch (x) { setError(`${errText(x)} Nothing was lost; try again.`); } finally { saving.current = false; }
   };
-  /* Say it: the line is read here, on the phone (src/nx/data/capture.ts readField), and only fills what it states.
-     Choices take what was said; typed fields are only filled when empty. Save, the drafts and sending are untouched:
-     the record is whatever the screen holds when the person presses Save. */
+  useEffect(() => { showing.current = done?.id ?? null; if (done) doneRef.current?.focus(); return () => { showing.current = null; }; }, [done, showing]);
+  /* The next animal: a new request id and a new fix; why and the place carry over, the photo and details do not. */
+  const another = () => {
+    request.current = uuid(); hand.current = false; typedPlace.current = { zone: false, city: false };
+    setD(fresh({ city: d.city.trim(), zone: d.zone.trim(), category: d.category })); setChosen(true); setWhyFrom("last"); setPlaceFrom(d.city.trim() ? "last" : null);
+    setByHand(false); setLatText(""); setLngText(""); setSearch(""); setTried(false); setEditPlace(false); setError(null); res.reset();
+    if (moreRef.current) moreRef.current.open = false;
+    onDropShot(); setDone(null); locate();
+    onShoot();
+  };
+  /* Say it: the line is read here, on the phone, and only fills what it states. Choices take what was said; typed
+     fields are only filled when empty. */
   const sayIt = (text: string): string[] => {
     const r = readField(text), filled: string[] = [], p: Partial<IntakeData> = {};
     const label = (id: string) => WHY.find((w) => w.id === id)?.label ?? id;
-    if (r.category) { p.category = r.category; setChosen(true); filled.push(r.also.length ? `${label(r.category)} (you also said ${r.also.map((x) => label(x).toLowerCase()).join(" and ")}; change it below if that is the reason)` : label(r.category)); }
+    if (r.category) { p.category = r.category; setChosen(true); setWhyFrom(null); filled.push(r.also.length ? `${label(r.category)} (you also said ${r.also.map((x) => label(x).toLowerCase()).join(" and ")}; change it above if that is the reason)` : label(r.category)); }
     if (r.sex) { p.sex = r.sex; filled.push(r.sex === "Unknown" ? "sex not sure" : r.sex); }
     if (r.marks && !d.identifiers.trim()) { p.identifiers = r.marks.slice(0, 500); filled.push(`marks: ${r.marks}`); }
-    if (r.zone && !d.zone.trim()) { p.zone = r.zone.slice(0, 120); filled.push(`area: ${r.zone}`); }
+    if (r.zone && (!d.zone.trim() || (!typedPlace.current.zone && placeFrom === "last"))) { p.zone = r.zone.slice(0, 120); typedPlace.current.zone = true; filled.push(`area: ${r.zone}`); }
     if (!d.description.includes(r.note)) { p.description = (d.description.trim() ? `${d.description.trim()}\n${r.note}` : r.note).slice(0, 3000); filled.push("the note"); }
     set(p);
     if ((p.sex || p.identifiers || p.description) && moreRef.current) moreRef.current.open = true;
@@ -579,81 +645,108 @@ function RecordSheet({ known, route, onSave, onClose }: { known: KnownAnimal[]; 
     else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
   };
 
+  const now = done ? whereabouts(done.id) : null;
+  const sent = now?.at === "sent";
+  const doneTitle = sent ? "Sent" : now?.at === "failed" ? "Saved on this phone, not sent yet" : "Saved on this phone";
+  const doneBody = sent ? "In your register: a new animal and its case. The server's copy and its audit were checked."
+    : now?.at === "failed" ? `It did not go: ${now.error ?? "no answer"}. It stays on this phone under On this phone, with Try again.`
+    : done?.route === "send" ? "Sending it to your register now."
+    : done?.route === "hold" ? "It is sent when the signal is back. Keep this page open."
+    : "Locked with your PIN. Send it from On this phone when you have signal.";
+
   return (
     <div className="fm-scrim">
       <section ref={box} className="fm-sheet" role="dialog" aria-modal="true" aria-labelledby="fm-rec-h" onKeyDown={trap}>
         <header className="fm-sheet-h">
           <h2 id="fm-rec-h" tabIndex={-1}>Record an animal</h2>
-          <button type="button" className="fm-x" onClick={onClose} aria-label="Close without saving"><X size={20} /></button>
+          {count ? <span className="fm-count" aria-label={`${count} recorded on this screen`}>{count} recorded</span> : null}
+          <button type="button" className="fm-x" onClick={onClose} aria-label={done ? "Close" : "Close without saving"}><X size={20} /></button>
         </header>
-        <div className="fm-sheet-b">
-          <SayIt onRead={sayIt} placeholder="For example: brown female limping by the temple" />
-          <div className="fm-q">
-            <label className={`fm-photo ${shot ? "has-shot" : ""}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {shot ? <><img src={shot} alt="The photo you took" /><span className="fm-retake" aria-hidden><Camera size={16} />Take it again</span></>
-                : <><span className="fm-photo-i" aria-hidden><Camera size={24} /></span><b>Take a photo</b><small>Optional. The whole dog, from the side if you can.</small></>}
-              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label={shot ? "Take the photo again" : "Photo of the dog"} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-            </label>
-            {shot ? <button type="button" className="fm-link fm-start" onClick={() => { setFile(null); if (fileRef.current) fileRef.current.value = ""; }}>Remove the photo</button> : null}
-          </div>
-
-          <div className="fm-q">
-            <h3 id="fm-why">Why are you recording it?</h3>
-            <div className="fm-chips" role="radiogroup" aria-labelledby="fm-why" ref={whyRef}>
-              {WHY.map((w) => <button key={w.id} type="button" role="radio" aria-checked={chosen && d.category === w.id} className={`fm-chip ${w.urgent ? "is-urgent" : ""}`} onClick={() => { set({ category: w.id }); setChosen(true); }}><w.icon size={16} aria-hidden />{w.label}</button>)}
+        {done ? (
+          <div className="fm-sheet-b fm-done" data-s={sent ? "sent" : now?.at === "failed" ? "failed" : "kept"}>
+            <motion.div className="fm-done-i" aria-hidden initial={calm ? false : { scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={morph}><Swap k={sent ? "sent" : "kept"}>{sent ? <CheckDraw size={32} stroke={2} /> : now?.at === "failed" ? <WifiOff size={28} /> : <CheckDraw size={32} stroke={2} />}</Swap></motion.div>
+            <h3 ref={doneRef} tabIndex={-1} className="fm-done-h">{doneTitle}</h3>
+            <p className="fm-done-p">{done.label}{place ? ` · ${place}` : ""}. {doneBody}</p>
+            <p className="mo-sr" role="status" aria-live="polite">{`${doneTitle}. ${doneBody}`}</p>
+            <div className="fm-done-a">
+              <button type="button" className="fm-btn is-go is-big" onClick={another}><Camera size={20} aria-hidden />Record another</button>
+              <button type="button" className="fm-btn is-big" onClick={onClose}>Done</button>
             </div>
-            {chosen ? <p className="fm-q-note">{why.note}</p> : null}
           </div>
-
-          <div className="fm-q" ref={whereRef}>
-            <h3 id="fm-where">Where is it?</h3>
-            <div className={`fm-where is-${byHand ? (located ? "found" : "failed") : gps}`}>
-              <MapPin size={20} aria-hidden />
-              <span className="fm-where-t" role="status" aria-live="polite">
-                {byHand ? <><b>{located ? "Location typed in" : "Type the location"}</b><small>{located ? `${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}` : "Two numbers, as a map app shows them"}</small></>
-                  : gps === "found" ? <><b>Location found</b><small>{d.accuracy !== null ? `Within about ${Math.round(d.accuracy)} m of this phone` : "From this phone"}</small></>
-                  : gps === "finding" ? <><b>Finding where you are…</b><small>Keep the phone still for a moment.</small></>
-                  : <><b>Location is off</b><small>Allow location for this site and try again, or type it.</small></>}
-              </span>
-              <span className="fm-where-a">
-                {byHand ? <button type="button" className="fm-btn is-sm" onClick={usePhone}><MapPin size={16} aria-hidden />Use this phone</button>
-                  : <>{gps !== "finding" ? <button type="button" className="fm-btn is-sm" onClick={locate}>{gps === "found" ? "Find again" : "Try again"}</button> : null}<button type="button" className="fm-btn is-sm" onClick={typeIt}>{gps === "found" ? "Adjust" : "Type it"}</button></>}
-              </span>
+        ) : (
+          <div className="fm-sheet-b">
+            <div className="fm-q">
+              <button type="button" className={`fm-photo ${shot ? "has-shot" : ""}`} onClick={onShoot} aria-label={shot ? "Take the photo again" : "Take a photo of the dog"}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {shot ? <><img src={shot} alt="" /><span className="fm-retake" aria-hidden><Camera size={16} />Take it again</span></>
+                  : <><span className="fm-photo-i" aria-hidden><Camera size={24} /></span><b>Take a photo</b><small>Optional. The whole dog, from the side if you can.</small></>}
+              </button>
+              {shot ? <button type="button" className="fm-link fm-start" onClick={onDropShot}>Remove the photo</button> : null}
             </div>
-            {byHand ? <>
-              <div className="fm-two is-pair">
-                <F label="Latitude"><input inputMode="decimal" autoComplete="off" value={latText} onChange={(e) => { setLatText(e.target.value); typed(e.target.value, lngText); }} /></F>
-                <F label="Longitude"><input inputMode="decimal" autoComplete="off" value={lngText} onChange={(e) => { setLngText(e.target.value); typed(latText, e.target.value); }} /></F>
+
+            <div className="fm-q">
+              <h3 id="fm-why">Why are you recording it?</h3>
+              <div className="fm-chips is-grid" role="radiogroup" aria-labelledby="fm-why" ref={whyRef}>
+                {WHY.map((w) => <button key={w.id} type="button" role="radio" aria-checked={chosen && d.category === w.id} className={`fm-chip ${w.urgent ? "is-urgent" : ""}`} onClick={() => { set({ category: w.id }); setChosen(true); setWhyFrom(null); }}><w.icon size={20} aria-hidden />{w.label}</button>)}
               </div>
-              <p className="fm-hint">In a map app, press and hold the place: it shows these two numbers.</p>
-            </> : null}
-            <div className="fm-two">
-              <F label="Area or street"><input ref={zoneRef} value={d.zone} maxLength={120} onChange={(e) => set({ zone: e.target.value })} autoComplete="off" /></F>
-              <F label="City"><input ref={cityRef} value={d.city} maxLength={120} onChange={(e) => set({ city: e.target.value })} autoComplete="off" /></F>
+              {chosen ? <p className="fm-q-note">{why.note}{whyFrom === "last" ? " Chosen as on your last record." : ""}</p> : null}
             </div>
-          </div>
 
-          <details className="fm-more" ref={moreRef}>
-            <summary><span><b>More about the dog</b><small>{details || "Optional: sex, name, marks, a note"}</small></span><ChevronDown size={20} aria-hidden /></summary>
-            <div>
-              <div className="nx-field"><span id="fm-sex">Sex</span><div className="fm-seg" role="radiogroup" aria-labelledby="fm-sex">{SEX.map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={d.sex === v} onClick={() => set({ sex: d.sex === v ? "" : v })}>{l}</button>)}</div></div>
-              <F label="Name or tag, if it has one"><input value={d.name} maxLength={120} onChange={(e) => set({ name: e.target.value })} autoComplete="off" /></F>
-              <F label="Marks that tell it apart"><input value={d.identifiers} maxLength={500} onChange={(e) => set({ identifiers: e.target.value })} autoComplete="off" /></F>
-              {known.length ? <div className="fm-q">
-                <F label="Seen this dog before?"><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search your register" autoComplete="off" /></F>
-                {matches.length ? <div className="fm-pick">{matches.map((a) => <button key={a.id} type="button" onClick={() => { set({ existingDogId: a.id, name: a.name ?? "", code: a.code ?? a.straypaw_id ?? "" }); setSearch(""); }}><b><Search size={16} aria-hidden />{animalLine(a)}</b>{a.identifiers || a.code ? <small>{a.identifiers || a.code}</small> : null}</button>)}</div> : null}
-                {d.existingDogId ? <p className="fm-ok" role="status"><Tick size={16} aria-hidden />Added to this dog&apos;s history. <button type="button" className="fm-link" onClick={() => set({ existingDogId: undefined, code: "" })}>Undo</button></p> : null}
-              </div> : null}
-              <F label="Anything to add?"><textarea value={d.description} maxLength={3000} rows={3} onChange={(e) => set({ description: e.target.value })} /></F>
+            <div className="fm-q" ref={whereRef}>
+              <h3 id="fm-where">Where is it?</h3>
+              <div className={`fm-where is-${byHand ? (located ? "found" : "failed") : gps === "refused" ? "failed" : gps}`}>
+                <MapPin size={20} aria-hidden />
+                <span className="fm-where-t" role="status" aria-live="polite">
+                  {byHand ? <><b>{located ? "Location typed in" : "Type the location"}</b><small>{located ? `${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}` : "Two numbers, as a map app shows them"}</small></>
+                    : gps === "found" ? <><b>{place || "Location found"}</b><small>{d.accuracy !== null ? `Found by this phone, within about ${Math.round(d.accuracy)} m` : "Found by this phone"}</small></>
+                    : gps === "finding" ? <><b>Finding where you are…</b><small>{slow ? "Still looking. Step into the open, or type it." : "Keep the phone still for a moment."}</small></>
+                    : gps === "refused" ? <><b>Location is off for this site</b><small>Allow location in the browser and try again, or type it.</small></>
+                    : <><b>The phone could not find itself</b><small>Try again in the open, or type it.</small></>}
+                </span>
+                <span className="fm-where-a">
+                  {byHand ? <button type="button" className="fm-btn is-sm" onClick={usePhone}><MapPin size={16} aria-hidden />Use this phone</button>
+                    : <>{gps !== "finding" ? <button type="button" className="fm-btn is-sm" onClick={locate}>{gps === "found" ? "Find again" : "Try again"}</button> : null}<button type="button" className={`fm-btn is-sm ${gps === "refused" || gps === "failed" || slow ? "is-go" : ""}`} onClick={typeIt}>Type it</button></>}
+                  {!byHand && !showPlace ? <button type="button" className="fm-btn is-sm" onClick={() => setEditPlace(true)} aria-label={`Change the area or city${place ? `, now ${place}` : ""}`}><PenLine size={16} aria-hidden />Change area</button> : null}
+                </span>
+              </div>
+              {byHand ? <>
+                <div className="fm-two is-pair">
+                  <F label="Latitude"><input inputMode="decimal" autoComplete="off" value={latText} onChange={(e) => { setLatText(e.target.value); typed(e.target.value, lngText); }} /></F>
+                  <F label="Longitude"><input inputMode="decimal" autoComplete="off" value={lngText} onChange={(e) => { setLngText(e.target.value); typed(latText, e.target.value); }} /></F>
+                </div>
+                <p className="fm-hint">In a map app, press and hold the place: it shows these two numbers.</p>
+              </> : null}
+              {showPlace || byHand ? <>
+                <div className="fm-two">
+                  <F label="Area or street (optional)"><input value={d.zone} maxLength={120} onChange={(e) => { typedPlace.current.zone = true; set({ zone: e.target.value }); }} autoComplete="off" /></F>
+                  <F label="City"><input ref={cityRef} value={d.city} maxLength={120} onChange={(e) => { typedPlace.current.city = true; set({ city: e.target.value }); }} autoComplete="off" /></F>
+                </div>
+              </> : placeFrom ? <p className="fm-hint">{placeFrom === "phone" ? "Named from the location. Change area if it is wrong." : "The area of your last record. Change area if you have moved."}</p> : null}
             </div>
-          </details>
-        </div>
-        <footer className="fm-sheet-f">
+
+            <SayIt onRead={sayIt} placeholder="Or say it: brown female limping by the temple" />
+
+            <details className="fm-more" ref={moreRef}>
+              <summary><span><b>More about the dog</b><small>{details || "Optional: sex, name, marks, a note"}</small></span><ChevronDown size={20} aria-hidden /></summary>
+              <div>
+                <div className="nx-field"><span id="fm-sex">Sex</span><div className="fm-seg" role="radiogroup" aria-labelledby="fm-sex">{SEX.map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={d.sex === v} onClick={() => set({ sex: d.sex === v ? "" : v })}>{l}</button>)}</div></div>
+                <F label="Name or tag, if it has one"><input value={d.name} maxLength={120} onChange={(e) => set({ name: e.target.value })} autoComplete="off" /></F>
+                <F label="Marks that tell it apart"><input value={d.identifiers} maxLength={500} onChange={(e) => set({ identifiers: e.target.value })} autoComplete="off" /></F>
+                {known.length ? <div className="fm-q">
+                  <F label="Seen this dog before?"><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search your register" autoComplete="off" /></F>
+                  {matches.length ? <div className="fm-pick">{matches.map((a) => <button key={a.id} type="button" onClick={() => { set({ existingDogId: a.id, name: a.name ?? "", code: a.code ?? a.straypaw_id ?? "" }); setSearch(""); }}><b><Search size={16} aria-hidden />{animalLine(a)}</b>{a.identifiers || a.code ? <small>{a.identifiers || a.code}</small> : null}</button>)}</div> : null}
+                  {d.existingDogId ? <p className="fm-ok" role="status"><Tick size={16} aria-hidden />Added to this dog&apos;s history. <button type="button" className="fm-link" onClick={() => set({ existingDogId: undefined, code: "" })}>Undo</button></p> : null}
+                </div> : null}
+                <F label="Anything to add?"><textarea value={d.description} maxLength={3000} rows={3} onChange={(e) => set({ description: e.target.value })} /></F>
+              </div>
+            </details>
+          </div>
+        )}
+        {done ? null : <footer className="fm-sheet-f">
           {error ? <p className="fm-err" role="alert">{error}</p> : null}
-          <p className={`fm-note ${tried && need ? "is-bad" : ""}`} aria-live="polite">{need ?? goes}</p>
-          <ResultButton type="button" className="fm-btn is-go is-wide" state={res.state} done={route === "send" ? "Recorded, sending" : route === "hold" ? "Saved on this phone" : "Kept on this phone"} onClick={() => void save()}>Save</ResultButton>
-        </footer>
+          <p className={`fm-note ${tried && need ? "is-bad" : ""}`} aria-live="polite">{need ?? <>{place ? <b>{place}. </b> : null}{goes}</>}</p>
+          <ResultButton type="button" className="fm-btn is-go is-wide is-big fm-send" state={res.state} busy="Saving…" done="Saved on this phone" onClick={() => void save()}>{route === "keep" ? "Save on this phone" : "Send"}</ResultButton>
+        </footer>}
       </section>
     </div>
   );

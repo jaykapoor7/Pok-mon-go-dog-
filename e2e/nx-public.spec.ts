@@ -50,15 +50,19 @@ for (const path of PAGES) {
   });
 }
 
-test("report form: each screen says what is missing before it moves on", async ({ page }) => {
+/* One screen: what is happening (one tap), where, an optional photo, Send. Send says what is missing, next to it. */
+test("report form: Send says what is missing and sends nothing", async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem("sp2.report.draft"));
+  let posted = 0;
+  await page.route("**/api/report", async (route) => { posted++; await route.abort(); });
   await open(page, "/community/report");
   await expect(page.getByRole("heading", { level: 1, name: "What did you see?" })).toBeVisible();
-  await page.getByRole("button", { name: /An animal needs help/ }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Where is the animal?" })).toBeVisible();
-  await page.getByRole("button", { name: /This is the place/ }).click();
-  await expect(page.locator("#rp-err")).toContainText("Pin the place first");
-  await expect(page.getByRole("heading", { level: 1, name: "Where is the animal?" })).toBeVisible();
+  await page.getByRole("radio", { name: /Hurt or sick/ }).click();
+  await expect(page.getByRole("radio", { name: /Hurt or sick/ })).toHaveAttribute("aria-checked", "true");
+  await page.getByRole("button", { name: "Send the report" }).click();
+  await expect(page.locator("#rp-miss-where")).toContainText("Pin where the animal is");
+  await expect(page.locator("#rp-miss-what")).toHaveCount(0);
+  expect(posted).toBe(0);
 });
 
 test("report form: a refused report says it was not sent and keeps the answers", async ({ page }) => {
@@ -66,15 +70,12 @@ test("report form: a refused report says it was not sent and keeps the answers",
   let posted = 0;
   await page.route("**/api/report", async (route) => { posted++; await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "Verification failed. Please complete the check and try again." }) }); });
   await open(page, "/community/report");
-  await page.getByRole("button", { name: "Continue it" }).click();
-  await page.getByRole("button", { name: /Continue without a photo/ }).click();
-  await page.getByRole("button", { name: /This is the place/ }).click();
-  await page.getByRole("button", { name: /^Continue/ }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Ready to send" })).toBeVisible();
+  await expect(page.getByText("Your answers from earlier are filled in below")).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Just seen/ })).toHaveAttribute("aria-checked", "true");
   const send = page.getByRole("button", { name: "Send the report" });
   if (await page.locator("iframe[src*='challenges.cloudflare.com']").count()) {
     await send.click();
-    await expect(page.locator("#rp-err")).toContainText("Complete the check");
+    await expect(page.locator("#rp-miss-send")).toContainText("Complete the check");
     test.skip(true, "Turnstile is configured here; the refused-report path needs a solved check.");
   }
   await send.click();
@@ -82,7 +83,8 @@ test("report form: a refused report says it was not sent and keeps the answers",
   test.skip(await page.getByText(/Reporting is not available right now/).isVisible(), "this build has no record store, so it rightly refuses to send before asking the server");
   await expect(page.getByText(/Not sent: Verification failed/)).toBeVisible();
   expect(posted).toBe(1);
-  await expect(page.getByText("Indiranagar, Bengaluru · E2E check, never sent")).toBeVisible();
+  await expect(page.locator(".rp-pin")).toContainText("Indiranagar, Bengaluru");
+  await expect(page.locator("#rp-lm")).toHaveValue("E2E check, never sent");
   await expect(page.getByRole("heading", { name: "Received." })).toHaveCount(0);
 });
 

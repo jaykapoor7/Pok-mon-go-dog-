@@ -44,19 +44,23 @@ test("an offline intake waits on the phone, survives a lost answer, and is saved
   await context.setOffline(true);
   await expect(page.locator(".fm-net")).toContainText(/Offline|No signal/);
 
-  // One screen: photo, why, where (found by the phone), details folded away, one Save.
+  // One screen: photo, why, where (found and named by the phone), details folded away, one Save.
   await page.getByRole("button", { name: /Record an animal/ }).click();
   const sheet = page.getByRole("dialog", { name: "Record an animal" });
   await sheet.locator('input[type="file"]').setInputFiles({ name: "dog.jpg", mimeType: "image/jpeg", buffer: JPEG });
   await sheet.getByRole("radio", { name: /Vaccinate/ }).click();
-  await expect(sheet.getByText("Location found")).toBeVisible();
-  await sheet.getByLabel("Area or street").fill("HSR Layout, 14th Main");
+  await expect(sheet.locator(".fm-where.is-found")).toBeVisible();
+  await sheet.getByRole("button", { name: /Change the area or city/ }).click();
+  await sheet.getByLabel("Area or street (optional)").fill("HSR Layout, 14th Main");
   await sheet.getByLabel("City").fill("Bengaluru");
   await sheet.getByText("More about the dog").click();
   await sheet.getByLabel("Name or tag, if it has one").fill("Offline check");
   await sheet.getByLabel("Anything to add?").fill(marker);
-  await expect(sheet.getByText("Kept on this phone, locked with your PIN, until you send it.")).toBeVisible();
-  await sheet.getByRole("button", { name: "Save" }).click();
+  await expect(sheet.getByText("Saved on this phone, locked with your PIN, until you send it.")).toBeVisible();
+  await sheet.getByRole("button", { name: "Save on this phone" }).click();
+  // The sheet says where the record is now and offers the next one; Done closes it.
+  await expect(sheet.getByRole("heading", { name: "Saved on this phone" })).toBeVisible();
+  await sheet.getByRole("button", { name: "Done" }).click();
   await expect(sheet).toBeHidden();
 
   const phone = page.getByRole("region", { name: "On this phone" });

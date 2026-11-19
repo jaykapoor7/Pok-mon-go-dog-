@@ -126,12 +126,10 @@ test.describe("reporting", () => {
   test("a sighting is sent and the receipt says received, not accepted", async ({ page }) => {
     const sent: string[] = [];
     await page.route("**/api/report", async (r) => { sent.push(r.request().method()); await r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, id: "11111111-1111-4111-8111-111111111111", status: "pending" }) }); });
+    // From the map's "Report here" the place is already pinned: what was seen, its ears, Send.
     await page.goto("/community/report?lat=11.0168&lng=76.9558");
-    await page.getByRole("button", { name: /I spotted an animal/ }).click();
-    await page.getByRole("button", { name: /Continue without a photo/ }).click();
-    await page.getByRole("button", { name: /This is the place/ }).click();
-    await page.locator("fieldset.choice label").first().click();
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("radio", { name: /Just seen/ }).click();
+    await page.getByRole("radio", { name: "An ear is notched" }).click();
     await sendOrSkip(page);
     await expect(page.getByText(/Received/).first()).toBeVisible();
     expect(sent).toEqual(["POST"]);
@@ -141,11 +139,8 @@ test.describe("reporting", () => {
   test("a failed send keeps the answers and says not sent", async ({ page }) => {
     await page.route("**/api/report", (r) => r.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Service unavailable." }) }));
     await page.goto("/community/report?lat=11.0168&lng=76.9558");
-    await page.getByRole("button", { name: /I spotted an animal/ }).click();
-    await page.getByRole("button", { name: /Continue without a photo/ }).click();
-    await page.getByRole("button", { name: /This is the place/ }).click();
-    await page.locator("fieldset.choice label").first().click();
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("radio", { name: /Just seen/ }).click();
+    await page.getByRole("radio", { name: "An ear is notched" }).click();
     await sendOrSkip(page);
     await expect(page.getByText(/Not sent/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Send the report" })).toBeEnabled();
@@ -153,7 +148,8 @@ test.describe("reporting", () => {
 
   test("?help=1 opens the needs-help questions", async ({ page }) => {
     await page.goto("/community/report?help=1");
-    await expect(page.getByRole("heading", { name: "Where is the animal?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What is happening?" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Send the report" })).toHaveClass(/is-flame/);
   });
 });
 

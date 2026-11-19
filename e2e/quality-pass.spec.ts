@@ -67,6 +67,9 @@ test("a report can select a location when WebGL is unavailable", async ({ page, 
     } as typeof getContext;
   });
   await page.goto("/community/report?help=1");
+  // Location is already allowed here, so the place is found without a tap; the map is the way to change it.
+  await expect(page.locator(".rp-pin")).toContainText("Coimbatore");
+  await page.getByRole("button", { name: "Change", exact: true }).click();
   await expect(page.getByText("This browser cannot draw the map. Search for the place instead.")).toBeVisible();
   await page.getByRole("button", { name: "Where I am" }).click();
   await expect(page.getByRole("button", { name: "This is the place" })).toBeEnabled();
@@ -75,12 +78,12 @@ test("a report can select a location when WebGL is unavailable", async ({ page, 
 
 test("choosing a replacement photo requires fresh consent", async ({ page }) => {
   await page.goto("/community/report");
-  await page.getByRole("button", { name: /I spotted an animal/ }).click();
   const upload = page.locator('input[type="file"]');
   await upload.setInputFiles(path.join(process.cwd(), "public/hero/skyline-dog-640.jpg"));
   await page.getByRole("checkbox", { name: /I took this photo/ }).check();
-  await expect(page.getByRole("button", { name: "Use this photo" })).toBeEnabled();
   await upload.setInputFiles(path.join(process.cwd(), "public/hero/skyline-dog-1024.jpg"));
   await expect(page.getByRole("checkbox", { name: /I took this photo/ })).not.toBeChecked();
-  await expect(page.getByRole("button", { name: "Use this photo" })).toBeDisabled();
+  // Send will not take a photo that has not been confirmed safe to show.
+  await page.getByRole("button", { name: "Send the report" }).click();
+  await expect(page.locator("#rp-miss-photo")).toContainText("Confirm the photo shows no person");
 });
