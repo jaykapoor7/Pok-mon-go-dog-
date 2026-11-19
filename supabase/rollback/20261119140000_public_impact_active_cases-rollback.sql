@@ -1,4 +1,5 @@
 -- Rollback for 2026-11-18-public-impact-active-cases.sql: the definition on production on 18 Nov 2026, unchanged.
+drop function if exists public.list_public_org_impacts();
 create or replace function public.list_public_org_impacts()
  returns table(ngo_id uuid, animals_recorded bigint, sterilised bigint, vaccinated bigint, case_records bigint, active_cases bigint, resolved_cases bigint)
  language plpgsql stable security definer
@@ -34,3 +35,5 @@ begin
     coalesce(x.case_records,0),coalesce(x.active_cases,0),coalesce(x.resolved_cases,0)
   from animal_counts a full join case_counts x on a.ngo_id=x.ngo_id;
 end $function$;
+revoke all on function public.list_public_org_impacts() from public, anon, authenticated;
+grant execute on function public.list_public_org_impacts() to service_role;

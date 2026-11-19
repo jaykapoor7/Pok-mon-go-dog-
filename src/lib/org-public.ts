@@ -12,6 +12,8 @@ export type OrgImpact = {
   caseRecords: number;
   activeCases: number;
   resolvedCases: number;
+  /** Open cases imported from an old register that nobody has confirmed since: kept, shown as archived. */
+  archivedCases: number;
 };
 
 export type PublicOrgActivity = {
@@ -105,6 +107,7 @@ export async function getPublicOrgImpact(ngoId: string): Promise<OrgImpact> {
     caseRecords: 0,
     activeCases: 0,
     resolvedCases: 0,
+    archivedCases: 0,
   };
 }
 
@@ -120,7 +123,7 @@ export async function getPublicOrgDirectoryImpacts(): Promise<Map<string, OrgImp
     }
     if (!Array.isArray(data)) throw new Error("Organisation counts returned an invalid response.");
     return data as any[];
-  }, ["public-org-directory-impacts-v2"], { revalidate: 300 });
+  }, ["public-org-directory-impacts-v3"], { revalidate: 300 });
   const rows = await read();
   return new Map(rows.map((row: any) => [String(row.ngo_id), {
     animalsRecorded: number(row.animals_recorded),
@@ -129,6 +132,7 @@ export async function getPublicOrgDirectoryImpacts(): Promise<Map<string, OrgImp
     caseRecords: number(row.case_records),
     activeCases: number(row.active_cases),
     resolvedCases: number(row.resolved_cases),
+    archivedCases: number(row.archived_cases),
   }]));
 }
 

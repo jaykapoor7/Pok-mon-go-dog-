@@ -31,7 +31,7 @@ function views(me: string | null): RView<CaseRow>[] {
     { id: "critical", label: "Critical and high", test: (r) => r.open && !r.historical && r.crit },
     { id: "due", label: "Follow-up due", test: (r) => !r.historical && r.dueSoon },
     { id: "decide", label: "Needs a decision", test: (r) => r.open && !r.historical && r.stale },
-    { id: "imported", label: "Imported, not confirmed", test: (r) => r.open && r.historical },
+    { id: "imported", label: "Archived, no outcome recorded", test: (r) => r.open && r.historical },
     { id: "reason", label: "Missing reason", test: (r) => r.reasonless },
     { id: "resolved", label: "Resolved", test: (r) => !r.open },
   ];
@@ -51,7 +51,7 @@ const search = (r: CaseRow) => `${r.code} ${r.title} ${r.place} ${r.who} ${r.kin
 function toRow(c: CaseFact, now: number): CaseRow {
   const open = isOpenClass(c.status_class), historical = isHistorical(c), stale = open && isStaleFact(c, now), crit = isCriticalCondition(c.condition_class) || c.severity === "critical" || c.severity === "high";
   const dueAt = c.next_due ? Date.parse(c.next_due) : null, endToday = new Date(); endToday.setHours(23, 59, 59, 999);
-  const status = !open ? statusLabel(c.status_class) : historical ? "Imported, not confirmed" : stale ? "Needs a decision" : c.status_class === "in_progress" ? "In progress" : c.assignee_name ? "Open" : "Unassigned";
+  const status = !open ? statusLabel(c.status_class) : historical ? "Archived, no outcome recorded" : stale ? "Needs a decision" : c.status_class === "in_progress" ? "In progress" : c.assignee_name ? "Open" : "Unassigned";
   return {
     id: c.id, code: shortCode(c.case_code, c.id.slice(0, 8).toUpperCase()), title: c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title || "Untitled case",
     kind: c.condition_class && c.condition_class !== "Not recorded" && c.title ? c.title : sev(c.severity), severity: sev(c.severity), crit, place: c.zone ?? c.city ?? "Not recorded", who: c.assignee_name || "Unassigned", assigneeId: c.assignee_id,
@@ -91,7 +91,7 @@ function LiveCases({ org }: { org: Workspace }) {
   return (
     <Shell crumb={["NGO", "Cases"]}>
       <RecordList id="cases" title="Cases" sample={false} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => `${r.code}, ${r.title}`} columns={cols} views={vs} view={view} onView={setView} search={search} placeholder="Code, animal, place, person"
-        sub={!data && !error ? "Reading cases…" : error ? "Cases could not be read. Nothing is shown as zero." : <><b className="num">{open.length}</b> open{crit ? <>, <span style={{ color: "var(--bad)" }}>{crit} critical or high</span></> : null}, {nobody} held by nobody, at {org.name}.{quiet ? ` ${quiet.toLocaleString("en-IN")} quiet for months need a decision.` : ""}{imported ? ` ${imported.toLocaleString("en-IN")} imported and not yet confirmed are kept apart, under “Imported, not confirmed”.` : ""}{data?.openCapped ? " Showing the newest 800 open cases." : ""}</>}
+        sub={!data && !error ? "Reading cases…" : error ? "Cases could not be read. Nothing is shown as zero." : <><b className="num">{open.length}</b> open{crit ? <>, <span style={{ color: "var(--bad)" }}>{crit} critical or high</span></> : null}, {nobody} held by nobody, at {org.name}.{quiet ? ` ${quiet.toLocaleString("en-IN")} quiet for months need a decision.` : ""}{imported ? ` ${imported.toLocaleString("en-IN")} old imported cases with no outcome recorded are kept under “Archived, no outcome recorded”.` : ""}{data?.openCapped ? " Showing the newest 800 open cases." : ""}</>}
         action={<Link href="/ngo/cases/new" className="nx-btn is-keep nr-plus-dup"><Plus size={14} />New case</Link>}
         loading={!data && !error} error={error} onRetry={() => void load()} hrefOf={(r) => r.href}
         empty={{ none: "No cases yet", filtered: "No case in this view", hint: <>Open the first one with <Link className="nr-link" href="/ngo/cases/new">New case</Link>, or import the register you already keep.</> }}

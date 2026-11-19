@@ -186,6 +186,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ slug: st
     impact.sterilised > 0 && { value: formatter.format(impact.sterilised), label: "Sterilised" },
     impact.vaccinated > 0 && { value: formatter.format(impact.vaccinated), label: "Vaccinated" },
     impact.activeCases > 0 && { value: formatter.format(impact.activeCases), label: "Being helped now" },
+    impact.archivedCases > 0 && { value: formatter.format(impact.archivedCases), label: "Archived, no outcome recorded" },
     medianRounded != null && {
       value: medianRounded === 0 ? "Same day" : `${medianRounded} day${medianRounded === 1 ? "" : "s"}`,
       label: "Typical time to help",

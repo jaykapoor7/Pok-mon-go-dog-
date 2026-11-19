@@ -918,7 +918,7 @@ section("People are shown by a name: the sign-in name, else the readable part of
   ok((await as(C, "select count(*)::int n from nx_org_people($1)", [N1]))[0].n === 0, "another organisation still sees nobody");
 }
 
-section("A recorded sterilisation or vaccination sets the animal's status (supabase/proposed/2026-11-18-care-sets-status.sql)");
+section("A recorded sterilisation or vaccination sets the animal's status (supabase/migrations/20261119130000_care_sets_status.sql)");
 {
   const PROP = join(here, "../../supabase/proposed");
   const ngo = (await one("insert into ngos (name) values ('Care status test') returning id")).id;
@@ -949,7 +949,7 @@ section("A recorded sterilisation or vaccination sets the animal's status (supab
   ok((await status(after)).s === "unknown" && (await status(before)).s === "sterilised", "the rollback stops the trigger and keeps statuses already set");
 }
 
-section("The public 'Being helped now' figure leaves out unconfirmed imports (supabase/proposed/2026-11-18-public-impact-active-cases.sql)");
+section("The public card keeps old imported cases, as archived (supabase/migrations/20261119140000_public_impact_active_cases.sql)");
 {
   const PROP = join(here, "../../supabase/proposed");
   // Only the columns the function reads, as on production.
@@ -966,8 +966,10 @@ section("The public 'Being helped now' figure leaves out unconfirmed imports (su
   ok(before.a === 8, "today every open status counts, unconfirmed imports included (8)");
   await db.exec(readFileSync(join(MIG, "20261119140000_public_impact_active_cases.sql"), "utf8"));
   await db.exec(readFileSync(join(MIG, "20261119140000_public_impact_active_cases.sql"), "utf8"));
-  const after = await one("select active_cases::int a, case_records::int r, resolved_cases::int c from list_public_org_impacts() where ngo_id = $1", [ngo]);
+  const after = await one("select active_cases::int a, case_records::int r, resolved_cases::int c, archived_cases::int x from list_public_org_impacts() where ngo_id = $1", [ngo]);
   ok(after.a === 3, "with the change: current work plus the one confirmed import (3), as Today and Cases count it");
+  ok(after.x === 5, "the five unconfirmed imports are kept, counted as archived (5)");
+  ok(after.a + after.x === before.a, "no case is dropped: active plus archived equals the old figure");
   ok(after.r === before.r && after.c === before.c, "case records and resolved cases are unchanged");
 }
 
