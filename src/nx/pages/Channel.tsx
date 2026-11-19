@@ -1,5 +1,6 @@
 "use client";
 
+import { asksAssistant } from "@/lib/demo-brand";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -212,7 +213,7 @@ function SampleChat({ name }: { name: string }) {
   const [msgs, setMsgs] = useState<VMsg[]>((chat?.msgs ?? []).map((m) => ({ ...m, parent: m.parent ?? null })));
   const onSend = (t: string, parent?: string) => {
     setMsgs((m) => [...m, { id: `u${Date.now()}`, who: "You", when: clock(), text: t, parent: parent ?? null, mine: true }]);
-    if (!chat?.dm && !parent && /@kaju/i.test(t)) window.setTimeout(() => setMsgs((m) => [...m, { id: `k${Date.now()}`, who: "Kaju", kaju: true, when: clock(), text: `I read the ${Math.min(3, chat?.msgs.length ?? 0)} latest messages here. Nothing is created until someone in this channel asks and accepts.` }]), calm ? 0 : 650);
+    if (!chat?.dm && !parent && asksAssistant(t)) window.setTimeout(() => setMsgs((m) => [...m, { id: `k${Date.now()}`, who: "Kaju", kaju: true, when: clock(), text: `I read the ${Math.min(3, chat?.msgs.length ?? 0)} latest messages here. Nothing is created until someone in this channel asks and accepts.` }]), calm ? 0 : 650);
   };
   return <ChannelView name={name} sample dm={chat?.dm ?? null} sub={chat?.sub ?? "Sample channel"} readers={chat?.dm ? { icon: "lock", text: "Only the two of you can read this" } : null} msgs={msgs} work={[]} people={chat?.people ?? []} mentionable={[]} accepted={() => false} onSend={onSend} onAccept={() => {}} />;
 }
@@ -226,7 +227,7 @@ function SampleChannel({ name }: { name: string }) {
   const calm = useReducedMotion();
   const onSend = (t: string, parent?: string) => {
     setMsgs((m) => [...m, { id: `u${Date.now()}`, who: "You", when: clock(), text: t, parent: parent ?? null, mine: true }]);
-    if (!parent && /@kaju/i.test(t)) window.setTimeout(() => setMsgs((m) => [...m, { id: `k${Date.now()}`, who: "Kaju", kaju: true, when: clock(), text: /task/i.test(t) ? "From this morning's messages I can prepare two return visits. Nothing is created until you accept." : "I read the last three messages. Two dogs were missed in Ward 12, 17 photos were added to the drive, and the clinical follow-up depends on transport before noon.", tasks: /task/i.test(t) ? KAJU_TASKS : null }]), calm ? 0 : 650);
+    if (!parent && asksAssistant(t)) window.setTimeout(() => setMsgs((m) => [...m, { id: `k${Date.now()}`, who: "Kaju", kaju: true, when: clock(), text: /task/i.test(t) ? "From this morning's messages I can prepare two return visits. Nothing is created until you accept." : "I read the last three messages. Two dogs were missed in Ward 12, 17 photos were added to the drive, and the clinical follow-up depends on transport before noon.", tasks: /task/i.test(t) ? KAJU_TASKS : null }]), calm ? 0 : 650);
   };
   const onAccept = (m: VMsg) => { if (accepted.has(m.id) || !m.tasks) return; setAccepted((a) => new Set(a).add(m.id)); setWork((w) => [...m.tasks!.map((x, i) => ({ id: `${m.id}-${i}`, title: x, note: "From this channel · Field team A", done: false })), ...w]); };
   return <ChannelView name={name} sample sub={`Vaccination drive · Ward 12 · ${CH_PEOPLE.length} members`} msgs={msgs} work={work} people={CH_PEOPLE} mentionable={[]} accepted={(m) => accepted.has(m.id)} onSend={onSend} onAccept={onAccept} onToggle={(t) => setWork((w) => w.map((x) => (x.id === t.id ? { ...x, done: !x.done } : x)))} />;
@@ -266,7 +267,7 @@ function LiveChannel({ name }: { name: string }) {
     const r = await sendMessage(ch.id, t, { authorName: userName, parentId: parent ?? null, mentions: mentionsIn(t, people.rows ?? []), files });
     if (r.error || !r.data) { toast({ text: `Not sent: ${r.error?.message ?? "try again"}. Your words are still in the box.`, tone: "bad" }); return false; }
     messages.setRows((rows) => (rows && !rows.some((x) => x.id === r.data!.id) ? [...rows, r.data!] : rows));
-    if (!parent && ch.kind !== "dm" && /@kaju\b/i.test(t)) { const k = await askKaju(ch.id, t); if (!k.ok) setNote(k.error ?? null); else messages.reload(); }
+    if (!parent && ch.kind !== "dm" && asksAssistant(t)) { const k = await askKaju(ch.id, t); if (!k.ok) setNote(k.error ?? null); else messages.reload(); }
     return true;
   };
   const onAccept = async (m: VMsg) => { if (!ch || !m.tasks) return; const r = await addTasks(org!.org_id, m.tasks, { messageId: m.id, channelId: ch.id }); if (r.error) setNote(`Tasks not created: ${r.error.message}`); else tasks.reload(); };

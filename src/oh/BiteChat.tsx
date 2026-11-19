@@ -19,6 +19,7 @@ import type { KajuState } from "@/kaju/poses";
 import { call, relDay, today, useRead, SERVICE_LABEL, SERVICE_STATUS, SPECIES } from "./data";
 import { readBite } from "./biteIntake";
 import { ASK, NO_FACTS, mustAsk, type BiteFacts, type BiteNext } from "./biteFacts";
+import { REBRAND } from "@/lib/demo-brand";
 import { Ears, checkMic, digits, hearSarvam, hush, listen, lockVoice, problemText, sarvamReady, sayAloud, speak, unlockAudio, whenWord, yesNo, type Heard, type VoiceProblem } from "./voiceAgent";
 
 const PinPicker = dynamic(() => import("./PinPicker").then((m) => m.PinPicker), { ssr: false, loading: () => <div className="kp"><p className="kb-wait">Opening the map…</p></div> });
@@ -48,7 +49,8 @@ const OWNER: Record<string, string> = { community: "street or community", owned:
 
 /* Kaju's fixed lines: reviewed, and the same whether a model or the fixed rules read the words. */
 const OPENING: Msg[] = [
-  { id: 1, who: "kaju", text: "Hi, I'm Kaju. I'll help you get care today, and let the clinic know you're coming.", voice: "Hi, I'm Kaju. I'll help you get care today." },
+  REBRAND ? { id: 1, who: "kaju", text: "Hi, I'm the bite-help assistant. I'll help you get care today, and let the clinic know you're coming.", voice: "Hi, I'm the bite-help assistant. I'll help you get care today." }
+    : { id: 1, who: "kaju", text: "Hi, I'm Kaju. I'll help you get care today, and let the clinic know you're coming.", voice: "Hi, I'm Kaju. I'll help you get care today." },
   { id: 2, who: "kaju", tone: "aid", text: "First, wash the wound with soap and running water for 15 minutes.", voice: "First, wash the wound with soap and running water for fifteen minutes." },
   { id: 3, who: "kaju", text: "Then tell me what happened, in your own words.", voice: "Then tell me what happened." },
 ];
@@ -371,7 +373,7 @@ export function BiteHelp({ slug }: { slug: string | null }) {
   return (
     <div className="kb" data-at={at} data-mode={mode} data-busy={busy ? "1" : "0"} data-ai={ai ? "1" : "0"} data-reached={reached.join(" ")} data-sent-to={sent?.to}>
       <header className="kb-top">
-        <Link href="/" className="kb-brand" aria-label="StrayPaw home"><img src="/icon-192.png" alt="" width={28} height={28} /><span>StrayPaw</span></Link>
+        <Link href="/" className="kb-brand" aria-label="StrayPaw home"><img src={REBRAND ? "/demo-mark.svg" : "/icon-192.png"} alt="" width={28} height={28} /><span>StrayPaw</span></Link>
         <span className="kb-app"><b>Kaju</b><span>Help after a dog bite</span></span>
         {pub.data?.programme?.illustrative ? <span className="kb-demo">Demo</span> : null}
         <a className="kb-108" href="tel:108" aria-label="Emergency: call 108"><Phone size={14} aria-hidden /><span>Emergency</span> <b>108</b></a>

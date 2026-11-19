@@ -6,7 +6,7 @@
    demonstration site it points there. */
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Activity, ArrowRight, ArrowUpRight, Landmark, MessageCircle, PawPrint, Sparkles, Stethoscope, type LucideIcon } from "lucide-react";
+import { Activity, ArrowRight, Landmark, MessageCircle, PawPrint, Sparkles, Stethoscope, type LucideIcon } from "lucide-react";
 import { DEMO_SITE } from "@/lib/demo-site";
 import { DEMO_ROLES, DEMO_SHOWN, SHOWN_LABEL, STAGES, type DemoRole } from "./tour";
 import { enterAs, leaveFor, writeTour } from "./state";
@@ -58,15 +58,14 @@ export function TryDemo() {
   return (
     <div className="dl">
       <header className="dl-bar">
-        <a href="https://straypaw.org" className="dl-brand"><img src="/icon-192.png" alt="" width={28} height={28} /><span>StrayPaw</span></a>
+        <span className="dl-brand"><img src="/demo-mark.svg" alt="" width={28} height={28} /><span>StrayPaw</span></span>
         <span className="dl-tag">Demo</span>
-        <a className="dl-out" href="https://straypaw.org">straypaw.org<ArrowUpRight size={14} aria-hidden /></a>
       </header>
       <main id="main" className="dl-main">
         <section className="dl-hero">
           <p className="dl-k">The StrayPaw demo · a fictional city, the real product</p>
           <h1>Follow one dog bite through StrayPaw.</h1>
-          <p className="dl-lede">A resident tells Kaju. The clinic treats her, the NGO finds the dog, and the city sees what is missing.</p>
+          <p className="dl-lede">A resident reports it by chat or call. The clinic treats her, the NGO finds the dog, and the city sees what is missing.</p>
           <div className="dl-go">
             {/* A link, so it still starts if pressed before the page is interactive (/try?go=1 starts on load). */}
             <a href="/try?go=1" role="button" className="dl-start" aria-disabled={!!busy} onClick={(e) => { e.preventDefault(); if (!busy) void start(); }}>{busy === "guide" ? "Opening…" : <>Start the demo <ArrowRight size={18} aria-hidden /></>}</a>
@@ -80,7 +79,7 @@ export function TryDemo() {
         <section className="dl-roam" aria-labelledby="dl-roam-h">
           <h2 id="dl-roam-h">Or open a workspace</h2>
           <ul>
-            <li><a href="/bite-help"><MessageCircle size={16} aria-hidden /><b>Resident</b><small>Kaju bite help</small></a></li>
+            <li><a href="/bite-help"><MessageCircle size={16} aria-hidden /><b>Resident</b><small>Bite help</small></a></li>
             {DEMO_SHOWN.map((r) => { const I = ROLE_ICON[r] ?? Sparkles; return (
               <li key={r}><button type="button" disabled={!!busy} onClick={() => roam(r)}><I size={16} aria-hidden /><b>{SHOWN_LABEL[r]?.label ?? DEMO_ROLES[r].label}</b><small>{busy === r ? "Signing you in…" : "Open"}</small></button></li>
             ); })}

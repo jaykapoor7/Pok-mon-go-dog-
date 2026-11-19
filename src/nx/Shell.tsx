@@ -1,5 +1,6 @@
 "use client";
 
+import { DEMO_MARK, REBRAND } from "@/lib/demo-brand";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
@@ -126,7 +127,7 @@ function FrameBody({ meta, children }: { meta: Meta; children: ReactNode }) {
     <div className="nx" data-theme={theme}>
       <a className="nx-skip" href="#nx-main">Skip to content</a>
       <nav className="nx-rail" aria-label="StrayPaw">
-        <Link href={home} className="nx-mark" aria-label="StrayPaw home">sp</Link>
+        <Link href={home} className="nx-mark" aria-label="StrayPaw home">{REBRAND ? DEMO_MARK : "sp"}</Link>
         <Link href={home} className={`nx-rail-b ${!inChannel && !inKaju ? "is-on" : ""}`} aria-label="Workspace" title="Workspace"><LayoutGrid size={17} /></Link>
         <Link href={CHANNEL} className={`nx-rail-b ${inChannel ? "is-on" : ""}`} aria-label="Channels" title="Channels" data-n={unread}><MessageSquare size={17} /></Link>
         <Link href="/kaju" className={`nx-rail-b ${inKaju ? "is-on" : ""}`} aria-label="Kaju" title="Kaju"><Sparkles size={17} /></Link>

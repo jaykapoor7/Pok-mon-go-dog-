@@ -17,6 +17,8 @@ import { inter } from "@/sp4/font";
 
 import { SITE_URL } from "@/lib/site-url";
 import { DemoTourMount } from "@/sp/demo/DemoTourMount";
+import { DemoBrand } from "@/sp/demo/DemoBrand";
+import { DEMO_SITE } from "@/lib/demo-site";
 import { RouteProgress } from "@/components/motion/RouteProgress";
 import { Suspense } from "react";
 
@@ -76,8 +78,8 @@ export const metadata: Metadata = {
     title: "StrayPaw",
   },
   icons: {
-    icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/straypaw-symbol.svg", type: "image/svg+xml" }],
-    apple: "/apple-icon.png",
+    icon: DEMO_SITE ? [{ url: "/demo-mark.svg", type: "image/svg+xml" }] : [{ url: "/favicon.ico", sizes: "any" }, { url: "/straypaw-symbol.svg", type: "image/svg+xml" }],
+    apple: DEMO_SITE ? "/demo-mark.svg" : "/apple-icon.png",
   },
 };
 
@@ -126,6 +128,7 @@ export default function RootLayout({
         <Suspense fallback={null}><RouteProgress /></Suspense>
         <RouteEnvironment>{children}</RouteEnvironment>
         <DemoTourMount />
+        {DEMO_SITE ? <DemoBrand /> : null}
         <Analytics />
       </body>
     </html>

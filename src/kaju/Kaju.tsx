@@ -5,6 +5,7 @@ import {useKajuAmbient} from './ambient';
 import { getImageProps } from "next/image";
 import { POSES, type KajuState, type Part, type T } from "./poses";
 import "./kaju.css";
+import { REBRAND } from "@/lib/demo-brand";
 
 // One reference-derived texture separated into joints, never whole-pose swaps.
 const ART = getImageProps({ src: "/kaju/explorer-rig.png", alt: "", width: 512, height: 512, quality: 85 }).props.src;
@@ -22,7 +23,24 @@ function Texture({ name, x, y, width, height }: { name: keyof typeof CROPS; x: n
 const transform = (p: T): CSSProperties => ({ transform: `translate(${p.x}px, ${p.y}px) rotate(${p.r ?? 0}deg) scale(${p.sx ?? 1}, ${p.sy ?? 1})`, opacity: p.hide ? 0 : 1 });
 type Props = { state?: KajuState; size?: number | string; label?: string; still?: boolean; flip?: boolean; className?: string };
 
-export function Kaju({ state = "sitting", size = 120, label, still = false, flip = false, className = "" }: Props) {
+/* The demonstration site presents a group's proposed product: its assistant is a plain mark, not the Kaju dog. */
+function AssistantMark({ size = 120, label, className = "", face = false }: { size?: number | string; label?: string; className?: string; face?: boolean }) {
+  return (
+    <svg className={`kaju-mark ${className}`} viewBox={face ? "0 0 112 112" : "0 0 240 200"} width={size} height={face ? size : typeof size === "number" ? (size * 200) / 240 : undefined} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true} focusable="false">
+      <g transform={face ? "translate(56 56)" : "translate(120 104)"}>
+        <circle r={face ? 50 : 72} fill="#eaf0fd" />
+        <path d="M0-30c3 15 9 21 24 24-15 3-21 9-24 24-3-15-9-21-24-24 15-3 21-9 24-24Z" fill="#2457ce" transform={face ? "scale(1.15)" : "scale(1.6)"} />
+        <path d="M26-30c1.2 6 3.6 8.4 9.6 9.6-6 1.2-8.4 3.6-9.6 9.6-1.2-6-3.6-8.4-9.6-9.6 6-1.2 8.4-3.6 9.6-9.6Z" fill="#2457ce" opacity=".55" transform={face ? "scale(1.15)" : "scale(1.6)"} />
+      </g>
+    </svg>
+  );
+}
+
+export function Kaju(props: Props) {
+  return REBRAND ? <AssistantMark size={props.size} label={props.label} className={props.className} /> : <KajuArt {...props} />;
+}
+
+function KajuArt({ state = "sitting", size = 120, label, still = false, flip = false, className = "" }: Props) {
   const ref=useRef<SVGSVGElement>(null);
   const [visible,setVisible]=useState(false);
   const [awake,setAwake]=useState(false);
@@ -105,5 +123,6 @@ function Head({ eyes = "open", mouth = "smile", ears = "relaxed", blink = false,
 
 /** The same head and ear parts, cropped for compact UI placements. */
 export function KajuFace({ size = 20, className = "" }: { size?: number; className?: string }) {
+  if (REBRAND) return <AssistantMark size={size} className={className} face />;
   return <svg className={`kaju-face kaju ${className}`} viewBox="-56 -92 112 124" width={size} height={size} aria-hidden focusable="false"><Head/></svg>;
 }

@@ -17,10 +17,18 @@
 import { publicVoicePage, voiceMode } from "./src/lib/kaju-voice/mode.mjs";
 
 const MARKETING_EXPERIENCE = process.env.MARKETING_EXPERIENCE === "cinematic" ? "cinematic" : "legacy";
+/* A build pointed at the staging database is the demonstration site. It presents a group's proposed product, so
+   visible "StrayPaw" and "Kaju" text is renamed as the source compiles (scripts/demo-brand-loader.cjs). Production
+   builds never match and never load the loader. */
+const DEMO_BUILD = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").includes("ucxfxiddufwqithtdtix");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  webpack(config) {
+    if (DEMO_BUILD) config.module.rules.unshift({ test: /\.(ts|tsx)$/, include: new URL("./src", import.meta.url).pathname, enforce: "pre", use: [{ loader: new URL("./scripts/demo-brand-loader.cjs", import.meta.url).pathname }] });
+    return config;
+  },
   env: { MARKETING_EXPERIENCE },
   /* Most pages are rendered per request, and with no client cache every
      Back and every return to a page waited on the server again. Thirty

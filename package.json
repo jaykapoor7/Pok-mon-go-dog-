@@ -60,6 +60,7 @@
     "test:kaju-planner": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-planner.ts",
     "test:kaju-workspace": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-kaju-workspace.ts",
     "test:monthly": "node --import tsx scripts/test-monthly.ts",
+    "test:demo-brand": "node scripts/test-demo-brand.cjs",
     "test:bite-model": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-bite-model.ts",
     "test:inference-off": "NODE_PATH=scripts/shims/node_modules node --import tsx scripts/test-inference-off.ts",
     "test:package-check": "node --import tsx scripts/test-package-check.ts",

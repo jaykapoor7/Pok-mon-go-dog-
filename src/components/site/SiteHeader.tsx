@@ -1,5 +1,6 @@
 "use client";
 
+import { REBRAND } from "@/lib/demo-brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -207,7 +208,7 @@ function SheetGroup({ label, cols }: { label: string; cols: MegaCol[] }) {
 export function StrayPawMark({ size = 28 }: { size?: number }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src="/straypaw-mark.png" alt="" width={size} height={size} aria-hidden="true"
+    <img src={REBRAND ? "/demo-mark.svg" : "/straypaw-mark.png"} alt="" width={size} height={size} aria-hidden="true"
       style={{ flexShrink: 0, borderRadius: "50%", display: "block", boxShadow: "0 0 0 1px rgba(11,16,32,0.12)" }} />
   );
 }

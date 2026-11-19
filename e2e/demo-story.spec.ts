@@ -21,15 +21,18 @@ test("one bite, six stages: Next alone walks the whole response, and every step 
   test.skip(isMobile, "the recording is made on a desktop");
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
   await page.goto("/try");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Follow one dog bite through StrayPaw.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Follow one dog bite through One Health Response.");
   await expect(page.getByRole("list", { name: "The six stops" }).getByRole("listitem")).toHaveCount(6);
+  /* A group's proposed product: no StrayPaw or Kaju anywhere on the demo. */
+  await expect(page.locator("body")).not.toContainText(/StrayPaw|Kaju/);
   await page.getByRole("button", { name: /Start the demo/ }).click();
-  const next = async (title: string) => { await act(page, title); await card(page).locator(".dt-btn.is-go:not([disabled])").click(); };
+  /* Every screen of the walkthrough: no StrayPaw or Kaju, in the page or the guide. */
+  const next = async (title: string) => { await act(page, title); await expect(page.locator("body")).not.toContainText(/StrayPaw|Kaju/, { timeout: 15_000 }); await card(page).locator(".dt-btn.is-go:not([disabled])").click(); };
 
   /* 1 · Citizen: Kaju takes the report and tells the clinic. */
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
   await expect(page.locator(".sp-tour-hl")).toBeVisible({ timeout: 30_000 });
-  await next("Tell Kaju what happened");
+  await next("Tell Assistant what happened");
   const report = page.locator('[data-tour="bite-report"]');
   for (const w of ["Indiranagar", "Today (this morning)", "None of the listed signs"]) await expect(report).toContainText(w, { timeout: 30_000 });
   await next("Send it to the clinic");
@@ -55,9 +58,9 @@ test("one bite, six stages: Next alone walks the whole response, and every step 
   await card(page).locator(".dt-btn.is-go:not([disabled])").click();
 
   /* 4 · Kaju: tagged in the team chat, then the briefing and the prepared work, confirmed. */
-  await next("Tag Kaju in the team chat");
-  await act(page, "Ask Kaju");
-  await next("Ask Kaju");
+  await next("Tag Assistant in the team chat");
+  await act(page, "Ask Assistant");
+  await next("Ask Assistant");
   const answer = page.locator('[data-tour="kaju-answer"]', { hasText: "Who does what" });
   await expect(answer).toBeVisible({ timeout: 60_000 });
   for (const w of ["Indiranagar bite", "Simba (IND-112)", "Missing"]) await expect(answer).toContainText(w);
@@ -154,7 +157,7 @@ test("Kaju's call with Sarvam: one voice, each answer recorded until the caller 
   expect(sizes.length).toBeGreaterThanOrEqual(5); /* what happened, safety, the look, call back, send */
   for (const n of sizes) expect(n).toBeGreaterThan(8_000); /* real recordings, not empty files */
   const said = spoken.join(" ");
-  for (const w of ["Hi, I'm Kaju", "Okay, a street dog bite in Indiranagar", "Quick safety check", "Shall I send it", "knows you're coming"]) expect(said).toContain(w);
+  for (const w of ["Hi, I'm the bite-help assistant", "Okay, a street dog bite in Indiranagar", "Quick safety check", "Shall I send it", "knows you're coming"]) expect(said).toContain(w);
 });
 
 test("the guide's Next action answers an untouched citizen stage and opens the hospital", async ({ page, isMobile }) => {
@@ -162,14 +165,14 @@ test("the guide's Next action answers an untouched citizen stage and opens the h
   await page.goto("/try");
   await page.getByRole("button", { name: /Start the demo/ }).click();
   await page.waitForURL(/\/bite-help/, { timeout: 90_000 });
-  await expect(page.getByRole("button", { name: "Send to Kaju" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "Send to Assistant" })).toBeVisible({ timeout: 30_000 });
   /* On a phone the card is a short sheet that never covers the chat's composer. */
   if (isMobile) {
     const sheet = await card(page).boundingBox(), compose = await page.locator('[data-tour="bite-compose"]').boundingBox();
     expect(sheet && sheet.height < page.viewportSize()!.height * 0.5).toBeTruthy();
     expect(compose && sheet && compose.y + compose.height <= sheet.y + 1).toBeTruthy();
   }
-  for (const t of ["Tell Kaju what happened", "Send it to the clinic"]) {
+  for (const t of ["Tell Assistant what happened", "Send it to the clinic"]) {
     await act(page, t);
     await card(page).locator(".dt-btn.is-go").click();
   }
@@ -196,7 +199,7 @@ test("Kaju on a model: understands once, asks only what is missing, and sends th
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
   await page.goto("/bite-help");
   await expect(page.locator('.kb[data-ai="1"]')).toBeVisible({ timeout: 30_000 });
-  const say = async (t: string) => { await page.locator('[data-tour="bite-compose"] textarea').fill(t); await page.getByRole("button", { name: "Send to Kaju" }).click(); };
+  const say = async (t: string) => { await page.locator('[data-tour="bite-compose"] textarea').fill(t); await page.getByRole("button", { name: "Send to Assistant" }).click(); };
   await say("my friend got bitten by a street dog near 100 feet road indiranagar this morning, please tell the hospital");
   await expect(page.locator(".kc-log")).toContainText("That sounds frightening", { timeout: 20_000 });
   await page.getByRole("button", { name: "No, none of these" }).click();
@@ -219,7 +222,7 @@ test("where it happened: words, the phone's location or a pin, never a list of a
   await page.route("**/api/oh/kaju*", (r) => r.fulfill({ status: 404, json: { error: "off" } }));
   await page.addInitScript(() => { for (const k of ["straypaw.notice.storage.v1", "straypaw.analytics.optout"]) localStorage.setItem(k, "1"); });
   await page.goto("/bite-help");
-  const say = async (t: string) => { await page.locator('[data-tour="bite-compose"] textarea').fill(t); await page.getByRole("button", { name: "Send to Kaju" }).click(); };
+  const say = async (t: string) => { await page.locator('[data-tour="bite-compose"] textarea').fill(t); await page.getByRole("button", { name: "Send to Assistant" }).click(); };
   await say("a dog bit me this morning");
   await page.getByRole("button", { name: "No, none of these" }).click({ timeout: 20_000 });
   /* No separate "tell the clinic?": straight to what is missing. */
