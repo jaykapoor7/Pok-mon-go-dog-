@@ -12,7 +12,7 @@
   .nx .gh-about.is-open .gh-about-t { display: block; padding-top: 8px; color: var(--ink-2); }
   .nx .gh-about-b { display: inline; padding: 12px 8px; margin: -12px -8px; border: 0; background: none; color: var(--ink-3);
     font: inherit; font-size: inherit; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; cursor: pointer; white-space: nowrap; }
-  .nx .gh-about-b:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .nx .gh-about-b:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-xs); }
   .nx:has(.gh-ws) .nx-head .nx-sub { margin-top: 4px; }
 
   /* What a phone shows once, elsewhere (the action bar, a sheet), is hidden in its desktop place. */
@@ -22,7 +22,7 @@
   .nx .gh-actbar { display: flex; gap: 8px; align-items: center; position: sticky; bottom: 0; z-index: 6; margin-top: 16px;
     padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--bg) 96%, transparent);
     border-top: 1px solid var(--line); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); }
-  .nx .gh-actbar > .nx-btn { flex: 1 1 0; min-width: 0; height: 48px; justify-content: center; font-size: 16px; border-radius: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nx .gh-actbar > .nx-btn { flex: 1 1 0; min-width: 0; height: 48px; justify-content: center; font-size: 16px; border-radius: var(--r-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nx .gh-actbar > .gh-actbar-m { flex: 0 0 48px; width: 48px; padding: 0; }
   .nx .gh-actbar > .gh-actbar-m:only-child { flex: 1 1 0; width: auto; gap: 8px; }
   .nx .gh-actbar svg { flex: none; }
@@ -31,19 +31,19 @@
 
   /* "More": each action a full-width row of a thumb's height. */
   .nx .gh-sheet-acts { display: grid; gap: 8px; padding: 4px 4px 8px; }
-  .nx .gh-sheet-acts > .nx-btn, .nx .gh-sheet-acts > a { width: 100%; height: 52px; justify-content: flex-start; padding: 0 16px; gap: 12px; font-size: 16px; border-radius: 12px; }
+  .nx .gh-sheet-acts > .nx-btn, .nx .gh-sheet-acts > a { width: 100%; height: 52px; justify-content: flex-start; padding: 0 16px; gap: 12px; font-size: 16px; border-radius: var(--r-md); }
   .nx .gh-sheet-acts .gh-hint { padding: 0 8px; font-size: 14px; }
 
   /* ── Calling about a dose (doses due, and the bite record) ─────── */
   .nx p.gh-ph { display: block; }
   .nx .gh-call.gh-ph { display: grid; gap: 12px; margin-top: 16px; }
   .nx .gh-call-a { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .nx .gh-call-a > .nx-btn { height: 48px; justify-content: center; font-size: 16px; border-radius: 12px; }
+  .nx .gh-call-a > .nx-btn { height: 48px; justify-content: center; font-size: 16px; border-radius: var(--r-md); }
   .nx .gh-call-a > .nx-btn:only-child { grid-column: 1 / -1; }
   .nx .gh-call-o { display: grid; gap: 8px; }
   .nx .gh-call-o > span { color: var(--ink-2); font-size: 14px; }
   .nx .gh-call-o .gh-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .nx .gh-call-o .gh-seg > .nx-btn { height: auto; min-height: 48px; justify-content: center; padding: 0 12px; border-radius: 12px; border: 0; box-shadow: inset 0 0 0 1px var(--line-2); background: var(--bg); color: var(--ink); font: inherit; font-size: 14px; text-align: center; }
+  .nx .gh-call-o .gh-seg > .nx-btn { height: auto; min-height: 48px; justify-content: center; padding: 0 12px; border-radius: var(--r-md); border: 0; box-shadow: inset 0 0 0 1px var(--line-2); background: var(--bg); color: var(--ink); font: inherit; font-size: 14px; text-align: center; }
   .nx .gh-call-o .gh-seg > .nx-btn:active { background: var(--hover); }
   .nx .gh-call-o .gh-seg > .nx-btn:disabled { opacity: .5; }
 
@@ -56,16 +56,16 @@
   .nx:has(.gh-ws) .nx-drawer-b { padding: 16px 16px max(32px, env(safe-area-inset-bottom)); }
   .nx:has(.gh-ws) .nx-drawer-h .nx-ib { width: 44px; height: 44px; }
   .nx:has(.gh-ws) .nx-drawer .gh-steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-  .nx:has(.gh-ws) .nx-drawer .gh-steps .nx-btn, .nx:has(.gh-ws) .nx-drawer-b > p > .nx-btn { width: 100%; height: 48px; justify-content: center; font-size: 16px; border-radius: 12px; }
+  .nx:has(.gh-ws) .nx-drawer .gh-steps .nx-btn, .nx:has(.gh-ws) .nx-drawer-b > p > .nx-btn { width: 100%; height: 48px; justify-content: center; font-size: 16px; border-radius: var(--r-md); }
 
   /* ── Forms: one column, 16px, labels above, segmented choices that wrap into even cells ── */
   .nx .gh-fields { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .nx .gh-fields > * { grid-column: 1 / -1 !important; }
   .nx:has(.gh-ws) .nx-field > span { font-size: 14px; }
-  .nx:has(.gh-ws) .nx-field :is(input, select, textarea) { font-size: 16px; min-height: 48px; border-radius: 12px; }
+  .nx:has(.gh-ws) .nx-field :is(input, select, textarea) { font-size: 16px; min-height: 48px; border-radius: var(--r-md); }
   .nx:has(.gh-ws) .nx-field textarea { min-height: 96px; }
   .nx .gh-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
-  .nx .gh-seg label { min-height: 48px; justify-content: center; text-align: center; padding: 4px 12px; font-size: 14px; line-height: 1.25; border-radius: 12px; background: var(--bg); color: var(--ink); }
+  .nx .gh-seg label { min-height: 48px; justify-content: center; text-align: center; padding: 4px 12px; font-size: 14px; line-height: 1.25; border-radius: var(--r-md); background: var(--bg); color: var(--ink); }
   .nx .gh-seg label.is-on { background: var(--sel); font-weight: 600; }
   .nx .gh-tick { min-height: 48px; font-size: 16px; align-items: center; gap: 12px; }
   .nx .gh-tick input { width: 24px; height: 24px; margin-top: 0; }
@@ -78,9 +78,9 @@
   /* A form's save bar sticks to the bottom of the screen, above the keyboard, while the form is in view. */
   .nx .gh-savebar { position: sticky; bottom: 0; z-index: 6; margin: 24px -16px 0 !important; padding: 12px 16px max(12px, env(safe-area-inset-bottom));
     background: color-mix(in srgb, var(--bg) 96%, transparent); border-top: 1px solid var(--line); display: grid !important; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-  .nx .gh-savebar > .nx-btn { height: 48px; justify-content: center; font-size: 16px; border-radius: 12px; }
+  .nx .gh-savebar > .nx-btn { height: 48px; justify-content: center; font-size: 16px; border-radius: var(--r-md); }
   .nx .gh-savebar > .gh-hint { grid-column: 1 / -1; order: -1; }
-  .nx .gh-kaju .gh-savebar { margin: 0 -16px -16px !important; border-radius: 0 0 12px 12px; }
+  .nx .gh-kaju .gh-savebar { margin: 0 -16px -16px !important; border-radius: 0 0 var(--r-md) var(--r-md); }
 
   /* ── Records ───────────────────────────────────────────────────── */
   .nx:has(.gh-ws) .nx-rec-t h1 { font-size: 24px; line-height: 1.2; overflow-wrap: anywhere; }
@@ -98,7 +98,7 @@
   .nx .gh-ev li > span:nth-child(2) { font-size: 16px; }
   .nx .gh-ev small { font-size: 14px; margin-top: 4px; }
   .nx .gh-ev .gh-ck { width: 20px; height: 20px; }
-  .nx .gh-ev .gh-link { min-height: 44px; padding: 0 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink); }
+  .nx .gh-ev .gh-link { min-height: 44px; padding: 0 12px; border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink); }
   .nx .gh-checks li { font-size: 14px; line-height: 1.45; padding: 4px 0; }
 
   /* Claims to decide: the whole row opens the claim; the selection box keeps its own thumb-sized cell. */
@@ -107,7 +107,7 @@
   .nx .gh-claim-main b { font-size: 16px; white-space: normal; }
   .nx .gh-claim-main small { font-size: 14px; white-space: normal; }
   .nx .gh-claim > button.gh-claim-main { min-height: 48px; }
-  .nx .gh-batch { position: sticky; top: 0; z-index: 4; padding: 12px; border-radius: 12px; }
+  .nx .gh-batch { position: sticky; top: 0; z-index: 4; padding: 12px; border-radius: var(--r-md); }
   .nx .gh-batch .gh-batch-a { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
   .nx .gh-batch .gh-batch-a .nx-btn { height: 44px; justify-content: center; }
 
@@ -115,7 +115,7 @@
   .nx .gh-claim-sheet { display: grid; gap: 24px; padding: 0 4px 8px; }
   .nx .gh-claim-sheet .gh-block + .gh-block { margin-top: 0; }
   .nx .gh-claim-sheet .gh-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .nx .gh-claim-sheet .gh-acts .nx-btn { height: 48px; justify-content: center; font-size: 16px; border-radius: 12px; }
+  .nx .gh-claim-sheet .gh-acts .nx-btn { height: 48px; justify-content: center; font-size: 16px; border-radius: var(--r-md); }
   .nx .gh-claim-sheet .gh-acts .nx-btn:first-child { grid-column: 1 / -1; }
 
   /* ── Overview pages ────────────────────────────────────────────── */
@@ -125,7 +125,7 @@
   .nx:has(.gh-ws) .hm-page:has(#h-u) > .hm-tiles { order: 2; }
   .nx:has(.gh-ws) .hm-page:has(#h-u) .hm-panel { order: 3; margin-top: 16px; }
   .nx:has(.gh-ws) .hm-page:has(#h-u) .hm-panel:has(#h-u) { order: 1; }
-  .nx .gh-more { width: 100%; height: 48px; justify-content: center; margin-top: 8px; font-size: 16px; border-radius: 12px; }
+  .nx .gh-more { width: 100%; height: 48px; justify-content: center; margin-top: 8px; font-size: 16px; border-radius: var(--r-md); }
   /* A select inside a record (wound washing) is a thumb's height. */
   .nx:has(.gh-ws) .nx-rec select { min-height: 44px !important; font-size: 16px; }
   /* View chips and filters are a thumb's height in these workspaces. */

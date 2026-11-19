@@ -76,6 +76,55 @@ what they can do (one primary action, verbs on rows) and what happens next
   "All n" or "Show all n" one click away. A grid of cards that mostly say
   "nothing here" becomes one line.
 
+### 2a. The working app's tokens (`src/nx`, 18 November 2026)
+The places people work (`src/nx`) read one set of tokens defined on `.nx` in `src/nx/nx.css`, in both themes.
+Components use the tokens, not literal values. The rules below are the UI fundamentals: hierarchy, contrast,
+alignment, matching corners, balanced icons, text and spacing, soft shadows.
+
+- **Type.** `--t-meta` 12/16 (labels, meta, chips, table headers), `--t-ui` 14/20 (interface and table text, the
+  app's base), `--t-read` 14/22 (reading text: notes, messages, timeline entries, descriptions, empty states),
+  `--t-h3` 14/20 semibold (a heading inside a column), `--t-h2` 16/24 semibold (a section of a page), `--t-fig` 24/32
+  (a figure's value), `--t-h1` 24/32 (a page's or a record's title). Multi-line meta uses `--lh-note` 18. Phones keep
+  16px fields and 24px titles (MOBILE.md). 13px and the half sizes (10.5, 11, 11.5, 12.5) are gone from the app.
+- **Hierarchy of figures.** Wherever a figure appears (stat strips, home tiles, totals, checks) its value is larger
+  and heavier than its label: value 24 semibold (home tiles 32), label 12 or 14. A total in a record is 16 semibold
+  over a 12px label.
+- **Contrast.** Text tokens meet WCAG AA (4.5:1) on every surface they are used on, in both themes, measured from the
+  CSS (`--ink`, `--ink-2`, `--ink-3`, `--accent`, `--ok`, `--warn`, `--bad` on `--bg`, `--side`, `--hover`, `--sel` and
+  their own soft fills; see the table in the pull request of this date). The edge of a control a person must find
+  (inputs, selects, ticks, text boxes) is `--line-ctl`, at least 3:1 on its surface (light `#838b97`, dark
+  `#6a7380`); hairlines between rows stay `--line`/`--line-2`, which are not controls. Never fade text with opacity
+  to make it secondary; use `--ink-2` or `--ink-3`.
+- **Corners.** `--r-xs` 4 (tags, chips, key caps, small marks), `--r-sm` 8 (buttons, inputs, menu items, rows that
+  highlight), `--r-md` 12 (cards, blocks and panels inside a page, toasts), `--r-lg` 16 (home panels and tiles, and
+  everything that floats: dialogs, the command bar, popovers, sheets), `--r-full` (pills, avatars). A surface inside
+  another is never rounder than the outer corner minus the gap between them: a row inset 8px into a 16px panel takes
+  8; an item inset 8px into a 16px popover takes 8.
+- **Elevation.** Content is flat: a fill or a hairline marks it, never a shadow. `--e-1` (a 1px ring and a 2px
+  blur) lifts a selected item in place (the current page in the menu, the rail). `--e-2` is for small floating layers
+  (popovers, menus, toasts, the notification panel, the phone's "+" button). `--e-3` is for dialogs, the command bar,
+  the record drawer and the tablet menu. `--e-sheet` is a sheet rising from the bottom of a phone. Every shadow is
+  layered and soft (largest alpha .2 in light); dark adds a faint light edge, because a shadow does not read there.
+- **Icons.** One stroke for every lucide icon (`--i-stroke` 1.6px, drawn the same at every size) and one size per
+  context, set by where the icon sits, not by the component: rows, menu items, buttons, tabs, icon buttons 16
+  (`--i-md`); beside meta text, small buttons, section headings, notes 14 (`--i-sm`); chips 12 (`--i-xs`); a record's
+  avatar and empty states 20 (`--i-lg`); a phone's top bar 20. Icons drawn heavier on purpose (ticks) keep their
+  stroke.
+- **Alignment.** Rows share one icon column and one text edge: the menu's icons sit in one 16px column, a property
+  row's label and value share the first line's baseline (a wrapped value still reads beside its label), a timeline
+  entry's own actions sit at the right of its first line. All controls in one bar share one height (32 on desktop:
+  views, filters, search, buttons; 40-48 on a phone).
+- **Spacing between sections.** `--sp-page` 32 between sections of a page, `--sp-sec` 24 between sections inside a
+  column (and from a page head to its tabs or filters), `--sp-head` 8 from a heading to its content.
+- **Text that does not fit** wraps before it is cut: meta lines on homes wrap to two lines, a record's name in a
+  narrow table takes two lines, and a value in a table cell is cut with an ellipsis at its column's edge, never
+  running under the next column.
+- **Tablet (641-1100px).** The rail stays; the sidebar opens over the page from the rail's Menu button (Escape, a
+  tap outside or a choice closes it). Records keep two columns (the work and its side column) with the properties
+  above in two columns; home figures go three across or two by two, never three and an orphan; tables keep every
+  column, with the record's name on up to two lines; a dense table inside a narrow column (under 560px) keeps only
+  its first and essential columns, as on a phone, the rest being in the row's preview.
+
 ### 3. Components (fewer, better)
 - **Page header:** title, one-line purpose, at most one primary and one
   secondary action on the right. Never a second "New case" when the top

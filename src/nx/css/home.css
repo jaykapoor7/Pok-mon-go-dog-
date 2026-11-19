@@ -22,7 +22,7 @@
 /* ── Figures ─────────────────────────────────────────────────────── */
 .nx .hm-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(208px, 1fr)); gap: 16px; margin-top: 24px; }
 .nx .hm-tile-w { display: grid; min-width: 0; }
-.nx .hm-tile { display: grid; grid-template-rows: auto auto auto 1fr; align-content: start; gap: 4px; min-height: 144px; padding: 16px; border-radius: 16px; background: var(--hm-fill); color: var(--hm-body); font-size: 14px; line-height: 20px; transition: background .2s var(--hm-ease), transform .2s var(--hm-ease); }
+.nx .hm-tile { display: grid; grid-template-rows: auto auto auto 1fr; align-content: start; gap: 4px; min-height: 144px; padding: 16px; border-radius: var(--r-lg); background: var(--hm-fill); color: var(--hm-body); font-size: 14px; line-height: 20px; transition: background .2s var(--hm-ease), transform .2s var(--hm-ease); }
 .nx .hm-tile.is-link:hover { background: var(--hm-fill-2); transform: translateY(-1px); }
 .nx .hm-tile-l { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--hm-body); font-size: 14px; font-weight: 500; }
 .nx .hm-tile-l svg { color: var(--hm-mute); flex: none; opacity: .6; transition: opacity .2s var(--hm-ease), transform .2s var(--hm-ease); }
@@ -32,7 +32,7 @@
 .nx .hm-tile-n.t-bad { color: var(--hm-flame-ink); }
 .nx .hm-tile-n.t-ok { color: var(--hm-ok); }
 .nx .hm-unread { display: inline-block; font-size: 16px; font-weight: 500; color: var(--hm-mute); letter-spacing: 0; }
-.nx .hm-tile-note { color: var(--hm-mute); font-size: 12px; line-height: 16px; }
+.nx .hm-tile-note { color: var(--hm-mute); font-size: 12px; line-height: var(--lh-note); }
 .nx .hm-tile-v { align-self: end; display: block; margin-top: 8px; }
 
 /* Pictures of a figure: a meter, a split bar, a few columns */
@@ -43,9 +43,9 @@
 .nx .hm-track i { display: block; height: 100%; border-radius: 999px; transform-origin: left; animation: hm-grow .26s var(--hm-ease) both; }
 .nx .hm-track.is-split { gap: 4px; background: transparent; }
 .nx .hm-track.is-split:empty { background: var(--hm-track); }
-.nx .hm-track.is-split i { flex-basis: 0; min-width: 4px; border-radius: 4px; }
-.nx .hm-track.is-split i:first-child { border-radius: 999px 4px 4px 999px; }
-.nx .hm-track.is-split i:last-child { border-radius: 4px 999px 999px 4px; }
+.nx .hm-track.is-split i { flex-basis: 0; min-width: 4px; border-radius: var(--r-xs); }
+.nx .hm-track.is-split i:first-child { border-radius: 999px var(--r-xs) var(--r-xs) 999px; }
+.nx .hm-track.is-split i:last-child { border-radius: var(--r-xs) 999px 999px var(--r-xs); }
 .nx .hm-track.is-split i:only-child { border-radius: 999px; }
 .nx .hm-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--hm-ink); border-radius: 1px; }
 .nx .hm-track:has(.hm-mark) { overflow: visible; }
@@ -57,10 +57,10 @@
 .nx :is(.hm-track, .hm-legend) .t-plain, .nx .hm-bar i.t-plain { background: #9aa6b8; }
 .nx .hm-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--hm-mute); font-size: 12px; line-height: 16px; font-variant-numeric: tabular-nums; }
 .nx .hm-legend span { display: inline-flex; align-items: center; gap: 4px; }
-.nx .hm-legend i { width: 8px; height: 8px; border-radius: 4px; flex: none; }
+.nx .hm-legend i { width: 8px; height: 8px; border-radius: var(--r-xs); flex: none; }
 .nx .hm-bars { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: 4px; height: 32px; }
-.nx .hm-bar { display: flex; align-items: flex-end; height: 100%; border-radius: 4px; box-shadow: inset 0 -2px 0 var(--hm-track); overflow: hidden; }
-.nx .hm-bar i { display: block; width: 100%; border-radius: 4px 4px 0 0; transform-origin: bottom; animation: hm-rise .26s var(--hm-ease) both; }
+.nx .hm-bar { display: flex; align-items: flex-end; height: 100%; border-radius: var(--r-xs); box-shadow: inset 0 -2px 0 var(--hm-track); overflow: hidden; }
+.nx .hm-bar i { display: block; width: 100%; border-radius: var(--r-xs) var(--r-xs) 0 0; transform-origin: bottom; animation: hm-rise .26s var(--hm-ease) both; }
 @keyframes hm-rise { from { transform: scaleY(0); } to { transform: none; } }
 
 /* ── Panels, side by side ────────────────────────────────────────── */
@@ -69,7 +69,7 @@
 .nx .hm-grid.is-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .nx .hm-grid.is-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .nx .hm-grid + .hm-grid { margin-top: 24px; }
-.nx .hm-panel { display: flex; flex-direction: column; min-width: 0; padding: 16px 16px 8px; border-radius: 16px; background: var(--hm-fill); color: var(--hm-body); font-size: 14px; line-height: 20px; }
+.nx .hm-panel { display: flex; flex-direction: column; min-width: 0; padding: 16px 16px 8px; border-radius: var(--r-lg); background: var(--hm-fill); color: var(--hm-body); font-size: 14px; line-height: 20px; }
 .nx .hm-panel-h { display: flex; align-items: baseline; gap: 8px; min-height: 24px; }
 .nx .hm-panel-h h2 { color: var(--hm-ink); font-size: 16px; line-height: 24px; font-weight: 600; }
 .nx .hm-count { color: var(--hm-mute); font-size: 14px; font-variant-numeric: tabular-nums; }
@@ -78,7 +78,7 @@
 .nx .hm-rows { list-style: none; display: grid; }
 .nx .hm-row { display: flex; align-items: center; gap: 4px; border-top: 1px solid var(--hm-line); min-width: 0; }
 .nx .hm-row:first-child { border-top: 0; }
-.nx .hm-row-m { flex: 1 1 auto; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; gap: 12px; min-width: 0; min-height: 56px; padding: 8px 8px; margin: 0 -8px; border-radius: 12px; transition: background .2s var(--hm-ease); }
+.nx .hm-row-m { flex: 1 1 auto; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; gap: 12px; min-width: 0; min-height: 56px; padding: 8px 8px; margin: 0 -8px; border-radius: var(--r-sm); transition: background .2s var(--hm-ease); }
 .nx a.hm-row-m:hover { background: var(--hm-raise); }
 .nx .hm-row-i { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; background: var(--hm-raise); color: var(--hm-mute); }
 .nx .hm-row-i:empty { background: transparent; }
@@ -88,24 +88,24 @@
 .nx .hm-row-i.t-ok { background: var(--hm-ok-soft); color: var(--hm-ok); }
 .nx .hm-row-t { display: grid; min-width: 0; }
 .nx .hm-row-t b, .nx .hm-task-t b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--hm-ink); font-size: 14px; line-height: 20px; font-weight: 500; overflow-wrap: anywhere; }
-.nx .hm-row-t small, .nx .hm-task-t small { display: flex; align-items: center; gap: 8px; margin-top: 4px; min-width: 0; color: var(--hm-mute); font-size: 12px; line-height: 16px; }
-.nx .hm-row-meta, .nx .hm-task-meta { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.nx .hm-chip { display: inline-flex; align-items: center; flex: none; height: 20px; padding: 0 8px; border-radius: 4px; background: var(--hm-raise); color: var(--hm-body); font-size: 12px; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nx .hm-row-t small, .nx .hm-task-t small { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; min-width: 0; color: var(--hm-mute); font-size: 12px; line-height: 16px; }
+.nx .hm-row-meta, .nx .hm-task-meta { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: var(--lh-note); overflow-wrap: anywhere; }
+.nx .hm-chip { display: inline-flex; align-items: center; flex: none; height: 20px; padding: 0 8px; border-radius: var(--r-xs); background: var(--hm-raise); color: var(--hm-body); font-size: 12px; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .nx .hm-chip.t-blue { background: var(--hm-blue-soft); color: var(--hm-blue); }
 .nx .hm-chip.t-warn { background: var(--hm-warn-soft); color: var(--hm-warn-ink); }
 .nx .hm-chip.t-bad { background: var(--hm-flame-soft); color: var(--hm-flame-ink); }
 .nx .hm-chip.t-ok { background: var(--hm-ok-soft); color: var(--hm-ok); }
-.nx .hm-ask { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--hm-mute); transition: background .2s var(--hm-ease), color .2s var(--hm-ease); }
+.nx .hm-ask { flex: none; width: 32px; height: 32px; border-radius: var(--r-sm); display: grid; place-items: center; color: var(--hm-mute); transition: background .2s var(--hm-ease), color .2s var(--hm-ease); }
 .nx .hm-ask:hover { background: var(--hm-blue-soft); color: var(--hm-blue); }
 .nx .hm-all { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; color: var(--hm-blue); font-size: 14px; font-weight: 500; justify-self: start; }
 .nx .hm-all:hover { text-decoration: underline; text-underline-offset: 4px; }
 .nx .hm-empty { padding: 12px 0; color: var(--hm-body); }
 .nx .hm-fail { display: grid; gap: 8px; justify-items: start; padding: 12px 0; color: var(--hm-flame-ink); }
-.nx .hm-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 8px; background: var(--hm-raise); color: var(--hm-ink); box-shadow: inset 0 0 0 1px var(--hm-line); font-size: 14px; font-weight: 500; }
+.nx .hm-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: var(--r-sm); background: var(--hm-raise); color: var(--hm-ink); box-shadow: inset 0 0 0 1px var(--hm-line); font-size: 14px; font-weight: 500; }
 .nx .hm-btn:hover { background: var(--hm-blue-soft); }
 
 /* Reading */
-.nx .hm-skel { display: block; border-radius: 8px; background: linear-gradient(90deg, var(--hm-track), var(--hm-fill-2), var(--hm-track)); background-size: 200% 100%; animation: hm-flow 1.6s linear infinite; }
+.nx .hm-skel { display: block; border-radius: var(--r-sm); background: linear-gradient(90deg, var(--hm-track), var(--hm-fill-2), var(--hm-track)); background-size: 200% 100%; animation: hm-flow 1.6s linear infinite; }
 .nx .hm-skel.is-n { width: 64px; height: 32px; margin-top: 4px; }
 .nx .hm-skel.is-i { width: 32px; height: 32px; border-radius: 999px; flex: none; }
 .nx .hm-skel.is-t { height: 16px; flex: 1 1 auto; }
@@ -113,7 +113,7 @@
 @keyframes hm-flow { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
 /* ── Tasks on a home ─────────────────────────────────────────────── */
-.nx .hm-add { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 8px; background: var(--hm-raise); box-shadow: inset 0 0 0 1px var(--hm-line); color: var(--hm-mute); }
+.nx .hm-add { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: var(--r-sm); background: var(--hm-raise); box-shadow: inset 0 0 0 1px var(--line-ctl); color: var(--hm-mute); }
 .nx .hm-add:focus-within { box-shadow: inset 0 0 0 1px var(--hm-blue); outline: 2px solid var(--hm-blue); outline-offset: 2px; }
 .nx .hm-add input { flex: 1 1 auto; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--hm-ink); font: inherit; font-size: 14px; }
 .nx .hm-add input:focus-visible { outline: none; }
@@ -125,9 +125,9 @@
 .nx .hm-task .nx-check::after { content: ""; position: absolute; inset: -8px; }
 .nx .hm-task-t { flex: 1 1 auto; display: grid; min-width: 0; }
 .nx .hm-task.is-done .hm-task-t b { color: var(--hm-mute); text-decoration: line-through; text-decoration-color: var(--hm-line); }
-.nx .hm-task-x { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--hm-mute); }
+.nx .hm-task-x { flex: none; width: 32px; height: 32px; border-radius: var(--r-sm); display: grid; place-items: center; color: var(--hm-mute); }
 .nx .hm-task-x:hover { background: var(--hm-flame-soft); color: var(--hm-flame-ink); }
-.nx .hm-note { color: var(--hm-mute); font-size: 12px; line-height: 16px; }
+.nx .hm-note { color: var(--hm-mute); font-size: 12px; line-height: var(--lh-note); }
 .nx .hm-note.is-bad { color: var(--hm-flame-ink); }
 .nx .hm-link { color: var(--hm-blue); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
 .nx .hm-foot-note { margin-top: 16px; max-width: 72ch; }
@@ -141,7 +141,7 @@
 .nx .hm-skel.is-line { width: 240px; height: 16px; }
 .nx .hm-strip-l { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .nx .hm-strip-l > li { display: grid; min-width: 0; }
-.nx .hm-card { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; gap: 12px; padding: 16px; border-radius: 16px; background: var(--hm-fill); transition: background .2s var(--hm-ease), transform .2s var(--hm-ease); }
+.nx .hm-card { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; gap: 12px; padding: 16px; border-radius: var(--r-lg); background: var(--hm-fill); transition: background .2s var(--hm-ease), transform .2s var(--hm-ease); }
 .nx a.hm-card:hover { background: var(--hm-fill-2); transform: translateY(-1px); }
 
 /* A wide chart section beside a breakdown (sample programme insights) */
@@ -160,7 +160,7 @@
 @media (max-width: 640px) {
   /* Figures: two across, as short as their words allow; the label, the number, one line of note, then the picture. */
   .nx .hm-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
-  .nx .hm-tile { min-height: 0; gap: 0; padding: 12px; border-radius: 12px; grid-template-rows: auto auto auto 1fr; }
+  .nx .hm-tile { min-height: 0; gap: 0; padding: 12px; border-radius: var(--r-md); grid-template-rows: auto auto auto 1fr; }
   .nx .hm-tile.is-link:active { background: var(--hm-fill-2); }
   .nx .hm-tile-l { align-items: flex-start; font-size: 14px; line-height: 20px; }
   .nx .hm-tile-l svg { margin-top: 4px; }
@@ -170,7 +170,7 @@
   .nx .hm-meter + .hm-meter { margin-top: 4px; }
   .nx .hm-bars { height: 24px; }
   .nx .hm-grid { gap: 16px; margin-top: 24px; }
-  .nx .hm-panel { padding: 12px 12px 4px; border-radius: 12px; }
+  .nx .hm-panel { padding: 12px 12px 4px; border-radius: var(--r-md); }
   .nx .hm-row-m { min-height: 56px; }
   .nx .hm-ask, .nx .hm-task-x { width: 44px; height: 44px; }
   .nx .hm-all { min-height: 44px; }
@@ -182,7 +182,7 @@
   .nx .hm-strip-l { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 8px -16px 0; padding: 0 16px 4px; gap: 8px; }
   .nx .hm-strip-l::-webkit-scrollbar { display: none; }
   .nx .hm-strip-l > li { flex: 0 0 80%; scroll-snap-align: start; }
-  .nx .hm-card { padding: 12px; border-radius: 12px; }
+  .nx .hm-card { padding: 12px; border-radius: var(--r-md); }
 }
 
 @media (prefers-reduced-motion: reduce) {

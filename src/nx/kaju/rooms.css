@@ -8,8 +8,8 @@
 .nx .kr-dlg .kj-plan { margin-top: 0; padding: 0; background: none; }
 .nx .kr-lede { color: var(--ink-2); margin: 0; max-width: 60ch; }
 .nx .kr-foot { margin: 0; }
-.nx .kr-starts { list-style: none; margin: 0; padding: 4px; display: grid; gap: 4px; border-radius: 12px; background: var(--kj-fill); }
-.nx .kr-start { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 16px; gap: 12px; align-items: center; min-height: 56px; padding: 12px 16px; border-radius: 8px; text-align: left; color: var(--ink); transition: background .14s var(--kj-ease), transform .12s var(--kj-ease); }
+.nx .kr-starts { list-style: none; margin: 0; padding: 4px; display: grid; gap: 4px; border-radius: var(--r-md); background: var(--kj-fill); }
+.nx .kr-start { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 16px; gap: 12px; align-items: center; min-height: 56px; padding: 12px 16px; border-radius: var(--r-sm); text-align: left; color: var(--ink); transition: background .14s var(--kj-ease), transform .12s var(--kj-ease); }
 .nx .kr-start:hover:not([disabled]) { background: var(--bg); }
 .nx .kr-start:active:not([disabled]) { transform: scale(.99); }
 .nx .kr-start[disabled] { opacity: .6; cursor: default; }
@@ -22,7 +22,7 @@
 .nx .kr-start-t small { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
 
 /* The record a mission is about, as a chip. */
-.nx .kr-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; height: 24px; padding: 0 8px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.nx .kr-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; height: 24px; padding: 0 8px; border-radius: var(--r-xs); background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 500; white-space: nowrap; }
 .nx a.kr-chip:hover { text-decoration: underline; text-underline-offset: 2px; }
 .nx .kr-chip-k { color: color-mix(in srgb, var(--accent) 70%, var(--ink-3)); font-weight: 600; }
 .nx .kr-chip-l { overflow: hidden; text-overflow: ellipsis; }
@@ -34,7 +34,7 @@
 .nx .kr-rooms-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .nx .kr-rooms-add { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
 .nx .kr-rooms-l { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
-.nx .kr-room { position: relative; display: grid; gap: 8px; padding: 12px 40px 12px 12px; border-radius: 12px; background: var(--kj-fill); color: var(--ink); transition: background .16s var(--kj-ease); }
+.nx .kr-room { position: relative; display: grid; gap: 8px; padding: 12px 40px 12px 12px; border-radius: var(--r-md); background: var(--kj-fill); color: var(--ink); transition: background .16s var(--kj-ease); }
 .nx .kr-room:hover { background: var(--hover); }
 .nx .kr-room:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .nx .kr-room-top { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 12px; font-weight: 500; }
@@ -50,19 +50,19 @@
 
 /* ── The workroom: view switch ─────────────────────────────────────────── */
 .nx .kj-room-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 32px; }
-.nx .kj-seg2 { display: inline-flex; padding: 4px; gap: 4px; border-radius: 12px; background: var(--kj-fill); }
-.nx .kj-seg2 button { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 8px; color: var(--ink-2); font-size: 14px; font-weight: 500; transition: background .16s var(--kj-ease), color .16s, box-shadow .16s; }
+.nx .kj-seg2 { display: inline-flex; padding: 4px; gap: 4px; border-radius: var(--r-md); background: var(--kj-fill); }
+.nx .kj-seg2 button { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: var(--r-sm); color: var(--ink-2); font-size: 14px; font-weight: 500; transition: background .16s var(--kj-ease), color .16s, box-shadow .16s; }
 .nx .kj-seg2 button:hover { color: var(--ink); }
 .nx .kj-seg2 button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgba(15, 20, 30, .08), inset 0 0 0 1px var(--line); }
 .nx .kj-seg2 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .nx .kj-room-bar + .kj-room-cols { margin-top: 24px; }
 
 /* ── The new room ──────────────────────────────────────────────────────── */
-.nx .kl-new { margin-top: 32px; padding: 24px; border-radius: 16px; background: var(--kj-fill); max-width: 720px; }
+.nx .kl-new { margin-top: 32px; padding: 24px; border-radius: var(--r-lg); background: var(--kj-fill); max-width: 720px; }
 .nx .kl-new-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .nx .kl-new-t { margin-top: 8px; font-size: 20px; font-weight: 650; letter-spacing: -.012em; line-height: 1.3; }
 .nx .kl-roster { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; min-height: 56px; }
-.nx .kl-roster li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: 12px; background: var(--bg); box-shadow: 0 1px 2px rgba(15, 20, 30, .06); }
+.nx .kl-roster li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: var(--r-md); background: var(--bg); }
 .nx .kl-roster-b { display: grid; gap: 4px; min-width: 0; }
 .nx .kl-roster-b b { font-size: 12px; font-weight: 600; color: var(--ink-2); }
 .nx .kl-roster-b span { font-size: 14px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
@@ -73,7 +73,7 @@
 
 /* ── Live: one tile per step ───────────────────────────────────────────── */
 .nx .kl-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
-.nx .kl-tile { min-width: 0; padding: 16px; border-radius: 16px; background: var(--kj-fill); transition: background .24s var(--kj-ease), box-shadow .24s var(--kj-ease); }
+.nx .kl-tile { min-width: 0; padding: 16px; border-radius: var(--r-lg); background: var(--kj-fill); transition: background .24s var(--kj-ease), box-shadow .24s var(--kj-ease); }
 .nx .kl-tile.s-running { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
 .nx .kl-tile.s-waiting_approval, .nx .kl-tile.s-waiting_person { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 45%, transparent); }
 .nx .kl-tile.s-failed { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bad) 45%, transparent); }
@@ -102,7 +102,7 @@
 .nx .kj-room-cols.is-live { grid-template-columns: minmax(0, 1fr) 320px; }
 
 /* ── Closing summary ───────────────────────────────────────────────────── */
-.nx .kl-close { margin-top: 32px; padding: 24px; border-radius: 16px; background: var(--kj-fill); display: grid; gap: 16px; }
+.nx .kl-close { margin-top: 32px; padding: 24px; border-radius: var(--r-lg); background: var(--kj-fill); display: grid; gap: 16px; }
 .nx .kl-close.t-warn { background: color-mix(in srgb, var(--warn-soft) 60%, var(--bg)); }
 .nx .kl-close.t-ok { background: color-mix(in srgb, var(--ok-soft) 55%, var(--bg)); }
 .nx .kl-close-h { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; }
@@ -110,7 +110,7 @@
 .nx .kl-close-h p { color: var(--ink-2); font-size: 14px; margin-top: 4px; overflow-wrap: anywhere; }
 .nx .kl-close-i { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); color: var(--ink-2); }
 .nx .kl-close.t-warn .kl-close-i { color: var(--warn); }
-.nx .kl-close.t-ok .kl-close-i { background: var(--ok); color: #fff; }
+.nx .kl-close.t-ok .kl-close-i { background: var(--ok); color: var(--on-ok); }
 .nx .kl-close-made ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .nx .kl-close-made li { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; background: var(--bg); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .nx .kl-close .kj-change { margin-top: 0; }
@@ -140,9 +140,9 @@
   .nx .kl-ask .kj-btn { width: 100%; height: 48px; font-size: 16px; }
   .nx .kl-close { margin-top: 24px; padding: 16px; gap: 12px; }
   /* The decision is one full-width action at the foot of the screen, above the phone bar, with the others under it. */
-  .nx .kl-close-a { position: sticky; bottom: 0; z-index: 6; margin: 0 -16px -16px; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: var(--bg); box-shadow: 0 -1px 0 var(--line); border-radius: 0 0 16px 16px; }
+  .nx .kl-close-a { position: sticky; bottom: 0; z-index: 6; margin: 0 -16px -16px; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: var(--bg); box-shadow: 0 -1px 0 var(--line); border-radius: 0 0 var(--r-lg) var(--r-lg); }
   .nx .kl-close-a { flex-wrap: nowrap; }
-  .nx .kl-close-a .kj-btn { flex: none; height: 48px; padding: 0 12px; border-radius: 12px; }
+  .nx .kl-close-a .kj-btn { flex: none; height: 48px; padding: 0 12px; border-radius: var(--r-md); }
   .nx .kl-close-a .kj-btn:first-child { flex: 1 1 auto; min-width: 0; font-size: 16px; }
 }
 
