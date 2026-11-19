@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowRight, CalendarPlus, Lock, Stethoscope } from "lucide-react";
@@ -10,8 +11,10 @@ import { Shell } from "../Shell";
 import { Chip, Sample } from "../ui";
 import { VET_APPTS, VET_CASES, VET_PROCS, type Tone, type VetAppt, type VetCase, type VetProc } from "../fixtures";
 import { HealthToday } from "./Health";
-import { bookAppointment, setAppointmentStatus, useAppointments, useCases, useDogs, useLive, type Appointment, type Case, type Dog } from "../live";
+import { bookAppointment, setAppointmentStatus, useAppointments, useCases, useDogs, useLive, useTasks, type Appointment, type Case, type Dog } from "../live";
 import { ClinicPatients, ClinicToday } from "./VetClinic";
+import { AtKaju } from "../AtKaju";
+import { Grid, Panel, Rows, Split, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 import { animalLine, animalSearch } from "../animalLabel";
 import { useAnimalRefs } from "../data/animals";
 
@@ -80,7 +83,7 @@ export function Appointments() {
   const free = (dogs.rows ?? []).filter((d) => `${animalLine(d)} ${d.straypaw_id ?? ""} ${d.code ?? ""}`.toLowerCase().includes(needle)).slice(0, 50);
   return <Gate crumb="Appointments" v={v}>{() => <>
     <ListPage ws="health" crumb={["Healthcare", "Appointments"]} title="Appointments" sample={v.sample} eyebrow={v.sample ? "Kind Hour · Veterinary" : v.vet!.name}
-      sub={!v.sample && ap.rows === null ? "Reading appointments…" : <><b className="num">{today}</b> booked for today. Booking a visit is not a clinical decision; findings are recorded on the animal&apos;s case.</>}
+      sub={!v.sample && ap.rows === null ? "Reading appointments…" : <><b className="num">{today}</b> booked for today. <About>Booking a visit is not a clinical decision; findings are recorded on the animal&apos;s case.</About><GhMark /></>}
       action={<button type="button" className="nx-btn is-keep" onClick={() => setBooking(true)}><CalendarPlus size={14} />Book</button>}
       views={[{ id: "today", label: "Today", test: (r: ApRow) => r.day === "Today" }, { id: "next", label: "Coming up", test: (r: ApRow) => r.day !== "Past" && r.status === "booked" }, { id: "past", label: "Past", test: (r: ApRow) => r.day === "Past" }, { id: "all", label: "All", test: () => true }]}
       columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.title} search={(r) => `${r.title} ${r.animal}`} sort={(a, b) => a.at - b.at}
@@ -129,7 +132,7 @@ const careNote = <p className="nx-note" style={{ marginTop: 14 }}><Stethoscope s
 export function ClinicalCare() {
   const v = useVet(); const c = useCare(v);
   return <Gate crumb="Clinical care" v={v}>{() => <ListPage ws="health" crumb={["Healthcare", "Clinical care"]} title="Clinical care" sample={v.sample} eyebrow={v.sample ? "Kind Hour · Veterinary" : v.vet!.name}
-    sub={c.loading ? "Reading cases…" : <><b className="num">{c.rows.filter((r) => r.severity === "critical" || r.severity === "high").length}</b> critical or high of {c.rows.length} open injury, rescue and treatment cases. Most urgent first.</>}
+    sub={c.loading ? "Reading cases…" : <><b className="num">{c.rows.filter((r) => r.severity === "critical" || r.severity === "high").length}</b> critical or high of {c.rows.length} open injury, rescue and treatment cases. <About>Most urgent first.</About><GhMark /></>}
     views={[{ id: "urgent", label: "Critical and high", test: (r: CareRow) => r.severity === "critical" || r.severity === "high" }, { id: "all", label: "All open", test: () => true }]}
     columns={careCols} rows={c.rows} rowKey={(r) => r.id} rowLabel={(r) => r.title} search={(r) => `${r.title} ${r.animal} ${r.code}`} sort={(a, b) => SEV_ORDER.indexOf(a.severity) - SEV_ORDER.indexOf(b.severity)}
     preview={(r) => ({ title: r.title, sub: <><Chip tone={SEV[r.severity] ?? "plain"}>{r.severity}</Chip> {r.category}</>, body: <><dl className="nx-props"><div><dt>Animal</dt><dd>{r.dogId ? <Link href={`/ngo/animals/${r.dogId}`} style={{ color: "var(--accent)" }}>{r.animal}</Link> : r.animal}</dd></div><div><dt>Case</dt><dd className="num">{r.code}</dd></div><div><dt>Next step</dt><dd>{r.next}</dd></div><div><dt>Updated</dt><dd>{r.updated}</dd></div></dl>{careNote}</>, href: r.caseHref, hrefLabel: "Open the case", hrefNote: "Notes, treatment and sign-off are on the case." })}
@@ -155,7 +158,7 @@ function NgoPatients() {
     { label: "Most urgent", width: "120px", render: (r) => <Chip tone={SEV[r.worst] ?? "plain"}>{r.worst.replace(/^./, (x) => x.toUpperCase())}</Chip> },
   ];
   return <Gate crumb="Patients" v={v}>{() => <ListPage ws="health" crumb={["Healthcare", "Patients"]} title="Patients" sample={v.sample} eyebrow={v.sample ? "Kind Hour · Veterinary" : v.vet!.name}
-    sub={c.loading ? "Reading patients…" : <><b className="num">{rows.length}</b> {rows.length === 1 ? "animal is" : "animals are"} under clinical care. An animal with no open injury, rescue or treatment case is not listed.</>}
+    sub={c.loading ? "Reading patients…" : <><b className="num">{rows.length}</b> {rows.length === 1 ? "animal is" : "animals are"} under clinical care. <About>An animal with no open injury, rescue or treatment case is not listed.</About><GhMark /></>}
     views={[{ id: "all", label: "Under care", test: () => true }, { id: "urgent", label: "Critical or high", test: (r: PatRow) => r.worst === "critical" || r.worst === "high" }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.animal} search={(r) => `${r.animal} ${r.titles}`} sort={(a, b) => SEV_ORDER.indexOf(a.worst) - SEV_ORDER.indexOf(b.worst)}
     preview={(r) => ({ title: r.animal, sub: `${r.cases} open ${r.cases === 1 ? "case" : "cases"}`, body: <><p>{r.titles}</p>{careNote}</>, href: r.dogId ? `/ngo/animals/${r.dogId}` : undefined, hrefLabel: "Open the animal", hrefNote: "Its full history, cases and procedures are on the record." })}
@@ -178,7 +181,7 @@ export function Procedures() {
     { label: "State", width: "140px", render: (r) => <Chip tone={PROC_TONE[r.stage] ?? "plain"}>{r.stage}</Chip> },
   ];
   return <Gate crumb="Procedures" v={v}>{() => <ListPage ws="health" crumb={["Healthcare", "Procedures"]} title="Procedures" sample={v.sample} eyebrow={v.sample ? "Kind Hour · Veterinary" : v.vet!.name}
-    sub={!v.sample && q === null ? "Reading procedures…" : <><b className="num">{waiting}</b> {waiting === 1 ? "procedure waits" : "procedures wait"} for a veterinarian&apos;s sign-off. Only a veterinarian can sign, and the signature names them.</>}
+    sub={!v.sample && q === null ? "Reading procedures…" : <><b className="num">{waiting}</b> {waiting === 1 ? "procedure waits" : "procedures wait"} for a veterinarian&apos;s sign-off. <About>Only a veterinarian can sign, and the signature names them.</About><GhMark /></>}
     views={[{ id: "vet", label: "Waiting for you", test: (r: ProcRow) => r.stage === "Waiting for vet" }, { id: "ev", label: "Needs evidence", test: (r: ProcRow) => r.stage === "Needs evidence" }, { id: "signed", label: "Signed", test: (r: ProcRow) => r.stage === "Signed" }, { id: "all", label: "All", test: () => true }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.code} search={(r) => `${r.code} ${r.animal}`}
     preview={(r) => ({ title: r.animal, sub: <><Chip tone={PROC_TONE[r.stage] ?? "plain"}>{r.stage}</Chip> <span className="num nx-t3">{r.code}</span></>, body: <><dl className="nx-props"><div><dt>Missing</dt><dd>{r.missing.length ? r.missing.join(", ") : "Nothing"}</dd></div><div><dt>Signed by</dt><dd>{r.vet ?? "Not signed"}</dd></div><div><dt>Recorded</dt><dd>{r.when}</dd></div></dl><p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Signing confirms the surgery record as the veterinarian&apos;s own. It is never done for you, and StrayPaw keeps who signed and when.</span></p></>, href: r.href, hrefLabel: "Review and sign", hrefNote: "The sign-off is on the procedure's page." })}
@@ -204,7 +207,7 @@ export function VetFollowups() {
     { label: "Due", width: "150px", render: (r) => <Chip tone={r.day === "Overdue" ? "bad" : r.day === "Today" ? "accent" : "plain"}>{r.day === "Overdue" ? `Overdue · ${r.when}` : r.when}</Chip> },
   ];
   return <Gate crumb="Follow-ups" v={v}>{() => <ListPage ws="health" crumb={["Healthcare", "Follow-ups"]} title="Follow-ups" sample={v.sample} eyebrow={v.sample ? "Kind Hour · Veterinary" : v.vet!.name}
-    sub={!v.sample && fs === null ? "Reading follow-ups…" : <><b className="num">{rows.length}</b> due in the next 7 days{late ? <>, <b className="num">{late}</b> overdue</> : null}. Follow-ups from imported registers are left out.</>}
+    sub={!v.sample && fs === null ? "Reading follow-ups…" : <><b className="num">{rows.length}</b> due in the next 7 days{late ? <>, <b className="num">{late}</b> overdue</> : null}. <About>Follow-ups from imported registers are left out.</About><GhMark /></>}
     views={[{ id: "all", label: "Next 7 days", test: () => true }, { id: "late", label: "Overdue", test: (r: FuRow) => r.day === "Overdue" }]}
     columns={cols} rows={rows} rowKey={(r) => r.id} rowLabel={(r) => r.what} search={(r) => `${r.what} ${r.animal}`} sort={(a, b) => a.at - b.at}
     preview={(r) => ({ title: r.what, sub: r.animal, body: <><dl className="nx-props"><div><dt>Due</dt><dd>{r.when}</dd></div></dl>{careNote}</>, href: r.href, hrefLabel: "Open the case" })}
@@ -215,30 +218,47 @@ export function VetFollowups() {
 export function VetToday() {
   const v = useVet();
   const ap = useAppointments(v.orgId);
+  const tasks = useTasks(v.orgId);
   const c = useCare(v);
   const [q, setQ] = useState<QueueRow[] | null>(null);
-  useEffect(() => { if (!v.orgId) return; let alive = true; verificationQueue().then((r) => { if (alive) setQ(r); }).catch(() => { if (alive) setQ([]); }); return () => { alive = false; }; }, [v.orgId]);
+  const [qErr, setQErr] = useState<string | null>(null);
+  useEffect(() => { if (!v.orgId) return; let alive = true; verificationQueue().then((r) => { if (alive) setQ(r); }).catch((e: unknown) => { if (alive) setQErr(e instanceof Error ? e.message : "The procedure queue could not be read."); }); return () => { alive = false; }; }, [v.orgId]);
   const appts = v.sample ? VET_APPTS.filter((a) => a.day === "Today") : (ap.rows ?? []).filter((a) => dayOf(a.starts_at) === "Today" && a.status === "booked").map((a) => ({ id: a.id, title: a.title, animal: animalName(a.dog_id ? c.dogMap.get(a.dog_id) : undefined), when: hhmm(a.starts_at) }));
-  const waitingSign = v.sample ? VET_PROCS.filter((p) => p.stage === "Waiting for vet").length : (q ?? []).filter((r) => !r.vet_authorised && stageOf(r) === "vet" && !/imported_historical/.test(r.provenance ?? "")).length;
+  const signRows: ProcRow[] = v.sample ? VET_PROCS.filter((p) => p.stage === "Waiting for vet").map((p) => ({ ...p, href: `/health/procedures/${p.id}` })) : (q ?? []).filter((r) => !r.vet_authorised && stageOf(r) === "vet" && !/imported_historical/.test(r.provenance ?? "")).map((r) => ({ id: r.case_id, code: r.case_code && r.case_code.length > 14 ? `${r.case_code.slice(0, 4)}…${r.case_code.slice(-6)}` : r.case_code ?? r.case_id.slice(0, 8).toUpperCase(), animal: r.title ?? "Procedure", stage: "Waiting for vet" as const, missing: r.missing.map((m) => m.replace(/_/g, " ")), vet: r.vet_name, when: new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }), href: `/health/procedures/${r.case_id}` }));
   const urgent = c.rows.filter((r) => r.severity === "critical" || r.severity === "high");
-  const fig = (n: ReactNode, label: string, href: string) => <Link key={label} href={href} className="nx-fig"><b>{n}</b><span>{label}<ArrowRight size={12} /></span></Link>;
+  /* undefined while a read is under way, null when it failed: a figure is never a zero that was not counted. */
+  const apN = v.sample ? appts.length : ap.error ? null : ap.rows ? appts.length : undefined;
+  const signN = v.sample ? signRows.length : qErr ? null : q ? signRows.length : undefined;
+  const careN = v.sample ? c.rows.length : c.error ? null : c.loading ? undefined : c.rows.length;
+  const sev = (s: string) => c.rows.filter((r) => r.severity === s).length;
   return <Gate crumb="Today" v={v}>{() => (
     <Shell ws="health" crumb={["Healthcare", "Today"]}>
-      <div className="nx-page" style={{ maxWidth: 960 }}>
-        <div className="nx-head"><div><p className="nx-eyebrow">{v.sample ? "Kind Hour · Veterinary" : v.vet!.name}{v.sample ? <Sample /> : null}</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{appts.length} {appts.length === 1 ? "appointment" : "appointments"} today, {waitingSign} {waitingSign === 1 ? "procedure waits" : "procedures wait"} for your sign-off.</p></div></div>
-        <div className="nx-figs">
-          {fig(appts.length, "Appointments today", "/health/appointments")}
-          {fig(waitingSign, "Waiting for your sign-off", "/health/procedures")}
-          {fig(urgent.length, "Critical or high cases", "/health/care")}
-          {fig(c.rows.length, "Open clinical cases", "/health/care")}
-        </div>
-        <div className="nx-cols" style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" }}>
-          <section className="nx-sec" aria-labelledby="vt-a"><div className="nx-sec-h"><h2 id="vt-a">Appointments</h2><Link href="/health/appointments">All <ArrowRight size={12} /></Link></div>
-            <ul className="nx-feed">{appts.map((a) => <li key={a.id}><span className="nx-feed-i"><CalendarPlus size={12} /></span><div><b>{a.title}</b><p>{a.animal} · {a.when}</p></div></li>)}</ul>{!appts.length ? <p className="nx-sub">Nothing booked for today.</p> : null}</section>
-          <section className="nx-sec" aria-labelledby="vt-u" style={{ marginTop: 0 }}><div className="nx-sec-h"><h2 id="vt-u">Most urgent</h2><Link href="/health/care">Clinical care <ArrowRight size={12} /></Link></div>
-            <ul className="nx-feed">{urgent.slice(0, 5).map((r) => <li key={r.id}><span className="nx-feed-i" style={r.severity === "critical" ? { background: "var(--bad-soft)", color: "var(--bad)" } : undefined}><Stethoscope size={12} /></span><div><b>{r.title}</b><p>{r.animal} · {r.next}</p></div></li>)}</ul>{!urgent.length && !c.loading ? <p className="nx-sub">No critical or high cases open.</p> : null}</section>
-        </div>
-        <p className="nx-note" style={{ marginTop: 22, maxWidth: 700 }}><Lock size={13} /><span>This view reads {v.sample ? "the NGO" : v.vet!.name}&apos;s own animals and cases. StrayPaw does not suggest diagnoses or treatments, and Kaju does not read clinical notes.</span></p>
+      <div className="nx-page hm-page">
+        <div className="nx-head"><div><p className="nx-eyebrow">{v.sample ? "Kind Hour · Veterinary" : v.vet!.name}{v.sample ? <Sample /> : null}</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{apN === undefined || signN === undefined ? "Reading your day…" : <About>Booking a visit is not a clinical decision; findings and sign-offs are recorded on the case.</About>}<GhMark /></p></div></div>
+        <AtKaju role="vet" note="Kaju reads only what you can open. Clinical decisions stay with you." />
+        <Tiles>
+          <Tile label="Appointments today" n={apN} href="/health/appointments" />
+          <Tile label="Waiting for your sign-off" n={signN} tone={signN ? "warn" : "plain"} href="/health/procedures" />
+          <Tile label="Critical or high cases" n={careN === undefined || careN === null ? careN : urgent.length} tone={urgent.length ? "bad" : "plain"} href="/health/care" />
+          <Tile label="Open clinical cases" n={careN} href="/health/care?view=all"
+            visual={c.rows.length ? <Split parts={[{ n: sev("critical"), tone: "bad", label: "critical" }, { n: sev("high"), tone: "warn", label: "high" }, { n: sev("normal") + sev("low"), tone: "plain", label: "other" }]} /> : null} />
+        </Tiles>
+        <Grid cols={v.orgId ? 2 : 3}>
+          <Panel id="vt-a" title="Appointments today">
+            <Rows items={v.sample || ap.rows ? appts.map((a): Item => ({ id: a.id, title: a.title, meta: a.animal, href: "/health/appointments", icon: <CalendarPlus size={16} />, tone: "blue", chip: { text: a.when, tone: "blue" } })) : null}
+              error={ap.error} all={{ href: "/health/appointments" }} empty="Nothing booked for today." />
+          </Panel>
+          <Panel id="vt-u" title="Most urgent">
+            <Rows items={v.sample || !c.loading ? urgent.map((r): Item => ({ id: r.id, title: r.title, meta: `${r.animal} · ${r.next}`, href: r.caseHref, icon: <Stethoscope size={16} />, tone: r.severity === "critical" ? "bad" : "warn", chip: { text: r.severity.replace(/^./, (x) => x.toUpperCase()), tone: r.severity === "critical" ? "bad" : "warn" } })) : null}
+              error={c.error} all={{ href: "/health/care" }} empty="No critical or high cases are open." />
+          </Panel>
+          <Panel id="vt-s" title="Waiting for your sign-off">
+            <Rows items={v.sample || q ? signRows.map((r): Item => ({ id: r.id, title: r.animal, meta: `${r.code} · ${r.when}${r.missing.length ? ` · missing ${r.missing.join(", ")}` : ""}`, href: r.href, icon: <Lock size={16} />, tone: "warn", chip: { text: "Sign", tone: "warn" } })) : null}
+              error={qErr} all={{ href: "/health/procedures" }} empty="Nothing waits for your signature." />
+          </Panel>
+          {v.orgId ? <TasksPanel orgId={v.orgId} userId={v.live.userId} tasks={tasks} /> : null}
+        </Grid>
+        <p className="hm-note" style={{ marginTop: 16 }}>This view reads {v.sample ? "the NGO" : v.vet!.name}&apos;s own animals and cases. StrayPaw does not suggest diagnoses or treatments; only a veterinarian signs a procedure.</p>
       </div>
     </Shell>
   )}</Gate>;

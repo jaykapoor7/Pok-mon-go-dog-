@@ -13,7 +13,7 @@ import { useLive } from "../../live";
 import type { Tone } from "../../fixtures";
 import { ago, capsIn, indiaToday, uploadLogo, usePlaces } from "../../data/govhealth";
 import { SAMPLE_ALERTS, SAMPLE_HANDOFFS, SAMPLE_NAMES, SAMPLE_NETWORK, SAMPLE_OVERVIEW, SAMPLE_PROGRAMME } from "../../data/govhealth-samples";
-import { Block, Opening, SignedConfirm, TryLink } from "../gh/parts";
+import { Block, GhMark, Opening, SignedConfirm, TryLink } from "../gh/parts";
 import { WeekBars } from "../Gov";
 
 /* One programme, seen whole: what needs a decision, coverage against dated estimates, the care network, the work
@@ -67,7 +67,7 @@ function View({ sample, p, caps, places, first, reloadProg }: { sample: boolean;
         <RecordHead av={<MapPin size={18} />} title={<>{p.name}{sample ? <Sample /> : null}</>}
           sub={<>{PLAN[p.plan] ?? "Programme"}{p.plan === p.status ? "" : `, ${(STATUS[p.status] ?? p.status).toLowerCase()}`} · target {pct(p.vaccination_target)} dog vaccination </>}
           chips={p.illustrative && !sample ? <Chip tone="warn">Illustrative</Chip> : null} />
-        <TabBar id="gh-prog" tabs={tabs} value={tab} onChange={go} label="Programme sections" />
+        <TabBar id="gh-prog" tabs={tabs} value={tab} onChange={go} label="Programme sections" /><GhMark />
       </div>
       {tab === "Overview" ? <OverviewTab {...ctx} /> : tab === "Coverage" ? <CoverageTab {...ctx} /> : tab === "Network" ? <NetworkTab {...ctx} /> : tab === "Work" ? <WorkTab {...ctx} /> : tab === "Data" ? <DataTab {...ctx} /> : tab === "Report" ? <ReportTab {...ctx} /> : <SetupTab {...ctx} reloadProg={reloadProg} />}
     </Shell>

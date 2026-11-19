@@ -192,6 +192,10 @@ export async function biteTurn(input: BiteTurnIn, signal?: AbortSignal, env: Rec
   let raw: Raw | null = null;
   if (client) raw = await viaClaude(client, env.STRAYPAW_BITE_AI_MODEL?.trim() || "claude-opus-5-5", false, max, input, signal);
   else {
+    /* The deployment's direct Anthropic key is reserved for staff Kaju (and its owner-approved first test). Public bite
+       help, which anyone can open without signing in, never spends it unless the owner separately sets
+       STRAYPAW_BITE_AI_DIRECT_KEY=true; otherwise it uses the AI Gateway identity, Sarvam, or its fixed rules. */
+    if (env.STRAYPAW_BITE_AI_DIRECT_KEY?.trim() !== "true") env = { ...env, ANTHROPIC_API_KEY: undefined };
     const keyed = !!(env.ANTHROPIC_API_KEY?.trim() || env.AI_GATEWAY_API_KEY?.trim());
     const sk = sarvamKey(env);
     const claude = async () => {

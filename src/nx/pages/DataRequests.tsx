@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import { useCallback, useEffect, useState } from "react";
 import { Download, Lock, Plus } from "lucide-react";
 import { Shell } from "../Shell";
@@ -98,7 +99,7 @@ export function StewardRequests() {
   return (
     <Shell ws="gov" crumb={["Programmes", "Data requests"]}>
       <div className="nx-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">Data stewardship</p><h1 className="nx-h1">Data requests</h1><p className="nx-sub">Research groups asking for your programme&apos;s data. They get suppressed counts for the period and groupings you approve, never patient rows. You can revoke at any time.</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">Data stewardship</p><h1 className="nx-h1">Data requests</h1><p className="nx-sub">Research groups asking for your programme&apos;s data. <About>They get suppressed counts for the period and groupings you approve, never patient rows. You can revoke at any time.</About><GhMark /></p></div></div>
         {!live.ready || reqs.rows === null ? <Skeleton /> : notSetUp(reqs.error) ? <p className="nx-sub">Data requests are not set up on this database yet.</p> : !live.signedIn ? <Denied what="Sign in to see requests to your programmes" /> : !mine.length ? <Empty title="No requests to your programmes" hint="When a research group asks, you are notified and the request appears here." /> : (
           <ul className="nx-dreq">{mine.map((r) => { const [t, w] = STATE[r.status] ?? ["plain", r.status]; return (
             <li key={r.id}>

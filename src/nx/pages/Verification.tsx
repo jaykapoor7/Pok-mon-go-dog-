@@ -1,5 +1,6 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -38,7 +39,7 @@ function VerificationView({ rows, sample, loading, note, office }: { rows: Row[]
   return (
     <Shell ws="gov" crumb={["Government", "Verification"]}>
       <div className="nx-page" style={{ maxWidth: "none" }}>
-        <div className="nx-head"><div><p className="nx-eyebrow">{office}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Verification</h1><p className="nx-sub">{loading ? "Reading the queue…" : <><b className="num">{waiting.length}</b> {waiting.length === 1 ? "package waits" : "packages wait"} for a decision{oldest ? <>, the oldest for <b className="num">{oldest}</b> {oldest === 1 ? "day" : "days"}</> : null}. Decisions are signed by a named reviewer.</>}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{office}{sample ? <Sample /> : null}<GhMark /></p><h1 className="nx-h1">Verification</h1><p className="nx-sub">{loading ? "Reading the queue…" : <><b className="num">{waiting.length}</b> {waiting.length === 1 ? "package waits" : "packages wait"} for a decision{oldest ? <>, the oldest for <b className="num">{oldest}</b> {oldest === 1 ? "day" : "days"}</> : null}. <About>Decisions are signed by a named reviewer.</About></>}</p></div></div>
         <div className="nx-bar">
           <div className="nx-views" role="tablist" aria-label="Views">
             {VIEWS.map((v) => <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => setView(v.id)}>{view === v.id ? <motion.span layoutId="nx-vview" className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}<span className="nx-count">{rows.filter(v.test).length}</span></span></button>)}

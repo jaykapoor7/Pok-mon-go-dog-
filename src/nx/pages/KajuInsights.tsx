@@ -11,6 +11,7 @@ import { Chip, Sample } from "../ui";
 import { FINDINGS, WORKLOAD, type Finding } from "../fixtures";
 import { useCases, useLive } from "../live";
 import { KajuPlaces } from "../kaju/Places";
+import { ModelControl, PilotMetrics } from "../kaju/Pilot";
 
 /* Kaju's insights: the fixed checks Kaju runs over the organisation's own records (kaju_refresh_checks), each with
    its method written out, and how open cases are spread across people. No model writes these, no health record is
@@ -64,7 +65,7 @@ export function KajuInsights() {
 
   if (!live.ready) return <Shell ws="kaju" crumb={["Kaju", "Insights"]}><div className="nx-page"><p className="nx-sub">Opening…</p></div></Shell>;
   const sample = !live.org;
-  if (!sample && !ngo) return <Shell ws="kaju" crumb={["Kaju", "Insights"]}><div className="nx-page"><h1 className="nx-h1">Insights</h1><p className="nx-sub">Kaju&apos;s checks run on an NGO&apos;s records. Your account is not part of an NGO, so there are none here.</p></div></Shell>;
+  if (!sample && !ngo) return <Shell ws="kaju" crumb={["Kaju", "Insights"]}><div className="nx-page" style={{ maxWidth: 1000 }}><h1 className="nx-h1">Insights</h1><p className="nx-sub">Kaju&apos;s checks run on an NGO&apos;s records. Your account is not part of an NGO, so there are none here.</p>{live.org ? <PilotMetrics orgId={live.org.org_id} /> : null}<ModelControl /></div></Shell>;
   const findings = sample ? FINDINGS : run?.findings ?? [];
   const load = sample ? WORKLOAD : workload;
   const openTotal = load.reduce((a, [, n]) => a + n, 0);
@@ -106,7 +107,9 @@ export function KajuInsights() {
           <div className="nx-bars" style={{ maxWidth: 640 }}>{load.map(([who, n]) => <div key={who} className="nx-barrow" style={{ gridTemplateColumns: "130px minmax(0, 1fr) 40px" }}><span className="nx-t2">{who}</span><span className="nx-bar-t"><span className={who === "Unassigned" ? "is-low" : ""} style={{ width: `${(n / max) * 100}%` }} /></span><em>{n}</em></div>)}</div>
           <p className="nx-foot">{sample ? "Sample figures." : `Open cases on ${ngo!.name}'s register, imported historical records left out${(cases.rows?.length ?? 0) >= 300 ? "; the 300 most recent cases were read" : ""}.`} A long bar is workload, not performance.</p>
         </section>
-        <p className="nx-note" style={{ marginTop: 22, maxWidth: 700 }}><Info size={13} /><span>These checks are fixed rules over your organisation&apos;s own records. Kaju does not read health records, does not guess causes, and does not change anything from this page.</span></p>
+        {!sample && ngo ? <PilotMetrics orgId={ngo.org_id} /> : null}
+        <ModelControl />
+        <p className="nx-note" style={{ marginTop: 22, maxWidth: 700 }}><Info size={13} /><span>These checks are fixed rules over your organisation&apos;s own records. They do not use patient records, do not guess causes, and do not change any record from this page.</span></p>
       </div>
     </Shell>
   );

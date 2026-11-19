@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, ClipboardPlus, Info, Lock, Plus } from "lucide-react";
 import { Shell } from "../Shell";
 import { Chip, Sample, TrustChip } from "../ui";
+import { RecordBar } from "../RecordBar";
 import { Failed, Field, Modal, Props, RecordHead, Section, Skeleton, TabBar, Timeline, day, errText, useAct, words, type TItem } from "../kit";
 import { ANIMALS, RELATED } from "../fixtures";
 import { useLive, type Workspace } from "../live";
@@ -18,11 +19,18 @@ import { publicFlagOn } from "@/lib/flags";
 import { MEDICAL_KINDS } from "@/lib/types";
 import { ID_KINDS, addIdentifier, identifierProblem, readAnimal, readIdentifiers, retireIdentifier, setNeedsHelp, shortCode, statusLabel, STATUS_TONE, type AnimalFile, type IdKind, type Identifier } from "../data/ngo";
 import { CareForm, DeleteRecord, FollowupList, OpsEvents, Partial, TryLink, undoWith } from "./ngo/parts";
+import { KajuCapture, type ByHand } from "../KajuCapture";
+import { CARE_WORD, readRecord } from "../data/capture";
+import type { Proposal } from "@/sp3/ai/types";
+import { useRouter } from "next/navigation";
 import { QrScan, SampleBody, numberFact, sampleRef } from "./Animals";
 
 /* One animal at the organisation's depth: what the register holds, care with who recorded it, follow-ups that survive a
    case closing, the reported operations on its cases, its earlier source timeline and its cases. Clinical records say
-   what they are: recorded by the organisation, not a clinician's sign-off. */
+   what they are: recorded by the organisation, not a clinician's sign-off.
+
+   Care and notes start with Tell Kaju, under the header, with this animal as context: Kaju prepares a care event to
+   confirm. The manual care form folds under "Record by hand". Identity decisions and identifiers stay explicit. */
 
 type Tab = "Summary" | "Care" | "Cases" | "History" | "Discussion";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -44,6 +52,8 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const [file, setFile] = useState<AnimalFile | null | "loading" | { error: string }>("loading");
   const [tab, setTab] = useState<Tab>("Summary");
   const [caring, setCaring] = useState(false);
+  const [seed, setSeed] = useState<{ kind: string; date: string | null; notes: string; n: number } | null>(null);
+  const router = useRouter();
   const { busy, run } = useAct();
   const read = useCallback(async () => { const r = await readAnimal(org.org_id, id); setFile(r.error ? { error: errText(r.error) } : r.data ?? null); }, [org.org_id, id]);
   useEffect(() => { void read(); }, [read]);
@@ -68,17 +78,36 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
   const caseList = cases.length ? <div className="nx-rel">{cases.map((c) => <Link key={c.id} href={`/ngo/cases/${c.id}`}><ArrowUpRight size={13} /><span className="num">{shortCode(c.case_code)}</span><span style={{ color: "var(--ink-3)" }}>{c.condition_class && c.condition_class !== "Not recorded" ? c.condition_class : c.title ?? "Request"}</span><small><Chip tone={STATUS_TONE[c.status_class ?? "unknown"] ?? "plain"}>{statusLabel(c.status_class)}</Chip></small></Link>)}</div> : <p className="nr-quiet">This animal is not part of any case.</p>;
   const tabs: [Tab, number | undefined][] = [["Summary", undefined], ["Care", care.length || undefined], ["Cases", cases.length || undefined], ["History", timeline.length || undefined], ["Discussion", undefined]];
 
+  /* Tell Kaju hands care to the manual form, filled (Change, or the person's own words when Kaju prepared nothing). A
+     note or follow-up belongs on a case: the words go to its open case's Tell Kaju box, unsent. */
+  const toCare = (v: { kind: string; date: string | null; notes: string }) => {
+    setTab("Summary"); setSeed({ ...v, n: Date.now() }); setCaring(true);
+    window.requestAnimationFrame(() => { const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; document.getElementById("animal-care")?.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" }); });
+  };
+  const byHand = (t: string): ByHand[] => {
+    const r = readRecord(t);
+    return [
+      r.care ? { label: `Record the ${(CARE_WORD[r.care.kind] ?? "care").toLowerCase()} by hand`, go: () => toCare(r.care!) } : { label: "Record it as care by hand", go: () => toCare({ kind: "", date: null, notes: r.note }) },
+      ...(liveCase && (r.followup || !r.care) ? [{ label: "Tell it on its open case instead", go: () => router.push(`/ngo/cases/${liveCase.id}?say=${encodeURIComponent(t.trim().slice(0, 2000))}`) }] : []),
+    ];
+  };
+  const change = (p: Proposal) => { if (p.kind === "record_care") toCare({ kind: p.careKind, date: p.date, notes: p.notes }); else if (p.kind === "open_case") router.push(`/ngo/cases/new?${new URLSearchParams({ dog: d.id, title: p.title, note: p.description, from: "kaju", cat: p.category, sev: p.severity, city: p.city, ...(p.zone ? { zone: p.zone } : {}) }).toString()}`); };
+  const careForm = <CareForm key={seed?.n ?? 0} initial={seed} dogId={d.id} onSaved={() => { setCaring(false); setSeed(null); return read(); }} onCancel={() => { setCaring(false); setSeed(null); }} />;
+
   return (
-    <Shell crumb={["Animals", label.line]}>
+    <Shell crumb={["Animals", label.line]} subject={{ kind: "animal", dogId: d.id, label: label.line }}>
       <RecordHead av={<AnimalPhoto src={lead} size="head" />} title={<AnimalTitle a={d} />}
         sub={<><Lock size={11} style={{ verticalAlign: "-1px" }} /> Private to {org.name} · {[d.zone, d.city].filter(Boolean).join(", ") || "Place not recorded"} · last seen {d.last_seen ? day(d.last_seen) : "not recorded"}</>}
         chips={<><Chip tone={factTone(d.sterilisation_status)}>{fact(d.sterilisation_status, "Sterilised", "Not sterilised", "Sterilisation not recorded")}</Chip><Chip tone={factTone(d.vaccination_status)}>{fact(d.vaccination_status, "Vaccinated", "Not vaccinated", "Vaccination not recorded")}</Chip>{d.needs_help ? <Chip tone="bad">Needs help</Chip> : null}<TrustChip trust={imported ? "Imported" : "Recorded"} /></>}
         actions={<>
-          <button type="button" className="nx-btn is-sm" onClick={() => { setTab("Care"); setCaring(true); }}><Plus size={13} />Record care</button>
           {liveCase ? <Link href={`/ngo/cases/${liveCase.id}`} className="nx-btn is-quiet is-sm">Open its case</Link> : null}
           <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn is-quiet is-sm"><ClipboardPlus size={13} />{liveCase ? "Open another case" : "Start a case"}</Link>
           <button type="button" className="nx-btn is-quiet is-sm" disabled={!!busy} onClick={flip}>{d.needs_help ? "Clear needs help" : "Flag as needing help"}</button>
         </>} />
+      <div className="kc-line"><KajuCapture compact idBase="animal-kaju" label="Tell Kaju" context={{ path: `/ngo/animals/${d.id}`, workspace: "ngo", dogId: d.id, title: label.line }}
+        placeholder="For example: dewormed today at the shelter"
+        hint="Care given or something about this animal, in your own words. Kaju prepares it for this animal; nothing is saved until you confirm."
+        reading={(t) => readRecord(t).facts} byHand={byHand} onChange={change} changes={["record_care", "open_case"]} onSaved={() => void read()} /></div>
       <TabBar id="animal" tabs={tabs} value={tab} onChange={setTab} label="Record sections" />
       <div style={{ padding: "12px 32px 0" }}><Partial parts={partial} /></div>
       {tab === "Summary" ? (
@@ -93,8 +122,8 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
           </section>
           <div>
             <p className="nx-note" style={{ marginBottom: 18 }}><Info size={13} /><span>{liveCase ? <><b style={{ color: "var(--ink)" }}>In the line now:</b> {liveCase.condition_class && liveCase.condition_class !== "Not recorded" ? liveCase.condition_class : "an open case"}, {statusLabel(liveCase.status_class).toLowerCase()}{liveCase.assignee_name ? `, held by ${liveCase.assignee_name}` : ""}. <Link className="nr-link" href={`/ngo/cases/${liveCase.id}`}>Open its case</Link></> : <><b style={{ color: "var(--ink)" }}>Not in the line.</b> No open case on this animal. <Link className="nr-link" href={`/ngo/cases/new?dog=${d.id}`}>Start one</Link></>}</span></p>
-            <Section title="Care on record" count={care.length} action={<button type="button" className="nx-btn is-quiet is-sm" aria-expanded={caring} onClick={() => setCaring((v) => !v)}>{caring ? "Close" : "Record care"}</button>}>
-              {caring ? <CareForm dogId={d.id} onSaved={read} onCancel={() => setCaring(false)} /> : null}
+            <Section id="animal-care" title="Care on record" count={care.length} action={<button type="button" className="nx-btn is-quiet is-sm" aria-expanded={caring} onClick={() => { setCaring((v) => !v); setSeed(null); }}>{caring ? "Close" : "Record by hand"}</button>}>
+              {caring ? careForm : null}
               <Timeline items={careItems.slice(0, 6)} empty="No care recorded yet. Vaccination, sterilisation, treatment and check-ups recorded here, or on its cases, appear with who recorded them." />
               {care.length > 6 ? <button type="button" className="nr-link" onClick={() => setTab("Care")}>See all {care.length}</button> : null}
             </Section>
@@ -108,13 +137,19 @@ function LiveRecord({ id, org }: { id: string; org: Workspace }) {
         </div>
       ) : tab === "Care" ? (
         <div className="nx-page" style={{ maxWidth: 860 }}>
-          <Section title="Record care">{caring ? <CareForm dogId={d.id} onSaved={read} onCancel={() => setCaring(false)} /> : <button type="button" className="nx-btn is-sm" onClick={() => setCaring(true)}><Plus size={13} />Record care</button>}</Section>
+          <Section title="Record care">{caring ? careForm : <><p className="nr-quiet">Tell Kaju above, for example “dewormed today at the shelter”, and confirm what it prepares.</p><p style={{ marginTop: 8 }}><button type="button" className="nx-btn is-quiet is-sm" onClick={() => setCaring(true)}><Plus size={13} />Record by hand</button></p></>}</Section>
           <Section title="Care on record" count={care.length}><Timeline items={careItems} empty="No care recorded yet." /></Section>
           <p className="nr-hint">Recorded by the organisation, not clinician-signed. A veterinary sign-off is a separate step on the case.</p>
         </div>
       ) : tab === "Cases" ? <div className="nx-page" style={{ maxWidth: 860 }}><Section title="Cases" count={cases.length}>{caseList}</Section></div>
         : tab === "Discussion" ? <div className="nx-page" style={{ maxWidth: 820 }}><RecordThread kind="animal" id={id} label={label.line} /></div>
         : <div className="nx-page" style={{ maxWidth: 860 }}><Section title="Earlier source timeline" count={timeline.length}><Timeline items={history} empty="No earlier timeline entries. Structured operations are shown on the summary." /></Section><p className="nr-hint">Deleting moves an entry to removed records for 30 days; Undo brings it back.</p></div>}
+      <RecordBar label="More on this animal"
+        primary={liveCase ? <Link href={`/ngo/cases/${liveCase.id}`} className="nx-btn">Open its case</Link> : <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn"><ClipboardPlus size={16} />Start a case</Link>}
+        more={<>
+          {liveCase ? <Link href={`/ngo/cases/new?dog=${d.id}`} className="nx-btn is-quiet"><ClipboardPlus size={16} />Open another case</Link> : null}
+          <button type="button" className="nx-btn is-quiet" disabled={!!busy} onClick={flip}>{d.needs_help ? "Clear needs help" : "Flag as needing help"}</button>
+        </>} />
     </Shell>
   );
 }
@@ -184,11 +219,14 @@ function SampleRecord({ id }: { id: string }) {
   return (
     <Shell crumb={["Animals", animalLabel(ref).line]}>
       <RecordHead av={<AnimalPhoto src={null} size="head" />} title={<><AnimalTitle a={ref} /><Sample /></>} sub={<>{a.ward} · Last seen {a.last}</>} chips={<TrustChip trust={a.trust} />}
-        actions={<><TryLink sm><Plus size={13} />Record care</TryLink><TryLink sm quiet><ClipboardPlus size={13} />Start a case</TryLink><TryLink sm quiet>Flag as needing help</TryLink></>} />
+        actions={<><TryLink sm quiet><ClipboardPlus size={13} />Start a case</TryLink><TryLink sm quiet>Flag as needing help</TryLink></>} />
+      <div className="kc-line"><KajuCapture compact sample idBase="animal-kaju" label="Tell Kaju" context={{ path: `/ngo/animals/${id}`, workspace: "ngo", title: animalLabel(ref).line }} placeholder="For example: dewormed today at the shelter"
+        hint="In the live demo, Kaju prepares a care event for this animal from your words, and you confirm it." byHand={() => []} /></div>
       <TabBar id="animal" tabs={["Summary", "Cases", "Activity"]} value={tab} onChange={setTab} label="Record sections" />
       {tab === "Summary" ? <div className="nx-page" style={{ maxWidth: 860 }}><div style={{ maxWidth: 240 }}><RecordPhotos photos={[]} label={animalLabel(ref).line} /></div><SampleBody a={a} photo={false} /></div>
         : tab === "Cases" ? <div className="nx-page"><Section title="Cases and work" count={RELATED.length}><div className="nx-rel">{RELATED.map((r) => <span key={r.ref} className="nx-rel-i"><ArrowUpRight size={13} /><span className="num">{r.ref}</span><span style={{ color: "var(--ink-3)" }}>{r.what}</span><small>{r.state}</small></span>)}</div></Section></div>
         : <div className="nx-page" style={{ maxWidth: 720 }}><p className="nx-sub">In the live demo, every care event and earlier history entry appears here with who recorded it, and each can be deleted with a reason and undone.</p><p style={{ marginTop: 12 }}><TryLink sm quiet>Open the live demo</TryLink></p></div>}
+      <RecordBar label="More on this animal" primary={<TryLink><ClipboardPlus size={16} />Start a case</TryLink>} more={<TryLink quiet>Flag as needing help</TryLink>} />
     </Shell>
   );
 }

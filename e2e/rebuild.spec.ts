@@ -174,7 +174,7 @@ test("Insights: choosing a ward narrows the figures and the table together", asy
   await expect(page.locator("button.nx-tr")).toHaveCount(6);
   await page.locator(".nx-barrow", { hasText: "Ward 08" }).click();
   await expect(page.locator("button.nx-tr")).toHaveCount(1);
-  await expect(page.locator(".nx-fig").first()).toContainText("236");
+  await expect(page.locator(".hm-tile").first()).toContainText("236");
   await expect(page.locator(".nx-barrow", { hasText: "Ward 14" })).toContainText("No estimate");
   await noSideScroll(page);
 });

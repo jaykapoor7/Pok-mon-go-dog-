@@ -3,9 +3,9 @@
 import { asksAssistant } from "@/lib/demo-brand";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, AtSign, Check as Tick, FileText, Hash, Loader2, Lock, Megaphone, MoreHorizontal, Paperclip, Pencil, Send, SmilePlus, Sparkles, Trash2, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, AtSign, Check as Tick, CornerUpLeft, FileText, Hash, Loader2, Lock, Megaphone, MoreHorizontal, Paperclip, Pencil, Send, SmilePlus, Sparkles, Trash2, Users, X } from "lucide-react";
 import { Shell } from "../Shell";
 import { Check, Chip, Sample, initials } from "../ui";
 import { Confirm, Skeleton, errText, toast } from "../kit";
@@ -13,6 +13,7 @@ import { CH_PEOPLE, CH_RECORDS, CH_WORK, KAJU_TASKS, MESSAGES, SAMPLE_CHATS } fr
 import { addTasks, announceChannel, askKaju, createChannel, markRead, setTaskDone, useChannels, useDms, useLive, useOrgPeople, useTasks, type Channel as ChannelRow, type Workspace } from "../live";
 import { recordHref, EMOJI, FILE_TYPES, deleteMessage, editMessage, fileLink, mentionsIn, sendMessage, uploadFile, useChannelMessages, useProgrammeChannels, useReactions, type FileRef, type Msg } from "../collab";
 import { GENERAL_PURPOSE, faceOf, isUnnamed, nameMissing, newConversation, personName, roleWord } from "../conversations";
+import { Sheet } from "../Phone";
 import "../css/channel.css";
 import "../css/conversations.css";
 
@@ -71,11 +72,11 @@ function Composer({ v, parent, placeholder, autoFocus }: { v: View; parent?: str
         onKeyDown={(e) => { if (at !== null && matches.length && (e.key === "Enter" || e.key === "Tab")) { e.preventDefault(); choose(matches[0]); return; } if (e.key === "Escape") setAt(null); if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} />
       {files.length || uploading ? <div className="nx-compose-files">{files.map((f) => <span key={f.path} className="nx-file is-pending"><Paperclip size={12} />{f.name}<button type="button" aria-label={`Remove ${f.name}`} onClick={() => setFiles((fs) => fs.filter((x) => x.path !== f.path))}><X size={11} /></button></span>)}{uploading ? <span className="nx-file is-pending"><Loader2 size={12} className="nx-spin" />Uploading…</span> : null}</div> : null}
       <div className="nx-compose-f">
-        {v.dm || v.sample ? null : <button type="button" className="nx-ib" aria-label="Mention Kaju" title="Ask Kaju" onClick={() => setText((t) => (t ? `${t} @Kaju ` : "@Kaju turn these updates into tasks"))}><Sparkles size={15} /></button>}
-        {v.mentionable.length ? <button type="button" className="nx-ib" aria-label="Mention someone" title="Mention someone" onClick={() => { setText((t) => `${t}${t && !t.endsWith(" ") ? " " : ""}@`); setAt(""); box.current?.focus(); }}><AtSign size={15} /></button> : null}
-        {v.onUpload ? <><button type="button" className="nx-ib" aria-label="Attach a file" title="Attach a file (10 MB at most)" onClick={() => pick.current?.click()}><Paperclip size={15} /></button><input ref={pick} type="file" hidden multiple accept={FILE_TYPES} onChange={(e) => { void add(e.target.files); e.target.value = ""; }} /></> : null}
+        {v.dm || v.sample ? null : <button type="button" className="nx-ib ch-kaju" aria-label="Mention Kaju" title="Ask Kaju" onClick={() => setText((t) => (t ? `${t} @Kaju ` : "@Kaju turn these updates into tasks"))}><Sparkles size={15} /></button>}
+        {v.mentionable.length ? <button type="button" className="nx-ib ch-at" aria-label="Mention someone" title="Mention someone" onClick={() => { setText((t) => `${t}${t && !t.endsWith(" ") ? " " : ""}@`); setAt(""); box.current?.focus(); }}><AtSign size={15} /></button> : null}
+        {v.onUpload ? <><button type="button" className="nx-ib ch-clip" aria-label="Attach a file" title="Attach a file (10 MB at most)" onClick={() => pick.current?.click()}><Paperclip size={15} /></button><input ref={pick} type="file" hidden multiple accept={FILE_TYPES} onChange={(e) => { void add(e.target.files); e.target.value = ""; }} /></> : null}
         <small className="nx-hide-s">Enter to send · Shift Enter for a new line</small>
-        <button type="submit" className="nx-btn is-sm" style={{ marginLeft: "auto" }} disabled={(!text.trim() && !files.length) || !!uploading}><Send size={12} />{parent ? "Reply" : "Send"}</button>
+        <button type="submit" className="nx-btn is-sm ch-send" style={{ marginLeft: "auto" }} aria-label={parent ? "Reply" : "Send"} disabled={(!text.trim() && !files.length) || !!uploading}><Send size={12} /><span className="ch-send-t">{parent ? "Reply" : "Send"}</span></button>
       </div>
     </form>
   );
@@ -90,6 +91,9 @@ function ChannelView(v: View) {
   const [menu, setMenu] = useState<string | null>(null);
   const [react, setReact] = useState<string | null>(null);
   const [del, setDel] = useState<VMsg | null>(null);
+  /* On a phone a message's reactions, reply, edit and delete open from one button as a sheet of large rows. */
+  const [acts, setActs] = useState<{ m: VMsg; inThread: boolean } | null>(null);
+  const closeActs = useCallback(() => setActs(null), []);
   const top = (v.msgs ?? []).filter((m) => !m.parent);
   const repliesOf = (id: string) => (v.msgs ?? []).filter((m) => m.parent === id);
   const parent = thread ? (v.msgs ?? []).find((m) => m.id === thread) ?? null : null;
@@ -127,6 +131,7 @@ function ChannelView(v: View) {
             </div>
           ) : null}
         </div>
+        {!m.deleted && (!inThread || !v.sample) ? <button type="button" className="nx-ib ch-more" aria-label={`Actions for the message from ${m.who}`} aria-haspopup="dialog" onClick={() => setActs({ m, inThread })}><MoreHorizontal size={18} aria-hidden /></button> : null}
         {!m.deleted && !v.sample ? <div className="nx-msg-tools">
           {v.reactions ? <button type="button" className="nx-ib" aria-label="React" aria-expanded={react === m.id} onClick={() => setReact(react === m.id ? null : m.id)}><SmilePlus size={14} /></button> : null}
           {m.mine && (v.onEdit || v.onDelete) ? <button type="button" className="nx-ib" aria-label="More actions" aria-expanded={menu === m.id} onClick={() => setMenu(menu === m.id ? null : m.id)}><MoreHorizontal size={14} /></button> : null}
@@ -201,6 +206,17 @@ function ChannelView(v: View) {
           <p className="nx-foot" style={{ marginTop: 0 }}>Kaju reads only what you can see in this channel, quotes messages as written, and asks before anything is created.</p>
         </aside>}
       </div>
+      <Sheet open={!!acts} onClose={closeActs} label="Message">
+        {acts ? <div className="ch-acts">
+          <p className="ch-acts-q"><b>{acts.m.who}</b> {acts.m.text.length > 120 ? `${acts.m.text.slice(0, 120)}…` : acts.m.text}</p>
+          {v.reactions && !v.sample ? <div className="ch-acts-r" role="group" aria-label="React">{EMOJI.map((e) => <button key={e} type="button" aria-label={`React ${e}`} onClick={() => { v.reactions?.toggle(acts.m.id, e); setActs(null); }}>{e}</button>)}</div> : null}
+          <ul className="ph-rows">
+            {!acts.inThread ? <li><button type="button" className="ph-row" onClick={() => { setThread(acts.m.id); setActs(null); }}><CornerUpLeft size={20} aria-hidden /><span>{repliesOf(acts.m.id).length ? `Open the thread (${repliesOf(acts.m.id).length})` : "Reply in a thread"}</span></button></li> : null}
+            {acts.m.mine && v.onEdit && !acts.m.kaju ? <li><button type="button" className="ph-row" onClick={() => { setEditing({ id: acts.m.id, text: acts.m.text }); setActs(null); }}><Pencil size={20} aria-hidden /><span>Edit</span></button></li> : null}
+            {acts.m.mine && v.onDelete ? <li><button type="button" className="ph-row ch-bad" onClick={() => { setDel(acts.m); setActs(null); }}><Trash2 size={20} aria-hidden /><span>Delete</span></button></li> : null}
+          </ul>
+        </div> : null}
+      </Sheet>
       {del ? <Confirm title="Delete this message?" confirm="Delete" danger onClose={() => setDel(null)} onConfirm={async () => { if (v.onDelete && (await v.onDelete(del))) setDel(null); }}><p>It shows as deleted to everyone in {label}. Its files are removed from the message. The earlier wording is kept for audit and is not shown.</p></Confirm> : null}
     </Shell>
   );

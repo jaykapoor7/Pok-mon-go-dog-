@@ -15,7 +15,8 @@ import { PROVIDERS, consentScopes, grantedCapabilities, type Capability, type Co
    organisation when the organisation's policy allows sharing).
    ════════════════════════════════════════════════════════════════════ */
 
-export type Caller = { userId: string; email: string | null; ngoId: string | null; role: string | null; db: SupabaseClient };
+/** `verified`: the account's email or phone is confirmed, from the auth server (used by the paid-inference gate). */
+export type Caller = { userId: string; email: string | null; ngoId: string | null; role: string | null; db: SupabaseClient; verified?: boolean };
 
 /** The signed-in person behind a request (Authorization: Bearer <supabase access token>). */
 export async function caller(req: Request): Promise<Caller | null> {
@@ -27,7 +28,7 @@ export async function caller(req: Request): Promise<Caller | null> {
   const { data, error } = await db.auth.getUser(token);
   if (error || !data.user) return null;
   const { data: m } = await db.from("ngo_members").select("ngo_id, role").eq("user_id", data.user.id).order("created_at").limit(1).maybeSingle();
-  return { userId: data.user.id, email: data.user.email ?? null, ngoId: m?.ngo_id ?? null, role: m?.role ?? null, db };
+  return { userId: data.user.id, email: data.user.email ?? null, ngoId: m?.ngo_id ?? null, role: m?.role ?? null, db, verified: !!(data.user.email_confirmed_at || data.user.phone_confirmed_at) };
 }
 
 /* ── configuration ─────────────────────────────────────────────────── */

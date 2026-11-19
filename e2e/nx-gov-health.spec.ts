@@ -52,6 +52,8 @@ test("Verification queue opens the package record in the new app", async ({ page
   await page.locator("button.nx-tr").first().click();
   await page.getByRole("dialog").getByRole("link", { name: "Open the review" }).last().click();
   await expect(page).toHaveURL(/\/gov\/verification\/v2$/);
+  /* On a phone a claim opens in a sheet with its evidence and the decision, so the reviewer opens one first. */
+  if ((page.viewportSize()?.width ?? 1440) <= 640) await page.getByRole("button", { name: /^Open claim/ }).first().click();
   await expect(page.getByRole("heading", { name: "Decision on this claim" })).toBeVisible();
   await noClassicLinks(page);
 });
@@ -61,6 +63,8 @@ test("Package review: a claim shows its checks; selecting claims offers a batch 
   await page.getByRole("button", { name: "Open claim SP-1042" }).click();
   await expect(page.getByRole("list", { name: "Fixed checks for this claim" })).toContainText("Missing evidence");
   await expect(page.getByText("Accept is not offered while a requirement is missing")).toBeVisible();
+  /* On a phone the claim is a sheet over the list: close it to choose claims for a batch decision. */
+  if ((page.viewportSize()?.width ?? 1440) <= 640) { await page.keyboard.press("Escape"); await expect(page.getByRole("dialog", { name: "Claim SP-1042" })).toHaveCount(0); }
   await page.getByRole("button", { name: /Select the \d+ without exceptions/ }).click();
   const batch = page.getByRole("region", { name: "Decide the selected claims" });
   await expect(batch).toContainText("selected");
@@ -90,8 +94,8 @@ test("Exposure record: the schedule is the clinician's, never computed", async (
   await expect(page.getByText("StrayPaw does not calculate or suggest a schedule", { exact: false }).or(page.getByText("Record the category first"))).toBeVisible();
   await open(page, "/health/bites/b2");
   await expect(page.getByRole("list", { name: "Doses" })).toBeVisible();
-  await expect(page.getByText("Every dose date here was entered by the clinician")).toBeVisible();
-  await expect(page.getByText("Kaju does not read this record")).toBeVisible();
+  await expect(page.getByText("Every dose date here was confirmed by the prescribing clinician")).toBeVisible();
+  await expect(page.getByText("Kaju reads it only for people allowed to open it")).toBeVisible();
 });
 
 test("Sample record: chain of custody, and the laboratory step for its status", async ({ page }) => {

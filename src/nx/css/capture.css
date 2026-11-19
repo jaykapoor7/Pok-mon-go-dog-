@@ -1,0 +1,90 @@
+/* Tell Kaju (src/nx/KajuCapture.tsx), prefix kc-. DESIGN.md 4.0: the box is a soft-filled surface with no outline; only
+   the text box and buttons keep a line. Type 12/14/16; spacing 4/8/12/16/24/32/48; radii 4/8/12; controls 40px, 48px on
+   phones. Colours are the workspace tokens, so the dark theme follows. Prepared records rise in (220ms, the app's ease,
+   48ms apart) and simply appear under reduced motion. */
+
+.nx .kc { display: grid; gap: 8px; padding: 16px; border-radius: 12px; background: var(--side); color: var(--ink-2); font-size: 14px; line-height: 20px; min-width: 0; }
+.nx .kc.is-compact { padding: 12px 16px; }
+.nx .kc-label { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); }
+.nx .kc.is-compact .kc-label { font-size: 14px; line-height: 20px; }
+.nx .kc-face { flex: none; }
+.nx .kc-row { display: flex; gap: 8px; align-items: flex-end; min-width: 0; }
+.nx .kc-in { flex: 1; min-width: 0; min-height: 40px; padding: 8px 12px; border: 0; border-radius: 8px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink); font: inherit; font-size: 14px; line-height: 24px; resize: none; overflow-y: auto; }
+.nx .kc:not(.is-compact) .kc-in { min-height: 96px; }
+.nx .kc-in::placeholder { color: var(--ink-3); }
+.nx .kc-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.nx .kc-send { display: flex; gap: 8px; flex: none; }
+.nx .kc .nx-btn { height: 40px; padding: 0 16px; border-radius: 8px; font-size: 14px; gap: 8px; }
+.nx .kc-hint { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+
+.nx .kc-out { display: grid; gap: 8px; min-width: 0; }
+.nx .kc-out:empty { display: none; }
+.nx .kc-status { display: flex; align-items: center; gap: 8px; color: var(--ink-2); }
+.nx .kc-none, .nx .kc-prop { display: grid; gap: 8px; padding: 12px 16px; border-radius: 8px; background: var(--bg); min-width: 0; animation: kc-in 220ms var(--ease) both; }
+.nx .kc-none b, .nx .kc-prop b { color: var(--ink); font-weight: 600; }
+.nx .kc-read { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.nx .kc-read > span { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.nx .kc-said { color: var(--ink-2); }
+.nx .kc-props { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.nx .kc-prop.is-quiet { color: var(--ink-2); }
+.nx .kc-prop-h { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.nx .kc-prop-h b { font-size: 16px; line-height: 24px; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nx .kc-kind { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 12px; line-height: 20px; font-weight: 600; }
+.nx .kc-prop.is-saved .kc-kind { background: var(--ok-soft); color: var(--ok); }
+.nx .kc-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; font-size: 12px; line-height: 20px; }
+.nx .kc-facts > div { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.nx .kc-facts dt { color: var(--ink-3); }
+.nx .kc-facts dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.nx .kc-body { color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.nx .kc-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx .kc-done { color: var(--ok); }
+.nx .kc-err { color: var(--bad); font-size: 12px; line-height: 16px; }
+.nx .kc-again { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.nx .kc-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+
+/* The manual form, folded under the box on pages that open a record. */
+.nx .kc-page { max-width: 1040px; padding: 24px 32px 48px; display: grid; gap: 24px; align-content: start; }
+.nx .kc-page .nr-form { padding: 0; }
+.nx .kc-fold { display: grid; gap: 16px; }
+.nx .kc-fold[hidden] { display: none; }
+.nx .kc-fold-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.nx .kc-fold-h .nx-btn { height: 40px; padding: 0 16px; border-radius: 8px; font-size: 14px; gap: 8px; }
+.nx .kc-fold-h .nx-btn svg { transition: transform 200ms var(--ease); }
+.nx .kc-fold-h .nx-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.nx .kc-fold-h p { font-size: 12px; line-height: 16px; color: var(--ink-3); }
+.nx .kc-from { display: flex; gap: 8px; align-items: flex-start; padding: 12px 16px; border-radius: 8px; background: var(--accent-soft); color: var(--ink); font-size: 14px; line-height: 20px; }
+.nx .kc-from svg { flex: none; margin-top: 4px; color: var(--accent); }
+/* A record page: the line sits between the header and the tabs. */
+.nx .kc-line { padding: 8px 32px 16px; max-width: 1040px; }
+/* The case's manual note and follow-up, folded under Record by hand (src/nx/pages/ngo/parts.tsx CaseNext). */
+.nx .nr-hand { display: grid; gap: 8px; }
+.nx .nr-hand[hidden] { display: none; }
+
+/* Field mode: Say it, at the top of Record an animal (uses field mode's own colours). */
+.nx:not([data-theme="dark"]) .kc-say { --fm-mute: #586174; }
+.nx .kc-say { display: grid; gap: 12px; padding: 16px; border-radius: 12px; background: var(--fm-fill); }
+.nx .kc-say-l { display: flex; align-items: center; gap: 12px; }
+.nx .kc-say-l > span { display: grid; }
+.nx .kc-say-l b { font-size: 16px; line-height: 24px; }
+.nx .kc-say-l small { font-size: 12px; line-height: 16px; color: var(--fm-mute); }
+.nx .kc-say-r { display: flex; gap: 8px; min-width: 0; }
+.nx .kc-say-r input { flex: 1; min-width: 0; min-height: 48px; padding: 8px 12px; border: 0; border-radius: 8px; background: var(--fm-raise); box-shadow: inset 0 0 0 1px var(--fm-line); color: var(--fm-ink); font: inherit; font-size: 16px; line-height: 24px; }
+.nx .kc-say-r input::placeholder { color: var(--fm-mute); }
+.nx .kc-say-r input:focus-visible { outline: 2px solid var(--fm-blue); outline-offset: 1px; }
+.nx .kc-say-r .fm-btn { height: 48px; background: var(--fm-raise); box-shadow: inset 0 0 0 1px var(--fm-line); }
+.nx .kc-say-o { font-size: 14px; line-height: 20px; color: var(--fm-body); }
+
+@keyframes kc-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .nx .kc-none, .nx .kc-prop { animation: none; }
+  .nx .kc-fold-h .nx-btn svg { transition: none; }
+}
+@media (max-width: 640px) {
+  .nx .kc-page { padding: 16px 16px 64px; gap: 16px; }
+  .nx .kc-line { padding: 8px 16px 16px; }
+  .nx .kc:not(.is-compact) .kc-row { flex-direction: column; align-items: stretch; }
+  .nx .kc:not(.is-compact) .kc-send { justify-content: flex-end; }
+  .nx .kc-in { font-size: 16px; }
+  .nx .kc .nx-btn, .nx .kc-fold-h .nx-btn { height: 48px; }
+  .nx .kc.is-compact .kc-in { min-height: 48px; padding: 12px; }
+}

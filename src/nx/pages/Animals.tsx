@@ -95,9 +95,11 @@ function LiveAnimals({ org }: { org: Workspace }) {
     ...(lead ? [{ id: "identity", label: "Identity review" }] : []),
   ].map((v) => ({ ...v, count: "count" in v ? v.count : counts[v.id as Lens] ?? null }));
   /* List or map sits with the page's actions: it changes how the whole register is shown, not what is in it. */
-  const action = <div className="nr-tools"><LayoutSwitch value={layout} onChange={show} />{tags ? <button type="button" className="nx-btn is-quiet is-keep" onClick={() => setScan(true)}><ScanLine size={14} />Scan a tag</button> : null}<Link href="/ngo/field?record=1" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>;
+  const action = <div className="nr-tools nr-head-tools"><LayoutSwitch value={layout} onChange={show} />{tags ? <button type="button" className="nx-btn is-quiet is-keep" onClick={() => setScan(true)}><ScanLine size={14} />Scan a tag</button> : null}<Link href="/ngo/field?record=1" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>;
   const setCount = useCallback((l: Lens, c: number) => setCounts((x) => (x[l] === c ? x : { ...x, [l]: c })), []);
-  const common = { org, views, lens, choose, action, setCount };
+  /* On a phone the head's tools sit in the Filter sheet ("+" already records an animal). */
+  const extra = <><div className="nx-field"><span>Show the animals as</span><LayoutSwitch value={layout} onChange={show} /></div>{tags ? <button type="button" className="nx-btn is-quiet" onClick={() => setScan(true)}><ScanLine size={16} />Scan a tag</button> : null}</>;
+  const common = { org, views, lens, choose, action, setCount, extra };
   return (
     <Shell crumb={["NGO", "Animals"]}>
       {lens === "revac" && rv ? <RevacList {...common} setting={rv} page={page} setPage={setPage} />
@@ -107,7 +109,7 @@ function LiveAnimals({ org }: { org: Workspace }) {
     </Shell>
   );
 }
-type Common = { org: Workspace; views: RView<unknown>[]; lens: Lens; choose: (l: string) => void; action: React.ReactNode; setCount: (l: Lens, c: number) => void };
+type Common = { org: Workspace; views: RView<unknown>[]; lens: Lens; choose: (l: string) => void; action: React.ReactNode; setCount: (l: Lens, c: number) => void; extra: React.ReactNode };
 
 function Pager({ page, total, setPage }: { page: number; total: number; setPage: (p: number) => void }) {
   if (total <= PAGE) return null;
@@ -115,7 +117,7 @@ function Pager({ page, total, setPage }: { page: number; total: number; setPage:
   return <div className="nr-pager" role="navigation" aria-label="Pages"><button type="button" className="nx-btn is-quiet is-sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button><span><b className="num">{n(page * PAGE + 1)}–{n(Math.min(total, (page + 1) * PAGE))}</b> of {n(total)}</span><button type="button" className="nx-btn is-quiet is-sm" disabled={page >= last} onClick={() => setPage(page + 1)}>Next</button></div>;
 }
 
-function Register({ org, views, lens, choose, action, setCount, layout, zone, setZone, zones, q, setQ, dq, page, setPage }: Common & { layout: Layout; zone: string; setZone: (z: string) => void; zones: { zone: string; n: number }[]; q: string; setQ: (s: string) => void; dq: string; page: number; setPage: (p: number) => void }) {
+function Register({ org, views, lens, choose, action, setCount, extra, layout, zone, setZone, zones, q, setQ, dq, page, setPage }: Common & { layout: Layout; zone: string; setZone: (z: string) => void; zones: { zone: string; n: number }[]; q: string; setQ: (s: string) => void; dq: string; page: number; setPage: (p: number) => void }) {
   const [rows, setRows] = useState<OrgAnimal[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [csv, setCsv] = useState(false);
@@ -133,11 +135,13 @@ function Register({ org, views, lens, choose, action, setCount, layout, zone, se
     toast({ text: `Downloaded ${n(all.length)} ${all.length === 1 ? "animal" : "animals"}${total > all.length ? ` of ${n(total)}` : ""}.`, tone: "ok" });
     setCsv(false);
   };
+  const place = <select className="nr-sel" value={zone} onChange={(e) => setZone(e.target.value)} aria-label="Place"><option value="">Every place</option>{zones.slice(0, 300).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({n(z.n)})</option>)}</select>;
+  const dl = <button type="button" className="nx-btn is-quiet" disabled={!total || csv} onClick={() => void download()}>{csv ? <Loader2 size={16} className="nx-spin" /> : <Download size={16} />}Download this list</button>;
   const cols: RCol<OrgAnimal>[] = [
     { label: "Animal", width: "minmax(0, 2fr)", render: (a) => <AnimalCell a={a} photo={photos.get(a.id)} /> },
     { label: "Sterilisation", width: "128px", hideOnPhone: true, render: (a) => <Chip tone={factTone(a.sterilisation_status)}>{fact(a.sterilisation_status, "Sterilised", "Not sterilised")}</Chip> },
     { label: "Vaccination", width: "128px", hideOnPhone: true, render: (a) => <Chip tone={factTone(a.vaccination_status)}>{fact(a.vaccination_status, "Vaccinated", "Not vaccinated")}</Chip> },
-    { label: "Status", width: "112px", render: (a) => (a.needs_help ? <Chip tone="bad">Needs help</Chip> : <span className="nx-t3">—</span>) },
+    { label: "Status", width: "112px", render: (a) => (a.needs_help ? <Chip tone="bad">Needs help</Chip> : <span className="nx-t3 nr-nil">—</span>) },
     { label: "Last seen", width: "104px", hideOnPhone: true, render: (a) => <span className="nx-t3">{day(a.last_seen)}</span> },
   ];
   return (
@@ -145,6 +149,7 @@ function Register({ org, views, lens, choose, action, setCount, layout, zone, se
       query={q} onQuery={setQ} placeholder="Name, number, code or place" hrefOf={(a) => `/ngo/animals/${a.id}`}
       sub={rows === null ? "Reading the register…" : error ? "The register could not be read. Nothing is shown as zero." : <><b className="num">{n(total)}</b> {filterOn(filter) ? (total === 1 ? "match" : "matches") : total === 1 ? "animal" : "animals"} on {org.name}&apos;s register. Unknown is kept apart from no.</>}
       action={action} loading={rows === null} error={error} onRetry={() => void load()}
+      phoneTools={<>{extra}<div className="nx-field"><span>Place</span>{place}</div>{layout === "list" ? dl : null}</>} phoneToolsActive={zone ? 1 : 0}
       tools={<div className="nr-tools"><select className="nr-sel" value={zone} onChange={(e) => setZone(e.target.value)} aria-label="Place"><option value="">Every place</option>{zones.slice(0, 300).map((z) => <option key={z.zone} value={z.zone}>{z.zone} ({n(z.n)})</option>)}</select>
         {layout === "list" ? <button type="button" className="nx-btn is-quiet is-sm" disabled={!total || csv} onClick={() => void download()}>{csv ? <Loader2 size={13} className="nx-spin" /> : <Download size={13} />}Download</button> : null}</div>}
       empty={{ none: "No animals on the register yet", filtered: filterOn(filter) ? "No animal matches" : "No animals on the register yet", hint: filterOn(filter) ? "Change the search, the lens or the place." : <>Animals your team records, and rows released from imports, appear here. <Link className="nr-link" href="/ngo/field?record=1">Record the first one</Link>.</> }}
@@ -184,13 +189,14 @@ function AnimalPeek({ a, photo, onChanged }: { a: OrgAnimal; photo: string | nul
   </>;
 }
 
-function RevacList({ org, views, lens, choose, action, setting, page, setPage }: Common & { setting: Revac; page: number; setPage: (p: number) => void }) {
+function RevacList({ org, views, lens, choose, action, extra, setting, page, setPage }: Common & { setting: Revac; page: number; setPage: (p: number) => void }) {
   const [rows, setRows] = useState<RevacDue[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(async () => { setRows(null); const r = await readRevacDue(PAGE, page * PAGE); if (r.error) { setError(errText(r.error)); setRows([]); } else { setError(null); setRows(r.data ?? []); } }, [page]);
   useEffect(() => { void load(); }, [load]);
   const photos = useAnimalPhotos(org.org_id, rows);
   const total = rows?.[0]?.total_count ?? 0;
+  const revacDl = <button type="button" className="nx-btn is-quiet" disabled={!rows?.length} onClick={() => downloadCsv("straypaw-revaccination.csv", (rows ?? []).map((r) => ({ straypaw_id: r.straypaw_id, code: r.code, name: r.name, zone: r.zone, last_vaccinated: r.last_vaccinated, due_on: r.due_on, days_overdue: r.days_overdue })), { title: "Due for revaccination", organisation: org.name })}><Download size={16} />Download this page</button>;
   const cols: RCol<RevacDue>[] = [
     { label: "Animal", width: "minmax(0, 1.5fr)", render: (a) => <AnimalCell a={a} photo={photos.get(a.id)} sub={<>{a.zone ?? "Place not recorded"} · last vaccinated {day(a.last_vaccinated)}</>} /> },
     { label: "Due on", width: "120px", hideOnPhone: true, render: (a) => <span className="nx-t3">{day(a.due_on)}</span> },
@@ -200,6 +206,7 @@ function RevacList({ org, views, lens, choose, action, setting, page, setPage }:
     <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => animalLabel(a).line} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/ngo/animals/${a.id}`}
       sub={<>{setting.overdue ? <span style={{ color: "var(--bad)" }}>{n(setting.overdue)} overdue</span> : "None overdue"}{setting.soon ? <>, <b className="num">{n(setting.soon)}</b> due in the next 14 days</> : null}. Every {setting.days} days{setting.programme ? `, as ${setting.programme} sets` : ""}, from the last vaccination recorded on each animal.</>}
       action={action} loading={rows === null} error={error} onRetry={() => void load()}
+      phoneTools={<>{extra}{revacDl}</>} phoneToolsLabel="More"
       tools={<div className="nr-tools"><button type="button" className="nx-btn is-quiet is-sm" disabled={!rows?.length} onClick={() => downloadCsv("straypaw-revaccination.csv", (rows ?? []).map((r) => ({ straypaw_id: r.straypaw_id, code: r.code, name: r.name, zone: r.zone, last_vaccinated: r.last_vaccinated, due_on: r.due_on, days_overdue: r.days_overdue })), { title: "Due for revaccination", organisation: org.name })}><Download size={13} />Download this page</button></div>}
       empty={{ none: "No animal is due", filtered: "No animal is due", hint: "Animals appear here 14 days before their revaccination date." }}
       foot={<><Pager page={page} total={total} setPage={setPage} />{setting.undated ? <p className="nr-hint" style={{ marginTop: 10 }}>{n(setting.undated)} {setting.undated === 1 ? "animal is" : "animals are"} marked vaccinated with no dated vaccination, so {setting.undated === 1 ? "it" : "they"} cannot be placed here. Add the date on {setting.undated === 1 ? "its" : "each"} record.</p> : null}</>}
@@ -208,7 +215,7 @@ function RevacList({ org, views, lens, choose, action, setting, page, setPage }:
   );
 }
 
-function IdentityList({ org, views, lens, choose, action, setCount }: Common) {
+function IdentityList({ org, views, lens, choose, action, setCount, extra }: Common) {
   const live = useLive();
   const [rows, setRows] = useState<IdentityRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -223,7 +230,7 @@ function IdentityList({ org, views, lens, choose, action, setCount }: Common) {
     { label: "Identity", width: "150px", render: (a) => <Chip tone="warn">{words(a.identity_state)}</Chip> },
   ];
   return (
-    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => animalLabel(a).line} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/ngo/animals/${a.id}`}
+    <RecordList id="animals" serverSide title="Animals" sample={false} rows={rows ?? []} rowKey={(a) => a.id} rowLabel={(a) => animalLabel(a).line} columns={cols} views={views} view={lens} onView={choose} hrefOf={(a) => `/ngo/animals/${a.id}`} phoneTools={extra} phoneToolsLabel="More"
       sub={rows === null ? "Reading animals waiting for a decision…" : rows.length ? <><b className="num">{rows.length}</b> {rows.length === 1 ? "animal waits" : "animals wait"} for an identity decision{rows.length >= 100 ? " (the newest 100)" : ""}. Choose one to record the decision; both source histories are kept and nothing merges.</> : "No animal is marked provisional or a possible duplicate."}
       action={action} loading={rows === null} error={error} onRetry={() => void load()}
       empty={{ none: "Nothing to confirm", filtered: "Nothing to confirm", hint: "No animal is marked provisional or a possible duplicate." }}
@@ -352,7 +359,8 @@ function SampleAnimals() {
     <Shell crumb={["NGO", "Animals"]}>
       <RecordList id="animals" title="Animals" sample rows={ANIMALS} rowKey={(a) => a.id} rowLabel={(a) => animalLabel(sampleRef(a)).line} columns={SCOLS} views={SVIEWS} search={(a) => `${a.id} ${animalLabel(sampleRef(a)).tag} ${a.name} ${a.ward} ${a.mark}`} placeholder="Name, number, code or place"
         sub={<><b className="num">{ANIMALS.length}</b> animals on the register. Each row says how far its record has been checked.</>}
-        action={<div className="nr-tools"><LayoutSwitch value={layout} onChange={setLayout} /><TryLink quiet><ScanLine size={14} />Scan a tag</TryLink><Link href="/ngo/field?record=1" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>}
+        phoneTools={<><div className="nx-field"><span>Show the animals as</span><LayoutSwitch value={layout} onChange={setLayout} /></div><TryLink quiet><ScanLine size={16} />Scan a tag</TryLink>{layout === "list" ? <TryLink quiet><Download size={16} />Download this list</TryLink> : null}</>}
+        action={<div className="nr-tools nr-head-tools"><LayoutSwitch value={layout} onChange={setLayout} /><TryLink quiet><ScanLine size={14} />Scan a tag</TryLink><Link href="/ngo/field?record=1" className="nx-btn is-keep"><Camera size={14} />Record an animal</Link></div>}
         tools={layout === "list" ? <TryLink quiet sm><Download size={13} />Download</TryLink> : null} loading={false} empty={{ none: "No animals yet" }} hrefOf={(a) => `/ngo/animals/${a.id}`}
         replace={map}
         preview={(a) => ({ title: <AnimalTitle a={sampleRef(a)} />, sub: <>{a.ward} · Last seen {a.last} <TrustChip trust={a.trust} /></>, href: `/ngo/animals/${a.id}`, hrefLabel: "Open full record", body: <SampleBody a={a} /> })} />

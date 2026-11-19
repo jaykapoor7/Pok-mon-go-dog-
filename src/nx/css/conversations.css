@@ -105,8 +105,22 @@
   .nx .cx-box { min-height: 44px; }
   .nx .cx-person { min-height: 56px; }
   .nx .cx-acts .nx-btn, .nx .cx-first-a .nx-btn { height: 44px; flex: 1 1 auto; justify-content: center; }
-  .nx .nx-ch-h.cx-head { gap: 8px; align-items: center; }
-  .nx .nx-ch-h .cx-title h1 { font-size: 16px; line-height: 24px; }
+  /* The channel's header is one compact block: back, the name, one line of purpose and one of who reads it. */
+  .nx .nx-ch-h.cx-head { gap: 8px; align-items: center; padding: 8px 16px 8px 8px; }
+  .nx .cx-back { width: 44px; height: 44px; margin-left: 0; }
+  .nx .nx-ch-h .cx-mark { display: none; }
+  .nx .nx-ch-h .cx-title h1 { font-size: 20px; line-height: 24px; flex-wrap: nowrap; }
+  .nx .nx-ch-h .cx-purpose, .nx .nx-ch-h .cx-readers { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nx .nx-ch-h .cx-purpose { font-size: 14px; }
+  .nx .nx-ch-h .cx-readers { display: block; margin-top: 0; }
+  .nx .nx-ch-h .cx-readers svg { display: inline; vertical-align: -2px; margin-right: 4px; }
+  .nx .nx-ch-main > .nx-tabs { padding: 0 16px; gap: 8px; margin-top: 0; }
+  .nx .nx-ch-main > .nx-tabs .nx-tab { height: 44px; padding: 0 8px; font-size: 14px; }
+  .nx .cx-row { min-height: 52px; font-size: 16px; }
+  .nx .cx-first { gap: 16px; }
+  .nx .cx-first h1 { font-size: 24px; }
+  .nx .cx-first > p, .nx .cx-preview span { font-size: 16px; line-height: 24px; }
+  .nx .cx-first-a .nx-btn:first-child { flex-basis: 100%; height: 48px; font-size: 16px; }
   /* A phone keyboard has its own send key, so the keyboard hint goes; the message tools sit under the words, not in a box. */
   .nx .nx-compose-f small { display: none; }
   .nx .nx-msg .nx-msg-tools { grid-column: 2; margin-top: 0; padding: 0; background: none; box-shadow: none; }

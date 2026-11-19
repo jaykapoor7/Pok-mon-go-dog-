@@ -9,6 +9,7 @@ import { Shell, type Ws } from "../../Shell";
 import { Sample } from "../../ui";
 import { TabBar } from "../../kit";
 import { useLive, type Workspace } from "../../live";
+import { PhonePeek, PhoneTools, textOf, usePhone } from "../../PhoneList";
 import "../../css/ngo-setup.css";
 
 /* The small parts the NGO setup pages share: who is reading (sample, signed in without an NGO, or a member and
@@ -71,7 +72,7 @@ export function Grid<R>({ label, cols, rows, rowKey, rowLabel, onOpen, href, ope
      read is a table, with its headers. Both look the same. */
   const interactive = !!href || !!onOpen;
   return (
-    <div className="nx-table ns-grid" role={interactive ? "group" : "table"} aria-label={label}>
+    <div className="nx-table ns-grid lp-table" role={interactive ? "group" : "table"} aria-label={label}>
       <div className="nx-tr nx-th" role={interactive ? undefined : "row"} aria-hidden={interactive ? true : undefined} style={{ gridTemplateColumns: tpl }}>{cols.map((c, i) => <span key={c.label || i} role={interactive ? undefined : "columnheader"} className={cell(c, i)}>{c.label}</span>)}</div>
       {rows.map((r) => {
         const inner = cols.map((c, i) => <span key={c.label || i} role={interactive ? undefined : "cell"} className={cell(c, i)} style={{ minWidth: 0 }}>{c.render(r)}</span>);
@@ -91,11 +92,12 @@ export function Grid<R>({ label, cols, rows, rowKey, rowLabel, onOpen, href, ope
 export function Views<V extends string>({ id, views, value, onChange, end }: { id: string; views: { id: V; label: string; count?: number }[]; value: V; onChange: (v: V) => void; end?: ReactNode }) {
   const calm = useReducedMotion();
   return (
-    <div className="nx-bar">
+    <div className="nx-bar lp-bar">
       <div className="nx-views" role="tablist" aria-label="Views">
         {views.map((v) => <button key={v.id} type="button" role="tab" aria-selected={value === v.id} className={`nx-view ${value === v.id ? "is-on" : ""}`} onClick={() => onChange(v.id)}>{value === v.id ? <motion.span layoutId={`ns-v-${id}`} className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}{v.count !== undefined ? <span className="nx-count">{v.count}</span> : null}</span></button>)}
       </div>
       {end}
+      {end ? <PhoneTools label="More">{end}</PhoneTools> : null}
     </div>
   );
 }
@@ -108,7 +110,10 @@ export function Find({ value, onChange, label }: { value: string; onChange: (v: 
 /** The preview drawer, as ListPage draws it. Escape closes it. Wrap it in AnimatePresence. */
 export function Drawer({ head, title, sub, onClose, href, hrefLabel = "Open the full record", children }: { head: ReactNode; title: ReactNode; sub?: ReactNode; onClose: () => void; href?: string; hrefLabel?: string; children: ReactNode }) {
   const calm = useReducedMotion();
+  const phone = usePhone();
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !document.querySelector(".nx-modal")) onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
+  /* On a phone the preview rises as a sheet, its full record one full-width tap away. */
+  if (phone) return <PhonePeek label={textOf(title, typeof head === "string" ? head : "Details")} sub={sub} body={children} href={href} hrefLabel={hrefLabel} onClose={onClose} />;
   return (
     <motion.aside className="nx-drawer" role="dialog" aria-label={typeof title === "string" ? title : undefined} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
       <div className="nx-drawer-h"><span>{head}</span><span style={{ marginLeft: "auto" }} />{href ? <Link href={href} className="nx-ib" aria-label={hrefLabel}><Maximize2 size={15} /></Link> : null}<button type="button" className="nx-ib" onClick={onClose} aria-label="Close"><X size={16} /></button></div>

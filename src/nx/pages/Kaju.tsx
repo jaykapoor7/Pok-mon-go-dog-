@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { ArrowRight, Keyboard, Mic, Trash2 } from "lucide-react";
+import { ArrowRight, Keyboard, Mic, Plus } from "lucide-react";
 import { Shell } from "../Shell";
 import { KajuVoice } from "@/kaju/voice/KajuVoice";
 import { VOICE_OFFERED } from "@/kaju/voice/availability";
@@ -15,6 +15,7 @@ import { MISSIONS } from "../fixtures";
 import { useLive } from "../live";
 import { Composer } from "../kaju/Composer";
 import { Thread } from "../kaju/Thread";
+import { KajuHistory, KeepingNote } from "../kaju/History";
 import { PlanCard } from "../kaju/Plan";
 import { Jobs } from "../kaju/Jobs";
 import { MissionCard } from "../kaju/MissionCard";
@@ -28,8 +29,9 @@ import "../kaju/workspace.css";
 import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Kaju's home: one place to say what should get done. A request becomes a plan that says who does each step; Kaju runs
-   what it may, stops where a person decides, and keeps going across sessions. Beside it, what Kaju noticed in the
-   organisation's own records and what it can use here, said plainly. Signed out, everything shown is labelled sample. */
+   what it may, stops where a person decides, and keeps going across sessions. Under it, what Kaju noticed in the
+   organisation's own records as a short row of cards (three, the rest one click away), and at the foot what it can use
+   here as one line that opens; nothing grows into a side column. Signed out, everything shown is labelled sample. */
 
 export function Kaju() {
   const k = useKaju();
@@ -49,6 +51,18 @@ export function Kaju() {
   /* Words handed over from the command bar (?q=) are placed in the composer, not sent. */
   useEffect(() => { try { const q = new URLSearchParams(window.location.search).get("q"); if (q) window.dispatchEvent(new CustomEvent("sp:kaju-ask", { detail: { q } })); } catch {} }, []);
   const [voice, setVoice] = useState(false);
+  /* A phone's composer is one line at the foot of the screen, so its hint is short. */
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => { const m = window.matchMedia("(max-width: 640px)"); const on = () => setNarrow(m.matches); on(); m.addEventListener("change", on); return () => m.removeEventListener("change", on); }, []);
+  /* On a phone the composer sits at the foot of the page, so the newest words, the plan to review and Kaju's answer are
+     brought into view above it as they arrive, as in any messenger. Wide screens keep their own scrolling. */
+  const lastTurn = k.turns[k.turns.length - 1];
+  useEffect(() => {
+    if (!window.matchMedia("(max-width: 640px)").matches || (!k.turns.length && !planned)) return;
+    const main = document.getElementById("nx-main"); if (!main) return;
+    const t = window.setTimeout(() => main.scrollTo({ top: main.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }), 60);
+    return () => window.clearTimeout(t);
+  }, [k.turns.length, lastTurn?.pending, planned]);
 
   const plan = useCallback(async (text: string, intent: Parameters<typeof k.plan>[2]) => {
     if (!org) return;
@@ -83,7 +97,7 @@ export function Kaju() {
       <div className="kj kj-home">
         <KajuPlaces />
         <div className="kj-home-grid">
-          <div className="kj-main">
+          <div className="kj-main kj-one">
             <header className="kj-hero">
               <div className="kj-hero-pup" aria-hidden><Puppy state={pose} size={76} /></div>
               <div className="kj-hero-t">
@@ -96,8 +110,8 @@ export function Kaju() {
 
             {voice ? <div className="nx-kj-voice"><KajuVoice /></div> : <>
               <div className="kj-compose">
-                <Composer vocab={vocab} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus canPlan={!!org} modelPlanning={!!caps?.planning}
-                  onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} />
+                <Composer vocab={vocab} placeholder={narrow ? "Ask or say what to do" : undefined} predictive={prefs.predictive} busy={busy || k.busy} disabled={k.expired} autoFocus canPlan={!!org} modelPlanning={!!caps?.planning}
+                  onAsk={(t) => { setNoModel(null); void k.ask(t); }} onPlan={(t, i) => void plan(t, i)} onVoice={VOICE_OFFERED ? () => setVoice(true) : undefined} />
               </div>
               {noModel ? <p className="kj-nomodel" role="status">{noModel}</p> : null}
               <Jobs vocab={vocab} canPlan={!!org} busy={busy} onPlan={(t, i) => void plan(t, i)} intro={caps && !caps.planning && !DEMO_SITE ? "Kaju plans these jobs by fixed rules, no model needed:" : "Or start from one of Kaju's jobs:"} />
@@ -107,10 +121,14 @@ export function Kaju() {
               {k.turns.length ? (
                 <section className="kj-convo" aria-label="Conversation">
                   <Thread />
-                  <p className="kj-quiet"><button type="button" className="nx-thread" onClick={k.clear}><Trash2 size={12} /> Clear this conversation</button> · It stays in this browser tab only.</p>
+                  <p className="kj-quiet"><button type="button" className="nx-thread" onClick={k.clear}><Plus size={12} /> New conversation</button> · <KeepingNote /></p>
                 </section>
               ) : null}
+              {!k.turns.length && live.signedIn ? <div className="kj-sec" style={{ marginTop: 18 }}><KajuHistory /></div> : null}
             </>}
+
+            {/* What needs a person, under the request and its answer: three cards across, the rest one click away. */}
+            <Noticed items={notices} sample={!org && (live.ready || !live.signedIn)} busy={acting} onAct={(n) => void act(n)} />
 
             <section className="kj-sec" aria-labelledby="kj-m">
               <div className="kj-sec-h"><h2 id="kj-m">Missions</h2>{org && rows.length ? <Link href="/kaju/missions" className="kj-link">All missions<ArrowRight size={13} /></Link> : null}{!org ? <Sample /> : null}</div>
@@ -125,13 +143,12 @@ export function Kaju() {
                     <span className="kj-mcard-now">{m.steps.find((s) => s.state !== "done")?.text ?? m.meta}</span>
                   </Link></li>))}</ul>}
             </section>
-          </div>
 
-          <aside className="kj-side">
-            <Noticed items={notices} sample={!org && (live.ready || !live.signedIn)} busy={acting} onAct={(n) => void act(n)} />
-            <Capabilities items={caps?.items ?? null} failed={failed} orgId={org?.org_id ?? null} />
-            <p className="kj-rules">Kaju reads only what you can see. It never makes clinical, laboratory, verification, payment or data-access decisions; those steps wait for the person with the authority.</p>
-          </aside>
+            <div className="kj-foot">
+              <Capabilities items={caps?.items ?? null} failed={failed} orgId={org?.org_id ?? null} />
+              <p className="kj-rules">Kaju reads only what you can see. It never makes clinical, laboratory, verification, payment or data-access decisions; those steps wait for the person with the authority.</p>
+            </div>
+          </div>
         </div>
       </div>
     </Shell>

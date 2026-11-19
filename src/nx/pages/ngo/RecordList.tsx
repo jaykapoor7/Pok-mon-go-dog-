@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Maximize2, Search, X } from "lucide-react";
 import { Check, Sample } from "../../ui";
 import { Failed, Skeleton } from "../../kit";
+import { PhonePeek, PhoneSearchButton, PhoneSearchField, PhoneTools, textOf, usePhone } from "../../PhoneList";
 import "../../css/ngo-records.css";
 
 /* One list of records: views that narrow it, search, a table and a drawer that previews a row. Like ListPage, but it
@@ -17,7 +18,7 @@ export type RView<R> = { id: string; label: string; test?: (r: R) => boolean; co
 export type RPreview = { title: ReactNode; sub?: ReactNode; body: ReactNode; href?: string; hrefLabel?: string };
 
 export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view: viewIn, onView, rows, rowKey, rowLabel, columns, search, query, onQuery, placeholder = "Search",
-  tools, above, preview, loading, error, onRetry, empty, select, foot, hrefOf, id = "rl", serverSide, replace }: {
+  tools, above, preview, loading, error, onRetry, empty, select, foot, hrefOf, id = "rl", serverSide, replace, phoneTools, phoneToolsLabel, phoneToolsActive }: {
   title: string; sub: ReactNode; eyebrow?: ReactNode; action?: ReactNode; sample: boolean;
   views: RView<R>[]; view?: string; onView?: (id: string) => void; rows: R[]; rowKey: (r: R) => string; rowLabel: (r: R) => string; columns: RCol<R>[];
   search?: (r: R) => string; query?: string; onQuery?: (q: string) => void; placeholder?: string;
@@ -25,6 +26,8 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
   empty: { none: string; filtered?: string; hint?: ReactNode }; select?: { ids: Set<string>; toggle: (id: string) => void; label: (r: R) => string }; foot?: ReactNode; hrefOf?: (r: R) => string | undefined; id?: string;
   /** The rows are already the database's answer for the chosen view and search. */ serverSide?: boolean;
   /** Shown in place of the table (a map of the same records, say), under the same views, tools and search. */ replace?: ReactNode;
+  /** On a phone the tools sit behind one button that opens a sheet: what that sheet holds (the tools by default; false for no button), its name and how many filters are on. */
+  phoneTools?: ReactNode | false; phoneToolsLabel?: string; phoneToolsActive?: number;
 }) {
   const [viewOwn, setViewOwn] = useState(views[0]?.id ?? "");
   const view = viewIn ?? viewOwn;
@@ -35,6 +38,10 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
   const calm = useReducedMotion();
   const router = useRouter();
   const box = useRef<HTMLDivElement>(null);
+  const phone = usePhone();
+  const [finding, setFinding] = useState(false);
+  const setQ = (v: string) => (onQuery ? onQuery(v) : setQOwn(v));
+  const sheetTools = phoneTools === undefined ? tools : phoneTools;
   const cols = (select ? "28px " : "") + columns.map((c) => c.width).join(" ");
   const server = !!serverSide;
   const shown = useMemo(() => {
@@ -80,15 +87,18 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
           {action}
         </div>
         {above}
-        <div className="nx-bar">
+        <div className="nx-bar lp-bar">
           {views.length > 1 ? <div className="nx-views" role="tablist" aria-label="Views">
             {views.map((v) => { const n = count(v); return <button key={v.id} type="button" role="tab" aria-selected={view === v.id} className={`nx-view ${view === v.id ? "is-on" : ""}`} onClick={() => { setView(v.id); setOpenId(null); }}>{view === v.id ? <motion.span layoutId={`nr-v-${id}`} className="nx-view-bg" transition={calm ? { duration: 0 } : { type: "spring", stiffness: 600, damping: 44 }} /> : null}<span>{v.label}{n !== null && n !== undefined ? <span className="nx-count">{n}</span> : null}</span></button>; })}
           </div> : null}
           {tools}
-          {search || onQuery ? <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => (onQuery ? onQuery(e.target.value) : setQOwn(e.target.value))} placeholder={placeholder} aria-label={`Search ${title.toLowerCase()}`} /></label> : null}
+          {search || onQuery ? <label className="nx-find"><Search size={13} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={`Search ${title.toLowerCase()}`} /></label> : null}
+          {search || onQuery ? <PhoneSearchButton open={finding} active={!!q} onOpen={() => setFinding((f) => !f || !!q)} label={`Search ${title.toLowerCase()}`} /> : null}
+          {sheetTools ? <PhoneTools label={phoneToolsLabel} active={phoneToolsActive}>{sheetTools}</PhoneTools> : null}
         </div>
+        {phone && (search || onQuery) && (finding || q) ? <PhoneSearchField value={q} onChange={setQ} onClose={() => setFinding(false)} placeholder={placeholder} label={`Search ${title.toLowerCase()}`} /> : null}
         {replace ?? (error ? <Failed error={error} retry={onRetry} /> : (
-          <div className="nx-table" role="group" aria-label={title} ref={box}>
+          <div className="nx-table lp-table" role="group" aria-label={title} ref={box}>
             <div className="nx-tr nx-th" aria-hidden="true" style={{ gridTemplateColumns: cols }}>{select ? <span /> : null}{columns.map((c) => <span key={c.label} className={c.hideOnPhone ? "nx-hide-s" : undefined}>{c.label}</span>)}</div>
             {shown.map((r) => {
               const key = rowKey(r);
@@ -105,8 +115,9 @@ export function RecordList<R>({ title, sub, eyebrow, action, sample, views, view
         {replace ? null : foot}
         {shown.length > 1 && !sample && !replace ? <p className="nr-keys nx-hide-s" aria-hidden><kbd>j</kbd><kbd>k</kbd> move · <kbd>Enter</kbd> open{hrefOf ? <> · <kbd>o</kbd> full record</> : null} · <kbd>Esc</kbd> close</p> : null}
       </div>
+      {phone && open && p ? <PhonePeek label={textOf(p.title, rowLabel(open))} sub={p.sub} body={p.body} href={p.href} hrefLabel={p.hrefLabel} onClose={close} /> : null}
       <AnimatePresence>
-        {open && p ? (
+        {open && p && !phone ? (
           <motion.aside key="d" className="nx-drawer nr-drawer" role="dialog" aria-label={rowLabel(open)} initial={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={calm ? { opacity: 0 } : { x: 28, opacity: 0 }} transition={calm ? { duration: 0 } : { type: "spring", stiffness: 480, damping: 40, mass: .8 }}>
             <div className="nx-drawer-h"><span>{rowLabel(open)}</span><span style={{ marginLeft: "auto" }} />{p.href ? <Link href={p.href} className="nx-ib" aria-label={p.hrefLabel ?? "Open the full record"}><Maximize2 size={15} /></Link> : null}<button type="button" className="nx-ib" onClick={close} aria-label="Close"><X size={16} /></button></div>
             <div className="nx-drawer-b">

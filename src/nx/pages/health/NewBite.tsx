@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
-import { ChevronDown, Lock } from "lucide-react";
+import { useId, useRef, useState, type FormEvent } from "react";
+import { ChevronDown, Lock, Sparkles } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import { AGE, EXPOSURE_KIND, SEX, SPECIES, WASHED, call, fmtDate, useRead, type Area } from "@/oh/data";
 import { Shell } from "../../Shell";
@@ -11,12 +11,16 @@ import { Sample } from "../../ui";
 import { Confirm, Denied, Field, toast, useAct } from "../../kit";
 import { useLive } from "../../live";
 import { can, indiaToday, isFacilityKind, placeOf, recordExposure, usePlaces } from "../../data/govhealth";
-import { Block, Opening, Seg, TryLink } from "../gh/parts";
+import { About, Block, GhMark, Opening, Seg, TryLink } from "../gh/parts";
+import { KajuCapture } from "../../KajuCapture";
+import { exposureOf, readBite } from "../../data/capture";
+import type { Proposal } from "@/sp3/ai/types";
 
 /* A bite, scratch or lick, recorded at the desk. When it starts from the resident's report to Kaju or from a
    referral, Kaju has already filled it in: the clinician sees a short summary, makes the one decision that is theirs
    (the exposure category) and saves it in one action; "Edit details" opens the full form. A walk-in starts on the
-   full form, about a minute. The patient is identified by the facility's own register number; no name is stored.
+   full form, about a minute, behind "Fill in by hand": the desk starts by telling Kaju what happened, and Kaju
+   prepares a bite-register entry saved only on Confirm (Change, or "Fill in by hand" with the words, fills the form). The patient is identified by the facility's own register number; no name is stored.
    Only a clinician records the category; anyone else leaves it for them. A referral goes with the record so the two
    stay linked. */
 
@@ -35,6 +39,27 @@ export function NewBite({ q }: { q: BiteQuery }) {
   );
   return <BiteForm sample={false} q={q} orgId={org.org_id} orgName={org.name} clinician={can(place, "assess")} />;
 }
+
+/** What Kaju understood, or what the words said, carried into the desk form. Only stated values are present. */
+type BiteSeed = Partial<{ exposure_on: string; kind: string; area: string; areaName: string; age: string; sex: string; ref: string; phone: string; consent: boolean; species: string; ownership: string; animal: string; place: string; category: string; washed: string }>;
+const seedOf = (x: { exposure_on?: string | null; kind?: string | null; area?: string | null; areaId?: string | null; age?: string | null; sex?: string | null; ref?: string | null; phone?: string | null; consent?: boolean | null; species?: string | null; ownership?: string | null; animal?: string | null; place?: string | null; category?: string | null; washed?: string | null }): BiteSeed => {
+  const v: BiteSeed = {};
+  if (x.exposure_on && /^\d{4}-\d{2}-\d{2}$/.test(x.exposure_on) && x.exposure_on <= indiaToday()) v.exposure_on = x.exposure_on;
+  if (x.kind && EXPOSURE_KIND[x.kind]) v.kind = x.kind;
+  if (x.areaId && /^[0-9a-f-]{36}$/i.test(x.areaId)) v.area = x.areaId;
+  if (x.area) v.areaName = x.area;
+  if (x.age && AGE[x.age]) v.age = x.age;
+  if (x.sex && SEX[x.sex]) v.sex = x.sex;
+  if (x.ref) v.ref = x.ref.slice(0, 40);
+  if (x.consent && x.phone) { v.consent = true; v.phone = x.phone; }
+  if (x.species && SPECIES[x.species]) v.species = x.species;
+  if (x.ownership && ["community", "owned", "unknown"].includes(x.ownership)) v.ownership = x.ownership;
+  if (x.animal) v.animal = x.animal.slice(0, 300);
+  if (x.place) v.place = x.place.slice(0, 200);
+  if (x.category && ["I", "II", "III"].includes(x.category)) v.category = x.category;
+  if (x.washed && WASHED[x.washed]) v.washed = x.washed;
+  return v;
+};
 
 const WHOSE: Record<string, string> = { community: "street or community", owned: "someone's pet", unknown: "owner not known" };
 const CATEGORY: [string, string][] = [["I", "Category I"], ["II", "Category II"], ["III", "Category III"], ["not_recorded", "Assess later"]];
@@ -55,6 +80,20 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
   const [asking, setAsking] = useState(false);
   const { busy, run } = useAct();
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
+  /* Walk-in: what Kaju understood, or what the words said, carried into the full form below. */
+  const [open, setOpen] = useState(false);
+  const [from, setFrom] = useState<{ by: "kaju" | "words"; aside: string | null } | null>(null);
+  const fold = useRef<HTMLDivElement>(null), banner = useRef<HTMLParagraphElement>(null);
+  const handOver = (v: BiteSeed, by: "kaju" | "words", aside: string | null) => {
+    setF((s) => ({ ...s, ...v, ...(v.area ? {} : v.areaName ? { area: "" } : {}) })); setFrom({ by, aside }); setOpen(true);
+    window.requestAnimationFrame(() => { const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; fold.current?.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" }); banner.current?.focus({ preventScroll: true }); });
+  };
+  /* What has no field on the desk form is said, so it is kept in the facility's own register rather than lost. */
+  const asideOf = (site: string | null, time: string | null) => (site || time ? `Kaju also noted ${[site ? `the wound on the ${site}` : null, time ? `the time, ${time}` : null].filter(Boolean).join(" and ")}. This form has no place for ${site && time ? "them" : "it"}; keep ${site && time ? "them" : "it"} in your register.` : null);
+  const change = (p: Proposal) => { const x = exposureOf(p); handOver(seedOf(x), "kaju", asideOf(x.site, x.time)); };
+  const fromWords = (t: string) => { const r = readBite(t); handOver(seedOf({ ...r, area: null }), "words", asideOf(r.site, null)); };
+  const said = from?.by === "kaju" ? "Filled with what Kaju understood. Check each detail with the patient; nothing is saved until you save it."
+    : from?.by === "words" ? "Filled from what you wrote. Check each detail with the patient and add what is missing." : null;
   const areaId = f.area || areas.data?.find((a) => a.name === f.areaName)?.id || "";
   const minDay = new Date(Date.parse(`${indiaToday()}T00:00:00Z`) - 365 * 864e5).toISOString().slice(0, 10);
   const phoneOk = !f.consent || /^[0-9+ ]{8,16}$/.test(f.phone.trim());
@@ -113,7 +152,8 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
   return (
     <Shell ws="health" crumb={["Bite cases", "Record a bite"]}>
       <div className="nx-page" style={{ maxWidth: 820 }}>
-        <div className="nx-head"><div><p className="nx-eyebrow">{orgName}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Record a bite</h1><p className="nx-sub">{prepared ? (clinician ? "Check it with the patient, choose the category and save." : "Check it with the patient and save. A clinician adds the category.") : "About a minute. The patient is identified by your own register number; no name is stored."}</p></div></div>
+        <div className="nx-head"><div><p className="nx-eyebrow">{orgName}{sample ? <Sample /> : null}</p><h1 className="nx-h1">Record a bite</h1><p className="nx-sub">{prepared ? (clinician ? "Check it with the patient, choose the category and save." : "Check it with the patient and save. A clinician adds the category.") : <>Tell Kaju what happened. <About>The patient is identified by your own register number; no name is stored.</About></>}</p></div></div>
+        <GhMark />
         {prepared ? (
           /* Enter in a field never saves here: the record is saved only by its button. */
           <form onSubmit={(e) => e.preventDefault()} style={{ marginTop: 24 }} noValidate>
@@ -148,21 +188,37 @@ function BiteForm({ sample, q, orgId, orgName, clinician }: { sample: boolean; q
                   <small>The category you assessed. StrayPaw records it; it does not assess.</small>
                 </div>
               ) : <p className="nx-note"><Lock size={13} /><span>A clinician records the category and any course. This presentation waits for them on Today.</span></p>}
-              <div className="gh-kaju-a">
+              <div className="gh-kaju-a gh-savebar">
                 {sample ? <TryLink>Save to the bite register</TryLink> : <button type="button" className="nx-btn" data-tour="record-save" disabled={!!busy || !ready || matching} onClick={() => void save()}>{busy === "bite" ? "Saving…" : "Save to the bite register"}</button>}
                 <span className="gh-hint" role="status">{!ready ? `Check the date${f.consent ? " and phone number" : ""} in Edit details.` : matching ? "Matching the area to your list…" : `It goes into ${orgName}'s bite register in your name.`}</span>
               </div>
             </section>
           </form>
         ) : (
-          <form onSubmit={submit} style={{ marginTop: 18 }} noValidate>
+          <div style={{ display: "grid", gap: 24, marginTop: 16 }}>
+          <KajuCapture idBase="bite-kaju" sample={sample} context={{ path: "/health/bites/new", workspace: "healthcare", title: "Record a bite" }}
+            placeholder="For example: dog bite on the left calf this morning, 34 F, OPD 4521, washed at home, brown stray near the bus stand"
+            hint={<>Type, paste, or use your keyboard&apos;s microphone. Use the register number, never the patient&apos;s name. <About>Kaju reads it with your access and prepares the entry; nothing is saved until you confirm. Kaju never assesses, prescribes or decides eligibility{clinician ? "; the category is yours" : ""}.</About></>}
+            reading={(t) => readBite(t).facts} byHand={(t) => [{ label: "Fill in by hand", go: () => fromWords(t) }]}
+            kinds={["register_exposure"]} onChange={change} changes={["register_exposure"]} />
+          <section className="kc-fold" aria-label="Fill in by hand">
+            <div className="kc-fold-h">
+              <button type="button" className="nx-btn is-quiet" aria-expanded={open} aria-controls={`${uid}-hand`} onClick={() => setOpen((v) => !v)}>Fill in by hand<ChevronDown size={14} aria-hidden /></button>
+              <p>The full desk form, about a minute.</p>
+            </div>
+            <div id={`${uid}-hand`} ref={fold} hidden={!open} className="kc-fold">
+          {said ? <p ref={banner} tabIndex={-1} className="kc-from"><Sparkles size={14} aria-hidden /><span>{said}{from?.aside ? ` ${from.aside}` : ""}</span></p> : null}
+          <form onSubmit={submit} noValidate>
             {details}
             <Block title="Clinical assessment">
               {clinician ? <div className="nx-field"><span>Exposure category <small>The category you assessed. StrayPaw records it; it does not assess.</small></span><Seg name="category" label="Exposure category" value={f.category} onChange={(v) => set("category", v)} options={CATEGORY} /></div>
                 : <p className="nx-note"><Lock size={13} /><span>A clinician records the category and any course. This presentation waits for them on Today.</span></p>}
             </Block>
-            <div className="gh-acts" style={{ marginTop: 22 }}>{sample ? <TryLink>Save presentation</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Save presentation</button>}<Link href="/health/bites" className="nx-btn is-quiet">Cancel</Link>{!ready ? <span className="gh-hint">Check the date{f.consent ? " and phone number" : ""}.</span> : null}</div>
+            <div className="gh-acts gh-savebar" style={{ marginTop: 22 }}>{sample ? <TryLink>Save presentation</TryLink> : <button type="submit" className="nx-btn" disabled={!!busy || !ready}>Save presentation</button>}<Link href="/health/bites" className="nx-btn is-quiet">Cancel</Link>{!ready ? <span className="gh-hint">Check the date{f.consent ? " and phone number" : ""}.</span> : null}</div>
           </form>
+            </div>
+          </section>
+          </div>
         )}
         {asking ? <Confirm title="Save this presentation" busy={busy === "bite"} confirm="Save" onClose={() => setAsking(false)} onConfirm={() => void save()}><p>{summary}</p><p className="gh-hint">It goes into {orgName}&apos;s bite register in your name.</p></Confirm> : null}
       </div>

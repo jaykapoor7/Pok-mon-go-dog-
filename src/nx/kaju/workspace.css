@@ -87,9 +87,42 @@ p.kj-quiet { max-width: 68ch; }
 .nx .kj-places { display: none; }
 
 /* ── Home ─────────────────────────────────────────────────────────────── */
-.nx .kj-home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 344px; gap: 48px; align-items: start; }
+/* One column: nothing beside the work grows into a long side column. What Kaju noticed is a strip under the request;
+   what it can use is one line at the foot that opens. */
+.nx .kj-home-grid { display: block; }
 .nx .kj-main { min-width: 0; }
-.nx .kj-side { display: grid; gap: 16px; position: sticky; top: 24px; min-width: 0; }
+.nx .kj-one { max-width: 1040px; }
+
+/* What Kaju noticed: three cards across, the rest one click away */
+.nx .kj-noticed { margin-top: 40px; }
+.nx .kj-noticed-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 32px; }
+.nx .kj-noticed-h h2 { font-size: 16px; font-weight: 600; }
+.nx .kj-noticed-more { margin-left: auto; }
+.nx .kj-noticed-l { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.nx .kj-noticed-l > .kj-notice { padding: 16px; border-radius: 16px; background: var(--kj-fill); align-content: start; }
+.nx .kj-noticed-l .kj-notice-b { display: flex; flex-direction: column; height: 100%; }
+.nx .kj-noticed-l .kj-notice-b b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nx .kj-noticed-l .kj-notice-b p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nx .kj-noticed-l .kj-notice-a { margin-top: auto; padding-top: 8px; }
+.nx .kj-noticed-l .kj-act { background: var(--bg); }
+.nx .kj-noticed-l .kj-act.is-plan { background: var(--accent-soft); }
+.nx .kj-notice-skel { height: 160px; border-radius: 16px; }
+.nx .kj-noticed-none { margin-top: 12px; padding: 16px; border-radius: 16px; background: var(--kj-fill); color: var(--ink-2); font-size: 14px; }
+
+/* What Kaju can use: one line that opens */
+.nx .kj-foot { display: grid; gap: 12px; margin-top: 40px; }
+.nx .kj-capsum { border-radius: 16px; background: var(--kj-fill); }
+.nx .kj-capsum > summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 48px; padding: 12px 48px 12px 16px; border-radius: 16px; position: relative; }
+.nx .kj-capsum > summary::-webkit-details-marker { display: none; }
+.nx .kj-capsum > summary::after { content: ""; position: absolute; right: 24px; top: 50%; width: 8px; height: 8px; border: solid var(--ink-3); border-width: 0 2px 2px 0; transform: translateY(-75%) rotate(45deg); transition: transform .2s var(--kj-ease); }
+.nx .kj-capsum[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+.nx .kj-capsum > summary:hover { background: var(--hover); }
+.nx .kj-capsum-t { font-size: 14px; font-weight: 600; color: var(--ink); }
+.nx .kj-capsum-s { color: var(--ink-2); font-size: 14px; }
+.nx .kj-capsum-s b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.nx .kj-capsum-s .c-live b { color: var(--ok); }
+.nx .kj-capsum-s .c-setup b { color: var(--warn); }
+.nx .kj-capsum-b { padding: 0 16px 16px; }
 .nx .kj-hero { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 16px; align-items: end; }
 .nx .kj-hero-pup { width: 76px; height: 76px; display: grid; place-items: end center; border-radius: 50%; background: radial-gradient(closest-side, var(--accent-soft), transparent); }
 .nx .kj-hero-v { align-self: start; }
@@ -386,6 +419,7 @@ p.kj-quiet { max-width: 68ch; }
 .nx .kj-dock .kj-blank.is-text { width: 180px; }
 .nx .kj-dock-started { display: grid; gap: 8px; margin: 12px 0; }
 .nx .kj-grab { display: none; }
+.nx .kj-mic { display: none; }
 .nx .kj-scrim { display: none; }
 
 /* ── Smaller screens ──────────────────────────────────────────────────── */
@@ -394,14 +428,11 @@ p.kj-quiet { max-width: 68ch; }
   .nx .kj-places::-webkit-scrollbar { display: none; }
   .nx .kj-places a { flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--kj-fill); color: var(--ink-2); font-size: 14px; }
   .nx .kj-places a.is-on { background: var(--sel); color: var(--accent); font-weight: 600; }
-  /* One column, with what Kaju noticed straight after the request. */
-  .nx .kj-home-grid { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
-  .nx .kj-main, .nx .kj-side { display: contents; }
-  .nx .kj-hero { order: 1; } .nx .kj-compose { order: 2; } .nx .kj-nomodel { order: 3; } .nx .kj-jobs { order: 4; } .nx .kj-plan { order: 5; } .nx .kj-convo { order: 6; }
-  .nx .kj-side > :nth-child(1) { order: 7; margin-top: 32px; }
-  .nx .kj-sec { order: 8; }
-  .nx .kj-side > :nth-child(2) { order: 9; margin-top: 32px; }
-  .nx .kj-rules { order: 10; margin-top: 16px; }
+  /* What Kaju noticed slides sideways, two cards in view, so the page never grows a column of them. */
+  .nx .kj-noticed-l { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 12px -32px 0; padding: 0 32px 4px; gap: 12px; }
+  .nx .kj-noticed-l::-webkit-scrollbar { display: none; }
+  .nx .kj-noticed-l > * { flex: 0 0 calc(50% - 8px); scroll-snap-align: start; }
+  .nx .kj-noticed-l.is-all { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; margin: 12px 0 0; padding: 0; }
 }
 @media (max-width: 900px) {
   .nx .kj-runs { grid-template-columns: minmax(0, 1fr); margin-top: 16px; }
@@ -412,13 +443,39 @@ p.kj-quiet { max-width: 68ch; }
 }
 @media (max-width: 640px) {
   .nx .kj { padding: 16px 16px 96px; }
-  .nx .kj-places { margin: 0 -16px 16px; padding: 0 16px; }
-  .nx .kj-places a { height: 40px; }
+  /* Kaju's places scroll sideways with a soft edge, never cut mid-word; on Kaju's home the Menu lists them and the
+     conversation has the screen. */
+  .nx .kj-places { margin: 0 -16px 16px; padding: 0 16px; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); }
+  .nx .kj-places a { height: 44px; padding: 0 16px; }
+  .nx .kj-places a:last-child { margin-right: 24px; }
+  .nx .kj-home .kj-places { display: none; }
+
+  /* Kaju's home on a phone is a conversation: what needs a person first, then the conversation, and the composer at the
+     foot of the screen within thumb reach. The order is the phone's own; wide screens keep theirs. */
+  .nx .kj.kj-home { padding-bottom: 0; }
+  .nx .kj-home .kj-one { display: flex; flex-direction: column; min-height: calc(100dvh - 160px); }
+  .nx .kj-home .kj-one > .kj-hero { order: 1; }
+  .nx .kj-home .kj-one > .kj-jobs { order: 2; }
+  .nx .kj-home .kj-one > .kj-noticed { order: 3; }
+  .nx .kj-home .kj-one > .kj-sec { order: 4; }
+  .nx .kj-home .kj-one > .kj-foot { order: 5; margin-bottom: 24px; }
+  .nx .kj-home .kj-one > .kj-plan { order: 6; }
+  .nx .kj-home .kj-one > .kj-convo { order: 7; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .nx .kj-home .kj-one > .kj-nomodel { order: 8; }
+  .nx .kj-home .kj-one > .nx-kj-voice { order: 2; margin-top: 16px; }
+  .nx .kj-home .kj-one > .kj-compose { order: 10; margin-top: auto; position: sticky; bottom: 0; z-index: 5; margin-left: -16px; margin-right: -16px;
+    padding-top: 8px; background: var(--bg); border-top: 1px solid var(--line); }
+  .nx .kj-home .kj-compose .nx-ask, .nx .kj-home .kj-compose .nx-ask:focus-within { background: var(--bg); border-radius: 0; box-shadow: none; }
+  .nx .kj-sub { display: none; }
+  .nx .kj-jobs-h { font-size: 12px; }
+  .nx .kj-convo .nx-kthread { gap: 16px; }
   .nx .kj-hero { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: center; }
   .nx .kj-hero-pup { width: 56px; height: 56px; }
   .nx .kj-hero-pup .kaju { width: 56px !important; height: 56px !important; }
   .nx .kj-hero-v { grid-column: 1 / -1; }
   .nx .kj-hero-v:empty { display: none; }
+  /* Talking starts from the microphone next to Send; the hero keeps only the way back to typing. */
+  .nx .kj-hero-v:has(button[aria-pressed="false"]) { display: none; }
   .nx .kj-h1 { font-size: 24px; }
   .nx .kj-sub { font-size: 14px; grid-column: 1 / -1; }
   .nx .kj-hero-t { display: contents; }
@@ -426,9 +483,20 @@ p.kj-quiet { max-width: 68ch; }
   .nx .kj-hero-t > .kj-h1 { grid-column: 2; grid-row: 2; margin-top: 0; align-self: start; }
   .nx .kj-hero-pup { grid-row: 1 / span 2; }
   .nx .kj-compose { margin-top: 16px; }
+  /* What Kaju noticed: a short list down the page, each row whole and readable, never a strip cut at the edge. */
+  .nx .kj-noticed { margin-top: 32px; }
+  .nx .kj-noticed-l, .nx .kj-noticed-l.is-all { display: grid; grid-template-columns: minmax(0, 1fr); overflow: visible; margin: 8px 0 0; padding: 0; gap: 8px; }
+  .nx .kj-noticed-l > * { flex-basis: auto; }
+  .nx .kj-noticed-l > .kj-notice { padding: 12px; border-radius: 12px; }
+  .nx .kj-noticed-l .kj-notice-b small { display: none; }
+  .nx .kj-noticed-l .kj-notice-a { padding-top: 4px; }
+  .nx .kj-noticed-l .kj-act { min-height: 44px; }
+  .nx .kj-noticed-more { min-height: 44px; }
+  .nx .kj-foot { margin-top: 32px; }
+  .nx .kj-capsum > summary { min-height: 56px; }
   .nx .kj-jobs-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; }
   .nx .kj-jobs-row::-webkit-scrollbar { display: none; }
-  .nx .kj-job { height: 40px; flex: none; }
+  .nx .kj-job { height: 44px; flex: none; }
   .nx .kj-jobform-in { padding: 16px; }
   .nx .kj-blank, .nx .kj-blank.is-text { height: 40px; line-height: 40px; }
   .nx .kj-blank.is-text { width: 100%; margin: 4px 0; }
@@ -436,8 +504,11 @@ p.kj-quiet { max-width: 68ch; }
   .nx .kj-btn { height: 44px; }
   .nx .kj-btn.is-sm { height: 40px; }
   .nx .kj-ib { width: 44px; height: 44px; }
-  .nx .kj-act { min-height: 40px; }
+  .nx .kj-act { min-height: 44px; }
   .nx .kj-link { min-height: 44px; }
+  .nx .kj-limits summary { min-height: 44px; display: flex; align-items: center; }
+  .nx .kj .nx-tabs .nx-tab { min-width: 44px; justify-content: center; }
+  .nx .kj .nx-chk-r a { display: inline-flex; align-items: center; min-height: 44px; }
   .nx .kj-field :is(input, textarea, select) { font-size: 16px; min-height: 44px; }
   .nx .kj-when input { height: 44px; font-size: 16px; }
   .nx .kj-fields { grid-template-columns: minmax(0, 1fr); }
@@ -461,6 +532,8 @@ p.kj-quiet { max-width: 68ch; }
   .nx .kj-step-w { margin-left: 0; white-space: normal; }
   .nx .kj-ask { padding: 12px; }
   .nx .kj-ask-a .kj-btn { flex: 1 1 120px; }
+  /* Approving a step: what will change is read first, then one full-width action; the rest sit under it. */
+  .nx .kj-ask-a .kj-btn:first-child { flex: 1 1 100%; height: 48px; font-size: 16px; }
   .nx .kj-row { grid-template-columns: auto minmax(0, 1fr) 16px; }
   .nx .kj-task { grid-template-columns: 32px minmax(0, 1fr); align-items: start; }
   .nx .kj-task > .kj-chiplink { grid-column: 2; justify-self: start; margin-top: 4px; }
@@ -474,17 +547,49 @@ p.kj-quiet { max-width: 68ch; }
   .nx .kj-evs { max-height: none; }
   .nx .kj-list-h .kj-btn { display: none; }
 
-  /* The panel becomes a sheet from the bottom, swiped down to put away. */
+  /* The panel becomes a full-height sheet: the conversation above, the composer at its foot within thumb reach, kept
+     above the on-screen keyboard (Dock.tsx sets --kj-kb from the visual viewport); swiped down or closed to put away. */
   .nx-top .nx-kaju.nx-hide-s { display: flex; }
   .nx .kj-scrim { display: block; position: fixed; inset: 0; z-index: 69; background: rgba(15, 20, 30, .32); }
-  .nx-dockk.kj-dock { left: 0; right: 0; bottom: 0; width: 100%; max-height: 88dvh; border-radius: 16px 16px 0 0; padding-bottom: env(safe-area-inset-bottom); touch-action: auto; }
+  .nx-dockk.kj-dock { left: 0; right: 0; top: calc(var(--kj-vt, 0px) + max(12px, env(safe-area-inset-top))); bottom: var(--kj-kb, 0px); width: 100%; max-height: none;
+    border-radius: 16px 16px 0 0; box-shadow: 0 -12px 40px -20px rgba(0, 0, 0, .5); touch-action: auto; }
   .nx .kj-grab { display: grid; place-items: center; height: 24px; flex: none; touch-action: none; cursor: grab; }
   .nx .kj-grab span { width: 40px; height: 4px; border-radius: 999px; background: var(--line-2); }
-  .nx .kj-dock .nx-dockk-h { padding-top: 0; }
+  .nx .kj-dock .nx-dockk-h { padding: 0 8px 8px 16px; gap: 8px; min-height: 52px; }
+  .nx .kj-dock .nx-dockk-h b { font-size: 16px; }
+  .nx .kj-dock .nx-dockk-ctx { max-width: 40vw; }
+  .nx .kj-dock .kj-dock-b, .nx .kj-dock .kj-vtoggle { width: 44px; height: 44px; border-radius: 12px; }
+  /* Talking is offered by the microphone next to Send; the header keeps only the way back to typing. */
+  .nx .kj-dock .kj-vtoggle:not(.is-on) { display: none; }
+  .nx .kj-dock .nx-dockk-b { padding: 16px 16px 8px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .nx .kj-dock .nx-dockk-b.is-voice { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .nx .kj-dock-intro { font-size: 16px; line-height: 24px; color: var(--ink-2); }
+  .nx .kj-dock .kj-jobs-h { font-size: 14px; }
   .nx .kj-dock .kj-blank.is-text { width: 100%; }
+  .nx-dockk.kj-dock > .nx-composer { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+
+  /* Kaju's composer on a phone: one row of the box, the microphone and Send, with what Kaju understood above it. */
+  .nx .nx-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 4px 8px; padding: 8px; }
+  .nx .nx-composer .nx-ask-f { display: contents; }
+  .nx .nx-composer .nx-ask-f > svg { display: none; }
+  .nx .nx-composer .nx-ask-in { grid-column: 1; grid-row: 2; border-radius: 12px; background: var(--side); box-shadow: inset 0 0 0 1px var(--line-2); }
+  .nx .nx-composer .nx-ask-in:focus-within { box-shadow: inset 0 0 0 2px var(--accent); }
+  .nx .nx-composer .nx-ask-in > div, .nx .nx-composer .nx-ask-in > textarea,
+  .nx .kj-compose .nx-composer .nx-ask-in > div, .nx .kj-compose .nx-composer .nx-ask-in > textarea { font-size: 16px; line-height: 24px; padding: 8px 12px; min-height: 44px; max-height: 144px; }
+  .nx .nx-composer .nx-ask-in > textarea { overflow-y: auto; }
+  .nx .nx-composer #kj-status { grid-column: 1 / -1; grid-row: 1; padding: 0 4px; font-size: 12px; line-height: 16px; }
+  .nx .nx-composer .nx-kread { grid-column: 1 / -1; grid-row: 3; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  .nx .nx-composer .kj-mic { display: grid; place-items: center; grid-column: 2; grid-row: 2; width: 44px; height: 44px; border-radius: 12px; color: var(--ink-2); }
+  .nx .nx-composer .kj-send, .nx .kj-compose .nx-composer .nx-ask-f .kj-send { grid-column: 3; grid-row: 2; height: 44px; padding: 0 16px; border-radius: 12px; font-size: 16px; margin: 0; }
+  .nx .nx-composer .kj-send[disabled], .nx .kj-compose .nx-composer .nx-ask-f .kj-send[disabled] { opacity: 1; background: var(--side) !important; color: var(--ink-3) !important; box-shadow: inset 0 0 0 1px var(--line); }
+  .nx .kj-jobs-row { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); }
+  .nx .kj-jobs-row .kj-job:last-child { margin-right: 24px; }
+  .nx .nx-kmenu { top: auto; bottom: calc(100% + 4px); left: 8px; max-width: calc(100% - 16px); }
+  .nx .nx-kmenu button { min-height: 44px; font-size: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .nx .kj-dot.is-live, .nx .kj-glyph.is-run, .nx .kj-seg.s-running, .nx .kj-skel { animation: none !important; }
   .nx .kj-mcard-in:hover, .nx .kj-btn:active, .nx .kj-act:active { transform: none; }
+  .nx .kj-capsum > summary::after { transition: none; }
 }

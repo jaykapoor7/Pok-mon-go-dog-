@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
-import { ArrowRight, Lock, Plus, Stethoscope, X } from "lucide-react";
+import { ArrowRight, Lock, Phone, Plus, Stethoscope, X } from "lucide-react";
 import { KajuFace } from "@/kaju/Kaju";
 import { AGE, AUDIT, COURSE, EXPOSURE_KIND, HANDOFF, REMINDER, SERVICE_LABEL, SERVICE_SHORT, SERVICE_STATUS, SEX, SPECIES, TRANSFER, WASHED, call, fmtDate, useRead, type Dose, type Exposure, type Place, type ReferralOption, type TransferOut } from "@/oh/data";
 import { Shell } from "../../Shell";
@@ -12,7 +12,7 @@ import { useLive } from "../../live";
 import type { Tone } from "../../fixtures";
 import { ago, can, indiaToday, isFacilityKind, placeOf, usePlaces } from "../../data/govhealth";
 import { sampleExposure } from "../../data/govhealth-samples";
-import { Block, Opening, Seg, SignedConfirm, TryLink } from "../gh/parts";
+import { ActBar, Block, GhMark, Opening, Seg, SignedConfirm, TryLink } from "../gh/parts";
 
 /* One presentation, start to finish: what happened, the clinician's assessment and prescription, every dose, the
    reminder calls, any referral, and what the animal team found. StrayPaw records clinical decisions and never makes
@@ -87,7 +87,8 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
       <RecordHead av={<Stethoscope size={18} />} title={<><span className="gh-code">{e.patient_ref ?? e.code}</span>{sample ? <Sample /> : null}</>}
         sub={<>{e.patient_ref ? <span className="gh-code">{e.code} · </span> : null}{SPECIES[e.animal_species] ?? e.animal_species} {(EXPOSURE_KIND[e.exposure_kind] ?? e.exposure_kind).toLowerCase()} on {fmtDate(e.exposure_on, { day: "numeric", month: "long" })}{e.area ? ` in ${e.area}` : ""} </>}
         chips={<><Chip tone={CAT_TONE[e.category] ?? "plain"}>{e.category === "not_recorded" ? "Category not recorded" : `Category ${e.category}`}</Chip>{e.course ? <Chip tone={COURSE_TONE[e.course.status] ?? "plain"}>{COURSE[e.course.status]?.label ?? e.course.status}</Chip> : <Chip>No course</Chip>}</>}
-        actions={assess ? (sample ? <TryLink sm quiet>Refer this person</TryLink> : <button type="button" className="nx-btn is-sm is-quiet" onClick={() => setRefer(true)}>Refer this person<ArrowRight size={13} /></button>) : undefined} />
+        actions={assess ? (sample ? <TryLink sm quiet className="gh-desk">Refer this person</TryLink> : <button type="button" className="nx-btn is-sm is-quiet gh-desk" onClick={() => setRefer(true)}>Refer this person<ArrowRight size={13} /></button>) : undefined} />
+      <GhMark />
       {/* With a category and no course yet, the course Kaju prepared is this screen's one decision: a full-width band
           above the record, never squeezed into a column. */}
       {prepare ? <div className="gh-prep"><Prescribe sample={sample} e={e} where={place?.name ?? null} onDone={reload} /></div> : null}
@@ -106,12 +107,12 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
             ["Looked like", e.animal_description],
             ["Where it is", e.animal_place],
           ]} />
-          <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Patient details stay with this facility. Partners see only the animal facts needed for a follow-up. Kaju does not read this record.</span></p>
+          <p className="nx-note" style={{ marginTop: 14 }}><Lock size={13} /><span>Patient details stay with this facility. Partners see only the animal facts needed for a follow-up. Kaju reads it only for people allowed to open it, and each read is logged. Clinical decisions stay with clinicians.</span></p>
         </section>
 
         <section aria-label="Course">
           <Block title="Course" note={e.course ? `${e.course.regimen} · immunoglobulin ${e.course.rig_given ? "given" : "not given"} · prescribed by ${e.course.prescribed_by_name ?? "a clinician"}, ${fmtDate(e.course.prescribed_at)}` : undefined}
-            action={clinician && e.course?.status === "active" ? (sample ? <><TryLink sm quiet><Plus size={13} />Add a dose date</TryLink><TryLink sm quiet>Close early</TryLink></> : <><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setAdding(true)}><Plus size={13} />Add a dose date</button><button type="button" className="nx-btn is-sm is-quiet" onClick={() => setClosing(true)}>Close early</button></>) : undefined}>
+            action={clinician && e.course?.status === "active" ? (sample ? <><TryLink sm quiet className="gh-desk"><Plus size={13} />Add a dose date</TryLink><TryLink sm quiet className="gh-desk">Close early</TryLink></> : <><button type="button" className="nx-btn is-sm is-quiet gh-desk" onClick={() => setAdding(true)}><Plus size={13} />Add a dose date</button><button type="button" className="nx-btn is-sm is-quiet gh-desk" onClick={() => setClosing(true)}>Close early</button></>) : undefined}>
             {!e.course ? (
               clinician ? (e.category === "not_recorded" ? <p className="nx-sub">Record the category first. Then prescribe from here.</p> : <p className="nx-sub">Kaju prepared the course above. Confirm it to start the doses.</p>)
                 : <p className="nx-sub">No course prescribed. A clinician prescribes from this page.</p>
@@ -119,7 +120,7 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
               <ul className="gh-list" aria-label="Doses">{e.doses.map((d) => { const late = d.status === "due" && d.due_on < t; return (
                 <li key={d.id}><div><b>Dose {d.dose_no}</b><small>{d.status === "given" ? `Given ${fmtDate(d.given_on)}${d.given_by_name ? ` by ${d.given_by_name}` : ""}${d.batch ? ` · batch ${d.batch}` : ""}` : d.status === "missed" ? `Missed · was due ${fmtDate(d.due_on)}` : d.status === "cancelled" ? `Cancelled · was due ${fmtDate(d.due_on)}` : `${late ? "Overdue since" : "Due"} ${fmtDate(d.due_on, { weekday: "short", day: "numeric", month: "short" })}`}</small></div>
                   <span className="gh-row-a"><Chip tone={d.status === "given" ? "ok" : d.status === "missed" || late ? "bad" : d.status === "cancelled" ? "plain" : d.due_on === t ? "accent" : "plain"}>{d.status === "given" ? "Given" : d.status === "missed" ? "Missed" : d.status === "cancelled" ? "Cancelled" : late ? "Overdue" : d.due_on === t ? "Today" : "Due"}</Chip>
-                    {d.status === "due" && canDose && d.id === nextDue?.id ? (sample ? <TryLink sm>Record</TryLink> : <button type="button" className="nx-btn is-sm" onClick={() => setDose(d)}>Record</button>) : null}</span></li>); })}</ul>
+                    {d.status === "due" && canDose && d.id === nextDue?.id ? (sample ? <TryLink sm className="gh-desk">Record</TryLink> : <button type="button" className="nx-btn is-sm gh-desk" onClick={() => setDose(d)}>Record</button>) : null}</span></li>); })}</ul>
             )}
             {e.course?.status_note ? <p className="nx-foot">{e.course.status_note}</p> : null}
             {e.course ? <p className="nx-foot">Every dose date here was confirmed by the prescribing clinician.</p> : null}
@@ -144,6 +145,15 @@ function ExposureView({ sample, e, place, transfers, reload }: { sample: boolean
           </Block>
         </aside>
       </div>
+      {/* On a phone: call the patient and record the next dose at the thumb; referral and course changes in More. */}
+      <ActBar label="Bite record"
+        more={assess || (clinician && e.course?.status === "active") ? <>
+          {assess ? (sample ? <TryLink quiet>Refer this person</TryLink> : <button type="button" className="nx-btn is-quiet" onClick={() => setRefer(true)}>Refer this person<ArrowRight size={16} /></button>) : null}
+          {clinician && e.course?.status === "active" ? (sample ? <><TryLink quiet><Plus size={16} />Add a dose date</TryLink><TryLink quiet>Close the course early</TryLink></> : <><button type="button" className="nx-btn is-quiet" onClick={() => setAdding(true)}><Plus size={16} />Add a dose date</button><button type="button" className="nx-btn is-quiet" onClick={() => setClosing(true)}>Close the course early</button></>) : null}
+        </> : undefined}>
+        {e.reminder_consent && e.contact_phone && nextDue ? <a className={`nx-btn ${canDose ? "is-quiet" : ""}`} href={`tel:${e.contact_phone.replace(/\s/g, "")}`}><Phone size={16} aria-hidden />Call</a> : null}
+        {nextDue && canDose ? (sample ? <TryLink>Record dose {nextDue.dose_no}</TryLink> : <button type="button" className="nx-btn" onClick={() => setDose(nextDue)}>Record dose {nextDue.dose_no}</button>) : null}
+      </ActBar>
       {cat ? <SignedConfirm title={`Record category ${cat}`} who={live.userName} where={place?.name} busy={busy === "cat"} confirm={`Record category ${cat}`} onClose={() => setCat(null)} onConfirm={() => void setCategory(cat)} tick="This is my clinical assessment of this exposure.">
         <p>The record shows category {cat}, assessed by you. StrayPaw records it; it does not assess.</p></SignedConfirm> : null}
       {dose ? <DoseModal dose={{ dose_id: dose.id, dose_no: dose.dose_no, due_on: dose.due_on, label: e.patient_ref ?? e.code }} onClose={() => setDose(null)} onDone={() => { setDose(null); reload(); }} /> : null}
@@ -293,6 +303,26 @@ function ReferModal({ exposureId, onClose, onDone }: { exposureId: string; onClo
     <Field label="Note for the other facility (optional)" hint="Never the person's name or phone number."><textarea value={note} maxLength={300} onChange={(ev) => setNote(ev.target.value)} placeholder="For example: needs immunoglobulin today; leaving now by auto" /></Field>
     <p className="gh-hint">A confirmation is what a person at that facility said, with its date. It is not a stock count; call before sending someone.</p>
   </Modal>;
+}
+
+/** Calling about a dose from the list of doses due: the patient's number (only when they agreed to be called), and
+    the outcome logged in one tap, as on the record. A reminder logged is not a dose given. */
+export function DoseCall({ sample, orgId, doseId, phone, onDone }: { sample: boolean; orgId: string | null; doseId: string; phone: string | null; onDone: () => void }) {
+  const pl = usePlaces(!sample);
+  const { busy, run } = useAct();
+  if (!phone && !sample) return <p className="nx-foot gh-ph">The patient did not agree to be called.</p>;
+  const canLog = sample || can(placeOf(pl.places, orgId), "log_reminder");
+  const log = async (outcome: string) => { const r = await run(`call:${doseId}`, () => call("oh_log_reminder", { p_dose: doseId, p_outcome: outcome, p_course: null }), { ok: `Logged: ${(REMINDER[outcome] ?? outcome).toLowerCase()}.` }); if (r.ok) onDone(); };
+  const tel = (phone ?? "").replace(/\s/g, "");
+  return (
+    <div className="gh-call gh-ph">
+      <div className="gh-steps gh-call-a">{sample ? <TryLink>Call the patient</TryLink> : <a className="nx-btn" href={`tel:${tel}`}>Call {phone}</a>}</div>
+      {canLog ? <div className="gh-call-o" role="group" aria-label="Log the call">
+        <span>After the call, log what happened</span>
+        <div className="gh-seg">{["called_reached", "called_no_answer", "patient_will_attend", "wrong_number"].map((k) => sample ? <TryLink key={k} quiet sm>{REMINDER[k]}</TryLink> : <button key={k} type="button" className="nx-btn is-sm is-quiet" disabled={!!busy} onClick={() => void log(k)}>{REMINDER[k]}</button>)}</div>
+      </div> : null}
+    </div>
+  );
 }
 
 /** "Record the dose" from the list of doses due, for nurses and clinicians of the facility. */

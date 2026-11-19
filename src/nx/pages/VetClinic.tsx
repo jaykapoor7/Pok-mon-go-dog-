@@ -1,13 +1,16 @@
 "use client";
 
+import { About, GhMark } from "./gh/parts";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarPlus, FilePlus2, PenLine, Plus } from "lucide-react";
 import { ListPage, type Col } from "../ListPage";
 import { Shell } from "../Shell";
 import { Chip } from "../ui";
 import { Confirm, Empty, Field, Modal, Section, Skeleton, Timeline, day, dayTime, todayIso, useAct, words } from "../kit";
-import { useLive, type Workspace } from "../live";
+import { useLive, useTasks, type Workspace } from "../live";
 import { getSupabase } from "@/lib/supabase";
+import { AtKaju } from "../AtKaju";
+import { Grid, Meter, Panel, Rows, TasksPanel, Tile, Tiles, type Item } from "../HomeCards";
 
 /* An independent veterinary clinic's own work: its patients, clinical records signed by its veterinarians, and its
    appointments. A record is a draft until a veterinarian signs it, and a signed record does not change. A partner NGO
@@ -75,7 +78,7 @@ export function ClinicPatients({ clinic }: { clinic: Workspace }) {
   ];
   return (
     <>
-      <ListPage ws="health" crumb={["Healthcare", "Patients"]} eyebrow={clinic.name} title="Patients" sub="The clinic's own patients. Clinical records are drafts until a veterinarian signs them."
+      <ListPage ws="health" crumb={["Healthcare", "Patients"]} eyebrow={clinic.name} title="Patients" sub={<>The clinic&apos;s own patients. <About>Clinical records are drafts until a veterinarian signs them.</About><GhMark /></>}
         action={<button type="button" className="nx-btn is-keep" onClick={() => setAdding(true)}><Plus size={13} />Add a patient</button>} sample={false}
         views={[{ id: "all", label: "All", test: () => true }, { id: "drafts", label: "Unsigned records", test: (r) => encs.some((e) => e.patient_id === r.id && !e.signed_at) }, { id: "ngo", label: "From partner NGOs", test: (r) => r.brought_by === "ngo" }]}
         columns={cols} rows={pats ?? []} rowKey={(r) => r.id} rowLabel={(r) => r.name} search={(r) => `${r.name} ${r.marks ?? ""}`} loading={pats === null}
@@ -115,22 +118,42 @@ export function ClinicPatients({ clinic }: { clinic: Workspace }) {
   );
 }
 
-/** The clinic's day: visits today, unsigned records, visits due. */
+/** The clinic's day: @Kaju, four figures, and visits today, unsigned records and follow-ups due side by side. */
 export function ClinicToday({ clinic }: { clinic: Workspace }) {
   const { pats, encs, appts } = useClinic(clinic);
+  const live = useLive();
+  const tasks = useTasks(clinic.org_id);
   const today = todayIso();
   const visits = useMemo(() => appts.filter((a) => a.status === "booked" && a.starts_at.slice(0, 10) <= today), [appts, today]);
   const drafts = encs.filter((e) => !e.signed_at);
   const due = encs.filter((e) => e.signed_at && e.next_due && e.next_due <= today);
   const name = (id: string | null) => pats?.find((p) => p.id === id)?.name ?? "Patient";
-  if (pats === null) return <Shell ws="health" crumb={["Healthcare", "Today"]}><div className="nx-page"><Skeleton /></div></Shell>;
+  const ready = pats !== null;
+  const n = (v: number) => (ready ? v : undefined);
+  const fromNgo = (pats ?? []).filter((p) => p.brought_by === "ngo").length;
   return (
     <Shell ws="health" crumb={["Healthcare", "Today"]}>
-      <div className="nx-page">
-        <div className="nx-head"><div><p className="nx-eyebrow">{clinic.name} · Veterinary clinic</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{visits.length} {visits.length === 1 ? "visit" : "visits"} booked, {drafts.length} unsigned {drafts.length === 1 ? "record" : "records"}, {due.length} follow-up {due.length === 1 ? "visit" : "visits"} due.</p></div></div>
-        <Section title="Visits today" count={visits.length}>{visits.length ? <ul className="nx-feed">{visits.map((a) => <li key={a.id} style={{ gridTemplateColumns: "minmax(0,1fr)" }}><div><b>{a.title}</b><small>{dayTime(a.starts_at)} · {name(a.vet_patient_id)}</small></div></li>)}</ul> : <Empty title="Nothing booked for today" />}</Section>
-        <Section title="Records waiting for a veterinarian's signature" count={drafts.length}>{drafts.length ? <ul className="nx-feed">{drafts.slice(0, 10).map((e) => <li key={e.id} style={{ gridTemplateColumns: "minmax(0,1fr)" }}><div><b>{name(e.patient_id)}: {words(e.kind)}</b><small>{day(e.occurred_on)}</small></div></li>)}</ul> : <Empty title="Every record is signed" />}</Section>
-        <Section title="Follow-up visits due" count={due.length}>{due.length ? <ul className="nx-feed">{due.map((e) => <li key={e.id} style={{ gridTemplateColumns: "minmax(0,1fr)" }}><div><b>{name(e.patient_id)}</b><small>Due {day(e.next_due)} after {e.kind}</small></div></li>)}</ul> : <Empty title="No follow-ups due" />}</Section>
+      <div className="nx-page hm-page">
+        <div className="nx-head"><div><p className="nx-eyebrow">{clinic.name} · Veterinary clinic</p><h1 className="nx-h1">Today</h1><p className="nx-sub">{ready ? <About>A clinical record is a draft until a veterinarian signs it; a signed record does not change.</About> : "Reading the clinic's day…"}<GhMark /></p></div></div>
+        <AtKaju role="vet" note="Kaju reads only what you can open. Clinical decisions stay with you." />
+        <Tiles>
+          <Tile label="Visits today" n={n(visits.length)} href="/health/appointments" />
+          <Tile label="Records to sign" n={n(drafts.length)} tone={drafts.length ? "warn" : "plain"} href="/health/patients" />
+          <Tile label="Follow-up visits due" n={n(due.length)} tone={due.length ? "warn" : "plain"} href="/health/patients" />
+          <Tile label="Patients" n={n((pats ?? []).length)} href="/health/patients" visual={pats && pats.length ? <Meter part={fromNgo} whole={pats.length} tone="blue" label={`${fromNgo} brought by partner NGOs`} /> : null} />
+        </Tiles>
+        <Grid cols={2}>
+          <Panel id="ct-v" title="Visits today">
+            <Rows items={ready ? visits.map((a): Item => ({ id: a.id, title: a.title, meta: name(a.vet_patient_id), href: "/health/appointments", icon: <CalendarPlus size={16} />, tone: "blue", chip: { text: dayTime(a.starts_at), tone: "blue" } })) : null} all={{ href: "/health/appointments" }} empty="Nothing booked for today." />
+          </Panel>
+          <Panel id="ct-d" title="Waiting for a signature">
+            <Rows items={ready ? drafts.map((e): Item => ({ id: e.id, title: `${name(e.patient_id)}: ${words(e.kind)}`, meta: day(e.occurred_on), href: "/health/patients", icon: <PenLine size={16} />, tone: "warn", chip: { text: "Draft", tone: "warn" } })) : null} all={{ href: "/health/patients" }} empty="Every record is signed." />
+          </Panel>
+          <Panel id="ct-f" title="Follow-up visits due">
+            <Rows items={ready ? due.map((e): Item => ({ id: e.id, title: name(e.patient_id), meta: `After ${words(e.kind).toLowerCase()}`, href: "/health/patients", icon: <CalendarPlus size={16} />, tone: "warn", chip: { text: `Due ${day(e.next_due)}`, tone: "warn" } })) : null} all={{ href: "/health/patients" }} empty="No follow-ups are due." />
+          </Panel>
+          <TasksPanel orgId={clinic.org_id} userId={live.userId} tasks={tasks} />
+        </Grid>
       </div>
     </Shell>
   );

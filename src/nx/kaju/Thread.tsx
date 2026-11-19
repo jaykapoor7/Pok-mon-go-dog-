@@ -3,23 +3,45 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Check as Tick, Loader2 } from "lucide-react";
+import { ArrowUpRight, Check as Tick, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Blocks } from "./Blocks";
 import { KajuFace } from "@/kaju/Kaju";
 import type { Proposal } from "@/sp3/ai/types";
-import { appHref, useKaju, type Turn } from "./state";
+import { appHref, useKaju, type Feedback, type Turn } from "./state";
 import { DEMO_SITE } from "@/lib/demo-site";
 
 /* Kaju's answers as objects, not walls of text: the answer first, the records it read as links, and anything it prepared
    as a card with Confirm. Plans are reviewed in the plan card (Plan.tsx). */
 
-const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
+const PROPOSAL_WORD: Record<Proposal["kind"], string> = { open_case: "Open a case", add_note: "Add a note", schedule_followup: "Schedule a follow-up", record_care: "Record care", add_task: "Add a task", register_exposure: "Record a bite", email: "Email", calendar_event: "Calendar event", chat_post: "Post in a connected chat", sms: "Text message", report_file: "Report file" };
+const day = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+const EXPOSURE: Record<string, string> = { bite: "Bite", scratch: "Scratch", lick_broken_skin: "Lick on broken skin", other: "Other contact" };
+const WASHED: Record<string, string> = { before_arrival: "washed before arrival", at_facility: "washed here", not_washed: "not washed" };
+const AGE: Record<string, string> = { "0-4": "under 5", "5-14": "5 to 14", "15-29": "15 to 29", "30-49": "30 to 49", "50+": "50 and over" };
+/** Kaju's words with the record names and figures it marks (**like this**) in bold, as plain text otherwise. */
+function bold(text: string) {
+  return text.split(/(\*\*[^*\n]+\*\*)/g).map((part, i) => (/^\*\*[^*\n]+\*\*$/.test(part) ? <b key={i}>{part.slice(2, -2)}</b> : part));
+}
+/** What a task or a bite record will hold, one fact per line, so the person checks each before confirming. Empty facts are said, not hidden. */
+function proposalFacts(p: Proposal): string[] {
+  if (p.kind === "add_task") return [`Due: ${p.dueOn ? day(p.dueOn) : "no date"}`, `For: ${p.assigneeName ?? "nobody yet"}`, `About: ${p.caseLabel ?? p.dogLabel ?? "no record"}`];
+  if (p.kind === "register_exposure") return [
+    `${p.facilityName} · ${EXPOSURE[p.exposureKind] ?? p.exposureKind} on ${day(p.exposureOn)}${p.exposureTime ? `, ${p.exposureTime}` : ""}${p.site ? ` · ${p.site}` : ""}`,
+    `Patient: ${p.patientRef ?? "no register number"} · ${p.ageText ? `${p.ageText}${p.ageBand ? ` (${AGE[p.ageBand]})` : ""}` : "age not given"} · ${p.sex ?? "sex not given"}`,
+    `Category: ${p.category ?? "not recorded; the clinician records it"} · Wound: ${p.woundWashed ? WASHED[p.woundWashed] : "washing not recorded"}`,
+    `Animal: ${p.species === "unknown" ? "not stated" : p.species}${p.ownership !== "unknown" ? `, ${p.ownership === "community" ? "street or community" : "someone's pet"}` : ""}${p.animalPlace ? ` · ${p.animalPlace}` : ""}${p.areaName ? ` · area ${p.areaName}` : ""}`,
+    `Reminder calls: ${p.reminderConsent ? "agreed, phone saved" : "not agreed"}`,
+  ];
+  return [];
+}
 function proposalLine(p: Proposal) {
   switch (p.kind) {
+    case "add_task": return p.title;
+    case "register_exposure": return "A bite presentation for your register, from your note. Prescribing stays with the clinician.";
     case "open_case": return `${p.title} · ${p.category}, ${p.severity}${p.zone ? ` · ${p.zone}` : ""}`;
     case "add_note": return `${p.caseLabel}: ${p.note}`;
     case "schedule_followup": return `${p.caseLabel} on ${new Date(p.dueAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}${p.note ? `: ${p.note}` : ""}`;
     case "record_care": return `${p.dogLabel}: ${p.careKind}${p.date ? ` on ${p.date}` : ""}`;
-    case "add_task": return `${p.title}${p.dueOn ? ` · due ${new Date(p.dueOn).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : ""}${p.assigneeName ? ` · ${p.assigneeName}` : ""}`;
     case "email": return `To ${p.to.join(", ")} · ${p.subject}`;
     case "calendar_event": return `${p.title} · ${new Date(p.start).toLocaleString("en-IN")}`;
     case "chat_post": return `#${p.channelName}: ${p.text}`;
@@ -51,19 +73,52 @@ function ProposalCard({ turn, p }: { turn: Turn; p: Proposal }) {
   return (
     <div className="nx-kprop">
       <div className="nx-kprop-h"><b>{PROPOSAL_WORD[p.kind]}</b><span className="nx-t3">Prepared, not saved</span></div>
-      <p>{proposalLine(p)}</p>
+      <p>{p.kind === "add_task" ? <b>{proposalLine(p)}</b> : proposalLine(p)}</p>
+      {proposalFacts(p).map((f) => <p key={f} className="nx-t3">{f}</p>)}
       {p.why ? <p className="nx-t3">{p.why}</p> : null}
       <div className="nx-kprop-f">
         {saved?.ok ? <span className="nx-kok"><Tick size={12} strokeWidth={3} />{saved.what ?? "Saved"}{saved.href ? <> · <Link href={appHref(saved.href)}>Open</Link></> : null}</span>
-          : <><button type="button" className="nx-btn is-sm" disabled={busy} onClick={async () => { setBusy(true); await confirm(turn.id, p); setBusy(false); }}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}Confirm</button><span className="nx-t3">Saved under your name, with Kaju&apos;s help noted.</span></>}
+          : <><button type="button" className="nx-btn is-sm kj-confirm" disabled={busy} onClick={async () => { setBusy(true); await confirm(turn.id, p); setBusy(false); }}>{busy ? <Loader2 size={12} className="nx-spin" /> : null}Confirm</button><span className="nx-t3">Saved under your name, with Kaju&apos;s help noted.</span></>}
         {saved && !saved.ok ? <span role="alert" className="nx-kerr">{saved.error}</span> : null}
       </div>
     </div>
   );
 }
 
+/* One tap to say whether an answer helped. A second, optional row asks one thing: why not, or how much time it saved.
+   Nothing here is required, and it disappears once answered. Only answers the server logged (reply.turnId) are rateable. */
+const WHY_NOT: [string, string][] = [["wrong", "Wrong"], ["incomplete", "Missed something"], ["not_useful", "Not useful"], ["other", "Other"]];
+const SAVED: [number, string][] = [[5, "5 min"], [15, "15 min"], [30, "30 min"], [60, "1 h+"]];
+function Rate({ t }: { t: Turn }) {
+  const { rate } = useKaju();
+  const [step, setStep] = useState<"why" | "time" | "done" | null>(null);
+  const [note, setNote] = useState("");
+  const [why, setWhy] = useState<string | null>(null);
+  if (!t.reply?.turnId) return null;
+  const send = (f: Feedback, next: typeof step) => { void rate(t.id, f); setStep(next); };
+  return (
+    <div className="nx-krate" role="group" aria-label="Was this answer useful?">
+      {step === "done" ? <span className="nx-t3" role="status">Thanks. This helps decide what Kaju learns to do next.</span> : <>
+        <span className="nx-t3">Useful?</span>
+        <button type="button" className="nx-ib is-sm" aria-pressed={t.rated === 1} aria-label="Yes, useful" onClick={() => send({ rating: 1 }, "time")}><ThumbsUp size={13} /></button>
+        <button type="button" className="nx-ib is-sm" aria-pressed={t.rated === -1} aria-label="No, not useful" onClick={() => send({ rating: -1 }, "why")}><ThumbsDown size={13} /></button>
+        {step === "time" ? <span className="nx-krate-more"><span className="nx-t3">Time saved?</span>{SAVED.map(([m, l]) => <button key={m} type="button" className="nx-chipbtn" onClick={() => send({ rating: 1, reason: "saved_time", minutesSaved: m }, "done")}>{l}</button>)}<button type="button" className="nx-link" onClick={() => setStep("done")}>Skip</button></span> : null}
+        {step === "why" ? <span className="nx-krate-more">
+          {WHY_NOT.map(([k, l]) => <button key={k} type="button" className="nx-chipbtn" aria-pressed={why === k} onClick={() => setWhy(k)}>{l}</button>)}
+          <form onSubmit={(e) => { e.preventDefault(); send({ rating: -1, reason: why ?? "other", comment: note.trim() || undefined }, "done"); }} className="nx-krate-f">
+            <label className="sr-only" htmlFor={`kr-${t.id}`}>What should Kaju have done?</label>
+            <input id={`kr-${t.id}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="What should Kaju have done? (optional)" aria-describedby={`kr-${t.id}-who`} />
+            <button type="submit" className="nx-btn is-sm is-quiet">Send</button>
+          </form>
+          <span id={`kr-${t.id}-who`} className="nx-t3" style={{ flexBasis: "100%" }}>Your organisation&apos;s leads and StrayPaw can read these words, without your name.</span>
+        </span> : null}
+      </>}
+    </div>
+  );
+}
+
 export function Thread({ compact }: { compact?: boolean }) {
-  const { turns, ask, stop, retry, page } = useKaju();
+  const { turns, ask, stop, retry, page, busy } = useKaju();
   const calm = useReducedMotion();
   const shown = compact ? turns.slice(-4) : turns;
   if (!turns.length) return null;
@@ -79,12 +134,14 @@ export function Thread({ compact }: { compact?: boolean }) {
                 {t.error ? <div className="nx-kerr" role="alert"><p>{t.error}</p>{t.kind === "expired" ? <Link className="nx-btn is-sm" href={`/sign-in?next=${encodeURIComponent(page.path || "/kaju")}`}>Sign in</Link> : <button type="button" className="nx-btn is-quiet is-sm" onClick={() => retry(t.id)}>Try again</button>}</div> : null}
                 {t.reply ? <>
                   <KText text={t.reply.text} />
+                  {t.reply.blocks?.length ? <Blocks blocks={t.reply.blocks} busy={busy || !!t.restored} onSend={(x) => void ask(x)} /> : null}
                   {t.reply.citations?.length ? <div className="nx-kcite" aria-label="Records Kaju read">{t.reply.citations.slice(0, compact ? 4 : 12).map((c) => <Link key={c.id + c.href} href={appHref(c.href)} className="nx-reclink"><ArrowUpRight size={12} />{c.label}</Link>)}</div> : null}
                   {t.reply.proposals?.map((p) => <ProposalCard key={p.id} turn={t} p={p} />)}
                   {t.reply.navigate ? <p><Link className="nx-btn is-quiet is-sm" href={appHref(t.reply.navigate.href)}>{t.reply.navigate.label}<ArrowUpRight size={12} /></Link></p> : null}
                   {!compact && t.reply.tools?.length ? <details className="nx-ktools"><summary>What Kaju checked ({t.reply.tools.length})</summary><ul>{t.reply.tools.map((x, i) => <li key={i} className={x.ok ? "" : "is-bad"}>{x.summary}</li>)}</ul></details> : null}
                   {t.reply.suggestions?.length ? <div className="nx-ksugg">{t.reply.suggestions.slice(0, 3).map((s) => <button key={s} type="button" onClick={() => void ask(s)}>{s}</button>)}</div> : null}
-                  <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : DEMO_SITE ? "Answered from records you can see." : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}</p>
+                  <p className="nx-kmeta">{t.reply.engine === "model" ? "Answered with a model, from records you can see" : DEMO_SITE ? "Answered from records you can see." : "Answered by fixed rules from records you can see. Free-form answers need a connected model."}{t.reply.notice ? ` · ${t.reply.notice}` : ""}{t.restored ? " · From a saved conversation" : ""}</p>
+                  {!t.restored ? <Rate t={t} /> : null}
                 </> : null}
               </div>
             </div>
