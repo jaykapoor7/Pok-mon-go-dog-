@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
-import { allowRequest, clientIp } from "@/lib/rate-limit";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { CONTACT_INBOX } from "@/lib/contact-inbox";
 
 export const runtime = "nodejs";
@@ -11,7 +11,8 @@ function esc(s: string) {
 }
 
 export async function POST(req: Request) {
-  if (!(await allowRequest(clientIp(req), "contact", 5, 600))) return NextResponse.json({ error: "Please wait a few minutes before sending another message." }, { status: 429 });
+  const limit = await rateLimit(clientIp(req), "contact", 5, 600);
+  if (limit !== "ok") return NextResponse.json({ error: limit === "limited" ? "Please wait a few minutes before sending another message." : "Messages can't be sent right now. Nothing was sent. Try again shortly, or email us." }, { status: limit === "limited" ? 429 : 503 });
   let body: { name?: string; email?: string; subject?: string; message?: string };
   try {
     body = await req.json();

@@ -26,6 +26,17 @@ export function PinPicker({ centres, start, onPick, onCancel }: { centres: (Spot
   const [state, setState] = useState<"loading" | "ready" | "nogl">("loading");
   const [moving, setMoving] = useState(false);
   const [finding, setFinding] = useState(false);
+  /* A dialog: focus moves into it, Escape cancels, and focus goes back to what opened it. */
+  const box = useRef<HTMLDivElement>(null);
+  const cancel = useRef(onCancel);
+  cancel.current = onCancel;
+  useEffect(() => {
+    const before = document.activeElement as HTMLElement | null;
+    box.current?.focus();
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); cancel.current(); } };
+    document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("keydown", key); before?.focus?.(); };
+  }, []);
   useEffect(() => {
     if (!el.current) return;
     if (!supportsWebGL2()) { setState("nogl"); return; }
@@ -63,7 +74,7 @@ export function PinPicker({ centres, start, onPick, onCancel }: { centres: (Spot
   };
   const use = () => { const c = map.current?.getCenter(); if (c) onPick({ lat: c.lat, lng: c.lng }); };
   return (
-    <div className="kp" role="dialog" aria-label="Drop a pin where it happened">
+    <div className="kp" role="dialog" aria-modal="true" aria-label="Drop a pin where it happened" ref={box} tabIndex={-1}>
       <div className="kp-head"><b>Where did it happen?</b><span>Move the map to put the pin on the spot.</span></div>
       <div className="kp-map">
         <div ref={el} className="kp-canvas" />

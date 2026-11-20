@@ -103,16 +103,16 @@ export function PartnerApplyForm() {
   return (
     <form onSubmit={submit} className="rounded border border-black/[0.06] bg-white/70 p-5 dark:border-white/10 dark:bg-bark-900/50 sm:p-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div><label className={label}>Organisation name *</label><input value={f.org_name} onChange={set("org_name")} placeholder="e.g. Delhi Street Animals" className={field} /></div>
-        <div><label className={label}>Your name</label><input value={f.contact_name} onChange={set("contact_name")} placeholder="Contact person" className={field} /></div>
-        <div><label className={label}>Email *</label><input type="email" value={f.email} onChange={set("email")} placeholder="you@org.org" className={field} /></div>
-        <div><label className={label}>Phone</label><input value={f.phone} onChange={set("phone")} placeholder="+91…" className={field} /></div>
-        <div><label className={label}>City / area you cover</label><input value={f.city} onChange={set("city")} placeholder="e.g. South Delhi" className={field} /></div>
-        <div><label className={label}>Website / social</label><input value={f.website} onChange={set("website")} placeholder="https://" className={field} /></div>
+        <div><label className={label} htmlFor="pa-org">Organisation name *</label><input id="pa-org" value={f.org_name} onChange={set("org_name")} placeholder="e.g. Delhi Street Animals" className={field} /></div>
+        <div><label className={label} htmlFor="pa-name">Your name</label><input id="pa-name" value={f.contact_name} onChange={set("contact_name")} placeholder="Contact person" className={field} /></div>
+        <div><label className={label} htmlFor="pa-email">Email *</label><input id="pa-email" type="email" value={f.email} onChange={set("email")} placeholder="you@org.org" className={field} /></div>
+        <div><label className={label} htmlFor="pa-phone">Phone</label><input id="pa-phone" value={f.phone} onChange={set("phone")} placeholder="+91…" className={field} /></div>
+        <div><label className={label} htmlFor="pa-city">City / area you cover</label><input id="pa-city" value={f.city} onChange={set("city")} placeholder="e.g. South Delhi" className={field} /></div>
+        <div><label className={label} htmlFor="pa-web">Website / social</label><input id="pa-web" value={f.website} onChange={set("website")} placeholder="https://" className={field} /></div>
       </div>
       <div className="mt-4">
-        <label className={label}>Tell us about your work *</label>
-        <textarea value={f.about} onChange={set("about")} rows={5} placeholder="What does your organisation do, how many animals do you handle, and how would you use StrayPaw?" className={`${field} resize-none`} />
+        <label className={label} htmlFor="pa-about">Tell us about your work *</label>
+        <textarea id="pa-about" value={f.about} onChange={set("about")} rows={5} placeholder="What does your organisation do, how many animals do you handle, and how would you use StrayPaw?" className={`${field} resize-none`} />
       </div>
 
       <div className="mt-4">
@@ -129,14 +129,14 @@ export function PartnerApplyForm() {
               <li key={i} className="flex items-center gap-2 rounded-lg border border-black/[0.06] bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-bark-900">
                 <FileText className="h-4 w-4 shrink-0 text-paw-500" />
                 <span className="min-w-0 flex-1 truncate">{d.name}</span>
-                <button type="button" onClick={() => setDocs((x) => x.filter((_, j) => j !== i))} className="text-bark-400 hover:text-status-injured"><X className="h-4 w-4" /></button>
+                <button type="button" aria-label={`Remove ${d.name}`} onClick={() => setDocs((x) => x.filter((_, j) => j !== i))} className="text-bark-400 hover:text-status-injured"><X className="h-4 w-4" aria-hidden /></button>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {error && <p className="mt-3 text-sm font-medium text-status-injured">{error}</p>}
+      {error && <p className="mt-3 text-sm font-medium text-status-injured" role="alert">{error}</p>}
 
       <button type="submit" disabled={busy || uploading} className="btn-primary mt-5 w-full py-3.5 text-base">
         {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />} Submit application

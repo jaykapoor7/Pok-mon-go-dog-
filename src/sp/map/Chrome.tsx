@@ -23,7 +23,7 @@ import { MobileDetails } from "../ui/MobileDetails";
 import { Reading } from "../ui/Reading";
 import type { Bucket } from "../atlas/recency";
 import { KINDS, kindOf, type EvidenceKind } from "../atlas/evidence";
-import { LENSES, nationalMeasure } from "../atlas/lenses";
+import { LENSES, nationalMeasure, needingHelp } from "../atlas/lenses";
 import { MARK } from "./marks";
 import { lensLabel, type MapScope, type MapVariant } from "./lens";
 import type { LensId } from "../atlas/lenses";
@@ -336,11 +336,15 @@ function AreaCard({ cell, city, area, onAnimal, variant }: { cell: MapCell; city
   const sorted = a ? [...a.animals].sort((x, y) => NEED_RANK[needOf(x)] - NEED_RANK[needOf(y)]) : [];
   const shown = all ? sorted : sorted.slice(0, 12);
   const open = cell.open_cases - (cell.open_unconfirmed ?? 0);
+  const help = needingHelp(cell.needs_help, open, cell.fu_missed_live ?? 0);
   return (
     <div className="fm-card">
       <p className="fm-k">{city} · an area of about 0.74 km²</p>
       <dl className="fm-facts">
-        <div className={cell.needs_help ? "is-help" : undefined}><dt>Needing help</dt><dd>{f(cell.needs_help)}</dd></div>
+        {/* The same measure as the city and the Needs help layer (lenses.needingHelp): flagged or confirmed open,
+            whichever is larger, plus missed rechecks. The card used to show flagged animals only, so a city "26
+            needing help" opened areas that each read 0 beside their open requests. */}
+        <div className={help ? "is-help" : undefined}><dt>Needing help</dt><dd>{f(help)}</dd></div>
         <div className={open ? "is-open" : undefined}><dt>Open requests</dt><dd>{f(open)}{cell.open_unconfirmed ? <small> +{cell.open_unconfirmed} unconfirmed</small> : null}</dd></div>
         <div><dt>Animals</dt><dd>{f(cell.animals)}</dd></div>
         <div><dt>Last recorded</dt><dd className="is-text">{ago([cell.last_seen, cell.last_case, cell.care_last].filter(Boolean).sort().pop() ?? null) ?? "not recorded"}</dd></div>

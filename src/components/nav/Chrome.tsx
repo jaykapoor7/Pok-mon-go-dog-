@@ -109,7 +109,9 @@ export function Chrome({ children }: { children: React.ReactNode }) {
   // identifies the landing page consistently during regeneration and in the
   // browser, so its server HTML never acquires the application console.
   const own = segments.length === 0 || OWN_CHROME.has(pathname) || S3_PUBLIC.test(pathname) || PUBLIC_RECORD.test(pathname) || pathname.startsWith("/org/") || pathname.startsWith("/dog/");
-  if (own) return <><a href="#main-content" className="skip-link">Skip to content</a><div id="main-content" tabIndex={-1}>{children}</div></>;
+  /* The wrapper holds the page's own header too, so "Skip to content" moves focus to the page's <main> when it has one
+     (it used to land on the header's first link). */
+  if (own) return <><a href="#main-content" className="skip-link" onClick={skipToMain}>Skip to content</a><div id="main-content" tabIndex={-1}>{children}</div></>;
 
   if (pathname.startsWith("/embed/") || pathname.startsWith("/org/")) return <>{children}</>;
   if (OWN_CHROME.has(pathname)) return <>{children}</>;
@@ -119,4 +121,13 @@ export function Chrome({ children }: { children: React.ReactNode }) {
 
   // Everything else that is an app surface lives in the (app) group and is framed there.
   return <>{children}</>;
+}
+
+function skipToMain(e: React.MouseEvent<HTMLAnchorElement>) {
+  const main = document.querySelector<HTMLElement>("#main-content main");
+  if (!main) return;
+  e.preventDefault();
+  if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
+  main.focus();
+  main.scrollIntoView({ block: "start" });
 }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { sendEmail } from "@/lib/email";
 import { CONTACT_INBOX } from "@/lib/contact-inbox";
-import { allowRequest, clientIp } from "@/lib/rate-limit";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +12,8 @@ function esc(s: string) {
 }
 
 export async function POST(req: Request) {
-  if (!(await allowRequest(clientIp(req), "partner-apply", 5, 600))) return NextResponse.json({ error: "Please wait a few minutes before sending another application." }, { status: 429 });
+  const limit = await rateLimit(clientIp(req), "partner-apply", 5, 600);
+  if (limit !== "ok") return NextResponse.json({ error: limit === "limited" ? "Please wait a few minutes before sending another application." : "Applications can't be sent right now. Nothing was sent. Try again shortly." }, { status: limit === "limited" ? 429 : 503 });
   let body: {
     org_name?: string; contact_name?: string; email?: string; phone?: string;
     city?: string; website?: string; about?: string; documents?: { name: string; url: string }[];

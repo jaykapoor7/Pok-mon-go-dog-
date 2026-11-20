@@ -225,6 +225,8 @@
   .kb-quick { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
   .kb-quick::-webkit-scrollbar { display: none; }
   .kb-quick button { flex: none; }
+  /* Except the last decision: send, don't send or start again all stay in view ("Start again" sat off the edge). */
+  .kb[data-at="review"] .kb-quick { flex-wrap: wrap; overflow-x: visible; }
   .kc-foot > .kb-quick { justify-self: stretch; }
   .kv > .kb-quick { justify-content: flex-start; margin: 0 12px 6px; }
   .kv-card { gap: 8px; padding: 20px 16px; }

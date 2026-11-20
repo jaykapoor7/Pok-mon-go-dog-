@@ -42,6 +42,10 @@ export function PinPicker({ value, onPick, label, onLabel, statusClass = "" }: {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [searching, setSearching] = useState(false);
+  /* What the last search found: nothing, or the search itself failed (it used to say neither). */
+  const [found, setFound] = useState<"ok" | "none" | "error">("ok");
+  /* The words a chosen place put in the box: they are not searched again (the list used to reopen under the box). */
+  const picked = useRef<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [where, setWhere] = useState<string | null>(null);
 
@@ -92,15 +96,17 @@ export function PinPicker({ value, onPick, label, onLabel, statusClass = "" }: {
 
   useEffect(() => {
     const t = q.trim();
-    if (t.length < 3) { setHits([]); setSearching(false); return; }
+    if (t.length < 3 || t === picked.current) { setHits([]); setSearching(false); setFound("ok"); return; }
     setSearching(true);
     const id = window.setTimeout(() => {
       fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=in&limit=5&q=${encodeURIComponent(t)}`, { headers: { Accept: "application/json" } })
-        .then((r) => r.json()).then((d: { lat: string; lon: string; display_name: string }[]) => setHits(d.map((x) => ({ lat: +x.lat, lng: +x.lon, label: x.display_name }))))
-        .catch(() => setHits([])).finally(() => setSearching(false));
+        .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then((d: { lat: string; lon: string; display_name: string }[]) => { setHits(d.map((x) => ({ lat: +x.lat, lng: +x.lon, label: x.display_name }))); setFound(d.length ? "ok" : "none"); })
+        .catch(() => { setHits([]); setFound("error"); }).finally(() => setSearching(false));
     }, 350);
     return () => window.clearTimeout(id);
   }, [q]);
+  const pick = (h: Hit) => { const words = h.label.split(",").slice(0, 2).join(","); picked.current = words.trim(); setQ(words); setHits([]); setFound("ok"); choose(h.lat, h.lng); };
 
   const here = () => {
     setLocating(true); setWhere(null);
@@ -111,16 +117,18 @@ export function PinPicker({ value, onPick, label, onLabel, statusClass = "" }: {
     <div className="pbm-pick">
       <div className="pbm-tools">
         <label className="pbm-q"><Search size={16} aria-hidden /><span className="pb-sr">Search a street, landmark or area</span>
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a street, landmark or area" autoComplete="off" aria-controls="pbm-hits" />
+          <input type="search" value={q} onChange={(e) => { picked.current = null; setQ(e.target.value); }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const h = hits[0]; if (h) pick(h); } }} placeholder="Search a street, landmark or area" autoComplete="off" aria-controls="pbm-hits" />
         </label>
         <button type="button" className="pb-btn is-line" onClick={here} disabled={locating}><Crosshair size={16} aria-hidden />{locating ? "Finding you…" : "Where I am"}</button>
       </div>
       {where && <p className="pbm-warn" role="alert">{where}</p>}
       <div id="pbm-hits" aria-live="polite">
         {searching && q.trim().length >= 3 && !hits.length ? <p className="pbm-hint">Searching…</p> : null}
+        {!searching && found === "none" ? <p className="pbm-hint">No places found. Try a nearby landmark, or move the map to the spot.</p> : null}
+        {!searching && found === "error" ? <p className="pbm-hint">Place search is not available just now. Move the map to put the pin on the spot.</p> : null}
         {hits.length > 0 && (
           <ul className="pbm-hits" aria-label="Places found">
-            {hits.map((h) => <li key={`${h.lat},${h.lng}`}><button type="button" onClick={() => { setQ(h.label.split(",").slice(0, 2).join(",")); setHits([]); choose(h.lat, h.lng); }}>{h.label}</button></li>)}
+            {hits.map((h) => <li key={`${h.lat},${h.lng}`}><button type="button" onClick={() => pick(h)}>{h.label}</button></li>)}
           </ul>
         )}
       </div>

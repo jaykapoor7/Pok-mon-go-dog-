@@ -29,7 +29,8 @@ export function Exercise({ id, onDone }: { id: Interactive } & P) {
 
 /* ── Unknown is not zero ───────────────────────────────────────────── */
 type S = "yes" | "no" | "unk";
-const STREET: S[] = ["yes", "unk", "unk", "no", "yes", "unk", "unk", "yes", "unk", "no", "unk", "yes", "unk", "unk", "yes", "unk", "no", "unk", "yes", "unk"];
+/* Twenty animals: 8 with a sterilisation status (5 yes, 3 no) and 12 unknown, as the lesson's text and feedback say. */
+const STREET: S[] = ["yes", "unk", "unk", "no", "yes", "unk", "unk", "yes", "unk", "no", "unk", "yes", "unk", "unk", "yes", "unk", "no", "unk", "unk", "unk"];
 function UnknownLedger({ onDone }: P) {
   const [seen, setSeen] = useState<Set<number>>(new Set());
   const [mode, setMode] = useState<"known" | "asno" | "honest">("honest");

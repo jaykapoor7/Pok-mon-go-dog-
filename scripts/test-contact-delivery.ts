@@ -47,7 +47,8 @@ async function main() {
   assert.equal((await apply()).status,429);
   rateAllowed=true;
   const unidentified=request({name:"Test",email:"sender@example.com",message:"No caller identity"});unidentified.headers.delete("x-forwarded-for");
-  assert.equal((await contact(unidentified)).status,429);assert.equal(sent.length,count);
+  // Without a caller address the limiter cannot count, which is not "too fast": 503, and still nothing is sent.
+  assert.equal((await contact(unidentified)).status,503);assert.equal(sent.length,count);
   console.log("Contact delivery passed: Gmail routing, reply-to, HTML escaping, storage outage, provider failure and input validation. No emails sent.");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

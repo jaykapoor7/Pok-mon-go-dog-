@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { getSupabaseAdmin, getSupabase } from "@/lib/supabase";
 import { notifyTelegram, moderateUrl } from "@/lib/telegram";
-import { allowRequest } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,10 +51,12 @@ export async function POST(req: Request) {
     null;
 
   // Throttle: max 8 reports per IP per 10 minutes.
-  if (!(await allowRequest(ip, "report", 8, 600))) {
+  const limit = await rateLimit(ip, "report", 8, 600);
+  if (limit !== "ok") {
+    /* "Too fast" only when it is: a limiter that cannot run says so, and nothing is sent either way. */
     return NextResponse.json(
-      { error: "You're reporting very fast. Please wait a moment and try again." },
-      { status: 429 }
+      { error: limit === "limited" ? "You're reporting very fast. Please wait a moment and try again." : "Reports can't be sent right now. Nothing was sent; your answers are kept. Try again shortly." },
+      { status: limit === "limited" ? 429 : 503 }
     );
   }
 
