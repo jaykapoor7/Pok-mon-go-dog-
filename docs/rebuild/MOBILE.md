@@ -28,6 +28,7 @@ Phones are their own product, not a narrow desktop. This is the spec every phone
   | Workspace | Tabs |
   | --- | --- |
   | NGO | Today · Cases · **+** · Animals · Menu |
+  | NGO field team (field worker or member) | My day · Cases · **+** · Animals · Menu |
   | Healthcare (hospital) | Today · Bites · **+** · PEP · Menu |
   | Healthcare (laboratory) | Queue · Samples · Results · Menu |
   | Veterinary | Today · Patients · Procedures · Menu |

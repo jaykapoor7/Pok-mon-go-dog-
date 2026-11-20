@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
    light and dark, at the phone and desktop sizes the projects define. */
 
 const PAGES = [
-  "/ngo/today", "/ngo/inbox", "/ngo/cases", "/ngo/animals", "/ngo/operations", "/ngo/programmes", "/ngo/submissions",
+  "/ngo/today", "/ngo/field", "/ngo/inbox", "/ngo/cases", "/ngo/animals", "/ngo/operations", "/ngo/programmes", "/ngo/submissions",
   "/gov/overview", "/gov/verification", "/gov/surveillance",
   "/health/today", "/health/pep", "/health/referrals", "/health/samples",
   "/research/datasets", "/research/explore",

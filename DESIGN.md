@@ -144,7 +144,7 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
      Evidence, To report). Queue, Intake, Sign-off & evidence, Decisions and
      Field mode are **views of the Pipeline** (tabs above the page), not menu
      items. Coordinator: Pipeline, Animals, Reports. Vet: Pipeline, Animals.
-     Field team: Field mode, Pipeline, Animals. Hospital: Bite register,
+     Field team: My day (field mode, Kaju first; see "The field home" below), Pipeline, Animals. Hospital: Bite register,
      Services. Laboratory: Services. Municipal: Wards & map, Review,
      Contracts, Programmes. Programme cell: Coverage, Report.
   3. **Programme**, from the Bengaluru proposal. A field partner (NGO), in
@@ -183,6 +183,14 @@ This section supersedes "4. Navigation" for NGO and municipal sidebars.
   things waiting. What changed since yesterday is one sentence. Kaju's
   prepared work is one fold, closed until wanted. Nothing else goes above the
   fold.
+- **The field home** (`src/nx/pages/ngo/Field.tsx`, 20 Nov 2026). A field worker (an NGO's `field_worker` or
+  `member`; `isFieldTeam` in `src/nx/nav.ts`) opens StrayPaw on **My day** (`/ngo/field`): a greeting and one line
+  about the day, Kaju's "What are you working on?", three shortcuts, their own work as one short list, and four record
+  links. Kaju answers field work from the worker's own records (`src/nx/data/fieldKaju.ts`: cases, follow-ups, drives,
+  each ABC case's evidence checklist, what waits on the phone) and opens the existing screen that does it; anything
+  else goes to Kaju itself. It never invents a drive or a count and never says something was saved. Records are kept
+  on the phone with a device key (no PIN) and send by themselves when there is signal. Leads, coordinators and vets
+  keep the organisation's Today, which a field worker reaches as "Team today".
 - **The first day** (`src/sp/shell/FirstDay.tsx`). A person is introduced to
   the workspace once, on their place's home, and again whenever they press
   **Guide** in the status line. It points at the real controls: the place, the

@@ -43,6 +43,8 @@
 .nx .fh-acts .fm-btn { height: 48px; padding: 0 16px; font-size: 16px; }
 .nx .fh-acts .fm-btn:not(.is-go) { background: var(--fm-fill); }
 .nx .fh-src { font-size: 12px; line-height: 16px; color: var(--fm-mute); }
+/* On the raised card in dark, the muted grey is too faint for small text (WCAG 1.4.3); the body grey is used instead. */
+.nx[data-theme="dark"] .fh-ans .fh-src { color: var(--fm-body); }
 /* Kaju's own answers keep their look, inside this card. */
 .nx .fh-ans.ak { margin: 0; padding: 16px; background: var(--fm-raise); }
 
